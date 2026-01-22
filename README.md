@@ -7,8 +7,10 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - CHPP OAuth endpoints for request token + callback handling
 - CHPP youthplayerlist endpoint (XML parsed to JSON)
 - CHPP youthplayerdetails endpoint (XML parsed to JSON)
+- CHPP matches endpoint (youth by default)
 - Basic UI to display connected youth players, with click-to-load player details
 - In-session details cache with manual refresh and a structured details panel (current/max skill bars)
+- Upcoming youth match list (handles team-level match list; falls back to recent matches if none UPCOMING)
 - Placeholder for the optimizer module
 
 ## Local setup
@@ -51,6 +53,13 @@ After OAuth succeeds, call:
 
 - `http://localhost:3000/api/chpp/youth/player-details?youthPlayerID=YOUR_ID`
 - Include raw XML: `http://localhost:3000/api/chpp/youth/player-details?youthPlayerID=YOUR_ID&raw=1`
+
+## Matches (local)
+After OAuth succeeds, call:
+
+- Youth matches (default): `http://localhost:3000/api/chpp/matches?isYouth=true`
+- Senior matches: `http://localhost:3000/api/chpp/matches?isYouth=false&teamID=YOUR_TEAM_ID`
+- Include raw XML: `http://localhost:3000/api/chpp/matches?isYouth=true&raw=1`
 
 ## Troubleshooting OAuth
 - Check env presence (no secrets returned): `http://localhost:3000/api/chpp/oauth/debug`

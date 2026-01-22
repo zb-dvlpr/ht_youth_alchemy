@@ -23,6 +23,10 @@
   color: #4d4d4d;
 }
 
+.sectionSpacing {
+  height: 24px;
+}
+
 .card {
   max-width: 1040px;
   margin: 0 auto;
@@ -282,6 +286,42 @@
   font-size: 12px;
   overflow-x: auto;
   max-height: 360px;
+}
+
+.matchList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.matchItem {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #f2efe9;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.matchTeams {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.vs {
+  color: #8a7b68;
+}
+
+.matchMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #4d4d4d;
+  font-size: 13px;
 }
 
 .muted {

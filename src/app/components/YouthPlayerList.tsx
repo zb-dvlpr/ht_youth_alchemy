@@ -45,6 +45,7 @@ type PlayerDetailsResponse = {
 
 type YouthPlayerListProps = {
   players: YouthPlayer[];
+  assignedIds?: Set<number>;
 };
 
 type CachedDetails = {
@@ -114,7 +115,9 @@ function formatPlayerName(player?: YouthPlayer | null) {
     .join(" ");
 }
 
-function resolveDetails(data: Record<string, unknown> | null): YouthPlayerDetails | null {
+function resolveDetails(
+  data: Record<string, unknown> | null
+): YouthPlayerDetails | null {
   if (!data) return null;
   const hattrickData = data.HattrickData as Record<string, unknown> | undefined;
   if (!hattrickData) return null;
@@ -158,7 +161,10 @@ function daysSince(dateString?: string) {
   return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
 }
 
-export default function YouthPlayerList({ players }: YouthPlayerListProps) {
+export default function YouthPlayerList({
+  players,
+  assignedIds,
+}: YouthPlayerListProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
   const [cache, setCache] = useState<Record<number, CachedDetails>>({});
@@ -219,6 +225,18 @@ export default function YouthPlayerList({ players }: YouthPlayerListProps) {
     await loadDetails(playerId);
   };
 
+  const handleDragStart = (
+    event: React.DragEvent<HTMLButtonElement>,
+    playerId: number
+  ) => {
+    event.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({ type: "player", playerId })
+    );
+    event.dataTransfer.setData("text/plain", String(playerId));
+    event.dataTransfer.effectAllowed = "move";
+  };
+
   const detailsData = resolveDetails(details);
   const cachedDetails = selectedId ? cache[selectedId] : undefined;
 
@@ -232,20 +250,30 @@ export default function YouthPlayerList({ players }: YouthPlayerListProps) {
           {players.map((player) => {
             const fullName = formatPlayerName(player);
             const isSelected = selectedId === player.YouthPlayerID;
+            const isAssigned = assignedIds?.has(player.YouthPlayerID) ?? false;
 
             return (
               <li key={player.YouthPlayerID} className={styles.listItem}>
                 <div className={styles.playerRow}>
                   <button
                     type="button"
-                    className={styles.playerButton}
+                    className={`${styles.playerButton} ${
+                      isAssigned ? styles.playerAssigned : ""
+                    }`}
                     onClick={() => handleSelect(player.YouthPlayerID)}
+                    onDragStart={(event) =>
+                      handleDragStart(event, player.YouthPlayerID)
+                    }
+                    draggable
                     aria-pressed={isSelected}
                   >
                     <span className={styles.playerName}>{fullName}</span>
                     <span className={styles.playerId}>
                       ID: {player.YouthPlayerID}
                     </span>
+                    {isAssigned ? (
+                      <span className={styles.assignedTag}>Assigned</span>
+                    ) : null}
                   </button>
                 </div>
               </li>

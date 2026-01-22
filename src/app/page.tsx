@@ -1,8 +1,9 @@
 import { cookies, headers } from "next/headers";
+import Image from "next/image";
 import styles from "./page.module.css";
-import YouthPlayerList from "./components/YouthPlayerList";
 import UpcomingMatches from "./components/UpcomingMatches";
-import LineupField from "./components/LineupField";
+import LineupBoard from "./components/LineupBoard";
+import pkg from "../../package.json";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -100,10 +101,15 @@ export default async function Home() {
   return (
     <main className={styles.main}>
       <div className={styles.center}>
-        <h1 className={styles.title}>Youth Alchemy</h1>
-        <p className={styles.subtitle}>
-          Connected youth players (via CHPP)
-        </p>
+        <Image
+          src="/logo.png"
+          alt="Hattrick Youth Alchemy"
+          width={320}
+          height={320}
+          priority
+          className={styles.logo}
+        />
+        <div className={styles.version}>v{pkg.version}</div>
       </div>
 
       {playersResponse.error ? (
@@ -116,8 +122,7 @@ export default async function Home() {
         </div>
       ) : (
         <div className={styles.playerLayout}>
-          <YouthPlayerList players={players} />
-          <LineupField />
+          <LineupBoard players={players} />
         </div>
       )}
 

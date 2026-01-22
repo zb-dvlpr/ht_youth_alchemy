@@ -2,6 +2,7 @@ import { cookies, headers } from "next/headers";
 import styles from "./page.module.css";
 import YouthPlayerList from "./components/YouthPlayerList";
 import UpcomingMatches from "./components/UpcomingMatches";
+import LineupField from "./components/LineupField";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -114,7 +115,10 @@ export default async function Home() {
           ) : null}
         </div>
       ) : (
-        <YouthPlayerList players={players} />
+        <div className={styles.playerLayout}>
+          <YouthPlayerList players={players} />
+          <LineupField />
+        </div>
       )}
 
       <div className={styles.sectionSpacing} />

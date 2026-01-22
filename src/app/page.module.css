@@ -27,6 +27,13 @@
   height: 24px;
 }
 
+.playerLayout {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+  align-items: start;
+}
+
 .card {
   max-width: 1040px;
   margin: 0 auto;
@@ -324,6 +331,147 @@
   font-size: 13px;
 }
 
+.fieldCard {
+  padding: 0;
+  border-radius: 16px;
+  background: #4b7f4a;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.fieldHeader {
+  background: #3b6b3a;
+  color: #f7f1e3;
+  padding: 12px 16px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
+}
+
+.fieldPitch {
+  position: relative;
+  padding: 32px 18px 24px;
+  min-height: 520px;
+  display: grid;
+  gap: 26px;
+  overflow: hidden;
+  --row-gap: 12px;
+  --slot-width: min(110px, calc((100% - (var(--row-gap) * 4)) / 5));
+  --slot-height: clamp(56px, 9vw, 86px);
+}
+
+.fieldRow {
+  display: grid;
+  width: 100%;
+  gap: var(--row-gap);
+  justify-content: center;
+  justify-self: center;
+}
+
+.fieldRowGoal {
+  grid-template-columns: repeat(1, var(--slot-width));
+}
+
+.fieldRowDef {
+  grid-template-columns: repeat(5, var(--slot-width));
+}
+
+.fieldRowMid {
+  grid-template-columns: repeat(5, var(--slot-width));
+}
+
+.fieldRowAtk {
+  grid-template-columns: repeat(3, var(--slot-width));
+}
+
+.fieldSlot {
+  width: 100%;
+  min-width: var(--slot-width);
+  height: var(--slot-height);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fieldLabel {
+  font-size: 13px;
+  font-weight: 700;
+  color: #f7f1e3;
+}
+
+.fieldGoal {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 140px;
+  height: 32px;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-bottom: none;
+}
+
+.fieldGoalNet {
+  width: 100%;
+  height: 100%;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255, 255, 255, 0.3),
+    rgba(255, 255, 255, 0.3) 6px,
+    rgba(255, 255, 255, 0.15) 6px,
+    rgba(255, 255, 255, 0.15) 12px
+  );
+}
+
+.penaltyBox {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  height: 120px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top: none;
+}
+
+.penaltyArc {
+  position: absolute;
+  top: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 70px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  border-bottom-left-radius: 150px;
+  border-bottom-right-radius: 150px;
+}
+
+.centerCircle {
+  position: absolute;
+  left: 50%;
+  bottom: -60px;
+  width: 120px;
+  height: 120px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.centerSpot {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  transform: translateX(-50%);
+}
+
 .muted {
   color: #666;
   font-size: 14px;
@@ -349,6 +497,12 @@
   margin: 8px 0 0;
 }
 
+@media (max-width: 900px) {
+  .playerLayout {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 800px) {
   .skillRow {
     grid-template-columns: 1fr;
@@ -367,5 +521,13 @@
 
   .title {
     font-size: 32px;
+  }
+
+  .fieldPitch {
+    min-height: 420px;
+  }
+
+  .fieldSlot {
+    min-height: 60px;
   }
 }

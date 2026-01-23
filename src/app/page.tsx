@@ -1,8 +1,7 @@
 import { cookies, headers } from "next/headers";
 import Image from "next/image";
 import styles from "./page.module.css";
-import UpcomingMatches from "./components/UpcomingMatches";
-import LineupBoard from "./components/LineupBoard";
+import Dashboard from "./components/Dashboard";
 import pkg from "../../package.json";
 
 type YouthPlayer = {
@@ -29,6 +28,11 @@ type MatchesResponse = {
     HattrickData?: {
       MatchList?: {
         Match?: unknown;
+      };
+      Team?: {
+        MatchList?: {
+          Match?: unknown;
+        };
       };
     };
   };
@@ -121,14 +125,8 @@ export default async function Home() {
           ) : null}
         </div>
       ) : (
-        <div className={styles.playerLayout}>
-          <LineupBoard players={players} />
-        </div>
+        <Dashboard players={players} matchesResponse={matchesResponse} />
       )}
-
-      <div className={styles.sectionSpacing} />
-
-      <UpcomingMatches response={matchesResponse} />
     </main>
   );
 }

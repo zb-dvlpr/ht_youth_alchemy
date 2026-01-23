@@ -7,7 +7,12 @@ export async function POST(request: Request) {
     | null;
   const locale = body?.locale?.toLowerCase();
 
-  if (!locale || !SUPPORTED_LOCALES.includes(locale as any)) {
+  const isSupported =
+    !!locale &&
+    SUPPORTED_LOCALES.includes(
+      locale as (typeof SUPPORTED_LOCALES)[number]
+    );
+  if (!isSupported) {
     return NextResponse.json({ error: "Unsupported locale" }, { status: 400 });
   }
 

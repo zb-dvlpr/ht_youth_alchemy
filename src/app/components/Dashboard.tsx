@@ -3,11 +3,13 @@
 import { useMemo, useState } from "react";
 import styles from "../page.module.css";
 import YouthPlayerList from "./YouthPlayerList";
-import PlayerDetailsPanel from "./PlayerDetailsPanel";
+import PlayerDetailsPanel, {
+  YouthPlayerDetails,
+} from "./PlayerDetailsPanel";
 import LineupField, { LineupAssignments } from "./LineupField";
 import UpcomingMatches from "./UpcomingMatches";
 import { Messages } from "@/lib/i18n";
-import RatingsMatrix from "./RatingsMatrix";
+import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -42,7 +44,7 @@ type MatchesResponse = {
 type DashboardProps = {
   players: YouthPlayer[];
   matchesResponse: MatchesResponse;
-  ratingsResponse: any;
+  ratingsResponse: RatingsMatrixResponse | null;
   messages: Messages;
 };
 
@@ -57,7 +59,7 @@ function resolveDetails(data: Record<string, unknown> | null) {
   if (!data) return null;
   const hattrickData = data.HattrickData as Record<string, unknown> | undefined;
   if (!hattrickData) return null;
-  return (hattrickData.YouthPlayer as Record<string, unknown>) ?? null;
+  return (hattrickData.YouthPlayer as YouthPlayerDetails) ?? null;
 }
 
 export default function Dashboard({
@@ -184,7 +186,7 @@ export default function Dashboard({
       <div className={styles.columnStack}>
         <PlayerDetailsPanel
           selectedPlayer={selectedPlayer}
-          detailsData={detailsData as any}
+          detailsData={detailsData}
           loading={loading}
           error={error}
           lastUpdated={lastUpdated}

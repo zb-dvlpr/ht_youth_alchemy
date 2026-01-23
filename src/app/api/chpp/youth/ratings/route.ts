@@ -1,81 +1,54 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { XMLParser } from "fast-xml-parser";
-import { getChppEnv } from "@/lib/chpp/env";
-import { createNodeOAuthClient, getProtectedResource } from "@/lib/chpp/node-oauth";
+import {
+  buildChppErrorPayload,
+  ChppAuthError,
+  fetchChppXml,
+  getChppAuth,
+} from "@/lib/chpp/server";
+import { normalizeArray, parseChppDate } from "@/lib/chpp/utils";
+import { POSITION_COLUMNS, normalizeMatchRoleId } from "@/lib/positions";
 
-const CHPP_XML_ENDPOINT = "https://chpp.hattrick.org/chppxml.ashx";
 const MATCHES_VERSION = "2.9";
 const MATCHLINEUP_VERSION = "2.1";
 
-const POSITION_COLUMNS = [100, 101, 103, 106, 107, 111];
+type MatchSummary = {
+  Status?: string;
+  MatchDate?: string;
+  MatchID?: number;
+};
 
-function normalizeMatches(input?: unknown) {
-  if (!input) return [] as any[];
-  return Array.isArray(input) ? input : [input];
-}
+type LineupPlayer = {
+  RoleID?: number | string;
+  RatingStars?: number | string;
+  PlayerID?: number | string;
+  FirstName?: string;
+  NickName?: string;
+  LastName?: string;
+};
 
-function normalizePosition(roleId: number) {
-  if (roleId === 100) return 100;
-  if (roleId >= 101 && roleId <= 105) return 101;
-  if (roleId >= 102 && roleId <= 104) return 103;
-  if (roleId === 106 || roleId === 110) return 106;
-  if (roleId >= 107 && roleId <= 109) return 107;
-  if (roleId >= 111 && roleId <= 113) return 111;
-  return null;
-}
-
-function parseDate(dateString?: string) {
-  if (!dateString) return null;
-  const parsed = new Date(dateString.replace(" ", "T"));
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    const { consumerKey, consumerSecret, callbackUrl } = getChppEnv();
-    const client = createNodeOAuthClient(
-      consumerKey,
-      consumerSecret,
-      callbackUrl
-    );
-
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("chpp_access_token")?.value;
-    const accessSecret = cookieStore.get("chpp_access_secret")?.value;
-
-    if (!accessToken || !accessSecret) {
-      return NextResponse.json(
-        { error: "Missing CHPP access token. Re-auth required." },
-        { status: 401 }
-      );
-    }
-
-    const matchesUrl = `${CHPP_XML_ENDPOINT}?file=matches&version=${MATCHES_VERSION}&isYouth=true`;
-    const matchesXml = await getProtectedResource(
-      client,
-      matchesUrl,
-      accessToken,
-      accessSecret
-    );
-
-    const parser = new XMLParser({
-      ignoreAttributes: false,
-      attributeNamePrefix: "@_",
+    const auth = await getChppAuth();
+    const matchesParams = new URLSearchParams({
+      file: "matches",
+      version: MATCHES_VERSION,
+      isYouth: "true",
     });
-    const matchesParsed = parser.parse(matchesXml);
+    const { parsed: matchesParsed } = await fetchChppXml(auth, matchesParams);
 
     const team = matchesParsed?.HattrickData?.Team;
     const teamId = team?.TeamID;
-    const matchList = normalizeMatches(team?.MatchList?.Match);
+    const matchList = normalizeArray<MatchSummary>(
+      team?.MatchList?.Match as MatchSummary | MatchSummary[] | undefined
+    );
 
     const finishedMatches = matchList
-      .filter((match: any) => match?.Status === "FINISHED")
-      .map((match: any) => ({
+      .filter((match) => match?.Status === "FINISHED")
+      .map((match) => ({
         ...match,
-        _date: parseDate(match.MatchDate)?.getTime() ?? 0,
+        _date: parseChppDate(match.MatchDate)?.getTime() ?? 0,
       }))
-      .sort((a: any, b: any) => b._date - a._date)
+      .sort((a, b) => b._date - a._date)
       .slice(0, 10);
 
     if (!teamId || finishedMatches.length === 0) {
@@ -92,28 +65,29 @@ export async function GET(request: Request) {
 
     for (const match of finishedMatches) {
       const matchId = match.MatchID;
-      const lineupUrl = `${CHPP_XML_ENDPOINT}?file=matchlineup&version=${MATCHLINEUP_VERSION}&matchID=${matchId}&teamID=${teamId}&sourceSystem=Youth`;
-      const lineupXml = await getProtectedResource(
-        client,
-        lineupUrl,
-        accessToken,
-        accessSecret
+      const lineupParams = new URLSearchParams({
+        file: "matchlineup",
+        version: MATCHLINEUP_VERSION,
+        matchID: String(matchId),
+        teamID: String(teamId),
+        sourceSystem: "Youth",
+      });
+      const { parsed: lineupParsed } = await fetchChppXml(auth, lineupParams);
+      const lineupPlayers =
+        lineupParsed?.HattrickData?.Team?.Lineup?.Player;
+      const normalized = normalizeArray<LineupPlayer>(
+        lineupPlayers as LineupPlayer | LineupPlayer[] | undefined
       );
-      const lineupParsed = parser.parse(lineupXml);
-      const lineupPlayers = lineupParsed?.HattrickData?.Team?.Lineup?.Player;
-      const normalized = Array.isArray(lineupPlayers)
-        ? lineupPlayers
-        : lineupPlayers
-        ? [lineupPlayers]
-        : [];
 
-      normalized.forEach((player: any) => {
+      normalized.forEach((player) => {
         const roleId = Number(player.RoleID);
-        const column = normalizePosition(roleId);
+        const column = normalizeMatchRoleId(roleId);
         if (!column) return;
-        const rating = player.RatingStars;
+        const rating = Number(player.RatingStars);
+        if (Number.isNaN(rating)) return;
         if (rating === undefined || rating === null) return;
         const playerId = Number(player.PlayerID);
+        if (Number.isNaN(playerId)) return;
         const fullName = [player.FirstName, player.NickName, player.LastName]
           .filter(Boolean)
           .join(" ");
@@ -140,27 +114,11 @@ export async function GET(request: Request) {
       players: Array.from(playersMap.values()),
     });
   } catch (error) {
-    const details =
-      error instanceof Error
-        ? error.message
-        : typeof error === "string"
-        ? error
-        : JSON.stringify(error);
-    const errorObject =
-      error && typeof error === "object" && !Array.isArray(error)
-        ? (error as Record<string, unknown>)
-        : null;
+    if (error instanceof ChppAuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
     return NextResponse.json(
-      {
-        error: "Failed to fetch ratings matrix",
-        details,
-        ...(errorObject
-          ? {
-              statusCode: errorObject.statusCode ?? null,
-              data: errorObject.data ?? null,
-            }
-          : {}),
-      },
+      buildChppErrorPayload("Failed to fetch ratings matrix", error),
       { status: 502 }
     );
   }

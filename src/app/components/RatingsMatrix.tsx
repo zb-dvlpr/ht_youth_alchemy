@@ -1,5 +1,6 @@
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
+import { POSITION_COLUMNS, positionLabel } from "@/lib/positions";
 
 type RatingRow = {
   id: number;
@@ -7,7 +8,7 @@ type RatingRow = {
   ratings: Record<string, number>;
 };
 
-type RatingsMatrixResponse = {
+export type RatingsMatrixResponse = {
   positions: number[];
   players: RatingRow[];
 };
@@ -17,36 +18,9 @@ type RatingsMatrixProps = {
   messages: Messages;
 };
 
-const POSITION_ORDER = [100, 101, 103, 106, 107, 111];
-
 function uniquePositions(positions: number[] | undefined) {
-  if (!positions || positions.length === 0) return POSITION_ORDER;
-  return POSITION_ORDER.filter((code) => positions.includes(code));
-}
-
-function positionLabel(code: number, messages: Messages) {
-  switch (code) {
-    case 100:
-      return messages.posKeeper;
-    case 101:
-      return messages.posBack;
-    case 102:
-    case 103:
-    case 104:
-      return messages.posCentralDefender;
-    case 106:
-      return messages.posWinger;
-    case 107:
-    case 108:
-    case 109:
-      return messages.posInnerMidfield;
-    case 111:
-    case 112:
-    case 113:
-      return messages.posForward;
-    default:
-      return `#${code}`;
-  }
+  if (!positions || positions.length === 0) return POSITION_COLUMNS;
+  return POSITION_COLUMNS.filter((code) => positions.includes(code));
 }
 
 function formatRating(value: number | null) {

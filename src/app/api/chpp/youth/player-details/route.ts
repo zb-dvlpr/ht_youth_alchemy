@@ -10,6 +10,8 @@ const DEFAULT_VERSION = "1.2";
 function buildParams(url: URL) {
   const version = url.searchParams.get("version") ?? DEFAULT_VERSION;
   const youthPlayerID = url.searchParams.get("youthPlayerID");
+  const showLastMatch = url.searchParams.get("showLastMatch");
+  const showScoutCall = url.searchParams.get("showScoutCall");
 
   if (!youthPlayerID) {
     throw new Error("Missing required youthPlayerID parameter");
@@ -20,6 +22,9 @@ function buildParams(url: URL) {
     version,
     youthPlayerID,
   });
+
+  if (showLastMatch) params.set("showLastMatch", showLastMatch);
+  if (showScoutCall) params.set("showScoutCall", showScoutCall);
 
   return params;
 }

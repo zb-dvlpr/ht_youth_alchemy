@@ -107,7 +107,7 @@ export default function Dashboard({
 
     try {
       const response = await fetch(
-        `/api/chpp/youth/player-details?youthPlayerID=${playerId}`,
+        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true`,
         { cache: "no-store" }
       );
       const payload = (await response.json()) as PlayerDetailsResponse;

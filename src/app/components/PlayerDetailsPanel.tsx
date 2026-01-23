@@ -33,6 +33,13 @@ type YouthPlayerDetails = {
     };
   };
   PlayerSkills?: Record<string, SkillValue>;
+  LastMatch?: {
+    Date?: string;
+    YouthMatchID?: number;
+    PositionCode?: number;
+    PlayedMinutes?: number;
+    Rating?: number;
+  };
 };
 
 type PlayerDetailsPanelProps = {
@@ -142,6 +149,27 @@ function daysSince(dateString?: string) {
   return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
 }
 
+function normalizePosition(roleId: number | undefined): "KP" | "WB" | "CD" | "W" | "IM" | "F" | null {
+  if (roleId === undefined || roleId === null) return null;
+  if (roleId === 100) return "KP";
+  if (roleId >= 101 && roleId <= 105) return "WB";
+  if (roleId >= 102 && roleId <= 104) return "CD";
+  if (roleId === 106 || roleId === 110) return "W";
+  if (roleId >= 107 && roleId <= 109) return "IM";
+  if (roleId >= 111 && roleId <= 113) return "F";
+  return null;
+}
+
+function formatMatchDate(dateString?: string) {
+  if (!dateString) return null;
+  const parsed = new Date(dateString.replace(" ", "T"));
+  if (Number.isNaN(parsed.getTime())) return null;
+  const dd = String(parsed.getDate()).padStart(2, "0");
+  const mm = String(parsed.getMonth() + 1).padStart(2, "0");
+  const yyyy = parsed.getFullYear();
+  return `${dd}.${mm}.${yyyy}`;
+}
+
 export default function PlayerDetailsPanel({
   selectedPlayer,
   detailsData,
@@ -248,6 +276,21 @@ export default function PlayerDetailsPanel({
                   {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}{" "}
                   {SPECIALTY_NAMES[detailsData.Specialty] ??
                     `Specialty ${detailsData.Specialty}`}
+                </div>
+              </div>
+            ) : null}
+            {detailsData.LastMatch ? (
+              <div>
+                <div className={styles.infoLabel}>
+                  {messages.lastMatchRatingLabel}
+                </div>
+                <div className={styles.infoValue}>
+                  {detailsData.LastMatch.Rating ?? messages.unknownLabel}{" "}
+                  {normalizePosition(detailsData.LastMatch.PositionCode)
+                    ? `(${normalizePosition(detailsData.LastMatch.PositionCode)})`
+                    : ""}{" "}
+                  {formatMatchDate(detailsData.LastMatch.Date) ??
+                    messages.unknownDate}
                 </div>
               </div>
             ) : null}

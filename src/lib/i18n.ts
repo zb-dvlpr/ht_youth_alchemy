@@ -42,6 +42,8 @@ export type Messages = {
   skillsLabel: string;
   unknownLabel: string;
   potentialLabel: string;
+  lastMatchPositionLabel: string;
+  lastMatchRatingLabel: string;
   homeLabel: string;
   awayLabel: string;
   unknownDate: string;
@@ -96,6 +98,8 @@ const MESSAGES: Record<Locale, Messages> = {
     skillsLabel: "Skills",
     unknownLabel: "unknown",
     potentialLabel: "potential",
+    lastMatchPositionLabel: "Last match position",
+    lastMatchRatingLabel: "Last match rating",
     homeLabel: "Home",
     awayLabel: "Away",
     unknownDate: "Unknown date",
@@ -148,6 +152,8 @@ const MESSAGES: Record<Locale, Messages> = {
     skillsLabel: "Fähigkeiten",
     unknownLabel: "unbekannt",
     potentialLabel: "Potenzial",
+    lastMatchPositionLabel: "Letzte Position",
+    lastMatchRatingLabel: "Letzte Bewertung",
     homeLabel: "Heim",
     awayLabel: "Auswärts",
     unknownDate: "Unbekanntes Datum",
@@ -200,6 +206,8 @@ const MESSAGES: Record<Locale, Messages> = {
     skillsLabel: "Compétences",
     unknownLabel: "inconnu",
     potentialLabel: "potentiel",
+    lastMatchPositionLabel: "Position du dernier match",
+    lastMatchRatingLabel: "Note du dernier match",
     homeLabel: "Domicile",
     awayLabel: "Extérieur",
     unknownDate: "Date inconnue",
@@ -252,6 +260,8 @@ const MESSAGES: Record<Locale, Messages> = {
     skillsLabel: "Habilidades",
     unknownLabel: "desconocido",
     potentialLabel: "potencial",
+    lastMatchPositionLabel: "Posición del último partido",
+    lastMatchRatingLabel: "Calificación del último partido",
     homeLabel: "Local",
     awayLabel: "Visitante",
     unknownDate: "Fecha desconocida",
@@ -304,6 +314,8 @@ const MESSAGES: Record<Locale, Messages> = {
     skillsLabel: "Färdigheter",
     unknownLabel: "okänd",
     potentialLabel: "potential",
+    lastMatchPositionLabel: "Senaste matchposition",
+    lastMatchRatingLabel: "Senaste matchbetyg",
     homeLabel: "Hemma",
     awayLabel: "Borta",
     unknownDate: "Okänt datum",
@@ -356,6 +368,8 @@ const MESSAGES: Record<Locale, Messages> = {
     skillsLabel: "Abilità",
     unknownLabel: "sconosciuto",
     potentialLabel: "potenziale",
+    lastMatchPositionLabel: "Posizione ultimo match",
+    lastMatchRatingLabel: "Valutazione ultimo match",
     homeLabel: "Casa",
     awayLabel: "Trasferta",
     unknownDate: "Data sconosciuta",
@@ -408,6 +422,8 @@ const MESSAGES: Record<Locale, Messages> = {
     skillsLabel: "Habilidades",
     unknownLabel: "desconhecido",
     potentialLabel: "potencial",
+    lastMatchPositionLabel: "Posição do último jogo",
+    lastMatchRatingLabel: "Avaliação do último jogo",
     homeLabel: "Casa",
     awayLabel: "Fora",
     unknownDate: "Data desconhecida",

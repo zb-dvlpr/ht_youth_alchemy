@@ -57,6 +57,7 @@ export type Messages = {
   posForward: string;
   connectLabel: string;
   connectedLabel: string;
+  brandTitle: string;
   skillKeeper: string;
   skillDefending: string;
   skillPlaymaking: string;
@@ -114,6 +115,7 @@ const MESSAGES: Record<Locale, Messages> = {
     posForward: "F",
     connectLabel: "Connect Hattrick",
     connectedLabel: "Connected",
+    brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Keeper",
     skillDefending: "Defending",
     skillPlaymaking: "Playmaking",
@@ -169,6 +171,7 @@ const MESSAGES: Record<Locale, Messages> = {
     posForward: "ST",
     connectLabel: "Hattrick verbinden",
     connectedLabel: "Verbunden",
+    brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Torwart",
     skillDefending: "Verteidigung",
     skillPlaymaking: "Spielaufbau",
@@ -224,6 +227,7 @@ const MESSAGES: Record<Locale, Messages> = {
     posForward: "AV",
     connectLabel: "Connecter Hattrick",
     connectedLabel: "Connecté",
+    brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Gardien",
     skillDefending: "Défense",
     skillPlaymaking: "Construction",
@@ -279,6 +283,7 @@ const MESSAGES: Record<Locale, Messages> = {
     posForward: "DC",
     connectLabel: "Conectar Hattrick",
     connectedLabel: "Conectado",
+    brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Portero",
     skillDefending: "Defensa",
     skillPlaymaking: "Creatividad",
@@ -334,6 +339,7 @@ const MESSAGES: Record<Locale, Messages> = {
     posForward: "F",
     connectLabel: "Anslut Hattrick",
     connectedLabel: "Ansluten",
+    brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Målvakt",
     skillDefending: "Försvar",
     skillPlaymaking: "Speluppbyggnad",
@@ -389,6 +395,7 @@ const MESSAGES: Record<Locale, Messages> = {
     posForward: "P",
     connectLabel: "Connetti Hattrick",
     connectedLabel: "Connesso",
+    brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Portiere",
     skillDefending: "Difesa",
     skillPlaymaking: "Regia",
@@ -444,6 +451,7 @@ const MESSAGES: Record<Locale, Messages> = {
     posForward: "F",
     connectLabel: "Conectar Hattrick",
     connectedLabel: "Conectado",
+    brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Goleiro",
     skillDefending: "Defesa",
     skillPlaymaking: "Armação",

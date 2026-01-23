@@ -1,5 +1,4 @@
 import { cookies, headers } from "next/headers";
-import Image from "next/image";
 import styles from "./page.module.css";
 import Dashboard from "./components/Dashboard";
 import LanguageSwitcher from "./components/LanguageSwitcher";
@@ -144,15 +143,8 @@ export default async function Home() {
   return (
     <main className={styles.main}>
       <header className={styles.topBar}>
-        <div className={styles.brand}>
-          <Image
-            src="/logo.png"
-            alt="Hattrick Youth Alchemy"
-            width={140}
-            height={140}
-            priority
-            className={styles.logo}
-          />
+        <div className={styles.brandRow}>
+          <span className={styles.brandTitle}>{messages.brandTitle}</span>
         </div>
         <div className={styles.topBarControls}>
           <LanguageSwitcher locale={locale} label={messages.languageLabel} />

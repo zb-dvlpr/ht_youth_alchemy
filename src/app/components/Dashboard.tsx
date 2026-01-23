@@ -7,6 +7,7 @@ import PlayerDetailsPanel from "./PlayerDetailsPanel";
 import LineupField, { LineupAssignments } from "./LineupField";
 import UpcomingMatches from "./UpcomingMatches";
 import { Messages } from "@/lib/i18n";
+import RatingsMatrix from "./RatingsMatrix";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -41,6 +42,7 @@ type MatchesResponse = {
 type DashboardProps = {
   players: YouthPlayer[];
   matchesResponse: MatchesResponse;
+  ratingsResponse: any;
   messages: Messages;
 };
 
@@ -61,6 +63,7 @@ function resolveDetails(data: Record<string, unknown> | null) {
 export default function Dashboard({
   players,
   matchesResponse,
+  ratingsResponse,
   messages,
 }: DashboardProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -178,15 +181,20 @@ export default function Dashboard({
         onSelect={handleSelect}
         messages={messages}
       />
-      <PlayerDetailsPanel
-        selectedPlayer={selectedPlayer}
-        detailsData={detailsData as any}
-        loading={loading}
-        error={error}
-        lastUpdated={lastUpdated}
-        onRefresh={() => (selectedId ? loadDetails(selectedId, true) : undefined)}
-        messages={messages}
-      />
+      <div className={styles.columnStack}>
+        <PlayerDetailsPanel
+          selectedPlayer={selectedPlayer}
+          detailsData={detailsData as any}
+          loading={loading}
+          error={error}
+          lastUpdated={lastUpdated}
+          onRefresh={() =>
+            selectedId ? loadDetails(selectedId, true) : undefined
+          }
+          messages={messages}
+        />
+        <RatingsMatrix response={ratingsResponse} messages={messages} />
+      </div>
       <div className={styles.columnStack}>
         <LineupField
           assignments={assignments}

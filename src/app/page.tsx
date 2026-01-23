@@ -5,7 +5,7 @@ import Dashboard from "./components/Dashboard";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
-import RatingsMatrix from "./components/RatingsMatrix";
+// Ratings matrix now lives inside the dashboard column layout.
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -178,15 +178,12 @@ export default async function Home() {
           ) : null}
         </div>
       ) : (
-        <>
-          <Dashboard
-            players={players}
-            matchesResponse={matchesResponse}
-            messages={messages}
-          />
-          <div className={styles.matrixSpacing} />
-          <RatingsMatrix response={ratingsResponse} messages={messages} />
-        </>
+        <Dashboard
+          players={players}
+          matchesResponse={matchesResponse}
+          ratingsResponse={ratingsResponse}
+          messages={messages}
+        />
       )}
     </main>
   );

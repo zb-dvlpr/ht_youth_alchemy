@@ -8,21 +8,9 @@ const CHPP_XML_ENDPOINT = "https://chpp.hattrick.org/chppxml.ashx";
 const MATCHES_VERSION = "2.9";
 const MATCHLINEUP_VERSION = "2.1";
 
-const POSITION_COLUMNS = [100, 101, 103, 106, 107, 111];
-
 function normalizeMatches(input?: unknown) {
   if (!input) return [] as any[];
   return Array.isArray(input) ? input : [input];
-}
-
-function normalizePosition(roleId: number) {
-  if (roleId === 100) return 100;
-  if (roleId >= 101 && roleId <= 105) return 101;
-  if (roleId >= 102 && roleId <= 104) return 103;
-  if (roleId === 106 || roleId === 110) return 106;
-  if (roleId >= 107 && roleId <= 109) return 107;
-  if (roleId >= 111 && roleId <= 113) return 111;
-  return null;
 }
 
 function parseDate(dateString?: string) {
@@ -75,8 +63,7 @@ export async function GET(request: Request) {
         ...match,
         _date: parseDate(match.MatchDate)?.getTime() ?? 0,
       }))
-      .sort((a: any, b: any) => b._date - a._date)
-      .slice(0, 10);
+      .sort((a: any, b: any) => b._date - a._date);
 
     if (!teamId || finishedMatches.length === 0) {
       return NextResponse.json(
@@ -85,59 +72,25 @@ export async function GET(request: Request) {
       );
     }
 
-    const playersMap = new Map<
-      number,
-      { id: number; name: string; ratings: Record<string, number> }
-    >();
+    const lastMatch = finishedMatches[0];
+    const matchId = lastMatch.MatchID;
 
-    for (const match of finishedMatches) {
-      const matchId = match.MatchID;
-      const lineupUrl = `${CHPP_XML_ENDPOINT}?file=matchlineup&version=${MATCHLINEUP_VERSION}&matchID=${matchId}&teamID=${teamId}&sourceSystem=Youth`;
-      const lineupXml = await getProtectedResource(
-        client,
-        lineupUrl,
-        accessToken,
-        accessSecret
-      );
-      const lineupParsed = parser.parse(lineupXml);
-      const lineupPlayers = lineupParsed?.HattrickData?.Team?.Lineup?.Player;
-      const normalized = Array.isArray(lineupPlayers)
-        ? lineupPlayers
-        : lineupPlayers
-        ? [lineupPlayers]
-        : [];
+    const lineupUrl = `${CHPP_XML_ENDPOINT}?file=matchlineup&version=${MATCHLINEUP_VERSION}&matchID=${matchId}&teamID=${teamId}&sourceSystem=Youth`;
+    const lineupXml = await getProtectedResource(
+      client,
+      lineupUrl,
+      accessToken,
+      accessSecret
+    );
+    const lineupParsed = parser.parse(lineupXml);
 
-      normalized.forEach((player: any) => {
-        const roleId = Number(player.RoleID);
-        const column = normalizePosition(roleId);
-        if (!column) return;
-        const rating = player.RatingStars;
-        if (rating === undefined || rating === null) return;
-        const playerId = Number(player.PlayerID);
-        const fullName = [player.FirstName, player.NickName, player.LastName]
-          .filter(Boolean)
-          .join(" ");
-
-        if (!playersMap.has(playerId)) {
-          playersMap.set(playerId, {
-            id: playerId,
-            name: fullName,
-            ratings: {},
-          });
-        }
-
-        const entry = playersMap.get(playerId)!;
-        const key = String(column);
-        const existing = entry.ratings[key];
-        if (existing === undefined || rating > existing) {
-          entry.ratings[key] = rating;
-        }
-      });
-    }
+    const includeRaw = new URL(request.url).searchParams.get("raw") === "1";
 
     return NextResponse.json({
-      positions: POSITION_COLUMNS,
-      players: Array.from(playersMap.values()),
+      matchId,
+      teamId,
+      data: lineupParsed,
+      ...(includeRaw ? { raw: lineupXml } : {}),
     });
   } catch (error) {
     const details =
@@ -152,7 +105,7 @@ export async function GET(request: Request) {
         : null;
     return NextResponse.json(
       {
-        error: "Failed to fetch ratings matrix",
+        error: "Failed to fetch match lineup",
         details,
         ...(errorObject
           ? {

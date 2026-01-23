@@ -14,9 +14,11 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Click-to-load player details in a dedicated panel
 - Language switcher (English, German, French, Spanish, Swedish, Italian, Portuguese)
 - Localization rule: new UI text must be i18n-backed
-- Ratings matrix using last match ratings (showLastMatch=true)
+- Ratings matrix using last 10 finished match lineups (max RatingStars per cell)
 - Ratings matrix uses MatchRoleID labels instead of numeric codes
 - Ratings matrix collapses left/right positions into single columns
+- Ratings matrix rendered in the middle column; player list column tightened
+- Match lineup API for last finished youth match
 - Connect button shown when CHPP access token is missing
 - In-session details cache with manual refresh and a structured details panel (current/max skill bars)
 - Upcoming youth match list (handles team-level match list; falls back to recent matches if none UPCOMING)

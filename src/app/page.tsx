@@ -104,17 +104,19 @@ export default async function Home() {
 
   return (
     <main className={styles.main}>
-      <div className={styles.center}>
-        <Image
-          src="/logo.png"
-          alt="Hattrick Youth Alchemy"
-          width={320}
-          height={320}
-          priority
-          className={styles.logo}
-        />
+      <header className={styles.topBar}>
+        <div className={styles.brand}>
+          <Image
+            src="/logo.png"
+            alt="Hattrick Youth Alchemy"
+            width={140}
+            height={140}
+            priority
+            className={styles.logo}
+          />
+        </div>
         <div className={styles.version}>v{pkg.version}</div>
-      </div>
+      </header>
 
       {playersResponse.error ? (
         <div className={styles.errorBox}>

@@ -22,9 +22,7 @@ type RatingsMatrixProps = {
   messages: Messages;
 };
 
-const POSITION_ORDER = [
-  100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113,
-];
+const POSITION_ORDER = [100, 101, 103, 107, 111];
 
 function uniquePositions(rows: RatingRow[]) {
   const set = new Set<number>();
@@ -33,10 +31,19 @@ function uniquePositions(rows: RatingRow[]) {
       row.lastMatch?.positionCode !== null &&
       row.lastMatch?.positionCode !== undefined
     ) {
-      set.add(Number(row.lastMatch.positionCode));
+      set.add(normalizePosition(Number(row.lastMatch.positionCode)));
     }
   });
   return POSITION_ORDER.filter((code) => set.has(code));
+}
+
+function normalizePosition(code: number) {
+  if (code === 100) return 100;
+  if (code >= 101 && code <= 105) return 101;
+  if (code >= 106 && code <= 110) return 106;
+  if (code >= 107 && code <= 109) return 107;
+  if (code >= 111 && code <= 113) return 111;
+  return code;
 }
 
 function positionLabel(code: number, messages: Messages) {
@@ -44,31 +51,22 @@ function positionLabel(code: number, messages: Messages) {
     case 100:
       return messages.posKeeper;
     case 101:
-      return messages.posRightBack;
+      return messages.posBack;
     case 102:
-      return messages.posRightCentralDefender;
     case 103:
-      return messages.posMiddleCentralDefender;
     case 104:
-      return messages.posLeftCentralDefender;
-    case 105:
-      return messages.posLeftBack;
+      return messages.posCentralDefender;
     case 106:
-      return messages.posRightWinger;
-    case 107:
-      return messages.posRightInnerMidfield;
-    case 108:
-      return messages.posMiddleInnerMidfield;
-    case 109:
-      return messages.posLeftInnerMidfield;
     case 110:
-      return messages.posLeftWinger;
+      return messages.posWinger;
+    case 107:
+    case 108:
+    case 109:
+      return messages.posInnerMidfield;
     case 111:
-      return messages.posRightForward;
     case 112:
-      return messages.posMiddleForward;
     case 113:
-      return messages.posLeftForward;
+      return messages.posForward;
     default:
       return `#${code}`;
   }
@@ -111,7 +109,8 @@ export default function RatingsMatrix({ response, messages }: RatingsMatrixProps
                 {positions.map((position) => {
                   const match = row.lastMatch;
                   const rating =
-                    match && Number(match.positionCode) === position
+                    match &&
+                    normalizePosition(Number(match.positionCode)) === position
                       ? match.rating
                       : null;
                   return <td key={position}>{formatRating(rating)}</td>;

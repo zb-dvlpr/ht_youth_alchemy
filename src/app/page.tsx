@@ -132,6 +132,7 @@ export default async function Home() {
   const cookieStore = await cookies();
   const locale = (cookieStore.get("lang")?.value as Locale | undefined) ?? "en";
   const messages = getMessages(locale);
+  const isConnected = Boolean(cookieStore.get("chpp_access_token")?.value);
 
   const [playersResponse, matchesResponse, ratingsResponse] =
     await Promise.all([getPlayers(), getMatches(), getRatings()]);
@@ -155,6 +156,15 @@ export default async function Home() {
         </div>
         <div className={styles.topBarControls}>
           <LanguageSwitcher locale={locale} label={messages.languageLabel} />
+          {isConnected ? (
+            <span className={styles.connectedBadge}>
+              {messages.connectedLabel}
+            </span>
+          ) : (
+            <a className={styles.connectButton} href="/api/chpp/oauth/start">
+              {messages.connectLabel}
+            </a>
+          )}
           <div className={styles.version}>v{pkg.version}</div>
         </div>
       </header>

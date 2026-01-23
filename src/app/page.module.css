@@ -33,6 +33,31 @@
   gap: 12px;
 }
 
+.connectButton {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #1f6f3f;
+  color: #f7f1e3;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.connectButton:hover {
+  background: #2f9f5b;
+  transform: translateY(-1px);
+}
+
+.connectedBadge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(31, 111, 63, 0.15);
+  color: #1f6f3f;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .langSwitcher {
   display: flex;
   align-items: center;

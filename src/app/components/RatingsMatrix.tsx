@@ -22,14 +22,56 @@ type RatingsMatrixProps = {
   messages: Messages;
 };
 
+const POSITION_ORDER = [
+  100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113,
+];
+
 function uniquePositions(rows: RatingRow[]) {
   const set = new Set<number>();
   rows.forEach((row) => {
-    if (row.lastMatch?.positionCode !== null && row.lastMatch?.positionCode !== undefined) {
+    if (
+      row.lastMatch?.positionCode !== null &&
+      row.lastMatch?.positionCode !== undefined
+    ) {
       set.add(Number(row.lastMatch.positionCode));
     }
   });
-  return Array.from(set).sort((a, b) => a - b);
+  return POSITION_ORDER.filter((code) => set.has(code));
+}
+
+function positionLabel(code: number, messages: Messages) {
+  switch (code) {
+    case 100:
+      return messages.posKeeper;
+    case 101:
+      return messages.posRightBack;
+    case 102:
+      return messages.posRightCentralDefender;
+    case 103:
+      return messages.posMiddleCentralDefender;
+    case 104:
+      return messages.posLeftCentralDefender;
+    case 105:
+      return messages.posLeftBack;
+    case 106:
+      return messages.posRightWinger;
+    case 107:
+      return messages.posRightInnerMidfield;
+    case 108:
+      return messages.posMiddleInnerMidfield;
+    case 109:
+      return messages.posLeftInnerMidfield;
+    case 110:
+      return messages.posLeftWinger;
+    case 111:
+      return messages.posRightForward;
+    case 112:
+      return messages.posMiddleForward;
+    case 113:
+      return messages.posLeftForward;
+    default:
+      return `#${code}`;
+  }
 }
 
 function formatRating(value: number | null) {
@@ -58,7 +100,7 @@ export default function RatingsMatrix({ response, messages }: RatingsMatrixProps
             <tr>
               <th>{messages.youthPlayerList}</th>
               {positions.map((position) => (
-                <th key={position}>#{position}</th>
+                <th key={position}>{positionLabel(position, messages)}</th>
               ))}
             </tr>
           </thead>

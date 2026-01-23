@@ -6,6 +6,7 @@ import YouthPlayerList from "./YouthPlayerList";
 import PlayerDetailsPanel from "./PlayerDetailsPanel";
 import LineupField, { LineupAssignments } from "./LineupField";
 import UpcomingMatches from "./UpcomingMatches";
+import { Messages } from "@/lib/i18n";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -40,6 +41,7 @@ type MatchesResponse = {
 type DashboardProps = {
   players: YouthPlayer[];
   matchesResponse: MatchesResponse;
+  messages: Messages;
 };
 
 type CachedDetails = {
@@ -56,7 +58,11 @@ function resolveDetails(data: Record<string, unknown> | null) {
   return (hattrickData.YouthPlayer as Record<string, unknown>) ?? null;
 }
 
-export default function Dashboard({ players, matchesResponse }: DashboardProps) {
+export default function Dashboard({
+  players,
+  matchesResponse,
+  messages,
+}: DashboardProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
   const [cache, setCache] = useState<Record<number, CachedDetails>>({});
@@ -170,6 +176,7 @@ export default function Dashboard({ players, matchesResponse }: DashboardProps) 
         assignedIds={assignedIds}
         selectedId={selectedId}
         onSelect={handleSelect}
+        messages={messages}
       />
       <PlayerDetailsPanel
         selectedPlayer={selectedPlayer}
@@ -178,6 +185,7 @@ export default function Dashboard({ players, matchesResponse }: DashboardProps) 
         error={error}
         lastUpdated={lastUpdated}
         onRefresh={() => (selectedId ? loadDetails(selectedId, true) : undefined)}
+        messages={messages}
       />
       <div className={styles.columnStack}>
         <LineupField
@@ -186,8 +194,9 @@ export default function Dashboard({ players, matchesResponse }: DashboardProps) 
           onAssign={assignPlayer}
           onClear={clearSlot}
           onMove={moveSlot}
+          messages={messages}
         />
-        <UpcomingMatches response={matchesResponse} />
+        <UpcomingMatches response={matchesResponse} messages={messages} />
       </div>
     </div>
   );

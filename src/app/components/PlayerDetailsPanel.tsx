@@ -1,4 +1,5 @@
 import styles from "../page.module.css";
+import { Messages } from "@/lib/i18n";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -41,6 +42,7 @@ type PlayerDetailsPanelProps = {
   error: string | null;
   lastUpdated: number | null;
   onRefresh: () => void;
+  messages: Messages;
 };
 
 const MAX_SKILL_LEVEL = 8;
@@ -88,13 +90,13 @@ const SPECIALTY_EMOJI: Record<number, string> = {
 };
 
 const SKILL_ROWS = [
-  { label: "Keeper", key: "KeeperSkill", maxKey: "KeeperSkillMax" },
-  { label: "Defending", key: "DefenderSkill", maxKey: "DefenderSkillMax" },
-  { label: "Playmaking", key: "PlaymakerSkill", maxKey: "PlaymakerSkillMax" },
-  { label: "Winger", key: "WingerSkill", maxKey: "WingerSkillMax" },
-  { label: "Passing", key: "PassingSkill", maxKey: "PassingSkillMax" },
-  { label: "Scoring", key: "ScorerSkill", maxKey: "ScorerSkillMax" },
-  { label: "Set Pieces", key: "SetPiecesSkill", maxKey: "SetPiecesSkillMax" },
+  { key: "KeeperSkill", maxKey: "KeeperSkillMax", labelKey: "skillKeeper" },
+  { key: "DefenderSkill", maxKey: "DefenderSkillMax", labelKey: "skillDefending" },
+  { key: "PlaymakerSkill", maxKey: "PlaymakerSkillMax", labelKey: "skillPlaymaking" },
+  { key: "WingerSkill", maxKey: "WingerSkillMax", labelKey: "skillWinger" },
+  { key: "PassingSkill", maxKey: "PassingSkillMax", labelKey: "skillPassing" },
+  { key: "ScorerSkill", maxKey: "ScorerSkillMax", labelKey: "skillScoring" },
+  { key: "SetPiecesSkill", maxKey: "SetPiecesSkillMax", labelKey: "skillSetPieces" },
 ];
 
 function formatPlayerName(player?: YouthPlayer | null) {
@@ -147,12 +149,13 @@ export default function PlayerDetailsPanel({
   error,
   lastUpdated,
   onRefresh,
+  messages,
 }: PlayerDetailsPanelProps) {
   return (
     <div className={styles.card}>
       <div className={styles.detailsHeader}>
         <div>
-          <h2 className={styles.sectionTitle}>Player details</h2>
+          <h2 className={styles.sectionTitle}>{messages.playerDetails}</h2>
           {selectedPlayer ? (
             <p className={styles.detailsSubtitle}>
               {formatPlayerName(selectedPlayer)}
@@ -160,7 +163,7 @@ export default function PlayerDetailsPanel({
           ) : null}
           {lastUpdated ? (
             <p className={styles.detailsTimestamp}>
-              Last updated: {new Date(lastUpdated).toLocaleString()}
+              {messages.lastUpdated}: {new Date(lastUpdated).toLocaleString()}
             </p>
           ) : null}
         </div>
@@ -170,12 +173,12 @@ export default function PlayerDetailsPanel({
           onClick={onRefresh}
           disabled={!selectedPlayer || loading}
         >
-          Refresh
+          {messages.refresh}
         </button>
       </div>
 
       {loading ? (
-        <p className={styles.muted}>Loading details…</p>
+        <p className={styles.muted}>{messages.loadingDetails}</p>
       ) : error ? (
         <p className={styles.errorText}>{error}</p>
       ) : detailsData ? (
@@ -188,9 +191,9 @@ export default function PlayerDetailsPanel({
               <p className={styles.profileMeta}>
                 {detailsData.Age !== undefined ? (
                   <span className={styles.metaItem}>
-                    {detailsData.Age} years
+                    {detailsData.Age} {messages.yearsLabel}
                     {detailsData.AgeDays !== undefined
-                      ? ` ${detailsData.AgeDays} days`
+                      ? ` ${detailsData.AgeDays} ${messages.daysLabel}`
                       : ""}
                   </span>
                 ) : null}
@@ -204,8 +207,8 @@ export default function PlayerDetailsPanel({
             {detailsData.CanBePromotedIn !== undefined ? (
               <span className={styles.tag}>
                 {detailsData.CanBePromotedIn === 0
-                  ? "Can be promoted now"
-                  : `Promotable in ${detailsData.CanBePromotedIn} days`}
+                  ? messages.promotableNow
+                  : `${messages.promotableIn} ${detailsData.CanBePromotedIn} ${messages.daysLabel}`}
               </span>
             ) : null}
           </div>
@@ -213,7 +216,7 @@ export default function PlayerDetailsPanel({
           <div className={styles.profileInfoRow}>
             {detailsData.OwningYouthTeam?.YouthTeamName ? (
               <div>
-                <div className={styles.infoLabel}>Youth team</div>
+                <div className={styles.infoLabel}>{messages.youthTeamLabel}</div>
                 <div className={styles.infoValue}>
                   {detailsData.OwningYouthTeam.YouthTeamName}
                 </div>
@@ -221,7 +224,7 @@ export default function PlayerDetailsPanel({
             ) : null}
             {detailsData.OwningYouthTeam?.SeniorTeam?.SeniorTeamName ? (
               <div>
-                <div className={styles.infoLabel}>Senior team</div>
+                <div className={styles.infoLabel}>{messages.seniorTeamLabel}</div>
                 <div className={styles.infoValue}>
                   {detailsData.OwningYouthTeam.SeniorTeam.SeniorTeamName}
                 </div>
@@ -229,7 +232,7 @@ export default function PlayerDetailsPanel({
             ) : null}
             {detailsData.ArrivalDate ? (
               <div>
-                <div className={styles.infoLabel}>Arrived</div>
+                <div className={styles.infoLabel}>{messages.arrivedLabel}</div>
                 <div className={styles.infoValue}>
                   {formatArrival(detailsData.ArrivalDate)}
                   {daysSince(detailsData.ArrivalDate) !== null
@@ -240,7 +243,7 @@ export default function PlayerDetailsPanel({
             ) : null}
             {detailsData.Specialty !== undefined ? (
               <div>
-                <div className={styles.infoLabel}>Specialty</div>
+                <div className={styles.infoLabel}>{messages.specialtyLabel}</div>
                 <div className={styles.infoValue}>
                   {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}{" "}
                   {SPECIALTY_NAMES[detailsData.Specialty] ??
@@ -253,7 +256,7 @@ export default function PlayerDetailsPanel({
           <div className={styles.sectionDivider} />
 
           <div>
-            <h5 className={styles.sectionHeading}>Skills</h5>
+            <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
             <div className={styles.skillsGrid}>
               {SKILL_ROWS.map((row) => {
                 const current = getSkillLevel(
@@ -273,7 +276,9 @@ export default function PlayerDetailsPanel({
 
                 return (
                   <div key={row.key} className={styles.skillRow}>
-                    <div className={styles.skillLabel}>{row.label}</div>
+                    <div className={styles.skillLabel}>
+                      {messages[row.labelKey as keyof Messages]}
+                    </div>
                     <div className={styles.skillBar}>
                       {hasMax ? (
                         <div
@@ -290,12 +295,12 @@ export default function PlayerDetailsPanel({
                     </div>
                     <div className={styles.skillValue}>
                       {!hasCurrent && !hasMax
-                        ? "unknown"
+                        ? messages.unknownLabel
                         : hasCurrent && hasMax
                         ? `${getSkillName(current)} ${current}/${max}`
                         : hasCurrent
                         ? `${getSkillName(current)} ${current}`
-                        : `potential ${max}`}
+                        : `${messages.potentialLabel} ${max}`}
                     </div>
                   </div>
                 );
@@ -304,7 +309,7 @@ export default function PlayerDetailsPanel({
           </div>
         </div>
       ) : (
-        <p className={styles.muted}>Select a player to load details.</p>
+        <p className={styles.muted}>{messages.selectPlayerPrompt}</p>
       )}
     </div>
   );

@@ -2,7 +2,9 @@ import { cookies, headers } from "next/headers";
 import Image from "next/image";
 import styles from "./page.module.css";
 import Dashboard from "./components/Dashboard";
+import LanguageSwitcher from "./components/LanguageSwitcher";
 import pkg from "../../package.json";
+import { getMessages, Locale } from "@/lib/i18n";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -93,6 +95,10 @@ function normalizePlayers(input?: YouthPlayer[] | YouthPlayer): YouthPlayer[] {
 }
 
 export default async function Home() {
+  const cookieStore = await cookies();
+  const locale = (cookieStore.get("lang")?.value as Locale | undefined) ?? "en";
+  const messages = getMessages(locale);
+
   const [playersResponse, matchesResponse] = await Promise.all([
     getPlayers(),
     getMatches(),
@@ -115,19 +121,22 @@ export default async function Home() {
             className={styles.logo}
           />
         </div>
-        <div className={styles.version}>v{pkg.version}</div>
+        <div className={styles.topBarControls}>
+          <LanguageSwitcher locale={locale} label={messages.languageLabel} />
+          <div className={styles.version}>v{pkg.version}</div>
+        </div>
       </header>
 
       {playersResponse.error ? (
         <div className={styles.errorBox}>
-          <h2 className={styles.sectionTitle}>Unable to load players</h2>
+          <h2 className={styles.sectionTitle}>{messages.unableToLoadPlayers}</h2>
           <p className={styles.errorText}>{playersResponse.error}</p>
           {playersResponse.details ? (
             <p className={styles.errorDetails}>{playersResponse.details}</p>
           ) : null}
         </div>
       ) : (
-        <Dashboard players={players} matchesResponse={matchesResponse} />
+        <Dashboard players={players} matchesResponse={matchesResponse} messages={messages} />
       )}
     </main>
   );

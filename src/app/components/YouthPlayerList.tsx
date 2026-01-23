@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "../page.module.css";
+import { Messages } from "@/lib/i18n";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -14,6 +15,7 @@ type YouthPlayerListProps = {
   assignedIds?: Set<number>;
   selectedId?: number | null;
   onSelect?: (playerId: number) => void;
+  messages: Messages;
 };
 
 function formatPlayerName(player?: YouthPlayer | null) {
@@ -28,6 +30,7 @@ export default function YouthPlayerList({
   assignedIds,
   selectedId,
   onSelect,
+  messages,
 }: YouthPlayerListProps) {
   const handleDragStart = (
     event: React.DragEvent<HTMLButtonElement>,
@@ -43,9 +46,9 @@ export default function YouthPlayerList({
 
   return (
     <div className={styles.card}>
-      <h2 className={styles.sectionTitle}>Youth Player List</h2>
+      <h2 className={styles.sectionTitle}>{messages.youthPlayerList}</h2>
       {players.length === 0 ? (
-        <p className={styles.muted}>No youth players returned.</p>
+        <p className={styles.muted}>{messages.noYouthPlayers}</p>
       ) : (
         <ul className={styles.list}>
           {players.map((player) => {
@@ -73,7 +76,9 @@ export default function YouthPlayerList({
                       ID: {player.YouthPlayerID}
                     </span>
                     {isAssigned ? (
-                      <span className={styles.assignedTag}>Assigned</span>
+                      <span className={styles.assignedTag}>
+                        {messages.assigned}
+                      </span>
                     ) : null}
                   </button>
                 </div>

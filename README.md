@@ -10,6 +10,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - CHPP matches endpoint (youth by default)
 - Three-column layout: players list, player details, lineup + matches (stacked in column 3)
 - Compact player list spacing
+- Updated document title/description metadata
 - Click-to-load player details in a dedicated panel
 - In-session details cache with manual refresh and a structured details panel (current/max skill bars)
 - Upcoming youth match list (handles team-level match list; falls back to recent matches if none UPCOMING)

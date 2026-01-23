@@ -73,6 +73,40 @@
   gap: 20px;
 }
 
+.matrixSpacing {
+  height: 20px;
+}
+
+.matrixWrapper {
+  overflow: auto;
+  border-radius: 12px;
+  border: 1px solid #e6dccd;
+}
+
+.matrixTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.matrixTable th,
+.matrixTable td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eee3d5;
+  text-align: center;
+}
+
+.matrixTable th {
+  background: #f7f1e3;
+  font-weight: 600;
+}
+
+.matrixPlayer {
+  text-align: left;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .card {
   width: 100%;
   padding: 18px;

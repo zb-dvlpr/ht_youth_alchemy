@@ -45,6 +45,7 @@ export type Messages = {
   homeLabel: string;
   awayLabel: string;
   unknownDate: string;
+  ratingsTitle: string;
   skillKeeper: string;
   skillDefending: string;
   skillPlaymaking: string;
@@ -90,6 +91,7 @@ const MESSAGES: Record<Locale, Messages> = {
     homeLabel: "Home",
     awayLabel: "Away",
     unknownDate: "Unknown date",
+    ratingsTitle: "Ratings matrix",
     skillKeeper: "Keeper",
     skillDefending: "Defending",
     skillPlaymaking: "Playmaking",
@@ -133,6 +135,7 @@ const MESSAGES: Record<Locale, Messages> = {
     homeLabel: "Heim",
     awayLabel: "Auswärts",
     unknownDate: "Unbekanntes Datum",
+    ratingsTitle: "Bewertungsmatrix",
     skillKeeper: "Torwart",
     skillDefending: "Verteidigung",
     skillPlaymaking: "Spielaufbau",
@@ -176,6 +179,7 @@ const MESSAGES: Record<Locale, Messages> = {
     homeLabel: "Domicile",
     awayLabel: "Extérieur",
     unknownDate: "Date inconnue",
+    ratingsTitle: "Matrice des notes",
     skillKeeper: "Gardien",
     skillDefending: "Défense",
     skillPlaymaking: "Construction",
@@ -219,6 +223,7 @@ const MESSAGES: Record<Locale, Messages> = {
     homeLabel: "Local",
     awayLabel: "Visitante",
     unknownDate: "Fecha desconocida",
+    ratingsTitle: "Matriz de calificaciones",
     skillKeeper: "Portero",
     skillDefending: "Defensa",
     skillPlaymaking: "Creatividad",
@@ -262,6 +267,7 @@ const MESSAGES: Record<Locale, Messages> = {
     homeLabel: "Hemma",
     awayLabel: "Borta",
     unknownDate: "Okänt datum",
+    ratingsTitle: "Betygsmatris",
     skillKeeper: "Målvakt",
     skillDefending: "Försvar",
     skillPlaymaking: "Speluppbyggnad",
@@ -305,6 +311,7 @@ const MESSAGES: Record<Locale, Messages> = {
     homeLabel: "Casa",
     awayLabel: "Trasferta",
     unknownDate: "Data sconosciuta",
+    ratingsTitle: "Matrice valutazioni",
     skillKeeper: "Portiere",
     skillDefending: "Difesa",
     skillPlaymaking: "Regia",
@@ -348,6 +355,7 @@ const MESSAGES: Record<Locale, Messages> = {
     homeLabel: "Casa",
     awayLabel: "Fora",
     unknownDate: "Data desconhecida",
+    ratingsTitle: "Matriz de avaliações",
     skillKeeper: "Goleiro",
     skillDefending: "Defesa",
     skillPlaymaking: "Armação",

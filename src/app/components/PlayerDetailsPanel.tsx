@@ -234,7 +234,7 @@ export default function PlayerDetailsPanel({
             </div>
             {detailsData.CanBePromotedIn !== undefined ? (
               <span className={styles.tag}>
-                {detailsData.CanBePromotedIn === 0
+                {detailsData.CanBePromotedIn <= 0
                   ? messages.promotableNow
                   : `${messages.promotableIn} ${detailsData.CanBePromotedIn} ${messages.daysLabel}`}
               </span>

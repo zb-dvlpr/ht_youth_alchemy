@@ -8,7 +8,25 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - CHPP youthplayerlist endpoint (XML parsed to JSON)
 - CHPP youthplayerdetails endpoint (XML parsed to JSON)
 - CHPP matches endpoint (youth by default)
-- Basic UI to display connected youth players, with click-to-load player details
+- Three-column layout: players list, player details, lineup + matches (stacked in column 3)
+- Compact player list spacing
+- Updated document title/description metadata
+- Click-to-load player details in a dedicated panel
+- Language switcher (English, German, French, Spanish, Swedish, Italian, Portuguese)
+- Localization rule: new UI text must be i18n-backed
+- Ratings matrix using last 10 finished match lineups (max RatingStars per cell)
+- Ratings matrix uses MatchRoleID labels instead of numeric codes
+- Ratings matrix collapses left/right positions into single columns
+- Player details show last match position and rating (showLastMatch=true)
+- player-details API passes through showLastMatch/showScoutCall flags
+- Last match summary formatted as rating (pos) dd.mm.yyyy
+- Promotable badge treats negative values as promotable now
+- Lineup slots show drag cursor + tooltip
+- Header auto-shrinks to reduce vertical scrolling (logo scales by height)
+- Header uses a sleek typographic wordmark (Hattrick Youth Alchemy)
+- Ratings matrix rendered in the middle column; player list column tightened
+- Match lineup API for last finished youth match
+- Connect button shown when CHPP access token is missing
 - In-session details cache with manual refresh and a structured details panel (current/max skill bars)
 - Upcoming youth match list (handles team-level match list; falls back to recent matches if none UPCOMING)
 - Lineup pitch layout scaffold (KP / WB CD CD CD WB / W IM IM IM W / F F F, uniform slot sizing)

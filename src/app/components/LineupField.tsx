@@ -1,6 +1,7 @@
 "use client";
 
 import styles from "../page.module.css";
+import { Messages } from "@/lib/i18n";
 
 export type LineupAssignments = Record<string, number | null>;
 
@@ -17,6 +18,7 @@ type LineupFieldProps = {
   onAssign: (slotId: string, playerId: number) => void;
   onClear: (slotId: string) => void;
   onMove?: (fromSlot: string, toSlot: string) => void;
+  messages: Messages;
 };
 
 type PositionRow = {
@@ -68,6 +70,7 @@ export default function LineupField({
   onAssign,
   onClear,
   onMove,
+  messages,
 }: LineupFieldProps) {
   const handleDrop = (slotId: string, event: React.DragEvent) => {
     event.preventDefault();
@@ -104,7 +107,7 @@ export default function LineupField({
 
   return (
     <div className={styles.fieldCard}>
-      <div className={styles.fieldHeader}>Lineup</div>
+      <div className={styles.fieldHeader}>{messages.lineupTitle}</div>
       <div className={styles.fieldPitch}>
         <div className={styles.penaltyBox} />
         <div className={styles.penaltyArc} />
@@ -142,6 +145,7 @@ export default function LineupField({
                       <span
                         className={styles.slotName}
                         draggable
+                        title={messages.dragPlayerHint}
                         onDragStart={(event) => {
                           if (!dragPayload) return;
                           event.dataTransfer.setData(
@@ -158,7 +162,7 @@ export default function LineupField({
                         type="button"
                         className={styles.slotClear}
                         onClick={() => onClear(position.id)}
-                        aria-label={`Clear ${position.label}`}
+                        aria-label={`${messages.clearSlot} ${position.label}`}
                       >
                         ×
                       </button>

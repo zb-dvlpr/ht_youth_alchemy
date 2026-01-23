@@ -1,9 +1,10 @@
 import { cookies, headers } from "next/headers";
-import Image from "next/image";
 import styles from "./page.module.css";
-import UpcomingMatches from "./components/UpcomingMatches";
-import LineupBoard from "./components/LineupBoard";
+import Dashboard from "./components/Dashboard";
+import LanguageSwitcher from "./components/LanguageSwitcher";
 import pkg from "../../package.json";
+import { getMessages, Locale } from "@/lib/i18n";
+// Ratings matrix now lives inside the dashboard column layout.
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -30,10 +31,29 @@ type MatchesResponse = {
       MatchList?: {
         Match?: unknown;
       };
+      Team?: {
+        MatchList?: {
+          Match?: unknown;
+        };
+      };
     };
   };
   error?: string;
   details?: string;
+};
+
+type RatingsMatrixResponse = {
+  players: {
+    id: number;
+    name: string;
+    lastMatch: {
+      date: string | null;
+      youthMatchId: number | null;
+      positionCode: number | null;
+      minutes: number | null;
+      rating: number | null;
+    } | null;
+  }[];
 };
 
 async function getBaseUrl() {
@@ -83,16 +103,38 @@ async function getMatches(): Promise<MatchesResponse> {
   }
 }
 
+async function getRatings(): Promise<RatingsMatrixResponse | null> {
+  try {
+    const baseUrl = await getBaseUrl();
+    const cookieStore = await cookies();
+
+    const response = await fetch(`${baseUrl}/api/chpp/youth/ratings`, {
+      cache: "no-store",
+      headers: {
+        cookie: cookieStore.toString(),
+      },
+    });
+
+    if (!response.ok) return null;
+    return response.json();
+  } catch {
+    return null;
+  }
+}
+
 function normalizePlayers(input?: YouthPlayer[] | YouthPlayer): YouthPlayer[] {
   if (!input) return [];
   return Array.isArray(input) ? input : [input];
 }
 
 export default async function Home() {
-  const [playersResponse, matchesResponse] = await Promise.all([
-    getPlayers(),
-    getMatches(),
-  ]);
+  const cookieStore = await cookies();
+  const locale = (cookieStore.get("lang")?.value as Locale | undefined) ?? "en";
+  const messages = getMessages(locale);
+  const isConnected = Boolean(cookieStore.get("chpp_access_token")?.value);
+
+  const [playersResponse, matchesResponse, ratingsResponse] =
+    await Promise.all([getPlayers(), getMatches(), getRatings()]);
 
   const players = normalizePlayers(
     playersResponse.data?.HattrickData?.PlayerList?.YouthPlayer
@@ -100,35 +142,41 @@ export default async function Home() {
 
   return (
     <main className={styles.main}>
-      <div className={styles.center}>
-        <Image
-          src="/logo.png"
-          alt="Hattrick Youth Alchemy"
-          width={320}
-          height={320}
-          priority
-          className={styles.logo}
-        />
-        <div className={styles.version}>v{pkg.version}</div>
-      </div>
+      <header className={styles.topBar}>
+        <div className={styles.brandRow}>
+          <span className={styles.brandTitle}>{messages.brandTitle}</span>
+        </div>
+        <div className={styles.topBarControls}>
+          <LanguageSwitcher locale={locale} label={messages.languageLabel} />
+          {isConnected ? (
+            <span className={styles.connectedBadge}>
+              {messages.connectedLabel}
+            </span>
+          ) : (
+            <a className={styles.connectButton} href="/api/chpp/oauth/start">
+              {messages.connectLabel}
+            </a>
+          )}
+          <div className={styles.version}>v{pkg.version}</div>
+        </div>
+      </header>
 
       {playersResponse.error ? (
         <div className={styles.errorBox}>
-          <h2 className={styles.sectionTitle}>Unable to load players</h2>
+          <h2 className={styles.sectionTitle}>{messages.unableToLoadPlayers}</h2>
           <p className={styles.errorText}>{playersResponse.error}</p>
           {playersResponse.details ? (
             <p className={styles.errorDetails}>{playersResponse.details}</p>
           ) : null}
         </div>
       ) : (
-        <div className={styles.playerLayout}>
-          <LineupBoard players={players} />
-        </div>
+        <Dashboard
+          players={players}
+          matchesResponse={matchesResponse}
+          ratingsResponse={ratingsResponse}
+          messages={messages}
+        />
       )}
-
-      <div className={styles.sectionSpacing} />
-
-      <UpcomingMatches response={matchesResponse} />
     </main>
   );
 }

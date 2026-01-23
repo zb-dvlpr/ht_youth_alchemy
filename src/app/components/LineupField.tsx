@@ -145,6 +145,7 @@ export default function LineupField({
                       <span
                         className={styles.slotName}
                         draggable
+                        title={messages.dragPlayerHint}
                         onDragStart={(event) => {
                           if (!dragPayload) return;
                           event.dataTransfer.setData(

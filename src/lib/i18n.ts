@@ -44,6 +44,7 @@ export type Messages = {
   potentialLabel: string;
   lastMatchPositionLabel: string;
   lastMatchRatingLabel: string;
+  dragPlayerHint: string;
   homeLabel: string;
   awayLabel: string;
   unknownDate: string;
@@ -100,6 +101,7 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potential",
     lastMatchPositionLabel: "Last match position",
     lastMatchRatingLabel: "Last match rating",
+    dragPlayerHint: "Drag to move",
     homeLabel: "Home",
     awayLabel: "Away",
     unknownDate: "Unknown date",
@@ -154,6 +156,7 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "Potenzial",
     lastMatchPositionLabel: "Letzte Position",
     lastMatchRatingLabel: "Letzte Bewertung",
+    dragPlayerHint: "Zum Verschieben ziehen",
     homeLabel: "Heim",
     awayLabel: "Auswärts",
     unknownDate: "Unbekanntes Datum",
@@ -208,6 +211,7 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potentiel",
     lastMatchPositionLabel: "Position du dernier match",
     lastMatchRatingLabel: "Note du dernier match",
+    dragPlayerHint: "Glisser pour déplacer",
     homeLabel: "Domicile",
     awayLabel: "Extérieur",
     unknownDate: "Date inconnue",
@@ -262,6 +266,7 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potencial",
     lastMatchPositionLabel: "Posición del último partido",
     lastMatchRatingLabel: "Calificación del último partido",
+    dragPlayerHint: "Arrastra para mover",
     homeLabel: "Local",
     awayLabel: "Visitante",
     unknownDate: "Fecha desconocida",
@@ -316,6 +321,7 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potential",
     lastMatchPositionLabel: "Senaste matchposition",
     lastMatchRatingLabel: "Senaste matchbetyg",
+    dragPlayerHint: "Dra för att flytta",
     homeLabel: "Hemma",
     awayLabel: "Borta",
     unknownDate: "Okänt datum",
@@ -370,6 +376,7 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potenziale",
     lastMatchPositionLabel: "Posizione ultimo match",
     lastMatchRatingLabel: "Valutazione ultimo match",
+    dragPlayerHint: "Trascina per spostare",
     homeLabel: "Casa",
     awayLabel: "Trasferta",
     unknownDate: "Data sconosciuta",
@@ -424,6 +431,7 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potencial",
     lastMatchPositionLabel: "Posição do último jogo",
     lastMatchRatingLabel: "Avaliação do último jogo",
+    dragPlayerHint: "Arraste para mover",
     homeLabel: "Casa",
     awayLabel: "Fora",
     unknownDate: "Data desconhecida",

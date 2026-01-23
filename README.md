@@ -21,6 +21,8 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - player-details API passes through showLastMatch/showScoutCall flags
 - Last match summary formatted as rating (pos) dd.mm.yyyy
 - Promotable badge treats negative values as promotable now
+- Lineup slots show drag cursor + tooltip
+- Header auto-shrinks to reduce vertical scrolling (logo scales by height)
 - Ratings matrix rendered in the middle column; player list column tightened
 - Match lineup API for last finished youth match
 - Connect button shown when CHPP access token is missing

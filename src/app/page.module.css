@@ -1,17 +1,18 @@
 .main {
-  min-height: 100vh;
+  height: 100vh;
   background: radial-gradient(circle at top, #f7f1e3, #e0d8cc);
   color: #1a1a1a;
-  padding: 24px 24px 40px;
+  padding: 16px 20px 24px;
   font-family: "Georgia", "Times New Roman", serif;
+  overflow: hidden;
 }
 
 .topBar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 16px;
-  padding: 10px 16px;
+  margin-bottom: 12px;
+  padding: 8px 14px;
   background: #f1e9dc;
   border-radius: 14px;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
@@ -23,8 +24,9 @@
 }
 
 .logo {
-  width: clamp(120px, 16vw, 180px);
-  height: auto;
+  height: clamp(36px, 6vh, 56px);
+  width: auto;
+  max-width: clamp(140px, 18vw, 200px);
 }
 
 .topBarControls {
@@ -576,6 +578,11 @@
   font-weight: 600;
   color: #f7f1e3;
   text-align: center;
+  cursor: grab;
+}
+
+.slotName:active {
+  cursor: grabbing;
 }
 
 .slotLabel {

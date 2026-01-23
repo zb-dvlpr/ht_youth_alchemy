@@ -13,6 +13,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Updated document title/description metadata
 - Click-to-load player details in a dedicated panel
 - Language switcher (English, German, French, Spanish, Swedish, Italian, Portuguese)
+- Localization rule: new UI text must be i18n-backed
 - In-session details cache with manual refresh and a structured details panel (current/max skill bars)
 - Upcoming youth match list (handles team-level match list; falls back to recent matches if none UPCOMING)
 - Lineup pitch layout scaffold (KP / WB CD CD CD WB / W IM IM IM W / F F F, uniform slot sizing)

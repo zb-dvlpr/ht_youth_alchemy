@@ -83,6 +83,8 @@ export default function Dashboard({
   const [matchesState, setMatchesState] =
     useState<MatchesResponse>(matchesResponse);
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
+  const [primaryTraining, setPrimaryTraining] = useState<string>("");
+  const [secondaryTraining, setSecondaryTraining] = useState<string>("");
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -304,6 +306,49 @@ export default function Dashboard({
         <RatingsMatrix response={ratingsResponse} messages={messages} />
       </div>
       <div className={styles.columnStack}>
+        <div className={styles.card}>
+          <h2 className={styles.sectionTitle}>{messages.trainingTitle}</h2>
+          <div className={styles.trainingControls}>
+            <label className={styles.trainingRow}>
+              <span className={styles.trainingLabel}>
+                {messages.primaryTrainingLabel}
+              </span>
+              <select
+                className={styles.trainingSelect}
+                value={primaryTraining}
+                onChange={(event) => setPrimaryTraining(event.target.value)}
+              >
+                <option value="">{messages.trainingUnset}</option>
+                <option value="keeper">{messages.trainingKeeper}</option>
+                <option value="defending">{messages.trainingDefending}</option>
+                <option value="playmaking">{messages.trainingPlaymaking}</option>
+                <option value="winger">{messages.trainingWinger}</option>
+                <option value="passing">{messages.trainingPassing}</option>
+                <option value="scoring">{messages.trainingScoring}</option>
+                <option value="setPieces">{messages.trainingSetPieces}</option>
+              </select>
+            </label>
+            <label className={styles.trainingRow}>
+              <span className={styles.trainingLabel}>
+                {messages.secondaryTrainingLabel}
+              </span>
+              <select
+                className={styles.trainingSelect}
+                value={secondaryTraining}
+                onChange={(event) => setSecondaryTraining(event.target.value)}
+              >
+                <option value="">{messages.trainingUnset}</option>
+                <option value="keeper">{messages.trainingKeeper}</option>
+                <option value="defending">{messages.trainingDefending}</option>
+                <option value="playmaking">{messages.trainingPlaymaking}</option>
+                <option value="winger">{messages.trainingWinger}</option>
+                <option value="passing">{messages.trainingPassing}</option>
+                <option value="scoring">{messages.trainingScoring}</option>
+                <option value="setPieces">{messages.trainingSetPieces}</option>
+              </select>
+            </label>
+          </div>
+        </div>
         <LineupField
           assignments={assignments}
           playersById={playersById}

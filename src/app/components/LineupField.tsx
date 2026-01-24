@@ -13,16 +13,26 @@ type YouthPlayer = {
   NickName?: string;
   LastName: string;
   Specialty?: number;
+  PlayerSkills?: Record<string, SkillValue>;
+};
+
+type SkillValue = {
+  "#text"?: number | string;
+  "@_IsAvailable"?: string;
+  "@_IsMaxReached"?: string;
+  "@_MayUnlock"?: string;
 };
 
 type LineupFieldProps = {
   assignments: LineupAssignments;
   playersById: Map<number, YouthPlayer>;
+  playerDetailsById?: Map<number, { PlayerSkills?: Record<string, SkillValue> }>;
   onAssign: (slotId: string, playerId: number) => void;
   onClear: (slotId: string) => void;
   onMove?: (fromSlot: string, toSlot: string) => void;
   onRandomize?: () => void;
   onReset?: () => void;
+  onHoverPlayer?: (playerId: number) => void;
   messages: Messages;
 };
 
@@ -63,20 +73,50 @@ const POSITION_ROWS: PositionRow[] = [
   },
 ];
 
+const MAX_SKILL_LEVEL = 8;
+
+const SKILL_ROWS = [
+  { key: "KeeperSkill", maxKey: "KeeperSkillMax", labelKey: "skillKeeper" },
+  { key: "DefenderSkill", maxKey: "DefenderSkillMax", labelKey: "skillDefending" },
+  { key: "PlaymakerSkill", maxKey: "PlaymakerSkillMax", labelKey: "skillPlaymaking" },
+  { key: "WingerSkill", maxKey: "WingerSkillMax", labelKey: "skillWinger" },
+  { key: "PassingSkill", maxKey: "PassingSkillMax", labelKey: "skillPassing" },
+  { key: "ScorerSkill", maxKey: "ScorerSkillMax", labelKey: "skillScoring" },
+  { key: "SetPiecesSkill", maxKey: "SetPiecesSkillMax", labelKey: "skillSetPieces" },
+];
+
 function formatName(player: YouthPlayer) {
   return [player.FirstName, player.NickName || null, player.LastName]
     .filter(Boolean)
     .join(" ");
 }
 
+function getSkillLevel(skill?: SkillValue): number | null {
+  if (!skill) return null;
+  if (skill["@_IsAvailable"] !== "True") return null;
+  if (skill["#text"] === undefined || skill["#text"] === null) return null;
+  const numeric = Number(skill["#text"]);
+  return Number.isNaN(numeric) ? null : numeric;
+}
+
+function getSkillMax(skill?: SkillValue): number | null {
+  if (!skill) return null;
+  if (skill["@_IsAvailable"] !== "True") return null;
+  if (skill["#text"] === undefined || skill["#text"] === null) return null;
+  const numeric = Number(skill["#text"]);
+  return Number.isNaN(numeric) ? null : numeric;
+}
+
 export default function LineupField({
   assignments,
   playersById,
+  playerDetailsById,
   onAssign,
   onClear,
   onMove,
   onRandomize,
   onReset,
+  onHoverPlayer,
   messages,
 }: LineupFieldProps) {
   const handleDrop = (slotId: string, event: React.DragEvent) => {
@@ -131,6 +171,9 @@ export default function LineupField({
               const assignedPlayer = assignedId
                 ? playersById.get(assignedId) ?? null
                 : null;
+              const assignedDetails = assignedId
+                ? playerDetailsById?.get(assignedId) ?? null
+                : null;
 
               const dragPayload = assignedPlayer
                 ? JSON.stringify({
@@ -152,6 +195,10 @@ export default function LineupField({
                       className={styles.slotContent}
                       draggable
                       title={messages.dragPlayerHint}
+                      onMouseEnter={() => {
+                        if (!assignedPlayer) return;
+                        onHoverPlayer?.(assignedPlayer.YouthPlayerID);
+                      }}
                       onDragStart={(event) => {
                         if (!dragPayload) return;
                         setDragGhost(event, {
@@ -175,6 +222,63 @@ export default function LineupField({
                           {SPECIALTY_EMOJI[assignedPlayer.Specialty]}
                         </span>
                       ) : null}
+                      <div className={styles.slotTooltip}>
+                        <div className={styles.slotTooltipCard}>
+                          <div className={styles.slotTooltipGrid}>
+                            {SKILL_ROWS.map((row) => {
+                              const skillSource =
+                                assignedDetails?.PlayerSkills ??
+                                assignedPlayer.PlayerSkills ??
+                                null;
+                              const current = getSkillLevel(
+                                skillSource?.[row.key]
+                              );
+                              const max = getSkillMax(
+                                skillSource?.[row.maxKey]
+                              );
+                              const hasCurrent = current !== null;
+                              const hasMax = max !== null;
+                              const currentText = hasCurrent
+                                ? String(current)
+                                : messages.unknownShort;
+                              const maxText = hasMax
+                                ? String(max)
+                                : messages.unknownShort;
+                              const currentPct = hasCurrent
+                                ? Math.min(100, (current / MAX_SKILL_LEVEL) * 100)
+                                : null;
+                              const maxPct = hasMax
+                                ? Math.min(100, (max / MAX_SKILL_LEVEL) * 100)
+                                : null;
+
+                              return (
+                                <div key={row.key} className={styles.skillRow}>
+                                  <div className={styles.skillLabel}>
+                                    {messages[row.labelKey as keyof Messages]}
+                                  </div>
+                                  <div className={styles.skillBar}>
+                                    {hasMax ? (
+                                      <div
+                                        className={styles.skillFillMax}
+                                        style={{ width: `${maxPct}%` }}
+                                      />
+                                    ) : null}
+                                    {hasCurrent ? (
+                                      <div
+                                        className={styles.skillFillCurrent}
+                                        style={{ width: `${currentPct}%` }}
+                                      />
+                                    ) : null}
+                                  </div>
+                                  <div className={styles.skillValue}>
+                                    {currentText}/{maxText}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
                       <button
                         type="button"
                         className={styles.slotClear}

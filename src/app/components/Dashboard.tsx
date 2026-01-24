@@ -90,6 +90,17 @@ export default function Dashboard({
     return map;
   }, [players]);
 
+  const playerDetailsById = useMemo(() => {
+    const map = new Map<number, YouthPlayerDetails>();
+    Object.entries(cache).forEach(([id, entry]) => {
+      const resolved = resolveDetails(entry.data);
+      if (resolved) {
+        map.set(Number(id), resolved);
+      }
+    });
+    return map;
+  }, [cache]);
+
   const assignedIds = useMemo(
     () => new Set(Object.values(assignments).filter(Boolean) as number[]),
     [assignments]
@@ -141,6 +152,36 @@ export default function Dashboard({
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
+    }
+  };
+
+  const ensureDetails = async (playerId: number) => {
+    const cached = cache[playerId];
+    const isFresh =
+      cached && Date.now() - cached.fetchedAt < DETAILS_TTL_MS;
+    if (cached && isFresh) return;
+
+    try {
+      const response = await fetch(
+        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true`,
+        { cache: "no-store" }
+      );
+      const payload = (await response.json()) as PlayerDetailsResponse;
+      if (!response.ok || payload.error) {
+        return;
+      }
+      const resolved = payload.data ?? null;
+      if (resolved) {
+        setCache((prev) => ({
+          ...prev,
+          [playerId]: {
+            data: resolved,
+            fetchedAt: Date.now(),
+          },
+        }));
+      }
+    } catch {
+      // ignore hover failures
     }
   };
 
@@ -266,11 +307,13 @@ export default function Dashboard({
         <LineupField
           assignments={assignments}
           playersById={playersById}
+          playerDetailsById={playerDetailsById}
           onAssign={assignPlayer}
           onClear={clearSlot}
           onMove={moveSlot}
           onRandomize={randomizeLineup}
           onReset={resetLineup}
+          onHoverPlayer={ensureDetails}
           messages={messages}
         />
         <UpcomingMatches

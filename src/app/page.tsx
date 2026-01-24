@@ -11,6 +11,7 @@ type YouthPlayer = {
   FirstName: string;
   NickName: string;
   LastName: string;
+  Specialty?: number;
 };
 
 type YouthPlayerListResponse = {
@@ -68,12 +69,15 @@ async function getPlayers(): Promise<YouthPlayerListResponse> {
     const baseUrl = await getBaseUrl();
     const cookieStore = await cookies();
 
-    const response = await fetch(`${baseUrl}/api/chpp/youth/players`, {
-      cache: "no-store",
-      headers: {
-        cookie: cookieStore.toString(),
-      },
-    });
+    const response = await fetch(
+      `${baseUrl}/api/chpp/youth/players?actionType=details`,
+      {
+        cache: "no-store",
+        headers: {
+          cookie: cookieStore.toString(),
+        },
+      }
+    );
     return response.json();
   } catch (error) {
     return {

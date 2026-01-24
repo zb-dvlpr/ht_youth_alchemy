@@ -1,6 +1,7 @@
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { positionLabelFullByRoleId } from "@/lib/positions";
+import { SPECIALTY_EMOJI, SPECIALTY_NAMES } from "@/lib/specialty";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -79,23 +80,7 @@ const SKILL_NAMES = [
   "divine",
 ];
 
-const SPECIALTY_NAMES: Record<number, string> = {
-  0: "None",
-  1: "Technical",
-  2: "Quick",
-  3: "Powerful",
-  4: "Unpredictable",
-  5: "Head",
-};
-
-const SPECIALTY_EMOJI: Record<number, string> = {
-  0: "—",
-  1: "🛠️",
-  2: "⚡",
-  3: "💪",
-  4: "🎲",
-  5: "🎯",
-};
+ 
 
 const SKILL_ROWS = [
   { key: "KeeperSkill", maxKey: "KeeperSkillMax", labelKey: "skillKeeper" },

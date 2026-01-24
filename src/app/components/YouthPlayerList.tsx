@@ -2,12 +2,14 @@
 
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
+import { SPECIALTY_EMOJI } from "@/lib/specialty";
 
 type YouthPlayer = {
   YouthPlayerID: number;
   FirstName: string;
   NickName: string;
   LastName: string;
+  Specialty?: number;
 };
 
 type YouthPlayerListProps = {
@@ -56,6 +58,11 @@ export default function YouthPlayerList({
             const isSelected = selectedId === player.YouthPlayerID;
             const isAssigned = assignedIds?.has(player.YouthPlayerID) ?? false;
 
+            const specialtyEmoji =
+              player.Specialty && player.Specialty !== 0
+                ? player.Specialty
+                : null;
+
             return (
               <li key={player.YouthPlayerID} className={styles.listItem}>
                 <div className={styles.playerRow}>
@@ -71,7 +78,14 @@ export default function YouthPlayerList({
                     draggable
                     aria-pressed={isSelected}
                   >
-                    <span className={styles.playerName}>{fullName}</span>
+                    <span className={styles.playerNameRow}>
+                      <span className={styles.playerName}>{fullName}</span>
+                      {specialtyEmoji ? (
+                        <span className={styles.playerSpecialty}>
+                          {SPECIALTY_EMOJI[specialtyEmoji]}
+                        </span>
+                      ) : null}
+                    </span>
                     <span className={styles.playerId}>
                       ID: {player.YouthPlayerID}
                     </span>

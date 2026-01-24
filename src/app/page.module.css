@@ -203,6 +203,17 @@
   font-size: 14px;
 }
 
+.playerNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.playerSpecialty {
+  font-size: 14px;
+  line-height: 1;
+}
+
 .playerId {
   font-size: 11px;
   color: #666;

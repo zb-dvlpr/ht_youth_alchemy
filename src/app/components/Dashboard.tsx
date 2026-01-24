@@ -16,6 +16,7 @@ type YouthPlayer = {
   FirstName: string;
   NickName: string;
   LastName: string;
+  Specialty?: number;
 };
 
 type PlayerDetailsResponse = {

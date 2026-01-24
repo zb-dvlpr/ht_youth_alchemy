@@ -172,6 +172,16 @@ function renderMatch(
         <div className={styles.matchActions}>
           <button
             type="button"
+            className={styles.matchButtonSecondary}
+            onClick={() => onLoadLineup?.(matchId)}
+            disabled={!canLoad || loadState?.status === "loading"}
+          >
+            {loadState?.status === "loading"
+              ? messages.loadLineupLoading
+              : messages.loadLineup}
+          </button>
+          <button
+            type="button"
             className={styles.matchButton}
             onClick={() => onSubmit(matchId)}
             disabled={!canSubmit || state.status === "submitting"}
@@ -185,16 +195,6 @@ function renderMatch(
               {messages.submitOrdersSuccess}
             </span>
           ) : null}
-          <button
-            type="button"
-            className={styles.matchButtonSecondary}
-            onClick={() => onLoadLineup?.(matchId)}
-            disabled={!canLoad || loadState?.status === "loading"}
-          >
-            {loadState?.status === "loading"
-              ? messages.loadLineupLoading
-              : messages.loadLineup}
-          </button>
           {loadState?.status === "error" ? (
             <span className={styles.matchError}>
               {messages.loadLineupError}

@@ -13,6 +13,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Player list shows specialty emoji when available (including resilient/support)
 - Lineup slots show specialty emoji when available
 - Updated document title/description metadata
+- Favicon uses a football emoji icon
 - Click-to-load player details in a dedicated panel
 - Language switcher (English, German, French, Spanish, Swedish, Italian, Portuguese)
 - Localization rule: new UI text must be i18n-backed

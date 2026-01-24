@@ -149,6 +149,7 @@ export default async function Home() {
       <header className={styles.topBar}>
         <div className={styles.brandRow}>
           <span className={styles.brandTitle}>{messages.brandTitle}</span>
+          <span className={styles.version}>v{pkg.version}</span>
         </div>
         <div className={styles.topBarControls}>
           <LanguageSwitcher locale={locale} label={messages.languageLabel} />
@@ -161,7 +162,6 @@ export default async function Home() {
               {messages.connectLabel}
             </a>
           )}
-          <div className={styles.version}>v{pkg.version}</div>
         </div>
       </header>
 

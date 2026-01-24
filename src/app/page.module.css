@@ -20,7 +20,8 @@
 
 .brandRow {
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .brandTitle {
@@ -86,8 +87,10 @@
 }
 
 .version {
-  font-size: 12px;
-  letter-spacing: 0.6px;
+  font-family: var(--font-brand), "Space Grotesk", sans-serif;
+  font-size: clamp(10px, 1vw, 12px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: #6b6256;
 }
 

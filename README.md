@@ -51,7 +51,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Match orders are posted as form-encoded `lineup` JSON for CHPP compatibility
 - Submit errors now surface CHPP response details in the match list
 - Lineup pitch layout scaffold (no position labels, uniform slot sizing)
-- Brand logo header with version number
+- Brand header with version number next to the title
 - Drag-and-drop lineup assignment (list → field slots, slot → slot with swap)
 - Placeholder for the optimizer module
 

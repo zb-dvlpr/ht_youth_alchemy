@@ -3,6 +3,7 @@
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { setDragGhost } from "@/lib/drag";
+import { SPECIALTY_EMOJI } from "@/lib/specialty";
 
 export type LineupAssignments = Record<string, number | null>;
 
@@ -11,6 +12,7 @@ type YouthPlayer = {
   FirstName: string;
   NickName?: string;
   LastName: string;
+  Specialty?: number;
 };
 
 type LineupFieldProps = {
@@ -165,7 +167,12 @@ export default function LineupField({
                       <span className={styles.slotName}>
                         {formatName(assignedPlayer)}
                       </span>
-                      <span className={styles.slotLabel}>{position.label}</span>
+                      {assignedPlayer.Specialty &&
+                      assignedPlayer.Specialty !== 0 ? (
+                        <span className={styles.slotEmoji}>
+                          {SPECIALTY_EMOJI[assignedPlayer.Specialty]}
+                        </span>
+                      ) : null}
                       <button
                         type="button"
                         className={styles.slotClear}
@@ -175,9 +182,7 @@ export default function LineupField({
                         ×
                       </button>
                     </div>
-                  ) : (
-                    <span className={styles.fieldLabel}>{position.label}</span>
-                  )}
+                  ) : null}
                 </div>
               );
             })}

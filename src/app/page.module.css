@@ -125,6 +125,11 @@
   text-align: center;
 }
 
+.matrixCell {
+  font-weight: 700;
+  color: #1b1a17;
+}
+
 .matrixTable th {
   background: #f7f1e3;
   font-weight: 600;

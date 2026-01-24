@@ -187,7 +187,9 @@ export default function YouthPlayerList({
   return (
     <div className={styles.card}>
       <div className={styles.listHeader}>
-        <h2 className={styles.sectionTitle}>{messages.youthPlayerList}</h2>
+        <h2 className={`${styles.sectionTitle} ${styles.listHeaderTitle}`}>
+          {messages.youthPlayerList}
+        </h2>
         <label className={styles.sortControl}>
           <span className={styles.sortLabel}>{messages.sortLabel}</span>
           <select

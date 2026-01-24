@@ -78,6 +78,7 @@ export default function Dashboard({
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [matchesState, setMatchesState] =
     useState<MatchesResponse>(matchesResponse);
+  const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -155,10 +156,12 @@ export default function Dashboard({
       next[slotId] = playerId;
       return next;
     });
+    setLoadedMatchId(null);
   };
 
   const clearSlot = (slotId: string) => {
     setAssignments((prev) => ({ ...prev, [slotId]: null }));
+    setLoadedMatchId(null);
   };
 
   const moveSlot = (fromSlot: string, toSlot: string) => {
@@ -172,6 +175,7 @@ export default function Dashboard({
       next[fromSlot] = targetPlayer;
       return next;
     });
+    setLoadedMatchId(null);
   };
 
   const randomizeLineup = () => {
@@ -198,6 +202,7 @@ export default function Dashboard({
       next[slot] = shuffled[index] ?? null;
     });
     setAssignments(next);
+    setLoadedMatchId(null);
   };
 
   const refreshMatches = async () => {
@@ -210,6 +215,11 @@ export default function Dashboard({
     } catch {
       // keep existing data
     }
+  };
+
+  const loadLineup = (nextAssignments: LineupAssignments, matchId: number) => {
+    setAssignments(nextAssignments);
+    setLoadedMatchId(matchId);
   };
 
   const detailsData = resolveDetails(details);
@@ -253,6 +263,8 @@ export default function Dashboard({
           messages={messages}
           assignments={assignments}
           onRefresh={refreshMatches}
+          onLoadLineup={loadLineup}
+          loadedMatchId={loadedMatchId}
         />
       </div>
     </div>

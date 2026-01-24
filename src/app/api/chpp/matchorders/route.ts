@@ -4,6 +4,8 @@ import {
   buildChppErrorPayload,
   ChppAuthError,
   buildChppUrl,
+  fetchChppXml,
+  getChppAuth,
   parseChppXml,
 } from "@/lib/chpp/server";
 import { getChppEnv } from "@/lib/chpp/env";
@@ -89,6 +91,42 @@ export async function POST(request: Request) {
     }
     return NextResponse.json(
       buildChppErrorPayload("Failed to submit match orders", error),
+      { status: 502 }
+    );
+  }
+}
+
+export async function GET(request: Request) {
+  try {
+    const url = new URL(request.url);
+    const matchId = url.searchParams.get("matchId");
+    const teamId = url.searchParams.get("teamId");
+
+    if (!matchId || !teamId) {
+      return NextResponse.json(
+        { error: "Missing matchId or teamId." },
+        { status: 400 }
+      );
+    }
+
+    const auth = await getChppAuth();
+    const params = new URLSearchParams({
+      file: "matchorders",
+      version: MATCHORDERS_VERSION,
+      actionType: "view",
+      matchID: matchId,
+      teamId,
+      sourceSystem: "Youth",
+    });
+
+    const { parsed, rawXml } = await fetchChppXml(auth, params);
+    return NextResponse.json({ data: parsed, raw: rawXml });
+  } catch (error) {
+    if (error instanceof ChppAuthError) {
+      return NextResponse.json({ error: error.message }, { status: error.status });
+    }
+    return NextResponse.json(
+      buildChppErrorPayload("Failed to fetch match orders", error),
       { status: 502 }
     );
   }

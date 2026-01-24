@@ -1,6 +1,21 @@
 import type { Messages } from "@/lib/i18n";
 
 export type PositionKey = "KP" | "WB" | "CD" | "W" | "IM" | "F";
+export type SlotId =
+  | "KP"
+  | "WB_L"
+  | "WB_R"
+  | "CD_L"
+  | "CD_C"
+  | "CD_R"
+  | "W_L"
+  | "W_R"
+  | "IM_L"
+  | "IM_C"
+  | "IM_R"
+  | "F_L"
+  | "F_C"
+  | "F_R";
 
 export const POSITION_COLUMNS: number[] = [100, 101, 103, 106, 107, 111];
 
@@ -80,4 +95,39 @@ export function positionLabelFullByRoleId(
   const normalized = normalizeMatchRoleId(roleId);
   if (!normalized) return null;
   return positionLabelFull(normalized, messages);
+}
+
+export function roleIdToSlotId(roleId: number | null | undefined): SlotId | null {
+  switch (roleId) {
+    case 100:
+      return "KP";
+    case 101:
+      return "WB_R";
+    case 105:
+      return "WB_L";
+    case 102:
+      return "CD_R";
+    case 103:
+      return "CD_C";
+    case 104:
+      return "CD_L";
+    case 106:
+      return "W_R";
+    case 110:
+      return "W_L";
+    case 107:
+      return "IM_R";
+    case 108:
+      return "IM_C";
+    case 109:
+      return "IM_L";
+    case 111:
+      return "F_R";
+    case 112:
+      return "F_C";
+    case 113:
+      return "F_L";
+    default:
+      return null;
+  }
 }

@@ -39,6 +39,11 @@ export type Messages = {
   submitOrdersReport: string;
   confirmCancel: string;
   confirmSubmit: string;
+  loadLineup: string;
+  loadLineupLoading: string;
+  loadLineupUnavailable: string;
+  loadLineupActive: string;
+  loadLineupError: string;
   statusLabel: string;
   lineupTitle: string;
   clearSlot: string;
@@ -116,6 +121,11 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Please report this error to the developer.",
     confirmCancel: "Cancel",
     confirmSubmit: "Submit",
+    loadLineup: "Load lineup",
+    loadLineupLoading: "Loading…",
+    loadLineupUnavailable: "No saved lineup",
+    loadLineupActive: "Loaded",
+    loadLineupError: "Load failed",
     statusLabel: "Status",
     lineupTitle: "Lineup",
     clearSlot: "Clear",
@@ -191,6 +201,11 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Bitte melden Sie diesen Fehler dem Entwickler.",
     confirmCancel: "Abbrechen",
     confirmSubmit: "Senden",
+    loadLineup: "Aufstellung laden",
+    loadLineupLoading: "Wird geladen…",
+    loadLineupUnavailable: "Keine gespeicherte Aufstellung",
+    loadLineupActive: "Geladen",
+    loadLineupError: "Laden fehlgeschlagen",
     statusLabel: "Status",
     lineupTitle: "Aufstellung",
     clearSlot: "Leeren",
@@ -266,6 +281,11 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Veuillez signaler cette erreur au développeur.",
     confirmCancel: "Annuler",
     confirmSubmit: "Envoyer",
+    loadLineup: "Charger la composition",
+    loadLineupLoading: "Chargement…",
+    loadLineupUnavailable: "Aucune composition enregistrée",
+    loadLineupActive: "Chargé",
+    loadLineupError: "Chargement échoué",
     statusLabel: "Statut",
     lineupTitle: "Composition",
     clearSlot: "Effacer",
@@ -341,6 +361,11 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Por favor, informe este error al desarrollador.",
     confirmCancel: "Cancelar",
     confirmSubmit: "Enviar",
+    loadLineup: "Cargar alineación",
+    loadLineupLoading: "Cargando…",
+    loadLineupUnavailable: "Sin alineación guardada",
+    loadLineupActive: "Cargada",
+    loadLineupError: "Error al cargar",
     statusLabel: "Estado",
     lineupTitle: "Alineación",
     clearSlot: "Limpiar",
@@ -416,6 +441,11 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Rapportera gärna felet till utvecklaren.",
     confirmCancel: "Avbryt",
     confirmSubmit: "Skicka",
+    loadLineup: "Ladda uppställning",
+    loadLineupLoading: "Laddar…",
+    loadLineupUnavailable: "Ingen sparad uppställning",
+    loadLineupActive: "Laddad",
+    loadLineupError: "Misslyckades att ladda",
     statusLabel: "Status",
     lineupTitle: "Laguppställning",
     clearSlot: "Rensa",
@@ -491,6 +521,11 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Segnala questo errore allo sviluppatore.",
     confirmCancel: "Annulla",
     confirmSubmit: "Invia",
+    loadLineup: "Carica formazione",
+    loadLineupLoading: "Caricamento…",
+    loadLineupUnavailable: "Nessuna formazione salvata",
+    loadLineupActive: "Caricata",
+    loadLineupError: "Caricamento non riuscito",
     statusLabel: "Stato",
     lineupTitle: "Formazione",
     clearSlot: "Svuota",
@@ -566,6 +601,11 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Informe este erro ao desenvolvedor.",
     confirmCancel: "Cancelar",
     confirmSubmit: "Enviar",
+    loadLineup: "Carregar escalação",
+    loadLineupLoading: "Carregando…",
+    loadLineupUnavailable: "Sem escalação salva",
+    loadLineupActive: "Carregada",
+    loadLineupError: "Falha ao carregar",
     statusLabel: "Status",
     lineupTitle: "Escalação",
     clearSlot: "Limpar",

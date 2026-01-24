@@ -453,6 +453,18 @@
   transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
+.matchButtonSecondary {
+  border: 1px solid rgba(36, 77, 43, 0.35);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: transparent;
+  color: #244d2b;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
 .matchButton:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -461,6 +473,15 @@
 
 .matchButton:hover:not(:disabled) {
   transform: translateY(-1px);
+}
+
+.matchButtonSecondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.matchButtonSecondary:hover:not(:disabled) {
+  background: rgba(36, 77, 43, 0.1);
 }
 
 .matchSuccess {
@@ -479,6 +500,15 @@
   font-size: 12px;
   font-weight: 600;
   color: #5b4a37;
+}
+
+.matchLoaded {
+  font-size: 12px;
+  font-weight: 600;
+  color: #244d2b;
+  background: rgba(36, 77, 43, 0.12);
+  padding: 2px 8px;
+  border-radius: 999px;
 }
 
 .confirmOverlay {

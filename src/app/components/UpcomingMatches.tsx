@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { LineupAssignments } from "./LineupField";
+import { roleIdToSlotId } from "@/lib/positions";
 
 type MatchTeam = {
   HomeTeamName?: string;
@@ -44,6 +45,8 @@ type UpcomingMatchesProps = {
   messages: Messages;
   assignments: LineupAssignments;
   onRefresh?: () => void;
+  onLoadLineup?: (assignments: LineupAssignments, matchId: number) => void;
+  loadedMatchId?: number | null;
 };
 
 function normalizeMatches(input?: Match[] | Match): Match[] {
@@ -76,6 +79,11 @@ type MatchState = {
   error?: string | null;
   raw?: string | null;
   updatedAt?: number | null;
+};
+
+type LoadState = {
+  status: "idle" | "loading" | "error";
+  error?: string | null;
 };
 
 const POSITION_SLOT_ORDER = [
@@ -124,19 +132,28 @@ function buildLineupPayload(assignments: LineupAssignments) {
 }
 
 function renderMatch(
+  matchId: number,
   match: Match,
   teamId: number | null,
   messages: Messages,
   hasLineup: boolean,
   state: MatchState,
   onSubmit: (matchId: number) => void,
-  updatedLabel?: string | null
+  updatedLabel?: string | null,
+  loadState?: LoadState,
+  onLoadLineup?: (matchId: number) => void,
+  isLoaded?: boolean
 ) {
   const isUpcoming = match.Status === "UPCOMING";
   const canSubmit = Boolean(teamId) && isUpcoming && hasLineup;
+  const ordersSet =
+    match.OrdersGiven === "true" ||
+    match.OrdersGiven === "True" ||
+    match.OrdersGiven === true;
+  const canLoad = Boolean(teamId) && isUpcoming && ordersSet;
 
   return (
-    <li key={match.MatchID} className={styles.matchItem}>
+    <li key={matchId} className={styles.matchItem}>
       <div className={styles.matchTeams}>
         <span>{match.HomeTeam?.HomeTeamName ?? messages.homeLabel}</span>
         <span className={styles.vs}>vs</span>
@@ -148,9 +165,7 @@ function renderMatch(
           {messages.statusLabel}: {match.Status ?? messages.unknownLabel}
         </span>
         <span>
-          {messages.ordersLabel}: {match.OrdersGiven === "true" || match.OrdersGiven === true
-            ? messages.ordersSet
-            : messages.ordersNotSet}
+          {messages.ordersLabel}: {ordersSet ? messages.ordersSet : messages.ordersNotSet}
         </span>
       </div>
       {isUpcoming ? (
@@ -158,7 +173,7 @@ function renderMatch(
           <button
             type="button"
             className={styles.matchButton}
-            onClick={() => onSubmit(match.MatchID)}
+            onClick={() => onSubmit(matchId)}
             disabled={!canSubmit || state.status === "submitting"}
           >
             {state.status === "submitting"
@@ -170,6 +185,22 @@ function renderMatch(
               {messages.submitOrdersSuccess}
             </span>
           ) : null}
+          <button
+            type="button"
+            className={styles.matchButtonSecondary}
+            onClick={() => onLoadLineup?.(matchId)}
+            disabled={!canLoad || loadState?.status === "loading"}
+          >
+            {loadState?.status === "loading"
+              ? messages.loadLineupLoading
+              : messages.loadLineup}
+          </button>
+          {loadState?.status === "error" ? (
+            <span className={styles.matchError}>
+              {messages.loadLineupError}
+              {loadState.error ? `: ${loadState.error}` : ""}
+            </span>
+          ) : null}
           {state.status === "error" ? (
             <span className={styles.matchError}>
               {messages.submitOrdersError}
@@ -178,6 +209,9 @@ function renderMatch(
           ) : null}
           {updatedLabel ? (
             <span className={styles.matchUpdated}>{updatedLabel}</span>
+          ) : null}
+          {isLoaded ? (
+            <span className={styles.matchLoaded}>{messages.loadLineupActive}</span>
           ) : null}
           {state.raw ? (
             <details className={styles.matchResponse}>
@@ -196,8 +230,11 @@ export default function UpcomingMatches({
   messages,
   assignments,
   onRefresh,
+  onLoadLineup,
+  loadedMatchId,
 }: UpcomingMatchesProps) {
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
+  const [loadStates, setLoadStates] = useState<Record<number, LoadState>>({});
   const [confirmMatchId, setConfirmMatchId] = useState<number | null>(null);
   const teamId =
     response.data?.HattrickData?.Team?.TeamID ??
@@ -208,6 +245,11 @@ export default function UpcomingMatches({
   const lineupPayload = useMemo(
     () => buildLineupPayload(assignments),
     [assignments]
+  );
+
+  const allMatches = normalizeMatches(
+    response.data?.HattrickData?.MatchList?.Match ??
+      response.data?.HattrickData?.Team?.MatchList?.Match
   );
 
   const handleSubmit = async (matchId: number) => {
@@ -224,6 +266,77 @@ export default function UpcomingMatches({
     }
     setConfirmMatchId(matchId);
     return;
+  };
+
+  const handleLoadLineup = async (matchId: number) => {
+    if (!teamId) return;
+    setLoadStates((prev) => ({
+      ...prev,
+      [matchId]: { status: "loading", error: null },
+    }));
+    try {
+      const response = await fetch(
+        `/api/chpp/matchorders?matchId=${matchId}&teamId=${teamId}`,
+        { cache: "no-store" }
+      );
+      const payload = await response.json().catch(() => null);
+      if (!response.ok || payload?.error) {
+        throw new Error(
+          payload?.details || payload?.error || messages.loadLineupError
+        );
+      }
+      const positionsRaw =
+        payload?.data?.HattrickData?.MatchData?.Lineup?.Positions?.Player;
+      const positions = Array.isArray(positionsRaw)
+        ? positionsRaw
+        : positionsRaw
+        ? [positionsRaw]
+        : [];
+      const next: LineupAssignments = {};
+      positions.forEach((player: { RoleID?: number; PlayerID?: number }) => {
+        const playerId = Number(player?.PlayerID ?? 0);
+        if (!playerId) return;
+        const slot = roleIdToSlotId(Number(player?.RoleID ?? 0));
+        if (!slot) return;
+        const flippedSlot =
+          slot === "WB_L"
+            ? "WB_R"
+            : slot === "WB_R"
+            ? "WB_L"
+            : slot === "CD_L"
+            ? "CD_R"
+            : slot === "CD_R"
+            ? "CD_L"
+            : slot === "W_L"
+            ? "W_R"
+            : slot === "W_R"
+            ? "W_L"
+            : slot === "IM_L"
+            ? "IM_R"
+            : slot === "IM_R"
+            ? "IM_L"
+            : slot === "F_L"
+            ? "F_R"
+            : slot === "F_R"
+            ? "F_L"
+            : slot;
+        next[flippedSlot] = playerId;
+      });
+      if (Object.keys(next).length === 0) {
+        throw new Error(messages.loadLineupUnavailable);
+      }
+      onLoadLineup?.(next, matchId);
+      setLoadStates((prev) => ({
+        ...prev,
+        [matchId]: { status: "idle", error: null },
+      }));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setLoadStates((prev) => ({
+        ...prev,
+        [matchId]: { status: "error", error: message },
+      }));
+    }
   };
 
   const confirmSubmit = async () => {
@@ -308,10 +421,6 @@ export default function UpcomingMatches({
     );
   }
 
-  const allMatches = normalizeMatches(
-    response.data?.HattrickData?.MatchList?.Match ??
-      response.data?.HattrickData?.Team?.MatchList?.Match
-  );
   const upcoming = allMatches.filter((match) => match.Status === "UPCOMING");
   const sortedUpcoming = sortByDate(upcoming);
   const sortedAll = sortByDate(allMatches);
@@ -347,20 +456,26 @@ export default function UpcomingMatches({
       {sortedUpcoming.length > 0 ? (
         <ul className={styles.matchList}>
           {sortedUpcoming.map((match) => {
-            const state = matchStates[match.MatchID] ?? { status: "idle" };
+            const matchId = Number(match.MatchID);
+            if (!Number.isFinite(matchId)) return null;
+            const state = matchStates[matchId] ?? { status: "idle" };
             const updatedLabel =
               state.updatedAt &&
               `${messages.submitOrdersUpdated}: ${new Date(
                 state.updatedAt
               ).toLocaleTimeString()}`;
             return renderMatch(
+              matchId,
               match,
               teamId,
               messages,
               hasLineup,
               state,
               handleSubmit,
-              updatedLabel
+              updatedLabel,
+              loadStates[matchId],
+              handleLoadLineup,
+              loadedMatchId === matchId
             );
           })}
         </ul>
@@ -369,20 +484,26 @@ export default function UpcomingMatches({
           <p className={styles.muted}>{messages.noUpcomingMatches}</p>
           <ul className={styles.matchList}>
             {sortedAll.map((match) => {
-              const state = matchStates[match.MatchID] ?? { status: "idle" };
+              const matchId = Number(match.MatchID);
+              if (!Number.isFinite(matchId)) return null;
+              const state = matchStates[matchId] ?? { status: "idle" };
               const updatedLabel =
                 state.updatedAt &&
                 `${messages.submitOrdersUpdated}: ${new Date(
                   state.updatedAt
                 ).toLocaleTimeString()}`;
               return renderMatch(
+                matchId,
                 match,
                 teamId,
                 messages,
                 hasLineup,
                 state,
                 handleSubmit,
-                updatedLabel
+                updatedLabel,
+                loadStates[matchId],
+                handleLoadLineup,
+                loadedMatchId === matchId
               );
             })}
           </ul>

@@ -242,6 +242,50 @@
   margin-bottom: 12px;
 }
 
+.listHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.sortControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b6256;
+}
+
+.sortLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.sortSelect {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #3f362c;
+}
+
+.sortToggle {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.sortToggle:hover {
+  background: #f1e9dc;
+}
+
 .detailsTitle {
   margin: 0;
   font-size: 18px;

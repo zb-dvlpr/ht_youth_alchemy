@@ -12,6 +12,10 @@ type YouthPlayer = {
   NickName: string;
   LastName: string;
   Specialty?: number;
+  Age?: number;
+  ArrivalDate?: string;
+  CanBePromotedIn?: number;
+  PlayerSkills?: Record<string, unknown>;
 };
 
 type YouthPlayerListResponse = {

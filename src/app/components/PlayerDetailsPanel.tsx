@@ -300,6 +300,8 @@ export default function PlayerDetailsPanel({
                 );
                 const hasCurrent = current !== null;
                 const hasMax = max !== null;
+                const currentText = hasCurrent ? String(current) : messages.unknownShort;
+                const maxText = hasMax ? String(max) : messages.unknownShort;
                 const currentPct = hasCurrent
                   ? Math.min(100, (current / MAX_SKILL_LEVEL) * 100)
                   : null;
@@ -327,13 +329,7 @@ export default function PlayerDetailsPanel({
                       ) : null}
                     </div>
                     <div className={styles.skillValue}>
-                      {!hasCurrent && !hasMax
-                        ? messages.unknownLabel
-                        : hasCurrent && hasMax
-                        ? `${getSkillName(current)} ${current}/${max}`
-                        : hasCurrent
-                        ? `${getSkillName(current)} ${current}`
-                        : `${messages.potentialLabel} ${max}`}
+                      {currentText}/{maxText}
                     </div>
                   </div>
                 );

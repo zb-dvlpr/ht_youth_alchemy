@@ -41,6 +41,7 @@ export type Messages = {
   specialtyLabel: string;
   skillsLabel: string;
   unknownLabel: string;
+  unknownShort: string;
   potentialLabel: string;
   lastMatchPositionLabel: string;
   lastMatchRatingLabel: string;
@@ -99,6 +100,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Specialty",
     skillsLabel: "Skills",
     unknownLabel: "unknown",
+    unknownShort: "?",
     potentialLabel: "potential",
     lastMatchPositionLabel: "Last match position",
     lastMatchRatingLabel: "Last match rating",
@@ -155,6 +157,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Spezialität",
     skillsLabel: "Fähigkeiten",
     unknownLabel: "unbekannt",
+    unknownShort: "?",
     potentialLabel: "Potenzial",
     lastMatchPositionLabel: "Letzte Position",
     lastMatchRatingLabel: "Letzte Bewertung",
@@ -211,6 +214,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Spécialité",
     skillsLabel: "Compétences",
     unknownLabel: "inconnu",
+    unknownShort: "?",
     potentialLabel: "potentiel",
     lastMatchPositionLabel: "Position du dernier match",
     lastMatchRatingLabel: "Note du dernier match",
@@ -267,6 +271,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Especialidad",
     skillsLabel: "Habilidades",
     unknownLabel: "desconocido",
+    unknownShort: "?",
     potentialLabel: "potencial",
     lastMatchPositionLabel: "Posición del último partido",
     lastMatchRatingLabel: "Calificación del último partido",
@@ -323,6 +328,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Specialitet",
     skillsLabel: "Färdigheter",
     unknownLabel: "okänd",
+    unknownShort: "?",
     potentialLabel: "potential",
     lastMatchPositionLabel: "Senaste matchposition",
     lastMatchRatingLabel: "Senaste matchbetyg",
@@ -379,6 +385,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Specialità",
     skillsLabel: "Abilità",
     unknownLabel: "sconosciuto",
+    unknownShort: "?",
     potentialLabel: "potenziale",
     lastMatchPositionLabel: "Posizione ultimo match",
     lastMatchRatingLabel: "Valutazione ultimo match",
@@ -435,6 +442,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Especialidade",
     skillsLabel: "Habilidades",
     unknownLabel: "desconhecido",
+    unknownShort: "?",
     potentialLabel: "potencial",
     lastMatchPositionLabel: "Posição do último jogo",
     lastMatchRatingLabel: "Avaliação do último jogo",

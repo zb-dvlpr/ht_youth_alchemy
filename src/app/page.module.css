@@ -342,7 +342,7 @@
 
 .skillRow {
   display: grid;
-  grid-template-columns: 120px minmax(0, 1fr) 160px;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
 }
@@ -353,7 +353,7 @@
 }
 
 .skillBar {
-  height: 10px;
+  height: 12px;
   background: #e8e1d6;
   border-radius: 999px;
   overflow: hidden;
@@ -379,8 +379,11 @@
 }
 
 .skillValue {
-  font-size: 13px;
-  color: #3f362c;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2b241d;
+  min-width: 52px;
+  text-align: right;
 }
 
 .matchList {

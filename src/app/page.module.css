@@ -623,6 +623,26 @@
   transform: translateY(-1px);
 }
 
+.lineupButtonSecondary {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.lineupButtonSecondary:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
 .fieldPitch {
   position: relative;
   padding: 28px 18px 24px;

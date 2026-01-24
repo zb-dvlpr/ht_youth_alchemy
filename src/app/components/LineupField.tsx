@@ -22,6 +22,7 @@ type LineupFieldProps = {
   onClear: (slotId: string) => void;
   onMove?: (fromSlot: string, toSlot: string) => void;
   onRandomize?: () => void;
+  onReset?: () => void;
   messages: Messages;
 };
 
@@ -75,6 +76,7 @@ export default function LineupField({
   onClear,
   onMove,
   onRandomize,
+  onReset,
   messages,
 }: LineupFieldProps) {
   const handleDrop = (slotId: string, event: React.DragEvent) => {
@@ -198,6 +200,15 @@ export default function LineupField({
           onClick={onRandomize}
         >
           {messages.randomizeLineup}
+        </button>
+      ) : null}
+      {onReset ? (
+        <button
+          type="button"
+          className={styles.lineupButtonSecondary}
+          onClick={onReset}
+        >
+          {messages.resetLineup}
         </button>
       ) : null}
     </div>

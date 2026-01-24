@@ -210,6 +210,11 @@ export default function Dashboard({
     setLoadedMatchId(null);
   };
 
+  const resetLineup = () => {
+    setAssignments({});
+    setLoadedMatchId(null);
+  };
+
   const refreshMatches = async () => {
     try {
       const response = await fetch("/api/chpp/matches?isYouth=true", {
@@ -261,6 +266,7 @@ export default function Dashboard({
           onClear={clearSlot}
           onMove={moveSlot}
           onRandomize={randomizeLineup}
+          onReset={resetLineup}
           messages={messages}
         />
         <UpcomingMatches

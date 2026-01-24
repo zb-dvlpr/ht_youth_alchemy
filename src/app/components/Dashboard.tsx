@@ -179,8 +179,7 @@ export default function Dashboard({
   };
 
   const randomizeLineup = () => {
-    const slots = [
-      "KP",
+    const outfieldSlots = [
       "WB_R",
       "CD_R",
       "CD_C",
@@ -196,10 +195,16 @@ export default function Dashboard({
       "F_L",
     ];
     const ids = players.map((player) => player.YouthPlayerID);
-    const shuffled = [...ids].sort(() => Math.random() - 0.5).slice(0, 11);
-    const next: LineupAssignments = {};
-    slots.forEach((slot, index) => {
-      next[slot] = shuffled[index] ?? null;
+    const shuffledIds = [...ids].sort(() => Math.random() - 0.5);
+    const keeperId = shuffledIds.shift() ?? null;
+    const outfieldIds = shuffledIds.slice(0, 10);
+    const shuffledSlots = [...outfieldSlots].sort(() => Math.random() - 0.5);
+
+    const next: LineupAssignments = {
+      KP: keeperId,
+    };
+    shuffledSlots.slice(0, outfieldIds.length).forEach((slot, index) => {
+      next[slot] = outfieldIds[index] ?? null;
     });
     setAssignments(next);
     setLoadedMatchId(null);

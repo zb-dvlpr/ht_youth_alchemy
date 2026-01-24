@@ -45,7 +45,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Match order submission requires at least 9 players assigned
 - Match order submission requires no more than 11 players assigned
 - Disabled submit explains why (too few or too many players)
-- Random lineup button fills 11 positions
+- Random lineup sets a keeper and fills any 10 other positions
 - Match orders are posted as form-encoded `lineup` JSON for CHPP compatibility
 - Submit errors now surface CHPP response details in the match list
 - Lineup pitch layout scaffold (no position labels, uniform slot sizing)

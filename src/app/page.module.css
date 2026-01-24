@@ -658,6 +658,8 @@
   padding: 12px 16px;
   font-weight: 600;
   letter-spacing: 0.4px;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
 }
 
 .lineupButton {

@@ -2,6 +2,7 @@
 
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
+import { setDragGhost } from "@/lib/drag";
 
 export type LineupAssignments = Record<string, number | null>;
 
@@ -143,20 +144,25 @@ export default function LineupField({
                   onDragOver={handleDragOver}
                 >
                   {assignedPlayer ? (
-                    <div className={styles.slotContent}>
-                      <span
-                        className={styles.slotName}
-                        draggable
-                        title={messages.dragPlayerHint}
-                        onDragStart={(event) => {
-                          if (!dragPayload) return;
-                          event.dataTransfer.setData(
-                            "application/json",
-                            dragPayload
-                          );
-                          event.dataTransfer.effectAllowed = "move";
-                        }}
-                      >
+                    <div
+                      className={styles.slotContent}
+                      draggable
+                      title={messages.dragPlayerHint}
+                      onDragStart={(event) => {
+                        if (!dragPayload) return;
+                        setDragGhost(event, {
+                          label: formatName(assignedPlayer),
+                          className: styles.dragGhost,
+                          slotSelector: `.${styles.fieldSlot}`,
+                        });
+                        event.dataTransfer.setData(
+                          "application/json",
+                          dragPayload
+                        );
+                        event.dataTransfer.effectAllowed = "move";
+                      }}
+                    >
+                      <span className={styles.slotName}>
                         {formatName(assignedPlayer)}
                       </span>
                       <span className={styles.slotLabel}>{position.label}</span>

@@ -3,6 +3,7 @@
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
+import { setDragGhost } from "@/lib/drag";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -38,6 +39,14 @@ export default function YouthPlayerList({
     event: React.DragEvent<HTMLButtonElement>,
     playerId: number
   ) => {
+    const player = players.find((item) => item.YouthPlayerID === playerId);
+    if (player) {
+      setDragGhost(event, {
+        label: formatPlayerName(player),
+        className: styles.dragGhost,
+        slotSelector: `.${styles.fieldSlot}`,
+      });
+    }
     event.dataTransfer.setData(
       "application/json",
       JSON.stringify({ type: "player", playerId })

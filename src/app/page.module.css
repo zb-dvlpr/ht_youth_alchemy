@@ -671,6 +671,21 @@
   justify-content: center;
 }
 
+.dragGhost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.22);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: #f7f1e3;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  padding: 6px 10px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
+}
+
 .fieldLabel {
   font-size: 13px;
   font-weight: 700;
@@ -762,6 +777,7 @@
   flex-direction: column;
   justify-content: center;
   gap: 6px;
+  cursor: grab;
 }
 
 .slotName {
@@ -769,10 +785,9 @@
   font-weight: 600;
   color: #f7f1e3;
   text-align: center;
-  cursor: grab;
 }
 
-.slotName:active {
+.slotContent:active {
   cursor: grabbing;
 }
 

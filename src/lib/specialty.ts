@@ -1,7 +1,7 @@
 export const SPECIALTY_EMOJI: Record<number, string> = {
   0: "—",
   1: "🛠️",
-  2: "⚡",
+  2: "🏃",
   3: "💪",
   4: "🎲",
   5: "🎯",

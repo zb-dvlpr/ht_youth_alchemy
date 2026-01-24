@@ -169,6 +169,36 @@
 
 .playerRow {
   display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.starButton {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #d7cabc;
+  background: #f6f2eb;
+  color: #8c8376;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.starButton:hover {
+  background: #efe5d6;
+  transform: translateY(-1px);
+}
+
+.starButtonActive {
+  color: #f0c84a;
+  background: #fff4c2;
+  border-color: #f2d06b;
+  box-shadow: 0 0 10px rgba(240, 200, 74, 0.35);
 }
 
 .playerButton {

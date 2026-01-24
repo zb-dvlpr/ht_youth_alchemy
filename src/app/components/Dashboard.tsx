@@ -83,6 +83,7 @@ export default function Dashboard({
   const [matchesState, setMatchesState] =
     useState<MatchesResponse>(matchesResponse);
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
+  const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
   const [primaryTraining, setPrimaryTraining] = useState<string>("");
   const [secondaryTraining, setSecondaryTraining] = useState<string>("");
 
@@ -288,6 +289,10 @@ export default function Dashboard({
         players={players}
         assignedIds={assignedIds}
         selectedId={selectedId}
+        starPlayerId={starPlayerId}
+        onToggleStar={(playerId) =>
+          setStarPlayerId((prev) => (prev === playerId ? null : playerId))
+        }
         onSelect={handleSelect}
         messages={messages}
       />

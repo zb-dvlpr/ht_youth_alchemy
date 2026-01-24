@@ -57,6 +57,7 @@ export type Messages = {
   trainingPassing: string;
   trainingScoring: string;
   trainingSetPieces: string;
+  starPlayerLabel: string;
   sortLabel: string;
   sortName: string;
   sortAge: string;
@@ -165,6 +166,7 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Passing",
     trainingScoring: "Scoring",
     trainingSetPieces: "Set pieces",
+    starPlayerLabel: "Set star player",
     sortLabel: "Sort by",
     sortName: "Name",
     sortAge: "Age",
@@ -271,6 +273,7 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Passen",
     trainingScoring: "Torschuss",
     trainingSetPieces: "Standards",
+    starPlayerLabel: "Starspieler festlegen",
     sortLabel: "Sortieren nach",
     sortName: "Name",
     sortAge: "Alter",
@@ -377,6 +380,7 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Passe",
     trainingScoring: "Buteur",
     trainingSetPieces: "Coups de pied arrêtés",
+    starPlayerLabel: "Définir joueur star",
     sortLabel: "Trier par",
     sortName: "Nom",
     sortAge: "Âge",
@@ -483,6 +487,7 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Pase",
     trainingScoring: "Anotador",
     trainingSetPieces: "Balón parado",
+    starPlayerLabel: "Definir jugador estrella",
     sortLabel: "Ordenar por",
     sortName: "Nombre",
     sortAge: "Edad",
@@ -589,6 +594,7 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Passning",
     trainingScoring: "Anfall",
     trainingSetPieces: "Fasta situationer",
+    starPlayerLabel: "Ange stjärnspelare",
     sortLabel: "Sortera efter",
     sortName: "Namn",
     sortAge: "Ålder",
@@ -695,6 +701,7 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Passaggi",
     trainingScoring: "Attacco",
     trainingSetPieces: "Calci piazzati",
+    starPlayerLabel: "Imposta giocatore stella",
     sortLabel: "Ordina per",
     sortName: "Nome",
     sortAge: "Età",
@@ -801,6 +808,7 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Passe",
     trainingScoring: "Artilheiro",
     trainingSetPieces: "Bolas paradas",
+    starPlayerLabel: "Definir jogador estrela",
     sortLabel: "Ordenar por",
     sortName: "Nome",
     sortAge: "Idade",

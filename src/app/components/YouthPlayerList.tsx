@@ -34,6 +34,8 @@ type YouthPlayerListProps = {
   players: YouthPlayer[];
   assignedIds?: Set<number>;
   selectedId?: number | null;
+  starPlayerId?: number | null;
+  onToggleStar?: (playerId: number) => void;
   onSelect?: (playerId: number) => void;
   messages: Messages;
 };
@@ -81,6 +83,8 @@ export default function YouthPlayerList({
   players,
   assignedIds,
   selectedId,
+  starPlayerId,
+  onToggleStar,
   onSelect,
   messages,
 }: YouthPlayerListProps) {
@@ -230,6 +234,7 @@ export default function YouthPlayerList({
             const fullName = formatPlayerName(player);
             const isSelected = selectedId === player.YouthPlayerID;
             const isAssigned = assignedIds?.has(player.YouthPlayerID) ?? false;
+            const isStar = starPlayerId === player.YouthPlayerID;
 
             const specialtyEmoji =
               player.Specialty && player.Specialty !== 0
@@ -239,6 +244,17 @@ export default function YouthPlayerList({
             return (
               <li key={player.YouthPlayerID} className={styles.listItem}>
                 <div className={styles.playerRow}>
+                  <button
+                    type="button"
+                    className={`${styles.starButton} ${
+                      isStar ? styles.starButtonActive : ""
+                    }`}
+                    onClick={() => onToggleStar?.(player.YouthPlayerID)}
+                    aria-label={messages.starPlayerLabel}
+                    title={messages.starPlayerLabel}
+                  >
+                    ★
+                  </button>
                   <button
                     type="button"
                     className={`${styles.playerButton} ${

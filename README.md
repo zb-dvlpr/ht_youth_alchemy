@@ -42,6 +42,8 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Load lineup is enabled only when `OrdersGiven` is true
 - Match list auto-refreshes after order submission and shows last updated time
 - Match order submission requires at least 9 players assigned
+- Match order submission requires no more than 11 players assigned
+- Disabled submit explains why (too few or too many players)
 - Random lineup button fills 11 positions
 - Match orders are posted as form-encoded `lineup` JSON for CHPP compatibility
 - Submit errors now surface CHPP response details in the match list

@@ -142,7 +142,8 @@ function renderMatch(
   updatedLabel?: string | null,
   loadState?: LoadState,
   onLoadLineup?: (matchId: number) => void,
-  isLoaded?: boolean
+  isLoaded?: boolean,
+  assignedCount?: number
 ) {
   const isUpcoming = match.Status === "UPCOMING";
   const canSubmit = Boolean(teamId) && isUpcoming && hasLineup;
@@ -151,6 +152,12 @@ function renderMatch(
     match.OrdersGiven === "True" ||
     match.OrdersGiven === true;
   const canLoad = Boolean(teamId) && isUpcoming && ordersSet;
+  const lineupIssue =
+    assignedCount && assignedCount > 11
+      ? messages.submitOrdersMaxPlayers
+      : assignedCount && assignedCount < 9
+      ? messages.submitOrdersMinPlayers
+      : null;
 
   return (
     <li key={matchId} className={styles.matchItem}>
@@ -207,6 +214,9 @@ function renderMatch(
               {state.error ? `: ${state.error}` : ""}
             </span>
           ) : null}
+          {!canSubmit && isUpcoming && lineupIssue ? (
+            <span className={styles.matchError}>{lineupIssue}</span>
+          ) : null}
           {updatedLabel ? (
             <span className={styles.matchUpdated}>{updatedLabel}</span>
           ) : null}
@@ -240,7 +250,7 @@ export default function UpcomingMatches({
     response.data?.HattrickData?.Team?.TeamID ??
     null;
   const assignedCount = Object.values(assignments).filter(Boolean).length;
-  const hasLineup = assignedCount >= 9;
+  const hasLineup = assignedCount >= 9 && assignedCount <= 11;
 
   const lineupPayload = useMemo(
     () => buildLineupPayload(assignments),
@@ -259,7 +269,10 @@ export default function UpcomingMatches({
         ...prev,
         [matchId]: {
           status: "error",
-          error: messages.submitOrdersMinPlayers,
+          error:
+            assignedCount > 11
+              ? messages.submitOrdersMaxPlayers
+              : messages.submitOrdersMinPlayers,
         },
       }));
       return;
@@ -475,7 +488,8 @@ export default function UpcomingMatches({
               updatedLabel,
               loadStates[matchId],
               handleLoadLineup,
-              loadedMatchId === matchId
+              loadedMatchId === matchId,
+              assignedCount
             );
           })}
         </ul>
@@ -503,7 +517,8 @@ export default function UpcomingMatches({
                 updatedLabel,
                 loadStates[matchId],
                 handleLoadLineup,
-                loadedMatchId === matchId
+                loadedMatchId === matchId,
+                assignedCount
               );
             })}
           </ul>

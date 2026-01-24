@@ -35,6 +35,7 @@ export type Messages = {
   submitOrdersResponse: string;
   submitOrdersUpdated: string;
   submitOrdersMinPlayers: string;
+  submitOrdersMaxPlayers: string;
   randomizeLineup: string;
   submitOrdersReport: string;
   confirmCancel: string;
@@ -117,6 +118,7 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersResponse: "Response",
     submitOrdersUpdated: "Updated",
     submitOrdersMinPlayers: "Need at least 9 players set",
+    submitOrdersMaxPlayers: "Lineup can’t exceed 11 players",
     randomizeLineup: "Random lineup",
     submitOrdersReport: "Please report this error to the developer.",
     confirmCancel: "Cancel",
@@ -197,6 +199,7 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersResponse: "Antwort",
     submitOrdersUpdated: "Aktualisiert",
     submitOrdersMinPlayers: "Mindestens 9 Spieler erforderlich",
+    submitOrdersMaxPlayers: "Aufstellung darf höchstens 11 Spieler haben",
     randomizeLineup: "Zufällige Aufstellung",
     submitOrdersReport: "Bitte melden Sie diesen Fehler dem Entwickler.",
     confirmCancel: "Abbrechen",
@@ -277,6 +280,7 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersResponse: "Réponse",
     submitOrdersUpdated: "Mis à jour",
     submitOrdersMinPlayers: "Au moins 9 joueurs requis",
+    submitOrdersMaxPlayers: "La composition ne peut pas dépasser 11 joueurs",
     randomizeLineup: "Composition aléatoire",
     submitOrdersReport: "Veuillez signaler cette erreur au développeur.",
     confirmCancel: "Annuler",
@@ -357,6 +361,7 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersResponse: "Respuesta",
     submitOrdersUpdated: "Actualizado",
     submitOrdersMinPlayers: "Se necesitan al menos 9 jugadores",
+    submitOrdersMaxPlayers: "La alineación no puede superar 11 jugadores",
     randomizeLineup: "Alineación aleatoria",
     submitOrdersReport: "Por favor, informe este error al desarrollador.",
     confirmCancel: "Cancelar",
@@ -437,6 +442,7 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersResponse: "Svar",
     submitOrdersUpdated: "Uppdaterad",
     submitOrdersMinPlayers: "Minst 9 spelare krävs",
+    submitOrdersMaxPlayers: "Uppställningen får inte överstiga 11 spelare",
     randomizeLineup: "Slumpa uppställning",
     submitOrdersReport: "Rapportera gärna felet till utvecklaren.",
     confirmCancel: "Avbryt",
@@ -517,6 +523,7 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersResponse: "Risposta",
     submitOrdersUpdated: "Aggiornato",
     submitOrdersMinPlayers: "Servono almeno 9 giocatori",
+    submitOrdersMaxPlayers: "La formazione non può superare 11 giocatori",
     randomizeLineup: "Formazione casuale",
     submitOrdersReport: "Segnala questo errore allo sviluppatore.",
     confirmCancel: "Annulla",
@@ -597,6 +604,7 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersResponse: "Resposta",
     submitOrdersUpdated: "Atualizado",
     submitOrdersMinPlayers: "Pelo menos 9 jogadores",
+    submitOrdersMaxPlayers: "A escalação não pode passar de 11 jogadores",
     randomizeLineup: "Escalação aleatória",
     submitOrdersReport: "Informe este erro ao desenvolvedor.",
     confirmCancel: "Cancelar",

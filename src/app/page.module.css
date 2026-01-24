@@ -433,12 +433,82 @@
   font-size: 13px;
 }
 
+.matchActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.matchButton {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #244d2b;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.matchButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.matchButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.matchSuccess {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f6f3f;
+}
+
+.matchError {
+  font-size: 12px;
+  font-weight: 600;
+  color: #b33434;
+}
+
+.matchUpdated {
+  font-size: 12px;
+  font-weight: 600;
+  color: #5b4a37;
+}
+
+.matchResponse {
+  width: 100%;
+}
+
+.matchResponse summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: #244d2b;
+}
+
+.matchResponse pre {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f6f2eb;
+  font-size: 11px;
+  color: #2d261f;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .fieldCard {
   padding: 0;
   border-radius: 16px;
   background: #4b7f4a;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
   overflow: hidden;
+  position: relative;
 }
 
 .fieldHeader {
@@ -447,6 +517,26 @@
   padding: 12px 16px;
   font-weight: 600;
   letter-spacing: 0.4px;
+}
+
+.lineupButton {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.lineupButton:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
 }
 
 .fieldPitch {

@@ -76,6 +76,8 @@ export default function Dashboard({
   const [error, setError] = useState<string | null>(null);
 
   const [assignments, setAssignments] = useState<LineupAssignments>({});
+  const [matchesState, setMatchesState] =
+    useState<MatchesResponse>(matchesResponse);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -172,6 +174,44 @@ export default function Dashboard({
     });
   };
 
+  const randomizeLineup = () => {
+    const slots = [
+      "KP",
+      "WB_R",
+      "CD_R",
+      "CD_C",
+      "CD_L",
+      "WB_L",
+      "W_R",
+      "IM_R",
+      "IM_C",
+      "IM_L",
+      "W_L",
+      "F_R",
+      "F_C",
+      "F_L",
+    ];
+    const ids = players.map((player) => player.YouthPlayerID);
+    const shuffled = [...ids].sort(() => Math.random() - 0.5).slice(0, 11);
+    const next: LineupAssignments = {};
+    slots.forEach((slot, index) => {
+      next[slot] = shuffled[index] ?? null;
+    });
+    setAssignments(next);
+  };
+
+  const refreshMatches = async () => {
+    try {
+      const response = await fetch("/api/chpp/matches?isYouth=true", {
+        cache: "no-store",
+      });
+      const payload = (await response.json()) as MatchesResponse;
+      setMatchesState(payload);
+    } catch {
+      // keep existing data
+    }
+  };
+
   const detailsData = resolveDetails(details);
   const lastUpdated = selectedId ? cache[selectedId]?.fetchedAt ?? null : null;
 
@@ -205,9 +245,15 @@ export default function Dashboard({
           onAssign={assignPlayer}
           onClear={clearSlot}
           onMove={moveSlot}
+          onRandomize={randomizeLineup}
           messages={messages}
         />
-        <UpcomingMatches response={matchesResponse} messages={messages} />
+        <UpcomingMatches
+          response={matchesState}
+          messages={messages}
+          assignments={assignments}
+          onRefresh={refreshMatches}
+        />
       </div>
     </div>
   );

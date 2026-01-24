@@ -1,5 +1,9 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
+import { LineupAssignments } from "./LineupField";
 
 type MatchTeam = {
   HomeTeamName?: string;
@@ -21,6 +25,7 @@ type MatchesResponse = {
   data?: {
     HattrickData?: {
       Team?: {
+        TeamID?: number;
         MatchList?: {
           Match?: Match[] | Match;
         };
@@ -37,6 +42,8 @@ type MatchesResponse = {
 type UpcomingMatchesProps = {
   response: MatchesResponse;
   messages: Messages;
+  assignments: LineupAssignments;
+  onRefresh?: () => void;
 };
 
 function normalizeMatches(input?: Match[] | Match): Match[] {
@@ -64,7 +71,70 @@ function sortByDate(matches: Match[]) {
   });
 }
 
-function renderMatch(match: Match, messages: Messages) {
+type MatchState = {
+  status: "idle" | "submitting" | "success" | "error";
+  error?: string | null;
+  raw?: string | null;
+  updatedAt?: number | null;
+};
+
+const POSITION_SLOT_ORDER = [
+  "KP",
+  "WB_L",
+  "CD_L",
+  "CD_C",
+  "CD_R",
+  "WB_R",
+  "W_L",
+  "IM_L",
+  "IM_C",
+  "IM_R",
+  "W_R",
+  "F_L",
+  "F_C",
+  "F_R",
+] as const;
+
+function buildLineupPayload(assignments: LineupAssignments) {
+  const toId = (value: number | null | undefined) => value ?? 0;
+  const positions = POSITION_SLOT_ORDER.map((slot) => ({
+    id: toId(assignments[slot]),
+    behaviour: 0,
+  }));
+
+  const bench = Array.from({ length: 14 }, () => ({ id: 0, behaviour: 0 }));
+  const kickers = Array.from({ length: 11 }, () => ({ id: 0, behaviour: 0 }));
+
+  return {
+    positions,
+    bench,
+    kickers,
+    captain: 0,
+    setPieces: 0,
+    settings: {
+      tactic: 0,
+      speechLevel: 0,
+      newLineup: "",
+      coachModifier: 0,
+      manMarkerPlayerId: 0,
+      manMarkingPlayerId: 0,
+    },
+    substitutions: [],
+  };
+}
+
+function renderMatch(
+  match: Match,
+  teamId: number | null,
+  messages: Messages,
+  hasLineup: boolean,
+  state: MatchState,
+  onSubmit: (matchId: number) => void,
+  updatedLabel?: string | null
+) {
+  const isUpcoming = match.Status === "UPCOMING";
+  const canSubmit = Boolean(teamId) && isUpcoming && hasLineup;
+
   return (
     <li key={match.MatchID} className={styles.matchItem}>
       <div className={styles.matchTeams}>
@@ -83,11 +153,122 @@ function renderMatch(match: Match, messages: Messages) {
             : messages.ordersNotSet}
         </span>
       </div>
+      {isUpcoming ? (
+        <div className={styles.matchActions}>
+          <button
+            type="button"
+            className={styles.matchButton}
+            onClick={() => onSubmit(match.MatchID)}
+            disabled={!canSubmit || state.status === "submitting"}
+          >
+            {state.status === "submitting"
+              ? messages.submitOrdersPending
+              : messages.submitOrders}
+          </button>
+          {state.status === "success" ? (
+            <span className={styles.matchSuccess}>
+              {messages.submitOrdersSuccess}
+            </span>
+          ) : null}
+          {state.status === "error" ? (
+            <span className={styles.matchError}>
+              {messages.submitOrdersError}
+              {state.error ? `: ${state.error}` : ""}
+            </span>
+          ) : null}
+          {updatedLabel ? (
+            <span className={styles.matchUpdated}>{updatedLabel}</span>
+          ) : null}
+          {state.raw ? (
+            <details className={styles.matchResponse}>
+              <summary>{messages.submitOrdersResponse}</summary>
+              <pre>{state.raw}</pre>
+            </details>
+          ) : null}
+        </div>
+      ) : null}
     </li>
   );
 }
 
-export default function UpcomingMatches({ response, messages }: UpcomingMatchesProps) {
+export default function UpcomingMatches({
+  response,
+  messages,
+  assignments,
+  onRefresh,
+}: UpcomingMatchesProps) {
+  const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
+  const teamId =
+    response.data?.HattrickData?.Team?.TeamID ??
+    null;
+  const assignedCount = Object.values(assignments).filter(Boolean).length;
+  const hasLineup = assignedCount >= 9;
+
+  const lineupPayload = useMemo(
+    () => buildLineupPayload(assignments),
+    [assignments]
+  );
+
+  const handleSubmit = async (matchId: number) => {
+    if (!teamId) return;
+    if (!hasLineup) {
+      setMatchStates((prev) => ({
+        ...prev,
+        [matchId]: {
+          status: "error",
+          error: messages.submitOrdersMinPlayers,
+        },
+      }));
+      return;
+    }
+    if (!window.confirm(messages.confirmSubmitOrders)) return;
+
+    setMatchStates((prev) => ({
+      ...prev,
+      [matchId]: { status: "submitting" },
+    }));
+
+    try {
+      const response = await fetch("/api/chpp/matchorders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          matchId,
+          teamId,
+          lineup: lineupPayload,
+        }),
+      });
+
+      const payload = (await response.json().catch(() => null)) as
+        | { error?: string; details?: string; data?: string; raw?: string }
+        | null;
+      if (!response.ok || payload?.error) {
+        const message = payload?.details || payload?.error || "Submit failed";
+        throw new Error(message);
+      }
+
+      setMatchStates((prev) => ({
+        ...prev,
+        [matchId]: {
+          status: "success",
+          raw: payload?.raw ?? null,
+          updatedAt: Date.now(),
+        },
+      }));
+      onRefresh?.();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setMatchStates((prev) => ({
+        ...prev,
+        [matchId]: {
+          status: "error",
+          error: message,
+          raw: null,
+          updatedAt: null,
+        },
+      }));
+    }
+  };
   if (response.error) {
     return (
       <div className={styles.card}>
@@ -113,13 +294,45 @@ export default function UpcomingMatches({ response, messages }: UpcomingMatchesP
       <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
       {sortedUpcoming.length > 0 ? (
         <ul className={styles.matchList}>
-          {sortedUpcoming.map((match) => renderMatch(match, messages))}
+          {sortedUpcoming.map((match) => {
+            const state = matchStates[match.MatchID] ?? { status: "idle" };
+            const updatedLabel =
+              state.updatedAt &&
+              `${messages.submitOrdersUpdated}: ${new Date(
+                state.updatedAt
+              ).toLocaleTimeString()}`;
+            return renderMatch(
+              match,
+              teamId,
+              messages,
+              hasLineup,
+              state,
+              handleSubmit,
+              updatedLabel
+            );
+          })}
         </ul>
       ) : sortedAll.length > 0 ? (
         <>
           <p className={styles.muted}>{messages.noUpcomingMatches}</p>
           <ul className={styles.matchList}>
-            {sortedAll.map((match) => renderMatch(match, messages))}
+            {sortedAll.map((match) => {
+              const state = matchStates[match.MatchID] ?? { status: "idle" };
+              const updatedLabel =
+                state.updatedAt &&
+                `${messages.submitOrdersUpdated}: ${new Date(
+                  state.updatedAt
+                ).toLocaleTimeString()}`;
+              return renderMatch(
+                match,
+                teamId,
+                messages,
+                hasLineup,
+                state,
+                handleSubmit,
+                updatedLabel
+              );
+            })}
           </ul>
         </>
       ) : (

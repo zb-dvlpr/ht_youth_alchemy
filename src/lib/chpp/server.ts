@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { XMLParser } from "fast-xml-parser";
 import { getChppEnv } from "@/lib/chpp/env";
-import { createNodeOAuthClient, getProtectedResource } from "@/lib/chpp/node-oauth";
+import { createNodeOAuthClient, getProtectedResource, postProtectedResource } from "@/lib/chpp/node-oauth";
 
 export const CHPP_XML_ENDPOINT = "https://chpp.hattrick.org/chppxml.ashx";
 
@@ -60,6 +60,26 @@ export async function fetchChppXml(
     requestUrl,
     auth.accessToken,
     auth.accessSecret
+  );
+
+  return { rawXml, parsed: parseChppXml(rawXml) };
+}
+
+export async function postChppXml(
+  auth: ChppAuth,
+  paramsOrUrl: URLSearchParams | string,
+  body: string,
+  contentType = "application/json"
+) {
+  const requestUrl =
+    typeof paramsOrUrl === "string" ? paramsOrUrl : buildChppUrl(paramsOrUrl);
+  const rawXml = await postProtectedResource(
+    auth.client,
+    requestUrl,
+    auth.accessToken,
+    auth.accessSecret,
+    body,
+    contentType
   );
 
   return { rawXml, parsed: parseChppXml(rawXml) };

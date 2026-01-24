@@ -30,6 +30,14 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Connect button shown when CHPP access token is missing
 - In-session details cache with manual refresh and a structured details panel (current/potential skill bars with numeric values or ?)
 - Upcoming youth match list (handles team-level match list; falls back to recent matches if none UPCOMING)
+- Submit lineup orders for upcoming youth matches (requires set_matchorder scope)
+- Match orders use Lineup_30 with numeric values, with left/right slots flipped to match Hattrick's ordering
+- Match submission responses can be expanded inline for debugging
+- Match list auto-refreshes after order submission and shows last updated time
+- Match order submission requires at least 9 players assigned
+- Random lineup button fills 11 positions
+- Match orders are posted as form-encoded `lineup` JSON for CHPP compatibility
+- Submit errors now surface CHPP response details in the match list
 - Lineup pitch layout scaffold (KP / WB CD CD CD WB / W IM IM IM W / F F F, uniform slot sizing)
 - Brand logo header with version number
 - Drag-and-drop lineup assignment (list → field slots, slot → slot with swap)
@@ -62,6 +70,7 @@ Open http://localhost:3000 in your browser.
 1) Visit `http://localhost:3000/api/chpp/oauth/start` in your browser.
 2) You should be redirected to Hattrick for authorization.
 3) After approving, CHPP redirects to the callback and you should see a JSON response with `status: "ok"`.
+4) The app requests the `set_matchorder` scope so it can submit lineup orders.
 
 ## Youth player list (local)
 After OAuth succeeds, call:
@@ -83,8 +92,15 @@ After OAuth succeeds, call:
 - Senior matches: `http://localhost:3000/api/chpp/matches?isYouth=false&teamID=YOUR_TEAM_ID`
 - Include raw XML: `http://localhost:3000/api/chpp/matches?isYouth=true&raw=1`
 
+## Match orders (local)
+After OAuth succeeds and you have set a lineup in the UI, you can submit orders for an upcoming match via the UI. The API endpoint is:
+
+- `POST http://localhost:3000/api/chpp/matchorders`
+
 ## Troubleshooting OAuth
 - Check env presence (no secrets returned): `http://localhost:3000/api/chpp/oauth/debug`
+- Inspect the current OAuth token/scopes: `http://localhost:3000/api/chpp/oauth/check-token`
+- Invalidate the current token (clears cookies): `POST http://localhost:3000/api/chpp/oauth/invalidate-token` (GET also supported for convenience)
 - If you rotate secrets, restart the dev server.
 - Include debug payload (no secrets): `http://localhost:3000/api/chpp/oauth/start?debug=1`
 

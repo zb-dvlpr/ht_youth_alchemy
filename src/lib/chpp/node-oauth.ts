@@ -83,3 +83,26 @@ export function getProtectedResource(
     });
   });
 }
+
+export function postProtectedResource(
+  client: OAuth,
+  url: string,
+  accessToken: string,
+  accessSecret: string,
+  body: string,
+  contentType: string
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    client.post(url, accessToken, accessSecret, body, contentType, (error, data) => {
+      if (error) {
+        reject(error);
+        return;
+      }
+      if (typeof data !== "string") {
+        resolve(JSON.stringify(data));
+        return;
+      }
+      resolve(data);
+    });
+  });
+}

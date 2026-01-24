@@ -1,6 +1,6 @@
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
-import { matchRoleIdToPositionKey } from "@/lib/positions";
+import { positionLabelFullByRoleId } from "@/lib/positions";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -169,6 +169,16 @@ export default function PlayerDetailsPanel({
   onRefresh,
   messages,
 }: PlayerDetailsPanelProps) {
+  const lastMatchDate = detailsData?.LastMatch
+    ? formatMatchDate(detailsData.LastMatch.Date) ?? messages.unknownDate
+    : null;
+  const lastMatchRating = detailsData?.LastMatch
+    ? detailsData.LastMatch.Rating ?? messages.unknownLabel
+    : null;
+  const lastMatchPosition = detailsData?.LastMatch
+    ? positionLabelFullByRoleId(detailsData.LastMatch.PositionCode, messages)
+    : null;
+
   return (
     <div className={styles.card}>
       <div className={styles.detailsHeader}>
@@ -275,12 +285,8 @@ export default function PlayerDetailsPanel({
                   {messages.lastMatchRatingLabel}
                 </div>
                 <div className={styles.infoValue}>
-                  {detailsData.LastMatch.Rating ?? messages.unknownLabel}{" "}
-                  {matchRoleIdToPositionKey(detailsData.LastMatch.PositionCode)
-                    ? `(${matchRoleIdToPositionKey(detailsData.LastMatch.PositionCode)})`
-                    : ""}{" "}
-                  {formatMatchDate(detailsData.LastMatch.Date) ??
-                    messages.unknownDate}
+                  {lastMatchDate}: {lastMatchRating}
+                  {lastMatchPosition ? ` (${lastMatchPosition})` : ""}
                 </div>
               </div>
             ) : null}

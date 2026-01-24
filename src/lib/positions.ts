@@ -53,3 +53,31 @@ export function positionLabel(code: number, messages: Messages): string {
       return `#${code}`;
   }
 }
+
+export function positionLabelFull(code: number, messages: Messages): string {
+  switch (code) {
+    case 100:
+      return messages.posKeeperFull;
+    case 101:
+      return messages.posBackFull;
+    case 103:
+      return messages.posCentralDefenderFull;
+    case 106:
+      return messages.posWingerFull;
+    case 107:
+      return messages.posInnerMidfieldFull;
+    case 111:
+      return messages.posForwardFull;
+    default:
+      return `#${code}`;
+  }
+}
+
+export function positionLabelFullByRoleId(
+  roleId: number | null | undefined,
+  messages: Messages
+) {
+  const normalized = normalizeMatchRoleId(roleId);
+  if (!normalized) return null;
+  return positionLabelFull(normalized, messages);
+}

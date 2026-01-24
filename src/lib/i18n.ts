@@ -56,6 +56,12 @@ export type Messages = {
   posWinger: string;
   posInnerMidfield: string;
   posForward: string;
+  posKeeperFull: string;
+  posBackFull: string;
+  posCentralDefenderFull: string;
+  posWingerFull: string;
+  posInnerMidfieldFull: string;
+  posForwardFull: string;
   connectLabel: string;
   connectedLabel: string;
   brandTitle: string;
@@ -115,6 +121,12 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "W",
     posInnerMidfield: "IM",
     posForward: "F",
+    posKeeperFull: "Keeper",
+    posBackFull: "Wing back",
+    posCentralDefenderFull: "Central defender",
+    posWingerFull: "Winger",
+    posInnerMidfieldFull: "Inner midfield",
+    posForwardFull: "Forward",
     connectLabel: "Connect Hattrick",
     connectedLabel: "Connected",
     brandTitle: "Hattrick Youth Alchemy",
@@ -172,6 +184,12 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "F",
     posInnerMidfield: "ZM",
     posForward: "ST",
+    posKeeperFull: "Torwart",
+    posBackFull: "Außenverteidiger",
+    posCentralDefenderFull: "Innenverteidiger",
+    posWingerFull: "Flügel",
+    posInnerMidfieldFull: "Zentrales Mittelfeld",
+    posForwardFull: "Stürmer",
     connectLabel: "Hattrick verbinden",
     connectedLabel: "Verbunden",
     brandTitle: "Hattrick Youth Alchemy",
@@ -229,6 +247,12 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "A",
     posInnerMidfield: "MC",
     posForward: "AV",
+    posKeeperFull: "Gardien",
+    posBackFull: "Arrière",
+    posCentralDefenderFull: "Défenseur central",
+    posWingerFull: "Ailier",
+    posInnerMidfieldFull: "Milieu central",
+    posForwardFull: "Attaquant",
     connectLabel: "Connecter Hattrick",
     connectedLabel: "Connecté",
     brandTitle: "Hattrick Youth Alchemy",
@@ -286,6 +310,12 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "EI",
     posInnerMidfield: "MC",
     posForward: "DC",
+    posKeeperFull: "Portero",
+    posBackFull: "Lateral",
+    posCentralDefenderFull: "Defensa central",
+    posWingerFull: "Extremo",
+    posInnerMidfieldFull: "Mediocentro",
+    posForwardFull: "Delantero",
     connectLabel: "Conectar Hattrick",
     connectedLabel: "Conectado",
     brandTitle: "Hattrick Youth Alchemy",
@@ -343,6 +373,12 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "Y",
     posInnerMidfield: "MF",
     posForward: "F",
+    posKeeperFull: "Målvakt",
+    posBackFull: "Ytterback",
+    posCentralDefenderFull: "Mittback",
+    posWingerFull: "Ytter",
+    posInnerMidfieldFull: "Mittfältare",
+    posForwardFull: "Forward",
     connectLabel: "Anslut Hattrick",
     connectedLabel: "Ansluten",
     brandTitle: "Hattrick Youth Alchemy",
@@ -400,6 +436,12 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "A",
     posInnerMidfield: "MC",
     posForward: "P",
+    posKeeperFull: "Portiere",
+    posBackFull: "Terzino",
+    posCentralDefenderFull: "Difensore centrale",
+    posWingerFull: "Ala",
+    posInnerMidfieldFull: "Centrocampista",
+    posForwardFull: "Punta",
     connectLabel: "Connetti Hattrick",
     connectedLabel: "Connesso",
     brandTitle: "Hattrick Youth Alchemy",
@@ -457,6 +499,12 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "A",
     posInnerMidfield: "MI",
     posForward: "F",
+    posKeeperFull: "Goleiro",
+    posBackFull: "Lateral",
+    posCentralDefenderFull: "Zagueiro",
+    posWingerFull: "Ala",
+    posInnerMidfieldFull: "Meio-campista",
+    posForwardFull: "Atacante",
     connectLabel: "Conectar Hattrick",
     connectedLabel: "Conectado",
     brandTitle: "Hattrick Youth Alchemy",

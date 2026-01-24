@@ -33,6 +33,8 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Submit lineup orders for upcoming youth matches (requires set_matchorder scope)
 - Match orders use Lineup_30 with numeric values, with left/right slots flipped to match Hattrick's ordering
 - Match submission responses can be expanded inline for debugging
+- Submit success is verified from the response (OrdersSet=True), otherwise errors prompt a report
+- Submit confirmations use an in-app dialog aligned with the site style
 - Match list auto-refreshes after order submission and shows last updated time
 - Match order submission requires at least 9 players assigned
 - Random lineup button fills 11 positions

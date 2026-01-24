@@ -36,6 +36,9 @@ export type Messages = {
   submitOrdersUpdated: string;
   submitOrdersMinPlayers: string;
   randomizeLineup: string;
+  submitOrdersReport: string;
+  confirmCancel: string;
+  confirmSubmit: string;
   statusLabel: string;
   lineupTitle: string;
   clearSlot: string;
@@ -110,6 +113,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Updated",
     submitOrdersMinPlayers: "Need at least 9 players set",
     randomizeLineup: "Random lineup",
+    submitOrdersReport: "Please report this error to the developer.",
+    confirmCancel: "Cancel",
+    confirmSubmit: "Submit",
     statusLabel: "Status",
     lineupTitle: "Lineup",
     clearSlot: "Clear",
@@ -182,6 +188,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Aktualisiert",
     submitOrdersMinPlayers: "Mindestens 9 Spieler erforderlich",
     randomizeLineup: "Zufällige Aufstellung",
+    submitOrdersReport: "Bitte melden Sie diesen Fehler dem Entwickler.",
+    confirmCancel: "Abbrechen",
+    confirmSubmit: "Senden",
     statusLabel: "Status",
     lineupTitle: "Aufstellung",
     clearSlot: "Leeren",
@@ -254,6 +263,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Mis à jour",
     submitOrdersMinPlayers: "Au moins 9 joueurs requis",
     randomizeLineup: "Composition aléatoire",
+    submitOrdersReport: "Veuillez signaler cette erreur au développeur.",
+    confirmCancel: "Annuler",
+    confirmSubmit: "Envoyer",
     statusLabel: "Statut",
     lineupTitle: "Composition",
     clearSlot: "Effacer",
@@ -326,6 +338,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Actualizado",
     submitOrdersMinPlayers: "Se necesitan al menos 9 jugadores",
     randomizeLineup: "Alineación aleatoria",
+    submitOrdersReport: "Por favor, informe este error al desarrollador.",
+    confirmCancel: "Cancelar",
+    confirmSubmit: "Enviar",
     statusLabel: "Estado",
     lineupTitle: "Alineación",
     clearSlot: "Limpiar",
@@ -398,6 +413,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Uppdaterad",
     submitOrdersMinPlayers: "Minst 9 spelare krävs",
     randomizeLineup: "Slumpa uppställning",
+    submitOrdersReport: "Rapportera gärna felet till utvecklaren.",
+    confirmCancel: "Avbryt",
+    confirmSubmit: "Skicka",
     statusLabel: "Status",
     lineupTitle: "Laguppställning",
     clearSlot: "Rensa",
@@ -470,6 +488,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Aggiornato",
     submitOrdersMinPlayers: "Servono almeno 9 giocatori",
     randomizeLineup: "Formazione casuale",
+    submitOrdersReport: "Segnala questo errore allo sviluppatore.",
+    confirmCancel: "Annulla",
+    confirmSubmit: "Invia",
     statusLabel: "Stato",
     lineupTitle: "Formazione",
     clearSlot: "Svuota",
@@ -542,6 +563,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Atualizado",
     submitOrdersMinPlayers: "Pelo menos 9 jogadores",
     randomizeLineup: "Escalação aleatória",
+    submitOrdersReport: "Informe este erro ao desenvolvedor.",
+    confirmCancel: "Cancelar",
+    confirmSubmit: "Enviar",
     statusLabel: "Status",
     lineupTitle: "Escalação",
     clearSlot: "Limpar",

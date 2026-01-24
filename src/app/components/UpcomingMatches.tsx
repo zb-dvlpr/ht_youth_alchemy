@@ -198,6 +198,7 @@ export default function UpcomingMatches({
   onRefresh,
 }: UpcomingMatchesProps) {
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
+  const [confirmMatchId, setConfirmMatchId] = useState<number | null>(null);
   const teamId =
     response.data?.HattrickData?.Team?.TeamID ??
     null;
@@ -221,7 +222,18 @@ export default function UpcomingMatches({
       }));
       return;
     }
-    if (!window.confirm(messages.confirmSubmitOrders)) return;
+    setConfirmMatchId(matchId);
+    return;
+  };
+
+  const confirmSubmit = async () => {
+    if (!confirmMatchId || !teamId) {
+      setConfirmMatchId(null);
+      return;
+    }
+
+    const matchId = confirmMatchId;
+    setConfirmMatchId(null);
 
     setMatchStates((prev) => ({
       ...prev,
@@ -247,11 +259,26 @@ export default function UpcomingMatches({
         throw new Error(message);
       }
 
+      const raw = payload?.raw ?? null;
+      const ordersSet = raw ? raw.includes('OrdersSet="True"') : false;
+      if (!ordersSet) {
+        setMatchStates((prev) => ({
+          ...prev,
+          [matchId]: {
+            status: "error",
+            error: messages.submitOrdersReport,
+            raw,
+            updatedAt: null,
+          },
+        }));
+        return;
+      }
+
       setMatchStates((prev) => ({
         ...prev,
         [matchId]: {
           status: "success",
-          raw: payload?.raw ?? null,
+          raw: null,
           updatedAt: Date.now(),
         },
       }));
@@ -292,6 +319,31 @@ export default function UpcomingMatches({
   return (
     <div className={styles.card}>
       <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
+      {confirmMatchId ? (
+        <div className={styles.confirmOverlay}>
+          <div className={styles.confirmCard} role="dialog" aria-modal="true">
+            <div className={styles.confirmTitle}>
+              {messages.confirmSubmitOrders}
+            </div>
+            <div className={styles.confirmActions}>
+              <button
+                type="button"
+                className={styles.confirmCancel}
+                onClick={() => setConfirmMatchId(null)}
+              >
+                {messages.confirmCancel}
+              </button>
+              <button
+                type="button"
+                className={styles.confirmSubmit}
+                onClick={confirmSubmit}
+              >
+                {messages.confirmSubmit}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {sortedUpcoming.length > 0 ? (
         <ul className={styles.matchList}>
           {sortedUpcoming.map((match) => {

@@ -9,6 +9,8 @@ type SkillKey =
   | "scoring"
   | "setpieces";
 
+export type TrainingSkillKey = SkillKey;
+
 type SkillValue = {
   "#text"?: number | string;
   "@_IsAvailable"?: string;
@@ -248,7 +250,14 @@ export function getTrainingSlots(primary: SkillKey | null, secondary: SkillKey |
   };
 }
 
-function chooseStarAndTraining(players: OptimizerPlayer[]) {
+function chooseStarAndTraining(
+  players: OptimizerPlayer[]
+): {
+  starPlayerId: number;
+  primarySkill: SkillKey;
+  secondarySkill: SkillKey | null;
+  candidates: OptimizerDebug["starSelectionRanks"];
+} | null {
   let best: {
     playerId: number;
     skill: SkillKey;
@@ -303,8 +312,16 @@ function chooseStarAndTraining(players: OptimizerPlayer[]) {
 
   if (!best) return null;
 
-  const primarySkill = best.skill;
-  const starPlayer = players.find((player) => player.id === best!.playerId);
+  const bestCandidate: {
+    playerId: number;
+    skill: SkillKey;
+    score: number;
+    age?: number | null;
+  } = best;
+  const primarySkill: SkillKey = bestCandidate.skill;
+  const starPlayer = players.find(
+    (player) => player.id === bestCandidate.playerId
+  );
   let secondarySkill: SkillKey | null = null;
 
   if (starPlayer) {
@@ -342,7 +359,9 @@ function chooseStarAndTraining(players: OptimizerPlayer[]) {
   };
 }
 
-export function getAutoSelection(players: OptimizerPlayer[]) {
+export function getAutoSelection(
+  players: OptimizerPlayer[]
+): { starPlayerId: number; primarySkill: SkillKey; secondarySkill: SkillKey | null } | null {
   const auto = chooseStarAndTraining(players);
   if (!auto) return null;
   return {
@@ -351,6 +370,8 @@ export function getAutoSelection(players: OptimizerPlayer[]) {
     secondarySkill: auto.secondarySkill,
   };
 }
+
+export type AutoSelection = ReturnType<typeof getAutoSelection>;
 
 function buildSkillRanking(players: OptimizerPlayer[], skill: SkillKey) {
   const entries: RankingEntry[] = players.map((player) => {

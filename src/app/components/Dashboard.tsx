@@ -7,7 +7,7 @@ import PlayerDetailsPanel, {
   YouthPlayerDetails,
 } from "./PlayerDetailsPanel";
 import LineupField, { LineupAssignments } from "./LineupField";
-import UpcomingMatches from "./UpcomingMatches";
+import UpcomingMatches, { type MatchesResponse } from "./UpcomingMatches";
 import { Messages } from "@/lib/i18n";
 import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
@@ -17,6 +17,8 @@ import {
   optimizeLineupForStar,
   type OptimizerPlayer,
   type OptimizerDebug,
+  type AutoSelection,
+  type TrainingSkillKey,
 } from "@/lib/optimizer";
 import { useNotifications } from "./notifications/NotificationsProvider";
 
@@ -29,28 +31,18 @@ type YouthPlayer = {
   Age?: number;
   ArrivalDate?: string;
   CanBePromotedIn?: number;
-  PlayerSkills?: Record<string, unknown>;
+  PlayerSkills?: Record<string, SkillValue>;
+};
+
+type SkillValue = {
+  "#text"?: number | string;
+  "@_IsAvailable"?: string;
+  "@_IsMaxReached"?: string;
+  "@_MayUnlock"?: string;
 };
 
 type PlayerDetailsResponse = {
   data?: Record<string, unknown>;
-  error?: string;
-  details?: string;
-};
-
-type MatchesResponse = {
-  data?: {
-    HattrickData?: {
-      MatchList?: {
-        Match?: unknown;
-      };
-      Team?: {
-        MatchList?: {
-          Match?: unknown;
-        };
-      };
-    };
-  };
   error?: string;
   details?: string;
 };
@@ -69,6 +61,19 @@ type CachedDetails = {
 };
 
 const DETAILS_TTL_MS = 5 * 60 * 1000;
+const TRAINING_SKILLS: TrainingSkillKey[] = [
+  "keeper",
+  "defending",
+  "playmaking",
+  "winger",
+  "passing",
+  "scoring",
+  "setpieces",
+];
+
+const isTrainingSkill = (
+  value: string | null | undefined
+): value is TrainingSkillKey => TRAINING_SKILLS.includes(value as TrainingSkillKey);
 
 function resolveDetails(data: Record<string, unknown> | null) {
   if (!data) return null;
@@ -95,8 +100,12 @@ export default function Dashboard({
     useState<MatchesResponse>(matchesResponse);
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
-  const [primaryTraining, setPrimaryTraining] = useState<string>("");
-  const [secondaryTraining, setSecondaryTraining] = useState<string>("");
+  const [primaryTraining, setPrimaryTraining] = useState<TrainingSkillKey | "">(
+    ""
+  );
+  const [secondaryTraining, setSecondaryTraining] = useState<
+    TrainingSkillKey | ""
+  >("");
   const [optimizerDebug, setOptimizerDebug] = useState<OptimizerDebug | null>(
     null
   );
@@ -157,9 +166,13 @@ export default function Dashboard({
       if (parsed.selectedId !== undefined) setSelectedId(parsed.selectedId);
       if (parsed.starPlayerId !== undefined) setStarPlayerId(parsed.starPlayerId);
       if (parsed.primaryTraining !== undefined)
-        setPrimaryTraining(parsed.primaryTraining);
+        setPrimaryTraining(
+          isTrainingSkill(parsed.primaryTraining) ? parsed.primaryTraining : ""
+        );
       if (parsed.secondaryTraining !== undefined)
-        setSecondaryTraining(parsed.secondaryTraining);
+        setSecondaryTraining(
+          isTrainingSkill(parsed.secondaryTraining) ? parsed.secondaryTraining : ""
+        );
       if (parsed.loadedMatchId !== undefined)
         setLoadedMatchId(parsed.loadedMatchId);
       if (parsed.cache) {
@@ -468,7 +481,11 @@ export default function Dashboard({
   };
 
   const handleOptimize = () => {
-    if (!starPlayerId || !primaryTraining || !secondaryTraining) {
+    if (
+      !starPlayerId ||
+      !isTrainingSkill(primaryTraining) ||
+      !isTrainingSkill(secondaryTraining)
+    ) {
       return;
     }
 
@@ -490,8 +507,8 @@ export default function Dashboard({
     const result = optimizeLineupForStar(
       optimizerPlayers,
       starPlayerId,
-      primaryTraining as "keeper" | "defending" | "playmaking" | "winger" | "passing" | "scoring" | "setpieces",
-      secondaryTraining as "keeper" | "defending" | "playmaking" | "winger" | "passing" | "scoring" | "setpieces",
+      primaryTraining,
+      secondaryTraining,
       autoSelectionApplied
     );
     setAssignments(result.lineup);
@@ -574,7 +591,11 @@ export default function Dashboard({
 
   useEffect(() => {
     if (!isDev) return;
-    if (!starPlayerId || !primaryTraining || !secondaryTraining) {
+    if (
+      !starPlayerId ||
+      !isTrainingSkill(primaryTraining) ||
+      !isTrainingSkill(secondaryTraining)
+    ) {
       setOptimizerDebug(null);
       return;
     }
@@ -619,7 +640,7 @@ export default function Dashboard({
     }
   };
 
-  const trainingLabel = (skill: string | null) => {
+  const trainingLabel = (skill: TrainingSkillKey | "" | null) => {
     switch (skill) {
       case "keeper":
         return messages.trainingKeeper;
@@ -641,31 +662,14 @@ export default function Dashboard({
   };
 
   const trainingSlots = useMemo(() => {
-    if (!primaryTraining || !secondaryTraining) {
+    if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
       return {
         primary: new Set<string>(),
         secondary: new Set<string>(),
         all: new Set<string>(),
       };
     }
-    const slots = getTrainingSlots(
-      primaryTraining as
-        | "keeper"
-        | "defending"
-        | "playmaking"
-        | "winger"
-        | "passing"
-        | "scoring"
-        | "setpieces",
-      secondaryTraining as
-        | "keeper"
-        | "defending"
-        | "playmaking"
-        | "winger"
-        | "passing"
-        | "scoring"
-        | "setpieces"
-    );
+    const slots = getTrainingSlots(primaryTraining, secondaryTraining);
     return {
       primary: slots.primarySlots,
       secondary: slots.secondarySlots,
@@ -821,12 +825,13 @@ export default function Dashboard({
                 value={primaryTraining}
                 onChange={(event) => {
                   const value = event.target.value;
-                  setPrimaryTraining(value);
+                  const nextValue = isTrainingSkill(value) ? value : "";
+                  setPrimaryTraining(nextValue);
                   setAutoSelectionApplied(false);
-                  if (value) {
+                  if (nextValue) {
                     addNotification(
                       `${messages.notificationPrimaryTrainingSet} ${trainingLabel(
-                        value
+                        nextValue
                       )}`
                     );
                   } else {
@@ -855,12 +860,13 @@ export default function Dashboard({
                 value={secondaryTraining}
                 onChange={(event) => {
                   const value = event.target.value;
-                  setSecondaryTraining(value);
+                  const nextValue = isTrainingSkill(value) ? value : "";
+                  setSecondaryTraining(nextValue);
                   setAutoSelectionApplied(false);
-                  if (value) {
+                  if (nextValue) {
                     addNotification(
                       `${messages.notificationSecondaryTrainingSet} ${trainingLabel(
-                        value
+                        nextValue
                       )}`
                     );
                   } else {

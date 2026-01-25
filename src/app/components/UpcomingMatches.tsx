@@ -8,14 +8,14 @@ import { LineupAssignments } from "./LineupField";
 import { roleIdToSlotId } from "@/lib/positions";
 import { useNotifications } from "./notifications/NotificationsProvider";
 
-type MatchTeam = {
+export type MatchTeam = {
   HomeTeamName?: string;
   AwayTeamName?: string;
   HomeTeamID?: number;
   AwayTeamID?: number;
 };
 
-type Match = {
+export type Match = {
   MatchID: number;
   MatchDate?: string;
   Status?: string;
@@ -24,7 +24,7 @@ type Match = {
   AwayTeam?: MatchTeam;
 };
 
-type MatchesResponse = {
+export type MatchesResponse = {
   data?: {
     HattrickData?: {
       Team?: {
@@ -62,7 +62,7 @@ function parseDate(dateString?: string) {
   return Number.isNaN(parsed.getTime()) ? null : parsed;
 }
 
-function formatMatchDate(dateString?: string, unknownDate: string) {
+function formatMatchDate(dateString: string | undefined, unknownDate: string) {
   const parsed = parseDate(dateString);
   if (!parsed) return unknownDate;
   return parsed.toLocaleString();
@@ -518,11 +518,11 @@ export default function UpcomingMatches({
             const matchId = Number(match.MatchID);
             if (!Number.isFinite(matchId)) return null;
             const state = matchStates[matchId] ?? { status: "idle" };
-            const updatedLabel =
-              state.updatedAt &&
-              `${messages.submitOrdersUpdated}: ${new Date(
-                state.updatedAt
-              ).toLocaleTimeString()}`;
+            const updatedLabel = state.updatedAt
+              ? `${messages.submitOrdersUpdated}: ${new Date(
+                  state.updatedAt
+                ).toLocaleTimeString()}`
+              : null;
             return renderMatch(
               matchId,
               match,
@@ -547,11 +547,11 @@ export default function UpcomingMatches({
               const matchId = Number(match.MatchID);
               if (!Number.isFinite(matchId)) return null;
               const state = matchStates[matchId] ?? { status: "idle" };
-              const updatedLabel =
-                state.updatedAt &&
-                `${messages.submitOrdersUpdated}: ${new Date(
-                  state.updatedAt
-                ).toLocaleTimeString()}`;
+              const updatedLabel = state.updatedAt
+                ? `${messages.submitOrdersUpdated}: ${new Date(
+                    state.updatedAt
+                  ).toLocaleTimeString()}`
+                : null;
               return renderMatch(
                 matchId,
                 match,

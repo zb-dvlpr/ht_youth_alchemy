@@ -9,6 +9,8 @@ import HelpToggleButton from "./components/HelpToggleButton";
 import ThemeToggle from "./components/ThemeToggle";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
+import type { MatchesResponse } from "./components/UpcomingMatches";
+import type { RatingsMatrixResponse } from "./components/RatingsMatrix";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -19,7 +21,14 @@ type YouthPlayer = {
   Age?: number;
   ArrivalDate?: string;
   CanBePromotedIn?: number;
-  PlayerSkills?: Record<string, unknown>;
+  PlayerSkills?: Record<string, SkillValue>;
+};
+
+type SkillValue = {
+  "#text"?: number | string;
+  "@_IsAvailable"?: string;
+  "@_IsMaxReached"?: string;
+  "@_MayUnlock"?: string;
 };
 
 type YouthPlayerListResponse = {
@@ -32,37 +41,6 @@ type YouthPlayerListResponse = {
   };
   error?: string;
   details?: string;
-};
-
-type MatchesResponse = {
-  data?: {
-    HattrickData?: {
-      MatchList?: {
-        Match?: unknown;
-      };
-      Team?: {
-        MatchList?: {
-          Match?: unknown;
-        };
-      };
-    };
-  };
-  error?: string;
-  details?: string;
-};
-
-type RatingsMatrixResponse = {
-  players: {
-    id: number;
-    name: string;
-    lastMatch: {
-      date: string | null;
-      youthMatchId: number | null;
-      positionCode: number | null;
-      minutes: number | null;
-      rating: number | null;
-    } | null;
-  }[];
 };
 
 async function getBaseUrl() {

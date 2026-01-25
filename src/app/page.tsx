@@ -1,12 +1,12 @@
 import { cookies, headers } from "next/headers";
 import styles from "./page.module.css";
 import Dashboard from "./components/Dashboard";
+import ConnectedStatus from "./components/ConnectedStatus";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import NotificationCenter from "./components/notifications/NotificationCenter";
 import { NotificationsProvider } from "./components/notifications/NotificationsProvider";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
-// Ratings matrix now lives inside the dashboard column layout.
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -162,9 +162,7 @@ export default async function Home() {
           <div className={styles.topBarControls}>
             <LanguageSwitcher locale={locale} label={messages.languageLabel} />
             {isConnected ? (
-              <span className={styles.connectedBadge}>
-                {messages.connectedLabel}
-              </span>
+              <ConnectedStatus messages={messages} />
             ) : (
               <a className={styles.connectButton} href="/api/chpp/oauth/start">
                 {messages.connectLabel}

@@ -55,6 +55,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Dev-only optimizer debug modal with ranked lists and slots
 - Debug modal includes the full star-selection rankings
 - Notification center shows the latest two messages (FIFO) for auto-selection, lineup, sorting, training, and selection events
+- Connected badge shows granted CHPP permissions
 - Youth player list header includes an auto-select button for star/training
 - Random lineup sets a keeper and fills any 10 other positions
 - Reset lineup button clears all assigned slots

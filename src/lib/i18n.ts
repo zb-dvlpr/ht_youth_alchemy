@@ -97,6 +97,8 @@ export type Messages = {
   notificationStarSet: string;
   notificationStarCleared: string;
   notificationPlayerSelected: string;
+  permissionsLabel: string;
+  permissionsNone: string;
   autoSelectLabel: string;
   autoSelectTitle: string;
   trainingTitle: string;
@@ -264,6 +266,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Star player:",
     notificationStarCleared: "Star player cleared",
     notificationPlayerSelected: "Selected player:",
+    permissionsLabel: "Permissions:",
+    permissionsNone: "None",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-select star player and trainings",
     trainingTitle: "Focused skill training",
@@ -430,6 +434,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Starspieler:",
     notificationStarCleared: "Starspieler entfernt",
     notificationPlayerSelected: "Spieler ausgewählt:",
+    permissionsLabel: "Rechte:",
+    permissionsNone: "Keine",
     autoSelectLabel: "✨",
     autoSelectTitle: "Starspieler und Training automatisch wählen",
     trainingTitle: "Fokussiertes Skilltraining",
@@ -598,6 +604,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Joueur star :",
     notificationStarCleared: "Joueur star supprimé",
     notificationPlayerSelected: "Joueur sélectionné :",
+    permissionsLabel: "Permissions :",
+    permissionsNone: "Aucune",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-sélectionner joueur star et entraînements",
     trainingTitle: "Entraînement ciblé",
@@ -766,6 +774,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Jugador estrella:",
     notificationStarCleared: "Jugador estrella borrado",
     notificationPlayerSelected: "Jugador seleccionado:",
+    permissionsLabel: "Permisos:",
+    permissionsNone: "Ninguno",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-seleccionar jugador estrella y entrenamientos",
     trainingTitle: "Entrenamiento enfocado",
@@ -933,6 +943,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Stjärnspelare:",
     notificationStarCleared: "Stjärnspelare borttagen",
     notificationPlayerSelected: "Spelare vald:",
+    permissionsLabel: "Behörigheter:",
+    permissionsNone: "Inga",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-välj stjärnspelare och träningar",
     trainingTitle: "Fokuserad träning",
@@ -1101,6 +1113,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Giocatore stella:",
     notificationStarCleared: "Giocatore stella rimosso",
     notificationPlayerSelected: "Giocatore selezionato:",
+    permissionsLabel: "Permessi:",
+    permissionsNone: "Nessuno",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-seleziona giocatore stella e allenamenti",
     trainingTitle: "Allenamento mirato",
@@ -1269,6 +1283,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Jogador estrela:",
     notificationStarCleared: "Jogador estrela removido",
     notificationPlayerSelected: "Jogador selecionado:",
+    permissionsLabel: "Permissões:",
+    permissionsNone: "Nenhuma",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-selecionar jogador estrela e treinos",
     trainingTitle: "Treino focado",

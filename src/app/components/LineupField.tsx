@@ -4,6 +4,7 @@ import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { setDragGhost } from "@/lib/drag";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
+import Tooltip from "./Tooltip";
 
 export type LineupAssignments = Record<string, number | null>;
 
@@ -205,11 +206,6 @@ export default function LineupField({
                 : isSecondaryTrained
                 ? messages.trainingSlotSecondary
                 : null;
-              const tooltipAlignClass = position.id.endsWith("_R")
-                ? styles.slotTooltipRight
-                : position.id.endsWith("_L")
-                ? styles.slotTooltipLeft
-                : "";
               const assignedPlayer = assignedId
                 ? playersById.get(assignedId) ?? null
                 : null;
@@ -237,40 +233,8 @@ export default function LineupField({
                   onDragOver={handleDragOver}
                 >
                   {assignedPlayer ? (
-                    <div
-                      className={styles.slotContent}
-                      draggable
-                      title={messages.dragPlayerHint}
-                      onMouseEnter={() => {
-                        if (!assignedPlayer) return;
-                        onHoverPlayer?.(assignedPlayer.YouthPlayerID);
-                      }}
-                      onDragStart={(event) => {
-                        if (!dragPayload) return;
-                        setDragGhost(event, {
-                          label: formatName(assignedPlayer),
-                          className: styles.dragGhost,
-                          slotSelector: `.${styles.fieldSlot}`,
-                        });
-                        event.dataTransfer.setData(
-                          "application/json",
-                          dragPayload
-                        );
-                        event.dataTransfer.effectAllowed = "move";
-                      }}
-                    >
-                      <span className={styles.slotName}>
-                        {formatName(assignedPlayer)}
-                      </span>
-                      {assignedPlayer.Specialty &&
-                      assignedPlayer.Specialty !== 0 ? (
-                        <span className={styles.slotEmoji}>
-                          {SPECIALTY_EMOJI[assignedPlayer.Specialty]}
-                        </span>
-                      ) : null}
-                      <div
-                        className={`${styles.slotTooltip} ${tooltipAlignClass}`}
-                      >
+                    <Tooltip
+                      content={
                         <div className={styles.slotTooltipCard}>
                           <div className={styles.slotTooltipGrid}>
                             {SKILL_ROWS.map((row) => {
@@ -326,16 +290,49 @@ export default function LineupField({
                             })}
                           </div>
                         </div>
-                      </div>
-                      <button
-                        type="button"
-                        className={styles.slotClear}
-                        onClick={() => onClear(position.id)}
-                        aria-label={`${messages.clearSlot} ${position.label}`}
+                      }
+                    >
+                      <div
+                        className={styles.slotContent}
+                        draggable
+                        title={messages.dragPlayerHint}
+                        onMouseEnter={() => {
+                          if (!assignedPlayer) return;
+                          onHoverPlayer?.(assignedPlayer.YouthPlayerID);
+                        }}
+                        onDragStart={(event) => {
+                          if (!dragPayload) return;
+                          setDragGhost(event, {
+                            label: formatName(assignedPlayer),
+                            className: styles.dragGhost,
+                            slotSelector: `.${styles.fieldSlot}`,
+                          });
+                          event.dataTransfer.setData(
+                            "application/json",
+                            dragPayload
+                          );
+                          event.dataTransfer.effectAllowed = "move";
+                        }}
                       >
-                        ×
-                      </button>
-                    </div>
+                        <span className={styles.slotName}>
+                          {formatName(assignedPlayer)}
+                        </span>
+                        {assignedPlayer.Specialty &&
+                        assignedPlayer.Specialty !== 0 ? (
+                          <span className={styles.slotEmoji}>
+                            {SPECIALTY_EMOJI[assignedPlayer.Specialty]}
+                          </span>
+                        ) : null}
+                        <button
+                          type="button"
+                          className={styles.slotClear}
+                          onClick={() => onClear(position.id)}
+                          aria-label={`${messages.clearSlot} ${position.label}`}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    </Tooltip>
                   ) : null}
                   {trainingLabel ? (
                     <span className={styles.trainingTag}>{trainingLabel}</span>

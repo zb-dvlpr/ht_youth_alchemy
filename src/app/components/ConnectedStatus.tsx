@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
+import Tooltip from "./Tooltip";
 
 type ConnectedStatusProps = {
   messages: Messages;
@@ -10,6 +11,7 @@ type ConnectedStatusProps = {
 
 export default function ConnectedStatus({ messages }: ConnectedStatusProps) {
   const [permissions, setPermissions] = useState<string[] | null>(null);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
 
   useEffect(() => {
     let isActive = true;
@@ -41,21 +43,48 @@ export default function ConnectedStatus({ messages }: ConnectedStatusProps) {
     };
   }, []);
 
+  const permissionsText = permissions
+    ? permissions.length
+      ? permissions.join(", ")
+      : messages.permissionsNone
+    : messages.unknownShort;
+
+  const handleDisconnect = async () => {
+    if (isDisconnecting) return;
+    setIsDisconnecting(true);
+    try {
+      await fetch("/api/chpp/oauth/invalidate-token", { method: "POST" });
+    } finally {
+      window.location.reload();
+    }
+  };
+
   return (
     <div className={styles.connectedInfo}>
-      <span className={styles.connectedBadge}>{messages.connectedLabel}</span>
-      <span className={styles.connectedPermissions}>
-        {messages.permissionsLabel}{" "}
-        {permissions ? (
-          permissions.length ? (
-            permissions.join(", ")
-          ) : (
-            messages.permissionsNone
-          )
-        ) : (
-          messages.unknownShort
-        )}
-      </span>
+      <Tooltip
+        content={
+          <div className={styles.connectedTooltip}>
+            <span className={styles.connectedTooltipLabel}>
+              {messages.permissionsLabel}
+            </span>
+            <span className={styles.connectedTooltipValue}>
+              {permissionsText}
+            </span>
+          </div>
+        }
+      >
+        <span className={styles.connectedBadge}>{messages.connectedLabel}</span>
+      </Tooltip>
+      <button
+        type="button"
+        className={styles.disconnectButton}
+        onClick={handleDisconnect}
+        title={messages.disconnectTitle}
+        aria-label={messages.disconnectTitle}
+        disabled={isDisconnecting}
+      >
+        ⏻
+      </button>
     </div>
   );
 }

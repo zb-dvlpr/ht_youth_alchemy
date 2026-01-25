@@ -146,6 +146,12 @@ export default async function Home() {
   const [playersResponse, matchesResponse, ratingsResponse] =
     await Promise.all([getPlayers(), getMatches(), getRatings()]);
 
+  const tokenError =
+    playersResponse.error?.includes("Missing CHPP access token") ||
+    playersResponse.details?.includes("Missing CHPP access token") ||
+    playersResponse.error?.includes("Re-auth") ||
+    playersResponse.details?.includes("Re-auth");
+
   const players = normalizePlayers(
     playersResponse.data?.HattrickData?.PlayerList?.YouthPlayer
   );
@@ -160,7 +166,11 @@ export default async function Home() {
           </div>
           <NotificationCenter locale={locale} messages={messages} />
           <div className={styles.topBarControls}>
-            <LanguageSwitcher locale={locale} label={messages.languageLabel} />
+            <LanguageSwitcher
+              locale={locale}
+              label={messages.languageLabel}
+              switchingLabel={messages.languageSwitching}
+            />
             {isConnected ? (
               <ConnectedStatus messages={messages} />
             ) : (
@@ -177,6 +187,9 @@ export default async function Home() {
               {messages.unableToLoadPlayers}
             </h2>
             <p className={styles.errorText}>{playersResponse.error}</p>
+            {tokenError ? (
+              <p className={styles.errorDetails}>{messages.connectHint}</p>
+            ) : null}
             {playersResponse.details ? (
               <p className={styles.errorDetails}>{playersResponse.details}</p>
             ) : null}

@@ -59,10 +59,10 @@ export async function GET(request: Request) {
     cookieStore.delete("chpp_req_token");
     cookieStore.delete("chpp_req_secret");
 
-    return NextResponse.json({
-      status: "ok",
-      message: "CHPP OAuth completed. Access token stored in httpOnly cookies.",
-    });
+    const redirectUrl = new URL(request.url);
+    redirectUrl.pathname = "/";
+    redirectUrl.search = "";
+    return NextResponse.redirect(redirectUrl);
   } catch (error) {
     return NextResponse.json(
       {

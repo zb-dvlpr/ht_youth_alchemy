@@ -41,9 +41,9 @@
 
 .connectedInfo {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
 }
 
 .notificationCenter {
@@ -110,6 +110,53 @@
   font-weight: 600;
 }
 
+.disconnectButton {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 999px;
+  background: rgba(162, 52, 52, 0.14);
+  color: #b11d1d;
+  border: 1px solid rgba(162, 52, 52, 0.55);
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.disconnectButton:hover {
+  background: rgba(162, 52, 52, 0.18);
+}
+
+.disconnectButton:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.connectedTooltip {
+  background: #f7f1e3;
+  border: 1px solid #d8cbb6;
+  border-radius: 10px;
+  padding: 8px 10px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  font-size: 12px;
+  color: #2f2a22;
+  max-width: 280px;
+}
+
+.connectedTooltipLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.connectedTooltipValue {
+  display: block;
+  color: #4b4034;
+  word-break: break-word;
+}
 .connectedPermissions {
   font-size: 11px;
   color: #6b6256;
@@ -140,6 +187,21 @@
   padding: 4px 10px;
   font-size: 12px;
   color: #3f362c;
+}
+
+.langSpinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(63, 54, 44, 0.2);
+  border-top-color: rgba(63, 54, 44, 0.7);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .version {
@@ -1206,41 +1268,6 @@
   bottom: 6px;
   font-size: 14px;
   line-height: 1;
-}
-
-.slotTooltip {
-  position: absolute;
-  left: 50%;
-  top: calc(100% + 12px);
-  transform: translateX(-50%);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
-  z-index: 5;
-}
-
-.slotContent:hover .slotTooltip {
-  opacity: 1;
-  transform: translateX(-50%) translateY(2px);
-}
-
-.slotTooltipRight {
-  left: auto;
-  right: 0;
-  transform: translateX(0);
-}
-
-.slotContent:hover .slotTooltipRight {
-  transform: translateX(0) translateY(2px);
-}
-
-.slotTooltipLeft {
-  left: 0;
-  transform: translateX(0);
-}
-
-.slotContent:hover .slotTooltipLeft {
-  transform: translateX(0) translateY(2px);
 }
 
 .slotTooltipCard {

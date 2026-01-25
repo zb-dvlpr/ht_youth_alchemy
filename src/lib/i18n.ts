@@ -12,6 +12,7 @@ export const SUPPORTED_LOCALES: Locale[] = [
 
 export type Messages = {
   languageLabel: string;
+  languageSwitching: string;
   youthPlayerList: string;
   noYouthPlayers: string;
   assigned: string;
@@ -171,6 +172,9 @@ export type Messages = {
   posForwardFull: string;
   connectLabel: string;
   connectedLabel: string;
+  connectHint: string;
+  disconnectLabel: string;
+  disconnectTitle: string;
   brandTitle: string;
   skillKeeper: string;
   skillDefending: string;
@@ -184,6 +188,7 @@ export type Messages = {
 const MESSAGES: Record<Locale, Messages> = {
   en: {
     languageLabel: "Language",
+    languageSwitching: "Switching language…",
     youthPlayerList: "Youth Player List",
     noYouthPlayers: "No youth players returned.",
     assigned: "Assigned",
@@ -343,6 +348,9 @@ const MESSAGES: Record<Locale, Messages> = {
     posForwardFull: "Forward",
     connectLabel: "Connect Hattrick",
     connectedLabel: "Connected",
+    connectHint: "Use the Connect button in the top right to sign in again.",
+    disconnectLabel: "Disconnect",
+    disconnectTitle: "Disconnect and revoke access",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Keeper",
     skillDefending: "Defending",
@@ -354,6 +362,7 @@ const MESSAGES: Record<Locale, Messages> = {
   },
   de: {
     languageLabel: "Sprache",
+    languageSwitching: "Sprache wird gewechselt…",
     youthPlayerList: "Jugendspielerliste",
     noYouthPlayers: "Keine Jugendspieler gefunden.",
     assigned: "Zugewiesen",
@@ -514,6 +523,9 @@ const MESSAGES: Record<Locale, Messages> = {
     posForwardFull: "Stürmer",
     connectLabel: "Hattrick verbinden",
     connectedLabel: "Verbunden",
+    connectHint: "Nutze den Verbinden-Button oben rechts, um dich erneut anzumelden.",
+    disconnectLabel: "Trennen",
+    disconnectTitle: "Trennen und Zugriff widerrufen",
     brandTitle: "Hattrick Jugend-Alchemie",
     skillKeeper: "Torwart",
     skillDefending: "Verteidigung",
@@ -525,6 +537,7 @@ const MESSAGES: Record<Locale, Messages> = {
   },
   fr: {
     languageLabel: "Langue",
+    languageSwitching: "Changement de langue…",
     youthPlayerList: "Liste des joueurs jeunes",
     noYouthPlayers: "Aucun joueur jeune trouvé.",
     assigned: "Assigné",
@@ -687,6 +700,10 @@ const MESSAGES: Record<Locale, Messages> = {
     posForwardFull: "Attaquant",
     connectLabel: "Connecter Hattrick",
     connectedLabel: "Connecté",
+    connectHint:
+      "Utilisez le bouton Connecter en haut à droite pour vous reconnecter.",
+    disconnectLabel: "Déconnecter",
+    disconnectTitle: "Déconnecter et révoquer l’accès",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Gardien",
     skillDefending: "Défense",
@@ -698,6 +715,7 @@ const MESSAGES: Record<Locale, Messages> = {
   },
   es: {
     languageLabel: "Idioma",
+    languageSwitching: "Cambiando idioma…",
     youthPlayerList: "Lista de jugadores juveniles",
     noYouthPlayers: "No se encontraron jugadores juveniles.",
     assigned: "Asignado",
@@ -860,6 +878,10 @@ const MESSAGES: Record<Locale, Messages> = {
     posForwardFull: "Delantero",
     connectLabel: "Conectar Hattrick",
     connectedLabel: "Conectado",
+    connectHint:
+      "Usa el botón Conectar en la esquina superior derecha para volver a iniciar sesión.",
+    disconnectLabel: "Desconectar",
+    disconnectTitle: "Desconectar y revocar el acceso",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Portero",
     skillDefending: "Defensa",
@@ -871,6 +893,7 @@ const MESSAGES: Record<Locale, Messages> = {
   },
   sv: {
     languageLabel: "Språk",
+    languageSwitching: "Byter språk…",
     youthPlayerList: "Ungdomsspelarlista",
     noYouthPlayers: "Inga ungdomsspelare hittades.",
     assigned: "Tilldelad",
@@ -1032,6 +1055,10 @@ const MESSAGES: Record<Locale, Messages> = {
     posForwardFull: "Forward",
     connectLabel: "Anslut Hattrick",
     connectedLabel: "Ansluten",
+    connectHint:
+      "Använd knappen Anslut uppe till höger för att logga in igen.",
+    disconnectLabel: "Koppla från",
+    disconnectTitle: "Koppla från och återkalla åtkomst",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Målvakt",
     skillDefending: "Försvar",
@@ -1043,6 +1070,7 @@ const MESSAGES: Record<Locale, Messages> = {
   },
   it: {
     languageLabel: "Lingua",
+    languageSwitching: "Cambio lingua…",
     youthPlayerList: "Lista giocatori giovanili",
     noYouthPlayers: "Nessun giocatore giovanile trovato.",
     assigned: "Assegnato",
@@ -1205,6 +1233,10 @@ const MESSAGES: Record<Locale, Messages> = {
     posForwardFull: "Punta",
     connectLabel: "Connetti Hattrick",
     connectedLabel: "Connesso",
+    connectHint:
+      "Usa il pulsante Connetti in alto a destra per accedere di nuovo.",
+    disconnectLabel: "Disconnetti",
+    disconnectTitle: "Disconnetti e revoca l’accesso",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Portiere",
     skillDefending: "Difesa",
@@ -1216,6 +1248,7 @@ const MESSAGES: Record<Locale, Messages> = {
   },
   pt: {
     languageLabel: "Idioma",
+    languageSwitching: "Alterando idioma…",
     youthPlayerList: "Lista de jogadores juvenis",
     noYouthPlayers: "Nenhum jogador juvenil encontrado.",
     assigned: "Atribuído",
@@ -1378,6 +1411,10 @@ const MESSAGES: Record<Locale, Messages> = {
     posForwardFull: "Atacante",
     connectLabel: "Conectar Hattrick",
     connectedLabel: "Conectado",
+    connectHint:
+      "Use o botão Conectar no canto superior direito para entrar novamente.",
+    disconnectLabel: "Desconectar",
+    disconnectTitle: "Desconectar e revogar acesso",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Goleiro",
     skillDefending: "Defesa",

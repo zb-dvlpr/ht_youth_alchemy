@@ -19,6 +19,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Favicon uses a football emoji icon
 - Click-to-load player details in a dedicated panel
 - Language switcher (English, German, French, Spanish, Swedish, Italian, Portuguese)
+- Language switcher shows an in-place spinner while applying changes
 - Localization rule: new UI text must be i18n-backed
 - Ratings matrix using last 10 finished match lineups (max RatingStars per cell)
 - Ratings matrix uses MatchRoleID labels instead of numeric codes
@@ -56,6 +57,8 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Debug modal includes the full star-selection rankings
 - Notification center shows the latest two messages (FIFO) for auto-selection, lineup, sorting, training, and selection events
 - Connected badge shows granted CHPP permissions
+- Disconnect icon (power symbol) to revoke CHPP access
+- All tooltips use a shared viewport-safe tooltip component
 - Youth player list header includes an auto-select button for star/training
 - Random lineup sets a keeper and fills any 10 other positions
 - Reset lineup button clears all assigned slots
@@ -92,7 +95,7 @@ Open http://localhost:3000 in your browser.
 ## OAuth test flow (local)
 1) Visit `http://localhost:3000/api/chpp/oauth/start` in your browser.
 2) You should be redirected to Hattrick for authorization.
-3) After approving, CHPP redirects to the callback and you should see a JSON response with `status: "ok"`.
+3) After approving, CHPP redirects back to the app and you should land on the main page.
 4) The app requests the `set_matchorder` scope so it can submit lineup orders.
 
 ## Youth player list (local)

@@ -1462,7 +1462,7 @@ html[data-theme="dark"] .confirmCard {
   min-height: 480px;
   display: grid;
   gap: 20px;
-  overflow: visible;
+  overflow: hidden;
   --row-gap: 12px;
   --slot-width: min(110px, calc((100% - (var(--row-gap) * 4)) / 5));
   --slot-height: clamp(56px, 9vw, 82px);

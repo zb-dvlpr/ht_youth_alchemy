@@ -101,6 +101,7 @@ export default function Dashboard({
   const [autoSelectionApplied, setAutoSelectionApplied] = useState(false);
   const { addNotification } = useNotifications();
   const isDev = process.env.NODE_ENV !== "production";
+  const storageKey = "ya_dashboard_state_v1";
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -128,6 +129,66 @@ export default function Dashboard({
     () => players.find((player) => player.YouthPlayerID === selectedId) ?? null,
     [players, selectedId]
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(storageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as {
+        assignments?: LineupAssignments;
+        selectedId?: number | null;
+        starPlayerId?: number | null;
+        primaryTraining?: string;
+        secondaryTraining?: string;
+        loadedMatchId?: number | null;
+        cache?: Record<number, CachedDetails>;
+      };
+      if (parsed.assignments) setAssignments(parsed.assignments);
+      if (parsed.selectedId !== undefined) setSelectedId(parsed.selectedId);
+      if (parsed.starPlayerId !== undefined) setStarPlayerId(parsed.starPlayerId);
+      if (parsed.primaryTraining !== undefined)
+        setPrimaryTraining(parsed.primaryTraining);
+      if (parsed.secondaryTraining !== undefined)
+        setSecondaryTraining(parsed.secondaryTraining);
+      if (parsed.loadedMatchId !== undefined)
+        setLoadedMatchId(parsed.loadedMatchId);
+      if (parsed.cache) {
+        setCache(parsed.cache);
+        if (parsed.selectedId && parsed.cache[parsed.selectedId]) {
+          setDetails(parsed.cache[parsed.selectedId].data);
+        }
+      }
+    } catch {
+      // ignore restore errors
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const payload = {
+      assignments,
+      selectedId,
+      starPlayerId,
+      primaryTraining,
+      secondaryTraining,
+      loadedMatchId,
+      cache,
+    };
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(payload));
+    } catch {
+      // ignore persist errors
+    }
+  }, [
+    assignments,
+    cache,
+    loadedMatchId,
+    primaryTraining,
+    secondaryTraining,
+    selectedId,
+    starPlayerId,
+  ]);
 
   const loadDetails = async (playerId: number, forceRefresh = false) => {
     const cached = cache[playerId];

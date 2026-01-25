@@ -25,7 +25,22 @@ export type RequestTokenResult = {
 
 export function getRequestToken(client: OAuth): Promise<RequestTokenResult> {
   return new Promise((resolve, reject) => {
-    client.getOAuthRequestToken((error, token, tokenSecret, results) => {
+    const oauthClient = client as unknown as {
+      getOAuthRequestToken: (
+        callback: (
+          error: unknown,
+          token?: string,
+          tokenSecret?: string,
+          results?: Record<string, string>
+        ) => void
+      ) => void;
+    };
+    oauthClient.getOAuthRequestToken((
+      error: unknown,
+      token?: string,
+      tokenSecret?: string,
+      results?: Record<string, string>
+    ) => {
       if (error || !token || !tokenSecret) {
         reject(error ?? new Error("Failed to obtain request token"));
         return;
@@ -48,11 +63,29 @@ export function getAccessToken(
   verifier: string
 ): Promise<AccessTokenResult> {
   return new Promise((resolve, reject) => {
-    client.getOAuthAccessToken(
+    const oauthClient = client as unknown as {
+      getOAuthAccessToken: (
+        requestToken: string,
+        requestSecret: string,
+        verifier: string,
+        callback: (
+          error: unknown,
+          token?: string,
+          tokenSecret?: string,
+          results?: Record<string, string>
+        ) => void
+      ) => void;
+    };
+    oauthClient.getOAuthAccessToken(
       requestToken,
       requestSecret,
       verifier,
-      (error, token, tokenSecret, results) => {
+      (
+        error: unknown,
+        token?: string,
+        tokenSecret?: string,
+        results?: Record<string, string>
+      ) => {
         if (error || !token || !tokenSecret) {
           reject(error ?? new Error("Failed to obtain access token"));
           return;
@@ -70,7 +103,15 @@ export function getProtectedResource(
   accessSecret: string
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    client.get(url, accessToken, accessSecret, (error, data) => {
+    const oauthClient = client as unknown as {
+      get: (
+        url: string,
+        accessToken: string,
+        accessSecret: string,
+        callback: (error: unknown, data: unknown) => void
+      ) => void;
+    };
+    oauthClient.get(url, accessToken, accessSecret, (error: unknown, data: unknown) => {
       if (error) {
         reject(error);
         return;
@@ -93,7 +134,23 @@ export function postProtectedResource(
   contentType: string
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    client.post(url, accessToken, accessSecret, body, contentType, (error, data) => {
+    const oauthClient = client as unknown as {
+      post: (
+        url: string,
+        accessToken: string,
+        accessSecret: string,
+        body: string,
+        contentType: string,
+        callback: (error: unknown, data: unknown) => void
+      ) => void;
+    };
+    oauthClient.post(
+      url,
+      accessToken,
+      accessSecret,
+      body,
+      contentType,
+      (error: unknown, data: unknown) => {
       if (error) {
         reject(error);
         return;

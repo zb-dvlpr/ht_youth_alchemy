@@ -1,6 +1,12 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --font-geist-sans: "Geist", "Space Grotesk", "Avenir Next", "Segoe UI",
+    "Helvetica Neue", Arial, sans-serif;
+  --font-geist-mono: "Geist Mono", "JetBrains Mono", "SFMono-Regular", Menlo,
+    Consolas, "Liberation Mono", monospace;
+  --font-brand: "Space Grotesk", "Avenir Next", "Segoe UI", "Helvetica Neue",
+    Arial, sans-serif;
   color-scheme: light;
 }
 
@@ -24,7 +30,7 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

@@ -6,6 +6,7 @@ import LanguageSwitcher from "./components/LanguageSwitcher";
 import NotificationCenter from "./components/notifications/NotificationCenter";
 import { NotificationsProvider } from "./components/notifications/NotificationsProvider";
 import HelpToggleButton from "./components/HelpToggleButton";
+import ThemeToggle from "./components/ThemeToggle";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 
@@ -173,6 +174,7 @@ export default async function Home() {
               switchingLabel={messages.languageSwitching}
             />
             <HelpToggleButton messages={messages} />
+            <ThemeToggle messages={messages} />
             {isConnected ? (
               <ConnectedStatus messages={messages} />
             ) : (

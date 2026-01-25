@@ -116,6 +116,26 @@
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
+.themeToggle {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  color: #3f362c;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.themeToggle:hover {
+  background: #f1e9dc;
+  transform: translateY(-1px);
+}
+
 .connectButton:hover {
   background: #2f9f5b;
   transform: translateY(-1px);
@@ -455,6 +475,227 @@
   .main {
     overflow: auto;
   }
+}
+
+html[data-theme="dark"] .main {
+  background: radial-gradient(circle at top, #1c1a17, #0f0e0d);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .topBar {
+  background: #1b1917;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+html[data-theme="dark"] .brandTitle {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .version {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .notificationItem {
+  background: rgba(28, 26, 23, 0.8);
+  color: #f3ede4;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .notificationTime {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .notificationMessage {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .connectButton {
+  background: #2f9f5b;
+  color: #111;
+}
+
+html[data-theme="dark"] .connectedBadge {
+  background: rgba(47, 159, 91, 0.2);
+  color: #8fe5ae;
+}
+
+html[data-theme="dark"] .disconnectButton {
+  background: rgba(216, 76, 76, 0.2);
+  color: #ff8b8b;
+  border-color: rgba(216, 76, 76, 0.55);
+}
+
+html[data-theme="dark"] .themeToggle,
+html[data-theme="dark"] .helpButton,
+html[data-theme="dark"] .sortToggle,
+html[data-theme="dark"] .autoSelectButton {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e9e1d7;
+}
+
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .helpCard {
+  background: #1b1917;
+  color: #f3ede4;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .listItem {
+  background: #25221e;
+}
+
+html[data-theme="dark"] .matrixTable th {
+  background: #1f1c19;
+}
+
+html[data-theme="dark"] .matrixTable td,
+html[data-theme="dark"] .matrixTable th {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .matrixCell,
+html[data-theme="dark"] .matrixPlayer {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .matrixTable td {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .trainingSelect,
+html[data-theme="dark"] .sortSelect {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .langSelect {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .langSwitcher {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .langSpinner {
+  border-color: rgba(243, 237, 228, 0.2);
+  border-top-color: rgba(243, 237, 228, 0.6);
+}
+
+html[data-theme="dark"] .tooltipCard {
+  background: #1b1917 !important;
+  color: #f3ede4 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html[data-theme="dark"] .detailsSubtitle,
+html[data-theme="dark"] .detailsTimestamp,
+html[data-theme="dark"] .trainingLabel,
+html[data-theme="dark"] .sortControl {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .skillValue {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .profileCard {
+  background: #1f1c19;
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .profileMeta,
+html[data-theme="dark"] .infoLabel {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .infoValue,
+html[data-theme="dark"] .skillLabel {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .playerId,
+html[data-theme="dark"] .assignedTag {
+  color: #c6bdaf;
+}
+
+html[data-theme="dark"] .metaItem {
+  background: #2a2521;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .tag {
+  background: #2f9f5b;
+  color: #111;
+}
+
+html[data-theme="dark"] .sectionDivider {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme="dark"] .skillBar {
+  background: #2a2521;
+}
+
+html[data-theme="dark"] .skillFillMax {
+  background: #6b5e4f;
+}
+
+html[data-theme="dark"] .refreshButton {
+  background: #2a2521;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .refreshButton:not(:disabled):hover {
+  background: #332d28;
+}
+
+html[data-theme="dark"] .matchItem {
+  background: #25221e;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .matchMeta,
+html[data-theme="dark"] .vs {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .matchButtonSecondary {
+  color: #8fe5ae;
+  border-color: rgba(143, 229, 174, 0.35);
+}
+
+html[data-theme="dark"] .matchButtonSecondary:hover:not(:disabled) {
+  background: rgba(143, 229, 174, 0.12);
+}
+
+html[data-theme="dark"] .matchSuccess {
+  color: #8fe5ae;
+}
+
+html[data-theme="dark"] .matchError {
+  color: #ff8b8b;
+}
+
+html[data-theme="dark"] .matchUpdated {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .matchLoaded {
+  color: #8fe5ae;
+  background: rgba(143, 229, 174, 0.12);
+}
+
+html[data-theme="dark"] .confirmCard {
+  background: #1b1917;
+  color: #f3ede4;
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .playerRow {
@@ -1493,6 +1734,30 @@
   color: #1b1a17;
   min-width: 44px;
   font-size: 13px;
+}
+
+html[data-theme="dark"] .slotTooltipCard {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .slotTooltipHint {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .slotTooltipCard .skillLabel,
+html[data-theme="dark"] .slotTooltipCard .skillValue {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .slotTooltipCard .skillBar {
+  background: #2a2521;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .slotTooltipCard .skillFillMax {
+  background: #6b5e4f;
 }
 
 .slotLabel {

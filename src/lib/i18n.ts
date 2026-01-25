@@ -32,6 +32,8 @@ export type Messages = {
   helpSubmitPrefix: string;
   helpSubmitSuffix: string;
   helpDrag: string;
+  themeSwitchDark: string;
+  themeSwitchLight: string;
   helpDismissLabel: string;
   youthPlayerList: string;
   noYouthPlayers: string;
@@ -242,6 +244,8 @@ const MESSAGES: Record<Locale, Messages> = {
     helpSubmitSuffix: "buttons to send your lineup to Hattrick.",
     helpDrag:
       "Drag players from the list into the lineup, and drag players in the lineup to swap positions.",
+    themeSwitchDark: "Switch to dark mode",
+    themeSwitchLight: "Switch to light mode",
     helpDismissLabel: "I understand",
     youthPlayerList: "Youth Player List",
     noYouthPlayers: "No youth players returned.",
@@ -448,6 +452,8 @@ const MESSAGES: Record<Locale, Messages> = {
     helpSubmitSuffix: "mit den Buttons an Hattrick.",
     helpDrag:
       "Ziehe Spieler aus der Liste in die Aufstellung und verschiebe Spieler, um Positionen zu tauschen.",
+    themeSwitchDark: "In den Dunkelmodus wechseln",
+    themeSwitchLight: "In den Hellmodus wechseln",
     helpDismissLabel: "Verstanden",
     youthPlayerList: "Jugendspielerliste",
     noYouthPlayers: "Keine Jugendspieler gefunden.",
@@ -656,6 +662,8 @@ const MESSAGES: Record<Locale, Messages> = {
     helpSubmitSuffix: "pour soumettre la composition à Hattrick.",
     helpDrag:
       "Faites glisser des joueurs depuis la liste et déplacez ceux de l’équipe pour changer de poste.",
+    themeSwitchDark: "Passer en mode sombre",
+    themeSwitchLight: "Passer en mode clair",
     helpDismissLabel: "J’ai compris",
     youthPlayerList: "Liste des joueurs jeunes",
     noYouthPlayers: "Aucun joueur jeune trouvé.",
@@ -867,6 +875,8 @@ const MESSAGES: Record<Locale, Messages> = {
     helpSubmitSuffix: "para mandar la alineación a Hattrick.",
     helpDrag:
       "Arrastra jugadores desde la lista y mueve los del once para cambiar posiciones.",
+    themeSwitchDark: "Cambiar a modo oscuro",
+    themeSwitchLight: "Cambiar a modo claro",
     helpDismissLabel: "Entendido",
     youthPlayerList: "Lista de jugadores juveniles",
     noYouthPlayers: "No se encontraron jugadores juveniles.",
@@ -1078,6 +1088,8 @@ const MESSAGES: Record<Locale, Messages> = {
     helpSubmitSuffix: "för att skicka uppställningen till Hattrick.",
     helpDrag:
       "Dra spelare från listan in i uppställningen och flytta spelare för att byta position.",
+    themeSwitchDark: "Växla till mörkt läge",
+    themeSwitchLight: "Växla till ljust läge",
     helpDismissLabel: "Jag förstår",
     youthPlayerList: "Ungdomsspelarlista",
     noYouthPlayers: "Inga ungdomsspelare hittades.",
@@ -1288,6 +1300,8 @@ const MESSAGES: Record<Locale, Messages> = {
     helpSubmitSuffix: "per inviare la formazione a Hattrick.",
     helpDrag:
       "Trascina i giocatori dalla lista e sposta quelli in campo per cambiare ruolo.",
+    themeSwitchDark: "Passa alla modalità scura",
+    themeSwitchLight: "Passa alla modalità chiara",
     helpDismissLabel: "Ho capito",
     youthPlayerList: "Lista giocatori giovanili",
     noYouthPlayers: "Nessun giocatore giovanile trovato.",
@@ -1499,6 +1513,8 @@ const MESSAGES: Record<Locale, Messages> = {
     helpSubmitSuffix: "para enviar a escalação ao Hattrick.",
     helpDrag:
       "Arraste jogadores da lista e mova os do time para trocar posições.",
+    themeSwitchDark: "Mudar para modo escuro",
+    themeSwitchLight: "Mudar para modo claro",
     helpDismissLabel: "Entendi",
     youthPlayerList: "Lista de jogadores juvenis",
     noYouthPlayers: "Nenhum jogador juvenil encontrado.",

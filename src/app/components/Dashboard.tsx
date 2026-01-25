@@ -16,6 +16,7 @@ import {
   type OptimizerPlayer,
   type OptimizerDebug,
 } from "@/lib/optimizer";
+import { useNotifications } from "./notifications/NotificationsProvider";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -97,6 +98,7 @@ export default function Dashboard({
   );
   const [showOptimizerDebug, setShowOptimizerDebug] = useState(false);
   const [autoSelectionApplied, setAutoSelectionApplied] = useState(false);
+  const { addNotification } = useNotifications();
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -357,7 +359,24 @@ export default function Dashboard({
     setPrimaryTraining(autoSelection.primarySkill);
     setSecondaryTraining(autoSelection.secondarySkill ?? "");
     setAutoSelectionApplied(true);
-  }, [autoSelection, primaryTraining, secondaryTraining, starPlayerId]);
+    const playerName =
+      optimizerPlayers.find(
+        (player) => player.id === autoSelection.starPlayerId
+      )?.name ?? autoSelection.starPlayerId;
+    const primaryLabel = trainingLabel(autoSelection.primarySkill);
+    const secondaryLabel = trainingLabel(autoSelection.secondarySkill);
+    addNotification(
+      `${messages.notificationAutoSelection} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
+    );
+  }, [
+    addNotification,
+    autoSelection,
+    messages.notificationAutoSelection,
+    optimizerPlayers,
+    primaryTraining,
+    secondaryTraining,
+    starPlayerId,
+  ]);
 
   const manualReady = Boolean(starPlayerId && primaryTraining && secondaryTraining);
 

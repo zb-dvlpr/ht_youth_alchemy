@@ -24,7 +24,7 @@ const NotificationsContext = createContext<NotificationsContextValue | null>(
   null
 );
 
-const MAX_NOTIFICATIONS = 5;
+const MAX_NOTIFICATIONS = 2;
 
 function createId() {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -40,10 +40,10 @@ export function NotificationsProvider({
   const addNotification = useCallback((message: string) => {
     setNotifications((prev) => {
       const next = [
-        { id: createId(), message, timestamp: Date.now() },
         ...prev,
+        { id: createId(), message, timestamp: Date.now() },
       ];
-      return next.slice(0, MAX_NOTIFICATIONS);
+      return next.slice(-MAX_NOTIFICATIONS);
     });
   }, []);
 

@@ -81,6 +81,9 @@ export type Messages = {
   loadLineupActive: string;
   loadLineupError: string;
   notificationEmpty: string;
+  notificationAutoSelection: string;
+  notificationLineupLoaded: string;
+  notificationLineupSubmitted: string;
   trainingTitle: string;
   primaryTrainingLabel: string;
   secondaryTrainingLabel: string;
@@ -225,6 +228,9 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupActive: "Loaded",
     loadLineupError: "Load failed",
     notificationEmpty: "No notifications",
+    notificationAutoSelection: "Auto-selected",
+    notificationLineupLoaded: "Lineup loaded:",
+    notificationLineupSubmitted: "Lineup submitted:",
     trainingTitle: "Focused skill training",
     primaryTrainingLabel: "Primary",
     secondaryTrainingLabel: "Secondary",
@@ -367,6 +373,9 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupActive: "Geladen",
     loadLineupError: "Laden fehlgeschlagen",
     notificationEmpty: "Keine Benachrichtigungen",
+    notificationAutoSelection: "Automatisch gewählt",
+    notificationLineupLoaded: "Aufstellung geladen:",
+    notificationLineupSubmitted: "Aufstellung gesendet:",
     trainingTitle: "Fokussiertes Skilltraining",
     primaryTrainingLabel: "Primär",
     secondaryTrainingLabel: "Sekundär",
@@ -511,6 +520,9 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupActive: "Chargé",
     loadLineupError: "Chargement échoué",
     notificationEmpty: "Aucune notification",
+    notificationAutoSelection: "Auto-sélection",
+    notificationLineupLoaded: "Composition chargée :",
+    notificationLineupSubmitted: "Composition envoyée :",
     trainingTitle: "Entraînement ciblé",
     primaryTrainingLabel: "Principal",
     secondaryTrainingLabel: "Secondaire",
@@ -655,6 +667,9 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupActive: "Cargada",
     loadLineupError: "Error al cargar",
     notificationEmpty: "Sin notificaciones",
+    notificationAutoSelection: "Auto-selección",
+    notificationLineupLoaded: "Alineación cargada:",
+    notificationLineupSubmitted: "Alineación enviada:",
     trainingTitle: "Entrenamiento enfocado",
     primaryTrainingLabel: "Principal",
     secondaryTrainingLabel: "Secundario",
@@ -798,6 +813,9 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupActive: "Laddad",
     loadLineupError: "Misslyckades att ladda",
     notificationEmpty: "Inga aviseringar",
+    notificationAutoSelection: "Auto-val",
+    notificationLineupLoaded: "Uppställning laddad:",
+    notificationLineupSubmitted: "Uppställning skickad:",
     trainingTitle: "Fokuserad träning",
     primaryTrainingLabel: "Primär",
     secondaryTrainingLabel: "Sekundär",
@@ -942,6 +960,9 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupActive: "Caricata",
     loadLineupError: "Caricamento non riuscito",
     notificationEmpty: "Nessuna notifica",
+    notificationAutoSelection: "Auto-selezione",
+    notificationLineupLoaded: "Formazione caricata:",
+    notificationLineupSubmitted: "Formazione inviata:",
     trainingTitle: "Allenamento mirato",
     primaryTrainingLabel: "Primario",
     secondaryTrainingLabel: "Secondario",
@@ -1086,6 +1107,9 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupActive: "Carregada",
     loadLineupError: "Falha ao carregar",
     notificationEmpty: "Sem notificações",
+    notificationAutoSelection: "Auto-seleção",
+    notificationLineupLoaded: "Escalação carregada:",
+    notificationLineupSubmitted: "Escalação enviada:",
     trainingTitle: "Treino focado",
     primaryTrainingLabel: "Primário",
     secondaryTrainingLabel: "Secundário",

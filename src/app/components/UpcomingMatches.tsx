@@ -5,6 +5,7 @@ import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { LineupAssignments } from "./LineupField";
 import { roleIdToSlotId } from "@/lib/positions";
+import { useNotifications } from "./notifications/NotificationsProvider";
 
 type MatchTeam = {
   HomeTeamName?: string;
@@ -243,6 +244,7 @@ export default function UpcomingMatches({
   onLoadLineup,
   loadedMatchId,
 }: UpcomingMatchesProps) {
+  const { addNotification } = useNotifications();
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
   const [loadStates, setLoadStates] = useState<Record<number, LoadState>>({});
   const [confirmMatchId, setConfirmMatchId] = useState<number | null>(null);
@@ -261,6 +263,24 @@ export default function UpcomingMatches({
     response.data?.HattrickData?.MatchList?.Match ??
       response.data?.HattrickData?.Team?.MatchList?.Match
   );
+
+  const matchById = useMemo(() => {
+    const map = new Map<number, Match>();
+    allMatches.forEach((match) => {
+      const id = Number(match.MatchID);
+      if (Number.isFinite(id)) {
+        map.set(id, match);
+      }
+    });
+    return map;
+  }, [allMatches]);
+
+  const formatMatchName = (match: Match | undefined) => {
+    if (!match) return messages.unknownLabel;
+    const home = match.HomeTeam?.HomeTeamName ?? messages.homeLabel;
+    const away = match.AwayTeam?.AwayTeamName ?? messages.awayLabel;
+    return `${home} vs ${away}`;
+  };
 
   const handleSubmit = async (matchId: number) => {
     if (!teamId) return;
@@ -339,6 +359,11 @@ export default function UpcomingMatches({
         throw new Error(messages.loadLineupUnavailable);
       }
       onLoadLineup?.(next, matchId);
+      addNotification(
+        `${messages.notificationLineupLoaded} ${formatMatchName(
+          matchById.get(matchId)
+        )}`
+      );
       setLoadStates((prev) => ({
         ...prev,
         [matchId]: { status: "idle", error: null },
@@ -408,6 +433,11 @@ export default function UpcomingMatches({
           updatedAt: Date.now(),
         },
       }));
+      addNotification(
+        `${messages.notificationLineupSubmitted} ${formatMatchName(
+          matchById.get(matchId)
+        )}`
+      );
       onRefresh?.();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

@@ -28,6 +28,18 @@ function formatRating(value: number | null) {
   return Number(value).toFixed(1);
 }
 
+function ratingStyle(value: number | null) {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+  const normalized = Math.min(Math.max((value - 1) / 6, 0), 1);
+  const hue = 120 * normalized;
+  const alpha = 0.2 + normalized * 0.35;
+  return {
+    backgroundColor: `hsla(${hue}, 70%, 38%, ${alpha})`,
+  } as React.CSSProperties;
+}
+
 export default function RatingsMatrix({ response, messages }: RatingsMatrixProps) {
   if (!response || response.players.length === 0) {
     return (
@@ -59,7 +71,15 @@ export default function RatingsMatrix({ response, messages }: RatingsMatrixProps
                 <td className={styles.matrixPlayer}>{row.name}</td>
                 {positions.map((position) => {
                   const rating = row.ratings[String(position)] ?? null;
-                  return <td key={position}>{formatRating(rating)}</td>;
+                  return (
+                    <td
+                      key={position}
+                      className={styles.matrixCell}
+                      style={ratingStyle(rating)}
+                    >
+                      {formatRating(rating)}
+                    </td>
+                  );
                 })}
               </tr>
             ))}

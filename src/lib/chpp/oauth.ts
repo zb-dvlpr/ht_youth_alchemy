@@ -5,6 +5,8 @@ export const CHPP_ENDPOINTS = {
   requestToken: "https://chpp.hattrick.org/oauth/request_token.ashx",
   authorize: "https://chpp.hattrick.org/oauth/authorize.aspx",
   accessToken: "https://chpp.hattrick.org/oauth/access_token.ashx",
+  checkToken: "https://chpp.hattrick.org/oauth/check_token.ashx",
+  invalidateToken: "https://chpp.hattrick.org/oauth/invalidate_token.ashx",
 } as const;
 
 export type OAuthToken = {

@@ -1,16 +1,25 @@
 import { cookies, headers } from "next/headers";
 import styles from "./page.module.css";
 import Dashboard from "./components/Dashboard";
+import ConnectedStatus from "./components/ConnectedStatus";
 import LanguageSwitcher from "./components/LanguageSwitcher";
+import NotificationCenter from "./components/notifications/NotificationCenter";
+import { NotificationsProvider } from "./components/notifications/NotificationsProvider";
+import HelpToggleButton from "./components/HelpToggleButton";
+import ThemeToggle from "./components/ThemeToggle";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
-// Ratings matrix now lives inside the dashboard column layout.
 
 type YouthPlayer = {
   YouthPlayerID: number;
   FirstName: string;
   NickName: string;
   LastName: string;
+  Specialty?: number;
+  Age?: number;
+  ArrivalDate?: string;
+  CanBePromotedIn?: number;
+  PlayerSkills?: Record<string, unknown>;
 };
 
 type YouthPlayerListResponse = {
@@ -68,12 +77,15 @@ async function getPlayers(): Promise<YouthPlayerListResponse> {
     const baseUrl = await getBaseUrl();
     const cookieStore = await cookies();
 
-    const response = await fetch(`${baseUrl}/api/chpp/youth/players`, {
-      cache: "no-store",
-      headers: {
-        cookie: cookieStore.toString(),
-      },
-    });
+    const response = await fetch(
+      `${baseUrl}/api/chpp/youth/players?actionType=details`,
+      {
+        cache: "no-store",
+        headers: {
+          cookie: cookieStore.toString(),
+        },
+      }
+    );
     return response.json();
   } catch (error) {
     return {
@@ -136,47 +148,66 @@ export default async function Home() {
   const [playersResponse, matchesResponse, ratingsResponse] =
     await Promise.all([getPlayers(), getMatches(), getRatings()]);
 
+  const tokenError =
+    playersResponse.error?.includes("Missing CHPP access token") ||
+    playersResponse.details?.includes("Missing CHPP access token") ||
+    playersResponse.error?.includes("Re-auth") ||
+    playersResponse.details?.includes("Re-auth");
+
   const players = normalizePlayers(
     playersResponse.data?.HattrickData?.PlayerList?.YouthPlayer
   );
 
   return (
     <main className={styles.main}>
-      <header className={styles.topBar}>
-        <div className={styles.brandRow}>
-          <span className={styles.brandTitle}>{messages.brandTitle}</span>
-        </div>
-        <div className={styles.topBarControls}>
-          <LanguageSwitcher locale={locale} label={messages.languageLabel} />
-          {isConnected ? (
-            <span className={styles.connectedBadge}>
-              {messages.connectedLabel}
-            </span>
-          ) : (
-            <a className={styles.connectButton} href="/api/chpp/oauth/start">
-              {messages.connectLabel}
-            </a>
-          )}
-          <div className={styles.version}>v{pkg.version}</div>
-        </div>
-      </header>
+      <NotificationsProvider>
+        <header className={styles.topBar}>
+          <div className={styles.brandRow}>
+            <span className={styles.brandTitle}>{messages.brandTitle}</span>
+            <span className={styles.version}>v{pkg.version}</span>
+          </div>
+          <NotificationCenter locale={locale} messages={messages} />
+          <div className={styles.topBarControls}>
+            <LanguageSwitcher
+              locale={locale}
+              label={messages.languageLabel}
+              switchingLabel={messages.languageSwitching}
+            />
+            <HelpToggleButton messages={messages} />
+            <ThemeToggle messages={messages} />
+            {isConnected ? (
+              <ConnectedStatus messages={messages} />
+            ) : (
+              <a className={styles.connectButton} href="/api/chpp/oauth/start">
+                {messages.connectLabel}
+              </a>
+            )}
+          </div>
+        </header>
 
-      {playersResponse.error ? (
-        <div className={styles.errorBox}>
-          <h2 className={styles.sectionTitle}>{messages.unableToLoadPlayers}</h2>
-          <p className={styles.errorText}>{playersResponse.error}</p>
-          {playersResponse.details ? (
-            <p className={styles.errorDetails}>{playersResponse.details}</p>
-          ) : null}
-        </div>
-      ) : (
-        <Dashboard
-          players={players}
-          matchesResponse={matchesResponse}
-          ratingsResponse={ratingsResponse}
-          messages={messages}
-        />
-      )}
+        {playersResponse.error ? (
+          <div className={styles.errorBox}>
+            <h2 className={styles.sectionTitle}>
+              {messages.unableToLoadPlayers}
+            </h2>
+            <p className={styles.errorText}>{playersResponse.error}</p>
+            {tokenError ? (
+              <p className={styles.errorDetails}>{messages.connectHint}</p>
+            ) : null}
+            {playersResponse.details ? (
+              <p className={styles.errorDetails}>{playersResponse.details}</p>
+            ) : null}
+          </div>
+        ) : (
+          <Dashboard
+            players={players}
+            matchesResponse={matchesResponse}
+            ratingsResponse={ratingsResponse}
+            messages={messages}
+            isConnected={isConnected}
+          />
+        )}
+      </NotificationsProvider>
     </main>
   );
 }

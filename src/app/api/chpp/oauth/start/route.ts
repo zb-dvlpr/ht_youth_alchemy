@@ -31,9 +31,10 @@ export async function GET(request: Request) {
       maxAge: 10 * 60,
     });
 
+    const scope = "set_matchorder";
     const authorizeUrl = `${CHPP_ENDPOINTS.authorize}?oauth_token=${encodeURIComponent(
       token
-    )}`;
+    )}&scope=${encodeURIComponent(scope)}`;
     return NextResponse.redirect(authorizeUrl);
   } catch (error) {
     const debug = new URL(request.url).searchParams.get("debug") === "1";

@@ -12,11 +12,35 @@ export const SUPPORTED_LOCALES: Locale[] = [
 
 export type Messages = {
   languageLabel: string;
+  languageSwitching: string;
+  helpIcon: string;
+  helpOpenTooltip: string;
+  helpTitle: string;
+  helpIntro: string;
+  helpPurpose: string;
+  helpDesktop: string;
+  helpAi: string;
+  helpOverride: string;
+  helpOptimize: string;
+  helpSubmit: string;
+  helpNoAutoSubmit: string;
+  helpLoadLineup: string;
+  helpOptimizeLabel: string;
+  helpOptimizePrefix: string;
+  helpOptimizeSuffix: string;
+  helpSubmitLabel: string;
+  helpSubmitPrefix: string;
+  helpSubmitSuffix: string;
+  helpDrag: string;
+  themeSwitchDark: string;
+  themeSwitchLight: string;
+  helpDismissLabel: string;
   youthPlayerList: string;
   noYouthPlayers: string;
   assigned: string;
   playerDetails: string;
   refresh: string;
+  refreshTooltip: string;
   loadingDetails: string;
   selectPlayerPrompt: string;
   unableToLoadPlayers: string;
@@ -27,7 +51,116 @@ export type Messages = {
   ordersLabel: string;
   ordersSet: string;
   ordersNotSet: string;
+  submitOrders: string;
+  submitOrdersPending: string;
+  submitOrdersSuccess: string;
+  submitOrdersError: string;
+  confirmSubmitOrders: string;
+  submitOrdersResponse: string;
+  submitOrdersUpdated: string;
+  submitOrdersMinPlayers: string;
+  submitOrdersMaxPlayers: string;
+  loadLineupTooltip: string;
+  submitOrdersTooltip: string;
+  randomizeLineup: string;
+  resetLineup: string;
+  optimizeLineupTitle: string;
+  optimizeLineupNeedsStar: string;
+  optimizeLineupNeedsTraining: string;
+  optimizeLineupNeedsKnownSkills: string;
+  optimizerDebugTitle: string;
+  optimizerDebugSummary: string;
+  optimizerDebugOpen: string;
+  optimizerDebugUnavailable: string;
+  optimizerPrimaryLabel: string;
+  optimizerSecondaryLabel: string;
+  optimizerSlotsLabel: string;
+  optimizerSelectionLabel: string;
+  optimizerSelectionStar: string;
+  optimizerSelectionPrimary: string;
+  optimizerSelectionSecondary: string;
+  optimizerSelectionAuto: string;
+  optimizerStarRanksLabel: string;
+  optimizerColumnPlayer: string;
+  optimizerColumnCategory: string;
+  optimizerColumnCurrent: string;
+  optimizerColumnMax: string;
+  optimizerColumnRank: string;
+  optimizerColumnValue: string;
+  optimizerColumnAge: string;
+  optimizerCat1: string;
+  optimizerCat2: string;
+  optimizerCat3: string;
+  optimizerCat4: string;
+  optimizerCatDontCare: string;
+  optimizerSlotsPrimary: string;
+  optimizerSlotsSecondary: string;
+  optimizerSlotsAll: string;
+  optimizerSlotsStar: string;
+  closeLabel: string;
+  yesLabel: string;
+  noLabel: string;
+  submitOrdersReport: string;
+  confirmCancel: string;
+  confirmSubmit: string;
+  loadLineup: string;
+  loadLineupLoading: string;
+  loadLineupUnavailable: string;
+  loadLineupActive: string;
+  loadLineupError: string;
+  notificationEmpty: string;
+  notificationAutoSelection: string;
+  notificationLineupLoaded: string;
+  notificationLineupSubmitted: string;
+  notificationOptimizeApplied: string;
+  notificationLineupRandomized: string;
+  notificationLineupReset: string;
+  notificationPrimaryTrainingSet: string;
+  notificationSecondaryTrainingSet: string;
+  notificationTrainingCleared: string;
+  notificationSortBy: string;
+  notificationSortDirection: string;
+  notificationStarSet: string;
+  notificationStarCleared: string;
+  notificationPlayerSelected: string;
+  permissionsLabel: string;
+  permissionsNone: string;
+  autoSelectLabel: string;
+  autoSelectTitle: string;
+  trainingTitle: string;
+  primaryTrainingLabel: string;
+  secondaryTrainingLabel: string;
+  trainingUnset: string;
+  trainingKeeper: string;
+  trainingDefending: string;
+  trainingPlaymaking: string;
+  trainingWinger: string;
+  trainingPassing: string;
+  trainingScoring: string;
+  trainingSetPieces: string;
+  trainingSlotPrimary: string;
+  trainingSlotSecondary: string;
+  trainingSlotBoth: string;
+  starPlayerLabel: string;
+  sortLabel: string;
+  sortName: string;
+  sortAge: string;
+  sortArrival: string;
+  sortPromotable: string;
+  sortKeeper: string;
+  sortDefender: string;
+  sortPlaymaker: string;
+  sortWinger: string;
+  sortPassing: string;
+  sortScorer: string;
+  sortSetPieces: string;
+  sortToggleAria: string;
+  sortAscLabel: string;
+  sortDescLabel: string;
   statusLabel: string;
+  matchStatusUpcoming: string;
+  matchStatusFinished: string;
+  matchStatusOngoing: string;
   lineupTitle: string;
   clearSlot: string;
   lastUpdated: string;
@@ -41,6 +174,7 @@ export type Messages = {
   specialtyLabel: string;
   skillsLabel: string;
   unknownLabel: string;
+  unknownShort: string;
   potentialLabel: string;
   lastMatchPositionLabel: string;
   lastMatchRatingLabel: string;
@@ -55,8 +189,17 @@ export type Messages = {
   posWinger: string;
   posInnerMidfield: string;
   posForward: string;
+  posKeeperFull: string;
+  posBackFull: string;
+  posCentralDefenderFull: string;
+  posWingerFull: string;
+  posInnerMidfieldFull: string;
+  posForwardFull: string;
   connectLabel: string;
   connectedLabel: string;
+  connectHint: string;
+  disconnectLabel: string;
+  disconnectTitle: string;
   brandTitle: string;
   skillKeeper: string;
   skillDefending: string;
@@ -70,11 +213,46 @@ export type Messages = {
 const MESSAGES: Record<Locale, Messages> = {
   en: {
     languageLabel: "Language",
+    languageSwitching: "Switching language…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Open help",
+    helpTitle: "Welcome to Youth Alchemy",
+    helpIntro:
+      "This page is more than a viewer. It’s designed to help you build the most optimal lineup for your training plan.",
+    helpPurpose:
+      "Review youth players, get a ratings overview, and see match context.",
+    helpDesktop:
+      "This experience is currently optimized for desktop. Mobile support is coming later.",
+    helpAi:
+      "The AI selects a star player and recommends the best primary/secondary training combo around them.",
+    helpOverride:
+      "Override the star player or training types any time — the optimizer adapts to your choices.",
+    helpOptimize:
+      "Click ✨ Optimize in the lineup to generate the optimal 11 for the current training plan.",
+    helpSubmit:
+      "Use the Submit lineup buttons to send your lineup to Hattrick.",
+    helpNoAutoSubmit:
+      "Nothing is sent automatically — you always confirm before submitting.",
+    helpLoadLineup:
+      "Load lineup pulls saved orders from Hattrick and can replace your current lineup.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Click",
+    helpOptimizeSuffix:
+      "in the lineup to generate the optimal 11 for the current training plan.",
+    helpSubmitLabel: "Submit lineup",
+    helpSubmitPrefix: "Use the",
+    helpSubmitSuffix: "buttons to send your lineup to Hattrick.",
+    helpDrag:
+      "Drag players from the list into the lineup, and drag players in the lineup to swap positions.",
+    themeSwitchDark: "Switch to dark mode",
+    themeSwitchLight: "Switch to light mode",
+    helpDismissLabel: "I understand",
     youthPlayerList: "Youth Player List",
     noYouthPlayers: "No youth players returned.",
     assigned: "Assigned",
     playerDetails: "Player details",
     refresh: "Refresh",
+    refreshTooltip: "Refreshes player details from Hattrick.",
     loadingDetails: "Loading details…",
     selectPlayerPrompt: "Select a player to load details.",
     unableToLoadPlayers: "Unable to load players",
@@ -85,7 +263,116 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Orders",
     ordersSet: "Set",
     ordersNotSet: "Not set",
+    submitOrders: "Submit lineup",
+    submitOrdersPending: "Submitting…",
+    submitOrdersSuccess: "Orders submitted",
+    submitOrdersError: "Submit failed",
+    confirmSubmitOrders: "Submit the current lineup for this match?",
+    submitOrdersResponse: "Response",
+    submitOrdersUpdated: "Updated",
+    submitOrdersMinPlayers: "Need at least 9 players set",
+    submitOrdersMaxPlayers: "Lineup can’t exceed 11 players",
+    loadLineupTooltip: "Load the saved lineup from Hattrick for this match.",
+    submitOrdersTooltip: "Submit the current lineup to Hattrick for this match.",
+    randomizeLineup: "Random lineup",
+    resetLineup: "Reset lineup",
+    optimizeLineupTitle: "Optimize lineup and trainings around star player",
+    optimizeLineupNeedsStar: "Select a star player to optimize",
+    optimizeLineupNeedsTraining: "Select both trainings to optimize",
+    optimizeLineupNeedsKnownSkills: "Need known current+max skills to optimize",
+    optimizerDebugTitle: "Optimizer debug",
+    optimizerDebugSummary: "Show rankings",
+    optimizerDebugOpen: "Show rankings",
+    optimizerDebugUnavailable: "Select a star player and trainings to view rankings",
+    optimizerPrimaryLabel: "Primary ranking",
+    optimizerSecondaryLabel: "Secondary ranking",
+    optimizerSlotsLabel: "Slots",
+    optimizerSelectionLabel: "Selection",
+    optimizerSelectionStar: "Star player",
+    optimizerSelectionPrimary: "Primary skill",
+    optimizerSelectionSecondary: "Secondary skill",
+    optimizerSelectionAuto: "Auto-selected",
+    optimizerStarRanksLabel: "Star selection rankings",
+    optimizerColumnPlayer: "Player",
+    optimizerColumnCategory: "Category",
+    optimizerColumnCurrent: "Current",
+    optimizerColumnMax: "Max",
+    optimizerColumnRank: "Rank value",
+    optimizerColumnValue: "Value",
+    optimizerColumnAge: "Age",
+    optimizerCat1: "Cat 1 (current+max)",
+    optimizerCat2: "Cat 2 (unknown/unknown)",
+    optimizerCat3: "Cat 3 (max only)",
+    optimizerCat4: "Cat 4 (current only)",
+    optimizerCatDontCare: "Don't care",
+    optimizerSlotsPrimary: "Primary slots",
+    optimizerSlotsSecondary: "Secondary slots",
+    optimizerSlotsAll: "All slots",
+    optimizerSlotsStar: "Star slot",
+    closeLabel: "Close",
+    yesLabel: "Yes",
+    noLabel: "No",
+    submitOrdersReport: "Please report this error to the developer.",
+    confirmCancel: "Cancel",
+    confirmSubmit: "Submit",
+    loadLineup: "Load lineup",
+    loadLineupLoading: "Loading…",
+    loadLineupUnavailable: "No saved lineup",
+    loadLineupActive: "Loaded",
+    loadLineupError: "Load failed",
+    notificationEmpty: "No notifications",
+    notificationAutoSelection: "Auto-selected",
+    notificationLineupLoaded: "Lineup loaded:",
+    notificationLineupSubmitted: "Lineup submitted:",
+    notificationOptimizeApplied: "Optimization applied",
+    notificationLineupRandomized: "Lineup randomized",
+    notificationLineupReset: "Lineup reset",
+    notificationPrimaryTrainingSet: "Primary training:",
+    notificationSecondaryTrainingSet: "Secondary training:",
+    notificationTrainingCleared: "Training cleared",
+    notificationSortBy: "Sort by:",
+    notificationSortDirection: "Sort direction:",
+    notificationStarSet: "Star player:",
+    notificationStarCleared: "Star player cleared",
+    notificationPlayerSelected: "Selected player:",
+    permissionsLabel: "Permissions:",
+    permissionsNone: "None",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Auto-select star player and trainings",
+    trainingTitle: "Focused skill training",
+    primaryTrainingLabel: "Primary",
+    secondaryTrainingLabel: "Secondary",
+    trainingUnset: "—",
+    trainingKeeper: "Keeper",
+    trainingDefending: "Defending",
+    trainingPlaymaking: "Playmaking",
+    trainingWinger: "Winger",
+    trainingPassing: "Passing",
+    trainingScoring: "Scoring",
+    trainingSetPieces: "Set pieces",
+    trainingSlotPrimary: "Primary",
+    trainingSlotSecondary: "Secondary",
+    trainingSlotBoth: "Pri/sec",
+    starPlayerLabel: "Set star player",
+    sortLabel: "Sort by",
+    sortName: "Name",
+    sortAge: "Age",
+    sortArrival: "Arrival",
+    sortPromotable: "Promotable",
+    sortKeeper: "Keeper",
+    sortDefender: "Defender",
+    sortPlaymaker: "Playmaker",
+    sortWinger: "Winger",
+    sortPassing: "Passing",
+    sortScorer: "Scorer",
+    sortSetPieces: "Set pieces",
+    sortToggleAria: "Reverse sort order",
+    sortAscLabel: "Ascending",
+    sortDescLabel: "Descending",
     statusLabel: "Status",
+    matchStatusUpcoming: "Upcoming",
+    matchStatusFinished: "Finished",
+    matchStatusOngoing: "Ongoing",
     lineupTitle: "Lineup",
     clearSlot: "Clear",
     lastUpdated: "Last updated",
@@ -99,6 +386,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Specialty",
     skillsLabel: "Skills",
     unknownLabel: "unknown",
+    unknownShort: "?",
     potentialLabel: "potential",
     lastMatchPositionLabel: "Last match position",
     lastMatchRatingLabel: "Last match rating",
@@ -113,8 +401,17 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "W",
     posInnerMidfield: "IM",
     posForward: "F",
+    posKeeperFull: "Keeper",
+    posBackFull: "Wing back",
+    posCentralDefenderFull: "Central defender",
+    posWingerFull: "Winger",
+    posInnerMidfieldFull: "Inner midfield",
+    posForwardFull: "Forward",
     connectLabel: "Connect Hattrick",
     connectedLabel: "Connected",
+    connectHint: "Use the Connect button in the top right to sign in again.",
+    disconnectLabel: "Disconnect",
+    disconnectTitle: "Disconnect and revoke access",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Keeper",
     skillDefending: "Defending",
@@ -126,11 +423,44 @@ const MESSAGES: Record<Locale, Messages> = {
   },
   de: {
     languageLabel: "Sprache",
+    languageSwitching: "Sprache wird gewechselt…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Hilfe öffnen",
+    helpTitle: "Willkommen bei Youth Alchemy",
+    helpIntro:
+      "Diese Seite ist mehr als eine Übersicht. Sie hilft dir, die optimale Aufstellung für dein Training zu finden.",
+    helpPurpose:
+      "Überblicke Jugendspieler, erhalte einen Rating‑Überblick und den Spielkontext.",
+    helpDesktop:
+      "Diese Ansicht ist aktuell für Desktop optimiert. Mobile Unterstützung folgt später.",
+    helpAi:
+      "Die KI wählt einen Starspieler und empfiehlt das beste Primär-/Sekundärtraining.",
+    helpOverride:
+      "Du kannst Starspieler oder Training jederzeit überschreiben — der Optimierer passt sich an.",
+    helpOptimize:
+      "Klicke auf ✨ Optimieren in der Aufstellung, um die beste Elf zu erzeugen.",
+    helpSubmit: "Sende die Aufstellung mit den Buttons an Hattrick.",
+    helpNoAutoSubmit:
+      "Es wird nichts automatisch gesendet — du bestätigst immer vor dem Senden.",
+    helpLoadLineup:
+      "Aufstellung laden holt gespeicherte Orders von Hattrick und kann deine aktuelle Aufstellung ersetzen.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Klicke auf",
+    helpOptimizeSuffix: "in der Aufstellung, um die beste Elf zu erzeugen.",
+    helpSubmitLabel: "Aufstellung senden",
+    helpSubmitPrefix: "Sende",
+    helpSubmitSuffix: "mit den Buttons an Hattrick.",
+    helpDrag:
+      "Ziehe Spieler aus der Liste in die Aufstellung und verschiebe Spieler, um Positionen zu tauschen.",
+    themeSwitchDark: "In den Dunkelmodus wechseln",
+    themeSwitchLight: "In den Hellmodus wechseln",
+    helpDismissLabel: "Verstanden",
     youthPlayerList: "Jugendspielerliste",
     noYouthPlayers: "Keine Jugendspieler gefunden.",
     assigned: "Zugewiesen",
     playerDetails: "Spielerdetails",
     refresh: "Aktualisieren",
+    refreshTooltip: "Aktualisiert die Spielerdetails von Hattrick.",
     loadingDetails: "Details werden geladen…",
     selectPlayerPrompt: "Spieler auswählen, um Details zu laden.",
     unableToLoadPlayers: "Spieler konnten nicht geladen werden",
@@ -141,7 +471,117 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Anweisungen",
     ordersSet: "Gesetzt",
     ordersNotSet: "Nicht gesetzt",
+    submitOrders: "Aufstellung senden",
+    submitOrdersPending: "Wird gesendet…",
+    submitOrdersSuccess: "Anweisungen gesendet",
+    submitOrdersError: "Senden fehlgeschlagen",
+    confirmSubmitOrders: "Aktuelle Aufstellung für dieses Spiel senden?",
+    submitOrdersResponse: "Antwort",
+    submitOrdersUpdated: "Aktualisiert",
+    submitOrdersMinPlayers: "Mindestens 9 Spieler erforderlich",
+    submitOrdersMaxPlayers: "Aufstellung darf höchstens 11 Spieler haben",
+    loadLineupTooltip: "Lädt die gespeicherte Aufstellung aus Hattrick für dieses Spiel.",
+    submitOrdersTooltip: "Sendet die aktuelle Aufstellung an Hattrick für dieses Spiel.",
+    randomizeLineup: "Zufällige Aufstellung",
+    resetLineup: "Aufstellung zurücksetzen",
+    optimizeLineupTitle: "Aufstellung und Training um Starspieler optimieren",
+    optimizeLineupNeedsStar: "Starspieler auswählen, um zu optimieren",
+    optimizeLineupNeedsTraining: "Beide Trainings auswählen, um zu optimieren",
+    optimizeLineupNeedsKnownSkills: "Bekannte Ist+Max-Werte erforderlich",
+    optimizerDebugTitle: "Optimierer-Debug",
+    optimizerDebugSummary: "Ranglisten anzeigen",
+    optimizerDebugOpen: "Ranglisten anzeigen",
+    optimizerDebugUnavailable:
+      "Starspieler und Trainings auswählen, um Rankings zu sehen",
+    optimizerPrimaryLabel: "Primäres Ranking",
+    optimizerSecondaryLabel: "Sekundäres Ranking",
+    optimizerSlotsLabel: "Positionen",
+    optimizerSelectionLabel: "Auswahl",
+    optimizerSelectionStar: "Starspieler",
+    optimizerSelectionPrimary: "Primärskill",
+    optimizerSelectionSecondary: "Sekundärskill",
+    optimizerSelectionAuto: "Automatisch gewählt",
+    optimizerStarRanksLabel: "Star-Auswahl-Rangliste",
+    optimizerColumnPlayer: "Spieler",
+    optimizerColumnCategory: "Kategorie",
+    optimizerColumnCurrent: "Aktuell",
+    optimizerColumnMax: "Max",
+    optimizerColumnRank: "Rangwert",
+    optimizerColumnAge: "Alter",
+    optimizerColumnValue: "Wert",
+    optimizerCat1: "Kat 1 (aktuell+max)",
+    optimizerCat2: "Kat 2 (unbekannt/unbekannt)",
+    optimizerCat3: "Kat 3 (nur max)",
+    optimizerCat4: "Kat 4 (nur aktuell)",
+    optimizerCatDontCare: "Egal",
+    optimizerSlotsPrimary: "Primärpositionen",
+    optimizerSlotsSecondary: "Sekundärpositionen",
+    optimizerSlotsAll: "Alle Positionen",
+    optimizerSlotsStar: "Star-Position",
+    closeLabel: "Schließen",
+    yesLabel: "Ja",
+    noLabel: "Nein",
+    submitOrdersReport: "Bitte melden Sie diesen Fehler dem Entwickler.",
+    confirmCancel: "Abbrechen",
+    confirmSubmit: "Senden",
+    loadLineup: "Aufstellung laden",
+    loadLineupLoading: "Wird geladen…",
+    loadLineupUnavailable: "Keine gespeicherte Aufstellung",
+    loadLineupActive: "Geladen",
+    loadLineupError: "Laden fehlgeschlagen",
+    notificationEmpty: "Keine Benachrichtigungen",
+    notificationAutoSelection: "Automatisch gewählt",
+    notificationLineupLoaded: "Aufstellung geladen:",
+    notificationLineupSubmitted: "Aufstellung gesendet:",
+    notificationOptimizeApplied: "Optimierung angewendet",
+    notificationLineupRandomized: "Aufstellung zufällig erstellt",
+    notificationLineupReset: "Aufstellung zurückgesetzt",
+    notificationPrimaryTrainingSet: "Primärtraining:",
+    notificationSecondaryTrainingSet: "Sekundärtraining:",
+    notificationTrainingCleared: "Training gelöscht",
+    notificationSortBy: "Sortierung:",
+    notificationSortDirection: "Sortierrichtung:",
+    notificationStarSet: "Starspieler:",
+    notificationStarCleared: "Starspieler entfernt",
+    notificationPlayerSelected: "Spieler ausgewählt:",
+    permissionsLabel: "Rechte:",
+    permissionsNone: "Keine",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Starspieler und Training automatisch wählen",
+    trainingTitle: "Fokussiertes Fähigkeitstraining",
+    primaryTrainingLabel: "Primär",
+    secondaryTrainingLabel: "Sekundär",
+    trainingUnset: "—",
+    trainingKeeper: "Torwart",
+    trainingDefending: "Verteidigung",
+    trainingPlaymaking: "Spielaufbau",
+    trainingWinger: "Flügelspiel",
+    trainingPassing: "Passspiel",
+    trainingScoring: "Torschuss",
+    trainingSetPieces: "Standards",
+    trainingSlotPrimary: "Primär",
+    trainingSlotSecondary: "Sekundär",
+    trainingSlotBoth: "Pri/sek",
+    starPlayerLabel: "Starspieler festlegen",
+    sortLabel: "Sortieren nach",
+    sortName: "Name",
+    sortAge: "Alter",
+    sortArrival: "Ankunft",
+    sortPromotable: "Beförderbar",
+    sortKeeper: "Torwart",
+    sortDefender: "Verteidigung",
+    sortPlaymaker: "Spielaufbau",
+    sortWinger: "Flügel",
+    sortPassing: "Passen",
+    sortScorer: "Torschuss",
+    sortSetPieces: "Standards",
+    sortToggleAria: "Sortierreihenfolge umkehren",
+    sortAscLabel: "Aufsteigend",
+    sortDescLabel: "Absteigend",
     statusLabel: "Status",
+    matchStatusUpcoming: "Bevorstehend",
+    matchStatusFinished: "Beendet",
+    matchStatusOngoing: "Läuft",
     lineupTitle: "Aufstellung",
     clearSlot: "Leeren",
     lastUpdated: "Zuletzt aktualisiert",
@@ -155,6 +595,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Spezialität",
     skillsLabel: "Fähigkeiten",
     unknownLabel: "unbekannt",
+    unknownShort: "?",
     potentialLabel: "Potenzial",
     lastMatchPositionLabel: "Letzte Position",
     lastMatchRatingLabel: "Letzte Bewertung",
@@ -169,9 +610,18 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "F",
     posInnerMidfield: "ZM",
     posForward: "ST",
+    posKeeperFull: "Torwart",
+    posBackFull: "Außenverteidiger",
+    posCentralDefenderFull: "Innenverteidiger",
+    posWingerFull: "Flügel",
+    posInnerMidfieldFull: "Zentrales Mittelfeld",
+    posForwardFull: "Stürmer",
     connectLabel: "Hattrick verbinden",
     connectedLabel: "Verbunden",
-    brandTitle: "Hattrick Youth Alchemy",
+    connectHint: "Nutze den Verbinden-Button oben rechts, um dich erneut anzumelden.",
+    disconnectLabel: "Trennen",
+    disconnectTitle: "Trennen und Zugriff widerrufen",
+    brandTitle: "Hattrick Jugend-Alchemie",
     skillKeeper: "Torwart",
     skillDefending: "Verteidigung",
     skillPlaymaking: "Spielaufbau",
@@ -182,11 +632,45 @@ const MESSAGES: Record<Locale, Messages> = {
   },
   fr: {
     languageLabel: "Langue",
+    languageSwitching: "Changement de langue…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Ouvrir l’aide",
+    helpTitle: "Bienvenue dans Youth Alchemy",
+    helpIntro:
+      "Cette page n’est pas seulement un lecteur. Elle sert surtout à optimiser votre onze pour l’entraînement.",
+    helpPurpose:
+      "Consultez les joueurs, un aperçu des notes et le contexte des matchs.",
+    helpDesktop:
+      "Cette expérience est optimisée pour ordinateur. Le mobile arrivera plus tard.",
+    helpAi:
+      "L’IA choisit un joueur vedette et propose la meilleure combinaison primaire/secondaire.",
+    helpOverride:
+      "Vous pouvez remplacer le joueur vedette ou les entraînements — l’optimiseur s’adapte.",
+    helpOptimize:
+      "Cliquez sur ✨ Optimiser pour générer le meilleur onze.",
+    helpSubmit:
+      "Utilisez les boutons d’envoi pour soumettre la composition à Hattrick.",
+    helpNoAutoSubmit:
+      "Rien n’est envoyé automatiquement — vous confirmez toujours avant l’envoi.",
+    helpLoadLineup:
+      "Charger la composition récupère les ordres Hattrick et peut remplacer votre onze actuel.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Cliquez sur",
+    helpOptimizeSuffix: "pour générer le meilleur onze.",
+    helpSubmitLabel: "Envoyer la composition",
+    helpSubmitPrefix: "Utilisez",
+    helpSubmitSuffix: "pour soumettre la composition à Hattrick.",
+    helpDrag:
+      "Faites glisser des joueurs depuis la liste et déplacez ceux de l’équipe pour changer de poste.",
+    themeSwitchDark: "Passer en mode sombre",
+    themeSwitchLight: "Passer en mode clair",
+    helpDismissLabel: "J’ai compris",
     youthPlayerList: "Liste des joueurs jeunes",
     noYouthPlayers: "Aucun joueur jeune trouvé.",
     assigned: "Assigné",
     playerDetails: "Détails du joueur",
     refresh: "Actualiser",
+    refreshTooltip: "Actualise les détails du joueur depuis Hattrick.",
     loadingDetails: "Chargement des détails…",
     selectPlayerPrompt: "Sélectionnez un joueur pour charger les détails.",
     unableToLoadPlayers: "Impossible de charger les joueurs",
@@ -197,7 +681,119 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Ordres",
     ordersSet: "Définis",
     ordersNotSet: "Non définis",
+    submitOrders: "Envoyer la composition",
+    submitOrdersPending: "Envoi…",
+    submitOrdersSuccess: "Ordres envoyés",
+    submitOrdersError: "Échec de l’envoi",
+    confirmSubmitOrders: "Envoyer la composition actuelle pour ce match ?",
+    submitOrdersResponse: "Réponse",
+    submitOrdersUpdated: "Mis à jour",
+    submitOrdersMinPlayers: "Au moins 9 joueurs requis",
+    submitOrdersMaxPlayers: "La composition ne peut pas dépasser 11 joueurs",
+    loadLineupTooltip: "Charge la composition enregistrée depuis Hattrick pour ce match.",
+    submitOrdersTooltip: "Envoie la composition actuelle à Hattrick pour ce match.",
+    randomizeLineup: "Composition aléatoire",
+    resetLineup: "Réinitialiser la composition",
+    optimizeLineupTitle:
+      "Optimiser la composition et l'entraînement autour du joueur star",
+    optimizeLineupNeedsStar: "Sélectionnez un joueur star pour optimiser",
+    optimizeLineupNeedsTraining:
+      "Sélectionnez les deux entraînements pour optimiser",
+    optimizeLineupNeedsKnownSkills: "Compétences actuelles+max requises",
+    optimizerDebugTitle: "Debug optimiseur",
+    optimizerDebugSummary: "Afficher les classements",
+    optimizerDebugOpen: "Afficher les classements",
+    optimizerDebugUnavailable:
+      "Sélectionnez un joueur star et des entraînements pour voir les classements",
+    optimizerPrimaryLabel: "Classement principal",
+    optimizerSecondaryLabel: "Classement secondaire",
+    optimizerSlotsLabel: "Postes",
+    optimizerSelectionLabel: "Sélection",
+    optimizerSelectionStar: "Joueur star",
+    optimizerSelectionPrimary: "Compétence principale",
+    optimizerSelectionSecondary: "Compétence secondaire",
+    optimizerSelectionAuto: "Sélection auto",
+    optimizerStarRanksLabel: "Classement sélection star",
+    optimizerColumnPlayer: "Joueur",
+    optimizerColumnCategory: "Catégorie",
+    optimizerColumnCurrent: "Actuel",
+    optimizerColumnMax: "Max",
+    optimizerColumnRank: "Valeur de rang",
+    optimizerColumnAge: "Âge",
+    optimizerColumnValue: "Valeur",
+    optimizerCat1: "Cat 1 (actuel+max)",
+    optimizerCat2: "Cat 2 (inconnu/inconnu)",
+    optimizerCat3: "Cat 3 (max uniquement)",
+    optimizerCat4: "Cat 4 (actuel uniquement)",
+    optimizerCatDontCare: "Peu importe",
+    optimizerSlotsPrimary: "Postes principaux",
+    optimizerSlotsSecondary: "Postes secondaires",
+    optimizerSlotsAll: "Tous les postes",
+    optimizerSlotsStar: "Poste star",
+    closeLabel: "Fermer",
+    yesLabel: "Oui",
+    noLabel: "Non",
+    submitOrdersReport: "Veuillez signaler cette erreur au développeur.",
+    confirmCancel: "Annuler",
+    confirmSubmit: "Envoyer",
+    loadLineup: "Charger la composition",
+    loadLineupLoading: "Chargement…",
+    loadLineupUnavailable: "Aucune composition enregistrée",
+    loadLineupActive: "Chargé",
+    loadLineupError: "Chargement échoué",
+    notificationEmpty: "Aucune notification",
+    notificationAutoSelection: "Auto-sélection",
+    notificationLineupLoaded: "Composition chargée :",
+    notificationLineupSubmitted: "Composition envoyée :",
+    notificationOptimizeApplied: "Optimisation appliquée",
+    notificationLineupRandomized: "Composition aléatoire",
+    notificationLineupReset: "Composition réinitialisée",
+    notificationPrimaryTrainingSet: "Entraînement principal :",
+    notificationSecondaryTrainingSet: "Entraînement secondaire :",
+    notificationTrainingCleared: "Entraînement effacé",
+    notificationSortBy: "Trier par :",
+    notificationSortDirection: "Sens de tri :",
+    notificationStarSet: "Joueur star :",
+    notificationStarCleared: "Joueur star supprimé",
+    notificationPlayerSelected: "Joueur sélectionné :",
+    permissionsLabel: "Permissions :",
+    permissionsNone: "Aucune",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Auto-sélectionner joueur star et entraînements",
+    trainingTitle: "Entraînement ciblé",
+    primaryTrainingLabel: "Principal",
+    secondaryTrainingLabel: "Secondaire",
+    trainingUnset: "—",
+    trainingKeeper: "Gardien",
+    trainingDefending: "Défense",
+    trainingPlaymaking: "Construction du jeu",
+    trainingWinger: "Ailes",
+    trainingPassing: "Passes",
+    trainingScoring: "Finition",
+    trainingSetPieces: "Coups de pied arrêtés",
+    trainingSlotPrimary: "Primaire",
+    trainingSlotSecondary: "Secondaire",
+    trainingSlotBoth: "Pri/sec",
+    starPlayerLabel: "Définir joueur star",
+    sortLabel: "Trier par",
+    sortName: "Nom",
+    sortAge: "Âge",
+    sortArrival: "Arrivée",
+    sortPromotable: "Promouvable",
+    sortKeeper: "Gardien",
+    sortDefender: "Défenseur",
+    sortPlaymaker: "Playmaker",
+    sortWinger: "Ailier",
+    sortPassing: "Passe",
+    sortScorer: "Buteur",
+    sortSetPieces: "Coups de pied arrêtés",
+    sortToggleAria: "Inverser l’ordre du tri",
+    sortAscLabel: "Ascendant",
+    sortDescLabel: "Descendant",
     statusLabel: "Statut",
+    matchStatusUpcoming: "À venir",
+    matchStatusFinished: "Terminé",
+    matchStatusOngoing: "En cours",
     lineupTitle: "Composition",
     clearSlot: "Effacer",
     lastUpdated: "Dernière mise à jour",
@@ -211,6 +807,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Spécialité",
     skillsLabel: "Compétences",
     unknownLabel: "inconnu",
+    unknownShort: "?",
     potentialLabel: "potentiel",
     lastMatchPositionLabel: "Position du dernier match",
     lastMatchRatingLabel: "Note du dernier match",
@@ -225,8 +822,18 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "A",
     posInnerMidfield: "MC",
     posForward: "AV",
+    posKeeperFull: "Gardien",
+    posBackFull: "Arrière",
+    posCentralDefenderFull: "Défenseur central",
+    posWingerFull: "Ailier",
+    posInnerMidfieldFull: "Milieu central",
+    posForwardFull: "Attaquant",
     connectLabel: "Connecter Hattrick",
     connectedLabel: "Connecté",
+    connectHint:
+      "Utilisez le bouton Connecter en haut à droite pour vous reconnecter.",
+    disconnectLabel: "Déconnecter",
+    disconnectTitle: "Déconnecter et révoquer l’accès",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Gardien",
     skillDefending: "Défense",
@@ -238,11 +845,45 @@ const MESSAGES: Record<Locale, Messages> = {
   },
   es: {
     languageLabel: "Idioma",
+    languageSwitching: "Cambiando idioma…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Abrir ayuda",
+    helpTitle: "Bienvenido a Youth Alchemy",
+    helpIntro:
+      "Esta página no es solo un visor. Su objetivo principal es optimizar tu once para el entrenamiento.",
+    helpPurpose:
+      "Revisa jugadores, un resumen de ratings y el contexto de partidos.",
+    helpDesktop:
+      "Esta experiencia está optimizada para escritorio. Móvil más adelante.",
+    helpAi:
+      "La IA elige un jugador estrella y recomienda la mejor combinación primaria/secundaria.",
+    helpOverride:
+      "Puedes cambiar el jugador estrella o los entrenamientos — el optimizador se adapta.",
+    helpOptimize:
+      "Pulsa ✨ Optimizar para generar el once óptimo.",
+    helpSubmit:
+      "Usa los botones de envío para mandar la alineación a Hattrick.",
+    helpNoAutoSubmit:
+      "Nada se envía automáticamente — siempre confirmas antes de enviar.",
+    helpLoadLineup:
+      "Cargar alineación trae las órdenes guardadas en Hattrick y puede reemplazar tu once actual.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Pulsa",
+    helpOptimizeSuffix: "para generar el once óptimo.",
+    helpSubmitLabel: "Enviar alineación",
+    helpSubmitPrefix: "Usa",
+    helpSubmitSuffix: "para mandar la alineación a Hattrick.",
+    helpDrag:
+      "Arrastra jugadores desde la lista y mueve los del once para cambiar posiciones.",
+    themeSwitchDark: "Cambiar a modo oscuro",
+    themeSwitchLight: "Cambiar a modo claro",
+    helpDismissLabel: "Entendido",
     youthPlayerList: "Lista de jugadores juveniles",
     noYouthPlayers: "No se encontraron jugadores juveniles.",
     assigned: "Asignado",
     playerDetails: "Detalles del jugador",
     refresh: "Actualizar",
+    refreshTooltip: "Actualiza los detalles del jugador desde Hattrick.",
     loadingDetails: "Cargando detalles…",
     selectPlayerPrompt: "Selecciona un jugador para cargar detalles.",
     unableToLoadPlayers: "No se pudieron cargar los jugadores",
@@ -253,7 +894,119 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Órdenes",
     ordersSet: "Configuradas",
     ordersNotSet: "No configuradas",
+    submitOrders: "Enviar alineación",
+    submitOrdersPending: "Enviando…",
+    submitOrdersSuccess: "Órdenes enviadas",
+    submitOrdersError: "Error al enviar",
+    confirmSubmitOrders: "¿Enviar la alineación actual para este partido?",
+    submitOrdersResponse: "Respuesta",
+    submitOrdersUpdated: "Actualizado",
+    submitOrdersMinPlayers: "Se necesitan al menos 9 jugadores",
+    submitOrdersMaxPlayers: "La alineación no puede superar 11 jugadores",
+    loadLineupTooltip: "Carga la alineación guardada desde Hattrick para este partido.",
+    submitOrdersTooltip: "Envía la alineación actual a Hattrick para este partido.",
+    randomizeLineup: "Alineación aleatoria",
+    resetLineup: "Restablecer alineación",
+    optimizeLineupTitle:
+      "Optimizar alineación y entrenamientos alrededor del jugador estrella",
+    optimizeLineupNeedsStar: "Elige un jugador estrella para optimizar",
+    optimizeLineupNeedsTraining:
+      "Elige ambos entrenamientos para optimizar",
+    optimizeLineupNeedsKnownSkills: "Se requieren habilidades actuales+máx. conocidas",
+    optimizerDebugTitle: "Depuración del optimizador",
+    optimizerDebugSummary: "Mostrar rankings",
+    optimizerDebugOpen: "Mostrar rankings",
+    optimizerDebugUnavailable:
+      "Elige un jugador estrella y entrenamientos para ver rankings",
+    optimizerPrimaryLabel: "Ranking primario",
+    optimizerSecondaryLabel: "Ranking secundario",
+    optimizerSlotsLabel: "Posiciones",
+    optimizerSelectionLabel: "Selección",
+    optimizerSelectionStar: "Jugador estrella",
+    optimizerSelectionPrimary: "Habilidad primaria",
+    optimizerSelectionSecondary: "Habilidad secundaria",
+    optimizerSelectionAuto: "Selección automática",
+    optimizerStarRanksLabel: "Ranking de selección estrella",
+    optimizerColumnPlayer: "Jugador",
+    optimizerColumnCategory: "Categoría",
+    optimizerColumnCurrent: "Actual",
+    optimizerColumnMax: "Máx.",
+    optimizerColumnRank: "Valor de ranking",
+    optimizerColumnAge: "Edad",
+    optimizerColumnValue: "Valor",
+    optimizerCat1: "Cat 1 (actual+máx.)",
+    optimizerCat2: "Cat 2 (desconocido/desconocido)",
+    optimizerCat3: "Cat 3 (solo máx.)",
+    optimizerCat4: "Cat 4 (solo actual)",
+    optimizerCatDontCare: "No importa",
+    optimizerSlotsPrimary: "Puestos primarios",
+    optimizerSlotsSecondary: "Puestos secundarios",
+    optimizerSlotsAll: "Todos los puestos",
+    optimizerSlotsStar: "Puesto estrella",
+    closeLabel: "Cerrar",
+    yesLabel: "Sí",
+    noLabel: "No",
+    submitOrdersReport: "Por favor, informe este error al desarrollador.",
+    confirmCancel: "Cancelar",
+    confirmSubmit: "Enviar",
+    loadLineup: "Cargar alineación",
+    loadLineupLoading: "Cargando…",
+    loadLineupUnavailable: "Sin alineación guardada",
+    loadLineupActive: "Cargada",
+    loadLineupError: "Error al cargar",
+    notificationEmpty: "Sin notificaciones",
+    notificationAutoSelection: "Auto-selección",
+    notificationLineupLoaded: "Alineación cargada:",
+    notificationLineupSubmitted: "Alineación enviada:",
+    notificationOptimizeApplied: "Optimización aplicada",
+    notificationLineupRandomized: "Alineación aleatoria",
+    notificationLineupReset: "Alineación reiniciada",
+    notificationPrimaryTrainingSet: "Entrenamiento primario:",
+    notificationSecondaryTrainingSet: "Entrenamiento secundario:",
+    notificationTrainingCleared: "Entrenamiento borrado",
+    notificationSortBy: "Ordenar por:",
+    notificationSortDirection: "Dirección de orden:",
+    notificationStarSet: "Jugador estrella:",
+    notificationStarCleared: "Jugador estrella borrado",
+    notificationPlayerSelected: "Jugador seleccionado:",
+    permissionsLabel: "Permisos:",
+    permissionsNone: "Ninguno",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Auto-seleccionar jugador estrella y entrenamientos",
+    trainingTitle: "Entrenamiento enfocado",
+    primaryTrainingLabel: "Principal",
+    secondaryTrainingLabel: "Secundario",
+    trainingUnset: "—",
+    trainingKeeper: "Portero",
+    trainingDefending: "Defensa",
+    trainingPlaymaking: "Creación de juego",
+    trainingWinger: "Juego por bandas",
+    trainingPassing: "Pases",
+    trainingScoring: "Finalización",
+    trainingSetPieces: "Balón parado",
+    trainingSlotPrimary: "Primario",
+    trainingSlotSecondary: "Secundario",
+    trainingSlotBoth: "Pri/sec",
+    starPlayerLabel: "Definir jugador estrella",
+    sortLabel: "Ordenar por",
+    sortName: "Nombre",
+    sortAge: "Edad",
+    sortArrival: "Llegada",
+    sortPromotable: "Promocionable",
+    sortKeeper: "Portero",
+    sortDefender: "Defensa",
+    sortPlaymaker: "Creador",
+    sortWinger: "Extremo",
+    sortPassing: "Pase",
+    sortScorer: "Anotador",
+    sortSetPieces: "Balón parado",
+    sortToggleAria: "Invertir orden",
+    sortAscLabel: "Ascendente",
+    sortDescLabel: "Descendente",
     statusLabel: "Estado",
+    matchStatusUpcoming: "Próximo",
+    matchStatusFinished: "Finalizado",
+    matchStatusOngoing: "En curso",
     lineupTitle: "Alineación",
     clearSlot: "Limpiar",
     lastUpdated: "Última actualización",
@@ -267,6 +1020,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Especialidad",
     skillsLabel: "Habilidades",
     unknownLabel: "desconocido",
+    unknownShort: "?",
     potentialLabel: "potencial",
     lastMatchPositionLabel: "Posición del último partido",
     lastMatchRatingLabel: "Calificación del último partido",
@@ -281,8 +1035,18 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "EI",
     posInnerMidfield: "MC",
     posForward: "DC",
+    posKeeperFull: "Portero",
+    posBackFull: "Lateral",
+    posCentralDefenderFull: "Defensa central",
+    posWingerFull: "Extremo",
+    posInnerMidfieldFull: "Mediocentro",
+    posForwardFull: "Delantero",
     connectLabel: "Conectar Hattrick",
     connectedLabel: "Conectado",
+    connectHint:
+      "Usa el botón Conectar en la esquina superior derecha para volver a iniciar sesión.",
+    disconnectLabel: "Desconectar",
+    disconnectTitle: "Desconectar y revocar el acceso",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Portero",
     skillDefending: "Defensa",
@@ -294,11 +1058,45 @@ const MESSAGES: Record<Locale, Messages> = {
   },
   sv: {
     languageLabel: "Språk",
+    languageSwitching: "Byter språk…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Öppna hjälp",
+    helpTitle: "Välkommen till Youth Alchemy",
+    helpIntro:
+      "Den här sidan är mer än en vy. Den hjälper dig att optimera startelvan för träningen.",
+    helpPurpose:
+      "Granska spelare, få en rating‑översikt och matchkontext.",
+    helpDesktop:
+      "Den här vyn är just nu optimerad för desktop. Mobil kommer senare.",
+    helpAi:
+      "AI:n väljer en stjärnspelare och föreslår bästa primär/sekundär‑träningen.",
+    helpOverride:
+      "Du kan ändra stjärnspelare eller träning — optimeraren anpassar sig.",
+    helpOptimize:
+      "Klicka ✨ Optimera för att skapa den bästa elvan.",
+    helpSubmit:
+      "Använd knapparna för att skicka uppställningen till Hattrick.",
+    helpNoAutoSubmit:
+      "Inget skickas automatiskt — du bekräftar alltid innan du skickar.",
+    helpLoadLineup:
+      "Ladda uppställning hämtar sparade order från Hattrick och kan ersätta din nuvarande elva.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Klicka",
+    helpOptimizeSuffix: "för att skapa den bästa elvan.",
+    helpSubmitLabel: "Skicka uppställning",
+    helpSubmitPrefix: "Använd",
+    helpSubmitSuffix: "för att skicka uppställningen till Hattrick.",
+    helpDrag:
+      "Dra spelare från listan in i uppställningen och flytta spelare för att byta position.",
+    themeSwitchDark: "Växla till mörkt läge",
+    themeSwitchLight: "Växla till ljust läge",
+    helpDismissLabel: "Jag förstår",
     youthPlayerList: "Ungdomsspelarlista",
     noYouthPlayers: "Inga ungdomsspelare hittades.",
     assigned: "Tilldelad",
     playerDetails: "Spelardetaljer",
     refresh: "Uppdatera",
+    refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
     loadingDetails: "Laddar detaljer…",
     selectPlayerPrompt: "Välj en spelare för att ladda detaljer.",
     unableToLoadPlayers: "Kunde inte ladda spelare",
@@ -309,7 +1107,118 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Order",
     ordersSet: "Satta",
     ordersNotSet: "Inte satta",
+    submitOrders: "Skicka uppställning",
+    submitOrdersPending: "Skickar…",
+    submitOrdersSuccess: "Order skickade",
+    submitOrdersError: "Misslyckades",
+    confirmSubmitOrders: "Skicka aktuell uppställning för denna match?",
+    submitOrdersResponse: "Svar",
+    submitOrdersUpdated: "Uppdaterad",
+    submitOrdersMinPlayers: "Minst 9 spelare krävs",
+    submitOrdersMaxPlayers: "Uppställningen får inte överstiga 11 spelare",
+    loadLineupTooltip: "Laddar den sparade uppställningen från Hattrick för matchen.",
+    submitOrdersTooltip: "Skickar den aktuella uppställningen till Hattrick för matchen.",
+    randomizeLineup: "Slumpa uppställning",
+    resetLineup: "Återställ uppställning",
+    optimizeLineupTitle:
+      "Optimera uppställning och träning runt stjärnspelaren",
+    optimizeLineupNeedsStar: "Välj en stjärnspelare för att optimera",
+    optimizeLineupNeedsTraining: "Välj båda träningarna för att optimera",
+    optimizeLineupNeedsKnownSkills: "Kända nuvarande+maxvärden krävs",
+    optimizerDebugTitle: "Optimeringsdebugg",
+    optimizerDebugSummary: "Visa rankningar",
+    optimizerDebugOpen: "Visa rankningar",
+    optimizerDebugUnavailable:
+      "Välj en stjärnspelare och träningar för att se rankningar",
+    optimizerPrimaryLabel: "Primär ranking",
+    optimizerSecondaryLabel: "Sekundär ranking",
+    optimizerSlotsLabel: "Positioner",
+    optimizerSelectionLabel: "Val",
+    optimizerSelectionStar: "Stjärnspelare",
+    optimizerSelectionPrimary: "Primär färdighet",
+    optimizerSelectionSecondary: "Sekundär färdighet",
+    optimizerSelectionAuto: "Automatiskt val",
+    optimizerStarRanksLabel: "Stjärnvalsrankning",
+    optimizerColumnPlayer: "Spelare",
+    optimizerColumnCategory: "Kategori",
+    optimizerColumnCurrent: "Nuvarande",
+    optimizerColumnMax: "Max",
+    optimizerColumnRank: "Rankningsvärde",
+    optimizerColumnAge: "Ålder",
+    optimizerColumnValue: "Värde",
+    optimizerCat1: "Kat 1 (nuvarande+max)",
+    optimizerCat2: "Kat 2 (okänd/okänd)",
+    optimizerCat3: "Kat 3 (endast max)",
+    optimizerCat4: "Kat 4 (endast nuvarande)",
+    optimizerCatDontCare: "Spelar ingen roll",
+    optimizerSlotsPrimary: "Primära platser",
+    optimizerSlotsSecondary: "Sekundära platser",
+    optimizerSlotsAll: "Alla platser",
+    optimizerSlotsStar: "Stjärnplats",
+    closeLabel: "Stäng",
+    yesLabel: "Ja",
+    noLabel: "Nej",
+    submitOrdersReport: "Rapportera gärna felet till utvecklaren.",
+    confirmCancel: "Avbryt",
+    confirmSubmit: "Skicka",
+    loadLineup: "Ladda uppställning",
+    loadLineupLoading: "Laddar…",
+    loadLineupUnavailable: "Ingen sparad uppställning",
+    loadLineupActive: "Laddad",
+    loadLineupError: "Misslyckades att ladda",
+    notificationEmpty: "Inga aviseringar",
+    notificationAutoSelection: "Auto-val",
+    notificationLineupLoaded: "Uppställning laddad:",
+    notificationLineupSubmitted: "Uppställning skickad:",
+    notificationOptimizeApplied: "Optimering tillämpad",
+    notificationLineupRandomized: "Uppställning slumpad",
+    notificationLineupReset: "Uppställning återställd",
+    notificationPrimaryTrainingSet: "Primärträning:",
+    notificationSecondaryTrainingSet: "Sekundärträning:",
+    notificationTrainingCleared: "Träning rensad",
+    notificationSortBy: "Sortera efter:",
+    notificationSortDirection: "Sorteringsriktning:",
+    notificationStarSet: "Stjärnspelare:",
+    notificationStarCleared: "Stjärnspelare borttagen",
+    notificationPlayerSelected: "Spelare vald:",
+    permissionsLabel: "Behörigheter:",
+    permissionsNone: "Inga",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Auto-välj stjärnspelare och träningar",
+    trainingTitle: "Fokuserad träning",
+    primaryTrainingLabel: "Primär",
+    secondaryTrainingLabel: "Sekundär",
+    trainingUnset: "—",
+    trainingKeeper: "Målvakt",
+    trainingDefending: "Försvar",
+    trainingPlaymaking: "Speluppbyggnad",
+    trainingWinger: "Ytter",
+    trainingPassing: "Passningar",
+    trainingScoring: "Målskytte",
+    trainingSetPieces: "Fasta situationer",
+    trainingSlotPrimary: "Primär",
+    trainingSlotSecondary: "Sekundär",
+    trainingSlotBoth: "Pri/sek",
+    starPlayerLabel: "Ange stjärnspelare",
+    sortLabel: "Sortera efter",
+    sortName: "Namn",
+    sortAge: "Ålder",
+    sortArrival: "Ankomst",
+    sortPromotable: "Befordringsbar",
+    sortKeeper: "Målvakt",
+    sortDefender: "Försvar",
+    sortPlaymaker: "Spelupplägg",
+    sortWinger: "Ytter",
+    sortPassing: "Passning",
+    sortScorer: "Anfall",
+    sortSetPieces: "Fasta situationer",
+    sortToggleAria: "Vänd sortering",
+    sortAscLabel: "Stigande",
+    sortDescLabel: "Fallande",
     statusLabel: "Status",
+    matchStatusUpcoming: "Kommande",
+    matchStatusFinished: "Avslutad",
+    matchStatusOngoing: "Pågående",
     lineupTitle: "Laguppställning",
     clearSlot: "Rensa",
     lastUpdated: "Senast uppdaterad",
@@ -323,6 +1232,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Specialitet",
     skillsLabel: "Färdigheter",
     unknownLabel: "okänd",
+    unknownShort: "?",
     potentialLabel: "potential",
     lastMatchPositionLabel: "Senaste matchposition",
     lastMatchRatingLabel: "Senaste matchbetyg",
@@ -337,8 +1247,18 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "Y",
     posInnerMidfield: "MF",
     posForward: "F",
+    posKeeperFull: "Målvakt",
+    posBackFull: "Ytterback",
+    posCentralDefenderFull: "Mittback",
+    posWingerFull: "Ytter",
+    posInnerMidfieldFull: "Mittfältare",
+    posForwardFull: "Forward",
     connectLabel: "Anslut Hattrick",
     connectedLabel: "Ansluten",
+    connectHint:
+      "Använd knappen Anslut uppe till höger för att logga in igen.",
+    disconnectLabel: "Koppla från",
+    disconnectTitle: "Koppla från och återkalla åtkomst",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Målvakt",
     skillDefending: "Försvar",
@@ -350,11 +1270,45 @@ const MESSAGES: Record<Locale, Messages> = {
   },
   it: {
     languageLabel: "Lingua",
+    languageSwitching: "Cambio lingua…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Apri aiuto",
+    helpTitle: "Benvenuto in Youth Alchemy",
+    helpIntro:
+      "Questa pagina non è solo una vista. Serve a ottimizzare l’undici per l’allenamento.",
+    helpPurpose:
+      "Consulta i giocatori, una panoramica dei rating e il contesto partita.",
+    helpDesktop:
+      "Questa esperienza è ottimizzata per desktop. Mobile in arrivo più avanti.",
+    helpAi:
+      "L’IA sceglie un giocatore stella e suggerisce la migliore coppia primario/secondario.",
+    helpOverride:
+      "Puoi cambiare giocatore stella o allenamenti — l’ottimizzatore si adatta.",
+    helpOptimize:
+      "Clicca ✨ Ottimizza per generare l’undici migliore.",
+    helpSubmit:
+      "Usa i pulsanti per inviare la formazione a Hattrick.",
+    helpNoAutoSubmit:
+      "Nulla viene inviato automaticamente — confermi sempre prima dell’invio.",
+    helpLoadLineup:
+      "Carica formazione recupera gli ordini di Hattrick e può sostituire la tua formazione attuale.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Clicca",
+    helpOptimizeSuffix: "per generare l’undici migliore.",
+    helpSubmitLabel: "Invia formazione",
+    helpSubmitPrefix: "Usa",
+    helpSubmitSuffix: "per inviare la formazione a Hattrick.",
+    helpDrag:
+      "Trascina i giocatori dalla lista e sposta quelli in campo per cambiare ruolo.",
+    themeSwitchDark: "Passa alla modalità scura",
+    themeSwitchLight: "Passa alla modalità chiara",
+    helpDismissLabel: "Ho capito",
     youthPlayerList: "Lista giocatori giovanili",
     noYouthPlayers: "Nessun giocatore giovanile trovato.",
     assigned: "Assegnato",
     playerDetails: "Dettagli giocatore",
     refresh: "Aggiorna",
+    refreshTooltip: "Aggiorna i dettagli del giocatore da Hattrick.",
     loadingDetails: "Caricamento dettagli…",
     selectPlayerPrompt: "Seleziona un giocatore per caricare i dettagli.",
     unableToLoadPlayers: "Impossibile caricare i giocatori",
@@ -365,7 +1319,119 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Ordini",
     ordersSet: "Impostate",
     ordersNotSet: "Non impostate",
+    submitOrders: "Invia formazione",
+    submitOrdersPending: "Invio…",
+    submitOrdersSuccess: "Ordini inviati",
+    submitOrdersError: "Invio non riuscito",
+    confirmSubmitOrders: "Inviare la formazione attuale per questa partita?",
+    submitOrdersResponse: "Risposta",
+    submitOrdersUpdated: "Aggiornato",
+    submitOrdersMinPlayers: "Servono almeno 9 giocatori",
+    submitOrdersMaxPlayers: "La formazione non può superare 11 giocatori",
+    loadLineupTooltip: "Carica la formazione salvata da Hattrick per questa partita.",
+    submitOrdersTooltip: "Invia la formazione attuale a Hattrick per questa partita.",
+    randomizeLineup: "Formazione casuale",
+    resetLineup: "Reimposta formazione",
+    optimizeLineupTitle:
+      "Ottimizza formazione e allenamenti attorno al giocatore stella",
+    optimizeLineupNeedsStar: "Seleziona un giocatore stella per ottimizzare",
+    optimizeLineupNeedsTraining:
+      "Seleziona entrambi gli allenamenti per ottimizzare",
+    optimizeLineupNeedsKnownSkills: "Servono valori attuali+max noti",
+    optimizerDebugTitle: "Debug ottimizzatore",
+    optimizerDebugSummary: "Mostra classifiche",
+    optimizerDebugOpen: "Mostra classifiche",
+    optimizerDebugUnavailable:
+      "Seleziona un giocatore stella e gli allenamenti per vedere le classifiche",
+    optimizerPrimaryLabel: "Classifica primaria",
+    optimizerSecondaryLabel: "Classifica secondaria",
+    optimizerSlotsLabel: "Posizioni",
+    optimizerSelectionLabel: "Selezione",
+    optimizerSelectionStar: "Giocatore stella",
+    optimizerSelectionPrimary: "Skill primaria",
+    optimizerSelectionSecondary: "Skill secondaria",
+    optimizerSelectionAuto: "Selezione automatica",
+    optimizerStarRanksLabel: "Classifica selezione stella",
+    optimizerColumnPlayer: "Giocatore",
+    optimizerColumnCategory: "Categoria",
+    optimizerColumnCurrent: "Attuale",
+    optimizerColumnMax: "Max",
+    optimizerColumnRank: "Valore ranking",
+    optimizerColumnAge: "Età",
+    optimizerColumnValue: "Valore",
+    optimizerCat1: "Cat 1 (attuale+max)",
+    optimizerCat2: "Cat 2 (sconosciuto/sconosciuto)",
+    optimizerCat3: "Cat 3 (solo max)",
+    optimizerCat4: "Cat 4 (solo attuale)",
+    optimizerCatDontCare: "Non importa",
+    optimizerSlotsPrimary: "Posti primari",
+    optimizerSlotsSecondary: "Posti secondari",
+    optimizerSlotsAll: "Tutti i posti",
+    optimizerSlotsStar: "Posto stella",
+    closeLabel: "Chiudi",
+    yesLabel: "Sì",
+    noLabel: "No",
+    submitOrdersReport: "Segnala questo errore allo sviluppatore.",
+    confirmCancel: "Annulla",
+    confirmSubmit: "Invia",
+    loadLineup: "Carica formazione",
+    loadLineupLoading: "Caricamento…",
+    loadLineupUnavailable: "Nessuna formazione salvata",
+    loadLineupActive: "Caricata",
+    loadLineupError: "Caricamento non riuscito",
+    notificationEmpty: "Nessuna notifica",
+    notificationAutoSelection: "Auto-selezione",
+    notificationLineupLoaded: "Formazione caricata:",
+    notificationLineupSubmitted: "Formazione inviata:",
+    notificationOptimizeApplied: "Ottimizzazione applicata",
+    notificationLineupRandomized: "Formazione casuale",
+    notificationLineupReset: "Formazione reimpostata",
+    notificationPrimaryTrainingSet: "Allenamento primario:",
+    notificationSecondaryTrainingSet: "Allenamento secondario:",
+    notificationTrainingCleared: "Allenamento cancellato",
+    notificationSortBy: "Ordina per:",
+    notificationSortDirection: "Direzione ordine:",
+    notificationStarSet: "Giocatore stella:",
+    notificationStarCleared: "Giocatore stella rimosso",
+    notificationPlayerSelected: "Giocatore selezionato:",
+    permissionsLabel: "Permessi:",
+    permissionsNone: "Nessuno",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Auto-seleziona giocatore stella e allenamenti",
+    trainingTitle: "Allenamento mirato",
+    primaryTrainingLabel: "Primario",
+    secondaryTrainingLabel: "Secondario",
+    trainingUnset: "—",
+    trainingKeeper: "Portiere",
+    trainingDefending: "Difesa",
+    trainingPlaymaking: "Regia",
+    trainingWinger: "Ala",
+    trainingPassing: "Passaggi",
+    trainingScoring: "Finalizzazione",
+    trainingSetPieces: "Calci piazzati",
+    trainingSlotPrimary: "Primario",
+    trainingSlotSecondary: "Secondario",
+    trainingSlotBoth: "Pri/sec",
+    starPlayerLabel: "Imposta giocatore stella",
+    sortLabel: "Ordina per",
+    sortName: "Nome",
+    sortAge: "Età",
+    sortArrival: "Arrivo",
+    sortPromotable: "Promuovibile",
+    sortKeeper: "Portiere",
+    sortDefender: "Difesa",
+    sortPlaymaker: "Regia",
+    sortWinger: "Ala",
+    sortPassing: "Passaggi",
+    sortScorer: "Attacco",
+    sortSetPieces: "Calci piazzati",
+    sortToggleAria: "Inverti ordinamento",
+    sortAscLabel: "Crescente",
+    sortDescLabel: "Decrescente",
     statusLabel: "Stato",
+    matchStatusUpcoming: "In arrivo",
+    matchStatusFinished: "Finita",
+    matchStatusOngoing: "In corso",
     lineupTitle: "Formazione",
     clearSlot: "Svuota",
     lastUpdated: "Ultimo aggiornamento",
@@ -379,6 +1445,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Specialità",
     skillsLabel: "Abilità",
     unknownLabel: "sconosciuto",
+    unknownShort: "?",
     potentialLabel: "potenziale",
     lastMatchPositionLabel: "Posizione ultimo match",
     lastMatchRatingLabel: "Valutazione ultimo match",
@@ -393,8 +1460,18 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "A",
     posInnerMidfield: "MC",
     posForward: "P",
+    posKeeperFull: "Portiere",
+    posBackFull: "Terzino",
+    posCentralDefenderFull: "Difensore centrale",
+    posWingerFull: "Ala",
+    posInnerMidfieldFull: "Centrocampista",
+    posForwardFull: "Punta",
     connectLabel: "Connetti Hattrick",
     connectedLabel: "Connesso",
+    connectHint:
+      "Usa il pulsante Connetti in alto a destra per accedere di nuovo.",
+    disconnectLabel: "Disconnetti",
+    disconnectTitle: "Disconnetti e revoca l’accesso",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Portiere",
     skillDefending: "Difesa",
@@ -406,11 +1483,45 @@ const MESSAGES: Record<Locale, Messages> = {
   },
   pt: {
     languageLabel: "Idioma",
+    languageSwitching: "Alterando idioma…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Abrir ajuda",
+    helpTitle: "Bem-vindo ao Youth Alchemy",
+    helpIntro:
+      "Esta página é mais do que um visor. Ela ajuda a otimizar o onze para o treino.",
+    helpPurpose:
+      "Veja jogadores, uma visão geral de ratings e o contexto de partidas.",
+    helpDesktop:
+      "Esta experiência está otimizada para desktop. Mobile ficará para depois.",
+    helpAi:
+      "A IA escolhe um jogador estrela e recomenda o melhor par primário/secundário.",
+    helpOverride:
+      "Você pode substituir o jogador estrela ou os treinos — o otimizador se adapta.",
+    helpOptimize:
+      "Clique ✨ Otimizar para gerar o melhor onze.",
+    helpSubmit:
+      "Use os botões para enviar a escalação ao Hattrick.",
+    helpNoAutoSubmit:
+      "Nada é enviado automaticamente — você sempre confirma antes de enviar.",
+    helpLoadLineup:
+      "Carregar escalação busca ordens salvas no Hattrick e pode substituir a sua escalação atual.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Clique",
+    helpOptimizeSuffix: "para gerar o melhor onze.",
+    helpSubmitLabel: "Enviar escalação",
+    helpSubmitPrefix: "Use",
+    helpSubmitSuffix: "para enviar a escalação ao Hattrick.",
+    helpDrag:
+      "Arraste jogadores da lista e mova os do time para trocar posições.",
+    themeSwitchDark: "Mudar para modo escuro",
+    themeSwitchLight: "Mudar para modo claro",
+    helpDismissLabel: "Entendi",
     youthPlayerList: "Lista de jogadores juvenis",
     noYouthPlayers: "Nenhum jogador juvenil encontrado.",
     assigned: "Atribuído",
     playerDetails: "Detalhes do jogador",
     refresh: "Atualizar",
+    refreshTooltip: "Atualiza os detalhes do jogador no Hattrick.",
     loadingDetails: "Carregando detalhes…",
     selectPlayerPrompt: "Selecione um jogador para carregar detalhes.",
     unableToLoadPlayers: "Não foi possível carregar jogadores",
@@ -421,7 +1532,119 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Ordens",
     ordersSet: "Definidas",
     ordersNotSet: "Não definidas",
+    submitOrders: "Enviar escalação",
+    submitOrdersPending: "Enviando…",
+    submitOrdersSuccess: "Ordens enviadas",
+    submitOrdersError: "Falha ao enviar",
+    confirmSubmitOrders: "Enviar a escalação atual para esta partida?",
+    submitOrdersResponse: "Resposta",
+    submitOrdersUpdated: "Atualizado",
+    submitOrdersMinPlayers: "Pelo menos 9 jogadores",
+    submitOrdersMaxPlayers: "A escalação não pode passar de 11 jogadores",
+    loadLineupTooltip: "Carrega a escalação salva do Hattrick para esta partida.",
+    submitOrdersTooltip: "Envia a escalação atual ao Hattrick para esta partida.",
+    randomizeLineup: "Escalação aleatória",
+    resetLineup: "Redefinir escalação",
+    optimizeLineupTitle:
+      "Otimizar escalação e treinos em torno do jogador estrela",
+    optimizeLineupNeedsStar: "Selecione um jogador estrela para otimizar",
+    optimizeLineupNeedsTraining:
+      "Selecione ambos os treinos para otimizar",
+    optimizeLineupNeedsKnownSkills: "Habilidades atuais+máx. conhecidas necessárias",
+    optimizerDebugTitle: "Depuração do otimizador",
+    optimizerDebugSummary: "Mostrar rankings",
+    optimizerDebugOpen: "Mostrar rankings",
+    optimizerDebugUnavailable:
+      "Selecione um jogador estrela e treinos para ver rankings",
+    optimizerPrimaryLabel: "Ranking primário",
+    optimizerSecondaryLabel: "Ranking secundário",
+    optimizerSlotsLabel: "Posições",
+    optimizerSelectionLabel: "Seleção",
+    optimizerSelectionStar: "Jogador estrela",
+    optimizerSelectionPrimary: "Habilidade primária",
+    optimizerSelectionSecondary: "Habilidade secundária",
+    optimizerSelectionAuto: "Seleção automática",
+    optimizerStarRanksLabel: "Ranking da seleção de estrela",
+    optimizerColumnPlayer: "Jogador",
+    optimizerColumnCategory: "Categoria",
+    optimizerColumnCurrent: "Atual",
+    optimizerColumnMax: "Máx.",
+    optimizerColumnRank: "Valor do ranking",
+    optimizerColumnAge: "Idade",
+    optimizerColumnValue: "Valor",
+    optimizerCat1: "Cat 1 (atual+máx.)",
+    optimizerCat2: "Cat 2 (desconhecido/desconhecido)",
+    optimizerCat3: "Cat 3 (apenas máx.)",
+    optimizerCat4: "Cat 4 (apenas atual)",
+    optimizerCatDontCare: "Não importa",
+    optimizerSlotsPrimary: "Vagas primárias",
+    optimizerSlotsSecondary: "Vagas secundárias",
+    optimizerSlotsAll: "Todas as vagas",
+    optimizerSlotsStar: "Vaga estrela",
+    closeLabel: "Fechar",
+    yesLabel: "Sim",
+    noLabel: "Não",
+    submitOrdersReport: "Informe este erro ao desenvolvedor.",
+    confirmCancel: "Cancelar",
+    confirmSubmit: "Enviar",
+    loadLineup: "Carregar escalação",
+    loadLineupLoading: "Carregando…",
+    loadLineupUnavailable: "Sem escalação salva",
+    loadLineupActive: "Carregada",
+    loadLineupError: "Falha ao carregar",
+    notificationEmpty: "Sem notificações",
+    notificationAutoSelection: "Auto-seleção",
+    notificationLineupLoaded: "Escalação carregada:",
+    notificationLineupSubmitted: "Escalação enviada:",
+    notificationOptimizeApplied: "Otimização aplicada",
+    notificationLineupRandomized: "Escalação aleatória",
+    notificationLineupReset: "Escalação redefinida",
+    notificationPrimaryTrainingSet: "Treino primário:",
+    notificationSecondaryTrainingSet: "Treino secundário:",
+    notificationTrainingCleared: "Treino limpo",
+    notificationSortBy: "Ordenar por:",
+    notificationSortDirection: "Direção da ordenação:",
+    notificationStarSet: "Jogador estrela:",
+    notificationStarCleared: "Jogador estrela removido",
+    notificationPlayerSelected: "Jogador selecionado:",
+    permissionsLabel: "Permissões:",
+    permissionsNone: "Nenhuma",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Auto-selecionar jogador estrela e treinos",
+    trainingTitle: "Treino focado",
+    primaryTrainingLabel: "Primário",
+    secondaryTrainingLabel: "Secundário",
+    trainingUnset: "—",
+    trainingKeeper: "Goleiro",
+    trainingDefending: "Defesa",
+    trainingPlaymaking: "Criação de jogo",
+    trainingWinger: "Ala",
+    trainingPassing: "Passes",
+    trainingScoring: "Finalização",
+    trainingSetPieces: "Bolas paradas",
+    trainingSlotPrimary: "Primário",
+    trainingSlotSecondary: "Secundário",
+    trainingSlotBoth: "Pri/sec",
+    starPlayerLabel: "Definir jogador estrela",
+    sortLabel: "Ordenar por",
+    sortName: "Nome",
+    sortAge: "Idade",
+    sortArrival: "Chegada",
+    sortPromotable: "Promovível",
+    sortKeeper: "Goleiro",
+    sortDefender: "Defesa",
+    sortPlaymaker: "Armador",
+    sortWinger: "Ala",
+    sortPassing: "Passe",
+    sortScorer: "Artilheiro",
+    sortSetPieces: "Bolas paradas",
+    sortToggleAria: "Inverter ordenação",
+    sortAscLabel: "Crescente",
+    sortDescLabel: "Decrescente",
     statusLabel: "Status",
+    matchStatusUpcoming: "Próximo",
+    matchStatusFinished: "Finalizado",
+    matchStatusOngoing: "Em andamento",
     lineupTitle: "Escalação",
     clearSlot: "Limpar",
     lastUpdated: "Última atualização",
@@ -435,6 +1658,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyLabel: "Especialidade",
     skillsLabel: "Habilidades",
     unknownLabel: "desconhecido",
+    unknownShort: "?",
     potentialLabel: "potencial",
     lastMatchPositionLabel: "Posição do último jogo",
     lastMatchRatingLabel: "Avaliação do último jogo",
@@ -449,8 +1673,18 @@ const MESSAGES: Record<Locale, Messages> = {
     posWinger: "A",
     posInnerMidfield: "MI",
     posForward: "F",
+    posKeeperFull: "Goleiro",
+    posBackFull: "Lateral",
+    posCentralDefenderFull: "Zagueiro",
+    posWingerFull: "Ala",
+    posInnerMidfieldFull: "Meio-campista",
+    posForwardFull: "Atacante",
     connectLabel: "Conectar Hattrick",
     connectedLabel: "Conectado",
+    connectHint:
+      "Use o botão Conectar no canto superior direito para entrar novamente.",
+    disconnectLabel: "Desconectar",
+    disconnectTitle: "Desconectar e revogar acesso",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Goleiro",
     skillDefending: "Defesa",

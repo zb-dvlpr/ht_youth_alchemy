@@ -8,9 +8,9 @@
 }
 
 .topBar {
-  display: flex;
+  display: grid;
   align-items: center;
-  justify-content: space-between;
+  grid-template-columns: auto 1fr auto;
   margin-bottom: 12px;
   padding: 8px 14px;
   background: #f1e9dc;
@@ -20,7 +20,8 @@
 
 .brandRow {
   display: flex;
-  align-items: center;
+  align-items: baseline;
+  gap: 6px;
 }
 
 .brandTitle {
@@ -38,6 +39,72 @@
   gap: 12px;
 }
 
+.helpButton {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  color: #3f362c;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.helpButton:hover {
+  background: #f1e9dc;
+  transform: translateY(-1px);
+}
+
+.connectedInfo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+.notificationCenter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+}
+
+.notificationList {
+  display: grid;
+  gap: 6px;
+}
+
+.notificationItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  color: #2d261f;
+  box-shadow: inset 0 0 0 1px rgba(63, 53, 44, 0.08);
+}
+
+.notificationTime {
+  font-size: 11px;
+  color: #6b6256;
+  font-variant-numeric: tabular-nums;
+}
+
+.notificationMessage {
+  color: #2d261f;
+}
+
+.notificationEmpty {
+  font-size: 12px;
+  color: #9a8f81;
+}
+
 .connectButton {
   padding: 6px 12px;
   border-radius: 999px;
@@ -47,6 +114,26 @@
   font-weight: 600;
   text-decoration: none;
   transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.themeToggle {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  color: #3f362c;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.themeToggle:hover {
+  background: #f1e9dc;
+  transform: translateY(-1px);
 }
 
 .connectButton:hover {
@@ -61,6 +148,67 @@
   color: #1f6f3f;
   font-size: 12px;
   font-weight: 600;
+}
+
+.disconnectButton {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 999px;
+  background: rgba(162, 52, 52, 0.14);
+  color: #b11d1d;
+  border: 1px solid rgba(162, 52, 52, 0.55);
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.disconnectButton:hover {
+  background: rgba(162, 52, 52, 0.18);
+}
+
+.disconnectButton:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.connectedTooltip {
+  max-width: 280px;
+}
+
+.connectedTooltipLabel {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.connectedTooltipValue {
+  display: block;
+  color: #4b4034;
+  word-break: break-word;
+}
+
+.tooltipCard {
+  background: #f7f1e3;
+  border: 1px solid #d8cbb6;
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  font-size: 12px;
+  color: #2f2a22;
+  max-width: 300px;
+}
+.connectedPermissions {
+  font-size: 11px;
+  color: #6b6256;
+  text-align: right;
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .langSwitcher {
@@ -85,9 +233,26 @@
   color: #3f362c;
 }
 
+.langSpinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid rgba(63, 54, 44, 0.2);
+  border-top-color: rgba(63, 54, 44, 0.7);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .version {
-  font-size: 12px;
-  letter-spacing: 0.6px;
+  font-family: var(--font-brand), "Space Grotesk", sans-serif;
+  font-size: clamp(10px, 1vw, 12px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: #6b6256;
 }
 
@@ -96,11 +261,125 @@
   gap: 20px;
   grid-template-columns: minmax(200px, 0.8fr) minmax(360px, 1.4fr) minmax(320px, 1.2fr);
   align-items: start;
+  position: relative;
 }
 
 .columnStack {
   display: grid;
   gap: 20px;
+}
+
+.helpOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.helpArrows {
+  width: 100%;
+  height: 100%;
+}
+
+.helpArrow {
+  fill: none;
+  stroke: #3f362c;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 6 8;
+}
+
+.helpArrowHead {
+  fill: #3f362c;
+}
+
+.helpCard {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 12px 24px rgba(30, 20, 10, 0.12);
+  border: 1px solid #e7dcc9;
+  position: relative;
+  z-index: 5;
+}
+
+.helpCard ::selection {
+  background: transparent;
+  color: inherit;
+}
+
+.helpCard ::-moz-selection {
+  background: transparent;
+  color: inherit;
+}
+
+.helpTitle {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.helpIntro {
+  margin: 0 0 10px;
+  color: #4d4236;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.helpList {
+  margin: 0 0 14px 18px;
+  padding: 0;
+  color: #3f362c;
+  font-size: 13px;
+  display: grid;
+  gap: 6px;
+}
+
+.helpLine {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  display: inline;
+}
+
+.helpAnchor {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.helpCard span {
+  background: transparent;
+}
+
+.helpDismiss {
+  border: none;
+  background: #1f6f3f;
+  color: #f7f1e3;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.helpDismiss:hover {
+  background: #2f9f5b;
+  transform: translateY(-1px);
+}
+
+.helpDisabledColumn {
+  opacity: 0.35;
+  pointer-events: none;
+  filter: grayscale(0.2);
+}
+
+.helpSuppressed {
+  opacity: 0.35;
+  pointer-events: none;
+  filter: grayscale(0.2);
 }
 
 .matrixWrapper {
@@ -120,6 +399,11 @@
   padding: 8px 10px;
   border-bottom: 1px solid #eee3d5;
   text-align: center;
+}
+
+.matrixCell {
+  font-weight: 700;
+  color: #1b1a17;
 }
 
 .matrixTable th {
@@ -159,8 +443,293 @@
   background: #f2efe9;
 }
 
+@media (max-height: 900px) {
+  .main {
+    padding: 10px 14px 16px;
+  }
+
+  .topBar {
+    margin-bottom: 8px;
+    padding: 6px 10px;
+  }
+
+  .dashboardGrid {
+    gap: 14px;
+  }
+
+  .columnStack {
+    gap: 14px;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .sectionTitle {
+    margin-bottom: 12px;
+    font-size: 20px;
+  }
+}
+
+@media (max-height: 720px) {
+  .main {
+    overflow: auto;
+  }
+}
+
+html[data-theme="dark"] .main {
+  background: radial-gradient(circle at top, #1c1a17, #0f0e0d);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .topBar {
+  background: #1b1917;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+html[data-theme="dark"] .brandTitle {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .version {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .notificationItem {
+  background: rgba(28, 26, 23, 0.8);
+  color: #f3ede4;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .notificationTime {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .notificationMessage {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .connectButton {
+  background: #2f9f5b;
+  color: #111;
+}
+
+html[data-theme="dark"] .connectedBadge {
+  background: rgba(47, 159, 91, 0.2);
+  color: #8fe5ae;
+}
+
+html[data-theme="dark"] .disconnectButton {
+  background: rgba(216, 76, 76, 0.2);
+  color: #ff8b8b;
+  border-color: rgba(216, 76, 76, 0.55);
+}
+
+html[data-theme="dark"] .themeToggle,
+html[data-theme="dark"] .helpButton,
+html[data-theme="dark"] .sortToggle,
+html[data-theme="dark"] .autoSelectButton {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e9e1d7;
+}
+
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .helpCard {
+  background: #1b1917;
+  color: #f3ede4;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .listItem {
+  background: #25221e;
+}
+
+html[data-theme="dark"] .matrixTable th {
+  background: #1f1c19;
+}
+
+html[data-theme="dark"] .matrixTable td,
+html[data-theme="dark"] .matrixTable th {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .matrixCell,
+html[data-theme="dark"] .matrixPlayer {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .matrixTable td {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .trainingSelect,
+html[data-theme="dark"] .sortSelect {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .langSelect {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .langSwitcher {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .langSpinner {
+  border-color: rgba(243, 237, 228, 0.2);
+  border-top-color: rgba(243, 237, 228, 0.6);
+}
+
+html[data-theme="dark"] .tooltipCard {
+  background: #1b1917 !important;
+  color: #f3ede4 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+html[data-theme="dark"] .detailsSubtitle,
+html[data-theme="dark"] .detailsTimestamp,
+html[data-theme="dark"] .trainingLabel,
+html[data-theme="dark"] .sortControl {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .skillValue {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .profileCard {
+  background: #1f1c19;
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .profileMeta,
+html[data-theme="dark"] .infoLabel {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .infoValue,
+html[data-theme="dark"] .skillLabel {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .playerId,
+html[data-theme="dark"] .assignedTag {
+  color: #c6bdaf;
+}
+
+html[data-theme="dark"] .metaItem {
+  background: #2a2521;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .tag {
+  background: #2f9f5b;
+  color: #111;
+}
+
+html[data-theme="dark"] .sectionDivider {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme="dark"] .skillBar {
+  background: #2a2521;
+}
+
+html[data-theme="dark"] .skillFillMax {
+  background: #6b5e4f;
+}
+
+html[data-theme="dark"] .refreshButton {
+  background: #2a2521;
+  border-color: rgba(255, 255, 255, 0.15);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .refreshButton:not(:disabled):hover {
+  background: #332d28;
+}
+
+html[data-theme="dark"] .matchItem {
+  background: #25221e;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .matchMeta,
+html[data-theme="dark"] .vs {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .matchButtonSecondary {
+  color: #8fe5ae;
+  border-color: rgba(143, 229, 174, 0.35);
+}
+
+html[data-theme="dark"] .matchButtonSecondary:hover:not(:disabled) {
+  background: rgba(143, 229, 174, 0.12);
+}
+
+html[data-theme="dark"] .matchSuccess {
+  color: #8fe5ae;
+}
+
+html[data-theme="dark"] .matchError {
+  color: #ff8b8b;
+}
+
+html[data-theme="dark"] .matchUpdated {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .matchLoaded {
+  color: #8fe5ae;
+  background: rgba(143, 229, 174, 0.12);
+}
+
+html[data-theme="dark"] .confirmCard {
+  background: #1b1917;
+  color: #f3ede4;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
 .playerRow {
   display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.starButton {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #d7cabc;
+  background: #f6f2eb;
+  color: #8c8376;
+  font-size: 16px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.starButton:hover {
+  background: #efe5d6;
+  transform: translateY(-1px);
+}
+
+.starButtonActive {
+  color: #f0c84a;
+  background: #fff4c2;
+  border-color: #f2d06b;
+  box-shadow: 0 0 10px rgba(240, 200, 74, 0.35);
 }
 
 .playerButton {
@@ -203,6 +772,17 @@
   font-size: 14px;
 }
 
+.playerNameRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.playerSpecialty {
+  font-size: 14px;
+  line-height: 1;
+}
+
 .playerId {
   font-size: 11px;
   color: #666;
@@ -221,6 +801,102 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: 12px;
+}
+
+.trainingControls {
+  display: grid;
+  gap: 10px;
+}
+
+.trainingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.trainingLabel {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6b6256;
+}
+
+.trainingSelect {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #3f362c;
+  min-width: 160px;
+}
+
+.listHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.listHeaderTitle {
+  margin: 0;
+}
+
+.sortControl {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font-size: 12px;
+  color: #6b6256;
+}
+
+.sortLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.sortSelect {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #3f362c;
+}
+
+.sortToggle {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.sortToggle:hover {
+  background: #f1e9dc;
+}
+
+.autoSelectButton {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  color: #3f362c;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.autoSelectButton:hover {
+  background: #f1e9dc;
+  transform: translateY(-1px);
 }
 
 .detailsTitle {
@@ -342,7 +1018,7 @@
 
 .skillRow {
   display: grid;
-  grid-template-columns: 120px minmax(0, 1fr) 160px;
+  grid-template-columns: 120px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
 }
@@ -353,7 +1029,7 @@
 }
 
 .skillBar {
-  height: 10px;
+  height: 12px;
   background: #e8e1d6;
   border-radius: 999px;
   overflow: hidden;
@@ -379,8 +1055,11 @@
 }
 
 .skillValue {
-  font-size: 13px;
-  color: #3f362c;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2b241d;
+  min-width: 52px;
+  text-align: right;
 }
 
 .matchList {
@@ -398,6 +1077,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
+  position: relative;
 }
 
 .matchTeams {
@@ -419,12 +1099,165 @@
   font-size: 13px;
 }
 
+.matchActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.matchButton {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #244d2b;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.matchButtonSecondary {
+  border: 1px solid rgba(36, 77, 43, 0.35);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: transparent;
+  color: #244d2b;
+  cursor: pointer;
+  transition: background 0.2s ease, opacity 0.2s ease;
+}
+
+.matchButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.matchButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.matchButtonSecondary:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.matchButtonSecondary:hover:not(:disabled) {
+  background: rgba(36, 77, 43, 0.1);
+}
+
+.matchSuccess {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f6f3f;
+}
+
+.matchError {
+  font-size: 12px;
+  font-weight: 600;
+  color: #b33434;
+}
+
+.matchUpdated {
+  font-size: 12px;
+  font-weight: 600;
+  color: #5b4a37;
+}
+
+.matchLoaded {
+  font-size: 12px;
+  font-weight: 600;
+  color: #244d2b;
+  background: rgba(36, 77, 43, 0.12);
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.confirmOverlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(24, 24, 24, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+}
+
+.confirmCard {
+  background: #f7f1e3;
+  color: #2d261f;
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
+  width: min(360px, 90%);
+}
+
+.confirmTitle {
+  font-size: 15px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.confirmActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.confirmCancel {
+  background: transparent;
+  border: 1px solid #c8b8a3;
+  color: #5b4a37;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirmSubmit {
+  background: #244d2b;
+  border: none;
+  color: #fff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.matchResponse {
+  width: 100%;
+}
+
+.matchResponse summary {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  color: #244d2b;
+}
+
+.matchResponse pre {
+  margin: 6px 0 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #f6f2eb;
+  font-size: 11px;
+  color: #2d261f;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
 .fieldCard {
   padding: 0;
   border-radius: 16px;
   background: #4b7f4a;
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 }
 
 .fieldHeader {
@@ -433,6 +1266,194 @@
   padding: 12px 16px;
   font-weight: 600;
   letter-spacing: 0.4px;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.optimizeButton {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #f7f1e3;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.optimizeButton:hover {
+  background: rgba(255, 255, 255, 0.26);
+  transform: translateY(-1px);
+}
+
+.optimizeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
+}
+
+.lineupButton {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.lineupButton:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.lineupButtonSecondary {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.lineupButtonSecondary:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.optimizerSection {
+  margin-top: 12px;
+}
+
+.optimizerHeading {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #5b4a3d;
+  margin: 0 0 6px;
+}
+
+.optimizerOpen {
+  align-self: flex-start;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #3f4e3a;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.optimizerOpen:hover {
+  background: #2f3b2b;
+  transform: translateY(-1px);
+}
+
+.optimizerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 17, 14, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 24px;
+}
+
+.optimizerModal {
+  width: min(860px, 92vw);
+  max-height: min(78vh, 880px);
+  background: #f7f3ec;
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.optimizerModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: rgba(63, 53, 44, 0.08);
+  border-bottom: 1px solid rgba(63, 53, 44, 0.18);
+}
+
+.optimizerModalTitle {
+  margin: 0;
+  font-size: 16px;
+  color: #3f352c;
+}
+
+.optimizerClose {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #3f352c;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.optimizerClose:hover {
+  background: #2d261f;
+  transform: translateY(-1px);
+}
+
+.optimizerModalBody {
+  padding: 16px 18px 20px;
+  overflow: auto;
+  display: grid;
+  gap: 16px;
+}
+
+.optimizerTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  color: #2d261f;
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.optimizerTable th,
+.optimizerTable td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(63, 53, 44, 0.12);
+  text-align: left;
+}
+
+.optimizerTable th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5b4a3d;
+  background: rgba(63, 53, 44, 0.06);
+}
+
+.optimizerTable tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .fieldPitch {
@@ -481,6 +1502,70 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  position: relative;
+}
+
+.trainedSlot {
+  border-color: rgba(245, 214, 94, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(245, 214, 94, 0.35);
+}
+
+.trainedPrimary {
+  animation: trainingPulse 2.2s ease-in-out infinite;
+}
+
+.trainedSecondary {
+  box-shadow:
+    inset 0 0 0 1px rgba(171, 202, 255, 0.4),
+    0 0 8px rgba(171, 202, 255, 0.2);
+}
+
+.trainingTag {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  line-height: 1;
+  color: rgba(247, 241, 227, 0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  max-width: calc(100% - 8px);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+@keyframes trainingPulse {
+  0% {
+    box-shadow: inset 0 0 0 1px rgba(245, 214, 94, 0.35);
+  }
+  50% {
+    box-shadow:
+      inset 0 0 0 1px rgba(245, 214, 94, 0.6),
+      0 0 10px rgba(245, 214, 94, 0.35);
+  }
+  100% {
+    box-shadow: inset 0 0 0 1px rgba(245, 214, 94, 0.35);
+  }
+}
+
+.dragGhost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.22);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  color: #f7f1e3;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  padding: 6px 10px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
 }
 
 .fieldLabel {
@@ -569,11 +1654,12 @@
   position: relative;
   width: 100%;
   height: 100%;
-  padding: 10px 12px 8px;
+  padding: 10px 20px 8px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 6px;
+  cursor: grab;
 }
 
 .slotName {
@@ -581,11 +1667,97 @@
   font-weight: 600;
   color: #f7f1e3;
   text-align: center;
-  cursor: grab;
+  max-width: 100%;
+  word-break: break-word;
 }
 
-.slotName:active {
+.slotContent:active {
   cursor: grabbing;
+}
+
+.slotEmoji {
+  position: absolute;
+  left: 8px;
+  bottom: 6px;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.slotTooltipCard {
+  background: #f7f1e3;
+  border: 1px solid #d8cbb6;
+  border-radius: 12px;
+  padding: 10px 12px;
+  min-width: 260px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+}
+
+.slotTooltipHint {
+  font-size: 11px;
+  color: #6b6256;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.slotTooltipGrid {
+  display: grid;
+  gap: 6px;
+}
+
+.slotTooltipGrid .skillRow {
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.slotTooltipCard .skillLabel {
+  color: #2f2a22;
+}
+
+.slotTooltipCard .skillBar {
+  width: 100%;
+  min-width: 90px;
+  height: 9px;
+  background: #d7c6b0;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.slotTooltipCard .skillFillMax {
+  background: #c3b19a;
+}
+
+.slotTooltipCard .skillFillCurrent {
+  background: linear-gradient(90deg, #2f9f5b, #1f6f3f);
+}
+
+.slotTooltipCard .skillValue {
+  color: #1b1a17;
+  min-width: 44px;
+  font-size: 13px;
+}
+
+html[data-theme="dark"] .slotTooltipCard {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .slotTooltipHint {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .slotTooltipCard .skillLabel,
+html[data-theme="dark"] .slotTooltipCard .skillValue {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .slotTooltipCard .skillBar {
+  background: #2a2521;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .slotTooltipCard .skillFillMax {
+  background: #6b5e4f;
 }
 
 .slotLabel {
@@ -599,7 +1771,7 @@
 .slotClear {
   position: absolute;
   top: 6px;
-  right: 8px;
+  right: 6px;
   width: 18px;
   height: 18px;
   border-radius: 50%;
@@ -609,6 +1781,7 @@
   cursor: pointer;
   font-weight: 700;
   line-height: 1;
+  z-index: 2;
 }
 
 .slotClear:hover {

@@ -1,0 +1,17 @@
+.trigger {
+  display: inline-flex;
+  align-items: center;
+}
+
+.triggerFull {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 2000;
+  pointer-events: none;
+  max-width: min(360px, calc(100vw - 16px));
+}

@@ -18,6 +18,7 @@ export type Messages = {
   assigned: string;
   playerDetails: string;
   refresh: string;
+  refreshTooltip: string;
   loadingDetails: string;
   selectPlayerPrompt: string;
   unableToLoadPlayers: string;
@@ -37,6 +38,8 @@ export type Messages = {
   submitOrdersUpdated: string;
   submitOrdersMinPlayers: string;
   submitOrdersMaxPlayers: string;
+  loadLineupTooltip: string;
+  submitOrdersTooltip: string;
   randomizeLineup: string;
   resetLineup: string;
   optimizeLineupTitle: string;
@@ -194,6 +197,7 @@ const MESSAGES: Record<Locale, Messages> = {
     assigned: "Assigned",
     playerDetails: "Player details",
     refresh: "Refresh",
+    refreshTooltip: "Refreshes player details from Hattrick.",
     loadingDetails: "Loading details…",
     selectPlayerPrompt: "Select a player to load details.",
     unableToLoadPlayers: "Unable to load players",
@@ -213,6 +217,8 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Updated",
     submitOrdersMinPlayers: "Need at least 9 players set",
     submitOrdersMaxPlayers: "Lineup can’t exceed 11 players",
+    loadLineupTooltip: "Load the saved lineup from Hattrick for this match.",
+    submitOrdersTooltip: "Submit the current lineup to Hattrick for this match.",
     randomizeLineup: "Random lineup",
     resetLineup: "Reset lineup",
     optimizeLineupTitle: "Optimize lineup and trainings around star player",
@@ -368,6 +374,7 @@ const MESSAGES: Record<Locale, Messages> = {
     assigned: "Zugewiesen",
     playerDetails: "Spielerdetails",
     refresh: "Aktualisieren",
+    refreshTooltip: "Aktualisiert die Spielerdetails von Hattrick.",
     loadingDetails: "Details werden geladen…",
     selectPlayerPrompt: "Spieler auswählen, um Details zu laden.",
     unableToLoadPlayers: "Spieler konnten nicht geladen werden",
@@ -387,6 +394,8 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Aktualisiert",
     submitOrdersMinPlayers: "Mindestens 9 Spieler erforderlich",
     submitOrdersMaxPlayers: "Aufstellung darf höchstens 11 Spieler haben",
+    loadLineupTooltip: "Lädt die gespeicherte Aufstellung aus Hattrick für dieses Spiel.",
+    submitOrdersTooltip: "Sendet die aktuelle Aufstellung an Hattrick für dieses Spiel.",
     randomizeLineup: "Zufällige Aufstellung",
     resetLineup: "Aufstellung zurücksetzen",
     optimizeLineupTitle: "Aufstellung und Training um Starspieler optimieren",
@@ -543,6 +552,7 @@ const MESSAGES: Record<Locale, Messages> = {
     assigned: "Assigné",
     playerDetails: "Détails du joueur",
     refresh: "Actualiser",
+    refreshTooltip: "Actualise les détails du joueur depuis Hattrick.",
     loadingDetails: "Chargement des détails…",
     selectPlayerPrompt: "Sélectionnez un joueur pour charger les détails.",
     unableToLoadPlayers: "Impossible de charger les joueurs",
@@ -562,6 +572,8 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Mis à jour",
     submitOrdersMinPlayers: "Au moins 9 joueurs requis",
     submitOrdersMaxPlayers: "La composition ne peut pas dépasser 11 joueurs",
+    loadLineupTooltip: "Charge la composition enregistrée depuis Hattrick pour ce match.",
+    submitOrdersTooltip: "Envoie la composition actuelle à Hattrick pour ce match.",
     randomizeLineup: "Composition aléatoire",
     resetLineup: "Réinitialiser la composition",
     optimizeLineupTitle:
@@ -721,6 +733,7 @@ const MESSAGES: Record<Locale, Messages> = {
     assigned: "Asignado",
     playerDetails: "Detalles del jugador",
     refresh: "Actualizar",
+    refreshTooltip: "Actualiza los detalles del jugador desde Hattrick.",
     loadingDetails: "Cargando detalles…",
     selectPlayerPrompt: "Selecciona un jugador para cargar detalles.",
     unableToLoadPlayers: "No se pudieron cargar los jugadores",
@@ -740,6 +753,8 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Actualizado",
     submitOrdersMinPlayers: "Se necesitan al menos 9 jugadores",
     submitOrdersMaxPlayers: "La alineación no puede superar 11 jugadores",
+    loadLineupTooltip: "Carga la alineación guardada desde Hattrick para este partido.",
+    submitOrdersTooltip: "Envía la alineación actual a Hattrick para este partido.",
     randomizeLineup: "Alineación aleatoria",
     resetLineup: "Restablecer alineación",
     optimizeLineupTitle:
@@ -899,6 +914,7 @@ const MESSAGES: Record<Locale, Messages> = {
     assigned: "Tilldelad",
     playerDetails: "Spelardetaljer",
     refresh: "Uppdatera",
+    refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
     loadingDetails: "Laddar detaljer…",
     selectPlayerPrompt: "Välj en spelare för att ladda detaljer.",
     unableToLoadPlayers: "Kunde inte ladda spelare",
@@ -918,6 +934,8 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Uppdaterad",
     submitOrdersMinPlayers: "Minst 9 spelare krävs",
     submitOrdersMaxPlayers: "Uppställningen får inte överstiga 11 spelare",
+    loadLineupTooltip: "Laddar den sparade uppställningen från Hattrick för matchen.",
+    submitOrdersTooltip: "Skickar den aktuella uppställningen till Hattrick för matchen.",
     randomizeLineup: "Slumpa uppställning",
     resetLineup: "Återställ uppställning",
     optimizeLineupTitle:
@@ -1076,6 +1094,7 @@ const MESSAGES: Record<Locale, Messages> = {
     assigned: "Assegnato",
     playerDetails: "Dettagli giocatore",
     refresh: "Aggiorna",
+    refreshTooltip: "Aggiorna i dettagli del giocatore da Hattrick.",
     loadingDetails: "Caricamento dettagli…",
     selectPlayerPrompt: "Seleziona un giocatore per caricare i dettagli.",
     unableToLoadPlayers: "Impossibile caricare i giocatori",
@@ -1095,6 +1114,8 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Aggiornato",
     submitOrdersMinPlayers: "Servono almeno 9 giocatori",
     submitOrdersMaxPlayers: "La formazione non può superare 11 giocatori",
+    loadLineupTooltip: "Carica la formazione salvata da Hattrick per questa partita.",
+    submitOrdersTooltip: "Invia la formazione attuale a Hattrick per questa partita.",
     randomizeLineup: "Formazione casuale",
     resetLineup: "Reimposta formazione",
     optimizeLineupTitle:
@@ -1254,6 +1275,7 @@ const MESSAGES: Record<Locale, Messages> = {
     assigned: "Atribuído",
     playerDetails: "Detalhes do jogador",
     refresh: "Atualizar",
+    refreshTooltip: "Atualiza os detalhes do jogador no Hattrick.",
     loadingDetails: "Carregando detalhes…",
     selectPlayerPrompt: "Selecione um jogador para carregar detalhes.",
     unableToLoadPlayers: "Não foi possível carregar jogadores",
@@ -1273,6 +1295,8 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersUpdated: "Atualizado",
     submitOrdersMinPlayers: "Pelo menos 9 jogadores",
     submitOrdersMaxPlayers: "A escalação não pode passar de 11 jogadores",
+    loadLineupTooltip: "Carrega a escalação salva do Hattrick para esta partida.",
+    submitOrdersTooltip: "Envia a escalação atual ao Hattrick para esta partida.",
     randomizeLineup: "Escalação aleatória",
     resetLineup: "Redefinir escalação",
     optimizeLineupTitle:

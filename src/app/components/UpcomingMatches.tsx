@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
+import Tooltip from "./Tooltip";
 import { LineupAssignments } from "./LineupField";
 import { roleIdToSlotId } from "@/lib/positions";
 import { useNotifications } from "./notifications/NotificationsProvider";
@@ -186,26 +187,32 @@ function renderMatch(
       </div>
       {isUpcoming ? (
         <div className={styles.matchActions}>
-          <button
-            type="button"
-            className={styles.matchButtonSecondary}
-            onClick={() => onLoadLineup?.(matchId)}
-            disabled={!canLoad || loadState?.status === "loading"}
-          >
-            {loadState?.status === "loading"
-              ? messages.loadLineupLoading
-              : messages.loadLineup}
-          </button>
-          <button
-            type="button"
-            className={styles.matchButton}
-            onClick={() => onSubmit(matchId)}
-            disabled={!canSubmit || state.status === "submitting"}
-          >
-            {state.status === "submitting"
-              ? messages.submitOrdersPending
-              : messages.submitOrders}
-          </button>
+          <Tooltip content={<div className={styles.tooltipCard}>{messages.loadLineupTooltip}</div>}>
+            <button
+              type="button"
+              className={styles.matchButtonSecondary}
+              onClick={() => onLoadLineup?.(matchId)}
+              disabled={!canLoad || loadState?.status === "loading"}
+              aria-label={messages.loadLineupTooltip}
+            >
+              {loadState?.status === "loading"
+                ? messages.loadLineupLoading
+                : messages.loadLineup}
+            </button>
+          </Tooltip>
+          <Tooltip content={<div className={styles.tooltipCard}>{messages.submitOrdersTooltip}</div>}>
+            <button
+              type="button"
+              className={styles.matchButton}
+              onClick={() => onSubmit(matchId)}
+              disabled={!canSubmit || state.status === "submitting"}
+              aria-label={messages.submitOrdersTooltip}
+            >
+              {state.status === "submitting"
+                ? messages.submitOrdersPending
+                : messages.submitOrders}
+            </button>
+          </Tooltip>
           {state.status === "success" ? (
             <span className={styles.matchSuccess}>
               {messages.submitOrdersSuccess}

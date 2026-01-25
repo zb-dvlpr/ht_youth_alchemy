@@ -59,6 +59,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Connected badge shows granted CHPP permissions
 - Disconnect icon (power symbol) to revoke CHPP access
 - All tooltips use a shared viewport-safe tooltip component
+- Load/submit lineup and refresh buttons include tooltip hints
 - Youth player list header includes an auto-select button for star/training
 - Random lineup sets a keeper and fills any 10 other positions
 - Reset lineup button clears all assigned slots

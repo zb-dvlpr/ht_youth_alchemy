@@ -1,5 +1,6 @@
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
+import Tooltip from "./Tooltip";
 import { positionLabelFullByRoleId } from "@/lib/positions";
 import { SPECIALTY_EMOJI, SPECIALTY_NAMES } from "@/lib/specialty";
 
@@ -180,14 +181,17 @@ export default function PlayerDetailsPanel({
             </p>
           ) : null}
         </div>
-        <button
-          type="button"
-          className={styles.refreshButton}
-          onClick={onRefresh}
-          disabled={!selectedPlayer || loading}
-        >
-          {messages.refresh}
-        </button>
+        <Tooltip content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}>
+          <button
+            type="button"
+            className={styles.refreshButton}
+            onClick={onRefresh}
+            disabled={!selectedPlayer || loading}
+            aria-label={messages.refreshTooltip}
+          >
+            {messages.refresh}
+          </button>
+        </Tooltip>
       </div>
 
       {loading ? (

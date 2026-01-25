@@ -9,3 +9,6 @@
 
 ## Localization
 - Any new visible user-facing text must be added in a multi-language ready way (i.e., sourced from the i18n messages table rather than hardcoded).
+
+## Notifications
+- When the user specifies a notification message, use the notification framework.

@@ -2,6 +2,8 @@ import { cookies, headers } from "next/headers";
 import styles from "./page.module.css";
 import Dashboard from "./components/Dashboard";
 import LanguageSwitcher from "./components/LanguageSwitcher";
+import NotificationCenter from "./components/notifications/NotificationCenter";
+import { NotificationsProvider } from "./components/notifications/NotificationsProvider";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 // Ratings matrix now lives inside the dashboard column layout.
@@ -150,41 +152,46 @@ export default async function Home() {
 
   return (
     <main className={styles.main}>
-      <header className={styles.topBar}>
-        <div className={styles.brandRow}>
-          <span className={styles.brandTitle}>{messages.brandTitle}</span>
-          <span className={styles.version}>v{pkg.version}</span>
-        </div>
-        <div className={styles.topBarControls}>
-          <LanguageSwitcher locale={locale} label={messages.languageLabel} />
-          {isConnected ? (
-            <span className={styles.connectedBadge}>
-              {messages.connectedLabel}
-            </span>
-          ) : (
-            <a className={styles.connectButton} href="/api/chpp/oauth/start">
-              {messages.connectLabel}
-            </a>
-          )}
-        </div>
-      </header>
+      <NotificationsProvider>
+        <header className={styles.topBar}>
+          <div className={styles.brandRow}>
+            <span className={styles.brandTitle}>{messages.brandTitle}</span>
+            <span className={styles.version}>v{pkg.version}</span>
+          </div>
+          <NotificationCenter locale={locale} messages={messages} />
+          <div className={styles.topBarControls}>
+            <LanguageSwitcher locale={locale} label={messages.languageLabel} />
+            {isConnected ? (
+              <span className={styles.connectedBadge}>
+                {messages.connectedLabel}
+              </span>
+            ) : (
+              <a className={styles.connectButton} href="/api/chpp/oauth/start">
+                {messages.connectLabel}
+              </a>
+            )}
+          </div>
+        </header>
 
-      {playersResponse.error ? (
-        <div className={styles.errorBox}>
-          <h2 className={styles.sectionTitle}>{messages.unableToLoadPlayers}</h2>
-          <p className={styles.errorText}>{playersResponse.error}</p>
-          {playersResponse.details ? (
-            <p className={styles.errorDetails}>{playersResponse.details}</p>
-          ) : null}
-        </div>
-      ) : (
-        <Dashboard
-          players={players}
-          matchesResponse={matchesResponse}
-          ratingsResponse={ratingsResponse}
-          messages={messages}
-        />
-      )}
+        {playersResponse.error ? (
+          <div className={styles.errorBox}>
+            <h2 className={styles.sectionTitle}>
+              {messages.unableToLoadPlayers}
+            </h2>
+            <p className={styles.errorText}>{playersResponse.error}</p>
+            {playersResponse.details ? (
+              <p className={styles.errorDetails}>{playersResponse.details}</p>
+            ) : null}
+          </div>
+        ) : (
+          <Dashboard
+            players={players}
+            matchesResponse={matchesResponse}
+            ratingsResponse={ratingsResponse}
+            messages={messages}
+          />
+        )}
+      </NotificationsProvider>
     </main>
   );
 }

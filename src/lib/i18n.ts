@@ -80,6 +80,7 @@ export type Messages = {
   loadLineupUnavailable: string;
   loadLineupActive: string;
   loadLineupError: string;
+  notificationEmpty: string;
   trainingTitle: string;
   primaryTrainingLabel: string;
   secondaryTrainingLabel: string;
@@ -223,6 +224,7 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupUnavailable: "No saved lineup",
     loadLineupActive: "Loaded",
     loadLineupError: "Load failed",
+    notificationEmpty: "No notifications",
     trainingTitle: "Focused skill training",
     primaryTrainingLabel: "Primary",
     secondaryTrainingLabel: "Secondary",
@@ -364,6 +366,7 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupUnavailable: "Keine gespeicherte Aufstellung",
     loadLineupActive: "Geladen",
     loadLineupError: "Laden fehlgeschlagen",
+    notificationEmpty: "Keine Benachrichtigungen",
     trainingTitle: "Fokussiertes Skilltraining",
     primaryTrainingLabel: "Primär",
     secondaryTrainingLabel: "Sekundär",
@@ -507,6 +510,7 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupUnavailable: "Aucune composition enregistrée",
     loadLineupActive: "Chargé",
     loadLineupError: "Chargement échoué",
+    notificationEmpty: "Aucune notification",
     trainingTitle: "Entraînement ciblé",
     primaryTrainingLabel: "Principal",
     secondaryTrainingLabel: "Secondaire",
@@ -650,6 +654,7 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupUnavailable: "Sin alineación guardada",
     loadLineupActive: "Cargada",
     loadLineupError: "Error al cargar",
+    notificationEmpty: "Sin notificaciones",
     trainingTitle: "Entrenamiento enfocado",
     primaryTrainingLabel: "Principal",
     secondaryTrainingLabel: "Secundario",
@@ -792,6 +797,7 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupUnavailable: "Ingen sparad uppställning",
     loadLineupActive: "Laddad",
     loadLineupError: "Misslyckades att ladda",
+    notificationEmpty: "Inga aviseringar",
     trainingTitle: "Fokuserad träning",
     primaryTrainingLabel: "Primär",
     secondaryTrainingLabel: "Sekundär",
@@ -935,6 +941,7 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupUnavailable: "Nessuna formazione salvata",
     loadLineupActive: "Caricata",
     loadLineupError: "Caricamento non riuscito",
+    notificationEmpty: "Nessuna notifica",
     trainingTitle: "Allenamento mirato",
     primaryTrainingLabel: "Primario",
     secondaryTrainingLabel: "Secondario",
@@ -1078,6 +1085,7 @@ const MESSAGES: Record<Locale, Messages> = {
     loadLineupUnavailable: "Sem escalação salva",
     loadLineupActive: "Carregada",
     loadLineupError: "Falha ao carregar",
+    notificationEmpty: "Sem notificações",
     trainingTitle: "Treino focado",
     primaryTrainingLabel: "Primário",
     secondaryTrainingLabel: "Secundário",

@@ -389,6 +389,24 @@
   background: #f1e9dc;
 }
 
+.autoSelectButton {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  color: #3f362c;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 999px;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.autoSelectButton:hover {
+  background: #f1e9dc;
+  transform: translateY(-1px);
+}
+
 .detailsTitle {
   margin: 0;
   font-size: 18px;

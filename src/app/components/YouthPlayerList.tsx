@@ -37,6 +37,7 @@ type YouthPlayerListProps = {
   starPlayerId?: number | null;
   onToggleStar?: (playerId: number) => void;
   onSelect?: (playerId: number) => void;
+  onAutoSelect?: () => void;
   messages: Messages;
 };
 
@@ -86,6 +87,7 @@ export default function YouthPlayerList({
   starPlayerId,
   onToggleStar,
   onSelect,
+  onAutoSelect,
   messages,
 }: YouthPlayerListProps) {
   const [sortKey, setSortKey] = useState<SortKey>("name");
@@ -224,6 +226,15 @@ export default function YouthPlayerList({
           title={messages.sortToggleAria}
         >
           {sortDirection === "asc" ? "↕️" : "↕️"}
+        </button>
+        <button
+          type="button"
+          className={styles.autoSelectButton}
+          onClick={onAutoSelect}
+          title={messages.autoSelectTitle}
+          aria-label={messages.autoSelectTitle}
+        >
+          {messages.autoSelectLabel}
         </button>
       </div>
       {players.length === 0 ? (

@@ -84,6 +84,8 @@ export type Messages = {
   notificationAutoSelection: string;
   notificationLineupLoaded: string;
   notificationLineupSubmitted: string;
+  autoSelectLabel: string;
+  autoSelectTitle: string;
   trainingTitle: string;
   primaryTrainingLabel: string;
   secondaryTrainingLabel: string;
@@ -231,6 +233,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationAutoSelection: "Auto-selected",
     notificationLineupLoaded: "Lineup loaded:",
     notificationLineupSubmitted: "Lineup submitted:",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Auto-select star player and trainings",
     trainingTitle: "Focused skill training",
     primaryTrainingLabel: "Primary",
     secondaryTrainingLabel: "Secondary",
@@ -376,6 +380,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationAutoSelection: "Automatisch gewählt",
     notificationLineupLoaded: "Aufstellung geladen:",
     notificationLineupSubmitted: "Aufstellung gesendet:",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Starspieler und Training automatisch wählen",
     trainingTitle: "Fokussiertes Skilltraining",
     primaryTrainingLabel: "Primär",
     secondaryTrainingLabel: "Sekundär",
@@ -523,6 +529,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationAutoSelection: "Auto-sélection",
     notificationLineupLoaded: "Composition chargée :",
     notificationLineupSubmitted: "Composition envoyée :",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Auto-sélectionner joueur star et entraînements",
     trainingTitle: "Entraînement ciblé",
     primaryTrainingLabel: "Principal",
     secondaryTrainingLabel: "Secondaire",
@@ -670,6 +678,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationAutoSelection: "Auto-selección",
     notificationLineupLoaded: "Alineación cargada:",
     notificationLineupSubmitted: "Alineación enviada:",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Auto-seleccionar jugador estrella y entrenamientos",
     trainingTitle: "Entrenamiento enfocado",
     primaryTrainingLabel: "Principal",
     secondaryTrainingLabel: "Secundario",
@@ -816,6 +826,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationAutoSelection: "Auto-val",
     notificationLineupLoaded: "Uppställning laddad:",
     notificationLineupSubmitted: "Uppställning skickad:",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Auto-välj stjärnspelare och träningar",
     trainingTitle: "Fokuserad träning",
     primaryTrainingLabel: "Primär",
     secondaryTrainingLabel: "Sekundär",
@@ -963,6 +975,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationAutoSelection: "Auto-selezione",
     notificationLineupLoaded: "Formazione caricata:",
     notificationLineupSubmitted: "Formazione inviata:",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Auto-seleziona giocatore stella e allenamenti",
     trainingTitle: "Allenamento mirato",
     primaryTrainingLabel: "Primario",
     secondaryTrainingLabel: "Secondario",
@@ -1110,6 +1124,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationAutoSelection: "Auto-seleção",
     notificationLineupLoaded: "Escalação carregada:",
     notificationLineupSubmitted: "Escalação enviada:",
+    autoSelectLabel: "✨",
+    autoSelectTitle: "Auto-selecionar jogador estrela e treinos",
     trainingTitle: "Treino focado",
     primaryTrainingLabel: "Primário",
     secondaryTrainingLabel: "Secundário",

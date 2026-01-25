@@ -437,6 +437,22 @@ export default function Dashboard({
           setAutoSelectionApplied(false);
         }}
         onSelect={handleSelect}
+        onAutoSelect={() => {
+          if (!autoSelection) return;
+          setStarPlayerId(autoSelection.starPlayerId);
+          setPrimaryTraining(autoSelection.primarySkill);
+          setSecondaryTraining(autoSelection.secondarySkill ?? "");
+          setAutoSelectionApplied(true);
+          const playerName =
+            optimizerPlayers.find(
+              (player) => player.id === autoSelection.starPlayerId
+            )?.name ?? autoSelection.starPlayerId;
+          const primaryLabel = trainingLabel(autoSelection.primarySkill);
+          const secondaryLabel = trainingLabel(autoSelection.secondarySkill);
+          addNotification(
+            `${messages.notificationAutoSelection} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
+          );
+        }}
         messages={messages}
       />
       <div className={styles.columnStack}>

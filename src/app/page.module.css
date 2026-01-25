@@ -719,6 +719,32 @@
   letter-spacing: 0.4px;
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.optimizeButton {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #f7f1e3;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.optimizeButton:hover {
+  background: rgba(255, 255, 255, 0.26);
+  transform: translateY(-1px);
+}
+
+.optimizeButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
 }
 
 .lineupButton {
@@ -759,6 +785,126 @@
 .lineupButtonSecondary:hover {
   background: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
+}
+
+.optimizerSection {
+  margin-top: 12px;
+}
+
+.optimizerHeading {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #5b4a3d;
+  margin: 0 0 6px;
+}
+
+.optimizerOpen {
+  align-self: flex-start;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #3f4e3a;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.optimizerOpen:hover {
+  background: #2f3b2b;
+  transform: translateY(-1px);
+}
+
+.optimizerOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 17, 14, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 24px;
+}
+
+.optimizerModal {
+  width: min(860px, 92vw);
+  max-height: min(78vh, 880px);
+  background: #f7f3ec;
+  border-radius: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.optimizerModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  background: rgba(63, 53, 44, 0.08);
+  border-bottom: 1px solid rgba(63, 53, 44, 0.18);
+}
+
+.optimizerModalTitle {
+  margin: 0;
+  font-size: 16px;
+  color: #3f352c;
+}
+
+.optimizerClose {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #3f352c;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.optimizerClose:hover {
+  background: #2d261f;
+  transform: translateY(-1px);
+}
+
+.optimizerModalBody {
+  padding: 16px 18px 20px;
+  overflow: auto;
+  display: grid;
+  gap: 16px;
+}
+
+.optimizerTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  color: #2d261f;
+  background: rgba(255, 255, 255, 0.65);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.optimizerTable th,
+.optimizerTable td {
+  padding: 8px 10px;
+  border-bottom: 1px solid rgba(63, 53, 44, 0.12);
+  text-align: left;
+}
+
+.optimizerTable th {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5b4a3d;
+  background: rgba(63, 53, 44, 0.06);
+}
+
+.optimizerTable tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .fieldPitch {

@@ -10,6 +10,11 @@ import LineupField, { LineupAssignments } from "./LineupField";
 import UpcomingMatches from "./UpcomingMatches";
 import { Messages } from "@/lib/i18n";
 import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
+import {
+  optimizeLineupForStar,
+  type OptimizerPlayer,
+  type OptimizerDebug,
+} from "@/lib/optimizer";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -86,6 +91,10 @@ export default function Dashboard({
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
   const [primaryTraining, setPrimaryTraining] = useState<string>("");
   const [secondaryTraining, setSecondaryTraining] = useState<string>("");
+  const [optimizerDebug, setOptimizerDebug] = useState<OptimizerDebug | null>(
+    null
+  );
+  const [showOptimizerDebug, setShowOptimizerDebug] = useState(false);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -263,6 +272,33 @@ export default function Dashboard({
     setLoadedMatchId(null);
   };
 
+  const handleOptimize = () => {
+    if (!starPlayerId || !primaryTraining || !secondaryTraining) {
+      return;
+    }
+
+    const optimizerPlayers: OptimizerPlayer[] = players.map((player) => ({
+      id: player.YouthPlayerID,
+      name: [player.FirstName, player.NickName || null, player.LastName]
+        .filter(Boolean)
+        .join(" "),
+      skills:
+        playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
+        (player.PlayerSkills as OptimizerPlayer["skills"]) ??
+        null,
+    }));
+
+    const result = optimizeLineupForStar(
+      optimizerPlayers,
+      starPlayerId,
+      primaryTraining as "keeper" | "defending" | "playmaking" | "winger" | "passing" | "scoring" | "setpieces",
+      secondaryTraining as "keeper" | "defending" | "playmaking" | "winger" | "passing" | "scoring" | "setpieces"
+    );
+    setAssignments(result.lineup);
+    setOptimizerDebug(result.debug ?? null);
+    setLoadedMatchId(null);
+  };
+
   const refreshMatches = async () => {
     try {
       const response = await fetch("/api/chpp/matches?isYouth=true", {
@@ -282,6 +318,30 @@ export default function Dashboard({
 
   const detailsData = resolveDetails(details);
   const lastUpdated = selectedId ? cache[selectedId]?.fetchedAt ?? null : null;
+
+  const optimizeDisabledReason = !starPlayerId
+    ? messages.optimizeLineupNeedsStar
+    : !primaryTraining || !secondaryTraining
+    ? messages.optimizeLineupNeedsTraining
+    : messages.optimizeLineupTitle;
+
+  const optimizerCategoryLabel = (category: OptimizerDebug["primary"]["list"][number]["category"]) => {
+    switch (category) {
+      case "cat1":
+        return messages.optimizerCat1;
+      case "cat2":
+        return messages.optimizerCat2;
+      case "cat3":
+        return messages.optimizerCat3;
+      case "cat4":
+        return messages.optimizerCat4;
+      case "dontCare":
+      default:
+        return messages.optimizerCatDontCare;
+    }
+  };
+
+  const isDev = process.env.NODE_ENV !== "production";
 
   return (
     <div className={styles.dashboardGrid}>
@@ -330,7 +390,7 @@ export default function Dashboard({
                 <option value="winger">{messages.trainingWinger}</option>
                 <option value="passing">{messages.trainingPassing}</option>
                 <option value="scoring">{messages.trainingScoring}</option>
-                <option value="setPieces">{messages.trainingSetPieces}</option>
+                <option value="setpieces">{messages.trainingSetPieces}</option>
               </select>
             </label>
             <label className={styles.trainingRow}>
@@ -349,7 +409,7 @@ export default function Dashboard({
                 <option value="winger">{messages.trainingWinger}</option>
                 <option value="passing">{messages.trainingPassing}</option>
                 <option value="scoring">{messages.trainingScoring}</option>
-                <option value="setPieces">{messages.trainingSetPieces}</option>
+                <option value="setpieces">{messages.trainingSetPieces}</option>
               </select>
             </label>
           </div>
@@ -363,9 +423,130 @@ export default function Dashboard({
           onMove={moveSlot}
           onRandomize={randomizeLineup}
           onReset={resetLineup}
+          onOptimize={handleOptimize}
+          optimizeDisabled={!starPlayerId || !primaryTraining || !secondaryTraining}
+          optimizeDisabledReason={optimizeDisabledReason}
           onHoverPlayer={ensureDetails}
           messages={messages}
         />
+        {isDev && optimizerDebug ? (
+          <div className={styles.card}>
+            <h2 className={styles.sectionTitle}>{messages.optimizerDebugTitle}</h2>
+            <button
+              type="button"
+              className={styles.optimizerOpen}
+              onClick={() => setShowOptimizerDebug(true)}
+            >
+              {messages.optimizerDebugOpen}
+            </button>
+          </div>
+        ) : null}
+        {isDev && optimizerDebug && showOptimizerDebug ? (
+          <div
+            className={styles.optimizerOverlay}
+            role="dialog"
+            aria-modal="true"
+            aria-label={messages.optimizerDebugTitle}
+          >
+            <div className={styles.optimizerModal}>
+              <div className={styles.optimizerModalHeader}>
+                <h3 className={styles.optimizerModalTitle}>
+                  {messages.optimizerDebugTitle}
+                </h3>
+                <button
+                  type="button"
+                  className={styles.optimizerClose}
+                  onClick={() => setShowOptimizerDebug(false)}
+                >
+                  {messages.closeLabel}
+                </button>
+              </div>
+              <div className={styles.optimizerModalBody}>
+                <div className={styles.optimizerSection}>
+                  <h4 className={styles.optimizerHeading}>
+                    {messages.optimizerPrimaryLabel}
+                  </h4>
+                  <table className={styles.optimizerTable}>
+                    <thead>
+                      <tr>
+                        <th>{messages.optimizerColumnPlayer}</th>
+                        <th>{messages.optimizerColumnCategory}</th>
+                        <th>{messages.optimizerColumnCurrent}</th>
+                        <th>{messages.optimizerColumnMax}</th>
+                        <th>{messages.optimizerColumnRank}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {optimizerDebug.primary.list.map((entry) => (
+                        <tr key={entry.playerId}>
+                          <td>{entry.name ?? entry.playerId}</td>
+                          <td>{optimizerCategoryLabel(entry.category)}</td>
+                          <td>{entry.current ?? messages.unknownShort}</td>
+                          <td>{entry.max ?? messages.unknownShort}</td>
+                          <td>{entry.rankValue ?? messages.unknownShort}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                {optimizerDebug.secondary ? (
+                  <div className={styles.optimizerSection}>
+                    <h4 className={styles.optimizerHeading}>
+                      {messages.optimizerSecondaryLabel}
+                    </h4>
+                    <table className={styles.optimizerTable}>
+                      <thead>
+                        <tr>
+                          <th>{messages.optimizerColumnPlayer}</th>
+                          <th>{messages.optimizerColumnCategory}</th>
+                          <th>{messages.optimizerColumnCurrent}</th>
+                          <th>{messages.optimizerColumnMax}</th>
+                          <th>{messages.optimizerColumnRank}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {optimizerDebug.secondary.list.map((entry) => (
+                          <tr key={entry.playerId}>
+                            <td>{entry.name ?? entry.playerId}</td>
+                            <td>{optimizerCategoryLabel(entry.category)}</td>
+                            <td>{entry.current ?? messages.unknownShort}</td>
+                            <td>{entry.max ?? messages.unknownShort}</td>
+                            <td>{entry.rankValue ?? messages.unknownShort}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : null}
+                <div className={styles.optimizerSection}>
+                  <h4 className={styles.optimizerHeading}>
+                    {messages.optimizerSlotsLabel}
+                  </h4>
+                  <table className={styles.optimizerTable}>
+                    <tbody>
+                      <tr>
+                        <th>{messages.optimizerSlotsPrimary}</th>
+                        <td>{optimizerDebug.trainingSlots.primary.join(", ")}</td>
+                      </tr>
+                      <tr>
+                        <th>{messages.optimizerSlotsSecondary}</th>
+                        <td>{optimizerDebug.trainingSlots.secondary.join(", ")}</td>
+                      </tr>
+                      <tr>
+                        <th>{messages.optimizerSlotsAll}</th>
+                        <td>{optimizerDebug.trainingSlots.all.join(", ")}</td>
+                      </tr>
+                      <tr>
+                        <th>{messages.optimizerSlotsStar}</th>
+                        <td>{optimizerDebug.trainingSlots.starSlot}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
         <UpcomingMatches
           response={matchesState}
           messages={messages}

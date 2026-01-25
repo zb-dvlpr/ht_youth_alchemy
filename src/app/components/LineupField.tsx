@@ -32,6 +32,9 @@ type LineupFieldProps = {
   onMove?: (fromSlot: string, toSlot: string) => void;
   onRandomize?: () => void;
   onReset?: () => void;
+  onOptimize?: () => void;
+  optimizeDisabled?: boolean;
+  optimizeDisabledReason?: string;
   onHoverPlayer?: (playerId: number) => void;
   messages: Messages;
 };
@@ -116,6 +119,9 @@ export default function LineupField({
   onMove,
   onRandomize,
   onReset,
+  onOptimize,
+  optimizeDisabled = false,
+  optimizeDisabledReason,
   onHoverPlayer,
   messages,
 }: LineupFieldProps) {
@@ -154,7 +160,21 @@ export default function LineupField({
 
   return (
     <div className={styles.fieldCard}>
-      <div className={styles.fieldHeader}>{messages.lineupTitle}</div>
+      <div className={styles.fieldHeader}>
+        <span>{messages.lineupTitle}</span>
+        {onOptimize ? (
+          <button
+            type="button"
+            className={styles.optimizeButton}
+            onClick={onOptimize}
+            title={optimizeDisabled ? optimizeDisabledReason : messages.optimizeLineupTitle}
+            aria-label={optimizeDisabled ? optimizeDisabledReason : messages.optimizeLineupTitle}
+            disabled={optimizeDisabled}
+          >
+            ✨
+          </button>
+        ) : null}
+      </div>
       <div className={styles.fieldPitch}>
         <div className={styles.penaltyBox} />
         <div className={styles.penaltyArc} />

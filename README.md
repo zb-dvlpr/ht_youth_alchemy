@@ -50,6 +50,8 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Match order submission requires no more than 11 players assigned
 - Disabled submit explains why (too few or too many players)
 - Training selectors for primary/secondary focused youth training
+- Star-player optimizer (✨) fills training slots based on primary/secondary rankings
+- Dev-only optimizer debug modal with ranked lists and slots
 - Random lineup sets a keeper and fills any 10 other positions
 - Reset lineup button clears all assigned slots
 - Match orders are posted as form-encoded `lineup` JSON for CHPP compatibility
@@ -57,7 +59,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Lineup pitch layout scaffold (no position labels, uniform slot sizing)
 - Brand header with version number next to the title
 - Drag-and-drop lineup assignment (list → field slots, slot → slot with swap)
-- Placeholder for the optimizer module
+- Star-player optimization uses the cached youth skill details to choose training and lineup
 
 ## Local setup
 1) Install dependencies

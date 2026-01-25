@@ -153,6 +153,14 @@ function renderMatch(
     match.OrdersGiven === "True" ||
     match.OrdersGiven === true;
   const canLoad = Boolean(teamId) && isUpcoming && ordersSet;
+  const statusText =
+    match.Status === "UPCOMING"
+      ? messages.matchStatusUpcoming
+      : match.Status === "FINISHED"
+      ? messages.matchStatusFinished
+      : match.Status === "ONGOING"
+      ? messages.matchStatusOngoing
+      : match.Status ?? messages.unknownLabel;
   const lineupIssue =
     assignedCount && assignedCount > 11
       ? messages.submitOrdersMaxPlayers
@@ -170,7 +178,7 @@ function renderMatch(
       <div className={styles.matchMeta}>
         <span>{formatMatchDate(match.MatchDate, messages.unknownDate)}</span>
         <span>
-          {messages.statusLabel}: {match.Status ?? messages.unknownLabel}
+          {messages.statusLabel}: {statusText}
         </span>
         <span>
           {messages.ordersLabel}: {ordersSet ? messages.ordersSet : messages.ordersNotSet}

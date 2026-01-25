@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "../page.module.css";
 import YouthPlayerList from "./YouthPlayerList";
 import PlayerDetailsPanel, {
@@ -11,6 +11,7 @@ import UpcomingMatches from "./UpcomingMatches";
 import { Messages } from "@/lib/i18n";
 import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
 import {
+  getAutoSelection,
   optimizeLineupForStar,
   type OptimizerPlayer,
   type OptimizerDebug,
@@ -95,6 +96,7 @@ export default function Dashboard({
     null
   );
   const [showOptimizerDebug, setShowOptimizerDebug] = useState(false);
+  const [autoSelectionApplied, setAutoSelectionApplied] = useState(false);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -282,6 +284,10 @@ export default function Dashboard({
       name: [player.FirstName, player.NickName || null, player.LastName]
         .filter(Boolean)
         .join(" "),
+      age:
+        player.Age ??
+        playerDetailsById.get(player.YouthPlayerID)?.Age ??
+        null,
       skills:
         playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
         (player.PlayerSkills as OptimizerPlayer["skills"]) ??
@@ -292,7 +298,8 @@ export default function Dashboard({
       optimizerPlayers,
       starPlayerId,
       primaryTraining as "keeper" | "defending" | "playmaking" | "winger" | "passing" | "scoring" | "setpieces",
-      secondaryTraining as "keeper" | "defending" | "playmaking" | "winger" | "passing" | "scoring" | "setpieces"
+      secondaryTraining as "keeper" | "defending" | "playmaking" | "winger" | "passing" | "scoring" | "setpieces",
+      autoSelectionApplied
     );
     setAssignments(result.lineup);
     setOptimizerDebug(result.debug ?? null);
@@ -319,6 +326,41 @@ export default function Dashboard({
   const detailsData = resolveDetails(details);
   const lastUpdated = selectedId ? cache[selectedId]?.fetchedAt ?? null : null;
 
+  const optimizerPlayers = useMemo<OptimizerPlayer[]>(
+    () =>
+      players.map((player) => ({
+        id: player.YouthPlayerID,
+        name: [player.FirstName, player.NickName || null, player.LastName]
+          .filter(Boolean)
+          .join(" "),
+        age:
+          player.Age ??
+          playerDetailsById.get(player.YouthPlayerID)?.Age ??
+          null,
+        skills:
+          playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
+          (player.PlayerSkills as OptimizerPlayer["skills"]) ??
+          null,
+      })),
+    [players, playerDetailsById]
+  );
+
+  const autoSelection = useMemo(
+    () => getAutoSelection(optimizerPlayers),
+    [optimizerPlayers]
+  );
+
+  useEffect(() => {
+    if (starPlayerId || primaryTraining || secondaryTraining) return;
+    if (!autoSelection) return;
+    setStarPlayerId(autoSelection.starPlayerId);
+    setPrimaryTraining(autoSelection.primarySkill);
+    setSecondaryTraining(autoSelection.secondarySkill ?? "");
+    setAutoSelectionApplied(true);
+  }, [autoSelection, primaryTraining, secondaryTraining, starPlayerId]);
+
+  const manualReady = Boolean(starPlayerId && primaryTraining && secondaryTraining);
+
   const optimizeDisabledReason = !starPlayerId
     ? messages.optimizeLineupNeedsStar
     : !primaryTraining || !secondaryTraining
@@ -341,6 +383,27 @@ export default function Dashboard({
     }
   };
 
+  const trainingLabel = (skill: string | null) => {
+    switch (skill) {
+      case "keeper":
+        return messages.trainingKeeper;
+      case "defending":
+        return messages.trainingDefending;
+      case "playmaking":
+        return messages.trainingPlaymaking;
+      case "winger":
+        return messages.trainingWinger;
+      case "passing":
+        return messages.trainingPassing;
+      case "scoring":
+        return messages.trainingScoring;
+      case "setpieces":
+        return messages.trainingSetPieces;
+      default:
+        return messages.unknownShort;
+    }
+  };
+
   const isDev = process.env.NODE_ENV !== "production";
 
   return (
@@ -350,9 +413,10 @@ export default function Dashboard({
         assignedIds={assignedIds}
         selectedId={selectedId}
         starPlayerId={starPlayerId}
-        onToggleStar={(playerId) =>
-          setStarPlayerId((prev) => (prev === playerId ? null : playerId))
-        }
+        onToggleStar={(playerId) => {
+          setStarPlayerId((prev) => (prev === playerId ? null : playerId));
+          setAutoSelectionApplied(false);
+        }}
         onSelect={handleSelect}
         messages={messages}
       />
@@ -381,7 +445,10 @@ export default function Dashboard({
               <select
                 className={styles.trainingSelect}
                 value={primaryTraining}
-                onChange={(event) => setPrimaryTraining(event.target.value)}
+                onChange={(event) => {
+                  setPrimaryTraining(event.target.value);
+                  setAutoSelectionApplied(false);
+                }}
               >
                 <option value="">{messages.trainingUnset}</option>
                 <option value="keeper">{messages.trainingKeeper}</option>
@@ -400,7 +467,10 @@ export default function Dashboard({
               <select
                 className={styles.trainingSelect}
                 value={secondaryTraining}
-                onChange={(event) => setSecondaryTraining(event.target.value)}
+                onChange={(event) => {
+                  setSecondaryTraining(event.target.value);
+                  setAutoSelectionApplied(false);
+                }}
               >
                 <option value="">{messages.trainingUnset}</option>
                 <option value="keeper">{messages.trainingKeeper}</option>
@@ -424,7 +494,7 @@ export default function Dashboard({
           onRandomize={randomizeLineup}
           onReset={resetLineup}
           onOptimize={handleOptimize}
-          optimizeDisabled={!starPlayerId || !primaryTraining || !secondaryTraining}
+          optimizeDisabled={!manualReady}
           optimizeDisabledReason={optimizeDisabledReason}
           onHoverPlayer={ensureDetails}
           messages={messages}
@@ -462,6 +532,76 @@ export default function Dashboard({
                 </button>
               </div>
               <div className={styles.optimizerModalBody}>
+                <div className={styles.optimizerSection}>
+                  <h4 className={styles.optimizerHeading}>
+                    {messages.optimizerSelectionLabel}
+                  </h4>
+                  <table className={styles.optimizerTable}>
+                    <tbody>
+                      <tr>
+                        <th>{messages.optimizerSelectionStar}</th>
+                        <td>
+                          {optimizerDebug.primary.list.find(
+                            (entry) =>
+                              entry.playerId === optimizerDebug.selection.starPlayerId
+                          )?.name ?? optimizerDebug.selection.starPlayerId}
+                        </td>
+                      </tr>
+                      <tr>
+                        <th>{messages.optimizerSelectionPrimary}</th>
+                        <td>{trainingLabel(optimizerDebug.selection.primarySkill)}</td>
+                      </tr>
+                      <tr>
+                        <th>{messages.optimizerSelectionSecondary}</th>
+                        <td>
+                          {trainingLabel(optimizerDebug.selection.secondarySkill)}
+                        </td>
+                      </tr>
+                      <tr>
+                        <th>{messages.optimizerSelectionAuto}</th>
+                        <td>
+                          {optimizerDebug.selection.autoSelected
+                            ? messages.yesLabel
+                            : messages.noLabel}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                {optimizerDebug.starSelectionRanks ? (
+                  <div className={styles.optimizerSection}>
+                    <h4 className={styles.optimizerHeading}>
+                      {messages.optimizerStarRanksLabel}
+                    </h4>
+                    <table className={styles.optimizerTable}>
+                      <thead>
+                        <tr>
+                          <th>{messages.optimizerColumnPlayer}</th>
+                          <th>{messages.optimizerColumnCategory}</th>
+                          <th>{messages.optimizerColumnRank}</th>
+                          <th>{messages.optimizerColumnAge}</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[...optimizerDebug.starSelectionRanks]
+                          .sort((a, b) => {
+                            if (b.score !== a.score) return b.score - a.score;
+                            if (a.age === null || a.age === undefined) return 1;
+                            if (b.age === null || b.age === undefined) return -1;
+                            return a.age - b.age;
+                          })
+                          .map((entry) => (
+                            <tr key={`${entry.playerId}-${entry.skill}`}>
+                              <td>{entry.name ?? entry.playerId}</td>
+                              <td>{trainingLabel(entry.skill)}</td>
+                              <td>{entry.score}</td>
+                              <td>{entry.age ?? messages.unknownShort}</td>
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : null}
                 <div className={styles.optimizerSection}>
                   <h4 className={styles.optimizerHeading}>
                     {messages.optimizerPrimaryLabel}

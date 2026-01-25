@@ -34,6 +34,7 @@ export type PlayerSkillSet = {
 export type OptimizerPlayer = {
   id: number;
   name?: string;
+  age?: number | null;
   skills?: PlayerSkillSet | null;
 };
 
@@ -59,6 +60,19 @@ export type OptimizerDebug = {
     all: string[];
     starSlot: string;
   };
+  selection: {
+    starPlayerId: number;
+    primarySkill: SkillKey;
+    secondarySkill: SkillKey | null;
+    autoSelected: boolean;
+  };
+  starSelectionRanks?: Array<{
+    playerId: number;
+    name?: string;
+    skill: SkillKey;
+    score: number;
+    age?: number | null;
+  }>;
 };
 
 const ALL_SLOTS = [
@@ -116,6 +130,16 @@ const SKILL_MAP: Record<
   passing: { current: "PassingSkill", max: "PassingSkillMax" },
   scoring: { current: "ScorerSkill", max: "ScorerSkillMax" },
   setpieces: { current: "SetPiecesSkill", max: "SetPiecesSkillMax" },
+};
+
+const SKILL_PAIRS: Record<SkillKey, SkillKey[]> = {
+  scoring: ["passing"],
+  passing: ["scoring", "playmaking", "defending"],
+  playmaking: ["passing", "winger", "defending"],
+  winger: ["playmaking"],
+  defending: ["passing", "playmaking"],
+  keeper: ["setpieces"],
+  setpieces: ["keeper"],
 };
 
 function toNumber(value?: SkillValue): number | null {
@@ -192,6 +216,106 @@ function trainingSlotSet(primary: SkillKey, secondary: SkillKey) {
     secondarySkill: secondary,
     primarySlots,
     secondarySlots,
+  };
+}
+
+function chooseStarAndTraining(players: OptimizerPlayer[]) {
+  let best: {
+    playerId: number;
+    skill: SkillKey;
+    score: number;
+    age?: number | null;
+  } | null = null;
+  const candidates: Array<{
+    playerId: number;
+    name?: string;
+    skill: SkillKey;
+    score: number;
+    age?: number | null;
+  }> = [];
+  const skillKeys: SkillKey[] = [
+    "keeper",
+    "defending",
+    "playmaking",
+    "winger",
+    "passing",
+    "scoring",
+    "setpieces",
+  ];
+
+  players.forEach((player) => {
+    skillKeys.forEach((skill) => {
+      const { current, max } = skillValues(player, skill);
+      if (current === null || max === null) return;
+      if (current === max) return;
+      const score = current + max;
+      candidates.push({
+        playerId: player.id,
+        name: player.name,
+        skill,
+        score,
+        age: player.age ?? null,
+      });
+      if (!best || score > best.score) {
+        best = { playerId: player.id, skill, score, age: player.age };
+      } else if (best && score === best.score) {
+        const currentAge = player.age ?? null;
+        const bestAge = best.age ?? null;
+        if (currentAge !== null && (bestAge === null || currentAge < bestAge)) {
+          best = { playerId: player.id, skill, score, age: currentAge };
+        }
+      }
+    });
+  });
+
+  if (!best) return null;
+
+  const primarySkill = best.skill;
+  const starPlayer = players.find((player) => player.id === best!.playerId);
+  let secondarySkill: SkillKey | null = null;
+
+  if (starPlayer) {
+    const candidates = SKILL_PAIRS[primarySkill] ?? [];
+    for (const candidate of candidates) {
+      const { current, max } = skillValues(starPlayer, candidate);
+      if (current !== null && max !== null && current === max) {
+        continue;
+      }
+      secondarySkill = candidate;
+      break;
+    }
+  }
+
+  if (!secondarySkill) {
+    let bestSkill: SkillKey | null = null;
+    let bestRank = -1;
+    skillKeys.forEach((skill) => {
+      if (skill === primarySkill) return;
+      const ranking = buildSkillRanking(players, skill).ordered;
+      const topRank = ranking.find((entry) => entry.rankValue !== null)?.rankValue;
+      if (topRank !== undefined && topRank !== null && topRank > bestRank) {
+        bestRank = topRank;
+        bestSkill = skill;
+      }
+    });
+    secondarySkill = bestSkill;
+  }
+
+  return {
+    starPlayerId: best.playerId,
+    primarySkill,
+    secondarySkill,
+    candidates,
+  };
+}
+
+export function getAutoSelection(players: OptimizerPlayer[]) {
+  const auto = chooseStarAndTraining(players);
+  if (!auto) return null;
+  return {
+    starPlayerId: auto.starPlayerId,
+    primarySkill: auto.primarySkill,
+    secondarySkill: auto.secondarySkill,
   };
 }
 
@@ -349,16 +473,44 @@ function buildRemainingSlotOrder(remainingSlots: (typeof ALL_SLOTS)[number][]) {
 
 export function optimizeLineupForStar(
   players: OptimizerPlayer[],
-  starPlayerId: number,
-  primary: SkillKey,
-  secondary: SkillKey
+  starPlayerId: number | null,
+  primary: SkillKey | null,
+  secondary: SkillKey | null,
+  autoSelected = false
 ) {
-  const starPlayer = players.find((player) => player.id === starPlayerId);
+  let selection = {
+    starPlayerId: starPlayerId ?? 0,
+    primarySkill: primary ?? "passing",
+    secondarySkill: secondary ?? null,
+    autoSelected: false,
+  };
+
+  const autoCandidates = chooseStarAndTraining(players)?.candidates ?? null;
+  if (!starPlayerId || !primary || !secondary) {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+    };
+  }
+
+  selection = {
+    starPlayerId,
+    primarySkill: primary,
+    secondarySkill: secondary,
+    autoSelected,
+  };
+
+  const starPlayer = players.find(
+    (player) => player.id === selection.starPlayerId
+  );
   if (!starPlayer) {
     return { lineup: {} as LineupAssignments, debug: null as OptimizerDebug | null };
   }
 
-  const trainingInfo = trainingSlotSet(primary, secondary);
+  const trainingInfo = trainingSlotSet(
+    selection.primarySkill,
+    selection.secondarySkill ?? selection.primarySkill
+  );
   const primarySkill = trainingInfo.primarySkill;
   const secondarySkill = trainingInfo.secondarySkill;
   const primarySlots = trainingInfo.primarySlots;
@@ -505,6 +657,13 @@ export function optimizeLineupForStar(
         all: [...trainingSlots],
         starSlot,
       },
+      selection: {
+        starPlayerId: selection.starPlayerId,
+        primarySkill,
+        secondarySkill,
+        autoSelected: selection.autoSelected,
+      },
+      starSelectionRanks: autoCandidates ?? undefined,
     },
   };
 }

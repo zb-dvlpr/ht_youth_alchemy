@@ -256,17 +256,15 @@ export default function YouthPlayerList({
           type="button"
           className={styles.sortToggle}
           aria-label={messages.sortToggleAria}
-          onClick={() =>
-            setSortDirection((prev) => {
-              const next = prev === "asc" ? "desc" : "asc";
-              addNotification(
-                `${messages.notificationSortDirection} ${
-                  next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
-                }`
-              );
-              return next;
-            })
-          }
+          onClick={() => {
+            const next = sortDirection === "asc" ? "desc" : "asc";
+            setSortDirection(next);
+            addNotification(
+              `${messages.notificationSortDirection} ${
+                next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
+              }`
+            );
+          }}
           title={messages.sortToggleAria}
         >
           {sortDirection === "asc" ? "↕️" : "↕️"}

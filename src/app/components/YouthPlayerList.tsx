@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
+import { useNotifications } from "./notifications/NotificationsProvider";
 import { setDragGhost } from "@/lib/drag";
 
 type YouthPlayer = {
@@ -92,6 +93,35 @@ export default function YouthPlayerList({
 }: YouthPlayerListProps) {
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const { addNotification } = useNotifications();
+
+  const sortLabelForKey = (key: SortKey) => {
+    switch (key) {
+      case "age":
+        return messages.sortAge;
+      case "arrival":
+        return messages.sortArrival;
+      case "promotable":
+        return messages.sortPromotable;
+      case "keeper":
+        return messages.sortKeeper;
+      case "defender":
+        return messages.sortDefender;
+      case "playmaker":
+        return messages.sortPlaymaker;
+      case "winger":
+        return messages.sortWinger;
+      case "passing":
+        return messages.sortPassing;
+      case "scorer":
+        return messages.sortScorer;
+      case "setpieces":
+        return messages.sortSetPieces;
+      case "name":
+      default:
+        return messages.sortName;
+    }
+  };
   const handleDragStart = (
     event: React.DragEvent<HTMLButtonElement>,
     playerId: number
@@ -201,7 +231,13 @@ export default function YouthPlayerList({
           <select
             className={styles.sortSelect}
             value={sortKey}
-            onChange={(event) => setSortKey(event.target.value as SortKey)}
+            onChange={(event) => {
+              const nextKey = event.target.value as SortKey;
+              setSortKey(nextKey);
+              addNotification(
+                `${messages.notificationSortBy} ${sortLabelForKey(nextKey)}`
+              );
+            }}
           >
             <option value="name">{messages.sortName}</option>
             <option value="age">{messages.sortAge}</option>
@@ -221,7 +257,15 @@ export default function YouthPlayerList({
           className={styles.sortToggle}
           aria-label={messages.sortToggleAria}
           onClick={() =>
-            setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"))
+            setSortDirection((prev) => {
+              const next = prev === "asc" ? "desc" : "asc";
+              addNotification(
+                `${messages.notificationSortDirection} ${
+                  next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
+                }`
+              );
+              return next;
+            })
           }
           title={messages.sortToggleAria}
         >
@@ -260,7 +304,17 @@ export default function YouthPlayerList({
                     className={`${styles.starButton} ${
                       isStar ? styles.starButtonActive : ""
                     }`}
-                    onClick={() => onToggleStar?.(player.YouthPlayerID)}
+                    onClick={() => {
+                      if (!onToggleStar) return;
+                      onToggleStar(player.YouthPlayerID);
+                      if (isStar) {
+                        addNotification(messages.notificationStarCleared);
+                      } else {
+                        addNotification(
+                          `${messages.notificationStarSet} ${fullName}`
+                        );
+                      }
+                    }}
                     aria-label={messages.starPlayerLabel}
                     title={messages.starPlayerLabel}
                   >
@@ -271,7 +325,13 @@ export default function YouthPlayerList({
                     className={`${styles.playerButton} ${
                       isAssigned ? styles.playerAssigned : ""
                     }`}
-                    onClick={() => onSelect?.(player.YouthPlayerID)}
+                    onClick={() => {
+                      if (!onSelect) return;
+                      onSelect(player.YouthPlayerID);
+                      addNotification(
+                        `${messages.notificationPlayerSelected} ${fullName}`
+                      );
+                    }}
                     onDragStart={(event) =>
                       handleDragStart(event, player.YouthPlayerID)
                     }

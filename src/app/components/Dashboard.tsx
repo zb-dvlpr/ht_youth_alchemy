@@ -241,6 +241,7 @@ export default function Dashboard({
   };
 
   const randomizeLineup = () => {
+    if (!players.length) return;
     const outfieldSlots = [
       "WB_R",
       "CD_R",
@@ -270,11 +271,13 @@ export default function Dashboard({
     });
     setAssignments(next);
     setLoadedMatchId(null);
+    addNotification(messages.notificationLineupRandomized);
   };
 
   const resetLineup = () => {
     setAssignments({});
     setLoadedMatchId(null);
+    addNotification(messages.notificationLineupReset);
   };
 
   const handleOptimize = () => {
@@ -307,6 +310,9 @@ export default function Dashboard({
     setAssignments(result.lineup);
     setOptimizerDebug(result.debug ?? null);
     setLoadedMatchId(null);
+    if (Object.keys(result.lineup).length) {
+      addNotification(messages.notificationOptimizeApplied);
+    }
   };
 
   const refreshMatches = async () => {
@@ -503,8 +509,20 @@ export default function Dashboard({
                 className={styles.trainingSelect}
                 value={primaryTraining}
                 onChange={(event) => {
-                  setPrimaryTraining(event.target.value);
+                  const value = event.target.value;
+                  setPrimaryTraining(value);
                   setAutoSelectionApplied(false);
+                  if (value) {
+                    addNotification(
+                      `${messages.notificationPrimaryTrainingSet} ${trainingLabel(
+                        value
+                      )}`
+                    );
+                  } else {
+                    addNotification(
+                      `${messages.notificationTrainingCleared} ${messages.primaryTrainingLabel}`
+                    );
+                  }
                 }}
               >
                 <option value="">{messages.trainingUnset}</option>
@@ -525,8 +543,20 @@ export default function Dashboard({
                 className={styles.trainingSelect}
                 value={secondaryTraining}
                 onChange={(event) => {
-                  setSecondaryTraining(event.target.value);
+                  const value = event.target.value;
+                  setSecondaryTraining(value);
                   setAutoSelectionApplied(false);
+                  if (value) {
+                    addNotification(
+                      `${messages.notificationSecondaryTrainingSet} ${trainingLabel(
+                        value
+                      )}`
+                    );
+                  } else {
+                    addNotification(
+                      `${messages.notificationTrainingCleared} ${messages.secondaryTrainingLabel}`
+                    );
+                  }
                 }}
               >
                 <option value="">{messages.trainingUnset}</option>

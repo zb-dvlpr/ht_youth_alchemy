@@ -423,6 +423,40 @@
   background: #f2efe9;
 }
 
+@media (max-height: 900px) {
+  .main {
+    padding: 10px 14px 16px;
+  }
+
+  .topBar {
+    margin-bottom: 8px;
+    padding: 6px 10px;
+  }
+
+  .dashboardGrid {
+    gap: 14px;
+  }
+
+  .columnStack {
+    gap: 14px;
+  }
+
+  .card {
+    padding: 14px;
+  }
+
+  .sectionTitle {
+    margin-bottom: 12px;
+    font-size: 20px;
+  }
+}
+
+@media (max-height: 720px) {
+  .main {
+    overflow: auto;
+  }
+}
+
 .playerRow {
   display: flex;
   align-items: center;

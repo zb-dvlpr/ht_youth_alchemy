@@ -10,6 +10,7 @@ type TooltipProps = {
   offset?: number;
   disabled?: boolean;
   preferred?: "bottom" | "top";
+  fullWidth?: boolean;
 };
 
 type Position = { top: number; left: number };
@@ -22,6 +23,7 @@ export default function Tooltip({
   offset = 10,
   disabled,
   preferred = "bottom",
+  fullWidth = false,
 }: TooltipProps) {
   const triggerRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -78,12 +80,16 @@ export default function Tooltip({
   }, [open, updatePosition]);
 
   if (!content || disabled) {
-    return <span className={styles.trigger}>{children}</span>;
+    return (
+      <span className={fullWidth ? styles.triggerFull : styles.trigger}>
+        {children}
+      </span>
+    );
   }
 
   return (
     <span
-      className={styles.trigger}
+      className={fullWidth ? styles.triggerFull : styles.trigger}
       ref={triggerRef}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}

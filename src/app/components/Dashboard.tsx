@@ -10,6 +10,7 @@ import LineupField, { LineupAssignments } from "./LineupField";
 import UpcomingMatches from "./UpcomingMatches";
 import { Messages } from "@/lib/i18n";
 import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
+import Tooltip from "./Tooltip";
 import {
   getAutoSelection,
   getTrainingSlots,
@@ -685,24 +686,29 @@ export default function Dashboard({
         {isDev ? (
           <div className={styles.card}>
             <h2 className={styles.sectionTitle}>{messages.optimizerDebugTitle}</h2>
-            <button
-              type="button"
-              className={styles.optimizerOpen}
-              onClick={() => setShowOptimizerDebug(true)}
-              disabled={!optimizerDebug}
-              title={
-                optimizerDebug
-                  ? messages.optimizerDebugOpen
-                  : messages.optimizerDebugUnavailable
-              }
-              aria-label={
-                optimizerDebug
-                  ? messages.optimizerDebugOpen
-                  : messages.optimizerDebugUnavailable
+            <Tooltip
+              content={
+                <div className={styles.tooltipCard}>
+                  {optimizerDebug
+                    ? messages.optimizerDebugOpen
+                    : messages.optimizerDebugUnavailable}
+                </div>
               }
             >
-              {messages.optimizerDebugOpen}
-            </button>
+              <button
+                type="button"
+                className={styles.optimizerOpen}
+                onClick={() => setShowOptimizerDebug(true)}
+                disabled={!optimizerDebug}
+                aria-label={
+                  optimizerDebug
+                    ? messages.optimizerDebugOpen
+                    : messages.optimizerDebugUnavailable
+                }
+              >
+                {messages.optimizerDebugOpen}
+              </button>
+            </Tooltip>
           </div>
         ) : null}
         {isDev && optimizerDebug && showOptimizerDebug ? (

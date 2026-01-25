@@ -1,4 +1,9 @@
 .trigger {
+  display: inline-flex;
+  align-items: center;
+}
+
+.triggerFull {
   display: block;
   width: 100%;
   height: 100%;

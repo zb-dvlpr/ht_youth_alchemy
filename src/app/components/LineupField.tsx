@@ -170,16 +170,29 @@ export default function LineupField({
       <div className={styles.fieldHeader}>
         <span>{messages.lineupTitle}</span>
         {onOptimize ? (
-          <button
-            type="button"
-            className={styles.optimizeButton}
-            onClick={onOptimize}
-            title={optimizeDisabled ? optimizeDisabledReason : messages.optimizeLineupTitle}
-            aria-label={optimizeDisabled ? optimizeDisabledReason : messages.optimizeLineupTitle}
-            disabled={optimizeDisabled}
+          <Tooltip
+            content={
+              <div className={styles.tooltipCard}>
+                {optimizeDisabled
+                  ? optimizeDisabledReason
+                  : messages.optimizeLineupTitle}
+              </div>
+            }
           >
-            ✨
-          </button>
+            <button
+              type="button"
+              className={styles.optimizeButton}
+              onClick={onOptimize}
+              aria-label={
+                optimizeDisabled
+                  ? optimizeDisabledReason
+                  : messages.optimizeLineupTitle
+              }
+              disabled={optimizeDisabled}
+            >
+              ✨
+            </button>
+          </Tooltip>
         ) : null}
       </div>
       <div className={styles.fieldPitch}>
@@ -236,6 +249,9 @@ export default function LineupField({
                     <Tooltip
                       content={
                         <div className={styles.slotTooltipCard}>
+                          <div className={styles.slotTooltipHint}>
+                            {messages.dragPlayerHint}
+                          </div>
                           <div className={styles.slotTooltipGrid}>
                             {SKILL_ROWS.map((row) => {
                               const skillSource =
@@ -291,11 +307,11 @@ export default function LineupField({
                           </div>
                         </div>
                       }
+                      fullWidth
                     >
                       <div
                         className={styles.slotContent}
                         draggable
-                        title={messages.dragPlayerHint}
                         onMouseEnter={() => {
                           if (!assignedPlayer) return;
                           onHoverPlayer?.(assignedPlayer.YouthPlayerID);

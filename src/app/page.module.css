@@ -136,13 +136,6 @@
 }
 
 .connectedTooltip {
-  background: #f7f1e3;
-  border: 1px solid #d8cbb6;
-  border-radius: 10px;
-  padding: 8px 10px;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
-  font-size: 12px;
-  color: #2f2a22;
   max-width: 280px;
 }
 
@@ -156,6 +149,17 @@
   display: block;
   color: #4b4034;
   word-break: break-word;
+}
+
+.tooltipCard {
+  background: #f7f1e3;
+  border: 1px solid #d8cbb6;
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  font-size: 12px;
+  color: #2f2a22;
+  max-width: 300px;
 }
 .connectedPermissions {
   font-size: 11px;
@@ -1277,6 +1281,14 @@
   padding: 10px 12px;
   min-width: 260px;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+}
+
+.slotTooltipHint {
+  font-size: 11px;
+  color: #6b6256;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
 }
 
 .slotTooltipGrid {

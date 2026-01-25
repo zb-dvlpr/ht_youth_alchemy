@@ -5,6 +5,7 @@ import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { useNotifications } from "./notifications/NotificationsProvider";
+import Tooltip from "./Tooltip";
 import { setDragGhost } from "@/lib/drag";
 
 type YouthPlayer = {
@@ -252,32 +253,34 @@ export default function YouthPlayerList({
             <option value="setpieces">{messages.sortSetPieces}</option>
           </select>
         </label>
-        <button
-          type="button"
-          className={styles.sortToggle}
-          aria-label={messages.sortToggleAria}
-          onClick={() => {
-            const next = sortDirection === "asc" ? "desc" : "asc";
-            setSortDirection(next);
-            addNotification(
-              `${messages.notificationSortDirection} ${
-                next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
-              }`
-            );
-          }}
-          title={messages.sortToggleAria}
-        >
-          {sortDirection === "asc" ? "↕️" : "↕️"}
-        </button>
-        <button
-          type="button"
-          className={styles.autoSelectButton}
-          onClick={onAutoSelect}
-          title={messages.autoSelectTitle}
-          aria-label={messages.autoSelectTitle}
-        >
-          {messages.autoSelectLabel}
-        </button>
+        <Tooltip content={<div className={styles.tooltipCard}>{messages.sortToggleAria}</div>}>
+          <button
+            type="button"
+            className={styles.sortToggle}
+            aria-label={messages.sortToggleAria}
+            onClick={() => {
+              const next = sortDirection === "asc" ? "desc" : "asc";
+              setSortDirection(next);
+              addNotification(
+                `${messages.notificationSortDirection} ${
+                  next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
+                }`
+              );
+            }}
+          >
+            {sortDirection === "asc" ? "↕️" : "↕️"}
+          </button>
+        </Tooltip>
+        <Tooltip content={<div className={styles.tooltipCard}>{messages.autoSelectTitle}</div>}>
+          <button
+            type="button"
+            className={styles.autoSelectButton}
+            onClick={onAutoSelect}
+            aria-label={messages.autoSelectTitle}
+          >
+            {messages.autoSelectLabel}
+          </button>
+        </Tooltip>
       </div>
       {players.length === 0 ? (
         <p className={styles.muted}>{messages.noYouthPlayers}</p>
@@ -297,27 +300,30 @@ export default function YouthPlayerList({
             return (
               <li key={player.YouthPlayerID} className={styles.listItem}>
                 <div className={styles.playerRow}>
-                  <button
-                    type="button"
-                    className={`${styles.starButton} ${
-                      isStar ? styles.starButtonActive : ""
-                    }`}
-                    onClick={() => {
-                      if (!onToggleStar) return;
-                      onToggleStar(player.YouthPlayerID);
-                      if (isStar) {
-                        addNotification(messages.notificationStarCleared);
-                      } else {
-                        addNotification(
-                          `${messages.notificationStarSet} ${fullName}`
-                        );
-                      }
-                    }}
-                    aria-label={messages.starPlayerLabel}
-                    title={messages.starPlayerLabel}
+                  <Tooltip
+                    content={<div className={styles.tooltipCard}>{messages.starPlayerLabel}</div>}
                   >
-                    ★
-                  </button>
+                    <button
+                      type="button"
+                      className={`${styles.starButton} ${
+                        isStar ? styles.starButtonActive : ""
+                      }`}
+                      onClick={() => {
+                        if (!onToggleStar) return;
+                        onToggleStar(player.YouthPlayerID);
+                        if (isStar) {
+                          addNotification(messages.notificationStarCleared);
+                        } else {
+                          addNotification(
+                            `${messages.notificationStarSet} ${fullName}`
+                          );
+                        }
+                      }}
+                      aria-label={messages.starPlayerLabel}
+                    >
+                      ★
+                    </button>
+                  </Tooltip>
                   <button
                     type="button"
                     className={`${styles.playerButton} ${

@@ -63,7 +63,7 @@ export default function ConnectedStatus({ messages }: ConnectedStatusProps) {
     <div className={styles.connectedInfo}>
       <Tooltip
         content={
-          <div className={styles.connectedTooltip}>
+          <div className={`${styles.tooltipCard} ${styles.connectedTooltip}`}>
             <span className={styles.connectedTooltipLabel}>
               {messages.permissionsLabel}
             </span>
@@ -75,16 +75,17 @@ export default function ConnectedStatus({ messages }: ConnectedStatusProps) {
       >
         <span className={styles.connectedBadge}>{messages.connectedLabel}</span>
       </Tooltip>
-      <button
-        type="button"
-        className={styles.disconnectButton}
-        onClick={handleDisconnect}
-        title={messages.disconnectTitle}
-        aria-label={messages.disconnectTitle}
-        disabled={isDisconnecting}
-      >
-        ⏻
-      </button>
+      <Tooltip content={<div className={styles.tooltipCard}>{messages.disconnectTitle}</div>}>
+        <button
+          type="button"
+          className={styles.disconnectButton}
+          onClick={handleDisconnect}
+          aria-label={messages.disconnectTitle}
+          disabled={isDisconnecting}
+        >
+          ⏻
+        </button>
+      </Tooltip>
     </div>
   );
 }

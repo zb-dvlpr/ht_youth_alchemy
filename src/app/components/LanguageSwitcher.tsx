@@ -3,6 +3,7 @@
 import { useState } from "react";
 import styles from "../page.module.css";
 import { Locale, SUPPORTED_LOCALES } from "@/lib/i18n";
+import Tooltip from "./Tooltip";
 
 type LanguageSwitcherProps = {
   locale: Locale;
@@ -57,12 +58,9 @@ export default function LanguageSwitcher({
         ))}
       </select>
       {isChanging ? (
-        <span
-          className={styles.langSpinner}
-          role="status"
-          aria-label={switchingLabel}
-          title={switchingLabel}
-        />
+        <Tooltip content={<div className={styles.tooltipCard}>{switchingLabel}</div>}>
+          <span className={styles.langSpinner} role="status" />
+        </Tooltip>
       ) : null}
     </label>
   );

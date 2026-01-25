@@ -1207,6 +1207,25 @@
   transform: translateX(-50%) translateY(2px);
 }
 
+.slotTooltipRight {
+  left: auto;
+  right: 0;
+  transform: translateX(0);
+}
+
+.slotContent:hover .slotTooltipRight {
+  transform: translateX(0) translateY(2px);
+}
+
+.slotTooltipLeft {
+  left: 0;
+  transform: translateX(0);
+}
+
+.slotContent:hover .slotTooltipLeft {
+  transform: translateX(0) translateY(2px);
+}
+
 .slotTooltipCard {
   background: #f7f1e3;
   border: 1px solid #d8cbb6;

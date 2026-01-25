@@ -205,6 +205,11 @@ export default function LineupField({
                 : isSecondaryTrained
                 ? messages.trainingSlotSecondary
                 : null;
+              const tooltipAlignClass = position.id.endsWith("_R")
+                ? styles.slotTooltipRight
+                : position.id.endsWith("_L")
+                ? styles.slotTooltipLeft
+                : "";
               const assignedPlayer = assignedId
                 ? playersById.get(assignedId) ?? null
                 : null;
@@ -263,7 +268,9 @@ export default function LineupField({
                           {SPECIALTY_EMOJI[assignedPlayer.Specialty]}
                         </span>
                       ) : null}
-                      <div className={styles.slotTooltip}>
+                      <div
+                        className={`${styles.slotTooltip} ${tooltipAlignClass}`}
+                      >
                         <div className={styles.slotTooltipCard}>
                           <div className={styles.slotTooltipGrid}>
                             {SKILL_ROWS.map((row) => {

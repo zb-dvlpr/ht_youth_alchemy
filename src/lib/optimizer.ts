@@ -72,6 +72,8 @@ export type OptimizerDebug = {
     skill: SkillKey;
     score: number;
     age?: number | null;
+    current: number | null;
+    max: number | null;
   }>;
 };
 
@@ -232,6 +234,8 @@ function chooseStarAndTraining(players: OptimizerPlayer[]) {
     skill: SkillKey;
     score: number;
     age?: number | null;
+    current: number | null;
+    max: number | null;
   }> = [];
   const skillKeys: SkillKey[] = [
     "keeper",
@@ -246,15 +250,17 @@ function chooseStarAndTraining(players: OptimizerPlayer[]) {
   players.forEach((player) => {
     skillKeys.forEach((skill) => {
       const { current, max } = skillValues(player, skill);
-      if (current === null || max === null) return;
-      if (current === max) return;
-      const score = current + max;
+      if (current === null) return;
+      if (max !== null && current === max) return;
+      const score = current * 100 + (max !== null ? 50 + max : 0);
       candidates.push({
         playerId: player.id,
         name: player.name,
         skill,
         score,
         age: player.age ?? null,
+        current,
+        max,
       });
       if (!best || score > best.score) {
         best = { playerId: player.id, skill, score, age: player.age };

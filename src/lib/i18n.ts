@@ -45,6 +45,7 @@ export type Messages = {
   optimizerDebugTitle: string;
   optimizerDebugSummary: string;
   optimizerDebugOpen: string;
+  optimizerDebugUnavailable: string;
   optimizerPrimaryLabel: string;
   optimizerSecondaryLabel: string;
   optimizerSlotsLabel: string;
@@ -59,6 +60,7 @@ export type Messages = {
   optimizerColumnCurrent: string;
   optimizerColumnMax: string;
   optimizerColumnRank: string;
+  optimizerColumnValue: string;
   optimizerColumnAge: string;
   optimizerCat1: string;
   optimizerCat2: string;
@@ -194,6 +196,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerDebugTitle: "Optimizer debug",
     optimizerDebugSummary: "Show rankings",
     optimizerDebugOpen: "Show rankings",
+    optimizerDebugUnavailable: "Select a star player and trainings to view rankings",
     optimizerPrimaryLabel: "Primary ranking",
     optimizerSecondaryLabel: "Secondary ranking",
     optimizerSlotsLabel: "Slots",
@@ -208,7 +211,9 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerColumnCurrent: "Current",
     optimizerColumnMax: "Max",
     optimizerColumnRank: "Rank value",
+    optimizerColumnValue: "Value",
     optimizerColumnAge: "Age",
+    optimizerColumnValue: "Value",
     optimizerCat1: "Cat 1 (current+max)",
     optimizerCat2: "Cat 2 (unknown/unknown)",
     optimizerCat3: "Cat 3 (max only)",
@@ -341,6 +346,8 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerDebugTitle: "Optimizer-Debug",
     optimizerDebugSummary: "Rankings anzeigen",
     optimizerDebugOpen: "Rankings anzeigen",
+    optimizerDebugUnavailable:
+      "Starspieler und Trainings auswählen, um Rankings zu sehen",
     optimizerPrimaryLabel: "Primäres Ranking",
     optimizerSecondaryLabel: "Sekundäres Ranking",
     optimizerSlotsLabel: "Positionen",
@@ -356,6 +363,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerColumnMax: "Max",
     optimizerColumnRank: "Rangwert",
     optimizerColumnAge: "Alter",
+    optimizerColumnValue: "Wert",
     optimizerCat1: "Kat 1 (aktuell+max)",
     optimizerCat2: "Kat 2 (unbekannt/unbekannt)",
     optimizerCat3: "Kat 3 (nur max)",
@@ -490,6 +498,8 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerDebugTitle: "Debug optimiseur",
     optimizerDebugSummary: "Afficher les classements",
     optimizerDebugOpen: "Afficher les classements",
+    optimizerDebugUnavailable:
+      "Sélectionnez un joueur star et des entraînements pour voir les classements",
     optimizerPrimaryLabel: "Classement principal",
     optimizerSecondaryLabel: "Classement secondaire",
     optimizerSlotsLabel: "Postes",
@@ -505,6 +515,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerColumnMax: "Max",
     optimizerColumnRank: "Valeur de rang",
     optimizerColumnAge: "Âge",
+    optimizerColumnValue: "Valeur",
     optimizerCat1: "Cat 1 (actuel+max)",
     optimizerCat2: "Cat 2 (inconnu/inconnu)",
     optimizerCat3: "Cat 3 (max uniquement)",
@@ -639,6 +650,8 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerDebugTitle: "Depuración del optimizador",
     optimizerDebugSummary: "Mostrar rankings",
     optimizerDebugOpen: "Mostrar rankings",
+    optimizerDebugUnavailable:
+      "Elige un jugador estrella y entrenamientos para ver rankings",
     optimizerPrimaryLabel: "Ranking primario",
     optimizerSecondaryLabel: "Ranking secundario",
     optimizerSlotsLabel: "Posiciones",
@@ -654,6 +667,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerColumnMax: "Máx.",
     optimizerColumnRank: "Valor de ranking",
     optimizerColumnAge: "Edad",
+    optimizerColumnValue: "Valor",
     optimizerCat1: "Cat 1 (actual+máx.)",
     optimizerCat2: "Cat 2 (desconocido/desconocido)",
     optimizerCat3: "Cat 3 (solo máx.)",
@@ -787,6 +801,8 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerDebugTitle: "Optimeringsdebugg",
     optimizerDebugSummary: "Visa rankningar",
     optimizerDebugOpen: "Visa rankningar",
+    optimizerDebugUnavailable:
+      "Välj en stjärnspelare och träningar för att se rankningar",
     optimizerPrimaryLabel: "Primär ranking",
     optimizerSecondaryLabel: "Sekundär ranking",
     optimizerSlotsLabel: "Positioner",
@@ -802,6 +818,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerColumnMax: "Max",
     optimizerColumnRank: "Rankningsvärde",
     optimizerColumnAge: "Ålder",
+    optimizerColumnValue: "Värde",
     optimizerCat1: "Kat 1 (nuvarande+max)",
     optimizerCat2: "Kat 2 (okänd/okänd)",
     optimizerCat3: "Kat 3 (endast max)",
@@ -936,6 +953,8 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerDebugTitle: "Debug ottimizzatore",
     optimizerDebugSummary: "Mostra classifiche",
     optimizerDebugOpen: "Mostra classifiche",
+    optimizerDebugUnavailable:
+      "Seleziona un giocatore stella e gli allenamenti per vedere le classifiche",
     optimizerPrimaryLabel: "Classifica primaria",
     optimizerSecondaryLabel: "Classifica secondaria",
     optimizerSlotsLabel: "Posizioni",
@@ -951,6 +970,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerColumnMax: "Max",
     optimizerColumnRank: "Valore ranking",
     optimizerColumnAge: "Età",
+    optimizerColumnValue: "Valore",
     optimizerCat1: "Cat 1 (attuale+max)",
     optimizerCat2: "Cat 2 (sconosciuto/sconosciuto)",
     optimizerCat3: "Cat 3 (solo max)",
@@ -1085,6 +1105,8 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerDebugTitle: "Depuração do otimizador",
     optimizerDebugSummary: "Mostrar rankings",
     optimizerDebugOpen: "Mostrar rankings",
+    optimizerDebugUnavailable:
+      "Selecione um jogador estrela e treinos para ver rankings",
     optimizerPrimaryLabel: "Ranking primário",
     optimizerSecondaryLabel: "Ranking secundário",
     optimizerSlotsLabel: "Posições",
@@ -1100,6 +1122,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerColumnMax: "Máx.",
     optimizerColumnRank: "Valor do ranking",
     optimizerColumnAge: "Idade",
+    optimizerColumnValue: "Valor",
     optimizerCat1: "Cat 1 (atual+máx.)",
     optimizerCat2: "Cat 2 (desconhecido/desconhecido)",
     optimizerCat3: "Cat 3 (apenas máx.)",

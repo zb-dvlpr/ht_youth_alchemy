@@ -99,6 +99,7 @@ export default function Dashboard({
   const [showOptimizerDebug, setShowOptimizerDebug] = useState(false);
   const [autoSelectionApplied, setAutoSelectionApplied] = useState(false);
   const { addNotification } = useNotifications();
+  const isDev = process.env.NODE_ENV !== "production";
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -378,6 +379,29 @@ export default function Dashboard({
     starPlayerId,
   ]);
 
+  useEffect(() => {
+    if (!isDev) return;
+    if (!starPlayerId || !primaryTraining || !secondaryTraining) {
+      setOptimizerDebug(null);
+      return;
+    }
+    const result = optimizeLineupForStar(
+      optimizerPlayers,
+      starPlayerId,
+      primaryTraining,
+      secondaryTraining,
+      autoSelectionApplied
+    );
+    setOptimizerDebug(result.debug ?? null);
+  }, [
+    autoSelectionApplied,
+    isDev,
+    optimizerPlayers,
+    primaryTraining,
+    secondaryTraining,
+    starPlayerId,
+  ]);
+
   const manualReady = Boolean(starPlayerId && primaryTraining && secondaryTraining);
 
   const optimizeDisabledReason = !starPlayerId
@@ -422,8 +446,6 @@ export default function Dashboard({
         return messages.unknownShort;
     }
   };
-
-  const isDev = process.env.NODE_ENV !== "production";
 
   return (
     <div className={styles.dashboardGrid}>
@@ -534,13 +556,24 @@ export default function Dashboard({
           onHoverPlayer={ensureDetails}
           messages={messages}
         />
-        {isDev && optimizerDebug ? (
+        {isDev ? (
           <div className={styles.card}>
             <h2 className={styles.sectionTitle}>{messages.optimizerDebugTitle}</h2>
             <button
               type="button"
               className={styles.optimizerOpen}
               onClick={() => setShowOptimizerDebug(true)}
+              disabled={!optimizerDebug}
+              title={
+                optimizerDebug
+                  ? messages.optimizerDebugOpen
+                  : messages.optimizerDebugUnavailable
+              }
+              aria-label={
+                optimizerDebug
+                  ? messages.optimizerDebugOpen
+                  : messages.optimizerDebugUnavailable
+              }
             >
               {messages.optimizerDebugOpen}
             </button>
@@ -613,6 +646,7 @@ export default function Dashboard({
                         <tr>
                           <th>{messages.optimizerColumnPlayer}</th>
                           <th>{messages.optimizerColumnCategory}</th>
+                          <th>{messages.optimizerColumnValue}</th>
                           <th>{messages.optimizerColumnRank}</th>
                           <th>{messages.optimizerColumnAge}</th>
                         </tr>
@@ -629,6 +663,10 @@ export default function Dashboard({
                             <tr key={`${entry.playerId}-${entry.skill}`}>
                               <td>{entry.name ?? entry.playerId}</td>
                               <td>{trainingLabel(entry.skill)}</td>
+                              <td>
+                                {(entry.current ?? messages.unknownShort).toString()}/
+                                {(entry.max ?? messages.unknownShort).toString()}
+                              </td>
                               <td>{entry.score}</td>
                               <td>{entry.age ?? messages.unknownShort}</td>
                             </tr>

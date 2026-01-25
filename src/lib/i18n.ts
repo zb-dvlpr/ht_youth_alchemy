@@ -13,6 +13,26 @@ export const SUPPORTED_LOCALES: Locale[] = [
 export type Messages = {
   languageLabel: string;
   languageSwitching: string;
+  helpIcon: string;
+  helpOpenTooltip: string;
+  helpTitle: string;
+  helpIntro: string;
+  helpPurpose: string;
+  helpDesktop: string;
+  helpAi: string;
+  helpOverride: string;
+  helpOptimize: string;
+  helpSubmit: string;
+  helpNoAutoSubmit: string;
+  helpLoadLineup: string;
+  helpOptimizeLabel: string;
+  helpOptimizePrefix: string;
+  helpOptimizeSuffix: string;
+  helpSubmitLabel: string;
+  helpSubmitPrefix: string;
+  helpSubmitSuffix: string;
+  helpDrag: string;
+  helpDismissLabel: string;
   youthPlayerList: string;
   noYouthPlayers: string;
   assigned: string;
@@ -192,6 +212,37 @@ const MESSAGES: Record<Locale, Messages> = {
   en: {
     languageLabel: "Language",
     languageSwitching: "Switching language…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Open help",
+    helpTitle: "Welcome to Youth Alchemy",
+    helpIntro:
+      "This page is more than a viewer. It’s designed to help you build the most optimal lineup for your training plan.",
+    helpPurpose:
+      "Review youth players, get a ratings overview, and see match context.",
+    helpDesktop:
+      "This experience is currently optimized for desktop. Mobile support is coming later.",
+    helpAi:
+      "The AI selects a star player and recommends the best primary/secondary training combo around them.",
+    helpOverride:
+      "Override the star player or training types any time — the optimizer adapts to your choices.",
+    helpOptimize:
+      "Click ✨ Optimize in the lineup to generate the optimal 11 for the current training plan.",
+    helpSubmit:
+      "Use the Submit lineup buttons to send your lineup to Hattrick.",
+    helpNoAutoSubmit:
+      "Nothing is sent automatically — you always confirm before submitting.",
+    helpLoadLineup:
+      "Load lineup pulls saved orders from Hattrick and can replace your current lineup.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Click",
+    helpOptimizeSuffix:
+      "in the lineup to generate the optimal 11 for the current training plan.",
+    helpSubmitLabel: "Submit lineup",
+    helpSubmitPrefix: "Use the",
+    helpSubmitSuffix: "buttons to send your lineup to Hattrick.",
+    helpDrag:
+      "Drag players from the list into the lineup, and drag players in the lineup to swap positions.",
+    helpDismissLabel: "I understand",
     youthPlayerList: "Youth Player List",
     noYouthPlayers: "No youth players returned.",
     assigned: "Assigned",
@@ -369,6 +420,35 @@ const MESSAGES: Record<Locale, Messages> = {
   de: {
     languageLabel: "Sprache",
     languageSwitching: "Sprache wird gewechselt…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Hilfe öffnen",
+    helpTitle: "Willkommen bei Youth Alchemy",
+    helpIntro:
+      "Diese Seite ist mehr als eine Übersicht. Sie hilft dir, die optimale Aufstellung für dein Training zu finden.",
+    helpPurpose:
+      "Überblicke Jugendspieler, erhalte einen Rating‑Überblick und den Spielkontext.",
+    helpDesktop:
+      "Diese Ansicht ist aktuell für Desktop optimiert. Mobile Unterstützung folgt später.",
+    helpAi:
+      "Die KI wählt einen Starspieler und empfiehlt das beste Primär-/Sekundärtraining.",
+    helpOverride:
+      "Du kannst Starspieler oder Training jederzeit überschreiben — der Optimierer passt sich an.",
+    helpOptimize:
+      "Klicke auf ✨ Optimieren in der Aufstellung, um die beste Elf zu erzeugen.",
+    helpSubmit: "Sende die Aufstellung mit den Buttons an Hattrick.",
+    helpNoAutoSubmit:
+      "Es wird nichts automatisch gesendet — du bestätigst immer vor dem Senden.",
+    helpLoadLineup:
+      "Aufstellung laden holt gespeicherte Orders von Hattrick und kann deine aktuelle Aufstellung ersetzen.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Klicke auf",
+    helpOptimizeSuffix: "in der Aufstellung, um die beste Elf zu erzeugen.",
+    helpSubmitLabel: "Aufstellung senden",
+    helpSubmitPrefix: "Sende",
+    helpSubmitSuffix: "mit den Buttons an Hattrick.",
+    helpDrag:
+      "Ziehe Spieler aus der Liste in die Aufstellung und verschiebe Spieler, um Positionen zu tauschen.",
+    helpDismissLabel: "Verstanden",
     youthPlayerList: "Jugendspielerliste",
     noYouthPlayers: "Keine Jugendspieler gefunden.",
     assigned: "Zugewiesen",
@@ -547,6 +627,36 @@ const MESSAGES: Record<Locale, Messages> = {
   fr: {
     languageLabel: "Langue",
     languageSwitching: "Changement de langue…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Ouvrir l’aide",
+    helpTitle: "Bienvenue dans Youth Alchemy",
+    helpIntro:
+      "Cette page n’est pas seulement un lecteur. Elle sert surtout à optimiser votre onze pour l’entraînement.",
+    helpPurpose:
+      "Consultez les joueurs, un aperçu des notes et le contexte des matchs.",
+    helpDesktop:
+      "Cette expérience est optimisée pour ordinateur. Le mobile arrivera plus tard.",
+    helpAi:
+      "L’IA choisit un joueur vedette et propose la meilleure combinaison primaire/secondaire.",
+    helpOverride:
+      "Vous pouvez remplacer le joueur vedette ou les entraînements — l’optimiseur s’adapte.",
+    helpOptimize:
+      "Cliquez sur ✨ Optimiser pour générer le meilleur onze.",
+    helpSubmit:
+      "Utilisez les boutons d’envoi pour soumettre la composition à Hattrick.",
+    helpNoAutoSubmit:
+      "Rien n’est envoyé automatiquement — vous confirmez toujours avant l’envoi.",
+    helpLoadLineup:
+      "Charger la composition récupère les ordres Hattrick et peut remplacer votre onze actuel.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Cliquez sur",
+    helpOptimizeSuffix: "pour générer le meilleur onze.",
+    helpSubmitLabel: "Envoyer la composition",
+    helpSubmitPrefix: "Utilisez",
+    helpSubmitSuffix: "pour soumettre la composition à Hattrick.",
+    helpDrag:
+      "Faites glisser des joueurs depuis la liste et déplacez ceux de l’équipe pour changer de poste.",
+    helpDismissLabel: "J’ai compris",
     youthPlayerList: "Liste des joueurs jeunes",
     noYouthPlayers: "Aucun joueur jeune trouvé.",
     assigned: "Assigné",
@@ -728,6 +838,36 @@ const MESSAGES: Record<Locale, Messages> = {
   es: {
     languageLabel: "Idioma",
     languageSwitching: "Cambiando idioma…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Abrir ayuda",
+    helpTitle: "Bienvenido a Youth Alchemy",
+    helpIntro:
+      "Esta página no es solo un visor. Su objetivo principal es optimizar tu once para el entrenamiento.",
+    helpPurpose:
+      "Revisa jugadores, un resumen de ratings y el contexto de partidos.",
+    helpDesktop:
+      "Esta experiencia está optimizada para escritorio. Móvil más adelante.",
+    helpAi:
+      "La IA elige un jugador estrella y recomienda la mejor combinación primaria/secundaria.",
+    helpOverride:
+      "Puedes cambiar el jugador estrella o los entrenamientos — el optimizador se adapta.",
+    helpOptimize:
+      "Pulsa ✨ Optimizar para generar el once óptimo.",
+    helpSubmit:
+      "Usa los botones de envío para mandar la alineación a Hattrick.",
+    helpNoAutoSubmit:
+      "Nada se envía automáticamente — siempre confirmas antes de enviar.",
+    helpLoadLineup:
+      "Cargar alineación trae las órdenes guardadas en Hattrick y puede reemplazar tu once actual.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Pulsa",
+    helpOptimizeSuffix: "para generar el once óptimo.",
+    helpSubmitLabel: "Enviar alineación",
+    helpSubmitPrefix: "Usa",
+    helpSubmitSuffix: "para mandar la alineación a Hattrick.",
+    helpDrag:
+      "Arrastra jugadores desde la lista y mueve los del once para cambiar posiciones.",
+    helpDismissLabel: "Entendido",
     youthPlayerList: "Lista de jugadores juveniles",
     noYouthPlayers: "No se encontraron jugadores juveniles.",
     assigned: "Asignado",
@@ -909,6 +1049,36 @@ const MESSAGES: Record<Locale, Messages> = {
   sv: {
     languageLabel: "Språk",
     languageSwitching: "Byter språk…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Öppna hjälp",
+    helpTitle: "Välkommen till Youth Alchemy",
+    helpIntro:
+      "Den här sidan är mer än en vy. Den hjälper dig att optimera startelvan för träningen.",
+    helpPurpose:
+      "Granska spelare, få en rating‑översikt och matchkontext.",
+    helpDesktop:
+      "Den här vyn är just nu optimerad för desktop. Mobil kommer senare.",
+    helpAi:
+      "AI:n väljer en stjärnspelare och föreslår bästa primär/sekundär‑träningen.",
+    helpOverride:
+      "Du kan ändra stjärnspelare eller träning — optimeraren anpassar sig.",
+    helpOptimize:
+      "Klicka ✨ Optimera för att skapa den bästa elvan.",
+    helpSubmit:
+      "Använd knapparna för att skicka uppställningen till Hattrick.",
+    helpNoAutoSubmit:
+      "Inget skickas automatiskt — du bekräftar alltid innan du skickar.",
+    helpLoadLineup:
+      "Ladda uppställning hämtar sparade order från Hattrick och kan ersätta din nuvarande elva.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Klicka",
+    helpOptimizeSuffix: "för att skapa den bästa elvan.",
+    helpSubmitLabel: "Skicka uppställning",
+    helpSubmitPrefix: "Använd",
+    helpSubmitSuffix: "för att skicka uppställningen till Hattrick.",
+    helpDrag:
+      "Dra spelare från listan in i uppställningen och flytta spelare för att byta position.",
+    helpDismissLabel: "Jag förstår",
     youthPlayerList: "Ungdomsspelarlista",
     noYouthPlayers: "Inga ungdomsspelare hittades.",
     assigned: "Tilldelad",
@@ -1089,6 +1259,36 @@ const MESSAGES: Record<Locale, Messages> = {
   it: {
     languageLabel: "Lingua",
     languageSwitching: "Cambio lingua…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Apri aiuto",
+    helpTitle: "Benvenuto in Youth Alchemy",
+    helpIntro:
+      "Questa pagina non è solo una vista. Serve a ottimizzare l’undici per l’allenamento.",
+    helpPurpose:
+      "Consulta i giocatori, una panoramica dei rating e il contesto partita.",
+    helpDesktop:
+      "Questa esperienza è ottimizzata per desktop. Mobile in arrivo più avanti.",
+    helpAi:
+      "L’IA sceglie un giocatore stella e suggerisce la migliore coppia primario/secondario.",
+    helpOverride:
+      "Puoi cambiare giocatore stella o allenamenti — l’ottimizzatore si adatta.",
+    helpOptimize:
+      "Clicca ✨ Ottimizza per generare l’undici migliore.",
+    helpSubmit:
+      "Usa i pulsanti per inviare la formazione a Hattrick.",
+    helpNoAutoSubmit:
+      "Nulla viene inviato automaticamente — confermi sempre prima dell’invio.",
+    helpLoadLineup:
+      "Carica formazione recupera gli ordini di Hattrick e può sostituire la tua formazione attuale.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Clicca",
+    helpOptimizeSuffix: "per generare l’undici migliore.",
+    helpSubmitLabel: "Invia formazione",
+    helpSubmitPrefix: "Usa",
+    helpSubmitSuffix: "per inviare la formazione a Hattrick.",
+    helpDrag:
+      "Trascina i giocatori dalla lista e sposta quelli in campo per cambiare ruolo.",
+    helpDismissLabel: "Ho capito",
     youthPlayerList: "Lista giocatori giovanili",
     noYouthPlayers: "Nessun giocatore giovanile trovato.",
     assigned: "Assegnato",
@@ -1270,6 +1470,36 @@ const MESSAGES: Record<Locale, Messages> = {
   pt: {
     languageLabel: "Idioma",
     languageSwitching: "Alterando idioma…",
+    helpIcon: "ⓘ",
+    helpOpenTooltip: "Abrir ajuda",
+    helpTitle: "Bem-vindo ao Youth Alchemy",
+    helpIntro:
+      "Esta página é mais do que um visor. Ela ajuda a otimizar o onze para o treino.",
+    helpPurpose:
+      "Veja jogadores, uma visão geral de ratings e o contexto de partidas.",
+    helpDesktop:
+      "Esta experiência está otimizada para desktop. Mobile ficará para depois.",
+    helpAi:
+      "A IA escolhe um jogador estrela e recomenda o melhor par primário/secundário.",
+    helpOverride:
+      "Você pode substituir o jogador estrela ou os treinos — o otimizador se adapta.",
+    helpOptimize:
+      "Clique ✨ Otimizar para gerar o melhor onze.",
+    helpSubmit:
+      "Use os botões para enviar a escalação ao Hattrick.",
+    helpNoAutoSubmit:
+      "Nada é enviado automaticamente — você sempre confirma antes de enviar.",
+    helpLoadLineup:
+      "Carregar escalação busca ordens salvas no Hattrick e pode substituir a sua escalação atual.",
+    helpOptimizeLabel: "✨",
+    helpOptimizePrefix: "Clique",
+    helpOptimizeSuffix: "para gerar o melhor onze.",
+    helpSubmitLabel: "Enviar escalação",
+    helpSubmitPrefix: "Use",
+    helpSubmitSuffix: "para enviar a escalação ao Hattrick.",
+    helpDrag:
+      "Arraste jogadores da lista e mova os do time para trocar posições.",
+    helpDismissLabel: "Entendi",
     youthPlayerList: "Lista de jogadores juvenis",
     noYouthPlayers: "Nenhum jogador juvenil encontrado.",
     assigned: "Atribuído",

@@ -39,6 +39,26 @@
   gap: 12px;
 }
 
+.helpButton {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  color: #3f362c;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.helpButton:hover {
+  background: #f1e9dc;
+  transform: translateY(-1px);
+}
+
 .connectedInfo {
   display: flex;
   flex-direction: row;
@@ -221,11 +241,125 @@
   gap: 20px;
   grid-template-columns: minmax(200px, 0.8fr) minmax(360px, 1.4fr) minmax(320px, 1.2fr);
   align-items: start;
+  position: relative;
 }
 
 .columnStack {
   display: grid;
   gap: 20px;
+}
+
+.helpOverlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.helpArrows {
+  width: 100%;
+  height: 100%;
+}
+
+.helpArrow {
+  fill: none;
+  stroke: #3f362c;
+  stroke-width: 3px;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 6 8;
+}
+
+.helpArrowHead {
+  fill: #3f362c;
+}
+
+.helpCard {
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 12px 24px rgba(30, 20, 10, 0.12);
+  border: 1px solid #e7dcc9;
+  position: relative;
+  z-index: 5;
+}
+
+.helpCard ::selection {
+  background: transparent;
+  color: inherit;
+}
+
+.helpCard ::-moz-selection {
+  background: transparent;
+  color: inherit;
+}
+
+.helpTitle {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+
+.helpIntro {
+  margin: 0 0 10px;
+  color: #4d4236;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.helpList {
+  margin: 0 0 14px 18px;
+  padding: 0;
+  color: #3f362c;
+  font-size: 13px;
+  display: grid;
+  gap: 6px;
+}
+
+.helpLine {
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  display: inline;
+}
+
+.helpAnchor {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+  background: transparent;
+  box-shadow: none;
+}
+
+.helpCard span {
+  background: transparent;
+}
+
+.helpDismiss {
+  border: none;
+  background: #1f6f3f;
+  color: #f7f1e3;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.helpDismiss:hover {
+  background: #2f9f5b;
+  transform: translateY(-1px);
+}
+
+.helpDisabledColumn {
+  opacity: 0.35;
+  pointer-events: none;
+  filter: grayscale(0.2);
+}
+
+.helpSuppressed {
+  opacity: 0.35;
+  pointer-events: none;
+  filter: grayscale(0.2);
 }
 
 .matrixWrapper {

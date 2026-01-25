@@ -189,6 +189,7 @@ export default function LineupField({
                   : messages.optimizeLineupTitle
               }
               disabled={optimizeDisabled}
+              data-help-anchor="optimize"
             >
               ✨
             </button>

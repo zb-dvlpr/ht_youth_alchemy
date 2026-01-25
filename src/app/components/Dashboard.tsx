@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import YouthPlayerList from "./YouthPlayerList";
 import PlayerDetailsPanel, {
@@ -60,6 +60,7 @@ type DashboardProps = {
   matchesResponse: MatchesResponse;
   ratingsResponse: RatingsMatrixResponse | null;
   messages: Messages;
+  isConnected: boolean;
 };
 
 type CachedDetails = {
@@ -81,6 +82,7 @@ export default function Dashboard({
   matchesResponse,
   ratingsResponse,
   messages,
+  isConnected,
 }: DashboardProps) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
@@ -103,6 +105,12 @@ export default function Dashboard({
   const { addNotification } = useNotifications();
   const isDev = process.env.NODE_ENV !== "production";
   const storageKey = "ya_dashboard_state_v1";
+  const helpStorageKey = "ya_help_dismissed_v1";
+  const dashboardRef = useRef<HTMLDivElement | null>(null);
+  const helpCardRef = useRef<HTMLDivElement | null>(null);
+  const [showHelp, setShowHelp] = useState(false);
+  const [helpPaths, setHelpPaths] = useState<string[]>([]);
+  const [currentToken, setCurrentToken] = useState<string | null>(null);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -190,6 +198,122 @@ export default function Dashboard({
     selectedId,
     starPlayerId,
   ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!isConnected) {
+      setCurrentToken(null);
+      setShowHelp(false);
+      return;
+    }
+    const fetchToken = async () => {
+      try {
+        const response = await fetch("/api/chpp/oauth/check-token", {
+          cache: "no-store",
+        });
+        const payload = (await response.json()) as { raw?: string };
+        const raw = payload.raw ?? "";
+        const match = raw.match(/<Token>(.*?)<\/Token>/);
+        const token = match?.[1]?.trim() ?? null;
+        if (!token) return;
+        setCurrentToken(token);
+        const storedToken = window.localStorage.getItem(helpStorageKey);
+        if (storedToken !== token) {
+          setShowHelp(true);
+        }
+      } catch {
+        // ignore token check errors
+      }
+    };
+    fetchToken();
+  }, [isConnected]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = () => setShowHelp(true);
+    window.addEventListener("ya:help-open", handler);
+    return () => window.removeEventListener("ya:help-open", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!showHelp) {
+      setHelpPaths([]);
+      return;
+    }
+    const computePaths = () => {
+      const root = dashboardRef.current;
+      const helpCard = helpCardRef.current;
+      if (!root || !helpCard) return;
+      const rootRect = root.getBoundingClientRect();
+      const helpRect = helpCard.getBoundingClientRect();
+      const optimizeEl = root.querySelector(
+        "[data-help-anchor='optimize']"
+      ) as HTMLElement | null;
+      const submitEl = root.querySelector(
+        "[data-help-anchor='submit']"
+      ) as HTMLElement | null;
+      const optimizeTextEl = helpCard.querySelector(
+        "[data-help-text='optimize']"
+      ) as HTMLElement | null;
+      const submitTextEl = helpCard.querySelector(
+        "[data-help-text='submit']"
+      ) as HTMLElement | null;
+      const optimizeLineEl = helpCard.querySelector(
+        "[data-help-line='optimize']"
+      ) as HTMLElement | null;
+      const submitLineEl = helpCard.querySelector(
+        "[data-help-line='submit']"
+      ) as HTMLElement | null;
+
+      const paths: string[] = [];
+      const defaultStartX = helpRect.right - rootRect.left - 6;
+      const defaultStartY = helpRect.top - rootRect.top + 56;
+
+      const makePath = (
+        startEl: HTMLElement | null,
+        target: HTMLElement,
+        offsetY: number
+      ) => {
+        const rects =
+          startEl?.getClientRects() ??
+          (startEl ?? helpCard).getClientRects();
+        const startRect = rects.length ? rects[rects.length - 1] : null;
+        const startX = startRect
+          ? startRect.right - rootRect.left
+          : defaultStartX;
+        const startY = startRect
+          ? startRect.top - rootRect.top + startRect.height / 2 + offsetY
+          : defaultStartY + offsetY;
+        const targetRect = target.getBoundingClientRect();
+        const endX =
+          targetRect.left - rootRect.left + targetRect.width / 2;
+        const endY =
+          targetRect.top - rootRect.top + targetRect.height / 2 + offsetY;
+        const midX = (startX + endX) / 2 + 80;
+        const midY = (startY + endY) / 2 - 40;
+        return `M ${startX} ${startY} Q ${midX} ${midY} ${endX} ${endY}`;
+      };
+
+      if (optimizeEl) {
+        paths.push(makePath(optimizeLineEl ?? optimizeTextEl, optimizeEl, 0));
+      }
+      if (submitEl) {
+        paths.push(makePath(submitLineEl ?? submitTextEl, submitEl, 0));
+      }
+
+      setHelpPaths(paths);
+    };
+
+    const schedule = () => {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(computePaths);
+      });
+    };
+
+    schedule();
+    window.addEventListener("resize", schedule);
+    return () => window.removeEventListener("resize", schedule);
+  }, [showHelp, messages]);
 
   const loadDetails = async (playerId: number, forceRefresh = false) => {
     const cached = cache[playerId];
@@ -550,50 +674,141 @@ export default function Dashboard({
   }, [primaryTraining, secondaryTraining]);
 
   return (
-    <div className={styles.dashboardGrid}>
-      <YouthPlayerList
-        players={players}
-        assignedIds={assignedIds}
-        selectedId={selectedId}
-        starPlayerId={starPlayerId}
-        onToggleStar={(playerId) => {
-          setStarPlayerId((prev) => (prev === playerId ? null : playerId));
-          setAutoSelectionApplied(false);
-        }}
-        onSelect={handleSelect}
-        onAutoSelect={() => {
-          if (!autoSelection) return;
-          setStarPlayerId(autoSelection.starPlayerId);
-          setPrimaryTraining(autoSelection.primarySkill);
-          setSecondaryTraining(autoSelection.secondarySkill ?? "");
-          setAutoSelectionApplied(true);
-          const playerName =
-            optimizerPlayers.find(
-              (player) => player.id === autoSelection.starPlayerId
-            )?.name ?? autoSelection.starPlayerId;
-          const primaryLabel = trainingLabel(autoSelection.primarySkill);
-          const secondaryLabel = trainingLabel(autoSelection.secondarySkill);
-          addNotification(
-            `${messages.notificationAutoSelection} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
-          );
-        }}
-        messages={messages}
-      />
-      <div className={styles.columnStack}>
-        <PlayerDetailsPanel
-          selectedPlayer={selectedPlayer}
-          detailsData={detailsData}
-          loading={loading}
-          error={error}
-          lastUpdated={lastUpdated}
-          onRefresh={() =>
-            selectedId ? loadDetails(selectedId, true) : undefined
-          }
+    <div className={styles.dashboardGrid} ref={dashboardRef}>
+      {showHelp ? (
+        <div className={styles.helpOverlay} aria-hidden="true">
+          <svg className={styles.helpArrows} role="presentation">
+            <defs>
+              <marker
+                id="helpArrowHead"
+                markerWidth="10"
+                markerHeight="8"
+                refX="8"
+                refY="4"
+                orient="auto"
+                markerUnits="strokeWidth"
+              >
+                <path
+                  d="M 0 0 L 10 4 L 0 8 Z"
+                  className={styles.helpArrowHead}
+                />
+              </marker>
+            </defs>
+            {helpPaths.map((path) => (
+              <path
+                key={path}
+                d={path}
+                className={styles.helpArrow}
+                markerEnd="url(#helpArrowHead)"
+              />
+            ))}
+          </svg>
+        </div>
+      ) : null}
+      <div
+        className={showHelp ? styles.helpDisabledColumn : undefined}
+        aria-hidden={showHelp ? "true" : undefined}
+      >
+        <YouthPlayerList
+          players={players}
+          assignedIds={assignedIds}
+          selectedId={selectedId}
+          starPlayerId={starPlayerId}
+          onToggleStar={(playerId) => {
+            setStarPlayerId((prev) => (prev === playerId ? null : playerId));
+            setAutoSelectionApplied(false);
+          }}
+          onSelect={handleSelect}
+          onAutoSelect={() => {
+            if (!autoSelection) return;
+            setStarPlayerId(autoSelection.starPlayerId);
+            setPrimaryTraining(autoSelection.primarySkill);
+            setSecondaryTraining(autoSelection.secondarySkill ?? "");
+            setAutoSelectionApplied(true);
+            const playerName =
+              optimizerPlayers.find(
+                (player) => player.id === autoSelection.starPlayerId
+              )?.name ?? autoSelection.starPlayerId;
+            const primaryLabel = trainingLabel(autoSelection.primarySkill);
+            const secondaryLabel = trainingLabel(autoSelection.secondarySkill);
+            addNotification(
+              `${messages.notificationAutoSelection} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
+            );
+          }}
           messages={messages}
         />
-        <RatingsMatrix response={ratingsResponse} messages={messages} />
       </div>
       <div className={styles.columnStack}>
+        {showHelp ? (
+          <div className={styles.helpCard} ref={helpCardRef}>
+            <h2 className={styles.helpTitle}>{messages.helpTitle}</h2>
+            <p className={styles.helpIntro}>{messages.helpIntro}</p>
+            <ul className={styles.helpList}>
+              <li>{messages.helpPurpose}</li>
+              <li>{messages.helpAi}</li>
+              <li>{messages.helpOverride}</li>
+              <li>{messages.helpNoAutoSubmit}</li>
+              <li>{messages.helpLoadLineup}</li>
+              <li>
+                <span data-help-line="optimize" className={styles.helpLine}>
+                  {messages.helpOptimizePrefix}{" "}
+                  <span data-help-text="optimize" className={styles.helpAnchor}>
+                    {messages.helpOptimizeLabel}
+                  </span>{" "}
+                  {messages.helpOptimizeSuffix}
+                </span>
+              </li>
+              <li>
+                <span data-help-line="submit" className={styles.helpLine}>
+                  {messages.helpSubmitPrefix}{" "}
+                  <span data-help-text="submit" className={styles.helpAnchor}>
+                    {messages.helpSubmitLabel}
+                  </span>{" "}
+                  {messages.helpSubmitSuffix}
+                </span>
+              </li>
+              <li>{messages.helpDrag}</li>
+              <li>{messages.helpDesktop}</li>
+            </ul>
+            <button
+              type="button"
+              className={styles.helpDismiss}
+              onClick={() => {
+                setShowHelp(false);
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem(
+                    helpStorageKey,
+                    currentToken ?? "1"
+                  );
+                }
+              }}
+            >
+              {messages.helpDismissLabel}
+            </button>
+          </div>
+        ) : (
+          <>
+            <PlayerDetailsPanel
+              selectedPlayer={selectedPlayer}
+              detailsData={detailsData}
+              loading={loading}
+              error={error}
+              lastUpdated={lastUpdated}
+              onRefresh={() =>
+                selectedId ? loadDetails(selectedId, true) : undefined
+              }
+              messages={messages}
+            />
+            <RatingsMatrix response={ratingsResponse} messages={messages} />
+          </>
+        )}
+      </div>
+      <div
+        className={`${styles.columnStack} ${
+          showHelp ? styles.helpDisabledColumn : ""
+        }`}
+        aria-hidden={showHelp ? "true" : undefined}
+      >
         <div className={styles.card}>
           <h2 className={styles.sectionTitle}>{messages.trainingTitle}</h2>
           <div className={styles.trainingControls}>

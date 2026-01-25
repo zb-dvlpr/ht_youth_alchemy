@@ -221,6 +221,33 @@ function trainingSlotSet(primary: SkillKey, secondary: SkillKey) {
   };
 }
 
+export function getTrainingSlots(primary: SkillKey | null, secondary: SkillKey | null) {
+  if (!primary) {
+    return {
+      primarySlots: new Set<(typeof ALL_SLOTS)[number]>(),
+      secondarySlots: new Set<(typeof ALL_SLOTS)[number]>(),
+      allSlots: new Set<(typeof ALL_SLOTS)[number]>(),
+    };
+  }
+  const primarySlots = slotsForSkill(primary);
+  if (!secondary || secondary === primary) {
+    return {
+      primarySlots,
+      secondarySlots: new Set(primarySlots),
+      allSlots: new Set(primarySlots),
+    };
+  }
+  const secondarySlots = slotsForSkill(secondary);
+  return {
+    primarySlots,
+    secondarySlots,
+    allSlots: new Set<(typeof ALL_SLOTS)[number]>([
+      ...primarySlots,
+      ...secondarySlots,
+    ]),
+  };
+}
+
 function chooseStarAndTraining(players: OptimizerPlayer[]) {
   let best: {
     playerId: number;

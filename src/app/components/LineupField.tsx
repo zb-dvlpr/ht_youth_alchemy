@@ -35,6 +35,11 @@ type LineupFieldProps = {
   onOptimize?: () => void;
   optimizeDisabled?: boolean;
   optimizeDisabledReason?: string;
+  trainedSlots?: {
+    primary: Set<string>;
+    secondary: Set<string>;
+    all: Set<string>;
+  };
   onHoverPlayer?: (playerId: number) => void;
   messages: Messages;
 };
@@ -122,6 +127,7 @@ export default function LineupField({
   onOptimize,
   optimizeDisabled = false,
   optimizeDisabledReason,
+  trainedSlots,
   onHoverPlayer,
   messages,
 }: LineupFieldProps) {
@@ -188,6 +194,17 @@ export default function LineupField({
           >
             {row.positions.map((position) => {
               const assignedId = assignments[position.id] ?? null;
+              const isPrimaryTrained = trainedSlots?.primary?.has(position.id) ?? false;
+              const isSecondaryTrained =
+                trainedSlots?.secondary?.has(position.id) ?? false;
+              const isTrained = trainedSlots?.all?.has(position.id) ?? false;
+              const trainingLabel = isPrimaryTrained && isSecondaryTrained
+                ? messages.trainingSlotBoth
+                : isPrimaryTrained
+                ? messages.trainingSlotPrimary
+                : isSecondaryTrained
+                ? messages.trainingSlotSecondary
+                : null;
               const assignedPlayer = assignedId
                 ? playersById.get(assignedId) ?? null
                 : null;
@@ -206,7 +223,11 @@ export default function LineupField({
               return (
                 <div
                   key={position.id}
-                  className={styles.fieldSlot}
+                  className={`${styles.fieldSlot} ${
+                    isTrained ? styles.trainedSlot : ""
+                  } ${isPrimaryTrained ? styles.trainedPrimary : ""} ${
+                    isSecondaryTrained ? styles.trainedSecondary : ""
+                  }`}
                   onDrop={(event) => handleDrop(position.id, event)}
                   onDragOver={handleDragOver}
                 >
@@ -308,6 +329,9 @@ export default function LineupField({
                         ×
                       </button>
                     </div>
+                  ) : null}
+                  {trainingLabel ? (
+                    <span className={styles.trainingTag}>{trainingLabel}</span>
                   ) : null}
                 </div>
               );

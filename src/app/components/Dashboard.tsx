@@ -12,6 +12,7 @@ import { Messages } from "@/lib/i18n";
 import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
 import {
   getAutoSelection,
+  getTrainingSlots,
   optimizeLineupForStar,
   type OptimizerPlayer,
   type OptimizerDebug,
@@ -453,6 +454,39 @@ export default function Dashboard({
     }
   };
 
+  const trainingSlots = useMemo(() => {
+    if (!primaryTraining || !secondaryTraining) {
+      return {
+        primary: new Set<string>(),
+        secondary: new Set<string>(),
+        all: new Set<string>(),
+      };
+    }
+    const slots = getTrainingSlots(
+      primaryTraining as
+        | "keeper"
+        | "defending"
+        | "playmaking"
+        | "winger"
+        | "passing"
+        | "scoring"
+        | "setpieces",
+      secondaryTraining as
+        | "keeper"
+        | "defending"
+        | "playmaking"
+        | "winger"
+        | "passing"
+        | "scoring"
+        | "setpieces"
+    );
+    return {
+      primary: slots.primarySlots,
+      secondary: slots.secondarySlots,
+      all: slots.allSlots,
+    };
+  }, [primaryTraining, secondaryTraining]);
+
   return (
     <div className={styles.dashboardGrid}>
       <YouthPlayerList
@@ -583,6 +617,7 @@ export default function Dashboard({
           onOptimize={handleOptimize}
           optimizeDisabled={!manualReady}
           optimizeDisabledReason={optimizeDisabledReason}
+          trainedSlots={trainingSlots}
           onHoverPlayer={ensureDetails}
           messages={messages}
         />

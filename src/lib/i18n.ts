@@ -110,6 +110,9 @@ export type Messages = {
   trainingPassing: string;
   trainingScoring: string;
   trainingSetPieces: string;
+  trainingSlotPrimary: string;
+  trainingSlotSecondary: string;
+  trainingSlotBoth: string;
   starPlayerLabel: string;
   sortLabel: string;
   sortName: string;
@@ -274,6 +277,9 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Passing",
     trainingScoring: "Scoring",
     trainingSetPieces: "Set pieces",
+    trainingSlotPrimary: "Primary",
+    trainingSlotSecondary: "Secondary",
+    trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Set star player",
     sortLabel: "Sort by",
     sortName: "Name",
@@ -437,6 +443,9 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Passen",
     trainingScoring: "Torschuss",
     trainingSetPieces: "Standards",
+    trainingSlotPrimary: "Primär",
+    trainingSlotSecondary: "Sekundär",
+    trainingSlotBoth: "Pri/sek",
     starPlayerLabel: "Starspieler festlegen",
     sortLabel: "Sortieren nach",
     sortName: "Name",
@@ -602,6 +611,9 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Passe",
     trainingScoring: "Buteur",
     trainingSetPieces: "Coups de pied arrêtés",
+    trainingSlotPrimary: "Primaire",
+    trainingSlotSecondary: "Secondaire",
+    trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Définir joueur star",
     sortLabel: "Trier par",
     sortName: "Nom",
@@ -767,6 +779,9 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Pase",
     trainingScoring: "Anotador",
     trainingSetPieces: "Balón parado",
+    trainingSlotPrimary: "Primario",
+    trainingSlotSecondary: "Secundario",
+    trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Definir jugador estrella",
     sortLabel: "Ordenar por",
     sortName: "Nombre",
@@ -931,6 +946,9 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Passning",
     trainingScoring: "Anfall",
     trainingSetPieces: "Fasta situationer",
+    trainingSlotPrimary: "Primär",
+    trainingSlotSecondary: "Sekundär",
+    trainingSlotBoth: "Pri/sek",
     starPlayerLabel: "Ange stjärnspelare",
     sortLabel: "Sortera efter",
     sortName: "Namn",
@@ -1096,6 +1114,9 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Passaggi",
     trainingScoring: "Attacco",
     trainingSetPieces: "Calci piazzati",
+    trainingSlotPrimary: "Primario",
+    trainingSlotSecondary: "Secondario",
+    trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Imposta giocatore stella",
     sortLabel: "Ordina per",
     sortName: "Nome",
@@ -1261,6 +1282,9 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingPassing: "Passe",
     trainingScoring: "Artilheiro",
     trainingSetPieces: "Bolas paradas",
+    trainingSlotPrimary: "Primário",
+    trainingSlotSecondary: "Secundário",
+    trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Definir jogador estrela",
     sortLabel: "Ordenar por",
     sortName: "Nome",

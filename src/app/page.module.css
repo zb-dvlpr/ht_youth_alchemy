@@ -11,7 +11,7 @@
   transform: scale(var(--ui-scale));
   transform-origin: top left;
   width: calc(100% * var(--ui-scale-inv));
-  height: calc(100% * var(--ui-scale-inv));
+  min-height: calc(100% * var(--ui-scale-inv));
 }
 
 .topBar {

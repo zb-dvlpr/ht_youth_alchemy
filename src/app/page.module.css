@@ -408,6 +408,10 @@
   text-align: center;
 }
 
+.matrixIndexHeader {
+  width: 36px;
+}
+
 .matrixCell {
   font-weight: 700;
   color: #1b1a17;
@@ -418,10 +422,51 @@
   font-weight: 600;
 }
 
+.matrixPlayerHeader {
+  text-align: left;
+}
+
+.matrixSpecialtyHeader {
+  width: 42px;
+}
+
 .matrixPlayer {
   text-align: left;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.matrixTable td.matrixPlayer {
+  text-align: left;
+}
+
+.matrixIndex {
+  color: #6b6256;
+  font-weight: 600;
+}
+
+.matrixSpecialty {
+  font-size: 14px;
+}
+
+.matrixSortButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.matrixSortButton:hover {
+  color: #2f2923;
+}
+
+.matrixSortIcon {
+  font-size: 10px;
+  opacity: 0.6;
 }
 
 .card {
@@ -593,6 +638,14 @@ html[data-theme="dark"] .matrixPlayer {
 }
 
 html[data-theme="dark"] .matrixTable td {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .matrixIndex {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .matrixSortButton:hover {
   color: #f3ede4;
 }
 

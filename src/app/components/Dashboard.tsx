@@ -820,7 +820,18 @@ export default function Dashboard({
               }
               messages={messages}
             />
-            <RatingsMatrix response={filteredRatings} messages={messages} />
+            <RatingsMatrix
+              response={filteredRatings}
+              messages={messages}
+              specialtyByName={Object.fromEntries(
+                players.map((player) => [
+                  [player.FirstName, player.NickName || null, player.LastName]
+                    .filter(Boolean)
+                    .join(" "),
+                  player.Specialty,
+                ])
+              )}
+            />
           </>
         )}
       </div>

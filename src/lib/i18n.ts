@@ -183,6 +183,10 @@ export type Messages = {
   awayLabel: string;
   unknownDate: string;
   ratingsTitle: string;
+  ratingsIndexLabel: string;
+  ratingsSortBy: string;
+  ratingsPlayerLabel: string;
+  ratingsSpecialtyLabel: string;
   posKeeper: string;
   posBack: string;
   posCentralDefender: string;
@@ -395,6 +399,10 @@ const MESSAGES: Record<Locale, Messages> = {
     awayLabel: "Away",
     unknownDate: "Unknown date",
     ratingsTitle: "Ratings matrix",
+    ratingsIndexLabel: "#",
+    ratingsSortBy: "Sort by",
+    ratingsPlayerLabel: "Player",
+    ratingsSpecialtyLabel: "Specialty",
     posKeeper: "KP",
     posBack: "WB",
     posCentralDefender: "CD",
@@ -604,6 +612,10 @@ const MESSAGES: Record<Locale, Messages> = {
     awayLabel: "Auswärts",
     unknownDate: "Unbekanntes Datum",
     ratingsTitle: "Bewertungsmatrix",
+    ratingsIndexLabel: "Nr.",
+    ratingsSortBy: "Sortieren nach",
+    ratingsPlayerLabel: "Spieler",
+    ratingsSpecialtyLabel: "Spezialität",
     posKeeper: "TW",
     posBack: "AV",
     posCentralDefender: "IV",
@@ -816,6 +828,10 @@ const MESSAGES: Record<Locale, Messages> = {
     awayLabel: "Extérieur",
     unknownDate: "Date inconnue",
     ratingsTitle: "Matrice des notes",
+    ratingsIndexLabel: "N°",
+    ratingsSortBy: "Trier par",
+    ratingsPlayerLabel: "Joueur",
+    ratingsSpecialtyLabel: "Spécialité",
     posKeeper: "GB",
     posBack: "AD",
     posCentralDefender: "DC",
@@ -1029,6 +1045,10 @@ const MESSAGES: Record<Locale, Messages> = {
     awayLabel: "Visitante",
     unknownDate: "Fecha desconocida",
     ratingsTitle: "Matriz de calificaciones",
+    ratingsIndexLabel: "N.º",
+    ratingsSortBy: "Ordenar por",
+    ratingsPlayerLabel: "Jugador",
+    ratingsSpecialtyLabel: "Especialidad",
     posKeeper: "POR",
     posBack: "LD",
     posCentralDefender: "DC",
@@ -1241,6 +1261,10 @@ const MESSAGES: Record<Locale, Messages> = {
     awayLabel: "Borta",
     unknownDate: "Okänt datum",
     ratingsTitle: "Betygsmatris",
+    ratingsIndexLabel: "Nr",
+    ratingsSortBy: "Sortera efter",
+    ratingsPlayerLabel: "Spelare",
+    ratingsSpecialtyLabel: "Specialitet",
     posKeeper: "MV",
     posBack: "VB",
     posCentralDefender: "IM",
@@ -1454,6 +1478,10 @@ const MESSAGES: Record<Locale, Messages> = {
     awayLabel: "Trasferta",
     unknownDate: "Data sconosciuta",
     ratingsTitle: "Matrice valutazioni",
+    ratingsIndexLabel: "N.",
+    ratingsSortBy: "Ordina per",
+    ratingsPlayerLabel: "Giocatore",
+    ratingsSpecialtyLabel: "Specialità",
     posKeeper: "POR",
     posBack: "TS",
     posCentralDefender: "DC",
@@ -1667,6 +1695,10 @@ const MESSAGES: Record<Locale, Messages> = {
     awayLabel: "Fora",
     unknownDate: "Data desconhecida",
     ratingsTitle: "Matriz de avaliações",
+    ratingsIndexLabel: "Nº",
+    ratingsSortBy: "Ordenar por",
+    ratingsPlayerLabel: "Jogador",
+    ratingsSpecialtyLabel: "Especialidade",
     posKeeper: "GOL",
     posBack: "LD",
     posCentralDefender: "ZA",

@@ -24,6 +24,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Ratings matrix using last 10 finished match lineups (max RatingStars per cell)
 - Ratings matrix uses MatchRoleID labels instead of numeric codes
 - Ratings matrix collapses left/right positions into single columns
+- Ratings matrix includes row numbers, specialty column, and sorting by any position rating
 - Player details show last match position and rating (showLastMatch=true)
 - player-details API passes through showLastMatch/showScoutCall flags
 - Last match summary formatted as dd.mm.yyyy: rating (expanded position)

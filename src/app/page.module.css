@@ -656,6 +656,19 @@ html[data-theme="dark"] .assignedTag {
   color: #c6bdaf;
 }
 
+html[data-theme="dark"] .playerButton {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .playerButton:hover {
+  background: #2a2521;
+}
+
+html[data-theme="dark"] .playerButton[aria-pressed="true"] {
+  background: #3a332c;
+  color: #f7f1e3;
+}
+
 html[data-theme="dark"] .metaItem {
   background: #2a2521;
   color: #f3ede4;

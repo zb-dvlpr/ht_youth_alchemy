@@ -8,45 +8,47 @@ import {
 } from "@/lib/chpp/node-oauth";
 
 async function invalidateToken() {
-  try {
-    const { consumerKey, consumerSecret, callbackUrl } = getChppEnv();
-    const client = createNodeOAuthClient(
-      consumerKey,
-      consumerSecret,
-      callbackUrl
-    );
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("chpp_access_token")?.value;
+  const accessSecret = cookieStore.get("chpp_access_secret")?.value;
 
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("chpp_access_token")?.value;
-    const accessSecret = cookieStore.get("chpp_access_secret")?.value;
+  let raw: string | null = null;
+  let errorMessage: string | null = null;
 
-    if (!accessToken || !accessSecret) {
-      return NextResponse.json(
-        { error: "Missing CHPP access token. Re-auth required." },
-        { status: 401 }
+  if (accessToken && accessSecret) {
+    try {
+      const { consumerKey, consumerSecret, callbackUrl } = getChppEnv();
+      const client = createNodeOAuthClient(
+        consumerKey,
+        consumerSecret,
+        callbackUrl
       );
+      raw = await getProtectedResource(
+        client,
+        CHPP_ENDPOINTS.invalidateToken,
+        accessToken,
+        accessSecret
+      );
+    } catch (error) {
+      errorMessage =
+        error instanceof Error ? error.message : String(error);
     }
-
-    const raw = await getProtectedResource(
-      client,
-      CHPP_ENDPOINTS.invalidateToken,
-      accessToken,
-      accessSecret
-    );
-
-    cookieStore.delete("chpp_access_token");
-    cookieStore.delete("chpp_access_secret");
-
-    return NextResponse.json({ ok: true, raw });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error: "Failed to invalidate token",
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 502 }
-    );
+  } else {
+    errorMessage = "Missing CHPP access token. Re-auth required.";
   }
+
+  cookieStore.delete("chpp_access_token");
+  cookieStore.delete("chpp_access_secret");
+
+  if (errorMessage) {
+    return NextResponse.json({
+      ok: false,
+      error: "Failed to invalidate token",
+      details: errorMessage,
+    });
+  }
+
+  return NextResponse.json({ ok: true, raw });
 }
 
 export async function POST() {

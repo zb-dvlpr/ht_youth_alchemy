@@ -7,6 +7,8 @@
     Consolas, "Liberation Mono", monospace;
   --font-brand: "Space Grotesk", "Avenir Next", "Segoe UI", "Helvetica Neue",
     Arial, sans-serif;
+  --ui-scale: 1;
+  --ui-scale-inv: 1;
   color-scheme: light;
 }
 

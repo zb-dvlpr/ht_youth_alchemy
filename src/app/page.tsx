@@ -7,6 +7,7 @@ import NotificationCenter from "./components/notifications/NotificationCenter";
 import { NotificationsProvider } from "./components/notifications/NotificationsProvider";
 import HelpToggleButton from "./components/HelpToggleButton";
 import ThemeToggle from "./components/ThemeToggle";
+import ViewportScaler from "./components/ViewportScaler";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 import type { MatchesResponse } from "./components/UpcomingMatches";
@@ -141,53 +142,56 @@ export default async function Home() {
 
   return (
     <main className={styles.main}>
+      <ViewportScaler />
       <NotificationsProvider>
-        <header className={styles.topBar}>
-          <div className={styles.brandRow}>
-            <span className={styles.brandTitle}>{messages.brandTitle}</span>
-            <span className={styles.version}>v{pkg.version}</span>
-          </div>
-          <NotificationCenter locale={locale} messages={messages} />
-          <div className={styles.topBarControls}>
-            <LanguageSwitcher
-              locale={locale}
-              label={messages.languageLabel}
-              switchingLabel={messages.languageSwitching}
-            />
-            <HelpToggleButton messages={messages} />
-            <ThemeToggle messages={messages} />
-            {isConnected ? (
-              <ConnectedStatus messages={messages} />
-            ) : (
-              <a className={styles.connectButton} href="/api/chpp/oauth/start">
-                {messages.connectLabel}
-              </a>
-            )}
-          </div>
-        </header>
+        <div className={styles.scaleContainer}>
+          <header className={styles.topBar}>
+            <div className={styles.brandRow}>
+              <span className={styles.brandTitle}>{messages.brandTitle}</span>
+              <span className={styles.version}>v{pkg.version}</span>
+            </div>
+            <NotificationCenter locale={locale} messages={messages} />
+            <div className={styles.topBarControls}>
+              <LanguageSwitcher
+                locale={locale}
+                label={messages.languageLabel}
+                switchingLabel={messages.languageSwitching}
+              />
+              <HelpToggleButton messages={messages} />
+              <ThemeToggle messages={messages} />
+              {isConnected ? (
+                <ConnectedStatus messages={messages} />
+              ) : (
+                <a className={styles.connectButton} href="/api/chpp/oauth/start">
+                  {messages.connectLabel}
+                </a>
+              )}
+            </div>
+          </header>
 
-        {playersResponse.error ? (
-          <div className={styles.errorBox}>
-            <h2 className={styles.sectionTitle}>
-              {messages.unableToLoadPlayers}
-            </h2>
-            <p className={styles.errorText}>{playersResponse.error}</p>
-            {tokenError ? (
-              <p className={styles.errorDetails}>{messages.connectHint}</p>
-            ) : null}
-            {playersResponse.details ? (
-              <p className={styles.errorDetails}>{playersResponse.details}</p>
-            ) : null}
-          </div>
-        ) : (
-          <Dashboard
-            players={players}
-            matchesResponse={matchesResponse}
-            ratingsResponse={ratingsResponse}
-            messages={messages}
-            isConnected={isConnected}
-          />
-        )}
+          {playersResponse.error ? (
+            <div className={styles.errorBox}>
+              <h2 className={styles.sectionTitle}>
+                {messages.unableToLoadPlayers}
+              </h2>
+              <p className={styles.errorText}>{playersResponse.error}</p>
+              {tokenError ? (
+                <p className={styles.errorDetails}>{messages.connectHint}</p>
+              ) : null}
+              {playersResponse.details ? (
+                <p className={styles.errorDetails}>{playersResponse.details}</p>
+              ) : null}
+            </div>
+          ) : (
+            <Dashboard
+              players={players}
+              matchesResponse={matchesResponse}
+              ratingsResponse={ratingsResponse}
+              messages={messages}
+              isConnected={isConnected}
+            />
+          )}
+        </div>
       </NotificationsProvider>
     </main>
   );

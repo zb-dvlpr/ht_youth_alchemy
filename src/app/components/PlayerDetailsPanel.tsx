@@ -1,7 +1,7 @@
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
-import { positionLabelFullByRoleId } from "@/lib/positions";
+import { positionLabelShortByRoleId } from "@/lib/positions";
 import { SPECIALTY_EMOJI, SPECIALTY_NAMES } from "@/lib/specialty";
 
 type YouthPlayer = {
@@ -162,7 +162,7 @@ export default function PlayerDetailsPanel({
     ? detailsData.LastMatch.Rating ?? messages.unknownLabel
     : null;
   const lastMatchPosition = detailsData?.LastMatch
-    ? positionLabelFullByRoleId(detailsData.LastMatch.PositionCode, messages)
+    ? positionLabelShortByRoleId(detailsData.LastMatch.PositionCode, messages)
     : null;
 
   return (
@@ -273,7 +273,7 @@ export default function PlayerDetailsPanel({
                 <div className={styles.infoLabel}>
                   {messages.lastMatchRatingLabel}
                 </div>
-                <div className={styles.infoValue}>
+                <div className={`${styles.infoValue} ${styles.lastMatchValue}`}>
                   {lastMatchDate}: {lastMatchRating}
                   {lastMatchPosition ? ` (${lastMatchPosition})` : ""}
                 </div>

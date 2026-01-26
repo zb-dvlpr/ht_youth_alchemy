@@ -97,6 +97,15 @@ export function positionLabelFullByRoleId(
   return positionLabelFull(normalized, messages);
 }
 
+export function positionLabelShortByRoleId(
+  roleId: number | null | undefined,
+  messages: Messages
+) {
+  const normalized = normalizeMatchRoleId(roleId);
+  if (!normalized) return null;
+  return positionLabel(normalized, messages);
+}
+
 export function roleIdToSlotId(roleId: number | null | undefined): SlotId | null {
   switch (roleId) {
     case 100:

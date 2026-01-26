@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -55,6 +56,11 @@ export function NotificationsProvider({
     () => ({ notifications, addNotification, clearNotifications }),
     [notifications, addNotification, clearNotifications]
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(new Event("app:layout-change"));
+  }, [notifications.length]);
 
   return (
     <NotificationsContext.Provider value={value}>

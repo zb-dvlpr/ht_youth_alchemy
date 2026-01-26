@@ -6,17 +6,20 @@ const MIN_SCALE = 0.5;
 const MAX_SCALE = 1;
 const SCALE_EPSILON = 0.002;
 const SCALE_FUDGE = 0.995;
+const SCALE_PADDING_PX = 12;
 
 function computeScale(container: HTMLElement, viewport: HTMLElement | null) {
   const contentWidth = Math.max(container.scrollWidth, container.offsetWidth);
   const contentHeight = Math.max(container.scrollHeight, container.offsetHeight);
   const viewportWidth = viewport?.clientWidth ?? window.innerWidth;
   const viewportHeight = viewport?.clientHeight ?? window.innerHeight;
+  const paddedWidth = Math.max(0, viewportWidth - SCALE_PADDING_PX);
+  const paddedHeight = Math.max(0, viewportHeight - SCALE_PADDING_PX);
   if (!contentWidth || !contentHeight) return 1;
   const scale = Math.min(
     MAX_SCALE,
-    viewportWidth / contentWidth,
-    viewportHeight / contentHeight
+    paddedWidth / contentWidth,
+    paddedHeight / contentHeight
   );
   const adjusted = scale * SCALE_FUDGE;
   return Math.max(MIN_SCALE, Math.min(MAX_SCALE, adjusted));

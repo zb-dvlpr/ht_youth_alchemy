@@ -89,6 +89,8 @@ export default function Dashboard({
   messages,
   isConnected,
 }: DashboardProps) {
+  const [playerList, setPlayerList] = useState<YouthPlayer[]>(players);
+  const [playersLoading, setPlayersLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
   const [cache, setCache] = useState<Record<number, CachedDetails>>({});
@@ -124,9 +126,9 @@ export default function Dashboard({
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
-    players.forEach((player) => map.set(player.YouthPlayerID, player));
+    playerList.forEach((player) => map.set(player.YouthPlayerID, player));
     return map;
-  }, [players]);
+  }, [playerList]);
 
   const playerDetailsById = useMemo(() => {
     const map = new Map<number, YouthPlayerDetails>();
@@ -145,14 +147,15 @@ export default function Dashboard({
   );
 
   const selectedPlayer = useMemo(
-    () => players.find((player) => player.YouthPlayerID === selectedId) ?? null,
-    [players, selectedId]
+    () =>
+      playerList.find((player) => player.YouthPlayerID === selectedId) ?? null,
+    [playerList, selectedId]
   );
 
   const filteredRatings = useMemo(() => {
     if (!ratingsResponse) return null;
     const allowedNames = new Set(
-      players.map((player) =>
+      playerList.map((player) =>
         [player.FirstName, player.NickName || null, player.LastName]
           .filter(Boolean)
           .join(" ")
@@ -164,7 +167,7 @@ export default function Dashboard({
         allowedNames.has(row.name)
       ),
     };
-  }, [ratingsResponse, players]);
+  }, [ratingsResponse, playerList]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -459,7 +462,7 @@ export default function Dashboard({
   };
 
   const randomizeLineup = () => {
-    if (!players.length) return;
+    if (!playerList.length) return;
     const outfieldSlots = [
       "WB_R",
       "CD_R",
@@ -475,7 +478,7 @@ export default function Dashboard({
       "F_C",
       "F_L",
     ];
-    const ids = players.map((player) => player.YouthPlayerID);
+    const ids = playerList.map((player) => player.YouthPlayerID);
     const shuffledIds = [...ids].sort(() => Math.random() - 0.5);
     const keeperId = shuffledIds.shift() ?? null;
     const outfieldIds = shuffledIds.slice(0, 10);
@@ -507,7 +510,7 @@ export default function Dashboard({
       return;
     }
 
-    const optimizerPlayers: OptimizerPlayer[] = players.map((player) => ({
+    const optimizerPlayers: OptimizerPlayer[] = playerList.map((player) => ({
       id: player.YouthPlayerID,
       name: [player.FirstName, player.NickName || null, player.LastName]
         .filter(Boolean)
@@ -549,6 +552,37 @@ export default function Dashboard({
     }
   };
 
+  const refreshPlayers = async () => {
+    if (playersLoading) return;
+    setPlayersLoading(true);
+    try {
+      const response = await fetch("/api/chpp/youth/players?actionType=details", {
+        cache: "no-store",
+      });
+      const payload = (await response.json()) as {
+        data?: {
+          HattrickData?: {
+            PlayerList?: { YouthPlayer?: YouthPlayer[] | YouthPlayer };
+          };
+        };
+      };
+      const raw = payload?.data?.HattrickData?.PlayerList?.YouthPlayer;
+      const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
+      setPlayerList(list);
+      if (
+        selectedId &&
+        !list.some((player) => player.YouthPlayerID === selectedId)
+      ) {
+        setSelectedId(null);
+      }
+      addNotification(messages.notificationPlayersRefreshed);
+    } catch {
+      addNotification(messages.unableToLoadPlayers);
+    } finally {
+      setPlayersLoading(false);
+    }
+  };
+
   const loadLineup = (nextAssignments: LineupAssignments, matchId: number) => {
     setAssignments(nextAssignments);
     setLoadedMatchId(matchId);
@@ -559,7 +593,7 @@ export default function Dashboard({
 
   const optimizerPlayers = useMemo<OptimizerPlayer[]>(
     () =>
-      players.map((player) => ({
+      playerList.map((player) => ({
         id: player.YouthPlayerID,
         name: [player.FirstName, player.NickName || null, player.LastName]
           .filter(Boolean)
@@ -573,7 +607,7 @@ export default function Dashboard({
           (player.PlayerSkills as OptimizerPlayer["skills"]) ??
           null,
       })),
-    [players, playerDetailsById]
+    [playerList, playerDetailsById]
   );
 
   const autoSelection = useMemo(
@@ -756,7 +790,7 @@ export default function Dashboard({
         aria-hidden={showHelp ? "true" : undefined}
       >
         <YouthPlayerList
-          players={players}
+          players={playerList}
           assignedIds={assignedIds}
           selectedId={selectedId}
           starPlayerId={starPlayerId}
@@ -781,6 +815,8 @@ export default function Dashboard({
               `${messages.notificationAutoSelection} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
             );
           }}
+          onRefresh={refreshPlayers}
+          refreshing={playersLoading}
           messages={messages}
         />
       </div>
@@ -849,7 +885,7 @@ export default function Dashboard({
               response={filteredRatings}
               messages={messages}
               specialtyByName={Object.fromEntries(
-                players.map((player) => [
+                playerList.map((player) => [
                   [player.FirstName, player.NickName || null, player.LastName]
                     .filter(Boolean)
                     .join(" "),

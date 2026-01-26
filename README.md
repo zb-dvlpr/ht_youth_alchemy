@@ -69,6 +69,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Compact layout on short viewports with scroll enabled under a height threshold
 - Dark mode toggle (syncs with system preference)
 - Youth player list header includes an auto-select button for star/training
+- Youth player list refresh button reloads the list from Hattrick
 - Random lineup sets a keeper and fills any 10 other positions
 - Reset lineup button clears all assigned slots
 - Match orders are posted as form-encoded `lineup` JSON for CHPP compatibility

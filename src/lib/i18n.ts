@@ -41,6 +41,7 @@ export type Messages = {
   playerDetails: string;
   refresh: string;
   refreshTooltip: string;
+  refreshPlayerListTooltip: string;
   loadingDetails: string;
   selectPlayerPrompt: string;
   unableToLoadPlayers: string;
@@ -121,6 +122,7 @@ export type Messages = {
   notificationPrimaryTrainingSet: string;
   notificationSecondaryTrainingSet: string;
   notificationTrainingCleared: string;
+  notificationPlayersRefreshed: string;
   notificationSortBy: string;
   notificationSortDirection: string;
   notificationStarSet: string;
@@ -262,6 +264,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Player details",
     refresh: "Refresh",
     refreshTooltip: "Refreshes player details from Hattrick.",
+    refreshPlayerListTooltip: "Refresh youth player list from Hattrick.",
     loadingDetails: "Loading details…",
     selectPlayerPrompt: "Select a player to load details.",
     unableToLoadPlayers: "Unable to load players",
@@ -343,6 +346,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Primary training:",
     notificationSecondaryTrainingSet: "Secondary training:",
     notificationTrainingCleared: "Training cleared",
+    notificationPlayersRefreshed: "Youth players refreshed",
     notificationSortBy: "Sort by:",
     notificationSortDirection: "Sort direction:",
     notificationStarSet: "Star player:",
@@ -480,6 +484,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Spielerdetails",
     refresh: "Aktualisieren",
     refreshTooltip: "Aktualisiert die Spielerdetails von Hattrick.",
+    refreshPlayerListTooltip: "Jugendspielerliste von Hattrick aktualisieren.",
     loadingDetails: "Details werden geladen…",
     selectPlayerPrompt: "Spieler auswählen, um Details zu laden.",
     unableToLoadPlayers: "Spieler konnten nicht geladen werden",
@@ -562,6 +567,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Primärtraining:",
     notificationSecondaryTrainingSet: "Sekundärtraining:",
     notificationTrainingCleared: "Training gelöscht",
+    notificationPlayersRefreshed: "Jugendspieler aktualisiert",
     notificationSortBy: "Sortierung:",
     notificationSortDirection: "Sortierrichtung:",
     notificationStarSet: "Starspieler:",
@@ -700,6 +706,8 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Détails du joueur",
     refresh: "Actualiser",
     refreshTooltip: "Actualise les détails du joueur depuis Hattrick.",
+    refreshPlayerListTooltip:
+      "Actualiser la liste des jeunes depuis Hattrick.",
     loadingDetails: "Chargement des détails…",
     selectPlayerPrompt: "Sélectionnez un joueur pour charger les détails.",
     unableToLoadPlayers: "Impossible de charger les joueurs",
@@ -784,6 +792,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Entraînement principal :",
     notificationSecondaryTrainingSet: "Entraînement secondaire :",
     notificationTrainingCleared: "Entraînement effacé",
+    notificationPlayersRefreshed: "Jeunes joueurs actualisés",
     notificationSortBy: "Trier par :",
     notificationSortDirection: "Sens de tri :",
     notificationStarSet: "Joueur star :",
@@ -923,6 +932,8 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Detalles del jugador",
     refresh: "Actualizar",
     refreshTooltip: "Actualiza los detalles del jugador desde Hattrick.",
+    refreshPlayerListTooltip:
+      "Actualizar la lista de juveniles desde Hattrick.",
     loadingDetails: "Cargando detalles…",
     selectPlayerPrompt: "Selecciona un jugador para cargar detalles.",
     unableToLoadPlayers: "No se pudieron cargar los jugadores",
@@ -1007,6 +1018,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Entrenamiento primario:",
     notificationSecondaryTrainingSet: "Entrenamiento secundario:",
     notificationTrainingCleared: "Entrenamiento borrado",
+    notificationPlayersRefreshed: "Juveniles actualizados",
     notificationSortBy: "Ordenar por:",
     notificationSortDirection: "Dirección de orden:",
     notificationStarSet: "Jugador estrella:",
@@ -1146,6 +1158,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Spelardetaljer",
     refresh: "Uppdatera",
     refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
+    refreshPlayerListTooltip: "Uppdatera juniorlistan från Hattrick.",
     loadingDetails: "Laddar detaljer…",
     selectPlayerPrompt: "Välj en spelare för att ladda detaljer.",
     unableToLoadPlayers: "Kunde inte ladda spelare",
@@ -1229,6 +1242,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Primärträning:",
     notificationSecondaryTrainingSet: "Sekundärträning:",
     notificationTrainingCleared: "Träning rensad",
+    notificationPlayersRefreshed: "Juniorer uppdaterade",
     notificationSortBy: "Sortera efter:",
     notificationSortDirection: "Sorteringsriktning:",
     notificationStarSet: "Stjärnspelare:",
@@ -1368,6 +1382,8 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Dettagli giocatore",
     refresh: "Aggiorna",
     refreshTooltip: "Aggiorna i dettagli del giocatore da Hattrick.",
+    refreshPlayerListTooltip:
+      "Aggiorna la lista dei giovani da Hattrick.",
     loadingDetails: "Caricamento dettagli…",
     selectPlayerPrompt: "Seleziona un giocatore per caricare i dettagli.",
     unableToLoadPlayers: "Impossibile caricare i giocatori",
@@ -1452,6 +1468,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Allenamento primario:",
     notificationSecondaryTrainingSet: "Allenamento secondario:",
     notificationTrainingCleared: "Allenamento cancellato",
+    notificationPlayersRefreshed: "Giocatori giovanili aggiornati",
     notificationSortBy: "Ordina per:",
     notificationSortDirection: "Direzione ordine:",
     notificationStarSet: "Giocatore stella:",
@@ -1591,6 +1608,8 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Detalhes do jogador",
     refresh: "Atualizar",
     refreshTooltip: "Atualiza os detalhes do jogador no Hattrick.",
+    refreshPlayerListTooltip:
+      "Atualizar a lista de jovens no Hattrick.",
     loadingDetails: "Carregando detalhes…",
     selectPlayerPrompt: "Selecione um jogador para carregar detalhes.",
     unableToLoadPlayers: "Não foi possível carregar jogadores",
@@ -1675,6 +1694,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Treino primário:",
     notificationSecondaryTrainingSet: "Treino secundário:",
     notificationTrainingCleared: "Treino limpo",
+    notificationPlayersRefreshed: "Jogadores juvenis atualizados",
     notificationSortBy: "Ordenar por:",
     notificationSortDirection: "Direção da ordenação:",
     notificationStarSet: "Jogador estrela:",

@@ -40,6 +40,8 @@ type YouthPlayerListProps = {
   onToggleStar?: (playerId: number) => void;
   onSelect?: (playerId: number) => void;
   onAutoSelect?: () => void;
+  onRefresh?: () => void;
+  refreshing?: boolean;
   messages: Messages;
 };
 
@@ -90,6 +92,8 @@ export default function YouthPlayerList({
   onToggleStar,
   onSelect,
   onAutoSelect,
+  onRefresh,
+  refreshing,
   messages,
 }: YouthPlayerListProps) {
   const [sortKey, setSortKey] = useState<SortKey>("name");
@@ -272,6 +276,19 @@ export default function YouthPlayerList({
               }}
             >
               {sortDirection === "asc" ? "↕️" : "↕️"}
+            </button>
+          </Tooltip>
+          <Tooltip
+            content={<div className={styles.tooltipCard}>{messages.refreshPlayerListTooltip}</div>}
+          >
+            <button
+              type="button"
+              className={styles.sortToggle}
+              aria-label={messages.refreshPlayerListTooltip}
+              onClick={onRefresh}
+              disabled={!onRefresh || refreshing}
+            >
+              ↻
             </button>
           </Tooltip>
           <Tooltip

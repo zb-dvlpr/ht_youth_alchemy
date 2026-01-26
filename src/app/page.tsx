@@ -144,7 +144,7 @@ export default async function Home() {
     <main className={styles.main}>
       <ViewportScaler />
       <NotificationsProvider>
-        <div className={styles.scaleContainer}>
+        <div className={styles.scaleContainer} data-scale-container="true">
           <header className={styles.topBar}>
             <div className={styles.brandRow}>
               <span className={styles.brandTitle}>{messages.brandTitle}</span>

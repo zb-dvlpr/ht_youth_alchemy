@@ -401,6 +401,18 @@
   font-size: 12px;
 }
 
+.matrixRow {
+  transition: background 0.2s ease;
+}
+
+.matrixRow:hover {
+  background: rgba(93, 80, 66, 0.06);
+}
+
+.matrixRowSelected {
+  background: rgba(93, 80, 66, 0.12);
+}
+
 .matrixTable th,
 .matrixTable td {
   padding: 8px 10px;
@@ -438,6 +450,35 @@
 
 .matrixTable td.matrixPlayer {
   text-align: left;
+}
+
+.matrixPlayerButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.matrixPlayerButton:hover {
+  color: #2f2923;
+  text-decoration: underline;
+}
+
+.matrixPlayerButton:disabled {
+  cursor: default;
+  text-decoration: none;
+}
+
+.matrixPlayerButton:focus-visible {
+  outline: 2px solid rgba(93, 80, 66, 0.35);
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 .matrixIndex {
@@ -632,9 +673,26 @@ html[data-theme="dark"] .matrixTable th {
   border-bottom-color: rgba(255, 255, 255, 0.08);
 }
 
+html[data-theme="dark"] .matrixRow:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="dark"] .matrixRowSelected {
+  background: rgba(255, 255, 255, 0.08);
+}
+
 html[data-theme="dark"] .matrixCell,
 html[data-theme="dark"] .matrixPlayer {
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .matrixPlayerButton:hover {
+  color: #f3ede4;
+  text-decoration-color: rgba(243, 237, 228, 0.7);
+}
+
+html[data-theme="dark"] .matrixPlayerButton:focus-visible {
+  outline-color: rgba(243, 237, 228, 0.4);
 }
 
 html[data-theme="dark"] .matrixTable td {

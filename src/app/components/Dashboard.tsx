@@ -22,6 +22,11 @@ import {
 } from "@/lib/optimizer";
 import { useNotifications } from "./notifications/NotificationsProvider";
 
+const formatPlayerName = (player: YouthPlayer) =>
+  [player.FirstName, player.NickName || null, player.LastName]
+    .filter(Boolean)
+    .join(" ");
+
 type YouthPlayer = {
   YouthPlayerID: number;
   FirstName: string;
@@ -904,6 +909,17 @@ export default function Dashboard({
                   player.Specialty,
                 ])
               )}
+              selectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
+              onSelectPlayer={(playerName) => {
+                const match = playerList.find(
+                  (player) => formatPlayerName(player) === playerName
+                );
+                if (!match) return;
+                handleSelect(match.YouthPlayerID);
+                addNotification(
+                  `${messages.notificationPlayerSelected} ${playerName}`
+                );
+              }}
             />
           </>
         )}

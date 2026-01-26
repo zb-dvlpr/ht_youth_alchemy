@@ -21,6 +21,8 @@ type RatingsMatrixProps = {
   response: RatingsMatrixResponse | null;
   messages: Messages;
   specialtyByName?: Record<string, number | undefined>;
+  selectedName?: string | null;
+  onSelectPlayer?: (playerName: string) => void;
 };
 
 function uniquePositions(positions: number[] | undefined) {
@@ -49,6 +51,8 @@ export default function RatingsMatrix({
   response,
   messages,
   specialtyByName,
+  selectedName,
+  onSelectPlayer,
 }: RatingsMatrixProps) {
   if (!response || response.players.length === 0) {
     return (
@@ -128,10 +132,26 @@ export default function RatingsMatrix({
             </tr>
           </thead>
           <tbody>
-            {sortedRows.map((row, index) => (
-              <tr key={row.id}>
+            {sortedRows.map((row, index) => {
+              const isSelected = selectedName === row.name;
+              return (
+                <tr
+                  key={row.id}
+                  className={`${styles.matrixRow} ${
+                    isSelected ? styles.matrixRowSelected : ""
+                  }`}
+                >
                 <td className={styles.matrixIndex}>{index + 1}</td>
-                <td className={styles.matrixPlayer}>{row.name}</td>
+                <td className={styles.matrixPlayer}>
+                  <button
+                    type="button"
+                    className={styles.matrixPlayerButton}
+                    onClick={() => onSelectPlayer?.(row.name)}
+                    disabled={!onSelectPlayer}
+                  >
+                    {row.name}
+                  </button>
+                </td>
                 <td className={styles.matrixSpecialty}>
                   {specialtyByName && specialtyByName[row.name] !== undefined
                     ? SPECIALTY_EMOJI[specialtyByName[row.name] as number] ?? "—"
@@ -150,7 +170,8 @@ export default function RatingsMatrix({
                   );
                 })}
               </tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
       </div>

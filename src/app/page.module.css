@@ -77,7 +77,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 28px;
+  min-height: 64px;
 }
 
 .notificationList {
@@ -1005,6 +1005,10 @@ html[data-theme="dark"] .confirmCard {
   font-size: 15px;
   color: #2d261f;
   margin-top: 4px;
+}
+
+.lastMatchValue {
+  white-space: nowrap;
 }
 
 .sectionDivider {

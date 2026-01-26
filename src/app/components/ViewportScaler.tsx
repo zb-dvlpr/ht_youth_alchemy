@@ -49,20 +49,16 @@ export default function ViewportScaler() {
       });
     };
 
-    const onUserAction = () => {
-      window.setTimeout(applyScale, 0);
-    };
-
     applyScale();
     window.addEventListener("resize", applyScale);
-    document.addEventListener("click", onUserAction, true);
+    window.addEventListener("app:layout-change", applyScale);
     if (document.fonts?.ready) {
       document.fonts.ready.then(applyScale).catch(() => undefined);
     }
 
     return () => {
       window.removeEventListener("resize", applyScale);
-      document.removeEventListener("click", onUserAction, true);
+      window.removeEventListener("app:layout-change", applyScale);
       if (rafId !== null) window.cancelAnimationFrame(rafId);
     };
   }, []);

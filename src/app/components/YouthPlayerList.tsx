@@ -354,6 +354,7 @@ export default function YouthPlayerList({
                     }`}
                     onClick={() => {
                       if (!onSelect) return;
+                      if (selectedId === player.YouthPlayerID) return;
                       onSelect(player.YouthPlayerID);
                       addNotification(
                         `${messages.notificationPlayerSelected} ${fullName}`

@@ -915,6 +915,7 @@ export default function Dashboard({
                   (player) => formatPlayerName(player) === playerName
                 );
                 if (!match) return;
+                if (selectedId === match.YouthPlayerID) return;
                 handleSelect(match.YouthPlayerID);
                 addNotification(
                   `${messages.notificationPlayerSelected} ${playerName}`

@@ -932,14 +932,26 @@ html[data-theme="dark"] .confirmCard {
 
 .listHeader {
   display: flex;
-  align-items: flex-end;
+  align-items: flex-start;
   justify-content: space-between;
+  flex-wrap: wrap;
+  row-gap: 8px;
   gap: 12px;
   margin-bottom: 8px;
 }
 
 .listHeaderTitle {
   margin: 0;
+  flex: 1 1 100%;
+}
+
+.listHeaderControls {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  width: 100%;
 }
 
 .sortControl {
@@ -963,6 +975,7 @@ html[data-theme="dark"] .confirmCard {
   padding: 4px 10px;
   font-size: 12px;
   color: #3f362c;
+  min-width: 120px;
 }
 
 .sortToggle {

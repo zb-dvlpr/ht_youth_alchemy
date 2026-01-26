@@ -155,6 +155,8 @@ export default function PlayerDetailsPanel({
   onRefresh,
   messages,
 }: PlayerDetailsPanelProps) {
+  const playerId =
+    detailsData?.YouthPlayerID ?? selectedPlayer?.YouthPlayerID ?? null;
   const lastMatchDate = detailsData?.LastMatch
     ? formatMatchDate(detailsData.LastMatch.Date) ?? messages.unknownDate
     : null;
@@ -265,6 +267,23 @@ export default function PlayerDetailsPanel({
                   {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}{" "}
                   {SPECIALTY_NAMES[detailsData.Specialty] ??
                     `Specialty ${detailsData.Specialty}`}
+                </div>
+              </div>
+            ) : null}
+            {playerId ? (
+              <div>
+                <div className={styles.infoLabel}>{messages.playerIdLabel}</div>
+                <div className={styles.infoValue}>
+                  {playerId}
+                  <a
+                    className={styles.infoLinkIcon}
+                    href={`https://www82.hattrick.org/Club/Players/YouthPlayer.aspx?YouthPlayerID=${playerId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={messages.playerLinkLabel}
+                  >
+                    ↗
+                  </a>
                 </div>
               </div>
             ) : null}

@@ -356,9 +356,6 @@ export default function YouthPlayerList({
                         </span>
                       ) : null}
                     </span>
-                    <span className={styles.playerId}>
-                      ID: {player.YouthPlayerID}
-                    </span>
                     {isAssigned ? (
                       <span className={styles.assignedTag}>
                         {messages.assigned}

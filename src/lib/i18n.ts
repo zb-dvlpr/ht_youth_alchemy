@@ -178,6 +178,8 @@ export type Messages = {
   potentialLabel: string;
   lastMatchPositionLabel: string;
   lastMatchRatingLabel: string;
+  playerIdLabel: string;
+  playerLinkLabel: string;
   dragPlayerHint: string;
   homeLabel: string;
   awayLabel: string;
@@ -394,6 +396,8 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potential",
     lastMatchPositionLabel: "Last match position",
     lastMatchRatingLabel: "Last match rating",
+    playerIdLabel: "Player ID",
+    playerLinkLabel: "View on Hattrick",
     dragPlayerHint: "Drag to move",
     homeLabel: "Home",
     awayLabel: "Away",
@@ -607,6 +611,8 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "Potenzial",
     lastMatchPositionLabel: "Letzte Position",
     lastMatchRatingLabel: "Letzte Bewertung",
+    playerIdLabel: "Spieler-ID",
+    playerLinkLabel: "Bei Hattrick ansehen",
     dragPlayerHint: "Zum Verschieben ziehen",
     homeLabel: "Heim",
     awayLabel: "Auswärts",
@@ -823,6 +829,8 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potentiel",
     lastMatchPositionLabel: "Position du dernier match",
     lastMatchRatingLabel: "Note du dernier match",
+    playerIdLabel: "ID joueur",
+    playerLinkLabel: "Voir sur Hattrick",
     dragPlayerHint: "Glisser pour déplacer",
     homeLabel: "Domicile",
     awayLabel: "Extérieur",
@@ -1040,6 +1048,8 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potencial",
     lastMatchPositionLabel: "Posición del último partido",
     lastMatchRatingLabel: "Calificación del último partido",
+    playerIdLabel: "ID del jugador",
+    playerLinkLabel: "Ver en Hattrick",
     dragPlayerHint: "Arrastra para mover",
     homeLabel: "Local",
     awayLabel: "Visitante",
@@ -1256,6 +1266,8 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potential",
     lastMatchPositionLabel: "Senaste matchposition",
     lastMatchRatingLabel: "Senaste matchbetyg",
+    playerIdLabel: "Spelar-ID",
+    playerLinkLabel: "Visa på Hattrick",
     dragPlayerHint: "Dra för att flytta",
     homeLabel: "Hemma",
     awayLabel: "Borta",
@@ -1473,6 +1485,8 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potenziale",
     lastMatchPositionLabel: "Posizione ultimo match",
     lastMatchRatingLabel: "Valutazione ultimo match",
+    playerIdLabel: "ID giocatore",
+    playerLinkLabel: "Vedi su Hattrick",
     dragPlayerHint: "Trascina per spostare",
     homeLabel: "Casa",
     awayLabel: "Trasferta",
@@ -1690,6 +1704,8 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potencial",
     lastMatchPositionLabel: "Posição do último jogo",
     lastMatchRatingLabel: "Avaliação do último jogo",
+    playerIdLabel: "ID do jogador",
+    playerLinkLabel: "Ver no Hattrick",
     dragPlayerHint: "Arraste para mover",
     homeLabel: "Casa",
     awayLabel: "Fora",

@@ -704,6 +704,16 @@ html[data-theme="dark"] .skillLabel {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .infoLinkIcon {
+  background: #2a2521;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .infoLinkIcon:hover {
+  background: #332d28;
+}
+
 html[data-theme="dark"] .playerId,
 html[data-theme="dark"] .assignedTag {
   color: #c6bdaf;
@@ -1113,6 +1123,26 @@ html[data-theme="dark"] .confirmCard {
 
 .lastMatchValue {
   white-space: nowrap;
+}
+
+.infoLinkIcon {
+  margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: 1px solid #c9b9a3;
+  background: #f6f2eb;
+  color: #3f362c;
+  font-size: 12px;
+  text-decoration: none;
+  line-height: 1;
+}
+
+.infoLinkIcon:hover {
+  background: #efe5d6;
 }
 
 .sectionDivider {

@@ -73,6 +73,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Brand header with version number next to the title
 - Drag-and-drop lineup assignment (list → field slots, slot → slot with swap)
 - Star-player optimization uses the cached youth skill details to choose training and lineup
+- Auto-scaling UI based on device pixel ratio to reduce overflow on high-DPI displays
 
 ## Local setup
 1) Install dependencies

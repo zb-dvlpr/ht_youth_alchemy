@@ -3,8 +3,15 @@
   background: radial-gradient(circle at top, #f7f1e3, #e0d8cc);
   color: #1a1a1a;
   padding: 16px 20px 24px;
-  font-family: "Georgia", "Times New Roman", serif;
+  font-family: var(--font-geist-sans);
   overflow: hidden;
+}
+
+.scaleContainer {
+  transform: scale(var(--ui-scale));
+  transform-origin: top left;
+  width: calc(100% * var(--ui-scale-inv));
+  height: calc(100% * var(--ui-scale-inv));
 }
 
 .topBar {

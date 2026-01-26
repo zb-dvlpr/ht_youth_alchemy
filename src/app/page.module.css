@@ -810,6 +810,11 @@ html[data-theme="dark"] .confirmBody {
   color: #cfc6bb;
 }
 
+html[data-theme="dark"] .spinner {
+  border-color: rgba(207, 198, 187, 0.3);
+  border-top-color: #cfc6bb;
+}
+
 .playerRow {
   display: flex;
   align-items: center;
@@ -1039,6 +1044,27 @@ html[data-theme="dark"] .confirmBody {
   margin: 4px 0 0;
   color: #7a6f61;
   font-size: 12px;
+}
+
+.loadingRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid rgba(122, 111, 97, 0.35);
+  border-top-color: #7a6f61;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .refreshButton {

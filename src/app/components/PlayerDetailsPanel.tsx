@@ -197,7 +197,10 @@ export default function PlayerDetailsPanel({
       </div>
 
       {loading ? (
-        <p className={styles.muted}>{messages.loadingDetails}</p>
+        <div className={styles.loadingRow}>
+          <span className={styles.spinner} aria-hidden="true" />
+          <span className={styles.muted}>{messages.loadingDetails}</span>
+        </div>
       ) : error ? (
         <p className={styles.errorText}>{error}</p>
       ) : detailsData ? (

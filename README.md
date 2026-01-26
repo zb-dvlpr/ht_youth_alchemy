@@ -38,6 +38,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Match lineup API for last finished youth match
 - Connect button shown when CHPP access token is missing
 - In-session details cache with manual refresh and a structured details panel (current/potential skill bars with numeric values or ?)
+- Player details show a loading spinner while fetching
 - Upcoming youth match list (handles team-level match list; falls back to recent matches if none UPCOMING)
 - Submit lineup orders for upcoming youth matches (requires set_matchorder scope); load lineup appears first
 - Match orders use Lineup_30 with numeric values, with left/right slots flipped to match Hattrick's ordering

@@ -148,6 +148,23 @@ export default function Dashboard({
     [players, selectedId]
   );
 
+  const filteredRatings = useMemo(() => {
+    if (!ratingsResponse) return null;
+    const allowedNames = new Set(
+      players.map((player) =>
+        [player.FirstName, player.NickName || null, player.LastName]
+          .filter(Boolean)
+          .join(" ")
+      )
+    );
+    return {
+      ...ratingsResponse,
+      players: ratingsResponse.players.filter((row) =>
+        allowedNames.has(row.name)
+      ),
+    };
+  }, [ratingsResponse, players]);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -803,7 +820,7 @@ export default function Dashboard({
               }
               messages={messages}
             />
-            <RatingsMatrix response={ratingsResponse} messages={messages} />
+            <RatingsMatrix response={filteredRatings} messages={messages} />
           </>
         )}
       </div>

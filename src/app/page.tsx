@@ -46,7 +46,10 @@ type YouthPlayerListResponse = {
 async function getBaseUrl() {
   const headerStore = await headers();
   const host = headerStore.get("host");
-  const protocol = process.env.NODE_ENV === "production" ? "https" : "http";
+  const forwardedProto = headerStore.get("x-forwarded-proto");
+  const isLocalhost =
+    host?.startsWith("localhost") || host?.startsWith("127.0.0.1");
+  const protocol = forwardedProto ?? (isLocalhost ? "http" : "https");
   return host ? `${protocol}://${host}` : "http://localhost:3000";
 }
 

@@ -42,6 +42,8 @@ export type Messages = {
   refresh: string;
   refreshTooltip: string;
   refreshPlayerListTooltip: string;
+  unlockSkillsSuccess: string;
+  unlockSkillsDenied: string;
   loadingDetails: string;
   selectPlayerPrompt: string;
   unableToLoadPlayers: string;
@@ -265,6 +267,8 @@ const MESSAGES: Record<Locale, Messages> = {
     refresh: "Refresh",
     refreshTooltip: "Refreshes player details from Hattrick.",
     refreshPlayerListTooltip: "Refresh youth player list from Hattrick.",
+    unlockSkillsSuccess: "Skills unlocked",
+    unlockSkillsDenied: "Unlock not permitted",
     loadingDetails: "Loading details…",
     selectPlayerPrompt: "Select a player to load details.",
     unableToLoadPlayers: "Unable to load players",
@@ -485,6 +489,8 @@ const MESSAGES: Record<Locale, Messages> = {
     refresh: "Aktualisieren",
     refreshTooltip: "Aktualisiert die Spielerdetails von Hattrick.",
     refreshPlayerListTooltip: "Jugendspielerliste von Hattrick aktualisieren.",
+    unlockSkillsSuccess: "Fähigkeiten freigeschaltet",
+    unlockSkillsDenied: "Freischalten nicht erlaubt",
     loadingDetails: "Details werden geladen…",
     selectPlayerPrompt: "Spieler auswählen, um Details zu laden.",
     unableToLoadPlayers: "Spieler konnten nicht geladen werden",
@@ -708,6 +714,8 @@ const MESSAGES: Record<Locale, Messages> = {
     refreshTooltip: "Actualise les détails du joueur depuis Hattrick.",
     refreshPlayerListTooltip:
       "Actualiser la liste des jeunes depuis Hattrick.",
+    unlockSkillsSuccess: "Compétences débloquées",
+    unlockSkillsDenied: "Déblocage non autorisé",
     loadingDetails: "Chargement des détails…",
     selectPlayerPrompt: "Sélectionnez un joueur pour charger les détails.",
     unableToLoadPlayers: "Impossible de charger les joueurs",
@@ -934,6 +942,8 @@ const MESSAGES: Record<Locale, Messages> = {
     refreshTooltip: "Actualiza los detalles del jugador desde Hattrick.",
     refreshPlayerListTooltip:
       "Actualizar la lista de juveniles desde Hattrick.",
+    unlockSkillsSuccess: "Habilidades desbloqueadas",
+    unlockSkillsDenied: "Desbloqueo no permitido",
     loadingDetails: "Cargando detalles…",
     selectPlayerPrompt: "Selecciona un jugador para cargar detalles.",
     unableToLoadPlayers: "No se pudieron cargar los jugadores",
@@ -1159,6 +1169,8 @@ const MESSAGES: Record<Locale, Messages> = {
     refresh: "Uppdatera",
     refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
     refreshPlayerListTooltip: "Uppdatera juniorlistan från Hattrick.",
+    unlockSkillsSuccess: "Färdigheter upplåsta",
+    unlockSkillsDenied: "Upplåsning ej tillåten",
     loadingDetails: "Laddar detaljer…",
     selectPlayerPrompt: "Välj en spelare för att ladda detaljer.",
     unableToLoadPlayers: "Kunde inte ladda spelare",
@@ -1384,6 +1396,8 @@ const MESSAGES: Record<Locale, Messages> = {
     refreshTooltip: "Aggiorna i dettagli del giocatore da Hattrick.",
     refreshPlayerListTooltip:
       "Aggiorna la lista dei giovani da Hattrick.",
+    unlockSkillsSuccess: "Abilità sbloccate",
+    unlockSkillsDenied: "Sblocco non consentito",
     loadingDetails: "Caricamento dettagli…",
     selectPlayerPrompt: "Seleziona un giocatore per caricare i dettagli.",
     unableToLoadPlayers: "Impossibile caricare i giocatori",
@@ -1610,6 +1624,8 @@ const MESSAGES: Record<Locale, Messages> = {
     refreshTooltip: "Atualiza os detalhes do jogador no Hattrick.",
     refreshPlayerListTooltip:
       "Atualizar a lista de jovens no Hattrick.",
+    unlockSkillsSuccess: "Habilidades desbloqueadas",
+    unlockSkillsDenied: "Desbloqueio não permitido",
     loadingDetails: "Carregando detalhes…",
     selectPlayerPrompt: "Selecione um jogador para carregar detalhes.",
     unableToLoadPlayers: "Não foi possível carregar jogadores",

@@ -51,6 +51,7 @@ type PlayerDetailsPanelProps = {
   loading: boolean;
   error: string | null;
   lastUpdated: number | null;
+  unlockStatus: "success" | "denied" | null;
   onRefresh: () => void;
   messages: Messages;
 };
@@ -152,6 +153,7 @@ export default function PlayerDetailsPanel({
   loading,
   error,
   lastUpdated,
+  unlockStatus,
   onRefresh,
   messages,
 }: PlayerDetailsPanelProps) {
@@ -181,6 +183,19 @@ export default function PlayerDetailsPanel({
             <p className={styles.detailsTimestamp}>
               {messages.lastUpdated}: {new Date(lastUpdated).toLocaleString()}
             </p>
+          ) : null}
+          {unlockStatus ? (
+            <span
+              className={`${styles.detailsBadge} ${
+                unlockStatus === "success"
+                  ? styles.detailsBadgeSuccess
+                  : styles.detailsBadgeMuted
+              }`}
+            >
+              {unlockStatus === "success"
+                ? messages.unlockSkillsSuccess
+                : messages.unlockSkillsDenied}
+            </span>
           ) : null}
         </div>
         <Tooltip content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}>

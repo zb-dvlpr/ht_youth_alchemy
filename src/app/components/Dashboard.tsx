@@ -43,6 +43,7 @@ type SkillValue = {
 
 type PlayerDetailsResponse = {
   data?: Record<string, unknown>;
+  unlockStatus?: "success" | "denied";
   error?: string;
   details?: string;
 };
@@ -94,6 +95,9 @@ export default function Dashboard({
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
   const [cache, setCache] = useState<Record<number, CachedDetails>>({});
+  const [unlockStatus, setUnlockStatus] = useState<"success" | "denied" | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -363,10 +367,11 @@ export default function Dashboard({
     setLoading(true);
     setError(null);
     setDetails(null);
+    setUnlockStatus(null);
 
     try {
       const response = await fetch(
-        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true`,
+        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&unlockSkills=1`,
         { cache: "no-store" }
       );
       const payload = (await response.json()) as PlayerDetailsResponse;
@@ -386,6 +391,9 @@ export default function Dashboard({
         }));
       }
       setDetails(resolved);
+      if (payload.unlockStatus) {
+        setUnlockStatus(payload.unlockStatus);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -401,7 +409,7 @@ export default function Dashboard({
 
     try {
       const response = await fetch(
-        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true`,
+        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&unlockSkills=1`,
         { cache: "no-store" }
       );
       const payload = (await response.json()) as PlayerDetailsResponse;
@@ -417,6 +425,9 @@ export default function Dashboard({
             fetchedAt: Date.now(),
           },
         }));
+      }
+      if (payload.unlockStatus) {
+        setUnlockStatus(payload.unlockStatus);
       }
     } catch {
       // ignore hover failures
@@ -876,6 +887,7 @@ export default function Dashboard({
               loading={loading}
               error={error}
               lastUpdated={lastUpdated}
+              unlockStatus={unlockStatus}
               onRefresh={() =>
                 selectedId ? loadDetails(selectedId, true) : undefined
               }

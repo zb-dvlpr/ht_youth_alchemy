@@ -684,6 +684,16 @@ html[data-theme="dark"] .sortControl {
   color: #b9b0a5;
 }
 
+html[data-theme="dark"] .detailsBadgeSuccess {
+  color: #8fe5ae;
+  border-color: rgba(143, 229, 174, 0.35);
+}
+
+html[data-theme="dark"] .detailsBadgeMuted {
+  color: #b9b0a5;
+  border-color: rgba(185, 176, 165, 0.3);
+}
+
 html[data-theme="dark"] .skillValue {
   color: #f3ede4;
 }
@@ -1044,6 +1054,28 @@ html[data-theme="dark"] .spinner {
   margin: 4px 0 0;
   color: #7a6f61;
   font-size: 12px;
+}
+
+.detailsBadge {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.detailsBadgeSuccess {
+  background: rgba(143, 229, 174, 0.18);
+  color: #2f6a3d;
+  border: 1px solid rgba(143, 229, 174, 0.5);
+}
+
+.detailsBadgeMuted {
+  background: rgba(140, 131, 118, 0.12);
+  color: #7a6f61;
+  border: 1px solid rgba(122, 111, 97, 0.35);
 }
 
 .loadingRow {

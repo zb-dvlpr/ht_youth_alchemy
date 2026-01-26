@@ -31,7 +31,7 @@ export async function GET(request: Request) {
       maxAge: 10 * 60,
     });
 
-    const scope = "set_matchorder";
+    const scope = "set_matchorder,manage_youthplayers";
     const authorizeUrl = `${CHPP_ENDPOINTS.authorize}?oauth_token=${encodeURIComponent(
       token
     )}&scope=${encodeURIComponent(scope)}`;

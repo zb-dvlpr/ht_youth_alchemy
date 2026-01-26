@@ -51,6 +51,7 @@ type PlayerDetailsPanelProps = {
   loading: boolean;
   error: string | null;
   lastUpdated: number | null;
+  unlockStatus: "success" | "denied" | null;
   onRefresh: () => void;
   messages: Messages;
 };
@@ -152,9 +153,12 @@ export default function PlayerDetailsPanel({
   loading,
   error,
   lastUpdated,
+  unlockStatus,
   onRefresh,
   messages,
 }: PlayerDetailsPanelProps) {
+  const playerId =
+    detailsData?.YouthPlayerID ?? selectedPlayer?.YouthPlayerID ?? null;
   const lastMatchDate = detailsData?.LastMatch
     ? formatMatchDate(detailsData.LastMatch.Date) ?? messages.unknownDate
     : null;
@@ -180,6 +184,19 @@ export default function PlayerDetailsPanel({
               {messages.lastUpdated}: {new Date(lastUpdated).toLocaleString()}
             </p>
           ) : null}
+          {unlockStatus ? (
+            <span
+              className={`${styles.detailsBadge} ${
+                unlockStatus === "success"
+                  ? styles.detailsBadgeSuccess
+                  : styles.detailsBadgeMuted
+              }`}
+            >
+              {unlockStatus === "success"
+                ? messages.unlockSkillsSuccess
+                : messages.unlockSkillsDenied}
+            </span>
+          ) : null}
         </div>
         <Tooltip content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}>
           <button
@@ -195,7 +212,10 @@ export default function PlayerDetailsPanel({
       </div>
 
       {loading ? (
-        <p className={styles.muted}>{messages.loadingDetails}</p>
+        <div className={styles.loadingRow}>
+          <span className={styles.spinner} aria-hidden="true" />
+          <span className={styles.muted}>{messages.loadingDetails}</span>
+        </div>
       ) : error ? (
         <p className={styles.errorText}>{error}</p>
       ) : detailsData ? (
@@ -265,6 +285,23 @@ export default function PlayerDetailsPanel({
                   {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}{" "}
                   {SPECIALTY_NAMES[detailsData.Specialty] ??
                     `Specialty ${detailsData.Specialty}`}
+                </div>
+              </div>
+            ) : null}
+            {playerId ? (
+              <div>
+                <div className={styles.infoLabel}>{messages.playerIdLabel}</div>
+                <div className={styles.infoValue}>
+                  {playerId}
+                  <a
+                    className={styles.infoLinkIcon}
+                    href={`https://www82.hattrick.org/Club/Players/YouthPlayer.aspx?YouthPlayerID=${playerId}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={messages.playerLinkLabel}
+                  >
+                    ↗
+                  </a>
                 </div>
               </div>
             ) : null}

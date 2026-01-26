@@ -40,6 +40,8 @@ type YouthPlayerListProps = {
   onToggleStar?: (playerId: number) => void;
   onSelect?: (playerId: number) => void;
   onAutoSelect?: () => void;
+  onRefresh?: () => void;
+  refreshing?: boolean;
   messages: Messages;
 };
 
@@ -90,6 +92,8 @@ export default function YouthPlayerList({
   onToggleStar,
   onSelect,
   onAutoSelect,
+  onRefresh,
+  refreshing,
   messages,
 }: YouthPlayerListProps) {
   const [sortKey, setSortKey] = useState<SortKey>("name");
@@ -227,60 +231,79 @@ export default function YouthPlayerList({
         <h2 className={`${styles.sectionTitle} ${styles.listHeaderTitle}`}>
           {messages.youthPlayerList}
         </h2>
-        <label className={styles.sortControl}>
-          <span className={styles.sortLabel}>{messages.sortLabel}</span>
-          <select
-            className={styles.sortSelect}
-            value={sortKey}
-            onChange={(event) => {
-              const nextKey = event.target.value as SortKey;
-              setSortKey(nextKey);
-              addNotification(
-                `${messages.notificationSortBy} ${sortLabelForKey(nextKey)}`
-              );
-            }}
+        <div className={styles.listHeaderControls}>
+          <label className={styles.sortControl}>
+            <span className={styles.sortLabel}>{messages.sortLabel}</span>
+            <select
+              className={styles.sortSelect}
+              value={sortKey}
+              onChange={(event) => {
+                const nextKey = event.target.value as SortKey;
+                setSortKey(nextKey);
+                addNotification(
+                  `${messages.notificationSortBy} ${sortLabelForKey(nextKey)}`
+                );
+              }}
+            >
+              <option value="name">{messages.sortName}</option>
+              <option value="age">{messages.sortAge}</option>
+              <option value="arrival">{messages.sortArrival}</option>
+              <option value="promotable">{messages.sortPromotable}</option>
+              <option value="keeper">{messages.sortKeeper}</option>
+              <option value="defender">{messages.sortDefender}</option>
+              <option value="playmaker">{messages.sortPlaymaker}</option>
+              <option value="winger">{messages.sortWinger}</option>
+              <option value="passing">{messages.sortPassing}</option>
+              <option value="scorer">{messages.sortScorer}</option>
+              <option value="setpieces">{messages.sortSetPieces}</option>
+            </select>
+          </label>
+          <Tooltip
+            content={<div className={styles.tooltipCard}>{messages.sortToggleAria}</div>}
           >
-            <option value="name">{messages.sortName}</option>
-            <option value="age">{messages.sortAge}</option>
-            <option value="arrival">{messages.sortArrival}</option>
-            <option value="promotable">{messages.sortPromotable}</option>
-            <option value="keeper">{messages.sortKeeper}</option>
-            <option value="defender">{messages.sortDefender}</option>
-            <option value="playmaker">{messages.sortPlaymaker}</option>
-            <option value="winger">{messages.sortWinger}</option>
-            <option value="passing">{messages.sortPassing}</option>
-            <option value="scorer">{messages.sortScorer}</option>
-            <option value="setpieces">{messages.sortSetPieces}</option>
-          </select>
-        </label>
-        <Tooltip content={<div className={styles.tooltipCard}>{messages.sortToggleAria}</div>}>
-          <button
-            type="button"
-            className={styles.sortToggle}
-            aria-label={messages.sortToggleAria}
-            onClick={() => {
-              const next = sortDirection === "asc" ? "desc" : "asc";
-              setSortDirection(next);
-              addNotification(
-                `${messages.notificationSortDirection} ${
-                  next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
-                }`
-              );
-            }}
+            <button
+              type="button"
+              className={styles.sortToggle}
+              aria-label={messages.sortToggleAria}
+              onClick={() => {
+                const next = sortDirection === "asc" ? "desc" : "asc";
+                setSortDirection(next);
+                addNotification(
+                  `${messages.notificationSortDirection} ${
+                    next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
+                  }`
+                );
+              }}
+            >
+              {sortDirection === "asc" ? "↕️" : "↕️"}
+            </button>
+          </Tooltip>
+          <Tooltip
+            content={<div className={styles.tooltipCard}>{messages.refreshPlayerListTooltip}</div>}
           >
-            {sortDirection === "asc" ? "↕️" : "↕️"}
-          </button>
-        </Tooltip>
-        <Tooltip content={<div className={styles.tooltipCard}>{messages.autoSelectTitle}</div>}>
-          <button
-            type="button"
-            className={styles.autoSelectButton}
-            onClick={onAutoSelect}
-            aria-label={messages.autoSelectTitle}
+            <button
+              type="button"
+              className={styles.sortToggle}
+              aria-label={messages.refreshPlayerListTooltip}
+              onClick={onRefresh}
+              disabled={!onRefresh || refreshing}
+            >
+              ↻
+            </button>
+          </Tooltip>
+          <Tooltip
+            content={<div className={styles.tooltipCard}>{messages.autoSelectTitle}</div>}
           >
-            {messages.autoSelectLabel}
-          </button>
-        </Tooltip>
+            <button
+              type="button"
+              className={styles.autoSelectButton}
+              onClick={onAutoSelect}
+              aria-label={messages.autoSelectTitle}
+            >
+              {messages.autoSelectLabel}
+            </button>
+          </Tooltip>
+        </div>
       </div>
       {players.length === 0 ? (
         <p className={styles.muted}>{messages.noYouthPlayers}</p>
@@ -331,6 +354,7 @@ export default function YouthPlayerList({
                     }`}
                     onClick={() => {
                       if (!onSelect) return;
+                      if (selectedId === player.YouthPlayerID) return;
                       onSelect(player.YouthPlayerID);
                       addNotification(
                         `${messages.notificationPlayerSelected} ${fullName}`
@@ -349,9 +373,6 @@ export default function YouthPlayerList({
                           {SPECIALTY_EMOJI[specialtyEmoji]}
                         </span>
                       ) : null}
-                    </span>
-                    <span className={styles.playerId}>
-                      ID: {player.YouthPlayerID}
                     </span>
                     {isAssigned ? (
                       <span className={styles.assignedTag}>

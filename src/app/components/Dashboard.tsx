@@ -22,6 +22,11 @@ import {
 } from "@/lib/optimizer";
 import { useNotifications } from "./notifications/NotificationsProvider";
 
+const formatPlayerName = (player: YouthPlayer) =>
+  [player.FirstName, player.NickName || null, player.LastName]
+    .filter(Boolean)
+    .join(" ");
+
 type YouthPlayer = {
   YouthPlayerID: number;
   FirstName: string;
@@ -43,6 +48,7 @@ type SkillValue = {
 
 type PlayerDetailsResponse = {
   data?: Record<string, unknown>;
+  unlockStatus?: "success" | "denied";
   error?: string;
   details?: string;
 };
@@ -89,9 +95,14 @@ export default function Dashboard({
   messages,
   isConnected,
 }: DashboardProps) {
+  const [playerList, setPlayerList] = useState<YouthPlayer[]>(players);
+  const [playersLoading, setPlayersLoading] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
   const [cache, setCache] = useState<Record<number, CachedDetails>>({});
+  const [unlockStatus, setUnlockStatus] = useState<"success" | "denied" | null>(
+    null
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -111,6 +122,7 @@ export default function Dashboard({
   );
   const [showOptimizerDebug, setShowOptimizerDebug] = useState(false);
   const [autoSelectionApplied, setAutoSelectionApplied] = useState(false);
+  const [showTrainingReminder, setShowTrainingReminder] = useState(false);
   const { addNotification } = useNotifications();
   const isDev = process.env.NODE_ENV !== "production";
   const storageKey = "ya_dashboard_state_v1";
@@ -123,9 +135,9 @@ export default function Dashboard({
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
-    players.forEach((player) => map.set(player.YouthPlayerID, player));
+    playerList.forEach((player) => map.set(player.YouthPlayerID, player));
     return map;
-  }, [players]);
+  }, [playerList]);
 
   const playerDetailsById = useMemo(() => {
     const map = new Map<number, YouthPlayerDetails>();
@@ -144,9 +156,27 @@ export default function Dashboard({
   );
 
   const selectedPlayer = useMemo(
-    () => players.find((player) => player.YouthPlayerID === selectedId) ?? null,
-    [players, selectedId]
+    () =>
+      playerList.find((player) => player.YouthPlayerID === selectedId) ?? null,
+    [playerList, selectedId]
   );
+
+  const filteredRatings = useMemo(() => {
+    if (!ratingsResponse) return null;
+    const allowedNames = new Set(
+      playerList.map((player) =>
+        [player.FirstName, player.NickName || null, player.LastName]
+          .filter(Boolean)
+          .join(" ")
+      )
+    );
+    return {
+      ...ratingsResponse,
+      players: ratingsResponse.players.filter((row) =>
+        allowedNames.has(row.name)
+      ),
+    };
+  }, [ratingsResponse, playerList]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -342,10 +372,11 @@ export default function Dashboard({
     setLoading(true);
     setError(null);
     setDetails(null);
+    setUnlockStatus(null);
 
     try {
       const response = await fetch(
-        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true`,
+        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&unlockSkills=1`,
         { cache: "no-store" }
       );
       const payload = (await response.json()) as PlayerDetailsResponse;
@@ -365,6 +396,9 @@ export default function Dashboard({
         }));
       }
       setDetails(resolved);
+      if (payload.unlockStatus) {
+        setUnlockStatus(payload.unlockStatus);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -380,7 +414,7 @@ export default function Dashboard({
 
     try {
       const response = await fetch(
-        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true`,
+        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&unlockSkills=1`,
         { cache: "no-store" }
       );
       const payload = (await response.json()) as PlayerDetailsResponse;
@@ -396,6 +430,9 @@ export default function Dashboard({
             fetchedAt: Date.now(),
           },
         }));
+      }
+      if (payload.unlockStatus) {
+        setUnlockStatus(payload.unlockStatus);
       }
     } catch {
       // ignore hover failures
@@ -441,7 +478,7 @@ export default function Dashboard({
   };
 
   const randomizeLineup = () => {
-    if (!players.length) return;
+    if (!playerList.length) return;
     const outfieldSlots = [
       "WB_R",
       "CD_R",
@@ -457,7 +494,7 @@ export default function Dashboard({
       "F_C",
       "F_L",
     ];
-    const ids = players.map((player) => player.YouthPlayerID);
+    const ids = playerList.map((player) => player.YouthPlayerID);
     const shuffledIds = [...ids].sort(() => Math.random() - 0.5);
     const keeperId = shuffledIds.shift() ?? null;
     const outfieldIds = shuffledIds.slice(0, 10);
@@ -489,7 +526,7 @@ export default function Dashboard({
       return;
     }
 
-    const optimizerPlayers: OptimizerPlayer[] = players.map((player) => ({
+    const optimizerPlayers: OptimizerPlayer[] = playerList.map((player) => ({
       id: player.YouthPlayerID,
       name: [player.FirstName, player.NickName || null, player.LastName]
         .filter(Boolean)
@@ -531,6 +568,37 @@ export default function Dashboard({
     }
   };
 
+  const refreshPlayers = async () => {
+    if (playersLoading) return;
+    setPlayersLoading(true);
+    try {
+      const response = await fetch("/api/chpp/youth/players?actionType=details", {
+        cache: "no-store",
+      });
+      const payload = (await response.json()) as {
+        data?: {
+          HattrickData?: {
+            PlayerList?: { YouthPlayer?: YouthPlayer[] | YouthPlayer };
+          };
+        };
+      };
+      const raw = payload?.data?.HattrickData?.PlayerList?.YouthPlayer;
+      const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
+      setPlayerList(list);
+      if (
+        selectedId &&
+        !list.some((player) => player.YouthPlayerID === selectedId)
+      ) {
+        setSelectedId(null);
+      }
+      addNotification(messages.notificationPlayersRefreshed);
+    } catch {
+      addNotification(messages.unableToLoadPlayers);
+    } finally {
+      setPlayersLoading(false);
+    }
+  };
+
   const loadLineup = (nextAssignments: LineupAssignments, matchId: number) => {
     setAssignments(nextAssignments);
     setLoadedMatchId(matchId);
@@ -541,7 +609,7 @@ export default function Dashboard({
 
   const optimizerPlayers = useMemo<OptimizerPlayer[]>(
     () =>
-      players.map((player) => ({
+      playerList.map((player) => ({
         id: player.YouthPlayerID,
         name: [player.FirstName, player.NickName || null, player.LastName]
           .filter(Boolean)
@@ -555,7 +623,7 @@ export default function Dashboard({
           (player.PlayerSkills as OptimizerPlayer["skills"]) ??
           null,
       })),
-    [players, playerDetailsById]
+    [playerList, playerDetailsById]
   );
 
   const autoSelection = useMemo(
@@ -660,6 +728,9 @@ export default function Dashboard({
         return messages.unknownShort;
     }
   };
+  const trainingReminderText = messages.trainingReminderBody
+    .replace("{{primary}}", trainingLabel(primaryTraining))
+    .replace("{{secondary}}", trainingLabel(secondaryTraining));
 
   const trainingSlots = useMemo(() => {
     if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
@@ -679,6 +750,27 @@ export default function Dashboard({
 
   return (
     <div className={styles.dashboardGrid} ref={dashboardRef}>
+      {showTrainingReminder ? (
+        <div className={styles.trainingOverlay} role="dialog" aria-modal="true">
+          <div className={styles.confirmCard}>
+            <div className={styles.confirmTitle}>
+              {messages.trainingReminderTitle}
+            </div>
+            <div className={styles.confirmBody}>
+              {trainingReminderText}
+            </div>
+            <div className={styles.confirmActions}>
+              <button
+                type="button"
+                className={styles.confirmSubmit}
+                onClick={() => setShowTrainingReminder(false)}
+              >
+                {messages.trainingReminderConfirm}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {showHelp ? (
         <div className={styles.helpOverlay} aria-hidden="true">
           <svg className={styles.helpArrows} role="presentation">
@@ -714,7 +806,7 @@ export default function Dashboard({
         aria-hidden={showHelp ? "true" : undefined}
       >
         <YouthPlayerList
-          players={players}
+          players={playerList}
           assignedIds={assignedIds}
           selectedId={selectedId}
           starPlayerId={starPlayerId}
@@ -739,6 +831,8 @@ export default function Dashboard({
               `${messages.notificationAutoSelection} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
             );
           }}
+          onRefresh={refreshPlayers}
+          refreshing={playersLoading}
           messages={messages}
         />
       </div>
@@ -798,12 +892,36 @@ export default function Dashboard({
               loading={loading}
               error={error}
               lastUpdated={lastUpdated}
+              unlockStatus={unlockStatus}
               onRefresh={() =>
                 selectedId ? loadDetails(selectedId, true) : undefined
               }
               messages={messages}
             />
-            <RatingsMatrix response={ratingsResponse} messages={messages} />
+            <RatingsMatrix
+              response={filteredRatings}
+              messages={messages}
+              specialtyByName={Object.fromEntries(
+                playerList.map((player) => [
+                  [player.FirstName, player.NickName || null, player.LastName]
+                    .filter(Boolean)
+                    .join(" "),
+                  player.Specialty,
+                ])
+              )}
+              selectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
+              onSelectPlayer={(playerName) => {
+                const match = playerList.find(
+                  (player) => formatPlayerName(player) === playerName
+                );
+                if (!match) return;
+                if (selectedId === match.YouthPlayerID) return;
+                handleSelect(match.YouthPlayerID);
+                addNotification(
+                  `${messages.notificationPlayerSelected} ${playerName}`
+                );
+              }}
+            />
           </>
         )}
       </div>
@@ -1120,6 +1238,7 @@ export default function Dashboard({
           onRefresh={refreshMatches}
           onLoadLineup={loadLineup}
           loadedMatchId={loadedMatchId}
+          onSubmitSuccess={() => setShowTrainingReminder(true)}
         />
       </div>
     </div>

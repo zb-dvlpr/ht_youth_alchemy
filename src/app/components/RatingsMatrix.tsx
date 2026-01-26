@@ -1,6 +1,10 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { POSITION_COLUMNS, positionLabel } from "@/lib/positions";
+import { SPECIALTY_EMOJI } from "@/lib/specialty";
 
 type RatingRow = {
   id: number;
@@ -16,6 +20,9 @@ export type RatingsMatrixResponse = {
 type RatingsMatrixProps = {
   response: RatingsMatrixResponse | null;
   messages: Messages;
+  specialtyByName?: Record<string, number | undefined>;
+  selectedName?: string | null;
+  onSelectPlayer?: (playerName: string) => void;
 };
 
 function uniquePositions(positions: number[] | undefined) {
@@ -40,7 +47,13 @@ function ratingStyle(value: number | null) {
   } as React.CSSProperties;
 }
 
-export default function RatingsMatrix({ response, messages }: RatingsMatrixProps) {
+export default function RatingsMatrix({
+  response,
+  messages,
+  specialtyByName,
+  selectedName,
+  onSelectPlayer,
+}: RatingsMatrixProps) {
   if (!response || response.players.length === 0) {
     return (
       <div className={styles.card}>
@@ -51,6 +64,32 @@ export default function RatingsMatrix({ response, messages }: RatingsMatrixProps
   }
 
   const positions = uniquePositions(response.positions);
+  const [sortKey, setSortKey] = useState<number | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+
+  const sortedRows = useMemo(() => {
+    if (!sortKey) return response.players;
+    const direction = sortDir === "asc" ? 1 : -1;
+    return [...response.players].sort((a, b) => {
+      const aVal = a.ratings[String(sortKey)];
+      const bVal = b.ratings[String(sortKey)];
+      const aNum = typeof aVal === "number" ? aVal : null;
+      const bNum = typeof bVal === "number" ? bVal : null;
+      if (aNum === null && bNum === null) return 0;
+      if (aNum === null) return 1;
+      if (bNum === null) return -1;
+      return (aNum - bNum) * direction;
+    });
+  }, [response.players, sortDir, sortKey]);
+
+  const handleSort = (position: number) => {
+    if (sortKey === position) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(position);
+      setSortDir("desc");
+    }
+  };
 
   return (
     <div className={styles.card}>
@@ -59,16 +98,65 @@ export default function RatingsMatrix({ response, messages }: RatingsMatrixProps
         <table className={styles.matrixTable}>
           <thead>
             <tr>
-              <th />
-              {positions.map((position) => (
-                <th key={position}>{positionLabel(position, messages)}</th>
-              ))}
+              <th className={styles.matrixIndexHeader}>
+                {messages.ratingsIndexLabel}
+              </th>
+              <th className={styles.matrixPlayerHeader}>
+                {messages.ratingsPlayerLabel}
+              </th>
+              <th className={styles.matrixSpecialtyHeader}>
+                {messages.ratingsSpecialtyLabel}
+              </th>
+              {positions.map((position) => {
+                const isActive = sortKey === position;
+                const direction = isActive ? sortDir : "desc";
+                return (
+                  <th key={position}>
+                    <button
+                      type="button"
+                      className={styles.matrixSortButton}
+                      onClick={() => handleSort(position)}
+                      aria-label={`${messages.ratingsSortBy} ${positionLabel(
+                        position,
+                        messages
+                      )}`}
+                    >
+                      {positionLabel(position, messages)}
+                      <span className={styles.matrixSortIcon}>
+                        {isActive ? (direction === "asc" ? "▲" : "▼") : "⇅"}
+                      </span>
+                    </button>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
-            {response.players.map((row) => (
-              <tr key={row.id}>
-                <td className={styles.matrixPlayer}>{row.name}</td>
+            {sortedRows.map((row, index) => {
+              const isSelected = selectedName === row.name;
+              return (
+                <tr
+                  key={row.id}
+                  className={`${styles.matrixRow} ${
+                    isSelected ? styles.matrixRowSelected : ""
+                  }`}
+                >
+                <td className={styles.matrixIndex}>{index + 1}</td>
+                <td className={styles.matrixPlayer}>
+                  <button
+                    type="button"
+                    className={styles.matrixPlayerButton}
+                    onClick={() => onSelectPlayer?.(row.name)}
+                    disabled={!onSelectPlayer}
+                  >
+                    {row.name}
+                  </button>
+                </td>
+                <td className={styles.matrixSpecialty}>
+                  {specialtyByName && specialtyByName[row.name] !== undefined
+                    ? SPECIALTY_EMOJI[specialtyByName[row.name] as number] ?? "—"
+                    : "—"}
+                </td>
                 {positions.map((position) => {
                   const rating = row.ratings[String(position)] ?? null;
                   return (
@@ -82,7 +170,8 @@ export default function RatingsMatrix({ response, messages }: RatingsMatrixProps
                   );
                 })}
               </tr>
-            ))}
+            );
+            })}
           </tbody>
         </table>
       </div>

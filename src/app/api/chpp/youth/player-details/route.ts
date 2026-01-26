@@ -12,6 +12,7 @@ function buildParams(url: URL) {
   const youthPlayerID = url.searchParams.get("youthPlayerID");
   const showLastMatch = url.searchParams.get("showLastMatch");
   const showScoutCall = url.searchParams.get("showScoutCall");
+  const actionType = url.searchParams.get("actionType");
 
   if (!youthPlayerID) {
     throw new Error("Missing required youthPlayerID parameter");
@@ -23,6 +24,7 @@ function buildParams(url: URL) {
     youthPlayerID,
   });
 
+  if (actionType) params.set("actionType", actionType);
   if (showLastMatch) params.set("showLastMatch", showLastMatch);
   if (showScoutCall) params.set("showScoutCall", showScoutCall);
 
@@ -33,13 +35,30 @@ export async function GET(request: Request) {
   try {
     const auth = await getChppAuth();
     const url = new URL(request.url);
+    const useUnlock = url.searchParams.get("unlockSkills") === "1";
+    if (useUnlock) {
+      url.searchParams.set("actionType", "unlockskills");
+    }
     const params = buildParams(url);
-    const { rawXml, parsed } = await fetchChppXml(auth, params);
+    let { rawXml, parsed } = await fetchChppXml(auth, params);
+    const fileName = (parsed?.HattrickData?.FileName as string | undefined) ?? "";
+    if (useUnlock && fileName.toLowerCase() === "chpperror.xml") {
+      url.searchParams.set("actionType", "details");
+      const fallback = await fetchChppXml(auth, buildParams(url));
+      rawXml = fallback.rawXml;
+      parsed = fallback.parsed;
+    }
 
     const includeRaw = url.searchParams.get("raw") === "1";
 
     return NextResponse.json({
       data: parsed,
+      ...(useUnlock
+        ? {
+            unlockStatus:
+              fileName.toLowerCase() === "chpperror.xml" ? "denied" : "success",
+          }
+        : {}),
       ...(includeRaw ? { raw: rawXml } : {}),
     });
   } catch (error) {

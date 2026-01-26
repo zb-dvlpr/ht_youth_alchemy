@@ -49,6 +49,7 @@ type UpcomingMatchesProps = {
   onRefresh?: () => void;
   onLoadLineup?: (assignments: LineupAssignments, matchId: number) => void;
   loadedMatchId?: number | null;
+  onSubmitSuccess?: () => void;
 };
 
 function normalizeMatches(input?: Match[] | Match): Match[] {
@@ -259,6 +260,7 @@ export default function UpcomingMatches({
   onRefresh,
   onLoadLineup,
   loadedMatchId,
+  onSubmitSuccess,
 }: UpcomingMatchesProps) {
   const { addNotification } = useNotifications();
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
@@ -454,6 +456,7 @@ export default function UpcomingMatches({
           matchById.get(matchId)
         )}`
       );
+      onSubmitSuccess?.();
       onRefresh?.();
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

@@ -13,6 +13,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Player list shows specialty emoji when available (including resilient/support)
 - Lineup slots show specialty emoji when available
 - Lineup hover shows a skill bar tooltip matching the details view
+- Player IDs shown in details with a Hattrick youth profile link
 - Player list can be sorted by age, arrival, promotable, and current skills with a reverse toggle
 - Star player toggle in each player row (single selection)
 - Updated document title/description metadata
@@ -24,7 +25,11 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Ratings matrix using last 10 finished match lineups (max RatingStars per cell)
 - Ratings matrix uses MatchRoleID labels instead of numeric codes
 - Ratings matrix collapses left/right positions into single columns
+- Ratings matrix includes row numbers, specialty column, and sorting by any position rating
+- Ratings matrix rows are clickable to open player details
 - Player details show last match position and rating (showLastMatch=true)
+- Youth player details can unlock skills when permission is granted (manage_youthplayers)
+- Player details header shows unlock-skill status badge
 - player-details API passes through showLastMatch/showScoutCall flags
 - Last match summary formatted as dd.mm.yyyy: rating (expanded position)
 - Promotable badge treats negative values as promotable now
@@ -36,12 +41,14 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Match lineup API for last finished youth match
 - Connect button shown when CHPP access token is missing
 - In-session details cache with manual refresh and a structured details panel (current/potential skill bars with numeric values or ?)
+- Player details show a loading spinner while fetching
 - Upcoming youth match list (handles team-level match list; falls back to recent matches if none UPCOMING)
 - Submit lineup orders for upcoming youth matches (requires set_matchorder scope); load lineup appears first
 - Match orders use Lineup_30 with numeric values, with left/right slots flipped to match Hattrick's ordering
 - Match submission responses can be expanded inline for debugging
 - Submit success is verified from the response (OrdersSet=True), otherwise errors prompt a report
 - Submit confirmations use an in-app dialog aligned with the site style
+- Successful lineup submissions show a reminder to set training in Hattrick
 - Load saved match orders into the lineup graphic per match (on demand)
 - Loaded match is highlighted until the lineup is changed
 - Orders status uses the `OrdersGiven` flag from the matches feed
@@ -65,6 +72,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Compact layout on short viewports with scroll enabled under a height threshold
 - Dark mode toggle (syncs with system preference)
 - Youth player list header includes an auto-select button for star/training
+- Youth player list refresh button reloads the list from Hattrick
 - Random lineup sets a keeper and fills any 10 other positions
 - Reset lineup button clears all assigned slots
 - Match orders are posted as form-encoded `lineup` JSON for CHPP compatibility

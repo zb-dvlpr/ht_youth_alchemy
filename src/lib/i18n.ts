@@ -41,6 +41,9 @@ export type Messages = {
   playerDetails: string;
   refresh: string;
   refreshTooltip: string;
+  refreshPlayerListTooltip: string;
+  unlockSkillsSuccess: string;
+  unlockSkillsDenied: string;
   loadingDetails: string;
   selectPlayerPrompt: string;
   unableToLoadPlayers: string;
@@ -101,6 +104,9 @@ export type Messages = {
   yesLabel: string;
   noLabel: string;
   submitOrdersReport: string;
+  trainingReminderTitle: string;
+  trainingReminderBody: string;
+  trainingReminderConfirm: string;
   confirmCancel: string;
   confirmSubmit: string;
   loadLineup: string;
@@ -118,6 +124,7 @@ export type Messages = {
   notificationPrimaryTrainingSet: string;
   notificationSecondaryTrainingSet: string;
   notificationTrainingCleared: string;
+  notificationPlayersRefreshed: string;
   notificationSortBy: string;
   notificationSortDirection: string;
   notificationStarSet: string;
@@ -178,11 +185,17 @@ export type Messages = {
   potentialLabel: string;
   lastMatchPositionLabel: string;
   lastMatchRatingLabel: string;
+  playerIdLabel: string;
+  playerLinkLabel: string;
   dragPlayerHint: string;
   homeLabel: string;
   awayLabel: string;
   unknownDate: string;
   ratingsTitle: string;
+  ratingsIndexLabel: string;
+  ratingsSortBy: string;
+  ratingsPlayerLabel: string;
+  ratingsSpecialtyLabel: string;
   posKeeper: string;
   posBack: string;
   posCentralDefender: string;
@@ -253,6 +266,9 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Player details",
     refresh: "Refresh",
     refreshTooltip: "Refreshes player details from Hattrick.",
+    refreshPlayerListTooltip: "Refresh youth player list from Hattrick.",
+    unlockSkillsSuccess: "Skills unlocked",
+    unlockSkillsDenied: "Unlock not permitted",
     loadingDetails: "Loading details…",
     selectPlayerPrompt: "Select a player to load details.",
     unableToLoadPlayers: "Unable to load players",
@@ -313,6 +329,10 @@ const MESSAGES: Record<Locale, Messages> = {
     yesLabel: "Yes",
     noLabel: "No",
     submitOrdersReport: "Please report this error to the developer.",
+    trainingReminderTitle: "Training reminder",
+    trainingReminderBody:
+      "After submitting, set primary training to {{primary}} and secondary training to {{secondary}} in Hattrick. This app can’t update training settings because the API doesn’t allow it.",
+    trainingReminderConfirm: "I understand",
     confirmCancel: "Cancel",
     confirmSubmit: "Submit",
     loadLineup: "Load lineup",
@@ -330,6 +350,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Primary training:",
     notificationSecondaryTrainingSet: "Secondary training:",
     notificationTrainingCleared: "Training cleared",
+    notificationPlayersRefreshed: "Youth players refreshed",
     notificationSortBy: "Sort by:",
     notificationSortDirection: "Sort direction:",
     notificationStarSet: "Star player:",
@@ -390,11 +411,17 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potential",
     lastMatchPositionLabel: "Last match position",
     lastMatchRatingLabel: "Last match rating",
+    playerIdLabel: "Player ID",
+    playerLinkLabel: "View on Hattrick",
     dragPlayerHint: "Drag to move",
     homeLabel: "Home",
     awayLabel: "Away",
     unknownDate: "Unknown date",
     ratingsTitle: "Ratings matrix",
+    ratingsIndexLabel: "#",
+    ratingsSortBy: "Sort by",
+    ratingsPlayerLabel: "Player",
+    ratingsSpecialtyLabel: "Specialty",
     posKeeper: "KP",
     posBack: "WB",
     posCentralDefender: "CD",
@@ -461,6 +488,9 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Spielerdetails",
     refresh: "Aktualisieren",
     refreshTooltip: "Aktualisiert die Spielerdetails von Hattrick.",
+    refreshPlayerListTooltip: "Jugendspielerliste von Hattrick aktualisieren.",
+    unlockSkillsSuccess: "Fähigkeiten freigeschaltet",
+    unlockSkillsDenied: "Freischalten nicht erlaubt",
     loadingDetails: "Details werden geladen…",
     selectPlayerPrompt: "Spieler auswählen, um Details zu laden.",
     unableToLoadPlayers: "Spieler konnten nicht geladen werden",
@@ -522,6 +552,10 @@ const MESSAGES: Record<Locale, Messages> = {
     yesLabel: "Ja",
     noLabel: "Nein",
     submitOrdersReport: "Bitte melden Sie diesen Fehler dem Entwickler.",
+    trainingReminderTitle: "Training-Hinweis",
+    trainingReminderBody:
+      "Nach dem Absenden stelle Primärtraining auf {{primary}} und Sekundärtraining auf {{secondary}} in Hattrick. Diese App kann die Trainingseinstellungen nicht ändern, da die API es nicht erlaubt.",
+    trainingReminderConfirm: "Ich verstehe",
     confirmCancel: "Abbrechen",
     confirmSubmit: "Senden",
     loadLineup: "Aufstellung laden",
@@ -539,6 +573,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Primärtraining:",
     notificationSecondaryTrainingSet: "Sekundärtraining:",
     notificationTrainingCleared: "Training gelöscht",
+    notificationPlayersRefreshed: "Jugendspieler aktualisiert",
     notificationSortBy: "Sortierung:",
     notificationSortDirection: "Sortierrichtung:",
     notificationStarSet: "Starspieler:",
@@ -599,11 +634,17 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "Potenzial",
     lastMatchPositionLabel: "Letzte Position",
     lastMatchRatingLabel: "Letzte Bewertung",
+    playerIdLabel: "Spieler-ID",
+    playerLinkLabel: "Bei Hattrick ansehen",
     dragPlayerHint: "Zum Verschieben ziehen",
     homeLabel: "Heim",
     awayLabel: "Auswärts",
     unknownDate: "Unbekanntes Datum",
     ratingsTitle: "Bewertungsmatrix",
+    ratingsIndexLabel: "Nr.",
+    ratingsSortBy: "Sortieren nach",
+    ratingsPlayerLabel: "Spieler",
+    ratingsSpecialtyLabel: "Spezialität",
     posKeeper: "TW",
     posBack: "AV",
     posCentralDefender: "IV",
@@ -671,6 +712,10 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Détails du joueur",
     refresh: "Actualiser",
     refreshTooltip: "Actualise les détails du joueur depuis Hattrick.",
+    refreshPlayerListTooltip:
+      "Actualiser la liste des jeunes depuis Hattrick.",
+    unlockSkillsSuccess: "Compétences débloquées",
+    unlockSkillsDenied: "Déblocage non autorisé",
     loadingDetails: "Chargement des détails…",
     selectPlayerPrompt: "Sélectionnez un joueur pour charger les détails.",
     unableToLoadPlayers: "Impossible de charger les joueurs",
@@ -734,6 +779,10 @@ const MESSAGES: Record<Locale, Messages> = {
     yesLabel: "Oui",
     noLabel: "Non",
     submitOrdersReport: "Veuillez signaler cette erreur au développeur.",
+    trainingReminderTitle: "Rappel d’entraînement",
+    trainingReminderBody:
+      "Après l’envoi, définissez l’entraînement principal sur {{primary}} et le secondaire sur {{secondary}} dans Hattrick. Cette app ne peut pas modifier ces réglages car l’API ne le permet pas.",
+    trainingReminderConfirm: "J’ai compris",
     confirmCancel: "Annuler",
     confirmSubmit: "Envoyer",
     loadLineup: "Charger la composition",
@@ -751,6 +800,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Entraînement principal :",
     notificationSecondaryTrainingSet: "Entraînement secondaire :",
     notificationTrainingCleared: "Entraînement effacé",
+    notificationPlayersRefreshed: "Jeunes joueurs actualisés",
     notificationSortBy: "Trier par :",
     notificationSortDirection: "Sens de tri :",
     notificationStarSet: "Joueur star :",
@@ -811,11 +861,17 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potentiel",
     lastMatchPositionLabel: "Position du dernier match",
     lastMatchRatingLabel: "Note du dernier match",
+    playerIdLabel: "ID joueur",
+    playerLinkLabel: "Voir sur Hattrick",
     dragPlayerHint: "Glisser pour déplacer",
     homeLabel: "Domicile",
     awayLabel: "Extérieur",
     unknownDate: "Date inconnue",
     ratingsTitle: "Matrice des notes",
+    ratingsIndexLabel: "N°",
+    ratingsSortBy: "Trier par",
+    ratingsPlayerLabel: "Joueur",
+    ratingsSpecialtyLabel: "Spécialité",
     posKeeper: "GB",
     posBack: "AD",
     posCentralDefender: "DC",
@@ -884,6 +940,10 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Detalles del jugador",
     refresh: "Actualizar",
     refreshTooltip: "Actualiza los detalles del jugador desde Hattrick.",
+    refreshPlayerListTooltip:
+      "Actualizar la lista de juveniles desde Hattrick.",
+    unlockSkillsSuccess: "Habilidades desbloqueadas",
+    unlockSkillsDenied: "Desbloqueo no permitido",
     loadingDetails: "Cargando detalles…",
     selectPlayerPrompt: "Selecciona un jugador para cargar detalles.",
     unableToLoadPlayers: "No se pudieron cargar los jugadores",
@@ -947,6 +1007,10 @@ const MESSAGES: Record<Locale, Messages> = {
     yesLabel: "Sí",
     noLabel: "No",
     submitOrdersReport: "Por favor, informe este error al desarrollador.",
+    trainingReminderTitle: "Aviso de entrenamiento",
+    trainingReminderBody:
+      "Tras enviar, define el entrenamiento primario en {{primary}} y el secundario en {{secondary}} en Hattrick. Esta app no puede cambiar la configuración porque la API no lo permite.",
+    trainingReminderConfirm: "Entendido",
     confirmCancel: "Cancelar",
     confirmSubmit: "Enviar",
     loadLineup: "Cargar alineación",
@@ -964,6 +1028,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Entrenamiento primario:",
     notificationSecondaryTrainingSet: "Entrenamiento secundario:",
     notificationTrainingCleared: "Entrenamiento borrado",
+    notificationPlayersRefreshed: "Juveniles actualizados",
     notificationSortBy: "Ordenar por:",
     notificationSortDirection: "Dirección de orden:",
     notificationStarSet: "Jugador estrella:",
@@ -1024,11 +1089,17 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potencial",
     lastMatchPositionLabel: "Posición del último partido",
     lastMatchRatingLabel: "Calificación del último partido",
+    playerIdLabel: "ID del jugador",
+    playerLinkLabel: "Ver en Hattrick",
     dragPlayerHint: "Arrastra para mover",
     homeLabel: "Local",
     awayLabel: "Visitante",
     unknownDate: "Fecha desconocida",
     ratingsTitle: "Matriz de calificaciones",
+    ratingsIndexLabel: "N.º",
+    ratingsSortBy: "Ordenar por",
+    ratingsPlayerLabel: "Jugador",
+    ratingsSpecialtyLabel: "Especialidad",
     posKeeper: "POR",
     posBack: "LD",
     posCentralDefender: "DC",
@@ -1097,6 +1168,9 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Spelardetaljer",
     refresh: "Uppdatera",
     refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
+    refreshPlayerListTooltip: "Uppdatera juniorlistan från Hattrick.",
+    unlockSkillsSuccess: "Färdigheter upplåsta",
+    unlockSkillsDenied: "Upplåsning ej tillåten",
     loadingDetails: "Laddar detaljer…",
     selectPlayerPrompt: "Välj en spelare för att ladda detaljer.",
     unableToLoadPlayers: "Kunde inte ladda spelare",
@@ -1159,6 +1233,10 @@ const MESSAGES: Record<Locale, Messages> = {
     yesLabel: "Ja",
     noLabel: "Nej",
     submitOrdersReport: "Rapportera gärna felet till utvecklaren.",
+    trainingReminderTitle: "Träningspåminnelse",
+    trainingReminderBody:
+      "Efter att du skickat in, ställ in primär träning till {{primary}} och sekundär till {{secondary}} i Hattrick. Appen kan inte ändra träningsinställningar eftersom API:t inte tillåter det.",
+    trainingReminderConfirm: "Jag förstår",
     confirmCancel: "Avbryt",
     confirmSubmit: "Skicka",
     loadLineup: "Ladda uppställning",
@@ -1176,6 +1254,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Primärträning:",
     notificationSecondaryTrainingSet: "Sekundärträning:",
     notificationTrainingCleared: "Träning rensad",
+    notificationPlayersRefreshed: "Juniorer uppdaterade",
     notificationSortBy: "Sortera efter:",
     notificationSortDirection: "Sorteringsriktning:",
     notificationStarSet: "Stjärnspelare:",
@@ -1236,11 +1315,17 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potential",
     lastMatchPositionLabel: "Senaste matchposition",
     lastMatchRatingLabel: "Senaste matchbetyg",
+    playerIdLabel: "Spelar-ID",
+    playerLinkLabel: "Visa på Hattrick",
     dragPlayerHint: "Dra för att flytta",
     homeLabel: "Hemma",
     awayLabel: "Borta",
     unknownDate: "Okänt datum",
     ratingsTitle: "Betygsmatris",
+    ratingsIndexLabel: "Nr",
+    ratingsSortBy: "Sortera efter",
+    ratingsPlayerLabel: "Spelare",
+    ratingsSpecialtyLabel: "Specialitet",
     posKeeper: "MV",
     posBack: "VB",
     posCentralDefender: "IM",
@@ -1309,6 +1394,10 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Dettagli giocatore",
     refresh: "Aggiorna",
     refreshTooltip: "Aggiorna i dettagli del giocatore da Hattrick.",
+    refreshPlayerListTooltip:
+      "Aggiorna la lista dei giovani da Hattrick.",
+    unlockSkillsSuccess: "Abilità sbloccate",
+    unlockSkillsDenied: "Sblocco non consentito",
     loadingDetails: "Caricamento dettagli…",
     selectPlayerPrompt: "Seleziona un giocatore per caricare i dettagli.",
     unableToLoadPlayers: "Impossibile caricare i giocatori",
@@ -1372,6 +1461,10 @@ const MESSAGES: Record<Locale, Messages> = {
     yesLabel: "Sì",
     noLabel: "No",
     submitOrdersReport: "Segnala questo errore allo sviluppatore.",
+    trainingReminderTitle: "Promemoria allenamento",
+    trainingReminderBody:
+      "Dopo l’invio, imposta l’allenamento primario su {{primary}} e il secondario su {{secondary}} in Hattrick. Questa app non può modificare le impostazioni perché l’API non lo consente.",
+    trainingReminderConfirm: "Ho capito",
     confirmCancel: "Annulla",
     confirmSubmit: "Invia",
     loadLineup: "Carica formazione",
@@ -1389,6 +1482,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Allenamento primario:",
     notificationSecondaryTrainingSet: "Allenamento secondario:",
     notificationTrainingCleared: "Allenamento cancellato",
+    notificationPlayersRefreshed: "Giocatori giovanili aggiornati",
     notificationSortBy: "Ordina per:",
     notificationSortDirection: "Direzione ordine:",
     notificationStarSet: "Giocatore stella:",
@@ -1449,11 +1543,17 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potenziale",
     lastMatchPositionLabel: "Posizione ultimo match",
     lastMatchRatingLabel: "Valutazione ultimo match",
+    playerIdLabel: "ID giocatore",
+    playerLinkLabel: "Vedi su Hattrick",
     dragPlayerHint: "Trascina per spostare",
     homeLabel: "Casa",
     awayLabel: "Trasferta",
     unknownDate: "Data sconosciuta",
     ratingsTitle: "Matrice valutazioni",
+    ratingsIndexLabel: "N.",
+    ratingsSortBy: "Ordina per",
+    ratingsPlayerLabel: "Giocatore",
+    ratingsSpecialtyLabel: "Specialità",
     posKeeper: "POR",
     posBack: "TS",
     posCentralDefender: "DC",
@@ -1522,6 +1622,10 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Detalhes do jogador",
     refresh: "Atualizar",
     refreshTooltip: "Atualiza os detalhes do jogador no Hattrick.",
+    refreshPlayerListTooltip:
+      "Atualizar a lista de jovens no Hattrick.",
+    unlockSkillsSuccess: "Habilidades desbloqueadas",
+    unlockSkillsDenied: "Desbloqueio não permitido",
     loadingDetails: "Carregando detalhes…",
     selectPlayerPrompt: "Selecione um jogador para carregar detalhes.",
     unableToLoadPlayers: "Não foi possível carregar jogadores",
@@ -1585,6 +1689,10 @@ const MESSAGES: Record<Locale, Messages> = {
     yesLabel: "Sim",
     noLabel: "Não",
     submitOrdersReport: "Informe este erro ao desenvolvedor.",
+    trainingReminderTitle: "Aviso de treino",
+    trainingReminderBody:
+      "Após enviar, defina o treino primário como {{primary}} e o secundário como {{secondary}} no Hattrick. Esta app não pode alterar as configurações porque a API não permite.",
+    trainingReminderConfirm: "Entendi",
     confirmCancel: "Cancelar",
     confirmSubmit: "Enviar",
     loadLineup: "Carregar escalação",
@@ -1602,6 +1710,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationPrimaryTrainingSet: "Treino primário:",
     notificationSecondaryTrainingSet: "Treino secundário:",
     notificationTrainingCleared: "Treino limpo",
+    notificationPlayersRefreshed: "Jogadores juvenis atualizados",
     notificationSortBy: "Ordenar por:",
     notificationSortDirection: "Direção da ordenação:",
     notificationStarSet: "Jogador estrela:",
@@ -1662,11 +1771,17 @@ const MESSAGES: Record<Locale, Messages> = {
     potentialLabel: "potencial",
     lastMatchPositionLabel: "Posição do último jogo",
     lastMatchRatingLabel: "Avaliação do último jogo",
+    playerIdLabel: "ID do jogador",
+    playerLinkLabel: "Ver no Hattrick",
     dragPlayerHint: "Arraste para mover",
     homeLabel: "Casa",
     awayLabel: "Fora",
     unknownDate: "Data desconhecida",
     ratingsTitle: "Matriz de avaliações",
+    ratingsIndexLabel: "Nº",
+    ratingsSortBy: "Ordenar por",
+    ratingsPlayerLabel: "Jogador",
+    ratingsSpecialtyLabel: "Especialidade",
     posKeeper: "GOL",
     posBack: "LD",
     posCentralDefender: "ZA",

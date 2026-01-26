@@ -806,6 +806,10 @@ html[data-theme="dark"] .confirmCard {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+html[data-theme="dark"] .confirmBody {
+  color: #cfc6bb;
+}
+
 .playerRow {
   display: flex;
   align-items: center;
@@ -1331,6 +1335,16 @@ html[data-theme="dark"] .confirmCard {
   z-index: 20;
 }
 
+.trainingOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 24, 24, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 40;
+}
+
 .confirmCard {
   background: #f7f1e3;
   color: #2d261f;
@@ -1343,6 +1357,13 @@ html[data-theme="dark"] .confirmCard {
 .confirmTitle {
   font-size: 15px;
   font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.confirmBody {
+  font-size: 13px;
+  color: #4d4236;
+  line-height: 1.4;
   margin-bottom: 16px;
 }
 

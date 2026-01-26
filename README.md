@@ -44,6 +44,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Match submission responses can be expanded inline for debugging
 - Submit success is verified from the response (OrdersSet=True), otherwise errors prompt a report
 - Submit confirmations use an in-app dialog aligned with the site style
+- Successful lineup submissions show a reminder to set training in Hattrick
 - Load saved match orders into the lineup graphic per match (on demand)
 - Loaded match is highlighted until the lineup is changed
 - Orders status uses the `OrdersGiven` flag from the matches feed

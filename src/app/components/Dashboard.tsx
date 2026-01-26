@@ -111,6 +111,7 @@ export default function Dashboard({
   );
   const [showOptimizerDebug, setShowOptimizerDebug] = useState(false);
   const [autoSelectionApplied, setAutoSelectionApplied] = useState(false);
+  const [showTrainingReminder, setShowTrainingReminder] = useState(false);
   const { addNotification } = useNotifications();
   const isDev = process.env.NODE_ENV !== "production";
   const storageKey = "ya_dashboard_state_v1";
@@ -677,6 +678,9 @@ export default function Dashboard({
         return messages.unknownShort;
     }
   };
+  const trainingReminderText = messages.trainingReminderBody
+    .replace("{{primary}}", trainingLabel(primaryTraining))
+    .replace("{{secondary}}", trainingLabel(secondaryTraining));
 
   const trainingSlots = useMemo(() => {
     if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
@@ -696,6 +700,27 @@ export default function Dashboard({
 
   return (
     <div className={styles.dashboardGrid} ref={dashboardRef}>
+      {showTrainingReminder ? (
+        <div className={styles.trainingOverlay} role="dialog" aria-modal="true">
+          <div className={styles.confirmCard}>
+            <div className={styles.confirmTitle}>
+              {messages.trainingReminderTitle}
+            </div>
+            <div className={styles.confirmBody}>
+              {trainingReminderText}
+            </div>
+            <div className={styles.confirmActions}>
+              <button
+                type="button"
+                className={styles.confirmSubmit}
+                onClick={() => setShowTrainingReminder(false)}
+              >
+                {messages.trainingReminderConfirm}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
       {showHelp ? (
         <div className={styles.helpOverlay} aria-hidden="true">
           <svg className={styles.helpArrows} role="presentation">
@@ -1148,6 +1173,7 @@ export default function Dashboard({
           onRefresh={refreshMatches}
           onLoadLineup={loadLineup}
           loadedMatchId={loadedMatchId}
+          onSubmitSuccess={() => setShowTrainingReminder(true)}
         />
       </div>
     </div>

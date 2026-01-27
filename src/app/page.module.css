@@ -820,6 +820,16 @@ html[data-theme="dark"] .tag {
   color: #111;
 }
 
+html[data-theme="dark"] .tagSuccess {
+  background: #2f9f5b;
+  color: #111;
+}
+
+html[data-theme="dark"] .tagDanger {
+  background: #ff9a8b;
+  color: #2a1a14;
+}
+
 html[data-theme="dark"] .sectionDivider {
   background: rgba(255, 255, 255, 0.1);
 }
@@ -1241,6 +1251,16 @@ html[data-theme="dark"] .spinner {
   border-radius: 999px;
   font-size: 12px;
   letter-spacing: 0.3px;
+}
+
+.tagSuccess {
+  background: #1f7a3a;
+  color: #f7f1e3;
+}
+
+.tagDanger {
+  background: #a43b2b;
+  color: #f7f1e3;
 }
 
 .profileInfoRow {

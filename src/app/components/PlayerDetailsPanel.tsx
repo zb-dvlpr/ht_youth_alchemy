@@ -193,17 +193,6 @@ export default function PlayerDetailsPanel({
         <div>
           <h2 className={styles.sectionTitle}>{messages.playerDetails}</h2>
         </div>
-        <Tooltip content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}>
-          <button
-            type="button"
-            className={styles.refreshButton}
-            onClick={onRefresh}
-            disabled={!selectedPlayer || loading}
-            aria-label={messages.refreshTooltip}
-          >
-            {messages.refresh}
-          </button>
-        </Tooltip>
       </div>
 
       {loading ? (
@@ -215,6 +204,19 @@ export default function PlayerDetailsPanel({
         <p className={styles.errorText}>{error}</p>
       ) : detailsData ? (
         <div className={styles.profileCard}>
+          <Tooltip
+            content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}
+          >
+            <button
+              type="button"
+              className={`${styles.sortToggle} ${styles.detailsRefresh} ${styles.detailsRefreshCorner}`}
+              onClick={onRefresh}
+              disabled={!selectedPlayer || loading}
+              aria-label={messages.refreshTooltip}
+            >
+              ↻
+            </button>
+          </Tooltip>
           <div className={styles.profileHeader}>
             <div>
               <div className={styles.profileNameRow}>
@@ -254,21 +256,21 @@ export default function PlayerDetailsPanel({
                     ) : null}
                   </span>
                 ) : null}
+                {detailsData.CanBePromotedIn !== undefined ? (
+                  <span
+                    className={`${styles.tag} ${styles.metaTag} ${
+                      detailsData.CanBePromotedIn <= 0
+                        ? styles.tagDanger
+                        : styles.tagSuccess
+                    }`}
+                  >
+                    {detailsData.CanBePromotedIn <= 0
+                      ? messages.promotableNow
+                      : `${messages.promotableIn} ${detailsData.CanBePromotedIn} ${messages.daysLabel}`}
+                  </span>
+                ) : null}
               </p>
             </div>
-            {detailsData.CanBePromotedIn !== undefined ? (
-              <span
-                className={`${styles.tag} ${
-                  detailsData.CanBePromotedIn <= 0
-                    ? styles.tagDanger
-                    : styles.tagSuccess
-                }`}
-              >
-                {detailsData.CanBePromotedIn <= 0
-                  ? messages.promotableNow
-                  : `${messages.promotableIn} ${detailsData.CanBePromotedIn} ${messages.daysLabel}`}
-              </span>
-            ) : null}
           </div>
 
           <div className={styles.profileInfoRow}>

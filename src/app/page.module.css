@@ -1191,15 +1191,18 @@ html[data-theme="dark"] .spinner {
   border-radius: 16px;
   background: #fdfbf7;
   border: 1px solid #efe6d9;
-  padding: 20px;
+  padding: 0 20px 18px;
+  position: relative;
 }
 
 .profileHeader {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .profileNameRow {
@@ -1207,6 +1210,7 @@ html[data-theme="dark"] .spinner {
   align-items: baseline;
   gap: 10px;
   flex-wrap: wrap;
+  margin-top: 0;
 }
 
 .profileName {
@@ -1217,6 +1221,17 @@ html[data-theme="dark"] .spinner {
 .profileUpdated {
   font-size: 12px;
   color: #8a8074;
+}
+
+.detailsRefresh {
+  padding: 4px 7px;
+  font-size: 13px;
+}
+
+.detailsRefreshCorner {
+  position: absolute;
+  top: 14px;
+  right: 14px;
 }
 
 .profileMeta {
@@ -1251,6 +1266,12 @@ html[data-theme="dark"] .spinner {
   border-radius: 999px;
   font-size: 12px;
   letter-spacing: 0.3px;
+}
+
+.metaTag {
+  padding: 4px 10px;
+  font-size: 12px;
+  letter-spacing: 0.1px;
 }
 
 .tagSuccess {

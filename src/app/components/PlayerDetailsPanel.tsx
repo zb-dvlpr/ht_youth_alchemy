@@ -168,22 +168,30 @@ export default function PlayerDetailsPanel({
   const lastMatchPosition = detailsData?.LastMatch
     ? positionLabelShortByRoleId(detailsData.LastMatch.PositionCode, messages)
     : null;
+  const promotionAge =
+    detailsData?.Age !== undefined &&
+    detailsData?.AgeDays !== undefined &&
+    detailsData?.CanBePromotedIn !== undefined
+      ? (() => {
+          const daysPerYear = 112;
+          const totalDays =
+            detailsData.Age * daysPerYear +
+            detailsData.AgeDays +
+            Math.max(0, detailsData.CanBePromotedIn);
+          const promoYears = Math.floor(totalDays / daysPerYear);
+          const promoDays = totalDays % daysPerYear;
+          return {
+            label: `${promoYears} ${messages.yearsLabel} ${promoDays} ${messages.daysLabel}`,
+            totalDays,
+          };
+        })()
+      : null;
 
   return (
     <div className={styles.card}>
       <div className={styles.detailsHeader}>
         <div>
           <h2 className={styles.sectionTitle}>{messages.playerDetails}</h2>
-          {selectedPlayer ? (
-            <p className={styles.detailsSubtitle}>
-              {formatPlayerName(selectedPlayer)}
-            </p>
-          ) : null}
-          {lastUpdated ? (
-            <p className={styles.detailsTimestamp}>
-              {messages.lastUpdated}: {new Date(lastUpdated).toLocaleString()}
-            </p>
-          ) : null}
           {unlockStatus ? (
             <span
               className={`${styles.detailsBadge} ${
@@ -222,9 +230,17 @@ export default function PlayerDetailsPanel({
         <div className={styles.profileCard}>
           <div className={styles.profileHeader}>
             <div>
-              <h4 className={styles.profileName}>
-                {detailsData.FirstName} {detailsData.LastName}
-              </h4>
+              <div className={styles.profileNameRow}>
+                <h4 className={styles.profileName}>
+                  {detailsData.FirstName} {detailsData.LastName}
+                </h4>
+                {lastUpdated ? (
+                  <span className={styles.profileUpdated}>
+                    {messages.lastUpdated}:{" "}
+                    {new Date(lastUpdated).toLocaleString()}
+                  </span>
+                ) : null}
+              </div>
               <p className={styles.profileMeta}>
                 {detailsData.Age !== undefined ? (
                   <span className={styles.metaItem}>
@@ -232,11 +248,23 @@ export default function PlayerDetailsPanel({
                     {detailsData.AgeDays !== undefined
                       ? ` ${detailsData.AgeDays} ${messages.daysLabel}`
                       : ""}
-                  </span>
-                ) : null}
-                {detailsData.NativeCountryName ? (
-                  <span className={styles.metaItem}>
-                    {detailsData.NativeCountryName}
+                    {promotionAge ? (
+                      <>
+                        {" "}
+                        (
+                        {messages.ageAtPromotionLabel}:{" "}
+                        <span
+                          className={
+                            promotionAge.totalDays < 17 * 112 + 1
+                              ? styles.agePromotionGood
+                              : styles.agePromotionBad
+                          }
+                        >
+                          {promotionAge.label}
+                        </span>
+                        )
+                      </>
+                    ) : null}
                   </span>
                 ) : null}
               </p>

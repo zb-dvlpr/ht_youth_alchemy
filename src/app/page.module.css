@@ -735,8 +735,6 @@ html[data-theme="dark"] .tooltipCard {
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-html[data-theme="dark"] .detailsSubtitle,
-html[data-theme="dark"] .detailsTimestamp,
 html[data-theme="dark"] .trainingLabel,
 html[data-theme="dark"] .sortControl {
   color: #b9b0a5;
@@ -764,6 +762,10 @@ html[data-theme="dark"] .profileCard {
 
 html[data-theme="dark"] .profileMeta,
 html[data-theme="dark"] .infoLabel {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .profileUpdated {
   color: #b9b0a5;
 }
 
@@ -803,6 +805,14 @@ html[data-theme="dark"] .playerButton[aria-pressed="true"] {
 html[data-theme="dark"] .metaItem {
   background: #2a2521;
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .agePromotionGood {
+  color: #8fe5ae;
+}
+
+html[data-theme="dark"] .agePromotionBad {
+  color: #ff9a8b;
 }
 
 html[data-theme="dark"] .tag {
@@ -1103,17 +1113,6 @@ html[data-theme="dark"] .spinner {
   font-size: 18px;
 }
 
-.detailsSubtitle {
-  margin: 4px 0 0;
-  color: #4d4d4d;
-}
-
-.detailsTimestamp {
-  margin: 4px 0 0;
-  color: #7a6f61;
-  font-size: 12px;
-}
-
 .detailsBadge {
   display: inline-flex;
   align-items: center;
@@ -1193,9 +1192,21 @@ html[data-theme="dark"] .spinner {
   justify-content: space-between;
 }
 
+.profileNameRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .profileName {
   margin: 0;
   font-size: 22px;
+}
+
+.profileUpdated {
+  font-size: 12px;
+  color: #8a8074;
 }
 
 .profileMeta {
@@ -1211,6 +1222,16 @@ html[data-theme="dark"] .spinner {
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 12px;
+}
+
+.agePromotionGood {
+  color: #1f7a3a;
+  font-weight: 600;
+}
+
+.agePromotionBad {
+  color: #a43b2b;
+  font-weight: 600;
 }
 
 .tag {

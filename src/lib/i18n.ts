@@ -173,6 +173,7 @@ export type Messages = {
   lastUpdated: string;
   yearsLabel: string;
   daysLabel: string;
+  ageAtPromotionLabel: string;
   promotableNow: string;
   promotableIn: string;
   youthTeamLabel: string;
@@ -399,6 +400,7 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Last updated",
     yearsLabel: "years",
     daysLabel: "days",
+    ageAtPromotionLabel: "age at promotion",
     promotableNow: "Can be promoted now",
     promotableIn: "Promotable in",
     youthTeamLabel: "Youth team",
@@ -622,6 +624,7 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Zuletzt aktualisiert",
     yearsLabel: "Jahre",
     daysLabel: "Tage",
+    ageAtPromotionLabel: "Alter bei Beförderung",
     promotableNow: "Kann jetzt hochgezogen werden",
     promotableIn: "Hochziehbar in",
     youthTeamLabel: "Jugendteam",
@@ -849,6 +852,7 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Dernière mise à jour",
     yearsLabel: "ans",
     daysLabel: "jours",
+    ageAtPromotionLabel: "âge à la promotion",
     promotableNow: "Peut être promu maintenant",
     promotableIn: "Promouvable dans",
     youthTeamLabel: "Équipe de jeunes",
@@ -1077,6 +1081,7 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Última actualización",
     yearsLabel: "años",
     daysLabel: "días",
+    ageAtPromotionLabel: "edad al ascender",
     promotableNow: "Puede ascender ahora",
     promotableIn: "Ascendible en",
     youthTeamLabel: "Equipo juvenil",
@@ -1303,6 +1308,7 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Senast uppdaterad",
     yearsLabel: "år",
     daysLabel: "dagar",
+    ageAtPromotionLabel: "ålder vid uppflyttning",
     promotableNow: "Kan flyttas upp nu",
     promotableIn: "Kan flyttas upp om",
     youthTeamLabel: "Ungdomslag",
@@ -1531,6 +1537,7 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Ultimo aggiornamento",
     yearsLabel: "anni",
     daysLabel: "giorni",
+    ageAtPromotionLabel: "età alla promozione",
     promotableNow: "Può essere promosso ora",
     promotableIn: "Promuovibile in",
     youthTeamLabel: "Squadra giovanile",
@@ -1759,6 +1766,7 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Última atualização",
     yearsLabel: "anos",
     daysLabel: "dias",
+    ageAtPromotionLabel: "idade na promoção",
     promotableNow: "Pode ser promovido agora",
     promotableIn: "Promovível em",
     youthTeamLabel: "Time juvenil",

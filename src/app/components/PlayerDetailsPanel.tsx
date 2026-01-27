@@ -204,19 +204,21 @@ export default function PlayerDetailsPanel({
         <p className={styles.errorText}>{error}</p>
       ) : detailsData ? (
         <div className={styles.profileCard}>
-          <Tooltip
-            content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}
-          >
-            <button
-              type="button"
-              className={`${styles.sortToggle} ${styles.detailsRefresh} ${styles.detailsRefreshCorner}`}
-              onClick={onRefresh}
-              disabled={!selectedPlayer || loading}
-              aria-label={messages.refreshTooltip}
+          <div className={styles.detailsRefreshCorner}>
+            <Tooltip
+              content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}
             >
-              ↻
-            </button>
-          </Tooltip>
+              <button
+                type="button"
+                className={`${styles.sortToggle} ${styles.detailsRefresh}`}
+                onClick={onRefresh}
+                disabled={!selectedPlayer || loading}
+                aria-label={messages.refreshTooltip}
+              >
+                ↻
+              </button>
+            </Tooltip>
+          </div>
           <div className={styles.profileHeader}>
             <div>
               <div className={styles.profileNameRow}>

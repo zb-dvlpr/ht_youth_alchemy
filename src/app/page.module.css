@@ -1232,6 +1232,7 @@ html[data-theme="dark"] .spinner {
   position: absolute;
   top: 14px;
   right: 14px;
+  display: inline-flex;
 }
 
 .profileMeta {

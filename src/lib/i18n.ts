@@ -174,6 +174,7 @@ export type Messages = {
   yearsLabel: string;
   daysLabel: string;
   ageAtPromotionLabel: string;
+  unlockedLabel: string;
   promotableNow: string;
   promotableIn: string;
   youthTeamLabel: string;
@@ -401,6 +402,7 @@ const MESSAGES: Record<Locale, Messages> = {
     yearsLabel: "years",
     daysLabel: "days",
     ageAtPromotionLabel: "age at promotion",
+    unlockedLabel: "Unlocked",
     promotableNow: "Can be promoted now",
     promotableIn: "Promotable in",
     youthTeamLabel: "Youth team",
@@ -625,6 +627,7 @@ const MESSAGES: Record<Locale, Messages> = {
     yearsLabel: "Jahre",
     daysLabel: "Tage",
     ageAtPromotionLabel: "Alter bei Beförderung",
+    unlockedLabel: "Entsperrt",
     promotableNow: "Kann jetzt hochgezogen werden",
     promotableIn: "Hochziehbar in",
     youthTeamLabel: "Jugendteam",
@@ -665,7 +668,7 @@ const MESSAGES: Record<Locale, Messages> = {
     connectHint: "Nutze den Verbinden-Button oben rechts, um dich erneut anzumelden.",
     disconnectLabel: "Trennen",
     disconnectTitle: "Trennen und Zugriff widerrufen",
-    brandTitle: "Hattrick Jugend-Alchemie",
+    brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Torwart",
     skillDefending: "Verteidigung",
     skillPlaymaking: "Spielaufbau",
@@ -853,6 +856,7 @@ const MESSAGES: Record<Locale, Messages> = {
     yearsLabel: "ans",
     daysLabel: "jours",
     ageAtPromotionLabel: "âge à la promotion",
+    unlockedLabel: "Déverrouillé",
     promotableNow: "Peut être promu maintenant",
     promotableIn: "Promouvable dans",
     youthTeamLabel: "Équipe de jeunes",
@@ -1082,6 +1086,7 @@ const MESSAGES: Record<Locale, Messages> = {
     yearsLabel: "años",
     daysLabel: "días",
     ageAtPromotionLabel: "edad al ascender",
+    unlockedLabel: "Desbloqueado",
     promotableNow: "Puede ascender ahora",
     promotableIn: "Ascendible en",
     youthTeamLabel: "Equipo juvenil",
@@ -1309,6 +1314,7 @@ const MESSAGES: Record<Locale, Messages> = {
     yearsLabel: "år",
     daysLabel: "dagar",
     ageAtPromotionLabel: "ålder vid uppflyttning",
+    unlockedLabel: "Upplåst",
     promotableNow: "Kan flyttas upp nu",
     promotableIn: "Kan flyttas upp om",
     youthTeamLabel: "Ungdomslag",
@@ -1538,6 +1544,7 @@ const MESSAGES: Record<Locale, Messages> = {
     yearsLabel: "anni",
     daysLabel: "giorni",
     ageAtPromotionLabel: "età alla promozione",
+    unlockedLabel: "Sbloccato",
     promotableNow: "Può essere promosso ora",
     promotableIn: "Promuovibile in",
     youthTeamLabel: "Squadra giovanile",
@@ -1767,6 +1774,7 @@ const MESSAGES: Record<Locale, Messages> = {
     yearsLabel: "anos",
     daysLabel: "dias",
     ageAtPromotionLabel: "idade na promoção",
+    unlockedLabel: "Desbloqueado",
     promotableNow: "Pode ser promovido agora",
     promotableIn: "Promovível em",
     youthTeamLabel: "Time juvenil",

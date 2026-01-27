@@ -192,31 +192,7 @@ export default function PlayerDetailsPanel({
       <div className={styles.detailsHeader}>
         <div>
           <h2 className={styles.sectionTitle}>{messages.playerDetails}</h2>
-          {unlockStatus ? (
-            <span
-              className={`${styles.detailsBadge} ${
-                unlockStatus === "success"
-                  ? styles.detailsBadgeSuccess
-                  : styles.detailsBadgeMuted
-              }`}
-            >
-              {unlockStatus === "success"
-                ? messages.unlockSkillsSuccess
-                : messages.unlockSkillsDenied}
-            </span>
-          ) : null}
         </div>
-        <Tooltip content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}>
-          <button
-            type="button"
-            className={styles.refreshButton}
-            onClick={onRefresh}
-            disabled={!selectedPlayer || loading}
-            aria-label={messages.refreshTooltip}
-          >
-            {messages.refresh}
-          </button>
-        </Tooltip>
       </div>
 
       {loading ? (
@@ -228,6 +204,21 @@ export default function PlayerDetailsPanel({
         <p className={styles.errorText}>{error}</p>
       ) : detailsData ? (
         <div className={styles.profileCard}>
+          <div className={styles.detailsRefreshCorner}>
+            <Tooltip
+              content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}
+            >
+              <button
+                type="button"
+                className={`${styles.sortToggle} ${styles.detailsRefresh}`}
+                onClick={onRefresh}
+                disabled={!selectedPlayer || loading}
+                aria-label={messages.refreshTooltip}
+              >
+                ↻
+              </button>
+            </Tooltip>
+          </div>
           <div className={styles.profileHeader}>
             <div>
               <div className={styles.profileNameRow}>
@@ -267,15 +258,21 @@ export default function PlayerDetailsPanel({
                     ) : null}
                   </span>
                 ) : null}
+                {detailsData.CanBePromotedIn !== undefined ? (
+                  <span
+                    className={`${styles.tag} ${styles.metaTag} ${
+                      detailsData.CanBePromotedIn <= 0
+                        ? styles.tagDanger
+                        : styles.tagSuccess
+                    }`}
+                  >
+                    {detailsData.CanBePromotedIn <= 0
+                      ? messages.promotableNow
+                      : `${messages.promotableIn} ${detailsData.CanBePromotedIn} ${messages.daysLabel}`}
+                  </span>
+                ) : null}
               </p>
             </div>
-            {detailsData.CanBePromotedIn !== undefined ? (
-              <span className={styles.tag}>
-                {detailsData.CanBePromotedIn <= 0
-                  ? messages.promotableNow
-                  : `${messages.promotableIn} ${detailsData.CanBePromotedIn} ${messages.daysLabel}`}
-              </span>
-            ) : null}
           </div>
 
           <div className={styles.profileInfoRow}>
@@ -349,7 +346,16 @@ export default function PlayerDetailsPanel({
           <div className={styles.sectionDivider} />
 
           <div>
-            <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
+            <div className={styles.sectionHeadingRow}>
+              <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
+              {unlockStatus === "success" ? (
+                <span
+                  className={`${styles.detailsBadge} ${styles.detailsBadgeSuccess}`}
+                >
+                  {messages.unlockedLabel}
+                </span>
+              ) : null}
+            </div>
             <div className={styles.skillsGrid}>
               {SKILL_ROWS.map((row) => {
                 const current = getSkillLevel(

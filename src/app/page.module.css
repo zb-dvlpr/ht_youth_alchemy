@@ -1318,6 +1318,18 @@ html[data-theme="dark"] .spinner {
   font-size: 18px;
 }
 
+.sectionHeadingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sectionHeadingRow .sectionHeading {
+  margin-bottom: 0;
+}
+
 .skillsGrid {
   display: grid;
   gap: 12px;

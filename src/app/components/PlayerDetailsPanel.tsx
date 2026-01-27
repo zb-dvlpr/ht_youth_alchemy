@@ -192,19 +192,6 @@ export default function PlayerDetailsPanel({
       <div className={styles.detailsHeader}>
         <div>
           <h2 className={styles.sectionTitle}>{messages.playerDetails}</h2>
-          {unlockStatus ? (
-            <span
-              className={`${styles.detailsBadge} ${
-                unlockStatus === "success"
-                  ? styles.detailsBadgeSuccess
-                  : styles.detailsBadgeMuted
-              }`}
-            >
-              {unlockStatus === "success"
-                ? messages.unlockSkillsSuccess
-                : messages.unlockSkillsDenied}
-            </span>
-          ) : null}
         </div>
         <Tooltip content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}>
           <button
@@ -355,7 +342,16 @@ export default function PlayerDetailsPanel({
           <div className={styles.sectionDivider} />
 
           <div>
-            <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
+            <div className={styles.sectionHeadingRow}>
+              <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
+              {unlockStatus === "success" ? (
+                <span
+                  className={`${styles.detailsBadge} ${styles.detailsBadgeSuccess}`}
+                >
+                  {messages.unlockedLabel}
+                </span>
+              ) : null}
+            </div>
             <div className={styles.skillsGrid}>
               {SKILL_ROWS.map((row) => {
                 const current = getSkillLevel(

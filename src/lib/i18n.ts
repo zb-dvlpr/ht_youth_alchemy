@@ -665,7 +665,7 @@ const MESSAGES: Record<Locale, Messages> = {
     connectHint: "Nutze den Verbinden-Button oben rechts, um dich erneut anzumelden.",
     disconnectLabel: "Trennen",
     disconnectTitle: "Trennen und Zugriff widerrufen",
-    brandTitle: "Hattrick Jugend-Alchemie",
+    brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Torwart",
     skillDefending: "Verteidigung",
     skillPlaymaking: "Spielaufbau",

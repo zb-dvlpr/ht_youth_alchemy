@@ -28,6 +28,8 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Ratings matrix includes row numbers, specialty column, and sorting by any position rating
 - Ratings matrix rows are clickable to open player details
 - Player details show last match position and rating (showLastMatch=true)
+- Player details age badge shows age at promotion
+- Age at promotion is color-coded (under 17y1d green, otherwise red)
 - Youth player details can unlock skills when permission is granted (manage_youthplayers)
 - Player details header shows unlock-skill status badge
 - player-details API passes through showLastMatch/showScoutCall flags

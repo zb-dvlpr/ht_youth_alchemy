@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { formatChppDate, formatDateTime } from "@/lib/datetime";
@@ -10,6 +11,8 @@ type YouthPlayer = {
   FirstName: string;
   NickName: string;
   LastName: string;
+  Specialty?: number;
+  PlayerSkills?: Record<string, SkillValue | number | string>;
 };
 
 type SkillValue = {
@@ -54,6 +57,9 @@ type PlayerDetailsPanelProps = {
   lastUpdated: number | null;
   unlockStatus: "success" | "denied" | null;
   onRefresh: () => void;
+  players: YouthPlayer[];
+  playerDetailsById: Map<number, YouthPlayerDetails>;
+  skillsMatrixRows: { id: number | null; name: string }[];
   messages: Messages;
 };
 
@@ -86,13 +92,48 @@ const SKILL_NAMES = [
  
 
 const SKILL_ROWS = [
-  { key: "KeeperSkill", maxKey: "KeeperSkillMax", labelKey: "skillKeeper" },
-  { key: "DefenderSkill", maxKey: "DefenderSkillMax", labelKey: "skillDefending" },
-  { key: "PlaymakerSkill", maxKey: "PlaymakerSkillMax", labelKey: "skillPlaymaking" },
-  { key: "WingerSkill", maxKey: "WingerSkillMax", labelKey: "skillWinger" },
-  { key: "PassingSkill", maxKey: "PassingSkillMax", labelKey: "skillPassing" },
-  { key: "ScorerSkill", maxKey: "ScorerSkillMax", labelKey: "skillScoring" },
-  { key: "SetPiecesSkill", maxKey: "SetPiecesSkillMax", labelKey: "skillSetPieces" },
+  {
+    key: "KeeperSkill",
+    maxKey: "KeeperSkillMax",
+    labelKey: "skillKeeper",
+    shortLabelKey: "skillKeeperShort",
+  },
+  {
+    key: "DefenderSkill",
+    maxKey: "DefenderSkillMax",
+    labelKey: "skillDefending",
+    shortLabelKey: "skillDefendingShort",
+  },
+  {
+    key: "PlaymakerSkill",
+    maxKey: "PlaymakerSkillMax",
+    labelKey: "skillPlaymaking",
+    shortLabelKey: "skillPlaymakingShort",
+  },
+  {
+    key: "WingerSkill",
+    maxKey: "WingerSkillMax",
+    labelKey: "skillWinger",
+    shortLabelKey: "skillWingerShort",
+  },
+  {
+    key: "PassingSkill",
+    maxKey: "PassingSkillMax",
+    labelKey: "skillPassing",
+    shortLabelKey: "skillPassingShort",
+  },
+  {
+    key: "ScorerSkill",
+    maxKey: "ScorerSkillMax",
+    labelKey: "skillScoring",
+    shortLabelKey: "skillScoringShort",
+  },
+  {
+    key: "SetPiecesSkill",
+    maxKey: "SetPiecesSkillMax",
+    labelKey: "skillSetPieces",
+    shortLabelKey: "skillSetPiecesShort",
+  },
 ];
 
 function formatPlayerName(player?: YouthPlayer | null) {
@@ -102,16 +143,26 @@ function formatPlayerName(player?: YouthPlayer | null) {
     .join(" ");
 }
 
-function getSkillLevel(skill?: SkillValue): number | null {
+function getSkillLevel(skill?: SkillValue | number | string | null): number | null {
   if (!skill) return null;
+  if (typeof skill === "number") return skill;
+  if (typeof skill === "string") {
+    const numeric = Number(skill);
+    return Number.isNaN(numeric) ? null : numeric;
+  }
   if (skill["@_IsAvailable"] !== "True") return null;
   if (skill["#text"] === undefined || skill["#text"] === null) return null;
   const numeric = Number(skill["#text"]);
   return Number.isNaN(numeric) ? null : numeric;
 }
 
-function getSkillMax(skill?: SkillValue): number | null {
+function getSkillMax(skill?: SkillValue | number | string | null): number | null {
   if (!skill) return null;
+  if (typeof skill === "number") return skill;
+  if (typeof skill === "string") {
+    const numeric = Number(skill);
+    return Number.isNaN(numeric) ? null : numeric;
+  }
   if (skill["@_IsAvailable"] !== "True") return null;
   if (skill["#text"] === undefined || skill["#text"] === null) return null;
   const numeric = Number(skill["#text"]);
@@ -139,8 +190,21 @@ export default function PlayerDetailsPanel({
   lastUpdated,
   unlockStatus,
   onRefresh,
+  players,
+  playerDetailsById,
+  skillsMatrixRows,
   messages,
 }: PlayerDetailsPanelProps) {
+  const [activeTab, setActiveTab] = useState<"details" | "skillsMatrix">(
+    "details"
+  );
+
+  const playerById = useMemo(() => {
+    const map = new Map<number, YouthPlayer>();
+    players.forEach((player) => map.set(player.YouthPlayerID, player));
+    return map;
+  }, [players]);
+
   const specialtyName = (value?: number) => {
     switch (value) {
       case 0:
@@ -194,224 +258,324 @@ export default function PlayerDetailsPanel({
         })()
       : null;
 
-  return (
-    <div className={styles.card}>
-      <div className={styles.detailsHeader}>
-        <div>
-          <h2 className={styles.sectionTitle}>{messages.playerDetails}</h2>
-        </div>
-      </div>
-
-      {loading ? (
+  const renderDetails = () => {
+    if (loading) {
+      return (
         <div className={styles.loadingRow}>
           <span className={styles.spinner} aria-hidden="true" />
           <span className={styles.muted}>{messages.loadingDetails}</span>
         </div>
-      ) : error ? (
-        <p className={styles.errorText}>{error}</p>
-      ) : detailsData ? (
-        <div className={styles.profileCard}>
-          <div className={styles.detailsRefreshCorner}>
-            <Tooltip
-              content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}
+      );
+    }
+
+    if (error) {
+      return <p className={styles.errorText}>{error}</p>;
+    }
+
+    if (!detailsData) {
+      return <p className={styles.muted}>{messages.selectPlayerPrompt}</p>;
+    }
+
+    return (
+      <div className={styles.profileCard}>
+        <div className={styles.detailsRefreshCorner}>
+          <Tooltip
+            content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}
+          >
+            <button
+              type="button"
+              className={`${styles.sortToggle} ${styles.detailsRefresh}`}
+              onClick={onRefresh}
+              disabled={!selectedPlayer || loading}
+              aria-label={messages.refreshTooltip}
             >
-              <button
-                type="button"
-                className={`${styles.sortToggle} ${styles.detailsRefresh}`}
-                onClick={onRefresh}
-                disabled={!selectedPlayer || loading}
-                aria-label={messages.refreshTooltip}
-              >
-                ↻
-              </button>
-            </Tooltip>
-          </div>
-          <div className={styles.profileHeader}>
-            <div>
-              <div className={styles.profileNameRow}>
-                <h4 className={styles.profileName}>
-                  {detailsData.FirstName} {detailsData.LastName}
-                </h4>
-                {lastUpdated ? (
-                  <span className={styles.profileUpdated}>
-                    {messages.lastUpdated}: {formatDateTime(lastUpdated)}
-                  </span>
-                ) : null}
-              </div>
-              <p className={styles.profileMeta}>
-                {detailsData.Age !== undefined ? (
-                  <span className={styles.metaItem}>
-                    {detailsData.Age} {messages.yearsLabel}
-                    {detailsData.AgeDays !== undefined
-                      ? ` ${detailsData.AgeDays} ${messages.daysLabel}`
-                      : ""}
-                    {promotionAge ? (
-                      <>
-                        {" "}
-                        (
-                        {messages.ageAtPromotionLabel}:{" "}
-                        <span
-                          className={
-                            promotionAge.totalDays < 17 * 112 + 1
-                              ? styles.agePromotionGood
-                              : styles.agePromotionBad
-                          }
-                        >
-                          {promotionAge.label}
-                        </span>
-                        )
-                      </>
-                    ) : null}
-                  </span>
-                ) : null}
-                {detailsData.CanBePromotedIn !== undefined ? (
-                  <span
-                    className={`${styles.tag} ${styles.metaTag} ${
-                      detailsData.CanBePromotedIn <= 0
-                        ? styles.tagDanger
-                        : styles.tagSuccess
-                    }`}
-                  >
-                    {detailsData.CanBePromotedIn <= 0
-                      ? messages.promotableNow
-                      : `${messages.promotableIn} ${detailsData.CanBePromotedIn} ${messages.daysLabel}`}
-                  </span>
-                ) : null}
-              </p>
-            </div>
-          </div>
-
-          <div className={styles.profileInfoRow}>
-            {detailsData.OwningYouthTeam?.YouthTeamName ? (
-              <div>
-                <div className={styles.infoLabel}>{messages.youthTeamLabel}</div>
-                <div className={styles.infoValue}>
-                  {detailsData.OwningYouthTeam.YouthTeamName}
-                </div>
-              </div>
-            ) : null}
-            {detailsData.OwningYouthTeam?.SeniorTeam?.SeniorTeamName ? (
-              <div>
-                <div className={styles.infoLabel}>{messages.seniorTeamLabel}</div>
-                <div className={styles.infoValue}>
-                  {detailsData.OwningYouthTeam.SeniorTeam.SeniorTeamName}
-                </div>
-              </div>
-            ) : null}
-            {detailsData.ArrivalDate ? (
-              <div>
-                <div className={styles.infoLabel}>{messages.arrivedLabel}</div>
-                <div className={styles.infoValue}>
-                  {formatChppDate(detailsData.ArrivalDate)}
-                  {daysSince(detailsData.ArrivalDate) !== null
-                    ? ` (${daysSince(detailsData.ArrivalDate)} days ago)`
-                    : ""}
-                </div>
-              </div>
-            ) : null}
-            {detailsData.Specialty !== undefined ? (
-              <div>
-                <div className={styles.infoLabel}>{messages.specialtyLabel}</div>
-                <div className={styles.infoValue}>
-                  {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}{" "}
-                  {specialtyName(detailsData.Specialty) ??
-                    `${messages.specialtyLabel} ${detailsData.Specialty}`}
-                </div>
-              </div>
-            ) : null}
-            {playerId ? (
-              <div>
-                <div className={styles.infoLabel}>{messages.playerIdLabel}</div>
-                <div className={styles.infoValue}>
-                  {playerId}
-                  <a
-                    className={styles.infoLinkIcon}
-                    href={`https://www82.hattrick.org/Club/Players/YouthPlayer.aspx?YouthPlayerID=${playerId}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={messages.playerLinkLabel}
-                  >
-                    ↗
-                  </a>
-                </div>
-              </div>
-            ) : null}
-            {detailsData.LastMatch ? (
-              <div>
-                <div className={styles.infoLabel}>
-                  {messages.lastMatchRatingLabel}
-                </div>
-                <div className={`${styles.infoValue} ${styles.lastMatchValue}`}>
-                  {lastMatchDate}: {lastMatchRating}
-                  {lastMatchPosition ? ` (${lastMatchPosition})` : ""}
-                </div>
-              </div>
-            ) : null}
-          </div>
-
-          <div className={styles.sectionDivider} />
-
+              ↻
+            </button>
+          </Tooltip>
+        </div>
+        <div className={styles.profileHeader}>
           <div>
-            <div className={styles.sectionHeadingRow}>
-              <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
-              {unlockStatus === "success" ? (
-                <span
-                  className={`${styles.detailsBadge} ${styles.detailsBadgeSuccess}`}
-                >
-                  {messages.unlockedLabel}
+            <div className={styles.profileNameRow}>
+              <h4 className={styles.profileName}>
+                {detailsData.FirstName} {detailsData.LastName}
+              </h4>
+              {lastUpdated ? (
+                <span className={styles.profileUpdated}>
+                  {messages.lastUpdated}: {formatDateTime(lastUpdated)}
                 </span>
               ) : null}
             </div>
-            <div className={styles.skillsGrid}>
-              {SKILL_ROWS.map((row) => {
-                const current = getSkillLevel(
-                  detailsData.PlayerSkills?.[row.key]
-                );
-                const max = getSkillMax(
-                  detailsData.PlayerSkills?.[row.maxKey]
-                );
-                const hasCurrent = current !== null;
-                const hasMax = max !== null;
-                const currentText = hasCurrent ? String(current) : messages.unknownShort;
-                const maxText = hasMax ? String(max) : messages.unknownShort;
-                const currentPct = hasCurrent
-                  ? Math.min(100, (current / MAX_SKILL_LEVEL) * 100)
-                  : null;
-                const maxPct = hasMax
-                  ? Math.min(100, (max / MAX_SKILL_LEVEL) * 100)
-                  : null;
-
-                return (
-                  <div key={row.key} className={styles.skillRow}>
-                    <div className={styles.skillLabel}>
-                      {messages[row.labelKey as keyof Messages]}
-                    </div>
-                    <div className={styles.skillBar}>
-                      {hasMax ? (
-                        <div
-                          className={styles.skillFillMax}
-                          style={{ width: `${maxPct}%` }}
-                        />
-                      ) : null}
-                      {hasCurrent ? (
-                        <div
-                          className={styles.skillFillCurrent}
-                          style={{ width: `${currentPct}%` }}
-                        />
-                      ) : null}
-                    </div>
-                    <div className={styles.skillValue}>
-                      {currentText}/{maxText}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <p className={styles.profileMeta}>
+              {detailsData.Age !== undefined ? (
+                <span className={styles.metaItem}>
+                  {detailsData.Age} {messages.yearsLabel}
+                  {detailsData.AgeDays !== undefined
+                    ? ` ${detailsData.AgeDays} ${messages.daysLabel}`
+                    : ""}
+                  {promotionAge ? (
+                    <>
+                      {" "}
+                      (
+                      {messages.ageAtPromotionLabel}:{" "}
+                      <span
+                        className={
+                          promotionAge.totalDays < 17 * 112 + 1
+                            ? styles.agePromotionGood
+                            : styles.agePromotionBad
+                        }
+                      >
+                        {promotionAge.label}
+                      </span>
+                      )
+                    </>
+                  ) : null}
+                </span>
+              ) : null}
+              {detailsData.CanBePromotedIn !== undefined ? (
+                <span
+                  className={`${styles.tag} ${styles.metaTag} ${
+                    detailsData.CanBePromotedIn <= 0
+                      ? styles.tagDanger
+                      : styles.tagSuccess
+                  }`}
+                >
+                  {detailsData.CanBePromotedIn <= 0
+                    ? messages.promotableNow
+                    : `${messages.promotableIn} ${detailsData.CanBePromotedIn} ${messages.daysLabel}`}
+                </span>
+              ) : null}
+            </p>
           </div>
         </div>
-      ) : (
-        <p className={styles.muted}>{messages.selectPlayerPrompt}</p>
-      )}
+
+        <div className={styles.profileInfoRow}>
+          {detailsData.OwningYouthTeam?.YouthTeamName ? (
+            <div>
+              <div className={styles.infoLabel}>{messages.youthTeamLabel}</div>
+              <div className={styles.infoValue}>
+                {detailsData.OwningYouthTeam.YouthTeamName}
+              </div>
+            </div>
+          ) : null}
+          {detailsData.OwningYouthTeam?.SeniorTeam?.SeniorTeamName ? (
+            <div>
+              <div className={styles.infoLabel}>{messages.seniorTeamLabel}</div>
+              <div className={styles.infoValue}>
+                {detailsData.OwningYouthTeam.SeniorTeam.SeniorTeamName}
+              </div>
+            </div>
+          ) : null}
+          {detailsData.ArrivalDate ? (
+            <div>
+              <div className={styles.infoLabel}>{messages.arrivedLabel}</div>
+              <div className={styles.infoValue}>
+                {formatChppDate(detailsData.ArrivalDate)}
+                {daysSince(detailsData.ArrivalDate) !== null
+                  ? ` (${daysSince(detailsData.ArrivalDate)} days ago)`
+                  : ""}
+              </div>
+            </div>
+          ) : null}
+          {detailsData.Specialty !== undefined ? (
+            <div>
+              <div className={styles.infoLabel}>{messages.specialtyLabel}</div>
+              <div className={styles.infoValue}>
+                {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}{" "}
+                {specialtyName(detailsData.Specialty) ??
+                  `${messages.specialtyLabel} ${detailsData.Specialty}`}
+              </div>
+            </div>
+          ) : null}
+          {playerId ? (
+            <div>
+              <div className={styles.infoLabel}>{messages.playerIdLabel}</div>
+              <div className={styles.infoValue}>
+                {playerId}
+                <a
+                  className={styles.infoLinkIcon}
+                  href={`https://www82.hattrick.org/Club/Players/YouthPlayer.aspx?YouthPlayerID=${playerId}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  aria-label={messages.playerLinkLabel}
+                >
+                  ↗
+                </a>
+              </div>
+            </div>
+          ) : null}
+          {detailsData.LastMatch ? (
+            <div>
+              <div className={styles.infoLabel}>
+                {messages.lastMatchRatingLabel}
+              </div>
+              <div className={`${styles.infoValue} ${styles.lastMatchValue}`}>
+                {lastMatchDate}: {lastMatchRating}
+                {lastMatchPosition ? ` (${lastMatchPosition})` : ""}
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <div className={styles.sectionDivider} />
+
+        <div>
+          <div className={styles.sectionHeadingRow}>
+            <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
+            {unlockStatus === "success" ? (
+              <span
+                className={`${styles.detailsBadge} ${styles.detailsBadgeSuccess}`}
+              >
+                {messages.unlockedLabel}
+              </span>
+            ) : null}
+          </div>
+          <div className={styles.skillsGrid}>
+            {SKILL_ROWS.map((row) => {
+              const current = getSkillLevel(detailsData.PlayerSkills?.[row.key]);
+              const max = getSkillMax(detailsData.PlayerSkills?.[row.maxKey]);
+              const hasCurrent = current !== null;
+              const hasMax = max !== null;
+              const currentText = hasCurrent
+                ? String(current)
+                : messages.unknownShort;
+              const maxText = hasMax ? String(max) : messages.unknownShort;
+              const currentPct = hasCurrent
+                ? Math.min(100, (current / MAX_SKILL_LEVEL) * 100)
+                : null;
+              const maxPct = hasMax
+                ? Math.min(100, (max / MAX_SKILL_LEVEL) * 100)
+                : null;
+
+              return (
+                <div key={row.key} className={styles.skillRow}>
+                  <div className={styles.skillLabel}>
+                    {messages[row.labelKey as keyof Messages]}
+                  </div>
+                  <div className={styles.skillBar}>
+                    {hasMax ? (
+                      <div
+                        className={styles.skillFillMax}
+                        style={{ width: `${maxPct}%` }}
+                      />
+                    ) : null}
+                    {hasCurrent ? (
+                      <div
+                        className={styles.skillFillCurrent}
+                        style={{ width: `${currentPct}%` }}
+                      />
+                    ) : null}
+                  </div>
+                  <div className={styles.skillValue}>
+                    {currentText}/{maxText}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderSkillsMatrix = () => {
+    if (skillsMatrixRows.length === 0) {
+      return <p className={styles.muted}>{messages.noYouthPlayers}</p>;
+    }
+
+    return (
+      <div className={styles.profileCard}>
+        <div className={styles.matrixWrapper}>
+          <table className={styles.matrixTable}>
+            <thead>
+              <tr>
+                <th className={styles.matrixIndexHeader}>
+                  {messages.ratingsIndexLabel}
+                </th>
+                <th className={styles.matrixPlayerHeader}>
+                  {messages.ratingsPlayerLabel}
+                </th>
+                <th className={styles.matrixSpecialtyHeader}>
+                  {messages.ratingsSpecialtyLabel}
+                </th>
+                {SKILL_ROWS.map((row) => (
+                  <th key={row.key}>
+                    {messages[row.shortLabelKey as keyof Messages]}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {skillsMatrixRows.map((row, index) => {
+                const player = row.id ? playerById.get(row.id) : null;
+                const details = row.id ? playerDetailsById.get(row.id) : null;
+                const skills =
+                  details?.PlayerSkills ?? player?.PlayerSkills ?? null;
+
+                return (
+                  <tr key={`${row.name}-${row.id ?? "unknown"}`}>
+                    <td className={styles.matrixIndex}>{index + 1}</td>
+                    <td className={styles.matrixPlayer}>{row.name}</td>
+                    <td className={styles.matrixSpecialty}>
+                      {player?.Specialty !== undefined
+                        ? SPECIALTY_EMOJI[player.Specialty] ?? "—"
+                        : "—"}
+                    </td>
+                    {SKILL_ROWS.map((skill) => {
+                      const current = getSkillLevel(skills?.[skill.key]);
+                      const max = getSkillMax(skills?.[skill.maxKey]);
+                      if (current === null && max === null) {
+                        return (
+                          <td key={skill.key} className={styles.matrixCell}>
+                            -/-
+                          </td>
+                        );
+                      }
+                      const currentText =
+                        current === null ? messages.unknownShort : String(current);
+                      const maxText =
+                        max === null ? messages.unknownShort : String(max);
+                      return (
+                        <td key={skill.key} className={styles.matrixCell}>
+                          {currentText}/{maxText}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className={styles.card}>
+      <div className={styles.detailsHeader}>
+        <div className={styles.detailsTabs}>
+          <button
+            type="button"
+            className={`${styles.detailsTabButton} ${
+              activeTab === "details" ? styles.detailsTabActive : ""
+            }`}
+            onClick={() => setActiveTab("details")}
+          >
+            {messages.detailsTabLabel}
+          </button>
+          <button
+            type="button"
+            className={`${styles.detailsTabButton} ${
+              activeTab === "skillsMatrix" ? styles.detailsTabActive : ""
+            }`}
+            onClick={() => setActiveTab("skillsMatrix")}
+          >
+            {messages.skillsMatrixTabLabel}
+          </button>
+        </div>
+      </div>
+
+      {activeTab === "details" ? renderDetails() : renderSkillsMatrix()}
     </div>
   );
 }

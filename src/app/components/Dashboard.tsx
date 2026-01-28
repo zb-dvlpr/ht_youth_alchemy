@@ -178,6 +178,16 @@ export default function Dashboard({
     };
   }, [ratingsResponse, playerList]);
 
+  const skillsMatrixRows = useMemo(() => {
+    if (!filteredRatings?.players?.length) return [];
+    return filteredRatings.players.map((row) => {
+      const match = playerList.find(
+        (player) => formatPlayerName(player) === row.name
+      );
+      return { id: match?.YouthPlayerID ?? null, name: row.name };
+    });
+  }, [filteredRatings, playerList]);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -896,6 +906,9 @@ export default function Dashboard({
               onRefresh={() =>
                 selectedId ? loadDetails(selectedId, true) : undefined
               }
+              players={playerList}
+              playerDetailsById={playerDetailsById}
+              skillsMatrixRows={skillsMatrixRows}
               messages={messages}
             />
             <RatingsMatrix

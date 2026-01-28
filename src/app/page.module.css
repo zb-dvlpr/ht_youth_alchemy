@@ -707,6 +707,24 @@ html[data-theme="dark"] .matrixSortButton:hover {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .detailsTabButton {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .detailsTabButton:hover {
+  background: #2a241d;
+}
+
+html[data-theme="dark"] .detailsTabActive {
+  background: #151310;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f3ede4;
+  position: relative;
+  top: 1px;
+}
+
 html[data-theme="dark"] .trainingSelect,
 html[data-theme="dark"] .sortSelect {
   background: #1b1917;
@@ -1005,8 +1023,42 @@ html[data-theme="dark"] .spinner {
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   margin-bottom: 12px;
+  border-bottom: 1px solid #e6dccd;
+  padding-bottom: 4px;
+}
+
+.detailsTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.detailsTabButton {
+  border: 1px solid #d8c9b4;
+  border-bottom: none;
+  background: #f7f1e3;
+  color: #3f362c;
+  border-radius: 12px 12px 0 0;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.detailsTabButton:hover {
+  background: #f3ead8;
+}
+
+.detailsTabActive {
+  background: #fff;
+  border-color: #d8c9b4;
+  color: #2d251b;
+  font-weight: 600;
+  position: relative;
+  top: 1px;
 }
 
 .trainingControls {

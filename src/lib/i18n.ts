@@ -39,6 +39,8 @@ export type Messages = {
   noYouthPlayers: string;
   assigned: string;
   playerDetails: string;
+  detailsTabLabel: string;
+  skillsMatrixTabLabel: string;
   refresh: string;
   refreshTooltip: string;
   refreshPlayerListTooltip: string;
@@ -232,6 +234,13 @@ export type Messages = {
   skillPassing: string;
   skillScoring: string;
   skillSetPieces: string;
+  skillKeeperShort: string;
+  skillDefendingShort: string;
+  skillPlaymakingShort: string;
+  skillWingerShort: string;
+  skillPassingShort: string;
+  skillScoringShort: string;
+  skillSetPiecesShort: string;
 };
 
 const MESSAGES: Record<Locale, Messages> = {
@@ -275,6 +284,8 @@ const MESSAGES: Record<Locale, Messages> = {
     noYouthPlayers: "No youth players returned.",
     assigned: "Assigned",
     playerDetails: "Player details",
+    detailsTabLabel: "Player details",
+    skillsMatrixTabLabel: "Skills matrix",
     refresh: "Refresh",
     refreshTooltip: "Refreshes player details from Hattrick.",
     refreshPlayerListTooltip: "Refresh youth player list from Hattrick.",
@@ -469,6 +480,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassing: "Passing",
     skillScoring: "Scoring",
     skillSetPieces: "Set Pieces",
+    skillKeeperShort: "GK",
+    skillDefendingShort: "DEF",
+    skillPlaymakingShort: "PM",
+    skillWingerShort: "W",
+    skillPassingShort: "PAS",
+    skillScoringShort: "SC",
+    skillSetPiecesShort: "SP",
   },
   de: {
     languageLabel: "Sprache",
@@ -508,6 +526,8 @@ const MESSAGES: Record<Locale, Messages> = {
     noYouthPlayers: "Keine Jugendspieler gefunden.",
     assigned: "Zugewiesen",
     playerDetails: "Spielerdetails",
+    detailsTabLabel: "Spielerdetails",
+    skillsMatrixTabLabel: "Fähigkeitsmatrix",
     refresh: "Aktualisieren",
     refreshTooltip: "Aktualisiert die Spielerdetails von Hattrick.",
     refreshPlayerListTooltip: "Jugendspielerliste von Hattrick aktualisieren.",
@@ -703,6 +723,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassing: "Passen",
     skillScoring: "Torschuss",
     skillSetPieces: "Standards",
+    skillKeeperShort: "TW",
+    skillDefendingShort: "V",
+    skillPlaymakingShort: "SA",
+    skillWingerShort: "FS",
+    skillPassingShort: "P",
+    skillScoringShort: "TS",
+    skillSetPiecesShort: "ST",
   },
   fr: {
     languageLabel: "Langue",
@@ -743,6 +770,8 @@ const MESSAGES: Record<Locale, Messages> = {
     noYouthPlayers: "Aucun joueur jeune trouvé.",
     assigned: "Assigné",
     playerDetails: "Détails du joueur",
+    detailsTabLabel: "Détails du joueur",
+    skillsMatrixTabLabel: "Matrice des compétences",
     refresh: "Actualiser",
     refreshTooltip: "Actualise les détails du joueur depuis Hattrick.",
     refreshPlayerListTooltip:
@@ -942,6 +971,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassing: "Passe",
     skillScoring: "But",
     skillSetPieces: "Coups francs",
+    skillKeeperShort: "GB",
+    skillDefendingShort: "DEF",
+    skillPlaymakingShort: "CJ",
+    skillWingerShort: "A",
+    skillPassingShort: "PAS",
+    skillScoringShort: "BUT",
+    skillSetPiecesShort: "CF",
   },
   es: {
     languageLabel: "Idioma",
@@ -982,6 +1018,8 @@ const MESSAGES: Record<Locale, Messages> = {
     noYouthPlayers: "No se encontraron jugadores juveniles.",
     assigned: "Asignado",
     playerDetails: "Detalles del jugador",
+    detailsTabLabel: "Detalles del jugador",
+    skillsMatrixTabLabel: "Matriz de habilidades",
     refresh: "Actualizar",
     refreshTooltip: "Actualiza los detalles del jugador desde Hattrick.",
     refreshPlayerListTooltip:
@@ -1181,6 +1219,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassing: "Pases",
     skillScoring: "Anotación",
     skillSetPieces: "Balón parado",
+    skillKeeperShort: "POR",
+    skillDefendingShort: "DEF",
+    skillPlaymakingShort: "CRE",
+    skillWingerShort: "EXT",
+    skillPassingShort: "PAS",
+    skillScoringShort: "GOL",
+    skillSetPiecesShort: "BP",
   },
   sv: {
     languageLabel: "Språk",
@@ -1221,6 +1266,8 @@ const MESSAGES: Record<Locale, Messages> = {
     noYouthPlayers: "Inga ungdomsspelare hittades.",
     assigned: "Tilldelad",
     playerDetails: "Spelardetaljer",
+    detailsTabLabel: "Spelardetaljer",
+    skillsMatrixTabLabel: "Färdighetsmatris",
     refresh: "Uppdatera",
     refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
     refreshPlayerListTooltip: "Uppdatera juniorlistan från Hattrick.",
@@ -1418,6 +1465,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassing: "Passningar",
     skillScoring: "Målskytte",
     skillSetPieces: "Fasta",
+    skillKeeperShort: "MV",
+    skillDefendingShort: "FÖR",
+    skillPlaymakingShort: "SP",
+    skillWingerShort: "KANT",
+    skillPassingShort: "PAS",
+    skillScoringShort: "MÅL",
+    skillSetPiecesShort: "FA",
   },
   it: {
     languageLabel: "Lingua",
@@ -1458,6 +1512,8 @@ const MESSAGES: Record<Locale, Messages> = {
     noYouthPlayers: "Nessun giocatore giovanile trovato.",
     assigned: "Assegnato",
     playerDetails: "Dettagli giocatore",
+    detailsTabLabel: "Dettagli giocatore",
+    skillsMatrixTabLabel: "Matrice abilità",
     refresh: "Aggiorna",
     refreshTooltip: "Aggiorna i dettagli del giocatore da Hattrick.",
     refreshPlayerListTooltip:
@@ -1657,6 +1713,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassing: "Passaggi",
     skillScoring: "Finalizzazione",
     skillSetPieces: "Calci piazzati",
+    skillKeeperShort: "POR",
+    skillDefendingShort: "DIF",
+    skillPlaymakingShort: "REG",
+    skillWingerShort: "ALA",
+    skillPassingShort: "PAS",
+    skillScoringShort: "FIN",
+    skillSetPiecesShort: "CP",
   },
   pt: {
     languageLabel: "Idioma",
@@ -1697,6 +1760,8 @@ const MESSAGES: Record<Locale, Messages> = {
     noYouthPlayers: "Nenhum jogador juvenil encontrado.",
     assigned: "Atribuído",
     playerDetails: "Detalhes do jogador",
+    detailsTabLabel: "Detalhes do jogador",
+    skillsMatrixTabLabel: "Matriz de habilidades",
     refresh: "Atualizar",
     refreshTooltip: "Atualiza os detalhes do jogador no Hattrick.",
     refreshPlayerListTooltip:
@@ -1896,6 +1961,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassing: "Passes",
     skillScoring: "Finalização",
     skillSetPieces: "Bolas paradas",
+    skillKeeperShort: "GOL",
+    skillDefendingShort: "DEF",
+    skillPlaymakingShort: "ARM",
+    skillWingerShort: "ALA",
+    skillPassingShort: "PAS",
+    skillScoringShort: "FIN",
+    skillSetPiecesShort: "BP",
   },
 };
 

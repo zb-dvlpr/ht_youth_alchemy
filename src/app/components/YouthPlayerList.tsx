@@ -7,6 +7,7 @@ import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import Tooltip from "./Tooltip";
 import { setDragGhost } from "@/lib/drag";
+import { parseChppDate } from "@/lib/chpp/utils";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -79,9 +80,7 @@ function getSkill(player: YouthPlayer, key: keyof PlayerSkills) {
 }
 
 function parseArrival(dateString?: string) {
-  if (!dateString) return null;
-  const parsed = new Date(dateString.replace(" ", "T"));
-  return Number.isNaN(parsed.getTime()) ? null : parsed.getTime();
+  return parseChppDate(dateString)?.getTime() ?? null;
 }
 
 export default function YouthPlayerList({

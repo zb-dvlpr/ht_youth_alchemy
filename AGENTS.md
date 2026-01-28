@@ -15,3 +15,6 @@
 
 ## Notifications
 - When the user specifies a notification message, use the notification framework.
+
+## Date/Time
+- Any new date/time display must use the shared date/time formatting framework.

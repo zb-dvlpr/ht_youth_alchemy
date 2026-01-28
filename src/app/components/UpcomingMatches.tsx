@@ -7,6 +7,8 @@ import Tooltip from "./Tooltip";
 import { LineupAssignments } from "./LineupField";
 import { roleIdToSlotId } from "@/lib/positions";
 import { useNotifications } from "./notifications/NotificationsProvider";
+import { formatChppDateTime, formatDateTime } from "@/lib/datetime";
+import { parseChppDate } from "@/lib/chpp/utils";
 
 export type MatchTeam = {
   HomeTeamName?: string;
@@ -57,22 +59,14 @@ function normalizeMatches(input?: Match[] | Match): Match[] {
   return Array.isArray(input) ? input : [input];
 }
 
-function parseDate(dateString?: string) {
-  if (!dateString) return null;
-  const parsed = new Date(dateString.replace(" ", "T"));
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
-}
-
 function formatMatchDate(dateString: string | undefined, unknownDate: string) {
-  const parsed = parseDate(dateString);
-  if (!parsed) return unknownDate;
-  return parsed.toLocaleString();
+  return formatChppDateTime(dateString) ?? unknownDate;
 }
 
 function sortByDate(matches: Match[]) {
   return [...matches].sort((a, b) => {
-    const aTime = parseDate(a.MatchDate)?.getTime() ?? 0;
-    const bTime = parseDate(b.MatchDate)?.getTime() ?? 0;
+    const aTime = parseChppDate(a.MatchDate)?.getTime() ?? 0;
+    const bTime = parseChppDate(b.MatchDate)?.getTime() ?? 0;
     return aTime - bTime;
   });
 }
@@ -522,9 +516,7 @@ export default function UpcomingMatches({
             if (!Number.isFinite(matchId)) return null;
             const state = matchStates[matchId] ?? { status: "idle" };
             const updatedLabel = state.updatedAt
-              ? `${messages.submitOrdersUpdated}: ${new Date(
-                  state.updatedAt
-                ).toLocaleTimeString()}`
+              ? `${messages.submitOrdersUpdated}: ${formatDateTime(state.updatedAt)}`
               : null;
             return renderMatch(
               matchId,
@@ -551,9 +543,7 @@ export default function UpcomingMatches({
               if (!Number.isFinite(matchId)) return null;
               const state = matchStates[matchId] ?? { status: "idle" };
               const updatedLabel = state.updatedAt
-                ? `${messages.submitOrdersUpdated}: ${new Date(
-                    state.updatedAt
-                  ).toLocaleTimeString()}`
+                ? `${messages.submitOrdersUpdated}: ${formatDateTime(state.updatedAt)}`
                 : null;
               return renderMatch(
                 matchId,

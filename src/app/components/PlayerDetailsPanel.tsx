@@ -1,5 +1,6 @@
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
+import { formatChppDate, formatDateTime } from "@/lib/datetime";
 import Tooltip from "./Tooltip";
 import { positionLabelShortByRoleId } from "@/lib/positions";
 import { SPECIALTY_EMOJI, SPECIALTY_NAMES } from "@/lib/specialty";
@@ -122,29 +123,12 @@ function getSkillName(level: number | null) {
   return SKILL_NAMES[level] ?? `level ${level}`;
 }
 
-function formatArrival(dateString?: string) {
-  if (!dateString) return null;
-  const parsed = new Date(dateString.replace(" ", "T"));
-  if (Number.isNaN(parsed.getTime())) return dateString;
-  return parsed.toLocaleDateString();
-}
-
 function daysSince(dateString?: string) {
   if (!dateString) return null;
   const parsed = new Date(dateString.replace(" ", "T"));
   if (Number.isNaN(parsed.getTime())) return null;
   const diffMs = Date.now() - parsed.getTime();
   return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
-}
-
-function formatMatchDate(dateString?: string) {
-  if (!dateString) return null;
-  const parsed = new Date(dateString.replace(" ", "T"));
-  if (Number.isNaN(parsed.getTime())) return null;
-  const dd = String(parsed.getDate()).padStart(2, "0");
-  const mm = String(parsed.getMonth() + 1).padStart(2, "0");
-  const yyyy = parsed.getFullYear();
-  return `${dd}.${mm}.${yyyy}`;
 }
 
 export default function PlayerDetailsPanel({
@@ -160,7 +144,7 @@ export default function PlayerDetailsPanel({
   const playerId =
     detailsData?.YouthPlayerID ?? selectedPlayer?.YouthPlayerID ?? null;
   const lastMatchDate = detailsData?.LastMatch
-    ? formatMatchDate(detailsData.LastMatch.Date) ?? messages.unknownDate
+    ? formatChppDate(detailsData.LastMatch.Date) ?? messages.unknownDate
     : null;
   const lastMatchRating = detailsData?.LastMatch
     ? detailsData.LastMatch.Rating ?? messages.unknownLabel
@@ -227,8 +211,7 @@ export default function PlayerDetailsPanel({
                 </h4>
                 {lastUpdated ? (
                   <span className={styles.profileUpdated}>
-                    {messages.lastUpdated}:{" "}
-                    {new Date(lastUpdated).toLocaleString()}
+                    {messages.lastUpdated}: {formatDateTime(lastUpdated)}
                   </span>
                 ) : null}
               </div>
@@ -296,7 +279,7 @@ export default function PlayerDetailsPanel({
               <div>
                 <div className={styles.infoLabel}>{messages.arrivedLabel}</div>
                 <div className={styles.infoValue}>
-                  {formatArrival(detailsData.ArrivalDate)}
+                  {formatChppDate(detailsData.ArrivalDate)}
                   {daysSince(detailsData.ArrivalDate) !== null
                     ? ` (${daysSince(detailsData.ArrivalDate)} days ago)`
                     : ""}

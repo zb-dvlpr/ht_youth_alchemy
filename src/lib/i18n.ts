@@ -152,6 +152,7 @@ export type Messages = {
   sortLabel: string;
   sortName: string;
   sortAge: string;
+  sortPromotionAge: string;
   sortArrival: string;
   sortPromotable: string;
   sortKeeper: string;
@@ -388,6 +389,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortLabel: "Sort by",
     sortName: "Name",
     sortAge: "Age",
+    sortPromotionAge: "Age at promotion",
     sortArrival: "Arrival",
     sortPromotable: "Promotable",
     sortKeeper: "Keeper",
@@ -621,6 +623,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortLabel: "Sortieren nach",
     sortName: "Name",
     sortAge: "Alter",
+    sortPromotionAge: "Beförderungsalter",
     sortArrival: "Ankunft",
     sortPromotable: "Beförderbar",
     sortKeeper: "Torwart",
@@ -858,6 +861,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortLabel: "Trier par",
     sortName: "Nom",
     sortAge: "Âge",
+    sortPromotionAge: "Âge à la promotion",
     sortArrival: "Arrivée",
     sortPromotable: "Promouvable",
     sortKeeper: "Gardien",
@@ -1096,6 +1100,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortLabel: "Ordenar por",
     sortName: "Nombre",
     sortAge: "Edad",
+    sortPromotionAge: "Edad de promoción",
     sortArrival: "Llegada",
     sortPromotable: "Promocionable",
     sortKeeper: "Portero",
@@ -1332,6 +1337,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortLabel: "Sortera efter",
     sortName: "Namn",
     sortAge: "Ålder",
+    sortPromotionAge: "Befordringsålder",
     sortArrival: "Ankomst",
     sortPromotable: "Befordringsbar",
     sortKeeper: "Målvakt",
@@ -1570,6 +1576,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortLabel: "Ordina per",
     sortName: "Nome",
     sortAge: "Età",
+    sortPromotionAge: "Età alla promozione",
     sortArrival: "Arrivo",
     sortPromotable: "Promuovibile",
     sortKeeper: "Portiere",
@@ -1808,6 +1815,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortLabel: "Ordenar por",
     sortName: "Nome",
     sortAge: "Idade",
+    sortPromotionAge: "Idade de promoção",
     sortArrival: "Chegada",
     sortPromotable: "Promovível",
     sortKeeper: "Goleiro",

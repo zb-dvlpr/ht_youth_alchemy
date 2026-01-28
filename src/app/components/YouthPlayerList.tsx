@@ -49,6 +49,7 @@ type YouthPlayerListProps = {
 type SortKey =
   | "name"
   | "age"
+  | "promotionAge"
   | "arrival"
   | "promotable"
   | "keeper"
@@ -83,6 +84,22 @@ function parseArrival(dateString?: string) {
   return parseChppDate(dateString)?.getTime() ?? null;
 }
 
+function promotionAgeTotalDays(player: YouthPlayer) {
+  if (
+    player.Age === undefined ||
+    player.AgeDays === undefined ||
+    player.CanBePromotedIn === undefined
+  ) {
+    return null;
+  }
+  const daysPerYear = 112;
+  return (
+    player.Age * daysPerYear +
+    player.AgeDays +
+    Math.max(0, player.CanBePromotedIn)
+  );
+}
+
 export default function YouthPlayerList({
   players,
   assignedIds,
@@ -103,6 +120,8 @@ export default function YouthPlayerList({
     switch (key) {
       case "age":
         return messages.sortAge;
+      case "promotionAge":
+        return messages.sortPromotionAge;
       case "arrival":
         return messages.sortArrival;
       case "promotable":
@@ -163,6 +182,12 @@ export default function YouthPlayerList({
       switch (sortKey) {
         case "age":
           return compareNumber(a.Age ?? null, b.Age ?? null, "desc");
+        case "promotionAge":
+          return compareNumber(
+            promotionAgeTotalDays(a),
+            promotionAgeTotalDays(b),
+            "asc"
+          );
         case "arrival":
           return compareNumber(
             parseArrival(a.ArrivalDate),
@@ -246,6 +271,7 @@ export default function YouthPlayerList({
             >
               <option value="name">{messages.sortName}</option>
               <option value="age">{messages.sortAge}</option>
+              <option value="promotionAge">{messages.sortPromotionAge}</option>
               <option value="arrival">{messages.sortArrival}</option>
               <option value="promotable">{messages.sortPromotable}</option>
               <option value="keeper">{messages.sortKeeper}</option>

@@ -3,7 +3,7 @@ import { Messages } from "@/lib/i18n";
 import { formatChppDate, formatDateTime } from "@/lib/datetime";
 import Tooltip from "./Tooltip";
 import { positionLabelShortByRoleId } from "@/lib/positions";
-import { SPECIALTY_EMOJI, SPECIALTY_NAMES } from "@/lib/specialty";
+import { SPECIALTY_EMOJI } from "@/lib/specialty";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -141,6 +141,29 @@ export default function PlayerDetailsPanel({
   onRefresh,
   messages,
 }: PlayerDetailsPanelProps) {
+  const specialtyName = (value?: number) => {
+    switch (value) {
+      case 0:
+        return messages.specialtyNone;
+      case 1:
+        return messages.specialtyTechnical;
+      case 2:
+        return messages.specialtyQuick;
+      case 3:
+        return messages.specialtyPowerful;
+      case 4:
+        return messages.specialtyUnpredictable;
+      case 5:
+        return messages.specialtyHeadSpecialist;
+      case 6:
+        return messages.specialtyResilient;
+      case 8:
+        return messages.specialtySupport;
+      default:
+        return null;
+    }
+  };
+
   const playerId =
     detailsData?.YouthPlayerID ?? selectedPlayer?.YouthPlayerID ?? null;
   const lastMatchDate = detailsData?.LastMatch
@@ -291,8 +314,8 @@ export default function PlayerDetailsPanel({
                 <div className={styles.infoLabel}>{messages.specialtyLabel}</div>
                 <div className={styles.infoValue}>
                   {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}{" "}
-                  {SPECIALTY_NAMES[detailsData.Specialty] ??
-                    `Specialty ${detailsData.Specialty}`}
+                  {specialtyName(detailsData.Specialty) ??
+                    `${messages.specialtyLabel} ${detailsData.Specialty}`}
                 </div>
               </div>
             ) : null}

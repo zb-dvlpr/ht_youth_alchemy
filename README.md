@@ -28,6 +28,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Ratings matrix includes row numbers, specialty column, and sorting by any position rating
 - Ratings matrix rows are clickable to open player details
 - Player details show last match position and rating (showLastMatch=true)
+- Specialty labels are localized
 - Player details age badge shows age at promotion
 - Age at promotion is color-coded (under 17y1d green, otherwise red)
 - Dates/times are normalized to dd.MM.yyyy and 24h time across the UI

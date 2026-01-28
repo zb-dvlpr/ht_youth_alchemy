@@ -16,6 +16,7 @@ type YouthPlayer = {
   LastName: string;
   Specialty?: number;
   Age?: number;
+  AgeDays?: number;
   ArrivalDate?: string;
   CanBePromotedIn?: number;
   PlayerSkills?: PlayerSkills;

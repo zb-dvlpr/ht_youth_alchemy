@@ -3,6 +3,7 @@ import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { formatChppDate, formatDateTime } from "@/lib/datetime";
 import Tooltip from "./Tooltip";
+import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
 import { positionLabelShortByRoleId } from "@/lib/positions";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 
@@ -60,6 +61,10 @@ type PlayerDetailsPanelProps = {
   players: YouthPlayer[];
   playerDetailsById: Map<number, YouthPlayerDetails>;
   skillsMatrixRows: { id: number | null; name: string }[];
+  ratingsMatrixResponse: RatingsMatrixResponse | null;
+  ratingsMatrixSelectedName: string | null;
+  ratingsMatrixSpecialtyByName: Record<string, number | undefined>;
+  onSelectRatingsPlayer: (playerName: string) => void;
   messages: Messages;
 };
 
@@ -193,11 +198,15 @@ export default function PlayerDetailsPanel({
   players,
   playerDetailsById,
   skillsMatrixRows,
+  ratingsMatrixResponse,
+  ratingsMatrixSelectedName,
+  ratingsMatrixSpecialtyByName,
+  onSelectRatingsPlayer,
   messages,
 }: PlayerDetailsPanelProps) {
-  const [activeTab, setActiveTab] = useState<"details" | "skillsMatrix">(
-    "details"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "details" | "skillsMatrix" | "ratingsMatrix"
+  >("details");
 
   const playerById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -568,10 +577,32 @@ export default function PlayerDetailsPanel({
           >
             {messages.skillsMatrixTabLabel}
           </button>
+          <button
+            type="button"
+            className={`${styles.detailsTabButton} ${
+              activeTab === "ratingsMatrix" ? styles.detailsTabActive : ""
+            }`}
+            onClick={() => setActiveTab("ratingsMatrix")}
+          >
+            {messages.ratingsMatrixTabLabel}
+          </button>
         </div>
       </div>
 
-      {activeTab === "details" ? renderDetails() : renderSkillsMatrix()}
+      {activeTab === "details" ? (
+        renderDetails()
+      ) : activeTab === "skillsMatrix" ? (
+        renderSkillsMatrix()
+      ) : (
+        <RatingsMatrix
+          response={ratingsMatrixResponse}
+          showTitle={false}
+          messages={messages}
+          specialtyByName={ratingsMatrixSpecialtyByName}
+          selectedName={ratingsMatrixSelectedName}
+          onSelectPlayer={onSelectRatingsPlayer}
+        />
+      )}
     </div>
   );
 }

@@ -9,7 +9,7 @@ import PlayerDetailsPanel, {
 import LineupField, { LineupAssignments } from "./LineupField";
 import UpcomingMatches, { type MatchesResponse } from "./UpcomingMatches";
 import { Messages } from "@/lib/i18n";
-import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
+import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
 import {
   getAutoSelection,
@@ -916,13 +916,11 @@ export default function Dashboard({
               players={playerList}
               playerDetailsById={playerDetailsById}
               skillsMatrixRows={skillsMatrixRows}
-              messages={messages}
-            />
-            <RatingsMatrix
-              response={ratingsMatrixData?.response ?? null}
-              missingCount={ratingsMatrixData?.missingCount ?? 0}
-              messages={messages}
-              specialtyByName={Object.fromEntries(
+              ratingsMatrixResponse={ratingsMatrixData?.response ?? null}
+              ratingsMatrixSelectedName={
+                selectedPlayer ? formatPlayerName(selectedPlayer) : null
+              }
+              ratingsMatrixSpecialtyByName={Object.fromEntries(
                 playerList.map((player) => [
                   [player.FirstName, player.NickName || null, player.LastName]
                     .filter(Boolean)
@@ -930,8 +928,7 @@ export default function Dashboard({
                   player.Specialty,
                 ])
               )}
-              selectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
-              onSelectPlayer={(playerName) => {
+              onSelectRatingsPlayer={(playerName) => {
                 const match = playerList.find(
                   (player) => formatPlayerName(player) === playerName
                 );
@@ -942,6 +939,7 @@ export default function Dashboard({
                   `${messages.notificationPlayerSelected} ${playerName}`
                 );
               }}
+              messages={messages}
             />
           </>
         )}

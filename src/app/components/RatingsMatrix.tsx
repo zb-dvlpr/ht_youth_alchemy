@@ -19,7 +19,7 @@ export type RatingsMatrixResponse = {
 
 type RatingsMatrixProps = {
   response: RatingsMatrixResponse | null;
-  missingCount?: number;
+  showTitle?: boolean;
   messages: Messages;
   specialtyByName?: Record<string, number | undefined>;
   selectedName?: string | null;
@@ -50,7 +50,7 @@ function ratingStyle(value: number | null) {
 
 export default function RatingsMatrix({
   response,
-  missingCount = 0,
+  showTitle = true,
   messages,
   specialtyByName,
   selectedName,
@@ -59,7 +59,9 @@ export default function RatingsMatrix({
   if (!response || response.players.length === 0) {
     return (
       <div className={styles.card}>
-        <h2 className={styles.sectionTitle}>{messages.ratingsTitle}</h2>
+        {showTitle ? (
+          <h2 className={styles.sectionTitle}>{messages.ratingsTitle}</h2>
+        ) : null}
         <p className={styles.muted}>{messages.noMatchesReturned}</p>
       </div>
     );
@@ -94,10 +96,9 @@ export default function RatingsMatrix({
   };
 
   return (
-    <div className={styles.card}>
-      <h2 className={styles.sectionTitle}>{messages.ratingsTitle}</h2>
-      {missingCount > 0 ? (
-        <p className={styles.muted}>{messages.ratingsMissingNote}</p>
+    <div className={showTitle ? styles.card : undefined}>
+      {showTitle ? (
+        <h2 className={styles.sectionTitle}>{messages.ratingsTitle}</h2>
       ) : null}
       <div className={styles.matrixWrapper}>
         <table className={styles.matrixTable}>

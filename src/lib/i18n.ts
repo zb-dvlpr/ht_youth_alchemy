@@ -41,6 +41,7 @@ export type Messages = {
   playerDetails: string;
   detailsTabLabel: string;
   skillsMatrixTabLabel: string;
+  ratingsMatrixTabLabel: string;
   refresh: string;
   refreshTooltip: string;
   refreshPlayerListTooltip: string;
@@ -287,6 +288,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Player details",
     detailsTabLabel: "Player details",
     skillsMatrixTabLabel: "Skills matrix",
+    ratingsMatrixTabLabel: "Ratings matrix",
     refresh: "Refresh",
     refreshTooltip: "Refreshes player details from Hattrick.",
     refreshPlayerListTooltip: "Refresh youth player list from Hattrick.",
@@ -531,6 +533,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Spielerdetails",
     detailsTabLabel: "Spielerdetails",
     skillsMatrixTabLabel: "Fähigkeitsmatrix",
+    ratingsMatrixTabLabel: "Bewertungsmatrix",
     refresh: "Aktualisieren",
     refreshTooltip: "Aktualisiert die Spielerdetails von Hattrick.",
     refreshPlayerListTooltip: "Jugendspielerliste von Hattrick aktualisieren.",
@@ -777,6 +780,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Détails du joueur",
     detailsTabLabel: "Détails du joueur",
     skillsMatrixTabLabel: "Matrice des compétences",
+    ratingsMatrixTabLabel: "Matrice des notes",
     refresh: "Actualiser",
     refreshTooltip: "Actualise les détails du joueur depuis Hattrick.",
     refreshPlayerListTooltip:
@@ -1027,6 +1031,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Detalles del jugador",
     detailsTabLabel: "Detalles del jugador",
     skillsMatrixTabLabel: "Matriz de habilidades",
+    ratingsMatrixTabLabel: "Matriz de calificaciones",
     refresh: "Actualizar",
     refreshTooltip: "Actualiza los detalles del jugador desde Hattrick.",
     refreshPlayerListTooltip:
@@ -1277,6 +1282,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Spelardetaljer",
     detailsTabLabel: "Spelardetaljer",
     skillsMatrixTabLabel: "Färdighetsmatris",
+    ratingsMatrixTabLabel: "Betygsmatris",
     refresh: "Uppdatera",
     refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
     refreshPlayerListTooltip: "Uppdatera juniorlistan från Hattrick.",
@@ -1525,6 +1531,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Dettagli giocatore",
     detailsTabLabel: "Dettagli giocatore",
     skillsMatrixTabLabel: "Matrice abilità",
+    ratingsMatrixTabLabel: "Matrice valutazioni",
     refresh: "Aggiorna",
     refreshTooltip: "Aggiorna i dettagli del giocatore da Hattrick.",
     refreshPlayerListTooltip:
@@ -1775,6 +1782,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Detalhes do jogador",
     detailsTabLabel: "Detalhes do jogador",
     skillsMatrixTabLabel: "Matriz de habilidades",
+    ratingsMatrixTabLabel: "Matriz de avaliações",
     refresh: "Atualizar",
     refreshTooltip: "Atualiza os detalhes do jogador no Hattrick.",
     refreshPlayerListTooltip:

@@ -15,6 +15,9 @@ export type Messages = {
   languageSwitching: string;
   helpIcon: string;
   helpOpenTooltip: string;
+  feedbackTooltip: string;
+  feedbackBug: string;
+  feedbackFeature: string;
   helpTitle: string;
   helpIntro: string;
   helpPurpose: string;
@@ -41,6 +44,7 @@ export type Messages = {
   playerDetails: string;
   detailsTabLabel: string;
   skillsMatrixTabLabel: string;
+  ratingsMatrixTabLabel: string;
   refresh: string;
   refreshTooltip: string;
   refreshPlayerListTooltip: string;
@@ -206,6 +210,7 @@ export type Messages = {
   unknownDate: string;
   ratingsTitle: string;
   ratingsIndexLabel: string;
+  ratingsMissingNote: string;
   ratingsSortBy: string;
   ratingsPlayerLabel: string;
   ratingsSpecialtyLabel: string;
@@ -249,6 +254,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Switching language…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Open help",
+    feedbackTooltip: "Feedback",
+    feedbackBug: "Report a bug",
+    feedbackFeature: "Request a feature",
     helpTitle: "Welcome to Youth Alchemy",
     helpIntro:
       "This page is more than a viewer. It’s designed to help you build the most optimal lineup for your training plan.",
@@ -286,6 +294,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Player details",
     detailsTabLabel: "Player details",
     skillsMatrixTabLabel: "Skills matrix",
+    ratingsMatrixTabLabel: "Ratings matrix",
     refresh: "Refresh",
     refreshTooltip: "Refreshes player details from Hattrick.",
     refreshPlayerListTooltip: "Refresh youth player list from Hattrick.",
@@ -452,6 +461,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Unknown date",
     ratingsTitle: "Ratings matrix",
     ratingsIndexLabel: "#",
+    ratingsMissingNote:
+      "Some players have no recent match data and are shown with —.",
     ratingsSortBy: "Sort by",
     ratingsPlayerLabel: "Player",
     ratingsSpecialtyLabel: "Specialty",
@@ -493,6 +504,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Sprache wird gewechselt…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Hilfe öffnen",
+    feedbackTooltip: "Feedback",
+    feedbackBug: "Fehler melden",
+    feedbackFeature: "Feature vorschlagen",
     helpTitle: "Willkommen bei Youth Alchemy",
     helpIntro:
       "Diese Seite ist mehr als eine Übersicht. Sie hilft dir, die optimale Aufstellung für dein Training zu finden.",
@@ -528,6 +542,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Spielerdetails",
     detailsTabLabel: "Spielerdetails",
     skillsMatrixTabLabel: "Fähigkeitsmatrix",
+    ratingsMatrixTabLabel: "Bewertungsmatrix",
     refresh: "Aktualisieren",
     refreshTooltip: "Aktualisiert die Spielerdetails von Hattrick.",
     refreshPlayerListTooltip: "Jugendspielerliste von Hattrick aktualisieren.",
@@ -695,6 +710,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Unbekanntes Datum",
     ratingsTitle: "Bewertungsmatrix",
     ratingsIndexLabel: "Nr.",
+    ratingsMissingNote:
+      "Einige Spieler haben keine aktuellen Matchdaten und werden mit — angezeigt.",
     ratingsSortBy: "Sortieren nach",
     ratingsPlayerLabel: "Spieler",
     ratingsSpecialtyLabel: "Spezialität",
@@ -736,6 +753,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Changement de langue…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Ouvrir l’aide",
+    feedbackTooltip: "Retour",
+    feedbackBug: "Signaler un bug",
+    feedbackFeature: "Demander une fonctionnalité",
     helpTitle: "Bienvenue dans Youth Alchemy",
     helpIntro:
       "Cette page n’est pas seulement un lecteur. Elle sert surtout à optimiser votre onze pour l’entraînement.",
@@ -772,6 +792,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Détails du joueur",
     detailsTabLabel: "Détails du joueur",
     skillsMatrixTabLabel: "Matrice des compétences",
+    ratingsMatrixTabLabel: "Matrice des notes",
     refresh: "Actualiser",
     refreshTooltip: "Actualise les détails du joueur depuis Hattrick.",
     refreshPlayerListTooltip:
@@ -942,6 +963,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Date inconnue",
     ratingsTitle: "Matrice des notes",
     ratingsIndexLabel: "N°",
+    ratingsMissingNote:
+      "Certains joueurs n’ont pas de données récentes et sont affichés avec —.",
     ratingsSortBy: "Trier par",
     ratingsPlayerLabel: "Joueur",
     ratingsSpecialtyLabel: "Spécialité",
@@ -984,6 +1007,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Cambiando idioma…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Abrir ayuda",
+    feedbackTooltip: "Comentarios",
+    feedbackBug: "Informar de un error",
+    feedbackFeature: "Solicitar función",
     helpTitle: "Bienvenido a Youth Alchemy",
     helpIntro:
       "Esta página no es solo un visor. Su objetivo principal es optimizar tu once para el entrenamiento.",
@@ -1020,6 +1046,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Detalles del jugador",
     detailsTabLabel: "Detalles del jugador",
     skillsMatrixTabLabel: "Matriz de habilidades",
+    ratingsMatrixTabLabel: "Matriz de calificaciones",
     refresh: "Actualizar",
     refreshTooltip: "Actualiza los detalles del jugador desde Hattrick.",
     refreshPlayerListTooltip:
@@ -1190,6 +1217,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Fecha desconocida",
     ratingsTitle: "Matriz de calificaciones",
     ratingsIndexLabel: "N.º",
+    ratingsMissingNote:
+      "Algunos jugadores no tienen datos recientes y se muestran con —.",
     ratingsSortBy: "Ordenar por",
     ratingsPlayerLabel: "Jugador",
     ratingsSpecialtyLabel: "Especialidad",
@@ -1232,6 +1261,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Byter språk…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Öppna hjälp",
+    feedbackTooltip: "Feedback",
+    feedbackBug: "Rapportera en bugg",
+    feedbackFeature: "Föreslå en funktion",
     helpTitle: "Välkommen till Youth Alchemy",
     helpIntro:
       "Den här sidan är mer än en vy. Den hjälper dig att optimera startelvan för träningen.",
@@ -1268,6 +1300,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Spelardetaljer",
     detailsTabLabel: "Spelardetaljer",
     skillsMatrixTabLabel: "Färdighetsmatris",
+    ratingsMatrixTabLabel: "Betygsmatris",
     refresh: "Uppdatera",
     refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
     refreshPlayerListTooltip: "Uppdatera juniorlistan från Hattrick.",
@@ -1436,6 +1469,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Okänt datum",
     ratingsTitle: "Betygsmatris",
     ratingsIndexLabel: "Nr",
+    ratingsMissingNote:
+      "Vissa spelare saknar senaste matchdata och visas med —.",
     ratingsSortBy: "Sortera efter",
     ratingsPlayerLabel: "Spelare",
     ratingsSpecialtyLabel: "Specialitet",
@@ -1478,6 +1513,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Cambio lingua…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Apri aiuto",
+    feedbackTooltip: "Feedback",
+    feedbackBug: "Segnala un bug",
+    feedbackFeature: "Richiedi una funzione",
     helpTitle: "Benvenuto in Youth Alchemy",
     helpIntro:
       "Questa pagina non è solo una vista. Serve a ottimizzare l’undici per l’allenamento.",
@@ -1514,6 +1552,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Dettagli giocatore",
     detailsTabLabel: "Dettagli giocatore",
     skillsMatrixTabLabel: "Matrice abilità",
+    ratingsMatrixTabLabel: "Matrice valutazioni",
     refresh: "Aggiorna",
     refreshTooltip: "Aggiorna i dettagli del giocatore da Hattrick.",
     refreshPlayerListTooltip:
@@ -1684,6 +1723,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Data sconosciuta",
     ratingsTitle: "Matrice valutazioni",
     ratingsIndexLabel: "N.",
+    ratingsMissingNote:
+      "Alcuni giocatori non hanno dati recenti e vengono mostrati con —.",
     ratingsSortBy: "Ordina per",
     ratingsPlayerLabel: "Giocatore",
     ratingsSpecialtyLabel: "Specialità",
@@ -1726,6 +1767,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Alterando idioma…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Abrir ajuda",
+    feedbackTooltip: "Feedback",
+    feedbackBug: "Relatar um bug",
+    feedbackFeature: "Solicitar recurso",
     helpTitle: "Bem-vindo ao Youth Alchemy",
     helpIntro:
       "Esta página é mais do que um visor. Ela ajuda a otimizar o onze para o treino.",
@@ -1762,6 +1806,7 @@ const MESSAGES: Record<Locale, Messages> = {
     playerDetails: "Detalhes do jogador",
     detailsTabLabel: "Detalhes do jogador",
     skillsMatrixTabLabel: "Matriz de habilidades",
+    ratingsMatrixTabLabel: "Matriz de avaliações",
     refresh: "Atualizar",
     refreshTooltip: "Atualiza os detalhes do jogador no Hattrick.",
     refreshPlayerListTooltip:
@@ -1932,6 +1977,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Data desconhecida",
     ratingsTitle: "Matriz de avaliações",
     ratingsIndexLabel: "Nº",
+    ratingsMissingNote:
+      "Alguns jogadores não têm dados recentes e são mostrados com —.",
     ratingsSortBy: "Ordenar por",
     ratingsPlayerLabel: "Jogador",
     ratingsSpecialtyLabel: "Especialidade",

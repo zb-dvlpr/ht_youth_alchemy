@@ -62,20 +62,12 @@ export default function ConnectedStatus({ messages }: ConnectedStatusProps) {
   return (
     <div className={styles.connectedInfo}>
       <Tooltip
-        content={
-          <div className={`${styles.tooltipCard} ${styles.connectedTooltip}`}>
-            <span className={styles.connectedTooltipLabel}>
-              {messages.permissionsLabel}
-            </span>
-            <span className={styles.connectedTooltipValue}>
-              {permissionsText}
-            </span>
-          </div>
-        }
+        variant="stacked"
+        content={`${messages.permissionsLabel} ${permissionsText}`}
       >
         <span className={styles.connectedBadge}>{messages.connectedLabel}</span>
       </Tooltip>
-      <Tooltip content={<div className={styles.tooltipCard}>{messages.disconnectTitle}</div>}>
+      <Tooltip content={messages.disconnectTitle}>
         <button
           type="button"
           className={styles.disconnectButton}

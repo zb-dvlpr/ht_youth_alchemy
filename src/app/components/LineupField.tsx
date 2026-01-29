@@ -172,11 +172,9 @@ export default function LineupField({
         {onOptimize ? (
           <Tooltip
             content={
-              <div className={styles.tooltipCard}>
-                {optimizeDisabled
-                  ? optimizeDisabledReason
-                  : messages.optimizeLineupTitle}
-              </div>
+              optimizeDisabled
+                ? optimizeDisabledReason
+                : messages.optimizeLineupTitle
             }
           >
             <button
@@ -309,6 +307,7 @@ export default function LineupField({
                         </div>
                       }
                       fullWidth
+                      withCard={false}
                     >
                       <div
                         className={styles.slotContent}

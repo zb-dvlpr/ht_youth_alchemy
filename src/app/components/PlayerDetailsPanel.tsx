@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { formatChppDate, formatDateTime } from "@/lib/datetime";
 import Tooltip from "./Tooltip";
+import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
 import { positionLabelShortByRoleId } from "@/lib/positions";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 
@@ -60,6 +61,10 @@ type PlayerDetailsPanelProps = {
   players: YouthPlayer[];
   playerDetailsById: Map<number, YouthPlayerDetails>;
   skillsMatrixRows: { id: number | null; name: string }[];
+  ratingsMatrixResponse: RatingsMatrixResponse | null;
+  ratingsMatrixSelectedName: string | null;
+  ratingsMatrixSpecialtyByName: Record<string, number | undefined>;
+  onSelectRatingsPlayer: (playerName: string) => void;
   messages: Messages;
 };
 
@@ -174,6 +179,16 @@ function getSkillName(level: number | null) {
   return SKILL_NAMES[level] ?? `level ${level}`;
 }
 
+function skillCellColor(value: number | null) {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+  const normalized = Math.min(Math.max((value - 1) / 6, 0), 1);
+  const hue = 120 * normalized;
+  const alpha = 0.2 + normalized * 0.35;
+  return `hsla(${hue}, 70%, 38%, ${alpha})`;
+}
+
 function daysSince(dateString?: string) {
   if (!dateString) return null;
   const parsed = new Date(dateString.replace(" ", "T"));
@@ -193,17 +208,65 @@ export default function PlayerDetailsPanel({
   players,
   playerDetailsById,
   skillsMatrixRows,
+  ratingsMatrixResponse,
+  ratingsMatrixSelectedName,
+  ratingsMatrixSpecialtyByName,
+  onSelectRatingsPlayer,
   messages,
 }: PlayerDetailsPanelProps) {
-  const [activeTab, setActiveTab] = useState<"details" | "skillsMatrix">(
-    "details"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "details" | "skillsMatrix" | "ratingsMatrix"
+  >("details");
+  const [skillsSortKey, setSkillsSortKey] = useState<string | null>(null);
+  const [skillsSortDir, setSkillsSortDir] = useState<"asc" | "desc">("desc");
 
   const playerById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
     players.forEach((player) => map.set(player.YouthPlayerID, player));
     return map;
   }, [players]);
+
+  useEffect(() => {
+    if (selectedPlayer?.YouthPlayerID) {
+      setActiveTab("details");
+    }
+  }, [selectedPlayer?.YouthPlayerID]);
+
+  const sortedSkillsRows = useMemo(() => {
+    if (!skillsSortKey) return skillsMatrixRows;
+    const direction = skillsSortDir === "asc" ? 1 : -1;
+    return [...skillsMatrixRows].sort((a, b) => {
+      const detailsA = a.id ? playerDetailsById.get(a.id) : null;
+      const detailsB = b.id ? playerDetailsById.get(b.id) : null;
+      const playerA = a.id ? playerById.get(a.id) : null;
+      const playerB = b.id ? playerById.get(b.id) : null;
+      const skillsA = detailsA?.PlayerSkills ?? playerA?.PlayerSkills ?? null;
+      const skillsB = detailsB?.PlayerSkills ?? playerB?.PlayerSkills ?? null;
+      const currentA = getSkillLevel(skillsA?.[skillsSortKey]);
+      const maxA = getSkillMax(skillsA?.[`${skillsSortKey}Max`]);
+      const currentB = getSkillLevel(skillsB?.[skillsSortKey]);
+      const maxB = getSkillMax(skillsB?.[`${skillsSortKey}Max`]);
+      const sumA = (currentA ?? 0) + (maxA ?? 0);
+      const sumB = (currentB ?? 0) + (maxB ?? 0);
+      if (sumA === sumB) return 0;
+      return (sumA - sumB) * direction;
+    });
+  }, [
+    playerById,
+    playerDetailsById,
+    skillsMatrixRows,
+    skillsSortDir,
+    skillsSortKey,
+  ]);
+
+  const handleSkillsSort = (key: string) => {
+    if (skillsSortKey === key) {
+      setSkillsSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSkillsSortKey(key);
+      setSkillsSortDir("desc");
+    }
+  };
 
   const specialtyName = (value?: number) => {
     switch (value) {
@@ -279,9 +342,7 @@ export default function PlayerDetailsPanel({
     return (
       <div className={styles.profileCard}>
         <div className={styles.detailsRefreshCorner}>
-          <Tooltip
-            content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}
-          >
+          <Tooltip content={messages.refreshTooltip}>
             <button
               type="button"
               className={`${styles.sortToggle} ${styles.detailsRefresh}`}
@@ -380,7 +441,9 @@ export default function PlayerDetailsPanel({
             <div>
               <div className={styles.infoLabel}>{messages.specialtyLabel}</div>
               <div className={styles.infoValue}>
-                {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}{" "}
+                <span className={styles.playerSpecialty}>
+                  {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}
+                </span>{" "}
                 {specialtyName(detailsData.Specialty) ??
                   `${messages.specialtyLabel} ${detailsData.Specialty}`}
               </div>
@@ -483,69 +546,104 @@ export default function PlayerDetailsPanel({
     }
 
     return (
-      <div className={styles.profileCard}>
-        <div className={styles.matrixWrapper}>
-          <table className={styles.matrixTable}>
-            <thead>
-              <tr>
-                <th className={styles.matrixIndexHeader}>
-                  {messages.ratingsIndexLabel}
-                </th>
-                <th className={styles.matrixPlayerHeader}>
-                  {messages.ratingsPlayerLabel}
-                </th>
-                <th className={styles.matrixSpecialtyHeader}>
-                  {messages.ratingsSpecialtyLabel}
-                </th>
-                {SKILL_ROWS.map((row) => (
-                  <th key={row.key}>
-                    {messages[row.shortLabelKey as keyof Messages]}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {skillsMatrixRows.map((row, index) => {
-                const player = row.id ? playerById.get(row.id) : null;
-                const details = row.id ? playerDetailsById.get(row.id) : null;
-                const skills =
-                  details?.PlayerSkills ?? player?.PlayerSkills ?? null;
-
+      <div className={styles.matrixWrapper}>
+        <table className={styles.matrixTable}>
+          <thead>
+            <tr>
+              <th className={styles.matrixIndexHeader}>
+                {messages.ratingsIndexLabel}
+              </th>
+              <th className={styles.matrixPlayerHeader}>
+                {messages.ratingsPlayerLabel}
+              </th>
+              <th className={styles.matrixSpecialtyHeader}>
+                {messages.ratingsSpecialtyLabel}
+              </th>
+              {SKILL_ROWS.map((row) => {
+                const isActive = skillsSortKey === row.key;
+                const direction = isActive ? skillsSortDir : "desc";
                 return (
-                  <tr key={`${row.name}-${row.id ?? "unknown"}`}>
-                    <td className={styles.matrixIndex}>{index + 1}</td>
-                    <td className={styles.matrixPlayer}>{row.name}</td>
-                    <td className={styles.matrixSpecialty}>
-                      {player?.Specialty !== undefined
-                        ? SPECIALTY_EMOJI[player.Specialty] ?? "—"
-                        : "—"}
-                    </td>
-                    {SKILL_ROWS.map((skill) => {
-                      const current = getSkillLevel(skills?.[skill.key]);
-                      const max = getSkillMax(skills?.[skill.maxKey]);
-                      if (current === null && max === null) {
-                        return (
-                          <td key={skill.key} className={styles.matrixCell}>
-                            -/-
-                          </td>
-                        );
-                      }
-                      const currentText =
-                        current === null ? messages.unknownShort : String(current);
-                      const maxText =
-                        max === null ? messages.unknownShort : String(max);
-                      return (
-                        <td key={skill.key} className={styles.matrixCell}>
-                          {currentText}/{maxText}
-                        </td>
-                      );
-                    })}
-                  </tr>
+                  <th key={row.key}>
+                    <button
+                      type="button"
+                      className={styles.matrixSortButton}
+                      onClick={() => handleSkillsSort(row.key)}
+                      aria-label={`${messages.ratingsSortBy} ${messages[row.labelKey as keyof Messages]}`}
+                    >
+                      {messages[row.shortLabelKey as keyof Messages]}
+                      <span className={styles.matrixSortIcon}>
+                        {isActive ? (direction === "asc" ? "▲" : "▼") : "⇅"}
+                      </span>
+                    </button>
+                  </th>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
+            </tr>
+          </thead>
+          <tbody>
+            {sortedSkillsRows.map((row, index) => {
+              const player = row.id ? playerById.get(row.id) : null;
+              const details = row.id ? playerDetailsById.get(row.id) : null;
+              const skills = details?.PlayerSkills ?? player?.PlayerSkills ?? null;
+
+              return (
+                <tr key={`${row.name}-${row.id ?? "unknown"}`}>
+                  <td className={styles.matrixIndex}>{index + 1}</td>
+                  <td className={styles.matrixPlayer}>{row.name}</td>
+                  <td className={styles.matrixSpecialty}>
+                    {player?.Specialty !== undefined ? (
+                      <Tooltip
+                        content={
+                          specialtyName(player.Specialty) ?? messages.specialtyLabel
+                        }
+                      >
+                        <span className={styles.playerSpecialty}>
+                          {SPECIALTY_EMOJI[player.Specialty] ?? "—"}
+                        </span>
+                      </Tooltip>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  {SKILL_ROWS.map((skill) => {
+                    const current = getSkillLevel(skills?.[skill.key]);
+                    const max = getSkillMax(skills?.[skill.maxKey]);
+                    const currentText =
+                      current === null ? messages.unknownShort : String(current);
+                    const maxText = max === null ? messages.unknownShort : String(max);
+                    const currentColor = skillCellColor(current);
+                    const maxColor = skillCellColor(max);
+                    return (
+                      <td key={skill.key} className={styles.matrixCell}>
+                        <div className={styles.skillsMatrixSplit}>
+                          <span
+                            className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfLeft}`}
+                            style={
+                              currentColor
+                                ? { backgroundColor: currentColor }
+                                : undefined
+                            }
+                          >
+                            {currentText}
+                          </span>
+                          <span className={styles.skillsMatrixDivider}>/</span>
+                          <span
+                            className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfRight}`}
+                            style={
+                              maxColor ? { backgroundColor: maxColor } : undefined
+                            }
+                          >
+                            {maxText}
+                          </span>
+                        </div>
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     );
   };
@@ -572,10 +670,32 @@ export default function PlayerDetailsPanel({
           >
             {messages.skillsMatrixTabLabel}
           </button>
+          <button
+            type="button"
+            className={`${styles.detailsTabButton} ${
+              activeTab === "ratingsMatrix" ? styles.detailsTabActive : ""
+            }`}
+            onClick={() => setActiveTab("ratingsMatrix")}
+          >
+            {messages.ratingsMatrixTabLabel}
+          </button>
         </div>
       </div>
 
-      {activeTab === "details" ? renderDetails() : renderSkillsMatrix()}
+      {activeTab === "details" ? (
+        renderDetails()
+      ) : activeTab === "skillsMatrix" ? (
+        renderSkillsMatrix()
+      ) : (
+        <RatingsMatrix
+          response={ratingsMatrixResponse}
+          showTitle={false}
+          messages={messages}
+          specialtyByName={ratingsMatrixSpecialtyByName}
+          selectedName={ratingsMatrixSelectedName}
+          onSelectPlayer={onSelectRatingsPlayer}
+        />
+      )}
     </div>
   );
 }

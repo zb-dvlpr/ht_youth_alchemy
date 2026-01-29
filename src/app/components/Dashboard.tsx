@@ -9,7 +9,7 @@ import PlayerDetailsPanel, {
 import LineupField, { LineupAssignments } from "./LineupField";
 import UpcomingMatches, { type MatchesResponse } from "./UpcomingMatches";
 import { Messages } from "@/lib/i18n";
-import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
+import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
 import {
   getAutoSelection,
@@ -132,6 +132,10 @@ export default function Dashboard({
   const [showHelp, setShowHelp] = useState(false);
   const [helpPaths, setHelpPaths] = useState<string[]>([]);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
+  const [ratingsCache, setRatingsCache] = useState<
+    Record<number, Record<string, number>>
+  >({});
+  const [ratingsPositions, setRatingsPositions] = useState<number[]>([]);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -161,32 +165,33 @@ export default function Dashboard({
     [playerList, selectedId]
   );
 
-  const filteredRatings = useMemo(() => {
-    if (!ratingsResponse) return null;
-    const allowedNames = new Set(
-      playerList.map((player) =>
-        [player.FirstName, player.NickName || null, player.LastName]
-          .filter(Boolean)
-          .join(" ")
-      )
-    );
+  const ratingsMatrixData = useMemo(() => {
+    if (playerList.length === 0) return null;
+    const positions = ratingsResponse?.positions ?? ratingsPositions ?? [];
+    const players = playerList.map((player) => ({
+      id: player.YouthPlayerID,
+      name: formatPlayerName(player),
+      ratings: ratingsCache[player.YouthPlayerID] ?? {},
+    }));
+    if (!ratingsResponse && players.every((player) => !Object.keys(player.ratings).length)) {
+      return null;
+    }
     return {
-      ...ratingsResponse,
-      players: ratingsResponse.players.filter((row) =>
-        allowedNames.has(row.name)
-      ),
+      response: {
+        positions,
+        players,
+      },
     };
-  }, [ratingsResponse, playerList]);
+  }, [playerList, ratingsCache, ratingsPositions, ratingsResponse]);
 
-  const skillsMatrixRows = useMemo(() => {
-    if (!filteredRatings?.players?.length) return [];
-    return filteredRatings.players.map((row) => {
-      const match = playerList.find(
-        (player) => formatPlayerName(player) === row.name
-      );
-      return { id: match?.YouthPlayerID ?? null, name: row.name };
-    });
-  }, [filteredRatings, playerList]);
+  const skillsMatrixRows = useMemo(
+    () =>
+      playerList.map((player) => ({
+        id: player.YouthPlayerID,
+        name: formatPlayerName(player),
+      })),
+    [playerList]
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -201,6 +206,8 @@ export default function Dashboard({
         secondaryTraining?: string;
         loadedMatchId?: number | null;
         cache?: Record<number, CachedDetails>;
+        ratingsCache?: Record<number, Record<string, number>>;
+        ratingsPositions?: number[];
       };
       if (parsed.assignments) setAssignments(parsed.assignments);
       if (parsed.selectedId !== undefined) setSelectedId(parsed.selectedId);
@@ -221,6 +228,8 @@ export default function Dashboard({
           setDetails(parsed.cache[parsed.selectedId].data);
         }
       }
+      if (parsed.ratingsCache) setRatingsCache(parsed.ratingsCache);
+      if (parsed.ratingsPositions) setRatingsPositions(parsed.ratingsPositions);
     } catch {
       // ignore restore errors
     }
@@ -236,6 +245,8 @@ export default function Dashboard({
       secondaryTraining,
       loadedMatchId,
       cache,
+      ratingsCache,
+      ratingsPositions,
     };
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(payload));
@@ -247,10 +258,57 @@ export default function Dashboard({
     cache,
     loadedMatchId,
     primaryTraining,
+    ratingsCache,
+    ratingsPositions,
     secondaryTraining,
     selectedId,
     starPlayerId,
   ]);
+
+  useEffect(() => {
+    if (!ratingsResponse) return;
+    setRatingsPositions(ratingsResponse.positions ?? []);
+    setRatingsCache((prev) => {
+      const next: Record<number, Record<string, number>> = { ...prev };
+      const validIds = new Set(playerList.map((player) => player.YouthPlayerID));
+      Object.keys(next).forEach((id) => {
+        if (!validIds.has(Number(id))) delete next[Number(id)];
+      });
+      const byName = new Map(ratingsResponse.players.map((row) => [row.name, row]));
+      playerList.forEach((player) => {
+        const row = byName.get(formatPlayerName(player));
+        if (!row) return;
+        const current = next[player.YouthPlayerID] ?? {};
+        const updated = { ...current };
+        Object.entries(row.ratings).forEach(([position, value]) => {
+          if (typeof value !== "number") return;
+          const previous = updated[position];
+          if (previous === undefined || value > previous) {
+            updated[position] = value;
+          }
+        });
+        next[player.YouthPlayerID] = updated;
+      });
+      return next;
+    });
+  }, [playerList, ratingsResponse]);
+
+  useEffect(() => {
+    setRatingsCache((prev) => {
+      const validIds = new Set(playerList.map((player) => player.YouthPlayerID));
+      const next: Record<number, Record<string, number>> = {};
+      let changed = false;
+      Object.entries(prev).forEach(([id, ratings]) => {
+        const numericId = Number(id);
+        if (!validIds.has(numericId)) {
+          changed = true;
+          return;
+        }
+        next[numericId] = ratings;
+      });
+      return changed ? next : prev;
+    });
+  }, [playerList]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -909,12 +967,11 @@ export default function Dashboard({
               players={playerList}
               playerDetailsById={playerDetailsById}
               skillsMatrixRows={skillsMatrixRows}
-              messages={messages}
-            />
-            <RatingsMatrix
-              response={filteredRatings}
-              messages={messages}
-              specialtyByName={Object.fromEntries(
+              ratingsMatrixResponse={ratingsMatrixData?.response ?? null}
+              ratingsMatrixSelectedName={
+                selectedPlayer ? formatPlayerName(selectedPlayer) : null
+              }
+              ratingsMatrixSpecialtyByName={Object.fromEntries(
                 playerList.map((player) => [
                   [player.FirstName, player.NickName || null, player.LastName]
                     .filter(Boolean)
@@ -922,8 +979,7 @@ export default function Dashboard({
                   player.Specialty,
                 ])
               )}
-              selectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
-              onSelectPlayer={(playerName) => {
+              onSelectRatingsPlayer={(playerName) => {
                 const match = playerList.find(
                   (player) => formatPlayerName(player) === playerName
                 );
@@ -934,6 +990,7 @@ export default function Dashboard({
                   `${messages.notificationPlayerSelected} ${playerName}`
                 );
               }}
+              messages={messages}
             />
           </>
         )}
@@ -1040,11 +1097,9 @@ export default function Dashboard({
             <h2 className={styles.sectionTitle}>{messages.optimizerDebugTitle}</h2>
             <Tooltip
               content={
-                <div className={styles.tooltipCard}>
-                  {optimizerDebug
-                    ? messages.optimizerDebugOpen
-                    : messages.optimizerDebugUnavailable}
-                </div>
+                optimizerDebug
+                  ? messages.optimizerDebugOpen
+                  : messages.optimizerDebugUnavailable
               }
             >
               <button

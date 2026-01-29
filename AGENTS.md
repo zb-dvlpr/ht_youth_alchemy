@@ -18,3 +18,6 @@
 
 ## Date/Time
 - Any new date/time display must use the shared date/time formatting framework.
+
+## Clarification
+- If an instruction is unclear, ask clarifying questions before starting any coding.

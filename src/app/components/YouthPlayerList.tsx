@@ -34,6 +34,29 @@ type PlayerSkills = {
   SetPiecesSkill?: SkillValue;
 };
 
+const specialtyName = (value: number | undefined, messages: Messages) => {
+  switch (value) {
+    case 0:
+      return messages.specialtyNone;
+    case 1:
+      return messages.specialtyTechnical;
+    case 2:
+      return messages.specialtyQuick;
+    case 3:
+      return messages.specialtyPowerful;
+    case 4:
+      return messages.specialtyUnpredictable;
+    case 5:
+      return messages.specialtyHeadSpecialist;
+    case 6:
+      return messages.specialtyResilient;
+    case 8:
+      return messages.specialtySupport;
+    default:
+      return null;
+  }
+};
+
 type YouthPlayerListProps = {
   players: YouthPlayer[];
   assignedIds?: Set<number>;
@@ -285,7 +308,7 @@ export default function YouthPlayerList({
             </select>
           </label>
           <Tooltip
-            content={<div className={styles.tooltipCard}>{messages.sortToggleAria}</div>}
+            content={messages.sortToggleAria}
           >
             <button
               type="button"
@@ -305,7 +328,7 @@ export default function YouthPlayerList({
             </button>
           </Tooltip>
           <Tooltip
-            content={<div className={styles.tooltipCard}>{messages.refreshPlayerListTooltip}</div>}
+            content={messages.refreshPlayerListTooltip}
           >
             <button
               type="button"
@@ -318,7 +341,7 @@ export default function YouthPlayerList({
             </button>
           </Tooltip>
           <Tooltip
-            content={<div className={styles.tooltipCard}>{messages.autoSelectTitle}</div>}
+            content={messages.autoSelectTitle}
           >
             <button
               type="button"
@@ -349,9 +372,7 @@ export default function YouthPlayerList({
             return (
               <li key={player.YouthPlayerID} className={styles.listItem}>
                 <div className={styles.playerRow}>
-                  <Tooltip
-                    content={<div className={styles.tooltipCard}>{messages.starPlayerLabel}</div>}
-                  >
+                  <Tooltip content={messages.starPlayerLabel}>
                     <button
                       type="button"
                       className={`${styles.starButton} ${
@@ -395,9 +416,16 @@ export default function YouthPlayerList({
                     <span className={styles.playerNameRow}>
                       <span className={styles.playerName}>{fullName}</span>
                       {specialtyEmoji ? (
-                        <span className={styles.playerSpecialty}>
-                          {SPECIALTY_EMOJI[specialtyEmoji]}
-                        </span>
+                        <Tooltip
+                          content={
+                            specialtyName(specialtyEmoji, messages) ??
+                            messages.specialtyLabel
+                          }
+                        >
+                          <span className={styles.playerSpecialty}>
+                            {SPECIALTY_EMOJI[specialtyEmoji]}
+                          </span>
+                        </Tooltip>
                       ) : null}
                     </span>
                     {isAssigned ? (

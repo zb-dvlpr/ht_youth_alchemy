@@ -48,7 +48,7 @@ export default function ThemeToggle({ messages }: ThemeToggleProps) {
     mode === "dark" ? messages.themeSwitchLight : messages.themeSwitchDark;
 
   return (
-    <Tooltip content={<div className={styles.tooltipCard}>{tooltip}</div>}>
+    <Tooltip content={tooltip}>
       <button
         type="button"
         className={styles.themeToggle}

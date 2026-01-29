@@ -58,7 +58,7 @@ export default function LanguageSwitcher({
         ))}
       </select>
       {isChanging ? (
-        <Tooltip content={<div className={styles.tooltipCard}>{switchingLabel}</div>}>
+        <Tooltip content={switchingLabel}>
           <span className={styles.langSpinner} role="status" />
         </Tooltip>
       ) : null}

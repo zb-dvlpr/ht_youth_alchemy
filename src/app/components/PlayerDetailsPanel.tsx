@@ -179,6 +179,16 @@ function getSkillName(level: number | null) {
   return SKILL_NAMES[level] ?? `level ${level}`;
 }
 
+function skillCellColor(value: number | null) {
+  if (value === null || value === undefined) {
+    return undefined;
+  }
+  const normalized = Math.min(Math.max((value - 1) / 6, 0), 1);
+  const hue = 120 * normalized;
+  const alpha = 0.2 + normalized * 0.35;
+  return `hsla(${hue}, 70%, 38%, ${alpha})`;
+}
+
 function daysSince(dateString?: string) {
   if (!dateString) return null;
   const parsed = new Date(dateString.replace(" ", "T"));
@@ -530,19 +540,34 @@ export default function PlayerDetailsPanel({
                   {SKILL_ROWS.map((skill) => {
                     const current = getSkillLevel(skills?.[skill.key]);
                     const max = getSkillMax(skills?.[skill.maxKey]);
-                    if (current === null && max === null) {
-                      return (
-                        <td key={skill.key} className={styles.matrixCell}>
-                          -/-
-                        </td>
-                      );
-                    }
                     const currentText =
                       current === null ? messages.unknownShort : String(current);
                     const maxText = max === null ? messages.unknownShort : String(max);
+                    const currentColor = skillCellColor(current);
+                    const maxColor = skillCellColor(max);
                     return (
                       <td key={skill.key} className={styles.matrixCell}>
-                        {currentText}/{maxText}
+                        <div className={styles.skillsMatrixSplit}>
+                          <span
+                            className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfLeft}`}
+                            style={
+                              currentColor
+                                ? { backgroundColor: currentColor }
+                                : undefined
+                            }
+                          >
+                            {currentText}
+                          </span>
+                          <span className={styles.skillsMatrixDivider}>/</span>
+                          <span
+                            className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfRight}`}
+                            style={
+                              maxColor ? { backgroundColor: maxColor } : undefined
+                            }
+                          >
+                            {maxText}
+                          </span>
+                        </div>
                       </td>
                     );
                   })}

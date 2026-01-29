@@ -429,6 +429,40 @@
   color: #1b1a17;
 }
 
+.skillsMatrixSplit {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 0;
+  border: 1px solid rgba(100, 85, 70, 0.25);
+  border-radius: 6px;
+}
+
+.skillsMatrixHalf {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0px 0;
+  min-height: 18px;
+}
+
+.skillsMatrixHalfLeft {
+  border-radius: 4px 0 0 4px;
+}
+
+.skillsMatrixHalfRight {
+  border-radius: 0 4px 4px 0;
+}
+
+.skillsMatrixDivider {
+  flex: 0 0 auto;
+  padding: 0 3px;
+  color: #6b5e4d;
+  font-weight: 600;
+  line-height: 2;
+}
+
 .matrixTable th {
   background: #f7f1e3;
   font-weight: 600;
@@ -684,6 +718,14 @@ html[data-theme="dark"] .matrixRowSelected {
 html[data-theme="dark"] .matrixCell,
 html[data-theme="dark"] .matrixPlayer {
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .skillsMatrixDivider {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .skillsMatrixSplit {
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 html[data-theme="dark"] .matrixPlayerButton:hover {

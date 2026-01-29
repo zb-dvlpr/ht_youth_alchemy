@@ -217,12 +217,50 @@ export default function PlayerDetailsPanel({
   const [activeTab, setActiveTab] = useState<
     "details" | "skillsMatrix" | "ratingsMatrix"
   >("details");
+  const [skillsSortKey, setSkillsSortKey] = useState<string | null>(null);
+  const [skillsSortDir, setSkillsSortDir] = useState<"asc" | "desc">("desc");
 
   const playerById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
     players.forEach((player) => map.set(player.YouthPlayerID, player));
     return map;
   }, [players]);
+
+  const sortedSkillsRows = useMemo(() => {
+    if (!skillsSortKey) return skillsMatrixRows;
+    const direction = skillsSortDir === "asc" ? 1 : -1;
+    return [...skillsMatrixRows].sort((a, b) => {
+      const detailsA = a.id ? playerDetailsById.get(a.id) : null;
+      const detailsB = b.id ? playerDetailsById.get(b.id) : null;
+      const playerA = a.id ? playerById.get(a.id) : null;
+      const playerB = b.id ? playerById.get(b.id) : null;
+      const skillsA = detailsA?.PlayerSkills ?? playerA?.PlayerSkills ?? null;
+      const skillsB = detailsB?.PlayerSkills ?? playerB?.PlayerSkills ?? null;
+      const currentA = getSkillLevel(skillsA?.[skillsSortKey]);
+      const maxA = getSkillMax(skillsA?.[`${skillsSortKey}Max`]);
+      const currentB = getSkillLevel(skillsB?.[skillsSortKey]);
+      const maxB = getSkillMax(skillsB?.[`${skillsSortKey}Max`]);
+      const sumA = (currentA ?? 0) + (maxA ?? 0);
+      const sumB = (currentB ?? 0) + (maxB ?? 0);
+      if (sumA === sumB) return 0;
+      return (sumA - sumB) * direction;
+    });
+  }, [
+    playerById,
+    playerDetailsById,
+    skillsMatrixRows,
+    skillsSortDir,
+    skillsSortKey,
+  ]);
+
+  const handleSkillsSort = (key: string) => {
+    if (skillsSortKey === key) {
+      setSkillsSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSkillsSortKey(key);
+      setSkillsSortDir("desc");
+    }
+  };
 
   const specialtyName = (value?: number) => {
     switch (value) {
@@ -515,15 +553,29 @@ export default function PlayerDetailsPanel({
               <th className={styles.matrixSpecialtyHeader}>
                 {messages.ratingsSpecialtyLabel}
               </th>
-              {SKILL_ROWS.map((row) => (
-                <th key={row.key}>
-                  {messages[row.shortLabelKey as keyof Messages]}
-                </th>
-              ))}
+              {SKILL_ROWS.map((row) => {
+                const isActive = skillsSortKey === row.key;
+                const direction = isActive ? skillsSortDir : "desc";
+                return (
+                  <th key={row.key}>
+                    <button
+                      type="button"
+                      className={styles.matrixSortButton}
+                      onClick={() => handleSkillsSort(row.key)}
+                      aria-label={`${messages.ratingsSortBy} ${messages[row.labelKey as keyof Messages]}`}
+                    >
+                      {messages[row.shortLabelKey as keyof Messages]}
+                      <span className={styles.matrixSortIcon}>
+                        {isActive ? (direction === "asc" ? "▲" : "▼") : "⇅"}
+                      </span>
+                    </button>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
-            {skillsMatrixRows.map((row, index) => {
+            {sortedSkillsRows.map((row, index) => {
               const player = row.id ? playerById.get(row.id) : null;
               const details = row.id ? playerDetailsById.get(row.id) : null;
               const skills = details?.PlayerSkills ?? player?.PlayerSkills ?? null;

@@ -29,6 +29,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Player details panel is tabbed with player details, skills matrix, and ratings matrix
 - Ratings matrix caches best known ratings per position for active youth players
 - Skills matrix cells are split and color-coded for current/max values
+- Skills matrix columns are sortable by current+max sum
 - Ratings matrix rows are clickable to open player details
 - Player details show last match position and rating (showLastMatch=true)
 - Specialty labels are localized

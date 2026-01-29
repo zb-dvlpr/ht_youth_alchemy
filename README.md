@@ -80,3 +80,6 @@ After OAuth succeeds and you have set a lineup in the UI, you can submit orders 
 ## Notes
 - Match orders are submitted only after explicit confirmation.
 - OAuth access tokens are stored in httpOnly cookies.
+
+## License
+Proprietary. All rights reserved.

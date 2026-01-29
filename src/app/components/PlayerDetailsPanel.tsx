@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { formatChppDate, formatDateTime } from "@/lib/datetime";
@@ -225,6 +225,12 @@ export default function PlayerDetailsPanel({
     players.forEach((player) => map.set(player.YouthPlayerID, player));
     return map;
   }, [players]);
+
+  useEffect(() => {
+    if (selectedPlayer?.YouthPlayerID) {
+      setActiveTab("details");
+    }
+  }, [selectedPlayer?.YouthPlayerID]);
 
   const sortedSkillsRows = useMemo(() => {
     if (!skillsSortKey) return skillsMatrixRows;

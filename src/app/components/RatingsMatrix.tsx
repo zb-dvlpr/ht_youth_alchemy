@@ -19,6 +19,7 @@ export type RatingsMatrixResponse = {
 
 type RatingsMatrixProps = {
   response: RatingsMatrixResponse | null;
+  missingCount?: number;
   messages: Messages;
   specialtyByName?: Record<string, number | undefined>;
   selectedName?: string | null;
@@ -49,6 +50,7 @@ function ratingStyle(value: number | null) {
 
 export default function RatingsMatrix({
   response,
+  missingCount = 0,
   messages,
   specialtyByName,
   selectedName,
@@ -94,6 +96,9 @@ export default function RatingsMatrix({
   return (
     <div className={styles.card}>
       <h2 className={styles.sectionTitle}>{messages.ratingsTitle}</h2>
+      {missingCount > 0 ? (
+        <p className={styles.muted}>{messages.ratingsMissingNote}</p>
+      ) : null}
       <div className={styles.matrixWrapper}>
         <table className={styles.matrixTable}>
           <thead>

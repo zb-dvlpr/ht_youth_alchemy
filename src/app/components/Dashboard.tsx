@@ -161,32 +161,39 @@ export default function Dashboard({
     [playerList, selectedId]
   );
 
-  const filteredRatings = useMemo(() => {
+  const ratingsMatrixData = useMemo(() => {
     if (!ratingsResponse) return null;
-    const allowedNames = new Set(
-      playerList.map((player) =>
-        [player.FirstName, player.NickName || null, player.LastName]
-          .filter(Boolean)
-          .join(" ")
-      )
-    );
+    const byName = new Map(ratingsResponse.players.map((row) => [row.name, row]));
+    const players = playerList.map((player) => {
+      const name = formatPlayerName(player);
+      const existing = byName.get(name);
+      if (existing) return existing;
+      return {
+        id: player.YouthPlayerID,
+        name,
+        ratings: {},
+      };
+    });
+    const missingCount = playerList.filter(
+      (player) => !byName.has(formatPlayerName(player))
+    ).length;
     return {
-      ...ratingsResponse,
-      players: ratingsResponse.players.filter((row) =>
-        allowedNames.has(row.name)
-      ),
+      response: {
+        ...ratingsResponse,
+        players,
+      },
+      missingCount,
     };
   }, [ratingsResponse, playerList]);
 
-  const skillsMatrixRows = useMemo(() => {
-    if (!filteredRatings?.players?.length) return [];
-    return filteredRatings.players.map((row) => {
-      const match = playerList.find(
-        (player) => formatPlayerName(player) === row.name
-      );
-      return { id: match?.YouthPlayerID ?? null, name: row.name };
-    });
-  }, [filteredRatings, playerList]);
+  const skillsMatrixRows = useMemo(
+    () =>
+      playerList.map((player) => ({
+        id: player.YouthPlayerID,
+        name: formatPlayerName(player),
+      })),
+    [playerList]
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -912,7 +919,8 @@ export default function Dashboard({
               messages={messages}
             />
             <RatingsMatrix
-              response={filteredRatings}
+              response={ratingsMatrixData?.response ?? null}
+              missingCount={ratingsMatrixData?.missingCount ?? 0}
               messages={messages}
               specialtyByName={Object.fromEntries(
                 playerList.map((player) => [

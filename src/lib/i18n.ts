@@ -206,6 +206,7 @@ export type Messages = {
   unknownDate: string;
   ratingsTitle: string;
   ratingsIndexLabel: string;
+  ratingsMissingNote: string;
   ratingsSortBy: string;
   ratingsPlayerLabel: string;
   ratingsSpecialtyLabel: string;
@@ -452,6 +453,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Unknown date",
     ratingsTitle: "Ratings matrix",
     ratingsIndexLabel: "#",
+    ratingsMissingNote:
+      "Some players have no recent match data and are shown with —.",
     ratingsSortBy: "Sort by",
     ratingsPlayerLabel: "Player",
     ratingsSpecialtyLabel: "Specialty",
@@ -695,6 +698,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Unbekanntes Datum",
     ratingsTitle: "Bewertungsmatrix",
     ratingsIndexLabel: "Nr.",
+    ratingsMissingNote:
+      "Einige Spieler haben keine aktuellen Matchdaten und werden mit — angezeigt.",
     ratingsSortBy: "Sortieren nach",
     ratingsPlayerLabel: "Spieler",
     ratingsSpecialtyLabel: "Spezialität",
@@ -942,6 +947,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Date inconnue",
     ratingsTitle: "Matrice des notes",
     ratingsIndexLabel: "N°",
+    ratingsMissingNote:
+      "Certains joueurs n’ont pas de données récentes et sont affichés avec —.",
     ratingsSortBy: "Trier par",
     ratingsPlayerLabel: "Joueur",
     ratingsSpecialtyLabel: "Spécialité",
@@ -1190,6 +1197,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Fecha desconocida",
     ratingsTitle: "Matriz de calificaciones",
     ratingsIndexLabel: "N.º",
+    ratingsMissingNote:
+      "Algunos jugadores no tienen datos recientes y se muestran con —.",
     ratingsSortBy: "Ordenar por",
     ratingsPlayerLabel: "Jugador",
     ratingsSpecialtyLabel: "Especialidad",
@@ -1436,6 +1445,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Okänt datum",
     ratingsTitle: "Betygsmatris",
     ratingsIndexLabel: "Nr",
+    ratingsMissingNote:
+      "Vissa spelare saknar senaste matchdata och visas med —.",
     ratingsSortBy: "Sortera efter",
     ratingsPlayerLabel: "Spelare",
     ratingsSpecialtyLabel: "Specialitet",
@@ -1684,6 +1695,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Data sconosciuta",
     ratingsTitle: "Matrice valutazioni",
     ratingsIndexLabel: "N.",
+    ratingsMissingNote:
+      "Alcuni giocatori non hanno dati recenti e vengono mostrati con —.",
     ratingsSortBy: "Ordina per",
     ratingsPlayerLabel: "Giocatore",
     ratingsSpecialtyLabel: "Specialità",
@@ -1932,6 +1945,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unknownDate: "Data desconhecida",
     ratingsTitle: "Matriz de avaliações",
     ratingsIndexLabel: "Nº",
+    ratingsMissingNote:
+      "Alguns jogadores não têm dados recentes e são mostrados com —.",
     ratingsSortBy: "Ordenar por",
     ratingsPlayerLabel: "Jogador",
     ratingsSpecialtyLabel: "Especialidade",

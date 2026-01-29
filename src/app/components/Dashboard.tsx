@@ -132,6 +132,10 @@ export default function Dashboard({
   const [showHelp, setShowHelp] = useState(false);
   const [helpPaths, setHelpPaths] = useState<string[]>([]);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
+  const [ratingsCache, setRatingsCache] = useState<
+    Record<number, Record<string, number>>
+  >({});
+  const [ratingsPositions, setRatingsPositions] = useState<number[]>([]);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -162,29 +166,23 @@ export default function Dashboard({
   );
 
   const ratingsMatrixData = useMemo(() => {
-    if (!ratingsResponse) return null;
-    const byName = new Map(ratingsResponse.players.map((row) => [row.name, row]));
-    const players = playerList.map((player) => {
-      const name = formatPlayerName(player);
-      const existing = byName.get(name);
-      if (existing) return existing;
-      return {
-        id: player.YouthPlayerID,
-        name,
-        ratings: {},
-      };
-    });
-    const missingCount = playerList.filter(
-      (player) => !byName.has(formatPlayerName(player))
-    ).length;
+    if (playerList.length === 0) return null;
+    const positions = ratingsResponse?.positions ?? ratingsPositions ?? [];
+    const players = playerList.map((player) => ({
+      id: player.YouthPlayerID,
+      name: formatPlayerName(player),
+      ratings: ratingsCache[player.YouthPlayerID] ?? {},
+    }));
+    if (!ratingsResponse && players.every((player) => !Object.keys(player.ratings).length)) {
+      return null;
+    }
     return {
       response: {
-        ...ratingsResponse,
+        positions,
         players,
       },
-      missingCount,
     };
-  }, [ratingsResponse, playerList]);
+  }, [playerList, ratingsCache, ratingsPositions, ratingsResponse]);
 
   const skillsMatrixRows = useMemo(
     () =>
@@ -208,6 +206,8 @@ export default function Dashboard({
         secondaryTraining?: string;
         loadedMatchId?: number | null;
         cache?: Record<number, CachedDetails>;
+        ratingsCache?: Record<number, Record<string, number>>;
+        ratingsPositions?: number[];
       };
       if (parsed.assignments) setAssignments(parsed.assignments);
       if (parsed.selectedId !== undefined) setSelectedId(parsed.selectedId);
@@ -228,6 +228,8 @@ export default function Dashboard({
           setDetails(parsed.cache[parsed.selectedId].data);
         }
       }
+      if (parsed.ratingsCache) setRatingsCache(parsed.ratingsCache);
+      if (parsed.ratingsPositions) setRatingsPositions(parsed.ratingsPositions);
     } catch {
       // ignore restore errors
     }
@@ -243,6 +245,8 @@ export default function Dashboard({
       secondaryTraining,
       loadedMatchId,
       cache,
+      ratingsCache,
+      ratingsPositions,
     };
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(payload));
@@ -254,10 +258,57 @@ export default function Dashboard({
     cache,
     loadedMatchId,
     primaryTraining,
+    ratingsCache,
+    ratingsPositions,
     secondaryTraining,
     selectedId,
     starPlayerId,
   ]);
+
+  useEffect(() => {
+    if (!ratingsResponse) return;
+    setRatingsPositions(ratingsResponse.positions ?? []);
+    setRatingsCache((prev) => {
+      const next: Record<number, Record<string, number>> = { ...prev };
+      const validIds = new Set(playerList.map((player) => player.YouthPlayerID));
+      Object.keys(next).forEach((id) => {
+        if (!validIds.has(Number(id))) delete next[Number(id)];
+      });
+      const byName = new Map(ratingsResponse.players.map((row) => [row.name, row]));
+      playerList.forEach((player) => {
+        const row = byName.get(formatPlayerName(player));
+        if (!row) return;
+        const current = next[player.YouthPlayerID] ?? {};
+        const updated = { ...current };
+        Object.entries(row.ratings).forEach(([position, value]) => {
+          if (typeof value !== "number") return;
+          const previous = updated[position];
+          if (previous === undefined || value > previous) {
+            updated[position] = value;
+          }
+        });
+        next[player.YouthPlayerID] = updated;
+      });
+      return next;
+    });
+  }, [playerList, ratingsResponse]);
+
+  useEffect(() => {
+    setRatingsCache((prev) => {
+      const validIds = new Set(playerList.map((player) => player.YouthPlayerID));
+      const next: Record<number, Record<string, number>> = {};
+      let changed = false;
+      Object.entries(prev).forEach(([id, ratings]) => {
+        const numericId = Number(id);
+        if (!validIds.has(numericId)) {
+          changed = true;
+          return;
+        }
+        next[numericId] = ratings;
+      });
+      return changed ? next : prev;
+    });
+  }, [playerList]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

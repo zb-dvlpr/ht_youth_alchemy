@@ -443,7 +443,18 @@ export default function PlayerDetailsPanel({
             <div>
               <div className={styles.infoLabel}>{messages.specialtyLabel}</div>
               <div className={styles.infoValue}>
-                {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}{" "}
+                <Tooltip
+                  content={
+                    <div className={styles.tooltipCard}>
+                      {specialtyName(detailsData.Specialty) ??
+                        `${messages.specialtyLabel} ${detailsData.Specialty}`}
+                    </div>
+                  }
+                >
+                  <span className={styles.playerSpecialty}>
+                    {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}
+                  </span>
+                </Tooltip>{" "}
                 {specialtyName(detailsData.Specialty) ??
                   `${messages.specialtyLabel} ${detailsData.Specialty}`}
               </div>
@@ -591,9 +602,22 @@ export default function PlayerDetailsPanel({
                   <td className={styles.matrixIndex}>{index + 1}</td>
                   <td className={styles.matrixPlayer}>{row.name}</td>
                   <td className={styles.matrixSpecialty}>
-                    {player?.Specialty !== undefined
-                      ? SPECIALTY_EMOJI[player.Specialty] ?? "—"
-                      : "—"}
+                    {player?.Specialty !== undefined ? (
+                      <Tooltip
+                        content={
+                          <div className={styles.tooltipCard}>
+                            {specialtyName(player.Specialty) ??
+                              messages.specialtyLabel}
+                          </div>
+                        }
+                      >
+                        <span className={styles.playerSpecialty}>
+                          {SPECIALTY_EMOJI[player.Specialty] ?? "—"}
+                        </span>
+                      </Tooltip>
+                    ) : (
+                      "—"
+                    )}
                   </td>
                   {SKILL_ROWS.map((skill) => {
                     const current = getSkillLevel(skills?.[skill.key]);

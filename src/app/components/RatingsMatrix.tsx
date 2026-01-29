@@ -5,6 +5,7 @@ import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { POSITION_COLUMNS, positionLabel } from "@/lib/positions";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
+import Tooltip from "./Tooltip";
 
 type RatingRow = {
   id: number;
@@ -47,6 +48,29 @@ function ratingStyle(value: number | null) {
     backgroundColor: `hsla(${hue}, 70%, 38%, ${alpha})`,
   } as React.CSSProperties;
 }
+
+const specialtyName = (value: number | undefined, messages: Messages) => {
+  switch (value) {
+    case 0:
+      return messages.specialtyNone;
+    case 1:
+      return messages.specialtyTechnical;
+    case 2:
+      return messages.specialtyQuick;
+    case 3:
+      return messages.specialtyPowerful;
+    case 4:
+      return messages.specialtyUnpredictable;
+    case 5:
+      return messages.specialtyHeadSpecialist;
+    case 6:
+      return messages.specialtyResilient;
+    case 8:
+      return messages.specialtySupport;
+    default:
+      return null;
+  }
+};
 
 export default function RatingsMatrix({
   response,
@@ -159,9 +183,22 @@ export default function RatingsMatrix({
                   </button>
                 </td>
                 <td className={styles.matrixSpecialty}>
-                  {specialtyByName && specialtyByName[row.name] !== undefined
-                    ? SPECIALTY_EMOJI[specialtyByName[row.name] as number] ?? "—"
-                    : "—"}
+                  {specialtyByName && specialtyByName[row.name] !== undefined ? (
+                    <Tooltip
+                      content={
+                        <div className={styles.tooltipCard}>
+                          {specialtyName(specialtyByName[row.name], messages) ??
+                            messages.specialtyLabel}
+                        </div>
+                      }
+                    >
+                      <span className={styles.playerSpecialty}>
+                        {SPECIALTY_EMOJI[specialtyByName[row.name] as number] ?? "—"}
+                      </span>
+                    </Tooltip>
+                  ) : (
+                    "—"
+                  )}
                 </td>
                 {positions.map((position) => {
                   const rating = row.ratings[String(position)] ?? null;

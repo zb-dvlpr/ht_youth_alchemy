@@ -15,6 +15,9 @@ export type Messages = {
   languageSwitching: string;
   helpIcon: string;
   helpOpenTooltip: string;
+  feedbackTooltip: string;
+  feedbackBug: string;
+  feedbackFeature: string;
   helpTitle: string;
   helpIntro: string;
   helpPurpose: string;
@@ -251,6 +254,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Switching language…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Open help",
+    feedbackTooltip: "Feedback",
+    feedbackBug: "Report a bug",
+    feedbackFeature: "Request a feature",
     helpTitle: "Welcome to Youth Alchemy",
     helpIntro:
       "This page is more than a viewer. It’s designed to help you build the most optimal lineup for your training plan.",
@@ -498,6 +504,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Sprache wird gewechselt…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Hilfe öffnen",
+    feedbackTooltip: "Feedback",
+    feedbackBug: "Fehler melden",
+    feedbackFeature: "Feature vorschlagen",
     helpTitle: "Willkommen bei Youth Alchemy",
     helpIntro:
       "Diese Seite ist mehr als eine Übersicht. Sie hilft dir, die optimale Aufstellung für dein Training zu finden.",
@@ -744,6 +753,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Changement de langue…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Ouvrir l’aide",
+    feedbackTooltip: "Retour",
+    feedbackBug: "Signaler un bug",
+    feedbackFeature: "Demander une fonctionnalité",
     helpTitle: "Bienvenue dans Youth Alchemy",
     helpIntro:
       "Cette page n’est pas seulement un lecteur. Elle sert surtout à optimiser votre onze pour l’entraînement.",
@@ -995,6 +1007,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Cambiando idioma…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Abrir ayuda",
+    feedbackTooltip: "Comentarios",
+    feedbackBug: "Informar de un error",
+    feedbackFeature: "Solicitar función",
     helpTitle: "Bienvenido a Youth Alchemy",
     helpIntro:
       "Esta página no es solo un visor. Su objetivo principal es optimizar tu once para el entrenamiento.",
@@ -1246,6 +1261,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Byter språk…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Öppna hjälp",
+    feedbackTooltip: "Feedback",
+    feedbackBug: "Rapportera en bugg",
+    feedbackFeature: "Föreslå en funktion",
     helpTitle: "Välkommen till Youth Alchemy",
     helpIntro:
       "Den här sidan är mer än en vy. Den hjälper dig att optimera startelvan för träningen.",
@@ -1495,6 +1513,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Cambio lingua…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Apri aiuto",
+    feedbackTooltip: "Feedback",
+    feedbackBug: "Segnala un bug",
+    feedbackFeature: "Richiedi una funzione",
     helpTitle: "Benvenuto in Youth Alchemy",
     helpIntro:
       "Questa pagina non è solo una vista. Serve a ottimizzare l’undici per l’allenamento.",
@@ -1746,6 +1767,9 @@ const MESSAGES: Record<Locale, Messages> = {
     languageSwitching: "Alterando idioma…",
     helpIcon: "ⓘ",
     helpOpenTooltip: "Abrir ajuda",
+    feedbackTooltip: "Feedback",
+    feedbackBug: "Relatar um bug",
+    feedbackFeature: "Solicitar recurso",
     helpTitle: "Bem-vindo ao Youth Alchemy",
     helpIntro:
       "Esta página é mais do que um visor. Ela ajuda a otimizar o onze para o treino.",

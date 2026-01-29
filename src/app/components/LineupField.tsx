@@ -307,6 +307,7 @@ export default function LineupField({
                         </div>
                       }
                       fullWidth
+                      withCard={false}
                     >
                       <div
                         className={styles.slotContent}

@@ -66,6 +66,62 @@
   transform: translateY(-1px);
 }
 
+.feedbackWrap {
+  position: relative;
+}
+
+.feedbackButton {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  color: #3f362c;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.feedbackButton:hover {
+  background: #f1e9dc;
+  transform: translateY(-1px);
+}
+
+.feedbackMenu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  background: #f7f1e3;
+  border: 1px solid #d8cbb6;
+  border-radius: 12px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  padding: 8px;
+  display: grid;
+  gap: 6px;
+  z-index: 2100;
+  min-width: 160px;
+}
+
+.feedbackLink {
+  display: block;
+  color: #3f362c;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 6px 8px;
+  border-radius: 8px;
+  background: #fff;
+  border: 1px solid transparent;
+}
+
+.feedbackLink:hover {
+  border-color: #c9b9a3;
+  background: #f1e9dc;
+}
+
 .connectedInfo {
   display: flex;
   flex-direction: row;
@@ -182,41 +238,6 @@
   cursor: progress;
 }
 
-.connectedTooltip {
-  max-width: 280px;
-}
-
-.connectedTooltipLabel {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.connectedTooltipValue {
-  display: block;
-  color: #4b4034;
-  word-break: break-word;
-}
-
-.tooltipCard {
-  background: #f7f1e3;
-  border: 1px solid #d8cbb6;
-  border-radius: 12px;
-  padding: 8px 10px;
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
-  font-size: 12px;
-  color: #2f2a22;
-  max-width: 300px;
-}
-.connectedPermissions {
-  font-size: 11px;
-  color: #6b6256;
-  text-align: right;
-  max-width: 220px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
 
 .langSwitcher {
   display: flex;
@@ -654,11 +675,27 @@ html[data-theme="dark"] .disconnectButton {
 
 html[data-theme="dark"] .themeToggle,
 html[data-theme="dark"] .helpButton,
+html[data-theme="dark"] .feedbackButton,
 html[data-theme="dark"] .sortToggle,
 html[data-theme="dark"] .autoSelectButton {
   background: #1b1917;
   border-color: rgba(255, 255, 255, 0.12);
   color: #e9e1d7;
+}
+
+html[data-theme="dark"] .feedbackMenu {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .feedbackLink {
+  background: #2a241d;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .feedbackLink:hover {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: #332c25;
 }
 
 html[data-theme="dark"] .card,

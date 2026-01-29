@@ -182,7 +182,7 @@ function renderMatch(
       </div>
       {isUpcoming ? (
         <div className={styles.matchActions}>
-          <Tooltip content={<div className={styles.tooltipCard}>{messages.loadLineupTooltip}</div>}>
+          <Tooltip content={messages.loadLineupTooltip}>
             <button
               type="button"
               className={styles.matchButtonSecondary}
@@ -195,7 +195,7 @@ function renderMatch(
                 : messages.loadLineup}
             </button>
           </Tooltip>
-          <Tooltip content={<div className={styles.tooltipCard}>{messages.submitOrdersTooltip}</div>}>
+          <Tooltip content={messages.submitOrdersTooltip}>
             <button
               type="button"
               className={styles.matchButton}

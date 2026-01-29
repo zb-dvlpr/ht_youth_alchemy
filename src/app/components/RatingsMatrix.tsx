@@ -186,10 +186,8 @@ export default function RatingsMatrix({
                   {specialtyByName && specialtyByName[row.name] !== undefined ? (
                     <Tooltip
                       content={
-                        <div className={styles.tooltipCard}>
-                          {specialtyName(specialtyByName[row.name], messages) ??
-                            messages.specialtyLabel}
-                        </div>
+                        specialtyName(specialtyByName[row.name], messages) ??
+                        messages.specialtyLabel
                       }
                     >
                       <span className={styles.playerSpecialty}>

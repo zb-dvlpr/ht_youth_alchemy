@@ -11,6 +11,7 @@ type TooltipProps = {
   disabled?: boolean;
   preferred?: "bottom" | "top";
   fullWidth?: boolean;
+  variant?: "default" | "stacked";
 };
 
 type Position = { top: number; left: number };
@@ -24,6 +25,7 @@ export default function Tooltip({
   disabled,
   preferred = "bottom",
   fullWidth = false,
+  variant = "default",
 }: TooltipProps) {
   const triggerRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -87,6 +89,19 @@ export default function Tooltip({
     );
   }
 
+  const resolvedContent =
+    typeof content === "string" || typeof content === "number" ? (
+      <div
+        className={`${styles.tooltipCard} ${
+          variant === "stacked" ? styles.tooltipCardStacked : ""
+        }`}
+      >
+        {content}
+      </div>
+    ) : (
+      content
+    );
+
   return (
     <span
       className={fullWidth ? styles.triggerFull : styles.trigger}
@@ -109,7 +124,7 @@ export default function Tooltip({
               }
               role="tooltip"
             >
-              {content}
+              {resolvedContent}
             </div>,
             document.body
           )

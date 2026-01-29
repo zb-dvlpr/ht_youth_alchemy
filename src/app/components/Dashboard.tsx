@@ -1097,11 +1097,9 @@ export default function Dashboard({
             <h2 className={styles.sectionTitle}>{messages.optimizerDebugTitle}</h2>
             <Tooltip
               content={
-                <div className={styles.tooltipCard}>
-                  {optimizerDebug
-                    ? messages.optimizerDebugOpen
-                    : messages.optimizerDebugUnavailable}
-                </div>
+                optimizerDebug
+                  ? messages.optimizerDebugOpen
+                  : messages.optimizerDebugUnavailable
               }
             >
               <button

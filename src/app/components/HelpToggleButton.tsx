@@ -11,7 +11,7 @@ type HelpToggleButtonProps = {
 export default function HelpToggleButton({ messages }: HelpToggleButtonProps) {
   return (
     <Tooltip
-      content={<div className={styles.tooltipCard}>{messages.helpOpenTooltip}</div>}
+      content={messages.helpOpenTooltip}
     >
       <button
         type="button"

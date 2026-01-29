@@ -342,9 +342,7 @@ export default function PlayerDetailsPanel({
     return (
       <div className={styles.profileCard}>
         <div className={styles.detailsRefreshCorner}>
-          <Tooltip
-            content={<div className={styles.tooltipCard}>{messages.refreshTooltip}</div>}
-          >
+          <Tooltip content={messages.refreshTooltip}>
             <button
               type="button"
               className={`${styles.sortToggle} ${styles.detailsRefresh}`}
@@ -443,18 +441,9 @@ export default function PlayerDetailsPanel({
             <div>
               <div className={styles.infoLabel}>{messages.specialtyLabel}</div>
               <div className={styles.infoValue}>
-                <Tooltip
-                  content={
-                    <div className={styles.tooltipCard}>
-                      {specialtyName(detailsData.Specialty) ??
-                        `${messages.specialtyLabel} ${detailsData.Specialty}`}
-                    </div>
-                  }
-                >
-                  <span className={styles.playerSpecialty}>
-                    {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}
-                  </span>
-                </Tooltip>{" "}
+                <span className={styles.playerSpecialty}>
+                  {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}
+                </span>{" "}
                 {specialtyName(detailsData.Specialty) ??
                   `${messages.specialtyLabel} ${detailsData.Specialty}`}
               </div>
@@ -605,10 +594,7 @@ export default function PlayerDetailsPanel({
                     {player?.Specialty !== undefined ? (
                       <Tooltip
                         content={
-                          <div className={styles.tooltipCard}>
-                            {specialtyName(player.Specialty) ??
-                              messages.specialtyLabel}
-                          </div>
+                          specialtyName(player.Specialty) ?? messages.specialtyLabel
                         }
                       >
                         <span className={styles.playerSpecialty}>

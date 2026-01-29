@@ -308,7 +308,7 @@ export default function YouthPlayerList({
             </select>
           </label>
           <Tooltip
-            content={<div className={styles.tooltipCard}>{messages.sortToggleAria}</div>}
+            content={messages.sortToggleAria}
           >
             <button
               type="button"
@@ -328,7 +328,7 @@ export default function YouthPlayerList({
             </button>
           </Tooltip>
           <Tooltip
-            content={<div className={styles.tooltipCard}>{messages.refreshPlayerListTooltip}</div>}
+            content={messages.refreshPlayerListTooltip}
           >
             <button
               type="button"
@@ -341,7 +341,7 @@ export default function YouthPlayerList({
             </button>
           </Tooltip>
           <Tooltip
-            content={<div className={styles.tooltipCard}>{messages.autoSelectTitle}</div>}
+            content={messages.autoSelectTitle}
           >
             <button
               type="button"
@@ -372,9 +372,7 @@ export default function YouthPlayerList({
             return (
               <li key={player.YouthPlayerID} className={styles.listItem}>
                 <div className={styles.playerRow}>
-                  <Tooltip
-                    content={<div className={styles.tooltipCard}>{messages.starPlayerLabel}</div>}
-                  >
+                  <Tooltip content={messages.starPlayerLabel}>
                     <button
                       type="button"
                       className={`${styles.starButton} ${
@@ -420,10 +418,8 @@ export default function YouthPlayerList({
                       {specialtyEmoji ? (
                         <Tooltip
                           content={
-                            <div className={styles.tooltipCard}>
-                              {specialtyName(specialtyEmoji, messages) ??
-                                messages.specialtyLabel}
-                            </div>
+                            specialtyName(specialtyEmoji, messages) ??
+                            messages.specialtyLabel
                           }
                         >
                           <span className={styles.playerSpecialty}>

@@ -62,6 +62,7 @@ export default function ConnectedStatus({ messages }: ConnectedStatusProps) {
   return (
     <div className={styles.connectedInfo}>
       <Tooltip
+        variant="stacked"
         content={
           <div className={`${styles.tooltipCard} ${styles.connectedTooltip}`}>
             <span className={styles.connectedTooltipLabel}>
@@ -75,7 +76,7 @@ export default function ConnectedStatus({ messages }: ConnectedStatusProps) {
       >
         <span className={styles.connectedBadge}>{messages.connectedLabel}</span>
       </Tooltip>
-      <Tooltip content={<div className={styles.tooltipCard}>{messages.disconnectTitle}</div>}>
+      <Tooltip content={messages.disconnectTitle}>
         <button
           type="button"
           className={styles.disconnectButton}

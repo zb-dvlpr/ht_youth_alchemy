@@ -483,69 +483,65 @@ export default function PlayerDetailsPanel({
     }
 
     return (
-      <div className={styles.profileCard}>
-        <div className={styles.matrixWrapper}>
-          <table className={styles.matrixTable}>
-            <thead>
-              <tr>
-                <th className={styles.matrixIndexHeader}>
-                  {messages.ratingsIndexLabel}
+      <div className={styles.matrixWrapper}>
+        <table className={styles.matrixTable}>
+          <thead>
+            <tr>
+              <th className={styles.matrixIndexHeader}>
+                {messages.ratingsIndexLabel}
+              </th>
+              <th className={styles.matrixPlayerHeader}>
+                {messages.ratingsPlayerLabel}
+              </th>
+              <th className={styles.matrixSpecialtyHeader}>
+                {messages.ratingsSpecialtyLabel}
+              </th>
+              {SKILL_ROWS.map((row) => (
+                <th key={row.key}>
+                  {messages[row.shortLabelKey as keyof Messages]}
                 </th>
-                <th className={styles.matrixPlayerHeader}>
-                  {messages.ratingsPlayerLabel}
-                </th>
-                <th className={styles.matrixSpecialtyHeader}>
-                  {messages.ratingsSpecialtyLabel}
-                </th>
-                {SKILL_ROWS.map((row) => (
-                  <th key={row.key}>
-                    {messages[row.shortLabelKey as keyof Messages]}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {skillsMatrixRows.map((row, index) => {
-                const player = row.id ? playerById.get(row.id) : null;
-                const details = row.id ? playerDetailsById.get(row.id) : null;
-                const skills =
-                  details?.PlayerSkills ?? player?.PlayerSkills ?? null;
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {skillsMatrixRows.map((row, index) => {
+              const player = row.id ? playerById.get(row.id) : null;
+              const details = row.id ? playerDetailsById.get(row.id) : null;
+              const skills = details?.PlayerSkills ?? player?.PlayerSkills ?? null;
 
-                return (
-                  <tr key={`${row.name}-${row.id ?? "unknown"}`}>
-                    <td className={styles.matrixIndex}>{index + 1}</td>
-                    <td className={styles.matrixPlayer}>{row.name}</td>
-                    <td className={styles.matrixSpecialty}>
-                      {player?.Specialty !== undefined
-                        ? SPECIALTY_EMOJI[player.Specialty] ?? "—"
-                        : "—"}
-                    </td>
-                    {SKILL_ROWS.map((skill) => {
-                      const current = getSkillLevel(skills?.[skill.key]);
-                      const max = getSkillMax(skills?.[skill.maxKey]);
-                      if (current === null && max === null) {
-                        return (
-                          <td key={skill.key} className={styles.matrixCell}>
-                            -/-
-                          </td>
-                        );
-                      }
-                      const currentText =
-                        current === null ? messages.unknownShort : String(current);
-                      const maxText =
-                        max === null ? messages.unknownShort : String(max);
+              return (
+                <tr key={`${row.name}-${row.id ?? "unknown"}`}>
+                  <td className={styles.matrixIndex}>{index + 1}</td>
+                  <td className={styles.matrixPlayer}>{row.name}</td>
+                  <td className={styles.matrixSpecialty}>
+                    {player?.Specialty !== undefined
+                      ? SPECIALTY_EMOJI[player.Specialty] ?? "—"
+                      : "—"}
+                  </td>
+                  {SKILL_ROWS.map((skill) => {
+                    const current = getSkillLevel(skills?.[skill.key]);
+                    const max = getSkillMax(skills?.[skill.maxKey]);
+                    if (current === null && max === null) {
                       return (
                         <td key={skill.key} className={styles.matrixCell}>
-                          {currentText}/{maxText}
+                          -/-
                         </td>
                       );
-                    })}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+                    }
+                    const currentText =
+                      current === null ? messages.unknownShort : String(current);
+                    const maxText = max === null ? messages.unknownShort : String(max);
+                    return (
+                      <td key={skill.key} className={styles.matrixCell}>
+                        {currentText}/{maxText}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     );
   };

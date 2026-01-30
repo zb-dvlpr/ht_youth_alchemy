@@ -15,7 +15,14 @@ export type SlotId =
   | "IM_R"
   | "F_L"
   | "F_C"
-  | "F_R";
+  | "F_R"
+  | "B_GK"
+  | "B_CD"
+  | "B_WB"
+  | "B_IM"
+  | "B_F"
+  | "B_W"
+  | "B_X";
 
 export const POSITION_COLUMNS: number[] = [100, 101, 103, 106, 107, 111];
 
@@ -136,6 +143,20 @@ export function roleIdToSlotId(roleId: number | null | undefined): SlotId | null
       return "F_C";
     case 113:
       return "F_L";
+    case 200:
+      return "B_GK";
+    case 201:
+      return "B_CD";
+    case 202:
+      return "B_WB";
+    case 203:
+      return "B_IM";
+    case 204:
+      return "B_F";
+    case 205:
+      return "B_W";
+    case 206:
+      return "B_X";
     default:
       return null;
   }

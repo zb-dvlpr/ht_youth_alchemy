@@ -1,6 +1,6 @@
 import type { LineupAssignments } from "@/app/components/LineupField";
 
-type SkillKey =
+export type SkillKey =
   | "keeper"
   | "defending"
   | "playmaking"
@@ -373,7 +373,7 @@ export function getAutoSelection(
 
 export type AutoSelection = ReturnType<typeof getAutoSelection>;
 
-function buildSkillRanking(players: OptimizerPlayer[], skill: SkillKey) {
+export function buildSkillRanking(players: OptimizerPlayer[], skill: SkillKey) {
   const entries: RankingEntry[] = players.map((player) => {
     const { current, max } = skillValues(player, skill);
     let category: RankingCategory = "cat2";

@@ -91,6 +91,16 @@ const POSITION_ROWS: PositionRow[] = [
   },
 ];
 
+const BENCH_SLOTS = [
+  { id: "B_GK", labelKey: "benchKeeperLabel" },
+  { id: "B_CD", labelKey: "benchDefenderLabel" },
+  { id: "B_WB", labelKey: "benchWingBackLabel" },
+  { id: "B_IM", labelKey: "benchMidfieldLabel" },
+  { id: "B_F", labelKey: "benchForwardLabel" },
+  { id: "B_W", labelKey: "benchWingerLabel" },
+  { id: "B_X", labelKey: "benchExtraLabel" },
+];
+
 const slotSide = (slotId: string) => {
   if (slotId.endsWith("_L")) return "left";
   if (slotId.endsWith("_R")) return "right";
@@ -494,25 +504,169 @@ export default function LineupField({
         ))}
         <div className={styles.centerCircle} />
         <div className={styles.centerSpot} />
+        <div className={styles.fieldMidline} />
+        {onRandomize || onReset ? (
+          <div className={styles.lineupActions}>
+            {onReset ? (
+              <button
+                type="button"
+                className={styles.lineupButtonSecondary}
+                onClick={onReset}
+              >
+                {messages.resetLineup}
+              </button>
+            ) : null}
+            {onRandomize ? (
+              <button
+                type="button"
+                className={styles.lineupButton}
+                onClick={onRandomize}
+              >
+                {messages.randomizeLineup}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
-      {onRandomize ? (
-        <button
-          type="button"
-          className={styles.lineupButton}
-          onClick={onRandomize}
-        >
-          {messages.randomizeLineup}
-        </button>
-      ) : null}
-      {onReset ? (
-        <button
-          type="button"
-          className={styles.lineupButtonSecondary}
-          onClick={onReset}
-        >
-          {messages.resetLineup}
-        </button>
-      ) : null}
+      <div className={styles.benchArea}>
+        {BENCH_SLOTS.map((slot) => {
+          const assignedId = assignments[slot.id] ?? null;
+          const assignedPlayer = assignedId
+            ? playersById.get(assignedId) ?? null
+            : null;
+          const assignedDetails = assignedId
+            ? playerDetailsById?.get(assignedId) ?? null
+            : null;
+          const dragPayload = assignedPlayer
+            ? JSON.stringify({
+                type: "slot",
+                playerId: assignedPlayer.YouthPlayerID,
+                fromSlot: slot.id,
+              })
+            : null;
+          return (
+            <div key={slot.id} className={styles.benchSlotWrapper}>
+              <div
+                className={styles.fieldSlot}
+                onDrop={(event) => handleDrop(slot.id, event)}
+                onDragOver={handleDragOver}
+              >
+                {assignedPlayer ? (
+                  <Tooltip
+                    content={
+                      <div className={styles.slotTooltipCard}>
+                        <div className={styles.slotTooltipHint}>
+                          {messages.dragPlayerHint}
+                        </div>
+                        <div className={styles.slotTooltipGrid}>
+                          {SKILL_ROWS.map((row) => {
+                            const skillSource =
+                              assignedDetails?.PlayerSkills ??
+                              assignedPlayer.PlayerSkills ??
+                              null;
+                            const current = getSkillLevel(
+                              skillSource?.[row.key]
+                            );
+                            const max = getSkillMax(
+                              skillSource?.[row.maxKey]
+                            );
+                            const hasCurrent = current !== null;
+                            const hasMax = max !== null;
+                            const currentText = hasCurrent
+                              ? String(current)
+                              : messages.unknownShort;
+                            const maxText = hasMax
+                              ? String(max)
+                              : messages.unknownShort;
+                            const currentPct = hasCurrent
+                              ? Math.min(100, (current / MAX_SKILL_LEVEL) * 100)
+                              : null;
+                            const maxPct = hasMax
+                              ? Math.min(100, (max / MAX_SKILL_LEVEL) * 100)
+                              : null;
+
+                            return (
+                              <div key={row.key} className={styles.skillRow}>
+                                <div className={styles.skillLabel}>
+                                  {messages[row.labelKey as keyof Messages]}
+                                </div>
+                                <div className={styles.skillBar}>
+                                  {hasMax ? (
+                                    <div
+                                      className={styles.skillFillMax}
+                                      style={{ width: `${maxPct}%` }}
+                                    />
+                                  ) : null}
+                                  {hasCurrent ? (
+                                    <div
+                                      className={styles.skillFillCurrent}
+                                      style={{ width: `${currentPct}%` }}
+                                    />
+                                  ) : null}
+                                </div>
+                                <div className={styles.skillValue}>
+                                  {currentText}/{maxText}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    }
+                    fullWidth
+                    withCard={false}
+                  >
+                    <div
+                      className={styles.slotContent}
+                      draggable
+                      onMouseEnter={() => {
+                        if (!assignedPlayer) return;
+                        onHoverPlayer?.(assignedPlayer.YouthPlayerID);
+                      }}
+                      onDragStart={(event) => {
+                        if (!dragPayload) return;
+                        setDragGhost(event, {
+                          label: formatName(assignedPlayer),
+                          className: styles.dragGhost,
+                          slotSelector: `.${styles.fieldSlot}`,
+                        });
+                        event.dataTransfer.setData(
+                          "application/json",
+                          dragPayload
+                        );
+                        event.dataTransfer.effectAllowed = "move";
+                      }}
+                    >
+                      <span className={styles.slotName}>
+                        {formatName(assignedPlayer)}
+                      </span>
+                      {assignedPlayer.Specialty &&
+                      assignedPlayer.Specialty !== 0 ? (
+                        <span className={styles.slotEmoji}>
+                          {SPECIALTY_EMOJI[assignedPlayer.Specialty]}
+                        </span>
+                      ) : null}
+                      <button
+                        type="button"
+                        className={styles.slotClear}
+                        onClick={() => onClear(slot.id)}
+                        aria-label={`${messages.clearSlot} ${
+                          messages[slot.labelKey as keyof Messages]
+                        }`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </Tooltip>
+                ) : null}
+              </div>
+              <span className={styles.benchLabel}>
+                {messages[slot.labelKey as keyof Messages]}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

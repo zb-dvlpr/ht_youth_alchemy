@@ -105,6 +105,16 @@ const POSITION_SLOT_ORDER = [
   "F_R",
 ] as const;
 
+const BENCH_SLOT_ORDER = [
+  "B_GK",
+  "B_CD",
+  "B_WB",
+  "B_IM",
+  "B_F",
+  "B_W",
+  "B_X",
+] as const;
+
 function buildLineupPayload(
   assignments: LineupAssignments,
   behaviors?: LineupBehaviors
@@ -115,7 +125,13 @@ function buildLineupPayload(
     behaviour: behaviors?.[slot] ?? 0,
   }));
 
-  const bench = Array.from({ length: 14 }, () => ({ id: 0, behaviour: 0 }));
+  const bench = [
+    ...BENCH_SLOT_ORDER.map((slot) => ({
+      id: toId(assignments[slot]),
+      behaviour: 0,
+    })),
+    ...Array.from({ length: 7 }, () => ({ id: 0, behaviour: 0 })),
+  ];
   const kickers = Array.from({ length: 11 }, () => ({ id: 0, behaviour: 0 }));
 
   return {
@@ -272,7 +288,9 @@ export default function UpcomingMatches({
   const teamId =
     response.data?.HattrickData?.Team?.TeamID ??
     null;
-  const assignedCount = Object.values(assignments).filter(Boolean).length;
+  const assignedCount = POSITION_SLOT_ORDER.filter(
+    (slot) => Boolean(assignments[slot])
+  ).length;
   const hasLineup = assignedCount >= 9 && assignedCount <= 11;
 
   const lineupPayload = useMemo(
@@ -341,10 +359,17 @@ export default function UpcomingMatches({
       }
       const positionsRaw =
         payload?.data?.HattrickData?.MatchData?.Lineup?.Positions?.Player;
+      const benchRaw =
+        payload?.data?.HattrickData?.MatchData?.Lineup?.Bench?.Player;
       const positions = Array.isArray(positionsRaw)
         ? positionsRaw
         : positionsRaw
         ? [positionsRaw]
+        : [];
+      const bench = Array.isArray(benchRaw)
+        ? benchRaw
+        : benchRaw
+        ? [benchRaw]
         : [];
       const next: LineupAssignments = {};
       const nextBehaviors: LineupBehaviors = {};
@@ -353,28 +378,29 @@ export default function UpcomingMatches({
         if (!playerId) return;
         const slot = roleIdToSlotId(Number(player?.RoleID ?? 0));
         if (!slot) return;
-        const flippedSlot =
-          slot === "WB_L"
-            ? "WB_R"
-            : slot === "WB_R"
-            ? "WB_L"
-            : slot === "CD_L"
-            ? "CD_R"
-            : slot === "CD_R"
-            ? "CD_L"
-            : slot === "W_L"
-            ? "W_R"
-            : slot === "W_R"
-            ? "W_L"
-            : slot === "IM_L"
-            ? "IM_R"
-            : slot === "IM_R"
-            ? "IM_L"
-            : slot === "F_L"
-            ? "F_R"
-            : slot === "F_R"
-            ? "F_L"
-            : slot;
+        const flippedSlot = slot.startsWith("B_")
+          ? slot
+          : slot === "WB_L"
+          ? "WB_R"
+          : slot === "WB_R"
+          ? "WB_L"
+          : slot === "CD_L"
+          ? "CD_R"
+          : slot === "CD_R"
+          ? "CD_L"
+          : slot === "W_L"
+          ? "W_R"
+          : slot === "W_R"
+          ? "W_L"
+          : slot === "IM_L"
+          ? "IM_R"
+          : slot === "IM_R"
+          ? "IM_L"
+          : slot === "F_L"
+          ? "F_R"
+          : slot === "F_R"
+          ? "F_L"
+          : slot;
         next[flippedSlot] = playerId;
         const behaviourValue = Number(
           (player as { Behaviour?: number; Behavior?: number })?.Behaviour ??
@@ -384,6 +410,13 @@ export default function UpcomingMatches({
         if (behaviourValue) {
           nextBehaviors[flippedSlot] = behaviourValue;
         }
+      });
+      bench.forEach((player: { RoleID?: number; PlayerID?: number }) => {
+        const playerId = Number(player?.PlayerID ?? 0);
+        if (!playerId) return;
+        const slot = roleIdToSlotId(Number(player?.RoleID ?? 0));
+        if (!slot || !slot.startsWith("B_")) return;
+        next[slot] = playerId;
       });
       if (Object.keys(next).length === 0) {
         throw new Error(messages.loadLineupUnavailable);

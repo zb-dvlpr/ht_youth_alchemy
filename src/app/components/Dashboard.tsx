@@ -15,6 +15,7 @@ import {
   getAutoSelection,
   getTrainingSlots,
   optimizeLineupForStar,
+  buildSkillRanking,
   type OptimizerPlayer,
   type OptimizerDebug,
   type AutoSelection,
@@ -645,7 +646,65 @@ export default function Dashboard({
       secondaryTraining,
       autoSelectionApplied
     );
-    setAssignments(result.lineup);
+
+    const nextAssignments: LineupAssignments = { ...result.lineup };
+    const usedPlayers = new Set<number>(
+      Object.values(nextAssignments).filter(Boolean) as number[]
+    );
+    const rankingBySkill = new Map<TrainingSkillKey, number[]>();
+    (["keeper", "defending", "playmaking", "winger", "passing", "scoring", "setpieces"] as TrainingSkillKey[]).forEach(
+      (skill) => {
+        rankingBySkill.set(
+          skill,
+          buildSkillRanking(optimizerPlayers, skill).ordered.map(
+            (entry) => entry.playerId
+          )
+        );
+      }
+    );
+
+    const pickNextFrom = (list: number[] | undefined) => {
+      if (!list) return null;
+      for (const playerId of list) {
+        if (!usedPlayers.has(playerId)) {
+          usedPlayers.add(playerId);
+          return playerId;
+        }
+      }
+      return null;
+    };
+
+    const benchSlots: Array<{ id: string; skill?: TrainingSkillKey }> = [
+      { id: "B_GK", skill: "keeper" },
+      { id: "B_CD", skill: "defending" },
+      { id: "B_WB", skill: "defending" },
+      { id: "B_IM", skill: "playmaking" },
+      { id: "B_F", skill: "scoring" },
+      { id: "B_W", skill: "winger" },
+    ];
+
+    benchSlots.forEach((slot) => {
+      const nextId = pickNextFrom(
+        slot.skill ? rankingBySkill.get(slot.skill) : undefined
+      );
+      nextAssignments[slot.id] = nextId ?? null;
+    });
+
+    const combinedExtra: number[] = [];
+    const pushUnique = (id: number) => {
+      if (!combinedExtra.includes(id)) combinedExtra.push(id);
+    };
+    if (isTrainingSkill(primaryTraining)) {
+      rankingBySkill.get(primaryTraining)?.forEach(pushUnique);
+    }
+    if (isTrainingSkill(secondaryTraining)) {
+      rankingBySkill.get(secondaryTraining)?.forEach(pushUnique);
+    }
+    optimizerPlayers.forEach((player) => pushUnique(player.id));
+    const extraId = pickNextFrom(combinedExtra);
+    nextAssignments.B_X = extraId ?? null;
+
+    setAssignments(nextAssignments);
     setBehaviors({});
     setOptimizerDebug(result.debug ?? null);
     setLoadedMatchId(null);

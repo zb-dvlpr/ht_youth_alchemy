@@ -251,6 +251,13 @@ export type Messages = {
   skillPassingShort: string;
   skillScoringShort: string;
   skillSetPiecesShort: string;
+  benchKeeperLabel: string;
+  benchDefenderLabel: string;
+  benchWingBackLabel: string;
+  benchMidfieldLabel: string;
+  benchForwardLabel: string;
+  benchWingerLabel: string;
+  benchExtraLabel: string;
 };
 
 const MESSAGES: Record<Locale, Messages> = {
@@ -508,6 +515,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "PAS",
     skillScoringShort: "SC",
     skillSetPiecesShort: "SP",
+    benchKeeperLabel: "GK",
+    benchDefenderLabel: "CD",
+    benchWingBackLabel: "WB",
+    benchMidfieldLabel: "IM",
+    benchForwardLabel: "FW",
+    benchWingerLabel: "W",
+    benchExtraLabel: "EX",
   },
   de: {
     languageLabel: "Sprache",
@@ -762,6 +776,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "P",
     skillScoringShort: "TS",
     skillSetPiecesShort: "ST",
+    benchKeeperLabel: "TW",
+    benchDefenderLabel: "IV",
+    benchWingBackLabel: "AV",
+    benchMidfieldLabel: "ZM",
+    benchForwardLabel: "ST",
+    benchWingerLabel: "F",
+    benchExtraLabel: "EX",
   },
   fr: {
     languageLabel: "Langue",
@@ -1021,6 +1042,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "PAS",
     skillScoringShort: "BUT",
     skillSetPiecesShort: "CF",
+    benchKeeperLabel: "GB",
+    benchDefenderLabel: "DC",
+    benchWingBackLabel: "AD",
+    benchMidfieldLabel: "MC",
+    benchForwardLabel: "AV",
+    benchWingerLabel: "A",
+    benchExtraLabel: "EX",
   },
   es: {
     languageLabel: "Idioma",
@@ -1280,6 +1308,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "PAS",
     skillScoringShort: "GOL",
     skillSetPiecesShort: "BP",
+    benchKeeperLabel: "POR",
+    benchDefenderLabel: "DC",
+    benchWingBackLabel: "LD",
+    benchMidfieldLabel: "MC",
+    benchForwardLabel: "DEL",
+    benchWingerLabel: "EXT",
+    benchExtraLabel: "EX",
   },
   sv: {
     languageLabel: "Språk",
@@ -1537,6 +1572,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "PAS",
     skillScoringShort: "MÅL",
     skillSetPiecesShort: "FA",
+    benchKeeperLabel: "MV",
+    benchDefenderLabel: "MB",
+    benchWingBackLabel: "VB",
+    benchMidfieldLabel: "MF",
+    benchForwardLabel: "F",
+    benchWingerLabel: "Y",
+    benchExtraLabel: "EX",
   },
   it: {
     languageLabel: "Lingua",
@@ -1796,6 +1838,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "PAS",
     skillScoringShort: "FIN",
     skillSetPiecesShort: "CP",
+    benchKeeperLabel: "POR",
+    benchDefenderLabel: "DC",
+    benchWingBackLabel: "TS",
+    benchMidfieldLabel: "MC",
+    benchForwardLabel: "P",
+    benchWingerLabel: "A",
+    benchExtraLabel: "EX",
   },
   pt: {
     languageLabel: "Idioma",
@@ -2055,6 +2104,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "PAS",
     skillScoringShort: "FIN",
     skillSetPiecesShort: "BP",
+    benchKeeperLabel: "GOL",
+    benchDefenderLabel: "ZA",
+    benchWingBackLabel: "LD",
+    benchMidfieldLabel: "MI",
+    benchForwardLabel: "F",
+    benchWingerLabel: "A",
+    benchExtraLabel: "EX",
   },
 };
 

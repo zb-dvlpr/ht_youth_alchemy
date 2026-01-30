@@ -118,6 +118,7 @@ export type Messages = {
   trainingReminderTitle: string;
   trainingReminderBody: string;
   trainingReminderConfirm: string;
+  tacticPlayCreatively: string;
   confirmCancel: string;
   confirmSubmit: string;
   loadLineup: string;
@@ -379,8 +380,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Please report this error to the developer.",
     trainingReminderTitle: "Training reminder",
     trainingReminderBody:
-      "After submitting, set primary training to {{primary}} and secondary training to {{secondary}} in Hattrick. This app can’t update training settings because the API doesn’t allow it.",
+      "After submitting, set primary training to {{primary}} and secondary training to {{secondary}} in Hattrick. Captain: {{captain}}. Tactic: {{tactic}}. This app can’t update training settings because the API doesn’t allow it.",
     trainingReminderConfirm: "I understand",
+    tacticPlayCreatively: "Play creatively",
     confirmCancel: "Cancel",
     confirmSubmit: "Submit",
     loadLineup: "Load lineup",
@@ -640,8 +642,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Bitte melden Sie diesen Fehler dem Entwickler.",
     trainingReminderTitle: "Training-Hinweis",
     trainingReminderBody:
-      "Nach dem Absenden stelle Primärtraining auf {{primary}} und Sekundärtraining auf {{secondary}} in Hattrick. Diese App kann die Trainingseinstellungen nicht ändern, da die API es nicht erlaubt.",
+      "Nach dem Absenden stelle Primärtraining auf {{primary}} und Sekundärtraining auf {{secondary}} in Hattrick. Kapitän: {{captain}}. Taktik: {{tactic}}. Diese App kann die Trainingseinstellungen nicht ändern, da die API es nicht erlaubt.",
     trainingReminderConfirm: "Ich verstehe",
+    tacticPlayCreatively: "Kreativ spielen",
     confirmCancel: "Abbrechen",
     confirmSubmit: "Senden",
     loadLineup: "Aufstellung laden",
@@ -905,8 +908,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Veuillez signaler cette erreur au développeur.",
     trainingReminderTitle: "Rappel d’entraînement",
     trainingReminderBody:
-      "Après l’envoi, définissez l’entraînement principal sur {{primary}} et le secondaire sur {{secondary}} dans Hattrick. Cette app ne peut pas modifier ces réglages car l’API ne le permet pas.",
+      "Après l’envoi, définissez l’entraînement principal sur {{primary}} et le secondaire sur {{secondary}} dans Hattrick. Capitaine : {{captain}}. Tactique : {{tactic}}. Cette app ne peut pas modifier ces réglages car l’API ne le permet pas.",
     trainingReminderConfirm: "J’ai compris",
+    tacticPlayCreatively: "Jouer créatif",
     confirmCancel: "Annuler",
     confirmSubmit: "Envoyer",
     loadLineup: "Charger la composition",
@@ -1171,8 +1175,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Por favor, informe este error al desarrollador.",
     trainingReminderTitle: "Aviso de entrenamiento",
     trainingReminderBody:
-      "Tras enviar, define el entrenamiento primario en {{primary}} y el secundario en {{secondary}} en Hattrick. Esta app no puede cambiar la configuración porque la API no lo permite.",
+      "Tras enviar, define el entrenamiento primario en {{primary}} y el secundario en {{secondary}} en Hattrick. Capitán: {{captain}}. Táctica: {{tactic}}. Esta app no puede cambiar la configuración porque la API no lo permite.",
     trainingReminderConfirm: "Entendido",
+    tacticPlayCreatively: "Jugar creativo",
     confirmCancel: "Cancelar",
     confirmSubmit: "Enviar",
     loadLineup: "Cargar alineación",
@@ -1435,8 +1440,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Rapportera gärna felet till utvecklaren.",
     trainingReminderTitle: "Träningspåminnelse",
     trainingReminderBody:
-      "Efter att du skickat in, ställ in primär träning till {{primary}} och sekundär till {{secondary}} i Hattrick. Appen kan inte ändra träningsinställningar eftersom API:t inte tillåter det.",
+      "Efter att du skickat in, ställ in primär träning till {{primary}} och sekundär till {{secondary}} i Hattrick. Kapten: {{captain}}. Taktik: {{tactic}}. Appen kan inte ändra träningsinställningar eftersom API:t inte tillåter det.",
     trainingReminderConfirm: "Jag förstår",
+    tacticPlayCreatively: "Spela kreativt",
     confirmCancel: "Avbryt",
     confirmSubmit: "Skicka",
     loadLineup: "Ladda uppställning",
@@ -1701,8 +1707,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Segnala questo errore allo sviluppatore.",
     trainingReminderTitle: "Promemoria allenamento",
     trainingReminderBody:
-      "Dopo l’invio, imposta l’allenamento primario su {{primary}} e il secondario su {{secondary}} in Hattrick. Questa app non può modificare le impostazioni perché l’API non lo consente.",
+      "Dopo l’invio, imposta l’allenamento primario su {{primary}} e il secondario su {{secondary}} in Hattrick. Capitano: {{captain}}. Tattica: {{tactic}}. Questa app non può modificare le impostazioni perché l’API non lo consente.",
     trainingReminderConfirm: "Ho capito",
+    tacticPlayCreatively: "Giocare creativo",
     confirmCancel: "Annulla",
     confirmSubmit: "Invia",
     loadLineup: "Carica formazione",
@@ -1967,8 +1974,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Informe este erro ao desenvolvedor.",
     trainingReminderTitle: "Aviso de treino",
     trainingReminderBody:
-      "Após enviar, defina o treino primário como {{primary}} e o secundário como {{secondary}} no Hattrick. Esta app não pode alterar as configurações porque a API não permite.",
+      "Após enviar, defina o treino primário como {{primary}} e o secundário como {{secondary}} no Hattrick. Capitão: {{captain}}. Tática: {{tactic}}. Esta app não pode alterar as configurações porque a API não permite.",
     trainingReminderConfirm: "Entendi",
+    tacticPlayCreatively: "Jogar criativamente",
     confirmCancel: "Cancelar",
     confirmSubmit: "Enviar",
     loadLineup: "Carregar escalação",

@@ -35,6 +35,7 @@ type YouthPlayer = {
   LastName: string;
   Specialty?: number;
   Age?: number;
+  AgeDays?: number;
   ArrivalDate?: string;
   CanBePromotedIn?: number;
   PlayerSkills?: Record<string, SkillValue>;
@@ -156,10 +157,58 @@ export default function Dashboard({
     return map;
   }, [cache]);
 
+  const getPlayerAgeScore = (player: YouthPlayer | null | undefined) => {
+    if (!player) return null;
+    const detailsAge = playerDetailsById.get(player.YouthPlayerID);
+    const age =
+      player.Age ??
+      (detailsAge && "Age" in detailsAge ? (detailsAge.Age as number) : null);
+    const ageDays =
+      player.AgeDays ??
+      (detailsAge && "AgeDays" in detailsAge
+        ? (detailsAge.AgeDays as number)
+        : null);
+    if (age === null || age === undefined) return null;
+    return age * 1000 + (ageDays ?? 0);
+  };
+
   const assignedIds = useMemo(
     () => new Set(Object.values(assignments).filter(Boolean) as number[]),
     [assignments]
   );
+
+  const captainId = useMemo(() => {
+    const fieldSlots = [
+      "KP",
+      "WB_L",
+      "CD_L",
+      "CD_C",
+      "CD_R",
+      "WB_R",
+      "W_L",
+      "IM_L",
+      "IM_C",
+      "IM_R",
+      "W_R",
+      "F_L",
+      "F_C",
+      "F_R",
+    ] as const;
+    let bestId: number | null = null;
+    let bestScore = -1;
+    fieldSlots.forEach((slot) => {
+      const playerId = assignments[slot];
+      if (!playerId) return;
+      const player = playersById.get(playerId) ?? null;
+      const score = getPlayerAgeScore(player);
+      if (score === null) return;
+      if (score > bestScore) {
+        bestScore = score;
+        bestId = playerId;
+      }
+    });
+    return bestId;
+  }, [assignments, playersById, playerDetailsById]);
 
   const selectedPlayer = useMemo(
     () =>
@@ -903,9 +952,14 @@ export default function Dashboard({
         return messages.unknownShort;
     }
   };
+  const captainName = captainId
+    ? formatPlayerName(playersById.get(captainId) ?? ({} as YouthPlayer))
+    : messages.unknownShort;
   const trainingReminderText = messages.trainingReminderBody
     .replace("{{primary}}", trainingLabel(primaryTraining))
-    .replace("{{secondary}}", trainingLabel(secondaryTraining));
+    .replace("{{secondary}}", trainingLabel(secondaryTraining))
+    .replace("{{captain}}", captainName)
+    .replace("{{tactic}}", messages.tacticPlayCreatively);
 
   const trainingSlots = useMemo(() => {
     if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
@@ -1413,6 +1467,7 @@ export default function Dashboard({
           messages={messages}
           assignments={assignments}
           behaviors={behaviors}
+          captainId={captainId}
           onRefresh={refreshMatches}
           onLoadLineup={loadLineup}
           loadedMatchId={loadedMatchId}

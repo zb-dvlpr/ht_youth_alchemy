@@ -21,6 +21,8 @@ import {
   getTrainingSlots,
   optimizeLineupForStar,
   optimizeRevealPrimaryCurrent,
+  optimizeRevealPrimaryMax,
+  optimizeRevealSecondaryCurrent,
   buildSkillRanking,
   type OptimizerPlayer,
   type OptimizerDebug,
@@ -777,12 +779,27 @@ export default function Dashboard({
       handleOptimize();
       return;
     }
-    if (mode !== "revealPrimaryCurrent") return;
+    if (
+      mode !== "revealPrimaryCurrent" &&
+      mode !== "revealPrimaryMax" &&
+      mode !== "revealSecondaryCurrent"
+    ) {
+      return;
+    }
     if (
       !starPlayerId ||
       !isTrainingSkill(primaryTraining) ||
       !isTrainingSkill(secondaryTraining)
     ) {
+      if (mode === "revealPrimaryMax") {
+        setOptimizeErrorMessage(messages.optimizeRevealPrimaryMaxUnavailable);
+      } else if (mode === "revealSecondaryCurrent") {
+        setOptimizeErrorMessage(
+          messages.optimizeRevealSecondaryCurrentUnavailable
+        );
+      } else {
+        setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
+      }
       return;
     }
 
@@ -801,21 +818,56 @@ export default function Dashboard({
         null,
     }));
 
-    const result = optimizeRevealPrimaryCurrent(
-      optimizerPlayers,
-      starPlayerId,
-      primaryTraining,
-      secondaryTraining,
-      autoSelectionApplied
-    );
+    const result =
+      mode === "revealPrimaryMax"
+        ? optimizeRevealPrimaryMax(
+            optimizerPlayers,
+            starPlayerId,
+            primaryTraining,
+            secondaryTraining,
+            autoSelectionApplied
+          )
+        : mode === "revealSecondaryCurrent"
+        ? optimizeRevealSecondaryCurrent(
+            optimizerPlayers,
+            starPlayerId,
+            primaryTraining,
+            secondaryTraining,
+            autoSelectionApplied
+          )
+        : optimizeRevealPrimaryCurrent(
+            optimizerPlayers,
+            starPlayerId,
+            primaryTraining,
+            secondaryTraining,
+            autoSelectionApplied
+          );
 
     if (result.error === "primary_current_known") {
       setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentKnown);
       return;
     }
 
+    if (result.error === "primary_max_known") {
+      setOptimizeErrorMessage(messages.optimizeRevealPrimaryMaxKnown);
+      return;
+    }
+
+    if (result.error === "secondary_current_known") {
+      setOptimizeErrorMessage(messages.optimizeRevealSecondaryCurrentKnown);
+      return;
+    }
+
     if (result.error) {
-      setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
+      if (mode === "revealPrimaryMax") {
+        setOptimizeErrorMessage(messages.optimizeRevealPrimaryMaxUnavailable);
+      } else if (mode === "revealSecondaryCurrent") {
+        setOptimizeErrorMessage(
+          messages.optimizeRevealSecondaryCurrentUnavailable
+        );
+      } else {
+        setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
+      }
       return;
     }
 

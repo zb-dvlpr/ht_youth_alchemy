@@ -6,15 +6,21 @@ import YouthPlayerList from "./YouthPlayerList";
 import PlayerDetailsPanel, {
   YouthPlayerDetails,
 } from "./PlayerDetailsPanel";
-import LineupField, { LineupAssignments, LineupBehaviors } from "./LineupField";
+import LineupField, {
+  LineupAssignments,
+  LineupBehaviors,
+  OptimizeMode,
+} from "./LineupField";
 import UpcomingMatches, { type MatchesResponse } from "./UpcomingMatches";
 import { Messages } from "@/lib/i18n";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
+import Modal from "./Modal";
 import {
   getAutoSelection,
   getTrainingSlots,
   optimizeLineupForStar,
+  optimizeRevealPrimaryCurrent,
   buildSkillRanking,
   type OptimizerPlayer,
   type OptimizerDebug,
@@ -126,6 +132,9 @@ export default function Dashboard({
   const [showOptimizerDebug, setShowOptimizerDebug] = useState(false);
   const [autoSelectionApplied, setAutoSelectionApplied] = useState(false);
   const [showTrainingReminder, setShowTrainingReminder] = useState(false);
+  const [optimizeErrorMessage, setOptimizeErrorMessage] = useState<string | null>(
+    null
+  );
   const { addNotification } = useNotifications();
   const isDev = process.env.NODE_ENV !== "production";
   const storageKey = "ya_dashboard_state_v1";
@@ -670,6 +679,7 @@ export default function Dashboard({
       !isTrainingSkill(primaryTraining) ||
       !isTrainingSkill(secondaryTraining)
     ) {
+      setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
       return;
     }
 
@@ -752,6 +762,111 @@ export default function Dashboard({
     optimizerPlayers.forEach((player) => pushUnique(player.id));
     const extraId = pickNextFrom(combinedExtra);
     nextAssignments.B_X = extraId ?? null;
+
+    setAssignments(nextAssignments);
+    setBehaviors({});
+    setOptimizerDebug(result.debug ?? null);
+    setLoadedMatchId(null);
+    if (Object.keys(result.lineup).length) {
+      addNotification(messages.notificationOptimizeApplied);
+    }
+  };
+
+  const handleOptimizeSelect = (mode: OptimizeMode) => {
+    if (mode === "star") {
+      handleOptimize();
+      return;
+    }
+    if (mode !== "revealPrimaryCurrent") return;
+    if (
+      !starPlayerId ||
+      !isTrainingSkill(primaryTraining) ||
+      !isTrainingSkill(secondaryTraining)
+    ) {
+      return;
+    }
+
+    const optimizerPlayers: OptimizerPlayer[] = playerList.map((player) => ({
+      id: player.YouthPlayerID,
+      name: [player.FirstName, player.NickName || null, player.LastName]
+        .filter(Boolean)
+        .join(" "),
+      age:
+        player.Age ??
+        playerDetailsById.get(player.YouthPlayerID)?.Age ??
+        null,
+      skills:
+        playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
+        (player.PlayerSkills as OptimizerPlayer["skills"]) ??
+        null,
+    }));
+
+    const result = optimizeRevealPrimaryCurrent(
+      optimizerPlayers,
+      starPlayerId,
+      primaryTraining,
+      secondaryTraining,
+      autoSelectionApplied
+    );
+
+    if (result.error === "primary_current_known") {
+      setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentKnown);
+      return;
+    }
+
+    if (result.error) {
+      setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
+      return;
+    }
+
+    const nextAssignments: LineupAssignments = { ...result.lineup };
+    const usedPlayers = new Set<number>(
+      Object.values(nextAssignments).filter(Boolean) as number[]
+    );
+    const rankingBySkill = new Map<TrainingSkillKey, number[]>();
+    ([
+      "keeper",
+      "defending",
+      "playmaking",
+      "winger",
+      "passing",
+      "scoring",
+      "setpieces",
+    ] as TrainingSkillKey[]).forEach((skill) => {
+      rankingBySkill.set(
+        skill,
+        buildSkillRanking(optimizerPlayers, skill).ordered.map(
+          (entry) => entry.playerId
+        )
+      );
+    });
+
+    const pickNextFrom = (list: number[] | undefined) => {
+      if (!list) return null;
+      for (const id of list) {
+        if (!usedPlayers.has(id)) return id;
+      }
+      return null;
+    };
+
+    const benchOrder = [
+      { id: "B_GK", skill: "keeper" as const },
+      { id: "B_CD", skill: "defending" as const },
+      { id: "B_WB", skill: "defending" as const },
+      { id: "B_IM", skill: "playmaking" as const },
+      { id: "B_F", skill: "scoring" as const },
+      { id: "B_W", skill: "winger" as const },
+      { id: "B_X", skill: primaryTraining },
+    ];
+
+    benchOrder.forEach((slot) => {
+      if (nextAssignments[slot.id]) return;
+      const nextId = pickNextFrom(
+        slot.skill ? rankingBySkill.get(slot.skill) : undefined
+      );
+      nextAssignments[slot.id] = nextId ?? null;
+      if (nextId) usedPlayers.add(nextId);
+    });
 
     setAssignments(nextAssignments);
     setBehaviors({});
@@ -979,27 +1094,34 @@ export default function Dashboard({
 
   return (
     <div className={styles.dashboardGrid} ref={dashboardRef}>
-      {showTrainingReminder ? (
-        <div className={styles.trainingOverlay} role="dialog" aria-modal="true">
-          <div className={styles.confirmCard}>
-            <div className={styles.confirmTitle}>
-              {messages.trainingReminderTitle}
-            </div>
-            <div className={styles.confirmBody}>
-              {trainingReminderText}
-            </div>
-            <div className={styles.confirmActions}>
-              <button
-                type="button"
-                className={styles.confirmSubmit}
-                onClick={() => setShowTrainingReminder(false)}
-              >
-                {messages.trainingReminderConfirm}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <Modal
+        open={showTrainingReminder}
+        title={messages.trainingReminderTitle}
+        body={trainingReminderText}
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setShowTrainingReminder(false)}
+          >
+            {messages.trainingReminderConfirm}
+          </button>
+        }
+      />
+      <Modal
+        open={!!optimizeErrorMessage}
+        title={messages.optimizeMenuRevealPrimaryCurrent}
+        body={optimizeErrorMessage ?? ""}
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setOptimizeErrorMessage(null)}
+          >
+            {messages.trainingReminderConfirm}
+          </button>
+        }
+      />
       {showHelp ? (
         <div className={styles.helpOverlay} aria-hidden="true">
           <svg className={styles.helpArrows} role="presentation">
@@ -1248,7 +1370,7 @@ export default function Dashboard({
           onChangeBehavior={handleBehaviorChange}
           onRandomize={randomizeLineup}
           onReset={resetLineup}
-          onOptimize={handleOptimize}
+          onOptimizeSelect={handleOptimizeSelect}
           optimizeDisabled={!manualReady}
           optimizeDisabledReason={optimizeDisabledReason}
           trainedSlots={trainingSlots}

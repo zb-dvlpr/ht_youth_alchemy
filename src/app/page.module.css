@@ -117,6 +117,12 @@
   border: 1px solid transparent;
 }
 
+.optimizeMenuItem {
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
 .feedbackLink:hover {
   border-color: #c9b9a3;
   background: #f1e9dc;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { setDragGhost } from "@/lib/drag";
@@ -25,6 +26,13 @@ type SkillValue = {
   "@_MayUnlock"?: string;
 };
 
+export type OptimizeMode =
+  | "star"
+  | "revealPrimaryCurrent"
+  | "revealPrimaryMax"
+  | "revealSecondaryCurrent"
+  | "revealSecondaryMax";
+
 type LineupFieldProps = {
   assignments: LineupAssignments;
   behaviors?: LineupBehaviors;
@@ -36,7 +44,7 @@ type LineupFieldProps = {
   onChangeBehavior?: (slotId: string, behavior: number) => void;
   onRandomize?: () => void;
   onReset?: () => void;
-  onOptimize?: () => void;
+  onOptimizeSelect?: (mode: OptimizeMode) => void;
   optimizeDisabled?: boolean;
   optimizeDisabledReason?: string;
   trainedSlots?: {
@@ -216,13 +224,34 @@ export default function LineupField({
   onChangeBehavior,
   onRandomize,
   onReset,
-  onOptimize,
+  onOptimizeSelect,
   optimizeDisabled = false,
   optimizeDisabledReason,
   trainedSlots,
   onHoverPlayer,
   messages,
 }: LineupFieldProps) {
+  const [optimizeOpen, setOptimizeOpen] = useState(false);
+  const optimizeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const optimizeMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!optimizeOpen) return;
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (optimizeButtonRef.current?.contains(target ?? null)) return;
+      if (optimizeMenuRef.current?.contains(target ?? null)) return;
+      setOptimizeOpen(false);
+    };
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, [optimizeOpen]);
+
+  const handleOptimizeSelect = (mode: OptimizeMode) => {
+    setOptimizeOpen(false);
+    onOptimizeSelect?.(mode);
+  };
+
   const behaviorLabel = (value: number) => {
     switch (value) {
       case 1:
@@ -275,29 +304,71 @@ export default function LineupField({
     <div className={styles.fieldCard}>
       <div className={styles.fieldHeader}>
         <span>{messages.lineupTitle}</span>
-        {onOptimize ? (
-          <Tooltip
-            content={
-              optimizeDisabled
-                ? optimizeDisabledReason
-                : messages.optimizeLineupTitle
-            }
-          >
-            <button
-              type="button"
-              className={styles.optimizeButton}
-              onClick={onOptimize}
-              aria-label={
+        {onOptimizeSelect ? (
+          <div className={styles.feedbackWrap}>
+            <Tooltip
+              content={
                 optimizeDisabled
                   ? optimizeDisabledReason
                   : messages.optimizeLineupTitle
               }
-              disabled={optimizeDisabled}
-              data-help-anchor="optimize"
             >
-              ✨
-            </button>
-          </Tooltip>
+              <button
+                type="button"
+                className={styles.optimizeButton}
+                onClick={() => setOptimizeOpen((prev) => !prev)}
+                aria-label={
+                  optimizeDisabled
+                    ? optimizeDisabledReason
+                    : messages.optimizeLineupTitle
+                }
+                disabled={optimizeDisabled}
+                data-help-anchor="optimize"
+                ref={optimizeButtonRef}
+              >
+                ✨
+              </button>
+            </Tooltip>
+            {optimizeOpen ? (
+              <div className={styles.feedbackMenu} ref={optimizeMenuRef}>
+                <button
+                  type="button"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                  onClick={() => handleOptimizeSelect("star")}
+                >
+                  {messages.optimizeMenuStar}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                  onClick={() => handleOptimizeSelect("revealPrimaryCurrent")}
+                >
+                  {messages.optimizeMenuRevealPrimaryCurrent}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                  onClick={() => handleOptimizeSelect("revealPrimaryMax")}
+                >
+                  {messages.optimizeMenuRevealPrimaryMax}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                  onClick={() => handleOptimizeSelect("revealSecondaryCurrent")}
+                >
+                  {messages.optimizeMenuRevealSecondaryCurrent}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                  onClick={() => handleOptimizeSelect("revealSecondaryMax")}
+                >
+                  {messages.optimizeMenuRevealSecondaryMax}
+                </button>
+              </div>
+            ) : null}
+          </div>
         ) : null}
       </div>
       <div className={styles.fieldPitch}>

@@ -105,6 +105,13 @@ export type Messages = {
   randomizeLineup: string;
   resetLineup: string;
   optimizeLineupTitle: string;
+  optimizeMenuStar: string;
+  optimizeMenuRevealPrimaryCurrent: string;
+  optimizeMenuRevealPrimaryMax: string;
+  optimizeMenuRevealSecondaryCurrent: string;
+  optimizeMenuRevealSecondaryMax: string;
+  optimizeRevealPrimaryCurrentKnown: string;
+  optimizeRevealPrimaryCurrentUnavailable: string;
   optimizeLineupNeedsStar: string;
   optimizeLineupNeedsTraining: string;
   optimizeLineupNeedsKnownSkills: string;
@@ -393,7 +400,16 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Submit the current lineup to Hattrick for this match.",
     randomizeLineup: "Random lineup",
     resetLineup: "Reset lineup",
-    optimizeLineupTitle: "Optimize lineup and trainings around star player",
+    optimizeLineupTitle: "Optimize lineup",
+    optimizeMenuStar: "Optimize around star player",
+    optimizeMenuRevealPrimaryCurrent: "Reveal star primary current value",
+    optimizeMenuRevealPrimaryMax: "Reveal star primary max value",
+    optimizeMenuRevealSecondaryCurrent: "Reveal star secondary current value",
+    optimizeMenuRevealSecondaryMax: "Reveal star secondary max value",
+    optimizeRevealPrimaryCurrentKnown:
+      "Reveal primary current unavailable: star primary current already known.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Reveal primary current unavailable. Select a star player and primary training.",
     optimizeLineupNeedsStar: "Select a star player to optimize",
     optimizeLineupNeedsTraining: "Select both trainings to optimize",
     optimizeLineupNeedsKnownSkills: "Need known current+max skills to optimize",
@@ -680,7 +696,16 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Sendet die aktuelle Aufstellung an Hattrick für dieses Spiel.",
     randomizeLineup: "Zufällige Aufstellung",
     resetLineup: "Aufstellung zurücksetzen",
-    optimizeLineupTitle: "Aufstellung und Training um Starspieler optimieren",
+    optimizeLineupTitle: "Aufstellung optimieren",
+    optimizeMenuStar: "Um Starspieler optimieren",
+    optimizeMenuRevealPrimaryCurrent: "Primärwert aktuell aufdecken",
+    optimizeMenuRevealPrimaryMax: "Primärwert max aufdecken",
+    optimizeMenuRevealSecondaryCurrent: "Sekundärwert aktuell aufdecken",
+    optimizeMenuRevealSecondaryMax: "Sekundärwert max aufdecken",
+    optimizeRevealPrimaryCurrentKnown:
+      "Primärwert aufdecken nicht verfügbar: Primärwert des Stars ist bekannt.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Primärwert aufdecken nicht verfügbar. Starspieler und Primärtraining wählen.",
     optimizeLineupNeedsStar: "Starspieler auswählen, um zu optimieren",
     optimizeLineupNeedsTraining: "Beide Trainings auswählen, um zu optimieren",
     optimizeLineupNeedsKnownSkills: "Bekannte Ist+Max-Werte erforderlich",
@@ -970,8 +995,16 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Envoie la composition actuelle à Hattrick pour ce match.",
     randomizeLineup: "Composition aléatoire",
     resetLineup: "Réinitialiser la composition",
-    optimizeLineupTitle:
-      "Optimiser la composition et l'entraînement autour du joueur star",
+    optimizeLineupTitle: "Optimiser la composition",
+    optimizeMenuStar: "Optimiser autour du joueur star",
+    optimizeMenuRevealPrimaryCurrent: "Révéler la valeur actuelle primaire",
+    optimizeMenuRevealPrimaryMax: "Révéler la valeur max primaire",
+    optimizeMenuRevealSecondaryCurrent: "Révéler la valeur actuelle secondaire",
+    optimizeMenuRevealSecondaryMax: "Révéler la valeur max secondaire",
+    optimizeRevealPrimaryCurrentKnown:
+      "Révélation indisponible : valeur primaire actuelle déjà connue.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Révélation indisponible. Sélectionnez un joueur star et un entraînement primaire.",
     optimizeLineupNeedsStar: "Sélectionnez un joueur star pour optimiser",
     optimizeLineupNeedsTraining:
       "Sélectionnez les deux entraînements pour optimiser",
@@ -1263,8 +1296,16 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Envía la alineación actual a Hattrick para este partido.",
     randomizeLineup: "Alineación aleatoria",
     resetLineup: "Restablecer alineación",
-    optimizeLineupTitle:
-      "Optimizar alineación y entrenamientos alrededor del jugador estrella",
+    optimizeLineupTitle: "Optimizar alineación",
+    optimizeMenuStar: "Optimizar alrededor del jugador estrella",
+    optimizeMenuRevealPrimaryCurrent: "Revelar valor actual primario",
+    optimizeMenuRevealPrimaryMax: "Revelar valor máximo primario",
+    optimizeMenuRevealSecondaryCurrent: "Revelar valor actual secundario",
+    optimizeMenuRevealSecondaryMax: "Revelar valor máximo secundario",
+    optimizeRevealPrimaryCurrentKnown:
+      "Revelar primario actual no disponible: ya se conoce.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Revelar primario actual no disponible. Elige jugador estrella y entrenamiento primario.",
     optimizeLineupNeedsStar: "Elige un jugador estrella para optimizar",
     optimizeLineupNeedsTraining:
       "Elige ambos entrenamientos para optimizar",
@@ -1555,8 +1596,16 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Skickar den aktuella uppställningen till Hattrick för matchen.",
     randomizeLineup: "Slumpa uppställning",
     resetLineup: "Återställ uppställning",
-    optimizeLineupTitle:
-      "Optimera uppställning och träning runt stjärnspelaren",
+    optimizeLineupTitle: "Optimera uppställning",
+    optimizeMenuStar: "Optimera runt stjärnspelaren",
+    optimizeMenuRevealPrimaryCurrent: "Avslöja primärvärde (aktuell)",
+    optimizeMenuRevealPrimaryMax: "Avslöja primärvärde (max)",
+    optimizeMenuRevealSecondaryCurrent: "Avslöja sekundärvärde (aktuell)",
+    optimizeMenuRevealSecondaryMax: "Avslöja sekundärvärde (max)",
+    optimizeRevealPrimaryCurrentKnown:
+      "Avslöjande ej tillgängligt: stjärnans primärvärde är redan känt.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Avslöjande ej tillgängligt. Välj stjärnspelare och primärträning.",
     optimizeLineupNeedsStar: "Välj en stjärnspelare för att optimera",
     optimizeLineupNeedsTraining: "Välj båda träningarna för att optimera",
     optimizeLineupNeedsKnownSkills: "Kända nuvarande+maxvärden krävs",
@@ -1847,8 +1896,16 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Invia la formazione attuale a Hattrick per questa partita.",
     randomizeLineup: "Formazione casuale",
     resetLineup: "Reimposta formazione",
-    optimizeLineupTitle:
-      "Ottimizza formazione e allenamenti attorno al giocatore stella",
+    optimizeLineupTitle: "Ottimizza formazione",
+    optimizeMenuStar: "Ottimizza attorno al giocatore stella",
+    optimizeMenuRevealPrimaryCurrent: "Rivela valore primario attuale",
+    optimizeMenuRevealPrimaryMax: "Rivela valore primario max",
+    optimizeMenuRevealSecondaryCurrent: "Rivela valore secondario attuale",
+    optimizeMenuRevealSecondaryMax: "Rivela valore secondario max",
+    optimizeRevealPrimaryCurrentKnown:
+      "Rivelazione non disponibile: valore primario già noto.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Rivelazione non disponibile. Seleziona stella e allenamento primario.",
     optimizeLineupNeedsStar: "Seleziona un giocatore stella per ottimizzare",
     optimizeLineupNeedsTraining:
       "Seleziona entrambi gli allenamenti per ottimizzare",
@@ -2140,8 +2197,16 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Envia a escalação atual ao Hattrick para esta partida.",
     randomizeLineup: "Escalação aleatória",
     resetLineup: "Redefinir escalação",
-    optimizeLineupTitle:
-      "Otimizar escalação e treinos em torno do jogador estrela",
+    optimizeLineupTitle: "Otimizar escalação",
+    optimizeMenuStar: "Otimizar em torno do jogador estrela",
+    optimizeMenuRevealPrimaryCurrent: "Revelar valor primário atual",
+    optimizeMenuRevealPrimaryMax: "Revelar valor primário máx.",
+    optimizeMenuRevealSecondaryCurrent: "Revelar valor secundário atual",
+    optimizeMenuRevealSecondaryMax: "Revelar valor secundário máx.",
+    optimizeRevealPrimaryCurrentKnown:
+      "Revelação indisponível: valor primário já conhecido.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Revelação indisponível. Selecione estrela e treino primário.",
     optimizeLineupNeedsStar: "Selecione um jogador estrela para otimizar",
     optimizeLineupNeedsTraining:
       "Selecione ambos os treinos para otimizar",

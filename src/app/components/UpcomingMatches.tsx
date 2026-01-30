@@ -9,6 +9,7 @@ import { roleIdToSlotId } from "@/lib/positions";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import { formatChppDateTime, formatDateTime } from "@/lib/datetime";
 import { parseChppDate } from "@/lib/chpp/utils";
+import Modal from "./Modal";
 
 export type MatchTeam = {
   HomeTeamName?: string;
@@ -598,31 +599,29 @@ export default function UpcomingMatches({
   return (
     <div className={styles.card}>
       <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
-      {confirmMatchId ? (
-        <div className={styles.confirmOverlay}>
-          <div className={styles.confirmCard} role="dialog" aria-modal="true">
-            <div className={styles.confirmTitle}>
-              {messages.confirmSubmitOrders}
-            </div>
-            <div className={styles.confirmActions}>
-              <button
-                type="button"
-                className={styles.confirmCancel}
-                onClick={() => setConfirmMatchId(null)}
-              >
-                {messages.confirmCancel}
-              </button>
-              <button
-                type="button"
-                className={styles.confirmSubmit}
-                onClick={confirmSubmit}
-              >
-                {messages.confirmSubmit}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <Modal
+        open={!!confirmMatchId}
+        variant="local"
+        title={messages.confirmSubmitOrders}
+        actions={
+          <>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={() => setConfirmMatchId(null)}
+            >
+              {messages.confirmCancel}
+            </button>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={confirmSubmit}
+            >
+              {messages.confirmSubmit}
+            </button>
+          </>
+        }
+      />
       {sortedUpcoming.length > 0 ? (
         <ul className={styles.matchList}>
           {sortedUpcoming.map((match) => {

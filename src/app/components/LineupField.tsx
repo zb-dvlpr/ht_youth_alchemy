@@ -7,6 +7,7 @@ import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import Tooltip from "./Tooltip";
 
 export type LineupAssignments = Record<string, number | null>;
+export type LineupBehaviors = Record<string, number>;
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -26,11 +27,13 @@ type SkillValue = {
 
 type LineupFieldProps = {
   assignments: LineupAssignments;
+  behaviors?: LineupBehaviors;
   playersById: Map<number, YouthPlayer>;
   playerDetailsById?: Map<number, { PlayerSkills?: Record<string, SkillValue> }>;
   onAssign: (slotId: string, playerId: number) => void;
   onClear: (slotId: string) => void;
   onMove?: (fromSlot: string, toSlot: string) => void;
+  onChangeBehavior?: (slotId: string, behavior: number) => void;
   onRandomize?: () => void;
   onReset?: () => void;
   onOptimize?: () => void;
@@ -48,6 +51,12 @@ type LineupFieldProps = {
 type PositionRow = {
   className: string;
   positions: { id: string; label: string }[];
+};
+
+type BehaviorOption = {
+  value: number;
+  icon: string;
+  position: "top" | "bottom" | "left" | "right";
 };
 
 const POSITION_ROWS: PositionRow[] = [
@@ -81,6 +90,76 @@ const POSITION_ROWS: PositionRow[] = [
     ],
   },
 ];
+
+const slotSide = (slotId: string) => {
+  if (slotId.endsWith("_L")) return "left";
+  if (slotId.endsWith("_R")) return "right";
+  return "center";
+};
+
+const behaviorOptionsForSlot = (slotId: string): BehaviorOption[] => {
+  if (slotId === "KP") return [];
+  const side = slotSide(slotId);
+  const towardMiddle =
+    side === "left"
+      ? { value: 3, icon: "▶", position: "right" as const }
+      : side === "right"
+      ? { value: 3, icon: "◀", position: "left" as const }
+      : null;
+  const towardWing =
+    side === "left"
+      ? { value: 4, icon: "◀", position: "left" as const }
+      : side === "right"
+      ? { value: 4, icon: "▶", position: "right" as const }
+      : { value: 4, icon: "↔", position: "right" as const };
+
+  if (slotId.startsWith("WB_")) {
+    return [
+      { value: 2, icon: "▲", position: "top" },
+      { value: 1, icon: "▼", position: "bottom" },
+      ...(towardMiddle ? [towardMiddle] : []),
+    ];
+  }
+  if (slotId === "CD_C") {
+    return [{ value: 2, icon: "▲", position: "top" }];
+  }
+  if (slotId.startsWith("CD_")) {
+    return [
+      { value: 2, icon: "▲", position: "top" },
+      towardWing,
+    ];
+  }
+  if (slotId.startsWith("W_")) {
+    return [
+      { value: 2, icon: "▲", position: "top" },
+      { value: 1, icon: "▼", position: "bottom" },
+      ...(towardMiddle ? [towardMiddle] : []),
+    ];
+  }
+  if (slotId === "IM_C") {
+    return [
+      { value: 2, icon: "▲", position: "top" },
+      { value: 1, icon: "▼", position: "bottom" },
+    ];
+  }
+  if (slotId.startsWith("IM_")) {
+    return [
+      { value: 2, icon: "▲", position: "top" },
+      { value: 1, icon: "▼", position: "bottom" },
+      towardWing,
+    ];
+  }
+  if (slotId.startsWith("F_")) {
+    if (slotId === "F_C") {
+      return [{ value: 2, icon: "▲", position: "top" }];
+    }
+    return [
+      { value: 2, icon: "▲", position: "top" },
+      towardWing,
+    ];
+  }
+  return [];
+};
 
 const MAX_SKILL_LEVEL = 8;
 
@@ -118,11 +197,13 @@ function getSkillMax(skill?: SkillValue): number | null {
 
 export default function LineupField({
   assignments,
+  behaviors,
   playersById,
   playerDetailsById,
   onAssign,
   onClear,
   onMove,
+  onChangeBehavior,
   onRandomize,
   onReset,
   onOptimize,
@@ -132,6 +213,21 @@ export default function LineupField({
   onHoverPlayer,
   messages,
 }: LineupFieldProps) {
+  const behaviorLabel = (value: number) => {
+    switch (value) {
+      case 1:
+        return messages.behaviorOffensive;
+      case 2:
+        return messages.behaviorDefensive;
+      case 3:
+        return messages.behaviorTowardsMiddle;
+      case 4:
+        return messages.behaviorTowardsWing;
+      default:
+        return messages.behaviorNeutral;
+    }
+  };
+
   const handleDrop = (slotId: string, event: React.DragEvent) => {
     event.preventDefault();
     const raw = event.dataTransfer.getData("application/json");
@@ -224,6 +320,10 @@ export default function LineupField({
               const assignedDetails = assignedId
                 ? playerDetailsById?.get(assignedId) ?? null
                 : null;
+              const behaviorValue = behaviors?.[position.id] ?? 0;
+              const behaviorOptions = assignedPlayer
+                ? behaviorOptionsForSlot(position.id)
+                : [];
 
               const dragPayload = assignedPlayer
                 ? JSON.stringify({
@@ -240,10 +340,44 @@ export default function LineupField({
                     isTrained ? styles.trainedSlot : ""
                   } ${isPrimaryTrained ? styles.trainedPrimary : ""} ${
                     isSecondaryTrained ? styles.trainedSecondary : ""
-                  }`}
+                  } ${behaviorValue ? styles.fieldSlotHasBehavior : ""}`}
                   onDrop={(event) => handleDrop(position.id, event)}
                   onDragOver={handleDragOver}
                 >
+                  {assignedPlayer && behaviorOptions.length ? (
+                    <>
+                      <div className={styles.orientationRing} />
+                      {behaviorOptions.map((option) => {
+                        const isActive = behaviorValue === option.value;
+                        const positionClassMap: Record<
+                          BehaviorOption["position"],
+                          string
+                        > = {
+                          top: styles.orientationButtonTop,
+                          bottom: styles.orientationButtonBottom,
+                          left: styles.orientationButtonLeft,
+                          right: styles.orientationButtonRight,
+                        };
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            className={`${styles.orientationButton} ${
+                              positionClassMap[option.position]
+                            } ${isActive ? styles.orientationButtonActive : ""}`}
+                            onMouseDown={(event) => event.stopPropagation()}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              const nextValue =
+                                behaviorValue === option.value ? 0 : option.value;
+                              onChangeBehavior?.(position.id, nextValue);
+                            }}
+                            aria-label={behaviorLabel(option.value)}
+                          />
+                        );
+                      })}
+                    </>
+                  ) : null}
                   {assignedPlayer ? (
                     <Tooltip
                       content={

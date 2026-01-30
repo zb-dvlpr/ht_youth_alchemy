@@ -18,6 +18,11 @@ export type Messages = {
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
+  behaviorNeutral: string;
+  behaviorOffensive: string;
+  behaviorDefensive: string;
+  behaviorTowardsMiddle: string;
+  behaviorTowardsWing: string;
   helpTitle: string;
   helpIntro: string;
   helpPurpose: string;
@@ -257,6 +262,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
+    behaviorNeutral: "Normal",
+    behaviorOffensive: "Offensive",
+    behaviorDefensive: "Defensive",
+    behaviorTowardsMiddle: "Towards middle",
+    behaviorTowardsWing: "Towards wing",
     helpTitle: "Welcome to Youth Alchemy",
     helpIntro:
       "This page is more than a viewer. It’s designed to help you build the most optimal lineup for your training plan.",
@@ -507,6 +517,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
+    behaviorNeutral: "Normal",
+    behaviorOffensive: "Offensiv",
+    behaviorDefensive: "Defensiv",
+    behaviorTowardsMiddle: "Zur Mitte",
+    behaviorTowardsWing: "Zum Flügel",
     helpTitle: "Willkommen bei Youth Alchemy",
     helpIntro:
       "Diese Seite ist mehr als eine Übersicht. Sie hilft dir, die optimale Aufstellung für dein Training zu finden.",
@@ -756,6 +771,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
+    behaviorNeutral: "Normal",
+    behaviorOffensive: "Offensif",
+    behaviorDefensive: "Défensif",
+    behaviorTowardsMiddle: "Vers le centre",
+    behaviorTowardsWing: "Vers l’aile",
     helpTitle: "Bienvenue dans Youth Alchemy",
     helpIntro:
       "Cette page n’est pas seulement un lecteur. Elle sert surtout à optimiser votre onze pour l’entraînement.",
@@ -1010,6 +1030,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
+    behaviorNeutral: "Normal",
+    behaviorOffensive: "Ofensivo",
+    behaviorDefensive: "Defensivo",
+    behaviorTowardsMiddle: "Hacia el centro",
+    behaviorTowardsWing: "Hacia la banda",
     helpTitle: "Bienvenido a Youth Alchemy",
     helpIntro:
       "Esta página no es solo un visor. Su objetivo principal es optimizar tu once para el entrenamiento.",
@@ -1264,6 +1289,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
+    behaviorNeutral: "Normal",
+    behaviorOffensive: "Offensiv",
+    behaviorDefensive: "Defensiv",
+    behaviorTowardsMiddle: "Mot mitten",
+    behaviorTowardsWing: "Mot kanten",
     helpTitle: "Välkommen till Youth Alchemy",
     helpIntro:
       "Den här sidan är mer än en vy. Den hjälper dig att optimera startelvan för träningen.",
@@ -1516,6 +1546,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
+    behaviorNeutral: "Normale",
+    behaviorOffensive: "Offensivo",
+    behaviorDefensive: "Difensivo",
+    behaviorTowardsMiddle: "Verso il centro",
+    behaviorTowardsWing: "Verso la fascia",
     helpTitle: "Benvenuto in Youth Alchemy",
     helpIntro:
       "Questa pagina non è solo una vista. Serve a ottimizzare l’undici per l’allenamento.",
@@ -1770,6 +1805,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
+    behaviorNeutral: "Normal",
+    behaviorOffensive: "Ofensivo",
+    behaviorDefensive: "Defensivo",
+    behaviorTowardsMiddle: "Para o meio",
+    behaviorTowardsWing: "Para a ala",
     helpTitle: "Bem-vindo ao Youth Alchemy",
     helpIntro:
       "Esta página é mais do que um visor. Ela ajuda a otimizar o onze para o treino.",

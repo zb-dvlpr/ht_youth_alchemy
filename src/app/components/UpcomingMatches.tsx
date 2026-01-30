@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
-import { LineupAssignments } from "./LineupField";
+import { LineupAssignments, LineupBehaviors } from "./LineupField";
 import { roleIdToSlotId } from "@/lib/positions";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import { formatChppDateTime, formatDateTime } from "@/lib/datetime";
@@ -48,8 +48,13 @@ type UpcomingMatchesProps = {
   response: MatchesResponse;
   messages: Messages;
   assignments: LineupAssignments;
+  behaviors?: LineupBehaviors;
   onRefresh?: () => void;
-  onLoadLineup?: (assignments: LineupAssignments, matchId: number) => void;
+  onLoadLineup?: (
+    assignments: LineupAssignments,
+    behaviors: LineupBehaviors,
+    matchId: number
+  ) => void;
   loadedMatchId?: number | null;
   onSubmitSuccess?: () => void;
 };
@@ -100,11 +105,14 @@ const POSITION_SLOT_ORDER = [
   "F_R",
 ] as const;
 
-function buildLineupPayload(assignments: LineupAssignments) {
+function buildLineupPayload(
+  assignments: LineupAssignments,
+  behaviors?: LineupBehaviors
+) {
   const toId = (value: number | null | undefined) => value ?? 0;
   const positions = POSITION_SLOT_ORDER.map((slot) => ({
     id: toId(assignments[slot]),
-    behaviour: 0,
+    behaviour: behaviors?.[slot] ?? 0,
   }));
 
   const bench = Array.from({ length: 14 }, () => ({ id: 0, behaviour: 0 }));
@@ -251,6 +259,7 @@ export default function UpcomingMatches({
   response,
   messages,
   assignments,
+  behaviors,
   onRefresh,
   onLoadLineup,
   loadedMatchId,
@@ -267,8 +276,8 @@ export default function UpcomingMatches({
   const hasLineup = assignedCount >= 9 && assignedCount <= 11;
 
   const lineupPayload = useMemo(
-    () => buildLineupPayload(assignments),
-    [assignments]
+    () => buildLineupPayload(assignments, behaviors),
+    [assignments, behaviors]
   );
 
   const allMatches = normalizeMatches(
@@ -338,6 +347,7 @@ export default function UpcomingMatches({
         ? [positionsRaw]
         : [];
       const next: LineupAssignments = {};
+      const nextBehaviors: LineupBehaviors = {};
       positions.forEach((player: { RoleID?: number; PlayerID?: number }) => {
         const playerId = Number(player?.PlayerID ?? 0);
         if (!playerId) return;
@@ -366,11 +376,19 @@ export default function UpcomingMatches({
             ? "F_L"
             : slot;
         next[flippedSlot] = playerId;
+        const behaviourValue = Number(
+          (player as { Behaviour?: number; Behavior?: number })?.Behaviour ??
+            (player as { Behaviour?: number; Behavior?: number })?.Behavior ??
+            0
+        );
+        if (behaviourValue) {
+          nextBehaviors[flippedSlot] = behaviourValue;
+        }
       });
       if (Object.keys(next).length === 0) {
         throw new Error(messages.loadLineupUnavailable);
       }
-      onLoadLineup?.(next, matchId);
+      onLoadLineup?.(next, nextBehaviors, matchId);
       addNotification(
         `${messages.notificationLineupLoaded} ${formatMatchName(
           matchById.get(matchId)

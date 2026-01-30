@@ -6,7 +6,7 @@ import YouthPlayerList from "./YouthPlayerList";
 import PlayerDetailsPanel, {
   YouthPlayerDetails,
 } from "./PlayerDetailsPanel";
-import LineupField, { LineupAssignments } from "./LineupField";
+import LineupField, { LineupAssignments, LineupBehaviors } from "./LineupField";
 import UpcomingMatches, { type MatchesResponse } from "./UpcomingMatches";
 import { Messages } from "@/lib/i18n";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
@@ -107,6 +107,7 @@ export default function Dashboard({
   const [error, setError] = useState<string | null>(null);
 
   const [assignments, setAssignments] = useState<LineupAssignments>({});
+  const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
   const [matchesState, setMatchesState] =
     useState<MatchesResponse>(matchesResponse);
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
@@ -200,6 +201,7 @@ export default function Dashboard({
       if (!raw) return;
       const parsed = JSON.parse(raw) as {
         assignments?: LineupAssignments;
+        behaviors?: LineupBehaviors;
         selectedId?: number | null;
         starPlayerId?: number | null;
         primaryTraining?: string;
@@ -210,6 +212,7 @@ export default function Dashboard({
         ratingsPositions?: number[];
       };
       if (parsed.assignments) setAssignments(parsed.assignments);
+      if (parsed.behaviors) setBehaviors(parsed.behaviors);
       if (parsed.selectedId !== undefined) setSelectedId(parsed.selectedId);
       if (parsed.starPlayerId !== undefined) setStarPlayerId(parsed.starPlayerId);
       if (parsed.primaryTraining !== undefined)
@@ -239,6 +242,7 @@ export default function Dashboard({
     if (typeof window === "undefined") return;
     const payload = {
       assignments,
+      behaviors,
       selectedId,
       starPlayerId,
       primaryTraining,
@@ -263,6 +267,7 @@ export default function Dashboard({
     secondaryTraining,
     selectedId,
     starPlayerId,
+    behaviors,
   ]);
 
   useEffect(() => {
@@ -513,6 +518,9 @@ export default function Dashboard({
   };
 
   const assignPlayer = (slotId: string, playerId: number) => {
+    const clearedSlots = Object.entries(assignments)
+      .filter(([, value]) => value === playerId)
+      .map(([key]) => key);
     setAssignments((prev) => {
       const next = { ...prev };
       for (const [key, value] of Object.entries(next)) {
@@ -523,11 +531,24 @@ export default function Dashboard({
       next[slotId] = playerId;
       return next;
     });
+    setBehaviors((prev) => {
+      const next = { ...prev };
+      clearedSlots.forEach((slot) => {
+        delete next[slot];
+      });
+      delete next[slotId];
+      return next;
+    });
     setLoadedMatchId(null);
   };
 
   const clearSlot = (slotId: string) => {
     setAssignments((prev) => ({ ...prev, [slotId]: null }));
+    setBehaviors((prev) => {
+      const next = { ...prev };
+      delete next[slotId];
+      return next;
+    });
     setLoadedMatchId(null);
   };
 
@@ -540,6 +561,12 @@ export default function Dashboard({
       const targetPlayer = next[toSlot] ?? null;
       next[toSlot] = movingPlayer;
       next[fromSlot] = targetPlayer;
+      return next;
+    });
+    setBehaviors((prev) => {
+      const next = { ...prev };
+      delete next[fromSlot];
+      delete next[toSlot];
       return next;
     });
     setLoadedMatchId(null);
@@ -575,12 +602,14 @@ export default function Dashboard({
       next[slot] = outfieldIds[index] ?? null;
     });
     setAssignments(next);
+    setBehaviors({});
     setLoadedMatchId(null);
     addNotification(messages.notificationLineupRandomized);
   };
 
   const resetLineup = () => {
     setAssignments({});
+    setBehaviors({});
     setLoadedMatchId(null);
     addNotification(messages.notificationLineupReset);
   };
@@ -617,6 +646,7 @@ export default function Dashboard({
       autoSelectionApplied
     );
     setAssignments(result.lineup);
+    setBehaviors({});
     setOptimizerDebug(result.debug ?? null);
     setLoadedMatchId(null);
     if (Object.keys(result.lineup).length) {
@@ -667,9 +697,27 @@ export default function Dashboard({
     }
   };
 
-  const loadLineup = (nextAssignments: LineupAssignments, matchId: number) => {
+  const loadLineup = (
+    nextAssignments: LineupAssignments,
+    nextBehaviors: LineupBehaviors,
+    matchId: number
+  ) => {
     setAssignments(nextAssignments);
+    setBehaviors(nextBehaviors);
     setLoadedMatchId(matchId);
+  };
+
+  const handleBehaviorChange = (slotId: string, behavior: number) => {
+    setBehaviors((prev) => {
+      const next = { ...prev };
+      if (behavior) {
+        next[slotId] = behavior;
+      } else {
+        delete next[slotId];
+      }
+      return next;
+    });
+    setLoadedMatchId(null);
   };
 
   const detailsData = resolveDetails(details);
@@ -1078,11 +1126,13 @@ export default function Dashboard({
         </div>
         <LineupField
           assignments={assignments}
+          behaviors={behaviors}
           playersById={playersById}
           playerDetailsById={playerDetailsById}
           onAssign={assignPlayer}
           onClear={clearSlot}
           onMove={moveSlot}
+          onChangeBehavior={handleBehaviorChange}
           onRandomize={randomizeLineup}
           onReset={resetLineup}
           onOptimize={handleOptimize}
@@ -1303,6 +1353,7 @@ export default function Dashboard({
           response={matchesState}
           messages={messages}
           assignments={assignments}
+          behaviors={behaviors}
           onRefresh={refreshMatches}
           onLoadLineup={loadLineup}
           loadedMatchId={loadedMatchId}

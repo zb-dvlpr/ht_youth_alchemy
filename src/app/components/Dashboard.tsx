@@ -23,6 +23,7 @@ import {
   optimizeRevealPrimaryCurrent,
   optimizeRevealPrimaryMax,
   optimizeRevealSecondaryCurrent,
+  optimizeRevealSecondaryMax,
   buildSkillRanking,
   type OptimizerPlayer,
   type OptimizerDebug,
@@ -782,7 +783,8 @@ export default function Dashboard({
     if (
       mode !== "revealPrimaryCurrent" &&
       mode !== "revealPrimaryMax" &&
-      mode !== "revealSecondaryCurrent"
+      mode !== "revealSecondaryCurrent" &&
+      mode !== "revealSecondaryMax"
     ) {
       return;
     }
@@ -797,6 +799,8 @@ export default function Dashboard({
         setOptimizeErrorMessage(
           messages.optimizeRevealSecondaryCurrentUnavailable
         );
+      } else if (mode === "revealSecondaryMax") {
+        setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
       } else {
         setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
       }
@@ -821,6 +825,14 @@ export default function Dashboard({
     const result =
       mode === "revealPrimaryMax"
         ? optimizeRevealPrimaryMax(
+            optimizerPlayers,
+            starPlayerId,
+            primaryTraining,
+            secondaryTraining,
+            autoSelectionApplied
+          )
+        : mode === "revealSecondaryMax"
+        ? optimizeRevealSecondaryMax(
             optimizerPlayers,
             starPlayerId,
             primaryTraining,
@@ -858,6 +870,11 @@ export default function Dashboard({
       return;
     }
 
+    if (result.error === "secondary_max_known") {
+      setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxKnown);
+      return;
+    }
+
     if (result.error) {
       if (mode === "revealPrimaryMax") {
         setOptimizeErrorMessage(messages.optimizeRevealPrimaryMaxUnavailable);
@@ -865,6 +882,8 @@ export default function Dashboard({
         setOptimizeErrorMessage(
           messages.optimizeRevealSecondaryCurrentUnavailable
         );
+      } else if (mode === "revealSecondaryMax") {
+        setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
       } else {
         setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
       }

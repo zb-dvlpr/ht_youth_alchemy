@@ -116,6 +116,8 @@ export type Messages = {
   optimizeRevealPrimaryMaxUnavailable: string;
   optimizeRevealSecondaryCurrentKnown: string;
   optimizeRevealSecondaryCurrentUnavailable: string;
+  optimizeRevealSecondaryMaxKnown: string;
+  optimizeRevealSecondaryMaxUnavailable: string;
   optimizeLineupNeedsStar: string;
   optimizeLineupNeedsTraining: string;
   optimizeLineupNeedsKnownSkills: string;
@@ -407,9 +409,9 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizeLineupTitle: "Optimize lineup",
     optimizeMenuStar: "Optimize around star player",
     optimizeMenuRevealPrimaryCurrent: "Reveal star player pri. curr. value",
-    optimizeMenuRevealPrimaryMax: "Reveal star player pri. max value",
+    optimizeMenuRevealPrimaryMax: "Reveal star player pri. max. value",
     optimizeMenuRevealSecondaryCurrent: "Reveal star player sec. curr. value",
-    optimizeMenuRevealSecondaryMax: "Reveal star player sec. max value",
+    optimizeMenuRevealSecondaryMax: "Reveal star player sec. max. value",
     optimizeRevealPrimaryCurrentKnown:
       "Reveal primary current unavailable: star primary current already known.",
     optimizeRevealPrimaryCurrentUnavailable:
@@ -422,6 +424,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Reveal secondary current unavailable: star secondary current already known.",
     optimizeRevealSecondaryCurrentUnavailable:
       "Reveal secondary current unavailable. Select a star player and secondary training.",
+    optimizeRevealSecondaryMaxKnown:
+      "Reveal secondary max unavailable: star secondary max already known.",
+    optimizeRevealSecondaryMaxUnavailable:
+      "Reveal secondary max unavailable. Select a star player and secondary training.",
     optimizeLineupNeedsStar: "Select a star player to optimize",
     optimizeLineupNeedsTraining: "Select both trainings to optimize",
     optimizeLineupNeedsKnownSkills: "Need known current+max skills to optimize",
@@ -711,9 +717,9 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizeLineupTitle: "Aufstellung optimieren",
     optimizeMenuStar: "Um Starspieler optimieren",
     optimizeMenuRevealPrimaryCurrent: "Starspieler Primärwert akt. aufdecken",
-    optimizeMenuRevealPrimaryMax: "Starspieler Primärwert max aufdecken",
+    optimizeMenuRevealPrimaryMax: "Starspieler Primärwert max. aufdecken",
     optimizeMenuRevealSecondaryCurrent: "Starspieler Sekundärwert akt. aufdecken",
-    optimizeMenuRevealSecondaryMax: "Starspieler Sekundärwert max aufdecken",
+    optimizeMenuRevealSecondaryMax: "Starspieler Sekundärwert max. aufdecken",
     optimizeRevealPrimaryCurrentKnown:
       "Primärwert aufdecken nicht verfügbar: Primärwert des Stars ist bekannt.",
     optimizeRevealPrimaryCurrentUnavailable:
@@ -726,6 +732,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Sekundärwert aufdecken nicht verfügbar: Sekundärwert des Stars ist bekannt.",
     optimizeRevealSecondaryCurrentUnavailable:
       "Sekundärwert aufdecken nicht verfügbar. Starspieler und Sekundärtraining wählen.",
+    optimizeRevealSecondaryMaxKnown:
+      "Sekundärmax aufdecken nicht verfügbar: Sekundärmax des Stars ist bekannt.",
+    optimizeRevealSecondaryMaxUnavailable:
+      "Sekundärmax aufdecken nicht verfügbar. Starspieler und Sekundärtraining wählen.",
     optimizeLineupNeedsStar: "Starspieler auswählen, um zu optimieren",
     optimizeLineupNeedsTraining: "Beide Trainings auswählen, um zu optimieren",
     optimizeLineupNeedsKnownSkills: "Bekannte Ist+Max-Werte erforderlich",
@@ -1020,11 +1030,11 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizeMenuRevealPrimaryCurrent:
       "Révéler val. act. prim. du joueur star",
     optimizeMenuRevealPrimaryMax:
-      "Révéler val. max prim. du joueur star",
+      "Révéler val. max. prim. du joueur star",
     optimizeMenuRevealSecondaryCurrent:
       "Révéler val. act. sec. du joueur star",
     optimizeMenuRevealSecondaryMax:
-      "Révéler val. max sec. du joueur star",
+      "Révéler val. max. sec. du joueur star",
     optimizeRevealPrimaryCurrentKnown:
       "Révélation indisponible : valeur primaire actuelle déjà connue.",
     optimizeRevealPrimaryCurrentUnavailable:
@@ -1036,6 +1046,10 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizeRevealSecondaryCurrentKnown:
       "Révélation indisponible : valeur secondaire actuelle déjà connue.",
     optimizeRevealSecondaryCurrentUnavailable:
+      "Révélation indisponible. Sélectionnez un joueur star et un entraînement secondaire.",
+    optimizeRevealSecondaryMaxKnown:
+      "Révélation indisponible : valeur secondaire max déjà connue.",
+    optimizeRevealSecondaryMaxUnavailable:
       "Révélation indisponible. Sélectionnez un joueur star et un entraînement secondaire.",
     optimizeLineupNeedsStar: "Sélectionnez un joueur star pour optimiser",
     optimizeLineupNeedsTraining:
@@ -1346,6 +1360,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Revelar secundario actual no disponible: ya se conoce.",
     optimizeRevealSecondaryCurrentUnavailable:
       "Revelar secundario actual no disponible. Elige jugador estrella y entrenamiento secundario.",
+    optimizeRevealSecondaryMaxKnown:
+      "Revelar secundario máx. no disponible: ya se conoce.",
+    optimizeRevealSecondaryMaxUnavailable:
+      "Revelar secundario máx. no disponible. Elige jugador estrella y entrenamiento secundario.",
     optimizeLineupNeedsStar: "Elige un jugador estrella para optimizar",
     optimizeLineupNeedsTraining:
       "Elige ambos entrenamientos para optimizar",
@@ -1639,9 +1657,9 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizeLineupTitle: "Optimera uppställning",
     optimizeMenuStar: "Optimera runt stjärnspelaren",
     optimizeMenuRevealPrimaryCurrent: "Avslöja stjärnans primärvärde (akt.)",
-    optimizeMenuRevealPrimaryMax: "Avslöja stjärnans primärvärde (max)",
+    optimizeMenuRevealPrimaryMax: "Avslöja stjärnans primärvärde (max.)",
     optimizeMenuRevealSecondaryCurrent: "Avslöja stjärnans sekundärvärde (akt.)",
-    optimizeMenuRevealSecondaryMax: "Avslöja stjärnans sekundärvärde (max)",
+    optimizeMenuRevealSecondaryMax: "Avslöja stjärnans sekundärvärde (max.)",
     optimizeRevealPrimaryCurrentKnown:
       "Avslöjande ej tillgängligt: stjärnans primärvärde är redan känt.",
     optimizeRevealPrimaryCurrentUnavailable:
@@ -1653,6 +1671,10 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizeRevealSecondaryCurrentKnown:
       "Avslöjande ej tillgängligt: stjärnans sekundärvärde är redan känt.",
     optimizeRevealSecondaryCurrentUnavailable:
+      "Avslöjande ej tillgängligt. Välj stjärnspelare och sekundärträning.",
+    optimizeRevealSecondaryMaxKnown:
+      "Avslöjande ej tillgängligt: stjärnans sekundärmax är redan känt.",
+    optimizeRevealSecondaryMaxUnavailable:
       "Avslöjande ej tillgängligt. Välj stjärnspelare och sekundärträning.",
     optimizeLineupNeedsStar: "Välj en stjärnspelare för att optimera",
     optimizeLineupNeedsTraining: "Välj båda träningarna för att optimera",
@@ -1947,9 +1969,9 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizeLineupTitle: "Ottimizza formazione",
     optimizeMenuStar: "Ottimizza attorno al giocatore stella",
     optimizeMenuRevealPrimaryCurrent: "Rivela val. attuale prim. stella",
-    optimizeMenuRevealPrimaryMax: "Rivela val. max prim. stella",
+    optimizeMenuRevealPrimaryMax: "Rivela val. max. prim. stella",
     optimizeMenuRevealSecondaryCurrent: "Rivela val. attuale sec. stella",
-    optimizeMenuRevealSecondaryMax: "Rivela val. max sec. stella",
+    optimizeMenuRevealSecondaryMax: "Rivela val. max. sec. stella",
     optimizeRevealPrimaryCurrentKnown:
       "Rivelazione non disponibile: valore primario già noto.",
     optimizeRevealPrimaryCurrentUnavailable:
@@ -1961,6 +1983,10 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizeRevealSecondaryCurrentKnown:
       "Rivelazione non disponibile: valore secondario già noto.",
     optimizeRevealSecondaryCurrentUnavailable:
+      "Rivelazione non disponibile. Seleziona stella e allenamento secondario.",
+    optimizeRevealSecondaryMaxKnown:
+      "Rivelazione non disponibile: valore secondario max già noto.",
+    optimizeRevealSecondaryMaxUnavailable:
       "Rivelazione non disponibile. Seleziona stella e allenamento secondario.",
     optimizeLineupNeedsStar: "Seleziona un giocatore stella per ottimizzare",
     optimizeLineupNeedsTraining:
@@ -2270,6 +2296,10 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizeRevealSecondaryCurrentKnown:
       "Revelação indisponível: valor secundário já conhecido.",
     optimizeRevealSecondaryCurrentUnavailable:
+      "Revelação indisponível. Selecione estrela e treino secundário.",
+    optimizeRevealSecondaryMaxKnown:
+      "Revelação indisponível: valor secundário max já conhecido.",
+    optimizeRevealSecondaryMaxUnavailable:
       "Revelação indisponível. Selecione estrela e treino secundário.",
     optimizeLineupNeedsStar: "Selecione um jogador estrela para otimizar",
     optimizeLineupNeedsTraining:

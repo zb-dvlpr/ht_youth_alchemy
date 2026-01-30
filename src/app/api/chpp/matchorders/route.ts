@@ -87,12 +87,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ data: parsed, raw: rawXml });
   } catch (error) {
     if (error instanceof ChppAuthError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json(
+        { error: error.message, code: "CHPP_AUTH_MISSING" },
+        { status: error.status }
+      );
     }
-    return NextResponse.json(
-      buildChppErrorPayload("Failed to submit match orders", error),
-      { status: 502 }
+    const payload = buildChppErrorPayload(
+      "Failed to submit match orders",
+      error
     );
+    return NextResponse.json(payload, {
+      status: payload.statusCode === 401 ? 401 : 502,
+    });
   }
 }
 
@@ -123,11 +129,14 @@ export async function GET(request: Request) {
     return NextResponse.json({ data: parsed, raw: rawXml });
   } catch (error) {
     if (error instanceof ChppAuthError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json(
+        { error: error.message, code: "CHPP_AUTH_MISSING" },
+        { status: error.status }
+      );
     }
-    return NextResponse.json(
-      buildChppErrorPayload("Failed to fetch match orders", error),
-      { status: 502 }
-    );
+    const payload = buildChppErrorPayload("Failed to fetch match orders", error);
+    return NextResponse.json(payload, {
+      status: payload.statusCode === 401 ? 401 : 502,
+    });
   }
 }

@@ -23,6 +23,7 @@ export type Match = {
   MatchDate?: string;
   Status?: string;
   OrdersGiven?: string | boolean;
+  MatchType?: number | string;
   HomeTeam?: MatchTeam;
   AwayTeam?: MatchTeam;
 };

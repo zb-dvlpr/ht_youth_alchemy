@@ -146,6 +146,7 @@ export type Messages = {
   optimizerCat3: string;
   optimizerCat4: string;
   optimizerCatDontCare: string;
+  optimizerCatMaxed: string;
   optimizerSlotsPrimary: string;
   optimizerSlotsSecondary: string;
   optimizerSlotsAll: string;
@@ -242,6 +243,7 @@ export type Messages = {
   specialtyResilient: string;
   specialtySupport: string;
   skillsLabel: string;
+  skillMaxedTooltip: string;
   unknownLabel: string;
   unknownShort: string;
   potentialLabel: string;
@@ -275,6 +277,10 @@ export type Messages = {
   connectedLabel: string;
   connectHint: string;
   disconnectLabel: string;
+  authExpiredTitle: string;
+  authExpiredBody: string;
+  authExpiredAction: string;
+  authExpiredDismiss: string;
   disconnectTitle: string;
   brandTitle: string;
   skillKeeper: string;
@@ -456,6 +462,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Cat 3 (max only)",
     optimizerCat4: "Cat 4 (current only)",
     optimizerCatDontCare: "Don't care",
+    optimizerCatMaxed: "Maxed out",
     optimizerSlotsPrimary: "Primary slots",
     optimizerSlotsSecondary: "Secondary slots",
     optimizerSlotsAll: "All slots",
@@ -553,6 +560,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Resilient",
     specialtySupport: "Support",
     skillsLabel: "Skills",
+    skillMaxedTooltip: "Skill is maxed out",
     unknownLabel: "unknown",
     unknownShort: "?",
     potentialLabel: "potential",
@@ -587,6 +595,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectedLabel: "Connected",
     connectHint: "Use the Connect button in the top right to sign in again.",
     disconnectLabel: "Disconnect",
+    authExpiredTitle: "Session expired",
+    authExpiredBody:
+      "Your Hattrick authorization expired or was revoked. Reconnect to continue.",
+    authExpiredAction: "Reconnect",
+    authExpiredDismiss: "Dismiss",
     disconnectTitle: "Disconnect and revoke access",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Keeper",
@@ -765,6 +778,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Kat 3 (nur max)",
     optimizerCat4: "Kat 4 (nur aktuell)",
     optimizerCatDontCare: "Egal",
+    optimizerCatMaxed: "Ausgereizt",
     optimizerSlotsPrimary: "Primärpositionen",
     optimizerSlotsSecondary: "Sekundärpositionen",
     optimizerSlotsAll: "Alle Positionen",
@@ -862,6 +876,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Widerstandsfähig",
     specialtySupport: "Unterstützend",
     skillsLabel: "Fähigkeiten",
+    skillMaxedTooltip: "Fähigkeit ist ausgereizt",
     unknownLabel: "unbekannt",
     unknownShort: "?",
     potentialLabel: "Potenzial",
@@ -896,6 +911,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectedLabel: "Verbunden",
     connectHint: "Nutze den Verbinden-Button oben rechts, um dich erneut anzumelden.",
     disconnectLabel: "Trennen",
+    authExpiredTitle: "Sitzung abgelaufen",
+    authExpiredBody:
+      "Deine Hattrick-Autorisierung ist abgelaufen oder wurde entzogen. Bitte erneut verbinden.",
+    authExpiredAction: "Erneut verbinden",
+    authExpiredDismiss: "Schließen",
     disconnectTitle: "Trennen und Zugriff widerrufen",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Torwart",
@@ -1081,6 +1101,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Cat 3 (max uniquement)",
     optimizerCat4: "Cat 4 (actuel uniquement)",
     optimizerCatDontCare: "Peu importe",
+    optimizerCatMaxed: "Max atteint",
     optimizerSlotsPrimary: "Postes principaux",
     optimizerSlotsSecondary: "Postes secondaires",
     optimizerSlotsAll: "Tous les postes",
@@ -1178,6 +1199,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Résistant",
     specialtySupport: "Soutien",
     skillsLabel: "Compétences",
+    skillMaxedTooltip: "Compétence au maximum",
     unknownLabel: "inconnu",
     unknownShort: "?",
     potentialLabel: "potentiel",
@@ -1213,6 +1235,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectHint:
       "Utilisez le bouton Connecter en haut à droite pour vous reconnecter.",
     disconnectLabel: "Déconnecter",
+    authExpiredTitle: "Session expirée",
+    authExpiredBody:
+      "Votre autorisation Hattrick a expiré ou a été révoquée. Reconnectez-vous pour continuer.",
+    authExpiredAction: "Reconnecter",
+    authExpiredDismiss: "Fermer",
     disconnectTitle: "Déconnecter et révoquer l’accès",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Gardien",
@@ -1394,6 +1421,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Cat 3 (solo máx.)",
     optimizerCat4: "Cat 4 (solo actual)",
     optimizerCatDontCare: "No importa",
+    optimizerCatMaxed: "Al máximo",
     optimizerSlotsPrimary: "Puestos primarios",
     optimizerSlotsSecondary: "Puestos secundarios",
     optimizerSlotsAll: "Todos los puestos",
@@ -1491,6 +1519,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Resistente",
     specialtySupport: "Apoyo",
     skillsLabel: "Habilidades",
+    skillMaxedTooltip: "Habilidad al máximo",
     unknownLabel: "desconocido",
     unknownShort: "?",
     potentialLabel: "potencial",
@@ -1526,6 +1555,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectHint:
       "Usa el botón Conectar en la esquina superior derecha para volver a iniciar sesión.",
     disconnectLabel: "Desconectar",
+    authExpiredTitle: "Sesión caducada",
+    authExpiredBody:
+      "Tu autorización de Hattrick caducó o fue revocada. Vuelve a conectar para continuar.",
+    authExpiredAction: "Reconectar",
+    authExpiredDismiss: "Cerrar",
     disconnectTitle: "Desconectar y revocar el acceso",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Portero",
@@ -1705,6 +1739,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Kat 3 (endast max)",
     optimizerCat4: "Kat 4 (endast nuvarande)",
     optimizerCatDontCare: "Spelar ingen roll",
+    optimizerCatMaxed: "Maxat",
     optimizerSlotsPrimary: "Primära platser",
     optimizerSlotsSecondary: "Sekundära platser",
     optimizerSlotsAll: "Alla platser",
@@ -1802,6 +1837,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Motståndskraftig",
     specialtySupport: "Stödjande",
     skillsLabel: "Färdigheter",
+    skillMaxedTooltip: "Färdighet är maxad",
     unknownLabel: "okänd",
     unknownShort: "?",
     potentialLabel: "potential",
@@ -1837,6 +1873,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectHint:
       "Använd knappen Anslut uppe till höger för att logga in igen.",
     disconnectLabel: "Koppla från",
+    authExpiredTitle: "Sessionen har gått ut",
+    authExpiredBody:
+      "Din Hattrick-auktorisering har gått ut eller återkallats. Anslut igen för att fortsätta.",
+    authExpiredAction: "Anslut igen",
+    authExpiredDismiss: "Stäng",
     disconnectTitle: "Koppla från och återkalla åtkomst",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Målvakt",
@@ -2018,6 +2059,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Cat 3 (solo max)",
     optimizerCat4: "Cat 4 (solo attuale)",
     optimizerCatDontCare: "Non importa",
+    optimizerCatMaxed: "Al massimo",
     optimizerSlotsPrimary: "Posti primari",
     optimizerSlotsSecondary: "Posti secondari",
     optimizerSlotsAll: "Tutti i posti",
@@ -2115,6 +2157,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Resistente",
     specialtySupport: "Supporto",
     skillsLabel: "Abilità",
+    skillMaxedTooltip: "Abilità al massimo",
     unknownLabel: "sconosciuto",
     unknownShort: "?",
     potentialLabel: "potenziale",
@@ -2150,6 +2193,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectHint:
       "Usa il pulsante Connetti in alto a destra per accedere di nuovo.",
     disconnectLabel: "Disconnetti",
+    authExpiredTitle: "Sessione scaduta",
+    authExpiredBody:
+      "La tua autorizzazione Hattrick è scaduta o è stata revocata. Riconnettiti per continuare.",
+    authExpiredAction: "Riconnetti",
+    authExpiredDismiss: "Chiudi",
     disconnectTitle: "Disconnetti e revoca l’accesso",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Portiere",
@@ -2331,6 +2379,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Cat 3 (apenas máx.)",
     optimizerCat4: "Cat 4 (apenas atual)",
     optimizerCatDontCare: "Não importa",
+    optimizerCatMaxed: "No máximo",
     optimizerSlotsPrimary: "Vagas primárias",
     optimizerSlotsSecondary: "Vagas secundárias",
     optimizerSlotsAll: "Todas as vagas",
@@ -2428,6 +2477,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Resistente",
     specialtySupport: "Apoio",
     skillsLabel: "Habilidades",
+    skillMaxedTooltip: "Habilidade no máximo",
     unknownLabel: "desconhecido",
     unknownShort: "?",
     potentialLabel: "potencial",
@@ -2463,6 +2513,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectHint:
       "Use o botão Conectar no canto superior direito para entrar novamente.",
     disconnectLabel: "Desconectar",
+    authExpiredTitle: "Sessão expirada",
+    authExpiredBody:
+      "Sua autorização do Hattrick expirou ou foi revogada. Reconecte para continuar.",
+    authExpiredAction: "Reconectar",
+    authExpiredDismiss: "Fechar",
     disconnectTitle: "Desconectar e revogar acesso",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Goleiro",

@@ -1,6 +1,6 @@
 .main {
   height: 100vh;
-  background: radial-gradient(circle at top, #f7f1e3, #e0d8cc);
+  background: var(--app-background);
   color: #1a1a1a;
   padding: 16px 20px 32px;
   font-family: var(--font-geist-sans);
@@ -298,6 +298,11 @@
   position: relative;
 }
 
+.dashboardStack {
+  display: grid;
+  gap: 20px;
+}
+
 .columnStack {
   display: grid;
   gap: 20px;
@@ -463,6 +468,11 @@
   gap: 0;
   border: 1px solid rgba(100, 85, 70, 0.25);
   border-radius: 6px;
+}
+
+.skillsMatrixMaxed {
+  border: 2px solid #c43b2f;
+  border-radius: 999px;
 }
 
 .skillsMatrixHalf {
@@ -632,7 +642,7 @@
 }
 
 html[data-theme="dark"] .main {
-  background: radial-gradient(circle at top, #1c1a17, #0f0e0d);
+  background: var(--app-background);
   color: #f3ede4;
 }
 
@@ -771,6 +781,10 @@ html[data-theme="dark"] .skillsMatrixSplit {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
+html[data-theme="dark"] .skillsMatrixMaxed {
+  border-color: #ff6b5c;
+}
+
 html[data-theme="dark"] .matrixPlayerButton:hover {
   color: #f3ede4;
   text-decoration-color: rgba(243, 237, 228, 0.7);
@@ -855,6 +869,10 @@ html[data-theme="dark"] .detailsBadgeMuted {
 
 html[data-theme="dark"] .skillValue {
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .skillValueMaxed {
+  border-color: #ff6b5c;
 }
 
 html[data-theme="dark"] .profileCard {
@@ -1539,6 +1557,15 @@ html[data-theme="dark"] .spinner {
   color: #2b241d;
   min-width: 52px;
   text-align: right;
+}
+
+.skillValueMaxed {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  border-radius: 999px;
+  border: 2px solid #c43b2f;
 }
 
 .matchList {

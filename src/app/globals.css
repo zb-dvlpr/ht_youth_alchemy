@@ -1,6 +1,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --app-background: radial-gradient(circle at top, #f7f1e3, #e0d8cc);
   --font-geist-sans: "Geist", "Space Grotesk", "Avenir Next", "Segoe UI",
     "Helvetica Neue", Arial, sans-serif;
   --font-geist-mono: "Geist Mono", "JetBrains Mono", "SFMono-Regular", Menlo,
@@ -21,6 +22,7 @@
 
 html[data-theme="dark"] {
   color-scheme: dark;
+  --app-background: radial-gradient(circle at top, #1c1a17, #0f0e0d);
 }
 
 html,
@@ -31,7 +33,7 @@ body {
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  background: var(--app-background);
   font-family: var(--font-geist-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;

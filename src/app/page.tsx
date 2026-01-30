@@ -43,6 +43,8 @@ type YouthPlayerListResponse = {
   };
   error?: string;
   details?: string;
+  code?: string;
+  statusCode?: number;
 };
 
 async function getBaseUrl() {
@@ -132,10 +134,13 @@ export default async function Home() {
     await Promise.all([getPlayers(), getMatches(), getRatings()]);
 
   const tokenError =
+    playersResponse.code?.startsWith("CHPP_AUTH") ||
+    playersResponse.statusCode === 401 ||
     playersResponse.error?.includes("Missing CHPP access token") ||
     playersResponse.details?.includes("Missing CHPP access token") ||
     playersResponse.error?.includes("Re-auth") ||
-    playersResponse.details?.includes("Re-auth");
+    playersResponse.details?.includes("Re-auth") ||
+    playersResponse.details?.includes("401 - Unauthorized");
 
   const players = normalizePlayers(
     playersResponse.data?.HattrickData?.PlayerList?.YouthPlayer
@@ -171,28 +176,18 @@ export default async function Home() {
             </div>
           </header>
 
-          {playersResponse.error ? (
-            <div className={styles.errorBox}>
-              <h2 className={styles.sectionTitle}>
-                {messages.unableToLoadPlayers}
-              </h2>
-              <p className={styles.errorText}>{playersResponse.error}</p>
-              {tokenError ? (
-                <p className={styles.errorDetails}>{messages.connectHint}</p>
-              ) : null}
-              {playersResponse.details ? (
-                <p className={styles.errorDetails}>{playersResponse.details}</p>
-              ) : null}
-            </div>
-          ) : (
-            <Dashboard
-              players={players}
-              matchesResponse={matchesResponse}
-              ratingsResponse={ratingsResponse}
-              messages={messages}
-              isConnected={isConnected}
-            />
-          )}
+          <Dashboard
+            players={players}
+            matchesResponse={matchesResponse}
+            ratingsResponse={ratingsResponse}
+            messages={messages}
+            isConnected={isConnected}
+            initialLoadError={playersResponse.error ?? null}
+            initialLoadDetails={
+              tokenError ? messages.connectHint : playersResponse.details ?? null
+            }
+            initialAuthError={Boolean(tokenError)}
+          />
         </div>
       </NotificationsProvider>
     </main>

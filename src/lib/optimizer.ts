@@ -42,7 +42,7 @@ export type OptimizerPlayer = {
 
 type RoleGroup = "GK" | "DEF" | "WB" | "IM" | "W" | "F";
 
-type RankingCategory = "cat1" | "cat2" | "cat3" | "cat4" | "dontCare";
+type RankingCategory = "cat1" | "cat2" | "cat3" | "cat4" | "dontCare" | "maxed";
 
 export type RankingEntry = {
   playerId: number;
@@ -161,6 +161,14 @@ function skillValues(player: OptimizerPlayer, skill: SkillKey) {
     current: toNumber(player.skills?.[map.current]),
     max: toNumber(player.skills?.[map.max]),
   };
+}
+
+function isMaxReached(player: OptimizerPlayer, skill: SkillKey) {
+  const map = SKILL_MAP[skill];
+  const value = player.skills?.[map.current] as
+    | { ["@_IsMaxReached"]?: string }
+    | undefined;
+  return value?.["@_IsMaxReached"] === "True";
 }
 
 function slotsForSkill(skill: SkillKey) {
@@ -382,6 +390,7 @@ export type AutoSelection = ReturnType<typeof getAutoSelection>;
 export function buildSkillRanking(players: OptimizerPlayer[], skill: SkillKey) {
   const entries: RankingEntry[] = players.map((player) => {
     const { current, max } = skillValues(player, skill);
+    const maxReached = isMaxReached(player, skill);
     let category: RankingCategory = "cat2";
 
     if (current !== null && max !== null) {
@@ -395,6 +404,9 @@ export function buildSkillRanking(players: OptimizerPlayer[], skill: SkillKey) {
     }
 
     let dontCare = false;
+    if (maxReached) {
+      category = "maxed";
+    }
     if (category === "cat1") {
       if (current === max) dontCare = true;
       if ((current ?? 0) < 5 || (max ?? 0) < 6) dontCare = true;
@@ -437,8 +449,9 @@ export function buildSkillRanking(players: OptimizerPlayer[], skill: SkillKey) {
       if (!aCapped && bCapped) return 1;
       return byRankDesc(a, b);
     });
+  const maxed = entries.filter((entry) => entry.category === "maxed");
 
-  const ordered = [...cat1, ...cat4, ...cat3, ...cat2, ...dontCare];
+  const ordered = [...cat1, ...cat4, ...cat3, ...cat2, ...dontCare, ...maxed];
   return { ordered, debug: ordered };
 }
 

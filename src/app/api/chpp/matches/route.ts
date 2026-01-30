@@ -40,11 +40,14 @@ export async function GET(request: Request) {
     });
   } catch (error) {
     if (error instanceof ChppAuthError) {
-      return NextResponse.json({ error: error.message }, { status: error.status });
+      return NextResponse.json(
+        { error: error.message, code: "CHPP_AUTH_MISSING" },
+        { status: error.status }
+      );
     }
-    return NextResponse.json(
-      buildChppErrorPayload("Failed to fetch matches", error),
-      { status: 502 }
-    );
+    const payload = buildChppErrorPayload("Failed to fetch matches", error);
+    return NextResponse.json(payload, {
+      status: payload.statusCode === 401 ? 401 : 502,
+    });
   }
 }

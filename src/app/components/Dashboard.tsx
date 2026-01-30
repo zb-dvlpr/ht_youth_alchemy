@@ -62,6 +62,8 @@ type PlayerDetailsResponse = {
   unlockStatus?: "success" | "denied";
   error?: string;
   details?: string;
+  statusCode?: number;
+  code?: string;
 };
 
 type DashboardProps = {
@@ -70,6 +72,9 @@ type DashboardProps = {
   ratingsResponse: RatingsMatrixResponse | null;
   messages: Messages;
   isConnected: boolean;
+  initialLoadError?: string | null;
+  initialLoadDetails?: string | null;
+  initialAuthError?: boolean;
 };
 
 type CachedDetails = {
@@ -99,12 +104,27 @@ function resolveDetails(data: Record<string, unknown> | null) {
   return (hattrickData.YouthPlayer as YouthPlayerDetails) ?? null;
 }
 
+function isAuthErrorPayload(
+  payload: { code?: string; statusCode?: number; details?: string } | null,
+  response?: Response
+) {
+  return (
+    response?.status === 401 ||
+    payload?.statusCode === 401 ||
+    (payload?.code?.startsWith("CHPP_AUTH") ?? false) ||
+    (payload?.details?.includes("401 - Unauthorized") ?? false)
+  );
+}
+
 export default function Dashboard({
   players,
   matchesResponse,
   ratingsResponse,
   messages,
   isConnected,
+  initialLoadError = null,
+  initialLoadDetails = null,
+  initialAuthError = false,
 }: DashboardProps) {
   const [playerList, setPlayerList] = useState<YouthPlayer[]>(players);
   const [playersLoading, setPlayersLoading] = useState(false);
@@ -116,6 +136,12 @@ export default function Dashboard({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState(initialAuthError);
+  const [authErrorDetails, setAuthErrorDetails] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(initialLoadError);
+  const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(
+    initialLoadDetails
+  );
 
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
@@ -140,7 +166,7 @@ export default function Dashboard({
   );
   const { addNotification } = useNotifications();
   const isDev = process.env.NODE_ENV !== "production";
-  const storageKey = "ya_dashboard_state_v1";
+  const storageKey = "ya_dashboard_state_v2";
   const helpStorageKey = "ya_help_dismissed_v1";
   const dashboardRef = useRef<HTMLDivElement | null>(null);
   const helpCardRef = useRef<HTMLDivElement | null>(null);
@@ -272,6 +298,8 @@ export default function Dashboard({
         cache?: Record<number, CachedDetails>;
         ratingsCache?: Record<number, Record<string, number>>;
         ratingsPositions?: number[];
+        playerList?: YouthPlayer[];
+        matchesState?: MatchesResponse;
       };
       if (parsed.assignments) setAssignments(parsed.assignments);
       if (parsed.behaviors) setBehaviors(parsed.behaviors);
@@ -295,6 +323,12 @@ export default function Dashboard({
       }
       if (parsed.ratingsCache) setRatingsCache(parsed.ratingsCache);
       if (parsed.ratingsPositions) setRatingsPositions(parsed.ratingsPositions);
+      if (parsed.playerList && (players.length === 0 || initialAuthError)) {
+        setPlayerList(parsed.playerList);
+      }
+      if (parsed.matchesState && initialAuthError) {
+        setMatchesState(parsed.matchesState);
+      }
     } catch {
       // ignore restore errors
     }
@@ -313,6 +347,8 @@ export default function Dashboard({
       cache,
       ratingsCache,
       ratingsPositions,
+      playerList,
+      matchesState,
     };
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(payload));
@@ -330,6 +366,8 @@ export default function Dashboard({
     selectedId,
     starPlayerId,
     behaviors,
+    playerList,
+    matchesState,
   ]);
 
   useEffect(() => {
@@ -376,6 +414,12 @@ export default function Dashboard({
       return changed ? next : prev;
     });
   }, [playerList]);
+
+  useEffect(() => {
+    if (!initialAuthError) return;
+    setAuthError(true);
+    setAuthErrorDetails(initialLoadDetails ?? null);
+  }, [initialAuthError, initialLoadDetails]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -504,9 +548,9 @@ export default function Dashboard({
       return;
     }
 
+    const previousDetails = details;
     setLoading(true);
     setError(null);
-    setDetails(null);
     setUnlockStatus(null);
 
     try {
@@ -517,6 +561,12 @@ export default function Dashboard({
       const payload = (await response.json()) as PlayerDetailsResponse;
 
       if (!response.ok || payload.error) {
+        if (isAuthErrorPayload(payload, response)) {
+          setAuthError(true);
+          setAuthErrorDetails(payload.details ?? messages.connectHint);
+          setDetails(previousDetails);
+          return;
+        }
         throw new Error(payload.error ?? "Failed to fetch player details");
       }
 
@@ -536,6 +586,7 @@ export default function Dashboard({
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
+      setDetails(previousDetails);
     } finally {
       setLoading(false);
     }
@@ -553,6 +604,11 @@ export default function Dashboard({
         { cache: "no-store" }
       );
       const payload = (await response.json()) as PlayerDetailsResponse;
+      if (isAuthErrorPayload(payload, response)) {
+        setAuthError(true);
+        setAuthErrorDetails(payload.details ?? messages.connectHint);
+        return;
+      }
       if (!response.ok || payload.error) {
         return;
       }
@@ -953,7 +1009,17 @@ export default function Dashboard({
       const response = await fetch("/api/chpp/matches?isYouth=true", {
         cache: "no-store",
       });
-      const payload = (await response.json()) as MatchesResponse;
+      const payload = (await response.json()) as MatchesResponse & {
+        code?: string;
+        statusCode?: number;
+        details?: string;
+        error?: string;
+      };
+      if (isAuthErrorPayload(payload, response)) {
+        setAuthError(true);
+        setAuthErrorDetails(payload.details ?? messages.connectHint);
+        return;
+      }
       setMatchesState(payload);
     } catch {
       // keep existing data
@@ -973,7 +1039,19 @@ export default function Dashboard({
             PlayerList?: { YouthPlayer?: YouthPlayer[] | YouthPlayer };
           };
         };
+        error?: string;
+        details?: string;
+        statusCode?: number;
+        code?: string;
       };
+      if (isAuthErrorPayload(payload, response)) {
+        setAuthError(true);
+        setAuthErrorDetails(payload.details ?? messages.connectHint);
+        return;
+      }
+      if (!response.ok || payload.error) {
+        throw new Error(payload.error ?? "Failed to fetch youth players");
+      }
       const raw = payload?.data?.HattrickData?.PlayerList?.YouthPlayer;
       const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
       setPlayerList(list);
@@ -986,6 +1064,8 @@ export default function Dashboard({
       addNotification(messages.notificationPlayersRefreshed);
     } catch {
       addNotification(messages.unableToLoadPlayers);
+      setLoadError(messages.unableToLoadPlayers);
+      setLoadErrorDetails(null);
     } finally {
       setPlayersLoading(false);
     }
@@ -1112,6 +1192,8 @@ export default function Dashboard({
         return messages.optimizerCat3;
       case "cat4":
         return messages.optimizerCat4;
+      case "maxed":
+        return messages.optimizerCatMaxed;
       case "dontCare":
       default:
         return messages.optimizerCatDontCare;
@@ -1164,8 +1246,44 @@ export default function Dashboard({
   }, [primaryTraining, secondaryTraining]);
 
   return (
-    <div className={styles.dashboardGrid} ref={dashboardRef}>
+    <div className={styles.dashboardStack}>
+      {loadError && !authError ? (
+        <div className={styles.errorBox}>
+          <h2 className={styles.sectionTitle}>{messages.unableToLoadPlayers}</h2>
+          <p className={styles.errorText}>{loadError}</p>
+          {loadErrorDetails ? (
+            <p className={styles.errorDetails}>{loadErrorDetails}</p>
+          ) : null}
+        </div>
+      ) : null}
       <Modal
+        open={authError}
+        title={messages.authExpiredTitle}
+        body={
+          <div>
+            <p>{messages.authExpiredBody}</p>
+            {authErrorDetails ? (
+              <p className={styles.errorDetails}>{authErrorDetails}</p>
+            ) : null}
+          </div>
+        }
+        actions={
+          <div className={styles.confirmActions}>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={() => setAuthError(false)}
+            >
+              {messages.authExpiredDismiss}
+            </button>
+            <a className={styles.confirmSubmit} href="/api/chpp/oauth/start">
+              {messages.authExpiredAction}
+            </a>
+          </div>
+        }
+      />
+      <div className={styles.dashboardGrid} ref={dashboardRef}>
+        <Modal
         open={showTrainingReminder}
         title={messages.trainingReminderTitle}
         body={trainingReminderText}
@@ -1667,6 +1785,7 @@ export default function Dashboard({
           onSubmitSuccess={() => setShowTrainingReminder(true)}
         />
       </div>
+    </div>
     </div>
   );
 }

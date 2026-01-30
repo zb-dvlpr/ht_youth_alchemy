@@ -174,6 +174,11 @@ function getSkillMax(skill?: SkillValue | number | string | null): number | null
   return Number.isNaN(numeric) ? null : numeric;
 }
 
+function getSkillMaxReached(skill?: SkillValue | number | string | null): boolean {
+  if (!skill || typeof skill !== "object") return false;
+  return skill["@_IsMaxReached"] === "True";
+}
+
 function getSkillName(level: number | null) {
   if (level === null) return "unknown";
   return SKILL_NAMES[level] ?? `level ${level}`;
@@ -494,8 +499,10 @@ export default function PlayerDetailsPanel({
           </div>
           <div className={styles.skillsGrid}>
             {SKILL_ROWS.map((row) => {
-              const current = getSkillLevel(detailsData.PlayerSkills?.[row.key]);
+              const skillNode = detailsData.PlayerSkills?.[row.key];
+              const current = getSkillLevel(skillNode);
               const max = getSkillMax(detailsData.PlayerSkills?.[row.maxKey]);
+              const isMaxed = getSkillMaxReached(skillNode);
               const hasCurrent = current !== null;
               const hasMax = max !== null;
               const currentText = hasCurrent
@@ -528,9 +535,19 @@ export default function PlayerDetailsPanel({
                       />
                     ) : null}
                   </div>
-                  <div className={styles.skillValue}>
-                    {currentText}/{maxText}
-                  </div>
+                  {isMaxed ? (
+                    <Tooltip content={messages.skillMaxedTooltip}>
+                      <div
+                        className={`${styles.skillValue} ${styles.skillValueMaxed}`}
+                      >
+                        {currentText}/{maxText}
+                      </div>
+                    </Tooltip>
+                  ) : (
+                    <div className={styles.skillValue}>
+                      {currentText}/{maxText}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -608,34 +625,46 @@ export default function PlayerDetailsPanel({
                   {SKILL_ROWS.map((skill) => {
                     const current = getSkillLevel(skills?.[skill.key]);
                     const max = getSkillMax(skills?.[skill.maxKey]);
+                    const isMaxed = getSkillMaxReached(skills?.[skill.key]);
                     const currentText =
                       current === null ? messages.unknownShort : String(current);
                     const maxText = max === null ? messages.unknownShort : String(max);
                     const currentColor = skillCellColor(current);
                     const maxColor = skillCellColor(max);
+                    const cellContent = (
+                      <div
+                        className={`${styles.skillsMatrixSplit} ${
+                          isMaxed ? styles.skillsMatrixMaxed : ""
+                        }`}
+                      >
+                        <span
+                          className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfLeft}`}
+                          style={
+                            currentColor
+                              ? { backgroundColor: currentColor }
+                              : undefined
+                          }
+                        >
+                          {currentText}
+                        </span>
+                        <span className={styles.skillsMatrixDivider}>/</span>
+                        <span
+                          className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfRight}`}
+                          style={maxColor ? { backgroundColor: maxColor } : undefined}
+                        >
+                          {maxText}
+                        </span>
+                      </div>
+                    );
                     return (
                       <td key={skill.key} className={styles.matrixCell}>
-                        <div className={styles.skillsMatrixSplit}>
-                          <span
-                            className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfLeft}`}
-                            style={
-                              currentColor
-                                ? { backgroundColor: currentColor }
-                                : undefined
-                            }
-                          >
-                            {currentText}
-                          </span>
-                          <span className={styles.skillsMatrixDivider}>/</span>
-                          <span
-                            className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfRight}`}
-                            style={
-                              maxColor ? { backgroundColor: maxColor } : undefined
-                            }
-                          >
-                            {maxText}
-                          </span>
-                        </div>
+                        {isMaxed ? (
+                          <Tooltip content={messages.skillMaxedTooltip}>
+                            {cellContent}
+                          </Tooltip>
+                        ) : (
+                          cellContent
+                        )}
                       </td>
                     );
                   })}

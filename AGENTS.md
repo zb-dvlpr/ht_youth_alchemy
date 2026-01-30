@@ -19,5 +19,8 @@
 ## Date/Time
 - Any new date/time display must use the shared date/time formatting framework.
 
+## Modals
+- All modal UI must use the shared modal framework/component.
+
 ## Clarification
 - If an instruction is unclear, ask clarifying questions before starting any coding.

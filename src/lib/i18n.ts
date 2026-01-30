@@ -18,6 +18,11 @@ export type Messages = {
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
+  behaviorNeutral: string;
+  behaviorOffensive: string;
+  behaviorDefensive: string;
+  behaviorTowardsMiddle: string;
+  behaviorTowardsWing: string;
   helpTitle: string;
   helpIntro: string;
   helpPurpose: string;
@@ -60,6 +65,32 @@ export type Messages = {
   ordersLabel: string;
   ordersSet: string;
   ordersNotSet: string;
+  matchTypeUnknown: string;
+  matchType1: string;
+  matchType2: string;
+  matchType3: string;
+  matchType4: string;
+  matchType5: string;
+  matchType6: string;
+  matchType7: string;
+  matchType8: string;
+  matchType9: string;
+  matchType10: string;
+  matchType11: string;
+  matchType12: string;
+  matchType50: string;
+  matchType51: string;
+  matchType61: string;
+  matchType62: string;
+  matchType80: string;
+  matchType100: string;
+  matchType101: string;
+  matchType102: string;
+  matchType103: string;
+  matchType104: string;
+  matchType105: string;
+  matchType106: string;
+  matchType107: string;
   submitOrders: string;
   submitOrdersPending: string;
   submitOrdersSuccess: string;
@@ -74,6 +105,19 @@ export type Messages = {
   randomizeLineup: string;
   resetLineup: string;
   optimizeLineupTitle: string;
+  optimizeMenuStar: string;
+  optimizeMenuRevealPrimaryCurrent: string;
+  optimizeMenuRevealPrimaryMax: string;
+  optimizeMenuRevealSecondaryCurrent: string;
+  optimizeMenuRevealSecondaryMax: string;
+  optimizeRevealPrimaryCurrentKnown: string;
+  optimizeRevealPrimaryCurrentUnavailable: string;
+  optimizeRevealPrimaryMaxKnown: string;
+  optimizeRevealPrimaryMaxUnavailable: string;
+  optimizeRevealSecondaryCurrentKnown: string;
+  optimizeRevealSecondaryCurrentUnavailable: string;
+  optimizeRevealSecondaryMaxKnown: string;
+  optimizeRevealSecondaryMaxUnavailable: string;
   optimizeLineupNeedsStar: string;
   optimizeLineupNeedsTraining: string;
   optimizeLineupNeedsKnownSkills: string;
@@ -102,6 +146,7 @@ export type Messages = {
   optimizerCat3: string;
   optimizerCat4: string;
   optimizerCatDontCare: string;
+  optimizerCatMaxed: string;
   optimizerSlotsPrimary: string;
   optimizerSlotsSecondary: string;
   optimizerSlotsAll: string;
@@ -113,6 +158,7 @@ export type Messages = {
   trainingReminderTitle: string;
   trainingReminderBody: string;
   trainingReminderConfirm: string;
+  tacticPlayCreatively: string;
   confirmCancel: string;
   confirmSubmit: string;
   loadLineup: string;
@@ -197,6 +243,7 @@ export type Messages = {
   specialtyResilient: string;
   specialtySupport: string;
   skillsLabel: string;
+  skillMaxedTooltip: string;
   unknownLabel: string;
   unknownShort: string;
   potentialLabel: string;
@@ -230,6 +277,10 @@ export type Messages = {
   connectedLabel: string;
   connectHint: string;
   disconnectLabel: string;
+  authExpiredTitle: string;
+  authExpiredBody: string;
+  authExpiredAction: string;
+  authExpiredDismiss: string;
   disconnectTitle: string;
   brandTitle: string;
   skillKeeper: string;
@@ -246,6 +297,13 @@ export type Messages = {
   skillPassingShort: string;
   skillScoringShort: string;
   skillSetPiecesShort: string;
+  benchKeeperLabel: string;
+  benchDefenderLabel: string;
+  benchWingBackLabel: string;
+  benchMidfieldLabel: string;
+  benchForwardLabel: string;
+  benchWingerLabel: string;
+  benchExtraLabel: string;
 };
 
 const MESSAGES: Record<Locale, Messages> = {
@@ -257,6 +315,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
+    behaviorNeutral: "Normal",
+    behaviorOffensive: "Offensive",
+    behaviorDefensive: "Defensive",
+    behaviorTowardsMiddle: "Towards middle",
+    behaviorTowardsWing: "Towards wing",
     helpTitle: "Welcome to Youth Alchemy",
     helpIntro:
       "This page is more than a viewer. It’s designed to help you build the most optimal lineup for your training plan.",
@@ -310,6 +373,32 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Orders",
     ordersSet: "Set",
     ordersNotSet: "Not set",
+    matchTypeUnknown: "Unknown",
+    matchType1: "League",
+    matchType2: "Qualification",
+    matchType3: "Cup",
+    matchType4: "Friendly",
+    matchType5: "Friendly (cup)",
+    matchType6: "Reserved",
+    matchType7: "Hattrick Masters",
+    matchType8: "Int’l friendly",
+    matchType9: "Int’l friendly (cup)",
+    matchType10: "NT competition",
+    matchType11: "NT competition (cup)",
+    matchType12: "NT friendly",
+    matchType50: "Tournament league",
+    matchType51: "Tournament playoff",
+    matchType61: "Duel",
+    matchType62: "Ladder",
+    matchType80: "Preparation",
+    matchType100: "Youth league",
+    matchType101: "Youth friendly",
+    matchType102: "Reserved",
+    matchType103: "Youth friendly (cup)",
+    matchType104: "Reserved",
+    matchType105: "Youth int’l friendly",
+    matchType106: "Youth int’l friendly (cup)",
+    matchType107: "Reserved",
     submitOrders: "Submit lineup",
     submitOrdersPending: "Submitting…",
     submitOrdersSuccess: "Orders submitted",
@@ -323,7 +412,28 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Submit the current lineup to Hattrick for this match.",
     randomizeLineup: "Random lineup",
     resetLineup: "Reset lineup",
-    optimizeLineupTitle: "Optimize lineup and trainings around star player",
+    optimizeLineupTitle: "Optimize lineup",
+    optimizeMenuStar: "Optimize around star player",
+    optimizeMenuRevealPrimaryCurrent: "Reveal star player pri. curr. value",
+    optimizeMenuRevealPrimaryMax: "Reveal star player pri. max. value",
+    optimizeMenuRevealSecondaryCurrent: "Reveal star player sec. curr. value",
+    optimizeMenuRevealSecondaryMax: "Reveal star player sec. max. value",
+    optimizeRevealPrimaryCurrentKnown:
+      "Reveal primary current unavailable: star primary current already known.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Reveal primary current unavailable. Select a star player and primary training.",
+    optimizeRevealPrimaryMaxKnown:
+      "Reveal primary max unavailable: star primary max already known.",
+    optimizeRevealPrimaryMaxUnavailable:
+      "Reveal primary max unavailable. Select a star player and primary training.",
+    optimizeRevealSecondaryCurrentKnown:
+      "Reveal secondary current unavailable: star secondary current already known.",
+    optimizeRevealSecondaryCurrentUnavailable:
+      "Reveal secondary current unavailable. Select a star player and secondary training.",
+    optimizeRevealSecondaryMaxKnown:
+      "Reveal secondary max unavailable: star secondary max already known.",
+    optimizeRevealSecondaryMaxUnavailable:
+      "Reveal secondary max unavailable. Select a star player and secondary training.",
     optimizeLineupNeedsStar: "Select a star player to optimize",
     optimizeLineupNeedsTraining: "Select both trainings to optimize",
     optimizeLineupNeedsKnownSkills: "Need known current+max skills to optimize",
@@ -352,6 +462,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Cat 3 (max only)",
     optimizerCat4: "Cat 4 (current only)",
     optimizerCatDontCare: "Don't care",
+    optimizerCatMaxed: "Maxed out",
     optimizerSlotsPrimary: "Primary slots",
     optimizerSlotsSecondary: "Secondary slots",
     optimizerSlotsAll: "All slots",
@@ -362,8 +473,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Please report this error to the developer.",
     trainingReminderTitle: "Training reminder",
     trainingReminderBody:
-      "After submitting, set primary training to {{primary}} and secondary training to {{secondary}} in Hattrick. This app can’t update training settings because the API doesn’t allow it.",
+      "After submitting, set primary training to {{primary}} and secondary training to {{secondary}} in Hattrick. Captain: {{captain}}. Tactic: {{tactic}}. This app can’t update training settings because the API doesn’t allow it.",
     trainingReminderConfirm: "I understand",
+    tacticPlayCreatively: "Play creatively",
     confirmCancel: "Cancel",
     confirmSubmit: "Submit",
     loadLineup: "Load lineup",
@@ -448,6 +560,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Resilient",
     specialtySupport: "Support",
     skillsLabel: "Skills",
+    skillMaxedTooltip: "Skill is maxed out",
     unknownLabel: "unknown",
     unknownShort: "?",
     potentialLabel: "potential",
@@ -482,6 +595,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectedLabel: "Connected",
     connectHint: "Use the Connect button in the top right to sign in again.",
     disconnectLabel: "Disconnect",
+    authExpiredTitle: "Session expired",
+    authExpiredBody:
+      "Your Hattrick authorization expired or was revoked. Reconnect to continue.",
+    authExpiredAction: "Reconnect",
+    authExpiredDismiss: "Dismiss",
     disconnectTitle: "Disconnect and revoke access",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Keeper",
@@ -498,6 +616,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "PAS",
     skillScoringShort: "SC",
     skillSetPiecesShort: "SP",
+    benchKeeperLabel: "GK",
+    benchDefenderLabel: "CD",
+    benchWingBackLabel: "WB",
+    benchMidfieldLabel: "IM",
+    benchForwardLabel: "FW",
+    benchWingerLabel: "W",
+    benchExtraLabel: "EX",
   },
   de: {
     languageLabel: "Sprache",
@@ -507,6 +632,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
+    behaviorNeutral: "Normal",
+    behaviorOffensive: "Offensiv",
+    behaviorDefensive: "Defensiv",
+    behaviorTowardsMiddle: "Zur Mitte",
+    behaviorTowardsWing: "Zum Flügel",
     helpTitle: "Willkommen bei Youth Alchemy",
     helpIntro:
       "Diese Seite ist mehr als eine Übersicht. Sie hilft dir, die optimale Aufstellung für dein Training zu finden.",
@@ -558,6 +688,32 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Anweisungen",
     ordersSet: "Gesetzt",
     ordersNotSet: "Nicht gesetzt",
+    matchTypeUnknown: "Unbekannt",
+    matchType1: "Liga",
+    matchType2: "Qualifikation",
+    matchType3: "Pokal",
+    matchType4: "Freundschaft",
+    matchType5: "Freundschaft (Pokal)",
+    matchType6: "Reserviert",
+    matchType7: "Hattrick Masters",
+    matchType8: "Int. Freundschaft",
+    matchType9: "Int. Freundschaft (Pokal)",
+    matchType10: "Nationalteam-Wettbewerb",
+    matchType11: "Nationalteam-Wettbewerb (Pokal)",
+    matchType12: "Nationalteam-Freundschaft",
+    matchType50: "Turnier Liga",
+    matchType51: "Turnier Playoff",
+    matchType61: "Duell",
+    matchType62: "Leiter",
+    matchType80: "Vorbereitung",
+    matchType100: "Jugendliga",
+    matchType101: "Jugendfreundschaft",
+    matchType102: "Reserviert",
+    matchType103: "Jugendfreundschaft (Pokal)",
+    matchType104: "Reserviert",
+    matchType105: "Jugend intl. Freundschaft",
+    matchType106: "Jugend intl. Freundschaft (Pokal)",
+    matchType107: "Reserviert",
     submitOrders: "Aufstellung senden",
     submitOrdersPending: "Wird gesendet…",
     submitOrdersSuccess: "Anweisungen gesendet",
@@ -571,7 +727,28 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Sendet die aktuelle Aufstellung an Hattrick für dieses Spiel.",
     randomizeLineup: "Zufällige Aufstellung",
     resetLineup: "Aufstellung zurücksetzen",
-    optimizeLineupTitle: "Aufstellung und Training um Starspieler optimieren",
+    optimizeLineupTitle: "Aufstellung optimieren",
+    optimizeMenuStar: "Um Starspieler optimieren",
+    optimizeMenuRevealPrimaryCurrent: "Starspieler Primärwert akt. aufdecken",
+    optimizeMenuRevealPrimaryMax: "Starspieler Primärwert max. aufdecken",
+    optimizeMenuRevealSecondaryCurrent: "Starspieler Sekundärwert akt. aufdecken",
+    optimizeMenuRevealSecondaryMax: "Starspieler Sekundärwert max. aufdecken",
+    optimizeRevealPrimaryCurrentKnown:
+      "Primärwert aufdecken nicht verfügbar: Primärwert des Stars ist bekannt.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Primärwert aufdecken nicht verfügbar. Starspieler und Primärtraining wählen.",
+    optimizeRevealPrimaryMaxKnown:
+      "Primärmax aufdecken nicht verfügbar: Primärmax des Stars ist bekannt.",
+    optimizeRevealPrimaryMaxUnavailable:
+      "Primärmax aufdecken nicht verfügbar. Starspieler und Primärtraining wählen.",
+    optimizeRevealSecondaryCurrentKnown:
+      "Sekundärwert aufdecken nicht verfügbar: Sekundärwert des Stars ist bekannt.",
+    optimizeRevealSecondaryCurrentUnavailable:
+      "Sekundärwert aufdecken nicht verfügbar. Starspieler und Sekundärtraining wählen.",
+    optimizeRevealSecondaryMaxKnown:
+      "Sekundärmax aufdecken nicht verfügbar: Sekundärmax des Stars ist bekannt.",
+    optimizeRevealSecondaryMaxUnavailable:
+      "Sekundärmax aufdecken nicht verfügbar. Starspieler und Sekundärtraining wählen.",
     optimizeLineupNeedsStar: "Starspieler auswählen, um zu optimieren",
     optimizeLineupNeedsTraining: "Beide Trainings auswählen, um zu optimieren",
     optimizeLineupNeedsKnownSkills: "Bekannte Ist+Max-Werte erforderlich",
@@ -601,6 +778,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Kat 3 (nur max)",
     optimizerCat4: "Kat 4 (nur aktuell)",
     optimizerCatDontCare: "Egal",
+    optimizerCatMaxed: "Ausgereizt",
     optimizerSlotsPrimary: "Primärpositionen",
     optimizerSlotsSecondary: "Sekundärpositionen",
     optimizerSlotsAll: "Alle Positionen",
@@ -611,8 +789,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Bitte melden Sie diesen Fehler dem Entwickler.",
     trainingReminderTitle: "Training-Hinweis",
     trainingReminderBody:
-      "Nach dem Absenden stelle Primärtraining auf {{primary}} und Sekundärtraining auf {{secondary}} in Hattrick. Diese App kann die Trainingseinstellungen nicht ändern, da die API es nicht erlaubt.",
+      "Nach dem Absenden stelle Primärtraining auf {{primary}} und Sekundärtraining auf {{secondary}} in Hattrick. Kapitän: {{captain}}. Taktik: {{tactic}}. Diese App kann die Trainingseinstellungen nicht ändern, da die API es nicht erlaubt.",
     trainingReminderConfirm: "Ich verstehe",
+    tacticPlayCreatively: "Kreativ spielen",
     confirmCancel: "Abbrechen",
     confirmSubmit: "Senden",
     loadLineup: "Aufstellung laden",
@@ -697,6 +876,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Widerstandsfähig",
     specialtySupport: "Unterstützend",
     skillsLabel: "Fähigkeiten",
+    skillMaxedTooltip: "Fähigkeit ist ausgereizt",
     unknownLabel: "unbekannt",
     unknownShort: "?",
     potentialLabel: "Potenzial",
@@ -731,6 +911,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectedLabel: "Verbunden",
     connectHint: "Nutze den Verbinden-Button oben rechts, um dich erneut anzumelden.",
     disconnectLabel: "Trennen",
+    authExpiredTitle: "Sitzung abgelaufen",
+    authExpiredBody:
+      "Deine Hattrick-Autorisierung ist abgelaufen oder wurde entzogen. Bitte erneut verbinden.",
+    authExpiredAction: "Erneut verbinden",
+    authExpiredDismiss: "Schließen",
     disconnectTitle: "Trennen und Zugriff widerrufen",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Torwart",
@@ -747,6 +932,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "P",
     skillScoringShort: "TS",
     skillSetPiecesShort: "ST",
+    benchKeeperLabel: "TW",
+    benchDefenderLabel: "IV",
+    benchWingBackLabel: "AV",
+    benchMidfieldLabel: "ZM",
+    benchForwardLabel: "ST",
+    benchWingerLabel: "F",
+    benchExtraLabel: "EX",
   },
   fr: {
     languageLabel: "Langue",
@@ -756,6 +948,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
+    behaviorNeutral: "Normal",
+    behaviorOffensive: "Offensif",
+    behaviorDefensive: "Défensif",
+    behaviorTowardsMiddle: "Vers le centre",
+    behaviorTowardsWing: "Vers l’aile",
     helpTitle: "Bienvenue dans Youth Alchemy",
     helpIntro:
       "Cette page n’est pas seulement un lecteur. Elle sert surtout à optimiser votre onze pour l’entraînement.",
@@ -809,6 +1006,32 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Ordres",
     ordersSet: "Définis",
     ordersNotSet: "Non définis",
+    matchTypeUnknown: "Inconnu",
+    matchType1: "Ligue",
+    matchType2: "Qualification",
+    matchType3: "Coupe",
+    matchType4: "Amical",
+    matchType5: "Amical (coupe)",
+    matchType6: "Réservé",
+    matchType7: "Hattrick Masters",
+    matchType8: "Amical int.",
+    matchType9: "Amical int. (coupe)",
+    matchType10: "Compétition NT",
+    matchType11: "Compétition NT (coupe)",
+    matchType12: "Amical NT",
+    matchType50: "Tournoi ligue",
+    matchType51: "Tournoi playoff",
+    matchType61: "Duel",
+    matchType62: "Échelle",
+    matchType80: "Préparation",
+    matchType100: "Ligue jeunes",
+    matchType101: "Amical jeunes",
+    matchType102: "Réservé",
+    matchType103: "Amical jeunes (coupe)",
+    matchType104: "Réservé",
+    matchType105: "Amical jeunes int.",
+    matchType106: "Amical jeunes int. (coupe)",
+    matchType107: "Réservé",
     submitOrders: "Envoyer la composition",
     submitOrdersPending: "Envoi…",
     submitOrdersSuccess: "Ordres envoyés",
@@ -822,8 +1045,32 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Envoie la composition actuelle à Hattrick pour ce match.",
     randomizeLineup: "Composition aléatoire",
     resetLineup: "Réinitialiser la composition",
-    optimizeLineupTitle:
-      "Optimiser la composition et l'entraînement autour du joueur star",
+    optimizeLineupTitle: "Optimiser la composition",
+    optimizeMenuStar: "Optimiser autour du joueur star",
+    optimizeMenuRevealPrimaryCurrent:
+      "Révéler val. act. prim. du joueur star",
+    optimizeMenuRevealPrimaryMax:
+      "Révéler val. max. prim. du joueur star",
+    optimizeMenuRevealSecondaryCurrent:
+      "Révéler val. act. sec. du joueur star",
+    optimizeMenuRevealSecondaryMax:
+      "Révéler val. max. sec. du joueur star",
+    optimizeRevealPrimaryCurrentKnown:
+      "Révélation indisponible : valeur primaire actuelle déjà connue.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Révélation indisponible. Sélectionnez un joueur star et un entraînement primaire.",
+    optimizeRevealPrimaryMaxKnown:
+      "Révélation indisponible : valeur primaire max déjà connue.",
+    optimizeRevealPrimaryMaxUnavailable:
+      "Révélation indisponible. Sélectionnez un joueur star et un entraînement primaire.",
+    optimizeRevealSecondaryCurrentKnown:
+      "Révélation indisponible : valeur secondaire actuelle déjà connue.",
+    optimizeRevealSecondaryCurrentUnavailable:
+      "Révélation indisponible. Sélectionnez un joueur star et un entraînement secondaire.",
+    optimizeRevealSecondaryMaxKnown:
+      "Révélation indisponible : valeur secondaire max déjà connue.",
+    optimizeRevealSecondaryMaxUnavailable:
+      "Révélation indisponible. Sélectionnez un joueur star et un entraînement secondaire.",
     optimizeLineupNeedsStar: "Sélectionnez un joueur star pour optimiser",
     optimizeLineupNeedsTraining:
       "Sélectionnez les deux entraînements pour optimiser",
@@ -854,6 +1101,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Cat 3 (max uniquement)",
     optimizerCat4: "Cat 4 (actuel uniquement)",
     optimizerCatDontCare: "Peu importe",
+    optimizerCatMaxed: "Max atteint",
     optimizerSlotsPrimary: "Postes principaux",
     optimizerSlotsSecondary: "Postes secondaires",
     optimizerSlotsAll: "Tous les postes",
@@ -864,8 +1112,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Veuillez signaler cette erreur au développeur.",
     trainingReminderTitle: "Rappel d’entraînement",
     trainingReminderBody:
-      "Après l’envoi, définissez l’entraînement principal sur {{primary}} et le secondaire sur {{secondary}} dans Hattrick. Cette app ne peut pas modifier ces réglages car l’API ne le permet pas.",
+      "Après l’envoi, définissez l’entraînement principal sur {{primary}} et le secondaire sur {{secondary}} dans Hattrick. Capitaine : {{captain}}. Tactique : {{tactic}}. Cette app ne peut pas modifier ces réglages car l’API ne le permet pas.",
     trainingReminderConfirm: "J’ai compris",
+    tacticPlayCreatively: "Jouer créatif",
     confirmCancel: "Annuler",
     confirmSubmit: "Envoyer",
     loadLineup: "Charger la composition",
@@ -950,6 +1199,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Résistant",
     specialtySupport: "Soutien",
     skillsLabel: "Compétences",
+    skillMaxedTooltip: "Compétence au maximum",
     unknownLabel: "inconnu",
     unknownShort: "?",
     potentialLabel: "potentiel",
@@ -985,6 +1235,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectHint:
       "Utilisez le bouton Connecter en haut à droite pour vous reconnecter.",
     disconnectLabel: "Déconnecter",
+    authExpiredTitle: "Session expirée",
+    authExpiredBody:
+      "Votre autorisation Hattrick a expiré ou a été révoquée. Reconnectez-vous pour continuer.",
+    authExpiredAction: "Reconnecter",
+    authExpiredDismiss: "Fermer",
     disconnectTitle: "Déconnecter et révoquer l’accès",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Gardien",
@@ -1001,6 +1256,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "PAS",
     skillScoringShort: "BUT",
     skillSetPiecesShort: "CF",
+    benchKeeperLabel: "GB",
+    benchDefenderLabel: "DC",
+    benchWingBackLabel: "AD",
+    benchMidfieldLabel: "MC",
+    benchForwardLabel: "AV",
+    benchWingerLabel: "A",
+    benchExtraLabel: "EX",
   },
   es: {
     languageLabel: "Idioma",
@@ -1010,6 +1272,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
+    behaviorNeutral: "Normal",
+    behaviorOffensive: "Ofensivo",
+    behaviorDefensive: "Defensivo",
+    behaviorTowardsMiddle: "Hacia el centro",
+    behaviorTowardsWing: "Hacia la banda",
     helpTitle: "Bienvenido a Youth Alchemy",
     helpIntro:
       "Esta página no es solo un visor. Su objetivo principal es optimizar tu once para el entrenamiento.",
@@ -1063,6 +1330,32 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Órdenes",
     ordersSet: "Configuradas",
     ordersNotSet: "No configuradas",
+    matchTypeUnknown: "Desconocido",
+    matchType1: "Liga",
+    matchType2: "Clasificación",
+    matchType3: "Copa",
+    matchType4: "Amistoso",
+    matchType5: "Amistoso (copa)",
+    matchType6: "Reservado",
+    matchType7: "Hattrick Masters",
+    matchType8: "Amistoso int.",
+    matchType9: "Amistoso int. (copa)",
+    matchType10: "Competición selecciones",
+    matchType11: "Competición selecciones (copa)",
+    matchType12: "Amistoso selecciones",
+    matchType50: "Torneo liga",
+    matchType51: "Torneo playoff",
+    matchType61: "Duelo",
+    matchType62: "Escalera",
+    matchType80: "Preparación",
+    matchType100: "Liga juvenil",
+    matchType101: "Amistoso juvenil",
+    matchType102: "Reservado",
+    matchType103: "Amistoso juvenil (copa)",
+    matchType104: "Reservado",
+    matchType105: "Amistoso juvenil int.",
+    matchType106: "Amistoso juvenil int. (copa)",
+    matchType107: "Reservado",
     submitOrders: "Enviar alineación",
     submitOrdersPending: "Enviando…",
     submitOrdersSuccess: "Órdenes enviadas",
@@ -1076,8 +1369,28 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Envía la alineación actual a Hattrick para este partido.",
     randomizeLineup: "Alineación aleatoria",
     resetLineup: "Restablecer alineación",
-    optimizeLineupTitle:
-      "Optimizar alineación y entrenamientos alrededor del jugador estrella",
+    optimizeLineupTitle: "Optimizar alineación",
+    optimizeMenuStar: "Optimizar alrededor del jugador estrella",
+    optimizeMenuRevealPrimaryCurrent: "Revelar val. act. prim. del estrella",
+    optimizeMenuRevealPrimaryMax: "Revelar val. máx. prim. del estrella",
+    optimizeMenuRevealSecondaryCurrent: "Revelar val. act. sec. del estrella",
+    optimizeMenuRevealSecondaryMax: "Revelar val. máx. sec. del estrella",
+    optimizeRevealPrimaryCurrentKnown:
+      "Revelar primario actual no disponible: ya se conoce.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Revelar primario actual no disponible. Elige jugador estrella y entrenamiento primario.",
+    optimizeRevealPrimaryMaxKnown:
+      "Revelar primario máx. no disponible: ya se conoce.",
+    optimizeRevealPrimaryMaxUnavailable:
+      "Revelar primario máx. no disponible. Elige jugador estrella y entrenamiento primario.",
+    optimizeRevealSecondaryCurrentKnown:
+      "Revelar secundario actual no disponible: ya se conoce.",
+    optimizeRevealSecondaryCurrentUnavailable:
+      "Revelar secundario actual no disponible. Elige jugador estrella y entrenamiento secundario.",
+    optimizeRevealSecondaryMaxKnown:
+      "Revelar secundario máx. no disponible: ya se conoce.",
+    optimizeRevealSecondaryMaxUnavailable:
+      "Revelar secundario máx. no disponible. Elige jugador estrella y entrenamiento secundario.",
     optimizeLineupNeedsStar: "Elige un jugador estrella para optimizar",
     optimizeLineupNeedsTraining:
       "Elige ambos entrenamientos para optimizar",
@@ -1108,6 +1421,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Cat 3 (solo máx.)",
     optimizerCat4: "Cat 4 (solo actual)",
     optimizerCatDontCare: "No importa",
+    optimizerCatMaxed: "Al máximo",
     optimizerSlotsPrimary: "Puestos primarios",
     optimizerSlotsSecondary: "Puestos secundarios",
     optimizerSlotsAll: "Todos los puestos",
@@ -1118,8 +1432,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Por favor, informe este error al desarrollador.",
     trainingReminderTitle: "Aviso de entrenamiento",
     trainingReminderBody:
-      "Tras enviar, define el entrenamiento primario en {{primary}} y el secundario en {{secondary}} en Hattrick. Esta app no puede cambiar la configuración porque la API no lo permite.",
+      "Tras enviar, define el entrenamiento primario en {{primary}} y el secundario en {{secondary}} en Hattrick. Capitán: {{captain}}. Táctica: {{tactic}}. Esta app no puede cambiar la configuración porque la API no lo permite.",
     trainingReminderConfirm: "Entendido",
+    tacticPlayCreatively: "Jugar creativo",
     confirmCancel: "Cancelar",
     confirmSubmit: "Enviar",
     loadLineup: "Cargar alineación",
@@ -1204,6 +1519,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Resistente",
     specialtySupport: "Apoyo",
     skillsLabel: "Habilidades",
+    skillMaxedTooltip: "Habilidad al máximo",
     unknownLabel: "desconocido",
     unknownShort: "?",
     potentialLabel: "potencial",
@@ -1239,6 +1555,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectHint:
       "Usa el botón Conectar en la esquina superior derecha para volver a iniciar sesión.",
     disconnectLabel: "Desconectar",
+    authExpiredTitle: "Sesión caducada",
+    authExpiredBody:
+      "Tu autorización de Hattrick caducó o fue revocada. Vuelve a conectar para continuar.",
+    authExpiredAction: "Reconectar",
+    authExpiredDismiss: "Cerrar",
     disconnectTitle: "Desconectar y revocar el acceso",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Portero",
@@ -1255,6 +1576,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "PAS",
     skillScoringShort: "GOL",
     skillSetPiecesShort: "BP",
+    benchKeeperLabel: "POR",
+    benchDefenderLabel: "DC",
+    benchWingBackLabel: "LD",
+    benchMidfieldLabel: "MC",
+    benchForwardLabel: "DEL",
+    benchWingerLabel: "EXT",
+    benchExtraLabel: "EX",
   },
   sv: {
     languageLabel: "Språk",
@@ -1264,6 +1592,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
+    behaviorNeutral: "Normal",
+    behaviorOffensive: "Offensiv",
+    behaviorDefensive: "Defensiv",
+    behaviorTowardsMiddle: "Mot mitten",
+    behaviorTowardsWing: "Mot kanten",
     helpTitle: "Välkommen till Youth Alchemy",
     helpIntro:
       "Den här sidan är mer än en vy. Den hjälper dig att optimera startelvan för träningen.",
@@ -1316,6 +1649,32 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Order",
     ordersSet: "Satta",
     ordersNotSet: "Inte satta",
+    matchTypeUnknown: "Okänd",
+    matchType1: "Liga",
+    matchType2: "Kval",
+    matchType3: "Cup",
+    matchType4: "Träningsmatch",
+    matchType5: "Träningsmatch (cup)",
+    matchType6: "Reserverad",
+    matchType7: "Hattrick Masters",
+    matchType8: "Internat. träningsmatch",
+    matchType9: "Internat. träningsmatch (cup)",
+    matchType10: "Landslagsmatch",
+    matchType11: "Landslagsmatch (cup)",
+    matchType12: "Landslag vänskap",
+    matchType50: "Turneringsliga",
+    matchType51: "Turneringsplayoff",
+    matchType61: "Duell",
+    matchType62: "Stege",
+    matchType80: "Förberedelse",
+    matchType100: "Ungdomsliga",
+    matchType101: "Ungdomsträningsmatch",
+    matchType102: "Reserverad",
+    matchType103: "Ungdomsträningsmatch (cup)",
+    matchType104: "Reserverad",
+    matchType105: "Ungdom int. träningsmatch",
+    matchType106: "Ungdom int. träningsmatch (cup)",
+    matchType107: "Reserverad",
     submitOrders: "Skicka uppställning",
     submitOrdersPending: "Skickar…",
     submitOrdersSuccess: "Order skickade",
@@ -1329,8 +1688,28 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Skickar den aktuella uppställningen till Hattrick för matchen.",
     randomizeLineup: "Slumpa uppställning",
     resetLineup: "Återställ uppställning",
-    optimizeLineupTitle:
-      "Optimera uppställning och träning runt stjärnspelaren",
+    optimizeLineupTitle: "Optimera uppställning",
+    optimizeMenuStar: "Optimera runt stjärnspelaren",
+    optimizeMenuRevealPrimaryCurrent: "Avslöja stjärnans primärvärde (akt.)",
+    optimizeMenuRevealPrimaryMax: "Avslöja stjärnans primärvärde (max.)",
+    optimizeMenuRevealSecondaryCurrent: "Avslöja stjärnans sekundärvärde (akt.)",
+    optimizeMenuRevealSecondaryMax: "Avslöja stjärnans sekundärvärde (max.)",
+    optimizeRevealPrimaryCurrentKnown:
+      "Avslöjande ej tillgängligt: stjärnans primärvärde är redan känt.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Avslöjande ej tillgängligt. Välj stjärnspelare och primärträning.",
+    optimizeRevealPrimaryMaxKnown:
+      "Avslöjande ej tillgängligt: stjärnans primärmax är redan känt.",
+    optimizeRevealPrimaryMaxUnavailable:
+      "Avslöjande ej tillgängligt. Välj stjärnspelare och primärträning.",
+    optimizeRevealSecondaryCurrentKnown:
+      "Avslöjande ej tillgängligt: stjärnans sekundärvärde är redan känt.",
+    optimizeRevealSecondaryCurrentUnavailable:
+      "Avslöjande ej tillgängligt. Välj stjärnspelare och sekundärträning.",
+    optimizeRevealSecondaryMaxKnown:
+      "Avslöjande ej tillgängligt: stjärnans sekundärmax är redan känt.",
+    optimizeRevealSecondaryMaxUnavailable:
+      "Avslöjande ej tillgängligt. Välj stjärnspelare och sekundärträning.",
     optimizeLineupNeedsStar: "Välj en stjärnspelare för att optimera",
     optimizeLineupNeedsTraining: "Välj båda träningarna för att optimera",
     optimizeLineupNeedsKnownSkills: "Kända nuvarande+maxvärden krävs",
@@ -1360,6 +1739,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Kat 3 (endast max)",
     optimizerCat4: "Kat 4 (endast nuvarande)",
     optimizerCatDontCare: "Spelar ingen roll",
+    optimizerCatMaxed: "Maxat",
     optimizerSlotsPrimary: "Primära platser",
     optimizerSlotsSecondary: "Sekundära platser",
     optimizerSlotsAll: "Alla platser",
@@ -1370,8 +1750,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Rapportera gärna felet till utvecklaren.",
     trainingReminderTitle: "Träningspåminnelse",
     trainingReminderBody:
-      "Efter att du skickat in, ställ in primär träning till {{primary}} och sekundär till {{secondary}} i Hattrick. Appen kan inte ändra träningsinställningar eftersom API:t inte tillåter det.",
+      "Efter att du skickat in, ställ in primär träning till {{primary}} och sekundär till {{secondary}} i Hattrick. Kapten: {{captain}}. Taktik: {{tactic}}. Appen kan inte ändra träningsinställningar eftersom API:t inte tillåter det.",
     trainingReminderConfirm: "Jag förstår",
+    tacticPlayCreatively: "Spela kreativt",
     confirmCancel: "Avbryt",
     confirmSubmit: "Skicka",
     loadLineup: "Ladda uppställning",
@@ -1456,6 +1837,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Motståndskraftig",
     specialtySupport: "Stödjande",
     skillsLabel: "Färdigheter",
+    skillMaxedTooltip: "Färdighet är maxad",
     unknownLabel: "okänd",
     unknownShort: "?",
     potentialLabel: "potential",
@@ -1491,6 +1873,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectHint:
       "Använd knappen Anslut uppe till höger för att logga in igen.",
     disconnectLabel: "Koppla från",
+    authExpiredTitle: "Sessionen har gått ut",
+    authExpiredBody:
+      "Din Hattrick-auktorisering har gått ut eller återkallats. Anslut igen för att fortsätta.",
+    authExpiredAction: "Anslut igen",
+    authExpiredDismiss: "Stäng",
     disconnectTitle: "Koppla från och återkalla åtkomst",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Målvakt",
@@ -1507,6 +1894,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "PAS",
     skillScoringShort: "MÅL",
     skillSetPiecesShort: "FA",
+    benchKeeperLabel: "MV",
+    benchDefenderLabel: "MB",
+    benchWingBackLabel: "VB",
+    benchMidfieldLabel: "MF",
+    benchForwardLabel: "F",
+    benchWingerLabel: "Y",
+    benchExtraLabel: "EX",
   },
   it: {
     languageLabel: "Lingua",
@@ -1516,6 +1910,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
+    behaviorNeutral: "Normale",
+    behaviorOffensive: "Offensivo",
+    behaviorDefensive: "Difensivo",
+    behaviorTowardsMiddle: "Verso il centro",
+    behaviorTowardsWing: "Verso la fascia",
     helpTitle: "Benvenuto in Youth Alchemy",
     helpIntro:
       "Questa pagina non è solo una vista. Serve a ottimizzare l’undici per l’allenamento.",
@@ -1569,6 +1968,32 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Ordini",
     ordersSet: "Impostate",
     ordersNotSet: "Non impostate",
+    matchTypeUnknown: "Sconosciuto",
+    matchType1: "Lega",
+    matchType2: "Qualificazione",
+    matchType3: "Coppa",
+    matchType4: "Amichevole",
+    matchType5: "Amichevole (coppa)",
+    matchType6: "Riservato",
+    matchType7: "Hattrick Masters",
+    matchType8: "Amichevole int.",
+    matchType9: "Amichevole int. (coppa)",
+    matchType10: "Competizione NT",
+    matchType11: "Competizione NT (coppa)",
+    matchType12: "Amichevole NT",
+    matchType50: "Torneo lega",
+    matchType51: "Torneo playoff",
+    matchType61: "Duello",
+    matchType62: "Scala",
+    matchType80: "Preparazione",
+    matchType100: "Lega giovanile",
+    matchType101: "Amichevole giovanile",
+    matchType102: "Riservato",
+    matchType103: "Amichevole giovanile (coppa)",
+    matchType104: "Riservato",
+    matchType105: "Amichevole giovanile int.",
+    matchType106: "Amichevole giovanile int. (coppa)",
+    matchType107: "Riservato",
     submitOrders: "Invia formazione",
     submitOrdersPending: "Invio…",
     submitOrdersSuccess: "Ordini inviati",
@@ -1582,8 +2007,28 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Invia la formazione attuale a Hattrick per questa partita.",
     randomizeLineup: "Formazione casuale",
     resetLineup: "Reimposta formazione",
-    optimizeLineupTitle:
-      "Ottimizza formazione e allenamenti attorno al giocatore stella",
+    optimizeLineupTitle: "Ottimizza formazione",
+    optimizeMenuStar: "Ottimizza attorno al giocatore stella",
+    optimizeMenuRevealPrimaryCurrent: "Rivela val. attuale prim. stella",
+    optimizeMenuRevealPrimaryMax: "Rivela val. max. prim. stella",
+    optimizeMenuRevealSecondaryCurrent: "Rivela val. attuale sec. stella",
+    optimizeMenuRevealSecondaryMax: "Rivela val. max. sec. stella",
+    optimizeRevealPrimaryCurrentKnown:
+      "Rivelazione non disponibile: valore primario già noto.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Rivelazione non disponibile. Seleziona stella e allenamento primario.",
+    optimizeRevealPrimaryMaxKnown:
+      "Rivelazione non disponibile: valore primario max già noto.",
+    optimizeRevealPrimaryMaxUnavailable:
+      "Rivelazione non disponibile. Seleziona stella e allenamento primario.",
+    optimizeRevealSecondaryCurrentKnown:
+      "Rivelazione non disponibile: valore secondario già noto.",
+    optimizeRevealSecondaryCurrentUnavailable:
+      "Rivelazione non disponibile. Seleziona stella e allenamento secondario.",
+    optimizeRevealSecondaryMaxKnown:
+      "Rivelazione non disponibile: valore secondario max già noto.",
+    optimizeRevealSecondaryMaxUnavailable:
+      "Rivelazione non disponibile. Seleziona stella e allenamento secondario.",
     optimizeLineupNeedsStar: "Seleziona un giocatore stella per ottimizzare",
     optimizeLineupNeedsTraining:
       "Seleziona entrambi gli allenamenti per ottimizzare",
@@ -1614,6 +2059,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Cat 3 (solo max)",
     optimizerCat4: "Cat 4 (solo attuale)",
     optimizerCatDontCare: "Non importa",
+    optimizerCatMaxed: "Al massimo",
     optimizerSlotsPrimary: "Posti primari",
     optimizerSlotsSecondary: "Posti secondari",
     optimizerSlotsAll: "Tutti i posti",
@@ -1624,8 +2070,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Segnala questo errore allo sviluppatore.",
     trainingReminderTitle: "Promemoria allenamento",
     trainingReminderBody:
-      "Dopo l’invio, imposta l’allenamento primario su {{primary}} e il secondario su {{secondary}} in Hattrick. Questa app non può modificare le impostazioni perché l’API non lo consente.",
+      "Dopo l’invio, imposta l’allenamento primario su {{primary}} e il secondario su {{secondary}} in Hattrick. Capitano: {{captain}}. Tattica: {{tactic}}. Questa app non può modificare le impostazioni perché l’API non lo consente.",
     trainingReminderConfirm: "Ho capito",
+    tacticPlayCreatively: "Giocare creativo",
     confirmCancel: "Annulla",
     confirmSubmit: "Invia",
     loadLineup: "Carica formazione",
@@ -1710,6 +2157,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Resistente",
     specialtySupport: "Supporto",
     skillsLabel: "Abilità",
+    skillMaxedTooltip: "Abilità al massimo",
     unknownLabel: "sconosciuto",
     unknownShort: "?",
     potentialLabel: "potenziale",
@@ -1745,6 +2193,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectHint:
       "Usa il pulsante Connetti in alto a destra per accedere di nuovo.",
     disconnectLabel: "Disconnetti",
+    authExpiredTitle: "Sessione scaduta",
+    authExpiredBody:
+      "La tua autorizzazione Hattrick è scaduta o è stata revocata. Riconnettiti per continuare.",
+    authExpiredAction: "Riconnetti",
+    authExpiredDismiss: "Chiudi",
     disconnectTitle: "Disconnetti e revoca l’accesso",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Portiere",
@@ -1761,6 +2214,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "PAS",
     skillScoringShort: "FIN",
     skillSetPiecesShort: "CP",
+    benchKeeperLabel: "POR",
+    benchDefenderLabel: "DC",
+    benchWingBackLabel: "TS",
+    benchMidfieldLabel: "MC",
+    benchForwardLabel: "P",
+    benchWingerLabel: "A",
+    benchExtraLabel: "EX",
   },
   pt: {
     languageLabel: "Idioma",
@@ -1770,6 +2230,11 @@ const MESSAGES: Record<Locale, Messages> = {
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
+    behaviorNeutral: "Normal",
+    behaviorOffensive: "Ofensivo",
+    behaviorDefensive: "Defensivo",
+    behaviorTowardsMiddle: "Para o meio",
+    behaviorTowardsWing: "Para a ala",
     helpTitle: "Bem-vindo ao Youth Alchemy",
     helpIntro:
       "Esta página é mais do que um visor. Ela ajuda a otimizar o onze para o treino.",
@@ -1823,6 +2288,32 @@ const MESSAGES: Record<Locale, Messages> = {
     ordersLabel: "Ordens",
     ordersSet: "Definidas",
     ordersNotSet: "Não definidas",
+    matchTypeUnknown: "Desconhecido",
+    matchType1: "Liga",
+    matchType2: "Qualificação",
+    matchType3: "Taça",
+    matchType4: "Amigável",
+    matchType5: "Amigável (taça)",
+    matchType6: "Reservado",
+    matchType7: "Hattrick Masters",
+    matchType8: "Amigável int.",
+    matchType9: "Amigável int. (taça)",
+    matchType10: "Competição NT",
+    matchType11: "Competição NT (taça)",
+    matchType12: "Amigável NT",
+    matchType50: "Torneio liga",
+    matchType51: "Torneio playoff",
+    matchType61: "Duelo",
+    matchType62: "Escada",
+    matchType80: "Preparação",
+    matchType100: "Liga juvenil",
+    matchType101: "Amigável juvenil",
+    matchType102: "Reservado",
+    matchType103: "Amigável juvenil (taça)",
+    matchType104: "Reservado",
+    matchType105: "Amigável juvenil int.",
+    matchType106: "Amigável juvenil int. (taça)",
+    matchType107: "Reservado",
     submitOrders: "Enviar escalação",
     submitOrdersPending: "Enviando…",
     submitOrdersSuccess: "Ordens enviadas",
@@ -1836,8 +2327,28 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersTooltip: "Envia a escalação atual ao Hattrick para esta partida.",
     randomizeLineup: "Escalação aleatória",
     resetLineup: "Redefinir escalação",
-    optimizeLineupTitle:
-      "Otimizar escalação e treinos em torno do jogador estrela",
+    optimizeLineupTitle: "Otimizar escalação",
+    optimizeMenuStar: "Otimizar em torno do jogador estrela",
+    optimizeMenuRevealPrimaryCurrent: "Revelar val. atual prim. da estrela",
+    optimizeMenuRevealPrimaryMax: "Revelar val. máx. prim. da estrela",
+    optimizeMenuRevealSecondaryCurrent: "Revelar val. atual sec. da estrela",
+    optimizeMenuRevealSecondaryMax: "Revelar val. máx. sec. da estrela",
+    optimizeRevealPrimaryCurrentKnown:
+      "Revelação indisponível: valor primário já conhecido.",
+    optimizeRevealPrimaryCurrentUnavailable:
+      "Revelação indisponível. Selecione estrela e treino primário.",
+    optimizeRevealPrimaryMaxKnown:
+      "Revelação indisponível: valor primário max já conhecido.",
+    optimizeRevealPrimaryMaxUnavailable:
+      "Revelação indisponível. Selecione estrela e treino primário.",
+    optimizeRevealSecondaryCurrentKnown:
+      "Revelação indisponível: valor secundário já conhecido.",
+    optimizeRevealSecondaryCurrentUnavailable:
+      "Revelação indisponível. Selecione estrela e treino secundário.",
+    optimizeRevealSecondaryMaxKnown:
+      "Revelação indisponível: valor secundário max já conhecido.",
+    optimizeRevealSecondaryMaxUnavailable:
+      "Revelação indisponível. Selecione estrela e treino secundário.",
     optimizeLineupNeedsStar: "Selecione um jogador estrela para otimizar",
     optimizeLineupNeedsTraining:
       "Selecione ambos os treinos para otimizar",
@@ -1868,6 +2379,7 @@ const MESSAGES: Record<Locale, Messages> = {
     optimizerCat3: "Cat 3 (apenas máx.)",
     optimizerCat4: "Cat 4 (apenas atual)",
     optimizerCatDontCare: "Não importa",
+    optimizerCatMaxed: "No máximo",
     optimizerSlotsPrimary: "Vagas primárias",
     optimizerSlotsSecondary: "Vagas secundárias",
     optimizerSlotsAll: "Todas as vagas",
@@ -1878,8 +2390,9 @@ const MESSAGES: Record<Locale, Messages> = {
     submitOrdersReport: "Informe este erro ao desenvolvedor.",
     trainingReminderTitle: "Aviso de treino",
     trainingReminderBody:
-      "Após enviar, defina o treino primário como {{primary}} e o secundário como {{secondary}} no Hattrick. Esta app não pode alterar as configurações porque a API não permite.",
+      "Após enviar, defina o treino primário como {{primary}} e o secundário como {{secondary}} no Hattrick. Capitão: {{captain}}. Tática: {{tactic}}. Esta app não pode alterar as configurações porque a API não permite.",
     trainingReminderConfirm: "Entendi",
+    tacticPlayCreatively: "Jogar criativamente",
     confirmCancel: "Cancelar",
     confirmSubmit: "Enviar",
     loadLineup: "Carregar escalação",
@@ -1964,6 +2477,7 @@ const MESSAGES: Record<Locale, Messages> = {
     specialtyResilient: "Resistente",
     specialtySupport: "Apoio",
     skillsLabel: "Habilidades",
+    skillMaxedTooltip: "Habilidade no máximo",
     unknownLabel: "desconhecido",
     unknownShort: "?",
     potentialLabel: "potencial",
@@ -1999,6 +2513,11 @@ const MESSAGES: Record<Locale, Messages> = {
     connectHint:
       "Use o botão Conectar no canto superior direito para entrar novamente.",
     disconnectLabel: "Desconectar",
+    authExpiredTitle: "Sessão expirada",
+    authExpiredBody:
+      "Sua autorização do Hattrick expirou ou foi revogada. Reconecte para continuar.",
+    authExpiredAction: "Reconectar",
+    authExpiredDismiss: "Fechar",
     disconnectTitle: "Desconectar e revogar acesso",
     brandTitle: "Hattrick Youth Alchemy",
     skillKeeper: "Goleiro",
@@ -2015,6 +2534,13 @@ const MESSAGES: Record<Locale, Messages> = {
     skillPassingShort: "PAS",
     skillScoringShort: "FIN",
     skillSetPiecesShort: "BP",
+    benchKeeperLabel: "GOL",
+    benchDefenderLabel: "ZA",
+    benchWingBackLabel: "LD",
+    benchMidfieldLabel: "MI",
+    benchForwardLabel: "F",
+    benchWingerLabel: "A",
+    benchExtraLabel: "EX",
   },
 };
 

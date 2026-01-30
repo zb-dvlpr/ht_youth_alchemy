@@ -4,11 +4,12 @@ import { useMemo, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
-import { LineupAssignments } from "./LineupField";
+import { LineupAssignments, LineupBehaviors } from "./LineupField";
 import { roleIdToSlotId } from "@/lib/positions";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import { formatChppDateTime, formatDateTime } from "@/lib/datetime";
 import { parseChppDate } from "@/lib/chpp/utils";
+import Modal from "./Modal";
 
 export type MatchTeam = {
   HomeTeamName?: string;
@@ -22,6 +23,7 @@ export type Match = {
   MatchDate?: string;
   Status?: string;
   OrdersGiven?: string | boolean;
+  MatchType?: number | string;
   HomeTeam?: MatchTeam;
   AwayTeam?: MatchTeam;
 };
@@ -48,8 +50,14 @@ type UpcomingMatchesProps = {
   response: MatchesResponse;
   messages: Messages;
   assignments: LineupAssignments;
+  behaviors?: LineupBehaviors;
+  captainId?: number | null;
   onRefresh?: () => void;
-  onLoadLineup?: (assignments: LineupAssignments, matchId: number) => void;
+  onLoadLineup?: (
+    assignments: LineupAssignments,
+    behaviors: LineupBehaviors,
+    matchId: number
+  ) => void;
   loadedMatchId?: number | null;
   onSubmitSuccess?: () => void;
 };
@@ -100,24 +108,44 @@ const POSITION_SLOT_ORDER = [
   "F_R",
 ] as const;
 
-function buildLineupPayload(assignments: LineupAssignments) {
+const BENCH_SLOT_ORDER = [
+  "B_GK",
+  "B_CD",
+  "B_WB",
+  "B_IM",
+  "B_F",
+  "B_W",
+  "B_X",
+] as const;
+
+function buildLineupPayload(
+  assignments: LineupAssignments,
+  behaviors?: LineupBehaviors,
+  captainId?: number | null
+) {
   const toId = (value: number | null | undefined) => value ?? 0;
   const positions = POSITION_SLOT_ORDER.map((slot) => ({
     id: toId(assignments[slot]),
-    behaviour: 0,
+    behaviour: behaviors?.[slot] ?? 0,
   }));
 
-  const bench = Array.from({ length: 14 }, () => ({ id: 0, behaviour: 0 }));
+  const bench = [
+    ...BENCH_SLOT_ORDER.map((slot) => ({
+      id: toId(assignments[slot]),
+      behaviour: 0,
+    })),
+    ...Array.from({ length: 7 }, () => ({ id: 0, behaviour: 0 })),
+  ];
   const kickers = Array.from({ length: 11 }, () => ({ id: 0, behaviour: 0 }));
 
   return {
     positions,
     bench,
     kickers,
-    captain: 0,
+    captain: captainId ?? 0,
     setPieces: 0,
     settings: {
-      tactic: 0,
+      tactic: 7,
       speechLevel: 0,
       newLineup: "",
       coachModifier: 0,
@@ -157,6 +185,65 @@ function renderMatch(
       : match.Status === "ONGOING"
       ? messages.matchStatusOngoing
       : match.Status ?? messages.unknownLabel;
+  const matchTypeId = Number(match.MatchType);
+  const matchTypeLabel = Number.isFinite(matchTypeId)
+    ? (() => {
+        switch (matchTypeId) {
+          case 1:
+            return messages.matchType1;
+          case 2:
+            return messages.matchType2;
+          case 3:
+            return messages.matchType3;
+          case 4:
+            return messages.matchType4;
+          case 5:
+            return messages.matchType5;
+          case 6:
+            return messages.matchType6;
+          case 7:
+            return messages.matchType7;
+          case 8:
+            return messages.matchType8;
+          case 9:
+            return messages.matchType9;
+          case 10:
+            return messages.matchType10;
+          case 11:
+            return messages.matchType11;
+          case 12:
+            return messages.matchType12;
+          case 50:
+            return messages.matchType50;
+          case 51:
+            return messages.matchType51;
+          case 61:
+            return messages.matchType61;
+          case 62:
+            return messages.matchType62;
+          case 80:
+            return messages.matchType80;
+          case 100:
+            return messages.matchType100;
+          case 101:
+            return messages.matchType101;
+          case 102:
+            return messages.matchType102;
+          case 103:
+            return messages.matchType103;
+          case 104:
+            return messages.matchType104;
+          case 105:
+            return messages.matchType105;
+          case 106:
+            return messages.matchType106;
+          case 107:
+            return messages.matchType107;
+          default:
+            return `${messages.matchTypeUnknown} ${matchTypeId}`;
+        }
+      })()
+    : messages.matchTypeUnknown;
   const lineupIssue =
     assignedCount && assignedCount > 11
       ? messages.submitOrdersMaxPlayers
@@ -170,6 +257,7 @@ function renderMatch(
         <span>{match.HomeTeam?.HomeTeamName ?? messages.homeLabel}</span>
         <span className={styles.vs}>vs</span>
         <span>{match.AwayTeam?.AwayTeamName ?? messages.awayLabel}</span>
+        <span className={styles.matchType}>({matchTypeLabel})</span>
       </div>
       <div className={styles.matchMeta}>
         <span>{formatMatchDate(match.MatchDate, messages.unknownDate)}</span>
@@ -251,6 +339,8 @@ export default function UpcomingMatches({
   response,
   messages,
   assignments,
+  behaviors,
+  captainId,
   onRefresh,
   onLoadLineup,
   loadedMatchId,
@@ -263,12 +353,14 @@ export default function UpcomingMatches({
   const teamId =
     response.data?.HattrickData?.Team?.TeamID ??
     null;
-  const assignedCount = Object.values(assignments).filter(Boolean).length;
+  const assignedCount = POSITION_SLOT_ORDER.filter(
+    (slot) => Boolean(assignments[slot])
+  ).length;
   const hasLineup = assignedCount >= 9 && assignedCount <= 11;
 
   const lineupPayload = useMemo(
-    () => buildLineupPayload(assignments),
-    [assignments]
+    () => buildLineupPayload(assignments, behaviors, captainId),
+    [assignments, behaviors, captainId]
   );
 
   const allMatches = normalizeMatches(
@@ -332,45 +424,69 @@ export default function UpcomingMatches({
       }
       const positionsRaw =
         payload?.data?.HattrickData?.MatchData?.Lineup?.Positions?.Player;
+      const benchRaw =
+        payload?.data?.HattrickData?.MatchData?.Lineup?.Bench?.Player;
       const positions = Array.isArray(positionsRaw)
         ? positionsRaw
         : positionsRaw
         ? [positionsRaw]
         : [];
+      const bench = Array.isArray(benchRaw)
+        ? benchRaw
+        : benchRaw
+        ? [benchRaw]
+        : [];
       const next: LineupAssignments = {};
+      const nextBehaviors: LineupBehaviors = {};
       positions.forEach((player: { RoleID?: number; PlayerID?: number }) => {
         const playerId = Number(player?.PlayerID ?? 0);
         if (!playerId) return;
         const slot = roleIdToSlotId(Number(player?.RoleID ?? 0));
         if (!slot) return;
-        const flippedSlot =
-          slot === "WB_L"
-            ? "WB_R"
-            : slot === "WB_R"
-            ? "WB_L"
-            : slot === "CD_L"
-            ? "CD_R"
-            : slot === "CD_R"
-            ? "CD_L"
-            : slot === "W_L"
-            ? "W_R"
-            : slot === "W_R"
-            ? "W_L"
-            : slot === "IM_L"
-            ? "IM_R"
-            : slot === "IM_R"
-            ? "IM_L"
-            : slot === "F_L"
-            ? "F_R"
-            : slot === "F_R"
-            ? "F_L"
-            : slot;
+        const flippedSlot = slot.startsWith("B_")
+          ? slot
+          : slot === "WB_L"
+          ? "WB_R"
+          : slot === "WB_R"
+          ? "WB_L"
+          : slot === "CD_L"
+          ? "CD_R"
+          : slot === "CD_R"
+          ? "CD_L"
+          : slot === "W_L"
+          ? "W_R"
+          : slot === "W_R"
+          ? "W_L"
+          : slot === "IM_L"
+          ? "IM_R"
+          : slot === "IM_R"
+          ? "IM_L"
+          : slot === "F_L"
+          ? "F_R"
+          : slot === "F_R"
+          ? "F_L"
+          : slot;
         next[flippedSlot] = playerId;
+        const behaviourValue = Number(
+          (player as { Behaviour?: number; Behavior?: number })?.Behaviour ??
+            (player as { Behaviour?: number; Behavior?: number })?.Behavior ??
+            0
+        );
+        if (behaviourValue) {
+          nextBehaviors[flippedSlot] = behaviourValue;
+        }
+      });
+      bench.forEach((player: { RoleID?: number; PlayerID?: number }) => {
+        const playerId = Number(player?.PlayerID ?? 0);
+        if (!playerId) return;
+        const slot = roleIdToSlotId(Number(player?.RoleID ?? 0));
+        if (!slot || !slot.startsWith("B_")) return;
+        next[slot] = playerId;
       });
       if (Object.keys(next).length === 0) {
         throw new Error(messages.loadLineupUnavailable);
       }
-      onLoadLineup?.(next, matchId);
+      onLoadLineup?.(next, nextBehaviors, matchId);
       addNotification(
         `${messages.notificationLineupLoaded} ${formatMatchName(
           matchById.get(matchId)
@@ -484,31 +600,29 @@ export default function UpcomingMatches({
   return (
     <div className={styles.card}>
       <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
-      {confirmMatchId ? (
-        <div className={styles.confirmOverlay}>
-          <div className={styles.confirmCard} role="dialog" aria-modal="true">
-            <div className={styles.confirmTitle}>
-              {messages.confirmSubmitOrders}
-            </div>
-            <div className={styles.confirmActions}>
-              <button
-                type="button"
-                className={styles.confirmCancel}
-                onClick={() => setConfirmMatchId(null)}
-              >
-                {messages.confirmCancel}
-              </button>
-              <button
-                type="button"
-                className={styles.confirmSubmit}
-                onClick={confirmSubmit}
-              >
-                {messages.confirmSubmit}
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
+      <Modal
+        open={!!confirmMatchId}
+        variant="local"
+        title={messages.confirmSubmitOrders}
+        actions={
+          <>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={() => setConfirmMatchId(null)}
+            >
+              {messages.confirmCancel}
+            </button>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={confirmSubmit}
+            >
+              {messages.confirmSubmit}
+            </button>
+          </>
+        }
+      />
       {sortedUpcoming.length > 0 ? (
         <ul className={styles.matchList}>
           {sortedUpcoming.map((match) => {

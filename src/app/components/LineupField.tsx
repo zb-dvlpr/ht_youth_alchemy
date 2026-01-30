@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { setDragGhost } from "@/lib/drag";
@@ -7,6 +8,7 @@ import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import Tooltip from "./Tooltip";
 
 export type LineupAssignments = Record<string, number | null>;
+export type LineupBehaviors = Record<string, number>;
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -24,16 +26,25 @@ type SkillValue = {
   "@_MayUnlock"?: string;
 };
 
+export type OptimizeMode =
+  | "star"
+  | "revealPrimaryCurrent"
+  | "revealPrimaryMax"
+  | "revealSecondaryCurrent"
+  | "revealSecondaryMax";
+
 type LineupFieldProps = {
   assignments: LineupAssignments;
+  behaviors?: LineupBehaviors;
   playersById: Map<number, YouthPlayer>;
   playerDetailsById?: Map<number, { PlayerSkills?: Record<string, SkillValue> }>;
   onAssign: (slotId: string, playerId: number) => void;
   onClear: (slotId: string) => void;
   onMove?: (fromSlot: string, toSlot: string) => void;
+  onChangeBehavior?: (slotId: string, behavior: number) => void;
   onRandomize?: () => void;
   onReset?: () => void;
-  onOptimize?: () => void;
+  onOptimizeSelect?: (mode: OptimizeMode) => void;
   optimizeDisabled?: boolean;
   optimizeDisabledReason?: string;
   trainedSlots?: {
@@ -48,6 +59,12 @@ type LineupFieldProps = {
 type PositionRow = {
   className: string;
   positions: { id: string; label: string }[];
+};
+
+type BehaviorOption = {
+  value: number;
+  icon: string;
+  position: "top" | "bottom" | "left" | "right";
 };
 
 const POSITION_ROWS: PositionRow[] = [
@@ -81,6 +98,86 @@ const POSITION_ROWS: PositionRow[] = [
     ],
   },
 ];
+
+const BENCH_SLOTS = [
+  { id: "B_GK", labelKey: "benchKeeperLabel" },
+  { id: "B_CD", labelKey: "benchDefenderLabel" },
+  { id: "B_WB", labelKey: "benchWingBackLabel" },
+  { id: "B_IM", labelKey: "benchMidfieldLabel" },
+  { id: "B_F", labelKey: "benchForwardLabel" },
+  { id: "B_W", labelKey: "benchWingerLabel" },
+  { id: "B_X", labelKey: "benchExtraLabel" },
+];
+
+const slotSide = (slotId: string) => {
+  if (slotId.endsWith("_L")) return "left";
+  if (slotId.endsWith("_R")) return "right";
+  return "center";
+};
+
+const behaviorOptionsForSlot = (slotId: string): BehaviorOption[] => {
+  if (slotId === "KP") return [];
+  const side = slotSide(slotId);
+  const towardMiddle =
+    side === "left"
+      ? { value: 3, icon: "▶", position: "right" as const }
+      : side === "right"
+      ? { value: 3, icon: "◀", position: "left" as const }
+      : null;
+  const towardWing =
+    side === "left"
+      ? { value: 4, icon: "◀", position: "left" as const }
+      : side === "right"
+      ? { value: 4, icon: "▶", position: "right" as const }
+      : { value: 4, icon: "↔", position: "right" as const };
+
+  if (slotId.startsWith("WB_")) {
+    return [
+      { value: 2, icon: "▲", position: "top" },
+      { value: 1, icon: "▼", position: "bottom" },
+      ...(towardMiddle ? [towardMiddle] : []),
+    ];
+  }
+  if (slotId === "CD_C") {
+    return [{ value: 2, icon: "▲", position: "top" }];
+  }
+  if (slotId.startsWith("CD_")) {
+    return [
+      { value: 2, icon: "▲", position: "top" },
+      towardWing,
+    ];
+  }
+  if (slotId.startsWith("W_")) {
+    return [
+      { value: 2, icon: "▲", position: "top" },
+      { value: 1, icon: "▼", position: "bottom" },
+      ...(towardMiddle ? [towardMiddle] : []),
+    ];
+  }
+  if (slotId === "IM_C") {
+    return [
+      { value: 2, icon: "▲", position: "top" },
+      { value: 1, icon: "▼", position: "bottom" },
+    ];
+  }
+  if (slotId.startsWith("IM_")) {
+    return [
+      { value: 2, icon: "▲", position: "top" },
+      { value: 1, icon: "▼", position: "bottom" },
+      towardWing,
+    ];
+  }
+  if (slotId.startsWith("F_")) {
+    if (slotId === "F_C") {
+      return [{ value: 2, icon: "▲", position: "top" }];
+    }
+    return [
+      { value: 2, icon: "▲", position: "top" },
+      towardWing,
+    ];
+  }
+  return [];
+};
 
 const MAX_SKILL_LEVEL = 8;
 
@@ -118,20 +215,58 @@ function getSkillMax(skill?: SkillValue): number | null {
 
 export default function LineupField({
   assignments,
+  behaviors,
   playersById,
   playerDetailsById,
   onAssign,
   onClear,
   onMove,
+  onChangeBehavior,
   onRandomize,
   onReset,
-  onOptimize,
+  onOptimizeSelect,
   optimizeDisabled = false,
   optimizeDisabledReason,
   trainedSlots,
   onHoverPlayer,
   messages,
 }: LineupFieldProps) {
+  const [optimizeOpen, setOptimizeOpen] = useState(false);
+  const optimizeButtonRef = useRef<HTMLButtonElement | null>(null);
+  const optimizeMenuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!optimizeOpen) return;
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (optimizeButtonRef.current?.contains(target ?? null)) return;
+      if (optimizeMenuRef.current?.contains(target ?? null)) return;
+      setOptimizeOpen(false);
+    };
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, [optimizeOpen]);
+
+  const handleOptimizeSelect = (mode: OptimizeMode) => {
+    setOptimizeOpen(false);
+    onOptimizeSelect?.(mode);
+  };
+
+  const behaviorLabel = (value: number) => {
+    switch (value) {
+      case 1:
+        return messages.behaviorOffensive;
+      case 2:
+        return messages.behaviorDefensive;
+      case 3:
+        return messages.behaviorTowardsMiddle;
+      case 4:
+        return messages.behaviorTowardsWing;
+      default:
+        return messages.behaviorNeutral;
+    }
+  };
+
   const handleDrop = (slotId: string, event: React.DragEvent) => {
     event.preventDefault();
     const raw = event.dataTransfer.getData("application/json");
@@ -169,29 +304,71 @@ export default function LineupField({
     <div className={styles.fieldCard}>
       <div className={styles.fieldHeader}>
         <span>{messages.lineupTitle}</span>
-        {onOptimize ? (
-          <Tooltip
-            content={
-              optimizeDisabled
-                ? optimizeDisabledReason
-                : messages.optimizeLineupTitle
-            }
-          >
-            <button
-              type="button"
-              className={styles.optimizeButton}
-              onClick={onOptimize}
-              aria-label={
+        {onOptimizeSelect ? (
+          <div className={styles.feedbackWrap}>
+            <Tooltip
+              content={
                 optimizeDisabled
                   ? optimizeDisabledReason
                   : messages.optimizeLineupTitle
               }
-              disabled={optimizeDisabled}
-              data-help-anchor="optimize"
             >
-              ✨
-            </button>
-          </Tooltip>
+              <button
+                type="button"
+                className={styles.optimizeButton}
+                onClick={() => setOptimizeOpen((prev) => !prev)}
+                aria-label={
+                  optimizeDisabled
+                    ? optimizeDisabledReason
+                    : messages.optimizeLineupTitle
+                }
+                disabled={optimizeDisabled}
+                data-help-anchor="optimize"
+                ref={optimizeButtonRef}
+              >
+                ✨
+              </button>
+            </Tooltip>
+            {optimizeOpen ? (
+              <div className={styles.feedbackMenu} ref={optimizeMenuRef}>
+                <button
+                  type="button"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                  onClick={() => handleOptimizeSelect("star")}
+                >
+                  {messages.optimizeMenuStar}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                  onClick={() => handleOptimizeSelect("revealPrimaryCurrent")}
+                >
+                  {messages.optimizeMenuRevealPrimaryCurrent}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                  onClick={() => handleOptimizeSelect("revealPrimaryMax")}
+                >
+                  {messages.optimizeMenuRevealPrimaryMax}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                  onClick={() => handleOptimizeSelect("revealSecondaryCurrent")}
+                >
+                  {messages.optimizeMenuRevealSecondaryCurrent}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                  onClick={() => handleOptimizeSelect("revealSecondaryMax")}
+                >
+                  {messages.optimizeMenuRevealSecondaryMax}
+                </button>
+              </div>
+            ) : null}
+          </div>
         ) : null}
       </div>
       <div className={styles.fieldPitch}>
@@ -224,6 +401,10 @@ export default function LineupField({
               const assignedDetails = assignedId
                 ? playerDetailsById?.get(assignedId) ?? null
                 : null;
+              const behaviorValue = behaviors?.[position.id] ?? 0;
+              const behaviorOptions = assignedPlayer
+                ? behaviorOptionsForSlot(position.id)
+                : [];
 
               const dragPayload = assignedPlayer
                 ? JSON.stringify({
@@ -240,10 +421,44 @@ export default function LineupField({
                     isTrained ? styles.trainedSlot : ""
                   } ${isPrimaryTrained ? styles.trainedPrimary : ""} ${
                     isSecondaryTrained ? styles.trainedSecondary : ""
-                  }`}
+                  } ${behaviorValue ? styles.fieldSlotHasBehavior : ""}`}
                   onDrop={(event) => handleDrop(position.id, event)}
                   onDragOver={handleDragOver}
                 >
+                  {assignedPlayer && behaviorOptions.length ? (
+                    <>
+                      <div className={styles.orientationRing} />
+                      {behaviorOptions.map((option) => {
+                        const isActive = behaviorValue === option.value;
+                        const positionClassMap: Record<
+                          BehaviorOption["position"],
+                          string
+                        > = {
+                          top: styles.orientationButtonTop,
+                          bottom: styles.orientationButtonBottom,
+                          left: styles.orientationButtonLeft,
+                          right: styles.orientationButtonRight,
+                        };
+                        return (
+                          <button
+                            key={option.value}
+                            type="button"
+                            className={`${styles.orientationButton} ${
+                              positionClassMap[option.position]
+                            } ${isActive ? styles.orientationButtonActive : ""}`}
+                            onMouseDown={(event) => event.stopPropagation()}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              const nextValue =
+                                behaviorValue === option.value ? 0 : option.value;
+                              onChangeBehavior?.(position.id, nextValue);
+                            }}
+                            aria-label={behaviorLabel(option.value)}
+                          />
+                        );
+                      })}
+                    </>
+                  ) : null}
                   {assignedPlayer ? (
                     <Tooltip
                       content={
@@ -360,25 +575,169 @@ export default function LineupField({
         ))}
         <div className={styles.centerCircle} />
         <div className={styles.centerSpot} />
+        <div className={styles.fieldMidline} />
+        {onRandomize || onReset ? (
+          <div className={styles.lineupActions}>
+            {onReset ? (
+              <button
+                type="button"
+                className={styles.lineupButtonSecondary}
+                onClick={onReset}
+              >
+                {messages.resetLineup}
+              </button>
+            ) : null}
+            {onRandomize ? (
+              <button
+                type="button"
+                className={styles.lineupButton}
+                onClick={onRandomize}
+              >
+                {messages.randomizeLineup}
+              </button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
-      {onRandomize ? (
-        <button
-          type="button"
-          className={styles.lineupButton}
-          onClick={onRandomize}
-        >
-          {messages.randomizeLineup}
-        </button>
-      ) : null}
-      {onReset ? (
-        <button
-          type="button"
-          className={styles.lineupButtonSecondary}
-          onClick={onReset}
-        >
-          {messages.resetLineup}
-        </button>
-      ) : null}
+      <div className={styles.benchArea}>
+        {BENCH_SLOTS.map((slot) => {
+          const assignedId = assignments[slot.id] ?? null;
+          const assignedPlayer = assignedId
+            ? playersById.get(assignedId) ?? null
+            : null;
+          const assignedDetails = assignedId
+            ? playerDetailsById?.get(assignedId) ?? null
+            : null;
+          const dragPayload = assignedPlayer
+            ? JSON.stringify({
+                type: "slot",
+                playerId: assignedPlayer.YouthPlayerID,
+                fromSlot: slot.id,
+              })
+            : null;
+          return (
+            <div key={slot.id} className={styles.benchSlotWrapper}>
+              <div
+                className={styles.fieldSlot}
+                onDrop={(event) => handleDrop(slot.id, event)}
+                onDragOver={handleDragOver}
+              >
+                {assignedPlayer ? (
+                  <Tooltip
+                    content={
+                      <div className={styles.slotTooltipCard}>
+                        <div className={styles.slotTooltipHint}>
+                          {messages.dragPlayerHint}
+                        </div>
+                        <div className={styles.slotTooltipGrid}>
+                          {SKILL_ROWS.map((row) => {
+                            const skillSource =
+                              assignedDetails?.PlayerSkills ??
+                              assignedPlayer.PlayerSkills ??
+                              null;
+                            const current = getSkillLevel(
+                              skillSource?.[row.key]
+                            );
+                            const max = getSkillMax(
+                              skillSource?.[row.maxKey]
+                            );
+                            const hasCurrent = current !== null;
+                            const hasMax = max !== null;
+                            const currentText = hasCurrent
+                              ? String(current)
+                              : messages.unknownShort;
+                            const maxText = hasMax
+                              ? String(max)
+                              : messages.unknownShort;
+                            const currentPct = hasCurrent
+                              ? Math.min(100, (current / MAX_SKILL_LEVEL) * 100)
+                              : null;
+                            const maxPct = hasMax
+                              ? Math.min(100, (max / MAX_SKILL_LEVEL) * 100)
+                              : null;
+
+                            return (
+                              <div key={row.key} className={styles.skillRow}>
+                                <div className={styles.skillLabel}>
+                                  {messages[row.labelKey as keyof Messages]}
+                                </div>
+                                <div className={styles.skillBar}>
+                                  {hasMax ? (
+                                    <div
+                                      className={styles.skillFillMax}
+                                      style={{ width: `${maxPct}%` }}
+                                    />
+                                  ) : null}
+                                  {hasCurrent ? (
+                                    <div
+                                      className={styles.skillFillCurrent}
+                                      style={{ width: `${currentPct}%` }}
+                                    />
+                                  ) : null}
+                                </div>
+                                <div className={styles.skillValue}>
+                                  {currentText}/{maxText}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    }
+                    fullWidth
+                    withCard={false}
+                  >
+                    <div
+                      className={styles.slotContent}
+                      draggable
+                      onMouseEnter={() => {
+                        if (!assignedPlayer) return;
+                        onHoverPlayer?.(assignedPlayer.YouthPlayerID);
+                      }}
+                      onDragStart={(event) => {
+                        if (!dragPayload) return;
+                        setDragGhost(event, {
+                          label: formatName(assignedPlayer),
+                          className: styles.dragGhost,
+                          slotSelector: `.${styles.fieldSlot}`,
+                        });
+                        event.dataTransfer.setData(
+                          "application/json",
+                          dragPayload
+                        );
+                        event.dataTransfer.effectAllowed = "move";
+                      }}
+                    >
+                      <span className={styles.slotName}>
+                        {formatName(assignedPlayer)}
+                      </span>
+                      {assignedPlayer.Specialty &&
+                      assignedPlayer.Specialty !== 0 ? (
+                        <span className={styles.slotEmoji}>
+                          {SPECIALTY_EMOJI[assignedPlayer.Specialty]}
+                        </span>
+                      ) : null}
+                      <button
+                        type="button"
+                        className={styles.slotClear}
+                        onClick={() => onClear(slot.id)}
+                        aria-label={`${messages.clearSlot} ${
+                          messages[slot.labelKey as keyof Messages]
+                        }`}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </Tooltip>
+                ) : null}
+              </div>
+              <span className={styles.benchLabel}>
+                {messages[slot.labelKey as keyof Messages]}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

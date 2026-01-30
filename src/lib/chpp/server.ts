@@ -96,13 +96,34 @@ export function buildChppErrorPayload(message: string, error: unknown) {
     error && typeof error === "object" && !Array.isArray(error)
       ? (error as Record<string, unknown>)
       : null;
+  const statusCode =
+    errorObject && typeof errorObject.statusCode === "number"
+      ? errorObject.statusCode
+      : null;
+  const data =
+    errorObject && typeof errorObject.data === "string"
+      ? errorObject.data
+      : null;
+  const isUnauthorized =
+    statusCode === 401 ||
+    (data ? data.includes("401 - Unauthorized") : false);
+
+  if (isUnauthorized) {
+    return {
+      error: "CHPP authorization expired. Re-auth required.",
+      details: "CHPP authorization expired. Re-auth required.",
+      statusCode: 401,
+      code: "CHPP_AUTH_EXPIRED",
+      data: null,
+    };
+  }
 
   return {
     error: message,
     details,
     ...(errorObject
       ? {
-          statusCode: errorObject.statusCode ?? null,
+          statusCode,
           data: errorObject.data ?? null,
         }
       : {}),

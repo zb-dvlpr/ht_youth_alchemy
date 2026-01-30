@@ -6,15 +6,25 @@ import YouthPlayerList from "./YouthPlayerList";
 import PlayerDetailsPanel, {
   YouthPlayerDetails,
 } from "./PlayerDetailsPanel";
-import LineupField, { LineupAssignments } from "./LineupField";
+import LineupField, {
+  LineupAssignments,
+  LineupBehaviors,
+  OptimizeMode,
+} from "./LineupField";
 import UpcomingMatches, { type MatchesResponse } from "./UpcomingMatches";
 import { Messages } from "@/lib/i18n";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
+import Modal from "./Modal";
 import {
   getAutoSelection,
   getTrainingSlots,
   optimizeLineupForStar,
+  optimizeRevealPrimaryCurrent,
+  optimizeRevealPrimaryMax,
+  optimizeRevealSecondaryCurrent,
+  optimizeRevealSecondaryMax,
+  buildSkillRanking,
   type OptimizerPlayer,
   type OptimizerDebug,
   type AutoSelection,
@@ -34,6 +44,7 @@ type YouthPlayer = {
   LastName: string;
   Specialty?: number;
   Age?: number;
+  AgeDays?: number;
   ArrivalDate?: string;
   CanBePromotedIn?: number;
   PlayerSkills?: Record<string, SkillValue>;
@@ -51,6 +62,8 @@ type PlayerDetailsResponse = {
   unlockStatus?: "success" | "denied";
   error?: string;
   details?: string;
+  statusCode?: number;
+  code?: string;
 };
 
 type DashboardProps = {
@@ -59,6 +72,9 @@ type DashboardProps = {
   ratingsResponse: RatingsMatrixResponse | null;
   messages: Messages;
   isConnected: boolean;
+  initialLoadError?: string | null;
+  initialLoadDetails?: string | null;
+  initialAuthError?: boolean;
 };
 
 type CachedDetails = {
@@ -88,12 +104,27 @@ function resolveDetails(data: Record<string, unknown> | null) {
   return (hattrickData.YouthPlayer as YouthPlayerDetails) ?? null;
 }
 
+function isAuthErrorPayload(
+  payload: { code?: string; statusCode?: number; details?: string } | null,
+  response?: Response
+) {
+  return (
+    response?.status === 401 ||
+    payload?.statusCode === 401 ||
+    (payload?.code?.startsWith("CHPP_AUTH") ?? false) ||
+    (payload?.details?.includes("401 - Unauthorized") ?? false)
+  );
+}
+
 export default function Dashboard({
   players,
   matchesResponse,
   ratingsResponse,
   messages,
   isConnected,
+  initialLoadError = null,
+  initialLoadDetails = null,
+  initialAuthError = false,
 }: DashboardProps) {
   const [playerList, setPlayerList] = useState<YouthPlayer[]>(players);
   const [playersLoading, setPlayersLoading] = useState(false);
@@ -105,8 +136,15 @@ export default function Dashboard({
   );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [authError, setAuthError] = useState(initialAuthError);
+  const [authErrorDetails, setAuthErrorDetails] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<string | null>(initialLoadError);
+  const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(
+    initialLoadDetails
+  );
 
   const [assignments, setAssignments] = useState<LineupAssignments>({});
+  const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
   const [matchesState, setMatchesState] =
     useState<MatchesResponse>(matchesResponse);
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
@@ -123,9 +161,12 @@ export default function Dashboard({
   const [showOptimizerDebug, setShowOptimizerDebug] = useState(false);
   const [autoSelectionApplied, setAutoSelectionApplied] = useState(false);
   const [showTrainingReminder, setShowTrainingReminder] = useState(false);
+  const [optimizeErrorMessage, setOptimizeErrorMessage] = useState<string | null>(
+    null
+  );
   const { addNotification } = useNotifications();
   const isDev = process.env.NODE_ENV !== "production";
-  const storageKey = "ya_dashboard_state_v1";
+  const storageKey = "ya_dashboard_state_v2";
   const helpStorageKey = "ya_help_dismissed_v1";
   const dashboardRef = useRef<HTMLDivElement | null>(null);
   const helpCardRef = useRef<HTMLDivElement | null>(null);
@@ -154,10 +195,58 @@ export default function Dashboard({
     return map;
   }, [cache]);
 
+  const getPlayerAgeScore = (player: YouthPlayer | null | undefined) => {
+    if (!player) return null;
+    const detailsAge = playerDetailsById.get(player.YouthPlayerID);
+    const age =
+      player.Age ??
+      (detailsAge && "Age" in detailsAge ? (detailsAge.Age as number) : null);
+    const ageDays =
+      player.AgeDays ??
+      (detailsAge && "AgeDays" in detailsAge
+        ? (detailsAge.AgeDays as number)
+        : null);
+    if (age === null || age === undefined) return null;
+    return age * 1000 + (ageDays ?? 0);
+  };
+
   const assignedIds = useMemo(
     () => new Set(Object.values(assignments).filter(Boolean) as number[]),
     [assignments]
   );
+
+  const captainId = useMemo(() => {
+    const fieldSlots = [
+      "KP",
+      "WB_L",
+      "CD_L",
+      "CD_C",
+      "CD_R",
+      "WB_R",
+      "W_L",
+      "IM_L",
+      "IM_C",
+      "IM_R",
+      "W_R",
+      "F_L",
+      "F_C",
+      "F_R",
+    ] as const;
+    let bestId: number | null = null;
+    let bestScore = -1;
+    fieldSlots.forEach((slot) => {
+      const playerId = assignments[slot];
+      if (!playerId) return;
+      const player = playersById.get(playerId) ?? null;
+      const score = getPlayerAgeScore(player);
+      if (score === null) return;
+      if (score > bestScore) {
+        bestScore = score;
+        bestId = playerId;
+      }
+    });
+    return bestId;
+  }, [assignments, playersById, playerDetailsById]);
 
   const selectedPlayer = useMemo(
     () =>
@@ -200,6 +289,7 @@ export default function Dashboard({
       if (!raw) return;
       const parsed = JSON.parse(raw) as {
         assignments?: LineupAssignments;
+        behaviors?: LineupBehaviors;
         selectedId?: number | null;
         starPlayerId?: number | null;
         primaryTraining?: string;
@@ -208,8 +298,11 @@ export default function Dashboard({
         cache?: Record<number, CachedDetails>;
         ratingsCache?: Record<number, Record<string, number>>;
         ratingsPositions?: number[];
+        playerList?: YouthPlayer[];
+        matchesState?: MatchesResponse;
       };
       if (parsed.assignments) setAssignments(parsed.assignments);
+      if (parsed.behaviors) setBehaviors(parsed.behaviors);
       if (parsed.selectedId !== undefined) setSelectedId(parsed.selectedId);
       if (parsed.starPlayerId !== undefined) setStarPlayerId(parsed.starPlayerId);
       if (parsed.primaryTraining !== undefined)
@@ -230,6 +323,12 @@ export default function Dashboard({
       }
       if (parsed.ratingsCache) setRatingsCache(parsed.ratingsCache);
       if (parsed.ratingsPositions) setRatingsPositions(parsed.ratingsPositions);
+      if (parsed.playerList && (players.length === 0 || initialAuthError)) {
+        setPlayerList(parsed.playerList);
+      }
+      if (parsed.matchesState && initialAuthError) {
+        setMatchesState(parsed.matchesState);
+      }
     } catch {
       // ignore restore errors
     }
@@ -239,6 +338,7 @@ export default function Dashboard({
     if (typeof window === "undefined") return;
     const payload = {
       assignments,
+      behaviors,
       selectedId,
       starPlayerId,
       primaryTraining,
@@ -247,6 +347,8 @@ export default function Dashboard({
       cache,
       ratingsCache,
       ratingsPositions,
+      playerList,
+      matchesState,
     };
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(payload));
@@ -263,6 +365,9 @@ export default function Dashboard({
     secondaryTraining,
     selectedId,
     starPlayerId,
+    behaviors,
+    playerList,
+    matchesState,
   ]);
 
   useEffect(() => {
@@ -309,6 +414,12 @@ export default function Dashboard({
       return changed ? next : prev;
     });
   }, [playerList]);
+
+  useEffect(() => {
+    if (!initialAuthError) return;
+    setAuthError(true);
+    setAuthErrorDetails(initialLoadDetails ?? null);
+  }, [initialAuthError, initialLoadDetails]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -437,9 +548,9 @@ export default function Dashboard({
       return;
     }
 
+    const previousDetails = details;
     setLoading(true);
     setError(null);
-    setDetails(null);
     setUnlockStatus(null);
 
     try {
@@ -450,6 +561,12 @@ export default function Dashboard({
       const payload = (await response.json()) as PlayerDetailsResponse;
 
       if (!response.ok || payload.error) {
+        if (isAuthErrorPayload(payload, response)) {
+          setAuthError(true);
+          setAuthErrorDetails(payload.details ?? messages.connectHint);
+          setDetails(previousDetails);
+          return;
+        }
         throw new Error(payload.error ?? "Failed to fetch player details");
       }
 
@@ -469,6 +586,7 @@ export default function Dashboard({
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
+      setDetails(previousDetails);
     } finally {
       setLoading(false);
     }
@@ -486,6 +604,11 @@ export default function Dashboard({
         { cache: "no-store" }
       );
       const payload = (await response.json()) as PlayerDetailsResponse;
+      if (isAuthErrorPayload(payload, response)) {
+        setAuthError(true);
+        setAuthErrorDetails(payload.details ?? messages.connectHint);
+        return;
+      }
       if (!response.ok || payload.error) {
         return;
       }
@@ -513,6 +636,9 @@ export default function Dashboard({
   };
 
   const assignPlayer = (slotId: string, playerId: number) => {
+    const clearedSlots = Object.entries(assignments)
+      .filter(([, value]) => value === playerId)
+      .map(([key]) => key);
     setAssignments((prev) => {
       const next = { ...prev };
       for (const [key, value] of Object.entries(next)) {
@@ -523,11 +649,24 @@ export default function Dashboard({
       next[slotId] = playerId;
       return next;
     });
+    setBehaviors((prev) => {
+      const next = { ...prev };
+      clearedSlots.forEach((slot) => {
+        delete next[slot];
+      });
+      delete next[slotId];
+      return next;
+    });
     setLoadedMatchId(null);
   };
 
   const clearSlot = (slotId: string) => {
     setAssignments((prev) => ({ ...prev, [slotId]: null }));
+    setBehaviors((prev) => {
+      const next = { ...prev };
+      delete next[slotId];
+      return next;
+    });
     setLoadedMatchId(null);
   };
 
@@ -540,6 +679,12 @@ export default function Dashboard({
       const targetPlayer = next[toSlot] ?? null;
       next[toSlot] = movingPlayer;
       next[fromSlot] = targetPlayer;
+      return next;
+    });
+    setBehaviors((prev) => {
+      const next = { ...prev };
+      delete next[fromSlot];
+      delete next[toSlot];
       return next;
     });
     setLoadedMatchId(null);
@@ -575,12 +720,14 @@ export default function Dashboard({
       next[slot] = outfieldIds[index] ?? null;
     });
     setAssignments(next);
+    setBehaviors({});
     setLoadedMatchId(null);
     addNotification(messages.notificationLineupRandomized);
   };
 
   const resetLineup = () => {
     setAssignments({});
+    setBehaviors({});
     setLoadedMatchId(null);
     addNotification(messages.notificationLineupReset);
   };
@@ -591,6 +738,7 @@ export default function Dashboard({
       !isTrainingSkill(primaryTraining) ||
       !isTrainingSkill(secondaryTraining)
     ) {
+      setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
       return;
     }
 
@@ -616,7 +764,239 @@ export default function Dashboard({
       secondaryTraining,
       autoSelectionApplied
     );
-    setAssignments(result.lineup);
+
+    const nextAssignments: LineupAssignments = { ...result.lineup };
+    const usedPlayers = new Set<number>(
+      Object.values(nextAssignments).filter(Boolean) as number[]
+    );
+    const rankingBySkill = new Map<TrainingSkillKey, number[]>();
+    (["keeper", "defending", "playmaking", "winger", "passing", "scoring", "setpieces"] as TrainingSkillKey[]).forEach(
+      (skill) => {
+        rankingBySkill.set(
+          skill,
+          buildSkillRanking(optimizerPlayers, skill).ordered.map(
+            (entry) => entry.playerId
+          )
+        );
+      }
+    );
+
+    const pickNextFrom = (list: number[] | undefined) => {
+      if (!list) return null;
+      for (const playerId of list) {
+        if (!usedPlayers.has(playerId)) {
+          usedPlayers.add(playerId);
+          return playerId;
+        }
+      }
+      return null;
+    };
+
+    const benchSlots: Array<{ id: string; skill?: TrainingSkillKey }> = [
+      { id: "B_GK", skill: "keeper" },
+      { id: "B_CD", skill: "defending" },
+      { id: "B_WB", skill: "defending" },
+      { id: "B_IM", skill: "playmaking" },
+      { id: "B_F", skill: "scoring" },
+      { id: "B_W", skill: "winger" },
+    ];
+
+    benchSlots.forEach((slot) => {
+      const nextId = pickNextFrom(
+        slot.skill ? rankingBySkill.get(slot.skill) : undefined
+      );
+      nextAssignments[slot.id] = nextId ?? null;
+    });
+
+    const combinedExtra: number[] = [];
+    const pushUnique = (id: number) => {
+      if (!combinedExtra.includes(id)) combinedExtra.push(id);
+    };
+    if (isTrainingSkill(primaryTraining)) {
+      rankingBySkill.get(primaryTraining)?.forEach(pushUnique);
+    }
+    if (isTrainingSkill(secondaryTraining)) {
+      rankingBySkill.get(secondaryTraining)?.forEach(pushUnique);
+    }
+    optimizerPlayers.forEach((player) => pushUnique(player.id));
+    const extraId = pickNextFrom(combinedExtra);
+    nextAssignments.B_X = extraId ?? null;
+
+    setAssignments(nextAssignments);
+    setBehaviors({});
+    setOptimizerDebug(result.debug ?? null);
+    setLoadedMatchId(null);
+    if (Object.keys(result.lineup).length) {
+      addNotification(messages.notificationOptimizeApplied);
+    }
+  };
+
+  const handleOptimizeSelect = (mode: OptimizeMode) => {
+    if (mode === "star") {
+      handleOptimize();
+      return;
+    }
+    if (
+      mode !== "revealPrimaryCurrent" &&
+      mode !== "revealPrimaryMax" &&
+      mode !== "revealSecondaryCurrent" &&
+      mode !== "revealSecondaryMax"
+    ) {
+      return;
+    }
+    if (
+      !starPlayerId ||
+      !isTrainingSkill(primaryTraining) ||
+      !isTrainingSkill(secondaryTraining)
+    ) {
+      if (mode === "revealPrimaryMax") {
+        setOptimizeErrorMessage(messages.optimizeRevealPrimaryMaxUnavailable);
+      } else if (mode === "revealSecondaryCurrent") {
+        setOptimizeErrorMessage(
+          messages.optimizeRevealSecondaryCurrentUnavailable
+        );
+      } else if (mode === "revealSecondaryMax") {
+        setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
+      } else {
+        setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
+      }
+      return;
+    }
+
+    const optimizerPlayers: OptimizerPlayer[] = playerList.map((player) => ({
+      id: player.YouthPlayerID,
+      name: [player.FirstName, player.NickName || null, player.LastName]
+        .filter(Boolean)
+        .join(" "),
+      age:
+        player.Age ??
+        playerDetailsById.get(player.YouthPlayerID)?.Age ??
+        null,
+      skills:
+        playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
+        (player.PlayerSkills as OptimizerPlayer["skills"]) ??
+        null,
+    }));
+
+    const result =
+      mode === "revealPrimaryMax"
+        ? optimizeRevealPrimaryMax(
+            optimizerPlayers,
+            starPlayerId,
+            primaryTraining,
+            secondaryTraining,
+            autoSelectionApplied
+          )
+        : mode === "revealSecondaryMax"
+        ? optimizeRevealSecondaryMax(
+            optimizerPlayers,
+            starPlayerId,
+            primaryTraining,
+            secondaryTraining,
+            autoSelectionApplied
+          )
+        : mode === "revealSecondaryCurrent"
+        ? optimizeRevealSecondaryCurrent(
+            optimizerPlayers,
+            starPlayerId,
+            primaryTraining,
+            secondaryTraining,
+            autoSelectionApplied
+          )
+        : optimizeRevealPrimaryCurrent(
+            optimizerPlayers,
+            starPlayerId,
+            primaryTraining,
+            secondaryTraining,
+            autoSelectionApplied
+          );
+
+    if (result.error === "primary_current_known") {
+      setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentKnown);
+      return;
+    }
+
+    if (result.error === "primary_max_known") {
+      setOptimizeErrorMessage(messages.optimizeRevealPrimaryMaxKnown);
+      return;
+    }
+
+    if (result.error === "secondary_current_known") {
+      setOptimizeErrorMessage(messages.optimizeRevealSecondaryCurrentKnown);
+      return;
+    }
+
+    if (result.error === "secondary_max_known") {
+      setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxKnown);
+      return;
+    }
+
+    if (result.error) {
+      if (mode === "revealPrimaryMax") {
+        setOptimizeErrorMessage(messages.optimizeRevealPrimaryMaxUnavailable);
+      } else if (mode === "revealSecondaryCurrent") {
+        setOptimizeErrorMessage(
+          messages.optimizeRevealSecondaryCurrentUnavailable
+        );
+      } else if (mode === "revealSecondaryMax") {
+        setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
+      } else {
+        setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
+      }
+      return;
+    }
+
+    const nextAssignments: LineupAssignments = { ...result.lineup };
+    const usedPlayers = new Set<number>(
+      Object.values(nextAssignments).filter(Boolean) as number[]
+    );
+    const rankingBySkill = new Map<TrainingSkillKey, number[]>();
+    ([
+      "keeper",
+      "defending",
+      "playmaking",
+      "winger",
+      "passing",
+      "scoring",
+      "setpieces",
+    ] as TrainingSkillKey[]).forEach((skill) => {
+      rankingBySkill.set(
+        skill,
+        buildSkillRanking(optimizerPlayers, skill).ordered.map(
+          (entry) => entry.playerId
+        )
+      );
+    });
+
+    const pickNextFrom = (list: number[] | undefined) => {
+      if (!list) return null;
+      for (const id of list) {
+        if (!usedPlayers.has(id)) return id;
+      }
+      return null;
+    };
+
+    const benchOrder = [
+      { id: "B_GK", skill: "keeper" as const },
+      { id: "B_CD", skill: "defending" as const },
+      { id: "B_WB", skill: "defending" as const },
+      { id: "B_IM", skill: "playmaking" as const },
+      { id: "B_F", skill: "scoring" as const },
+      { id: "B_W", skill: "winger" as const },
+      { id: "B_X", skill: primaryTraining },
+    ];
+
+    benchOrder.forEach((slot) => {
+      if (nextAssignments[slot.id]) return;
+      const nextId = pickNextFrom(
+        slot.skill ? rankingBySkill.get(slot.skill) : undefined
+      );
+      nextAssignments[slot.id] = nextId ?? null;
+      if (nextId) usedPlayers.add(nextId);
+    });
+
+    setAssignments(nextAssignments);
+    setBehaviors({});
     setOptimizerDebug(result.debug ?? null);
     setLoadedMatchId(null);
     if (Object.keys(result.lineup).length) {
@@ -629,7 +1009,17 @@ export default function Dashboard({
       const response = await fetch("/api/chpp/matches?isYouth=true", {
         cache: "no-store",
       });
-      const payload = (await response.json()) as MatchesResponse;
+      const payload = (await response.json()) as MatchesResponse & {
+        code?: string;
+        statusCode?: number;
+        details?: string;
+        error?: string;
+      };
+      if (isAuthErrorPayload(payload, response)) {
+        setAuthError(true);
+        setAuthErrorDetails(payload.details ?? messages.connectHint);
+        return;
+      }
       setMatchesState(payload);
     } catch {
       // keep existing data
@@ -649,7 +1039,19 @@ export default function Dashboard({
             PlayerList?: { YouthPlayer?: YouthPlayer[] | YouthPlayer };
           };
         };
+        error?: string;
+        details?: string;
+        statusCode?: number;
+        code?: string;
       };
+      if (isAuthErrorPayload(payload, response)) {
+        setAuthError(true);
+        setAuthErrorDetails(payload.details ?? messages.connectHint);
+        return;
+      }
+      if (!response.ok || payload.error) {
+        throw new Error(payload.error ?? "Failed to fetch youth players");
+      }
       const raw = payload?.data?.HattrickData?.PlayerList?.YouthPlayer;
       const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
       setPlayerList(list);
@@ -662,14 +1064,34 @@ export default function Dashboard({
       addNotification(messages.notificationPlayersRefreshed);
     } catch {
       addNotification(messages.unableToLoadPlayers);
+      setLoadError(messages.unableToLoadPlayers);
+      setLoadErrorDetails(null);
     } finally {
       setPlayersLoading(false);
     }
   };
 
-  const loadLineup = (nextAssignments: LineupAssignments, matchId: number) => {
+  const loadLineup = (
+    nextAssignments: LineupAssignments,
+    nextBehaviors: LineupBehaviors,
+    matchId: number
+  ) => {
     setAssignments(nextAssignments);
+    setBehaviors(nextBehaviors);
     setLoadedMatchId(matchId);
+  };
+
+  const handleBehaviorChange = (slotId: string, behavior: number) => {
+    setBehaviors((prev) => {
+      const next = { ...prev };
+      if (behavior) {
+        next[slotId] = behavior;
+      } else {
+        delete next[slotId];
+      }
+      return next;
+    });
+    setLoadedMatchId(null);
   };
 
   const detailsData = resolveDetails(details);
@@ -770,6 +1192,8 @@ export default function Dashboard({
         return messages.optimizerCat3;
       case "cat4":
         return messages.optimizerCat4;
+      case "maxed":
+        return messages.optimizerCatMaxed;
       case "dontCare":
       default:
         return messages.optimizerCatDontCare;
@@ -796,9 +1220,14 @@ export default function Dashboard({
         return messages.unknownShort;
     }
   };
+  const captainName = captainId
+    ? formatPlayerName(playersById.get(captainId) ?? ({} as YouthPlayer))
+    : messages.unknownShort;
   const trainingReminderText = messages.trainingReminderBody
     .replace("{{primary}}", trainingLabel(primaryTraining))
-    .replace("{{secondary}}", trainingLabel(secondaryTraining));
+    .replace("{{secondary}}", trainingLabel(secondaryTraining))
+    .replace("{{captain}}", captainName)
+    .replace("{{tactic}}", messages.tacticPlayCreatively);
 
   const trainingSlots = useMemo(() => {
     if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
@@ -817,28 +1246,71 @@ export default function Dashboard({
   }, [primaryTraining, secondaryTraining]);
 
   return (
-    <div className={styles.dashboardGrid} ref={dashboardRef}>
-      {showTrainingReminder ? (
-        <div className={styles.trainingOverlay} role="dialog" aria-modal="true">
-          <div className={styles.confirmCard}>
-            <div className={styles.confirmTitle}>
-              {messages.trainingReminderTitle}
-            </div>
-            <div className={styles.confirmBody}>
-              {trainingReminderText}
-            </div>
-            <div className={styles.confirmActions}>
-              <button
-                type="button"
-                className={styles.confirmSubmit}
-                onClick={() => setShowTrainingReminder(false)}
-              >
-                {messages.trainingReminderConfirm}
-              </button>
-            </div>
-          </div>
+    <div className={styles.dashboardStack}>
+      {loadError && !authError ? (
+        <div className={styles.errorBox}>
+          <h2 className={styles.sectionTitle}>{messages.unableToLoadPlayers}</h2>
+          <p className={styles.errorText}>{loadError}</p>
+          {loadErrorDetails ? (
+            <p className={styles.errorDetails}>{loadErrorDetails}</p>
+          ) : null}
         </div>
       ) : null}
+      <Modal
+        open={authError}
+        title={messages.authExpiredTitle}
+        body={
+          <div>
+            <p>{messages.authExpiredBody}</p>
+            {authErrorDetails ? (
+              <p className={styles.errorDetails}>{authErrorDetails}</p>
+            ) : null}
+          </div>
+        }
+        actions={
+          <div className={styles.confirmActions}>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={() => setAuthError(false)}
+            >
+              {messages.authExpiredDismiss}
+            </button>
+            <a className={styles.confirmSubmit} href="/api/chpp/oauth/start">
+              {messages.authExpiredAction}
+            </a>
+          </div>
+        }
+      />
+      <div className={styles.dashboardGrid} ref={dashboardRef}>
+        <Modal
+        open={showTrainingReminder}
+        title={messages.trainingReminderTitle}
+        body={trainingReminderText}
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setShowTrainingReminder(false)}
+          >
+            {messages.trainingReminderConfirm}
+          </button>
+        }
+      />
+      <Modal
+        open={!!optimizeErrorMessage}
+        title={messages.optimizeMenuRevealPrimaryCurrent}
+        body={optimizeErrorMessage ?? ""}
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setOptimizeErrorMessage(null)}
+          >
+            {messages.trainingReminderConfirm}
+          </button>
+        }
+      />
       {showHelp ? (
         <div className={styles.helpOverlay} aria-hidden="true">
           <svg className={styles.helpArrows} role="presentation">
@@ -1078,14 +1550,16 @@ export default function Dashboard({
         </div>
         <LineupField
           assignments={assignments}
+          behaviors={behaviors}
           playersById={playersById}
           playerDetailsById={playerDetailsById}
           onAssign={assignPlayer}
           onClear={clearSlot}
           onMove={moveSlot}
+          onChangeBehavior={handleBehaviorChange}
           onRandomize={randomizeLineup}
           onReset={resetLineup}
-          onOptimize={handleOptimize}
+          onOptimizeSelect={handleOptimizeSelect}
           optimizeDisabled={!manualReady}
           optimizeDisabledReason={optimizeDisabledReason}
           trainedSlots={trainingSlots}
@@ -1303,12 +1777,15 @@ export default function Dashboard({
           response={matchesState}
           messages={messages}
           assignments={assignments}
+          behaviors={behaviors}
+          captainId={captainId}
           onRefresh={refreshMatches}
           onLoadLineup={loadLineup}
           loadedMatchId={loadedMatchId}
           onSubmitSuccess={() => setShowTrainingReminder(true)}
         />
       </div>
+    </div>
     </div>
   );
 }

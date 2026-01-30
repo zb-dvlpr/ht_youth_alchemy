@@ -183,6 +183,65 @@ function renderMatch(
       : match.Status === "ONGOING"
       ? messages.matchStatusOngoing
       : match.Status ?? messages.unknownLabel;
+  const matchTypeId = Number(match.MatchType);
+  const matchTypeLabel = Number.isFinite(matchTypeId)
+    ? (() => {
+        switch (matchTypeId) {
+          case 1:
+            return messages.matchType1;
+          case 2:
+            return messages.matchType2;
+          case 3:
+            return messages.matchType3;
+          case 4:
+            return messages.matchType4;
+          case 5:
+            return messages.matchType5;
+          case 6:
+            return messages.matchType6;
+          case 7:
+            return messages.matchType7;
+          case 8:
+            return messages.matchType8;
+          case 9:
+            return messages.matchType9;
+          case 10:
+            return messages.matchType10;
+          case 11:
+            return messages.matchType11;
+          case 12:
+            return messages.matchType12;
+          case 50:
+            return messages.matchType50;
+          case 51:
+            return messages.matchType51;
+          case 61:
+            return messages.matchType61;
+          case 62:
+            return messages.matchType62;
+          case 80:
+            return messages.matchType80;
+          case 100:
+            return messages.matchType100;
+          case 101:
+            return messages.matchType101;
+          case 102:
+            return messages.matchType102;
+          case 103:
+            return messages.matchType103;
+          case 104:
+            return messages.matchType104;
+          case 105:
+            return messages.matchType105;
+          case 106:
+            return messages.matchType106;
+          case 107:
+            return messages.matchType107;
+          default:
+            return `${messages.matchTypeUnknown} ${matchTypeId}`;
+        }
+      })()
+    : messages.matchTypeUnknown;
   const lineupIssue =
     assignedCount && assignedCount > 11
       ? messages.submitOrdersMaxPlayers
@@ -196,6 +255,7 @@ function renderMatch(
         <span>{match.HomeTeam?.HomeTeamName ?? messages.homeLabel}</span>
         <span className={styles.vs}>vs</span>
         <span>{match.AwayTeam?.AwayTeamName ?? messages.awayLabel}</span>
+        <span className={styles.matchType}>({matchTypeLabel})</span>
       </div>
       <div className={styles.matchMeta}>
         <span>{formatMatchDate(match.MatchDate, messages.unknownDate)}</span>

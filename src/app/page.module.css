@@ -955,7 +955,8 @@ html[data-theme="dark"] .matchItem {
 }
 
 html[data-theme="dark"] .matchMeta,
-html[data-theme="dark"] .vs {
+html[data-theme="dark"] .vs,
+html[data-theme="dark"] .matchType {
   color: #b9b0a5;
 }
 
@@ -1557,6 +1558,11 @@ html[data-theme="dark"] .spinner {
   flex-wrap: wrap;
   gap: 8px;
   font-weight: 600;
+}
+
+.matchType {
+  color: #8a7b68;
+  font-weight: 500;
 }
 
 .vs {

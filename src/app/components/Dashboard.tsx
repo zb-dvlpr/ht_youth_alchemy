@@ -1673,6 +1673,14 @@ export default function Dashboard({
               orderSource={orderSource}
               onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}
               onSkillsOrderChange={(ids) => applyPlayerOrder(ids, "skills")}
+              onRatingsSortStart={() => {
+                setOrderSource("ratings");
+                setOrderedPlayerIds(null);
+              }}
+              onSkillsSortStart={() => {
+                setOrderSource("skills");
+                setOrderedPlayerIds(null);
+              }}
               messages={messages}
             />
           </>

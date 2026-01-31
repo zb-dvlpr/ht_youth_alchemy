@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { formatChppDate, formatDateTime } from "@/lib/datetime";
@@ -69,6 +69,8 @@ type PlayerDetailsPanelProps = {
   orderSource?: "list" | "ratings" | "skills" | null;
   onRatingsOrderChange?: (orderedIds: number[]) => void;
   onSkillsOrderChange?: (orderedIds: number[]) => void;
+  onRatingsSortStart?: () => void;
+  onSkillsSortStart?: () => void;
   messages: Messages;
 };
 
@@ -225,13 +227,18 @@ export default function PlayerDetailsPanel({
   orderSource,
   onRatingsOrderChange,
   onSkillsOrderChange,
+  onRatingsSortStart,
+  onSkillsSortStart,
   messages,
 }: PlayerDetailsPanelProps) {
   const [activeTab, setActiveTab] = useState<
     "details" | "skillsMatrix" | "ratingsMatrix"
   >("details");
-  const [skillsSortKey, setSkillsSortKey] = useState<string | null>(null);
+  const [skillsSortKey, setSkillsSortKey] = useState<
+    (typeof SKILL_ROWS)[number]["key"] | "name" | null
+  >(null);
   const [skillsSortDir, setSkillsSortDir] = useState<"asc" | "desc">("desc");
+  const pendingSkillsSortRef = useRef(false);
 
   const playerById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -248,6 +255,11 @@ export default function PlayerDetailsPanel({
   const sortedSkillsRows = useMemo(() => {
     if (!skillsSortKey) return skillsMatrixRows;
     const direction = skillsSortDir === "asc" ? 1 : -1;
+    if (skillsSortKey === "name") {
+      return [...skillsMatrixRows].sort(
+        (a, b) => a.name.localeCompare(b.name) * direction
+      );
+    }
     return [...skillsMatrixRows].sort((a, b) => {
       const detailsA = a.id ? playerDetailsById.get(a.id) : null;
       const detailsB = b.id ? playerDetailsById.get(b.id) : null;
@@ -286,18 +298,32 @@ export default function PlayerDetailsPanel({
   useEffect(() => {
     if (!onSkillsOrderChange) return;
     if (!skillsSortKey) return;
-    onSkillsOrderChange(
-      sortedSkillsRows.map((row) => row.id).filter(Boolean) as number[]
-    );
-  }, [onSkillsOrderChange, skillsSortKey, skillsSortDir, sortedSkillsRows]);
-
-  useEffect(() => {
-    if (orderSource && orderSource !== "skills" && skillsSortKey !== null) {
-      setSkillsSortKey(null);
+    if (orderSource && orderSource !== "skills") return;
+    const nextOrder = sortedSkillsRows
+      .map((row) => row.id)
+      .filter(Boolean) as number[];
+    if (
+      orderedPlayerIds &&
+      orderedPlayerIds.length === nextOrder.length &&
+      orderedPlayerIds.every((id, index) => id === nextOrder[index])
+    ) {
+      return;
     }
-  }, [orderSource, skillsSortKey]);
+    onSkillsOrderChange(nextOrder);
+  }, [
+    onSkillsOrderChange,
+    skillsSortKey,
+    skillsSortDir,
+    sortedSkillsRows,
+    orderSource,
+    orderedPlayerIds,
+  ]);
 
-  const handleSkillsSort = (key: string) => {
+  const handleSkillsSort = (
+    key: (typeof SKILL_ROWS)[number]["key"] | "name"
+  ) => {
+    pendingSkillsSortRef.current = true;
+    onSkillsSortStart?.();
     if (skillsSortKey === key) {
       setSkillsSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -305,6 +331,19 @@ export default function PlayerDetailsPanel({
       setSkillsSortDir("desc");
     }
   };
+
+  useEffect(() => {
+    if (orderSource && orderSource !== "skills" && skillsSortKey !== null) {
+      if (pendingSkillsSortRef.current) {
+        pendingSkillsSortRef.current = false;
+        return;
+      }
+      setSkillsSortKey(null);
+    }
+    if (orderSource === "skills") {
+      pendingSkillsSortRef.current = false;
+    }
+  }, [orderSource, skillsSortKey]);
 
   const specialtyName = (value?: number) => {
     switch (value) {
@@ -604,22 +643,36 @@ export default function PlayerDetailsPanel({
                 {messages.ratingsIndexLabel}
               </th>
               <th className={styles.matrixPlayerHeader}>
-                {messages.ratingsPlayerLabel}
+                <button
+                  type="button"
+                  className={styles.matrixSortButton}
+                  onClick={() => handleSkillsSort("name")}
+                  aria-label={`${messages.ratingsSortBy} ${messages.ratingsPlayerLabel}`}
+                >
+                  {messages.ratingsPlayerLabel}
+                  <span className={styles.matrixSortIcon}>
+                    {skillsSortKey === "name"
+                      ? skillsSortDir === "asc"
+                        ? "▲"
+                        : "▼"
+                      : "⇅"}
+                  </span>
+                </button>
               </th>
               <th className={styles.matrixSpecialtyHeader}>
                 {messages.ratingsSpecialtyLabel}
               </th>
-              {SKILL_ROWS.map((row) => {
-                const isActive = skillsSortKey === row.key;
-                const direction = isActive ? skillsSortDir : "desc";
-                return (
-                  <th key={row.key}>
-                    <button
-                      type="button"
-                      className={styles.matrixSortButton}
-                      onClick={() => handleSkillsSort(row.key)}
-                      aria-label={`${messages.ratingsSortBy} ${messages[row.labelKey as keyof Messages]}`}
-                    >
+                {SKILL_ROWS.map((row) => {
+                  const isActive = skillsSortKey === row.key;
+                  const direction = isActive ? skillsSortDir : "desc";
+                  return (
+                    <th key={row.key}>
+                      <button
+                        type="button"
+                        className={styles.matrixSortButton}
+                        onClick={() => handleSkillsSort(row.key)}
+                        aria-label={`${messages.ratingsSortBy} ${messages[row.labelKey as keyof Messages]}`}
+                      >
                       {messages[row.shortLabelKey as keyof Messages]}
                       <span className={styles.matrixSortIcon}>
                         {isActive ? (direction === "asc" ? "▲" : "▼") : "⇅"}
@@ -635,11 +688,26 @@ export default function PlayerDetailsPanel({
               const player = row.id ? playerById.get(row.id) : null;
               const details = row.id ? playerDetailsById.get(row.id) : null;
               const skills = details?.PlayerSkills ?? player?.PlayerSkills ?? null;
+              const isSelected = ratingsMatrixSelectedName === row.name;
 
               return (
-                <tr key={`${row.name}-${row.id ?? "unknown"}`}>
+                <tr
+                  key={`${row.name}-${row.id ?? "unknown"}`}
+                  className={`${styles.matrixRow} ${
+                    isSelected ? styles.matrixRowSelected : ""
+                  }`}
+                >
                   <td className={styles.matrixIndex}>{index + 1}</td>
-                  <td className={styles.matrixPlayer}>{row.name}</td>
+                  <td className={styles.matrixPlayer}>
+                    <button
+                      type="button"
+                      className={styles.matrixPlayerButton}
+                      onClick={() => onSelectRatingsPlayer?.(row.name)}
+                      disabled={!onSelectRatingsPlayer}
+                    >
+                      {row.name}
+                    </button>
+                  </td>
                   <td className={styles.matrixSpecialty}>
                     {player?.Specialty !== undefined ? (
                       <Tooltip
@@ -759,6 +827,7 @@ export default function PlayerDetailsPanel({
           orderedPlayerIds={orderedPlayerIds}
           orderSource={orderSource}
           onOrderChange={onRatingsOrderChange}
+          onSortStart={onRatingsSortStart}
         />
       )}
     </div>

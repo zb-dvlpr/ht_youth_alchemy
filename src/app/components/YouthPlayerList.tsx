@@ -312,6 +312,7 @@ export default function YouthPlayerList({
   useEffect(() => {
     if (!onOrderChange) return;
     if (sortKey === "custom") return;
+    if (orderSource && orderSource !== "list") return;
     if (
       orderSource === "list" &&
       orderedPlayerIds &&

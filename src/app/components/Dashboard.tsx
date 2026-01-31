@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import styles from "../page.module.css";
 import YouthPlayerList from "./YouthPlayerList";
 import PlayerDetailsPanel, {
@@ -169,9 +169,16 @@ export default function Dashboard({
   const storageKey = "ya_dashboard_state_v2";
   const helpStorageKey = "ya_help_dismissed_v1";
   const dashboardRef = useRef<HTMLDivElement | null>(null);
-  const helpCardRef = useRef<HTMLDivElement | null>(null);
   const [showHelp, setShowHelp] = useState(false);
-  const [helpPaths, setHelpPaths] = useState<string[]>([]);
+  const [helpCallouts, setHelpCallouts] = useState<
+    {
+      id: string;
+      text: string;
+      style: CSSProperties;
+      hideIndex?: boolean;
+      placement?: "above-left" | "above-center" | "right-center" | "left-center";
+    }[]
+  >([]);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [ratingsCache, setRatingsCache] = useState<
     Record<number, Record<string, number>>
@@ -459,76 +466,107 @@ export default function Dashboard({
 
   useEffect(() => {
     if (!showHelp) {
-      setHelpPaths([]);
+      setHelpCallouts([]);
       return;
     }
-    const computePaths = () => {
+    const computeCallouts = () => {
       const root = dashboardRef.current;
-      const helpCard = helpCardRef.current;
-      if (!root || !helpCard) return;
+      if (!root) return;
       const rootRect = root.getBoundingClientRect();
-      const helpRect = helpCard.getBoundingClientRect();
-      const optimizeEl = root.querySelector(
-        "[data-help-anchor='optimize']"
-      ) as HTMLElement | null;
-      const submitEl = root.querySelector(
-        "[data-help-anchor='submit']"
-      ) as HTMLElement | null;
-      const optimizeTextEl = helpCard.querySelector(
-        "[data-help-text='optimize']"
-      ) as HTMLElement | null;
-      const submitTextEl = helpCard.querySelector(
-        "[data-help-text='submit']"
-      ) as HTMLElement | null;
-      const optimizeLineEl = helpCard.querySelector(
-        "[data-help-line='optimize']"
-      ) as HTMLElement | null;
-      const submitLineEl = helpCard.querySelector(
-        "[data-help-line='submit']"
-      ) as HTMLElement | null;
-
-      const paths: string[] = [];
-      const defaultStartX = helpRect.right - rootRect.left - 6;
-      const defaultStartY = helpRect.top - rootRect.top + 56;
-
-      const makePath = (
-        startEl: HTMLElement | null,
-        target: HTMLElement,
-        offsetY: number
-      ) => {
-        const rects =
-          startEl?.getClientRects() ??
-          (startEl ?? helpCard).getClientRects();
-        const startRect = rects.length ? rects[rects.length - 1] : null;
-        const startX = startRect
-          ? startRect.right - rootRect.left
-          : defaultStartX;
-        const startY = startRect
-          ? startRect.top - rootRect.top + startRect.height / 2 + offsetY
-          : defaultStartY + offsetY;
-        const targetRect = target.getBoundingClientRect();
-        const endX =
-          targetRect.left - rootRect.left + targetRect.width / 2;
-        const endY =
-          targetRect.top - rootRect.top + targetRect.height / 2 + offsetY;
-        const midX = (startX + endX) / 2 + 80;
-        const midY = (startY + endY) / 2 - 40;
-        return `M ${startX} ${startY} Q ${midX} ${midY} ${endX} ${endY}`;
-      };
-
-      if (optimizeEl) {
-        paths.push(makePath(optimizeLineEl ?? optimizeTextEl, optimizeEl, 0));
-      }
-      if (submitEl) {
-        paths.push(makePath(submitLineEl ?? submitTextEl, submitEl, 0));
-      }
-
-      setHelpPaths(paths);
+      const targets: Array<{
+        id: string;
+        selector: string;
+        text: string;
+        placement: "above-left" | "above-center" | "right-center" | "left-center";
+        hideIndex?: boolean;
+      }> = [
+        {
+          id: "star",
+          selector: "[data-help-anchor='player-list']",
+          text: messages.helpCalloutStar,
+          placement: "above-left",
+        },
+        {
+          id: "training",
+          selector: "[data-help-anchor='training-panel']",
+          text: messages.helpCalloutTraining,
+          placement: "above-center",
+        },
+        {
+          id: "optimize",
+          selector: "[data-help-anchor='optimize-menu']",
+          text: messages.helpCalloutOptimize,
+          placement: "left-center",
+        },
+        {
+          id: "auto",
+          selector: "[data-help-anchor='auto-select']",
+          text: messages.helpCalloutAuto,
+          placement: "above-center",
+          hideIndex: true,
+        },
+      ];
+      const next = targets.flatMap((target) => {
+        const el = root.querySelector(target.selector) as HTMLElement | null;
+        if (!el) return [];
+        const rect = el.getBoundingClientRect();
+        const centerX = rect.left - rootRect.left + rect.width / 2;
+        const centerY = rect.top - rootRect.top + rect.height / 2;
+        let left = centerX;
+        let top = centerY;
+        let transform = "translate(-50%, -50%)";
+        switch (target.placement) {
+          case "above-left":
+            left = rect.left - rootRect.left + 10;
+            top = rect.top - rootRect.top - 8;
+            transform = "translate(0, -100%)";
+            break;
+          case "above-center":
+            left = centerX;
+            top = rect.top - rootRect.top - 10;
+            transform = "translate(-50%, -100%)";
+            break;
+          case "right-center":
+            left = rect.right - rootRect.left + 10;
+            top = centerY;
+            transform = "translate(0, -50%)";
+            break;
+          case "left-center":
+            left = rect.left - rootRect.left - 10;
+            top = centerY;
+            transform = "translate(-100%, -50%)";
+            break;
+          default:
+            break;
+        }
+        const clampedLeft = Math.min(
+          Math.max(left, 12),
+          rootRect.width - 12
+        );
+        const clampedTop = Math.min(
+          Math.max(top, 12),
+          rootRect.height - 12
+        );
+        return [
+          {
+            id: target.id,
+            text: target.text,
+            style: {
+              left: clampedLeft,
+              top: clampedTop,
+              transform,
+            } as CSSProperties,
+            hideIndex: target.hideIndex ?? false,
+            placement: target.placement,
+          },
+        ];
+      });
+      setHelpCallouts(next);
     };
 
     const schedule = () => {
       window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(computePaths);
+        window.requestAnimationFrame(computeCallouts);
       });
     };
 
@@ -1313,32 +1351,22 @@ export default function Dashboard({
       />
       {showHelp ? (
         <div className={styles.helpOverlay} aria-hidden="true">
-          <svg className={styles.helpArrows} role="presentation">
-            <defs>
-              <marker
-                id="helpArrowHead"
-                markerWidth="10"
-                markerHeight="8"
-                refX="8"
-                refY="4"
-                orient="auto"
-                markerUnits="strokeWidth"
+          <div className={styles.helpCallouts}>
+            {helpCallouts.map((callout, index) => (
+              <div
+                key={callout.id}
+                className={styles.helpCallout}
+                style={callout.style}
+                data-pointer={callout.hideIndex ? "left" : "right"}
+                data-placement={callout.placement}
               >
-                <path
-                  d="M 0 0 L 10 4 L 0 8 Z"
-                  className={styles.helpArrowHead}
-                />
-              </marker>
-            </defs>
-            {helpPaths.map((path) => (
-              <path
-                key={path}
-                d={path}
-                className={styles.helpArrow}
-                markerEnd="url(#helpArrowHead)"
-              />
+                {!callout.hideIndex ? (
+                  <span className={styles.helpCalloutIndex}>{index + 1}</span>
+                ) : null}
+                <span className={styles.helpCalloutText}>{callout.text}</span>
+              </div>
             ))}
-          </svg>
+          </div>
         </div>
       ) : null}
       <div
@@ -1346,6 +1374,7 @@ export default function Dashboard({
         aria-hidden={showHelp ? "true" : undefined}
       >
         <YouthPlayerList
+          dataHelpAnchor="player-list"
           players={playerList}
           assignedIds={assignedIds}
           selectedId={selectedId}
@@ -1378,35 +1407,15 @@ export default function Dashboard({
       </div>
       <div className={styles.columnStack}>
         {showHelp ? (
-          <div className={styles.helpCard} ref={helpCardRef}>
+          <div className={styles.helpCard}>
             <h2 className={styles.helpTitle}>{messages.helpTitle}</h2>
             <p className={styles.helpIntro}>{messages.helpIntro}</p>
             <ul className={styles.helpList}>
-              <li>{messages.helpPurpose}</li>
-              <li>{messages.helpAi}</li>
-              <li>{messages.helpOverride}</li>
-              <li>{messages.helpNoAutoSubmit}</li>
-              <li>{messages.helpLoadLineup}</li>
-              <li>
-                <span data-help-line="optimize" className={styles.helpLine}>
-                  {messages.helpOptimizePrefix}{" "}
-                  <span data-help-text="optimize" className={styles.helpAnchor}>
-                    {messages.helpOptimizeLabel}
-                  </span>{" "}
-                  {messages.helpOptimizeSuffix}
-                </span>
-              </li>
-              <li>
-                <span data-help-line="submit" className={styles.helpLine}>
-                  {messages.helpSubmitPrefix}{" "}
-                  <span data-help-text="submit" className={styles.helpAnchor}>
-                    {messages.helpSubmitLabel}
-                  </span>{" "}
-                  {messages.helpSubmitSuffix}
-                </span>
-              </li>
-              <li>{messages.helpDrag}</li>
-              <li>{messages.helpDesktop}</li>
+              <li>{messages.helpBulletOverview}</li>
+              <li>{messages.helpBulletMatches}</li>
+              <li>{messages.helpBulletAdjust}</li>
+              <li>{messages.helpBulletTraining}</li>
+              <li>{messages.helpBulletDesktop}</li>
             </ul>
             <button
               type="button"
@@ -1473,7 +1482,7 @@ export default function Dashboard({
         }`}
         aria-hidden={showHelp ? "true" : undefined}
       >
-        <div className={styles.card}>
+        <div className={styles.card} data-help-anchor="training-panel">
           <h2 className={styles.sectionTitle}>{messages.trainingTitle}</h2>
           <div className={styles.trainingControls}>
             <label className={styles.trainingRow}>
@@ -1562,6 +1571,7 @@ export default function Dashboard({
           onOptimizeSelect={handleOptimizeSelect}
           optimizeDisabled={!manualReady}
           optimizeDisabledReason={optimizeDisabledReason}
+          forceOptimizeOpen={showHelp}
           trainedSlots={trainingSlots}
           onHoverPlayer={ensureDetails}
           messages={messages}

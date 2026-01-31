@@ -47,6 +47,7 @@ type LineupFieldProps = {
   onOptimizeSelect?: (mode: OptimizeMode) => void;
   optimizeDisabled?: boolean;
   optimizeDisabledReason?: string;
+  forceOptimizeOpen?: boolean;
   trainedSlots?: {
     primary: Set<string>;
     secondary: Set<string>;
@@ -227,6 +228,7 @@ export default function LineupField({
   onOptimizeSelect,
   optimizeDisabled = false,
   optimizeDisabledReason,
+  forceOptimizeOpen = false,
   trainedSlots,
   onHoverPlayer,
   messages,
@@ -236,6 +238,7 @@ export default function LineupField({
   const optimizeMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
+    if (forceOptimizeOpen) return;
     if (!optimizeOpen) return;
     const handleClick = (event: MouseEvent) => {
       const target = event.target as Node | null;
@@ -245,10 +248,14 @@ export default function LineupField({
     };
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
-  }, [optimizeOpen]);
+  }, [optimizeOpen, forceOptimizeOpen]);
+
+  const menuOpen = forceOptimizeOpen || optimizeOpen;
 
   const handleOptimizeSelect = (mode: OptimizeMode) => {
-    setOptimizeOpen(false);
+    if (!forceOptimizeOpen) {
+      setOptimizeOpen(false);
+    }
     onOptimizeSelect?.(mode);
   };
 
@@ -316,21 +323,27 @@ export default function LineupField({
               <button
                 type="button"
                 className={styles.optimizeButton}
-                onClick={() => setOptimizeOpen((prev) => !prev)}
+                onClick={() => {
+                  if (forceOptimizeOpen) return;
+                  setOptimizeOpen((prev) => !prev);
+                }}
                 aria-label={
                   optimizeDisabled
                     ? optimizeDisabledReason
                     : messages.optimizeLineupTitle
                 }
                 disabled={optimizeDisabled}
-                data-help-anchor="optimize"
                 ref={optimizeButtonRef}
               >
                 ✨
               </button>
             </Tooltip>
-            {optimizeOpen ? (
-              <div className={styles.feedbackMenu} ref={optimizeMenuRef}>
+            {menuOpen ? (
+              <div
+                className={styles.feedbackMenu}
+                ref={optimizeMenuRef}
+                data-help-anchor="optimize-menu"
+              >
                 <button
                   type="button"
                   className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}

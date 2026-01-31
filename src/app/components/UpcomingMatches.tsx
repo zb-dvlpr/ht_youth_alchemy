@@ -290,7 +290,6 @@ function renderMatch(
               onClick={() => onSubmit(matchId)}
               disabled={!canSubmit || state.status === "submitting"}
               aria-label={messages.submitOrdersTooltip}
-              data-help-anchor="submit"
             >
               {state.status === "submitting"
                 ? messages.submitOrdersPending

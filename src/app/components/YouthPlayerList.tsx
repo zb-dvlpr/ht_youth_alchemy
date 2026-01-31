@@ -62,6 +62,7 @@ type YouthPlayerListProps = {
   assignedIds?: Set<number>;
   selectedId?: number | null;
   starPlayerId?: number | null;
+  dataHelpAnchor?: string;
   onToggleStar?: (playerId: number) => void;
   onSelect?: (playerId: number) => void;
   onAutoSelect?: () => void;
@@ -129,6 +130,7 @@ export default function YouthPlayerList({
   assignedIds,
   selectedId,
   starPlayerId,
+  dataHelpAnchor,
   onToggleStar,
   onSelect,
   onAutoSelect,
@@ -274,7 +276,7 @@ export default function YouthPlayerList({
   }, [players, sortKey, sortDirection]);
 
   return (
-    <div className={styles.card}>
+    <div className={styles.card} data-help-anchor={dataHelpAnchor}>
       <div className={styles.listHeader}>
         <h2 className={`${styles.sectionTitle} ${styles.listHeaderTitle}`}>
           {messages.youthPlayerList}
@@ -348,6 +350,7 @@ export default function YouthPlayerList({
               className={styles.autoSelectButton}
               onClick={onAutoSelect}
               aria-label={messages.autoSelectTitle}
+              data-help-anchor="auto-select"
             >
               {messages.autoSelectLabel}
             </button>

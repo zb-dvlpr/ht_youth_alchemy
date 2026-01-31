@@ -47,6 +47,43 @@ type YouthPlayerListResponse = {
   statusCode?: number;
 };
 
+type ManagerCompendiumResponse = {
+  data?: {
+    HattrickData?: {
+      Manager?: {
+        Teams?: {
+          Team?: ManagerTeam | ManagerTeam[];
+        };
+      };
+    };
+  };
+  error?: string;
+  details?: string;
+  code?: string;
+  statusCode?: number;
+};
+
+type ManagerTeam = {
+  TeamId?: number | string;
+  TeamName?: string;
+  YouthTeam?: {
+    YouthTeamId?: number | string;
+    YouthTeamName?: string;
+    YouthLeague?: {
+      YouthLeagueId?: number | string;
+      YouthLeagueName?: string;
+    };
+  };
+};
+
+export type YouthTeamOption = {
+  teamId: number;
+  teamName: string;
+  youthTeamId: number;
+  youthTeamName: string;
+  youthLeagueName?: string | null;
+};
+
 async function getBaseUrl() {
   const headerStore = await headers();
   const host = headerStore.get("host");
@@ -57,13 +94,16 @@ async function getBaseUrl() {
   return host ? `${protocol}://${host}` : "http://localhost:3000";
 }
 
-async function getPlayers(): Promise<YouthPlayerListResponse> {
+async function getPlayers(
+  youthTeamId?: number | null
+): Promise<YouthPlayerListResponse> {
   try {
     const baseUrl = await getBaseUrl();
     const cookieStore = await cookies();
+    const teamParam = youthTeamId ? `&youthTeamID=${youthTeamId}` : "";
 
     const response = await fetch(
-      `${baseUrl}/api/chpp/youth/players?actionType=details`,
+      `${baseUrl}/api/chpp/youth/players?actionType=details${teamParam}`,
       {
         cache: "no-store",
         headers: {
@@ -80,17 +120,21 @@ async function getPlayers(): Promise<YouthPlayerListResponse> {
   }
 }
 
-async function getMatches(): Promise<MatchesResponse> {
+async function getMatches(teamId?: number | null): Promise<MatchesResponse> {
   try {
     const baseUrl = await getBaseUrl();
     const cookieStore = await cookies();
+    const teamParam = teamId ? `&teamID=${teamId}` : "";
 
-    const response = await fetch(`${baseUrl}/api/chpp/matches?isYouth=true`, {
-      cache: "no-store",
-      headers: {
-        cookie: cookieStore.toString(),
-      },
-    });
+    const response = await fetch(
+      `${baseUrl}/api/chpp/matches?isYouth=true${teamParam}`,
+      {
+        cache: "no-store",
+        headers: {
+          cookie: cookieStore.toString(),
+        },
+      }
+    );
     return response.json();
   } catch (error) {
     return {
@@ -100,17 +144,23 @@ async function getMatches(): Promise<MatchesResponse> {
   }
 }
 
-async function getRatings(): Promise<RatingsMatrixResponse | null> {
+async function getRatings(
+  teamId?: number | null
+): Promise<RatingsMatrixResponse | null> {
   try {
     const baseUrl = await getBaseUrl();
     const cookieStore = await cookies();
+    const teamParam = teamId ? `?teamID=${teamId}` : "";
 
-    const response = await fetch(`${baseUrl}/api/chpp/youth/ratings`, {
-      cache: "no-store",
-      headers: {
-        cookie: cookieStore.toString(),
-      },
-    });
+    const response = await fetch(
+      `${baseUrl}/api/chpp/youth/ratings${teamParam}`,
+      {
+        cache: "no-store",
+        headers: {
+          cookie: cookieStore.toString(),
+        },
+      }
+    );
 
     if (!response.ok) return null;
     return response.json();
@@ -119,9 +169,52 @@ async function getRatings(): Promise<RatingsMatrixResponse | null> {
   }
 }
 
+async function getManagerCompendium(): Promise<ManagerCompendiumResponse> {
+  try {
+    const baseUrl = await getBaseUrl();
+    const cookieStore = await cookies();
+
+    const response = await fetch(`${baseUrl}/api/chpp/managercompendium`, {
+      cache: "no-store",
+      headers: {
+        cookie: cookieStore.toString(),
+      },
+    });
+    return response.json();
+  } catch (error) {
+    return {
+      error: "Failed to fetch manager compendium",
+      details: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
 function normalizePlayers(input?: YouthPlayer[] | YouthPlayer): YouthPlayer[] {
   if (!input) return [];
   return Array.isArray(input) ? input : [input];
+}
+
+function normalizeTeams(input?: ManagerTeam[] | ManagerTeam): ManagerTeam[] {
+  if (!input) return [];
+  return Array.isArray(input) ? input : [input];
+}
+
+function extractYouthTeams(response: ManagerCompendiumResponse): YouthTeamOption[] {
+  const teams = normalizeTeams(
+    response.data?.HattrickData?.Manager?.Teams?.Team
+  );
+  return teams.reduce<YouthTeamOption[]>((acc, team) => {
+    const youthTeamId = Number(team.YouthTeam?.YouthTeamId ?? 0);
+    if (!youthTeamId) return acc;
+    acc.push({
+      teamId: Number(team.TeamId ?? 0),
+      teamName: team.TeamName ?? "",
+      youthTeamId,
+      youthTeamName: team.YouthTeam?.YouthTeamName ?? "",
+      youthLeagueName: team.YouthTeam?.YouthLeague?.YouthLeagueName ?? null,
+    });
+    return acc;
+  }, []);
 }
 
 export default async function Home() {
@@ -130,8 +223,16 @@ export default async function Home() {
   const messages = getMessages(locale);
   const isConnected = Boolean(cookieStore.get("chpp_access_token")?.value);
 
+  const managerResponse = await getManagerCompendium();
+  const youthTeams = extractYouthTeams(managerResponse);
+  const defaultYouthTeamId = youthTeams.length > 1 ? youthTeams[0]?.youthTeamId : null;
+
   const [playersResponse, matchesResponse, ratingsResponse] =
-    await Promise.all([getPlayers(), getMatches(), getRatings()]);
+    await Promise.all([
+      getPlayers(defaultYouthTeamId),
+      getMatches(defaultYouthTeamId),
+      getRatings(defaultYouthTeamId),
+    ]);
 
   const tokenError =
     playersResponse.code?.startsWith("CHPP_AUTH") ||
@@ -180,6 +281,8 @@ export default async function Home() {
             players={players}
             matchesResponse={matchesResponse}
             ratingsResponse={ratingsResponse}
+            initialYouthTeams={youthTeams}
+            initialYouthTeamId={defaultYouthTeamId}
             messages={messages}
             isConnected={isConnected}
             initialLoadError={playersResponse.error ?? null}

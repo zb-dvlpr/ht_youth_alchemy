@@ -61,6 +61,9 @@ type YouthPlayerListProps = {
   players: YouthPlayer[];
   orderedPlayerIds?: number[] | null;
   orderSource?: "list" | "ratings" | "skills" | null;
+  youthTeams?: { youthTeamId: number; youthTeamName: string }[];
+  selectedYouthTeamId?: number | null;
+  onTeamChange?: (teamId: number) => void;
   assignedIds?: Set<number>;
   selectedId?: number | null;
   starPlayerId?: number | null;
@@ -134,6 +137,9 @@ export default function YouthPlayerList({
   players,
   orderedPlayerIds,
   orderSource,
+  youthTeams = [],
+  selectedYouthTeamId,
+  onTeamChange,
   assignedIds,
   selectedId,
   starPlayerId,
@@ -332,6 +338,26 @@ export default function YouthPlayerList({
         <h2 className={`${styles.sectionTitle} ${styles.listHeaderTitle}`}>
           {messages.youthPlayerList}
         </h2>
+        {youthTeams.length > 1 ? (
+          <label className={styles.teamSelectControl}>
+            <span className={styles.sortLabel}>{messages.youthTeamLabel}</span>
+            <select
+              className={styles.sortSelect}
+              value={selectedYouthTeamId ?? ""}
+              onChange={(event) => {
+                const nextId = Number(event.target.value);
+                if (Number.isNaN(nextId)) return;
+                onTeamChange?.(nextId);
+              }}
+            >
+              {youthTeams.map((team) => (
+                <option key={team.youthTeamId} value={team.youthTeamId}>
+                  {team.youthTeamName}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
         <div className={styles.listHeaderControls}>
           <label className={styles.sortControl}>
             <span className={styles.sortLabel}>{messages.sortLabel}</span>

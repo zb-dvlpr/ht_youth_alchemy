@@ -26,18 +26,21 @@ type LineupPlayer = {
   LastName?: string;
 };
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const auth = await getChppAuth();
+    const url = new URL(request.url);
+    const teamID = url.searchParams.get("teamID");
     const matchesParams = new URLSearchParams({
       file: "matches",
       version: MATCHES_VERSION,
       isYouth: "true",
     });
+    if (teamID) matchesParams.set("teamID", teamID);
     const { parsed: matchesParsed } = await fetchChppXml(auth, matchesParams);
 
     const team = matchesParsed?.HattrickData?.Team;
-    const teamId = team?.TeamID;
+    const teamId = teamID ?? team?.TeamID;
     const matchList = normalizeArray<MatchSummary>(
       team?.MatchList?.Match as MatchSummary | MatchSummary[] | undefined
     );

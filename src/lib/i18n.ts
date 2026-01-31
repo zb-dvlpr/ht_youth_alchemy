@@ -179,6 +179,9 @@ export type Messages = {
   notificationStarSet: string;
   notificationStarCleared: string;
   notificationPlayerSelected: string;
+  notificationTeamSwitched: string;
+  notificationTeamsLoaded: string;
+  notificationTeamsLoadFailed: string;
   permissionsLabel: string;
   permissionsNone: string;
   autoSelectLabel: string;
@@ -215,6 +218,9 @@ export type Messages = {
   sortToggleAria: string;
   sortAscLabel: string;
   sortDescLabel: string;
+  devManagerUserIdLabel: string;
+  devManagerUserIdPlaceholder: string;
+  devManagerLoadTeams: string;
   statusLabel: string;
   matchStatusUpcoming: string;
   matchStatusFinished: string;
@@ -491,6 +497,9 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Star player:",
     notificationStarCleared: "Star player cleared",
     notificationPlayerSelected: "Selected player:",
+    notificationTeamSwitched: "Switched to:",
+    notificationTeamsLoaded: "Teams loaded",
+    notificationTeamsLoadFailed: "Failed to load teams",
     permissionsLabel: "Permissions:",
     permissionsNone: "None",
     autoSelectLabel: "✨",
@@ -527,6 +536,9 @@ const MESSAGES: Record<Locale, Messages> = {
     sortToggleAria: "Reverse sort order",
     sortAscLabel: "Ascending",
     sortDescLabel: "Descending",
+    devManagerUserIdLabel: "Manager user ID (dev)",
+    devManagerUserIdPlaceholder: "Enter user ID",
+    devManagerLoadTeams: "Load teams",
     statusLabel: "Status",
     matchStatusUpcoming: "Upcoming",
     matchStatusFinished: "Finished",
@@ -805,6 +817,9 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Starspieler:",
     notificationStarCleared: "Starspieler entfernt",
     notificationPlayerSelected: "Spieler ausgewählt:",
+    notificationTeamSwitched: "Gewechselt zu:",
+    notificationTeamsLoaded: "Teams geladen",
+    notificationTeamsLoadFailed: "Teams konnten nicht geladen werden",
     permissionsLabel: "Rechte:",
     permissionsNone: "Keine",
     autoSelectLabel: "✨",
@@ -841,6 +856,9 @@ const MESSAGES: Record<Locale, Messages> = {
     sortToggleAria: "Sortierreihenfolge umkehren",
     sortAscLabel: "Aufsteigend",
     sortDescLabel: "Absteigend",
+    devManagerUserIdLabel: "Manager-User-ID (Dev)",
+    devManagerUserIdPlaceholder: "User-ID eingeben",
+    devManagerLoadTeams: "Teams laden",
     statusLabel: "Status",
     matchStatusUpcoming: "Bevorstehend",
     matchStatusFinished: "Beendet",
@@ -1125,6 +1143,9 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Joueur star :",
     notificationStarCleared: "Joueur star supprimé",
     notificationPlayerSelected: "Joueur sélectionné :",
+    notificationTeamSwitched: "Changé vers :",
+    notificationTeamsLoaded: "Équipes chargées",
+    notificationTeamsLoadFailed: "Impossible de charger les équipes",
     permissionsLabel: "Permissions :",
     permissionsNone: "Aucune",
     autoSelectLabel: "✨",
@@ -1161,6 +1182,9 @@ const MESSAGES: Record<Locale, Messages> = {
     sortToggleAria: "Inverser l’ordre du tri",
     sortAscLabel: "Ascendant",
     sortDescLabel: "Descendant",
+    devManagerUserIdLabel: "ID manager (dev)",
+    devManagerUserIdPlaceholder: "Saisir l’ID utilisateur",
+    devManagerLoadTeams: "Charger les équipes",
     statusLabel: "Statut",
     matchStatusUpcoming: "À venir",
     matchStatusFinished: "Terminé",
@@ -1442,6 +1466,9 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Jugador estrella:",
     notificationStarCleared: "Jugador estrella borrado",
     notificationPlayerSelected: "Jugador seleccionado:",
+    notificationTeamSwitched: "Cambiado a:",
+    notificationTeamsLoaded: "Equipos cargados",
+    notificationTeamsLoadFailed: "No se pudieron cargar los equipos",
     permissionsLabel: "Permisos:",
     permissionsNone: "Ninguno",
     autoSelectLabel: "✨",
@@ -1478,6 +1505,9 @@ const MESSAGES: Record<Locale, Messages> = {
     sortToggleAria: "Invertir orden",
     sortAscLabel: "Ascendente",
     sortDescLabel: "Descendente",
+    devManagerUserIdLabel: "ID de manager (dev)",
+    devManagerUserIdPlaceholder: "Introduce el ID de usuario",
+    devManagerLoadTeams: "Cargar equipos",
     statusLabel: "Estado",
     matchStatusUpcoming: "Próximo",
     matchStatusFinished: "Finalizado",
@@ -1757,6 +1787,9 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Stjärnspelare:",
     notificationStarCleared: "Stjärnspelare borttagen",
     notificationPlayerSelected: "Spelare vald:",
+    notificationTeamSwitched: "Bytt till:",
+    notificationTeamsLoaded: "Lag laddade",
+    notificationTeamsLoadFailed: "Kunde inte ladda lag",
     permissionsLabel: "Behörigheter:",
     permissionsNone: "Inga",
     autoSelectLabel: "✨",
@@ -1793,6 +1826,9 @@ const MESSAGES: Record<Locale, Messages> = {
     sortToggleAria: "Vänd sortering",
     sortAscLabel: "Stigande",
     sortDescLabel: "Fallande",
+    devManagerUserIdLabel: "Manager-ID (dev)",
+    devManagerUserIdPlaceholder: "Ange användar-ID",
+    devManagerLoadTeams: "Ladda lag",
     statusLabel: "Status",
     matchStatusUpcoming: "Kommande",
     matchStatusFinished: "Avslutad",
@@ -2074,6 +2110,9 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Giocatore stella:",
     notificationStarCleared: "Giocatore stella rimosso",
     notificationPlayerSelected: "Giocatore selezionato:",
+    notificationTeamSwitched: "Passato a:",
+    notificationTeamsLoaded: "Squadre caricate",
+    notificationTeamsLoadFailed: "Impossibile caricare le squadre",
     permissionsLabel: "Permessi:",
     permissionsNone: "Nessuno",
     autoSelectLabel: "✨",
@@ -2110,6 +2149,9 @@ const MESSAGES: Record<Locale, Messages> = {
     sortToggleAria: "Inverti ordinamento",
     sortAscLabel: "Crescente",
     sortDescLabel: "Decrescente",
+    devManagerUserIdLabel: "ID manager (dev)",
+    devManagerUserIdPlaceholder: "Inserisci ID utente",
+    devManagerLoadTeams: "Carica squadre",
     statusLabel: "Stato",
     matchStatusUpcoming: "In arrivo",
     matchStatusFinished: "Finita",
@@ -2391,6 +2433,9 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Jogador estrela:",
     notificationStarCleared: "Jogador estrela removido",
     notificationPlayerSelected: "Jogador selecionado:",
+    notificationTeamSwitched: "Mudou para:",
+    notificationTeamsLoaded: "Times carregados",
+    notificationTeamsLoadFailed: "Falha ao carregar times",
     permissionsLabel: "Permissões:",
     permissionsNone: "Nenhuma",
     autoSelectLabel: "✨",
@@ -2427,6 +2472,9 @@ const MESSAGES: Record<Locale, Messages> = {
     sortToggleAria: "Inverter ordenação",
     sortAscLabel: "Crescente",
     sortDescLabel: "Decrescente",
+    devManagerUserIdLabel: "ID do manager (dev)",
+    devManagerUserIdPlaceholder: "Digite o ID do usuário",
+    devManagerLoadTeams: "Carregar times",
     statusLabel: "Status",
     matchStatusUpcoming: "Próximo",
     matchStatusFinished: "Finalizado",

@@ -12,6 +12,7 @@ import LineupField, {
   OptimizeMode,
 } from "./LineupField";
 import UpcomingMatches, { type MatchesResponse } from "./UpcomingMatches";
+import type { YouthTeamOption } from "../page";
 import { Messages } from "@/lib/i18n";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
@@ -71,11 +72,64 @@ type DashboardProps = {
   players: YouthPlayer[];
   matchesResponse: MatchesResponse;
   ratingsResponse: RatingsMatrixResponse | null;
+  initialYouthTeams?: YouthTeamOption[];
+  initialYouthTeamId?: number | null;
   messages: Messages;
   isConnected: boolean;
   initialLoadError?: string | null;
   initialLoadDetails?: string | null;
   initialAuthError?: boolean;
+};
+
+type ManagerCompendiumResponse = {
+  data?: {
+    HattrickData?: {
+      Manager?: {
+        Teams?: {
+          Team?: ManagerTeam | ManagerTeam[];
+        };
+      };
+    };
+  };
+  error?: string;
+  details?: string;
+  code?: string;
+  statusCode?: number;
+};
+
+type ManagerTeam = {
+  TeamId?: number | string;
+  TeamName?: string;
+  YouthTeam?: {
+    YouthTeamId?: number | string;
+    YouthTeamName?: string;
+    YouthLeague?: {
+      YouthLeagueName?: string;
+    };
+  };
+};
+
+const normalizeTeams = (input?: ManagerTeam | ManagerTeam[]) => {
+  if (!input) return [];
+  return Array.isArray(input) ? input : [input];
+};
+
+const extractYouthTeams = (response: ManagerCompendiumResponse): YouthTeamOption[] => {
+  const teams = normalizeTeams(
+    response.data?.HattrickData?.Manager?.Teams?.Team
+  );
+  return teams.reduce<YouthTeamOption[]>((acc, team) => {
+    const youthTeamId = Number(team.YouthTeam?.YouthTeamId ?? 0);
+    if (!youthTeamId) return acc;
+    acc.push({
+      teamId: Number(team.TeamId ?? 0),
+      teamName: team.TeamName ?? "",
+      youthTeamId,
+      youthTeamName: team.YouthTeam?.YouthTeamName ?? "",
+      youthLeagueName: team.YouthTeam?.YouthLeague?.YouthLeagueName ?? null,
+    });
+    return acc;
+  }, []);
 };
 
 type CachedDetails = {
@@ -121,6 +175,8 @@ export default function Dashboard({
   players,
   matchesResponse,
   ratingsResponse,
+  initialYouthTeams = [],
+  initialYouthTeamId = null,
   messages,
   isConnected,
   initialLoadError = null,
@@ -148,6 +204,14 @@ export default function Dashboard({
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
   const [matchesState, setMatchesState] =
     useState<MatchesResponse>(matchesResponse);
+  const [ratingsResponseState, setRatingsResponseState] =
+    useState<RatingsMatrixResponse | null>(ratingsResponse);
+  const [youthTeams, setYouthTeams] =
+    useState<YouthTeamOption[]>(initialYouthTeams);
+  const [selectedYouthTeamId, setSelectedYouthTeamId] = useState<number | null>(
+    initialYouthTeamId
+  );
+  const [devManagerUserId, setDevManagerUserId] = useState("");
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
   const [primaryTraining, setPrimaryTraining] = useState<TrainingSkillKey | "">(
@@ -167,7 +231,6 @@ export default function Dashboard({
   );
   const { addNotification } = useNotifications();
   const isDev = process.env.NODE_ENV !== "production";
-  const storageKey = "ya_dashboard_state_v2";
   const helpStorageKey = "ya_help_dismissed_v1";
   const dashboardRef = useRef<HTMLDivElement | null>(null);
   const [showHelp, setShowHelp] = useState(false);
@@ -197,6 +260,21 @@ export default function Dashboard({
     playerList.forEach((player) => map.set(player.YouthPlayerID, player));
     return map;
   }, [playerList]);
+
+  const multiTeamEnabled = youthTeams.length > 1;
+  const activeYouthTeamId = multiTeamEnabled ? selectedYouthTeamId : null;
+  const activeYouthTeam = useMemo(() => {
+    if (!activeYouthTeamId) return null;
+    return youthTeams.find((team) => team.youthTeamId === activeYouthTeamId) ?? null;
+  }, [activeYouthTeamId, youthTeams]);
+
+  const storageKey = useMemo(() => {
+    if (multiTeamEnabled && activeYouthTeamId) {
+      return `ya_dashboard_state_v2_${activeYouthTeamId}`;
+    }
+    return "ya_dashboard_state_v2";
+  }, [activeYouthTeamId, multiTeamEnabled]);
+
 
   const playerDetailsById = useMemo(() => {
     const map = new Map<number, YouthPlayerDetails>();
@@ -270,13 +348,17 @@ export default function Dashboard({
 
   const ratingsMatrixData = useMemo(() => {
     if (playerList.length === 0) return null;
-    const positions = ratingsResponse?.positions ?? ratingsPositions ?? [];
+    const positions =
+      ratingsResponseState?.positions ?? ratingsPositions ?? [];
     const players = playerList.map((player) => ({
       id: player.YouthPlayerID,
       name: formatPlayerName(player),
       ratings: ratingsCache[player.YouthPlayerID] ?? {},
     }));
-    if (!ratingsResponse && players.every((player) => !Object.keys(player.ratings).length)) {
+    if (
+      !ratingsResponseState &&
+      players.every((player) => !Object.keys(player.ratings).length)
+    ) {
       return null;
     }
     return {
@@ -285,7 +367,7 @@ export default function Dashboard({
         players,
       },
     };
-  }, [playerList, ratingsCache, ratingsPositions, ratingsResponse]);
+  }, [playerList, ratingsCache, ratingsPositions, ratingsResponseState]);
 
   const skillsMatrixRows = useMemo(
     () =>
@@ -363,7 +445,7 @@ export default function Dashboard({
     } catch {
       // ignore restore errors
     }
-  }, []);
+  }, [storageKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -399,18 +481,21 @@ export default function Dashboard({
     behaviors,
     playerList,
     matchesState,
+    storageKey,
   ]);
 
   useEffect(() => {
-    if (!ratingsResponse) return;
-    setRatingsPositions(ratingsResponse.positions ?? []);
+    if (!ratingsResponseState) return;
+    setRatingsPositions(ratingsResponseState.positions ?? []);
     setRatingsCache((prev) => {
       const next: Record<number, Record<string, number>> = { ...prev };
       const validIds = new Set(playerList.map((player) => player.YouthPlayerID));
       Object.keys(next).forEach((id) => {
         if (!validIds.has(Number(id))) delete next[Number(id)];
       });
-      const byName = new Map(ratingsResponse.players.map((row) => [row.name, row]));
+      const byName = new Map(
+        ratingsResponseState.players.map((row) => [row.name, row])
+      );
       playerList.forEach((player) => {
         const row = byName.get(formatPlayerName(player));
         if (!row) return;
@@ -427,7 +512,7 @@ export default function Dashboard({
       });
       return next;
     });
-  }, [playerList, ratingsResponse]);
+  }, [playerList, ratingsResponseState]);
 
   useEffect(() => {
     setRatingsCache((prev) => {
@@ -1233,9 +1318,11 @@ export default function Dashboard({
     }
   };
 
-  const refreshMatches = async () => {
+  const refreshMatches = async (teamIdOverride?: number | null) => {
+    const teamId = teamIdOverride ?? activeYouthTeamId;
     try {
-      const response = await fetch("/api/chpp/matches?isYouth=true", {
+      const teamParam = teamId ? `&teamID=${teamId}` : "";
+      const response = await fetch(`/api/chpp/matches?isYouth=true${teamParam}`, {
         cache: "no-store",
       });
       const payload = (await response.json()) as MatchesResponse & {
@@ -1255,13 +1342,41 @@ export default function Dashboard({
     }
   };
 
-  const refreshPlayers = async () => {
+  const refreshRatings = async (teamIdOverride?: number | null) => {
+    const teamId = teamIdOverride ?? activeYouthTeamId;
+    try {
+      const teamParam = teamId ? `?teamID=${teamId}` : "";
+      const response = await fetch(`/api/chpp/youth/ratings${teamParam}`, {
+        cache: "no-store",
+      });
+      if (response.status === 401) {
+        setAuthError(true);
+        setAuthErrorDetails(messages.connectHint);
+        return;
+      }
+      if (!response.ok) {
+        setRatingsResponseState(null);
+        return;
+      }
+      const payload = (await response.json()) as RatingsMatrixResponse;
+      setRatingsResponseState(payload);
+    } catch {
+      setRatingsResponseState(null);
+    }
+  };
+
+  const refreshPlayers = async (teamIdOverride?: number | null) => {
     if (playersLoading) return;
     setPlayersLoading(true);
     try {
-      const response = await fetch("/api/chpp/youth/players?actionType=details", {
+      const teamId = teamIdOverride ?? activeYouthTeamId;
+      const teamParam = teamId ? `&youthTeamID=${teamId}` : "";
+      const response = await fetch(
+        `/api/chpp/youth/players?actionType=details${teamParam}`,
+        {
         cache: "no-store",
-      });
+        }
+      );
       const payload = (await response.json()) as {
         data?: {
           HattrickData?: {
@@ -1299,6 +1414,75 @@ export default function Dashboard({
       setPlayersLoading(false);
     }
   };
+
+  const handleTeamChange = (nextTeamId: number | null) => {
+    if (nextTeamId === selectedYouthTeamId) return;
+    setSelectedYouthTeamId(nextTeamId);
+    setAssignments({});
+    setBehaviors({});
+    setLoadedMatchId(null);
+    setOptimizerDebug(null);
+    setShowOptimizerDebug(false);
+    setSelectedId(null);
+    setPlayerList([]);
+    setCache({});
+    setDetails(null);
+    setRatingsCache({});
+    setRatingsPositions([]);
+    setRatingsResponseState(null);
+    setOrderSource(null);
+    setOrderedPlayerIds(null);
+    setStarPlayerId(null);
+    setPrimaryTraining("");
+    setSecondaryTraining("");
+    setAutoSelectionApplied(false);
+    if (nextTeamId) {
+      refreshPlayers(nextTeamId);
+      refreshMatches(nextTeamId);
+      refreshRatings(nextTeamId);
+      const teamName =
+        youthTeams.find((team) => team.youthTeamId === nextTeamId)
+          ?.youthTeamName ?? nextTeamId;
+      addNotification(`${messages.notificationTeamSwitched} ${teamName}`);
+    }
+  };
+
+  const fetchManagerCompendium = async (userId?: string) => {
+    try {
+      const query = userId ? `?userId=${encodeURIComponent(userId)}` : "";
+      const response = await fetch(`/api/chpp/managercompendium${query}`, {
+        cache: "no-store",
+      });
+      const payload = (await response.json()) as ManagerCompendiumResponse;
+      if (isAuthErrorPayload(payload, response)) {
+        setAuthError(true);
+        setAuthErrorDetails(payload.details ?? messages.connectHint);
+        return;
+      }
+      if (!response.ok || payload.error) {
+        throw new Error(payload.error ?? "Failed to fetch manager compendium");
+      }
+      const teams = extractYouthTeams(payload);
+      setYouthTeams(teams);
+      if (teams.length > 1) {
+        handleTeamChange(teams[0]?.youthTeamId ?? null);
+      } else {
+        setSelectedYouthTeamId(null);
+      }
+      addNotification(messages.notificationTeamsLoaded);
+    } catch {
+      addNotification(messages.notificationTeamsLoadFailed);
+    }
+  };
+
+  useEffect(() => {
+    if (!multiTeamEnabled) return;
+    if (activeYouthTeamId) return;
+    const fallbackId = youthTeams[0]?.youthTeamId ?? null;
+    if (fallbackId) {
+      handleTeamChange(fallbackId);
+    }
+  }, [activeYouthTeamId, multiTeamEnabled, youthTeams]);
 
   const loadLineup = (
     nextAssignments: LineupAssignments,
@@ -1569,6 +1753,9 @@ export default function Dashboard({
           players={playerList}
           orderedPlayerIds={orderedPlayerIds}
           orderSource={orderSource}
+          youthTeams={youthTeams}
+          selectedYouthTeamId={selectedYouthTeamId}
+          onTeamChange={handleTeamChange}
           assignedIds={assignedIds}
           selectedId={selectedId}
           starPlayerId={starPlayerId}
@@ -1789,6 +1976,29 @@ export default function Dashboard({
         {isDev ? (
           <div className={styles.card}>
             <h2 className={styles.sectionTitle}>{messages.optimizerDebugTitle}</h2>
+            <div className={styles.devTeamRow}>
+              <label className={styles.devTeamLabel}>
+                {messages.devManagerUserIdLabel}
+              </label>
+              <div className={styles.devTeamControls}>
+                <input
+                  type="text"
+                  className={styles.devTeamInput}
+                  placeholder={messages.devManagerUserIdPlaceholder}
+                  value={devManagerUserId}
+                  onChange={(event) => setDevManagerUserId(event.target.value)}
+                />
+                <button
+                  type="button"
+                  className={styles.devTeamButton}
+                  onClick={() =>
+                    fetchManagerCompendium(devManagerUserId.trim() || undefined)
+                  }
+                >
+                  {messages.devManagerLoadTeams}
+                </button>
+              </div>
+            </div>
             <Tooltip
               content={
                 optimizerDebug

@@ -1286,6 +1286,15 @@ html[data-theme="dark"] .spinner {
   color: #6b6256;
 }
 
+.teamSelectControl {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font-size: 12px;
+  color: #6b6256;
+}
+
 .sortLabel {
   text-transform: uppercase;
   letter-spacing: 0.4px;
@@ -1950,6 +1959,53 @@ html[data-theme="dark"] .spinner {
 
 .optimizerOpen:hover {
   background: #2f3b2b;
+  transform: translateY(-1px);
+}
+
+.devTeamRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.devTeamLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6256;
+}
+
+.devTeamControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.devTeamInput {
+  border: 1px solid #c9b9a3;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #3f362c;
+  background: #fff;
+  min-width: 200px;
+}
+
+.devTeamButton {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #7a6a5a;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.devTeamButton:hover {
+  background: #6b5b4c;
   transform: translateY(-1px);
 }
 

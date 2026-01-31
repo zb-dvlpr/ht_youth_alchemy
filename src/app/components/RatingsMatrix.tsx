@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { POSITION_COLUMNS, positionLabel } from "@/lib/positions";
@@ -25,6 +25,10 @@ type RatingsMatrixProps = {
   specialtyByName?: Record<string, number | undefined>;
   selectedName?: string | null;
   onSelectPlayer?: (playerName: string) => void;
+  orderedPlayerIds?: number[] | null;
+  orderSource?: "list" | "ratings" | "skills" | null;
+  onOrderChange?: (orderedIds: number[]) => void;
+  onSortStart?: () => void;
 };
 
 function uniquePositions(positions: number[] | undefined) {
@@ -79,6 +83,10 @@ export default function RatingsMatrix({
   specialtyByName,
   selectedName,
   onSelectPlayer,
+  orderedPlayerIds,
+  orderSource,
+  onOrderChange,
+  onSortStart,
 }: RatingsMatrixProps) {
   if (!response || response.players.length === 0) {
     return (
@@ -92,12 +100,18 @@ export default function RatingsMatrix({
   }
 
   const positions = uniquePositions(response.positions);
-  const [sortKey, setSortKey] = useState<number | null>(null);
+  const [sortKey, setSortKey] = useState<number | "name" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const pendingSortRef = useRef(false);
 
-  const sortedRows = useMemo(() => {
+  const sortedByRating = useMemo(() => {
     if (!sortKey) return response.players;
     const direction = sortDir === "asc" ? 1 : -1;
+    if (sortKey === "name") {
+      return [...response.players].sort((a, b) =>
+        a.name.localeCompare(b.name) * direction
+      );
+    }
     return [...response.players].sort((a, b) => {
       const aVal = a.ratings[String(sortKey)];
       const bVal = b.ratings[String(sortKey)];
@@ -110,7 +124,42 @@ export default function RatingsMatrix({
     });
   }, [response.players, sortDir, sortKey]);
 
-  const handleSort = (position: number) => {
+  const orderedRows = useMemo(() => {
+    if (orderedPlayerIds && orderSource && orderSource !== "ratings") {
+      const map = new Map(response.players.map((row) => [row.id, row]));
+      return orderedPlayerIds
+        .map((id) => map.get(id))
+        .filter((row): row is RatingRow => Boolean(row));
+    }
+    if (!sortKey) return response.players;
+    return sortedByRating;
+  }, [orderSource, orderedPlayerIds, response.players, sortKey, sortedByRating]);
+
+  useEffect(() => {
+    if (!onOrderChange) return;
+    if (!sortKey) return;
+    if (orderSource && orderSource !== "ratings") return;
+    const nextOrder = sortedByRating.map((row) => row.id);
+    if (
+      orderedPlayerIds &&
+      orderedPlayerIds.length === nextOrder.length &&
+      orderedPlayerIds.every((id, index) => id === nextOrder[index])
+    ) {
+      return;
+    }
+    onOrderChange(nextOrder);
+  }, [
+    onOrderChange,
+    sortKey,
+    sortDir,
+    sortedByRating,
+    orderSource,
+    orderedPlayerIds,
+  ]);
+
+  const handleSort = (position: number | "name") => {
+    pendingSortRef.current = true;
+    onSortStart?.();
     if (sortKey === position) {
       setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -118,6 +167,19 @@ export default function RatingsMatrix({
       setSortDir("desc");
     }
   };
+
+  useEffect(() => {
+    if (orderSource && orderSource !== "ratings" && sortKey !== null) {
+      if (pendingSortRef.current) {
+        pendingSortRef.current = false;
+        return;
+      }
+      setSortKey(null);
+    }
+    if (orderSource === "ratings") {
+      pendingSortRef.current = false;
+    }
+  }, [orderSource, sortKey]);
 
   return (
     <div className={showTitle ? styles.card : undefined}>
@@ -132,7 +194,21 @@ export default function RatingsMatrix({
                 {messages.ratingsIndexLabel}
               </th>
               <th className={styles.matrixPlayerHeader}>
-                {messages.ratingsPlayerLabel}
+                <button
+                  type="button"
+                  className={styles.matrixSortButton}
+                  onClick={() => handleSort("name")}
+                  aria-label={`${messages.ratingsSortBy} ${messages.ratingsPlayerLabel}`}
+                >
+                  {messages.ratingsPlayerLabel}
+                  <span className={styles.matrixSortIcon}>
+                    {sortKey === "name"
+                      ? sortDir === "asc"
+                        ? "▲"
+                        : "▼"
+                      : "⇅"}
+                  </span>
+                </button>
               </th>
               <th className={styles.matrixSpecialtyHeader}>
                 {messages.ratingsSpecialtyLabel}
@@ -162,7 +238,7 @@ export default function RatingsMatrix({
             </tr>
           </thead>
           <tbody>
-            {sortedRows.map((row, index) => {
+            {orderedRows.map((row, index) => {
               const isSelected = selectedName === row.name;
               return (
                 <tr

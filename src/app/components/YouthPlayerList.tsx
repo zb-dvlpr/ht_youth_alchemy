@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
@@ -59,6 +59,8 @@ const specialtyName = (value: number | undefined, messages: Messages) => {
 
 type YouthPlayerListProps = {
   players: YouthPlayer[];
+  orderedPlayerIds?: number[] | null;
+  orderSource?: "list" | "ratings" | "skills" | null;
   assignedIds?: Set<number>;
   selectedId?: number | null;
   starPlayerId?: number | null;
@@ -67,6 +69,8 @@ type YouthPlayerListProps = {
   onSelect?: (playerId: number) => void;
   onAutoSelect?: () => void;
   onRefresh?: () => void;
+  onOrderChange?: (orderedIds: number[]) => void;
+  onSortStart?: () => void;
   refreshing?: boolean;
   messages: Messages;
 };
@@ -83,7 +87,8 @@ type SortKey =
   | "winger"
   | "passing"
   | "scorer"
-  | "setpieces";
+  | "setpieces"
+  | "custom";
 
 type SortDirection = "asc" | "desc";
 
@@ -127,6 +132,8 @@ function promotionAgeTotalDays(player: YouthPlayer) {
 
 export default function YouthPlayerList({
   players,
+  orderedPlayerIds,
+  orderSource,
   assignedIds,
   selectedId,
   starPlayerId,
@@ -135,6 +142,8 @@ export default function YouthPlayerList({
   onSelect,
   onAutoSelect,
   onRefresh,
+  onOrderChange,
+  onSortStart,
   refreshing,
   messages,
 }: YouthPlayerListProps) {
@@ -166,11 +175,24 @@ export default function YouthPlayerList({
         return messages.sortScorer;
       case "setpieces":
         return messages.sortSetPieces;
+      case "custom":
+        return messages.sortCustom;
       case "name":
       default:
         return messages.sortName;
     }
   };
+
+  useEffect(() => {
+    if (
+      orderSource &&
+      orderSource !== "list" &&
+      orderedPlayerIds?.length &&
+      sortKey !== "custom"
+    ) {
+      setSortKey("custom");
+    }
+  }, [orderSource, orderedPlayerIds, sortKey]);
   const handleDragStart = (
     event: React.DragEvent<HTMLButtonElement>,
     playerId: number
@@ -264,6 +286,8 @@ export default function YouthPlayerList({
             getSkill(b, "SetPiecesSkill"),
             "desc"
           );
+        case "custom":
+          return 0;
         case "name":
         default:
           return formatPlayerName(a).localeCompare(formatPlayerName(b));
@@ -274,6 +298,32 @@ export default function YouthPlayerList({
       sortDirection === "asc" ? compare(a, b) : compare(b, a)
     );
   }, [players, sortKey, sortDirection]);
+
+  const orderedPlayers = useMemo(() => {
+    if (orderedPlayerIds && orderSource && orderSource !== "list") {
+      const map = new Map(players.map((player) => [player.YouthPlayerID, player]));
+      return orderedPlayerIds
+        .map((id) => map.get(id))
+        .filter((player): player is YouthPlayer => Boolean(player));
+    }
+    return sortedPlayers;
+  }, [orderedPlayerIds, orderSource, players, sortedPlayers]);
+
+  useEffect(() => {
+    if (!onOrderChange) return;
+    if (sortKey === "custom") return;
+    if (
+      orderSource === "list" &&
+      orderedPlayerIds &&
+      orderedPlayerIds.length === sortedPlayers.length &&
+      orderedPlayerIds.every(
+        (id, index) => id === sortedPlayers[index]?.YouthPlayerID
+      )
+    ) {
+      return;
+    }
+    onOrderChange(sortedPlayers.map((player) => player.YouthPlayerID));
+  }, [sortedPlayers, onOrderChange, sortKey, orderSource, orderedPlayerIds]);
 
   return (
     <div className={styles.card} data-help-anchor={dataHelpAnchor}>
@@ -288,6 +338,7 @@ export default function YouthPlayerList({
               className={styles.sortSelect}
               value={sortKey}
               onChange={(event) => {
+                onSortStart?.();
                 const nextKey = event.target.value as SortKey;
                 setSortKey(nextKey);
                 addNotification(
@@ -295,6 +346,7 @@ export default function YouthPlayerList({
                 );
               }}
             >
+              <option value="custom">{messages.sortCustom}</option>
               <option value="name">{messages.sortName}</option>
               <option value="age">{messages.sortAge}</option>
               <option value="promotionAge">{messages.sortPromotionAge}</option>
@@ -317,6 +369,7 @@ export default function YouthPlayerList({
               className={styles.sortToggle}
               aria-label={messages.sortToggleAria}
               onClick={() => {
+                onSortStart?.();
                 const next = sortDirection === "asc" ? "desc" : "asc";
                 setSortDirection(next);
                 addNotification(
@@ -361,7 +414,7 @@ export default function YouthPlayerList({
         <p className={styles.muted}>{messages.noYouthPlayers}</p>
       ) : (
         <ul className={styles.list}>
-          {sortedPlayers.map((player, index) => {
+          {orderedPlayers.map((player, index) => {
             const fullName = formatPlayerName(player);
             const isSelected = selectedId === player.YouthPlayerID;
             const isAssigned = assignedIds?.has(player.YouthPlayerID) ?? false;

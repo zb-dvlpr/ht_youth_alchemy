@@ -185,6 +185,12 @@ export default function Dashboard({
     Record<number, Record<string, number>>
   >({});
   const [ratingsPositions, setRatingsPositions] = useState<number[]>([]);
+  const [orderedPlayerIds, setOrderedPlayerIds] = useState<number[] | null>(
+    null
+  );
+  const [orderSource, setOrderSource] = useState<
+    "list" | "ratings" | "skills" | null
+  >(null);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -289,6 +295,23 @@ export default function Dashboard({
       })),
     [playerList]
   );
+
+  const applyPlayerOrder = (
+    ids: number[],
+    source: "list" | "ratings" | "skills"
+  ) => {
+    setOrderedPlayerIds((prev) => {
+      if (
+        prev &&
+        prev.length === ids.length &&
+        prev.every((id, index) => id === ids[index])
+      ) {
+        return prev;
+      }
+      return ids;
+    });
+    setOrderSource((prev) => (prev === source ? prev : source));
+  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1544,9 +1567,15 @@ export default function Dashboard({
         <YouthPlayerList
           dataHelpAnchor="player-list"
           players={playerList}
+          orderedPlayerIds={orderedPlayerIds}
+          orderSource={orderSource}
           assignedIds={assignedIds}
           selectedId={selectedId}
           starPlayerId={starPlayerId}
+          onSortStart={() => {
+            setOrderSource("list");
+            setOrderedPlayerIds(null);
+          }}
           onToggleStar={(playerId) => {
             setStarPlayerId((prev) => (prev === playerId ? null : playerId));
             setAutoSelectionApplied(false);
@@ -1569,6 +1598,7 @@ export default function Dashboard({
             );
           }}
           onRefresh={refreshPlayers}
+          onOrderChange={(ids) => applyPlayerOrder(ids, "list")}
           refreshing={playersLoading}
           messages={messages}
         />
@@ -1639,6 +1669,10 @@ export default function Dashboard({
                   `${messages.notificationPlayerSelected} ${playerName}`
                 );
               }}
+              orderedPlayerIds={orderedPlayerIds}
+              orderSource={orderSource}
+              onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}
+              onSkillsOrderChange={(ids) => applyPlayerOrder(ids, "skills")}
               messages={messages}
             />
           </>

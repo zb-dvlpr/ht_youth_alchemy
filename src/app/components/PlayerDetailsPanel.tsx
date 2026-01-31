@@ -65,6 +65,10 @@ type PlayerDetailsPanelProps = {
   ratingsMatrixSelectedName: string | null;
   ratingsMatrixSpecialtyByName: Record<string, number | undefined>;
   onSelectRatingsPlayer: (playerName: string) => void;
+  orderedPlayerIds?: number[] | null;
+  orderSource?: "list" | "ratings" | "skills" | null;
+  onRatingsOrderChange?: (orderedIds: number[]) => void;
+  onSkillsOrderChange?: (orderedIds: number[]) => void;
   messages: Messages;
 };
 
@@ -217,6 +221,10 @@ export default function PlayerDetailsPanel({
   ratingsMatrixSelectedName,
   ratingsMatrixSpecialtyByName,
   onSelectRatingsPlayer,
+  orderedPlayerIds,
+  orderSource,
+  onRatingsOrderChange,
+  onSkillsOrderChange,
   messages,
 }: PlayerDetailsPanelProps) {
   const [activeTab, setActiveTab] = useState<
@@ -263,6 +271,31 @@ export default function PlayerDetailsPanel({
     skillsSortDir,
     skillsSortKey,
   ]);
+
+  const orderedSkillsRows = useMemo(() => {
+    if (orderedPlayerIds && orderSource && orderSource !== "skills") {
+      const map = new Map(skillsMatrixRows.map((row) => [row.id, row]));
+      return orderedPlayerIds
+        .map((id) => map.get(id))
+        .filter((row): row is (typeof skillsMatrixRows)[number] => Boolean(row));
+    }
+    if (!skillsSortKey) return skillsMatrixRows;
+    return sortedSkillsRows;
+  }, [orderSource, orderedPlayerIds, skillsMatrixRows, skillsSortKey, sortedSkillsRows]);
+
+  useEffect(() => {
+    if (!onSkillsOrderChange) return;
+    if (!skillsSortKey) return;
+    onSkillsOrderChange(
+      sortedSkillsRows.map((row) => row.id).filter(Boolean) as number[]
+    );
+  }, [onSkillsOrderChange, skillsSortKey, skillsSortDir, sortedSkillsRows]);
+
+  useEffect(() => {
+    if (orderSource && orderSource !== "skills" && skillsSortKey !== null) {
+      setSkillsSortKey(null);
+    }
+  }, [orderSource, skillsSortKey]);
 
   const handleSkillsSort = (key: string) => {
     if (skillsSortKey === key) {
@@ -598,7 +631,7 @@ export default function PlayerDetailsPanel({
             </tr>
           </thead>
           <tbody>
-            {sortedSkillsRows.map((row, index) => {
+            {orderedSkillsRows.map((row, index) => {
               const player = row.id ? playerById.get(row.id) : null;
               const details = row.id ? playerDetailsById.get(row.id) : null;
               const skills = details?.PlayerSkills ?? player?.PlayerSkills ?? null;
@@ -723,6 +756,9 @@ export default function PlayerDetailsPanel({
           specialtyByName={ratingsMatrixSpecialtyByName}
           selectedName={ratingsMatrixSelectedName}
           onSelectPlayer={onSelectRatingsPlayer}
+          orderedPlayerIds={orderedPlayerIds}
+          orderSource={orderSource}
+          onOrderChange={onRatingsOrderChange}
         />
       )}
     </div>

@@ -211,6 +211,7 @@ export type Messages = {
   sortPassing: string;
   sortScorer: string;
   sortSetPieces: string;
+  sortCustom: string;
   sortToggleAria: string;
   sortAscLabel: string;
   sortDescLabel: string;
@@ -522,6 +523,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortPassing: "Passing",
     sortScorer: "Scorer",
     sortSetPieces: "Set pieces",
+    sortCustom: "--",
     sortToggleAria: "Reverse sort order",
     sortAscLabel: "Ascending",
     sortDescLabel: "Descending",
@@ -835,6 +837,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortPassing: "Passen",
     sortScorer: "Torschuss",
     sortSetPieces: "Standards",
+    sortCustom: "--",
     sortToggleAria: "Sortierreihenfolge umkehren",
     sortAscLabel: "Aufsteigend",
     sortDescLabel: "Absteigend",
@@ -1154,6 +1157,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortPassing: "Passe",
     sortScorer: "Buteur",
     sortSetPieces: "Coups de pied arrêtés",
+    sortCustom: "--",
     sortToggleAria: "Inverser l’ordre du tri",
     sortAscLabel: "Ascendant",
     sortDescLabel: "Descendant",
@@ -1470,6 +1474,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortPassing: "Pase",
     sortScorer: "Anotador",
     sortSetPieces: "Balón parado",
+    sortCustom: "--",
     sortToggleAria: "Invertir orden",
     sortAscLabel: "Ascendente",
     sortDescLabel: "Descendente",
@@ -1784,6 +1789,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortPassing: "Passning",
     sortScorer: "Anfall",
     sortSetPieces: "Fasta situationer",
+    sortCustom: "--",
     sortToggleAria: "Vänd sortering",
     sortAscLabel: "Stigande",
     sortDescLabel: "Fallande",
@@ -2100,6 +2106,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortPassing: "Passaggi",
     sortScorer: "Attacco",
     sortSetPieces: "Calci piazzati",
+    sortCustom: "--",
     sortToggleAria: "Inverti ordinamento",
     sortAscLabel: "Crescente",
     sortDescLabel: "Decrescente",
@@ -2416,6 +2423,7 @@ const MESSAGES: Record<Locale, Messages> = {
     sortPassing: "Passe",
     sortScorer: "Artilheiro",
     sortSetPieces: "Bolas paradas",
+    sortCustom: "--",
     sortToggleAria: "Inverter ordenação",
     sortAscLabel: "Crescente",
     sortDescLabel: "Decrescente",

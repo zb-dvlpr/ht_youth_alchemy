@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { POSITION_COLUMNS, positionLabel } from "@/lib/positions";
@@ -25,6 +25,9 @@ type RatingsMatrixProps = {
   specialtyByName?: Record<string, number | undefined>;
   selectedName?: string | null;
   onSelectPlayer?: (playerName: string) => void;
+  orderedPlayerIds?: number[] | null;
+  orderSource?: "list" | "ratings" | "skills" | null;
+  onOrderChange?: (orderedIds: number[]) => void;
 };
 
 function uniquePositions(positions: number[] | undefined) {
@@ -79,6 +82,9 @@ export default function RatingsMatrix({
   specialtyByName,
   selectedName,
   onSelectPlayer,
+  orderedPlayerIds,
+  orderSource,
+  onOrderChange,
 }: RatingsMatrixProps) {
   if (!response || response.players.length === 0) {
     return (
@@ -95,7 +101,7 @@ export default function RatingsMatrix({
   const [sortKey, setSortKey] = useState<number | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
-  const sortedRows = useMemo(() => {
+  const sortedByRating = useMemo(() => {
     if (!sortKey) return response.players;
     const direction = sortDir === "asc" ? 1 : -1;
     return [...response.players].sort((a, b) => {
@@ -109,6 +115,29 @@ export default function RatingsMatrix({
       return (aNum - bNum) * direction;
     });
   }, [response.players, sortDir, sortKey]);
+
+  const orderedRows = useMemo(() => {
+    if (orderedPlayerIds && orderSource && orderSource !== "ratings") {
+      const map = new Map(response.players.map((row) => [row.id, row]));
+      return orderedPlayerIds
+        .map((id) => map.get(id))
+        .filter((row): row is RatingRow => Boolean(row));
+    }
+    if (!sortKey) return response.players;
+    return sortedByRating;
+  }, [orderSource, orderedPlayerIds, response.players, sortKey, sortedByRating]);
+
+  useEffect(() => {
+    if (!onOrderChange) return;
+    if (!sortKey) return;
+    onOrderChange(sortedByRating.map((row) => row.id));
+  }, [onOrderChange, sortKey, sortDir, sortedByRating]);
+
+  useEffect(() => {
+    if (orderSource && orderSource !== "ratings" && sortKey !== null) {
+      setSortKey(null);
+    }
+  }, [orderSource, sortKey]);
 
   const handleSort = (position: number) => {
     if (sortKey === position) {
@@ -162,7 +191,7 @@ export default function RatingsMatrix({
             </tr>
           </thead>
           <tbody>
-            {sortedRows.map((row, index) => {
+            {orderedRows.map((row, index) => {
               const isSelected = selectedName === row.name;
               return (
                 <tr

@@ -361,7 +361,7 @@ export default function YouthPlayerList({
         <p className={styles.muted}>{messages.noYouthPlayers}</p>
       ) : (
         <ul className={styles.list}>
-          {sortedPlayers.map((player) => {
+          {sortedPlayers.map((player, index) => {
             const fullName = formatPlayerName(player);
             const isSelected = selectedId === player.YouthPlayerID;
             const isAssigned = assignedIds?.has(player.YouthPlayerID) ?? false;
@@ -381,6 +381,7 @@ export default function YouthPlayerList({
                       className={`${styles.starButton} ${
                         isStar ? styles.starButtonActive : ""
                       }`}
+                      data-help-anchor={index === 0 ? "star-first" : undefined}
                       onClick={() => {
                         if (!onToggleStar) return;
                         onToggleStar(player.YouthPlayerID);

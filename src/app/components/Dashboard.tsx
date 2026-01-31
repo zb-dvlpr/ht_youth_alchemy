@@ -470,22 +470,34 @@ export default function Dashboard({
       setHelpCallouts([]);
       return;
     }
+    const CALL_OUT_MAX_WIDTH = 240;
     const computeCallouts = () => {
       const root = dashboardRef.current;
       if (!root) return;
+      const scaleValue =
+        Number.parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue(
+            "--ui-scale"
+          )
+        ) || 1;
       const rootRect = root.getBoundingClientRect();
+      const rootWidth = rootRect.width / scaleValue;
+      const rootHeight = rootRect.height / scaleValue;
       const targets: Array<{
         id: string;
         selector: string;
         text: string;
         placement: "above-left" | "above-center" | "right-center" | "left-center";
         hideIndex?: boolean;
+        offsetX?: number;
+        offsetY?: number;
       }> = [
         {
           id: "star",
-          selector: "[data-help-anchor='player-list']",
+          selector: "[data-help-anchor='star-first']",
           text: messages.helpCalloutStar,
-          placement: "above-left",
+          placement: "above-center",
+          offsetY: 6,
         },
         {
           id: "training",
@@ -507,55 +519,108 @@ export default function Dashboard({
           hideIndex: true,
         },
       ];
+      const measureWidth = (text: string, hideIndex: boolean) => {
+        const probe = document.createElement("div");
+        probe.className = styles.helpCallout;
+        probe.style.position = "absolute";
+        probe.style.visibility = "hidden";
+        probe.style.pointerEvents = "none";
+        probe.style.maxWidth = `${CALL_OUT_MAX_WIDTH}px`;
+        if (!hideIndex) {
+          const badge = document.createElement("span");
+          badge.className = styles.helpCalloutIndex;
+          badge.textContent = "1";
+          probe.appendChild(badge);
+        }
+        const textSpan = document.createElement("span");
+        textSpan.className = styles.helpCalloutText;
+        textSpan.textContent = text;
+        probe.appendChild(textSpan);
+        root.appendChild(probe);
+        const width = probe.getBoundingClientRect().width / scaleValue;
+        probe.remove();
+        return Math.min(width, CALL_OUT_MAX_WIDTH);
+      };
+
       const next = targets.flatMap((target) => {
         const el = root.querySelector(target.selector) as HTMLElement | null;
         if (!el) return [];
         const rect = el.getBoundingClientRect();
-        const centerX = rect.left - rootRect.left + rect.width / 2;
-        const centerY = rect.top - rootRect.top + rect.height / 2;
+        const rectLeft = (rect.left - rootRect.left) / scaleValue;
+        const rectTop = (rect.top - rootRect.top) / scaleValue;
+        const rectWidth = rect.width / scaleValue;
+        const rectHeight = rect.height / scaleValue;
+        const centerX = rectLeft + rectWidth / 2;
+        const centerY = rectTop + rectHeight / 2;
         let left = centerX;
         let top = centerY;
         let transform = "translate(-50%, -50%)";
+        const offsetX = target.offsetX ?? 0;
+        const offsetY = target.offsetY ?? 0;
         switch (target.placement) {
           case "above-left":
-            left = rect.left - rootRect.left + 10;
-            top = rect.top - rootRect.top - 8;
+            left = rectLeft + 10;
+            top = rectTop - 8;
             transform = "translate(0, -100%)";
             break;
           case "above-center":
             left = centerX;
-            top = rect.top - rootRect.top - 10;
+            top = rectTop - 10;
             transform = "translate(-50%, -100%)";
             break;
           case "right-center":
-            left = rect.right - rootRect.left + 10;
+            left = rectLeft + rectWidth + 10;
             top = centerY;
             transform = "translate(0, -50%)";
             break;
           case "left-center":
-            left = rect.left - rootRect.left - 10;
+            left = rectLeft - 10;
             top = centerY;
             transform = "translate(-100%, -50%)";
             break;
           default:
             break;
         }
+        left += offsetX;
+        top += offsetY;
+        const calloutWidth = measureWidth(
+          target.text,
+          target.hideIndex ?? false
+        );
         const clampedLeft = Math.min(
           Math.max(left, 12),
-          rootRect.width - 12
+          rootWidth - 12
+        );
+        const maxLeft = rootWidth - 12;
+        const minLeft = 12;
+        const needsCenterClamp = transform.includes("-50%");
+        const clampedLeftAdjusted = needsCenterClamp
+          ? Math.min(
+              Math.max(clampedLeft, minLeft + calloutWidth / 2),
+              maxLeft - calloutWidth / 2
+            )
+          : clampedLeft;
+        const pointerXRaw =
+          target.placement === "above-center"
+            ? centerX - clampedLeftAdjusted + calloutWidth / 2
+            : centerX - clampedLeftAdjusted;
+        const pointerX = Math.min(
+          Math.max(pointerXRaw, 18),
+          calloutWidth - 18
         );
         const clampedTop = Math.min(
           Math.max(top, 12),
-          rootRect.height - 12
+          rootHeight - 12
         );
         return [
           {
             id: target.id,
             text: target.text,
             style: {
-              left: clampedLeft,
+              left: clampedLeftAdjusted,
               top: clampedTop,
               transform,
+              "--callout-pointer-x": `${pointerX}px`,
             } as CSSProperties,
             hideIndex: target.hideIndex ?? false,
             placement: target.placement,

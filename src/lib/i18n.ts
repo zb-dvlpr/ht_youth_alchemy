@@ -331,8 +331,9 @@ const MESSAGES: Record<Locale, Messages> = {
     helpBulletDesktop: "Desktop-optimized.",
     helpCalloutStar: "Select your star player.",
     helpCalloutTraining: "Choose your training regimen.",
-    helpCalloutOptimize: "Optimize lineup for your star player and training.",
-    helpCalloutAuto: "Reset star player and training.",
+    helpCalloutOptimize:
+      "Use AI to optimize lineup for the star player and training regimen.",
+    helpCalloutAuto: "Use AI to select star player and training regimen.",
     themeSwitchDark: "Switch to dark mode",
     themeSwitchLight: "Switch to light mode",
     helpDismissLabel: "I understand",
@@ -641,8 +642,10 @@ const MESSAGES: Record<Locale, Messages> = {
     helpBulletDesktop: "Für Desktop optimiert.",
     helpCalloutStar: "Wähle deinen Starspieler.",
     helpCalloutTraining: "Wähle dein Trainingsschema.",
-    helpCalloutOptimize: "Optimiere die Aufstellung für Starspieler und Training.",
-    helpCalloutAuto: "Starspieler und Training zurücksetzen.",
+    helpCalloutOptimize:
+      "KI nutzt die Aufstellung für Starspieler und Trainingsplan optimieren.",
+    helpCalloutAuto:
+      "KI nutzen, um Starspieler und Trainingsplan auszuwählen.",
     themeSwitchDark: "In den Dunkelmodus wechseln",
     themeSwitchLight: "In den Hellmodus wechseln",
     helpDismissLabel: "Verstanden",
@@ -952,8 +955,10 @@ const MESSAGES: Record<Locale, Messages> = {
     helpBulletDesktop: "Optimisé pour ordinateur.",
     helpCalloutStar: "Choisissez votre joueur vedette.",
     helpCalloutTraining: "Choisissez votre régime d’entraînement.",
-    helpCalloutOptimize: "Optimisez la compo selon le joueur vedette et l’entraînement.",
-    helpCalloutAuto: "Réinitialiser joueur vedette et entraînement.",
+    helpCalloutOptimize:
+      "Utilisez l’IA pour optimiser la compo selon le joueur vedette et l’entraînement.",
+    helpCalloutAuto:
+      "Utilisez l’IA pour choisir le joueur vedette et l’entraînement.",
     themeSwitchDark: "Passer en mode sombre",
     themeSwitchLight: "Passer en mode clair",
     helpDismissLabel: "J’ai compris",
@@ -1270,8 +1275,10 @@ const MESSAGES: Record<Locale, Messages> = {
     helpBulletDesktop: "Optimizado para escritorio.",
     helpCalloutStar: "Elige tu jugador estrella.",
     helpCalloutTraining: "Elige tu régimen de entrenamiento.",
-    helpCalloutOptimize: "Optimiza la alineación según el jugador estrella y el entrenamiento.",
-    helpCalloutAuto: "Restablecer jugador estrella y entrenamiento.",
+    helpCalloutOptimize:
+      "Usa la IA para optimizar la alineación según el jugador estrella y el plan de entrenamiento.",
+    helpCalloutAuto:
+      "Usa la IA para elegir jugador estrella y plan de entrenamiento.",
     themeSwitchDark: "Cambiar a modo oscuro",
     themeSwitchLight: "Cambiar a modo claro",
     helpDismissLabel: "Entendido",
@@ -1584,8 +1591,10 @@ const MESSAGES: Record<Locale, Messages> = {
     helpBulletDesktop: "Optimerad för desktop.",
     helpCalloutStar: "Välj din stjärnspelare.",
     helpCalloutTraining: "Välj ditt träningsupplägg.",
-    helpCalloutOptimize: "Optimera uppställningen för stjärnspelare och träning.",
-    helpCalloutAuto: "Återställ stjärnspelare och träning.",
+    helpCalloutOptimize:
+      "Använd AI för att optimera uppställningen för stjärnspelare och träningsupplägg.",
+    helpCalloutAuto:
+      "Använd AI för att välja stjärnspelare och träningsupplägg.",
     themeSwitchDark: "Växla till mörkt läge",
     themeSwitchLight: "Växla till ljust läge",
     helpDismissLabel: "Jag förstår",
@@ -1896,8 +1905,10 @@ const MESSAGES: Record<Locale, Messages> = {
     helpBulletDesktop: "Ottimizzato per desktop.",
     helpCalloutStar: "Scegli il tuo giocatore stella.",
     helpCalloutTraining: "Scegli il tuo regime di allenamento.",
-    helpCalloutOptimize: "Ottimizza la formazione per giocatore stella e allenamento.",
-    helpCalloutAuto: "Reimposta giocatore stella e allenamento.",
+    helpCalloutOptimize:
+      "Usa l’IA per ottimizzare la formazione per il giocatore stella e il programma di allenamento.",
+    helpCalloutAuto:
+      "Usa l’IA per scegliere il giocatore stella e il programma di allenamento.",
     themeSwitchDark: "Passa alla modalità scura",
     themeSwitchLight: "Passa alla modalità chiara",
     helpDismissLabel: "Ho capito",
@@ -2210,8 +2221,10 @@ const MESSAGES: Record<Locale, Messages> = {
     helpBulletDesktop: "Otimizado para desktop.",
     helpCalloutStar: "Escolha seu jogador estrela.",
     helpCalloutTraining: "Escolha seu regime de treinamento.",
-    helpCalloutOptimize: "Otimize a escalação para o jogador estrela e o treino.",
-    helpCalloutAuto: "Redefinir jogador estrela e treino.",
+    helpCalloutOptimize:
+      "Use a IA para otimizar a escalação para o jogador estrela e o regime de treino.",
+    helpCalloutAuto:
+      "Use a IA para selecionar o jogador estrela e o regime de treino.",
     themeSwitchDark: "Mudar para modo escuro",
     themeSwitchLight: "Mudar para modo claro",
     helpDismissLabel: "Entendi",

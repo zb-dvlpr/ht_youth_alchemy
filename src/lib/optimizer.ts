@@ -44,6 +44,8 @@ type RoleGroup = "GK" | "DEF" | "WB" | "IM" | "W" | "F";
 
 type RankingCategory = "cat1" | "cat2" | "cat3" | "cat4" | "dontCare" | "maxed";
 
+export type RatingsByPlayer = Record<number, Record<string, number>>;
+
 export type RankingEntry = {
   playerId: number;
   name?: string;
@@ -113,6 +115,15 @@ const ROLE_BY_SLOT: Record<(typeof ALL_SLOTS)[number], RoleGroup> = {
   F_R: "F",
 };
 
+const ROLE_RATING_CODE: Record<RoleGroup, number> = {
+  GK: 100,
+  WB: 101,
+  DEF: 103,
+  W: 106,
+  IM: 107,
+  F: 111,
+};
+
 const ROLE_EFFECTS: Record<SkillKey, Partial<Record<RoleGroup, number>>> = {
   keeper: { GK: 1 },
   defending: { DEF: 1, WB: 1 },
@@ -180,6 +191,41 @@ function slotsForSkill(skill: SkillKey) {
     }
   });
   return slots;
+}
+
+function ratingForSlot(
+  ratingsByPlayer: RatingsByPlayer | null | undefined,
+  playerId: number,
+  slot: (typeof ALL_SLOTS)[number]
+) {
+  if (!ratingsByPlayer) return null;
+  const role = ROLE_BY_SLOT[slot];
+  const code = ROLE_RATING_CODE[role];
+  const value = ratingsByPlayer[playerId]?.[String(code)];
+  return typeof value === "number" ? value : null;
+}
+
+function slotTrainsSkill(slot: (typeof ALL_SLOTS)[number], skill: SkillKey) {
+  const role = ROLE_BY_SLOT[slot];
+  return (ROLE_EFFECTS[skill][role] ?? 0) > 0;
+}
+
+function slotTrainingSkills(
+  slot: (typeof ALL_SLOTS)[number],
+  primary: SkillKey,
+  secondary: SkillKey | null
+) {
+  const skills: SkillKey[] = [];
+  if (slotTrainsSkill(slot, primary)) skills.push(primary);
+  if (secondary && slotTrainsSkill(slot, secondary) && secondary !== primary) {
+    skills.push(secondary);
+  }
+  return skills;
+}
+
+function allSkillsMaxed(player: OptimizerPlayer, skills: SkillKey[]) {
+  if (!skills.length) return false;
+  return skills.every((skill) => isMaxReached(player, skill));
 }
 
 function capSecondarySlots(
@@ -1541,5 +1587,176 @@ export function optimizeRevealSecondaryMax(
       },
     },
     error: null as null | "missing_inputs" | "missing_star" | "secondary_max_known" | "no_secondary_slots",
+  };
+}
+
+export function optimizeByRatings(
+  players: OptimizerPlayer[],
+  ratingsByPlayer: RatingsByPlayer | null,
+  starPlayerId: number | null,
+  primary: SkillKey | null,
+  secondary: SkillKey | null,
+  autoSelected = false
+) {
+  if (!starPlayerId || !primary || !secondary) {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "missing_inputs" as const,
+    };
+  }
+
+  const starPlayer = players.find((player) => player.id === starPlayerId);
+  if (!starPlayer) {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "missing_star" as const,
+    };
+  }
+
+  const primaryMaxed = isMaxReached(starPlayer, primary);
+  const secondaryMaxed = isMaxReached(starPlayer, secondary);
+  if (primaryMaxed && secondaryMaxed) {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "star_maxed" as const,
+    };
+  }
+
+  const trainingInfo = trainingSlotSet(primary, secondary);
+  const primarySlots = trainingInfo.primarySlots;
+  const secondarySlots = trainingInfo.secondarySlots;
+  const trainingSlots = new Set<(typeof ALL_SLOTS)[number]>([
+    ...primarySlots,
+    ...secondarySlots,
+  ]);
+  const fullSecondarySlots = slotsForSkill(secondary);
+  const fullPrimarySlots = slotsForSkill(primary);
+
+  const primarySlotList = [...primarySlots];
+  if (!primarySlotList.length) {
+    return {
+      lineup: {} as LineupAssignments,
+      debug: null as OptimizerDebug | null,
+      error: "no_primary_slots" as const,
+    };
+  }
+
+  const sharedSlots = [...fullPrimarySlots].filter((slot) =>
+    fullSecondarySlots.has(slot)
+  );
+  const prefersSharedSlot = sharedSlots.length > 0 && !secondaryMaxed;
+  const starSlotCandidates = prefersSharedSlot ? sharedSlots : primarySlotList;
+  const starSlot =
+    starSlotCandidates[Math.floor(Math.random() * starSlotCandidates.length)];
+
+  const primaryRanking = buildSkillRanking(players, primary);
+  const secondaryRanking = buildSkillRanking(players, secondary);
+
+  const lineup: LineupAssignments = {
+    [starSlot]: starPlayer.id,
+  };
+  const usedPlayers = new Set<number>([starPlayer.id]);
+
+  const pickBestByRating = (slot: (typeof ALL_SLOTS)[number]) => {
+    const skills = slotTrainingSkills(slot, primary, secondary);
+    const candidates = players.filter(
+      (player) =>
+        !usedPlayers.has(player.id) && !allSkillsMaxed(player, skills)
+    );
+    candidates.sort((a, b) => {
+      const aRating = ratingForSlot(ratingsByPlayer, a.id, slot);
+      const bRating = ratingForSlot(ratingsByPlayer, b.id, slot);
+      if (aRating === null && bRating === null) return 0;
+      if (aRating === null) return 1;
+      if (bRating === null) return -1;
+      return bRating - aRating;
+    });
+    return candidates[0] ?? null;
+  };
+
+  const fillSlotsWithRatings = (slots: (typeof ALL_SLOTS)[number][]) => {
+    const availableSlots = shuffleSlots(slots.filter((slot) => !(slot in lineup)));
+    availableSlots.forEach((slot) => {
+      const candidate = pickBestByRating(slot);
+      if (!candidate) return;
+      lineup[slot] = candidate.id;
+      usedPlayers.add(candidate.id);
+    });
+  };
+
+  fillSlotsWithRatings(primarySlotList.filter((slot) => slot !== starSlot));
+  fillSlotsWithRatings([...secondarySlots]);
+
+  if (!lineup.KP) {
+    const keeperCandidates = players.filter((player) => !usedPlayers.has(player.id));
+    keeperCandidates.sort((a, b) => {
+      const aRating = ratingForSlot(ratingsByPlayer, a.id, "KP");
+      const bRating = ratingForSlot(ratingsByPlayer, b.id, "KP");
+      if (aRating === null && bRating === null) return 0;
+      if (aRating === null) return 1;
+      if (bRating === null) return -1;
+      return bRating - aRating;
+    });
+    if (keeperCandidates[0]) {
+      lineup.KP = keeperCandidates[0].id;
+      usedPlayers.add(keeperCandidates[0].id);
+    }
+  }
+
+  const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
+  const carePlayers = remainingPlayers.filter(
+    (player) =>
+      skillPotential(player, primary) > 0 || skillPotential(player, secondary) > 0
+  );
+  const otherPlayers = remainingPlayers.filter(
+    (player) => !carePlayers.includes(player)
+  );
+  const cappedPlayers = otherPlayers.filter(
+    (player) =>
+      skillPotential(player, primary) === 0 &&
+      skillPotential(player, secondary) === 0
+  );
+  const nonCappedPlayers = otherPlayers.filter(
+    (player) => !cappedPlayers.includes(player)
+  );
+  const fillPlayers = [...carePlayers, ...cappedPlayers, ...nonCappedPlayers];
+
+  const totalSlotsNeeded = 11;
+  const remainingSlots = ALL_SLOTS.filter((slot) => !(slot in lineup));
+  const orderedRemainingSlots = buildRemainingSlotOrder(remainingSlots);
+  const slotsToFill = shuffleSlots(orderedRemainingSlots).slice(
+    0,
+    Math.max(0, totalSlotsNeeded - Object.keys(lineup).length)
+  );
+
+  slotsToFill.forEach((slot, index) => {
+    const player = fillPlayers[index];
+    if (!player) return;
+    lineup[slot] = player.id;
+    usedPlayers.add(player.id);
+  });
+
+  return {
+    lineup,
+    debug: {
+      primary: { skill: primary, list: primaryRanking.debug },
+      secondary: { skill: secondary, list: secondaryRanking.debug },
+      trainingSlots: {
+        primary: [...primarySlots],
+        secondary: [...secondarySlots],
+        all: [...trainingSlots],
+        starSlot,
+      },
+      selection: {
+        starPlayerId,
+        primarySkill: primary,
+        secondarySkill: secondary,
+        autoSelected,
+      },
+    },
+    error: null as null | "missing_inputs" | "missing_star" | "star_maxed" | "no_primary_slots",
   };
 }

@@ -315,22 +315,86 @@
   z-index: 6;
 }
 
-.helpArrows {
-  width: 100%;
-  height: 100%;
+.helpCallouts {
+  position: absolute;
+  inset: 0;
 }
 
-.helpArrow {
-  fill: none;
-  stroke: #3f362c;
-  stroke-width: 3px;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 6 8;
+.helpCallout {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 2;
+  background: #fff8ed;
+  border: 2px solid #d2b68f;
+  border-radius: 14px;
+  padding: 7px 14px;
+  color: #2f261c;
+  font-size: 12.5px;
+  font-weight: 600;
+  box-shadow: 0 10px 22px rgba(30, 20, 10, 0.22);
 }
 
-.helpArrowHead {
-  fill: #3f362c;
+.helpCallout::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  width: 16px;
+  height: 16px;
+  background: #fff8ed;
+  border-right: 2px solid #d2b68f;
+  border-bottom: 2px solid #d2b68f;
+  box-shadow: 6px 6px 12px rgba(30, 20, 10, 0.18);
+}
+
+.helpCallout > * {
+  position: relative;
+  z-index: 1;
+}
+
+.helpCallout[data-placement="above-left"]::after,
+.helpCallout[data-placement="above-center"]::after {
+  bottom: -10px;
+  left: 18px;
+  transform: rotate(45deg);
+}
+
+.helpCallout[data-placement="above-center"]::after {
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.helpCallout[data-placement="right-center"]::after {
+  left: -7px;
+  top: 50%;
+  transform: translateY(-50%) rotate(135deg);
+}
+
+.helpCallout[data-placement="left-center"]::after {
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.helpCalloutIndex {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #d2b68f;
+  color: #2a2016;
+  font-weight: 700;
+  font-size: 11px;
+  border: 1px solid #b39063;
+  box-shadow: 0 2px 6px rgba(30, 20, 10, 0.25);
+  flex: 0 0 auto;
+}
+
+.helpCalloutText {
+  line-height: 1.2;
 }
 
 .helpCard {
@@ -372,21 +436,6 @@
   font-size: 13px;
   display: grid;
   gap: 6px;
-}
-
-.helpLine {
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  display: inline;
-}
-
-.helpAnchor {
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  text-underline-offset: 2px;
-  background: transparent;
-  box-shadow: none;
 }
 
 .helpCard span {
@@ -734,17 +783,25 @@ html[data-theme="dark"] .helpList {
   color: #e2d8cc;
 }
 
-html[data-theme="dark"] .helpAnchor {
-  color: #f7f1e3;
-  text-decoration-color: #f7f1e3;
+html[data-theme="dark"] .helpCallout {
+  background: #2a231b;
+  color: #f6efe7;
+  border-color: rgba(255, 220, 170, 0.55);
+  box-shadow: 0 12px 26px rgba(10, 8, 6, 0.45);
 }
 
-html[data-theme="dark"] .helpArrow {
-  stroke: #e7dcc9;
+html[data-theme="dark"] .helpCallout::after {
+  background: #2a231b;
+  border-right-color: rgba(255, 220, 170, 0.55);
+  border-bottom-color: rgba(255, 220, 170, 0.55);
+  box-shadow: 6px 6px 12px rgba(10, 8, 6, 0.35);
 }
 
-html[data-theme="dark"] .helpArrowHead {
-  fill: #e7dcc9;
+html[data-theme="dark"] .helpCalloutIndex {
+  background: rgba(255, 220, 170, 0.6);
+  color: #2a2016;
+  border-color: rgba(255, 220, 170, 0.9);
+  box-shadow: 0 2px 6px rgba(10, 8, 6, 0.35);
 }
 
 html[data-theme="dark"] .listItem {

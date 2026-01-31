@@ -25,21 +25,15 @@ export type Messages = {
   behaviorTowardsWing: string;
   helpTitle: string;
   helpIntro: string;
-  helpPurpose: string;
-  helpDesktop: string;
-  helpAi: string;
-  helpOverride: string;
-  helpOptimize: string;
-  helpSubmit: string;
-  helpNoAutoSubmit: string;
-  helpLoadLineup: string;
-  helpOptimizeLabel: string;
-  helpOptimizePrefix: string;
-  helpOptimizeSuffix: string;
-  helpSubmitLabel: string;
-  helpSubmitPrefix: string;
-  helpSubmitSuffix: string;
-  helpDrag: string;
+  helpBulletOverview: string;
+  helpBulletMatches: string;
+  helpBulletAdjust: string;
+  helpBulletTraining: string;
+  helpBulletDesktop: string;
+  helpCalloutStar: string;
+  helpCalloutTraining: string;
+  helpCalloutOptimize: string;
+  helpCalloutAuto: string;
   themeSwitchDark: string;
   themeSwitchLight: string;
   helpDismissLabel: string;
@@ -106,6 +100,7 @@ export type Messages = {
   resetLineup: string;
   optimizeLineupTitle: string;
   optimizeMenuStar: string;
+  optimizeMenuRatings: string;
   optimizeMenuRevealPrimaryCurrent: string;
   optimizeMenuRevealPrimaryMax: string;
   optimizeMenuRevealSecondaryCurrent: string;
@@ -118,6 +113,8 @@ export type Messages = {
   optimizeRevealSecondaryCurrentUnavailable: string;
   optimizeRevealSecondaryMaxKnown: string;
   optimizeRevealSecondaryMaxUnavailable: string;
+  optimizeRatingsUnavailable: string;
+  optimizeRatingsStarMaxed: string;
   optimizeLineupNeedsStar: string;
   optimizeLineupNeedsTraining: string;
   optimizeLineupNeedsKnownSkills: string;
@@ -322,32 +319,20 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorTowardsWing: "Towards wing",
     helpTitle: "Welcome to Youth Alchemy",
     helpIntro:
-      "This page is more than a viewer. It’s designed to help you build the most optimal lineup for your training plan.",
-    helpPurpose:
-      "Review youth players, get a ratings overview, and see match context.",
-    helpDesktop:
-      "This experience is currently optimized for desktop. Mobile support is coming later.",
-    helpAi:
-      "The AI selects a star player and recommends the best primary/secondary training combo around them.",
-    helpOverride:
-      "Override the star player or training types any time — the optimizer adapts to your choices.",
-    helpOptimize:
-      "Click ✨ Optimize in the lineup to generate the optimal 11 for the current training plan.",
-    helpSubmit:
-      "Use the Submit lineup buttons to send your lineup to Hattrick.",
-    helpNoAutoSubmit:
-      "Nothing is sent automatically — you always confirm before submitting.",
-    helpLoadLineup:
-      "Load lineup pulls saved orders from Hattrick and can replace your current lineup.",
-    helpOptimizeLabel: "✨",
-    helpOptimizePrefix: "Click",
-    helpOptimizeSuffix:
-      "in the lineup to generate the optimal 11 for the current training plan.",
-    helpSubmitLabel: "Submit lineup",
-    helpSubmitPrefix: "Use the",
-    helpSubmitSuffix: "buttons to send your lineup to Hattrick.",
-    helpDrag:
-      "Drag players from the list into the lineup, and drag players in the lineup to swap positions.",
+      "This tool helps you plan optimal youth training and lineups.",
+    helpBulletOverview:
+      "Review youth players, plus the skills matrix, ratings matrix, and maxed-out skill markers.",
+    helpBulletMatches:
+      "See upcoming matches and load saved lineups when available.",
+    helpBulletAdjust:
+      "Generate an optimized lineup, then adjust it freely—drag players within the lineup or from the player list.",
+    helpBulletTraining:
+      "Submit lineups directly to Hattrick, but training must be set manually (the API doesn’t allow it).",
+    helpBulletDesktop: "Desktop-optimized.",
+    helpCalloutStar: "Select your star player.",
+    helpCalloutTraining: "Choose your training regimen.",
+    helpCalloutOptimize: "Optimize lineup for your star player and training.",
+    helpCalloutAuto: "Reset star player and training.",
     themeSwitchDark: "Switch to dark mode",
     themeSwitchLight: "Switch to light mode",
     helpDismissLabel: "I understand",
@@ -414,6 +399,7 @@ const MESSAGES: Record<Locale, Messages> = {
     resetLineup: "Reset lineup",
     optimizeLineupTitle: "Optimize lineup",
     optimizeMenuStar: "Optimize around star player",
+    optimizeMenuRatings: "Optimize by ratings",
     optimizeMenuRevealPrimaryCurrent: "Reveal star player pri. curr. value",
     optimizeMenuRevealPrimaryMax: "Reveal star player pri. max. value",
     optimizeMenuRevealSecondaryCurrent: "Reveal star player sec. curr. value",
@@ -434,6 +420,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Reveal secondary max unavailable: star secondary max already known.",
     optimizeRevealSecondaryMaxUnavailable:
       "Reveal secondary max unavailable. Select a star player and secondary training.",
+    optimizeRatingsUnavailable:
+      "Optimize by ratings unavailable. Select a star player and both trainings.",
+    optimizeRatingsStarMaxed:
+      "Optimize by ratings unavailable: star primary and secondary are maxed out.",
     optimizeLineupNeedsStar: "Select a star player to optimize",
     optimizeLineupNeedsTraining: "Select both trainings to optimize",
     optimizeLineupNeedsKnownSkills: "Need known current+max skills to optimize",
@@ -639,30 +629,20 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorTowardsWing: "Zum Flügel",
     helpTitle: "Willkommen bei Youth Alchemy",
     helpIntro:
-      "Diese Seite ist mehr als eine Übersicht. Sie hilft dir, die optimale Aufstellung für dein Training zu finden.",
-    helpPurpose:
-      "Überblicke Jugendspieler, erhalte einen Rating‑Überblick und den Spielkontext.",
-    helpDesktop:
-      "Diese Ansicht ist aktuell für Desktop optimiert. Mobile Unterstützung folgt später.",
-    helpAi:
-      "Die KI wählt einen Starspieler und empfiehlt das beste Primär-/Sekundärtraining.",
-    helpOverride:
-      "Du kannst Starspieler oder Training jederzeit überschreiben — der Optimierer passt sich an.",
-    helpOptimize:
-      "Klicke auf ✨ Optimieren in der Aufstellung, um die beste Elf zu erzeugen.",
-    helpSubmit: "Sende die Aufstellung mit den Buttons an Hattrick.",
-    helpNoAutoSubmit:
-      "Es wird nichts automatisch gesendet — du bestätigst immer vor dem Senden.",
-    helpLoadLineup:
-      "Aufstellung laden holt gespeicherte Orders von Hattrick und kann deine aktuelle Aufstellung ersetzen.",
-    helpOptimizeLabel: "✨",
-    helpOptimizePrefix: "Klicke auf",
-    helpOptimizeSuffix: "in der Aufstellung, um die beste Elf zu erzeugen.",
-    helpSubmitLabel: "Aufstellung senden",
-    helpSubmitPrefix: "Sende",
-    helpSubmitSuffix: "mit den Buttons an Hattrick.",
-    helpDrag:
-      "Ziehe Spieler aus der Liste in die Aufstellung und verschiebe Spieler, um Positionen zu tauschen.",
+      "Dieses Tool hilft dir, optimale Jugendtrainings und Aufstellungen zu planen.",
+    helpBulletOverview:
+      "Sieh dir Jugendspieler, die Skills‑Matrix, die Bewertungsmatrix und Markierungen für maxed Skills an.",
+    helpBulletMatches:
+      "Sieh kommende Spiele und lade gespeicherte Aufstellungen, wenn verfügbar.",
+    helpBulletAdjust:
+      "Erzeuge eine optimale Aufstellung und passe sie frei an — ziehe Spieler in der Aufstellung oder aus der Liste.",
+    helpBulletTraining:
+      "Aufstellungen kannst du direkt an Hattrick senden, Training musst du manuell setzen (die API erlaubt das nicht).",
+    helpBulletDesktop: "Für Desktop optimiert.",
+    helpCalloutStar: "Wähle deinen Starspieler.",
+    helpCalloutTraining: "Wähle dein Trainingsschema.",
+    helpCalloutOptimize: "Optimiere die Aufstellung für Starspieler und Training.",
+    helpCalloutAuto: "Starspieler und Training zurücksetzen.",
     themeSwitchDark: "In den Dunkelmodus wechseln",
     themeSwitchLight: "In den Hellmodus wechseln",
     helpDismissLabel: "Verstanden",
@@ -729,6 +709,7 @@ const MESSAGES: Record<Locale, Messages> = {
     resetLineup: "Aufstellung zurücksetzen",
     optimizeLineupTitle: "Aufstellung optimieren",
     optimizeMenuStar: "Um Starspieler optimieren",
+    optimizeMenuRatings: "Nach Bewertungen optimieren",
     optimizeMenuRevealPrimaryCurrent: "Starspieler Primärwert akt. aufdecken",
     optimizeMenuRevealPrimaryMax: "Starspieler Primärwert max. aufdecken",
     optimizeMenuRevealSecondaryCurrent: "Starspieler Sekundärwert akt. aufdecken",
@@ -749,6 +730,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Sekundärmax aufdecken nicht verfügbar: Sekundärmax des Stars ist bekannt.",
     optimizeRevealSecondaryMaxUnavailable:
       "Sekundärmax aufdecken nicht verfügbar. Starspieler und Sekundärtraining wählen.",
+    optimizeRatingsUnavailable:
+      "Optimierung nach Bewertungen nicht verfügbar. Starspieler und beide Trainings wählen.",
+    optimizeRatingsStarMaxed:
+      "Optimierung nach Bewertungen nicht verfügbar: Primär- und Sekundärwerte des Stars sind ausgereizt.",
     optimizeLineupNeedsStar: "Starspieler auswählen, um zu optimieren",
     optimizeLineupNeedsTraining: "Beide Trainings auswählen, um zu optimieren",
     optimizeLineupNeedsKnownSkills: "Bekannte Ist+Max-Werte erforderlich",
@@ -955,31 +940,20 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorTowardsWing: "Vers l’aile",
     helpTitle: "Bienvenue dans Youth Alchemy",
     helpIntro:
-      "Cette page n’est pas seulement un lecteur. Elle sert surtout à optimiser votre onze pour l’entraînement.",
-    helpPurpose:
-      "Consultez les joueurs, un aperçu des notes et le contexte des matchs.",
-    helpDesktop:
-      "Cette expérience est optimisée pour ordinateur. Le mobile arrivera plus tard.",
-    helpAi:
-      "L’IA choisit un joueur vedette et propose la meilleure combinaison primaire/secondaire.",
-    helpOverride:
-      "Vous pouvez remplacer le joueur vedette ou les entraînements — l’optimiseur s’adapte.",
-    helpOptimize:
-      "Cliquez sur ✨ Optimiser pour générer le meilleur onze.",
-    helpSubmit:
-      "Utilisez les boutons d’envoi pour soumettre la composition à Hattrick.",
-    helpNoAutoSubmit:
-      "Rien n’est envoyé automatiquement — vous confirmez toujours avant l’envoi.",
-    helpLoadLineup:
-      "Charger la composition récupère les ordres Hattrick et peut remplacer votre onze actuel.",
-    helpOptimizeLabel: "✨",
-    helpOptimizePrefix: "Cliquez sur",
-    helpOptimizeSuffix: "pour générer le meilleur onze.",
-    helpSubmitLabel: "Envoyer la composition",
-    helpSubmitPrefix: "Utilisez",
-    helpSubmitSuffix: "pour soumettre la composition à Hattrick.",
-    helpDrag:
-      "Faites glisser des joueurs depuis la liste et déplacez ceux de l’équipe pour changer de poste.",
+      "Cet outil vous aide à planifier l’entraînement et les compos optimales pour les jeunes.",
+    helpBulletOverview:
+      "Consultez les jeunes joueurs, la matrice des compétences, la matrice des notes et les marqueurs de compétences maxées.",
+    helpBulletMatches:
+      "Voyez les matchs à venir et chargez les compositions enregistrées si disponibles.",
+    helpBulletAdjust:
+      "Générez une compo optimale puis ajustez‑la librement — faites glisser des joueurs dans la compo ou depuis la liste.",
+    helpBulletTraining:
+      "Vous pouvez soumettre la compo à Hattrick, mais l’entraînement doit être réglé manuellement (l’API ne le permet pas).",
+    helpBulletDesktop: "Optimisé pour ordinateur.",
+    helpCalloutStar: "Choisissez votre joueur vedette.",
+    helpCalloutTraining: "Choisissez votre régime d’entraînement.",
+    helpCalloutOptimize: "Optimisez la compo selon le joueur vedette et l’entraînement.",
+    helpCalloutAuto: "Réinitialiser joueur vedette et entraînement.",
     themeSwitchDark: "Passer en mode sombre",
     themeSwitchLight: "Passer en mode clair",
     helpDismissLabel: "J’ai compris",
@@ -1047,6 +1021,7 @@ const MESSAGES: Record<Locale, Messages> = {
     resetLineup: "Réinitialiser la composition",
     optimizeLineupTitle: "Optimiser la composition",
     optimizeMenuStar: "Optimiser autour du joueur star",
+    optimizeMenuRatings: "Optimiser par notes",
     optimizeMenuRevealPrimaryCurrent:
       "Révéler val. act. prim. du joueur star",
     optimizeMenuRevealPrimaryMax:
@@ -1071,6 +1046,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Révélation indisponible : valeur secondaire max déjà connue.",
     optimizeRevealSecondaryMaxUnavailable:
       "Révélation indisponible. Sélectionnez un joueur star et un entraînement secondaire.",
+    optimizeRatingsUnavailable:
+      "Optimisation par notes indisponible. Sélectionnez un joueur star et les deux entraînements.",
+    optimizeRatingsStarMaxed:
+      "Optimisation par notes indisponible : valeurs primaire et secondaire du star sont maxées.",
     optimizeLineupNeedsStar: "Sélectionnez un joueur star pour optimiser",
     optimizeLineupNeedsTraining:
       "Sélectionnez les deux entraînements pour optimiser",
@@ -1279,31 +1258,20 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorTowardsWing: "Hacia la banda",
     helpTitle: "Bienvenido a Youth Alchemy",
     helpIntro:
-      "Esta página no es solo un visor. Su objetivo principal es optimizar tu once para el entrenamiento.",
-    helpPurpose:
-      "Revisa jugadores, un resumen de ratings y el contexto de partidos.",
-    helpDesktop:
-      "Esta experiencia está optimizada para escritorio. Móvil más adelante.",
-    helpAi:
-      "La IA elige un jugador estrella y recomienda la mejor combinación primaria/secundaria.",
-    helpOverride:
-      "Puedes cambiar el jugador estrella o los entrenamientos — el optimizador se adapta.",
-    helpOptimize:
-      "Pulsa ✨ Optimizar para generar el once óptimo.",
-    helpSubmit:
-      "Usa los botones de envío para mandar la alineación a Hattrick.",
-    helpNoAutoSubmit:
-      "Nada se envía automáticamente — siempre confirmas antes de enviar.",
-    helpLoadLineup:
-      "Cargar alineación trae las órdenes guardadas en Hattrick y puede reemplazar tu once actual.",
-    helpOptimizeLabel: "✨",
-    helpOptimizePrefix: "Pulsa",
-    helpOptimizeSuffix: "para generar el once óptimo.",
-    helpSubmitLabel: "Enviar alineación",
-    helpSubmitPrefix: "Usa",
-    helpSubmitSuffix: "para mandar la alineación a Hattrick.",
-    helpDrag:
-      "Arrastra jugadores desde la lista y mueve los del once para cambiar posiciones.",
+      "Esta herramienta te ayuda a planificar el entrenamiento y la alineación óptimos de juveniles.",
+    helpBulletOverview:
+      "Revisa jugadores juveniles, la matriz de habilidades, la matriz de valoraciones y los marcadores de habilidades al máximo.",
+    helpBulletMatches:
+      "Consulta los próximos partidos y carga alineaciones guardadas si están disponibles.",
+    helpBulletAdjust:
+      "Genera una alineación óptima y ajusta libremente — arrastra jugadores dentro de la alineación o desde la lista.",
+    helpBulletTraining:
+      "Puedes enviar alineaciones a Hattrick, pero el entrenamiento debe configurarse manualmente (la API no lo permite).",
+    helpBulletDesktop: "Optimizado para escritorio.",
+    helpCalloutStar: "Elige tu jugador estrella.",
+    helpCalloutTraining: "Elige tu régimen de entrenamiento.",
+    helpCalloutOptimize: "Optimiza la alineación según el jugador estrella y el entrenamiento.",
+    helpCalloutAuto: "Restablecer jugador estrella y entrenamiento.",
     themeSwitchDark: "Cambiar a modo oscuro",
     themeSwitchLight: "Cambiar a modo claro",
     helpDismissLabel: "Entendido",
@@ -1371,6 +1339,7 @@ const MESSAGES: Record<Locale, Messages> = {
     resetLineup: "Restablecer alineación",
     optimizeLineupTitle: "Optimizar alineación",
     optimizeMenuStar: "Optimizar alrededor del jugador estrella",
+    optimizeMenuRatings: "Optimizar por valoraciones",
     optimizeMenuRevealPrimaryCurrent: "Revelar val. act. prim. del estrella",
     optimizeMenuRevealPrimaryMax: "Revelar val. máx. prim. del estrella",
     optimizeMenuRevealSecondaryCurrent: "Revelar val. act. sec. del estrella",
@@ -1391,6 +1360,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Revelar secundario máx. no disponible: ya se conoce.",
     optimizeRevealSecondaryMaxUnavailable:
       "Revelar secundario máx. no disponible. Elige jugador estrella y entrenamiento secundario.",
+    optimizeRatingsUnavailable:
+      "Optimizar por valoraciones no disponible. Elige jugador estrella y ambos entrenamientos.",
+    optimizeRatingsStarMaxed:
+      "Optimizar por valoraciones no disponible: valores primario y secundario del estrella están al máximo.",
     optimizeLineupNeedsStar: "Elige un jugador estrella para optimizar",
     optimizeLineupNeedsTraining:
       "Elige ambos entrenamientos para optimizar",
@@ -1599,31 +1572,20 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorTowardsWing: "Mot kanten",
     helpTitle: "Välkommen till Youth Alchemy",
     helpIntro:
-      "Den här sidan är mer än en vy. Den hjälper dig att optimera startelvan för träningen.",
-    helpPurpose:
-      "Granska spelare, få en rating‑översikt och matchkontext.",
-    helpDesktop:
-      "Den här vyn är just nu optimerad för desktop. Mobil kommer senare.",
-    helpAi:
-      "AI:n väljer en stjärnspelare och föreslår bästa primär/sekundär‑träningen.",
-    helpOverride:
-      "Du kan ändra stjärnspelare eller träning — optimeraren anpassar sig.",
-    helpOptimize:
-      "Klicka ✨ Optimera för att skapa den bästa elvan.",
-    helpSubmit:
-      "Använd knapparna för att skicka uppställningen till Hattrick.",
-    helpNoAutoSubmit:
-      "Inget skickas automatiskt — du bekräftar alltid innan du skickar.",
-    helpLoadLineup:
-      "Ladda uppställning hämtar sparade order från Hattrick och kan ersätta din nuvarande elva.",
-    helpOptimizeLabel: "✨",
-    helpOptimizePrefix: "Klicka",
-    helpOptimizeSuffix: "för att skapa den bästa elvan.",
-    helpSubmitLabel: "Skicka uppställning",
-    helpSubmitPrefix: "Använd",
-    helpSubmitSuffix: "för att skicka uppställningen till Hattrick.",
-    helpDrag:
-      "Dra spelare från listan in i uppställningen och flytta spelare för att byta position.",
+      "Det här verktyget hjälper dig planera optimal ungdomsträning och uppställning.",
+    helpBulletOverview:
+      "Granska ungdomsspelare, skills‑matris, betygsmatris och markeringar för maxade skills.",
+    helpBulletMatches:
+      "Se kommande matcher och ladda sparade uppställningar när de finns.",
+    helpBulletAdjust:
+      "Skapa en optimal elva och justera fritt — dra spelare i uppställningen eller från listan.",
+    helpBulletTraining:
+      "Du kan skicka uppställningar till Hattrick, men träningen måste ställas in manuellt (API:t tillåter inte det).",
+    helpBulletDesktop: "Optimerad för desktop.",
+    helpCalloutStar: "Välj din stjärnspelare.",
+    helpCalloutTraining: "Välj ditt träningsupplägg.",
+    helpCalloutOptimize: "Optimera uppställningen för stjärnspelare och träning.",
+    helpCalloutAuto: "Återställ stjärnspelare och träning.",
     themeSwitchDark: "Växla till mörkt läge",
     themeSwitchLight: "Växla till ljust läge",
     helpDismissLabel: "Jag förstår",
@@ -1690,6 +1652,7 @@ const MESSAGES: Record<Locale, Messages> = {
     resetLineup: "Återställ uppställning",
     optimizeLineupTitle: "Optimera uppställning",
     optimizeMenuStar: "Optimera runt stjärnspelaren",
+    optimizeMenuRatings: "Optimera efter betyg",
     optimizeMenuRevealPrimaryCurrent: "Avslöja stjärnans primärvärde (akt.)",
     optimizeMenuRevealPrimaryMax: "Avslöja stjärnans primärvärde (max.)",
     optimizeMenuRevealSecondaryCurrent: "Avslöja stjärnans sekundärvärde (akt.)",
@@ -1710,6 +1673,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Avslöjande ej tillgängligt: stjärnans sekundärmax är redan känt.",
     optimizeRevealSecondaryMaxUnavailable:
       "Avslöjande ej tillgängligt. Välj stjärnspelare och sekundärträning.",
+    optimizeRatingsUnavailable:
+      "Optimering efter betyg ej tillgänglig. Välj stjärnspelare och båda träningarna.",
+    optimizeRatingsStarMaxed:
+      "Optimering efter betyg ej tillgänglig: stjärnans primär- och sekundärvärden är maxade.",
     optimizeLineupNeedsStar: "Välj en stjärnspelare för att optimera",
     optimizeLineupNeedsTraining: "Välj båda träningarna för att optimera",
     optimizeLineupNeedsKnownSkills: "Kända nuvarande+maxvärden krävs",
@@ -1917,31 +1884,20 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorTowardsWing: "Verso la fascia",
     helpTitle: "Benvenuto in Youth Alchemy",
     helpIntro:
-      "Questa pagina non è solo una vista. Serve a ottimizzare l’undici per l’allenamento.",
-    helpPurpose:
-      "Consulta i giocatori, una panoramica dei rating e il contesto partita.",
-    helpDesktop:
-      "Questa esperienza è ottimizzata per desktop. Mobile in arrivo più avanti.",
-    helpAi:
-      "L’IA sceglie un giocatore stella e suggerisce la migliore coppia primario/secondario.",
-    helpOverride:
-      "Puoi cambiare giocatore stella o allenamenti — l’ottimizzatore si adatta.",
-    helpOptimize:
-      "Clicca ✨ Ottimizza per generare l’undici migliore.",
-    helpSubmit:
-      "Usa i pulsanti per inviare la formazione a Hattrick.",
-    helpNoAutoSubmit:
-      "Nulla viene inviato automaticamente — confermi sempre prima dell’invio.",
-    helpLoadLineup:
-      "Carica formazione recupera gli ordini di Hattrick e può sostituire la tua formazione attuale.",
-    helpOptimizeLabel: "✨",
-    helpOptimizePrefix: "Clicca",
-    helpOptimizeSuffix: "per generare l’undici migliore.",
-    helpSubmitLabel: "Invia formazione",
-    helpSubmitPrefix: "Usa",
-    helpSubmitSuffix: "per inviare la formazione a Hattrick.",
-    helpDrag:
-      "Trascina i giocatori dalla lista e sposta quelli in campo per cambiare ruolo.",
+      "Questo strumento ti aiuta a pianificare allenamento e formazione ottimali per la giovanile.",
+    helpBulletOverview:
+      "Consulta i giovani giocatori, la matrice abilità, la matrice valutazioni e gli indicatori di abilità al massimo.",
+    helpBulletMatches:
+      "Vedi le prossime partite e carica le formazioni salvate quando disponibili.",
+    helpBulletAdjust:
+      "Genera una formazione ottimale e modificala liberamente — trascina i giocatori nella formazione o dalla lista.",
+    helpBulletTraining:
+      "Puoi inviare le formazioni a Hattrick, ma l’allenamento va impostato manualmente (l’API non lo consente).",
+    helpBulletDesktop: "Ottimizzato per desktop.",
+    helpCalloutStar: "Scegli il tuo giocatore stella.",
+    helpCalloutTraining: "Scegli il tuo regime di allenamento.",
+    helpCalloutOptimize: "Ottimizza la formazione per giocatore stella e allenamento.",
+    helpCalloutAuto: "Reimposta giocatore stella e allenamento.",
     themeSwitchDark: "Passa alla modalità scura",
     themeSwitchLight: "Passa alla modalità chiara",
     helpDismissLabel: "Ho capito",
@@ -2009,6 +1965,7 @@ const MESSAGES: Record<Locale, Messages> = {
     resetLineup: "Reimposta formazione",
     optimizeLineupTitle: "Ottimizza formazione",
     optimizeMenuStar: "Ottimizza attorno al giocatore stella",
+    optimizeMenuRatings: "Ottimizza per valutazioni",
     optimizeMenuRevealPrimaryCurrent: "Rivela val. attuale prim. stella",
     optimizeMenuRevealPrimaryMax: "Rivela val. max. prim. stella",
     optimizeMenuRevealSecondaryCurrent: "Rivela val. attuale sec. stella",
@@ -2029,6 +1986,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Rivelazione non disponibile: valore secondario max già noto.",
     optimizeRevealSecondaryMaxUnavailable:
       "Rivelazione non disponibile. Seleziona stella e allenamento secondario.",
+    optimizeRatingsUnavailable:
+      "Ottimizzazione per valutazioni non disponibile. Seleziona stella e entrambi gli allenamenti.",
+    optimizeRatingsStarMaxed:
+      "Ottimizzazione per valutazioni non disponibile: valori primario e secondario della stella sono al massimo.",
     optimizeLineupNeedsStar: "Seleziona un giocatore stella per ottimizzare",
     optimizeLineupNeedsTraining:
       "Seleziona entrambi gli allenamenti per ottimizzare",
@@ -2237,31 +2198,20 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorTowardsWing: "Para a ala",
     helpTitle: "Bem-vindo ao Youth Alchemy",
     helpIntro:
-      "Esta página é mais do que um visor. Ela ajuda a otimizar o onze para o treino.",
-    helpPurpose:
-      "Veja jogadores, uma visão geral de ratings e o contexto de partidas.",
-    helpDesktop:
-      "Esta experiência está otimizada para desktop. Mobile ficará para depois.",
-    helpAi:
-      "A IA escolhe um jogador estrela e recomenda o melhor par primário/secundário.",
-    helpOverride:
-      "Você pode substituir o jogador estrela ou os treinos — o otimizador se adapta.",
-    helpOptimize:
-      "Clique ✨ Otimizar para gerar o melhor onze.",
-    helpSubmit:
-      "Use os botões para enviar a escalação ao Hattrick.",
-    helpNoAutoSubmit:
-      "Nada é enviado automaticamente — você sempre confirma antes de enviar.",
-    helpLoadLineup:
-      "Carregar escalação busca ordens salvas no Hattrick e pode substituir a sua escalação atual.",
-    helpOptimizeLabel: "✨",
-    helpOptimizePrefix: "Clique",
-    helpOptimizeSuffix: "para gerar o melhor onze.",
-    helpSubmitLabel: "Enviar escalação",
-    helpSubmitPrefix: "Use",
-    helpSubmitSuffix: "para enviar a escalação ao Hattrick.",
-    helpDrag:
-      "Arraste jogadores da lista e mova os do time para trocar posições.",
+      "Esta ferramenta ajuda a planejar o treino e a escalação ideais do juvenil.",
+    helpBulletOverview:
+      "Revise jogadores juvenis, a matriz de habilidades, a matriz de notas e os marcadores de habilidades no máximo.",
+    helpBulletMatches:
+      "Veja os próximos jogos e carregue escalações salvas quando disponíveis.",
+    helpBulletAdjust:
+      "Gere uma escalação ideal e ajuste livremente — arraste jogadores na escalação ou da lista.",
+    helpBulletTraining:
+      "Você pode enviar escalações ao Hattrick, mas o treino deve ser definido manualmente (a API não permite).",
+    helpBulletDesktop: "Otimizado para desktop.",
+    helpCalloutStar: "Escolha seu jogador estrela.",
+    helpCalloutTraining: "Escolha seu regime de treinamento.",
+    helpCalloutOptimize: "Otimize a escalação para o jogador estrela e o treino.",
+    helpCalloutAuto: "Redefinir jogador estrela e treino.",
     themeSwitchDark: "Mudar para modo escuro",
     themeSwitchLight: "Mudar para modo claro",
     helpDismissLabel: "Entendi",
@@ -2329,6 +2279,7 @@ const MESSAGES: Record<Locale, Messages> = {
     resetLineup: "Redefinir escalação",
     optimizeLineupTitle: "Otimizar escalação",
     optimizeMenuStar: "Otimizar em torno do jogador estrela",
+    optimizeMenuRatings: "Otimizar por avaliações",
     optimizeMenuRevealPrimaryCurrent: "Revelar val. atual prim. da estrela",
     optimizeMenuRevealPrimaryMax: "Revelar val. máx. prim. da estrela",
     optimizeMenuRevealSecondaryCurrent: "Revelar val. atual sec. da estrela",
@@ -2349,6 +2300,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Revelação indisponível: valor secundário max já conhecido.",
     optimizeRevealSecondaryMaxUnavailable:
       "Revelação indisponível. Selecione estrela e treino secundário.",
+    optimizeRatingsUnavailable:
+      "Otimização por avaliações indisponível. Selecione estrela e ambos os treinos.",
+    optimizeRatingsStarMaxed:
+      "Otimização por avaliações indisponível: valores primário e secundário da estrela estão no máximo.",
     optimizeLineupNeedsStar: "Selecione um jogador estrela para otimizar",
     optimizeLineupNeedsTraining:
       "Selecione ambos os treinos para otimizar",

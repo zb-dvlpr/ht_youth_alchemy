@@ -20,6 +20,7 @@ import {
   getAutoSelection,
   getTrainingSlots,
   optimizeLineupForStar,
+  optimizeByRatings,
   optimizeRevealPrimaryCurrent,
   optimizeRevealPrimaryMax,
   optimizeRevealSecondaryCurrent,
@@ -872,6 +873,108 @@ export default function Dashboard({
   const handleOptimizeSelect = (mode: OptimizeMode) => {
     if (mode === "star") {
       handleOptimize();
+      return;
+    }
+    if (mode === "ratings") {
+      if (
+        !starPlayerId ||
+        !isTrainingSkill(primaryTraining) ||
+        !isTrainingSkill(secondaryTraining)
+      ) {
+        setOptimizeErrorMessage(messages.optimizeRatingsUnavailable);
+        return;
+      }
+
+      const optimizerPlayers: OptimizerPlayer[] = playerList.map((player) => ({
+        id: player.YouthPlayerID,
+        name: [player.FirstName, player.NickName || null, player.LastName]
+          .filter(Boolean)
+          .join(" "),
+        age:
+          player.Age ??
+          playerDetailsById.get(player.YouthPlayerID)?.Age ??
+          null,
+        skills:
+          playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
+          (player.PlayerSkills as OptimizerPlayer["skills"]) ??
+          null,
+      }));
+
+      const result = optimizeByRatings(
+        optimizerPlayers,
+        ratingsCache,
+        starPlayerId,
+        primaryTraining,
+        secondaryTraining,
+        autoSelectionApplied
+      );
+
+      if (result.error === "star_maxed") {
+        setOptimizeErrorMessage(messages.optimizeRatingsStarMaxed);
+        return;
+      }
+
+      if (result.error) {
+        setOptimizeErrorMessage(messages.optimizeRatingsUnavailable);
+        return;
+      }
+
+      const nextAssignments: LineupAssignments = { ...result.lineup };
+      const usedPlayers = new Set<number>(
+        Object.values(nextAssignments).filter(Boolean) as number[]
+      );
+      const rankingBySkill = new Map<TrainingSkillKey, number[]>();
+      ([
+        "keeper",
+        "defending",
+        "playmaking",
+        "winger",
+        "passing",
+        "scoring",
+        "setpieces",
+      ] as TrainingSkillKey[]).forEach((skill) => {
+        rankingBySkill.set(
+          skill,
+          buildSkillRanking(optimizerPlayers, skill).ordered.map(
+            (entry) => entry.playerId
+          )
+        );
+      });
+
+      const pickNextFrom = (list: number[] | undefined) => {
+        if (!list) return null;
+        for (const id of list) {
+          if (!usedPlayers.has(id)) return id;
+        }
+        return null;
+      };
+
+      const benchOrder = [
+        { id: "B_GK", skill: "keeper" as const },
+        { id: "B_CD", skill: "defending" as const },
+        { id: "B_WB", skill: "defending" as const },
+        { id: "B_IM", skill: "playmaking" as const },
+        { id: "B_F", skill: "scoring" as const },
+        { id: "B_W", skill: "winger" as const },
+        { id: "B_X", skill: primaryTraining },
+      ];
+
+      benchOrder.forEach((slot) => {
+        if (nextAssignments[slot.id]) return;
+        const nextId = pickNextFrom(
+          slot.skill ? rankingBySkill.get(slot.skill) : undefined
+        );
+        nextAssignments[slot.id] = nextId ?? null;
+        if (nextId) usedPlayers.add(nextId);
+      });
+
+      setAssignments(nextAssignments);
+      setBehaviors({});
+      setOptimizerDebug(result.debug ?? null);
+      setLoadedMatchId(null);
+      if (Object.keys(result.lineup).length) {
+        addNotification(messages.notificationOptimizeApplied);
+      }
       return;
     }
     if (

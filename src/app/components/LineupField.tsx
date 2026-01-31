@@ -28,6 +28,7 @@ type SkillValue = {
 
 export type OptimizeMode =
   | "star"
+  | "ratings"
   | "revealPrimaryCurrent"
   | "revealPrimaryMax"
   | "revealSecondaryCurrent"
@@ -350,6 +351,13 @@ export default function LineupField({
                   onClick={() => handleOptimizeSelect("star")}
                 >
                   {messages.optimizeMenuStar}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                  onClick={() => handleOptimizeSelect("ratings")}
+                >
+                  {messages.optimizeMenuRatings}
                 </button>
                 <button
                   type="button"

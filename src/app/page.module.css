@@ -325,29 +325,37 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: #fff;
-  border: 1px solid #e7dcc9;
+  z-index: 2;
+  background: #fff8ed;
+  border: 2px solid #d2b68f;
   border-radius: 14px;
-  padding: 6px 12px;
-  color: #3f362c;
-  font-size: 12px;
-  box-shadow: 0 8px 16px rgba(30, 20, 10, 0.12);
+  padding: 7px 14px;
+  color: #2f261c;
+  font-size: 12.5px;
+  font-weight: 600;
+  box-shadow: 0 10px 22px rgba(30, 20, 10, 0.22);
 }
 
 .helpCallout::after {
   content: "";
   position: absolute;
-  width: 14px;
-  height: 14px;
-  background: #fff;
-  border-right: 1px solid #e7dcc9;
-  border-bottom: 1px solid #e7dcc9;
-  box-shadow: 6px 6px 10px rgba(30, 20, 10, 0.08);
+  z-index: -1;
+  width: 16px;
+  height: 16px;
+  background: #fff8ed;
+  border-right: 2px solid #d2b68f;
+  border-bottom: 2px solid #d2b68f;
+  box-shadow: 6px 6px 12px rgba(30, 20, 10, 0.18);
+}
+
+.helpCallout > * {
+  position: relative;
+  z-index: 1;
 }
 
 .helpCallout[data-placement="above-left"]::after,
 .helpCallout[data-placement="above-center"]::after {
-  bottom: -7px;
+  bottom: -10px;
   left: 18px;
   transform: rotate(45deg);
 }
@@ -364,7 +372,7 @@
 }
 
 .helpCallout[data-placement="left-center"]::after {
-  right: -7px;
+  right: -10px;
   top: 50%;
   transform: translateY(-50%) rotate(-45deg);
 }
@@ -376,8 +384,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #efe6d8;
-  color: #3f362c;
+  background: #d2b68f;
+  color: #2a2016;
   font-weight: 700;
   font-size: 11px;
 }
@@ -773,21 +781,22 @@ html[data-theme="dark"] .helpList {
 }
 
 html[data-theme="dark"] .helpCallout {
-  background: #1b1917;
-  color: #f3ede4;
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.45);
+  background: #2a231b;
+  color: #f6efe7;
+  border-color: rgba(255, 220, 170, 0.55);
+  box-shadow: 0 12px 26px rgba(10, 8, 6, 0.45);
 }
 
 html[data-theme="dark"] .helpCallout::after {
-  background: #1b1917;
-  border-right-color: rgba(255, 255, 255, 0.12);
-  border-bottom-color: rgba(255, 255, 255, 0.12);
+  background: #2a231b;
+  border-right-color: rgba(255, 220, 170, 0.55);
+  border-bottom-color: rgba(255, 220, 170, 0.55);
+  box-shadow: 6px 6px 12px rgba(10, 8, 6, 0.35);
 }
 
 html[data-theme="dark"] .helpCalloutIndex {
-  background: rgba(255, 255, 255, 0.12);
-  color: #f3ede4;
+  background: rgba(255, 220, 170, 0.6);
+  color: #2a2016;
 }
 
 html[data-theme="dark"] .listItem {

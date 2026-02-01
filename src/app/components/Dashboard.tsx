@@ -74,6 +74,7 @@ type DashboardProps = {
   ratingsResponse: RatingsMatrixResponse | null;
   initialYouthTeams?: YouthTeamOption[];
   initialYouthTeamId?: number | null;
+  appVersion: string;
   messages: Messages;
   isConnected: boolean;
   initialLoadError?: string | null;
@@ -177,6 +178,7 @@ export default function Dashboard({
   ratingsResponse,
   initialYouthTeams = [],
   initialYouthTeamId = null,
+  appVersion,
   messages,
   isConnected,
   initialLoadError = null,
@@ -232,8 +234,10 @@ export default function Dashboard({
   const { addNotification } = useNotifications();
   const isDev = process.env.NODE_ENV !== "production";
   const helpStorageKey = "ya_help_dismissed_v1";
+  const changelogStorageKey = "ya_changelog_seen_major_minor_v1";
   const dashboardRef = useRef<HTMLDivElement | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [showChangelog, setShowChangelog] = useState(false);
   const [helpCallouts, setHelpCallouts] = useState<
     {
       id: string;
@@ -286,6 +290,30 @@ export default function Dashboard({
     });
     return map;
   }, [cache]);
+
+  const changelogEntries = useMemo(
+    () => [
+      {
+        version: "1.19.0",
+        entries: [messages.changelog_1_19_0],
+      },
+    ],
+    [messages.changelog_1_19_0]
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const majorMinor = appVersion.split(".").slice(0, 2).join(".");
+    try {
+      const previous = window.localStorage.getItem(changelogStorageKey);
+      if (previous !== majorMinor) {
+        window.localStorage.setItem(changelogStorageKey, majorMinor);
+        setShowChangelog(true);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [appVersion, changelogStorageKey]);
 
   const getPlayerAgeScore = (player: YouthPlayer | null | undefined) => {
     if (!player) return null;
@@ -571,6 +599,13 @@ export default function Dashboard({
     const handler = () => setShowHelp(true);
     window.addEventListener("ya:help-open", handler);
     return () => window.removeEventListener("ya:help-open", handler);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = () => setShowChangelog(true);
+    window.addEventListener("ya:changelog-open", handler);
+    return () => window.removeEventListener("ya:changelog-open", handler);
   }, []);
 
   useEffect(() => {
@@ -1721,6 +1756,33 @@ export default function Dashboard({
             onClick={() => setOptimizeErrorMessage(null)}
           >
             {messages.trainingReminderConfirm}
+          </button>
+        }
+      />
+      <Modal
+        open={showChangelog}
+        title={messages.changelogTitle}
+        body={
+          <div className={styles.changelogBody}>
+            {changelogEntries.map((entry) => (
+              <div key={entry.version} className={styles.changelogEntry}>
+                <div className={styles.changelogVersion}>v{entry.version}</div>
+                <ul className={styles.changelogList}>
+                  {entry.entries.map((item, index) => (
+                    <li key={`${entry.version}-${index}`}>{item}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setShowChangelog(false)}
+          >
+            {messages.helpDismissLabel}
           </button>
         }
       />

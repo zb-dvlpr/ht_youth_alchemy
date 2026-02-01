@@ -460,6 +460,31 @@
   transform: translateY(-1px);
 }
 
+.changelogBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.changelogEntry {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #eadfcf;
+}
+
+.changelogVersion {
+  font-weight: 700;
+  color: #3f362c;
+  margin-bottom: 6px;
+}
+
+.changelogList {
+  margin: 0;
+  padding-left: 18px;
+  color: #4c4338;
+}
+
 .helpDisabledColumn {
   opacity: 0.35;
   pointer-events: none;
@@ -771,6 +796,19 @@ html[data-theme="dark"] .helpCard {
   color: #f3ede4;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
   border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .changelogEntry {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .changelogVersion {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .changelogList {
+  color: #d6c9b7;
 }
 
 html[data-theme="dark"] .helpTitle {

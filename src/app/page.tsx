@@ -283,6 +283,7 @@ export default async function Home() {
             ratingsResponse={ratingsResponse}
             initialYouthTeams={youthTeams}
             initialYouthTeamId={defaultYouthTeamId}
+            appVersion={pkg.version}
             messages={messages}
             isConnected={isConnected}
             initialLoadError={playersResponse.error ?? null}

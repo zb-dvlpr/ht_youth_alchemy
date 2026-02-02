@@ -22,5 +22,8 @@
 ## Modals
 - All modal UI must use the shared modal framework/component.
 
+## Changelog
+- When a MAJOR or MINOR version changes, the changelog should auto-expand.
+
 ## Clarification
 - If an instruction is unclear, ask clarifying questions before starting any coding.

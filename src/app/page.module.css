@@ -460,6 +460,31 @@
   transform: translateY(-1px);
 }
 
+.changelogBody {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.changelogEntry {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid #eadfcf;
+}
+
+.changelogVersion {
+  font-weight: 700;
+  color: #3f362c;
+  margin-bottom: 6px;
+}
+
+.changelogList {
+  margin: 0;
+  padding-left: 18px;
+  color: #4c4338;
+}
+
 .helpDisabledColumn {
   opacity: 0.35;
   pointer-events: none;
@@ -771,6 +796,19 @@ html[data-theme="dark"] .helpCard {
   color: #f3ede4;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
   border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .changelogEntry {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .changelogVersion {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .changelogList {
+  color: #d6c9b7;
 }
 
 html[data-theme="dark"] .helpTitle {
@@ -1278,6 +1316,15 @@ html[data-theme="dark"] .spinner {
 }
 
 .sortControl {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  font-size: 12px;
+  color: #6b6256;
+}
+
+.teamSelectControl {
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1950,6 +1997,53 @@ html[data-theme="dark"] .spinner {
 
 .optimizerOpen:hover {
   background: #2f3b2b;
+  transform: translateY(-1px);
+}
+
+.devTeamRow {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.devTeamLabel {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b6256;
+}
+
+.devTeamControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.devTeamInput {
+  border: 1px solid #c9b9a3;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: #3f362c;
+  background: #fff;
+  min-width: 200px;
+}
+
+.devTeamButton {
+  border: none;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  background: #7a6a5a;
+  color: #fff;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.devTeamButton:hover {
+  background: #6b5b4c;
   transform: translateY(-1px);
 }
 

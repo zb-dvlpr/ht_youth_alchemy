@@ -141,11 +141,11 @@ const behaviorOptionsForSlot = (slotId: string): BehaviorOption[] => {
     ];
   }
   if (slotId === "CD_C") {
-    return [{ value: 2, icon: "▲", position: "top" }];
+    return [{ value: 1, icon: "▼", position: "bottom" }];
   }
   if (slotId.startsWith("CD_")) {
     return [
-      { value: 2, icon: "▲", position: "top" },
+      { value: 1, icon: "▼", position: "bottom" },
       towardWing,
     ];
   }

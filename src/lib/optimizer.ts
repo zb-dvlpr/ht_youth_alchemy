@@ -1405,6 +1405,24 @@ export function optimizeRevealSecondaryCurrent(
     }
   }
 
+  const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
+  const carePlayers = remainingPlayers.filter(
+    (player) =>
+      skillPotential(player, primary) > 0 || skillPotential(player, secondary) > 0
+  );
+  const otherPlayers = remainingPlayers.filter(
+    (player) => !carePlayers.includes(player)
+  );
+  const cappedPlayers = otherPlayers.filter(
+    (player) =>
+      skillPotential(player, primary) === 0 &&
+      skillPotential(player, secondary) === 0
+  );
+  const nonCappedPlayers = otherPlayers.filter(
+    (player) => !cappedPlayers.includes(player)
+  );
+  const fillPlayers = [...carePlayers, ...cappedPlayers, ...nonCappedPlayers];
+
   const totalSlotsNeeded = 11;
   const remainingSlots = ALL_SLOTS.filter((slot) => !(slot in lineup));
   const orderedRemainingSlots = buildRemainingSlotOrder(remainingSlots);

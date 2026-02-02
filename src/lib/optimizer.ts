@@ -98,6 +98,18 @@ const ALL_SLOTS = [
   "F_R",
 ] as const;
 
+const IM_SLOTS = new Set<(typeof ALL_SLOTS)[number]>([
+  "IM_L",
+  "IM_C",
+  "IM_R",
+]);
+
+const CD_SLOTS = new Set<(typeof ALL_SLOTS)[number]>([
+  "CD_L",
+  "CD_C",
+  "CD_R",
+]);
+
 const ROLE_BY_SLOT: Record<(typeof ALL_SLOTS)[number], RoleGroup> = {
   KP: "GK",
   WB_L: "WB",
@@ -190,6 +202,21 @@ function slotsForSkill(skill: SkillKey) {
       slots.add(slot);
     }
   });
+  return slots;
+}
+
+function preferStarSlots(
+  primarySkill: SkillKey | null | undefined,
+  slots: (typeof ALL_SLOTS)[number][]
+) {
+  if (primarySkill === "playmaking") {
+    const imSlots = slots.filter((slot) => IM_SLOTS.has(slot));
+    if (imSlots.length) return imSlots;
+  }
+  if (primarySkill === "defending") {
+    const cdSlots = slots.filter((slot) => CD_SLOTS.has(slot));
+    if (cdSlots.length) return cdSlots;
+  }
   return slots;
 }
 
@@ -670,21 +697,10 @@ export function optimizeLineupForStar(
   if (!candidateSlots.size) {
     candidateSlots = trainingSlots.size ? trainingSlots : baseSlots;
   }
+  const preferredStarSlots = preferStarSlots(primarySkill, [...candidateSlots]);
 
-  let starSlot = [...candidateSlots][0];
-  let starBest = -1;
-  candidateSlots.forEach((slot) => {
-    const score = slotSkillScore(
-      starPlayer,
-      slot,
-      primarySkill,
-      secondarySkill ?? primarySkill
-    );
-    if (score > starBest) {
-      starBest = score;
-      starSlot = slot;
-    }
-  });
+  const starSlot =
+    preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
 
   const primaryRanking = buildSkillRanking(players, primarySkill);
   const secondaryRanking = secondarySkill
@@ -868,8 +884,9 @@ export function optimizeRevealPrimaryCurrent(
       starSecondaryCurrent >= starSecondaryMax
     );
   const starSlotCandidates = prefersSharedSlot ? sharedSlots : primarySlotList;
+  const preferredStarSlots = preferStarSlots(primary, starSlotCandidates);
   const starSlot =
-    starSlotCandidates[Math.floor(Math.random() * starSlotCandidates.length)];
+    preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
 
   const primaryRanking = buildSkillRanking(players, primary);
   const secondaryRanking = secondary
@@ -1068,8 +1085,9 @@ export function optimizeRevealPrimaryMax(
       starSecondaryCurrent >= starSecondaryMax
     );
   const starSlotCandidates = prefersSharedSlot ? sharedSlots : primarySlotList;
+  const preferredStarSlots = preferStarSlots(primary, starSlotCandidates);
   const starSlot =
-    starSlotCandidates[Math.floor(Math.random() * starSlotCandidates.length)];
+    preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
 
   const primaryRanking = buildSkillRanking(players, primary);
   const secondaryRanking = secondary
@@ -1269,8 +1287,9 @@ export function optimizeRevealSecondaryCurrent(
       starPrimaryCurrent >= starPrimaryMax
     );
   const starSlotCandidates = prefersSharedSlot ? sharedSlots : secondarySlotList;
+  const preferredStarSlots = preferStarSlots(primary, starSlotCandidates);
   const starSlot =
-    starSlotCandidates[Math.floor(Math.random() * starSlotCandidates.length)];
+    preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
 
   const primaryRanking = buildSkillRanking(players, primary);
   const secondaryRanking = buildSkillRanking(players, secondary);
@@ -1463,8 +1482,9 @@ export function optimizeRevealSecondaryMax(
       starPrimaryCurrent >= starPrimaryMax
     );
   const starSlotCandidates = prefersSharedSlot ? sharedSlots : secondarySlotList;
+  const preferredStarSlots = preferStarSlots(primary, starSlotCandidates);
   const starSlot =
-    starSlotCandidates[Math.floor(Math.random() * starSlotCandidates.length)];
+    preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
 
   const primaryRanking = buildSkillRanking(players, primary);
   const secondaryRanking = buildSkillRanking(players, secondary);
@@ -1649,8 +1669,9 @@ export function optimizeByRatings(
   );
   const prefersSharedSlot = sharedSlots.length > 0 && !secondaryMaxed;
   const starSlotCandidates = prefersSharedSlot ? sharedSlots : primarySlotList;
+  const preferredStarSlots = preferStarSlots(primary, starSlotCandidates);
   const starSlot =
-    starSlotCandidates[Math.floor(Math.random() * starSlotCandidates.length)];
+    preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
 
   const primaryRanking = buildSkillRanking(players, primary);
   const secondaryRanking = buildSkillRanking(players, secondary);

@@ -226,6 +226,18 @@ export default function Dashboard({
     null
   );
   const [showOptimizerDebug, setShowOptimizerDebug] = useState(false);
+  const [optimizerDragOffset, setOptimizerDragOffset] = useState({
+    x: 0,
+    y: 0,
+  });
+  const [optimizerDragging, setOptimizerDragging] = useState(false);
+  const optimizerDragStart = useRef<{
+    x: number;
+    y: number;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
+  const optimizerModalRef = useRef<HTMLDivElement | null>(null);
   const [autoSelectionApplied, setAutoSelectionApplied] = useState(false);
   const [showTrainingReminder, setShowTrainingReminder] = useState(false);
   const [optimizeErrorMessage, setOptimizeErrorMessage] = useState<string | null>(
@@ -611,6 +623,44 @@ export default function Dashboard({
     window.addEventListener("ya:changelog-open", handler);
     return () => window.removeEventListener("ya:changelog-open", handler);
   }, []);
+
+  useEffect(() => {
+    if (!showOptimizerDebug) return;
+    setOptimizerDragOffset({ x: 0, y: 0 });
+  }, [showOptimizerDebug]);
+
+  useEffect(() => {
+    if (!optimizerDragging) return;
+
+    const handleMove = (event: PointerEvent) => {
+      const start = optimizerDragStart.current;
+      if (!start) return;
+      const deltaX = event.clientX - start.x;
+      const deltaY = event.clientY - start.y;
+      let nextX = start.offsetX + deltaX;
+      let nextY = start.offsetY + deltaY;
+      const rect = optimizerModalRef.current?.getBoundingClientRect();
+      if (rect) {
+        const maxX = Math.max(0, window.innerWidth / 2 - rect.width / 2 - 16);
+        const maxY = Math.max(0, window.innerHeight / 2 - rect.height / 2 - 16);
+        nextX = Math.max(-maxX, Math.min(maxX, nextX));
+        nextY = Math.max(-maxY, Math.min(maxY, nextY));
+      }
+      setOptimizerDragOffset({ x: nextX, y: nextY });
+    };
+
+    const handleUp = () => {
+      setOptimizerDragging(false);
+      optimizerDragStart.current = null;
+    };
+
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+    return () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+    };
+  }, [optimizerDragging]);
 
   useEffect(() => {
     if (!showHelp) {
@@ -1135,47 +1185,80 @@ export default function Dashboard({
       const usedPlayers = new Set<number>(
         Object.values(nextAssignments).filter(Boolean) as number[]
       );
-      const rankingBySkill = new Map<TrainingSkillKey, number[]>();
-      ([
-        "keeper",
-        "defending",
-        "playmaking",
-        "winger",
-        "passing",
-        "scoring",
-        "setpieces",
-      ] as TrainingSkillKey[]).forEach((skill) => {
-        rankingBySkill.set(
-          skill,
-          buildSkillRanking(optimizerPlayers, skill).ordered.map(
-            (entry) => entry.playerId
-          )
-        );
-      });
+      const ROLE_RATING_CODE: Record<
+        "GK" | "WB" | "DEF" | "W" | "IM" | "F",
+        number
+      > = {
+        GK: 100,
+        WB: 101,
+        DEF: 103,
+        W: 106,
+        IM: 107,
+        F: 111,
+      };
 
-      const pickNextFrom = (list: number[] | undefined) => {
-        if (!list) return null;
-        for (const id of list) {
-          if (!usedPlayers.has(id)) return id;
-        }
-        return null;
+      const ratingForRole = (playerId: number, role: keyof typeof ROLE_RATING_CODE) => {
+        const value = ratingsCache?.[playerId]?.[String(ROLE_RATING_CODE[role])];
+        return typeof value === "number" ? value : null;
+      };
+
+      const pickBestByRole = (role: keyof typeof ROLE_RATING_CODE) => {
+        const candidates = optimizerPlayers.filter(
+          (player) => !usedPlayers.has(player.id)
+        );
+        candidates.sort((a, b) => {
+          const aRating = ratingForRole(a.id, role);
+          const bRating = ratingForRole(b.id, role);
+          if (aRating === null && bRating === null) return 0;
+          if (aRating === null) return 1;
+          if (bRating === null) return -1;
+          return bRating - aRating;
+        });
+        return candidates[0]?.id ?? null;
+      };
+
+      const pickBestOverall = () => {
+        const candidates = optimizerPlayers.filter(
+          (player) => !usedPlayers.has(player.id)
+        );
+        candidates.sort((a, b) => {
+          const aBest =
+            Math.max(
+              ratingForRole(a.id, "GK") ?? 0,
+              ratingForRole(a.id, "WB") ?? 0,
+              ratingForRole(a.id, "DEF") ?? 0,
+              ratingForRole(a.id, "W") ?? 0,
+              ratingForRole(a.id, "IM") ?? 0,
+              ratingForRole(a.id, "F") ?? 0
+            ) || 0;
+          const bBest =
+            Math.max(
+              ratingForRole(b.id, "GK") ?? 0,
+              ratingForRole(b.id, "WB") ?? 0,
+              ratingForRole(b.id, "DEF") ?? 0,
+              ratingForRole(b.id, "W") ?? 0,
+              ratingForRole(b.id, "IM") ?? 0,
+              ratingForRole(b.id, "F") ?? 0
+            ) || 0;
+          return bBest - aBest;
+        });
+        return candidates[0]?.id ?? null;
       };
 
       const benchOrder = [
-        { id: "B_GK", skill: "keeper" as const },
-        { id: "B_CD", skill: "defending" as const },
-        { id: "B_WB", skill: "defending" as const },
-        { id: "B_IM", skill: "playmaking" as const },
-        { id: "B_F", skill: "scoring" as const },
-        { id: "B_W", skill: "winger" as const },
-        { id: "B_X", skill: primaryTraining },
+        { id: "B_GK", role: "GK" as const },
+        { id: "B_CD", role: "DEF" as const },
+        { id: "B_WB", role: "WB" as const },
+        { id: "B_IM", role: "IM" as const },
+        { id: "B_F", role: "F" as const },
+        { id: "B_W", role: "W" as const },
+        { id: "B_X", role: "EX" as const },
       ];
 
       benchOrder.forEach((slot) => {
         if (nextAssignments[slot.id]) return;
-        const nextId = pickNextFrom(
-          slot.skill ? rankingBySkill.get(slot.skill) : undefined
-        );
+        const nextId =
+          slot.role === "EX" ? pickBestOverall() : pickBestByRole(slot.role);
         nextAssignments[slot.id] = nextId ?? null;
         if (nextId) usedPlayers.add(nextId);
       });
@@ -2097,8 +2180,28 @@ export default function Dashboard({
             aria-modal="true"
             aria-label={messages.optimizerDebugTitle}
           >
-            <div className={styles.optimizerModal}>
-              <div className={styles.optimizerModalHeader}>
+            <div
+              className={styles.optimizerModal}
+              ref={optimizerModalRef}
+              style={{
+                transform: `translate(calc(-50% + ${optimizerDragOffset.x}px), calc(-50% + ${optimizerDragOffset.y}px))`,
+              }}
+            >
+              <div
+                className={styles.optimizerModalHeader}
+                onPointerDown={(event) => {
+                  if (event.button !== 0) return;
+                  const target = event.target as HTMLElement;
+                  if (target.closest("button")) return;
+                  optimizerDragStart.current = {
+                    x: event.clientX,
+                    y: event.clientY,
+                    offsetX: optimizerDragOffset.x,
+                    offsetY: optimizerDragOffset.y,
+                  };
+                  setOptimizerDragging(true);
+                }}
+              >
                 <h3 className={styles.optimizerModalTitle}>
                   {messages.optimizerDebugTitle}
                 </h3>

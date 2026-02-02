@@ -617,6 +617,23 @@ function buildRemainingSlotOrder(remainingSlots: (typeof ALL_SLOTS)[number][]) {
   return [...ordered, ...leftovers];
 }
 
+function splitPrimarySlots(
+  primarySkill: SkillKey,
+  slots: (typeof ALL_SLOTS)[number][]
+) {
+  if (primarySkill === "playmaking") {
+    const imSlots = slots.filter((slot) => IM_SLOTS.has(slot));
+    const otherSlots = slots.filter((slot) => !IM_SLOTS.has(slot));
+    return { primary: imSlots, secondary: otherSlots };
+  }
+  if (primarySkill === "defending") {
+    const cdSlots = slots.filter((slot) => CD_SLOTS.has(slot));
+    const otherSlots = slots.filter((slot) => !CD_SLOTS.has(slot));
+    return { primary: cdSlots, secondary: otherSlots };
+  }
+  return { primary: slots, secondary: [] as (typeof ALL_SLOTS)[number][] };
+}
+
 function shuffleSlots<T>(slots: T[]) {
   const shuffled = [...slots];
   for (let index = shuffled.length - 1; index > 0; index -= 1) {
@@ -714,22 +731,29 @@ export function optimizeLineupForStar(
 
   const primaryOrder = [...primarySlots].filter((slot) => slot !== starSlot);
   let primaryIndex = 0;
-  const remainingPrimarySlots = [...primaryOrder];
-  while (remainingPrimarySlots.length) {
-    while (
-      primaryIndex < primaryRanking.ordered.length &&
-      usedPlayers.has(primaryRanking.ordered[primaryIndex].playerId)
-    ) {
+  const groupedPrimarySlots = splitPrimarySlots(primarySkill, primaryOrder);
+  const primarySlotGroups = groupedPrimarySlots.secondary.length
+    ? [groupedPrimarySlots.primary, groupedPrimarySlots.secondary]
+    : [groupedPrimarySlots.primary];
+
+  primarySlotGroups.forEach((slots) => {
+    const remainingPrimarySlots = [...slots];
+    while (remainingPrimarySlots.length) {
+      while (
+        primaryIndex < primaryRanking.ordered.length &&
+        usedPlayers.has(primaryRanking.ordered[primaryIndex].playerId)
+      ) {
+        primaryIndex += 1;
+      }
+      const entry = primaryRanking.ordered[primaryIndex];
+      if (!entry) break;
+      const slotIndex = Math.floor(Math.random() * remainingPrimarySlots.length);
+      const slot = remainingPrimarySlots.splice(slotIndex, 1)[0];
+      lineup[slot] = entry.playerId;
+      usedPlayers.add(entry.playerId);
       primaryIndex += 1;
     }
-    const entry = primaryRanking.ordered[primaryIndex];
-    if (!entry) break;
-    const slotIndex = Math.floor(Math.random() * remainingPrimarySlots.length);
-    const slot = remainingPrimarySlots.splice(slotIndex, 1)[0];
-    lineup[slot] = entry.playerId;
-    usedPlayers.add(entry.playerId);
-    primaryIndex += 1;
-  }
+  });
 
   if (secondarySkill) {
     const secondaryOrder = [...secondarySlots].filter((slot) => !(slot in lineup));
@@ -899,38 +923,45 @@ export function optimizeRevealPrimaryCurrent(
   const usedPlayers = new Set<number>([starPlayer.id]);
 
   const remainingPrimarySlots = primarySlotList.filter((slot) => slot !== starSlot);
-  const freePrimarySlots = [...remainingPrimarySlots];
   const eligiblePrimary = primaryRanking.ordered
     .filter(
       (entry) => !usedPlayers.has(entry.playerId) && entry.current !== null
     )
     .map((entry) => entry.playerId);
 
-  while (freePrimarySlots.length && eligiblePrimary.length) {
-    const slotIndex = Math.floor(Math.random() * freePrimarySlots.length);
-    const slot = freePrimarySlots.splice(slotIndex, 1)[0];
-    const playerId = eligiblePrimary.shift();
-    if (!playerId) break;
-    lineup[slot] = playerId;
-    usedPlayers.add(playerId);
-  }
+  const groupedPrimarySlots = splitPrimarySlots(primary, remainingPrimarySlots);
+  const primarySlotGroups = groupedPrimarySlots.secondary.length
+    ? [groupedPrimarySlots.primary, groupedPrimarySlots.secondary]
+    : [groupedPrimarySlots.primary];
 
   let primaryIndex = 0;
-  while (freePrimarySlots.length) {
-    while (
-      primaryIndex < primaryRanking.ordered.length &&
-      usedPlayers.has(primaryRanking.ordered[primaryIndex].playerId)
-    ) {
+  primarySlotGroups.forEach((slots) => {
+    const freePrimarySlots = [...slots];
+    while (freePrimarySlots.length && eligiblePrimary.length) {
+      const slotIndex = Math.floor(Math.random() * freePrimarySlots.length);
+      const slot = freePrimarySlots.splice(slotIndex, 1)[0];
+      const playerId = eligiblePrimary.shift();
+      if (!playerId) break;
+      lineup[slot] = playerId;
+      usedPlayers.add(playerId);
+    }
+
+    while (freePrimarySlots.length) {
+      while (
+        primaryIndex < primaryRanking.ordered.length &&
+        usedPlayers.has(primaryRanking.ordered[primaryIndex].playerId)
+      ) {
+        primaryIndex += 1;
+      }
+      const entry = primaryRanking.ordered[primaryIndex];
+      if (!entry) break;
+      const slotIndex = Math.floor(Math.random() * freePrimarySlots.length);
+      const slot = freePrimarySlots.splice(slotIndex, 1)[0];
+      lineup[slot] = entry.playerId;
+      usedPlayers.add(entry.playerId);
       primaryIndex += 1;
     }
-    const entry = primaryRanking.ordered[primaryIndex];
-    if (!entry) break;
-    const slotIndex = Math.floor(Math.random() * freePrimarySlots.length);
-    const slot = freePrimarySlots.splice(slotIndex, 1)[0];
-    lineup[slot] = entry.playerId;
-    usedPlayers.add(entry.playerId);
-    primaryIndex += 1;
-  }
+  });
 
   if (secondary) {
     const secondaryOrder = [...secondarySlots].filter((slot) => !(slot in lineup));
@@ -1100,36 +1131,43 @@ export function optimizeRevealPrimaryMax(
   const usedPlayers = new Set<number>([starPlayer.id]);
 
   const remainingPrimarySlots = primarySlotList.filter((slot) => slot !== starSlot);
-  const freePrimarySlots = [...remainingPrimarySlots];
   const eligiblePrimary = primaryRanking.ordered
     .filter((entry) => !usedPlayers.has(entry.playerId) && entry.max !== null)
     .map((entry) => entry.playerId);
 
-  while (freePrimarySlots.length && eligiblePrimary.length) {
-    const slotIndex = Math.floor(Math.random() * freePrimarySlots.length);
-    const slot = freePrimarySlots.splice(slotIndex, 1)[0];
-    const playerId = eligiblePrimary.shift();
-    if (!playerId) break;
-    lineup[slot] = playerId;
-    usedPlayers.add(playerId);
-  }
+  const groupedPrimarySlots = splitPrimarySlots(primary, remainingPrimarySlots);
+  const primarySlotGroups = groupedPrimarySlots.secondary.length
+    ? [groupedPrimarySlots.primary, groupedPrimarySlots.secondary]
+    : [groupedPrimarySlots.primary];
 
   let primaryIndex = 0;
-  while (freePrimarySlots.length) {
-    while (
-      primaryIndex < primaryRanking.ordered.length &&
-      usedPlayers.has(primaryRanking.ordered[primaryIndex].playerId)
-    ) {
+  primarySlotGroups.forEach((slots) => {
+    const freePrimarySlots = [...slots];
+    while (freePrimarySlots.length && eligiblePrimary.length) {
+      const slotIndex = Math.floor(Math.random() * freePrimarySlots.length);
+      const slot = freePrimarySlots.splice(slotIndex, 1)[0];
+      const playerId = eligiblePrimary.shift();
+      if (!playerId) break;
+      lineup[slot] = playerId;
+      usedPlayers.add(playerId);
+    }
+
+    while (freePrimarySlots.length) {
+      while (
+        primaryIndex < primaryRanking.ordered.length &&
+        usedPlayers.has(primaryRanking.ordered[primaryIndex].playerId)
+      ) {
+        primaryIndex += 1;
+      }
+      const entry = primaryRanking.ordered[primaryIndex];
+      if (!entry) break;
+      const slotIndex = Math.floor(Math.random() * freePrimarySlots.length);
+      const slot = freePrimarySlots.splice(slotIndex, 1)[0];
+      lineup[slot] = entry.playerId;
+      usedPlayers.add(entry.playerId);
       primaryIndex += 1;
     }
-    const entry = primaryRanking.ordered[primaryIndex];
-    if (!entry) break;
-    const slotIndex = Math.floor(Math.random() * freePrimarySlots.length);
-    const slot = freePrimarySlots.splice(slotIndex, 1)[0];
-    lineup[slot] = entry.playerId;
-    usedPlayers.add(entry.playerId);
-    primaryIndex += 1;
-  }
+  });
 
   if (secondary) {
     const secondaryOrder = [...secondarySlots].filter((slot) => !(slot in lineup));
@@ -1333,22 +1371,29 @@ export function optimizeRevealSecondaryCurrent(
 
   const primaryOrder = [...primarySlots].filter((slot) => !(slot in lineup));
   let primaryIndex = 0;
-  const remainingPrimarySlots = [...primaryOrder];
-  while (remainingPrimarySlots.length) {
-    while (
-      primaryIndex < primaryRanking.ordered.length &&
-      usedPlayers.has(primaryRanking.ordered[primaryIndex].playerId)
-    ) {
+  const groupedPrimarySlots = splitPrimarySlots(primary, primaryOrder);
+  const primarySlotGroups = groupedPrimarySlots.secondary.length
+    ? [groupedPrimarySlots.primary, groupedPrimarySlots.secondary]
+    : [groupedPrimarySlots.primary];
+
+  primarySlotGroups.forEach((slots) => {
+    const remainingPrimarySlots = [...slots];
+    while (remainingPrimarySlots.length) {
+      while (
+        primaryIndex < primaryRanking.ordered.length &&
+        usedPlayers.has(primaryRanking.ordered[primaryIndex].playerId)
+      ) {
+        primaryIndex += 1;
+      }
+      const entry = primaryRanking.ordered[primaryIndex];
+      if (!entry) break;
+      const slotIndex = Math.floor(Math.random() * remainingPrimarySlots.length);
+      const slot = remainingPrimarySlots.splice(slotIndex, 1)[0];
+      lineup[slot] = entry.playerId;
+      usedPlayers.add(entry.playerId);
       primaryIndex += 1;
     }
-    const entry = primaryRanking.ordered[primaryIndex];
-    if (!entry) break;
-    const slotIndex = Math.floor(Math.random() * remainingPrimarySlots.length);
-    const slot = remainingPrimarySlots.splice(slotIndex, 1)[0];
-    lineup[slot] = entry.playerId;
-    usedPlayers.add(entry.playerId);
-    primaryIndex += 1;
-  }
+  });
 
   if (!lineup.KP) {
     const nextKeeper =
@@ -1359,24 +1404,6 @@ export function optimizeRevealSecondaryCurrent(
       usedPlayers.add(nextKeeper.playerId);
     }
   }
-
-  const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
-  const carePlayers = remainingPlayers.filter(
-    (player) =>
-      skillPotential(player, primary) > 0 || skillPotential(player, secondary) > 0
-  );
-  const otherPlayers = remainingPlayers.filter(
-    (player) => !carePlayers.includes(player)
-  );
-  const cappedPlayers = otherPlayers.filter(
-    (player) =>
-      skillPotential(player, primary) === 0 &&
-      skillPotential(player, secondary) === 0
-  );
-  const nonCappedPlayers = otherPlayers.filter(
-    (player) => !cappedPlayers.includes(player)
-  );
-  const fillPlayers = [...carePlayers, ...cappedPlayers, ...nonCappedPlayers];
 
   const totalSlotsNeeded = 11;
   const remainingSlots = ALL_SLOTS.filter((slot) => !(slot in lineup));
@@ -1528,22 +1555,29 @@ export function optimizeRevealSecondaryMax(
 
   const primaryOrder = [...primarySlots].filter((slot) => !(slot in lineup));
   let primaryIndex = 0;
-  const remainingPrimarySlots = [...primaryOrder];
-  while (remainingPrimarySlots.length) {
-    while (
-      primaryIndex < primaryRanking.ordered.length &&
-      usedPlayers.has(primaryRanking.ordered[primaryIndex].playerId)
-    ) {
+  const groupedPrimarySlots = splitPrimarySlots(primary, primaryOrder);
+  const primarySlotGroups = groupedPrimarySlots.secondary.length
+    ? [groupedPrimarySlots.primary, groupedPrimarySlots.secondary]
+    : [groupedPrimarySlots.primary];
+
+  primarySlotGroups.forEach((slots) => {
+    const remainingPrimarySlots = [...slots];
+    while (remainingPrimarySlots.length) {
+      while (
+        primaryIndex < primaryRanking.ordered.length &&
+        usedPlayers.has(primaryRanking.ordered[primaryIndex].playerId)
+      ) {
+        primaryIndex += 1;
+      }
+      const entry = primaryRanking.ordered[primaryIndex];
+      if (!entry) break;
+      const slotIndex = Math.floor(Math.random() * remainingPrimarySlots.length);
+      const slot = remainingPrimarySlots.splice(slotIndex, 1)[0];
+      lineup[slot] = entry.playerId;
+      usedPlayers.add(entry.playerId);
       primaryIndex += 1;
     }
-    const entry = primaryRanking.ordered[primaryIndex];
-    if (!entry) break;
-    const slotIndex = Math.floor(Math.random() * remainingPrimarySlots.length);
-    const slot = remainingPrimarySlots.splice(slotIndex, 1)[0];
-    lineup[slot] = entry.playerId;
-    usedPlayers.add(entry.playerId);
-    primaryIndex += 1;
-  }
+  });
 
   if (!lineup.KP) {
     const nextKeeper =
@@ -1698,18 +1732,49 @@ export function optimizeByRatings(
     return candidates[0] ?? null;
   };
 
-  const fillSlotsWithRatings = (slots: (typeof ALL_SLOTS)[number][]) => {
+  const fillSlotsWithSlotRatings = (
+    slots: (typeof ALL_SLOTS)[number][],
+    filterSkill: SkillKey | null
+  ) => {
     const availableSlots = shuffleSlots(slots.filter((slot) => !(slot in lineup)));
     availableSlots.forEach((slot) => {
-      const candidate = pickBestByRating(slot);
+      const candidates = players.filter((player) => {
+        if (usedPlayers.has(player.id)) return false;
+        if (filterSkill && isMaxReached(player, filterSkill)) return false;
+        return true;
+      });
+      candidates.sort((a, b) => {
+        const aRating = ratingForSlot(ratingsByPlayer, a.id, slot);
+        const bRating = ratingForSlot(ratingsByPlayer, b.id, slot);
+        if (aRating === null && bRating === null) return 0;
+        if (aRating === null) return 1;
+        if (bRating === null) return -1;
+        return bRating - aRating;
+      });
+      const candidate = candidates[0];
       if (!candidate) return;
       lineup[slot] = candidate.id;
       usedPlayers.add(candidate.id);
     });
   };
 
-  fillSlotsWithRatings(primarySlotList.filter((slot) => slot !== starSlot));
-  fillSlotsWithRatings([...secondarySlots]);
+  const primarySlotsToFill = primarySlotList.filter((slot) => slot !== starSlot);
+  const groupedPrimarySlots = splitPrimarySlots(primary, primarySlotsToFill);
+  fillSlotsWithSlotRatings(groupedPrimarySlots.primary, primary);
+  if (groupedPrimarySlots.secondary.length) {
+    fillSlotsWithSlotRatings(groupedPrimarySlots.secondary, primary);
+  }
+
+  const secondarySlotsToFill = [...secondarySlots].filter(
+    (slot) => !(slot in lineup)
+  );
+  if (secondarySlotsToFill.length) {
+    const groupedSecondarySlots = splitPrimarySlots(secondary, secondarySlotsToFill);
+    fillSlotsWithSlotRatings(groupedSecondarySlots.primary, secondary);
+    if (groupedSecondarySlots.secondary.length) {
+      fillSlotsWithSlotRatings(groupedSecondarySlots.secondary, secondary);
+    }
+  }
 
   if (!lineup.KP) {
     const keeperCandidates = players.filter((player) => !usedPlayers.has(player.id));
@@ -1727,24 +1792,6 @@ export function optimizeByRatings(
     }
   }
 
-  const remainingPlayers = players.filter((player) => !usedPlayers.has(player.id));
-  const carePlayers = remainingPlayers.filter(
-    (player) =>
-      skillPotential(player, primary) > 0 || skillPotential(player, secondary) > 0
-  );
-  const otherPlayers = remainingPlayers.filter(
-    (player) => !carePlayers.includes(player)
-  );
-  const cappedPlayers = otherPlayers.filter(
-    (player) =>
-      skillPotential(player, primary) === 0 &&
-      skillPotential(player, secondary) === 0
-  );
-  const nonCappedPlayers = otherPlayers.filter(
-    (player) => !cappedPlayers.includes(player)
-  );
-  const fillPlayers = [...carePlayers, ...cappedPlayers, ...nonCappedPlayers];
-
   const totalSlotsNeeded = 11;
   const remainingSlots = ALL_SLOTS.filter((slot) => !(slot in lineup));
   const orderedRemainingSlots = buildRemainingSlotOrder(remainingSlots);
@@ -1753,11 +1800,20 @@ export function optimizeByRatings(
     Math.max(0, totalSlotsNeeded - Object.keys(lineup).length)
   );
 
-  slotsToFill.forEach((slot, index) => {
-    const player = fillPlayers[index];
-    if (!player) return;
-    lineup[slot] = player.id;
-    usedPlayers.add(player.id);
+  slotsToFill.forEach((slot) => {
+    const candidates = players.filter((player) => !usedPlayers.has(player.id));
+    candidates.sort((a, b) => {
+      const aRating = ratingForSlot(ratingsByPlayer, a.id, slot);
+      const bRating = ratingForSlot(ratingsByPlayer, b.id, slot);
+      if (aRating === null && bRating === null) return 0;
+      if (aRating === null) return 1;
+      if (bRating === null) return -1;
+      return bRating - aRating;
+    });
+    const candidate = candidates[0];
+    if (!candidate) return;
+    lineup[slot] = candidate.id;
+    usedPlayers.add(candidate.id);
   });
 
   return {

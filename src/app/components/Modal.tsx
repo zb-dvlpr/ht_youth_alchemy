@@ -11,6 +11,8 @@ type ModalProps = {
   actions?: ReactNode;
   variant?: ModalVariant;
   className?: string;
+  closeOnBackdrop?: boolean;
+  onClose?: () => void;
 };
 
 export default function Modal({
@@ -20,13 +22,22 @@ export default function Modal({
   actions,
   variant = "global",
   className,
+  closeOnBackdrop = false,
+  onClose,
 }: ModalProps) {
   if (!open) return null;
   const overlayClass =
     variant === "local" ? styles.confirmOverlay : styles.trainingOverlay;
 
   return (
-    <div className={overlayClass}>
+    <div
+      className={overlayClass}
+      onClick={(event) => {
+        if (!closeOnBackdrop) return;
+        if (event.target !== event.currentTarget) return;
+        onClose?.();
+      }}
+    >
       <div
         className={`${styles.confirmCard}${className ? ` ${className}` : ""}`}
         role="dialog"

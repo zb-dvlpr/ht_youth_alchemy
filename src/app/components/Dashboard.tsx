@@ -306,6 +306,10 @@ export default function Dashboard({
     const majorMinor = appVersion.split(".").slice(0, 2).join(".");
     try {
       const previous = window.localStorage.getItem(changelogStorageKey);
+      if (!previous) {
+        window.localStorage.setItem(changelogStorageKey, majorMinor);
+        return;
+      }
       if (previous !== majorMinor) {
         window.localStorage.setItem(changelogStorageKey, majorMinor);
         setShowChangelog(true);
@@ -1785,6 +1789,8 @@ export default function Dashboard({
             {messages.helpDismissLabel}
           </button>
         }
+        closeOnBackdrop
+        onClose={() => setShowChangelog(false)}
       />
       {showHelp ? (
         <div className={styles.helpOverlay} aria-hidden="true">

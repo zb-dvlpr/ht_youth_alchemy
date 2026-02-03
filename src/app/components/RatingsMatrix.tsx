@@ -125,7 +125,11 @@ export default function RatingsMatrix({
   }, [response.players, sortDir, sortKey]);
 
   const orderedRows = useMemo(() => {
-    if (orderedPlayerIds && orderSource && orderSource !== "ratings") {
+    if (
+      orderedPlayerIds &&
+      orderSource &&
+      (orderSource !== "ratings" || !sortKey)
+    ) {
       const map = new Map(response.players.map((row) => [row.id, row]));
       return orderedPlayerIds
         .map((id) => map.get(id))

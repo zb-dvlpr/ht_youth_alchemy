@@ -19,6 +19,7 @@ import Tooltip from "./Tooltip";
 import Modal from "./Modal";
 import {
   getAutoSelection,
+  getTrainingForStar,
   getTrainingSlots,
   optimizeLineupForStar,
   optimizeByRatings,
@@ -306,6 +307,10 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "1.22.0",
+        entries: [messages.changelog_1_22_0],
+      },
+      {
         version: "1.21.0",
         entries: [messages.changelog_1_21_0],
       },
@@ -314,7 +319,11 @@ export default function Dashboard({
         entries: [messages.changelog_1_19_0],
       },
     ],
-    [messages.changelog_1_19_0, messages.changelog_1_21_0]
+    [
+      messages.changelog_1_19_0,
+      messages.changelog_1_21_0,
+      messages.changelog_1_22_0,
+    ]
   );
 
   useEffect(() => {
@@ -1935,8 +1944,29 @@ export default function Dashboard({
             setOrderedPlayerIds(null);
           }}
           onToggleStar={(playerId) => {
+            const nextIsClear = starPlayerId === playerId;
             setStarPlayerId((prev) => (prev === playerId ? null : playerId));
             setAutoSelectionApplied(false);
+            if (nextIsClear) {
+              addNotification(messages.notificationStarCleared);
+              return;
+            }
+            const training = getTrainingForStar(optimizerPlayers, playerId);
+            if (!training) {
+              setPrimaryTraining("");
+              setSecondaryTraining("");
+              return;
+            }
+            setPrimaryTraining(training.primarySkill);
+            setSecondaryTraining(training.secondarySkill ?? "");
+            const playerName =
+              optimizerPlayers.find((player) => player.id === playerId)?.name ??
+              playerId;
+            const primaryLabel = trainingLabel(training.primarySkill);
+            const secondaryLabel = trainingLabel(training.secondarySkill);
+            addNotification(
+              `${messages.notificationStarSet} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
+            );
           }}
           onSelect={handleSelect}
           onAutoSelect={() => {

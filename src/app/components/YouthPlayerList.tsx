@@ -477,13 +477,6 @@ export default function YouthPlayerList({
                       onClick={() => {
                         if (!onToggleStar) return;
                         onToggleStar(player.YouthPlayerID);
-                        if (isStar) {
-                          addNotification(messages.notificationStarCleared);
-                        } else {
-                          addNotification(
-                            `${messages.notificationStarSet} ${fullName}`
-                          );
-                        }
                       }}
                       aria-label={messages.starPlayerLabel}
                     >

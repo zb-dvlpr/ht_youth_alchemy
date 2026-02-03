@@ -162,11 +162,11 @@ const SKILL_MAP: Record<
 };
 
 const SKILL_PAIRS: Record<SkillKey, SkillKey[]> = {
-  scoring: ["passing"],
+  scoring: ["passing", "winger"],
   passing: ["scoring", "playmaking", "defending"],
   playmaking: ["passing", "winger", "defending"],
   winger: ["playmaking"],
-  defending: ["passing", "playmaking"],
+  defending: ["passing", "playmaking", "winger"],
   keeper: ["setpieces"],
   setpieces: ["keeper"],
 };
@@ -194,6 +194,10 @@ function isMaxReached(player: OptimizerPlayer, skill: SkillKey) {
     | { ["@_IsMaxReached"]?: string }
     | undefined;
   return value?.["@_IsMaxReached"] === "True";
+}
+
+function isSkillMaxed(player: OptimizerPlayer, skill: SkillKey) {
+  return isMaxReached(player, skill);
 }
 
 function slotsForSkill(skill: SkillKey) {
@@ -383,7 +387,7 @@ function chooseStarAndTraining(
     skillKeys.forEach((skill) => {
       const { current, max } = skillValues(player, skill);
       if (current === null) return;
-      if (max !== null && current === max) return;
+      if (isSkillMaxed(player, skill)) return;
       const score = current * 100 + (max !== null ? 50 + max : 0);
       candidates.push({
         playerId: player.id,
@@ -432,8 +436,7 @@ function chooseStarAndTraining(
   if (starPlayer) {
     const candidates = SKILL_PAIRS[primarySkill] ?? [];
     for (const candidate of candidates) {
-      const { current, max } = skillValues(starPlayer, candidate);
-      if (current !== null && max !== null && current === max) {
+      if (isSkillMaxed(starPlayer, candidate)) {
         continue;
       }
       secondarySkill = candidate;
@@ -477,6 +480,66 @@ export function getAutoSelection(
 }
 
 export type AutoSelection = ReturnType<typeof getAutoSelection>;
+
+export function getTrainingForStar(
+  players: OptimizerPlayer[],
+  starPlayerId: number
+): { primarySkill: SkillKey; secondarySkill: SkillKey | null } | null {
+  const starPlayer = players.find((player) => player.id === starPlayerId);
+  if (!starPlayer) return null;
+  const skillKeys: SkillKey[] = [
+    "keeper",
+    "defending",
+    "playmaking",
+    "winger",
+    "passing",
+    "scoring",
+    "setpieces",
+  ];
+
+  let bestSkill: SkillKey | null = null;
+  let bestScore = -1;
+  skillKeys.forEach((skill) => {
+    const { current, max } = skillValues(starPlayer, skill);
+    if (current === null) return;
+    if (isSkillMaxed(starPlayer, skill)) return;
+    const score = current * 100 + (max !== null ? 50 + max : 0);
+    if (score > bestScore) {
+      bestScore = score;
+      bestSkill = skill;
+    }
+  });
+
+  if (!bestSkill) return null;
+
+  let secondarySkill: SkillKey | null = null;
+  const pairCandidates = SKILL_PAIRS[bestSkill] ?? [];
+  for (const candidate of pairCandidates) {
+    if (isSkillMaxed(starPlayer, candidate)) {
+      continue;
+    }
+    secondarySkill = candidate;
+    break;
+  }
+
+  if (!secondarySkill) {
+    let bestRank = -1;
+    skillKeys.forEach((skill) => {
+      if (skill === bestSkill) return;
+      const ranking = buildSkillRanking(players, skill).ordered;
+      const topRank = ranking.find((entry) => entry.rankValue !== null)?.rankValue;
+      if (topRank !== undefined && topRank !== null && topRank > bestRank) {
+        bestRank = topRank;
+        secondarySkill = skill;
+      }
+    });
+  }
+
+  return {
+    primarySkill: bestSkill,
+    secondarySkill,
+  };
+}
 
 export function buildSkillRanking(players: OptimizerPlayer[], skill: SkillKey) {
   const entries: RankingEntry[] = players.map((player) => {

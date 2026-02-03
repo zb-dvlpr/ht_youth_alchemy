@@ -20,6 +20,7 @@ export type Messages = {
   changelogTitle: string;
   changelog_1_19_0: string;
   changelog_1_21_0: string;
+  changelog_1_22_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -333,6 +334,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelogTitle: "Changelog",
     changelog_1_19_0: "Multi team support.",
     changelog_1_21_0: "Settings export/import for local data backups.",
+    changelog_1_22_0: "Auto-select training regimen on manual star change.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -663,6 +665,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelogTitle: "Changelog",
     changelog_1_19_0: "Unterstützung für mehrere Teams.",
     changelog_1_21_0: "Einstellungen: Export/Import für lokale Datensicherungen.",
+    changelog_1_22_0: "Training automatisch bei manuellem Star-Wechsel.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -995,6 +998,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelogTitle: "Changelog",
     changelog_1_19_0: "Prise en charge de plusieurs équipes.",
     changelog_1_21_0: "Paramètres : export/import pour sauvegardes locales.",
+    changelog_1_22_0: "Auto‑sélection du plan d’entraînement au changement de star.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1334,6 +1338,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelogTitle: "Changelog",
     changelog_1_19_0: "Soporte para múltiples equipos.",
     changelog_1_21_0: "Ajustes: exportación/importación de copias locales.",
+    changelog_1_22_0: "Selección automática del entrenamiento al cambiar la estrella.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -1669,6 +1674,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelogTitle: "Changelog",
     changelog_1_19_0: "Stöd för flera lag.",
     changelog_1_21_0: "Inställningar: export/import av lokala säkerhetskopior.",
+    changelog_1_22_0: "Auto‑val av träning vid manuell stjärnändring.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -2002,6 +2008,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelogTitle: "Changelog",
     changelog_1_19_0: "Supporto multi‑squadra.",
     changelog_1_21_0: "Impostazioni: export/import per backup locali.",
+    changelog_1_22_0: "Selezione automatica del training al cambio stella.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -2337,6 +2344,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelogTitle: "Changelog",
     changelog_1_19_0: "Suporte a vários times.",
     changelog_1_21_0: "Configurações: exportação/importação de backups locais.",
+    changelog_1_22_0: "Seleção automática do treino ao mudar a estrela.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",

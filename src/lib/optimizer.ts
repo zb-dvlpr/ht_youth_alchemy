@@ -513,7 +513,8 @@ export function getTrainingForStar(
   if (!bestSkill) return null;
 
   let secondarySkill: SkillKey | null = null;
-  const pairCandidates = SKILL_PAIRS[bestSkill] ?? [];
+  const pairCandidates =
+    bestSkill ? SKILL_PAIRS[bestSkill] ?? [] : [];
   for (const candidate of pairCandidates) {
     if (isSkillMaxed(starPlayer, candidate)) {
       continue;

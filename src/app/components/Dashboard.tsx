@@ -306,11 +306,15 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "1.21.0",
+        entries: [messages.changelog_1_21_0],
+      },
+      {
         version: "1.19.0",
         entries: [messages.changelog_1_19_0],
       },
     ],
-    [messages.changelog_1_19_0]
+    [messages.changelog_1_19_0, messages.changelog_1_21_0]
   );
 
   useEffect(() => {

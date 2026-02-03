@@ -24,6 +24,10 @@
 
 ## Changelog
 - When a MAJOR or MINOR version changes, the changelog should auto-expand.
+- Every MAJOR or MINOR bump must append a one-line changelog entry describing what’s new.
+
+## Local Data Export
+- Any new localStorage key or cached client data must be included in the settings export/import routines.
 
 ## Clarification
 - If an instruction is unclear, ask clarifying questions before starting any coding.

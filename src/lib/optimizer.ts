@@ -37,6 +37,7 @@ export type OptimizerPlayer = {
   id: number;
   name?: string;
   age?: number | null;
+  ageDays?: number | null;
   skills?: PlayerSkillSet | null;
 };
 
@@ -76,6 +77,7 @@ export type OptimizerDebug = {
     skill: SkillKey;
     score: number;
     age?: number | null;
+    ageDays?: number | null;
     current: number | null;
     max: number | null;
   }>;
@@ -345,11 +347,17 @@ function chooseStarAndTraining(
   secondarySkill: SkillKey | null;
   candidates: OptimizerDebug["starSelectionRanks"];
 } | null {
+  const totalAgeDays = (player: OptimizerPlayer): number | null => {
+    const age = player.age ?? null;
+    if (age === null) return null;
+    const days = player.ageDays ?? null;
+    return age * 112 + (days ?? 0);
+  };
   let best: {
     playerId: number;
     skill: SkillKey;
     score: number;
-    age?: number | null;
+    ageDays?: number | null;
   } | null = null;
   const candidates: Array<{
     playerId: number;
@@ -357,6 +365,7 @@ function chooseStarAndTraining(
     skill: SkillKey;
     score: number;
     age?: number | null;
+    ageDays?: number | null;
     current: number | null;
     max: number | null;
   }> = [];
@@ -382,16 +391,25 @@ function chooseStarAndTraining(
         skill,
         score,
         age: player.age ?? null,
+        ageDays: player.ageDays ?? null,
         current,
         max,
       });
       if (!best || score > best.score) {
-        best = { playerId: player.id, skill, score, age: player.age };
+        best = {
+          playerId: player.id,
+          skill,
+          score,
+          ageDays: totalAgeDays(player),
+        };
       } else if (best && score === best.score) {
-        const currentAge = player.age ?? null;
-        const bestAge = best.age ?? null;
-        if (currentAge !== null && (bestAge === null || currentAge < bestAge)) {
-          best = { playerId: player.id, skill, score, age: currentAge };
+        const currentAgeDays = totalAgeDays(player);
+        const bestAgeDays = best.ageDays ?? null;
+        if (
+          currentAgeDays !== null &&
+          (bestAgeDays === null || currentAgeDays < bestAgeDays)
+        ) {
+          best = { playerId: player.id, skill, score, ageDays: currentAgeDays };
         }
       }
     });
@@ -403,7 +421,7 @@ function chooseStarAndTraining(
     playerId: number;
     skill: SkillKey;
     score: number;
-    age?: number | null;
+    ageDays?: number | null;
   } = best;
   const primarySkill: SkillKey = bestCandidate.skill;
   const starPlayer = players.find(

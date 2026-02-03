@@ -133,6 +133,14 @@ function promotionAgeTotalDays(player: YouthPlayer) {
   );
 }
 
+function ageTotalDays(player: YouthPlayer) {
+  if (player.Age === undefined || player.AgeDays === undefined) {
+    return null;
+  }
+  const daysPerYear = 112;
+  return player.Age * daysPerYear + player.AgeDays;
+}
+
 export default function YouthPlayerList({
   players,
   orderedPlayerIds,
@@ -235,7 +243,11 @@ export default function YouthPlayerList({
     const compare = (a: YouthPlayer, b: YouthPlayer) => {
       switch (sortKey) {
         case "age":
-          return compareNumber(a.Age ?? null, b.Age ?? null, "desc");
+          return compareNumber(
+            ageTotalDays(a),
+            ageTotalDays(b),
+            sortDirection
+          );
         case "promotionAge":
           return compareNumber(
             promotionAgeTotalDays(a),

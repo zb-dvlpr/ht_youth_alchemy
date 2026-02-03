@@ -9,6 +9,7 @@ import HelpToggleButton from "./components/HelpToggleButton";
 import ThemeToggle from "./components/ThemeToggle";
 import ViewportScaler from "./components/ViewportScaler";
 import FeedbackButton from "./components/FeedbackButton";
+import SettingsButton from "./components/SettingsButton";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 import type { MatchesResponse } from "./components/UpcomingMatches";
@@ -267,6 +268,7 @@ export default async function Home() {
               <HelpToggleButton messages={messages} />
               <ThemeToggle messages={messages} />
               <FeedbackButton messages={messages} />
+              <SettingsButton messages={messages} />
               {isConnected ? (
                 <ConnectedStatus messages={messages} />
               ) : (

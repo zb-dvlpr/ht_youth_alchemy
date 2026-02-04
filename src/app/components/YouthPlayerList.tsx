@@ -428,7 +428,7 @@ export default function YouthPlayerList({
               type="button"
               className={styles.sortToggle}
               aria-label={messages.refreshPlayerListTooltip}
-              onClick={onRefresh}
+              onClick={() => onRefresh?.()}
               disabled={!onRefresh || refreshing}
             >
               ↻

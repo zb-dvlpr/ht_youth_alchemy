@@ -1024,6 +1024,11 @@ html[data-theme="dark"] .playerButton[aria-pressed="true"] {
   color: #f7f1e3;
 }
 
+html[data-theme="dark"] .playerAge {
+  color: #d3c8bb;
+  opacity: 0.85;
+}
+
 html[data-theme="dark"] .metaItem {
   background: #2a2521;
   color: #f3ede4;
@@ -1173,6 +1178,7 @@ html[data-theme="dark"] .spinner {
   cursor: pointer;
   border-radius: 12px;
   transition: background 0.2s ease, transform 0.2s ease;
+  position: relative;
 }
 
 .playerButton:hover {
@@ -1210,6 +1216,16 @@ html[data-theme="dark"] .spinner {
 .playerSpecialty {
   font-size: 14px;
   line-height: 1;
+}
+
+.playerAge {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  font-size: 11px;
+  color: #6f6354;
+  opacity: 0.9;
+  letter-spacing: 0.02em;
 }
 
 .playerId {

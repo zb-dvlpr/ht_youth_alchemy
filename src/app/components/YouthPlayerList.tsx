@@ -502,6 +502,13 @@ export default function YouthPlayerList({
                     draggable
                     aria-pressed={isSelected}
                   >
+                    {player.Age !== undefined && player.AgeDays !== undefined ? (
+                      <span className={styles.playerAge}>
+                        {player.Age}
+                        {messages.ageYearsShort} {player.AgeDays}
+                        {messages.ageDaysShort}
+                      </span>
+                    ) : null}
                     <span className={styles.playerNameRow}>
                       <span className={styles.playerName}>{fullName}</span>
                       {specialtyEmoji ? (

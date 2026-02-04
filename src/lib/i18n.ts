@@ -243,6 +243,10 @@ export type Messages = {
   lastUpdated: string;
   yearsLabel: string;
   daysLabel: string;
+  ageYearsShort: string;
+  ageDaysShort: string;
+  ageYearsShort: string;
+  ageDaysShort: string;
   ageAtPromotionLabel: string;
   unlockedLabel: string;
   promotableNow: string;
@@ -574,6 +578,8 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Last updated",
     yearsLabel: "years",
     daysLabel: "days",
+    ageYearsShort: "y",
+    ageDaysShort: "d",
     ageAtPromotionLabel: "age at promotion",
     unlockedLabel: "Unlocked",
     promotableNow: "Can be promoted now",
@@ -907,6 +913,8 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Zuletzt aktualisiert",
     yearsLabel: "Jahre",
     daysLabel: "Tage",
+    ageYearsShort: "J",
+    ageDaysShort: "T",
     ageAtPromotionLabel: "Alter bei Beförderung",
     unlockedLabel: "Entsperrt",
     promotableNow: "Kann jetzt hochgezogen werden",
@@ -1246,6 +1254,8 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Dernière mise à jour",
     yearsLabel: "ans",
     daysLabel: "jours",
+    ageYearsShort: "a",
+    ageDaysShort: "j",
     ageAtPromotionLabel: "âge à la promotion",
     unlockedLabel: "Déverrouillé",
     promotableNow: "Peut être promu maintenant",
@@ -1582,6 +1592,8 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Última actualización",
     yearsLabel: "años",
     daysLabel: "días",
+    ageYearsShort: "a",
+    ageDaysShort: "d",
     ageAtPromotionLabel: "edad al ascender",
     unlockedLabel: "Desbloqueado",
     promotableNow: "Puede ascender ahora",
@@ -1916,6 +1928,8 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Senast uppdaterad",
     yearsLabel: "år",
     daysLabel: "dagar",
+    ageYearsShort: "å",
+    ageDaysShort: "d",
     ageAtPromotionLabel: "ålder vid uppflyttning",
     unlockedLabel: "Upplåst",
     promotableNow: "Kan flyttas upp nu",
@@ -2252,6 +2266,8 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Ultimo aggiornamento",
     yearsLabel: "anni",
     daysLabel: "giorni",
+    ageYearsShort: "a",
+    ageDaysShort: "g",
     ageAtPromotionLabel: "età alla promozione",
     unlockedLabel: "Sbloccato",
     promotableNow: "Può essere promosso ora",
@@ -2588,6 +2604,8 @@ const MESSAGES: Record<Locale, Messages> = {
     lastUpdated: "Última atualização",
     yearsLabel: "anos",
     daysLabel: "dias",
+    ageYearsShort: "a",
+    ageDaysShort: "d",
     ageAtPromotionLabel: "idade na promoção",
     unlockedLabel: "Desbloqueado",
     promotableNow: "Pode ser promovido agora",

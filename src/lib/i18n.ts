@@ -245,8 +245,6 @@ export type Messages = {
   daysLabel: string;
   ageYearsShort: string;
   ageDaysShort: string;
-  ageYearsShort: string;
-  ageDaysShort: string;
   ageAtPromotionLabel: string;
   unlockedLabel: string;
   promotableNow: string;

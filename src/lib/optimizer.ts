@@ -219,9 +219,9 @@ function preferStarSlots(
     const imSlots = slots.filter((slot) => IM_SLOTS.has(slot));
     if (imSlots.length) return imSlots;
   }
-  if (primarySkill === "defending") {
-    const cdSlots = slots.filter((slot) => CD_SLOTS.has(slot));
-    if (cdSlots.length) return cdSlots;
+  if (primarySkill === "winger") {
+    const wSlots = slots.filter((slot) => ROLE_BY_SLOT[slot] === "W");
+    if (wSlots.length) return wSlots;
   }
   return slots;
 }

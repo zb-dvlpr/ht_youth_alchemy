@@ -1516,7 +1516,10 @@ export default function Dashboard({
     if (playersLoading) return;
     setPlayersLoading(true);
     try {
-      const teamId = teamIdOverride ?? activeYouthTeamId;
+      const teamId =
+        typeof teamIdOverride === "number" || teamIdOverride === null
+          ? teamIdOverride ?? activeYouthTeamId
+          : activeYouthTeamId;
       const teamParam = teamId ? `&youthTeamID=${teamId}` : "";
       const response = await fetch(
         `/api/chpp/youth/players?actionType=details${teamParam}`,

@@ -5,6 +5,7 @@ import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { setDragGhost } from "@/lib/drag";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
+import { getSkillMaxReached } from "@/lib/skills";
 import Tooltip from "./Tooltip";
 
 export type LineupAssignments = Record<string, number | null>;
@@ -499,6 +500,9 @@ export default function LineupField({
                               const max = getSkillMax(
                                 skillSource?.[row.maxKey]
                               );
+                              const isMaxed = getSkillMaxReached(
+                                skillSource?.[row.key]
+                              );
                               const hasCurrent = current !== null;
                               const hasMax = max !== null;
                               const currentText = hasCurrent
@@ -533,9 +537,19 @@ export default function LineupField({
                                       />
                                     ) : null}
                                   </div>
-                                  <div className={styles.skillValue}>
-                                    {currentText}/{maxText}
-                                  </div>
+                                  {isMaxed ? (
+                                    <Tooltip content={messages.skillMaxedTooltip}>
+                                      <div
+                                        className={`${styles.skillValue} ${styles.skillValueMaxed}`}
+                                      >
+                                        {currentText}/{maxText}
+                                      </div>
+                                    </Tooltip>
+                                  ) : (
+                                    <div className={styles.skillValue}>
+                                      {currentText}/{maxText}
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })}
@@ -662,6 +676,9 @@ export default function LineupField({
                             const max = getSkillMax(
                               skillSource?.[row.maxKey]
                             );
+                            const isMaxed = getSkillMaxReached(
+                              skillSource?.[row.key]
+                            );
                             const hasCurrent = current !== null;
                             const hasMax = max !== null;
                             const currentText = hasCurrent
@@ -696,9 +713,19 @@ export default function LineupField({
                                     />
                                   ) : null}
                                 </div>
-                                <div className={styles.skillValue}>
-                                  {currentText}/{maxText}
-                                </div>
+                                {isMaxed ? (
+                                  <Tooltip content={messages.skillMaxedTooltip}>
+                                    <div
+                                      className={`${styles.skillValue} ${styles.skillValueMaxed}`}
+                                    >
+                                      {currentText}/{maxText}
+                                    </div>
+                                  </Tooltip>
+                                ) : (
+                                  <div className={styles.skillValue}>
+                                    {currentText}/{maxText}
+                                  </div>
+                                )}
                               </div>
                             );
                           })}

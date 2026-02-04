@@ -6,6 +6,7 @@ import Tooltip from "./Tooltip";
 import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
 import { positionLabelShortByRoleId } from "@/lib/positions";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
+import { getSkillMaxReached } from "@/lib/skills";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -178,11 +179,6 @@ function getSkillMax(skill?: SkillValue | number | string | null): number | null
   if (skill["#text"] === undefined || skill["#text"] === null) return null;
   const numeric = Number(skill["#text"]);
   return Number.isNaN(numeric) ? null : numeric;
-}
-
-function getSkillMaxReached(skill?: SkillValue | number | string | null): boolean {
-  if (!skill || typeof skill !== "object") return false;
-  return skill["@_IsMaxReached"] === "True";
 }
 
 function getSkillName(level: number | null) {

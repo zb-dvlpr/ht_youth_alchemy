@@ -5,6 +5,12 @@ import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
 import { useNotifications } from "./notifications/NotificationsProvider";
+import Modal from "./Modal";
+import {
+  ALGORITHM_SETTINGS_EVENT,
+  readAllowTrainingUntilMaxedOut,
+  writeAllowTrainingUntilMaxedOut,
+} from "@/lib/settings";
 
 type SettingsButtonProps = {
   messages: Messages;
@@ -20,6 +26,9 @@ const STORAGE_PREFIX = "ya_";
 
 export default function SettingsButton({ messages }: SettingsButtonProps) {
   const [open, setOpen] = useState(false);
+  const [algorithmsOpen, setAlgorithmsOpen] = useState(false);
+  const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
+    useState(true);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -36,6 +45,11 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
   }, [open]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
+  }, []);
 
   const handleExport = () => {
     if (typeof window === "undefined") return;
@@ -110,6 +124,18 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     }
   };
 
+  const handleAllowTrainingToggle = (nextValue: boolean) => {
+    setAllowTrainingUntilMaxedOut(nextValue);
+    writeAllowTrainingUntilMaxedOut(nextValue);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(ALGORITHM_SETTINGS_EVENT, {
+          detail: { allowTrainingUntilMaxedOut: nextValue },
+        })
+      );
+    }
+  };
+
   return (
     <div className={styles.feedbackWrap}>
       <Tooltip content={messages.settingsTooltip}>
@@ -128,6 +154,16 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
           <button
             type="button"
             className={styles.feedbackLink}
+            onClick={() => {
+              setAlgorithmsOpen(true);
+              setOpen(false);
+            }}
+          >
+            {messages.settingsAlgorithms}
+          </button>
+          <button
+            type="button"
+            className={styles.feedbackLink}
             onClick={handleExport}
           >
             {messages.settingsExport}
@@ -141,6 +177,44 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
           </button>
         </div>
       ) : null}
+      <Modal
+        open={algorithmsOpen}
+        title={messages.settingsAlgorithmsTitle}
+        body={
+          <div className={styles.algorithmsModalBody}>
+            <Tooltip
+              content={messages.settingsAlgorithmsAllowTrainingTooltip}
+              fullWidth
+            >
+              <label className={styles.algorithmsToggle}>
+                <span className={styles.algorithmsToggleText}>
+                  {messages.settingsAlgorithmsAllowTrainingLabel}
+                </span>
+                <input
+                  type="checkbox"
+                  className={styles.algorithmsToggleInput}
+                  checked={allowTrainingUntilMaxedOut}
+                  onChange={(event) =>
+                    handleAllowTrainingToggle(event.target.checked)
+                  }
+                />
+                <span className={styles.algorithmsToggleSwitch} aria-hidden="true" />
+              </label>
+            </Tooltip>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setAlgorithmsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setAlgorithmsOpen(false)}
+      />
       <input
         ref={fileInputRef}
         type="file"

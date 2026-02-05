@@ -132,6 +132,72 @@
   background: #f1e9dc;
 }
 
+.algorithmsModalBody {
+  display: grid;
+  gap: 12px;
+}
+
+.algorithmsToggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #d8cbb6;
+  background: #fff;
+  color: #3f362c;
+  cursor: pointer;
+}
+
+.algorithmsToggleText {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.algorithmsToggleInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.algorithmsToggleSwitch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: #e3d7c5;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.algorithmsToggleSwitch::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  top: 3px;
+  left: 3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.algorithmsToggleInput:focus-visible + .algorithmsToggleSwitch {
+  outline: 2px solid #244d2b;
+  outline-offset: 2px;
+}
+
+.algorithmsToggleInput:checked + .algorithmsToggleSwitch {
+  background: #244d2b;
+}
+
+.algorithmsToggleInput:checked + .algorithmsToggleSwitch::after {
+  transform: translateX(20px);
+}
+
 .connectedInfo {
   display: flex;
   flex-direction: row;
@@ -792,6 +858,20 @@ html[data-theme="dark"] .feedbackLink {
 html[data-theme="dark"] .feedbackLink:hover {
   border-color: rgba(255, 255, 255, 0.22);
   background: #332c25;
+}
+
+html[data-theme="dark"] .algorithmsToggle {
+  background: #1f1a13;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .algorithmsToggleSwitch {
+  background: #3c3228;
+}
+
+html[data-theme="dark"] .algorithmsToggleInput:checked + .algorithmsToggleSwitch {
+  background: #3d7c52;
 }
 
 html[data-theme="dark"] .card,

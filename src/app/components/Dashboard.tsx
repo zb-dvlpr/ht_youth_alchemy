@@ -33,6 +33,11 @@ import {
   type AutoSelection,
   type TrainingSkillKey,
 } from "@/lib/optimizer";
+import {
+  ALGORITHM_SETTINGS_EVENT,
+  ALGORITHM_SETTINGS_STORAGE_KEY,
+  readAllowTrainingUntilMaxedOut,
+} from "@/lib/settings";
 import { useNotifications } from "./notifications/NotificationsProvider";
 
 const formatPlayerName = (player: YouthPlayer) =>
@@ -271,6 +276,8 @@ export default function Dashboard({
   const [orderSource, setOrderSource] = useState<
     "list" | "ratings" | "skills" | null
   >(null);
+  const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
+    useState(true);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -307,6 +314,10 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "1.23.0",
+        entries: [messages.changelog_1_23_0],
+      },
+      {
         version: "1.22.0",
         entries: [messages.changelog_1_22_0],
       },
@@ -323,7 +334,13 @@ export default function Dashboard({
       messages.changelog_1_19_0,
       messages.changelog_1_21_0,
       messages.changelog_1_22_0,
+      messages.changelog_1_23_0,
     ]
+  );
+
+  const trainingPreferences = useMemo(
+    () => ({ allowTrainingUntilMaxedOut }),
+    [allowTrainingUntilMaxedOut]
   );
 
   useEffect(() => {
@@ -343,6 +360,39 @@ export default function Dashboard({
       // ignore storage errors
     }
   }, [appVersion, changelogStorageKey]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
+    const handle = (event: Event) => {
+      if (event instanceof StorageEvent) {
+        if (event.key && event.key !== ALGORITHM_SETTINGS_STORAGE_KEY) {
+          return;
+        }
+      }
+      if (event instanceof CustomEvent) {
+        const detail =
+          event.detail as { allowTrainingUntilMaxedOut?: boolean } | null;
+        if (typeof detail?.allowTrainingUntilMaxedOut === "boolean") {
+          setAllowTrainingUntilMaxedOut(detail.allowTrainingUntilMaxedOut);
+          return;
+        }
+      }
+      setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
+    };
+    window.addEventListener(
+      ALGORITHM_SETTINGS_EVENT,
+      handle as EventListener
+    );
+    window.addEventListener("storage", handle);
+    return () => {
+      window.removeEventListener(
+        ALGORITHM_SETTINGS_EVENT,
+        handle as EventListener
+      );
+      window.removeEventListener("storage", handle);
+    };
+  }, []);
 
   const getPlayerAgeScore = (player: YouthPlayer | null | undefined) => {
     if (!player) return null;
@@ -1069,6 +1119,10 @@ export default function Dashboard({
         player.AgeDays ??
         playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
         null,
+      canBePromotedIn:
+        player.CanBePromotedIn ??
+        playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
+        null,
       skills:
         playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
         (player.PlayerSkills as OptimizerPlayer["skills"]) ??
@@ -1080,7 +1134,8 @@ export default function Dashboard({
       starPlayerId,
       primaryTraining,
       secondaryTraining,
-      autoSelectionApplied
+      autoSelectionApplied,
+      trainingPreferences
     );
 
     const nextAssignments: LineupAssignments = { ...result.lineup };
@@ -1092,7 +1147,7 @@ export default function Dashboard({
       (skill) => {
         rankingBySkill.set(
           skill,
-          buildSkillRanking(optimizerPlayers, skill).ordered.map(
+          buildSkillRanking(optimizerPlayers, skill, trainingPreferences).ordered.map(
             (entry) => entry.playerId
           )
         );
@@ -1177,6 +1232,10 @@ export default function Dashboard({
           player.AgeDays ??
           playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
           null,
+        canBePromotedIn:
+          player.CanBePromotedIn ??
+          playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
+          null,
         skills:
           playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
           (player.PlayerSkills as OptimizerPlayer["skills"]) ??
@@ -1189,7 +1248,8 @@ export default function Dashboard({
         starPlayerId,
         primaryTraining,
         secondaryTraining,
-        autoSelectionApplied
+        autoSelectionApplied,
+        trainingPreferences
       );
 
       if (result.error === "star_maxed") {
@@ -1333,6 +1393,10 @@ export default function Dashboard({
         player.AgeDays ??
         playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
         null,
+      canBePromotedIn:
+        player.CanBePromotedIn ??
+        playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
+        null,
       skills:
         playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
         (player.PlayerSkills as OptimizerPlayer["skills"]) ??
@@ -1346,7 +1410,8 @@ export default function Dashboard({
             starPlayerId,
             primaryTraining,
             secondaryTraining,
-            autoSelectionApplied
+            autoSelectionApplied,
+            trainingPreferences
           )
         : mode === "revealSecondaryMax"
         ? optimizeRevealSecondaryMax(
@@ -1354,7 +1419,8 @@ export default function Dashboard({
             starPlayerId,
             primaryTraining,
             secondaryTraining,
-            autoSelectionApplied
+            autoSelectionApplied,
+            trainingPreferences
           )
         : mode === "revealSecondaryCurrent"
         ? optimizeRevealSecondaryCurrent(
@@ -1362,14 +1428,16 @@ export default function Dashboard({
             starPlayerId,
             primaryTraining,
             secondaryTraining,
-            autoSelectionApplied
+            autoSelectionApplied,
+            trainingPreferences
           )
         : optimizeRevealPrimaryCurrent(
             optimizerPlayers,
             starPlayerId,
             primaryTraining,
             secondaryTraining,
-            autoSelectionApplied
+            autoSelectionApplied,
+            trainingPreferences
           );
 
     if (result.error === "primary_current_known") {
@@ -1423,7 +1491,7 @@ export default function Dashboard({
     ] as TrainingSkillKey[]).forEach((skill) => {
       rankingBySkill.set(
         skill,
-        buildSkillRanking(optimizerPlayers, skill).ordered.map(
+        buildSkillRanking(optimizerPlayers, skill, trainingPreferences).ordered.map(
           (entry) => entry.playerId
         )
       );
@@ -1675,6 +1743,10 @@ export default function Dashboard({
           player.AgeDays ??
           playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
           null,
+        canBePromotedIn:
+          player.CanBePromotedIn ??
+          playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
+          null,
         skills:
           playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
           (player.PlayerSkills as OptimizerPlayer["skills"]) ??
@@ -1684,8 +1756,8 @@ export default function Dashboard({
   );
 
   const autoSelection = useMemo(
-    () => getAutoSelection(optimizerPlayers),
-    [optimizerPlayers]
+    () => getAutoSelection(optimizerPlayers, trainingPreferences),
+    [optimizerPlayers, trainingPreferences]
   );
 
   useEffect(() => {
@@ -1729,7 +1801,8 @@ export default function Dashboard({
       starPlayerId,
       primaryTraining,
       secondaryTraining,
-      autoSelectionApplied
+      autoSelectionApplied,
+      trainingPreferences
     );
     setOptimizerDebug(result.debug ?? null);
   }, [
@@ -1739,6 +1812,7 @@ export default function Dashboard({
     primaryTraining,
     secondaryTraining,
     starPlayerId,
+    trainingPreferences,
   ]);
 
   const manualReady = Boolean(starPlayerId && primaryTraining && secondaryTraining);
@@ -1954,7 +2028,11 @@ export default function Dashboard({
               addNotification(messages.notificationStarCleared);
               return;
             }
-            const training = getTrainingForStar(optimizerPlayers, playerId);
+            const training = getTrainingForStar(
+              optimizerPlayers,
+              playerId,
+              trainingPreferences
+            );
             if (!training) {
               setPrimaryTraining("");
               setSecondaryTraining("");

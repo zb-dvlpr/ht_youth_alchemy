@@ -2716,6 +2716,7 @@ html[data-theme="dark"] .spinner {
   padding: 10px 12px;
   min-width: 260px;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.18);
+  position: relative;
 }
 
 .slotTooltipHint {
@@ -2724,6 +2725,15 @@ html[data-theme="dark"] .spinner {
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 6px;
+}
+
+.slotTooltipMeta {
+  font-size: 12px;
+  color: #2f2a22;
+  font-weight: 600;
+  position: absolute;
+  top: 10px;
+  right: 12px;
 }
 
 .slotTooltipGrid {
@@ -2770,6 +2780,10 @@ html[data-theme="dark"] .slotTooltipCard {
 
 html[data-theme="dark"] .slotTooltipHint {
   color: #b9b0a5;
+}
+
+html[data-theme="dark"] .slotTooltipMeta {
+  color: #f3ede4;
 }
 
 html[data-theme="dark"] .slotTooltipCard .skillLabel,

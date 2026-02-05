@@ -17,6 +17,8 @@ type YouthPlayer = {
   NickName?: string;
   LastName: string;
   Specialty?: number;
+  Age?: number;
+  AgeDays?: number;
   PlayerSkills?: Record<string, SkillValue>;
 };
 
@@ -512,6 +514,14 @@ export default function LineupField({
                           <div className={styles.slotTooltipHint}>
                             {messages.dragPlayerHint}
                           </div>
+                          {assignedPlayer.Age !== undefined &&
+                          assignedPlayer.AgeDays !== undefined ? (
+                            <div className={styles.slotTooltipMeta}>
+                              {assignedPlayer.Age}
+                              {messages.ageYearsShort} {assignedPlayer.AgeDays}
+                              {messages.ageDaysShort}
+                            </div>
+                          ) : null}
                           <div className={styles.slotTooltipGrid}>
                             {SKILL_ROWS.map((row) => {
                               const skillSource =
@@ -688,6 +698,14 @@ export default function LineupField({
                         <div className={styles.slotTooltipHint}>
                           {messages.dragPlayerHint}
                         </div>
+                        {assignedPlayer.Age !== undefined &&
+                        assignedPlayer.AgeDays !== undefined ? (
+                          <div className={styles.slotTooltipMeta}>
+                            {assignedPlayer.Age}
+                            {messages.ageYearsShort} {assignedPlayer.AgeDays}
+                            {messages.ageDaysShort}
+                          </div>
+                        ) : null}
                         <div className={styles.slotTooltipGrid}>
                           {SKILL_ROWS.map((row) => {
                             const skillSource =

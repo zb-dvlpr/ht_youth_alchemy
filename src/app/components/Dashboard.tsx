@@ -1069,6 +1069,10 @@ export default function Dashboard({
         player.AgeDays ??
         playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
         null,
+      canBePromotedIn:
+        player.CanBePromotedIn ??
+        playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
+        null,
       skills:
         playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
         (player.PlayerSkills as OptimizerPlayer["skills"]) ??
@@ -1176,6 +1180,10 @@ export default function Dashboard({
         ageDays:
           player.AgeDays ??
           playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
+          null,
+        canBePromotedIn:
+          player.CanBePromotedIn ??
+          playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
           null,
         skills:
           playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
@@ -1332,6 +1340,10 @@ export default function Dashboard({
       ageDays:
         player.AgeDays ??
         playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
+        null,
+      canBePromotedIn:
+        player.CanBePromotedIn ??
+        playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
         null,
       skills:
         playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
@@ -1674,6 +1686,10 @@ export default function Dashboard({
         ageDays:
           player.AgeDays ??
           playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
+          null,
+        canBePromotedIn:
+          player.CanBePromotedIn ??
+          playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
           null,
         skills:
           playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??

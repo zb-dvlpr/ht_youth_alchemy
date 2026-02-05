@@ -38,6 +38,7 @@ export type OptimizerPlayer = {
   name?: string;
   age?: number | null;
   ageDays?: number | null;
+  canBePromotedIn?: number | null;
   skills?: PlayerSkillSet | null;
 };
 
@@ -357,11 +358,20 @@ function chooseStarAndTraining(
     const days = player.ageDays ?? null;
     return age * 112 + (days ?? 0);
   };
+  const promotionAgeDays = (player: OptimizerPlayer): number | null => {
+    const base = totalAgeDays(player);
+    if (base === null) return null;
+    const promoDays = player.canBePromotedIn ?? null;
+    if (promoDays === null) return null;
+    return base + Math.max(0, promoDays);
+  };
   let best: {
     playerId: number;
     skill: SkillKey;
     score: number;
     ageDays?: number | null;
+    promoAgeDays?: number | null;
+    canBePromotedIn?: number | null;
   } | null = null;
   const candidates: Array<{
     playerId: number;
@@ -405,15 +415,44 @@ function chooseStarAndTraining(
           skill,
           score,
           ageDays: totalAgeDays(player),
+          promoAgeDays: promotionAgeDays(player),
+          canBePromotedIn: player.canBePromotedIn ?? null,
         };
       } else if (best && score === best.score) {
-        const currentAgeDays = totalAgeDays(player);
-        const bestAgeDays = best.ageDays ?? null;
+        const currentPromoAgeDays = promotionAgeDays(player);
+        const bestPromoAgeDays = best.promoAgeDays ?? null;
         if (
-          currentAgeDays !== null &&
-          (bestAgeDays === null || currentAgeDays < bestAgeDays)
+          currentPromoAgeDays !== null &&
+          (bestPromoAgeDays === null || currentPromoAgeDays < bestPromoAgeDays)
         ) {
-          best = { playerId: player.id, skill, score, ageDays: currentAgeDays };
+          best = {
+            playerId: player.id,
+            skill,
+            score,
+            ageDays: totalAgeDays(player),
+            promoAgeDays: currentPromoAgeDays,
+            canBePromotedIn: player.canBePromotedIn ?? null,
+          };
+        } else if (
+          currentPromoAgeDays !== null &&
+          bestPromoAgeDays !== null &&
+          currentPromoAgeDays === bestPromoAgeDays
+        ) {
+          const currentPromoIn = player.canBePromotedIn ?? null;
+          const bestPromoIn = best.canBePromotedIn ?? null;
+          if (
+            currentPromoIn !== null &&
+            (bestPromoIn === null || currentPromoIn < bestPromoIn)
+          ) {
+            best = {
+              playerId: player.id,
+              skill,
+              score,
+              ageDays: totalAgeDays(player),
+              promoAgeDays: currentPromoAgeDays,
+              canBePromotedIn: currentPromoIn,
+            };
+          }
         }
       }
     });

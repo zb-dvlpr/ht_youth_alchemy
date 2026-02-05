@@ -246,7 +246,7 @@ export default function YouthPlayerList({
           return compareNumber(
             ageTotalDays(a),
             ageTotalDays(b),
-            sortDirection
+            "asc"
           );
         case "promotionAge":
           return compareNumber(

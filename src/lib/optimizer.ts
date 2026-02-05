@@ -57,6 +57,10 @@ export type RankingEntry = {
   rankValue: number | null;
 };
 
+type TrainingPreferences = {
+  allowTrainingUntilMaxedOut: boolean;
+};
+
 export type OptimizerDebug = {
   primary: { skill: SkillKey; list: RankingEntry[] };
   secondary: { skill: SkillKey; list: RankingEntry[] } | null;
@@ -189,6 +193,20 @@ function skillValues(player: OptimizerPlayer, skill: SkillKey) {
   };
 }
 
+function resolveTrainingPreferences(
+  preferences?: Partial<TrainingPreferences>
+): TrainingPreferences {
+  return {
+    allowTrainingUntilMaxedOut:
+      preferences?.allowTrainingUntilMaxedOut ?? true,
+  };
+}
+
+function isCurrentAtMax(player: OptimizerPlayer, skill: SkillKey) {
+  const { current, max } = skillValues(player, skill);
+  return current !== null && max !== null && current >= max;
+}
+
 function isMaxReached(player: OptimizerPlayer, skill: SkillKey) {
   const map = SKILL_MAP[skill];
   const value = player.skills?.[map.current] as
@@ -199,6 +217,16 @@ function isMaxReached(player: OptimizerPlayer, skill: SkillKey) {
 
 function isSkillMaxed(player: OptimizerPlayer, skill: SkillKey) {
   return isMaxReached(player, skill);
+}
+
+function isTrainingBlocked(
+  player: OptimizerPlayer,
+  skill: SkillKey,
+  allowTrainingUntilMaxedOut: boolean
+) {
+  if (isSkillMaxed(player, skill)) return true;
+  if (!allowTrainingUntilMaxedOut && isCurrentAtMax(player, skill)) return true;
+  return false;
 }
 
 function slotsForSkill(skill: SkillKey) {
@@ -345,13 +373,15 @@ export function getTrainingSlots(primary: SkillKey | null, secondary: SkillKey |
 }
 
 function chooseStarAndTraining(
-  players: OptimizerPlayer[]
+  players: OptimizerPlayer[],
+  preferences?: Partial<TrainingPreferences>
 ): {
   starPlayerId: number;
   primarySkill: SkillKey;
   secondarySkill: SkillKey | null;
   candidates: OptimizerDebug["starSelectionRanks"];
 } | null {
+  const { allowTrainingUntilMaxedOut } = resolveTrainingPreferences(preferences);
   const totalAgeDays = (player: OptimizerPlayer): number | null => {
     const age = player.age ?? null;
     if (age === null) return null;
@@ -397,7 +427,7 @@ function chooseStarAndTraining(
     skillKeys.forEach((skill) => {
       const { current, max } = skillValues(player, skill);
       if (current === null) return;
-      if (isSkillMaxed(player, skill)) return;
+      if (isTrainingBlocked(player, skill, allowTrainingUntilMaxedOut)) return;
       const score = current * 100 + (max !== null ? 50 + max : 0);
       candidates.push({
         playerId: player.id,
@@ -475,7 +505,7 @@ function chooseStarAndTraining(
   if (starPlayer) {
     const candidates = SKILL_PAIRS[primarySkill] ?? [];
     for (const candidate of candidates) {
-      if (isSkillMaxed(starPlayer, candidate)) {
+      if (isTrainingBlocked(starPlayer, candidate, allowTrainingUntilMaxedOut)) {
         continue;
       }
       secondarySkill = candidate;
@@ -488,7 +518,7 @@ function chooseStarAndTraining(
     let bestRank = -1;
     skillKeys.forEach((skill) => {
       if (skill === primarySkill) return;
-      const ranking = buildSkillRanking(players, skill).ordered;
+      const ranking = buildSkillRanking(players, skill, preferences).ordered;
       const topRank = ranking.find((entry) => entry.rankValue !== null)?.rankValue;
       if (topRank !== undefined && topRank !== null && topRank > bestRank) {
         bestRank = topRank;
@@ -507,9 +537,10 @@ function chooseStarAndTraining(
 }
 
 export function getAutoSelection(
-  players: OptimizerPlayer[]
+  players: OptimizerPlayer[],
+  preferences?: Partial<TrainingPreferences>
 ): { starPlayerId: number; primarySkill: SkillKey; secondarySkill: SkillKey | null } | null {
-  const auto = chooseStarAndTraining(players);
+  const auto = chooseStarAndTraining(players, preferences);
   if (!auto) return null;
   return {
     starPlayerId: auto.starPlayerId,
@@ -522,8 +553,10 @@ export type AutoSelection = ReturnType<typeof getAutoSelection>;
 
 export function getTrainingForStar(
   players: OptimizerPlayer[],
-  starPlayerId: number
+  starPlayerId: number,
+  preferences?: Partial<TrainingPreferences>
 ): { primarySkill: SkillKey; secondarySkill: SkillKey | null } | null {
+  const { allowTrainingUntilMaxedOut } = resolveTrainingPreferences(preferences);
   const starPlayer = players.find((player) => player.id === starPlayerId);
   if (!starPlayer) return null;
   const skillKeys: SkillKey[] = [
@@ -541,7 +574,7 @@ export function getTrainingForStar(
   skillKeys.forEach((skill) => {
     const { current, max } = skillValues(starPlayer, skill);
     if (current === null) return;
-    if (isSkillMaxed(starPlayer, skill)) return;
+    if (isTrainingBlocked(starPlayer, skill, allowTrainingUntilMaxedOut)) return;
     const score = current * 100 + (max !== null ? 50 + max : 0);
     if (score > bestScore) {
       bestScore = score;
@@ -555,7 +588,7 @@ export function getTrainingForStar(
   const pairCandidates =
     bestSkill ? SKILL_PAIRS[bestSkill] ?? [] : [];
   for (const candidate of pairCandidates) {
-    if (isSkillMaxed(starPlayer, candidate)) {
+    if (isTrainingBlocked(starPlayer, candidate, allowTrainingUntilMaxedOut)) {
       continue;
     }
     secondarySkill = candidate;
@@ -566,7 +599,7 @@ export function getTrainingForStar(
     let bestRank = -1;
     skillKeys.forEach((skill) => {
       if (skill === bestSkill) return;
-      const ranking = buildSkillRanking(players, skill).ordered;
+      const ranking = buildSkillRanking(players, skill, preferences).ordered;
       const topRank = ranking.find((entry) => entry.rankValue !== null)?.rankValue;
       if (topRank !== undefined && topRank !== null && topRank > bestRank) {
         bestRank = topRank;
@@ -581,7 +614,12 @@ export function getTrainingForStar(
   };
 }
 
-export function buildSkillRanking(players: OptimizerPlayer[], skill: SkillKey) {
+export function buildSkillRanking(
+  players: OptimizerPlayer[],
+  skill: SkillKey,
+  preferences?: Partial<TrainingPreferences>
+) {
+  const { allowTrainingUntilMaxedOut } = resolveTrainingPreferences(preferences);
   const entries: RankingEntry[] = players.map((player) => {
     const { current, max } = skillValues(player, skill);
     const maxReached = isMaxReached(player, skill);
@@ -602,7 +640,9 @@ export function buildSkillRanking(players: OptimizerPlayer[], skill: SkillKey) {
       category = "maxed";
     }
     if (category === "cat1") {
-      if (current === max) dontCare = true;
+      if (!allowTrainingUntilMaxedOut && isCurrentAtMax(player, skill)) {
+        dontCare = true;
+      }
       if ((current ?? 0) < 5 || (max ?? 0) < 6) dontCare = true;
     } else if (category === "cat3") {
       if ((max ?? 0) < 6) dontCare = true;
@@ -639,8 +679,8 @@ export function buildSkillRanking(players: OptimizerPlayer[], skill: SkillKey) {
     .sort((a, b) => {
       const aCapped = a.current !== null && a.max !== null && a.current === a.max;
       const bCapped = b.current !== null && b.max !== null && b.current === b.max;
-      if (aCapped && !bCapped) return -1;
-      if (!aCapped && bCapped) return 1;
+      if (aCapped && !bCapped) return 1;
+      if (!aCapped && bCapped) return -1;
       return byRankDesc(a, b);
     });
   const maxed = entries.filter((entry) => entry.category === "maxed");
@@ -769,7 +809,8 @@ export function optimizeLineupForStar(
   starPlayerId: number | null,
   primary: SkillKey | null,
   secondary: SkillKey | null,
-  autoSelected = false
+  autoSelected = false,
+  preferences?: Partial<TrainingPreferences>
 ) {
   let selection = {
     starPlayerId: starPlayerId ?? 0,
@@ -778,7 +819,8 @@ export function optimizeLineupForStar(
     autoSelected: false,
   };
 
-  const autoCandidates = chooseStarAndTraining(players)?.candidates ?? null;
+  const autoCandidates =
+    chooseStarAndTraining(players, preferences)?.candidates ?? null;
   if (!starPlayerId || !primary || !secondary) {
     return {
       lineup: {} as LineupAssignments,
@@ -840,9 +882,9 @@ export function optimizeLineupForStar(
   const starSlot =
     preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
 
-  const primaryRanking = buildSkillRanking(players, primarySkill);
+  const primaryRanking = buildSkillRanking(players, primarySkill, preferences);
   const secondaryRanking = secondarySkill
-    ? buildSkillRanking(players, secondarySkill)
+    ? buildSkillRanking(players, secondarySkill, preferences)
     : null;
 
   const lineup: LineupAssignments = {
@@ -970,7 +1012,8 @@ export function optimizeRevealPrimaryCurrent(
   starPlayerId: number | null,
   primary: SkillKey | null,
   secondary: SkillKey | null,
-  autoSelected = false
+  autoSelected = false,
+  preferences?: Partial<TrainingPreferences>
 ) {
   if (!starPlayerId || !primary || !secondary) {
     return {
@@ -1033,9 +1076,9 @@ export function optimizeRevealPrimaryCurrent(
   const starSlot =
     preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
 
-  const primaryRanking = buildSkillRanking(players, primary);
+  const primaryRanking = buildSkillRanking(players, primary, preferences);
   const secondaryRanking = secondary
-    ? buildSkillRanking(players, secondary)
+    ? buildSkillRanking(players, secondary, preferences)
     : null;
 
   const lineup: LineupAssignments = {
@@ -1178,7 +1221,8 @@ export function optimizeRevealPrimaryMax(
   starPlayerId: number | null,
   primary: SkillKey | null,
   secondary: SkillKey | null,
-  autoSelected = false
+  autoSelected = false,
+  preferences?: Partial<TrainingPreferences>
 ) {
   if (!starPlayerId || !primary || !secondary) {
     return {
@@ -1241,9 +1285,9 @@ export function optimizeRevealPrimaryMax(
   const starSlot =
     preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
 
-  const primaryRanking = buildSkillRanking(players, primary);
+  const primaryRanking = buildSkillRanking(players, primary, preferences);
   const secondaryRanking = secondary
-    ? buildSkillRanking(players, secondary)
+    ? buildSkillRanking(players, secondary, preferences)
     : null;
 
   const lineup: LineupAssignments = {
@@ -1384,7 +1428,8 @@ export function optimizeRevealSecondaryCurrent(
   starPlayerId: number | null,
   primary: SkillKey | null,
   secondary: SkillKey | null,
-  autoSelected = false
+  autoSelected = false,
+  preferences?: Partial<TrainingPreferences>
 ) {
   if (!starPlayerId || !primary || !secondary) {
     return {
@@ -1450,8 +1495,8 @@ export function optimizeRevealSecondaryCurrent(
   const starSlot =
     preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
 
-  const primaryRanking = buildSkillRanking(players, primary);
-  const secondaryRanking = buildSkillRanking(players, secondary);
+  const primaryRanking = buildSkillRanking(players, primary, preferences);
+  const secondaryRanking = buildSkillRanking(players, secondary, preferences);
 
   const lineup: LineupAssignments = {
     [starSlot]: starPlayer.id,
@@ -1586,7 +1631,8 @@ export function optimizeRevealSecondaryMax(
   starPlayerId: number | null,
   primary: SkillKey | null,
   secondary: SkillKey | null,
-  autoSelected = false
+  autoSelected = false,
+  preferences?: Partial<TrainingPreferences>
 ) {
   if (!starPlayerId || !primary || !secondary) {
     return {
@@ -1652,8 +1698,8 @@ export function optimizeRevealSecondaryMax(
   const starSlot =
     preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
 
-  const primaryRanking = buildSkillRanking(players, primary);
-  const secondaryRanking = buildSkillRanking(players, secondary);
+  const primaryRanking = buildSkillRanking(players, primary, preferences);
+  const secondaryRanking = buildSkillRanking(players, secondary, preferences);
 
   const lineup: LineupAssignments = {
     [starSlot]: starPlayer.id,
@@ -1789,7 +1835,8 @@ export function optimizeByRatings(
   starPlayerId: number | null,
   primary: SkillKey | null,
   secondary: SkillKey | null,
-  autoSelected = false
+  autoSelected = false,
+  preferences?: Partial<TrainingPreferences>
 ) {
   if (!starPlayerId || !primary || !secondary) {
     return {
@@ -1846,8 +1893,8 @@ export function optimizeByRatings(
   const starSlot =
     preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
 
-  const primaryRanking = buildSkillRanking(players, primary);
-  const secondaryRanking = buildSkillRanking(players, secondary);
+  const primaryRanking = buildSkillRanking(players, primary, preferences);
+  const secondaryRanking = buildSkillRanking(players, secondary, preferences);
 
   const lineup: LineupAssignments = {
     [starSlot]: starPlayer.id,

@@ -21,6 +21,7 @@ export type Messages = {
   changelog_1_19_0: string;
   changelog_1_21_0: string;
   changelog_1_22_0: string;
+  changelog_1_23_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -31,6 +32,10 @@ export type Messages = {
   settingsExportFailed: string;
   settingsImportSuccess: string;
   settingsImportFailed: string;
+  settingsAlgorithms: string;
+  settingsAlgorithmsTitle: string;
+  settingsAlgorithmsAllowTrainingLabel: string;
+  settingsAlgorithmsAllowTrainingTooltip: string;
   behaviorNeutral: string;
   behaviorOffensive: string;
   behaviorDefensive: string;
@@ -337,6 +342,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_19_0: "Multi team support.",
     changelog_1_21_0: "Settings export/import for local data backups.",
     changelog_1_22_0: "Auto-select training regimen on manual star change.",
+    changelog_1_23_0:
+      "Algorithms setting to control training at max skill levels.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -347,6 +354,11 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsExportFailed: "Export failed.",
     settingsImportSuccess: "Import complete. Reloading…",
     settingsImportFailed: "Import failed.",
+    settingsAlgorithms: "Algorithms",
+    settingsAlgorithmsTitle: "Algorithms",
+    settingsAlgorithmsAllowTrainingLabel: "Allow training until maxed out",
+    settingsAlgorithmsAllowTrainingTooltip:
+      "When selected, this allows players to be trained until the skill reaches maximum value. If unselected, players whose current skill = maximum level will not be considered for training.",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensive",
     behaviorDefensive: "Defensive",
@@ -670,6 +682,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_19_0: "Unterstützung für mehrere Teams.",
     changelog_1_21_0: "Einstellungen: Export/Import für lokale Datensicherungen.",
     changelog_1_22_0: "Training automatisch bei manuellem Star-Wechsel.",
+    changelog_1_23_0:
+      "Algorithmus-Einstellung für Training bei Maximalwerten.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -680,6 +694,12 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsExportFailed: "Export fehlgeschlagen.",
     settingsImportSuccess: "Import abgeschlossen. Neu laden…",
     settingsImportFailed: "Import fehlgeschlagen.",
+    settingsAlgorithms: "Algorithmen",
+    settingsAlgorithmsTitle: "Algorithmen",
+    settingsAlgorithmsAllowTrainingLabel:
+      "Training bis zur Maximalstufe erlauben",
+    settingsAlgorithmsAllowTrainingTooltip:
+      "Wenn ausgewählt, können Spieler trainiert werden, bis die Fähigkeit den Maximalwert erreicht. Wenn nicht ausgewählt, werden Spieler, deren aktuelle Fähigkeit = Maximalstufe ist, nicht fürs Training berücksichtigt.",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensiv",
     behaviorDefensive: "Defensiv",
@@ -1005,6 +1025,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_19_0: "Prise en charge de plusieurs équipes.",
     changelog_1_21_0: "Paramètres : export/import pour sauvegardes locales.",
     changelog_1_22_0: "Auto‑sélection du plan d’entraînement au changement de star.",
+    changelog_1_23_0:
+      "Réglage des algorithmes pour l’entraînement au niveau maximal.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1015,6 +1037,12 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsExportFailed: "Échec de l’export.",
     settingsImportSuccess: "Import terminé. Rechargement…",
     settingsImportFailed: "Échec de l’import.",
+    settingsAlgorithms: "Algorithmes",
+    settingsAlgorithmsTitle: "Algorithmes",
+    settingsAlgorithmsAllowTrainingLabel:
+      "Autoriser l’entraînement jusqu’au maximum",
+    settingsAlgorithmsAllowTrainingTooltip:
+      "Lorsqu’elle est sélectionnée, cette option permet d’entraîner les joueurs jusqu’à ce que la compétence atteigne sa valeur maximale. Si elle n’est pas sélectionnée, les joueurs dont la compétence actuelle = niveau maximum ne seront pas pris en compte pour l’entraînement.",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensif",
     behaviorDefensive: "Défensif",
@@ -1347,6 +1375,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_19_0: "Soporte para múltiples equipos.",
     changelog_1_21_0: "Ajustes: exportación/importación de copias locales.",
     changelog_1_22_0: "Selección automática del entrenamiento al cambiar la estrella.",
+    changelog_1_23_0:
+      "Ajuste de algoritmos para entrenar con niveles máximos.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -1357,6 +1387,12 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsExportFailed: "Falló la exportación.",
     settingsImportSuccess: "Importación completa. Recargando…",
     settingsImportFailed: "Falló la importación.",
+    settingsAlgorithms: "Algoritmos",
+    settingsAlgorithmsTitle: "Algoritmos",
+    settingsAlgorithmsAllowTrainingLabel:
+      "Permitir entrenar hasta el máximo",
+    settingsAlgorithmsAllowTrainingTooltip:
+      "Cuando está seleccionado, permite entrenar jugadores hasta que la habilidad alcance el valor máximo. Si no está seleccionado, los jugadores cuyo nivel actual = nivel máximo no se considerarán para entrenamiento.",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Ofensivo",
     behaviorDefensive: "Defensivo",
@@ -1685,6 +1721,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_19_0: "Stöd för flera lag.",
     changelog_1_21_0: "Inställningar: export/import av lokala säkerhetskopior.",
     changelog_1_22_0: "Auto‑val av träning vid manuell stjärnändring.",
+    changelog_1_23_0: "Algoritminställning för träning vid maxnivåer.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -1695,6 +1732,12 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsExportFailed: "Export misslyckades.",
     settingsImportSuccess: "Import klar. Laddar om…",
     settingsImportFailed: "Import misslyckades.",
+    settingsAlgorithms: "Algoritmer",
+    settingsAlgorithmsTitle: "Algoritmer",
+    settingsAlgorithmsAllowTrainingLabel:
+      "Tillåt träning tills maxat",
+    settingsAlgorithmsAllowTrainingTooltip:
+      "När detta är valt kan spelare tränas tills färdigheten når maxvärdet. Om det inte är valt kommer spelare vars nuvarande färdighet = maxnivå inte att beaktas för träning.",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensiv",
     behaviorDefensive: "Defensiv",
@@ -2021,6 +2064,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_19_0: "Supporto multi‑squadra.",
     changelog_1_21_0: "Impostazioni: export/import per backup locali.",
     changelog_1_22_0: "Selezione automatica del training al cambio stella.",
+    changelog_1_23_0:
+      "Impostazione algoritmi per l’allenamento ai livelli massimi.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -2031,6 +2076,12 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsExportFailed: "Export non riuscito.",
     settingsImportSuccess: "Import completato. Ricarico…",
     settingsImportFailed: "Import non riuscito.",
+    settingsAlgorithms: "Algoritmi",
+    settingsAlgorithmsTitle: "Algoritmi",
+    settingsAlgorithmsAllowTrainingLabel:
+      "Consenti allenamento fino al massimo",
+    settingsAlgorithmsAllowTrainingTooltip:
+      "Se selezionata, consente di allenare i giocatori finché l’abilità raggiunge il valore massimo. Se non selezionata, i giocatori con abilità attuale = livello massimo non saranno considerati per l’allenamento.",
     behaviorNeutral: "Normale",
     behaviorOffensive: "Offensivo",
     behaviorDefensive: "Difensivo",
@@ -2359,6 +2410,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_19_0: "Suporte a vários times.",
     changelog_1_21_0: "Configurações: exportação/importação de backups locais.",
     changelog_1_22_0: "Seleção automática do treino ao mudar a estrela.",
+    changelog_1_23_0:
+      "Configuração de algoritmos para treino em níveis máximos.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -2369,6 +2422,12 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsExportFailed: "Falha na exportação.",
     settingsImportSuccess: "Importação concluída. Recarregando…",
     settingsImportFailed: "Falha na importação.",
+    settingsAlgorithms: "Algoritmos",
+    settingsAlgorithmsTitle: "Algoritmos",
+    settingsAlgorithmsAllowTrainingLabel:
+      "Permitir treino até o máximo",
+    settingsAlgorithmsAllowTrainingTooltip:
+      "Quando selecionado, permite treinar jogadores até que a habilidade atinja o valor máximo. Se não selecionado, jogadores cujo nível atual = nível máximo não serão considerados para treino.",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Ofensivo",
     behaviorDefensive: "Defensivo",

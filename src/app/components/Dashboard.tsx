@@ -2061,6 +2061,7 @@ export default function Dashboard({
               addNotification(messages.notificationStarCleared);
               return;
             }
+            void handleSelect(playerId);
             const training = getTrainingForStar(
               optimizerPlayers,
               playerId,

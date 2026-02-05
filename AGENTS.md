@@ -31,3 +31,6 @@
 
 ## Clarification
 - If an instruction is unclear, ask clarifying questions before starting any coding.
+
+## Code Reuse
+- When writing code, prioritize maximizing reuse and minimizing repetitive implementations.

@@ -22,6 +22,7 @@ export type Messages = {
   changelog_1_21_0: string;
   changelog_1_22_0: string;
   changelog_1_23_0: string;
+  changelog_1_24_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -173,7 +174,14 @@ export type Messages = {
   trainingReminderTitle: string;
   trainingReminderBody: string;
   trainingReminderConfirm: string;
+  tacticLabel: string;
+  tacticNormal: string;
+  tacticPressing: string;
+  tacticCounterAttacks: string;
+  tacticAttackMiddle: string;
+  tacticAttackWings: string;
   tacticPlayCreatively: string;
+  tacticLongShots: string;
   confirmCancel: string;
   confirmSubmit: string;
   loadLineup: string;
@@ -344,6 +352,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_22_0: "Auto-select training regimen on manual star change.",
     changelog_1_23_0:
       "Algorithms setting to control training at max skill levels.",
+    changelog_1_24_0: "Lineup tactic selection for match orders.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -513,7 +522,14 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingReminderBody:
       "After submitting, set primary training to {{primary}} and secondary training to {{secondary}} in Hattrick. Captain: {{captain}}. Tactic: {{tactic}}. This app can’t update training settings because the API doesn’t allow it.",
     trainingReminderConfirm: "I understand",
+    tacticLabel: "Tactic",
+    tacticNormal: "Normal",
+    tacticPressing: "Pressing",
+    tacticCounterAttacks: "Counter-attacks",
+    tacticAttackMiddle: "Attack in the middle",
+    tacticAttackWings: "Attack on wings",
     tacticPlayCreatively: "Play creatively",
+    tacticLongShots: "Long shots",
     confirmCancel: "Cancel",
     confirmSubmit: "Submit",
     loadLineup: "Load lineup",
@@ -684,6 +700,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_22_0: "Training automatisch bei manuellem Star-Wechsel.",
     changelog_1_23_0:
       "Algorithmus-Einstellung für Training bei Maximalwerten.",
+    changelog_1_24_0: "Taktikauswahl für Matchorders.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -856,7 +873,14 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingReminderBody:
       "Nach dem Absenden stelle Primärtraining auf {{primary}} und Sekundärtraining auf {{secondary}} in Hattrick. Kapitän: {{captain}}. Taktik: {{tactic}}. Diese App kann die Trainingseinstellungen nicht ändern, da die API es nicht erlaubt.",
     trainingReminderConfirm: "Ich verstehe",
+    tacticLabel: "Taktik",
+    tacticNormal: "Normal",
+    tacticPressing: "Pressing",
+    tacticCounterAttacks: "Konter",
+    tacticAttackMiddle: "Angriff durch die Mitte",
+    tacticAttackWings: "Angriff über die Flügel",
     tacticPlayCreatively: "Kreativ spielen",
+    tacticLongShots: "Weitschüsse",
     confirmCancel: "Abbrechen",
     confirmSubmit: "Senden",
     loadLineup: "Aufstellung laden",
@@ -1027,6 +1051,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_22_0: "Auto‑sélection du plan d’entraînement au changement de star.",
     changelog_1_23_0:
       "Réglage des algorithmes pour l’entraînement au niveau maximal.",
+    changelog_1_24_0:
+      "Sélection de la tactique pour les ordres de match.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1205,7 +1231,14 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingReminderBody:
       "Après l’envoi, définissez l’entraînement principal sur {{primary}} et le secondaire sur {{secondary}} dans Hattrick. Capitaine : {{captain}}. Tactique : {{tactic}}. Cette app ne peut pas modifier ces réglages car l’API ne le permet pas.",
     trainingReminderConfirm: "J’ai compris",
+    tacticLabel: "Tactique",
+    tacticNormal: "Normal",
+    tacticPressing: "Pressing",
+    tacticCounterAttacks: "Contre-attaques",
+    tacticAttackMiddle: "Attaque dans l’axe",
+    tacticAttackWings: "Attaque sur les ailes",
     tacticPlayCreatively: "Jouer créatif",
+    tacticLongShots: "Tirs de loin",
     confirmCancel: "Annuler",
     confirmSubmit: "Envoyer",
     loadLineup: "Charger la composition",
@@ -1377,6 +1410,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_22_0: "Selección automática del entrenamiento al cambiar la estrella.",
     changelog_1_23_0:
       "Ajuste de algoritmos para entrenar con niveles máximos.",
+    changelog_1_24_0:
+      "Selección de táctica para órdenes de partido.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -1551,7 +1586,14 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingReminderBody:
       "Tras enviar, define el entrenamiento primario en {{primary}} y el secundario en {{secondary}} en Hattrick. Capitán: {{captain}}. Táctica: {{tactic}}. Esta app no puede cambiar la configuración porque la API no lo permite.",
     trainingReminderConfirm: "Entendido",
+    tacticLabel: "Táctica",
+    tacticNormal: "Normal",
+    tacticPressing: "Presión",
+    tacticCounterAttacks: "Contraataques",
+    tacticAttackMiddle: "Ataque por el centro",
+    tacticAttackWings: "Ataque por las bandas",
     tacticPlayCreatively: "Jugar creativo",
+    tacticLongShots: "Tiros lejanos",
     confirmCancel: "Cancelar",
     confirmSubmit: "Enviar",
     loadLineup: "Cargar alineación",
@@ -1722,6 +1764,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_21_0: "Inställningar: export/import av lokala säkerhetskopior.",
     changelog_1_22_0: "Auto‑val av träning vid manuell stjärnändring.",
     changelog_1_23_0: "Algoritminställning för träning vid maxnivåer.",
+    changelog_1_24_0: "Taktikval för matchorder.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -1894,7 +1937,14 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingReminderBody:
       "Efter att du skickat in, ställ in primär träning till {{primary}} och sekundär till {{secondary}} i Hattrick. Kapten: {{captain}}. Taktik: {{tactic}}. Appen kan inte ändra träningsinställningar eftersom API:t inte tillåter det.",
     trainingReminderConfirm: "Jag förstår",
+    tacticLabel: "Taktik",
+    tacticNormal: "Normal",
+    tacticPressing: "Press",
+    tacticCounterAttacks: "Kontringar",
+    tacticAttackMiddle: "Anfall i mitten",
+    tacticAttackWings: "Anfall på kanterna",
     tacticPlayCreatively: "Spela kreativt",
+    tacticLongShots: "Långskott",
     confirmCancel: "Avbryt",
     confirmSubmit: "Skicka",
     loadLineup: "Ladda uppställning",
@@ -2066,6 +2116,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_22_0: "Selezione automatica del training al cambio stella.",
     changelog_1_23_0:
       "Impostazione algoritmi per l’allenamento ai livelli massimi.",
+    changelog_1_24_0:
+      "Selezione tattica per gli ordini partita.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -2240,7 +2292,14 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingReminderBody:
       "Dopo l’invio, imposta l’allenamento primario su {{primary}} e il secondario su {{secondary}} in Hattrick. Capitano: {{captain}}. Tattica: {{tactic}}. Questa app non può modificare le impostazioni perché l’API non lo consente.",
     trainingReminderConfirm: "Ho capito",
+    tacticLabel: "Tattica",
+    tacticNormal: "Normale",
+    tacticPressing: "Pressing",
+    tacticCounterAttacks: "Contropiede",
+    tacticAttackMiddle: "Attacco al centro",
+    tacticAttackWings: "Attacco sulle fasce",
     tacticPlayCreatively: "Giocare creativo",
+    tacticLongShots: "Tiri da lontano",
     confirmCancel: "Annulla",
     confirmSubmit: "Invia",
     loadLineup: "Carica formazione",
@@ -2412,6 +2471,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_22_0: "Seleção automática do treino ao mudar a estrela.",
     changelog_1_23_0:
       "Configuração de algoritmos para treino em níveis máximos.",
+    changelog_1_24_0:
+      "Seleção de tática para ordens de jogo.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -2586,7 +2647,14 @@ const MESSAGES: Record<Locale, Messages> = {
     trainingReminderBody:
       "Após enviar, defina o treino primário como {{primary}} e o secundário como {{secondary}} no Hattrick. Capitão: {{captain}}. Tática: {{tactic}}. Esta app não pode alterar as configurações porque a API não permite.",
     trainingReminderConfirm: "Entendi",
+    tacticLabel: "Tática",
+    tacticNormal: "Normal",
+    tacticPressing: "Pressão",
+    tacticCounterAttacks: "Contra-ataques",
+    tacticAttackMiddle: "Ataque pelo meio",
+    tacticAttackWings: "Ataque pelas alas",
     tacticPlayCreatively: "Jogar criativamente",
+    tacticLongShots: "Chutes de longe",
     confirmCancel: "Cancelar",
     confirmSubmit: "Enviar",
     loadLineup: "Carregar escalação",

@@ -278,6 +278,7 @@ export default function Dashboard({
   >(null);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
+  const [tacticType, setTacticType] = useState(7);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -314,6 +315,10 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "1.24.0",
+        entries: [messages.changelog_1_24_0],
+      },
+      {
         version: "1.23.0",
         entries: [messages.changelog_1_23_0],
       },
@@ -335,6 +340,7 @@ export default function Dashboard({
       messages.changelog_1_21_0,
       messages.changelog_1_22_0,
       messages.changelog_1_23_0,
+      messages.changelog_1_24_0,
     ]
   );
 
@@ -514,6 +520,7 @@ export default function Dashboard({
         starPlayerId?: number | null;
         primaryTraining?: string;
         secondaryTraining?: string;
+        tacticType?: number;
         loadedMatchId?: number | null;
         cache?: Record<number, CachedDetails>;
         ratingsCache?: Record<number, Record<string, number>>;
@@ -533,6 +540,9 @@ export default function Dashboard({
         setSecondaryTraining(
           isTrainingSkill(parsed.secondaryTraining) ? parsed.secondaryTraining : ""
         );
+      if (parsed.tacticType !== undefined && Number.isFinite(parsed.tacticType)) {
+        setTacticType(parsed.tacticType);
+      }
       if (parsed.loadedMatchId !== undefined)
         setLoadedMatchId(parsed.loadedMatchId);
       if (parsed.cache) {
@@ -563,6 +573,7 @@ export default function Dashboard({
       starPlayerId,
       primaryTraining,
       secondaryTraining,
+      tacticType,
       loadedMatchId,
       cache,
       ratingsCache,
@@ -583,6 +594,7 @@ export default function Dashboard({
     ratingsCache,
     ratingsPositions,
     secondaryTraining,
+    tacticType,
     selectedId,
     starPlayerId,
     behaviors,
@@ -1861,6 +1873,27 @@ export default function Dashboard({
         return messages.unknownShort;
     }
   };
+
+  const tacticLabelForValue = (value: number) => {
+    switch (value) {
+      case 0:
+        return messages.tacticNormal;
+      case 1:
+        return messages.tacticPressing;
+      case 2:
+        return messages.tacticCounterAttacks;
+      case 3:
+        return messages.tacticAttackMiddle;
+      case 4:
+        return messages.tacticAttackWings;
+      case 7:
+        return messages.tacticPlayCreatively;
+      case 8:
+        return messages.tacticLongShots;
+      default:
+        return messages.unknownShort;
+    }
+  };
   const captainName = captainId
     ? formatPlayerName(playersById.get(captainId) ?? ({} as YouthPlayer))
     : messages.unknownShort;
@@ -1868,7 +1901,7 @@ export default function Dashboard({
     .replace("{{primary}}", trainingLabel(primaryTraining))
     .replace("{{secondary}}", trainingLabel(secondaryTraining))
     .replace("{{captain}}", captainName)
-    .replace("{{tactic}}", messages.tacticPlayCreatively);
+    .replace("{{tactic}}", tacticLabelForValue(tacticType));
 
   const trainingSlots = useMemo(() => {
     if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
@@ -2248,6 +2281,8 @@ export default function Dashboard({
           onRandomize={randomizeLineup}
           onReset={resetLineup}
           onOptimizeSelect={handleOptimizeSelect}
+          tacticType={tacticType}
+          onTacticChange={setTacticType}
           optimizeDisabled={!manualReady}
           optimizeDisabledReason={optimizeDisabledReason}
           forceOptimizeOpen={showHelp}
@@ -2511,6 +2546,7 @@ export default function Dashboard({
           assignments={assignments}
           behaviors={behaviors}
           captainId={captainId}
+          tacticType={tacticType}
           onRefresh={refreshMatches}
           onLoadLineup={loadLineup}
           loadedMatchId={loadedMatchId}

@@ -52,6 +52,7 @@ type UpcomingMatchesProps = {
   assignments: LineupAssignments;
   behaviors?: LineupBehaviors;
   captainId?: number | null;
+  tacticType?: number;
   onRefresh?: () => void;
   onLoadLineup?: (
     assignments: LineupAssignments,
@@ -121,7 +122,8 @@ const BENCH_SLOT_ORDER = [
 function buildLineupPayload(
   assignments: LineupAssignments,
   behaviors?: LineupBehaviors,
-  captainId?: number | null
+  captainId?: number | null,
+  tacticType?: number
 ) {
   const toId = (value: number | null | undefined) => value ?? 0;
   const positions = POSITION_SLOT_ORDER.map((slot) => ({
@@ -145,7 +147,7 @@ function buildLineupPayload(
     captain: captainId ?? 0,
     setPieces: 0,
     settings: {
-      tactic: 7,
+      tactic: typeof tacticType === "number" ? tacticType : 7,
       speechLevel: 0,
       newLineup: "",
       coachModifier: 0,
@@ -340,6 +342,7 @@ export default function UpcomingMatches({
   assignments,
   behaviors,
   captainId,
+  tacticType,
   onRefresh,
   onLoadLineup,
   loadedMatchId,
@@ -358,8 +361,8 @@ export default function UpcomingMatches({
   const hasLineup = assignedCount >= 9 && assignedCount <= 11;
 
   const lineupPayload = useMemo(
-    () => buildLineupPayload(assignments, behaviors, captainId),
-    [assignments, behaviors, captainId]
+    () => buildLineupPayload(assignments, behaviors, captainId, tacticType),
+    [assignments, behaviors, captainId, tacticType]
   );
 
   const allMatches = normalizeMatches(

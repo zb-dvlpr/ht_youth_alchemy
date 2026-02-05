@@ -47,6 +47,8 @@ type LineupFieldProps = {
   onRandomize?: () => void;
   onReset?: () => void;
   onOptimizeSelect?: (mode: OptimizeMode) => void;
+  tacticType?: number;
+  onTacticChange?: (value: number) => void;
   optimizeDisabled?: boolean;
   optimizeDisabledReason?: string;
   forceOptimizeOpen?: boolean;
@@ -228,6 +230,8 @@ export default function LineupField({
   onRandomize,
   onReset,
   onOptimizeSelect,
+  tacticType = 7,
+  onTacticChange,
   optimizeDisabled = false,
   optimizeDisabledReason,
   forceOptimizeOpen = false,
@@ -313,87 +317,107 @@ export default function LineupField({
     <div className={styles.fieldCard}>
       <div className={styles.fieldHeader}>
         <span>{messages.lineupTitle}</span>
-        {onOptimizeSelect ? (
-          <div className={styles.feedbackWrap}>
-            <Tooltip
-              content={
-                optimizeDisabled
-                  ? optimizeDisabledReason
-                  : messages.optimizeLineupTitle
-              }
-            >
-              <button
-                type="button"
-                className={styles.optimizeButton}
-                onClick={() => {
-                  if (forceOptimizeOpen) return;
-                  setOptimizeOpen((prev) => !prev);
-                }}
-                aria-label={
+        <div className={styles.fieldHeaderControls}>
+          {onOptimizeSelect ? (
+            <div className={styles.feedbackWrap}>
+              <Tooltip
+                content={
                   optimizeDisabled
                     ? optimizeDisabledReason
                     : messages.optimizeLineupTitle
                 }
-                disabled={optimizeDisabled}
-                ref={optimizeButtonRef}
-              >
-                ✨
-              </button>
-            </Tooltip>
-            {menuOpen ? (
-              <div
-                className={styles.feedbackMenu}
-                ref={optimizeMenuRef}
-                data-help-anchor="optimize-menu"
               >
                 <button
                   type="button"
-                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                  onClick={() => handleOptimizeSelect("star")}
+                  className={styles.optimizeButton}
+                  onClick={() => {
+                    if (forceOptimizeOpen) return;
+                    setOptimizeOpen((prev) => !prev);
+                  }}
+                  aria-label={
+                    optimizeDisabled
+                      ? optimizeDisabledReason
+                      : messages.optimizeLineupTitle
+                  }
+                  disabled={optimizeDisabled}
+                  ref={optimizeButtonRef}
                 >
-                  {messages.optimizeMenuStar}
+                  ✨
                 </button>
-                <button
-                  type="button"
-                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                  onClick={() => handleOptimizeSelect("ratings")}
+              </Tooltip>
+              {menuOpen ? (
+                <div
+                  className={styles.feedbackMenu}
+                  ref={optimizeMenuRef}
+                  data-help-anchor="optimize-menu"
                 >
-                  {messages.optimizeMenuRatings}
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                  onClick={() => handleOptimizeSelect("revealPrimaryCurrent")}
-                >
-                  {messages.optimizeMenuRevealPrimaryCurrent}
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                  onClick={() => handleOptimizeSelect("revealPrimaryMax")}
-                >
-                  {messages.optimizeMenuRevealPrimaryMax}
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                  onClick={() => handleOptimizeSelect("revealSecondaryCurrent")}
-                >
-                  {messages.optimizeMenuRevealSecondaryCurrent}
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                  onClick={() => handleOptimizeSelect("revealSecondaryMax")}
-                >
-                  {messages.optimizeMenuRevealSecondaryMax}
-                </button>
-              </div>
-            ) : null}
-          </div>
-        ) : null}
+                  <button
+                    type="button"
+                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                    onClick={() => handleOptimizeSelect("star")}
+                  >
+                    {messages.optimizeMenuStar}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                    onClick={() => handleOptimizeSelect("ratings")}
+                  >
+                    {messages.optimizeMenuRatings}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                    onClick={() => handleOptimizeSelect("revealPrimaryCurrent")}
+                  >
+                    {messages.optimizeMenuRevealPrimaryCurrent}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                    onClick={() => handleOptimizeSelect("revealPrimaryMax")}
+                  >
+                    {messages.optimizeMenuRevealPrimaryMax}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                    onClick={() => handleOptimizeSelect("revealSecondaryCurrent")}
+                  >
+                    {messages.optimizeMenuRevealSecondaryCurrent}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                    onClick={() => handleOptimizeSelect("revealSecondaryMax")}
+                  >
+                    {messages.optimizeMenuRevealSecondaryMax}
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
       </div>
       <div className={styles.fieldPitch}>
+        {onTacticChange ? (
+          <label className={styles.tacticOverlay}>
+            <span className={styles.tacticLabel}>{messages.tacticLabel}</span>
+            <select
+              className={styles.tacticSelect}
+              value={tacticType}
+              onChange={(event) => onTacticChange(Number(event.target.value))}
+            >
+              <option value={0}>{messages.tacticNormal}</option>
+              <option value={1}>{messages.tacticPressing}</option>
+              <option value={2}>{messages.tacticCounterAttacks}</option>
+              <option value={3}>{messages.tacticAttackMiddle}</option>
+              <option value={4}>{messages.tacticAttackWings}</option>
+              <option value={7}>{messages.tacticPlayCreatively}</option>
+              <option value={8}>{messages.tacticLongShots}</option>
+            </select>
+          </label>
+        ) : null}
         <div className={styles.penaltyBox} />
         <div className={styles.penaltyArc} />
         <div className={styles.fieldGoal}>

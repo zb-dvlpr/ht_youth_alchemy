@@ -229,6 +229,24 @@ function isTrainingBlocked(
   return false;
 }
 
+function trainingPriorityTier(
+  player: OptimizerPlayer,
+  skills: SkillKey[],
+  allowTrainingUntilMaxedOut: boolean
+) {
+  if (!skills.length) return 0;
+  if (skills.some((skill) => isMaxReached(player, skill))) {
+    return 2;
+  }
+  if (
+    !allowTrainingUntilMaxedOut &&
+    skills.some((skill) => isCurrentAtMax(player, skill))
+  ) {
+    return 1;
+  }
+  return 0;
+}
+
 function slotsForSkill(skill: SkillKey) {
   const slots = new Set<(typeof ALL_SLOTS)[number]>();
   ALL_SLOTS.forEach((slot) => {
@@ -1838,6 +1856,7 @@ export function optimizeByRatings(
   autoSelected = false,
   preferences?: Partial<TrainingPreferences>
 ) {
+  const { allowTrainingUntilMaxedOut } = resolveTrainingPreferences(preferences);
   if (!starPlayerId || !primary || !secondary) {
     return {
       lineup: {} as LineupAssignments,
@@ -1908,6 +1927,17 @@ export function optimizeByRatings(
         !usedPlayers.has(player.id) && !allSkillsMaxed(player, skills)
     );
     candidates.sort((a, b) => {
+      const aTier = trainingPriorityTier(
+        a,
+        skills,
+        allowTrainingUntilMaxedOut
+      );
+      const bTier = trainingPriorityTier(
+        b,
+        skills,
+        allowTrainingUntilMaxedOut
+      );
+      if (aTier !== bTier) return aTier - bTier;
       const aRating = ratingForSlot(ratingsByPlayer, a.id, slot);
       const bRating = ratingForSlot(ratingsByPlayer, b.id, slot);
       if (aRating === null && bRating === null) return 0;
@@ -1924,12 +1954,24 @@ export function optimizeByRatings(
   ) => {
     const availableSlots = shuffleSlots(slots.filter((slot) => !(slot in lineup)));
     availableSlots.forEach((slot) => {
+      const skills = slotTrainingSkills(slot, primary, secondary);
       const candidates = players.filter((player) => {
         if (usedPlayers.has(player.id)) return false;
         if (filterSkill && isMaxReached(player, filterSkill)) return false;
         return true;
       });
       candidates.sort((a, b) => {
+        const aTier = trainingPriorityTier(
+          a,
+          filterSkill ? [filterSkill] : skills,
+          allowTrainingUntilMaxedOut
+        );
+        const bTier = trainingPriorityTier(
+          b,
+          filterSkill ? [filterSkill] : skills,
+          allowTrainingUntilMaxedOut
+        );
+        if (aTier !== bTier) return aTier - bTier;
         const aRating = ratingForSlot(ratingsByPlayer, a.id, slot);
         const bRating = ratingForSlot(ratingsByPlayer, b.id, slot);
         if (aRating === null && bRating === null) return 0;
@@ -1965,6 +2007,17 @@ export function optimizeByRatings(
   if (!lineup.KP) {
     const keeperCandidates = players.filter((player) => !usedPlayers.has(player.id));
     keeperCandidates.sort((a, b) => {
+      const aTier = trainingPriorityTier(
+        a,
+        slotTrainingSkills("KP", primary, secondary),
+        allowTrainingUntilMaxedOut
+      );
+      const bTier = trainingPriorityTier(
+        b,
+        slotTrainingSkills("KP", primary, secondary),
+        allowTrainingUntilMaxedOut
+      );
+      if (aTier !== bTier) return aTier - bTier;
       const aRating = ratingForSlot(ratingsByPlayer, a.id, "KP");
       const bRating = ratingForSlot(ratingsByPlayer, b.id, "KP");
       if (aRating === null && bRating === null) return 0;
@@ -1989,6 +2042,18 @@ export function optimizeByRatings(
   slotsToFill.forEach((slot) => {
     const candidates = players.filter((player) => !usedPlayers.has(player.id));
     candidates.sort((a, b) => {
+      const skills = slotTrainingSkills(slot, primary, secondary);
+      const aTier = trainingPriorityTier(
+        a,
+        skills,
+        allowTrainingUntilMaxedOut
+      );
+      const bTier = trainingPriorityTier(
+        b,
+        skills,
+        allowTrainingUntilMaxedOut
+      );
+      if (aTier !== bTier) return aTier - bTier;
       const aRating = ratingForSlot(ratingsByPlayer, a.id, slot);
       const bRating = ratingForSlot(ratingsByPlayer, b.id, slot);
       if (aRating === null && bRating === null) return 0;

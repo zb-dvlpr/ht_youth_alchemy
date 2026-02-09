@@ -1782,6 +1782,14 @@ html[data-theme="dark"] .spinner {
   gap: 12px;
 }
 
+.matchesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 .matchItem {
   padding: 14px 16px;
   border-radius: 12px;

@@ -315,6 +315,10 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "1.25.0",
+        entries: [messages.changelog_1_25_0],
+      },
+      {
         version: "1.24.0",
         entries: [messages.changelog_1_24_0],
       },
@@ -341,6 +345,7 @@ export default function Dashboard({
       messages.changelog_1_22_0,
       messages.changelog_1_23_0,
       messages.changelog_1_24_0,
+      messages.changelog_1_25_0,
     ]
   );
 
@@ -1561,11 +1566,17 @@ export default function Dashboard({
       if (isAuthErrorPayload(payload, response)) {
         setAuthError(true);
         setAuthErrorDetails(payload.details ?? messages.connectHint);
-        return;
+        return false;
+      }
+      if (!response.ok || payload.error) {
+        setMatchesState(payload);
+        return false;
       }
       setMatchesState(payload);
+      return true;
     } catch {
       // keep existing data
+      return false;
     }
   };
 

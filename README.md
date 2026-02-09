@@ -83,6 +83,14 @@ After OAuth succeeds and you have set a lineup in the UI, you can submit orders 
 ## Testing
 - Lint: `npm run lint`
 - Build: `npm run build`
+- Version guardrail (pre-rebase sanity check): `npm run check:version`
+
+## Git hooks
+This repo uses a pre-rebase hook to prevent version regressions. If hooks are not active, run:
+
+```bash
+git config core.hooksPath .githooks
+```
 
 ## Notes
 - Match orders are submitted only after explicit confirmation.

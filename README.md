@@ -1,4 +1,4 @@
-# Youth Alchemy
+# Hattrick Alchemy
 
 Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-training plan and a match lineup for your Hattrick youth squad, with space for future senior-squad tools. If you select a priority player, the recommendation weights that player more heavily while still maximizing total expected squad training.
 

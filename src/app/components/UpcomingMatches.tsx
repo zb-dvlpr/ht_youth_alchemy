@@ -53,7 +53,7 @@ type UpcomingMatchesProps = {
   behaviors?: LineupBehaviors;
   captainId?: number | null;
   tacticType?: number;
-  onRefresh?: () => void;
+  onRefresh?: () => boolean | Promise<boolean>;
   onLoadLineup?: (
     assignments: LineupAssignments,
     behaviors: LineupBehaviors,
@@ -352,6 +352,7 @@ export default function UpcomingMatches({
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
   const [loadStates, setLoadStates] = useState<Record<number, LoadState>>({});
   const [confirmMatchId, setConfirmMatchId] = useState<number | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const teamId =
     response.data?.HattrickData?.Team?.TeamID ??
     null;
@@ -405,6 +406,23 @@ export default function UpcomingMatches({
     }
     setConfirmMatchId(matchId);
     return;
+  };
+
+  const handleRefresh = async () => {
+    if (!onRefresh || refreshing) return;
+    setRefreshing(true);
+    try {
+      const result = await onRefresh();
+      if (result) {
+        addNotification(messages.notificationMatchesRefreshed);
+      } else {
+        addNotification(messages.notificationMatchesRefreshFailed);
+      }
+    } catch {
+      addNotification(messages.notificationMatchesRefreshFailed);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const handleLoadLineup = async (matchId: number) => {
@@ -586,7 +604,20 @@ export default function UpcomingMatches({
   if (response.error) {
     return (
       <div className={styles.card}>
-        <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
+        <div className={styles.matchesHeader}>
+          <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
+          <Tooltip content={messages.matchesRefreshTooltip}>
+            <button
+              type="button"
+              className={styles.sortToggle}
+              onClick={handleRefresh}
+              disabled={refreshing}
+              aria-label={messages.matchesRefreshTooltip}
+            >
+              ↻
+            </button>
+          </Tooltip>
+        </div>
         <p className={styles.errorText}>{messages.unableToLoadMatches}</p>
         {response.details ? (
           <p className={styles.errorDetails}>{response.details}</p>
@@ -601,7 +632,20 @@ export default function UpcomingMatches({
 
   return (
     <div className={styles.card}>
-      <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
+      <div className={styles.matchesHeader}>
+        <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
+        <Tooltip content={messages.matchesRefreshTooltip}>
+          <button
+            type="button"
+            className={styles.sortToggle}
+            onClick={handleRefresh}
+            disabled={refreshing}
+            aria-label={messages.matchesRefreshTooltip}
+          >
+            ↻
+          </button>
+        </Tooltip>
+      </div>
       <Modal
         open={!!confirmMatchId}
         variant="local"

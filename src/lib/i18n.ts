@@ -18,11 +18,17 @@ export type Messages = {
   helpMenuOpen: string;
   helpMenuChangelog: string;
   changelogTitle: string;
+  changelogVersionLabel: string;
+  changelogEntryLabel: string;
+  changelogNewer: string;
+  changelogOlder: string;
+  changelogPageLabel: string;
   changelog_1_19_0: string;
   changelog_1_21_0: string;
   changelog_1_22_0: string;
   changelog_1_23_0: string;
   changelog_1_24_0: string;
+  changelog_1_25_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -73,6 +79,8 @@ export type Messages = {
   unableToLoadPlayers: string;
   unableToLoadMatches: string;
   matchesTitle: string;
+  matchesRefresh: string;
+  matchesRefreshTooltip: string;
   noUpcomingMatches: string;
   noMatchesReturned: string;
   ordersLabel: string;
@@ -208,6 +216,8 @@ export type Messages = {
   notificationTeamSwitched: string;
   notificationTeamsLoaded: string;
   notificationTeamsLoadFailed: string;
+  notificationMatchesRefreshed: string;
+  notificationMatchesRefreshFailed: string;
   permissionsLabel: string;
   permissionsNone: string;
   autoSelectLabel: string;
@@ -347,12 +357,18 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Open help",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Version",
+    changelogEntryLabel: "Update",
+    changelogNewer: "Newer",
+    changelogOlder: "Older",
+    changelogPageLabel: "Page {{current}} of {{total}}",
     changelog_1_19_0: "Multi team support.",
     changelog_1_21_0: "Settings export/import for local data backups.",
     changelog_1_22_0: "Auto-select training regimen on manual star change.",
     changelog_1_23_0:
       "Algorithms setting to control training at max skill levels.",
     changelog_1_24_0: "Lineup tactic selection for match orders.",
+    changelog_1_25_0: "Matches refresh button.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -410,6 +426,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unableToLoadPlayers: "Unable to load players",
     unableToLoadMatches: "Unable to load matches",
     matchesTitle: "Matches",
+    matchesRefresh: "Refresh matches",
+    matchesRefreshTooltip: "Refresh matches",
     noUpcomingMatches: "No UPCOMING matches found. Showing recent matches instead.",
     noMatchesReturned: "No matches returned.",
     ordersLabel: "Orders",
@@ -556,6 +574,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationTeamSwitched: "Switched to:",
     notificationTeamsLoaded: "Teams loaded",
     notificationTeamsLoadFailed: "Failed to load teams",
+    notificationMatchesRefreshed: "Matches refreshed",
+    notificationMatchesRefreshFailed: "Matches refresh failed",
     permissionsLabel: "Permissions:",
     permissionsNone: "None",
     autoSelectLabel: "✨",
@@ -695,12 +715,18 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Hilfe öffnen",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Version",
+    changelogEntryLabel: "Update",
+    changelogNewer: "Neuere",
+    changelogOlder: "Ältere",
+    changelogPageLabel: "Seite {{current}} von {{total}}",
     changelog_1_19_0: "Unterstützung für mehrere Teams.",
     changelog_1_21_0: "Einstellungen: Export/Import für lokale Datensicherungen.",
     changelog_1_22_0: "Training automatisch bei manuellem Star-Wechsel.",
     changelog_1_23_0:
       "Algorithmus-Einstellung für Training bei Maximalwerten.",
     changelog_1_24_0: "Taktikauswahl für Matchorders.",
+    changelog_1_25_0: "Schaltfläche zum Aktualisieren der Spiele.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -760,6 +786,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unableToLoadPlayers: "Spieler konnten nicht geladen werden",
     unableToLoadMatches: "Spiele konnten nicht geladen werden",
     matchesTitle: "Spiele",
+    matchesRefresh: "Spiele aktualisieren",
+    matchesRefreshTooltip: "Spiele aktualisieren",
     noUpcomingMatches: "Keine anstehenden Spiele gefunden. Zeige stattdessen letzte Spiele.",
     noMatchesReturned: "Keine Spiele zurückgegeben.",
     ordersLabel: "Anweisungen",
@@ -907,6 +935,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationTeamSwitched: "Gewechselt zu:",
     notificationTeamsLoaded: "Teams geladen",
     notificationTeamsLoadFailed: "Teams konnten nicht geladen werden",
+    notificationMatchesRefreshed: "Spiele aktualisiert",
+    notificationMatchesRefreshFailed: "Aktualisierung der Spiele fehlgeschlagen",
     permissionsLabel: "Rechte:",
     permissionsNone: "Keine",
     autoSelectLabel: "✨",
@@ -1046,6 +1076,11 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Ouvrir l’aide",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Version",
+    changelogEntryLabel: "Mise à jour",
+    changelogNewer: "Plus récent",
+    changelogOlder: "Plus ancien",
+    changelogPageLabel: "Page {{current}} sur {{total}}",
     changelog_1_19_0: "Prise en charge de plusieurs équipes.",
     changelog_1_21_0: "Paramètres : export/import pour sauvegardes locales.",
     changelog_1_22_0: "Auto‑sélection du plan d’entraînement au changement de star.",
@@ -1053,6 +1088,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Réglage des algorithmes pour l’entraînement au niveau maximal.",
     changelog_1_24_0:
       "Sélection de la tactique pour les ordres de match.",
+    changelog_1_25_0: "Bouton d’actualisation des matchs.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1113,6 +1149,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unableToLoadPlayers: "Impossible de charger les joueurs",
     unableToLoadMatches: "Impossible de charger les matchs",
     matchesTitle: "Matchs",
+    matchesRefresh: "Actualiser les matchs",
+    matchesRefreshTooltip: "Actualiser les matchs",
     noUpcomingMatches: "Aucun match À VENIR trouvé. Affichage des matchs récents.",
     noMatchesReturned: "Aucun match retourné.",
     ordersLabel: "Ordres",
@@ -1265,6 +1303,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationTeamSwitched: "Changé vers :",
     notificationTeamsLoaded: "Équipes chargées",
     notificationTeamsLoadFailed: "Impossible de charger les équipes",
+    notificationMatchesRefreshed: "Matchs actualisés",
+    notificationMatchesRefreshFailed: "Échec de l’actualisation des matchs",
     permissionsLabel: "Permissions :",
     permissionsNone: "Aucune",
     autoSelectLabel: "✨",
@@ -1405,6 +1445,11 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Abrir ayuda",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Versión",
+    changelogEntryLabel: "Actualización",
+    changelogNewer: "Más reciente",
+    changelogOlder: "Más antiguo",
+    changelogPageLabel: "Página {{current}} de {{total}}",
     changelog_1_19_0: "Soporte para múltiples equipos.",
     changelog_1_21_0: "Ajustes: exportación/importación de copias locales.",
     changelog_1_22_0: "Selección automática del entrenamiento al cambiar la estrella.",
@@ -1412,6 +1457,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Ajuste de algoritmos para entrenar con niveles máximos.",
     changelog_1_24_0:
       "Selección de táctica para órdenes de partido.",
+    changelog_1_25_0: "Botón para refrescar los partidos.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -1472,6 +1518,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unableToLoadPlayers: "No se pudieron cargar los jugadores",
     unableToLoadMatches: "No se pudieron cargar los partidos",
     matchesTitle: "Partidos",
+    matchesRefresh: "Actualizar partidos",
+    matchesRefreshTooltip: "Actualizar partidos",
     noUpcomingMatches: "No hay partidos PRÓXIMOS. Mostrando los recientes.",
     noMatchesReturned: "No se devolvieron partidos.",
     ordersLabel: "Órdenes",
@@ -1620,6 +1668,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationTeamSwitched: "Cambiado a:",
     notificationTeamsLoaded: "Equipos cargados",
     notificationTeamsLoadFailed: "No se pudieron cargar los equipos",
+    notificationMatchesRefreshed: "Partidos actualizados",
+    notificationMatchesRefreshFailed: "Fallo al actualizar partidos",
     permissionsLabel: "Permisos:",
     permissionsNone: "Ninguno",
     autoSelectLabel: "✨",
@@ -1760,11 +1810,17 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Öppna hjälp",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Version",
+    changelogEntryLabel: "Uppdatering",
+    changelogNewer: "Nyare",
+    changelogOlder: "Äldre",
+    changelogPageLabel: "Sida {{current}} av {{total}}",
     changelog_1_19_0: "Stöd för flera lag.",
     changelog_1_21_0: "Inställningar: export/import av lokala säkerhetskopior.",
     changelog_1_22_0: "Auto‑val av träning vid manuell stjärnändring.",
     changelog_1_23_0: "Algoritminställning för träning vid maxnivåer.",
     changelog_1_24_0: "Taktikval för matchorder.",
+    changelog_1_25_0: "Uppdateringsknapp för matcher.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -1824,6 +1880,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unableToLoadPlayers: "Kunde inte ladda spelare",
     unableToLoadMatches: "Kunde inte ladda matcher",
     matchesTitle: "Matcher",
+    matchesRefresh: "Uppdatera matcher",
+    matchesRefreshTooltip: "Uppdatera matcher",
     noUpcomingMatches: "Inga KOMMANDE matcher. Visar senaste matcher.",
     noMatchesReturned: "Inga matcher returnerades.",
     ordersLabel: "Order",
@@ -1971,6 +2029,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationTeamSwitched: "Bytt till:",
     notificationTeamsLoaded: "Lag laddade",
     notificationTeamsLoadFailed: "Kunde inte ladda lag",
+    notificationMatchesRefreshed: "Matcher uppdaterade",
+    notificationMatchesRefreshFailed: "Misslyckades att uppdatera matcher",
     permissionsLabel: "Behörigheter:",
     permissionsNone: "Inga",
     autoSelectLabel: "✨",
@@ -2111,6 +2171,11 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Apri aiuto",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Versione",
+    changelogEntryLabel: "Aggiornamento",
+    changelogNewer: "Più recenti",
+    changelogOlder: "Più vecchi",
+    changelogPageLabel: "Pagina {{current}} di {{total}}",
     changelog_1_19_0: "Supporto multi‑squadra.",
     changelog_1_21_0: "Impostazioni: export/import per backup locali.",
     changelog_1_22_0: "Selezione automatica del training al cambio stella.",
@@ -2118,6 +2183,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Impostazione algoritmi per l’allenamento ai livelli massimi.",
     changelog_1_24_0:
       "Selezione tattica per gli ordini partita.",
+    changelog_1_25_0: "Pulsante di aggiornamento dei match.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -2178,6 +2244,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unableToLoadPlayers: "Impossibile caricare i giocatori",
     unableToLoadMatches: "Impossibile caricare le partite",
     matchesTitle: "Partite",
+    matchesRefresh: "Aggiorna partite",
+    matchesRefreshTooltip: "Aggiorna partite",
     noUpcomingMatches: "Nessuna partita IMMINENTE. Mostro le recenti.",
     noMatchesReturned: "Nessuna partita restituita.",
     ordersLabel: "Ordini",
@@ -2326,6 +2394,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationTeamSwitched: "Passato a:",
     notificationTeamsLoaded: "Squadre caricate",
     notificationTeamsLoadFailed: "Impossibile caricare le squadre",
+    notificationMatchesRefreshed: "Partite aggiornate",
+    notificationMatchesRefreshFailed: "Aggiornamento partite fallito",
     permissionsLabel: "Permessi:",
     permissionsNone: "Nessuno",
     autoSelectLabel: "✨",
@@ -2466,6 +2536,11 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Abrir ajuda",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Versão",
+    changelogEntryLabel: "Atualização",
+    changelogNewer: "Mais recentes",
+    changelogOlder: "Mais antigas",
+    changelogPageLabel: "Página {{current}} de {{total}}",
     changelog_1_19_0: "Suporte a vários times.",
     changelog_1_21_0: "Configurações: exportação/importação de backups locais.",
     changelog_1_22_0: "Seleção automática do treino ao mudar a estrela.",
@@ -2473,6 +2548,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Configuração de algoritmos para treino em níveis máximos.",
     changelog_1_24_0:
       "Seleção de tática para ordens de jogo.",
+    changelog_1_25_0: "Botão para atualizar partidas.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -2533,6 +2609,8 @@ const MESSAGES: Record<Locale, Messages> = {
     unableToLoadPlayers: "Não foi possível carregar jogadores",
     unableToLoadMatches: "Não foi possível carregar partidas",
     matchesTitle: "Partidas",
+    matchesRefresh: "Atualizar partidas",
+    matchesRefreshTooltip: "Atualizar partidas",
     noUpcomingMatches: "Nenhuma partida FUTURA. Mostrando as recentes.",
     noMatchesReturned: "Nenhuma partida retornada.",
     ordersLabel: "Ordens",
@@ -2681,6 +2759,8 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationTeamSwitched: "Mudou para:",
     notificationTeamsLoaded: "Times carregados",
     notificationTeamsLoadFailed: "Falha ao carregar times",
+    notificationMatchesRefreshed: "Partidas atualizadas",
+    notificationMatchesRefreshFailed: "Falha ao atualizar partidas",
     permissionsLabel: "Permissões:",
     permissionsNone: "Nenhuma",
     autoSelectLabel: "✨",

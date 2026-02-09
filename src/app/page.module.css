@@ -536,9 +536,29 @@
   gap: 12px;
 }
 
-.changelogEntry {
-  padding: 10px 12px;
-  border-radius: 12px;
+.changelogTable {
+  display: grid;
+  gap: 8px;
+}
+
+.changelogRowHeader,
+.changelogRow {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+.changelogRowHeader {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b6256;
+}
+
+.changelogRow {
+  padding: 8px 10px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.7);
   border: 1px solid #eadfcf;
 }
@@ -546,13 +566,29 @@
 .changelogVersion {
   font-weight: 700;
   color: #3f362c;
-  margin-bottom: 6px;
 }
 
-.changelogList {
-  margin: 0;
-  padding-left: 18px;
+.changelogText {
   color: #4c4338;
+  line-height: 1.4;
+}
+
+.changelogPagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.changelogPageLabel {
+  font-size: 12px;
+  color: #6b6256;
+}
+
+.changelogPageButtons {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .helpDisabledColumn {
@@ -882,17 +918,19 @@ html[data-theme="dark"] .helpCard {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-html[data-theme="dark"] .changelogEntry {
+html[data-theme="dark"] .changelogRow {
   background: #1b1917;
   border-color: rgba(255, 255, 255, 0.08);
 }
 
-html[data-theme="dark"] .changelogVersion {
-  color: #f3ede4;
+html[data-theme="dark"] .changelogRowHeader,
+html[data-theme="dark"] .changelogPageLabel {
+  color: #b9b0a5;
 }
 
-html[data-theme="dark"] .changelogList {
-  color: #d6c9b7;
+html[data-theme="dark"] .changelogVersion,
+html[data-theme="dark"] .changelogText {
+  color: #f3ede4;
 }
 
 html[data-theme="dark"] .helpTitle {
@@ -1782,6 +1820,14 @@ html[data-theme="dark"] .spinner {
   gap: 12px;
 }
 
+.matchesHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 .matchItem {
   padding: 14px 16px;
   border-radius: 12px;
@@ -1961,6 +2007,12 @@ html[data-theme="dark"] .spinner {
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.confirmCancel:disabled,
+.confirmSubmit:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .matchResponse {

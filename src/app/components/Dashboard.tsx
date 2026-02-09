@@ -256,6 +256,7 @@ export default function Dashboard({
   const dashboardRef = useRef<HTMLDivElement | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
+  const [changelogPage, setChangelogPage] = useState(0);
   const [helpCallouts, setHelpCallouts] = useState<
     {
       id: string;
@@ -349,6 +350,29 @@ export default function Dashboard({
     ]
   );
 
+  const changelogRows = useMemo(
+    () =>
+      changelogEntries.flatMap((entry) =>
+        entry.entries.map((item) => ({
+          version: entry.version,
+          text: item,
+        }))
+      ),
+    [changelogEntries]
+  );
+
+  const changelogPageSize = 20;
+  const changelogTotalPages = Math.max(
+    1,
+    Math.ceil(changelogRows.length / changelogPageSize)
+  );
+  const changelogPageIndex = Math.min(changelogPage, changelogTotalPages - 1);
+  const changelogPageStart = changelogPageIndex * changelogPageSize;
+  const changelogPageRows = changelogRows.slice(
+    changelogPageStart,
+    changelogPageStart + changelogPageSize
+  );
+
   const trainingPreferences = useMemo(
     () => ({ allowTrainingUntilMaxedOut }),
     [allowTrainingUntilMaxedOut]
@@ -371,6 +395,11 @@ export default function Dashboard({
       // ignore storage errors
     }
   }, [appVersion, changelogStorageKey]);
+
+  useEffect(() => {
+    if (!showChangelog) return;
+    setChangelogPage(0);
+  }, [showChangelog]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -2001,26 +2030,53 @@ export default function Dashboard({
         title={messages.changelogTitle}
         body={
           <div className={styles.changelogBody}>
-            {changelogEntries.map((entry) => (
-              <div key={entry.version} className={styles.changelogEntry}>
-                <div className={styles.changelogVersion}>v{entry.version}</div>
-                <ul className={styles.changelogList}>
-                  {entry.entries.map((item, index) => (
-                    <li key={`${entry.version}-${index}`}>{item}</li>
-                  ))}
-                </ul>
+            <div className={styles.changelogTable}>
+              <div className={styles.changelogRowHeader}>
+                <span>{messages.changelogVersionLabel}</span>
+                <span>{messages.changelogEntryLabel}</span>
               </div>
-            ))}
+              {changelogPageRows.map((row, index) => (
+                <div
+                  key={`${row.version}-${changelogPageStart + index}`}
+                  className={styles.changelogRow}
+                >
+                  <span className={styles.changelogVersion}>v{row.version}</span>
+                  <span className={styles.changelogText}>{row.text}</span>
+                </div>
+              ))}
+            </div>
+            <div className={styles.changelogPagination}>
+              <span className={styles.changelogPageLabel}>
+                {messages.changelogPageLabel
+                  .replace("{{current}}", String(changelogPageIndex + 1))
+                  .replace("{{total}}", String(changelogTotalPages))}
+              </span>
+              <div className={styles.changelogPageButtons}>
+                <button
+                  type="button"
+                  className={styles.confirmCancel}
+                  onClick={() =>
+                    setChangelogPage((prev) => Math.max(0, prev - 1))
+                  }
+                  disabled={changelogPageIndex === 0}
+                >
+                  {messages.changelogNewer}
+                </button>
+                <button
+                  type="button"
+                  className={styles.confirmSubmit}
+                  onClick={() =>
+                    setChangelogPage((prev) =>
+                      Math.min(changelogTotalPages - 1, prev + 1)
+                    )
+                  }
+                  disabled={changelogPageIndex >= changelogTotalPages - 1}
+                >
+                  {messages.changelogOlder}
+                </button>
+              </div>
+            </div>
           </div>
-        }
-        actions={
-          <button
-            type="button"
-            className={styles.confirmSubmit}
-            onClick={() => setShowChangelog(false)}
-          >
-            {messages.helpDismissLabel}
-          </button>
         }
         closeOnBackdrop
         onClose={() => setShowChangelog(false)}

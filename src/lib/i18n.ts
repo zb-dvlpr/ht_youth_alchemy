@@ -18,6 +18,11 @@ export type Messages = {
   helpMenuOpen: string;
   helpMenuChangelog: string;
   changelogTitle: string;
+  changelogVersionLabel: string;
+  changelogEntryLabel: string;
+  changelogNewer: string;
+  changelogOlder: string;
+  changelogPageLabel: string;
   changelog_1_19_0: string;
   changelog_1_21_0: string;
   changelog_1_22_0: string;
@@ -352,6 +357,11 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Open help",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Version",
+    changelogEntryLabel: "Update",
+    changelogNewer: "Newer",
+    changelogOlder: "Older",
+    changelogPageLabel: "Page {{current}} of {{total}}",
     changelog_1_19_0: "Multi team support.",
     changelog_1_21_0: "Settings export/import for local data backups.",
     changelog_1_22_0: "Auto-select training regimen on manual star change.",
@@ -705,6 +715,11 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Hilfe öffnen",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Version",
+    changelogEntryLabel: "Update",
+    changelogNewer: "Neuere",
+    changelogOlder: "Ältere",
+    changelogPageLabel: "Seite {{current}} von {{total}}",
     changelog_1_19_0: "Unterstützung für mehrere Teams.",
     changelog_1_21_0: "Einstellungen: Export/Import für lokale Datensicherungen.",
     changelog_1_22_0: "Training automatisch bei manuellem Star-Wechsel.",
@@ -1061,6 +1076,11 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Ouvrir l’aide",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Version",
+    changelogEntryLabel: "Mise à jour",
+    changelogNewer: "Plus récent",
+    changelogOlder: "Plus ancien",
+    changelogPageLabel: "Page {{current}} sur {{total}}",
     changelog_1_19_0: "Prise en charge de plusieurs équipes.",
     changelog_1_21_0: "Paramètres : export/import pour sauvegardes locales.",
     changelog_1_22_0: "Auto‑sélection du plan d’entraînement au changement de star.",
@@ -1425,6 +1445,11 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Abrir ayuda",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Versión",
+    changelogEntryLabel: "Actualización",
+    changelogNewer: "Más reciente",
+    changelogOlder: "Más antiguo",
+    changelogPageLabel: "Página {{current}} de {{total}}",
     changelog_1_19_0: "Soporte para múltiples equipos.",
     changelog_1_21_0: "Ajustes: exportación/importación de copias locales.",
     changelog_1_22_0: "Selección automática del entrenamiento al cambiar la estrella.",
@@ -1785,6 +1810,11 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Öppna hjälp",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Version",
+    changelogEntryLabel: "Uppdatering",
+    changelogNewer: "Nyare",
+    changelogOlder: "Äldre",
+    changelogPageLabel: "Sida {{current}} av {{total}}",
     changelog_1_19_0: "Stöd för flera lag.",
     changelog_1_21_0: "Inställningar: export/import av lokala säkerhetskopior.",
     changelog_1_22_0: "Auto‑val av träning vid manuell stjärnändring.",
@@ -2141,6 +2171,11 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Apri aiuto",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Versione",
+    changelogEntryLabel: "Aggiornamento",
+    changelogNewer: "Più recenti",
+    changelogOlder: "Più vecchi",
+    changelogPageLabel: "Pagina {{current}} di {{total}}",
     changelog_1_19_0: "Supporto multi‑squadra.",
     changelog_1_21_0: "Impostazioni: export/import per backup locali.",
     changelog_1_22_0: "Selezione automatica del training al cambio stella.",
@@ -2501,6 +2536,11 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Abrir ajuda",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    changelogVersionLabel: "Versão",
+    changelogEntryLabel: "Atualização",
+    changelogNewer: "Mais recentes",
+    changelogOlder: "Mais antigas",
+    changelogPageLabel: "Página {{current}} de {{total}}",
     changelog_1_19_0: "Suporte a vários times.",
     changelog_1_21_0: "Configurações: exportação/importação de backups locais.",
     changelog_1_22_0: "Seleção automática do treino ao mudar a estrela.",

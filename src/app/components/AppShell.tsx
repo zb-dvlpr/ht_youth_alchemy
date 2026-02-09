@@ -3,6 +3,7 @@
 import { ReactNode, useMemo, useState } from "react";
 import styles from "../page.module.css";
 import Tooltip from "./Tooltip";
+import ClubChronicle from "./ClubChronicle";
 import { Messages } from "@/lib/i18n";
 
 type AppShellProps = {
@@ -98,16 +99,7 @@ export default function AppShell({ messages, children }: AppShellProps) {
         </nav>
       </aside>
       <section className={styles.shellContent}>
-        {activeTool === "youth" ? (
-          children
-        ) : (
-          <div className={styles.card}>
-            <h2 className={styles.sectionTitle}>
-              {messages.clubChronicleTitle}
-            </h2>
-            <p className={styles.muted}>{messages.clubChronicleBody}</p>
-          </div>
-        )}
+        {activeTool === "youth" ? children : <ClubChronicle messages={messages} />}
       </section>
     </div>
   );

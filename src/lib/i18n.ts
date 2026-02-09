@@ -24,6 +24,21 @@ export type Messages = {
   toolClubChronicle: string;
   clubChronicleTitle: string;
   clubChronicleBody: string;
+  watchlistTitle: string;
+  watchlistSupportedTitle: string;
+  watchlistSupportedEmpty: string;
+  watchlistManualTitle: string;
+  watchlistManualEmpty: string;
+  watchlistAddTitle: string;
+  watchlistAddPlaceholder: string;
+  watchlistAddButton: string;
+  watchlistAddInvalid: string;
+  watchlistAddDuplicate: string;
+  watchlistAddNotFound: string;
+  watchlistLoading: string;
+  watchlistError: string;
+  watchlistRemoveTooltip: string;
+  watchlistTeamLabel: string;
   changelogVersionLabel: string;
   changelogEntryLabel: string;
   changelogNewer: string;
@@ -38,6 +53,7 @@ export type Messages = {
   changelog_1_28_0: string;
   changelog_1_26_0: string;
   changelog_2_0_0: string;
+  changelog_2_1_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -378,6 +394,22 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTitle: "Club Chronicle",
     clubChronicleBody:
       "Club Chronicle is coming soon. This space will track what other senior squads are up to.",
+    watchlistTitle: "Watchlist",
+    watchlistSupportedTitle: "Supported teams",
+    watchlistSupportedEmpty:
+      "No supported teams found. You can still add teams manually.",
+    watchlistManualTitle: "Manually added teams",
+    watchlistManualEmpty: "No manual teams added yet.",
+    watchlistAddTitle: "Add team by ID",
+    watchlistAddPlaceholder: "Team ID",
+    watchlistAddButton: "Add team",
+    watchlistAddInvalid: "Enter a valid team ID.",
+    watchlistAddDuplicate: "That team is already on the watchlist.",
+    watchlistAddNotFound: "That team could not be found.",
+    watchlistLoading: "Loading supported teams…",
+    watchlistError: "Unable to load supported teams.",
+    watchlistRemoveTooltip: "Remove team",
+    watchlistTeamLabel: "Team",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Update",
     changelogNewer: "Newer",
@@ -394,6 +426,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Stale data auto-refresh with configurable threshold.",
     changelog_1_26_0: "Lineup slots now select players in the details panel.",
     changelog_2_0_0: "Collapsible sidebar with tool switcher.",
+    changelog_2_1_0: "Club Chronicle watchlist setup.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -753,6 +786,22 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTitle: "Club-Chronik",
     clubChronicleBody:
       "Die Club-Chronik kommt bald. Hier siehst du, was andere Seniorenteams planen.",
+    watchlistTitle: "Beobachtungsliste",
+    watchlistSupportedTitle: "Unterstützte Teams",
+    watchlistSupportedEmpty:
+      "Keine unterstützten Teams gefunden. Du kannst Teams manuell hinzufügen.",
+    watchlistManualTitle: "Manuell hinzugefügte Teams",
+    watchlistManualEmpty: "Noch keine manuellen Teams hinzugefügt.",
+    watchlistAddTitle: "Team per ID hinzufügen",
+    watchlistAddPlaceholder: "Team-ID",
+    watchlistAddButton: "Team hinzufügen",
+    watchlistAddInvalid: "Bitte eine gültige Team-ID eingeben.",
+    watchlistAddDuplicate: "Dieses Team ist bereits in der Liste.",
+    watchlistAddNotFound: "Dieses Team wurde nicht gefunden.",
+    watchlistLoading: "Unterstützte Teams werden geladen…",
+    watchlistError: "Unterstützte Teams konnten nicht geladen werden.",
+    watchlistRemoveTooltip: "Team entfernen",
+    watchlistTeamLabel: "Team",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Update",
     changelogNewer: "Neuere",
@@ -770,6 +819,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_26_0:
       "Aufstellungs-Slots wählen nun Spieler im Detailbereich aus.",
     changelog_2_0_0: "Einklappbare Seitenleiste mit Werkzeugauswahl.",
+    changelog_2_1_0: "Beobachtungsliste für die Club-Chronik.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -1132,6 +1182,22 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTitle: "Chronique du club",
     clubChronicleBody:
       "La Chronique du club arrive bientôt. Cet espace suivra les activités des équipes seniors.",
+    watchlistTitle: "Liste de suivi",
+    watchlistSupportedTitle: "Équipes soutenues",
+    watchlistSupportedEmpty:
+      "Aucune équipe soutenue trouvée. Vous pouvez ajouter des équipes manuellement.",
+    watchlistManualTitle: "Équipes ajoutées manuellement",
+    watchlistManualEmpty: "Aucune équipe manuelle pour le moment.",
+    watchlistAddTitle: "Ajouter une équipe par ID",
+    watchlistAddPlaceholder: "ID d’équipe",
+    watchlistAddButton: "Ajouter l’équipe",
+    watchlistAddInvalid: "Saisissez un ID d’équipe valide.",
+    watchlistAddDuplicate: "Cette équipe est déjà dans la liste.",
+    watchlistAddNotFound: "Cette équipe est introuvable.",
+    watchlistLoading: "Chargement des équipes soutenues…",
+    watchlistError: "Impossible de charger les équipes soutenues.",
+    watchlistRemoveTooltip: "Retirer l’équipe",
+    watchlistTeamLabel: "Équipe",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Mise à jour",
     changelogNewer: "Plus récent",
@@ -1150,6 +1216,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_26_0:
       "Les postes de composition sélectionnent désormais le joueur dans les détails.",
     changelog_2_0_0: "Barre latérale repliable avec sélection d’outil.",
+    changelog_2_1_0: "Liste de suivi de la Chronique du club.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1519,6 +1586,22 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTitle: "Crónica del club",
     clubChronicleBody:
       "La Crónica del club llegará pronto. Este espacio seguirá lo que hacen los equipos sénior.",
+    watchlistTitle: "Lista de seguimiento",
+    watchlistSupportedTitle: "Equipos apoyados",
+    watchlistSupportedEmpty:
+      "No se encontraron equipos apoyados. Puedes agregar equipos manualmente.",
+    watchlistManualTitle: "Equipos añadidos manualmente",
+    watchlistManualEmpty: "Aún no hay equipos manuales.",
+    watchlistAddTitle: "Agregar equipo por ID",
+    watchlistAddPlaceholder: "ID de equipo",
+    watchlistAddButton: "Agregar equipo",
+    watchlistAddInvalid: "Introduce un ID de equipo válido.",
+    watchlistAddDuplicate: "Ese equipo ya está en la lista.",
+    watchlistAddNotFound: "No se encontró ese equipo.",
+    watchlistLoading: "Cargando equipos apoyados…",
+    watchlistError: "No se pudieron cargar los equipos apoyados.",
+    watchlistRemoveTooltip: "Eliminar equipo",
+    watchlistTeamLabel: "Equipo",
     changelogVersionLabel: "Versión",
     changelogEntryLabel: "Actualización",
     changelogNewer: "Más reciente",
@@ -1537,6 +1620,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_26_0:
       "Los puestos de la alineación ahora seleccionan al jugador en detalles.",
     changelog_2_0_0: "Barra lateral plegable con selector de herramientas.",
+    changelog_2_1_0: "Lista de seguimiento para Crónica del club.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -1902,6 +1986,22 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTitle: "Klubbkrönika",
     clubChronicleBody:
       "Klubbkrönikan kommer snart. Här följer du vad andra seniorlag gör.",
+    watchlistTitle: "Bevakningslista",
+    watchlistSupportedTitle: "Stödda lag",
+    watchlistSupportedEmpty:
+      "Inga stödda lag hittades. Du kan fortfarande lägga till lag manuellt.",
+    watchlistManualTitle: "Manuellt tillagda lag",
+    watchlistManualEmpty: "Inga manuella lag ännu.",
+    watchlistAddTitle: "Lägg till lag via ID",
+    watchlistAddPlaceholder: "Lag-ID",
+    watchlistAddButton: "Lägg till lag",
+    watchlistAddInvalid: "Ange ett giltigt lag-ID.",
+    watchlistAddDuplicate: "Det laget finns redan i listan.",
+    watchlistAddNotFound: "Det laget kunde inte hittas.",
+    watchlistLoading: "Laddar stödda lag…",
+    watchlistError: "Kunde inte ladda stödda lag.",
+    watchlistRemoveTooltip: "Ta bort lag",
+    watchlistTeamLabel: "Lag",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Uppdatering",
     changelogNewer: "Nyare",
@@ -1918,6 +2018,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_26_0:
       "Laguppställningsplatser väljer nu spelare i detaljpanelen.",
     changelog_2_0_0: "Infällbart sidofält med verktygsväljare.",
+    changelog_2_1_0: "Bevakningslista för Klubbkrönikan.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -2281,6 +2382,22 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTitle: "Cronaca del club",
     clubChronicleBody:
       "La Cronaca del club arriverà presto. Qui seguirai cosa fanno le squadre senior.",
+    watchlistTitle: "Lista di osservazione",
+    watchlistSupportedTitle: "Squadre supportate",
+    watchlistSupportedEmpty:
+      "Nessuna squadra supportata trovata. Puoi comunque aggiungere squadre manualmente.",
+    watchlistManualTitle: "Squadre aggiunte manualmente",
+    watchlistManualEmpty: "Nessuna squadra manuale al momento.",
+    watchlistAddTitle: "Aggiungi squadra per ID",
+    watchlistAddPlaceholder: "ID squadra",
+    watchlistAddButton: "Aggiungi squadra",
+    watchlistAddInvalid: "Inserisci un ID squadra valido.",
+    watchlistAddDuplicate: "Questa squadra è già nella lista.",
+    watchlistAddNotFound: "Questa squadra non è stata trovata.",
+    watchlistLoading: "Caricamento squadre supportate…",
+    watchlistError: "Impossibile caricare le squadre supportate.",
+    watchlistRemoveTooltip: "Rimuovi squadra",
+    watchlistTeamLabel: "Squadra",
     changelogVersionLabel: "Versione",
     changelogEntryLabel: "Aggiornamento",
     changelogNewer: "Più recenti",
@@ -2299,6 +2416,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_26_0:
       "Gli slot della formazione ora selezionano i giocatori nei dettagli.",
     changelog_2_0_0: "Barra laterale comprimibile con selettore strumenti.",
+    changelog_2_1_0: "Lista di osservazione per la Cronaca del club.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -2664,6 +2782,22 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTitle: "Crônica do clube",
     clubChronicleBody:
       "A Crônica do clube chega em breve. Este espaço acompanhará o que os times seniores fazem.",
+    watchlistTitle: "Lista de acompanhamento",
+    watchlistSupportedTitle: "Times apoiados",
+    watchlistSupportedEmpty:
+      "Nenhum time apoiado encontrado. Você ainda pode adicionar times manualmente.",
+    watchlistManualTitle: "Times adicionados manualmente",
+    watchlistManualEmpty: "Nenhum time manual ainda.",
+    watchlistAddTitle: "Adicionar time por ID",
+    watchlistAddPlaceholder: "ID do time",
+    watchlistAddButton: "Adicionar time",
+    watchlistAddInvalid: "Digite um ID de time válido.",
+    watchlistAddDuplicate: "Esse time já está na lista.",
+    watchlistAddNotFound: "Esse time não foi encontrado.",
+    watchlistLoading: "Carregando times apoiados…",
+    watchlistError: "Não foi possível carregar os times apoiados.",
+    watchlistRemoveTooltip: "Remover time",
+    watchlistTeamLabel: "Time",
     changelogVersionLabel: "Versão",
     changelogEntryLabel: "Atualização",
     changelogNewer: "Mais recentes",
@@ -2682,6 +2816,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_26_0:
       "Os slots da escalação agora selecionam o jogador nos detalhes.",
     changelog_2_0_0: "Barra lateral recolhível com seletor de ferramentas.",
+    changelog_2_1_0: "Lista de acompanhamento da Crônica do clube.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",

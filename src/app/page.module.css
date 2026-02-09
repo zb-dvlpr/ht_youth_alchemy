@@ -922,6 +922,156 @@
   background: #f2efe9;
 }
 
+.clubChronicleStack {
+  display: grid;
+  gap: 16px;
+}
+
+.watchlistPanel {
+  display: grid;
+  gap: 14px;
+}
+
+.watchlistFabWrap {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 20;
+}
+
+.watchlistFab {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: #244d2b;
+  color: #fff;
+  font-size: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.watchlistFab:hover {
+  background: #2c5e35;
+  transform: translateY(-2px);
+}
+
+.watchlistSection {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.watchlistHeading {
+  margin: 0;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b6256;
+}
+
+.watchlistList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.watchlistRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f2efe9;
+  border: 1px solid #e0d6c6;
+  min-width: 0;
+}
+
+.watchlistTeam {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.watchlistName {
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.watchlistMeta {
+  font-size: 12px;
+  color: #6b6256;
+  white-space: nowrap;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.watchlistInputRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.watchlistInput {
+  flex: 1;
+  min-width: 160px;
+  border: 1px solid #d8cbb6;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 14px;
+  background: #fff;
+  color: #2f2923;
+}
+
+.watchlistButton {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #244d2b;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.watchlistButton:hover {
+  background: #2c5e35;
+  transform: translateY(-1px);
+}
+
+.watchlistRemove {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  color: #3f362c;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.watchlistRemove:hover {
+  background: #f1e9dc;
+  transform: translateY(-1px);
+}
+
 @media (max-height: 900px) {
   .main {
     padding: 10px 14px 16px;
@@ -1091,6 +1241,52 @@ html[data-theme="dark"] .helpCard {
   color: #f3ede4;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
   border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .watchlistRow {
+  background: #1f1a13;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .watchlistHeading,
+html[data-theme="dark"] .watchlistMeta {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .watchlistInput {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .watchlistButton {
+  background: #3d7c52;
+}
+
+html[data-theme="dark"] .watchlistButton:hover {
+  background: #4a9460;
+}
+
+html[data-theme="dark"] .watchlistRemove {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .watchlistRemove:hover {
+  background: #2a2521;
+}
+
+html[data-theme="dark"] .watchlistFab {
+  background: #3d7c52;
+}
+
+html[data-theme="dark"] .watchlistFab:hover {
+  background: #4a9460;
+}
+
+.watchlistModal {
+  width: min(900px, 92vw);
 }
 
 html[data-theme="dark"] .changelogRow {
@@ -2141,6 +2337,10 @@ html[data-theme="dark"] .spinner {
   padding: 18px 20px;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.2);
   width: min(360px, 90%);
+}
+
+.confirmCard.watchlistModal {
+  width: min(900px, 92vw);
 }
 
 .confirmTitle {

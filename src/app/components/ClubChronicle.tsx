@@ -335,6 +335,29 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       </div>
 
       <Modal
+        open={errorOpen && Boolean(error)}
+        title={messages.watchlistTitle}
+        body={<p className={styles.muted}>{error}</p>}
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => {
+              setErrorOpen(false);
+              setError(null);
+            }}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => {
+          setErrorOpen(false);
+          setError(null);
+        }}
+      />
+
+      <Modal
         open={watchlistOpen}
         title={messages.watchlistTitle}
         className={styles.watchlistModal}
@@ -453,29 +476,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
         closeOnBackdrop
         onClose={() => setWatchlistOpen(false)}
-      />
-
-      <Modal
-        open={errorOpen && Boolean(error)}
-        title={messages.watchlistTitle}
-        body={<p className={styles.muted}>{error}</p>}
-        actions={
-          <button
-            type="button"
-            className={styles.confirmSubmit}
-            onClick={() => {
-              setErrorOpen(false);
-              setError(null);
-            }}
-          >
-            {messages.closeLabel}
-          </button>
-        }
-        closeOnBackdrop
-        onClose={() => {
-          setErrorOpen(false);
-          setError(null);
-        }}
       />
     </div>
   );

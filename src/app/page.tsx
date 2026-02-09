@@ -10,6 +10,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import ViewportScaler from "./components/ViewportScaler";
 import FeedbackButton from "./components/FeedbackButton";
 import SettingsButton from "./components/SettingsButton";
+import AppShell from "./components/AppShell";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 import type { MatchesResponse } from "./components/UpcomingMatches";
@@ -279,21 +280,23 @@ export default async function Home() {
             </div>
           </header>
 
-          <Dashboard
-            players={players}
-            matchesResponse={matchesResponse}
-            ratingsResponse={ratingsResponse}
-            initialYouthTeams={youthTeams}
-            initialYouthTeamId={defaultYouthTeamId}
-            appVersion={pkg.version}
-            messages={messages}
-            isConnected={isConnected}
-            initialLoadError={playersResponse.error ?? null}
-            initialLoadDetails={
-              tokenError ? messages.connectHint : playersResponse.details ?? null
-            }
-            initialAuthError={Boolean(tokenError)}
-          />
+          <AppShell messages={messages}>
+            <Dashboard
+              players={players}
+              matchesResponse={matchesResponse}
+              ratingsResponse={ratingsResponse}
+              initialYouthTeams={youthTeams}
+              initialYouthTeamId={defaultYouthTeamId}
+              appVersion={pkg.version}
+              messages={messages}
+              isConnected={isConnected}
+              initialLoadError={playersResponse.error ?? null}
+              initialLoadDetails={
+                tokenError ? messages.connectHint : playersResponse.details ?? null
+              }
+              initialAuthError={Boolean(tokenError)}
+            />
+          </AppShell>
         </div>
       </NotificationsProvider>
     </main>

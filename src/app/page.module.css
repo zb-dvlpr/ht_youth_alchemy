@@ -46,6 +46,109 @@
   gap: 12px;
 }
 
+.shell {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.shellContent {
+  flex: 1;
+  min-width: 0;
+}
+
+.sidebar {
+  width: 220px;
+  background: #f7f1e3;
+  border: 1px solid #d8cbb6;
+  border-radius: 16px;
+  padding: 10px 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 120px;
+}
+
+.sidebarCollapsed {
+  width: 64px;
+}
+
+.sidebarHeader {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.sidebarToggle {
+  border: 1px solid #c9b9a3;
+  background: #fff;
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  color: #3f362c;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.sidebarToggle:hover {
+  background: #f1e9dc;
+  transform: translateY(-1px);
+}
+
+.sidebarNav {
+  display: grid;
+  gap: 6px;
+}
+
+.sidebarItemWrap {
+  width: 100%;
+}
+
+.sidebarItem {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #3f362c;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  transition: background 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+.sidebarItem:hover {
+  background: #f1e9dc;
+  transform: translateY(-1px);
+}
+
+.sidebarItemActive {
+  background: #fff;
+  border-color: #d8cbb6;
+  color: #2d261f;
+}
+
+.sidebarIcon {
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.sidebarLabel {
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .helpButton {
   border: 1px solid #c9b9a3;
   background: #fff;
@@ -864,6 +967,35 @@ html[data-theme="dark"] .topBar {
 }
 
 html[data-theme="dark"] .brandTitle {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .sidebar {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .sidebarToggle {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #e9e1d7;
+}
+
+html[data-theme="dark"] .sidebarToggle:hover {
+  background: #2a241d;
+}
+
+html[data-theme="dark"] .sidebarItem {
+  color: #e9e1d7;
+}
+
+html[data-theme="dark"] .sidebarItem:hover {
+  background: #2a241d;
+}
+
+html[data-theme="dark"] .sidebarItemActive {
+  background: #2a241d;
+  border-color: rgba(255, 255, 255, 0.12);
   color: #f3ede4;
 }
 

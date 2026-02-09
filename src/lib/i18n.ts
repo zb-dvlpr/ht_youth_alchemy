@@ -18,6 +18,12 @@ export type Messages = {
   helpMenuOpen: string;
   helpMenuChangelog: string;
   changelogTitle: string;
+  sidebarCollapseTooltip: string;
+  sidebarExpandTooltip: string;
+  toolYouthOptimization: string;
+  toolClubChronicle: string;
+  clubChronicleTitle: string;
+  clubChronicleBody: string;
   changelogVersionLabel: string;
   changelogEntryLabel: string;
   changelogNewer: string;
@@ -31,6 +37,7 @@ export type Messages = {
   changelog_1_25_0: string;
   changelog_1_28_0: string;
   changelog_1_26_0: string;
+  changelog_2_0_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -364,6 +371,55 @@ const MESSAGES: Record<Locale, Messages> = {
     helpMenuOpen: "Open help",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    sidebarCollapseTooltip: "Recolher barra lateral",
+    sidebarExpandTooltip: "Expandir barra lateral",
+    toolYouthOptimization: "Otimização juvenil",
+    toolClubChronicle: "Crônica do clube",
+    clubChronicleTitle: "Crônica do clube",
+    clubChronicleBody:
+      "A Crônica do clube chega em breve. Este espaço acompanhará o que os times seniores fazem.",
+    sidebarCollapseTooltip: "Comprimi barra laterale",
+    sidebarExpandTooltip: "Espandi barra laterale",
+    toolYouthOptimization: "Ottimizzazione giovani",
+    toolClubChronicle: "Cronaca del club",
+    clubChronicleTitle: "Cronaca del club",
+    clubChronicleBody:
+      "La Cronaca del club arriverà presto. Qui seguirai cosa fanno le squadre senior.",
+    sidebarCollapseTooltip: "Fäll in sidofältet",
+    sidebarExpandTooltip: "Fäll ut sidofältet",
+    toolYouthOptimization: "Ungdomsoptimering",
+    toolClubChronicle: "Klubbkrönika",
+    clubChronicleTitle: "Klubbkrönika",
+    clubChronicleBody:
+      "Klubbkrönikan kommer snart. Här följer du vad andra seniorlag gör.",
+    sidebarCollapseTooltip: "Contraer barra lateral",
+    sidebarExpandTooltip: "Expandir barra lateral",
+    toolYouthOptimization: "Optimización juvenil",
+    toolClubChronicle: "Crónica del club",
+    clubChronicleTitle: "Crónica del club",
+    clubChronicleBody:
+      "La Crónica del club llegará pronto. Este espacio seguirá lo que hacen los equipos sénior.",
+    sidebarCollapseTooltip: "Réduire la barre latérale",
+    sidebarExpandTooltip: "Déployer la barre latérale",
+    toolYouthOptimization: "Optimisation jeunes",
+    toolClubChronicle: "Chronique du club",
+    clubChronicleTitle: "Chronique du club",
+    clubChronicleBody:
+      "La Chronique du club arrive bientôt. Cet espace suivra les activités des équipes seniors.",
+    sidebarCollapseTooltip: "Seitenleiste einklappen",
+    sidebarExpandTooltip: "Seitenleiste ausklappen",
+    toolYouthOptimization: "Jugend-Optimierung",
+    toolClubChronicle: "Club-Chronik",
+    clubChronicleTitle: "Club-Chronik",
+    clubChronicleBody:
+      "Die Club-Chronik kommt bald. Hier siehst du, was andere Seniorenteams planen.",
+    sidebarCollapseTooltip: "Collapse sidebar",
+    sidebarExpandTooltip: "Expand sidebar",
+    toolYouthOptimization: "Youth optimization",
+    toolClubChronicle: "Club chronicle",
+    clubChronicleTitle: "Club Chronicle",
+    clubChronicleBody:
+      "Club Chronicle is coming soon. This space will track what other senior squads are up to.",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Update",
     changelogNewer: "Newer",
@@ -379,6 +435,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_28_0:
       "Stale data auto-refresh with configurable threshold.",
     changelog_1_26_0: "Lineup slots now select players in the details panel.",
+    changelog_2_0_0: "Collapsible sidebar with tool switcher.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -404,7 +461,7 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorDefensive: "Defensive",
     behaviorTowardsMiddle: "Towards middle",
     behaviorTowardsWing: "Towards wing",
-    helpTitle: "Welcome to Youth Alchemy",
+    helpTitle: "Welcome to Hattrick Alchemy",
     helpIntro:
       "This tool helps you plan optimal youth training and lineups.",
     helpBulletOverview:
@@ -700,7 +757,7 @@ const MESSAGES: Record<Locale, Messages> = {
     authExpiredAction: "Reconnect",
     authExpiredDismiss: "Dismiss",
     disconnectTitle: "Disconnect and revoke access",
-    brandTitle: "Hattrick Youth Alchemy",
+    brandTitle: "Hattrick Alchemy",
     skillKeeper: "Keeper",
     skillDefending: "Defending",
     skillPlaymaking: "Playmaking",
@@ -747,6 +804,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Automatische Aktualisierung veralteter Daten mit konfigurierbarer Schwelle.",
     changelog_1_26_0:
       "Aufstellungs-Slots wählen nun Spieler im Detailbereich aus.",
+    changelog_2_0_0: "Einklappbare Seitenleiste mit Werkzeugauswahl.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -773,7 +831,7 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorDefensive: "Defensiv",
     behaviorTowardsMiddle: "Zur Mitte",
     behaviorTowardsWing: "Zum Flügel",
-    helpTitle: "Willkommen bei Youth Alchemy",
+    helpTitle: "Willkommen bei Hattrick Alchemy",
     helpIntro:
       "Dieses Tool hilft dir, optimale Jugendtrainings und Aufstellungen zu planen.",
     helpBulletOverview:
@@ -1071,7 +1129,7 @@ const MESSAGES: Record<Locale, Messages> = {
     authExpiredAction: "Erneut verbinden",
     authExpiredDismiss: "Schließen",
     disconnectTitle: "Trennen und Zugriff widerrufen",
-    brandTitle: "Hattrick Youth Alchemy",
+    brandTitle: "Hattrick Alchemy",
     skillKeeper: "Torwart",
     skillDefending: "Verteidigung",
     skillPlaymaking: "Spielaufbau",
@@ -1119,6 +1177,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Actualisation automatique des données obsolètes avec seuil configurable.",
     changelog_1_26_0:
       "Les postes de composition sélectionnent désormais le joueur dans les détails.",
+    changelog_2_0_0: "Barre latérale repliable avec sélection d’outil.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1145,7 +1204,7 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorDefensive: "Défensif",
     behaviorTowardsMiddle: "Vers le centre",
     behaviorTowardsWing: "Vers l’aile",
-    helpTitle: "Bienvenue dans Youth Alchemy",
+    helpTitle: "Bienvenue dans Hattrick Alchemy",
     helpIntro:
       "Cet outil vous aide à planifier l’entraînement et les compos optimales pour les jeunes.",
     helpBulletOverview:
@@ -1450,7 +1509,7 @@ const MESSAGES: Record<Locale, Messages> = {
     authExpiredAction: "Reconnecter",
     authExpiredDismiss: "Fermer",
     disconnectTitle: "Déconnecter et révoquer l’accès",
-    brandTitle: "Hattrick Youth Alchemy",
+    brandTitle: "Hattrick Alchemy",
     skillKeeper: "Gardien",
     skillDefending: "Défense",
     skillPlaymaking: "Construction",
@@ -1498,6 +1557,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Actualización automática de datos desactualizados con umbral configurable.",
     changelog_1_26_0:
       "Los puestos de la alineación ahora seleccionan al jugador en detalles.",
+    changelog_2_0_0: "Barra lateral plegable con selector de herramientas.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -1524,7 +1584,7 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorDefensive: "Defensivo",
     behaviorTowardsMiddle: "Hacia el centro",
     behaviorTowardsWing: "Hacia la banda",
-    helpTitle: "Bienvenido a Youth Alchemy",
+    helpTitle: "Bienvenido a Hattrick Alchemy",
     helpIntro:
       "Esta herramienta te ayuda a planificar el entrenamiento y la alineación óptimos de juveniles.",
     helpBulletOverview:
@@ -1825,7 +1885,7 @@ const MESSAGES: Record<Locale, Messages> = {
     authExpiredAction: "Reconectar",
     authExpiredDismiss: "Cerrar",
     disconnectTitle: "Desconectar y revocar el acceso",
-    brandTitle: "Hattrick Youth Alchemy",
+    brandTitle: "Hattrick Alchemy",
     skillKeeper: "Portero",
     skillDefending: "Defensa",
     skillPlaymaking: "Creatividad",
@@ -1871,6 +1931,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Automatisk uppdatering av gammal data med konfigurerbar gräns.",
     changelog_1_26_0:
       "Laguppställningsplatser väljer nu spelare i detaljpanelen.",
+    changelog_2_0_0: "Infällbart sidofält med verktygsväljare.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -1897,7 +1958,7 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorDefensive: "Defensiv",
     behaviorTowardsMiddle: "Mot mitten",
     behaviorTowardsWing: "Mot kanten",
-    helpTitle: "Välkommen till Youth Alchemy",
+    helpTitle: "Välkommen till Hattrick Alchemy",
     helpIntro:
       "Det här verktyget hjälper dig planera optimal ungdomsträning och uppställning.",
     helpBulletOverview:
@@ -2196,7 +2257,7 @@ const MESSAGES: Record<Locale, Messages> = {
     authExpiredAction: "Anslut igen",
     authExpiredDismiss: "Stäng",
     disconnectTitle: "Koppla från och återkalla åtkomst",
-    brandTitle: "Hattrick Youth Alchemy",
+    brandTitle: "Hattrick Alchemy",
     skillKeeper: "Målvakt",
     skillDefending: "Försvar",
     skillPlaymaking: "Speluppbyggnad",
@@ -2244,6 +2305,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Aggiornamento automatico dei dati obsoleti con soglia configurabile.",
     changelog_1_26_0:
       "Gli slot della formazione ora selezionano i giocatori nei dettagli.",
+    changelog_2_0_0: "Barra laterale comprimibile con selettore strumenti.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -2270,7 +2332,7 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorDefensive: "Difensivo",
     behaviorTowardsMiddle: "Verso il centro",
     behaviorTowardsWing: "Verso la fascia",
-    helpTitle: "Benvenuto in Youth Alchemy",
+    helpTitle: "Benvenuto in Hattrick Alchemy",
     helpIntro:
       "Questo strumento ti aiuta a pianificare allenamento e formazione ottimali per la giovanile.",
     helpBulletOverview:
@@ -2571,7 +2633,7 @@ const MESSAGES: Record<Locale, Messages> = {
     authExpiredAction: "Riconnetti",
     authExpiredDismiss: "Chiudi",
     disconnectTitle: "Disconnetti e revoca l’accesso",
-    brandTitle: "Hattrick Youth Alchemy",
+    brandTitle: "Hattrick Alchemy",
     skillKeeper: "Portiere",
     skillDefending: "Difesa",
     skillPlaymaking: "Regia",
@@ -2619,6 +2681,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Atualização automática de dados desatualizados com limite configurável.",
     changelog_1_26_0:
       "Os slots da escalação agora selecionam o jogador nos detalhes.",
+    changelog_2_0_0: "Barra lateral recolhível com seletor de ferramentas.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -2645,7 +2708,7 @@ const MESSAGES: Record<Locale, Messages> = {
     behaviorDefensive: "Defensivo",
     behaviorTowardsMiddle: "Para o meio",
     behaviorTowardsWing: "Para a ala",
-    helpTitle: "Bem-vindo ao Youth Alchemy",
+    helpTitle: "Bem-vindo ao Hattrick Alchemy",
     helpIntro:
       "Esta ferramenta ajuda a planejar o treino e a escalação ideais do juvenil.",
     helpBulletOverview:
@@ -2946,7 +3009,7 @@ const MESSAGES: Record<Locale, Messages> = {
     authExpiredAction: "Reconectar",
     authExpiredDismiss: "Fechar",
     disconnectTitle: "Desconectar e revogar acesso",
-    brandTitle: "Hattrick Youth Alchemy",
+    brandTitle: "Hattrick Alchemy",
     skillKeeper: "Goleiro",
     skillDefending: "Defesa",
     skillPlaymaking: "Armação",

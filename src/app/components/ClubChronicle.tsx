@@ -413,6 +413,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     Record<number, boolean>
   >({});
   const [manualTeams, setManualTeams] = useState<ManualTeam[]>([]);
+  const [primaryTeam, setPrimaryTeam] = useState<ChronicleTeamData | null>(null);
   const [chronicleCache, setChronicleCache] = useState<ChronicleCache>(() =>
     pruneChronicleCache(readChronicleCache())
   );
@@ -479,10 +480,38 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         leaguePerformance: cached?.leaguePerformance,
       });
     });
+    if (primaryTeam) {
+      const cached = chronicleCache.teams[primaryTeam.teamId];
+      const existing = map.get(primaryTeam.teamId);
+      map.set(primaryTeam.teamId, {
+        teamId: primaryTeam.teamId,
+        teamName:
+          primaryTeam.teamName ??
+          existing?.teamName ??
+          cached?.teamName ??
+          "",
+        leagueName:
+          primaryTeam.leagueName ??
+          existing?.leagueName ??
+          cached?.leagueName ??
+          null,
+        leagueLevelUnitName:
+          primaryTeam.leagueLevelUnitName ??
+          existing?.leagueLevelUnitName ??
+          cached?.leagueLevelUnitName ??
+          null,
+        leagueLevelUnitId:
+          primaryTeam.leagueLevelUnitId ??
+          existing?.leagueLevelUnitId ??
+          cached?.leagueLevelUnitId ??
+          null,
+        leaguePerformance: cached?.leaguePerformance ?? existing?.leaguePerformance,
+      });
+    }
     return Array.from(map.values()).sort((a, b) =>
       (a.teamName ?? "").localeCompare(b.teamName ?? "")
     );
-  }, [supportedTeams, supportedSelections, manualTeams, chronicleCache]);
+  }, [supportedTeams, supportedSelections, manualTeams, chronicleCache, primaryTeam]);
 
   useEffect(() => {
     let active = true;
@@ -580,9 +609,106 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [messages.watchlistError, watchlistOpen]);
 
   useEffect(() => {
+    let active = true;
+    const loadPrimaryTeam = async () => {
+      try {
+        const response = await fetch("/api/chpp/teamdetails", {
+          cache: "no-store",
+        });
+        const payload = (await response.json().catch(() => null)) as
+          | {
+              data?: {
+                HattrickData?: {
+                  Team?: {
+                    TeamID?: number | string;
+                    TeamName?: string;
+                    LeagueName?: string;
+                    LeagueLevelUnitName?: string;
+                    LeagueLevelUnitID?: number | string;
+                    LeagueLevelUnit?: {
+                      LeagueLevelUnitID?: number | string;
+                      LeagueLevelUnitName?: string;
+                      Name?: string;
+                    };
+                    League?: {
+                      LeagueName?: string;
+                      Name?: string;
+                    };
+                  };
+                };
+              };
+              error?: string;
+            }
+          | null;
+        if (!response.ok || payload?.error) return;
+        const teamDetails = payload?.data?.HattrickData?.Team;
+        const teamId = Number(teamDetails?.TeamID ?? 0);
+        if (!Number.isFinite(teamId) || teamId <= 0) return;
+        const meta = resolveTeamDetailsMeta(teamDetails);
+        const teamName = teamDetails?.TeamName ?? "";
+        if (!active) return;
+        setPrimaryTeam({
+          teamId,
+          teamName,
+          leagueName: meta.leagueName,
+          leagueLevelUnitName: meta.leagueLevelUnitName,
+          leagueLevelUnitId: meta.leagueLevelUnitId,
+        });
+        setChronicleCache((prev) => ({
+          ...prev,
+          teams: {
+            ...prev.teams,
+            [teamId]: {
+              ...prev.teams[teamId],
+              teamId,
+              teamName: teamName || prev.teams[teamId]?.teamName,
+              leagueName: meta.leagueName ?? prev.teams[teamId]?.leagueName ?? null,
+              leagueLevelUnitName:
+                meta.leagueLevelUnitName ??
+                prev.teams[teamId]?.leagueLevelUnitName ??
+                null,
+              leagueLevelUnitId:
+                meta.leagueLevelUnitId ??
+                prev.teams[teamId]?.leagueLevelUnitId ??
+                null,
+              leaguePerformance: prev.teams[teamId]?.leaguePerformance,
+            },
+          },
+        }));
+      } catch {
+        // ignore teamdetails failure for now
+      }
+    };
+    void loadPrimaryTeam();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (!initializedRef.current) return;
     writeStorage({ supportedSelections, manualTeams });
   }, [supportedSelections, manualTeams]);
+
+  useEffect(() => {
+    if (!primaryTeam) return;
+    setSupportedTeams((prev) => {
+      if (prev.some((team) => team.teamId === primaryTeam.teamId)) return prev;
+      return [
+        ...prev,
+        {
+          teamId: primaryTeam.teamId,
+          teamName: primaryTeam.teamName ?? "",
+          leagueName: primaryTeam.leagueName ?? null,
+          leagueLevelUnitName: primaryTeam.leagueLevelUnitName ?? null,
+        },
+      ];
+    });
+    setSupportedSelections((prev) => {
+      if (prev[primaryTeam.teamId] !== undefined) return prev;
+      return { ...prev, [primaryTeam.teamId]: true };
+    });
+  }, [primaryTeam]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -894,6 +1020,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return String(value);
   };
 
+  const parseNumber = (value: unknown): number | null => {
+    if (value === null || value === undefined || value === "") return null;
+    const num = Number(value);
+    return Number.isFinite(num) ? num : null;
+  };
+
   const buildChanges = (
     previous: LeaguePerformanceSnapshot | undefined,
     current: LeaguePerformanceSnapshot,
@@ -1042,28 +1174,27 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       );
       if (!match) return;
       const snapshot: LeaguePerformanceSnapshot = {
-        leagueId: leagueData.LeagueID ? Number(leagueData.LeagueID) : null,
+        leagueId: parseNumber(leagueData.LeagueID),
         leagueName: leagueData.LeagueName ?? null,
-        leagueLevel: leagueData.LeagueLevel ? Number(leagueData.LeagueLevel) : null,
-        maxLevel: leagueData.MaxLevel ? Number(leagueData.MaxLevel) : null,
-        leagueLevelUnitId: leagueData.LeagueLevelUnitID
-          ? Number(leagueData.LeagueLevelUnitID)
-          : leagueLevelUnitId,
+        leagueLevel: parseNumber(leagueData.LeagueLevel),
+        maxLevel: parseNumber(leagueData.MaxLevel),
+        leagueLevelUnitId:
+          parseNumber(leagueData.LeagueLevelUnitID) ?? leagueLevelUnitId,
         leagueLevelUnitName: leagueData.LeagueLevelUnitName ?? null,
         currentMatchRound: leagueData.CurrentMatchRound ?? null,
-        rank: leagueData.Rank ? Number(leagueData.Rank) : null,
-        userId: match.UserId ? Number(match.UserId) : null,
-        teamId: match.TeamID ? Number(match.TeamID) : Number(team.teamId),
-        position: match.Position ? Number(match.Position) : null,
+        rank: parseNumber(leagueData.Rank),
+        userId: parseNumber(match.UserId),
+        teamId: parseNumber(match.TeamID) ?? Number(team.teamId),
+        position: parseNumber(match.Position),
         positionChange: match.PositionChange ?? null,
         teamName: match.TeamName ?? team.teamName ?? null,
-        matches: match.Matches ? Number(match.Matches) : null,
-        goalsFor: match.GoalsFor ? Number(match.GoalsFor) : null,
-        goalsAgainst: match.GoalsAgainst ? Number(match.GoalsAgainst) : null,
-        points: match.Points ? Number(match.Points) : null,
-        won: match.Won ? Number(match.Won) : null,
-        draws: match.Draws ? Number(match.Draws) : null,
-        lost: match.Lost ? Number(match.Lost) : null,
+        matches: parseNumber(match.Matches),
+        goalsFor: parseNumber(match.GoalsFor),
+        goalsAgainst: parseNumber(match.GoalsAgainst),
+        points: parseNumber(match.Points),
+        won: parseNumber(match.Won),
+        draws: parseNumber(match.Draws),
+        lost: parseNumber(match.Lost),
         fetchedAt: Date.now(),
       };
       const previous = nextCache.teams[team.teamId]?.leaguePerformance?.current;

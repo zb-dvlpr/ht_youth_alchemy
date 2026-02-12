@@ -12,19 +12,18 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const teamId = searchParams.get("teamId");
-    if (!teamId) {
-      return NextResponse.json(
-        { error: "Missing teamId query parameter." },
-        { status: 400 }
-      );
-    }
+    const userId = searchParams.get("userId");
 
     const auth = await getChppAuth();
     const params = new URLSearchParams({
       file: "teamdetails",
       version: TEAMDETAILS_VERSION,
-      teamID: teamId,
     });
+    if (teamId) {
+      params.set("teamID", teamId);
+    } else if (userId) {
+      params.set("userID", userId);
+    }
 
     const { parsed, rawXml } = await fetchChppXml(auth, params);
     return NextResponse.json({ data: parsed, raw: rawXml });

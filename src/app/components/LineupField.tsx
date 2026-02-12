@@ -45,6 +45,7 @@ type LineupFieldProps = {
   onAssign: (slotId: string, playerId: number) => void;
   onClear: (slotId: string) => void;
   onMove?: (fromSlot: string, toSlot: string) => void;
+  onSelectPlayer?: (playerId: number) => void | Promise<void>;
   onChangeBehavior?: (slotId: string, behavior: number) => void;
   onRandomize?: () => void;
   onReset?: () => void;
@@ -239,11 +240,13 @@ export default function LineupField({
   forceOptimizeOpen = false,
   trainedSlots,
   onHoverPlayer,
+  onSelectPlayer,
   messages,
 }: LineupFieldProps) {
   const [optimizeOpen, setOptimizeOpen] = useState(false);
   const optimizeButtonRef = useRef<HTMLButtonElement | null>(null);
   const optimizeMenuRef = useRef<HTMLDivElement | null>(null);
+  const isDragActive = useRef(false);
 
   useEffect(() => {
     if (forceOptimizeOpen) return;
@@ -600,8 +603,14 @@ export default function LineupField({
                           if (!assignedPlayer) return;
                           onHoverPlayer?.(assignedPlayer.YouthPlayerID);
                         }}
+                        onClick={() => {
+                          if (!assignedPlayer) return;
+                          if (isDragActive.current) return;
+                          void onSelectPlayer?.(assignedPlayer.YouthPlayerID);
+                        }}
                         onDragStart={(event) => {
                           if (!dragPayload) return;
+                          isDragActive.current = true;
                           setDragGhost(event, {
                             label: formatName(assignedPlayer),
                             className: styles.dragGhost,
@@ -612,6 +621,9 @@ export default function LineupField({
                             dragPayload
                           );
                           event.dataTransfer.effectAllowed = "move";
+                        }}
+                        onDragEnd={() => {
+                          isDragActive.current = false;
                         }}
                       >
                         <span className={styles.slotName}>
@@ -626,7 +638,10 @@ export default function LineupField({
                         <button
                           type="button"
                           className={styles.slotClear}
-                          onClick={() => onClear(position.id)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onClear(position.id);
+                          }}
                           aria-label={`${messages.clearSlot} ${position.label}`}
                         >
                           ×
@@ -784,8 +799,14 @@ export default function LineupField({
                         if (!assignedPlayer) return;
                         onHoverPlayer?.(assignedPlayer.YouthPlayerID);
                       }}
+                      onClick={() => {
+                        if (!assignedPlayer) return;
+                        if (isDragActive.current) return;
+                        void onSelectPlayer?.(assignedPlayer.YouthPlayerID);
+                      }}
                       onDragStart={(event) => {
                         if (!dragPayload) return;
+                        isDragActive.current = true;
                         setDragGhost(event, {
                           label: formatName(assignedPlayer),
                           className: styles.dragGhost,
@@ -796,6 +817,9 @@ export default function LineupField({
                           dragPayload
                         );
                         event.dataTransfer.effectAllowed = "move";
+                      }}
+                      onDragEnd={() => {
+                        isDragActive.current = false;
                       }}
                     >
                       <span className={styles.slotName}>
@@ -810,7 +834,10 @@ export default function LineupField({
                       <button
                         type="button"
                         className={styles.slotClear}
-                        onClick={() => onClear(slot.id)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onClear(slot.id);
+                        }}
                         aria-label={`${messages.clearSlot} ${
                           messages[slot.labelKey as keyof Messages]
                         }`}

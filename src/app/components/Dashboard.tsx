@@ -316,6 +316,10 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "1.26.0",
+        entries: [messages.changelog_1_26_0],
+      },
+      {
         version: "1.25.0",
         entries: [messages.changelog_1_25_0],
       },
@@ -347,6 +351,7 @@ export default function Dashboard({
       messages.changelog_1_23_0,
       messages.changelog_1_24_0,
       messages.changelog_1_25_0,
+      messages.changelog_1_26_0,
     ]
   );
 
@@ -2356,6 +2361,7 @@ export default function Dashboard({
           forceOptimizeOpen={showHelp}
           trainedSlots={trainingSlots}
           onHoverPlayer={ensureDetails}
+          onSelectPlayer={handleSelect}
           messages={messages}
         />
         {isDev ? (

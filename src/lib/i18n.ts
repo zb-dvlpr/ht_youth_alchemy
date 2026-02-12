@@ -128,6 +128,7 @@ export type Messages = {
   clubChronicleFieldDraws: string;
   clubChronicleFieldLost: string;
   notificationChronicleStaleRefresh: string;
+  notificationChronicleRefreshComplete: string;
   clubChronicleColumnTeam: string;
   clubChronicleColumnPosition: string;
   clubChronicleColumnPoints: string;
@@ -162,6 +163,7 @@ export type Messages = {
   unlockSkillsSuccess: string;
   unlockSkillsDenied: string;
   loadingDetails: string;
+  refreshingLabel: string;
   selectPlayerPrompt: string;
   unableToLoadPlayers: string;
   unableToLoadMatches: string;
@@ -567,6 +569,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFieldDraws: "Draws",
     clubChronicleFieldLost: "Lost",
     notificationChronicleStaleRefresh: "Club Chronicle refreshed due to stale data.",
+    notificationChronicleRefreshComplete: "Club Chronicle refresh complete.",
     helpTitle: "Welcome to Hattrick Alchemy",
     helpIntro:
       "This tool helps you plan optimal youth training and lineups.",
@@ -600,6 +603,7 @@ const MESSAGES: Record<Locale, Messages> = {
     unlockSkillsSuccess: "Skills unlocked",
     unlockSkillsDenied: "Unlock not permitted",
     loadingDetails: "Loading details…",
+    refreshingLabel: "Refreshing…",
     selectPlayerPrompt: "Select a player to load details.",
     unableToLoadPlayers: "Unable to load players",
     unableToLoadMatches: "Unable to load matches",
@@ -1019,6 +1023,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFieldDraws: "Unentschieden",
     clubChronicleFieldLost: "Niederlagen",
     notificationChronicleStaleRefresh: "Club-Chronik wegen veralteter Daten aktualisiert.",
+    notificationChronicleRefreshComplete: "Club-Chronik aktualisiert.",
     helpTitle: "Willkommen bei Hattrick Alchemy",
     helpIntro:
       "Dieses Tool hilft dir, optimale Jugendtrainings und Aufstellungen zu planen.",
@@ -1053,6 +1058,7 @@ const MESSAGES: Record<Locale, Messages> = {
     unlockSkillsSuccess: "Fähigkeiten freigeschaltet",
     unlockSkillsDenied: "Freischalten nicht erlaubt",
     loadingDetails: "Details werden geladen…",
+    refreshingLabel: "Wird aktualisiert…",
     selectPlayerPrompt: "Spieler auswählen, um Details zu laden.",
     unableToLoadPlayers: "Spieler konnten nicht geladen werden",
     unableToLoadMatches: "Spiele konnten nicht geladen werden",
@@ -1474,6 +1480,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFieldDraws: "Nuls",
     clubChronicleFieldLost: "Défaites",
     notificationChronicleStaleRefresh: "Chronique du club actualisée en raison de données obsolètes.",
+    notificationChronicleRefreshComplete: "Actualisation de la chronique du club terminée.",
     helpTitle: "Bienvenue dans Hattrick Alchemy",
     helpIntro:
       "Cet outil vous aide à planifier l’entraînement et les compos optimales pour les jeunes.",
@@ -1509,6 +1516,7 @@ const MESSAGES: Record<Locale, Messages> = {
     unlockSkillsSuccess: "Compétences débloquées",
     unlockSkillsDenied: "Déblocage non autorisé",
     loadingDetails: "Chargement des détails…",
+    refreshingLabel: "Actualisation…",
     selectPlayerPrompt: "Sélectionnez un joueur pour charger les détails.",
     unableToLoadPlayers: "Impossible de charger les joueurs",
     unableToLoadMatches: "Impossible de charger les matchs",
@@ -1936,6 +1944,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFieldDraws: "Empatados",
     clubChronicleFieldLost: "Perdidos",
     notificationChronicleStaleRefresh: "Crónica del club actualizada por datos obsoletos.",
+    notificationChronicleRefreshComplete: "Actualización de la crónica del club completada.",
     helpTitle: "Bienvenido a Hattrick Alchemy",
     helpIntro:
       "Esta herramienta te ayuda a planificar el entrenamiento y la alineación óptimos de juveniles.",
@@ -1971,6 +1980,7 @@ const MESSAGES: Record<Locale, Messages> = {
     unlockSkillsSuccess: "Habilidades desbloqueadas",
     unlockSkillsDenied: "Desbloqueo no permitido",
     loadingDetails: "Cargando detalles…",
+    refreshingLabel: "Actualizando…",
     selectPlayerPrompt: "Selecciona un jugador para cargar detalles.",
     unableToLoadPlayers: "No se pudieron cargar los jugadores",
     unableToLoadMatches: "No se pudieron cargar los partidos",
@@ -2392,6 +2402,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFieldDraws: "Oavgjorda",
     clubChronicleFieldLost: "Förlorade",
     notificationChronicleStaleRefresh: "Klubbkrönikan uppdaterades på grund av gammal data.",
+    notificationChronicleRefreshComplete: "Klubbkrönikans uppdatering klar.",
     helpTitle: "Välkommen till Hattrick Alchemy",
     helpIntro:
       "Det här verktyget hjälper dig planera optimal ungdomsträning och uppställning.",
@@ -2426,6 +2437,7 @@ const MESSAGES: Record<Locale, Messages> = {
     unlockSkillsSuccess: "Färdigheter upplåsta",
     unlockSkillsDenied: "Upplåsning ej tillåten",
     loadingDetails: "Laddar detaljer…",
+    refreshingLabel: "Uppdaterar…",
     selectPlayerPrompt: "Välj en spelare för att ladda detaljer.",
     unableToLoadPlayers: "Kunde inte ladda spelare",
     unableToLoadMatches: "Kunde inte ladda matcher",
@@ -2848,6 +2860,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFieldDraws: "Pareggi",
     clubChronicleFieldLost: "Perse",
     notificationChronicleStaleRefresh: "Cronaca del club aggiornata a causa di dati obsoleti.",
+    notificationChronicleRefreshComplete: "Aggiornamento della cronaca del club completato.",
     helpTitle: "Benvenuto in Hattrick Alchemy",
     helpIntro:
       "Questo strumento ti aiuta a pianificare allenamento e formazione ottimali per la giovanile.",
@@ -2883,6 +2896,7 @@ const MESSAGES: Record<Locale, Messages> = {
     unlockSkillsSuccess: "Abilità sbloccate",
     unlockSkillsDenied: "Sblocco non consentito",
     loadingDetails: "Caricamento dettagli…",
+    refreshingLabel: "Aggiornamento in corso…",
     selectPlayerPrompt: "Seleziona un giocatore per caricare i dettagli.",
     unableToLoadPlayers: "Impossibile caricare i giocatori",
     unableToLoadMatches: "Impossibile caricare le partite",
@@ -3306,6 +3320,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFieldDraws: "Empates",
     clubChronicleFieldLost: "Derrotas",
     notificationChronicleStaleRefresh: "Crônica do clube atualizada devido a dados desatualizados.",
+    notificationChronicleRefreshComplete: "Atualização da crônica do clube concluída.",
     helpTitle: "Bem-vindo ao Hattrick Alchemy",
     helpIntro:
       "Esta ferramenta ajuda a planejar o treino e a escalação ideais do juvenil.",
@@ -3341,6 +3356,7 @@ const MESSAGES: Record<Locale, Messages> = {
     unlockSkillsSuccess: "Habilidades desbloqueadas",
     unlockSkillsDenied: "Desbloqueio não permitido",
     loadingDetails: "Carregando detalhes…",
+    refreshingLabel: "Atualizando…",
     selectPlayerPrompt: "Selecione um jogador para carregar detalhes.",
     unableToLoadPlayers: "Não foi possível carregar jogadores",
     unableToLoadMatches: "Não foi possível carregar partidas",

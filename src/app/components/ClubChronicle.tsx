@@ -1228,6 +1228,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       addNotification(messages.notificationChronicleStaleRefresh);
     }
     setRefreshing(false);
+    addNotification(messages.notificationChronicleRefreshComplete);
   };
 
   const updatesByTeam = updates?.teams ?? {};
@@ -1295,7 +1296,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             <div key={panelId} className={styles.chroniclePanel}>
               <div className={styles.chroniclePanelHeader}>
                 <h3 className={styles.chroniclePanelTitle}>
-                  {messages.clubChronicleLeaguePanelTitle}
+                  <span className={styles.chroniclePanelTitleRow}>
+                    {messages.clubChronicleLeaguePanelTitle}
+                    {refreshing ? (
+                      <span
+                        className={styles.chronicleRefreshSpinner}
+                        aria-label={messages.refreshingLabel}
+                      />
+                    ) : null}
+                  </span>
                 </h3>
                 <div className={styles.chroniclePanelActions}>
                   <Tooltip content={messages.clubChronicleMoveUp}>

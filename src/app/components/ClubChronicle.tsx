@@ -900,12 +900,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     columns: ChronicleTableColumn<LeagueTableRow, LeaguePerformanceSnapshot>[]
   ): ChronicleUpdateField[] => {
     if (!previous) {
-      return columns.map((column) => ({
-        fieldKey: column.key,
-        label: column.label,
-        previous: null,
-        current: formatValue(column.getValue(current)),
-      }));
+      return [];
     }
     return columns
       .map((column) => {
@@ -1380,46 +1375,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                         {messages.clubChronicleUpdatesNoChanges}
                       </p>
                     ) : null}
-                    {leagueTableColumns.map((column) => (
+                    {changes.map((change) => (
                       <div
-                        key={`${team.teamId}-${column.key}`}
+                        key={`${team.teamId}-${change.fieldKey}`}
                         className={styles.chronicleUpdatesRow}
                       >
                         <span className={styles.chronicleUpdatesLabel}>
-                          {column.label}
+                          {change.label}
                         </span>
-                        <span>
-                          {formatValue(
-                            column.getValue(
-                              chronicleCache.teams[team.teamId]?.leaguePerformance
-                                ?.previous,
-                              {
-                                teamName: team.teamName ?? String(team.teamId),
-                                meta: chronicleCache.teams[team.teamId]?.leaguePerformance
-                                  ?.previous?.leagueLevelUnitName
-                                  ?? chronicleCache.teams[team.teamId]?.leaguePerformance
-                                    ?.current?.leagueLevelUnitName
-                                  ?? null,
-                              }
-                            ) as string | number | null | undefined
-                          )}
-                        </span>
-                        <span>
-                          {formatValue(
-                            column.getValue(
-                              chronicleCache.teams[team.teamId]?.leaguePerformance
-                                ?.current,
-                              {
-                                teamName: team.teamName ?? String(team.teamId),
-                                meta: chronicleCache.teams[team.teamId]?.leaguePerformance
-                                  ?.current?.leagueLevelUnitName
-                                  ?? chronicleCache.teams[team.teamId]?.leaguePerformance
-                                    ?.previous?.leagueLevelUnitName
-                                  ?? null,
-                              }
-                            ) as string | number | null | undefined
-                          )}
-                        </span>
+                        <span>{change.previous ?? messages.unknownShort}</span>
+                        <span>{change.current ?? messages.unknownShort}</span>
                       </div>
                     ))}
                   </div>

@@ -986,8 +986,8 @@
   display: grid;
   grid-template-rows: auto 1fr;
   border-radius: 16px;
-  border: 1px solid #e0d6c6;
   background: #fff;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
   min-height: 260px;
   max-height: 320px;
   overflow: hidden;
@@ -997,13 +997,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 12px 14px;
-  border-bottom: 1px solid #eadfce;
-  background: #f8f3ea;
+  padding: 16px 18px;
+  border-bottom: 1px solid #eee2d2;
+  background: transparent;
 }
 
 .chroniclePanelTitle {
-  font-size: 14px;
+  font-size: 22px;
   font-weight: 700;
   margin: 0;
   color: #3f362c;
@@ -1030,7 +1030,7 @@
 }
 
 .chroniclePanelBody {
-  padding: 0 14px 12px;
+  padding: 0 18px 16px;
   overflow: auto;
   position: relative;
   isolation: isolate;
@@ -1049,7 +1049,7 @@
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #6f6454;
+  color: #6a5f50;
   font-weight: 700;
   line-height: 1.2;
   white-space: normal;
@@ -1058,9 +1058,9 @@
   top: 0;
   z-index: 10;
   padding: 8px 12px 6px;
-  background: #efe6d6;
-  border-bottom: 1px solid #d9c9b0;
-  box-shadow: 0 2px 0 rgba(219, 202, 179, 0.8);
+  background: #f4efe6;
+  border-bottom: 1px solid #e6d7c5;
+  box-shadow: 0 1px 0 rgba(230, 215, 197, 0.85);
   align-items: center;
 }
 
@@ -1556,13 +1556,13 @@ html[data-theme="dark"] .chronicleUpdatesButton:hover {
 }
 
 html[data-theme="dark"] .chroniclePanel {
-  border-color: rgba(255, 255, 255, 0.12);
   background: #1b1917;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
 }
 
 html[data-theme="dark"] .chroniclePanelHeader {
-  border-bottom-color: rgba(255, 255, 255, 0.12);
-  background: #231f1a;
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  background: transparent;
 }
 
 html[data-theme="dark"] .chroniclePanelTitle {
@@ -1580,10 +1580,10 @@ html[data-theme="dark"] .chronicleTableRow {
 }
 
 html[data-theme="dark"] .chronicleTableHeader {
-  color: #e3d6c2;
-  background: #2b251f;
-  border-bottom-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+  color: #d9cbb8;
+  background: #26211c;
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
 }
 
 html[data-theme="dark"] .chronicleTableCell {

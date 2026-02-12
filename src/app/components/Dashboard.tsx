@@ -316,6 +316,10 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "1.27.0",
+        entries: [messages.changelog_1_27_0],
+      },
+      {
         version: "1.26.0",
         entries: [messages.changelog_1_26_0],
       },
@@ -352,6 +356,7 @@ export default function Dashboard({
       messages.changelog_1_24_0,
       messages.changelog_1_25_0,
       messages.changelog_1_26_0,
+      messages.changelog_1_27_0,
     ]
   );
 
@@ -1007,11 +1012,11 @@ export default function Dashboard({
     }
   };
 
-  const ensureDetails = async (playerId: number) => {
+  const ensureDetails = async (playerId: number, forceRefresh = false) => {
     const cached = cache[playerId];
     const isFresh =
       cached && Date.now() - cached.fetchedAt < DETAILS_TTL_MS;
-    if (cached && isFresh) return;
+    if (!forceRefresh && cached && isFresh) return;
 
     try {
       const response = await fetch(
@@ -1637,19 +1642,28 @@ export default function Dashboard({
     }
   };
 
-  const refreshPlayers = async (teamIdOverride?: number | null) => {
+  const refreshPlayers = async (
+    teamIdOverride?: number | null,
+    options?: { refreshAll?: boolean }
+  ) => {
     if (playersLoading) return;
     setPlayersLoading(true);
+    const refreshAll = options?.refreshAll ?? false;
+    const teamId =
+      typeof teamIdOverride === "number" || teamIdOverride === null
+        ? teamIdOverride ?? activeYouthTeamId
+        : activeYouthTeamId;
     try {
-      const teamId =
-        typeof teamIdOverride === "number" || teamIdOverride === null
-          ? teamIdOverride ?? activeYouthTeamId
-          : activeYouthTeamId;
+      if (refreshAll) {
+        setRatingsCache({});
+        setRatingsPositions([]);
+        setRatingsResponseState(null);
+      }
       const teamParam = teamId ? `&youthTeamID=${teamId}` : "";
       const response = await fetch(
         `/api/chpp/youth/players?actionType=details${teamParam}`,
         {
-        cache: "no-store",
+          cache: "no-store",
         }
       );
       const payload = (await response.json()) as {
@@ -1674,11 +1688,23 @@ export default function Dashboard({
       const raw = payload?.data?.HattrickData?.PlayerList?.YouthPlayer;
       const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
       setPlayerList(list);
+      let nextSelectedId = selectedId;
       if (
         selectedId &&
         !list.some((player) => player.YouthPlayerID === selectedId)
       ) {
         setSelectedId(null);
+        nextSelectedId = null;
+      }
+      if (refreshAll) {
+        const ids = list.map((player) => player.YouthPlayerID);
+        const detailIds = nextSelectedId
+          ? ids.filter((id) => id !== nextSelectedId)
+          : ids;
+        await Promise.all(detailIds.map((id) => ensureDetails(id, true)));
+        if (nextSelectedId) {
+          await loadDetails(nextSelectedId, true);
+        }
       }
       addNotification(messages.notificationPlayersRefreshed);
     } catch {
@@ -1686,6 +1712,9 @@ export default function Dashboard({
       setLoadError(messages.unableToLoadPlayers);
       setLoadErrorDetails(null);
     } finally {
+      if (refreshAll) {
+        await Promise.all([refreshMatches(teamId), refreshRatings(teamId)]);
+      }
       setPlayersLoading(false);
     }
   };
@@ -2172,7 +2201,7 @@ export default function Dashboard({
               `${messages.notificationAutoSelection} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
             );
           }}
-          onRefresh={refreshPlayers}
+          onRefresh={() => refreshPlayers(undefined, { refreshAll: true })}
           onOrderChange={(ids) => applyPlayerOrder(ids, "list")}
           refreshing={playersLoading}
           messages={messages}

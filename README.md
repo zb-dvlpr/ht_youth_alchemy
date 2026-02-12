@@ -4,7 +4,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 
 ## Features
 - CHPP OAuth connection to your Hattrick account
-- Youth player list with sorting, star-player selection, quick refresh, and synced ordering with matrices
+- Youth player list with sorting, star-player selection, full refresh (players, details, ratings, matches), and synced ordering with matrices
 - Multi youth-team switching when a manager owns multiple academies
 - Player details with skills, promotion timing, last match info, and maxed-out indicators
 - Tabbed matrices for ratings and skill current/max with maxed-out indicators

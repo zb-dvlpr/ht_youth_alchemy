@@ -10,6 +10,9 @@ import {
   ALGORITHM_SETTINGS_EVENT,
   readAllowTrainingUntilMaxedOut,
   writeAllowTrainingUntilMaxedOut,
+  readYouthStalenessHours,
+  writeYouthStalenessHours,
+  YOUTH_SETTINGS_EVENT,
 } from "@/lib/settings";
 
 type SettingsButtonProps = {
@@ -26,9 +29,10 @@ const STORAGE_PREFIX = "ya_";
 
 export default function SettingsButton({ messages }: SettingsButtonProps) {
   const [open, setOpen] = useState(false);
-  const [algorithmsOpen, setAlgorithmsOpen] = useState(false);
+  const [youthSettingsOpen, setYouthSettingsOpen] = useState(false);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
+  const [stalenessHours, setStalenessHours] = useState(3);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -49,6 +53,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
+    setStalenessHours(readYouthStalenessHours());
   }, []);
 
   const handleExport = () => {
@@ -136,6 +141,19 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     }
   };
 
+  const handleStalenessHoursChange = (value: number) => {
+    const nextValue = Math.min(24, Math.max(1, Math.round(value)));
+    setStalenessHours(nextValue);
+    writeYouthStalenessHours(nextValue);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(YOUTH_SETTINGS_EVENT, {
+          detail: { stalenessHours: nextValue },
+        })
+      );
+    }
+  };
+
   return (
     <div className={styles.feedbackWrap}>
       <Tooltip content={messages.settingsTooltip}>
@@ -155,11 +173,11 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
             type="button"
             className={styles.feedbackLink}
             onClick={() => {
-              setAlgorithmsOpen(true);
+              setYouthSettingsOpen(true);
               setOpen(false);
             }}
           >
-            {messages.settingsAlgorithms}
+            {messages.settingsYouth}
           </button>
           <button
             type="button"
@@ -178,10 +196,10 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         </div>
       ) : null}
       <Modal
-        open={algorithmsOpen}
-        title={messages.settingsAlgorithmsTitle}
+        open={youthSettingsOpen}
+        title={messages.settingsYouthTitle}
         body={
-          <div className={styles.algorithmsModalBody}>
+          <div className={styles.settingsModalBody}>
             <Tooltip
               content={messages.settingsAlgorithmsAllowTrainingTooltip}
               fullWidth
@@ -198,7 +216,30 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
                     handleAllowTrainingToggle(event.target.checked)
                   }
                 />
-                <span className={styles.algorithmsToggleSwitch} aria-hidden="true" />
+                <span
+                  className={styles.algorithmsToggleSwitch}
+                  aria-hidden="true"
+                />
+              </label>
+            </Tooltip>
+            <Tooltip content={messages.settingsYouthStalenessHint} fullWidth>
+              <label className={styles.settingsField}>
+                <span className={styles.settingsFieldLabel}>
+                  {messages.settingsYouthStalenessLabel}
+                </span>
+                <input
+                  type="number"
+                  min={1}
+                  max={24}
+                  step={1}
+                  value={stalenessHours}
+                  className={styles.settingsFieldInput}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    if (Number.isNaN(value)) return;
+                    handleStalenessHoursChange(value);
+                  }}
+                />
               </label>
             </Tooltip>
           </div>
@@ -207,13 +248,13 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
           <button
             type="button"
             className={styles.confirmSubmit}
-            onClick={() => setAlgorithmsOpen(false)}
+            onClick={() => setYouthSettingsOpen(false)}
           >
             {messages.closeLabel}
           </button>
         }
         closeOnBackdrop
-        onClose={() => setAlgorithmsOpen(false)}
+        onClose={() => setYouthSettingsOpen(false)}
       />
       <input
         ref={fileInputRef}

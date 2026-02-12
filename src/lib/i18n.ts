@@ -29,6 +29,7 @@ export type Messages = {
   changelog_1_23_0: string;
   changelog_1_24_0: string;
   changelog_1_25_0: string;
+  changelog_1_28_0: string;
   changelog_1_26_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
@@ -44,6 +45,10 @@ export type Messages = {
   settingsAlgorithmsTitle: string;
   settingsAlgorithmsAllowTrainingLabel: string;
   settingsAlgorithmsAllowTrainingTooltip: string;
+  settingsYouth: string;
+  settingsYouthTitle: string;
+  settingsYouthStalenessLabel: string;
+  settingsYouthStalenessHint: string;
   behaviorNeutral: string;
   behaviorOffensive: string;
   behaviorDefensive: string;
@@ -214,6 +219,7 @@ export type Messages = {
   notificationStarSet: string;
   notificationStarCleared: string;
   notificationPlayerSelected: string;
+  notificationStaleRefresh: string;
   notificationTeamSwitched: string;
   notificationTeamsLoaded: string;
   notificationTeamsLoadFailed: string;
@@ -370,6 +376,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Algorithms setting to control training at max skill levels.",
     changelog_1_24_0: "Lineup tactic selection for match orders.",
     changelog_1_25_0: "Matches refresh button.",
+    changelog_1_28_0:
+      "Stale data auto-refresh with configurable threshold.",
     changelog_1_26_0: "Lineup slots now select players in the details panel.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
@@ -386,6 +394,11 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsAlgorithmsAllowTrainingLabel: "Allow training until maxed out",
     settingsAlgorithmsAllowTrainingTooltip:
       "When selected, this allows players to be trained until the skill reaches maximum value. If unselected, players whose current skill = maximum level will not be considered for training.",
+    settingsYouth: "Youth",
+    settingsYouthTitle: "Youth settings",
+    settingsYouthStalenessLabel: "Refresh after (hours)",
+    settingsYouthStalenessHint:
+      "When data is older than this, the app auto-refreshes players, details, skills, ratings, and matches.",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensive",
     behaviorDefensive: "Defensive",
@@ -573,6 +586,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Star player:",
     notificationStarCleared: "Star player cleared",
     notificationPlayerSelected: "Selected player:",
+    notificationStaleRefresh: "Refresh triggered due to stale data.",
     notificationTeamSwitched: "Switched to:",
     notificationTeamsLoaded: "Teams loaded",
     notificationTeamsLoadFailed: "Failed to load teams",
@@ -729,6 +743,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Algorithmus-Einstellung für Training bei Maximalwerten.",
     changelog_1_24_0: "Taktikauswahl für Matchorders.",
     changelog_1_25_0: "Schaltfläche zum Aktualisieren der Spiele.",
+    changelog_1_28_0:
+      "Automatische Aktualisierung veralteter Daten mit konfigurierbarer Schwelle.",
     changelog_1_26_0:
       "Aufstellungs-Slots wählen nun Spieler im Detailbereich aus.",
     feedbackTooltip: "Feedback",
@@ -747,6 +763,11 @@ const MESSAGES: Record<Locale, Messages> = {
       "Training bis zur Maximalstufe erlauben",
     settingsAlgorithmsAllowTrainingTooltip:
       "Wenn ausgewählt, können Spieler trainiert werden, bis die Fähigkeit den Maximalwert erreicht. Wenn nicht ausgewählt, werden Spieler, deren aktuelle Fähigkeit = Maximalstufe ist, nicht fürs Training berücksichtigt.",
+    settingsYouth: "Jugend",
+    settingsYouthTitle: "Jugend-Einstellungen",
+    settingsYouthStalenessLabel: "Aktualisieren nach (Stunden)",
+    settingsYouthStalenessHint:
+      "Wenn Daten älter sind, lädt die App Spieler, Details, Skills, Bewertungen und Matches neu.",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensiv",
     behaviorDefensive: "Defensiv",
@@ -936,6 +957,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Starspieler:",
     notificationStarCleared: "Starspieler entfernt",
     notificationPlayerSelected: "Spieler ausgewählt:",
+    notificationStaleRefresh: "Aktualisierung wegen veralteter Daten gestartet.",
     notificationTeamSwitched: "Gewechselt zu:",
     notificationTeamsLoaded: "Teams geladen",
     notificationTeamsLoadFailed: "Teams konnten nicht geladen werden",
@@ -1093,6 +1115,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_24_0:
       "Sélection de la tactique pour les ordres de match.",
     changelog_1_25_0: "Bouton d’actualisation des matchs.",
+    changelog_1_28_0:
+      "Actualisation automatique des données obsolètes avec seuil configurable.",
     changelog_1_26_0:
       "Les postes de composition sélectionnent désormais le joueur dans les détails.",
     feedbackTooltip: "Retour",
@@ -1111,6 +1135,11 @@ const MESSAGES: Record<Locale, Messages> = {
       "Autoriser l’entraînement jusqu’au maximum",
     settingsAlgorithmsAllowTrainingTooltip:
       "Lorsqu’elle est sélectionnée, cette option permet d’entraîner les joueurs jusqu’à ce que la compétence atteigne sa valeur maximale. Si elle n’est pas sélectionnée, les joueurs dont la compétence actuelle = niveau maximum ne seront pas pris en compte pour l’entraînement.",
+    settingsYouth: "Jeunes",
+    settingsYouthTitle: "Paramètres jeunes",
+    settingsYouthStalenessLabel: "Actualiser après (heures)",
+    settingsYouthStalenessHint:
+      "Si les données sont trop anciennes, l’app recharge joueurs, détails, compétences, notes et matchs.",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensif",
     behaviorDefensive: "Défensif",
@@ -1306,6 +1335,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Joueur star :",
     notificationStarCleared: "Joueur star supprimé",
     notificationPlayerSelected: "Joueur sélectionné :",
+    notificationStaleRefresh: "Actualisation déclenchée par des données obsolètes.",
     notificationTeamSwitched: "Changé vers :",
     notificationTeamsLoaded: "Équipes chargées",
     notificationTeamsLoadFailed: "Impossible de charger les équipes",
@@ -1464,6 +1494,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_24_0:
       "Selección de táctica para órdenes de partido.",
     changelog_1_25_0: "Botón para refrescar los partidos.",
+    changelog_1_28_0:
+      "Actualización automática de datos desactualizados con umbral configurable.",
     changelog_1_26_0:
       "Los puestos de la alineación ahora seleccionan al jugador en detalles.",
     feedbackTooltip: "Comentarios",
@@ -1482,6 +1514,11 @@ const MESSAGES: Record<Locale, Messages> = {
       "Permitir entrenar hasta el máximo",
     settingsAlgorithmsAllowTrainingTooltip:
       "Cuando está seleccionado, permite entrenar jugadores hasta que la habilidad alcance el valor máximo. Si no está seleccionado, los jugadores cuyo nivel actual = nivel máximo no se considerarán para entrenamiento.",
+    settingsYouth: "Juveniles",
+    settingsYouthTitle: "Ajustes de juveniles",
+    settingsYouthStalenessLabel: "Actualizar después de (horas)",
+    settingsYouthStalenessHint:
+      "Si los datos son antiguos, la app recarga jugadores, detalles, habilidades, valoraciones y partidos.",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Ofensivo",
     behaviorDefensive: "Defensivo",
@@ -1673,6 +1710,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Jugador estrella:",
     notificationStarCleared: "Jugador estrella borrado",
     notificationPlayerSelected: "Jugador seleccionado:",
+    notificationStaleRefresh: "Actualización activada por datos desactualizados.",
     notificationTeamSwitched: "Cambiado a:",
     notificationTeamsLoaded: "Equipos cargados",
     notificationTeamsLoadFailed: "No se pudieron cargar los equipos",
@@ -1829,6 +1867,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_23_0: "Algoritminställning för träning vid maxnivåer.",
     changelog_1_24_0: "Taktikval för matchorder.",
     changelog_1_25_0: "Uppdateringsknapp för matcher.",
+    changelog_1_28_0:
+      "Automatisk uppdatering av gammal data med konfigurerbar gräns.",
     changelog_1_26_0:
       "Laguppställningsplatser väljer nu spelare i detaljpanelen.",
     feedbackTooltip: "Feedback",
@@ -1847,6 +1887,11 @@ const MESSAGES: Record<Locale, Messages> = {
       "Tillåt träning tills maxat",
     settingsAlgorithmsAllowTrainingTooltip:
       "När detta är valt kan spelare tränas tills färdigheten når maxvärdet. Om det inte är valt kommer spelare vars nuvarande färdighet = maxnivå inte att beaktas för träning.",
+    settingsYouth: "Ungdom",
+    settingsYouthTitle: "Ungdomsinställningar",
+    settingsYouthStalenessLabel: "Uppdatera efter (timmar)",
+    settingsYouthStalenessHint:
+      "När data är gammal uppdaterar appen spelare, detaljer, skills, betyg och matcher.",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensiv",
     behaviorDefensive: "Defensiv",
@@ -2036,6 +2081,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Stjärnspelare:",
     notificationStarCleared: "Stjärnspelare borttagen",
     notificationPlayerSelected: "Spelare vald:",
+    notificationStaleRefresh: "Uppdatering startad på grund av gammal data.",
     notificationTeamSwitched: "Bytt till:",
     notificationTeamsLoaded: "Lag laddade",
     notificationTeamsLoadFailed: "Kunde inte ladda lag",
@@ -2194,6 +2240,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_24_0:
       "Selezione tattica per gli ordini partita.",
     changelog_1_25_0: "Pulsante di aggiornamento dei match.",
+    changelog_1_28_0:
+      "Aggiornamento automatico dei dati obsoleti con soglia configurabile.",
     changelog_1_26_0:
       "Gli slot della formazione ora selezionano i giocatori nei dettagli.",
     feedbackTooltip: "Feedback",
@@ -2212,6 +2260,11 @@ const MESSAGES: Record<Locale, Messages> = {
       "Consenti allenamento fino al massimo",
     settingsAlgorithmsAllowTrainingTooltip:
       "Se selezionata, consente di allenare i giocatori finché l’abilità raggiunge il valore massimo. Se non selezionata, i giocatori con abilità attuale = livello massimo non saranno considerati per l’allenamento.",
+    settingsYouth: "Giovani",
+    settingsYouthTitle: "Impostazioni giovani",
+    settingsYouthStalenessLabel: "Aggiorna dopo (ore)",
+    settingsYouthStalenessHint:
+      "Quando i dati sono vecchi, l’app ricarica giocatori, dettagli, skill, valutazioni e partite.",
     behaviorNeutral: "Normale",
     behaviorOffensive: "Offensivo",
     behaviorDefensive: "Difensivo",
@@ -2403,6 +2456,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Giocatore stella:",
     notificationStarCleared: "Giocatore stella rimosso",
     notificationPlayerSelected: "Giocatore selezionato:",
+    notificationStaleRefresh: "Aggiornamento avviato per dati obsoleti.",
     notificationTeamSwitched: "Passato a:",
     notificationTeamsLoaded: "Squadre caricate",
     notificationTeamsLoadFailed: "Impossibile caricare le squadre",
@@ -2561,6 +2615,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_24_0:
       "Seleção de tática para ordens de jogo.",
     changelog_1_25_0: "Botão para atualizar partidas.",
+    changelog_1_28_0:
+      "Atualização automática de dados desatualizados com limite configurável.",
     changelog_1_26_0:
       "Os slots da escalação agora selecionam o jogador nos detalhes.",
     feedbackTooltip: "Feedback",
@@ -2579,6 +2635,11 @@ const MESSAGES: Record<Locale, Messages> = {
       "Permitir treino até o máximo",
     settingsAlgorithmsAllowTrainingTooltip:
       "Quando selecionado, permite treinar jogadores até que a habilidade atinja o valor máximo. Se não selecionado, jogadores cujo nível atual = nível máximo não serão considerados para treino.",
+    settingsYouth: "Juvenil",
+    settingsYouthTitle: "Configurações do juvenil",
+    settingsYouthStalenessLabel: "Atualizar após (horas)",
+    settingsYouthStalenessHint:
+      "Quando os dados estão antigos, o app recarrega jogadores, detalhes, skills, avaliações e partidas.",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Ofensivo",
     behaviorDefensive: "Defensivo",
@@ -2770,6 +2831,7 @@ const MESSAGES: Record<Locale, Messages> = {
     notificationStarSet: "Jogador estrela:",
     notificationStarCleared: "Jogador estrela removido",
     notificationPlayerSelected: "Jogador selecionado:",
+    notificationStaleRefresh: "Atualização iniciada por dados desatualizados.",
     notificationTeamSwitched: "Mudou para:",
     notificationTeamsLoaded: "Times carregados",
     notificationTeamsLoadFailed: "Falha ao carregar times",

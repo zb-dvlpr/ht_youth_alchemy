@@ -1015,6 +1015,32 @@
   gap: 8px;
 }
 
+.chroniclePanelRefresh {
+  border: 1px solid #d1c1ab;
+  background: #f4efe6;
+  color: #6b6256;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.chroniclePanelRefresh:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chroniclePanelRefresh:not(:disabled):hover {
+  background: #e7dcc9;
+  transform: translateY(-1px);
+}
+
 .chronicleRefreshSpinner {
   width: 12px;
   height: 12px;
@@ -1582,6 +1608,16 @@ html[data-theme="dark"] .chroniclePanelHeader {
 
 html[data-theme="dark"] .chroniclePanelTitle {
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .chroniclePanelRefresh {
+  border-color: rgba(227, 214, 194, 0.3);
+  background: #26211c;
+  color: #e3d6c2;
+}
+
+html[data-theme="dark"] .chroniclePanelRefresh:not(:disabled):hover {
+  background: #3a332b;
 }
 
 html[data-theme="dark"] .chronicleRefreshSpinner {

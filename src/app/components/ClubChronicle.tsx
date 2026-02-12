@@ -1265,17 +1265,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           {messages.clubChronicleTitle}
         </h2>
         <div className={styles.chronicleHeaderActions}>
-          <Tooltip content={messages.clubChronicleRefreshTooltip}>
-            <button
-              type="button"
-              className={styles.chronicleUpdatesButton}
-              onClick={() => void refreshLeaguePerformance("manual")}
-              disabled={refreshing}
-              aria-label={messages.clubChronicleRefreshTooltip}
-            >
-              {messages.clubChronicleRefreshButton}
-            </button>
-          </Tooltip>
           <button
             type="button"
             className={styles.chronicleUpdatesButton}
@@ -1298,6 +1287,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 <h3 className={styles.chroniclePanelTitle}>
                   <span className={styles.chroniclePanelTitleRow}>
                     {messages.clubChronicleLeaguePanelTitle}
+                    <Tooltip content={messages.clubChronicleRefreshTooltip}>
+                      <button
+                        type="button"
+                        className={styles.chroniclePanelRefresh}
+                        onClick={() => void refreshLeaguePerformance("manual")}
+                        disabled={refreshing}
+                        aria-label={messages.clubChronicleRefreshTooltip}
+                      >
+                        ↻
+                      </button>
+                    </Tooltip>
                     {refreshing ? (
                       <span
                         className={styles.chronicleRefreshSpinner}

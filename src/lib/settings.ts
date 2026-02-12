@@ -1,6 +1,9 @@
 export const ALGORITHM_SETTINGS_STORAGE_KEY = "ya_allow_training_until_maxed_out_v1";
 export const ALGORITHM_SETTINGS_EVENT = "ya:algorithm-settings";
 export const DEFAULT_ALLOW_TRAINING_UNTIL_MAXED_OUT = true;
+export const CLUB_CHRONICLE_SETTINGS_STORAGE_KEY = "ya_club_chronicle_settings_v1";
+export const CLUB_CHRONICLE_SETTINGS_EVENT = "ya:club-chronicle-settings";
+export const DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS = 3;
 export const YOUTH_SETTINGS_STORAGE_KEY = "ya_youth_staleness_hours_v1";
 export const YOUTH_SETTINGS_EVENT = "ya:youth-settings";
 export const DEFAULT_YOUTH_STALENESS_HOURS = 3;
@@ -27,6 +30,35 @@ export function writeAllowTrainingUntilMaxedOut(value: boolean) {
     window.localStorage.setItem(
       ALGORITHM_SETTINGS_STORAGE_KEY,
       value ? "true" : "false"
+    );
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function readClubChronicleStalenessDays(): number {
+  if (typeof window === "undefined") {
+    return DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS;
+  }
+  try {
+    const stored = window.localStorage.getItem(CLUB_CHRONICLE_SETTINGS_STORAGE_KEY);
+    if (!stored) return DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS;
+    const parsed = JSON.parse(stored) as { stalenessDays?: number };
+    const value = parsed?.stalenessDays ?? DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS;
+    if (!Number.isFinite(value)) return DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS;
+    return Math.min(7, Math.max(1, Math.round(value)));
+  } catch {
+    return DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS;
+  }
+}
+
+export function writeClubChronicleStalenessDays(value: number) {
+  if (typeof window === "undefined") return;
+  try {
+    const clamped = Math.min(7, Math.max(1, Math.round(value)));
+    window.localStorage.setItem(
+      CLUB_CHRONICLE_SETTINGS_STORAGE_KEY,
+      JSON.stringify({ stalenessDays: clamped })
     );
   } catch {
     // ignore storage errors

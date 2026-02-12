@@ -13,6 +13,9 @@ import {
   readYouthStalenessHours,
   writeYouthStalenessHours,
   YOUTH_SETTINGS_EVENT,
+  readClubChronicleStalenessDays,
+  writeClubChronicleStalenessDays,
+  CLUB_CHRONICLE_SETTINGS_EVENT,
 } from "@/lib/settings";
 
 type SettingsButtonProps = {
@@ -30,9 +33,11 @@ const STORAGE_PREFIX = "ya_";
 export default function SettingsButton({ messages }: SettingsButtonProps) {
   const [open, setOpen] = useState(false);
   const [youthSettingsOpen, setYouthSettingsOpen] = useState(false);
+  const [chronicleSettingsOpen, setChronicleSettingsOpen] = useState(false);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
   const [stalenessHours, setStalenessHours] = useState(3);
+  const [chronicleStalenessDays, setChronicleStalenessDays] = useState(3);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -54,6 +59,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     if (typeof window === "undefined") return;
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
     setStalenessHours(readYouthStalenessHours());
+    setChronicleStalenessDays(readClubChronicleStalenessDays());
   }, []);
 
   const handleExport = () => {
@@ -154,6 +160,19 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     }
   };
 
+  const handleChronicleStalenessChange = (value: number) => {
+    const nextValue = Math.min(7, Math.max(1, Math.round(value)));
+    setChronicleStalenessDays(nextValue);
+    writeClubChronicleStalenessDays(nextValue);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(CLUB_CHRONICLE_SETTINGS_EVENT, {
+          detail: { stalenessDays: nextValue },
+        })
+      );
+    }
+  };
+
   return (
     <div className={styles.feedbackWrap}>
       <Tooltip content={messages.settingsTooltip}>
@@ -178,6 +197,16 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
             }}
           >
             {messages.settingsYouth}
+          </button>
+          <button
+            type="button"
+            className={styles.feedbackLink}
+            onClick={() => {
+              setChronicleSettingsOpen(true);
+              setOpen(false);
+            }}
+          >
+            {messages.settingsClubChronicle}
           </button>
           <button
             type="button"
@@ -255,6 +284,48 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         }
         closeOnBackdrop
         onClose={() => setYouthSettingsOpen(false)}
+      />
+      <Modal
+        open={chronicleSettingsOpen}
+        title={messages.settingsClubChronicleTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <Tooltip
+              content={messages.settingsClubChronicleStalenessHint}
+              fullWidth
+            >
+              <label className={styles.settingsField}>
+                <span className={styles.settingsFieldLabel}>
+                  {messages.settingsClubChronicleStalenessLabel}
+                </span>
+                <input
+                  type="number"
+                  min={1}
+                  max={7}
+                  step={1}
+                  value={chronicleStalenessDays}
+                  className={styles.settingsFieldInput}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    if (Number.isNaN(value)) return;
+                    handleChronicleStalenessChange(value);
+                  }}
+                />
+              </label>
+            </Tooltip>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setChronicleSettingsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setChronicleSettingsOpen(false)}
       />
       <input
         ref={fileInputRef}

@@ -1,10 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
+import { useNotifications } from "./notifications/NotificationsProvider";
+import {
+  CLUB_CHRONICLE_SETTINGS_EVENT,
+  CLUB_CHRONICLE_SETTINGS_STORAGE_KEY,
+  DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS,
+  readClubChronicleStalenessDays,
+} from "@/lib/settings";
 
 type SupportedTeam = {
   teamId: number;
@@ -27,9 +34,77 @@ type ManualTeam = {
   teamName?: string;
   leagueName?: string | null;
   leagueLevelUnitName?: string | null;
+  leagueLevelUnitId?: number | null;
+};
+
+type LeaguePerformanceSnapshot = {
+  leagueId: number | null;
+  leagueName: string | null;
+  leagueLevel: number | null;
+  maxLevel: number | null;
+  leagueLevelUnitId: number | null;
+  leagueLevelUnitName: string | null;
+  currentMatchRound: string | null;
+  rank: number | null;
+  userId: number | null;
+  teamId: number | null;
+  position: number | null;
+  positionChange: string | null;
+  teamName: string | null;
+  matches: number | null;
+  goalsFor: number | null;
+  goalsAgainst: number | null;
+  points: number | null;
+  won: number | null;
+  draws: number | null;
+  lost: number | null;
+  fetchedAt: number;
+};
+
+type LeaguePerformanceData = {
+  current: LeaguePerformanceSnapshot;
+  previous?: LeaguePerformanceSnapshot;
+};
+
+type ChronicleTeamData = {
+  teamId: number;
+  teamName?: string;
+  leagueName?: string | null;
+  leagueLevelUnitName?: string | null;
+  leagueLevelUnitId?: number | null;
+  leaguePerformance?: LeaguePerformanceData;
+};
+
+type ChronicleCache = {
+  version: number;
+  teams: Record<number, ChronicleTeamData>;
+  panelOrder?: string[];
+  lastRefreshAt?: number | null;
+};
+
+type ChronicleUpdateField = {
+  fieldKey: string;
+  label: string;
+  previous: string | null;
+  current: string | null;
+};
+
+type ChronicleUpdates = {
+  generatedAt: number;
+  teams: Record<
+    number,
+    { teamId: number; teamName: string; changes: ChronicleUpdateField[] }
+  >;
 };
 
 const STORAGE_KEY = "ya_club_chronicle_watchlist_v1";
+const CACHE_KEY = "ya_cc_cache_v1";
+const UPDATES_KEY = "ya_cc_updates_v1";
+const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
+const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
+const PANEL_IDS = ["league-performance"] as const;
+const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
+const MAX_CACHE_AGE_MS = SEASON_LENGTH_MS * 2;
 
 const normalizeSupportedTeams = (
   input:
@@ -64,6 +139,7 @@ const resolveTeamDetailsMeta = (
     | {
         LeagueName?: string;
         LeagueLevelUnitName?: string;
+        LeagueLevelUnitID?: number | string;
         League?: {
           LeagueName?: string;
           Name?: string;
@@ -71,12 +147,13 @@ const resolveTeamDetailsMeta = (
         LeagueLevelUnit?: {
           LeagueLevelUnitName?: string;
           Name?: string;
+          LeagueLevelUnitID?: number | string;
         };
       }
     | undefined
 ) => {
   if (!team) {
-    return { leagueName: null, leagueLevelUnitName: null };
+    return { leagueName: null, leagueLevelUnitName: null, leagueLevelUnitId: null };
   }
   const leagueName =
     team.LeagueName ??
@@ -88,7 +165,13 @@ const resolveTeamDetailsMeta = (
     team.LeagueLevelUnit?.LeagueLevelUnitName ??
     team.LeagueLevelUnit?.Name ??
     null;
-  return { leagueName, leagueLevelUnitName };
+  const leagueLevelUnitIdRaw =
+    team.LeagueLevelUnitID ?? team.LeagueLevelUnit?.LeagueLevelUnitID ?? null;
+  const leagueLevelUnitId =
+    leagueLevelUnitIdRaw !== null && leagueLevelUnitIdRaw !== undefined
+      ? Number(leagueLevelUnitIdRaw)
+      : null;
+  return { leagueName, leagueLevelUnitName, leagueLevelUnitId };
 };
 
 const readStorage = (): WatchlistStorage => {
@@ -117,12 +200,158 @@ const writeStorage = (payload: WatchlistStorage) => {
   }
 };
 
+const readChronicleCache = (): ChronicleCache => {
+  if (typeof window === "undefined") {
+    return { version: 1, teams: {} };
+  }
+  try {
+    const raw = window.localStorage.getItem(CACHE_KEY);
+    if (!raw) return { version: 1, teams: {} };
+    const parsed = JSON.parse(raw) as ChronicleCache;
+    return parsed && parsed.teams ? parsed : { version: 1, teams: {} };
+  } catch {
+    return { version: 1, teams: {} };
+  }
+};
+
+const writeChronicleCache = (payload: ChronicleCache) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const readChronicleUpdates = (): ChronicleUpdates | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(UPDATES_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as ChronicleUpdates;
+    return parsed && parsed.teams ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeChronicleUpdates = (payload: ChronicleUpdates | null) => {
+  if (typeof window === "undefined") return;
+  try {
+    if (!payload) {
+      window.localStorage.removeItem(UPDATES_KEY);
+      return;
+    }
+    window.localStorage.setItem(UPDATES_KEY, JSON.stringify(payload));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const readPanelOrder = (): string[] => {
+  if (typeof window === "undefined") return [...PANEL_IDS];
+  try {
+    const raw = window.localStorage.getItem(PANEL_ORDER_KEY);
+    if (!raw) return [...PANEL_IDS];
+    const parsed = JSON.parse(raw) as string[];
+    if (!Array.isArray(parsed)) return [...PANEL_IDS];
+    return parsed.filter((id) => PANEL_IDS.includes(id as typeof PANEL_IDS[number]));
+  } catch {
+    return [...PANEL_IDS];
+  }
+};
+
+const writePanelOrder = (order: string[]) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(PANEL_ORDER_KEY, JSON.stringify(order));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const readLastRefresh = (): number | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(LAST_REFRESH_KEY);
+    if (!raw) return null;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeLastRefresh = (value: number) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LAST_REFRESH_KEY, String(value));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const pruneChronicleCache = (cache: ChronicleCache): ChronicleCache => {
+  const now = Date.now();
+  const nextTeams: Record<number, ChronicleTeamData> = {};
+  Object.entries(cache.teams).forEach(([id, team]) => {
+    const leaguePerformance = team.leaguePerformance;
+    if (leaguePerformance?.current) {
+      const age = now - leaguePerformance.current.fetchedAt;
+      if (age > MAX_CACHE_AGE_MS) {
+        return;
+      }
+    }
+    let nextLeaguePerformance = leaguePerformance;
+    if (leaguePerformance?.previous) {
+      const age = now - leaguePerformance.previous.fetchedAt;
+      if (age > MAX_CACHE_AGE_MS) {
+        nextLeaguePerformance = {
+          ...leaguePerformance,
+          previous: undefined,
+        };
+      }
+    }
+    nextTeams[Number(id)] = {
+      ...team,
+      leaguePerformance: nextLeaguePerformance,
+    };
+  });
+  return { ...cache, teams: nextTeams };
+};
+
+const getLatestCacheTimestamp = (cache: ChronicleCache): number | null => {
+  let latest = 0;
+  Object.values(cache.teams).forEach((team) => {
+    const current = team.leaguePerformance?.current?.fetchedAt ?? 0;
+    const previous = team.leaguePerformance?.previous?.fetchedAt ?? 0;
+    latest = Math.max(latest, current, previous);
+  });
+  return latest > 0 ? latest : null;
+};
+
 export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [supportedTeams, setSupportedTeams] = useState<SupportedTeam[]>([]);
   const [supportedSelections, setSupportedSelections] = useState<
     Record<number, boolean>
   >({});
   const [manualTeams, setManualTeams] = useState<ManualTeam[]>([]);
+  const [chronicleCache, setChronicleCache] = useState<ChronicleCache>(() =>
+    pruneChronicleCache(readChronicleCache())
+  );
+  const [panelOrder, setPanelOrder] = useState<string[]>(() =>
+    readPanelOrder()
+  );
+  const [updates, setUpdates] = useState<ChronicleUpdates | null>(() =>
+    readChronicleUpdates()
+  );
+  const [updatesOpen, setUpdatesOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
+  const [stalenessDays, setStalenessDays] = useState(
+    DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS
+  );
+  const [refreshing, setRefreshing] = useState(false);
   const [teamIdInput, setTeamIdInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -130,6 +359,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [errorOpen, setErrorOpen] = useState(false);
   const [watchlistOpen, setWatchlistOpen] = useState(false);
   const initializedRef = useRef(false);
+  const initialFetchRef = useRef(false);
+  const staleRefreshRef = useRef(false);
+  const { addNotification } = useNotifications();
 
   const supportedById = useMemo(
     () =>
@@ -141,6 +373,39 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => new Set<number>(manualTeams.map((team) => Number(team.teamId))),
     [manualTeams]
   );
+
+  const trackedTeams = useMemo(() => {
+    const map = new Map<number, ChronicleTeamData>();
+    supportedTeams.forEach((team) => {
+      if (!supportedSelections[team.teamId]) return;
+      const cached = chronicleCache.teams[team.teamId];
+      map.set(team.teamId, {
+        teamId: team.teamId,
+        teamName: team.teamName,
+        leagueName: team.leagueName ?? cached?.leagueName ?? null,
+        leagueLevelUnitName:
+          team.leagueLevelUnitName ?? cached?.leagueLevelUnitName ?? null,
+        leagueLevelUnitId: cached?.leagueLevelUnitId ?? null,
+        leaguePerformance: cached?.leaguePerformance,
+      });
+    });
+    manualTeams.forEach((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      map.set(team.teamId, {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? "",
+        leagueName: team.leagueName ?? cached?.leagueName ?? null,
+        leagueLevelUnitName:
+          team.leagueLevelUnitName ?? cached?.leagueLevelUnitName ?? null,
+        leagueLevelUnitId:
+          team.leagueLevelUnitId ?? cached?.leagueLevelUnitId ?? null,
+        leaguePerformance: cached?.leaguePerformance,
+      });
+    });
+    return Array.from(map.values()).sort((a, b) =>
+      (a.teamName ?? "").localeCompare(b.teamName ?? "")
+    );
+  }, [supportedTeams, supportedSelections, manualTeams, chronicleCache]);
 
   useEffect(() => {
     let active = true;
@@ -193,19 +458,22 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           }
         });
         if (active) {
-        const normalizedManualTeams = (stored.manualTeams ?? []).map(
-          (item) => {
-            if (typeof item === "number") {
-              return { teamId: item };
-            }
-            return {
-              teamId: Number(item.teamId),
-              teamName: item.teamName ?? "",
-              leagueName: item.leagueName ?? null,
-              leagueLevelUnitName: item.leagueLevelUnitName ?? null,
-            };
+        const normalizedManualTeams = (stored.manualTeams ?? []).map((item) => {
+          if (typeof item === "number") {
+            return { teamId: item };
           }
-        );
+          return {
+            teamId: Number(item.teamId),
+            teamName: item.teamName ?? "",
+            leagueName: item.leagueName ?? null,
+            leagueLevelUnitName: item.leagueLevelUnitName ?? null,
+            leagueLevelUnitId:
+              item.leagueLevelUnitId !== undefined &&
+              item.leagueLevelUnitId !== null
+                ? Number(item.leagueLevelUnitId)
+                : null,
+          };
+        });
           setSupportedTeams(nextSupportedTeams);
           setSupportedSelections(nextSelections);
           setManualTeams(normalizedManualTeams);
@@ -238,6 +506,86 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (!initializedRef.current) return;
     writeStorage({ supportedSelections, manualTeams });
   }, [supportedSelections, manualTeams]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setStalenessDays(readClubChronicleStalenessDays());
+    const handle = (event: Event) => {
+      if (event instanceof StorageEvent) {
+        if (
+          event.key &&
+          event.key !== CLUB_CHRONICLE_SETTINGS_STORAGE_KEY
+        ) {
+          return;
+        }
+      }
+      if (event instanceof CustomEvent) {
+        const detail = event.detail as { stalenessDays?: number } | null;
+        if (typeof detail?.stalenessDays === "number") {
+          setStalenessDays(detail.stalenessDays);
+          return;
+        }
+      }
+      setStalenessDays(readClubChronicleStalenessDays());
+    };
+    window.addEventListener("storage", handle);
+    window.addEventListener(CLUB_CHRONICLE_SETTINGS_EVENT, handle);
+    return () => {
+      window.removeEventListener("storage", handle);
+      window.removeEventListener(CLUB_CHRONICLE_SETTINGS_EVENT, handle);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (trackedTeams.length === 0) return;
+    const hasSnapshot = Object.values(chronicleCache.teams).some(
+      (team) => team.leaguePerformance?.current
+    );
+    if (hasSnapshot) return;
+    if (refreshing || initialFetchRef.current) return;
+    initialFetchRef.current = true;
+    void refreshLeaguePerformance("manual");
+  }, [trackedTeams.length, chronicleCache, refreshing]);
+
+  useEffect(() => {
+    if (trackedTeams.length === 0) return;
+    let lastRefresh = readLastRefresh();
+    if (!lastRefresh) {
+      const fallback = getLatestCacheTimestamp(chronicleCache);
+      if (!fallback) return;
+      lastRefresh = fallback;
+      writeLastRefresh(fallback);
+    }
+    const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
+    const isStale = Date.now() - lastRefresh >= maxAgeMs;
+    if (!isStale) {
+      staleRefreshRef.current = false;
+      return;
+    }
+    if (staleRefreshRef.current || refreshing) return;
+    staleRefreshRef.current = true;
+    void refreshLeaguePerformance("stale");
+  }, [trackedTeams.length, stalenessDays, refreshing, chronicleCache]);
+
+  useEffect(() => {
+    writeChronicleCache(chronicleCache);
+  }, [chronicleCache]);
+
+  useEffect(() => {
+    writeChronicleUpdates(updates);
+  }, [updates]);
+
+  useEffect(() => {
+    const normalized = [
+      ...panelOrder.filter((id) => PANEL_IDS.includes(id as typeof PANEL_IDS[number])),
+      ...PANEL_IDS.filter((id) => !panelOrder.includes(id)),
+    ];
+    if (normalized.length !== panelOrder.length) {
+      setPanelOrder(normalized);
+      return;
+    }
+    writePanelOrder(panelOrder);
+  }, [panelOrder]);
 
   const handleAddTeam = async () => {
     const trimmed = teamIdInput.trim();
@@ -296,6 +644,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           teamName: team?.TeamName ?? "",
           leagueName: meta.leagueName,
           leagueLevelUnitName: meta.leagueLevelUnitName,
+          leagueLevelUnitId: meta.leagueLevelUnitId,
         },
       ]);
       setTeamIdInput("");
@@ -319,8 +668,516 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setManualTeams((prev) => prev.filter((team) => team.teamId !== teamId));
   };
 
+  const handleMovePanel = (panelId: string, direction: "up" | "down") => {
+    setPanelOrder((prev) => {
+      const index = prev.indexOf(panelId);
+      if (index < 0) return prev;
+      const nextIndex = direction === "up" ? index - 1 : index + 1;
+      if (nextIndex < 0 || nextIndex >= prev.length) return prev;
+      const next = [...prev];
+      const [item] = next.splice(index, 1);
+      next.splice(nextIndex, 0, item);
+      return next;
+    });
+  };
+
+  const handleOpenDetails = (teamId: number) => {
+    setSelectedTeamId(teamId);
+    setDetailsOpen(true);
+  };
+
+  const leagueFieldDefs = useMemo(
+    () => [
+      { key: "leagueId", label: messages.clubChronicleFieldLeagueId },
+      { key: "leagueName", label: messages.clubChronicleFieldLeagueName },
+      { key: "leagueLevel", label: messages.clubChronicleFieldLeagueLevel },
+      { key: "maxLevel", label: messages.clubChronicleFieldMaxLevel },
+      {
+        key: "leagueLevelUnitId",
+        label: messages.clubChronicleFieldLeagueLevelUnitId,
+      },
+      {
+        key: "leagueLevelUnitName",
+        label: messages.clubChronicleFieldLeagueLevelUnitName,
+      },
+      {
+        key: "currentMatchRound",
+        label: messages.clubChronicleFieldCurrentMatchRound,
+      },
+      { key: "rank", label: messages.clubChronicleFieldRank },
+      { key: "userId", label: messages.clubChronicleFieldUserId },
+      { key: "teamId", label: messages.clubChronicleFieldTeamId },
+      { key: "position", label: messages.clubChronicleFieldPosition },
+      {
+        key: "positionChange",
+        label: messages.clubChronicleFieldPositionChange,
+      },
+      { key: "teamName", label: messages.clubChronicleFieldTeamName },
+      { key: "matches", label: messages.clubChronicleFieldMatches },
+      { key: "goalsFor", label: messages.clubChronicleFieldGoalsFor },
+      { key: "goalsAgainst", label: messages.clubChronicleFieldGoalsAgainst },
+      { key: "points", label: messages.clubChronicleFieldPoints },
+      { key: "won", label: messages.clubChronicleFieldWon },
+      { key: "draws", label: messages.clubChronicleFieldDraws },
+      { key: "lost", label: messages.clubChronicleFieldLost },
+    ],
+    [
+      messages.clubChronicleFieldLeagueId,
+      messages.clubChronicleFieldLeagueName,
+      messages.clubChronicleFieldLeagueLevel,
+      messages.clubChronicleFieldMaxLevel,
+      messages.clubChronicleFieldLeagueLevelUnitId,
+      messages.clubChronicleFieldLeagueLevelUnitName,
+      messages.clubChronicleFieldCurrentMatchRound,
+      messages.clubChronicleFieldRank,
+      messages.clubChronicleFieldUserId,
+      messages.clubChronicleFieldTeamId,
+      messages.clubChronicleFieldPosition,
+      messages.clubChronicleFieldPositionChange,
+      messages.clubChronicleFieldTeamName,
+      messages.clubChronicleFieldMatches,
+      messages.clubChronicleFieldGoalsFor,
+      messages.clubChronicleFieldGoalsAgainst,
+      messages.clubChronicleFieldPoints,
+      messages.clubChronicleFieldWon,
+      messages.clubChronicleFieldDraws,
+      messages.clubChronicleFieldLost,
+    ]
+  );
+
+  const leagueTableColumns = useMemo(
+    () => [
+      {
+        key: "team",
+        label: messages.clubChronicleColumnTeam,
+        getValue: (snapshot: LeaguePerformanceSnapshot | undefined, row?: { teamName: string }) =>
+          row?.teamName ?? snapshot?.teamName ?? null,
+      },
+      {
+        key: "position",
+        label: messages.clubChronicleColumnPosition,
+        getValue: (snapshot: LeaguePerformanceSnapshot | undefined) =>
+          snapshot?.position ?? null,
+      },
+      {
+        key: "points",
+        label: messages.clubChronicleColumnPoints,
+        getValue: (snapshot: LeaguePerformanceSnapshot | undefined) =>
+          snapshot?.points ?? null,
+      },
+      {
+        key: "series",
+        label: messages.clubChronicleColumnSeries,
+        getValue: (
+          snapshot: LeaguePerformanceSnapshot | undefined,
+          row?: { meta?: string | null }
+        ) =>
+          snapshot?.leagueLevelUnitName ?? row?.meta ?? null,
+      },
+      {
+        key: "positionChange",
+        label: messages.clubChronicleColumnPositionChange,
+        getValue: (snapshot: LeaguePerformanceSnapshot | undefined) =>
+          snapshot?.positionChange ?? null,
+      },
+      {
+        key: "goalsDelta",
+        label: messages.clubChronicleColumnGoalsDelta,
+        getValue: (snapshot: LeaguePerformanceSnapshot | undefined) =>
+          snapshot
+            ? `${formatValue(snapshot.goalsFor)}-${formatValue(snapshot.goalsAgainst)}`
+            : null,
+      },
+      {
+        key: "record",
+        label: messages.clubChronicleColumnRecord,
+        getValue: (snapshot: LeaguePerformanceSnapshot | undefined) =>
+          snapshot
+            ? `${formatValue(snapshot.won)}-${formatValue(snapshot.draws)}-${formatValue(snapshot.lost)}`
+            : null,
+      },
+    ],
+    [
+      messages.clubChronicleColumnTeam,
+      messages.clubChronicleColumnPosition,
+      messages.clubChronicleColumnPoints,
+      messages.clubChronicleColumnSeries,
+      messages.clubChronicleColumnPositionChange,
+      messages.clubChronicleColumnGoalsDelta,
+      messages.clubChronicleColumnRecord,
+    ]
+  );
+
+  const formatValue = (value: string | number | null | undefined) => {
+    if (value === null || value === undefined || value === "") {
+      return messages.unknownShort;
+    }
+    return String(value);
+  };
+
+  const buildChanges = (
+    previous: LeaguePerformanceSnapshot | undefined,
+    current: LeaguePerformanceSnapshot,
+    columns: {
+      key: string;
+      label: string;
+      getValue: (
+        snapshot: LeaguePerformanceSnapshot | undefined,
+        row?: { teamName?: string; meta?: string | null }
+      ) => string | number | null | undefined;
+    }[]
+  ): ChronicleUpdateField[] => {
+    if (!previous) {
+      return columns.map((column) => ({
+        fieldKey: column.key,
+        label: column.label,
+        previous: null,
+        current: formatValue(column.getValue(current)),
+      }));
+    }
+    return columns
+      .map((column) => {
+        const prevValue = column.getValue(previous);
+        const nextValue = column.getValue(current);
+        if (prevValue === nextValue) return null;
+        return {
+          fieldKey: column.key,
+          label: column.label,
+          previous: formatValue(prevValue),
+          current: formatValue(nextValue),
+        };
+      })
+      .filter((item): item is ChronicleUpdateField => item !== null);
+  };
+
+  const refreshLeaguePerformance = async (reason: "stale" | "manual") => {
+    if (refreshing) return;
+    if (trackedTeams.length === 0) return;
+    setRefreshing(true);
+    const nextCache = pruneChronicleCache(readChronicleCache());
+    const nextUpdates: ChronicleUpdates = {
+      generatedAt: Date.now(),
+      teams: {},
+    };
+    const nextManualTeams = [...manualTeams];
+    const leagueDetailsByUnit = new Map<number, any>();
+
+    for (const team of trackedTeams) {
+      if (team.leagueLevelUnitId) continue;
+      try {
+        const response = await fetch(
+          `/api/chpp/teamdetails?teamId=${team.teamId}`,
+          { cache: "no-store" }
+        );
+        const payload = (await response.json().catch(() => null)) as
+          | {
+              data?: {
+                HattrickData?: {
+                  Team?: {
+                    TeamID?: number | string;
+                    TeamName?: string;
+                    LeagueName?: string;
+                    LeagueLevelUnitName?: string;
+                    LeagueLevelUnitID?: number | string;
+                    LeagueLevelUnit?: {
+                      LeagueLevelUnitID?: number | string;
+                      LeagueLevelUnitName?: string;
+                      Name?: string;
+                    };
+                    League?: {
+                      LeagueName?: string;
+                      Name?: string;
+                    };
+                  };
+                };
+              };
+              error?: string;
+            }
+          | null;
+        const teamDetails = payload?.data?.HattrickData?.Team;
+        const meta = resolveTeamDetailsMeta(teamDetails);
+        const nextTeamName = teamDetails?.TeamName ?? team.teamName ?? "";
+        nextCache.teams[team.teamId] = {
+          ...nextCache.teams[team.teamId],
+          teamId: team.teamId,
+          teamName: nextTeamName,
+          leagueName: meta.leagueName,
+          leagueLevelUnitName: meta.leagueLevelUnitName,
+          leagueLevelUnitId: meta.leagueLevelUnitId,
+          leaguePerformance: nextCache.teams[team.teamId]?.leaguePerformance,
+        };
+        const manualIndex = nextManualTeams.findIndex(
+          (item) => item.teamId === team.teamId
+        );
+        if (manualIndex >= 0) {
+          nextManualTeams[manualIndex] = {
+            ...nextManualTeams[manualIndex],
+            teamName: nextTeamName,
+            leagueName: meta.leagueName,
+            leagueLevelUnitName: meta.leagueLevelUnitName,
+            leagueLevelUnitId: meta.leagueLevelUnitId,
+          };
+        }
+      } catch {
+        // ignore teamdetails failure for now
+      }
+    }
+
+    const teamsWithLeague = trackedTeams
+      .map((team) => nextCache.teams[team.teamId] ?? team)
+      .filter((team) => team.leagueLevelUnitId);
+
+    for (const team of teamsWithLeague) {
+      const leagueLevelUnitId = Number(team.leagueLevelUnitId);
+      if (!Number.isFinite(leagueLevelUnitId)) continue;
+      if (!leagueDetailsByUnit.has(leagueLevelUnitId)) {
+        try {
+          const response = await fetch(
+            `/api/chpp/leaguedetails?leagueLevelUnitId=${leagueLevelUnitId}`,
+            { cache: "no-store" }
+          );
+          const payload = (await response.json().catch(() => null)) as
+            | {
+                data?: {
+                  HattrickData?: {
+                    LeagueID?: number | string;
+                    LeagueName?: string;
+                    LeagueLevel?: number | string;
+                    MaxLevel?: number | string;
+                    LeagueLevelUnitID?: number | string;
+                    LeagueLevelUnitName?: string;
+                    CurrentMatchRound?: string;
+                    Rank?: number | string;
+                    Team?: unknown;
+                  };
+                };
+                error?: string;
+              }
+            | null;
+          if (!response.ok || payload?.error) {
+            continue;
+          }
+          leagueDetailsByUnit.set(leagueLevelUnitId, payload?.data?.HattrickData);
+        } catch {
+          // ignore league failure
+        }
+      }
+    }
+
+    teamsWithLeague.forEach((team) => {
+      const leagueLevelUnitId = Number(team.leagueLevelUnitId);
+      const leagueData = leagueDetailsByUnit.get(leagueLevelUnitId);
+      if (!leagueData) return;
+      const rawTeams = leagueData.Team;
+      const teamList = Array.isArray(rawTeams) ? rawTeams : rawTeams ? [rawTeams] : [];
+      const match = teamList.find(
+        (entry) => Number(entry.TeamID) === Number(team.teamId)
+      );
+      if (!match) return;
+      const snapshot: LeaguePerformanceSnapshot = {
+        leagueId: leagueData.LeagueID ? Number(leagueData.LeagueID) : null,
+        leagueName: leagueData.LeagueName ?? null,
+        leagueLevel: leagueData.LeagueLevel ? Number(leagueData.LeagueLevel) : null,
+        maxLevel: leagueData.MaxLevel ? Number(leagueData.MaxLevel) : null,
+        leagueLevelUnitId: leagueData.LeagueLevelUnitID
+          ? Number(leagueData.LeagueLevelUnitID)
+          : leagueLevelUnitId,
+        leagueLevelUnitName: leagueData.LeagueLevelUnitName ?? null,
+        currentMatchRound: leagueData.CurrentMatchRound ?? null,
+        rank: leagueData.Rank ? Number(leagueData.Rank) : null,
+        userId: match.UserId ? Number(match.UserId) : null,
+        teamId: match.TeamID ? Number(match.TeamID) : Number(team.teamId),
+        position: match.Position ? Number(match.Position) : null,
+        positionChange: match.PositionChange ?? null,
+        teamName: match.TeamName ?? team.teamName ?? null,
+        matches: match.Matches ? Number(match.Matches) : null,
+        goalsFor: match.GoalsFor ? Number(match.GoalsFor) : null,
+        goalsAgainst: match.GoalsAgainst ? Number(match.GoalsAgainst) : null,
+        points: match.Points ? Number(match.Points) : null,
+        won: match.Won ? Number(match.Won) : null,
+        draws: match.Draws ? Number(match.Draws) : null,
+        lost: match.Lost ? Number(match.Lost) : null,
+        fetchedAt: Date.now(),
+      };
+      const previous = nextCache.teams[team.teamId]?.leaguePerformance?.current;
+      nextCache.teams[team.teamId] = {
+        ...nextCache.teams[team.teamId],
+        teamId: team.teamId,
+        teamName: team.teamName ?? snapshot.teamName ?? "",
+        leagueName: team.leagueName ?? snapshot.leagueName ?? null,
+        leagueLevelUnitName:
+          team.leagueLevelUnitName ?? snapshot.leagueLevelUnitName ?? null,
+        leagueLevelUnitId: leagueLevelUnitId,
+        leaguePerformance: {
+          current: snapshot,
+          previous: previous,
+        },
+      };
+      const changes = buildChanges(previous, snapshot, leagueTableColumns);
+      nextUpdates.teams[team.teamId] = {
+        teamId: team.teamId,
+        teamName: team.teamName ?? snapshot.teamName ?? `${team.teamId}`,
+        changes,
+      };
+    });
+
+    setManualTeams(nextManualTeams);
+    setChronicleCache(nextCache);
+    setUpdates(nextUpdates);
+    setUpdatesOpen(true);
+    writeLastRefresh(Date.now());
+    if (reason === "stale") {
+      addNotification(messages.notificationChronicleStaleRefresh);
+    }
+    setRefreshing(false);
+  };
+
+  const updatesByTeam = updates?.teams ?? {};
+
+  const leagueRows = trackedTeams.map((team) => {
+    const cached = chronicleCache.teams[team.teamId];
+    return {
+      teamId: team.teamId,
+      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+      snapshot: cached?.leaguePerformance?.current,
+      leaguePerformance: cached?.leaguePerformance,
+      meta:
+        team.leagueName || team.leagueLevelUnitName
+          ? [team.leagueName, team.leagueLevelUnitName].filter(Boolean).join(" · ")
+          : null,
+    };
+  });
+
+  const selectedTeam = selectedTeamId
+    ? leagueRows.find((team) => team.teamId === selectedTeamId) ?? null
+    : null;
+  const tableStyle = useMemo(() => {
+    const remainingColumns = Math.max(leagueTableColumns.length - 1, 1);
+    return {
+      "--cc-columns": leagueTableColumns.length,
+      "--cc-template": `minmax(160px, 1.2fr) repeat(${remainingColumns}, minmax(60px, 0.8fr))`,
+    } as CSSProperties;
+  }, [leagueTableColumns.length]);
+
   return (
     <div className={styles.clubChronicleStack}>
+      <div className={styles.chronicleHeader}>
+        <h2 className={styles.chronicleHeaderTitle}>
+          {messages.clubChronicleTitle}
+        </h2>
+        <div className={styles.chronicleHeaderActions}>
+          <Tooltip content={messages.clubChronicleRefreshTooltip}>
+            <button
+              type="button"
+              className={styles.chronicleUpdatesButton}
+              onClick={() => void refreshLeaguePerformance("manual")}
+              disabled={refreshing}
+              aria-label={messages.clubChronicleRefreshTooltip}
+            >
+              {messages.clubChronicleRefreshButton}
+            </button>
+          </Tooltip>
+          <button
+            type="button"
+            className={styles.chronicleUpdatesButton}
+            onClick={() => setUpdatesOpen(true)}
+          >
+            {messages.clubChronicleUpdatesButton}
+          </button>
+        </div>
+      </div>
+
+      <div className={styles.chroniclePanels}>
+        {panelOrder.map((panelId) => {
+          if (panelId !== "league-performance") return null;
+          const canMoveUp = panelOrder.indexOf(panelId) > 0;
+          const canMoveDown =
+            panelOrder.indexOf(panelId) < panelOrder.length - 1;
+          return (
+            <div key={panelId} className={styles.chroniclePanel}>
+              <div className={styles.chroniclePanelHeader}>
+                <h3 className={styles.chroniclePanelTitle}>
+                  {messages.clubChronicleLeaguePanelTitle}
+                </h3>
+                <div className={styles.chroniclePanelActions}>
+                  <Tooltip content={messages.clubChronicleMoveUp}>
+                    <button
+                      type="button"
+                      className={styles.chroniclePanelMove}
+                      onClick={() => handleMovePanel(panelId, "up")}
+                      disabled={!canMoveUp}
+                      aria-label={messages.clubChronicleMoveUp}
+                    >
+                      ↑
+                    </button>
+                  </Tooltip>
+                  <Tooltip content={messages.clubChronicleMoveDown}>
+                    <button
+                      type="button"
+                      className={styles.chroniclePanelMove}
+                      onClick={() => handleMovePanel(panelId, "down")}
+                      disabled={!canMoveDown}
+                      aria-label={messages.clubChronicleMoveDown}
+                    >
+                      ↓
+                    </button>
+                  </Tooltip>
+                </div>
+              </div>
+              <div className={styles.chroniclePanelBody}>
+                {trackedTeams.length === 0 ? (
+                  <p className={styles.chronicleEmpty}>
+                    {messages.clubChronicleNoTeams}
+                  </p>
+                ) : refreshing && leagueRows.every((row) => !row.snapshot) ? (
+                  <p className={styles.chronicleEmpty}>
+                    {messages.clubChronicleLoading}
+                  </p>
+                ) : (
+                  <div className={styles.chronicleTable} style={tableStyle}>
+                    <div className={styles.chronicleTableHeader}>
+                      {leagueTableColumns.map((column) => (
+                        <span key={`header-${column.key}`}>{column.label}</span>
+                      ))}
+                    </div>
+                    {leagueRows.map((row) => (
+                      <div
+                        key={row.teamId}
+                        className={styles.chronicleTableRow}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => handleOpenDetails(row.teamId)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            handleOpenDetails(row.teamId);
+                          }
+                        }}
+                      >
+                        {leagueTableColumns.map((column) => (
+                          <span
+                            key={`${row.teamId}-${column.key}`}
+                            className={styles.chronicleTableCell}
+                          >
+                            {formatValue(
+                              column.getValue(row.snapshot, row) as
+                                | string
+                                | number
+                                | null
+                                | undefined
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       <div className={styles.watchlistFabWrap}>
         <Tooltip content={messages.watchlistTitle}>
           <button
@@ -362,7 +1219,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                             `${messages.watchlistTeamLabel} ${team.teamId}`}
                         </span>
                       </label>
-                      {(team.leagueName || team.leagueLevelUnitName) ? (
+                      {team.leagueName || team.leagueLevelUnitName ? (
                         <span className={styles.watchlistMeta}>
                           {[team.leagueName, team.leagueLevelUnitName]
                             .filter(Boolean)
@@ -403,7 +1260,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                             `${messages.watchlistTeamLabel} ${team.teamId}`}
                         </span>
                       </div>
-                      {(team.leagueName || team.leagueLevelUnitName) ? (
+                      {team.leagueName || team.leagueLevelUnitName ? (
                         <span className={styles.watchlistMeta}>
                           {[team.leagueName, team.leagueLevelUnitName]
                             .filter(Boolean)
@@ -453,6 +1310,155 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
         closeOnBackdrop
         onClose={() => setWatchlistOpen(false)}
+      />
+
+      <Modal
+        open={updatesOpen}
+        title={messages.clubChronicleUpdatesTitle}
+        body={
+          updates && trackedTeams.length ? (
+            <div className={styles.chronicleUpdatesList}>
+              {trackedTeams.map((team) => {
+                const teamUpdates = updatesByTeam[team.teamId];
+                const changes = teamUpdates?.changes ?? [];
+                return (
+                  <div key={team.teamId} className={styles.chronicleUpdatesTeam}>
+                    <h3 className={styles.chronicleUpdatesTeamTitle}>
+                      {teamUpdates?.teamName ?? team.teamName ?? team.teamId}
+                    </h3>
+                    <div className={styles.chronicleUpdatesHeader}>
+                      <span />
+                      <span>{messages.clubChronicleDetailsPreviousLabel}</span>
+                      <span>{messages.clubChronicleDetailsCurrentLabel}</span>
+                    </div>
+                    {changes.length === 0 ? (
+                      <p className={styles.chronicleEmpty}>
+                        {messages.clubChronicleUpdatesNoChanges}
+                      </p>
+                    ) : null}
+                    {leagueTableColumns.map((column) => (
+                      <div
+                        key={`${team.teamId}-${column.key}`}
+                        className={styles.chronicleUpdatesRow}
+                      >
+                        <span className={styles.chronicleUpdatesLabel}>
+                          {column.label}
+                        </span>
+                        <span>
+                          {formatValue(
+                            column.getValue(
+                              chronicleCache.teams[team.teamId]?.leaguePerformance
+                                ?.previous,
+                              {
+                                teamName: team.teamName ?? String(team.teamId),
+                                meta: chronicleCache.teams[team.teamId]?.leaguePerformance
+                                  ?.previous?.leagueLevelUnitName
+                                  ?? chronicleCache.teams[team.teamId]?.leaguePerformance
+                                    ?.current?.leagueLevelUnitName
+                                  ?? null,
+                              }
+                            ) as string | number | null | undefined
+                          )}
+                        </span>
+                        <span>
+                          {formatValue(
+                            column.getValue(
+                              chronicleCache.teams[team.teamId]?.leaguePerformance
+                                ?.current,
+                              {
+                                teamName: team.teamName ?? String(team.teamId),
+                                meta: chronicleCache.teams[team.teamId]?.leaguePerformance
+                                  ?.current?.leagueLevelUnitName
+                                  ?? chronicleCache.teams[team.teamId]?.leaguePerformance
+                                    ?.previous?.leagueLevelUnitName
+                                  ?? null,
+                              }
+                            ) as string | number | null | undefined
+                          )}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className={styles.chronicleEmpty}>
+              {messages.clubChronicleUpdatesEmpty}
+            </p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setUpdatesOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setUpdatesOpen(false)}
+      />
+
+      <Modal
+        open={detailsOpen}
+        title={messages.clubChronicleTeamDetailsTitle}
+        body={
+          selectedTeam?.leaguePerformance ? (
+            <div className={styles.chronicleDetailsGrid}>
+              <h3 className={styles.chronicleDetailsSectionTitle}>
+                {messages.clubChronicleLeagueSectionTitle}
+              </h3>
+              <div className={styles.chronicleDetailsHeader}>
+                <span />
+                <span>{messages.clubChronicleDetailsPreviousLabel}</span>
+                <span>{messages.clubChronicleDetailsCurrentLabel}</span>
+              </div>
+              {leagueTableColumns.map((column) => (
+                  <div
+                    key={`details-${column.key}`}
+                    className={styles.chronicleDetailsRow}
+                  >
+                    <span className={styles.chronicleDetailsLabel}>
+                      {column.label}
+                    </span>
+                    <span>
+                      {formatValue(
+                        column.getValue(
+                          selectedTeam.leaguePerformance?.previous,
+                          selectedTeam ? { teamName: selectedTeam.teamName, meta: selectedTeam.meta } : undefined
+                        ) as string | number | null | undefined
+                      )}
+                    </span>
+                    <span>
+                      {formatValue(
+                        column.getValue(
+                          selectedTeam.leaguePerformance?.current,
+                          selectedTeam ? { teamName: selectedTeam.teamName, meta: selectedTeam.meta } : undefined
+                        ) as string | number | null | undefined
+                      )}
+                    </span>
+                  </div>
+                ))}
+            </div>
+          ) : (
+            <p className={styles.chronicleEmpty}>
+              {messages.clubChronicleLeaguePanelEmpty}
+            </p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setDetailsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setDetailsOpen(false)}
       />
 
       <Modal

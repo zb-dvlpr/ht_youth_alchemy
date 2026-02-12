@@ -927,6 +927,264 @@
   gap: 16px;
 }
 
+.chronicleHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.chronicleHeaderTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #3f362c;
+}
+
+.chronicleHeaderActions {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.chronicleUpdatesButton {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  background: #244d2b;
+  color: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.chronicleUpdatesButton:hover {
+  background: #2c5e35;
+  transform: translateY(-1px);
+}
+
+.chroniclePanels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 1100px) {
+  .chroniclePanels {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .chroniclePanels {
+    grid-template-columns: 1fr;
+  }
+}
+
+.chroniclePanel {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  border-radius: 16px;
+  border: 1px solid #e0d6c6;
+  background: #fff;
+  min-height: 260px;
+  max-height: 320px;
+  overflow: hidden;
+}
+
+.chroniclePanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid #eadfce;
+  background: #f8f3ea;
+}
+
+.chroniclePanelTitle {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0;
+  color: #3f362c;
+}
+
+.chroniclePanelActions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.chroniclePanelMove {
+  border: none;
+  border-radius: 8px;
+  padding: 4px 6px;
+  background: #e7dcc9;
+  color: #3f362c;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.chroniclePanelMove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chroniclePanelBody {
+  padding: 0 14px 12px;
+  overflow: auto;
+  position: relative;
+  isolation: isolate;
+}
+
+.chronicleTable {
+  display: grid;
+  gap: 2px;
+  position: relative;
+}
+
+.chronicleTableHeader {
+  display: grid;
+  grid-template-columns: var(--cc-template, repeat(var(--cc-columns, 6), minmax(90px, 1fr)));
+  gap: 2px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6f6454;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: normal;
+  word-break: break-word;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 8px 12px 6px;
+  background: #efe6d6;
+  border-bottom: 1px solid #d9c9b0;
+  box-shadow: 0 2px 0 rgba(219, 202, 179, 0.8);
+  align-items: center;
+}
+
+.chronicleTableHeader > span {
+  padding: 0 6px 0 0;
+}
+
+.chronicleTableRow {
+  display: grid;
+  grid-template-columns: var(--cc-template, repeat(var(--cc-columns, 6), minmax(90px, 1fr)));
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  border: 1px solid #e0d6c6;
+  background: #f7f2ea;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.chronicleTableRow:hover {
+  transform: translateY(-1px);
+  border-color: #d7c7b2;
+}
+
+.chronicleTableCell {
+  font-size: 12px;
+  color: #6b6256;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chronicleTableRow .chronicleTableCell:first-child {
+  font-weight: 600;
+  color: #3f362c;
+}
+
+.chronicleEmpty {
+  font-size: 12px;
+  color: #6b6256;
+}
+
+.chronicleUpdatesList {
+  display: grid;
+  gap: 12px;
+}
+
+.chronicleUpdatesTeam {
+  border: 1px solid #e0d6c6;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #f7f2ea;
+}
+
+.chronicleUpdatesTeamTitle {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #3f362c;
+}
+
+.chronicleUpdatesRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b6256;
+}
+
+.chronicleUpdatesHeader {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8a806f;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.chronicleUpdatesLabel {
+  font-weight: 600;
+  color: #3f362c;
+}
+
+.chronicleDetailsGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.chronicleDetailsRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b6256;
+}
+
+.chronicleDetailsHeader {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #8a806f;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.chronicleDetailsLabel {
+  font-weight: 600;
+  color: #3f362c;
+}
+
+.chronicleDetailsSectionTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #3f362c;
+}
+
 .watchlistPanel {
   display: grid;
   gap: 14px;
@@ -1283,6 +1541,83 @@ html[data-theme="dark"] .watchlistFab {
 
 html[data-theme="dark"] .watchlistFab:hover {
   background: #4a9460;
+}
+
+html[data-theme="dark"] .chronicleHeaderTitle {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .chronicleUpdatesButton {
+  background: #3d7c52;
+}
+
+html[data-theme="dark"] .chronicleUpdatesButton:hover {
+  background: #4a8e61;
+}
+
+html[data-theme="dark"] .chroniclePanel {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #1b1917;
+}
+
+html[data-theme="dark"] .chroniclePanelHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  background: #231f1a;
+}
+
+html[data-theme="dark"] .chroniclePanelTitle {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .chroniclePanelMove {
+  background: #2a241d;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .chronicleTableRow {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #221f1b;
+}
+
+html[data-theme="dark"] .chronicleTableHeader {
+  color: #e3d6c2;
+  background: #2b251f;
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .chronicleTableCell {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .chronicleTableRow .chronicleTableCell:first-child {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .chronicleEmpty {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .chronicleUpdatesTeam {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #221f1b;
+}
+
+html[data-theme="dark"] .chronicleUpdatesTeamTitle,
+html[data-theme="dark"] .chronicleUpdatesLabel,
+html[data-theme="dark"] .chronicleDetailsLabel,
+html[data-theme="dark"] .chronicleDetailsSectionTitle {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .chronicleUpdatesHeader,
+html[data-theme="dark"] .chronicleDetailsHeader {
+  color: #c8bdae;
+}
+
+html[data-theme="dark"] .chronicleUpdatesRow,
+html[data-theme="dark"] .chronicleDetailsRow {
+  color: #b9b0a5;
 }
 
 .watchlistModal {

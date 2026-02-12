@@ -132,6 +132,20 @@ type ChronicleTableProps<Row, Snapshot> = {
   onSort?: (key: string) => void;
 };
 
+type ChroniclePanelProps = {
+  title: string;
+  refreshing?: boolean;
+  refreshLabel: string;
+  moveUpLabel: string;
+  moveDownLabel: string;
+  onRefresh?: () => void;
+  canMoveUp?: boolean;
+  canMoveDown?: boolean;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+  children: React.ReactNode;
+};
+
 const ChronicleTable = <Row, Snapshot>({
   columns,
   rows,
@@ -205,6 +219,74 @@ const ChronicleTable = <Row, Snapshot>({
         </div>
       );
     })}
+  </div>
+);
+
+const ChroniclePanel = ({
+  title,
+  refreshing,
+  refreshLabel,
+  moveUpLabel,
+  moveDownLabel,
+  onRefresh,
+  canMoveUp,
+  canMoveDown,
+  onMoveUp,
+  onMoveDown,
+  children,
+}: ChroniclePanelProps) => (
+  <div className={styles.chroniclePanel}>
+    <div className={styles.chroniclePanelHeader}>
+      <h3 className={styles.chroniclePanelTitle}>
+        <span className={styles.chroniclePanelTitleRow}>
+          {title}
+          {onRefresh ? (
+            <Tooltip content={refreshLabel}>
+              <button
+                type="button"
+                className={styles.chroniclePanelRefresh}
+                onClick={onRefresh}
+                disabled={Boolean(refreshing)}
+                aria-label={refreshLabel}
+              >
+                ↻
+              </button>
+            </Tooltip>
+          ) : null}
+          {refreshing ? (
+            <span
+              className={styles.chronicleRefreshSpinner}
+              aria-label={refreshLabel}
+            />
+          ) : null}
+        </span>
+      </h3>
+      <div className={styles.chroniclePanelActions}>
+        <Tooltip content={moveUpLabel}>
+          <button
+            type="button"
+            className={styles.chroniclePanelMove}
+            onClick={onMoveUp}
+            disabled={!canMoveUp}
+            aria-label={moveUpLabel}
+          >
+            ↑
+          </button>
+        </Tooltip>
+        <Tooltip content={moveDownLabel}>
+          <button
+            type="button"
+            className={styles.chroniclePanelMove}
+            onClick={onMoveDown}
+            disabled={!canMoveDown}
+            aria-label={moveDownLabel}
+          >
+            ↓
+          </button>
+        </Tooltip>
+      </div>
+    </div>
+    <div className={styles.chroniclePanelBody}>{children}</div>
   </div>
 );
 
@@ -1403,80 +1485,42 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           const canMoveDown =
             panelOrder.indexOf(panelId) < panelOrder.length - 1;
           return (
-            <div key={panelId} className={styles.chroniclePanel}>
-              <div className={styles.chroniclePanelHeader}>
-                <h3 className={styles.chroniclePanelTitle}>
-                  <span className={styles.chroniclePanelTitleRow}>
-                    {messages.clubChronicleLeaguePanelTitle}
-                    <Tooltip content={messages.clubChronicleRefreshTooltip}>
-                      <button
-                        type="button"
-                        className={styles.chroniclePanelRefresh}
-                        onClick={() => void refreshLeaguePerformance("manual")}
-                        disabled={refreshing}
-                        aria-label={messages.clubChronicleRefreshTooltip}
-                      >
-                        ↻
-                      </button>
-                    </Tooltip>
-                    {refreshing ? (
-                      <span
-                        className={styles.chronicleRefreshSpinner}
-                        aria-label={messages.refreshingLabel}
-                      />
-                    ) : null}
-                  </span>
-                </h3>
-                <div className={styles.chroniclePanelActions}>
-                  <Tooltip content={messages.clubChronicleMoveUp}>
-                    <button
-                      type="button"
-                      className={styles.chroniclePanelMove}
-                      onClick={() => handleMovePanel(panelId, "up")}
-                      disabled={!canMoveUp}
-                      aria-label={messages.clubChronicleMoveUp}
-                    >
-                      ↑
-                    </button>
-                  </Tooltip>
-                  <Tooltip content={messages.clubChronicleMoveDown}>
-                    <button
-                      type="button"
-                      className={styles.chroniclePanelMove}
-                      onClick={() => handleMovePanel(panelId, "down")}
-                      disabled={!canMoveDown}
-                      aria-label={messages.clubChronicleMoveDown}
-                    >
-                      ↓
-                    </button>
-                  </Tooltip>
-                </div>
-              </div>
-              <div className={styles.chroniclePanelBody}>
-                {trackedTeams.length === 0 ? (
-                  <p className={styles.chronicleEmpty}>
-                    {messages.clubChronicleNoTeams}
-                  </p>
-                ) : refreshing && leagueRows.every((row) => !row.snapshot) ? (
-                  <p className={styles.chronicleEmpty}>
-                    {messages.clubChronicleLoading}
-                  </p>
-                ) : (
-                  <ChronicleTable
-                    columns={leagueTableColumns}
-                    rows={sortedLeagueRows}
-                    getRowKey={(row) => row.teamId}
-                    getSnapshot={(row) => row.snapshot ?? undefined}
-                    onRowClick={(row) => handleOpenDetails(row.teamId)}
-                    formatValue={formatValue}
-                    style={tableStyle}
-                    sortKey={sortState.key}
-                    sortDirection={sortState.direction}
-                    onSort={handleSort}
-                  />
-                )}
-              </div>
-            </div>
+            <ChroniclePanel
+              key={panelId}
+              title={messages.clubChronicleLeaguePanelTitle}
+              refreshing={refreshing}
+              refreshLabel={messages.clubChronicleRefreshTooltip}
+              moveUpLabel={messages.clubChronicleMoveUp}
+              moveDownLabel={messages.clubChronicleMoveDown}
+              onRefresh={() => void refreshLeaguePerformance("manual")}
+              canMoveUp={canMoveUp}
+              canMoveDown={canMoveDown}
+              onMoveUp={() => handleMovePanel(panelId, "up")}
+              onMoveDown={() => handleMovePanel(panelId, "down")}
+            >
+              {trackedTeams.length === 0 ? (
+                <p className={styles.chronicleEmpty}>
+                  {messages.clubChronicleNoTeams}
+                </p>
+              ) : refreshing && leagueRows.every((row) => !row.snapshot) ? (
+                <p className={styles.chronicleEmpty}>
+                  {messages.clubChronicleLoading}
+                </p>
+              ) : (
+                <ChronicleTable
+                  columns={leagueTableColumns}
+                  rows={sortedLeagueRows}
+                  getRowKey={(row) => row.teamId}
+                  getSnapshot={(row) => row.snapshot ?? undefined}
+                  onRowClick={(row) => handleOpenDetails(row.teamId)}
+                  formatValue={formatValue}
+                  style={tableStyle}
+                  sortKey={sortState.key}
+                  sortDirection={sortState.direction}
+                  onSort={handleSort}
+                />
+              )}
+            </ChroniclePanel>
           );
         })}
       </div>

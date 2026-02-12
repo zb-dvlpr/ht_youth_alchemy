@@ -1109,6 +1109,36 @@
   padding: 0 6px 0 0;
 }
 
+.chronicleTableHeaderButton {
+  border: none;
+  background: transparent;
+  padding: 0 6px 0 0;
+  font: inherit;
+  color: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  text-align: left;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chronicleTableHeaderButton:hover {
+  color: #2f2923;
+}
+
+.chronicleTableHeaderButton:focus-visible {
+  outline: 2px solid rgba(93, 80, 66, 0.35);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.chronicleTableSortIcon {
+  font-size: 10px;
+  opacity: 0.6;
+}
+
 .chronicleTableRow {
   display: grid;
   grid-template-columns: var(--cc-template, repeat(var(--cc-columns, 6), minmax(90px, 1fr)));

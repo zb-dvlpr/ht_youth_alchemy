@@ -108,7 +108,12 @@ type ChronicleUpdates = {
 type ChronicleTableColumn<Row, Snapshot> = {
   key: string;
   label: string;
+  sortable?: boolean;
   getValue: (
+    snapshot: Snapshot | undefined,
+    row?: Row
+  ) => string | number | null | undefined;
+  getSortValue?: (
     snapshot: Snapshot | undefined,
     row?: Row
   ) => string | number | null | undefined;
@@ -122,6 +127,9 @@ type ChronicleTableProps<Row, Snapshot> = {
   onRowClick?: (row: Row) => void;
   formatValue: (value: string | number | null | undefined) => string;
   style?: CSSProperties;
+  sortKey?: string | null;
+  sortDirection?: "asc" | "desc";
+  onSort?: (key: string) => void;
 };
 
 const ChronicleTable = <Row, Snapshot>({
@@ -132,12 +140,38 @@ const ChronicleTable = <Row, Snapshot>({
   onRowClick,
   formatValue,
   style,
+  sortKey,
+  sortDirection,
+  onSort,
 }: ChronicleTableProps<Row, Snapshot>) => (
   <div className={styles.chronicleTable} style={style}>
     <div className={styles.chronicleTableHeader}>
-      {columns.map((column) => (
-        <span key={`header-${column.key}`}>{column.label}</span>
-      ))}
+      {columns.map((column) => {
+        const isSortable = Boolean(onSort) && column.sortable !== false;
+        const isActive = sortKey === column.key;
+        if (isSortable) {
+          const icon = isActive
+            ? sortDirection === "desc"
+              ? "▼"
+              : "▲"
+            : "⇅";
+          return (
+            <button
+              key={`header-${column.key}`}
+              type="button"
+              className={styles.chronicleTableHeaderButton}
+              onClick={() => onSort?.(column.key)}
+              aria-sort={
+                isActive ? (sortDirection ?? "asc") : "none"
+              }
+            >
+              {column.label}
+              <span className={styles.chronicleTableSortIcon}>{icon}</span>
+            </button>
+          );
+        }
+        return <span key={`header-${column.key}`}>{column.label}</span>;
+      })}
     </div>
     {rows.map((row) => {
       const snapshot = getSnapshot(row);
@@ -429,6 +463,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [stalenessDays, setStalenessDays] = useState(
     DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS
   );
+  const [sortState, setSortState] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({ key: "team", direction: "asc" });
   const [refreshing, setRefreshing] = useState(false);
   const [teamIdInput, setTeamIdInput] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -889,6 +927,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setDetailsOpen(true);
   };
 
+  const handleSort = (key: string) => {
+    setSortState((prev) => ({
+      key,
+      direction:
+        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
+    }));
+  };
+
   const leagueFieldDefs = useMemo(
     () => [
       { key: "leagueId", label: messages.clubChronicleFieldLeagueId },
@@ -992,6 +1038,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           snapshot
             ? `${formatValue(snapshot.goalsFor)}-${formatValue(snapshot.goalsAgainst)}`
             : null,
+        getSortValue: (snapshot: LeaguePerformanceSnapshot | undefined) =>
+          snapshot && snapshot.goalsFor !== null && snapshot.goalsAgainst !== null
+            ? snapshot.goalsFor - snapshot.goalsAgainst
+            : null,
       },
       {
         key: "record",
@@ -999,6 +1049,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         getValue: (snapshot: LeaguePerformanceSnapshot | undefined) =>
           snapshot
             ? `${formatValue(snapshot.won)}-${formatValue(snapshot.draws)}-${formatValue(snapshot.lost)}`
+            : null,
+        getSortValue: (snapshot: LeaguePerformanceSnapshot | undefined) =>
+          snapshot
+            ? [
+                snapshot.won ?? 0,
+                snapshot.draws ?? 0,
+                snapshot.lost ?? 0,
+              ]
             : null,
       },
     ],
@@ -1024,6 +1082,44 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (value === null || value === undefined || value === "") return null;
     const num = Number(value);
     return Number.isFinite(num) ? num : null;
+  };
+
+  const normalizeSortValue = (value: unknown) => {
+    if (value === null || value === undefined || value === "") {
+      return null;
+    }
+    if (Array.isArray(value)) {
+      return value.map((entry) => normalizeSortValue(entry));
+    }
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+    const asNumber = Number(value);
+    if (typeof value !== "string" && Number.isFinite(asNumber)) {
+      return asNumber;
+    }
+    return String(value);
+  };
+
+  const compareSortValues = (left: unknown, right: unknown): number => {
+    if (left === null && right === null) return 0;
+    if (left === null) return 1;
+    if (right === null) return -1;
+    if (Array.isArray(left) && Array.isArray(right)) {
+      const length = Math.max(left.length, right.length);
+      for (let i = 0; i < length; i += 1) {
+        const result = compareSortValues(left[i], right[i]);
+        if (result !== 0) return result;
+      }
+      return 0;
+    }
+    if (typeof left === "number" && typeof right === "number") {
+      return left === right ? 0 : left < right ? -1 : 1;
+    }
+    return String(left).localeCompare(String(right), undefined, {
+      numeric: true,
+      sensitivity: "base",
+    });
   };
 
   const buildChanges = (
@@ -1247,6 +1343,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
   });
 
+  const sortedLeagueRows = useMemo(() => {
+    if (!sortState.key) return leagueRows;
+    const column = leagueTableColumns.find(
+      (item) => item.key === sortState.key
+    );
+    if (!column) return leagueRows;
+    const direction = sortState.direction === "desc" ? -1 : 1;
+    return [...leagueRows]
+      .map((row, index) => ({ row, index }))
+      .sort((left, right) => {
+        const leftValue = normalizeSortValue(
+          column.getSortValue?.(left.row.snapshot ?? undefined, left.row) ??
+            column.getValue(left.row.snapshot ?? undefined, left.row)
+        );
+        const rightValue = normalizeSortValue(
+          column.getSortValue?.(right.row.snapshot ?? undefined, right.row) ??
+            column.getValue(right.row.snapshot ?? undefined, right.row)
+        );
+        const result = compareSortValues(leftValue, rightValue);
+        if (result !== 0) return result * direction;
+        return left.index - right.index;
+      })
+      .map((item) => item.row);
+  }, [leagueRows, leagueTableColumns, sortState]);
+
   const selectedTeam = selectedTeamId
     ? leagueRows.find((team) => team.teamId === selectedTeamId) ?? null
     : null;
@@ -1343,12 +1464,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 ) : (
                   <ChronicleTable
                     columns={leagueTableColumns}
-                    rows={leagueRows}
+                    rows={sortedLeagueRows}
                     getRowKey={(row) => row.teamId}
                     getSnapshot={(row) => row.snapshot ?? undefined}
                     onRowClick={(row) => handleOpenDetails(row.teamId)}
                     formatValue={formatValue}
                     style={tableStyle}
+                    sortKey={sortState.key}
+                    sortDirection={sortState.direction}
+                    onSort={handleSort}
                   />
                 )}
               </div>

@@ -37,3 +37,6 @@
 
 ## Club Chronicle Tables
 - All Club Chronicle tables must use the shared ChronicleTable framework/component.
+
+## Panels
+- Use the shared ChroniclePanel framework/component for any new panels anywhere in the app.

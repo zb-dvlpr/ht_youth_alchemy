@@ -1,6 +1,10 @@
 export const ALGORITHM_SETTINGS_STORAGE_KEY = "ya_allow_training_until_maxed_out_v1";
 export const ALGORITHM_SETTINGS_EVENT = "ya:algorithm-settings";
 export const DEFAULT_ALLOW_TRAINING_UNTIL_MAXED_OUT = true;
+export const YOUTH_SETTINGS_STORAGE_KEY = "ya_youth_staleness_hours_v1";
+export const YOUTH_SETTINGS_EVENT = "ya:youth-settings";
+export const DEFAULT_YOUTH_STALENESS_HOURS = 3;
+export const LAST_REFRESH_STORAGE_KEY = "ya_last_refresh_ts_v1";
 
 export function readAllowTrainingUntilMaxedOut(): boolean {
   if (typeof window === "undefined") {
@@ -24,6 +28,56 @@ export function writeAllowTrainingUntilMaxedOut(value: boolean) {
       ALGORITHM_SETTINGS_STORAGE_KEY,
       value ? "true" : "false"
     );
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function readYouthStalenessHours(): number {
+  if (typeof window === "undefined") {
+    return DEFAULT_YOUTH_STALENESS_HOURS;
+  }
+  try {
+    const stored = window.localStorage.getItem(YOUTH_SETTINGS_STORAGE_KEY);
+    if (stored === null) {
+      return DEFAULT_YOUTH_STALENESS_HOURS;
+    }
+    const value = Number(stored);
+    if (!Number.isFinite(value)) {
+      return DEFAULT_YOUTH_STALENESS_HOURS;
+    }
+    return Math.min(24, Math.max(1, Math.round(value)));
+  } catch {
+    return DEFAULT_YOUTH_STALENESS_HOURS;
+  }
+}
+
+export function writeYouthStalenessHours(value: number) {
+  if (typeof window === "undefined") return;
+  try {
+    const clamped = Math.min(24, Math.max(1, Math.round(value)));
+    window.localStorage.setItem(YOUTH_SETTINGS_STORAGE_KEY, String(clamped));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function readLastRefreshTimestamp(): number | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const stored = window.localStorage.getItem(LAST_REFRESH_STORAGE_KEY);
+    if (!stored) return null;
+    const value = Number(stored);
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+export function writeLastRefreshTimestamp(value: number) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(LAST_REFRESH_STORAGE_KEY, String(value));
   } catch {
     // ignore storage errors
   }

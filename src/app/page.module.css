@@ -137,6 +137,36 @@
   gap: 12px;
 }
 
+.settingsModalBody {
+  display: grid;
+  gap: 12px;
+}
+
+.settingsField {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #d8cbb6;
+  background: #fff;
+  color: #3f362c;
+}
+
+.settingsFieldLabel {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.settingsFieldInput {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #d8cbb6;
+  padding: 8px 10px;
+  font-size: 13px;
+  background: #f8f3ea;
+  color: #3f362c;
+}
+
 .algorithmsToggle {
   position: relative;
   display: flex;
@@ -909,6 +939,19 @@ html[data-theme="dark"] .algorithmsToggleSwitch {
 html[data-theme="dark"] .algorithmsToggleInput:checked + .algorithmsToggleSwitch {
   background: #3d7c52;
 }
+
+html[data-theme="dark"] .settingsField {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #1f1a13;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .settingsFieldInput {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #2a241d;
+  color: #f3ede4;
+}
+
 
 html[data-theme="dark"] .card,
 html[data-theme="dark"] .helpCard {

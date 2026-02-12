@@ -36,7 +36,13 @@ import {
 import {
   ALGORITHM_SETTINGS_EVENT,
   ALGORITHM_SETTINGS_STORAGE_KEY,
+  DEFAULT_YOUTH_STALENESS_HOURS,
   readAllowTrainingUntilMaxedOut,
+  readLastRefreshTimestamp,
+  readYouthStalenessHours,
+  writeLastRefreshTimestamp,
+  YOUTH_SETTINGS_EVENT,
+  YOUTH_SETTINGS_STORAGE_KEY,
 } from "@/lib/settings";
 import { useNotifications } from "./notifications/NotificationsProvider";
 
@@ -279,7 +285,11 @@ export default function Dashboard({
   >(null);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
+  const [stalenessHours, setStalenessHours] = useState(
+    DEFAULT_YOUTH_STALENESS_HOURS
+  );
   const [tacticType, setTacticType] = useState(7);
+  const staleRefreshAttemptedRef = useRef(false);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -316,8 +326,8 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
-        version: "1.27.0",
-        entries: [messages.changelog_1_27_0],
+        version: "1.28.0",
+        entries: [messages.changelog_1_28_0],
       },
       {
         version: "1.26.0",
@@ -356,7 +366,7 @@ export default function Dashboard({
       messages.changelog_1_24_0,
       messages.changelog_1_25_0,
       messages.changelog_1_26_0,
-      messages.changelog_1_27_0,
+      messages.changelog_1_28_0,
     ]
   );
 
@@ -410,39 +420,6 @@ export default function Dashboard({
     if (!showChangelog) return;
     setChangelogPage(0);
   }, [showChangelog]);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
-    const handle = (event: Event) => {
-      if (event instanceof StorageEvent) {
-        if (event.key && event.key !== ALGORITHM_SETTINGS_STORAGE_KEY) {
-          return;
-        }
-      }
-      if (event instanceof CustomEvent) {
-        const detail =
-          event.detail as { allowTrainingUntilMaxedOut?: boolean } | null;
-        if (typeof detail?.allowTrainingUntilMaxedOut === "boolean") {
-          setAllowTrainingUntilMaxedOut(detail.allowTrainingUntilMaxedOut);
-          return;
-        }
-      }
-      setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
-    };
-    window.addEventListener(
-      ALGORITHM_SETTINGS_EVENT,
-      handle as EventListener
-    );
-    window.addEventListener("storage", handle);
-    return () => {
-      window.removeEventListener(
-        ALGORITHM_SETTINGS_EVENT,
-        handle as EventListener
-      );
-      window.removeEventListener("storage", handle);
-    };
-  }, []);
 
   const getPlayerAgeScore = (player: YouthPlayer | null | undefined) => {
     if (!player) return null;
@@ -693,6 +670,65 @@ export default function Dashboard({
       return changed ? next : prev;
     });
   }, [playerList]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
+    setStalenessHours(readYouthStalenessHours());
+    const handle = (event: Event) => {
+      if (event instanceof StorageEvent) {
+        if (
+          event.key &&
+          event.key !== ALGORITHM_SETTINGS_STORAGE_KEY &&
+          event.key !== YOUTH_SETTINGS_STORAGE_KEY
+        ) {
+          return;
+        }
+      }
+      if (event instanceof CustomEvent) {
+        const detail =
+          event.detail as { allowTrainingUntilMaxedOut?: boolean; stalenessHours?: number } | null;
+        if (typeof detail?.allowTrainingUntilMaxedOut === "boolean") {
+          setAllowTrainingUntilMaxedOut(detail.allowTrainingUntilMaxedOut);
+        }
+        if (typeof detail?.stalenessHours === "number") {
+          setStalenessHours(detail.stalenessHours);
+        }
+      }
+      setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
+      setStalenessHours(readYouthStalenessHours());
+    };
+    window.addEventListener("storage", handle);
+    window.addEventListener(ALGORITHM_SETTINGS_EVENT, handle);
+    window.addEventListener(YOUTH_SETTINGS_EVENT, handle);
+    return () => {
+      window.removeEventListener("storage", handle);
+      window.removeEventListener(ALGORITHM_SETTINGS_EVENT, handle);
+      window.removeEventListener(YOUTH_SETTINGS_EVENT, handle);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!isConnected) return;
+    const lastRefresh = readLastRefreshTimestamp();
+    if (!lastRefresh) {
+      if (playerList.length > 0) {
+        writeLastRefreshTimestamp(Date.now());
+      }
+      return;
+    }
+    const maxAgeMs = stalenessHours * 60 * 60 * 1000;
+    const isStale = Date.now() - lastRefresh >= maxAgeMs;
+    if (!isStale) {
+      staleRefreshAttemptedRef.current = false;
+      return;
+    }
+    if (playersLoading) return;
+    if (staleRefreshAttemptedRef.current) return;
+    staleRefreshAttemptedRef.current = true;
+    void refreshPlayers(undefined, { refreshAll: true, reason: "stale" });
+  }, [playerList.length, stalenessHours, activeYouthTeamId, isConnected, playersLoading]);
 
   useEffect(() => {
     if (!initialAuthError) return;
@@ -1629,22 +1665,28 @@ export default function Dashboard({
       if (response.status === 401) {
         setAuthError(true);
         setAuthErrorDetails(messages.connectHint);
-        return;
+        return false;
       }
       if (!response.ok) {
         setRatingsResponseState(null);
-        return;
+        return false;
       }
       const payload = (await response.json()) as RatingsMatrixResponse;
       setRatingsResponseState(payload);
+      return true;
     } catch {
       setRatingsResponseState(null);
+      return false;
     }
   };
 
   const refreshPlayers = async (
     teamIdOverride?: number | null,
-    options?: { refreshAll?: boolean }
+    options?: {
+      refreshAll?: boolean;
+      reason?: "stale" | "manual";
+      recordRefresh?: boolean;
+    }
   ) => {
     if (playersLoading) return;
     setPlayersLoading(true);
@@ -1653,6 +1695,7 @@ export default function Dashboard({
       typeof teamIdOverride === "number" || teamIdOverride === null
         ? teamIdOverride ?? activeYouthTeamId
         : activeYouthTeamId;
+    let playersUpdated = false;
     try {
       if (refreshAll) {
         setRatingsCache({});
@@ -1688,6 +1731,7 @@ export default function Dashboard({
       const raw = payload?.data?.HattrickData?.PlayerList?.YouthPlayer;
       const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
       setPlayerList(list);
+      playersUpdated = true;
       let nextSelectedId = selectedId;
       if (
         selectedId &&
@@ -1706,14 +1750,28 @@ export default function Dashboard({
           await loadDetails(nextSelectedId, true);
         }
       }
+      if (options?.reason === "stale") {
+        addNotification(messages.notificationStaleRefresh);
+      }
       addNotification(messages.notificationPlayersRefreshed);
     } catch {
       addNotification(messages.unableToLoadPlayers);
       setLoadError(messages.unableToLoadPlayers);
       setLoadErrorDetails(null);
     } finally {
+      let matchesOk = true;
+      let ratingsOk = true;
       if (refreshAll) {
-        await Promise.all([refreshMatches(teamId), refreshRatings(teamId)]);
+        [matchesOk, ratingsOk] = await Promise.all([
+          refreshMatches(teamId),
+          refreshRatings(teamId),
+        ]);
+      }
+      if (
+        playersUpdated &&
+        (refreshAll ? matchesOk && ratingsOk : options?.recordRefresh)
+      ) {
+        writeLastRefreshTimestamp(Date.now());
       }
       setPlayersLoading(false);
     }
@@ -1741,7 +1799,7 @@ export default function Dashboard({
     setSecondaryTraining("");
     setAutoSelectionApplied(false);
     if (nextTeamId) {
-      refreshPlayers(nextTeamId);
+      refreshPlayers(nextTeamId, { recordRefresh: true });
       refreshMatches(nextTeamId);
       refreshRatings(nextTeamId);
       const teamName =
@@ -2201,7 +2259,9 @@ export default function Dashboard({
               `${messages.notificationAutoSelection} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
             );
           }}
-          onRefresh={() => refreshPlayers(undefined, { refreshAll: true })}
+          onRefresh={() =>
+            refreshPlayers(undefined, { refreshAll: true, reason: "manual" })
+          }
           onOrderChange={(ids) => applyPlayerOrder(ids, "list")}
           refreshing={playersLoading}
           messages={messages}

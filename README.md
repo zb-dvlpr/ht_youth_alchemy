@@ -15,6 +15,7 @@ Youth Alchemy is a CHPP-approved web app that recommends a weekly two-training p
 - Modal confirmations and blockers for critical actions
 - Settings menu with data export/import for local backups and algorithm controls
 - Localization, dark mode, notifications, and a guided help overlay with callouts
+- Stale data auto-refresh with configurable threshold
 - Help menu with an in-app changelog and pagination
 
 ## Local setup

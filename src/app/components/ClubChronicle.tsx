@@ -66,6 +66,14 @@ type LeaguePerformanceData = {
   previous?: LeaguePerformanceSnapshot;
 };
 
+type LeagueTableRow = {
+  teamId: number;
+  teamName: string;
+  snapshot?: LeaguePerformanceSnapshot | null;
+  leaguePerformance?: LeaguePerformanceData;
+  meta?: string | null;
+};
+
 type ChronicleTeamData = {
   teamId: number;
   teamName?: string;
@@ -96,6 +104,75 @@ type ChronicleUpdates = {
     { teamId: number; teamName: string; changes: ChronicleUpdateField[] }
   >;
 };
+
+type ChronicleTableColumn<Row, Snapshot> = {
+  key: string;
+  label: string;
+  getValue: (
+    snapshot: Snapshot | undefined,
+    row?: Row
+  ) => string | number | null | undefined;
+};
+
+type ChronicleTableProps<Row, Snapshot> = {
+  columns: ChronicleTableColumn<Row, Snapshot>[];
+  rows: Row[];
+  getRowKey: (row: Row) => string | number;
+  getSnapshot: (row: Row) => Snapshot | undefined;
+  onRowClick?: (row: Row) => void;
+  formatValue: (value: string | number | null | undefined) => string;
+  style?: CSSProperties;
+};
+
+const ChronicleTable = <Row, Snapshot>({
+  columns,
+  rows,
+  getRowKey,
+  getSnapshot,
+  onRowClick,
+  formatValue,
+  style,
+}: ChronicleTableProps<Row, Snapshot>) => (
+  <div className={styles.chronicleTable} style={style}>
+    <div className={styles.chronicleTableHeader}>
+      {columns.map((column) => (
+        <span key={`header-${column.key}`}>{column.label}</span>
+      ))}
+    </div>
+    {rows.map((row) => {
+      const snapshot = getSnapshot(row);
+      const rowKey = getRowKey(row);
+      return (
+        <div
+          key={rowKey}
+          className={styles.chronicleTableRow}
+          role={onRowClick ? "button" : undefined}
+          tabIndex={onRowClick ? 0 : undefined}
+          onClick={onRowClick ? () => onRowClick(row) : undefined}
+          onKeyDown={
+            onRowClick
+              ? (event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    onRowClick(row);
+                  }
+                }
+              : undefined
+          }
+        >
+          {columns.map((column) => (
+            <span
+              key={`${rowKey}-${column.key}`}
+              className={styles.chronicleTableCell}
+            >
+              {formatValue(column.getValue(snapshot, row))}
+            </span>
+          ))}
+        </div>
+      );
+    })}
+  </div>
+);
 
 const STORAGE_KEY = "ya_club_chronicle_watchlist_v1";
 const CACHE_KEY = "ya_cc_cache_v1";
@@ -745,12 +822,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     ]
   );
 
-  const leagueTableColumns = useMemo(
+  const leagueTableColumns = useMemo<
+    ChronicleTableColumn<LeagueTableRow, LeaguePerformanceSnapshot>[]
+  >(
     () => [
       {
         key: "team",
         label: messages.clubChronicleColumnTeam,
-        getValue: (snapshot: LeaguePerformanceSnapshot | undefined, row?: { teamName: string }) =>
+        getValue: (snapshot: LeaguePerformanceSnapshot | undefined, row) =>
           row?.teamName ?? snapshot?.teamName ?? null,
       },
       {
@@ -770,7 +849,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         label: messages.clubChronicleColumnSeries,
         getValue: (
           snapshot: LeaguePerformanceSnapshot | undefined,
-          row?: { meta?: string | null }
+          row?: LeagueTableRow
         ) =>
           snapshot?.leagueLevelUnitName ?? row?.meta ?? null,
       },
@@ -818,14 +897,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const buildChanges = (
     previous: LeaguePerformanceSnapshot | undefined,
     current: LeaguePerformanceSnapshot,
-    columns: {
-      key: string;
-      label: string;
-      getValue: (
-        snapshot: LeaguePerformanceSnapshot | undefined,
-        row?: { teamName?: string; meta?: string | null }
-      ) => string | number | null | undefined;
-    }[]
+    columns: ChronicleTableColumn<LeagueTableRow, LeaguePerformanceSnapshot>[]
   ): ChronicleUpdateField[] => {
     if (!previous) {
       return columns.map((column) => ({
@@ -1034,7 +1106,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const updatesByTeam = updates?.teams ?? {};
 
-  const leagueRows = trackedTeams.map((team) => {
+  const leagueRows: LeagueTableRow[] = trackedTeams.map((team) => {
     const cached = chronicleCache.teams[team.teamId];
     return {
       teamId: team.teamId,
@@ -1134,43 +1206,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     {messages.clubChronicleLoading}
                   </p>
                 ) : (
-                  <div className={styles.chronicleTable} style={tableStyle}>
-                    <div className={styles.chronicleTableHeader}>
-                      {leagueTableColumns.map((column) => (
-                        <span key={`header-${column.key}`}>{column.label}</span>
-                      ))}
-                    </div>
-                    {leagueRows.map((row) => (
-                      <div
-                        key={row.teamId}
-                        className={styles.chronicleTableRow}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => handleOpenDetails(row.teamId)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            event.preventDefault();
-                            handleOpenDetails(row.teamId);
-                          }
-                        }}
-                      >
-                        {leagueTableColumns.map((column) => (
-                          <span
-                            key={`${row.teamId}-${column.key}`}
-                            className={styles.chronicleTableCell}
-                          >
-                            {formatValue(
-                              column.getValue(row.snapshot, row) as
-                                | string
-                                | number
-                                | null
-                                | undefined
-                            )}
-                          </span>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
+                  <ChronicleTable
+                    columns={leagueTableColumns}
+                    rows={leagueRows}
+                    getRowKey={(row) => row.teamId}
+                    getSnapshot={(row) => row.snapshot ?? undefined}
+                    onRowClick={(row) => handleOpenDetails(row.teamId)}
+                    formatValue={formatValue}
+                    style={tableStyle}
+                  />
                 )}
               </div>
             </div>

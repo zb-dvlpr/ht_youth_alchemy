@@ -34,3 +34,6 @@
 
 ## Code Reuse
 - When writing code, prioritize maximizing reuse and minimizing repetitive implementations.
+
+## Club Chronicle Tables
+- All Club Chronicle tables must use the shared ChronicleTable framework/component.

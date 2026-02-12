@@ -54,6 +54,7 @@ export type Messages = {
   changelog_1_26_0: string;
   changelog_2_0_0: string;
   changelog_2_1_0: string;
+  changelog_2_2_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -427,6 +428,7 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_26_0: "Lineup slots now select players in the details panel.",
     changelog_2_0_0: "Collapsible sidebar with tool switcher.",
     changelog_2_1_0: "Club Chronicle watchlist setup.",
+    changelog_2_2_0: "Lineup slots now select players in the details panel.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -820,6 +822,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Aufstellungs-Slots wählen nun Spieler im Detailbereich aus.",
     changelog_2_0_0: "Einklappbare Seitenleiste mit Werkzeugauswahl.",
     changelog_2_1_0: "Beobachtungsliste für die Club-Chronik.",
+    changelog_2_2_0:
+      "Aufstellungs-Slots wählen nun Spieler im Detailbereich aus.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -1217,6 +1221,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Les postes de composition sélectionnent désormais le joueur dans les détails.",
     changelog_2_0_0: "Barre latérale repliable avec sélection d’outil.",
     changelog_2_1_0: "Liste de suivi de la Chronique du club.",
+    changelog_2_2_0:
+      "Les postes de composition sélectionnent désormais le joueur dans les détails.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1621,6 +1627,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Los puestos de la alineación ahora seleccionan al jugador en detalles.",
     changelog_2_0_0: "Barra lateral plegable con selector de herramientas.",
     changelog_2_1_0: "Lista de seguimiento para Crónica del club.",
+    changelog_2_2_0:
+      "Los puestos de la alineación ahora seleccionan al jugador en detalles.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -2019,6 +2027,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Laguppställningsplatser väljer nu spelare i detaljpanelen.",
     changelog_2_0_0: "Infällbart sidofält med verktygsväljare.",
     changelog_2_1_0: "Bevakningslista för Klubbkrönikan.",
+    changelog_2_2_0:
+      "Laguppställningsplatser väljer nu spelare i detaljpanelen.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -2417,6 +2427,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Gli slot della formazione ora selezionano i giocatori nei dettagli.",
     changelog_2_0_0: "Barra laterale comprimibile con selettore strumenti.",
     changelog_2_1_0: "Lista di osservazione per la Cronaca del club.",
+    changelog_2_2_0:
+      "Gli slot della formazione ora selezionano i giocatori nei dettagli.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -2817,6 +2829,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Os slots da escalação agora selecionam o jogador nos detalhes.",
     changelog_2_0_0: "Barra lateral recolhível com seletor de ferramentas.",
     changelog_2_1_0: "Lista de acompanhamento da Crônica do clube.",
+    changelog_2_2_0:
+      "Os slots da escalação agora selecionam o jogador nos detalhes.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",

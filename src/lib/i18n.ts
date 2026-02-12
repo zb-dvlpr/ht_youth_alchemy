@@ -29,6 +29,7 @@ export type Messages = {
   changelog_1_23_0: string;
   changelog_1_24_0: string;
   changelog_1_25_0: string;
+  changelog_1_26_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -369,6 +370,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Algorithms setting to control training at max skill levels.",
     changelog_1_24_0: "Lineup tactic selection for match orders.",
     changelog_1_25_0: "Matches refresh button.",
+    changelog_1_26_0: "Lineup slots now select players in the details panel.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -727,6 +729,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Algorithmus-Einstellung für Training bei Maximalwerten.",
     changelog_1_24_0: "Taktikauswahl für Matchorders.",
     changelog_1_25_0: "Schaltfläche zum Aktualisieren der Spiele.",
+    changelog_1_26_0:
+      "Aufstellungs-Slots wählen nun Spieler im Detailbereich aus.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -1089,6 +1093,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_24_0:
       "Sélection de la tactique pour les ordres de match.",
     changelog_1_25_0: "Bouton d’actualisation des matchs.",
+    changelog_1_26_0:
+      "Les postes de composition sélectionnent désormais le joueur dans les détails.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1458,6 +1464,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_24_0:
       "Selección de táctica para órdenes de partido.",
     changelog_1_25_0: "Botón para refrescar los partidos.",
+    changelog_1_26_0:
+      "Los puestos de la alineación ahora seleccionan al jugador en detalles.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -1821,6 +1829,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_23_0: "Algoritminställning för träning vid maxnivåer.",
     changelog_1_24_0: "Taktikval för matchorder.",
     changelog_1_25_0: "Uppdateringsknapp för matcher.",
+    changelog_1_26_0:
+      "Laguppställningsplatser väljer nu spelare i detaljpanelen.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -2184,6 +2194,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_24_0:
       "Selezione tattica per gli ordini partita.",
     changelog_1_25_0: "Pulsante di aggiornamento dei match.",
+    changelog_1_26_0:
+      "Gli slot della formazione ora selezionano i giocatori nei dettagli.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -2549,6 +2561,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_1_24_0:
       "Seleção de tática para ordens de jogo.",
     changelog_1_25_0: "Botão para atualizar partidas.",
+    changelog_1_26_0:
+      "Os slots da escalação agora selecionam o jogador nos detalhes.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",

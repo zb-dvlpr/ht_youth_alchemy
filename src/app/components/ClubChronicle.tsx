@@ -105,6 +105,8 @@ type ChronicleUpdates = {
   >;
 };
 
+type SortValue = string | number | null | SortValue[];
+
 type ChronicleTableColumn<Row, Snapshot> = {
   key: string;
   label: string;
@@ -116,7 +118,7 @@ type ChronicleTableColumn<Row, Snapshot> = {
   getSortValue?: (
     snapshot: Snapshot | undefined,
     row?: Row
-  ) => string | number | null | undefined;
+  ) => SortValue | undefined;
 };
 
 type ChronicleTableProps<Row, Snapshot> = {
@@ -169,15 +171,19 @@ const ChronicleTable = <Row, Snapshot>({
               ? "▼"
               : "▲"
             : "⇅";
+          const ariaSort: "none" | "ascending" | "descending" =
+            isActive
+              ? sortDirection === "desc"
+                ? "descending"
+                : "ascending"
+              : "none";
           return (
             <button
               key={`header-${column.key}`}
               type="button"
               className={styles.chronicleTableHeaderButton}
               onClick={() => onSort?.(column.key)}
-              aria-sort={
-                isActive ? (sortDirection ?? "asc") : "none"
-              }
+              aria-sort={ariaSort}
             >
               {column.label}
               <span className={styles.chronicleTableSortIcon}>{icon}</span>
@@ -1166,7 +1172,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return Number.isFinite(num) ? num : null;
   };
 
-  const normalizeSortValue = (value: unknown) => {
+  const normalizeSortValue = (value: unknown): SortValue => {
     if (value === null || value === undefined || value === "") {
       return null;
     }
@@ -1212,19 +1218,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (!previous) {
       return [];
     }
-    return columns
-      .map((column) => {
-        const prevValue = column.getValue(previous);
-        const nextValue = column.getValue(current);
-        if (prevValue === nextValue) return null;
-        return {
-          fieldKey: column.key,
-          label: column.label,
-          previous: formatValue(prevValue),
-          current: formatValue(nextValue),
-        };
-      })
-      .filter((item): item is ChronicleUpdateField => item !== null);
+    const changes: ChronicleUpdateField[] = [];
+    columns.forEach((column) => {
+      const prevValue = column.getValue(previous);
+      const nextValue = column.getValue(current);
+      if (prevValue === nextValue) return;
+      changes.push({
+        fieldKey: column.key,
+        label: column.label,
+        previous: formatValue(prevValue),
+        current: formatValue(nextValue),
+      });
+    });
+    return changes;
   };
 
   const refreshLeaguePerformance = async (reason: "stale" | "manual") => {
@@ -1744,7 +1750,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       {formatValue(
                         column.getValue(
                           selectedTeam.leaguePerformance?.previous,
-                          selectedTeam ? { teamName: selectedTeam.teamName, meta: selectedTeam.meta } : undefined
+                          selectedTeam
                         ) as string | number | null | undefined
                       )}
                     </span>
@@ -1752,7 +1758,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       {formatValue(
                         column.getValue(
                           selectedTeam.leaguePerformance?.current,
-                          selectedTeam ? { teamName: selectedTeam.teamName, meta: selectedTeam.meta } : undefined
+                          selectedTeam
                         ) as string | number | null | undefined
                       )}
                     </span>

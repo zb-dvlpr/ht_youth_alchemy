@@ -1256,6 +1256,47 @@
   color: #3f362c;
 }
 
+.chroniclePressModal {
+  max-width: min(760px, 94vw);
+}
+
+.chroniclePressContent {
+  display: grid;
+  gap: 12px;
+  padding: 4px 2px;
+}
+
+.chroniclePressTitle {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #3f362c;
+  line-height: 1.3;
+}
+
+.chroniclePressMeta {
+  margin: 0;
+  font-size: 12px;
+  color: #8a806f;
+}
+
+.chroniclePressBody {
+  font-size: 13px;
+  color: #4f463c;
+  white-space: pre-wrap;
+  line-height: 1.45;
+  background: #f7f2ea;
+  border: 1px solid #e4d8c7;
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.chroniclePressLink {
+  color: #2f5f8f;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .watchlistPanel {
   display: grid;
   gap: 14px;
@@ -1692,7 +1733,8 @@ html[data-theme="dark"] .chronicleUpdatesTeam {
 html[data-theme="dark"] .chronicleUpdatesTeamTitle,
 html[data-theme="dark"] .chronicleUpdatesLabel,
 html[data-theme="dark"] .chronicleDetailsLabel,
-html[data-theme="dark"] .chronicleDetailsSectionTitle {
+html[data-theme="dark"] .chronicleDetailsSectionTitle,
+html[data-theme="dark"] .chroniclePressTitle {
   color: #f3ede4;
 }
 
@@ -1704,6 +1746,20 @@ html[data-theme="dark"] .chronicleDetailsHeader {
 html[data-theme="dark"] .chronicleUpdatesRow,
 html[data-theme="dark"] .chronicleDetailsRow {
   color: #b9b0a5;
+}
+
+html[data-theme="dark"] .chroniclePressMeta {
+  color: #a99d8d;
+}
+
+html[data-theme="dark"] .chroniclePressBody {
+  color: #c8bdae;
+  background: #221f1b;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .chroniclePressLink {
+  color: #8cb8e6;
 }
 
 .watchlistModal {

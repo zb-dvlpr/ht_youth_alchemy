@@ -93,6 +93,13 @@ type PressAnnouncementRow = {
   snapshot?: PressAnnouncementSnapshot | null;
 };
 
+type PressToken =
+  | { kind: "text"; value: string }
+  | { kind: "player"; id: number }
+  | { kind: "match"; id: number }
+  | { kind: "team"; id: number }
+  | { kind: "link"; url: string };
+
 type ChronicleTeamData = {
   teamId: number;
   teamName?: string;
@@ -324,6 +331,7 @@ const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
 const PANEL_IDS = ["league-performance", "press-announcements"] as const;
 const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
 const MAX_CACHE_AGE_MS = SEASON_LENGTH_MS * 2;
+const HT_BASE_URL = "https://www89.hattrick.org";
 
 const normalizeSupportedTeams = (
   input:
@@ -415,6 +423,54 @@ const resolvePressAnnouncement = (
     body: body || null,
     sendDate: sendDate || null,
     fetchedAt: Date.now(),
+  };
+};
+
+const tokenizePressText = (text: string): PressToken[] => {
+  const regex = /\[(playerid|matchid|teamid|link)=([^\]]+)\]/gi;
+  const tokens: PressToken[] = [];
+  let lastIndex = 0;
+  let match: RegExpExecArray | null = regex.exec(text);
+  while (match) {
+    const [raw, type, valueRaw] = match;
+    if (match.index > lastIndex) {
+      tokens.push({ kind: "text", value: text.slice(lastIndex, match.index) });
+    }
+    const value = valueRaw.trim();
+    if (type.toLowerCase() === "link" && value) {
+      tokens.push({ kind: "link", url: value });
+    } else {
+      const id = Number(value);
+      if (Number.isFinite(id) && id > 0) {
+        if (type.toLowerCase() === "playerid") tokens.push({ kind: "player", id });
+        if (type.toLowerCase() === "matchid") tokens.push({ kind: "match", id });
+        if (type.toLowerCase() === "teamid") tokens.push({ kind: "team", id });
+      } else {
+        tokens.push({ kind: "text", value: raw });
+      }
+    }
+    lastIndex = match.index + raw.length;
+    match = regex.exec(text);
+  }
+  if (lastIndex < text.length) {
+    tokens.push({ kind: "text", value: text.slice(lastIndex) });
+  }
+  return tokens;
+};
+
+const extractPressReferenceIds = (text: string) => {
+  const playerIds = new Set<number>();
+  const matchIds = new Set<number>();
+  const teamIds = new Set<number>();
+  tokenizePressText(text).forEach((token) => {
+    if (token.kind === "player") playerIds.add(token.id);
+    if (token.kind === "match") matchIds.add(token.id);
+    if (token.kind === "team") teamIds.add(token.id);
+  });
+  return {
+    playerIds: Array.from(playerIds),
+    matchIds: Array.from(matchIds),
+    teamIds: Array.from(teamIds),
   };
 };
 
@@ -608,6 +664,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [updatesOpen, setUpdatesOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
+  const [pressDetailsOpen, setPressDetailsOpen] = useState(false);
+  const [selectedPressTeamId, setSelectedPressTeamId] = useState<number | null>(
+    null
+  );
+  const [resolvedPlayers, setResolvedPlayers] = useState<Record<number, string>>(
+    {}
+  );
+  const [resolvedMatches, setResolvedMatches] = useState<Record<number, string>>(
+    {}
+  );
+  const [resolvedTeams, setResolvedTeams] = useState<Record<number, string>>({});
   const [stalenessDays, setStalenessDays] = useState(
     DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS
   );
@@ -1080,6 +1147,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const handleOpenDetails = (teamId: number) => {
     setSelectedTeamId(teamId);
     setDetailsOpen(true);
+  };
+
+  const handleOpenPressDetails = (teamId: number) => {
+    setSelectedPressTeamId(teamId);
+    setPressDetailsOpen(true);
   };
 
   const handleLeagueSort = (key: string) => {
@@ -1670,6 +1742,197 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const selectedTeam = selectedTeamId
     ? leagueRows.find((team) => team.teamId === selectedTeamId) ?? null
     : null;
+  const selectedPressTeam = selectedPressTeamId
+    ? pressRows.find((team) => team.teamId === selectedPressTeamId) ?? null
+    : null;
+
+  useEffect(() => {
+    if (!pressDetailsOpen || !selectedPressTeam?.snapshot) return;
+    const combined = [
+      selectedPressTeam.snapshot.subject ?? "",
+      selectedPressTeam.snapshot.body ?? "",
+    ]
+      .filter(Boolean)
+      .join("\n");
+    const { playerIds, matchIds, teamIds } = extractPressReferenceIds(combined);
+
+    void Promise.all(
+      playerIds
+        .filter((id) => !resolvedPlayers[id])
+        .map(async (id) => {
+          try {
+            const response = await fetch(`/api/chpp/playerdetails?playerId=${id}`, {
+              cache: "no-store",
+            });
+            const payload = (await response.json().catch(() => null)) as
+              | {
+                  data?: {
+                    HattrickData?: {
+                      Player?: {
+                        FirstName?: string;
+                        NickName?: string;
+                        LastName?: string;
+                      };
+                    };
+                  };
+                }
+              | null;
+            const player = payload?.data?.HattrickData?.Player;
+            const name = [player?.FirstName, player?.NickName, player?.LastName]
+              .filter(Boolean)
+              .join(" ")
+              .trim();
+            if (!name) return;
+            setResolvedPlayers((prev) => ({ ...prev, [id]: name }));
+          } catch {
+            // ignore resolve failures
+          }
+        })
+    );
+
+    void Promise.all(
+      matchIds
+        .filter((id) => !resolvedMatches[id])
+        .map(async (id) => {
+          try {
+            const response = await fetch(
+              `/api/chpp/matchdetails?matchId=${id}&sourceSystem=Hattrick`,
+              { cache: "no-store" }
+            );
+            const payload = (await response.json().catch(() => null)) as
+              | {
+                  data?: {
+                    HattrickData?: {
+                      Match?: {
+                        HomeTeam?: { HomeTeamName?: string };
+                        AwayTeam?: { AwayTeamName?: string };
+                      };
+                    };
+                  };
+                }
+              | null;
+            const match = payload?.data?.HattrickData?.Match;
+            const home = match?.HomeTeam?.HomeTeamName?.trim();
+            const away = match?.AwayTeam?.AwayTeamName?.trim();
+            if (!home || !away) return;
+            setResolvedMatches((prev) => ({ ...prev, [id]: `${home} vs ${away}` }));
+          } catch {
+            // ignore resolve failures
+          }
+        })
+    );
+
+    void Promise.all(
+      teamIds
+        .filter((id) => !resolvedTeams[id])
+        .map(async (id) => {
+          try {
+            const response = await fetch(`/api/chpp/teamdetails?teamId=${id}`, {
+              cache: "no-store",
+            });
+            const payload = (await response.json().catch(() => null)) as
+              | {
+                  data?: {
+                    HattrickData?: {
+                      Team?: { TeamName?: string };
+                    };
+                  };
+                }
+              | null;
+            const name = payload?.data?.HattrickData?.Team?.TeamName?.trim();
+            if (!name) return;
+            setResolvedTeams((prev) => ({ ...prev, [id]: name }));
+          } catch {
+            // ignore resolve failures
+          }
+        })
+    );
+  }, [
+    pressDetailsOpen,
+    selectedPressTeam,
+    resolvedPlayers,
+    resolvedMatches,
+    resolvedTeams,
+  ]);
+
+  const renderPressText = (text: string) => {
+    const lines = text.split("\n");
+    return lines.map((line, lineIndex) => {
+      const tokens = tokenizePressText(line);
+      return (
+        <span key={`line-${lineIndex}`}>
+          {tokens.map((token, tokenIndex) => {
+            if (token.kind === "text") {
+              return <span key={`t-${lineIndex}-${tokenIndex}`}>{token.value}</span>;
+            }
+            if (token.kind === "player") {
+              const label =
+                resolvedPlayers[token.id] ??
+                `${messages.ratingsPlayerLabel} ${token.id}`;
+              const href = `${HT_BASE_URL}/Club/Players/Player.aspx?playerId=${token.id}`;
+              return (
+                <a
+                  key={`p-${lineIndex}-${tokenIndex}`}
+                  className={styles.chroniclePressLink}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {label}
+                </a>
+              );
+            }
+            if (token.kind === "match") {
+              const label =
+                resolvedMatches[token.id] ??
+                `${messages.matchesTitle} ${token.id}`;
+              const href = `${HT_BASE_URL}/Club/Matches/Match.aspx?matchID=${token.id}`;
+              return (
+                <a
+                  key={`m-${lineIndex}-${tokenIndex}`}
+                  className={styles.chroniclePressLink}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {label}
+                </a>
+              );
+            }
+            if (token.kind === "team") {
+              const label =
+                resolvedTeams[token.id] ??
+                `${messages.watchlistTeamLabel} ${token.id}`;
+              const href = `${HT_BASE_URL}/Club/?TeamID=${token.id}`;
+              return (
+                <a
+                  key={`team-${lineIndex}-${tokenIndex}`}
+                  className={styles.chroniclePressLink}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {label}
+                </a>
+              );
+            }
+            return (
+              <a
+                key={`link-${lineIndex}-${tokenIndex}`}
+                className={styles.chroniclePressLink}
+                href={token.url}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {token.url}
+              </a>
+            );
+          })}
+          {lineIndex < lines.length - 1 ? <br /> : null}
+        </span>
+      );
+    });
+  };
   const tableStyle = useMemo(() => {
     const remainingColumns = Math.max(leagueTableColumns.length - 1, 1);
     return {
@@ -1791,6 +2054,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     rows={sortedPressRows}
                     getRowKey={(row) => row.teamId}
                     getSnapshot={(row) => row.snapshot ?? undefined}
+                    onRowClick={(row) => handleOpenPressDetails(row.teamId)}
                     formatValue={formatValue}
                     style={pressTableStyle}
                     sortKey={pressSortState.key}
@@ -2058,6 +2322,51 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
         closeOnBackdrop
         onClose={() => setDetailsOpen(false)}
+      />
+
+      <Modal
+        open={pressDetailsOpen}
+        title={messages.clubChroniclePressDetailsTitle}
+        className={styles.chroniclePressModal}
+        body={
+          selectedPressTeam?.snapshot ? (
+            <div className={styles.chroniclePressContent}>
+              <h3 className={styles.chroniclePressTitle}>
+                {selectedPressTeam.snapshot.subject
+                  ? renderPressText(selectedPressTeam.snapshot.subject)
+                  : messages.clubChroniclePressNone}
+              </h3>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleColumnTeam}: {selectedPressTeam.teamName}
+              </p>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChroniclePressColumnPublishedAt}:{" "}
+                {selectedPressTeam.snapshot.sendDate
+                  ? formatChppDateTime(selectedPressTeam.snapshot.sendDate) ??
+                    selectedPressTeam.snapshot.sendDate
+                  : messages.unknownShort}
+              </p>
+              <div className={styles.chroniclePressBody}>
+                {selectedPressTeam.snapshot.body
+                  ? renderPressText(selectedPressTeam.snapshot.body)
+                  : messages.clubChroniclePressNone}
+              </div>
+            </div>
+          ) : (
+            <p className={styles.chronicleEmpty}>{messages.clubChroniclePressNone}</p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setPressDetailsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setPressDetailsOpen(false)}
       />
 
       <Modal

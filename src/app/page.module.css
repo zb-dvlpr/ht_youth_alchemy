@@ -1176,6 +1176,12 @@
   color: #6b6256;
 }
 
+.chronicleFinanceDisclaimer {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: #8a806f;
+}
+
 .chronicleUpdatesList {
   display: grid;
   gap: 12px;
@@ -1723,6 +1729,10 @@ html[data-theme="dark"] .chronicleTableRow .chronicleTableCell:first-child {
 
 html[data-theme="dark"] .chronicleEmpty {
   color: #b9b0a5;
+}
+
+html[data-theme="dark"] .chronicleFinanceDisclaimer {
+  color: #a99d8d;
 }
 
 html[data-theme="dark"] .chronicleUpdatesTeam {

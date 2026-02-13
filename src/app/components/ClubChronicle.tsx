@@ -79,6 +79,21 @@ type PressAnnouncementData = {
   previous?: PressAnnouncementSnapshot;
 };
 
+type FinanceEstimateSnapshot = {
+  totalBuysSek: number | null;
+  totalSalesSek: number | null;
+  numberOfBuys: number | null;
+  numberOfSales: number | null;
+  estimatedSek: number | null;
+  estimatedEur: number | null;
+  fetchedAt: number;
+};
+
+type FinanceEstimateData = {
+  current: FinanceEstimateSnapshot;
+  previous?: FinanceEstimateSnapshot;
+};
+
 type LeagueTableRow = {
   teamId: number;
   teamName: string;
@@ -91,6 +106,12 @@ type PressAnnouncementRow = {
   teamId: number;
   teamName: string;
   snapshot?: PressAnnouncementSnapshot | null;
+};
+
+type FinanceEstimateRow = {
+  teamId: number;
+  teamName: string;
+  snapshot?: FinanceEstimateSnapshot | null;
 };
 
 type PressToken =
@@ -109,6 +130,7 @@ type ChronicleTeamData = {
   leagueLevelUnitId?: number | null;
   leaguePerformance?: LeaguePerformanceData;
   pressAnnouncement?: PressAnnouncementData;
+  financeEstimate?: FinanceEstimateData;
 };
 
 type ChronicleCache = {
@@ -329,7 +351,11 @@ const CACHE_KEY = "ya_cc_cache_v1";
 const UPDATES_KEY = "ya_cc_updates_v1";
 const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
 const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
-const PANEL_IDS = ["league-performance", "press-announcements"] as const;
+const PANEL_IDS = [
+  "league-performance",
+  "press-announcements",
+  "finance-estimate",
+] as const;
 const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
 const MAX_CACHE_AGE_MS = SEASON_LENGTH_MS * 2;
 const HT_BASE_URL = "https://www89.hattrick.org";
@@ -632,6 +658,21 @@ const pruneChronicleCache = (cache: ChronicleCache): ChronicleCache => {
         }
         return pressAnnouncement;
       })(),
+      financeEstimate: (() => {
+        const financeEstimate = team.financeEstimate;
+        if (!financeEstimate?.current) return financeEstimate;
+        const currentAge = now - financeEstimate.current.fetchedAt;
+        if (currentAge > MAX_CACHE_AGE_MS) return undefined;
+        if (!financeEstimate.previous) return financeEstimate;
+        const previousAge = now - financeEstimate.previous.fetchedAt;
+        if (previousAge > MAX_CACHE_AGE_MS) {
+          return {
+            ...financeEstimate,
+            previous: undefined,
+          };
+        }
+        return financeEstimate;
+      })(),
     };
   });
   return { ...cache, teams: nextTeams };
@@ -666,6 +707,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [updatesOpen, setUpdatesOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
+  const [financeDetailsOpen, setFinanceDetailsOpen] = useState(false);
+  const [selectedFinanceTeamId, setSelectedFinanceTeamId] = useState<number | null>(
+    null
+  );
   const [pressDetailsOpen, setPressDetailsOpen] = useState(false);
   const [selectedPressTeamId, setSelectedPressTeamId] = useState<number | null>(
     null
@@ -688,9 +733,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     key: string;
     direction: "asc" | "desc";
   }>({ key: "team", direction: "asc" });
+  const [financeSortState, setFinanceSortState] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({ key: "team", direction: "asc" });
   const [refreshingGlobal, setRefreshingGlobal] = useState(false);
   const [refreshingLeague, setRefreshingLeague] = useState(false);
   const [refreshingPress, setRefreshingPress] = useState(false);
+  const [refreshingFinance, setRefreshingFinance] = useState(false);
   const [teamIdInput, setTeamIdInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -701,7 +751,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const initialFetchRef = useRef(false);
   const staleRefreshRef = useRef(false);
   const { addNotification } = useNotifications();
-  const anyRefreshing = refreshingGlobal || refreshingLeague || refreshingPress;
+  const anyRefreshing =
+    refreshingGlobal || refreshingLeague || refreshingPress || refreshingFinance;
 
   const supportedById = useMemo(
     () =>
@@ -1156,6 +1207,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setPressDetailsOpen(true);
   };
 
+  const handleOpenFinanceDetails = (teamId: number) => {
+    setSelectedFinanceTeamId(teamId);
+    setFinanceDetailsOpen(true);
+  };
+
   const handleLeagueSort = (key: string) => {
     setLeagueSortState((prev) => ({
       key,
@@ -1166,6 +1222,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const handlePressSort = (key: string) => {
     setPressSortState((prev) => ({
+      key,
+      direction:
+        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
+    }));
+  };
+
+  const handleFinanceSort = (key: string) => {
+    setFinanceSortState((prev) => ({
       key,
       direction:
         prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
@@ -1342,6 +1406,30 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     ]
   );
 
+  const financeTableColumns = useMemo<
+    ChronicleTableColumn<FinanceEstimateRow, FinanceEstimateSnapshot>[]
+  >(
+    () => [
+      {
+        key: "team",
+        label: messages.clubChronicleColumnTeam,
+        getValue: (_snapshot, row) => row?.teamName ?? null,
+      },
+      {
+        key: "estimate",
+        label: messages.clubChronicleFinanceColumnEstimate,
+        getValue: (snapshot: FinanceEstimateSnapshot | undefined) =>
+          snapshot ? `${formatEuro(snapshot.estimatedEur)}*` : null,
+        getSortValue: (snapshot: FinanceEstimateSnapshot | undefined) =>
+          snapshot?.estimatedSek ?? null,
+      },
+    ],
+    [
+      messages.clubChronicleColumnTeam,
+      messages.clubChronicleFinanceColumnEstimate,
+    ]
+  );
+
   const formatValue = (value: string | number | null | undefined) => {
     if (value === null || value === undefined || value === "") {
       return messages.unknownShort;
@@ -1353,6 +1441,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (value === null || value === undefined || value === "") return null;
     const num = Number(value);
     return Number.isFinite(num) ? num : null;
+  };
+
+  const parseMoneySek = (value: unknown): number | null => {
+    if (value === null || value === undefined || value === "") return null;
+    const normalized = String(value).replace(/[^0-9-]/g, "");
+    if (!normalized) return null;
+    const amount = Number(normalized);
+    return Number.isFinite(amount) ? amount : null;
+  };
+
+  const formatEuro = (value: number | null | undefined) => {
+    if (value === null || value === undefined) return messages.unknownShort;
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: 0,
+    }).format(value);
   };
 
   const normalizeSortValue = (value: unknown): SortValue => {
@@ -1599,6 +1704,65 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     });
   };
 
+  const refreshFinanceSnapshots = async (nextCache: ChronicleCache) => {
+    for (const team of trackedTeams) {
+      try {
+        const response = await fetch(
+          `/api/chpp/transfersteam?teamId=${team.teamId}`,
+          { cache: "no-store" }
+        );
+        const payload = (await response.json().catch(() => null)) as
+          | {
+              data?: {
+                HattrickData?: {
+                  Stats?: {
+                    TotalSumOfBuys?: unknown;
+                    TotalSumOfSales?: unknown;
+                    NumberOfBuys?: unknown;
+                    NumberOfSales?: unknown;
+                  };
+                };
+              };
+              error?: string;
+            }
+          | null;
+        if (!response.ok || payload?.error) {
+          continue;
+        }
+        const stats = payload?.data?.HattrickData?.Stats;
+        const totalBuysSek = parseMoneySek(stats?.TotalSumOfBuys);
+        const totalSalesSek = parseMoneySek(stats?.TotalSumOfSales);
+        const numberOfBuys = parseNumber(stats?.NumberOfBuys);
+        const numberOfSales = parseNumber(stats?.NumberOfSales);
+        const estimatedSek =
+          totalSalesSek !== null && totalBuysSek !== null
+            ? totalSalesSek - totalBuysSek
+            : null;
+        const snapshot: FinanceEstimateSnapshot = {
+          totalBuysSek,
+          totalSalesSek,
+          numberOfBuys,
+          numberOfSales,
+          estimatedSek,
+          estimatedEur: estimatedSek !== null ? estimatedSek / 10 : null,
+          fetchedAt: Date.now(),
+        };
+        const previous = nextCache.teams[team.teamId]?.financeEstimate?.current;
+        nextCache.teams[team.teamId] = {
+          ...nextCache.teams[team.teamId],
+          teamId: team.teamId,
+          teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+          financeEstimate: {
+            current: snapshot,
+            previous,
+          },
+        };
+      } catch {
+        // ignore finance failure
+      }
+    }
+  };
+
   const refreshAllData = async (reason: "stale" | "manual") => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
@@ -1611,6 +1775,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: true });
     await refreshLeagueSnapshots(nextCache, nextUpdates);
+    await refreshFinanceSnapshots(nextCache);
 
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
@@ -1664,6 +1829,20 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     addNotification(messages.notificationChronicleRefreshComplete);
   };
 
+  const refreshFinanceOnly = async () => {
+    if (anyRefreshing) return;
+    if (trackedTeams.length === 0) return;
+    setRefreshingFinance(true);
+    const nextCache = pruneChronicleCache(readChronicleCache());
+    const nextManualTeams = [...manualTeams];
+    await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+    await refreshFinanceSnapshots(nextCache);
+    setManualTeams(nextManualTeams);
+    setChronicleCache(nextCache);
+    setRefreshingFinance(false);
+    addNotification(messages.notificationChronicleRefreshComplete);
+  };
+
   const updatesByTeam = updates?.teams ?? {};
   const hasAnyTeamUpdates = trackedTeams.some((team) => {
     const changes = updatesByTeam[team.teamId]?.changes ?? [];
@@ -1690,6 +1869,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       teamId: team.teamId,
       teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
       snapshot: cached?.pressAnnouncement?.current,
+    };
+  });
+
+  const financeRows: FinanceEstimateRow[] = trackedTeams.map((team) => {
+    const cached = chronicleCache.teams[team.teamId];
+    return {
+      teamId: team.teamId,
+      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+      snapshot: cached?.financeEstimate?.current,
     };
   });
 
@@ -1741,11 +1929,39 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       .map((item) => item.row);
   }, [pressRows, pressTableColumns, pressSortState]);
 
+  const sortedFinanceRows = useMemo(() => {
+    if (!financeSortState.key) return financeRows;
+    const column = financeTableColumns.find(
+      (item) => item.key === financeSortState.key
+    );
+    if (!column) return financeRows;
+    const direction = financeSortState.direction === "desc" ? -1 : 1;
+    return [...financeRows]
+      .map((row, index) => ({ row, index }))
+      .sort((left, right) => {
+        const leftValue = normalizeSortValue(
+          column.getSortValue?.(left.row.snapshot ?? undefined, left.row) ??
+            column.getValue(left.row.snapshot ?? undefined, left.row)
+        );
+        const rightValue = normalizeSortValue(
+          column.getSortValue?.(right.row.snapshot ?? undefined, right.row) ??
+            column.getValue(right.row.snapshot ?? undefined, right.row)
+        );
+        const result = compareSortValues(leftValue, rightValue);
+        if (result !== 0) return result * direction;
+        return left.index - right.index;
+      })
+      .map((item) => item.row);
+  }, [financeRows, financeTableColumns, financeSortState]);
+
   const selectedTeam = selectedTeamId
     ? leagueRows.find((team) => team.teamId === selectedTeamId) ?? null
     : null;
   const selectedPressTeam = selectedPressTeamId
     ? pressRows.find((team) => team.teamId === selectedPressTeamId) ?? null
+    : null;
+  const selectedFinanceTeam = selectedFinanceTeamId
+    ? financeRows.find((team) => team.teamId === selectedFinanceTeamId) ?? null
     : null;
 
   useEffect(() => {
@@ -1967,6 +2183,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [pressTableColumns.length]
   );
 
+  const financeTableStyle = useMemo(
+    () =>
+      ({
+        "--cc-columns": financeTableColumns.length,
+        "--cc-template": "minmax(180px, 1.4fr) minmax(140px, 1fr)",
+      }) as CSSProperties,
+    [financeTableColumns.length]
+  );
+
   return (
     <div className={styles.clubChronicleStack}>
       <div className={styles.chronicleHeader}>
@@ -2078,6 +2303,52 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     sortDirection={pressSortState.direction}
                     onSort={handlePressSort}
                   />
+                )}
+              </ChroniclePanel>
+            );
+          }
+          if (panelId === "finance-estimate") {
+            return (
+              <ChroniclePanel
+                key={panelId}
+                title={messages.clubChronicleFinancePanelTitle}
+                refreshing={refreshingGlobal || refreshingFinance}
+                refreshLabel={messages.clubChronicleRefreshFinanceTooltip}
+                moveUpLabel={messages.clubChronicleMoveUp}
+                moveDownLabel={messages.clubChronicleMoveDown}
+                onRefresh={() => void refreshFinanceOnly()}
+                canMoveUp={canMoveUp}
+                canMoveDown={canMoveDown}
+                onMoveUp={() => handleMovePanel(panelId, "up")}
+                onMoveDown={() => handleMovePanel(panelId, "down")}
+              >
+                {trackedTeams.length === 0 ? (
+                  <p className={styles.chronicleEmpty}>
+                    {messages.clubChronicleNoTeams}
+                  </p>
+                ) : (refreshingGlobal || refreshingFinance) &&
+                  financeRows.every((row) => !row.snapshot) ? (
+                  <p className={styles.chronicleEmpty}>
+                    {messages.clubChronicleLoading}
+                  </p>
+                ) : (
+                  <>
+                    <ChronicleTable
+                      columns={financeTableColumns}
+                      rows={sortedFinanceRows}
+                      getRowKey={(row) => row.teamId}
+                      getSnapshot={(row) => row.snapshot ?? undefined}
+                      onRowClick={(row) => handleOpenFinanceDetails(row.teamId)}
+                      formatValue={formatValue}
+                      style={financeTableStyle}
+                      sortKey={financeSortState.key}
+                      sortDirection={financeSortState.direction}
+                      onSort={handleFinanceSort}
+                    />
+                    <p className={styles.chronicleFinanceDisclaimer}>
+                      {messages.clubChronicleFinanceDisclaimer}
+                    </p>
+                  </>
                 )}
               </ChroniclePanel>
             );
@@ -2384,6 +2655,66 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
         closeOnBackdrop
         onClose={() => setPressDetailsOpen(false)}
+      />
+
+      <Modal
+        open={financeDetailsOpen}
+        title={messages.clubChronicleFinancePanelTitle}
+        body={
+          selectedFinanceTeam?.snapshot ? (
+            <div className={styles.chronicleDetailsGrid}>
+              <h3 className={styles.chronicleDetailsSectionTitle}>
+                {selectedFinanceTeam.teamName}
+              </h3>
+              <div className={styles.chronicleDetailsRow}>
+                <span className={styles.chronicleDetailsLabel}>
+                  {messages.clubChronicleFinanceColumnBuys}
+                </span>
+                <span />
+                <span>
+                  {formatEuro(
+                    selectedFinanceTeam.snapshot.totalBuysSek !== null
+                      ? selectedFinanceTeam.snapshot.totalBuysSek / 10
+                      : null
+                  )}
+                </span>
+              </div>
+              <div className={styles.chronicleDetailsRow}>
+                <span className={styles.chronicleDetailsLabel}>
+                  {messages.clubChronicleFinanceColumnSales}
+                </span>
+                <span />
+                <span>
+                  {formatEuro(
+                    selectedFinanceTeam.snapshot.totalSalesSek !== null
+                      ? selectedFinanceTeam.snapshot.totalSalesSek / 10
+                      : null
+                  )}
+                </span>
+              </div>
+              <div className={styles.chronicleDetailsRow}>
+                <span className={styles.chronicleDetailsLabel}>
+                  {messages.clubChronicleFinanceColumnEstimate}
+                </span>
+                <span />
+                <span>{`${formatEuro(selectedFinanceTeam.snapshot.estimatedEur)}*`}</span>
+              </div>
+            </div>
+          ) : (
+            <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setFinanceDetailsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setFinanceDetailsOpen(false)}
       />
 
       <Modal

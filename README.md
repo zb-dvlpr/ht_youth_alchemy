@@ -18,7 +18,7 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Stale data auto-refresh with configurable threshold
 - Help menu with an in-app changelog and pagination
 - Collapsible sidebar for switching between tools
-- Club Chronicle panels for league performance and latest press announcements with cached updates, sortable columns, reusable panels, panel-specific refresh controls, a retained global refresh action, click-through press announcement modals with resolved player/match/team links, and Latest updates opening only when changes exist
+- Club Chronicle panels for league performance and latest press announcements with cached updates, sortable columns, reusable panels, panel-specific refresh controls, a retained global refresh action, click-through press announcement modals with resolved player/match/team links plus direct article links, and Latest updates opening only when changes exist
 
 ## Local setup
 1) Install dependencies

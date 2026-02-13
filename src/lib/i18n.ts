@@ -97,6 +97,7 @@ export type Messages = {
   clubChroniclePressDetailsTitle: string;
   clubChroniclePressColumnAnnouncement: string;
   clubChroniclePressColumnPublishedAt: string;
+  clubChroniclePressArticleLabel: string;
   clubChroniclePressNone: string;
   clubChronicleTableTeam: string;
   clubChronicleTableSummary: string;
@@ -539,6 +540,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChroniclePressDetailsTitle: "Press announcement",
     clubChroniclePressColumnAnnouncement: "Announcement",
     clubChroniclePressColumnPublishedAt: "Published",
+    clubChroniclePressArticleLabel: "Article",
     clubChroniclePressNone: "No press announcement.",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Summary",
@@ -1001,6 +1003,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChroniclePressDetailsTitle: "Pressemitteilung",
     clubChroniclePressColumnAnnouncement: "Mitteilung",
     clubChroniclePressColumnPublishedAt: "Veröffentlicht",
+    clubChroniclePressArticleLabel: "Artikel",
     clubChroniclePressNone: "Keine Pressemitteilung.",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Zusammenfassung",
@@ -1466,6 +1469,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChroniclePressDetailsTitle: "Communiqué de presse",
     clubChroniclePressColumnAnnouncement: "Annonce",
     clubChroniclePressColumnPublishedAt: "Publié",
+    clubChroniclePressArticleLabel: "Article",
     clubChroniclePressNone: "Aucun communiqué de presse.",
     clubChronicleTableTeam: "Équipe",
     clubChronicleTableSummary: "Résumé",
@@ -1938,6 +1942,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChroniclePressDetailsTitle: "Comunicado de prensa",
     clubChroniclePressColumnAnnouncement: "Anuncio",
     clubChroniclePressColumnPublishedAt: "Publicado",
+    clubChroniclePressArticleLabel: "Artículo",
     clubChroniclePressNone: "Sin comunicado de prensa.",
     clubChronicleTableTeam: "Equipo",
     clubChronicleTableSummary: "Resumen",
@@ -2404,6 +2409,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChroniclePressDetailsTitle: "Pressmeddelande",
     clubChroniclePressColumnAnnouncement: "Meddelande",
     clubChroniclePressColumnPublishedAt: "Publicerad",
+    clubChroniclePressArticleLabel: "Artikel",
     clubChroniclePressNone: "Inget pressmeddelande.",
     clubChronicleTableTeam: "Lag",
     clubChronicleTableSummary: "Sammanfattning",
@@ -2870,6 +2876,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChroniclePressDetailsTitle: "Comunicato stampa",
     clubChroniclePressColumnAnnouncement: "Annuncio",
     clubChroniclePressColumnPublishedAt: "Pubblicato",
+    clubChroniclePressArticleLabel: "Articolo",
     clubChroniclePressNone: "Nessun comunicato stampa.",
     clubChronicleTableTeam: "Squadra",
     clubChronicleTableSummary: "Riepilogo",
@@ -3338,6 +3345,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChroniclePressDetailsTitle: "Comunicado de imprensa",
     clubChroniclePressColumnAnnouncement: "Anúncio",
     clubChroniclePressColumnPublishedAt: "Publicado",
+    clubChroniclePressArticleLabel: "Artigo",
     clubChroniclePressNone: "Sem comunicado de imprensa.",
     clubChronicleTableTeam: "Time",
     clubChronicleTableSummary: "Resumo",

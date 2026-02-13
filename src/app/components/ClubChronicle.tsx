@@ -98,6 +98,7 @@ type PressToken =
   | { kind: "player"; id: number }
   | { kind: "match"; id: number }
   | { kind: "team"; id: number }
+  | { kind: "article"; id: number }
   | { kind: "link"; url: string };
 
 type ChronicleTeamData = {
@@ -427,7 +428,7 @@ const resolvePressAnnouncement = (
 };
 
 const tokenizePressText = (text: string): PressToken[] => {
-  const regex = /\[(playerid|matchid|teamid|link)=([^\]]+)\]/gi;
+  const regex = /\[(playerid|matchid|teamid|articleid|link)=([^\]]+)\]/gi;
   const tokens: PressToken[] = [];
   let lastIndex = 0;
   let match: RegExpExecArray | null = regex.exec(text);
@@ -445,6 +446,7 @@ const tokenizePressText = (text: string): PressToken[] => {
         if (type.toLowerCase() === "playerid") tokens.push({ kind: "player", id });
         if (type.toLowerCase() === "matchid") tokens.push({ kind: "match", id });
         if (type.toLowerCase() === "teamid") tokens.push({ kind: "team", id });
+        if (type.toLowerCase() === "articleid") tokens.push({ kind: "article", id });
       } else {
         tokens.push({ kind: "text", value: raw });
       }
@@ -1907,6 +1909,21 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               return (
                 <a
                   key={`team-${lineIndex}-${tokenIndex}`}
+                  className={styles.chroniclePressLink}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {label}
+                </a>
+              );
+            }
+            if (token.kind === "article") {
+              const label = `${messages.clubChroniclePressArticleLabel} ${token.id}`;
+              const href = `${HT_BASE_URL}/Community/Press/?ArticleID=${token.id}`;
+              return (
+                <a
+                  key={`article-${lineIndex}-${tokenIndex}`}
                   className={styles.chroniclePressLink}
                   href={href}
                   target="_blank"

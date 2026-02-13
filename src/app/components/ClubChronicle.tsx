@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { formatChppDateTime } from "@/lib/datetime";
@@ -11,7 +18,9 @@ import {
   CLUB_CHRONICLE_SETTINGS_EVENT,
   CLUB_CHRONICLE_SETTINGS_STORAGE_KEY,
   DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS,
+  DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT,
   readClubChronicleStalenessDays,
+  readClubChronicleTransferHistoryCount,
 } from "@/lib/settings";
 
 type SupportedTeam = {
@@ -114,6 +123,41 @@ type FinanceEstimateRow = {
   snapshot?: FinanceEstimateSnapshot | null;
 };
 
+type TransferListedPlayer = {
+  playerId: number;
+  playerName: string | null;
+};
+
+type TransferActivityEntry = {
+  transferId: number | null;
+  deadline: string | null;
+  transferType: "B" | "S" | null;
+  playerId: number | null;
+  playerName: string | null;
+  resolvedPlayerName?: string | null;
+  priceSek: number | null;
+};
+
+type TransferActivitySnapshot = {
+  transferListedCount: number;
+  transferListedPlayers: TransferListedPlayer[];
+  numberOfBuys: number | null;
+  numberOfSales: number | null;
+  latestTransfers: TransferActivityEntry[];
+  fetchedAt: number;
+};
+
+type TransferActivityData = {
+  current: TransferActivitySnapshot;
+  previous?: TransferActivitySnapshot;
+};
+
+type TransferActivityRow = {
+  teamId: number;
+  teamName: string;
+  snapshot?: TransferActivitySnapshot | null;
+};
+
 type PressToken =
   | { kind: "text"; value: string }
   | { kind: "player"; id: number }
@@ -131,6 +175,7 @@ type ChronicleTeamData = {
   leaguePerformance?: LeaguePerformanceData;
   pressAnnouncement?: PressAnnouncementData;
   financeEstimate?: FinanceEstimateData;
+  transferActivity?: TransferActivityData;
 };
 
 type ChronicleCache = {
@@ -156,6 +201,7 @@ type ChronicleUpdates = {
 };
 
 type SortValue = string | number | null | SortValue[];
+type RawNode = Record<string, unknown>;
 
 type ChronicleTableColumn<Row, Snapshot> = {
   key: string;
@@ -169,6 +215,11 @@ type ChronicleTableColumn<Row, Snapshot> = {
     snapshot: Snapshot | undefined,
     row?: Row
   ) => SortValue | undefined;
+  renderCell?: (
+    snapshot: Snapshot | undefined,
+    row: Row,
+    formatValue: (value: string | number | null | undefined) => string
+  ) => React.ReactNode;
 };
 
 type ChronicleTableProps<Row, Snapshot> = {
@@ -265,11 +316,10 @@ const ChronicleTable = <Row, Snapshot>({
           }
         >
           {columns.map((column) => (
-            <span
-              key={`${rowKey}-${column.key}`}
-              className={styles.chronicleTableCell}
-            >
-              {formatValue(column.getValue(snapshot, row))}
+            <span key={`${rowKey}-${column.key}`} className={styles.chronicleTableCell}>
+              {column.renderCell
+                ? column.renderCell(snapshot, row, formatValue)
+                : formatValue(column.getValue(snapshot, row))}
             </span>
           ))}
         </div>
@@ -355,6 +405,7 @@ const PANEL_IDS = [
   "league-performance",
   "press-announcements",
   "finance-estimate",
+  "transfer-market",
 ] as const;
 const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
 const MAX_CACHE_AGE_MS = SEASON_LENGTH_MS * 2;
@@ -673,6 +724,21 @@ const pruneChronicleCache = (cache: ChronicleCache): ChronicleCache => {
         }
         return financeEstimate;
       })(),
+      transferActivity: (() => {
+        const transferActivity = team.transferActivity;
+        if (!transferActivity?.current) return transferActivity;
+        const currentAge = now - transferActivity.current.fetchedAt;
+        if (currentAge > MAX_CACHE_AGE_MS) return undefined;
+        if (!transferActivity.previous) return transferActivity;
+        const previousAge = now - transferActivity.previous.fetchedAt;
+        if (previousAge > MAX_CACHE_AGE_MS) {
+          return {
+            ...transferActivity,
+            previous: undefined,
+          };
+        }
+        return transferActivity;
+      })(),
     };
   });
   return { ...cache, teams: nextTeams };
@@ -681,9 +747,17 @@ const pruneChronicleCache = (cache: ChronicleCache): ChronicleCache => {
 const getLatestCacheTimestamp = (cache: ChronicleCache): number | null => {
   let latest = 0;
   Object.values(cache.teams).forEach((team) => {
-    const current = team.leaguePerformance?.current?.fetchedAt ?? 0;
-    const previous = team.leaguePerformance?.previous?.fetchedAt ?? 0;
-    latest = Math.max(latest, current, previous);
+    latest = Math.max(
+      latest,
+      team.leaguePerformance?.current?.fetchedAt ?? 0,
+      team.leaguePerformance?.previous?.fetchedAt ?? 0,
+      team.pressAnnouncement?.current?.fetchedAt ?? 0,
+      team.pressAnnouncement?.previous?.fetchedAt ?? 0,
+      team.financeEstimate?.current?.fetchedAt ?? 0,
+      team.financeEstimate?.previous?.fetchedAt ?? 0,
+      team.transferActivity?.current?.fetchedAt ?? 0,
+      team.transferActivity?.previous?.fetchedAt ?? 0
+    );
   });
   return latest > 0 ? latest : null;
 };
@@ -711,6 +785,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [selectedFinanceTeamId, setSelectedFinanceTeamId] = useState<number | null>(
     null
   );
+  const [transferListedDetailsOpen, setTransferListedDetailsOpen] = useState(false);
+  const [transferHistoryOpen, setTransferHistoryOpen] = useState(false);
+  const [selectedTransferTeamId, setSelectedTransferTeamId] = useState<number | null>(
+    null
+  );
   const [pressDetailsOpen, setPressDetailsOpen] = useState(false);
   const [selectedPressTeamId, setSelectedPressTeamId] = useState<number | null>(
     null
@@ -725,6 +804,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [stalenessDays, setStalenessDays] = useState(
     DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS
   );
+  const [transferHistoryCount, setTransferHistoryCount] = useState(
+    DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT
+  );
   const [leagueSortState, setLeagueSortState] = useState<{
     key: string;
     direction: "asc" | "desc";
@@ -737,10 +819,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     key: string;
     direction: "asc" | "desc";
   }>({ key: "team", direction: "asc" });
+  const [transferSortState, setTransferSortState] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({ key: "team", direction: "asc" });
   const [refreshingGlobal, setRefreshingGlobal] = useState(false);
   const [refreshingLeague, setRefreshingLeague] = useState(false);
   const [refreshingPress, setRefreshingPress] = useState(false);
   const [refreshingFinance, setRefreshingFinance] = useState(false);
+  const [refreshingTransfer, setRefreshingTransfer] = useState(false);
+  const [loadingTransferHistoryModal, setLoadingTransferHistoryModal] =
+    useState(false);
   const [teamIdInput, setTeamIdInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -752,7 +841,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const staleRefreshRef = useRef(false);
   const { addNotification } = useNotifications();
   const anyRefreshing =
-    refreshingGlobal || refreshingLeague || refreshingPress || refreshingFinance;
+    refreshingGlobal ||
+    refreshingLeague ||
+    refreshingPress ||
+    refreshingFinance ||
+    refreshingTransfer;
 
   const supportedById = useMemo(
     () =>
@@ -1026,6 +1119,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     setStalenessDays(readClubChronicleStalenessDays());
+    setTransferHistoryCount(readClubChronicleTransferHistoryCount());
     const handle = (event: Event) => {
       if (event instanceof StorageEvent) {
         if (
@@ -1036,13 +1130,24 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
       }
       if (event instanceof CustomEvent) {
-        const detail = event.detail as { stalenessDays?: number } | null;
+        const detail = event.detail as
+          | { stalenessDays?: number; transferHistoryCount?: number }
+          | null;
         if (typeof detail?.stalenessDays === "number") {
           setStalenessDays(detail.stalenessDays);
+        }
+        if (typeof detail?.transferHistoryCount === "number") {
+          setTransferHistoryCount(detail.transferHistoryCount);
+        }
+        if (
+          typeof detail?.stalenessDays === "number" ||
+          typeof detail?.transferHistoryCount === "number"
+        ) {
           return;
         }
       }
       setStalenessDays(readClubChronicleStalenessDays());
+      setTransferHistoryCount(readClubChronicleTransferHistoryCount());
     };
     window.addEventListener("storage", handle);
     window.addEventListener(CLUB_CHRONICLE_SETTINGS_EVENT, handle);
@@ -1212,6 +1317,50 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setFinanceDetailsOpen(true);
   };
 
+  const handleOpenTransferListedDetails = useCallback((teamId: number) => {
+    setSelectedTransferTeamId(teamId);
+    setTransferListedDetailsOpen(true);
+  }, []);
+
+  const handleOpenTransferHistory = useCallback((teamId: number) => {
+    setSelectedTransferTeamId(teamId);
+    setTransferHistoryOpen(true);
+    void (async () => {
+      setLoadingTransferHistoryModal(true);
+      try {
+        const latestTransfers = await fetchLatestTransfers(teamId, transferHistoryCount);
+        setChronicleCache((prev) => {
+          const teamCache = prev.teams[teamId];
+          if (!teamCache) return prev;
+          const current = teamCache.transferActivity?.current;
+          if (!current) return prev;
+          return {
+            ...prev,
+            teams: {
+              ...prev.teams,
+              [teamId]: {
+                ...teamCache,
+                transferActivity: {
+                  current: {
+                    ...current,
+                    numberOfBuys: latestTransfers.numberOfBuys ?? current.numberOfBuys,
+                    numberOfSales:
+                      latestTransfers.numberOfSales ?? current.numberOfSales,
+                    latestTransfers: latestTransfers.transfers,
+                    fetchedAt: Date.now(),
+                  },
+                  previous: teamCache.transferActivity?.previous,
+                },
+              },
+            },
+          };
+        });
+      } finally {
+        setLoadingTransferHistoryModal(false);
+      }
+    })();
+  }, [transferHistoryCount]);
+
   const handleLeagueSort = (key: string) => {
     setLeagueSortState((prev) => ({
       key,
@@ -1230,6 +1379,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const handleFinanceSort = (key: string) => {
     setFinanceSortState((prev) => ({
+      key,
+      direction:
+        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
+    }));
+  };
+
+  const handleTransferSort = (key: string) => {
+    setTransferSortState((prev) => ({
       key,
       direction:
         prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
@@ -1427,6 +1584,71 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [
       messages.clubChronicleColumnTeam,
       messages.clubChronicleFinanceColumnEstimate,
+    ]
+  );
+
+  const transferTableColumns = useMemo<
+    ChronicleTableColumn<TransferActivityRow, TransferActivitySnapshot>[]
+  >(
+    () => [
+      {
+        key: "team",
+        label: messages.clubChronicleColumnTeam,
+        getValue: (_snapshot, row) => row?.teamName ?? null,
+      },
+      {
+        key: "activeListings",
+        label: messages.clubChronicleTransferColumnActive,
+        getValue: (snapshot: TransferActivitySnapshot | undefined) =>
+          snapshot?.transferListedCount ?? 0,
+        renderCell: (
+          snapshot: TransferActivitySnapshot | undefined,
+          row: TransferActivityRow
+        ) => (
+          <button
+            type="button"
+            className={styles.chronicleCellButton}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleOpenTransferListedDetails(row.teamId);
+            }}
+          >
+            {formatValue(snapshot?.transferListedCount ?? 0)}
+          </button>
+        ),
+      },
+      {
+        key: "history",
+        label: messages.clubChronicleTransferColumnHistory,
+        getValue: (snapshot: TransferActivitySnapshot | undefined) =>
+          `${formatValue(snapshot?.numberOfSales ?? 0)}/${formatValue(snapshot?.numberOfBuys ?? 0)}`,
+        getSortValue: (snapshot: TransferActivitySnapshot | undefined) => [
+          snapshot?.numberOfSales ?? 0,
+          snapshot?.numberOfBuys ?? 0,
+        ],
+        renderCell: (
+          snapshot: TransferActivitySnapshot | undefined,
+          row: TransferActivityRow
+        ) => (
+          <button
+            type="button"
+            className={styles.chronicleCellButton}
+            onClick={(event) => {
+              event.stopPropagation();
+              handleOpenTransferHistory(row.teamId);
+            }}
+          >
+            {`${formatValue(snapshot?.numberOfSales ?? 0)}/${formatValue(snapshot?.numberOfBuys ?? 0)}`}
+          </button>
+        ),
+      },
+    ],
+    [
+      messages.clubChronicleColumnTeam,
+      messages.clubChronicleTransferColumnActive,
+      messages.clubChronicleTransferColumnHistory,
+      handleOpenTransferListedDetails,
+      handleOpenTransferHistory,
     ]
   );
 
@@ -1763,6 +1985,232 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
   };
 
+  const parseBool = (value: unknown): boolean => {
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return value === 1;
+    const normalized = String(value ?? "")
+      .trim()
+      .toLowerCase();
+    return normalized === "true" || normalized === "1";
+  };
+
+  const resolvePlayerNameById = async (
+    playerId: number
+  ): Promise<string | null> => {
+    try {
+      const response = await fetch(`/api/chpp/playerdetails?playerId=${playerId}`, {
+        cache: "no-store",
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            data?: {
+              HattrickData?: {
+                Player?: {
+                  FirstName?: string;
+                  NickName?: string;
+                  LastName?: string;
+                };
+              };
+            };
+          }
+        | null;
+      const player = payload?.data?.HattrickData?.Player;
+      const name = [player?.FirstName, player?.NickName, player?.LastName]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      return name || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const fetchLatestTransfers = async (
+    teamId: number,
+    limit: number
+  ): Promise<{
+    numberOfBuys: number | null;
+    numberOfSales: number | null;
+    transfers: TransferActivityEntry[];
+  }> => {
+    const target = Math.max(1, limit);
+    const transfers: TransferActivityEntry[] = [];
+    let numberOfBuys: number | null = null;
+    let numberOfSales: number | null = null;
+    let pageIndex = 1;
+    let totalPages = 1;
+
+    while (pageIndex <= totalPages && transfers.length < target) {
+      const response = await fetch(
+        `/api/chpp/transfersteam?teamId=${teamId}&pageIndex=${pageIndex}`,
+        { cache: "no-store" }
+      );
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            data?: {
+              HattrickData?: {
+                Stats?: {
+                  NumberOfBuys?: unknown;
+                  NumberOfSales?: unknown;
+                };
+                Transfers?: {
+                  Pages?: unknown;
+                  Transfer?: unknown;
+                };
+              };
+            };
+            error?: string;
+          }
+        | null;
+      if (!response.ok || payload?.error) {
+        break;
+      }
+      const stats = payload?.data?.HattrickData?.Stats;
+      numberOfBuys = parseNumber(stats?.NumberOfBuys);
+      numberOfSales = parseNumber(stats?.NumberOfSales);
+      const transfersNode = payload?.data?.HattrickData?.Transfers;
+      totalPages = parseNumber(transfersNode?.Pages) ?? 1;
+      const raw = transfersNode?.Transfer;
+      const list = (Array.isArray(raw) ? raw : raw ? [raw] : []) as RawNode[];
+      list.forEach((entry) => {
+        if (transfers.length >= target) return;
+        const player = (entry?.Player ?? {}) as RawNode;
+        const playerId = parseNumber(player?.PlayerID);
+        const rawType = String(
+          player?.TransferType ?? entry?.TransferType ?? ""
+        )
+          .trim()
+          .toUpperCase();
+        const sellerTeamId = parseNumber(
+          (entry?.Seller as RawNode | undefined)?.SellerTeamID
+        );
+        const buyerTeamId = parseNumber(
+          (entry?.Buyer as RawNode | undefined)?.BuyerTeamID
+        );
+        const resolvedType: "B" | "S" | null =
+          rawType === "B" || rawType === "S"
+            ? rawType
+            : sellerTeamId === teamId
+              ? "S"
+              : buyerTeamId === teamId
+                ? "B"
+                : null;
+        transfers.push({
+          transferId: parseNumber(entry?.TransferID),
+          deadline: (entry?.Deadline as string | undefined) ?? null,
+          transferType: resolvedType,
+          playerId,
+          playerName: (player?.PlayerName as string | undefined) ?? null,
+          priceSek: parseMoneySek(entry?.Price),
+        });
+      });
+      pageIndex += 1;
+    }
+
+    const resolutions = await Promise.all(
+      transfers.map(async (entry) => {
+        if (!entry.playerId || entry.playerId <= 0) return null;
+        const resolved = await resolvePlayerNameById(entry.playerId);
+        return { playerId: entry.playerId, resolved };
+      })
+    );
+    const resolvedById = new Map<number, string>();
+    resolutions.forEach((item) => {
+      if (!item?.resolved) return;
+      resolvedById.set(item.playerId, item.resolved);
+    });
+
+    return {
+      numberOfBuys,
+      numberOfSales,
+      transfers: transfers.map((entry) => ({
+        ...entry,
+        resolvedPlayerName:
+          entry.playerId && resolvedById.has(entry.playerId)
+            ? resolvedById.get(entry.playerId) ?? null
+            : null,
+      })),
+    };
+  };
+
+  const refreshTransferSnapshots = async (
+    nextCache: ChronicleCache,
+    historyCount: number
+  ) => {
+    for (const team of trackedTeams) {
+      try {
+        const playersResponse = await fetch(`/api/chpp/players?teamId=${team.teamId}`, {
+          cache: "no-store",
+        });
+        const playersPayload = (await playersResponse.json().catch(() => null)) as
+          | {
+              data?: {
+                HattrickData?: {
+                  Team?: {
+                    PlayerList?: {
+                      Player?: unknown;
+                    };
+                  };
+                };
+              };
+              error?: string;
+            }
+          | null;
+        if (!playersResponse.ok || playersPayload?.error) {
+          continue;
+        }
+        const rawPlayers =
+          playersPayload?.data?.HattrickData?.Team?.PlayerList?.Player;
+        const playerList = (Array.isArray(rawPlayers)
+          ? rawPlayers
+          : rawPlayers
+            ? [rawPlayers]
+            : []) as RawNode[];
+        const transferListedPlayers = playerList
+          .filter((player) => parseBool(player?.TransferListed))
+          .map((player) => {
+            const playerId = parseNumber(player?.PlayerID);
+            const playerName = [
+              player?.FirstName,
+              player?.NickName,
+              player?.LastName,
+            ]
+              .filter(Boolean)
+              .join(" ")
+              .trim();
+            return {
+              playerId: playerId ?? 0,
+              playerName: playerName || null,
+            };
+          })
+          .filter((player) => player.playerId > 0);
+
+        const latestTransfers = await fetchLatestTransfers(team.teamId, historyCount);
+        const snapshot: TransferActivitySnapshot = {
+          transferListedCount: transferListedPlayers.length,
+          transferListedPlayers,
+          numberOfBuys: latestTransfers.numberOfBuys,
+          numberOfSales: latestTransfers.numberOfSales,
+          latestTransfers: latestTransfers.transfers,
+          fetchedAt: Date.now(),
+        };
+
+        const previous = nextCache.teams[team.teamId]?.transferActivity?.current;
+        nextCache.teams[team.teamId] = {
+          ...nextCache.teams[team.teamId],
+          teamId: team.teamId,
+          teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+          transferActivity: {
+            current: snapshot,
+            previous,
+          },
+        };
+      } catch {
+        // ignore transfer activity failures
+      }
+    }
+  };
+
   const refreshAllData = async (reason: "stale" | "manual") => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
@@ -1776,6 +2224,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: true });
     await refreshLeagueSnapshots(nextCache, nextUpdates);
     await refreshFinanceSnapshots(nextCache);
+    await refreshTransferSnapshots(nextCache, transferHistoryCount);
 
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
@@ -1843,6 +2292,20 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     addNotification(messages.notificationChronicleRefreshComplete);
   };
 
+  const refreshTransferOnly = async () => {
+    if (anyRefreshing) return;
+    if (trackedTeams.length === 0) return;
+    setRefreshingTransfer(true);
+    const nextCache = pruneChronicleCache(readChronicleCache());
+    const nextManualTeams = [...manualTeams];
+    await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+    await refreshTransferSnapshots(nextCache, transferHistoryCount);
+    setManualTeams(nextManualTeams);
+    setChronicleCache(nextCache);
+    setRefreshingTransfer(false);
+    addNotification(messages.notificationChronicleRefreshComplete);
+  };
+
   const updatesByTeam = updates?.teams ?? {};
   const hasAnyTeamUpdates = trackedTeams.some((team) => {
     const changes = updatesByTeam[team.teamId]?.changes ?? [];
@@ -1878,6 +2341,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       teamId: team.teamId,
       teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
       snapshot: cached?.financeEstimate?.current,
+    };
+  });
+
+  const transferRows: TransferActivityRow[] = trackedTeams.map((team) => {
+    const cached = chronicleCache.teams[team.teamId];
+    return {
+      teamId: team.teamId,
+      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+      snapshot: cached?.transferActivity?.current,
     };
   });
 
@@ -1954,6 +2426,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       .map((item) => item.row);
   }, [financeRows, financeTableColumns, financeSortState]);
 
+  const sortedTransferRows = useMemo(() => {
+    if (!transferSortState.key) return transferRows;
+    const column = transferTableColumns.find(
+      (item) => item.key === transferSortState.key
+    );
+    if (!column) return transferRows;
+    const direction = transferSortState.direction === "desc" ? -1 : 1;
+    return [...transferRows]
+      .map((row, index) => ({ row, index }))
+      .sort((left, right) => {
+        const leftValue = normalizeSortValue(
+          column.getSortValue?.(left.row.snapshot ?? undefined, left.row) ??
+            column.getValue(left.row.snapshot ?? undefined, left.row)
+        );
+        const rightValue = normalizeSortValue(
+          column.getSortValue?.(right.row.snapshot ?? undefined, right.row) ??
+            column.getValue(right.row.snapshot ?? undefined, right.row)
+        );
+        const result = compareSortValues(leftValue, rightValue);
+        if (result !== 0) return result * direction;
+        return left.index - right.index;
+      })
+      .map((item) => item.row);
+  }, [transferRows, transferTableColumns, transferSortState]);
+
   const selectedTeam = selectedTeamId
     ? leagueRows.find((team) => team.teamId === selectedTeamId) ?? null
     : null;
@@ -1963,6 +2460,108 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const selectedFinanceTeam = selectedFinanceTeamId
     ? financeRows.find((team) => team.teamId === selectedFinanceTeamId) ?? null
     : null;
+  const selectedTransferTeam = selectedTransferTeamId
+    ? transferRows.find((team) => team.teamId === selectedTransferTeamId) ?? null
+    : null;
+  const transferListedRows = useMemo(
+    () => selectedTransferTeam?.snapshot?.transferListedPlayers ?? [],
+    [selectedTransferTeam]
+  );
+  const transferHistoryRows = useMemo(
+    () => selectedTransferTeam?.snapshot?.latestTransfers ?? [],
+    [selectedTransferTeam]
+  );
+
+  const transferListedColumns = useMemo<
+    ChronicleTableColumn<TransferListedPlayer, TransferListedPlayer>[]
+  >(
+    () => [
+      {
+        key: "player",
+        label: messages.clubChronicleTransferListedPlayerColumn,
+        getValue: (snapshot) => snapshot?.playerName ?? null,
+        renderCell: (snapshot) => {
+          const playerId = snapshot?.playerId ?? 0;
+          const playerName = snapshot?.playerName ?? `${playerId}`;
+          if (!playerId) return playerName;
+          return (
+            <a
+              className={styles.chroniclePressLink}
+              href={`${HT_BASE_URL}/Club/Players/Player.aspx?playerId=${playerId}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {playerName}
+            </a>
+          );
+        },
+      },
+    ],
+    [messages.clubChronicleTransferListedPlayerColumn]
+  );
+
+  const transferHistoryColumns = useMemo<
+    ChronicleTableColumn<TransferActivityEntry, TransferActivityEntry>[]
+  >(
+    () => [
+      {
+        key: "date",
+        label: messages.clubChronicleTransferHistoryDateColumn,
+        getValue: (snapshot) =>
+          snapshot?.deadline
+            ? formatChppDateTime(snapshot.deadline) ?? snapshot.deadline
+            : null,
+      },
+      {
+        key: "type",
+        label: messages.clubChronicleTransferHistoryTypeColumn,
+        getValue: (snapshot) =>
+          snapshot?.transferType === "S"
+            ? messages.clubChronicleTransferTypeSale
+            : snapshot?.transferType === "B"
+              ? messages.clubChronicleTransferTypeBuy
+              : null,
+      },
+      {
+        key: "player",
+        label: messages.clubChronicleTransferHistoryPlayerColumn,
+        getValue: (snapshot) =>
+          snapshot?.resolvedPlayerName ?? snapshot?.playerName ?? null,
+        renderCell: (snapshot, _row, fallbackFormat) => {
+          const playerId = snapshot?.playerId ?? 0;
+          if (!playerId || !snapshot?.resolvedPlayerName) {
+            return fallbackFormat(snapshot?.playerName);
+          }
+          return (
+            <a
+              className={styles.chroniclePressLink}
+              href={`${HT_BASE_URL}/Club/Players/Player.aspx?playerId=${playerId}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {snapshot.resolvedPlayerName}
+            </a>
+          );
+        },
+      },
+      {
+        key: "price",
+        label: messages.clubChronicleTransferHistoryPriceColumn,
+        getValue: (snapshot) =>
+          snapshot?.priceSek !== null && snapshot?.priceSek !== undefined
+            ? formatEuro(snapshot.priceSek / 10)
+            : null,
+      },
+    ],
+    [
+      messages.clubChronicleTransferHistoryDateColumn,
+      messages.clubChronicleTransferHistoryTypeColumn,
+      messages.clubChronicleTransferTypeSale,
+      messages.clubChronicleTransferTypeBuy,
+      messages.clubChronicleTransferHistoryPlayerColumn,
+      messages.clubChronicleTransferHistoryPriceColumn,
+    ]
+  );
 
   useEffect(() => {
     if (!pressDetailsOpen || !selectedPressTeam?.snapshot) return;
@@ -2192,6 +2791,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [financeTableColumns.length]
   );
 
+  const transferTableStyle = useMemo(
+    () =>
+      ({
+        "--cc-columns": transferTableColumns.length,
+        "--cc-template": "minmax(180px, 1.4fr) minmax(90px, 0.7fr) minmax(130px, 0.9fr)",
+      }) as CSSProperties,
+    [transferTableColumns.length]
+  );
+
   return (
     <div className={styles.clubChronicleStack}>
       <div className={styles.chronicleHeader}>
@@ -2349,6 +2957,46 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       {messages.clubChronicleFinanceDisclaimer}
                     </p>
                   </>
+                )}
+              </ChroniclePanel>
+            );
+          }
+          if (panelId === "transfer-market") {
+            return (
+              <ChroniclePanel
+                key={panelId}
+                title={messages.clubChronicleTransferPanelTitle}
+                refreshing={refreshingGlobal || refreshingTransfer}
+                refreshLabel={messages.clubChronicleRefreshTransferTooltip}
+                moveUpLabel={messages.clubChronicleMoveUp}
+                moveDownLabel={messages.clubChronicleMoveDown}
+                onRefresh={() => void refreshTransferOnly()}
+                canMoveUp={canMoveUp}
+                canMoveDown={canMoveDown}
+                onMoveUp={() => handleMovePanel(panelId, "up")}
+                onMoveDown={() => handleMovePanel(panelId, "down")}
+              >
+                {trackedTeams.length === 0 ? (
+                  <p className={styles.chronicleEmpty}>
+                    {messages.clubChronicleNoTeams}
+                  </p>
+                ) : (refreshingGlobal || refreshingTransfer) &&
+                  transferRows.every((row) => !row.snapshot) ? (
+                  <p className={styles.chronicleEmpty}>
+                    {messages.clubChronicleLoading}
+                  </p>
+                ) : (
+                  <ChronicleTable
+                    columns={transferTableColumns}
+                    rows={sortedTransferRows}
+                    getRowKey={(row) => row.teamId}
+                    getSnapshot={(row) => row.snapshot ?? undefined}
+                    formatValue={formatValue}
+                    style={transferTableStyle}
+                    sortKey={transferSortState.key}
+                    sortDirection={transferSortState.direction}
+                    onSort={handleTransferSort}
+                  />
                 )}
               </ChroniclePanel>
             );
@@ -2715,6 +3363,106 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
         closeOnBackdrop
         onClose={() => setFinanceDetailsOpen(false)}
+      />
+
+      <Modal
+        open={transferListedDetailsOpen}
+        title={messages.clubChronicleTransferListedModalTitle}
+        body={
+          selectedTransferTeam ? (
+            <>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleColumnTeam}: {selectedTransferTeam.teamName}
+              </p>
+              {transferListedRows.length > 0 ? (
+                <ChronicleTable
+                  columns={transferListedColumns}
+                  rows={transferListedRows}
+                  getRowKey={(row) => row.playerId}
+                  getSnapshot={(row) => row}
+                  formatValue={formatValue}
+                  style={
+                    {
+                      "--cc-columns": transferListedColumns.length,
+                      "--cc-template": "minmax(240px, 1fr)",
+                    } as CSSProperties
+                  }
+                />
+              ) : (
+                <p className={styles.chronicleEmpty}>
+                  {messages.clubChronicleTransferListedEmpty}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setTransferListedDetailsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setTransferListedDetailsOpen(false)}
+      />
+
+      <Modal
+        open={transferHistoryOpen}
+        title={messages.clubChronicleTransferHistoryModalTitle}
+        className={styles.chronicleTransferHistoryModal}
+        body={
+          selectedTransferTeam ? (
+            <>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleColumnTeam}: {selectedTransferTeam.teamName}
+              </p>
+              {loadingTransferHistoryModal ? (
+                <p className={styles.chronicleEmpty}>{messages.clubChronicleLoading}</p>
+              ) : transferHistoryRows.length > 0 ? (
+                <div className={styles.chronicleTransferHistoryTableWrap}>
+                  <ChronicleTable
+                    columns={transferHistoryColumns}
+                    rows={transferHistoryRows}
+                    getRowKey={(row) =>
+                      `${row.transferId ?? "unknown"}-${row.playerId ?? "0"}-${row.deadline ?? "na"}`
+                    }
+                    getSnapshot={(row) => row}
+                    formatValue={formatValue}
+                    style={
+                      {
+                        "--cc-columns": transferHistoryColumns.length,
+                        "--cc-template":
+                          "minmax(150px, 1fr) minmax(90px, 0.6fr) minmax(260px, 1.8fr) minmax(130px, 0.8fr)",
+                      } as CSSProperties
+                    }
+                  />
+                </div>
+              ) : (
+                <p className={styles.chronicleEmpty}>
+                  {messages.clubChronicleTransferHistoryEmpty}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setTransferHistoryOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setTransferHistoryOpen(false)}
       />
 
       <Modal

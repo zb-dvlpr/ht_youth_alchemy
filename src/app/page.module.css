@@ -1166,6 +1166,21 @@
   text-overflow: ellipsis;
 }
 
+.chronicleCellButton {
+  border: none;
+  background: transparent;
+  color: #2f5f8f;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.chronicleCellButton:hover {
+  color: #244d2b;
+}
+
 .chronicleTableRow .chronicleTableCell:first-child {
   font-weight: 600;
   color: #3f362c;
@@ -1264,6 +1279,30 @@
 
 .chroniclePressModal {
   max-width: min(760px, 94vw);
+  width: min(760px, 94vw);
+}
+
+.chronicleTransferHistoryModal {
+  max-width: min(1120px, 98vw);
+  width: min(1120px, 98vw);
+}
+
+.chronicleModalTableWrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.chronicleTransferHistoryTableWrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.chronicleTransferHistoryTableWrap .chronicleTableCell {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .chroniclePressContent {
@@ -1721,6 +1760,10 @@ html[data-theme="dark"] .chronicleTableHeader {
 
 html[data-theme="dark"] .chronicleTableCell {
   color: #b9b0a5;
+}
+
+html[data-theme="dark"] .chronicleCellButton {
+  color: #86b8e8;
 }
 
 html[data-theme="dark"] .chronicleTableRow .chronicleTableCell:first-child {
@@ -2828,6 +2871,14 @@ html[data-theme="dark"] .spinner {
 
 .confirmCard.watchlistModal {
   width: min(900px, 92vw);
+}
+
+.confirmCard.chroniclePressModal {
+  width: min(760px, 94vw);
+}
+
+.confirmCard.chronicleTransferHistoryModal {
+  width: min(1120px, 98vw);
 }
 
 .confirmTitle {

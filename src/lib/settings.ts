@@ -4,6 +4,7 @@ export const DEFAULT_ALLOW_TRAINING_UNTIL_MAXED_OUT = true;
 export const CLUB_CHRONICLE_SETTINGS_STORAGE_KEY = "ya_club_chronicle_settings_v1";
 export const CLUB_CHRONICLE_SETTINGS_EVENT = "ya:club-chronicle-settings";
 export const DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS = 3;
+export const DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT = 5;
 export const YOUTH_SETTINGS_STORAGE_KEY = "ya_youth_staleness_hours_v1";
 export const YOUTH_SETTINGS_EVENT = "ya:youth-settings";
 export const DEFAULT_YOUTH_STALENESS_HOURS = 3;
@@ -56,9 +57,62 @@ export function writeClubChronicleStalenessDays(value: number) {
   if (typeof window === "undefined") return;
   try {
     const clamped = Math.min(7, Math.max(1, Math.round(value)));
+    const existing = window.localStorage.getItem(CLUB_CHRONICLE_SETTINGS_STORAGE_KEY);
+    const parsed = existing
+      ? (JSON.parse(existing) as { transferHistoryCount?: number } | null)
+      : null;
+    const transferHistoryCount = Number(parsed?.transferHistoryCount);
+    const nextTransferHistoryCount = Number.isFinite(transferHistoryCount)
+      ? Math.min(50, Math.max(1, Math.round(transferHistoryCount)))
+      : DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT;
     window.localStorage.setItem(
       CLUB_CHRONICLE_SETTINGS_STORAGE_KEY,
-      JSON.stringify({ stalenessDays: clamped })
+      JSON.stringify({
+        stalenessDays: clamped,
+        transferHistoryCount: nextTransferHistoryCount,
+      })
+    );
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function readClubChronicleTransferHistoryCount(): number {
+  if (typeof window === "undefined") {
+    return DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT;
+  }
+  try {
+    const stored = window.localStorage.getItem(CLUB_CHRONICLE_SETTINGS_STORAGE_KEY);
+    if (!stored) return DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT;
+    const parsed = JSON.parse(stored) as { transferHistoryCount?: number };
+    const value =
+      parsed?.transferHistoryCount ??
+      DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT;
+    if (!Number.isFinite(value)) return DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT;
+    return Math.min(50, Math.max(1, Math.round(value)));
+  } catch {
+    return DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT;
+  }
+}
+
+export function writeClubChronicleTransferHistoryCount(value: number) {
+  if (typeof window === "undefined") return;
+  try {
+    const clamped = Math.min(50, Math.max(1, Math.round(value)));
+    const existing = window.localStorage.getItem(CLUB_CHRONICLE_SETTINGS_STORAGE_KEY);
+    const parsed = existing
+      ? (JSON.parse(existing) as { stalenessDays?: number } | null)
+      : null;
+    const stalenessDays = Number(parsed?.stalenessDays);
+    const nextStalenessDays = Number.isFinite(stalenessDays)
+      ? Math.min(7, Math.max(1, Math.round(stalenessDays)))
+      : DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS;
+    window.localStorage.setItem(
+      CLUB_CHRONICLE_SETTINGS_STORAGE_KEY,
+      JSON.stringify({
+        stalenessDays: nextStalenessDays,
+        transferHistoryCount: clamped,
+      })
     );
   } catch {
     // ignore storage errors

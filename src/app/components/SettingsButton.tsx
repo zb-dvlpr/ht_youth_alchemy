@@ -15,6 +15,8 @@ import {
   YOUTH_SETTINGS_EVENT,
   readClubChronicleStalenessDays,
   writeClubChronicleStalenessDays,
+  readClubChronicleTransferHistoryCount,
+  writeClubChronicleTransferHistoryCount,
   CLUB_CHRONICLE_SETTINGS_EVENT,
 } from "@/lib/settings";
 
@@ -38,6 +40,8 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     useState(true);
   const [stalenessHours, setStalenessHours] = useState(3);
   const [chronicleStalenessDays, setChronicleStalenessDays] = useState(3);
+  const [chronicleTransferHistoryCount, setChronicleTransferHistoryCount] =
+    useState(5);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -60,6 +64,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
     setStalenessHours(readYouthStalenessHours());
     setChronicleStalenessDays(readClubChronicleStalenessDays());
+    setChronicleTransferHistoryCount(readClubChronicleTransferHistoryCount());
   }, []);
 
   const handleExport = () => {
@@ -167,7 +172,26 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     if (typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent(CLUB_CHRONICLE_SETTINGS_EVENT, {
-          detail: { stalenessDays: nextValue },
+          detail: {
+            stalenessDays: nextValue,
+            transferHistoryCount: chronicleTransferHistoryCount,
+          },
+        })
+      );
+    }
+  };
+
+  const handleChronicleTransferHistoryCountChange = (value: number) => {
+    const nextValue = Math.min(50, Math.max(1, Math.round(value)));
+    setChronicleTransferHistoryCount(nextValue);
+    writeClubChronicleTransferHistoryCount(nextValue);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(CLUB_CHRONICLE_SETTINGS_EVENT, {
+          detail: {
+            stalenessDays: chronicleStalenessDays,
+            transferHistoryCount: nextValue,
+          },
         })
       );
     }
@@ -309,6 +333,29 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
                     const value = Number(event.target.value);
                     if (Number.isNaN(value)) return;
                     handleChronicleStalenessChange(value);
+                  }}
+                />
+              </label>
+            </Tooltip>
+            <Tooltip
+              content={messages.settingsClubChronicleTransferHistoryHint}
+              fullWidth
+            >
+              <label className={styles.settingsField}>
+                <span className={styles.settingsFieldLabel}>
+                  {messages.settingsClubChronicleTransferHistoryLabel}
+                </span>
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  step={1}
+                  value={chronicleTransferHistoryCount}
+                  className={styles.settingsFieldInput}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    if (Number.isNaN(value)) return;
+                    handleChronicleTransferHistoryCountChange(value);
                   }}
                 />
               </label>

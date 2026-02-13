@@ -55,6 +55,7 @@ export type Messages = {
   changelog_2_0_0: string;
   changelog_2_1_0: string;
   changelog_2_2_0: string;
+  changelog_2_4_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -83,6 +84,8 @@ export type Messages = {
   settingsClubChronicleTitle: string;
   settingsClubChronicleStalenessLabel: string;
   settingsClubChronicleStalenessHint: string;
+  settingsClubChronicleTransferHistoryLabel: string;
+  settingsClubChronicleTransferHistoryHint: string;
   clubChronicleLeaguePanelTitle: string;
   clubChronicleLeaguePanelEmpty: string;
   clubChronicleNoTeams: string;
@@ -94,6 +97,7 @@ export type Messages = {
   clubChronicleRefreshTooltip: string;
   clubChronicleRefreshPressTooltip: string;
   clubChronicleRefreshFinanceTooltip: string;
+  clubChronicleRefreshTransferTooltip: string;
   clubChroniclePressPanelTitle: string;
   clubChroniclePressDetailsTitle: string;
   clubChroniclePressColumnAnnouncement: string;
@@ -151,6 +155,20 @@ export type Messages = {
   clubChronicleColumnPositionChange: string;
   clubChronicleColumnGoalsDelta: string;
   clubChronicleColumnRecord: string;
+  clubChronicleTransferPanelTitle: string;
+  clubChronicleTransferColumnActive: string;
+  clubChronicleTransferColumnHistory: string;
+  clubChronicleTransferListedModalTitle: string;
+  clubChronicleTransferListedEmpty: string;
+  clubChronicleTransferListedPlayerColumn: string;
+  clubChronicleTransferHistoryModalTitle: string;
+  clubChronicleTransferHistoryEmpty: string;
+  clubChronicleTransferHistoryDateColumn: string;
+  clubChronicleTransferHistoryTypeColumn: string;
+  clubChronicleTransferHistoryPlayerColumn: string;
+  clubChronicleTransferHistoryPriceColumn: string;
+  clubChronicleTransferTypeSale: string;
+  clubChronicleTransferTypeBuy: string;
   helpTitle: string;
   helpIntro: string;
   helpBulletOverview: string;
@@ -503,6 +521,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_2_0_0: "Collapsible sidebar with tool switcher.",
     changelog_2_1_0: "Club Chronicle watchlist setup.",
     changelog_2_2_0: "Lineup slots now select players in the details panel.",
+    changelog_2_4_0:
+      "Club Chronicle transfer market panel with active listings and recent transfer history.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -532,6 +552,9 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTitle: "Club Chronicle settings",
     settingsClubChronicleStalenessLabel: "Refresh after (days)",
     settingsClubChronicleStalenessHint: "When data is older than this, entering Club Chronicle triggers a refresh based on the last refresh time.",
+    settingsClubChronicleTransferHistoryLabel: "Latest transfers to keep",
+    settingsClubChronicleTransferHistoryHint:
+      "How many recent transfers per team are cached and shown in transfer history details.",
     clubChronicleLeaguePanelTitle: "League performance",
     clubChronicleLeaguePanelEmpty: "No league data yet.",
     clubChronicleNoTeams: "No tracked teams selected.",
@@ -543,6 +566,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Refresh league performance data.",
     clubChronicleRefreshPressTooltip: "Refresh press announcements data.",
     clubChronicleRefreshFinanceTooltip: "Refresh finance estimate data.",
+    clubChronicleRefreshTransferTooltip: "Refresh transfer market data.",
     clubChroniclePressPanelTitle: "Press announcements",
     clubChroniclePressDetailsTitle: "Press announcement",
     clubChroniclePressColumnAnnouncement: "Announcement",
@@ -563,6 +587,20 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleColumnPositionChange: "Pos chg",
     clubChronicleColumnGoalsDelta: "GF-GA",
     clubChronicleColumnRecord: "W-D-L",
+    clubChronicleTransferPanelTitle: "Transfer market",
+    clubChronicleTransferColumnActive: "On market",
+    clubChronicleTransferColumnHistory: "Sold/Bought",
+    clubChronicleTransferListedModalTitle: "Players currently on the market",
+    clubChronicleTransferListedEmpty: "No players currently on the market.",
+    clubChronicleTransferListedPlayerColumn: "Player",
+    clubChronicleTransferHistoryModalTitle: "Latest transfers",
+    clubChronicleTransferHistoryEmpty: "No recent transfers found.",
+    clubChronicleTransferHistoryDateColumn: "Date",
+    clubChronicleTransferHistoryTypeColumn: "Type",
+    clubChronicleTransferHistoryPlayerColumn: "Player",
+    clubChronicleTransferHistoryPriceColumn: "Price",
+    clubChronicleTransferTypeSale: "Sale",
+    clubChronicleTransferTypeBuy: "Buy",
     clubChronicleMoveUp: "Move panel up",
     clubChronicleMoveDown: "Move panel down",
     clubChronicleUpdatesEmpty: "No updates available yet.",
@@ -971,6 +1009,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_2_1_0: "Beobachtungsliste für die Club-Chronik.",
     changelog_2_2_0:
       "Aufstellungs-Slots wählen nun Spieler im Detailbereich aus.",
+    changelog_2_4_0:
+      "Transfermarkt-Panel in der Club-Chronik mit aktiven Angeboten und jüngster Transferhistorie.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -1001,6 +1041,9 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTitle: "Einstellungen der Club-Chronik",
     settingsClubChronicleStalenessLabel: "Aktualisieren nach (Tagen)",
     settingsClubChronicleStalenessHint: "Wenn Daten älter sind, löst das Öffnen der Club-Chronik eine Aktualisierung basierend auf der letzten Aktualisierung aus.",
+    settingsClubChronicleTransferHistoryLabel: "Anzahl letzter Transfers",
+    settingsClubChronicleTransferHistoryHint:
+      "Wie viele letzte Transfers pro Team zwischengespeichert und in den Transferdetails angezeigt werden.",
     clubChronicleLeaguePanelTitle: "Ligaleistung",
     clubChronicleLeaguePanelEmpty: "Noch keine Ligadaten.",
     clubChronicleNoTeams: "Keine verfolgten Teams ausgewählt.",
@@ -1012,6 +1055,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Ligaleistungsdaten aktualisieren.",
     clubChronicleRefreshPressTooltip: "Daten der Pressemitteilungen aktualisieren.",
     clubChronicleRefreshFinanceTooltip: "Daten der Finanzschätzung aktualisieren.",
+    clubChronicleRefreshTransferTooltip: "Transfermarktdaten aktualisieren.",
     clubChroniclePressPanelTitle: "Pressemitteilungen",
     clubChroniclePressDetailsTitle: "Pressemitteilung",
     clubChroniclePressColumnAnnouncement: "Mitteilung",
@@ -1032,6 +1076,20 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleColumnPositionChange: "Pos-Änd.",
     clubChronicleColumnGoalsDelta: "TF-TG",
     clubChronicleColumnRecord: "S-U-N",
+    clubChronicleTransferPanelTitle: "Transfermarkt",
+    clubChronicleTransferColumnActive: "Auf dem Markt",
+    clubChronicleTransferColumnHistory: "Verk./Kauf",
+    clubChronicleTransferListedModalTitle: "Aktuell auf dem Markt",
+    clubChronicleTransferListedEmpty: "Keine Spieler aktuell auf dem Markt.",
+    clubChronicleTransferListedPlayerColumn: "Spieler",
+    clubChronicleTransferHistoryModalTitle: "Letzte Transfers",
+    clubChronicleTransferHistoryEmpty: "Keine jüngsten Transfers gefunden.",
+    clubChronicleTransferHistoryDateColumn: "Datum",
+    clubChronicleTransferHistoryTypeColumn: "Typ",
+    clubChronicleTransferHistoryPlayerColumn: "Spieler",
+    clubChronicleTransferHistoryPriceColumn: "Preis",
+    clubChronicleTransferTypeSale: "Verkauf",
+    clubChronicleTransferTypeBuy: "Kauf",
     clubChronicleMoveUp: "Panel nach oben verschieben",
     clubChronicleMoveDown: "Panel nach unten verschieben",
     clubChronicleUpdatesEmpty: "Noch keine Updates verfügbar.",
@@ -1443,6 +1501,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_2_1_0: "Liste de suivi de la Chronique du club.",
     changelog_2_2_0:
       "Les postes de composition sélectionnent désormais le joueur dans les détails.",
+    changelog_2_4_0:
+      "Panneau marché des transferts dans la Chronique du club avec annonces actives et historique récent.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1473,6 +1533,9 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTitle: "Paramètres de la Chronique du club",
     settingsClubChronicleStalenessLabel: "Rafraîchir après (jours)",
     settingsClubChronicleStalenessHint: "Quand les données sont trop anciennes, l’ouverture de la Chronique du club déclenche une actualisation basée sur la dernière actualisation.",
+    settingsClubChronicleTransferHistoryLabel: "Derniers transferts à garder",
+    settingsClubChronicleTransferHistoryHint:
+      "Nombre de transferts récents par équipe à mettre en cache et afficher dans les détails.",
     clubChronicleLeaguePanelTitle: "Performance en ligue",
     clubChronicleLeaguePanelEmpty: "Pas encore de données de ligue.",
     clubChronicleNoTeams: "Aucune équipe suivie sélectionnée.",
@@ -1484,6 +1547,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Actualiser les données de performance en ligue.",
     clubChronicleRefreshPressTooltip: "Actualiser les données des communiqués de presse.",
     clubChronicleRefreshFinanceTooltip: "Actualiser les données d'estimation financière.",
+    clubChronicleRefreshTransferTooltip: "Actualiser les données du marché des transferts.",
     clubChroniclePressPanelTitle: "Communiqués de presse",
     clubChroniclePressDetailsTitle: "Communiqué de presse",
     clubChroniclePressColumnAnnouncement: "Annonce",
@@ -1504,6 +1568,20 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleColumnPositionChange: "Δ Pos",
     clubChronicleColumnGoalsDelta: "BP-BC",
     clubChronicleColumnRecord: "G-N-P",
+    clubChronicleTransferPanelTitle: "Marché des transferts",
+    clubChronicleTransferColumnActive: "Sur le marché",
+    clubChronicleTransferColumnHistory: "Ventes/Achats",
+    clubChronicleTransferListedModalTitle: "Joueurs actuellement sur le marché",
+    clubChronicleTransferListedEmpty: "Aucun joueur actuellement sur le marché.",
+    clubChronicleTransferListedPlayerColumn: "Joueur",
+    clubChronicleTransferHistoryModalTitle: "Derniers transferts",
+    clubChronicleTransferHistoryEmpty: "Aucun transfert récent trouvé.",
+    clubChronicleTransferHistoryDateColumn: "Date",
+    clubChronicleTransferHistoryTypeColumn: "Type",
+    clubChronicleTransferHistoryPlayerColumn: "Joueur",
+    clubChronicleTransferHistoryPriceColumn: "Prix",
+    clubChronicleTransferTypeSale: "Vente",
+    clubChronicleTransferTypeBuy: "Achat",
     clubChronicleMoveUp: "Monter le panneau",
     clubChronicleMoveDown: "Descendre le panneau",
     clubChronicleUpdatesEmpty: "Aucune mise à jour disponible.",
@@ -1922,6 +2000,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_2_1_0: "Lista de seguimiento para Crónica del club.",
     changelog_2_2_0:
       "Los puestos de la alineación ahora seleccionan al jugador en detalles.",
+    changelog_2_4_0:
+      "Panel de mercado de fichajes en Crónica del club con anuncios activos e historial reciente.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -1952,6 +2032,9 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTitle: "Ajustes de Crónica del club",
     settingsClubChronicleStalenessLabel: "Actualizar después de (días)",
     settingsClubChronicleStalenessHint: "Cuando los datos son antiguos, entrar en Crónica del club desencadena una actualización basada en la última actualización.",
+    settingsClubChronicleTransferHistoryLabel: "Últimos traspasos a guardar",
+    settingsClubChronicleTransferHistoryHint:
+      "Cuántos traspasos recientes por equipo se guardan en caché y se muestran en detalles.",
     clubChronicleLeaguePanelTitle: "Rendimiento en liga",
     clubChronicleLeaguePanelEmpty: "Aún no hay datos de liga.",
     clubChronicleNoTeams: "No hay equipos seguidos seleccionados.",
@@ -1963,6 +2046,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Actualizar los datos de rendimiento en liga.",
     clubChronicleRefreshPressTooltip: "Actualizar datos de comunicados de prensa.",
     clubChronicleRefreshFinanceTooltip: "Actualizar datos de estimación financiera.",
+    clubChronicleRefreshTransferTooltip: "Actualizar datos del mercado de traspasos.",
     clubChroniclePressPanelTitle: "Comunicados de prensa",
     clubChroniclePressDetailsTitle: "Comunicado de prensa",
     clubChroniclePressColumnAnnouncement: "Anuncio",
@@ -1983,6 +2067,20 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleColumnPositionChange: "Camb. pos",
     clubChronicleColumnGoalsDelta: "GF-GC",
     clubChronicleColumnRecord: "G-E-P",
+    clubChronicleTransferPanelTitle: "Mercado de traspasos",
+    clubChronicleTransferColumnActive: "En venta",
+    clubChronicleTransferColumnHistory: "Vend./Comp.",
+    clubChronicleTransferListedModalTitle: "Jugadores actualmente en el mercado",
+    clubChronicleTransferListedEmpty: "No hay jugadores actualmente en el mercado.",
+    clubChronicleTransferListedPlayerColumn: "Jugador",
+    clubChronicleTransferHistoryModalTitle: "Últimos traspasos",
+    clubChronicleTransferHistoryEmpty: "No se encontraron traspasos recientes.",
+    clubChronicleTransferHistoryDateColumn: "Fecha",
+    clubChronicleTransferHistoryTypeColumn: "Tipo",
+    clubChronicleTransferHistoryPlayerColumn: "Jugador",
+    clubChronicleTransferHistoryPriceColumn: "Precio",
+    clubChronicleTransferTypeSale: "Venta",
+    clubChronicleTransferTypeBuy: "Compra",
     clubChronicleMoveUp: "Mover panel arriba",
     clubChronicleMoveDown: "Mover panel abajo",
     clubChronicleUpdatesEmpty: "No hay actualizaciones disponibles.",
@@ -2395,6 +2493,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_2_1_0: "Bevakningslista för Klubbkrönikan.",
     changelog_2_2_0:
       "Laguppställningsplatser väljer nu spelare i detaljpanelen.",
+    changelog_2_4_0:
+      "Transfermarknadspanel i Klubbkrönikan med aktiva listningar och senaste transferhistorik.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -2425,6 +2525,9 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTitle: "Inställningar för Klubbkrönikan",
     settingsClubChronicleStalenessLabel: "Uppdatera efter (dagar)",
     settingsClubChronicleStalenessHint: "När data är gammal utlöser öppning av Klubbkrönikan en uppdatering baserad på senaste uppdatering.",
+    settingsClubChronicleTransferHistoryLabel: "Antal senaste övergångar",
+    settingsClubChronicleTransferHistoryHint:
+      "Hur många senaste övergångar per lag som cachas och visas i detaljer.",
     clubChronicleLeaguePanelTitle: "Ligaprestanda",
     clubChronicleLeaguePanelEmpty: "Inga ligadata ännu.",
     clubChronicleNoTeams: "Inga bevakade lag valda.",
@@ -2436,6 +2539,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Uppdatera ligaprestanda-data.",
     clubChronicleRefreshPressTooltip: "Uppdatera data för pressmeddelanden.",
     clubChronicleRefreshFinanceTooltip: "Uppdatera data för finansestimat.",
+    clubChronicleRefreshTransferTooltip: "Uppdatera data för transfermarknaden.",
     clubChroniclePressPanelTitle: "Pressmeddelanden",
     clubChroniclePressDetailsTitle: "Pressmeddelande",
     clubChroniclePressColumnAnnouncement: "Meddelande",
@@ -2456,6 +2560,20 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleColumnPositionChange: "Pos ändr",
     clubChronicleColumnGoalsDelta: "GF-GA",
     clubChronicleColumnRecord: "V-O-F",
+    clubChronicleTransferPanelTitle: "Transfermarknad",
+    clubChronicleTransferColumnActive: "På marknaden",
+    clubChronicleTransferColumnHistory: "Såld/Köpt",
+    clubChronicleTransferListedModalTitle: "Spelare på marknaden just nu",
+    clubChronicleTransferListedEmpty: "Inga spelare på marknaden just nu.",
+    clubChronicleTransferListedPlayerColumn: "Spelare",
+    clubChronicleTransferHistoryModalTitle: "Senaste övergångar",
+    clubChronicleTransferHistoryEmpty: "Inga senaste övergångar hittades.",
+    clubChronicleTransferHistoryDateColumn: "Datum",
+    clubChronicleTransferHistoryTypeColumn: "Typ",
+    clubChronicleTransferHistoryPlayerColumn: "Spelare",
+    clubChronicleTransferHistoryPriceColumn: "Pris",
+    clubChronicleTransferTypeSale: "Försäljning",
+    clubChronicleTransferTypeBuy: "Köp",
     clubChronicleMoveUp: "Flytta panel upp",
     clubChronicleMoveDown: "Flytta panel ner",
     clubChronicleUpdatesEmpty: "Inga uppdateringar ännu.",
@@ -2868,6 +2986,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_2_1_0: "Lista di osservazione per la Cronaca del club.",
     changelog_2_2_0:
       "Gli slot della formazione ora selezionano i giocatori nei dettagli.",
+    changelog_2_4_0:
+      "Pannello mercato trasferimenti nella Cronaca del club con inserzioni attive e storico recente.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -2898,6 +3018,9 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTitle: "Impostazioni Cronaca del club",
     settingsClubChronicleStalenessLabel: "Aggiorna dopo (giorni)",
     settingsClubChronicleStalenessHint: "Quando i dati sono vecchi, aprire la Cronaca del club attiva un aggiornamento basato sull’ultima aggiornata.",
+    settingsClubChronicleTransferHistoryLabel: "Ultimi trasferimenti da mantenere",
+    settingsClubChronicleTransferHistoryHint:
+      "Quanti trasferimenti recenti per squadra mantenere in cache e mostrare nei dettagli.",
     clubChronicleLeaguePanelTitle: "Prestazione in lega",
     clubChronicleLeaguePanelEmpty: "Nessun dato di lega ancora.",
     clubChronicleNoTeams: "Nessuna squadra seguita selezionata.",
@@ -2909,6 +3032,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Aggiorna i dati di prestazione in lega.",
     clubChronicleRefreshPressTooltip: "Aggiorna i dati dei comunicati stampa.",
     clubChronicleRefreshFinanceTooltip: "Aggiorna i dati della stima finanziaria.",
+    clubChronicleRefreshTransferTooltip: "Aggiorna i dati del mercato trasferimenti.",
     clubChroniclePressPanelTitle: "Comunicati stampa",
     clubChroniclePressDetailsTitle: "Comunicato stampa",
     clubChroniclePressColumnAnnouncement: "Annuncio",
@@ -2929,6 +3053,20 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleColumnPositionChange: "Var. pos",
     clubChronicleColumnGoalsDelta: "GF-GS",
     clubChronicleColumnRecord: "V-P-S",
+    clubChronicleTransferPanelTitle: "Mercato trasferimenti",
+    clubChronicleTransferColumnActive: "Sul mercato",
+    clubChronicleTransferColumnHistory: "Vend./Acq.",
+    clubChronicleTransferListedModalTitle: "Giocatori attualmente sul mercato",
+    clubChronicleTransferListedEmpty: "Nessun giocatore attualmente sul mercato.",
+    clubChronicleTransferListedPlayerColumn: "Giocatore",
+    clubChronicleTransferHistoryModalTitle: "Ultimi trasferimenti",
+    clubChronicleTransferHistoryEmpty: "Nessun trasferimento recente trovato.",
+    clubChronicleTransferHistoryDateColumn: "Data",
+    clubChronicleTransferHistoryTypeColumn: "Tipo",
+    clubChronicleTransferHistoryPlayerColumn: "Giocatore",
+    clubChronicleTransferHistoryPriceColumn: "Prezzo",
+    clubChronicleTransferTypeSale: "Vendita",
+    clubChronicleTransferTypeBuy: "Acquisto",
     clubChronicleMoveUp: "Sposta pannello su",
     clubChronicleMoveDown: "Sposta pannello giù",
     clubChronicleUpdatesEmpty: "Nessun aggiornamento disponibile.",
@@ -3343,6 +3481,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_2_1_0: "Lista de acompanhamento da Crônica do clube.",
     changelog_2_2_0:
       "Os slots da escalação agora selecionam o jogador nos detalhes.",
+    changelog_2_4_0:
+      "Painel de mercado de transferências na Crônica do clube com listagens ativas e histórico recente.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -3373,6 +3513,9 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTitle: "Configurações da Crônica do clube",
     settingsClubChronicleStalenessLabel: "Atualizar após (dias)",
     settingsClubChronicleStalenessHint: "Quando os dados estão antigos, ao abrir a Crônica do clube é disparada uma atualização com base na última atualização.",
+    settingsClubChronicleTransferHistoryLabel: "Últimas transferências para manter",
+    settingsClubChronicleTransferHistoryHint:
+      "Quantas transferências recentes por time devem ser armazenadas e mostradas nos detalhes.",
     clubChronicleLeaguePanelTitle: "Desempenho na liga",
     clubChronicleLeaguePanelEmpty: "Ainda não há dados de liga.",
     clubChronicleNoTeams: "Nenhum time acompanhado selecionado.",
@@ -3384,6 +3527,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Atualizar dados de desempenho na liga.",
     clubChronicleRefreshPressTooltip: "Atualizar dados de comunicados de imprensa.",
     clubChronicleRefreshFinanceTooltip: "Atualizar dados da estimativa financeira.",
+    clubChronicleRefreshTransferTooltip: "Atualizar dados do mercado de transferências.",
     clubChroniclePressPanelTitle: "Comunicados de imprensa",
     clubChroniclePressDetailsTitle: "Comunicado de imprensa",
     clubChroniclePressColumnAnnouncement: "Anúncio",
@@ -3404,6 +3548,20 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleColumnPositionChange: "Mud. pos",
     clubChronicleColumnGoalsDelta: "GF-GC",
     clubChronicleColumnRecord: "V-E-D",
+    clubChronicleTransferPanelTitle: "Mercado de transferências",
+    clubChronicleTransferColumnActive: "No mercado",
+    clubChronicleTransferColumnHistory: "Vend./Comp.",
+    clubChronicleTransferListedModalTitle: "Jogadores atualmente no mercado",
+    clubChronicleTransferListedEmpty: "Nenhum jogador atualmente no mercado.",
+    clubChronicleTransferListedPlayerColumn: "Jogador",
+    clubChronicleTransferHistoryModalTitle: "Últimas transferências",
+    clubChronicleTransferHistoryEmpty: "Nenhuma transferência recente encontrada.",
+    clubChronicleTransferHistoryDateColumn: "Data",
+    clubChronicleTransferHistoryTypeColumn: "Tipo",
+    clubChronicleTransferHistoryPlayerColumn: "Jogador",
+    clubChronicleTransferHistoryPriceColumn: "Preço",
+    clubChronicleTransferTypeSale: "Venda",
+    clubChronicleTransferTypeBuy: "Compra",
     clubChronicleMoveUp: "Mover painel para cima",
     clubChronicleMoveDown: "Mover painel para baixo",
     clubChronicleUpdatesEmpty: "Nenhuma atualização disponível.",

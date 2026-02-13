@@ -97,6 +97,7 @@ export type Messages = {
   clubChronicleMoveDown: string;
   clubChronicleUpdatesEmpty: string;
   clubChronicleUpdatesNoChanges: string;
+  clubChronicleUpdatesNoChangesGlobal: string;
   clubChronicleTeamDetailsTitle: string;
   clubChronicleLeagueSectionTitle: string;
   clubChronicleSummaryPosShort: string;
@@ -538,6 +539,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleMoveDown: "Move panel down",
     clubChronicleUpdatesEmpty: "No updates available yet.",
     clubChronicleUpdatesNoChanges: "No changes.",
+    clubChronicleUpdatesNoChangesGlobal: "No updates since the last refresh.",
     clubChronicleTeamDetailsTitle: "Team details",
     clubChronicleLeagueSectionTitle: "League performance",
     clubChronicleSummaryPosShort: "Pos",
@@ -992,6 +994,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleMoveDown: "Panel nach unten verschieben",
     clubChronicleUpdatesEmpty: "Noch keine Updates verfügbar.",
     clubChronicleUpdatesNoChanges: "Keine Änderungen.",
+    clubChronicleUpdatesNoChangesGlobal: "Seit der letzten Aktualisierung keine Updates.",
     clubChronicleTeamDetailsTitle: "Teamdetails",
     clubChronicleLeagueSectionTitle: "Ligaleistung",
     clubChronicleSummaryPosShort: "Pos",
@@ -1449,6 +1452,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleMoveDown: "Descendre le panneau",
     clubChronicleUpdatesEmpty: "Aucune mise à jour disponible.",
     clubChronicleUpdatesNoChanges: "Aucun changement.",
+    clubChronicleUpdatesNoChangesGlobal: "Aucune mise à jour depuis la dernière actualisation.",
     clubChronicleTeamDetailsTitle: "Détails de l’équipe",
     clubChronicleLeagueSectionTitle: "Performance en ligue",
     clubChronicleSummaryPosShort: "Pos",
@@ -1913,6 +1917,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleMoveDown: "Mover panel abajo",
     clubChronicleUpdatesEmpty: "No hay actualizaciones disponibles.",
     clubChronicleUpdatesNoChanges: "Sin cambios.",
+    clubChronicleUpdatesNoChangesGlobal: "No hay actualizaciones desde la última actualización.",
     clubChronicleTeamDetailsTitle: "Detalles del equipo",
     clubChronicleLeagueSectionTitle: "Rendimiento en liga",
     clubChronicleSummaryPosShort: "Pos",
@@ -2371,6 +2376,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleMoveDown: "Flytta panel ner",
     clubChronicleUpdatesEmpty: "Inga uppdateringar ännu.",
     clubChronicleUpdatesNoChanges: "Inga ändringar.",
+    clubChronicleUpdatesNoChangesGlobal: "Inga uppdateringar sedan senaste uppdateringen.",
     clubChronicleTeamDetailsTitle: "Lagdetaljer",
     clubChronicleLeagueSectionTitle: "Ligaprestanda",
     clubChronicleSummaryPosShort: "Pos",
@@ -2829,6 +2835,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleMoveDown: "Sposta pannello giù",
     clubChronicleUpdatesEmpty: "Nessun aggiornamento disponibile.",
     clubChronicleUpdatesNoChanges: "Nessun cambiamento.",
+    clubChronicleUpdatesNoChangesGlobal: "Nessun aggiornamento dall’ultimo aggiornamento.",
     clubChronicleTeamDetailsTitle: "Dettagli squadra",
     clubChronicleLeagueSectionTitle: "Prestazione in lega",
     clubChronicleSummaryPosShort: "Pos",
@@ -3289,6 +3296,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleMoveDown: "Mover painel para baixo",
     clubChronicleUpdatesEmpty: "Nenhuma atualização disponível.",
     clubChronicleUpdatesNoChanges: "Sem alterações.",
+    clubChronicleUpdatesNoChangesGlobal: "Sem atualizações desde a última atualização.",
     clubChronicleTeamDetailsTitle: "Detalhes do time",
     clubChronicleLeagueSectionTitle: "Desempenho na liga",
     clubChronicleSummaryPosShort: "Pos",

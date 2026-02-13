@@ -1416,6 +1416,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const updatesByTeam = updates?.teams ?? {};
+  const hasAnyTeamUpdates = trackedTeams.some((team) => {
+    const changes = updatesByTeam[team.teamId]?.changes ?? [];
+    return changes.length > 0;
+  });
 
   const leagueRows: LeagueTableRow[] = trackedTeams.map((team) => {
     const cached = chronicleCache.teams[team.teamId];
@@ -1670,41 +1674,43 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         title={messages.clubChronicleUpdatesTitle}
         body={
           updates && trackedTeams.length ? (
-            <div className={styles.chronicleUpdatesList}>
-              {trackedTeams.map((team) => {
-                const teamUpdates = updatesByTeam[team.teamId];
-                const changes = teamUpdates?.changes ?? [];
-                return (
-                  <div key={team.teamId} className={styles.chronicleUpdatesTeam}>
-                    <h3 className={styles.chronicleUpdatesTeamTitle}>
-                      {teamUpdates?.teamName ?? team.teamName ?? team.teamId}
-                    </h3>
-                    <div className={styles.chronicleUpdatesHeader}>
-                      <span />
-                      <span>{messages.clubChronicleDetailsPreviousLabel}</span>
-                      <span>{messages.clubChronicleDetailsCurrentLabel}</span>
-                    </div>
-                    {changes.length === 0 ? (
-                      <p className={styles.chronicleEmpty}>
-                        {messages.clubChronicleUpdatesNoChanges}
-                      </p>
-                    ) : null}
-                    {changes.map((change) => (
-                      <div
-                        key={`${team.teamId}-${change.fieldKey}`}
-                        className={styles.chronicleUpdatesRow}
-                      >
-                        <span className={styles.chronicleUpdatesLabel}>
-                          {change.label}
-                        </span>
-                        <span>{change.previous ?? messages.unknownShort}</span>
-                        <span>{change.current ?? messages.unknownShort}</span>
+            hasAnyTeamUpdates ? (
+              <div className={styles.chronicleUpdatesList}>
+                {trackedTeams.map((team) => {
+                  const teamUpdates = updatesByTeam[team.teamId];
+                  const changes = teamUpdates?.changes ?? [];
+                  if (changes.length === 0) return null;
+                  return (
+                    <div key={team.teamId} className={styles.chronicleUpdatesTeam}>
+                      <h3 className={styles.chronicleUpdatesTeamTitle}>
+                        {teamUpdates?.teamName ?? team.teamName ?? team.teamId}
+                      </h3>
+                      <div className={styles.chronicleUpdatesHeader}>
+                        <span />
+                        <span>{messages.clubChronicleDetailsPreviousLabel}</span>
+                        <span>{messages.clubChronicleDetailsCurrentLabel}</span>
                       </div>
-                    ))}
-                  </div>
-                );
-              })}
-            </div>
+                      {changes.map((change) => (
+                        <div
+                          key={`${team.teamId}-${change.fieldKey}`}
+                          className={styles.chronicleUpdatesRow}
+                        >
+                          <span className={styles.chronicleUpdatesLabel}>
+                            {change.label}
+                          </span>
+                          <span>{change.previous ?? messages.unknownShort}</span>
+                          <span>{change.current ?? messages.unknownShort}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className={styles.chronicleEmpty}>
+                {messages.clubChronicleUpdatesNoChangesGlobal}
+              </p>
+            )
           ) : (
             <p className={styles.chronicleEmpty}>
               {messages.clubChronicleUpdatesEmpty}

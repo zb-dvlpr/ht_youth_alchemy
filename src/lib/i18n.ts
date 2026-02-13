@@ -56,6 +56,8 @@ export type Messages = {
   changelog_2_1_0: string;
   changelog_2_2_0: string;
   changelog_2_4_0: string;
+  changelog_2_5_0: string;
+  changelog_2_6_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -86,6 +88,13 @@ export type Messages = {
   settingsClubChronicleStalenessHint: string;
   settingsClubChronicleTransferHistoryLabel: string;
   settingsClubChronicleTransferHistoryHint: string;
+  settingsGeneral: string;
+  settingsGeneralTitle: string;
+  settingsGeneralEnableScalingLabel: string;
+  settingsGeneralEnableScalingTooltip: string;
+  settingsDebug: string;
+  settingsDebugTitle: string;
+  settingsDebugDisableScalingLabel: string;
   clubChronicleLeaguePanelTitle: string;
   clubChronicleLeaguePanelEmpty: string;
   clubChronicleNoTeams: string;
@@ -523,6 +532,9 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_2_2_0: "Lineup slots now select players in the details panel.",
     changelog_2_4_0:
       "Club Chronicle transfer market panel with active listings and recent transfer history.",
+    changelog_2_5_0: "Debug setting to disable viewport auto scaling.",
+    changelog_2_6_0:
+      "General setting to enable viewport app scaling with explanatory tooltip.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -555,6 +567,14 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTransferHistoryLabel: "Latest transfers to keep",
     settingsClubChronicleTransferHistoryHint:
       "How many recent transfers per team are cached and shown in transfer history details.",
+    settingsGeneral: "General",
+    settingsGeneralTitle: "General settings",
+    settingsGeneralEnableScalingLabel: "Enable app scaling",
+    settingsGeneralEnableScalingTooltip:
+      "When enabled, the app scales to fit the viewport and reduce scrolling. When disabled, the app uses normal size and can scroll.",
+    settingsDebug: "Debug",
+    settingsDebugTitle: "Debug settings",
+    settingsDebugDisableScalingLabel: "Disable app scaling",
     clubChronicleLeaguePanelTitle: "League performance",
     clubChronicleLeaguePanelEmpty: "No league data yet.",
     clubChronicleNoTeams: "No tracked teams selected.",
@@ -1011,6 +1031,9 @@ const MESSAGES: Record<Locale, Messages> = {
       "Aufstellungs-Slots wählen nun Spieler im Detailbereich aus.",
     changelog_2_4_0:
       "Transfermarkt-Panel in der Club-Chronik mit aktiven Angeboten und jüngster Transferhistorie.",
+    changelog_2_5_0: "Debug-Einstellung zum Deaktivieren der automatischen Skalierung.",
+    changelog_2_6_0:
+      "Allgemeine Einstellung zum Aktivieren der App-Skalierung mit erklärendem Tooltip.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -1044,6 +1067,14 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTransferHistoryLabel: "Anzahl letzter Transfers",
     settingsClubChronicleTransferHistoryHint:
       "Wie viele letzte Transfers pro Team zwischengespeichert und in den Transferdetails angezeigt werden.",
+    settingsGeneral: "Allgemein",
+    settingsGeneralTitle: "Allgemeine Einstellungen",
+    settingsGeneralEnableScalingLabel: "App-Skalierung aktivieren",
+    settingsGeneralEnableScalingTooltip:
+      "Wenn aktiviert, skaliert die App, um in den Viewport zu passen und Scrollen zu reduzieren. Wenn deaktiviert, nutzt die App normale Größe und kann scrollen.",
+    settingsDebug: "Debug",
+    settingsDebugTitle: "Debug-Einstellungen",
+    settingsDebugDisableScalingLabel: "App-Skalierung deaktivieren",
     clubChronicleLeaguePanelTitle: "Ligaleistung",
     clubChronicleLeaguePanelEmpty: "Noch keine Ligadaten.",
     clubChronicleNoTeams: "Keine verfolgten Teams ausgewählt.",
@@ -1503,6 +1534,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Les postes de composition sélectionnent désormais le joueur dans les détails.",
     changelog_2_4_0:
       "Panneau marché des transferts dans la Chronique du club avec annonces actives et historique récent.",
+    changelog_2_5_0:
+      "Paramètre debug pour désactiver la mise à l échelle automatique.",
+    changelog_2_6_0:
+      "Paramètre général pour activer la mise à l échelle de l app avec infobulle explicative.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1536,6 +1571,14 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTransferHistoryLabel: "Derniers transferts à garder",
     settingsClubChronicleTransferHistoryHint:
       "Nombre de transferts récents par équipe à mettre en cache et afficher dans les détails.",
+    settingsGeneral: "Général",
+    settingsGeneralTitle: "Paramètres généraux",
+    settingsGeneralEnableScalingLabel: "Activer la mise à l échelle de l app",
+    settingsGeneralEnableScalingTooltip:
+      "Si activé, l app est mise à l échelle pour s adapter au viewport et réduire le défilement. Si désactivé, l app reste à taille normale et peut défiler.",
+    settingsDebug: "Debug",
+    settingsDebugTitle: "Paramètres debug",
+    settingsDebugDisableScalingLabel: "Désactiver la mise à l échelle",
     clubChronicleLeaguePanelTitle: "Performance en ligue",
     clubChronicleLeaguePanelEmpty: "Pas encore de données de ligue.",
     clubChronicleNoTeams: "Aucune équipe suivie sélectionnée.",
@@ -2002,6 +2045,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Los puestos de la alineación ahora seleccionan al jugador en detalles.",
     changelog_2_4_0:
       "Panel de mercado de fichajes en Crónica del club con anuncios activos e historial reciente.",
+    changelog_2_5_0:
+      "Ajuste de depuración para desactivar el escalado automático.",
+    changelog_2_6_0:
+      "Ajuste general para activar el escalado de la app con tooltip explicativo.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -2035,6 +2082,14 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTransferHistoryLabel: "Últimos traspasos a guardar",
     settingsClubChronicleTransferHistoryHint:
       "Cuántos traspasos recientes por equipo se guardan en caché y se muestran en detalles.",
+    settingsGeneral: "General",
+    settingsGeneralTitle: "Ajustes generales",
+    settingsGeneralEnableScalingLabel: "Activar escalado de la app",
+    settingsGeneralEnableScalingTooltip:
+      "Si está activado, la app se escala para ajustarse al viewport y reducir el desplazamiento. Si está desactivado, la app usa tamaño normal y puede desplazarse.",
+    settingsDebug: "Depuración",
+    settingsDebugTitle: "Ajustes de depuración",
+    settingsDebugDisableScalingLabel: "Desactivar escalado de la app",
     clubChronicleLeaguePanelTitle: "Rendimiento en liga",
     clubChronicleLeaguePanelEmpty: "Aún no hay datos de liga.",
     clubChronicleNoTeams: "No hay equipos seguidos seleccionados.",
@@ -2495,6 +2550,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Laguppställningsplatser väljer nu spelare i detaljpanelen.",
     changelog_2_4_0:
       "Transfermarknadspanel i Klubbkrönikan med aktiva listningar och senaste transferhistorik.",
+    changelog_2_5_0:
+      "Debug-inställning för att stänga av automatisk skalning.",
+    changelog_2_6_0:
+      "Allmän inställning för att aktivera appskalning med förklarande tooltip.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -2528,6 +2587,14 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTransferHistoryLabel: "Antal senaste övergångar",
     settingsClubChronicleTransferHistoryHint:
       "Hur många senaste övergångar per lag som cachas och visas i detaljer.",
+    settingsGeneral: "Allmänt",
+    settingsGeneralTitle: "Allmänna inställningar",
+    settingsGeneralEnableScalingLabel: "Aktivera appskalning",
+    settingsGeneralEnableScalingTooltip:
+      "När aktiverad skalas appen för att passa viewporten och minska scrollning. När avstängd används normal storlek och sidan kan scrollas.",
+    settingsDebug: "Debug",
+    settingsDebugTitle: "Debug-inställningar",
+    settingsDebugDisableScalingLabel: "Inaktivera appskalning",
     clubChronicleLeaguePanelTitle: "Ligaprestanda",
     clubChronicleLeaguePanelEmpty: "Inga ligadata ännu.",
     clubChronicleNoTeams: "Inga bevakade lag valda.",
@@ -2988,6 +3055,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Gli slot della formazione ora selezionano i giocatori nei dettagli.",
     changelog_2_4_0:
       "Pannello mercato trasferimenti nella Cronaca del club con inserzioni attive e storico recente.",
+    changelog_2_5_0:
+      "Impostazione debug per disattivare la scalatura automatica.",
+    changelog_2_6_0:
+      "Impostazione generale per attivare la scalatura dell app con tooltip esplicativo.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -3021,6 +3092,14 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTransferHistoryLabel: "Ultimi trasferimenti da mantenere",
     settingsClubChronicleTransferHistoryHint:
       "Quanti trasferimenti recenti per squadra mantenere in cache e mostrare nei dettagli.",
+    settingsGeneral: "Generale",
+    settingsGeneralTitle: "Impostazioni generali",
+    settingsGeneralEnableScalingLabel: "Abilita scalatura app",
+    settingsGeneralEnableScalingTooltip:
+      "Quando attiva, l app si scala per adattarsi al viewport e ridurre lo scorrimento. Quando disattiva, l app usa dimensione normale e può scorrere.",
+    settingsDebug: "Debug",
+    settingsDebugTitle: "Impostazioni debug",
+    settingsDebugDisableScalingLabel: "Disattiva scalatura app",
     clubChronicleLeaguePanelTitle: "Prestazione in lega",
     clubChronicleLeaguePanelEmpty: "Nessun dato di lega ancora.",
     clubChronicleNoTeams: "Nessuna squadra seguita selezionata.",
@@ -3483,6 +3562,10 @@ const MESSAGES: Record<Locale, Messages> = {
       "Os slots da escalação agora selecionam o jogador nos detalhes.",
     changelog_2_4_0:
       "Painel de mercado de transferências na Crônica do clube com listagens ativas e histórico recente.",
+    changelog_2_5_0:
+      "Configuração de depuração para desativar a escala automática.",
+    changelog_2_6_0:
+      "Configuração geral para ativar a escala do app com tooltip explicativo.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -3516,6 +3599,14 @@ const MESSAGES: Record<Locale, Messages> = {
     settingsClubChronicleTransferHistoryLabel: "Últimas transferências para manter",
     settingsClubChronicleTransferHistoryHint:
       "Quantas transferências recentes por time devem ser armazenadas e mostradas nos detalhes.",
+    settingsGeneral: "Geral",
+    settingsGeneralTitle: "Configurações gerais",
+    settingsGeneralEnableScalingLabel: "Ativar escala do app",
+    settingsGeneralEnableScalingTooltip:
+      "Quando ativado, o app é escalado para caber no viewport e reduzir rolagem. Quando desativado, o app usa tamanho normal e pode rolar.",
+    settingsDebug: "Depuração",
+    settingsDebugTitle: "Configurações de depuração",
+    settingsDebugDisableScalingLabel: "Desativar escala do app",
     clubChronicleLeaguePanelTitle: "Desempenho na liga",
     clubChronicleLeaguePanelEmpty: "Ainda não há dados de liga.",
     clubChronicleNoTeams: "Nenhum time acompanhado selecionado.",

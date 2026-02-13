@@ -9,6 +9,12 @@ export const YOUTH_SETTINGS_STORAGE_KEY = "ya_youth_staleness_hours_v1";
 export const YOUTH_SETTINGS_EVENT = "ya:youth-settings";
 export const DEFAULT_YOUTH_STALENESS_HOURS = 3;
 export const LAST_REFRESH_STORAGE_KEY = "ya_last_refresh_ts_v1";
+export const DEBUG_SETTINGS_STORAGE_KEY = "ya_debug_disable_scaling_v1";
+export const DEBUG_SETTINGS_EVENT = "ya:debug-settings";
+export const DEFAULT_DEBUG_DISABLE_SCALING = false;
+export const GENERAL_SETTINGS_STORAGE_KEY = "ya_general_enable_scaling_v1";
+export const GENERAL_SETTINGS_EVENT = "ya:general-settings";
+export const DEFAULT_GENERAL_ENABLE_SCALING = false;
 
 export function readAllowTrainingUntilMaxedOut(): boolean {
   if (typeof window === "undefined") {
@@ -164,6 +170,56 @@ export function writeLastRefreshTimestamp(value: number) {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(LAST_REFRESH_STORAGE_KEY, String(value));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function readDebugDisableScaling(): boolean {
+  if (typeof window === "undefined") {
+    return DEFAULT_DEBUG_DISABLE_SCALING;
+  }
+  try {
+    const stored = window.localStorage.getItem(DEBUG_SETTINGS_STORAGE_KEY);
+    if (stored === null) return DEFAULT_DEBUG_DISABLE_SCALING;
+    return stored === "true";
+  } catch {
+    return DEFAULT_DEBUG_DISABLE_SCALING;
+  }
+}
+
+export function writeDebugDisableScaling(value: boolean) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      DEBUG_SETTINGS_STORAGE_KEY,
+      value ? "true" : "false"
+    );
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function readGeneralEnableScaling(): boolean {
+  if (typeof window === "undefined") {
+    return DEFAULT_GENERAL_ENABLE_SCALING;
+  }
+  try {
+    const stored = window.localStorage.getItem(GENERAL_SETTINGS_STORAGE_KEY);
+    if (stored === null) return DEFAULT_GENERAL_ENABLE_SCALING;
+    return stored === "true";
+  } catch {
+    return DEFAULT_GENERAL_ENABLE_SCALING;
+  }
+}
+
+export function writeGeneralEnableScaling(value: boolean) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      GENERAL_SETTINGS_STORAGE_KEY,
+      value ? "true" : "false"
+    );
   } catch {
     // ignore storage errors
   }

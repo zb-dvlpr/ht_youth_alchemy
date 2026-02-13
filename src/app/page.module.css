@@ -7,6 +7,31 @@
   overflow: hidden;
 }
 
+html[data-app-scaling="off"] .main {
+  overflow: auto;
+  padding-top: 0;
+}
+
+html[data-app-scaling="off"] .scaleContainer {
+  padding-top: 16px;
+}
+
+html[data-app-scaling="off"] .topBar {
+  position: sticky;
+  top: 0;
+  z-index: 35;
+}
+
+html[data-app-scaling="off"] .topBar::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -16px;
+  height: 16px;
+  background: var(--app-background);
+}
+
 .scaleContainer {
   transform: scale(var(--ui-scale));
   transform-origin: top left;

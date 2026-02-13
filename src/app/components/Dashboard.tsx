@@ -326,6 +326,14 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "2.6.0",
+        entries: [messages.changelog_2_6_0],
+      },
+      {
+        version: "2.5.0",
+        entries: [messages.changelog_2_5_0],
+      },
+      {
         version: "2.4.0",
         entries: [messages.changelog_2_4_0],
       },
@@ -392,6 +400,8 @@ export default function Dashboard({
       messages.changelog_2_2_0,
       messages.changelog_2_3_0,
       messages.changelog_2_4_0,
+      messages.changelog_2_5_0,
+      messages.changelog_2_6_0,
     ]
   );
 

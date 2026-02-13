@@ -18,6 +18,9 @@ import {
   readClubChronicleTransferHistoryCount,
   writeClubChronicleTransferHistoryCount,
   CLUB_CHRONICLE_SETTINGS_EVENT,
+  GENERAL_SETTINGS_EVENT,
+  readGeneralEnableScaling,
+  writeGeneralEnableScaling,
 } from "@/lib/settings";
 
 type SettingsButtonProps = {
@@ -36,12 +39,14 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
   const [open, setOpen] = useState(false);
   const [youthSettingsOpen, setYouthSettingsOpen] = useState(false);
   const [chronicleSettingsOpen, setChronicleSettingsOpen] = useState(false);
+  const [generalSettingsOpen, setGeneralSettingsOpen] = useState(false);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
   const [stalenessHours, setStalenessHours] = useState(3);
   const [chronicleStalenessDays, setChronicleStalenessDays] = useState(3);
   const [chronicleTransferHistoryCount, setChronicleTransferHistoryCount] =
     useState(5);
+  const [enableAppScaling, setEnableAppScaling] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -65,6 +70,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     setStalenessHours(readYouthStalenessHours());
     setChronicleStalenessDays(readClubChronicleStalenessDays());
     setChronicleTransferHistoryCount(readClubChronicleTransferHistoryCount());
+    setEnableAppScaling(readGeneralEnableScaling());
   }, []);
 
   const handleExport = () => {
@@ -197,6 +203,18 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     }
   };
 
+  const handleEnableScalingToggle = (nextValue: boolean) => {
+    setEnableAppScaling(nextValue);
+    writeGeneralEnableScaling(nextValue);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(GENERAL_SETTINGS_EVENT, {
+          detail: { enableScaling: nextValue },
+        })
+      );
+    }
+  };
+
   return (
     <div className={styles.feedbackWrap}>
       <Tooltip content={messages.settingsTooltip}>
@@ -231,6 +249,16 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
             }}
           >
             {messages.settingsClubChronicle}
+          </button>
+          <button
+            type="button"
+            className={styles.feedbackLink}
+            onClick={() => {
+              setGeneralSettingsOpen(true);
+              setOpen(false);
+            }}
+          >
+            {messages.settingsGeneral}
           </button>
           <button
             type="button"
@@ -373,6 +401,47 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         }
         closeOnBackdrop
         onClose={() => setChronicleSettingsOpen(false)}
+      />
+      <Modal
+        open={generalSettingsOpen}
+        title={messages.settingsGeneralTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <Tooltip
+              content={messages.settingsGeneralEnableScalingTooltip}
+              fullWidth
+            >
+              <label className={styles.algorithmsToggle}>
+                <span className={styles.algorithmsToggleText}>
+                  {messages.settingsGeneralEnableScalingLabel}
+                </span>
+                <input
+                  type="checkbox"
+                  className={styles.algorithmsToggleInput}
+                  checked={enableAppScaling}
+                  onChange={(event) =>
+                    handleEnableScalingToggle(event.target.checked)
+                  }
+                />
+                <span
+                  className={styles.algorithmsToggleSwitch}
+                  aria-hidden="true"
+                />
+              </label>
+            </Tooltip>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setGeneralSettingsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setGeneralSettingsOpen(false)}
       />
       <input
         ref={fileInputRef}

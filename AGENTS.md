@@ -40,3 +40,8 @@
 
 ## Panels
 - Use the shared ChroniclePanel framework/component for any new panels anywhere in the app.
+
+## Latest Updates Methodology
+- For all future Club Chronicle panels, track changes at the attribute level (not only panel-level blobs).
+- On each refresh, compare previous vs current values per attribute and show only changed attributes in Latest Updates.
+- Latest Updates must remain grouped by team, regardless of panel content.

@@ -202,6 +202,7 @@ type ChronicleUpdates = {
 
 type SortValue = string | number | null | SortValue[];
 type RawNode = Record<string, unknown>;
+type UpdatePanel = "league" | "press" | "finance" | "transfer";
 
 type ChronicleTableColumn<Row, Snapshot> = {
   key: string;
@@ -1682,6 +1683,41 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }).format(value);
   };
 
+  const hashText = (input: string): string => {
+    let hash = 5381;
+    for (let index = 0; index < input.length; index += 1) {
+      hash = (hash * 33) ^ input.charCodeAt(index);
+    }
+    return (hash >>> 0).toString(16);
+  };
+
+  const getPressFingerprint = (
+    snapshot: PressAnnouncementSnapshot | undefined
+  ): string | null => {
+    if (!snapshot) return null;
+    const normalized = [
+      snapshot.subject ?? "",
+      snapshot.body ?? "",
+      snapshot.sendDate ?? "",
+    ].join("|");
+    if (!normalized.trim()) return null;
+    return hashText(normalized);
+  };
+
+  const formatPressSummary = (
+    snapshot: PressAnnouncementSnapshot | undefined
+  ): string | null => {
+    if (!snapshot) return null;
+    const subject = (snapshot.subject ?? "").trim();
+    const date = snapshot.sendDate
+      ? formatChppDateTime(snapshot.sendDate) ?? snapshot.sendDate
+      : "";
+    if (subject && date) return `${date} · ${subject}`;
+    if (subject) return subject;
+    if (date) return date;
+    return messages.clubChroniclePressNone;
+  };
+
   const normalizeSortValue = (value: unknown): SortValue => {
     if (value === null || value === undefined || value === "") {
       return null;
@@ -1720,27 +1756,131 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     });
   };
 
-  const buildChanges = (
-    previous: LeaguePerformanceSnapshot | undefined,
-    current: LeaguePerformanceSnapshot,
-    columns: ChronicleTableColumn<LeagueTableRow, LeaguePerformanceSnapshot>[]
-  ): ChronicleUpdateField[] => {
-    if (!previous) {
-      return [];
-    }
-    const changes: ChronicleUpdateField[] = [];
-    columns.forEach((column) => {
-      const prevValue = column.getValue(previous);
-      const nextValue = column.getValue(current);
-      if (prevValue === nextValue) return;
-      changes.push({
-        fieldKey: column.key,
-        label: column.label,
-        previous: formatValue(prevValue),
-        current: formatValue(nextValue),
-      });
+  const appendTeamChanges = (
+    updatesMap: ChronicleUpdates["teams"],
+    teamId: number,
+    teamName: string,
+    additions: ChronicleUpdateField[]
+  ) => {
+    if (additions.length === 0) return;
+    const existing = updatesMap[teamId];
+    updatesMap[teamId] = {
+      teamId,
+      teamName,
+      changes: [...(existing?.changes ?? []), ...additions],
+    };
+  };
+
+  const collectTeamChanges = (
+    nextCache: ChronicleCache,
+    panels: UpdatePanel[]
+  ): ChronicleUpdates => {
+    const updatesMap: ChronicleUpdates["teams"] = {};
+    trackedTeams.forEach((team) => {
+      const teamId = team.teamId;
+      const cached = nextCache.teams[teamId];
+      if (!cached) return;
+      const teamName = team.teamName ?? cached.teamName ?? `${teamId}`;
+      const rowContext: LeagueTableRow = {
+        teamId,
+        teamName,
+        snapshot: cached.leaguePerformance?.current,
+        leaguePerformance: cached.leaguePerformance,
+        meta: [cached.leagueName, cached.leagueLevelUnitName]
+          .filter(Boolean)
+          .join(" · "),
+      };
+
+      if (panels.includes("league")) {
+        const previous = cached.leaguePerformance?.previous;
+        const current = cached.leaguePerformance?.current;
+        if (previous && current) {
+          const changes = leagueTableColumns
+            .filter((column) => column.key !== "team")
+            .flatMap((column) => {
+              const prevValue = column.getValue(previous, rowContext);
+              const nextValue = column.getValue(current, rowContext);
+              if (prevValue === nextValue) return [];
+              return [
+                {
+                  fieldKey: `league.${column.key}`,
+                  label: column.label,
+                  previous: formatValue(prevValue),
+                  current: formatValue(nextValue),
+                },
+              ];
+            });
+          appendTeamChanges(updatesMap, teamId, teamName, changes);
+        }
+      }
+
+      if (panels.includes("press")) {
+        const previous = cached.pressAnnouncement?.previous;
+        const current = cached.pressAnnouncement?.current;
+        if (current && previous) {
+          const previousHash = getPressFingerprint(previous);
+          const currentHash = getPressFingerprint(current);
+          if (previousHash !== currentHash) {
+            appendTeamChanges(updatesMap, teamId, teamName, [
+              {
+                fieldKey: "press.announcement",
+                label: messages.clubChroniclePressColumnAnnouncement,
+                previous: formatValue(formatPressSummary(previous)),
+                current: formatValue(formatPressSummary(current)),
+              },
+            ]);
+          }
+        }
+      }
+
+      if (panels.includes("finance")) {
+        const previous = cached.financeEstimate?.previous;
+        const current = cached.financeEstimate?.current;
+        if (current && previous && previous.estimatedSek !== current.estimatedSek) {
+          appendTeamChanges(updatesMap, teamId, teamName, [
+            {
+              fieldKey: "finance.estimate",
+              label: messages.clubChronicleFinanceColumnEstimate,
+              previous: `${formatEuro(previous.estimatedEur)}*`,
+              current: `${formatEuro(current.estimatedEur)}*`,
+            },
+          ]);
+        }
+      }
+
+      if (panels.includes("transfer")) {
+        const previous = cached.transferActivity?.previous;
+        const current = cached.transferActivity?.current;
+        if (current && previous) {
+          const transferChanges: ChronicleUpdateField[] = [];
+          if (previous.transferListedCount !== current.transferListedCount) {
+            transferChanges.push({
+              fieldKey: "transfer.active",
+              label: messages.clubChronicleTransferColumnActive,
+              previous: formatValue(previous.transferListedCount),
+              current: formatValue(current.transferListedCount),
+            });
+          }
+          const previousSales = previous.numberOfSales ?? 0;
+          const previousBuys = previous.numberOfBuys ?? 0;
+          const currentSales = current.numberOfSales ?? 0;
+          const currentBuys = current.numberOfBuys ?? 0;
+          if (previousSales !== currentSales || previousBuys !== currentBuys) {
+            transferChanges.push({
+              fieldKey: "transfer.history",
+              label: messages.clubChronicleTransferColumnHistory,
+              previous: `${formatValue(previousSales)}/${formatValue(previousBuys)}`,
+              current: `${formatValue(currentSales)}/${formatValue(currentBuys)}`,
+            });
+          }
+          appendTeamChanges(updatesMap, teamId, teamName, transferChanges);
+        }
+      }
     });
-    return changes;
+    return {
+      generatedAt: Date.now(),
+      teams: updatesMap,
+    };
   };
 
   const refreshTeamDetails = async (
@@ -1823,10 +1963,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
   };
 
-  const refreshLeagueSnapshots = async (
-    nextCache: ChronicleCache,
-    nextUpdates: ChronicleUpdates
-  ) => {
+  const refreshLeagueSnapshots = async (nextCache: ChronicleCache) => {
     const leagueDetailsByUnit = new Map<number, any>();
     const teamsWithLeague = trackedTeams
       .map((team) => nextCache.teams[team.teamId] ?? team)
@@ -1916,12 +2053,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           current: snapshot,
           previous: previous,
         },
-      };
-      const changes = buildChanges(previous, snapshot, leagueTableColumns);
-      nextUpdates.teams[team.teamId] = {
-        teamId: team.teamId,
-        teamName: team.teamName ?? snapshot.teamName ?? `${team.teamId}`,
-        changes,
       };
     });
   };
@@ -2216,15 +2347,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (trackedTeams.length === 0) return;
     setRefreshingGlobal(true);
     const nextCache = pruneChronicleCache(readChronicleCache());
-    const nextUpdates: ChronicleUpdates = {
-      generatedAt: Date.now(),
-      teams: {},
-    };
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: true });
-    await refreshLeagueSnapshots(nextCache, nextUpdates);
+    await refreshLeagueSnapshots(nextCache);
     await refreshFinanceSnapshots(nextCache);
     await refreshTransferSnapshots(nextCache, transferHistoryCount);
+    const nextUpdates = collectTeamChanges(nextCache, [
+      "league",
+      "press",
+      "finance",
+      "transfer",
+    ]);
 
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
@@ -2246,13 +2379,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (trackedTeams.length === 0) return;
     setRefreshingLeague(true);
     const nextCache = pruneChronicleCache(readChronicleCache());
-    const nextUpdates: ChronicleUpdates = {
-      generatedAt: Date.now(),
-      teams: {},
-    };
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
-    await refreshLeagueSnapshots(nextCache, nextUpdates);
+    await refreshLeagueSnapshots(nextCache);
+    const nextUpdates = collectTeamChanges(nextCache, ["league"]);
 
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
@@ -2272,8 +2402,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const nextCache = pruneChronicleCache(readChronicleCache());
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: true });
+    const nextUpdates = collectTeamChanges(nextCache, ["press"]);
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
+    setUpdates(nextUpdates);
+    const hasUpdates = Object.values(nextUpdates.teams).some(
+      (teamUpdate) => teamUpdate.changes.length > 0
+    );
+    setUpdatesOpen(hasUpdates);
     setRefreshingPress(false);
     addNotification(messages.notificationChronicleRefreshComplete);
   };
@@ -2286,8 +2422,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
     await refreshFinanceSnapshots(nextCache);
+    const nextUpdates = collectTeamChanges(nextCache, ["finance"]);
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
+    setUpdates(nextUpdates);
+    const hasUpdates = Object.values(nextUpdates.teams).some(
+      (teamUpdate) => teamUpdate.changes.length > 0
+    );
+    setUpdatesOpen(hasUpdates);
     setRefreshingFinance(false);
     addNotification(messages.notificationChronicleRefreshComplete);
   };
@@ -2300,8 +2442,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
     await refreshTransferSnapshots(nextCache, transferHistoryCount);
+    const nextUpdates = collectTeamChanges(nextCache, ["transfer"]);
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
+    setUpdates(nextUpdates);
+    const hasUpdates = Object.values(nextUpdates.teams).some(
+      (teamUpdate) => teamUpdate.changes.length > 0
+    );
+    setUpdatesOpen(hasUpdates);
     setRefreshingTransfer(false);
     addNotification(messages.notificationChronicleRefreshComplete);
   };

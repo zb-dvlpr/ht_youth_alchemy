@@ -58,6 +58,7 @@ export type Messages = {
   changelog_2_4_0: string;
   changelog_2_5_0: string;
   changelog_2_6_0: string;
+  changelog_2_7_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -535,6 +536,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_2_5_0: "Debug setting to disable viewport auto scaling.",
     changelog_2_6_0:
       "General setting to enable viewport app scaling with explanatory tooltip.",
+    changelog_2_7_0:
+      "Latest updates now tracks changed attributes across all Club Chronicle panels.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -1034,6 +1037,8 @@ const MESSAGES: Record<Locale, Messages> = {
     changelog_2_5_0: "Debug-Einstellung zum Deaktivieren der automatischen Skalierung.",
     changelog_2_6_0:
       "Allgemeine Einstellung zum Aktivieren der App-Skalierung mit erklärendem Tooltip.",
+    changelog_2_7_0:
+      "Neueste Updates verfolgt nun geänderte Attribute in allen Club-Chronik-Panels.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -1538,6 +1543,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Paramètre debug pour désactiver la mise à l échelle automatique.",
     changelog_2_6_0:
       "Paramètre général pour activer la mise à l échelle de l app avec infobulle explicative.",
+    changelog_2_7_0:
+      "Dernières mises à jour suit désormais les attributs modifiés sur tous les panneaux de la Chronique du club.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -2049,6 +2056,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Ajuste de depuración para desactivar el escalado automático.",
     changelog_2_6_0:
       "Ajuste general para activar el escalado de la app con tooltip explicativo.",
+    changelog_2_7_0:
+      "Últimas actualizaciones ahora rastrea atributos cambiados en todos los paneles de Crónica del club.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -2554,6 +2563,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Debug-inställning för att stänga av automatisk skalning.",
     changelog_2_6_0:
       "Allmän inställning för att aktivera appskalning med förklarande tooltip.",
+    changelog_2_7_0:
+      "Senaste uppdateringar spårar nu ändrade attribut i alla paneler i Klubbkrönikan.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -3059,6 +3070,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Impostazione debug per disattivare la scalatura automatica.",
     changelog_2_6_0:
       "Impostazione generale per attivare la scalatura dell app con tooltip esplicativo.",
+    changelog_2_7_0:
+      "Ultimi aggiornamenti ora traccia gli attributi modificati in tutti i pannelli della Cronaca del club.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -3566,6 +3579,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Configuração de depuração para desativar a escala automática.",
     changelog_2_6_0:
       "Configuração geral para ativar a escala do app com tooltip explicativo.",
+    changelog_2_7_0:
+      "Últimas atualizações agora rastreia atributos alterados em todos os painéis da Crônica do clube.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",

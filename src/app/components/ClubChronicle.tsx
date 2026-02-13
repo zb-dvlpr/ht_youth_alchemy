@@ -619,7 +619,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     key: string;
     direction: "asc" | "desc";
   }>({ key: "team", direction: "asc" });
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshingGlobal, setRefreshingGlobal] = useState(false);
+  const [refreshingLeague, setRefreshingLeague] = useState(false);
+  const [refreshingPress, setRefreshingPress] = useState(false);
   const [teamIdInput, setTeamIdInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -630,6 +632,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const initialFetchRef = useRef(false);
   const staleRefreshRef = useRef(false);
   const { addNotification } = useNotifications();
+  const anyRefreshing = refreshingGlobal || refreshingLeague || refreshingPress;
 
   const supportedById = useMemo(
     () =>
@@ -935,10 +938,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       (team) => team.leaguePerformance?.current
     );
     if (hasSnapshot) return;
-    if (refreshing || initialFetchRef.current) return;
+    if (anyRefreshing || initialFetchRef.current) return;
     initialFetchRef.current = true;
-    void refreshLeaguePerformance("manual");
-  }, [trackedTeams.length, chronicleCache, refreshing]);
+    void refreshAllData("manual");
+  }, [trackedTeams.length, chronicleCache, anyRefreshing]);
 
   useEffect(() => {
     if (trackedTeams.length === 0) return;
@@ -955,10 +958,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       staleRefreshRef.current = false;
       return;
     }
-    if (staleRefreshRef.current || refreshing) return;
+    if (staleRefreshRef.current || anyRefreshing) return;
     staleRefreshRef.current = true;
-    void refreshLeaguePerformance("stale");
-  }, [trackedTeams.length, stalenessDays, refreshing, chronicleCache]);
+    void refreshAllData("stale");
+  }, [trackedTeams.length, stalenessDays, anyRefreshing, chronicleCache]);
 
   useEffect(() => {
     writeChronicleCache(chronicleCache);
@@ -1339,18 +1342,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return changes;
   };
 
-  const refreshLeaguePerformance = async (reason: "stale" | "manual") => {
-    if (refreshing) return;
-    if (trackedTeams.length === 0) return;
-    setRefreshing(true);
-    const nextCache = pruneChronicleCache(readChronicleCache());
-    const nextUpdates: ChronicleUpdates = {
-      generatedAt: Date.now(),
-      teams: {},
-    };
-    const nextManualTeams = [...manualTeams];
-    const leagueDetailsByUnit = new Map<number, any>();
-
+  const refreshTeamDetails = async (
+    nextCache: ChronicleCache,
+    nextManualTeams: ManualTeam[],
+    options: { updatePress: boolean }
+  ) => {
     for (const team of trackedTeams) {
       try {
         const response = await fetch(
@@ -1400,12 +1396,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           leagueLevelUnitName: meta.leagueLevelUnitName,
           leagueLevelUnitId: meta.leagueLevelUnitId,
           leaguePerformance: nextCache.teams[team.teamId]?.leaguePerformance,
-          pressAnnouncement: pressSnapshot
-            ? {
-                current: pressSnapshot,
-                previous: previousPress,
-              }
-            : nextCache.teams[team.teamId]?.pressAnnouncement,
+          pressAnnouncement:
+            options.updatePress && pressSnapshot
+              ? {
+                  current: pressSnapshot,
+                  previous: previousPress,
+                }
+              : nextCache.teams[team.teamId]?.pressAnnouncement,
         };
         const manualIndex = nextManualTeams.findIndex(
           (item) => item.teamId === team.teamId
@@ -1423,7 +1420,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         // ignore teamdetails failure for now
       }
     }
+  };
 
+  const refreshLeagueSnapshots = async (
+    nextCache: ChronicleCache,
+    nextUpdates: ChronicleUpdates
+  ) => {
+    const leagueDetailsByUnit = new Map<number, any>();
     const teamsWithLeague = trackedTeams
       .map((team) => nextCache.teams[team.teamId] ?? team)
       .filter((team) => team.leagueLevelUnitId);
@@ -1520,16 +1523,70 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         changes,
       };
     });
+  };
+
+  const refreshAllData = async (reason: "stale" | "manual") => {
+    if (anyRefreshing) return;
+    if (trackedTeams.length === 0) return;
+    setRefreshingGlobal(true);
+    const nextCache = pruneChronicleCache(readChronicleCache());
+    const nextUpdates: ChronicleUpdates = {
+      generatedAt: Date.now(),
+      teams: {},
+    };
+    const nextManualTeams = [...manualTeams];
+    await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: true });
+    await refreshLeagueSnapshots(nextCache, nextUpdates);
 
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
     setUpdates(nextUpdates);
-    setUpdatesOpen(true);
+    const hasUpdates = Object.values(nextUpdates.teams).some(
+      (teamUpdate) => teamUpdate.changes.length > 0
+    );
+    setUpdatesOpen(hasUpdates);
     writeLastRefresh(Date.now());
     if (reason === "stale") {
       addNotification(messages.notificationChronicleStaleRefresh);
     }
-    setRefreshing(false);
+    setRefreshingGlobal(false);
+    addNotification(messages.notificationChronicleRefreshComplete);
+  };
+
+  const refreshLeagueOnly = async () => {
+    if (anyRefreshing) return;
+    if (trackedTeams.length === 0) return;
+    setRefreshingLeague(true);
+    const nextCache = pruneChronicleCache(readChronicleCache());
+    const nextUpdates: ChronicleUpdates = {
+      generatedAt: Date.now(),
+      teams: {},
+    };
+    const nextManualTeams = [...manualTeams];
+    await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+    await refreshLeagueSnapshots(nextCache, nextUpdates);
+
+    setManualTeams(nextManualTeams);
+    setChronicleCache(nextCache);
+    setUpdates(nextUpdates);
+    const hasUpdates = Object.values(nextUpdates.teams).some(
+      (teamUpdate) => teamUpdate.changes.length > 0
+    );
+    setUpdatesOpen(hasUpdates);
+    setRefreshingLeague(false);
+    addNotification(messages.notificationChronicleRefreshComplete);
+  };
+
+  const refreshPressOnly = async () => {
+    if (anyRefreshing) return;
+    if (trackedTeams.length === 0) return;
+    setRefreshingPress(true);
+    const nextCache = pruneChronicleCache(readChronicleCache());
+    const nextManualTeams = [...manualTeams];
+    await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: true });
+    setManualTeams(nextManualTeams);
+    setChronicleCache(nextCache);
+    setRefreshingPress(false);
     addNotification(messages.notificationChronicleRefreshComplete);
   };
 
@@ -1637,6 +1694,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           {messages.clubChronicleTitle}
         </h2>
         <div className={styles.chronicleHeaderActions}>
+          <Tooltip content={messages.clubChronicleRefreshAllTooltip}>
+            <button
+              type="button"
+              className={styles.chronicleUpdatesButton}
+              onClick={() => void refreshAllData("manual")}
+              disabled={anyRefreshing}
+              aria-label={messages.clubChronicleRefreshAllTooltip}
+            >
+              {messages.clubChronicleRefreshButton}
+            </button>
+          </Tooltip>
           <button
             type="button"
             className={styles.chronicleUpdatesButton}
@@ -1655,15 +1723,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           if (panelId === "league-performance") {
             return (
               <ChroniclePanel
-                key={panelId}
-                title={messages.clubChronicleLeaguePanelTitle}
-                refreshing={refreshing}
-                refreshLabel={messages.clubChronicleRefreshTooltip}
-                moveUpLabel={messages.clubChronicleMoveUp}
-                moveDownLabel={messages.clubChronicleMoveDown}
-                onRefresh={() => void refreshLeaguePerformance("manual")}
-                canMoveUp={canMoveUp}
-                canMoveDown={canMoveDown}
+              key={panelId}
+              title={messages.clubChronicleLeaguePanelTitle}
+              refreshing={refreshingGlobal || refreshingLeague}
+              refreshLabel={messages.clubChronicleRefreshTooltip}
+              moveUpLabel={messages.clubChronicleMoveUp}
+              moveDownLabel={messages.clubChronicleMoveDown}
+              onRefresh={() => void refreshLeagueOnly()}
+              canMoveUp={canMoveUp}
+              canMoveDown={canMoveDown}
                 onMoveUp={() => handleMovePanel(panelId, "up")}
                 onMoveDown={() => handleMovePanel(panelId, "down")}
               >
@@ -1671,10 +1739,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   <p className={styles.chronicleEmpty}>
                     {messages.clubChronicleNoTeams}
                   </p>
-                ) : refreshing && leagueRows.every((row) => !row.snapshot) ? (
-                  <p className={styles.chronicleEmpty}>
-                    {messages.clubChronicleLoading}
-                  </p>
+              ) : (refreshingGlobal || refreshingLeague) &&
+                leagueRows.every((row) => !row.snapshot) ? (
+                <p className={styles.chronicleEmpty}>
+                  {messages.clubChronicleLoading}
+                </p>
                 ) : (
                   <ChronicleTable
                     columns={leagueTableColumns}
@@ -1695,15 +1764,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           if (panelId === "press-announcements") {
             return (
               <ChroniclePanel
-                key={panelId}
-                title={messages.clubChroniclePressPanelTitle}
-                refreshing={refreshing}
-                refreshLabel={messages.clubChronicleRefreshTooltip}
-                moveUpLabel={messages.clubChronicleMoveUp}
-                moveDownLabel={messages.clubChronicleMoveDown}
-                onRefresh={() => void refreshLeaguePerformance("manual")}
-                canMoveUp={canMoveUp}
-                canMoveDown={canMoveDown}
+              key={panelId}
+              title={messages.clubChroniclePressPanelTitle}
+              refreshing={refreshingGlobal || refreshingPress}
+              refreshLabel={messages.clubChronicleRefreshPressTooltip}
+              moveUpLabel={messages.clubChronicleMoveUp}
+              moveDownLabel={messages.clubChronicleMoveDown}
+              onRefresh={() => void refreshPressOnly()}
+              canMoveUp={canMoveUp}
+              canMoveDown={canMoveDown}
                 onMoveUp={() => handleMovePanel(panelId, "up")}
                 onMoveDown={() => handleMovePanel(panelId, "down")}
               >
@@ -1711,7 +1780,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   <p className={styles.chronicleEmpty}>
                     {messages.clubChronicleNoTeams}
                   </p>
-                ) : refreshing && pressRows.every((row) => !row.snapshot) ? (
+                ) : (refreshingGlobal || refreshingPress) &&
+                  pressRows.every((row) => !row.snapshot) ? (
                   <p className={styles.chronicleEmpty}>
                     {messages.clubChronicleLoading}
                   </p>

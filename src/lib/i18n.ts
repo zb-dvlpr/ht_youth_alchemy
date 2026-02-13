@@ -90,7 +90,9 @@ export type Messages = {
   clubChronicleUpdatesTitle: string;
   clubChronicleUpdatesButton: string;
   clubChronicleRefreshButton: string;
+  clubChronicleRefreshAllTooltip: string;
   clubChronicleRefreshTooltip: string;
+  clubChronicleRefreshPressTooltip: string;
   clubChroniclePressPanelTitle: string;
   clubChroniclePressColumnAnnouncement: string;
   clubChroniclePressColumnPublishedAt: string;
@@ -529,7 +531,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesTitle: "Latest updates",
     clubChronicleUpdatesButton: "Latest updates",
     clubChronicleRefreshButton: "Refresh",
+    clubChronicleRefreshAllTooltip: "Refresh all Club Chronicle data.",
     clubChronicleRefreshTooltip: "Refresh league performance data.",
+    clubChronicleRefreshPressTooltip: "Refresh press announcements data.",
     clubChroniclePressPanelTitle: "Press announcements",
     clubChroniclePressColumnAnnouncement: "Announcement",
     clubChroniclePressColumnPublishedAt: "Published",
@@ -988,7 +992,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesTitle: "Neueste Updates",
     clubChronicleUpdatesButton: "Neueste Updates",
     clubChronicleRefreshButton: "Aktualisieren",
+    clubChronicleRefreshAllTooltip: "Alle Club-Chronik-Daten aktualisieren.",
     clubChronicleRefreshTooltip: "Ligaleistungsdaten aktualisieren.",
+    clubChronicleRefreshPressTooltip: "Daten der Pressemitteilungen aktualisieren.",
     clubChroniclePressPanelTitle: "Pressemitteilungen",
     clubChroniclePressColumnAnnouncement: "Mitteilung",
     clubChroniclePressColumnPublishedAt: "Veröffentlicht",
@@ -1450,7 +1456,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesTitle: "Dernières mises à jour",
     clubChronicleUpdatesButton: "Dernières mises à jour",
     clubChronicleRefreshButton: "Actualiser",
+    clubChronicleRefreshAllTooltip: "Actualiser toutes les données de la Chronique du club.",
     clubChronicleRefreshTooltip: "Actualiser les données de performance en ligue.",
+    clubChronicleRefreshPressTooltip: "Actualiser les données des communiqués de presse.",
     clubChroniclePressPanelTitle: "Communiqués de presse",
     clubChroniclePressColumnAnnouncement: "Annonce",
     clubChroniclePressColumnPublishedAt: "Publié",
@@ -1919,7 +1927,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesTitle: "Últimas actualizaciones",
     clubChronicleUpdatesButton: "Últimas actualizaciones",
     clubChronicleRefreshButton: "Actualizar",
+    clubChronicleRefreshAllTooltip: "Actualizar todos los datos de Crónica del club.",
     clubChronicleRefreshTooltip: "Actualizar los datos de rendimiento en liga.",
+    clubChronicleRefreshPressTooltip: "Actualizar datos de comunicados de prensa.",
     clubChroniclePressPanelTitle: "Comunicados de prensa",
     clubChroniclePressColumnAnnouncement: "Anuncio",
     clubChroniclePressColumnPublishedAt: "Publicado",
@@ -2382,7 +2392,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesTitle: "Senaste uppdateringar",
     clubChronicleUpdatesButton: "Senaste uppdateringar",
     clubChronicleRefreshButton: "Uppdatera",
+    clubChronicleRefreshAllTooltip: "Uppdatera all data i Klubbkrönikan.",
     clubChronicleRefreshTooltip: "Uppdatera ligaprestanda-data.",
+    clubChronicleRefreshPressTooltip: "Uppdatera data för pressmeddelanden.",
     clubChroniclePressPanelTitle: "Pressmeddelanden",
     clubChroniclePressColumnAnnouncement: "Meddelande",
     clubChroniclePressColumnPublishedAt: "Publicerad",
@@ -2845,7 +2857,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesTitle: "Ultimi aggiornamenti",
     clubChronicleUpdatesButton: "Ultimi aggiornamenti",
     clubChronicleRefreshButton: "Aggiorna",
+    clubChronicleRefreshAllTooltip: "Aggiorna tutti i dati della Cronaca del club.",
     clubChronicleRefreshTooltip: "Aggiorna i dati di prestazione in lega.",
+    clubChronicleRefreshPressTooltip: "Aggiorna i dati dei comunicati stampa.",
     clubChroniclePressPanelTitle: "Comunicati stampa",
     clubChroniclePressColumnAnnouncement: "Annuncio",
     clubChroniclePressColumnPublishedAt: "Pubblicato",
@@ -3310,7 +3324,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesTitle: "Últimas atualizações",
     clubChronicleUpdatesButton: "Últimas atualizações",
     clubChronicleRefreshButton: "Atualizar",
+    clubChronicleRefreshAllTooltip: "Atualizar todos os dados da Crônica do clube.",
     clubChronicleRefreshTooltip: "Atualizar dados de desempenho na liga.",
+    clubChronicleRefreshPressTooltip: "Atualizar dados de comunicados de imprensa.",
     clubChroniclePressPanelTitle: "Comunicados de imprensa",
     clubChroniclePressColumnAnnouncement: "Anúncio",
     clubChroniclePressColumnPublishedAt: "Publicado",

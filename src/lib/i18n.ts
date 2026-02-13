@@ -91,6 +91,10 @@ export type Messages = {
   clubChronicleUpdatesButton: string;
   clubChronicleRefreshButton: string;
   clubChronicleRefreshTooltip: string;
+  clubChroniclePressPanelTitle: string;
+  clubChroniclePressColumnAnnouncement: string;
+  clubChroniclePressColumnPublishedAt: string;
+  clubChroniclePressNone: string;
   clubChronicleTableTeam: string;
   clubChronicleTableSummary: string;
   clubChronicleMoveUp: string;
@@ -526,6 +530,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesButton: "Latest updates",
     clubChronicleRefreshButton: "Refresh",
     clubChronicleRefreshTooltip: "Refresh league performance data.",
+    clubChroniclePressPanelTitle: "Press announcements",
+    clubChroniclePressColumnAnnouncement: "Announcement",
+    clubChroniclePressColumnPublishedAt: "Published",
+    clubChroniclePressNone: "No press announcement.",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Summary",
     clubChronicleColumnTeam: "Team",
@@ -981,6 +989,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesButton: "Neueste Updates",
     clubChronicleRefreshButton: "Aktualisieren",
     clubChronicleRefreshTooltip: "Ligaleistungsdaten aktualisieren.",
+    clubChroniclePressPanelTitle: "Pressemitteilungen",
+    clubChroniclePressColumnAnnouncement: "Mitteilung",
+    clubChroniclePressColumnPublishedAt: "Veröffentlicht",
+    clubChroniclePressNone: "Keine Pressemitteilung.",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Zusammenfassung",
     clubChronicleColumnTeam: "Team",
@@ -1439,6 +1451,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesButton: "Dernières mises à jour",
     clubChronicleRefreshButton: "Actualiser",
     clubChronicleRefreshTooltip: "Actualiser les données de performance en ligue.",
+    clubChroniclePressPanelTitle: "Communiqués de presse",
+    clubChroniclePressColumnAnnouncement: "Annonce",
+    clubChroniclePressColumnPublishedAt: "Publié",
+    clubChroniclePressNone: "Aucun communiqué de presse.",
     clubChronicleTableTeam: "Équipe",
     clubChronicleTableSummary: "Résumé",
     clubChronicleColumnTeam: "Équipe",
@@ -1904,6 +1920,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesButton: "Últimas actualizaciones",
     clubChronicleRefreshButton: "Actualizar",
     clubChronicleRefreshTooltip: "Actualizar los datos de rendimiento en liga.",
+    clubChroniclePressPanelTitle: "Comunicados de prensa",
+    clubChroniclePressColumnAnnouncement: "Anuncio",
+    clubChroniclePressColumnPublishedAt: "Publicado",
+    clubChroniclePressNone: "Sin comunicado de prensa.",
     clubChronicleTableTeam: "Equipo",
     clubChronicleTableSummary: "Resumen",
     clubChronicleColumnTeam: "Equipo",
@@ -2363,6 +2383,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesButton: "Senaste uppdateringar",
     clubChronicleRefreshButton: "Uppdatera",
     clubChronicleRefreshTooltip: "Uppdatera ligaprestanda-data.",
+    clubChroniclePressPanelTitle: "Pressmeddelanden",
+    clubChroniclePressColumnAnnouncement: "Meddelande",
+    clubChroniclePressColumnPublishedAt: "Publicerad",
+    clubChroniclePressNone: "Inget pressmeddelande.",
     clubChronicleTableTeam: "Lag",
     clubChronicleTableSummary: "Sammanfattning",
     clubChronicleColumnTeam: "Lag",
@@ -2822,6 +2846,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesButton: "Ultimi aggiornamenti",
     clubChronicleRefreshButton: "Aggiorna",
     clubChronicleRefreshTooltip: "Aggiorna i dati di prestazione in lega.",
+    clubChroniclePressPanelTitle: "Comunicati stampa",
+    clubChroniclePressColumnAnnouncement: "Annuncio",
+    clubChroniclePressColumnPublishedAt: "Pubblicato",
+    clubChroniclePressNone: "Nessun comunicato stampa.",
     clubChronicleTableTeam: "Squadra",
     clubChronicleTableSummary: "Riepilogo",
     clubChronicleColumnTeam: "Squadra",
@@ -3283,6 +3311,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleUpdatesButton: "Últimas atualizações",
     clubChronicleRefreshButton: "Atualizar",
     clubChronicleRefreshTooltip: "Atualizar dados de desempenho na liga.",
+    clubChroniclePressPanelTitle: "Comunicados de imprensa",
+    clubChroniclePressColumnAnnouncement: "Anúncio",
+    clubChroniclePressColumnPublishedAt: "Publicado",
+    clubChroniclePressNone: "Sem comunicado de imprensa.",
     clubChronicleTableTeam: "Time",
     clubChronicleTableSummary: "Resumo",
     clubChronicleColumnTeam: "Time",

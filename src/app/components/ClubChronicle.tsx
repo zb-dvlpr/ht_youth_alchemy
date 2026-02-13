@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
+import { formatChppDateTime } from "@/lib/datetime";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
 import { useNotifications } from "./notifications/NotificationsProvider";
@@ -66,12 +67,30 @@ type LeaguePerformanceData = {
   previous?: LeaguePerformanceSnapshot;
 };
 
+type PressAnnouncementSnapshot = {
+  subject: string | null;
+  body: string | null;
+  sendDate: string | null;
+  fetchedAt: number;
+};
+
+type PressAnnouncementData = {
+  current: PressAnnouncementSnapshot;
+  previous?: PressAnnouncementSnapshot;
+};
+
 type LeagueTableRow = {
   teamId: number;
   teamName: string;
   snapshot?: LeaguePerformanceSnapshot | null;
   leaguePerformance?: LeaguePerformanceData;
   meta?: string | null;
+};
+
+type PressAnnouncementRow = {
+  teamId: number;
+  teamName: string;
+  snapshot?: PressAnnouncementSnapshot | null;
 };
 
 type ChronicleTeamData = {
@@ -81,6 +100,7 @@ type ChronicleTeamData = {
   leagueLevelUnitName?: string | null;
   leagueLevelUnitId?: number | null;
   leaguePerformance?: LeaguePerformanceData;
+  pressAnnouncement?: PressAnnouncementData;
 };
 
 type ChronicleCache = {
@@ -301,7 +321,7 @@ const CACHE_KEY = "ya_cc_cache_v1";
 const UPDATES_KEY = "ya_cc_updates_v1";
 const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
 const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
-const PANEL_IDS = ["league-performance"] as const;
+const PANEL_IDS = ["league-performance", "press-announcements"] as const;
 const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
 const MAX_CACHE_AGE_MS = SEASON_LENGTH_MS * 2;
 
@@ -371,6 +391,31 @@ const resolveTeamDetailsMeta = (
       ? Number(leagueLevelUnitIdRaw)
       : null;
   return { leagueName, leagueLevelUnitName, leagueLevelUnitId };
+};
+
+const resolvePressAnnouncement = (
+  team:
+    | {
+        PressAnnouncement?: {
+          Subject?: string;
+          Body?: string;
+          SendDate?: string;
+        };
+      }
+    | undefined
+): PressAnnouncementSnapshot | null => {
+  const press = team?.PressAnnouncement;
+  if (!press) return null;
+  const subject = press.Subject?.trim() ?? "";
+  const body = press.Body?.trim() ?? "";
+  const sendDate = press.SendDate?.trim() ?? "";
+  if (!subject && !body && !sendDate) return null;
+  return {
+    subject: subject || null,
+    body: body || null,
+    sendDate: sendDate || null,
+    fetchedAt: Date.now(),
+  };
 };
 
 const readStorage = (): WatchlistStorage => {
@@ -514,6 +559,21 @@ const pruneChronicleCache = (cache: ChronicleCache): ChronicleCache => {
     nextTeams[Number(id)] = {
       ...team,
       leaguePerformance: nextLeaguePerformance,
+      pressAnnouncement: (() => {
+        const pressAnnouncement = team.pressAnnouncement;
+        if (!pressAnnouncement?.current) return pressAnnouncement;
+        const currentAge = now - pressAnnouncement.current.fetchedAt;
+        if (currentAge > MAX_CACHE_AGE_MS) return undefined;
+        if (!pressAnnouncement.previous) return pressAnnouncement;
+        const previousAge = now - pressAnnouncement.previous.fetchedAt;
+        if (previousAge > MAX_CACHE_AGE_MS) {
+          return {
+            ...pressAnnouncement,
+            previous: undefined,
+          };
+        }
+        return pressAnnouncement;
+      })(),
     };
   });
   return { ...cache, teams: nextTeams };
@@ -551,7 +611,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [stalenessDays, setStalenessDays] = useState(
     DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS
   );
-  const [sortState, setSortState] = useState<{
+  const [leagueSortState, setLeagueSortState] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({ key: "team", direction: "asc" });
+  const [pressSortState, setPressSortState] = useState<{
     key: string;
     direction: "asc" | "desc";
   }>({ key: "team", direction: "asc" });
@@ -1015,8 +1079,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setDetailsOpen(true);
   };
 
-  const handleSort = (key: string) => {
-    setSortState((prev) => ({
+  const handleLeagueSort = (key: string) => {
+    setLeagueSortState((prev) => ({
+      key,
+      direction:
+        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
+    }));
+  };
+
+  const handlePressSort = (key: string) => {
+    setPressSortState((prev) => ({
       key,
       direction:
         prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
@@ -1159,6 +1231,40 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     ]
   );
 
+  const pressTableColumns = useMemo<
+    ChronicleTableColumn<PressAnnouncementRow, PressAnnouncementSnapshot>[]
+  >(
+    () => [
+      {
+        key: "team",
+        label: messages.clubChronicleColumnTeam,
+        getValue: (_snapshot, row) => row?.teamName ?? null,
+      },
+      {
+        key: "announcement",
+        label: messages.clubChroniclePressColumnAnnouncement,
+        getValue: (snapshot: PressAnnouncementSnapshot | undefined) =>
+          snapshot?.subject ?? messages.clubChroniclePressNone,
+      },
+      {
+        key: "publishedAt",
+        label: messages.clubChroniclePressColumnPublishedAt,
+        getValue: (snapshot: PressAnnouncementSnapshot | undefined) =>
+          snapshot?.sendDate
+            ? formatChppDateTime(snapshot.sendDate) ?? snapshot.sendDate
+            : null,
+        getSortValue: (snapshot: PressAnnouncementSnapshot | undefined) =>
+          snapshot?.sendDate ?? null,
+      },
+    ],
+    [
+      messages.clubChronicleColumnTeam,
+      messages.clubChroniclePressColumnAnnouncement,
+      messages.clubChroniclePressColumnPublishedAt,
+      messages.clubChroniclePressNone,
+    ]
+  );
+
   const formatValue = (value: string | number | null | undefined) => {
     if (value === null || value === undefined || value === "") {
       return messages.unknownShort;
@@ -1246,7 +1352,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const leagueDetailsByUnit = new Map<number, any>();
 
     for (const team of trackedTeams) {
-      if (team.leagueLevelUnitId) continue;
       try {
         const response = await fetch(
           `/api/chpp/teamdetails?teamId=${team.teamId}`,
@@ -1271,6 +1376,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       LeagueName?: string;
                       Name?: string;
                     };
+                    PressAnnouncement?: {
+                      Subject?: string;
+                      Body?: string;
+                      SendDate?: string;
+                    };
                   };
                 };
               };
@@ -1279,7 +1389,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           | null;
         const teamDetails = payload?.data?.HattrickData?.Team;
         const meta = resolveTeamDetailsMeta(teamDetails);
+        const pressSnapshot = resolvePressAnnouncement(teamDetails);
         const nextTeamName = teamDetails?.TeamName ?? team.teamName ?? "";
+        const previousPress = nextCache.teams[team.teamId]?.pressAnnouncement?.current;
         nextCache.teams[team.teamId] = {
           ...nextCache.teams[team.teamId],
           teamId: team.teamId,
@@ -1288,6 +1400,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           leagueLevelUnitName: meta.leagueLevelUnitName,
           leagueLevelUnitId: meta.leagueLevelUnitId,
           leaguePerformance: nextCache.teams[team.teamId]?.leaguePerformance,
+          pressAnnouncement: pressSnapshot
+            ? {
+                current: pressSnapshot,
+                previous: previousPress,
+              }
+            : nextCache.teams[team.teamId]?.pressAnnouncement,
         };
         const manualIndex = nextManualTeams.findIndex(
           (item) => item.teamId === team.teamId
@@ -1435,13 +1553,22 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
   });
 
+  const pressRows: PressAnnouncementRow[] = trackedTeams.map((team) => {
+    const cached = chronicleCache.teams[team.teamId];
+    return {
+      teamId: team.teamId,
+      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+      snapshot: cached?.pressAnnouncement?.current,
+    };
+  });
+
   const sortedLeagueRows = useMemo(() => {
-    if (!sortState.key) return leagueRows;
+    if (!leagueSortState.key) return leagueRows;
     const column = leagueTableColumns.find(
-      (item) => item.key === sortState.key
+      (item) => item.key === leagueSortState.key
     );
     if (!column) return leagueRows;
-    const direction = sortState.direction === "desc" ? -1 : 1;
+    const direction = leagueSortState.direction === "desc" ? -1 : 1;
     return [...leagueRows]
       .map((row, index) => ({ row, index }))
       .sort((left, right) => {
@@ -1458,7 +1585,30 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         return left.index - right.index;
       })
       .map((item) => item.row);
-  }, [leagueRows, leagueTableColumns, sortState]);
+  }, [leagueRows, leagueTableColumns, leagueSortState]);
+
+  const sortedPressRows = useMemo(() => {
+    if (!pressSortState.key) return pressRows;
+    const column = pressTableColumns.find((item) => item.key === pressSortState.key);
+    if (!column) return pressRows;
+    const direction = pressSortState.direction === "desc" ? -1 : 1;
+    return [...pressRows]
+      .map((row, index) => ({ row, index }))
+      .sort((left, right) => {
+        const leftValue = normalizeSortValue(
+          column.getSortValue?.(left.row.snapshot ?? undefined, left.row) ??
+            column.getValue(left.row.snapshot ?? undefined, left.row)
+        );
+        const rightValue = normalizeSortValue(
+          column.getSortValue?.(right.row.snapshot ?? undefined, right.row) ??
+            column.getValue(right.row.snapshot ?? undefined, right.row)
+        );
+        const result = compareSortValues(leftValue, rightValue);
+        if (result !== 0) return result * direction;
+        return left.index - right.index;
+      })
+      .map((item) => item.row);
+  }, [pressRows, pressTableColumns, pressSortState]);
 
   const selectedTeam = selectedTeamId
     ? leagueRows.find((team) => team.teamId === selectedTeamId) ?? null
@@ -1470,6 +1620,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       "--cc-template": `minmax(160px, 1.2fr) repeat(${remainingColumns}, minmax(60px, 0.8fr))`,
     } as CSSProperties;
   }, [leagueTableColumns.length]);
+
+  const pressTableStyle = useMemo(
+    () =>
+      ({
+        "--cc-columns": pressTableColumns.length,
+        "--cc-template": "minmax(140px, 1.1fr) minmax(220px, 2fr) minmax(140px, 1fr)",
+      }) as CSSProperties,
+    [pressTableColumns.length]
+  );
 
   return (
     <div className={styles.clubChronicleStack}>
@@ -1490,48 +1649,89 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
       <div className={styles.chroniclePanels}>
         {panelOrder.map((panelId) => {
-          if (panelId !== "league-performance") return null;
           const canMoveUp = panelOrder.indexOf(panelId) > 0;
           const canMoveDown =
             panelOrder.indexOf(panelId) < panelOrder.length - 1;
-          return (
-            <ChroniclePanel
-              key={panelId}
-              title={messages.clubChronicleLeaguePanelTitle}
-              refreshing={refreshing}
-              refreshLabel={messages.clubChronicleRefreshTooltip}
-              moveUpLabel={messages.clubChronicleMoveUp}
-              moveDownLabel={messages.clubChronicleMoveDown}
-              onRefresh={() => void refreshLeaguePerformance("manual")}
-              canMoveUp={canMoveUp}
-              canMoveDown={canMoveDown}
-              onMoveUp={() => handleMovePanel(panelId, "up")}
-              onMoveDown={() => handleMovePanel(panelId, "down")}
-            >
-              {trackedTeams.length === 0 ? (
-                <p className={styles.chronicleEmpty}>
-                  {messages.clubChronicleNoTeams}
-                </p>
-              ) : refreshing && leagueRows.every((row) => !row.snapshot) ? (
-                <p className={styles.chronicleEmpty}>
-                  {messages.clubChronicleLoading}
-                </p>
-              ) : (
-                <ChronicleTable
-                  columns={leagueTableColumns}
-                  rows={sortedLeagueRows}
-                  getRowKey={(row) => row.teamId}
-                  getSnapshot={(row) => row.snapshot ?? undefined}
-                  onRowClick={(row) => handleOpenDetails(row.teamId)}
-                  formatValue={formatValue}
-                  style={tableStyle}
-                  sortKey={sortState.key}
-                  sortDirection={sortState.direction}
-                  onSort={handleSort}
-                />
-              )}
-            </ChroniclePanel>
-          );
+          if (panelId === "league-performance") {
+            return (
+              <ChroniclePanel
+                key={panelId}
+                title={messages.clubChronicleLeaguePanelTitle}
+                refreshing={refreshing}
+                refreshLabel={messages.clubChronicleRefreshTooltip}
+                moveUpLabel={messages.clubChronicleMoveUp}
+                moveDownLabel={messages.clubChronicleMoveDown}
+                onRefresh={() => void refreshLeaguePerformance("manual")}
+                canMoveUp={canMoveUp}
+                canMoveDown={canMoveDown}
+                onMoveUp={() => handleMovePanel(panelId, "up")}
+                onMoveDown={() => handleMovePanel(panelId, "down")}
+              >
+                {trackedTeams.length === 0 ? (
+                  <p className={styles.chronicleEmpty}>
+                    {messages.clubChronicleNoTeams}
+                  </p>
+                ) : refreshing && leagueRows.every((row) => !row.snapshot) ? (
+                  <p className={styles.chronicleEmpty}>
+                    {messages.clubChronicleLoading}
+                  </p>
+                ) : (
+                  <ChronicleTable
+                    columns={leagueTableColumns}
+                    rows={sortedLeagueRows}
+                    getRowKey={(row) => row.teamId}
+                    getSnapshot={(row) => row.snapshot ?? undefined}
+                    onRowClick={(row) => handleOpenDetails(row.teamId)}
+                    formatValue={formatValue}
+                    style={tableStyle}
+                    sortKey={leagueSortState.key}
+                    sortDirection={leagueSortState.direction}
+                    onSort={handleLeagueSort}
+                  />
+                )}
+              </ChroniclePanel>
+            );
+          }
+          if (panelId === "press-announcements") {
+            return (
+              <ChroniclePanel
+                key={panelId}
+                title={messages.clubChroniclePressPanelTitle}
+                refreshing={refreshing}
+                refreshLabel={messages.clubChronicleRefreshTooltip}
+                moveUpLabel={messages.clubChronicleMoveUp}
+                moveDownLabel={messages.clubChronicleMoveDown}
+                onRefresh={() => void refreshLeaguePerformance("manual")}
+                canMoveUp={canMoveUp}
+                canMoveDown={canMoveDown}
+                onMoveUp={() => handleMovePanel(panelId, "up")}
+                onMoveDown={() => handleMovePanel(panelId, "down")}
+              >
+                {trackedTeams.length === 0 ? (
+                  <p className={styles.chronicleEmpty}>
+                    {messages.clubChronicleNoTeams}
+                  </p>
+                ) : refreshing && pressRows.every((row) => !row.snapshot) ? (
+                  <p className={styles.chronicleEmpty}>
+                    {messages.clubChronicleLoading}
+                  </p>
+                ) : (
+                  <ChronicleTable
+                    columns={pressTableColumns}
+                    rows={sortedPressRows}
+                    getRowKey={(row) => row.teamId}
+                    getSnapshot={(row) => row.snapshot ?? undefined}
+                    formatValue={formatValue}
+                    style={pressTableStyle}
+                    sortKey={pressSortState.key}
+                    sortDirection={pressSortState.direction}
+                    onSort={handlePressSort}
+                  />
+                )}
+              </ChroniclePanel>
+            );
+          }
+          return null;
         })}
       </div>
 

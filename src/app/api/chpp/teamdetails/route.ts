@@ -6,7 +6,7 @@ import {
   getChppAuth,
 } from "@/lib/chpp/server";
 
-const TEAMDETAILS_VERSION = "1.8";
+const TEAMDETAILS_VERSION = "3.8";
 
 export async function GET(request: Request) {
   try {

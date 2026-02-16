@@ -119,6 +119,9 @@ export type Messages = {
   clubChronicleFinanceColumnSales: string;
   clubChronicleFinanceColumnEstimate: string;
   clubChronicleFinanceDisclaimer: string;
+  clubChronicleFanclubPanelTitle: string;
+  clubChronicleFanclubColumnName: string;
+  clubChronicleFanclubColumnSize: string;
   clubChronicleTableTeam: string;
   clubChronicleTableSummary: string;
   clubChronicleMoveUp: string;
@@ -601,6 +604,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFinanceColumnSales: "Sales",
     clubChronicleFinanceColumnEstimate: "Estimate*",
     clubChronicleFinanceDisclaimer: "* Rough estimate only.",
+    clubChronicleFanclubPanelTitle: "Fan club",
+    clubChronicleFanclubColumnName: "Fan club name",
+    clubChronicleFanclubColumnSize: "Fan club size",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Summary",
     clubChronicleColumnTeam: "Team",
@@ -1103,6 +1109,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFinanceColumnSales: "Verkäufe",
     clubChronicleFinanceColumnEstimate: "Schätzung*",
     clubChronicleFinanceDisclaimer: "* Nur eine grobe Schätzung.",
+    clubChronicleFanclubPanelTitle: "Fanclub",
+    clubChronicleFanclubColumnName: "Fanclubname",
+    clubChronicleFanclubColumnSize: "Fanclubgröße",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Zusammenfassung",
     clubChronicleColumnTeam: "Team",
@@ -1609,6 +1618,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFinanceColumnSales: "Ventes",
     clubChronicleFinanceColumnEstimate: "Estimation*",
     clubChronicleFinanceDisclaimer: "* Estimation approximative uniquement.",
+    clubChronicleFanclubPanelTitle: "Fan club",
+    clubChronicleFanclubColumnName: "Nom du fan club",
+    clubChronicleFanclubColumnSize: "Taille du fan club",
     clubChronicleTableTeam: "Équipe",
     clubChronicleTableSummary: "Résumé",
     clubChronicleColumnTeam: "Équipe",
@@ -2122,6 +2134,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFinanceColumnSales: "Ventas",
     clubChronicleFinanceColumnEstimate: "Estimación*",
     clubChronicleFinanceDisclaimer: "* Solo una estimación aproximada.",
+    clubChronicleFanclubPanelTitle: "Club de fans",
+    clubChronicleFanclubColumnName: "Nombre del club de fans",
+    clubChronicleFanclubColumnSize: "Tamaño del club de fans",
     clubChronicleTableTeam: "Equipo",
     clubChronicleTableSummary: "Resumen",
     clubChronicleColumnTeam: "Equipo",
@@ -2629,6 +2644,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFinanceColumnSales: "Försäljning",
     clubChronicleFinanceColumnEstimate: "Estimat*",
     clubChronicleFinanceDisclaimer: "* Endast en grov uppskattning.",
+    clubChronicleFanclubPanelTitle: "Fanklubb",
+    clubChronicleFanclubColumnName: "Fanklubbsnamn",
+    clubChronicleFanclubColumnSize: "Fanklubbsstorlek",
     clubChronicleTableTeam: "Lag",
     clubChronicleTableSummary: "Sammanfattning",
     clubChronicleColumnTeam: "Lag",
@@ -3136,6 +3154,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFinanceColumnSales: "Vendite",
     clubChronicleFinanceColumnEstimate: "Stima*",
     clubChronicleFinanceDisclaimer: "* Solo una stima approssimativa.",
+    clubChronicleFanclubPanelTitle: "Fan club",
+    clubChronicleFanclubColumnName: "Nome fan club",
+    clubChronicleFanclubColumnSize: "Dimensione fan club",
     clubChronicleTableTeam: "Squadra",
     clubChronicleTableSummary: "Riepilogo",
     clubChronicleColumnTeam: "Squadra",
@@ -3645,6 +3666,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFinanceColumnSales: "Vendas",
     clubChronicleFinanceColumnEstimate: "Estimativa*",
     clubChronicleFinanceDisclaimer: "* Apenas uma estimativa aproximada.",
+    clubChronicleFanclubPanelTitle: "Clube de fãs",
+    clubChronicleFanclubColumnName: "Nome do clube de fãs",
+    clubChronicleFanclubColumnSize: "Tamanho do clube de fãs",
     clubChronicleTableTeam: "Time",
     clubChronicleTableSummary: "Resumo",
     clubChronicleColumnTeam: "Time",

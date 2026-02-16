@@ -159,6 +159,23 @@ type TransferActivityRow = {
   snapshot?: TransferActivitySnapshot | null;
 };
 
+type TsiSnapshot = {
+  totalTsi: number;
+  top11Tsi: number;
+  fetchedAt: number;
+};
+
+type TsiData = {
+  current: TsiSnapshot;
+  previous?: TsiSnapshot;
+};
+
+type TsiRow = {
+  teamId: number;
+  teamName: string;
+  snapshot?: TsiSnapshot | null;
+};
+
 type FanclubSnapshot = {
   fanclubName: string | null;
   fanclubSize: number | null;
@@ -220,6 +237,7 @@ type ChronicleTeamData = {
   arena?: ArenaData;
   financeEstimate?: FinanceEstimateData;
   transferActivity?: TransferActivityData;
+  tsi?: TsiData;
 };
 
 type ChronicleCache = {
@@ -252,7 +270,8 @@ type UpdatePanel =
   | "fanclub"
   | "arena"
   | "finance"
-  | "transfer";
+  | "transfer"
+  | "tsi";
 
 type ChronicleTableColumn<Row, Snapshot> = {
   key: string;
@@ -438,6 +457,7 @@ const PANEL_IDS = [
   "arena",
   "finance-estimate",
   "transfer-market",
+  "tsi",
 ] as const;
 const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
 const MAX_CACHE_AGE_MS = SEASON_LENGTH_MS * 2;
@@ -870,6 +890,21 @@ const pruneChronicleCache = (cache: ChronicleCache): ChronicleCache => {
         }
         return transferActivity;
       })(),
+      tsi: (() => {
+        const tsi = team.tsi;
+        if (!tsi?.current) return tsi;
+        const currentAge = now - tsi.current.fetchedAt;
+        if (currentAge > MAX_CACHE_AGE_MS) return undefined;
+        if (!tsi.previous) return tsi;
+        const previousAge = now - tsi.previous.fetchedAt;
+        if (previousAge > MAX_CACHE_AGE_MS) {
+          return {
+            ...tsi,
+            previous: undefined,
+          };
+        }
+        return tsi;
+      })(),
     };
   });
   return { ...cache, teams: nextTeams };
@@ -891,7 +926,9 @@ const getLatestCacheTimestamp = (cache: ChronicleCache): number | null => {
       team.financeEstimate?.current?.fetchedAt ?? 0,
       team.financeEstimate?.previous?.fetchedAt ?? 0,
       team.transferActivity?.current?.fetchedAt ?? 0,
-      team.transferActivity?.previous?.fetchedAt ?? 0
+      team.transferActivity?.previous?.fetchedAt ?? 0,
+      team.tsi?.current?.fetchedAt ?? 0,
+      team.tsi?.previous?.fetchedAt ?? 0
     );
   });
   return latest > 0 ? latest : null;
@@ -970,6 +1007,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     key: string;
     direction: "asc" | "desc";
   }>({ key: "team", direction: "asc" });
+  const [tsiSortState, setTsiSortState] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({ key: "team", direction: "asc" });
   const [refreshingGlobal, setRefreshingGlobal] = useState(false);
   const [refreshingLeague, setRefreshingLeague] = useState(false);
   const [refreshingPress, setRefreshingPress] = useState(false);
@@ -977,6 +1018,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [refreshingArena, setRefreshingArena] = useState(false);
   const [refreshingFinance, setRefreshingFinance] = useState(false);
   const [refreshingTransfer, setRefreshingTransfer] = useState(false);
+  const [refreshingTsi, setRefreshingTsi] = useState(false);
   const [draggedPanelId, setDraggedPanelId] = useState<string | null>(null);
   const [dropTargetPanelId, setDropTargetPanelId] = useState<string | null>(null);
   const [loadingTransferHistoryModal, setLoadingTransferHistoryModal] =
@@ -998,7 +1040,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     refreshingFanclub ||
     refreshingArena ||
     refreshingFinance ||
-    refreshingTransfer;
+    refreshingTransfer ||
+    refreshingTsi;
 
   const supportedById = useMemo(
     () =>
@@ -1142,6 +1185,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 label: messages.clubChronicleTransferColumnHistory,
                 previous: "2/1",
                 current: "2/2",
+              },
+              {
+                fieldKey: "tsi.total",
+                label: messages.clubChronicleTsiColumnTotal,
+                previous: "745000",
+                current: "752000",
+              },
+              {
+                fieldKey: "tsi.top11",
+                label: messages.clubChronicleTsiColumnTop11,
+                previous: "512000",
+                current: "519000",
               },
             ],
           },
@@ -1732,6 +1787,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }));
   };
 
+  const handleTsiSort = (key: string) => {
+    setTsiSortState((prev) => ({
+      key,
+      direction:
+        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
+    }));
+  };
+
   const leagueFieldDefs = useMemo(
     () => [
       { key: "leagueId", label: messages.clubChronicleFieldLeagueId },
@@ -2059,6 +2122,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     ]
   );
 
+  const tsiTableColumns = useMemo<ChronicleTableColumn<TsiRow, TsiSnapshot>[]>(
+    () => [
+      {
+        key: "team",
+        label: messages.clubChronicleColumnTeam,
+        getValue: (_snapshot, row) => row?.teamName ?? null,
+      },
+      {
+        key: "totalTsi",
+        label: messages.clubChronicleTsiColumnTotal,
+        getValue: (snapshot: TsiSnapshot | undefined) => snapshot?.totalTsi ?? null,
+      },
+      {
+        key: "top11Tsi",
+        label: messages.clubChronicleTsiColumnTop11,
+        getValue: (snapshot: TsiSnapshot | undefined) => snapshot?.top11Tsi ?? null,
+      },
+    ],
+    [
+      messages.clubChronicleColumnTeam,
+      messages.clubChronicleTsiColumnTotal,
+      messages.clubChronicleTsiColumnTop11,
+    ]
+  );
+
   const formatValue = (value: string | number | null | undefined) => {
     if (value === null || value === undefined || value === "") {
       return messages.unknownShort;
@@ -2368,6 +2456,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             });
           }
           appendTeamChanges(updatesMap, teamId, teamName, transferChanges);
+        }
+      }
+
+      if (panels.includes("tsi")) {
+        const previous = cached.tsi?.previous;
+        const current = cached.tsi?.current;
+        if (current && previous) {
+          const tsiChanges: ChronicleUpdateField[] = [];
+          if (previous.totalTsi !== current.totalTsi) {
+            tsiChanges.push({
+              fieldKey: "tsi.total",
+              label: messages.clubChronicleTsiColumnTotal,
+              previous: formatValue(previous.totalTsi),
+              current: formatValue(current.totalTsi),
+            });
+          }
+          if (previous.top11Tsi !== current.top11Tsi) {
+            tsiChanges.push({
+              fieldKey: "tsi.top11",
+              label: messages.clubChronicleTsiColumnTop11,
+              previous: formatValue(previous.top11Tsi),
+              current: formatValue(current.top11Tsi),
+            });
+          }
+          appendTeamChanges(updatesMap, teamId, teamName, tsiChanges);
         }
       }
     });
@@ -2727,6 +2840,81 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return normalized === "true" || normalized === "1";
   };
 
+  type TeamPlayerSnapshot = {
+    playerId: number;
+    playerName: string | null;
+    transferListed: boolean;
+    tsi: number;
+  };
+
+  const fetchTeamPlayers = async (teamId: number): Promise<TeamPlayerSnapshot[]> => {
+    const playersResponse = await fetch(`/api/chpp/players?teamId=${teamId}`, {
+      cache: "no-store",
+    });
+    const playersPayload = (await playersResponse.json().catch(() => null)) as
+      | {
+          data?: {
+            HattrickData?: {
+              Team?: {
+                PlayerList?: {
+                  Player?: unknown;
+                };
+              };
+            };
+          };
+          error?: string;
+        }
+      | null;
+    if (!playersResponse.ok || playersPayload?.error) {
+      return [];
+    }
+    const rawPlayers = playersPayload?.data?.HattrickData?.Team?.PlayerList?.Player;
+    const playerList = (Array.isArray(rawPlayers)
+      ? rawPlayers
+      : rawPlayers
+        ? [rawPlayers]
+        : []) as RawNode[];
+    return playerList
+      .map((player) => {
+        const playerId = parseNumber(player?.PlayerID) ?? 0;
+        if (playerId <= 0) return null;
+        const playerName = [player?.FirstName, player?.NickName, player?.LastName]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        return {
+          playerId,
+          playerName: playerName || null,
+          transferListed: parseBool(player?.TransferListed),
+          tsi: parseNumber(player?.TSI) ?? 0,
+        };
+      })
+      .filter((player): player is TeamPlayerSnapshot => Boolean(player));
+  };
+
+  const buildTransferListedPlayers = (
+    players: TeamPlayerSnapshot[]
+  ): TransferListedPlayer[] =>
+    players
+      .filter((player) => player.transferListed)
+      .map((player) => ({
+        playerId: player.playerId,
+        playerName: player.playerName,
+      }));
+
+  const buildTsiSnapshot = (players: TeamPlayerSnapshot[]): TsiSnapshot => {
+    const tsiValues = players
+      .map((player) => (Number.isFinite(player.tsi) ? player.tsi : 0))
+      .sort((a, b) => b - a);
+    const totalTsi = tsiValues.reduce((sum, value) => sum + value, 0);
+    const top11Tsi = tsiValues.slice(0, 11).reduce((sum, value) => sum + value, 0);
+    return {
+      totalTsi,
+      top11Tsi,
+      fetchedAt: Date.now(),
+    };
+  };
+
   const resolvePlayerNameById = async (
     playerId: number
   ): Promise<string | null> => {
@@ -2876,58 +3064,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
   };
 
-  const fetchTransferListedPlayers = async (
-    teamId: number
-  ): Promise<{ playerId: number; playerName: string | null }[]> => {
-    const playersResponse = await fetch(`/api/chpp/players?teamId=${teamId}`, {
-      cache: "no-store",
-    });
-    const playersPayload = (await playersResponse.json().catch(() => null)) as
-      | {
-          data?: {
-            HattrickData?: {
-              Team?: {
-                PlayerList?: {
-                  Player?: unknown;
-                };
-              };
-            };
-          };
-          error?: string;
-        }
-      | null;
-    if (!playersResponse.ok || playersPayload?.error) {
-      return [];
-    }
-    const rawPlayers = playersPayload?.data?.HattrickData?.Team?.PlayerList?.Player;
-    const playerList = (Array.isArray(rawPlayers)
-      ? rawPlayers
-      : rawPlayers
-        ? [rawPlayers]
-        : []) as RawNode[];
-    return playerList
-      .filter((player) => parseBool(player?.TransferListed))
-      .map((player) => {
-        const playerId = parseNumber(player?.PlayerID);
-        const playerName = [player?.FirstName, player?.NickName, player?.LastName]
-          .filter(Boolean)
-          .join(" ")
-          .trim();
-        return {
-          playerId: playerId ?? 0,
-          playerName: playerName || null,
-        };
-      })
-      .filter((player) => player.playerId > 0);
-  };
-
   const refreshTransferSnapshots = async (
     nextCache: ChronicleCache,
     historyCount: number
   ) => {
     for (const team of trackedTeams) {
       try {
-        const transferListedPlayers = await fetchTransferListedPlayers(team.teamId);
+        const teamPlayers = await fetchTeamPlayers(team.teamId);
+        const transferListedPlayers = buildTransferListedPlayers(teamPlayers);
         const latestTransfers = await fetchLatestTransfers(team.teamId, historyCount);
         const snapshot: TransferActivitySnapshot = {
           transferListedCount: transferListedPlayers.length,
@@ -2954,16 +3098,38 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
   };
 
+  const refreshTsiSnapshots = async (nextCache: ChronicleCache) => {
+    for (const team of trackedTeams) {
+      try {
+        const teamPlayers = await fetchTeamPlayers(team.teamId);
+        const snapshot = buildTsiSnapshot(teamPlayers);
+        const previous = nextCache.teams[team.teamId]?.tsi?.current;
+        nextCache.teams[team.teamId] = {
+          ...nextCache.teams[team.teamId],
+          teamId: team.teamId,
+          teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+          tsi: {
+            current: snapshot,
+            previous,
+          },
+        };
+      } catch {
+        // ignore tsi failures
+      }
+    }
+  };
+
   const refreshFinanceAndTransferSnapshots = async (
     nextCache: ChronicleCache,
     historyCount: number
   ) => {
     for (const team of trackedTeams) {
       try {
-        const [transferListedPlayers, latestTransfers] = await Promise.all([
-          fetchTransferListedPlayers(team.teamId),
+        const [teamPlayers, latestTransfers] = await Promise.all([
+          fetchTeamPlayers(team.teamId),
           fetchLatestTransfers(team.teamId, historyCount),
         ]);
+        const transferListedPlayers = buildTransferListedPlayers(teamPlayers);
         const estimatedSek =
           latestTransfers.totalSalesSek !== null &&
           latestTransfers.totalBuysSek !== null
@@ -2988,6 +3154,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           fetchedAt: Date.now(),
         };
         const previousTransfer = nextCache.teams[team.teamId]?.transferActivity?.current;
+        const tsiSnapshot = buildTsiSnapshot(teamPlayers);
+        const previousTsi = nextCache.teams[team.teamId]?.tsi?.current;
         nextCache.teams[team.teamId] = {
           ...nextCache.teams[team.teamId],
           teamId: team.teamId,
@@ -2999,6 +3167,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           transferActivity: {
             current: transferSnapshot,
             previous: previousTransfer,
+          },
+          tsi: {
+            current: tsiSnapshot,
+            previous: previousTsi,
           },
         };
       } catch {
@@ -3024,6 +3196,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       "arena",
       "finance",
       "transfer",
+      "tsi",
     ]);
 
     setManualTeams(nextManualTeams);
@@ -3160,6 +3333,26 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     addNotification(messages.notificationChronicleRefreshComplete);
   };
 
+  const refreshTsiOnly = async () => {
+    if (anyRefreshing) return;
+    if (trackedTeams.length === 0) return;
+    setRefreshingTsi(true);
+    const nextCache = pruneChronicleCache(readChronicleCache());
+    const nextManualTeams = [...manualTeams];
+    await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+    await refreshTsiSnapshots(nextCache);
+    const nextUpdates = collectTeamChanges(nextCache, ["tsi"]);
+    setManualTeams(nextManualTeams);
+    setChronicleCache(nextCache);
+    setUpdates(nextUpdates);
+    const hasUpdates = Object.values(nextUpdates.teams).some(
+      (teamUpdate) => teamUpdate.changes.length > 0
+    );
+    setUpdatesOpen(hasUpdates);
+    setRefreshingTsi(false);
+    addNotification(messages.notificationChronicleRefreshComplete);
+  };
+
   const updatesByTeam = updates?.teams ?? {};
   const hasAnyTeamUpdates = trackedTeams.some((team) => {
     const changes = updatesByTeam[team.teamId]?.changes ?? [];
@@ -3232,6 +3425,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       teamId: team.teamId,
       teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
       snapshot: cached?.transferActivity?.current,
+    };
+  });
+
+  const tsiRows: TsiRow[] = trackedTeams.map((team) => {
+    const cached = chronicleCache.teams[team.teamId];
+    return {
+      teamId: team.teamId,
+      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+      snapshot: cached?.tsi?.current,
     };
   });
 
@@ -3380,6 +3582,29 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       })
       .map((item) => item.row);
   }, [transferRows, transferTableColumns, transferSortState]);
+
+  const sortedTsiRows = useMemo(() => {
+    if (!tsiSortState.key) return tsiRows;
+    const column = tsiTableColumns.find((item) => item.key === tsiSortState.key);
+    if (!column) return tsiRows;
+    const direction = tsiSortState.direction === "desc" ? -1 : 1;
+    return [...tsiRows]
+      .map((row, index) => ({ row, index }))
+      .sort((left, right) => {
+        const leftValue = normalizeSortValue(
+          column.getSortValue?.(left.row.snapshot ?? undefined, left.row) ??
+            column.getValue(left.row.snapshot ?? undefined, left.row)
+        );
+        const rightValue = normalizeSortValue(
+          column.getSortValue?.(right.row.snapshot ?? undefined, right.row) ??
+            column.getValue(right.row.snapshot ?? undefined, right.row)
+        );
+        const result = compareSortValues(leftValue, rightValue);
+        if (result !== 0) return result * direction;
+        return left.index - right.index;
+      })
+      .map((item) => item.row);
+  }, [tsiRows, tsiTableColumns, tsiSortState]);
 
   const selectedTeam = selectedTeamId
     ? leagueRows.find((team) => team.teamId === selectedTeamId) ?? null
@@ -3755,6 +3980,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [transferTableColumns.length]
   );
 
+  const tsiTableStyle = useMemo(
+    () =>
+      ({
+        "--cc-columns": tsiTableColumns.length,
+        "--cc-template": "minmax(180px, 1.4fr) minmax(120px, 0.9fr) minmax(120px, 0.9fr)",
+      }) as CSSProperties,
+    [tsiTableColumns.length]
+  );
+
   return (
     <div className={styles.clubChronicleStack}>
       <div className={styles.chronicleHeader}>
@@ -4052,6 +4286,50 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       sortKey={transferSortState.key}
                       sortDirection={transferSortState.direction}
                       onSort={handleTransferSort}
+                    />
+                  )}
+                </ChroniclePanel>
+              </div>
+            );
+          }
+          if (panelId === "tsi") {
+            return (
+              <div
+                key={panelId}
+                className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
+                onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDrop={(event) => handlePanelDrop(event, panelId)}
+                onDragEnd={handlePanelDragEnd}
+              >
+                <ChroniclePanel
+                  title={messages.clubChronicleTsiPanelTitle}
+                  refreshing={refreshingGlobal || refreshingTsi}
+                  refreshLabel={messages.clubChronicleRefreshTsiTooltip}
+                  panelId={panelId}
+                  onRefresh={() => void refreshTsiOnly()}
+                  onDragStart={handlePanelDragStart}
+                  onDragEnd={handlePanelDragEnd}
+                >
+                  {trackedTeams.length === 0 ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
+                    </p>
+                  ) : (refreshingGlobal || refreshingTsi) &&
+                    tsiRows.every((row) => !row.snapshot) ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleLoading}
+                    </p>
+                  ) : (
+                    <ChronicleTable
+                      columns={tsiTableColumns}
+                      rows={sortedTsiRows}
+                      getRowKey={(row) => row.teamId}
+                      getSnapshot={(row) => row.snapshot ?? undefined}
+                      formatValue={formatValue}
+                      style={tsiTableStyle}
+                      sortKey={tsiSortState.key}
+                      sortDirection={tsiSortState.direction}
+                      onSort={handleTsiSort}
                     />
                   )}
                 </ChroniclePanel>

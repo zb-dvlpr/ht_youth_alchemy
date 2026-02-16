@@ -60,6 +60,7 @@ export type Messages = {
   changelog_2_6_0: string;
   changelog_2_7_0: string;
   changelog_2_8_0: string;
+  changelog_2_9_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -110,6 +111,7 @@ export type Messages = {
   clubChronicleRefreshArenaTooltip: string;
   clubChronicleRefreshFinanceTooltip: string;
   clubChronicleRefreshTransferTooltip: string;
+  clubChronicleRefreshTsiTooltip: string;
   clubChroniclePressPanelTitle: string;
   clubChroniclePressDetailsTitle: string;
   clubChroniclePressColumnAnnouncement: string;
@@ -194,6 +196,9 @@ export type Messages = {
   clubChronicleTransferHistoryPriceColumn: string;
   clubChronicleTransferTypeSale: string;
   clubChronicleTransferTypeBuy: string;
+  clubChronicleTsiPanelTitle: string;
+  clubChronicleTsiColumnTotal: string;
+  clubChronicleTsiColumnTop11: string;
   helpTitle: string;
   helpIntro: string;
   helpBulletOverview: string;
@@ -555,6 +560,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Latest updates now tracks changed attributes across all Club Chronicle panels.",
     changelog_2_8_0:
       "Club Chronicle adds arena panel with name, ID, capacity, rebuild date, and seat breakdown modal.",
+    changelog_2_9_0:
+      "Club Chronicle adds a TSI panel with per-team total TSI and top-11 TSI totals.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -608,6 +615,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshArenaTooltip: "Refresh arena data.",
     clubChronicleRefreshFinanceTooltip: "Refresh finance estimate data.",
     clubChronicleRefreshTransferTooltip: "Refresh transfer market data.",
+    clubChronicleRefreshTsiTooltip: "Refresh TSI data.",
     clubChroniclePressPanelTitle: "Press announcements",
     clubChroniclePressDetailsTitle: "Press announcement",
     clubChroniclePressColumnAnnouncement: "Announcement",
@@ -655,6 +663,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTransferHistoryPriceColumn: "Price",
     clubChronicleTransferTypeSale: "Sale",
     clubChronicleTransferTypeBuy: "Buy",
+    clubChronicleTsiPanelTitle: "TSI",
+    clubChronicleTsiColumnTotal: "Total TSI",
+    clubChronicleTsiColumnTop11: "Top 11 TSI",
     clubChronicleMoveUp: "Move panel up",
     clubChronicleMoveDown: "Move panel down",
     clubChronicleUpdatesEmpty: "No updates available yet.",
@@ -1072,6 +1083,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Neueste Updates verfolgt nun geänderte Attribute in allen Club-Chronik-Panels.",
     changelog_2_8_0:
       "Club-Chronik erweitert um Arena-Panel mit Name, ID, Kapazität, Ausbaudatum und Sitzplatz-Aufschlüsselung.",
+    changelog_2_9_0:
+      "Club-Chronik erweitert um ein TSI-Panel mit Gesamt-TSI und Top-11-TSI pro Team.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -1126,6 +1139,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshArenaTooltip: "Arena-Daten aktualisieren.",
     clubChronicleRefreshFinanceTooltip: "Daten der Finanzschätzung aktualisieren.",
     clubChronicleRefreshTransferTooltip: "Transfermarktdaten aktualisieren.",
+    clubChronicleRefreshTsiTooltip: "TSI-Daten aktualisieren.",
     clubChroniclePressPanelTitle: "Pressemitteilungen",
     clubChroniclePressDetailsTitle: "Pressemitteilung",
     clubChroniclePressColumnAnnouncement: "Mitteilung",
@@ -1173,6 +1187,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTransferHistoryPriceColumn: "Preis",
     clubChronicleTransferTypeSale: "Verkauf",
     clubChronicleTransferTypeBuy: "Kauf",
+    clubChronicleTsiPanelTitle: "TSI",
+    clubChronicleTsiColumnTotal: "Gesamt-TSI",
+    clubChronicleTsiColumnTop11: "Top-11-TSI",
     clubChronicleMoveUp: "Panel nach oben verschieben",
     clubChronicleMoveDown: "Panel nach unten verschieben",
     clubChronicleUpdatesEmpty: "Noch keine Updates verfügbar.",
@@ -1594,6 +1611,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Dernières mises à jour suit désormais les attributs modifiés sur tous les panneaux de la Chronique du club.",
     changelog_2_8_0:
       "Nouveau panneau arène dans la Chronique du club avec nom, ID, capacité, date d agrandissement et détail des places.",
+    changelog_2_9_0:
+      "La Chronique du club ajoute un panneau TSI avec le TSI total et le TSI du top 11 par équipe.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1648,6 +1667,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshArenaTooltip: "Actualiser les données de l arène.",
     clubChronicleRefreshFinanceTooltip: "Actualiser les données d'estimation financière.",
     clubChronicleRefreshTransferTooltip: "Actualiser les données du marché des transferts.",
+    clubChronicleRefreshTsiTooltip: "Actualiser les données TSI.",
     clubChroniclePressPanelTitle: "Communiqués de presse",
     clubChroniclePressDetailsTitle: "Communiqué de presse",
     clubChroniclePressColumnAnnouncement: "Annonce",
@@ -1695,6 +1715,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTransferHistoryPriceColumn: "Prix",
     clubChronicleTransferTypeSale: "Vente",
     clubChronicleTransferTypeBuy: "Achat",
+    clubChronicleTsiPanelTitle: "TSI",
+    clubChronicleTsiColumnTotal: "TSI total",
+    clubChronicleTsiColumnTop11: "TSI top 11",
     clubChronicleMoveUp: "Monter le panneau",
     clubChronicleMoveDown: "Descendre le panneau",
     clubChronicleUpdatesEmpty: "Aucune mise à jour disponible.",
@@ -2123,6 +2146,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Últimas actualizaciones ahora rastrea atributos cambiados en todos los paneles de Crónica del club.",
     changelog_2_8_0:
       "Crónica del club añade panel de estadio con nombre, ID, capacidad, fecha de ampliación y desglose de asientos.",
+    changelog_2_9_0:
+      "Crónica del club añade un panel de TSI con TSI total y TSI del top 11 por equipo.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -2177,6 +2202,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshArenaTooltip: "Actualizar datos del estadio.",
     clubChronicleRefreshFinanceTooltip: "Actualizar datos de estimación financiera.",
     clubChronicleRefreshTransferTooltip: "Actualizar datos del mercado de traspasos.",
+    clubChronicleRefreshTsiTooltip: "Actualizar datos de TSI.",
     clubChroniclePressPanelTitle: "Comunicados de prensa",
     clubChroniclePressDetailsTitle: "Comunicado de prensa",
     clubChroniclePressColumnAnnouncement: "Anuncio",
@@ -2224,6 +2250,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTransferHistoryPriceColumn: "Precio",
     clubChronicleTransferTypeSale: "Venta",
     clubChronicleTransferTypeBuy: "Compra",
+    clubChronicleTsiPanelTitle: "TSI",
+    clubChronicleTsiColumnTotal: "TSI total",
+    clubChronicleTsiColumnTop11: "TSI top 11",
     clubChronicleMoveUp: "Mover panel arriba",
     clubChronicleMoveDown: "Mover panel abajo",
     clubChronicleUpdatesEmpty: "No hay actualizaciones disponibles.",
@@ -2646,6 +2675,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Senaste uppdateringar spårar nu ändrade attribut i alla paneler i Klubbkrönikan.",
     changelog_2_8_0:
       "Klubbkrönikan har nu en arenapanel med namn, ID, kapacitet, byggdatum och platsfördelning.",
+    changelog_2_9_0:
+      "Klubbkrönikan lägger till en TSI-panel med total TSI och topp-11 TSI per lag.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -2700,6 +2731,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshArenaTooltip: "Uppdatera arenadata.",
     clubChronicleRefreshFinanceTooltip: "Uppdatera data för finansestimat.",
     clubChronicleRefreshTransferTooltip: "Uppdatera data för transfermarknaden.",
+    clubChronicleRefreshTsiTooltip: "Uppdatera TSI-data.",
     clubChroniclePressPanelTitle: "Pressmeddelanden",
     clubChroniclePressDetailsTitle: "Pressmeddelande",
     clubChroniclePressColumnAnnouncement: "Meddelande",
@@ -2747,6 +2779,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTransferHistoryPriceColumn: "Pris",
     clubChronicleTransferTypeSale: "Försäljning",
     clubChronicleTransferTypeBuy: "Köp",
+    clubChronicleTsiPanelTitle: "TSI",
+    clubChronicleTsiColumnTotal: "Total TSI",
+    clubChronicleTsiColumnTop11: "Topp 11 TSI",
     clubChronicleMoveUp: "Flytta panel upp",
     clubChronicleMoveDown: "Flytta panel ner",
     clubChronicleUpdatesEmpty: "Inga uppdateringar ännu.",
@@ -3169,6 +3204,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Ultimi aggiornamenti ora traccia gli attributi modificati in tutti i pannelli della Cronaca del club.",
     changelog_2_8_0:
       "La Cronaca del club aggiunge il pannello stadio con nome, ID, capacità, data ultimo ampliamento e dettaglio posti.",
+    changelog_2_9_0:
+      "La Cronaca del club aggiunge un pannello TSI con TSI totale e TSI dei migliori 11 per squadra.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -3223,6 +3260,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshArenaTooltip: "Aggiorna i dati dello stadio.",
     clubChronicleRefreshFinanceTooltip: "Aggiorna i dati della stima finanziaria.",
     clubChronicleRefreshTransferTooltip: "Aggiorna i dati del mercato trasferimenti.",
+    clubChronicleRefreshTsiTooltip: "Aggiorna i dati TSI.",
     clubChroniclePressPanelTitle: "Comunicati stampa",
     clubChroniclePressDetailsTitle: "Comunicato stampa",
     clubChroniclePressColumnAnnouncement: "Annuncio",
@@ -3270,6 +3308,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTransferHistoryPriceColumn: "Prezzo",
     clubChronicleTransferTypeSale: "Vendita",
     clubChronicleTransferTypeBuy: "Acquisto",
+    clubChronicleTsiPanelTitle: "TSI",
+    clubChronicleTsiColumnTotal: "TSI totale",
+    clubChronicleTsiColumnTop11: "TSI top 11",
     clubChronicleMoveUp: "Sposta pannello su",
     clubChronicleMoveDown: "Sposta pannello giù",
     clubChronicleUpdatesEmpty: "Nessun aggiornamento disponibile.",
@@ -3694,6 +3735,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Últimas atualizações agora rastreia atributos alterados em todos os painéis da Crônica do clube.",
     changelog_2_8_0:
       "Crônica do clube adiciona painel de arena com nome, ID, capacidade, data de expansão e detalhamento de assentos.",
+    changelog_2_9_0:
+      "Crônica do clube adiciona um painel de TSI com TSI total e TSI dos 11 melhores por equipe.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -3748,6 +3791,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshArenaTooltip: "Atualizar dados da arena.",
     clubChronicleRefreshFinanceTooltip: "Atualizar dados da estimativa financeira.",
     clubChronicleRefreshTransferTooltip: "Atualizar dados do mercado de transferências.",
+    clubChronicleRefreshTsiTooltip: "Atualizar dados de TSI.",
     clubChroniclePressPanelTitle: "Comunicados de imprensa",
     clubChroniclePressDetailsTitle: "Comunicado de imprensa",
     clubChroniclePressColumnAnnouncement: "Anúncio",
@@ -3795,6 +3839,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTransferHistoryPriceColumn: "Preço",
     clubChronicleTransferTypeSale: "Venda",
     clubChronicleTransferTypeBuy: "Compra",
+    clubChronicleTsiPanelTitle: "TSI",
+    clubChronicleTsiColumnTotal: "TSI total",
+    clubChronicleTsiColumnTop11: "TSI top 11",
     clubChronicleMoveUp: "Mover painel para cima",
     clubChronicleMoveDown: "Mover painel para baixo",
     clubChronicleUpdatesEmpty: "Nenhuma atualização disponível.",

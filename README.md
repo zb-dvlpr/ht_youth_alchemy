@@ -15,6 +15,7 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Modal confirmations and blockers for critical actions
 - Settings menu with data export/import for local backups and algorithm controls
 - General settings submenu with an `Enable app scaling` toggle (default off) and explanatory tooltip; when scaling is off, the app uses normal-size layout with page scrolling, keeps the top bar pinned, and preserves a clean top edge while scrolling
+- Dev builds include a `Debug` settings submenu with a button to open dummy Club Chronicle Latest Updates data for currently tracked teams
 - Localization, dark mode, notifications, and a guided help overlay with callouts
 - Stale data auto-refresh with configurable threshold
 - Help menu with an in-app changelog and pagination (10 rows per page)

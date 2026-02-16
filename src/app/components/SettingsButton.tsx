@@ -17,6 +17,7 @@ import {
   writeClubChronicleStalenessDays,
   readClubChronicleTransferHistoryCount,
   writeClubChronicleTransferHistoryCount,
+  CLUB_CHRONICLE_DEBUG_EVENT,
   CLUB_CHRONICLE_SETTINGS_EVENT,
   GENERAL_SETTINGS_EVENT,
   readGeneralEnableScaling,
@@ -40,6 +41,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
   const [youthSettingsOpen, setYouthSettingsOpen] = useState(false);
   const [chronicleSettingsOpen, setChronicleSettingsOpen] = useState(false);
   const [generalSettingsOpen, setGeneralSettingsOpen] = useState(false);
+  const [debugSettingsOpen, setDebugSettingsOpen] = useState(false);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
   const [stalenessHours, setStalenessHours] = useState(3);
@@ -51,6 +53,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
   const menuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { addNotification } = useNotifications();
+  const isDev = process.env.NODE_ENV !== "production";
 
   useEffect(() => {
     if (!open) return;
@@ -215,6 +218,13 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     }
   };
 
+  const handleShowDummyUpdates = () => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(CLUB_CHRONICLE_DEBUG_EVENT));
+    }
+    setDebugSettingsOpen(false);
+  };
+
   return (
     <div className={styles.feedbackWrap}>
       <Tooltip content={messages.settingsTooltip}>
@@ -260,6 +270,18 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
           >
             {messages.settingsGeneral}
           </button>
+          {isDev ? (
+            <button
+              type="button"
+              className={styles.feedbackLink}
+              onClick={() => {
+                setDebugSettingsOpen(true);
+                setOpen(false);
+              }}
+            >
+              {messages.settingsDebug}
+            </button>
+          ) : null}
           <button
             type="button"
             className={styles.feedbackLink}
@@ -442,6 +464,32 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         }
         closeOnBackdrop
         onClose={() => setGeneralSettingsOpen(false)}
+      />
+      <Modal
+        open={debugSettingsOpen}
+        title={messages.settingsDebugTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={handleShowDummyUpdates}
+            >
+              {messages.settingsDebugDisableScalingLabel}
+            </button>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmCancel}
+            onClick={() => setDebugSettingsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setDebugSettingsOpen(false)}
       />
       <input
         ref={fileInputRef}

@@ -15,6 +15,7 @@ import Tooltip from "./Tooltip";
 import Modal from "./Modal";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import {
+  CLUB_CHRONICLE_DEBUG_EVENT,
   CLUB_CHRONICLE_SETTINGS_EVENT,
   CLUB_CHRONICLE_SETTINGS_STORAGE_KEY,
   DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS,
@@ -920,6 +921,62 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     );
   }, [supportedTeams, supportedSelections, manualTeams, chronicleCache, primaryTeam]);
 
+  const openDummyUpdates = useCallback(() => {
+    if (trackedTeams.length === 0) return;
+    const dummyUpdates: ChronicleUpdates = {
+      generatedAt: Date.now(),
+      teams: Object.fromEntries(
+        trackedTeams.map((team) => [
+          team.teamId,
+          {
+            teamId: team.teamId,
+            teamName: team.teamName ?? `${team.teamId}`,
+            changes: [
+              {
+                fieldKey: "league.position",
+                label: messages.clubChronicleColumnPosition,
+                previous: "5",
+                current: "4",
+              },
+              {
+                fieldKey: "league.points",
+                label: messages.clubChronicleColumnPoints,
+                previous: "18",
+                current: "21",
+              },
+              {
+                fieldKey: "press.announcement",
+                label: messages.clubChroniclePressColumnAnnouncement,
+                previous: messages.clubChroniclePressNone,
+                current: messages.clubChroniclePressArticleLabel,
+              },
+              {
+                fieldKey: "finance.estimate",
+                label: messages.clubChronicleFinanceColumnEstimate,
+                previous: "€120,000*",
+                current: "€95,000*",
+              },
+              {
+                fieldKey: "transfer.listed",
+                label: messages.clubChronicleTransferColumnActive,
+                previous: "0",
+                current: "1",
+              },
+              {
+                fieldKey: "transfer.history",
+                label: messages.clubChronicleTransferColumnHistory,
+                previous: "2/1",
+                current: "2/2",
+              },
+            ],
+          },
+        ])
+      ),
+    };
+    setUpdates(dummyUpdates);
+    setUpdatesOpen(true);
+  }, [trackedTeams, messages]);
+
   useEffect(() => {
     let active = true;
     const load = async () => {
@@ -1157,6 +1214,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       window.removeEventListener(CLUB_CHRONICLE_SETTINGS_EVENT, handle);
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (process.env.NODE_ENV === "production") return;
+    const handleDebugUpdates = () => {
+      openDummyUpdates();
+    };
+    window.addEventListener(CLUB_CHRONICLE_DEBUG_EVENT, handleDebugUpdates);
+    return () => {
+      window.removeEventListener(CLUB_CHRONICLE_DEBUG_EVENT, handleDebugUpdates);
+    };
+  }, [openDummyUpdates]);
 
   useEffect(() => {
     if (trackedTeams.length === 0) return;

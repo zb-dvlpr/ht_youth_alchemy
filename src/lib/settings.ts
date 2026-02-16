@@ -3,6 +3,7 @@ export const ALGORITHM_SETTINGS_EVENT = "ya:algorithm-settings";
 export const DEFAULT_ALLOW_TRAINING_UNTIL_MAXED_OUT = true;
 export const CLUB_CHRONICLE_SETTINGS_STORAGE_KEY = "ya_club_chronicle_settings_v1";
 export const CLUB_CHRONICLE_SETTINGS_EVENT = "ya:club-chronicle-settings";
+export const CLUB_CHRONICLE_DEBUG_EVENT = "ya:club-chronicle-debug";
 export const DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS = 3;
 export const DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT = 5;
 export const YOUTH_SETTINGS_STORAGE_KEY = "ya_youth_staleness_hours_v1";

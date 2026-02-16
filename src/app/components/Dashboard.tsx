@@ -421,7 +421,7 @@ export default function Dashboard({
     [changelogEntries]
   );
 
-  const changelogPageSize = 20;
+  const changelogPageSize = 10;
   const changelogTotalPages = Math.max(
     1,
     Math.ceil(changelogRows.length / changelogPageSize)

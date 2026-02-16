@@ -59,6 +59,7 @@ export type Messages = {
   changelog_2_5_0: string;
   changelog_2_6_0: string;
   changelog_2_7_0: string;
+  changelog_2_8_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -106,6 +107,7 @@ export type Messages = {
   clubChronicleRefreshAllTooltip: string;
   clubChronicleRefreshTooltip: string;
   clubChronicleRefreshPressTooltip: string;
+  clubChronicleRefreshArenaTooltip: string;
   clubChronicleRefreshFinanceTooltip: string;
   clubChronicleRefreshTransferTooltip: string;
   clubChroniclePressPanelTitle: string;
@@ -122,6 +124,16 @@ export type Messages = {
   clubChronicleFanclubPanelTitle: string;
   clubChronicleFanclubColumnName: string;
   clubChronicleFanclubColumnSize: string;
+  clubChronicleArenaPanelTitle: string;
+  clubChronicleArenaColumnName: string;
+  clubChronicleArenaColumnId: string;
+  clubChronicleArenaColumnCapacity: string;
+  clubChronicleArenaColumnRebuiltDate: string;
+  clubChronicleArenaDetailsTitle: string;
+  clubChronicleArenaSeatTerraces: string;
+  clubChronicleArenaSeatBasic: string;
+  clubChronicleArenaSeatRoof: string;
+  clubChronicleArenaSeatVip: string;
   clubChronicleTableTeam: string;
   clubChronicleTableSummary: string;
   clubChronicleMoveUp: string;
@@ -541,6 +553,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "General setting to enable viewport app scaling with explanatory tooltip.",
     changelog_2_7_0:
       "Latest updates now tracks changed attributes across all Club Chronicle panels.",
+    changelog_2_8_0:
+      "Club Chronicle adds arena panel with name, ID, capacity, rebuild date, and seat breakdown modal.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -591,6 +605,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshAllTooltip: "Refresh all Club Chronicle data.",
     clubChronicleRefreshTooltip: "Refresh league performance data.",
     clubChronicleRefreshPressTooltip: "Refresh press announcements data.",
+    clubChronicleRefreshArenaTooltip: "Refresh arena data.",
     clubChronicleRefreshFinanceTooltip: "Refresh finance estimate data.",
     clubChronicleRefreshTransferTooltip: "Refresh transfer market data.",
     clubChroniclePressPanelTitle: "Press announcements",
@@ -607,6 +622,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Fan club",
     clubChronicleFanclubColumnName: "Fan club name",
     clubChronicleFanclubColumnSize: "Fan club size",
+    clubChronicleArenaPanelTitle: "Arena",
+    clubChronicleArenaColumnName: "Arena name",
+    clubChronicleArenaColumnId: "Arena ID",
+    clubChronicleArenaColumnCapacity: "Total capacity",
+    clubChronicleArenaColumnRebuiltDate: "Latest build date",
+    clubChronicleArenaDetailsTitle: "Arena details",
+    clubChronicleArenaSeatTerraces: "Terraces",
+    clubChronicleArenaSeatBasic: "Basic",
+    clubChronicleArenaSeatRoof: "Roof",
+    clubChronicleArenaSeatVip: "VIP",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Summary",
     clubChronicleColumnTeam: "Team",
@@ -1045,6 +1070,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Allgemeine Einstellung zum Aktivieren der App-Skalierung mit erklärendem Tooltip.",
     changelog_2_7_0:
       "Neueste Updates verfolgt nun geänderte Attribute in allen Club-Chronik-Panels.",
+    changelog_2_8_0:
+      "Club-Chronik erweitert um Arena-Panel mit Name, ID, Kapazität, Ausbaudatum und Sitzplatz-Aufschlüsselung.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -1096,6 +1123,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshAllTooltip: "Alle Club-Chronik-Daten aktualisieren.",
     clubChronicleRefreshTooltip: "Ligaleistungsdaten aktualisieren.",
     clubChronicleRefreshPressTooltip: "Daten der Pressemitteilungen aktualisieren.",
+    clubChronicleRefreshArenaTooltip: "Arena-Daten aktualisieren.",
     clubChronicleRefreshFinanceTooltip: "Daten der Finanzschätzung aktualisieren.",
     clubChronicleRefreshTransferTooltip: "Transfermarktdaten aktualisieren.",
     clubChroniclePressPanelTitle: "Pressemitteilungen",
@@ -1112,6 +1140,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Fanclub",
     clubChronicleFanclubColumnName: "Fanclubname",
     clubChronicleFanclubColumnSize: "Fanclubgröße",
+    clubChronicleArenaPanelTitle: "Arena",
+    clubChronicleArenaColumnName: "Arenaname",
+    clubChronicleArenaColumnId: "Arena-ID",
+    clubChronicleArenaColumnCapacity: "Gesamtkapazität",
+    clubChronicleArenaColumnRebuiltDate: "Letztes Ausbaudatum",
+    clubChronicleArenaDetailsTitle: "Arenadetails",
+    clubChronicleArenaSeatTerraces: "Stehplätze",
+    clubChronicleArenaSeatBasic: "Sitzplätze",
+    clubChronicleArenaSeatRoof: "Überdacht",
+    clubChronicleArenaSeatVip: "VIP",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Zusammenfassung",
     clubChronicleColumnTeam: "Team",
@@ -1554,6 +1592,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Paramètre général pour activer la mise à l échelle de l app avec infobulle explicative.",
     changelog_2_7_0:
       "Dernières mises à jour suit désormais les attributs modifiés sur tous les panneaux de la Chronique du club.",
+    changelog_2_8_0:
+      "Nouveau panneau arène dans la Chronique du club avec nom, ID, capacité, date d agrandissement et détail des places.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1605,6 +1645,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshAllTooltip: "Actualiser toutes les données de la Chronique du club.",
     clubChronicleRefreshTooltip: "Actualiser les données de performance en ligue.",
     clubChronicleRefreshPressTooltip: "Actualiser les données des communiqués de presse.",
+    clubChronicleRefreshArenaTooltip: "Actualiser les données de l arène.",
     clubChronicleRefreshFinanceTooltip: "Actualiser les données d'estimation financière.",
     clubChronicleRefreshTransferTooltip: "Actualiser les données du marché des transferts.",
     clubChroniclePressPanelTitle: "Communiqués de presse",
@@ -1621,6 +1662,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Fan club",
     clubChronicleFanclubColumnName: "Nom du fan club",
     clubChronicleFanclubColumnSize: "Taille du fan club",
+    clubChronicleArenaPanelTitle: "Arène",
+    clubChronicleArenaColumnName: "Nom de l arène",
+    clubChronicleArenaColumnId: "ID arène",
+    clubChronicleArenaColumnCapacity: "Capacité totale",
+    clubChronicleArenaColumnRebuiltDate: "Dernière date d agrandissement",
+    clubChronicleArenaDetailsTitle: "Détails de l arène",
+    clubChronicleArenaSeatTerraces: "Terrasses",
+    clubChronicleArenaSeatBasic: "Basique",
+    clubChronicleArenaSeatRoof: "Couvert",
+    clubChronicleArenaSeatVip: "VIP",
     clubChronicleTableTeam: "Équipe",
     clubChronicleTableSummary: "Résumé",
     clubChronicleColumnTeam: "Équipe",
@@ -2070,6 +2121,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Ajuste general para activar el escalado de la app con tooltip explicativo.",
     changelog_2_7_0:
       "Últimas actualizaciones ahora rastrea atributos cambiados en todos los paneles de Crónica del club.",
+    changelog_2_8_0:
+      "Crónica del club añade panel de estadio con nombre, ID, capacidad, fecha de ampliación y desglose de asientos.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -2121,6 +2174,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshAllTooltip: "Actualizar todos los datos de Crónica del club.",
     clubChronicleRefreshTooltip: "Actualizar los datos de rendimiento en liga.",
     clubChronicleRefreshPressTooltip: "Actualizar datos de comunicados de prensa.",
+    clubChronicleRefreshArenaTooltip: "Actualizar datos del estadio.",
     clubChronicleRefreshFinanceTooltip: "Actualizar datos de estimación financiera.",
     clubChronicleRefreshTransferTooltip: "Actualizar datos del mercado de traspasos.",
     clubChroniclePressPanelTitle: "Comunicados de prensa",
@@ -2137,6 +2191,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Club de fans",
     clubChronicleFanclubColumnName: "Nombre del club de fans",
     clubChronicleFanclubColumnSize: "Tamaño del club de fans",
+    clubChronicleArenaPanelTitle: "Estadio",
+    clubChronicleArenaColumnName: "Nombre del estadio",
+    clubChronicleArenaColumnId: "ID de estadio",
+    clubChronicleArenaColumnCapacity: "Capacidad total",
+    clubChronicleArenaColumnRebuiltDate: "Última fecha de ampliación",
+    clubChronicleArenaDetailsTitle: "Detalles del estadio",
+    clubChronicleArenaSeatTerraces: "Gradas",
+    clubChronicleArenaSeatBasic: "Básico",
+    clubChronicleArenaSeatRoof: "Cubierto",
+    clubChronicleArenaSeatVip: "VIP",
     clubChronicleTableTeam: "Equipo",
     clubChronicleTableSummary: "Resumen",
     clubChronicleColumnTeam: "Equipo",
@@ -2580,6 +2644,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Allmän inställning för att aktivera appskalning med förklarande tooltip.",
     changelog_2_7_0:
       "Senaste uppdateringar spårar nu ändrade attribut i alla paneler i Klubbkrönikan.",
+    changelog_2_8_0:
+      "Klubbkrönikan har nu en arenapanel med namn, ID, kapacitet, byggdatum och platsfördelning.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -2631,6 +2697,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshAllTooltip: "Uppdatera all data i Klubbkrönikan.",
     clubChronicleRefreshTooltip: "Uppdatera ligaprestanda-data.",
     clubChronicleRefreshPressTooltip: "Uppdatera data för pressmeddelanden.",
+    clubChronicleRefreshArenaTooltip: "Uppdatera arenadata.",
     clubChronicleRefreshFinanceTooltip: "Uppdatera data för finansestimat.",
     clubChronicleRefreshTransferTooltip: "Uppdatera data för transfermarknaden.",
     clubChroniclePressPanelTitle: "Pressmeddelanden",
@@ -2647,6 +2714,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Fanklubb",
     clubChronicleFanclubColumnName: "Fanklubbsnamn",
     clubChronicleFanclubColumnSize: "Fanklubbsstorlek",
+    clubChronicleArenaPanelTitle: "Arena",
+    clubChronicleArenaColumnName: "Arenanamn",
+    clubChronicleArenaColumnId: "Arena-ID",
+    clubChronicleArenaColumnCapacity: "Total kapacitet",
+    clubChronicleArenaColumnRebuiltDate: "Senaste byggdatum",
+    clubChronicleArenaDetailsTitle: "Arenadetaljer",
+    clubChronicleArenaSeatTerraces: "Terrasser",
+    clubChronicleArenaSeatBasic: "Bas",
+    clubChronicleArenaSeatRoof: "Tak",
+    clubChronicleArenaSeatVip: "VIP",
     clubChronicleTableTeam: "Lag",
     clubChronicleTableSummary: "Sammanfattning",
     clubChronicleColumnTeam: "Lag",
@@ -3090,6 +3167,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Impostazione generale per attivare la scalatura dell app con tooltip esplicativo.",
     changelog_2_7_0:
       "Ultimi aggiornamenti ora traccia gli attributi modificati in tutti i pannelli della Cronaca del club.",
+    changelog_2_8_0:
+      "La Cronaca del club aggiunge il pannello stadio con nome, ID, capacità, data ultimo ampliamento e dettaglio posti.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -3141,6 +3220,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshAllTooltip: "Aggiorna tutti i dati della Cronaca del club.",
     clubChronicleRefreshTooltip: "Aggiorna i dati di prestazione in lega.",
     clubChronicleRefreshPressTooltip: "Aggiorna i dati dei comunicati stampa.",
+    clubChronicleRefreshArenaTooltip: "Aggiorna i dati dello stadio.",
     clubChronicleRefreshFinanceTooltip: "Aggiorna i dati della stima finanziaria.",
     clubChronicleRefreshTransferTooltip: "Aggiorna i dati del mercato trasferimenti.",
     clubChroniclePressPanelTitle: "Comunicati stampa",
@@ -3157,6 +3237,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Fan club",
     clubChronicleFanclubColumnName: "Nome fan club",
     clubChronicleFanclubColumnSize: "Dimensione fan club",
+    clubChronicleArenaPanelTitle: "Stadio",
+    clubChronicleArenaColumnName: "Nome stadio",
+    clubChronicleArenaColumnId: "ID stadio",
+    clubChronicleArenaColumnCapacity: "Capacità totale",
+    clubChronicleArenaColumnRebuiltDate: "Data ultimo ampliamento",
+    clubChronicleArenaDetailsTitle: "Dettagli stadio",
+    clubChronicleArenaSeatTerraces: "Tribune",
+    clubChronicleArenaSeatBasic: "Base",
+    clubChronicleArenaSeatRoof: "Coperto",
+    clubChronicleArenaSeatVip: "VIP",
     clubChronicleTableTeam: "Squadra",
     clubChronicleTableSummary: "Riepilogo",
     clubChronicleColumnTeam: "Squadra",
@@ -3602,6 +3692,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Configuração geral para ativar a escala do app com tooltip explicativo.",
     changelog_2_7_0:
       "Últimas atualizações agora rastreia atributos alterados em todos os painéis da Crônica do clube.",
+    changelog_2_8_0:
+      "Crônica do clube adiciona painel de arena com nome, ID, capacidade, data de expansão e detalhamento de assentos.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -3653,6 +3745,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshAllTooltip: "Atualizar todos os dados da Crônica do clube.",
     clubChronicleRefreshTooltip: "Atualizar dados de desempenho na liga.",
     clubChronicleRefreshPressTooltip: "Atualizar dados de comunicados de imprensa.",
+    clubChronicleRefreshArenaTooltip: "Atualizar dados da arena.",
     clubChronicleRefreshFinanceTooltip: "Atualizar dados da estimativa financeira.",
     clubChronicleRefreshTransferTooltip: "Atualizar dados do mercado de transferências.",
     clubChroniclePressPanelTitle: "Comunicados de imprensa",
@@ -3669,6 +3762,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Clube de fãs",
     clubChronicleFanclubColumnName: "Nome do clube de fãs",
     clubChronicleFanclubColumnSize: "Tamanho do clube de fãs",
+    clubChronicleArenaPanelTitle: "Arena",
+    clubChronicleArenaColumnName: "Nome da arena",
+    clubChronicleArenaColumnId: "ID da arena",
+    clubChronicleArenaColumnCapacity: "Capacidade total",
+    clubChronicleArenaColumnRebuiltDate: "Última data de expansão",
+    clubChronicleArenaDetailsTitle: "Detalhes da arena",
+    clubChronicleArenaSeatTerraces: "Arquibancadas",
+    clubChronicleArenaSeatBasic: "Básico",
+    clubChronicleArenaSeatRoof: "Coberto",
+    clubChronicleArenaSeatVip: "VIP",
     clubChronicleTableTeam: "Time",
     clubChronicleTableSummary: "Resumo",
     clubChronicleColumnTeam: "Time",

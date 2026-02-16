@@ -241,13 +241,10 @@ type ChroniclePanelProps = {
   title: string;
   refreshing?: boolean;
   refreshLabel: string;
-  moveUpLabel: string;
-  moveDownLabel: string;
   onRefresh?: () => void;
-  canMoveUp?: boolean;
-  canMoveDown?: boolean;
-  onMoveUp?: () => void;
-  onMoveDown?: () => void;
+  panelId: string;
+  onDragStart?: (event: React.DragEvent<HTMLSpanElement>, panelId: string) => void;
+  onDragEnd?: () => void;
   children: React.ReactNode;
 };
 
@@ -334,19 +331,25 @@ const ChroniclePanel = ({
   title,
   refreshing,
   refreshLabel,
-  moveUpLabel,
-  moveDownLabel,
   onRefresh,
-  canMoveUp,
-  canMoveDown,
-  onMoveUp,
-  onMoveDown,
+  panelId,
+  onDragStart,
+  onDragEnd,
   children,
 }: ChroniclePanelProps) => (
   <div className={styles.chroniclePanel}>
     <div className={styles.chroniclePanelHeader}>
       <h3 className={styles.chroniclePanelTitle}>
         <span className={styles.chroniclePanelTitleRow}>
+          <span
+            className={styles.chroniclePanelDragHandle}
+            draggable
+            onDragStart={(event) => onDragStart?.(event, panelId)}
+            onDragEnd={onDragEnd}
+            aria-label={title}
+          >
+            ⋮⋮
+          </span>
           {title}
           {onRefresh ? (
             <Tooltip content={refreshLabel}>
@@ -369,30 +372,6 @@ const ChroniclePanel = ({
           ) : null}
         </span>
       </h3>
-      <div className={styles.chroniclePanelActions}>
-        <Tooltip content={moveUpLabel}>
-          <button
-            type="button"
-            className={styles.chroniclePanelMove}
-            onClick={onMoveUp}
-            disabled={!canMoveUp}
-            aria-label={moveUpLabel}
-          >
-            ↑
-          </button>
-        </Tooltip>
-        <Tooltip content={moveDownLabel}>
-          <button
-            type="button"
-            className={styles.chroniclePanelMove}
-            onClick={onMoveDown}
-            disabled={!canMoveDown}
-            aria-label={moveDownLabel}
-          >
-            ↓
-          </button>
-        </Tooltip>
-      </div>
     </div>
     <div className={styles.chroniclePanelBody}>{children}</div>
   </div>
@@ -830,6 +809,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [refreshingPress, setRefreshingPress] = useState(false);
   const [refreshingFinance, setRefreshingFinance] = useState(false);
   const [refreshingTransfer, setRefreshingTransfer] = useState(false);
+  const [draggedPanelId, setDraggedPanelId] = useState<string | null>(null);
+  const [dropTargetPanelId, setDropTargetPanelId] = useState<string | null>(null);
   const [loadingTransferHistoryModal, setLoadingTransferHistoryModal] =
     useState(false);
   const [teamIdInput, setTeamIdInput] = useState("");
@@ -1359,17 +1340,54 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setManualTeams((prev) => prev.filter((team) => team.teamId !== teamId));
   };
 
-  const handleMovePanel = (panelId: string, direction: "up" | "down") => {
+  const handlePanelDragStart = (
+    event: React.DragEvent<HTMLSpanElement>,
+    panelId: string
+  ) => {
+    setDraggedPanelId(panelId);
+    setDropTargetPanelId(null);
+    event.dataTransfer.effectAllowed = "move";
+    event.dataTransfer.setData("text/plain", panelId);
+  };
+
+  const handlePanelDragOver = (
+    event: React.DragEvent<HTMLDivElement>,
+    panelId: string
+  ) => {
+    event.preventDefault();
+    if (!draggedPanelId || draggedPanelId === panelId) return;
+    setDropTargetPanelId(panelId);
+  };
+
+  const handlePanelDrop = (
+    event: React.DragEvent<HTMLDivElement>,
+    targetPanelId: string
+  ) => {
+    event.preventDefault();
+    const sourcePanelId =
+      draggedPanelId || event.dataTransfer.getData("text/plain");
+    if (!sourcePanelId || sourcePanelId === targetPanelId) {
+      setDraggedPanelId(null);
+      setDropTargetPanelId(null);
+      return;
+    }
     setPanelOrder((prev) => {
-      const index = prev.indexOf(panelId);
-      if (index < 0) return prev;
-      const nextIndex = direction === "up" ? index - 1 : index + 1;
-      if (nextIndex < 0 || nextIndex >= prev.length) return prev;
+      const sourceIndex = prev.indexOf(sourcePanelId);
+      const targetIndex = prev.indexOf(targetPanelId);
+      if (sourceIndex < 0 || targetIndex < 0) return prev;
       const next = [...prev];
-      const [item] = next.splice(index, 1);
-      next.splice(nextIndex, 0, item);
+      const [moved] = next.splice(sourceIndex, 1);
+      const adjustedTarget = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
+      next.splice(adjustedTarget, 0, moved);
       return next;
     });
+    setDraggedPanelId(null);
+    setDropTargetPanelId(null);
+  };
+
+  const handlePanelDragEnd = () => {
+    setDraggedPanelId(null);
+    setDropTargetPanelId(null);
   };
 
   const handleOpenDetails = (teamId: number) => {
@@ -3109,175 +3127,196 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
       <div className={styles.chroniclePanels}>
         {panelOrder.map((panelId) => {
-          const canMoveUp = panelOrder.indexOf(panelId) > 0;
-          const canMoveDown =
-            panelOrder.indexOf(panelId) < panelOrder.length - 1;
           if (panelId === "league-performance") {
             return (
-              <ChroniclePanel
-              key={panelId}
-              title={messages.clubChronicleLeaguePanelTitle}
-              refreshing={refreshingGlobal || refreshingLeague}
-              refreshLabel={messages.clubChronicleRefreshTooltip}
-              moveUpLabel={messages.clubChronicleMoveUp}
-              moveDownLabel={messages.clubChronicleMoveDown}
-              onRefresh={() => void refreshLeagueOnly()}
-              canMoveUp={canMoveUp}
-              canMoveDown={canMoveDown}
-                onMoveUp={() => handleMovePanel(panelId, "up")}
-                onMoveDown={() => handleMovePanel(panelId, "down")}
+              <div
+                key={panelId}
+                className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
+                draggable
+                onDragStart={(event) => handlePanelDragStart(event, panelId)}
+                onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDrop={(event) => handlePanelDrop(event, panelId)}
+                onDragEnd={handlePanelDragEnd}
               >
-                {trackedTeams.length === 0 ? (
-                  <p className={styles.chronicleEmpty}>
-                    {messages.clubChronicleNoTeams}
-                  </p>
-              ) : (refreshingGlobal || refreshingLeague) &&
-                leagueRows.every((row) => !row.snapshot) ? (
-                <p className={styles.chronicleEmpty}>
-                  {messages.clubChronicleLoading}
-                </p>
-                ) : (
-                  <ChronicleTable
-                    columns={leagueTableColumns}
-                    rows={sortedLeagueRows}
-                    getRowKey={(row) => row.teamId}
-                    getSnapshot={(row) => row.snapshot ?? undefined}
-                    onRowClick={(row) => handleOpenDetails(row.teamId)}
-                    formatValue={formatValue}
-                    style={tableStyle}
-                    sortKey={leagueSortState.key}
-                    sortDirection={leagueSortState.direction}
-                    onSort={handleLeagueSort}
-                  />
-                )}
-              </ChroniclePanel>
+                <ChroniclePanel
+                  title={messages.clubChronicleLeaguePanelTitle}
+                  refreshing={refreshingGlobal || refreshingLeague}
+                  refreshLabel={messages.clubChronicleRefreshTooltip}
+                  panelId={panelId}
+                  onRefresh={() => void refreshLeagueOnly()}
+                  onDragStart={handlePanelDragStart}
+                  onDragEnd={handlePanelDragEnd}
+                >
+                  {trackedTeams.length === 0 ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
+                    </p>
+                  ) : (refreshingGlobal || refreshingLeague) &&
+                    leagueRows.every((row) => !row.snapshot) ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleLoading}
+                    </p>
+                  ) : (
+                    <ChronicleTable
+                      columns={leagueTableColumns}
+                      rows={sortedLeagueRows}
+                      getRowKey={(row) => row.teamId}
+                      getSnapshot={(row) => row.snapshot ?? undefined}
+                      onRowClick={(row) => handleOpenDetails(row.teamId)}
+                      formatValue={formatValue}
+                      style={tableStyle}
+                      sortKey={leagueSortState.key}
+                      sortDirection={leagueSortState.direction}
+                      onSort={handleLeagueSort}
+                    />
+                  )}
+                </ChroniclePanel>
+              </div>
             );
           }
           if (panelId === "press-announcements") {
             return (
-              <ChroniclePanel
-              key={panelId}
-              title={messages.clubChroniclePressPanelTitle}
-              refreshing={refreshingGlobal || refreshingPress}
-              refreshLabel={messages.clubChronicleRefreshPressTooltip}
-              moveUpLabel={messages.clubChronicleMoveUp}
-              moveDownLabel={messages.clubChronicleMoveDown}
-              onRefresh={() => void refreshPressOnly()}
-              canMoveUp={canMoveUp}
-              canMoveDown={canMoveDown}
-                onMoveUp={() => handleMovePanel(panelId, "up")}
-                onMoveDown={() => handleMovePanel(panelId, "down")}
+              <div
+                key={panelId}
+                className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
+                draggable
+                onDragStart={(event) => handlePanelDragStart(event, panelId)}
+                onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDrop={(event) => handlePanelDrop(event, panelId)}
+                onDragEnd={handlePanelDragEnd}
               >
-                {trackedTeams.length === 0 ? (
-                  <p className={styles.chronicleEmpty}>
-                    {messages.clubChronicleNoTeams}
-                  </p>
-                ) : (refreshingGlobal || refreshingPress) &&
-                  pressRows.every((row) => !row.snapshot) ? (
-                  <p className={styles.chronicleEmpty}>
-                    {messages.clubChronicleLoading}
-                  </p>
-                ) : (
-                  <ChronicleTable
-                    columns={pressTableColumns}
-                    rows={sortedPressRows}
-                    getRowKey={(row) => row.teamId}
-                    getSnapshot={(row) => row.snapshot ?? undefined}
-                    onRowClick={(row) => handleOpenPressDetails(row.teamId)}
-                    formatValue={formatValue}
-                    style={pressTableStyle}
-                    sortKey={pressSortState.key}
-                    sortDirection={pressSortState.direction}
-                    onSort={handlePressSort}
-                  />
-                )}
-              </ChroniclePanel>
+                <ChroniclePanel
+                  title={messages.clubChroniclePressPanelTitle}
+                  refreshing={refreshingGlobal || refreshingPress}
+                  refreshLabel={messages.clubChronicleRefreshPressTooltip}
+                  panelId={panelId}
+                  onRefresh={() => void refreshPressOnly()}
+                  onDragStart={handlePanelDragStart}
+                  onDragEnd={handlePanelDragEnd}
+                >
+                  {trackedTeams.length === 0 ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
+                    </p>
+                  ) : (refreshingGlobal || refreshingPress) &&
+                    pressRows.every((row) => !row.snapshot) ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleLoading}
+                    </p>
+                  ) : (
+                    <ChronicleTable
+                      columns={pressTableColumns}
+                      rows={sortedPressRows}
+                      getRowKey={(row) => row.teamId}
+                      getSnapshot={(row) => row.snapshot ?? undefined}
+                      onRowClick={(row) => handleOpenPressDetails(row.teamId)}
+                      formatValue={formatValue}
+                      style={pressTableStyle}
+                      sortKey={pressSortState.key}
+                      sortDirection={pressSortState.direction}
+                      onSort={handlePressSort}
+                    />
+                  )}
+                </ChroniclePanel>
+              </div>
             );
           }
           if (panelId === "finance-estimate") {
             return (
-              <ChroniclePanel
+              <div
                 key={panelId}
-                title={messages.clubChronicleFinancePanelTitle}
-                refreshing={refreshingGlobal || refreshingFinance}
-                refreshLabel={messages.clubChronicleRefreshFinanceTooltip}
-                moveUpLabel={messages.clubChronicleMoveUp}
-                moveDownLabel={messages.clubChronicleMoveDown}
-                onRefresh={() => void refreshFinanceOnly()}
-                canMoveUp={canMoveUp}
-                canMoveDown={canMoveDown}
-                onMoveUp={() => handleMovePanel(panelId, "up")}
-                onMoveDown={() => handleMovePanel(panelId, "down")}
+                className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
+                draggable
+                onDragStart={(event) => handlePanelDragStart(event, panelId)}
+                onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDrop={(event) => handlePanelDrop(event, panelId)}
+                onDragEnd={handlePanelDragEnd}
               >
-                {trackedTeams.length === 0 ? (
-                  <p className={styles.chronicleEmpty}>
-                    {messages.clubChronicleNoTeams}
-                  </p>
-                ) : (refreshingGlobal || refreshingFinance) &&
-                  financeRows.every((row) => !row.snapshot) ? (
-                  <p className={styles.chronicleEmpty}>
-                    {messages.clubChronicleLoading}
-                  </p>
-                ) : (
-                  <>
-                    <ChronicleTable
-                      columns={financeTableColumns}
-                      rows={sortedFinanceRows}
-                      getRowKey={(row) => row.teamId}
-                      getSnapshot={(row) => row.snapshot ?? undefined}
-                      onRowClick={(row) => handleOpenFinanceDetails(row.teamId)}
-                      formatValue={formatValue}
-                      style={financeTableStyle}
-                      sortKey={financeSortState.key}
-                      sortDirection={financeSortState.direction}
-                      onSort={handleFinanceSort}
-                    />
-                    <p className={styles.chronicleFinanceDisclaimer}>
-                      {messages.clubChronicleFinanceDisclaimer}
+                <ChroniclePanel
+                  title={messages.clubChronicleFinancePanelTitle}
+                  refreshing={refreshingGlobal || refreshingFinance}
+                  refreshLabel={messages.clubChronicleRefreshFinanceTooltip}
+                  panelId={panelId}
+                  onRefresh={() => void refreshFinanceOnly()}
+                  onDragStart={handlePanelDragStart}
+                  onDragEnd={handlePanelDragEnd}
+                >
+                  {trackedTeams.length === 0 ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
-                  </>
-                )}
-              </ChroniclePanel>
+                  ) : (refreshingGlobal || refreshingFinance) &&
+                    financeRows.every((row) => !row.snapshot) ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleLoading}
+                    </p>
+                  ) : (
+                    <>
+                      <ChronicleTable
+                        columns={financeTableColumns}
+                        rows={sortedFinanceRows}
+                        getRowKey={(row) => row.teamId}
+                        getSnapshot={(row) => row.snapshot ?? undefined}
+                        onRowClick={(row) => handleOpenFinanceDetails(row.teamId)}
+                        formatValue={formatValue}
+                        style={financeTableStyle}
+                        sortKey={financeSortState.key}
+                        sortDirection={financeSortState.direction}
+                        onSort={handleFinanceSort}
+                      />
+                      <p className={styles.chronicleFinanceDisclaimer}>
+                        {messages.clubChronicleFinanceDisclaimer}
+                      </p>
+                    </>
+                  )}
+                </ChroniclePanel>
+              </div>
             );
           }
           if (panelId === "transfer-market") {
             return (
-              <ChroniclePanel
+              <div
                 key={panelId}
-                title={messages.clubChronicleTransferPanelTitle}
-                refreshing={refreshingGlobal || refreshingTransfer}
-                refreshLabel={messages.clubChronicleRefreshTransferTooltip}
-                moveUpLabel={messages.clubChronicleMoveUp}
-                moveDownLabel={messages.clubChronicleMoveDown}
-                onRefresh={() => void refreshTransferOnly()}
-                canMoveUp={canMoveUp}
-                canMoveDown={canMoveDown}
-                onMoveUp={() => handleMovePanel(panelId, "up")}
-                onMoveDown={() => handleMovePanel(panelId, "down")}
+                className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
+                draggable
+                onDragStart={(event) => handlePanelDragStart(event, panelId)}
+                onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDrop={(event) => handlePanelDrop(event, panelId)}
+                onDragEnd={handlePanelDragEnd}
               >
-                {trackedTeams.length === 0 ? (
-                  <p className={styles.chronicleEmpty}>
-                    {messages.clubChronicleNoTeams}
-                  </p>
-                ) : (refreshingGlobal || refreshingTransfer) &&
-                  transferRows.every((row) => !row.snapshot) ? (
-                  <p className={styles.chronicleEmpty}>
-                    {messages.clubChronicleLoading}
-                  </p>
-                ) : (
-                  <ChronicleTable
-                    columns={transferTableColumns}
-                    rows={sortedTransferRows}
-                    getRowKey={(row) => row.teamId}
-                    getSnapshot={(row) => row.snapshot ?? undefined}
-                    formatValue={formatValue}
-                    style={transferTableStyle}
-                    sortKey={transferSortState.key}
-                    sortDirection={transferSortState.direction}
-                    onSort={handleTransferSort}
-                  />
-                )}
-              </ChroniclePanel>
+                <ChroniclePanel
+                  title={messages.clubChronicleTransferPanelTitle}
+                  refreshing={refreshingGlobal || refreshingTransfer}
+                  refreshLabel={messages.clubChronicleRefreshTransferTooltip}
+                  panelId={panelId}
+                  onRefresh={() => void refreshTransferOnly()}
+                  onDragStart={handlePanelDragStart}
+                  onDragEnd={handlePanelDragEnd}
+                >
+                  {trackedTeams.length === 0 ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
+                    </p>
+                  ) : (refreshingGlobal || refreshingTransfer) &&
+                    transferRows.every((row) => !row.snapshot) ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleLoading}
+                    </p>
+                  ) : (
+                    <ChronicleTable
+                      columns={transferTableColumns}
+                      rows={sortedTransferRows}
+                      getRowKey={(row) => row.teamId}
+                      getSnapshot={(row) => row.snapshot ?? undefined}
+                      formatValue={formatValue}
+                      style={transferTableStyle}
+                      sortKey={transferSortState.key}
+                      sortDirection={transferSortState.direction}
+                      onSort={handleTransferSort}
+                    />
+                  )}
+                </ChroniclePanel>
+              </div>
             );
           }
           return null;

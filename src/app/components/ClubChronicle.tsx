@@ -161,6 +161,12 @@ type TransferActivityRow = {
 type TsiSnapshot = {
   totalTsi: number;
   top11Tsi: number;
+  players: {
+    playerId: number;
+    playerName: string | null;
+    playerNumber: number | null;
+    tsi: number;
+  }[];
   fetchedAt: number;
 };
 
@@ -173,6 +179,13 @@ type TsiRow = {
   teamId: number;
   teamName: string;
   snapshot?: TsiSnapshot | null;
+};
+
+type TsiPlayerRow = {
+  playerId: number;
+  playerName: string | null;
+  playerNumber: number | null;
+  tsi: number;
 };
 
 type WagesSnapshot = {
@@ -1020,10 +1033,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [selectedArenaTeamId, setSelectedArenaTeamId] = useState<number | null>(
     null
   );
+  const [tsiDetailsOpen, setTsiDetailsOpen] = useState(false);
+  const [selectedTsiTeamId, setSelectedTsiTeamId] = useState<number | null>(null);
   const [wagesDetailsOpen, setWagesDetailsOpen] = useState(false);
   const [selectedWagesTeamId, setSelectedWagesTeamId] = useState<number | null>(
     null
   );
+  const [tsiDetailsSortState, setTsiDetailsSortState] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({ key: "playerNumber", direction: "asc" });
   const [wagesDetailsSortState, setWagesDetailsSortState] = useState<{
     key: string;
     direction: "asc" | "desc";
@@ -1776,6 +1795,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setWagesDetailsOpen(true);
   };
 
+  const handleOpenTsiDetails = (teamId: number) => {
+    setSelectedTsiTeamId(teamId);
+    setTsiDetailsOpen(true);
+  };
+
   const handleOpenTransferListedDetails = useCallback((teamId: number) => {
     setSelectedTransferTeamId(teamId);
     setTransferListedDetailsOpen(true);
@@ -1886,6 +1910,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const handleWagesDetailsSort = (key: string) => {
     setWagesDetailsSortState((prev) => ({
+      key,
+      direction:
+        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
+    }));
+  };
+
+  const handleTsiDetailsSort = (key: string) => {
+    setTsiDetailsSortState((prev) => ({
       key,
       direction:
         prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
@@ -3069,14 +3101,21 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }));
 
   const buildTsiSnapshot = (players: TeamPlayerSnapshot[]): TsiSnapshot => {
-    const tsiValues = players
-      .map((player) => (Number.isFinite(player.tsi) ? player.tsi : 0))
+    const normalizedPlayers = players.map((player) => ({
+      playerId: player.playerId,
+      playerName: player.playerName,
+      playerNumber: player.playerNumber,
+      tsi: Number.isFinite(player.tsi) ? player.tsi : 0,
+    }));
+    const tsiValues = normalizedPlayers
+      .map((player) => player.tsi)
       .sort((a, b) => b - a);
     const totalTsi = tsiValues.reduce((sum, value) => sum + value, 0);
     const top11Tsi = tsiValues.slice(0, 11).reduce((sum, value) => sum + value, 0);
     return {
       totalTsi,
       top11Tsi,
+      players: normalizedPlayers.sort((a, b) => b.tsi - a.tsi),
       fetchedAt: Date.now(),
     };
   };
@@ -3886,6 +3925,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const selectedTransferTeam = selectedTransferTeamId
     ? transferRows.find((team) => team.teamId === selectedTransferTeamId) ?? null
     : null;
+  const selectedTsiTeam = selectedTsiTeamId
+    ? tsiRows.find((team) => team.teamId === selectedTsiTeamId) ?? null
+    : null;
   const selectedWagesTeam = selectedWagesTeamId
     ? wagesRows.find((team) => team.teamId === selectedWagesTeamId) ?? null
     : null;
@@ -3904,6 +3946,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         playerNumber: row.playerNumber ?? index + 1,
       })),
     [selectedWagesTeam]
+  );
+  const tsiPlayerRows = useMemo<TsiPlayerRow[]>(
+    () =>
+      (selectedTsiTeam?.snapshot?.players ?? []).map((row, index) => ({
+        ...row,
+        playerNumber: index + 1,
+      })),
+    [selectedTsiTeam]
   );
 
   const transferListedColumns = useMemo<
@@ -3996,6 +4046,73 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleTransferHistoryPriceColumn,
     ]
   );
+
+  const tsiPlayerColumns = useMemo<
+    ChronicleTableColumn<TsiPlayerRow, TsiPlayerRow>[]
+  >(
+    () => [
+      {
+        key: "playerNumber",
+        label: messages.clubChronicleTsiPlayerIndexColumn,
+        getValue: (snapshot) => snapshot?.playerNumber ?? null,
+      },
+      {
+        key: "player",
+        label: messages.clubChronicleTsiPlayerColumn,
+        getValue: (snapshot) => snapshot?.playerName ?? null,
+        renderCell: (snapshot, _row, fallbackFormat) => {
+          const playerId = snapshot?.playerId ?? 0;
+          const playerName = snapshot?.playerName ?? null;
+          if (!playerId) return fallbackFormat(playerName);
+          return (
+            <a
+              className={styles.chroniclePressLink}
+              href={`${HT_BASE_URL}/Club/Players/Player.aspx?playerId=${playerId}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {playerName ?? `${playerId}`}
+            </a>
+          );
+        },
+      },
+      {
+        key: "tsi",
+        label: messages.clubChronicleTsiValueColumn,
+        getValue: (snapshot) => snapshot?.tsi ?? null,
+      },
+    ],
+    [
+      messages.clubChronicleTsiPlayerIndexColumn,
+      messages.clubChronicleTsiPlayerColumn,
+      messages.clubChronicleTsiValueColumn,
+    ]
+  );
+
+  const sortedTsiPlayerRows = useMemo(() => {
+    if (!tsiDetailsSortState.key) return tsiPlayerRows;
+    const column = tsiPlayerColumns.find(
+      (item) => item.key === tsiDetailsSortState.key
+    );
+    if (!column) return tsiPlayerRows;
+    const direction = tsiDetailsSortState.direction === "desc" ? -1 : 1;
+    return [...tsiPlayerRows]
+      .map((row, index) => ({ row, index }))
+      .sort((left, right) => {
+        const leftValue = normalizeSortValue(
+          column.getSortValue?.(left.row, left.row) ??
+            column.getValue(left.row, left.row)
+        );
+        const rightValue = normalizeSortValue(
+          column.getSortValue?.(right.row, right.row) ??
+            column.getValue(right.row, right.row)
+        );
+        const result = compareSortValues(leftValue, rightValue);
+        if (result !== 0) return result * direction;
+        return left.index - right.index;
+      })
+      .map((item) => item.row);
+  }, [tsiPlayerRows, tsiPlayerColumns, tsiDetailsSortState]);
 
   const wagesPlayerColumns = useMemo<
     ChronicleTableColumn<WagesPlayerRow, WagesPlayerRow>[]
@@ -4678,6 +4795,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       rows={sortedTsiRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      onRowClick={(row) => handleOpenTsiDetails(row.teamId)}
                       formatValue={formatValue}
                       style={tsiTableStyle}
                       sortKey={tsiSortState.key}
@@ -5265,6 +5383,57 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
         closeOnBackdrop
         onClose={() => setTransferHistoryOpen(false)}
+      />
+
+      <Modal
+        open={tsiDetailsOpen}
+        title={messages.clubChronicleTsiDetailsTitle}
+        className={styles.chronicleTransferHistoryModal}
+        body={
+          selectedTsiTeam ? (
+            <>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleColumnTeam}: {selectedTsiTeam.teamName}
+              </p>
+              {tsiPlayerRows.length > 0 ? (
+                <div className={styles.chronicleTransferHistoryTableWrap}>
+                  <ChronicleTable
+                    columns={tsiPlayerColumns}
+                    rows={sortedTsiPlayerRows}
+                    getRowKey={(row) => row.playerId}
+                    getSnapshot={(row) => row}
+                    formatValue={formatValue}
+                    style={
+                      {
+                        "--cc-columns": tsiPlayerColumns.length,
+                        "--cc-template":
+                          "minmax(90px, 0.5fr) minmax(260px, 1.5fr) minmax(150px, 0.8fr)",
+                      } as CSSProperties
+                    }
+                    sortKey={tsiDetailsSortState.key}
+                    sortDirection={tsiDetailsSortState.direction}
+                    onSort={handleTsiDetailsSort}
+                  />
+                </div>
+              ) : (
+                <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+              )}
+            </>
+          ) : (
+            <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setTsiDetailsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setTsiDetailsOpen(false)}
       />
 
       <Modal

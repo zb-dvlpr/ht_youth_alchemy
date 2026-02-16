@@ -201,6 +201,10 @@ export type Messages = {
   clubChronicleTsiPanelTitle: string;
   clubChronicleTsiColumnTotal: string;
   clubChronicleTsiColumnTop11: string;
+  clubChronicleTsiDetailsTitle: string;
+  clubChronicleTsiPlayerIndexColumn: string;
+  clubChronicleTsiPlayerColumn: string;
+  clubChronicleTsiValueColumn: string;
   clubChronicleWagesPanelTitle: string;
   clubChronicleWagesColumnTotal: string;
   clubChronicleWagesColumnTop11: string;
@@ -678,6 +682,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "Total TSI",
     clubChronicleTsiColumnTop11: "Top 11 TSI",
+    clubChronicleTsiDetailsTitle: "TSI",
+    clubChronicleTsiPlayerIndexColumn: "No.",
+    clubChronicleTsiPlayerColumn: "Player",
+    clubChronicleTsiValueColumn: "TSI",
     clubChronicleWagesPanelTitle: "Wages",
     clubChronicleWagesColumnTotal: "Total wages",
     clubChronicleWagesColumnTop11: "Top 11 wages",
@@ -1212,6 +1220,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "Gesamt-TSI",
     clubChronicleTsiColumnTop11: "Top-11-TSI",
+    clubChronicleTsiDetailsTitle: "TSI",
+    clubChronicleTsiPlayerIndexColumn: "Nr.",
+    clubChronicleTsiPlayerColumn: "Spieler",
+    clubChronicleTsiValueColumn: "TSI",
     clubChronicleWagesPanelTitle: "Gehälter",
     clubChronicleWagesColumnTotal: "Gesamtgehälter",
     clubChronicleWagesColumnTop11: "Top-11-Gehälter",
@@ -1750,6 +1762,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "TSI total",
     clubChronicleTsiColumnTop11: "TSI top 11",
+    clubChronicleTsiDetailsTitle: "TSI",
+    clubChronicleTsiPlayerIndexColumn: "No",
+    clubChronicleTsiPlayerColumn: "Joueur",
+    clubChronicleTsiValueColumn: "TSI",
     clubChronicleWagesPanelTitle: "Salaires",
     clubChronicleWagesColumnTotal: "Salaires totaux",
     clubChronicleWagesColumnTop11: "Salaires top 11",
@@ -2295,6 +2311,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "TSI total",
     clubChronicleTsiColumnTop11: "TSI top 11",
+    clubChronicleTsiDetailsTitle: "TSI",
+    clubChronicleTsiPlayerIndexColumn: "N.º",
+    clubChronicleTsiPlayerColumn: "Jugador",
+    clubChronicleTsiValueColumn: "TSI",
     clubChronicleWagesPanelTitle: "Salarios",
     clubChronicleWagesColumnTotal: "Salarios totales",
     clubChronicleWagesColumnTop11: "Salarios top 11",
@@ -2834,6 +2854,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "Total TSI",
     clubChronicleTsiColumnTop11: "Topp 11 TSI",
+    clubChronicleTsiDetailsTitle: "TSI",
+    clubChronicleTsiPlayerIndexColumn: "Nr",
+    clubChronicleTsiPlayerColumn: "Spelare",
+    clubChronicleTsiValueColumn: "TSI",
     clubChronicleWagesPanelTitle: "Löner",
     clubChronicleWagesColumnTotal: "Totala löner",
     clubChronicleWagesColumnTop11: "Topp 11-löner",
@@ -3373,6 +3397,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "TSI totale",
     clubChronicleTsiColumnTop11: "TSI top 11",
+    clubChronicleTsiDetailsTitle: "TSI",
+    clubChronicleTsiPlayerIndexColumn: "N.",
+    clubChronicleTsiPlayerColumn: "Giocatore",
+    clubChronicleTsiValueColumn: "TSI",
     clubChronicleWagesPanelTitle: "Stipendi",
     clubChronicleWagesColumnTotal: "Stipendi totali",
     clubChronicleWagesColumnTop11: "Stipendi top 11",
@@ -3914,6 +3942,10 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "TSI total",
     clubChronicleTsiColumnTop11: "TSI top 11",
+    clubChronicleTsiDetailsTitle: "TSI",
+    clubChronicleTsiPlayerIndexColumn: "Nº",
+    clubChronicleTsiPlayerColumn: "Jogador",
+    clubChronicleTsiValueColumn: "TSI",
     clubChronicleWagesPanelTitle: "Salários",
     clubChronicleWagesColumnTotal: "Salários totais",
     clubChronicleWagesColumnTop11: "Salários top 11",

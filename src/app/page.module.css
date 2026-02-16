@@ -1286,6 +1286,12 @@ html[data-app-scaling="off"] .topBar::before {
   background: #f7f2ea;
 }
 
+.chronicleUpdatesTeamPrimary {
+  border-color: #2f5f8f;
+  background: #edf3fa;
+  box-shadow: inset 0 0 0 1px rgba(47, 95, 143, 0.18);
+}
+
 .chronicleUpdatesTeamTitle {
   margin: 0 0 8px;
   font-size: 13px;
@@ -1864,6 +1870,12 @@ html[data-theme="dark"] .chronicleFinanceDisclaimer {
 html[data-theme="dark"] .chronicleUpdatesTeam {
   border-color: rgba(255, 255, 255, 0.12);
   background: #221f1b;
+}
+
+html[data-theme="dark"] .chronicleUpdatesTeamPrimary {
+  border-color: #86b8e8;
+  background: #1f2730;
+  box-shadow: inset 0 0 0 1px rgba(134, 184, 232, 0.28);
 }
 
 html[data-theme="dark"] .chronicleUpdatesTeamTitle,

@@ -5125,8 +5125,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     const teamUpdates = updatesByTeam[team.teamId];
                     const changes = teamUpdates?.changes ?? [];
                     if (changes.length === 0) return null;
+                    const isPrimaryTeam =
+                      primaryChronicleTeamId !== null &&
+                      team.teamId === primaryChronicleTeamId;
                     return (
-                      <div key={team.teamId} className={styles.chronicleUpdatesTeam}>
+                      <div
+                        key={team.teamId}
+                        className={`${styles.chronicleUpdatesTeam}${isPrimaryTeam ? ` ${styles.chronicleUpdatesTeamPrimary}` : ""}`}
+                      >
                         <h3 className={styles.chronicleUpdatesTeamTitle}>
                           {teamUpdates?.teamName ?? team.teamName ?? team.teamId}
                         </h3>

@@ -506,6 +506,7 @@ const ChroniclePanel = ({
 const STORAGE_KEY = "ya_club_chronicle_watchlist_v1";
 const CACHE_KEY = "ya_cc_cache_v1";
 const UPDATES_KEY = "ya_cc_updates_v1";
+const GLOBAL_BASELINE_KEY = "ya_cc_global_baseline_v1";
 const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
 const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
 const PANEL_IDS = [
@@ -808,6 +809,31 @@ const writeChronicleUpdates = (payload: ChronicleUpdates | null) => {
   }
 };
 
+const readGlobalBaseline = (): ChronicleCache | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(GLOBAL_BASELINE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as ChronicleCache;
+    return parsed && parsed.teams ? parsed : null;
+  } catch {
+    return null;
+  }
+};
+
+const writeGlobalBaseline = (payload: ChronicleCache | null) => {
+  if (typeof window === "undefined") return;
+  try {
+    if (!payload) {
+      window.localStorage.removeItem(GLOBAL_BASELINE_KEY);
+      return;
+    }
+    window.localStorage.setItem(GLOBAL_BASELINE_KEY, JSON.stringify(payload));
+  } catch {
+    // ignore storage errors
+  }
+};
+
 const readPanelOrder = (): string[] => {
   if (typeof window === "undefined") return [...PANEL_IDS];
   try {
@@ -1020,6 +1046,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [primaryTeam, setPrimaryTeam] = useState<ChronicleTeamData | null>(null);
   const [chronicleCache, setChronicleCache] = useState<ChronicleCache>(() =>
     pruneChronicleCache(readChronicleCache())
+  );
+  const [globalBaselineCache, setGlobalBaselineCache] = useState<ChronicleCache | null>(
+    () => {
+      const baseline = readGlobalBaseline();
+      return baseline ? pruneChronicleCache(baseline) : null;
+    }
   );
   const [panelOrder, setPanelOrder] = useState<string[]>(() =>
     readPanelOrder()
@@ -1626,6 +1658,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   useEffect(() => {
     writeChronicleUpdates(updates);
   }, [updates]);
+
+  useEffect(() => {
+    writeGlobalBaseline(globalBaselineCache);
+  }, [globalBaselineCache]);
 
   useEffect(() => {
     const normalized = [
@@ -2511,13 +2547,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const collectTeamChanges = (
     nextCache: ChronicleCache,
-    panels: UpdatePanel[]
+    panels: UpdatePanel[],
+    options?: { baselineCache?: ChronicleCache | null }
   ): ChronicleUpdates => {
     const updatesMap: ChronicleUpdates["teams"] = {};
+    const baselineCache = options?.baselineCache ?? null;
     trackedTeams.forEach((team) => {
       const teamId = team.teamId;
       const cached = nextCache.teams[teamId];
       if (!cached) return;
+      const baselineTeam = baselineCache?.teams[teamId];
       const teamName = team.teamName ?? cached.teamName ?? `${teamId}`;
       const rowContext: LeagueTableRow = {
         teamId,
@@ -2530,7 +2569,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       };
 
       if (panels.includes("league")) {
-        const previous = cached.leaguePerformance?.previous;
+        const previous = baselineCache
+          ? baselineTeam?.leaguePerformance?.current
+          : cached.leaguePerformance?.previous;
         const current = cached.leaguePerformance?.current;
         if (previous && current) {
           const changes = leagueTableColumns
@@ -2553,7 +2594,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
 
       if (panels.includes("press")) {
-        const previous = cached.pressAnnouncement?.previous;
+        const previous = baselineCache
+          ? baselineTeam?.pressAnnouncement?.current
+          : cached.pressAnnouncement?.previous;
         const current = cached.pressAnnouncement?.current;
         if (current && previous) {
           const previousHash = getPressFingerprint(previous);
@@ -2572,7 +2615,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
 
       if (panels.includes("fanclub")) {
-        const previous = cached.fanclub?.previous;
+        const previous = baselineCache
+          ? baselineTeam?.fanclub?.current
+          : cached.fanclub?.previous;
         const current = cached.fanclub?.current;
         if (current && previous) {
           const fanclubChanges: ChronicleUpdateField[] = [];
@@ -2597,7 +2642,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
 
       if (panels.includes("arena")) {
-        const previous = cached.arena?.previous;
+        const previous = baselineCache
+          ? baselineTeam?.arena?.current
+          : cached.arena?.previous;
         const current = cached.arena?.current;
         if (current && previous) {
           const arenaChanges: ChronicleUpdateField[] = [];
@@ -2638,7 +2685,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
 
       if (panels.includes("finance")) {
-        const previous = cached.financeEstimate?.previous;
+        const previous = baselineCache
+          ? baselineTeam?.financeEstimate?.current
+          : cached.financeEstimate?.previous;
         const current = cached.financeEstimate?.current;
         if (current && previous && previous.estimatedSek !== current.estimatedSek) {
           appendTeamChanges(updatesMap, teamId, teamName, [
@@ -2653,7 +2702,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
 
       if (panels.includes("transfer")) {
-        const previous = cached.transferActivity?.previous;
+        const previous = baselineCache
+          ? baselineTeam?.transferActivity?.current
+          : cached.transferActivity?.previous;
         const current = cached.transferActivity?.current;
         if (current && previous) {
           const transferChanges: ChronicleUpdateField[] = [];
@@ -2682,7 +2733,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
 
       if (panels.includes("tsi")) {
-        const previous = cached.tsi?.previous;
+        const previous = baselineCache
+          ? baselineTeam?.tsi?.current
+          : cached.tsi?.previous;
         const current = cached.tsi?.current;
         if (current && previous) {
           const tsiChanges: ChronicleUpdateField[] = [];
@@ -2707,7 +2760,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
 
       if (panels.includes("wages")) {
-        const previous = cached.wages?.previous;
+        const previous = baselineCache
+          ? baselineTeam?.wages?.current
+          : cached.wages?.previous;
         const current = cached.wages?.current;
         if (current && previous) {
           const wageChanges: ChronicleUpdateField[] = [];
@@ -3492,6 +3547,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     await refreshLeagueSnapshots(nextCache);
     await refreshArenaSnapshots(nextCache);
     await refreshFinanceAndTransferSnapshots(nextCache, transferHistoryCount);
+    const baselineForDiff =
+      globalBaselineCache ?? pruneChronicleCache(readChronicleCache());
     const nextUpdates = collectTeamChanges(nextCache, [
       "league",
       "press",
@@ -3501,10 +3558,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       "transfer",
       "tsi",
       "wages",
-    ]);
+    ], { baselineCache: baselineForDiff });
 
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
+    setGlobalBaselineCache(nextCache);
     setUpdates(nextUpdates);
     const hasUpdates = Object.values(nextUpdates.teams).some(
       (teamUpdate) => teamUpdate.changes.length > 0
@@ -3526,15 +3584,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
     await refreshLeagueSnapshots(nextCache);
-    const nextUpdates = collectTeamChanges(nextCache, ["league"]);
 
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
-    setUpdates(nextUpdates);
-    const hasUpdates = Object.values(nextUpdates.teams).some(
-      (teamUpdate) => teamUpdate.changes.length > 0
-    );
-    setUpdatesOpen(hasUpdates);
     setRefreshingLeague(false);
     addNotification(messages.notificationChronicleRefreshComplete);
   };
@@ -3546,14 +3598,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const nextCache = pruneChronicleCache(readChronicleCache());
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: true });
-    const nextUpdates = collectTeamChanges(nextCache, ["press"]);
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
-    setUpdates(nextUpdates);
-    const hasUpdates = Object.values(nextUpdates.teams).some(
-      (teamUpdate) => teamUpdate.changes.length > 0
-    );
-    setUpdatesOpen(hasUpdates);
     setRefreshingPress(false);
     addNotification(messages.notificationChronicleRefreshComplete);
   };
@@ -3566,14 +3612,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
     await refreshFinanceSnapshots(nextCache);
-    const nextUpdates = collectTeamChanges(nextCache, ["finance"]);
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
-    setUpdates(nextUpdates);
-    const hasUpdates = Object.values(nextUpdates.teams).some(
-      (teamUpdate) => teamUpdate.changes.length > 0
-    );
-    setUpdatesOpen(hasUpdates);
     setRefreshingFinance(false);
     addNotification(messages.notificationChronicleRefreshComplete);
   };
@@ -3585,14 +3625,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const nextCache = pruneChronicleCache(readChronicleCache());
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
-    const nextUpdates = collectTeamChanges(nextCache, ["fanclub"]);
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
-    setUpdates(nextUpdates);
-    const hasUpdates = Object.values(nextUpdates.teams).some(
-      (teamUpdate) => teamUpdate.changes.length > 0
-    );
-    setUpdatesOpen(hasUpdates);
     setRefreshingFanclub(false);
     addNotification(messages.notificationChronicleRefreshComplete);
   };
@@ -3605,14 +3639,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
     await refreshArenaSnapshots(nextCache);
-    const nextUpdates = collectTeamChanges(nextCache, ["arena"]);
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
-    setUpdates(nextUpdates);
-    const hasUpdates = Object.values(nextUpdates.teams).some(
-      (teamUpdate) => teamUpdate.changes.length > 0
-    );
-    setUpdatesOpen(hasUpdates);
     setRefreshingArena(false);
     addNotification(messages.notificationChronicleRefreshComplete);
   };
@@ -3625,14 +3653,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
     await refreshTransferSnapshots(nextCache, transferHistoryCount);
-    const nextUpdates = collectTeamChanges(nextCache, ["transfer"]);
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
-    setUpdates(nextUpdates);
-    const hasUpdates = Object.values(nextUpdates.teams).some(
-      (teamUpdate) => teamUpdate.changes.length > 0
-    );
-    setUpdatesOpen(hasUpdates);
     setRefreshingTransfer(false);
     addNotification(messages.notificationChronicleRefreshComplete);
   };
@@ -3645,14 +3667,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
     await refreshTsiSnapshots(nextCache);
-    const nextUpdates = collectTeamChanges(nextCache, ["tsi"]);
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
-    setUpdates(nextUpdates);
-    const hasUpdates = Object.values(nextUpdates.teams).some(
-      (teamUpdate) => teamUpdate.changes.length > 0
-    );
-    setUpdatesOpen(hasUpdates);
     setRefreshingTsi(false);
     addNotification(messages.notificationChronicleRefreshComplete);
   };
@@ -3665,17 +3681,24 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
     await refreshWagesSnapshots(nextCache);
-    const nextUpdates = collectTeamChanges(nextCache, ["wages"]);
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
-    setUpdates(nextUpdates);
-    const hasUpdates = Object.values(nextUpdates.teams).some(
-      (teamUpdate) => teamUpdate.changes.length > 0
-    );
-    setUpdatesOpen(hasUpdates);
     setRefreshingWages(false);
     addNotification(messages.notificationChronicleRefreshComplete);
   };
+
+  const refreshLatestUpdatesFromGlobalBaseline = useCallback(() => {
+    if (!globalBaselineCache) {
+      setUpdates(null);
+      return;
+    }
+    const nextUpdates = collectTeamChanges(
+      chronicleCache,
+      ["league", "press", "fanclub", "arena", "finance", "transfer", "tsi", "wages"],
+      { baselineCache: globalBaselineCache }
+    );
+    setUpdates(nextUpdates);
+  }, [chronicleCache, globalBaselineCache]);
 
   const updatesByTeam = updates?.teams ?? {};
   const hasAnyTeamUpdates = trackedTeams.some((team) => {
@@ -4541,7 +4564,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           <button
             type="button"
             className={styles.chronicleUpdatesButton}
-            onClick={() => setUpdatesOpen(true)}
+            onClick={() => {
+              refreshLatestUpdatesFromGlobalBaseline();
+              setUpdatesOpen(true);
+            }}
           >
             {messages.clubChronicleUpdatesButton}
           </button>
@@ -5089,43 +5115,48 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         className={styles.chronicleUpdatesModal}
         body={
           updates && trackedTeams.length ? (
-            hasAnyTeamUpdates ? (
-              <div className={styles.chronicleUpdatesList}>
-                {trackedTeams.map((team) => {
-                  const teamUpdates = updatesByTeam[team.teamId];
-                  const changes = teamUpdates?.changes ?? [];
-                  if (changes.length === 0) return null;
-                  return (
-                    <div key={team.teamId} className={styles.chronicleUpdatesTeam}>
-                      <h3 className={styles.chronicleUpdatesTeamTitle}>
-                        {teamUpdates?.teamName ?? team.teamName ?? team.teamId}
-                      </h3>
-                      <div className={styles.chronicleUpdatesHeader}>
-                        <span />
-                        <span>{messages.clubChronicleDetailsPreviousLabel}</span>
-                        <span>{messages.clubChronicleDetailsCurrentLabel}</span>
-                      </div>
-                      {changes.map((change) => (
-                        <div
-                          key={`${team.teamId}-${change.fieldKey}`}
-                          className={styles.chronicleUpdatesRow}
-                        >
-                          <span className={styles.chronicleUpdatesLabel}>
-                            {change.label}
-                          </span>
-                          <span>{change.previous ?? messages.unknownShort}</span>
-                          <span>{change.current ?? messages.unknownShort}</span>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className={styles.chronicleEmpty}>
-                {messages.clubChronicleUpdatesNoChangesGlobal}
+            <>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleUpdatesSinceGlobal}
               </p>
-            )
+              {hasAnyTeamUpdates ? (
+                <div className={styles.chronicleUpdatesList}>
+                  {trackedTeams.map((team) => {
+                    const teamUpdates = updatesByTeam[team.teamId];
+                    const changes = teamUpdates?.changes ?? [];
+                    if (changes.length === 0) return null;
+                    return (
+                      <div key={team.teamId} className={styles.chronicleUpdatesTeam}>
+                        <h3 className={styles.chronicleUpdatesTeamTitle}>
+                          {teamUpdates?.teamName ?? team.teamName ?? team.teamId}
+                        </h3>
+                        <div className={styles.chronicleUpdatesHeader}>
+                          <span />
+                          <span>{messages.clubChronicleDetailsPreviousLabel}</span>
+                          <span>{messages.clubChronicleDetailsCurrentLabel}</span>
+                        </div>
+                        {changes.map((change) => (
+                          <div
+                            key={`${team.teamId}-${change.fieldKey}`}
+                            className={styles.chronicleUpdatesRow}
+                          >
+                            <span className={styles.chronicleUpdatesLabel}>
+                              {change.label}
+                            </span>
+                            <span>{change.previous ?? messages.unknownShort}</span>
+                            <span>{change.current ?? messages.unknownShort}</span>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className={styles.chronicleEmpty}>
+                  {messages.clubChronicleUpdatesNoChangesGlobal}
+                </p>
+              )}
+            </>
           ) : (
             <p className={styles.chronicleEmpty}>
               {messages.clubChronicleUpdatesEmpty}

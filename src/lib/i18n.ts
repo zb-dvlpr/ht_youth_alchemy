@@ -104,6 +104,7 @@ export type Messages = {
   clubChronicleNoTeams: string;
   clubChronicleLoading: string;
   clubChronicleUpdatesTitle: string;
+  clubChronicleUpdatesSinceGlobal: string;
   clubChronicleUpdatesButton: string;
   clubChronicleRefreshButton: string;
   clubChronicleRefreshAllTooltip: string;
@@ -622,6 +623,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleNoTeams: "No tracked teams selected.",
     clubChronicleLoading: "Loading club chronicle…",
     clubChronicleUpdatesTitle: "Latest updates",
+    clubChronicleUpdatesSinceGlobal: "Changes since last global refresh",
     clubChronicleUpdatesButton: "Latest updates",
     clubChronicleRefreshButton: "Refresh",
     clubChronicleRefreshAllTooltip: "Refresh all Club Chronicle data.",
@@ -1160,6 +1162,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleNoTeams: "Keine verfolgten Teams ausgewählt.",
     clubChronicleLoading: "Club-Chronik wird geladen…",
     clubChronicleUpdatesTitle: "Neueste Updates",
+    clubChronicleUpdatesSinceGlobal: "Änderungen seit der letzten globalen Aktualisierung",
     clubChronicleUpdatesButton: "Neueste Updates",
     clubChronicleRefreshButton: "Aktualisieren",
     clubChronicleRefreshAllTooltip: "Alle Club-Chronik-Daten aktualisieren.",
@@ -1702,6 +1705,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleNoTeams: "Aucune équipe suivie sélectionnée.",
     clubChronicleLoading: "Chargement de la Chronique du club…",
     clubChronicleUpdatesTitle: "Dernières mises à jour",
+    clubChronicleUpdatesSinceGlobal: "Changements depuis la dernière actualisation globale",
     clubChronicleUpdatesButton: "Dernières mises à jour",
     clubChronicleRefreshButton: "Actualiser",
     clubChronicleRefreshAllTooltip: "Actualiser toutes les données de la Chronique du club.",
@@ -2251,6 +2255,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleNoTeams: "No hay equipos seguidos seleccionados.",
     clubChronicleLoading: "Cargando Crónica del club…",
     clubChronicleUpdatesTitle: "Últimas actualizaciones",
+    clubChronicleUpdatesSinceGlobal: "Cambios desde la última actualización global",
     clubChronicleUpdatesButton: "Últimas actualizaciones",
     clubChronicleRefreshButton: "Actualizar",
     clubChronicleRefreshAllTooltip: "Actualizar todos los datos de Crónica del club.",
@@ -2794,6 +2799,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleNoTeams: "Inga bevakade lag valda.",
     clubChronicleLoading: "Laddar klubbkrönikan…",
     clubChronicleUpdatesTitle: "Senaste uppdateringar",
+    clubChronicleUpdatesSinceGlobal: "Ändringar sedan senaste globala uppdatering",
     clubChronicleUpdatesButton: "Senaste uppdateringar",
     clubChronicleRefreshButton: "Uppdatera",
     clubChronicleRefreshAllTooltip: "Uppdatera all data i Klubbkrönikan.",
@@ -3337,6 +3343,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleNoTeams: "Nessuna squadra seguita selezionata.",
     clubChronicleLoading: "Caricamento Cronaca del club…",
     clubChronicleUpdatesTitle: "Ultimi aggiornamenti",
+    clubChronicleUpdatesSinceGlobal: "Modifiche dall ultimo aggiornamento globale",
     clubChronicleUpdatesButton: "Ultimi aggiornamenti",
     clubChronicleRefreshButton: "Aggiorna",
     clubChronicleRefreshAllTooltip: "Aggiorna tutti i dati della Cronaca del club.",
@@ -3882,6 +3889,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleNoTeams: "Nenhum time acompanhado selecionado.",
     clubChronicleLoading: "Carregando Crônica do clube…",
     clubChronicleUpdatesTitle: "Últimas atualizações",
+    clubChronicleUpdatesSinceGlobal: "Alterações desde a última atualização global",
     clubChronicleUpdatesButton: "Últimas atualizações",
     clubChronicleRefreshButton: "Atualizar",
     clubChronicleRefreshAllTooltip: "Atualizar todos os dados da Crônica do clube.",

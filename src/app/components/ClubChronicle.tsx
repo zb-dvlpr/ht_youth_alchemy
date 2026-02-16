@@ -355,8 +355,9 @@ type ChroniclePanelProps = {
   refreshLabel: string;
   onRefresh?: () => void;
   panelId: string;
-  onDragStart?: (event: React.DragEvent<HTMLSpanElement>, panelId: string) => void;
+  onDragStart?: (event: React.DragEvent<HTMLElement>, panelId: string) => void;
   onDragEnd?: () => void;
+  onPointerDown?: (panelId: string) => void;
   children: React.ReactNode;
 };
 
@@ -447,17 +448,21 @@ const ChroniclePanel = ({
   panelId,
   onDragStart,
   onDragEnd,
+  onPointerDown,
   children,
 }: ChroniclePanelProps) => (
   <div className={styles.chroniclePanel}>
-    <div className={styles.chroniclePanelHeader}>
+    <div
+      className={styles.chroniclePanelHeader}
+      draggable
+      onPointerDown={() => onPointerDown?.(panelId)}
+      onDragStart={(event) => onDragStart?.(event, panelId)}
+      onDragEnd={onDragEnd}
+    >
       <h3 className={styles.chroniclePanelTitle}>
         <span className={styles.chroniclePanelTitleRow}>
           <span
             className={styles.chroniclePanelDragHandle}
-            draggable
-            onDragStart={(event) => onDragStart?.(event, panelId)}
-            onDragEnd={onDragEnd}
             aria-label={title}
           >
             ⋮⋮
@@ -468,6 +473,12 @@ const ChroniclePanel = ({
               <button
                 type="button"
                 className={styles.chroniclePanelRefresh}
+                draggable={false}
+                onPointerDown={(event) => event.stopPropagation()}
+                onDragStart={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                }}
                 onClick={onRefresh}
                 disabled={Boolean(refreshing)}
                 aria-label={refreshLabel}
@@ -1103,6 +1114,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [refreshingWages, setRefreshingWages] = useState(false);
   const [draggedPanelId, setDraggedPanelId] = useState<string | null>(null);
   const [dropTargetPanelId, setDropTargetPanelId] = useState<string | null>(null);
+  const [pointerDraggingPanel, setPointerDraggingPanel] = useState(false);
   const [loadingTransferHistoryModal, setLoadingTransferHistoryModal] =
     useState(false);
   const [teamIdInput, setTeamIdInput] = useState("");
@@ -1720,14 +1732,52 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setManualTeams((prev) => prev.filter((team) => team.teamId !== teamId));
   };
 
+  const movePanel = useCallback((sourcePanelId: string, targetPanelId: string) => {
+    if (!sourcePanelId || sourcePanelId === targetPanelId) return;
+    setPanelOrder((prev) => {
+      const sourceIndex = prev.indexOf(sourcePanelId);
+      const targetIndex = prev.indexOf(targetPanelId);
+      if (sourceIndex < 0 || targetIndex < 0) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(sourceIndex, 1);
+      const adjustedTarget = Math.min(Math.max(targetIndex, 0), next.length);
+      next.splice(adjustedTarget, 0, moved);
+      return next;
+    });
+  }, []);
+
+  const finishPanelDrag = useCallback(() => {
+    setDraggedPanelId(null);
+    setDropTargetPanelId(null);
+    setPointerDraggingPanel(false);
+  }, []);
+
   const handlePanelDragStart = (
-    event: React.DragEvent<HTMLSpanElement>,
+    event: React.DragEvent<HTMLElement>,
     panelId: string
   ) => {
     setDraggedPanelId(panelId);
     setDropTargetPanelId(null);
+    setPointerDraggingPanel(false);
     event.dataTransfer.effectAllowed = "move";
     event.dataTransfer.setData("text/plain", panelId);
+  };
+
+  const handlePanelPointerDown = (panelId: string) => {
+    setDraggedPanelId(panelId);
+    setDropTargetPanelId(null);
+    setPointerDraggingPanel(true);
+  };
+
+  const handlePanelPointerEnter = (panelId: string) => {
+    if (!pointerDraggingPanel || !draggedPanelId || draggedPanelId === panelId) return;
+    setDropTargetPanelId(panelId);
+  };
+
+  const handlePanelPointerUp = (panelId: string) => {
+    if (!pointerDraggingPanel || !draggedPanelId) return;
+    movePanel(draggedPanelId, panelId);
+    finishPanelDrag();
   };
 
   const handlePanelDragOver = (
@@ -1747,28 +1797,27 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const sourcePanelId =
       draggedPanelId || event.dataTransfer.getData("text/plain");
     if (!sourcePanelId || sourcePanelId === targetPanelId) {
-      setDraggedPanelId(null);
-      setDropTargetPanelId(null);
+      finishPanelDrag();
       return;
     }
-    setPanelOrder((prev) => {
-      const sourceIndex = prev.indexOf(sourcePanelId);
-      const targetIndex = prev.indexOf(targetPanelId);
-      if (sourceIndex < 0 || targetIndex < 0) return prev;
-      const next = [...prev];
-      const [moved] = next.splice(sourceIndex, 1);
-      const adjustedTarget = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
-      next.splice(adjustedTarget, 0, moved);
-      return next;
-    });
-    setDraggedPanelId(null);
-    setDropTargetPanelId(null);
+    movePanel(sourcePanelId, targetPanelId);
+    finishPanelDrag();
   };
 
   const handlePanelDragEnd = () => {
-    setDraggedPanelId(null);
-    setDropTargetPanelId(null);
+    finishPanelDrag();
   };
+
+  useEffect(() => {
+    if (!pointerDraggingPanel) return;
+    const handlePointerUpWindow = () => {
+      finishPanelDrag();
+    };
+    window.addEventListener("pointerup", handlePointerUpWindow);
+    return () => {
+      window.removeEventListener("pointerup", handlePointerUpWindow);
+    };
+  }, [pointerDraggingPanel, finishPanelDrag]);
 
   const handleOpenDetails = (teamId: number) => {
     setSelectedTeamId(teamId);
@@ -4496,6 +4545,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
+                onPointerEnter={() => handlePanelPointerEnter(panelId)}
+                onPointerUp={() => handlePanelPointerUp(panelId)}
                 onDragEnd={handlePanelDragEnd}
               >
                 <ChroniclePanel
@@ -4504,6 +4555,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   refreshLabel={messages.clubChronicleRefreshTooltip}
                   panelId={panelId}
                   onRefresh={() => void refreshLeagueOnly()}
+                  onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
@@ -4541,6 +4593,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
+                onPointerEnter={() => handlePanelPointerEnter(panelId)}
+                onPointerUp={() => handlePanelPointerUp(panelId)}
                 onDragEnd={handlePanelDragEnd}
               >
                 <ChroniclePanel
@@ -4549,6 +4603,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   refreshLabel={messages.clubChronicleRefreshPressTooltip}
                   panelId={panelId}
                   onRefresh={() => void refreshPressOnly()}
+                  onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
@@ -4586,6 +4641,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
+                onPointerEnter={() => handlePanelPointerEnter(panelId)}
+                onPointerUp={() => handlePanelPointerUp(panelId)}
                 onDragEnd={handlePanelDragEnd}
               >
                 <ChroniclePanel
@@ -4594,6 +4651,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   refreshLabel={messages.clubChronicleRefreshFinanceTooltip}
                   panelId={panelId}
                   onRefresh={() => void refreshFinanceOnly()}
+                  onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
@@ -4636,6 +4694,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
+                onPointerEnter={() => handlePanelPointerEnter(panelId)}
+                onPointerUp={() => handlePanelPointerUp(panelId)}
                 onDragEnd={handlePanelDragEnd}
               >
                 <ChroniclePanel
@@ -4644,6 +4704,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   refreshLabel={messages.clubChronicleRefreshTooltip}
                   panelId={panelId}
                   onRefresh={() => void refreshFanclubOnly()}
+                  onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
@@ -4680,6 +4741,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
+                onPointerEnter={() => handlePanelPointerEnter(panelId)}
+                onPointerUp={() => handlePanelPointerUp(panelId)}
                 onDragEnd={handlePanelDragEnd}
               >
                 <ChroniclePanel
@@ -4688,6 +4751,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   refreshLabel={messages.clubChronicleRefreshArenaTooltip}
                   panelId={panelId}
                   onRefresh={() => void refreshArenaOnly()}
+                  onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
@@ -4725,6 +4789,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
+                onPointerEnter={() => handlePanelPointerEnter(panelId)}
+                onPointerUp={() => handlePanelPointerUp(panelId)}
                 onDragEnd={handlePanelDragEnd}
               >
                 <ChroniclePanel
@@ -4733,6 +4799,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   refreshLabel={messages.clubChronicleRefreshTransferTooltip}
                   panelId={panelId}
                   onRefresh={() => void refreshTransferOnly()}
+                  onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
@@ -4769,6 +4836,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
+                onPointerEnter={() => handlePanelPointerEnter(panelId)}
+                onPointerUp={() => handlePanelPointerUp(panelId)}
                 onDragEnd={handlePanelDragEnd}
               >
                 <ChroniclePanel
@@ -4777,6 +4846,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   refreshLabel={messages.clubChronicleRefreshTsiTooltip}
                   panelId={panelId}
                   onRefresh={() => void refreshTsiOnly()}
+                  onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
@@ -4814,6 +4884,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
+                onPointerEnter={() => handlePanelPointerEnter(panelId)}
+                onPointerUp={() => handlePanelPointerUp(panelId)}
                 onDragEnd={handlePanelDragEnd}
               >
                 <ChroniclePanel
@@ -4822,6 +4894,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   refreshLabel={messages.clubChronicleRefreshWagesTooltip}
                   panelId={panelId}
                   onRefresh={() => void refreshWagesOnly()}
+                  onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >

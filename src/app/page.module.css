@@ -1039,6 +1039,12 @@ html[data-app-scaling="off"] .topBar::before {
   padding: 16px 18px;
   border-bottom: 1px solid #eee2d2;
   background: transparent;
+  cursor: grab;
+  user-select: none;
+}
+
+.chroniclePanelHeader:active {
+  cursor: grabbing;
 }
 
 .chroniclePanelTitle {
@@ -1052,6 +1058,13 @@ html[data-app-scaling="off"] .topBar::before {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  cursor: grab;
+  user-select: none;
+  width: 100%;
+}
+
+.chroniclePanelTitleRow:active {
+  cursor: grabbing;
 }
 
 .chroniclePanelDragHandle {

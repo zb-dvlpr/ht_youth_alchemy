@@ -34,6 +34,7 @@
 
 ## Code Reuse
 - When writing code, prioritize maximizing reuse and minimizing repetitive implementations.
+- When multiple panels/features need overlapping API data during the same refresh cycle, fetch once and reuse the result instead of calling the same endpoint multiple times.
 
 ## Club Chronicle Tables
 - All Club Chronicle tables must use the shared ChronicleTable framework/component.

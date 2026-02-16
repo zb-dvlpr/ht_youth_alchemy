@@ -2160,12 +2160,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     teamId: number,
     limit: number
   ): Promise<{
+    totalBuysSek: number | null;
+    totalSalesSek: number | null;
     numberOfBuys: number | null;
     numberOfSales: number | null;
     transfers: TransferActivityEntry[];
   }> => {
     const target = Math.max(1, limit);
     const transfers: TransferActivityEntry[] = [];
+    let totalBuysSek: number | null = null;
+    let totalSalesSek: number | null = null;
     let numberOfBuys: number | null = null;
     let numberOfSales: number | null = null;
     let pageIndex = 1;
@@ -2181,6 +2185,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             data?: {
               HattrickData?: {
                 Stats?: {
+                  TotalSumOfBuys?: unknown;
+                  TotalSumOfSales?: unknown;
                   NumberOfBuys?: unknown;
                   NumberOfSales?: unknown;
                 };
@@ -2197,6 +2203,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         break;
       }
       const stats = payload?.data?.HattrickData?.Stats;
+      totalBuysSek = parseMoneySek(stats?.TotalSumOfBuys);
+      totalSalesSek = parseMoneySek(stats?.TotalSumOfSales);
       numberOfBuys = parseNumber(stats?.NumberOfBuys);
       numberOfSales = parseNumber(stats?.NumberOfSales);
       const transfersNode = payload?.data?.HattrickData?.Transfers;
@@ -2252,6 +2260,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     });
 
     return {
+      totalBuysSek,
+      totalSalesSek,
       numberOfBuys,
       numberOfSales,
       transfers: transfers.map((entry) => ({
@@ -2264,58 +2274,58 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
   };
 
+  const fetchTransferListedPlayers = async (
+    teamId: number
+  ): Promise<{ playerId: number; playerName: string | null }[]> => {
+    const playersResponse = await fetch(`/api/chpp/players?teamId=${teamId}`, {
+      cache: "no-store",
+    });
+    const playersPayload = (await playersResponse.json().catch(() => null)) as
+      | {
+          data?: {
+            HattrickData?: {
+              Team?: {
+                PlayerList?: {
+                  Player?: unknown;
+                };
+              };
+            };
+          };
+          error?: string;
+        }
+      | null;
+    if (!playersResponse.ok || playersPayload?.error) {
+      return [];
+    }
+    const rawPlayers = playersPayload?.data?.HattrickData?.Team?.PlayerList?.Player;
+    const playerList = (Array.isArray(rawPlayers)
+      ? rawPlayers
+      : rawPlayers
+        ? [rawPlayers]
+        : []) as RawNode[];
+    return playerList
+      .filter((player) => parseBool(player?.TransferListed))
+      .map((player) => {
+        const playerId = parseNumber(player?.PlayerID);
+        const playerName = [player?.FirstName, player?.NickName, player?.LastName]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+        return {
+          playerId: playerId ?? 0,
+          playerName: playerName || null,
+        };
+      })
+      .filter((player) => player.playerId > 0);
+  };
+
   const refreshTransferSnapshots = async (
     nextCache: ChronicleCache,
     historyCount: number
   ) => {
     for (const team of trackedTeams) {
       try {
-        const playersResponse = await fetch(`/api/chpp/players?teamId=${team.teamId}`, {
-          cache: "no-store",
-        });
-        const playersPayload = (await playersResponse.json().catch(() => null)) as
-          | {
-              data?: {
-                HattrickData?: {
-                  Team?: {
-                    PlayerList?: {
-                      Player?: unknown;
-                    };
-                  };
-                };
-              };
-              error?: string;
-            }
-          | null;
-        if (!playersResponse.ok || playersPayload?.error) {
-          continue;
-        }
-        const rawPlayers =
-          playersPayload?.data?.HattrickData?.Team?.PlayerList?.Player;
-        const playerList = (Array.isArray(rawPlayers)
-          ? rawPlayers
-          : rawPlayers
-            ? [rawPlayers]
-            : []) as RawNode[];
-        const transferListedPlayers = playerList
-          .filter((player) => parseBool(player?.TransferListed))
-          .map((player) => {
-            const playerId = parseNumber(player?.PlayerID);
-            const playerName = [
-              player?.FirstName,
-              player?.NickName,
-              player?.LastName,
-            ]
-              .filter(Boolean)
-              .join(" ")
-              .trim();
-            return {
-              playerId: playerId ?? 0,
-              playerName: playerName || null,
-            };
-          })
-          .filter((player) => player.playerId > 0);
-
+        const transferListedPlayers = await fetchTransferListedPlayers(team.teamId);
         const latestTransfers = await fetchLatestTransfers(team.teamId, historyCount);
         const snapshot: TransferActivitySnapshot = {
           transferListedCount: transferListedPlayers.length,
@@ -2342,6 +2352,59 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
   };
 
+  const refreshFinanceAndTransferSnapshots = async (
+    nextCache: ChronicleCache,
+    historyCount: number
+  ) => {
+    for (const team of trackedTeams) {
+      try {
+        const [transferListedPlayers, latestTransfers] = await Promise.all([
+          fetchTransferListedPlayers(team.teamId),
+          fetchLatestTransfers(team.teamId, historyCount),
+        ]);
+        const estimatedSek =
+          latestTransfers.totalSalesSek !== null &&
+          latestTransfers.totalBuysSek !== null
+            ? latestTransfers.totalSalesSek - latestTransfers.totalBuysSek
+            : null;
+        const financeSnapshot: FinanceEstimateSnapshot = {
+          totalBuysSek: latestTransfers.totalBuysSek,
+          totalSalesSek: latestTransfers.totalSalesSek,
+          numberOfBuys: latestTransfers.numberOfBuys,
+          numberOfSales: latestTransfers.numberOfSales,
+          estimatedSek,
+          estimatedEur: estimatedSek !== null ? estimatedSek / 10 : null,
+          fetchedAt: Date.now(),
+        };
+        const previousFinance = nextCache.teams[team.teamId]?.financeEstimate?.current;
+        const transferSnapshot: TransferActivitySnapshot = {
+          transferListedCount: transferListedPlayers.length,
+          transferListedPlayers,
+          numberOfBuys: latestTransfers.numberOfBuys,
+          numberOfSales: latestTransfers.numberOfSales,
+          latestTransfers: latestTransfers.transfers,
+          fetchedAt: Date.now(),
+        };
+        const previousTransfer = nextCache.teams[team.teamId]?.transferActivity?.current;
+        nextCache.teams[team.teamId] = {
+          ...nextCache.teams[team.teamId],
+          teamId: team.teamId,
+          teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+          financeEstimate: {
+            current: financeSnapshot,
+            previous: previousFinance,
+          },
+          transferActivity: {
+            current: transferSnapshot,
+            previous: previousTransfer,
+          },
+        };
+      } catch {
+        // ignore combined transfer/finance failures
+      }
+    }
+  };
+
   const refreshAllData = async (reason: "stale" | "manual") => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
@@ -2350,8 +2413,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const nextManualTeams = [...manualTeams];
     await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: true });
     await refreshLeagueSnapshots(nextCache);
-    await refreshFinanceSnapshots(nextCache);
-    await refreshTransferSnapshots(nextCache, transferHistoryCount);
+    await refreshFinanceAndTransferSnapshots(nextCache, transferHistoryCount);
     const nextUpdates = collectTeamChanges(nextCache, [
       "league",
       "press",

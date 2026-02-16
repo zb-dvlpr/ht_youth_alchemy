@@ -341,6 +341,7 @@ type ChronicleTableProps<Row, Snapshot> = {
   rows: Row[];
   getRowKey: (row: Row) => string | number;
   getSnapshot: (row: Row) => Snapshot | undefined;
+  getRowClassName?: (row: Row) => string | undefined;
   onRowClick?: (row: Row) => void;
   formatValue: (value: string | number | null | undefined) => string;
   style?: CSSProperties;
@@ -366,6 +367,7 @@ const ChronicleTable = <Row, Snapshot>({
   rows,
   getRowKey,
   getSnapshot,
+  getRowClassName,
   onRowClick,
   formatValue,
   style,
@@ -409,10 +411,11 @@ const ChronicleTable = <Row, Snapshot>({
     {rows.map((row) => {
       const snapshot = getSnapshot(row);
       const rowKey = getRowKey(row);
+      const rowClassName = getRowClassName?.(row);
       return (
         <div
           key={rowKey}
-          className={styles.chronicleTableRow}
+          className={`${styles.chronicleTableRow}${rowClassName ? ` ${rowClassName}` : ""}`}
           role={onRowClick ? "button" : undefined}
           tabIndex={onRowClick ? 0 : undefined}
           onClick={onRowClick ? () => onRowClick(row) : undefined}
@@ -4508,6 +4511,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [wagesTableColumns.length]
   );
 
+  const primaryChronicleTeamId = primaryTeam?.teamId ?? null;
+  const getTeamRowClassName = useCallback(
+    (row: { teamId: number }) =>
+      primaryChronicleTeamId !== null && row.teamId === primaryChronicleTeamId
+        ? styles.chronicleTableRowPrimary
+        : undefined,
+    [primaryChronicleTeamId]
+  );
+
   return (
     <div className={styles.clubChronicleStack}>
       <div className={styles.chronicleHeader}>
@@ -4574,6 +4586,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       rows={sortedLeagueRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenDetails(row.teamId)}
                       formatValue={formatValue}
                       style={tableStyle}
@@ -4622,6 +4635,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       rows={sortedPressRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenPressDetails(row.teamId)}
                       formatValue={formatValue}
                       style={pressTableStyle}
@@ -4671,6 +4685,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                         rows={sortedFinanceRows}
                         getRowKey={(row) => row.teamId}
                         getSnapshot={(row) => row.snapshot ?? undefined}
+                        getRowClassName={getTeamRowClassName}
                         onRowClick={(row) => handleOpenFinanceDetails(row.teamId)}
                         formatValue={formatValue}
                         style={financeTableStyle}
@@ -4723,6 +4738,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       rows={sortedFanclubRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      getRowClassName={getTeamRowClassName}
                       formatValue={formatValue}
                       style={fanclubTableStyle}
                       sortKey={fanclubSortState.key}
@@ -4770,6 +4786,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       rows={sortedArenaRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenArenaDetails(row.teamId)}
                       formatValue={formatValue}
                       style={arenaTableStyle}
@@ -4818,6 +4835,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       rows={sortedTransferRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      getRowClassName={getTeamRowClassName}
                       formatValue={formatValue}
                       style={transferTableStyle}
                       sortKey={transferSortState.key}
@@ -4865,6 +4883,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       rows={sortedTsiRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenTsiDetails(row.teamId)}
                       formatValue={formatValue}
                       style={tsiTableStyle}
@@ -4913,6 +4932,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       rows={sortedWagesRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenWagesDetails(row.teamId)}
                       formatValue={formatValue}
                       style={wagesTableStyle}

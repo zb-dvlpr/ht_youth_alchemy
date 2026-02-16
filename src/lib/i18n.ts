@@ -61,6 +61,7 @@ export type Messages = {
   changelog_2_7_0: string;
   changelog_2_8_0: string;
   changelog_2_9_0: string;
+  changelog_2_10_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -112,6 +113,7 @@ export type Messages = {
   clubChronicleRefreshFinanceTooltip: string;
   clubChronicleRefreshTransferTooltip: string;
   clubChronicleRefreshTsiTooltip: string;
+  clubChronicleRefreshWagesTooltip: string;
   clubChroniclePressPanelTitle: string;
   clubChroniclePressDetailsTitle: string;
   clubChroniclePressColumnAnnouncement: string;
@@ -199,6 +201,13 @@ export type Messages = {
   clubChronicleTsiPanelTitle: string;
   clubChronicleTsiColumnTotal: string;
   clubChronicleTsiColumnTop11: string;
+  clubChronicleWagesPanelTitle: string;
+  clubChronicleWagesColumnTotal: string;
+  clubChronicleWagesColumnTop11: string;
+  clubChronicleWagesDetailsTitle: string;
+  clubChronicleWagesPlayerIndexColumn: string;
+  clubChronicleWagesPlayerColumn: string;
+  clubChronicleWagesValueColumn: string;
   helpTitle: string;
   helpIntro: string;
   helpBulletOverview: string;
@@ -562,6 +571,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Club Chronicle adds arena panel with name, ID, capacity, rebuild date, and seat breakdown modal.",
     changelog_2_9_0:
       "Club Chronicle adds a TSI panel with per-team total TSI and top-11 TSI totals.",
+    changelog_2_10_0:
+      "Club Chronicle adds a wages panel with per-team total wages and top-11 wages.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -616,6 +627,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshFinanceTooltip: "Refresh finance estimate data.",
     clubChronicleRefreshTransferTooltip: "Refresh transfer market data.",
     clubChronicleRefreshTsiTooltip: "Refresh TSI data.",
+    clubChronicleRefreshWagesTooltip: "Refresh wages data.",
     clubChroniclePressPanelTitle: "Press announcements",
     clubChroniclePressDetailsTitle: "Press announcement",
     clubChroniclePressColumnAnnouncement: "Announcement",
@@ -666,6 +678,13 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "Total TSI",
     clubChronicleTsiColumnTop11: "Top 11 TSI",
+    clubChronicleWagesPanelTitle: "Wages",
+    clubChronicleWagesColumnTotal: "Total wages",
+    clubChronicleWagesColumnTop11: "Top 11 wages",
+    clubChronicleWagesDetailsTitle: "Wages",
+    clubChronicleWagesPlayerIndexColumn: "No.",
+    clubChronicleWagesPlayerColumn: "Player",
+    clubChronicleWagesValueColumn: "Wage",
     clubChronicleMoveUp: "Move panel up",
     clubChronicleMoveDown: "Move panel down",
     clubChronicleUpdatesEmpty: "No updates available yet.",
@@ -1085,6 +1104,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Club-Chronik erweitert um Arena-Panel mit Name, ID, Kapazität, Ausbaudatum und Sitzplatz-Aufschlüsselung.",
     changelog_2_9_0:
       "Club-Chronik erweitert um ein TSI-Panel mit Gesamt-TSI und Top-11-TSI pro Team.",
+    changelog_2_10_0:
+      "Club-Chronik erweitert um ein Gehalts-Panel mit Gesamtgehältern und Top-11-Gehältern pro Team.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -1140,6 +1161,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshFinanceTooltip: "Daten der Finanzschätzung aktualisieren.",
     clubChronicleRefreshTransferTooltip: "Transfermarktdaten aktualisieren.",
     clubChronicleRefreshTsiTooltip: "TSI-Daten aktualisieren.",
+    clubChronicleRefreshWagesTooltip: "Gehaltsdaten aktualisieren.",
     clubChroniclePressPanelTitle: "Pressemitteilungen",
     clubChroniclePressDetailsTitle: "Pressemitteilung",
     clubChroniclePressColumnAnnouncement: "Mitteilung",
@@ -1190,6 +1212,13 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "Gesamt-TSI",
     clubChronicleTsiColumnTop11: "Top-11-TSI",
+    clubChronicleWagesPanelTitle: "Gehälter",
+    clubChronicleWagesColumnTotal: "Gesamtgehälter",
+    clubChronicleWagesColumnTop11: "Top-11-Gehälter",
+    clubChronicleWagesDetailsTitle: "Gehälter",
+    clubChronicleWagesPlayerIndexColumn: "Nr.",
+    clubChronicleWagesPlayerColumn: "Spieler",
+    clubChronicleWagesValueColumn: "Gehalt",
     clubChronicleMoveUp: "Panel nach oben verschieben",
     clubChronicleMoveDown: "Panel nach unten verschieben",
     clubChronicleUpdatesEmpty: "Noch keine Updates verfügbar.",
@@ -1613,6 +1642,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Nouveau panneau arène dans la Chronique du club avec nom, ID, capacité, date d agrandissement et détail des places.",
     changelog_2_9_0:
       "La Chronique du club ajoute un panneau TSI avec le TSI total et le TSI du top 11 par équipe.",
+    changelog_2_10_0:
+      "La Chronique du club ajoute un panneau salaires avec salaires totaux et salaires du top 11 par équipe.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1668,6 +1699,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshFinanceTooltip: "Actualiser les données d'estimation financière.",
     clubChronicleRefreshTransferTooltip: "Actualiser les données du marché des transferts.",
     clubChronicleRefreshTsiTooltip: "Actualiser les données TSI.",
+    clubChronicleRefreshWagesTooltip: "Actualiser les données de salaires.",
     clubChroniclePressPanelTitle: "Communiqués de presse",
     clubChroniclePressDetailsTitle: "Communiqué de presse",
     clubChroniclePressColumnAnnouncement: "Annonce",
@@ -1718,6 +1750,13 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "TSI total",
     clubChronicleTsiColumnTop11: "TSI top 11",
+    clubChronicleWagesPanelTitle: "Salaires",
+    clubChronicleWagesColumnTotal: "Salaires totaux",
+    clubChronicleWagesColumnTop11: "Salaires top 11",
+    clubChronicleWagesDetailsTitle: "Salaires",
+    clubChronicleWagesPlayerIndexColumn: "No",
+    clubChronicleWagesPlayerColumn: "Joueur",
+    clubChronicleWagesValueColumn: "Salaire",
     clubChronicleMoveUp: "Monter le panneau",
     clubChronicleMoveDown: "Descendre le panneau",
     clubChronicleUpdatesEmpty: "Aucune mise à jour disponible.",
@@ -2148,6 +2187,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Crónica del club añade panel de estadio con nombre, ID, capacidad, fecha de ampliación y desglose de asientos.",
     changelog_2_9_0:
       "Crónica del club añade un panel de TSI con TSI total y TSI del top 11 por equipo.",
+    changelog_2_10_0:
+      "Crónica del club añade un panel de salarios con salarios totales y salarios del top 11 por equipo.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -2203,6 +2244,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshFinanceTooltip: "Actualizar datos de estimación financiera.",
     clubChronicleRefreshTransferTooltip: "Actualizar datos del mercado de traspasos.",
     clubChronicleRefreshTsiTooltip: "Actualizar datos de TSI.",
+    clubChronicleRefreshWagesTooltip: "Actualizar datos de salarios.",
     clubChroniclePressPanelTitle: "Comunicados de prensa",
     clubChroniclePressDetailsTitle: "Comunicado de prensa",
     clubChroniclePressColumnAnnouncement: "Anuncio",
@@ -2253,6 +2295,13 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "TSI total",
     clubChronicleTsiColumnTop11: "TSI top 11",
+    clubChronicleWagesPanelTitle: "Salarios",
+    clubChronicleWagesColumnTotal: "Salarios totales",
+    clubChronicleWagesColumnTop11: "Salarios top 11",
+    clubChronicleWagesDetailsTitle: "Salarios",
+    clubChronicleWagesPlayerIndexColumn: "N.º",
+    clubChronicleWagesPlayerColumn: "Jugador",
+    clubChronicleWagesValueColumn: "Salario",
     clubChronicleMoveUp: "Mover panel arriba",
     clubChronicleMoveDown: "Mover panel abajo",
     clubChronicleUpdatesEmpty: "No hay actualizaciones disponibles.",
@@ -2677,6 +2726,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Klubbkrönikan har nu en arenapanel med namn, ID, kapacitet, byggdatum och platsfördelning.",
     changelog_2_9_0:
       "Klubbkrönikan lägger till en TSI-panel med total TSI och topp-11 TSI per lag.",
+    changelog_2_10_0:
+      "Klubbkrönikan lägger till en lönepanel med totala löner och topp-11-löner per lag.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -2732,6 +2783,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshFinanceTooltip: "Uppdatera data för finansestimat.",
     clubChronicleRefreshTransferTooltip: "Uppdatera data för transfermarknaden.",
     clubChronicleRefreshTsiTooltip: "Uppdatera TSI-data.",
+    clubChronicleRefreshWagesTooltip: "Uppdatera lönedata.",
     clubChroniclePressPanelTitle: "Pressmeddelanden",
     clubChroniclePressDetailsTitle: "Pressmeddelande",
     clubChroniclePressColumnAnnouncement: "Meddelande",
@@ -2782,6 +2834,13 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "Total TSI",
     clubChronicleTsiColumnTop11: "Topp 11 TSI",
+    clubChronicleWagesPanelTitle: "Löner",
+    clubChronicleWagesColumnTotal: "Totala löner",
+    clubChronicleWagesColumnTop11: "Topp 11-löner",
+    clubChronicleWagesDetailsTitle: "Löner",
+    clubChronicleWagesPlayerIndexColumn: "Nr",
+    clubChronicleWagesPlayerColumn: "Spelare",
+    clubChronicleWagesValueColumn: "Lön",
     clubChronicleMoveUp: "Flytta panel upp",
     clubChronicleMoveDown: "Flytta panel ner",
     clubChronicleUpdatesEmpty: "Inga uppdateringar ännu.",
@@ -3206,6 +3265,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "La Cronaca del club aggiunge il pannello stadio con nome, ID, capacità, data ultimo ampliamento e dettaglio posti.",
     changelog_2_9_0:
       "La Cronaca del club aggiunge un pannello TSI con TSI totale e TSI dei migliori 11 per squadra.",
+    changelog_2_10_0:
+      "La Cronaca del club aggiunge un pannello stipendi con stipendi totali e stipendi top 11 per squadra.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -3261,6 +3322,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshFinanceTooltip: "Aggiorna i dati della stima finanziaria.",
     clubChronicleRefreshTransferTooltip: "Aggiorna i dati del mercato trasferimenti.",
     clubChronicleRefreshTsiTooltip: "Aggiorna i dati TSI.",
+    clubChronicleRefreshWagesTooltip: "Aggiorna i dati stipendi.",
     clubChroniclePressPanelTitle: "Comunicati stampa",
     clubChroniclePressDetailsTitle: "Comunicato stampa",
     clubChroniclePressColumnAnnouncement: "Annuncio",
@@ -3311,6 +3373,13 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "TSI totale",
     clubChronicleTsiColumnTop11: "TSI top 11",
+    clubChronicleWagesPanelTitle: "Stipendi",
+    clubChronicleWagesColumnTotal: "Stipendi totali",
+    clubChronicleWagesColumnTop11: "Stipendi top 11",
+    clubChronicleWagesDetailsTitle: "Stipendi",
+    clubChronicleWagesPlayerIndexColumn: "N.",
+    clubChronicleWagesPlayerColumn: "Giocatore",
+    clubChronicleWagesValueColumn: "Stipendio",
     clubChronicleMoveUp: "Sposta pannello su",
     clubChronicleMoveDown: "Sposta pannello giù",
     clubChronicleUpdatesEmpty: "Nessun aggiornamento disponibile.",
@@ -3737,6 +3806,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Crônica do clube adiciona painel de arena com nome, ID, capacidade, data de expansão e detalhamento de assentos.",
     changelog_2_9_0:
       "Crônica do clube adiciona um painel de TSI com TSI total e TSI dos 11 melhores por equipe.",
+    changelog_2_10_0:
+      "Crônica do clube adiciona um painel de salários com salários totais e salários dos 11 melhores por equipe.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -3792,6 +3863,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshFinanceTooltip: "Atualizar dados da estimativa financeira.",
     clubChronicleRefreshTransferTooltip: "Atualizar dados do mercado de transferências.",
     clubChronicleRefreshTsiTooltip: "Atualizar dados de TSI.",
+    clubChronicleRefreshWagesTooltip: "Atualizar dados de salários.",
     clubChroniclePressPanelTitle: "Comunicados de imprensa",
     clubChroniclePressDetailsTitle: "Comunicado de imprensa",
     clubChroniclePressColumnAnnouncement: "Anúncio",
@@ -3842,6 +3914,13 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleTsiPanelTitle: "TSI",
     clubChronicleTsiColumnTotal: "TSI total",
     clubChronicleTsiColumnTop11: "TSI top 11",
+    clubChronicleWagesPanelTitle: "Salários",
+    clubChronicleWagesColumnTotal: "Salários totais",
+    clubChronicleWagesColumnTop11: "Salários top 11",
+    clubChronicleWagesDetailsTitle: "Salários",
+    clubChronicleWagesPlayerIndexColumn: "Nº",
+    clubChronicleWagesPlayerColumn: "Jogador",
+    clubChronicleWagesValueColumn: "Salário",
     clubChronicleMoveUp: "Mover painel para cima",
     clubChronicleMoveDown: "Mover painel para baixo",
     clubChronicleUpdatesEmpty: "Nenhuma atualização disponível.",

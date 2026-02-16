@@ -95,7 +95,6 @@ type FinanceEstimateSnapshot = {
   numberOfBuys: number | null;
   numberOfSales: number | null;
   estimatedSek: number | null;
-  estimatedEur: number | null;
   fetchedAt: number;
 };
 
@@ -176,6 +175,36 @@ type TsiRow = {
   snapshot?: TsiSnapshot | null;
 };
 
+type WagesSnapshot = {
+  totalWagesSek: number;
+  top11WagesSek: number;
+  players: {
+    playerId: number;
+    playerName: string | null;
+    playerNumber: number | null;
+    salarySek: number;
+  }[];
+  fetchedAt: number;
+};
+
+type WagesData = {
+  current: WagesSnapshot;
+  previous?: WagesSnapshot;
+};
+
+type WagesRow = {
+  teamId: number;
+  teamName: string;
+  snapshot?: WagesSnapshot | null;
+};
+
+type WagesPlayerRow = {
+  playerId: number;
+  playerName: string | null;
+  playerNumber: number | null;
+  salarySek: number;
+};
+
 type FanclubSnapshot = {
   fanclubName: string | null;
   fanclubSize: number | null;
@@ -238,6 +267,7 @@ type ChronicleTeamData = {
   financeEstimate?: FinanceEstimateData;
   transferActivity?: TransferActivityData;
   tsi?: TsiData;
+  wages?: WagesData;
 };
 
 type ChronicleCache = {
@@ -271,7 +301,8 @@ type UpdatePanel =
   | "arena"
   | "finance"
   | "transfer"
-  | "tsi";
+  | "tsi"
+  | "wages";
 
 type ChronicleTableColumn<Row, Snapshot> = {
   key: string;
@@ -458,10 +489,12 @@ const PANEL_IDS = [
   "finance-estimate",
   "transfer-market",
   "tsi",
+  "wages",
 ] as const;
 const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
 const MAX_CACHE_AGE_MS = SEASON_LENGTH_MS * 2;
-const HT_BASE_URL = "https://www89.hattrick.org";
+const HT_BASE_URL = "https://www.hattrick.org";
+const CHPP_SEK_PER_EUR = 10;
 
 const normalizeSupportedTeams = (
   input:
@@ -905,6 +938,21 @@ const pruneChronicleCache = (cache: ChronicleCache): ChronicleCache => {
         }
         return tsi;
       })(),
+      wages: (() => {
+        const wages = team.wages;
+        if (!wages?.current) return wages;
+        const currentAge = now - wages.current.fetchedAt;
+        if (currentAge > MAX_CACHE_AGE_MS) return undefined;
+        if (!wages.previous) return wages;
+        const previousAge = now - wages.previous.fetchedAt;
+        if (previousAge > MAX_CACHE_AGE_MS) {
+          return {
+            ...wages,
+            previous: undefined,
+          };
+        }
+        return wages;
+      })(),
     };
   });
   return { ...cache, teams: nextTeams };
@@ -928,7 +976,9 @@ const getLatestCacheTimestamp = (cache: ChronicleCache): number | null => {
       team.transferActivity?.current?.fetchedAt ?? 0,
       team.transferActivity?.previous?.fetchedAt ?? 0,
       team.tsi?.current?.fetchedAt ?? 0,
-      team.tsi?.previous?.fetchedAt ?? 0
+      team.tsi?.previous?.fetchedAt ?? 0,
+      team.wages?.current?.fetchedAt ?? 0,
+      team.wages?.previous?.fetchedAt ?? 0
     );
   });
   return latest > 0 ? latest : null;
@@ -970,6 +1020,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [selectedArenaTeamId, setSelectedArenaTeamId] = useState<number | null>(
     null
   );
+  const [wagesDetailsOpen, setWagesDetailsOpen] = useState(false);
+  const [selectedWagesTeamId, setSelectedWagesTeamId] = useState<number | null>(
+    null
+  );
+  const [wagesDetailsSortState, setWagesDetailsSortState] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({ key: "playerNumber", direction: "asc" });
   const [resolvedPlayers, setResolvedPlayers] = useState<Record<number, string>>(
     {}
   );
@@ -1011,6 +1069,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     key: string;
     direction: "asc" | "desc";
   }>({ key: "team", direction: "asc" });
+  const [wagesSortState, setWagesSortState] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({ key: "team", direction: "asc" });
   const [refreshingGlobal, setRefreshingGlobal] = useState(false);
   const [refreshingLeague, setRefreshingLeague] = useState(false);
   const [refreshingPress, setRefreshingPress] = useState(false);
@@ -1019,6 +1081,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [refreshingFinance, setRefreshingFinance] = useState(false);
   const [refreshingTransfer, setRefreshingTransfer] = useState(false);
   const [refreshingTsi, setRefreshingTsi] = useState(false);
+  const [refreshingWages, setRefreshingWages] = useState(false);
   const [draggedPanelId, setDraggedPanelId] = useState<string | null>(null);
   const [dropTargetPanelId, setDropTargetPanelId] = useState<string | null>(null);
   const [loadingTransferHistoryModal, setLoadingTransferHistoryModal] =
@@ -1041,7 +1104,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     refreshingArena ||
     refreshingFinance ||
     refreshingTransfer ||
-    refreshingTsi;
+    refreshingTsi ||
+    refreshingWages;
 
   const supportedById = useMemo(
     () =>
@@ -1197,6 +1261,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 label: messages.clubChronicleTsiColumnTop11,
                 previous: "512000",
                 current: "519000",
+              },
+              {
+                fieldKey: "wages.total",
+                label: messages.clubChronicleWagesColumnTotal,
+                previous: "420000",
+                current: "432000",
+              },
+              {
+                fieldKey: "wages.top11",
+                label: messages.clubChronicleWagesColumnTop11,
+                previous: "301000",
+                current: "308000",
               },
             ],
           },
@@ -1695,6 +1771,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setArenaDetailsOpen(true);
   };
 
+  const handleOpenWagesDetails = (teamId: number) => {
+    setSelectedWagesTeamId(teamId);
+    setWagesDetailsOpen(true);
+  };
+
   const handleOpenTransferListedDetails = useCallback((teamId: number) => {
     setSelectedTransferTeamId(teamId);
     setTransferListedDetailsOpen(true);
@@ -1789,6 +1870,22 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const handleTsiSort = (key: string) => {
     setTsiSortState((prev) => ({
+      key,
+      direction:
+        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
+    }));
+  };
+
+  const handleWagesSort = (key: string) => {
+    setWagesSortState((prev) => ({
+      key,
+      direction:
+        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
+    }));
+  };
+
+  const handleWagesDetailsSort = (key: string) => {
+    setWagesDetailsSortState((prev) => ({
       key,
       direction:
         prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
@@ -1978,7 +2075,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         key: "estimate",
         label: messages.clubChronicleFinanceColumnEstimate,
         getValue: (snapshot: FinanceEstimateSnapshot | undefined) =>
-          snapshot ? `${formatEuro(snapshot.estimatedEur)}*` : null,
+          snapshot ? `${formatChppCurrencyFromSek(snapshot.estimatedSek)}*` : null,
         getSortValue: (snapshot: FinanceEstimateSnapshot | undefined) =>
           snapshot?.estimatedSek ?? null,
       },
@@ -2147,6 +2244,39 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     ]
   );
 
+  const wagesTableColumns = useMemo<
+    ChronicleTableColumn<WagesRow, WagesSnapshot>[]
+  >(
+    () => [
+      {
+        key: "team",
+        label: messages.clubChronicleColumnTeam,
+        getValue: (_snapshot, row) => row?.teamName ?? null,
+      },
+      {
+        key: "totalWages",
+        label: messages.clubChronicleWagesColumnTotal,
+        getValue: (snapshot: WagesSnapshot | undefined) =>
+          snapshot ? formatChppCurrencyFromSek(snapshot.totalWagesSek) : null,
+        getSortValue: (snapshot: WagesSnapshot | undefined) =>
+          snapshot?.totalWagesSek ?? null,
+      },
+      {
+        key: "top11Wages",
+        label: messages.clubChronicleWagesColumnTop11,
+        getValue: (snapshot: WagesSnapshot | undefined) =>
+          snapshot ? formatChppCurrencyFromSek(snapshot.top11WagesSek) : null,
+        getSortValue: (snapshot: WagesSnapshot | undefined) =>
+          snapshot?.top11WagesSek ?? null,
+      },
+    ],
+    [
+      messages.clubChronicleColumnTeam,
+      messages.clubChronicleWagesColumnTotal,
+      messages.clubChronicleWagesColumnTop11,
+    ]
+  );
+
   const formatValue = (value: string | number | null | undefined) => {
     if (value === null || value === undefined || value === "") {
       return messages.unknownShort;
@@ -2198,6 +2328,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       maximumFractionDigits: 0,
     }).format(value);
   };
+
+  const convertSekToEur = (valueSek: number | null | undefined) => {
+    if (valueSek === null || valueSek === undefined) return null;
+    return valueSek / CHPP_SEK_PER_EUR;
+  };
+
+  const formatChppCurrencyFromSek = (valueSek: number | null | undefined) =>
+    formatEuro(convertSekToEur(valueSek));
 
   const hashText = (input: string): string => {
     let hash = 5381;
@@ -2423,8 +2561,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             {
               fieldKey: "finance.estimate",
               label: messages.clubChronicleFinanceColumnEstimate,
-              previous: `${formatEuro(previous.estimatedEur)}*`,
-              current: `${formatEuro(current.estimatedEur)}*`,
+              previous: `${formatChppCurrencyFromSek(previous.estimatedSek)}*`,
+              current: `${formatChppCurrencyFromSek(current.estimatedSek)}*`,
             },
           ]);
         }
@@ -2481,6 +2619,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             });
           }
           appendTeamChanges(updatesMap, teamId, teamName, tsiChanges);
+        }
+      }
+
+      if (panels.includes("wages")) {
+        const previous = cached.wages?.previous;
+        const current = cached.wages?.current;
+        if (current && previous) {
+          const wageChanges: ChronicleUpdateField[] = [];
+          if (previous.totalWagesSek !== current.totalWagesSek) {
+            wageChanges.push({
+              fieldKey: "wages.total",
+              label: messages.clubChronicleWagesColumnTotal,
+              previous: formatValue(previous.totalWagesSek),
+              current: formatValue(current.totalWagesSek),
+            });
+          }
+          if (previous.top11WagesSek !== current.top11WagesSek) {
+            wageChanges.push({
+              fieldKey: "wages.top11",
+              label: messages.clubChronicleWagesColumnTop11,
+              previous: formatValue(previous.top11WagesSek),
+              current: formatValue(current.top11WagesSek),
+            });
+          }
+          appendTeamChanges(updatesMap, teamId, teamName, wageChanges);
         }
       }
     });
@@ -2812,7 +2975,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           numberOfBuys,
           numberOfSales,
           estimatedSek,
-          estimatedEur: estimatedSek !== null ? estimatedSek / 10 : null,
           fetchedAt: Date.now(),
         };
         const previous = nextCache.teams[team.teamId]?.financeEstimate?.current;
@@ -2843,8 +3005,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   type TeamPlayerSnapshot = {
     playerId: number;
     playerName: string | null;
+    playerNumber: number | null;
     transferListed: boolean;
     tsi: number;
+    salarySek: number;
   };
 
   const fetchTeamPlayers = async (teamId: number): Promise<TeamPlayerSnapshot[]> => {
@@ -2885,8 +3049,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         return {
           playerId,
           playerName: playerName || null,
+          playerNumber: parseNumberNode(player?.PlayerNumber),
           transferListed: parseBool(player?.TransferListed),
           tsi: parseNumber(player?.TSI) ?? 0,
+          salarySek: parseMoneySek(player?.Salary) ?? 0,
         };
       })
       .filter((player): player is TeamPlayerSnapshot => Boolean(player));
@@ -2911,6 +3077,26 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return {
       totalTsi,
       top11Tsi,
+      fetchedAt: Date.now(),
+    };
+  };
+
+  const buildWagesSnapshot = (players: TeamPlayerSnapshot[]): WagesSnapshot => {
+    const normalizedPlayers = players.map((player) => ({
+      playerId: player.playerId,
+      playerName: player.playerName,
+      playerNumber: player.playerNumber,
+      salarySek: Number.isFinite(player.salarySek) ? player.salarySek : 0,
+    }));
+    const wages = normalizedPlayers
+      .map((player) => player.salarySek)
+      .sort((a, b) => b - a);
+    const totalWagesSek = wages.reduce((sum, value) => sum + value, 0);
+    const top11WagesSek = wages.slice(0, 11).reduce((sum, value) => sum + value, 0);
+    return {
+      totalWagesSek,
+      top11WagesSek,
+      players: normalizedPlayers.sort((a, b) => b.salarySek - a.salarySek),
       fetchedAt: Date.now(),
     };
   };
@@ -3119,6 +3305,27 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
   };
 
+  const refreshWagesSnapshots = async (nextCache: ChronicleCache) => {
+    for (const team of trackedTeams) {
+      try {
+        const teamPlayers = await fetchTeamPlayers(team.teamId);
+        const snapshot = buildWagesSnapshot(teamPlayers);
+        const previous = nextCache.teams[team.teamId]?.wages?.current;
+        nextCache.teams[team.teamId] = {
+          ...nextCache.teams[team.teamId],
+          teamId: team.teamId,
+          teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+          wages: {
+            current: snapshot,
+            previous,
+          },
+        };
+      } catch {
+        // ignore wages failures
+      }
+    }
+  };
+
   const refreshFinanceAndTransferSnapshots = async (
     nextCache: ChronicleCache,
     historyCount: number
@@ -3141,7 +3348,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           numberOfBuys: latestTransfers.numberOfBuys,
           numberOfSales: latestTransfers.numberOfSales,
           estimatedSek,
-          estimatedEur: estimatedSek !== null ? estimatedSek / 10 : null,
           fetchedAt: Date.now(),
         };
         const previousFinance = nextCache.teams[team.teamId]?.financeEstimate?.current;
@@ -3156,6 +3362,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         const previousTransfer = nextCache.teams[team.teamId]?.transferActivity?.current;
         const tsiSnapshot = buildTsiSnapshot(teamPlayers);
         const previousTsi = nextCache.teams[team.teamId]?.tsi?.current;
+        const wagesSnapshot = buildWagesSnapshot(teamPlayers);
+        const previousWages = nextCache.teams[team.teamId]?.wages?.current;
         nextCache.teams[team.teamId] = {
           ...nextCache.teams[team.teamId],
           teamId: team.teamId,
@@ -3171,6 +3379,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           tsi: {
             current: tsiSnapshot,
             previous: previousTsi,
+          },
+          wages: {
+            current: wagesSnapshot,
+            previous: previousWages,
           },
         };
       } catch {
@@ -3197,6 +3409,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       "finance",
       "transfer",
       "tsi",
+      "wages",
     ]);
 
     setManualTeams(nextManualTeams);
@@ -3353,6 +3566,26 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     addNotification(messages.notificationChronicleRefreshComplete);
   };
 
+  const refreshWagesOnly = async () => {
+    if (anyRefreshing) return;
+    if (trackedTeams.length === 0) return;
+    setRefreshingWages(true);
+    const nextCache = pruneChronicleCache(readChronicleCache());
+    const nextManualTeams = [...manualTeams];
+    await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+    await refreshWagesSnapshots(nextCache);
+    const nextUpdates = collectTeamChanges(nextCache, ["wages"]);
+    setManualTeams(nextManualTeams);
+    setChronicleCache(nextCache);
+    setUpdates(nextUpdates);
+    const hasUpdates = Object.values(nextUpdates.teams).some(
+      (teamUpdate) => teamUpdate.changes.length > 0
+    );
+    setUpdatesOpen(hasUpdates);
+    setRefreshingWages(false);
+    addNotification(messages.notificationChronicleRefreshComplete);
+  };
+
   const updatesByTeam = updates?.teams ?? {};
   const hasAnyTeamUpdates = trackedTeams.some((team) => {
     const changes = updatesByTeam[team.teamId]?.changes ?? [];
@@ -3434,6 +3667,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       teamId: team.teamId,
       teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
       snapshot: cached?.tsi?.current,
+    };
+  });
+
+  const wagesRows: WagesRow[] = trackedTeams.map((team) => {
+    const cached = chronicleCache.teams[team.teamId];
+    return {
+      teamId: team.teamId,
+      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+      snapshot: cached?.wages?.current,
     };
   });
 
@@ -3606,6 +3848,29 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       .map((item) => item.row);
   }, [tsiRows, tsiTableColumns, tsiSortState]);
 
+  const sortedWagesRows = useMemo(() => {
+    if (!wagesSortState.key) return wagesRows;
+    const column = wagesTableColumns.find((item) => item.key === wagesSortState.key);
+    if (!column) return wagesRows;
+    const direction = wagesSortState.direction === "desc" ? -1 : 1;
+    return [...wagesRows]
+      .map((row, index) => ({ row, index }))
+      .sort((left, right) => {
+        const leftValue = normalizeSortValue(
+          column.getSortValue?.(left.row.snapshot ?? undefined, left.row) ??
+            column.getValue(left.row.snapshot ?? undefined, left.row)
+        );
+        const rightValue = normalizeSortValue(
+          column.getSortValue?.(right.row.snapshot ?? undefined, right.row) ??
+            column.getValue(right.row.snapshot ?? undefined, right.row)
+        );
+        const result = compareSortValues(leftValue, rightValue);
+        if (result !== 0) return result * direction;
+        return left.index - right.index;
+      })
+      .map((item) => item.row);
+  }, [wagesRows, wagesTableColumns, wagesSortState]);
+
   const selectedTeam = selectedTeamId
     ? leagueRows.find((team) => team.teamId === selectedTeamId) ?? null
     : null;
@@ -3621,6 +3886,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const selectedTransferTeam = selectedTransferTeamId
     ? transferRows.find((team) => team.teamId === selectedTransferTeamId) ?? null
     : null;
+  const selectedWagesTeam = selectedWagesTeamId
+    ? wagesRows.find((team) => team.teamId === selectedWagesTeamId) ?? null
+    : null;
   const transferListedRows = useMemo(
     () => selectedTransferTeam?.snapshot?.transferListedPlayers ?? [],
     [selectedTransferTeam]
@@ -3628,6 +3896,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const transferHistoryRows = useMemo(
     () => selectedTransferTeam?.snapshot?.latestTransfers ?? [],
     [selectedTransferTeam]
+  );
+  const wagesPlayerRows = useMemo<WagesPlayerRow[]>(
+    () =>
+      (selectedWagesTeam?.snapshot?.players ?? []).map((row, index) => ({
+        ...row,
+        playerNumber: row.playerNumber ?? index + 1,
+      })),
+    [selectedWagesTeam]
   );
 
   const transferListedColumns = useMemo<
@@ -3707,7 +3983,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         label: messages.clubChronicleTransferHistoryPriceColumn,
         getValue: (snapshot) =>
           snapshot?.priceSek !== null && snapshot?.priceSek !== undefined
-            ? formatEuro(snapshot.priceSek / 10)
+            ? formatChppCurrencyFromSek(snapshot.priceSek)
             : null,
       },
     ],
@@ -3720,6 +3996,74 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleTransferHistoryPriceColumn,
     ]
   );
+
+  const wagesPlayerColumns = useMemo<
+    ChronicleTableColumn<WagesPlayerRow, WagesPlayerRow>[]
+  >(
+    () => [
+      {
+        key: "playerNumber",
+        label: messages.clubChronicleWagesPlayerIndexColumn,
+        getValue: (snapshot) => snapshot?.playerNumber ?? null,
+      },
+      {
+        key: "player",
+        label: messages.clubChronicleWagesPlayerColumn,
+        getValue: (snapshot) => snapshot?.playerName ?? null,
+        renderCell: (snapshot, _row, fallbackFormat) => {
+          const playerId = snapshot?.playerId ?? 0;
+          const playerName = snapshot?.playerName ?? null;
+          if (!playerId) return fallbackFormat(playerName);
+          return (
+            <a
+              className={styles.chroniclePressLink}
+              href={`${HT_BASE_URL}/Club/Players/Player.aspx?playerId=${playerId}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {playerName ?? `${playerId}`}
+            </a>
+          );
+        },
+      },
+      {
+        key: "wage",
+        label: messages.clubChronicleWagesValueColumn,
+        getValue: (snapshot) => formatChppCurrencyFromSek(snapshot?.salarySek ?? null),
+        getSortValue: (snapshot) => snapshot?.salarySek ?? null,
+      },
+    ],
+    [
+      messages.clubChronicleWagesPlayerIndexColumn,
+      messages.clubChronicleWagesPlayerColumn,
+      messages.clubChronicleWagesValueColumn,
+    ]
+  );
+
+  const sortedWagesPlayerRows = useMemo(() => {
+    if (!wagesDetailsSortState.key) return wagesPlayerRows;
+    const column = wagesPlayerColumns.find(
+      (item) => item.key === wagesDetailsSortState.key
+    );
+    if (!column) return wagesPlayerRows;
+    const direction = wagesDetailsSortState.direction === "desc" ? -1 : 1;
+    return [...wagesPlayerRows]
+      .map((row, index) => ({ row, index }))
+      .sort((left, right) => {
+        const leftValue = normalizeSortValue(
+          column.getSortValue?.(left.row, left.row) ??
+            column.getValue(left.row, left.row)
+        );
+        const rightValue = normalizeSortValue(
+          column.getSortValue?.(right.row, right.row) ??
+            column.getValue(right.row, right.row)
+        );
+        const result = compareSortValues(leftValue, rightValue);
+        if (result !== 0) return result * direction;
+        return left.index - right.index;
+      })
+      .map((item) => item.row);
+  }, [wagesPlayerRows, wagesPlayerColumns, wagesDetailsSortState]);
 
   useEffect(() => {
     if (!pressDetailsOpen || !selectedPressTeam?.snapshot) return;
@@ -3987,6 +4331,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         "--cc-template": "minmax(180px, 1.4fr) minmax(120px, 0.9fr) minmax(120px, 0.9fr)",
       }) as CSSProperties,
     [tsiTableColumns.length]
+  );
+
+  const wagesTableStyle = useMemo(
+    () =>
+      ({
+        "--cc-columns": wagesTableColumns.length,
+        "--cc-template": "minmax(180px, 1.4fr) minmax(120px, 0.9fr) minmax(120px, 0.9fr)",
+      }) as CSSProperties,
+    [wagesTableColumns.length]
   );
 
   return (
@@ -4336,6 +4689,51 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               </div>
             );
           }
+          if (panelId === "wages") {
+            return (
+              <div
+                key={panelId}
+                className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
+                onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDrop={(event) => handlePanelDrop(event, panelId)}
+                onDragEnd={handlePanelDragEnd}
+              >
+                <ChroniclePanel
+                  title={messages.clubChronicleWagesPanelTitle}
+                  refreshing={refreshingGlobal || refreshingWages}
+                  refreshLabel={messages.clubChronicleRefreshWagesTooltip}
+                  panelId={panelId}
+                  onRefresh={() => void refreshWagesOnly()}
+                  onDragStart={handlePanelDragStart}
+                  onDragEnd={handlePanelDragEnd}
+                >
+                  {trackedTeams.length === 0 ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
+                    </p>
+                  ) : (refreshingGlobal || refreshingWages) &&
+                    wagesRows.every((row) => !row.snapshot) ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleLoading}
+                    </p>
+                  ) : (
+                    <ChronicleTable
+                      columns={wagesTableColumns}
+                      rows={sortedWagesRows}
+                      getRowKey={(row) => row.teamId}
+                      getSnapshot={(row) => row.snapshot ?? undefined}
+                      onRowClick={(row) => handleOpenWagesDetails(row.teamId)}
+                      formatValue={formatValue}
+                      style={wagesTableStyle}
+                      sortKey={wagesSortState.key}
+                      sortDirection={wagesSortState.direction}
+                      onSort={handleWagesSort}
+                    />
+                  )}
+                </ChroniclePanel>
+              </div>
+            );
+          }
           return null;
         })}
       </div>
@@ -4656,11 +5054,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 </span>
                 <span />
                 <span>
-                  {formatEuro(
-                    selectedFinanceTeam.snapshot.totalBuysSek !== null
-                      ? selectedFinanceTeam.snapshot.totalBuysSek / 10
-                      : null
-                  )}
+                  {formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.totalBuysSek)}
                 </span>
               </div>
               <div className={styles.chronicleDetailsRow}>
@@ -4669,11 +5063,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 </span>
                 <span />
                 <span>
-                  {formatEuro(
-                    selectedFinanceTeam.snapshot.totalSalesSek !== null
-                      ? selectedFinanceTeam.snapshot.totalSalesSek / 10
-                      : null
-                  )}
+                  {formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.totalSalesSek)}
                 </span>
               </div>
               <div className={styles.chronicleDetailsRow}>
@@ -4681,7 +5071,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   {messages.clubChronicleFinanceColumnEstimate}
                 </span>
                 <span />
-                <span>{`${formatEuro(selectedFinanceTeam.snapshot.estimatedEur)}*`}</span>
+                <span>{`${formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.estimatedSek)}*`}</span>
               </div>
             </div>
           ) : (
@@ -4875,6 +5265,57 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
         closeOnBackdrop
         onClose={() => setTransferHistoryOpen(false)}
+      />
+
+      <Modal
+        open={wagesDetailsOpen}
+        title={messages.clubChronicleWagesDetailsTitle}
+        className={styles.chronicleTransferHistoryModal}
+        body={
+          selectedWagesTeam ? (
+            <>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleColumnTeam}: {selectedWagesTeam.teamName}
+              </p>
+              {wagesPlayerRows.length > 0 ? (
+                <div className={styles.chronicleTransferHistoryTableWrap}>
+                  <ChronicleTable
+                    columns={wagesPlayerColumns}
+                    rows={sortedWagesPlayerRows}
+                    getRowKey={(row) => row.playerId}
+                    getSnapshot={(row) => row}
+                    formatValue={formatValue}
+                    style={
+                      {
+                        "--cc-columns": wagesPlayerColumns.length,
+                        "--cc-template":
+                          "minmax(90px, 0.5fr) minmax(260px, 1.5fr) minmax(150px, 0.8fr)",
+                      } as CSSProperties
+                    }
+                    sortKey={wagesDetailsSortState.key}
+                    sortDirection={wagesDetailsSortState.direction}
+                    onSort={handleWagesDetailsSort}
+                  />
+                </div>
+              ) : (
+                <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+              )}
+            </>
+          ) : (
+            <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setWagesDetailsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setWagesDetailsOpen(false)}
       />
 
       <Modal

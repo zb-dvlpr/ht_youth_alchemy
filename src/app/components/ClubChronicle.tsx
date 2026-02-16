@@ -3421,6 +3421,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       <Modal
         open={updatesOpen}
         title={messages.clubChronicleUpdatesTitle}
+        className={styles.chronicleUpdatesModal}
         body={
           updates && trackedTeams.length ? (
             hasAnyTeamUpdates ? (

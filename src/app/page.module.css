@@ -1224,7 +1224,11 @@ html[data-app-scaling="off"] .topBar::before {
 
 .chronicleUpdatesList {
   display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 12px;
+  max-height: min(70vh, 760px);
+  overflow: auto;
+  padding-right: 4px;
 }
 
 .chronicleUpdatesTeam {
@@ -2904,6 +2908,10 @@ html[data-theme="dark"] .spinner {
 
 .confirmCard.chronicleTransferHistoryModal {
   width: min(1120px, 98vw);
+}
+
+.confirmCard.chronicleUpdatesModal {
+  width: min(1200px, 98vw);
 }
 
 .confirmTitle {

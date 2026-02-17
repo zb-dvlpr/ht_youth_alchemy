@@ -10,7 +10,7 @@ import {
 } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
-import { formatChppDateTime } from "@/lib/datetime";
+import { formatChppDateTime, formatDateTime } from "@/lib/datetime";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
 import { useNotifications } from "./notifications/NotificationsProvider";
@@ -305,6 +305,13 @@ type ChronicleUpdates = {
   >;
 };
 
+type ChronicleGlobalUpdateEntry = {
+  id: string;
+  comparedAt: number;
+  hasChanges: boolean;
+  updates: ChronicleUpdates | null;
+};
+
 type SortValue = string | number | null | SortValue[];
 type RawNode = Record<string, unknown>;
 type UpdatePanel =
@@ -507,6 +514,7 @@ const STORAGE_KEY = "ya_club_chronicle_watchlist_v1";
 const CACHE_KEY = "ya_cc_cache_v1";
 const UPDATES_KEY = "ya_cc_updates_v1";
 const GLOBAL_BASELINE_KEY = "ya_cc_global_baseline_v1";
+const GLOBAL_UPDATES_HISTORY_KEY = "ya_cc_global_updates_history_v1";
 const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
 const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
 const PANEL_IDS = [
@@ -834,6 +842,30 @@ const writeGlobalBaseline = (payload: ChronicleCache | null) => {
   }
 };
 
+const readGlobalUpdatesHistory = (): ChronicleGlobalUpdateEntry[] => {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(GLOBAL_UPDATES_HISTORY_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as ChronicleGlobalUpdateEntry[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+const writeGlobalUpdatesHistory = (payload: ChronicleGlobalUpdateEntry[]) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      GLOBAL_UPDATES_HISTORY_KEY,
+      JSON.stringify(payload)
+    );
+  } catch {
+    // ignore storage errors
+  }
+};
+
 const readPanelOrder = (): string[] => {
   if (typeof window === "undefined") return [...PANEL_IDS];
   try {
@@ -1059,6 +1091,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [updates, setUpdates] = useState<ChronicleUpdates | null>(() =>
     readChronicleUpdates()
   );
+  const [globalUpdatesHistory, setGlobalUpdatesHistory] = useState<
+    ChronicleGlobalUpdateEntry[]
+  >(() => readGlobalUpdatesHistory().slice(0, 10));
+  const [lastGlobalComparedAt, setLastGlobalComparedAt] = useState<number | null>(
+    () => readGlobalUpdatesHistory()[0]?.comparedAt ?? null
+  );
+  const [lastGlobalHadChanges, setLastGlobalHadChanges] = useState<boolean>(() => {
+    const latest = readGlobalUpdatesHistory()[0];
+    return latest ? latest.hasChanges : true;
+  });
   const [updatesOpen, setUpdatesOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
@@ -1662,6 +1704,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   useEffect(() => {
     writeGlobalBaseline(globalBaselineCache);
   }, [globalBaselineCache]);
+
+  useEffect(() => {
+    writeGlobalUpdatesHistory(globalUpdatesHistory);
+  }, [globalUpdatesHistory]);
 
   useEffect(() => {
     const normalized = [
@@ -2792,6 +2838,20 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
   };
 
+  const hasAnyChanges = (nextUpdates: ChronicleUpdates) =>
+    Object.values(nextUpdates.teams).some(
+      (teamUpdate) => teamUpdate.changes.length > 0
+    );
+
+  const pushGlobalUpdateHistory = useCallback(
+    (entry: ChronicleGlobalUpdateEntry) => {
+      setGlobalUpdatesHistory((prev) => [entry, ...prev].slice(0, 10));
+      setLastGlobalComparedAt(entry.comparedAt);
+      setLastGlobalHadChanges(entry.hasChanges);
+    },
+    []
+  );
+
   const refreshTeamDetails = async (
     nextCache: ChronicleCache,
     nextManualTeams: ManualTeam[],
@@ -3549,24 +3609,26 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     await refreshFinanceAndTransferSnapshots(nextCache, transferHistoryCount);
     const baselineForDiff =
       globalBaselineCache ?? pruneChronicleCache(readChronicleCache());
-    const nextUpdates = collectTeamChanges(nextCache, [
-      "league",
-      "press",
-      "fanclub",
-      "arena",
-      "finance",
-      "transfer",
-      "tsi",
-      "wages",
-    ], { baselineCache: baselineForDiff });
+    const nextUpdates = collectTeamChanges(
+      nextCache,
+      ["league", "press", "fanclub", "arena", "finance", "transfer", "tsi", "wages"],
+      { baselineCache: baselineForDiff }
+    );
+    const hasUpdates = hasAnyChanges(nextUpdates);
+    const comparedAt = Date.now();
+    pushGlobalUpdateHistory({
+      id: `${comparedAt}`,
+      comparedAt,
+      hasChanges: hasUpdates,
+      updates: hasUpdates ? nextUpdates : null,
+    });
 
     setManualTeams(nextManualTeams);
     setChronicleCache(nextCache);
     setGlobalBaselineCache(nextCache);
-    setUpdates(nextUpdates);
-    const hasUpdates = Object.values(nextUpdates.teams).some(
-      (teamUpdate) => teamUpdate.changes.length > 0
-    );
+    if (hasUpdates) {
+      setUpdates(nextUpdates);
+    }
     setUpdatesOpen(hasUpdates);
     writeLastRefresh(Date.now());
     if (reason === "stale") {
@@ -3690,21 +3752,48 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshLatestUpdatesFromGlobalBaseline = useCallback(() => {
     if (!globalBaselineCache) {
       setUpdates(null);
+      setLastGlobalComparedAt(null);
+      setLastGlobalHadChanges(true);
       return;
     }
+    const comparedAt = Date.now();
     const nextUpdates = collectTeamChanges(
       chronicleCache,
       ["league", "press", "fanclub", "arena", "finance", "transfer", "tsi", "wages"],
       { baselineCache: globalBaselineCache }
     );
+    const hasUpdates = hasAnyChanges(nextUpdates);
+    setLastGlobalComparedAt(comparedAt);
+    setLastGlobalHadChanges(hasUpdates);
+    if (hasUpdates) {
+      setUpdates(nextUpdates);
+      return;
+    }
+
+    const latestWithChanges = globalUpdatesHistory.find((entry) => entry.updates);
+    if (latestWithChanges?.updates) {
+      setUpdates(latestWithChanges.updates);
+      return;
+    }
+
     setUpdates(nextUpdates);
-  }, [chronicleCache, globalBaselineCache]);
+  }, [chronicleCache, globalBaselineCache, globalUpdatesHistory]);
+
+  const handleLoadHistoryEntry = (entry: ChronicleGlobalUpdateEntry) => {
+    if (!entry.updates) return;
+    setLastGlobalComparedAt(entry.comparedAt);
+    setLastGlobalHadChanges(entry.hasChanges);
+    setUpdates(entry.updates);
+  };
 
   const updatesByTeam = updates?.teams ?? {};
   const hasAnyTeamUpdates = trackedTeams.some((team) => {
     const changes = updatesByTeam[team.teamId]?.changes ?? [];
     return changes.length > 0;
   });
+  const latestHistoryWithChanges = globalUpdatesHistory.find((entry) => entry.updates);
+  const showingPreviousSnapshot =
+    !lastGlobalHadChanges && hasAnyTeamUpdates && !!latestHistoryWithChanges;
 
   const leagueRows: LeagueTableRow[] = trackedTeams.map((team) => {
     const cached = chronicleCache.teams[team.teamId];
@@ -5116,9 +5205,55 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         body={
           updates && trackedTeams.length ? (
             <>
-              <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleUpdatesSinceGlobal}
-              </p>
+              <div className={styles.chronicleUpdatesMetaBlock}>
+                <p className={styles.chroniclePressMeta}>
+                  {messages.clubChronicleUpdatesSinceGlobal}
+                </p>
+                {lastGlobalComparedAt ? (
+                  <p className={styles.chroniclePressMeta}>
+                    {messages.clubChronicleUpdatesComparedAt}:{" "}
+                    {formatDateTime(lastGlobalComparedAt)}
+                  </p>
+                ) : null}
+                {!lastGlobalHadChanges ? (
+                  <p className={styles.chroniclePressMeta}>
+                    {messages.clubChronicleUpdatesNoChangesGlobal}
+                  </p>
+                ) : null}
+                {showingPreviousSnapshot && latestHistoryWithChanges ? (
+                  <p className={styles.chroniclePressMeta}>
+                    {messages.clubChronicleUpdatesShowingFrom}:{" "}
+                    {formatDateTime(latestHistoryWithChanges.comparedAt)}
+                  </p>
+                ) : null}
+              </div>
+
+              {globalUpdatesHistory.length > 0 ? (
+                <div className={styles.chronicleUpdatesHistoryWrap}>
+                  <div className={styles.chronicleUpdatesHistoryHeader}>
+                    {messages.clubChronicleUpdatesHistoryTitle}
+                  </div>
+                  <div className={styles.chronicleUpdatesHistoryList}>
+                    {globalUpdatesHistory.map((entry) => (
+                      <button
+                        key={entry.id}
+                        type="button"
+                        className={styles.chronicleUpdatesHistoryItem}
+                        onClick={() => handleLoadHistoryEntry(entry)}
+                        disabled={!entry.updates}
+                      >
+                        <span>{formatDateTime(entry.comparedAt)}</span>
+                        <span>
+                          {entry.hasChanges
+                            ? messages.clubChronicleUpdatesHistoryChanged
+                            : messages.clubChronicleUpdatesHistoryNoChanges}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               {hasAnyTeamUpdates ? (
                 <div className={styles.chronicleUpdatesList}>
                   {trackedTeams.map((team) => {

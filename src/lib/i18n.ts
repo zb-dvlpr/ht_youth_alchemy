@@ -105,6 +105,11 @@ export type Messages = {
   clubChronicleLoading: string;
   clubChronicleUpdatesTitle: string;
   clubChronicleUpdatesSinceGlobal: string;
+  clubChronicleUpdatesComparedAt: string;
+  clubChronicleUpdatesShowingFrom: string;
+  clubChronicleUpdatesHistoryTitle: string;
+  clubChronicleUpdatesHistoryChanged: string;
+  clubChronicleUpdatesHistoryNoChanges: string;
   clubChronicleUpdatesButton: string;
   clubChronicleRefreshButton: string;
   clubChronicleRefreshAllTooltip: string;
@@ -624,6 +629,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLoading: "Loading club chronicle…",
     clubChronicleUpdatesTitle: "Latest updates",
     clubChronicleUpdatesSinceGlobal: "Changes since last global refresh",
+    clubChronicleUpdatesComparedAt: "Compared at",
+    clubChronicleUpdatesShowingFrom: "Showing last detected changes from",
+    clubChronicleUpdatesHistoryTitle: "Recent global refresh comparisons",
+    clubChronicleUpdatesHistoryChanged: "Changes detected",
+    clubChronicleUpdatesHistoryNoChanges: "No changes",
     clubChronicleUpdatesButton: "Latest updates",
     clubChronicleRefreshButton: "Refresh",
     clubChronicleRefreshAllTooltip: "Refresh all Club Chronicle data.",
@@ -1163,6 +1173,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLoading: "Club-Chronik wird geladen…",
     clubChronicleUpdatesTitle: "Neueste Updates",
     clubChronicleUpdatesSinceGlobal: "Änderungen seit der letzten globalen Aktualisierung",
+    clubChronicleUpdatesComparedAt: "Verglichen am",
+    clubChronicleUpdatesShowingFrom: "Zeige zuletzt erkannte Änderungen von",
+    clubChronicleUpdatesHistoryTitle: "Letzte globale Aktualisierungsvergleiche",
+    clubChronicleUpdatesHistoryChanged: "Änderungen erkannt",
+    clubChronicleUpdatesHistoryNoChanges: "Keine Änderungen",
     clubChronicleUpdatesButton: "Neueste Updates",
     clubChronicleRefreshButton: "Aktualisieren",
     clubChronicleRefreshAllTooltip: "Alle Club-Chronik-Daten aktualisieren.",
@@ -1706,6 +1721,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLoading: "Chargement de la Chronique du club…",
     clubChronicleUpdatesTitle: "Dernières mises à jour",
     clubChronicleUpdatesSinceGlobal: "Changements depuis la dernière actualisation globale",
+    clubChronicleUpdatesComparedAt: "Comparé le",
+    clubChronicleUpdatesShowingFrom: "Affichage des derniers changements détectés du",
+    clubChronicleUpdatesHistoryTitle: "Dernières comparaisons de rafraîchissement global",
+    clubChronicleUpdatesHistoryChanged: "Changements détectés",
+    clubChronicleUpdatesHistoryNoChanges: "Aucun changement",
     clubChronicleUpdatesButton: "Dernières mises à jour",
     clubChronicleRefreshButton: "Actualiser",
     clubChronicleRefreshAllTooltip: "Actualiser toutes les données de la Chronique du club.",
@@ -2256,6 +2276,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLoading: "Cargando Crónica del club…",
     clubChronicleUpdatesTitle: "Últimas actualizaciones",
     clubChronicleUpdatesSinceGlobal: "Cambios desde la última actualización global",
+    clubChronicleUpdatesComparedAt: "Comparado en",
+    clubChronicleUpdatesShowingFrom: "Mostrando los últimos cambios detectados de",
+    clubChronicleUpdatesHistoryTitle: "Comparaciones recientes de actualización global",
+    clubChronicleUpdatesHistoryChanged: "Cambios detectados",
+    clubChronicleUpdatesHistoryNoChanges: "Sin cambios",
     clubChronicleUpdatesButton: "Últimas actualizaciones",
     clubChronicleRefreshButton: "Actualizar",
     clubChronicleRefreshAllTooltip: "Actualizar todos los datos de Crónica del club.",
@@ -2800,6 +2825,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLoading: "Laddar klubbkrönikan…",
     clubChronicleUpdatesTitle: "Senaste uppdateringar",
     clubChronicleUpdatesSinceGlobal: "Ändringar sedan senaste globala uppdatering",
+    clubChronicleUpdatesComparedAt: "Jämförd",
+    clubChronicleUpdatesShowingFrom: "Visar senast upptäckta ändringar från",
+    clubChronicleUpdatesHistoryTitle: "Senaste jämförelser av globala uppdateringar",
+    clubChronicleUpdatesHistoryChanged: "Ändringar upptäckta",
+    clubChronicleUpdatesHistoryNoChanges: "Inga ändringar",
     clubChronicleUpdatesButton: "Senaste uppdateringar",
     clubChronicleRefreshButton: "Uppdatera",
     clubChronicleRefreshAllTooltip: "Uppdatera all data i Klubbkrönikan.",
@@ -3344,6 +3374,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLoading: "Caricamento Cronaca del club…",
     clubChronicleUpdatesTitle: "Ultimi aggiornamenti",
     clubChronicleUpdatesSinceGlobal: "Modifiche dall ultimo aggiornamento globale",
+    clubChronicleUpdatesComparedAt: "Confrontato alle",
+    clubChronicleUpdatesShowingFrom: "Mostra ultime modifiche rilevate da",
+    clubChronicleUpdatesHistoryTitle: "Confronti recenti dei refresh globali",
+    clubChronicleUpdatesHistoryChanged: "Modifiche rilevate",
+    clubChronicleUpdatesHistoryNoChanges: "Nessuna modifica",
     clubChronicleUpdatesButton: "Ultimi aggiornamenti",
     clubChronicleRefreshButton: "Aggiorna",
     clubChronicleRefreshAllTooltip: "Aggiorna tutti i dati della Cronaca del club.",
@@ -3890,6 +3925,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLoading: "Carregando Crônica do clube…",
     clubChronicleUpdatesTitle: "Últimas atualizações",
     clubChronicleUpdatesSinceGlobal: "Alterações desde a última atualização global",
+    clubChronicleUpdatesComparedAt: "Comparado em",
+    clubChronicleUpdatesShowingFrom: "Mostrando últimas mudanças detectadas de",
+    clubChronicleUpdatesHistoryTitle: "Comparações recentes de atualização global",
+    clubChronicleUpdatesHistoryChanged: "Mudanças detectadas",
+    clubChronicleUpdatesHistoryNoChanges: "Sem mudanças",
     clubChronicleUpdatesButton: "Últimas atualizações",
     clubChronicleRefreshButton: "Atualizar",
     clubChronicleRefreshAllTooltip: "Atualizar todos os dados da Crônica do clube.",

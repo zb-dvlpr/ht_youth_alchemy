@@ -1279,6 +1279,55 @@ html[data-app-scaling="off"] .topBar::before {
   padding-right: 4px;
 }
 
+.chronicleUpdatesMetaBlock {
+  margin-bottom: 10px;
+}
+
+.chronicleUpdatesHistoryWrap {
+  margin-bottom: 12px;
+}
+
+.chronicleUpdatesHistoryHeader {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8a806f;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 6px;
+}
+
+.chronicleUpdatesHistoryList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 120px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.chronicleUpdatesHistoryItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #d5c8b6;
+  border-radius: 999px;
+  background: #f7f2ea;
+  color: #4d4236;
+  font-size: 11px;
+  padding: 4px 8px;
+  cursor: pointer;
+}
+
+.chronicleUpdatesHistoryItem:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.chronicleUpdatesHistoryItem:hover:not(:disabled) {
+  border-color: #bca88f;
+  background: #f1e8da;
+}
+
 .chronicleUpdatesTeam {
   border: 1px solid #e0d6c6;
   border-radius: 12px;
@@ -1870,6 +1919,21 @@ html[data-theme="dark"] .chronicleFinanceDisclaimer {
 html[data-theme="dark"] .chronicleUpdatesTeam {
   border-color: rgba(255, 255, 255, 0.12);
   background: #221f1b;
+}
+
+html[data-theme="dark"] .chronicleUpdatesHistoryHeader {
+  color: #c8bdae;
+}
+
+html[data-theme="dark"] .chronicleUpdatesHistoryItem {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: #2a241d;
+  color: #d9cbb8;
+}
+
+html[data-theme="dark"] .chronicleUpdatesHistoryItem:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: #342d24;
 }
 
 html[data-theme="dark"] .chronicleUpdatesTeamPrimary {

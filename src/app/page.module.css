@@ -1259,6 +1259,11 @@ html[data-app-scaling="off"] .topBar::before {
   color: #3f362c;
 }
 
+.chronicleFanclubDetailsTable .chronicleTableRow .chronicleTableCell:first-child {
+  font-weight: 400;
+  color: inherit;
+}
+
 .chronicleEmpty {
   font-size: 12px;
   color: #6b6256;
@@ -3038,6 +3043,10 @@ html[data-theme="dark"] .spinner {
 
 .confirmCard.chronicleTransferHistoryModal {
   width: min(1120px, 98vw);
+}
+
+.confirmCard.chronicleFanclubDetailsModal {
+  width: min(1100px, 98vw);
 }
 
 .confirmCard.chronicleUpdatesModal {

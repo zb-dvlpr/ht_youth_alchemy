@@ -134,6 +134,8 @@ export type Messages = {
   clubChronicleFanclubPanelTitle: string;
   clubChronicleFanclubColumnName: string;
   clubChronicleFanclubColumnSize: string;
+  clubChronicleFanclubDetailsTitle: string;
+  clubChronicleFanclubSizeDiff: string;
   clubChronicleArenaPanelTitle: string;
   clubChronicleArenaColumnName: string;
   clubChronicleArenaColumnId: string;
@@ -161,6 +163,8 @@ export type Messages = {
   clubChronicleSummaryDeltaShort: string;
   clubChronicleDetailsPreviousLabel: string;
   clubChronicleDetailsCurrentLabel: string;
+  clubChroniclePreviousDate: string;
+  clubChronicleCurrentDate: string;
   clubChronicleFieldLeagueId: string;
   clubChronicleFieldLeagueName: string;
   clubChronicleFieldLeagueLevel: string;
@@ -658,6 +662,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Fan club",
     clubChronicleFanclubColumnName: "Fan club name",
     clubChronicleFanclubColumnSize: "Fan club size",
+    clubChronicleFanclubDetailsTitle: "Fan club size change",
+    clubChronicleFanclubSizeDiff: "Size diff",
     clubChronicleArenaPanelTitle: "Arena",
     clubChronicleArenaColumnName: "Arena name",
     clubChronicleArenaColumnId: "Arena ID",
@@ -720,6 +726,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleSummaryDeltaShort: "Δ",
     clubChronicleDetailsPreviousLabel: "Previous",
     clubChronicleDetailsCurrentLabel: "Current",
+    clubChroniclePreviousDate: "Previous date",
+    clubChronicleCurrentDate: "Current date",
     clubChronicleFieldLeagueId: "League ID",
     clubChronicleFieldLeagueName: "League",
     clubChronicleFieldLeagueLevel: "Level",
@@ -1202,6 +1210,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Fanclub",
     clubChronicleFanclubColumnName: "Fanclubname",
     clubChronicleFanclubColumnSize: "Fanclubgröße",
+    clubChronicleFanclubDetailsTitle: "Fanclubgrößenänderung",
+    clubChronicleFanclubSizeDiff: "Größendifferenz",
     clubChronicleArenaPanelTitle: "Arena",
     clubChronicleArenaColumnName: "Arenaname",
     clubChronicleArenaColumnId: "Arena-ID",
@@ -1264,6 +1274,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleSummaryDeltaShort: "Δ",
     clubChronicleDetailsPreviousLabel: "Vorher",
     clubChronicleDetailsCurrentLabel: "Aktuell",
+    clubChroniclePreviousDate: "Vorheriges Datum",
+    clubChronicleCurrentDate: "Aktuelles Datum",
     clubChronicleFieldLeagueId: "Liga-ID",
     clubChronicleFieldLeagueName: "Liga",
     clubChronicleFieldLeagueLevel: "Stufe",
@@ -1750,6 +1762,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Fan club",
     clubChronicleFanclubColumnName: "Nom du fan club",
     clubChronicleFanclubColumnSize: "Taille du fan club",
+    clubChronicleFanclubDetailsTitle: "Variation de taille du fan club",
+    clubChronicleFanclubSizeDiff: "Différence de taille",
     clubChronicleArenaPanelTitle: "Arène",
     clubChronicleArenaColumnName: "Nom de l arène",
     clubChronicleArenaColumnId: "ID arène",
@@ -1812,6 +1826,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleSummaryDeltaShort: "Δ",
     clubChronicleDetailsPreviousLabel: "Précédent",
     clubChronicleDetailsCurrentLabel: "Actuel",
+    clubChroniclePreviousDate: "Date précédente",
+    clubChronicleCurrentDate: "Date actuelle",
     clubChronicleFieldLeagueId: "ID ligue",
     clubChronicleFieldLeagueName: "Ligue",
     clubChronicleFieldLeagueLevel: "Niveau",
@@ -2305,6 +2321,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Club de fans",
     clubChronicleFanclubColumnName: "Nombre del club de fans",
     clubChronicleFanclubColumnSize: "Tamaño del club de fans",
+    clubChronicleFanclubDetailsTitle: "Cambio de tamaño del club de fans",
+    clubChronicleFanclubSizeDiff: "Diferencia de tamaño",
     clubChronicleArenaPanelTitle: "Estadio",
     clubChronicleArenaColumnName: "Nombre del estadio",
     clubChronicleArenaColumnId: "ID de estadio",
@@ -2367,6 +2385,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleSummaryDeltaShort: "Δ",
     clubChronicleDetailsPreviousLabel: "Anterior",
     clubChronicleDetailsCurrentLabel: "Actual",
+    clubChroniclePreviousDate: "Fecha anterior",
+    clubChronicleCurrentDate: "Fecha actual",
     clubChronicleFieldLeagueId: "ID de liga",
     clubChronicleFieldLeagueName: "Liga",
     clubChronicleFieldLeagueLevel: "Nivel",
@@ -2854,6 +2874,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Fanklubb",
     clubChronicleFanclubColumnName: "Fanklubbsnamn",
     clubChronicleFanclubColumnSize: "Fanklubbsstorlek",
+    clubChronicleFanclubDetailsTitle: "Ändring i fanklubbsstorlek",
+    clubChronicleFanclubSizeDiff: "Storleksskillnad",
     clubChronicleArenaPanelTitle: "Arena",
     clubChronicleArenaColumnName: "Arenanamn",
     clubChronicleArenaColumnId: "Arena-ID",
@@ -2916,6 +2938,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleSummaryDeltaShort: "Δ",
     clubChronicleDetailsPreviousLabel: "Föregående",
     clubChronicleDetailsCurrentLabel: "Nuvarande",
+    clubChroniclePreviousDate: "Föregående datum",
+    clubChronicleCurrentDate: "Nuvarande datum",
     clubChronicleFieldLeagueId: "Liga-ID",
     clubChronicleFieldLeagueName: "Liga",
     clubChronicleFieldLeagueLevel: "Nivå",
@@ -3403,6 +3427,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Fan club",
     clubChronicleFanclubColumnName: "Nome fan club",
     clubChronicleFanclubColumnSize: "Dimensione fan club",
+    clubChronicleFanclubDetailsTitle: "Variazione dimensione fan club",
+    clubChronicleFanclubSizeDiff: "Differenza dimensione",
     clubChronicleArenaPanelTitle: "Stadio",
     clubChronicleArenaColumnName: "Nome stadio",
     clubChronicleArenaColumnId: "ID stadio",
@@ -3465,6 +3491,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleSummaryDeltaShort: "Δ",
     clubChronicleDetailsPreviousLabel: "Precedente",
     clubChronicleDetailsCurrentLabel: "Attuale",
+    clubChroniclePreviousDate: "Data precedente",
+    clubChronicleCurrentDate: "Data attuale",
     clubChronicleFieldLeagueId: "ID lega",
     clubChronicleFieldLeagueName: "Lega",
     clubChronicleFieldLeagueLevel: "Livello",
@@ -3954,6 +3982,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFanclubPanelTitle: "Clube de fãs",
     clubChronicleFanclubColumnName: "Nome do clube de fãs",
     clubChronicleFanclubColumnSize: "Tamanho do clube de fãs",
+    clubChronicleFanclubDetailsTitle: "Mudança de tamanho do clube de fãs",
+    clubChronicleFanclubSizeDiff: "Diferença de tamanho",
     clubChronicleArenaPanelTitle: "Arena",
     clubChronicleArenaColumnName: "Nome da arena",
     clubChronicleArenaColumnId: "ID da arena",
@@ -4016,6 +4046,8 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleSummaryDeltaShort: "Δ",
     clubChronicleDetailsPreviousLabel: "Anterior",
     clubChronicleDetailsCurrentLabel: "Atual",
+    clubChroniclePreviousDate: "Data anterior",
+    clubChronicleCurrentDate: "Data atual",
     clubChronicleFieldLeagueId: "ID da liga",
     clubChronicleFieldLeagueName: "Liga",
     clubChronicleFieldLeagueLevel: "Nível",

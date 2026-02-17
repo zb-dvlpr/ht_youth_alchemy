@@ -30,6 +30,12 @@ import {
   readClubChronicleStalenessDays,
   readClubChronicleTransferHistoryCount,
 } from "@/lib/settings";
+import {
+  hattrickArticleUrl,
+  hattrickMatchUrl,
+  hattrickPlayerUrl,
+  hattrickTeamUrl,
+} from "@/lib/hattrick/urls";
 
 type SupportedTeam = {
   teamId: number;
@@ -579,7 +585,6 @@ const PANEL_IDS = [
 ] as const;
 const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
 const MAX_CACHE_AGE_MS = SEASON_LENGTH_MS * 2;
-const HT_BASE_URL = "https://www.hattrick.org";
 const CHPP_SEK_PER_EUR = 10;
 const ARCHIVE_MATCH_LIMIT = 20;
 const RELEVANT_MATCH_TYPES = new Set([1, 3, 4, 5, 8, 9]);
@@ -4760,7 +4765,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           return (
             <a
               className={styles.chroniclePressLink}
-              href={`${HT_BASE_URL}/Club/Players/Player.aspx?playerId=${playerId}`}
+              href={hattrickPlayerUrl(playerId)}
               target="_blank"
               rel="noreferrer"
             >
@@ -4808,7 +4813,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           return (
             <a
               className={styles.chroniclePressLink}
-              href={`${HT_BASE_URL}/Club/Players/Player.aspx?playerId=${playerId}`}
+              href={hattrickPlayerUrl(playerId)}
               target="_blank"
               rel="noreferrer"
             >
@@ -4856,7 +4861,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           return (
             <a
               className={styles.chroniclePressLink}
-              href={`${HT_BASE_URL}/Club/Players/Player.aspx?playerId=${playerId}`}
+              href={hattrickPlayerUrl(playerId)}
               target="_blank"
               rel="noreferrer"
             >
@@ -4923,7 +4928,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           return (
             <a
               className={styles.chroniclePressLink}
-              href={`${HT_BASE_URL}/Club/Players/Player.aspx?playerId=${playerId}`}
+              href={hattrickPlayerUrl(playerId)}
               target="_blank"
               rel="noreferrer"
             >
@@ -5097,7 +5102,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               const label =
                 resolvedPlayers[token.id] ??
                 `${messages.ratingsPlayerLabel} ${token.id}`;
-              const href = `${HT_BASE_URL}/Club/Players/Player.aspx?playerId=${token.id}`;
+              const href = hattrickPlayerUrl(token.id);
               return (
                 <a
                   key={`p-${lineIndex}-${tokenIndex}`}
@@ -5114,7 +5119,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               const label =
                 resolvedMatches[token.id] ??
                 `${messages.matchesTitle} ${token.id}`;
-              const href = `${HT_BASE_URL}/Club/Matches/Match.aspx?matchID=${token.id}`;
+              const href = hattrickMatchUrl(token.id);
               return (
                 <a
                   key={`m-${lineIndex}-${tokenIndex}`}
@@ -5131,7 +5136,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               const label =
                 resolvedTeams[token.id] ??
                 `${messages.watchlistTeamLabel} ${token.id}`;
-              const href = `${HT_BASE_URL}/Club/?TeamID=${token.id}`;
+              const href = hattrickTeamUrl(token.id);
               return (
                 <a
                   key={`team-${lineIndex}-${tokenIndex}`}
@@ -5146,7 +5151,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             }
             if (token.kind === "article") {
               const label = `${messages.clubChroniclePressArticleLabel} ${token.id}`;
-              const href = `${HT_BASE_URL}/Community/Press/?ArticleID=${token.id}`;
+              const href = hattrickArticleUrl(token.id);
               return (
                 <a
                   key={`article-${lineIndex}-${tokenIndex}`}

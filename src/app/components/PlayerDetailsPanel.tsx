@@ -7,6 +7,7 @@ import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
 import { positionLabelShortByRoleId } from "@/lib/positions";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { getSkillMaxReached } from "@/lib/skills";
+import { hattrickYouthPlayerUrl } from "@/lib/hattrick/urls";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -529,7 +530,7 @@ export default function PlayerDetailsPanel({
                 {playerId}
                 <a
                   className={styles.infoLinkIcon}
-                  href={`https://www82.hattrick.org/Club/Players/YouthPlayer.aspx?YouthPlayerID=${playerId}`}
+                  href={hattrickYouthPlayerUrl(playerId)}
                   target="_blank"
                   rel="noreferrer"
                   aria-label={messages.playerLinkLabel}

@@ -956,7 +956,7 @@ html[data-app-scaling="off"] .topBar::before {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   gap: 12px;
 }
 

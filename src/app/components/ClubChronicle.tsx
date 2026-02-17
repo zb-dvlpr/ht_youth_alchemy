@@ -4635,9 +4635,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   return (
     <div className={styles.clubChronicleStack}>
       <div className={styles.chronicleHeader}>
-        <h2 className={styles.chronicleHeaderTitle}>
-          {messages.clubChronicleTitle}
-        </h2>
         <div className={styles.chronicleHeaderActions}>
           <Tooltip content={messages.clubChronicleRefreshAllTooltip}>
             <button

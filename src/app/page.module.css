@@ -595,6 +595,12 @@ html[data-app-scaling="off"] .topBar::before {
   transform: translateX(-50%) rotate(45deg);
 }
 
+.helpCallout[data-placement="below-center"]::after {
+  top: -10px;
+  left: var(--callout-pointer-x, 50%);
+  transform: translateX(-50%) rotate(225deg);
+}
+
 .helpCallout[data-placement="right-center"]::after {
   left: -7px;
   top: 50%;
@@ -950,6 +956,37 @@ html[data-app-scaling="off"] .topBar::before {
 .clubChronicleStack {
   display: grid;
   gap: 16px;
+  position: relative;
+}
+
+.clubChronicleHelpOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(18, 14, 10, 0.38);
+  pointer-events: auto;
+}
+
+.clubChronicleHelpCard {
+  position: fixed;
+  top: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(920px, calc(100vw - 32px));
+  max-height: calc(100vh - 120px);
+  overflow: auto;
+  background: #fff;
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 12px 24px rgba(30, 20, 10, 0.24);
+  border: 1px solid #e7dcc9;
+  z-index: 121;
+  pointer-events: auto;
+}
+
+.clubChronicleHelpCallout {
+  max-width: none;
+  white-space: normal;
 }
 
 .chronicleHeader {
@@ -1838,7 +1875,8 @@ html[data-theme="dark"] .settingsFieldInput {
 
 
 html[data-theme="dark"] .card,
-html[data-theme="dark"] .helpCard {
+html[data-theme="dark"] .helpCard,
+html[data-theme="dark"] .clubChronicleHelpCard {
   background: #1b1917;
   color: #f3ede4;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);

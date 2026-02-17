@@ -572,6 +572,7 @@ const GLOBAL_BASELINE_KEY = "ya_cc_global_baseline_v1";
 const GLOBAL_UPDATES_HISTORY_KEY = "ya_cc_global_updates_history_v1";
 const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
 const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
+const HELP_STORAGE_KEY = "ya_cc_help_dismissed_v1";
 const PANEL_IDS = [
   "league-performance",
   "press-announcements",
@@ -1234,6 +1235,7 @@ const getLatestCacheTimestamp = (cache: ChronicleCache): number | null => {
 };
 
 export default function ClubChronicle({ messages }: ClubChronicleProps) {
+  const chronicleRootRef = useRef<HTMLDivElement | null>(null);
   const [supportedTeams, setSupportedTeams] = useState<SupportedTeam[]>([]);
   const [supportedSelections, setSupportedSelections] = useState<
     Record<number, boolean>
@@ -1378,6 +1380,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [isValidating, setIsValidating] = useState(false);
   const [errorOpen, setErrorOpen] = useState(false);
   const [watchlistOpen, setWatchlistOpen] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [helpCallouts, setHelpCallouts] = useState<
+    {
+      id: string;
+      text: string;
+      style: CSSProperties;
+      placement:
+        | "above-center"
+        | "below-center"
+        | "left-center"
+        | "right-center";
+    }[]
+  >([]);
   const initializedRef = useRef(false);
   const initialFetchRef = useRef(false);
   const staleRefreshRef = useRef(false);
@@ -1581,6 +1596,164 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setUpdates(dummyUpdates);
     setUpdatesOpen(true);
   }, [trackedTeams, messages]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const dismissed = window.localStorage.getItem(HELP_STORAGE_KEY);
+    if (!dismissed) {
+      setShowHelp(true);
+    }
+    const handler = () => setShowHelp(true);
+    window.addEventListener("ya:help-open", handler);
+    return () => window.removeEventListener("ya:help-open", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!showHelp) {
+      setHelpCallouts([]);
+      return;
+    }
+    const GAP = 12;
+    const EDGE = 12;
+    const targets: Array<{
+      id: string;
+      selector: string;
+      text: string;
+      placement: "above-center" | "below-center" | "left-center";
+    }> = [
+      {
+        id: "refresh-all",
+        selector: "[data-help-anchor='cc-refresh-all']",
+        text: messages.clubChronicleHelpCalloutRefresh,
+        placement: "above-center",
+      },
+      {
+        id: "latest-updates",
+        selector: "[data-help-anchor='cc-latest-updates']",
+        text: messages.clubChronicleHelpCalloutUpdates,
+        placement: "below-center",
+      },
+      {
+        id: "watchlist",
+        selector: "[data-help-anchor='cc-watchlist']",
+        text: messages.clubChronicleHelpCalloutWatchlist,
+        placement: "left-center",
+      },
+    ];
+
+    const measureSize = (text: string, width: number) => {
+      const probe = document.createElement("div");
+      probe.className = styles.helpCallout;
+      probe.classList.add(styles.clubChronicleHelpCallout);
+      probe.style.position = "fixed";
+      probe.style.visibility = "hidden";
+      probe.style.pointerEvents = "none";
+      probe.style.width = `${width}px`;
+      const badge = document.createElement("span");
+      badge.className = styles.helpCalloutIndex;
+      badge.textContent = "1";
+      probe.appendChild(badge);
+      const textSpan = document.createElement("span");
+      textSpan.className = styles.helpCalloutText;
+      textSpan.textContent = text;
+      probe.appendChild(textSpan);
+      document.body.appendChild(probe);
+      const rect = probe.getBoundingClientRect();
+      probe.remove();
+      return { width: rect.width, height: rect.height };
+    };
+
+    const computeCallouts = () => {
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const preferredWidth = Math.min(
+        320,
+        Math.max(220, Math.floor(viewportWidth * 0.28))
+      );
+      const finalWidth = Math.min(preferredWidth, viewportWidth - EDGE * 2);
+      const next = targets.flatMap((target) => {
+        const el = document.querySelector(target.selector) as HTMLElement | null;
+        if (!el) return [];
+        const rect = el.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const measured = measureSize(target.text, finalWidth);
+        let placement:
+          | "above-center"
+          | "below-center"
+          | "left-center"
+          | "right-center" = target.placement;
+        let left = EDGE;
+        let top = EDGE;
+        if (placement === "above-center") {
+          left = centerX - measured.width / 2;
+          top = rect.top - measured.height - GAP;
+        } else if (placement === "below-center") {
+          left = centerX - measured.width / 2;
+          top = rect.bottom + GAP;
+        } else if (placement === "left-center") {
+          left = rect.left - measured.width - GAP;
+          top = centerY - measured.height / 2;
+          if (left < EDGE) {
+            placement = "right-center";
+            left = rect.right + GAP;
+          }
+        } else {
+          left = rect.right + GAP;
+          top = centerY - measured.height / 2;
+        }
+
+        const clampedLeft = Math.min(
+          Math.max(left, EDGE),
+          viewportWidth - measured.width - EDGE
+        );
+        const clampedTop = Math.min(
+          Math.max(top, EDGE),
+          viewportHeight - measured.height - EDGE
+        );
+        const pointerX =
+          placement === "above-center" || placement === "below-center"
+            ? Math.min(
+                Math.max(centerX - clampedLeft, 18),
+                measured.width - 18
+              )
+            : 18;
+        return [
+          {
+            id: target.id,
+            text: target.text,
+            placement,
+            style: {
+              left: clampedLeft,
+              top: clampedTop,
+              "--callout-pointer-x": `${pointerX}px`,
+              width: `${measured.width}px`,
+            } as CSSProperties,
+          },
+        ];
+      });
+      setHelpCallouts(next);
+    };
+
+    const schedule = () => {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(computeCallouts);
+      });
+    };
+
+    schedule();
+    window.addEventListener("resize", schedule);
+    window.addEventListener("scroll", schedule, true);
+    return () => {
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", schedule, true);
+    };
+  }, [
+    showHelp,
+    messages.clubChronicleHelpCalloutRefresh,
+    messages.clubChronicleHelpCalloutUpdates,
+    messages.clubChronicleHelpCalloutWatchlist,
+  ]);
 
   useEffect(() => {
     let active = true;
@@ -5281,13 +5454,60 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
 
   return (
-    <div className={styles.clubChronicleStack}>
+    <div className={styles.clubChronicleStack} ref={chronicleRootRef}>
+      {showHelp ? (
+        <div className={styles.clubChronicleHelpOverlay}>
+          <div className={styles.helpCallouts}>
+            {helpCallouts.map((callout, index) => (
+              <div
+                key={callout.id}
+                className={`${styles.helpCallout} ${styles.clubChronicleHelpCallout}`}
+                style={callout.style}
+                data-placement={callout.placement}
+              >
+                <span className={styles.helpCalloutIndex}>{index + 1}</span>
+                <span className={styles.helpCalloutText}>{callout.text}</span>
+              </div>
+            ))}
+          </div>
+          <div className={styles.clubChronicleHelpCard}>
+            <h2 className={styles.helpTitle}>{messages.clubChronicleHelpTitle}</h2>
+            <p className={styles.helpIntro}>{messages.clubChronicleHelpIntro}</p>
+            <ul className={styles.helpList}>
+              <li>{messages.clubChronicleHelpBulletControls}</li>
+              <li>{messages.clubChronicleHelpBulletLeague}</li>
+              <li>{messages.clubChronicleHelpBulletPress}</li>
+              <li>{messages.clubChronicleHelpBulletFinance}</li>
+              <li>{messages.clubChronicleHelpBulletFanclub}</li>
+              <li>{messages.clubChronicleHelpBulletArena}</li>
+              <li>{messages.clubChronicleHelpBulletTransfer}</li>
+              <li>{messages.clubChronicleHelpBulletFormations}</li>
+              <li>{messages.clubChronicleHelpBulletTsi}</li>
+              <li>{messages.clubChronicleHelpBulletWages}</li>
+              <li>{messages.clubChronicleHelpBulletLatestUpdates}</li>
+            </ul>
+            <button
+              type="button"
+              className={styles.helpDismiss}
+              onClick={() => {
+                setShowHelp(false);
+                if (typeof window !== "undefined") {
+                  window.localStorage.setItem(HELP_STORAGE_KEY, "1");
+                }
+              }}
+            >
+              {messages.helpDismissLabel}
+            </button>
+          </div>
+        </div>
+      ) : null}
       <div className={styles.chronicleHeader}>
         <div className={styles.chronicleHeaderActions}>
           <Tooltip content={messages.clubChronicleRefreshAllTooltip}>
             <button
               type="button"
               className={styles.chronicleUpdatesButton}
+              data-help-anchor="cc-refresh-all"
               onClick={() => void refreshAllData("manual")}
               disabled={anyRefreshing}
               aria-label={messages.clubChronicleRefreshAllTooltip}
@@ -5298,6 +5518,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           <button
             type="button"
             className={styles.chronicleUpdatesButton}
+            data-help-anchor="cc-latest-updates"
             onClick={() => {
               refreshLatestUpdatesFromGlobalBaseline();
               setUpdatesOpen(true);
@@ -5766,6 +5987,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           <button
             type="button"
             className={styles.watchlistFab}
+            data-help-anchor="cc-watchlist"
             onClick={() => setWatchlistOpen(true)}
             aria-label={messages.watchlistTitle}
           >

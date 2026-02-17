@@ -62,6 +62,7 @@ export type Messages = {
   changelog_2_8_0: string;
   changelog_2_9_0: string;
   changelog_2_10_0: string;
+  changelog_2_11_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -116,6 +117,7 @@ export type Messages = {
   clubChronicleRefreshTooltip: string;
   clubChronicleRefreshPressTooltip: string;
   clubChronicleRefreshArenaTooltip: string;
+  clubChronicleRefreshFormationsTooltip: string;
   clubChronicleRefreshFinanceTooltip: string;
   clubChronicleRefreshTransferTooltip: string;
   clubChronicleRefreshTsiTooltip: string;
@@ -146,6 +148,11 @@ export type Messages = {
   clubChronicleArenaSeatBasic: string;
   clubChronicleArenaSeatRoof: string;
   clubChronicleArenaSeatVip: string;
+  clubChronicleFormationsPanelTitle: string;
+  clubChronicleFormationsColumnFormation: string;
+  clubChronicleFormationsColumnTactic: string;
+  clubChronicleFormationsDetailsTitle: string;
+  clubChronicleFormationsSampleLabel: string;
   clubChronicleTableTeam: string;
   clubChronicleTableSummary: string;
   clubChronicleMoveUp: string;
@@ -587,6 +594,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Club Chronicle adds a TSI panel with per-team total TSI and top-11 TSI totals.",
     changelog_2_10_0:
       "Club Chronicle adds a wages panel with per-team total wages and top-11 wages.",
+    changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -644,6 +652,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Refresh league performance data.",
     clubChronicleRefreshPressTooltip: "Refresh press announcements data.",
     clubChronicleRefreshArenaTooltip: "Refresh arena data.",
+    clubChronicleRefreshFormationsTooltip: "Refresh formations & tactics data.",
     clubChronicleRefreshFinanceTooltip: "Refresh finance estimate data.",
     clubChronicleRefreshTransferTooltip: "Refresh transfer market data.",
     clubChronicleRefreshTsiTooltip: "Refresh TSI data.",
@@ -674,6 +683,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleArenaSeatBasic: "Basic",
     clubChronicleArenaSeatRoof: "Roof",
     clubChronicleArenaSeatVip: "VIP",
+    clubChronicleFormationsPanelTitle: "Formations & tactics",
+    clubChronicleFormationsColumnFormation: "Top formation",
+    clubChronicleFormationsColumnTactic: "Top tactic",
+    clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
+    clubChronicleFormationsSampleLabel: "Matches analyzed",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Summary",
     clubChronicleColumnTeam: "Team",
@@ -1134,6 +1148,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Club-Chronik erweitert um ein TSI-Panel mit Gesamt-TSI und Top-11-TSI pro Team.",
     changelog_2_10_0:
       "Club-Chronik erweitert um ein Gehalts-Panel mit Gesamtgehältern und Top-11-Gehältern pro Team.",
+    changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -1192,6 +1207,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Ligaleistungsdaten aktualisieren.",
     clubChronicleRefreshPressTooltip: "Daten der Pressemitteilungen aktualisieren.",
     clubChronicleRefreshArenaTooltip: "Arena-Daten aktualisieren.",
+    clubChronicleRefreshFormationsTooltip: "Refresh formations & tactics data.",
     clubChronicleRefreshFinanceTooltip: "Daten der Finanzschätzung aktualisieren.",
     clubChronicleRefreshTransferTooltip: "Transfermarktdaten aktualisieren.",
     clubChronicleRefreshTsiTooltip: "TSI-Daten aktualisieren.",
@@ -1222,6 +1238,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleArenaSeatBasic: "Sitzplätze",
     clubChronicleArenaSeatRoof: "Überdacht",
     clubChronicleArenaSeatVip: "VIP",
+    clubChronicleFormationsPanelTitle: "Formations & tactics",
+    clubChronicleFormationsColumnFormation: "Top formation",
+    clubChronicleFormationsColumnTactic: "Top tactic",
+    clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
+    clubChronicleFormationsSampleLabel: "Matches analyzed",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Zusammenfassung",
     clubChronicleColumnTeam: "Team",
@@ -1686,6 +1707,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "La Chronique du club ajoute un panneau TSI avec le TSI total et le TSI du top 11 par équipe.",
     changelog_2_10_0:
       "La Chronique du club ajoute un panneau salaires avec salaires totaux et salaires du top 11 par équipe.",
+    changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1744,6 +1766,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Actualiser les données de performance en ligue.",
     clubChronicleRefreshPressTooltip: "Actualiser les données des communiqués de presse.",
     clubChronicleRefreshArenaTooltip: "Actualiser les données de l arène.",
+    clubChronicleRefreshFormationsTooltip: "Refresh formations & tactics data.",
     clubChronicleRefreshFinanceTooltip: "Actualiser les données d'estimation financière.",
     clubChronicleRefreshTransferTooltip: "Actualiser les données du marché des transferts.",
     clubChronicleRefreshTsiTooltip: "Actualiser les données TSI.",
@@ -1774,6 +1797,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleArenaSeatBasic: "Basique",
     clubChronicleArenaSeatRoof: "Couvert",
     clubChronicleArenaSeatVip: "VIP",
+    clubChronicleFormationsPanelTitle: "Formations & tactics",
+    clubChronicleFormationsColumnFormation: "Top formation",
+    clubChronicleFormationsColumnTactic: "Top tactic",
+    clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
+    clubChronicleFormationsSampleLabel: "Matches analyzed",
     clubChronicleTableTeam: "Équipe",
     clubChronicleTableSummary: "Résumé",
     clubChronicleColumnTeam: "Équipe",
@@ -2245,6 +2273,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Crónica del club añade un panel de TSI con TSI total y TSI del top 11 por equipo.",
     changelog_2_10_0:
       "Crónica del club añade un panel de salarios con salarios totales y salarios del top 11 por equipo.",
+    changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -2303,6 +2332,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Actualizar los datos de rendimiento en liga.",
     clubChronicleRefreshPressTooltip: "Actualizar datos de comunicados de prensa.",
     clubChronicleRefreshArenaTooltip: "Actualizar datos del estadio.",
+    clubChronicleRefreshFormationsTooltip: "Refresh formations & tactics data.",
     clubChronicleRefreshFinanceTooltip: "Actualizar datos de estimación financiera.",
     clubChronicleRefreshTransferTooltip: "Actualizar datos del mercado de traspasos.",
     clubChronicleRefreshTsiTooltip: "Actualizar datos de TSI.",
@@ -2333,6 +2363,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleArenaSeatBasic: "Básico",
     clubChronicleArenaSeatRoof: "Cubierto",
     clubChronicleArenaSeatVip: "VIP",
+    clubChronicleFormationsPanelTitle: "Formations & tactics",
+    clubChronicleFormationsColumnFormation: "Top formation",
+    clubChronicleFormationsColumnTactic: "Top tactic",
+    clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
+    clubChronicleFormationsSampleLabel: "Matches analyzed",
     clubChronicleTableTeam: "Equipo",
     clubChronicleTableSummary: "Resumen",
     clubChronicleColumnTeam: "Equipo",
@@ -2798,6 +2833,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Klubbkrönikan lägger till en TSI-panel med total TSI och topp-11 TSI per lag.",
     changelog_2_10_0:
       "Klubbkrönikan lägger till en lönepanel med totala löner och topp-11-löner per lag.",
+    changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -2856,6 +2892,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Uppdatera ligaprestanda-data.",
     clubChronicleRefreshPressTooltip: "Uppdatera data för pressmeddelanden.",
     clubChronicleRefreshArenaTooltip: "Uppdatera arenadata.",
+    clubChronicleRefreshFormationsTooltip: "Refresh formations & tactics data.",
     clubChronicleRefreshFinanceTooltip: "Uppdatera data för finansestimat.",
     clubChronicleRefreshTransferTooltip: "Uppdatera data för transfermarknaden.",
     clubChronicleRefreshTsiTooltip: "Uppdatera TSI-data.",
@@ -2886,6 +2923,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleArenaSeatBasic: "Bas",
     clubChronicleArenaSeatRoof: "Tak",
     clubChronicleArenaSeatVip: "VIP",
+    clubChronicleFormationsPanelTitle: "Formations & tactics",
+    clubChronicleFormationsColumnFormation: "Top formation",
+    clubChronicleFormationsColumnTactic: "Top tactic",
+    clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
+    clubChronicleFormationsSampleLabel: "Matches analyzed",
     clubChronicleTableTeam: "Lag",
     clubChronicleTableSummary: "Sammanfattning",
     clubChronicleColumnTeam: "Lag",
@@ -3351,6 +3393,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "La Cronaca del club aggiunge un pannello TSI con TSI totale e TSI dei migliori 11 per squadra.",
     changelog_2_10_0:
       "La Cronaca del club aggiunge un pannello stipendi con stipendi totali e stipendi top 11 per squadra.",
+    changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -3409,6 +3452,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Aggiorna i dati di prestazione in lega.",
     clubChronicleRefreshPressTooltip: "Aggiorna i dati dei comunicati stampa.",
     clubChronicleRefreshArenaTooltip: "Aggiorna i dati dello stadio.",
+    clubChronicleRefreshFormationsTooltip: "Refresh formations & tactics data.",
     clubChronicleRefreshFinanceTooltip: "Aggiorna i dati della stima finanziaria.",
     clubChronicleRefreshTransferTooltip: "Aggiorna i dati del mercato trasferimenti.",
     clubChronicleRefreshTsiTooltip: "Aggiorna i dati TSI.",
@@ -3439,6 +3483,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleArenaSeatBasic: "Base",
     clubChronicleArenaSeatRoof: "Coperto",
     clubChronicleArenaSeatVip: "VIP",
+    clubChronicleFormationsPanelTitle: "Formations & tactics",
+    clubChronicleFormationsColumnFormation: "Top formation",
+    clubChronicleFormationsColumnTactic: "Top tactic",
+    clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
+    clubChronicleFormationsSampleLabel: "Matches analyzed",
     clubChronicleTableTeam: "Squadra",
     clubChronicleTableSummary: "Riepilogo",
     clubChronicleColumnTeam: "Squadra",
@@ -3906,6 +3955,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Crônica do clube adiciona um painel de TSI com TSI total e TSI dos 11 melhores por equipe.",
     changelog_2_10_0:
       "Crônica do clube adiciona um painel de salários com salários totais e salários dos 11 melhores por equipe.",
+    changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -3964,6 +4014,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTooltip: "Atualizar dados de desempenho na liga.",
     clubChronicleRefreshPressTooltip: "Atualizar dados de comunicados de imprensa.",
     clubChronicleRefreshArenaTooltip: "Atualizar dados da arena.",
+    clubChronicleRefreshFormationsTooltip: "Refresh formations & tactics data.",
     clubChronicleRefreshFinanceTooltip: "Atualizar dados da estimativa financeira.",
     clubChronicleRefreshTransferTooltip: "Atualizar dados do mercado de transferências.",
     clubChronicleRefreshTsiTooltip: "Atualizar dados de TSI.",
@@ -3994,6 +4045,11 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleArenaSeatBasic: "Básico",
     clubChronicleArenaSeatRoof: "Coberto",
     clubChronicleArenaSeatVip: "VIP",
+    clubChronicleFormationsPanelTitle: "Formations & tactics",
+    clubChronicleFormationsColumnFormation: "Top formation",
+    clubChronicleFormationsColumnTactic: "Top tactic",
+    clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
+    clubChronicleFormationsSampleLabel: "Matches analyzed",
     clubChronicleTableTeam: "Time",
     clubChronicleTableSummary: "Resumo",
     clubChronicleColumnTeam: "Time",

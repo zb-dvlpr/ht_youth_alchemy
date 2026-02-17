@@ -13,6 +13,13 @@ import { Messages } from "@/lib/i18n";
 import { formatChppDateTime, formatDateTime } from "@/lib/datetime";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
+import {
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip as RechartsTooltip,
+} from "recharts";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import {
   CLUB_CHRONICLE_DEBUG_EVENT,
@@ -211,6 +218,32 @@ type WagesRow = {
   snapshot?: WagesSnapshot | null;
 };
 
+type FormationTacticsDistribution = {
+  key: string;
+  label: string;
+  count: number;
+};
+
+type FormationTacticsSnapshot = {
+  topFormation: string | null;
+  topTactic: string | null;
+  formationDistribution: FormationTacticsDistribution[];
+  tacticDistribution: FormationTacticsDistribution[];
+  sampleSize: number;
+  fetchedAt: number;
+};
+
+type FormationTacticsData = {
+  current: FormationTacticsSnapshot;
+  previous?: FormationTacticsSnapshot;
+};
+
+type FormationTacticsRow = {
+  teamId: number;
+  teamName: string;
+  snapshot?: FormationTacticsSnapshot | null;
+};
+
 type WagesPlayerRow = {
   playerId: number;
   playerName: string | null;
@@ -290,6 +323,7 @@ type ChronicleTeamData = {
   transferActivity?: TransferActivityData;
   tsi?: TsiData;
   wages?: WagesData;
+  formationsTactics?: FormationTacticsData;
 };
 
 type ChronicleCache = {
@@ -331,7 +365,8 @@ type UpdatePanel =
   | "finance"
   | "transfer"
   | "tsi"
-  | "wages";
+  | "wages"
+  | "formationsTactics";
 
 type ChronicleTableColumn<Row, Snapshot> = {
   key: string;
@@ -538,6 +573,7 @@ const PANEL_IDS = [
   "arena",
   "finance-estimate",
   "transfer-market",
+  "formations-tactics",
   "tsi",
   "wages",
 ] as const;
@@ -545,6 +581,17 @@ const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
 const MAX_CACHE_AGE_MS = SEASON_LENGTH_MS * 2;
 const HT_BASE_URL = "https://www.hattrick.org";
 const CHPP_SEK_PER_EUR = 10;
+const ARCHIVE_MATCH_LIMIT = 20;
+const RELEVANT_MATCH_TYPES = new Set([1, 3, 4, 5, 8, 9]);
+const TACTIC_LABELS: Record<number, string> = {
+  0: "Normal",
+  1: "Pressing",
+  2: "Counter-attacks",
+  3: "Attack in the middle",
+  4: "Attack in wings",
+  7: "Play creatively",
+  8: "Long shots",
+};
 
 const normalizeSupportedTeams = (
   input:
@@ -656,6 +703,87 @@ const parseOptionalNumber = (value: unknown): number | null => {
   if (value === null || value === undefined || value === "") return null;
   const num = Number(value);
   return Number.isFinite(num) ? num : null;
+};
+
+const toArray = <T,>(value: T | T[] | null | undefined): T[] => {
+  if (!value) return [];
+  return Array.isArray(value) ? value : [value];
+};
+
+const parseMatchDateValue = (value: unknown): number => {
+  if (typeof value !== "string") return 0;
+  const parsed = Date.parse(value.replace(" ", "T"));
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const formatTacticLabel = (tacticType: number | null | undefined): string | null => {
+  if (tacticType === null || tacticType === undefined) return null;
+  return TACTIC_LABELS[tacticType] ?? `Tactic ${tacticType}`;
+};
+
+const buildDistribution = (counts: Map<string, number>): FormationTacticsDistribution[] =>
+  Array.from(counts.entries())
+    .map(([key, count]) => ({ key, label: key, count }))
+    .sort((left, right) => right.count - left.count || left.key.localeCompare(right.key));
+
+const pickTopKey = (distribution: FormationTacticsDistribution[]): string | null =>
+  distribution.length > 0 ? distribution[0].key : null;
+
+const colorForSlice = (index: number): string => {
+  const hue = (index * 61) % 360;
+  return `hsl(${hue} 58% 52%)`;
+};
+
+const splitPieLabel = (label: string, maxCharsPerLine = 16): string[] => {
+  const words = label.split(" ");
+  const lines: string[] = [];
+  let current = "";
+  words.forEach((word) => {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length <= maxCharsPerLine) {
+      current = next;
+      return;
+    }
+    if (current) lines.push(current);
+    current = word;
+  });
+  if (current) lines.push(current);
+  return lines.length > 0 ? lines : [label];
+};
+
+const renderPieLabel = (props: any) => {
+  const {
+    cx = 0,
+    cy = 0,
+    midAngle = 0,
+    outerRadius = 0,
+    percent = 0,
+    name = "",
+  } = props ?? {};
+  const value = Math.round(Number(percent) * 100);
+  const label = `${String(name)} ${value}%`;
+  const radians = (Math.PI / 180) * Number(midAngle);
+  const x = Number(cx) + (Number(outerRadius) + 18) * Math.cos(-radians);
+  const y = Number(cy) + (Number(outerRadius) + 18) * Math.sin(-radians);
+  const lines = splitPieLabel(label, 16);
+  const textAnchor = x >= Number(cx) ? "start" : "end";
+  const lineOffset = ((lines.length - 1) * 12) / 2;
+  return (
+    <text
+      x={x}
+      y={y - lineOffset}
+      fill={props.fill}
+      textAnchor={textAnchor}
+      dominantBaseline="central"
+      fontSize={12}
+    >
+      {lines.map((line, index) => (
+        <tspan key={`${label}-${line}-${index}`} x={x} dy={index === 0 ? 0 : 12}>
+          {line}
+        </tspan>
+      ))}
+    </text>
+  );
 };
 
 const resolvePressAnnouncement = (
@@ -1052,6 +1180,21 @@ const pruneChronicleCache = (cache: ChronicleCache): ChronicleCache => {
         }
         return wages;
       })(),
+      formationsTactics: (() => {
+        const formationsTactics = team.formationsTactics;
+        if (!formationsTactics?.current) return formationsTactics;
+        const currentAge = now - formationsTactics.current.fetchedAt;
+        if (currentAge > MAX_CACHE_AGE_MS) return undefined;
+        if (!formationsTactics.previous) return formationsTactics;
+        const previousAge = now - formationsTactics.previous.fetchedAt;
+        if (previousAge > MAX_CACHE_AGE_MS) {
+          return {
+            ...formationsTactics,
+            previous: undefined,
+          };
+        }
+        return formationsTactics;
+      })(),
     };
   });
   return { ...cache, teams: nextTeams };
@@ -1077,7 +1220,9 @@ const getLatestCacheTimestamp = (cache: ChronicleCache): number | null => {
       team.tsi?.current?.fetchedAt ?? 0,
       team.tsi?.previous?.fetchedAt ?? 0,
       team.wages?.current?.fetchedAt ?? 0,
-      team.wages?.previous?.fetchedAt ?? 0
+      team.wages?.previous?.fetchedAt ?? 0,
+      team.formationsTactics?.current?.fetchedAt ?? 0,
+      team.formationsTactics?.previous?.fetchedAt ?? 0
     );
   });
   return latest > 0 ? latest : null;
@@ -1139,6 +1284,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [selectedArenaTeamId, setSelectedArenaTeamId] = useState<number | null>(
     null
   );
+  const [formationsTacticsDetailsOpen, setFormationsTacticsDetailsOpen] =
+    useState(false);
+  const [selectedFormationsTacticsTeamId, setSelectedFormationsTacticsTeamId] =
+    useState<number | null>(null);
   const [tsiDetailsOpen, setTsiDetailsOpen] = useState(false);
   const [selectedTsiTeamId, setSelectedTsiTeamId] = useState<number | null>(null);
   const [wagesDetailsOpen, setWagesDetailsOpen] = useState(false);
@@ -1186,6 +1335,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     key: string;
     direction: "asc" | "desc";
   }>({ key: "team", direction: "asc" });
+  const [formationsTacticsSortState, setFormationsTacticsSortState] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({ key: "team", direction: "asc" });
   const [transferSortState, setTransferSortState] = useState<{
     key: string;
     direction: "asc" | "desc";
@@ -1203,6 +1356,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [refreshingPress, setRefreshingPress] = useState(false);
   const [refreshingFanclub, setRefreshingFanclub] = useState(false);
   const [refreshingArena, setRefreshingArena] = useState(false);
+  const [refreshingFormationsTactics, setRefreshingFormationsTactics] =
+    useState(false);
   const [refreshingFinance, setRefreshingFinance] = useState(false);
   const [refreshingTransfer, setRefreshingTransfer] = useState(false);
   const [refreshingTsi, setRefreshingTsi] = useState(false);
@@ -1228,6 +1383,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     refreshingPress ||
     refreshingFanclub ||
     refreshingArena ||
+    refreshingFormationsTactics ||
     refreshingFinance ||
     refreshingTransfer ||
     refreshingTsi ||
@@ -1375,6 +1531,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 label: messages.clubChronicleTransferColumnHistory,
                 previous: "2/1",
                 current: "2/2",
+              },
+              {
+                fieldKey: "formationsTactics.formation",
+                label: messages.clubChronicleFormationsColumnFormation,
+                previous: "3-5-2",
+                current: "4-5-1",
+              },
+              {
+                fieldKey: "formationsTactics.tactic",
+                label: messages.clubChronicleFormationsColumnTactic,
+                previous: "Pressing",
+                current: "Counter-attacks",
               },
               {
                 fieldKey: "tsi.total",
@@ -1947,6 +2115,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setArenaDetailsOpen(true);
   };
 
+  const handleOpenFormationsTacticsDetails = (teamId: number) => {
+    setSelectedFormationsTacticsTeamId(teamId);
+    setFormationsTacticsDetailsOpen(true);
+  };
+
   const handleOpenWagesDetails = (teamId: number) => {
     setSelectedWagesTeamId(teamId);
     setWagesDetailsOpen(true);
@@ -2035,6 +2208,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const handleArenaSort = (key: string) => {
     setArenaSortState((prev) => ({
+      key,
+      direction:
+        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
+    }));
+  };
+
+  const handleFormationsTacticsSort = (key: string) => {
+    setFormationsTacticsSortState((prev) => ({
       key,
       direction:
         prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
@@ -2405,6 +2586,35 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleTransferColumnHistory,
       handleOpenTransferListedDetails,
       handleOpenTransferHistory,
+    ]
+  );
+
+  const formationsTacticsTableColumns = useMemo<
+    ChronicleTableColumn<FormationTacticsRow, FormationTacticsSnapshot>[]
+  >(
+    () => [
+      {
+        key: "team",
+        label: messages.clubChronicleColumnTeam,
+        getValue: (_snapshot, row) => row?.teamName ?? null,
+      },
+      {
+        key: "formation",
+        label: messages.clubChronicleFormationsColumnFormation,
+        getValue: (snapshot: FormationTacticsSnapshot | undefined) =>
+          snapshot?.topFormation ?? null,
+      },
+      {
+        key: "tactic",
+        label: messages.clubChronicleFormationsColumnTactic,
+        getValue: (snapshot: FormationTacticsSnapshot | undefined) =>
+          snapshot?.topTactic ?? null,
+      },
+    ],
+    [
+      messages.clubChronicleColumnTeam,
+      messages.clubChronicleFormationsColumnFormation,
+      messages.clubChronicleFormationsColumnTactic,
     ]
   );
 
@@ -2798,6 +3008,38 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             });
           }
           appendTeamChanges(updatesMap, teamId, teamName, transferChanges);
+        }
+      }
+
+      if (panels.includes("formationsTactics")) {
+        const previous = baselineCache
+          ? baselineTeam?.formationsTactics?.current
+          : cached.formationsTactics?.previous;
+        const current = cached.formationsTactics?.current;
+        if (current && previous) {
+          const formationTacticsChanges: ChronicleUpdateField[] = [];
+          if (previous.topFormation !== current.topFormation) {
+            formationTacticsChanges.push({
+              fieldKey: "formationsTactics.formation",
+              label: messages.clubChronicleFormationsColumnFormation,
+              previous: formatValue(previous.topFormation),
+              current: formatValue(current.topFormation),
+            });
+          }
+          if (previous.topTactic !== current.topTactic) {
+            formationTacticsChanges.push({
+              fieldKey: "formationsTactics.tactic",
+              label: messages.clubChronicleFormationsColumnTactic,
+              previous: formatValue(previous.topTactic),
+              current: formatValue(current.topTactic),
+            });
+          }
+          appendTeamChanges(
+            updatesMap,
+            teamId,
+            teamName,
+            formationTacticsChanges
+          );
         }
       }
 
@@ -3490,6 +3732,184 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
   };
 
+  type TeamMatchArchiveEntry = {
+    matchId: number;
+    matchType: number | null;
+    matchDate: string | null;
+    sourceSystem: string;
+  };
+
+  type MatchFormationTacticDetails = {
+    homeTeamId: number | null;
+    awayTeamId: number | null;
+    homeFormation: string | null;
+    awayFormation: string | null;
+    homeTacticType: number | null;
+    awayTacticType: number | null;
+  };
+
+  const fetchTeamRecentRelevantMatches = async (
+    teamId: number
+  ): Promise<TeamMatchArchiveEntry[]> => {
+    const response = await fetch(`/api/chpp/matchesarchive?teamId=${teamId}`, {
+      cache: "no-store",
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | {
+          data?: {
+            HattrickData?: {
+              Team?: {
+                MatchList?: {
+                  Match?: unknown;
+                };
+              };
+            };
+          };
+          error?: string;
+        }
+      | null;
+    if (!response.ok || payload?.error) return [];
+
+    const rawMatches = payload?.data?.HattrickData?.Team?.MatchList?.Match;
+    const matchList = toArray(rawMatches as RawNode | RawNode[] | null | undefined);
+    const relevant = matchList
+      .map((match) => {
+        const matchId = parseNumberNode(match?.MatchID) ?? 0;
+        if (matchId <= 0) return null;
+        const matchType = parseNumberNode(match?.MatchType);
+        if (matchType === null || !RELEVANT_MATCH_TYPES.has(matchType)) return null;
+        return {
+          matchId,
+          matchType,
+          matchDate:
+            typeof match?.MatchDate === "string" ? String(match.MatchDate) : null,
+          sourceSystem:
+            typeof match?.SourceSystem === "string" && match.SourceSystem
+              ? String(match.SourceSystem)
+              : "Hattrick",
+        } as TeamMatchArchiveEntry;
+      })
+      .filter((entry): entry is TeamMatchArchiveEntry => Boolean(entry));
+
+    return relevant
+      .sort(
+        (left, right) =>
+          parseMatchDateValue(right.matchDate) - parseMatchDateValue(left.matchDate)
+      )
+      .slice(0, ARCHIVE_MATCH_LIMIT);
+  };
+
+  const fetchMatchFormationTacticDetails = async (
+    matchId: number,
+    sourceSystem: string,
+    cache: Map<number, MatchFormationTacticDetails>
+  ): Promise<MatchFormationTacticDetails | null> => {
+    if (cache.has(matchId)) return cache.get(matchId) ?? null;
+    try {
+      const response = await fetch(
+        `/api/chpp/matchdetails?matchId=${matchId}&sourceSystem=${encodeURIComponent(
+          sourceSystem
+        )}`,
+        { cache: "no-store" }
+      );
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            data?: {
+              HattrickData?: {
+                Match?: {
+                  HomeTeam?: RawNode;
+                  AwayTeam?: RawNode;
+                };
+              };
+            };
+          }
+        | null;
+      if (!response.ok) return null;
+      const match = payload?.data?.HattrickData?.Match;
+      const home = (match?.HomeTeam ?? {}) as RawNode;
+      const away = (match?.AwayTeam ?? {}) as RawNode;
+      const details: MatchFormationTacticDetails = {
+        homeTeamId: parseNumber(home?.HomeTeamID),
+        awayTeamId: parseNumber(away?.AwayTeamID),
+        homeFormation:
+          typeof home?.Formation === "string" ? String(home.Formation) : null,
+        awayFormation:
+          typeof away?.Formation === "string" ? String(away.Formation) : null,
+        homeTacticType: parseNumber(home?.TacticType),
+        awayTacticType: parseNumber(away?.TacticType),
+      };
+      cache.set(matchId, details);
+      return details;
+    } catch {
+      return null;
+    }
+  };
+
+  const buildFormationTacticsSnapshot = async (
+    teamId: number,
+    detailCache: Map<number, MatchFormationTacticDetails>
+  ): Promise<FormationTacticsSnapshot> => {
+    const matches = await fetchTeamRecentRelevantMatches(teamId);
+    const formationCounts = new Map<string, number>();
+    const tacticCounts = new Map<string, number>();
+    let sampleSize = 0;
+
+    for (const match of matches) {
+      const details = await fetchMatchFormationTacticDetails(
+        match.matchId,
+        match.sourceSystem,
+        detailCache
+      );
+      if (!details) continue;
+      const isHome = details.homeTeamId === teamId;
+      const isAway = details.awayTeamId === teamId;
+      if (!isHome && !isAway) continue;
+      sampleSize += 1;
+      const formation = isHome ? details.homeFormation : details.awayFormation;
+      const tacticLabel = formatTacticLabel(
+        isHome ? details.homeTacticType : details.awayTacticType
+      );
+      if (formation) {
+        formationCounts.set(formation, (formationCounts.get(formation) ?? 0) + 1);
+      }
+      if (tacticLabel) {
+        tacticCounts.set(tacticLabel, (tacticCounts.get(tacticLabel) ?? 0) + 1);
+      }
+    }
+
+    const formationDistribution = buildDistribution(formationCounts);
+    const tacticDistribution = buildDistribution(tacticCounts);
+    return {
+      topFormation: pickTopKey(formationDistribution),
+      topTactic: pickTopKey(tacticDistribution),
+      formationDistribution,
+      tacticDistribution,
+      sampleSize,
+      fetchedAt: Date.now(),
+    };
+  };
+
+  const refreshFormationsTacticsSnapshots = async (nextCache: ChronicleCache) => {
+    const detailCache = new Map<number, MatchFormationTacticDetails>();
+    for (const team of trackedTeams) {
+      try {
+        const snapshot = await buildFormationTacticsSnapshot(team.teamId, detailCache);
+        const previous = nextCache.teams[team.teamId]?.formationsTactics?.current;
+        nextCache.teams[team.teamId] = {
+          ...nextCache.teams[team.teamId],
+          teamId: team.teamId,
+          teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+          formationsTactics: {
+            current: snapshot,
+            previous,
+          },
+        };
+      } catch {
+        // ignore formations/tactics failures
+      }
+    }
+  };
+
   const refreshTransferSnapshots = async (
     nextCache: ChronicleCache,
     historyCount: number
@@ -3641,11 +4061,22 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     await refreshLeagueSnapshots(nextCache);
     await refreshArenaSnapshots(nextCache);
     await refreshFinanceAndTransferSnapshots(nextCache, transferHistoryCount);
+    await refreshFormationsTacticsSnapshots(nextCache);
     const baselineForDiff =
       globalBaselineCache ?? pruneChronicleCache(readChronicleCache());
     const nextUpdates = collectTeamChanges(
       nextCache,
-      ["league", "press", "fanclub", "arena", "finance", "transfer", "tsi", "wages"],
+      [
+        "league",
+        "press",
+        "fanclub",
+        "arena",
+        "finance",
+        "transfer",
+        "formationsTactics",
+        "tsi",
+        "wages",
+      ],
       { baselineCache: baselineForDiff }
     );
     const hasUpdates = hasAnyChanges(nextUpdates);
@@ -3783,6 +4214,20 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     addNotification(messages.notificationChronicleRefreshComplete);
   };
 
+  const refreshFormationsTacticsOnly = async () => {
+    if (anyRefreshing) return;
+    if (trackedTeams.length === 0) return;
+    setRefreshingFormationsTactics(true);
+    const nextCache = pruneChronicleCache(readChronicleCache());
+    const nextManualTeams = [...manualTeams];
+    await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+    await refreshFormationsTacticsSnapshots(nextCache);
+    setManualTeams(nextManualTeams);
+    setChronicleCache(nextCache);
+    setRefreshingFormationsTactics(false);
+    addNotification(messages.notificationChronicleRefreshComplete);
+  };
+
   const refreshLatestUpdatesFromGlobalBaseline = useCallback(() => {
     if (!globalBaselineCache) {
       setUpdates(null);
@@ -3793,7 +4238,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const comparedAt = Date.now();
     const nextUpdates = collectTeamChanges(
       chronicleCache,
-      ["league", "press", "fanclub", "arena", "finance", "transfer", "tsi", "wages"],
+      [
+        "league",
+        "press",
+        "fanclub",
+        "arena",
+        "finance",
+        "transfer",
+        "formationsTactics",
+        "tsi",
+        "wages",
+      ],
       { baselineCache: globalBaselineCache }
     );
     const hasUpdates = hasAnyChanges(nextUpdates);
@@ -3896,6 +4351,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       teamId: team.teamId,
       teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
       snapshot: cached?.transferActivity?.current,
+    };
+  });
+
+  const formationsTacticsRows: FormationTacticsRow[] = trackedTeams.map((team) => {
+    const cached = chronicleCache.teams[team.teamId];
+    return {
+      teamId: team.teamId,
+      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+      snapshot: cached?.formationsTactics?.current,
     };
   });
 
@@ -4063,6 +4527,35 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       .map((item) => item.row);
   }, [transferRows, transferTableColumns, transferSortState]);
 
+  const sortedFormationsTacticsRows = useMemo(() => {
+    if (!formationsTacticsSortState.key) return formationsTacticsRows;
+    const column = formationsTacticsTableColumns.find(
+      (item) => item.key === formationsTacticsSortState.key
+    );
+    if (!column) return formationsTacticsRows;
+    const direction = formationsTacticsSortState.direction === "desc" ? -1 : 1;
+    return [...formationsTacticsRows]
+      .map((row, index) => ({ row, index }))
+      .sort((left, right) => {
+        const leftValue = normalizeSortValue(
+          column.getSortValue?.(left.row.snapshot ?? undefined, left.row) ??
+            column.getValue(left.row.snapshot ?? undefined, left.row)
+        );
+        const rightValue = normalizeSortValue(
+          column.getSortValue?.(right.row.snapshot ?? undefined, right.row) ??
+            column.getValue(right.row.snapshot ?? undefined, right.row)
+        );
+        const result = compareSortValues(leftValue, rightValue);
+        if (result !== 0) return result * direction;
+        return left.index - right.index;
+      })
+      .map((item) => item.row);
+  }, [
+    formationsTacticsRows,
+    formationsTacticsTableColumns,
+    formationsTacticsSortState,
+  ]);
+
   const sortedTsiRows = useMemo(() => {
     if (!tsiSortState.key) return tsiRows;
     const column = tsiTableColumns.find((item) => item.key === tsiSortState.key);
@@ -4127,6 +4620,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const selectedTransferTeam = selectedTransferTeamId
     ? transferRows.find((team) => team.teamId === selectedTransferTeamId) ?? null
     : null;
+  const selectedFormationsTacticsTeam = selectedFormationsTacticsTeamId
+    ? formationsTacticsRows.find(
+        (team) => team.teamId === selectedFormationsTacticsTeamId
+      ) ?? null
+    : null;
   const selectedTsiTeam = selectedTsiTeamId
     ? tsiRows.find((team) => team.teamId === selectedTsiTeamId) ?? null
     : null;
@@ -4147,6 +4645,30 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         previousSize !== null && currentSize !== null ? currentSize - previousSize : null,
     };
   }, [selectedFanclubTeam]);
+  const formationDistributionTotal = useMemo(
+    () =>
+      (selectedFormationsTacticsTeam?.snapshot?.formationDistribution ?? []).reduce(
+        (sum, entry) => sum + entry.count,
+        0
+      ),
+    [selectedFormationsTacticsTeam]
+  );
+  const tacticDistributionTotal = useMemo(
+    () =>
+      (selectedFormationsTacticsTeam?.snapshot?.tacticDistribution ?? []).reduce(
+        (sum, entry) => sum + entry.count,
+        0
+      ),
+    [selectedFormationsTacticsTeam]
+  );
+  const formationChartData = useMemo(
+    () => selectedFormationsTacticsTeam?.snapshot?.formationDistribution ?? [],
+    [selectedFormationsTacticsTeam]
+  );
+  const tacticChartData = useMemo(
+    () => selectedFormationsTacticsTeam?.snapshot?.tacticDistribution ?? [],
+    [selectedFormationsTacticsTeam]
+  );
   const fanclubDetailsPreviousHeader = useMemo(() => {
     if (!fanclubDetailsSnapshot?.previousDate) {
       return messages.clubChronicleDetailsPreviousLabel;
@@ -4717,6 +5239,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [transferTableColumns.length]
   );
 
+  const formationsTacticsTableStyle = useMemo(
+    () =>
+      ({
+        "--cc-columns": formationsTacticsTableColumns.length,
+        "--cc-template": "minmax(180px, 1.4fr) minmax(130px, 0.9fr) minmax(170px, 1fr)",
+      }) as CSSProperties,
+    [formationsTacticsTableColumns.length]
+  );
+
   const tsiTableStyle = useMemo(
     () =>
       ({
@@ -5066,6 +5597,57 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       sortKey={transferSortState.key}
                       sortDirection={transferSortState.direction}
                       onSort={handleTransferSort}
+                    />
+                  )}
+                </ChroniclePanel>
+              </div>
+            );
+          }
+          if (panelId === "formations-tactics") {
+            return (
+              <div
+                key={panelId}
+                className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
+                onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDrop={(event) => handlePanelDrop(event, panelId)}
+                onPointerEnter={() => handlePanelPointerEnter(panelId)}
+                onPointerUp={() => handlePanelPointerUp(panelId)}
+                onDragEnd={handlePanelDragEnd}
+              >
+                <ChroniclePanel
+                  title={messages.clubChronicleFormationsPanelTitle}
+                  refreshing={refreshingGlobal || refreshingFormationsTactics}
+                  refreshLabel={messages.clubChronicleRefreshFormationsTooltip}
+                  panelId={panelId}
+                  onRefresh={() => void refreshFormationsTacticsOnly()}
+                  onPointerDown={handlePanelPointerDown}
+                  onDragStart={handlePanelDragStart}
+                  onDragEnd={handlePanelDragEnd}
+                >
+                  {trackedTeams.length === 0 ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
+                    </p>
+                  ) : (refreshingGlobal || refreshingFormationsTactics) &&
+                    formationsTacticsRows.every((row) => !row.snapshot) ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleLoading}
+                    </p>
+                  ) : (
+                    <ChronicleTable
+                      columns={formationsTacticsTableColumns}
+                      rows={sortedFormationsTacticsRows}
+                      getRowKey={(row) => row.teamId}
+                      getSnapshot={(row) => row.snapshot ?? undefined}
+                      getRowClassName={getTeamRowClassName}
+                      onRowClick={(row) =>
+                        handleOpenFormationsTacticsDetails(row.teamId)
+                      }
+                      formatValue={formatValue}
+                      style={formationsTacticsTableStyle}
+                      sortKey={formationsTacticsSortState.key}
+                      sortDirection={formationsTacticsSortState.direction}
+                      onSort={handleFormationsTacticsSort}
                     />
                   )}
                 </ChroniclePanel>
@@ -5799,6 +6381,115 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
         closeOnBackdrop
         onClose={() => setTransferHistoryOpen(false)}
+      />
+
+      <Modal
+        open={formationsTacticsDetailsOpen}
+        title={messages.clubChronicleFormationsDetailsTitle}
+        className={styles.chronicleTransferHistoryModal}
+        body={
+          selectedFormationsTacticsTeam?.snapshot ? (
+            <>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleColumnTeam}:{" "}
+                <span className={styles.chronicleDistributionTeamName}>
+                  {selectedFormationsTacticsTeam.teamName}
+                </span>
+              </p>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleFormationsSampleLabel}:{" "}
+                {formatValue(selectedFormationsTacticsTeam.snapshot.sampleSize)}
+              </p>
+              <div className={styles.chronicleDistributionGrid}>
+                <div className={styles.chronicleDistributionCard}>
+                  <h3 className={styles.chronicleDetailsSectionTitle}>
+                    {messages.clubChronicleFormationsColumnFormation}
+                  </h3>
+                  <div className={styles.chroniclePieChartWrap}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart margin={{ top: 24, right: 64, left: 64, bottom: 24 }}>
+                        <Pie
+                          data={formationChartData}
+                          dataKey="count"
+                          nameKey="label"
+                          outerRadius={90}
+                          label={renderPieLabel}
+                          labelLine
+                        >
+                          {formationChartData.map((entry, index) => (
+                            <Cell
+                              key={`formation-cell-${entry.key}`}
+                              fill={colorForSlice(index)}
+                            />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {selectedFormationsTacticsTeam.snapshot.formationDistribution.length >
+                  0 ? (
+                    <p className={styles.chroniclePressMeta}>
+                      {messages.clubChronicleFormationsSampleLabel}:{" "}
+                      {formationDistributionTotal}
+                    </p>
+                  ) : (
+                    <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+                  )}
+                </div>
+                <div className={styles.chronicleDistributionCard}>
+                  <h3 className={styles.chronicleDetailsSectionTitle}>
+                    {messages.clubChronicleFormationsColumnTactic}
+                  </h3>
+                  <div className={styles.chroniclePieChartWrap}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart margin={{ top: 24, right: 64, left: 64, bottom: 24 }}>
+                        <Pie
+                          data={tacticChartData}
+                          dataKey="count"
+                          nameKey="label"
+                          outerRadius={90}
+                          label={renderPieLabel}
+                          labelLine
+                        >
+                          {tacticChartData.map((entry, index) => (
+                            <Cell
+                              key={`tactic-cell-${entry.key}`}
+                              fill={colorForSlice(index)}
+                            />
+                          ))}
+                        </Pie>
+                        <RechartsTooltip />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {selectedFormationsTacticsTeam.snapshot.tacticDistribution.length >
+                  0 ? (
+                    <p className={styles.chroniclePressMeta}>
+                      {messages.clubChronicleFormationsSampleLabel}:{" "}
+                      {tacticDistributionTotal}
+                    </p>
+                  ) : (
+                    <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+                  )}
+                </div>
+              </div>
+            </>
+          ) : (
+            <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setFormationsTacticsDetailsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setFormationsTacticsDetailsOpen(false)}
       />
 
       <Modal

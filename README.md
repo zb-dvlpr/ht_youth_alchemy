@@ -26,6 +26,7 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Sold/bought transfer history now computes player age at transfer deadline (from transfer deadline + current player age), while keeping compact, non-overflowing table columns.
 - Sold/bought transfer history age column is explicitly labeled as `Age at transfer`.
 - Sold/bought transfer history now uses the dedicated `Age at transfer` header correctly and localizes that label across supported languages.
+- Fixed locale mapping regression for the `Age at transfer` transfer-history column so each supported language now shows the correct translation in its own locale.
 - Latest updates now tracks changes per attribute across all Club Chronicle panels, grouped by team and showing only changed fields in a responsive, scrollable team-card grid, with a baseline fixed to the most recent global refresh, sticky retention of the last detected non-empty change set, and a 10-entry global-refresh comparison history directly in the modal.
 
 ## Local setup

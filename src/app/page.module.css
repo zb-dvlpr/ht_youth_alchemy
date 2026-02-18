@@ -993,7 +993,7 @@ html[data-app-scaling="off"] .topBar::before {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 12px;
 }
 
@@ -1589,10 +1589,9 @@ html[data-app-scaling="off"] .topBar::before {
 }
 
 .watchlistFabWrap {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  z-index: 20;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
 }
 
 .watchlistFab {

@@ -6260,6 +6260,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             {messages.clubChronicleUpdatesButton}
           </button>
         </div>
+        <div className={styles.watchlistFabWrap}>
+          <Tooltip content={messages.watchlistTitle}>
+            <button
+              type="button"
+              className={styles.watchlistFab}
+              data-help-anchor="cc-watchlist"
+              onClick={() => setWatchlistOpen(true)}
+              aria-label={messages.watchlistTitle}
+            >
+              ☰
+            </button>
+          </Tooltip>
+        </div>
       </div>
 
       <div className={styles.chroniclePanels}>
@@ -6762,20 +6775,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           }
           return null;
         })}
-      </div>
-
-      <div className={styles.watchlistFabWrap}>
-        <Tooltip content={messages.watchlistTitle}>
-          <button
-            type="button"
-            className={styles.watchlistFab}
-            data-help-anchor="cc-watchlist"
-            onClick={() => setWatchlistOpen(true)}
-            aria-label={messages.watchlistTitle}
-          >
-            ☰
-          </button>
-        </Tooltip>
       </div>
 
       <Modal

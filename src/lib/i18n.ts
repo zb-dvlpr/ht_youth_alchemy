@@ -125,6 +125,14 @@ export type Messages = {
   clubChronicleRefreshTsiTooltip: string;
   clubChronicleRefreshWagesTooltip: string;
   clubChronicleRefreshLikelyTrainingTooltip: string;
+  clubChronicleRefreshStatusTeamDetails: string;
+  clubChronicleRefreshStatusLeague: string;
+  clubChronicleRefreshStatusArena: string;
+  clubChronicleRefreshStatusTransferFinance: string;
+  clubChronicleRefreshStatusFormations: string;
+  clubChronicleRefreshStatusFinalizing: string;
+  clubChronicleRefreshStatusMatchesArchiveProgress: string;
+  clubChronicleRefreshStatusMatchDetailsProgress: string;
   clubChronicleHelpTitle: string;
   clubChronicleHelpIntro: string;
   clubChronicleHelpCalloutRefresh: string;
@@ -697,6 +705,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTsiTooltip: "Refresh TSI data.",
     clubChronicleRefreshWagesTooltip: "Refresh wages data.",
     clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
+    clubChronicleRefreshStatusTeamDetails: "Fetching team details…",
+    clubChronicleRefreshStatusLeague: "Fetching league performance…",
+    clubChronicleRefreshStatusArena: "Fetching arena data…",
+    clubChronicleRefreshStatusTransferFinance: "Fetching transfer, finance, TSI, and wages data…",
+    clubChronicleRefreshStatusFormations: "Fetching formations and tactics data…",
+    clubChronicleRefreshStatusFinalizing: "Finalizing updates…",
+    clubChronicleRefreshStatusMatchesArchiveProgress:
+      "Match archives {completed}/{total} (team: {team})",
+    clubChronicleRefreshStatusMatchDetailsProgress:
+      "Match details {completed}/{total} (team: {team})",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -704,7 +722,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpCalloutUpdates: "Latest updates shows only changed attributes grouped by team.",
     clubChronicleHelpCalloutWatchlist: "Watchlist controls which teams are tracked in every panel.",
     clubChronicleHelpBulletControls:
-      "Header controls: use Refresh for a full data pass, Latest updates for tracked diffs, and the floating Watchlist button to manage tracked teams.",
+      "Header controls: use Refresh for a full data pass, monitor progress via the status bar and per-panel mini bars, use Latest updates for tracked diffs, and use Watchlist to manage tracked teams.",
     clubChronicleHelpBulletLeague:
       "League performance: table of position, points, series, position change, and goal delta. Click a row for previous/current attribute-level comparison.",
     clubChronicleHelpBulletPress:
@@ -1303,6 +1321,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTsiTooltip: "TSI-Daten aktualisieren.",
     clubChronicleRefreshWagesTooltip: "Gehaltsdaten aktualisieren.",
     clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
+    clubChronicleRefreshStatusTeamDetails: "Fetching team details…",
+    clubChronicleRefreshStatusLeague: "Fetching league performance…",
+    clubChronicleRefreshStatusArena: "Fetching arena data…",
+    clubChronicleRefreshStatusTransferFinance: "Fetching transfer, finance, TSI, and wages data…",
+    clubChronicleRefreshStatusFormations: "Fetching formations and tactics data…",
+    clubChronicleRefreshStatusFinalizing: "Finalizing updates…",
+    clubChronicleRefreshStatusMatchesArchiveProgress:
+      "Match archives {completed}/{total} (team: {team})",
+    clubChronicleRefreshStatusMatchDetailsProgress:
+      "Match details {completed}/{total} (team: {team})",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -1310,7 +1338,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpCalloutUpdates: "Latest updates shows only changed attributes grouped by team.",
     clubChronicleHelpCalloutWatchlist: "Watchlist controls which teams are tracked in every panel.",
     clubChronicleHelpBulletControls:
-      "Header controls: use Refresh for a full data pass, Latest updates for tracked diffs, and the floating Watchlist button to manage tracked teams.",
+      "Header controls: use Refresh for a full data pass, monitor progress via the status bar and per-panel mini bars, use Latest updates for tracked diffs, and use Watchlist to manage tracked teams.",
     clubChronicleHelpBulletLeague:
       "League performance: table of position, points, series, position change, and goal delta. Click a row for previous/current attribute-level comparison.",
     clubChronicleHelpBulletPress:
@@ -1913,6 +1941,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTsiTooltip: "Actualiser les données TSI.",
     clubChronicleRefreshWagesTooltip: "Actualiser les données de salaires.",
     clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
+    clubChronicleRefreshStatusTeamDetails: "Fetching team details…",
+    clubChronicleRefreshStatusLeague: "Fetching league performance…",
+    clubChronicleRefreshStatusArena: "Fetching arena data…",
+    clubChronicleRefreshStatusTransferFinance: "Fetching transfer, finance, TSI, and wages data…",
+    clubChronicleRefreshStatusFormations: "Fetching formations and tactics data…",
+    clubChronicleRefreshStatusFinalizing: "Finalizing updates…",
+    clubChronicleRefreshStatusMatchesArchiveProgress:
+      "Match archives {completed}/{total} (team: {team})",
+    clubChronicleRefreshStatusMatchDetailsProgress:
+      "Match details {completed}/{total} (team: {team})",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -1920,7 +1958,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpCalloutUpdates: "Latest updates shows only changed attributes grouped by team.",
     clubChronicleHelpCalloutWatchlist: "Watchlist controls which teams are tracked in every panel.",
     clubChronicleHelpBulletControls:
-      "Header controls: use Refresh for a full data pass, Latest updates for tracked diffs, and the floating Watchlist button to manage tracked teams.",
+      "Header controls: use Refresh for a full data pass, monitor progress via the status bar and per-panel mini bars, use Latest updates for tracked diffs, and use Watchlist to manage tracked teams.",
     clubChronicleHelpBulletLeague:
       "League performance: table of position, points, series, position change, and goal delta. Click a row for previous/current attribute-level comparison.",
     clubChronicleHelpBulletPress:
@@ -2530,6 +2568,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTsiTooltip: "Actualizar datos de TSI.",
     clubChronicleRefreshWagesTooltip: "Actualizar datos de salarios.",
     clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
+    clubChronicleRefreshStatusTeamDetails: "Fetching team details…",
+    clubChronicleRefreshStatusLeague: "Fetching league performance…",
+    clubChronicleRefreshStatusArena: "Fetching arena data…",
+    clubChronicleRefreshStatusTransferFinance: "Fetching transfer, finance, TSI, and wages data…",
+    clubChronicleRefreshStatusFormations: "Fetching formations and tactics data…",
+    clubChronicleRefreshStatusFinalizing: "Finalizing updates…",
+    clubChronicleRefreshStatusMatchesArchiveProgress:
+      "Match archives {completed}/{total} (team: {team})",
+    clubChronicleRefreshStatusMatchDetailsProgress:
+      "Match details {completed}/{total} (team: {team})",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -2537,7 +2585,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpCalloutUpdates: "Latest updates shows only changed attributes grouped by team.",
     clubChronicleHelpCalloutWatchlist: "Watchlist controls which teams are tracked in every panel.",
     clubChronicleHelpBulletControls:
-      "Header controls: use Refresh for a full data pass, Latest updates for tracked diffs, and the floating Watchlist button to manage tracked teams.",
+      "Header controls: use Refresh for a full data pass, monitor progress via the status bar and per-panel mini bars, use Latest updates for tracked diffs, and use Watchlist to manage tracked teams.",
     clubChronicleHelpBulletLeague:
       "League performance: table of position, points, series, position change, and goal delta. Click a row for previous/current attribute-level comparison.",
     clubChronicleHelpBulletPress:
@@ -3141,6 +3189,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTsiTooltip: "Uppdatera TSI-data.",
     clubChronicleRefreshWagesTooltip: "Uppdatera lönedata.",
     clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
+    clubChronicleRefreshStatusTeamDetails: "Fetching team details…",
+    clubChronicleRefreshStatusLeague: "Fetching league performance…",
+    clubChronicleRefreshStatusArena: "Fetching arena data…",
+    clubChronicleRefreshStatusTransferFinance: "Fetching transfer, finance, TSI, and wages data…",
+    clubChronicleRefreshStatusFormations: "Fetching formations and tactics data…",
+    clubChronicleRefreshStatusFinalizing: "Finalizing updates…",
+    clubChronicleRefreshStatusMatchesArchiveProgress:
+      "Match archives {completed}/{total} (team: {team})",
+    clubChronicleRefreshStatusMatchDetailsProgress:
+      "Match details {completed}/{total} (team: {team})",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -3148,7 +3206,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpCalloutUpdates: "Latest updates shows only changed attributes grouped by team.",
     clubChronicleHelpCalloutWatchlist: "Watchlist controls which teams are tracked in every panel.",
     clubChronicleHelpBulletControls:
-      "Header controls: use Refresh for a full data pass, Latest updates for tracked diffs, and the floating Watchlist button to manage tracked teams.",
+      "Header controls: use Refresh for a full data pass, monitor progress via the status bar and per-panel mini bars, use Latest updates for tracked diffs, and use Watchlist to manage tracked teams.",
     clubChronicleHelpBulletLeague:
       "League performance: table of position, points, series, position change, and goal delta. Click a row for previous/current attribute-level comparison.",
     clubChronicleHelpBulletPress:
@@ -3752,6 +3810,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTsiTooltip: "Aggiorna i dati TSI.",
     clubChronicleRefreshWagesTooltip: "Aggiorna i dati stipendi.",
     clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
+    clubChronicleRefreshStatusTeamDetails: "Fetching team details…",
+    clubChronicleRefreshStatusLeague: "Fetching league performance…",
+    clubChronicleRefreshStatusArena: "Fetching arena data…",
+    clubChronicleRefreshStatusTransferFinance: "Fetching transfer, finance, TSI, and wages data…",
+    clubChronicleRefreshStatusFormations: "Fetching formations and tactics data…",
+    clubChronicleRefreshStatusFinalizing: "Finalizing updates…",
+    clubChronicleRefreshStatusMatchesArchiveProgress:
+      "Match archives {completed}/{total} (team: {team})",
+    clubChronicleRefreshStatusMatchDetailsProgress:
+      "Match details {completed}/{total} (team: {team})",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -3759,7 +3827,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpCalloutUpdates: "Latest updates shows only changed attributes grouped by team.",
     clubChronicleHelpCalloutWatchlist: "Watchlist controls which teams are tracked in every panel.",
     clubChronicleHelpBulletControls:
-      "Header controls: use Refresh for a full data pass, Latest updates for tracked diffs, and the floating Watchlist button to manage tracked teams.",
+      "Header controls: use Refresh for a full data pass, monitor progress via the status bar and per-panel mini bars, use Latest updates for tracked diffs, and use Watchlist to manage tracked teams.",
     clubChronicleHelpBulletLeague:
       "League performance: table of position, points, series, position change, and goal delta. Click a row for previous/current attribute-level comparison.",
     clubChronicleHelpBulletPress:
@@ -4365,6 +4433,16 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTsiTooltip: "Atualizar dados de TSI.",
     clubChronicleRefreshWagesTooltip: "Atualizar dados de salários.",
     clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
+    clubChronicleRefreshStatusTeamDetails: "Fetching team details…",
+    clubChronicleRefreshStatusLeague: "Fetching league performance…",
+    clubChronicleRefreshStatusArena: "Fetching arena data…",
+    clubChronicleRefreshStatusTransferFinance: "Fetching transfer, finance, TSI, and wages data…",
+    clubChronicleRefreshStatusFormations: "Fetching formations and tactics data…",
+    clubChronicleRefreshStatusFinalizing: "Finalizing updates…",
+    clubChronicleRefreshStatusMatchesArchiveProgress:
+      "Match archives {completed}/{total} (team: {team})",
+    clubChronicleRefreshStatusMatchDetailsProgress:
+      "Match details {completed}/{total} (team: {team})",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -4372,7 +4450,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpCalloutUpdates: "Latest updates shows only changed attributes grouped by team.",
     clubChronicleHelpCalloutWatchlist: "Watchlist controls which teams are tracked in every panel.",
     clubChronicleHelpBulletControls:
-      "Header controls: use Refresh for a full data pass, Latest updates for tracked diffs, and the floating Watchlist button to manage tracked teams.",
+      "Header controls: use Refresh for a full data pass, monitor progress via the status bar and per-panel mini bars, use Latest updates for tracked diffs, and use Watchlist to manage tracked teams.",
     clubChronicleHelpBulletLeague:
       "League performance: table of position, points, series, position change, and goal delta. Click a row for previous/current attribute-level comparison.",
     clubChronicleHelpBulletPress:

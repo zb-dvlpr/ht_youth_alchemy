@@ -1010,6 +1010,37 @@ html[data-app-scaling="off"] .topBar::before {
   align-items: center;
 }
 
+.chronicleRefreshStatusWrap {
+  display: grid;
+  min-width: 260px;
+  max-width: 520px;
+  gap: 4px;
+}
+
+.chronicleRefreshStatusText {
+  font-size: 12px;
+  color: #5b4a37;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.chronicleRefreshProgressTrack {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #e7dcc9;
+  overflow: hidden;
+}
+
+.chronicleRefreshProgressFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #2c5e35;
+  transition: width 0.25s ease;
+}
+
 .chronicleUpdatesButton {
   border: none;
   border-radius: 999px;
@@ -1152,6 +1183,21 @@ html[data-app-scaling="off"] .topBar::before {
   border: 2px solid rgba(122, 111, 97, 0.35);
   border-top-color: #7a6f61;
   animation: spin 0.7s linear infinite;
+}
+
+.chroniclePanelMiniProgress {
+  width: 58px;
+  height: 4px;
+  border-radius: 999px;
+  background: #e7dcc9;
+  overflow: hidden;
+  display: inline-flex;
+}
+
+.chroniclePanelMiniProgressFill {
+  height: 100%;
+  background: #2c5e35;
+  transition: width 0.25s ease;
 }
 
 .chroniclePanelActions {
@@ -1953,6 +1999,18 @@ html[data-theme="dark"] .chronicleUpdatesButton:hover {
   background: #4a8e61;
 }
 
+html[data-theme="dark"] .chronicleRefreshStatusText {
+  color: #d9cbb8;
+}
+
+html[data-theme="dark"] .chronicleRefreshProgressTrack {
+  background: #2a241d;
+}
+
+html[data-theme="dark"] .chronicleRefreshProgressFill {
+  background: #4a8e61;
+}
+
 html[data-theme="dark"] .chroniclePanel {
   background: #1b1917;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
@@ -1980,6 +2038,14 @@ html[data-theme="dark"] .chroniclePanelRefresh:not(:disabled):hover {
 html[data-theme="dark"] .chronicleRefreshSpinner {
   border-color: rgba(227, 214, 194, 0.35);
   border-top-color: #e3d6c2;
+}
+
+html[data-theme="dark"] .chroniclePanelMiniProgress {
+  background: #2a241d;
+}
+
+html[data-theme="dark"] .chroniclePanelMiniProgressFill {
+  background: #4a8e61;
 }
 
 html[data-theme="dark"] .chroniclePanelMove {

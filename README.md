@@ -38,6 +38,9 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Club Chronicle top controls now keep `Refresh` and `Latest updates` aligned left, and the floating Watchlist button is positioned at the top-right.
 - Watchlist floating button top-right placement now uses a higher z-index and header offset so it remains visible above the app chrome.
 - Watchlist trigger now sits in the Club Chronicle header row (right side), vertically aligned with Refresh/Latest updates controls.
+- Club Chronicle refresh UX now shows a header progress bar with current fetch stage text plus per-panel mini progress bars during global and panel-specific refreshes (spinner replaced).
+- Formations & tactics refresh progress is now finer-grained (matches-archive phase + per-match-details phase) to avoid long “stuck” progress segments.
+- Formations & tactics status text now shows granular counters during refresh (e.g., `Match archives 3/18 (team: X)` and `Match details 47/220 (team: X)`), with wrapping to avoid truncation.
 - Latest updates now tracks changes per attribute across all Club Chronicle panels, grouped by team and showing only changed fields in a responsive, scrollable team-card grid, with a baseline fixed to the most recent global refresh, sticky retention of the last detected non-empty change set, and a 10-entry global-refresh comparison history directly in the modal.
 
 ## Local setup

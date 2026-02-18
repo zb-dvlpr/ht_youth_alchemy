@@ -250,6 +250,8 @@ type FormationTacticsSnapshot = {
   topFormation: string | null;
   topTactic: string | null;
   likelyTrainingKey: LikelyTrainingKey | null;
+  likelyTrainingTopKeys: LikelyTrainingKey[];
+  likelyTrainingIsUnclear: boolean;
   likelyTrainingConfidencePct: number | null;
   likelyTrainingScores: { key: LikelyTrainingKey; confidencePct: number }[];
   formationDistribution: FormationTacticsDistribution[];
@@ -841,6 +843,8 @@ const inferLikelyTrainingFromFormations = (
   formations: (string | null | undefined)[]
 ): {
   key: LikelyTrainingKey;
+  topKeys: LikelyTrainingKey[];
+  isUnclear: boolean;
   confidencePct: number | null;
   scores: { key: LikelyTrainingKey; confidencePct: number }[];
 } => {
@@ -874,6 +878,8 @@ const inferLikelyTrainingFromFormations = (
   if (samples === 0) {
     return {
       key: "keepingOrSetPieces",
+      topKeys: ["keepingOrSetPieces"],
+      isUnclear: false,
       confidencePct: null,
       scores: [
         { key: "winger", confidencePct: 0 },
@@ -905,6 +911,8 @@ const inferLikelyTrainingFromFormations = (
   if (!best) {
     return {
       key: "keepingOrSetPieces",
+      topKeys: ["keepingOrSetPieces"],
+      isUnclear: false,
       confidencePct: null,
       scores: [
         { key: "winger", confidencePct: 0 },
@@ -937,15 +945,38 @@ const inferLikelyTrainingFromFormations = (
   const scores: { key: LikelyTrainingKey; confidencePct: number }[] = trainingKeys
     .map((key) => ({ key, confidencePct: scoreMap.get(key) ?? 0 }))
     .sort((left, right) => right.confidencePct - left.confidencePct);
+  const highestConfidence = scores[0]?.confidencePct ?? 0;
+  const topKeys = scores
+    .filter((entry) => entry.confidencePct === highestConfidence)
+    .map((entry) => entry.key);
+  const isUnclear = topKeys.length > 1;
 
   if (!coversAllFormations) {
-    return { key: best.key, confidencePct: rounded, scores };
+    return {
+      key: best.key,
+      topKeys: topKeys.length > 0 ? topKeys : [best.key],
+      isUnclear,
+      confidencePct: rounded,
+      scores,
+    };
   }
   const isClear = best.score >= 70 && (!second || best.score - second.score >= 10);
   if (!isClear) {
-    return { key: "keepingOrSetPieces", confidencePct: keepingConfidence, scores };
+    return {
+      key: "keepingOrSetPieces",
+      topKeys: ["keepingOrSetPieces"],
+      isUnclear: false,
+      confidencePct: keepingConfidence,
+      scores,
+    };
   }
-  return { key: best.key, confidencePct: rounded, scores };
+  return {
+    key: best.key,
+    topKeys: topKeys.length > 0 ? topKeys : [best.key],
+    isUnclear,
+    confidencePct: rounded,
+    scores,
+  };
 };
 
 const colorForSlice = (index: number): string => {
@@ -3186,6 +3217,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
     return labels[key];
   };
+  const formatLikelyTrainingSummary = (
+    snapshot: FormationTacticsSnapshot | null | undefined
+  ) => {
+    if (!snapshot) return messages.unknownShort;
+    const keys =
+      snapshot.likelyTrainingTopKeys && snapshot.likelyTrainingTopKeys.length > 0
+        ? snapshot.likelyTrainingTopKeys
+        : snapshot.likelyTrainingKey
+          ? [snapshot.likelyTrainingKey]
+          : [];
+    if (keys.length === 0) return messages.unknownShort;
+    const label = keys.map((key) => formatLikelyTrainingLabel(key)).join(" / ");
+    if (snapshot.likelyTrainingIsUnclear) {
+      return `${label} (${messages.clubChronicleLikelyTrainingUnclearTag})`;
+    }
+    return label;
+  };
 
   const likelyTrainingTableColumns = useMemo<
     ChronicleTableColumn<LikelyTrainingRow, FormationTacticsSnapshot>[]
@@ -3200,10 +3248,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         key: "likelyTraining",
         label: messages.clubChronicleLikelyTrainingColumnRegimen,
         getValue: (snapshot: FormationTacticsSnapshot | undefined) =>
-          formatLikelyTrainingLabel(snapshot?.likelyTrainingKey),
+          formatLikelyTrainingSummary(snapshot),
       },
     ],
-    [messages.clubChronicleColumnTeam, messages.clubChronicleLikelyTrainingColumnRegimen]
+    [
+      formatLikelyTrainingSummary,
+      messages.clubChronicleColumnTeam,
+      messages.clubChronicleLikelyTrainingColumnRegimen,
+    ]
   );
 
   const parseNumber = (value: unknown): number | null => {
@@ -3573,12 +3625,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         const current = cached.formationsTactics?.current;
         if (current && previous) {
           const likelyTrainingChanges: ChronicleUpdateField[] = [];
-          if (previous.likelyTrainingKey !== current.likelyTrainingKey) {
+          const previousRegimenLabel = formatLikelyTrainingSummary(previous);
+          const currentRegimenLabel = formatLikelyTrainingSummary(current);
+          if (previousRegimenLabel !== currentRegimenLabel) {
             likelyTrainingChanges.push({
               fieldKey: "likelyTraining.regimen",
               label: messages.clubChronicleLikelyTrainingColumnRegimen,
-              previous: formatLikelyTrainingLabel(previous.likelyTrainingKey),
-              current: formatLikelyTrainingLabel(current.likelyTrainingKey),
+              previous: previousRegimenLabel,
+              current: currentRegimenLabel,
             });
           }
           if (
@@ -4516,6 +4570,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       topFormation: pickTopKey(formationDistribution),
       topTactic: pickTopKey(tacticDistribution),
       likelyTrainingKey: likelyTraining.key,
+      likelyTrainingTopKeys: likelyTraining.topKeys,
+      likelyTrainingIsUnclear: likelyTraining.isUnclear,
       likelyTrainingConfidencePct: likelyTraining.confidencePct,
       likelyTrainingScores: likelyTraining.scores,
       formationDistribution,
@@ -5358,7 +5414,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           confidenceRaw: entry.confidencePct ?? -1,
         })
       ),
-    [selectedLikelyTrainingTeam, messages.unknownShort]
+    [formatLikelyTrainingLabel, selectedLikelyTrainingTeam, messages.unknownShort]
   );
   const likelyTrainingDetailsColumns = useMemo<
     ChronicleTableColumn<
@@ -7410,10 +7466,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               </p>
               <p className={styles.chroniclePressMeta}>
                 {messages.clubChronicleLikelyTrainingColumnRegimen}:{" "}
-                {formatLikelyTrainingLabel(
-                  selectedLikelyTrainingTeam.snapshot.likelyTrainingKey
-                )}
+                {formatLikelyTrainingSummary(selectedLikelyTrainingTeam.snapshot)}
               </p>
+              {selectedLikelyTrainingTeam.snapshot.likelyTrainingIsUnclear ? (
+                <p className={styles.chroniclePressMeta}>
+                  {messages.clubChronicleLikelyTrainingUnclearDisclaimer}
+                </p>
+              ) : null}
               <p className={styles.chroniclePressMeta}>
                 {messages.clubChronicleLikelyTrainingConfidenceLabel}:{" "}
                 {selectedLikelyTrainingTeam.snapshot.likelyTrainingConfidencePct !== null

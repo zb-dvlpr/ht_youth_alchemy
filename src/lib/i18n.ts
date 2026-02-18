@@ -184,6 +184,8 @@ export type Messages = {
   clubChronicleLikelyTrainingPassing: string;
   clubChronicleLikelyTrainingScoring: string;
   clubChronicleLikelyTrainingKeepingOrSetPieces: string;
+  clubChronicleLikelyTrainingUnclearTag: string;
+  clubChronicleLikelyTrainingUnclearDisclaimer: string;
   clubChronicleTableTeam: string;
   clubChronicleTableSummary: string;
   clubChronicleMoveUp: string;
@@ -767,6 +769,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLikelyTrainingPassing: "Passing",
     clubChronicleLikelyTrainingScoring: "Scoring",
     clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
+    clubChronicleLikelyTrainingUnclearTag: "unclear",
+    clubChronicleLikelyTrainingUnclearDisclaimer:
+      "Multiple regimens share the same confidence; training inference is unclear.",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Summary",
     clubChronicleColumnTeam: "Team",
@@ -1370,6 +1375,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLikelyTrainingPassing: "Passing",
     clubChronicleLikelyTrainingScoring: "Scoring",
     clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
+    clubChronicleLikelyTrainingUnclearTag: "unklar",
+    clubChronicleLikelyTrainingUnclearDisclaimer:
+      "Mehrere Trainingsarten haben die gleiche Konfidenz; die Einschätzung ist unklar.",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Zusammenfassung",
     clubChronicleColumnTeam: "Team",
@@ -1977,6 +1985,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLikelyTrainingPassing: "Passing",
     clubChronicleLikelyTrainingScoring: "Scoring",
     clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
+    clubChronicleLikelyTrainingUnclearTag: "incertain",
+    clubChronicleLikelyTrainingUnclearDisclaimer:
+      "Plusieurs régimes ont la même confiance ; l’inférence d’entraînement est incertaine.",
     clubChronicleTableTeam: "Équipe",
     clubChronicleTableSummary: "Résumé",
     clubChronicleColumnTeam: "Équipe",
@@ -2591,6 +2602,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLikelyTrainingPassing: "Passing",
     clubChronicleLikelyTrainingScoring: "Scoring",
     clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
+    clubChronicleLikelyTrainingUnclearTag: "incierto",
+    clubChronicleLikelyTrainingUnclearDisclaimer:
+      "Varios regímenes comparten la misma confianza; la inferencia de entrenamiento es incierta.",
     clubChronicleTableTeam: "Equipo",
     clubChronicleTableSummary: "Resumen",
     clubChronicleColumnTeam: "Equipo",
@@ -3199,6 +3213,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLikelyTrainingPassing: "Passing",
     clubChronicleLikelyTrainingScoring: "Scoring",
     clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
+    clubChronicleLikelyTrainingUnclearTag: "oklart",
+    clubChronicleLikelyTrainingUnclearDisclaimer:
+      "Flera upplägg har samma säkerhetsnivå; träningsslutsatsen är oklar.",
     clubChronicleTableTeam: "Lag",
     clubChronicleTableSummary: "Sammanfattning",
     clubChronicleColumnTeam: "Lag",
@@ -3807,6 +3824,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLikelyTrainingPassing: "Passing",
     clubChronicleLikelyTrainingScoring: "Scoring",
     clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
+    clubChronicleLikelyTrainingUnclearTag: "incerto",
+    clubChronicleLikelyTrainingUnclearDisclaimer:
+      "Più regimi condividono la stessa confidenza; l’inferenza dell’allenamento è incerta.",
     clubChronicleTableTeam: "Squadra",
     clubChronicleTableSummary: "Riepilogo",
     clubChronicleColumnTeam: "Squadra",
@@ -4417,6 +4437,9 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleLikelyTrainingPassing: "Passing",
     clubChronicleLikelyTrainingScoring: "Scoring",
     clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
+    clubChronicleLikelyTrainingUnclearTag: "incerto",
+    clubChronicleLikelyTrainingUnclearDisclaimer:
+      "Múltiplos regimes compartilham a mesma confiança; a inferência de treino está incerta.",
     clubChronicleTableTeam: "Time",
     clubChronicleTableSummary: "Resumo",
     clubChronicleColumnTeam: "Time",

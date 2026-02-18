@@ -716,15 +716,15 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpBulletArena:
       "Arena: arena name, total capacity, and latest build date. Click a row to see seat distribution (terraces/basic/roof/VIP).",
     clubChronicleHelpBulletTransfer:
-      "Transfer market: players currently on market and sold/bought totals. Transfer modals show active listings and recent transfer history.",
+      "Transfer market: players currently on market and sold/bought totals. Click On market for listings (age in years+days, TSI, asking price) and Sold/Bought for latest transfers (type, age at transfer, TSI, price). Team names in detail modals are clickable.",
     clubChronicleHelpBulletFormations:
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
-      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), and TSI.",
     clubChronicleHelpBulletLikelyTraining:
-      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
+      "Likely training regimen: inferred from recent formations; ties at top confidence are shown together and marked as unclear. Click a row for full confidence ranking and sample size.",
     clubChronicleHelpBulletWages:
-      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
+      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), and wage.",
     clubChronicleHelpBulletLatestUpdates:
       "Latest updates keeps per-attribute change groups by team and retains the latest non-empty global-refresh diff for review.",
     clubChroniclePressPanelTitle: "Press announcements",
@@ -1322,15 +1322,15 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpBulletArena:
       "Arena: arena name, total capacity, and latest build date. Click a row to see seat distribution (terraces/basic/roof/VIP).",
     clubChronicleHelpBulletTransfer:
-      "Transfer market: players currently on market and sold/bought totals. Transfer modals show active listings and recent transfer history.",
+      "Transfer market: players currently on market and sold/bought totals. Click On market for listings (age in years+days, TSI, asking price) and Sold/Bought for latest transfers (type, age at transfer, TSI, price). Team names in detail modals are clickable.",
     clubChronicleHelpBulletFormations:
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
-      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), and TSI.",
     clubChronicleHelpBulletLikelyTraining:
-      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
+      "Likely training regimen: inferred from recent formations; ties at top confidence are shown together and marked as unclear. Click a row for full confidence ranking and sample size.",
     clubChronicleHelpBulletWages:
-      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
+      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), and wage.",
     clubChronicleHelpBulletLatestUpdates:
       "Latest updates keeps per-attribute change groups by team and retains the latest non-empty global-refresh diff for review.",
     clubChroniclePressPanelTitle: "Pressemitteilungen",
@@ -1932,15 +1932,15 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpBulletArena:
       "Arena: arena name, total capacity, and latest build date. Click a row to see seat distribution (terraces/basic/roof/VIP).",
     clubChronicleHelpBulletTransfer:
-      "Transfer market: players currently on market and sold/bought totals. Transfer modals show active listings and recent transfer history.",
+      "Transfer market: players currently on market and sold/bought totals. Click On market for listings (age in years+days, TSI, asking price) and Sold/Bought for latest transfers (type, age at transfer, TSI, price). Team names in detail modals are clickable.",
     clubChronicleHelpBulletFormations:
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
-      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), and TSI.",
     clubChronicleHelpBulletLikelyTraining:
-      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
+      "Likely training regimen: inferred from recent formations; ties at top confidence are shown together and marked as unclear. Click a row for full confidence ranking and sample size.",
     clubChronicleHelpBulletWages:
-      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
+      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), and wage.",
     clubChronicleHelpBulletLatestUpdates:
       "Latest updates keeps per-attribute change groups by team and retains the latest non-empty global-refresh diff for review.",
     clubChroniclePressPanelTitle: "Communiqués de presse",
@@ -2549,15 +2549,15 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpBulletArena:
       "Arena: arena name, total capacity, and latest build date. Click a row to see seat distribution (terraces/basic/roof/VIP).",
     clubChronicleHelpBulletTransfer:
-      "Transfer market: players currently on market and sold/bought totals. Transfer modals show active listings and recent transfer history.",
+      "Transfer market: players currently on market and sold/bought totals. Click On market for listings (age in years+days, TSI, asking price) and Sold/Bought for latest transfers (type, age at transfer, TSI, price). Team names in detail modals are clickable.",
     clubChronicleHelpBulletFormations:
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
-      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), and TSI.",
     clubChronicleHelpBulletLikelyTraining:
-      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
+      "Likely training regimen: inferred from recent formations; ties at top confidence are shown together and marked as unclear. Click a row for full confidence ranking and sample size.",
     clubChronicleHelpBulletWages:
-      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
+      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), and wage.",
     clubChronicleHelpBulletLatestUpdates:
       "Latest updates keeps per-attribute change groups by team and retains the latest non-empty global-refresh diff for review.",
     clubChroniclePressPanelTitle: "Comunicados de prensa",
@@ -3160,15 +3160,15 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpBulletArena:
       "Arena: arena name, total capacity, and latest build date. Click a row to see seat distribution (terraces/basic/roof/VIP).",
     clubChronicleHelpBulletTransfer:
-      "Transfer market: players currently on market and sold/bought totals. Transfer modals show active listings and recent transfer history.",
+      "Transfer market: players currently on market and sold/bought totals. Click On market for listings (age in years+days, TSI, asking price) and Sold/Bought for latest transfers (type, age at transfer, TSI, price). Team names in detail modals are clickable.",
     clubChronicleHelpBulletFormations:
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
-      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), and TSI.",
     clubChronicleHelpBulletLikelyTraining:
-      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
+      "Likely training regimen: inferred from recent formations; ties at top confidence are shown together and marked as unclear. Click a row for full confidence ranking and sample size.",
     clubChronicleHelpBulletWages:
-      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
+      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), and wage.",
     clubChronicleHelpBulletLatestUpdates:
       "Latest updates keeps per-attribute change groups by team and retains the latest non-empty global-refresh diff for review.",
     clubChroniclePressPanelTitle: "Pressmeddelanden",
@@ -3771,15 +3771,15 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpBulletArena:
       "Arena: arena name, total capacity, and latest build date. Click a row to see seat distribution (terraces/basic/roof/VIP).",
     clubChronicleHelpBulletTransfer:
-      "Transfer market: players currently on market and sold/bought totals. Transfer modals show active listings and recent transfer history.",
+      "Transfer market: players currently on market and sold/bought totals. Click On market for listings (age in years+days, TSI, asking price) and Sold/Bought for latest transfers (type, age at transfer, TSI, price). Team names in detail modals are clickable.",
     clubChronicleHelpBulletFormations:
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
-      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), and TSI.",
     clubChronicleHelpBulletLikelyTraining:
-      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
+      "Likely training regimen: inferred from recent formations; ties at top confidence are shown together and marked as unclear. Click a row for full confidence ranking and sample size.",
     clubChronicleHelpBulletWages:
-      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
+      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), and wage.",
     clubChronicleHelpBulletLatestUpdates:
       "Latest updates keeps per-attribute change groups by team and retains the latest non-empty global-refresh diff for review.",
     clubChroniclePressPanelTitle: "Comunicati stampa",
@@ -4384,15 +4384,15 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleHelpBulletArena:
       "Arena: arena name, total capacity, and latest build date. Click a row to see seat distribution (terraces/basic/roof/VIP).",
     clubChronicleHelpBulletTransfer:
-      "Transfer market: players currently on market and sold/bought totals. Transfer modals show active listings and recent transfer history.",
+      "Transfer market: players currently on market and sold/bought totals. Click On market for listings (age in years+days, TSI, asking price) and Sold/Bought for latest transfers (type, age at transfer, TSI, price). Team names in detail modals are clickable.",
     clubChronicleHelpBulletFormations:
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
-      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), and TSI.",
     clubChronicleHelpBulletLikelyTraining:
-      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
+      "Likely training regimen: inferred from recent formations; ties at top confidence are shown together and marked as unclear. Click a row for full confidence ranking and sample size.",
     clubChronicleHelpBulletWages:
-      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
+      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), and wage.",
     clubChronicleHelpBulletLatestUpdates:
       "Latest updates keeps per-attribute change groups by team and retains the latest non-empty global-refresh diff for review.",
     clubChroniclePressPanelTitle: "Comunicados de imprensa",

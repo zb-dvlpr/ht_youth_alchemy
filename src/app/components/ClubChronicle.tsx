@@ -2560,10 +2560,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         if (listedPlayers.length === 0) return;
         const playersToResolve = listedPlayers.filter(
           (player) =>
-            player.age === null ||
-            player.ageDays === null ||
-            player.tsi === null ||
-            player.askingPriceSek === null
+            player.age == null ||
+            player.ageDays == null ||
+            player.tsi == null ||
+            player.askingPriceSek == null
         );
         if (playersToResolve.length === 0) return;
         const resolved = await Promise.all(

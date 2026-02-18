@@ -220,6 +220,8 @@ type WagesSnapshot = {
     playerId: number;
     playerName: string | null;
     playerNumber: number | null;
+    age: number | null;
+    ageDays: number | null;
     salarySek: number;
   }[];
   fetchedAt: number;
@@ -285,6 +287,8 @@ type WagesPlayerRow = {
   playerId: number;
   playerName: string | null;
   playerNumber: number | null;
+  age: number | null;
+  ageDays: number | null;
   salarySek: number;
 };
 
@@ -4265,6 +4269,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       playerId: player.playerId,
       playerName: player.playerName,
       playerNumber: player.playerNumber,
+      age: player.age,
+      ageDays: player.ageDays,
       salarySek: Number.isFinite(player.salarySek) ? player.salarySek : 0,
     }));
     const wages = normalizedPlayers
@@ -5790,6 +5796,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         },
       },
       {
+        key: "age",
+        label: messages.clubChronicleTransferListedAgeColumn,
+        getValue: (snapshot) => formatAgeWithDays(snapshot?.age, snapshot?.ageDays),
+        getSortValue: (snapshot) => {
+          const age = snapshot?.age;
+          if (age === null || age === undefined) return null;
+          return age * CHPP_DAYS_PER_YEAR + (snapshot?.ageDays ?? 0);
+        },
+      },
+      {
         key: "wage",
         label: messages.clubChronicleWagesValueColumn,
         getValue: (snapshot) => formatChppCurrencyFromSek(snapshot?.salarySek ?? null),
@@ -5799,7 +5815,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [
       messages.clubChronicleWagesPlayerIndexColumn,
       messages.clubChronicleWagesPlayerColumn,
+      messages.clubChronicleTransferListedAgeColumn,
       messages.clubChronicleWagesValueColumn,
+      formatAgeWithDays,
     ]
   );
 
@@ -7612,7 +7630,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       {
                         "--cc-columns": wagesPlayerColumns.length,
                         "--cc-template":
-                          "minmax(90px, 0.5fr) minmax(260px, 1.5fr) minmax(150px, 0.8fr)",
+                          "minmax(90px, 0.5fr) minmax(240px, 1.5fr) minmax(120px, 0.9fr) minmax(150px, 0.8fr)",
                       } as CSSProperties
                     }
                     sortKey={wagesDetailsSortState.key}

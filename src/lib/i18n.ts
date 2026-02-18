@@ -64,6 +64,7 @@ export type Messages = {
   changelog_2_10_0: string;
   changelog_2_11_0: string;
   changelog_2_12_0: string;
+  changelog_2_13_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -123,6 +124,7 @@ export type Messages = {
   clubChronicleRefreshTransferTooltip: string;
   clubChronicleRefreshTsiTooltip: string;
   clubChronicleRefreshWagesTooltip: string;
+  clubChronicleRefreshLikelyTrainingTooltip: string;
   clubChronicleHelpTitle: string;
   clubChronicleHelpIntro: string;
   clubChronicleHelpCalloutRefresh: string;
@@ -136,6 +138,7 @@ export type Messages = {
   clubChronicleHelpBulletArena: string;
   clubChronicleHelpBulletTransfer: string;
   clubChronicleHelpBulletFormations: string;
+  clubChronicleHelpBulletLikelyTraining: string;
   clubChronicleHelpBulletTsi: string;
   clubChronicleHelpBulletWages: string;
   clubChronicleHelpBulletLatestUpdates: string;
@@ -170,6 +173,17 @@ export type Messages = {
   clubChronicleFormationsColumnTactic: string;
   clubChronicleFormationsDetailsTitle: string;
   clubChronicleFormationsSampleLabel: string;
+  clubChronicleLikelyTrainingPanelTitle: string;
+  clubChronicleLikelyTrainingColumnRegimen: string;
+  clubChronicleLikelyTrainingDetailsTitle: string;
+  clubChronicleLikelyTrainingConfidenceLabel: string;
+  clubChronicleLikelyTrainingMatchesLabel: string;
+  clubChronicleLikelyTrainingWinger: string;
+  clubChronicleLikelyTrainingPlaymaking: string;
+  clubChronicleLikelyTrainingDefending: string;
+  clubChronicleLikelyTrainingPassing: string;
+  clubChronicleLikelyTrainingScoring: string;
+  clubChronicleLikelyTrainingKeepingOrSetPieces: string;
   clubChronicleTableTeam: string;
   clubChronicleTableSummary: string;
   clubChronicleMoveUp: string;
@@ -613,6 +627,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Club Chronicle adds a wages panel with per-team total wages and top-11 wages.",
     changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     changelog_2_12_0: "Club Chronicle help overlay with guided callouts and full panel documentation.",
+    changelog_2_13_0: "Club Chronicle adds a likely training regimen panel inferred from recent formations.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -675,6 +690,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTransferTooltip: "Refresh transfer market data.",
     clubChronicleRefreshTsiTooltip: "Refresh TSI data.",
     clubChronicleRefreshWagesTooltip: "Refresh wages data.",
+    clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -699,6 +715,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
       "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+    clubChronicleHelpBulletLikelyTraining:
+      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
     clubChronicleHelpBulletWages:
       "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
     clubChronicleHelpBulletLatestUpdates:
@@ -734,6 +752,17 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFormationsColumnTactic: "Top tactic",
     clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
     clubChronicleFormationsSampleLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingPanelTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingColumnRegimen: "Likely regimen",
+    clubChronicleLikelyTrainingDetailsTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingConfidenceLabel: "Confidence",
+    clubChronicleLikelyTrainingMatchesLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingWinger: "Winger",
+    clubChronicleLikelyTrainingPlaymaking: "Playmaking",
+    clubChronicleLikelyTrainingDefending: "Defending",
+    clubChronicleLikelyTrainingPassing: "Passing",
+    clubChronicleLikelyTrainingScoring: "Scoring",
+    clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Summary",
     clubChronicleColumnTeam: "Team",
@@ -1196,6 +1225,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Club-Chronik erweitert um ein Gehalts-Panel mit Gesamtgehältern und Top-11-Gehältern pro Team.",
     changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     changelog_2_12_0: "Club Chronicle help overlay with guided callouts and full panel documentation.",
+    changelog_2_13_0: "Club Chronicle adds a likely training regimen panel inferred from recent formations.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -1259,6 +1289,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTransferTooltip: "Transfermarktdaten aktualisieren.",
     clubChronicleRefreshTsiTooltip: "TSI-Daten aktualisieren.",
     clubChronicleRefreshWagesTooltip: "Gehaltsdaten aktualisieren.",
+    clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -1283,6 +1314,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
       "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+    clubChronicleHelpBulletLikelyTraining:
+      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
     clubChronicleHelpBulletWages:
       "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
     clubChronicleHelpBulletLatestUpdates:
@@ -1318,6 +1351,17 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFormationsColumnTactic: "Top tactic",
     clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
     clubChronicleFormationsSampleLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingPanelTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingColumnRegimen: "Likely regimen",
+    clubChronicleLikelyTrainingDetailsTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingConfidenceLabel: "Confidence",
+    clubChronicleLikelyTrainingMatchesLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingWinger: "Winger",
+    clubChronicleLikelyTrainingPlaymaking: "Playmaking",
+    clubChronicleLikelyTrainingDefending: "Defending",
+    clubChronicleLikelyTrainingPassing: "Passing",
+    clubChronicleLikelyTrainingScoring: "Scoring",
+    clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Zusammenfassung",
     clubChronicleColumnTeam: "Team",
@@ -1784,6 +1828,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "La Chronique du club ajoute un panneau salaires avec salaires totaux et salaires du top 11 par équipe.",
     changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     changelog_2_12_0: "Club Chronicle help overlay with guided callouts and full panel documentation.",
+    changelog_2_13_0: "Club Chronicle adds a likely training regimen panel inferred from recent formations.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -1847,6 +1892,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTransferTooltip: "Actualiser les données du marché des transferts.",
     clubChronicleRefreshTsiTooltip: "Actualiser les données TSI.",
     clubChronicleRefreshWagesTooltip: "Actualiser les données de salaires.",
+    clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -1871,6 +1917,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
       "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+    clubChronicleHelpBulletLikelyTraining:
+      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
     clubChronicleHelpBulletWages:
       "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
     clubChronicleHelpBulletLatestUpdates:
@@ -1906,6 +1954,17 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFormationsColumnTactic: "Top tactic",
     clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
     clubChronicleFormationsSampleLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingPanelTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingColumnRegimen: "Likely regimen",
+    clubChronicleLikelyTrainingDetailsTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingConfidenceLabel: "Confidence",
+    clubChronicleLikelyTrainingMatchesLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingWinger: "Winger",
+    clubChronicleLikelyTrainingPlaymaking: "Playmaking",
+    clubChronicleLikelyTrainingDefending: "Defending",
+    clubChronicleLikelyTrainingPassing: "Passing",
+    clubChronicleLikelyTrainingScoring: "Scoring",
+    clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
     clubChronicleTableTeam: "Équipe",
     clubChronicleTableSummary: "Résumé",
     clubChronicleColumnTeam: "Équipe",
@@ -2379,6 +2438,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Crónica del club añade un panel de salarios con salarios totales y salarios del top 11 por equipo.",
     changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     changelog_2_12_0: "Club Chronicle help overlay with guided callouts and full panel documentation.",
+    changelog_2_13_0: "Club Chronicle adds a likely training regimen panel inferred from recent formations.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -2442,6 +2502,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTransferTooltip: "Actualizar datos del mercado de traspasos.",
     clubChronicleRefreshTsiTooltip: "Actualizar datos de TSI.",
     clubChronicleRefreshWagesTooltip: "Actualizar datos de salarios.",
+    clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -2466,6 +2527,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
       "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+    clubChronicleHelpBulletLikelyTraining:
+      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
     clubChronicleHelpBulletWages:
       "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
     clubChronicleHelpBulletLatestUpdates:
@@ -2501,6 +2564,17 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFormationsColumnTactic: "Top tactic",
     clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
     clubChronicleFormationsSampleLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingPanelTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingColumnRegimen: "Likely regimen",
+    clubChronicleLikelyTrainingDetailsTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingConfidenceLabel: "Confidence",
+    clubChronicleLikelyTrainingMatchesLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingWinger: "Winger",
+    clubChronicleLikelyTrainingPlaymaking: "Playmaking",
+    clubChronicleLikelyTrainingDefending: "Defending",
+    clubChronicleLikelyTrainingPassing: "Passing",
+    clubChronicleLikelyTrainingScoring: "Scoring",
+    clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
     clubChronicleTableTeam: "Equipo",
     clubChronicleTableSummary: "Resumen",
     clubChronicleColumnTeam: "Equipo",
@@ -2968,6 +3042,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Klubbkrönikan lägger till en lönepanel med totala löner och topp-11-löner per lag.",
     changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     changelog_2_12_0: "Club Chronicle help overlay with guided callouts and full panel documentation.",
+    changelog_2_13_0: "Club Chronicle adds a likely training regimen panel inferred from recent formations.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -3031,6 +3106,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTransferTooltip: "Uppdatera data för transfermarknaden.",
     clubChronicleRefreshTsiTooltip: "Uppdatera TSI-data.",
     clubChronicleRefreshWagesTooltip: "Uppdatera lönedata.",
+    clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -3055,6 +3131,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
       "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+    clubChronicleHelpBulletLikelyTraining:
+      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
     clubChronicleHelpBulletWages:
       "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
     clubChronicleHelpBulletLatestUpdates:
@@ -3090,6 +3168,17 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFormationsColumnTactic: "Top tactic",
     clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
     clubChronicleFormationsSampleLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingPanelTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingColumnRegimen: "Likely regimen",
+    clubChronicleLikelyTrainingDetailsTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingConfidenceLabel: "Confidence",
+    clubChronicleLikelyTrainingMatchesLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingWinger: "Winger",
+    clubChronicleLikelyTrainingPlaymaking: "Playmaking",
+    clubChronicleLikelyTrainingDefending: "Defending",
+    clubChronicleLikelyTrainingPassing: "Passing",
+    clubChronicleLikelyTrainingScoring: "Scoring",
+    clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
     clubChronicleTableTeam: "Lag",
     clubChronicleTableSummary: "Sammanfattning",
     clubChronicleColumnTeam: "Lag",
@@ -3557,6 +3646,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "La Cronaca del club aggiunge un pannello stipendi con stipendi totali e stipendi top 11 per squadra.",
     changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     changelog_2_12_0: "Club Chronicle help overlay with guided callouts and full panel documentation.",
+    changelog_2_13_0: "Club Chronicle adds a likely training regimen panel inferred from recent formations.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -3620,6 +3710,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTransferTooltip: "Aggiorna i dati del mercato trasferimenti.",
     clubChronicleRefreshTsiTooltip: "Aggiorna i dati TSI.",
     clubChronicleRefreshWagesTooltip: "Aggiorna i dati stipendi.",
+    clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -3644,6 +3735,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
       "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+    clubChronicleHelpBulletLikelyTraining:
+      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
     clubChronicleHelpBulletWages:
       "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
     clubChronicleHelpBulletLatestUpdates:
@@ -3679,6 +3772,17 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFormationsColumnTactic: "Top tactic",
     clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
     clubChronicleFormationsSampleLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingPanelTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingColumnRegimen: "Likely regimen",
+    clubChronicleLikelyTrainingDetailsTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingConfidenceLabel: "Confidence",
+    clubChronicleLikelyTrainingMatchesLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingWinger: "Winger",
+    clubChronicleLikelyTrainingPlaymaking: "Playmaking",
+    clubChronicleLikelyTrainingDefending: "Defending",
+    clubChronicleLikelyTrainingPassing: "Passing",
+    clubChronicleLikelyTrainingScoring: "Scoring",
+    clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
     clubChronicleTableTeam: "Squadra",
     clubChronicleTableSummary: "Riepilogo",
     clubChronicleColumnTeam: "Squadra",
@@ -4148,6 +4252,7 @@ const MESSAGES: Record<Locale, Messages> = {
       "Crônica do clube adiciona um painel de salários com salários totais e salários dos 11 melhores por equipe.",
     changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     changelog_2_12_0: "Club Chronicle help overlay with guided callouts and full panel documentation.",
+    changelog_2_13_0: "Club Chronicle adds a likely training regimen panel inferred from recent formations.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -4211,6 +4316,7 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleRefreshTransferTooltip: "Atualizar dados do mercado de transferências.",
     clubChronicleRefreshTsiTooltip: "Atualizar dados de TSI.",
     clubChronicleRefreshWagesTooltip: "Atualizar dados de salários.",
+    clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -4235,6 +4341,8 @@ const MESSAGES: Record<Locale, Messages> = {
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTsi:
       "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level TSI details.",
+    clubChronicleHelpBulletLikelyTraining:
+      "Likely training regimen: inferred from recent formations; click a row for likely regimen, confidence, and match sample size.",
     clubChronicleHelpBulletWages:
       "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player wage details.",
     clubChronicleHelpBulletLatestUpdates:
@@ -4270,6 +4378,17 @@ const MESSAGES: Record<Locale, Messages> = {
     clubChronicleFormationsColumnTactic: "Top tactic",
     clubChronicleFormationsDetailsTitle: "Formations & tactics distribution",
     clubChronicleFormationsSampleLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingPanelTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingColumnRegimen: "Likely regimen",
+    clubChronicleLikelyTrainingDetailsTitle: "Likely training regimen",
+    clubChronicleLikelyTrainingConfidenceLabel: "Confidence",
+    clubChronicleLikelyTrainingMatchesLabel: "Matches analyzed",
+    clubChronicleLikelyTrainingWinger: "Winger",
+    clubChronicleLikelyTrainingPlaymaking: "Playmaking",
+    clubChronicleLikelyTrainingDefending: "Defending",
+    clubChronicleLikelyTrainingPassing: "Passing",
+    clubChronicleLikelyTrainingScoring: "Scoring",
+    clubChronicleLikelyTrainingKeepingOrSetPieces: "Keeping / Set pieces",
     clubChronicleTableTeam: "Time",
     clubChronicleTableSummary: "Resumo",
     clubChronicleColumnTeam: "Time",

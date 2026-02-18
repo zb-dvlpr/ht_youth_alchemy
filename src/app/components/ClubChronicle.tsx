@@ -186,6 +186,8 @@ type TsiSnapshot = {
     playerId: number;
     playerName: string | null;
     playerNumber: number | null;
+    age: number | null;
+    ageDays: number | null;
     tsi: number;
   }[];
   fetchedAt: number;
@@ -206,6 +208,8 @@ type TsiPlayerRow = {
   playerId: number;
   playerName: string | null;
   playerNumber: number | null;
+  age: number | null;
+  ageDays: number | null;
   tsi: number;
 };
 
@@ -4119,6 +4123,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     playerId: number;
     playerName: string | null;
     playerNumber: number | null;
+    age: number | null;
+    ageDays: number | null;
     transferListed: boolean;
     tsi: number;
     salarySek: number;
@@ -4163,6 +4169,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           playerId,
           playerName: playerName || null,
           playerNumber: parseNumberNode(player?.PlayerNumber),
+          age: parseNumberNode(player?.Age),
+          ageDays: parseNumberNode(player?.AgeDays),
           transferListed: parseBool(player?.TransferListed),
           tsi: parseNumber(player?.TSI) ?? 0,
           salarySek: parseMoneySek(player?.Salary) ?? 0,
@@ -4235,6 +4243,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       playerId: player.playerId,
       playerName: player.playerName,
       playerNumber: player.playerNumber,
+      age: player.age,
+      ageDays: player.ageDays,
       tsi: Number.isFinite(player.tsi) ? player.tsi : 0,
     }));
     const tsiValues = normalizedPlayers
@@ -5701,6 +5711,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         },
       },
       {
+        key: "age",
+        label: messages.clubChronicleTransferListedAgeColumn,
+        getValue: (snapshot) => formatAgeWithDays(snapshot?.age, snapshot?.ageDays),
+        getSortValue: (snapshot) => {
+          const age = snapshot?.age;
+          if (age === null || age === undefined) return null;
+          return age * CHPP_DAYS_PER_YEAR + (snapshot?.ageDays ?? 0);
+        },
+      },
+      {
         key: "tsi",
         label: messages.clubChronicleTsiValueColumn,
         getValue: (snapshot) => snapshot?.tsi ?? null,
@@ -5709,7 +5729,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [
       messages.clubChronicleTsiPlayerIndexColumn,
       messages.clubChronicleTsiPlayerColumn,
+      messages.clubChronicleTransferListedAgeColumn,
       messages.clubChronicleTsiValueColumn,
+      formatAgeWithDays,
     ]
   );
 
@@ -7539,7 +7561,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       {
                         "--cc-columns": tsiPlayerColumns.length,
                         "--cc-template":
-                          "minmax(90px, 0.5fr) minmax(260px, 1.5fr) minmax(150px, 0.8fr)",
+                          "minmax(90px, 0.5fr) minmax(240px, 1.5fr) minmax(120px, 0.9fr) minmax(130px, 0.8fr)",
                       } as CSSProperties
                     }
                     sortKey={tsiDetailsSortState.key}

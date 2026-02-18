@@ -29,6 +29,7 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Fixed locale mapping regression for the `Age at transfer` transfer-history column so each supported language now shows the correct translation in its own locale.
 - Fixed transfer listed (`On market`) modal detail hydration so age always renders as years+days even for older cached rows where `ageDays` was previously missing.
 - Likely training regimen now reports all equally likely top regimens when confidence is tied and marks the inference as unclear (including a disclaimer in details).
+- TSI details modal now includes player age in years+days with sortable age and adjusted column sizing.
 - Latest updates now tracks changes per attribute across all Club Chronicle panels, grouped by team and showing only changed fields in a responsive, scrollable team-card grid, with a baseline fixed to the most recent global refresh, sticky retention of the last detected non-empty change set, and a 10-entry global-refresh comparison history directly in the modal.
 
 ## Local setup

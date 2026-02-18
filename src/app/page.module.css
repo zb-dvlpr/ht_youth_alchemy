@@ -1461,7 +1461,18 @@ html[data-app-scaling="off"] .topBar::before {
   width: min(1120px, 98vw);
 }
 
+.chronicleTransferListedModal {
+  max-width: min(760px, 96vw);
+  width: min(760px, 96vw);
+}
+
 .chronicleModalTableWrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.chronicleTransferListedTableWrap {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
@@ -1471,6 +1482,12 @@ html[data-app-scaling="off"] .topBar::before {
   width: 100%;
   max-width: 100%;
   overflow-x: auto;
+}
+
+.chronicleTransferListedTableWrap .chronicleTableCell {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
 }
 
 .chronicleTransferHistoryTableWrap .chronicleTableCell {
@@ -3144,6 +3161,10 @@ html[data-theme="dark"] .spinner {
 
 .confirmCard.chronicleTransferHistoryModal {
   width: min(1120px, 98vw);
+}
+
+.confirmCard.chronicleTransferListedModal {
+  width: min(760px, 96vw);
 }
 
 .confirmCard.chronicleFanclubDetailsModal {

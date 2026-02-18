@@ -11,6 +11,7 @@ import {
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { formatChppDateTime, formatDateTime } from "@/lib/datetime";
+import { parseChppDate } from "@/lib/chpp/utils";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
 import {
@@ -139,6 +140,10 @@ type FinanceEstimateRow = {
 type TransferListedPlayer = {
   playerId: number;
   playerName: string | null;
+  age: number | null;
+  ageDays: number | null;
+  tsi: number | null;
+  askingPriceSek: number | null;
 };
 
 type TransferActivityEntry = {
@@ -148,6 +153,9 @@ type TransferActivityEntry = {
   playerId: number | null;
   playerName: string | null;
   resolvedPlayerName?: string | null;
+  age: number | null;
+  ageDays: number | null;
+  tsi: number | null;
   priceSek: number | null;
 };
 
@@ -604,6 +612,8 @@ const PANEL_IDS = [
   "wages",
 ] as const;
 const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
+const CHPP_DAYS_PER_YEAR = 112;
+const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_CACHE_AGE_MS = SEASON_LENGTH_MS * 2;
 const CHPP_SEK_PER_EUR = 10;
 const ARCHIVE_MATCH_LIMIT = 20;
@@ -1585,6 +1595,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [pointerDraggingPanel, setPointerDraggingPanel] = useState(false);
   const [loadingTransferHistoryModal, setLoadingTransferHistoryModal] =
     useState(false);
+  const [loadingTransferListedModal, setLoadingTransferListedModal] =
+    useState(false);
   const [teamIdInput, setTeamIdInput] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -2539,7 +2551,72 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const handleOpenTransferListedDetails = useCallback((teamId: number) => {
     setSelectedTransferTeamId(teamId);
     setTransferListedDetailsOpen(true);
-  }, []);
+    void (async () => {
+      setLoadingTransferListedModal(true);
+      try {
+        const listedPlayers =
+          chronicleCache.teams[teamId]?.transferActivity?.current?.transferListedPlayers ??
+          [];
+        if (listedPlayers.length === 0) return;
+        const playersToResolve = listedPlayers.filter(
+          (player) =>
+            player.age === null ||
+            player.ageDays === null ||
+            player.tsi === null ||
+            player.askingPriceSek === null
+        );
+        if (playersToResolve.length === 0) return;
+        const resolved = await Promise.all(
+          playersToResolve.map(async (player) => ({
+            playerId: player.playerId,
+            details: await fetchTransferPlayerDetails(player.playerId),
+          }))
+        );
+        const detailsById = new Map(
+          resolved
+            .filter((entry) => entry.details !== null)
+            .map((entry) => [entry.playerId, entry.details!])
+        );
+        if (detailsById.size === 0) return;
+        setChronicleCache((prev) => {
+          const teamCache = prev.teams[teamId];
+          const current = teamCache?.transferActivity?.current;
+          if (!teamCache || !current) return prev;
+          return {
+            ...prev,
+            teams: {
+              ...prev.teams,
+              [teamId]: {
+                ...teamCache,
+                transferActivity: {
+                  current: {
+                    ...current,
+                    transferListedPlayers: current.transferListedPlayers.map(
+                      (player) => {
+                        const details = detailsById.get(player.playerId);
+                        if (!details) return player;
+                        return {
+                          ...player,
+                          age: details.age,
+                          ageDays: details.ageDays,
+                          tsi: details.tsi,
+                          askingPriceSek: details.askingPriceSek,
+                        };
+                      }
+                    ),
+                    fetchedAt: Date.now(),
+                  },
+                  previous: teamCache.transferActivity?.previous,
+                },
+              },
+            },
+          };
+        });
+      } finally {
+        setLoadingTransferListedModal(false);
+      }
+    })();
+  }, [chronicleCache]);
 
   const handleOpenTransferHistory = useCallback((teamId: number) => {
     setSelectedTransferTeamId(teamId);
@@ -3959,6 +4036,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return normalized === "true" || normalized === "1";
   };
 
+  const computeAgeAtDeadline = (
+    currentAge: number | null,
+    currentAgeDays: number | null,
+    deadline: string | null
+  ): { age: number | null; ageDays: number | null } => {
+    if (
+      currentAge === null ||
+      currentAgeDays === null ||
+      deadline === null ||
+      deadline.trim() === ""
+    ) {
+      return { age: null, ageDays: null };
+    }
+    const deadlineDate = parseChppDate(deadline);
+    if (!deadlineDate) return { age: null, ageDays: null };
+    const elapsedDays = Math.max(0, Math.floor((Date.now() - deadlineDate.getTime()) / DAY_MS));
+    const totalCurrentDays = currentAge * CHPP_DAYS_PER_YEAR + currentAgeDays;
+    const totalDeadlineDays = totalCurrentDays - elapsedDays;
+    if (totalDeadlineDays < 0) return { age: null, ageDays: null };
+    return {
+      age: Math.floor(totalDeadlineDays / CHPP_DAYS_PER_YEAR),
+      ageDays: totalDeadlineDays % CHPP_DAYS_PER_YEAR,
+    };
+  };
+
   type TeamPlayerSnapshot = {
     playerId: number;
     playerName: string | null;
@@ -4023,7 +4125,56 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       .map((player) => ({
         playerId: player.playerId,
         playerName: player.playerName,
+        age: null,
+        ageDays: null,
+        tsi: player.tsi,
+        askingPriceSek: null,
       }));
+
+  const fetchTransferPlayerDetails = async (
+    playerId: number
+  ): Promise<{
+    playerName: string | null;
+    age: number | null;
+    ageDays: number | null;
+    tsi: number | null;
+    askingPriceSek: number | null;
+  } | null> => {
+    try {
+      const response = await fetch(`/api/chpp/playerdetails?playerId=${playerId}`, {
+        cache: "no-store",
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            data?: {
+              HattrickData?: {
+                Player?: RawNode;
+              };
+            };
+          }
+        | null;
+      if (!response.ok) return null;
+      const playerNode = payload?.data?.HattrickData?.Player as RawNode | undefined;
+      const transferDetails = (playerNode?.TransferDetails ?? {}) as RawNode;
+      const playerName = [
+        parseStringNode(playerNode?.FirstName),
+        parseStringNode(playerNode?.NickName),
+        parseStringNode(playerNode?.LastName),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      return {
+        playerName: playerName || null,
+        age: parseNumberNode(playerNode?.Age),
+        ageDays: parseNumberNode(playerNode?.AgeDays),
+        tsi: parseNumberNode(playerNode?.TSI),
+        askingPriceSek: parseMoneySek(transferDetails?.AskingPrice),
+      };
+    } catch {
+      return null;
+    }
+  };
 
   const buildTsiSnapshot = (players: TeamPlayerSnapshot[]): TsiSnapshot => {
     const normalizedPlayers = players.map((player) => ({
@@ -4063,37 +4214,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       players: normalizedPlayers.sort((a, b) => b.salarySek - a.salarySek),
       fetchedAt: Date.now(),
     };
-  };
-
-  const resolvePlayerNameById = async (
-    playerId: number
-  ): Promise<string | null> => {
-    try {
-      const response = await fetch(`/api/chpp/playerdetails?playerId=${playerId}`, {
-        cache: "no-store",
-      });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            data?: {
-              HattrickData?: {
-                Player?: {
-                  FirstName?: string;
-                  NickName?: string;
-                  LastName?: string;
-                };
-              };
-            };
-          }
-        | null;
-      const player = payload?.data?.HattrickData?.Player;
-      const name = [player?.FirstName, player?.NickName, player?.LastName]
-        .filter(Boolean)
-        .join(" ")
-        .trim();
-      return name || null;
-    } catch {
-      return null;
-    }
   };
 
   const fetchLatestTransfers = async (
@@ -4180,23 +4300,40 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           transferType: resolvedType,
           playerId,
           playerName: (player?.PlayerName as string | undefined) ?? null,
+          age: null,
+          ageDays: null,
+          tsi: parseNumber(player?.TSI),
           priceSek: parseMoneySek(entry?.Price),
         });
       });
       pageIndex += 1;
     }
 
-    const resolutions = await Promise.all(
-      transfers.map(async (entry) => {
-        if (!entry.playerId || entry.playerId <= 0) return null;
-        const resolved = await resolvePlayerNameById(entry.playerId);
-        return { playerId: entry.playerId, resolved };
-      })
+    const uniquePlayerIds = Array.from(
+      new Set(
+        transfers
+          .map((entry) => entry.playerId)
+          .filter((playerId): playerId is number => Boolean(playerId && playerId > 0))
+      )
     );
-    const resolvedById = new Map<number, string>();
+    const resolutions = await Promise.all(
+      uniquePlayerIds.map(async (playerId) => ({
+        playerId,
+        details: await fetchTransferPlayerDetails(playerId),
+      }))
+    );
+    const resolvedById = new Map<
+      number,
+      { playerName: string | null; age: number | null; ageDays: number | null; tsi: number | null }
+    >();
     resolutions.forEach((item) => {
-      if (!item?.resolved) return;
-      resolvedById.set(item.playerId, item.resolved);
+      if (!item?.details) return;
+      resolvedById.set(item.playerId, {
+        playerName: item.details.playerName,
+        age: item.details.age,
+        ageDays: item.details.ageDays,
+        tsi: item.details.tsi,
+      });
     });
 
     return {
@@ -4204,13 +4341,24 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       totalSalesSek,
       numberOfBuys,
       numberOfSales,
-      transfers: transfers.map((entry) => ({
-        ...entry,
-        resolvedPlayerName:
+      transfers: transfers.map((entry) => {
+        const resolved =
           entry.playerId && resolvedById.has(entry.playerId)
             ? resolvedById.get(entry.playerId) ?? null
-            : null,
-      })),
+            : null;
+        const ageAtDeadline = computeAgeAtDeadline(
+          resolved?.age ?? null,
+          resolved?.ageDays ?? null,
+          entry.deadline
+        );
+        return {
+          ...entry,
+          resolvedPlayerName: resolved?.playerName ?? entry.playerName ?? null,
+          age: ageAtDeadline.age,
+          ageDays: ageAtDeadline.ageDays,
+          tsi: entry.tsi ?? resolved?.tsi ?? null,
+        };
+      }),
     };
   };
 
@@ -5305,6 +5453,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => selectedTransferTeam?.snapshot?.latestTransfers ?? [],
     [selectedTransferTeam]
   );
+  const formatAgeWithDays = useCallback(
+    (age: number | null | undefined, ageDays: number | null | undefined) => {
+      if (age === null || age === undefined) return null;
+      if (ageDays === null || ageDays === undefined) return `${age}`;
+      return `${age}${messages.ageYearsShort} ${ageDays}${messages.ageDaysShort}`;
+    },
+    [messages.ageDaysShort, messages.ageYearsShort]
+  );
   const wagesPlayerRows = useMemo<WagesPlayerRow[]>(
     () =>
       (selectedWagesTeam?.snapshot?.players ?? []).map((row, index) => ({
@@ -5346,8 +5502,36 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           );
         },
       },
+      {
+        key: "age",
+        label: messages.clubChronicleTransferListedAgeColumn,
+        getValue: (snapshot) => formatAgeWithDays(snapshot?.age, snapshot?.ageDays),
+        getSortValue: (snapshot) => {
+          const age = snapshot?.age;
+          if (age === null || age === undefined) return null;
+          return age * CHPP_DAYS_PER_YEAR + (snapshot?.ageDays ?? 0);
+        },
+      },
+      {
+        key: "tsi",
+        label: messages.clubChronicleTransferListedTsiColumn,
+        getValue: (snapshot) => snapshot?.tsi ?? null,
+      },
+      {
+        key: "askingPrice",
+        label: messages.clubChronicleTransferListedAskingPriceColumn,
+        getValue: (snapshot) =>
+          snapshot ? formatChppCurrencyFromSek(snapshot.askingPriceSek) : null,
+        getSortValue: (snapshot) => snapshot?.askingPriceSek ?? null,
+      },
     ],
-    [messages.clubChronicleTransferListedPlayerColumn]
+    [
+      messages.clubChronicleTransferListedAgeColumn,
+      messages.clubChronicleTransferListedAskingPriceColumn,
+      messages.clubChronicleTransferListedPlayerColumn,
+      messages.clubChronicleTransferListedTsiColumn,
+      formatAgeWithDays,
+    ]
   );
 
   const transferHistoryColumns = useMemo<
@@ -5395,6 +5579,21 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         },
       },
       {
+        key: "age",
+        label: messages.clubChronicleTransferHistoryAgeAtTransferColumn,
+        getValue: (snapshot) => formatAgeWithDays(snapshot?.age, snapshot?.ageDays),
+        getSortValue: (snapshot) => {
+          const age = snapshot?.age;
+          if (age === null || age === undefined) return null;
+          return age * CHPP_DAYS_PER_YEAR + (snapshot?.ageDays ?? 0);
+        },
+      },
+      {
+        key: "tsi",
+        label: messages.clubChronicleTransferListedTsiColumn,
+        getValue: (snapshot) => snapshot?.tsi ?? null,
+      },
+      {
         key: "price",
         label: messages.clubChronicleTransferHistoryPriceColumn,
         getValue: (snapshot) =>
@@ -5408,8 +5607,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleTransferHistoryTypeColumn,
       messages.clubChronicleTransferTypeSale,
       messages.clubChronicleTransferTypeBuy,
+      messages.clubChronicleTransferHistoryAgeAtTransferColumn,
       messages.clubChronicleTransferHistoryPlayerColumn,
       messages.clubChronicleTransferHistoryPriceColumn,
+      messages.clubChronicleTransferListedTsiColumn,
+      formatAgeWithDays,
     ]
   );
 
@@ -6980,6 +7182,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       <Modal
         open={transferListedDetailsOpen}
         title={messages.clubChronicleTransferListedModalTitle}
+        className={styles.chronicleTransferListedModal}
         body={
           selectedTransferTeam ? (
             <>
@@ -6987,19 +7190,29 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 {messages.clubChronicleColumnTeam}: {selectedTransferTeam.teamName}
               </p>
               {transferListedRows.length > 0 ? (
-                <ChronicleTable
-                  columns={transferListedColumns}
-                  rows={transferListedRows}
-                  getRowKey={(row) => row.playerId}
-                  getSnapshot={(row) => row}
-                  formatValue={formatValue}
-                  style={
-                    {
-                      "--cc-columns": transferListedColumns.length,
-                      "--cc-template": "minmax(240px, 1fr)",
-                    } as CSSProperties
-                  }
-                />
+                <>
+                  {loadingTransferListedModal ? (
+                    <p className={styles.chroniclePressMeta}>
+                      {messages.clubChronicleLoading}
+                    </p>
+                  ) : null}
+                  <div className={styles.chronicleTransferListedTableWrap}>
+                    <ChronicleTable
+                      columns={transferListedColumns}
+                      rows={transferListedRows}
+                      getRowKey={(row) => row.playerId}
+                      getSnapshot={(row) => row}
+                      formatValue={formatValue}
+                      style={
+                        {
+                          "--cc-columns": transferListedColumns.length,
+                          "--cc-template":
+                            "minmax(150px, 1.6fr) minmax(100px, 0.8fr) minmax(86px, 0.7fr) minmax(120px, 0.9fr)",
+                        } as CSSProperties
+                      }
+                    />
+                  </div>
+                </>
               ) : (
                 <p className={styles.chronicleEmpty}>
                   {messages.clubChronicleTransferListedEmpty}
@@ -7049,7 +7262,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       {
                         "--cc-columns": transferHistoryColumns.length,
                         "--cc-template":
-                          "minmax(150px, 1fr) minmax(90px, 0.6fr) minmax(260px, 1.8fr) minmax(130px, 0.8fr)",
+                          "minmax(138px, 1fr) minmax(84px, 0.7fr) minmax(220px, 1.7fr) minmax(96px, 0.8fr) minmax(96px, 0.8fr) minmax(122px, 0.9fr)",
                       } as CSSProperties
                     }
                   />

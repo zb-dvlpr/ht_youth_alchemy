@@ -32,6 +32,8 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - TSI details modal now includes player age in years+days with sortable age and adjusted column sizing.
 - Wages details modal now includes player age in years+days with sortable age and adjusted column sizing.
 - Wages details modal index column now uses a strict sequential row index (not shirt number).
+- Club Chronicle detail modals now render mentioned team names as clickable links to the corresponding Hattrick team page.
+- Formation/tactic pie-chart labels now render in black and use `Label: XX%` formatting for readability.
 - Latest updates now tracks changes per attribute across all Club Chronicle panels, grouped by team and showing only changed fields in a responsive, scrollable team-card grid, with a baseline fixed to the most recent global refresh, sticky retention of the last detected non-empty change set, and a 10-entry global-refresh comparison history directly in the modal.
 
 ## Local setup

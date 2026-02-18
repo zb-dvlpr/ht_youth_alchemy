@@ -1019,7 +1019,7 @@ const renderPieLabel = (props: any) => {
     name = "",
   } = props ?? {};
   const value = Math.round(Number(percent) * 100);
-  const label = `${String(name)} ${value}%`;
+  const label = `${String(name)}: ${value}%`;
   const radians = (Math.PI / 180) * Number(midAngle);
   const x = Number(cx) + (Number(outerRadius) + 18) * Math.cos(-radians);
   const y = Number(cy) + (Number(outerRadius) + 18) * Math.sin(-radians);
@@ -1030,7 +1030,7 @@ const renderPieLabel = (props: any) => {
     <text
       x={x}
       y={y - lineOffset}
-      fill={props.fill}
+      fill="#111111"
       textAnchor={textAnchor}
       dominantBaseline="central"
       fontSize={12}
@@ -3242,6 +3242,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
     return label;
   };
+  const renderTeamNameLink = useCallback(
+    (teamId: number | null | undefined, teamName: string | null | undefined) => {
+      const label = teamName ?? messages.unknownShort;
+      if (!teamId) return label;
+      return (
+        <a
+          className={styles.chroniclePressLink}
+          href={hattrickTeamUrl(teamId)}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {label}
+        </a>
+      );
+    },
+    [messages.unknownShort]
+  );
 
   const likelyTrainingTableColumns = useMemo<
     ChronicleTableColumn<LikelyTrainingRow, FormationTacticsSnapshot>[]
@@ -7074,7 +7091,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   : messages.clubChroniclePressNone}
               </h3>
               <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleColumnTeam}: {selectedPressTeam.teamName}
+                {messages.clubChronicleColumnTeam}:{" "}
+                {renderTeamNameLink(selectedPressTeam.teamId, selectedPressTeam.teamName)}
               </p>
               <p className={styles.chroniclePressMeta}>
                 {messages.clubChroniclePressColumnPublishedAt}:{" "}
@@ -7114,7 +7132,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           fanclubDetailsSnapshot ? (
             <div className={styles.chronicleDetailsGrid}>
               <h3 className={styles.chronicleDetailsSectionTitle}>
-                {selectedFanclubTeam?.teamName ?? messages.unknownShort}
+                {renderTeamNameLink(
+                  selectedFanclubTeam?.teamId,
+                  selectedFanclubTeam?.teamName ?? null
+                )}
               </h3>
               <ChronicleTable
                 columns={fanclubDetailsColumns}
@@ -7154,7 +7175,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           selectedFinanceTeam?.snapshot ? (
             <div className={styles.chronicleDetailsGrid}>
               <h3 className={styles.chronicleDetailsSectionTitle}>
-                {selectedFinanceTeam.teamName}
+                {renderTeamNameLink(selectedFinanceTeam.teamId, selectedFinanceTeam.teamName)}
               </h3>
               <div className={styles.chronicleDetailsRow}>
                 <span className={styles.chronicleDetailsLabel}>
@@ -7206,7 +7227,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           selectedArenaTeam?.snapshot ? (
             <div className={styles.chronicleDetailsGrid}>
               <h3 className={styles.chronicleDetailsSectionTitle}>
-                {selectedArenaTeam.teamName}
+                {renderTeamNameLink(selectedArenaTeam.teamId, selectedArenaTeam.teamName)}
               </h3>
               <div className={styles.chronicleDetailsRow}>
                 <span className={styles.chronicleDetailsLabel}>
@@ -7283,7 +7304,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           selectedTransferTeam ? (
             <>
               <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleColumnTeam}: {selectedTransferTeam.teamName}
+                {messages.clubChronicleColumnTeam}:{" "}
+                {renderTeamNameLink(selectedTransferTeam.teamId, selectedTransferTeam.teamName)}
               </p>
               {transferListedRows.length > 0 ? (
                 <>
@@ -7340,7 +7362,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           selectedTransferTeam ? (
             <>
               <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleColumnTeam}: {selectedTransferTeam.teamName}
+                {messages.clubChronicleColumnTeam}:{" "}
+                {renderTeamNameLink(selectedTransferTeam.teamId, selectedTransferTeam.teamName)}
               </p>
               {loadingTransferHistoryModal ? (
                 <p className={styles.chronicleEmpty}>{messages.clubChronicleLoading}</p>
@@ -7396,7 +7419,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               <p className={styles.chroniclePressMeta}>
                 {messages.clubChronicleColumnTeam}:{" "}
                 <span className={styles.chronicleDistributionTeamName}>
-                  {selectedFormationsTacticsTeam.teamName}
+                  {renderTeamNameLink(
+                    selectedFormationsTacticsTeam.teamId,
+                    selectedFormationsTacticsTeam.teamName
+                  )}
                 </span>
               </p>
               <p className={styles.chroniclePressMeta}>
@@ -7502,7 +7528,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           selectedLikelyTrainingTeam?.snapshot ? (
             <>
               <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleColumnTeam}: {selectedLikelyTrainingTeam.teamName}
+                {messages.clubChronicleColumnTeam}:{" "}
+                {renderTeamNameLink(
+                  selectedLikelyTrainingTeam.teamId,
+                  selectedLikelyTrainingTeam.teamName
+                )}
               </p>
               <p className={styles.chroniclePressMeta}>
                 {messages.clubChronicleLikelyTrainingColumnRegimen}:{" "}
@@ -7565,7 +7595,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           selectedTsiTeam ? (
             <>
               <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleColumnTeam}: {selectedTsiTeam.teamName}
+                {messages.clubChronicleColumnTeam}:{" "}
+                {renderTeamNameLink(selectedTsiTeam.teamId, selectedTsiTeam.teamName)}
               </p>
               {tsiPlayerRows.length > 0 ? (
                 <div className={styles.chronicleTransferHistoryTableWrap}>
@@ -7616,7 +7647,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           selectedWagesTeam ? (
             <>
               <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleColumnTeam}: {selectedWagesTeam.teamName}
+                {messages.clubChronicleColumnTeam}:{" "}
+                {renderTeamNameLink(selectedWagesTeam.teamId, selectedWagesTeam.teamName)}
               </p>
               {wagesPlayerRows.length > 0 ? (
                 <div className={styles.chronicleTransferHistoryTableWrap}>

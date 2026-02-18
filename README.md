@@ -31,6 +31,7 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Likely training regimen now reports all equally likely top regimens when confidence is tied and marks the inference as unclear (including a disclaimer in details).
 - TSI details modal now includes player age in years+days with sortable age and adjusted column sizing.
 - Wages details modal now includes player age in years+days with sortable age and adjusted column sizing.
+- Wages details modal index column now uses a strict sequential row index (not shirt number).
 - Latest updates now tracks changes per attribute across all Club Chronicle panels, grouped by team and showing only changed fields in a responsive, scrollable team-card grid, with a baseline fixed to the most recent global refresh, sticky retention of the last detected non-empty change set, and a 10-entry global-refresh comparison history directly in the modal.
 
 ## Local setup

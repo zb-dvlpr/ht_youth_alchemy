@@ -5537,7 +5537,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () =>
       (selectedWagesTeam?.snapshot?.players ?? []).map((row, index) => ({
         ...row,
-        playerNumber: row.playerNumber ?? index + 1,
+        playerNumber: index + 1,
       })),
     [selectedWagesTeam]
   );

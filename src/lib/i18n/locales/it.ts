@@ -66,9 +66,12 @@ export const messagesIt: Messages = {
       "La Cronaca del club aggiunge un pannello TSI con TSI totale e TSI dei migliori 11 per squadra.",
     changelog_2_10_0:
       "La Cronaca del club aggiunge un pannello stipendi con stipendi totali e stipendi top 11 per squadra.",
-    changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
-    changelog_2_12_0: "Club Chronicle help overlay with guided callouts and full panel documentation.",
-    changelog_2_13_0: "Club Chronicle adds a likely training regimen panel inferred from recent formations.",
+    changelog_2_11_0:
+      "Nuovo pannello Formazioni e tattiche con configurazione piu usata e grafici di distribuzione.",
+    changelog_2_12_0:
+      "Overlay guida Club Chronicle con callout guidati e documentazione completa dei pannelli.",
+    changelog_2_13_0:
+      "Club Chronicle aggiunge un pannello per il regime di allenamento probabile dedotto dalle formazioni recenti.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -127,52 +130,62 @@ export const messagesIt: Messages = {
     clubChronicleRefreshTooltip: "Aggiorna i dati di prestazione in lega.",
     clubChronicleRefreshPressTooltip: "Aggiorna i dati dei comunicati stampa.",
     clubChronicleRefreshArenaTooltip: "Aggiorna i dati dello stadio.",
-    clubChronicleRefreshFormationsTooltip: "Refresh formations & tactics data.",
+    clubChronicleRefreshFormationsTooltip:
+      "Aggiorna i dati di formazioni e tattiche.",
     clubChronicleRefreshFinanceTooltip: "Aggiorna i dati della stima finanziaria.",
     clubChronicleRefreshTransferTooltip: "Aggiorna i dati del mercato trasferimenti.",
     clubChronicleRefreshTsiTooltip: "Aggiorna i dati TSI.",
     clubChronicleRefreshWagesTooltip: "Aggiorna i dati stipendi.",
-    clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
-    clubChronicleRefreshStatusTeamDetails: "Fetching team details…",
-    clubChronicleRefreshStatusLeague: "Fetching league performance…",
-    clubChronicleRefreshStatusArena: "Fetching arena data…",
-    clubChronicleRefreshStatusTransferFinance: "Fetching transfer, finance, TSI, and wages data…",
-    clubChronicleRefreshStatusFormations: "Fetching formations and tactics data…",
-    clubChronicleRefreshStatusFinalizing: "Finalizing updates…",
+    clubChronicleRefreshLikelyTrainingTooltip:
+      "Aggiorna i dati del regime di allenamento probabile.",
+    clubChronicleRefreshStatusTeamDetails:
+      "Recupero dettagli squadra…",
+    clubChronicleRefreshStatusLeague:
+      "Recupero prestazioni in lega…",
+    clubChronicleRefreshStatusArena: "Recupero dati stadio…",
+    clubChronicleRefreshStatusTransferFinance:
+      "Recupero dati trasferimenti, finanze, TSI e stipendi…",
+    clubChronicleRefreshStatusFormations:
+      "Recupero dati di formazioni e tattiche…",
+    clubChronicleRefreshStatusFinalizing:
+      "Finalizzazione aggiornamenti…",
     clubChronicleRefreshStatusMatchesArchiveProgress:
-      "Match archives {completed}/{total} (team: {team})",
+      "Archivio partite {completed}/{total} (squadra: {team})",
     clubChronicleRefreshStatusMatchDetailsProgress:
-      "Match details {completed}/{total} (team: {team})",
-    clubChronicleHelpTitle: "Club Chronicle guide",
+      "Dettagli partita {completed}/{total} (squadra: {team})",
+    clubChronicleHelpTitle: "Guida Club Chronicle",
     clubChronicleHelpIntro:
-      "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
-    clubChronicleHelpCalloutRefresh: "Global refresh pulls all Club Chronicle panels in one run.",
-    clubChronicleHelpCalloutUpdates: "Latest updates shows only changed attributes grouped by team.",
-    clubChronicleHelpCalloutWatchlist: "Watchlist controls which teams are tracked in every panel.",
+      "Club Chronicle traccia le tue squadre senior selezionate pannello per pannello e mette in evidenza cosa e cambiato dall ultima baseline globale.",
+    clubChronicleHelpCalloutRefresh:
+      "Il refresh globale carica tutti i pannelli Club Chronicle in un unica esecuzione.",
+    clubChronicleHelpCalloutUpdates:
+      "Ultimi aggiornamenti mostra solo gli attributi cambiati raggruppati per squadra.",
+    clubChronicleHelpCalloutWatchlist:
+      "La watchlist controlla quali squadre vengono tracciate in ogni pannello.",
     clubChronicleHelpBulletControls:
-      "Header controls: use Refresh for a full data pass, monitor progress via the status bar and per-panel mini bars, use Latest updates for tracked diffs, and use Watchlist to manage tracked teams.",
+      "Controlli header: usa Aggiorna per un passaggio completo dei dati, monitora il progresso con barra di stato e mini barre per pannello, usa Ultimi aggiornamenti per i diff e la watchlist per gestire le squadre tracciate.",
     clubChronicleHelpBulletLeague:
-      "League performance: table of position, points, series, position change, and goal delta. Click a row for previous/current attribute-level comparison.",
+      "Prestazioni in lega: tabella con posizione, punti, serie, variazione posizione e differenza reti. Clicca una riga per il confronto precedente/corrente per attributo.",
     clubChronicleHelpBulletPress:
-      "Press announcements: latest statement and publish time per team. Click a row to open the full article text with parsed deep links.",
+      "Comunicati stampa: ultimo annuncio e ora di pubblicazione per squadra. Clicca una riga per aprire il testo completo con deep link rilevati.",
     clubChronicleHelpBulletFinance:
-      "Estimated finances: buy count, sale count, and rough estimate in EUR. Click a row for detailed value breakdowns.",
+      "Finanze stimate: numero acquisti, numero vendite e stima approssimativa in EUR. Clicca una riga per il dettaglio dei valori.",
     clubChronicleHelpBulletFanclub:
-      "Fan club: fan club name and size. Click a row for previous/current size and the size difference since the last changed value.",
+      "Fan club: nome e dimensione. Clicca una riga per vedere precedente/corrente e differenza di dimensione dall ultimo valore cambiato.",
     clubChronicleHelpBulletArena:
-      "Arena: arena name, total capacity, and latest build date. Click a row to see seat distribution (terraces/basic/roof/VIP).",
+      "Stadio: nome stadio, capacita totale e ultima data di ampliamento. Clicca una riga per la distribuzione posti (tribune/base/coperto/VIP).",
     clubChronicleHelpBulletTransfer:
-      "Transfer market: players currently on market and sold/bought totals. Click On market for listings (age in years+days, TSI, asking price) and Sold/Bought for latest transfers (type, age at transfer, TSI, price). Team names in detail modals are clickable.",
+      "Mercato trasferimenti: giocatori sul mercato e totali vendite/acquisti. Clicca Sul mercato per le inserzioni (eta in anni+giorni, TSI, prezzo richiesto) e Vend./Acq. per gli ultimi trasferimenti (tipo, eta al trasferimento, TSI, prezzo). I nomi squadra nelle modali di dettaglio sono cliccabili.",
     clubChronicleHelpBulletFormations:
-      "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
+      "Formazioni e tattiche: formazione e tattica piu usate negli ultimi 20 match rilevanti. Clicca una riga per i grafici di distribuzione.",
     clubChronicleHelpBulletTsi:
-      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), and TSI.",
+      "TSI: TSI totale squadra e TSI top-11. Clicca una riga per dettagli giocatore ordinabili con indice, eta (anni+giorni) e TSI.",
     clubChronicleHelpBulletLikelyTraining:
-      "Likely training regimen: inferred from recent formations; ties at top confidence are shown together and marked as unclear. Click a row for full confidence ranking and sample size.",
+      "Regime di allenamento probabile: dedotto dalle formazioni recenti; i pareggi alla confidenza massima vengono mostrati insieme e marcati come incerti. Clicca una riga per ranking completo di confidenza e dimensione campione.",
     clubChronicleHelpBulletWages:
-      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), and wage.",
+      "Salari: salari totali squadra e top-11 in EUR. Clicca una riga per dettagli giocatore ordinabili con indice, eta (anni+giorni) e salario.",
     clubChronicleHelpBulletLatestUpdates:
-      "Latest updates keeps per-attribute change groups by team and retains the latest non-empty global-refresh diff for review.",
+      "Ultimi aggiornamenti mantiene gruppi di cambiamento per attributo e squadra e conserva l ultimo diff globale non vuoto per consultazione.",
     clubChroniclePressPanelTitle: "Comunicati stampa",
     clubChroniclePressDetailsTitle: "Comunicato stampa",
     clubChroniclePressColumnAnnouncement: "Annuncio",
@@ -234,9 +247,9 @@ export const messagesIt: Messages = {
     clubChronicleTransferListedModalTitle: "Giocatori attualmente sul mercato",
     clubChronicleTransferListedEmpty: "Nessun giocatore attualmente sul mercato.",
     clubChronicleTransferListedPlayerColumn: "Giocatore",
-    clubChronicleTransferListedAgeColumn: "Age",
+    clubChronicleTransferListedAgeColumn: "Età",
     clubChronicleTransferListedTsiColumn: "TSI",
-    clubChronicleTransferListedAskingPriceColumn: "Asking price",
+    clubChronicleTransferListedAskingPriceColumn: "Prezzo richiesto",
     clubChronicleTransferHistoryModalTitle: "Ultimi trasferimenti",
     clubChronicleTransferHistoryEmpty: "Nessun trasferimento recente trovato.",
     clubChronicleTransferHistoryDateColumn: "Data",

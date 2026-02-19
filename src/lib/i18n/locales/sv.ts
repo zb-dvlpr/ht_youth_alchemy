@@ -64,9 +64,12 @@ export const messagesSv: Messages = {
       "Klubbkrönikan lägger till en TSI-panel med total TSI och topp-11 TSI per lag.",
     changelog_2_10_0:
       "Klubbkrönikan lägger till en lönepanel med totala löner och topp-11-löner per lag.",
-    changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
-    changelog_2_12_0: "Club Chronicle help overlay with guided callouts and full panel documentation.",
-    changelog_2_13_0: "Club Chronicle adds a likely training regimen panel inferred from recent formations.",
+    changelog_2_11_0:
+      "Ny panel for Formationer och taktik med mest anvand uppstallning och fordelningsdiagram.",
+    changelog_2_12_0:
+      "Hjalpoverlay for Club Chronicle med guidande callouts och full paneldokumentation.",
+    changelog_2_13_0:
+      "Club Chronicle lagger till en panel for trolig traningsinriktning baserad pa senaste formationer.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -125,52 +128,59 @@ export const messagesSv: Messages = {
     clubChronicleRefreshTooltip: "Uppdatera ligaprestanda-data.",
     clubChronicleRefreshPressTooltip: "Uppdatera data för pressmeddelanden.",
     clubChronicleRefreshArenaTooltip: "Uppdatera arenadata.",
-    clubChronicleRefreshFormationsTooltip: "Refresh formations & tactics data.",
+    clubChronicleRefreshFormationsTooltip:
+      "Uppdatera data för formationer och taktik.",
     clubChronicleRefreshFinanceTooltip: "Uppdatera data för finansestimat.",
     clubChronicleRefreshTransferTooltip: "Uppdatera data för transfermarknaden.",
     clubChronicleRefreshTsiTooltip: "Uppdatera TSI-data.",
     clubChronicleRefreshWagesTooltip: "Uppdatera lönedata.",
-    clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
-    clubChronicleRefreshStatusTeamDetails: "Fetching team details…",
-    clubChronicleRefreshStatusLeague: "Fetching league performance…",
-    clubChronicleRefreshStatusArena: "Fetching arena data…",
-    clubChronicleRefreshStatusTransferFinance: "Fetching transfer, finance, TSI, and wages data…",
-    clubChronicleRefreshStatusFormations: "Fetching formations and tactics data…",
-    clubChronicleRefreshStatusFinalizing: "Finalizing updates…",
+    clubChronicleRefreshLikelyTrainingTooltip:
+      "Uppdatera data för trolig träningsinriktning.",
+    clubChronicleRefreshStatusTeamDetails: "Hämtar lagdetaljer…",
+    clubChronicleRefreshStatusLeague: "Hämtar ligaprestanda…",
+    clubChronicleRefreshStatusArena: "Hämtar arenadata…",
+    clubChronicleRefreshStatusTransferFinance:
+      "Hämtar transfer-, finans-, TSI- och lönedata…",
+    clubChronicleRefreshStatusFormations:
+      "Hämtar data för formationer och taktik…",
+    clubChronicleRefreshStatusFinalizing: "Slutför uppdateringar…",
     clubChronicleRefreshStatusMatchesArchiveProgress:
-      "Match archives {completed}/{total} (team: {team})",
+      "Matcharkiv {completed}/{total} (lag: {team})",
     clubChronicleRefreshStatusMatchDetailsProgress:
-      "Match details {completed}/{total} (team: {team})",
-    clubChronicleHelpTitle: "Club Chronicle guide",
+      "Matchdetaljer {completed}/{total} (lag: {team})",
+    clubChronicleHelpTitle: "Guide for Club Chronicle",
     clubChronicleHelpIntro:
-      "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
-    clubChronicleHelpCalloutRefresh: "Global refresh pulls all Club Chronicle panels in one run.",
-    clubChronicleHelpCalloutUpdates: "Latest updates shows only changed attributes grouped by team.",
-    clubChronicleHelpCalloutWatchlist: "Watchlist controls which teams are tracked in every panel.",
+      "Club Chronicle foljer dina valda seniorlag panel for panel och markerar vad som andrats sedan senaste globala baslinje.",
+    clubChronicleHelpCalloutRefresh:
+      "Global uppdatering hamtar alla Club Chronicle-paneler i en korning.",
+    clubChronicleHelpCalloutUpdates:
+      "Senaste uppdateringar visar bara andrade attribut grupperade per lag.",
+    clubChronicleHelpCalloutWatchlist:
+      "Watchlist styr vilka lag som foljs i varje panel.",
     clubChronicleHelpBulletControls:
-      "Header controls: use Refresh for a full data pass, monitor progress via the status bar and per-panel mini bars, use Latest updates for tracked diffs, and use Watchlist to manage tracked teams.",
+      "Headerkontroller: anvand Uppdatera for en full datakorning, folj framsteg via statusrad och mini-staplar per panel, anvand Senaste uppdateringar for diffar och watchlist for att hantera foljda lag.",
     clubChronicleHelpBulletLeague:
-      "League performance: table of position, points, series, position change, and goal delta. Click a row for previous/current attribute-level comparison.",
+      "Ligaprestanda: tabell med placering, poang, serie, placeringsforandring och malskillnad. Klicka pa en rad for jamforelse mellan tidigare/nuvarande per attribut.",
     clubChronicleHelpBulletPress:
-      "Press announcements: latest statement and publish time per team. Click a row to open the full article text with parsed deep links.",
+      "Pressmeddelanden: senaste meddelande och publiceringstid per lag. Klicka pa en rad for att oppna full text med tolkade djuplankar.",
     clubChronicleHelpBulletFinance:
-      "Estimated finances: buy count, sale count, and rough estimate in EUR. Click a row for detailed value breakdowns.",
+      "Beraknade finanser: antal kop, antal forsaljningar och grov uppskattning i EUR. Klicka pa en rad for detaljerad uppdelning.",
     clubChronicleHelpBulletFanclub:
-      "Fan club: fan club name and size. Click a row for previous/current size and the size difference since the last changed value.",
+      "Fanklubb: namn och storlek. Klicka pa en rad for tidigare/nuvarande storlek och differens sedan senaste andrade varde.",
     clubChronicleHelpBulletArena:
-      "Arena: arena name, total capacity, and latest build date. Click a row to see seat distribution (terraces/basic/roof/VIP).",
+      "Arena: arenanamn, total kapacitet och senaste byggdatum. Klicka pa en rad for fordelning av platser (terrasser/bas/tak/VIP).",
     clubChronicleHelpBulletTransfer:
-      "Transfer market: players currently on market and sold/bought totals. Click On market for listings (age in years+days, TSI, asking price) and Sold/Bought for latest transfers (type, age at transfer, TSI, price). Team names in detail modals are clickable.",
+      "Transfermarknad: spelare pa marknaden och totalt sald/kopt. Klicka pa Pa marknaden for listor (alder i ar+dagar, TSI, utropspris) och pa Sald/Kopt for senaste overgangar (typ, alder vid overgangen, TSI, pris). Lagnamn i detaljmodala fonster ar klickbara.",
     clubChronicleHelpBulletFormations:
-      "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
+      "Formationer och taktik: mest anvand formation och taktik fran de senaste 20 relevanta matcherna. Klicka pa en rad for fordelningsdiagram.",
     clubChronicleHelpBulletTsi:
-      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), and TSI.",
+      "TSI: lagets totala TSI och top-11 TSI. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar) och TSI.",
     clubChronicleHelpBulletLikelyTraining:
-      "Likely training regimen: inferred from recent formations; ties at top confidence are shown together and marked as unclear. Click a row for full confidence ranking and sample size.",
+      "Trolig traningsinriktning: infererad fran senaste formationer; lika hogsta konfidens visas tillsammans och markeras som oklar. Klicka pa en rad for full konfidensrangordning och urvalsstorlek.",
     clubChronicleHelpBulletWages:
-      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), and wage.",
+      "Loner: lagets total och top-11 loner i EUR. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar) och lon.",
     clubChronicleHelpBulletLatestUpdates:
-      "Latest updates keeps per-attribute change groups by team and retains the latest non-empty global-refresh diff for review.",
+      "Senaste uppdateringar behaller andringsgrupper per attribut och lag, och sparar senaste icke-tomma globala diff for granskning.",
     clubChroniclePressPanelTitle: "Pressmeddelanden",
     clubChroniclePressDetailsTitle: "Pressmeddelande",
     clubChroniclePressColumnAnnouncement: "Meddelande",
@@ -231,9 +241,9 @@ export const messagesSv: Messages = {
     clubChronicleTransferListedModalTitle: "Spelare på marknaden just nu",
     clubChronicleTransferListedEmpty: "Inga spelare på marknaden just nu.",
     clubChronicleTransferListedPlayerColumn: "Spelare",
-    clubChronicleTransferListedAgeColumn: "Age",
+    clubChronicleTransferListedAgeColumn: "Ålder",
     clubChronicleTransferListedTsiColumn: "TSI",
-    clubChronicleTransferListedAskingPriceColumn: "Asking price",
+    clubChronicleTransferListedAskingPriceColumn: "Utropspris",
     clubChronicleTransferHistoryModalTitle: "Senaste övergångar",
     clubChronicleTransferHistoryEmpty: "Inga senaste övergångar hittades.",
     clubChronicleTransferHistoryDateColumn: "Datum",

@@ -45,6 +45,10 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Fixed locale mapping regression where `Formations & tactics` and `Likely training regimen` labels could appear in the wrong language (e.g., French text in German locale).
 - Localization structure was refactored from one monolithic messages object into per-locale message files (`en/de/fr/es/sv/it/pt`) to reduce cross-locale copy/paste regressions.
 - CHPP client-side fetch handling is now centralized: when any endpoint returns a token-expired/missing-token auth response, the app immediately raises the re-auth modal event, shows a localized \"refresh aborted/re-auth required\" notification, and aborts refresh writes instead of persisting default/empty snapshots.
+- Club Chronicle refresh status/tooltip strings are now localized across all supported locales (including match-archive and match-details progress text), and non-English transfer-list columns no longer show English fallbacks (`Age`, `Asking price`).
+- Latest Updates now resolves field labels from stable `fieldKey` at render-time, so previously cached/history diffs always display in the currently selected locale instead of preserving an older locale’s labels.
+- Fixed an English locale regression where `Formations & tactics` and `Likely training regimen` strings were accidentally in German.
+- Completed a locale audit for non-English locale files (`de/fr/es/sv/it/pt`) and removed remaining English regressions in Club Chronicle help/changelog/refresh copy.
 - Latest updates now tracks changes per attribute across all Club Chronicle panels, grouped by team and showing only changed fields in a responsive, scrollable team-card grid, with a baseline fixed to the most recent global refresh, sticky retention of the last detected non-empty change set, and a 10-entry global-refresh comparison history directly in the modal.
 
 ## Local setup

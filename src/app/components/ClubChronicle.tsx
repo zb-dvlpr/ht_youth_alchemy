@@ -3281,6 +3281,52 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [messages.unknownShort]
   );
 
+  const getUpdateFieldLabel = (fieldKey: string, fallbackLabel: string) => {
+    switch (fieldKey) {
+      case "league.position":
+        return messages.clubChronicleColumnPosition;
+      case "league.points":
+        return messages.clubChronicleColumnPoints;
+      case "press.announcement":
+        return messages.clubChroniclePressColumnAnnouncement;
+      case "fanclub.name":
+        return messages.clubChronicleFanclubColumnName;
+      case "fanclub.size":
+        return messages.clubChronicleFanclubColumnSize;
+      case "arena.name":
+        return messages.clubChronicleArenaColumnName;
+      case "arena.capacity":
+        return messages.clubChronicleArenaColumnCapacity;
+      case "arena.rebuiltDate":
+        return messages.clubChronicleArenaColumnRebuiltDate;
+      case "finance.estimate":
+        return messages.clubChronicleFinanceColumnEstimate;
+      case "transfer.listed":
+      case "transfer.active":
+        return messages.clubChronicleTransferColumnActive;
+      case "transfer.history":
+        return messages.clubChronicleTransferColumnHistory;
+      case "formationsTactics.formation":
+        return messages.clubChronicleFormationsColumnFormation;
+      case "formationsTactics.tactic":
+        return messages.clubChronicleFormationsColumnTactic;
+      case "likelyTraining.regimen":
+        return messages.clubChronicleLikelyTrainingColumnRegimen;
+      case "likelyTraining.confidence":
+        return messages.clubChronicleLikelyTrainingConfidenceLabel;
+      case "tsi.total":
+        return messages.clubChronicleTsiColumnTotal;
+      case "tsi.top11":
+        return messages.clubChronicleTsiColumnTop11;
+      case "wages.total":
+        return messages.clubChronicleWagesColumnTotal;
+      case "wages.top11":
+        return messages.clubChronicleWagesColumnTop11;
+      default:
+        return fallbackLabel;
+    }
+  };
+
   const likelyTrainingTableColumns = useMemo<
     ChronicleTableColumn<LikelyTrainingRow, FormationTacticsSnapshot>[]
   >(
@@ -7341,7 +7387,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                             className={styles.chronicleUpdatesRow}
                           >
                             <span className={styles.chronicleUpdatesLabel}>
-                              {change.label}
+                              {getUpdateFieldLabel(change.fieldKey, change.label)}
                             </span>
                             <span>{change.previous ?? messages.unknownShort}</span>
                             <span>{change.current ?? messages.unknownShort}</span>

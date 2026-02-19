@@ -60,6 +60,7 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Language switching now preserves app context: active tool (Youth/Club Chronicle), sidebar collapse state, and current scroll positions (including Club Chronicle panel scrolls) are restored after locale reload.
 - Locale-switch context restore now hydrates safely (no SSR/client mismatch): initial render stays deterministic and saved view state is applied after mount.
 - Youth player list sorting (sort field and direction) is now persisted in local storage and remains intact after locale changes/reloads.
+- Clicking a highlighted player inside Skills Matrix/Ratings Matrix now always switches back to the Details tab for that player, even when the same player is already selected.
 
 ## Local setup
 1) Install dependencies

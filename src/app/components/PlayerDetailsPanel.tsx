@@ -237,6 +237,11 @@ export default function PlayerDetailsPanel({
   const [skillsSortDir, setSkillsSortDir] = useState<"asc" | "desc">("desc");
   const pendingSkillsSortRef = useRef(false);
 
+  const handleMatrixPlayerPick = (playerName: string) => {
+    setActiveTab("details");
+    onSelectRatingsPlayer?.(playerName);
+  };
+
   const playerById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
     players.forEach((player) => map.set(player.YouthPlayerID, player));
@@ -699,7 +704,7 @@ export default function PlayerDetailsPanel({
                     <button
                       type="button"
                       className={styles.matrixPlayerButton}
-                      onClick={() => onSelectRatingsPlayer?.(row.name)}
+                      onClick={() => handleMatrixPlayerPick(row.name)}
                       disabled={!onSelectRatingsPlayer}
                     >
                       {row.name}
@@ -820,7 +825,7 @@ export default function PlayerDetailsPanel({
           messages={messages}
           specialtyByName={ratingsMatrixSpecialtyByName}
           selectedName={ratingsMatrixSelectedName}
-          onSelectPlayer={onSelectRatingsPlayer}
+          onSelectPlayer={handleMatrixPlayerPick}
           orderedPlayerIds={orderedPlayerIds}
           orderSource={orderSource}
           onOrderChange={onRatingsOrderChange}

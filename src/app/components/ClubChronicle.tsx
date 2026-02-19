@@ -211,6 +211,7 @@ type TsiRow = {
 };
 
 type TsiPlayerRow = {
+  teamId: number;
   playerId: number;
   playerName: string | null;
   playerNumber: number | null;
@@ -290,6 +291,7 @@ type LikelyTrainingRow = {
 };
 
 type WagesPlayerRow = {
+  teamId: number;
   playerId: number;
   playerName: string | null;
   playerNumber: number | null;
@@ -6192,6 +6194,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const wagesPlayerRows = useMemo<WagesPlayerRow[]>(
     () =>
       (selectedWagesTeam?.snapshot?.players ?? []).map((row, index) => ({
+        teamId: selectedWagesTeam?.teamId ?? 0,
         ...row,
         playerNumber: index + 1,
       })),
@@ -6200,6 +6203,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const tsiPlayerRows = useMemo<TsiPlayerRow[]>(
     () =>
       (selectedTsiTeam?.snapshot?.players ?? []).map((row, index) => ({
+        teamId: selectedTsiTeam?.teamId ?? 0,
         ...row,
         playerNumber: index + 1,
       })),
@@ -6978,7 +6982,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
                       maskText={messages.clubChronicleNoDivulgoMask}
                       isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
+                      onMaskedRowClick={(row) =>
+                        handleNoDivulgoDismiss(row.teamId)
+                      }
                     />
                   )}
                 </ChroniclePanel>
@@ -7034,7 +7040,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
                       maskText={messages.clubChronicleNoDivulgoMask}
                       isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
+                      onMaskedRowClick={(row) =>
+                        handleNoDivulgoDismiss(row.teamId)
+                      }
                     />
                   )}
                 </ChroniclePanel>
@@ -7091,7 +7099,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
                       maskText={messages.clubChronicleNoDivulgoMask}
                       isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
+                      onMaskedRowClick={(row) =>
+                        handleNoDivulgoDismiss(row.teamId)
+                      }
                       />
                       <p className={styles.chronicleFinanceDisclaimer}>
                         {messages.clubChronicleFinanceDisclaimer}
@@ -7151,7 +7161,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
                       maskText={messages.clubChronicleNoDivulgoMask}
                       isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
+                      onMaskedRowClick={(row) =>
+                        handleNoDivulgoDismiss(row.teamId)
+                      }
                     />
                   )}
                 </ChroniclePanel>
@@ -7207,7 +7219,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
                       maskText={messages.clubChronicleNoDivulgoMask}
                       isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
+                      onMaskedRowClick={(row) =>
+                        handleNoDivulgoDismiss(row.teamId)
+                      }
                     />
                   )}
                 </ChroniclePanel>
@@ -7262,7 +7276,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
                       maskText={messages.clubChronicleNoDivulgoMask}
                       isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
+                      onMaskedRowClick={(row) =>
+                        handleNoDivulgoDismiss(row.teamId)
+                      }
                     />
                   )}
                 </ChroniclePanel>
@@ -7320,7 +7336,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
                       maskText={messages.clubChronicleNoDivulgoMask}
                       isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
+                      onMaskedRowClick={(row) =>
+                        handleNoDivulgoDismiss(row.teamId)
+                      }
                     />
                   )}
                 </ChroniclePanel>
@@ -7376,7 +7394,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
                       maskText={messages.clubChronicleNoDivulgoMask}
                       isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
+                      onMaskedRowClick={(row) =>
+                        handleNoDivulgoDismiss(row.teamId)
+                      }
                     />
                   )}
                 </ChroniclePanel>

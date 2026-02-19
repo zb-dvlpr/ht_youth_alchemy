@@ -95,6 +95,8 @@ export type Messages = {
   settingsClubChronicleStalenessHint: string;
   settingsClubChronicleTransferHistoryLabel: string;
   settingsClubChronicleTransferHistoryHint: string;
+  settingsClubChronicleUpdatesHistoryLabel: string;
+  settingsClubChronicleUpdatesHistoryHint: string;
   settingsGeneral: string;
   settingsGeneralTitle: string;
   settingsGeneralEnableScalingLabel: string;

@@ -328,10 +328,18 @@ type ArenaSnapshot = {
   arenaName: string | null;
   currentTotalCapacity: number | null;
   rebuiltDate: string | null;
+  currentAvailable: boolean | null;
   terraces: number | null;
   basic: number | null;
   roof: number | null;
   vip: number | null;
+  expandedAvailable: boolean | null;
+  expandedTotalCapacity: number | null;
+  expansionDate: string | null;
+  expandedTerraces: number | null;
+  expandedBasic: number | null;
+  expandedRoof: number | null;
+  expandedVip: number | null;
   fetchedAt: number;
 };
 
@@ -3090,6 +3098,28 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         label: messages.clubChronicleArenaColumnCapacity,
         getValue: (snapshot: ArenaSnapshot | undefined) =>
           snapshot?.currentTotalCapacity ?? null,
+        renderCell: (
+          snapshot: ArenaSnapshot | undefined,
+          _row: ArenaRow,
+          formatValue
+        ) => {
+          const isUnderConstruction = snapshot?.expandedAvailable === true;
+          return (
+            <span className={styles.chronicleArenaCapacityCell}>
+              <span>{formatValue(snapshot?.currentTotalCapacity ?? null)}</span>
+              {isUnderConstruction ? (
+                <Tooltip content={messages.clubChronicleArenaConstructionTooltip}>
+                  <span
+                    className={styles.chronicleArenaConstructionBadge}
+                    aria-label={messages.clubChronicleArenaConstructionTooltip}
+                  >
+                    🚧
+                  </span>
+                </Tooltip>
+              ) : null}
+            </span>
+          );
+        },
       },
       {
         key: "rebuiltDate",
@@ -3419,6 +3449,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       if (typeof text !== "string") return null;
       const trimmed = text.trim();
       return trimmed ? trimmed : null;
+    }
+    return null;
+  };
+
+  const parseBooleanNode = (value: unknown): boolean | null => {
+    if (value === null || value === undefined || value === "") return null;
+    if (typeof value === "boolean") return value;
+    if (typeof value === "number") return value !== 0;
+    if (typeof value === "string") {
+      const normalized = value.trim().toLowerCase();
+      if (!normalized) return null;
+      if (normalized === "true" || normalized === "1") return true;
+      if (normalized === "false" || normalized === "0") return false;
+      return null;
+    }
+    if (typeof value === "object" && "#text" in (value as RawNode)) {
+      return parseBooleanNode((value as RawNode)["#text"]);
     }
     return null;
   };
@@ -4117,6 +4164,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           const root = payload?.data?.HattrickData as RawNode | undefined;
           const arenaNode = (root?.Arena ?? {}) as RawNode;
           const currentCapacity = (arenaNode?.CurrentCapacity ?? {}) as RawNode;
+          const expandedCapacity = (arenaNode?.ExpandedCapacity ?? {}) as RawNode;
           const snapshot: ArenaSnapshot = {
             arenaName:
               (arenaNode?.ArenaName as string | null | undefined) ??
@@ -4124,10 +4172,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               null,
             currentTotalCapacity: parseNumberNode(currentCapacity.Total),
             rebuiltDate: parseStringNode(currentCapacity.RebuiltDate),
+            currentAvailable: parseBooleanNode(currentCapacity["@_Available"]),
             terraces: parseNumberNode(currentCapacity.Terraces),
             basic: parseNumberNode(currentCapacity.Basic),
             roof: parseNumberNode(currentCapacity.Roof),
             vip: parseNumberNode(currentCapacity.VIP),
+            expandedAvailable: parseBooleanNode(expandedCapacity["@_Available"]),
+            expandedTotalCapacity: parseNumberNode(expandedCapacity.Total),
+            expansionDate: parseStringNode(expandedCapacity.ExpansionDate),
+            expandedTerraces: parseNumberNode(expandedCapacity.Terraces),
+            expandedBasic: parseNumberNode(expandedCapacity.Basic),
+            expandedRoof: parseNumberNode(expandedCapacity.Roof),
+            expandedVip: parseNumberNode(expandedCapacity.VIP),
             fetchedAt: Date.now(),
           };
           arenaById.set(arenaId, snapshot);
@@ -5506,10 +5562,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       arenaName: cached?.arenaName ?? null,
       currentTotalCapacity: null,
       rebuiltDate: null,
+      currentAvailable: null,
       terraces: null,
       basic: null,
       roof: null,
       vip: null,
+      expandedAvailable: null,
+      expandedTotalCapacity: null,
+      expansionDate: null,
+      expandedTerraces: null,
+      expandedBasic: null,
+      expandedRoof: null,
+      expandedVip: null,
       fetchedAt: 0,
     };
     return {
@@ -7717,49 +7781,60 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               </h3>
               <div className={styles.chronicleDetailsRow}>
                 <span className={styles.chronicleDetailsLabel}>
+                  {messages.clubChronicleArenaDetailsMetric}
+                </span>
+                <span className={styles.chronicleDetailsLabel}>
+                  {messages.clubChronicleDetailsCurrentLabel}
+                </span>
+                <span className={styles.chronicleDetailsLabel}>
+                  {messages.clubChronicleArenaDetailsExpandedColumn}
+                </span>
+              </div>
+              <div className={styles.chronicleDetailsRow}>
+                <span className={styles.chronicleDetailsLabel}>
                   {messages.clubChronicleArenaSeatTerraces}
                 </span>
-                <span />
                 <span>{formatValue(selectedArenaTeam.snapshot.terraces)}</span>
+                <span>{formatValue(selectedArenaTeam.snapshot.expandedTerraces)}</span>
               </div>
               <div className={styles.chronicleDetailsRow}>
                 <span className={styles.chronicleDetailsLabel}>
                   {messages.clubChronicleArenaSeatBasic}
                 </span>
-                <span />
                 <span>{formatValue(selectedArenaTeam.snapshot.basic)}</span>
+                <span>{formatValue(selectedArenaTeam.snapshot.expandedBasic)}</span>
               </div>
               <div className={styles.chronicleDetailsRow}>
                 <span className={styles.chronicleDetailsLabel}>
                   {messages.clubChronicleArenaSeatRoof}
                 </span>
-                <span />
                 <span>{formatValue(selectedArenaTeam.snapshot.roof)}</span>
+                <span>{formatValue(selectedArenaTeam.snapshot.expandedRoof)}</span>
               </div>
               <div className={styles.chronicleDetailsRow}>
                 <span className={styles.chronicleDetailsLabel}>
                   {messages.clubChronicleArenaSeatVip}
                 </span>
-                <span />
                 <span>{formatValue(selectedArenaTeam.snapshot.vip)}</span>
+                <span>{formatValue(selectedArenaTeam.snapshot.expandedVip)}</span>
               </div>
               <div className={styles.chronicleDetailsRow}>
                 <span className={styles.chronicleDetailsLabel}>
-                  {messages.clubChronicleArenaColumnCapacity}
+                  {messages.clubChronicleArenaDetailsCurrentCapacity}
                 </span>
-                <span />
                 <span>{formatValue(selectedArenaTeam.snapshot.currentTotalCapacity)}</span>
+                <span>{formatValue(selectedArenaTeam.snapshot.expandedTotalCapacity)}</span>
               </div>
               <div className={styles.chronicleDetailsRow}>
                 <span className={styles.chronicleDetailsLabel}>
-                  {messages.clubChronicleArenaColumnRebuiltDate}
+                  {messages.clubChronicleArenaDetailsExpectedFinish}
                 </span>
-                <span />
+                <span>{messages.unknownShort}</span>
                 <span>
                   {formatValue(
-                    selectedArenaTeam.snapshot.rebuiltDate
-                      ? formatChppDateTime(selectedArenaTeam.snapshot.rebuiltDate) ??
-                          selectedArenaTeam.snapshot.rebuiltDate
+                    selectedArenaTeam.snapshot.expansionDate
+                      ? formatChppDateTime(selectedArenaTeam.snapshot.expansionDate) ??
+                          selectedArenaTeam.snapshot.expansionDate
                       : null
                   )}
                 </span>

@@ -171,7 +171,12 @@ export type Messages = {
   clubChronicleArenaColumnId: string;
   clubChronicleArenaColumnCapacity: string;
   clubChronicleArenaColumnRebuiltDate: string;
+  clubChronicleArenaConstructionTooltip: string;
   clubChronicleArenaDetailsTitle: string;
+  clubChronicleArenaDetailsMetric: string;
+  clubChronicleArenaDetailsCurrentCapacity: string;
+  clubChronicleArenaDetailsExpandedColumn: string;
+  clubChronicleArenaDetailsExpectedFinish: string;
   clubChronicleArenaSeatTerraces: string;
   clubChronicleArenaSeatBasic: string;
   clubChronicleArenaSeatRoof: string;

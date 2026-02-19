@@ -1377,6 +1377,32 @@ html[data-app-scaling="off"] .chronicleHeader {
   color: #244d2b;
 }
 
+.chronicleArenaCapacityCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+}
+
+.chronicleArenaConstructionIcon {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.chronicleArenaConstructionBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(200, 120, 32, 0.18);
+  font-size: 12px;
+  line-height: 1;
+  pointer-events: auto;
+}
+
 .chronicleTableRow .chronicleTableCell:first-child {
   font-weight: 600;
   color: #3f362c;
@@ -2405,10 +2431,6 @@ html[data-theme="dark"] .skillValue {
   color: #f3ede4;
 }
 
-html[data-theme="dark"] .skillValueMaxed {
-  border-color: #ff6b5c;
-}
-
 html[data-theme="dark"] .profileCard {
   background: #1f1c19;
   border-color: rgba(255, 255, 255, 0.08);
@@ -2500,6 +2522,18 @@ html[data-theme="dark"] .skillBar {
 
 html[data-theme="dark"] .skillFillMax {
   background: #6b5e4f;
+}
+
+html[data-theme="dark"] .skillBarMaxed {
+  background: #675634;
+}
+
+html[data-theme="dark"] .skillBarMaxed .skillFillMax {
+  background: #8a6f3f;
+}
+
+html[data-theme="dark"] .skillBarMaxed .skillFillCurrent {
+  background: linear-gradient(90deg, #b9974f, #9a7430);
 }
 
 html[data-theme="dark"] .refreshButton {
@@ -3122,21 +3156,24 @@ html[data-theme="dark"] .spinner {
   border-radius: 999px;
 }
 
+.skillBarMaxed {
+  background: #d8c48c;
+}
+
+.skillBarMaxed .skillFillMax {
+  background: #caa85a;
+}
+
+.skillBarMaxed .skillFillCurrent {
+  background: linear-gradient(90deg, #d4b15f, #b88f3f);
+}
+
 .skillValue {
   font-size: 15px;
   font-weight: 700;
   color: #2b241d;
   min-width: 52px;
   text-align: right;
-}
-
-.skillValueMaxed {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2px 6px;
-  border-radius: 999px;
-  border: 2px solid #c43b2f;
 }
 
 .matchList {
@@ -4173,6 +4210,18 @@ html[data-theme="dark"] .spinner {
   background: linear-gradient(90deg, #2f9f5b, #1f6f3f);
 }
 
+.slotTooltipCard .skillBarMaxed {
+  background: #d8c48c;
+}
+
+.slotTooltipCard .skillBarMaxed .skillFillMax {
+  background: #caa85a;
+}
+
+.slotTooltipCard .skillBarMaxed .skillFillCurrent {
+  background: linear-gradient(90deg, #d4b15f, #b88f3f);
+}
+
 .slotTooltipCard .skillValue {
   color: #1b1a17;
   min-width: 44px;
@@ -4205,6 +4254,18 @@ html[data-theme="dark"] .slotTooltipCard .skillBar {
 
 html[data-theme="dark"] .slotTooltipCard .skillFillMax {
   background: #6b5e4f;
+}
+
+html[data-theme="dark"] .slotTooltipCard .skillBarMaxed {
+  background: #675634;
+}
+
+html[data-theme="dark"] .slotTooltipCard .skillBarMaxed .skillFillMax {
+  background: #8a6f3f;
+}
+
+html[data-theme="dark"] .slotTooltipCard .skillBarMaxed .skillFillCurrent {
+  background: linear-gradient(90deg, #b9974f, #9a7430);
 }
 
 .slotLabel {

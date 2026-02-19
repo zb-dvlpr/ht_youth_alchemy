@@ -69,6 +69,13 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Youth Player List now detects name/age overlap per row and only applies truncation when overlap occurs, preventing long names from colliding with the age text.
 - Dashboard state persistence now waits for per-team restore to finish before writing back to local storage, preventing accidental overwrite with defaults when switching tools and returning to Youth Optimization.
 - Active lineup orientation arrows now keep their selected color immediately on click, even while the cursor still hovers the arrow.
+- Maxed-out skill display now uses mustard-colored skill bars (instead of circled `current/max`) in Player Details and lineup player tooltips; Player Details shows the maxed tooltip when hovering the maxed skill bar.
+- Maxed-out bar highlighting is now based strictly on CHPP `IsMaxReached` metadata from youth player details, with case-insensitive parsing (`True`/`true`) to ensure mustard bars appear reliably when the API flags maxed skills.
+- Youth player details API requests now default to CHPP file version `1.3` so `IsMaxReached` metadata is available for correct maxed-skill highlighting.
+- Fixed maxed-skill bar rendering in Player Details by making the maxed-bar tooltip trigger full-width, so mustard bars remain visible instead of collapsing.
+- Applied maxed-skill mustard color overrides inside lineup hover tooltips as well, so maxed bars are no longer forced back to green by tooltip-specific styles.
+- Arena panel now marks under-construction stadiums with a construction emoji and tooltip in total capacity, and arena row details now show current vs expanded seat/capacity columns plus expected expansion finish date.
+- Arena details now label the second column as additional capacity (using the direct expanded-capacity values from endpoint data), and the construction marker uses a clearer badge-style warning icon with hover tooltip.
 - Club Chronicle panel drag-and-drop swapping is now more forgiving by reordering as soon as a dragged panel enters a target panel area, reducing failed swaps that previously needed heavy overlap.
 - Club Chronicle drag-and-drop panel swapping now suppresses repeated swaps on the same target during a drag, preventing flicker/rapid back-and-forth while keeping swaps responsive.
 - Club Chronicle drag-and-drop now only commits panel swaps on drop/pointer-up (not mid-drag), with clearer target tracking to avoid premature moves and stray dashed-outline targets.

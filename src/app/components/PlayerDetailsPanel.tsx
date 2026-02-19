@@ -576,9 +576,9 @@ export default function PlayerDetailsPanel({
               const skillNode = detailsData.PlayerSkills?.[row.key];
               const current = getSkillLevel(skillNode);
               const max = getSkillMax(detailsData.PlayerSkills?.[row.maxKey]);
-              const isMaxed = getSkillMaxReached(skillNode);
               const hasCurrent = current !== null;
               const hasMax = max !== null;
+              const isMaxed = getSkillMaxReached(skillNode);
               const currentText = hasCurrent
                 ? String(current)
                 : messages.unknownShort;
@@ -595,33 +595,42 @@ export default function PlayerDetailsPanel({
                   <div className={styles.skillLabel}>
                     {messages[row.labelKey as keyof Messages]}
                   </div>
-                  <div className={styles.skillBar}>
-                    {hasMax ? (
-                      <div
-                        className={styles.skillFillMax}
-                        style={{ width: `${maxPct}%` }}
-                      />
-                    ) : null}
-                    {hasCurrent ? (
-                      <div
-                        className={styles.skillFillCurrent}
-                        style={{ width: `${currentPct}%` }}
-                      />
-                    ) : null}
-                  </div>
                   {isMaxed ? (
-                    <Tooltip content={messages.skillMaxedTooltip}>
-                      <div
-                        className={`${styles.skillValue} ${styles.skillValueMaxed}`}
-                      >
-                        {currentText}/{maxText}
+                    <Tooltip content={messages.skillMaxedTooltip} fullWidth>
+                      <div className={`${styles.skillBar} ${styles.skillBarMaxed}`}>
+                        {hasMax ? (
+                          <div
+                            className={styles.skillFillMax}
+                            style={{ width: `${maxPct}%` }}
+                          />
+                        ) : null}
+                        {hasCurrent ? (
+                          <div
+                            className={styles.skillFillCurrent}
+                            style={{ width: `${currentPct}%` }}
+                          />
+                        ) : null}
                       </div>
                     </Tooltip>
                   ) : (
-                    <div className={styles.skillValue}>
-                      {currentText}/{maxText}
+                    <div className={styles.skillBar}>
+                      {hasMax ? (
+                        <div
+                          className={styles.skillFillMax}
+                          style={{ width: `${maxPct}%` }}
+                        />
+                      ) : null}
+                      {hasCurrent ? (
+                        <div
+                          className={styles.skillFillCurrent}
+                          style={{ width: `${currentPct}%` }}
+                        />
+                      ) : null}
                     </div>
                   )}
+                  <div className={styles.skillValue}>
+                    {currentText}/{maxText}
+                  </div>
                 </div>
               );
             })}

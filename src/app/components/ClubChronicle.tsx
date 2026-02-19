@@ -2547,7 +2547,25 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   ) => {
     event.preventDefault();
     if (!draggedPanelId || draggedPanelId === panelId) return;
+    event.dataTransfer.dropEffect = "move";
+  };
+
+  const handlePanelDragEnter = (
+    event: React.DragEvent<HTMLDivElement>,
+    panelId: string
+  ) => {
+    event.preventDefault();
+    if (!draggedPanelId || draggedPanelId === panelId) return;
     setDropTargetPanelId(panelId);
+  };
+
+  const handlePanelDragLeave = (
+    event: React.DragEvent<HTMLDivElement>,
+    panelId: string
+  ) => {
+    const relatedTarget = event.relatedTarget as Node | null;
+    if (relatedTarget && event.currentTarget.contains(relatedTarget)) return;
+    setDropTargetPanelId((prev) => (prev === panelId ? null : prev));
   };
 
   const handlePanelDrop = (
@@ -6721,6 +6739,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 key={panelId}
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDragEnter={(event) => handlePanelDragEnter(event, panelId)}
+                onDragLeave={(event) => handlePanelDragLeave(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
                 onPointerEnter={() => handlePanelPointerEnter(panelId)}
                 onPointerUp={() => handlePanelPointerUp(panelId)}
@@ -6771,6 +6791,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 key={panelId}
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDragEnter={(event) => handlePanelDragEnter(event, panelId)}
+                onDragLeave={(event) => handlePanelDragLeave(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
                 onPointerEnter={() => handlePanelPointerEnter(panelId)}
                 onPointerUp={() => handlePanelPointerUp(panelId)}
@@ -6821,6 +6843,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 key={panelId}
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDragEnter={(event) => handlePanelDragEnter(event, panelId)}
+                onDragLeave={(event) => handlePanelDragLeave(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
                 onPointerEnter={() => handlePanelPointerEnter(panelId)}
                 onPointerUp={() => handlePanelPointerUp(panelId)}
@@ -6876,6 +6900,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 key={panelId}
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDragEnter={(event) => handlePanelDragEnter(event, panelId)}
+                onDragLeave={(event) => handlePanelDragLeave(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
                 onPointerEnter={() => handlePanelPointerEnter(panelId)}
                 onPointerUp={() => handlePanelPointerUp(panelId)}
@@ -6926,6 +6952,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 key={panelId}
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDragEnter={(event) => handlePanelDragEnter(event, panelId)}
+                onDragLeave={(event) => handlePanelDragLeave(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
                 onPointerEnter={() => handlePanelPointerEnter(panelId)}
                 onPointerUp={() => handlePanelPointerUp(panelId)}
@@ -6976,6 +7004,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 key={panelId}
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDragEnter={(event) => handlePanelDragEnter(event, panelId)}
+                onDragLeave={(event) => handlePanelDragLeave(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
                 onPointerEnter={() => handlePanelPointerEnter(panelId)}
                 onPointerUp={() => handlePanelPointerUp(panelId)}
@@ -7025,6 +7055,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 key={panelId}
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDragEnter={(event) => handlePanelDragEnter(event, panelId)}
+                onDragLeave={(event) => handlePanelDragLeave(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
                 onPointerEnter={() => handlePanelPointerEnter(panelId)}
                 onPointerUp={() => handlePanelPointerUp(panelId)}
@@ -7077,6 +7109,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 key={panelId}
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDragEnter={(event) => handlePanelDragEnter(event, panelId)}
+                onDragLeave={(event) => handlePanelDragLeave(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
                 onPointerEnter={() => handlePanelPointerEnter(panelId)}
                 onPointerUp={() => handlePanelPointerUp(panelId)}
@@ -7127,6 +7161,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 key={panelId}
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDragEnter={(event) => handlePanelDragEnter(event, panelId)}
+                onDragLeave={(event) => handlePanelDragLeave(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
                 onPointerEnter={() => handlePanelPointerEnter(panelId)}
                 onPointerUp={() => handlePanelPointerUp(panelId)}
@@ -7177,6 +7213,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 key={panelId}
                 className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
                 onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDragEnter={(event) => handlePanelDragEnter(event, panelId)}
+                onDragLeave={(event) => handlePanelDragLeave(event, panelId)}
                 onDrop={(event) => handlePanelDrop(event, panelId)}
                 onPointerEnter={() => handlePanelPointerEnter(panelId)}
                 onPointerUp={() => handlePanelPointerUp(panelId)}

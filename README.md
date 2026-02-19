@@ -76,6 +76,12 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Applied maxed-skill mustard color overrides inside lineup hover tooltips as well, so maxed bars are no longer forced back to green by tooltip-specific styles.
 - Arena panel now marks under-construction stadiums with a construction emoji and tooltip in total capacity, and arena row details now show current vs expanded seat/capacity columns plus expected expansion finish date.
 - Arena details now label the second column as additional capacity (using the direct expanded-capacity values from endpoint data), and the construction marker uses a clearer badge-style warning icon with hover tooltip.
+- Club Chronicle help overlay now always appears on the first-ever CC use in a browser profile, independent of token state.
+- Club Chronicle help modal now auto-repositions below callouts to avoid visual overlap between the guide card and anchor callouts.
+- Club Chronicle help now also re-opens when the CHPP token changes (first token acquisition or token refresh), in addition to first-ever CC use.
+- Youth Optimization help overlay now keeps callouts above app chrome and dynamically pushes the help card below callouts to avoid overlap.
+- Youth and Club Chronicle help guides were expanded with clearer practical usage instructions (controls, drag/drop workflow, and optimizer mode intent without algorithm pseudocode).
+- Youth Optimization guide no longer includes the redundant "Desktop-optimized" help bullet.
 - Club Chronicle panel drag-and-drop swapping is now more forgiving by reordering as soon as a dragged panel enters a target panel area, reducing failed swaps that previously needed heavy overlap.
 - Club Chronicle drag-and-drop panel swapping now suppresses repeated swaps on the same target during a drag, preventing flicker/rapid back-and-forth while keeping swaps responsive.
 - Club Chronicle drag-and-drop now only commits panel swaps on drop/pointer-up (not mid-drag), with clearer target tracking to avoid premature moves and stray dashed-outline targets.

@@ -661,6 +661,8 @@ const GLOBAL_UPDATES_HISTORY_KEY = "ya_cc_global_updates_history_v1";
 const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
 const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
 const HELP_STORAGE_KEY = "ya_cc_help_dismissed_v1";
+const FIRST_USE_KEY = "ya_cc_first_use_seen_v1";
+const HELP_DISMISSED_TOKEN_KEY = "ya_cc_help_dismissed_token_v1";
 const NO_DIVULGO_DISMISS_TOKEN_KEY = "ya_cc_no_divulgo_dismissed_token_v1";
 const NO_DIVULGO_TARGET_TEAM_ID = 524637;
 const PANEL_IDS = [
@@ -1726,6 +1728,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         | "right-center";
     }[]
   >([]);
+  const [helpCardTop, setHelpCardTop] = useState(84);
   const initializedRef = useRef(false);
   const initialFetchRef = useRef(false);
   const staleRefreshRef = useRef(false);
@@ -1997,14 +2000,28 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const firstUseSeen = window.localStorage.getItem(FIRST_USE_KEY) === "1";
+    if (!firstUseSeen) {
+      setShowHelp(true);
+      window.localStorage.setItem(FIRST_USE_KEY, "1");
+    }
     const dismissed = window.localStorage.getItem(HELP_STORAGE_KEY);
-    if (!dismissed) {
+    if (firstUseSeen && !dismissed) {
       setShowHelp(true);
     }
     const handler = () => setShowHelp(true);
     window.addEventListener("ya:help-open", handler);
     return () => window.removeEventListener("ya:help-open", handler);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!tokenChecked || !currentToken) return;
+    const dismissedToken = window.localStorage.getItem(HELP_DISMISSED_TOKEN_KEY);
+    if (dismissedToken !== currentToken) {
+      setShowHelp(true);
+    }
+  }, [tokenChecked, currentToken]);
 
   useEffect(() => {
     if (!showHelp) {
@@ -2152,6 +2169,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     messages.clubChronicleHelpCalloutUpdates,
     messages.clubChronicleHelpCalloutWatchlist,
   ]);
+
+  useEffect(() => {
+    if (!showHelp) return;
+    const updateHelpCardTop = () => {
+      const calloutNodes = Array.from(
+        document.querySelectorAll<HTMLElement>(`.${styles.clubChronicleHelpCallout}`)
+      );
+      const minTop = 84;
+      const margin = 16;
+      const maxBottom = calloutNodes.reduce(
+        (acc, node) => Math.max(acc, node.getBoundingClientRect().bottom),
+        minTop
+      );
+      const maxTop = Math.max(minTop, window.innerHeight - 240);
+      setHelpCardTop(Math.min(Math.max(minTop, maxBottom + margin), maxTop));
+    };
+    const frame = window.requestAnimationFrame(updateHelpCardTop);
+    window.addEventListener("resize", updateHelpCardTop);
+    window.addEventListener("scroll", updateHelpCardTop, true);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updateHelpCardTop);
+      window.removeEventListener("scroll", updateHelpCardTop, true);
+    };
+  }, [showHelp, helpCallouts]);
 
   useEffect(() => {
     let active = true;
@@ -6793,7 +6835,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               </div>
             ))}
           </div>
-          <div className={styles.clubChronicleHelpCard}>
+          <div className={styles.clubChronicleHelpCard} style={{ top: `${helpCardTop}px` }}>
             <h2 className={styles.helpTitle}>{messages.clubChronicleHelpTitle}</h2>
             <p className={styles.helpIntro}>{messages.clubChronicleHelpIntro}</p>
             <ul className={styles.helpList}>
@@ -6817,6 +6859,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 setShowHelp(false);
                 if (typeof window !== "undefined") {
                   window.localStorage.setItem(HELP_STORAGE_KEY, "1");
+                  window.localStorage.setItem(
+                    HELP_DISMISSED_TOKEN_KEY,
+                    currentToken ?? "__unknown__"
+                  );
                 }
               }}
             >

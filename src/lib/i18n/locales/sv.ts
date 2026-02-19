@@ -163,7 +163,7 @@ export const messagesSv: Messages = {
     clubChronicleHelpCalloutWatchlist:
       "Watchlist styr vilka lag som foljs i varje panel.",
     clubChronicleHelpBulletControls:
-      "Headerkontroller: anvand Uppdatera for en full datakorning, folj framsteg via statusrad och mini-staplar per panel, anvand Senaste uppdateringar for diffar och watchlist for att hantera foljda lag.",
+      "Headerkontroller: anvand Uppdatera for en full datakorning, folj framsteg via statusrad och mini-staplar per panel, anvand Senaste uppdateringar for diffar, watchlist for att hantera foljda lag och dra panelrubriker for att ordna om dashboarden.",
     clubChronicleHelpBulletLeague:
       "Ligaprestanda: tabell med placering, poang, serie, placeringsforandring och malskillnad. Klicka pa en rad for jamforelse mellan tidigare/nuvarande per attribut.",
     clubChronicleHelpBulletPress:
@@ -185,7 +185,7 @@ export const messagesSv: Messages = {
     clubChronicleHelpBulletWages:
       "Loner: lagets total och top-11 loner i EUR. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar) och lon.",
     clubChronicleHelpBulletLatestUpdates:
-      "Senaste uppdateringar behaller andringsgrupper per attribut och lag, och sparar senaste icke-tomma globala diff for granskning.",
+      "Senaste uppdateringar behaller andringsgrupper per attribut och lag, sparar senaste icke-tomma globala diff for granskning och later dig byta mellan sparade uppdateringar med andringar.",
     clubChroniclePressPanelTitle: "Pressmeddelanden",
     clubChroniclePressDetailsTitle: "Pressmeddelande",
     clubChroniclePressColumnAnnouncement: "Meddelande",
@@ -316,15 +316,19 @@ export const messagesSv: Messages = {
     clubChronicleFieldLost: "Förlorade",
     notificationChronicleStaleRefresh: "Klubbkrönikan uppdaterades på grund av gammal data.",
     notificationChronicleRefreshComplete: "Klubbkrönikans uppdatering klar.",
-    helpTitle: "Välkommen till Hattrick Alchemy",
+    helpTitle: "Guide for ungdomsoptimering",
     helpIntro:
       "Det här verktyget hjälper dig planera optimal ungdomsträning och uppställning.",
     helpBulletOverview:
-      "Granska ungdomsspelare, skills‑matris, betygsmatris och markeringar för maxade skills.",
+      "Granska ungdomsspelare i Spelardetaljer, Skills-matris och Betygsmatris, inklusive markeringar for maxade skills.",
+    helpBulletWorkflow:
+      "Rekommenderat flode: valj stjarnspelare, satt primar/sekundar traning, anvand auto-val vid behov, optimera och finjustera innan du skickar.",
     helpBulletMatches:
       "Se kommande matcher och ladda sparade uppställningar när de finns.",
     helpBulletAdjust:
-      "Skapa en optimal elva och justera fritt — dra spelare i uppställningen eller från listan.",
+      "Skapa en optimal elva och justera fritt: dra spelare mellan plan, bank och lista; klicka pa spelarkort for att rotera riktning och fokusera detaljer.",
+    helpBulletOptimizerModes:
+      "Optimeringslagen: optimera runt stjarnspelaren, optimera efter betyg och reveal-lagen for att prioritera nyttiga scouting-avslojanden. Valj lag efter veckans mal.",
     helpBulletTraining:
       "Du kan skicka uppställningar till Hattrick, men träningen måste ställas in manuellt (API:t tillåter inte det).",
     helpBulletDesktop: "Optimerad för desktop.",

@@ -262,9 +262,15 @@ export default function Dashboard({
       text: string;
       style: CSSProperties;
       hideIndex?: boolean;
-      placement?: "above-left" | "above-center" | "right-center" | "left-center";
+      placement?:
+        | "above-left"
+        | "above-center"
+        | "below-center"
+        | "right-center"
+        | "left-center";
     }[]
   >([]);
+  const [helpCardTopOffset, setHelpCardTopOffset] = useState(0);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [ratingsCache, setRatingsCache] = useState<
     Record<number, Record<string, number>>
@@ -933,7 +939,12 @@ export default function Dashboard({
         id: string;
         selector: string;
         text: string;
-        placement: "above-left" | "above-center" | "right-center" | "left-center";
+        placement:
+          | "above-left"
+          | "above-center"
+          | "below-center"
+          | "right-center"
+          | "left-center";
         hideIndex?: boolean;
         offsetX?: number;
         offsetY?: number;
@@ -949,7 +960,8 @@ export default function Dashboard({
           id: "training",
           selector: "[data-help-anchor='training-panel']",
           text: messages.helpCalloutTraining,
-          placement: "above-center",
+          placement: "below-center",
+          offsetY: 6,
         },
         {
           id: "optimize",
@@ -1014,6 +1026,11 @@ export default function Dashboard({
             top = rectTop - 10;
             transform = "translate(-50%, -100%)";
             break;
+          case "below-center":
+            left = centerX;
+            top = rectTop + rectHeight + 10;
+            transform = "translate(-50%, 0)";
+            break;
           case "right-center":
             left = rectLeft + rectWidth + 10;
             top = centerY;
@@ -1047,7 +1064,8 @@ export default function Dashboard({
             )
           : clampedLeft;
         const pointerXRaw =
-          target.placement === "above-center"
+          target.placement === "above-center" ||
+          target.placement === "below-center"
             ? centerX - clampedLeftAdjusted + calloutWidth / 2
             : centerX - clampedLeftAdjusted;
         const pointerX = Math.min(
@@ -1086,6 +1104,38 @@ export default function Dashboard({
     window.addEventListener("resize", schedule);
     return () => window.removeEventListener("resize", schedule);
   }, [showHelp, messages]);
+
+  useEffect(() => {
+    if (!showHelp) {
+      setHelpCardTopOffset(0);
+      return;
+    }
+    const updateHelpCardOffset = () => {
+      const root = dashboardRef.current;
+      if (!root) return;
+      const rootRect = root.getBoundingClientRect();
+      const calloutNodes = Array.from(
+        root.querySelectorAll<HTMLElement>(`.${styles.helpCallout}`)
+      );
+      if (calloutNodes.length === 0) {
+        setHelpCardTopOffset(0);
+        return;
+      }
+      const maxBottom = calloutNodes.reduce(
+        (acc, node) => Math.max(acc, node.getBoundingClientRect().bottom),
+        rootRect.top
+      );
+      setHelpCardTopOffset(Math.max(0, maxBottom - rootRect.top + 16));
+    };
+    const frame = window.requestAnimationFrame(updateHelpCardOffset);
+    window.addEventListener("resize", updateHelpCardOffset);
+    window.addEventListener("scroll", updateHelpCardOffset, true);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updateHelpCardOffset);
+      window.removeEventListener("scroll", updateHelpCardOffset, true);
+    };
+  }, [showHelp, helpCallouts]);
 
   const loadDetails = async (playerId: number, forceRefresh = false) => {
     const cached = cache[playerId];
@@ -2345,15 +2395,19 @@ export default function Dashboard({
       </div>
       <div className={styles.columnStack}>
         {showHelp ? (
-          <div className={styles.helpCard}>
+          <div
+            className={styles.helpCard}
+            style={{ marginTop: `${helpCardTopOffset}px` }}
+          >
             <h2 className={styles.helpTitle}>{messages.helpTitle}</h2>
             <p className={styles.helpIntro}>{messages.helpIntro}</p>
             <ul className={styles.helpList}>
               <li>{messages.helpBulletOverview}</li>
+              <li>{messages.helpBulletWorkflow}</li>
               <li>{messages.helpBulletMatches}</li>
               <li>{messages.helpBulletAdjust}</li>
+              <li>{messages.helpBulletOptimizerModes}</li>
               <li>{messages.helpBulletTraining}</li>
-              <li>{messages.helpBulletDesktop}</li>
             </ul>
             <button
               type="button"

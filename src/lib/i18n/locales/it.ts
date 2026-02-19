@@ -168,7 +168,7 @@ export const messagesIt: Messages = {
     clubChronicleHelpCalloutWatchlist:
       "La watchlist controlla quali squadre vengono tracciate in ogni pannello.",
     clubChronicleHelpBulletControls:
-      "Controlli header: usa Aggiorna per un passaggio completo dei dati, monitora il progresso con barra di stato e mini barre per pannello, usa Ultimi aggiornamenti per i diff e la watchlist per gestire le squadre tracciate.",
+      "Controlli header: usa Aggiorna per un passaggio completo dei dati, monitora il progresso con barra di stato e mini barre per pannello, usa Ultimi aggiornamenti per i diff, la watchlist per gestire le squadre tracciate e trascina le intestazioni pannello per riordinare la dashboard.",
     clubChronicleHelpBulletLeague:
       "Prestazioni in lega: tabella con posizione, punti, serie, variazione posizione e differenza reti. Clicca una riga per il confronto precedente/corrente per attributo.",
     clubChronicleHelpBulletPress:
@@ -190,7 +190,7 @@ export const messagesIt: Messages = {
     clubChronicleHelpBulletWages:
       "Salari: salari totali squadra e top-11 in EUR. Clicca una riga per dettagli giocatore ordinabili con indice, eta (anni+giorni) e salario.",
     clubChronicleHelpBulletLatestUpdates:
-      "Ultimi aggiornamenti mantiene gruppi di cambiamento per attributo e squadra e conserva l ultimo diff globale non vuoto per consultazione.",
+      "Ultimi aggiornamenti mantiene i cambi per attributo raggruppati per squadra, conserva l ultimo diff globale non vuoto e permette di passare tra i refresh salvati con modifiche.",
     clubChroniclePressPanelTitle: "Comunicati stampa",
     clubChroniclePressDetailsTitle: "Comunicato stampa",
     clubChroniclePressColumnAnnouncement: "Annuncio",
@@ -322,15 +322,19 @@ export const messagesIt: Messages = {
     clubChronicleFieldLost: "Perse",
     notificationChronicleStaleRefresh: "Cronaca del club aggiornata a causa di dati obsoleti.",
     notificationChronicleRefreshComplete: "Aggiornamento della cronaca del club completato.",
-    helpTitle: "Benvenuto in Hattrick Alchemy",
+    helpTitle: "Guida ottimizzazione giovanile",
     helpIntro:
       "Questo strumento ti aiuta a pianificare allenamento e formazione ottimali per la giovanile.",
     helpBulletOverview:
-      "Consulta i giovani giocatori, la matrice abilità, la matrice valutazioni e gli indicatori di abilità al massimo.",
+      "Analizza i giovani giocatori in Dettagli giocatore, Matrice abilita e Matrice valutazioni, con indicatori delle abilita gia al massimo.",
+    helpBulletWorkflow:
+      "Flusso consigliato: scegli il giocatore stella, imposta allenamento primario/secondario, usa l auto-selezione se serve, poi ottimizza e rifinisci prima dell invio.",
     helpBulletMatches:
       "Vedi le prossime partite e carica le formazioni salvate quando disponibili.",
     helpBulletAdjust:
-      "Genera una formazione ottimale e modificala liberamente — trascina i giocatori nella formazione o dalla lista.",
+      "Genera una formazione ottimale e modificala liberamente: trascina i giocatori tra campo, panchina e lista; clic su una card giocatore per ruotare orientamento e focalizzare i dettagli.",
+    helpBulletOptimizerModes:
+      "Modalita ottimizzatore: ottimizza attorno al giocatore stella, ottimizza per rating e modalita reveal per priorizzare rivelazioni scouting utili. Scegli in base all obiettivo settimanale.",
     helpBulletTraining:
       "Puoi inviare le formazioni a Hattrick, ma l’allenamento va impostato manualmente (l’API non lo consente).",
     helpBulletDesktop: "Ottimizzato per desktop.",

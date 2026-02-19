@@ -149,7 +149,7 @@ export const messagesEn: Messages = {
     clubChronicleHelpCalloutUpdates: "Latest updates shows only changed attributes grouped by team.",
     clubChronicleHelpCalloutWatchlist: "Watchlist controls which teams are tracked in every panel.",
     clubChronicleHelpBulletControls:
-      "Header controls: use Refresh for a full data pass, monitor progress via the status bar and per-panel mini bars, use Latest updates for tracked diffs, and use Watchlist to manage tracked teams.",
+      "Header controls: use Refresh for a full data pass, monitor progress via the status bar and per-panel mini bars, use Latest updates for tracked diffs, use Watchlist to manage tracked teams, and drag panel headers to reorder the dashboard.",
     clubChronicleHelpBulletLeague:
       "League performance: table of position, points, series, position change, and goal delta. Click a row for previous/current attribute-level comparison.",
     clubChronicleHelpBulletPress:
@@ -171,7 +171,7 @@ export const messagesEn: Messages = {
     clubChronicleHelpBulletWages:
       "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), and wage.",
     clubChronicleHelpBulletLatestUpdates:
-      "Latest updates keeps per-attribute change groups by team and retains the latest non-empty global-refresh diff for review.",
+      "Latest updates keeps per-attribute change groups by team, retains the latest non-empty global-refresh diff for review, and lets you switch between saved changed refreshes.",
     clubChroniclePressPanelTitle: "Press announcements",
     clubChroniclePressDetailsTitle: "Press announcement",
     clubChroniclePressColumnAnnouncement: "Announcement",
@@ -302,15 +302,19 @@ export const messagesEn: Messages = {
     clubChronicleFieldLost: "Lost",
     notificationChronicleStaleRefresh: "Club Chronicle refreshed due to stale data.",
     notificationChronicleRefreshComplete: "Club Chronicle refresh complete.",
-    helpTitle: "Welcome to Hattrick Alchemy",
+    helpTitle: "Youth optimization guide",
     helpIntro:
       "This tool helps you plan optimal youth training and lineups.",
     helpBulletOverview:
-      "Review youth players, plus the skills matrix, ratings matrix, and maxed-out skill markers.",
+      "Review youth players and inspect Player details, Skills matrix, and Ratings matrix with maxed-out skill markers.",
+    helpBulletWorkflow:
+      "Typical flow: select a star player, choose primary/secondary training, auto-select if needed, then optimize and fine-tune before submitting match orders.",
     helpBulletMatches:
       "See upcoming matches and load saved lineups when available.",
     helpBulletAdjust:
-      "Generate an optimized lineup, then adjust it freely—drag players within the lineup or from the player list.",
+      "Generate an optimized lineup, then adjust it freely: drag players between lineup slots, bench, and player list; click a player card to rotate orientation and to focus details.",
+    helpBulletOptimizerModes:
+      "Optimizer menu modes: optimize around star, optimize by ratings, and reveal-focused modes that prioritize useful scouting reveals. Use the mode that matches your weekly objective.",
     helpBulletTraining:
       "Submit lineups directly to Hattrick, but training must be set manually (the API doesn’t allow it).",
     helpBulletDesktop: "Desktop-optimized.",

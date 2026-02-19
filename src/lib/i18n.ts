@@ -286,6 +286,8 @@ export type Messages = {
   helpBulletMatches: string;
   helpBulletAdjust: string;
   helpBulletTraining: string;
+  helpBulletWorkflow: string;
+  helpBulletOptimizerModes: string;
   helpBulletDesktop: string;
   helpCalloutStar: string;
   helpCalloutTraining: string;

@@ -168,7 +168,7 @@ export const messagesEs: Messages = {
     clubChronicleHelpCalloutWatchlist:
       "La watchlist controla que equipos se siguen en cada panel.",
     clubChronicleHelpBulletControls:
-      "Controles de cabecera: usa Actualizar para una carga completa, sigue el progreso con la barra de estado y mini barras por panel, usa Ultimas actualizaciones para diffs y la watchlist para gestionar equipos seguidos.",
+      "Controles de cabecera: usa Actualizar para una carga completa, sigue el progreso con la barra de estado y mini barras por panel, usa Ultimas actualizaciones para diffs, la watchlist para gestionar equipos seguidos, y arrastra cabeceras de panel para reordenar el tablero.",
     clubChronicleHelpBulletLeague:
       "Rendimiento en liga: tabla con posicion, puntos, serie, cambio de posicion y diferencia de goles. Haz clic en una fila para comparar anterior/actual por atributo.",
     clubChronicleHelpBulletPress:
@@ -190,7 +190,7 @@ export const messagesEs: Messages = {
     clubChronicleHelpBulletWages:
       "Salarios: salario total del equipo y top 11 en EUR. Haz clic en una fila para ver detalles de jugadores ordenables con indice, edad (anos+dias) y salario.",
     clubChronicleHelpBulletLatestUpdates:
-      "Ultimas actualizaciones conserva cambios por atributo agrupados por equipo y mantiene el ultimo diff global no vacio para consulta.",
+      "Ultimas actualizaciones conserva cambios por atributo agrupados por equipo, mantiene el ultimo diff global no vacio para consulta y permite cambiar entre refrescos guardados con cambios.",
     clubChroniclePressPanelTitle: "Comunicados de prensa",
     clubChroniclePressDetailsTitle: "Comunicado de prensa",
     clubChroniclePressColumnAnnouncement: "Anuncio",
@@ -321,15 +321,19 @@ export const messagesEs: Messages = {
     clubChronicleFieldLost: "Perdidos",
     notificationChronicleStaleRefresh: "Crónica del club actualizada por datos obsoletos.",
     notificationChronicleRefreshComplete: "Actualización de la crónica del club completada.",
-    helpTitle: "Bienvenido a Hattrick Alchemy",
+    helpTitle: "Guia de optimizacion juvenil",
     helpIntro:
       "Esta herramienta te ayuda a planificar el entrenamiento y la alineación óptimos de juveniles.",
     helpBulletOverview:
-      "Revisa jugadores juveniles, la matriz de habilidades, la matriz de valoraciones y los marcadores de habilidades al máximo.",
+      "Revisa juveniles desde Detalles del jugador, Matriz de habilidades y Matriz de valoraciones, con marcadores de habilidades al maximo.",
+    helpBulletWorkflow:
+      "Flujo recomendado: elige jugador estrella, define entrenamiento primario/secundario, usa autoseleccion si hace falta, luego optimiza y ajusta antes de enviar.",
     helpBulletMatches:
       "Consulta los próximos partidos y carga alineaciones guardadas si están disponibles.",
     helpBulletAdjust:
-      "Genera una alineación óptima y ajusta libremente — arrastra jugadores dentro de la alineación o desde la lista.",
+      "Genera una alineacion optima y ajusta libremente: arrastra jugadores entre campo, banquillo y lista; haz clic en la tarjeta para rotar orientacion y enfocar detalles.",
+    helpBulletOptimizerModes:
+      "Modos del optimizador: optimizar alrededor del jugador estrella, optimizar por valoraciones y modos reveal para priorizar descubrimientos utiles del scouting. Elige segun tu objetivo semanal.",
     helpBulletTraining:
       "Puedes enviar alineaciones a Hattrick, pero el entrenamiento debe configurarse manualmente (la API no lo permite).",
     helpBulletDesktop: "Optimizado para escritorio.",

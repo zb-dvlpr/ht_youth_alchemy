@@ -561,7 +561,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  z-index: 6;
+  z-index: 80;
 }
 
 .helpCallouts {
@@ -574,7 +574,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  z-index: 2;
+  z-index: 81;
   background: #fff8ed;
   border: 2px solid #d2b68f;
   border-radius: 14px;

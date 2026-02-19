@@ -56,6 +56,7 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Club Chronicle top controls (`Refresh`, `Latest updates`, and Watchlist button) now stay sticky and visible while scrolling.
 - Modal backdrop-close logic now requires the press to start on the backdrop, preventing accidental modal close when text selection starts inside a modal and mouse-up happens outside.
 - Likely training regimen details modal now uses clearer vertical spacing for the top summary text block.
+- CHPP re-auth flow now redirects to authorization using only `oauth_token` (no extra scope query), and access token cookies now persist for a long-term duration (20 years) to avoid unnecessary reconnect prompts after inactivity.
 
 ## Local setup
 1) Install dependencies

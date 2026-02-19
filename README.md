@@ -53,6 +53,7 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Latest updates now tracks changes per attribute across all Club Chronicle panels, grouped by team and showing only changed fields in a responsive, scrollable team-card grid, with a baseline fixed to the most recent global refresh, sticky retention of the last detected non-empty change set, and a 10-entry changed-refresh comparison history directly in the modal (no-change refreshes are not saved as history buttons).
 - Latest updates now visually highlights the currently loaded comparison chip in the history row, so it is always clear which changeset is displayed.
 - Club Chronicle settings now include a configurable cap for how many changed `Latest updates` diffs are stored/shown in history, with a tooltip explaining the behavior.
+- Club Chronicle top controls (`Refresh`, `Latest updates`, and Watchlist button) now stay sticky and visible while scrolling.
 
 ## Local setup
 1) Install dependencies

@@ -995,6 +995,18 @@ html[data-app-scaling="off"] .topBar::before {
   align-items: center;
   justify-content: flex-start;
   gap: 12px;
+  position: sticky;
+  top: 8px;
+  z-index: 30;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgba(244, 239, 230, 0.96);
+  box-shadow: 0 2px 12px rgba(49, 38, 24, 0.08);
+  backdrop-filter: blur(2px);
+}
+
+html[data-app-scaling="off"] .chronicleHeader {
+  top: 74px;
 }
 
 .chronicleHeaderTitle {
@@ -1997,6 +2009,11 @@ html[data-theme="dark"] .watchlistFab:hover {
 
 html[data-theme="dark"] .chronicleHeaderTitle {
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .chronicleHeader {
+  background: rgba(35, 30, 24, 0.92);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
 html[data-theme="dark"] .chronicleUpdatesButton {

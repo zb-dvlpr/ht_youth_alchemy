@@ -86,6 +86,7 @@ export async function postChppXml(
 }
 
 export function buildChppErrorPayload(message: string, error: unknown) {
+  const isDev = process.env.NODE_ENV !== "production";
   const details =
     error instanceof Error
       ? error.message
@@ -114,7 +115,8 @@ export function buildChppErrorPayload(message: string, error: unknown) {
       details: "CHPP authorization expired. Re-auth required.",
       statusCode: 401,
       code: "CHPP_AUTH_EXPIRED",
-      data: null,
+      data: isDev ? data : null,
+      debugDetails: isDev ? details : null,
     };
   }
 

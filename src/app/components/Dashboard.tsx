@@ -202,6 +202,9 @@ export default function Dashboard({
   const [error, setError] = useState<string | null>(null);
   const [authError, setAuthError] = useState(initialAuthError);
   const [authErrorDetails, setAuthErrorDetails] = useState<string | null>(null);
+  const [authErrorDebugDetails, setAuthErrorDebugDetails] = useState<string | null>(
+    null
+  );
   const [loadError, setLoadError] = useState<string | null>(initialLoadError);
   const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(
     initialLoadDetails
@@ -818,10 +821,13 @@ export default function Dashboard({
     const handleAuthRequired = (event: Event) => {
       const detail =
         event instanceof CustomEvent
-          ? (event.detail as { details?: string } | undefined)
+          ? (event.detail as { details?: string; debugDetails?: string } | undefined)
           : undefined;
       setAuthError(true);
       setAuthErrorDetails(detail?.details ?? messages.connectHint);
+      setAuthErrorDebugDetails(
+        process.env.NODE_ENV !== "production" ? detail?.debugDetails ?? null : null
+      );
       const now = Date.now();
       if (now - lastAuthNotificationAtRef.current > 3000) {
         addNotification(messages.notificationReauthRequired);
@@ -2196,6 +2202,9 @@ export default function Dashboard({
             <p>{messages.authExpiredBody}</p>
             {authErrorDetails ? (
               <p className={styles.errorDetails}>{authErrorDetails}</p>
+            ) : null}
+            {process.env.NODE_ENV !== "production" && authErrorDebugDetails ? (
+              <pre className={styles.errorDetails}>{authErrorDebugDetails}</pre>
             ) : null}
           </div>
         }

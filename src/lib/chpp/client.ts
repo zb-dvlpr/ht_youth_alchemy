@@ -19,6 +19,8 @@ type AuthMeta = {
   statusCode?: number;
   error?: string;
   details?: string;
+  data?: string;
+  debugDetails?: string;
 };
 
 const hasAuthMarker = (value: unknown) => {
@@ -35,6 +37,9 @@ const getAuthMeta = (payload: unknown): AuthMeta => {
       typeof record.statusCode === "number" ? record.statusCode : undefined,
     error: typeof record.error === "string" ? record.error : undefined,
     details: typeof record.details === "string" ? record.details : undefined,
+    data: typeof record.data === "string" ? record.data : undefined,
+    debugDetails:
+      typeof record.debugDetails === "string" ? record.debugDetails : undefined,
   };
 };
 
@@ -49,12 +54,16 @@ export function isChppAuthErrorPayload(payload: unknown, response?: Response) {
   );
 }
 
-export function dispatchChppAuthRequired(details?: string | null) {
+export function dispatchChppAuthRequired(
+  details?: string | null,
+  debugDetails?: string | null
+) {
   if (typeof window === "undefined") return;
   window.dispatchEvent(
     new CustomEvent(CHPP_AUTH_REQUIRED_EVENT, {
       detail: {
         details: details ?? "Missing CHPP access token. Re-auth required.",
+        debugDetails: debugDetails ?? null,
       },
     })
   );
@@ -68,10 +77,14 @@ export async function fetchChppJson<T = unknown>(
   const payload = (await response.json().catch(() => null)) as T | null;
   if (isChppAuthErrorPayload(payload, response)) {
     const meta = getAuthMeta(payload);
-    const details =
+    const userFacingDetails =
       meta.details ?? meta.error ?? "Missing CHPP access token. Re-auth required.";
-    dispatchChppAuthRequired(details);
-    throw new ChppAuthRequiredError(details);
+    const debugDetails =
+      process.env.NODE_ENV !== "production"
+        ? [meta.debugDetails, meta.data].filter(Boolean).join("\n")
+        : null;
+    dispatchChppAuthRequired(userFacingDetails, debugDetails);
+    throw new ChppAuthRequiredError(userFacingDetails);
   }
   return { response, payload };
 }

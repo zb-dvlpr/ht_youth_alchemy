@@ -105,6 +105,10 @@ export const messagesIt: Messages = {
     settingsClubChronicleTransferHistoryLabel: "Ultimi trasferimenti da mantenere",
     settingsClubChronicleTransferHistoryHint:
       "Quanti trasferimenti recenti per squadra mantenere in cache e mostrare nei dettagli.",
+    settingsClubChronicleUpdatesHistoryLabel:
+      "Differenze ultimi aggiornamenti da mantenere",
+    settingsClubChronicleUpdatesHistoryHint:
+      "Quante differenze con modifiche dei refresh globali vengono salvate e mostrate nello storico di Ultimi aggiornamenti.",
     settingsGeneral: "Generale",
     settingsGeneralTitle: "Impostazioni generali",
     settingsGeneralEnableScalingLabel: "Abilita scalatura app",

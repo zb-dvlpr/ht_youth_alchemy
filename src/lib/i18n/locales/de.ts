@@ -103,6 +103,9 @@ export const messagesDe: Messages = {
     settingsClubChronicleTransferHistoryLabel: "Anzahl letzter Transfers",
     settingsClubChronicleTransferHistoryHint:
       "Wie viele letzte Transfers pro Team zwischengespeichert und in den Transferdetails angezeigt werden.",
+    settingsClubChronicleUpdatesHistoryLabel: "Anzahl letzter Updates-Diffs",
+    settingsClubChronicleUpdatesHistoryHint:
+      "Wie viele geänderte globale Aktualisierungs-Diffs in der Verlaufsliste von Neueste Updates gespeichert und angezeigt werden.",
     settingsGeneral: "Allgemein",
     settingsGeneralTitle: "Allgemeine Einstellungen",
     settingsGeneralEnableScalingLabel: "App-Skalierung aktivieren",

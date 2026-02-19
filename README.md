@@ -51,6 +51,8 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Completed a locale audit for non-English locale files (`de/fr/es/sv/it/pt`) and removed remaining English regressions in Club Chronicle help/changelog/refresh copy.
 - Added automated locale regression checks (`npm run check:i18n`) that fail if known English Club Chronicle strings leak into non-English locale files or if known non-English strings leak into `en`.
 - Latest updates now tracks changes per attribute across all Club Chronicle panels, grouped by team and showing only changed fields in a responsive, scrollable team-card grid, with a baseline fixed to the most recent global refresh, sticky retention of the last detected non-empty change set, and a 10-entry changed-refresh comparison history directly in the modal (no-change refreshes are not saved as history buttons).
+- Latest updates now visually highlights the currently loaded comparison chip in the history row, so it is always clear which changeset is displayed.
+- Club Chronicle settings now include a configurable cap for how many changed `Latest updates` diffs are stored/shown in history, with a tooltip explaining the behavior.
 
 ## Local setup
 1) Install dependencies

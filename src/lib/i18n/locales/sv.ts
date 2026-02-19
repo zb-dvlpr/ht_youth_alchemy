@@ -103,6 +103,10 @@ export const messagesSv: Messages = {
     settingsClubChronicleTransferHistoryLabel: "Antal senaste övergångar",
     settingsClubChronicleTransferHistoryHint:
       "Hur många senaste övergångar per lag som cachas och visas i detaljer.",
+    settingsClubChronicleUpdatesHistoryLabel:
+      "Antal senaste uppdateringsdifferenser",
+    settingsClubChronicleUpdatesHistoryHint:
+      "Hur många ändrade globala uppdateringsdifferenser som sparas och visas i historiken för Senaste uppdateringar.",
     settingsGeneral: "Allmänt",
     settingsGeneralTitle: "Allmänna inställningar",
     settingsGeneralEnableScalingLabel: "Aktivera appskalning",

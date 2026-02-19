@@ -105,6 +105,10 @@ export const messagesPt: Messages = {
     settingsClubChronicleTransferHistoryLabel: "Últimas transferências para manter",
     settingsClubChronicleTransferHistoryHint:
       "Quantas transferências recentes por time devem ser armazenadas e mostradas nos detalhes.",
+    settingsClubChronicleUpdatesHistoryLabel:
+      "Diferenças de últimas atualizações para manter",
+    settingsClubChronicleUpdatesHistoryHint:
+      "Quantas diferenças com mudanças de refresh global são salvas e exibidas no histórico de Últimas atualizações.",
     settingsGeneral: "Geral",
     settingsGeneralTitle: "Configurações gerais",
     settingsGeneralEnableScalingLabel: "Ativar escala do app",

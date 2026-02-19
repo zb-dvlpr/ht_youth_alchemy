@@ -105,6 +105,10 @@ export const messagesEs: Messages = {
     settingsClubChronicleTransferHistoryLabel: "Últimos traspasos a guardar",
     settingsClubChronicleTransferHistoryHint:
       "Cuántos traspasos recientes por equipo se guardan en caché y se muestran en detalles.",
+    settingsClubChronicleUpdatesHistoryLabel:
+      "Diferencias de últimas actualizaciones a guardar",
+    settingsClubChronicleUpdatesHistoryHint:
+      "Cuántas diferencias con cambios de refrescos globales se guardan y muestran en el historial de Últimas actualizaciones.",
     settingsGeneral: "General",
     settingsGeneralTitle: "Ajustes generales",
     settingsGeneralEnableScalingLabel: "Activar escalado de la app",

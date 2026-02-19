@@ -6,6 +6,7 @@ export const CLUB_CHRONICLE_SETTINGS_EVENT = "ya:club-chronicle-settings";
 export const CLUB_CHRONICLE_DEBUG_EVENT = "ya:club-chronicle-debug";
 export const DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS = 3;
 export const DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT = 5;
+export const DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT = 10;
 export const YOUTH_SETTINGS_STORAGE_KEY = "ya_youth_staleness_hours_v1";
 export const YOUTH_SETTINGS_EVENT = "ya:youth-settings";
 export const DEFAULT_YOUTH_STALENESS_HOURS = 3;
@@ -66,17 +67,25 @@ export function writeClubChronicleStalenessDays(value: number) {
     const clamped = Math.min(7, Math.max(1, Math.round(value)));
     const existing = window.localStorage.getItem(CLUB_CHRONICLE_SETTINGS_STORAGE_KEY);
     const parsed = existing
-      ? (JSON.parse(existing) as { transferHistoryCount?: number } | null)
+      ? (JSON.parse(existing) as {
+          transferHistoryCount?: number;
+          updatesHistoryCount?: number;
+        } | null)
       : null;
     const transferHistoryCount = Number(parsed?.transferHistoryCount);
+    const updatesHistoryCount = Number(parsed?.updatesHistoryCount);
     const nextTransferHistoryCount = Number.isFinite(transferHistoryCount)
       ? Math.min(50, Math.max(1, Math.round(transferHistoryCount)))
       : DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT;
+    const nextUpdatesHistoryCount = Number.isFinite(updatesHistoryCount)
+      ? Math.min(50, Math.max(1, Math.round(updatesHistoryCount)))
+      : DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT;
     window.localStorage.setItem(
       CLUB_CHRONICLE_SETTINGS_STORAGE_KEY,
       JSON.stringify({
         stalenessDays: clamped,
         transferHistoryCount: nextTransferHistoryCount,
+        updatesHistoryCount: nextUpdatesHistoryCount,
       })
     );
   } catch {
@@ -108,17 +117,75 @@ export function writeClubChronicleTransferHistoryCount(value: number) {
     const clamped = Math.min(50, Math.max(1, Math.round(value)));
     const existing = window.localStorage.getItem(CLUB_CHRONICLE_SETTINGS_STORAGE_KEY);
     const parsed = existing
-      ? (JSON.parse(existing) as { stalenessDays?: number } | null)
+      ? (JSON.parse(existing) as {
+          stalenessDays?: number;
+          updatesHistoryCount?: number;
+        } | null)
       : null;
     const stalenessDays = Number(parsed?.stalenessDays);
+    const updatesHistoryCount = Number(parsed?.updatesHistoryCount);
     const nextStalenessDays = Number.isFinite(stalenessDays)
       ? Math.min(7, Math.max(1, Math.round(stalenessDays)))
       : DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS;
+    const nextUpdatesHistoryCount = Number.isFinite(updatesHistoryCount)
+      ? Math.min(50, Math.max(1, Math.round(updatesHistoryCount)))
+      : DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT;
     window.localStorage.setItem(
       CLUB_CHRONICLE_SETTINGS_STORAGE_KEY,
       JSON.stringify({
         stalenessDays: nextStalenessDays,
         transferHistoryCount: clamped,
+        updatesHistoryCount: nextUpdatesHistoryCount,
+      })
+    );
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function readClubChronicleUpdatesHistoryCount(): number {
+  if (typeof window === "undefined") {
+    return DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT;
+  }
+  try {
+    const stored = window.localStorage.getItem(CLUB_CHRONICLE_SETTINGS_STORAGE_KEY);
+    if (!stored) return DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT;
+    const parsed = JSON.parse(stored) as { updatesHistoryCount?: number };
+    const value =
+      parsed?.updatesHistoryCount ??
+      DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT;
+    if (!Number.isFinite(value)) return DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT;
+    return Math.min(50, Math.max(1, Math.round(value)));
+  } catch {
+    return DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT;
+  }
+}
+
+export function writeClubChronicleUpdatesHistoryCount(value: number) {
+  if (typeof window === "undefined") return;
+  try {
+    const clamped = Math.min(50, Math.max(1, Math.round(value)));
+    const existing = window.localStorage.getItem(CLUB_CHRONICLE_SETTINGS_STORAGE_KEY);
+    const parsed = existing
+      ? (JSON.parse(existing) as {
+          stalenessDays?: number;
+          transferHistoryCount?: number;
+        } | null)
+      : null;
+    const stalenessDays = Number(parsed?.stalenessDays);
+    const transferHistoryCount = Number(parsed?.transferHistoryCount);
+    const nextStalenessDays = Number.isFinite(stalenessDays)
+      ? Math.min(7, Math.max(1, Math.round(stalenessDays)))
+      : DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS;
+    const nextTransferHistoryCount = Number.isFinite(transferHistoryCount)
+      ? Math.min(50, Math.max(1, Math.round(transferHistoryCount)))
+      : DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT;
+    window.localStorage.setItem(
+      CLUB_CHRONICLE_SETTINGS_STORAGE_KEY,
+      JSON.stringify({
+        stalenessDays: nextStalenessDays,
+        transferHistoryCount: nextTransferHistoryCount,
+        updatesHistoryCount: clamped,
       })
     );
   } catch {

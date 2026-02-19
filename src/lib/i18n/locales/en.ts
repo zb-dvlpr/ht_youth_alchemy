@@ -97,6 +97,9 @@ export const messagesEn: Messages = {
     settingsClubChronicleTransferHistoryLabel: "Latest transfers to keep",
     settingsClubChronicleTransferHistoryHint:
       "How many recent transfers per team are cached and shown in transfer history details.",
+    settingsClubChronicleUpdatesHistoryLabel: "Latest updates diffs to keep",
+    settingsClubChronicleUpdatesHistoryHint:
+      "How many changed global refresh diffs are stored and shown in Latest updates history.",
     settingsGeneral: "General",
     settingsGeneralTitle: "General settings",
     settingsGeneralEnableScalingLabel: "Enable app scaling",

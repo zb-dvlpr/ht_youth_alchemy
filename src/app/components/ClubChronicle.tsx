@@ -26,10 +26,12 @@ import {
   CLUB_CHRONICLE_DEBUG_EVENT,
   CLUB_CHRONICLE_SETTINGS_EVENT,
   CLUB_CHRONICLE_SETTINGS_STORAGE_KEY,
+  DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT,
   DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS,
   DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT,
   readClubChronicleStalenessDays,
   readClubChronicleTransferHistoryCount,
+  readClubChronicleUpdatesHistoryCount,
 } from "@/lib/settings";
 import {
   hattrickArticleUrl,
@@ -615,7 +617,6 @@ const UPDATES_KEY = "ya_cc_updates_v1";
 const GLOBAL_BASELINE_KEY = "ya_cc_global_baseline_v1";
 const GLOBAL_UPDATES_HISTORY_KEY = "ya_cc_global_updates_history_v1";
 const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
-const MAX_GLOBAL_UPDATE_HISTORY = 10;
 const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
 const HELP_STORAGE_KEY = "ya_cc_help_dismissed_v1";
 const PANEL_IDS = [
@@ -1258,9 +1259,7 @@ const readGlobalUpdatesHistory = (): ChronicleGlobalUpdateEntry[] => {
     if (!raw) return [];
     const parsed = JSON.parse(raw) as ChronicleGlobalUpdateEntry[];
     if (!Array.isArray(parsed)) return [];
-    return parsed
-      .filter((entry) => entry?.hasChanges && !!entry?.updates)
-      .slice(0, MAX_GLOBAL_UPDATE_HISTORY);
+    return parsed.filter((entry) => entry?.hasChanges && !!entry?.updates);
   } catch {
     return [];
   }
@@ -1523,7 +1522,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
   const [globalUpdatesHistory, setGlobalUpdatesHistory] = useState<
     ChronicleGlobalUpdateEntry[]
-  >(() => readGlobalUpdatesHistory().slice(0, MAX_GLOBAL_UPDATE_HISTORY));
+  >(() =>
+    readGlobalUpdatesHistory().slice(
+      0,
+      DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT
+    )
+  );
   const [lastGlobalComparedAt, setLastGlobalComparedAt] = useState<number | null>(
     () => readGlobalUpdatesHistory()[0]?.comparedAt ?? null
   );
@@ -1589,6 +1593,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
   const [transferHistoryCount, setTransferHistoryCount] = useState(
     DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT
+  );
+  const [updatesHistoryCount, setUpdatesHistoryCount] = useState(
+    DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT
   );
   const [leagueSortState, setLeagueSortState] = useState<{
     key: string;
@@ -2268,6 +2275,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (typeof window === "undefined") return;
     setStalenessDays(readClubChronicleStalenessDays());
     setTransferHistoryCount(readClubChronicleTransferHistoryCount());
+    setUpdatesHistoryCount(readClubChronicleUpdatesHistoryCount());
     const handle = (event: Event) => {
       if (event instanceof StorageEvent) {
         if (
@@ -2279,7 +2287,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
       if (event instanceof CustomEvent) {
         const detail = event.detail as
-          | { stalenessDays?: number; transferHistoryCount?: number }
+          | {
+              stalenessDays?: number;
+              transferHistoryCount?: number;
+              updatesHistoryCount?: number;
+            }
           | undefined;
         if (typeof detail?.stalenessDays === "number") {
           setStalenessDays(detail.stalenessDays);
@@ -2287,15 +2299,20 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         if (typeof detail?.transferHistoryCount === "number") {
           setTransferHistoryCount(detail.transferHistoryCount);
         }
+        if (typeof detail?.updatesHistoryCount === "number") {
+          setUpdatesHistoryCount(detail.updatesHistoryCount);
+        }
         if (
           typeof detail?.stalenessDays === "number" ||
-          typeof detail?.transferHistoryCount === "number"
+          typeof detail?.transferHistoryCount === "number" ||
+          typeof detail?.updatesHistoryCount === "number"
         ) {
           return;
         }
       }
       setStalenessDays(readClubChronicleStalenessDays());
       setTransferHistoryCount(readClubChronicleTransferHistoryCount());
+      setUpdatesHistoryCount(readClubChronicleUpdatesHistoryCount());
     };
     window.addEventListener("storage", handle);
     window.addEventListener(CLUB_CHRONICLE_SETTINGS_EVENT, handle);
@@ -2304,6 +2321,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       window.removeEventListener(CLUB_CHRONICLE_SETTINGS_EVENT, handle);
     };
   }, []);
+
+  useEffect(() => {
+    setGlobalUpdatesHistory((prev) => prev.slice(0, updatesHistoryCount));
+  }, [updatesHistoryCount]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -3820,12 +3841,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const pushGlobalUpdateHistory = useCallback(
     (entry: ChronicleGlobalUpdateEntry) => {
       setGlobalUpdatesHistory((prev) =>
-        [entry, ...prev].slice(0, MAX_GLOBAL_UPDATE_HISTORY)
+        [entry, ...prev].slice(0, updatesHistoryCount)
       );
       setLastGlobalComparedAt(entry.comparedAt);
       setLastGlobalHadChanges(entry.hasChanges);
     },
-    []
+    [updatesHistoryCount]
   );
 
   const refreshTeamDetails = async (
@@ -5407,6 +5428,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const latestHistoryWithChanges = globalUpdatesHistory.find((entry) => entry.updates);
   const showingPreviousSnapshot =
     !lastGlobalHadChanges && hasAnyTeamUpdates && !!latestHistoryWithChanges;
+  const selectedHistoryComparedAt = useMemo(() => {
+    if (
+      lastGlobalComparedAt &&
+      globalUpdatesHistory.some((entry) => entry.comparedAt === lastGlobalComparedAt)
+    ) {
+      return lastGlobalComparedAt;
+    }
+    return latestHistoryWithChanges?.comparedAt ?? null;
+  }, [globalUpdatesHistory, lastGlobalComparedAt, latestHistoryWithChanges]);
 
   const leagueRows: LeagueTableRow[] = trackedTeams.map((team) => {
     const cached = chronicleCache.teams[team.teamId];
@@ -7354,9 +7384,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       <button
                         key={entry.id}
                         type="button"
-                        className={styles.chronicleUpdatesHistoryItem}
+                        className={`${styles.chronicleUpdatesHistoryItem}${selectedHistoryComparedAt === entry.comparedAt ? ` ${styles.chronicleUpdatesHistoryItemActive}` : ""}`}
                         onClick={() => handleLoadHistoryEntry(entry)}
                         disabled={!entry.updates}
+                        aria-pressed={selectedHistoryComparedAt === entry.comparedAt}
                       >
                         <span>{formatDateTime(entry.comparedAt)}</span>
                         <span>

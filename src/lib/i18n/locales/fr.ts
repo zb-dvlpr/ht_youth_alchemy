@@ -105,6 +105,10 @@ export const messagesFr: Messages = {
     settingsClubChronicleTransferHistoryLabel: "Derniers transferts à garder",
     settingsClubChronicleTransferHistoryHint:
       "Nombre de transferts récents par équipe à mettre en cache et afficher dans les détails.",
+    settingsClubChronicleUpdatesHistoryLabel:
+      "Nombre de diffs des dernières mises à jour",
+    settingsClubChronicleUpdatesHistoryHint:
+      "Combien de diffs modifiés des rafraîchissements globaux sont enregistrés et affichés dans l’historique des dernières mises à jour.",
     settingsGeneral: "Général",
     settingsGeneralTitle: "Paramètres généraux",
     settingsGeneralEnableScalingLabel: "Activer la mise à l échelle de l app",

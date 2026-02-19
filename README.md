@@ -61,6 +61,12 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Locale-switch context restore now hydrates safely (no SSR/client mismatch): initial render stays deterministic and saved view state is applied after mount.
 - Youth player list sorting (sort field and direction) is now persisted in local storage and remains intact after locale changes/reloads.
 - Clicking a highlighted player inside Skills Matrix/Ratings Matrix now always switches back to the Details tab for that player, even when the same player is already selected.
+- In no-scaling mode, Youth Optimization now uses horizontal scrolling instead of panel overlap when viewport width is tight.
+- Tight-width no-scaling layout now reserves wider minimum space for the three Youth Optimization columns (player list, matrices/details, lineup/training), forcing horizontal scroll earlier so matrix panels do not visually collide with the lineup column.
+- Youth Optimization grid items now enforce `min-width: 0` and matrix wrappers clamp to container width, so Skills/Ratings matrix content cannot bleed into the lineup column when space is tight (including with expanded sidebar).
+- The no-scaling horizontal overflow/min-width handling is now scoped to Youth Optimization only, preventing side effects in Club Chronicle layout.
+- Player Details matrix container is now hard-clipped to its card (`overflow: hidden` + `min-width: 0`) and matrix tables have an internal minimum width, so overflow is handled by matrix-local scroll instead of bleeding into the lineup column.
+- Youth Player List now detects name/age overlap per row and only applies truncation when overlap occurs, preventing long names from colliding with the age text.
 
 ## Local setup
 1) Install dependencies

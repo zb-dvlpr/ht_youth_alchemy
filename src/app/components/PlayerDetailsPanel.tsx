@@ -781,7 +781,7 @@ export default function PlayerDetailsPanel({
   };
 
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${styles.playerDetailsCard}`}>
       <div className={styles.detailsHeader}>
         <div className={styles.detailsTabs}>
           <button

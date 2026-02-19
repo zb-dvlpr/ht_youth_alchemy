@@ -225,7 +225,7 @@ export default function AppShell({ messages, children }: AppShellProps) {
           ))}
         </nav>
       </aside>
-      <section className={styles.shellContent}>
+      <section className={styles.shellContent} data-active-tool={activeTool}>
         {activeTool === "youth" ? children : <ClubChronicle messages={messages} />}
       </section>
     </div>

@@ -82,6 +82,22 @@ html[data-app-scaling="off"] .topBar::before {
   min-width: 0;
 }
 
+html[data-app-scaling="off"] .shellContent[data-active-tool="youth"] {
+  overflow-x: auto;
+}
+
+html[data-app-scaling="off"] .shellContent[data-active-tool="youth"] .dashboardGrid {
+  min-width: 1360px;
+  grid-template-columns:
+    minmax(240px, 0.75fr)
+    minmax(560px, 1.5fr)
+    minmax(460px, 1.25fr);
+}
+
+html[data-app-scaling="off"] .dashboardGrid > * {
+  min-width: 0;
+}
+
 .sidebar {
   width: 220px;
   background: #f7f1e3;
@@ -526,6 +542,10 @@ html[data-app-scaling="off"] .topBar::before {
   position: relative;
 }
 
+.dashboardGrid > * {
+  min-width: 0;
+}
+
 .dashboardStack {
   display: grid;
   gap: 20px;
@@ -534,6 +554,7 @@ html[data-app-scaling="off"] .topBar::before {
 .columnStack {
   display: grid;
   gap: 20px;
+  min-width: 0;
 }
 
 .helpOverlay {
@@ -771,12 +792,19 @@ html[data-app-scaling="off"] .topBar::before {
   overflow: auto;
   border-radius: 12px;
   border: 1px solid #e6dccd;
+  max-width: 100%;
 }
 
 .matrixTable {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
+  min-width: 620px;
+}
+
+.playerDetailsCard {
+  min-width: 0;
+  overflow: hidden;
 }
 
 .matrixRow {
@@ -2616,6 +2644,18 @@ html[data-theme="dark"] .spinner {
   display: flex;
   align-items: center;
   gap: 6px;
+  min-width: 0;
+}
+
+.playerNameRowTruncate {
+  max-width: calc(100% - 88px);
+  overflow: hidden;
+}
+
+.playerNameRowTruncate .playerName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .playerSpecialty {

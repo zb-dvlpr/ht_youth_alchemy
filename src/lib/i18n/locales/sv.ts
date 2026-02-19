@@ -126,6 +126,7 @@ export const messagesSv: Messages = {
     clubChronicleUpdatesHistoryTitle: "Senaste jämförelser av globala uppdateringar",
     clubChronicleUpdatesHistoryChanged: "Ändringar upptäckta",
     clubChronicleUpdatesHistoryNoChanges: "Inga ändringar",
+    clubChronicleNoDivulgoMask: "NO DIVULGO: CLICK HERE",
     clubChronicleUpdatesButton: "Senaste uppdateringar",
     clubChronicleRefreshButton: "Uppdatera",
     clubChronicleRefreshAllTooltip: "Uppdatera all data i Klubbkrönikan.",

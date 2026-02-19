@@ -128,6 +128,7 @@ export const messagesEs: Messages = {
     clubChronicleUpdatesHistoryTitle: "Comparaciones recientes de actualización global",
     clubChronicleUpdatesHistoryChanged: "Cambios detectados",
     clubChronicleUpdatesHistoryNoChanges: "Sin cambios",
+    clubChronicleNoDivulgoMask: "NO DIVULGO: CLICK HERE",
     clubChronicleUpdatesButton: "Últimas actualizaciones",
     clubChronicleRefreshButton: "Actualizar",
     clubChronicleRefreshAllTooltip: "Actualizar todos los datos de Crónica del club.",

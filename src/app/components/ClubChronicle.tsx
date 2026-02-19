@@ -456,6 +456,10 @@ type ChronicleTableProps<Row, Snapshot> = {
   sortKey?: string | null;
   sortDirection?: "asc" | "desc";
   onSort?: (key: string) => void;
+  maskedTeamId?: number | null;
+  maskText?: string;
+  isMaskActive?: boolean;
+  onMaskedRowClick?: (row: Row) => void;
 };
 
 type ChroniclePanelProps = {
@@ -484,6 +488,10 @@ const ChronicleTable = <Row, Snapshot>({
   sortKey,
   sortDirection,
   onSort,
+  maskedTeamId = null,
+  maskText,
+  isMaskActive = false,
+  onMaskedRowClick,
 }: ChronicleTableProps<Row, Snapshot>) => (
   <div
     className={`${styles.chronicleTable}${className ? ` ${className}` : ""}`}
@@ -525,31 +533,55 @@ const ChronicleTable = <Row, Snapshot>({
       const snapshot = getSnapshot(row);
       const rowKey = getRowKey(row);
       const rowClassName = getRowClassName?.(row);
+      const rowTeamId = (row as { teamId?: number }).teamId;
+      const isMaskedRow =
+        isMaskActive &&
+        maskedTeamId !== null &&
+        rowTeamId === maskedTeamId &&
+        Boolean(maskText);
       return (
         <div
           key={rowKey}
-          className={`${styles.chronicleTableRow}${rowClassName ? ` ${rowClassName}` : ""}`}
-          role={onRowClick ? "button" : undefined}
-          tabIndex={onRowClick ? 0 : undefined}
-          onClick={onRowClick ? () => onRowClick(row) : undefined}
+          className={`${styles.chronicleTableRow}${rowClassName ? ` ${rowClassName}` : ""}${isMaskedRow ? ` ${styles.chronicleTableRowMasked}` : ""}`}
+          role={onRowClick || isMaskedRow ? "button" : undefined}
+          tabIndex={onRowClick || isMaskedRow ? 0 : undefined}
+          onClick={
+            isMaskedRow
+              ? () => onMaskedRowClick?.(row)
+              : onRowClick
+                ? () => onRowClick(row)
+                : undefined
+          }
           onKeyDown={
-            onRowClick
+            onRowClick || isMaskedRow
               ? (event) => {
                   if (event.key === "Enter" || event.key === " ") {
                     event.preventDefault();
-                    onRowClick(row);
+                    if (isMaskedRow) {
+                      onMaskedRowClick?.(row);
+                    } else {
+                      onRowClick?.(row);
+                    }
                   }
                 }
               : undefined
           }
         >
-          {columns.map((column) => (
-            <span key={`${rowKey}-${column.key}`} className={styles.chronicleTableCell}>
-              {column.renderCell
-                ? column.renderCell(snapshot, row, formatValue)
-                : formatValue(column.getValue(snapshot, row))}
+          {isMaskedRow ? (
+            <span
+              className={`${styles.chronicleTableCell} ${styles.chronicleTableCellMaskedLead}`}
+            >
+              {maskText}
             </span>
-          ))}
+          ) : (
+            columns.map((column) => (
+              <span key={`${rowKey}-${column.key}`} className={styles.chronicleTableCell}>
+                {column.renderCell
+                  ? column.renderCell(snapshot, row, formatValue)
+                  : formatValue(column.getValue(snapshot, row))}
+              </span>
+            ))
+          )}
         </div>
       );
     })}
@@ -629,6 +661,8 @@ const GLOBAL_UPDATES_HISTORY_KEY = "ya_cc_global_updates_history_v1";
 const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
 const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
 const HELP_STORAGE_KEY = "ya_cc_help_dismissed_v1";
+const NO_DIVULGO_DISMISS_TOKEN_KEY = "ya_cc_no_divulgo_dismissed_token_v1";
+const NO_DIVULGO_TARGET_TEAM_ID = 524637;
 const PANEL_IDS = [
   "league-performance",
   "press-announcements",
@@ -1677,6 +1711,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [errorOpen, setErrorOpen] = useState(false);
   const [watchlistOpen, setWatchlistOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [currentToken, setCurrentToken] = useState<string | null>(null);
+  const [tokenChecked, setTokenChecked] = useState(false);
+  const [noDivulgoActive, setNoDivulgoActive] = useState(false);
   const [helpCallouts, setHelpCallouts] = useState<
     {
       id: string;
@@ -1786,6 +1823,21 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       (a.teamName ?? "").localeCompare(b.teamName ?? "")
     );
   }, [supportedTeams, supportedSelections, manualTeams, chronicleCache, primaryTeam]);
+
+  const isNoDivulgoTracked = useMemo(
+    () => trackedTeams.some((team) => team.teamId === NO_DIVULGO_TARGET_TEAM_ID),
+    [trackedTeams]
+  );
+
+  const handleNoDivulgoDismiss = useCallback((teamId: number) => {
+    if (typeof window === "undefined") return;
+    if (teamId !== NO_DIVULGO_TARGET_TEAM_ID || !noDivulgoActive) return;
+    window.localStorage.setItem(
+      NO_DIVULGO_DISMISS_TOKEN_KEY,
+      currentToken ?? "__unknown__"
+    );
+    setNoDivulgoActive(false);
+  }, [currentToken, noDivulgoActive]);
 
   const openDummyUpdates = useCallback(() => {
     if (trackedTeams.length === 0) return;
@@ -1908,6 +1960,40 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setUpdates(dummyUpdates);
     setUpdatesOpen(true);
   }, [trackedTeams, messages]);
+
+  useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const { response, payload } = await fetchChppJson<{ raw?: string }>(
+          "/api/chpp/oauth/check-token",
+          { cache: "no-store" }
+        );
+        if (!response.ok || !payload?.raw) return;
+        const match = payload.raw.match(/<Token>(.*?)<\/Token>/);
+        const token = match?.[1]?.trim() ?? null;
+        if (token) setCurrentToken(token);
+      } catch {
+        // ignore token check errors
+      } finally {
+        setTokenChecked(true);
+      }
+    };
+    void fetchToken();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!tokenChecked) return;
+    if (!isNoDivulgoTracked) {
+      setNoDivulgoActive(false);
+      return;
+    }
+    const dismissedToken = window.localStorage.getItem(
+      NO_DIVULGO_DISMISS_TOKEN_KEY
+    );
+    const tokenKey = currentToken ?? "__unknown__";
+    setNoDivulgoActive(dismissedToken !== tokenKey);
+  }, [currentToken, isNoDivulgoTracked, tokenChecked]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -6843,6 +6929,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       sortKey={leagueSortState.key}
                       sortDirection={leagueSortState.direction}
                       onSort={handleLeagueSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
                     />
                   )}
                 </ChroniclePanel>
@@ -6895,6 +6985,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       sortKey={pressSortState.key}
                       sortDirection={pressSortState.direction}
                       onSort={handlePressSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
                     />
                   )}
                 </ChroniclePanel>
@@ -6948,6 +7042,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                         sortKey={financeSortState.key}
                         sortDirection={financeSortState.direction}
                         onSort={handleFinanceSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
                       />
                       <p className={styles.chronicleFinanceDisclaimer}>
                         {messages.clubChronicleFinanceDisclaimer}
@@ -7004,6 +7102,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       sortKey={fanclubSortState.key}
                       sortDirection={fanclubSortState.direction}
                       onSort={handleFanclubSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
                     />
                   )}
                 </ChroniclePanel>
@@ -7056,6 +7158,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       sortKey={arenaSortState.key}
                       sortDirection={arenaSortState.direction}
                       onSort={handleArenaSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
                     />
                   )}
                 </ChroniclePanel>
@@ -7107,6 +7213,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       sortKey={transferSortState.key}
                       sortDirection={transferSortState.direction}
                       onSort={handleTransferSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
                     />
                   )}
                 </ChroniclePanel>
@@ -7161,6 +7271,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       sortKey={formationsTacticsSortState.key}
                       sortDirection={formationsTacticsSortState.direction}
                       onSort={handleFormationsTacticsSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
                     />
                   )}
                 </ChroniclePanel>
@@ -7213,6 +7327,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       sortKey={likelyTrainingSortState.key}
                       sortDirection={likelyTrainingSortState.direction}
                       onSort={handleLikelyTrainingSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
                     />
                   )}
                 </ChroniclePanel>
@@ -7265,6 +7383,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       sortKey={tsiSortState.key}
                       sortDirection={tsiSortState.direction}
                       onSort={handleTsiSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
                     />
                   )}
                 </ChroniclePanel>
@@ -7317,6 +7439,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       sortKey={wagesSortState.key}
                       sortDirection={wagesSortState.direction}
                       onSort={handleWagesSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
                     />
                   )}
                 </ChroniclePanel>
@@ -8179,6 +8305,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     sortKey={tsiDetailsSortState.key}
                     sortDirection={tsiDetailsSortState.direction}
                     onSort={handleTsiDetailsSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
                   />
                 </div>
               ) : (
@@ -8231,6 +8361,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     sortKey={wagesDetailsSortState.key}
                     sortDirection={wagesDetailsSortState.direction}
                     onSort={handleWagesDetailsSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
                   />
                 </div>
               ) : (

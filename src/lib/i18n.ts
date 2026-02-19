@@ -113,6 +113,7 @@ export type Messages = {
   clubChronicleUpdatesHistoryTitle: string;
   clubChronicleUpdatesHistoryChanged: string;
   clubChronicleUpdatesHistoryNoChanges: string;
+  clubChronicleNoDivulgoMask: string;
   clubChronicleUpdatesButton: string;
   clubChronicleRefreshButton: string;
   clubChronicleRefreshAllTooltip: string;

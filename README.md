@@ -68,6 +68,7 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Player Details matrix container is now hard-clipped to its card (`overflow: hidden` + `min-width: 0`) and matrix tables have an internal minimum width, so overflow is handled by matrix-local scroll instead of bleeding into the lineup column.
 - Youth Player List now detects name/age overlap per row and only applies truncation when overlap occurs, preventing long names from colliding with the age text.
 - Dashboard state persistence now waits for per-team restore to finish before writing back to local storage, preventing accidental overwrite with defaults when switching tools and returning to Youth Optimization.
+- Active lineup orientation arrows now keep their selected color immediately on click, even while the cursor still hovers the arrow.
 - Club Chronicle panel drag-and-drop swapping is now more forgiving by reordering as soon as a dragged panel enters a target panel area, reducing failed swaps that previously needed heavy overlap.
 - Club Chronicle drag-and-drop panel swapping now suppresses repeated swaps on the same target during a drag, preventing flicker/rapid back-and-forth while keeping swaps responsive.
 - Club Chronicle drag-and-drop now only commits panel swaps on drop/pointer-up (not mid-drag), with clearer target tracking to avoid premature moves and stray dashed-outline targets.

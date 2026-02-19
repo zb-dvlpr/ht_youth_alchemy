@@ -3809,6 +3809,10 @@ html[data-theme="dark"] .spinner {
   --wedge-color: rgba(245, 214, 94, 0.95);
 }
 
+.orientationButtonActive:hover {
+  --wedge-color: rgba(245, 214, 94, 0.95);
+}
+
 .orientationButtonTop {
   top: -2px;
   left: 50%;

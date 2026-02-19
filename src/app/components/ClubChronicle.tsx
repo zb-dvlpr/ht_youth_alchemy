@@ -7973,34 +7973,36 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         body={
           selectedLikelyTrainingTeam?.snapshot ? (
             <>
-              <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleColumnTeam}:{" "}
-                {renderTeamNameLink(
-                  selectedLikelyTrainingTeam.teamId,
-                  selectedLikelyTrainingTeam.teamName
-                )}
-              </p>
-              <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleLikelyTrainingColumnRegimen}:{" "}
-                {formatLikelyTrainingSummary(selectedLikelyTrainingTeam.snapshot)}
-              </p>
-              {selectedLikelyTrainingTeam.snapshot.likelyTrainingIsUnclear ? (
+              <div className={styles.chronicleLikelyTrainingMeta}>
                 <p className={styles.chroniclePressMeta}>
-                  {messages.clubChronicleLikelyTrainingUnclearDisclaimer}
+                  {messages.clubChronicleColumnTeam}:{" "}
+                  {renderTeamNameLink(
+                    selectedLikelyTrainingTeam.teamId,
+                    selectedLikelyTrainingTeam.teamName
+                  )}
                 </p>
-              ) : null}
-              <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleLikelyTrainingConfidenceLabel}:{" "}
-                {selectedLikelyTrainingTeam.snapshot.likelyTrainingConfidencePct !== null
-                  ? `${formatValue(
-                      selectedLikelyTrainingTeam.snapshot.likelyTrainingConfidencePct
-                    )}%`
-                  : messages.unknownShort}
-              </p>
-              <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleLikelyTrainingMatchesLabel}:{" "}
-                {formatValue(selectedLikelyTrainingTeam.snapshot.sampleSize)}
-              </p>
+                <p className={styles.chroniclePressMeta}>
+                  {messages.clubChronicleLikelyTrainingColumnRegimen}:{" "}
+                  {formatLikelyTrainingSummary(selectedLikelyTrainingTeam.snapshot)}
+                </p>
+                {selectedLikelyTrainingTeam.snapshot.likelyTrainingIsUnclear ? (
+                  <p className={styles.chroniclePressMeta}>
+                    {messages.clubChronicleLikelyTrainingUnclearDisclaimer}
+                  </p>
+                ) : null}
+                <p className={styles.chroniclePressMeta}>
+                  {messages.clubChronicleLikelyTrainingConfidenceLabel}:{" "}
+                  {selectedLikelyTrainingTeam.snapshot.likelyTrainingConfidencePct !== null
+                    ? `${formatValue(
+                        selectedLikelyTrainingTeam.snapshot.likelyTrainingConfidencePct
+                      )}%`
+                    : messages.unknownShort}
+                </p>
+                <p className={styles.chroniclePressMeta}>
+                  {messages.clubChronicleLikelyTrainingMatchesLabel}:{" "}
+                  {formatValue(selectedLikelyTrainingTeam.snapshot.sampleSize)}
+                </p>
+              </div>
               {likelyTrainingDetailRows.length > 0 ? (
                 <div className={styles.chronicleTransferHistoryTableWrap}>
                   <ChronicleTable

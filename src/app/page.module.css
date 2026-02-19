@@ -1582,6 +1582,12 @@ html[data-app-scaling="off"] .chronicleHeader {
   color: #8a806f;
 }
 
+.chronicleLikelyTrainingMeta {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
 .chroniclePressBody {
   font-size: 13px;
   color: #4f463c;

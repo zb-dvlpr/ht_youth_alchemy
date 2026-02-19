@@ -5,7 +5,7 @@ import {
   fetchChppXml,
   getChppAuth,
 } from "@/lib/chpp/server";
-const DEFAULT_VERSION = "1.2";
+const DEFAULT_VERSION = "1.3";
 
 function buildParams(url: URL) {
   const version = url.searchParams.get("version") ?? DEFAULT_VERSION;

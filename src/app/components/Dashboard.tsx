@@ -45,6 +45,11 @@ import {
   YOUTH_SETTINGS_STORAGE_KEY,
 } from "@/lib/settings";
 import { useNotifications } from "./notifications/NotificationsProvider";
+import {
+  CHPP_AUTH_REQUIRED_EVENT,
+  ChppAuthRequiredError,
+  fetchChppJson,
+} from "@/lib/chpp/client";
 
 const formatPlayerName = (player: YouthPlayer) =>
   [player.FirstName, player.NickName || null, player.LastName]
@@ -172,18 +177,6 @@ function resolveDetails(data: Record<string, unknown> | null) {
   return (hattrickData.YouthPlayer as YouthPlayerDetails) ?? null;
 }
 
-function isAuthErrorPayload(
-  payload: { code?: string; statusCode?: number; details?: string } | null,
-  response?: Response
-) {
-  return (
-    response?.status === 401 ||
-    payload?.statusCode === 401 ||
-    (payload?.code?.startsWith("CHPP_AUTH") ?? false) ||
-    (payload?.details?.includes("401 - Unauthorized") ?? false)
-  );
-}
-
 export default function Dashboard({
   players,
   matchesResponse,
@@ -209,6 +202,9 @@ export default function Dashboard({
   const [error, setError] = useState<string | null>(null);
   const [authError, setAuthError] = useState(initialAuthError);
   const [authErrorDetails, setAuthErrorDetails] = useState<string | null>(null);
+  const [authErrorDebugDetails, setAuthErrorDebugDetails] = useState<string | null>(
+    null
+  );
   const [loadError, setLoadError] = useState<string | null>(initialLoadError);
   const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(
     initialLoadDetails
@@ -269,9 +265,15 @@ export default function Dashboard({
       text: string;
       style: CSSProperties;
       hideIndex?: boolean;
-      placement?: "above-left" | "above-center" | "right-center" | "left-center";
+      placement?:
+        | "above-left"
+        | "above-center"
+        | "below-center"
+        | "right-center"
+        | "left-center";
     }[]
   >([]);
+  const [helpCardTopOffset, setHelpCardTopOffset] = useState(0);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [ratingsCache, setRatingsCache] = useState<
     Record<number, Record<string, number>>
@@ -289,7 +291,11 @@ export default function Dashboard({
     DEFAULT_YOUTH_STALENESS_HOURS
   );
   const [tacticType, setTacticType] = useState(7);
+  const [restoredStorageKey, setRestoredStorageKey] = useState<string | null>(
+    null
+  );
   const staleRefreshAttemptedRef = useRef(false);
+  const lastAuthNotificationAtRef = useRef(0);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -325,6 +331,62 @@ export default function Dashboard({
 
   const changelogEntries = useMemo(
     () => [
+      {
+        version: "2.13.0",
+        entries: [messages.changelog_2_13_0],
+      },
+      {
+        version: "2.12.0",
+        entries: [messages.changelog_2_12_0],
+      },
+      {
+        version: "2.11.0",
+        entries: [messages.changelog_2_11_0],
+      },
+      {
+        version: "2.10.0",
+        entries: [messages.changelog_2_10_0],
+      },
+      {
+        version: "2.9.0",
+        entries: [messages.changelog_2_9_0],
+      },
+      {
+        version: "2.8.0",
+        entries: [messages.changelog_2_8_0],
+      },
+      {
+        version: "2.7.0",
+        entries: [messages.changelog_2_7_0],
+      },
+      {
+        version: "2.6.0",
+        entries: [messages.changelog_2_6_0],
+      },
+      {
+        version: "2.5.0",
+        entries: [messages.changelog_2_5_0],
+      },
+      {
+        version: "2.4.0",
+        entries: [messages.changelog_2_4_0],
+      },
+      {
+        version: "2.3.0",
+        entries: [messages.changelog_2_3_0],
+      },
+      {
+        version: "2.2.0",
+        entries: [messages.changelog_2_2_0],
+      },
+      {
+        version: "2.1.0",
+        entries: [messages.changelog_2_1_0],
+      },
+      {
+        version: "2.0.0",
+        entries: [messages.changelog_2_0_0],
+      },
       {
         version: "1.28.0",
         entries: [messages.changelog_1_28_0],
@@ -367,6 +429,20 @@ export default function Dashboard({
       messages.changelog_1_25_0,
       messages.changelog_1_26_0,
       messages.changelog_1_28_0,
+      messages.changelog_2_1_0,
+      messages.changelog_2_0_0,
+      messages.changelog_2_2_0,
+      messages.changelog_2_3_0,
+      messages.changelog_2_4_0,
+      messages.changelog_2_5_0,
+      messages.changelog_2_6_0,
+      messages.changelog_2_7_0,
+      messages.changelog_2_8_0,
+      messages.changelog_2_9_0,
+      messages.changelog_2_10_0,
+      messages.changelog_2_11_0,
+      messages.changelog_2_12_0,
+      messages.changelog_2_13_0,
     ]
   );
 
@@ -381,7 +457,7 @@ export default function Dashboard({
     [changelogEntries]
   );
 
-  const changelogPageSize = 20;
+  const changelogPageSize = 10;
   const changelogTotalPages = Math.max(
     1,
     Math.ceil(changelogRows.length / changelogPageSize)
@@ -582,11 +658,14 @@ export default function Dashboard({
       }
     } catch {
       // ignore restore errors
+    } finally {
+      setRestoredStorageKey(storageKey);
     }
   }, [storageKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (restoredStorageKey !== storageKey) return;
     const payload = {
       assignments,
       behaviors,
@@ -622,6 +701,7 @@ export default function Dashboard({
     playerList,
     matchesState,
     storageKey,
+    restoredStorageKey,
   ]);
 
   useEffect(() => {
@@ -738,6 +818,29 @@ export default function Dashboard({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const handleAuthRequired = (event: Event) => {
+      const detail =
+        event instanceof CustomEvent
+          ? (event.detail as { details?: string; debugDetails?: string } | undefined)
+          : undefined;
+      setAuthError(true);
+      setAuthErrorDetails(detail?.details ?? messages.connectHint);
+      setAuthErrorDebugDetails(
+        process.env.NODE_ENV !== "production" ? detail?.debugDetails ?? null : null
+      );
+      const now = Date.now();
+      if (now - lastAuthNotificationAtRef.current > 3000) {
+        addNotification(messages.notificationReauthRequired);
+        lastAuthNotificationAtRef.current = now;
+      }
+    };
+    window.addEventListener(CHPP_AUTH_REQUIRED_EVENT, handleAuthRequired);
+    return () =>
+      window.removeEventListener(CHPP_AUTH_REQUIRED_EVENT, handleAuthRequired);
+  }, [addNotification, messages.connectHint, messages.notificationReauthRequired]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     if (!isConnected) {
       setCurrentToken(null);
       setShowHelp(false);
@@ -745,11 +848,13 @@ export default function Dashboard({
     }
     const fetchToken = async () => {
       try {
-        const response = await fetch("/api/chpp/oauth/check-token", {
-          cache: "no-store",
-        });
-        const payload = (await response.json()) as { raw?: string };
-        const raw = payload.raw ?? "";
+        const { payload } = await fetchChppJson<{ raw?: string; details?: string }>(
+          "/api/chpp/oauth/check-token",
+          {
+            cache: "no-store",
+          }
+        );
+        const raw = payload?.raw ?? "";
         const match = raw.match(/<Token>(.*?)<\/Token>/);
         const token = match?.[1]?.trim() ?? null;
         if (!token) return;
@@ -758,7 +863,8 @@ export default function Dashboard({
         if (storedToken !== token) {
           setShowHelp(true);
         }
-      } catch {
+      } catch (error) {
+        if (error instanceof ChppAuthRequiredError) return;
         // ignore token check errors
       }
     };
@@ -839,7 +945,12 @@ export default function Dashboard({
         id: string;
         selector: string;
         text: string;
-        placement: "above-left" | "above-center" | "right-center" | "left-center";
+        placement:
+          | "above-left"
+          | "above-center"
+          | "below-center"
+          | "right-center"
+          | "left-center";
         hideIndex?: boolean;
         offsetX?: number;
         offsetY?: number;
@@ -855,7 +966,8 @@ export default function Dashboard({
           id: "training",
           selector: "[data-help-anchor='training-panel']",
           text: messages.helpCalloutTraining,
-          placement: "above-center",
+          placement: "below-center",
+          offsetY: 6,
         },
         {
           id: "optimize",
@@ -920,6 +1032,11 @@ export default function Dashboard({
             top = rectTop - 10;
             transform = "translate(-50%, -100%)";
             break;
+          case "below-center":
+            left = centerX;
+            top = rectTop + rectHeight + 10;
+            transform = "translate(-50%, 0)";
+            break;
           case "right-center":
             left = rectLeft + rectWidth + 10;
             top = centerY;
@@ -953,7 +1070,8 @@ export default function Dashboard({
             )
           : clampedLeft;
         const pointerXRaw =
-          target.placement === "above-center"
+          target.placement === "above-center" ||
+          target.placement === "below-center"
             ? centerX - clampedLeftAdjusted + calloutWidth / 2
             : centerX - clampedLeftAdjusted;
         const pointerX = Math.min(
@@ -993,6 +1111,38 @@ export default function Dashboard({
     return () => window.removeEventListener("resize", schedule);
   }, [showHelp, messages]);
 
+  useEffect(() => {
+    if (!showHelp) {
+      setHelpCardTopOffset(0);
+      return;
+    }
+    const updateHelpCardOffset = () => {
+      const root = dashboardRef.current;
+      if (!root) return;
+      const rootRect = root.getBoundingClientRect();
+      const calloutNodes = Array.from(
+        root.querySelectorAll<HTMLElement>(`.${styles.helpCallout}`)
+      );
+      if (calloutNodes.length === 0) {
+        setHelpCardTopOffset(0);
+        return;
+      }
+      const maxBottom = calloutNodes.reduce(
+        (acc, node) => Math.max(acc, node.getBoundingClientRect().bottom),
+        rootRect.top
+      );
+      setHelpCardTopOffset(Math.max(0, maxBottom - rootRect.top + 16));
+    };
+    const frame = window.requestAnimationFrame(updateHelpCardOffset);
+    window.addEventListener("resize", updateHelpCardOffset);
+    window.addEventListener("scroll", updateHelpCardOffset, true);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updateHelpCardOffset);
+      window.removeEventListener("scroll", updateHelpCardOffset, true);
+    };
+  }, [showHelp, helpCallouts]);
+
   const loadDetails = async (playerId: number, forceRefresh = false) => {
     const cached = cache[playerId];
     const isFresh =
@@ -1010,23 +1160,15 @@ export default function Dashboard({
     setUnlockStatus(null);
 
     try {
-      const response = await fetch(
+      const { response, payload } = await fetchChppJson<PlayerDetailsResponse>(
         `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&unlockSkills=1`,
         { cache: "no-store" }
       );
-      const payload = (await response.json()) as PlayerDetailsResponse;
-
-      if (!response.ok || payload.error) {
-        if (isAuthErrorPayload(payload, response)) {
-          setAuthError(true);
-          setAuthErrorDetails(payload.details ?? messages.connectHint);
-          setDetails(previousDetails);
-          return;
-        }
-        throw new Error(payload.error ?? "Failed to fetch player details");
+      if (!response.ok || payload?.error) {
+        throw new Error(payload?.error ?? "Failed to fetch player details");
       }
 
-      const resolved = payload.data ?? null;
+      const resolved = payload?.data ?? null;
       if (resolved) {
         setCache((prev) => ({
           ...prev,
@@ -1037,10 +1179,14 @@ export default function Dashboard({
         }));
       }
       setDetails(resolved);
-      if (payload.unlockStatus) {
+      if (payload?.unlockStatus) {
         setUnlockStatus(payload.unlockStatus);
       }
     } catch (err) {
+      if (err instanceof ChppAuthRequiredError) {
+        setDetails(previousDetails);
+        return;
+      }
       setError(err instanceof Error ? err.message : String(err));
       setDetails(previousDetails);
     } finally {
@@ -1055,20 +1201,14 @@ export default function Dashboard({
     if (!forceRefresh && cached && isFresh) return;
 
     try {
-      const response = await fetch(
+      const { response, payload } = await fetchChppJson<PlayerDetailsResponse>(
         `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&unlockSkills=1`,
         { cache: "no-store" }
       );
-      const payload = (await response.json()) as PlayerDetailsResponse;
-      if (isAuthErrorPayload(payload, response)) {
-        setAuthError(true);
-        setAuthErrorDetails(payload.details ?? messages.connectHint);
+      if (!response.ok || payload?.error) {
         return;
       }
-      if (!response.ok || payload.error) {
-        return;
-      }
-      const resolved = payload.data ?? null;
+      const resolved = payload?.data ?? null;
       if (resolved) {
         setCache((prev) => ({
           ...prev,
@@ -1078,10 +1218,11 @@ export default function Dashboard({
           },
         }));
       }
-      if (payload.unlockStatus) {
+      if (payload?.unlockStatus) {
         setUnlockStatus(payload.unlockStatus);
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return;
       // ignore hover failures
     }
   };
@@ -1629,27 +1770,30 @@ export default function Dashboard({
     const teamId = teamIdOverride ?? activeYouthTeamId;
     try {
       const teamParam = teamId ? `&teamID=${teamId}` : "";
-      const response = await fetch(`/api/chpp/matches?isYouth=true${teamParam}`, {
+      const { response, payload } = await fetchChppJson<
+        MatchesResponse & {
+          code?: string;
+          statusCode?: number;
+          details?: string;
+          error?: string;
+        }
+      >(`/api/chpp/matches?isYouth=true${teamParam}`, {
         cache: "no-store",
       });
-      const payload = (await response.json()) as MatchesResponse & {
+      const typedPayload = payload as MatchesResponse & {
         code?: string;
         statusCode?: number;
         details?: string;
         error?: string;
       };
-      if (isAuthErrorPayload(payload, response)) {
-        setAuthError(true);
-        setAuthErrorDetails(payload.details ?? messages.connectHint);
+      if (!response.ok || typedPayload.error) {
+        setMatchesState(typedPayload);
         return false;
       }
-      if (!response.ok || payload.error) {
-        setMatchesState(payload);
-        return false;
-      }
-      setMatchesState(payload);
+      setMatchesState(typedPayload);
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return false;
       // keep existing data
       return false;
     }
@@ -1659,22 +1803,18 @@ export default function Dashboard({
     const teamId = teamIdOverride ?? activeYouthTeamId;
     try {
       const teamParam = teamId ? `?teamID=${teamId}` : "";
-      const response = await fetch(`/api/chpp/youth/ratings${teamParam}`, {
-        cache: "no-store",
-      });
-      if (response.status === 401) {
-        setAuthError(true);
-        setAuthErrorDetails(messages.connectHint);
-        return false;
-      }
+      const { response, payload } = await fetchChppJson<RatingsMatrixResponse>(
+        `/api/chpp/youth/ratings${teamParam}`,
+        { cache: "no-store" }
+      );
       if (!response.ok) {
         setRatingsResponseState(null);
         return false;
       }
-      const payload = (await response.json()) as RatingsMatrixResponse;
       setRatingsResponseState(payload);
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return false;
       setRatingsResponseState(null);
       return false;
     }
@@ -1703,13 +1843,7 @@ export default function Dashboard({
         setRatingsResponseState(null);
       }
       const teamParam = teamId ? `&youthTeamID=${teamId}` : "";
-      const response = await fetch(
-        `/api/chpp/youth/players?actionType=details${teamParam}`,
-        {
-          cache: "no-store",
-        }
-      );
-      const payload = (await response.json()) as {
+      const { response, payload } = await fetchChppJson<{
         data?: {
           HattrickData?: {
             PlayerList?: { YouthPlayer?: YouthPlayer[] | YouthPlayer };
@@ -1719,14 +1853,14 @@ export default function Dashboard({
         details?: string;
         statusCode?: number;
         code?: string;
-      };
-      if (isAuthErrorPayload(payload, response)) {
-        setAuthError(true);
-        setAuthErrorDetails(payload.details ?? messages.connectHint);
-        return;
-      }
-      if (!response.ok || payload.error) {
-        throw new Error(payload.error ?? "Failed to fetch youth players");
+      }>(
+        `/api/chpp/youth/players?actionType=details${teamParam}`,
+        {
+          cache: "no-store",
+        }
+      );
+      if (!response.ok || payload?.error) {
+        throw new Error(payload?.error ?? "Failed to fetch youth players");
       }
       const raw = payload?.data?.HattrickData?.PlayerList?.YouthPlayer;
       const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
@@ -1754,7 +1888,8 @@ export default function Dashboard({
         addNotification(messages.notificationStaleRefresh);
       }
       addNotification(messages.notificationPlayersRefreshed);
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return;
       addNotification(messages.unableToLoadPlayers);
       setLoadError(messages.unableToLoadPlayers);
       setLoadErrorDetails(null);
@@ -1812,18 +1947,14 @@ export default function Dashboard({
   const fetchManagerCompendium = async (userId?: string) => {
     try {
       const query = userId ? `?userId=${encodeURIComponent(userId)}` : "";
-      const response = await fetch(`/api/chpp/managercompendium${query}`, {
-        cache: "no-store",
-      });
-      const payload = (await response.json()) as ManagerCompendiumResponse;
-      if (isAuthErrorPayload(payload, response)) {
-        setAuthError(true);
-        setAuthErrorDetails(payload.details ?? messages.connectHint);
-        return;
+      const { response, payload } = await fetchChppJson<ManagerCompendiumResponse>(
+        `/api/chpp/managercompendium${query}`,
+        { cache: "no-store" }
+      );
+      if (!response.ok || payload?.error) {
+        throw new Error(payload?.error ?? "Failed to fetch manager compendium");
       }
-      if (!response.ok || payload.error) {
-        throw new Error(payload.error ?? "Failed to fetch manager compendium");
-      }
+      if (!payload) throw new Error("Failed to fetch manager compendium");
       const teams = extractYouthTeams(payload);
       setYouthTeams(teams);
       if (teams.length > 1) {
@@ -1832,7 +1963,8 @@ export default function Dashboard({
         setSelectedYouthTeamId(null);
       }
       addNotification(messages.notificationTeamsLoaded);
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return;
       addNotification(messages.notificationTeamsLoadFailed);
     }
   };
@@ -2071,6 +2203,9 @@ export default function Dashboard({
             {authErrorDetails ? (
               <p className={styles.errorDetails}>{authErrorDetails}</p>
             ) : null}
+            {process.env.NODE_ENV !== "production" && authErrorDebugDetails ? (
+              <pre className={styles.errorDetails}>{authErrorDebugDetails}</pre>
+            ) : null}
           </div>
         }
         actions={
@@ -2269,15 +2404,19 @@ export default function Dashboard({
       </div>
       <div className={styles.columnStack}>
         {showHelp ? (
-          <div className={styles.helpCard}>
+          <div
+            className={styles.helpCard}
+            style={{ marginTop: `${helpCardTopOffset}px` }}
+          >
             <h2 className={styles.helpTitle}>{messages.helpTitle}</h2>
             <p className={styles.helpIntro}>{messages.helpIntro}</p>
             <ul className={styles.helpList}>
               <li>{messages.helpBulletOverview}</li>
+              <li>{messages.helpBulletWorkflow}</li>
               <li>{messages.helpBulletMatches}</li>
               <li>{messages.helpBulletAdjust}</li>
+              <li>{messages.helpBulletOptimizerModes}</li>
               <li>{messages.helpBulletTraining}</li>
-              <li>{messages.helpBulletDesktop}</li>
             </ul>
             <button
               type="button"

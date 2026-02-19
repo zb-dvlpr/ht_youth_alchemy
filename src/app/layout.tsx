@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Youth Alchemy",
-  description: "Optimize youth training and lineups with CHPP-powered insights.",
+  title: "Hattrick Alchemy",
+  description: "Optimize youth and senior squads with CHPP-powered insights.",
 };
 
 export default function RootLayout({

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
@@ -95,6 +95,22 @@ type SortKey =
 
 type SortDirection = "asc" | "desc";
 
+const SORT_KEYS: SortKey[] = [
+  "name",
+  "age",
+  "promotionAge",
+  "arrival",
+  "promotable",
+  "keeper",
+  "defender",
+  "playmaker",
+  "winger",
+  "passing",
+  "scorer",
+  "setpieces",
+  "custom",
+];
+
 function formatPlayerName(player?: YouthPlayer | null) {
   if (!player) return "";
   return [player.FirstName, player.NickName || null, player.LastName]
@@ -161,9 +177,48 @@ export default function YouthPlayerList({
   refreshing,
   messages,
 }: YouthPlayerListProps) {
+  const sortStorageKey = "ya_youth_player_list_sort_v1";
+  const listCardRef = useRef<HTMLDivElement | null>(null);
+  const nameRowRefs = useRef<Record<number, HTMLSpanElement | null>>({});
+  const ageRefs = useRef<Record<number, HTMLSpanElement | null>>({});
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [nameAgeOverlap, setNameAgeOverlap] = useState<Record<number, boolean>>(
+    {}
+  );
   const { addNotification } = useNotifications();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(sortStorageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as {
+        sortKey?: SortKey;
+        sortDirection?: SortDirection;
+      };
+      if (parsed.sortKey && SORT_KEYS.includes(parsed.sortKey)) {
+        setSortKey(parsed.sortKey);
+      }
+      if (parsed.sortDirection === "asc" || parsed.sortDirection === "desc") {
+        setSortDirection(parsed.sortDirection);
+      }
+    } catch {
+      // ignore restore errors
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(
+        sortStorageKey,
+        JSON.stringify({ sortKey, sortDirection })
+      );
+    } catch {
+      // ignore persist errors
+    }
+  }, [sortDirection, sortKey]);
 
   const sortLabelForKey = (key: SortKey) => {
     switch (key) {
@@ -344,8 +399,56 @@ export default function YouthPlayerList({
     onOrderChange(sortedPlayers.map((player) => player.YouthPlayerID));
   }, [sortedPlayers, onOrderChange, sortKey, orderSource, orderedPlayerIds]);
 
+  const recomputeNameAgeOverlap = useCallback(() => {
+    const next: Record<number, boolean> = {};
+    orderedPlayers.forEach((player) => {
+      const playerId = player.YouthPlayerID;
+      const nameEl = nameRowRefs.current[playerId];
+      const ageEl = ageRefs.current[playerId];
+      if (!nameEl || !ageEl) {
+        next[playerId] = false;
+        return;
+      }
+      const nameRect = nameEl.getBoundingClientRect();
+      const ageRect = ageEl.getBoundingClientRect();
+      const overlaps =
+        nameRect.right > ageRect.left - 8 &&
+        nameRect.left < ageRect.right &&
+        nameRect.top < ageRect.bottom &&
+        nameRect.bottom > ageRect.top;
+      next[playerId] = overlaps;
+    });
+    setNameAgeOverlap((prev) => {
+      const prevKeys = Object.keys(prev);
+      const nextKeys = Object.keys(next);
+      if (prevKeys.length !== nextKeys.length) return next;
+      for (const key of nextKeys) {
+        if (prev[Number(key)] !== next[Number(key)]) {
+          return next;
+        }
+      }
+      return prev;
+    });
+  }, [orderedPlayers]);
+
+  useEffect(() => {
+    const run = () => {
+      window.requestAnimationFrame(recomputeNameAgeOverlap);
+    };
+    run();
+    const root = listCardRef.current;
+    if (!root || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(run);
+    observer.observe(root);
+    window.addEventListener("resize", run);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", run);
+    };
+  }, [recomputeNameAgeOverlap]);
+
   return (
-    <div className={styles.card} data-help-anchor={dataHelpAnchor}>
+    <div className={styles.card} data-help-anchor={dataHelpAnchor} ref={listCardRef}>
       <div className={styles.listHeader}>
         <h2 className={`${styles.sectionTitle} ${styles.listHeaderTitle}`}>
           {messages.youthPlayerList}
@@ -503,13 +606,27 @@ export default function YouthPlayerList({
                     aria-pressed={isSelected}
                   >
                     {player.Age !== undefined && player.AgeDays !== undefined ? (
-                      <span className={styles.playerAge}>
+                      <span
+                        className={styles.playerAge}
+                        ref={(node) => {
+                          ageRefs.current[player.YouthPlayerID] = node;
+                        }}
+                      >
                         {player.Age}
                         {messages.ageYearsShort} {player.AgeDays}
                         {messages.ageDaysShort}
                       </span>
                     ) : null}
-                    <span className={styles.playerNameRow}>
+                    <span
+                      className={`${styles.playerNameRow}${
+                        nameAgeOverlap[player.YouthPlayerID]
+                          ? ` ${styles.playerNameRowTruncate}`
+                          : ""
+                      }`}
+                      ref={(node) => {
+                        nameRowRefs.current[player.YouthPlayerID] = node;
+                      }}
+                    >
                       <span className={styles.playerName}>{fullName}</span>
                       {specialtyEmoji ? (
                         <Tooltip

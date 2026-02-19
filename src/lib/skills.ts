@@ -5,7 +5,7 @@ export function getSkillMaxReached(
 ): boolean {
   if (skill === null || skill === undefined) return false;
   if (typeof skill === "object" && "@_IsMaxReached" in skill) {
-    return String(skill["@_IsMaxReached"]) === "True";
+    return String(skill["@_IsMaxReached"]).trim().toLowerCase() === "true";
   }
   return false;
 }

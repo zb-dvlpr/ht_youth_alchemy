@@ -10,6 +10,7 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import { formatChppDateTime, formatDateTime } from "@/lib/datetime";
 import { parseChppDate } from "@/lib/chpp/utils";
 import Modal from "./Modal";
+import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
 
 export type MatchTeam = {
   HomeTeamName?: string;
@@ -432,11 +433,23 @@ export default function UpcomingMatches({
       [matchId]: { status: "loading", error: null },
     }));
     try {
-      const response = await fetch(
+      const { response, payload } = await fetchChppJson<{
+        data?: {
+          HattrickData?: {
+            MatchData?: {
+              Lineup?: {
+                Positions?: { Player?: unknown };
+                Bench?: { Player?: unknown };
+              };
+            };
+          };
+        };
+        error?: string;
+        details?: string;
+      }>(
         `/api/chpp/matchorders?matchId=${matchId}&teamId=${teamId}`,
         { cache: "no-store" }
       );
-      const payload = await response.json().catch(() => null);
       if (!response.ok || payload?.error) {
         throw new Error(
           payload?.details || payload?.error || messages.loadLineupError
@@ -517,6 +530,7 @@ export default function UpcomingMatches({
         [matchId]: { status: "idle", error: null },
       }));
     } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return;
       const message = error instanceof Error ? error.message : String(error);
       setLoadStates((prev) => ({
         ...prev,
@@ -540,7 +554,12 @@ export default function UpcomingMatches({
     }));
 
     try {
-      const response = await fetch("/api/chpp/matchorders", {
+      const { response, payload } = await fetchChppJson<{
+        error?: string;
+        details?: string;
+        data?: string;
+        raw?: string;
+      }>("/api/chpp/matchorders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -549,10 +568,6 @@ export default function UpcomingMatches({
           lineup: lineupPayload,
         }),
       });
-
-      const payload = (await response.json().catch(() => null)) as
-        | { error?: string; details?: string; data?: string; raw?: string }
-        | null;
       if (!response.ok || payload?.error) {
         const message = payload?.details || payload?.error || "Submit failed";
         throw new Error(message);
@@ -589,6 +604,7 @@ export default function UpcomingMatches({
       onSubmitSuccess?.();
       onRefresh?.();
     } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return;
       const message = error instanceof Error ? error.message : String(error);
       setMatchStates((prev) => ({
         ...prev,

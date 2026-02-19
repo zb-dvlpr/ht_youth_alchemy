@@ -7,6 +7,7 @@ import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
 import { positionLabelShortByRoleId } from "@/lib/positions";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { getSkillMaxReached } from "@/lib/skills";
+import { hattrickYouthPlayerUrl } from "@/lib/hattrick/urls";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -235,6 +236,11 @@ export default function PlayerDetailsPanel({
   >(null);
   const [skillsSortDir, setSkillsSortDir] = useState<"asc" | "desc">("desc");
   const pendingSkillsSortRef = useRef(false);
+
+  const handleMatrixPlayerPick = (playerName: string) => {
+    setActiveTab("details");
+    onSelectRatingsPlayer?.(playerName);
+  };
 
   const playerById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -529,7 +535,7 @@ export default function PlayerDetailsPanel({
                 {playerId}
                 <a
                   className={styles.infoLinkIcon}
-                  href={`https://www82.hattrick.org/Club/Players/YouthPlayer.aspx?YouthPlayerID=${playerId}`}
+                  href={hattrickYouthPlayerUrl(playerId)}
                   target="_blank"
                   rel="noreferrer"
                   aria-label={messages.playerLinkLabel}
@@ -570,9 +576,9 @@ export default function PlayerDetailsPanel({
               const skillNode = detailsData.PlayerSkills?.[row.key];
               const current = getSkillLevel(skillNode);
               const max = getSkillMax(detailsData.PlayerSkills?.[row.maxKey]);
-              const isMaxed = getSkillMaxReached(skillNode);
               const hasCurrent = current !== null;
               const hasMax = max !== null;
+              const isMaxed = getSkillMaxReached(skillNode);
               const currentText = hasCurrent
                 ? String(current)
                 : messages.unknownShort;
@@ -589,33 +595,42 @@ export default function PlayerDetailsPanel({
                   <div className={styles.skillLabel}>
                     {messages[row.labelKey as keyof Messages]}
                   </div>
-                  <div className={styles.skillBar}>
-                    {hasMax ? (
-                      <div
-                        className={styles.skillFillMax}
-                        style={{ width: `${maxPct}%` }}
-                      />
-                    ) : null}
-                    {hasCurrent ? (
-                      <div
-                        className={styles.skillFillCurrent}
-                        style={{ width: `${currentPct}%` }}
-                      />
-                    ) : null}
-                  </div>
                   {isMaxed ? (
-                    <Tooltip content={messages.skillMaxedTooltip}>
-                      <div
-                        className={`${styles.skillValue} ${styles.skillValueMaxed}`}
-                      >
-                        {currentText}/{maxText}
+                    <Tooltip content={messages.skillMaxedTooltip} fullWidth>
+                      <div className={`${styles.skillBar} ${styles.skillBarMaxed}`}>
+                        {hasMax ? (
+                          <div
+                            className={styles.skillFillMax}
+                            style={{ width: `${maxPct}%` }}
+                          />
+                        ) : null}
+                        {hasCurrent ? (
+                          <div
+                            className={styles.skillFillCurrent}
+                            style={{ width: `${currentPct}%` }}
+                          />
+                        ) : null}
                       </div>
                     </Tooltip>
                   ) : (
-                    <div className={styles.skillValue}>
-                      {currentText}/{maxText}
+                    <div className={styles.skillBar}>
+                      {hasMax ? (
+                        <div
+                          className={styles.skillFillMax}
+                          style={{ width: `${maxPct}%` }}
+                        />
+                      ) : null}
+                      {hasCurrent ? (
+                        <div
+                          className={styles.skillFillCurrent}
+                          style={{ width: `${currentPct}%` }}
+                        />
+                      ) : null}
                     </div>
                   )}
+                  <div className={styles.skillValue}>
+                    {currentText}/{maxText}
+                  </div>
                 </div>
               );
             })}
@@ -698,7 +713,7 @@ export default function PlayerDetailsPanel({
                     <button
                       type="button"
                       className={styles.matrixPlayerButton}
-                      onClick={() => onSelectRatingsPlayer?.(row.name)}
+                      onClick={() => handleMatrixPlayerPick(row.name)}
                       disabled={!onSelectRatingsPlayer}
                     >
                       {row.name}
@@ -775,7 +790,7 @@ export default function PlayerDetailsPanel({
   };
 
   return (
-    <div className={styles.card}>
+    <div className={`${styles.card} ${styles.playerDetailsCard}`}>
       <div className={styles.detailsHeader}>
         <div className={styles.detailsTabs}>
           <button
@@ -819,7 +834,7 @@ export default function PlayerDetailsPanel({
           messages={messages}
           specialtyByName={ratingsMatrixSpecialtyByName}
           selectedName={ratingsMatrixSelectedName}
-          onSelectPlayer={onSelectRatingsPlayer}
+          onSelectPlayer={handleMatrixPlayerPick}
           orderedPlayerIds={orderedPlayerIds}
           orderSource={orderSource}
           onOrderChange={onRatingsOrderChange}

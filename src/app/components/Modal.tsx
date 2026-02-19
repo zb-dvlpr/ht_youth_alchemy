@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 
 import styles from "../page.module.css";
 
@@ -25,6 +25,7 @@ export default function Modal({
   closeOnBackdrop = false,
   onClose,
 }: ModalProps) {
+  const backdropPressStartedRef = useRef(false);
   if (!open) return null;
   const overlayClass =
     variant === "local" ? styles.confirmOverlay : styles.trainingOverlay;
@@ -32,9 +33,15 @@ export default function Modal({
   return (
     <div
       className={overlayClass}
+      onMouseDown={(event) => {
+        backdropPressStartedRef.current = event.target === event.currentTarget;
+      }}
       onClick={(event) => {
+        const startedOnBackdrop = backdropPressStartedRef.current;
+        backdropPressStartedRef.current = false;
         if (!closeOnBackdrop) return;
         if (event.target !== event.currentTarget) return;
+        if (!startedOnBackdrop) return;
         onClose?.();
       }}
     >

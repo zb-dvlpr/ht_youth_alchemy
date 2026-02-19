@@ -46,14 +46,14 @@ export async function GET(request: Request) {
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: 60 * 60 * 24,
+      maxAge: 60 * 60 * 24 * 365 * 20,
     });
     cookieStore.set("chpp_access_secret", secret, {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
       path: "/",
-      maxAge: 60 * 60 * 24,
+      maxAge: 60 * 60 * 24 * 365 * 20,
     });
 
     cookieStore.delete("chpp_req_token");

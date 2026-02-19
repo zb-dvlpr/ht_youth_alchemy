@@ -13,6 +13,17 @@ import {
   readYouthStalenessHours,
   writeYouthStalenessHours,
   YOUTH_SETTINGS_EVENT,
+  readClubChronicleStalenessDays,
+  writeClubChronicleStalenessDays,
+  readClubChronicleTransferHistoryCount,
+  writeClubChronicleTransferHistoryCount,
+  readClubChronicleUpdatesHistoryCount,
+  writeClubChronicleUpdatesHistoryCount,
+  CLUB_CHRONICLE_DEBUG_EVENT,
+  CLUB_CHRONICLE_SETTINGS_EVENT,
+  GENERAL_SETTINGS_EVENT,
+  readGeneralEnableScaling,
+  writeGeneralEnableScaling,
 } from "@/lib/settings";
 
 type SettingsButtonProps = {
@@ -30,13 +41,23 @@ const STORAGE_PREFIX = "ya_";
 export default function SettingsButton({ messages }: SettingsButtonProps) {
   const [open, setOpen] = useState(false);
   const [youthSettingsOpen, setYouthSettingsOpen] = useState(false);
+  const [chronicleSettingsOpen, setChronicleSettingsOpen] = useState(false);
+  const [generalSettingsOpen, setGeneralSettingsOpen] = useState(false);
+  const [debugSettingsOpen, setDebugSettingsOpen] = useState(false);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
   const [stalenessHours, setStalenessHours] = useState(3);
+  const [chronicleStalenessDays, setChronicleStalenessDays] = useState(3);
+  const [chronicleTransferHistoryCount, setChronicleTransferHistoryCount] =
+    useState(5);
+  const [chronicleUpdatesHistoryCount, setChronicleUpdatesHistoryCount] =
+    useState(10);
+  const [enableAppScaling, setEnableAppScaling] = useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const { addNotification } = useNotifications();
+  const isDev = process.env.NODE_ENV !== "production";
 
   useEffect(() => {
     if (!open) return;
@@ -54,6 +75,10 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     if (typeof window === "undefined") return;
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
     setStalenessHours(readYouthStalenessHours());
+    setChronicleStalenessDays(readClubChronicleStalenessDays());
+    setChronicleTransferHistoryCount(readClubChronicleTransferHistoryCount());
+    setChronicleUpdatesHistoryCount(readClubChronicleUpdatesHistoryCount());
+    setEnableAppScaling(readGeneralEnableScaling());
   }, []);
 
   const handleExport = () => {
@@ -154,6 +179,76 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     }
   };
 
+  const handleChronicleStalenessChange = (value: number) => {
+    const nextValue = Math.min(7, Math.max(1, Math.round(value)));
+    setChronicleStalenessDays(nextValue);
+    writeClubChronicleStalenessDays(nextValue);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(CLUB_CHRONICLE_SETTINGS_EVENT, {
+          detail: {
+            stalenessDays: nextValue,
+            transferHistoryCount: chronicleTransferHistoryCount,
+            updatesHistoryCount: chronicleUpdatesHistoryCount,
+          },
+        })
+      );
+    }
+  };
+
+  const handleChronicleTransferHistoryCountChange = (value: number) => {
+    const nextValue = Math.min(50, Math.max(1, Math.round(value)));
+    setChronicleTransferHistoryCount(nextValue);
+    writeClubChronicleTransferHistoryCount(nextValue);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(CLUB_CHRONICLE_SETTINGS_EVENT, {
+          detail: {
+            stalenessDays: chronicleStalenessDays,
+            transferHistoryCount: nextValue,
+            updatesHistoryCount: chronicleUpdatesHistoryCount,
+          },
+        })
+      );
+    }
+  };
+
+  const handleChronicleUpdatesHistoryCountChange = (value: number) => {
+    const nextValue = Math.min(50, Math.max(1, Math.round(value)));
+    setChronicleUpdatesHistoryCount(nextValue);
+    writeClubChronicleUpdatesHistoryCount(nextValue);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(CLUB_CHRONICLE_SETTINGS_EVENT, {
+          detail: {
+            stalenessDays: chronicleStalenessDays,
+            transferHistoryCount: chronicleTransferHistoryCount,
+            updatesHistoryCount: nextValue,
+          },
+        })
+      );
+    }
+  };
+
+  const handleEnableScalingToggle = (nextValue: boolean) => {
+    setEnableAppScaling(nextValue);
+    writeGeneralEnableScaling(nextValue);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(GENERAL_SETTINGS_EVENT, {
+          detail: { enableScaling: nextValue },
+        })
+      );
+    }
+  };
+
+  const handleShowDummyUpdates = () => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(CLUB_CHRONICLE_DEBUG_EVENT));
+    }
+    setDebugSettingsOpen(false);
+  };
+
   return (
     <div className={styles.feedbackWrap}>
       <Tooltip content={messages.settingsTooltip}>
@@ -179,6 +274,38 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
           >
             {messages.settingsYouth}
           </button>
+          <button
+            type="button"
+            className={styles.feedbackLink}
+            onClick={() => {
+              setChronicleSettingsOpen(true);
+              setOpen(false);
+            }}
+          >
+            {messages.settingsClubChronicle}
+          </button>
+          <button
+            type="button"
+            className={styles.feedbackLink}
+            onClick={() => {
+              setGeneralSettingsOpen(true);
+              setOpen(false);
+            }}
+          >
+            {messages.settingsGeneral}
+          </button>
+          {isDev ? (
+            <button
+              type="button"
+              className={styles.feedbackLink}
+              onClick={() => {
+                setDebugSettingsOpen(true);
+                setOpen(false);
+              }}
+            >
+              {messages.settingsDebug}
+            </button>
+          ) : null}
           <button
             type="button"
             className={styles.feedbackLink}
@@ -255,6 +382,161 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         }
         closeOnBackdrop
         onClose={() => setYouthSettingsOpen(false)}
+      />
+      <Modal
+        open={chronicleSettingsOpen}
+        title={messages.settingsClubChronicleTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <Tooltip
+              content={messages.settingsClubChronicleStalenessHint}
+              fullWidth
+            >
+              <label className={styles.settingsField}>
+                <span className={styles.settingsFieldLabel}>
+                  {messages.settingsClubChronicleStalenessLabel}
+                </span>
+                <input
+                  type="number"
+                  min={1}
+                  max={7}
+                  step={1}
+                  value={chronicleStalenessDays}
+                  className={styles.settingsFieldInput}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    if (Number.isNaN(value)) return;
+                    handleChronicleStalenessChange(value);
+                  }}
+                />
+              </label>
+            </Tooltip>
+            <Tooltip
+              content={messages.settingsClubChronicleTransferHistoryHint}
+              fullWidth
+            >
+              <label className={styles.settingsField}>
+                <span className={styles.settingsFieldLabel}>
+                  {messages.settingsClubChronicleTransferHistoryLabel}
+                </span>
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  step={1}
+                  value={chronicleTransferHistoryCount}
+                  className={styles.settingsFieldInput}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    if (Number.isNaN(value)) return;
+                    handleChronicleTransferHistoryCountChange(value);
+                  }}
+                />
+              </label>
+            </Tooltip>
+            <Tooltip
+              content={messages.settingsClubChronicleUpdatesHistoryHint}
+              fullWidth
+            >
+              <label className={styles.settingsField}>
+                <span className={styles.settingsFieldLabel}>
+                  {messages.settingsClubChronicleUpdatesHistoryLabel}
+                </span>
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  step={1}
+                  value={chronicleUpdatesHistoryCount}
+                  className={styles.settingsFieldInput}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    if (Number.isNaN(value)) return;
+                    handleChronicleUpdatesHistoryCountChange(value);
+                  }}
+                />
+              </label>
+            </Tooltip>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setChronicleSettingsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setChronicleSettingsOpen(false)}
+      />
+      <Modal
+        open={generalSettingsOpen}
+        title={messages.settingsGeneralTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <Tooltip
+              content={messages.settingsGeneralEnableScalingTooltip}
+              fullWidth
+            >
+              <label className={styles.algorithmsToggle}>
+                <span className={styles.algorithmsToggleText}>
+                  {messages.settingsGeneralEnableScalingLabel}
+                </span>
+                <input
+                  type="checkbox"
+                  className={styles.algorithmsToggleInput}
+                  checked={enableAppScaling}
+                  onChange={(event) =>
+                    handleEnableScalingToggle(event.target.checked)
+                  }
+                />
+                <span
+                  className={styles.algorithmsToggleSwitch}
+                  aria-hidden="true"
+                />
+              </label>
+            </Tooltip>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setGeneralSettingsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setGeneralSettingsOpen(false)}
+      />
+      <Modal
+        open={debugSettingsOpen}
+        title={messages.settingsDebugTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={handleShowDummyUpdates}
+            >
+              {messages.settingsDebugDisableScalingLabel}
+            </button>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmCancel}
+            onClick={() => setDebugSettingsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setDebugSettingsOpen(false)}
       />
       <input
         ref={fileInputRef}

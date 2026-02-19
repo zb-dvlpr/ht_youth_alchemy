@@ -491,6 +491,8 @@ export const messagesPt: Messages = {
     notificationTeamsLoadFailed: "Falha ao carregar times",
     notificationMatchesRefreshed: "Partidas atualizadas",
     notificationMatchesRefreshFailed: "Falha ao atualizar partidas",
+    notificationReauthRequired:
+      "Atualização cancelada: reautenticação necessária",
     permissionsLabel: "Permissões:",
     permissionsNone: "Nenhuma",
     autoSelectLabel: "✨",

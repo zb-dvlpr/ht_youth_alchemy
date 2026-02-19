@@ -487,6 +487,8 @@ export const messagesSv: Messages = {
     notificationTeamsLoadFailed: "Kunde inte ladda lag",
     notificationMatchesRefreshed: "Matcher uppdaterade",
     notificationMatchesRefreshFailed: "Misslyckades att uppdatera matcher",
+    notificationReauthRequired:
+      "Uppdatering avbröts: ny autentisering krävs",
     permissionsLabel: "Behörigheter:",
     permissionsNone: "Inga",
     autoSelectLabel: "✨",

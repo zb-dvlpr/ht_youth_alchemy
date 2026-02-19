@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
+import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
 
 type ConnectedStatusProps = {
   messages: Messages;
@@ -17,12 +18,14 @@ export default function ConnectedStatus({ messages }: ConnectedStatusProps) {
     let isActive = true;
     const load = async () => {
       try {
-        const response = await fetch("/api/chpp/oauth/check-token", {
-          cache: "no-store",
-        });
+        const { response, payload } = await fetchChppJson<{ raw?: string }>(
+          "/api/chpp/oauth/check-token",
+          {
+            cache: "no-store",
+          }
+        );
         if (!response.ok) return;
-        const payload = (await response.json()) as { raw?: string };
-        const raw = payload.raw ?? "";
+        const raw = payload?.raw ?? "";
         const match = raw.match(/<ExtendedPermissions>([^<]*)<\/ExtendedPermissions>/);
         const content = match?.[1]?.trim() ?? "";
         const list = content
@@ -31,7 +34,8 @@ export default function ConnectedStatus({ messages }: ConnectedStatusProps) {
         if (isActive) {
           setPermissions(list);
         }
-      } catch {
+      } catch (error) {
+        if (error instanceof ChppAuthRequiredError) return;
         if (isActive) {
           setPermissions(null);
         }

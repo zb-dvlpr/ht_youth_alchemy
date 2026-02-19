@@ -37,6 +37,7 @@ import {
   hattrickPlayerUrl,
   hattrickTeamUrl,
 } from "@/lib/hattrick/urls";
+import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
 
 type SupportedTeam = {
   teamId: number;
@@ -53,6 +54,9 @@ type WatchlistStorage = {
 type ClubChronicleProps = {
   messages: Messages;
 };
+
+const isChppAuthRequiredError = (error: unknown): error is ChppAuthRequiredError =>
+  error instanceof ChppAuthRequiredError;
 
 type ManualTeam = {
   teamId: number;
@@ -2048,34 +2052,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch("/api/chpp/supporters", {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              SupportedTeams?: {
+                SupportedTeam?:
+                  | {
+                      TeamId?: number | string;
+                      TeamName?: string;
+                      LeagueName?: string;
+                      LeagueLevelUnitName?: string;
+                    }[]
+                  | {
+                      TeamId?: number | string;
+                      TeamName?: string;
+                      LeagueName?: string;
+                      LeagueLevelUnitName?: string;
+                    };
+              };
+            };
+          };
+          error?: string;
+          details?: string;
+        }>("/api/chpp/supporters", {
           cache: "no-store",
         });
-        const payload = (await response.json().catch(() => null)) as
-          | {
-              data?: {
-                HattrickData?: {
-                  SupportedTeams?: {
-                    SupportedTeam?:
-                      | {
-                          TeamId?: number | string;
-                          TeamName?: string;
-                          LeagueName?: string;
-                          LeagueLevelUnitName?: string;
-                        }[]
-                      | {
-                          TeamId?: number | string;
-                          TeamName?: string;
-                          LeagueName?: string;
-                          LeagueLevelUnitName?: string;
-                        };
-                  };
-                };
-              };
-              error?: string;
-              details?: string;
-            }
-          | undefined;
         if (!response.ok || payload?.error) {
           throw new Error(payload?.details || payload?.error || "Fetch failed");
         }
@@ -2118,7 +2119,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             manualTeams: normalizedManualTeams,
           });
         }
-      } catch {
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) return;
         if (active) {
           setError(messages.watchlistError);
           if (watchlistOpen) {
@@ -2141,34 +2143,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     let active = true;
     const loadPrimaryTeam = async () => {
       try {
-        const response = await fetch("/api/chpp/teamdetails", {
-          cache: "no-store",
-        });
-        const payload = (await response.json().catch(() => null)) as
-          | {
-              data?: {
-                HattrickData?: {
-                  Team?: {
-                    TeamID?: number | string;
-                    TeamName?: string;
-                    LeagueName?: string;
-                    LeagueLevelUnitName?: string;
-                    LeagueLevelUnitID?: number | string;
-                    LeagueLevelUnit?: {
-                      LeagueLevelUnitID?: number | string;
-                      LeagueLevelUnitName?: string;
-                      Name?: string;
-                    };
-                    League?: {
-                      LeagueName?: string;
-                      Name?: string;
-                    };
-                  };
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Team?: {
+                TeamID?: number | string;
+                TeamName?: string;
+                LeagueName?: string;
+                LeagueLevelUnitName?: string;
+                LeagueLevelUnitID?: number | string;
+                LeagueLevelUnit?: {
+                  LeagueLevelUnitID?: number | string;
+                  LeagueLevelUnitName?: string;
+                  Name?: string;
+                };
+                League?: {
+                  LeagueName?: string;
+                  Name?: string;
                 };
               };
-              error?: string;
-            }
-          | undefined;
+            };
+          };
+          error?: string;
+        }>("/api/chpp/teamdetails", {
+          cache: "no-store",
+        });
         if (!response.ok || payload?.error) return;
         const teamDetails = extractTeamDetailsNode(payload) as
           | {
@@ -2225,7 +2224,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             },
           },
         }));
-      } catch {
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) return;
         // ignore teamdetails failure for now
       }
     };
@@ -2387,33 +2387,30 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
     setIsValidating(true);
     try {
-      const response = await fetch(`/api/chpp/teamdetails?teamId=${parsed}`, {
-        cache: "no-store",
-      });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            data?: {
-              HattrickData?: {
-                Team?: {
-                  TeamID?: number | string;
-                  TeamName?: string;
-                  LeagueName?: string;
-                  LeagueLevelUnitName?: string;
-                  League?: {
-                    LeagueName?: string;
-                    Name?: string;
-                  };
-                  LeagueLevelUnit?: {
-                    LeagueLevelUnitName?: string;
-                    Name?: string;
-                  };
-                };
+      const { response, payload } = await fetchChppJson<{
+        data?: {
+          HattrickData?: {
+            Team?: {
+              TeamID?: number | string;
+              TeamName?: string;
+              LeagueName?: string;
+              LeagueLevelUnitName?: string;
+              League?: {
+                LeagueName?: string;
+                Name?: string;
+              };
+              LeagueLevelUnit?: {
+                LeagueLevelUnitName?: string;
+                Name?: string;
               };
             };
-            error?: string;
-            details?: string;
-          }
-        | undefined;
+          };
+        };
+        error?: string;
+        details?: string;
+      }>(`/api/chpp/teamdetails?teamId=${parsed}`, {
+        cache: "no-store",
+      });
       const team = extractTeamDetailsNode(payload, parsed) as
         | {
             TeamID?: number | string;
@@ -2449,7 +2446,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       ]);
       setTeamIdInput("");
       setError(null);
-    } catch {
+    } catch (error) {
+      if (isChppAuthRequiredError(error)) return;
       setError(messages.watchlistError);
       setErrorOpen(true);
     } finally {
@@ -3785,48 +3783,45 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   ) => {
     for (const team of trackedTeams) {
       try {
-        const response = await fetch(
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Team?: {
+                TeamID?: number | string;
+                TeamName?: string;
+                LeagueName?: string;
+                LeagueLevelUnitName?: string;
+                LeagueLevelUnitID?: number | string;
+                LeagueLevelUnit?: {
+                  LeagueLevelUnitID?: number | string;
+                  LeagueLevelUnitName?: string;
+                  Name?: string;
+                };
+                League?: {
+                  LeagueName?: string;
+                  Name?: string;
+                };
+                Arena?: {
+                  ArenaID?: number | string;
+                  ArenaName?: string;
+                };
+                PressAnnouncement?: {
+                  Subject?: string;
+                  Body?: string;
+                  SendDate?: string;
+                };
+                Fanclub?: {
+                  FanclubName?: string;
+                  FanclubSize?: unknown;
+                };
+              };
+            };
+          };
+          error?: string;
+        }>(
           `/api/chpp/teamdetails?teamId=${team.teamId}`,
           { cache: "no-store" }
         );
-        const payload = (await response.json().catch(() => null)) as
-          | {
-              data?: {
-                HattrickData?: {
-                  Team?: {
-                    TeamID?: number | string;
-                    TeamName?: string;
-                    LeagueName?: string;
-                    LeagueLevelUnitName?: string;
-                    LeagueLevelUnitID?: number | string;
-                    LeagueLevelUnit?: {
-                      LeagueLevelUnitID?: number | string;
-                      LeagueLevelUnitName?: string;
-                      Name?: string;
-                    };
-                    League?: {
-                      LeagueName?: string;
-                      Name?: string;
-                    };
-                    Arena?: {
-                      ArenaID?: number | string;
-                      ArenaName?: string;
-                    };
-                    PressAnnouncement?: {
-                      Subject?: string;
-                      Body?: string;
-                      SendDate?: string;
-                    };
-                    Fanclub?: {
-                      FanclubName?: string;
-                      FanclubSize?: unknown;
-                    };
-                  };
-                };
-              };
-              error?: string;
-            }
-          | undefined;
         const teamDetails = extractTeamDetailsNode(payload, team.teamId) as
           | {
               TeamID?: number | string;
@@ -3907,7 +3902,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             leagueLevelUnitId: meta.leagueLevelUnitId,
           };
         }
-      } catch {
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
         // ignore teamdetails failure for now
       }
     }
@@ -3924,33 +3920,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       if (!Number.isFinite(leagueLevelUnitId)) continue;
       if (!leagueDetailsByUnit.has(leagueLevelUnitId)) {
         try {
-          const response = await fetch(
+          const { response, payload } = await fetchChppJson<{
+            data?: {
+              HattrickData?: {
+                LeagueID?: number | string;
+                LeagueName?: string;
+                LeagueLevel?: number | string;
+                MaxLevel?: number | string;
+                LeagueLevelUnitID?: number | string;
+                LeagueLevelUnitName?: string;
+                CurrentMatchRound?: string;
+                Rank?: number | string;
+                Team?: unknown;
+              };
+            };
+            error?: string;
+          }>(
             `/api/chpp/leaguedetails?leagueLevelUnitId=${leagueLevelUnitId}`,
             { cache: "no-store" }
           );
-          const payload = (await response.json().catch(() => null)) as
-            | {
-                data?: {
-                  HattrickData?: {
-                    LeagueID?: number | string;
-                    LeagueName?: string;
-                    LeagueLevel?: number | string;
-                    MaxLevel?: number | string;
-                    LeagueLevelUnitID?: number | string;
-                    LeagueLevelUnitName?: string;
-                    CurrentMatchRound?: string;
-                    Rank?: number | string;
-                    Team?: unknown;
-                  };
-                };
-                error?: string;
-              }
-            | null;
           if (!response.ok || payload?.error) {
             continue;
           }
           leagueDetailsByUnit.set(leagueLevelUnitId, payload?.data?.HattrickData);
-        } catch {
+        } catch (error) {
+          if (isChppAuthRequiredError(error)) throw error;
           // ignore league failure
         }
       }
@@ -4018,17 +4012,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       if (!Number.isFinite(arenaId) || arenaId <= 0) continue;
       if (!arenaById.has(arenaId)) {
         try {
-          const response = await fetch(`/api/chpp/arenadetails?arenaId=${arenaId}`, {
+          const { response, payload } = await fetchChppJson<{
+            data?: {
+              HattrickData?: RawNode;
+            };
+            error?: string;
+          }>(`/api/chpp/arenadetails?arenaId=${arenaId}`, {
             cache: "no-store",
           });
-          const payload = (await response.json().catch(() => null)) as
-            | {
-                data?: {
-                  HattrickData?: RawNode;
-                };
-                error?: string;
-              }
-            | null;
           if (!response.ok || payload?.error) continue;
           const root = payload?.data?.HattrickData as RawNode | undefined;
           const arenaNode = (root?.Arena ?? {}) as RawNode;
@@ -4047,7 +4038,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             fetchedAt: Date.now(),
           };
           arenaById.set(arenaId, snapshot);
-        } catch {
+        } catch (error) {
+          if (isChppAuthRequiredError(error)) throw error;
           // ignore arena failure
         }
       }
@@ -4074,25 +4066,22 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshFinanceSnapshots = async (nextCache: ChronicleCache) => {
     for (const team of trackedTeams) {
       try {
-        const response = await fetch(
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Stats?: {
+                TotalSumOfBuys?: unknown;
+                TotalSumOfSales?: unknown;
+                NumberOfBuys?: unknown;
+                NumberOfSales?: unknown;
+              };
+            };
+          };
+          error?: string;
+        }>(
           `/api/chpp/transfersteam?teamId=${team.teamId}`,
           { cache: "no-store" }
         );
-        const payload = (await response.json().catch(() => null)) as
-          | {
-              data?: {
-                HattrickData?: {
-                  Stats?: {
-                    TotalSumOfBuys?: unknown;
-                    TotalSumOfSales?: unknown;
-                    NumberOfBuys?: unknown;
-                    NumberOfSales?: unknown;
-                  };
-                };
-              };
-              error?: string;
-            }
-          | null;
         if (!response.ok || payload?.error) {
           continue;
         }
@@ -4123,7 +4112,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             previous,
           },
         };
-      } catch {
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
         // ignore finance failure
       }
     }
@@ -4175,23 +4165,20 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const fetchTeamPlayers = async (teamId: number): Promise<TeamPlayerSnapshot[]> => {
-    const playersResponse = await fetch(`/api/chpp/players?teamId=${teamId}`, {
-      cache: "no-store",
-    });
-    const playersPayload = (await playersResponse.json().catch(() => null)) as
-      | {
-          data?: {
-            HattrickData?: {
-              Team?: {
-                PlayerList?: {
-                  Player?: unknown;
-                };
-              };
+    const { response: playersResponse, payload: playersPayload } = await fetchChppJson<{
+      data?: {
+        HattrickData?: {
+          Team?: {
+            PlayerList?: {
+              Player?: unknown;
             };
           };
-          error?: string;
-        }
-      | null;
+        };
+      };
+      error?: string;
+    }>(`/api/chpp/players?teamId=${teamId}`, {
+      cache: "no-store",
+    });
     if (!playersResponse.ok || playersPayload?.error) {
       return [];
     }
@@ -4247,18 +4234,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     askingPriceSek: number | null;
   } | null> => {
     try {
-      const response = await fetch(`/api/chpp/playerdetails?playerId=${playerId}`, {
+      const { response, payload } = await fetchChppJson<{
+        data?: {
+          HattrickData?: {
+            Player?: RawNode;
+          };
+        };
+      }>(`/api/chpp/playerdetails?playerId=${playerId}`, {
         cache: "no-store",
       });
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            data?: {
-              HattrickData?: {
-                Player?: RawNode;
-              };
-            };
-          }
-        | null;
       if (!response.ok) return null;
       const playerNode = payload?.data?.HattrickData?.Player as RawNode | undefined;
       const transferDetails = (playerNode?.TransferDetails ?? {}) as RawNode;
@@ -4277,7 +4261,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         tsi: parseNumberNode(playerNode?.TSI),
         askingPriceSek: parseMoneySek(transferDetails?.AskingPrice),
       };
-    } catch {
+    } catch (error) {
+      if (isChppAuthRequiredError(error)) throw error;
       return null;
     }
   };
@@ -4346,29 +4331,26 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     let totalPages = 1;
 
     while (pageIndex <= totalPages && transfers.length < target) {
-      const response = await fetch(
+      const { response, payload } = await fetchChppJson<{
+        data?: {
+          HattrickData?: {
+            Stats?: {
+              TotalSumOfBuys?: unknown;
+              TotalSumOfSales?: unknown;
+              NumberOfBuys?: unknown;
+              NumberOfSales?: unknown;
+            };
+            Transfers?: {
+              Pages?: unknown;
+              Transfer?: unknown;
+            };
+          };
+        };
+        error?: string;
+      }>(
         `/api/chpp/transfersteam?teamId=${teamId}&pageIndex=${pageIndex}`,
         { cache: "no-store" }
       );
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            data?: {
-              HattrickData?: {
-                Stats?: {
-                  TotalSumOfBuys?: unknown;
-                  TotalSumOfSales?: unknown;
-                  NumberOfBuys?: unknown;
-                  NumberOfSales?: unknown;
-                };
-                Transfers?: {
-                  Pages?: unknown;
-                  Transfer?: unknown;
-                };
-              };
-            };
-            error?: string;
-          }
-        | null;
       if (!response.ok || payload?.error) {
         break;
       }
@@ -4491,23 +4473,20 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const fetchTeamRecentRelevantMatches = async (
     teamId: number
   ): Promise<TeamMatchArchiveEntry[]> => {
-    const response = await fetch(`/api/chpp/matchesarchive?teamId=${teamId}`, {
-      cache: "no-store",
-    });
-    const payload = (await response.json().catch(() => null)) as
-      | {
-          data?: {
-            HattrickData?: {
-              Team?: {
-                MatchList?: {
-                  Match?: unknown;
-                };
-              };
+    const { response, payload } = await fetchChppJson<{
+      data?: {
+        HattrickData?: {
+          Team?: {
+            MatchList?: {
+              Match?: unknown;
             };
           };
-          error?: string;
-        }
-      | null;
+        };
+      };
+      error?: string;
+    }>(`/api/chpp/matchesarchive?teamId=${teamId}`, {
+      cache: "no-store",
+    });
     if (!response.ok || payload?.error) return [];
 
     const rawMatches = payload?.data?.HattrickData?.Team?.MatchList?.Match;
@@ -4546,24 +4525,21 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   ): Promise<MatchFormationTacticDetails | null> => {
     if (cache.has(matchId)) return cache.get(matchId) ?? null;
     try {
-      const response = await fetch(
+      const { response, payload } = await fetchChppJson<{
+        data?: {
+          HattrickData?: {
+            Match?: {
+              HomeTeam?: RawNode;
+              AwayTeam?: RawNode;
+            };
+          };
+        };
+      }>(
         `/api/chpp/matchdetails?matchId=${matchId}&sourceSystem=${encodeURIComponent(
           sourceSystem
         )}`,
         { cache: "no-store" }
       );
-      const payload = (await response.json().catch(() => null)) as
-        | {
-            data?: {
-              HattrickData?: {
-                Match?: {
-                  HomeTeam?: RawNode;
-                  AwayTeam?: RawNode;
-                };
-              };
-            };
-          }
-        | null;
       if (!response.ok) return null;
       const match = payload?.data?.HattrickData?.Match;
       const home = (match?.HomeTeam ?? {}) as RawNode;
@@ -4580,7 +4556,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       };
       cache.set(matchId, details);
       return details;
-    } catch {
+    } catch (error) {
+      if (isChppAuthRequiredError(error)) throw error;
       return null;
     }
   };
@@ -4670,7 +4647,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
           matches,
         });
-      } catch {
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
         teamEntries.push({
           teamId: team.teamId,
           teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
@@ -4718,7 +4696,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             previous,
           },
         };
-      } catch {
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
         for (let i = 0; i < teamEntry.matches.length; i += 1) {
           onTeamMatchProcessed();
         }
@@ -4755,7 +4734,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             previous,
           },
         };
-      } catch {
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
         // ignore transfer activity failures
       }
     }
@@ -4776,7 +4756,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             previous,
           },
         };
-      } catch {
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
         // ignore tsi failures
       }
     }
@@ -4797,7 +4778,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             previous,
           },
         };
-      } catch {
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
         // ignore wages failures
       }
     }
@@ -4862,7 +4844,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             previous: previousWages,
           },
         };
-      } catch {
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
         // ignore combined transfer/finance failures
       }
     }
@@ -5012,6 +4995,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setGlobalRefreshProgressPct(100);
       setPanelProgress([...PANEL_IDS], 100);
       addNotification(messages.notificationChronicleRefreshComplete);
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
     } finally {
       setRefreshingGlobal(false);
       clearProgressIndicators();
@@ -5038,6 +5025,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setGlobalRefreshProgressPct(100);
       setPanelProgress(["league-performance"], 100);
       addNotification(messages.notificationChronicleRefreshComplete);
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
     } finally {
       setRefreshingLeague(false);
       clearProgressIndicators();
@@ -5060,6 +5051,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setGlobalRefreshProgressPct(100);
       setPanelProgress(["press-announcements"], 100);
       addNotification(messages.notificationChronicleRefreshComplete);
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
     } finally {
       setRefreshingPress(false);
       clearProgressIndicators();
@@ -5085,6 +5080,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setGlobalRefreshProgressPct(100);
       setPanelProgress(["finance-estimate"], 100);
       addNotification(messages.notificationChronicleRefreshComplete);
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
     } finally {
       setRefreshingFinance(false);
       clearProgressIndicators();
@@ -5107,6 +5106,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setGlobalRefreshProgressPct(100);
       setPanelProgress(["fanclub"], 100);
       addNotification(messages.notificationChronicleRefreshComplete);
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
     } finally {
       setRefreshingFanclub(false);
       clearProgressIndicators();
@@ -5132,6 +5135,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setGlobalRefreshProgressPct(100);
       setPanelProgress(["arena"], 100);
       addNotification(messages.notificationChronicleRefreshComplete);
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
     } finally {
       setRefreshingArena(false);
       clearProgressIndicators();
@@ -5157,6 +5164,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setGlobalRefreshProgressPct(100);
       setPanelProgress(["transfer-market"], 100);
       addNotification(messages.notificationChronicleRefreshComplete);
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
     } finally {
       setRefreshingTransfer(false);
       clearProgressIndicators();
@@ -5182,6 +5193,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setGlobalRefreshProgressPct(100);
       setPanelProgress(["tsi"], 100);
       addNotification(messages.notificationChronicleRefreshComplete);
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
     } finally {
       setRefreshingTsi(false);
       clearProgressIndicators();
@@ -5207,6 +5222,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setGlobalRefreshProgressPct(100);
       setPanelProgress(["wages"], 100);
       addNotification(messages.notificationChronicleRefreshComplete);
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
     } finally {
       setRefreshingWages(false);
       clearProgressIndicators();
@@ -5265,6 +5284,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setGlobalRefreshProgressPct(100);
       setPanelProgress(["formations-tactics", "likely-training"], 100);
       addNotification(messages.notificationChronicleRefreshComplete);
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
     } finally {
       setRefreshingFormationsTactics(false);
       clearProgressIndicators();
@@ -6195,22 +6218,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         .filter((id) => !resolvedPlayers[id])
         .map(async (id) => {
           try {
-            const response = await fetch(`/api/chpp/playerdetails?playerId=${id}`, {
+            const { payload } = await fetchChppJson<{
+              data?: {
+                HattrickData?: {
+                  Player?: {
+                    FirstName?: string;
+                    NickName?: string;
+                    LastName?: string;
+                  };
+                };
+              };
+            }>(`/api/chpp/playerdetails?playerId=${id}`, {
               cache: "no-store",
             });
-            const payload = (await response.json().catch(() => null)) as
-              | {
-                  data?: {
-                    HattrickData?: {
-                      Player?: {
-                        FirstName?: string;
-                        NickName?: string;
-                        LastName?: string;
-                      };
-                    };
-                  };
-                }
-              | undefined;
             const player = payload?.data?.HattrickData?.Player;
             const name = [player?.FirstName, player?.NickName, player?.LastName]
               .filter(Boolean)
@@ -6218,7 +6238,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               .trim();
             if (!name) return;
             setResolvedPlayers((prev) => ({ ...prev, [id]: name }));
-          } catch {
+          } catch (error) {
+            if (isChppAuthRequiredError(error)) return;
             // ignore resolve failures
           }
         })
@@ -6229,28 +6250,26 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         .filter((id) => !resolvedMatches[id])
         .map(async (id) => {
           try {
-            const response = await fetch(
+            const { payload } = await fetchChppJson<{
+              data?: {
+                HattrickData?: {
+                  Match?: {
+                    HomeTeam?: { HomeTeamName?: string };
+                    AwayTeam?: { AwayTeamName?: string };
+                  };
+                };
+              };
+            }>(
               `/api/chpp/matchdetails?matchId=${id}&sourceSystem=Hattrick`,
               { cache: "no-store" }
             );
-            const payload = (await response.json().catch(() => null)) as
-              | {
-                  data?: {
-                    HattrickData?: {
-                      Match?: {
-                        HomeTeam?: { HomeTeamName?: string };
-                        AwayTeam?: { AwayTeamName?: string };
-                      };
-                    };
-                  };
-                }
-              | null;
             const match = payload?.data?.HattrickData?.Match;
             const home = match?.HomeTeam?.HomeTeamName?.trim();
             const away = match?.AwayTeam?.AwayTeamName?.trim();
             if (!home || !away) return;
             setResolvedMatches((prev) => ({ ...prev, [id]: `${home} vs ${away}` }));
-          } catch {
+          } catch (error) {
+            if (isChppAuthRequiredError(error)) return;
             // ignore resolve failures
           }
         })
@@ -6261,25 +6280,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         .filter((id) => !resolvedTeams[id])
         .map(async (id) => {
           try {
-            const response = await fetch(`/api/chpp/teamdetails?teamId=${id}`, {
+            const { payload } = await fetchChppJson<{
+              data?: {
+                HattrickData?: {
+                  Team?: { TeamName?: string };
+                };
+              };
+            }>(`/api/chpp/teamdetails?teamId=${id}`, {
               cache: "no-store",
             });
-            const payload = (await response.json().catch(() => null)) as
-              | {
-                  data?: {
-                    HattrickData?: {
-                      Team?: { TeamName?: string };
-                    };
-                  };
-                }
-              | null;
             const teamNode = extractTeamDetailsNode(payload, id) as
               | { TeamName?: string }
               | null;
             const name = teamNode?.TeamName?.trim();
             if (!name) return;
             setResolvedTeams((prev) => ({ ...prev, [id]: name }));
-          } catch {
+          } catch (error) {
+            if (isChppAuthRequiredError(error)) return;
             // ignore resolve failures
           }
         })

@@ -446,6 +446,7 @@ export type Messages = {
   notificationTeamsLoadFailed: string;
   notificationMatchesRefreshed: string;
   notificationMatchesRefreshFailed: string;
+  notificationReauthRequired: string;
   permissionsLabel: string;
   permissionsNone: string;
   autoSelectLabel: string;

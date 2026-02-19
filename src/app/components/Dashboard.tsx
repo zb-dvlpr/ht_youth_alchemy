@@ -45,6 +45,11 @@ import {
   YOUTH_SETTINGS_STORAGE_KEY,
 } from "@/lib/settings";
 import { useNotifications } from "./notifications/NotificationsProvider";
+import {
+  CHPP_AUTH_REQUIRED_EVENT,
+  ChppAuthRequiredError,
+  fetchChppJson,
+} from "@/lib/chpp/client";
 
 const formatPlayerName = (player: YouthPlayer) =>
   [player.FirstName, player.NickName || null, player.LastName]
@@ -172,18 +177,6 @@ function resolveDetails(data: Record<string, unknown> | null) {
   return (hattrickData.YouthPlayer as YouthPlayerDetails) ?? null;
 }
 
-function isAuthErrorPayload(
-  payload: { code?: string; statusCode?: number; details?: string } | null,
-  response?: Response
-) {
-  return (
-    response?.status === 401 ||
-    payload?.statusCode === 401 ||
-    (payload?.code?.startsWith("CHPP_AUTH") ?? false) ||
-    (payload?.details?.includes("401 - Unauthorized") ?? false)
-  );
-}
-
 export default function Dashboard({
   players,
   matchesResponse,
@@ -290,6 +283,7 @@ export default function Dashboard({
   );
   const [tacticType, setTacticType] = useState(7);
   const staleRefreshAttemptedRef = useRef(false);
+  const lastAuthNotificationAtRef = useRef(0);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -808,6 +802,26 @@ export default function Dashboard({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const handleAuthRequired = (event: Event) => {
+      const detail =
+        event instanceof CustomEvent
+          ? (event.detail as { details?: string } | undefined)
+          : undefined;
+      setAuthError(true);
+      setAuthErrorDetails(detail?.details ?? messages.connectHint);
+      const now = Date.now();
+      if (now - lastAuthNotificationAtRef.current > 3000) {
+        addNotification(messages.notificationReauthRequired);
+        lastAuthNotificationAtRef.current = now;
+      }
+    };
+    window.addEventListener(CHPP_AUTH_REQUIRED_EVENT, handleAuthRequired);
+    return () =>
+      window.removeEventListener(CHPP_AUTH_REQUIRED_EVENT, handleAuthRequired);
+  }, [addNotification, messages.connectHint, messages.notificationReauthRequired]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     if (!isConnected) {
       setCurrentToken(null);
       setShowHelp(false);
@@ -815,11 +829,13 @@ export default function Dashboard({
     }
     const fetchToken = async () => {
       try {
-        const response = await fetch("/api/chpp/oauth/check-token", {
-          cache: "no-store",
-        });
-        const payload = (await response.json()) as { raw?: string };
-        const raw = payload.raw ?? "";
+        const { payload } = await fetchChppJson<{ raw?: string; details?: string }>(
+          "/api/chpp/oauth/check-token",
+          {
+            cache: "no-store",
+          }
+        );
+        const raw = payload?.raw ?? "";
         const match = raw.match(/<Token>(.*?)<\/Token>/);
         const token = match?.[1]?.trim() ?? null;
         if (!token) return;
@@ -828,7 +844,8 @@ export default function Dashboard({
         if (storedToken !== token) {
           setShowHelp(true);
         }
-      } catch {
+      } catch (error) {
+        if (error instanceof ChppAuthRequiredError) return;
         // ignore token check errors
       }
     };
@@ -1080,23 +1097,15 @@ export default function Dashboard({
     setUnlockStatus(null);
 
     try {
-      const response = await fetch(
+      const { response, payload } = await fetchChppJson<PlayerDetailsResponse>(
         `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&unlockSkills=1`,
         { cache: "no-store" }
       );
-      const payload = (await response.json()) as PlayerDetailsResponse;
-
-      if (!response.ok || payload.error) {
-        if (isAuthErrorPayload(payload, response)) {
-          setAuthError(true);
-          setAuthErrorDetails(payload.details ?? messages.connectHint);
-          setDetails(previousDetails);
-          return;
-        }
-        throw new Error(payload.error ?? "Failed to fetch player details");
+      if (!response.ok || payload?.error) {
+        throw new Error(payload?.error ?? "Failed to fetch player details");
       }
 
-      const resolved = payload.data ?? null;
+      const resolved = payload?.data ?? null;
       if (resolved) {
         setCache((prev) => ({
           ...prev,
@@ -1107,10 +1116,14 @@ export default function Dashboard({
         }));
       }
       setDetails(resolved);
-      if (payload.unlockStatus) {
+      if (payload?.unlockStatus) {
         setUnlockStatus(payload.unlockStatus);
       }
     } catch (err) {
+      if (err instanceof ChppAuthRequiredError) {
+        setDetails(previousDetails);
+        return;
+      }
       setError(err instanceof Error ? err.message : String(err));
       setDetails(previousDetails);
     } finally {
@@ -1125,20 +1138,14 @@ export default function Dashboard({
     if (!forceRefresh && cached && isFresh) return;
 
     try {
-      const response = await fetch(
+      const { response, payload } = await fetchChppJson<PlayerDetailsResponse>(
         `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&unlockSkills=1`,
         { cache: "no-store" }
       );
-      const payload = (await response.json()) as PlayerDetailsResponse;
-      if (isAuthErrorPayload(payload, response)) {
-        setAuthError(true);
-        setAuthErrorDetails(payload.details ?? messages.connectHint);
+      if (!response.ok || payload?.error) {
         return;
       }
-      if (!response.ok || payload.error) {
-        return;
-      }
-      const resolved = payload.data ?? null;
+      const resolved = payload?.data ?? null;
       if (resolved) {
         setCache((prev) => ({
           ...prev,
@@ -1148,10 +1155,11 @@ export default function Dashboard({
           },
         }));
       }
-      if (payload.unlockStatus) {
+      if (payload?.unlockStatus) {
         setUnlockStatus(payload.unlockStatus);
       }
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return;
       // ignore hover failures
     }
   };
@@ -1699,27 +1707,30 @@ export default function Dashboard({
     const teamId = teamIdOverride ?? activeYouthTeamId;
     try {
       const teamParam = teamId ? `&teamID=${teamId}` : "";
-      const response = await fetch(`/api/chpp/matches?isYouth=true${teamParam}`, {
+      const { response, payload } = await fetchChppJson<
+        MatchesResponse & {
+          code?: string;
+          statusCode?: number;
+          details?: string;
+          error?: string;
+        }
+      >(`/api/chpp/matches?isYouth=true${teamParam}`, {
         cache: "no-store",
       });
-      const payload = (await response.json()) as MatchesResponse & {
+      const typedPayload = payload as MatchesResponse & {
         code?: string;
         statusCode?: number;
         details?: string;
         error?: string;
       };
-      if (isAuthErrorPayload(payload, response)) {
-        setAuthError(true);
-        setAuthErrorDetails(payload.details ?? messages.connectHint);
+      if (!response.ok || typedPayload.error) {
+        setMatchesState(typedPayload);
         return false;
       }
-      if (!response.ok || payload.error) {
-        setMatchesState(payload);
-        return false;
-      }
-      setMatchesState(payload);
+      setMatchesState(typedPayload);
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return false;
       // keep existing data
       return false;
     }
@@ -1729,22 +1740,18 @@ export default function Dashboard({
     const teamId = teamIdOverride ?? activeYouthTeamId;
     try {
       const teamParam = teamId ? `?teamID=${teamId}` : "";
-      const response = await fetch(`/api/chpp/youth/ratings${teamParam}`, {
-        cache: "no-store",
-      });
-      if (response.status === 401) {
-        setAuthError(true);
-        setAuthErrorDetails(messages.connectHint);
-        return false;
-      }
+      const { response, payload } = await fetchChppJson<RatingsMatrixResponse>(
+        `/api/chpp/youth/ratings${teamParam}`,
+        { cache: "no-store" }
+      );
       if (!response.ok) {
         setRatingsResponseState(null);
         return false;
       }
-      const payload = (await response.json()) as RatingsMatrixResponse;
       setRatingsResponseState(payload);
       return true;
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return false;
       setRatingsResponseState(null);
       return false;
     }
@@ -1773,13 +1780,7 @@ export default function Dashboard({
         setRatingsResponseState(null);
       }
       const teamParam = teamId ? `&youthTeamID=${teamId}` : "";
-      const response = await fetch(
-        `/api/chpp/youth/players?actionType=details${teamParam}`,
-        {
-          cache: "no-store",
-        }
-      );
-      const payload = (await response.json()) as {
+      const { response, payload } = await fetchChppJson<{
         data?: {
           HattrickData?: {
             PlayerList?: { YouthPlayer?: YouthPlayer[] | YouthPlayer };
@@ -1789,14 +1790,14 @@ export default function Dashboard({
         details?: string;
         statusCode?: number;
         code?: string;
-      };
-      if (isAuthErrorPayload(payload, response)) {
-        setAuthError(true);
-        setAuthErrorDetails(payload.details ?? messages.connectHint);
-        return;
-      }
-      if (!response.ok || payload.error) {
-        throw new Error(payload.error ?? "Failed to fetch youth players");
+      }>(
+        `/api/chpp/youth/players?actionType=details${teamParam}`,
+        {
+          cache: "no-store",
+        }
+      );
+      if (!response.ok || payload?.error) {
+        throw new Error(payload?.error ?? "Failed to fetch youth players");
       }
       const raw = payload?.data?.HattrickData?.PlayerList?.YouthPlayer;
       const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
@@ -1824,7 +1825,8 @@ export default function Dashboard({
         addNotification(messages.notificationStaleRefresh);
       }
       addNotification(messages.notificationPlayersRefreshed);
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return;
       addNotification(messages.unableToLoadPlayers);
       setLoadError(messages.unableToLoadPlayers);
       setLoadErrorDetails(null);
@@ -1882,18 +1884,14 @@ export default function Dashboard({
   const fetchManagerCompendium = async (userId?: string) => {
     try {
       const query = userId ? `?userId=${encodeURIComponent(userId)}` : "";
-      const response = await fetch(`/api/chpp/managercompendium${query}`, {
-        cache: "no-store",
-      });
-      const payload = (await response.json()) as ManagerCompendiumResponse;
-      if (isAuthErrorPayload(payload, response)) {
-        setAuthError(true);
-        setAuthErrorDetails(payload.details ?? messages.connectHint);
-        return;
+      const { response, payload } = await fetchChppJson<ManagerCompendiumResponse>(
+        `/api/chpp/managercompendium${query}`,
+        { cache: "no-store" }
+      );
+      if (!response.ok || payload?.error) {
+        throw new Error(payload?.error ?? "Failed to fetch manager compendium");
       }
-      if (!response.ok || payload.error) {
-        throw new Error(payload.error ?? "Failed to fetch manager compendium");
-      }
+      if (!payload) throw new Error("Failed to fetch manager compendium");
       const teams = extractYouthTeams(payload);
       setYouthTeams(teams);
       if (teams.length > 1) {
@@ -1902,7 +1900,8 @@ export default function Dashboard({
         setSelectedYouthTeamId(null);
       }
       addNotification(messages.notificationTeamsLoaded);
-    } catch {
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return;
       addNotification(messages.notificationTeamsLoadFailed);
     }
   };

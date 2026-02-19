@@ -487,6 +487,8 @@ export const messagesDe: Messages = {
     notificationTeamsLoadFailed: "Teams konnten nicht geladen werden",
     notificationMatchesRefreshed: "Spiele aktualisiert",
     notificationMatchesRefreshFailed: "Aktualisierung der Spiele fehlgeschlagen",
+    notificationReauthRequired:
+      "Aktualisierung abgebrochen: erneute Anmeldung erforderlich",
     permissionsLabel: "Rechte:",
     permissionsNone: "Keine",
     autoSelectLabel: "✨",

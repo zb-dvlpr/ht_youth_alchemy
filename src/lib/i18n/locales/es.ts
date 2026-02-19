@@ -491,6 +491,8 @@ export const messagesEs: Messages = {
     notificationTeamsLoadFailed: "No se pudieron cargar los equipos",
     notificationMatchesRefreshed: "Partidos actualizados",
     notificationMatchesRefreshFailed: "Fallo al actualizar partidos",
+    notificationReauthRequired:
+      "Actualización cancelada: se requiere reautenticación",
     permissionsLabel: "Permisos:",
     permissionsNone: "Ninguno",
     autoSelectLabel: "✨",

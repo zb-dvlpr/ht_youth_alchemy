@@ -482,6 +482,7 @@ export const messagesEn: Messages = {
     notificationTeamsLoadFailed: "Failed to load teams",
     notificationMatchesRefreshed: "Matches refreshed",
     notificationMatchesRefreshFailed: "Matches refresh failed",
+    notificationReauthRequired: "Refresh aborted: re-auth required",
     permissionsLabel: "Permissions:",
     permissionsNone: "None",
     autoSelectLabel: "✨",

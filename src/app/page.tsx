@@ -250,7 +250,7 @@ export default async function Home() {
   );
 
   return (
-    <main className={styles.main}>
+    <main className={styles.main} data-app-main="true">
       <ViewportScaler />
       <NotificationsProvider>
         <div className={styles.scaleContainer} data-scale-container="true">

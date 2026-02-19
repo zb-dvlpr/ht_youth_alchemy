@@ -607,7 +607,9 @@ const ChroniclePanel = ({
         </span>
       </h3>
     </div>
-    <div className={styles.chroniclePanelBody}>{children}</div>
+    <div className={styles.chroniclePanelBody} data-cc-scroll-key={panelId}>
+      {children}
+    </div>
   </div>
 );
 

@@ -57,6 +57,9 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Modal backdrop-close logic now requires the press to start on the backdrop, preventing accidental modal close when text selection starts inside a modal and mouse-up happens outside.
 - Likely training regimen details modal now uses clearer vertical spacing for the top summary text block.
 - CHPP re-auth flow now redirects to authorization using only `oauth_token` (no extra scope query), and access token cookies now persist for a long-term duration (20 years) to avoid unnecessary reconnect prompts after inactivity.
+- Language switching now preserves app context: active tool (Youth/Club Chronicle), sidebar collapse state, and current scroll positions (including Club Chronicle panel scrolls) are restored after locale reload.
+- Locale-switch context restore now hydrates safely (no SSR/client mismatch): initial render stays deterministic and saved view state is applied after mount.
+- Youth player list sorting (sort field and direction) is now persisted in local storage and remains intact after locale changes/reloads.
 
 ## Local setup
 1) Install dependencies

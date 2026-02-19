@@ -95,6 +95,22 @@ type SortKey =
 
 type SortDirection = "asc" | "desc";
 
+const SORT_KEYS: SortKey[] = [
+  "name",
+  "age",
+  "promotionAge",
+  "arrival",
+  "promotable",
+  "keeper",
+  "defender",
+  "playmaker",
+  "winger",
+  "passing",
+  "scorer",
+  "setpieces",
+  "custom",
+];
+
 function formatPlayerName(player?: YouthPlayer | null) {
   if (!player) return "";
   return [player.FirstName, player.NickName || null, player.LastName]
@@ -161,9 +177,42 @@ export default function YouthPlayerList({
   refreshing,
   messages,
 }: YouthPlayerListProps) {
+  const sortStorageKey = "ya_youth_player_list_sort_v1";
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const { addNotification } = useNotifications();
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(sortStorageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as {
+        sortKey?: SortKey;
+        sortDirection?: SortDirection;
+      };
+      if (parsed.sortKey && SORT_KEYS.includes(parsed.sortKey)) {
+        setSortKey(parsed.sortKey);
+      }
+      if (parsed.sortDirection === "asc" || parsed.sortDirection === "desc") {
+        setSortDirection(parsed.sortDirection);
+      }
+    } catch {
+      // ignore restore errors
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(
+        sortStorageKey,
+        JSON.stringify({ sortKey, sortDirection })
+      );
+    } catch {
+      // ignore persist errors
+    }
+  }, [sortDirection, sortKey]);
 
   const sortLabelForKey = (key: SortKey) => {
     switch (key) {

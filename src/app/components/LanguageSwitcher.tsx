@@ -34,6 +34,9 @@ export default function LanguageSwitcher({
     const next = event.target.value as Locale;
     setValue(next);
     setIsChanging(true);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("ya:before-locale-switch"));
+    }
     await fetch("/api/lang", {
       method: "POST",
       headers: { "Content-Type": "application/json" },

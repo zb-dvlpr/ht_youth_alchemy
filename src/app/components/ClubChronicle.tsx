@@ -615,6 +615,7 @@ const UPDATES_KEY = "ya_cc_updates_v1";
 const GLOBAL_BASELINE_KEY = "ya_cc_global_baseline_v1";
 const GLOBAL_UPDATES_HISTORY_KEY = "ya_cc_global_updates_history_v1";
 const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
+const MAX_GLOBAL_UPDATE_HISTORY = 10;
 const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
 const HELP_STORAGE_KEY = "ya_cc_help_dismissed_v1";
 const PANEL_IDS = [
@@ -1256,7 +1257,10 @@ const readGlobalUpdatesHistory = (): ChronicleGlobalUpdateEntry[] => {
     const raw = window.localStorage.getItem(GLOBAL_UPDATES_HISTORY_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as ChronicleGlobalUpdateEntry[];
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((entry) => entry?.hasChanges && !!entry?.updates)
+      .slice(0, MAX_GLOBAL_UPDATE_HISTORY);
   } catch {
     return [];
   }
@@ -1519,7 +1523,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
   const [globalUpdatesHistory, setGlobalUpdatesHistory] = useState<
     ChronicleGlobalUpdateEntry[]
-  >(() => readGlobalUpdatesHistory().slice(0, 10));
+  >(() => readGlobalUpdatesHistory().slice(0, MAX_GLOBAL_UPDATE_HISTORY));
   const [lastGlobalComparedAt, setLastGlobalComparedAt] = useState<number | null>(
     () => readGlobalUpdatesHistory()[0]?.comparedAt ?? null
   );
@@ -3815,7 +3819,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const pushGlobalUpdateHistory = useCallback(
     (entry: ChronicleGlobalUpdateEntry) => {
-      setGlobalUpdatesHistory((prev) => [entry, ...prev].slice(0, 10));
+      setGlobalUpdatesHistory((prev) =>
+        [entry, ...prev].slice(0, MAX_GLOBAL_UPDATE_HISTORY)
+      );
       setLastGlobalComparedAt(entry.comparedAt);
       setLastGlobalHadChanges(entry.hasChanges);
     },
@@ -5020,12 +5026,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       );
       const hasUpdates = hasAnyChanges(nextUpdates);
       const comparedAt = Date.now();
-      pushGlobalUpdateHistory({
-        id: `${comparedAt}`,
-        comparedAt,
-        hasChanges: hasUpdates,
-        updates: hasUpdates ? nextUpdates : null,
-      });
+      if (hasUpdates) {
+        pushGlobalUpdateHistory({
+          id: `${comparedAt}`,
+          comparedAt,
+          hasChanges: true,
+          updates: nextUpdates,
+        });
+      } else {
+        setLastGlobalComparedAt(comparedAt);
+        setLastGlobalHadChanges(false);
+      }
 
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);

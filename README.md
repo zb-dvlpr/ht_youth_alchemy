@@ -54,6 +54,7 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - Latest updates now visually highlights the currently loaded comparison chip in the history row, so it is always clear which changeset is displayed.
 - Club Chronicle settings now include a configurable cap for how many changed `Latest updates` diffs are stored/shown in history, with a tooltip explaining the behavior.
 - Club Chronicle top controls (`Refresh`, `Latest updates`, and Watchlist button) now stay sticky and visible while scrolling.
+- Modal backdrop-close logic now requires the press to start on the backdrop, preventing accidental modal close when text selection starts inside a modal and mouse-up happens outside.
 
 ## Local setup
 1) Install dependencies

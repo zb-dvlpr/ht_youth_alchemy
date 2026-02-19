@@ -33,6 +33,10 @@
 ## Local Data Export
 - Any new localStorage key or cached client data must be included in the settings export/import routines.
 
+## Persistence
+- Any new feature, tool, panel, or workflow must persist user state/context and restore it when users navigate away and return.
+- Do not ship additions that reset existing user selections, layout, or in-progress state unless explicitly requested.
+
 ## Clarification
 - If an instruction is unclear, ask clarifying questions before starting any coding.
 

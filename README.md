@@ -67,6 +67,7 @@ Hattrick Alchemy is a CHPP-approved web app that recommends a weekly two-trainin
 - The no-scaling horizontal overflow/min-width handling is now scoped to Youth Optimization only, preventing side effects in Club Chronicle layout.
 - Player Details matrix container is now hard-clipped to its card (`overflow: hidden` + `min-width: 0`) and matrix tables have an internal minimum width, so overflow is handled by matrix-local scroll instead of bleeding into the lineup column.
 - Youth Player List now detects name/age overlap per row and only applies truncation when overlap occurs, preventing long names from colliding with the age text.
+- Dashboard state persistence now waits for per-team restore to finish before writing back to local storage, preventing accidental overwrite with defaults when switching tools and returning to Youth Optimization.
 
 ## Local setup
 1) Install dependencies

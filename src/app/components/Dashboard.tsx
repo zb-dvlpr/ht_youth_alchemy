@@ -282,6 +282,9 @@ export default function Dashboard({
     DEFAULT_YOUTH_STALENESS_HOURS
   );
   const [tacticType, setTacticType] = useState(7);
+  const [restoredStorageKey, setRestoredStorageKey] = useState<string | null>(
+    null
+  );
   const staleRefreshAttemptedRef = useRef(false);
   const lastAuthNotificationAtRef = useRef(0);
 
@@ -646,11 +649,14 @@ export default function Dashboard({
       }
     } catch {
       // ignore restore errors
+    } finally {
+      setRestoredStorageKey(storageKey);
     }
   }, [storageKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (restoredStorageKey !== storageKey) return;
     const payload = {
       assignments,
       behaviors,
@@ -686,6 +692,7 @@ export default function Dashboard({
     playerList,
     matchesState,
     storageKey,
+    restoredStorageKey,
   ]);
 
   useEffect(() => {

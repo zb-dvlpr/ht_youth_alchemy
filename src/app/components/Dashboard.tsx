@@ -1842,11 +1842,6 @@ export default function Dashboard({
         : activeYouthTeamId;
     let playersUpdated = false;
     try {
-      if (refreshAll) {
-        setRatingsCache({});
-        setRatingsPositions([]);
-        setRatingsResponseState(null);
-      }
       const teamParam = teamId ? `&youthTeamID=${teamId}` : "";
       const { response, payload } = await fetchChppJson<{
         data?: {
@@ -1929,9 +1924,6 @@ export default function Dashboard({
     setPlayerList([]);
     setCache({});
     setDetails(null);
-    setRatingsCache({});
-    setRatingsPositions([]);
-    setRatingsResponseState(null);
     setOrderSource(null);
     setOrderedPlayerIds(null);
     setStarPlayerId(null);

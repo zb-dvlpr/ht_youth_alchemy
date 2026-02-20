@@ -7749,11 +7749,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                         aria-pressed={selectedHistoryComparedAt === entry.comparedAt}
                       >
                         <span>{formatDateTime(entry.comparedAt)}</span>
-                        <span>
-                          {entry.hasChanges
-                            ? messages.clubChronicleUpdatesHistoryChanged
-                            : messages.clubChronicleUpdatesHistoryNoChanges}
-                        </span>
                       </button>
                     ))}
                   </div>

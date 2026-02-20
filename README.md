@@ -51,9 +51,6 @@ Useful OAuth endpoints:
 - `GET /api/chpp/oauth/check-token`
 - `POST /api/chpp/oauth/invalidate-token`
 
-OAuth requests explicitly ask for CHPP extended permissions `set_matchorder,manage_youthplayers`, and runtime token checks require those permissions for permission-sensitive actions.
-Runtime permission checks normalize CHPP check-token permission formats (for example comma/space/semicolon-delimited scope variants).
-
 ## Main API routes (local)
 - Youth players: `GET /api/chpp/youth/players`
 - Youth player details: `GET /api/chpp/youth/player-details?youthPlayerID=...`
@@ -70,11 +67,6 @@ Runtime permission checks normalize CHPP check-token permission formats (for exa
 
 ## Notes
 - OAuth access tokens are stored in httpOnly cookies.
-- CHPP re-auth prompts are triggered only when responses include explicit auth-expired signals, reducing false "Session expired" states.
-- Generic upstream `401 - Unauthorized` transport errors are not treated as token revocation by themselves.
-- Youth player details automatically fall back from `unlockskills` to standard `details` when CHPP denies unlock at transport level.
-- If CHPP authorization is invalid, the app prompts for reconnect and preserves cached UI data.
-- Club Chronicle `No divulgo` unmask is one-time per browser storage (until local storage is cleared), and its post-click refresh targets only that team.
 
 ## License
 Proprietary. All rights reserved.

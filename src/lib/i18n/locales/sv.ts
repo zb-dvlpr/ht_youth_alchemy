@@ -70,6 +70,8 @@ export const messagesSv: Messages = {
       "Hjalpoverlay for Club Chronicle med guidande callouts och full paneldokumentation.",
     changelog_2_13_0:
       "Club Chronicle lagger till en panel for trolig traningsinriktning baserad pa senaste formationer.",
+    changelog_2_14_0:
+      "README halls nu strikt pa projektniva; andringsdetaljer ligger i changeloggen och i Git-historiken.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",

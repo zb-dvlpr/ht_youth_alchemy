@@ -72,6 +72,8 @@ export const messagesEs: Messages = {
       "Superposicion de ayuda de Club Chronicle con llamadas guiadas y documentacion completa de paneles.",
     changelog_2_13_0:
       "Club Chronicle agrega un panel de regimen de entrenamiento probable inferido de formaciones recientes.",
+    changelog_2_14_0:
+      "README ahora se mantiene estrictamente a nivel de proyecto; los detalles por cambio quedan en el changelog y en el historial de Git.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",

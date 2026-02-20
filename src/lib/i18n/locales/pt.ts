@@ -72,6 +72,8 @@ export const messagesPt: Messages = {
       "Overlay de ajuda do Club Chronicle com callouts guiados e documentacao completa dos paineis.",
     changelog_2_13_0:
       "Club Chronicle adiciona um painel de regime de treino provavel inferido de formacoes recentes.",
+    changelog_2_14_0:
+      "README agora permanece estritamente em nivel de projeto; detalhes por alteracao ficam no changelog e no historico Git.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",

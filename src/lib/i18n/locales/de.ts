@@ -70,6 +70,8 @@ export const messagesDe: Messages = {
       "Club-Chronik-Hilfeoverlay mit geführten Hinweisen und vollständiger Panel-Dokumentation.",
     changelog_2_13_0:
       "Club-Chronik ergänzt um ein Panel für das wahrscheinliche Trainingsschema aus recenten Formationen.",
+    changelog_2_14_0:
+      "README bleibt jetzt strikt auf Projektebene; Änderungsdetails stehen im Changelog und in der Git-Historie.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",

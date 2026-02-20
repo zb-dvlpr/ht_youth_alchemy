@@ -238,11 +238,12 @@ export default async function Home() {
 
   const tokenError =
     playersResponse.code?.startsWith("CHPP_AUTH") ||
-    playersResponse.statusCode === 401 ||
     playersResponse.error?.includes("Missing CHPP access token") ||
     playersResponse.details?.includes("Missing CHPP access token") ||
     playersResponse.error?.includes("Re-auth") ||
     playersResponse.details?.includes("Re-auth") ||
+    playersResponse.error?.includes("authorization expired") ||
+    playersResponse.details?.includes("authorization expired") ||
     playersResponse.details?.includes("401 - Unauthorized");
 
   const players = normalizePlayers(

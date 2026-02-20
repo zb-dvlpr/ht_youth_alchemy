@@ -8,6 +8,7 @@ Hattrick Alchemy is a CHPP-approved web app for Hattrick youth team workflows. I
 - Youth player list, player details, ratings/skills matrices, and lineup optimization
 - Match list with load/submit match orders
 - Club Chronicle panels for league, press, fan club, arena, formations/tactics, likely training, transfers, TSI, and wages
+- Club Chronicle "No divulgo" masked team rows unmask and immediately refresh data when clicked
 - Latest Updates diffing grouped by team
 - Localization (`en`, `de`, `fr`, `es`, `sv`, `it`, `pt`)
 - Local settings export/import and persisted UI state
@@ -65,6 +66,7 @@ Useful OAuth endpoints:
 
 ## Notes
 - OAuth access tokens are stored in httpOnly cookies.
+- CHPP re-auth prompts are triggered only when responses include explicit auth-expired signals, reducing false "Session expired" states.
 - If CHPP authorization is invalid, the app prompts for reconnect and preserves cached UI data.
 
 ## License

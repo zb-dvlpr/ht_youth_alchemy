@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getChppEnv } from "@/lib/chpp/env";
 import { CHPP_ENDPOINTS } from "@/lib/chpp/oauth";
+import { buildChppErrorPayload } from "@/lib/chpp/server";
 import {
   createNodeOAuthClient,
   getProtectedResource,
@@ -36,12 +37,8 @@ export async function GET() {
 
     return NextResponse.json({ raw });
   } catch (error) {
-    return NextResponse.json(
-      {
-        error: "Failed to check token",
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 502 }
-    );
+    const payload = buildChppErrorPayload("Failed to check token", error);
+    const status = payload.statusCode === 401 ? 401 : 502;
+    return NextResponse.json(payload, { status });
   }
 }

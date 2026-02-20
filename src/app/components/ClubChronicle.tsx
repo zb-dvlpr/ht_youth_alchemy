@@ -1718,6 +1718,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [tokenChecked, setTokenChecked] = useState(false);
   const [noDivulgoActive, setNoDivulgoActive] = useState(false);
+  const [pendingNoDivulgoFetchTeamId, setPendingNoDivulgoFetchTeamId] = useState<
+    number | null
+  >(null);
   const [helpCallouts, setHelpCallouts] = useState<
     {
       id: string;
@@ -1734,6 +1737,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const initializedRef = useRef(false);
   const initialFetchRef = useRef(false);
   const staleRefreshRef = useRef(false);
+  const refreshAllDataRef = useRef<((reason: "stale" | "manual") => Promise<void>) | null>(
+    null
+  );
   const { addNotification } = useNotifications();
   const anyRefreshing =
     refreshingGlobal ||
@@ -1842,6 +1848,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       currentToken ?? "__unknown__"
     );
     setNoDivulgoActive(false);
+    setPendingNoDivulgoFetchTeamId(teamId);
   }, [currentToken, noDivulgoActive]);
 
   const openDummyUpdates = useCallback(() => {
@@ -5288,6 +5295,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       clearProgressIndicators();
     }
   };
+  refreshAllDataRef.current = refreshAllData;
+
+  useEffect(() => {
+    if (pendingNoDivulgoFetchTeamId === null) return;
+    if (anyRefreshing) return;
+    const shouldRefresh = trackedTeams.some(
+      (team) => team.teamId === pendingNoDivulgoFetchTeamId
+    );
+    setPendingNoDivulgoFetchTeamId(null);
+    if (!shouldRefresh) return;
+    void refreshAllDataRef.current?.("manual");
+  }, [anyRefreshing, pendingNoDivulgoFetchTeamId, trackedTeams]);
 
   const refreshLeagueOnly = async () => {
     if (anyRefreshing) return;

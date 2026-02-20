@@ -87,29 +87,47 @@ export async function postChppXml(
 
 export function buildChppErrorPayload(message: string, error: unknown) {
   const isDev = process.env.NODE_ENV !== "production";
+  const safeDetails = (() => {
+    if (error instanceof Error) return error.message;
+    if (typeof error === "string") return error;
+    try {
+      return JSON.stringify(error);
+    } catch {
+      return String(error);
+    }
+  })();
   const details =
-    error instanceof Error
-      ? error.message
-      : typeof error === "string"
-      ? error
-      : JSON.stringify(error);
+    safeDetails === "[object Object]" ? "Unexpected CHPP error object" : safeDetails;
   const errorObject =
     error && typeof error === "object" && !Array.isArray(error)
       ? (error as Record<string, unknown>)
       : null;
   const statusCode =
-    errorObject && typeof errorObject.statusCode === "number"
-      ? errorObject.statusCode
+    errorObject &&
+    (typeof errorObject.statusCode === "number" ||
+      typeof errorObject.statusCode === "string")
+      ? Number(errorObject.statusCode)
       : null;
   const data =
     errorObject && typeof errorObject.data === "string"
       ? errorObject.data
       : null;
+  const unauthorizedText = [details, data]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
   const isUnauthorized =
     statusCode === 401 ||
-    (data ? data.includes("401 - Unauthorized") : false);
+    unauthorizedText.includes("401 - unauthorized");
+  const hasAuthExpiredMarker =
+    unauthorizedText.includes("missing chpp access token") ||
+    unauthorizedText.includes("authorization expired") ||
+    unauthorizedText.includes("re-auth required") ||
+    unauthorizedText.includes("token rejected") ||
+    unauthorizedText.includes("token expired") ||
+    unauthorizedText.includes("invalid token");
 
-  if (isUnauthorized) {
+  if (isUnauthorized && hasAuthExpiredMarker) {
     return {
       error: "CHPP authorization expired. Re-auth required.",
       details: "CHPP authorization expired. Re-auth required.",

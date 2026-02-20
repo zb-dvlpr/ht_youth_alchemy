@@ -65,6 +65,7 @@ export const messagesEn: Messages = {
     changelog_2_11_0: "New Formations & tactics panel with most-used setup and distribution charts.",
     changelog_2_12_0: "Club Chronicle help overlay with guided callouts and full panel documentation.",
     changelog_2_13_0: "Club Chronicle adds a likely training regimen panel inferred from recent formations.",
+    changelog_2_14_0: "README is now kept strictly project-level; per-change details stay in changelog and git history.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",

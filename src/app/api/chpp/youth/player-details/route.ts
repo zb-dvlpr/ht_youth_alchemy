@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import {
+  assertChppPermissions,
   buildChppErrorPayload,
   ChppAuthError,
+  ChppPermissionError,
   fetchChppXml,
   getChppAuth,
 } from "@/lib/chpp/server";
@@ -36,35 +38,64 @@ export async function GET(request: Request) {
     const auth = await getChppAuth();
     const url = new URL(request.url);
     const useUnlock = url.searchParams.get("unlockSkills") === "1";
+    let rawXml = "";
+    let parsed: unknown = null;
+    let unlockStatus: "success" | "denied" | null = null;
+
     if (useUnlock) {
-      url.searchParams.set("actionType", "unlockskills");
-    }
-    const params = buildParams(url);
-    let { rawXml, parsed } = await fetchChppXml(auth, params);
-    const fileName = (parsed?.HattrickData?.FileName as string | undefined) ?? "";
-    if (useUnlock && fileName.toLowerCase() === "chpperror.xml") {
-      url.searchParams.set("actionType", "details");
-      const fallback = await fetchChppXml(auth, buildParams(url));
-      rawXml = fallback.rawXml;
-      parsed = fallback.parsed;
+      await assertChppPermissions(auth, ["manage_youthplayers"]);
+      try {
+        url.searchParams.set("actionType", "unlockskills");
+        const unlockResult = await fetchChppXml(auth, buildParams(url));
+        rawXml = unlockResult.rawXml;
+        parsed = unlockResult.parsed;
+        const fileName =
+          (unlockResult.parsed?.HattrickData?.FileName as string | undefined) ?? "";
+        if (fileName.toLowerCase() === "chpperror.xml") {
+          unlockStatus = "denied";
+          url.searchParams.set("actionType", "details");
+          const fallback = await fetchChppXml(auth, buildParams(url));
+          rawXml = fallback.rawXml;
+          parsed = fallback.parsed;
+        } else {
+          unlockStatus = "success";
+        }
+      } catch {
+        // Some CHPP setups deny unlockskills at transport layer; return regular details instead.
+        unlockStatus = "denied";
+        url.searchParams.set("actionType", "details");
+        const fallback = await fetchChppXml(auth, buildParams(url));
+        rawXml = fallback.rawXml;
+        parsed = fallback.parsed;
+      }
+    } else {
+      const result = await fetchChppXml(auth, buildParams(url));
+      rawXml = result.rawXml;
+      parsed = result.parsed;
     }
 
     const includeRaw = url.searchParams.get("raw") === "1";
 
     return NextResponse.json({
       data: parsed,
-      ...(useUnlock
-        ? {
-            unlockStatus:
-              fileName.toLowerCase() === "chpperror.xml" ? "denied" : "success",
-          }
-        : {}),
+      ...(useUnlock && unlockStatus ? { unlockStatus } : {}),
       ...(includeRaw ? { raw: rawXml } : {}),
     });
   } catch (error) {
+    if (error instanceof ChppPermissionError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          details: error.message,
+          code: error.code,
+          missingPermissions: error.missingPermissions,
+        },
+        { status: error.status }
+      );
+    }
     if (error instanceof ChppAuthError) {
       return NextResponse.json(
-        { error: error.message, code: "CHPP_AUTH_MISSING" },
+        { error: error.message, code: error.code },
         { status: error.status }
       );
     }

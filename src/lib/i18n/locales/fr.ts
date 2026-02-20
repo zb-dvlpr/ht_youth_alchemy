@@ -72,6 +72,8 @@ export const messagesFr: Messages = {
       "Superposition d aide Club Chronicle avec encarts guides et documentation complete des panneaux.",
     changelog_2_13_0:
       "Club Chronicle ajoute un panneau de regime d entrainement probable deduit des formations recentes.",
+    changelog_2_14_0:
+      "Le README reste desormais strictement au niveau projet; les details par changement restent dans le changelog et l historique Git.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",

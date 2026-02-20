@@ -1,14 +1,16 @@
 {
   "name": "ht_youth_alchemy",
-  "version": "2.13.81",
+  "version": "2.14.3",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "npm run check:i18n && next build",
+    "build": "npm run check:i18n && npm run check:chpp-permissions && npm run check:readme-version && next build",
     "start": "next start",
     "lint": "eslint",
     "check:version": "node scripts/check-version.js",
-    "check:i18n": "node scripts/check-i18n.js"
+    "check:i18n": "node scripts/check-i18n.js",
+    "check:chpp-permissions": "node scripts/check-chpp-permissions.js",
+    "check:readme-version": "node scripts/check-readme-version.js"
   },
   "dependencies": {
     "@vercel/analytics": "^1.6.1",

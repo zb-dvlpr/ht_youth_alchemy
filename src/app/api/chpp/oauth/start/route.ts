@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { getChppEnv } from "@/lib/chpp/env";
 import { CHPP_ENDPOINTS } from "@/lib/chpp/oauth";
+import { toChppScopeParam } from "@/lib/chpp/permissions";
 import { createNodeOAuthClient, getRequestToken } from "@/lib/chpp/node-oauth";
 
 export async function GET(request: Request) {
@@ -31,9 +32,10 @@ export async function GET(request: Request) {
       maxAge: 10 * 60,
     });
 
+    const scope = toChppScopeParam();
     const authorizeUrl = `${CHPP_ENDPOINTS.authorize}?oauth_token=${encodeURIComponent(
       token
-    )}`;
+    )}&scope=${encodeURIComponent(scope)}`;
     return NextResponse.redirect(authorizeUrl);
   } catch (error) {
     const debug = new URL(request.url).searchParams.get("debug") === "1";

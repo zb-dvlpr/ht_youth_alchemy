@@ -665,7 +665,7 @@ const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
 const HELP_STORAGE_KEY = "ya_cc_help_dismissed_v1";
 const FIRST_USE_KEY = "ya_cc_first_use_seen_v1";
 const HELP_DISMISSED_TOKEN_KEY = "ya_cc_help_dismissed_token_v1";
-const NO_DIVULGO_DISMISS_TOKEN_KEY = "ya_cc_no_divulgo_dismissed_token_v1";
+const NO_DIVULGO_DISMISSED_KEY = "ya_cc_no_divulgo_dismissed_v1";
 const NO_DIVULGO_TARGET_TEAM_ID = 524637;
 const PANEL_IDS = [
   "league-performance",
@@ -1718,6 +1718,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [tokenChecked, setTokenChecked] = useState(false);
   const [noDivulgoActive, setNoDivulgoActive] = useState(false);
+  const [pendingNoDivulgoFetchTeamId, setPendingNoDivulgoFetchTeamId] = useState<
+    number | null
+  >(null);
   const [helpCallouts, setHelpCallouts] = useState<
     {
       id: string;
@@ -1734,6 +1737,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const initializedRef = useRef(false);
   const initialFetchRef = useRef(false);
   const staleRefreshRef = useRef(false);
+  const refreshAllDataRef = useRef<((reason: "stale" | "manual") => Promise<void>) | null>(
+    null
+  );
+  const refreshNoDivulgoTeamRef = useRef<((teamId: number) => Promise<void>) | null>(
+    null
+  );
   const { addNotification } = useNotifications();
   const anyRefreshing =
     refreshingGlobal ||
@@ -1837,12 +1846,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const handleNoDivulgoDismiss = useCallback((teamId: number) => {
     if (typeof window === "undefined") return;
     if (teamId !== NO_DIVULGO_TARGET_TEAM_ID || !noDivulgoActive) return;
-    window.localStorage.setItem(
-      NO_DIVULGO_DISMISS_TOKEN_KEY,
-      currentToken ?? "__unknown__"
-    );
+    window.localStorage.setItem(NO_DIVULGO_DISMISSED_KEY, "1");
     setNoDivulgoActive(false);
-  }, [currentToken, noDivulgoActive]);
+    setPendingNoDivulgoFetchTeamId(teamId);
+  }, [noDivulgoActive]);
 
   const openDummyUpdates = useCallback(() => {
     if (trackedTeams.length === 0) return;
@@ -1988,17 +1995,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!tokenChecked) return;
     if (!isNoDivulgoTracked) {
       setNoDivulgoActive(false);
       return;
     }
-    const dismissedToken = window.localStorage.getItem(
-      NO_DIVULGO_DISMISS_TOKEN_KEY
-    );
-    const tokenKey = currentToken ?? "__unknown__";
-    setNoDivulgoActive(dismissedToken !== tokenKey);
-  }, [currentToken, isNoDivulgoTracked, tokenChecked]);
+    const dismissed = window.localStorage.getItem(NO_DIVULGO_DISMISSED_KEY);
+    setNoDivulgoActive(dismissed !== "1");
+  }, [isNoDivulgoTracked]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -3716,12 +3719,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const collectTeamChanges = (
     nextCache: ChronicleCache,
     panels: UpdatePanel[],
-    options?: { baselineCache?: ChronicleCache | null }
+    options?: { baselineCache?: ChronicleCache | null; teamIds?: number[] }
   ): ChronicleUpdates => {
     const updatesMap: ChronicleUpdates["teams"] = {};
     const baselineCache = options?.baselineCache ?? null;
+    const teamScope = options?.teamIds
+      ? new Set(options.teamIds.map((teamId) => Number(teamId)))
+      : null;
     trackedTeams.forEach((team) => {
       const teamId = team.teamId;
+      if (teamScope && !teamScope.has(teamId)) return;
       const cached = nextCache.teams[teamId];
       if (!cached) return;
       const baselineTeam = baselineCache?.teams[teamId];
@@ -4049,9 +4056,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshTeamDetails = async (
     nextCache: ChronicleCache,
     nextManualTeams: ManualTeam[],
-    options: { updatePress: boolean }
+    options: { updatePress: boolean; teams?: ChronicleTeamData[] }
   ) => {
-    for (const team of trackedTeams) {
+    const teams = options.teams ?? trackedTeams;
+    for (const team of teams) {
       try {
         const { response, payload } = await fetchChppJson<{
           data?: {
@@ -4179,9 +4187,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
   };
 
-  const refreshLeagueSnapshots = async (nextCache: ChronicleCache) => {
+  const refreshLeagueSnapshots = async (
+    nextCache: ChronicleCache,
+    teams: ChronicleTeamData[] = trackedTeams
+  ) => {
     const leagueDetailsByUnit = new Map<number, any>();
-    const teamsWithLeague = trackedTeams
+    const teamsWithLeague = teams
       .map((team) => nextCache.teams[team.teamId] ?? team)
       .filter((team) => team.leagueLevelUnitId);
 
@@ -4271,9 +4282,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     });
   };
 
-  const refreshArenaSnapshots = async (nextCache: ChronicleCache) => {
+  const refreshArenaSnapshots = async (
+    nextCache: ChronicleCache,
+    teams: ChronicleTeamData[] = trackedTeams
+  ) => {
     const arenaById = new Map<number, ArenaSnapshot>();
-    const teamsWithArena = trackedTeams
+    const teamsWithArena = teams
       .map((team) => nextCache.teams[team.teamId] ?? team)
       .filter((team) => team.arenaId);
 
@@ -4342,8 +4356,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     });
   };
 
-  const refreshFinanceSnapshots = async (nextCache: ChronicleCache) => {
-    for (const team of trackedTeams) {
+  const refreshFinanceSnapshots = async (
+    nextCache: ChronicleCache,
+    teams: ChronicleTeamData[] = trackedTeams
+  ) => {
+    for (const team of teams) {
       try {
         const { response, payload } = await fetchChppJson<{
           data?: {
@@ -4899,6 +4916,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshFormationsTacticsSnapshots = async (
     nextCache: ChronicleCache,
     options?: {
+      teams?: ChronicleTeamData[];
       onMatchesArchiveProgress?: (
         completedTeams: number,
         totalTeams: number,
@@ -4911,14 +4929,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       ) => void;
     }
   ) => {
+    const teams = options?.teams ?? trackedTeams;
     const detailCache = new Map<number, MatchFormationTacticDetails>();
     const teamEntries: Array<{
       teamId: number;
       teamName: string;
       matches: TeamMatchArchiveEntry[];
     }> = [];
-    for (let index = 0; index < trackedTeams.length; index += 1) {
-      const team = trackedTeams[index];
+    for (let index = 0; index < teams.length; index += 1) {
+      const team = teams[index];
       try {
         const matches = await fetchTeamRecentRelevantMatches(team.teamId);
         teamEntries.push({
@@ -4936,7 +4955,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       } finally {
         options?.onMatchesArchiveProgress?.(
           index + 1,
-          trackedTeams.length,
+          teams.length,
           team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? messages.unknownShort
         );
       }
@@ -4987,9 +5006,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const refreshTransferSnapshots = async (
     nextCache: ChronicleCache,
-    historyCount: number
+    historyCount: number,
+    teams: ChronicleTeamData[] = trackedTeams
   ) => {
-    for (const team of trackedTeams) {
+    for (const team of teams) {
       try {
         const teamPlayers = await fetchTeamPlayers(team.teamId);
         const transferListedPlayers = buildTransferListedPlayers(teamPlayers);
@@ -5020,8 +5040,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
   };
 
-  const refreshTsiSnapshots = async (nextCache: ChronicleCache) => {
-    for (const team of trackedTeams) {
+  const refreshTsiSnapshots = async (
+    nextCache: ChronicleCache,
+    teams: ChronicleTeamData[] = trackedTeams
+  ) => {
+    for (const team of teams) {
       try {
         const teamPlayers = await fetchTeamPlayers(team.teamId);
         const snapshot = buildTsiSnapshot(teamPlayers);
@@ -5042,8 +5065,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
   };
 
-  const refreshWagesSnapshots = async (nextCache: ChronicleCache) => {
-    for (const team of trackedTeams) {
+  const refreshWagesSnapshots = async (
+    nextCache: ChronicleCache,
+    teams: ChronicleTeamData[] = trackedTeams
+  ) => {
+    for (const team of teams) {
       try {
         const teamPlayers = await fetchTeamPlayers(team.teamId);
         const snapshot = buildWagesSnapshot(teamPlayers);
@@ -5066,9 +5092,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const refreshFinanceAndTransferSnapshots = async (
     nextCache: ChronicleCache,
-    historyCount: number
+    historyCount: number,
+    teams: ChronicleTeamData[] = trackedTeams
   ) => {
-    for (const team of trackedTeams) {
+    for (const team of teams) {
       try {
         const [teamPlayers, latestTransfers] = await Promise.all([
           fetchTeamPlayers(team.teamId),
@@ -5147,9 +5174,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setPanelRefreshProgressPct({});
   }, []);
 
-  const refreshAllData = async (reason: "stale" | "manual") => {
+  const refreshDataForTeams = async (
+    reason: "stale" | "manual",
+    teamsToRefresh: ChronicleTeamData[]
+  ) => {
     if (anyRefreshing) return;
-    if (trackedTeams.length === 0) return;
+    if (teamsToRefresh.length === 0) return;
     setRefreshingGlobal(true);
     try {
       const nextCache = pruneChronicleCache(readChronicleCache());
@@ -5173,24 +5203,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         messages.clubChronicleRefreshStatusTeamDetails,
         ["press-announcements", "fanclub", "arena"]
       );
-      await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: true });
+      await refreshTeamDetails(nextCache, nextManualTeams, {
+        updatePress: true,
+        teams: teamsToRefresh,
+      });
 
       setStage(
         1,
         messages.clubChronicleRefreshStatusLeague,
         ["league-performance"]
       );
-      await refreshLeagueSnapshots(nextCache);
+      await refreshLeagueSnapshots(nextCache, teamsToRefresh);
 
       setStage(2, messages.clubChronicleRefreshStatusArena, ["arena"]);
-      await refreshArenaSnapshots(nextCache);
+      await refreshArenaSnapshots(nextCache, teamsToRefresh);
 
       setStage(
         3,
         messages.clubChronicleRefreshStatusTransferFinance,
         ["finance-estimate", "transfer-market", "tsi", "wages"]
       );
-      await refreshFinanceAndTransferSnapshots(nextCache, transferHistoryCount);
+      await refreshFinanceAndTransferSnapshots(
+        nextCache,
+        transferHistoryCount,
+        teamsToRefresh
+      );
 
       setStage(
         4,
@@ -5198,6 +5235,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         ["formations-tactics", "likely-training"]
       );
       await refreshFormationsTacticsSnapshots(nextCache, {
+        teams: teamsToRefresh,
         onMatchesArchiveProgress: (completedTeams, totalTeams, teamName) => {
           const ratio = totalTeams > 0 ? completedTeams / totalTeams : 1;
           const progress = Math.round(75 + ratio * 8);
@@ -5249,7 +5287,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           "tsi",
           "wages",
         ],
-        { baselineCache: baselineForDiff }
+        {
+          baselineCache: baselineForDiff,
+          teamIds: teamsToRefresh.map((team) => team.teamId),
+        }
       );
       const hasUpdates = hasAnyChanges(nextUpdates);
       const comparedAt = Date.now();
@@ -5288,6 +5329,28 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       clearProgressIndicators();
     }
   };
+  const refreshAllData = async (reason: "stale" | "manual") => {
+    await refreshDataForTeams(reason, trackedTeams);
+  };
+  const refreshNoDivulgoTeam = async (teamId: number) => {
+    const targetTeam = trackedTeams.find((team) => team.teamId === teamId);
+    if (!targetTeam) return;
+    await refreshDataForTeams("manual", [targetTeam]);
+  };
+  refreshAllDataRef.current = refreshAllData;
+  refreshNoDivulgoTeamRef.current = refreshNoDivulgoTeam;
+
+  useEffect(() => {
+    if (pendingNoDivulgoFetchTeamId === null) return;
+    if (anyRefreshing) return;
+    const shouldRefresh = trackedTeams.some(
+      (team) => team.teamId === pendingNoDivulgoFetchTeamId
+    );
+    const teamId = pendingNoDivulgoFetchTeamId;
+    setPendingNoDivulgoFetchTeamId(null);
+    if (!shouldRefresh || teamId === null) return;
+    void refreshNoDivulgoTeamRef.current?.(teamId);
+  }, [anyRefreshing, pendingNoDivulgoFetchTeamId, trackedTeams]);
 
   const refreshLeagueOnly = async () => {
     if (anyRefreshing) return;
@@ -7686,11 +7749,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                         aria-pressed={selectedHistoryComparedAt === entry.comparedAt}
                       >
                         <span>{formatDateTime(entry.comparedAt)}</span>
-                        <span>
-                          {entry.hasChanges
-                            ? messages.clubChronicleUpdatesHistoryChanged
-                            : messages.clubChronicleUpdatesHistoryNoChanges}
-                        </span>
                       </button>
                     ))}
                   </div>

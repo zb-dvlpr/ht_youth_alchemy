@@ -1,47 +1,40 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
-import { getChppEnv } from "@/lib/chpp/env";
-import { CHPP_ENDPOINTS } from "@/lib/chpp/oauth";
+import { buildChppErrorPayload } from "@/lib/chpp/server";
 import {
-  createNodeOAuthClient,
-  getProtectedResource,
-} from "@/lib/chpp/node-oauth";
+  assertChppPermissions,
+  ChppAuthError,
+  ChppPermissionError,
+  fetchChppTokenCheck,
+  getChppAuth,
+} from "@/lib/chpp/server";
 
 export async function GET() {
   try {
-    const { consumerKey, consumerSecret, callbackUrl } = getChppEnv();
-    const client = createNodeOAuthClient(
-      consumerKey,
-      consumerSecret,
-      callbackUrl
-    );
+    const auth = await getChppAuth();
+    const { raw, permissions } = await fetchChppTokenCheck(auth);
+    await assertChppPermissions(auth, undefined, permissions);
 
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("chpp_access_token")?.value;
-    const accessSecret = cookieStore.get("chpp_access_secret")?.value;
-
-    if (!accessToken || !accessSecret) {
+    return NextResponse.json({ raw, permissions });
+  } catch (error) {
+    if (error instanceof ChppPermissionError) {
       return NextResponse.json(
-        { error: "Missing CHPP access token. Re-auth required." },
-        { status: 401 }
+        {
+          error: error.message,
+          details: error.message,
+          code: error.code,
+          missingPermissions: error.missingPermissions,
+        },
+        { status: error.status }
       );
     }
-
-    const raw = await getProtectedResource(
-      client,
-      CHPP_ENDPOINTS.checkToken,
-      accessToken,
-      accessSecret
-    );
-
-    return NextResponse.json({ raw });
-  } catch (error) {
-    return NextResponse.json(
-      {
-        error: "Failed to check token",
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 502 }
-    );
+    if (error instanceof ChppAuthError) {
+      return NextResponse.json(
+        { error: error.message, code: error.code },
+        { status: error.status }
+      );
+    }
+    const payload = buildChppErrorPayload("Failed to check token", error);
+    const status = payload.statusCode === 401 ? 401 : 502;
+    return NextResponse.json(payload, { status });
   }
 }

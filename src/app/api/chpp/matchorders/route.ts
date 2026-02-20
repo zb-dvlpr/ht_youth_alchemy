@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import {
+  assertChppPermissions,
   buildChppErrorPayload,
   ChppAuthError,
   buildChppUrl,
   fetchChppXml,
   getChppAuth,
   parseChppXml,
+  ChppPermissionError,
 } from "@/lib/chpp/server";
 import { getChppEnv } from "@/lib/chpp/env";
 import { createOAuthClient, toAuthHeader } from "@/lib/chpp/oauth";
@@ -32,14 +33,10 @@ export async function POST(request: Request) {
       );
     }
 
+    const auth = await getChppAuth();
+    await assertChppPermissions(auth, ["set_matchorder"]);
     const { consumerKey, consumerSecret } = getChppEnv();
-    const cookieStore = await cookies();
-    const accessToken = cookieStore.get("chpp_access_token")?.value;
-    const accessSecret = cookieStore.get("chpp_access_secret")?.value;
-
-    if (!accessToken || !accessSecret) {
-      throw new ChppAuthError();
-    }
+    const { accessToken, accessSecret } = auth;
 
     const oauth = createOAuthClient(consumerKey, consumerSecret);
     const params = new URLSearchParams({
@@ -86,9 +83,20 @@ export async function POST(request: Request) {
     const parsed = parseChppXml(rawXml);
     return NextResponse.json({ data: parsed, raw: rawXml });
   } catch (error) {
+    if (error instanceof ChppPermissionError) {
+      return NextResponse.json(
+        {
+          error: error.message,
+          details: error.message,
+          code: error.code,
+          missingPermissions: error.missingPermissions,
+        },
+        { status: error.status }
+      );
+    }
     if (error instanceof ChppAuthError) {
       return NextResponse.json(
-        { error: error.message, code: "CHPP_AUTH_MISSING" },
+        { error: error.message, code: error.code },
         { status: error.status }
       );
     }

@@ -4,7 +4,6 @@ const CHPP_AUTH_MARKERS = [
   "missing chpp access token",
   "re-auth required",
   "authorization expired",
-  "401 - unauthorized",
 ];
 
 export class ChppAuthRequiredError extends Error {
@@ -45,13 +44,16 @@ const getAuthMeta = (payload: unknown): AuthMeta => {
 
 export function isChppAuthErrorPayload(payload: unknown, response?: Response) {
   const meta = getAuthMeta(payload);
-  return (
-    response?.status === 401 ||
-    meta.statusCode === 401 ||
-    (meta.code?.startsWith("CHPP_AUTH") ?? false) ||
+  const hasMarker =
     hasAuthMarker(meta.error) ||
-    hasAuthMarker(meta.details)
-  );
+    hasAuthMarker(meta.details) ||
+    hasAuthMarker(meta.data) ||
+    hasAuthMarker(meta.debugDetails);
+  const hasAuthCode = meta.code?.startsWith("CHPP_AUTH") ?? false;
+  if ((response?.status === 401 || meta.statusCode === 401) && hasAuthCode) {
+    return true;
+  }
+  return hasAuthCode || hasMarker;
 }
 
 export function dispatchChppAuthRequired(

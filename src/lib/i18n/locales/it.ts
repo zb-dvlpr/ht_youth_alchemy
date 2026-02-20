@@ -72,6 +72,8 @@ export const messagesIt: Messages = {
       "Overlay guida Club Chronicle con callout guidati e documentazione completa dei pannelli.",
     changelog_2_13_0:
       "Club Chronicle aggiunge un pannello per il regime di allenamento probabile dedotto dalle formazioni recenti.",
+    changelog_2_14_0:
+      "README ora resta strettamente a livello progetto; i dettagli per singola modifica restano nel changelog e nella cronologia Git.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",

@@ -332,6 +332,10 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "2.14.0",
+        entries: [messages.changelog_2_14_0],
+      },
+      {
         version: "2.13.0",
         entries: [messages.changelog_2_13_0],
       },
@@ -443,6 +447,7 @@ export default function Dashboard({
       messages.changelog_2_11_0,
       messages.changelog_2_12_0,
       messages.changelog_2_13_0,
+      messages.changelog_2_14_0,
     ]
   );
 
@@ -1837,11 +1842,6 @@ export default function Dashboard({
         : activeYouthTeamId;
     let playersUpdated = false;
     try {
-      if (refreshAll) {
-        setRatingsCache({});
-        setRatingsPositions([]);
-        setRatingsResponseState(null);
-      }
       const teamParam = teamId ? `&youthTeamID=${teamId}` : "";
       const { response, payload } = await fetchChppJson<{
         data?: {
@@ -1924,9 +1924,6 @@ export default function Dashboard({
     setPlayerList([]);
     setCache({});
     setDetails(null);
-    setRatingsCache({});
-    setRatingsPositions([]);
-    setRatingsResponseState(null);
     setOrderSource(null);
     setOrderedPlayerIds(null);
     setStarPlayerId(null);

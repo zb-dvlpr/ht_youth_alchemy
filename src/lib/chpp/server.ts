@@ -1,6 +1,12 @@
 import { cookies } from "next/headers";
 import { XMLParser } from "fast-xml-parser";
 import { getChppEnv } from "@/lib/chpp/env";
+import { CHPP_ENDPOINTS } from "@/lib/chpp/oauth";
+import {
+  getMissingChppPermissions,
+  parseExtendedPermissionsFromCheckToken,
+  REQUIRED_CHPP_EXTENDED_PERMISSIONS,
+} from "@/lib/chpp/permissions";
 import { createNodeOAuthClient, getProtectedResource, postProtectedResource } from "@/lib/chpp/node-oauth";
 
 export const CHPP_XML_ENDPOINT = "https://chpp.hattrick.org/chppxml.ashx";
@@ -15,9 +21,20 @@ export type ChppAuth = {
 
 export class ChppAuthError extends Error {
   status = 401;
+  code = "CHPP_AUTH_MISSING";
 
   constructor(message = "Missing CHPP access token. Re-auth required.") {
     super(message);
+  }
+}
+
+export class ChppPermissionError extends ChppAuthError {
+  override code = "CHPP_AUTH_PERMISSIONS_MISSING";
+  missingPermissions: string[];
+
+  constructor(missingPermissions: string[]) {
+    super("CHPP authorization expired. Re-auth required.");
+    this.missingPermissions = missingPermissions;
   }
 }
 
@@ -63,6 +80,36 @@ export async function fetchChppXml(
   );
 
   return { rawXml, parsed: parseChppXml(rawXml) };
+}
+
+export async function fetchChppTokenCheck(auth: ChppAuth) {
+  const raw = await getProtectedResource(
+    auth.client,
+    CHPP_ENDPOINTS.checkToken,
+    auth.accessToken,
+    auth.accessSecret
+  );
+  return {
+    raw,
+    permissions: parseExtendedPermissionsFromCheckToken(raw),
+  };
+}
+
+export async function assertChppPermissions(
+  auth: ChppAuth,
+  requiredPermissions: readonly string[] = REQUIRED_CHPP_EXTENDED_PERMISSIONS,
+  grantedPermissions?: readonly string[]
+) {
+  const permissionsToValidate =
+    grantedPermissions ?? (await fetchChppTokenCheck(auth)).permissions;
+  const missingPermissions = getMissingChppPermissions(
+    permissionsToValidate,
+    requiredPermissions
+  );
+  if (missingPermissions.length > 0) {
+    throw new ChppPermissionError(missingPermissions);
+  }
+  return permissionsToValidate;
 }
 
 export async function postChppXml(

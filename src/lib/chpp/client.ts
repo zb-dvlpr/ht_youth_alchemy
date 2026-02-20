@@ -4,7 +4,6 @@ const CHPP_AUTH_MARKERS = [
   "missing chpp access token",
   "re-auth required",
   "authorization expired",
-  "401 - unauthorized",
 ];
 
 export class ChppAuthRequiredError extends Error {

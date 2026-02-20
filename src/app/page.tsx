@@ -243,8 +243,7 @@ export default async function Home() {
     playersResponse.error?.includes("Re-auth") ||
     playersResponse.details?.includes("Re-auth") ||
     playersResponse.error?.includes("authorization expired") ||
-    playersResponse.details?.includes("authorization expired") ||
-    playersResponse.details?.includes("401 - Unauthorized");
+    playersResponse.details?.includes("authorization expired");
 
   const players = normalizePlayers(
     playersResponse.data?.HattrickData?.PlayerList?.YouthPlayer

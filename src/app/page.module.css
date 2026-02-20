@@ -2564,10 +2564,6 @@ html[data-theme="dark"] .skillFillMax {
   background: #6b5e4f;
 }
 
-html[data-theme="dark"] .skillBarMaxed {
-  background: #675634;
-}
-
 html[data-theme="dark"] .skillBarMaxed .skillFillMax {
   background: #8a6f3f;
 }
@@ -3194,10 +3190,6 @@ html[data-theme="dark"] .spinner {
   height: 100%;
   background: linear-gradient(90deg, #2f9f5b, #1f6f3f);
   border-radius: 999px;
-}
-
-.skillBarMaxed {
-  background: #d8c48c;
 }
 
 .skillBarMaxed .skillFillMax {

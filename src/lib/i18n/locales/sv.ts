@@ -74,6 +74,8 @@ export const messagesSv: Messages = {
       "README halls nu strikt pa projektniva; andringsdetaljer ligger i changeloggen och i Git-historiken.",
     changelog_2_15_0: "Global uppdatering i Klubbkronikan hamtar nu data i begransade parallella batcher for snabbare uppdateringar.",
     changelog_2_16_0: "Lonedetaljer visar nu skadestatus per spelare, och Senaste uppdateringar spaar skada/blamarke-andringar.",
+    changelog_2_17_0:
+      "Uppdatering av ungdomslistan visar nu stegvis status med match-for-match-framsteg for tidigare matcher.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -359,6 +361,12 @@ export const messagesSv: Messages = {
     refresh: "Uppdatera",
     refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
     refreshPlayerListTooltip: "Uppdatera juniorlistan från Hattrick.",
+    refreshStatusFetchingPlayers: "Hamtar ungdomsspelare…",
+    refreshStatusFetchingPlayerDetails: "Hamtar spelardetaljer…",
+    refreshStatusFetchingMatches: "Hamtar matcher…",
+    refreshStatusFetchingRatings: "Hamtar betyg fran tidigare matcher…",
+    refreshStatusFetchingPastMatchesProgress:
+      "Hamtar tidigare matcher {completed}/{total}…",
     unlockSkillsSuccess: "Färdigheter upplåsta",
     unlockSkillsDenied: "Upplåsning ej tillåten",
     loadingDetails: "Laddar detaljer…",

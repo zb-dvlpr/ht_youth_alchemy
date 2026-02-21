@@ -17,6 +17,8 @@ import { Messages } from "@/lib/i18n";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
+import { POSITION_COLUMNS, normalizeMatchRoleId } from "@/lib/positions";
+import { parseChppDate } from "@/lib/chpp/utils";
 import {
   getAutoSelection,
   getTrainingForStar,
@@ -155,6 +157,53 @@ type CachedDetails = {
   fetchedAt: number;
 };
 
+type MatchSummary = {
+  MatchDate?: string;
+  MatchID?: number | string;
+};
+
+type MatchLineupPlayer = {
+  RoleID?: number | string;
+  RatingStars?: number | string;
+  PlayerID?: number | string;
+  FirstName?: string;
+  NickName?: string;
+  LastName?: string;
+};
+
+type MatchLineupResponse = {
+  data?: {
+    HattrickData?: {
+      Team?: {
+        Lineup?: {
+          Player?: MatchLineupPlayer | MatchLineupPlayer[];
+        };
+      };
+    };
+  };
+  error?: string;
+  details?: string;
+  statusCode?: number;
+  code?: string;
+};
+
+type MatchesArchiveResponse = {
+  data?: {
+    HattrickData?: {
+      Team?: {
+        TeamID?: number | string;
+        MatchList?: {
+          Match?: MatchSummary | MatchSummary[];
+        };
+      };
+    };
+  };
+  error?: string;
+  details?: string;
+  statusCode?: number;
+  code?: string;
+};
+
 const DETAILS_TTL_MS = 5 * 60 * 1000;
 const TRAINING_SKILLS: TrainingSkillKey[] = [
   "keeper",
@@ -192,6 +241,9 @@ export default function Dashboard({
 }: DashboardProps) {
   const [playerList, setPlayerList] = useState<YouthPlayer[]>(players);
   const [playersLoading, setPlayersLoading] = useState(false);
+  const [playerRefreshStatus, setPlayerRefreshStatus] = useState<string | null>(
+    null
+  );
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
   const [cache, setCache] = useState<Record<number, CachedDetails>>({});
@@ -332,6 +384,10 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "2.17.0",
+        entries: [messages.changelog_2_17_0],
+      },
+      {
         version: "2.16.0",
         entries: [messages.changelog_2_16_0],
       },
@@ -458,6 +514,7 @@ export default function Dashboard({
       messages.changelog_2_14_0,
       messages.changelog_2_15_0,
       messages.changelog_2_16_0,
+      messages.changelog_2_17_0,
     ]
   );
 
@@ -1781,7 +1838,23 @@ export default function Dashboard({
     }
   };
 
-  const refreshMatches = async (teamIdOverride?: number | null) => {
+  const normalizeArray = <T,>(input?: T | T[]) => {
+    if (!input) return [];
+    return Array.isArray(input) ? input : [input];
+  };
+
+  const formatStatusTemplate = (
+    template: string,
+    replacements: Record<string, string | number>
+  ) => {
+    return Object.entries(replacements).reduce(
+      (result, [key, value]) =>
+        result.replace(new RegExp(`\\{${key}\\}`, "g"), String(value)),
+      template
+    );
+  };
+
+  const fetchMatchesResponse = async (teamIdOverride?: number | null) => {
     const teamId = teamIdOverride ?? activeYouthTeamId;
     try {
       const teamParam = teamId ? `&teamID=${teamId}` : "";
@@ -1802,31 +1875,154 @@ export default function Dashboard({
         error?: string;
       };
       if (!response.ok || typedPayload.error) {
-        setMatchesState(typedPayload);
-        return false;
+        return {
+          ok: false,
+          payload: typedPayload,
+        };
       }
-      setMatchesState(typedPayload);
-      return true;
+      return {
+        ok: true,
+        payload: typedPayload,
+      };
     } catch (error) {
-      if (error instanceof ChppAuthRequiredError) return false;
+      if (error instanceof ChppAuthRequiredError) {
+        return {
+          ok: false,
+          payload: null,
+        };
+      }
       // keep existing data
-      return false;
+      return {
+        ok: false,
+        payload: null,
+      };
     }
   };
 
-  const refreshRatings = async (teamIdOverride?: number | null) => {
+  const refreshMatches = async (teamIdOverride?: number | null) => {
+    const result = await fetchMatchesResponse(teamIdOverride);
+    if (result.payload) {
+      setMatchesState(result.payload);
+    }
+    return result.ok;
+  };
+
+  const refreshRatings = async (
+    teamIdOverride?: number | null,
+    matchesPayload?: MatchesResponse | null
+  ) => {
     const teamId = teamIdOverride ?? activeYouthTeamId;
     try {
-      const teamParam = teamId ? `?teamID=${teamId}` : "";
-      const { response, payload } = await fetchChppJson<RatingsMatrixResponse>(
-        `/api/chpp/youth/ratings${teamParam}`,
-        { cache: "no-store" }
-      );
-      if (!response.ok) {
+      setPlayerRefreshStatus(messages.refreshStatusFetchingMatches);
+      const formatArchiveDate = (date: Date) => date.toISOString().slice(0, 10);
+      const today = new Date();
+      const firstDate = new Date(today.getTime() - 220 * 24 * 60 * 60 * 1000);
+      const archiveParams = new URLSearchParams({
+        isYouth: "true",
+        FirstMatchDate: formatArchiveDate(firstDate),
+        LastMatchDate: formatArchiveDate(today),
+      });
+      if (teamId) {
+        archiveParams.set("teamId", String(teamId));
+      }
+      const { response: archiveResponse, payload: archivePayload } =
+        await fetchChppJson<MatchesArchiveResponse>(
+          `/api/chpp/matchesarchive?${archiveParams.toString()}`,
+          { cache: "no-store" }
+        );
+      if (!archiveResponse.ok || archivePayload?.error) {
         setRatingsResponseState(null);
         return false;
       }
-      setRatingsResponseState(payload);
+
+      setPlayerRefreshStatus(messages.refreshStatusFetchingRatings);
+
+      const archiveTeam = archivePayload?.data?.HattrickData?.Team;
+      const teamIdValue = Number(
+        archiveTeam?.TeamID ??
+          matchesPayload?.data?.HattrickData?.Team?.TeamID ??
+          teamId ??
+          0
+      );
+      const finishedMatches = normalizeArray<MatchSummary>(
+        archiveTeam?.MatchList?.Match
+      )
+        .map((match) => ({
+          ...match,
+          _date: parseChppDate(match.MatchDate)?.getTime() ?? 0,
+          _matchId: Number(match.MatchID),
+        }))
+        .filter((match) => Number.isFinite(match._matchId))
+        .sort((a, b) => b._date - a._date)
+        .slice(0, 50);
+
+      if (!teamIdValue || finishedMatches.length === 0) {
+        setRatingsResponseState({
+          positions: POSITION_COLUMNS,
+          players: [],
+        });
+        return true;
+      }
+
+      const playersMap = new Map<
+        number,
+        { id: number; name: string; ratings: Record<string, number> }
+      >();
+
+      for (let index = 0; index < finishedMatches.length; index += 1) {
+        const match = finishedMatches[index];
+        const matchId = match._matchId;
+        setPlayerRefreshStatus(
+          formatStatusTemplate(messages.refreshStatusFetchingPastMatchesProgress, {
+            completed: index + 1,
+            total: finishedMatches.length,
+          })
+        );
+
+        const { response, payload } = await fetchChppJson<MatchLineupResponse>(
+          `/api/chpp/youth/match-lineup?matchId=${matchId}&teamId=${teamIdValue}`,
+          { cache: "no-store" }
+        );
+        if (!response.ok || payload?.error) {
+          throw new Error(payload?.error ?? "Failed to fetch match lineup");
+        }
+        const lineupPlayers = normalizeArray<MatchLineupPlayer>(
+          payload?.data?.HattrickData?.Team?.Lineup?.Player
+        );
+        lineupPlayers.forEach((player) => {
+          const roleId = Number(player.RoleID);
+          const column = normalizeMatchRoleId(roleId);
+          if (!column) return;
+          const rating = Number(player.RatingStars);
+          if (Number.isNaN(rating)) return;
+          const playerId = Number(player.PlayerID);
+          if (Number.isNaN(playerId)) return;
+          const fullName = [player.FirstName, player.NickName, player.LastName]
+            .filter(Boolean)
+            .join(" ");
+
+          if (!playersMap.has(playerId)) {
+            playersMap.set(playerId, {
+              id: playerId,
+              name: fullName,
+              ratings: {},
+            });
+          }
+
+          const entry = playersMap.get(playerId);
+          if (!entry) return;
+          const key = String(column);
+          const existing = entry.ratings[key];
+          if (existing === undefined || rating > existing) {
+            entry.ratings[key] = rating;
+          }
+        });
+      }
+
+      setRatingsResponseState({
+        positions: POSITION_COLUMNS,
+        players: Array.from(playersMap.values()),
+      });
       return true;
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) return false;
@@ -1845,6 +2041,7 @@ export default function Dashboard({
   ) => {
     if (playersLoading) return;
     setPlayersLoading(true);
+    setPlayerRefreshStatus(messages.refreshStatusFetchingPlayers);
     const refreshAll = options?.refreshAll ?? false;
     const teamId =
       typeof teamIdOverride === "number" || teamIdOverride === null
@@ -1885,6 +2082,7 @@ export default function Dashboard({
         nextSelectedId = null;
       }
       if (refreshAll) {
+        setPlayerRefreshStatus(messages.refreshStatusFetchingPlayerDetails);
         const ids = list.map((player) => player.YouthPlayerID);
         const detailIds = nextSelectedId
           ? ids.filter((id) => id !== nextSelectedId)
@@ -1907,10 +2105,13 @@ export default function Dashboard({
       let matchesOk = true;
       let ratingsOk = true;
       if (refreshAll) {
-        [matchesOk, ratingsOk] = await Promise.all([
-          refreshMatches(teamId),
-          refreshRatings(teamId),
-        ]);
+        setPlayerRefreshStatus(messages.refreshStatusFetchingMatches);
+        const matchesResult = await fetchMatchesResponse(teamId);
+        if (matchesResult.payload) {
+          setMatchesState(matchesResult.payload);
+        }
+        matchesOk = matchesResult.ok;
+        ratingsOk = await refreshRatings(teamId, matchesResult.payload ?? null);
       }
       if (
         playersUpdated &&
@@ -1918,6 +2119,7 @@ export default function Dashboard({
       ) {
         writeLastRefreshTimestamp(Date.now());
       }
+      setPlayerRefreshStatus(null);
       setPlayersLoading(false);
     }
   };
@@ -2406,6 +2608,7 @@ export default function Dashboard({
           }
           onOrderChange={(ids) => applyPlayerOrder(ids, "list")}
           refreshing={playersLoading}
+          refreshStatus={playerRefreshStatus}
           messages={messages}
         />
       </div>

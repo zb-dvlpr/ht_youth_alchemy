@@ -68,6 +68,7 @@ export type Messages = {
   changelog_2_14_0: string;
   changelog_2_15_0: string;
   changelog_2_16_0: string;
+  changelog_2_17_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -315,6 +316,11 @@ export type Messages = {
   refresh: string;
   refreshTooltip: string;
   refreshPlayerListTooltip: string;
+  refreshStatusFetchingPlayers: string;
+  refreshStatusFetchingPlayerDetails: string;
+  refreshStatusFetchingMatches: string;
+  refreshStatusFetchingRatings: string;
+  refreshStatusFetchingPastMatchesProgress: string;
   unlockSkillsSuccess: string;
   unlockSkillsDenied: string;
   loadingDetails: string;

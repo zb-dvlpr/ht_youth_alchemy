@@ -75,6 +75,7 @@ type YouthPlayerListProps = {
   onOrderChange?: (orderedIds: number[]) => void;
   onSortStart?: () => void;
   refreshing?: boolean;
+  refreshStatus?: string | null;
   messages: Messages;
 };
 
@@ -175,6 +176,7 @@ export default function YouthPlayerList({
   onOrderChange,
   onSortStart,
   refreshing,
+  refreshStatus,
   messages,
 }: YouthPlayerListProps) {
   const sortStorageKey = "ya_youth_player_list_sort_v1";
@@ -447,6 +449,10 @@ export default function YouthPlayerList({
     };
   }, [recomputeNameAgeOverlap]);
 
+  const activeRefreshStatus = refreshing
+    ? refreshStatus?.trim() || messages.refreshingLabel
+    : null;
+
   return (
     <div className={styles.card} data-help-anchor={dataHelpAnchor} ref={listCardRef}>
       <div className={styles.listHeader}>
@@ -552,6 +558,9 @@ export default function YouthPlayerList({
           </Tooltip>
         </div>
       </div>
+      {activeRefreshStatus ? (
+        <p className={styles.listRefreshStatus}>{activeRefreshStatus}</p>
+      ) : null}
       {players.length === 0 ? (
         <p className={styles.muted}>{messages.noYouthPlayers}</p>
       ) : (

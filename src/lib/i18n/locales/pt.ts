@@ -76,6 +76,8 @@ export const messagesPt: Messages = {
       "README agora permanece estritamente em nivel de projeto; detalhes por alteracao ficam no changelog e no historico Git.",
     changelog_2_15_0: "A atualizacao global da Cronica do clube agora busca em lotes paralelos limitados para atualizacoes mais rapidas.",
     changelog_2_16_0: "Detalhes de salarios agora mostram status de lesao do jogador, e Ultimas atualizacoes detecta mudancas de lesao/contusao.",
+    changelog_2_17_0:
+      "O refresh da lista juvenil agora mostra status passo a passo com progresso partida a partida para jogos passados.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -365,6 +367,13 @@ export const messagesPt: Messages = {
     refreshTooltip: "Atualiza os detalhes do jogador no Hattrick.",
     refreshPlayerListTooltip:
       "Atualizar a lista de jovens no Hattrick.",
+    refreshStatusFetchingPlayers: "Carregando jogadores juvenis…",
+    refreshStatusFetchingPlayerDetails: "Carregando detalhes dos jogadores…",
+    refreshStatusFetchingMatches: "Carregando partidas…",
+    refreshStatusFetchingRatings:
+      "Carregando avaliacoes de partidas passadas…",
+    refreshStatusFetchingPastMatchesProgress:
+      "Carregando partidas passadas {completed}/{total}…",
     unlockSkillsSuccess: "Habilidades desbloqueadas",
     unlockSkillsDenied: "Desbloqueio não permitido",
     loadingDetails: "Carregando detalhes…",

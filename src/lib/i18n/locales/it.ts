@@ -76,6 +76,8 @@ export const messagesIt: Messages = {
       "README ora resta strettamente a livello progetto; i dettagli per singola modifica restano nel changelog e nella cronologia Git.",
     changelog_2_15_0: "L aggiornamento globale della Cronaca del club ora carica in batch paralleli limitati per aggiornamenti piu rapidi.",
     changelog_2_16_0: "I dettagli stipendi ora mostrano lo stato infortunio del giocatore, e Ultimi aggiornamenti rileva cambi infortunio/contusione.",
+    changelog_2_17_0:
+      "Il refresh della lista giovanile mostra ora stato passo-passo con avanzamento partita per partita sui match passati.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -366,6 +368,13 @@ export const messagesIt: Messages = {
     refreshTooltip: "Aggiorna i dettagli del giocatore da Hattrick.",
     refreshPlayerListTooltip:
       "Aggiorna la lista dei giovani da Hattrick.",
+    refreshStatusFetchingPlayers: "Caricamento giocatori giovanili…",
+    refreshStatusFetchingPlayerDetails: "Caricamento dettagli giocatori…",
+    refreshStatusFetchingMatches: "Caricamento partite…",
+    refreshStatusFetchingRatings:
+      "Caricamento valutazioni dalle partite passate…",
+    refreshStatusFetchingPastMatchesProgress:
+      "Caricamento partite passate {completed}/{total}…",
     unlockSkillsSuccess: "Abilità sbloccate",
     unlockSkillsDenied: "Sblocco non consentito",
     loadingDetails: "Caricamento dettagli…",

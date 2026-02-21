@@ -78,6 +78,8 @@ export const messagesIt: Messages = {
     changelog_2_16_0: "I dettagli stipendi ora mostrano lo stato infortunio del giocatore, e Ultimi aggiornamenti rileva cambi infortunio/contusione.",
     changelog_2_17_0:
       "Il refresh della lista giovanile mostra ora stato passo-passo con avanzamento partita per partita sui match passati.",
+    changelog_2_18_0:
+      "Le specialita nascoste dei giovani ora vengono rilevate dagli eventi delle partite passate e evidenziate nell interfaccia.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -375,6 +377,10 @@ export const messagesIt: Messages = {
       "Caricamento valutazioni dalle partite passate…",
     refreshStatusFetchingPastMatchesProgress:
       "Caricamento partite passate {completed}/{total}…",
+    refreshStatusFetchingHiddenSpecialties:
+      "Analisi eventi partita per specialita nascoste…",
+    refreshStatusFetchingHiddenSpecialtiesProgress:
+      "Specialita nascoste analizzate {completed}/{total}…",
     unlockSkillsSuccess: "Abilità sbloccate",
     unlockSkillsDenied: "Sblocco non consentito",
     loadingDetails: "Caricamento dettagli…",
@@ -604,6 +610,7 @@ export const messagesIt: Messages = {
     specialtyHeadSpecialist: "Gioco di testa",
     specialtyResilient: "Resistente",
     specialtySupport: "Supporto",
+    hiddenSpecialtyTooltip: "Specialita nascosta scoperta dagli eventi partita",
     skillsLabel: "Abilità",
     skillMaxedTooltip: "Abilità al massimo",
     unknownLabel: "sconosciuto",

@@ -66,6 +66,8 @@ type PlayerDetailsPanelProps = {
   ratingsMatrixResponse: RatingsMatrixResponse | null;
   ratingsMatrixSelectedName: string | null;
   ratingsMatrixSpecialtyByName: Record<string, number | undefined>;
+  ratingsMatrixHiddenSpecialtyByName?: Record<string, boolean>;
+  hiddenSpecialtyByPlayerId?: Record<number, number>;
   onSelectRatingsPlayer: (playerName: string) => void;
   orderedPlayerIds?: number[] | null;
   orderSource?: "list" | "ratings" | "skills" | null;
@@ -219,6 +221,8 @@ export default function PlayerDetailsPanel({
   ratingsMatrixResponse,
   ratingsMatrixSelectedName,
   ratingsMatrixSpecialtyByName,
+  ratingsMatrixHiddenSpecialtyByName,
+  hiddenSpecialtyByPlayerId = {},
   onSelectRatingsPlayer,
   orderedPlayerIds,
   orderSource,
@@ -372,6 +376,13 @@ export default function PlayerDetailsPanel({
 
   const playerId =
     detailsData?.YouthPlayerID ?? selectedPlayer?.YouthPlayerID ?? null;
+  const hiddenSpecialty =
+    playerId && Number(hiddenSpecialtyByPlayerId[playerId] ?? 0) > 0
+      ? Number(hiddenSpecialtyByPlayerId[playerId])
+      : null;
+  const knownSpecialty = Number(detailsData?.Specialty ?? selectedPlayer?.Specialty ?? 0);
+  const resolvedSpecialty = knownSpecialty > 0 ? knownSpecialty : hiddenSpecialty;
+  const isHiddenResolvedSpecialty = knownSpecialty <= 0 && hiddenSpecialty !== null;
   const lastMatchDate = detailsData?.LastMatch
     ? formatChppDate(detailsData.LastMatch.Date) ?? messages.unknownDate
     : null;
@@ -516,15 +527,29 @@ export default function PlayerDetailsPanel({
               </div>
             </div>
           ) : null}
-          {detailsData.Specialty !== undefined ? (
+          {resolvedSpecialty !== null ? (
             <div>
               <div className={styles.infoLabel}>{messages.specialtyLabel}</div>
               <div className={styles.infoValue}>
-                <span className={styles.playerSpecialty}>
-                  {SPECIALTY_EMOJI[detailsData.Specialty] ?? "—"}
-                </span>{" "}
-                {specialtyName(detailsData.Specialty) ??
-                  `${messages.specialtyLabel} ${detailsData.Specialty}`}
+                <Tooltip
+                  content={
+                    isHiddenResolvedSpecialty
+                      ? `${messages.hiddenSpecialtyTooltip}: ${
+                          specialtyName(resolvedSpecialty) ?? messages.specialtyLabel
+                        }`
+                      : specialtyName(resolvedSpecialty) ?? messages.specialtyLabel
+                  }
+                >
+                  <span
+                    className={`${styles.playerSpecialty} ${
+                      isHiddenResolvedSpecialty ? styles.hiddenSpecialtyBadge : ""
+                    }`}
+                  >
+                    {SPECIALTY_EMOJI[resolvedSpecialty] ?? "—"}
+                  </span>
+                </Tooltip>{" "}
+                {specialtyName(resolvedSpecialty) ??
+                  `${messages.specialtyLabel} ${resolvedSpecialty}`}
               </div>
             </div>
           ) : null}
@@ -720,19 +745,36 @@ export default function PlayerDetailsPanel({
                     </button>
                   </td>
                   <td className={styles.matrixSpecialty}>
-                    {player?.Specialty !== undefined ? (
-                      <Tooltip
-                        content={
-                          specialtyName(player.Specialty) ?? messages.specialtyLabel
-                        }
-                      >
-                        <span className={styles.playerSpecialty}>
-                          {SPECIALTY_EMOJI[player.Specialty] ?? "—"}
-                        </span>
-                      </Tooltip>
-                    ) : (
-                      "—"
-                    )}
+                    {(() => {
+                      const baseSpecialty = Number(player?.Specialty ?? 0);
+                      const hiddenForPlayer =
+                        player && Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
+                          ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
+                          : null;
+                      const specialtyValue =
+                        baseSpecialty > 0 ? baseSpecialty : hiddenForPlayer;
+                      const isHidden = baseSpecialty <= 0 && hiddenForPlayer !== null;
+                      if (specialtyValue === null) return "—";
+                      return (
+                        <Tooltip
+                          content={
+                            isHidden
+                              ? `${messages.hiddenSpecialtyTooltip}: ${
+                                  specialtyName(specialtyValue) ?? messages.specialtyLabel
+                                }`
+                              : specialtyName(specialtyValue) ?? messages.specialtyLabel
+                          }
+                        >
+                          <span
+                            className={`${styles.playerSpecialty} ${
+                              isHidden ? styles.hiddenSpecialtyBadge : ""
+                            }`}
+                          >
+                            {SPECIALTY_EMOJI[specialtyValue] ?? "—"}
+                          </span>
+                        </Tooltip>
+                      );
+                    })()}
                   </td>
                   {SKILL_ROWS.map((skill) => {
                     const current = getSkillLevel(skills?.[skill.key]);
@@ -833,6 +875,7 @@ export default function PlayerDetailsPanel({
           showTitle={false}
           messages={messages}
           specialtyByName={ratingsMatrixSpecialtyByName}
+          hiddenSpecialtyByName={ratingsMatrixHiddenSpecialtyByName}
           selectedName={ratingsMatrixSelectedName}
           onSelectPlayer={handleMatrixPlayerPick}
           orderedPlayerIds={orderedPlayerIds}

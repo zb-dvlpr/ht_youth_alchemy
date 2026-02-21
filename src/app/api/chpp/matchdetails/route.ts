@@ -13,6 +13,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const matchId = searchParams.get("matchId");
     const sourceSystem = searchParams.get("sourceSystem") ?? "Hattrick";
+    const matchEvents = searchParams.get("matchEvents");
     if (!matchId) {
       return NextResponse.json(
         { error: "Missing matchId query parameter." },
@@ -27,6 +28,9 @@ export async function GET(request: Request) {
       matchID: matchId,
       sourceSystem,
     });
+    if (matchEvents === "true" || matchEvents === "false") {
+      params.set("matchEvents", matchEvents);
+    }
 
     const { parsed, rawXml } = await fetchChppXml(auth, params);
     return NextResponse.json({ data: parsed, raw: rawXml });

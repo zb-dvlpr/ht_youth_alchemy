@@ -76,6 +76,8 @@ export const messagesSv: Messages = {
     changelog_2_16_0: "Lonedetaljer visar nu skadestatus per spelare, och Senaste uppdateringar spaar skada/blamarke-andringar.",
     changelog_2_17_0:
       "Uppdatering av ungdomslistan visar nu stegvis status med match-for-match-framsteg for tidigare matcher.",
+    changelog_2_18_0:
+      "Dolda ungdomsspecialiteter hittas nu via handelser i tidigare matcher och markeras i vyn.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -367,6 +369,10 @@ export const messagesSv: Messages = {
     refreshStatusFetchingRatings: "Hamtar betyg fran tidigare matcher…",
     refreshStatusFetchingPastMatchesProgress:
       "Hamtar tidigare matcher {completed}/{total}…",
+    refreshStatusFetchingHiddenSpecialties:
+      "Analyserar matchhandelser for dolda specialiteter…",
+    refreshStatusFetchingHiddenSpecialtiesProgress:
+      "Dolda specialiteter analyserade {completed}/{total}…",
     unlockSkillsSuccess: "Färdigheter upplåsta",
     unlockSkillsDenied: "Upplåsning ej tillåten",
     loadingDetails: "Laddar detaljer…",
@@ -595,6 +601,7 @@ export const messagesSv: Messages = {
     specialtyHeadSpecialist: "Huvudspel",
     specialtyResilient: "Motståndskraftig",
     specialtySupport: "Stödjande",
+    hiddenSpecialtyTooltip: "Dold specialitet hittad via matchhandelser",
     skillsLabel: "Färdigheter",
     skillMaxedTooltip: "Färdighet är maxad",
     unknownLabel: "okänd",

@@ -78,6 +78,8 @@ export const messagesFr: Messages = {
     changelog_2_16_0: "Les details des salaires affichent maintenant le statut de blessure des joueurs, et Dernieres mises a jour suit les changements blessure/contusion.",
     changelog_2_17_0:
       "L actualisation de la liste jeunes affiche maintenant un statut etape par etape avec progression match par match pour les matchs passes.",
+    changelog_2_18_0:
+      "Les specialites cachees des jeunes sont maintenant detectees via les evenements de match passes et mises en evidence.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -375,6 +377,10 @@ export const messagesFr: Messages = {
       "Chargement des notes depuis les matchs passes…",
     refreshStatusFetchingPastMatchesProgress:
       "Chargement des matchs passes {completed}/{total}…",
+    refreshStatusFetchingHiddenSpecialties:
+      "Analyse des evenements de match pour specialites cachees…",
+    refreshStatusFetchingHiddenSpecialtiesProgress:
+      "Specialites cachees en cours {completed}/{total}…",
     unlockSkillsSuccess: "Compétences débloquées",
     unlockSkillsDenied: "Déblocage non autorisé",
     loadingDetails: "Chargement des détails…",
@@ -608,6 +614,7 @@ export const messagesFr: Messages = {
     specialtyHeadSpecialist: "Jeu de tête",
     specialtyResilient: "Résistant",
     specialtySupport: "Soutien",
+    hiddenSpecialtyTooltip: "Specialite cachee detectee via evenements de match",
     skillsLabel: "Compétences",
     skillMaxedTooltip: "Compétence au maximum",
     unknownLabel: "inconnu",

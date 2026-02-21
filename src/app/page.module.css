@@ -2774,6 +2774,20 @@ html[data-theme="dark"] .spinner {
   line-height: 1;
 }
 
+.hiddenSpecialtyBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.7em;
+  min-height: 1.7em;
+  padding: 0.18em;
+  border: 2px solid #bf2f2f;
+  border-radius: 999px;
+  box-sizing: border-box;
+  vertical-align: middle;
+  line-height: 1;
+}
+
 .playerAge {
   position: absolute;
   right: 10px;

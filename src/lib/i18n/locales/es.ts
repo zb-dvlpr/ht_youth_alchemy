@@ -78,6 +78,8 @@ export const messagesEs: Messages = {
     changelog_2_16_0: "Los detalles de salarios ahora muestran el estado de lesion del jugador, y Ultimas actualizaciones detecta cambios de lesion/contusion.",
     changelog_2_17_0:
       "El refresh de la lista juvenil ahora muestra estado paso a paso con progreso por partido al cargar partidos pasados.",
+    changelog_2_18_0:
+      "Las especialidades juveniles ocultas ahora se detectan desde eventos de partidos pasados y se resaltan en la interfaz.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -374,6 +376,10 @@ export const messagesEs: Messages = {
       "Cargando valoraciones desde partidos pasados…",
     refreshStatusFetchingPastMatchesProgress:
       "Cargando partidos pasados {completed}/{total}…",
+    refreshStatusFetchingHiddenSpecialties:
+      "Analizando eventos para especialidades ocultas…",
+    refreshStatusFetchingHiddenSpecialtiesProgress:
+      "Especialidades ocultas analizadas {completed}/{total}…",
     unlockSkillsSuccess: "Habilidades desbloqueadas",
     unlockSkillsDenied: "Desbloqueo no permitido",
     loadingDetails: "Cargando detalles…",
@@ -603,6 +609,8 @@ export const messagesEs: Messages = {
     specialtyHeadSpecialist: "Cabeceador",
     specialtyResilient: "Resistente",
     specialtySupport: "Apoyo",
+    hiddenSpecialtyTooltip:
+      "Especialidad oculta descubierta desde eventos del partido",
     skillsLabel: "Habilidades",
     skillMaxedTooltip: "Habilidad al máximo",
     unknownLabel: "desconocido",

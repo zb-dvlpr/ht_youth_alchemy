@@ -160,6 +160,7 @@ type CachedDetails = {
 type MatchSummary = {
   MatchDate?: string;
   MatchID?: number | string;
+  SourceSystem?: string;
 };
 
 type MatchLineupPlayer = {
@@ -204,6 +205,70 @@ type MatchesArchiveResponse = {
   code?: string;
 };
 
+type MatchDetailsEvent = {
+  EventTypeID?: number | string;
+  SubjectPlayerID?: number | string;
+  ObjectPlayerID?: number | string;
+};
+
+type MatchDetailsEventsResponse = {
+  data?: {
+    HattrickData?: {
+      Match?: {
+        EventList?: {
+          Event?: MatchDetailsEvent | MatchDetailsEvent[];
+        };
+      };
+    };
+  };
+  error?: string;
+  details?: string;
+  statusCode?: number;
+  code?: string;
+};
+
+type EventPlayerRef = "subject" | "object";
+
+type SpecialEventRule = {
+  specialty: number;
+  players: EventPlayerRef[];
+};
+
+const SPECIAL_EVENT_SPECIALTY_RULES: Record<number, SpecialEventRule> = {
+  105: { specialty: 4, players: ["subject"] },
+  106: { specialty: 4, players: ["subject"] },
+  108: { specialty: 4, players: ["subject"] },
+  109: { specialty: 4, players: ["subject"] },
+  115: { specialty: 2, players: ["subject"] },
+  116: { specialty: 2, players: ["object"] },
+  119: { specialty: 5, players: ["subject"] },
+  125: { specialty: 4, players: ["subject"] },
+  137: { specialty: 5, players: ["subject"] },
+  139: { specialty: 1, players: ["subject"] },
+  190: { specialty: 3, players: ["subject"] },
+  205: { specialty: 4, players: ["subject"] },
+  206: { specialty: 4, players: ["subject"] },
+  208: { specialty: 4, players: ["subject"] },
+  209: { specialty: 4, players: ["subject"] },
+  215: { specialty: 2, players: ["subject"] },
+  216: { specialty: 2, players: ["object"] },
+  219: { specialty: 5, players: ["subject"] },
+  225: { specialty: 4, players: ["subject"] },
+  239: { specialty: 1, players: ["subject"] },
+  289: { specialty: 2, players: ["subject", "object"] },
+  290: { specialty: 3, players: ["subject"] },
+  301: { specialty: 1, players: ["subject"] },
+  302: { specialty: 3, players: ["subject"] },
+  303: { specialty: 1, players: ["subject"] },
+  304: { specialty: 3, players: ["subject"] },
+  305: { specialty: 2, players: ["subject"] },
+  306: { specialty: 2, players: ["subject"] },
+  307: { specialty: 8, players: ["subject"] },
+  308: { specialty: 8, players: ["subject"] },
+  309: { specialty: 8, players: ["subject"] },
+  310: { specialty: 3, players: ["subject"] },
+};
+
 const DETAILS_TTL_MS = 5 * 60 * 1000;
 const TRAINING_SKILLS: TrainingSkillKey[] = [
   "keeper",
@@ -244,6 +309,11 @@ export default function Dashboard({
   const [playerRefreshStatus, setPlayerRefreshStatus] = useState<string | null>(
     null
   );
+  const [hiddenSpecialtyByPlayerId, setHiddenSpecialtyByPlayerId] = useState<
+    Record<number, number>
+  >({});
+  const [analyzedHiddenSpecialtyMatchIds, setAnalyzedHiddenSpecialtyMatchIds] =
+    useState<number[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
   const [cache, setCache] = useState<Record<number, CachedDetails>>({});
@@ -384,6 +454,10 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "2.18.0",
+        entries: [messages.changelog_2_18_0],
+      },
+      {
         version: "2.17.0",
         entries: [messages.changelog_2_17_0],
       },
@@ -515,6 +589,7 @@ export default function Dashboard({
       messages.changelog_2_15_0,
       messages.changelog_2_16_0,
       messages.changelog_2_17_0,
+      messages.changelog_2_18_0,
     ]
   );
 
@@ -696,6 +771,8 @@ export default function Dashboard({
         ratingsPositions?: number[];
         playerList?: YouthPlayer[];
         matchesState?: MatchesResponse;
+        hiddenSpecialtyByPlayerId?: Record<number, number>;
+        analyzedHiddenSpecialtyMatchIds?: number[];
       };
       if (parsed.assignments) setAssignments(parsed.assignments);
       if (parsed.behaviors) setBehaviors(parsed.behaviors);
@@ -728,6 +805,12 @@ export default function Dashboard({
       if (parsed.matchesState && initialAuthError) {
         setMatchesState(parsed.matchesState);
       }
+      if (parsed.hiddenSpecialtyByPlayerId) {
+        setHiddenSpecialtyByPlayerId(parsed.hiddenSpecialtyByPlayerId);
+      }
+      if (parsed.analyzedHiddenSpecialtyMatchIds) {
+        setAnalyzedHiddenSpecialtyMatchIds(parsed.analyzedHiddenSpecialtyMatchIds);
+      }
     } catch {
       // ignore restore errors
     } finally {
@@ -752,6 +835,8 @@ export default function Dashboard({
       ratingsPositions,
       playerList,
       matchesState,
+      hiddenSpecialtyByPlayerId,
+      analyzedHiddenSpecialtyMatchIds,
     };
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(payload));
@@ -772,6 +857,8 @@ export default function Dashboard({
     behaviors,
     playerList,
     matchesState,
+    hiddenSpecialtyByPlayerId,
+    analyzedHiddenSpecialtyMatchIds,
     storageKey,
     restoredStorageKey,
   ]);
@@ -1951,6 +2038,10 @@ export default function Dashboard({
           ...match,
           _date: parseChppDate(match.MatchDate)?.getTime() ?? 0,
           _matchId: Number(match.MatchID),
+          _sourceSystem:
+            typeof match.SourceSystem === "string" && match.SourceSystem
+              ? match.SourceSystem
+              : "Youth",
         }))
         .filter((match) => Number.isFinite(match._matchId))
         .sort((a, b) => b._date - a._date)
@@ -1968,6 +2059,7 @@ export default function Dashboard({
         number,
         { id: number; name: string; ratings: Record<string, number> }
       >();
+      const matchPlayerIdsByMatch = new Map<number, Set<number>>();
 
       for (let index = 0; index < finishedMatches.length; index += 1) {
         const match = finishedMatches[index];
@@ -1989,6 +2081,7 @@ export default function Dashboard({
         const lineupPlayers = normalizeArray<MatchLineupPlayer>(
           payload?.data?.HattrickData?.Team?.Lineup?.Player
         );
+        const matchPlayers = new Set<number>();
         lineupPlayers.forEach((player) => {
           const roleId = Number(player.RoleID);
           const column = normalizeMatchRoleId(roleId);
@@ -1997,6 +2090,7 @@ export default function Dashboard({
           if (Number.isNaN(rating)) return;
           const playerId = Number(player.PlayerID);
           if (Number.isNaN(playerId)) return;
+          matchPlayers.add(playerId);
           const fullName = [player.FirstName, player.NickName, player.LastName]
             .filter(Boolean)
             .join(" ");
@@ -2017,12 +2111,130 @@ export default function Dashboard({
             entry.ratings[key] = rating;
           }
         });
+        matchPlayerIdsByMatch.set(matchId, matchPlayers);
       }
 
       setRatingsResponseState({
         positions: POSITION_COLUMNS,
         players: Array.from(playersMap.values()),
       });
+
+      setPlayerRefreshStatus(messages.refreshStatusFetchingHiddenSpecialties);
+      const knownSpecialties = new Map<number, number>();
+      playerList.forEach((player) => {
+        const specialty = Number(player.Specialty ?? 0);
+        if (Number.isFinite(specialty) && specialty > 0) {
+          knownSpecialties.set(player.YouthPlayerID, specialty);
+        }
+      });
+      playerDetailsById.forEach((detailsNode, playerId) => {
+        const specialty = Number(detailsNode.Specialty ?? 0);
+        if (Number.isFinite(specialty) && specialty > 0) {
+          knownSpecialties.set(playerId, specialty);
+        }
+      });
+      Object.entries(hiddenSpecialtyByPlayerId).forEach(([id, specialty]) => {
+        const playerId = Number(id);
+        const specialtyValue = Number(specialty);
+        if (
+          Number.isFinite(playerId) &&
+          Number.isFinite(specialtyValue) &&
+          specialtyValue > 0
+        ) {
+          knownSpecialties.set(playerId, specialtyValue);
+        }
+      });
+      const youthPlayerIds = new Set(playerList.map((player) => player.YouthPlayerID));
+      const unresolvedPlayerIds = new Set(
+        playerList
+          .map((player) => player.YouthPlayerID)
+          .filter((playerId) => {
+            const known = knownSpecialties.get(playerId);
+            return !(known && known > 0);
+          })
+      );
+      const alreadyAnalyzedMatchIds = new Set(analyzedHiddenSpecialtyMatchIds);
+      const discoveredThisRefresh: Record<number, number> = {};
+      const newlyAnalyzedMatchIds = new Set<number>();
+
+      if (unresolvedPlayerIds.size === 0) {
+        finishedMatches.forEach((match) => {
+          newlyAnalyzedMatchIds.add(match._matchId);
+        });
+      }
+
+      const matchesToAnalyze =
+        unresolvedPlayerIds.size > 0
+          ? finishedMatches.filter((match) => {
+              if (alreadyAnalyzedMatchIds.has(match._matchId)) return false;
+              const participants = matchPlayerIdsByMatch.get(match._matchId);
+              if (!participants || participants.size === 0) return true;
+              let hasUnresolvedParticipant = false;
+              participants.forEach((playerId) => {
+                if (unresolvedPlayerIds.has(playerId)) {
+                  hasUnresolvedParticipant = true;
+                }
+              });
+              if (!hasUnresolvedParticipant) {
+                newlyAnalyzedMatchIds.add(match._matchId);
+              }
+              return hasUnresolvedParticipant;
+            })
+          : [];
+
+      for (let index = 0; index < matchesToAnalyze.length; index += 1) {
+        const match = matchesToAnalyze[index];
+        setPlayerRefreshStatus(
+          formatStatusTemplate(
+            messages.refreshStatusFetchingHiddenSpecialtiesProgress,
+            {
+              completed: index + 1,
+              total: matchesToAnalyze.length,
+            }
+          )
+        );
+        const { response, payload } = await fetchChppJson<MatchDetailsEventsResponse>(
+          `/api/chpp/matchdetails?matchId=${match._matchId}&sourceSystem=${encodeURIComponent(
+            match._sourceSystem
+          )}&matchEvents=true`,
+          { cache: "no-store" }
+        );
+        if (!response.ok || payload?.error) continue;
+        const events = normalizeArray<MatchDetailsEvent>(
+          payload?.data?.HattrickData?.Match?.EventList?.Event
+        );
+        events.forEach((event) => {
+          const eventTypeId = Number(event.EventTypeID);
+          const rule = SPECIAL_EVENT_SPECIALTY_RULES[eventTypeId];
+          if (!rule) return;
+          const candidateIds = rule.players.map((ref) =>
+            Number(ref === "subject" ? event.SubjectPlayerID : event.ObjectPlayerID)
+          );
+          candidateIds.forEach((candidateId) => {
+            if (!Number.isFinite(candidateId) || candidateId <= 0) return;
+            if (!youthPlayerIds.has(candidateId)) return;
+            const known = knownSpecialties.get(candidateId);
+            if (known && known > 0) return;
+            knownSpecialties.set(candidateId, rule.specialty);
+            discoveredThisRefresh[candidateId] = rule.specialty;
+          });
+        });
+        newlyAnalyzedMatchIds.add(match._matchId);
+      }
+
+      if (Object.keys(discoveredThisRefresh).length > 0) {
+        setHiddenSpecialtyByPlayerId((prev) => ({
+          ...prev,
+          ...discoveredThisRefresh,
+        }));
+      }
+      if (newlyAnalyzedMatchIds.size > 0) {
+        setAnalyzedHiddenSpecialtyMatchIds((prev) => {
+          const merged = new Set<number>(prev);
+          newlyAnalyzedMatchIds.forEach((matchId) => merged.add(matchId));
+          return Array.from(merged.values()).sort((a, b) => b - a);
+        });
+      }
       return true;
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) return false;
@@ -2142,6 +2354,8 @@ export default function Dashboard({
     setPrimaryTraining("");
     setSecondaryTraining("");
     setAutoSelectionApplied(false);
+    setHiddenSpecialtyByPlayerId({});
+    setAnalyzedHiddenSpecialtyMatchIds([]);
     if (nextTeamId) {
       refreshPlayers(nextTeamId, { recordRefresh: true });
       refreshMatches(nextTeamId);
@@ -2609,6 +2823,7 @@ export default function Dashboard({
           onOrderChange={(ids) => applyPlayerOrder(ids, "list")}
           refreshing={playersLoading}
           refreshStatus={playerRefreshStatus}
+          hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
           messages={messages}
         />
       </div>
@@ -2668,9 +2883,21 @@ export default function Dashboard({
                   [player.FirstName, player.NickName || null, player.LastName]
                     .filter(Boolean)
                     .join(" "),
-                  player.Specialty,
+                  Number(player.Specialty ?? 0) > 0
+                    ? player.Specialty
+                    : hiddenSpecialtyByPlayerId[player.YouthPlayerID],
                 ])
               )}
+              ratingsMatrixHiddenSpecialtyByName={Object.fromEntries(
+                playerList.map((player) => [
+                  [player.FirstName, player.NickName || null, player.LastName]
+                    .filter(Boolean)
+                    .join(" "),
+                  Number(player.Specialty ?? 0) <= 0 &&
+                    Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0,
+                ])
+              )}
+              hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
               onSelectRatingsPlayer={(playerName) => {
                 const match = playerList.find(
                   (player) => formatPlayerName(player) === playerName

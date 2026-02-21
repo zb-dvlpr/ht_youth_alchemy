@@ -76,6 +76,8 @@ export const messagesDe: Messages = {
     changelog_2_16_0: "Gehaltsdetails zeigen jetzt den Verletzungsstatus je Spieler, und Letzte Updates erfasst Verletzungs- und Prellungswechsel.",
     changelog_2_17_0:
       "Die Aktualisierung der Jugendspielerliste zeigt nun Schritt-fur-Schritt-Status mit Spiel-fur-Spiel-Fortschritt fur Vergangenheitsdaten.",
+    changelog_2_18_0:
+      "Versteckte Jugend-Spezialitaten werden jetzt aus vergangenen Match-Events erkannt und im Spielerbereich hervorgehoben.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -366,6 +368,10 @@ export const messagesDe: Messages = {
     refreshStatusFetchingRatings: "Bewertungen aus vergangenen Spielen werden geladen…",
     refreshStatusFetchingPastMatchesProgress:
       "Vergangene Spiele werden geladen {completed}/{total}…",
+    refreshStatusFetchingHiddenSpecialties:
+      "Match-Events fur versteckte Spezialitaten werden gepruft…",
+    refreshStatusFetchingHiddenSpecialtiesProgress:
+      "Versteckte Spezialitaten werden gepruft {completed}/{total}…",
     unlockSkillsSuccess: "Fähigkeiten freigeschaltet",
     unlockSkillsDenied: "Freischalten nicht erlaubt",
     loadingDetails: "Details werden geladen…",
@@ -594,6 +600,7 @@ export const messagesDe: Messages = {
     specialtyHeadSpecialist: "Kopfball",
     specialtyResilient: "Widerstandsfähig",
     specialtySupport: "Unterstützend",
+    hiddenSpecialtyTooltip: "Versteckte Spezialitat aus Match-Events erkannt",
     skillsLabel: "Fähigkeiten",
     skillMaxedTooltip: "Fähigkeit ist ausgereizt",
     unknownLabel: "unbekannt",

@@ -69,6 +69,7 @@ export type Messages = {
   changelog_2_15_0: string;
   changelog_2_16_0: string;
   changelog_2_17_0: string;
+  changelog_2_18_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -321,6 +322,8 @@ export type Messages = {
   refreshStatusFetchingMatches: string;
   refreshStatusFetchingRatings: string;
   refreshStatusFetchingPastMatchesProgress: string;
+  refreshStatusFetchingHiddenSpecialties: string;
+  refreshStatusFetchingHiddenSpecialtiesProgress: string;
   unlockSkillsSuccess: string;
   unlockSkillsDenied: string;
   loadingDetails: string;
@@ -536,6 +539,7 @@ export type Messages = {
   specialtyHeadSpecialist: string;
   specialtyResilient: string;
   specialtySupport: string;
+  hiddenSpecialtyTooltip: string;
   skillsLabel: string;
   skillMaxedTooltip: string;
   unknownLabel: string;

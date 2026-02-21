@@ -69,6 +69,7 @@ export const messagesEn: Messages = {
     changelog_2_15_0: "Global Club Chronicle refresh now fetches in bounded parallel batches for faster updates.",
     changelog_2_16_0: "Wages player details now show injury status, and Latest updates tracks injury/bruised changes.",
     changelog_2_17_0: "Youth player-list refresh now shows step-by-step status with per-match progress for past-match ratings fetch.",
+    changelog_2_18_0: "Hidden youth specialties are now discovered from past match events and highlighted across player list and matrices.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -350,6 +351,10 @@ export const messagesEn: Messages = {
     refreshStatusFetchingRatings: "Fetching ratings from past matches…",
     refreshStatusFetchingPastMatchesProgress:
       "Fetching past matches {completed}/{total}…",
+    refreshStatusFetchingHiddenSpecialties:
+      "Scanning match events for hidden specialties…",
+    refreshStatusFetchingHiddenSpecialtiesProgress:
+      "Scanning hidden specialties {completed}/{total}…",
     unlockSkillsSuccess: "Skills unlocked",
     unlockSkillsDenied: "Unlock not permitted",
     loadingDetails: "Loading details…",
@@ -576,6 +581,7 @@ export const messagesEn: Messages = {
     specialtyHeadSpecialist: "Head specialist",
     specialtyResilient: "Resilient",
     specialtySupport: "Support",
+    hiddenSpecialtyTooltip: "Hidden specialty uncovered from match events",
     skillsLabel: "Skills",
     skillMaxedTooltip: "Skill is maxed out",
     unknownLabel: "unknown",

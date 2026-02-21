@@ -72,6 +72,7 @@ export const messagesSv: Messages = {
       "Club Chronicle lagger till en panel for trolig traningsinriktning baserad pa senaste formationer.",
     changelog_2_14_0:
       "README halls nu strikt pa projektniva; andringsdetaljer ligger i changeloggen och i Git-historiken.",
+    changelog_2_15_0: "Global uppdatering i Klubbkronikan hamtar nu data i begransade parallella batcher for snabbare uppdateringar.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",

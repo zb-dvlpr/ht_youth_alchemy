@@ -74,6 +74,7 @@ export const messagesPt: Messages = {
       "Club Chronicle adiciona um painel de regime de treino provavel inferido de formacoes recentes.",
     changelog_2_14_0:
       "README agora permanece estritamente em nivel de projeto; detalhes por alteracao ficam no changelog e no historico Git.",
+    changelog_2_15_0: "A atualizacao global da Cronica do clube agora busca em lotes paralelos limitados para atualizacoes mais rapidas.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",

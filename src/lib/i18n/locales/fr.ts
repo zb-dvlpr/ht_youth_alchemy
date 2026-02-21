@@ -74,6 +74,7 @@ export const messagesFr: Messages = {
       "Club Chronicle ajoute un panneau de regime d entrainement probable deduit des formations recentes.",
     changelog_2_14_0:
       "Le README reste desormais strictement au niveau projet; les details par changement restent dans le changelog et l historique Git.",
+    changelog_2_15_0: "L actualisation globale de la Chronique du club charge maintenant par lots paralleles limites pour des mises a jour plus rapides.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",

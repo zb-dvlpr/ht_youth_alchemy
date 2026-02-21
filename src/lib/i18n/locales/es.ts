@@ -74,6 +74,7 @@ export const messagesEs: Messages = {
       "Club Chronicle agrega un panel de regimen de entrenamiento probable inferido de formaciones recientes.",
     changelog_2_14_0:
       "README ahora se mantiene estrictamente a nivel de proyecto; los detalles por cambio quedan en el changelog y en el historial de Git.",
+    changelog_2_15_0: "La actualizacion global de Cronica del club ahora carga en lotes paralelos limitados para actualizaciones mas rapidas.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",

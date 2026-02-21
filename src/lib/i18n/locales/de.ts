@@ -72,6 +72,7 @@ export const messagesDe: Messages = {
       "Club-Chronik ergänzt um ein Panel für das wahrscheinliche Trainingsschema aus recenten Formationen.",
     changelog_2_14_0:
       "README bleibt jetzt strikt auf Projektebene; Änderungsdetails stehen im Changelog und in der Git-Historie.",
+    changelog_2_15_0: "Die globale Club-Chronik-Aktualisierung lädt jetzt in begrenzten Parallel-Batches für schnellere Updates.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",

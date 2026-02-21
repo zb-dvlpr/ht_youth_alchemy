@@ -270,6 +270,7 @@ const SPECIAL_EVENT_SPECIALTY_RULES: Record<number, SpecialEventRule> = {
 };
 
 const DETAILS_TTL_MS = 5 * 60 * 1000;
+const YOUTH_REFRESH_CONCURRENCY = 4;
 const TRAINING_SKILLS: TrainingSkillKey[] = [
   "keeper",
   "defending",
@@ -1930,6 +1931,27 @@ export default function Dashboard({
     return Array.isArray(input) ? input : [input];
   };
 
+  const mapWithConcurrency = async <T, R>(
+    items: T[],
+    concurrency: number,
+    worker: (item: T, index: number) => Promise<R>
+  ): Promise<R[]> => {
+    if (items.length === 0) return [];
+    const results = new Array<R>(items.length);
+    const limit = Math.max(1, Math.min(concurrency, items.length));
+    let nextIndex = 0;
+    const runners = Array.from({ length: limit }, async () => {
+      while (true) {
+        const currentIndex = nextIndex;
+        if (currentIndex >= items.length) return;
+        nextIndex += 1;
+        results[currentIndex] = await worker(items[currentIndex], currentIndex);
+      }
+    });
+    await Promise.all(runners);
+    return results;
+  };
+
   const formatStatusTemplate = (
     template: string,
     replacements: Record<string, string | number>
@@ -2061,28 +2083,43 @@ export default function Dashboard({
       >();
       const matchPlayerIdsByMatch = new Map<number, Set<number>>();
 
-      for (let index = 0; index < finishedMatches.length; index += 1) {
-        const match = finishedMatches[index];
-        const matchId = match._matchId;
-        setPlayerRefreshStatus(
-          formatStatusTemplate(messages.refreshStatusFetchingPastMatchesProgress, {
-            completed: index + 1,
-            total: finishedMatches.length,
-          })
-        );
-
-        const { response, payload } = await fetchChppJson<MatchLineupResponse>(
-          `/api/chpp/youth/match-lineup?matchId=${matchId}&teamId=${teamIdValue}`,
-          { cache: "no-store" }
-        );
-        if (!response.ok || payload?.error) {
-          throw new Error(payload?.error ?? "Failed to fetch match lineup");
+      let lineupCompleted = 0;
+      const lineupResults = await mapWithConcurrency(
+        finishedMatches,
+        YOUTH_REFRESH_CONCURRENCY,
+        async (match) => {
+          try {
+            const { response, payload } = await fetchChppJson<MatchLineupResponse>(
+              `/api/chpp/youth/match-lineup?matchId=${match._matchId}&teamId=${teamIdValue}`,
+              { cache: "no-store" }
+            );
+            if (!response.ok || payload?.error) {
+              return {
+                matchId: match._matchId,
+                lineupPlayers: [] as MatchLineupPlayer[],
+              };
+            }
+            return {
+              matchId: match._matchId,
+              lineupPlayers: normalizeArray<MatchLineupPlayer>(
+                payload?.data?.HattrickData?.Team?.Lineup?.Player
+              ),
+            };
+          } finally {
+            lineupCompleted += 1;
+            setPlayerRefreshStatus(
+              formatStatusTemplate(messages.refreshStatusFetchingPastMatchesProgress, {
+                completed: lineupCompleted,
+                total: finishedMatches.length,
+              })
+            );
+          }
         }
-        const lineupPlayers = normalizeArray<MatchLineupPlayer>(
-          payload?.data?.HattrickData?.Team?.Lineup?.Player
-        );
+      );
+
+      lineupResults.forEach((result) => {
         const matchPlayers = new Set<number>();
-        lineupPlayers.forEach((player) => {
+        result.lineupPlayers.forEach((player) => {
           const roleId = Number(player.RoleID);
           const column = normalizeMatchRoleId(roleId);
           if (!column) return;
@@ -2111,8 +2148,8 @@ export default function Dashboard({
             entry.ratings[key] = rating;
           }
         });
-        matchPlayerIdsByMatch.set(matchId, matchPlayers);
-      }
+        matchPlayerIdsByMatch.set(result.matchId, matchPlayers);
+      });
 
       setRatingsResponseState({
         positions: POSITION_COLUMNS,
@@ -2182,45 +2219,75 @@ export default function Dashboard({
             })
           : [];
 
-      for (let index = 0; index < matchesToAnalyze.length; index += 1) {
-        const match = matchesToAnalyze[index];
-        setPlayerRefreshStatus(
-          formatStatusTemplate(
-            messages.refreshStatusFetchingHiddenSpecialtiesProgress,
-            {
-              completed: index + 1,
-              total: matchesToAnalyze.length,
+      let hiddenCompleted = 0;
+      const hiddenResults = await mapWithConcurrency(
+        matchesToAnalyze,
+        YOUTH_REFRESH_CONCURRENCY,
+        async (match) => {
+          try {
+            const { response, payload } = await fetchChppJson<MatchDetailsEventsResponse>(
+              `/api/chpp/matchdetails?matchId=${match._matchId}&sourceSystem=${encodeURIComponent(
+                match._sourceSystem
+              )}&matchEvents=true`,
+              { cache: "no-store" }
+            );
+            if (!response.ok || payload?.error) {
+              return {
+                matchId: match._matchId,
+                analyzed: false,
+                candidates: [] as Array<{ playerId: number; specialty: number }>,
+              };
             }
-          )
-        );
-        const { response, payload } = await fetchChppJson<MatchDetailsEventsResponse>(
-          `/api/chpp/matchdetails?matchId=${match._matchId}&sourceSystem=${encodeURIComponent(
-            match._sourceSystem
-          )}&matchEvents=true`,
-          { cache: "no-store" }
-        );
-        if (!response.ok || payload?.error) continue;
-        const events = normalizeArray<MatchDetailsEvent>(
-          payload?.data?.HattrickData?.Match?.EventList?.Event
-        );
-        events.forEach((event) => {
-          const eventTypeId = Number(event.EventTypeID);
-          const rule = SPECIAL_EVENT_SPECIALTY_RULES[eventTypeId];
-          if (!rule) return;
-          const candidateIds = rule.players.map((ref) =>
-            Number(ref === "subject" ? event.SubjectPlayerID : event.ObjectPlayerID)
-          );
-          candidateIds.forEach((candidateId) => {
-            if (!Number.isFinite(candidateId) || candidateId <= 0) return;
-            if (!youthPlayerIds.has(candidateId)) return;
-            const known = knownSpecialties.get(candidateId);
-            if (known && known > 0) return;
-            knownSpecialties.set(candidateId, rule.specialty);
-            discoveredThisRefresh[candidateId] = rule.specialty;
-          });
+            const events = normalizeArray<MatchDetailsEvent>(
+              payload?.data?.HattrickData?.Match?.EventList?.Event
+            );
+            const candidates: Array<{ playerId: number; specialty: number }> = [];
+            events.forEach((event) => {
+              const eventTypeId = Number(event.EventTypeID);
+              const rule = SPECIAL_EVENT_SPECIALTY_RULES[eventTypeId];
+              if (!rule) return;
+              const candidateIds = rule.players.map((ref) =>
+                Number(ref === "subject" ? event.SubjectPlayerID : event.ObjectPlayerID)
+              );
+              candidateIds.forEach((candidateId) => {
+                if (!Number.isFinite(candidateId) || candidateId <= 0) return;
+                if (!youthPlayerIds.has(candidateId)) return;
+                candidates.push({
+                  playerId: candidateId,
+                  specialty: rule.specialty,
+                });
+              });
+            });
+            return {
+              matchId: match._matchId,
+              analyzed: true,
+              candidates,
+            };
+          } finally {
+            hiddenCompleted += 1;
+            setPlayerRefreshStatus(
+              formatStatusTemplate(
+                messages.refreshStatusFetchingHiddenSpecialtiesProgress,
+                {
+                  completed: hiddenCompleted,
+                  total: matchesToAnalyze.length,
+                }
+              )
+            );
+          }
+        }
+      );
+
+      hiddenResults.forEach((result) => {
+        if (!result.analyzed) return;
+        result.candidates.forEach((candidate) => {
+          const known = knownSpecialties.get(candidate.playerId);
+          if (known && known > 0) return;
+          knownSpecialties.set(candidate.playerId, candidate.specialty);
+          discoveredThisRefresh[candidate.playerId] = candidate.specialty;
         });
-        newlyAnalyzedMatchIds.add(match._matchId);
-      }
+        newlyAnalyzedMatchIds.add(result.matchId);
+      });
 
       if (Object.keys(discoveredThisRefresh).length > 0) {
         setHiddenSpecialtyByPlayerId((prev) => ({

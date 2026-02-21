@@ -1743,6 +1743,41 @@ html[data-app-scaling="off"] .chronicleHeader {
   text-underline-offset: 2px;
 }
 
+.chronicleInjuryBruised {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  font-size: 15px;
+}
+
+.chronicleInjuryInline {
+  margin-left: 4px;
+  vertical-align: baseline;
+}
+
+.chronicleInjuryInjured {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  line-height: 1;
+}
+
+.chronicleInjuryCross {
+  color: #c3261f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.chronicleInjuryWeeks {
+  color: #c3261f;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: sub;
+  position: relative;
+  top: 0.12em;
+}
+
 .watchlistPanel {
   display: grid;
   gap: 14px;
@@ -2294,6 +2329,12 @@ html[data-theme="dark"] .chronicleDistributionTeamName {
 html[data-theme="dark"] .chroniclePressLink {
   color: #8cb8e6;
 }
+
+html[data-theme="dark"] .chronicleInjuryCross,
+html[data-theme="dark"] .chronicleInjuryWeeks {
+  color: #ff8f84;
+}
+
 
 .watchlistModal {
   width: min(900px, 92vw);

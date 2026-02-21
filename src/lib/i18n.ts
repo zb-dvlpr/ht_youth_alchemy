@@ -67,6 +67,7 @@ export type Messages = {
   changelog_2_13_0: string;
   changelog_2_14_0: string;
   changelog_2_15_0: string;
+  changelog_2_16_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -283,7 +284,11 @@ export type Messages = {
   clubChronicleWagesDetailsTitle: string;
   clubChronicleWagesPlayerIndexColumn: string;
   clubChronicleWagesPlayerColumn: string;
+  clubChronicleWagesInjuryColumn: string;
   clubChronicleWagesValueColumn: string;
+  clubChronicleInjuryHealthy: string;
+  clubChronicleInjuryBruised: string;
+  clubChronicleInjuryInjuredWeeks: string;
   helpTitle: string;
   helpIntro: string;
   helpBulletOverview: string;

@@ -194,6 +194,7 @@ type TsiSnapshot = {
     playerNumber: number | null;
     age: number | null;
     ageDays: number | null;
+    injuryLevel: number | null;
     tsi: number;
   }[];
   fetchedAt: number;
@@ -217,6 +218,7 @@ type TsiPlayerRow = {
   playerNumber: number | null;
   age: number | null;
   ageDays: number | null;
+  injuryLevel: number | null;
   tsi: number;
 };
 
@@ -229,6 +231,7 @@ type WagesSnapshot = {
     playerNumber: number | null;
     age: number | null;
     ageDays: number | null;
+    injuryLevel: number | null;
     salarySek: number;
   }[];
   fetchedAt: number;
@@ -297,6 +300,7 @@ type WagesPlayerRow = {
   playerNumber: number | null;
   age: number | null;
   ageDays: number | null;
+  injuryLevel: number | null;
   salarySek: number;
 };
 
@@ -3468,6 +3472,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
     return String(value);
   };
+  const normalizeInjuryLevel = useCallback((value: number | null | undefined) => {
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+      return null;
+    }
+    return Math.trunc(value);
+  }, []);
+  const formatInjuryWeeksValue = useCallback((value: number) => {
+    return value === 999 ? "∞" : String(value);
+  }, []);
 
   const formatLikelyTrainingLabel = (key: LikelyTrainingKey | null | undefined) => {
     if (!key) return messages.unknownShort;
@@ -3507,6 +3520,130 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       );
     },
     []
+  );
+  const formatInjuryStatusSymbol = useCallback(
+    (value: number | null | undefined) => {
+      const injuryLevel = normalizeInjuryLevel(value);
+      if (injuryLevel === null) return messages.unknownShort;
+      if (injuryLevel < 0) return messages.clubChronicleInjuryHealthy;
+      if (injuryLevel === 0) return "🩹";
+      return `✚[${formatInjuryWeeksValue(injuryLevel)}]`;
+    },
+    [
+      formatInjuryWeeksValue,
+      messages.clubChronicleInjuryHealthy,
+      messages.unknownShort,
+      normalizeInjuryLevel,
+    ]
+  );
+  const formatUpdatesInjuryValue = useCallback(
+    (fieldKey: string, value: string | null | undefined) => {
+      if (fieldKey !== "wages.injury" || value === null || value === undefined) {
+        return value;
+      }
+      const subscriptToNormal: Record<string, string> = {
+        "₀": "0",
+        "₁": "1",
+        "₂": "2",
+        "₃": "3",
+        "₄": "4",
+        "₅": "5",
+        "₆": "6",
+        "₇": "7",
+        "₈": "8",
+        "₉": "9",
+        "₋": "-",
+      };
+      const normalizeWeeks = (weeksRaw: string) => {
+        const normalized = weeksRaw
+          .split("")
+          .map((char) => subscriptToNormal[char] ?? char)
+          .join("");
+        return normalized === "999" ? "∞" : normalized;
+      };
+      return value
+        .replace(/(?:✚|\+)\s*([₀₁₂₃₄₅₆₇₈₉₋]+)/g, (_match, weeksRaw: string) => {
+          return `✚(${normalizeWeeks(weeksRaw)})`;
+        })
+        .replace(/(?:✚|\+)\s*(\d+)/g, (_match, weeksRaw: string) => {
+          return `✚(${normalizeWeeks(weeksRaw)})`;
+        })
+        .replace(/(?:✚|\+)\[(\d+)\]/g, (_match, weeksRaw: string) => {
+          return `✚(${normalizeWeeks(weeksRaw)})`;
+        })
+        .replace(/(?:✚|\+)\((\d+|∞)\)/g, (_match, weeksRaw: string) => {
+          return `✚(${normalizeWeeks(weeksRaw)})`;
+        });
+    },
+    []
+  );
+  const renderInjuryStatusInline = useCallback(
+    (value: number | null | undefined) => {
+      const injuryLevel = normalizeInjuryLevel(value);
+      if (injuryLevel === null || injuryLevel < 0) return null;
+      if (injuryLevel === 0) {
+        return (
+          <span
+            className={`${styles.chronicleInjuryBruised} ${styles.chronicleInjuryInline}`}
+            title={messages.clubChronicleInjuryBruised}
+            aria-label={messages.clubChronicleInjuryBruised}
+          >
+            🩹
+          </span>
+        );
+      }
+      const injuryWeeks = formatInjuryWeeksValue(injuryLevel);
+      const injuryLabel = formatStatusTemplate(messages.clubChronicleInjuryInjuredWeeks, {
+        weeks: injuryWeeks,
+      });
+      return (
+        <span
+          className={`${styles.chronicleInjuryInjured} ${styles.chronicleInjuryInline}`}
+          title={injuryLabel}
+          aria-label={injuryLabel}
+        >
+          <span className={styles.chronicleInjuryCross}>✚</span>
+          <sub className={styles.chronicleInjuryWeeks}>{injuryWeeks}</sub>
+        </span>
+      );
+    },
+    [
+      formatInjuryWeeksValue,
+      formatStatusTemplate,
+      messages.clubChronicleInjuryBruised,
+      messages.clubChronicleInjuryInjuredWeeks,
+      normalizeInjuryLevel,
+    ]
+  );
+  const buildInjurySummary = useCallback(
+    (snapshot: WagesSnapshot | null | undefined) => {
+      if (!snapshot) return messages.unknownShort;
+      const knownPlayers = snapshot.players.filter(
+        (player) => normalizeInjuryLevel(player.injuryLevel) !== null
+      );
+      if (knownPlayers.length === 0) return messages.unknownShort;
+      const injuredOrBruisedPlayers = knownPlayers
+        .filter((player) => {
+          const injuryLevel = normalizeInjuryLevel(player.injuryLevel);
+          return injuryLevel !== null && injuryLevel >= 0;
+        })
+        .sort((left, right) => left.playerId - right.playerId);
+      if (injuredOrBruisedPlayers.length === 0) {
+        return messages.clubChronicleInjuryHealthy;
+      }
+      return injuredOrBruisedPlayers
+        .map((player) => {
+          const label = player.playerName ?? `${player.playerId}`;
+          return `${label} ${formatInjuryStatusSymbol(player.injuryLevel)}`;
+        })
+        .join(", ");
+    },
+    [
+      formatInjuryStatusSymbol,
+      messages.clubChronicleInjuryHealthy,
+      messages.unknownShort,
+      normalizeInjuryLevel,
+    ]
   );
   const renderTeamNameLink = useCallback(
     (teamId: number | null | undefined, teamName: string | null | undefined) => {
@@ -3567,6 +3704,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         return messages.clubChronicleWagesColumnTotal;
       case "wages.top11":
         return messages.clubChronicleWagesColumnTop11;
+      case "wages.injury":
+        return messages.clubChronicleWagesInjuryColumn;
       default:
         return fallbackLabel;
     }
@@ -4064,6 +4203,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               current: formatValue(current.top11WagesSek),
             });
           }
+          const previousInjury = buildInjurySummary(previous);
+          const currentInjury = buildInjurySummary(current);
+          if (previousInjury !== currentInjury) {
+            wageChanges.push({
+              fieldKey: "wages.injury",
+              label: messages.clubChronicleWagesInjuryColumn,
+              previous: previousInjury,
+              current: currentInjury,
+            });
+          }
           appendTeamChanges(updatesMap, teamId, teamName, wageChanges);
         }
       }
@@ -4509,6 +4658,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     playerNumber: number | null;
     age: number | null;
     ageDays: number | null;
+    injuryLevel: number | null;
     transferListed: boolean;
     tsi: number;
     salarySek: number;
@@ -4552,6 +4702,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           playerNumber: parseNumberNode(player?.PlayerNumber),
           age: parseNumberNode(player?.Age),
           ageDays: parseNumberNode(player?.AgeDays),
+          injuryLevel: parseNumberNode(player?.InjuryLevel),
           transferListed: parseBool(player?.TransferListed),
           tsi: parseNumber(player?.TSI) ?? 0,
           salarySek: parseMoneySek(player?.Salary) ?? 0,
@@ -4624,6 +4775,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       playerNumber: player.playerNumber,
       age: player.age,
       ageDays: player.ageDays,
+      injuryLevel: player.injuryLevel,
       tsi: Number.isFinite(player.tsi) ? player.tsi : 0,
     }));
     const tsiValues = normalizedPlayers
@@ -4646,6 +4798,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       playerNumber: player.playerNumber,
       age: player.age,
       ageDays: player.ageDays,
+      injuryLevel: player.injuryLevel,
       salarySek: Number.isFinite(player.salarySek) ? player.salarySek : 0,
     }));
     const wages = normalizedPlayers
@@ -6498,6 +6651,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         renderCell: (snapshot, _row, fallbackFormat) => {
           const playerId = snapshot?.playerId ?? 0;
           const playerName = snapshot?.playerName ?? null;
+          const injuryIndicator = renderInjuryStatusInline(snapshot?.injuryLevel);
           if (!playerId) return fallbackFormat(playerName);
           return (
             <a
@@ -6507,6 +6661,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               rel="noreferrer"
             >
               {playerName ?? `${playerId}`}
+              {injuryIndicator}
             </a>
           );
         },
@@ -6533,6 +6688,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleTransferListedAgeColumn,
       messages.clubChronicleTsiValueColumn,
       formatAgeWithDays,
+      renderInjuryStatusInline,
     ]
   );
 
@@ -6577,6 +6733,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         renderCell: (snapshot, _row, fallbackFormat) => {
           const playerId = snapshot?.playerId ?? 0;
           const playerName = snapshot?.playerName ?? null;
+          const injuryIndicator = renderInjuryStatusInline(snapshot?.injuryLevel);
           if (!playerId) return fallbackFormat(playerName);
           return (
             <a
@@ -6586,6 +6743,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               rel="noreferrer"
             >
               {playerName ?? `${playerId}`}
+              {injuryIndicator}
             </a>
           );
         },
@@ -6613,6 +6771,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleTransferListedAgeColumn,
       messages.clubChronicleWagesValueColumn,
       formatAgeWithDays,
+      renderInjuryStatusInline,
     ]
   );
 
@@ -7857,8 +8016,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                             <span className={styles.chronicleUpdatesLabel}>
                               {getUpdateFieldLabel(change.fieldKey, change.label)}
                             </span>
-                            <span>{change.previous ?? messages.unknownShort}</span>
-                            <span>{change.current ?? messages.unknownShort}</span>
+                            <span>
+                              {formatUpdatesInjuryValue(change.fieldKey, change.previous) ??
+                                messages.unknownShort}
+                            </span>
+                            <span>
+                              {formatUpdatesInjuryValue(change.fieldKey, change.current) ??
+                                messages.unknownShort}
+                            </span>
                           </div>
                         ))}
                       </div>

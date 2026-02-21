@@ -6,34 +6,37 @@ import {
   getChppAuth,
 } from "@/lib/chpp/server";
 
-const MATCHDETAILS_VERSION = "3.1";
+const MATCHLINEUP_VERSION = "2.1";
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const matchId = searchParams.get("matchId");
-    const sourceSystem = searchParams.get("sourceSystem") ?? "Hattrick";
-    const matchEvents = searchParams.get("matchEvents");
-    if (!matchId) {
+    const url = new URL(request.url);
+    const matchId = url.searchParams.get("matchId");
+    const teamId = url.searchParams.get("teamId") ?? url.searchParams.get("teamID");
+
+    if (!matchId || !teamId) {
       return NextResponse.json(
-        { error: "Missing matchId query parameter." },
+        { error: "Missing matchId or teamId query parameter." },
         { status: 400 }
       );
     }
 
     const auth = await getChppAuth();
     const params = new URLSearchParams({
-      file: "matchdetails",
-      version: MATCHDETAILS_VERSION,
+      file: "matchlineup",
+      version: MATCHLINEUP_VERSION,
       matchID: matchId,
-      sourceSystem,
+      teamID: teamId,
+      sourceSystem: "Youth",
     });
-    if (matchEvents === "true" || matchEvents === "false") {
-      params.set("matchEvents", matchEvents);
-    }
 
     const { parsed, rawXml } = await fetchChppXml(auth, params);
-    return NextResponse.json({ data: parsed, raw: rawXml });
+    const includeRaw = url.searchParams.get("raw") === "1";
+
+    return NextResponse.json({
+      data: parsed,
+      ...(includeRaw ? { raw: rawXml } : {}),
+    });
   } catch (error) {
     if (error instanceof ChppAuthError) {
       return NextResponse.json(
@@ -41,7 +44,7 @@ export async function GET(request: Request) {
         { status: error.status }
       );
     }
-    const payload = buildChppErrorPayload("Failed to fetch match details", error);
+    const payload = buildChppErrorPayload("Failed to fetch youth match lineup", error);
     return NextResponse.json(payload, {
       status: payload.statusCode === 401 ? 401 : 502,
     });

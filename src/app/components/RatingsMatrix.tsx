@@ -23,6 +23,7 @@ type RatingsMatrixProps = {
   showTitle?: boolean;
   messages: Messages;
   specialtyByName?: Record<string, number | undefined>;
+  hiddenSpecialtyByName?: Record<string, boolean>;
   selectedName?: string | null;
   onSelectPlayer?: (playerName: string) => void;
   orderedPlayerIds?: number[] | null;
@@ -81,6 +82,7 @@ export default function RatingsMatrix({
   showTitle = true,
   messages,
   specialtyByName,
+  hiddenSpecialtyByName,
   selectedName,
   onSelectPlayer,
   orderedPlayerIds,
@@ -266,11 +268,22 @@ export default function RatingsMatrix({
                   {specialtyByName && specialtyByName[row.name] !== undefined ? (
                     <Tooltip
                       content={
-                        specialtyName(specialtyByName[row.name], messages) ??
-                        messages.specialtyLabel
+                        hiddenSpecialtyByName?.[row.name]
+                          ? `${messages.hiddenSpecialtyTooltip}: ${
+                              specialtyName(specialtyByName[row.name], messages) ??
+                              messages.specialtyLabel
+                            }`
+                          : specialtyName(specialtyByName[row.name], messages) ??
+                            messages.specialtyLabel
                       }
                     >
-                      <span className={styles.playerSpecialty}>
+                      <span
+                        className={`${styles.playerSpecialty} ${
+                          hiddenSpecialtyByName?.[row.name]
+                            ? styles.hiddenSpecialtyBadge
+                            : ""
+                        }`}
+                      >
                         {SPECIALTY_EMOJI[specialtyByName[row.name] as number] ?? "—"}
                       </span>
                     </Tooltip>

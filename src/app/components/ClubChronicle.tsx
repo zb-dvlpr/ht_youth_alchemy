@@ -194,6 +194,7 @@ type TsiSnapshot = {
     playerNumber: number | null;
     age: number | null;
     ageDays: number | null;
+    injuryLevel: number | null;
     tsi: number;
   }[];
   fetchedAt: number;
@@ -217,6 +218,7 @@ type TsiPlayerRow = {
   playerNumber: number | null;
   age: number | null;
   ageDays: number | null;
+  injuryLevel: number | null;
   tsi: number;
 };
 
@@ -229,6 +231,7 @@ type WagesSnapshot = {
     playerNumber: number | null;
     age: number | null;
     ageDays: number | null;
+    injuryLevel: number | null;
     salarySek: number;
   }[];
   fetchedAt: number;
@@ -297,6 +300,7 @@ type WagesPlayerRow = {
   playerNumber: number | null;
   age: number | null;
   ageDays: number | null;
+  injuryLevel: number | null;
   salarySek: number;
 };
 
@@ -685,6 +689,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_CACHE_AGE_MS = SEASON_LENGTH_MS * 2;
 const CHPP_SEK_PER_EUR = 10;
 const ARCHIVE_MATCH_LIMIT = 20;
+const TEAM_REFRESH_CONCURRENCY = 4;
+const MATCH_DETAILS_FETCH_CONCURRENCY = 6;
 const RELEVANT_MATCH_TYPES = new Set([1, 3, 4, 5, 8, 9]);
 const POSSIBLE_FORMATIONS = new Set([
   "2-5-3",
@@ -733,6 +739,32 @@ const normalizeSupportedTeams = (
       leagueLevelUnitName: team.LeagueLevelUnitName ?? null,
     }))
     .filter((team) => Number.isFinite(team.teamId) && team.teamId > 0);
+};
+
+const mapWithConcurrency = async <T, R>(
+  list: T[],
+  concurrency: number,
+  worker: (item: T, index: number) => Promise<R>
+): Promise<R[]> => {
+  if (list.length === 0) return [];
+  const safeConcurrency = Math.max(1, Math.floor(concurrency));
+  const results: R[] = new Array(list.length);
+  let cursor = 0;
+
+  const runWorker = async () => {
+    while (cursor < list.length) {
+      const index = cursor;
+      cursor += 1;
+      results[index] = await worker(list[index], index);
+    }
+  };
+
+  const runners = Array.from(
+    { length: Math.min(safeConcurrency, list.length) },
+    () => runWorker()
+  );
+  await Promise.all(runners);
+  return results;
 };
 
 const extractTeamDetailsNode = (
@@ -1067,7 +1099,16 @@ const splitPieLabel = (label: string, maxCharsPerLine = 16): string[] => {
   return lines.length > 0 ? lines : [label];
 };
 
-const renderPieLabel = (props: any) => {
+type PieLabelRenderProps = {
+  cx?: number;
+  cy?: number;
+  midAngle?: number;
+  outerRadius?: number;
+  percent?: number;
+  name?: string;
+};
+
+const renderPieLabel = (props: PieLabelRenderProps) => {
   const {
     cx = 0,
     cy = 0,
@@ -3431,6 +3472,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
     return String(value);
   };
+  const normalizeInjuryLevel = useCallback((value: number | null | undefined) => {
+    if (value === null || value === undefined || !Number.isFinite(value)) {
+      return null;
+    }
+    return Math.trunc(value);
+  }, []);
+  const formatInjuryWeeksValue = useCallback((value: number) => {
+    return value === 999 ? "∞" : String(value);
+  }, []);
 
   const formatLikelyTrainingLabel = (key: LikelyTrainingKey | null | undefined) => {
     if (!key) return messages.unknownShort;
@@ -3470,6 +3520,130 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       );
     },
     []
+  );
+  const formatInjuryStatusSymbol = useCallback(
+    (value: number | null | undefined) => {
+      const injuryLevel = normalizeInjuryLevel(value);
+      if (injuryLevel === null) return messages.unknownShort;
+      if (injuryLevel < 0) return messages.clubChronicleInjuryHealthy;
+      if (injuryLevel === 0) return "🩹";
+      return `✚[${formatInjuryWeeksValue(injuryLevel)}]`;
+    },
+    [
+      formatInjuryWeeksValue,
+      messages.clubChronicleInjuryHealthy,
+      messages.unknownShort,
+      normalizeInjuryLevel,
+    ]
+  );
+  const formatUpdatesInjuryValue = useCallback(
+    (fieldKey: string, value: string | null | undefined) => {
+      if (fieldKey !== "wages.injury" || value === null || value === undefined) {
+        return value;
+      }
+      const subscriptToNormal: Record<string, string> = {
+        "₀": "0",
+        "₁": "1",
+        "₂": "2",
+        "₃": "3",
+        "₄": "4",
+        "₅": "5",
+        "₆": "6",
+        "₇": "7",
+        "₈": "8",
+        "₉": "9",
+        "₋": "-",
+      };
+      const normalizeWeeks = (weeksRaw: string) => {
+        const normalized = weeksRaw
+          .split("")
+          .map((char) => subscriptToNormal[char] ?? char)
+          .join("");
+        return normalized === "999" ? "∞" : normalized;
+      };
+      return value
+        .replace(/(?:✚|\+)\s*([₀₁₂₃₄₅₆₇₈₉₋]+)/g, (_match, weeksRaw: string) => {
+          return `✚(${normalizeWeeks(weeksRaw)})`;
+        })
+        .replace(/(?:✚|\+)\s*(\d+)/g, (_match, weeksRaw: string) => {
+          return `✚(${normalizeWeeks(weeksRaw)})`;
+        })
+        .replace(/(?:✚|\+)\[(\d+)\]/g, (_match, weeksRaw: string) => {
+          return `✚(${normalizeWeeks(weeksRaw)})`;
+        })
+        .replace(/(?:✚|\+)\((\d+|∞)\)/g, (_match, weeksRaw: string) => {
+          return `✚(${normalizeWeeks(weeksRaw)})`;
+        });
+    },
+    []
+  );
+  const renderInjuryStatusInline = useCallback(
+    (value: number | null | undefined) => {
+      const injuryLevel = normalizeInjuryLevel(value);
+      if (injuryLevel === null || injuryLevel < 0) return null;
+      if (injuryLevel === 0) {
+        return (
+          <span
+            className={`${styles.chronicleInjuryBruised} ${styles.chronicleInjuryInline}`}
+            title={messages.clubChronicleInjuryBruised}
+            aria-label={messages.clubChronicleInjuryBruised}
+          >
+            🩹
+          </span>
+        );
+      }
+      const injuryWeeks = formatInjuryWeeksValue(injuryLevel);
+      const injuryLabel = formatStatusTemplate(messages.clubChronicleInjuryInjuredWeeks, {
+        weeks: injuryWeeks,
+      });
+      return (
+        <span
+          className={`${styles.chronicleInjuryInjured} ${styles.chronicleInjuryInline}`}
+          title={injuryLabel}
+          aria-label={injuryLabel}
+        >
+          <span className={styles.chronicleInjuryCross}>✚</span>
+          <sub className={styles.chronicleInjuryWeeks}>{injuryWeeks}</sub>
+        </span>
+      );
+    },
+    [
+      formatInjuryWeeksValue,
+      formatStatusTemplate,
+      messages.clubChronicleInjuryBruised,
+      messages.clubChronicleInjuryInjuredWeeks,
+      normalizeInjuryLevel,
+    ]
+  );
+  const buildInjurySummary = useCallback(
+    (snapshot: WagesSnapshot | null | undefined) => {
+      if (!snapshot) return messages.unknownShort;
+      const knownPlayers = snapshot.players.filter(
+        (player) => normalizeInjuryLevel(player.injuryLevel) !== null
+      );
+      if (knownPlayers.length === 0) return messages.unknownShort;
+      const injuredOrBruisedPlayers = knownPlayers
+        .filter((player) => {
+          const injuryLevel = normalizeInjuryLevel(player.injuryLevel);
+          return injuryLevel !== null && injuryLevel >= 0;
+        })
+        .sort((left, right) => left.playerId - right.playerId);
+      if (injuredOrBruisedPlayers.length === 0) {
+        return messages.clubChronicleInjuryHealthy;
+      }
+      return injuredOrBruisedPlayers
+        .map((player) => {
+          const label = player.playerName ?? `${player.playerId}`;
+          return `${label} ${formatInjuryStatusSymbol(player.injuryLevel)}`;
+        })
+        .join(", ");
+    },
+    [
+      formatInjuryStatusSymbol,
+      messages.clubChronicleInjuryHealthy,
+      messages.unknownShort,
+      normalizeInjuryLevel,
+    ]
   );
   const renderTeamNameLink = useCallback(
     (teamId: number | null | undefined, teamName: string | null | undefined) => {
@@ -3530,6 +3704,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         return messages.clubChronicleWagesColumnTotal;
       case "wages.top11":
         return messages.clubChronicleWagesColumnTop11;
+      case "wages.injury":
+        return messages.clubChronicleWagesInjuryColumn;
       default:
         return fallbackLabel;
     }
@@ -4027,6 +4203,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               current: formatValue(current.top11WagesSek),
             });
           }
+          const previousInjury = buildInjurySummary(previous);
+          const currentInjury = buildInjurySummary(current);
+          if (previousInjury !== currentInjury) {
+            wageChanges.push({
+              fieldKey: "wages.injury",
+              label: messages.clubChronicleWagesInjuryColumn,
+              previous: previousInjury,
+              current: currentInjury,
+            });
+          }
           appendTeamChanges(updatesMap, teamId, teamName, wageChanges);
         }
       }
@@ -4059,9 +4245,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     options: { updatePress: boolean; teams?: ChronicleTeamData[] }
   ) => {
     const teams = options.teams ?? trackedTeams;
-    for (const team of teams) {
-      try {
-        const { response, payload } = await fetchChppJson<{
+    await mapWithConcurrency(
+      teams,
+      TEAM_REFRESH_CONCURRENCY,
+      async (team) => {
+        try {
+          const { response, payload } = await fetchChppJson<{
           data?: {
             HattrickData?: {
               Team?: {
@@ -4180,26 +4369,33 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             leagueLevelUnitId: meta.leagueLevelUnitId,
           };
         }
-      } catch (error) {
-        if (isChppAuthRequiredError(error)) throw error;
-        // ignore teamdetails failure for now
+        } catch (error) {
+          if (isChppAuthRequiredError(error)) throw error;
+          // ignore teamdetails failure for now
+        }
       }
-    }
+    );
   };
 
   const refreshLeagueSnapshots = async (
     nextCache: ChronicleCache,
     teams: ChronicleTeamData[] = trackedTeams
   ) => {
-    const leagueDetailsByUnit = new Map<number, any>();
+    const leagueDetailsByUnit = new Map<number, RawNode>();
     const teamsWithLeague = teams
       .map((team) => nextCache.teams[team.teamId] ?? team)
       .filter((team) => team.leagueLevelUnitId);
-
-    for (const team of teamsWithLeague) {
-      const leagueLevelUnitId = Number(team.leagueLevelUnitId);
-      if (!Number.isFinite(leagueLevelUnitId)) continue;
-      if (!leagueDetailsByUnit.has(leagueLevelUnitId)) {
+    const leagueUnitIds = Array.from(
+      new Set(
+        teamsWithLeague
+          .map((team) => Number(team.leagueLevelUnitId))
+          .filter((leagueLevelUnitId) => Number.isFinite(leagueLevelUnitId))
+      )
+    );
+    await mapWithConcurrency(
+      leagueUnitIds,
+      TEAM_REFRESH_CONCURRENCY,
+      async (leagueLevelUnitId) => {
         try {
           const { response, payload } = await fetchChppJson<{
             data?: {
@@ -4220,22 +4416,22 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             `/api/chpp/leaguedetails?leagueLevelUnitId=${leagueLevelUnitId}`,
             { cache: "no-store" }
           );
-          if (!response.ok || payload?.error) {
-            continue;
-          }
-          leagueDetailsByUnit.set(leagueLevelUnitId, payload?.data?.HattrickData);
+          if (!response.ok || payload?.error) return;
+          const leagueData = payload?.data?.HattrickData as RawNode | undefined;
+          if (!leagueData) return;
+          leagueDetailsByUnit.set(leagueLevelUnitId, leagueData);
         } catch (error) {
           if (isChppAuthRequiredError(error)) throw error;
           // ignore league failure
         }
       }
-    }
+    );
 
     teamsWithLeague.forEach((team) => {
       const leagueLevelUnitId = Number(team.leagueLevelUnitId);
       const leagueData = leagueDetailsByUnit.get(leagueLevelUnitId);
       if (!leagueData) return;
-      const rawTeams = leagueData.Team;
+      const rawTeams = leagueData.Team as RawNode | RawNode[] | null | undefined;
       const teamList = Array.isArray(rawTeams) ? rawTeams : rawTeams ? [rawTeams] : [];
       const match = teamList.find(
         (entry) => Number(entry.TeamID) === Number(team.teamId)
@@ -4243,19 +4439,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       if (!match) return;
       const snapshot: LeaguePerformanceSnapshot = {
         leagueId: parseNumber(leagueData.LeagueID),
-        leagueName: leagueData.LeagueName ?? null,
+        leagueName: parseStringNode(leagueData.LeagueName),
         leagueLevel: parseNumber(leagueData.LeagueLevel),
         maxLevel: parseNumber(leagueData.MaxLevel),
         leagueLevelUnitId:
           parseNumber(leagueData.LeagueLevelUnitID) ?? leagueLevelUnitId,
-        leagueLevelUnitName: leagueData.LeagueLevelUnitName ?? null,
-        currentMatchRound: leagueData.CurrentMatchRound ?? null,
+        leagueLevelUnitName: parseStringNode(leagueData.LeagueLevelUnitName),
+        currentMatchRound: parseStringNode(leagueData.CurrentMatchRound),
         rank: parseNumber(leagueData.Rank),
         userId: parseNumber(match.UserId),
         teamId: parseNumber(match.TeamID) ?? Number(team.teamId),
         position: parseNumber(match.Position),
-        positionChange: match.PositionChange ?? null,
-        teamName: match.TeamName ?? team.teamName ?? null,
+        positionChange: parseStringNode(match.PositionChange),
+        teamName: parseStringNode(match.TeamName) ?? team.teamName ?? null,
         matches: parseNumber(match.Matches),
         goalsFor: parseNumber(match.GoalsFor),
         goalsAgainst: parseNumber(match.GoalsAgainst),
@@ -4290,11 +4486,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const teamsWithArena = teams
       .map((team) => nextCache.teams[team.teamId] ?? team)
       .filter((team) => team.arenaId);
-
-    for (const team of teamsWithArena) {
-      const arenaId = Number(team.arenaId);
-      if (!Number.isFinite(arenaId) || arenaId <= 0) continue;
-      if (!arenaById.has(arenaId)) {
+    const arenaIds = Array.from(
+      new Set(
+        teamsWithArena
+          .map((team) => Number(team.arenaId))
+          .filter((arenaId) => Number.isFinite(arenaId) && arenaId > 0)
+      )
+    );
+    await mapWithConcurrency(
+      arenaIds,
+      TEAM_REFRESH_CONCURRENCY,
+      async (arenaId) => {
         try {
           const { response, payload } = await fetchChppJson<{
             data?: {
@@ -4304,16 +4506,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           }>(`/api/chpp/arenadetails?arenaId=${arenaId}`, {
             cache: "no-store",
           });
-          if (!response.ok || payload?.error) continue;
+          if (!response.ok || payload?.error) return;
           const root = payload?.data?.HattrickData as RawNode | undefined;
           const arenaNode = (root?.Arena ?? {}) as RawNode;
           const currentCapacity = (arenaNode?.CurrentCapacity ?? {}) as RawNode;
           const expandedCapacity = (arenaNode?.ExpandedCapacity ?? {}) as RawNode;
           const snapshot: ArenaSnapshot = {
-            arenaName:
-              (arenaNode?.ArenaName as string | null | undefined) ??
-              team.arenaName ??
-              null,
+            arenaName: (arenaNode?.ArenaName as string | null | undefined) ?? null,
             currentTotalCapacity: parseNumberNode(currentCapacity.Total),
             rebuiltDate: parseStringNode(currentCapacity.RebuiltDate),
             currentAvailable: parseBooleanNode(currentCapacity["@_Available"]),
@@ -4336,7 +4535,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           // ignore arena failure
         }
       }
-    }
+    );
 
     teamsWithArena.forEach((team) => {
       const arenaId = Number(team.arenaId);
@@ -4347,7 +4546,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         ...nextCache.teams[team.teamId],
         teamId: team.teamId,
         teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
-        arenaName: snapshot.arenaName,
+        arenaName:
+          snapshot.arenaName ??
+          team.arenaName ??
+          nextCache.teams[team.teamId]?.arenaName ??
+          null,
         arena: {
           current: snapshot,
           previous,
@@ -4455,6 +4658,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     playerNumber: number | null;
     age: number | null;
     ageDays: number | null;
+    injuryLevel: number | null;
     transferListed: boolean;
     tsi: number;
     salarySek: number;
@@ -4498,6 +4702,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           playerNumber: parseNumberNode(player?.PlayerNumber),
           age: parseNumberNode(player?.Age),
           ageDays: parseNumberNode(player?.AgeDays),
+          injuryLevel: parseNumberNode(player?.InjuryLevel),
           transferListed: parseBool(player?.TransferListed),
           tsi: parseNumber(player?.TSI) ?? 0,
           salarySek: parseMoneySek(player?.Salary) ?? 0,
@@ -4570,6 +4775,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       playerNumber: player.playerNumber,
       age: player.age,
       ageDays: player.ageDays,
+      injuryLevel: player.injuryLevel,
       tsi: Number.isFinite(player.tsi) ? player.tsi : 0,
     }));
     const tsiValues = normalizedPlayers
@@ -4592,6 +4798,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       playerNumber: player.playerNumber,
       age: player.age,
       ageDays: player.ageDays,
+      injuryLevel: player.injuryLevel,
       salarySek: Number.isFinite(player.salarySek) ? player.salarySek : 0,
     }));
     const wages = normalizedPlayers
@@ -4861,8 +5068,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const buildFormationTacticsSnapshotFromMatches = async (
     teamId: number,
     matches: TeamMatchArchiveEntry[],
-    detailCache: Map<number, MatchFormationTacticDetails>
-    ,
+    detailCache: Map<number, MatchFormationTacticDetails>,
     onMatchProcessed?: () => void
   ): Promise<FormationTacticsSnapshot> => {
     const teamFormations: (string | null)[] = [];
@@ -4870,13 +5076,21 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const tacticCounts = new Map<string, number>();
     let sampleSize = 0;
 
-    for (const match of matches) {
-      const details = await fetchMatchFormationTacticDetails(
-        match.matchId,
-        match.sourceSystem,
-        detailCache
-      );
-      onMatchProcessed?.();
+    const resolvedMatches = await mapWithConcurrency(
+      matches,
+      MATCH_DETAILS_FETCH_CONCURRENCY,
+      async (match) => {
+        const details = await fetchMatchFormationTacticDetails(
+          match.matchId,
+          match.sourceSystem,
+          detailCache
+        );
+        onMatchProcessed?.();
+        return { match, details };
+      }
+    );
+
+    for (const { details } of resolvedMatches) {
       if (!details) continue;
       const isHome = details.homeTeamId === teamId;
       const isAway = details.awayTeamId === teamId;
@@ -4936,30 +5150,36 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       teamName: string;
       matches: TeamMatchArchiveEntry[];
     }> = [];
-    for (let index = 0; index < teams.length; index += 1) {
-      const team = teams[index];
-      try {
-        const matches = await fetchTeamRecentRelevantMatches(team.teamId);
-        teamEntries.push({
-          teamId: team.teamId,
-          teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
-          matches,
-        });
-      } catch (error) {
-        if (isChppAuthRequiredError(error)) throw error;
-        teamEntries.push({
-          teamId: team.teamId,
-          teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
-          matches: [],
-        });
-      } finally {
-        options?.onMatchesArchiveProgress?.(
-          index + 1,
-          teams.length,
-          team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? messages.unknownShort
-        );
+    let completedTeams = 0;
+    const resolvedTeamEntries = await mapWithConcurrency(
+      teams,
+      TEAM_REFRESH_CONCURRENCY,
+      async (team) => {
+        try {
+          const matches = await fetchTeamRecentRelevantMatches(team.teamId);
+          return {
+            teamId: team.teamId,
+            teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+            matches,
+          };
+        } catch (error) {
+          if (isChppAuthRequiredError(error)) throw error;
+          return {
+            teamId: team.teamId,
+            teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+            matches: [],
+          };
+        } finally {
+          completedTeams += 1;
+          options?.onMatchesArchiveProgress?.(
+            completedTeams,
+            teams.length,
+            team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? messages.unknownShort
+          );
+        }
       }
-    }
+    );
+    teamEntries.push(...resolvedTeamEntries);
 
     const totalMatches = teamEntries.reduce(
       (sum, teamEntry) => sum + teamEntry.matches.length,
@@ -5095,66 +5315,71 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     historyCount: number,
     teams: ChronicleTeamData[] = trackedTeams
   ) => {
-    for (const team of teams) {
-      try {
-        const [teamPlayers, latestTransfers] = await Promise.all([
-          fetchTeamPlayers(team.teamId),
-          fetchLatestTransfers(team.teamId, historyCount),
-        ]);
-        const transferListedPlayers = buildTransferListedPlayers(teamPlayers);
-        const estimatedSek =
-          latestTransfers.totalSalesSek !== null &&
-          latestTransfers.totalBuysSek !== null
-            ? latestTransfers.totalSalesSek - latestTransfers.totalBuysSek
-            : null;
-        const financeSnapshot: FinanceEstimateSnapshot = {
-          totalBuysSek: latestTransfers.totalBuysSek,
-          totalSalesSek: latestTransfers.totalSalesSek,
-          numberOfBuys: latestTransfers.numberOfBuys,
-          numberOfSales: latestTransfers.numberOfSales,
-          estimatedSek,
-          fetchedAt: Date.now(),
-        };
-        const previousFinance = nextCache.teams[team.teamId]?.financeEstimate?.current;
-        const transferSnapshot: TransferActivitySnapshot = {
-          transferListedCount: transferListedPlayers.length,
-          transferListedPlayers,
-          numberOfBuys: latestTransfers.numberOfBuys,
-          numberOfSales: latestTransfers.numberOfSales,
-          latestTransfers: latestTransfers.transfers,
-          fetchedAt: Date.now(),
-        };
-        const previousTransfer = nextCache.teams[team.teamId]?.transferActivity?.current;
-        const tsiSnapshot = buildTsiSnapshot(teamPlayers);
-        const previousTsi = nextCache.teams[team.teamId]?.tsi?.current;
-        const wagesSnapshot = buildWagesSnapshot(teamPlayers);
-        const previousWages = nextCache.teams[team.teamId]?.wages?.current;
-        nextCache.teams[team.teamId] = {
-          ...nextCache.teams[team.teamId],
-          teamId: team.teamId,
-          teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
-          financeEstimate: {
-            current: financeSnapshot,
-            previous: previousFinance,
-          },
-          transferActivity: {
-            current: transferSnapshot,
-            previous: previousTransfer,
-          },
-          tsi: {
-            current: tsiSnapshot,
-            previous: previousTsi,
-          },
-          wages: {
-            current: wagesSnapshot,
-            previous: previousWages,
-          },
-        };
-      } catch (error) {
-        if (isChppAuthRequiredError(error)) throw error;
-        // ignore combined transfer/finance failures
+    await mapWithConcurrency(
+      teams,
+      TEAM_REFRESH_CONCURRENCY,
+      async (team) => {
+        try {
+          const [teamPlayers, latestTransfers] = await Promise.all([
+            fetchTeamPlayers(team.teamId),
+            fetchLatestTransfers(team.teamId, historyCount),
+          ]);
+          const transferListedPlayers = buildTransferListedPlayers(teamPlayers);
+          const estimatedSek =
+            latestTransfers.totalSalesSek !== null &&
+            latestTransfers.totalBuysSek !== null
+              ? latestTransfers.totalSalesSek - latestTransfers.totalBuysSek
+              : null;
+          const financeSnapshot: FinanceEstimateSnapshot = {
+            totalBuysSek: latestTransfers.totalBuysSek,
+            totalSalesSek: latestTransfers.totalSalesSek,
+            numberOfBuys: latestTransfers.numberOfBuys,
+            numberOfSales: latestTransfers.numberOfSales,
+            estimatedSek,
+            fetchedAt: Date.now(),
+          };
+          const previousFinance = nextCache.teams[team.teamId]?.financeEstimate?.current;
+          const transferSnapshot: TransferActivitySnapshot = {
+            transferListedCount: transferListedPlayers.length,
+            transferListedPlayers,
+            numberOfBuys: latestTransfers.numberOfBuys,
+            numberOfSales: latestTransfers.numberOfSales,
+            latestTransfers: latestTransfers.transfers,
+            fetchedAt: Date.now(),
+          };
+          const previousTransfer =
+            nextCache.teams[team.teamId]?.transferActivity?.current;
+          const tsiSnapshot = buildTsiSnapshot(teamPlayers);
+          const previousTsi = nextCache.teams[team.teamId]?.tsi?.current;
+          const wagesSnapshot = buildWagesSnapshot(teamPlayers);
+          const previousWages = nextCache.teams[team.teamId]?.wages?.current;
+          nextCache.teams[team.teamId] = {
+            ...nextCache.teams[team.teamId],
+            teamId: team.teamId,
+            teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+            financeEstimate: {
+              current: financeSnapshot,
+              previous: previousFinance,
+            },
+            transferActivity: {
+              current: transferSnapshot,
+              previous: previousTransfer,
+            },
+            tsi: {
+              current: tsiSnapshot,
+              previous: previousTsi,
+            },
+            wages: {
+              current: wagesSnapshot,
+              previous: previousWages,
+            },
+          };
+        } catch (error) {
+          if (isChppAuthRequiredError(error)) throw error;
+          // ignore combined transfer/finance failures
+        }
       }
-    }
+    );
   };
 
   const setPanelProgress = useCallback((panelIds: string[], value: number) => {
@@ -6426,6 +6651,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         renderCell: (snapshot, _row, fallbackFormat) => {
           const playerId = snapshot?.playerId ?? 0;
           const playerName = snapshot?.playerName ?? null;
+          const injuryIndicator = renderInjuryStatusInline(snapshot?.injuryLevel);
           if (!playerId) return fallbackFormat(playerName);
           return (
             <a
@@ -6435,6 +6661,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               rel="noreferrer"
             >
               {playerName ?? `${playerId}`}
+              {injuryIndicator}
             </a>
           );
         },
@@ -6461,6 +6688,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleTransferListedAgeColumn,
       messages.clubChronicleTsiValueColumn,
       formatAgeWithDays,
+      renderInjuryStatusInline,
     ]
   );
 
@@ -6505,6 +6733,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         renderCell: (snapshot, _row, fallbackFormat) => {
           const playerId = snapshot?.playerId ?? 0;
           const playerName = snapshot?.playerName ?? null;
+          const injuryIndicator = renderInjuryStatusInline(snapshot?.injuryLevel);
           if (!playerId) return fallbackFormat(playerName);
           return (
             <a
@@ -6514,6 +6743,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               rel="noreferrer"
             >
               {playerName ?? `${playerId}`}
+              {injuryIndicator}
             </a>
           );
         },
@@ -6541,6 +6771,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleTransferListedAgeColumn,
       messages.clubChronicleWagesValueColumn,
       formatAgeWithDays,
+      renderInjuryStatusInline,
     ]
   );
 
@@ -7785,8 +8016,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                             <span className={styles.chronicleUpdatesLabel}>
                               {getUpdateFieldLabel(change.fieldKey, change.label)}
                             </span>
-                            <span>{change.previous ?? messages.unknownShort}</span>
-                            <span>{change.current ?? messages.unknownShort}</span>
+                            <span>
+                              {formatUpdatesInjuryValue(change.fieldKey, change.previous) ??
+                                messages.unknownShort}
+                            </span>
+                            <span>
+                              {formatUpdatesInjuryValue(change.fieldKey, change.current) ??
+                                messages.unknownShort}
+                            </span>
                           </div>
                         ))}
                       </div>

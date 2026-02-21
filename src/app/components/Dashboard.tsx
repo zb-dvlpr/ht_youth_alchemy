@@ -17,6 +17,8 @@ import { Messages } from "@/lib/i18n";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
+import { POSITION_COLUMNS, normalizeMatchRoleId } from "@/lib/positions";
+import { parseChppDate } from "@/lib/chpp/utils";
 import {
   getAutoSelection,
   getTrainingForStar,
@@ -155,7 +157,120 @@ type CachedDetails = {
   fetchedAt: number;
 };
 
+type MatchSummary = {
+  MatchDate?: string;
+  MatchID?: number | string;
+  SourceSystem?: string;
+};
+
+type MatchLineupPlayer = {
+  RoleID?: number | string;
+  RatingStars?: number | string;
+  PlayerID?: number | string;
+  FirstName?: string;
+  NickName?: string;
+  LastName?: string;
+};
+
+type MatchLineupResponse = {
+  data?: {
+    HattrickData?: {
+      Team?: {
+        Lineup?: {
+          Player?: MatchLineupPlayer | MatchLineupPlayer[];
+        };
+      };
+    };
+  };
+  error?: string;
+  details?: string;
+  statusCode?: number;
+  code?: string;
+};
+
+type MatchesArchiveResponse = {
+  data?: {
+    HattrickData?: {
+      Team?: {
+        TeamID?: number | string;
+        MatchList?: {
+          Match?: MatchSummary | MatchSummary[];
+        };
+      };
+    };
+  };
+  error?: string;
+  details?: string;
+  statusCode?: number;
+  code?: string;
+};
+
+type MatchDetailsEvent = {
+  EventTypeID?: number | string;
+  SubjectPlayerID?: number | string;
+  ObjectPlayerID?: number | string;
+};
+
+type MatchDetailsEventsResponse = {
+  data?: {
+    HattrickData?: {
+      Match?: {
+        EventList?: {
+          Event?: MatchDetailsEvent | MatchDetailsEvent[];
+        };
+      };
+    };
+  };
+  error?: string;
+  details?: string;
+  statusCode?: number;
+  code?: string;
+};
+
+type EventPlayerRef = "subject" | "object";
+
+type SpecialEventRule = {
+  specialty: number;
+  players: EventPlayerRef[];
+};
+
+const SPECIAL_EVENT_SPECIALTY_RULES: Record<number, SpecialEventRule> = {
+  105: { specialty: 4, players: ["subject"] },
+  106: { specialty: 4, players: ["subject"] },
+  108: { specialty: 4, players: ["subject"] },
+  109: { specialty: 4, players: ["subject"] },
+  115: { specialty: 2, players: ["subject"] },
+  116: { specialty: 2, players: ["object"] },
+  119: { specialty: 5, players: ["subject"] },
+  125: { specialty: 4, players: ["subject"] },
+  137: { specialty: 5, players: ["subject"] },
+  139: { specialty: 1, players: ["subject"] },
+  190: { specialty: 3, players: ["subject"] },
+  205: { specialty: 4, players: ["subject"] },
+  206: { specialty: 4, players: ["subject"] },
+  208: { specialty: 4, players: ["subject"] },
+  209: { specialty: 4, players: ["subject"] },
+  215: { specialty: 2, players: ["subject"] },
+  216: { specialty: 2, players: ["object"] },
+  219: { specialty: 5, players: ["subject"] },
+  225: { specialty: 4, players: ["subject"] },
+  239: { specialty: 1, players: ["subject"] },
+  289: { specialty: 2, players: ["subject", "object"] },
+  290: { specialty: 3, players: ["subject"] },
+  301: { specialty: 1, players: ["subject"] },
+  302: { specialty: 3, players: ["subject"] },
+  303: { specialty: 1, players: ["subject"] },
+  304: { specialty: 3, players: ["subject"] },
+  305: { specialty: 2, players: ["subject"] },
+  306: { specialty: 2, players: ["subject"] },
+  307: { specialty: 8, players: ["subject"] },
+  308: { specialty: 8, players: ["subject"] },
+  309: { specialty: 8, players: ["subject"] },
+  310: { specialty: 3, players: ["subject"] },
+};
+
 const DETAILS_TTL_MS = 5 * 60 * 1000;
+const YOUTH_REFRESH_CONCURRENCY = 4;
 const TRAINING_SKILLS: TrainingSkillKey[] = [
   "keeper",
   "defending",
@@ -192,6 +307,14 @@ export default function Dashboard({
 }: DashboardProps) {
   const [playerList, setPlayerList] = useState<YouthPlayer[]>(players);
   const [playersLoading, setPlayersLoading] = useState(false);
+  const [playerRefreshStatus, setPlayerRefreshStatus] = useState<string | null>(
+    null
+  );
+  const [hiddenSpecialtyByPlayerId, setHiddenSpecialtyByPlayerId] = useState<
+    Record<number, number>
+  >({});
+  const [analyzedHiddenSpecialtyMatchIds, setAnalyzedHiddenSpecialtyMatchIds] =
+    useState<number[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
   const [cache, setCache] = useState<Record<number, CachedDetails>>({});
@@ -332,6 +455,22 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "2.18.0",
+        entries: [messages.changelog_2_18_0],
+      },
+      {
+        version: "2.17.0",
+        entries: [messages.changelog_2_17_0],
+      },
+      {
+        version: "2.16.0",
+        entries: [messages.changelog_2_16_0],
+      },
+      {
+        version: "2.15.0",
+        entries: [messages.changelog_2_15_0],
+      },
+      {
         version: "2.14.0",
         entries: [messages.changelog_2_14_0],
       },
@@ -448,6 +587,10 @@ export default function Dashboard({
       messages.changelog_2_12_0,
       messages.changelog_2_13_0,
       messages.changelog_2_14_0,
+      messages.changelog_2_15_0,
+      messages.changelog_2_16_0,
+      messages.changelog_2_17_0,
+      messages.changelog_2_18_0,
     ]
   );
 
@@ -629,6 +772,8 @@ export default function Dashboard({
         ratingsPositions?: number[];
         playerList?: YouthPlayer[];
         matchesState?: MatchesResponse;
+        hiddenSpecialtyByPlayerId?: Record<number, number>;
+        analyzedHiddenSpecialtyMatchIds?: number[];
       };
       if (parsed.assignments) setAssignments(parsed.assignments);
       if (parsed.behaviors) setBehaviors(parsed.behaviors);
@@ -661,6 +806,12 @@ export default function Dashboard({
       if (parsed.matchesState && initialAuthError) {
         setMatchesState(parsed.matchesState);
       }
+      if (parsed.hiddenSpecialtyByPlayerId) {
+        setHiddenSpecialtyByPlayerId(parsed.hiddenSpecialtyByPlayerId);
+      }
+      if (parsed.analyzedHiddenSpecialtyMatchIds) {
+        setAnalyzedHiddenSpecialtyMatchIds(parsed.analyzedHiddenSpecialtyMatchIds);
+      }
     } catch {
       // ignore restore errors
     } finally {
@@ -685,6 +836,8 @@ export default function Dashboard({
       ratingsPositions,
       playerList,
       matchesState,
+      hiddenSpecialtyByPlayerId,
+      analyzedHiddenSpecialtyMatchIds,
     };
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(payload));
@@ -705,6 +858,8 @@ export default function Dashboard({
     behaviors,
     playerList,
     matchesState,
+    hiddenSpecialtyByPlayerId,
+    analyzedHiddenSpecialtyMatchIds,
     storageKey,
     restoredStorageKey,
   ]);
@@ -1771,7 +1926,44 @@ export default function Dashboard({
     }
   };
 
-  const refreshMatches = async (teamIdOverride?: number | null) => {
+  const normalizeArray = <T,>(input?: T | T[]) => {
+    if (!input) return [];
+    return Array.isArray(input) ? input : [input];
+  };
+
+  const mapWithConcurrency = async <T, R>(
+    items: T[],
+    concurrency: number,
+    worker: (item: T, index: number) => Promise<R>
+  ): Promise<R[]> => {
+    if (items.length === 0) return [];
+    const results = new Array<R>(items.length);
+    const limit = Math.max(1, Math.min(concurrency, items.length));
+    let nextIndex = 0;
+    const runners = Array.from({ length: limit }, async () => {
+      while (true) {
+        const currentIndex = nextIndex;
+        if (currentIndex >= items.length) return;
+        nextIndex += 1;
+        results[currentIndex] = await worker(items[currentIndex], currentIndex);
+      }
+    });
+    await Promise.all(runners);
+    return results;
+  };
+
+  const formatStatusTemplate = (
+    template: string,
+    replacements: Record<string, string | number>
+  ) => {
+    return Object.entries(replacements).reduce(
+      (result, [key, value]) =>
+        result.replace(new RegExp(`\\{${key}\\}`, "g"), String(value)),
+      template
+    );
+  };
+
+  const fetchMatchesResponse = async (teamIdOverride?: number | null) => {
     const teamId = teamIdOverride ?? activeYouthTeamId;
     try {
       const teamParam = teamId ? `&teamID=${teamId}` : "";
@@ -1792,31 +1984,324 @@ export default function Dashboard({
         error?: string;
       };
       if (!response.ok || typedPayload.error) {
-        setMatchesState(typedPayload);
-        return false;
+        return {
+          ok: false,
+          payload: typedPayload,
+        };
       }
-      setMatchesState(typedPayload);
-      return true;
+      return {
+        ok: true,
+        payload: typedPayload,
+      };
     } catch (error) {
-      if (error instanceof ChppAuthRequiredError) return false;
+      if (error instanceof ChppAuthRequiredError) {
+        return {
+          ok: false,
+          payload: null,
+        };
+      }
       // keep existing data
-      return false;
+      return {
+        ok: false,
+        payload: null,
+      };
     }
   };
 
-  const refreshRatings = async (teamIdOverride?: number | null) => {
+  const refreshMatches = async (teamIdOverride?: number | null) => {
+    const result = await fetchMatchesResponse(teamIdOverride);
+    if (result.payload) {
+      setMatchesState(result.payload);
+    }
+    return result.ok;
+  };
+
+  const refreshRatings = async (
+    teamIdOverride?: number | null,
+    matchesPayload?: MatchesResponse | null
+  ) => {
     const teamId = teamIdOverride ?? activeYouthTeamId;
     try {
-      const teamParam = teamId ? `?teamID=${teamId}` : "";
-      const { response, payload } = await fetchChppJson<RatingsMatrixResponse>(
-        `/api/chpp/youth/ratings${teamParam}`,
-        { cache: "no-store" }
-      );
-      if (!response.ok) {
+      setPlayerRefreshStatus(messages.refreshStatusFetchingMatches);
+      const formatArchiveDate = (date: Date) => date.toISOString().slice(0, 10);
+      const today = new Date();
+      const firstDate = new Date(today.getTime() - 220 * 24 * 60 * 60 * 1000);
+      const archiveParams = new URLSearchParams({
+        isYouth: "true",
+        FirstMatchDate: formatArchiveDate(firstDate),
+        LastMatchDate: formatArchiveDate(today),
+      });
+      if (teamId) {
+        archiveParams.set("teamId", String(teamId));
+      }
+      const { response: archiveResponse, payload: archivePayload } =
+        await fetchChppJson<MatchesArchiveResponse>(
+          `/api/chpp/matchesarchive?${archiveParams.toString()}`,
+          { cache: "no-store" }
+        );
+      if (!archiveResponse.ok || archivePayload?.error) {
         setRatingsResponseState(null);
         return false;
       }
-      setRatingsResponseState(payload);
+
+      setPlayerRefreshStatus(messages.refreshStatusFetchingRatings);
+
+      const archiveTeam = archivePayload?.data?.HattrickData?.Team;
+      const teamIdValue = Number(
+        archiveTeam?.TeamID ??
+          matchesPayload?.data?.HattrickData?.Team?.TeamID ??
+          teamId ??
+          0
+      );
+      const finishedMatches = normalizeArray<MatchSummary>(
+        archiveTeam?.MatchList?.Match
+      )
+        .map((match) => ({
+          ...match,
+          _date: parseChppDate(match.MatchDate)?.getTime() ?? 0,
+          _matchId: Number(match.MatchID),
+          _sourceSystem:
+            typeof match.SourceSystem === "string" && match.SourceSystem
+              ? match.SourceSystem
+              : "Youth",
+        }))
+        .filter((match) => Number.isFinite(match._matchId))
+        .sort((a, b) => b._date - a._date)
+        .slice(0, 50);
+
+      if (!teamIdValue || finishedMatches.length === 0) {
+        setRatingsResponseState({
+          positions: POSITION_COLUMNS,
+          players: [],
+        });
+        return true;
+      }
+
+      const playersMap = new Map<
+        number,
+        { id: number; name: string; ratings: Record<string, number> }
+      >();
+      const matchPlayerIdsByMatch = new Map<number, Set<number>>();
+
+      let lineupCompleted = 0;
+      const lineupResults = await mapWithConcurrency(
+        finishedMatches,
+        YOUTH_REFRESH_CONCURRENCY,
+        async (match) => {
+          try {
+            const { response, payload } = await fetchChppJson<MatchLineupResponse>(
+              `/api/chpp/youth/match-lineup?matchId=${match._matchId}&teamId=${teamIdValue}`,
+              { cache: "no-store" }
+            );
+            if (!response.ok || payload?.error) {
+              return {
+                matchId: match._matchId,
+                lineupPlayers: [] as MatchLineupPlayer[],
+              };
+            }
+            return {
+              matchId: match._matchId,
+              lineupPlayers: normalizeArray<MatchLineupPlayer>(
+                payload?.data?.HattrickData?.Team?.Lineup?.Player
+              ),
+            };
+          } finally {
+            lineupCompleted += 1;
+            setPlayerRefreshStatus(
+              formatStatusTemplate(messages.refreshStatusFetchingPastMatchesProgress, {
+                completed: lineupCompleted,
+                total: finishedMatches.length,
+              })
+            );
+          }
+        }
+      );
+
+      lineupResults.forEach((result) => {
+        const matchPlayers = new Set<number>();
+        result.lineupPlayers.forEach((player) => {
+          const roleId = Number(player.RoleID);
+          const column = normalizeMatchRoleId(roleId);
+          if (!column) return;
+          const rating = Number(player.RatingStars);
+          if (Number.isNaN(rating)) return;
+          const playerId = Number(player.PlayerID);
+          if (Number.isNaN(playerId)) return;
+          matchPlayers.add(playerId);
+          const fullName = [player.FirstName, player.NickName, player.LastName]
+            .filter(Boolean)
+            .join(" ");
+
+          if (!playersMap.has(playerId)) {
+            playersMap.set(playerId, {
+              id: playerId,
+              name: fullName,
+              ratings: {},
+            });
+          }
+
+          const entry = playersMap.get(playerId);
+          if (!entry) return;
+          const key = String(column);
+          const existing = entry.ratings[key];
+          if (existing === undefined || rating > existing) {
+            entry.ratings[key] = rating;
+          }
+        });
+        matchPlayerIdsByMatch.set(result.matchId, matchPlayers);
+      });
+
+      setRatingsResponseState({
+        positions: POSITION_COLUMNS,
+        players: Array.from(playersMap.values()),
+      });
+
+      setPlayerRefreshStatus(messages.refreshStatusFetchingHiddenSpecialties);
+      const knownSpecialties = new Map<number, number>();
+      playerList.forEach((player) => {
+        const specialty = Number(player.Specialty ?? 0);
+        if (Number.isFinite(specialty) && specialty > 0) {
+          knownSpecialties.set(player.YouthPlayerID, specialty);
+        }
+      });
+      playerDetailsById.forEach((detailsNode, playerId) => {
+        const specialty = Number(detailsNode.Specialty ?? 0);
+        if (Number.isFinite(specialty) && specialty > 0) {
+          knownSpecialties.set(playerId, specialty);
+        }
+      });
+      Object.entries(hiddenSpecialtyByPlayerId).forEach(([id, specialty]) => {
+        const playerId = Number(id);
+        const specialtyValue = Number(specialty);
+        if (
+          Number.isFinite(playerId) &&
+          Number.isFinite(specialtyValue) &&
+          specialtyValue > 0
+        ) {
+          knownSpecialties.set(playerId, specialtyValue);
+        }
+      });
+      const youthPlayerIds = new Set(playerList.map((player) => player.YouthPlayerID));
+      const unresolvedPlayerIds = new Set(
+        playerList
+          .map((player) => player.YouthPlayerID)
+          .filter((playerId) => {
+            const known = knownSpecialties.get(playerId);
+            return !(known && known > 0);
+          })
+      );
+      const alreadyAnalyzedMatchIds = new Set(analyzedHiddenSpecialtyMatchIds);
+      const discoveredThisRefresh: Record<number, number> = {};
+      const newlyAnalyzedMatchIds = new Set<number>();
+
+      if (unresolvedPlayerIds.size === 0) {
+        finishedMatches.forEach((match) => {
+          newlyAnalyzedMatchIds.add(match._matchId);
+        });
+      }
+
+      const matchesToAnalyze =
+        unresolvedPlayerIds.size > 0
+          ? finishedMatches.filter((match) => {
+              if (alreadyAnalyzedMatchIds.has(match._matchId)) return false;
+              const participants = matchPlayerIdsByMatch.get(match._matchId);
+              if (!participants || participants.size === 0) return true;
+              let hasUnresolvedParticipant = false;
+              participants.forEach((playerId) => {
+                if (unresolvedPlayerIds.has(playerId)) {
+                  hasUnresolvedParticipant = true;
+                }
+              });
+              if (!hasUnresolvedParticipant) {
+                newlyAnalyzedMatchIds.add(match._matchId);
+              }
+              return hasUnresolvedParticipant;
+            })
+          : [];
+
+      let hiddenCompleted = 0;
+      const hiddenResults = await mapWithConcurrency(
+        matchesToAnalyze,
+        YOUTH_REFRESH_CONCURRENCY,
+        async (match) => {
+          try {
+            const { response, payload } = await fetchChppJson<MatchDetailsEventsResponse>(
+              `/api/chpp/matchdetails?matchId=${match._matchId}&sourceSystem=${encodeURIComponent(
+                match._sourceSystem
+              )}&matchEvents=true`,
+              { cache: "no-store" }
+            );
+            if (!response.ok || payload?.error) {
+              return {
+                matchId: match._matchId,
+                analyzed: false,
+                candidates: [] as Array<{ playerId: number; specialty: number }>,
+              };
+            }
+            const events = normalizeArray<MatchDetailsEvent>(
+              payload?.data?.HattrickData?.Match?.EventList?.Event
+            );
+            const candidates: Array<{ playerId: number; specialty: number }> = [];
+            events.forEach((event) => {
+              const eventTypeId = Number(event.EventTypeID);
+              const rule = SPECIAL_EVENT_SPECIALTY_RULES[eventTypeId];
+              if (!rule) return;
+              const candidateIds = rule.players.map((ref) =>
+                Number(ref === "subject" ? event.SubjectPlayerID : event.ObjectPlayerID)
+              );
+              candidateIds.forEach((candidateId) => {
+                if (!Number.isFinite(candidateId) || candidateId <= 0) return;
+                if (!youthPlayerIds.has(candidateId)) return;
+                candidates.push({
+                  playerId: candidateId,
+                  specialty: rule.specialty,
+                });
+              });
+            });
+            return {
+              matchId: match._matchId,
+              analyzed: true,
+              candidates,
+            };
+          } finally {
+            hiddenCompleted += 1;
+            setPlayerRefreshStatus(
+              formatStatusTemplate(
+                messages.refreshStatusFetchingHiddenSpecialtiesProgress,
+                {
+                  completed: hiddenCompleted,
+                  total: matchesToAnalyze.length,
+                }
+              )
+            );
+          }
+        }
+      );
+
+      hiddenResults.forEach((result) => {
+        if (!result.analyzed) return;
+        result.candidates.forEach((candidate) => {
+          const known = knownSpecialties.get(candidate.playerId);
+          if (known && known > 0) return;
+          knownSpecialties.set(candidate.playerId, candidate.specialty);
+          discoveredThisRefresh[candidate.playerId] = candidate.specialty;
+        });
+        newlyAnalyzedMatchIds.add(result.matchId);
+      });
+
+      if (Object.keys(discoveredThisRefresh).length > 0) {
+        setHiddenSpecialtyByPlayerId((prev) => ({
+          ...prev,
+          ...discoveredThisRefresh,
+        }));
+      }
+      if (newlyAnalyzedMatchIds.size > 0) {
+        setAnalyzedHiddenSpecialtyMatchIds((prev) => {
+          const merged = new Set<number>(prev);
+          newlyAnalyzedMatchIds.forEach((matchId) => merged.add(matchId));
+          return Array.from(merged.values()).sort((a, b) => b - a);
+        });
+      }
       return true;
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) return false;
@@ -1835,6 +2320,7 @@ export default function Dashboard({
   ) => {
     if (playersLoading) return;
     setPlayersLoading(true);
+    setPlayerRefreshStatus(messages.refreshStatusFetchingPlayers);
     const refreshAll = options?.refreshAll ?? false;
     const teamId =
       typeof teamIdOverride === "number" || teamIdOverride === null
@@ -1875,6 +2361,7 @@ export default function Dashboard({
         nextSelectedId = null;
       }
       if (refreshAll) {
+        setPlayerRefreshStatus(messages.refreshStatusFetchingPlayerDetails);
         const ids = list.map((player) => player.YouthPlayerID);
         const detailIds = nextSelectedId
           ? ids.filter((id) => id !== nextSelectedId)
@@ -1897,10 +2384,13 @@ export default function Dashboard({
       let matchesOk = true;
       let ratingsOk = true;
       if (refreshAll) {
-        [matchesOk, ratingsOk] = await Promise.all([
-          refreshMatches(teamId),
-          refreshRatings(teamId),
-        ]);
+        setPlayerRefreshStatus(messages.refreshStatusFetchingMatches);
+        const matchesResult = await fetchMatchesResponse(teamId);
+        if (matchesResult.payload) {
+          setMatchesState(matchesResult.payload);
+        }
+        matchesOk = matchesResult.ok;
+        ratingsOk = await refreshRatings(teamId, matchesResult.payload ?? null);
       }
       if (
         playersUpdated &&
@@ -1908,6 +2398,7 @@ export default function Dashboard({
       ) {
         writeLastRefreshTimestamp(Date.now());
       }
+      setPlayerRefreshStatus(null);
       setPlayersLoading(false);
     }
   };
@@ -1930,6 +2421,8 @@ export default function Dashboard({
     setPrimaryTraining("");
     setSecondaryTraining("");
     setAutoSelectionApplied(false);
+    setHiddenSpecialtyByPlayerId({});
+    setAnalyzedHiddenSpecialtyMatchIds([]);
     if (nextTeamId) {
       refreshPlayers(nextTeamId, { recordRefresh: true });
       refreshMatches(nextTeamId);
@@ -2396,6 +2889,8 @@ export default function Dashboard({
           }
           onOrderChange={(ids) => applyPlayerOrder(ids, "list")}
           refreshing={playersLoading}
+          refreshStatus={playerRefreshStatus}
+          hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
           messages={messages}
         />
       </div>
@@ -2455,9 +2950,21 @@ export default function Dashboard({
                   [player.FirstName, player.NickName || null, player.LastName]
                     .filter(Boolean)
                     .join(" "),
-                  player.Specialty,
+                  Number(player.Specialty ?? 0) > 0
+                    ? player.Specialty
+                    : hiddenSpecialtyByPlayerId[player.YouthPlayerID],
                 ])
               )}
+              ratingsMatrixHiddenSpecialtyByName={Object.fromEntries(
+                playerList.map((player) => [
+                  [player.FirstName, player.NickName || null, player.LastName]
+                    .filter(Boolean)
+                    .join(" "),
+                  Number(player.Specialty ?? 0) <= 0 &&
+                    Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0,
+                ])
+              )}
+              hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
               onSelectRatingsPlayer={(playerName) => {
                 const match = playerList.find(
                   (player) => formatPlayerName(player) === playerName

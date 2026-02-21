@@ -72,6 +72,12 @@ export const messagesSv: Messages = {
       "Club Chronicle lagger till en panel for trolig traningsinriktning baserad pa senaste formationer.",
     changelog_2_14_0:
       "README halls nu strikt pa projektniva; andringsdetaljer ligger i changeloggen och i Git-historiken.",
+    changelog_2_15_0: "Global uppdatering i Klubbkronikan hamtar nu data i begransade parallella batcher for snabbare uppdateringar.",
+    changelog_2_16_0: "Lonedetaljer visar nu skadestatus per spelare, och Senaste uppdateringar spaar skada/blamarke-andringar.",
+    changelog_2_17_0:
+      "Uppdatering av ungdomslistan visar nu stegvis status med match-for-match-framsteg for tidigare matcher.",
+    changelog_2_18_0:
+      "Dolda ungdomsspecialiteter hittas nu via handelser i tidigare matcher och markeras i vyn.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -278,7 +284,11 @@ export const messagesSv: Messages = {
     clubChronicleWagesDetailsTitle: "Löner",
     clubChronicleWagesPlayerIndexColumn: "Nr",
     clubChronicleWagesPlayerColumn: "Spelare",
+    clubChronicleWagesInjuryColumn: "Skada",
     clubChronicleWagesValueColumn: "Lön",
+    clubChronicleInjuryHealthy: "Frisk",
+    clubChronicleInjuryBruised: "Blamarke",
+    clubChronicleInjuryInjuredWeeks: "Skadad ({weeks}v)",
     clubChronicleMoveUp: "Flytta panel upp",
     clubChronicleMoveDown: "Flytta panel ner",
     clubChronicleUpdatesEmpty: "Inga uppdateringar ännu.",
@@ -353,6 +363,16 @@ export const messagesSv: Messages = {
     refresh: "Uppdatera",
     refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
     refreshPlayerListTooltip: "Uppdatera juniorlistan från Hattrick.",
+    refreshStatusFetchingPlayers: "Hamtar ungdomsspelare…",
+    refreshStatusFetchingPlayerDetails: "Hamtar spelardetaljer…",
+    refreshStatusFetchingMatches: "Hamtar matcher…",
+    refreshStatusFetchingRatings: "Hamtar betyg fran tidigare matcher…",
+    refreshStatusFetchingPastMatchesProgress:
+      "Hamtar tidigare matcher {completed}/{total}…",
+    refreshStatusFetchingHiddenSpecialties:
+      "Analyserar matchhandelser for dolda specialiteter…",
+    refreshStatusFetchingHiddenSpecialtiesProgress:
+      "Dolda specialiteter analyserade {completed}/{total}…",
     unlockSkillsSuccess: "Färdigheter upplåsta",
     unlockSkillsDenied: "Upplåsning ej tillåten",
     loadingDetails: "Laddar detaljer…",
@@ -581,6 +601,7 @@ export const messagesSv: Messages = {
     specialtyHeadSpecialist: "Huvudspel",
     specialtyResilient: "Motståndskraftig",
     specialtySupport: "Stödjande",
+    hiddenSpecialtyTooltip: "Dold specialitet hittad via matchhandelser",
     skillsLabel: "Färdigheter",
     skillMaxedTooltip: "Färdighet är maxad",
     unknownLabel: "okänd",

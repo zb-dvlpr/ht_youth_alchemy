@@ -5,8 +5,8 @@
 - Apply the version bump automatically; do not request confirmation.
 
 ## Documentation
-- Update `README.md` whenever a feature is introduced, modified, or removed.
 - Keep `README.md` project-level and concise: include durable overview/setup/usage information, not per-change historical bullet logs.
+- Update `README.md` only when the MAJOR/MINOR version is bumped. In the case of MINOR, decide whether it would make sense adding it to `README.md` or whether it reads as a git commit message. If it is the latter, do not add to `README.md`.
 - Use git history/commits for detailed change-by-change tracking instead of expanding README with incremental release notes.
 
 ## Localization
@@ -45,6 +45,7 @@
 ## Code Reuse
 - When writing code, prioritize maximizing reuse and minimizing repetitive implementations.
 - When multiple panels/features need overlapping API data during the same refresh cycle, fetch once and reuse the result instead of calling the same endpoint multiple times.
+- For new fetch/refresh flows, prefer bounded parallel execution whenever dependencies allow it; keep correctness first and preserve deterministic aggregation/progress behavior.
 
 ## Club Chronicle Tables
 - All Club Chronicle tables must use the shared ChronicleTable framework/component.

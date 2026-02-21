@@ -1743,6 +1743,41 @@ html[data-app-scaling="off"] .chronicleHeader {
   text-underline-offset: 2px;
 }
 
+.chronicleInjuryBruised {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  font-size: 15px;
+}
+
+.chronicleInjuryInline {
+  margin-left: 4px;
+  vertical-align: baseline;
+}
+
+.chronicleInjuryInjured {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 1px;
+  line-height: 1;
+}
+
+.chronicleInjuryCross {
+  color: #c3261f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.chronicleInjuryWeeks {
+  color: #c3261f;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: sub;
+  position: relative;
+  top: 0.12em;
+}
+
 .watchlistPanel {
   display: grid;
   gap: 14px;
@@ -2295,6 +2330,12 @@ html[data-theme="dark"] .chroniclePressLink {
   color: #8cb8e6;
 }
 
+html[data-theme="dark"] .chronicleInjuryCross,
+html[data-theme="dark"] .chronicleInjuryWeeks {
+  color: #ff8f84;
+}
+
+
 .watchlistModal {
   width: min(900px, 92vw);
 }
@@ -2733,6 +2774,20 @@ html[data-theme="dark"] .spinner {
   line-height: 1;
 }
 
+.hiddenSpecialtyBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.7em;
+  min-height: 1.7em;
+  padding: 0.18em;
+  border: 2px solid #bf2f2f;
+  border-radius: 999px;
+  box-sizing: border-box;
+  vertical-align: middle;
+  line-height: 1;
+}
+
 .playerAge {
   position: absolute;
   right: 10px;
@@ -2848,6 +2903,12 @@ html[data-theme="dark"] .spinner {
   flex-wrap: wrap;
   justify-content: flex-start;
   width: 100%;
+}
+
+.listRefreshStatus {
+  margin: 0 0 8px;
+  color: #6b6256;
+  font-size: 12px;
 }
 
 .sortControl {

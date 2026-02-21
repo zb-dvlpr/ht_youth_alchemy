@@ -66,6 +66,10 @@ export type Messages = {
   changelog_2_12_0: string;
   changelog_2_13_0: string;
   changelog_2_14_0: string;
+  changelog_2_15_0: string;
+  changelog_2_16_0: string;
+  changelog_2_17_0: string;
+  changelog_2_18_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -282,7 +286,11 @@ export type Messages = {
   clubChronicleWagesDetailsTitle: string;
   clubChronicleWagesPlayerIndexColumn: string;
   clubChronicleWagesPlayerColumn: string;
+  clubChronicleWagesInjuryColumn: string;
   clubChronicleWagesValueColumn: string;
+  clubChronicleInjuryHealthy: string;
+  clubChronicleInjuryBruised: string;
+  clubChronicleInjuryInjuredWeeks: string;
   helpTitle: string;
   helpIntro: string;
   helpBulletOverview: string;
@@ -309,6 +317,13 @@ export type Messages = {
   refresh: string;
   refreshTooltip: string;
   refreshPlayerListTooltip: string;
+  refreshStatusFetchingPlayers: string;
+  refreshStatusFetchingPlayerDetails: string;
+  refreshStatusFetchingMatches: string;
+  refreshStatusFetchingRatings: string;
+  refreshStatusFetchingPastMatchesProgress: string;
+  refreshStatusFetchingHiddenSpecialties: string;
+  refreshStatusFetchingHiddenSpecialtiesProgress: string;
   unlockSkillsSuccess: string;
   unlockSkillsDenied: string;
   loadingDetails: string;
@@ -524,6 +539,7 @@ export type Messages = {
   specialtyHeadSpecialist: string;
   specialtyResilient: string;
   specialtySupport: string;
+  hiddenSpecialtyTooltip: string;
   skillsLabel: string;
   skillMaxedTooltip: string;
   unknownLabel: string;

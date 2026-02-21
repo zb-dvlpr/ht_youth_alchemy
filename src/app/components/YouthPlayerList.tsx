@@ -75,6 +75,8 @@ type YouthPlayerListProps = {
   onOrderChange?: (orderedIds: number[]) => void;
   onSortStart?: () => void;
   refreshing?: boolean;
+  refreshStatus?: string | null;
+  hiddenSpecialtyByPlayerId?: Record<number, number>;
   messages: Messages;
 };
 
@@ -175,6 +177,8 @@ export default function YouthPlayerList({
   onOrderChange,
   onSortStart,
   refreshing,
+  refreshStatus,
+  hiddenSpecialtyByPlayerId = {},
   messages,
 }: YouthPlayerListProps) {
   const sortStorageKey = "ya_youth_player_list_sort_v1";
@@ -447,6 +451,10 @@ export default function YouthPlayerList({
     };
   }, [recomputeNameAgeOverlap]);
 
+  const activeRefreshStatus = refreshing
+    ? refreshStatus?.trim() || messages.refreshingLabel
+    : null;
+
   return (
     <div className={styles.card} data-help-anchor={dataHelpAnchor} ref={listCardRef}>
       <div className={styles.listHeader}>
@@ -552,6 +560,9 @@ export default function YouthPlayerList({
           </Tooltip>
         </div>
       </div>
+      {activeRefreshStatus ? (
+        <p className={styles.listRefreshStatus}>{activeRefreshStatus}</p>
+      ) : null}
       {players.length === 0 ? (
         <p className={styles.muted}>{messages.noYouthPlayers}</p>
       ) : (
@@ -563,9 +574,13 @@ export default function YouthPlayerList({
             const isStar = starPlayerId === player.YouthPlayerID;
 
             const specialtyEmoji =
-              player.Specialty && player.Specialty !== 0
-                ? player.Specialty
-                : null;
+              Number(player.Specialty ?? 0) > 0
+                ? Number(player.Specialty)
+                : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
+                  ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
+                  : null;
+            const isHiddenSpecialty =
+              Number(player.Specialty ?? 0) <= 0 && specialtyEmoji !== null;
 
             return (
               <li key={player.YouthPlayerID} className={styles.listItem}>
@@ -631,11 +646,20 @@ export default function YouthPlayerList({
                       {specialtyEmoji ? (
                         <Tooltip
                           content={
-                            specialtyName(specialtyEmoji, messages) ??
-                            messages.specialtyLabel
+                            isHiddenSpecialty
+                              ? `${messages.hiddenSpecialtyTooltip}: ${
+                                  specialtyName(specialtyEmoji, messages) ??
+                                  messages.specialtyLabel
+                                }`
+                              : specialtyName(specialtyEmoji, messages) ??
+                                messages.specialtyLabel
                           }
                         >
-                          <span className={styles.playerSpecialty}>
+                          <span
+                            className={`${styles.playerSpecialty} ${
+                              isHiddenSpecialty ? styles.hiddenSpecialtyBadge : ""
+                            }`}
+                          >
                             {SPECIALTY_EMOJI[specialtyEmoji]}
                           </span>
                         </Tooltip>

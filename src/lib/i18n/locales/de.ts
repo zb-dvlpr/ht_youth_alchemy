@@ -72,6 +72,12 @@ export const messagesDe: Messages = {
       "Club-Chronik ergänzt um ein Panel für das wahrscheinliche Trainingsschema aus recenten Formationen.",
     changelog_2_14_0:
       "README bleibt jetzt strikt auf Projektebene; Änderungsdetails stehen im Changelog und in der Git-Historie.",
+    changelog_2_15_0: "Die globale Club-Chronik-Aktualisierung lädt jetzt in begrenzten Parallel-Batches für schnellere Updates.",
+    changelog_2_16_0: "Gehaltsdetails zeigen jetzt den Verletzungsstatus je Spieler, und Letzte Updates erfasst Verletzungs- und Prellungswechsel.",
+    changelog_2_17_0:
+      "Die Aktualisierung der Jugendspielerliste zeigt nun Schritt-fur-Schritt-Status mit Spiel-fur-Spiel-Fortschritt fur Vergangenheitsdaten.",
+    changelog_2_18_0:
+      "Versteckte Jugend-Spezialitaten werden jetzt aus vergangenen Match-Events erkannt und im Spielerbereich hervorgehoben.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -277,7 +283,11 @@ export const messagesDe: Messages = {
     clubChronicleWagesDetailsTitle: "Gehälter",
     clubChronicleWagesPlayerIndexColumn: "Nr.",
     clubChronicleWagesPlayerColumn: "Spieler",
+    clubChronicleWagesInjuryColumn: "Verletzung",
     clubChronicleWagesValueColumn: "Gehalt",
+    clubChronicleInjuryHealthy: "Gesund",
+    clubChronicleInjuryBruised: "Prellung",
+    clubChronicleInjuryInjuredWeeks: "Verletzt ({weeks}W)",
     clubChronicleMoveUp: "Panel nach oben verschieben",
     clubChronicleMoveDown: "Panel nach unten verschieben",
     clubChronicleUpdatesEmpty: "Noch keine Updates verfügbar.",
@@ -352,6 +362,16 @@ export const messagesDe: Messages = {
     refresh: "Aktualisieren",
     refreshTooltip: "Aktualisiert die Spielerdetails von Hattrick.",
     refreshPlayerListTooltip: "Jugendspielerliste von Hattrick aktualisieren.",
+    refreshStatusFetchingPlayers: "Jugendspieler werden geladen…",
+    refreshStatusFetchingPlayerDetails: "Spielerdetails werden geladen…",
+    refreshStatusFetchingMatches: "Spiele werden geladen…",
+    refreshStatusFetchingRatings: "Bewertungen aus vergangenen Spielen werden geladen…",
+    refreshStatusFetchingPastMatchesProgress:
+      "Vergangene Spiele werden geladen {completed}/{total}…",
+    refreshStatusFetchingHiddenSpecialties:
+      "Match-Events fur versteckte Spezialitaten werden gepruft…",
+    refreshStatusFetchingHiddenSpecialtiesProgress:
+      "Versteckte Spezialitaten werden gepruft {completed}/{total}…",
     unlockSkillsSuccess: "Fähigkeiten freigeschaltet",
     unlockSkillsDenied: "Freischalten nicht erlaubt",
     loadingDetails: "Details werden geladen…",
@@ -580,6 +600,7 @@ export const messagesDe: Messages = {
     specialtyHeadSpecialist: "Kopfball",
     specialtyResilient: "Widerstandsfähig",
     specialtySupport: "Unterstützend",
+    hiddenSpecialtyTooltip: "Versteckte Spezialitat aus Match-Events erkannt",
     skillsLabel: "Fähigkeiten",
     skillMaxedTooltip: "Fähigkeit ist ausgereizt",
     unknownLabel: "unbekannt",

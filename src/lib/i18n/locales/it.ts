@@ -74,6 +74,12 @@ export const messagesIt: Messages = {
       "Club Chronicle aggiunge un pannello per il regime di allenamento probabile dedotto dalle formazioni recenti.",
     changelog_2_14_0:
       "README ora resta strettamente a livello progetto; i dettagli per singola modifica restano nel changelog e nella cronologia Git.",
+    changelog_2_15_0: "L aggiornamento globale della Cronaca del club ora carica in batch paralleli limitati per aggiornamenti piu rapidi.",
+    changelog_2_16_0: "I dettagli stipendi ora mostrano lo stato infortunio del giocatore, e Ultimi aggiornamenti rileva cambi infortunio/contusione.",
+    changelog_2_17_0:
+      "Il refresh della lista giovanile mostra ora stato passo-passo con avanzamento partita per partita sui match passati.",
+    changelog_2_18_0:
+      "Le specialita nascoste dei giovani ora vengono rilevate dagli eventi delle partite passate e evidenziate nell interfaccia.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -284,7 +290,11 @@ export const messagesIt: Messages = {
     clubChronicleWagesDetailsTitle: "Stipendi",
     clubChronicleWagesPlayerIndexColumn: "N.",
     clubChronicleWagesPlayerColumn: "Giocatore",
+    clubChronicleWagesInjuryColumn: "Infortunio",
     clubChronicleWagesValueColumn: "Stipendio",
+    clubChronicleInjuryHealthy: "Sano",
+    clubChronicleInjuryBruised: "Contuso",
+    clubChronicleInjuryInjuredWeeks: "Infortunato ({weeks}s)",
     clubChronicleMoveUp: "Sposta pannello su",
     clubChronicleMoveDown: "Sposta pannello giù",
     clubChronicleUpdatesEmpty: "Nessun aggiornamento disponibile.",
@@ -360,6 +370,17 @@ export const messagesIt: Messages = {
     refreshTooltip: "Aggiorna i dettagli del giocatore da Hattrick.",
     refreshPlayerListTooltip:
       "Aggiorna la lista dei giovani da Hattrick.",
+    refreshStatusFetchingPlayers: "Caricamento giocatori giovanili…",
+    refreshStatusFetchingPlayerDetails: "Caricamento dettagli giocatori…",
+    refreshStatusFetchingMatches: "Caricamento partite…",
+    refreshStatusFetchingRatings:
+      "Caricamento valutazioni dalle partite passate…",
+    refreshStatusFetchingPastMatchesProgress:
+      "Caricamento partite passate {completed}/{total}…",
+    refreshStatusFetchingHiddenSpecialties:
+      "Analisi eventi partita per specialita nascoste…",
+    refreshStatusFetchingHiddenSpecialtiesProgress:
+      "Specialita nascoste analizzate {completed}/{total}…",
     unlockSkillsSuccess: "Abilità sbloccate",
     unlockSkillsDenied: "Sblocco non consentito",
     loadingDetails: "Caricamento dettagli…",
@@ -589,6 +610,7 @@ export const messagesIt: Messages = {
     specialtyHeadSpecialist: "Gioco di testa",
     specialtyResilient: "Resistente",
     specialtySupport: "Supporto",
+    hiddenSpecialtyTooltip: "Specialita nascosta scoperta dagli eventi partita",
     skillsLabel: "Abilità",
     skillMaxedTooltip: "Abilità al massimo",
     unknownLabel: "sconosciuto",

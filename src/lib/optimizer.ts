@@ -39,6 +39,7 @@ export type OptimizerPlayer = {
   age?: number | null;
   ageDays?: number | null;
   canBePromotedIn?: number | null;
+  specialty?: number | null;
   skills?: PlayerSkillSet | null;
 };
 
@@ -227,6 +228,56 @@ function isTrainingBlocked(
   if (isSkillMaxed(player, skill)) return true;
   if (!allowTrainingUntilMaxedOut && isCurrentAtMax(player, skill)) return true;
   return false;
+}
+
+function scoreSkillForStarSelection(
+  player: OptimizerPlayer,
+  skill: SkillKey,
+  allowTrainingUntilMaxedOut: boolean
+): number | null {
+  const { current, max } = skillValues(player, skill);
+  if (current === null) return null;
+  if (isTrainingBlocked(player, skill, allowTrainingUntilMaxedOut)) return null;
+  return current * 100 + (max !== null ? 50 + max : 0);
+}
+
+function nextSkillTieBreakerScore(
+  player: OptimizerPlayer,
+  primarySkill: SkillKey,
+  allowTrainingUntilMaxedOut: boolean
+): number | null {
+  const pairedSkills = SKILL_PAIRS[primarySkill] ?? [];
+  for (const candidate of pairedSkills) {
+    const score = scoreSkillForStarSelection(
+      player,
+      candidate,
+      allowTrainingUntilMaxedOut
+    );
+    if (score !== null) return score;
+  }
+  const otherSkills: SkillKey[] = [
+    "keeper",
+    "defending",
+    "playmaking",
+    "winger",
+    "passing",
+    "scoring",
+    "setpieces",
+  ];
+  let bestScore: number | null = null;
+  otherSkills.forEach((skill) => {
+    if (skill === primarySkill) return;
+    const score = scoreSkillForStarSelection(
+      player,
+      skill,
+      allowTrainingUntilMaxedOut
+    );
+    if (score === null) return;
+    if (bestScore === null || score > bestScore) {
+      bestScore = score;
+    }
+  });
+  return bestScore;
 }
 
 function trainingPriorityTier(
@@ -439,6 +490,8 @@ function chooseStarAndTraining(
     playerId: number;
     skill: SkillKey;
     score: number;
+    nextSkillScore?: number | null;
+    hasSpecialty?: boolean;
     ageDays?: number | null;
     promoAgeDays?: number | null;
     canBePromotedIn?: number | null;
@@ -469,6 +522,12 @@ function chooseStarAndTraining(
       if (current === null) return;
       if (isTrainingBlocked(player, skill, allowTrainingUntilMaxedOut)) return;
       const score = current * 100 + (max !== null ? 50 + max : 0);
+      const nextSkillScore = nextSkillTieBreakerScore(
+        player,
+        skill,
+        allowTrainingUntilMaxedOut
+      );
+      const hasSpecialty = Number(player.specialty ?? 0) > 0;
       candidates.push({
         playerId: player.id,
         name: player.name,
@@ -484,11 +543,48 @@ function chooseStarAndTraining(
           playerId: player.id,
           skill,
           score,
+          nextSkillScore,
+          hasSpecialty,
           ageDays: totalAgeDays(player),
           promoAgeDays: promotionAgeDays(player),
           canBePromotedIn: player.canBePromotedIn ?? null,
         };
       } else if (best && score === best.score) {
+        const currentNextSkillScore = nextSkillScore ?? -1;
+        const bestNextSkillScore = best.nextSkillScore ?? -1;
+        if (currentNextSkillScore > bestNextSkillScore) {
+          best = {
+            playerId: player.id,
+            skill,
+            score,
+            nextSkillScore,
+            hasSpecialty,
+            ageDays: totalAgeDays(player),
+            promoAgeDays: promotionAgeDays(player),
+            canBePromotedIn: player.canBePromotedIn ?? null,
+          };
+          return;
+        }
+        if (currentNextSkillScore < bestNextSkillScore) {
+          return;
+        }
+        const bestHasSpecialty = Boolean(best.hasSpecialty);
+        if (hasSpecialty && !bestHasSpecialty) {
+          best = {
+            playerId: player.id,
+            skill,
+            score,
+            nextSkillScore,
+            hasSpecialty,
+            ageDays: totalAgeDays(player),
+            promoAgeDays: promotionAgeDays(player),
+            canBePromotedIn: player.canBePromotedIn ?? null,
+          };
+          return;
+        }
+        if (!hasSpecialty && bestHasSpecialty) {
+          return;
+        }
         const currentPromoAgeDays = promotionAgeDays(player);
         const bestPromoAgeDays = best.promoAgeDays ?? null;
         if (
@@ -499,6 +595,8 @@ function chooseStarAndTraining(
             playerId: player.id,
             skill,
             score,
+            nextSkillScore,
+            hasSpecialty,
             ageDays: totalAgeDays(player),
             promoAgeDays: currentPromoAgeDays,
             canBePromotedIn: player.canBePromotedIn ?? null,
@@ -514,15 +612,17 @@ function chooseStarAndTraining(
             currentPromoIn !== null &&
             (bestPromoIn === null || currentPromoIn < bestPromoIn)
           ) {
-            best = {
-              playerId: player.id,
-              skill,
-              score,
-              ageDays: totalAgeDays(player),
-              promoAgeDays: currentPromoAgeDays,
-              canBePromotedIn: currentPromoIn,
-            };
-          }
+              best = {
+                playerId: player.id,
+                skill,
+                score,
+                nextSkillScore,
+                hasSpecialty,
+                ageDays: totalAgeDays(player),
+                promoAgeDays: currentPromoAgeDays,
+                canBePromotedIn: currentPromoIn,
+              };
+            }
         }
       }
     });

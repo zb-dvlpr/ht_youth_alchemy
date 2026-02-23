@@ -1540,6 +1540,14 @@ export default function Dashboard({
         player.CanBePromotedIn ??
         playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
         null,
+      specialty:
+        Number(player.Specialty ?? 0) > 0
+          ? Number(player.Specialty)
+          : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
+            ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
+            : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
+              ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
+              : null,
       skills:
         playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
         (player.PlayerSkills as OptimizerPlayer["skills"]) ??
@@ -1653,6 +1661,14 @@ export default function Dashboard({
           player.CanBePromotedIn ??
           playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
           null,
+        specialty:
+          Number(player.Specialty ?? 0) > 0
+            ? Number(player.Specialty)
+            : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
+              ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
+              : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
+                ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
+                : null,
         skills:
           playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
           (player.PlayerSkills as OptimizerPlayer["skills"]) ??
@@ -1806,6 +1822,14 @@ export default function Dashboard({
         player.CanBePromotedIn ??
         playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
         null,
+      specialty:
+        Number(player.Specialty ?? 0) > 0
+          ? Number(player.Specialty)
+          : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
+            ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
+            : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
+              ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
+              : null,
       skills:
         playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
         (player.PlayerSkills as OptimizerPlayer["skills"]) ??
@@ -2497,12 +2521,20 @@ export default function Dashboard({
           player.CanBePromotedIn ??
           playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
           null,
+        specialty:
+          Number(player.Specialty ?? 0) > 0
+            ? Number(player.Specialty)
+            : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
+              ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
+              : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
+                ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
+                : null,
         skills:
           playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
           (player.PlayerSkills as OptimizerPlayer["skills"]) ??
           null,
       })),
-    [playerList, playerDetailsById]
+    [hiddenSpecialtyByPlayerId, playerList, playerDetailsById]
   );
 
   const autoSelection = useMemo(

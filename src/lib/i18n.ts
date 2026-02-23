@@ -319,6 +319,7 @@ export type Messages = {
   refresh: string;
   refreshTooltip: string;
   refreshPlayerListTooltip: string;
+  youthLastGlobalRefresh: string;
   refreshStatusFetchingPlayers: string;
   refreshStatusFetchingPlayerDetails: string;
   refreshStatusFetchingMatches: string;

@@ -413,6 +413,9 @@ export default function Dashboard({
   const [stalenessHours, setStalenessHours] = useState(
     DEFAULT_YOUTH_STALENESS_HOURS
   );
+  const [lastGlobalRefreshAt, setLastGlobalRefreshAt] = useState<number | null>(() =>
+    readLastRefreshTimestamp()
+  );
   const [tacticType, setTacticType] = useState(7);
   const [restoredStorageKey, setRestoredStorageKey] = useState<string | null>(
     null
@@ -959,7 +962,9 @@ export default function Dashboard({
     const lastRefresh = readLastRefreshTimestamp();
     if (!lastRefresh) {
       if (playerList.length > 0) {
-        writeLastRefreshTimestamp(Date.now());
+        const fallback = Date.now();
+        writeLastRefreshTimestamp(fallback);
+        setLastGlobalRefreshAt(fallback);
       }
       return;
     }
@@ -2401,7 +2406,9 @@ export default function Dashboard({
         playersUpdated &&
         (refreshAll ? matchesOk && ratingsOk : options?.recordRefresh)
       ) {
-        writeLastRefreshTimestamp(Date.now());
+        const refreshedAt = Date.now();
+        writeLastRefreshTimestamp(refreshedAt);
+        setLastGlobalRefreshAt(refreshedAt);
       }
       setPlayerRefreshStatus(null);
       setPlayersLoading(false);
@@ -2895,6 +2902,7 @@ export default function Dashboard({
           onOrderChange={(ids) => applyPlayerOrder(ids, "list")}
           refreshing={playersLoading}
           refreshStatus={playerRefreshStatus}
+          lastGlobalRefreshAt={lastGlobalRefreshAt}
           hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
           messages={messages}
         />

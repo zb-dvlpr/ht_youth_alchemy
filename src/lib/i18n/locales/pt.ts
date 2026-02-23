@@ -372,6 +372,7 @@ export const messagesPt: Messages = {
     refreshTooltip: "Atualiza os detalhes do jogador no Hattrick.",
     refreshPlayerListTooltip:
       "Atualizar a lista de jovens no Hattrick.",
+    youthLastGlobalRefresh: "Última atualização global",
     refreshStatusFetchingPlayers: "Carregando jogadores juvenis…",
     refreshStatusFetchingPlayerDetails: "Carregando detalhes dos jogadores…",
     refreshStatusFetchingMatches: "Carregando partidas…",

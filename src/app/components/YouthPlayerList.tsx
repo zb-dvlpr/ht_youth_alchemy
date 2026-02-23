@@ -8,6 +8,7 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import Tooltip from "./Tooltip";
 import { setDragGhost } from "@/lib/drag";
 import { parseChppDate } from "@/lib/chpp/utils";
+import { formatDateTime } from "@/lib/datetime";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -76,6 +77,7 @@ type YouthPlayerListProps = {
   onSortStart?: () => void;
   refreshing?: boolean;
   refreshStatus?: string | null;
+  lastGlobalRefreshAt?: number | null;
   hiddenSpecialtyByPlayerId?: Record<number, number>;
   messages: Messages;
 };
@@ -178,6 +180,7 @@ export default function YouthPlayerList({
   onSortStart,
   refreshing,
   refreshStatus,
+  lastGlobalRefreshAt = null,
   hiddenSpecialtyByPlayerId = {},
   messages,
 }: YouthPlayerListProps) {
@@ -562,6 +565,11 @@ export default function YouthPlayerList({
       </div>
       {activeRefreshStatus ? (
         <p className={styles.listRefreshStatus}>{activeRefreshStatus}</p>
+      ) : null}
+      {lastGlobalRefreshAt ? (
+        <p className={styles.listRefreshStatus}>
+          {messages.youthLastGlobalRefresh}: {formatDateTime(lastGlobalRefreshAt)}
+        </p>
       ) : null}
       {players.length === 0 ? (
         <p className={styles.muted}>{messages.noYouthPlayers}</p>

@@ -69,6 +69,7 @@ export default function Tooltip({
 
   useLayoutEffect(() => {
     if (!open) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     updatePosition();
   }, [open, updatePosition]);
 

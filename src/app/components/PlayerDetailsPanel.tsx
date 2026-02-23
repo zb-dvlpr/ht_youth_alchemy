@@ -254,6 +254,7 @@ export default function PlayerDetailsPanel({
 
   useEffect(() => {
     if (selectedPlayer?.YouthPlayerID) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveTab("details");
     }
   }, [selectedPlayer?.YouthPlayerID]);
@@ -344,6 +345,7 @@ export default function PlayerDetailsPanel({
         pendingSkillsSortRef.current = false;
         return;
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSkillsSortKey(null);
     }
     if (orderSource === "skills") {

@@ -205,6 +205,7 @@ export default function YouthPlayerList({
         sortDirection?: SortDirection;
       };
       if (parsed.sortKey && SORT_KEYS.includes(parsed.sortKey)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSortKey(parsed.sortKey);
       }
       if (parsed.sortDirection === "asc" || parsed.sortDirection === "desc") {
@@ -266,6 +267,7 @@ export default function YouthPlayerList({
       orderedPlayerIds?.length &&
       sortKey !== "custom"
     ) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSortKey("custom");
     }
   }, [orderSource, orderedPlayerIds, sortKey]);

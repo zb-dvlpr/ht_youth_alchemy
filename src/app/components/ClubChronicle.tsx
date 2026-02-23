@@ -3582,6 +3582,32 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     },
     []
   );
+  const renderUpdateValue = useCallback(
+    (
+      fieldKey: string,
+      value: string | null | undefined,
+      teamId: number | null | undefined
+    ) => {
+      const formatted = formatUpdatesInjuryValue(fieldKey, value);
+      if (formatted === null || formatted === undefined || formatted === "") {
+        return messages.unknownShort;
+      }
+      if (fieldKey !== "press.announcement" || !teamId) {
+        return formatted;
+      }
+      return (
+        <a
+          className={styles.chroniclePressLink}
+          href={hattrickTeamUrl(teamId)}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {formatted}
+        </a>
+      );
+    },
+    [formatUpdatesInjuryValue, messages.unknownShort]
+  );
   const renderInjuryStatusInline = useCallback(
     (value: number | null | undefined) => {
       const injuryLevel = normalizeInjuryLevel(value);
@@ -8033,14 +8059,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                             <span className={styles.chronicleUpdatesLabel}>
                               {getUpdateFieldLabel(change.fieldKey, change.label)}
                             </span>
-                            <span>
-                              {formatUpdatesInjuryValue(change.fieldKey, change.previous) ??
-                                messages.unknownShort}
-                            </span>
-                            <span>
-                              {formatUpdatesInjuryValue(change.fieldKey, change.current) ??
-                                messages.unknownShort}
-                            </span>
+                            <span>{renderUpdateValue(change.fieldKey, change.previous, team.teamId)}</span>
+                            <span>{renderUpdateValue(change.fieldKey, change.current, team.teamId)}</span>
                           </div>
                         ))}
                       </div>

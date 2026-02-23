@@ -284,6 +284,7 @@ export const messagesSv: Messages = {
     clubChronicleWagesPanelTitle: "Löner",
     clubChronicleWagesColumnTotal: "Totala löner",
     clubChronicleWagesColumnTop11: "Topp 11-löner",
+    clubChroniclePlayersCount: "Spelare",
     clubChronicleWagesDetailsTitle: "Löner",
     clubChronicleWagesPlayerIndexColumn: "Nr",
     clubChronicleWagesPlayerColumn: "Spelare",

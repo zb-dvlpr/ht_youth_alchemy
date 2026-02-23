@@ -285,6 +285,7 @@ export type Messages = {
   clubChronicleWagesPanelTitle: string;
   clubChronicleWagesColumnTotal: string;
   clubChronicleWagesColumnTop11: string;
+  clubChroniclePlayersCount: string;
   clubChronicleWagesDetailsTitle: string;
   clubChronicleWagesPlayerIndexColumn: string;
   clubChronicleWagesPlayerColumn: string;

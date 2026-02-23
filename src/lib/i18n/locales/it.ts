@@ -290,6 +290,7 @@ export const messagesIt: Messages = {
     clubChronicleWagesPanelTitle: "Stipendi",
     clubChronicleWagesColumnTotal: "Stipendi totali",
     clubChronicleWagesColumnTop11: "Stipendi top 11",
+    clubChroniclePlayersCount: "Giocatori",
     clubChronicleWagesDetailsTitle: "Stipendi",
     clubChronicleWagesPlayerIndexColumn: "N.",
     clubChronicleWagesPlayerColumn: "Giocatore",

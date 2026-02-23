@@ -327,6 +327,24 @@ export default function LineupField({
       <div className={styles.fieldHeader}>
         <span>{messages.lineupTitle}</span>
         <div className={styles.fieldHeaderControls}>
+          {onTacticChange ? (
+            <label className={styles.tacticOverlay}>
+              <span className={styles.tacticLabel}>{messages.tacticLabel}</span>
+              <select
+                className={styles.tacticSelect}
+                value={tacticType}
+                onChange={(event) => onTacticChange(Number(event.target.value))}
+              >
+                <option value={0}>{messages.tacticNormal}</option>
+                <option value={1}>{messages.tacticPressing}</option>
+                <option value={2}>{messages.tacticCounterAttacks}</option>
+                <option value={3}>{messages.tacticAttackMiddle}</option>
+                <option value={4}>{messages.tacticAttackWings}</option>
+                <option value={7}>{messages.tacticPlayCreatively}</option>
+                <option value={8}>{messages.tacticLongShots}</option>
+              </select>
+            </label>
+          ) : null}
           {onOptimizeSelect ? (
             <div className={styles.feedbackWrap}>
               <Tooltip
@@ -409,24 +427,6 @@ export default function LineupField({
         </div>
       </div>
       <div className={styles.fieldPitch}>
-        {onTacticChange ? (
-          <label className={styles.tacticOverlay}>
-            <span className={styles.tacticLabel}>{messages.tacticLabel}</span>
-            <select
-              className={styles.tacticSelect}
-              value={tacticType}
-              onChange={(event) => onTacticChange(Number(event.target.value))}
-            >
-              <option value={0}>{messages.tacticNormal}</option>
-              <option value={1}>{messages.tacticPressing}</option>
-              <option value={2}>{messages.tacticCounterAttacks}</option>
-              <option value={3}>{messages.tacticAttackMiddle}</option>
-              <option value={4}>{messages.tacticAttackWings}</option>
-              <option value={7}>{messages.tacticPlayCreatively}</option>
-              <option value={8}>{messages.tacticLongShots}</option>
-            </select>
-          </label>
-        ) : null}
         <div className={styles.penaltyBox} />
         <div className={styles.penaltyArc} />
         <div className={styles.fieldGoal}>

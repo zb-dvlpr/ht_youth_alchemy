@@ -90,31 +90,24 @@ export default function RatingsMatrix({
   onOrderChange,
   onSortStart,
 }: RatingsMatrixProps) {
-  if (!response || response.players.length === 0) {
-    return (
-      <div className={styles.card}>
-        {showTitle ? (
-          <h2 className={styles.sectionTitle}>{messages.ratingsTitle}</h2>
-        ) : null}
-        <p className={styles.muted}>{messages.noMatchesReturned}</p>
-      </div>
-    );
-  }
-
-  const positions = uniquePositions(response.positions);
+  const players = useMemo(() => response?.players ?? [], [response?.players]);
+  const positions = useMemo(
+    () => uniquePositions(response?.positions),
+    [response?.positions]
+  );
   const [sortKey, setSortKey] = useState<number | "name" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const pendingSortRef = useRef(false);
 
   const sortedByRating = useMemo(() => {
-    if (!sortKey) return response.players;
+    if (!sortKey) return players;
     const direction = sortDir === "asc" ? 1 : -1;
     if (sortKey === "name") {
-      return [...response.players].sort((a, b) =>
+      return [...players].sort((a, b) =>
         a.name.localeCompare(b.name) * direction
       );
     }
-    return [...response.players].sort((a, b) => {
+    return [...players].sort((a, b) => {
       const aVal = a.ratings[String(sortKey)];
       const bVal = b.ratings[String(sortKey)];
       const aNum = typeof aVal === "number" ? aVal : null;
@@ -124,7 +117,7 @@ export default function RatingsMatrix({
       if (bNum === null) return -1;
       return (aNum - bNum) * direction;
     });
-  }, [response.players, sortDir, sortKey]);
+  }, [players, sortDir, sortKey]);
 
   const orderedRows = useMemo(() => {
     if (
@@ -132,14 +125,14 @@ export default function RatingsMatrix({
       orderSource &&
       (orderSource !== "ratings" || !sortKey)
     ) {
-      const map = new Map(response.players.map((row) => [row.id, row]));
+      const map = new Map(players.map((row) => [row.id, row]));
       return orderedPlayerIds
         .map((id) => map.get(id))
         .filter((row): row is RatingRow => Boolean(row));
     }
-    if (!sortKey) return response.players;
+    if (!sortKey) return players;
     return sortedByRating;
-  }, [orderSource, orderedPlayerIds, response.players, sortKey, sortedByRating]);
+  }, [orderSource, orderedPlayerIds, players, sortKey, sortedByRating]);
 
   useEffect(() => {
     if (!onOrderChange) return;
@@ -180,12 +173,24 @@ export default function RatingsMatrix({
         pendingSortRef.current = false;
         return;
       }
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSortKey(null);
     }
     if (orderSource === "ratings") {
       pendingSortRef.current = false;
     }
   }, [orderSource, sortKey]);
+
+  if (players.length === 0) {
+    return (
+      <div className={styles.card}>
+        {showTitle ? (
+          <h2 className={styles.sectionTitle}>{messages.ratingsTitle}</h2>
+        ) : null}
+        <p className={styles.muted}>{messages.noMatchesReturned}</p>
+      </div>
+    );
+  }
 
   return (
     <div className={showTitle ? styles.card : undefined}>

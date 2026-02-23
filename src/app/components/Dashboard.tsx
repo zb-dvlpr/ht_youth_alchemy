@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps */
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import styles from "../page.module.css";
@@ -32,13 +33,13 @@ import {
   buildSkillRanking,
   type OptimizerPlayer,
   type OptimizerDebug,
-  type AutoSelection,
   type TrainingSkillKey,
 } from "@/lib/optimizer";
 import {
   ALGORITHM_SETTINGS_EVENT,
   ALGORITHM_SETTINGS_STORAGE_KEY,
   DEFAULT_YOUTH_STALENESS_HOURS,
+  LAST_REFRESH_STORAGE_KEY,
   readAllowTrainingUntilMaxedOut,
   readLastRefreshTimestamp,
   readYouthStalenessHours,
@@ -413,8 +414,8 @@ export default function Dashboard({
   const [stalenessHours, setStalenessHours] = useState(
     DEFAULT_YOUTH_STALENESS_HOURS
   );
-  const [lastGlobalRefreshAt, setLastGlobalRefreshAt] = useState<number | null>(() =>
-    readLastRefreshTimestamp()
+  const [lastGlobalRefreshAt, setLastGlobalRefreshAt] = useState<number | null>(
+    null
   );
   const [tacticType, setTacticType] = useState(7);
   const [restoredStorageKey, setRestoredStorageKey] = useState<string | null>(
@@ -431,11 +432,6 @@ export default function Dashboard({
 
   const multiTeamEnabled = youthTeams.length > 1;
   const activeYouthTeamId = multiTeamEnabled ? selectedYouthTeamId : null;
-  const activeYouthTeam = useMemo(() => {
-    if (!activeYouthTeamId) return null;
-    return youthTeams.find((team) => team.youthTeamId === activeYouthTeamId) ?? null;
-  }, [activeYouthTeamId, youthTeams]);
-
   const storageKey = useMemo(() => {
     if (multiTeamEnabled && activeYouthTeamId) {
       return `ya_dashboard_state_v2_${activeYouthTeamId}`;
@@ -923,12 +919,14 @@ export default function Dashboard({
     if (typeof window === "undefined") return;
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
     setStalenessHours(readYouthStalenessHours());
+    setLastGlobalRefreshAt(readLastRefreshTimestamp());
     const handle = (event: Event) => {
       if (event instanceof StorageEvent) {
         if (
           event.key &&
           event.key !== ALGORITHM_SETTINGS_STORAGE_KEY &&
-          event.key !== YOUTH_SETTINGS_STORAGE_KEY
+          event.key !== YOUTH_SETTINGS_STORAGE_KEY &&
+          event.key !== LAST_REFRESH_STORAGE_KEY
         ) {
           return;
         }
@@ -945,6 +943,7 @@ export default function Dashboard({
       }
       setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
       setStalenessHours(readYouthStalenessHours());
+      setLastGlobalRefreshAt(readLastRefreshTimestamp());
     };
     window.addEventListener("storage", handle);
     window.addEventListener(ALGORITHM_SETTINGS_EVENT, handle);

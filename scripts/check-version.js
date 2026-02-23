@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports */
 const { execSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -45,7 +46,7 @@ try {
     encoding: "utf8",
   });
   mainVersion = readVersion(mainPkg);
-} catch (error) {
+} catch {
   console.warn("Unable to read version from main; skipping check.");
   process.exit(0);
 }

@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, jsx-a11y/role-supports-aria-props */
 
 import {
   useCallback,
@@ -37,7 +38,9 @@ import {
   hattrickArticleUrl,
   hattrickMatchUrl,
   hattrickPlayerUrl,
+  hattrickSeriesUrl,
   hattrickTeamUrl,
+  hattrickTeamPlayersUrl,
 } from "@/lib/hattrick/urls";
 import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
 
@@ -3581,6 +3584,123 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     },
     []
   );
+  const renderUpdateValue = useCallback(
+    (
+      fieldKey: string,
+      value: string | null | undefined,
+      teamId: number | null | undefined,
+      leagueLevelUnitId: number | null | undefined
+    ) => {
+      const formatted = formatUpdatesInjuryValue(fieldKey, value);
+      if (formatted === null || formatted === undefined || formatted === "") {
+        return messages.unknownShort;
+      }
+      if (!teamId) {
+        return formatted;
+      }
+      if (fieldKey === "wages.injury") {
+        const teamWages = chronicleCache.teams[teamId]?.wages;
+        const playerIdByName = new Map<string, number>();
+        const ingestPlayers = (
+          players:
+            | { playerId: number; playerName: string | null }[]
+            | undefined
+            | null
+        ) => {
+          players?.forEach((player) => {
+            if (
+              player &&
+              Number.isFinite(player.playerId) &&
+              player.playerName &&
+              !playerIdByName.has(player.playerName)
+            ) {
+              playerIdByName.set(player.playerName, player.playerId);
+            }
+          });
+        };
+        ingestPlayers(teamWages?.current?.players);
+        ingestPlayers(teamWages?.previous?.players);
+        const entries = formatted.split(/\s*,\s*/).filter(Boolean);
+        if (entries.length > 0) {
+          return entries.map((entry, index) => {
+            const match = entry.match(/^(.*)\s+(🩹|✚\([^)]+\))$/);
+            if (!match) {
+              return (
+                <span key={`injury-raw-${index}`}>
+                  {index > 0 ? ", " : ""}
+                  {entry}
+                </span>
+              );
+            }
+            const label = match[1].trim();
+            const status = match[2];
+            let playerId = playerIdByName.get(label);
+            if (!playerId) {
+              const numericLabel = Number(label);
+              if (Number.isFinite(numericLabel) && numericLabel > 0) {
+                playerId = numericLabel;
+              }
+            }
+            return (
+              <span key={`injury-entry-${index}`}>
+                {index > 0 ? ", " : ""}
+                {playerId ? (
+                  <a
+                    className={styles.chroniclePressLink}
+                    href={hattrickPlayerUrl(playerId)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {label}
+                  </a>
+                ) : (
+                  label
+                )}{" "}
+                {status}
+              </span>
+            );
+          });
+        }
+      }
+      let href: string | null = null;
+      if (
+        fieldKey === "press.announcement" ||
+        fieldKey.startsWith("fanclub.")
+      ) {
+        href = hattrickTeamUrl(teamId);
+      } else if (
+        fieldKey.startsWith("wages.") ||
+        fieldKey.startsWith("tsi.") ||
+        fieldKey === "team.playerCount" ||
+        fieldKey === "transfer.active" ||
+        fieldKey === "transfer.listed"
+      ) {
+        href = hattrickTeamPlayersUrl(teamId);
+      } else if (
+        fieldKey === "league.goalsDelta" ||
+        fieldKey === "league.record" ||
+        fieldKey === "league.series"
+      ) {
+        if (leagueLevelUnitId) {
+          href = hattrickSeriesUrl(leagueLevelUnitId, teamId);
+        }
+      }
+      if (!href) {
+        return formatted;
+      }
+      return (
+        <a
+          className={styles.chroniclePressLink}
+          href={href}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {formatted}
+        </a>
+      );
+    },
+    [chronicleCache.teams, formatUpdatesInjuryValue, messages.unknownShort]
+  );
   const renderInjuryStatusInline = useCallback(
     (value: number | null | undefined) => {
       const injuryLevel = normalizeInjuryLevel(value);
@@ -3710,6 +3830,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         return messages.clubChronicleWagesColumnTop11;
       case "wages.injury":
         return messages.clubChronicleWagesInjuryColumn;
+      case "team.playerCount":
+        return messages.clubChroniclePlayersCount;
       default:
         return fallbackLabel;
     }
@@ -4178,6 +4300,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               label: messages.clubChronicleTsiColumnTop11,
               previous: formatValue(previous.top11Tsi),
               current: formatValue(current.top11Tsi),
+            });
+          }
+          if (previous.players.length !== current.players.length) {
+            tsiChanges.push({
+              fieldKey: "team.playerCount",
+              label: messages.clubChroniclePlayersCount,
+              previous: formatValue(previous.players.length),
+              current: formatValue(current.players.length),
             });
           }
           appendTeamChanges(updatesMap, teamId, teamName, tsiChanges);
@@ -8008,6 +8138,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     const teamUpdates = updatesByTeam[team.teamId];
                     const changes = teamUpdates?.changes ?? [];
                     if (changes.length === 0) return null;
+                    const teamLeagueLevelUnitId =
+                      chronicleCache.teams[team.teamId]?.leagueLevelUnitId ?? null;
                     const isPrimaryTeam =
                       primaryChronicleTeamId !== null &&
                       team.teamId === primaryChronicleTeamId;
@@ -8033,12 +8165,20 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                               {getUpdateFieldLabel(change.fieldKey, change.label)}
                             </span>
                             <span>
-                              {formatUpdatesInjuryValue(change.fieldKey, change.previous) ??
-                                messages.unknownShort}
+                              {renderUpdateValue(
+                                change.fieldKey,
+                                change.previous,
+                                team.teamId,
+                                teamLeagueLevelUnitId
+                              )}
                             </span>
                             <span>
-                              {formatUpdatesInjuryValue(change.fieldKey, change.current) ??
-                                messages.unknownShort}
+                              {renderUpdateValue(
+                                change.fieldKey,
+                                change.current,
+                                team.teamId,
+                                teamLeagueLevelUnitId
+                              )}
                             </span>
                           </div>
                         ))}

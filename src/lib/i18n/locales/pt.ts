@@ -289,6 +289,7 @@ export const messagesPt: Messages = {
     clubChronicleWagesPanelTitle: "Salários",
     clubChronicleWagesColumnTotal: "Salários totais",
     clubChronicleWagesColumnTop11: "Salários top 11",
+    clubChroniclePlayersCount: "Jogadores",
     clubChronicleWagesDetailsTitle: "Salários",
     clubChronicleWagesPlayerIndexColumn: "Nº",
     clubChronicleWagesPlayerColumn: "Jogador",

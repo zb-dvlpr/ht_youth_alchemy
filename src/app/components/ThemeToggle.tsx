@@ -29,6 +29,7 @@ export default function ThemeToggle({ messages }: ThemeToggleProps) {
         : prefersDark
         ? "dark"
         : "light";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMode(nextMode);
     document.documentElement.dataset.theme = nextMode;
     setMounted(true);

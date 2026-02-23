@@ -70,6 +70,7 @@ export type Messages = {
   changelog_2_16_0: string;
   changelog_2_17_0: string;
   changelog_2_18_0: string;
+  changelog_2_19_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -115,6 +116,7 @@ export type Messages = {
   clubChronicleLoading: string;
   clubChronicleUpdatesTitle: string;
   clubChronicleUpdatesSinceGlobal: string;
+  clubChronicleLastGlobalRefresh: string;
   clubChronicleUpdatesComparedAt: string;
   clubChronicleUpdatesShowingFrom: string;
   clubChronicleUpdatesHistoryTitle: string;

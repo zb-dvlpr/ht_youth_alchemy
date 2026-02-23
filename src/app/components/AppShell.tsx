@@ -54,6 +54,10 @@ export default function AppShell({ messages, children }: AppShellProps) {
   const changelogEntries = useMemo(
     () => [
       {
+        version: "2.19.0",
+        entries: [messages.changelog_2_19_0],
+      },
+      {
         version: "2.16.0",
         entries: [messages.changelog_2_16_0],
       },
@@ -180,6 +184,7 @@ export default function AppShell({ messages, children }: AppShellProps) {
       messages.changelog_2_14_0,
       messages.changelog_2_15_0,
       messages.changelog_2_16_0,
+      messages.changelog_2_19_0,
     ]
   );
   const changelogRows = useMemo(

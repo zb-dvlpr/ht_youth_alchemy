@@ -1617,6 +1617,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT
     )
   );
+  const [lastGlobalRefreshAt, setLastGlobalRefreshAt] = useState<number | null>(() =>
+    readLastRefresh()
+  );
   const [lastGlobalComparedAt, setLastGlobalComparedAt] = useState<number | null>(
     () => readGlobalUpdatesHistory()[0]?.comparedAt ?? null
   );
@@ -2541,6 +2544,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       if (!fallback) return;
       lastRefresh = fallback;
       writeLastRefresh(fallback);
+      setLastGlobalRefreshAt(fallback);
     }
     const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
     const isStale = Date.now() - lastRefresh >= maxAgeMs;
@@ -5401,10 +5405,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const refreshDataForTeams = async (
     reason: "stale" | "manual",
-    teamsToRefresh: ChronicleTeamData[]
+    teamsToRefresh: ChronicleTeamData[],
+    options?: { isGlobalRefresh?: boolean }
   ) => {
     if (anyRefreshing) return;
     if (teamsToRefresh.length === 0) return;
+    const isGlobalRefresh = options?.isGlobalRefresh ?? true;
     setRefreshingGlobal(true);
     try {
       const nextCache = pruneChronicleCache(readChronicleCache());
@@ -5538,7 +5544,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         setUpdates(nextUpdates);
       }
       setUpdatesOpen(hasUpdates);
-      writeLastRefresh(Date.now());
+      if (isGlobalRefresh) {
+        const refreshCompletedAt = Date.now();
+        writeLastRefresh(refreshCompletedAt);
+        setLastGlobalRefreshAt(refreshCompletedAt);
+      }
       if (reason === "stale") {
         addNotification(messages.notificationChronicleStaleRefresh);
       }
@@ -5560,7 +5570,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshNoDivulgoTeam = async (teamId: number) => {
     const targetTeam = trackedTeams.find((team) => team.teamId === teamId);
     if (!targetTeam) return;
-    await refreshDataForTeams("manual", [targetTeam]);
+    await refreshDataForTeams("manual", [targetTeam], { isGlobalRefresh: false });
   };
   refreshAllDataRef.current = refreshAllData;
   refreshNoDivulgoTeamRef.current = refreshNoDivulgoTeam;
@@ -7209,6 +7219,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               />
             </span>
           </div>
+        ) : null}
+        {lastGlobalRefreshAt ? (
+          <span className={styles.chronicleRefreshStatusText}>
+            {messages.clubChronicleLastGlobalRefresh}:{" "}
+            {formatDateTime(lastGlobalRefreshAt)}
+          </span>
         ) : null}
         <div className={styles.watchlistFabWrap}>
           <Tooltip content={messages.watchlistTitle}>

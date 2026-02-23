@@ -78,6 +78,8 @@ export const messagesSv: Messages = {
       "Uppdatering av ungdomslistan visar nu stegvis status med match-for-match-framsteg for tidigare matcher.",
     changelog_2_18_0:
       "Dolda ungdomsspecialiteter hittas nu via handelser i tidigare matcher och markeras i vyn.",
+    changelog_2_19_0:
+      "Klubbkronikan visar nu datum och tid for senaste slutforda globala uppdatering i rubriken.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -129,6 +131,7 @@ export const messagesSv: Messages = {
     clubChronicleLoading: "Laddar klubbkrönikan…",
     clubChronicleUpdatesTitle: "Senaste uppdateringar",
     clubChronicleUpdatesSinceGlobal: "Ändringar sedan senaste globala uppdatering",
+    clubChronicleLastGlobalRefresh: "Senaste globala uppdatering",
     clubChronicleUpdatesComparedAt: "Jämförd",
     clubChronicleUpdatesShowingFrom: "Visar senast upptäckta ändringar från",
     clubChronicleUpdatesHistoryTitle: "Senaste jämförelser av globala uppdateringar",

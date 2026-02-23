@@ -78,6 +78,8 @@ export const messagesDe: Messages = {
       "Die Aktualisierung der Jugendspielerliste zeigt nun Schritt-fur-Schritt-Status mit Spiel-fur-Spiel-Fortschritt fur Vergangenheitsdaten.",
     changelog_2_18_0:
       "Versteckte Jugend-Spezialitaten werden jetzt aus vergangenen Match-Events erkannt und im Spielerbereich hervorgehoben.",
+    changelog_2_19_0:
+      "Die Club-Chronik zeigt jetzt die Datum/Uhrzeit der zuletzt abgeschlossenen globalen Aktualisierung im Kopfbereich an.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -128,6 +130,7 @@ export const messagesDe: Messages = {
     clubChronicleLoading: "Club-Chronik wird geladen…",
     clubChronicleUpdatesTitle: "Neueste Updates",
     clubChronicleUpdatesSinceGlobal: "Änderungen seit der letzten globalen Aktualisierung",
+    clubChronicleLastGlobalRefresh: "Letzte globale Aktualisierung",
     clubChronicleUpdatesComparedAt: "Verglichen am",
     clubChronicleUpdatesShowingFrom: "Zeige zuletzt erkannte Änderungen von",
     clubChronicleUpdatesHistoryTitle: "Letzte globale Aktualisierungsvergleiche",

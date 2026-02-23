@@ -80,6 +80,8 @@ export const messagesIt: Messages = {
       "Il refresh della lista giovanile mostra ora stato passo-passo con avanzamento partita per partita sui match passati.",
     changelog_2_18_0:
       "Le specialita nascoste dei giovani ora vengono rilevate dagli eventi delle partite passate e evidenziate nell interfaccia.",
+    changelog_2_19_0:
+      "La Cronaca del club ora mostra data e ora dell ultimo aggiornamento globale completato nell intestazione.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -131,6 +133,7 @@ export const messagesIt: Messages = {
     clubChronicleLoading: "Caricamento Cronaca del club…",
     clubChronicleUpdatesTitle: "Ultimi aggiornamenti",
     clubChronicleUpdatesSinceGlobal: "Modifiche dall ultimo aggiornamento globale",
+    clubChronicleLastGlobalRefresh: "Ultimo aggiornamento globale",
     clubChronicleUpdatesComparedAt: "Confrontato alle",
     clubChronicleUpdatesShowingFrom: "Mostra ultime modifiche rilevate da",
     clubChronicleUpdatesHistoryTitle: "Confronti recenti dei refresh globali",

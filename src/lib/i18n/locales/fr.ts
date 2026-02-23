@@ -80,6 +80,8 @@ export const messagesFr: Messages = {
       "L actualisation de la liste jeunes affiche maintenant un statut etape par etape avec progression match par match pour les matchs passes.",
     changelog_2_18_0:
       "Les specialites cachees des jeunes sont maintenant detectees via les evenements de match passes et mises en evidence.",
+    changelog_2_19_0:
+      "La Chronique du club affiche maintenant la date et l heure de la derniere actualisation globale terminee dans l en-tete.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -131,6 +133,7 @@ export const messagesFr: Messages = {
     clubChronicleLoading: "Chargement de la Chronique du club…",
     clubChronicleUpdatesTitle: "Dernières mises à jour",
     clubChronicleUpdatesSinceGlobal: "Changements depuis la dernière actualisation globale",
+    clubChronicleLastGlobalRefresh: "Dernière actualisation globale",
     clubChronicleUpdatesComparedAt: "Comparé le",
     clubChronicleUpdatesShowingFrom: "Affichage des derniers changements détectés du",
     clubChronicleUpdatesHistoryTitle: "Dernières comparaisons de rafraîchissement global",

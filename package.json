@@ -1,12 +1,12 @@
 {
   "name": "ht_youth_alchemy",
-  "version": "2.19.7",
+  "version": "2.19.8",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "npm run lint && npm run check:i18n && npm run check:chpp-permissions && npm run check:readme-version && next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint --max-warnings=0",
     "check:version": "node scripts/check-version.js",
     "check:i18n": "node scripts/check-i18n.js",
     "check:chpp-permissions": "node scripts/check-chpp-permissions.js",

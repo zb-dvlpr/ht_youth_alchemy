@@ -42,6 +42,9 @@
 ## Clarification
 - If an instruction is unclear, ask clarifying questions before starting any coding.
 
+## Vibecoding Output
+- At the end of each vibecoding run for a prompt, provide a one-line git commit message suggestion that covers all changes since the last commit.
+
 ## Code Reuse
 - When writing code, prioritize maximizing reuse and minimizing repetitive implementations.
 - When multiple panels/features need overlapping API data during the same refresh cycle, fetch once and reuse the result instead of calling the same endpoint multiple times.

@@ -71,6 +71,7 @@ export type Messages = {
   changelog_2_17_0: string;
   changelog_2_18_0: string;
   changelog_2_19_0: string;
+  changelog_2_20_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -135,8 +136,10 @@ export type Messages = {
   clubChronicleRefreshTsiTooltip: string;
   clubChronicleRefreshWagesTooltip: string;
   clubChronicleRefreshLikelyTrainingTooltip: string;
+  clubChronicleRefreshLastLoginTooltip: string;
   clubChronicleRefreshStatusTeamDetails: string;
   clubChronicleRefreshStatusLeague: string;
+  clubChronicleRefreshStatusLastLogin: string;
   clubChronicleRefreshStatusArena: string;
   clubChronicleRefreshStatusTransferFinance: string;
   clubChronicleRefreshStatusFormations: string;
@@ -209,6 +212,13 @@ export type Messages = {
   clubChronicleLikelyTrainingKeepingOrSetPieces: string;
   clubChronicleLikelyTrainingUnclearTag: string;
   clubChronicleLikelyTrainingUnclearDisclaimer: string;
+  clubChronicleLastLoginPanelTitle: string;
+  clubChronicleLastLoginColumnLatest: string;
+  clubChronicleLastLoginColumnIpAddress: string;
+  clubChronicleLastLoginColumnAgo: string;
+  clubChronicleLastLoginAgeFormat: string;
+  clubChronicleLastLoginDetailsTitle: string;
+  clubChronicleLastLoginNoData: string;
   clubChronicleTableTeam: string;
   clubChronicleTableSummary: string;
   clubChronicleMoveUp: string;
@@ -319,6 +329,8 @@ export type Messages = {
   ratingsMatrixTabLabel: string;
   refresh: string;
   refreshTooltip: string;
+  playerDetailsPreviousPlayer: string;
+  playerDetailsNextPlayer: string;
   refreshPlayerListTooltip: string;
   youthLastGlobalRefresh: string;
   refreshStatusFetchingPlayers: string;

@@ -82,6 +82,8 @@ export const messagesPt: Messages = {
       "Especialidades juvenis ocultas agora sao descobertas por eventos de partidas passadas e destacadas na interface.",
     changelog_2_19_0:
       "A Cronica do clube agora mostra a data e hora da ultima atualizacao global concluida no cabecalho.",
+    changelog_2_20_0:
+      "A Cronica do clube adiciona um painel de ultimos logins com dados do managercompendium, rastreamento do ultimo login e historico detalhado de acessos.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -154,10 +156,14 @@ export const messagesPt: Messages = {
     clubChronicleRefreshWagesTooltip: "Atualizar dados de salários.",
     clubChronicleRefreshLikelyTrainingTooltip:
       "Atualizar dados do regime de treino provável.",
+    clubChronicleRefreshLastLoginTooltip:
+      "Atualizar dados dos últimos logins.",
     clubChronicleRefreshStatusTeamDetails:
       "Buscando detalhes do time…",
     clubChronicleRefreshStatusLeague:
       "Buscando desempenho na liga…",
+    clubChronicleRefreshStatusLastLogin:
+      "Buscando últimos logins…",
     clubChronicleRefreshStatusArena: "Buscando dados da arena…",
     clubChronicleRefreshStatusTransferFinance:
       "Buscando dados de transferências, finanças, TSI e salários…",
@@ -252,6 +258,13 @@ export const messagesPt: Messages = {
     clubChronicleLikelyTrainingUnclearTag: "incerto",
     clubChronicleLikelyTrainingUnclearDisclaimer:
       "Múltiplos regimes compartilham a mesma confiança; a inferência de treino está incerta.",
+    clubChronicleLastLoginPanelTitle: "Último login",
+    clubChronicleLastLoginColumnLatest: "Último login",
+    clubChronicleLastLoginColumnIpAddress: "Endereço IP",
+    clubChronicleLastLoginColumnAgo: "Há",
+    clubChronicleLastLoginAgeFormat: "há {days}d {hours}h",
+    clubChronicleLastLoginDetailsTitle: "Últimos logins",
+    clubChronicleLastLoginNoData: "Nenhum dado de login disponível.",
     clubChronicleTableTeam: "Time",
     clubChronicleTableSummary: "Resumo",
     clubChronicleColumnTeam: "Time",
@@ -371,6 +384,8 @@ export const messagesPt: Messages = {
     ratingsMatrixTabLabel: "Matriz de avaliações",
     refresh: "Atualizar",
     refreshTooltip: "Atualiza os detalhes do jogador no Hattrick.",
+    playerDetailsPreviousPlayer: "Jogador anterior",
+    playerDetailsNextPlayer: "Próximo jogador",
     refreshPlayerListTooltip:
       "Atualizar a lista de jovens no Hattrick.",
     youthLastGlobalRefresh: "Última atualização global",
@@ -440,12 +455,14 @@ export const messagesPt: Messages = {
     randomizeLineup: "Escalação aleatória",
     resetLineup: "Redefinir escalação",
     optimizeLineupTitle: "Otimizar escalação",
-    optimizeMenuStar: "Otimizar em torno do jogador estrela",
+    optimizeMenuStar: "Otimizar em torno de {{player}}",
     optimizeMenuRatings: "Otimizar por avaliações",
-    optimizeMenuRevealPrimaryCurrent: "Revelar val. atual prim. da estrela",
+    optimizeMenuRevealPrimaryCurrent:
+      "Revelar valor atual de {{trainingLower}} de {{player}}",
     optimizeMenuRevealPrimaryMax: "Revelar val. máx. prim. da estrela",
     optimizeMenuRevealSecondaryCurrent: "Revelar val. atual sec. da estrela",
-    optimizeMenuRevealSecondaryMax: "Revelar val. máx. sec. da estrela",
+    optimizeMenuRevealSecondaryMax:
+      "Revelar valor máx. de {{trainingLower}} de {{player}}",
     optimizeRevealPrimaryCurrentKnown:
       "Revelação indisponível: valor primário já conhecido.",
     optimizeRevealPrimaryCurrentUnavailable:

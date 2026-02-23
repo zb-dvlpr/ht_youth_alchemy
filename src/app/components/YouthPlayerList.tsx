@@ -260,17 +260,23 @@ export default function YouthPlayerList({
     }
   };
 
-  useEffect(() => {
-    if (
-      orderSource &&
+  const isMatrixSortActive = Boolean(
+    orderSource &&
       orderSource !== "list" &&
-      orderedPlayerIds?.length &&
-      sortKey !== "custom"
-    ) {
+      (orderSource === "ratings" || orderSource === "skills") &&
+      orderedPlayerIds?.length
+  );
+
+  useEffect(() => {
+    if (isMatrixSortActive && sortKey !== "custom") {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setSortKey("custom");
+      return;
     }
-  }, [orderSource, orderedPlayerIds, sortKey]);
+    if (!isMatrixSortActive && sortKey === "custom") {
+      setSortKey("name");
+    }
+  }, [isMatrixSortActive, sortKey]);
   const handleDragStart = (
     event: React.DragEvent<HTMLButtonElement>,
     playerId: number
@@ -495,13 +501,18 @@ export default function YouthPlayerList({
               onChange={(event) => {
                 onSortStart?.();
                 const nextKey = event.target.value as SortKey;
+                if (nextKey === "custom") return;
                 setSortKey(nextKey);
                 addNotification(
                   `${messages.notificationSortBy} ${sortLabelForKey(nextKey)}`
                 );
               }}
             >
-              <option value="custom">{messages.sortCustom}</option>
+              {isMatrixSortActive && sortKey === "custom" ? (
+                <option value="custom" hidden>
+                  {messages.sortCustom}
+                </option>
+              ) : null}
               <option value="name">{messages.sortName}</option>
               <option value="age">{messages.sortAge}</option>
               <option value="promotionAge">{messages.sortPromotionAge}</option>

@@ -27,8 +27,6 @@ import {
   optimizeLineupForStar,
   optimizeByRatings,
   optimizeRevealPrimaryCurrent,
-  optimizeRevealPrimaryMax,
-  optimizeRevealSecondaryCurrent,
   optimizeRevealSecondaryMax,
   buildSkillRanking,
   type OptimizerPlayer,
@@ -454,6 +452,10 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "2.20.0",
+        entries: [messages.changelog_2_20_0],
+      },
+      {
         version: "2.19.0",
         entries: [messages.changelog_2_19_0],
       },
@@ -594,6 +596,7 @@ export default function Dashboard({
       messages.changelog_2_16_0,
       messages.changelog_2_17_0,
       messages.changelog_2_18_0,
+      messages.changelog_2_20_0,
       messages.changelog_2_19_0,
     ]
   );
@@ -707,6 +710,23 @@ export default function Dashboard({
       playerList.find((player) => player.YouthPlayerID === selectedId) ?? null,
     [playerList, selectedId]
   );
+  const playerNavigationIds = useMemo(() => {
+    if (orderedPlayerIds && orderedPlayerIds.length) {
+      const validIds = new Set(playerList.map((player) => player.YouthPlayerID));
+      return orderedPlayerIds.filter((id) => validIds.has(id));
+    }
+    return playerList.map((player) => player.YouthPlayerID);
+  }, [orderedPlayerIds, playerList]);
+  const selectedPlayerIndex = useMemo(() => {
+    if (!selectedId) return -1;
+    return playerNavigationIds.indexOf(selectedId);
+  }, [playerNavigationIds, selectedId]);
+  const previousPlayerId =
+    selectedPlayerIndex > 0 ? playerNavigationIds[selectedPlayerIndex - 1] : null;
+  const nextPlayerId =
+    selectedPlayerIndex >= 0 && selectedPlayerIndex < playerNavigationIds.length - 1
+      ? playerNavigationIds[selectedPlayerIndex + 1]
+      : null;
 
   const ratingsMatrixData = useMemo(() => {
     if (playerList.length === 0) return null;
@@ -1525,6 +1545,14 @@ export default function Dashboard({
         player.CanBePromotedIn ??
         playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
         null,
+      specialty:
+        Number(player.Specialty ?? 0) > 0
+          ? Number(player.Specialty)
+          : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
+            ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
+            : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
+              ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
+              : null,
       skills:
         playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
         (player.PlayerSkills as OptimizerPlayer["skills"]) ??
@@ -1638,6 +1666,14 @@ export default function Dashboard({
           player.CanBePromotedIn ??
           playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
           null,
+        specialty:
+          Number(player.Specialty ?? 0) > 0
+            ? Number(player.Specialty)
+            : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
+              ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
+              : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
+                ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
+                : null,
         skills:
           playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
           (player.PlayerSkills as OptimizerPlayer["skills"]) ??
@@ -1757,8 +1793,6 @@ export default function Dashboard({
     }
     if (
       mode !== "revealPrimaryCurrent" &&
-      mode !== "revealPrimaryMax" &&
-      mode !== "revealSecondaryCurrent" &&
       mode !== "revealSecondaryMax"
     ) {
       return;
@@ -1768,13 +1802,7 @@ export default function Dashboard({
       !isTrainingSkill(primaryTraining) ||
       !isTrainingSkill(secondaryTraining)
     ) {
-      if (mode === "revealPrimaryMax") {
-        setOptimizeErrorMessage(messages.optimizeRevealPrimaryMaxUnavailable);
-      } else if (mode === "revealSecondaryCurrent") {
-        setOptimizeErrorMessage(
-          messages.optimizeRevealSecondaryCurrentUnavailable
-        );
-      } else if (mode === "revealSecondaryMax") {
+      if (mode === "revealSecondaryMax") {
         setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
       } else {
         setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
@@ -1799,6 +1827,14 @@ export default function Dashboard({
         player.CanBePromotedIn ??
         playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
         null,
+      specialty:
+        Number(player.Specialty ?? 0) > 0
+          ? Number(player.Specialty)
+          : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
+            ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
+            : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
+              ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
+              : null,
       skills:
         playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
         (player.PlayerSkills as OptimizerPlayer["skills"]) ??
@@ -1806,26 +1842,8 @@ export default function Dashboard({
     }));
 
     const result =
-      mode === "revealPrimaryMax"
-        ? optimizeRevealPrimaryMax(
-            optimizerPlayers,
-            starPlayerId,
-            primaryTraining,
-            secondaryTraining,
-            autoSelectionApplied,
-            trainingPreferences
-          )
-        : mode === "revealSecondaryMax"
+      mode === "revealSecondaryMax"
         ? optimizeRevealSecondaryMax(
-            optimizerPlayers,
-            starPlayerId,
-            primaryTraining,
-            secondaryTraining,
-            autoSelectionApplied,
-            trainingPreferences
-          )
-        : mode === "revealSecondaryCurrent"
-        ? optimizeRevealSecondaryCurrent(
             optimizerPlayers,
             starPlayerId,
             primaryTraining,
@@ -1847,29 +1865,13 @@ export default function Dashboard({
       return;
     }
 
-    if (result.error === "primary_max_known") {
-      setOptimizeErrorMessage(messages.optimizeRevealPrimaryMaxKnown);
-      return;
-    }
-
-    if (result.error === "secondary_current_known") {
-      setOptimizeErrorMessage(messages.optimizeRevealSecondaryCurrentKnown);
-      return;
-    }
-
     if (result.error === "secondary_max_known") {
       setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxKnown);
       return;
     }
 
     if (result.error) {
-      if (mode === "revealPrimaryMax") {
-        setOptimizeErrorMessage(messages.optimizeRevealPrimaryMaxUnavailable);
-      } else if (mode === "revealSecondaryCurrent") {
-        setOptimizeErrorMessage(
-          messages.optimizeRevealSecondaryCurrentUnavailable
-        );
-      } else if (mode === "revealSecondaryMax") {
+      if (mode === "revealSecondaryMax") {
         setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
       } else {
         setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
@@ -2524,12 +2526,20 @@ export default function Dashboard({
           player.CanBePromotedIn ??
           playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
           null,
+        specialty:
+          Number(player.Specialty ?? 0) > 0
+            ? Number(player.Specialty)
+            : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
+              ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
+              : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
+                ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
+                : null,
         skills:
           playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
           (player.PlayerSkills as OptimizerPlayer["skills"]) ??
           null,
       })),
-    [playerList, playerDetailsById]
+    [hiddenSpecialtyByPlayerId, playerList, playerDetailsById]
   );
 
   const autoSelection = useMemo(
@@ -2667,6 +2677,15 @@ export default function Dashboard({
     .replace("{{secondary}}", trainingLabel(secondaryTraining))
     .replace("{{captain}}", captainName)
     .replace("{{tactic}}", tacticLabelForValue(tacticType));
+  const optimizeStarPlayerName = starPlayerId
+    ? formatPlayerName(playersById.get(starPlayerId) ?? ({} as YouthPlayer))
+    : messages.unknownShort;
+  const optimizePrimaryTrainingName = isTrainingSkill(primaryTraining)
+    ? trainingLabel(primaryTraining)
+    : messages.trainingUnset;
+  const optimizeSecondaryTrainingName = isTrainingSkill(secondaryTraining)
+    ? trainingLabel(secondaryTraining)
+    : messages.trainingUnset;
 
   const trainingSlots = useMemo(() => {
     if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
@@ -3008,6 +3027,16 @@ export default function Dashboard({
                 setOrderSource("skills");
                 setOrderedPlayerIds(null);
               }}
+              hasPreviousPlayer={Boolean(previousPlayerId)}
+              hasNextPlayer={Boolean(nextPlayerId)}
+              onPreviousPlayer={() => {
+                if (!previousPlayerId) return;
+                void handleSelect(previousPlayerId);
+              }}
+              onNextPlayer={() => {
+                if (!nextPlayerId) return;
+                void handleSelect(nextPlayerId);
+              }}
               messages={messages}
             />
           </>
@@ -3111,6 +3140,9 @@ export default function Dashboard({
           optimizeDisabled={!manualReady}
           optimizeDisabledReason={optimizeDisabledReason}
           forceOptimizeOpen={showHelp}
+          optimizeStarPlayerName={optimizeStarPlayerName}
+          optimizePrimaryTrainingName={optimizePrimaryTrainingName}
+          optimizeSecondaryTrainingName={optimizeSecondaryTrainingName}
           trainedSlots={trainingSlots}
           onHoverPlayer={ensureDetails}
           onSelectPlayer={handleSelect}

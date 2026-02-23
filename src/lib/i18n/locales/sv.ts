@@ -80,6 +80,8 @@ export const messagesSv: Messages = {
       "Dolda ungdomsspecialiteter hittas nu via handelser i tidigare matcher och markeras i vyn.",
     changelog_2_19_0:
       "Klubbkronikan visar nu datum och tid for senaste slutforda globala uppdatering i rubriken.",
+    changelog_2_20_0:
+      "Klubbkronikan lagger till en panel for senaste inloggningar med managercompendium-data, spårning av senaste inloggning och detaljerad inloggningshistorik.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -152,8 +154,11 @@ export const messagesSv: Messages = {
     clubChronicleRefreshWagesTooltip: "Uppdatera lönedata.",
     clubChronicleRefreshLikelyTrainingTooltip:
       "Uppdatera data för trolig träningsinriktning.",
+    clubChronicleRefreshLastLoginTooltip:
+      "Uppdatera data för senaste inloggning.",
     clubChronicleRefreshStatusTeamDetails: "Hämtar lagdetaljer…",
     clubChronicleRefreshStatusLeague: "Hämtar ligaprestanda…",
+    clubChronicleRefreshStatusLastLogin: "Hämtar senaste inloggningar…",
     clubChronicleRefreshStatusArena: "Hämtar arenadata…",
     clubChronicleRefreshStatusTransferFinance:
       "Hämtar transfer-, finans-, TSI- och lönedata…",
@@ -247,6 +252,13 @@ export const messagesSv: Messages = {
     clubChronicleLikelyTrainingUnclearTag: "oklart",
     clubChronicleLikelyTrainingUnclearDisclaimer:
       "Flera upplägg har samma säkerhetsnivå; träningsslutsatsen är oklar.",
+    clubChronicleLastLoginPanelTitle: "Senaste inloggning",
+    clubChronicleLastLoginColumnLatest: "Senaste inloggning",
+    clubChronicleLastLoginColumnIpAddress: "IP-adress",
+    clubChronicleLastLoginColumnAgo: "Sedan",
+    clubChronicleLastLoginAgeFormat: "{days}d {hours}h sedan",
+    clubChronicleLastLoginDetailsTitle: "Senaste inloggningar",
+    clubChronicleLastLoginNoData: "Ingen inloggningsdata tillgänglig.",
     clubChronicleTableTeam: "Lag",
     clubChronicleTableSummary: "Sammanfattning",
     clubChronicleColumnTeam: "Lag",
@@ -366,6 +378,8 @@ export const messagesSv: Messages = {
     ratingsMatrixTabLabel: "Betygsmatris",
     refresh: "Uppdatera",
     refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
+    playerDetailsPreviousPlayer: "Föregående spelare",
+    playerDetailsNextPlayer: "Nästa spelare",
     refreshPlayerListTooltip: "Uppdatera juniorlistan från Hattrick.",
     youthLastGlobalRefresh: "Senaste globala uppdatering",
     refreshStatusFetchingPlayers: "Hamtar ungdomsspelare…",
@@ -433,12 +447,14 @@ export const messagesSv: Messages = {
     randomizeLineup: "Slumpa uppställning",
     resetLineup: "Återställ uppställning",
     optimizeLineupTitle: "Optimera uppställning",
-    optimizeMenuStar: "Optimera runt stjärnspelaren",
+    optimizeMenuStar: "Optimera runt {{player}}",
     optimizeMenuRatings: "Optimera efter betyg",
-    optimizeMenuRevealPrimaryCurrent: "Avslöja stjärnans primärvärde (akt.)",
+    optimizeMenuRevealPrimaryCurrent:
+      "Avslöja {{player}}s nuvarande värde i {{trainingLower}}",
     optimizeMenuRevealPrimaryMax: "Avslöja stjärnans primärvärde (max.)",
     optimizeMenuRevealSecondaryCurrent: "Avslöja stjärnans sekundärvärde (akt.)",
-    optimizeMenuRevealSecondaryMax: "Avslöja stjärnans sekundärvärde (max.)",
+    optimizeMenuRevealSecondaryMax:
+      "Avslöja {{player}}s maxvärde i {{trainingLower}}",
     optimizeRevealPrimaryCurrentKnown:
       "Avslöjande ej tillgängligt: stjärnans primärvärde är redan känt.",
     optimizeRevealPrimaryCurrentUnavailable:

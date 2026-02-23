@@ -296,6 +296,29 @@ type LikelyTrainingRow = {
   snapshot?: FormationTacticsSnapshot | null;
 };
 
+type LastLoginEvent = {
+  dateTime: string | null;
+  ipAddress: string | null;
+  raw: string;
+};
+
+type LastLoginSnapshot = {
+  latestLoginDateTime: string | null;
+  loginEvents: LastLoginEvent[];
+  fetchedAt: number;
+};
+
+type LastLoginData = {
+  current: LastLoginSnapshot;
+  previous?: LastLoginSnapshot;
+};
+
+type LastLoginRow = {
+  teamId: number;
+  teamName: string;
+  snapshot?: LastLoginSnapshot | null;
+};
+
 type WagesPlayerRow = {
   teamId: number;
   playerId: number;
@@ -388,6 +411,7 @@ type ChronicleTeamData = {
   tsi?: TsiData;
   wages?: WagesData;
   formationsTactics?: FormationTacticsData;
+  lastLogin?: LastLoginData;
 };
 
 type ChronicleCache = {
@@ -431,7 +455,8 @@ type UpdatePanel =
   | "tsi"
   | "wages"
   | "formationsTactics"
-  | "likelyTraining";
+  | "likelyTraining"
+  | "lastLogin";
 
 type ChronicleTableColumn<Row, Snapshot> = {
   key: string;
@@ -677,6 +702,7 @@ const NO_DIVULGO_TARGET_TEAM_ID = 524637;
 const PANEL_IDS = [
   "league-performance",
   "press-announcements",
+  "last-login",
   "fanclub",
   "arena",
   "finance-estimate",
@@ -1556,6 +1582,21 @@ const pruneChronicleCache = (cache: ChronicleCache): ChronicleCache => {
         }
         return formationsTactics;
       })(),
+      lastLogin: (() => {
+        const lastLogin = team.lastLogin;
+        if (!lastLogin?.current) return lastLogin;
+        const currentAge = now - lastLogin.current.fetchedAt;
+        if (currentAge > MAX_CACHE_AGE_MS) return undefined;
+        if (!lastLogin.previous) return lastLogin;
+        const previousAge = now - lastLogin.previous.fetchedAt;
+        if (previousAge > MAX_CACHE_AGE_MS) {
+          return {
+            ...lastLogin,
+            previous: undefined,
+          };
+        }
+        return lastLogin;
+      })(),
     };
   });
   return { ...cache, teams: nextTeams };
@@ -1583,7 +1624,9 @@ const getLatestCacheTimestamp = (cache: ChronicleCache): number | null => {
       team.wages?.current?.fetchedAt ?? 0,
       team.wages?.previous?.fetchedAt ?? 0,
       team.formationsTactics?.current?.fetchedAt ?? 0,
-      team.formationsTactics?.previous?.fetchedAt ?? 0
+      team.formationsTactics?.previous?.fetchedAt ?? 0,
+      team.lastLogin?.current?.fetchedAt ?? 0,
+      team.lastLogin?.previous?.fetchedAt ?? 0
     );
   });
   return latest > 0 ? latest : null;
@@ -1668,6 +1711,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [selectedWagesTeamId, setSelectedWagesTeamId] = useState<number | null>(
     null
   );
+  const [lastLoginDetailsOpen, setLastLoginDetailsOpen] = useState(false);
+  const [selectedLastLoginTeamId, setSelectedLastLoginTeamId] = useState<
+    number | null
+  >(null);
   const [tsiDetailsSortState, setTsiDetailsSortState] = useState<{
     key: string;
     direction: "asc" | "desc";
@@ -1732,6 +1779,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     key: string;
     direction: "asc" | "desc";
   }>({ key: "team", direction: "asc" });
+  const [lastLoginSortState, setLastLoginSortState] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({ key: "team", direction: "asc" });
   const [refreshingGlobal, setRefreshingGlobal] = useState(false);
   const [refreshingLeague, setRefreshingLeague] = useState(false);
   const [refreshingPress, setRefreshingPress] = useState(false);
@@ -1743,6 +1794,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [refreshingTransfer, setRefreshingTransfer] = useState(false);
   const [refreshingTsi, setRefreshingTsi] = useState(false);
   const [refreshingWages, setRefreshingWages] = useState(false);
+  const [refreshingLastLogin, setRefreshingLastLogin] = useState(false);
   const [globalRefreshProgressPct, setGlobalRefreshProgressPct] = useState(0);
   const [globalRefreshStatus, setGlobalRefreshStatus] = useState<string | null>(null);
   const [panelRefreshProgressPct, setPanelRefreshProgressPct] = useState<
@@ -1801,7 +1853,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     refreshingFinance ||
     refreshingTransfer ||
     refreshingTsi ||
-    refreshingWages;
+    refreshingWages ||
+    refreshingLastLogin;
   const getPanelRefreshProgress = useCallback(
     (panelId: string) => panelRefreshProgressPct[panelId] ?? 0,
     [panelRefreshProgressPct]
@@ -2832,6 +2885,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setTsiDetailsOpen(true);
   };
 
+  const handleOpenLastLoginDetails = (teamId: number) => {
+    setSelectedLastLoginTeamId(teamId);
+    setLastLoginDetailsOpen(true);
+  };
+
   const handleOpenTransferListedDetails = useCallback((teamId: number) => {
     setSelectedTransferTeamId(teamId);
     setTransferListedDetailsOpen(true);
@@ -3015,6 +3073,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const handleWagesSort = (key: string) => {
     setWagesSortState((prev) => ({
+      key,
+      direction:
+        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
+    }));
+  };
+
+  const handleLastLoginSort = (key: string) => {
+    setLastLoginSortState((prev) => ({
       key,
       direction:
         prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
@@ -3665,7 +3731,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       let href: string | null = null;
       if (
         fieldKey === "press.announcement" ||
-        fieldKey.startsWith("fanclub.")
+        fieldKey.startsWith("fanclub.") ||
+        fieldKey.startsWith("lastLogin.")
       ) {
         href = hattrickTeamUrl(teamId);
       } else if (
@@ -3820,6 +3887,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         return messages.clubChronicleLikelyTrainingColumnRegimen;
       case "likelyTraining.confidence":
         return messages.clubChronicleLikelyTrainingConfidenceLabel;
+      case "lastLogin.latest":
+        return messages.clubChronicleLastLoginColumnLatest;
       case "tsi.total":
         return messages.clubChronicleTsiColumnTotal;
       case "tsi.top11":
@@ -3857,6 +3926,39 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       formatLikelyTrainingSummary,
       messages.clubChronicleColumnTeam,
       messages.clubChronicleLikelyTrainingColumnRegimen,
+    ]
+  );
+
+  const lastLoginTableColumns = useMemo<
+    ChronicleTableColumn<LastLoginRow, LastLoginSnapshot>[]
+  >(
+    () => [
+      {
+        key: "team",
+        label: messages.clubChronicleColumnTeam,
+        getValue: (_snapshot, row) => row?.teamName ?? null,
+      },
+      {
+        key: "latestLogin",
+        label: messages.clubChronicleLastLoginColumnLatest,
+        getValue: (snapshot: LastLoginSnapshot | undefined) => {
+          const dateTime = formatLastLoginDateTime(snapshot?.latestLoginDateTime);
+          const age = formatLastLoginAge(
+            parseLoginTimeToTimestamp(snapshot?.latestLoginDateTime)
+          );
+          if (dateTime && age) return `${dateTime} (${age})`;
+          return dateTime;
+        },
+        getSortValue: (snapshot: LastLoginSnapshot | undefined) =>
+          parseLoginTimeToTimestamp(snapshot?.latestLoginDateTime),
+      },
+    ],
+    [
+      formatLastLoginAge,
+      formatLastLoginDateTime,
+      messages.clubChronicleColumnTeam,
+      messages.clubChronicleLastLoginColumnLatest,
+      parseLoginTimeToTimestamp,
     ]
   );
 
@@ -3964,6 +4066,66 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (date) return date;
     return messages.clubChroniclePressNone;
   };
+
+  function parseLoginTimeToTimestamp(loginTime: string | null | undefined) {
+    if (!loginTime) return null;
+    const parsedEntry = parseLastLoginEntry(loginTime);
+    if (!parsedEntry.dateTime) return null;
+    const parsed = parseChppDate(parsedEntry.dateTime)?.getTime();
+    if (parsed && Number.isFinite(parsed)) return parsed;
+    const fallback = Date.parse(parsedEntry.dateTime.replace(" ", "T"));
+    return Number.isFinite(fallback) ? fallback : null;
+  }
+
+  function parseLastLoginEntry(entry: string): LastLoginEvent {
+    const trimmed = entry.trim();
+    const match = trimmed.match(
+      /^(\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2})(?:\s+(.+))?$/
+    );
+    if (!match) {
+      return {
+        dateTime: parseStringNode(trimmed),
+        ipAddress: null,
+        raw: trimmed,
+      };
+    }
+    const normalizedIp = normalizeLastLoginIpAddress(match[2] ?? "");
+    return {
+      dateTime: match[1] ?? null,
+      ipAddress: normalizedIp || null,
+      raw: trimmed,
+    };
+  }
+
+  function normalizeLastLoginIpAddress(value: string | null | undefined) {
+    if (!value) return null;
+    const normalized = value
+      .replace(/^[^0-9a-fA-F*]+/, "")
+      .replace(/[^0-9a-fA-F*.:]+$/, "")
+      .trim();
+    return normalized || null;
+  }
+
+  function formatLastLoginDateTime(dateTime: string | null | undefined) {
+    if (!dateTime) return null;
+    const timestamp = parseLoginTimeToTimestamp(dateTime);
+    if (timestamp !== null) {
+      return formatDateTime(timestamp);
+    }
+    return formatChppDateTime(dateTime) ?? dateTime;
+  }
+
+  function formatLastLoginAge(timestamp: number | null) {
+    if (timestamp === null) return null;
+    const diff = Math.max(0, Date.now() - timestamp);
+    const totalHours = Math.floor(diff / (60 * 60 * 1000));
+    const days = Math.floor(totalHours / 24);
+    const hours = totalHours % 24;
+    return formatStatusTemplate(messages.clubChronicleLastLoginAgeFormat, {
+      days,
+      hours,
+    });
+  }
 
   const normalizeSortValue = (value: unknown): SortValue => {
     if (value === null || value === undefined || value === "") {
@@ -4276,6 +4438,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             });
           }
           appendTeamChanges(updatesMap, teamId, teamName, likelyTrainingChanges);
+        }
+      }
+
+      if (panels.includes("lastLogin")) {
+        const previous = baselineCache
+          ? baselineTeam?.lastLogin?.current
+          : cached.lastLogin?.previous;
+        const current = cached.lastLogin?.current;
+        if (
+          current &&
+          previous &&
+          previous.latestLoginDateTime !== current.latestLoginDateTime
+        ) {
+          appendTeamChanges(updatesMap, teamId, teamName, [
+            {
+              fieldKey: "lastLogin.latest",
+              label: messages.clubChronicleLastLoginColumnLatest,
+              previous: formatValue(
+                formatLastLoginDateTime(previous.latestLoginDateTime)
+              ),
+              current: formatValue(
+                formatLastLoginDateTime(current.latestLoginDateTime)
+              ),
+            },
+          ]);
         }
       }
 
@@ -4610,6 +4797,116 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         },
       };
     });
+  };
+
+  const refreshLastLoginSnapshots = async (
+    nextCache: ChronicleCache,
+    teams: ChronicleTeamData[] = trackedTeams
+  ) => {
+    const teamIdsByUserId = new Map<number, number[]>();
+    teams.forEach((team) => {
+      const cachedTeam = nextCache.teams[team.teamId] ?? team;
+      const userId = cachedTeam.leaguePerformance?.current?.userId ?? null;
+      if (!userId || !Number.isFinite(userId) || userId <= 0) return;
+      const existing = teamIdsByUserId.get(userId) ?? [];
+      if (!existing.includes(team.teamId)) {
+        existing.push(team.teamId);
+      }
+      teamIdsByUserId.set(userId, existing);
+    });
+    if (teamIdsByUserId.size === 0) return;
+
+    await mapWithConcurrency(
+      Array.from(teamIdsByUserId.entries()),
+      TEAM_REFRESH_CONCURRENCY,
+      async ([userId, teamIds]) => {
+        try {
+          const { response, payload } = await fetchChppJson<{
+            data?: {
+              HattrickData?: {
+                Manager?: {
+                  LastLogins?: {
+                    LoginTime?: unknown;
+                  };
+                  Teams?: {
+                    Team?: unknown;
+                  };
+                };
+              };
+            };
+            error?: string;
+            details?: string;
+          }>(
+            `/api/chpp/managercompendium?version=1.6&userId=${userId}`,
+            {
+              cache: "no-store",
+            }
+          );
+          if (!response.ok || payload?.error) return;
+          const manager = payload?.data?.HattrickData?.Manager as RawNode | undefined;
+          if (!manager) return;
+          const loginEvents = toArray(
+            manager.LastLogins as RawNode | RawNode[] | undefined
+          )
+            .flatMap((entry) =>
+              toArray(
+                (entry as RawNode | undefined)?.LoginTime as
+                  | string
+                  | RawNode
+                  | Array<string | RawNode>
+                  | undefined
+              )
+            )
+            .map((entry) => parseStringNode(entry))
+            .filter((entry): entry is string => Boolean(entry))
+            .map((entry) => parseLastLoginEntry(entry))
+            .sort((left, right) => {
+              const leftTs = parseLoginTimeToTimestamp(left.dateTime) ?? 0;
+              const rightTs = parseLoginTimeToTimestamp(right.dateTime) ?? 0;
+              return rightTs - leftTs;
+            });
+          const latestLoginDateTime = loginEvents[0]?.dateTime ?? null;
+
+          const managerTeamsContainer = Array.isArray(manager.Teams)
+            ? undefined
+            : (manager.Teams as RawNode | undefined);
+          const managerTeamIds = toArray(
+            managerTeamsContainer?.Team as RawNode | RawNode[] | undefined
+          )
+            .map((teamNode) => parseNumberNode(teamNode.TeamId ?? teamNode.TeamID))
+            .filter((teamId): teamId is number => Boolean(teamId && teamId > 0));
+          const eligibleTeamIds =
+            managerTeamIds.length > 0
+              ? teamIds.filter((teamId) => managerTeamIds.includes(teamId))
+              : teamIds;
+          if (eligibleTeamIds.length === 0) return;
+
+          const snapshot: LastLoginSnapshot = {
+            latestLoginDateTime,
+            loginEvents,
+            fetchedAt: Date.now(),
+          };
+          eligibleTeamIds.forEach((teamId) => {
+            const previous = nextCache.teams[teamId]?.lastLogin?.current;
+            nextCache.teams[teamId] = {
+              ...nextCache.teams[teamId],
+              teamId,
+              teamName:
+                nextCache.teams[teamId]?.teamName ??
+                teams.find((entry) => entry.teamId === teamId)?.teamName ??
+                "",
+              lastLogin: {
+                current: snapshot,
+                previous,
+              },
+            };
+          });
+        } catch (error) {
+          if (isChppAuthRequiredError(error)) throw error;
+          // ignore manager compendium failures
+        }
+      }
+    );
   };
 
   const refreshArenaSnapshots = async (
@@ -5545,7 +5842,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     try {
       const nextCache = pruneChronicleCache(readChronicleCache());
       const nextManualTeams = [...manualTeams];
-      const stageCount = 6;
+      const stageCount = 7;
       const setStage = (
         stageIndex: number,
         status: string,
@@ -5576,11 +5873,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       );
       await refreshLeagueSnapshots(nextCache, teamsToRefresh);
 
-      setStage(2, messages.clubChronicleRefreshStatusArena, ["arena"]);
+      setStage(2, messages.clubChronicleRefreshStatusLastLogin, ["last-login"]);
+      await refreshLastLoginSnapshots(nextCache, teamsToRefresh);
+
+      setStage(3, messages.clubChronicleRefreshStatusArena, ["arena"]);
       await refreshArenaSnapshots(nextCache, teamsToRefresh);
 
       setStage(
-        3,
+        4,
         messages.clubChronicleRefreshStatusTransferFinance,
         ["finance-estimate", "transfer-market", "tsi", "wages"]
       );
@@ -5591,7 +5891,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       );
 
       setStage(
-        4,
+        5,
         messages.clubChronicleRefreshStatusFormations,
         ["formations-tactics", "likely-training"]
       );
@@ -5631,7 +5931,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         },
       });
 
-      setStage(5, messages.clubChronicleRefreshStatusFinalizing, [...PANEL_IDS]);
+      setStage(6, messages.clubChronicleRefreshStatusFinalizing, [...PANEL_IDS]);
       const baselineForDiff =
         globalBaselineCache ?? pruneChronicleCache(readChronicleCache());
       const nextUpdates = collectTeamChanges(
@@ -5645,6 +5945,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           "transfer",
           "formationsTactics",
           "likelyTraining",
+          "lastLogin",
           "tsi",
           "wages",
         ],
@@ -5769,6 +6070,38 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
     } finally {
       setRefreshingPress(false);
+      clearProgressIndicators();
+    }
+  };
+
+  const refreshLastLoginOnly = async () => {
+    if (anyRefreshing) return;
+    if (trackedTeams.length === 0) return;
+    setRefreshingLastLogin(true);
+    try {
+      setGlobalRefreshStatus(messages.clubChronicleRefreshStatusLastLogin);
+      setGlobalRefreshProgressPct(20);
+      setPanelProgress(["last-login"], 20);
+      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextManualTeams = [...manualTeams];
+      await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+      setGlobalRefreshProgressPct(50);
+      setPanelProgress(["last-login"], 50);
+      await refreshLeagueSnapshots(nextCache);
+      setGlobalRefreshProgressPct(80);
+      setPanelProgress(["last-login"], 80);
+      await refreshLastLoginSnapshots(nextCache);
+      setManualTeams(nextManualTeams);
+      setChronicleCache(nextCache);
+      setGlobalRefreshProgressPct(100);
+      setPanelProgress(["last-login"], 100);
+      addNotification(messages.notificationChronicleRefreshComplete);
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
+    } finally {
+      setRefreshingLastLogin(false);
       clearProgressIndicators();
     }
   };
@@ -6025,6 +6358,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         "transfer",
         "formationsTactics",
         "likelyTraining",
+        "lastLogin",
         "tsi",
         "wages",
       ],
@@ -6183,6 +6517,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       teamId: team.teamId,
       teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
       snapshot: cached?.wages?.current,
+    };
+  });
+
+  const lastLoginRows: LastLoginRow[] = trackedTeams.map((team) => {
+    const cached = chronicleCache.teams[team.teamId];
+    return {
+      teamId: team.teamId,
+      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+      snapshot: cached?.lastLogin?.current,
     };
   });
 
@@ -6432,6 +6775,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       .map((item) => item.row);
   }, [wagesRows, wagesTableColumns, wagesSortState]);
 
+  const sortedLastLoginRows = useMemo(() => {
+    if (!lastLoginSortState.key) return lastLoginRows;
+    const column = lastLoginTableColumns.find(
+      (item) => item.key === lastLoginSortState.key
+    );
+    if (!column) return lastLoginRows;
+    const direction = lastLoginSortState.direction === "desc" ? -1 : 1;
+    return [...lastLoginRows]
+      .map((row, index) => ({ row, index }))
+      .sort((left, right) => {
+        const leftValue = normalizeSortValue(
+          column.getSortValue?.(left.row.snapshot ?? undefined, left.row) ??
+            column.getValue(left.row.snapshot ?? undefined, left.row)
+        );
+        const rightValue = normalizeSortValue(
+          column.getSortValue?.(right.row.snapshot ?? undefined, right.row) ??
+            column.getValue(right.row.snapshot ?? undefined, right.row)
+        );
+        const result = compareSortValues(leftValue, rightValue);
+        if (result !== 0) return result * direction;
+        return left.index - right.index;
+      })
+      .map((item) => item.row);
+  }, [lastLoginRows, lastLoginTableColumns, lastLoginSortState]);
+
   const selectedTeam = selectedTeamId
     ? leagueRows.find((team) => team.teamId === selectedTeamId) ?? null
     : null;
@@ -6465,6 +6833,68 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const selectedWagesTeam = selectedWagesTeamId
     ? wagesRows.find((team) => team.teamId === selectedWagesTeamId) ?? null
     : null;
+  const selectedLastLoginTeam = selectedLastLoginTeamId
+    ? lastLoginRows.find((team) => team.teamId === selectedLastLoginTeamId) ?? null
+    : null;
+  const lastLoginDetailRows = useMemo(
+    () => {
+      const selectedTeamId = selectedLastLoginTeam?.teamId ?? 0;
+      return (selectedLastLoginTeam?.snapshot?.loginEvents ?? []).map((event, index) => {
+        const timestamp = parseLoginTimeToTimestamp(event.dateTime);
+        const formattedDateTime = formatLastLoginDateTime(event.dateTime);
+        const formattedAge = formatLastLoginAge(timestamp);
+        return {
+          id: `${selectedTeamId}-${event.raw}-${index}`,
+          dateTimeLabel:
+            formattedDateTime && formattedAge
+              ? `${formattedDateTime} (${formattedAge})`
+              : formattedDateTime ?? messages.unknownShort,
+          ipAddress: normalizeLastLoginIpAddress(event.ipAddress),
+          timestamp,
+        };
+      });
+    },
+    [
+      formatLastLoginAge,
+      formatLastLoginDateTime,
+      messages.unknownShort,
+      selectedLastLoginTeam,
+    ]
+  );
+  const lastLoginDetailsColumns = useMemo<
+    ChronicleTableColumn<
+      {
+        id: string;
+        dateTimeLabel: string;
+        ipAddress: string | null;
+        timestamp: number | null;
+      },
+      {
+        id: string;
+        dateTimeLabel: string;
+        ipAddress: string | null;
+        timestamp: number | null;
+      }
+    >[]
+  >(
+    () => [
+      {
+        key: "dateTime",
+        label: messages.clubChronicleLastLoginColumnLatest,
+        getValue: (snapshot) => snapshot?.dateTimeLabel ?? null,
+        getSortValue: (snapshot) => snapshot?.timestamp ?? null,
+      },
+      {
+        key: "ipAddress",
+        label: messages.clubChronicleLastLoginColumnIpAddress,
+        getValue: (snapshot) => snapshot?.ipAddress ?? null,
+      },
+    ],
+    [
+      messages.clubChronicleLastLoginColumnIpAddress,
+      messages.clubChronicleLastLoginColumnLatest,
+    ]
+  );
   const fanclubDetailsSnapshot = useMemo<FanclubDetailsSnapshot | null>(() => {
     const fanclub = selectedFanclubTeam?.fanclub;
     if (!fanclub) return null;
@@ -7247,6 +7677,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [wagesTableColumns.length]
   );
 
+  const lastLoginTableStyle = useMemo(
+    () =>
+      ({
+        "--cc-columns": lastLoginTableColumns.length,
+        "--cc-template": "minmax(180px, 1.4fr) minmax(180px, 1.1fr)",
+      }) as CSSProperties,
+    [lastLoginTableColumns.length]
+  );
+  const lastLoginDetailsTableStyle = useMemo(
+    () =>
+      ({
+        "--cc-columns": lastLoginDetailsColumns.length,
+        "--cc-template": "minmax(0, 2.4fr) minmax(0, 0.6fr)",
+      }) as CSSProperties,
+    [lastLoginDetailsColumns.length]
+  );
+
   const primaryChronicleTeamId = primaryTeam?.teamId ?? null;
   const getTeamRowClassName = useCallback(
     (row: { teamId: number }) =>
@@ -7547,6 +7994,64 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                         {messages.clubChronicleFinanceDisclaimer}
                       </p>
                     </>
+                  )}
+                </ChroniclePanel>
+              </div>
+            );
+          }
+          if (panelId === "last-login") {
+            return (
+              <div
+                key={panelId}
+                className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
+                onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDragEnter={(event) => handlePanelDragEnter(event, panelId)}
+                onDragLeave={(event) => handlePanelDragLeave(event, panelId)}
+                onDrop={(event) => handlePanelDrop(event, panelId)}
+                onPointerEnter={() => handlePanelPointerEnter(panelId)}
+                onPointerUp={() => handlePanelPointerUp(panelId)}
+                onDragEnd={handlePanelDragEnd}
+              >
+                <ChroniclePanel
+                  title={messages.clubChronicleLastLoginPanelTitle}
+                  refreshing={refreshingGlobal || refreshingLastLogin}
+                  progressPct={getPanelRefreshProgress(panelId)}
+                  refreshLabel={messages.clubChronicleRefreshLastLoginTooltip}
+                  panelId={panelId}
+                  onRefresh={() => void refreshLastLoginOnly()}
+                  onPointerDown={handlePanelPointerDown}
+                  onDragStart={handlePanelDragStart}
+                  onDragEnd={handlePanelDragEnd}
+                >
+                  {trackedTeams.length === 0 ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
+                    </p>
+                  ) : (refreshingGlobal || refreshingLastLogin) &&
+                    lastLoginRows.every((row) => !row.snapshot) ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleLoading}
+                    </p>
+                  ) : (
+                    <ChronicleTable
+                      columns={lastLoginTableColumns}
+                      rows={sortedLastLoginRows}
+                      getRowKey={(row) => row.teamId}
+                      getSnapshot={(row) => row.snapshot ?? undefined}
+                      getRowClassName={getTeamRowClassName}
+                      onRowClick={(row) => handleOpenLastLoginDetails(row.teamId)}
+                      formatValue={formatValue}
+                      style={lastLoginTableStyle}
+                      sortKey={lastLoginSortState.key}
+                      sortDirection={lastLoginSortState.direction}
+                      onSort={handleLastLoginSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) =>
+                        handleNoDivulgoDismiss(row.teamId)
+                      }
+                    />
                   )}
                 </ChroniclePanel>
               </div>
@@ -8359,6 +8864,55 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
         closeOnBackdrop
         onClose={() => setFanclubDetailsOpen(false)}
+      />
+
+      <Modal
+        open={lastLoginDetailsOpen}
+        title={messages.clubChronicleLastLoginDetailsTitle}
+        className={styles.chronicleLastLoginModal}
+        body={
+          selectedLastLoginTeam ? (
+            <div className={styles.chroniclePressContent}>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleColumnTeam}:{" "}
+                {renderTeamNameLink(
+                  selectedLastLoginTeam.teamId,
+                  selectedLastLoginTeam.teamName
+                )}
+              </p>
+              {lastLoginDetailRows.length ? (
+                <ChronicleTable
+                  columns={lastLoginDetailsColumns}
+                  rows={lastLoginDetailRows}
+                  getRowKey={(row) => row.id}
+                  getSnapshot={(row) => row}
+                  className={styles.chronicleLastLoginDetailsTable}
+                  formatValue={formatValue}
+                  style={lastLoginDetailsTableStyle}
+                />
+              ) : (
+                <p className={styles.chronicleEmpty}>
+                  {messages.clubChronicleLastLoginNoData}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className={styles.chronicleEmpty}>
+              {messages.clubChronicleLastLoginNoData}
+            </p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setLastLoginDetailsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setLastLoginDetailsOpen(false)}
       />
 
       <Modal

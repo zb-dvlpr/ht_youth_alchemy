@@ -39,6 +39,7 @@ import {
   ALGORITHM_SETTINGS_EVENT,
   ALGORITHM_SETTINGS_STORAGE_KEY,
   DEFAULT_YOUTH_STALENESS_HOURS,
+  LAST_REFRESH_STORAGE_KEY,
   readAllowTrainingUntilMaxedOut,
   readLastRefreshTimestamp,
   readYouthStalenessHours,
@@ -413,8 +414,8 @@ export default function Dashboard({
   const [stalenessHours, setStalenessHours] = useState(
     DEFAULT_YOUTH_STALENESS_HOURS
   );
-  const [lastGlobalRefreshAt, setLastGlobalRefreshAt] = useState<number | null>(() =>
-    readLastRefreshTimestamp()
+  const [lastGlobalRefreshAt, setLastGlobalRefreshAt] = useState<number | null>(
+    null
   );
   const [tacticType, setTacticType] = useState(7);
   const [restoredStorageKey, setRestoredStorageKey] = useState<string | null>(
@@ -923,12 +924,14 @@ export default function Dashboard({
     if (typeof window === "undefined") return;
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
     setStalenessHours(readYouthStalenessHours());
+    setLastGlobalRefreshAt(readLastRefreshTimestamp());
     const handle = (event: Event) => {
       if (event instanceof StorageEvent) {
         if (
           event.key &&
           event.key !== ALGORITHM_SETTINGS_STORAGE_KEY &&
-          event.key !== YOUTH_SETTINGS_STORAGE_KEY
+          event.key !== YOUTH_SETTINGS_STORAGE_KEY &&
+          event.key !== LAST_REFRESH_STORAGE_KEY
         ) {
           return;
         }
@@ -945,6 +948,7 @@ export default function Dashboard({
       }
       setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
       setStalenessHours(readYouthStalenessHours());
+      setLastGlobalRefreshAt(readLastRefreshTimestamp());
     };
     window.addEventListener("storage", handle);
     window.addEventListener(ALGORITHM_SETTINGS_EVENT, handle);

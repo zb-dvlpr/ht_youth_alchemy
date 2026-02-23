@@ -80,6 +80,8 @@ export const messagesDe: Messages = {
       "Versteckte Jugend-Spezialitaten werden jetzt aus vergangenen Match-Events erkannt und im Spielerbereich hervorgehoben.",
     changelog_2_19_0:
       "Die Club-Chronik zeigt jetzt die Datum/Uhrzeit der zuletzt abgeschlossenen globalen Aktualisierung im Kopfbereich an.",
+    changelog_2_20_0:
+      "Die Club-Chronik erhaelt ein Letzte-Anmeldungen-Panel mit Manager-Compendium-Daten, Tracking der letzten Anmeldung und detaillierter Login-Historie.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",

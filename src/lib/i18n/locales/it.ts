@@ -82,6 +82,8 @@ export const messagesIt: Messages = {
       "Le specialita nascoste dei giovani ora vengono rilevate dagli eventi delle partite passate e evidenziate nell interfaccia.",
     changelog_2_19_0:
       "La Cronaca del club ora mostra data e ora dell ultimo aggiornamento globale completato nell intestazione.",
+    changelog_2_20_0:
+      "La Cronaca del club aggiunge un pannello ultimi accessi con dati managercompendium, monitoraggio dell ultimo accesso e storico dettagliato dei login.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",

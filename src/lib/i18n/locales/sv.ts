@@ -80,6 +80,8 @@ export const messagesSv: Messages = {
       "Dolda ungdomsspecialiteter hittas nu via handelser i tidigare matcher och markeras i vyn.",
     changelog_2_19_0:
       "Klubbkronikan visar nu datum och tid for senaste slutforda globala uppdatering i rubriken.",
+    changelog_2_20_0:
+      "Klubbkronikan lagger till en panel for senaste inloggningar med managercompendium-data, spårning av senaste inloggning och detaljerad inloggningshistorik.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",

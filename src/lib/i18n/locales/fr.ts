@@ -82,6 +82,8 @@ export const messagesFr: Messages = {
       "Les specialites cachees des jeunes sont maintenant detectees via les evenements de match passes et mises en evidence.",
     changelog_2_19_0:
       "La Chronique du club affiche maintenant la date et l heure de la derniere actualisation globale terminee dans l en-tete.",
+    changelog_2_20_0:
+      "La Chronique du club ajoute un panneau des dernieres connexions avec les donnees managercompendium, le suivi de la derniere connexion et l historique detaille des connexions.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",

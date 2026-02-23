@@ -82,6 +82,8 @@ export const messagesPt: Messages = {
       "Especialidades juvenis ocultas agora sao descobertas por eventos de partidas passadas e destacadas na interface.",
     changelog_2_19_0:
       "A Cronica do clube agora mostra a data e hora da ultima atualizacao global concluida no cabecalho.",
+    changelog_2_20_0:
+      "A Cronica do clube adiciona um painel de ultimos logins com dados do managercompendium, rastreamento do ultimo login e historico detalhado de acessos.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",

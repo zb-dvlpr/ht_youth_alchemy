@@ -71,6 +71,7 @@ export type Messages = {
   changelog_2_17_0: string;
   changelog_2_18_0: string;
   changelog_2_19_0: string;
+  changelog_2_20_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;

@@ -71,6 +71,7 @@ export const messagesEn: Messages = {
     changelog_2_17_0: "Youth player-list refresh now shows step-by-step status with per-match progress for past-match ratings fetch.",
     changelog_2_18_0: "Hidden youth specialties are now discovered from past match events and highlighted across player list and matrices.",
     changelog_2_19_0: "Club Chronicle now shows the last completed global refresh datetime in the header.",
+    changelog_2_20_0: "Club Chronicle adds a last-logins panel with manager-compendium data, latest-login tracking, and detailed login history.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",

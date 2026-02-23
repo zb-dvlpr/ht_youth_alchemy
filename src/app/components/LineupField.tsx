@@ -33,8 +33,6 @@ export type OptimizeMode =
   | "star"
   | "ratings"
   | "revealPrimaryCurrent"
-  | "revealPrimaryMax"
-  | "revealSecondaryCurrent"
   | "revealSecondaryMax";
 
 type LineupFieldProps = {
@@ -398,20 +396,6 @@ export default function LineupField({
                     onClick={() => handleOptimizeSelect("revealPrimaryCurrent")}
                   >
                     {messages.optimizeMenuRevealPrimaryCurrent}
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                    onClick={() => handleOptimizeSelect("revealPrimaryMax")}
-                  >
-                    {messages.optimizeMenuRevealPrimaryMax}
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                    onClick={() => handleOptimizeSelect("revealSecondaryCurrent")}
-                  >
-                    {messages.optimizeMenuRevealSecondaryCurrent}
                   </button>
                   <button
                     type="button"

@@ -27,8 +27,6 @@ import {
   optimizeLineupForStar,
   optimizeByRatings,
   optimizeRevealPrimaryCurrent,
-  optimizeRevealPrimaryMax,
-  optimizeRevealSecondaryCurrent,
   optimizeRevealSecondaryMax,
   buildSkillRanking,
   type OptimizerPlayer,
@@ -1757,8 +1755,6 @@ export default function Dashboard({
     }
     if (
       mode !== "revealPrimaryCurrent" &&
-      mode !== "revealPrimaryMax" &&
-      mode !== "revealSecondaryCurrent" &&
       mode !== "revealSecondaryMax"
     ) {
       return;
@@ -1768,13 +1764,7 @@ export default function Dashboard({
       !isTrainingSkill(primaryTraining) ||
       !isTrainingSkill(secondaryTraining)
     ) {
-      if (mode === "revealPrimaryMax") {
-        setOptimizeErrorMessage(messages.optimizeRevealPrimaryMaxUnavailable);
-      } else if (mode === "revealSecondaryCurrent") {
-        setOptimizeErrorMessage(
-          messages.optimizeRevealSecondaryCurrentUnavailable
-        );
-      } else if (mode === "revealSecondaryMax") {
+      if (mode === "revealSecondaryMax") {
         setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
       } else {
         setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
@@ -1806,26 +1796,8 @@ export default function Dashboard({
     }));
 
     const result =
-      mode === "revealPrimaryMax"
-        ? optimizeRevealPrimaryMax(
-            optimizerPlayers,
-            starPlayerId,
-            primaryTraining,
-            secondaryTraining,
-            autoSelectionApplied,
-            trainingPreferences
-          )
-        : mode === "revealSecondaryMax"
+      mode === "revealSecondaryMax"
         ? optimizeRevealSecondaryMax(
-            optimizerPlayers,
-            starPlayerId,
-            primaryTraining,
-            secondaryTraining,
-            autoSelectionApplied,
-            trainingPreferences
-          )
-        : mode === "revealSecondaryCurrent"
-        ? optimizeRevealSecondaryCurrent(
             optimizerPlayers,
             starPlayerId,
             primaryTraining,
@@ -1847,29 +1819,13 @@ export default function Dashboard({
       return;
     }
 
-    if (result.error === "primary_max_known") {
-      setOptimizeErrorMessage(messages.optimizeRevealPrimaryMaxKnown);
-      return;
-    }
-
-    if (result.error === "secondary_current_known") {
-      setOptimizeErrorMessage(messages.optimizeRevealSecondaryCurrentKnown);
-      return;
-    }
-
     if (result.error === "secondary_max_known") {
       setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxKnown);
       return;
     }
 
     if (result.error) {
-      if (mode === "revealPrimaryMax") {
-        setOptimizeErrorMessage(messages.optimizeRevealPrimaryMaxUnavailable);
-      } else if (mode === "revealSecondaryCurrent") {
-        setOptimizeErrorMessage(
-          messages.optimizeRevealSecondaryCurrentUnavailable
-        );
-      } else if (mode === "revealSecondaryMax") {
+      if (mode === "revealSecondaryMax") {
         setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
       } else {
         setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);

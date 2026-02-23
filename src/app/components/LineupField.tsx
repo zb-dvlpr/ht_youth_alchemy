@@ -53,6 +53,9 @@ type LineupFieldProps = {
   optimizeDisabled?: boolean;
   optimizeDisabledReason?: string;
   forceOptimizeOpen?: boolean;
+  optimizeStarPlayerName?: string;
+  optimizePrimaryTrainingName?: string;
+  optimizeSecondaryTrainingName?: string;
   trainedSlots?: {
     primary: Set<string>;
     secondary: Set<string>;
@@ -240,6 +243,9 @@ export default function LineupField({
   optimizeDisabled = false,
   optimizeDisabledReason,
   forceOptimizeOpen = false,
+  optimizeStarPlayerName,
+  optimizePrimaryTrainingName,
+  optimizeSecondaryTrainingName,
   trainedSlots,
   onHoverPlayer,
   onSelectPlayer,
@@ -264,6 +270,24 @@ export default function LineupField({
   }, [optimizeOpen, forceOptimizeOpen]);
 
   const menuOpen = forceOptimizeOpen || optimizeOpen;
+  const revealPlayerLabel = optimizeStarPlayerName ?? messages.unknownShort;
+  const revealPrimaryLabel = optimizePrimaryTrainingName ?? messages.trainingUnset;
+  const revealSecondaryLabel =
+    optimizeSecondaryTrainingName ?? messages.trainingUnset;
+  const revealPrimaryLabelLower = revealPrimaryLabel.toLocaleLowerCase();
+  const revealSecondaryLabelLower = revealSecondaryLabel.toLocaleLowerCase();
+  const optimizeStarLabel = messages.optimizeMenuStar.replace(
+    "{{player}}",
+    revealPlayerLabel
+  );
+  const revealPrimaryCurrentLabel = messages.optimizeMenuRevealPrimaryCurrent
+    .replace("{{player}}", revealPlayerLabel)
+    .replace("{{training}}", revealPrimaryLabel)
+    .replace("{{trainingLower}}", revealPrimaryLabelLower);
+  const revealSecondaryMaxLabel = messages.optimizeMenuRevealSecondaryMax
+    .replace("{{player}}", revealPlayerLabel)
+    .replace("{{training}}", revealSecondaryLabel)
+    .replace("{{trainingLower}}", revealSecondaryLabelLower);
 
   const handleOptimizeSelect = (mode: OptimizeMode) => {
     if (!forceOptimizeOpen) {
@@ -381,7 +405,7 @@ export default function LineupField({
                     className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
                     onClick={() => handleOptimizeSelect("star")}
                   >
-                    {messages.optimizeMenuStar}
+                    {optimizeStarLabel}
                   </button>
                   <button
                     type="button"
@@ -395,14 +419,14 @@ export default function LineupField({
                     className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
                     onClick={() => handleOptimizeSelect("revealPrimaryCurrent")}
                   >
-                    {messages.optimizeMenuRevealPrimaryCurrent}
+                    {revealPrimaryCurrentLabel}
                   </button>
                   <button
                     type="button"
                     className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
                     onClick={() => handleOptimizeSelect("revealSecondaryMax")}
                   >
-                    {messages.optimizeMenuRevealSecondaryMax}
+                    {revealSecondaryMaxLabel}
                   </button>
                 </div>
               ) : null}

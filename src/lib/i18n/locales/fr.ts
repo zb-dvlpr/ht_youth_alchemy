@@ -441,16 +441,16 @@ export const messagesFr: Messages = {
     randomizeLineup: "Composition aléatoire",
     resetLineup: "Réinitialiser la composition",
     optimizeLineupTitle: "Optimiser la composition",
-    optimizeMenuStar: "Optimiser autour du joueur star",
+    optimizeMenuStar: "Optimiser autour de {{player}}",
     optimizeMenuRatings: "Optimiser par notes",
     optimizeMenuRevealPrimaryCurrent:
-      "Révéler val. act. prim. du joueur star",
+      "Révéler la valeur actuelle de {{trainingLower}} pour {{player}}",
     optimizeMenuRevealPrimaryMax:
       "Révéler val. max. prim. du joueur star",
     optimizeMenuRevealSecondaryCurrent:
       "Révéler val. act. sec. du joueur star",
     optimizeMenuRevealSecondaryMax:
-      "Révéler val. max. sec. du joueur star",
+      "Révéler la valeur max de {{trainingLower}} pour {{player}}",
     optimizeRevealPrimaryCurrentKnown:
       "Révélation indisponible : valeur primaire actuelle déjà connue.",
     optimizeRevealPrimaryCurrentUnavailable:

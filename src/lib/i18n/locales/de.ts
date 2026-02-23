@@ -432,12 +432,14 @@ export const messagesDe: Messages = {
     randomizeLineup: "Zufällige Aufstellung",
     resetLineup: "Aufstellung zurücksetzen",
     optimizeLineupTitle: "Aufstellung optimieren",
-    optimizeMenuStar: "Um Starspieler optimieren",
+    optimizeMenuStar: "Um {{player}} optimieren",
     optimizeMenuRatings: "Nach Bewertungen optimieren",
-    optimizeMenuRevealPrimaryCurrent: "Starspieler Primärwert akt. aufdecken",
+    optimizeMenuRevealPrimaryCurrent:
+      "{{player}}: aktuellen {{training}}-Wert aufdecken",
     optimizeMenuRevealPrimaryMax: "Starspieler Primärwert max. aufdecken",
     optimizeMenuRevealSecondaryCurrent: "Starspieler Sekundärwert akt. aufdecken",
-    optimizeMenuRevealSecondaryMax: "Starspieler Sekundärwert max. aufdecken",
+    optimizeMenuRevealSecondaryMax:
+      "{{player}}: maximalen {{training}}-Wert aufdecken",
     optimizeRevealPrimaryCurrentKnown:
       "Primärwert aufdecken nicht verfügbar: Primärwert des Stars ist bekannt.",
     optimizeRevealPrimaryCurrentUnavailable:

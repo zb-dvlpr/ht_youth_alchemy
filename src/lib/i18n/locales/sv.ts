@@ -433,12 +433,14 @@ export const messagesSv: Messages = {
     randomizeLineup: "Slumpa uppställning",
     resetLineup: "Återställ uppställning",
     optimizeLineupTitle: "Optimera uppställning",
-    optimizeMenuStar: "Optimera runt stjärnspelaren",
+    optimizeMenuStar: "Optimera runt {{player}}",
     optimizeMenuRatings: "Optimera efter betyg",
-    optimizeMenuRevealPrimaryCurrent: "Avslöja stjärnans primärvärde (akt.)",
+    optimizeMenuRevealPrimaryCurrent:
+      "Avslöja {{player}}s nuvarande värde i {{trainingLower}}",
     optimizeMenuRevealPrimaryMax: "Avslöja stjärnans primärvärde (max.)",
     optimizeMenuRevealSecondaryCurrent: "Avslöja stjärnans sekundärvärde (akt.)",
-    optimizeMenuRevealSecondaryMax: "Avslöja stjärnans sekundärvärde (max.)",
+    optimizeMenuRevealSecondaryMax:
+      "Avslöja {{player}}s maxvärde i {{trainingLower}}",
     optimizeRevealPrimaryCurrentKnown:
       "Avslöjande ej tillgängligt: stjärnans primärvärde är redan känt.",
     optimizeRevealPrimaryCurrentUnavailable:

@@ -2623,6 +2623,15 @@ export default function Dashboard({
     .replace("{{secondary}}", trainingLabel(secondaryTraining))
     .replace("{{captain}}", captainName)
     .replace("{{tactic}}", tacticLabelForValue(tacticType));
+  const optimizeStarPlayerName = starPlayerId
+    ? formatPlayerName(playersById.get(starPlayerId) ?? ({} as YouthPlayer))
+    : messages.unknownShort;
+  const optimizePrimaryTrainingName = isTrainingSkill(primaryTraining)
+    ? trainingLabel(primaryTraining)
+    : messages.trainingUnset;
+  const optimizeSecondaryTrainingName = isTrainingSkill(secondaryTraining)
+    ? trainingLabel(secondaryTraining)
+    : messages.trainingUnset;
 
   const trainingSlots = useMemo(() => {
     if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
@@ -3067,6 +3076,9 @@ export default function Dashboard({
           optimizeDisabled={!manualReady}
           optimizeDisabledReason={optimizeDisabledReason}
           forceOptimizeOpen={showHelp}
+          optimizeStarPlayerName={optimizeStarPlayerName}
+          optimizePrimaryTrainingName={optimizePrimaryTrainingName}
+          optimizeSecondaryTrainingName={optimizeSecondaryTrainingName}
           trainedSlots={trainingSlots}
           onHoverPlayer={ensureDetails}
           onSelectPlayer={handleSelect}

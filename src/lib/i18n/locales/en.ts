@@ -414,12 +414,14 @@ export const messagesEn: Messages = {
     randomizeLineup: "Random lineup",
     resetLineup: "Reset lineup",
     optimizeLineupTitle: "Optimize lineup",
-    optimizeMenuStar: "Optimize around star player",
+    optimizeMenuStar: "Optimize around {{player}}",
     optimizeMenuRatings: "Optimize by ratings",
-    optimizeMenuRevealPrimaryCurrent: "Reveal star player pri. curr. value",
+    optimizeMenuRevealPrimaryCurrent:
+      "Reveal {{player}}'s {{trainingLower}} current value",
     optimizeMenuRevealPrimaryMax: "Reveal star player pri. max. value",
     optimizeMenuRevealSecondaryCurrent: "Reveal star player sec. curr. value",
-    optimizeMenuRevealSecondaryMax: "Reveal star player sec. max. value",
+    optimizeMenuRevealSecondaryMax:
+      "Reveal {{player}}'s {{trainingLower}} max value",
     optimizeRevealPrimaryCurrentKnown:
       "Reveal primary current unavailable: star primary current already known.",
     optimizeRevealPrimaryCurrentUnavailable:

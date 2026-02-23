@@ -440,12 +440,14 @@ export const messagesEs: Messages = {
     randomizeLineup: "Alineación aleatoria",
     resetLineup: "Restablecer alineación",
     optimizeLineupTitle: "Optimizar alineación",
-    optimizeMenuStar: "Optimizar alrededor del jugador estrella",
+    optimizeMenuStar: "Optimizar alrededor de {{player}}",
     optimizeMenuRatings: "Optimizar por valoraciones",
-    optimizeMenuRevealPrimaryCurrent: "Revelar val. act. prim. del estrella",
+    optimizeMenuRevealPrimaryCurrent:
+      "Revelar valor actual de {{trainingLower}} de {{player}}",
     optimizeMenuRevealPrimaryMax: "Revelar val. máx. prim. del estrella",
     optimizeMenuRevealSecondaryCurrent: "Revelar val. act. sec. del estrella",
-    optimizeMenuRevealSecondaryMax: "Revelar val. máx. sec. del estrella",
+    optimizeMenuRevealSecondaryMax:
+      "Revelar valor máx. de {{trainingLower}} de {{player}}",
     optimizeRevealPrimaryCurrentKnown:
       "Revelar primario actual no disponible: ya se conoce.",
     optimizeRevealPrimaryCurrentUnavailable:

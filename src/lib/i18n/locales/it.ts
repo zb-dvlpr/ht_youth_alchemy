@@ -441,12 +441,14 @@ export const messagesIt: Messages = {
     randomizeLineup: "Formazione casuale",
     resetLineup: "Reimposta formazione",
     optimizeLineupTitle: "Ottimizza formazione",
-    optimizeMenuStar: "Ottimizza attorno al giocatore stella",
+    optimizeMenuStar: "Ottimizza attorno a {{player}}",
     optimizeMenuRatings: "Ottimizza per valutazioni",
-    optimizeMenuRevealPrimaryCurrent: "Rivela val. attuale prim. stella",
+    optimizeMenuRevealPrimaryCurrent:
+      "Rivela valore attuale di {{trainingLower}} di {{player}}",
     optimizeMenuRevealPrimaryMax: "Rivela val. max. prim. stella",
     optimizeMenuRevealSecondaryCurrent: "Rivela val. attuale sec. stella",
-    optimizeMenuRevealSecondaryMax: "Rivela val. max. sec. stella",
+    optimizeMenuRevealSecondaryMax:
+      "Rivela valore max di {{trainingLower}} di {{player}}",
     optimizeRevealPrimaryCurrentKnown:
       "Rivelazione non disponibile: valore primario già noto.",
     optimizeRevealPrimaryCurrentUnavailable:

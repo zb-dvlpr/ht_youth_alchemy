@@ -440,12 +440,14 @@ export const messagesPt: Messages = {
     randomizeLineup: "Escalação aleatória",
     resetLineup: "Redefinir escalação",
     optimizeLineupTitle: "Otimizar escalação",
-    optimizeMenuStar: "Otimizar em torno do jogador estrela",
+    optimizeMenuStar: "Otimizar em torno de {{player}}",
     optimizeMenuRatings: "Otimizar por avaliações",
-    optimizeMenuRevealPrimaryCurrent: "Revelar val. atual prim. da estrela",
+    optimizeMenuRevealPrimaryCurrent:
+      "Revelar valor atual de {{trainingLower}} de {{player}}",
     optimizeMenuRevealPrimaryMax: "Revelar val. máx. prim. da estrela",
     optimizeMenuRevealSecondaryCurrent: "Revelar val. atual sec. da estrela",
-    optimizeMenuRevealSecondaryMax: "Revelar val. máx. sec. da estrela",
+    optimizeMenuRevealSecondaryMax:
+      "Revelar valor máx. de {{trainingLower}} de {{player}}",
     optimizeRevealPrimaryCurrentKnown:
       "Revelação indisponível: valor primário já conhecido.",
     optimizeRevealPrimaryCurrentUnavailable:

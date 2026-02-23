@@ -80,32 +80,6 @@ type PlayerDetailsPanelProps = {
 
 const MAX_SKILL_LEVEL = 8;
 
-const SKILL_NAMES = [
-  "non-existent",
-  "disastrous",
-  "wretched",
-  "poor",
-  "weak",
-  "inadequate",
-  "passable",
-  "solid",
-  "excellent",
-  "formidable",
-  "outstanding",
-  "brilliant",
-  "magnificent",
-  "world class",
-  "supernatural",
-  "titanic",
-  "extra-terrestrial",
-  "mythical",
-  "magical",
-  "utopian",
-  "divine",
-];
-
- 
-
 const SKILL_ROWS = [
   {
     key: "KeeperSkill",
@@ -151,13 +125,6 @@ const SKILL_ROWS = [
   },
 ];
 
-function formatPlayerName(player?: YouthPlayer | null) {
-  if (!player) return "";
-  return [player.FirstName, player.NickName || null, player.LastName]
-    .filter(Boolean)
-    .join(" ");
-}
-
 function getSkillLevel(skill?: SkillValue | number | string | null): number | null {
   if (!skill) return null;
   if (typeof skill === "number") return skill;
@@ -182,11 +149,6 @@ function getSkillMax(skill?: SkillValue | number | string | null): number | null
   if (skill["#text"] === undefined || skill["#text"] === null) return null;
   const numeric = Number(skill["#text"]);
   return Number.isNaN(numeric) ? null : numeric;
-}
-
-function getSkillName(level: number | null) {
-  if (level === null) return "unknown";
-  return SKILL_NAMES[level] ?? `level ${level}`;
 }
 
 function skillCellColor(value: number | null) {

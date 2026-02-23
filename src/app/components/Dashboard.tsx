@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps */
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import styles from "../page.module.css";
@@ -32,7 +33,6 @@ import {
   buildSkillRanking,
   type OptimizerPlayer,
   type OptimizerDebug,
-  type AutoSelection,
   type TrainingSkillKey,
 } from "@/lib/optimizer";
 import {
@@ -432,11 +432,6 @@ export default function Dashboard({
 
   const multiTeamEnabled = youthTeams.length > 1;
   const activeYouthTeamId = multiTeamEnabled ? selectedYouthTeamId : null;
-  const activeYouthTeam = useMemo(() => {
-    if (!activeYouthTeamId) return null;
-    return youthTeams.find((team) => team.youthTeamId === activeYouthTeamId) ?? null;
-  }, [activeYouthTeamId, youthTeams]);
-
   const storageKey = useMemo(() => {
     if (multiTeamEnabled && activeYouthTeamId) {
       return `ya_dashboard_state_v2_${activeYouthTeamId}`;

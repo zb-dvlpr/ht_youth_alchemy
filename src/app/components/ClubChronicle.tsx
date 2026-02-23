@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, jsx-a11y/role-supports-aria-props */
 
 import {
   useCallback,

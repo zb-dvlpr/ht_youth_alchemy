@@ -303,11 +303,6 @@ function slotTrainingSkills(
   return skills;
 }
 
-function allSkillsMaxed(player: OptimizerPlayer, skills: SkillKey[]) {
-  if (!skills.length) return false;
-  return skills.every((skill) => isMaxReached(player, skill));
-}
-
 function capSecondarySlots(
   primarySlots: Set<(typeof ALL_SLOTS)[number]>,
   secondarySlots: Set<(typeof ALL_SLOTS)[number]>
@@ -732,27 +727,6 @@ export function buildSkillRanking(
 
   const ordered = [...cat1, ...cat4, ...cat3, ...cat2, ...dontCare, ...maxed];
   return { ordered, debug: ordered };
-}
-
-function slotSkillScore(
-  player: OptimizerPlayer,
-  slot: (typeof ALL_SLOTS)[number],
-  primary: SkillKey,
-  secondary: SkillKey
-) {
-  const role = ROLE_BY_SLOT[slot];
-  const primaryTrained = (ROLE_EFFECTS[primary][role] ?? 0) > 0;
-  const secondaryTrained = (ROLE_EFFECTS[secondary][role] ?? 0) > 0;
-  if (!primaryTrained && !secondaryTrained) return 0;
-  if (primaryTrained && secondaryTrained) {
-    return Math.max(
-      skillPotential(player, primary),
-      skillPotential(player, secondary)
-    );
-  }
-  return primaryTrained
-    ? skillPotential(player, primary)
-    : skillPotential(player, secondary);
 }
 
 function skillPotential(player: OptimizerPlayer, skill: SkillKey) {
@@ -1946,34 +1920,6 @@ export function optimizeByRatings(
     [starSlot]: starPlayer.id,
   };
   const usedPlayers = new Set<number>([starPlayer.id]);
-
-  const pickBestByRating = (slot: (typeof ALL_SLOTS)[number]) => {
-    const skills = slotTrainingSkills(slot, primary, secondary);
-    const candidates = players.filter(
-      (player) =>
-        !usedPlayers.has(player.id) && !allSkillsMaxed(player, skills)
-    );
-    candidates.sort((a, b) => {
-      const aTier = trainingPriorityTier(
-        a,
-        skills,
-        allowTrainingUntilMaxedOut
-      );
-      const bTier = trainingPriorityTier(
-        b,
-        skills,
-        allowTrainingUntilMaxedOut
-      );
-      if (aTier !== bTier) return aTier - bTier;
-      const aRating = ratingForSlot(ratingsByPlayer, a.id, slot);
-      const bRating = ratingForSlot(ratingsByPlayer, b.id, slot);
-      if (aRating === null && bRating === null) return 0;
-      if (aRating === null) return 1;
-      if (bRating === null) return -1;
-      return bRating - aRating;
-    });
-    return candidates[0] ?? null;
-  };
 
   const fillSlotsWithSlotRatings = (
     slots: (typeof ALL_SLOTS)[number][],

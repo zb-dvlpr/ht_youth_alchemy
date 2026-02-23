@@ -90,8 +90,11 @@ export default function RatingsMatrix({
   onOrderChange,
   onSortStart,
 }: RatingsMatrixProps) {
-  const players = response?.players ?? [];
-  const positions = uniquePositions(response?.positions);
+  const players = useMemo(() => response?.players ?? [], [response?.players]);
+  const positions = useMemo(
+    () => uniquePositions(response?.positions),
+    [response?.positions]
+  );
   const [sortKey, setSortKey] = useState<number | "name" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const pendingSortRef = useRef(false);

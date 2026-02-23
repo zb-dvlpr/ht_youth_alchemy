@@ -32,7 +32,6 @@ export default function ThemeToggle({ messages }: ThemeToggleProps) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMode(nextMode);
     document.documentElement.dataset.theme = nextMode;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 

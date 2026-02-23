@@ -2674,6 +2674,10 @@ export default function Dashboard({
       return {
         primary: new Set<string>(),
         secondary: new Set<string>(),
+        primaryFull: new Set<string>(),
+        primaryHalf: new Set<string>(),
+        secondaryFull: new Set<string>(),
+        secondaryHalf: new Set<string>(),
         all: new Set<string>(),
       };
     }
@@ -2681,6 +2685,10 @@ export default function Dashboard({
     return {
       primary: slots.primarySlots,
       secondary: slots.secondarySlots,
+      primaryFull: slots.primaryFullSlots,
+      primaryHalf: slots.primaryHalfSlots,
+      secondaryFull: slots.secondaryFullSlots,
+      secondaryHalf: slots.secondaryHalfSlots,
       all: slots.allSlots,
     };
   }, [primaryTraining, secondaryTraining]);

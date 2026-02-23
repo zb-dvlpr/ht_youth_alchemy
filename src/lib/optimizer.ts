@@ -364,25 +364,52 @@ function trainingSlotSet(primary: SkillKey, secondary: SkillKey) {
 }
 
 export function getTrainingSlots(primary: SkillKey | null, secondary: SkillKey | null) {
+  const slotsForSkillByIntensity = (skill: SkillKey, intensity: 1 | 0.5) => {
+    const slots = new Set<(typeof ALL_SLOTS)[number]>();
+    ALL_SLOTS.forEach((slot) => {
+      const role = ROLE_BY_SLOT[slot];
+      if ((ROLE_EFFECTS[skill][role] ?? 0) === intensity) {
+        slots.add(slot);
+      }
+    });
+    return slots;
+  };
+
   if (!primary) {
     return {
       primarySlots: new Set<(typeof ALL_SLOTS)[number]>(),
       secondarySlots: new Set<(typeof ALL_SLOTS)[number]>(),
+      primaryFullSlots: new Set<(typeof ALL_SLOTS)[number]>(),
+      primaryHalfSlots: new Set<(typeof ALL_SLOTS)[number]>(),
+      secondaryFullSlots: new Set<(typeof ALL_SLOTS)[number]>(),
+      secondaryHalfSlots: new Set<(typeof ALL_SLOTS)[number]>(),
       allSlots: new Set<(typeof ALL_SLOTS)[number]>(),
     };
   }
   const primarySlots = slotsForSkill(primary);
+  const primaryFullSlots = slotsForSkillByIntensity(primary, 1);
+  const primaryHalfSlots = slotsForSkillByIntensity(primary, 0.5);
   if (!secondary || secondary === primary) {
     return {
       primarySlots,
       secondarySlots: new Set(primarySlots),
+      primaryFullSlots,
+      primaryHalfSlots,
+      secondaryFullSlots: new Set(primaryFullSlots),
+      secondaryHalfSlots: new Set(primaryHalfSlots),
       allSlots: new Set(primarySlots),
     };
   }
   const secondarySlots = slotsForSkill(secondary);
+  const secondaryFullSlots = slotsForSkillByIntensity(secondary, 1);
+  const secondaryHalfSlots = slotsForSkillByIntensity(secondary, 0.5);
   return {
     primarySlots,
     secondarySlots,
+    primaryFullSlots,
+    primaryHalfSlots,
+    secondaryFullSlots,
+    secondaryHalfSlots,
     allSlots: new Set<(typeof ALL_SLOTS)[number]>([
       ...primarySlots,
       ...secondarySlots,

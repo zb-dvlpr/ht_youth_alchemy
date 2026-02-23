@@ -4009,50 +4009,47 @@ html[data-theme="dark"] .spinner {
 }
 
 .trainedSlot {
-  border-color: rgba(245, 214, 94, 0.55);
-  box-shadow: inset 0 0 0 1px rgba(245, 214, 94, 0.35);
+  border-color: rgba(245, 214, 94, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(245, 214, 94, 0.2);
 }
 
-.trainedPrimary {
-  animation: trainingPulse 2.2s ease-in-out infinite;
-}
-
-.trainedSecondary {
+.trainedPrimaryFull {
+  border-color: #ffd84d;
   box-shadow:
-    inset 0 0 0 1px rgba(171, 202, 255, 0.4),
-    0 0 8px rgba(171, 202, 255, 0.2);
+    inset 0 0 0 1px rgba(255, 216, 77, 0.9),
+    0 0 10px rgba(255, 216, 77, 0.5);
 }
 
-.trainingTag {
-  position: absolute;
-  bottom: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 10px;
-  line-height: 1;
-  color: rgba(247, 241, 227, 0.9);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  max-width: calc(100% - 8px);
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  pointer-events: none;
+.trainedSecondaryFull {
+  border-color: rgba(255, 216, 77, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(255, 216, 77, 0.24);
 }
 
-@keyframes trainingPulse {
-  0% {
-    box-shadow: inset 0 0 0 1px rgba(245, 214, 94, 0.35);
-  }
-  50% {
-    box-shadow:
-      inset 0 0 0 1px rgba(245, 214, 94, 0.6),
-      0 0 10px rgba(245, 214, 94, 0.35);
-  }
-  100% {
-    box-shadow: inset 0 0 0 1px rgba(245, 214, 94, 0.35);
-  }
+.trainedBothFull {
+  border-color: #ffd84d;
+  outline: 2px solid rgba(255, 216, 77, 0.38);
+  outline-offset: 2px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 216, 77, 0.92),
+    0 0 10px rgba(255, 216, 77, 0.5);
+}
+
+.trainedHalf {
+  border-style: dashed;
+  border-color: rgba(255, 216, 77, 0.62);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 216, 77, 0.36),
+    0 0 5px rgba(255, 216, 77, 0.18);
+}
+
+.trainedBothHalf {
+  border-style: dashed;
+  border-color: #ffd84d;
+  outline: 2px dashed rgba(255, 216, 77, 0.35);
+  outline-offset: 2px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 216, 77, 0.82),
+    0 0 7px rgba(255, 216, 77, 0.3);
 }
 
 .dragGhost {

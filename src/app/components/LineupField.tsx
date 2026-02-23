@@ -58,6 +58,10 @@ type LineupFieldProps = {
   trainedSlots?: {
     primary: Set<string>;
     secondary: Set<string>;
+    primaryFull: Set<string>;
+    primaryHalf: Set<string>;
+    secondaryFull: Set<string>;
+    secondaryHalf: Set<string>;
     all: Set<string>;
   };
   onHoverPlayer?: (playerId: number) => void;
@@ -435,17 +439,25 @@ export default function LineupField({
           >
             {row.positions.map((position) => {
               const assignedId = assignments[position.id] ?? null;
-              const isPrimaryTrained = trainedSlots?.primary?.has(position.id) ?? false;
-              const isSecondaryTrained =
-                trainedSlots?.secondary?.has(position.id) ?? false;
               const isTrained = trainedSlots?.all?.has(position.id) ?? false;
-              const trainingLabel = isPrimaryTrained && isSecondaryTrained
-                ? messages.trainingSlotBoth
-                : isPrimaryTrained
-                ? messages.trainingSlotPrimary
-                : isSecondaryTrained
-                ? messages.trainingSlotSecondary
-                : null;
+              const isPrimaryFull =
+                trainedSlots?.primaryFull?.has(position.id) ?? false;
+              const isSecondaryFull =
+                trainedSlots?.secondaryFull?.has(position.id) ?? false;
+              const isPrimaryHalf =
+                trainedSlots?.primaryHalf?.has(position.id) ?? false;
+              const isSecondaryHalf =
+                trainedSlots?.secondaryHalf?.has(position.id) ?? false;
+              const isHalfOnly =
+                !isPrimaryFull &&
+                !isSecondaryFull &&
+                (isPrimaryHalf || isSecondaryHalf) &&
+                !(isPrimaryHalf && isSecondaryHalf);
+              const isBothHalf =
+                !isPrimaryFull && !isSecondaryFull && isPrimaryHalf && isSecondaryHalf;
+              const isBothFull = isPrimaryFull && isSecondaryFull;
+              const isPrimaryOnlyFull = isPrimaryFull && !isSecondaryFull;
+              const isSecondaryOnlyFull = isSecondaryFull && !isPrimaryFull;
               const assignedPlayer = assignedId
                 ? playersById.get(assignedId) ?? null
                 : null;
@@ -470,8 +482,12 @@ export default function LineupField({
                   key={position.id}
                   className={`${styles.fieldSlot} ${
                     isTrained ? styles.trainedSlot : ""
-                  } ${isPrimaryTrained ? styles.trainedPrimary : ""} ${
-                    isSecondaryTrained ? styles.trainedSecondary : ""
+                  } ${isBothFull ? styles.trainedBothFull : ""} ${
+                    isPrimaryOnlyFull ? styles.trainedPrimaryFull : ""
+                  } ${isSecondaryOnlyFull ? styles.trainedSecondaryFull : ""} ${
+                    isBothHalf ? styles.trainedBothHalf : ""
+                  } ${
+                    isHalfOnly ? styles.trainedHalf : ""
                   } ${behaviorValue ? styles.fieldSlotHasBehavior : ""}`}
                   onDrop={(event) => handleDrop(position.id, event)}
                   onDragOver={handleDragOver}
@@ -642,9 +658,6 @@ export default function LineupField({
                         </button>
                       </div>
                     </Tooltip>
-                  ) : null}
-                  {trainingLabel ? (
-                    <span className={styles.trainingTag}>{trainingLabel}</span>
                   ) : null}
                 </div>
               );

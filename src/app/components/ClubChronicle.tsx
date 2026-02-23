@@ -3671,6 +3671,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       } else if (
         fieldKey.startsWith("wages.") ||
         fieldKey.startsWith("tsi.") ||
+        fieldKey === "team.playerCount" ||
         fieldKey === "transfer.active" ||
         fieldKey === "transfer.listed"
       ) {
@@ -3829,6 +3830,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         return messages.clubChronicleWagesColumnTop11;
       case "wages.injury":
         return messages.clubChronicleWagesInjuryColumn;
+      case "team.playerCount":
+        return messages.clubChroniclePlayersCount;
       default:
         return fallbackLabel;
     }
@@ -4297,6 +4300,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               label: messages.clubChronicleTsiColumnTop11,
               previous: formatValue(previous.top11Tsi),
               current: formatValue(current.top11Tsi),
+            });
+          }
+          if (previous.players.length !== current.players.length) {
+            tsiChanges.push({
+              fieldKey: "team.playerCount",
+              label: messages.clubChroniclePlayersCount,
+              previous: formatValue(previous.players.length),
+              current: formatValue(current.players.length),
             });
           }
           appendTeamChanges(updatesMap, teamId, teamName, tsiChanges);

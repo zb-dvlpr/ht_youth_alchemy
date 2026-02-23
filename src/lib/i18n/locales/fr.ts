@@ -372,6 +372,8 @@ export const messagesFr: Messages = {
     ratingsMatrixTabLabel: "Matrice des notes",
     refresh: "Actualiser",
     refreshTooltip: "Actualise les détails du joueur depuis Hattrick.",
+    playerDetailsPreviousPlayer: "Joueur précédent",
+    playerDetailsNextPlayer: "Joueur suivant",
     refreshPlayerListTooltip:
       "Actualiser la liste des jeunes depuis Hattrick.",
     youthLastGlobalRefresh: "Dernière actualisation globale",

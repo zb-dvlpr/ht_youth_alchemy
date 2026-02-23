@@ -319,6 +319,8 @@ export type Messages = {
   ratingsMatrixTabLabel: string;
   refresh: string;
   refreshTooltip: string;
+  playerDetailsPreviousPlayer: string;
+  playerDetailsNextPlayer: string;
   refreshPlayerListTooltip: string;
   youthLastGlobalRefresh: string;
   refreshStatusFetchingPlayers: string;

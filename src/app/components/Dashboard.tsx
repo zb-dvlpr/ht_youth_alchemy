@@ -705,6 +705,23 @@ export default function Dashboard({
       playerList.find((player) => player.YouthPlayerID === selectedId) ?? null,
     [playerList, selectedId]
   );
+  const playerNavigationIds = useMemo(() => {
+    if (orderedPlayerIds && orderedPlayerIds.length) {
+      const validIds = new Set(playerList.map((player) => player.YouthPlayerID));
+      return orderedPlayerIds.filter((id) => validIds.has(id));
+    }
+    return playerList.map((player) => player.YouthPlayerID);
+  }, [orderedPlayerIds, playerList]);
+  const selectedPlayerIndex = useMemo(() => {
+    if (!selectedId) return -1;
+    return playerNavigationIds.indexOf(selectedId);
+  }, [playerNavigationIds, selectedId]);
+  const previousPlayerId =
+    selectedPlayerIndex > 0 ? playerNavigationIds[selectedPlayerIndex - 1] : null;
+  const nextPlayerId =
+    selectedPlayerIndex >= 0 && selectedPlayerIndex < playerNavigationIds.length - 1
+      ? playerNavigationIds[selectedPlayerIndex + 1]
+      : null;
 
   const ratingsMatrixData = useMemo(() => {
     if (playerList.length === 0) return null;
@@ -2972,6 +2989,16 @@ export default function Dashboard({
               onSkillsSortStart={() => {
                 setOrderSource("skills");
                 setOrderedPlayerIds(null);
+              }}
+              hasPreviousPlayer={Boolean(previousPlayerId)}
+              hasNextPlayer={Boolean(nextPlayerId)}
+              onPreviousPlayer={() => {
+                if (!previousPlayerId) return;
+                void handleSelect(previousPlayerId);
+              }}
+              onNextPlayer={() => {
+                if (!nextPlayerId) return;
+                void handleSelect(nextPlayerId);
               }}
               messages={messages}
             />

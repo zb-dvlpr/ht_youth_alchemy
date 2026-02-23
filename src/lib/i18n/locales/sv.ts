@@ -366,6 +366,8 @@ export const messagesSv: Messages = {
     ratingsMatrixTabLabel: "Betygsmatris",
     refresh: "Uppdatera",
     refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
+    playerDetailsPreviousPlayer: "Föregående spelare",
+    playerDetailsNextPlayer: "Nästa spelare",
     refreshPlayerListTooltip: "Uppdatera juniorlistan från Hattrick.",
     youthLastGlobalRefresh: "Senaste globala uppdatering",
     refreshStatusFetchingPlayers: "Hamtar ungdomsspelare…",

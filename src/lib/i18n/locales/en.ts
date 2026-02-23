@@ -347,6 +347,8 @@ export const messagesEn: Messages = {
     ratingsMatrixTabLabel: "Ratings matrix",
     refresh: "Refresh",
     refreshTooltip: "Refreshes player details from Hattrick.",
+    playerDetailsPreviousPlayer: "Previous player",
+    playerDetailsNextPlayer: "Next player",
     refreshPlayerListTooltip: "Refresh youth player list from Hattrick.",
     youthLastGlobalRefresh: "Last global refresh",
     refreshStatusFetchingPlayers: "Fetching youth players…",

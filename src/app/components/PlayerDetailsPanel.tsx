@@ -75,6 +75,10 @@ type PlayerDetailsPanelProps = {
   onSkillsOrderChange?: (orderedIds: number[]) => void;
   onRatingsSortStart?: () => void;
   onSkillsSortStart?: () => void;
+  hasPreviousPlayer?: boolean;
+  hasNextPlayer?: boolean;
+  onPreviousPlayer?: () => void;
+  onNextPlayer?: () => void;
   messages: Messages;
 };
 
@@ -192,6 +196,10 @@ export default function PlayerDetailsPanel({
   onSkillsOrderChange,
   onRatingsSortStart,
   onSkillsSortStart,
+  hasPreviousPlayer = false,
+  hasNextPlayer = false,
+  onPreviousPlayer,
+  onNextPlayer,
   messages,
 }: PlayerDetailsPanelProps) {
   const [activeTab, setActiveTab] = useState<
@@ -396,6 +404,28 @@ export default function PlayerDetailsPanel({
     return (
       <div className={styles.profileCard}>
         <div className={styles.detailsRefreshCorner}>
+          <Tooltip content={messages.playerDetailsPreviousPlayer}>
+            <button
+              type="button"
+              className={`${styles.sortToggle} ${styles.detailsRefresh}`}
+              onClick={onPreviousPlayer}
+              disabled={!selectedPlayer || loading || !hasPreviousPlayer}
+              aria-label={messages.playerDetailsPreviousPlayer}
+            >
+              {"<"}
+            </button>
+          </Tooltip>
+          <Tooltip content={messages.playerDetailsNextPlayer}>
+            <button
+              type="button"
+              className={`${styles.sortToggle} ${styles.detailsRefresh}`}
+              onClick={onNextPlayer}
+              disabled={!selectedPlayer || loading || !hasNextPlayer}
+              aria-label={messages.playerDetailsNextPlayer}
+            >
+              {">"}
+            </button>
+          </Tooltip>
           <Tooltip content={messages.refreshTooltip}>
             <button
               type="button"

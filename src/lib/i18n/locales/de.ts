@@ -365,6 +365,8 @@ export const messagesDe: Messages = {
     ratingsMatrixTabLabel: "Bewertungsmatrix",
     refresh: "Aktualisieren",
     refreshTooltip: "Aktualisiert die Spielerdetails von Hattrick.",
+    playerDetailsPreviousPlayer: "Vorheriger Spieler",
+    playerDetailsNextPlayer: "Nächster Spieler",
     refreshPlayerListTooltip: "Jugendspielerliste von Hattrick aktualisieren.",
     youthLastGlobalRefresh: "Letzte globale Aktualisierung",
     refreshStatusFetchingPlayers: "Jugendspieler werden geladen…",

@@ -3091,6 +3091,7 @@ html[data-theme="dark"] .spinner {
   top: 14px;
   right: 14px;
   display: inline-flex;
+  gap: 6px;
 }
 
 .profileMeta {

@@ -38,7 +38,9 @@ import {
   hattrickArticleUrl,
   hattrickMatchUrl,
   hattrickPlayerUrl,
+  hattrickSeriesUrl,
   hattrickTeamUrl,
+  hattrickTeamPlayersUrl,
 } from "@/lib/hattrick/urls";
 import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
 
@@ -3586,19 +3588,109 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     (
       fieldKey: string,
       value: string | null | undefined,
-      teamId: number | null | undefined
+      teamId: number | null | undefined,
+      leagueLevelUnitId: number | null | undefined
     ) => {
       const formatted = formatUpdatesInjuryValue(fieldKey, value);
       if (formatted === null || formatted === undefined || formatted === "") {
         return messages.unknownShort;
       }
-      if (fieldKey !== "press.announcement" || !teamId) {
+      if (!teamId) {
+        return formatted;
+      }
+      if (fieldKey === "wages.injury") {
+        const teamWages = chronicleCache.teams[teamId]?.wages;
+        const playerIdByName = new Map<string, number>();
+        const ingestPlayers = (
+          players:
+            | { playerId: number; playerName: string | null }[]
+            | undefined
+            | null
+        ) => {
+          players?.forEach((player) => {
+            if (
+              player &&
+              Number.isFinite(player.playerId) &&
+              player.playerName &&
+              !playerIdByName.has(player.playerName)
+            ) {
+              playerIdByName.set(player.playerName, player.playerId);
+            }
+          });
+        };
+        ingestPlayers(teamWages?.current?.players);
+        ingestPlayers(teamWages?.previous?.players);
+        const entries = formatted.split(/\s*,\s*/).filter(Boolean);
+        if (entries.length > 0) {
+          return entries.map((entry, index) => {
+            const match = entry.match(/^(.*)\s+(🩹|✚\([^)]+\))$/);
+            if (!match) {
+              return (
+                <span key={`injury-raw-${index}`}>
+                  {index > 0 ? ", " : ""}
+                  {entry}
+                </span>
+              );
+            }
+            const label = match[1].trim();
+            const status = match[2];
+            let playerId = playerIdByName.get(label);
+            if (!playerId) {
+              const numericLabel = Number(label);
+              if (Number.isFinite(numericLabel) && numericLabel > 0) {
+                playerId = numericLabel;
+              }
+            }
+            return (
+              <span key={`injury-entry-${index}`}>
+                {index > 0 ? ", " : ""}
+                {playerId ? (
+                  <a
+                    className={styles.chroniclePressLink}
+                    href={hattrickPlayerUrl(playerId)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {label}
+                  </a>
+                ) : (
+                  label
+                )}{" "}
+                {status}
+              </span>
+            );
+          });
+        }
+      }
+      let href: string | null = null;
+      if (
+        fieldKey === "press.announcement" ||
+        fieldKey.startsWith("fanclub.")
+      ) {
+        href = hattrickTeamUrl(teamId);
+      } else if (
+        fieldKey.startsWith("wages.") ||
+        fieldKey.startsWith("tsi.") ||
+        fieldKey === "transfer.active" ||
+        fieldKey === "transfer.listed"
+      ) {
+        href = hattrickTeamPlayersUrl(teamId);
+      } else if (
+        fieldKey === "league.goalsDelta" ||
+        fieldKey === "league.record" ||
+        fieldKey === "league.series"
+      ) {
+        if (leagueLevelUnitId) {
+          href = hattrickSeriesUrl(leagueLevelUnitId, teamId);
+        }
+      }
+      if (!href) {
         return formatted;
       }
       return (
         <a
           className={styles.chroniclePressLink}
-          href={hattrickTeamUrl(teamId)}
+          href={href}
           target="_blank"
           rel="noreferrer"
         >
@@ -3606,7 +3698,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         </a>
       );
     },
-    [formatUpdatesInjuryValue, messages.unknownShort]
+    [chronicleCache.teams, formatUpdatesInjuryValue, messages.unknownShort]
   );
   const renderInjuryStatusInline = useCallback(
     (value: number | null | undefined) => {
@@ -8035,6 +8127,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     const teamUpdates = updatesByTeam[team.teamId];
                     const changes = teamUpdates?.changes ?? [];
                     if (changes.length === 0) return null;
+                    const teamLeagueLevelUnitId =
+                      chronicleCache.teams[team.teamId]?.leagueLevelUnitId ?? null;
                     const isPrimaryTeam =
                       primaryChronicleTeamId !== null &&
                       team.teamId === primaryChronicleTeamId;
@@ -8059,8 +8153,22 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                             <span className={styles.chronicleUpdatesLabel}>
                               {getUpdateFieldLabel(change.fieldKey, change.label)}
                             </span>
-                            <span>{renderUpdateValue(change.fieldKey, change.previous, team.teamId)}</span>
-                            <span>{renderUpdateValue(change.fieldKey, change.current, team.teamId)}</span>
+                            <span>
+                              {renderUpdateValue(
+                                change.fieldKey,
+                                change.previous,
+                                team.teamId,
+                                teamLeagueLevelUnitId
+                              )}
+                            </span>
+                            <span>
+                              {renderUpdateValue(
+                                change.fieldKey,
+                                change.current,
+                                team.teamId,
+                                teamLeagueLevelUnitId
+                              )}
+                            </span>
                           </div>
                         ))}
                       </div>

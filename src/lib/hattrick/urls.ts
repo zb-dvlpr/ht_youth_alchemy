@@ -17,6 +17,16 @@ export const hattrickYouthPlayerUrl = (youthPlayerId: number | string) =>
 export const hattrickTeamUrl = (teamId: number | string) =>
   buildGotoUrl(`/Club/?TeamID=${teamId}`);
 
+export const hattrickTeamPlayersUrl = (teamId: number | string) =>
+  buildGotoUrl(`/Club/Players/?TeamID=${teamId}`);
+
+export const hattrickSeriesUrl = (
+  leagueLevelUnitId: number | string,
+  teamId: number | string
+) =>
+  buildGotoUrl(
+    `/World/Series/?LeagueLevelUnitID=${leagueLevelUnitId}&TeamID=${teamId}`
+  );
+
 export const hattrickYouthTeamUrl = (youthTeamId: number | string) =>
   buildGotoUrl(`/Club/Youth/?YouthTeamID=${youthTeamId}`);
-

@@ -135,8 +135,10 @@ export type Messages = {
   clubChronicleRefreshTsiTooltip: string;
   clubChronicleRefreshWagesTooltip: string;
   clubChronicleRefreshLikelyTrainingTooltip: string;
+  clubChronicleRefreshLastLoginTooltip: string;
   clubChronicleRefreshStatusTeamDetails: string;
   clubChronicleRefreshStatusLeague: string;
+  clubChronicleRefreshStatusLastLogin: string;
   clubChronicleRefreshStatusArena: string;
   clubChronicleRefreshStatusTransferFinance: string;
   clubChronicleRefreshStatusFormations: string;
@@ -209,6 +211,13 @@ export type Messages = {
   clubChronicleLikelyTrainingKeepingOrSetPieces: string;
   clubChronicleLikelyTrainingUnclearTag: string;
   clubChronicleLikelyTrainingUnclearDisclaimer: string;
+  clubChronicleLastLoginPanelTitle: string;
+  clubChronicleLastLoginColumnLatest: string;
+  clubChronicleLastLoginColumnIpAddress: string;
+  clubChronicleLastLoginColumnAgo: string;
+  clubChronicleLastLoginAgeFormat: string;
+  clubChronicleLastLoginDetailsTitle: string;
+  clubChronicleLastLoginNoData: string;
   clubChronicleTableTeam: string;
   clubChronicleTableSummary: string;
   clubChronicleMoveUp: string;

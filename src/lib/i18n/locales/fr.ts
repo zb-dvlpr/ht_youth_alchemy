@@ -154,10 +154,13 @@ export const messagesFr: Messages = {
     clubChronicleRefreshWagesTooltip: "Actualiser les données de salaires.",
     clubChronicleRefreshLikelyTrainingTooltip:
       "Actualiser les données du régime d entraînement probable.",
+    clubChronicleRefreshLastLoginTooltip: "Actualiser les données des dernières connexions.",
     clubChronicleRefreshStatusTeamDetails:
       "Récupération des informations d équipe…",
     clubChronicleRefreshStatusLeague:
       "Récupération des performances en ligue…",
+    clubChronicleRefreshStatusLastLogin:
+      "Récupération des dernières connexions…",
     clubChronicleRefreshStatusArena: "Récupération des données d arène…",
     clubChronicleRefreshStatusTransferFinance:
       "Récupération des données transferts, finances, TSI et salaires…",
@@ -253,6 +256,13 @@ export const messagesFr: Messages = {
     clubChronicleLikelyTrainingUnclearTag: "incertain",
     clubChronicleLikelyTrainingUnclearDisclaimer:
       "Plusieurs régimes ont la même confiance ; l’inférence d’entraînement est incertaine.",
+    clubChronicleLastLoginPanelTitle: "Dernière connexion",
+    clubChronicleLastLoginColumnLatest: "Dernière connexion",
+    clubChronicleLastLoginColumnIpAddress: "Adresse IP",
+    clubChronicleLastLoginColumnAgo: "Il y a",
+    clubChronicleLastLoginAgeFormat: "il y a {days}j {hours}h",
+    clubChronicleLastLoginDetailsTitle: "Dernières connexions",
+    clubChronicleLastLoginNoData: "Aucune donnée de connexion disponible.",
     clubChronicleTableTeam: "Équipe",
     clubChronicleTableSummary: "Résumé",
     clubChronicleColumnTeam: "Équipe",

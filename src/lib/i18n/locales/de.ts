@@ -151,8 +151,10 @@ export const messagesDe: Messages = {
     clubChronicleRefreshWagesTooltip: "Gehaltsdaten aktualisieren.",
     clubChronicleRefreshLikelyTrainingTooltip:
       "Daten zum wahrscheinlichen Trainingsschema aktualisieren.",
+    clubChronicleRefreshLastLoginTooltip: "Daten der letzten Anmeldung aktualisieren.",
     clubChronicleRefreshStatusTeamDetails: "Teamdetails werden geladen…",
     clubChronicleRefreshStatusLeague: "Ligaleistungsdaten werden geladen…",
+    clubChronicleRefreshStatusLastLogin: "Letzte Anmeldungen werden geladen…",
     clubChronicleRefreshStatusArena: "Arena-Daten werden geladen…",
     clubChronicleRefreshStatusTransferFinance:
       "Transfer-, Finanz-, TSI- und Gehaltsdaten werden geladen…",
@@ -246,6 +248,13 @@ export const messagesDe: Messages = {
     clubChronicleLikelyTrainingUnclearTag: "unklar",
     clubChronicleLikelyTrainingUnclearDisclaimer:
       "Mehrere Trainingsarten haben die gleiche Konfidenz; die Einschätzung ist unklar.",
+    clubChronicleLastLoginPanelTitle: "Letzte Anmeldung",
+    clubChronicleLastLoginColumnLatest: "Letzte Anmeldung",
+    clubChronicleLastLoginColumnIpAddress: "IP-Adresse",
+    clubChronicleLastLoginColumnAgo: "Vor",
+    clubChronicleLastLoginAgeFormat: "vor {days}T {hours}Std",
+    clubChronicleLastLoginDetailsTitle: "Letzte Anmeldungen",
+    clubChronicleLastLoginNoData: "Keine Anmeldedaten verfügbar.",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Zusammenfassung",
     clubChronicleColumnTeam: "Team",

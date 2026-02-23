@@ -152,8 +152,11 @@ export const messagesSv: Messages = {
     clubChronicleRefreshWagesTooltip: "Uppdatera lönedata.",
     clubChronicleRefreshLikelyTrainingTooltip:
       "Uppdatera data för trolig träningsinriktning.",
+    clubChronicleRefreshLastLoginTooltip:
+      "Uppdatera data för senaste inloggning.",
     clubChronicleRefreshStatusTeamDetails: "Hämtar lagdetaljer…",
     clubChronicleRefreshStatusLeague: "Hämtar ligaprestanda…",
+    clubChronicleRefreshStatusLastLogin: "Hämtar senaste inloggningar…",
     clubChronicleRefreshStatusArena: "Hämtar arenadata…",
     clubChronicleRefreshStatusTransferFinance:
       "Hämtar transfer-, finans-, TSI- och lönedata…",
@@ -247,6 +250,13 @@ export const messagesSv: Messages = {
     clubChronicleLikelyTrainingUnclearTag: "oklart",
     clubChronicleLikelyTrainingUnclearDisclaimer:
       "Flera upplägg har samma säkerhetsnivå; träningsslutsatsen är oklar.",
+    clubChronicleLastLoginPanelTitle: "Senaste inloggning",
+    clubChronicleLastLoginColumnLatest: "Senaste inloggning",
+    clubChronicleLastLoginColumnIpAddress: "IP-adress",
+    clubChronicleLastLoginColumnAgo: "Sedan",
+    clubChronicleLastLoginAgeFormat: "{days}d {hours}h sedan",
+    clubChronicleLastLoginDetailsTitle: "Senaste inloggningar",
+    clubChronicleLastLoginNoData: "Ingen inloggningsdata tillgänglig.",
     clubChronicleTableTeam: "Lag",
     clubChronicleTableSummary: "Sammanfattning",
     clubChronicleColumnTeam: "Lag",

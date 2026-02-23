@@ -43,7 +43,7 @@
 - If an instruction is unclear, ask clarifying questions before starting any coding.
 
 ## Vibecoding Output
-- At the end of each vibecoding run for a prompt, provide a one-line git commit message suggestion.
+- At the end of each vibecoding run for a prompt, provide a one-line git commit message suggestion that covers all changes since the last commit.
 
 ## Code Reuse
 - When writing code, prioritize maximizing reuse and minimizing repetitive implementations.

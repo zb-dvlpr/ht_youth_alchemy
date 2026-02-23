@@ -3548,9 +3548,7 @@ html[data-theme="dark"] .spinner {
 }
 
 .tacticOverlay {
-  position: absolute;
-  right: 12px;
-  top: 12px;
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;

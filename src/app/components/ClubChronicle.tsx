@@ -1820,6 +1820,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [pendingNoDivulgoFetchTeamId, setPendingNoDivulgoFetchTeamId] = useState<
     number | null
   >(null);
+  const [pendingWatchlistFetchTeamIds, setPendingWatchlistFetchTeamIds] = useState<
+    number[]
+  >([]);
   const [helpCallouts, setHelpCallouts] = useState<
     {
       id: string;
@@ -1841,6 +1844,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     null
   );
   const refreshNoDivulgoTeamRef = useRef<((teamId: number) => Promise<void>) | null>(
+    null
+  );
+  const refreshTeamsRef = useRef<((teams: ChronicleTeamData[]) => Promise<void>) | null>(
     null
   );
   const { addNotification } = useNotifications();
@@ -2798,10 +2804,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleToggleSupported = (teamId: number) => {
+    const nextEnabled = !(supportedSelections[teamId] ?? false);
     setSupportedSelections((prev) => ({
       ...prev,
       [teamId]: !prev[teamId],
     }));
+    if (nextEnabled) {
+      setPendingWatchlistFetchTeamIds((prev) =>
+        prev.includes(teamId) ? prev : [...prev, teamId]
+      );
+    }
   };
 
   const handleRemoveManual = (teamId: number) => {
@@ -6078,6 +6090,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
   refreshAllDataRef.current = refreshAllData;
   refreshNoDivulgoTeamRef.current = refreshNoDivulgoTeam;
+  refreshTeamsRef.current = async (teams: ChronicleTeamData[]) => {
+    await refreshDataForTeams("manual", teams, { isGlobalRefresh: false });
+  };
 
   useEffect(() => {
     if (pendingNoDivulgoFetchTeamId === null) return;
@@ -6090,6 +6105,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (!shouldRefresh || teamId === null) return;
     void refreshNoDivulgoTeamRef.current?.(teamId);
   }, [anyRefreshing, pendingNoDivulgoFetchTeamId, trackedTeams]);
+
+  useEffect(() => {
+    if (pendingWatchlistFetchTeamIds.length === 0) return;
+    if (anyRefreshing) return;
+    const teamsToRefresh = pendingWatchlistFetchTeamIds
+      .map((teamId) => trackedTeams.find((team) => team.teamId === teamId))
+      .filter((team): team is ChronicleTeamData => Boolean(team));
+    setPendingWatchlistFetchTeamIds([]);
+    if (teamsToRefresh.length === 0) return;
+    void refreshTeamsRef.current?.(teamsToRefresh);
+  }, [anyRefreshing, pendingWatchlistFetchTeamIds, trackedTeams]);
 
   const refreshLeagueOnly = async () => {
     if (anyRefreshing) return;

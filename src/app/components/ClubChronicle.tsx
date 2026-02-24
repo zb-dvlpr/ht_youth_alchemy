@@ -4585,16 +4585,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             wageChanges.push({
               fieldKey: "wages.total",
               label: messages.clubChronicleWagesColumnTotal,
-              previous: formatValue(previous.totalWagesSek),
-              current: formatValue(current.totalWagesSek),
+              previous: formatChppCurrencyFromSek(previous.totalWagesSek),
+              current: formatChppCurrencyFromSek(current.totalWagesSek),
             });
           }
           if (previous.top11WagesSek !== current.top11WagesSek) {
             wageChanges.push({
               fieldKey: "wages.top11",
               label: messages.clubChronicleWagesColumnTop11,
-              previous: formatValue(previous.top11WagesSek),
-              current: formatValue(current.top11WagesSek),
+              previous: formatChppCurrencyFromSek(previous.top11WagesSek),
+              current: formatChppCurrencyFromSek(current.top11WagesSek),
             });
           }
           const previousInjury = buildInjurySummary(previous);

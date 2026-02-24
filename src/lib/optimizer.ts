@@ -309,6 +309,17 @@ function slotsForSkill(skill: SkillKey) {
   return slots;
 }
 
+function slotsForSkillByIntensity(skill: SkillKey, intensity: 1 | 0.5) {
+  const slots = new Set<(typeof ALL_SLOTS)[number]>();
+  ALL_SLOTS.forEach((slot) => {
+    const role = ROLE_BY_SLOT[slot];
+    if ((ROLE_EFFECTS[skill][role] ?? 0) === intensity) {
+      slots.add(slot);
+    }
+  });
+  return slots;
+}
+
 function preferStarSlots(
   primarySkill: SkillKey | null | undefined,
   slots: (typeof ALL_SLOTS)[number][]
@@ -410,17 +421,6 @@ function trainingSlotSet(primary: SkillKey, secondary: SkillKey) {
 }
 
 export function getTrainingSlots(primary: SkillKey | null, secondary: SkillKey | null) {
-  const slotsForSkillByIntensity = (skill: SkillKey, intensity: 1 | 0.5) => {
-    const slots = new Set<(typeof ALL_SLOTS)[number]>();
-    ALL_SLOTS.forEach((slot) => {
-      const role = ROLE_BY_SLOT[slot];
-      if ((ROLE_EFFECTS[skill][role] ?? 0) === intensity) {
-        slots.add(slot);
-      }
-    });
-    return slots;
-  };
-
   if (!primary) {
     return {
       primarySlots: new Set<(typeof ALL_SLOTS)[number]>(),
@@ -973,26 +973,23 @@ export function optimizeLineupForStar(
     ...primarySlots,
     ...secondarySlots,
   ]);
-  const fullSecondarySlots = secondarySkill ? slotsForSkill(secondarySkill) : null;
+  const primaryFullSlots = slotsForSkillByIntensity(primarySkill, 1);
+  const fullSecondarySlots = secondarySkill
+    ? slotsForSkillByIntensity(secondarySkill, 1)
+    : null;
 
   const baseSlots = new Set<(typeof ALL_SLOTS)[number]>(trainingSlots);
   baseSlots.add("KP");
 
   const overlapSlots = new Set<(typeof ALL_SLOTS)[number]>();
   if (secondarySkill && fullSecondarySlots) {
-    primarySlots.forEach((slot) => {
+    primaryFullSlots.forEach((slot) => {
       if (!fullSecondarySlots.has(slot)) return;
-      const role = ROLE_BY_SLOT[slot];
-      if (
-        (ROLE_EFFECTS[primarySkill][role] ?? 0) > 0 &&
-        (ROLE_EFFECTS[secondarySkill][role] ?? 0) > 0
-      ) {
-        overlapSlots.add(slot);
-      }
+      overlapSlots.add(slot);
     });
   }
 
-  let candidateSlots = overlapSlots.size ? overlapSlots : primarySlots;
+  let candidateSlots = overlapSlots.size ? overlapSlots : primaryFullSlots;
   if (!candidateSlots.size) {
     candidateSlots = trainingSlots.size ? trainingSlots : baseSlots;
   }
@@ -1167,9 +1164,13 @@ export function optimizeRevealPrimaryCurrent(
     ...primarySlots,
     ...secondarySlots,
   ]);
-  const fullSecondarySlots = secondary ? slotsForSkill(secondary) : null;
+  const primaryFullSlots = slotsForSkillByIntensity(primary, 1);
+  const fullSecondarySlots = secondary
+    ? slotsForSkillByIntensity(secondary, 1)
+    : null;
 
   const primarySlotList = [...primarySlots];
+  const primaryFullSlotList = [...primaryFullSlots];
   if (!primarySlotList.length) {
     return {
       lineup: {} as LineupAssignments,
@@ -1181,7 +1182,7 @@ export function optimizeRevealPrimaryCurrent(
   const { current: starSecondaryCurrent, max: starSecondaryMax } =
     skillValues(starPlayer, secondary ?? primary);
   const sharedSlots = fullSecondarySlots
-    ? [...primarySlots].filter((slot) => fullSecondarySlots.has(slot))
+    ? [...primaryFullSlots].filter((slot) => fullSecondarySlots.has(slot))
     : [];
   const prefersSharedSlot =
     sharedSlots.length > 0 &&
@@ -1190,7 +1191,11 @@ export function optimizeRevealPrimaryCurrent(
       starSecondaryMax !== null &&
       starSecondaryCurrent >= starSecondaryMax
     );
-  const starSlotCandidates = prefersSharedSlot ? sharedSlots : primarySlotList;
+  const starSlotCandidates = prefersSharedSlot
+    ? sharedSlots
+    : primaryFullSlotList.length
+    ? primaryFullSlotList
+    : primarySlotList;
   const preferredStarSlots = preferStarSlots(primary, starSlotCandidates);
   const starSlot =
     preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
@@ -1376,10 +1381,11 @@ export function optimizeRevealSecondaryMax(
     ...primarySlots,
     ...secondarySlots,
   ]);
-  const fullSecondarySlots = slotsForSkill(secondary);
-  const fullPrimarySlots = slotsForSkill(primary);
+  const fullSecondarySlots = slotsForSkillByIntensity(secondary, 1);
+  const fullPrimarySlots = slotsForSkillByIntensity(primary, 1);
 
   const secondarySlotList = [...secondarySlots];
+  const secondaryFullSlotList = [...fullSecondarySlots];
   if (!secondarySlotList.length) {
     return {
       lineup: {} as LineupAssignments,
@@ -1402,7 +1408,11 @@ export function optimizeRevealSecondaryMax(
       starPrimaryMax !== null &&
       starPrimaryCurrent >= starPrimaryMax
     );
-  const starSlotCandidates = prefersSharedSlot ? sharedSlots : secondarySlotList;
+  const starSlotCandidates = prefersSharedSlot
+    ? sharedSlots
+    : secondaryFullSlotList.length
+    ? secondaryFullSlotList
+    : secondarySlotList;
   const preferredStarSlots = preferStarSlots(primary, starSlotCandidates);
   const starSlot =
     preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];
@@ -1582,10 +1592,11 @@ export function optimizeByRatings(
     ...primarySlots,
     ...secondarySlots,
   ]);
-  const fullSecondarySlots = slotsForSkill(secondary);
-  const fullPrimarySlots = slotsForSkill(primary);
+  const fullSecondarySlots = slotsForSkillByIntensity(secondary, 1);
+  const fullPrimarySlots = slotsForSkillByIntensity(primary, 1);
 
   const primarySlotList = [...primarySlots];
+  const primaryFullSlotList = [...fullPrimarySlots];
   if (!primarySlotList.length) {
     return {
       lineup: {} as LineupAssignments,
@@ -1598,7 +1609,11 @@ export function optimizeByRatings(
     fullSecondarySlots.has(slot)
   );
   const prefersSharedSlot = sharedSlots.length > 0 && !secondaryMaxed;
-  const starSlotCandidates = prefersSharedSlot ? sharedSlots : primarySlotList;
+  const starSlotCandidates = prefersSharedSlot
+    ? sharedSlots
+    : primaryFullSlotList.length
+    ? primaryFullSlotList
+    : primarySlotList;
   const preferredStarSlots = preferStarSlots(primary, starSlotCandidates);
   const starSlot =
     preferredStarSlots[Math.floor(Math.random() * preferredStarSlots.length)];

@@ -56,6 +56,10 @@ type LineupFieldProps = {
   optimizeStarPlayerName?: string;
   optimizePrimaryTrainingName?: string;
   optimizeSecondaryTrainingName?: string;
+  optimizeModeDisabledReasons?: {
+    revealPrimaryCurrent?: string;
+    revealSecondaryMax?: string;
+  };
   trainedSlots?: {
     primary: Set<string>;
     secondary: Set<string>;
@@ -246,6 +250,7 @@ export default function LineupField({
   optimizeStarPlayerName,
   optimizePrimaryTrainingName,
   optimizeSecondaryTrainingName,
+  optimizeModeDisabledReasons,
   trainedSlots,
   onHoverPlayer,
   onSelectPlayer,
@@ -288,6 +293,10 @@ export default function LineupField({
     .replace("{{player}}", revealPlayerLabel)
     .replace("{{training}}", revealSecondaryLabel)
     .replace("{{trainingLower}}", revealSecondaryLabelLower);
+  const revealPrimaryCurrentDisabledReason =
+    optimizeModeDisabledReasons?.revealPrimaryCurrent;
+  const revealSecondaryMaxDisabledReason =
+    optimizeModeDisabledReasons?.revealSecondaryMax;
 
   const handleOptimizeSelect = (mode: OptimizeMode) => {
     if (!forceOptimizeOpen) {
@@ -414,20 +423,54 @@ export default function LineupField({
                   >
                     {messages.optimizeMenuRatings}
                   </button>
-                  <button
-                    type="button"
-                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                    onClick={() => handleOptimizeSelect("revealPrimaryCurrent")}
+                  <Tooltip
+                    content={revealPrimaryCurrentDisabledReason ?? ""}
+                    disabled={!revealPrimaryCurrentDisabledReason}
+                    fullWidth
                   >
-                    {revealPrimaryCurrentLabel}
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                    onClick={() => handleOptimizeSelect("revealSecondaryMax")}
+                    <span className={styles.optimizeMenuItemWrap}>
+                      <button
+                        type="button"
+                        className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                          revealPrimaryCurrentDisabledReason
+                            ? styles.optimizeMenuItemDisabled
+                            : ""
+                        }`}
+                        onClick={() => handleOptimizeSelect("revealPrimaryCurrent")}
+                        disabled={Boolean(revealPrimaryCurrentDisabledReason)}
+                        aria-label={
+                          revealPrimaryCurrentDisabledReason ??
+                          revealPrimaryCurrentLabel
+                        }
+                      >
+                        {revealPrimaryCurrentLabel}
+                      </button>
+                    </span>
+                  </Tooltip>
+                  <Tooltip
+                    content={revealSecondaryMaxDisabledReason ?? ""}
+                    disabled={!revealSecondaryMaxDisabledReason}
+                    fullWidth
                   >
-                    {revealSecondaryMaxLabel}
-                  </button>
+                    <span className={styles.optimizeMenuItemWrap}>
+                      <button
+                        type="button"
+                        className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                          revealSecondaryMaxDisabledReason
+                            ? styles.optimizeMenuItemDisabled
+                            : ""
+                        }`}
+                        onClick={() => handleOptimizeSelect("revealSecondaryMax")}
+                        disabled={Boolean(revealSecondaryMaxDisabledReason)}
+                        aria-label={
+                          revealSecondaryMaxDisabledReason ??
+                          revealSecondaryMaxLabel
+                        }
+                      >
+                        {revealSecondaryMaxLabel}
+                      </button>
+                    </span>
+                  </Tooltip>
                 </div>
               ) : null}
             </div>

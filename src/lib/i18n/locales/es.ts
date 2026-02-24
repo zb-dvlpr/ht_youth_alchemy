@@ -465,6 +465,8 @@ export const messagesEs: Messages = {
       "Revelar valor máx. de {{trainingLower}} de {{player}}",
     optimizeRevealPrimaryCurrentKnown:
       "Revelar primario actual no disponible: ya se conoce.",
+    optimizeRevealPrimaryCurrentKnownTooltip:
+      "Revelación no disponible: el valor actual de {{training}} de {{player}} ya se conoce.",
     optimizeRevealPrimaryCurrentUnavailable:
       "Revelar primario actual no disponible. Elige jugador estrella y entrenamiento primario.",
     optimizeRevealPrimaryMaxKnown:
@@ -477,6 +479,8 @@ export const messagesEs: Messages = {
       "Revelar secundario actual no disponible. Elige jugador estrella y entrenamiento secundario.",
     optimizeRevealSecondaryMaxKnown:
       "Revelar secundario máx. no disponible: ya se conoce.",
+    optimizeRevealSecondaryMaxKnownTooltip:
+      "Revelación no disponible: el valor máximo de {{training}} de {{player}} ya se conoce.",
     optimizeRevealSecondaryMaxUnavailable:
       "Revelar secundario máx. no disponible. Elige jugador estrella y entrenamiento secundario.",
     optimizeRatingsUnavailable:

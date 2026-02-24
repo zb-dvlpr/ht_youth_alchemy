@@ -457,6 +457,8 @@ export const messagesSv: Messages = {
       "Avslöja {{player}}s maxvärde i {{trainingLower}}",
     optimizeRevealPrimaryCurrentKnown:
       "Avslöjande ej tillgängligt: stjärnans primärvärde är redan känt.",
+    optimizeRevealPrimaryCurrentKnownTooltip:
+      "Avslöjande ej tillgängligt: {{player}}s nuvarande värde i {{training}} är redan känt.",
     optimizeRevealPrimaryCurrentUnavailable:
       "Avslöjande ej tillgängligt. Välj stjärnspelare och primärträning.",
     optimizeRevealPrimaryMaxKnown:
@@ -469,6 +471,8 @@ export const messagesSv: Messages = {
       "Avslöjande ej tillgängligt. Välj stjärnspelare och sekundärträning.",
     optimizeRevealSecondaryMaxKnown:
       "Avslöjande ej tillgängligt: stjärnans sekundärmax är redan känt.",
+    optimizeRevealSecondaryMaxKnownTooltip:
+      "Avslöjande ej tillgängligt: {{player}}s maxvärde i {{training}} är redan känt.",
     optimizeRevealSecondaryMaxUnavailable:
       "Avslöjande ej tillgängligt. Välj stjärnspelare och sekundärträning.",
     optimizeRatingsUnavailable:

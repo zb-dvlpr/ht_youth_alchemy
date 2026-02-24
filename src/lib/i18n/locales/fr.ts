@@ -467,6 +467,8 @@ export const messagesFr: Messages = {
       "Révéler la valeur max de {{trainingLower}} pour {{player}}",
     optimizeRevealPrimaryCurrentKnown:
       "Révélation indisponible : valeur primaire actuelle déjà connue.",
+    optimizeRevealPrimaryCurrentKnownTooltip:
+      "Révélation indisponible : la valeur actuelle en {{training}} de {{player}} est déjà connue.",
     optimizeRevealPrimaryCurrentUnavailable:
       "Révélation indisponible. Sélectionnez un joueur star et un entraînement primaire.",
     optimizeRevealPrimaryMaxKnown:
@@ -479,6 +481,8 @@ export const messagesFr: Messages = {
       "Révélation indisponible. Sélectionnez un joueur star et un entraînement secondaire.",
     optimizeRevealSecondaryMaxKnown:
       "Révélation indisponible : valeur secondaire max déjà connue.",
+    optimizeRevealSecondaryMaxKnownTooltip:
+      "Révélation indisponible : la valeur max en {{training}} de {{player}} est déjà connue.",
     optimizeRevealSecondaryMaxUnavailable:
       "Révélation indisponible. Sélectionnez un joueur star et un entraînement secondaire.",
     optimizeRatingsUnavailable:

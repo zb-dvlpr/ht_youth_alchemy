@@ -402,12 +402,14 @@ export type Messages = {
   optimizeMenuRevealSecondaryCurrent: string;
   optimizeMenuRevealSecondaryMax: string;
   optimizeRevealPrimaryCurrentKnown: string;
+  optimizeRevealPrimaryCurrentKnownTooltip: string;
   optimizeRevealPrimaryCurrentUnavailable: string;
   optimizeRevealPrimaryMaxKnown: string;
   optimizeRevealPrimaryMaxUnavailable: string;
   optimizeRevealSecondaryCurrentKnown: string;
   optimizeRevealSecondaryCurrentUnavailable: string;
   optimizeRevealSecondaryMaxKnown: string;
+  optimizeRevealSecondaryMaxKnownTooltip: string;
   optimizeRevealSecondaryMaxUnavailable: string;
   optimizeRatingsUnavailable: string;
   optimizeRatingsStarMaxed: string;

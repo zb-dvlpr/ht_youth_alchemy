@@ -271,9 +271,24 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   cursor: pointer;
 }
 
+.optimizeMenuItemWrap {
+  display: block;
+  width: 100%;
+}
+
+.optimizeMenuItemDisabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .feedbackLink:hover {
   border-color: #c9b9a3;
   background: #f1e9dc;
+}
+
+.feedbackLink.optimizeMenuItemDisabled:hover {
+  border-color: transparent;
+  background: #fff;
 }
 
 .algorithmsModalBody {
@@ -2066,6 +2081,11 @@ html[data-theme="dark"] .feedbackLink {
 html[data-theme="dark"] .feedbackLink:hover {
   border-color: rgba(255, 255, 255, 0.22);
   background: #332c25;
+}
+
+html[data-theme="dark"] .feedbackLink.optimizeMenuItemDisabled:hover {
+  border-color: transparent;
+  background: #2a241d;
 }
 
 html[data-theme="dark"] .algorithmsToggle {

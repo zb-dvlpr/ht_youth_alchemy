@@ -436,6 +436,8 @@ export const messagesEn: Messages = {
       "Reveal {{player}}'s {{trainingLower}} max value",
     optimizeRevealPrimaryCurrentKnown:
       "Reveal primary current unavailable: star primary current already known.",
+    optimizeRevealPrimaryCurrentKnownTooltip:
+      "Reveal unavailable: {{player}}'s current {{training}} is already known.",
     optimizeRevealPrimaryCurrentUnavailable:
       "Reveal primary current unavailable. Select a star player and primary training.",
     optimizeRevealPrimaryMaxKnown:
@@ -448,6 +450,8 @@ export const messagesEn: Messages = {
       "Reveal secondary current unavailable. Select a star player and secondary training.",
     optimizeRevealSecondaryMaxKnown:
       "Reveal secondary max unavailable: star secondary max already known.",
+    optimizeRevealSecondaryMaxKnownTooltip:
+      "Reveal unavailable: {{player}}'s max {{training}} is already known.",
     optimizeRevealSecondaryMaxUnavailable:
       "Reveal secondary max unavailable. Select a star player and secondary training.",
     optimizeRatingsUnavailable:

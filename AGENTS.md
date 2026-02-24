@@ -44,6 +44,8 @@
 
 ## Vibecoding Output
 - At the end of each vibecoding run for a prompt, provide a one-line git commit message suggestion that covers all changes since the last commit.
+- Never suggest a commit message that only describes the latest delta if multiple uncommitted changes exist.
+- Before suggesting the commit message, quickly scan `git status`/`git diff --stat` and ensure the message summarizes the full staged+unstaged scope.
 
 ## Code Reuse
 - When writing code, prioritize maximizing reuse and minimizing repetitive implementations.

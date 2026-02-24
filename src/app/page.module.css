@@ -2818,7 +2818,7 @@ html[data-theme="dark"] .spinner {
   line-height: 1;
 }
 
-.playerAge {
+.playerSortMetric {
   position: absolute;
   right: 10px;
   bottom: 6px;
@@ -2826,6 +2826,11 @@ html[data-theme="dark"] .spinner {
   color: #6f6354;
   opacity: 0.9;
   letter-spacing: 0.02em;
+  max-width: 42%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
 }
 
 .playerId {

@@ -46,6 +46,8 @@
 - At the end of each vibecoding run for a prompt, provide a one-line git commit message suggestion that covers all changes since the last commit.
 - Never suggest a commit message that only describes the latest delta if multiple uncommitted changes exist.
 - Before suggesting the commit message, quickly scan `git status`/`git diff --stat` and ensure the message summarizes the full staged+unstaged scope.
+- Anchor the suggestion to git history, not memory: check `git log -1 --oneline` and `git diff --name-status HEAD` (or equivalent) before writing the message.
+- The suggested message must describe exactly what changed in `HEAD..working tree` at suggestion time; do not include work that has already been committed.
 
 ## Code Reuse
 - When writing code, prioritize maximizing reuse and minimizing repetitive implementations.

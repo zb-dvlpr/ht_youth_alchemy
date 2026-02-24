@@ -84,6 +84,21 @@ export default function Tooltip({
     };
   }, [open, updatePosition]);
 
+  useEffect(() => {
+    const closeTooltip = () => setOpen(false);
+    const handleVisibilityChange = () => {
+      if (document.visibilityState !== "visible") {
+        closeTooltip();
+      }
+    };
+    window.addEventListener("blur", closeTooltip);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      window.removeEventListener("blur", closeTooltip);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
+
   if (!content || disabled) {
     return (
       <span className={fullWidth ? styles.triggerFull : styles.trigger}>

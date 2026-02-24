@@ -8,7 +8,7 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import Tooltip from "./Tooltip";
 import { setDragGhost } from "@/lib/drag";
 import { parseChppDate } from "@/lib/chpp/utils";
-import { formatDateTime } from "@/lib/datetime";
+import { formatDate, formatDateTime } from "@/lib/datetime";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -23,16 +23,23 @@ type YouthPlayer = {
   PlayerSkills?: PlayerSkills;
 };
 
-type SkillValue = number | { "#text"?: number };
+type SkillValue = number | string | { "#text"?: number | string };
 
 type PlayerSkills = {
   KeeperSkill?: SkillValue;
+  KeeperSkillMax?: SkillValue;
   DefenderSkill?: SkillValue;
+  DefenderSkillMax?: SkillValue;
   PlaymakerSkill?: SkillValue;
+  PlaymakerSkillMax?: SkillValue;
   WingerSkill?: SkillValue;
+  WingerSkillMax?: SkillValue;
   PassingSkill?: SkillValue;
+  PassingSkillMax?: SkillValue;
   ScorerSkill?: SkillValue;
+  ScorerSkillMax?: SkillValue;
   SetPiecesSkill?: SkillValue;
+  SetPiecesSkillMax?: SkillValue;
 };
 
 const specialtyName = (value: number | undefined, messages: Messages) => {
@@ -125,12 +132,34 @@ function formatPlayerName(player?: YouthPlayer | null) {
 function toSkillValue(value: SkillValue | undefined) {
   if (value === null || value === undefined) return null;
   if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const numeric = Number(value);
+    return Number.isNaN(numeric) ? null : numeric;
+  }
   const numeric = value["#text"];
-  return typeof numeric === "number" ? numeric : null;
+  if (numeric === null || numeric === undefined) return null;
+  const parsed = Number(numeric);
+  return Number.isNaN(parsed) ? null : parsed;
 }
 
-function getSkill(player: YouthPlayer, key: keyof PlayerSkills) {
-  return toSkillValue(player.PlayerSkills?.[key]);
+function getSkillScore(
+  player: YouthPlayer,
+  currentKey: keyof PlayerSkills,
+  maxKey: keyof PlayerSkills
+) {
+  const current = toSkillValue(player.PlayerSkills?.[currentKey]) ?? 0;
+  const max = toSkillValue(player.PlayerSkills?.[maxKey]) ?? 0;
+  return current + max;
+}
+
+function getSkillPairText(
+  player: YouthPlayer,
+  currentKey: keyof PlayerSkills,
+  maxKey: keyof PlayerSkills
+) {
+  const current = toSkillValue(player.PlayerSkills?.[currentKey]) ?? 0;
+  const max = toSkillValue(player.PlayerSkills?.[maxKey]) ?? 0;
+  return `${current}/${max}`;
 }
 
 function parseArrival(dateString?: string) {
@@ -187,7 +216,7 @@ export default function YouthPlayerList({
   const sortStorageKey = "ya_youth_player_list_sort_v1";
   const listCardRef = useRef<HTMLDivElement | null>(null);
   const nameRowRefs = useRef<Record<number, HTMLSpanElement | null>>({});
-  const ageRefs = useRef<Record<number, HTMLSpanElement | null>>({});
+  const sortValueRefs = useRef<Record<number, HTMLSpanElement | null>>({});
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [nameAgeOverlap, setNameAgeOverlap] = useState<Record<number, boolean>>(
@@ -337,41 +366,45 @@ export default function YouthPlayerList({
             "asc"
           );
         case "keeper":
-          return compareNumber(getSkill(a, "KeeperSkill"), getSkill(b, "KeeperSkill"), "desc");
+          return compareNumber(
+            getSkillScore(a, "KeeperSkill", "KeeperSkillMax"),
+            getSkillScore(b, "KeeperSkill", "KeeperSkillMax"),
+            "desc"
+          );
         case "defender":
           return compareNumber(
-            getSkill(a, "DefenderSkill"),
-            getSkill(b, "DefenderSkill"),
+            getSkillScore(a, "DefenderSkill", "DefenderSkillMax"),
+            getSkillScore(b, "DefenderSkill", "DefenderSkillMax"),
             "desc"
           );
         case "playmaker":
           return compareNumber(
-            getSkill(a, "PlaymakerSkill"),
-            getSkill(b, "PlaymakerSkill"),
+            getSkillScore(a, "PlaymakerSkill", "PlaymakerSkillMax"),
+            getSkillScore(b, "PlaymakerSkill", "PlaymakerSkillMax"),
             "desc"
           );
         case "winger":
           return compareNumber(
-            getSkill(a, "WingerSkill"),
-            getSkill(b, "WingerSkill"),
+            getSkillScore(a, "WingerSkill", "WingerSkillMax"),
+            getSkillScore(b, "WingerSkill", "WingerSkillMax"),
             "desc"
           );
         case "passing":
           return compareNumber(
-            getSkill(a, "PassingSkill"),
-            getSkill(b, "PassingSkill"),
+            getSkillScore(a, "PassingSkill", "PassingSkillMax"),
+            getSkillScore(b, "PassingSkill", "PassingSkillMax"),
             "desc"
           );
         case "scorer":
           return compareNumber(
-            getSkill(a, "ScorerSkill"),
-            getSkill(b, "ScorerSkill"),
+            getSkillScore(a, "ScorerSkill", "ScorerSkillMax"),
+            getSkillScore(b, "ScorerSkill", "ScorerSkillMax"),
             "desc"
           );
         case "setpieces":
           return compareNumber(
-            getSkill(a, "SetPiecesSkill"),
-            getSkill(b, "SetPiecesSkill"),
+            getSkillScore(a, "SetPiecesSkill", "SetPiecesSkillMax"),
+            getSkillScore(b, "SetPiecesSkill", "SetPiecesSkillMax"),
             "desc"
           );
         case "custom":
@@ -386,6 +419,80 @@ export default function YouthPlayerList({
       sortDirection === "asc" ? compare(a, b) : compare(b, a)
     );
   }, [players, sortKey, sortDirection]);
+
+  const sortMetricText = (player: YouthPlayer) => {
+    const formatAgeDays = (totalDays: number | null) => {
+      if (totalDays === null) return messages.unknownShort;
+      const years = Math.floor(totalDays / 112);
+      const days = totalDays % 112;
+      return `${years}${messages.ageYearsShort} ${days}${messages.ageDaysShort}`;
+    };
+
+      switch (sortKey) {
+        case "age":
+          return formatAgeDays(ageTotalDays(player));
+        case "promotionAge":
+          return formatAgeDays(promotionAgeTotalDays(player));
+        case "arrival": {
+          const date = parseChppDate(player.ArrivalDate);
+          if (!date) return messages.unknownShort;
+          return formatDate(date);
+        }
+        case "promotable": {
+          const days = player.CanBePromotedIn;
+          if (days === undefined || days === null) return messages.unknownShort;
+          return `${Math.max(0, days)}${messages.ageDaysShort}`;
+        }
+        case "keeper":
+          return `${sortLabelForKey("keeper")}: ${getSkillPairText(
+            player,
+            "KeeperSkill",
+            "KeeperSkillMax"
+          )}`;
+        case "defender":
+          return `${sortLabelForKey("defender")}: ${getSkillPairText(
+            player,
+            "DefenderSkill",
+            "DefenderSkillMax"
+          )}`;
+        case "playmaker":
+          return `${sortLabelForKey("playmaker")}: ${getSkillPairText(
+            player,
+            "PlaymakerSkill",
+            "PlaymakerSkillMax"
+          )}`;
+        case "winger":
+          return `${sortLabelForKey("winger")}: ${getSkillPairText(
+            player,
+            "WingerSkill",
+            "WingerSkillMax"
+          )}`;
+        case "passing":
+          return `${sortLabelForKey("passing")}: ${getSkillPairText(
+            player,
+            "PassingSkill",
+            "PassingSkillMax"
+          )}`;
+        case "scorer":
+          return `${sortLabelForKey("scorer")}: ${getSkillPairText(
+            player,
+            "ScorerSkill",
+            "ScorerSkillMax"
+          )}`;
+        case "setpieces":
+          return `${sortLabelForKey("setpieces")}: ${getSkillPairText(
+            player,
+            "SetPiecesSkill",
+            "SetPiecesSkillMax"
+          )}`;
+        case "custom":
+          return messages.sortCustom;
+        case "name":
+          return messages.sortName;
+        default:
+          return messages.sortName;
+      }
+  };
 
   const orderedPlayers = useMemo(() => {
     if (orderedPlayerIds && orderSource && orderSource !== "list") {
@@ -419,18 +526,18 @@ export default function YouthPlayerList({
     orderedPlayers.forEach((player) => {
       const playerId = player.YouthPlayerID;
       const nameEl = nameRowRefs.current[playerId];
-      const ageEl = ageRefs.current[playerId];
-      if (!nameEl || !ageEl) {
+      const valueEl = sortValueRefs.current[playerId];
+      if (!nameEl || !valueEl) {
         next[playerId] = false;
         return;
       }
       const nameRect = nameEl.getBoundingClientRect();
-      const ageRect = ageEl.getBoundingClientRect();
+      const valueRect = valueEl.getBoundingClientRect();
       const overlaps =
-        nameRect.right > ageRect.left - 8 &&
-        nameRect.left < ageRect.right &&
-        nameRect.top < ageRect.bottom &&
-        nameRect.bottom > ageRect.top;
+        nameRect.right > valueRect.left - 8 &&
+        nameRect.left < valueRect.right &&
+        nameRect.top < valueRect.bottom &&
+        nameRect.bottom > valueRect.top;
       next[playerId] = overlaps;
     });
     setNameAgeOverlap((prev) => {
@@ -641,18 +748,14 @@ export default function YouthPlayerList({
                     draggable
                     aria-pressed={isSelected}
                   >
-                    {player.Age !== undefined && player.AgeDays !== undefined ? (
-                      <span
-                        className={styles.playerAge}
-                        ref={(node) => {
-                          ageRefs.current[player.YouthPlayerID] = node;
-                        }}
-                      >
-                        {player.Age}
-                        {messages.ageYearsShort} {player.AgeDays}
-                        {messages.ageDaysShort}
-                      </span>
-                    ) : null}
+                    <span
+                      className={styles.playerSortMetric}
+                      ref={(node) => {
+                        sortValueRefs.current[player.YouthPlayerID] = node;
+                      }}
+                    >
+                      {sortMetricText(player)}
+                    </span>
                     <span
                       className={`${styles.playerNameRow}${
                         nameAgeOverlap[player.YouthPlayerID]

@@ -56,6 +56,10 @@ type LineupFieldProps = {
   optimizeStarPlayerName?: string;
   optimizePrimaryTrainingName?: string;
   optimizeSecondaryTrainingName?: string;
+  optimizeModeDisabledReasons?: {
+    revealPrimaryCurrent?: string;
+    revealSecondaryMax?: string;
+  };
   trainedSlots?: {
     primary: Set<string>;
     secondary: Set<string>;
@@ -65,6 +69,7 @@ type LineupFieldProps = {
     secondaryHalf: Set<string>;
     all: Set<string>;
   };
+  hiddenSpecialtyByPlayerId?: Record<number, number>;
   onHoverPlayer?: (playerId: number) => void;
   messages: Messages;
 };
@@ -226,6 +231,29 @@ function getSkillMax(skill?: SkillValue): number | null {
   return Number.isNaN(numeric) ? null : numeric;
 }
 
+function specialtyName(value: number | undefined, messages: Messages) {
+  switch (value) {
+    case 0:
+      return messages.specialtyNone;
+    case 1:
+      return messages.specialtyTechnical;
+    case 2:
+      return messages.specialtyQuick;
+    case 3:
+      return messages.specialtyPowerful;
+    case 4:
+      return messages.specialtyUnpredictable;
+    case 5:
+      return messages.specialtyHeadSpecialist;
+    case 6:
+      return messages.specialtyResilient;
+    case 8:
+      return messages.specialtySupport;
+    default:
+      return null;
+  }
+}
+
 export default function LineupField({
   assignments,
   behaviors,
@@ -246,7 +274,9 @@ export default function LineupField({
   optimizeStarPlayerName,
   optimizePrimaryTrainingName,
   optimizeSecondaryTrainingName,
+  optimizeModeDisabledReasons,
   trainedSlots,
+  hiddenSpecialtyByPlayerId = {},
   onHoverPlayer,
   onSelectPlayer,
   messages,
@@ -288,6 +318,10 @@ export default function LineupField({
     .replace("{{player}}", revealPlayerLabel)
     .replace("{{training}}", revealSecondaryLabel)
     .replace("{{trainingLower}}", revealSecondaryLabelLower);
+  const revealPrimaryCurrentDisabledReason =
+    optimizeModeDisabledReasons?.revealPrimaryCurrent;
+  const revealSecondaryMaxDisabledReason =
+    optimizeModeDisabledReasons?.revealSecondaryMax;
 
   const handleOptimizeSelect = (mode: OptimizeMode) => {
     if (!forceOptimizeOpen) {
@@ -309,6 +343,23 @@ export default function LineupField({
       default:
         return messages.behaviorNeutral;
     }
+  };
+
+  const specialtyForPlayer = (player: YouthPlayer | null) => {
+    if (!player) {
+      return { value: null as number | null, hidden: false };
+    }
+    const knownSpecialty = Number(player.Specialty ?? 0);
+    const hiddenSpecialty = Number(
+      hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0
+    );
+    if (knownSpecialty > 0) {
+      return { value: knownSpecialty, hidden: false };
+    }
+    if (hiddenSpecialty > 0) {
+      return { value: hiddenSpecialty, hidden: true };
+    }
+    return { value: null as number | null, hidden: false };
   };
 
   const handleDrop = (slotId: string, event: React.DragEvent) => {
@@ -414,20 +465,54 @@ export default function LineupField({
                   >
                     {messages.optimizeMenuRatings}
                   </button>
-                  <button
-                    type="button"
-                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                    onClick={() => handleOptimizeSelect("revealPrimaryCurrent")}
+                  <Tooltip
+                    content={revealPrimaryCurrentDisabledReason ?? ""}
+                    disabled={!revealPrimaryCurrentDisabledReason}
+                    fullWidth
                   >
-                    {revealPrimaryCurrentLabel}
-                  </button>
-                  <button
-                    type="button"
-                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
-                    onClick={() => handleOptimizeSelect("revealSecondaryMax")}
+                    <span className={styles.optimizeMenuItemWrap}>
+                      <button
+                        type="button"
+                        className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                          revealPrimaryCurrentDisabledReason
+                            ? styles.optimizeMenuItemDisabled
+                            : ""
+                        }`}
+                        onClick={() => handleOptimizeSelect("revealPrimaryCurrent")}
+                        disabled={Boolean(revealPrimaryCurrentDisabledReason)}
+                        aria-label={
+                          revealPrimaryCurrentDisabledReason ??
+                          revealPrimaryCurrentLabel
+                        }
+                      >
+                        {revealPrimaryCurrentLabel}
+                      </button>
+                    </span>
+                  </Tooltip>
+                  <Tooltip
+                    content={revealSecondaryMaxDisabledReason ?? ""}
+                    disabled={!revealSecondaryMaxDisabledReason}
+                    fullWidth
                   >
-                    {revealSecondaryMaxLabel}
-                  </button>
+                    <span className={styles.optimizeMenuItemWrap}>
+                      <button
+                        type="button"
+                        className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                          revealSecondaryMaxDisabledReason
+                            ? styles.optimizeMenuItemDisabled
+                            : ""
+                        }`}
+                        onClick={() => handleOptimizeSelect("revealSecondaryMax")}
+                        disabled={Boolean(revealSecondaryMaxDisabledReason)}
+                        aria-label={
+                          revealSecondaryMaxDisabledReason ??
+                          revealSecondaryMaxLabel
+                        }
+                      >
+                        {revealSecondaryMaxLabel}
+                      </button>
+                    </span>
+                  </Tooltip>
                 </div>
               ) : null}
             </div>
@@ -647,12 +732,30 @@ export default function LineupField({
                         <span className={styles.slotName}>
                           {formatName(assignedPlayer)}
                         </span>
-                        {assignedPlayer.Specialty &&
-                        assignedPlayer.Specialty !== 0 ? (
-                          <span className={styles.slotEmoji}>
-                            {SPECIALTY_EMOJI[assignedPlayer.Specialty]}
-                          </span>
-                        ) : null}
+                        {(() => {
+                          const specialty = specialtyForPlayer(assignedPlayer);
+                          if (!specialty.value) return null;
+                          const label =
+                            specialtyName(specialty.value, messages) ??
+                            messages.specialtyLabel;
+                          return (
+                            <Tooltip
+                              content={
+                                specialty.hidden
+                                  ? `${messages.hiddenSpecialtyTooltip}: ${label}`
+                                  : label
+                              }
+                            >
+                              <span
+                                className={`${styles.slotEmoji} ${
+                                  specialty.hidden ? styles.hiddenSpecialtyBadge : ""
+                                }`}
+                              >
+                                {SPECIALTY_EMOJI[specialty.value]}
+                              </span>
+                            </Tooltip>
+                          );
+                        })()}
                         <button
                           type="button"
                           className={styles.slotClear}
@@ -834,12 +937,30 @@ export default function LineupField({
                       <span className={styles.slotName}>
                         {formatName(assignedPlayer)}
                       </span>
-                      {assignedPlayer.Specialty &&
-                      assignedPlayer.Specialty !== 0 ? (
-                        <span className={styles.slotEmoji}>
-                          {SPECIALTY_EMOJI[assignedPlayer.Specialty]}
-                        </span>
-                      ) : null}
+                        {(() => {
+                          const specialty = specialtyForPlayer(assignedPlayer);
+                          if (!specialty.value) return null;
+                          const label =
+                            specialtyName(specialty.value, messages) ??
+                            messages.specialtyLabel;
+                          return (
+                            <Tooltip
+                              content={
+                                specialty.hidden
+                                  ? `${messages.hiddenSpecialtyTooltip}: ${label}`
+                                  : label
+                              }
+                            >
+                              <span
+                                className={`${styles.slotEmoji} ${
+                                  specialty.hidden ? styles.hiddenSpecialtyBadge : ""
+                                }`}
+                              >
+                                {SPECIALTY_EMOJI[specialty.value]}
+                              </span>
+                            </Tooltip>
+                          );
+                        })()}
                       <button
                         type="button"
                         className={styles.slotClear}

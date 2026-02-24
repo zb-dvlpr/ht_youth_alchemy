@@ -279,10 +279,30 @@ const TRAINING_SKILLS: TrainingSkillKey[] = [
   "scoring",
   "setpieces",
 ];
+const TRAINING_SKILL_VALUE_KEYS: Record<
+  TrainingSkillKey,
+  { current: string; max: string }
+> = {
+  keeper: { current: "KeeperSkill", max: "KeeperSkillMax" },
+  defending: { current: "DefenderSkill", max: "DefenderSkillMax" },
+  playmaking: { current: "PlaymakerSkill", max: "PlaymakerSkillMax" },
+  winger: { current: "WingerSkill", max: "WingerSkillMax" },
+  passing: { current: "PassingSkill", max: "PassingSkillMax" },
+  scoring: { current: "ScorerSkill", max: "ScorerSkillMax" },
+  setpieces: { current: "SetPiecesSkill", max: "SetPiecesSkillMax" },
+};
 
 const isTrainingSkill = (
   value: string | null | undefined
 ): value is TrainingSkillKey => TRAINING_SKILLS.includes(value as TrainingSkillKey);
+
+const getKnownSkillValue = (skill?: SkillValue) => {
+  if (!skill) return null;
+  if (skill["@_IsAvailable"] !== "True") return null;
+  if (skill["#text"] === undefined || skill["#text"] === null) return null;
+  const numeric = Number(skill["#text"]);
+  return Number.isNaN(numeric) ? null : numeric;
+};
 
 function resolveDetails(data: Record<string, unknown> | null) {
   if (!data) return null;
@@ -997,6 +1017,49 @@ export default function Dashboard({
     if (staleRefreshAttemptedRef.current) return;
     staleRefreshAttemptedRef.current = true;
     void refreshPlayers(undefined, { refreshAll: true, reason: "stale" });
+  }, [playerList.length, stalenessHours, activeYouthTeamId, isConnected, playersLoading]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!isConnected) return;
+
+    const maybeRunStaleRefresh = () => {
+      if (document.visibilityState !== "visible") return;
+      const lastRefresh = readLastRefreshTimestamp();
+      if (!lastRefresh) {
+        if (playerList.length > 0) {
+          const fallback = Date.now();
+          writeLastRefreshTimestamp(fallback);
+          setLastGlobalRefreshAt(fallback);
+        }
+        return;
+      }
+      const maxAgeMs = stalenessHours * 60 * 60 * 1000;
+      const isStale = Date.now() - lastRefresh >= maxAgeMs;
+      if (!isStale) {
+        staleRefreshAttemptedRef.current = false;
+        return;
+      }
+      if (playersLoading) return;
+      if (staleRefreshAttemptedRef.current) return;
+      staleRefreshAttemptedRef.current = true;
+      void refreshPlayers(undefined, { refreshAll: true, reason: "stale" });
+    };
+
+    const handleFocus = () => maybeRunStaleRefresh();
+    const handleVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      maybeRunStaleRefresh();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("pageshow", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("pageshow", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
   }, [playerList.length, stalenessHours, activeYouthTeamId, isConnected, playersLoading]);
 
   useEffect(() => {
@@ -2686,6 +2749,56 @@ export default function Dashboard({
   const optimizeSecondaryTrainingName = isTrainingSkill(secondaryTraining)
     ? trainingLabel(secondaryTraining)
     : messages.trainingUnset;
+  const optimizeModeDisabledReasons = useMemo(() => {
+    const reasons: {
+      revealPrimaryCurrent?: string;
+      revealSecondaryMax?: string;
+    } = {};
+    if (
+      !starPlayerId ||
+      !isTrainingSkill(primaryTraining) ||
+      !isTrainingSkill(secondaryTraining)
+    ) {
+      return reasons;
+    }
+    const starPlayer =
+      playerList.find((player) => player.YouthPlayerID === starPlayerId) ?? null;
+    const starSkills =
+      playerDetailsById.get(starPlayerId)?.PlayerSkills ??
+      starPlayer?.PlayerSkills ??
+      null;
+    if (!starSkills) return reasons;
+
+    const primaryCurrentKey = TRAINING_SKILL_VALUE_KEYS[primaryTraining].current;
+    const secondaryMaxKey = TRAINING_SKILL_VALUE_KEYS[secondaryTraining].max;
+    const starName =
+      [starPlayer?.FirstName, starPlayer?.NickName || null, starPlayer?.LastName]
+        .filter(Boolean)
+        .join(" ") || messages.unknownShort;
+    const primaryTrainingName = trainingLabel(primaryTraining).toLocaleLowerCase();
+    const secondaryTrainingName = trainingLabel(secondaryTraining).toLocaleLowerCase();
+
+    if (getKnownSkillValue(starSkills[primaryCurrentKey]) !== null) {
+      reasons.revealPrimaryCurrent = messages.optimizeRevealPrimaryCurrentKnownTooltip
+        .replace("{{player}}", starName)
+        .replace("{{training}}", primaryTrainingName);
+    }
+    if (getKnownSkillValue(starSkills[secondaryMaxKey]) !== null) {
+      reasons.revealSecondaryMax = messages.optimizeRevealSecondaryMaxKnownTooltip
+        .replace("{{player}}", starName)
+        .replace("{{training}}", secondaryTrainingName);
+    }
+    return reasons;
+  }, [
+    messages.optimizeRevealPrimaryCurrentKnownTooltip,
+    messages.optimizeRevealSecondaryMaxKnownTooltip,
+    messages.unknownShort,
+    playerDetailsById,
+    playerList,
+    primaryTraining,
+    secondaryTraining,
+    starPlayerId,
+  ]);
 
   const trainingSlots = useMemo(() => {
     if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
@@ -3143,7 +3256,9 @@ export default function Dashboard({
           optimizeStarPlayerName={optimizeStarPlayerName}
           optimizePrimaryTrainingName={optimizePrimaryTrainingName}
           optimizeSecondaryTrainingName={optimizeSecondaryTrainingName}
+          optimizeModeDisabledReasons={optimizeModeDisabledReasons}
           trainedSlots={trainingSlots}
+          hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
           onHoverPlayer={ensureDetails}
           onSelectPlayer={handleSelect}
           messages={messages}

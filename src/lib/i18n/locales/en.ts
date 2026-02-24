@@ -430,24 +430,18 @@ export const messagesEn: Messages = {
     optimizeMenuRatings: "Optimize by ratings",
     optimizeMenuRevealPrimaryCurrent:
       "Reveal {{player}}'s {{trainingLower}} current value",
-    optimizeMenuRevealPrimaryMax: "Reveal star player pri. max. value",
-    optimizeMenuRevealSecondaryCurrent: "Reveal star player sec. curr. value",
     optimizeMenuRevealSecondaryMax:
       "Reveal {{player}}'s {{trainingLower}} max value",
     optimizeRevealPrimaryCurrentKnown:
       "Reveal primary current unavailable: star primary current already known.",
+    optimizeRevealPrimaryCurrentKnownTooltip:
+      "Reveal unavailable: {{player}}'s current {{training}} is already known.",
     optimizeRevealPrimaryCurrentUnavailable:
       "Reveal primary current unavailable. Select a star player and primary training.",
-    optimizeRevealPrimaryMaxKnown:
-      "Reveal primary max unavailable: star primary max already known.",
-    optimizeRevealPrimaryMaxUnavailable:
-      "Reveal primary max unavailable. Select a star player and primary training.",
-    optimizeRevealSecondaryCurrentKnown:
-      "Reveal secondary current unavailable: star secondary current already known.",
-    optimizeRevealSecondaryCurrentUnavailable:
-      "Reveal secondary current unavailable. Select a star player and secondary training.",
     optimizeRevealSecondaryMaxKnown:
       "Reveal secondary max unavailable: star secondary max already known.",
+    optimizeRevealSecondaryMaxKnownTooltip:
+      "Reveal unavailable: {{player}}'s max {{training}} is already known.",
     optimizeRevealSecondaryMaxUnavailable:
       "Reveal secondary max unavailable. Select a star player and secondary training.",
     optimizeRatingsUnavailable:

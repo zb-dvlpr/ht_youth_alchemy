@@ -27,6 +27,7 @@ type ViewStateSnapshot = {
 
 const APP_SHELL_VIEW_STATE_KEY = "ya_app_shell_view_state_v1";
 const APP_SHELL_ACTIVE_TOOL_KEY = "ya_app_shell_active_tool_v1";
+const APP_SHELL_COLLAPSED_KEY = "ya_app_shell_collapsed_v1";
 
 export default function AppShell({ messages, children }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -226,6 +227,19 @@ export default function AppShell({ messages, children }: AppShellProps) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!viewStateRestored) return;
+    try {
+      window.localStorage.setItem(
+        APP_SHELL_COLLAPSED_KEY,
+        collapsed ? "1" : "0"
+      );
+    } catch {
+      // ignore storage errors
+    }
+  }, [collapsed, viewStateRestored]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     const restore = () => {
       try {
         const raw = window.localStorage.getItem(APP_SHELL_VIEW_STATE_KEY);
@@ -246,6 +260,12 @@ export default function AppShell({ messages, children }: AppShellProps) {
         }
         const stored = window.localStorage.getItem(APP_SHELL_ACTIVE_TOOL_KEY);
         setActiveTool(stored === "chronicle" ? "chronicle" : "youth");
+        const collapsedStored = window.localStorage.getItem(
+          APP_SHELL_COLLAPSED_KEY
+        );
+        if (collapsedStored === "1" || collapsedStored === "0") {
+          setCollapsed(collapsedStored === "1");
+        }
       } catch {
         // ignore parse/storage errors
       } finally {

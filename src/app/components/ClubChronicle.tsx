@@ -1953,6 +1953,26 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => trackedTeams.map((team) => team.teamId).sort((a, b) => a - b).join(","),
     [trackedTeams]
   );
+  const unfetchedTrackedTeamIds = useMemo(() => {
+    return trackedTeams
+      .filter((team) => {
+        const cached = chronicleCache.teams[team.teamId];
+        if (!cached) return true;
+        return !(
+          cached.leaguePerformance?.current ||
+          cached.pressAnnouncement?.current ||
+          cached.fanclub?.current ||
+          cached.arena?.current ||
+          cached.financeEstimate?.current ||
+          cached.transferActivity?.current ||
+          cached.tsi?.current ||
+          cached.wages?.current ||
+          cached.formationsTactics?.current ||
+          cached.lastLogin?.current
+        );
+      })
+      .map((team) => team.teamId);
+  }, [chronicleCache.teams, trackedTeams]);
 
   useEffect(() => {
     trackedTeamsRef.current = trackedTeams;
@@ -2611,6 +2631,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     initialFetchRef.current = true;
     void refreshAllData("manual");
   }, [trackedTeams.length, chronicleCache, anyRefreshing]);
+
+  useEffect(() => {
+    if (loading || isValidating) return;
+    if (unfetchedTrackedTeamIds.length === 0) return;
+    setPendingWatchlistFetchTeamIds((prev) => {
+      const pending = new Set(prev);
+      unfetchedTrackedTeamIds.forEach((teamId) => {
+        pending.add(teamId);
+      });
+      return Array.from(pending);
+    });
+  }, [loading, isValidating, unfetchedTrackedTeamIds]);
 
   useEffect(() => {
     if (!initializedRef.current) return;

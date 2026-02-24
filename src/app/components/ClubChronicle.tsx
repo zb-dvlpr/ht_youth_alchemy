@@ -1836,6 +1836,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const initializedRef = useRef(false);
   const initialFetchRef = useRef(false);
   const staleRefreshRef = useRef(false);
+  const trackedTeamsRef = useRef<ChronicleTeamData[]>([]);
   const refreshAllDataRef = useRef<((reason: "stale" | "manual") => Promise<void>) | null>(
     null
   );
@@ -1942,6 +1943,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => trackedTeams.some((team) => team.teamId === NO_DIVULGO_TARGET_TEAM_ID),
     [trackedTeams]
   );
+  const trackedTeamIdsKey = useMemo(
+    () => trackedTeams.map((team) => team.teamId).sort((a, b) => a - b).join(","),
+    [trackedTeams]
+  );
+
+  useEffect(() => {
+    trackedTeamsRef.current = trackedTeams;
+  }, [trackedTeams]);
+
+  useEffect(() => {
+    // Team scope changed; allow stale refresh checks to run again for the new full set.
+    staleRefreshRef.current = false;
+  }, [trackedTeamIdsKey]);
 
   const handleNoDivulgoDismiss = useCallback((teamId: number) => {
     if (typeof window === "undefined") return;
@@ -2593,6 +2607,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [trackedTeams.length, chronicleCache, anyRefreshing]);
 
   useEffect(() => {
+    if (!initializedRef.current) return;
+    if (loading || isValidating) return;
     if (trackedTeams.length === 0) return;
     let lastRefresh = readLastRefresh();
     if (!lastRefresh) {
@@ -2611,7 +2627,64 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (staleRefreshRef.current || anyRefreshing) return;
     staleRefreshRef.current = true;
     void refreshAllData("stale");
-  }, [trackedTeams.length, stalenessDays, anyRefreshing, chronicleCache]);
+  }, [
+    trackedTeams.length,
+    stalenessDays,
+    anyRefreshing,
+    chronicleCache,
+    loading,
+    isValidating,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!initializedRef.current) return;
+    if (loading || isValidating) return;
+    if (trackedTeams.length === 0) return;
+
+    const maybeRunStaleRefresh = () => {
+      if (document.visibilityState !== "visible") return;
+      let lastRefresh = readLastRefresh();
+      if (!lastRefresh) {
+        const fallback = getLatestCacheTimestamp(chronicleCache);
+        if (!fallback) return;
+        lastRefresh = fallback;
+        writeLastRefresh(fallback);
+        setLastGlobalRefreshAt(fallback);
+      }
+      const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
+      const isStale = Date.now() - lastRefresh >= maxAgeMs;
+      if (!isStale) {
+        staleRefreshRef.current = false;
+        return;
+      }
+      if (staleRefreshRef.current || anyRefreshing) return;
+      staleRefreshRef.current = true;
+      void refreshAllData("stale");
+    };
+
+    const handleFocus = () => maybeRunStaleRefresh();
+    const handleVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      maybeRunStaleRefresh();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("pageshow", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("pageshow", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [
+    trackedTeams.length,
+    stalenessDays,
+    anyRefreshing,
+    chronicleCache,
+    loading,
+    isValidating,
+  ]);
 
   useEffect(() => {
     writeChronicleCache(chronicleCache);
@@ -5996,7 +6069,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
   };
   const refreshAllData = async (reason: "stale" | "manual") => {
-    await refreshDataForTeams(reason, trackedTeams);
+    await refreshDataForTeams(reason, trackedTeamsRef.current);
   };
   const refreshNoDivulgoTeam = async (teamId: number) => {
     const targetTeam = trackedTeams.find((team) => team.teamId === teamId);

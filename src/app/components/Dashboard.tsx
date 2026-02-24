@@ -1020,6 +1020,49 @@ export default function Dashboard({
   }, [playerList.length, stalenessHours, activeYouthTeamId, isConnected, playersLoading]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!isConnected) return;
+
+    const maybeRunStaleRefresh = () => {
+      if (document.visibilityState !== "visible") return;
+      const lastRefresh = readLastRefreshTimestamp();
+      if (!lastRefresh) {
+        if (playerList.length > 0) {
+          const fallback = Date.now();
+          writeLastRefreshTimestamp(fallback);
+          setLastGlobalRefreshAt(fallback);
+        }
+        return;
+      }
+      const maxAgeMs = stalenessHours * 60 * 60 * 1000;
+      const isStale = Date.now() - lastRefresh >= maxAgeMs;
+      if (!isStale) {
+        staleRefreshAttemptedRef.current = false;
+        return;
+      }
+      if (playersLoading) return;
+      if (staleRefreshAttemptedRef.current) return;
+      staleRefreshAttemptedRef.current = true;
+      void refreshPlayers(undefined, { refreshAll: true, reason: "stale" });
+    };
+
+    const handleFocus = () => maybeRunStaleRefresh();
+    const handleVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      maybeRunStaleRefresh();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("pageshow", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("pageshow", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [playerList.length, stalenessHours, activeYouthTeamId, isConnected, playersLoading]);
+
+  useEffect(() => {
     if (!initialAuthError) return;
     setAuthError(true);
     setAuthErrorDetails(initialLoadDetails ?? null);

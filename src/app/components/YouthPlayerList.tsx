@@ -23,16 +23,23 @@ type YouthPlayer = {
   PlayerSkills?: PlayerSkills;
 };
 
-type SkillValue = number | { "#text"?: number };
+type SkillValue = number | string | { "#text"?: number | string };
 
 type PlayerSkills = {
   KeeperSkill?: SkillValue;
+  KeeperSkillMax?: SkillValue;
   DefenderSkill?: SkillValue;
+  DefenderSkillMax?: SkillValue;
   PlaymakerSkill?: SkillValue;
+  PlaymakerSkillMax?: SkillValue;
   WingerSkill?: SkillValue;
+  WingerSkillMax?: SkillValue;
   PassingSkill?: SkillValue;
+  PassingSkillMax?: SkillValue;
   ScorerSkill?: SkillValue;
+  ScorerSkillMax?: SkillValue;
   SetPiecesSkill?: SkillValue;
+  SetPiecesSkillMax?: SkillValue;
 };
 
 const specialtyName = (value: number | undefined, messages: Messages) => {
@@ -125,12 +132,24 @@ function formatPlayerName(player?: YouthPlayer | null) {
 function toSkillValue(value: SkillValue | undefined) {
   if (value === null || value === undefined) return null;
   if (typeof value === "number") return value;
+  if (typeof value === "string") {
+    const numeric = Number(value);
+    return Number.isNaN(numeric) ? null : numeric;
+  }
   const numeric = value["#text"];
-  return typeof numeric === "number" ? numeric : null;
+  if (numeric === null || numeric === undefined) return null;
+  const parsed = Number(numeric);
+  return Number.isNaN(parsed) ? null : parsed;
 }
 
-function getSkill(player: YouthPlayer, key: keyof PlayerSkills) {
-  return toSkillValue(player.PlayerSkills?.[key]);
+function getSkillScore(
+  player: YouthPlayer,
+  currentKey: keyof PlayerSkills,
+  maxKey: keyof PlayerSkills
+) {
+  const current = toSkillValue(player.PlayerSkills?.[currentKey]) ?? 0;
+  const max = toSkillValue(player.PlayerSkills?.[maxKey]) ?? 0;
+  return current + max;
 }
 
 function parseArrival(dateString?: string) {
@@ -337,41 +356,45 @@ export default function YouthPlayerList({
             "asc"
           );
         case "keeper":
-          return compareNumber(getSkill(a, "KeeperSkill"), getSkill(b, "KeeperSkill"), "desc");
+          return compareNumber(
+            getSkillScore(a, "KeeperSkill", "KeeperSkillMax"),
+            getSkillScore(b, "KeeperSkill", "KeeperSkillMax"),
+            "desc"
+          );
         case "defender":
           return compareNumber(
-            getSkill(a, "DefenderSkill"),
-            getSkill(b, "DefenderSkill"),
+            getSkillScore(a, "DefenderSkill", "DefenderSkillMax"),
+            getSkillScore(b, "DefenderSkill", "DefenderSkillMax"),
             "desc"
           );
         case "playmaker":
           return compareNumber(
-            getSkill(a, "PlaymakerSkill"),
-            getSkill(b, "PlaymakerSkill"),
+            getSkillScore(a, "PlaymakerSkill", "PlaymakerSkillMax"),
+            getSkillScore(b, "PlaymakerSkill", "PlaymakerSkillMax"),
             "desc"
           );
         case "winger":
           return compareNumber(
-            getSkill(a, "WingerSkill"),
-            getSkill(b, "WingerSkill"),
+            getSkillScore(a, "WingerSkill", "WingerSkillMax"),
+            getSkillScore(b, "WingerSkill", "WingerSkillMax"),
             "desc"
           );
         case "passing":
           return compareNumber(
-            getSkill(a, "PassingSkill"),
-            getSkill(b, "PassingSkill"),
+            getSkillScore(a, "PassingSkill", "PassingSkillMax"),
+            getSkillScore(b, "PassingSkill", "PassingSkillMax"),
             "desc"
           );
         case "scorer":
           return compareNumber(
-            getSkill(a, "ScorerSkill"),
-            getSkill(b, "ScorerSkill"),
+            getSkillScore(a, "ScorerSkill", "ScorerSkillMax"),
+            getSkillScore(b, "ScorerSkill", "ScorerSkillMax"),
             "desc"
           );
         case "setpieces":
           return compareNumber(
-            getSkill(a, "SetPiecesSkill"),
-            getSkill(b, "SetPiecesSkill"),
+            getSkillScore(a, "SetPiecesSkill", "SetPiecesSkillMax"),
+            getSkillScore(b, "SetPiecesSkill", "SetPiecesSkillMax"),
             "desc"
           );
         case "custom":

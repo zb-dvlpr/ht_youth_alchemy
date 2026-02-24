@@ -720,6 +720,7 @@ const CHPP_SEK_PER_EUR = 10;
 const ARCHIVE_MATCH_LIMIT = 20;
 const TEAM_REFRESH_CONCURRENCY = 4;
 const MATCH_DETAILS_FETCH_CONCURRENCY = 6;
+const INCOMPLETE_TEAM_REFETCH_COOLDOWN_MS = 60 * 1000;
 const RELEVANT_MATCH_TYPES = new Set([1, 3, 4, 5, 8, 9]);
 const POSSIBLE_FORMATIONS = new Set([
   "2-5-3",
@@ -1849,6 +1850,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshTeamsRef = useRef<((teams: ChronicleTeamData[]) => Promise<void>) | null>(
     null
   );
+  const incompleteTeamRefetchAtRef = useRef<Record<number, number>>({});
   const { addNotification } = useNotifications();
   const anyRefreshing =
     refreshingGlobal ||
@@ -1953,21 +1955,21 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => trackedTeams.map((team) => team.teamId).sort((a, b) => a - b).join(","),
     [trackedTeams]
   );
-  const unfetchedTrackedTeamIds = useMemo(() => {
+  const incompleteTrackedTeamIds = useMemo(() => {
     return trackedTeams
       .filter((team) => {
         const cached = chronicleCache.teams[team.teamId];
         if (!cached) return true;
         return !(
-          cached.leaguePerformance?.current ||
-          cached.pressAnnouncement?.current ||
-          cached.fanclub?.current ||
-          cached.arena?.current ||
-          cached.financeEstimate?.current ||
-          cached.transferActivity?.current ||
-          cached.tsi?.current ||
-          cached.wages?.current ||
-          cached.formationsTactics?.current ||
+          cached.leaguePerformance?.current &&
+          cached.pressAnnouncement?.current &&
+          cached.fanclub?.current &&
+          cached.arena?.current &&
+          cached.financeEstimate?.current &&
+          cached.transferActivity?.current &&
+          cached.tsi?.current &&
+          cached.wages?.current &&
+          cached.formationsTactics?.current &&
           cached.lastLogin?.current
         );
       })
@@ -2634,15 +2636,24 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   useEffect(() => {
     if (loading || isValidating) return;
-    if (unfetchedTrackedTeamIds.length === 0) return;
+    if (incompleteTrackedTeamIds.length === 0) return;
+    const now = Date.now();
+    const eligibleTeamIds = incompleteTrackedTeamIds.filter((teamId) => {
+      const lastAttempt = incompleteTeamRefetchAtRef.current[teamId] ?? 0;
+      return now - lastAttempt >= INCOMPLETE_TEAM_REFETCH_COOLDOWN_MS;
+    });
+    if (eligibleTeamIds.length === 0) return;
+    eligibleTeamIds.forEach((teamId) => {
+      incompleteTeamRefetchAtRef.current[teamId] = now;
+    });
     setPendingWatchlistFetchTeamIds((prev) => {
       const pending = new Set(prev);
-      unfetchedTrackedTeamIds.forEach((teamId) => {
+      eligibleTeamIds.forEach((teamId) => {
         pending.add(teamId);
       });
       return Array.from(pending);
     });
-  }, [loading, isValidating, unfetchedTrackedTeamIds]);
+  }, [loading, isValidating, incompleteTrackedTeamIds]);
 
   useEffect(() => {
     if (!initializedRef.current) return;

@@ -3215,6 +3215,7 @@ export default function Dashboard({
           optimizeSecondaryTrainingName={optimizeSecondaryTrainingName}
           optimizeModeDisabledReasons={optimizeModeDisabledReasons}
           trainedSlots={trainingSlots}
+          hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
           onHoverPlayer={ensureDetails}
           onSelectPlayer={handleSelect}
           messages={messages}

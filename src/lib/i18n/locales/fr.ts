@@ -459,10 +459,6 @@ export const messagesFr: Messages = {
     optimizeMenuRatings: "Optimiser par notes",
     optimizeMenuRevealPrimaryCurrent:
       "Révéler la valeur actuelle de {{trainingLower}} pour {{player}}",
-    optimizeMenuRevealPrimaryMax:
-      "Révéler val. max. prim. du joueur star",
-    optimizeMenuRevealSecondaryCurrent:
-      "Révéler val. act. sec. du joueur star",
     optimizeMenuRevealSecondaryMax:
       "Révéler la valeur max de {{trainingLower}} pour {{player}}",
     optimizeRevealPrimaryCurrentKnown:
@@ -471,14 +467,6 @@ export const messagesFr: Messages = {
       "Révélation indisponible : la valeur actuelle en {{training}} de {{player}} est déjà connue.",
     optimizeRevealPrimaryCurrentUnavailable:
       "Révélation indisponible. Sélectionnez un joueur star et un entraînement primaire.",
-    optimizeRevealPrimaryMaxKnown:
-      "Révélation indisponible : valeur primaire max déjà connue.",
-    optimizeRevealPrimaryMaxUnavailable:
-      "Révélation indisponible. Sélectionnez un joueur star et un entraînement primaire.",
-    optimizeRevealSecondaryCurrentKnown:
-      "Révélation indisponible : valeur secondaire actuelle déjà connue.",
-    optimizeRevealSecondaryCurrentUnavailable:
-      "Révélation indisponible. Sélectionnez un joueur star et un entraînement secondaire.",
     optimizeRevealSecondaryMaxKnown:
       "Révélation indisponible : valeur secondaire max déjà connue.",
     optimizeRevealSecondaryMaxKnownTooltip:

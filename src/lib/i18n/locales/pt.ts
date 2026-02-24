@@ -459,8 +459,6 @@ export const messagesPt: Messages = {
     optimizeMenuRatings: "Otimizar por avaliações",
     optimizeMenuRevealPrimaryCurrent:
       "Revelar valor atual de {{trainingLower}} de {{player}}",
-    optimizeMenuRevealPrimaryMax: "Revelar val. máx. prim. da estrela",
-    optimizeMenuRevealSecondaryCurrent: "Revelar val. atual sec. da estrela",
     optimizeMenuRevealSecondaryMax:
       "Revelar valor máx. de {{trainingLower}} de {{player}}",
     optimizeRevealPrimaryCurrentKnown:
@@ -469,14 +467,6 @@ export const messagesPt: Messages = {
       "Revelação indisponível: o valor atual de {{training}} de {{player}} já é conhecido.",
     optimizeRevealPrimaryCurrentUnavailable:
       "Revelação indisponível. Selecione estrela e treino primário.",
-    optimizeRevealPrimaryMaxKnown:
-      "Revelação indisponível: valor primário max já conhecido.",
-    optimizeRevealPrimaryMaxUnavailable:
-      "Revelação indisponível. Selecione estrela e treino primário.",
-    optimizeRevealSecondaryCurrentKnown:
-      "Revelação indisponível: valor secundário já conhecido.",
-    optimizeRevealSecondaryCurrentUnavailable:
-      "Revelação indisponível. Selecione estrela e treino secundário.",
     optimizeRevealSecondaryMaxKnown:
       "Revelação indisponível: valor secundário max já conhecido.",
     optimizeRevealSecondaryMaxKnownTooltip:

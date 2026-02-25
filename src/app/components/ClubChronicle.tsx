@@ -4738,6 +4738,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           `/api/chpp/teamdetails?teamId=${team.teamId}`,
           { cache: "no-store" }
         );
+        if (!response.ok || payload?.error) return;
         const teamDetails = extractTeamDetailsNode(payload, team.teamId) as
           | {
               TeamID?: number | string;
@@ -4765,23 +4766,29 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               };
             }
           | undefined;
+        if (!teamDetails) return;
         const meta = resolveTeamDetailsMeta(teamDetails);
-        const pressSnapshot = resolvePressAnnouncement(teamDetails);
-        const fanclubSnapshot = resolveFanclub(teamDetails);
+        const pressSnapshot = resolvePressAnnouncement(teamDetails) ?? {
+          subject: null,
+          body: null,
+          sendDate: null,
+          fetchedAt: Date.now(),
+        };
+        const fanclubSnapshot = resolveFanclub(teamDetails) ?? {
+          fanclubName: null,
+          fanclubSize: null,
+          fetchedAt: Date.now(),
+        };
         const nextTeamName = teamDetails?.TeamName ?? team.teamName ?? "";
         const previousPress = nextCache.teams[team.teamId]?.pressAnnouncement?.current;
         const existingFanclub = nextCache.teams[team.teamId]?.fanclub;
         const previousFanclubCurrent = existingFanclub?.current;
-        const fanclubChanged = fanclubSnapshot
-          ? previousFanclubCurrent
-            ? previousFanclubCurrent.fanclubName !== fanclubSnapshot.fanclubName ||
-              previousFanclubCurrent.fanclubSize !== fanclubSnapshot.fanclubSize
-            : true
-          : false;
+        const fanclubChanged = previousFanclubCurrent
+          ? previousFanclubCurrent.fanclubName !== fanclubSnapshot.fanclubName ||
+            previousFanclubCurrent.fanclubSize !== fanclubSnapshot.fanclubSize
+          : true;
         const nextFanclubPrevious =
-          fanclubSnapshot && fanclubChanged
-            ? previousFanclubCurrent
-            : existingFanclub?.previous;
+          fanclubChanged ? previousFanclubCurrent : existingFanclub?.previous;
         nextCache.teams[team.teamId] = {
           ...nextCache.teams[team.teamId],
           teamId: team.teamId,
@@ -4793,18 +4800,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           arenaName: meta.arenaName,
           leaguePerformance: nextCache.teams[team.teamId]?.leaguePerformance,
           pressAnnouncement:
-            options.updatePress && pressSnapshot
+            options.updatePress
               ? {
                   current: pressSnapshot,
                   previous: previousPress,
                 }
               : nextCache.teams[team.teamId]?.pressAnnouncement,
-          fanclub: fanclubSnapshot
-            ? {
-                current: fanclubSnapshot,
-                previous: nextFanclubPrevious,
-              }
-            : nextCache.teams[team.teamId]?.fanclub,
+          fanclub: {
+            current: fanclubSnapshot,
+            previous: nextFanclubPrevious,
+          },
         };
         const manualIndex = nextManualTeams.findIndex(
           (item) => item.teamId === team.teamId

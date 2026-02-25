@@ -1376,7 +1376,9 @@ export function optimizeRevealSecondaryMax(
 
   const trainingInfo = trainingSlotSet(primary, secondary);
   const primarySlots = trainingInfo.primarySlots;
-  const secondarySlots = trainingInfo.secondarySlots;
+  // Reveal-secondary requires true secondary training slots, including overlap
+  // with primary (e.g. passing + scoring overlap on forwards).
+  const secondarySlots = slotsForSkill(secondary);
   const trainingSlots = new Set<(typeof ALL_SLOTS)[number]>([
     ...primarySlots,
     ...secondarySlots,

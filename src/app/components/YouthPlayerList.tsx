@@ -488,7 +488,7 @@ export default function YouthPlayerList({
         case "custom":
           return messages.sortCustom;
         case "name":
-          return messages.sortName;
+          return formatAgeDays(ageTotalDays(player));
         default:
           return messages.sortName;
       }

@@ -1635,6 +1635,11 @@ html[data-app-scaling="off"] .chronicleHeader {
   width: min(760px, 94vw);
 }
 
+.chronicleCoachModal {
+  max-width: min(1200px, 98vw);
+  width: min(1200px, 98vw);
+}
+
 .chronicleTransferHistoryModal {
   max-width: min(1120px, 98vw);
   width: min(1120px, 98vw);
@@ -2833,6 +2838,18 @@ html[data-theme="dark"] .spinner {
   text-align: right;
 }
 
+.playerSortMetricUrgent {
+  color: #fff1f1;
+  background: linear-gradient(135deg, #d03333, #a10f0f);
+  border: 1px solid #7e0000;
+  border-radius: 999px;
+  padding: 1px 7px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 0 8px rgba(183, 24, 24, 0.35);
+}
+
 .playerId {
   font-size: 11px;
   color: #666;
@@ -3483,6 +3500,10 @@ html[data-theme="dark"] .spinner {
 
 .confirmCard.chronicleLastLoginModal {
   width: min(760px, 94vw);
+}
+
+.confirmCard.chronicleCoachModal {
+  width: min(1200px, 98vw);
 }
 
 .confirmCard.chronicleUpdatesModal {

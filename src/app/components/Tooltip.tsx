@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  type FocusEvent,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import styles from "./tooltip.module.css";
 
@@ -99,6 +106,13 @@ export default function Tooltip({
     };
   }, []);
 
+  const handleFocus = (event: FocusEvent<HTMLSpanElement>) => {
+    const target = event.target as HTMLElement | null;
+    if (target?.matches(":focus-visible")) {
+      setOpen(true);
+    }
+  };
+
   if (!content || disabled) {
     return (
       <span className={fullWidth ? styles.triggerFull : styles.trigger}>
@@ -125,7 +139,7 @@ export default function Tooltip({
       ref={triggerRef}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
-      onFocus={() => setOpen(true)}
+      onFocus={handleFocus}
       onBlur={() => setOpen(false)}
     >
       {children}

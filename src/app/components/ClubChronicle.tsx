@@ -327,6 +327,7 @@ type CoachSnapshot = {
   contractDate: string | null;
   costSek: number | null;
   countryId: number | null;
+  countryName: string | null;
   trainerType: number | null;
   leadership: number | null;
   trainerSkillLevel: number | null;
@@ -1906,6 +1907,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     null
   );
   const incompleteTeamRefetchAtRef = useRef<Record<number, number>>({});
+  const coachCountryNameCacheRef = useRef<Map<number, string>>(new Map());
+  const coachCountryNamePendingRef = useRef<Map<number, Promise<string | null>>>(new Map());
   const { addNotification } = useNotifications();
   const anyRefreshing =
     refreshingGlobal ||
@@ -4337,6 +4340,67 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return null;
   };
 
+  const resolveCoachCountryName = useCallback(
+    async (countryId: number | null | undefined) => {
+      if (!countryId || !Number.isFinite(countryId) || countryId <= 0) {
+        return null;
+      }
+      const cached = coachCountryNameCacheRef.current.get(countryId);
+      if (cached) return cached;
+      const pending = coachCountryNamePendingRef.current.get(countryId);
+      if (pending) return pending;
+
+      const request = (async (): Promise<string | null> => {
+        try {
+          const { response, payload } = await fetchChppJson<{
+            data?: {
+              HattrickData?: {
+                LeagueList?: {
+                  League?: RawNode | RawNode[];
+                };
+              };
+            };
+            error?: string;
+          }>(`/api/chpp/worlddetails?countryId=${countryId}`, { cache: "no-store" });
+          if (!response.ok || payload?.error) return null;
+
+          const leagues = toArray(
+            payload?.data?.HattrickData?.LeagueList?.League as
+              | RawNode
+              | RawNode[]
+              | undefined
+          );
+
+          for (const league of leagues) {
+            const country = league.Country as RawNode | undefined;
+            if (!country) continue;
+            const resolvedId = parseNumberNode(country.CountryID);
+            const resolvedName = parseStringNode(country.CountryName);
+            if (
+              resolvedId &&
+              resolvedName &&
+              Number.isFinite(resolvedId) &&
+              resolvedId > 0
+            ) {
+              coachCountryNameCacheRef.current.set(resolvedId, resolvedName);
+            }
+          }
+
+          return coachCountryNameCacheRef.current.get(countryId) ?? null;
+        } catch (error) {
+          if (isChppAuthRequiredError(error)) throw error;
+          return null;
+        } finally {
+          coachCountryNamePendingRef.current.delete(countryId);
+        }
+      })();
+
+      coachCountryNamePendingRef.current.set(countryId, request);
+      return request;
+    },
+    []
+  );
+
   const parseBooleanNode = (value: unknown): boolean | null => {
     if (value === null || value === undefined || value === "") return null;
     if (typeof value === "boolean") return value;
@@ -5325,6 +5389,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
           const trainer = payload?.data?.HattrickData?.StaffList?.Trainer;
           if (!trainer) return;
+          const countryId = parseNumberNode(trainer.CountryID);
+          const countryName = await resolveCoachCountryName(countryId);
           const snapshot: CoachSnapshot = {
             trainerId: parseNumberNode(trainer.TrainerId),
             name: parseStringNode(trainer.Name),
@@ -5332,7 +5398,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             ageDays: parseNumberNode(trainer.AgeDays),
             contractDate: parseStringNode(trainer.ContractDate),
             costSek: parseMoneySek(trainer.Cost),
-            countryId: parseNumberNode(trainer.CountryID),
+            countryId,
+            countryName,
             trainerType: parseNumberNode(trainer.TrainerType),
             leadership: parseNumberNode(trainer.Leadership),
             trainerSkillLevel: parseNumberNode(trainer.TrainerSkillLevel),
@@ -7591,9 +7658,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 selectedCoachTeam.snapshot.ageDays
               ),
               country:
-                selectedCoachTeam.snapshot.countryId !== null
+                selectedCoachTeam.snapshot.countryName ??
+                (selectedCoachTeam.snapshot.countryId !== null
                   ? String(selectedCoachTeam.snapshot.countryId)
-                  : null,
+                  : null),
               hiringDate: selectedCoachTeam.snapshot.contractDate
                 ? formatChppDateTime(selectedCoachTeam.snapshot.contractDate) ??
                   selectedCoachTeam.snapshot.contractDate

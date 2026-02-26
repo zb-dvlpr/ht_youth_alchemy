@@ -421,6 +421,9 @@ export default function Dashboard({
     Record<number, Record<string, number>>
   >({});
   const [ratingsPositions, setRatingsPositions] = useState<number[]>([]);
+  const [analyzedRatingsMatchIds, setAnalyzedRatingsMatchIds] = useState<
+    number[]
+  >([]);
   const [orderedPlayerIds, setOrderedPlayerIds] = useState<number[] | null>(
     null
   );
@@ -818,6 +821,7 @@ export default function Dashboard({
         matchesState?: MatchesResponse;
         hiddenSpecialtyByPlayerId?: Record<number, number>;
         analyzedHiddenSpecialtyMatchIds?: number[];
+        analyzedRatingsMatchIds?: number[];
       };
       if (parsed.assignments) setAssignments(parsed.assignments);
       if (parsed.behaviors) setBehaviors(parsed.behaviors);
@@ -856,6 +860,9 @@ export default function Dashboard({
       if (parsed.analyzedHiddenSpecialtyMatchIds) {
         setAnalyzedHiddenSpecialtyMatchIds(parsed.analyzedHiddenSpecialtyMatchIds);
       }
+      if (parsed.analyzedRatingsMatchIds !== undefined) {
+        setAnalyzedRatingsMatchIds(parsed.analyzedRatingsMatchIds);
+      }
     } catch {
       // ignore restore errors
     } finally {
@@ -882,6 +889,7 @@ export default function Dashboard({
       matchesState,
       hiddenSpecialtyByPlayerId,
       analyzedHiddenSpecialtyMatchIds,
+      analyzedRatingsMatchIds,
     };
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(payload));
@@ -904,6 +912,7 @@ export default function Dashboard({
     matchesState,
     hiddenSpecialtyByPlayerId,
     analyzedHiddenSpecialtyMatchIds,
+    analyzedRatingsMatchIds,
     storageKey,
     restoredStorageKey,
   ]);
@@ -2086,7 +2095,10 @@ export default function Dashboard({
 
   const refreshRatings = async (
     teamIdOverride?: number | null,
-    matchesPayload?: MatchesResponse | null
+    matchesPayload?: MatchesResponse | null,
+    options?: {
+      playersChanged?: boolean;
+    }
   ) => {
     const teamId = teamIdOverride ?? activeYouthTeamId;
     try {
@@ -2137,6 +2149,14 @@ export default function Dashboard({
         .sort((a, b) => b._date - a._date)
         .slice(0, 50);
 
+      const analyzedRatingsMatchIdsSet = new Set(analyzedRatingsMatchIds);
+      const matchesNeedingRatingsTraversal = finishedMatches.filter(
+        (match) => !analyzedRatingsMatchIdsSet.has(match._matchId)
+      );
+      const shouldTraverseRatings =
+        Boolean(options?.playersChanged) ||
+        matchesNeedingRatingsTraversal.length > 0;
+
       if (!teamIdValue || finishedMatches.length === 0) {
         setRatingsResponseState({
           positions: POSITION_COLUMNS,
@@ -2145,11 +2165,16 @@ export default function Dashboard({
         return true;
       }
 
+      if (!shouldTraverseRatings) {
+        return true;
+      }
+
       const playersMap = new Map<
         number,
         { id: number; name: string; ratings: Record<string, number> }
       >();
       const matchPlayerIdsByMatch = new Map<number, Set<number>>();
+      const ratingsTraversedMatchIds = new Set<number>();
 
       let lineupCompleted = 0;
       const lineupResults = await mapWithConcurrency(
@@ -2164,11 +2189,13 @@ export default function Dashboard({
             if (!response.ok || payload?.error) {
               return {
                 matchId: match._matchId,
+                traversed: false,
                 lineupPlayers: [] as MatchLineupPlayer[],
               };
             }
             return {
               matchId: match._matchId,
+              traversed: true,
               lineupPlayers: normalizeArray<MatchLineupPlayer>(
                 payload?.data?.HattrickData?.Team?.Lineup?.Player
               ),
@@ -2186,6 +2213,9 @@ export default function Dashboard({
       );
 
       lineupResults.forEach((result) => {
+        if (result.traversed) {
+          ratingsTraversedMatchIds.add(result.matchId);
+        }
         const matchPlayers = new Set<number>();
         result.lineupPlayers.forEach((player) => {
           const roleId = Number(player.RoleID);
@@ -2219,12 +2249,31 @@ export default function Dashboard({
         matchPlayerIdsByMatch.set(result.matchId, matchPlayers);
       });
 
+      if (ratingsTraversedMatchIds.size > 0) {
+        setAnalyzedRatingsMatchIds((prev) => {
+          const merged = new Set<number>(prev);
+          ratingsTraversedMatchIds.forEach((matchId) => merged.add(matchId));
+          return Array.from(merged.values()).sort((a, b) => b - a);
+        });
+      }
+
       setRatingsResponseState({
         positions: POSITION_COLUMNS,
         players: Array.from(playersMap.values()),
       });
 
       try {
+        const alreadyAnalyzedMatchIds = new Set(analyzedHiddenSpecialtyMatchIds);
+        const hasUnanalyzedFinishedMatch = finishedMatches.some(
+          (match) => !alreadyAnalyzedMatchIds.has(match._matchId)
+        );
+        const shouldScanHiddenSpecialties =
+          Boolean(options?.playersChanged) || hasUnanalyzedFinishedMatch;
+
+        if (!shouldScanHiddenSpecialties) {
+          return true;
+        }
+
         setPlayerRefreshStatus(messages.refreshStatusFetchingHiddenSpecialties);
         const knownSpecialties = new Map<number, number>();
         playerList.forEach((player) => {
@@ -2261,7 +2310,6 @@ export default function Dashboard({
               return !(known && known > 0);
             })
         );
-        const alreadyAnalyzedMatchIds = new Set(analyzedHiddenSpecialtyMatchIds);
         const discoveredThisRefresh: Record<number, number> = {};
         const newlyAnalyzedMatchIds = new Set<number>();
 
@@ -2410,6 +2458,7 @@ export default function Dashboard({
         ? teamIdOverride ?? activeYouthTeamId
         : activeYouthTeamId;
     let playersUpdated = false;
+    let playerIdsChanged = false;
     try {
       const teamParam = teamId ? `&youthTeamID=${teamId}` : "";
       const { response, payload } = await fetchChppJson<{
@@ -2433,6 +2482,13 @@ export default function Dashboard({
       }
       const raw = payload?.data?.HattrickData?.PlayerList?.YouthPlayer;
       const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
+      const previousPlayerIds = new Set(
+        playerList.map((player) => player.YouthPlayerID)
+      );
+      const nextPlayerIds = new Set(list.map((player) => player.YouthPlayerID));
+      playerIdsChanged =
+        previousPlayerIds.size !== nextPlayerIds.size ||
+        Array.from(nextPlayerIds).some((id) => !previousPlayerIds.has(id));
       setPlayerList(list);
       playersUpdated = true;
       let nextSelectedId = selectedId;
@@ -2473,7 +2529,9 @@ export default function Dashboard({
           setMatchesState(matchesResult.payload);
         }
         matchesOk = matchesResult.ok;
-        ratingsOk = await refreshRatings(teamId, matchesResult.payload ?? null);
+        ratingsOk = await refreshRatings(teamId, matchesResult.payload ?? null, {
+          playersChanged: playerIdsChanged,
+        });
       }
       if (
         playersUpdated &&
@@ -2508,6 +2566,7 @@ export default function Dashboard({
     setAutoSelectionApplied(false);
     setHiddenSpecialtyByPlayerId({});
     setAnalyzedHiddenSpecialtyMatchIds([]);
+    setAnalyzedRatingsMatchIds([]);
     if (nextTeamId) {
       refreshPlayers(nextTeamId, { recordRefresh: true });
       refreshMatches(nextTeamId);

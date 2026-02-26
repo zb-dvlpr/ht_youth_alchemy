@@ -1635,6 +1635,11 @@ html[data-app-scaling="off"] .chronicleHeader {
   width: min(760px, 94vw);
 }
 
+.chronicleCoachModal {
+  max-width: min(1200px, 98vw);
+  width: min(1200px, 98vw);
+}
+
 .chronicleTransferHistoryModal {
   max-width: min(1120px, 98vw);
   width: min(1120px, 98vw);
@@ -3495,6 +3500,10 @@ html[data-theme="dark"] .spinner {
 
 .confirmCard.chronicleLastLoginModal {
   width: min(760px, 94vw);
+}
+
+.confirmCard.chronicleCoachModal {
+  width: min(1200px, 98vw);
 }
 
 .confirmCard.chronicleUpdatesModal {

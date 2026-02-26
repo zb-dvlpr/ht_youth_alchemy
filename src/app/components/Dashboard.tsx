@@ -917,22 +917,16 @@ export default function Dashboard({
       Object.keys(next).forEach((id) => {
         if (!validIds.has(Number(id))) delete next[Number(id)];
       });
-      const byName = new Map(
-        ratingsResponseState.players.map((row) => [row.name, row])
+      const byId = new Map(
+        ratingsResponseState.players.map((row) => [row.id, row.ratings])
       );
       playerList.forEach((player) => {
-        const row = byName.get(formatPlayerName(player));
-        if (!row) return;
-        const current = next[player.YouthPlayerID] ?? {};
-        const updated = { ...current };
-        Object.entries(row.ratings).forEach(([position, value]) => {
-          if (typeof value !== "number") return;
-          const previous = updated[position];
-          if (previous === undefined || value > previous) {
-            updated[position] = value;
-          }
-        });
-        next[player.YouthPlayerID] = updated;
+        const rowRatings = byId.get(player.YouthPlayerID);
+        if (!rowRatings) {
+          next[player.YouthPlayerID] = {};
+          return;
+        }
+        next[player.YouthPlayerID] = { ...rowRatings };
       });
       return next;
     });
@@ -2230,151 +2224,166 @@ export default function Dashboard({
         players: Array.from(playersMap.values()),
       });
 
-      setPlayerRefreshStatus(messages.refreshStatusFetchingHiddenSpecialties);
-      const knownSpecialties = new Map<number, number>();
-      playerList.forEach((player) => {
-        const specialty = Number(player.Specialty ?? 0);
-        if (Number.isFinite(specialty) && specialty > 0) {
-          knownSpecialties.set(player.YouthPlayerID, specialty);
-        }
-      });
-      playerDetailsById.forEach((detailsNode, playerId) => {
-        const specialty = Number(detailsNode.Specialty ?? 0);
-        if (Number.isFinite(specialty) && specialty > 0) {
-          knownSpecialties.set(playerId, specialty);
-        }
-      });
-      Object.entries(hiddenSpecialtyByPlayerId).forEach(([id, specialty]) => {
-        const playerId = Number(id);
-        const specialtyValue = Number(specialty);
-        if (
-          Number.isFinite(playerId) &&
-          Number.isFinite(specialtyValue) &&
-          specialtyValue > 0
-        ) {
-          knownSpecialties.set(playerId, specialtyValue);
-        }
-      });
-      const youthPlayerIds = new Set(playerList.map((player) => player.YouthPlayerID));
-      const unresolvedPlayerIds = new Set(
-        playerList
-          .map((player) => player.YouthPlayerID)
-          .filter((playerId) => {
-            const known = knownSpecialties.get(playerId);
-            return !(known && known > 0);
-          })
-      );
-      const alreadyAnalyzedMatchIds = new Set(analyzedHiddenSpecialtyMatchIds);
-      const discoveredThisRefresh: Record<number, number> = {};
-      const newlyAnalyzedMatchIds = new Set<number>();
-
-      if (unresolvedPlayerIds.size === 0) {
-        finishedMatches.forEach((match) => {
-          newlyAnalyzedMatchIds.add(match._matchId);
+      try {
+        setPlayerRefreshStatus(messages.refreshStatusFetchingHiddenSpecialties);
+        const knownSpecialties = new Map<number, number>();
+        playerList.forEach((player) => {
+          const specialty = Number(player.Specialty ?? 0);
+          if (Number.isFinite(specialty) && specialty > 0) {
+            knownSpecialties.set(player.YouthPlayerID, specialty);
+          }
         });
-      }
-
-      const matchesToAnalyze =
-        unresolvedPlayerIds.size > 0
-          ? finishedMatches.filter((match) => {
-              if (alreadyAnalyzedMatchIds.has(match._matchId)) return false;
-              const participants = matchPlayerIdsByMatch.get(match._matchId);
-              if (!participants || participants.size === 0) return true;
-              let hasUnresolvedParticipant = false;
-              participants.forEach((playerId) => {
-                if (unresolvedPlayerIds.has(playerId)) {
-                  hasUnresolvedParticipant = true;
-                }
-              });
-              if (!hasUnresolvedParticipant) {
-                newlyAnalyzedMatchIds.add(match._matchId);
-              }
-              return hasUnresolvedParticipant;
+        playerDetailsById.forEach((detailsNode, playerId) => {
+          const specialty = Number(detailsNode.Specialty ?? 0);
+          if (Number.isFinite(specialty) && specialty > 0) {
+            knownSpecialties.set(playerId, specialty);
+          }
+        });
+        Object.entries(hiddenSpecialtyByPlayerId).forEach(([id, specialty]) => {
+          const playerId = Number(id);
+          const specialtyValue = Number(specialty);
+          if (
+            Number.isFinite(playerId) &&
+            Number.isFinite(specialtyValue) &&
+            specialtyValue > 0
+          ) {
+            knownSpecialties.set(playerId, specialtyValue);
+          }
+        });
+        const youthPlayerIds = new Set(
+          playerList.map((player) => player.YouthPlayerID)
+        );
+        const unresolvedPlayerIds = new Set(
+          playerList
+            .map((player) => player.YouthPlayerID)
+            .filter((playerId) => {
+              const known = knownSpecialties.get(playerId);
+              return !(known && known > 0);
             })
-          : [];
+        );
+        const alreadyAnalyzedMatchIds = new Set(analyzedHiddenSpecialtyMatchIds);
+        const discoveredThisRefresh: Record<number, number> = {};
+        const newlyAnalyzedMatchIds = new Set<number>();
 
-      let hiddenCompleted = 0;
-      const hiddenResults = await mapWithConcurrency(
-        matchesToAnalyze,
-        YOUTH_REFRESH_CONCURRENCY,
-        async (match) => {
-          try {
-            const { response, payload } = await fetchChppJson<MatchDetailsEventsResponse>(
-              `/api/chpp/matchdetails?matchId=${match._matchId}&sourceSystem=${encodeURIComponent(
-                match._sourceSystem
-              )}&matchEvents=true`,
-              { cache: "no-store" }
-            );
-            if (!response.ok || payload?.error) {
+        if (unresolvedPlayerIds.size === 0) {
+          finishedMatches.forEach((match) => {
+            newlyAnalyzedMatchIds.add(match._matchId);
+          });
+        }
+
+        const matchesToAnalyze =
+          unresolvedPlayerIds.size > 0
+            ? finishedMatches.filter((match) => {
+                if (alreadyAnalyzedMatchIds.has(match._matchId)) return false;
+                const participants = matchPlayerIdsByMatch.get(match._matchId);
+                if (!participants || participants.size === 0) return true;
+                let hasUnresolvedParticipant = false;
+                participants.forEach((playerId) => {
+                  if (unresolvedPlayerIds.has(playerId)) {
+                    hasUnresolvedParticipant = true;
+                  }
+                });
+                if (!hasUnresolvedParticipant) {
+                  newlyAnalyzedMatchIds.add(match._matchId);
+                }
+                return hasUnresolvedParticipant;
+              })
+            : [];
+
+        let hiddenCompleted = 0;
+        const hiddenResults = await mapWithConcurrency(
+          matchesToAnalyze,
+          YOUTH_REFRESH_CONCURRENCY,
+          async (match) => {
+            try {
+              const { response, payload } =
+                await fetchChppJson<MatchDetailsEventsResponse>(
+                  `/api/chpp/matchdetails?matchId=${match._matchId}&sourceSystem=${encodeURIComponent(
+                    match._sourceSystem
+                  )}&matchEvents=true`,
+                  { cache: "no-store" }
+                );
+              if (!response.ok || payload?.error) {
+                return {
+                  matchId: match._matchId,
+                  analyzed: false,
+                  candidates: [] as Array<{ playerId: number; specialty: number }>,
+                };
+              }
+              const events = normalizeArray<MatchDetailsEvent>(
+                payload?.data?.HattrickData?.Match?.EventList?.Event
+              );
+              const candidates: Array<{ playerId: number; specialty: number }> = [];
+              events.forEach((event) => {
+                const eventTypeId = Number(event.EventTypeID);
+                const rule = SPECIAL_EVENT_SPECIALTY_RULES[eventTypeId];
+                if (!rule) return;
+                const candidateIds = rule.players.map((ref) =>
+                  Number(
+                    ref === "subject" ? event.SubjectPlayerID : event.ObjectPlayerID
+                  )
+                );
+                candidateIds.forEach((candidateId) => {
+                  if (!Number.isFinite(candidateId) || candidateId <= 0) return;
+                  if (!youthPlayerIds.has(candidateId)) return;
+                  candidates.push({
+                    playerId: candidateId,
+                    specialty: rule.specialty,
+                  });
+                });
+              });
+              return {
+                matchId: match._matchId,
+                analyzed: true,
+                candidates,
+              };
+            } catch {
               return {
                 matchId: match._matchId,
                 analyzed: false,
                 candidates: [] as Array<{ playerId: number; specialty: number }>,
               };
-            }
-            const events = normalizeArray<MatchDetailsEvent>(
-              payload?.data?.HattrickData?.Match?.EventList?.Event
-            );
-            const candidates: Array<{ playerId: number; specialty: number }> = [];
-            events.forEach((event) => {
-              const eventTypeId = Number(event.EventTypeID);
-              const rule = SPECIAL_EVENT_SPECIALTY_RULES[eventTypeId];
-              if (!rule) return;
-              const candidateIds = rule.players.map((ref) =>
-                Number(ref === "subject" ? event.SubjectPlayerID : event.ObjectPlayerID)
+            } finally {
+              hiddenCompleted += 1;
+              setPlayerRefreshStatus(
+                formatStatusTemplate(
+                  messages.refreshStatusFetchingHiddenSpecialtiesProgress,
+                  {
+                    completed: hiddenCompleted,
+                    total: matchesToAnalyze.length,
+                  }
+                )
               );
-              candidateIds.forEach((candidateId) => {
-                if (!Number.isFinite(candidateId) || candidateId <= 0) return;
-                if (!youthPlayerIds.has(candidateId)) return;
-                candidates.push({
-                  playerId: candidateId,
-                  specialty: rule.specialty,
-                });
-              });
-            });
-            return {
-              matchId: match._matchId,
-              analyzed: true,
-              candidates,
-            };
-          } finally {
-            hiddenCompleted += 1;
-            setPlayerRefreshStatus(
-              formatStatusTemplate(
-                messages.refreshStatusFetchingHiddenSpecialtiesProgress,
-                {
-                  completed: hiddenCompleted,
-                  total: matchesToAnalyze.length,
-                }
-              )
-            );
+            }
           }
+        );
+
+        hiddenResults.forEach((result) => {
+          if (!result.analyzed) return;
+          result.candidates.forEach((candidate) => {
+            const known = knownSpecialties.get(candidate.playerId);
+            if (known && known > 0) return;
+            knownSpecialties.set(candidate.playerId, candidate.specialty);
+            discoveredThisRefresh[candidate.playerId] = candidate.specialty;
+          });
+          newlyAnalyzedMatchIds.add(result.matchId);
+        });
+
+        if (Object.keys(discoveredThisRefresh).length > 0) {
+          setHiddenSpecialtyByPlayerId((prev) => ({
+            ...prev,
+            ...discoveredThisRefresh,
+          }));
         }
-      );
-
-      hiddenResults.forEach((result) => {
-        if (!result.analyzed) return;
-        result.candidates.forEach((candidate) => {
-          const known = knownSpecialties.get(candidate.playerId);
-          if (known && known > 0) return;
-          knownSpecialties.set(candidate.playerId, candidate.specialty);
-          discoveredThisRefresh[candidate.playerId] = candidate.specialty;
-        });
-        newlyAnalyzedMatchIds.add(result.matchId);
-      });
-
-      if (Object.keys(discoveredThisRefresh).length > 0) {
-        setHiddenSpecialtyByPlayerId((prev) => ({
-          ...prev,
-          ...discoveredThisRefresh,
-        }));
-      }
-      if (newlyAnalyzedMatchIds.size > 0) {
-        setAnalyzedHiddenSpecialtyMatchIds((prev) => {
-          const merged = new Set<number>(prev);
-          newlyAnalyzedMatchIds.forEach((matchId) => merged.add(matchId));
-          return Array.from(merged.values()).sort((a, b) => b - a);
-        });
+        if (newlyAnalyzedMatchIds.size > 0) {
+          setAnalyzedHiddenSpecialtyMatchIds((prev) => {
+            const merged = new Set<number>(prev);
+            newlyAnalyzedMatchIds.forEach((matchId) => merged.add(matchId));
+            return Array.from(merged.values()).sort((a, b) => b - a);
+          });
+        }
+      } catch {
+        // Keep refreshed ratings even if hidden-specialty enrichment fails.
       }
       return true;
     } catch (error) {

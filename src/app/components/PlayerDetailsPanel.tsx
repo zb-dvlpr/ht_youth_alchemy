@@ -173,6 +173,17 @@ function daysSince(dateString?: string) {
   return Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
 }
 
+function mergedSkills(
+  detailsSkills?: Record<string, SkillValue> | null,
+  playerSkills?: Record<string, SkillValue | number | string> | null
+) {
+  if (!detailsSkills && !playerSkills) return null;
+  return {
+    ...(detailsSkills ?? {}),
+    ...(playerSkills ?? {}),
+  };
+}
+
 export default function PlayerDetailsPanel({
   selectedPlayer,
   detailsData,
@@ -242,8 +253,8 @@ export default function PlayerDetailsPanel({
       const detailsB = b.id ? playerDetailsById.get(b.id) : null;
       const playerA = a.id ? playerById.get(a.id) : null;
       const playerB = b.id ? playerById.get(b.id) : null;
-      const skillsA = detailsA?.PlayerSkills ?? playerA?.PlayerSkills ?? null;
-      const skillsB = detailsB?.PlayerSkills ?? playerB?.PlayerSkills ?? null;
+      const skillsA = mergedSkills(detailsA?.PlayerSkills, playerA?.PlayerSkills);
+      const skillsB = mergedSkills(detailsB?.PlayerSkills, playerB?.PlayerSkills);
       const currentA = getSkillLevel(skillsA?.[skillsSortKey]);
       const maxA = getSkillMax(skillsA?.[`${skillsSortKey}Max`]);
       const currentB = getSkillLevel(skillsB?.[skillsSortKey]);
@@ -717,7 +728,10 @@ export default function PlayerDetailsPanel({
             {orderedSkillsRows.map((row, index) => {
               const player = row.id ? playerById.get(row.id) : null;
               const details = row.id ? playerDetailsById.get(row.id) : null;
-              const skills = details?.PlayerSkills ?? player?.PlayerSkills ?? null;
+              const skills = mergedSkills(
+                details?.PlayerSkills,
+                player?.PlayerSkills
+              );
               const isSelected = ratingsMatrixSelectedName === row.name;
 
               return (

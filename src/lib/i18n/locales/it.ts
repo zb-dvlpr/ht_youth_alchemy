@@ -613,6 +613,7 @@ export const messagesIt: Messages = {
     ageAtPromotionLabel: "età alla promozione",
     unlockedLabel: "Sbloccato",
     promotableNow: "Può essere promosso ora",
+    promotableNowShort: "ORA",
     promotableIn: "Promuovibile in",
     youthTeamLabel: "Squadra giovanile",
     seniorTeamLabel: "Squadra senior",

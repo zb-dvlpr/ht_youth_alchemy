@@ -601,6 +601,7 @@ export const messagesDe: Messages = {
     ageAtPromotionLabel: "Alter bei Beförderung",
     unlockedLabel: "Entsperrt",
     promotableNow: "Kann jetzt hochgezogen werden",
+    promotableNowShort: "JETZT",
     promotableIn: "Hochziehbar in",
     youthTeamLabel: "Jugendteam",
     seniorTeamLabel: "Seniorenteam",

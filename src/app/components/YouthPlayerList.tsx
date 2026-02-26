@@ -700,6 +700,11 @@ export default function YouthPlayerList({
             const isSelected = selectedId === player.YouthPlayerID;
             const isAssigned = assignedIds?.has(player.YouthPlayerID) ?? false;
             const isStar = starPlayerId === player.YouthPlayerID;
+            const promotableDays = Number(player.CanBePromotedIn);
+            const isPromotableNowMetric =
+              sortKey === "promotable" &&
+              Number.isFinite(promotableDays) &&
+              promotableDays <= 0;
 
             const specialtyEmoji =
               Number(player.Specialty ?? 0) > 0
@@ -749,12 +754,16 @@ export default function YouthPlayerList({
                     aria-pressed={isSelected}
                   >
                     <span
-                      className={styles.playerSortMetric}
+                      className={`${styles.playerSortMetric} ${
+                        isPromotableNowMetric ? styles.playerSortMetricUrgent : ""
+                      }`}
                       ref={(node) => {
                         sortValueRefs.current[player.YouthPlayerID] = node;
                       }}
                     >
-                      {sortMetricText(player)}
+                      {isPromotableNowMetric
+                        ? messages.promotableNowShort
+                        : sortMetricText(player)}
                     </span>
                     <span
                       className={`${styles.playerNameRow}${

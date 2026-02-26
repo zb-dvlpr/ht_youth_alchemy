@@ -580,6 +580,7 @@ export const messagesEn: Messages = {
     ageAtPromotionLabel: "age at promotion",
     unlockedLabel: "Unlocked",
     promotableNow: "Can be promoted now",
+    promotableNowShort: "NOW",
     promotableIn: "Promotable in",
     youthTeamLabel: "Youth team",
     seniorTeamLabel: "Senior team",

@@ -538,6 +538,7 @@ export type Messages = {
   ageAtPromotionLabel: string;
   unlockedLabel: string;
   promotableNow: string;
+  promotableNowShort: string;
   promotableIn: string;
   youthTeamLabel: string;
   seniorTeamLabel: string;

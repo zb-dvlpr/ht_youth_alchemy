@@ -603,6 +603,7 @@ export const messagesSv: Messages = {
     ageAtPromotionLabel: "ålder vid uppflyttning",
     unlockedLabel: "Upplåst",
     promotableNow: "Kan flyttas upp nu",
+    promotableNowShort: "NU",
     promotableIn: "Kan flyttas upp om",
     youthTeamLabel: "Ungdomslag",
     seniorTeamLabel: "Seniorlag",

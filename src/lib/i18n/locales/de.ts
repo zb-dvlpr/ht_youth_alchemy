@@ -258,8 +258,22 @@ export const messagesDe: Messages = {
     clubChronicleFormationsPanelTitle: "Formationen & Taktiken",
     clubChronicleFormationsColumnFormation: "Top-Formation",
     clubChronicleFormationsColumnTactic: "Top-Taktik",
+    clubChronicleFormationsIncludeFriendliesLabel: "Freundschaftsspiele einbeziehen",
     clubChronicleFormationsDetailsTitle: "Verteilung Formationen & Taktiken",
     clubChronicleFormationsSampleLabel: "Analysierte Spiele",
+    clubChronicleFormationsMatchesListTitle: "Analysierte Spiele",
+    clubChronicleFormationsMatchesListEmpty: "Keine analysierten Spiele verfügbar.",
+    clubChronicleMatchTypeLeague: "Ligaspiel",
+    clubChronicleMatchTypeQualification: "Qualifikationsspiel",
+    clubChronicleMatchTypeCup: "Pokalspiel",
+    clubChronicleMatchTypeFriendlyNormal: "Freundschaftsspiel (Normalregeln)",
+    clubChronicleMatchTypeFriendlyCup: "Freundschaftsspiel (Pokalregeln)",
+    clubChronicleMatchTypeMasters: "Hattrick Masters",
+    clubChronicleMatchTypeInternationalFriendlyNormal:
+      "Internationales Freundschaftsspiel (Normalregeln)",
+    clubChronicleMatchTypeInternationalFriendlyCup:
+      "Internationales Freundschaftsspiel (Pokalregeln)",
+    clubChronicleMatchTypeUnknown: "Unbekannter Spieltyp",
     clubChronicleLikelyTrainingPanelTitle: "Wahrscheinliches Trainingsschema",
     clubChronicleLikelyTrainingColumnRegimen: "Wahrscheinliches Schema",
     clubChronicleLikelyTrainingDetailsTitle: "Wahrscheinliches Trainingsschema",
@@ -585,6 +599,7 @@ export const messagesDe: Messages = {
     notificationTeamSwitched: "Gewechselt zu:",
     notificationTeamsLoaded: "Teams geladen",
     notificationTeamsLoadFailed: "Teams konnten nicht geladen werden",
+    notificationDebugOauthMode: "OAuth-Debugmodus:",
     notificationMatchesRefreshed: "Spiele aktualisiert",
     notificationMatchesRefreshFailed: "Aktualisierung der Spiele fehlgeschlagen",
     notificationReauthRequired:
@@ -628,6 +643,12 @@ export const messagesDe: Messages = {
     devManagerUserIdLabel: "Manager-User-ID (Dev)",
     devManagerUserIdPlaceholder: "User-ID eingeben",
     devManagerLoadTeams: "Teams laden",
+    devOauthErrorSimLabel: "OAuth-Fehlersimulation",
+    devOauthErrorSimOff: "Aus",
+    devOauthErrorSim4xx: "4xx simulieren",
+    devOauthErrorSim5xx: "5xx simulieren",
+    devOauthErrorSimHint:
+      "Nur Dev. Simuliert OAuth/CHPP-Fehler fuer alle /api/chpp-Aufrufe in diesem Browser.",
     statusLabel: "Status",
     matchStatusUpcoming: "Bevorstehend",
     matchStatusFinished: "Beendet",
@@ -698,6 +719,14 @@ export const messagesDe: Messages = {
       "Deine Hattrick-Autorisierung ist abgelaufen oder wurde entzogen. Bitte erneut verbinden.",
     authExpiredAction: "Erneut verbinden",
     authExpiredDismiss: "Schließen",
+    oauthErrorClientExplanation:
+      "Hattrick OAuth/CHPP hat die Anfrage abgelehnt (4xx). Das ist meist ein Autorisierungs- oder Validierungsproblem.",
+    oauthErrorServerExplanation:
+      "Hattrick OAuth/CHPP hat einen serverseitigen Fehler zurückgegeben (5xx). Das ist ein Upstream-Dienstproblem.",
+    oauthErrorUnknownExplanation:
+      "Hattrick OAuth/CHPP hat beim Aktualisieren einen unerwarteten Fehler zurückgegeben.",
+    oauthErrorRecoveryHint:
+      "Versuche Zugriff zu widerrufen (Trennen) und dann erneut zu verbinden. Wenn es weiterhin fehlschlägt, kontaktiere den Hattrick-Support.",
     disconnectTitle: "Trennen und Zugriff widerrufen",
     brandTitle: "Hattrick Alchemy",
     skillKeeper: "Torwart",

@@ -63,6 +63,18 @@ type ClubChronicleProps = {
 const isChppAuthRequiredError = (error: unknown): error is ChppAuthRequiredError =>
   error instanceof ChppAuthRequiredError;
 
+const getReadableErrorMessage = (error: unknown, fallback: string): string => {
+  if (error instanceof Error) {
+    const message = error.message.trim();
+    return message || fallback;
+  }
+  if (typeof error === "string") {
+    const message = error.trim();
+    return message || fallback;
+  }
+  return fallback;
+};
+
 type ManualTeam = {
   teamId: number;
   teamName?: string;
@@ -257,6 +269,11 @@ type FormationTacticsDistribution = {
   count: number;
 };
 
+type FormationTacticsAnalyzedMatch = {
+  matchId: number;
+  matchType: number | null;
+};
+
 type LikelyTrainingKey =
   | "winger"
   | "playmaking"
@@ -275,6 +292,7 @@ type FormationTacticsSnapshot = {
   likelyTrainingScores: { key: LikelyTrainingKey; confidencePct: number }[];
   formationDistribution: FormationTacticsDistribution[];
   tacticDistribution: FormationTacticsDistribution[];
+  analyzedMatches: FormationTacticsAnalyzedMatch[];
   sampleSize: number;
   fetchedAt: number;
 };
@@ -527,6 +545,7 @@ type ChronicleTableProps<Row, Snapshot> = {
 
 type ChroniclePanelProps = {
   title: string;
+  headerAccessory?: React.ReactNode;
   refreshing?: boolean;
   progressPct?: number;
   refreshLabel: string;
@@ -653,6 +672,7 @@ const ChronicleTable = <Row, Snapshot>({
 
 const ChroniclePanel = ({
   title,
+  headerAccessory,
   refreshing,
   progressPct = 0,
   refreshLabel,
@@ -673,38 +693,45 @@ const ChroniclePanel = ({
     >
       <h3 className={styles.chroniclePanelTitle}>
         <span className={styles.chroniclePanelTitleRow}>
-          <span
-            className={styles.chroniclePanelDragHandle}
-            aria-label={title}
-          >
-            ⋮⋮
+          <span className={styles.chroniclePanelTitleMain}>
+            <span
+              className={styles.chroniclePanelDragHandle}
+              aria-label={title}
+            >
+              ⋮⋮
+            </span>
+            {title}
+            {onRefresh ? (
+              <Tooltip content={refreshLabel}>
+                <button
+                  type="button"
+                  className={styles.chroniclePanelRefresh}
+                  draggable={false}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onDragStart={(event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                  }}
+                  onClick={onRefresh}
+                  disabled={Boolean(refreshing)}
+                  aria-label={refreshLabel}
+                >
+                  ↻
+                </button>
+              </Tooltip>
+            ) : null}
+            {(refreshing || progressPct > 0) && progressPct < 100 ? (
+              <span className={styles.chroniclePanelMiniProgress} aria-hidden="true">
+                <span
+                  className={styles.chroniclePanelMiniProgressFill}
+                  style={{ width: `${Math.max(0, Math.min(100, progressPct))}%` }}
+                />
+              </span>
+            ) : null}
           </span>
-          {title}
-          {onRefresh ? (
-            <Tooltip content={refreshLabel}>
-              <button
-                type="button"
-                className={styles.chroniclePanelRefresh}
-                draggable={false}
-                onPointerDown={(event) => event.stopPropagation()}
-                onDragStart={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                }}
-                onClick={onRefresh}
-                disabled={Boolean(refreshing)}
-                aria-label={refreshLabel}
-              >
-                ↻
-              </button>
-            </Tooltip>
-          ) : null}
-          {(refreshing || progressPct > 0) && progressPct < 100 ? (
-            <span className={styles.chroniclePanelMiniProgress} aria-hidden="true">
-              <span
-                className={styles.chroniclePanelMiniProgressFill}
-                style={{ width: `${Math.max(0, Math.min(100, progressPct))}%` }}
-              />
+          {headerAccessory ? (
+            <span className={styles.chroniclePanelTitleAccessory}>
+              {headerAccessory}
             </span>
           ) : null}
         </span>
@@ -723,6 +750,8 @@ const GLOBAL_BASELINE_KEY = "ya_cc_global_baseline_v1";
 const GLOBAL_UPDATES_HISTORY_KEY = "ya_cc_global_updates_history_v1";
 const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
 const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
+const FORMATIONS_INCLUDE_FRIENDLIES_KEY =
+  "ya_cc_formations_include_friendlies_v1";
 const HELP_STORAGE_KEY = "ya_cc_help_dismissed_v1";
 const FIRST_USE_KEY = "ya_cc_first_use_seen_v1";
 const HELP_DISMISSED_TOKEN_KEY = "ya_cc_help_dismissed_token_v1";
@@ -747,11 +776,12 @@ const CHPP_DAYS_PER_YEAR = 112;
 const DAY_MS = 24 * 60 * 60 * 1000;
 const MAX_CACHE_AGE_MS = SEASON_LENGTH_MS * 2;
 const CHPP_SEK_PER_EUR = 10;
-const ARCHIVE_MATCH_LIMIT = 20;
+const ARCHIVE_MATCH_LIMIT = 30;
 const TEAM_REFRESH_CONCURRENCY = 4;
 const MATCH_DETAILS_FETCH_CONCURRENCY = 6;
 const INCOMPLETE_TEAM_REFETCH_COOLDOWN_MS = 60 * 1000;
-const RELEVANT_MATCH_TYPES = new Set([1, 3, 4, 5, 8, 9]);
+const COMPETITIVE_MATCH_TYPES = new Set([1, 2, 3, 7]);
+const FRIENDLY_MATCH_TYPES = new Set([4, 5, 8, 9]);
 const POSSIBLE_FORMATIONS = new Set([
   "2-5-3",
   "3-5-2",
@@ -1469,6 +1499,27 @@ const writeLastRefresh = (value: number) => {
   }
 };
 
+const readFormationsIncludeFriendlies = (): boolean => {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(FORMATIONS_INCLUDE_FRIENDLIES_KEY) === "1";
+  } catch {
+    return false;
+  }
+};
+
+const writeFormationsIncludeFriendlies = (value: boolean) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      FORMATIONS_INCLUDE_FRIENDLIES_KEY,
+      value ? "1" : "0"
+    );
+  } catch {
+    // ignore storage errors
+  }
+};
+
 const pruneChronicleCache = (cache: ChronicleCache): ChronicleCache => {
   const now = Date.now();
   const nextTeams: Record<number, ChronicleTeamData> = {};
@@ -1747,6 +1798,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
   const [formationsTacticsDetailsOpen, setFormationsTacticsDetailsOpen] =
     useState(false);
+  const [formationsTacticsMatchesOpen, setFormationsTacticsMatchesOpen] =
+    useState(false);
   const [selectedFormationsTacticsTeamId, setSelectedFormationsTacticsTeamId] =
     useState<number | null>(null);
   const [likelyTrainingDetailsOpen, setLikelyTrainingDetailsOpen] =
@@ -1791,6 +1844,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [updatesHistoryCount, setUpdatesHistoryCount] = useState(
     DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT
   );
+  const [formationsIncludeFriendlies, setFormationsIncludeFriendlies] =
+    useState(() => readFormationsIncludeFriendlies());
   const [leagueSortState, setLeagueSortState] = useState<{
     key: string;
     direction: "asc" | "desc";
@@ -1865,6 +1920,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [loadingTransferListedModal, setLoadingTransferListedModal] =
     useState(false);
   const [teamIdInput, setTeamIdInput] = useState("");
+  const [watchlistReloadNonce, setWatchlistReloadNonce] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
@@ -2478,7 +2534,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       } catch (error) {
         if (isChppAuthRequiredError(error)) return;
         if (active) {
-          setError(messages.watchlistError);
+          setError(getReadableErrorMessage(error, messages.watchlistError));
           if (watchlistOpen) {
             setErrorOpen(true);
           }
@@ -2493,7 +2549,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return () => {
       active = false;
     };
-  }, [messages.watchlistError, watchlistOpen]);
+  }, [messages.watchlistError, watchlistOpen, watchlistReloadNonce]);
 
   useEffect(() => {
     let active = true;
@@ -2589,7 +2645,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return () => {
       active = false;
     };
-  }, []);
+  }, [watchlistReloadNonce]);
 
   useEffect(() => {
     if (!initializedRef.current) return;
@@ -2674,7 +2730,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (process.env.NODE_ENV === "production") return;
-    const handleDebugUpdates = () => {
+    const handleDebugUpdates = (event: Event) => {
+      const detail = event instanceof CustomEvent ? event.detail : null;
+      if (
+        detail &&
+        typeof detail === "object" &&
+        "type" in detail &&
+        detail.type === "oauth-mode-changed"
+      ) {
+        setWatchlistReloadNonce((prev) => prev + 1);
+        return;
+      }
       openDummyUpdates();
     };
     window.addEventListener(CLUB_CHRONICLE_DEBUG_EVENT, handleDebugUpdates);
@@ -2879,7 +2945,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           }
         | undefined;
       const teamId = team?.TeamID;
-      if (!response.ok || payload?.error || !teamId) {
+      if (!response.ok || payload?.error) {
+        setError(payload?.details || payload?.error || messages.watchlistError);
+        setErrorOpen(true);
+        return;
+      }
+      if (!teamId) {
         setError(messages.watchlistAddNotFound);
         setErrorOpen(true);
         return;
@@ -2899,7 +2970,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setError(null);
     } catch (error) {
       if (isChppAuthRequiredError(error)) return;
-      setError(messages.watchlistError);
+      setError(getReadableErrorMessage(error, messages.watchlistError));
       setErrorOpen(true);
     } finally {
       setIsValidating(false);
@@ -4054,6 +4125,42 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       );
     },
     [messages.unknownShort]
+  );
+
+  const formatMatchTypeLabel = useCallback(
+    (matchType: number | null | undefined) => {
+      switch (matchType) {
+        case 1:
+          return messages.clubChronicleMatchTypeLeague;
+        case 2:
+          return messages.clubChronicleMatchTypeQualification;
+        case 3:
+          return messages.clubChronicleMatchTypeCup;
+        case 4:
+          return messages.clubChronicleMatchTypeFriendlyNormal;
+        case 5:
+          return messages.clubChronicleMatchTypeFriendlyCup;
+        case 7:
+          return messages.clubChronicleMatchTypeMasters;
+        case 8:
+          return messages.clubChronicleMatchTypeInternationalFriendlyNormal;
+        case 9:
+          return messages.clubChronicleMatchTypeInternationalFriendlyCup;
+        default:
+          return messages.clubChronicleMatchTypeUnknown;
+      }
+    },
+    [
+      messages.clubChronicleMatchTypeCup,
+      messages.clubChronicleMatchTypeFriendlyCup,
+      messages.clubChronicleMatchTypeFriendlyNormal,
+      messages.clubChronicleMatchTypeInternationalFriendlyCup,
+      messages.clubChronicleMatchTypeInternationalFriendlyNormal,
+      messages.clubChronicleMatchTypeLeague,
+      messages.clubChronicleMatchTypeMasters,
+      messages.clubChronicleMatchTypeQualification,
+      messages.clubChronicleMatchTypeUnknown,
+    ]
   );
 
   const getUpdateFieldLabel = (fieldKey: string, fallbackLabel: string) => {
@@ -5921,7 +6028,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const fetchTeamRecentRelevantMatches = async (
-    teamId: number
+    teamId: number,
+    includeFriendlies: boolean
   ): Promise<TeamMatchArchiveEntry[]> => {
     const { response, payload } = await fetchChppJson<{
       data?: {
@@ -5941,12 +6049,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
     const rawMatches = payload?.data?.HattrickData?.Team?.MatchList?.Match;
     const matchList = toArray(rawMatches as RawNode | RawNode[] | null | undefined);
+    const relevantMatchTypes = includeFriendlies
+      ? new Set<number>([...COMPETITIVE_MATCH_TYPES, ...FRIENDLY_MATCH_TYPES])
+      : COMPETITIVE_MATCH_TYPES;
     const relevant = matchList
       .map((match) => {
         const matchId = parseNumberNode(match?.MatchID) ?? 0;
         if (matchId <= 0) return null;
         const matchType = parseNumberNode(match?.MatchType);
-        if (matchType === null || !RELEVANT_MATCH_TYPES.has(matchType)) return null;
+        if (matchType === null || !relevantMatchTypes.has(matchType)) return null;
         return {
           matchId,
           matchType,
@@ -6014,7 +6125,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const buildFormationTacticsSnapshotFromMatches = async (
     teamId: number,
+    teamName: string,
     matches: TeamMatchArchiveEntry[],
+    includeFriendlies: boolean,
     detailCache: Map<number, MatchFormationTacticDetails>,
     onMatchProcessed?: () => void
   ): Promise<FormationTacticsSnapshot> => {
@@ -6022,6 +6135,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const formationCounts = new Map<string, number>();
     const tacticCounts = new Map<string, number>();
     let sampleSize = 0;
+    const analyzedMatches: { matchId: number; matchType: number | null }[] = [];
 
     const resolvedMatches = await mapWithConcurrency(
       matches,
@@ -6037,12 +6151,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
     );
 
-    for (const { details } of resolvedMatches) {
+    for (const { match, details } of resolvedMatches) {
       if (!details) continue;
       const isHome = details.homeTeamId === teamId;
       const isAway = details.awayTeamId === teamId;
       if (!isHome && !isAway) continue;
       sampleSize += 1;
+      analyzedMatches.push({
+        matchId: match.matchId,
+        matchType: match.matchType,
+      });
       const formation = isHome ? details.homeFormation : details.awayFormation;
       const tacticLabel = formatTacticLabel(
         isHome ? details.homeTacticType : details.awayTacticType
@@ -6059,6 +6177,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const formationDistribution = buildDistribution(formationCounts);
     const tacticDistribution = buildDistribution(tacticCounts);
     const likelyTraining = inferLikelyTrainingFromFormations(teamFormations);
+    if (process.env.NODE_ENV !== "production") {
+      console.info("[CC formations debug] analyzed matches", {
+        teamId,
+        teamName,
+        includeFriendlies,
+        sampleSize,
+        analyzedMatches,
+      });
+    }
     return {
       topFormation: pickTopKey(formationDistribution),
       topTactic: pickTopKey(tacticDistribution),
@@ -6069,6 +6196,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       likelyTrainingScores: likelyTraining.scores,
       formationDistribution,
       tacticDistribution,
+      analyzedMatches,
       sampleSize,
       fetchedAt: Date.now(),
     };
@@ -6078,6 +6206,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     nextCache: ChronicleCache,
     options?: {
       teams?: ChronicleTeamData[];
+      includeFriendlies?: boolean;
       onMatchesArchiveProgress?: (
         completedTeams: number,
         totalTeams: number,
@@ -6091,6 +6220,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
   ) => {
     const teams = options?.teams ?? trackedTeams;
+    const includeFriendlies = options?.includeFriendlies ?? formationsIncludeFriendlies;
     const detailCache = new Map<number, MatchFormationTacticDetails>();
     const teamEntries: Array<{
       teamId: number;
@@ -6103,7 +6233,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       TEAM_REFRESH_CONCURRENCY,
       async (team) => {
         try {
-          const matches = await fetchTeamRecentRelevantMatches(team.teamId);
+          const matches = await fetchTeamRecentRelevantMatches(
+            team.teamId,
+            includeFriendlies
+          );
           return {
             teamId: team.teamId,
             teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
@@ -6146,7 +6279,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       try {
         const snapshot = await buildFormationTacticsSnapshotFromMatches(
           teamEntry.teamId,
+          teamEntry.teamName,
           teamEntry.matches,
+          includeFriendlies,
           detailCache,
           onTeamMatchProcessed
         );
@@ -6840,7 +6975,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
   };
 
-  const refreshFormationsTacticsOnly = async () => {
+  const refreshFormationsTacticsOnly = async (
+    includeFriendliesOverride?: boolean
+  ) => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
     setRefreshingFormationsTactics(true);
@@ -6854,6 +6991,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setGlobalRefreshProgressPct(55);
       setPanelProgress(["formations-tactics", "likely-training"], 55);
       await refreshFormationsTacticsSnapshots(nextCache, {
+        includeFriendlies: includeFriendliesOverride,
         onMatchesArchiveProgress: (completedTeams, totalTeams, teamName) => {
           const ratio = totalTeams > 0 ? completedTeams / totalTeams : 1;
           const progress = Math.round(58 + ratio * 12);
@@ -9036,6 +9174,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               >
                 <ChroniclePanel
                   title={messages.clubChronicleFormationsPanelTitle}
+                  headerAccessory={
+                    <label
+                      className={styles.chroniclePanelHeaderToggle}
+                      onPointerDown={(event) => event.stopPropagation()}
+                    >
+                      <span className={styles.chroniclePanelHeaderToggleText}>
+                        {messages.clubChronicleFormationsIncludeFriendliesLabel}
+                      </span>
+                      <input
+                        type="checkbox"
+                        className={styles.chroniclePanelHeaderToggleInput}
+                        checked={formationsIncludeFriendlies}
+                        onChange={(event) => {
+                          const nextValue = event.target.checked;
+                          setFormationsIncludeFriendlies(nextValue);
+                          writeFormationsIncludeFriendlies(nextValue);
+                          void refreshFormationsTacticsOnly(nextValue);
+                        }}
+                      />
+                      <span
+                        className={styles.chroniclePanelHeaderToggleSwitch}
+                        aria-hidden="true"
+                      />
+                    </label>
+                  }
                   refreshing={refreshingGlobal || refreshingFormationsTactics}
                   progressPct={getPanelRefreshProgress(panelId)}
                   refreshLabel={messages.clubChronicleRefreshFormationsTooltip}
@@ -10018,8 +10181,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 </span>
               </p>
               <p className={styles.chroniclePressMeta}>
-                {messages.clubChronicleFormationsSampleLabel}:{" "}
-                {formatValue(selectedFormationsTacticsTeam.snapshot.sampleSize)}
+                <button
+                  type="button"
+                  className={styles.chronicleInlineLinkButton}
+                  onClick={() => setFormationsTacticsMatchesOpen(true)}
+                >
+                  {messages.clubChronicleFormationsSampleLabel}:{" "}
+                  {formatValue(selectedFormationsTacticsTeam.snapshot.sampleSize)}
+                </button>
               </p>
               <div className={styles.chronicleDistributionGrid}>
                 <div className={styles.chronicleDistributionCard}>
@@ -10049,12 +10218,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     </ResponsiveContainer>
                   </div>
                   {selectedFormationsTacticsTeam.snapshot.formationDistribution.length >
-                  0 ? (
-                    <p className={styles.chroniclePressMeta}>
-                      {messages.clubChronicleFormationsSampleLabel}:{" "}
-                      {formationDistributionTotal}
-                    </p>
-                  ) : (
+                  0 ? null : (
                     <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
                   )}
                 </div>
@@ -10085,12 +10249,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     </ResponsiveContainer>
                   </div>
                   {selectedFormationsTacticsTeam.snapshot.tacticDistribution.length >
-                  0 ? (
-                    <p className={styles.chroniclePressMeta}>
-                      {messages.clubChronicleFormationsSampleLabel}:{" "}
-                      {tacticDistributionTotal}
-                    </p>
-                  ) : (
+                  0 ? null : (
                     <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
                   )}
                 </div>
@@ -10104,13 +10263,64 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           <button
             type="button"
             className={styles.confirmSubmit}
-            onClick={() => setFormationsTacticsDetailsOpen(false)}
+            onClick={() => {
+              setFormationsTacticsDetailsOpen(false);
+              setFormationsTacticsMatchesOpen(false);
+            }}
           >
             {messages.closeLabel}
           </button>
         }
         closeOnBackdrop
-        onClose={() => setFormationsTacticsDetailsOpen(false)}
+        onClose={() => {
+          setFormationsTacticsDetailsOpen(false);
+          setFormationsTacticsMatchesOpen(false);
+        }}
+      />
+
+      <Modal
+        open={formationsTacticsMatchesOpen}
+        title={messages.clubChronicleFormationsMatchesListTitle}
+        className={styles.chronicleTransferHistoryModal}
+        body={
+          selectedFormationsTacticsTeam?.snapshot?.analyzedMatches?.length ? (
+            <ul className={styles.chronicleMatchList}>
+              {selectedFormationsTacticsTeam.snapshot.analyzedMatches.map((match) => (
+                <li
+                  key={`${match.matchId}-${match.matchType ?? "na"}`}
+                  className={styles.chronicleMatchListItem}
+                >
+                  <a
+                    className={styles.chroniclePressLink}
+                    href={hattrickMatchUrl(match.matchId)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {match.matchId}
+                  </a>
+                  <span className={styles.chroniclePressMeta}>
+                    {formatMatchTypeLabel(match.matchType)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.chronicleEmpty}>
+              {messages.clubChronicleFormationsMatchesListEmpty}
+            </p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setFormationsTacticsMatchesOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setFormationsTacticsMatchesOpen(false)}
       />
 
       <Modal

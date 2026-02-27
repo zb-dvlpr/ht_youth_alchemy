@@ -266,8 +266,22 @@ export const messagesEs: Messages = {
     clubChronicleFormationsPanelTitle: "Formaciones y tácticas",
     clubChronicleFormationsColumnFormation: "Formación principal",
     clubChronicleFormationsColumnTactic: "Táctica principal",
+    clubChronicleFormationsIncludeFriendliesLabel: "Incluir amistosos",
     clubChronicleFormationsDetailsTitle: "Distribución de formaciones y tácticas",
     clubChronicleFormationsSampleLabel: "Partidos analizados",
+    clubChronicleFormationsMatchesListTitle: "Partidos analizados",
+    clubChronicleFormationsMatchesListEmpty: "No hay partidos analizados disponibles.",
+    clubChronicleMatchTypeLeague: "Partido de liga",
+    clubChronicleMatchTypeQualification: "Partido de clasificación",
+    clubChronicleMatchTypeCup: "Partido de copa",
+    clubChronicleMatchTypeFriendlyNormal: "Amistoso (reglas normales)",
+    clubChronicleMatchTypeFriendlyCup: "Amistoso (reglas de copa)",
+    clubChronicleMatchTypeMasters: "Hattrick Masters",
+    clubChronicleMatchTypeInternationalFriendlyNormal:
+      "Amistoso internacional (reglas normales)",
+    clubChronicleMatchTypeInternationalFriendlyCup:
+      "Amistoso internacional (reglas de copa)",
+    clubChronicleMatchTypeUnknown: "Tipo de partido desconocido",
     clubChronicleLikelyTrainingPanelTitle: "Régimen de entrenamiento probable",
     clubChronicleLikelyTrainingColumnRegimen: "Régimen probable",
     clubChronicleLikelyTrainingDetailsTitle: "Régimen de entrenamiento probable",
@@ -596,6 +610,7 @@ export const messagesEs: Messages = {
     notificationTeamSwitched: "Cambiado a:",
     notificationTeamsLoaded: "Equipos cargados",
     notificationTeamsLoadFailed: "No se pudieron cargar los equipos",
+    notificationDebugOauthMode: "Modo debug OAuth:",
     notificationMatchesRefreshed: "Partidos actualizados",
     notificationMatchesRefreshFailed: "Fallo al actualizar partidos",
     notificationReauthRequired:
@@ -639,6 +654,12 @@ export const messagesEs: Messages = {
     devManagerUserIdLabel: "ID de manager (dev)",
     devManagerUserIdPlaceholder: "Introduce el ID de usuario",
     devManagerLoadTeams: "Cargar equipos",
+    devOauthErrorSimLabel: "Simulación de errores OAuth",
+    devOauthErrorSimOff: "Desactivado",
+    devOauthErrorSim4xx: "Simular 4xx",
+    devOauthErrorSim5xx: "Simular 5xx",
+    devOauthErrorSimHint:
+      "Solo dev. Simula fallos OAuth/CHPP para todas las solicitudes /api/chpp en este navegador.",
     statusLabel: "Estado",
     matchStatusUpcoming: "Próximo",
     matchStatusFinished: "Finalizado",
@@ -711,6 +732,14 @@ export const messagesEs: Messages = {
       "Tu autorización de Hattrick caducó o fue revocada. Vuelve a conectar para continuar.",
     authExpiredAction: "Reconectar",
     authExpiredDismiss: "Cerrar",
+    oauthErrorClientExplanation:
+      "Hattrick OAuth/CHPP rechazó la solicitud (4xx). Normalmente es un problema de autorización o validación.",
+    oauthErrorServerExplanation:
+      "Hattrick OAuth/CHPP devolvió un error del servidor (5xx). Es un problema del servicio aguas arriba.",
+    oauthErrorUnknownExplanation:
+      "Hattrick OAuth/CHPP devolvió un error inesperado al actualizar los datos.",
+    oauthErrorRecoveryHint:
+      "Prueba revocar el acceso (Desconectar) y conectar de nuevo. Si sigue fallando, contacta al personal de Hattrick.",
     disconnectTitle: "Desconectar y revocar el acceso",
     brandTitle: "Hattrick Alchemy",
     skillKeeper: "Portero",

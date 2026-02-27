@@ -1,4 +1,7 @@
 export const CHPP_AUTH_REQUIRED_EVENT = "chpp:auth-required";
+export const CHPP_DEBUG_OAUTH_ERROR_STORAGE_KEY =
+  "ya_debug_oauth_error_mode_v1";
+export type ChppDebugOauthErrorMode = "off" | "4xx" | "5xx";
 
 const CHPP_AUTH_MARKERS = [
   "missing chpp access token",
@@ -71,11 +74,54 @@ export function dispatchChppAuthRequired(
   );
 }
 
+export function readChppDebugOauthErrorMode(): ChppDebugOauthErrorMode {
+  if (typeof window === "undefined") return "off";
+  try {
+    const stored = window.localStorage.getItem(CHPP_DEBUG_OAUTH_ERROR_STORAGE_KEY);
+    return stored === "4xx" || stored === "5xx" ? stored : "off";
+  } catch {
+    return "off";
+  }
+}
+
+export function writeChppDebugOauthErrorMode(mode: ChppDebugOauthErrorMode) {
+  if (typeof window === "undefined") return;
+  try {
+    if (mode === "off") {
+      window.localStorage.removeItem(CHPP_DEBUG_OAUTH_ERROR_STORAGE_KEY);
+      return;
+    }
+    window.localStorage.setItem(CHPP_DEBUG_OAUTH_ERROR_STORAGE_KEY, mode);
+  } catch {
+    // ignore storage errors
+  }
+}
+
+const asUrlString = (input: RequestInfo | URL): string => {
+  if (typeof input === "string") return input;
+  if (input instanceof URL) return input.toString();
+  if (typeof Request !== "undefined" && input instanceof Request) {
+    return input.url;
+  }
+  return String(input);
+};
+
 export async function fetchChppJson<T = unknown>(
   input: RequestInfo | URL,
   init?: RequestInit
 ): Promise<{ response: Response; payload: T | null }> {
-  const response = await fetch(input, init);
+  const headers = new Headers(init?.headers);
+  if (process.env.NODE_ENV !== "production") {
+    const mode = readChppDebugOauthErrorMode();
+    const url = asUrlString(input);
+    if (mode !== "off" && url.includes("/api/chpp/")) {
+      headers.set("x-ya-debug-oauth-error", mode);
+    }
+  }
+  const response = await fetch(input, {
+    ...init,
+    headers,
+  });
   const payload = (await response.json().catch(() => null)) as T | null;
   if (isChppAuthErrorPayload(payload, response)) {
     const meta = getAuthMeta(payload);

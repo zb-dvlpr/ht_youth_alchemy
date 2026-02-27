@@ -260,8 +260,22 @@ export const messagesSv: Messages = {
     clubChronicleFormationsPanelTitle: "Formationer och taktik",
     clubChronicleFormationsColumnFormation: "Toppformation",
     clubChronicleFormationsColumnTactic: "Topptaktik",
+    clubChronicleFormationsIncludeFriendliesLabel: "Inkludera träningsmatcher",
     clubChronicleFormationsDetailsTitle: "Fördelning av formationer och taktik",
     clubChronicleFormationsSampleLabel: "Analyserade matcher",
+    clubChronicleFormationsMatchesListTitle: "Analyserade matcher",
+    clubChronicleFormationsMatchesListEmpty: "Inga analyserade matcher tillgängliga.",
+    clubChronicleMatchTypeLeague: "Ligamatch",
+    clubChronicleMatchTypeQualification: "Kvalmatch",
+    clubChronicleMatchTypeCup: "Cupmatch",
+    clubChronicleMatchTypeFriendlyNormal: "Träningsmatch (normala regler)",
+    clubChronicleMatchTypeFriendlyCup: "Träningsmatch (cupregler)",
+    clubChronicleMatchTypeMasters: "Hattrick Masters",
+    clubChronicleMatchTypeInternationalFriendlyNormal:
+      "Internationell träningsmatch (normala regler)",
+    clubChronicleMatchTypeInternationalFriendlyCup:
+      "Internationell träningsmatch (cupregler)",
+    clubChronicleMatchTypeUnknown: "Okänd matchtyp",
     clubChronicleLikelyTrainingPanelTitle: "Trolig träningsinriktning",
     clubChronicleLikelyTrainingColumnRegimen: "Trolig inriktning",
     clubChronicleLikelyTrainingDetailsTitle: "Trolig träningsinriktning",
@@ -587,6 +601,7 @@ export const messagesSv: Messages = {
     notificationTeamSwitched: "Bytt till:",
     notificationTeamsLoaded: "Lag laddade",
     notificationTeamsLoadFailed: "Kunde inte ladda lag",
+    notificationDebugOauthMode: "OAuth-debugläge:",
     notificationMatchesRefreshed: "Matcher uppdaterade",
     notificationMatchesRefreshFailed: "Misslyckades att uppdatera matcher",
     notificationReauthRequired:
@@ -630,6 +645,12 @@ export const messagesSv: Messages = {
     devManagerUserIdLabel: "Manager-ID (dev)",
     devManagerUserIdPlaceholder: "Ange användar-ID",
     devManagerLoadTeams: "Ladda lag",
+    devOauthErrorSimLabel: "OAuth-felsimulering",
+    devOauthErrorSimOff: "Av",
+    devOauthErrorSim4xx: "Simulera 4xx",
+    devOauthErrorSim5xx: "Simulera 5xx",
+    devOauthErrorSimHint:
+      "Endast dev. Simulerar OAuth/CHPP-fel för alla /api/chpp-anrop i denna webbläsare.",
     statusLabel: "Status",
     matchStatusUpcoming: "Kommande",
     matchStatusFinished: "Avslutad",
@@ -701,6 +722,14 @@ export const messagesSv: Messages = {
       "Din Hattrick-auktorisering har gått ut eller återkallats. Anslut igen för att fortsätta.",
     authExpiredAction: "Anslut igen",
     authExpiredDismiss: "Stäng",
+    oauthErrorClientExplanation:
+      "Hattrick OAuth/CHPP avvisade begäran (4xx). Det är oftast ett behörighets- eller valideringsproblem.",
+    oauthErrorServerExplanation:
+      "Hattrick OAuth/CHPP returnerade ett serverside-fel (5xx). Det är ett upstream-tjänstproblem.",
+    oauthErrorUnknownExplanation:
+      "Hattrick OAuth/CHPP returnerade ett oväntat fel vid uppdatering av data.",
+    oauthErrorRecoveryHint:
+      "Försök återkalla åtkomst (Koppla från) och anslut igen. Om det fortsätter att misslyckas, kontakta Hattrick-supporten.",
     disconnectTitle: "Koppla från och återkalla åtkomst",
     brandTitle: "Hattrick Alchemy",
     skillKeeper: "Målvakt",

@@ -1175,15 +1175,32 @@ html[data-app-scaling="off"] .chronicleHeader {
   font-weight: 700;
   margin: 0;
   color: #3f362c;
+  width: 100%;
 }
 
 .chroniclePanelTitleRow {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: 8px;
   cursor: grab;
   user-select: none;
   width: 100%;
+  justify-content: space-between;
+}
+
+.chroniclePanelTitleMain {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.chroniclePanelTitleAccessory {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-left: auto;
+  flex: 1;
 }
 
 .chroniclePanelTitleRow:active {
@@ -1253,6 +1270,65 @@ html[data-app-scaling="off"] .chronicleHeader {
   height: 100%;
   background: #2c5e35;
   transition: width 0.25s ease;
+}
+
+.chroniclePanelHeaderToggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-left: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #6b6256;
+  cursor: pointer;
+}
+
+.chroniclePanelHeaderToggleText {
+  white-space: nowrap;
+}
+
+.chroniclePanelHeaderToggleInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.chroniclePanelHeaderToggleSwitch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  border-radius: 999px;
+  background: #e3d7c5;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.chroniclePanelHeaderToggleSwitch::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  top: 3px;
+  left: 3px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.chroniclePanelHeaderToggleInput:focus-visible + .chroniclePanelHeaderToggleSwitch {
+  outline: 2px solid #244d2b;
+  outline-offset: 2px;
+}
+
+.chroniclePanelHeaderToggleInput:checked + .chroniclePanelHeaderToggleSwitch {
+  background: #244d2b;
+}
+
+.chroniclePanelHeaderToggleInput:checked + .chroniclePanelHeaderToggleSwitch::after {
+  transform: translateX(20px);
 }
 
 .chroniclePanelActions {
@@ -1773,6 +1849,32 @@ html[data-app-scaling="off"] .chronicleHeader {
   text-underline-offset: 2px;
 }
 
+.chronicleInlineLinkButton {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.chronicleMatchList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.chronicleMatchListItem {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
 .chronicleInjuryBruised {
   display: inline-flex;
   align-items: center;
@@ -2237,6 +2339,18 @@ html[data-theme="dark"] .chroniclePanelMiniProgressFill {
   background: #4a8e61;
 }
 
+html[data-theme="dark"] .chroniclePanelHeaderToggle {
+  color: #d9cebf;
+}
+
+html[data-theme="dark"] .chroniclePanelHeaderToggleSwitch {
+  background: #3c3228;
+}
+
+html[data-theme="dark"] .chroniclePanelHeaderToggleInput:checked + .chroniclePanelHeaderToggleSwitch {
+  background: #3d7c52;
+}
+
 html[data-theme="dark"] .chroniclePanelMove {
   background: #2a241d;
   color: #f3ede4;
@@ -2363,6 +2477,10 @@ html[data-theme="dark"] .chronicleDistributionTeamName {
 
 html[data-theme="dark"] .chroniclePressLink {
   color: #8cb8e6;
+}
+
+html[data-theme="dark"] .chronicleInlineLinkButton {
+  color: inherit;
 }
 
 html[data-theme="dark"] .chronicleInjuryCross,

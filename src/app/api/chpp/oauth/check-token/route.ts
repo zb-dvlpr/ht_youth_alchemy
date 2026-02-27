@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { buildChppErrorPayload } from "@/lib/chpp/server";
+import { buildChppErrorPayload, chppErrorHttpStatus } from "@/lib/chpp/server";
 import {
   assertChppPermissions,
   ChppAuthError,
@@ -34,7 +34,7 @@ export async function GET() {
       );
     }
     const payload = buildChppErrorPayload("Failed to check token", error);
-    const status = payload.statusCode === 401 ? 401 : 502;
+    const status = chppErrorHttpStatus(payload);
     return NextResponse.json(payload, { status });
   }
 }

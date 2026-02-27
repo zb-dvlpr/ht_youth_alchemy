@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { XMLParser } from "fast-xml-parser";
 import { getChppEnv } from "@/lib/chpp/env";
 import { CHPP_ENDPOINTS } from "@/lib/chpp/oauth";
@@ -10,6 +10,7 @@ import {
 import { createNodeOAuthClient, getProtectedResource, postProtectedResource } from "@/lib/chpp/node-oauth";
 
 export const CHPP_XML_ENDPOINT = "https://chpp.hattrick.org/chppxml.ashx";
+const DEBUG_OAUTH_ERROR_HEADER = "x-ya-debug-oauth-error";
 
 type ChppClient = ReturnType<typeof createNodeOAuthClient>;
 
@@ -52,6 +53,25 @@ export function buildChppUrl(params: URLSearchParams) {
 }
 
 export async function getChppAuth(): Promise<ChppAuth> {
+  if (process.env.NODE_ENV !== "production") {
+    const headerStore = await headers();
+    const debugMode = headerStore.get(DEBUG_OAUTH_ERROR_HEADER);
+    if (debugMode === "4xx") {
+      throw {
+        statusCode: 429,
+        code: "CHPP_DEBUG_SIMULATED_4XX",
+        details: "Simulated CHPP OAuth client-side failure (4xx).",
+      };
+    }
+    if (debugMode === "5xx") {
+      throw {
+        statusCode: 503,
+        code: "CHPP_DEBUG_SIMULATED_5XX",
+        details: "Simulated CHPP OAuth server-side failure (5xx).",
+      };
+    }
+  }
+
   const { consumerKey, consumerSecret, callbackUrl } = getChppEnv();
   const client = createNodeOAuthClient(consumerKey, consumerSecret, callbackUrl);
 
@@ -159,6 +179,10 @@ export function buildChppErrorPayload(message: string, error: unknown) {
     errorObject && typeof errorObject.data === "string"
       ? errorObject.data
       : null;
+  const errorCode =
+    errorObject && typeof errorObject.code === "string"
+      ? errorObject.code
+      : null;
   const unauthorizedText = [details, data]
     .filter(Boolean)
     .join(" ")
@@ -185,14 +209,73 @@ export function buildChppErrorPayload(message: string, error: unknown) {
     };
   }
 
+  const hasHtmlPayload = [details, data].some((value) =>
+    String(value ?? "")
+      .toLowerCase()
+      .includes("<html")
+  );
+  const inferredStatusCode = (() => {
+    if (typeof statusCode === "number" && Number.isFinite(statusCode)) {
+      return statusCode;
+    }
+    const combined = [details, data].join(" ").toLowerCase();
+    if (
+      combined.includes("runtime error") ||
+      combined.includes("server error in '/' application")
+    ) {
+      return 500;
+    }
+    return null;
+  })();
+  const isServerError =
+    inferredStatusCode !== null
+      ? inferredStatusCode >= 500
+      : [details, data]
+          .join(" ")
+          .toLowerCase()
+          .includes("server error");
+  const isClientError =
+    inferredStatusCode !== null
+      ? inferredStatusCode >= 400 && inferredStatusCode < 500
+      : false;
+
+  const friendlyDetails = (() => {
+    if (errorCode === "CHPP_DEBUG_SIMULATED_4XX") {
+      return "Simulated OAuth client-side error (4xx).";
+    }
+    if (errorCode === "CHPP_DEBUG_SIMULATED_5XX") {
+      return "Simulated OAuth server-side error (5xx).";
+    }
+    if (isServerError) {
+      return "Hattrick OAuth/CHPP returned a server-side error (5xx). Please retry later and contact Hattrick staff if the issue persists.";
+    }
+    if (isClientError) {
+      return "Hattrick OAuth/CHPP rejected the request (4xx). Reconnect and retry; if it continues, contact Hattrick staff.";
+    }
+    return hasHtmlPayload
+      ? "Hattrick OAuth/CHPP returned an unexpected error response. Please retry; if it continues, contact Hattrick staff."
+      : details;
+  })();
+
   return {
     error: message,
-    details,
+    details: friendlyDetails,
+    code: errorCode ?? (isServerError ? "CHPP_UPSTREAM_5XX" : null),
     ...(errorObject
       ? {
-          statusCode,
-          data: errorObject.data ?? null,
+          statusCode: inferredStatusCode,
+          data: isDev ? errorObject.data ?? null : null,
+          debugDetails: isDev ? details : null,
         }
       : {}),
   };
+}
+
+export function chppErrorHttpStatus(payload: { statusCode?: number | null }) {
+  const statusCode = payload.statusCode;
+  if (statusCode === 401) return 401;
+  if (typeof statusCode === "number" && statusCode >= 400 && statusCode < 500) {
+    return statusCode;
+  }
+  return 502;
 }

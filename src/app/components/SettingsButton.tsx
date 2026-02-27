@@ -262,6 +262,16 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
   const handleDebugOauthErrorModeChange = (mode: ChppDebugOauthErrorMode) => {
     setDebugOauthErrorMode(mode);
     writeChppDebugOauthErrorMode(mode);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(CLUB_CHRONICLE_DEBUG_EVENT, {
+          detail: {
+            type: "oauth-mode-changed",
+            mode,
+          },
+        })
+      );
+    }
     addNotification(
       `${messages.notificationDebugOauthMode} ${
         mode === "4xx"

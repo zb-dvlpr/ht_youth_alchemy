@@ -47,7 +47,7 @@ html[data-app-scaling="off"] .scaleContainer {
 .shellFrame {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   column-gap: 16px;
   row-gap: 12px;
   align-items: start;
@@ -59,6 +59,23 @@ html[data-app-scaling="off"] .scaleContainer {
   position: sticky;
   top: 0;
   z-index: 35;
+}
+
+.shellContextBar {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  position: sticky;
+  top: var(--shell-topbar-height, 56px);
+  z-index: 30;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #f4efe6;
+  box-shadow: 0 2px 12px rgba(49, 38, 24, 0.08);
 }
 
 .topBar {
@@ -73,7 +90,7 @@ html[data-app-scaling="off"] .scaleContainer {
 
 .shellWorkspace {
   grid-column: 2;
-  grid-row: 2;
+  grid-row: 3;
   flex: 1;
   min-width: 0;
 }
@@ -96,9 +113,9 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 
 .sidebar {
   grid-column: 1;
-  grid-row: 2;
+  grid-row: 2 / 4;
   position: sticky;
-  top: 74px;
+  top: calc(var(--shell-topbar-height, 56px) + 18px);
   align-self: start;
   width: 220px;
   background: #f7f1e3;
@@ -567,6 +584,12 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .dashboardStack {
   display: grid;
   gap: 20px;
+}
+
+.youthActionBarActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .columnStack {
@@ -2276,6 +2299,11 @@ html[data-theme="dark"] .chronicleHeaderTitle {
 }
 
 html[data-theme="dark"] .chronicleHeader {
+  background: rgba(35, 30, 24, 0.92);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .shellContextBar {
   background: rgba(35, 30, 24, 0.92);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }

@@ -1,11 +1,12 @@
 "use client";
 
-import { ReactNode, useEffect, useMemo, useState } from "react";
+import { type CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import Tooltip from "./Tooltip";
 import ClubChronicle from "./ClubChronicle";
 import Modal from "./Modal";
 import { Messages } from "@/lib/i18n";
+import { formatDateTime } from "@/lib/datetime";
 
 type AppShellProps = {
   messages: Messages;
@@ -29,13 +30,21 @@ type ViewStateSnapshot = {
 const APP_SHELL_VIEW_STATE_KEY = "ya_app_shell_view_state_v1";
 const APP_SHELL_ACTIVE_TOOL_KEY = "ya_app_shell_active_tool_v1";
 const APP_SHELL_COLLAPSED_KEY = "ya_app_shell_collapsed_v1";
+const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
+const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
 
 export default function AppShell({ messages, globalHeader, children }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [activeTool, setActiveTool] = useState<ToolId>("youth");
   const [viewStateRestored, setViewStateRestored] = useState(false);
+  const [topBarHeight, setTopBarHeight] = useState(56);
+  const [youthRefreshing, setYouthRefreshing] = useState(false);
+  const [youthRefreshStatus, setYouthRefreshStatus] = useState<string | null>(null);
+  const [youthRefreshProgressPct, setYouthRefreshProgressPct] = useState(0);
+  const [youthLastRefreshAt, setYouthLastRefreshAt] = useState<number | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
   const [changelogPage, setChangelogPage] = useState(0);
+  const shellTopBarRef = useRef<HTMLDivElement | null>(null);
 
   const tools = useMemo(
     () => [
@@ -354,6 +363,60 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const node = shellTopBarRef.current;
+    if (!node) return;
+    const measure = () => {
+      const next = Math.round(node.getBoundingClientRect().height);
+      if (next > 0) {
+        setTopBarHeight(next);
+      }
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handle = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      const detail = event.detail as
+        | {
+            refreshing?: boolean;
+            status?: string | null;
+            progressPct?: number;
+            lastRefreshAt?: number | null;
+          }
+        | undefined;
+      if (!detail) return;
+      setYouthRefreshing(Boolean(detail.refreshing));
+      setYouthRefreshStatus(
+        typeof detail.status === "string" ? detail.status : null
+      );
+      setYouthRefreshProgressPct(
+        typeof detail.progressPct === "number"
+          ? Math.max(0, Math.min(100, detail.progressPct))
+          : 0
+      );
+      setYouthLastRefreshAt(
+        typeof detail.lastRefreshAt === "number" ? detail.lastRefreshAt : null
+      );
+    };
+    window.addEventListener(YOUTH_REFRESH_STATE_EVENT, handle);
+    return () => window.removeEventListener(YOUTH_REFRESH_STATE_EVENT, handle);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     const handler = () => {
       if (activeTool !== "chronicle") return;
       setChangelogPage(0);
@@ -392,8 +455,17 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
   };
 
   return (
-    <div className={styles.shellFrame}>
-      <div className={styles.shellTopBar}>{globalHeader}</div>
+    <div
+      className={styles.shellFrame}
+      style={
+        {
+          "--shell-topbar-height": `${topBarHeight}px`,
+        } as CSSProperties
+      }
+    >
+      <div className={styles.shellTopBar} ref={shellTopBarRef}>
+        {globalHeader}
+      </div>
       <aside
         className={`${styles.sidebar} ${
           collapsed ? styles.sidebarCollapsed : ""
@@ -429,6 +501,45 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
           ))}
         </nav>
       </aside>
+      {activeTool === "youth" ? (
+        <div className={styles.shellContextBar}>
+          <div className={styles.youthActionBarActions}>
+            <Tooltip content={messages.refreshPlayerListTooltip}>
+              <button
+                type="button"
+                className={styles.chroniclePanelRefresh}
+                onClick={() =>
+                  window.dispatchEvent(new CustomEvent(YOUTH_REFRESH_REQUEST_EVENT))
+                }
+                disabled={youthRefreshing}
+                aria-label={messages.refreshPlayerListTooltip}
+              >
+                ↻
+              </button>
+            </Tooltip>
+          </div>
+          {youthRefreshStatus ? (
+            <div className={styles.chronicleRefreshStatusWrap} aria-live="polite">
+              <span className={styles.chronicleRefreshStatusText}>
+                {youthRefreshStatus}
+              </span>
+              <span className={styles.chronicleRefreshProgressTrack} aria-hidden="true">
+                <span
+                  className={styles.chronicleRefreshProgressFill}
+                  style={{
+                    width: `${Math.max(0, Math.min(100, youthRefreshProgressPct))}%`,
+                  }}
+                />
+              </span>
+            </div>
+          ) : null}
+          {youthLastRefreshAt ? (
+            <span className={styles.chronicleRefreshStatusText}>
+              {messages.youthLastGlobalRefresh}: {formatDateTime(youthLastRefreshAt)}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       <section className={styles.shellWorkspace} data-active-tool={activeTool}>
         {activeTool === "youth" ? children : <ClubChronicle messages={messages} />}
       </section>

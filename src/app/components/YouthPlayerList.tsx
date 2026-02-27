@@ -15,7 +15,7 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import Tooltip from "./Tooltip";
 import { setDragGhost } from "@/lib/drag";
 import { parseChppDate } from "@/lib/chpp/utils";
-import { formatDate, formatDateTime } from "@/lib/datetime";
+import { formatDate } from "@/lib/datetime";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -86,12 +86,8 @@ type YouthPlayerListProps = {
   onToggleStar?: (playerId: number) => void;
   onSelect?: (playerId: number) => void;
   onAutoSelect?: () => void;
-  onRefresh?: () => void;
   onOrderChange?: (orderedIds: number[]) => void;
   onSortStart?: () => void;
-  refreshing?: boolean;
-  refreshStatus?: string | null;
-  lastGlobalRefreshAt?: number | null;
   hiddenSpecialtyByPlayerId?: Record<number, number>;
   messages: Messages;
 };
@@ -214,12 +210,8 @@ export default function YouthPlayerList({
   onToggleStar,
   onSelect,
   onAutoSelect,
-  onRefresh,
   onOrderChange,
   onSortStart,
-  refreshing,
-  refreshStatus,
-  lastGlobalRefreshAt = null,
   hiddenSpecialtyByPlayerId = {},
   messages,
 }: YouthPlayerListProps) {
@@ -606,10 +598,6 @@ export default function YouthPlayerList({
     };
   }, [recomputeNameAgeOverlap]);
 
-  const activeRefreshStatus = refreshing
-    ? refreshStatus?.trim() || messages.refreshingLabel
-    : null;
-
   return (
     <div className={styles.card} data-help-anchor={dataHelpAnchor} ref={listCardRef}>
       <div className={styles.listHeader}>
@@ -693,19 +681,6 @@ export default function YouthPlayerList({
             </button>
           </Tooltip>
           <Tooltip
-            content={messages.refreshPlayerListTooltip}
-          >
-            <button
-              type="button"
-              className={styles.sortToggle}
-              aria-label={messages.refreshPlayerListTooltip}
-              onClick={() => onRefresh?.()}
-              disabled={!onRefresh || refreshing}
-            >
-              ↻
-            </button>
-          </Tooltip>
-          <Tooltip
             content={messages.autoSelectTitle}
           >
             <button
@@ -720,14 +695,6 @@ export default function YouthPlayerList({
           </Tooltip>
         </div>
       </div>
-      {activeRefreshStatus ? (
-        <p className={styles.listRefreshStatus}>{activeRefreshStatus}</p>
-      ) : null}
-      {lastGlobalRefreshAt ? (
-        <p className={styles.listRefreshStatus}>
-          {messages.youthLastGlobalRefresh}: {formatDateTime(lastGlobalRefreshAt)}
-        </p>
-      ) : null}
       {players.length === 0 ? (
         <p className={styles.muted}>{messages.noYouthPlayers}</p>
       ) : (

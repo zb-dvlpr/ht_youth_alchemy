@@ -55,6 +55,9 @@ import {
   writeChppDebugOauthErrorMode,
 } from "@/lib/chpp/client";
 
+const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
+const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
+
 const formatPlayerName = (player: YouthPlayer) =>
   [player.FirstName, player.NickName || null, player.LastName]
     .filter(Boolean)
@@ -332,6 +335,7 @@ export default function Dashboard({
   const [playerRefreshStatus, setPlayerRefreshStatus] = useState<string | null>(
     null
   );
+  const [playerRefreshProgressPct, setPlayerRefreshProgressPct] = useState(0);
   const [hiddenSpecialtyByPlayerId, setHiddenSpecialtyByPlayerId] = useState<
     Record<number, number>
   >({});
@@ -454,6 +458,31 @@ export default function Dashboard({
   );
   const staleRefreshAttemptedRef = useRef(false);
   const lastAuthNotificationAtRef = useRef(0);
+  const setYouthRefreshStatus = (status: string, progressPct?: number) => {
+    setPlayerRefreshStatus(status);
+    if (typeof progressPct === "number") {
+      setPlayerRefreshProgressPct(Math.max(0, Math.min(100, progressPct)));
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(
+      new CustomEvent(YOUTH_REFRESH_STATE_EVENT, {
+        detail: {
+          refreshing: playersLoading,
+          status: playerRefreshStatus,
+          progressPct: playerRefreshProgressPct,
+          lastRefreshAt: lastGlobalRefreshAt,
+        },
+      })
+    );
+  }, [
+    playersLoading,
+    playerRefreshProgressPct,
+    playerRefreshStatus,
+    lastGlobalRefreshAt,
+  ]);
 
   const playersById = useMemo(() => {
     const map = new Map<number, YouthPlayer>();
@@ -2163,7 +2192,7 @@ export default function Dashboard({
   ) => {
     const teamId = teamIdOverride ?? activeYouthTeamId;
     try {
-      setPlayerRefreshStatus(messages.refreshStatusFetchingMatches);
+      setYouthRefreshStatus(messages.refreshStatusFetchingMatches, 70);
       const formatArchiveDate = (date: Date) => date.toISOString().slice(0, 10);
       const today = new Date();
       const firstDate = new Date(today.getTime() - 220 * 24 * 60 * 60 * 1000);
@@ -2185,7 +2214,7 @@ export default function Dashboard({
         return false;
       }
 
-      setPlayerRefreshStatus(messages.refreshStatusFetchingRatings);
+      setYouthRefreshStatus(messages.refreshStatusFetchingRatings, 78);
 
       const archiveTeam = archivePayload?.data?.HattrickData?.Team;
       const teamIdValue = Number(
@@ -2263,11 +2292,16 @@ export default function Dashboard({
             };
           } finally {
             lineupCompleted += 1;
-            setPlayerRefreshStatus(
+            const lineupRatio =
+              finishedMatches.length > 0
+                ? lineupCompleted / finishedMatches.length
+                : 1;
+            setYouthRefreshStatus(
               formatStatusTemplate(messages.refreshStatusFetchingPastMatchesProgress, {
                 completed: lineupCompleted,
                 total: finishedMatches.length,
-              })
+              }),
+              Math.round(78 + lineupRatio * 10)
             );
           }
         }
@@ -2335,7 +2369,7 @@ export default function Dashboard({
           return true;
         }
 
-        setPlayerRefreshStatus(messages.refreshStatusFetchingHiddenSpecialties);
+        setYouthRefreshStatus(messages.refreshStatusFetchingHiddenSpecialties, 89);
         const knownSpecialties = new Map<number, number>();
         playerList.forEach((player) => {
           const specialty = Number(player.Specialty ?? 0);
@@ -2454,14 +2488,19 @@ export default function Dashboard({
               };
             } finally {
               hiddenCompleted += 1;
-              setPlayerRefreshStatus(
+              const hiddenRatio =
+                matchesToAnalyze.length > 0
+                  ? hiddenCompleted / matchesToAnalyze.length
+                  : 1;
+              setYouthRefreshStatus(
                 formatStatusTemplate(
                   messages.refreshStatusFetchingHiddenSpecialtiesProgress,
                   {
                     completed: hiddenCompleted,
                     total: matchesToAnalyze.length,
                   }
-                )
+                ),
+                Math.round(89 + hiddenRatio * 10)
               );
             }
           }
@@ -2512,7 +2551,7 @@ export default function Dashboard({
   ) => {
     if (playersLoading) return;
     setPlayersLoading(true);
-    setPlayerRefreshStatus(messages.refreshStatusFetchingPlayers);
+    setYouthRefreshStatus(messages.refreshStatusFetchingPlayers, 8);
     const refreshAll = options?.refreshAll ?? false;
     const teamId =
       typeof teamIdOverride === "number" || teamIdOverride === null
@@ -2570,7 +2609,7 @@ export default function Dashboard({
         nextSelectedId = null;
       }
       if (refreshAll) {
-        setPlayerRefreshStatus(messages.refreshStatusFetchingPlayerDetails);
+        setYouthRefreshStatus(messages.refreshStatusFetchingPlayerDetails, 42);
         const ids = list.map((player) => player.YouthPlayerID);
         const detailIds = nextSelectedId
           ? ids.filter((id) => id !== nextSelectedId)
@@ -2603,7 +2642,7 @@ export default function Dashboard({
       let matchesOk = true;
       let ratingsOk = true;
       if (refreshAll) {
-        setPlayerRefreshStatus(messages.refreshStatusFetchingMatches);
+        setYouthRefreshStatus(messages.refreshStatusFetchingMatches, 60);
         const matchesResult = await fetchMatchesResponse(teamId);
         if (matchesResult.ok && matchesResult.payload) {
           setMatchesState(matchesResult.payload);
@@ -2621,10 +2660,25 @@ export default function Dashboard({
         writeLastRefreshTimestamp(refreshedAt);
         setLastGlobalRefreshAt(refreshedAt);
       }
+      setPlayerRefreshProgressPct(100);
       setPlayerRefreshStatus(null);
+      setPlayerRefreshProgressPct(0);
       setPlayersLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleYouthRefreshRequest = () => {
+      void refreshPlayers(undefined, { refreshAll: true, reason: "manual" });
+    };
+    window.addEventListener(YOUTH_REFRESH_REQUEST_EVENT, handleYouthRefreshRequest);
+    return () =>
+      window.removeEventListener(
+        YOUTH_REFRESH_REQUEST_EVENT,
+        handleYouthRefreshRequest
+      );
+  }, [refreshPlayers]);
 
   const handleTeamChange = (nextTeamId: number | null) => {
     if (nextTeamId === selectedYouthTeamId) return;
@@ -3216,13 +3270,7 @@ export default function Dashboard({
               `${messages.notificationAutoSelection} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
             );
           }}
-          onRefresh={() =>
-            refreshPlayers(undefined, { refreshAll: true, reason: "manual" })
-          }
           onOrderChange={(ids) => applyPlayerOrder(ids, "list")}
-          refreshing={playersLoading}
-          refreshStatus={playerRefreshStatus}
-          lastGlobalRefreshAt={lastGlobalRefreshAt}
           hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
           messages={messages}
         />

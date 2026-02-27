@@ -7,6 +7,11 @@ import Tooltip from "./Tooltip";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import Modal from "./Modal";
 import {
+  type ChppDebugOauthErrorMode,
+  readChppDebugOauthErrorMode,
+  writeChppDebugOauthErrorMode,
+} from "@/lib/chpp/client";
+import {
   ALGORITHM_SETTINGS_EVENT,
   readAllowTrainingUntilMaxedOut,
   writeAllowTrainingUntilMaxedOut,
@@ -53,6 +58,8 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
   const [chronicleUpdatesHistoryCount, setChronicleUpdatesHistoryCount] =
     useState(10);
   const [enableAppScaling, setEnableAppScaling] = useState(false);
+  const [debugOauthErrorMode, setDebugOauthErrorMode] =
+    useState<ChppDebugOauthErrorMode>("off");
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -79,6 +86,9 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     setChronicleTransferHistoryCount(readClubChronicleTransferHistoryCount());
     setChronicleUpdatesHistoryCount(readClubChronicleUpdatesHistoryCount());
     setEnableAppScaling(readGeneralEnableScaling());
+    if (process.env.NODE_ENV !== "production") {
+      setDebugOauthErrorMode(readChppDebugOauthErrorMode());
+    }
   }, []);
 
   const handleExport = () => {
@@ -247,6 +257,20 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
       window.dispatchEvent(new CustomEvent(CLUB_CHRONICLE_DEBUG_EVENT));
     }
     setDebugSettingsOpen(false);
+  };
+
+  const handleDebugOauthErrorModeChange = (mode: ChppDebugOauthErrorMode) => {
+    setDebugOauthErrorMode(mode);
+    writeChppDebugOauthErrorMode(mode);
+    addNotification(
+      `${messages.notificationDebugOauthMode} ${
+        mode === "4xx"
+          ? messages.devOauthErrorSim4xx
+          : mode === "5xx"
+            ? messages.devOauthErrorSim5xx
+            : messages.devOauthErrorSimOff
+      }`
+    );
   };
 
   return (
@@ -517,6 +541,25 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         title={messages.settingsDebugTitle}
         body={
           <div className={styles.settingsModalBody}>
+            <label className={styles.settingsField}>
+              <span className={styles.settingsFieldLabel}>
+                {messages.devOauthErrorSimLabel}
+              </span>
+              <select
+                className={styles.settingsFieldInput}
+                value={debugOauthErrorMode}
+                onChange={(event) =>
+                  handleDebugOauthErrorModeChange(
+                    event.target.value as ChppDebugOauthErrorMode
+                  )
+                }
+              >
+                <option value="off">{messages.devOauthErrorSimOff}</option>
+                <option value="4xx">{messages.devOauthErrorSim4xx}</option>
+                <option value="5xx">{messages.devOauthErrorSim5xx}</option>
+              </select>
+            </label>
+            <p className={styles.muted}>{messages.devOauthErrorSimHint}</p>
             <button
               type="button"
               className={styles.confirmSubmit}

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import {
   buildChppErrorPayload,
+  chppErrorHttpStatus,
   ChppAuthError,
   fetchChppXml,
   getChppAuth,
@@ -33,7 +34,7 @@ export async function GET(request: Request) {
     }
     const payload = buildChppErrorPayload("Failed to fetch staff list", error);
     return NextResponse.json(payload, {
-      status: payload.statusCode === 401 ? 401 : 502,
+      status: chppErrorHttpStatus(payload),
     });
   }
 }

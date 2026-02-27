@@ -522,6 +522,7 @@ export type Messages = {
   notificationTeamSwitched: string;
   notificationTeamsLoaded: string;
   notificationTeamsLoadFailed: string;
+  notificationDebugOauthMode: string;
   notificationMatchesRefreshed: string;
   notificationMatchesRefreshFailed: string;
   notificationReauthRequired: string;
@@ -564,6 +565,11 @@ export type Messages = {
   devManagerUserIdLabel: string;
   devManagerUserIdPlaceholder: string;
   devManagerLoadTeams: string;
+  devOauthErrorSimLabel: string;
+  devOauthErrorSimOff: string;
+  devOauthErrorSim4xx: string;
+  devOauthErrorSim5xx: string;
+  devOauthErrorSimHint: string;
   statusLabel: string;
   matchStatusUpcoming: string;
   matchStatusFinished: string;
@@ -632,6 +638,10 @@ export type Messages = {
   authExpiredBody: string;
   authExpiredAction: string;
   authExpiredDismiss: string;
+  oauthErrorClientExplanation: string;
+  oauthErrorServerExplanation: string;
+  oauthErrorUnknownExplanation: string;
+  oauthErrorRecoveryHint: string;
   disconnectTitle: string;
   brandTitle: string;
   skillKeeper: string;

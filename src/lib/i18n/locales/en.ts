@@ -564,6 +564,7 @@ export const messagesEn: Messages = {
     notificationTeamSwitched: "Switched to:",
     notificationTeamsLoaded: "Teams loaded",
     notificationTeamsLoadFailed: "Failed to load teams",
+    notificationDebugOauthMode: "OAuth debug mode:",
     notificationMatchesRefreshed: "Matches refreshed",
     notificationMatchesRefreshFailed: "Matches refresh failed",
     notificationReauthRequired: "Refresh aborted: re-auth required",
@@ -606,6 +607,12 @@ export const messagesEn: Messages = {
     devManagerUserIdLabel: "Manager user ID (dev)",
     devManagerUserIdPlaceholder: "Enter user ID",
     devManagerLoadTeams: "Load teams",
+    devOauthErrorSimLabel: "OAuth error simulation",
+    devOauthErrorSimOff: "Off",
+    devOauthErrorSim4xx: "Simulate 4xx",
+    devOauthErrorSim5xx: "Simulate 5xx",
+    devOauthErrorSimHint:
+      "Dev only. Simulates OAuth/CHPP failures for all /api/chpp requests in this browser.",
     statusLabel: "Status",
     matchStatusUpcoming: "Upcoming",
     matchStatusFinished: "Finished",
@@ -676,6 +683,14 @@ export const messagesEn: Messages = {
       "Your Hattrick authorization expired or was revoked. Reconnect to continue.",
     authExpiredAction: "Reconnect",
     authExpiredDismiss: "Dismiss",
+    oauthErrorClientExplanation:
+      "Hattrick OAuth/CHPP rejected the request (4xx). This is usually an authorization or request validation issue.",
+    oauthErrorServerExplanation:
+      "Hattrick OAuth/CHPP returned a server-side error (5xx). This is an upstream service issue.",
+    oauthErrorUnknownExplanation:
+      "Hattrick OAuth/CHPP returned an unexpected error while refreshing data.",
+    oauthErrorRecoveryHint:
+      "Try revoking access (Disconnect), then connect again. If it still fails, contact Hattrick staff.",
     disconnectTitle: "Disconnect and revoke access",
     brandTitle: "Hattrick Alchemy",
     skillKeeper: "Keeper",

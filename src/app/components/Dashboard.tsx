@@ -48,8 +48,11 @@ import {
 import { useNotifications } from "./notifications/NotificationsProvider";
 import {
   CHPP_AUTH_REQUIRED_EVENT,
+  type ChppDebugOauthErrorMode,
   ChppAuthRequiredError,
   fetchChppJson,
+  readChppDebugOauthErrorMode,
+  writeChppDebugOauthErrorMode,
 } from "@/lib/chpp/client";
 
 const formatPlayerName = (player: YouthPlayer) =>
@@ -351,6 +354,11 @@ export default function Dashboard({
   const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(
     initialLoadDetails
   );
+  const [serviceErrorModal, setServiceErrorModal] = useState<{
+    title: string;
+    details: string | null;
+    statusCode: number | null;
+  } | null>(null);
 
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
@@ -364,6 +372,8 @@ export default function Dashboard({
     initialYouthTeamId
   );
   const [devManagerUserId, setDevManagerUserId] = useState("");
+  const [debugOauthErrorMode, setDebugOauthErrorMode] =
+    useState<ChppDebugOauthErrorMode>("off");
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
   const [primaryTraining, setPrimaryTraining] = useState<TrainingSkillKey | "">(
@@ -1132,6 +1142,11 @@ export default function Dashboard({
   }, [isConnected]);
 
   useEffect(() => {
+    if (!isDev) return;
+    setDebugOauthErrorMode(readChppDebugOauthErrorMode());
+  }, [isDev]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     const handler = () => setShowHelp(true);
     window.addEventListener("ya:help-open", handler);
@@ -1425,7 +1440,17 @@ export default function Dashboard({
         { cache: "no-store" }
       );
       if (!response.ok || payload?.error) {
-        throw new Error(payload?.error ?? "Failed to fetch player details");
+        const detailsText = payload?.details ?? payload?.error ?? null;
+        const statusCode =
+          typeof payload?.statusCode === "number"
+            ? payload.statusCode
+            : response.status;
+        const errorWithStatus = new Error(
+          detailsText ?? "Failed to fetch player details"
+        ) as Error & { statusCode?: number; detailsText?: string | null };
+        errorWithStatus.statusCode = statusCode;
+        errorWithStatus.detailsText = detailsText;
+        throw errorWithStatus;
       }
 
       const resolved = payload?.data ?? null;
@@ -1447,7 +1472,25 @@ export default function Dashboard({
         setDetails(previousDetails);
         return;
       }
-      setError(err instanceof Error ? err.message : String(err));
+      const statusCode =
+        err && typeof err === "object" && "statusCode" in err
+          ? Number((err as { statusCode?: unknown }).statusCode) || null
+          : null;
+      const detailsText =
+        err &&
+        typeof err === "object" &&
+        "detailsText" in err &&
+        typeof (err as { detailsText?: unknown }).detailsText === "string"
+          ? ((err as { detailsText?: string }).detailsText ?? null)
+          : err instanceof Error
+            ? err.message
+            : String(err);
+      setServiceErrorModal({
+        title: messages.unableToLoadPlayers,
+        details: detailsText,
+        statusCode,
+      });
+      setError(null);
       setDetails(previousDetails);
     } finally {
       setLoading(false);
@@ -2066,6 +2109,14 @@ export default function Dashboard({
         error?: string;
       };
       if (!response.ok || typedPayload.error) {
+        setServiceErrorModal({
+          title: messages.unableToLoadMatches,
+          details: typedPayload.details ?? typedPayload.error ?? null,
+          statusCode:
+            typeof typedPayload.statusCode === "number"
+              ? typedPayload.statusCode
+              : response.status,
+        });
         return {
           ok: false,
           payload: typedPayload,
@@ -2082,6 +2133,11 @@ export default function Dashboard({
           payload: null,
         };
       }
+      setServiceErrorModal({
+        title: messages.unableToLoadMatches,
+        details: null,
+        statusCode: null,
+      });
       // keep existing data
       return {
         ok: false,
@@ -2092,7 +2148,7 @@ export default function Dashboard({
 
   const refreshMatches = async (teamIdOverride?: number | null) => {
     const result = await fetchMatchesResponse(teamIdOverride);
-    if (result.payload) {
+    if (result.ok && result.payload) {
       setMatchesState(result.payload);
     }
     return result.ok;
@@ -2483,7 +2539,14 @@ export default function Dashboard({
         }
       );
       if (!response.ok || payload?.error) {
-        throw new Error(payload?.error ?? "Failed to fetch youth players");
+        const errorWithStatus = new Error(
+          payload?.details ?? payload?.error ?? "Failed to fetch youth players"
+        ) as Error & { statusCode?: number };
+        errorWithStatus.statusCode =
+          typeof payload?.statusCode === "number"
+            ? payload.statusCode
+            : response.status;
+        throw errorWithStatus;
       }
       const raw = payload?.data?.HattrickData?.PlayerList?.YouthPlayer;
       const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
@@ -2495,6 +2558,8 @@ export default function Dashboard({
         previousPlayerIds.size !== nextPlayerIds.size ||
         Array.from(nextPlayerIds).some((id) => !previousPlayerIds.has(id));
       setPlayerList(list);
+      setLoadError(null);
+      setLoadErrorDetails(null);
       playersUpdated = true;
       let nextSelectedId = selectedId;
       if (
@@ -2521,16 +2586,26 @@ export default function Dashboard({
       addNotification(messages.notificationPlayersRefreshed);
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) return;
+      const details =
+        error instanceof Error && error.message
+          ? error.message
+          : messages.unableToLoadPlayers;
       addNotification(messages.unableToLoadPlayers);
-      setLoadError(messages.unableToLoadPlayers);
-      setLoadErrorDetails(null);
+      setServiceErrorModal({
+        title: messages.unableToLoadPlayers,
+        details,
+        statusCode:
+          error && typeof error === "object" && "statusCode" in error
+            ? Number((error as { statusCode?: unknown }).statusCode) || null
+            : null,
+      });
     } finally {
       let matchesOk = true;
       let ratingsOk = true;
       if (refreshAll) {
         setPlayerRefreshStatus(messages.refreshStatusFetchingMatches);
         const matchesResult = await fetchMatchesResponse(teamId);
-        if (matchesResult.payload) {
+        if (matchesResult.ok && matchesResult.payload) {
           setMatchesState(matchesResult.payload);
         }
         matchesOk = matchesResult.ok;
@@ -2936,6 +3011,39 @@ export default function Dashboard({
             </a>
           </div>
         }
+      />
+      <Modal
+        open={Boolean(serviceErrorModal)}
+        title={serviceErrorModal?.title ?? messages.unableToLoadPlayers}
+        body={
+          <div>
+            <p>
+              {serviceErrorModal?.statusCode !== null &&
+              serviceErrorModal?.statusCode !== undefined
+                ? serviceErrorModal.statusCode >= 500
+                  ? messages.oauthErrorServerExplanation
+                  : serviceErrorModal.statusCode >= 400
+                    ? messages.oauthErrorClientExplanation
+                    : messages.oauthErrorUnknownExplanation
+                : messages.oauthErrorUnknownExplanation}
+            </p>
+            {serviceErrorModal?.details ? (
+              <p className={styles.errorDetails}>{serviceErrorModal.details}</p>
+            ) : null}
+            <p className={styles.errorDetails}>{messages.oauthErrorRecoveryHint}</p>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setServiceErrorModal(null)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setServiceErrorModal(null)}
       />
       <div className={styles.dashboardGrid} ref={dashboardRef}>
         <Modal
@@ -3362,6 +3470,36 @@ export default function Dashboard({
                 </button>
               </div>
             </div>
+            <div className={styles.devTeamRow}>
+              <label className={styles.devTeamLabel}>
+                {messages.devOauthErrorSimLabel}
+              </label>
+              <div className={styles.devTeamControls}>
+                <select
+                  className={styles.sortSelect}
+                  value={debugOauthErrorMode}
+                  onChange={(event) => {
+                    const nextMode = event.target.value as ChppDebugOauthErrorMode;
+                    setDebugOauthErrorMode(nextMode);
+                    writeChppDebugOauthErrorMode(nextMode);
+                    addNotification(
+                      `${messages.notificationDebugOauthMode} ${
+                        nextMode === "4xx"
+                          ? messages.devOauthErrorSim4xx
+                          : nextMode === "5xx"
+                            ? messages.devOauthErrorSim5xx
+                            : messages.devOauthErrorSimOff
+                      }`
+                    );
+                  }}
+                >
+                  <option value="off">{messages.devOauthErrorSimOff}</option>
+                  <option value="4xx">{messages.devOauthErrorSim4xx}</option>
+                  <option value="5xx">{messages.devOauthErrorSim5xx}</option>
+                </select>
+              </div>
+            </div>
+            <p className={styles.muted}>{messages.devOauthErrorSimHint}</p>
             <Tooltip
               content={
                 optimizerDebug

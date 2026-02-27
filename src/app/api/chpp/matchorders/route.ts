@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   assertChppPermissions,
   buildChppErrorPayload,
+  chppErrorHttpStatus,
   ChppAuthError,
   buildChppUrl,
   fetchChppXml,
@@ -105,7 +106,7 @@ export async function POST(request: Request) {
       error
     );
     return NextResponse.json(payload, {
-      status: payload.statusCode === 401 ? 401 : 502,
+      status: chppErrorHttpStatus(payload),
     });
   }
 }
@@ -144,7 +145,7 @@ export async function GET(request: Request) {
     }
     const payload = buildChppErrorPayload("Failed to fetch match orders", error);
     return NextResponse.json(payload, {
-      status: payload.statusCode === 401 ? 401 : 502,
+      status: chppErrorHttpStatus(payload),
     });
   }
 }

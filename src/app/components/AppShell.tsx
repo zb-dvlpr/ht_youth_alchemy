@@ -9,6 +9,7 @@ import { Messages } from "@/lib/i18n";
 
 type AppShellProps = {
   messages: Messages;
+  globalHeader: ReactNode;
   children: ReactNode;
 };
 
@@ -29,7 +30,7 @@ const APP_SHELL_VIEW_STATE_KEY = "ya_app_shell_view_state_v1";
 const APP_SHELL_ACTIVE_TOOL_KEY = "ya_app_shell_active_tool_v1";
 const APP_SHELL_COLLAPSED_KEY = "ya_app_shell_collapsed_v1";
 
-export default function AppShell({ messages, children }: AppShellProps) {
+export default function AppShell({ messages, globalHeader, children }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [activeTool, setActiveTool] = useState<ToolId>("youth");
   const [viewStateRestored, setViewStateRestored] = useState(false);
@@ -391,7 +392,8 @@ export default function AppShell({ messages, children }: AppShellProps) {
   };
 
   return (
-    <div className={styles.shell}>
+    <div className={styles.shellFrame}>
+      <div className={styles.shellTopBar}>{globalHeader}</div>
       <aside
         className={`${styles.sidebar} ${
           collapsed ? styles.sidebarCollapsed : ""
@@ -427,7 +429,7 @@ export default function AppShell({ messages, children }: AppShellProps) {
           ))}
         </nav>
       </aside>
-      <section className={styles.shellContent} data-active-tool={activeTool}>
+      <section className={styles.shellWorkspace} data-active-tool={activeTool}>
         {activeTool === "youth" ? children : <ClubChronicle messages={messages} />}
       </section>
       <Modal

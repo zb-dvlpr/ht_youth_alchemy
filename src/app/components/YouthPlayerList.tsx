@@ -1,6 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
@@ -189,6 +196,9 @@ function ageTotalDays(player: YouthPlayer) {
   const daysPerYear = 112;
   return player.Age * daysPerYear + player.AgeDays;
 }
+
+const PROMOTION_AGE_GREEN_DAYS = 17 * 112;
+const PROMOTION_AGE_RED_DAYS = 18 * 112;
 
 export default function YouthPlayerList({
   players,
@@ -504,6 +514,33 @@ export default function YouthPlayerList({
     return sortedPlayers;
   }, [orderedPlayerIds, orderSource, players, sortedPlayers]);
 
+  const promotionAgeMetricStyle = (player: YouthPlayer): CSSProperties | undefined => {
+    if (sortKey !== "promotionAge") return undefined;
+    const totalDays = promotionAgeTotalDays(player);
+    if (totalDays === null) return undefined;
+    let color = "#7a5d12";
+    let background = "rgba(192, 154, 47, 0.24)";
+    let borderColor = "rgba(122, 93, 18, 0.45)";
+    if (totalDays <= PROMOTION_AGE_GREEN_DAYS) {
+      color = "#0f6e2d";
+      background = "rgba(31, 159, 73, 0.22)";
+      borderColor = "rgba(15, 110, 45, 0.45)";
+    } else if (totalDays >= PROMOTION_AGE_RED_DAYS) {
+      color = "#8f1f1f";
+      background = "rgba(197, 48, 48, 0.2)";
+      borderColor = "rgba(143, 31, 31, 0.45)";
+    }
+    return {
+      color,
+      background,
+      border: `1px solid ${borderColor}`,
+      borderRadius: 999,
+      padding: "1px 7px",
+      fontWeight: 700,
+      opacity: 1,
+    };
+  };
+
   useEffect(() => {
     if (!onOrderChange) return;
     if (sortKey === "custom") return;
@@ -757,6 +794,7 @@ export default function YouthPlayerList({
                       className={`${styles.playerSortMetric} ${
                         isPromotableNowMetric ? styles.playerSortMetricUrgent : ""
                       }`}
+                      style={promotionAgeMetricStyle(player)}
                       ref={(node) => {
                         sortValueRefs.current[player.YouthPlayerID] = node;
                       }}

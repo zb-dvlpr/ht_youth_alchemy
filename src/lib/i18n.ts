@@ -384,6 +384,7 @@ export type Messages = {
   playerDetailsPreviousPlayer: string;
   playerDetailsNextPlayer: string;
   refreshPlayerListTooltip: string;
+  refreshAllYouthDataTooltip: string;
   youthLastGlobalRefresh: string;
   refreshStatusFetchingPlayers: string;
   refreshStatusFetchingPlayerDetails: string;

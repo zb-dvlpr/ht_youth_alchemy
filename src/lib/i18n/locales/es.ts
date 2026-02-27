@@ -443,6 +443,7 @@ export const messagesEs: Messages = {
     playerDetailsNextPlayer: "Jugador siguiente",
     refreshPlayerListTooltip:
       "Actualizar la lista de juveniles desde Hattrick.",
+    refreshAllYouthDataTooltip: "Actualizar todos los datos juveniles.",
     youthLastGlobalRefresh: "Última actualización global",
     refreshStatusFetchingPlayers: "Cargando jugadores juveniles…",
     refreshStatusFetchingPlayerDetails: "Cargando detalles de jugadores…",

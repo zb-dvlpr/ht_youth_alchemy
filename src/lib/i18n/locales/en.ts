@@ -414,6 +414,7 @@ export const messagesEn: Messages = {
     playerDetailsPreviousPlayer: "Previous player",
     playerDetailsNextPlayer: "Next player",
     refreshPlayerListTooltip: "Refresh youth player list from Hattrick.",
+    refreshAllYouthDataTooltip: "Refresh all youth data.",
     youthLastGlobalRefresh: "Last global refresh",
     refreshStatusFetchingPlayers: "Fetching youth players…",
     refreshStatusFetchingPlayerDetails: "Fetching player details…",

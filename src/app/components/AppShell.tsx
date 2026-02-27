@@ -504,17 +504,17 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
       {activeTool === "youth" ? (
         <div className={styles.shellContextBar}>
           <div className={styles.youthActionBarActions}>
-            <Tooltip content={messages.refreshPlayerListTooltip}>
+            <Tooltip content={messages.refreshAllYouthDataTooltip}>
               <button
                 type="button"
-                className={styles.chroniclePanelRefresh}
+                className={styles.chronicleUpdatesButton}
                 onClick={() =>
                   window.dispatchEvent(new CustomEvent(YOUTH_REFRESH_REQUEST_EVENT))
                 }
                 disabled={youthRefreshing}
-                aria-label={messages.refreshPlayerListTooltip}
+                aria-label={messages.refreshAllYouthDataTooltip}
               >
-                ↻
+                {messages.clubChronicleRefreshButton}
               </button>
             </Tooltip>
           </div>

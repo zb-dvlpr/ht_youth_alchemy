@@ -436,6 +436,7 @@ export const messagesSv: Messages = {
     playerDetailsPreviousPlayer: "Föregående spelare",
     playerDetailsNextPlayer: "Nästa spelare",
     refreshPlayerListTooltip: "Uppdatera juniorlistan från Hattrick.",
+    refreshAllYouthDataTooltip: "Uppdatera all ungdomsdata.",
     youthLastGlobalRefresh: "Senaste globala uppdatering",
     refreshStatusFetchingPlayers: "Hamtar ungdomsspelare…",
     refreshStatusFetchingPlayerDetails: "Hamtar spelardetaljer…",

@@ -3713,7 +3713,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         getValue: (snapshot: PressAnnouncementSnapshot | undefined) =>
           snapshot?.sendDate
             ? formatChppDateTime(snapshot.sendDate) ?? snapshot.sendDate
-            : null,
+            : "-",
         getSortValue: (snapshot: PressAnnouncementSnapshot | undefined) =>
           snapshot?.sendDate ?? null,
       },
@@ -10211,7 +10211,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 {selectedPressTeam.snapshot.sendDate
                   ? formatChppDateTime(selectedPressTeam.snapshot.sendDate) ??
                     selectedPressTeam.snapshot.sendDate
-                  : messages.unknownShort}
+                  : "-"}
               </p>
               <div className={styles.chroniclePressBody}>
                 {selectedPressTeam.snapshot.body

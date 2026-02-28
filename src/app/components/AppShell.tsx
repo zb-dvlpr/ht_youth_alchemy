@@ -31,6 +31,7 @@ const APP_SHELL_VIEW_STATE_KEY = "ya_app_shell_view_state_v1";
 const APP_SHELL_ACTIVE_TOOL_KEY = "ya_app_shell_active_tool_v1";
 const APP_SHELL_COLLAPSED_KEY = "ya_app_shell_collapsed_v1";
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
+const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
 const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
 const YOUTH_LATEST_UPDATES_OPEN_EVENT = "ya:youth-latest-updates-open";
 
@@ -541,18 +542,34 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
               {messages.clubChronicleUpdatesButton}
             </button>
           </div>
-          {youthRefreshStatus ? (
+          {youthRefreshStatus || youthRefreshing ? (
             <div className={styles.chronicleRefreshStatusWrap} aria-live="polite">
               <span className={styles.chronicleRefreshStatusText}>
-                {youthRefreshStatus}
+                {youthRefreshStatus ?? messages.refreshingLabel}
               </span>
-              <span className={styles.chronicleRefreshProgressTrack} aria-hidden="true">
-                <span
-                  className={styles.chronicleRefreshProgressFill}
-                  style={{
-                    width: `${Math.max(0, Math.min(100, youthRefreshProgressPct))}%`,
-                  }}
-                />
+              <span className={styles.chronicleRefreshProgressRow}>
+                <span className={styles.chronicleRefreshProgressTrack} aria-hidden="true">
+                  <span
+                    className={styles.chronicleRefreshProgressFill}
+                    style={{
+                      width: `${Math.max(0, Math.min(100, youthRefreshProgressPct))}%`,
+                    }}
+                  />
+                </span>
+                {youthRefreshing ? (
+                  <Tooltip content={messages.refreshStopTooltip}>
+                    <button
+                      type="button"
+                      className={`${styles.chronicleUpdatesButton} ${styles.chronicleRefreshStopButton}`}
+                      onClick={() =>
+                        window.dispatchEvent(new CustomEvent(YOUTH_REFRESH_STOP_EVENT))
+                      }
+                      aria-label={messages.refreshStopTooltip}
+                    >
+                      ■
+                    </button>
+                  </Tooltip>
+                ) : null}
               </span>
             </div>
           ) : null}

@@ -449,6 +449,8 @@ export const messagesSv: Messages = {
     playerDetailsNextPlayer: "Nästa spelare",
     refreshPlayerListTooltip: "Uppdatera juniorlistan från Hattrick.",
     refreshAllYouthDataTooltip: "Uppdatera all ungdomsdata.",
+    refreshStopButton: "Stopp",
+    refreshStopTooltip: "Stoppa pågående uppdatering.",
     youthLastGlobalRefresh: "Senaste globala uppdatering",
     refreshStatusFetchingPlayers: "Hamtar ungdomsspelare…",
     refreshStatusFetchingPlayerDetails: "Hamtar spelardetaljer…",
@@ -605,6 +607,8 @@ export const messagesSv: Messages = {
     notificationSecondaryTrainingSet: "Sekundärträning:",
     notificationTrainingCleared: "Träning rensad",
     notificationPlayersRefreshed: "Juniorer uppdaterade",
+    notificationRefreshStoppedManual:
+      "Uppdatering stoppad. Hamtade andringar har ignorerats.",
     notificationDebugNewMarkers: "Debug: slumpade NEW-markeringar tillagda",
     notificationSortBy: "Sortera efter:",
     notificationSortDirection: "Sorteringsriktning:",

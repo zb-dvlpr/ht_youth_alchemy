@@ -456,6 +456,8 @@ export const messagesEs: Messages = {
     refreshPlayerListTooltip:
       "Actualizar la lista de juveniles desde Hattrick.",
     refreshAllYouthDataTooltip: "Actualizar todos los datos juveniles.",
+    refreshStopButton: "Detener",
+    refreshStopTooltip: "Detener la actualizacion en curso.",
     youthLastGlobalRefresh: "Última actualización global",
     refreshStatusFetchingPlayers: "Cargando jugadores juveniles…",
     refreshStatusFetchingPlayerDetails: "Cargando detalles de jugadores…",
@@ -614,6 +616,8 @@ export const messagesEs: Messages = {
     notificationSecondaryTrainingSet: "Entrenamiento secundario:",
     notificationTrainingCleared: "Entrenamiento borrado",
     notificationPlayersRefreshed: "Juveniles actualizados",
+    notificationRefreshStoppedManual:
+      "Actualizacion detenida. Los cambios recuperados se descartaron.",
     notificationDebugNewMarkers: "Debug: marcadores NEW aleatorios aplicados",
     notificationSortBy: "Ordenar por:",
     notificationSortDirection: "Dirección de orden:",

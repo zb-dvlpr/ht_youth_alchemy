@@ -62,6 +62,7 @@ import {
 } from "@/lib/chpp/client";
 
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
+const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
 const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
 const YOUTH_LATEST_UPDATES_OPEN_EVENT = "ya:youth-latest-updates-open";
 const YOUTH_UPDATES_HISTORY_LIMIT = 20;
@@ -711,6 +712,9 @@ export default function Dashboard({
   );
   const staleRefreshAttemptedRef = useRef(false);
   const lastAuthNotificationAtRef = useRef(0);
+  const refreshRunSeqRef = useRef(0);
+  const activeRefreshRunIdRef = useRef<number | null>(null);
+  const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
   const setYouthRefreshStatus = (status: string, progressPct?: number) => {
     setPlayerRefreshStatus(status);
     if (typeof progressPct === "number") {
@@ -3185,6 +3189,32 @@ export default function Dashboard({
     }
   ) => {
     if (playersLoading) return;
+    const refreshRunId = ++refreshRunSeqRef.current;
+    activeRefreshRunIdRef.current = refreshRunId;
+    stoppedRefreshRunIdsRef.current.delete(refreshRunId);
+    const isRunStopped = () =>
+      stoppedRefreshRunIdsRef.current.has(refreshRunId) ||
+      activeRefreshRunIdRef.current !== refreshRunId;
+    const snapshot = {
+      playerList,
+      loadError,
+      loadErrorDetails,
+      selectedId,
+      details,
+      error,
+      serviceErrorModal,
+      matchesState,
+      ratingsResponseState,
+      ratingsCache,
+      ratingsPositions,
+      hiddenSpecialtyByPlayerId,
+      analyzedHiddenSpecialtyMatchIds,
+      analyzedRatingsMatchIds,
+      matrixNewMarkers,
+      youthUpdatesHistory,
+      selectedYouthUpdatesId,
+      lastGlobalRefreshAt,
+    };
     setPlayersLoading(true);
     setYouthRefreshStatus(messages.refreshStatusFetchingPlayers, 8);
     const refreshAll = options?.refreshAll ?? false;
@@ -3200,6 +3230,8 @@ export default function Dashboard({
     const previousRatingsPositionsSnapshot = ratingsPositions;
     let playersUpdated = false;
     let playerIdsChanged = false;
+    let nextSelectedId = selectedId;
+    let nextSelectedDetails: Record<string, unknown> | null = null;
     let nextPlayersSnapshot: YouthPlayer[] = playerList;
     const nextDetailsByPlayerId = new Map<number, YouthPlayerDetails>(
       previousDetailsByIdSnapshot
@@ -3247,16 +3279,11 @@ export default function Dashboard({
       playerIdsChanged =
         previousPlayerIds.size !== nextPlayerIds.size ||
         Array.from(nextPlayerIds).some((id) => !previousPlayerIds.has(id));
-      setPlayerList(list);
-      setLoadError(null);
-      setLoadErrorDetails(null);
       playersUpdated = true;
-      let nextSelectedId = selectedId;
       if (
         selectedId &&
         !list.some((player) => player.YouthPlayerID === selectedId)
       ) {
-        setSelectedId(null);
         nextSelectedId = null;
       }
       if (refreshAll) {
@@ -3279,17 +3306,13 @@ export default function Dashboard({
             (entry) => entry.id === nextSelectedId
           )?.detailRaw;
           if (selectedRaw) {
-            setDetails(selectedRaw);
-            setError(null);
+            nextSelectedDetails = selectedRaw;
           }
         }
       }
-      if (options?.reason === "stale") {
-        addNotification(messages.notificationStaleRefresh);
-      }
-      addNotification(messages.notificationPlayersRefreshed);
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) return;
+      if (isRunStopped()) return;
       const details =
         error instanceof Error && error.message
           ? error.message
@@ -3306,11 +3329,12 @@ export default function Dashboard({
     } finally {
       let matchesOk = true;
       let ratingsOk = true;
-      if (refreshAll) {
+      let nextMatchesState = matchesState;
+      if (refreshAll && !isRunStopped()) {
         setYouthRefreshStatus(messages.refreshStatusFetchingMatches, 60);
         const matchesResult = await fetchMatchesResponse(teamId);
         if (matchesResult.ok && matchesResult.payload) {
-          setMatchesState(matchesResult.payload);
+          nextMatchesState = matchesResult.payload;
         }
         matchesOk = matchesResult.ok;
         ratingsResult = await refreshRatings(teamId, matchesResult.payload ?? null, {
@@ -3318,6 +3342,51 @@ export default function Dashboard({
           playersOverride: nextPlayersSnapshot,
         });
         ratingsOk = ratingsResult.ok;
+      }
+      if (
+        activeRefreshRunIdRef.current === refreshRunId &&
+        isRunStopped()
+      ) {
+        setPlayerList(snapshot.playerList);
+        setLoadError(snapshot.loadError);
+        setLoadErrorDetails(snapshot.loadErrorDetails);
+        setSelectedId(snapshot.selectedId);
+        setDetails(snapshot.details);
+        setError(snapshot.error);
+        setServiceErrorModal(snapshot.serviceErrorModal);
+        setMatchesState(snapshot.matchesState);
+        setRatingsResponseState(snapshot.ratingsResponseState);
+        setRatingsCache(snapshot.ratingsCache);
+        setRatingsPositions(snapshot.ratingsPositions);
+        setHiddenSpecialtyByPlayerId(snapshot.hiddenSpecialtyByPlayerId);
+        setAnalyzedHiddenSpecialtyMatchIds(snapshot.analyzedHiddenSpecialtyMatchIds);
+        setAnalyzedRatingsMatchIds(snapshot.analyzedRatingsMatchIds);
+        setMatrixNewMarkers(snapshot.matrixNewMarkers);
+        setYouthUpdatesHistory(snapshot.youthUpdatesHistory);
+        setSelectedYouthUpdatesId(snapshot.selectedYouthUpdatesId);
+        setLastGlobalRefreshAt(snapshot.lastGlobalRefreshAt);
+        setPlayerRefreshStatus(null);
+        setPlayerRefreshProgressPct(0);
+      }
+      if (activeRefreshRunIdRef.current !== refreshRunId || isRunStopped()) {
+        stoppedRefreshRunIdsRef.current.delete(refreshRunId);
+        if (activeRefreshRunIdRef.current === refreshRunId) {
+          activeRefreshRunIdRef.current = null;
+        }
+        return;
+      }
+      if (playersUpdated) {
+        setPlayerList(nextPlayersSnapshot);
+        setLoadError(null);
+        setLoadErrorDetails(null);
+        setSelectedId(nextSelectedId);
+        if (nextSelectedDetails) {
+          setDetails(nextSelectedDetails);
+          setError(null);
+        }
+      }
+      if (refreshAll) {
+        setMatchesState(nextMatchesState);
       }
       if (playersUpdated && refreshAll) {
         const nextMarkers = buildEmptyMatrixNewMarkers();
@@ -3450,10 +3519,20 @@ export default function Dashboard({
         writeLastRefreshTimestamp(refreshedAt);
         setLastGlobalRefreshAt(refreshedAt);
       }
+      if (playersUpdated) {
+        if (options?.reason === "stale") {
+          addNotification(messages.notificationStaleRefresh);
+        }
+        addNotification(messages.notificationPlayersRefreshed);
+      }
       setPlayerRefreshProgressPct(100);
       setPlayerRefreshStatus(null);
       setPlayerRefreshProgressPct(0);
       setPlayersLoading(false);
+      stoppedRefreshRunIdsRef.current.delete(refreshRunId);
+      if (activeRefreshRunIdRef.current === refreshRunId) {
+        activeRefreshRunIdRef.current = null;
+      }
     }
   };
 
@@ -3469,6 +3548,23 @@ export default function Dashboard({
         handleYouthRefreshRequest
       );
   }, [refreshPlayers]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleYouthRefreshStop = () => {
+      const activeRunId = activeRefreshRunIdRef.current;
+      if (!activeRunId) return;
+      if (stoppedRefreshRunIdsRef.current.has(activeRunId)) return;
+      stoppedRefreshRunIdsRef.current.add(activeRunId);
+      setPlayersLoading(false);
+      setPlayerRefreshStatus(null);
+      setPlayerRefreshProgressPct(0);
+      addNotification(messages.notificationRefreshStoppedManual);
+    };
+    window.addEventListener(YOUTH_REFRESH_STOP_EVENT, handleYouthRefreshStop);
+    return () =>
+      window.removeEventListener(YOUTH_REFRESH_STOP_EVENT, handleYouthRefreshStop);
+  }, [addNotification, messages.notificationRefreshStoppedManual]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

@@ -2133,6 +2133,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const initializedRef = useRef(false);
   const initialFetchRef = useRef(false);
   const staleRefreshRef = useRef(false);
+  const chronicleStopRequestedRef = useRef(false);
   const trackedTeamsRef = useRef<ChronicleTeamData[]>([]);
   const refreshAllDataRef = useRef<((reason: "stale" | "manual") => Promise<void>) | null>(
     null
@@ -6678,6 +6679,35 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setPanelRefreshProgressPct({});
   }, []);
 
+  const clearRefreshingFlags = useCallback(() => {
+    setRefreshingGlobal(false);
+    setRefreshingLeague(false);
+    setRefreshingPress(false);
+    setRefreshingFanclub(false);
+    setRefreshingArena(false);
+    setRefreshingFormationsTactics(false);
+    setRefreshingFinance(false);
+    setRefreshingTransfer(false);
+    setRefreshingTsi(false);
+    setRefreshingWages(false);
+    setRefreshingLastLogin(false);
+    setRefreshingCoach(false);
+  }, []);
+
+  const requestStopRefresh = useCallback(() => {
+    if (!anyRefreshing) return;
+    chronicleStopRequestedRef.current = true;
+    clearRefreshingFlags();
+    clearProgressIndicators();
+    addNotification(messages.notificationRefreshStoppedManual);
+  }, [
+    addNotification,
+    anyRefreshing,
+    clearProgressIndicators,
+    clearRefreshingFlags,
+    messages.notificationRefreshStoppedManual,
+  ]);
+
   const refreshDataForTeams = async (
     reason: "stale" | "manual",
     teamsToRefresh: ChronicleTeamData[],
@@ -6686,6 +6716,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (anyRefreshing) return;
     if (teamsToRefresh.length === 0) return;
     const isGlobalRefresh = options?.isGlobalRefresh ?? true;
+    chronicleStopRequestedRef.current = false;
     setRefreshingGlobal(true);
     try {
       const nextCache = pruneChronicleCache(readChronicleCache());
@@ -6713,6 +6744,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         updatePress: true,
         teams: teamsToRefresh,
       });
+      if (chronicleStopRequestedRef.current) return;
 
       setStage(
         1,
@@ -6720,12 +6752,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         ["league-performance"]
       );
       await refreshLeagueSnapshots(nextCache, teamsToRefresh);
+      if (chronicleStopRequestedRef.current) return;
 
       setStage(2, messages.clubChronicleRefreshStatusLastLogin, ["last-login"]);
       await refreshLastLoginSnapshots(nextCache, teamsToRefresh);
+      if (chronicleStopRequestedRef.current) return;
 
       setStage(3, messages.clubChronicleRefreshStatusArena, ["arena"]);
       await refreshArenaSnapshots(nextCache, teamsToRefresh);
+      if (chronicleStopRequestedRef.current) return;
 
       setStage(
         4,
@@ -6740,6 +6775,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         ),
         refreshCoachSnapshots(nextCache, teamsToRefresh),
       ]);
+      if (chronicleStopRequestedRef.current) return;
 
       setStage(
         5,
@@ -6749,6 +6785,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       await refreshFormationsTacticsSnapshots(nextCache, {
         teams: teamsToRefresh,
         onMatchesArchiveProgress: (completedTeams, totalTeams, teamName) => {
+          if (chronicleStopRequestedRef.current) return;
           const ratio = totalTeams > 0 ? completedTeams / totalTeams : 1;
           const progress = Math.round(75 + ratio * 8);
           setGlobalRefreshProgressPct(progress);
@@ -6765,6 +6802,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           setPanelProgress(["formations-tactics", "likely-training"], progress);
         },
         onMatchDetailsProgress: (completedMatches, totalMatches, teamName) => {
+          if (chronicleStopRequestedRef.current) return;
           const ratio = totalMatches > 0 ? completedMatches / totalMatches : 1;
           const progress = Math.round(83 + ratio * 12);
           setGlobalRefreshProgressPct(progress);
@@ -6781,6 +6819,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           setPanelProgress(["formations-tactics", "likely-training"], progress);
         },
       });
+      if (chronicleStopRequestedRef.current) return;
 
       setStage(6, messages.clubChronicleRefreshStatusFinalizing, [...PANEL_IDS]);
       const baselineForDiff =
@@ -6807,6 +6846,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
       );
       const hasUpdates = hasAnyChanges(nextUpdates);
+      if (chronicleStopRequestedRef.current) return;
       const comparedAt = Date.now();
       if (hasUpdates) {
         pushGlobalUpdateHistory({
@@ -6832,6 +6872,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         writeLastRefresh(refreshCompletedAt);
         setLastGlobalRefreshAt(refreshCompletedAt);
       }
+      if (chronicleStopRequestedRef.current) return;
       if (reason === "stale") {
         addNotification(messages.notificationChronicleStaleRefresh);
       }
@@ -6887,6 +6928,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshLeagueOnly = async () => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
+    chronicleStopRequestedRef.current = false;
     setRefreshingLeague(true);
     try {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusLeague);
@@ -6895,10 +6937,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       const nextCache = pruneChronicleCache(readChronicleCache());
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+      if (chronicleStopRequestedRef.current) return;
       setGlobalRefreshProgressPct(55);
       setPanelProgress(["league-performance"], 55);
       await refreshLeagueSnapshots(nextCache);
+      if (chronicleStopRequestedRef.current) return;
 
+      if (chronicleStopRequestedRef.current) return;
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);
       setGlobalRefreshProgressPct(100);
@@ -6917,6 +6962,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshPressOnly = async () => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
+    chronicleStopRequestedRef.current = false;
     setRefreshingPress(true);
     try {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTeamDetails);
@@ -6925,6 +6971,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       const nextCache = pruneChronicleCache(readChronicleCache());
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: true });
+      if (chronicleStopRequestedRef.current) return;
+      if (chronicleStopRequestedRef.current) return;
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);
       setGlobalRefreshProgressPct(100);
@@ -6943,6 +6991,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshLastLoginOnly = async () => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
+    chronicleStopRequestedRef.current = false;
     setRefreshingLastLogin(true);
     try {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusLastLogin);
@@ -6951,12 +7000,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       const nextCache = pruneChronicleCache(readChronicleCache());
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+      if (chronicleStopRequestedRef.current) return;
       setGlobalRefreshProgressPct(50);
       setPanelProgress(["last-login"], 50);
       await refreshLeagueSnapshots(nextCache);
+      if (chronicleStopRequestedRef.current) return;
       setGlobalRefreshProgressPct(80);
       setPanelProgress(["last-login"], 80);
       await refreshLastLoginSnapshots(nextCache);
+      if (chronicleStopRequestedRef.current) return;
+      if (chronicleStopRequestedRef.current) return;
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);
       setGlobalRefreshProgressPct(100);
@@ -6975,6 +7028,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshCoachOnly = async () => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
+    chronicleStopRequestedRef.current = false;
     setRefreshingCoach(true);
     try {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTransferFinance);
@@ -6983,9 +7037,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       const nextCache = pruneChronicleCache(readChronicleCache());
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+      if (chronicleStopRequestedRef.current) return;
       setGlobalRefreshProgressPct(55);
       setPanelProgress(["coach"], 55);
       await refreshCoachSnapshots(nextCache);
+      if (chronicleStopRequestedRef.current) return;
+      if (chronicleStopRequestedRef.current) return;
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);
       setGlobalRefreshProgressPct(100);
@@ -7004,6 +7061,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshFinanceOnly = async () => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
+    chronicleStopRequestedRef.current = false;
     setRefreshingFinance(true);
     try {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTransferFinance);
@@ -7012,9 +7070,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       const nextCache = pruneChronicleCache(readChronicleCache());
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+      if (chronicleStopRequestedRef.current) return;
       setGlobalRefreshProgressPct(55);
       setPanelProgress(["finance-estimate"], 55);
       await refreshFinanceSnapshots(nextCache);
+      if (chronicleStopRequestedRef.current) return;
+      if (chronicleStopRequestedRef.current) return;
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);
       setGlobalRefreshProgressPct(100);
@@ -7033,6 +7094,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshFanclubOnly = async () => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
+    chronicleStopRequestedRef.current = false;
     setRefreshingFanclub(true);
     try {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTeamDetails);
@@ -7041,6 +7103,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       const nextCache = pruneChronicleCache(readChronicleCache());
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+      if (chronicleStopRequestedRef.current) return;
+      if (chronicleStopRequestedRef.current) return;
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);
       setGlobalRefreshProgressPct(100);
@@ -7059,6 +7123,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshArenaOnly = async () => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
+    chronicleStopRequestedRef.current = false;
     setRefreshingArena(true);
     try {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusArena);
@@ -7067,9 +7132,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       const nextCache = pruneChronicleCache(readChronicleCache());
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+      if (chronicleStopRequestedRef.current) return;
       setGlobalRefreshProgressPct(55);
       setPanelProgress(["arena"], 55);
       await refreshArenaSnapshots(nextCache);
+      if (chronicleStopRequestedRef.current) return;
+      if (chronicleStopRequestedRef.current) return;
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);
       setGlobalRefreshProgressPct(100);
@@ -7088,6 +7156,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshTransferOnly = async () => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
+    chronicleStopRequestedRef.current = false;
     setRefreshingTransfer(true);
     try {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTransferFinance);
@@ -7096,9 +7165,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       const nextCache = pruneChronicleCache(readChronicleCache());
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+      if (chronicleStopRequestedRef.current) return;
       setGlobalRefreshProgressPct(55);
       setPanelProgress(["transfer-market"], 55);
       await refreshTransferSnapshots(nextCache, transferHistoryCount);
+      if (chronicleStopRequestedRef.current) return;
+      if (chronicleStopRequestedRef.current) return;
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);
       setGlobalRefreshProgressPct(100);
@@ -7117,6 +7189,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshTsiOnly = async () => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
+    chronicleStopRequestedRef.current = false;
     setRefreshingTsi(true);
     try {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTransferFinance);
@@ -7125,9 +7198,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       const nextCache = pruneChronicleCache(readChronicleCache());
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+      if (chronicleStopRequestedRef.current) return;
       setGlobalRefreshProgressPct(55);
       setPanelProgress(["tsi"], 55);
       await refreshTsiSnapshots(nextCache);
+      if (chronicleStopRequestedRef.current) return;
+      if (chronicleStopRequestedRef.current) return;
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);
       setGlobalRefreshProgressPct(100);
@@ -7146,6 +7222,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshWagesOnly = async () => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
+    chronicleStopRequestedRef.current = false;
     setRefreshingWages(true);
     try {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTransferFinance);
@@ -7154,9 +7231,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       const nextCache = pruneChronicleCache(readChronicleCache());
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+      if (chronicleStopRequestedRef.current) return;
       setGlobalRefreshProgressPct(55);
       setPanelProgress(["wages"], 55);
       await refreshWagesSnapshots(nextCache);
+      if (chronicleStopRequestedRef.current) return;
+      if (chronicleStopRequestedRef.current) return;
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);
       setGlobalRefreshProgressPct(100);
@@ -7177,6 +7257,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   ) => {
     if (anyRefreshing) return;
     if (trackedTeams.length === 0) return;
+    chronicleStopRequestedRef.current = false;
     setRefreshingFormationsTactics(true);
     try {
       setGlobalRefreshStatus(messages.clubChronicleRefreshStatusFormations);
@@ -7185,11 +7266,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       const nextCache = pruneChronicleCache(readChronicleCache());
       const nextManualTeams = [...manualTeams];
       await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+      if (chronicleStopRequestedRef.current) return;
       setGlobalRefreshProgressPct(55);
       setPanelProgress(["formations-tactics", "likely-training"], 55);
       await refreshFormationsTacticsSnapshots(nextCache, {
         includeFriendlies: includeFriendliesOverride,
         onMatchesArchiveProgress: (completedTeams, totalTeams, teamName) => {
+          if (chronicleStopRequestedRef.current) return;
           const ratio = totalTeams > 0 ? completedTeams / totalTeams : 1;
           const progress = Math.round(58 + ratio * 12);
           setGlobalRefreshProgressPct(progress);
@@ -7206,6 +7289,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           setPanelProgress(["formations-tactics", "likely-training"], progress);
         },
         onMatchDetailsProgress: (completedMatches, totalMatches, teamName) => {
+          if (chronicleStopRequestedRef.current) return;
           const ratio = totalMatches > 0 ? completedMatches / totalMatches : 1;
           const progress = Math.round(70 + ratio * 28);
           setGlobalRefreshProgressPct(progress);
@@ -7222,6 +7306,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           setPanelProgress(["formations-tactics", "likely-training"], progress);
         },
       });
+      if (chronicleStopRequestedRef.current) return;
+      if (chronicleStopRequestedRef.current) return;
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);
       setGlobalRefreshProgressPct(100);
@@ -8854,18 +8940,32 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             {messages.clubChronicleUpdatesButton}
           </button>
         </div>
-        {globalRefreshStatus ? (
+        {globalRefreshStatus || anyRefreshing ? (
           <div className={styles.chronicleRefreshStatusWrap} aria-live="polite">
             <span className={styles.chronicleRefreshStatusText}>
-              {globalRefreshStatus}
+              {globalRefreshStatus ?? messages.refreshingLabel}
             </span>
-            <span className={styles.chronicleRefreshProgressTrack} aria-hidden="true">
-              <span
-                className={styles.chronicleRefreshProgressFill}
-                style={{
-                  width: `${Math.max(0, Math.min(100, globalRefreshProgressPct))}%`,
-                }}
-              />
+            <span className={styles.chronicleRefreshProgressRow}>
+              <span className={styles.chronicleRefreshProgressTrack} aria-hidden="true">
+                <span
+                  className={styles.chronicleRefreshProgressFill}
+                  style={{
+                    width: `${Math.max(0, Math.min(100, globalRefreshProgressPct))}%`,
+                  }}
+                />
+              </span>
+              {anyRefreshing ? (
+                <Tooltip content={messages.refreshStopTooltip}>
+                  <button
+                    type="button"
+                    className={`${styles.chronicleUpdatesButton} ${styles.chronicleRefreshStopButton}`}
+                    onClick={requestStopRefresh}
+                    aria-label={messages.refreshStopTooltip}
+                  >
+                    ■
+                  </button>
+                </Tooltip>
+              ) : null}
             </span>
           </div>
         ) : null}

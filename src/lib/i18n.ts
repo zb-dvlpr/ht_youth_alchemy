@@ -394,6 +394,8 @@ export type Messages = {
   playerDetailsNextPlayer: string;
   refreshPlayerListTooltip: string;
   refreshAllYouthDataTooltip: string;
+  refreshStopButton: string;
+  refreshStopTooltip: string;
   youthLastGlobalRefresh: string;
   refreshStatusFetchingPlayers: string;
   refreshStatusFetchingPlayerDetails: string;
@@ -535,6 +537,7 @@ export type Messages = {
   notificationSecondaryTrainingSet: string;
   notificationTrainingCleared: string;
   notificationPlayersRefreshed: string;
+  notificationRefreshStoppedManual: string;
   notificationDebugNewMarkers: string;
   notificationSortBy: string;
   notificationSortDirection: string;

@@ -460,6 +460,9 @@ const hasAnyMatrixNewMarkers = (markers: MatrixNewMarkers) =>
   hasNonEmptyMarkerRecord(markers.skillsCurrentByPlayerId) ||
   hasNonEmptyMarkerRecord(markers.skillsMaxByPlayerId);
 
+const shouldKeepYouthUpdatesHistoryEntry = (entry: YouthUpdatesGroupedEntry) =>
+  entry.hasChanges;
+
 const buildYouthUpdatesHistoryEntry = (
   markers: MatrixNewMarkers,
   players: YouthPlayer[],
@@ -714,10 +717,17 @@ export default function Dashboard({
       setPlayerRefreshProgressPct(Math.max(0, Math.min(100, progressPct)));
     }
   };
+  const youthUpdatesHistoryWithChanges = useMemo(
+    () => youthUpdatesHistory.filter(shouldKeepYouthUpdatesHistoryEntry),
+    [youthUpdatesHistory]
+  );
   const applyRandomDebugNewMarkers = (mode: "toggle" | "on" | "off" = "toggle") => {
     const removeDebugUpdatesHistoryEntries = () => {
       setYouthUpdatesHistory((prev) =>
-        prev.filter((entry) => entry.source !== "debug")
+        prev.filter(
+          (entry) =>
+            shouldKeepYouthUpdatesHistoryEntry(entry) && entry.source !== "debug"
+        )
       );
       setSelectedYouthUpdatesId((prevSelectedId) => {
         if (!prevSelectedId) return prevSelectedId;
@@ -843,10 +853,13 @@ export default function Dashboard({
       }
     );
     setYouthUpdatesHistory((prev) =>
-      [debugEntry, ...prev.filter((entry) => entry.source !== "debug")].slice(
-        0,
-        YOUTH_UPDATES_HISTORY_LIMIT
-      )
+      [
+        debugEntry,
+        ...prev.filter(
+          (entry) =>
+            shouldKeepYouthUpdatesHistoryEntry(entry) && entry.source !== "debug"
+        ),
+      ].slice(0, YOUTH_UPDATES_HISTORY_LIMIT)
     );
     setSelectedYouthUpdatesId(debugEntry.id);
     addNotification(messages.notificationDebugNewMarkers);
@@ -1458,6 +1471,7 @@ export default function Dashboard({
             } satisfies YouthUpdatesGroupedEntry;
           })
           .filter((entry): entry is YouthUpdatesGroupedEntry => Boolean(entry))
+          .filter(shouldKeepYouthUpdatesHistoryEntry)
           .slice(0, YOUTH_UPDATES_HISTORY_LIMIT);
         setYouthUpdatesHistory(normalized);
         setSelectedYouthUpdatesId(normalized[0]?.id ?? null);
@@ -1490,7 +1504,7 @@ export default function Dashboard({
       analyzedHiddenSpecialtyMatchIds,
       analyzedRatingsMatchIds,
       matrixNewMarkers,
-      youthUpdatesHistory,
+      youthUpdatesHistory: youthUpdatesHistoryWithChanges,
     };
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(payload));
@@ -1515,7 +1529,7 @@ export default function Dashboard({
     analyzedHiddenSpecialtyMatchIds,
     analyzedRatingsMatchIds,
     matrixNewMarkers,
-    youthUpdatesHistory,
+    youthUpdatesHistoryWithChanges,
     storageKey,
     restoredStorageKey,
   ]);
@@ -3421,10 +3435,12 @@ export default function Dashboard({
             currentSkillsByPlayerId,
           }
         );
-        setYouthUpdatesHistory((prev) =>
-          [updatesEntry, ...prev].slice(0, YOUTH_UPDATES_HISTORY_LIMIT)
-        );
-        setSelectedYouthUpdatesId(updatesEntry.id);
+        if (updatesEntry.hasChanges) {
+          setYouthUpdatesHistory((prev) =>
+            [updatesEntry, ...prev].slice(0, YOUTH_UPDATES_HISTORY_LIMIT)
+          );
+          setSelectedYouthUpdatesId(updatesEntry.id);
+        }
       }
       if (
         playersUpdated &&
@@ -3469,21 +3485,21 @@ export default function Dashboard({
   }, []);
 
   useEffect(() => {
-    if (!youthUpdatesHistory.length) {
+    if (!youthUpdatesHistoryWithChanges.length) {
       setSelectedYouthUpdatesId(null);
       return;
     }
     if (!selectedYouthUpdatesId) {
-      setSelectedYouthUpdatesId(youthUpdatesHistory[0]?.id ?? null);
+      setSelectedYouthUpdatesId(youthUpdatesHistoryWithChanges[0]?.id ?? null);
       return;
     }
-    const exists = youthUpdatesHistory.some(
+    const exists = youthUpdatesHistoryWithChanges.some(
       (entry) => entry.id === selectedYouthUpdatesId
     );
     if (!exists) {
-      setSelectedYouthUpdatesId(youthUpdatesHistory[0]?.id ?? null);
+      setSelectedYouthUpdatesId(youthUpdatesHistoryWithChanges[0]?.id ?? null);
     }
-  }, [selectedYouthUpdatesId, youthUpdatesHistory]);
+  }, [selectedYouthUpdatesId, youthUpdatesHistoryWithChanges]);
 
   const handleTeamChange = (nextTeamId: number | null) => {
     if (nextTeamId === selectedYouthTeamId) return;
@@ -3834,10 +3850,12 @@ export default function Dashboard({
   const selectedYouthUpdatesEntry = useMemo(
     () =>
       selectedYouthUpdatesId
-        ? youthUpdatesHistory.find((entry) => entry.id === selectedYouthUpdatesId) ??
+        ? youthUpdatesHistoryWithChanges.find(
+            (entry) => entry.id === selectedYouthUpdatesId
+          ) ??
           null
-        : youthUpdatesHistory[0] ?? null,
-    [selectedYouthUpdatesId, youthUpdatesHistory]
+        : youthUpdatesHistoryWithChanges[0] ?? null,
+    [selectedYouthUpdatesId, youthUpdatesHistoryWithChanges]
   );
 
   const skillLabelByKey = (skillKey: string) => {
@@ -4043,7 +4061,7 @@ export default function Dashboard({
         title={messages.clubChronicleUpdatesTitle}
         className={styles.chronicleUpdatesModal}
         body={
-          youthUpdatesHistory.length > 0 ? (
+          youthUpdatesHistoryWithChanges.length > 0 ? (
             <>
               <div className={styles.chronicleUpdatesMetaBlock}>
                 <p className={styles.chroniclePressMeta}>
@@ -4055,18 +4073,13 @@ export default function Dashboard({
                     {formatDateTime(selectedYouthUpdatesEntry.comparedAt)}
                   </p>
                 ) : null}
-                {selectedYouthUpdatesEntry && !selectedYouthUpdatesEntry.hasChanges ? (
-                  <p className={styles.chroniclePressMeta}>
-                    {messages.clubChronicleUpdatesNoChangesGlobal}
-                  </p>
-                ) : null}
               </div>
               <div className={styles.chronicleUpdatesHistoryWrap}>
                 <div className={styles.chronicleUpdatesHistoryHeader}>
                   {messages.clubChronicleUpdatesHistoryTitle}
                 </div>
                 <div className={styles.chronicleUpdatesHistoryList}>
-                  {youthUpdatesHistory.map((entry) => (
+                  {youthUpdatesHistoryWithChanges.map((entry) => (
                     <button
                       key={entry.id}
                       type="button"

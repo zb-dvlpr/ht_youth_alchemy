@@ -135,6 +135,7 @@ export type Messages = {
   settingsDebugTitle: string;
   settingsDebugDisableScalingLabel: string;
   settingsDebugRandomNewMarkersLabel: string;
+  settingsDebugRandomNewMarkersOffLabel: string;
   clubChronicleLeaguePanelTitle: string;
   clubChronicleLeaguePanelEmpty: string;
   clubChronicleNoTeams: string;

@@ -155,6 +155,7 @@ export const messagesIt: Messages = {
     settingsDebugTitle: "Impostazioni debug",
     settingsDebugDisableScalingLabel: "Mostra aggiornamenti fittizi",
     settingsDebugRandomNewMarkersLabel: "Mostra marker NEW casuali",
+    settingsDebugRandomNewMarkersOffLabel: "Nascondi marker NEW casuali",
     clubChronicleLeaguePanelTitle: "Prestazione in lega",
     clubChronicleLeaguePanelEmpty: "Nessun dato di lega ancora.",
     clubChronicleNoTeams: "Nessuna squadra seguita selezionata.",

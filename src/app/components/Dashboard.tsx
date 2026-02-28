@@ -516,8 +516,12 @@ export default function Dashboard({
       setPlayerRefreshProgressPct(Math.max(0, Math.min(100, progressPct)));
     }
   };
-  const applyRandomDebugNewMarkers = () => {
-    if (debugMatrixNewMarkersActive) {
+  const applyRandomDebugNewMarkers = (mode: "toggle" | "on" | "off" = "toggle") => {
+    if (mode === "off") {
+      setDebugMatrixNewMarkersActive(false);
+      return;
+    }
+    if (mode === "toggle" && debugMatrixNewMarkersActive) {
       setDebugMatrixNewMarkersActive(false);
       return;
     }
@@ -1320,7 +1324,13 @@ export default function Dashboard({
   useEffect(() => {
     if (!isDev) return;
     if (typeof window === "undefined") return;
-    const handler = () => applyRandomDebugNewMarkers();
+    const handler = (event: Event) => {
+      const detail =
+        event instanceof CustomEvent
+          ? (event.detail as { mode?: "toggle" | "on" | "off" } | undefined)
+          : undefined;
+      applyRandomDebugNewMarkers(detail?.mode ?? "toggle");
+    };
     window.addEventListener(YOUTH_NEW_MARKERS_DEBUG_EVENT, handler);
     return () => window.removeEventListener(YOUTH_NEW_MARKERS_DEBUG_EVENT, handler);
   }, [

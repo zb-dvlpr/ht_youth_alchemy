@@ -139,6 +139,7 @@ export const messagesEn: Messages = {
     settingsDebugTitle: "Debug settings",
     settingsDebugDisableScalingLabel: "Show dummy latest updates",
     settingsDebugRandomNewMarkersLabel: "Show random NEW markers",
+    settingsDebugRandomNewMarkersOffLabel: "Hide random NEW markers",
     clubChronicleLeaguePanelTitle: "League performance",
     clubChronicleLeaguePanelEmpty: "No league data yet.",
     clubChronicleNoTeams: "No tracked teams selected.",

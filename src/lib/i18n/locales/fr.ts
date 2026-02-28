@@ -155,6 +155,7 @@ export const messagesFr: Messages = {
     settingsDebugTitle: "Paramètres debug",
     settingsDebugDisableScalingLabel: "Afficher des dernières mises à jour fictives",
     settingsDebugRandomNewMarkersLabel: "Afficher des marqueurs NEW aléatoires",
+    settingsDebugRandomNewMarkersOffLabel: "Masquer les marqueurs NEW aléatoires",
     clubChronicleLeaguePanelTitle: "Performance en ligue",
     clubChronicleLeaguePanelEmpty: "Pas encore de données de ligue.",
     clubChronicleNoTeams: "Aucune équipe suivie sélectionnée.",

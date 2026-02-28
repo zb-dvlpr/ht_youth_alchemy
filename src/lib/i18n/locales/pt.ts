@@ -155,6 +155,7 @@ export const messagesPt: Messages = {
     settingsDebugTitle: "Configurações de depuração",
     settingsDebugDisableScalingLabel: "Mostrar atualizações fictícias",
     settingsDebugRandomNewMarkersLabel: "Mostrar marcadores NEW aleatórios",
+    settingsDebugRandomNewMarkersOffLabel: "Ocultar marcadores NEW aleatórios",
     clubChronicleLeaguePanelTitle: "Desempenho na liga",
     clubChronicleLeaguePanelEmpty: "Ainda não há dados de liga.",
     clubChronicleNoTeams: "Nenhum time acompanhado selecionado.",

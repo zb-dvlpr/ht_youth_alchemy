@@ -153,6 +153,7 @@ export const messagesSv: Messages = {
     settingsDebugTitle: "Debug-inställningar",
     settingsDebugDisableScalingLabel: "Visa fiktiva senaste uppdateringar",
     settingsDebugRandomNewMarkersLabel: "Visa slumpade NEW-markeringar",
+    settingsDebugRandomNewMarkersOffLabel: "Dolj slumpade NEW-markeringar",
     clubChronicleLeaguePanelTitle: "Ligaprestanda",
     clubChronicleLeaguePanelEmpty: "Inga ligadata ännu.",
     clubChronicleNoTeams: "Inga bevakade lag valda.",

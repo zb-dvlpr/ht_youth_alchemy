@@ -4631,6 +4631,21 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return null;
   };
 
+  const parsePositionChangeNode = (value: unknown): string | null => {
+    const numericValue = parseNumberNode(value);
+    if (numericValue === 0) return "-";
+    if (numericValue === 1) return "↑";
+    if (numericValue === 2) return "↓";
+
+    const stringValue = parseStringNode(value);
+    if (!stringValue) return null;
+    const normalized = stringValue.trim().toLowerCase();
+    if (normalized === "up" || normalized === "uparrow") return "↑";
+    if (normalized === "down" || normalized === "downarrow") return "↓";
+    if (normalized === "none" || normalized === "no change") return "-";
+    return stringValue;
+  };
+
   const resolveCoachCountryName = useCallback(
     async (countryId: number | null | undefined) => {
       if (!countryId || !Number.isFinite(countryId) || countryId <= 0) {
@@ -5533,7 +5548,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         userId: parseNumber(match.UserId),
         teamId: parseNumber(match.TeamID) ?? Number(team.teamId),
         position: parseNumber(match.Position),
-        positionChange: parseStringNode(match.PositionChange),
+        positionChange: parsePositionChangeNode(match.PositionChange),
         teamName: parseStringNode(match.TeamName) ?? team.teamName ?? null,
         matches: parseNumber(match.Matches),
         goalsFor: parseNumber(match.GoalsFor),

@@ -339,6 +339,8 @@ export type Messages = {
   clubChronicleTransferHistoryAgeAtTransferColumn: string;
   clubChronicleTransferHistoryPlayerColumn: string;
   clubChronicleTransferHistoryPriceColumn: string;
+  clubChronicleTransferPlayersSold: string;
+  clubChronicleTransferPlayersBought: string;
   clubChronicleTransferTypeSale: string;
   clubChronicleTransferTypeBuy: string;
   clubChronicleTsiPanelTitle: string;

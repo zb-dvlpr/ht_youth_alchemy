@@ -181,6 +181,11 @@ type TransferActivityEntry = {
   priceSek: number | null;
 };
 
+type TransferUpdatePlayer = {
+  playerId: number | null;
+  playerName: string | null;
+};
+
 type TransferActivitySnapshot = {
   transferListedCount: number;
   transferListedPlayers: TransferListedPlayer[];
@@ -4098,6 +4103,49 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     },
     []
   );
+  const serializeTransferUpdatePlayers = useCallback(
+    (players: TransferUpdatePlayer[]): string => {
+      if (players.length === 0) return "-";
+      return players
+        .map((player) => {
+          const rawPlayerId = Number(player.playerId ?? 0);
+          const playerId =
+            Number.isFinite(rawPlayerId) && rawPlayerId > 0 ? rawPlayerId : 0;
+          const label = encodeURIComponent(
+            (player.playerName ?? "").trim() || String(playerId)
+          );
+          return `${playerId}:${label}`;
+        })
+        .join(",");
+    },
+    []
+  );
+  const parseTransferUpdatePlayers = useCallback((value: string) => {
+    if (!value || value === "-") return [] as TransferUpdatePlayer[];
+    return value
+      .split(",")
+      .map((entry) => {
+        const [idRaw, labelRaw] = entry.split(":");
+        const parsedId = Number(idRaw);
+        const playerId = Number.isFinite(parsedId) && parsedId > 0 ? parsedId : null;
+        const playerName = decodeURIComponent(labelRaw ?? "").trim();
+        return {
+          playerId,
+          playerName: playerName || (playerId !== null ? String(playerId) : null),
+        } as TransferUpdatePlayer;
+      })
+      .filter((entry) => entry.playerName !== null);
+  }, []);
+  const getTransferEntryKey = useCallback((entry: TransferActivityEntry) => {
+    if (entry.transferId && Number.isFinite(entry.transferId)) {
+      return `id:${entry.transferId}`;
+    }
+    const playerId = entry.playerId ?? 0;
+    const transferType = entry.transferType ?? "?";
+    const deadline = entry.deadline ?? "";
+    const priceSek = entry.priceSek ?? "";
+    return `fallback:${transferType}:${playerId}:${deadline}:${priceSek}`;
+  }, []);
   const renderUpdateValue = useCallback(
     (
       fieldKey: string,
@@ -4111,6 +4159,32 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
       if (!teamId) {
         return formatted;
+      }
+      if (
+        fieldKey === "transfer.playersSold" ||
+        fieldKey === "transfer.playersBought"
+      ) {
+        const entries = parseTransferUpdatePlayers(formatted);
+        if (entries.length === 0) {
+          return formatted;
+        }
+        return entries.map((entry, index) => (
+          <span key={`${fieldKey}-${entry.playerId ?? entry.playerName ?? index}-${index}`}>
+            {index > 0 ? ", " : ""}
+            {entry.playerId ? (
+              <a
+                className={styles.chroniclePressLink}
+                href={hattrickPlayerUrl(entry.playerId)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {entry.playerName}
+              </a>
+            ) : (
+              entry.playerName
+            )}
+          </span>
+        ));
       }
       if (fieldKey === "wages.injury") {
         const teamWages = chronicleCache.teams[teamId]?.wages;
@@ -4217,7 +4291,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         </a>
       );
     },
-    [chronicleCache.teams, formatUpdatesInjuryValue, messages.unknownShort]
+    [
+      chronicleCache.teams,
+      formatUpdatesInjuryValue,
+      messages.unknownShort,
+      parseTransferUpdatePlayers,
+    ]
   );
   const renderInjuryStatusInline = useCallback(
     (value: number | null | undefined) => {
@@ -4374,6 +4453,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         return messages.clubChronicleTransferColumnActive;
       case "transfer.history":
         return messages.clubChronicleTransferColumnHistory;
+      case "transfer.playersSold":
+        return messages.clubChronicleTransferPlayersSold;
+      case "transfer.playersBought":
+        return messages.clubChronicleTransferPlayersBought;
       case "formationsTactics.formation":
         return messages.clubChronicleFormationsColumnFormation;
       case "formationsTactics.tactic":
@@ -5083,6 +5166,53 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               previous: `${formatValue(previousSales)}/${formatValue(previousBuys)}`,
               current: `${formatValue(currentSales)}/${formatValue(currentBuys)}`,
             });
+
+            const previousTransfers = previous.latestTransfers ?? [];
+            const currentTransfers = current.latestTransfers ?? [];
+            const previousTransferKeys = new Set(
+              previousTransfers.map((entry) => getTransferEntryKey(entry))
+            );
+            const newlyObservedTransfers = currentTransfers.filter(
+              (entry) => !previousTransferKeys.has(getTransferEntryKey(entry))
+            );
+
+            const salesDelta = Math.max(0, currentSales - previousSales);
+            if (salesDelta > 0) {
+              const soldPlayers = newlyObservedTransfers
+                .filter((entry) => entry.transferType === "S")
+                .slice(0, salesDelta)
+                .map((entry) => ({
+                  playerId: entry.playerId,
+                  playerName: entry.resolvedPlayerName ?? entry.playerName,
+                }));
+              if (soldPlayers.length > 0) {
+                transferChanges.push({
+                  fieldKey: "transfer.playersSold",
+                  label: messages.clubChronicleTransferPlayersSold,
+                  previous: "-",
+                  current: serializeTransferUpdatePlayers(soldPlayers),
+                });
+              }
+            }
+
+            const buysDelta = Math.max(0, currentBuys - previousBuys);
+            if (buysDelta > 0) {
+              const boughtPlayers = newlyObservedTransfers
+                .filter((entry) => entry.transferType === "B")
+                .slice(0, buysDelta)
+                .map((entry) => ({
+                  playerId: entry.playerId,
+                  playerName: entry.resolvedPlayerName ?? entry.playerName,
+                }));
+              if (boughtPlayers.length > 0) {
+                transferChanges.push({
+                  fieldKey: "transfer.playersBought",
+                  label: messages.clubChronicleTransferPlayersBought,
+                  previous: "-",
+                  current: serializeTransferUpdatePlayers(boughtPlayers),
+                });
+              }
+            }
           }
           appendTeamChanges(updatesMap, teamId, teamName, transferChanges);
         }

@@ -351,6 +351,8 @@ export const messagesEs: Messages = {
     clubChronicleTransferHistoryAgeAtTransferColumn: "Edad al traspaso",
     clubChronicleTransferHistoryPlayerColumn: "Jugador",
     clubChronicleTransferHistoryPriceColumn: "Precio",
+    clubChronicleTransferPlayersSold: "Jugadores vendidos",
+    clubChronicleTransferPlayersBought: "Jugadores comprados",
     clubChronicleTransferTypeSale: "Venta",
     clubChronicleTransferTypeBuy: "Compra",
     clubChronicleTsiPanelTitle: "TSI",

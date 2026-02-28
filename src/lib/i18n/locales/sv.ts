@@ -345,6 +345,8 @@ export const messagesSv: Messages = {
     clubChronicleTransferHistoryAgeAtTransferColumn: "Ålder vid övergång",
     clubChronicleTransferHistoryPlayerColumn: "Spelare",
     clubChronicleTransferHistoryPriceColumn: "Pris",
+    clubChronicleTransferPlayersSold: "Sålda spelare",
+    clubChronicleTransferPlayersBought: "Köpta spelare",
     clubChronicleTransferTypeSale: "Försäljning",
     clubChronicleTransferTypeBuy: "Köp",
     clubChronicleTsiPanelTitle: "TSI",

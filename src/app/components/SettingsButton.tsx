@@ -25,6 +25,7 @@ import {
   readClubChronicleUpdatesHistoryCount,
   writeClubChronicleUpdatesHistoryCount,
   CLUB_CHRONICLE_SETTINGS_EVENT,
+  CLUB_CHRONICLE_DEBUG_EVENT,
   GENERAL_SETTINGS_EVENT,
   readGeneralEnableScaling,
   writeGeneralEnableScaling,

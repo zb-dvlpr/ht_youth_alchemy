@@ -4080,13 +4080,21 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     ]
   );
   const buildInjurySummary = useCallback(
-    (snapshot: WagesSnapshot | null | undefined) => {
+    (
+      snapshot: WagesSnapshot | null | undefined,
+      playerIdFilter?: Set<number> | null
+    ) => {
       if (!snapshot) return messages.unknownShort;
       const knownPlayers = snapshot.players.filter(
         (player) => normalizeInjuryLevel(player.injuryLevel) !== null
       );
       if (knownPlayers.length === 0) return messages.unknownShort;
-      const injuredOrBruisedPlayers = knownPlayers
+      const scopedPlayers =
+        playerIdFilter && playerIdFilter.size > 0
+          ? knownPlayers.filter((player) => playerIdFilter.has(player.playerId))
+          : knownPlayers;
+      if (scopedPlayers.length === 0) return messages.unknownShort;
+      const injuredOrBruisedPlayers = scopedPlayers
         .filter((player) => {
           const injuryLevel = normalizeInjuryLevel(player.injuryLevel);
           return injuryLevel !== null && injuryLevel >= 0;
@@ -5083,9 +5091,40 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               current: formatChppCurrencyFromSek(current.top11WagesSek),
             });
           }
-          const previousInjury = buildInjurySummary(previous);
-          const currentInjury = buildInjurySummary(current);
-          if (previousInjury !== currentInjury) {
+          const previousInjuryByPlayerId = new Map<number, number | null>(
+            (previous?.players ?? []).map((player) => [
+              player.playerId,
+              normalizeInjuryLevel(player.injuryLevel),
+            ])
+          );
+          const currentInjuryByPlayerId = new Map<number, number | null>(
+            (current?.players ?? []).map((player) => [
+              player.playerId,
+              normalizeInjuryLevel(player.injuryLevel),
+            ])
+          );
+          const changedInjuryPlayerIds = new Set<number>();
+          const mergedInjuryPlayerIds = new Set<number>([
+            ...previousInjuryByPlayerId.keys(),
+            ...currentInjuryByPlayerId.keys(),
+          ]);
+          mergedInjuryPlayerIds.forEach((playerId) => {
+            if (
+              previousInjuryByPlayerId.get(playerId) !==
+              currentInjuryByPlayerId.get(playerId)
+            ) {
+              changedInjuryPlayerIds.add(playerId);
+            }
+          });
+          if (changedInjuryPlayerIds.size > 0) {
+            const previousInjury = buildInjurySummary(
+              previous,
+              changedInjuryPlayerIds
+            );
+            const currentInjury = buildInjurySummary(
+              current,
+              changedInjuryPlayerIds
+            );
             wageChanges.push({
               fieldKey: "wages.injury",
               label: messages.clubChronicleWagesInjuryColumn,

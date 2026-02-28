@@ -1382,13 +1382,59 @@ const writeChronicleCache = (payload: ChronicleCache) => {
   }
 };
 
+const stripLikelyTrainingConfidenceFromUpdates = (
+  updates: ChronicleUpdates
+): { updates: ChronicleUpdates; didChange: boolean } => {
+  let didChange = false;
+  const nextTeams = Object.fromEntries(
+    Object.entries(updates.teams).flatMap(([teamId, teamUpdate]) => {
+      const nextChanges = teamUpdate.changes.filter(
+        (change) => change.fieldKey !== "likelyTraining.confidence"
+      );
+      if (nextChanges.length === 0) {
+        if (teamUpdate.changes.length > 0) {
+          didChange = true;
+        }
+        return [];
+      }
+      if (nextChanges.length !== teamUpdate.changes.length) {
+        didChange = true;
+      }
+      return [
+        [
+          teamId,
+          nextChanges.length === teamUpdate.changes.length
+            ? teamUpdate
+            : { ...teamUpdate, changes: nextChanges },
+        ],
+      ];
+    })
+  ) as ChronicleUpdates["teams"];
+  if (!didChange) {
+    return { updates, didChange: false };
+  }
+  return {
+    updates: {
+      ...updates,
+      teams: nextTeams,
+    },
+    didChange: true,
+  };
+};
+
 const readChronicleUpdates = (): ChronicleUpdates | null => {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(UPDATES_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as ChronicleUpdates;
-    return parsed && parsed.teams ? parsed : null;
+    if (!parsed || !parsed.teams) return null;
+    const { updates, didChange } =
+      stripLikelyTrainingConfidenceFromUpdates(parsed);
+    if (didChange) {
+      writeChronicleUpdates(updates);
+    }
+    return updates;
   } catch {
     return null;
   }
@@ -1540,12 +1586,33 @@ const readGlobalUpdatesHistory = (
     if (!raw) return [];
     const parsed = JSON.parse(raw) as ChronicleGlobalUpdateEntry[];
     if (!Array.isArray(parsed)) return [];
-    const filtered = parsed.filter((entry) => entry?.hasChanges && !!entry?.updates);
-    const migrated = filtered.map((entry) =>
-      migrateInjuryHistoryEntry(entry, healthyLabel)
-    );
-    const hadMigration = migrated.some((entry, index) => entry !== filtered[index]);
-    if (hadMigration) {
+    let didChange = false;
+    const migrated = parsed
+      .filter((entry) => entry?.hasChanges && !!entry?.updates)
+      .map((entry) => {
+        const nextEntry = migrateInjuryHistoryEntry(entry, healthyLabel);
+        if (nextEntry !== entry) {
+          didChange = true;
+        }
+        if (!nextEntry.updates) return nextEntry;
+        const { updates, didChange: stripped } =
+          stripLikelyTrainingConfidenceFromUpdates(nextEntry.updates);
+        if (!stripped) return nextEntry;
+        didChange = true;
+        const hasChanges = Object.keys(updates.teams).length > 0;
+        return {
+          ...nextEntry,
+          hasChanges,
+          updates,
+        };
+      })
+      .filter(
+        (entry) =>
+          entry.hasChanges &&
+          !!entry.updates &&
+          Object.keys(entry.updates.teams).length > 0
+      );
+    if (didChange) {
       writeGlobalUpdatesHistory(migrated);
     }
     return migrated;
@@ -2305,12 +2372,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 label: messages.clubChronicleLikelyTrainingColumnRegimen,
                 previous: messages.clubChronicleLikelyTrainingPlaymaking,
                 current: messages.clubChronicleLikelyTrainingPassing,
-              },
-              {
-                fieldKey: "likelyTraining.confidence",
-                label: messages.clubChronicleLikelyTrainingConfidenceLabel,
-                previous: "78%",
-                current: "92%",
               },
               {
                 fieldKey: "tsi.total",
@@ -4318,8 +4379,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         return messages.clubChronicleFormationsColumnTactic;
       case "likelyTraining.regimen":
         return messages.clubChronicleLikelyTrainingColumnRegimen;
-      case "likelyTraining.confidence":
-        return messages.clubChronicleLikelyTrainingConfidenceLabel;
       case "lastLogin.latest":
         return messages.clubChronicleLastLoginColumnLatest;
       case "coach.name":
@@ -5060,23 +5119,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               label: messages.clubChronicleLikelyTrainingColumnRegimen,
               previous: previousRegimenLabel,
               current: currentRegimenLabel,
-            });
-          }
-          if (
-            previous.likelyTrainingConfidencePct !==
-            current.likelyTrainingConfidencePct
-          ) {
-            likelyTrainingChanges.push({
-              fieldKey: "likelyTraining.confidence",
-              label: messages.clubChronicleLikelyTrainingConfidenceLabel,
-              previous:
-                previous.likelyTrainingConfidencePct !== null
-                  ? `${formatValue(previous.likelyTrainingConfidencePct)}%`
-                  : messages.unknownShort,
-              current:
-                current.likelyTrainingConfidencePct !== null
-                  ? `${formatValue(current.likelyTrainingConfidencePct)}%`
-                  : messages.unknownShort,
             });
           }
           appendTeamChanges(updatesMap, teamId, teamName, likelyTrainingChanges);
@@ -7225,29 +7267,33 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setLastGlobalComparedAt(comparedAt);
     setLastGlobalHadChanges(hasUpdates);
     if (hasUpdates) {
-      setUpdates(nextUpdates);
+      setUpdates(stripLikelyTrainingConfidenceFromUpdates(nextUpdates).updates);
       return;
     }
 
     const latestWithChanges = globalUpdatesHistory.find((entry) => entry.updates);
     if (latestWithChanges?.updates) {
-      setUpdates(latestWithChanges.updates);
+      setUpdates(
+        stripLikelyTrainingConfidenceFromUpdates(latestWithChanges.updates).updates
+      );
       return;
     }
 
-    setUpdates(nextUpdates);
+    setUpdates(stripLikelyTrainingConfidenceFromUpdates(nextUpdates).updates);
   }, [chronicleCache, globalBaselineCache, globalUpdatesHistory]);
 
   const handleLoadHistoryEntry = (entry: ChronicleGlobalUpdateEntry) => {
     if (!entry.updates) return;
     setLastGlobalComparedAt(entry.comparedAt);
     setLastGlobalHadChanges(entry.hasChanges);
-    setUpdates(entry.updates);
+    setUpdates(stripLikelyTrainingConfidenceFromUpdates(entry.updates).updates);
   };
 
   const updatesByTeam = updates?.teams ?? {};
   const hasAnyTeamUpdates = trackedTeams.some((team) => {
-    const changes = updatesByTeam[team.teamId]?.changes ?? [];
+    const changes = (updatesByTeam[team.teamId]?.changes ?? []).filter(
+      (change) => change.fieldKey !== "likelyTraining.confidence"
+    );
     return changes.length > 0;
   });
   const latestHistoryWithChanges = globalUpdatesHistory.find((entry) => entry.updates);
@@ -9750,7 +9796,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 <div className={styles.chronicleUpdatesList}>
                   {trackedTeams.map((team) => {
                     const teamUpdates = updatesByTeam[team.teamId];
-                    const changes = teamUpdates?.changes ?? [];
+                    const changes = (teamUpdates?.changes ?? []).filter(
+                      (change) => change.fieldKey !== "likelyTraining.confidence"
+                    );
                     if (changes.length === 0) return null;
                     const teamLeagueLevelUnitId =
                       chronicleCache.teams[team.teamId]?.leagueLevelUnitId ?? null;

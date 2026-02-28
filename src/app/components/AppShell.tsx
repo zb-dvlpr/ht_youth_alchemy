@@ -569,6 +569,7 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
       <Modal
         open={showChangelog}
         title={messages.changelogTitle}
+        movable={false}
         body={
           <div className={styles.changelogBody}>
             <div className={styles.changelogTable}>

@@ -3984,6 +3984,7 @@ export default function Dashboard({
       <Modal
         open={showChangelog}
         title={messages.changelogTitle}
+        movable={false}
         body={
           <div className={styles.changelogBody}>
             <div className={styles.changelogTable}>

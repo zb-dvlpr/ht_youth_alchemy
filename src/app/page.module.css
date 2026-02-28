@@ -3746,6 +3746,16 @@ html[data-theme="dark"] .spinner {
   margin-bottom: 16px;
 }
 
+.confirmTitleMovable {
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.confirmTitleDragging {
+  cursor: grabbing;
+}
+
 .confirmBody {
   font-size: 13px;
   color: #4d4236;

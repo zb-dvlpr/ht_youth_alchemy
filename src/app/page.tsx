@@ -254,33 +254,36 @@ export default async function Home() {
       <ViewportScaler />
       <NotificationsProvider>
         <div className={styles.scaleContainer} data-scale-container="true">
-          <header className={styles.topBar}>
-            <div className={styles.brandRow}>
-              <span className={styles.brandTitle}>{messages.brandTitle}</span>
-              <span className={styles.version}>v{pkg.version}</span>
-            </div>
-            <NotificationCenter locale={locale} messages={messages} />
-            <div className={styles.topBarControls}>
-              <LanguageSwitcher
-                locale={locale}
-                label={messages.languageLabel}
-                switchingLabel={messages.languageSwitching}
-              />
-              <HelpToggleButton messages={messages} />
-              <ThemeToggle messages={messages} />
-              <FeedbackButton messages={messages} />
-              <SettingsButton messages={messages} />
-              {isConnected ? (
-                <ConnectedStatus messages={messages} />
-              ) : (
-                <a className={styles.connectButton} href="/api/chpp/oauth/start">
-                  {messages.connectLabel}
-                </a>
-              )}
-            </div>
-          </header>
-
-          <AppShell messages={messages}>
+          <AppShell
+            messages={messages}
+            globalHeader={
+              <header className={styles.topBar}>
+                <div className={styles.brandRow}>
+                  <span className={styles.brandTitle}>{messages.brandTitle}</span>
+                  <span className={styles.version}>v{pkg.version}</span>
+                </div>
+                <NotificationCenter locale={locale} messages={messages} />
+                <div className={styles.topBarControls}>
+                  <LanguageSwitcher
+                    locale={locale}
+                    label={messages.languageLabel}
+                    switchingLabel={messages.languageSwitching}
+                  />
+                  <HelpToggleButton messages={messages} />
+                  <ThemeToggle messages={messages} />
+                  <FeedbackButton messages={messages} />
+                  <SettingsButton messages={messages} />
+                  {isConnected ? (
+                    <ConnectedStatus messages={messages} />
+                  ) : (
+                    <a className={styles.connectButton} href="/api/chpp/oauth/start">
+                      {messages.connectLabel}
+                    </a>
+                  )}
+                </div>
+              </header>
+            }
+          >
             <Dashboard
               players={players}
               matchesResponse={matchesResponse}

@@ -16,38 +16,11 @@ html[data-app-scaling="off"] .scaleContainer {
   padding-top: 16px;
 }
 
-html[data-app-scaling="off"] .topBar {
-  position: sticky;
-  top: 0;
-  z-index: 35;
-}
-
-html[data-app-scaling="off"] .topBar::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -16px;
-  height: 16px;
-  background: var(--app-background);
-}
-
 .scaleContainer {
   transform: scale(var(--ui-scale));
   transform-origin: top left;
   width: calc(100% * var(--ui-scale-inv));
   min-height: calc(100% * var(--ui-scale-inv));
-}
-
-.topBar {
-  display: grid;
-  align-items: center;
-  grid-template-columns: auto 1fr auto;
-  margin-bottom: 12px;
-  padding: 8px 14px;
-  background: #f1e9dc;
-  border-radius: 14px;
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
 }
 
 .brandRow {
@@ -71,22 +44,62 @@ html[data-app-scaling="off"] .topBar::before {
   gap: 12px;
 }
 
-.shell {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
+.shellFrame {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
+  column-gap: 16px;
+  row-gap: 12px;
+  align-items: start;
 }
 
-.shellContent {
+.shellTopBar {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  position: sticky;
+  top: 0;
+  z-index: 35;
+}
+
+.shellContextBar {
+  grid-column: 2;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  position: sticky;
+  top: var(--shell-topbar-height, 56px);
+  z-index: 30;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #f4efe6;
+  box-shadow: 0 2px 12px rgba(49, 38, 24, 0.08);
+}
+
+.topBar {
+  display: grid;
+  align-items: center;
+  grid-template-columns: auto 1fr auto;
+  padding: 8px 14px;
+  background: #f1e9dc;
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.shellWorkspace {
+  grid-column: 2;
+  grid-row: 3;
   flex: 1;
   min-width: 0;
 }
 
-html[data-app-scaling="off"] .shellContent[data-active-tool="youth"] {
+html[data-app-scaling="off"] .shellWorkspace[data-active-tool="youth"] {
   overflow-x: auto;
 }
 
-html[data-app-scaling="off"] .shellContent[data-active-tool="youth"] .dashboardGrid {
+html[data-app-scaling="off"] .shellWorkspace[data-active-tool="youth"] .dashboardGrid {
   min-width: 1360px;
   grid-template-columns:
     minmax(240px, 0.75fr)
@@ -99,6 +112,11 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 }
 
 .sidebar {
+  grid-column: 1;
+  grid-row: 2 / 4;
+  position: sticky;
+  top: calc(var(--shell-topbar-height, 56px) + 18px);
+  align-self: start;
   width: 220px;
   background: #f7f1e3;
   border: 1px solid #d8cbb6;
@@ -108,6 +126,8 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   flex-direction: column;
   gap: 8px;
   min-height: 120px;
+  max-height: calc(100vh - 88px);
+  overflow: auto;
 }
 
 .sidebarCollapsed {
@@ -566,6 +586,12 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   gap: 20px;
 }
 
+.youthActionBarActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .columnStack {
   display: grid;
   gap: 20px;
@@ -854,6 +880,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   display: flex;
   align-items: stretch;
   justify-content: space-between;
+  position: relative;
   gap: 0;
   border: 1px solid rgba(100, 85, 70, 0.25);
   border-radius: 6px;
@@ -867,10 +894,34 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .skillsMatrixHalf {
   flex: 1 1 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0px 0;
-  min-height: 18px;
+  position: relative;
+  gap: 2px;
+  padding: 2px 0;
+  min-height: 22px;
+}
+
+.matrixSplitNewTag {
+  position: absolute;
+  top: 0;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 800;
+  color: #7c2419;
+  pointer-events: auto;
+  transform: translateY(-65%);
+}
+
+.matrixSplitNewTagLeft {
+  left: 0;
+  transform: translate(-42%, -65%);
+}
+
+.matrixSplitNewTagRight {
+  right: 0;
+  transform: translate(42%, -65%);
 }
 
 .skillsMatrixHalfLeft {
@@ -910,6 +961,13 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 
 .matrixTable td.matrixPlayer {
   text-align: left;
+}
+
+.matrixPlayerContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
 }
 
 .matrixPlayerButton {
@@ -968,6 +1026,44 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .matrixSortIcon {
   font-size: 10px;
   opacity: 0.6;
+}
+
+.matrixValueWithFlag {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.matrixCellHasNew {
+  position: relative;
+}
+
+.matrixCellNewTag {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 9px;
+  line-height: 1;
+  font-weight: 800;
+  color: #7c2419;
+  pointer-events: auto;
+}
+
+.matrixNewPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: #e6452f;
+  color: #fff8ef;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
 }
 
 .card {
@@ -1039,17 +1135,12 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   justify-content: flex-start;
   gap: 12px;
   position: sticky;
-  top: 8px;
+  top: 74px;
   z-index: 30;
   padding: 8px 10px;
   border-radius: 12px;
-  background: rgba(244, 239, 230, 0.96);
+  background: #f4efe6;
   box-shadow: 0 2px 12px rgba(49, 38, 24, 0.08);
-  backdrop-filter: blur(2px);
-}
-
-html[data-app-scaling="off"] .chronicleHeader {
-  top: 74px;
 }
 
 .chronicleHeaderTitle {
@@ -1086,6 +1177,25 @@ html[data-app-scaling="off"] .chronicleHeader {
   border-radius: 999px;
   background: #e7dcc9;
   overflow: hidden;
+}
+
+.chronicleRefreshProgressRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chronicleRefreshStopButton {
+  width: 24px;
+  min-width: 24px;
+  height: 24px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 800;
 }
 
 .chronicleRefreshProgressFill {
@@ -2282,6 +2392,11 @@ html[data-theme="dark"] .chronicleHeader {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
 }
 
+html[data-theme="dark"] .shellContextBar {
+  background: rgba(35, 30, 24, 0.92);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
 html[data-theme="dark"] .chronicleUpdatesButton {
   background: #3d7c52;
 }
@@ -2586,6 +2701,16 @@ html[data-theme="dark"] .matrixPlayerButton:hover {
 
 html[data-theme="dark"] .matrixPlayerButton:focus-visible {
   outline-color: rgba(243, 237, 228, 0.4);
+}
+
+html[data-theme="dark"] .matrixNewPill {
+  background: #ff6b5c;
+  color: #2a1a14;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+html[data-theme="dark"] .matrixCellNewTag {
+  color: #ff8f7f;
 }
 
 html[data-theme="dark"] .matrixTable td {
@@ -3440,6 +3565,12 @@ html[data-theme="dark"] .spinner {
   text-align: right;
 }
 
+.skillValuePartWithFlag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .matchList {
   list-style: none;
   padding: 0;
@@ -3632,6 +3763,16 @@ html[data-theme="dark"] .spinner {
   font-size: 15px;
   font-weight: 600;
   margin-bottom: 16px;
+}
+
+.confirmTitleMovable {
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.confirmTitleDragging {
+  cursor: grabbing;
 }
 
 .confirmBody {

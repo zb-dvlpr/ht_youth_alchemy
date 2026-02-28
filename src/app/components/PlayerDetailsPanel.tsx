@@ -67,6 +67,10 @@ type PlayerDetailsPanelProps = {
   ratingsMatrixSelectedName: string | null;
   ratingsMatrixSpecialtyByName: Record<string, number | undefined>;
   ratingsMatrixHiddenSpecialtyByName?: Record<string, boolean>;
+  matrixNewPlayerIds?: number[];
+  matrixNewRatingsByPlayerId?: Record<number, number[]>;
+  matrixNewSkillsCurrentByPlayerId?: Record<number, string[]>;
+  matrixNewSkillsMaxByPlayerId?: Record<number, string[]>;
   hiddenSpecialtyByPlayerId?: Record<number, number>;
   onSelectRatingsPlayer: (playerName: string) => void;
   orderedPlayerIds?: number[] | null;
@@ -199,6 +203,10 @@ export default function PlayerDetailsPanel({
   ratingsMatrixSelectedName,
   ratingsMatrixSpecialtyByName,
   ratingsMatrixHiddenSpecialtyByName,
+  matrixNewPlayerIds = [],
+  matrixNewRatingsByPlayerId = {},
+  matrixNewSkillsCurrentByPlayerId = {},
+  matrixNewSkillsMaxByPlayerId = {},
   hiddenSpecialtyByPlayerId = {},
   onSelectRatingsPlayer,
   orderedPlayerIds,
@@ -232,6 +240,10 @@ export default function PlayerDetailsPanel({
     players.forEach((player) => map.set(player.YouthPlayerID, player));
     return map;
   }, [players]);
+  const matrixNewPlayerIdSet = useMemo(
+    () => new Set(matrixNewPlayerIds),
+    [matrixNewPlayerIds]
+  );
 
   useEffect(() => {
     if (selectedPlayer?.YouthPlayerID) {
@@ -359,6 +371,8 @@ export default function PlayerDetailsPanel({
 
   const playerId =
     detailsData?.YouthPlayerID ?? selectedPlayer?.YouthPlayerID ?? null;
+  const selectedPlayerHasNewMarker =
+    playerId !== null && matrixNewPlayerIdSet.has(playerId);
   const hiddenSpecialty =
     playerId && Number(hiddenSpecialtyByPlayerId[playerId] ?? 0) > 0
       ? Number(hiddenSpecialtyByPlayerId[playerId])
@@ -455,6 +469,11 @@ export default function PlayerDetailsPanel({
               <h4 className={styles.profileName}>
                 {detailsData.FirstName} {detailsData.LastName}
               </h4>
+              {selectedPlayerHasNewMarker ? (
+                <span className={styles.matrixNewPill}>
+                  {messages.matrixNewPillLabel}
+                </span>
+              ) : null}
               {lastUpdated ? (
                 <span className={styles.profileUpdated}>
                   {messages.lastUpdated}: {formatDateTime(lastUpdated)}
@@ -606,6 +625,16 @@ export default function PlayerDetailsPanel({
               const skillNode = detailsData.PlayerSkills?.[row.key];
               const current = getSkillLevel(skillNode);
               const max = getSkillMax(detailsData.PlayerSkills?.[row.maxKey]);
+              const isNewCurrent =
+                playerId !== null
+                  ? (matrixNewSkillsCurrentByPlayerId[playerId]?.includes(row.key) ??
+                    false)
+                  : false;
+              const isNewMax =
+                playerId !== null
+                  ? (matrixNewSkillsMaxByPlayerId[playerId]?.includes(row.key) ??
+                    false)
+                  : false;
               const hasCurrent = current !== null;
               const hasMax = max !== null;
               const isMaxed = getSkillMaxReached(skillNode);
@@ -659,7 +688,23 @@ export default function PlayerDetailsPanel({
                     </div>
                   )}
                   <div className={styles.skillValue}>
-                    {currentText}/{maxText}
+                    <span className={styles.skillValuePartWithFlag}>
+                      <span>{currentText}</span>
+                      {isNewCurrent ? (
+                        <span className={styles.matrixNewPill}>
+                          {messages.matrixNewPillLabel}
+                        </span>
+                      ) : null}
+                    </span>
+                    /
+                    <span className={styles.skillValuePartWithFlag}>
+                      <span>{maxText}</span>
+                      {isNewMax ? (
+                        <span className={styles.matrixNewPill}>
+                          {messages.matrixNewPillLabel}
+                        </span>
+                      ) : null}
+                    </span>
                   </div>
                 </div>
               );
@@ -733,6 +778,7 @@ export default function PlayerDetailsPanel({
                 player?.PlayerSkills
               );
               const isSelected = ratingsMatrixSelectedName === row.name;
+              const isNewPlayer = row.id ? matrixNewPlayerIdSet.has(row.id) : false;
 
               return (
                 <tr
@@ -743,14 +789,21 @@ export default function PlayerDetailsPanel({
                 >
                   <td className={styles.matrixIndex}>{index + 1}</td>
                   <td className={styles.matrixPlayer}>
-                    <button
-                      type="button"
-                      className={styles.matrixPlayerButton}
-                      onClick={() => handleMatrixPlayerPick(row.name)}
-                      disabled={!onSelectRatingsPlayer}
-                    >
-                      {row.name}
-                    </button>
+                    <div className={styles.matrixPlayerContent}>
+                      <button
+                        type="button"
+                        className={styles.matrixPlayerButton}
+                        onClick={() => handleMatrixPlayerPick(row.name)}
+                        disabled={!onSelectRatingsPlayer}
+                      >
+                        {row.name}
+                      </button>
+                      {isNewPlayer ? (
+                        <span className={styles.matrixNewPill}>
+                          {messages.matrixNewPillLabel}
+                        </span>
+                      ) : null}
+                    </div>
                   </td>
                   <td className={styles.matrixSpecialty}>
                     {(() => {
@@ -788,6 +841,17 @@ export default function PlayerDetailsPanel({
                     const current = getSkillLevel(skills?.[skill.key]);
                     const max = getSkillMax(skills?.[skill.maxKey]);
                     const isMaxed = getSkillMaxReached(skills?.[skill.key]);
+                    const isNewCurrent =
+                      row.id !== null
+                        ? (matrixNewSkillsCurrentByPlayerId[row.id]?.includes(
+                            skill.key
+                          ) ?? false)
+                        : false;
+                    const isNewMax =
+                      row.id !== null
+                        ? (matrixNewSkillsMaxByPlayerId[row.id]?.includes(skill.key) ??
+                          false)
+                        : false;
                     const currentText =
                       current === null ? messages.unknownShort : String(current);
                     const maxText = max === null ? messages.unknownShort : String(max);
@@ -799,6 +863,24 @@ export default function PlayerDetailsPanel({
                           isMaxed ? styles.skillsMatrixMaxed : ""
                         }`}
                       >
+                        {isNewCurrent ? (
+                          <Tooltip content={messages.matrixNewNTooltip}>
+                            <span
+                              className={`${styles.matrixSplitNewTag} ${styles.matrixSplitNewTagLeft}`}
+                            >
+                              N
+                            </span>
+                          </Tooltip>
+                        ) : null}
+                        {isNewMax ? (
+                          <Tooltip content={messages.matrixNewNTooltip}>
+                            <span
+                              className={`${styles.matrixSplitNewTag} ${styles.matrixSplitNewTagRight}`}
+                            >
+                              N
+                            </span>
+                          </Tooltip>
+                        ) : null}
                         <span
                           className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfLeft}`}
                           style={
@@ -807,14 +889,14 @@ export default function PlayerDetailsPanel({
                               : undefined
                           }
                         >
-                          {currentText}
+                          <span>{currentText}</span>
                         </span>
                         <span className={styles.skillsMatrixDivider}>/</span>
                         <span
                           className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfRight}`}
                           style={maxColor ? { backgroundColor: maxColor } : undefined}
                         >
-                          {maxText}
+                          <span>{maxText}</span>
                         </span>
                       </div>
                     );
@@ -884,6 +966,8 @@ export default function PlayerDetailsPanel({
           messages={messages}
           specialtyByName={ratingsMatrixSpecialtyByName}
           hiddenSpecialtyByName={ratingsMatrixHiddenSpecialtyByName}
+          newPlayerIds={matrixNewPlayerIds}
+          newRatingsByPlayerId={matrixNewRatingsByPlayerId}
           selectedName={ratingsMatrixSelectedName}
           onSelectPlayer={handleMatrixPlayerPick}
           orderedPlayerIds={orderedPlayerIds}

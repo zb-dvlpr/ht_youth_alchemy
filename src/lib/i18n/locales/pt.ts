@@ -86,6 +86,10 @@ export const messagesPt: Messages = {
       "A Cronica do clube adiciona um painel de ultimos logins com dados do managercompendium, rastreamento do ultimo login e historico detalhado de acessos.",
     changelog_2_21_0:
       "A Cronica do clube adiciona um painel de treinador com detalhes do tecnico por time acompanhado.",
+    changelog_2_22_0:
+      "As matrizes juvenis agora destacam skills/avaliacoes novas ou alteradas e novos jogadores com pílulas NEW.",
+    changelog_2_23_0:
+      "Otimizacao juvenil adiciona um botao de Ultimas atualizacoes com historico datado de eventos NEW.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -152,6 +156,8 @@ export const messagesPt: Messages = {
     settingsDebug: "Depuração",
     settingsDebugTitle: "Configurações de depuração",
     settingsDebugDisableScalingLabel: "Mostrar atualizações fictícias",
+    settingsDebugRandomNewMarkersLabel: "Mostrar marcadores NEW aleatórios",
+    settingsDebugRandomNewMarkersOffLabel: "Ocultar marcadores NEW aleatórios",
     clubChronicleLeaguePanelTitle: "Desempenho na liga",
     clubChronicleLeaguePanelEmpty: "Ainda não há dados de liga.",
     clubChronicleNoTeams: "Nenhum time acompanhado selecionado.",
@@ -437,12 +443,21 @@ export const messagesPt: Messages = {
     detailsTabLabel: "Detalhes do jogador",
     skillsMatrixTabLabel: "Matriz de habilidades",
     ratingsMatrixTabLabel: "Matriz de avaliações",
+    matrixNewPillLabel: "NEW",
+    matrixNewNTooltip:
+      "N marca um valor atualizado ou revelado pela primeira vez desde a ultima atualizacao.",
+    youthUpdatesNewPlayerLabel: "Novo jogador detectado",
+    youthUpdatesSkillCurrentTag: "atual",
+    youthUpdatesSkillMaxTag: "max",
     refresh: "Atualizar",
     refreshTooltip: "Atualiza os detalhes do jogador no Hattrick.",
     playerDetailsPreviousPlayer: "Jogador anterior",
     playerDetailsNextPlayer: "Próximo jogador",
     refreshPlayerListTooltip:
       "Atualizar a lista de jovens no Hattrick.",
+    refreshAllYouthDataTooltip: "Atualizar todos os dados juvenis.",
+    refreshStopButton: "Parar",
+    refreshStopTooltip: "Parar atualizacao em andamento.",
     youthLastGlobalRefresh: "Última atualização global",
     refreshStatusFetchingPlayers: "Carregando jogadores juvenis…",
     refreshStatusFetchingPlayerDetails: "Carregando detalhes dos jogadores…",
@@ -601,6 +616,9 @@ export const messagesPt: Messages = {
     notificationSecondaryTrainingSet: "Treino secundário:",
     notificationTrainingCleared: "Treino limpo",
     notificationPlayersRefreshed: "Jogadores juvenis atualizados",
+    notificationRefreshStoppedManual:
+      "Atualizacao interrompida. As mudancas recuperadas foram descartadas.",
+    notificationDebugNewMarkers: "Debug: marcadores NEW aleatórios aplicados",
     notificationSortBy: "Ordenar por:",
     notificationSortDirection: "Direção da ordenação:",
     notificationStarSet: "Jogador estrela:",

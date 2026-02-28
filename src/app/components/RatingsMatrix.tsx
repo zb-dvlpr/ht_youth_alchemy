@@ -24,6 +24,8 @@ type RatingsMatrixProps = {
   messages: Messages;
   specialtyByName?: Record<string, number | undefined>;
   hiddenSpecialtyByName?: Record<string, boolean>;
+  newPlayerIds?: number[];
+  newRatingsByPlayerId?: Record<number, number[]>;
   selectedName?: string | null;
   onSelectPlayer?: (playerName: string) => void;
   orderedPlayerIds?: number[] | null;
@@ -83,6 +85,8 @@ export default function RatingsMatrix({
   messages,
   specialtyByName,
   hiddenSpecialtyByName,
+  newPlayerIds = [],
+  newRatingsByPlayerId = {},
   selectedName,
   onSelectPlayer,
   orderedPlayerIds,
@@ -90,6 +94,7 @@ export default function RatingsMatrix({
   onOrderChange,
   onSortStart,
 }: RatingsMatrixProps) {
+  const newPlayerIdSet = useMemo(() => new Set(newPlayerIds), [newPlayerIds]);
   const players = useMemo(() => response?.players ?? [], [response?.players]);
   const positions = useMemo(
     () => uniquePositions(response?.positions),
@@ -251,6 +256,7 @@ export default function RatingsMatrix({
           <tbody>
             {orderedRows.map((row, index) => {
               const isSelected = selectedName === row.name;
+              const isNewPlayer = newPlayerIdSet.has(row.id);
               return (
                 <tr
                   key={row.id}
@@ -260,14 +266,21 @@ export default function RatingsMatrix({
                 >
                 <td className={styles.matrixIndex}>{index + 1}</td>
                 <td className={styles.matrixPlayer}>
-                  <button
-                    type="button"
-                    className={styles.matrixPlayerButton}
-                    onClick={() => onSelectPlayer?.(row.name)}
-                    disabled={!onSelectPlayer}
-                  >
-                    {row.name}
-                  </button>
+                  <div className={styles.matrixPlayerContent}>
+                    <button
+                      type="button"
+                      className={styles.matrixPlayerButton}
+                      onClick={() => onSelectPlayer?.(row.name)}
+                      disabled={!onSelectPlayer}
+                    >
+                      {row.name}
+                    </button>
+                    {isNewPlayer ? (
+                      <span className={styles.matrixNewPill}>
+                        {messages.matrixNewPillLabel}
+                      </span>
+                    ) : null}
+                  </div>
                 </td>
                 <td className={styles.matrixSpecialty}>
                   {specialtyByName && specialtyByName[row.name] !== undefined ? (
@@ -298,13 +311,24 @@ export default function RatingsMatrix({
                 </td>
                 {positions.map((position) => {
                   const rating = row.ratings[String(position)] ?? null;
+                  const isNewRating =
+                    newRatingsByPlayerId[row.id]?.includes(position) ?? false;
                   return (
                     <td
                       key={position}
-                      className={styles.matrixCell}
+                      className={`${styles.matrixCell} ${
+                        isNewRating ? styles.matrixCellHasNew : ""
+                      }`}
                       style={ratingStyle(rating)}
                     >
-                      {formatRating(rating)}
+                      {isNewRating ? (
+                        <Tooltip content={messages.matrixNewNTooltip}>
+                          <span className={styles.matrixCellNewTag}>N</span>
+                        </Tooltip>
+                      ) : null}
+                      <span className={styles.matrixValueWithFlag}>
+                        <span>{formatRating(rating)}</span>
+                      </span>
                     </td>
                   );
                 })}

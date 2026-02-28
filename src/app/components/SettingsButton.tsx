@@ -24,11 +24,14 @@ import {
   writeClubChronicleTransferHistoryCount,
   readClubChronicleUpdatesHistoryCount,
   writeClubChronicleUpdatesHistoryCount,
-  CLUB_CHRONICLE_DEBUG_EVENT,
   CLUB_CHRONICLE_SETTINGS_EVENT,
+  CLUB_CHRONICLE_DEBUG_EVENT,
   GENERAL_SETTINGS_EVENT,
   readGeneralEnableScaling,
   writeGeneralEnableScaling,
+  YOUTH_NEW_MARKERS_DEBUG_EVENT,
+  readYouthNewMarkersDebugEnabled,
+  writeYouthNewMarkersDebugEnabled,
 } from "@/lib/settings";
 
 type SettingsButtonProps = {
@@ -60,6 +63,8 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
   const [enableAppScaling, setEnableAppScaling] = useState(false);
   const [debugOauthErrorMode, setDebugOauthErrorMode] =
     useState<ChppDebugOauthErrorMode>("off");
+  const [debugRandomNewMarkersEnabled, setDebugRandomNewMarkersEnabled] =
+    useState(false);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -88,6 +93,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     setEnableAppScaling(readGeneralEnableScaling());
     if (process.env.NODE_ENV !== "production") {
       setDebugOauthErrorMode(readChppDebugOauthErrorMode());
+      setDebugRandomNewMarkersEnabled(readYouthNewMarkersDebugEnabled());
     }
   }, []);
 
@@ -252,11 +258,16 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     }
   };
 
-  const handleShowDummyUpdates = () => {
+  const handleDebugRandomNewMarkersToggle = (enabled: boolean) => {
+    setDebugRandomNewMarkersEnabled(enabled);
+    writeYouthNewMarkersDebugEnabled(enabled);
     if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent(CLUB_CHRONICLE_DEBUG_EVENT));
+      window.dispatchEvent(
+        new CustomEvent(YOUTH_NEW_MARKERS_DEBUG_EVENT, {
+          detail: { mode: enabled ? "on" : "off" },
+        })
+      );
     }
-    setDebugSettingsOpen(false);
   };
 
   const handleDebugOauthErrorModeChange = (mode: ChppDebugOauthErrorMode) => {
@@ -570,13 +581,23 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
               </select>
             </label>
             <p className={styles.muted}>{messages.devOauthErrorSimHint}</p>
-            <button
-              type="button"
-              className={styles.confirmSubmit}
-              onClick={handleShowDummyUpdates}
-            >
-              {messages.settingsDebugDisableScalingLabel}
-            </button>
+            <label className={styles.algorithmsToggle}>
+              <span className={styles.algorithmsToggleText}>
+                {messages.settingsDebugRandomNewMarkersLabel}
+              </span>
+              <input
+                type="checkbox"
+                className={styles.algorithmsToggleInput}
+                checked={debugRandomNewMarkersEnabled}
+                onChange={(event) =>
+                  handleDebugRandomNewMarkersToggle(event.target.checked)
+                }
+              />
+              <span
+                className={styles.algorithmsToggleSwitch}
+                aria-hidden="true"
+              />
+            </label>
           </div>
         }
         actions={

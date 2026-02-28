@@ -73,6 +73,8 @@ export type Messages = {
   changelog_2_19_0: string;
   changelog_2_20_0: string;
   changelog_2_21_0: string;
+  changelog_2_22_0: string;
+  changelog_2_23_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -133,6 +135,8 @@ export type Messages = {
   settingsDebug: string;
   settingsDebugTitle: string;
   settingsDebugDisableScalingLabel: string;
+  settingsDebugRandomNewMarkersLabel: string;
+  settingsDebugRandomNewMarkersOffLabel: string;
   clubChronicleLeaguePanelTitle: string;
   clubChronicleLeaguePanelEmpty: string;
   clubChronicleNoTeams: string;
@@ -379,11 +383,19 @@ export type Messages = {
   detailsTabLabel: string;
   skillsMatrixTabLabel: string;
   ratingsMatrixTabLabel: string;
+  matrixNewPillLabel: string;
+  matrixNewNTooltip: string;
+  youthUpdatesNewPlayerLabel: string;
+  youthUpdatesSkillCurrentTag: string;
+  youthUpdatesSkillMaxTag: string;
   refresh: string;
   refreshTooltip: string;
   playerDetailsPreviousPlayer: string;
   playerDetailsNextPlayer: string;
   refreshPlayerListTooltip: string;
+  refreshAllYouthDataTooltip: string;
+  refreshStopButton: string;
+  refreshStopTooltip: string;
   youthLastGlobalRefresh: string;
   refreshStatusFetchingPlayers: string;
   refreshStatusFetchingPlayerDetails: string;
@@ -525,6 +537,8 @@ export type Messages = {
   notificationSecondaryTrainingSet: string;
   notificationTrainingCleared: string;
   notificationPlayersRefreshed: string;
+  notificationRefreshStoppedManual: string;
+  notificationDebugNewMarkers: string;
   notificationSortBy: string;
   notificationSortDirection: string;
   notificationStarSet: string;

@@ -4,6 +4,7 @@ export const DEFAULT_ALLOW_TRAINING_UNTIL_MAXED_OUT = true;
 export const CLUB_CHRONICLE_SETTINGS_STORAGE_KEY = "ya_club_chronicle_settings_v1";
 export const CLUB_CHRONICLE_SETTINGS_EVENT = "ya:club-chronicle-settings";
 export const CLUB_CHRONICLE_DEBUG_EVENT = "ya:club-chronicle-debug";
+export const YOUTH_NEW_MARKERS_DEBUG_EVENT = "ya:youth-new-markers-debug";
 export const DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS = 3;
 export const DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT = 5;
 export const DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT = 10;
@@ -14,6 +15,8 @@ export const LAST_REFRESH_STORAGE_KEY = "ya_last_refresh_ts_v1";
 export const DEBUG_SETTINGS_STORAGE_KEY = "ya_debug_disable_scaling_v1";
 export const DEBUG_SETTINGS_EVENT = "ya:debug-settings";
 export const DEFAULT_DEBUG_DISABLE_SCALING = false;
+export const YOUTH_NEW_MARKERS_DEBUG_STORAGE_KEY =
+  "ya_youth_new_markers_debug_v1";
 export const GENERAL_SETTINGS_STORAGE_KEY = "ya_general_enable_scaling_v1";
 export const GENERAL_SETTINGS_EVENT = "ya:general-settings";
 export const DEFAULT_GENERAL_ENABLE_SCALING = false;
@@ -261,6 +264,29 @@ export function writeDebugDisableScaling(value: boolean) {
   try {
     window.localStorage.setItem(
       DEBUG_SETTINGS_STORAGE_KEY,
+      value ? "true" : "false"
+    );
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function readYouthNewMarkersDebugEnabled(): boolean {
+  if (typeof window === "undefined") return false;
+  try {
+    const stored = window.localStorage.getItem(YOUTH_NEW_MARKERS_DEBUG_STORAGE_KEY);
+    if (stored === null) return false;
+    return stored === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function writeYouthNewMarkersDebugEnabled(value: boolean) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      YOUTH_NEW_MARKERS_DEBUG_STORAGE_KEY,
       value ? "true" : "false"
     );
   } catch {

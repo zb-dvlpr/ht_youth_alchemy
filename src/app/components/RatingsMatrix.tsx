@@ -321,9 +321,17 @@ export default function RatingsMatrix({
                       }`}
                       style={ratingStyle(rating)}
                     >
-                      <span className={styles.matrixValueWithFlag}>
-                        <span>{formatRating(rating)}</span>
-                      </span>
+                      {isNewRating ? (
+                        <Tooltip content={messages.matrixFlashTooltip}>
+                          <span className={styles.matrixValueWithFlag}>
+                            <span>{formatRating(rating)}</span>
+                          </span>
+                        </Tooltip>
+                      ) : (
+                        <span className={styles.matrixValueWithFlag}>
+                          <span>{formatRating(rating)}</span>
+                        </span>
+                      )}
                     </td>
                   );
                 })}

@@ -383,6 +383,8 @@ export type Messages = {
   skillsMatrixTabLabel: string;
   ratingsMatrixTabLabel: string;
   matrixNewPillLabel: string;
+  matrixNewNTooltip: string;
+  matrixFlashTooltip: string;
   refresh: string;
   refreshTooltip: string;
   playerDetailsPreviousPlayer: string;

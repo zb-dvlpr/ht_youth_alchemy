@@ -864,18 +864,22 @@ export default function PlayerDetailsPanel({
                         }`}
                       >
                         {isNewCurrent ? (
-                          <span
-                            className={`${styles.matrixSplitNewTag} ${styles.matrixSplitNewTagLeft}`}
-                          >
-                            N
-                          </span>
+                          <Tooltip content={messages.matrixNewNTooltip}>
+                            <span
+                              className={`${styles.matrixSplitNewTag} ${styles.matrixSplitNewTagLeft}`}
+                            >
+                              N
+                            </span>
+                          </Tooltip>
                         ) : null}
                         {isNewMax ? (
-                          <span
-                            className={`${styles.matrixSplitNewTag} ${styles.matrixSplitNewTagRight}`}
-                          >
-                            N
-                          </span>
+                          <Tooltip content={messages.matrixNewNTooltip}>
+                            <span
+                              className={`${styles.matrixSplitNewTag} ${styles.matrixSplitNewTagRight}`}
+                            >
+                              N
+                            </span>
+                          </Tooltip>
                         ) : null}
                         <span
                           className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfLeft}`}

@@ -910,7 +910,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   line-height: 1;
   font-weight: 800;
   color: #7c2419;
-  pointer-events: none;
+  pointer-events: auto;
   transform: translateY(-65%);
 }
 

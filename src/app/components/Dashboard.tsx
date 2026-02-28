@@ -325,6 +325,65 @@ const buildEmptyMatrixNewMarkers = (): MatrixNewMarkers => ({
   skillsMaxByPlayerId: {},
 });
 
+const normalizeIdList = (value: unknown): number[] => {
+  if (!Array.isArray(value)) return [];
+  const unique = new Set<number>();
+  value.forEach((entry) => {
+    const numeric = Number(entry);
+    if (Number.isFinite(numeric) && numeric > 0) {
+      unique.add(numeric);
+    }
+  });
+  return Array.from(unique);
+};
+
+const normalizeIdArrayRecord = <T extends number | string>(
+  value: unknown
+): Record<number, T[]> => {
+  if (!value || typeof value !== "object") return {};
+  const next: Record<number, T[]> = {};
+  Object.entries(value as Record<string, unknown>).forEach(([id, entry]) => {
+    const playerId = Number(id);
+    if (!Number.isFinite(playerId) || playerId <= 0) return;
+    if (!Array.isArray(entry)) return;
+    const normalized = entry
+      .map((item) => item as T)
+      .filter(
+        (item) =>
+          (typeof item === "number" && Number.isFinite(item)) ||
+          typeof item === "string"
+      );
+    if (normalized.length === 0) return;
+    next[playerId] = Array.from(new Set(normalized));
+  });
+  return next;
+};
+
+const normalizeMatrixNewMarkers = (value: unknown): MatrixNewMarkers => {
+  if (!value || typeof value !== "object") {
+    return buildEmptyMatrixNewMarkers();
+  }
+  const input = value as Partial<MatrixNewMarkers>;
+  return {
+    detectedAt:
+      typeof input.detectedAt === "number" && Number.isFinite(input.detectedAt)
+        ? input.detectedAt
+        : null,
+    playerIds: normalizeIdList(input.playerIds),
+    ratingsByPlayerId: normalizeIdArrayRecord<number>(input.ratingsByPlayerId),
+    skillsCurrentByPlayerId: normalizeIdArrayRecord<string>(
+      input.skillsCurrentByPlayerId
+    ),
+    skillsMaxByPlayerId: normalizeIdArrayRecord<string>(
+      input.skillsMaxByPlayerId
+    ),
+  };
+};
+
+const hasNonEmptyMarkerRecord = <T extends number | string>(
+  value: Record<number, T[]>
+) => Object.values(value).some((entries) => entries.length > 0);
+
 const getKnownSkillValue = (skill?: SkillValue | number | string | null) => {
   if (!skill) return null;
   if (typeof skill === "number") return Number.isNaN(skill) ? null : skill;
@@ -351,9 +410,9 @@ const mergedSkills = (
 
 const hasAnyMatrixNewMarkers = (markers: MatrixNewMarkers) =>
   markers.playerIds.length > 0 ||
-  Object.keys(markers.ratingsByPlayerId).length > 0 ||
-  Object.keys(markers.skillsCurrentByPlayerId).length > 0 ||
-  Object.keys(markers.skillsMaxByPlayerId).length > 0;
+  hasNonEmptyMarkerRecord(markers.ratingsByPlayerId) ||
+  hasNonEmptyMarkerRecord(markers.skillsCurrentByPlayerId) ||
+  hasNonEmptyMarkerRecord(markers.skillsMaxByPlayerId);
 
 function resolveDetails(data: Record<string, unknown> | null) {
   if (!data) return null;
@@ -929,20 +988,14 @@ export default function Dashboard({
     [debugMatrixNewMarkersActive, debugMatrixNewMarkers, matrixNewMarkers]
   );
 
-  const listNewMarkerPlayerIds = useMemo(() => {
-    const next = new Set<number>(activeMatrixNewMarkers.playerIds);
-    Object.keys(activeMatrixNewMarkers.ratingsByPlayerId).forEach((id) =>
-      next.add(Number(id))
-    );
-    Object.keys(activeMatrixNewMarkers.skillsCurrentByPlayerId).forEach((id) =>
-      next.add(Number(id))
-    );
-    Object.keys(activeMatrixNewMarkers.skillsMaxByPlayerId).forEach((id) =>
-      next.add(Number(id))
-    );
+  const newPlayerNameMarkerIds = useMemo(() => {
     const validIds = new Set(playerList.map((player) => player.YouthPlayerID));
-    return Array.from(next).filter((id) => validIds.has(id));
-  }, [activeMatrixNewMarkers, playerList]);
+    return matrixNewMarkers.playerIds.filter((id) => validIds.has(id));
+  }, [matrixNewMarkers.playerIds, playerList]);
+
+  const listNewMarkerPlayerIds = useMemo(() => {
+    return newPlayerNameMarkerIds;
+  }, [newPlayerNameMarkerIds]);
 
   const skillsMatrixRows = useMemo(
     () =>
@@ -1035,7 +1088,7 @@ export default function Dashboard({
         setAnalyzedRatingsMatchIds(parsed.analyzedRatingsMatchIds);
       }
       if (parsed.matrixNewMarkers) {
-        setMatrixNewMarkers(parsed.matrixNewMarkers);
+        setMatrixNewMarkers(normalizeMatrixNewMarkers(parsed.matrixNewMarkers));
       }
     } catch {
       // ignore restore errors
@@ -2968,6 +3021,8 @@ export default function Dashboard({
             ...nextMarkers,
             detectedAt: Date.now(),
           });
+        } else {
+          setMatrixNewMarkers(buildEmptyMatrixNewMarkers());
         }
       }
       if (
@@ -3664,7 +3719,7 @@ export default function Dashboard({
                     Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0,
                 ])
               )}
-              matrixNewPlayerIds={activeMatrixNewMarkers.playerIds}
+              matrixNewPlayerIds={newPlayerNameMarkerIds}
               matrixNewRatingsByPlayerId={activeMatrixNewMarkers.ratingsByPlayerId}
               matrixNewSkillsCurrentByPlayerId={
                 activeMatrixNewMarkers.skillsCurrentByPlayerId

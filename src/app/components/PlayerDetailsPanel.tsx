@@ -372,11 +372,7 @@ export default function PlayerDetailsPanel({
   const playerId =
     detailsData?.YouthPlayerID ?? selectedPlayer?.YouthPlayerID ?? null;
   const selectedPlayerHasNewMarker =
-    playerId !== null &&
-    (matrixNewPlayerIdSet.has(playerId) ||
-      (matrixNewRatingsByPlayerId[playerId]?.length ?? 0) > 0 ||
-      (matrixNewSkillsCurrentByPlayerId[playerId]?.length ?? 0) > 0 ||
-      (matrixNewSkillsMaxByPlayerId[playerId]?.length ?? 0) > 0);
+    playerId !== null && matrixNewPlayerIdSet.has(playerId);
   const hiddenSpecialty =
     playerId && Number(hiddenSpecialtyByPlayerId[playerId] ?? 0) > 0
       ? Number(hiddenSpecialtyByPlayerId[playerId])

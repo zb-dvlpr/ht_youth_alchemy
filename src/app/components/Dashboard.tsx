@@ -576,50 +576,93 @@ export default function Dashboard({
     }
   };
   const applyRandomDebugNewMarkers = (mode: "toggle" | "on" | "off" = "toggle") => {
-    if (mode === "off") {
+    const clearDebugMarkers = () => {
+      setDebugMatrixNewMarkers(buildEmptyMatrixNewMarkers());
       setDebugMatrixNewMarkersActive(false);
+    };
+    if (mode === "off") {
+      clearDebugMarkers();
       return;
     }
     if (mode === "toggle" && debugMatrixNewMarkersActive) {
-      setDebugMatrixNewMarkersActive(false);
+      clearDebugMarkers();
       return;
     }
     if (!playerList.length) return;
-    const randomCount = (max: number) => Math.max(1, Math.min(max, Math.ceil(Math.random() * max)));
-    const pickUnique = <T,>(items: T[], count: number) => {
-      const shuffled = [...items].sort(() => Math.random() - 0.5);
-      return shuffled.slice(0, Math.max(1, Math.min(count, shuffled.length)));
+    const pickRandom = <T,>(items: T[]): T | null => {
+      if (!items.length) return null;
+      const index = Math.floor(Math.random() * items.length);
+      return items[index] ?? null;
     };
-    const playerIds = playerList.map((player) => player.YouthPlayerID);
-    const selectedPlayers = pickUnique(playerIds, randomCount(Math.min(3, playerIds.length)));
+
     const ratingPositions = (
       ratingsMatrixData?.response.positions.length
         ? ratingsMatrixData.response.positions
         : POSITION_COLUMNS
     ).map((position) => Number(position));
-    const skillKeys = TRAINING_SKILLS.map(
-      (key) => TRAINING_SKILL_VALUE_KEYS[key].current
-    );
+    const candidates = playerList
+      .map((player) => {
+        const playerId = player.YouthPlayerID;
+        const merged = mergedSkills(
+          playerDetailsById.get(playerId)?.PlayerSkills,
+          player.PlayerSkills
+        );
+        const knownCurrentSkillKeys = TRAINING_SKILLS.map(
+          (trainingSkill) => TRAINING_SKILL_VALUE_KEYS[trainingSkill]
+        )
+          .filter(
+            (keys) => getKnownSkillValue(merged?.[keys.current]) !== null
+          )
+          .map((keys) => keys.current);
+        const knownMaxSkillKeys = TRAINING_SKILLS.map(
+          (trainingSkill) => TRAINING_SKILL_VALUE_KEYS[trainingSkill]
+        )
+          .filter((keys) => getKnownSkillValue(merged?.[keys.max]) !== null)
+          .map((keys) => keys.current);
+        const ratingsForPlayer = ratingsCache[playerId] ?? {};
+        const knownRatingPositions = ratingPositions.filter(
+          (position) =>
+            typeof ratingsForPlayer[String(position)] === "number"
+        );
+        if (
+          knownCurrentSkillKeys.length === 0 ||
+          knownMaxSkillKeys.length === 0 ||
+          knownRatingPositions.length === 0
+        ) {
+          return null;
+        }
+        return {
+          playerId,
+          knownCurrentSkillKeys,
+          knownMaxSkillKeys,
+          knownRatingPositions,
+        };
+      })
+      .filter((candidate): candidate is NonNullable<typeof candidate> =>
+        Boolean(candidate)
+      );
+    const selected = pickRandom(candidates);
+    if (!selected) {
+      clearDebugMarkers();
+      return;
+    }
+    const currentSkillKey = pickRandom(selected.knownCurrentSkillKeys);
+    const maxSkillKey = pickRandom(selected.knownMaxSkillKeys);
+    const ratingPosition = pickRandom(selected.knownRatingPositions);
+    if (!currentSkillKey || !maxSkillKey || ratingPosition === null) {
+      clearDebugMarkers();
+      return;
+    }
     const nextMarkers: MatrixNewMarkers = {
       detectedAt: Date.now(),
-      playerIds: selectedPlayers,
+      playerIds: [selected.playerId],
       ratingsByPlayerId: {},
       skillsCurrentByPlayerId: {},
       skillsMaxByPlayerId: {},
     };
-
-    selectedPlayers.forEach((playerId) => {
-      const skillSample = pickUnique(skillKeys, randomCount(Math.min(3, skillKeys.length)));
-      nextMarkers.skillsCurrentByPlayerId[playerId] = skillSample;
-      nextMarkers.skillsMaxByPlayerId[playerId] = pickUnique(
-        skillKeys,
-        randomCount(Math.min(2, skillKeys.length))
-      );
-      nextMarkers.ratingsByPlayerId[playerId] = pickUnique(
-        ratingPositions,
-        randomCount(Math.min(3, ratingPositions.length))
-      );
-    });
+    nextMarkers.skillsCurrentByPlayerId[selected.playerId] = [currentSkillKey];
+    nextMarkers.skillsMaxByPlayerId[selected.playerId] = [maxSkillKey];
+    nextMarkers.ratingsByPlayerId[selected.playerId] = [ratingPosition];
     setDebugMatrixNewMarkers(nextMarkers);
     setDebugMatrixNewMarkersActive(true);
     addNotification(messages.notificationDebugNewMarkers);
@@ -990,8 +1033,16 @@ export default function Dashboard({
 
   const newPlayerNameMarkerIds = useMemo(() => {
     const validIds = new Set(playerList.map((player) => player.YouthPlayerID));
-    return matrixNewMarkers.playerIds.filter((id) => validIds.has(id));
-  }, [matrixNewMarkers.playerIds, playerList]);
+    const source = debugMatrixNewMarkersActive
+      ? debugMatrixNewMarkers
+      : matrixNewMarkers;
+    return source.playerIds.filter((id) => validIds.has(id));
+  }, [
+    debugMatrixNewMarkers,
+    debugMatrixNewMarkersActive,
+    matrixNewMarkers,
+    playerList,
+  ]);
 
   const listNewMarkerPlayerIds = useMemo(() => {
     return newPlayerNameMarkerIds;

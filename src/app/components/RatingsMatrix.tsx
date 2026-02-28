@@ -316,16 +316,13 @@ export default function RatingsMatrix({
                   return (
                     <td
                       key={position}
-                      className={styles.matrixCell}
+                      className={`${styles.matrixCell} ${
+                        isNewRating ? styles.matrixCellFlash : ""
+                      }`}
                       style={ratingStyle(rating)}
                     >
                       <span className={styles.matrixValueWithFlag}>
                         <span>{formatRating(rating)}</span>
-                        {isNewRating ? (
-                          <span className={styles.matrixNewPill}>
-                            {messages.matrixNewPillLabel}
-                          </span>
-                        ) : null}
                       </span>
                     </td>
                   );

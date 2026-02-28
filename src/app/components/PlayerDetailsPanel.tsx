@@ -863,6 +863,20 @@ export default function PlayerDetailsPanel({
                           isMaxed ? styles.skillsMatrixMaxed : ""
                         }`}
                       >
+                        {isNewCurrent ? (
+                          <span
+                            className={`${styles.matrixSplitNewTag} ${styles.matrixSplitNewTagLeft}`}
+                          >
+                            N
+                          </span>
+                        ) : null}
+                        {isNewMax ? (
+                          <span
+                            className={`${styles.matrixSplitNewTag} ${styles.matrixSplitNewTagRight}`}
+                          >
+                            N
+                          </span>
+                        ) : null}
                         <span
                           className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfLeft}`}
                           style={
@@ -872,11 +886,6 @@ export default function PlayerDetailsPanel({
                           }
                         >
                           <span>{currentText}</span>
-                          {isNewCurrent ? (
-                            <span className={styles.matrixNewPill}>
-                              {messages.matrixNewPillLabel}
-                            </span>
-                          ) : null}
                         </span>
                         <span className={styles.skillsMatrixDivider}>/</span>
                         <span
@@ -884,11 +893,6 @@ export default function PlayerDetailsPanel({
                           style={maxColor ? { backgroundColor: maxColor } : undefined}
                         >
                           <span>{maxText}</span>
-                          {isNewMax ? (
-                            <span className={styles.matrixNewPill}>
-                              {messages.matrixNewPillLabel}
-                            </span>
-                          ) : null}
                         </span>
                       </div>
                     );

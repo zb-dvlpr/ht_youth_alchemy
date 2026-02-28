@@ -600,69 +600,64 @@ export default function Dashboard({
         ? ratingsMatrixData.response.positions
         : POSITION_COLUMNS
     ).map((position) => Number(position));
-    const candidates = playerList
-      .map((player) => {
-        const playerId = player.YouthPlayerID;
-        const merged = mergedSkills(
-          playerDetailsById.get(playerId)?.PlayerSkills,
-          player.PlayerSkills
-        );
-        const knownCurrentSkillKeys = TRAINING_SKILLS.map(
-          (trainingSkill) => TRAINING_SKILL_VALUE_KEYS[trainingSkill]
-        )
-          .filter(
-            (keys) => getKnownSkillValue(merged?.[keys.current]) !== null
-          )
-          .map((keys) => keys.current);
-        const knownMaxSkillKeys = TRAINING_SKILLS.map(
-          (trainingSkill) => TRAINING_SKILL_VALUE_KEYS[trainingSkill]
-        )
-          .filter((keys) => getKnownSkillValue(merged?.[keys.max]) !== null)
-          .map((keys) => keys.current);
-        const ratingsForPlayer = ratingsCache[playerId] ?? {};
-        const knownRatingPositions = ratingPositions.filter(
-          (position) =>
-            typeof ratingsForPlayer[String(position)] === "number"
-        );
-        if (
-          knownCurrentSkillKeys.length === 0 ||
-          knownMaxSkillKeys.length === 0 ||
-          knownRatingPositions.length === 0
-        ) {
-          return null;
-        }
-        return {
-          playerId,
-          knownCurrentSkillKeys,
-          knownMaxSkillKeys,
-          knownRatingPositions,
-        };
-      })
-      .filter((candidate): candidate is NonNullable<typeof candidate> =>
-        Boolean(candidate)
+    const playerIds = playerList.map((player) => player.YouthPlayerID);
+    const currentSkillCandidates: Array<{ playerId: number; skillKey: string }> = [];
+    const maxSkillCandidates: Array<{ playerId: number; skillKey: string }> = [];
+    const ratingCandidates: Array<{ playerId: number; position: number }> = [];
+
+    playerList.forEach((player) => {
+      const playerId = player.YouthPlayerID;
+      const merged = mergedSkills(
+        playerDetailsById.get(playerId)?.PlayerSkills,
+        player.PlayerSkills
       );
-    const selected = pickRandom(candidates);
-    if (!selected) {
-      clearDebugMarkers();
-      return;
-    }
-    const currentSkillKey = pickRandom(selected.knownCurrentSkillKeys);
-    const maxSkillKey = pickRandom(selected.knownMaxSkillKeys);
-    const ratingPosition = pickRandom(selected.knownRatingPositions);
-    if (!currentSkillKey || !maxSkillKey || ratingPosition === null) {
+      TRAINING_SKILLS.map(
+        (trainingSkill) => TRAINING_SKILL_VALUE_KEYS[trainingSkill]
+      ).forEach((keys) => {
+        if (getKnownSkillValue(merged?.[keys.current]) !== null) {
+          currentSkillCandidates.push({ playerId, skillKey: keys.current });
+        }
+        if (getKnownSkillValue(merged?.[keys.max]) !== null) {
+          maxSkillCandidates.push({ playerId, skillKey: keys.current });
+        }
+      });
+      const ratingsForPlayer = ratingsCache[playerId] ?? {};
+      ratingPositions.forEach((position) => {
+        if (typeof ratingsForPlayer[String(position)] === "number") {
+          ratingCandidates.push({ playerId, position });
+        }
+      });
+    });
+
+    const selectedNewPlayerId = pickRandom(playerIds);
+    const selectedCurrentSkill = pickRandom(currentSkillCandidates);
+    const selectedMaxSkill = pickRandom(maxSkillCandidates);
+    const selectedRating = pickRandom(ratingCandidates);
+    if (
+      selectedNewPlayerId === null ||
+      !selectedCurrentSkill ||
+      !selectedMaxSkill ||
+      !selectedRating
+    ) {
       clearDebugMarkers();
       return;
     }
     const nextMarkers: MatrixNewMarkers = {
       detectedAt: Date.now(),
-      playerIds: [selected.playerId],
+      playerIds: [selectedNewPlayerId],
       ratingsByPlayerId: {},
       skillsCurrentByPlayerId: {},
       skillsMaxByPlayerId: {},
     };
-    nextMarkers.skillsCurrentByPlayerId[selected.playerId] = [currentSkillKey];
-    nextMarkers.skillsMaxByPlayerId[selected.playerId] = [maxSkillKey];
-    nextMarkers.ratingsByPlayerId[selected.playerId] = [ratingPosition];
+    nextMarkers.skillsCurrentByPlayerId[selectedCurrentSkill.playerId] = [
+      selectedCurrentSkill.skillKey,
+    ];
+    nextMarkers.skillsMaxByPlayerId[selectedMaxSkill.playerId] = [
+      selectedMaxSkill.skillKey,
+    ];
+    nextMarkers.ratingsByPlayerId[selectedRating.playerId] = [
+      selectedRating.position,
+    ];
     setDebugMatrixNewMarkers(nextMarkers);
     setDebugMatrixNewMarkersActive(true);
     addNotification(messages.notificationDebugNewMarkers);

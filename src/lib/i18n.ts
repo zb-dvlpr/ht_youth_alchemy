@@ -384,7 +384,6 @@ export type Messages = {
   ratingsMatrixTabLabel: string;
   matrixNewPillLabel: string;
   matrixNewNTooltip: string;
-  matrixFlashTooltip: string;
   refresh: string;
   refreshTooltip: string;
   playerDetailsPreviousPlayer: string;

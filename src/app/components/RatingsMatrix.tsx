@@ -317,21 +317,18 @@ export default function RatingsMatrix({
                     <td
                       key={position}
                       className={`${styles.matrixCell} ${
-                        isNewRating ? styles.matrixCellFlash : ""
+                        isNewRating ? styles.matrixCellHasNew : ""
                       }`}
                       style={ratingStyle(rating)}
                     >
                       {isNewRating ? (
-                        <Tooltip content={messages.matrixFlashTooltip}>
-                          <span className={styles.matrixValueWithFlag}>
-                            <span>{formatRating(rating)}</span>
-                          </span>
+                        <Tooltip content={messages.matrixNewNTooltip}>
+                          <span className={styles.matrixCellNewTag}>N</span>
                         </Tooltip>
-                      ) : (
-                        <span className={styles.matrixValueWithFlag}>
-                          <span>{formatRating(rating)}</span>
-                        </span>
-                      )}
+                      ) : null}
+                      <span className={styles.matrixValueWithFlag}>
+                        <span>{formatRating(rating)}</span>
+                      </span>
                     </td>
                   );
                 })}

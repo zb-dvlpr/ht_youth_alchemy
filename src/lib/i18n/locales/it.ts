@@ -443,9 +443,8 @@ export const messagesIt: Messages = {
     skillsMatrixTabLabel: "Matrice abilità",
     ratingsMatrixTabLabel: "Matrice valutazioni",
     matrixNewPillLabel: "NEW",
-    matrixNewNTooltip: "N indica un valore skill appena cambiato/rivelato dall ultimo aggiornamento.",
-    matrixFlashTooltip:
-      "Questa valutazione e stata aggiornata o rivelata per la prima volta dall ultimo aggiornamento.",
+    matrixNewNTooltip:
+      "N indica un valore aggiornato o rivelato per la prima volta dall ultimo aggiornamento.",
     refresh: "Aggiorna",
     refreshTooltip: "Aggiorna i dettagli del giocatore da Hattrick.",
     playerDetailsPreviousPlayer: "Giocatore precedente",

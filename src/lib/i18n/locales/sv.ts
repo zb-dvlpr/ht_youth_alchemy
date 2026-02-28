@@ -436,9 +436,8 @@ export const messagesSv: Messages = {
     skillsMatrixTabLabel: "Färdighetsmatris",
     ratingsMatrixTabLabel: "Betygsmatris",
     matrixNewPillLabel: "NEW",
-    matrixNewNTooltip: "N markerar ett nyligen andrat/avslojat skill-varde sedan senaste uppdatering.",
-    matrixFlashTooltip:
-      "Detta betyg har uppdaterats eller blivit nyupptackt sedan senaste uppdatering.",
+    matrixNewNTooltip:
+      "N markerar ett varde som uppdaterats eller nyupptackts sedan senaste uppdatering.",
     refresh: "Uppdatera",
     refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
     playerDetailsPreviousPlayer: "Föregående spelare",

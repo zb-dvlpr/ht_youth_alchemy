@@ -3779,6 +3779,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     ]
   );
 
+  const formatArenaRebuiltDateDisplay = useCallback(
+    (snapshot: ArenaSnapshot | null | undefined) => {
+      if (!snapshot) return null;
+      if (snapshot.rebuiltDate) {
+        return formatChppDateTime(snapshot.rebuiltDate) ?? snapshot.rebuiltDate;
+      }
+      if (snapshot.expandedAvailable === true) {
+        return messages.clubChronicleArenaRebuiltDateUnderConstruction;
+      }
+      return messages.clubChronicleArenaRebuiltDateNoHistory;
+    },
+    [
+      messages.clubChronicleArenaRebuiltDateNoHistory,
+      messages.clubChronicleArenaRebuiltDateUnderConstruction,
+    ]
+  );
+
   const arenaTableColumns = useMemo<
     ChronicleTableColumn<ArenaRow, ArenaSnapshot>[]
   >(
@@ -3825,9 +3842,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         key: "rebuiltDate",
         label: messages.clubChronicleArenaColumnRebuiltDate,
         getValue: (snapshot: ArenaSnapshot | undefined) =>
-          snapshot?.rebuiltDate
-            ? formatChppDateTime(snapshot.rebuiltDate) ?? snapshot.rebuiltDate
-            : null,
+          formatArenaRebuiltDateDisplay(snapshot),
         getSortValue: (snapshot: ArenaSnapshot | undefined) =>
           snapshot?.rebuiltDate ?? null,
       },
@@ -3837,6 +3852,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleArenaColumnName,
       messages.clubChronicleArenaColumnCapacity,
       messages.clubChronicleArenaColumnRebuiltDate,
+      messages.clubChronicleArenaConstructionTooltip,
+      formatArenaRebuiltDateDisplay,
     ]
   );
 
@@ -5103,20 +5120,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               current: formatValue(current.currentTotalCapacity),
             });
           }
-          if (previous.rebuiltDate !== current.rebuiltDate) {
+          const previousRebuiltDateDisplay =
+            formatArenaRebuiltDateDisplay(previous);
+          const currentRebuiltDateDisplay = formatArenaRebuiltDateDisplay(current);
+          if (previousRebuiltDateDisplay !== currentRebuiltDateDisplay) {
             arenaChanges.push({
               fieldKey: "arena.rebuiltDate",
               label: messages.clubChronicleArenaColumnRebuiltDate,
-              previous: formatValue(
-                previous.rebuiltDate
-                  ? formatChppDateTime(previous.rebuiltDate) ?? previous.rebuiltDate
-                  : null
-              ),
-              current: formatValue(
-                current.rebuiltDate
-                  ? formatChppDateTime(current.rebuiltDate) ?? current.rebuiltDate
-                  : null
-              ),
+              previous: formatValue(previousRebuiltDateDisplay),
+              current: formatValue(currentRebuiltDateDisplay),
             });
           }
           appendTeamChanges(updatesMap, teamId, teamName, arenaChanges);

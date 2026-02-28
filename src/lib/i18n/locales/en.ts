@@ -232,6 +232,9 @@ export const messagesEn: Messages = {
     clubChronicleArenaColumnCapacity: "Total capacity",
     clubChronicleArenaColumnRebuiltDate: "Latest build date",
     clubChronicleArenaConstructionTooltip: "Arena expansion in progress",
+    clubChronicleArenaRebuiltDateUnderConstruction: "Currently under construction",
+    clubChronicleArenaRebuiltDateNoHistory:
+      "No construction since this team took over",
     clubChronicleArenaDetailsTitle: "Arena details",
     clubChronicleArenaDetailsMetric: "Metric",
     clubChronicleArenaDetailsCurrentCapacity: "Total capacity",

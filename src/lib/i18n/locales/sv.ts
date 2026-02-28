@@ -254,6 +254,9 @@ export const messagesSv: Messages = {
     clubChronicleArenaColumnCapacity: "Total kapacitet",
     clubChronicleArenaColumnRebuiltDate: "Senaste byggdatum",
     clubChronicleArenaConstructionTooltip: "Arenautbyggnad pågår",
+    clubChronicleArenaRebuiltDateUnderConstruction: "Byggnation pågår",
+    clubChronicleArenaRebuiltDateNoHistory:
+      "Ingen ombyggnad sedan det här laget tog över",
     clubChronicleArenaDetailsTitle: "Arenadetaljer",
     clubChronicleArenaDetailsMetric: "Mått",
     clubChronicleArenaDetailsCurrentCapacity: "Total kapacitet",

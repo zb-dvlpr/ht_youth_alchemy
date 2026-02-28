@@ -259,6 +259,9 @@ export const messagesFr: Messages = {
     clubChronicleArenaColumnCapacity: "Capacité totale",
     clubChronicleArenaColumnRebuiltDate: "Dernière date d agrandissement",
     clubChronicleArenaConstructionTooltip: "Agrandissement de l arène en cours",
+    clubChronicleArenaRebuiltDateUnderConstruction: "Agrandissement en cours",
+    clubChronicleArenaRebuiltDateNoHistory:
+      "Aucun agrandissement depuis la prise en main de cette équipe",
     clubChronicleArenaDetailsTitle: "Détails de l arène",
     clubChronicleArenaDetailsMetric: "Mesure",
     clubChronicleArenaDetailsCurrentCapacity: "Capacité totale",

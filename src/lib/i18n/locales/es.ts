@@ -260,6 +260,9 @@ export const messagesEs: Messages = {
     clubChronicleArenaColumnCapacity: "Capacidad total",
     clubChronicleArenaColumnRebuiltDate: "Última fecha de ampliación",
     clubChronicleArenaConstructionTooltip: "Ampliación del estadio en curso",
+    clubChronicleArenaRebuiltDateUnderConstruction: "Actualmente en construcción",
+    clubChronicleArenaRebuiltDateNoHistory:
+      "Sin ampliaciones desde que este equipo se hizo cargo",
     clubChronicleArenaDetailsTitle: "Detalles del estadio",
     clubChronicleArenaDetailsMetric: "Métrica",
     clubChronicleArenaDetailsCurrentCapacity: "Capacidad total",

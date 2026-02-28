@@ -212,6 +212,8 @@ export type Messages = {
   clubChronicleArenaColumnCapacity: string;
   clubChronicleArenaColumnRebuiltDate: string;
   clubChronicleArenaConstructionTooltip: string;
+  clubChronicleArenaRebuiltDateUnderConstruction: string;
+  clubChronicleArenaRebuiltDateNoHistory: string;
   clubChronicleArenaDetailsTitle: string;
   clubChronicleArenaDetailsMetric: string;
   clubChronicleArenaDetailsCurrentCapacity: string;

@@ -86,6 +86,8 @@ export const messagesDe: Messages = {
       "Die Club-Chronik erhaelt ein Trainer-Panel mit Trainerdetails pro verfolgendem Team.",
     changelog_2_22_0:
       "Jugend-Matrizen markieren nun neu geaenderte oder neu aufgedeckte Skills/Bewertungen sowie neue Spieler mit NEW-Pills.",
+    changelog_2_23_0:
+      "Jugendoptimierung erhaelt einen Letzte-Updates-Button mit datierter NEW-Historie.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -435,6 +437,9 @@ export const messagesDe: Messages = {
     ratingsMatrixTabLabel: "Bewertungsmatrix",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip: "N markiert einen seit der letzten Aktualisierung geänderten oder neu aufgedeckten Wert.",
+    youthUpdatesNewPlayerLabel: "Neuer Spieler entdeckt",
+    youthUpdatesSkillCurrentTag: "aktuell",
+    youthUpdatesSkillMaxTag: "max",
     refresh: "Aktualisieren",
     refreshTooltip: "Aktualisiert die Spielerdetails von Hattrick.",
     playerDetailsPreviousPlayer: "Vorheriger Spieler",

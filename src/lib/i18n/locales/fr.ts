@@ -88,6 +88,8 @@ export const messagesFr: Messages = {
       "La Chronique du club ajoute un panneau entraineur avec les details du coach par equipe suivie.",
     changelog_2_22_0:
       "Les matrices jeunesse mettent maintenant en avant les competences/notes nouvelles ou modifiees et les nouveaux joueurs avec des pastilles NEW.",
+    changelog_2_23_0:
+      "L optimisation jeunesse ajoute un bouton Dernieres mises a jour avec historique date des evenements NEW.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -443,6 +445,9 @@ export const messagesFr: Messages = {
     ratingsMatrixTabLabel: "Matrice des notes",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip: "N indique une valeur mise a jour ou nouvellement revelee depuis la derniere actualisation.",
+    youthUpdatesNewPlayerLabel: "Nouveau joueur detecte",
+    youthUpdatesSkillCurrentTag: "actuel",
+    youthUpdatesSkillMaxTag: "max",
     refresh: "Actualiser",
     refreshTooltip: "Actualise les détails du joueur depuis Hattrick.",
     playerDetailsPreviousPlayer: "Joueur précédent",

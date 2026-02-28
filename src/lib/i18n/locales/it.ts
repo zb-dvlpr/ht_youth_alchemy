@@ -88,6 +88,8 @@ export const messagesIt: Messages = {
       "La Cronaca del club aggiunge un pannello allenatore con dettagli del mister per squadra seguita.",
     changelog_2_22_0:
       "Le matrici giovanili evidenziano ora skill/valutazioni nuove o cambiate e nuovi giocatori con pill NEW.",
+    changelog_2_23_0:
+      "Ottimizzazione giovanile aggiunge un pulsante Ultimi aggiornamenti con storico datato degli eventi NEW.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -445,6 +447,9 @@ export const messagesIt: Messages = {
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N indica un valore aggiornato o rivelato per la prima volta dall ultimo aggiornamento.",
+    youthUpdatesNewPlayerLabel: "Nuovo giocatore rilevato",
+    youthUpdatesSkillCurrentTag: "corrente",
+    youthUpdatesSkillMaxTag: "max",
     refresh: "Aggiorna",
     refreshTooltip: "Aggiorna i dettagli del giocatore da Hattrick.",
     playerDetailsPreviousPlayer: "Giocatore precedente",

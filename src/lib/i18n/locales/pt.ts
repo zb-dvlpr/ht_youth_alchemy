@@ -88,6 +88,8 @@ export const messagesPt: Messages = {
       "A Cronica do clube adiciona um painel de treinador com detalhes do tecnico por time acompanhado.",
     changelog_2_22_0:
       "As matrizes juvenis agora destacam skills/avaliacoes novas ou alteradas e novos jogadores com pílulas NEW.",
+    changelog_2_23_0:
+      "Otimizacao juvenil adiciona um botao de Ultimas atualizacoes com historico datado de eventos NEW.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -444,6 +446,9 @@ export const messagesPt: Messages = {
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N marca um valor atualizado ou revelado pela primeira vez desde a ultima atualizacao.",
+    youthUpdatesNewPlayerLabel: "Novo jogador detectado",
+    youthUpdatesSkillCurrentTag: "atual",
+    youthUpdatesSkillMaxTag: "max",
     refresh: "Atualizar",
     refreshTooltip: "Atualiza os detalhes do jogador no Hattrick.",
     playerDetailsPreviousPlayer: "Jogador anterior",

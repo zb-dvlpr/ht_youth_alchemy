@@ -74,6 +74,8 @@ export const messagesEn: Messages = {
     changelog_2_20_0: "Club Chronicle adds a last-logins panel with manager-compendium data, latest-login tracking, and detailed login history.",
     changelog_2_21_0: "Club Chronicle adds a coach panel with trainer details per tracked team.",
     changelog_2_22_0: "Youth matrices now highlight newly changed or revealed skills/ratings and newly added players with NEW pills.",
+    changelog_2_23_0:
+      "Youth optimization adds a Latest updates button with dated NEW-event history.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -414,6 +416,9 @@ export const messagesEn: Messages = {
     ratingsMatrixTabLabel: "Ratings matrix",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip: "N marks a value updated or newly revealed since the last refresh.",
+    youthUpdatesNewPlayerLabel: "New player discovered",
+    youthUpdatesSkillCurrentTag: "curr",
+    youthUpdatesSkillMaxTag: "max",
     refresh: "Refresh",
     refreshTooltip: "Refreshes player details from Hattrick.",
     playerDetailsPreviousPlayer: "Previous player",

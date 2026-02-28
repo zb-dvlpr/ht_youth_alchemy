@@ -74,6 +74,7 @@ export type Messages = {
   changelog_2_20_0: string;
   changelog_2_21_0: string;
   changelog_2_22_0: string;
+  changelog_2_23_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -384,6 +385,9 @@ export type Messages = {
   ratingsMatrixTabLabel: string;
   matrixNewPillLabel: string;
   matrixNewNTooltip: string;
+  youthUpdatesNewPlayerLabel: string;
+  youthUpdatesSkillCurrentTag: string;
+  youthUpdatesSkillMaxTag: string;
   refresh: string;
   refreshTooltip: string;
   playerDetailsPreviousPlayer: string;

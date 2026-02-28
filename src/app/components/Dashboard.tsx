@@ -18,8 +18,13 @@ import { Messages } from "@/lib/i18n";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
-import { POSITION_COLUMNS, normalizeMatchRoleId } from "@/lib/positions";
+import {
+  POSITION_COLUMNS,
+  normalizeMatchRoleId,
+  positionLabel,
+} from "@/lib/positions";
 import { parseChppDate } from "@/lib/chpp/utils";
+import { formatDateTime } from "@/lib/datetime";
 import {
   getAutoSelection,
   getTrainingForStar,
@@ -58,6 +63,8 @@ import {
 
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
+const YOUTH_LATEST_UPDATES_OPEN_EVENT = "ya:youth-latest-updates-open";
+const YOUTH_UPDATES_HISTORY_LIMIT = 20;
 
 const formatPlayerName = (player: YouthPlayer) =>
   [player.FirstName, player.NickName || null, player.LastName]
@@ -90,6 +97,45 @@ type MatrixNewMarkers = {
   ratingsByPlayerId: Record<number, number[]>;
   skillsCurrentByPlayerId: Record<number, string[]>;
   skillsMaxByPlayerId: Record<number, string[]>;
+};
+
+type YouthUpdatesGroupedEntry = {
+  id: string;
+  comparedAt: number;
+  source: "refresh" | "debug";
+  hasChanges: boolean;
+  groupedByPlayerId: Record<
+    number,
+    {
+      playerId: number;
+      playerName: string;
+      isNewPlayer: boolean;
+      ratings: Array<{ position: number; previous: number | null; current: number | null }>;
+      skillsCurrent: Array<{
+        skillKey: string;
+        previous: number | null;
+        current: number | null;
+      }>;
+      skillsMax: Array<{
+        skillKey: string;
+        previous: number | null;
+        current: number | null;
+      }>;
+    }
+  >;
+};
+
+type YouthUpdatesBuildContext = {
+  previousRatingsByPlayerId?: Record<number, Record<string, number>>;
+  currentRatingsByPlayerId?: Record<number, Record<string, number>>;
+  previousSkillsByPlayerId?: Map<
+    number,
+    Record<string, SkillValue | number | string> | null
+  >;
+  currentSkillsByPlayerId?: Map<
+    number,
+    Record<string, SkillValue | number | string> | null
+  >;
 };
 
 type PlayerDetailsResponse = {
@@ -414,6 +460,92 @@ const hasAnyMatrixNewMarkers = (markers: MatrixNewMarkers) =>
   hasNonEmptyMarkerRecord(markers.skillsCurrentByPlayerId) ||
   hasNonEmptyMarkerRecord(markers.skillsMaxByPlayerId);
 
+const buildYouthUpdatesHistoryEntry = (
+  markers: MatrixNewMarkers,
+  players: YouthPlayer[],
+  comparedAt: number,
+  source: "refresh" | "debug" = "refresh",
+  context?: YouthUpdatesBuildContext
+): YouthUpdatesGroupedEntry => {
+  const playersById = new Map(
+    players.map((player) => [player.YouthPlayerID, formatPlayerName(player)])
+  );
+  const groupedByPlayerId: YouthUpdatesGroupedEntry["groupedByPlayerId"] = {};
+  const ensurePlayer = (playerId: number) => {
+    const existing = groupedByPlayerId[playerId];
+    if (existing) return existing;
+    const next = {
+      playerId,
+      playerName: playersById.get(playerId) ?? String(playerId),
+      isNewPlayer: false,
+      ratings: [] as Array<{
+        position: number;
+        previous: number | null;
+        current: number | null;
+      }>,
+      skillsCurrent: [] as Array<{
+        skillKey: string;
+        previous: number | null;
+        current: number | null;
+      }>,
+      skillsMax: [] as Array<{
+        skillKey: string;
+        previous: number | null;
+        current: number | null;
+      }>,
+    };
+    groupedByPlayerId[playerId] = next;
+    return next;
+  };
+  markers.playerIds.forEach((playerId) => {
+    ensurePlayer(playerId).isNewPlayer = true;
+  });
+  Object.entries(markers.ratingsByPlayerId).forEach(([playerId, positions]) => {
+    const numericPlayerId = Number(playerId);
+    if (!Number.isFinite(numericPlayerId)) return;
+    const previousRatings = context?.previousRatingsByPlayerId?.[numericPlayerId] ?? {};
+    const currentRatings = context?.currentRatingsByPlayerId?.[numericPlayerId] ?? {};
+    ensurePlayer(numericPlayerId).ratings = positions.map((position) => {
+      const previousRaw = previousRatings[String(position)];
+      const currentRaw = currentRatings[String(position)];
+      return {
+        position,
+        previous: typeof previousRaw === "number" ? previousRaw : null,
+        current: typeof currentRaw === "number" ? currentRaw : null,
+      };
+    });
+  });
+  Object.entries(markers.skillsCurrentByPlayerId).forEach(([playerId, skills]) => {
+    const numericPlayerId = Number(playerId);
+    if (!Number.isFinite(numericPlayerId)) return;
+    const previousSkills = context?.previousSkillsByPlayerId?.get(numericPlayerId) ?? null;
+    const currentSkills = context?.currentSkillsByPlayerId?.get(numericPlayerId) ?? null;
+    ensurePlayer(numericPlayerId).skillsCurrent = skills.map((skillKey) => ({
+      skillKey,
+      previous: getKnownSkillValue(previousSkills?.[skillKey] ?? null),
+      current: getKnownSkillValue(currentSkills?.[skillKey] ?? null),
+    }));
+  });
+  Object.entries(markers.skillsMaxByPlayerId).forEach(([playerId, skills]) => {
+    const numericPlayerId = Number(playerId);
+    if (!Number.isFinite(numericPlayerId)) return;
+    const previousSkills = context?.previousSkillsByPlayerId?.get(numericPlayerId) ?? null;
+    const currentSkills = context?.currentSkillsByPlayerId?.get(numericPlayerId) ?? null;
+    ensurePlayer(numericPlayerId).skillsMax = skills.map((skillKey) => ({
+      skillKey,
+      previous: getKnownSkillValue(previousSkills?.[`${skillKey}Max`] ?? null),
+      current: getKnownSkillValue(currentSkills?.[`${skillKey}Max`] ?? null),
+    }));
+  });
+  return {
+    id: `${comparedAt}-${Math.random().toString(36).slice(2, 8)}`,
+    comparedAt,
+    source,
+    hasChanges: hasAnyMatrixNewMarkers(markers),
+    groupedByPlayerId,
+  };
+};
+
 function resolveDetails(data: Record<string, unknown> | null) {
   if (!data) return null;
   const hattrickData = data.HattrickData as Record<string, unknown> | undefined;
@@ -545,6 +677,13 @@ export default function Dashboard({
   const [matrixNewMarkers, setMatrixNewMarkers] = useState<MatrixNewMarkers>(
     buildEmptyMatrixNewMarkers
   );
+  const [youthUpdatesHistory, setYouthUpdatesHistory] = useState<
+    YouthUpdatesGroupedEntry[]
+  >([]);
+  const [selectedYouthUpdatesId, setSelectedYouthUpdatesId] = useState<
+    string | null
+  >(null);
+  const [youthUpdatesOpen, setYouthUpdatesOpen] = useState(false);
   const [debugMatrixNewMarkersActive, setDebugMatrixNewMarkersActive] =
     useState(false);
   const [debugMatrixNewMarkers, setDebugMatrixNewMarkers] =
@@ -576,9 +715,28 @@ export default function Dashboard({
     }
   };
   const applyRandomDebugNewMarkers = (mode: "toggle" | "on" | "off" = "toggle") => {
+    const removeDebugUpdatesHistoryEntries = () => {
+      setYouthUpdatesHistory((prev) =>
+        prev.filter((entry) => entry.source !== "debug")
+      );
+      setSelectedYouthUpdatesId((prevSelectedId) => {
+        if (!prevSelectedId) return prevSelectedId;
+        const selectedEntry = youthUpdatesHistory.find(
+          (entry) => entry.id === prevSelectedId
+        );
+        if (!selectedEntry || selectedEntry.source !== "debug") {
+          return prevSelectedId;
+        }
+        const fallback = youthUpdatesHistory.find(
+          (entry) => entry.source !== "debug"
+        );
+        return fallback?.id ?? null;
+      });
+    };
     const clearDebugMarkers = () => {
       setDebugMatrixNewMarkers(buildEmptyMatrixNewMarkers());
       setDebugMatrixNewMarkersActive(false);
+      removeDebugUpdatesHistoryEntries();
     };
     if (mode === "off") {
       clearDebugMarkers();
@@ -658,8 +816,39 @@ export default function Dashboard({
     nextMarkers.ratingsByPlayerId[selectedRating.playerId] = [
       selectedRating.position,
     ];
+    const currentSkillsByPlayerId = new Map<
+      number,
+      Record<string, SkillValue | number | string> | null
+    >();
+    playerList.forEach((player) => {
+      const playerId = player.YouthPlayerID;
+      const merged = mergedSkills(
+        playerDetailsById.get(playerId)?.PlayerSkills,
+        player.PlayerSkills
+      );
+      currentSkillsByPlayerId.set(playerId, merged);
+    });
     setDebugMatrixNewMarkers(nextMarkers);
     setDebugMatrixNewMarkersActive(true);
+    const debugEntry = buildYouthUpdatesHistoryEntry(
+      nextMarkers,
+      playerList,
+      Date.now(),
+      "debug",
+      {
+        previousRatingsByPlayerId: {},
+        currentRatingsByPlayerId: ratingsCache,
+        previousSkillsByPlayerId: new Map(),
+        currentSkillsByPlayerId,
+      }
+    );
+    setYouthUpdatesHistory((prev) =>
+      [debugEntry, ...prev.filter((entry) => entry.source !== "debug")].slice(
+        0,
+        YOUTH_UPDATES_HISTORY_LIMIT
+      )
+    );
+    setSelectedYouthUpdatesId(debugEntry.id);
     addNotification(messages.notificationDebugNewMarkers);
   };
 
@@ -711,6 +900,10 @@ export default function Dashboard({
 
   const changelogEntries = useMemo(
     () => [
+      {
+        version: "2.23.0",
+        entries: [messages.changelog_2_23_0],
+      },
       {
         version: "2.22.0",
         entries: [messages.changelog_2_22_0],
@@ -864,6 +1057,7 @@ export default function Dashboard({
       messages.changelog_2_16_0,
       messages.changelog_2_17_0,
       messages.changelog_2_18_0,
+      messages.changelog_2_23_0,
       messages.changelog_2_22_0,
       messages.changelog_2_21_0,
       messages.changelog_2_20_0,
@@ -1092,6 +1286,7 @@ export default function Dashboard({
         analyzedHiddenSpecialtyMatchIds?: number[];
         analyzedRatingsMatchIds?: number[];
         matrixNewMarkers?: MatrixNewMarkers;
+        youthUpdatesHistory?: YouthUpdatesGroupedEntry[];
       };
       if (parsed.assignments) setAssignments(parsed.assignments);
       if (parsed.behaviors) setBehaviors(parsed.behaviors);
@@ -1136,6 +1331,137 @@ export default function Dashboard({
       if (parsed.matrixNewMarkers) {
         setMatrixNewMarkers(normalizeMatrixNewMarkers(parsed.matrixNewMarkers));
       }
+      if (Array.isArray(parsed.youthUpdatesHistory)) {
+        const normalized = parsed.youthUpdatesHistory
+          .map((entry) => {
+            if (!entry || typeof entry !== "object") return null;
+            const maybeEntry = entry as Partial<YouthUpdatesGroupedEntry>;
+            if (
+              typeof maybeEntry.id !== "string" ||
+              typeof maybeEntry.comparedAt !== "number" ||
+              !Number.isFinite(maybeEntry.comparedAt)
+            ) {
+              return null;
+            }
+            const groupedByPlayerId =
+              maybeEntry.groupedByPlayerId &&
+              typeof maybeEntry.groupedByPlayerId === "object"
+                ? (maybeEntry.groupedByPlayerId as YouthUpdatesGroupedEntry["groupedByPlayerId"])
+                : {};
+            const normalizedGroupedByPlayerId: YouthUpdatesGroupedEntry["groupedByPlayerId"] =
+              Object.fromEntries(
+                Object.entries(groupedByPlayerId).map(([playerId, groupedEntry]) => {
+                  const fallback = groupedEntry as {
+                    playerId?: number;
+                    playerName?: string;
+                    isNewPlayer?: boolean;
+                    ratings?: unknown;
+                    skillsCurrent?: unknown;
+                    skillsMax?: unknown;
+                  };
+                  const normalizedRatings = Array.isArray(fallback.ratings)
+                    ? fallback.ratings
+                        .map((rating) => {
+                          if (typeof rating === "number") {
+                            return {
+                              position: rating,
+                              previous: null,
+                              current: null,
+                            };
+                          }
+                          if (!rating || typeof rating !== "object") return null;
+                          const maybeRating = rating as {
+                            position?: unknown;
+                            previous?: unknown;
+                            current?: unknown;
+                          };
+                          const position = Number(maybeRating.position);
+                          if (!Number.isFinite(position)) return null;
+                          return {
+                            position,
+                            previous:
+                              typeof maybeRating.previous === "number"
+                                ? maybeRating.previous
+                                : null,
+                            current:
+                              typeof maybeRating.current === "number"
+                                ? maybeRating.current
+                                : null,
+                          };
+                        })
+                        .filter(
+                          (rating): rating is {
+                            position: number;
+                            previous: number | null;
+                            current: number | null;
+                          } => Boolean(rating)
+                        )
+                    : [];
+                  const normalizeSkillChanges = (input: unknown) =>
+                    Array.isArray(input)
+                      ? input
+                          .map((skill) => {
+                            if (typeof skill === "string") {
+                              return {
+                                skillKey: skill,
+                                previous: null,
+                                current: null,
+                              };
+                            }
+                            if (!skill || typeof skill !== "object") return null;
+                            const maybeSkill = skill as {
+                              skillKey?: unknown;
+                              previous?: unknown;
+                              current?: unknown;
+                            };
+                            if (typeof maybeSkill.skillKey !== "string") return null;
+                            return {
+                              skillKey: maybeSkill.skillKey,
+                              previous:
+                                typeof maybeSkill.previous === "number"
+                                  ? maybeSkill.previous
+                                  : null,
+                              current:
+                                typeof maybeSkill.current === "number"
+                                  ? maybeSkill.current
+                                  : null,
+                            };
+                          })
+                          .filter(
+                            (skill): skill is {
+                              skillKey: string;
+                              previous: number | null;
+                              current: number | null;
+                            } => Boolean(skill)
+                          )
+                      : [];
+                  return [
+                    playerId,
+                    {
+                      playerId: Number(fallback.playerId ?? playerId),
+                      playerName: String(fallback.playerName ?? playerId),
+                      isNewPlayer: Boolean(fallback.isNewPlayer),
+                      ratings: normalizedRatings,
+                      skillsCurrent: normalizeSkillChanges(fallback.skillsCurrent),
+                      skillsMax: normalizeSkillChanges(fallback.skillsMax),
+                    },
+                  ];
+                })
+              );
+            return {
+              id: maybeEntry.id,
+              comparedAt: maybeEntry.comparedAt,
+              source:
+                maybeEntry.source === "debug" ? "debug" : "refresh",
+              hasChanges: Boolean(maybeEntry.hasChanges),
+              groupedByPlayerId: normalizedGroupedByPlayerId,
+            } satisfies YouthUpdatesGroupedEntry;
+          })
+          .filter((entry): entry is YouthUpdatesGroupedEntry => Boolean(entry))
+          .slice(0, YOUTH_UPDATES_HISTORY_LIMIT);
+        setYouthUpdatesHistory(normalized);
+        setSelectedYouthUpdatesId(normalized[0]?.id ?? null);
+      }
     } catch {
       // ignore restore errors
     } finally {
@@ -1164,6 +1490,7 @@ export default function Dashboard({
       analyzedHiddenSpecialtyMatchIds,
       analyzedRatingsMatchIds,
       matrixNewMarkers,
+      youthUpdatesHistory,
     };
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(payload));
@@ -1188,6 +1515,7 @@ export default function Dashboard({
     analyzedHiddenSpecialtyMatchIds,
     analyzedRatingsMatchIds,
     matrixNewMarkers,
+    youthUpdatesHistory,
     storageKey,
     restoredStorageKey,
   ]);
@@ -3014,6 +3342,14 @@ export default function Dashboard({
           if (existing.includes(position)) return;
           nextMarkers.ratingsByPlayerId[playerId] = [...existing, position];
         };
+        const previousSkillsByPlayerId = new Map<
+          number,
+          Record<string, SkillValue | number | string> | null
+        >();
+        const currentSkillsByPlayerId = new Map<
+          number,
+          Record<string, SkillValue | number | string> | null
+        >();
 
         nextPlayersSnapshot.forEach((player) => {
           const playerId = player.YouthPlayerID;
@@ -3029,6 +3365,8 @@ export default function Dashboard({
             nextDetailsByPlayerId.get(playerId)?.PlayerSkills,
             player.PlayerSkills
           );
+          previousSkillsByPlayerId.set(playerId, previousMerged);
+          currentSkillsByPlayerId.set(playerId, nextMerged);
 
           TRAINING_SKILLS.forEach((trainingSkill) => {
             const keys = TRAINING_SKILL_VALUE_KEYS[trainingSkill];
@@ -3062,14 +3400,31 @@ export default function Dashboard({
           });
         });
 
+        const comparedAt = Date.now();
         if (hasAnyMatrixNewMarkers(nextMarkers)) {
           setMatrixNewMarkers({
             ...nextMarkers,
-            detectedAt: Date.now(),
+            detectedAt: comparedAt,
           });
         } else {
           setMatrixNewMarkers(buildEmptyMatrixNewMarkers());
         }
+        const updatesEntry = buildYouthUpdatesHistoryEntry(
+          nextMarkers,
+          nextPlayersSnapshot,
+          comparedAt,
+          "refresh",
+          {
+            previousRatingsByPlayerId: previousRatingsCacheSnapshot,
+            currentRatingsByPlayerId: nextRatingsByPlayerId,
+            previousSkillsByPlayerId,
+            currentSkillsByPlayerId,
+          }
+        );
+        setYouthUpdatesHistory((prev) =>
+          [updatesEntry, ...prev].slice(0, YOUTH_UPDATES_HISTORY_LIMIT)
+        );
+        setSelectedYouthUpdatesId(updatesEntry.id);
       }
       if (
         playersUpdated &&
@@ -3098,6 +3453,37 @@ export default function Dashboard({
         handleYouthRefreshRequest
       );
   }, [refreshPlayers]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleOpenYouthLatestUpdates = () => setYouthUpdatesOpen(true);
+    window.addEventListener(
+      YOUTH_LATEST_UPDATES_OPEN_EVENT,
+      handleOpenYouthLatestUpdates
+    );
+    return () =>
+      window.removeEventListener(
+        YOUTH_LATEST_UPDATES_OPEN_EVENT,
+        handleOpenYouthLatestUpdates
+      );
+  }, []);
+
+  useEffect(() => {
+    if (!youthUpdatesHistory.length) {
+      setSelectedYouthUpdatesId(null);
+      return;
+    }
+    if (!selectedYouthUpdatesId) {
+      setSelectedYouthUpdatesId(youthUpdatesHistory[0]?.id ?? null);
+      return;
+    }
+    const exists = youthUpdatesHistory.some(
+      (entry) => entry.id === selectedYouthUpdatesId
+    );
+    if (!exists) {
+      setSelectedYouthUpdatesId(youthUpdatesHistory[0]?.id ?? null);
+    }
+  }, [selectedYouthUpdatesId, youthUpdatesHistory]);
 
   const handleTeamChange = (nextTeamId: number | null) => {
     if (nextTeamId === selectedYouthTeamId) return;
@@ -3445,6 +3831,54 @@ export default function Dashboard({
     };
   }, [primaryTraining, secondaryTraining]);
 
+  const selectedYouthUpdatesEntry = useMemo(
+    () =>
+      selectedYouthUpdatesId
+        ? youthUpdatesHistory.find((entry) => entry.id === selectedYouthUpdatesId) ??
+          null
+        : youthUpdatesHistory[0] ?? null,
+    [selectedYouthUpdatesId, youthUpdatesHistory]
+  );
+
+  const skillLabelByKey = (skillKey: string) => {
+    switch (skillKey) {
+      case "KeeperSkill":
+        return messages.skillKeeperShort;
+      case "DefenderSkill":
+        return messages.skillDefendingShort;
+      case "PlaymakerSkill":
+        return messages.skillPlaymakingShort;
+      case "WingerSkill":
+        return messages.skillWingerShort;
+      case "PassingSkill":
+        return messages.skillPassingShort;
+      case "ScorerSkill":
+        return messages.skillScoringShort;
+      case "SetPiecesSkill":
+        return messages.skillSetPiecesShort;
+      default:
+        return skillKey;
+    }
+  };
+
+  const youthUpdatesRows = useMemo(() => {
+    if (!selectedYouthUpdatesEntry) return [];
+    return Object.values(selectedYouthUpdatesEntry.groupedByPlayerId)
+      .sort((left, right) => left.playerName.localeCompare(right.playerName))
+      .map((entry) => ({
+        ...entry,
+        ratings: [...entry.ratings].sort((left, right) => left.position - right.position),
+        skillsCurrent: [...entry.skillsCurrent],
+        skillsMax: [...entry.skillsMax],
+      }));
+  }, [selectedYouthUpdatesEntry]);
+
+  const formatUpdatesValue = (value: number | null, type: "skill" | "rating") => {
+    if (value === null) return messages.unknownShort;
+    if (type === "rating") return value.toFixed(1);
+    return String(value);
+  };
+
   return (
     <div className={styles.dashboardStack}>
       {loadError && !authError ? (
@@ -3602,6 +4036,116 @@ export default function Dashboard({
         }
         closeOnBackdrop
         onClose={() => setShowChangelog(false)}
+      />
+      <Modal
+        open={youthUpdatesOpen}
+        title={messages.clubChronicleUpdatesTitle}
+        className={styles.chronicleUpdatesModal}
+        body={
+          youthUpdatesHistory.length > 0 ? (
+            <>
+              <div className={styles.chronicleUpdatesMetaBlock}>
+                <p className={styles.chroniclePressMeta}>
+                  {messages.clubChronicleUpdatesSinceGlobal}
+                </p>
+                {selectedYouthUpdatesEntry ? (
+                  <p className={styles.chroniclePressMeta}>
+                    {messages.clubChronicleUpdatesComparedAt}:{" "}
+                    {formatDateTime(selectedYouthUpdatesEntry.comparedAt)}
+                  </p>
+                ) : null}
+                {selectedYouthUpdatesEntry && !selectedYouthUpdatesEntry.hasChanges ? (
+                  <p className={styles.chroniclePressMeta}>
+                    {messages.clubChronicleUpdatesNoChangesGlobal}
+                  </p>
+                ) : null}
+              </div>
+              <div className={styles.chronicleUpdatesHistoryWrap}>
+                <div className={styles.chronicleUpdatesHistoryHeader}>
+                  {messages.clubChronicleUpdatesHistoryTitle}
+                </div>
+                <div className={styles.chronicleUpdatesHistoryList}>
+                  {youthUpdatesHistory.map((entry) => (
+                    <button
+                      key={entry.id}
+                      type="button"
+                      className={`${styles.chronicleUpdatesHistoryItem}${
+                        selectedYouthUpdatesEntry?.id === entry.id
+                          ? ` ${styles.chronicleUpdatesHistoryItemActive}`
+                          : ""
+                      }`}
+                      onClick={() => setSelectedYouthUpdatesId(entry.id)}
+                      aria-pressed={selectedYouthUpdatesEntry?.id === entry.id}
+                    >
+                      <span>{formatDateTime(entry.comparedAt)}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {selectedYouthUpdatesEntry && youthUpdatesRows.length ? (
+                <div className={styles.chronicleUpdatesList}>
+                  {youthUpdatesRows.map((entry) => (
+                    <div
+                      key={entry.playerId}
+                      className={styles.chronicleUpdatesTeam}
+                    >
+                      <h3 className={styles.chronicleUpdatesTeamTitle}>
+                        {entry.playerName}
+                      </h3>
+                      <ul className={styles.helpList}>
+                        {entry.isNewPlayer ? (
+                          <li>{messages.youthUpdatesNewPlayerLabel}</li>
+                        ) : null}
+                        {entry.skillsCurrent.map((change) => (
+                          <li key={`${entry.playerId}-current-${change.skillKey}`}>
+                            {skillLabelByKey(change.skillKey)} (
+                            {messages.youthUpdatesSkillCurrentTag}):{" "}
+                            {formatUpdatesValue(change.previous, "skill")} →{" "}
+                            {formatUpdatesValue(change.current, "skill")}
+                          </li>
+                        ))}
+                        {entry.skillsMax.map((change) => (
+                          <li key={`${entry.playerId}-max-${change.skillKey}`}>
+                            {skillLabelByKey(change.skillKey)} (
+                            {messages.youthUpdatesSkillMaxTag}):{" "}
+                            {formatUpdatesValue(change.previous, "skill")} →{" "}
+                            {formatUpdatesValue(change.current, "skill")}
+                          </li>
+                        ))}
+                        {entry.ratings.map((change) => (
+                          <li key={`${entry.playerId}-rating-${change.position}`}>
+                            {positionLabel(change.position, messages)}:{" "}
+                            {formatUpdatesValue(change.previous, "rating")} →{" "}
+                            {formatUpdatesValue(change.current, "rating")}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.chronicleEmpty}>
+                  {messages.clubChronicleUpdatesNoChangesGlobal}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className={styles.chronicleEmpty}>
+              {messages.clubChronicleUpdatesEmpty}
+            </p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setYouthUpdatesOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setYouthUpdatesOpen(false)}
       />
       {showHelp ? (
         <div className={styles.helpOverlay} aria-hidden="true">

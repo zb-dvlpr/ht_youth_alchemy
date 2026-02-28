@@ -86,6 +86,8 @@ export const messagesSv: Messages = {
       "Klubbkronikan lagger till en tranarpanel med coachdetaljer per foljt lag.",
     changelog_2_22_0:
       "Ungdomsmatriser markerar nu nya/andrade eller nyupptackta skills/betyg och nya spelare med NEW-markeringar.",
+    changelog_2_23_0:
+      "Ungdomsoptimering far en Senaste uppdateringar-knapp med daterad NEW-historik.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -438,6 +440,9 @@ export const messagesSv: Messages = {
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N markerar ett varde som uppdaterats eller nyupptackts sedan senaste uppdatering.",
+    youthUpdatesNewPlayerLabel: "Ny spelare upptackt",
+    youthUpdatesSkillCurrentTag: "aktuell",
+    youthUpdatesSkillMaxTag: "max",
     refresh: "Uppdatera",
     refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
     playerDetailsPreviousPlayer: "Föregående spelare",

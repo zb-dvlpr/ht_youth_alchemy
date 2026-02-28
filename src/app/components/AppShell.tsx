@@ -32,6 +32,7 @@ const APP_SHELL_ACTIVE_TOOL_KEY = "ya_app_shell_active_tool_v1";
 const APP_SHELL_COLLAPSED_KEY = "ya_app_shell_collapsed_v1";
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
+const YOUTH_LATEST_UPDATES_OPEN_EVENT = "ya:youth-latest-updates-open";
 
 export default function AppShell({ messages, globalHeader, children }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
@@ -64,6 +65,10 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
 
   const changelogEntries = useMemo(
     () => [
+      {
+        version: "2.23.0",
+        entries: [messages.changelog_2_23_0],
+      },
       {
         version: "2.22.0",
         entries: [messages.changelog_2_22_0],
@@ -207,6 +212,7 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
       messages.changelog_2_14_0,
       messages.changelog_2_15_0,
       messages.changelog_2_16_0,
+      messages.changelog_2_23_0,
       messages.changelog_2_22_0,
       messages.changelog_2_21_0,
       messages.changelog_2_20_0,
@@ -522,6 +528,18 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
                 {messages.clubChronicleRefreshButton}
               </button>
             </Tooltip>
+            <button
+              type="button"
+              className={styles.chronicleUpdatesButton}
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent(YOUTH_LATEST_UPDATES_OPEN_EVENT)
+                )
+              }
+              aria-label={messages.clubChronicleUpdatesButton}
+            >
+              {messages.clubChronicleUpdatesButton}
+            </button>
           </div>
           {youthRefreshStatus ? (
             <div className={styles.chronicleRefreshStatusWrap} aria-live="polite">

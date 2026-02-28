@@ -89,6 +89,7 @@ type YouthPlayerListProps = {
   onOrderChange?: (orderedIds: number[]) => void;
   onSortStart?: () => void;
   hiddenSpecialtyByPlayerId?: Record<number, number>;
+  newMarkerPlayerIds?: number[];
   messages: Messages;
 };
 
@@ -213,6 +214,7 @@ export default function YouthPlayerList({
   onOrderChange,
   onSortStart,
   hiddenSpecialtyByPlayerId = {},
+  newMarkerPlayerIds = [],
   messages,
 }: YouthPlayerListProps) {
   const sortStorageKey = "ya_youth_player_list_sort_v1";
@@ -296,6 +298,10 @@ export default function YouthPlayerList({
       orderSource !== "list" &&
       (orderSource === "ratings" || orderSource === "skills") &&
       orderedPlayerIds?.length
+  );
+  const newMarkerPlayerIdSet = useMemo(
+    () => new Set(newMarkerPlayerIds),
+    [newMarkerPlayerIds]
   );
 
   useEffect(() => {
@@ -704,6 +710,7 @@ export default function YouthPlayerList({
             const isSelected = selectedId === player.YouthPlayerID;
             const isAssigned = assignedIds?.has(player.YouthPlayerID) ?? false;
             const isStar = starPlayerId === player.YouthPlayerID;
+            const hasNewMarker = newMarkerPlayerIdSet.has(player.YouthPlayerID);
             const promotableDays = Number(player.CanBePromotedIn);
             const isPromotableNowMetric =
               sortKey === "promotable" &&
@@ -781,6 +788,11 @@ export default function YouthPlayerList({
                       }}
                     >
                       <span className={styles.playerName}>{fullName}</span>
+                      {hasNewMarker ? (
+                        <span className={styles.matrixNewPill}>
+                          {messages.matrixNewPillLabel}
+                        </span>
+                      ) : null}
                       {specialtyEmoji ? (
                         <Tooltip
                           content={

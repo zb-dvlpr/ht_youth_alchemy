@@ -84,6 +84,8 @@ export const messagesSv: Messages = {
       "Klubbkronikan lagger till en panel for senaste inloggningar med managercompendium-data, spårning av senaste inloggning och detaljerad inloggningshistorik.",
     changelog_2_21_0:
       "Klubbkronikan lagger till en tranarpanel med coachdetaljer per foljt lag.",
+    changelog_2_22_0:
+      "Ungdomsmatriser markerar nu nya/andrade eller nyupptackta skills/betyg och nya spelare med NEW-markeringar.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -150,6 +152,7 @@ export const messagesSv: Messages = {
     settingsDebug: "Debug",
     settingsDebugTitle: "Debug-inställningar",
     settingsDebugDisableScalingLabel: "Visa fiktiva senaste uppdateringar",
+    settingsDebugRandomNewMarkersLabel: "Visa slumpade NEW-markeringar",
     clubChronicleLeaguePanelTitle: "Ligaprestanda",
     clubChronicleLeaguePanelEmpty: "Inga ligadata ännu.",
     clubChronicleNoTeams: "Inga bevakade lag valda.",
@@ -431,6 +434,7 @@ export const messagesSv: Messages = {
     detailsTabLabel: "Spelardetaljer",
     skillsMatrixTabLabel: "Färdighetsmatris",
     ratingsMatrixTabLabel: "Betygsmatris",
+    matrixNewPillLabel: "NEW",
     refresh: "Uppdatera",
     refreshTooltip: "Uppdaterar spelardetaljer från Hattrick.",
     playerDetailsPreviousPlayer: "Föregående spelare",
@@ -593,6 +597,7 @@ export const messagesSv: Messages = {
     notificationSecondaryTrainingSet: "Sekundärträning:",
     notificationTrainingCleared: "Träning rensad",
     notificationPlayersRefreshed: "Juniorer uppdaterade",
+    notificationDebugNewMarkers: "Debug: slumpade NEW-markeringar tillagda",
     notificationSortBy: "Sortera efter:",
     notificationSortDirection: "Sorteringsriktning:",
     notificationStarSet: "Stjärnspelare:",

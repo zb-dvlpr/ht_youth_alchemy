@@ -24,11 +24,11 @@ import {
   writeClubChronicleTransferHistoryCount,
   readClubChronicleUpdatesHistoryCount,
   writeClubChronicleUpdatesHistoryCount,
-  CLUB_CHRONICLE_DEBUG_EVENT,
   CLUB_CHRONICLE_SETTINGS_EVENT,
   GENERAL_SETTINGS_EVENT,
   readGeneralEnableScaling,
   writeGeneralEnableScaling,
+  YOUTH_NEW_MARKERS_DEBUG_EVENT,
 } from "@/lib/settings";
 
 type SettingsButtonProps = {
@@ -252,9 +252,9 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     }
   };
 
-  const handleShowDummyUpdates = () => {
+  const handleShowDummyNewMarkers = () => {
     if (typeof window !== "undefined") {
-      window.dispatchEvent(new CustomEvent(CLUB_CHRONICLE_DEBUG_EVENT));
+      window.dispatchEvent(new CustomEvent(YOUTH_NEW_MARKERS_DEBUG_EVENT));
     }
     setDebugSettingsOpen(false);
   };
@@ -573,9 +573,9 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
             <button
               type="button"
               className={styles.confirmSubmit}
-              onClick={handleShowDummyUpdates}
+              onClick={handleShowDummyNewMarkers}
             >
-              {messages.settingsDebugDisableScalingLabel}
+              {messages.settingsDebugRandomNewMarkersLabel}
             </button>
           </div>
         }

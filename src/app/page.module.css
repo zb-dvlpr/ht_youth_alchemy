@@ -893,10 +893,12 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .skillsMatrixHalf {
   flex: 1 1 0;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0px 0;
-  min-height: 18px;
+  gap: 2px;
+  padding: 2px 0;
+  min-height: 22px;
 }
 
 .skillsMatrixHalfLeft {
@@ -936,6 +938,13 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 
 .matrixTable td.matrixPlayer {
   text-align: left;
+}
+
+.matrixPlayerContent {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
 }
 
 .matrixPlayerButton {
@@ -994,6 +1003,29 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .matrixSortIcon {
   font-size: 10px;
   opacity: 0.6;
+}
+
+.matrixValueWithFlag {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.matrixNewPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 1px 6px;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: #e6452f;
+  color: #fff8ef;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
 }
 
 .card {
@@ -2614,6 +2646,12 @@ html[data-theme="dark"] .matrixPlayerButton:focus-visible {
   outline-color: rgba(243, 237, 228, 0.4);
 }
 
+html[data-theme="dark"] .matrixNewPill {
+  background: #ff6b5c;
+  color: #2a1a14;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
 html[data-theme="dark"] .matrixTable td {
   color: #f3ede4;
 }
@@ -3464,6 +3502,12 @@ html[data-theme="dark"] .spinner {
   color: #2b241d;
   min-width: 52px;
   text-align: right;
+}
+
+.skillValuePartWithFlag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .matchList {

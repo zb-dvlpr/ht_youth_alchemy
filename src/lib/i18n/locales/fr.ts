@@ -86,6 +86,8 @@ export const messagesFr: Messages = {
       "La Chronique du club ajoute un panneau des dernieres connexions avec les donnees managercompendium, le suivi de la derniere connexion et l historique detaille des connexions.",
     changelog_2_21_0:
       "La Chronique du club ajoute un panneau entraineur avec les details du coach par equipe suivie.",
+    changelog_2_22_0:
+      "Les matrices jeunesse mettent maintenant en avant les competences/notes nouvelles ou modifiees et les nouveaux joueurs avec des pastilles NEW.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -152,6 +154,7 @@ export const messagesFr: Messages = {
     settingsDebug: "Debug",
     settingsDebugTitle: "Paramètres debug",
     settingsDebugDisableScalingLabel: "Afficher des dernières mises à jour fictives",
+    settingsDebugRandomNewMarkersLabel: "Afficher des marqueurs NEW aléatoires",
     clubChronicleLeaguePanelTitle: "Performance en ligue",
     clubChronicleLeaguePanelEmpty: "Pas encore de données de ligue.",
     clubChronicleNoTeams: "Aucune équipe suivie sélectionnée.",
@@ -437,6 +440,7 @@ export const messagesFr: Messages = {
     detailsTabLabel: "Détails du joueur",
     skillsMatrixTabLabel: "Matrice des compétences",
     ratingsMatrixTabLabel: "Matrice des notes",
+    matrixNewPillLabel: "NEW",
     refresh: "Actualiser",
     refreshTooltip: "Actualise les détails du joueur depuis Hattrick.",
     playerDetailsPreviousPlayer: "Joueur précédent",
@@ -602,6 +606,7 @@ export const messagesFr: Messages = {
     notificationSecondaryTrainingSet: "Entraînement secondaire :",
     notificationTrainingCleared: "Entraînement effacé",
     notificationPlayersRefreshed: "Jeunes joueurs actualisés",
+    notificationDebugNewMarkers: "Debug : marqueurs NEW aléatoires appliqués",
     notificationSortBy: "Trier par :",
     notificationSortDirection: "Sens de tri :",
     notificationStarSet: "Joueur star :",

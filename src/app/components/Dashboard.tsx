@@ -44,6 +44,7 @@ import {
   writeLastRefreshTimestamp,
   YOUTH_SETTINGS_EVENT,
   YOUTH_SETTINGS_STORAGE_KEY,
+  YOUTH_NEW_MARKERS_DEBUG_EVENT,
 } from "@/lib/settings";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import {
@@ -81,6 +82,14 @@ type SkillValue = {
   "@_IsAvailable"?: string;
   "@_IsMaxReached"?: string;
   "@_MayUnlock"?: string;
+};
+
+type MatrixNewMarkers = {
+  detectedAt: number | null;
+  playerIds: number[];
+  ratingsByPlayerId: Record<number, number[]>;
+  skillsCurrentByPlayerId: Record<number, string[]>;
+  skillsMaxByPlayerId: Record<number, string[]>;
 };
 
 type PlayerDetailsResponse = {
@@ -232,6 +241,12 @@ type MatchDetailsEventsResponse = {
   code?: string;
 };
 
+type RefreshRatingsResult = {
+  ok: boolean;
+  ratingsByPlayerId: Record<number, Record<string, number>> | null;
+  positions: number[] | null;
+};
+
 type EventPlayerRef = "subject" | "object";
 
 type SpecialEventRule = {
@@ -302,13 +317,43 @@ const isTrainingSkill = (
   value: string | null | undefined
 ): value is TrainingSkillKey => TRAINING_SKILLS.includes(value as TrainingSkillKey);
 
-const getKnownSkillValue = (skill?: SkillValue) => {
+const buildEmptyMatrixNewMarkers = (): MatrixNewMarkers => ({
+  detectedAt: null,
+  playerIds: [],
+  ratingsByPlayerId: {},
+  skillsCurrentByPlayerId: {},
+  skillsMaxByPlayerId: {},
+});
+
+const getKnownSkillValue = (skill?: SkillValue | number | string | null) => {
   if (!skill) return null;
+  if (typeof skill === "number") return Number.isNaN(skill) ? null : skill;
+  if (typeof skill === "string") {
+    const numeric = Number(skill);
+    return Number.isNaN(numeric) ? null : numeric;
+  }
   if (skill["@_IsAvailable"] !== "True") return null;
   if (skill["#text"] === undefined || skill["#text"] === null) return null;
   const numeric = Number(skill["#text"]);
   return Number.isNaN(numeric) ? null : numeric;
 };
+
+const mergedSkills = (
+  detailsSkills?: Record<string, SkillValue> | null,
+  playerSkills?: Record<string, SkillValue | number | string> | null
+) => {
+  if (!detailsSkills && !playerSkills) return null;
+  return {
+    ...(detailsSkills ?? {}),
+    ...(playerSkills ?? {}),
+  };
+};
+
+const hasAnyMatrixNewMarkers = (markers: MatrixNewMarkers) =>
+  markers.playerIds.length > 0 ||
+  Object.keys(markers.ratingsByPlayerId).length > 0 ||
+  Object.keys(markers.skillsCurrentByPlayerId).length > 0 ||
+  Object.keys(markers.skillsMaxByPlayerId).length > 0;
 
 function resolveDetails(data: Record<string, unknown> | null) {
   if (!data) return null;
@@ -438,6 +483,13 @@ export default function Dashboard({
   const [analyzedRatingsMatchIds, setAnalyzedRatingsMatchIds] = useState<
     number[]
   >([]);
+  const [matrixNewMarkers, setMatrixNewMarkers] = useState<MatrixNewMarkers>(
+    buildEmptyMatrixNewMarkers
+  );
+  const [debugMatrixNewMarkersActive, setDebugMatrixNewMarkersActive] =
+    useState(false);
+  const [debugMatrixNewMarkers, setDebugMatrixNewMarkers] =
+    useState<MatrixNewMarkers>(buildEmptyMatrixNewMarkers);
   const [orderedPlayerIds, setOrderedPlayerIds] = useState<number[] | null>(
     null
   );
@@ -463,6 +515,51 @@ export default function Dashboard({
     if (typeof progressPct === "number") {
       setPlayerRefreshProgressPct(Math.max(0, Math.min(100, progressPct)));
     }
+  };
+  const applyRandomDebugNewMarkers = () => {
+    if (debugMatrixNewMarkersActive) {
+      setDebugMatrixNewMarkersActive(false);
+      return;
+    }
+    if (!playerList.length) return;
+    const randomCount = (max: number) => Math.max(1, Math.min(max, Math.ceil(Math.random() * max)));
+    const pickUnique = <T,>(items: T[], count: number) => {
+      const shuffled = [...items].sort(() => Math.random() - 0.5);
+      return shuffled.slice(0, Math.max(1, Math.min(count, shuffled.length)));
+    };
+    const playerIds = playerList.map((player) => player.YouthPlayerID);
+    const selectedPlayers = pickUnique(playerIds, randomCount(Math.min(3, playerIds.length)));
+    const ratingPositions = (
+      ratingsMatrixData?.response.positions.length
+        ? ratingsMatrixData.response.positions
+        : POSITION_COLUMNS
+    ).map((position) => Number(position));
+    const skillKeys = TRAINING_SKILLS.map(
+      (key) => TRAINING_SKILL_VALUE_KEYS[key].current
+    );
+    const nextMarkers: MatrixNewMarkers = {
+      detectedAt: Date.now(),
+      playerIds: selectedPlayers,
+      ratingsByPlayerId: {},
+      skillsCurrentByPlayerId: {},
+      skillsMaxByPlayerId: {},
+    };
+
+    selectedPlayers.forEach((playerId) => {
+      const skillSample = pickUnique(skillKeys, randomCount(Math.min(3, skillKeys.length)));
+      nextMarkers.skillsCurrentByPlayerId[playerId] = skillSample;
+      nextMarkers.skillsMaxByPlayerId[playerId] = pickUnique(
+        skillKeys,
+        randomCount(Math.min(2, skillKeys.length))
+      );
+      nextMarkers.ratingsByPlayerId[playerId] = pickUnique(
+        ratingPositions,
+        randomCount(Math.min(3, ratingPositions.length))
+      );
+    });
+    setDebugMatrixNewMarkers(nextMarkers);
+    setDebugMatrixNewMarkersActive(true);
+    addNotification(messages.notificationDebugNewMarkers);
   };
 
   useEffect(() => {
@@ -513,6 +610,10 @@ export default function Dashboard({
 
   const changelogEntries = useMemo(
     () => [
+      {
+        version: "2.22.0",
+        entries: [messages.changelog_2_22_0],
+      },
       {
         version: "2.21.0",
         entries: [messages.changelog_2_21_0],
@@ -662,6 +763,7 @@ export default function Dashboard({
       messages.changelog_2_16_0,
       messages.changelog_2_17_0,
       messages.changelog_2_18_0,
+      messages.changelog_2_22_0,
       messages.changelog_2_21_0,
       messages.changelog_2_20_0,
       messages.changelog_2_19_0,
@@ -818,6 +920,26 @@ export default function Dashboard({
     };
   }, [playerList, ratingsCache, ratingsPositions, ratingsResponseState]);
 
+  const activeMatrixNewMarkers = useMemo(
+    () => (debugMatrixNewMarkersActive ? debugMatrixNewMarkers : matrixNewMarkers),
+    [debugMatrixNewMarkersActive, debugMatrixNewMarkers, matrixNewMarkers]
+  );
+
+  const listNewMarkerPlayerIds = useMemo(() => {
+    const next = new Set<number>(activeMatrixNewMarkers.playerIds);
+    Object.keys(activeMatrixNewMarkers.ratingsByPlayerId).forEach((id) =>
+      next.add(Number(id))
+    );
+    Object.keys(activeMatrixNewMarkers.skillsCurrentByPlayerId).forEach((id) =>
+      next.add(Number(id))
+    );
+    Object.keys(activeMatrixNewMarkers.skillsMaxByPlayerId).forEach((id) =>
+      next.add(Number(id))
+    );
+    const validIds = new Set(playerList.map((player) => player.YouthPlayerID));
+    return Array.from(next).filter((id) => validIds.has(id));
+  }, [activeMatrixNewMarkers, playerList]);
+
   const skillsMatrixRows = useMemo(
     () =>
       playerList.map((player) => ({
@@ -866,6 +988,7 @@ export default function Dashboard({
         hiddenSpecialtyByPlayerId?: Record<number, number>;
         analyzedHiddenSpecialtyMatchIds?: number[];
         analyzedRatingsMatchIds?: number[];
+        matrixNewMarkers?: MatrixNewMarkers;
       };
       if (parsed.assignments) setAssignments(parsed.assignments);
       if (parsed.behaviors) setBehaviors(parsed.behaviors);
@@ -907,6 +1030,9 @@ export default function Dashboard({
       if (parsed.analyzedRatingsMatchIds !== undefined) {
         setAnalyzedRatingsMatchIds(parsed.analyzedRatingsMatchIds);
       }
+      if (parsed.matrixNewMarkers) {
+        setMatrixNewMarkers(parsed.matrixNewMarkers);
+      }
     } catch {
       // ignore restore errors
     } finally {
@@ -934,6 +1060,7 @@ export default function Dashboard({
       hiddenSpecialtyByPlayerId,
       analyzedHiddenSpecialtyMatchIds,
       analyzedRatingsMatchIds,
+      matrixNewMarkers,
     };
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(payload));
@@ -957,6 +1084,7 @@ export default function Dashboard({
     hiddenSpecialtyByPlayerId,
     analyzedHiddenSpecialtyMatchIds,
     analyzedRatingsMatchIds,
+    matrixNewMarkers,
     storageKey,
     restoredStorageKey,
   ]);
@@ -1188,6 +1316,20 @@ export default function Dashboard({
     window.addEventListener("ya:changelog-open", handler);
     return () => window.removeEventListener("ya:changelog-open", handler);
   }, []);
+
+  useEffect(() => {
+    if (!isDev) return;
+    if (typeof window === "undefined") return;
+    const handler = () => applyRandomDebugNewMarkers();
+    window.addEventListener(YOUTH_NEW_MARKERS_DEBUG_EVENT, handler);
+    return () => window.removeEventListener(YOUTH_NEW_MARKERS_DEBUG_EVENT, handler);
+  }, [
+    isDev,
+    debugMatrixNewMarkersActive,
+    playerList,
+    ratingsMatrixData,
+    messages.notificationDebugNewMarkers,
+  ]);
 
   useEffect(() => {
     if (!showOptimizerDebug) return;
@@ -1530,7 +1672,7 @@ export default function Dashboard({
     const cached = cache[playerId];
     const isFresh =
       cached && Date.now() - cached.fetchedAt < DETAILS_TTL_MS;
-    if (!forceRefresh && cached && isFresh) return;
+    if (!forceRefresh && cached && isFresh) return cached.data;
 
     try {
       const { response, payload } = await fetchChppJson<PlayerDetailsResponse>(
@@ -1538,7 +1680,7 @@ export default function Dashboard({
         { cache: "no-store" }
       );
       if (!response.ok || payload?.error) {
-        return;
+        return null;
       }
       const resolved = payload?.data ?? null;
       if (resolved) {
@@ -1553,9 +1695,11 @@ export default function Dashboard({
       if (payload?.unlockStatus) {
         setUnlockStatus(payload.unlockStatus);
       }
+      return resolved;
     } catch (error) {
-      if (error instanceof ChppAuthRequiredError) return;
+      if (error instanceof ChppAuthRequiredError) return null;
       // ignore hover failures
+      return null;
     }
   };
 
@@ -2188,9 +2332,11 @@ export default function Dashboard({
     matchesPayload?: MatchesResponse | null,
     options?: {
       playersChanged?: boolean;
+      playersOverride?: YouthPlayer[];
     }
-  ) => {
+  ): Promise<RefreshRatingsResult> => {
     const teamId = teamIdOverride ?? activeYouthTeamId;
+    const nextPlayers = options?.playersOverride ?? playerList;
     try {
       setYouthRefreshStatus(messages.refreshStatusFetchingMatches, 70);
       const formatArchiveDate = (date: Date) => date.toISOString().slice(0, 10);
@@ -2211,7 +2357,11 @@ export default function Dashboard({
         );
       if (!archiveResponse.ok || archivePayload?.error) {
         setRatingsResponseState(null);
-        return false;
+        return {
+          ok: false,
+          ratingsByPlayerId: null,
+          positions: null,
+        };
       }
 
       setYouthRefreshStatus(messages.refreshStatusFetchingRatings, 78);
@@ -2252,11 +2402,19 @@ export default function Dashboard({
           positions: POSITION_COLUMNS,
           players: [],
         });
-        return true;
+        return {
+          ok: true,
+          ratingsByPlayerId: {},
+          positions: POSITION_COLUMNS,
+        };
       }
 
       if (!shouldTraverseRatings) {
-        return true;
+        return {
+          ok: true,
+          ratingsByPlayerId: null,
+          positions: null,
+        };
       }
 
       const playersMap = new Map<
@@ -2357,6 +2515,14 @@ export default function Dashboard({
         players: Array.from(playersMap.values()),
       });
 
+      const ratingsByPlayerId: Record<number, Record<string, number>> = {};
+      nextPlayers.forEach((player) => {
+        ratingsByPlayerId[player.YouthPlayerID] = {};
+      });
+      playersMap.forEach((entry, playerId) => {
+        ratingsByPlayerId[playerId] = { ...entry.ratings };
+      });
+
       try {
         const alreadyAnalyzedMatchIds = new Set(analyzedHiddenSpecialtyMatchIds);
         const hasUnanalyzedFinishedMatch = finishedMatches.some(
@@ -2366,12 +2532,16 @@ export default function Dashboard({
           Boolean(options?.playersChanged) || hasUnanalyzedFinishedMatch;
 
         if (!shouldScanHiddenSpecialties) {
-          return true;
+          return {
+            ok: true,
+            ratingsByPlayerId,
+            positions: POSITION_COLUMNS,
+          };
         }
 
         setYouthRefreshStatus(messages.refreshStatusFetchingHiddenSpecialties, 89);
         const knownSpecialties = new Map<number, number>();
-        playerList.forEach((player) => {
+        nextPlayers.forEach((player) => {
           const specialty = Number(player.Specialty ?? 0);
           if (Number.isFinite(specialty) && specialty > 0) {
             knownSpecialties.set(player.YouthPlayerID, specialty);
@@ -2395,10 +2565,10 @@ export default function Dashboard({
           }
         });
         const youthPlayerIds = new Set(
-          playerList.map((player) => player.YouthPlayerID)
+          nextPlayers.map((player) => player.YouthPlayerID)
         );
         const unresolvedPlayerIds = new Set(
-          playerList
+          nextPlayers
             .map((player) => player.YouthPlayerID)
             .filter((playerId) => {
               const known = knownSpecialties.get(playerId);
@@ -2533,11 +2703,25 @@ export default function Dashboard({
       } catch {
         // Keep refreshed ratings even if hidden-specialty enrichment fails.
       }
-      return true;
+      return {
+        ok: true,
+        ratingsByPlayerId,
+        positions: POSITION_COLUMNS,
+      };
     } catch (error) {
-      if (error instanceof ChppAuthRequiredError) return false;
+      if (error instanceof ChppAuthRequiredError) {
+        return {
+          ok: false,
+          ratingsByPlayerId: null,
+          positions: null,
+        };
+      }
       setRatingsResponseState(null);
-      return false;
+      return {
+        ok: false,
+        ratingsByPlayerId: null,
+        positions: null,
+      };
     }
   };
 
@@ -2557,8 +2741,23 @@ export default function Dashboard({
       typeof teamIdOverride === "number" || teamIdOverride === null
         ? teamIdOverride ?? activeYouthTeamId
         : activeYouthTeamId;
+    const previousPlayersSnapshot = playerList;
+    const previousDetailsByIdSnapshot = new Map<number, YouthPlayerDetails>(
+      playerDetailsById
+    );
+    const previousRatingsCacheSnapshot = ratingsCache;
+    const previousRatingsPositionsSnapshot = ratingsPositions;
     let playersUpdated = false;
     let playerIdsChanged = false;
+    let nextPlayersSnapshot: YouthPlayer[] = playerList;
+    const nextDetailsByPlayerId = new Map<number, YouthPlayerDetails>(
+      previousDetailsByIdSnapshot
+    );
+    let ratingsResult: RefreshRatingsResult = {
+      ok: true,
+      ratingsByPlayerId: null,
+      positions: null,
+    };
     try {
       const teamParam = teamId ? `&youthTeamID=${teamId}` : "";
       const { response, payload } = await fetchChppJson<{
@@ -2589,6 +2788,7 @@ export default function Dashboard({
       }
       const raw = payload?.data?.HattrickData?.PlayerList?.YouthPlayer;
       const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
+      nextPlayersSnapshot = list;
       const previousPlayerIds = new Set(
         playerList.map((player) => player.YouthPlayerID)
       );
@@ -2611,12 +2811,26 @@ export default function Dashboard({
       if (refreshAll) {
         setYouthRefreshStatus(messages.refreshStatusFetchingPlayerDetails, 42);
         const ids = list.map((player) => player.YouthPlayerID);
-        const detailIds = nextSelectedId
-          ? ids.filter((id) => id !== nextSelectedId)
-          : ids;
-        await Promise.all(detailIds.map((id) => ensureDetails(id, true)));
+        const detailResponses = await Promise.all(
+          ids.map(async (id) => {
+            const detailRaw = await ensureDetails(id, true);
+            return { id, detailRaw };
+          })
+        );
+        detailResponses.forEach(({ id, detailRaw }) => {
+          const resolved = resolveDetails(detailRaw);
+          if (resolved) {
+            nextDetailsByPlayerId.set(id, resolved);
+          }
+        });
         if (nextSelectedId) {
-          await loadDetails(nextSelectedId, true);
+          const selectedRaw = detailResponses.find(
+            (entry) => entry.id === nextSelectedId
+          )?.detailRaw;
+          if (selectedRaw) {
+            setDetails(selectedRaw);
+            setError(null);
+          }
         }
       }
       if (options?.reason === "stale") {
@@ -2648,9 +2862,103 @@ export default function Dashboard({
           setMatchesState(matchesResult.payload);
         }
         matchesOk = matchesResult.ok;
-        ratingsOk = await refreshRatings(teamId, matchesResult.payload ?? null, {
+        ratingsResult = await refreshRatings(teamId, matchesResult.payload ?? null, {
           playersChanged: playerIdsChanged,
+          playersOverride: nextPlayersSnapshot,
         });
+        ratingsOk = ratingsResult.ok;
+      }
+      if (playersUpdated && refreshAll) {
+        const nextMarkers = buildEmptyMatrixNewMarkers();
+        const previousPlayersById = new Map(
+          previousPlayersSnapshot.map((player) => [player.YouthPlayerID, player])
+        );
+        const nextRatingsByPlayerId =
+          ratingsResult.ratingsByPlayerId ??
+          nextPlayersSnapshot.reduce<Record<number, Record<string, number>>>(
+            (acc, player) => {
+              acc[player.YouthPlayerID] = {
+                ...(previousRatingsCacheSnapshot[player.YouthPlayerID] ?? {}),
+              };
+              return acc;
+            },
+            {}
+          );
+        const positionsToCompare = Array.from(
+          new Set<number>([
+            ...POSITION_COLUMNS,
+            ...previousRatingsPositionsSnapshot,
+            ...(ratingsResult.positions ?? []),
+          ])
+        );
+        const addSkillMarker = (
+          target: Record<number, string[]>,
+          playerId: number,
+          skillKey: string
+        ) => {
+          const existing = target[playerId] ?? [];
+          if (existing.includes(skillKey)) return;
+          target[playerId] = [...existing, skillKey];
+        };
+        const addRatingMarker = (playerId: number, position: number) => {
+          const existing = nextMarkers.ratingsByPlayerId[playerId] ?? [];
+          if (existing.includes(position)) return;
+          nextMarkers.ratingsByPlayerId[playerId] = [...existing, position];
+        };
+
+        nextPlayersSnapshot.forEach((player) => {
+          const playerId = player.YouthPlayerID;
+          const previousPlayer = previousPlayersById.get(playerId) ?? null;
+          if (!previousPlayer) {
+            nextMarkers.playerIds.push(playerId);
+          }
+          const previousMerged = mergedSkills(
+            previousDetailsByIdSnapshot.get(playerId)?.PlayerSkills,
+            previousPlayer?.PlayerSkills
+          );
+          const nextMerged = mergedSkills(
+            nextDetailsByPlayerId.get(playerId)?.PlayerSkills,
+            player.PlayerSkills
+          );
+
+          TRAINING_SKILLS.forEach((trainingSkill) => {
+            const keys = TRAINING_SKILL_VALUE_KEYS[trainingSkill];
+            const previousCurrent = getKnownSkillValue(previousMerged?.[keys.current]);
+            const nextCurrent = getKnownSkillValue(nextMerged?.[keys.current]);
+            if (
+              nextCurrent !== null &&
+              (previousCurrent === null || previousCurrent !== nextCurrent)
+            ) {
+              addSkillMarker(nextMarkers.skillsCurrentByPlayerId, playerId, keys.current);
+            }
+
+            const previousMax = getKnownSkillValue(previousMerged?.[keys.max]);
+            const nextMax = getKnownSkillValue(nextMerged?.[keys.max]);
+            if (nextMax !== null && (previousMax === null || previousMax !== nextMax)) {
+              addSkillMarker(nextMarkers.skillsMaxByPlayerId, playerId, keys.current);
+            }
+          });
+
+          const previousRatings = previousRatingsCacheSnapshot[playerId] ?? {};
+          const nextRatings = nextRatingsByPlayerId[playerId] ?? {};
+          positionsToCompare.forEach((position) => {
+            const previousValueRaw = previousRatings[String(position)];
+            const nextValueRaw = nextRatings[String(position)];
+            const previousValue =
+              typeof previousValueRaw === "number" ? previousValueRaw : null;
+            const nextValue = typeof nextValueRaw === "number" ? nextValueRaw : null;
+            if (nextValue !== null && (previousValue === null || previousValue !== nextValue)) {
+              addRatingMarker(playerId, position);
+            }
+          });
+        });
+
+        if (hasAnyMatrixNewMarkers(nextMarkers)) {
+          setMatrixNewMarkers({
+            ...nextMarkers,
+            detectedAt: Date.now(),
+          });
+        }
       }
       if (
         playersUpdated &&
@@ -3272,6 +3580,7 @@ export default function Dashboard({
           }}
           onOrderChange={(ids) => applyPlayerOrder(ids, "list")}
           hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
+          newMarkerPlayerIds={listNewMarkerPlayerIds}
           messages={messages}
         />
       </div>
@@ -3345,6 +3654,14 @@ export default function Dashboard({
                     Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0,
                 ])
               )}
+              matrixNewPlayerIds={activeMatrixNewMarkers.playerIds}
+              matrixNewRatingsByPlayerId={activeMatrixNewMarkers.ratingsByPlayerId}
+              matrixNewSkillsCurrentByPlayerId={
+                activeMatrixNewMarkers.skillsCurrentByPlayerId
+              }
+              matrixNewSkillsMaxByPlayerId={
+                activeMatrixNewMarkers.skillsMaxByPlayerId
+              }
               hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
               onSelectRatingsPlayer={(playerName) => {
                 const match = playerList.find(

@@ -41,6 +41,7 @@ import {
   hattrickSeriesUrl,
   hattrickTeamUrl,
   hattrickTeamPlayersUrl,
+  hattrickTeamTransfersUrl,
 } from "@/lib/hattrick/urls";
 import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
 
@@ -1431,14 +1432,123 @@ const writeGlobalBaseline = (payload: ChronicleCache | null) => {
   }
 };
 
-const readGlobalUpdatesHistory = (): ChronicleGlobalUpdateEntry[] => {
+const parseInjurySummaryEntries = (value: string | null | undefined) => {
+  if (!value) return [] as Array<{ label: string; status: string; raw: string }>;
+  return value
+    .split(/\s*,\s*/)
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .map((entry) => {
+      const match = entry.match(/^(.*)\s+(🩹|(?:✚|\+).*)$/);
+      if (!match) {
+        const separatorIndex = entry.lastIndexOf(" ");
+        if (separatorIndex <= 0 || separatorIndex >= entry.length - 1) {
+          return null;
+        }
+        const label = entry.slice(0, separatorIndex).trim();
+        const status = entry.slice(separatorIndex + 1).trim();
+        if (!label || !status) return null;
+        return {
+          label,
+          status,
+          raw: entry,
+        };
+      }
+      return {
+        label: match[1].trim(),
+        status: match[2].trim(),
+        raw: entry,
+      };
+    })
+    .filter(
+      (entry): entry is { label: string; status: string; raw: string } =>
+        Boolean(entry)
+    );
+};
+
+const migrateInjuryHistoryEntry = (
+  historyEntry: ChronicleGlobalUpdateEntry,
+  healthyLabel: string
+): ChronicleGlobalUpdateEntry => {
+  if (!historyEntry.updates) return historyEntry;
+  let didChange = false;
+  const migratedTeams = Object.fromEntries(
+    Object.entries(historyEntry.updates.teams).map(([teamId, teamUpdate]) => {
+      const nextChanges = teamUpdate.changes.map((change) => {
+        if (change.fieldKey !== "wages.injury") return change;
+        const previousParsed = parseInjurySummaryEntries(change.previous);
+        const currentParsed = parseInjurySummaryEntries(change.current);
+        if (previousParsed.length === 0 && currentParsed.length === 0) {
+          return change;
+        }
+        const previousMap = new Map(
+          previousParsed.map((entry) => [entry.label, entry.status])
+        );
+        const currentMap = new Map(
+          currentParsed.map((entry) => [entry.label, entry.status])
+        );
+        const orderedLabels = Array.from(
+          new Set([
+            ...previousParsed.map((entry) => entry.label),
+            ...currentParsed.map((entry) => entry.label),
+          ])
+        );
+        const changedLabels = orderedLabels.filter(
+          (label) => previousMap.get(label) !== currentMap.get(label)
+        );
+        if (changedLabels.length === 0) {
+          return change;
+        }
+        const nextPrevious = changedLabels
+          .map((label) => `${label} ${previousMap.get(label) ?? healthyLabel}`)
+          .join(", ");
+        const nextCurrent = changedLabels
+          .map((label) => `${label} ${currentMap.get(label) ?? healthyLabel}`)
+          .join(", ");
+        const migratedChange: ChronicleUpdateField = {
+          ...change,
+          previous: nextPrevious || healthyLabel,
+          current: nextCurrent || healthyLabel,
+        };
+        if (
+          migratedChange.previous !== change.previous ||
+          migratedChange.current !== change.current
+        ) {
+          didChange = true;
+        }
+        return migratedChange;
+      });
+      return [teamId, { ...teamUpdate, changes: nextChanges }];
+    })
+  ) as ChronicleUpdates["teams"];
+  if (!didChange) return historyEntry;
+  return {
+    ...historyEntry,
+    updates: {
+      ...historyEntry.updates,
+      teams: migratedTeams,
+    },
+  };
+};
+
+const readGlobalUpdatesHistory = (
+  healthyLabel = "Healthy"
+): ChronicleGlobalUpdateEntry[] => {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(GLOBAL_UPDATES_HISTORY_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as ChronicleGlobalUpdateEntry[];
     if (!Array.isArray(parsed)) return [];
-    return parsed.filter((entry) => entry?.hasChanges && !!entry?.updates);
+    const filtered = parsed.filter((entry) => entry?.hasChanges && !!entry?.updates);
+    const migrated = filtered.map((entry) =>
+      migrateInjuryHistoryEntry(entry, healthyLabel)
+    );
+    const hadMigration = migrated.some((entry, index) => entry !== filtered[index]);
+    if (hadMigration) {
+      writeGlobalUpdatesHistory(migrated);
+    }
+    return migrated;
   } catch {
     return [];
   }
@@ -1732,6 +1842,10 @@ const getLatestCacheTimestamp = (cache: ChronicleCache): number | null => {
 };
 
 export default function ClubChronicle({ messages }: ClubChronicleProps) {
+  const initialGlobalUpdatesHistory = useMemo(
+    () => readGlobalUpdatesHistory(messages.clubChronicleInjuryHealthy),
+    [messages.clubChronicleInjuryHealthy]
+  );
   const chronicleRootRef = useRef<HTMLDivElement | null>(null);
   const [supportedTeams, setSupportedTeams] = useState<SupportedTeam[]>([]);
   const [supportedSelections, setSupportedSelections] = useState<
@@ -1757,7 +1871,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [globalUpdatesHistory, setGlobalUpdatesHistory] = useState<
     ChronicleGlobalUpdateEntry[]
   >(() =>
-    readGlobalUpdatesHistory().slice(
+    initialGlobalUpdatesHistory.slice(
       0,
       DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT
     )
@@ -1766,10 +1880,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     readLastRefresh()
   );
   const [lastGlobalComparedAt, setLastGlobalComparedAt] = useState<number | null>(
-    () => readGlobalUpdatesHistory()[0]?.comparedAt ?? null
+    () => initialGlobalUpdatesHistory[0]?.comparedAt ?? null
   );
   const [lastGlobalHadChanges, setLastGlobalHadChanges] = useState<boolean>(() => {
-    const latest = readGlobalUpdatesHistory()[0];
+    const latest = initialGlobalUpdatesHistory[0];
     return latest ? latest.hasChanges : true;
   });
   const [updatesOpen, setUpdatesOpen] = useState(false);
@@ -4016,6 +4130,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         fieldKey === "transfer.listed"
       ) {
         href = hattrickTeamPlayersUrl(teamId);
+      } else if (fieldKey === "transfer.history") {
+        href = hattrickTeamTransfersUrl(teamId);
       } else if (
         fieldKey === "league.goalsDelta" ||
         fieldKey === "league.record" ||

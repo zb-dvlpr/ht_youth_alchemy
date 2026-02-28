@@ -260,6 +260,9 @@ export const messagesIt: Messages = {
     clubChronicleArenaColumnCapacity: "Capacità totale",
     clubChronicleArenaColumnRebuiltDate: "Data ultimo ampliamento",
     clubChronicleArenaConstructionTooltip: "Espansione stadio in corso",
+    clubChronicleArenaRebuiltDateUnderConstruction: "Attualmente in costruzione",
+    clubChronicleArenaRebuiltDateNoHistory:
+      "Nessun ampliamento da quando questa squadra ha preso in gestione",
     clubChronicleArenaDetailsTitle: "Dettagli stadio",
     clubChronicleArenaDetailsMetric: "Metrica",
     clubChronicleArenaDetailsCurrentCapacity: "Capacità totale",
@@ -352,6 +355,8 @@ export const messagesIt: Messages = {
     clubChronicleTransferHistoryAgeAtTransferColumn: "Età al trasferimento",
     clubChronicleTransferHistoryPlayerColumn: "Giocatore",
     clubChronicleTransferHistoryPriceColumn: "Prezzo",
+    clubChronicleTransferPlayersSold: "Giocatori venduti",
+    clubChronicleTransferPlayersBought: "Giocatori acquistati",
     clubChronicleTransferTypeSale: "Vendita",
     clubChronicleTransferTypeBuy: "Acquisto",
     clubChronicleTsiPanelTitle: "TSI",

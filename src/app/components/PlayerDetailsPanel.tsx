@@ -7,7 +7,7 @@ import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
 import { positionLabelShortByRoleId } from "@/lib/positions";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { getSkillMaxReached } from "@/lib/skills";
-import { hattrickYouthPlayerUrl } from "@/lib/hattrick/urls";
+import { hattrickPlayerUrl, hattrickYouthPlayerUrl } from "@/lib/hattrick/urls";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -64,6 +64,7 @@ type PlayerDetailsPanelProps = {
   playerDetailsById: Map<number, YouthPlayerDetails>;
   skillsMatrixRows: { id: number | null; name: string }[];
   ratingsMatrixResponse: RatingsMatrixResponse | null;
+  ratingsMatrixMatchHrefBuilder?: (matchId: number) => string;
   ratingsMatrixSelectedName: string | null;
   ratingsMatrixSpecialtyByName: Record<string, number | undefined>;
   ratingsMatrixHiddenSpecialtyByName?: Record<string, boolean>;
@@ -83,10 +84,11 @@ type PlayerDetailsPanelProps = {
   hasNextPlayer?: boolean;
   onPreviousPlayer?: () => void;
   onNextPlayer?: () => void;
+  playerKind?: "youth" | "senior";
+  skillMode?: "currentMax" | "single";
+  maxSkillLevel?: number;
   messages: Messages;
 };
-
-const MAX_SKILL_LEVEL = 8;
 
 const SKILL_ROWS = [
   {
@@ -134,7 +136,7 @@ const SKILL_ROWS = [
 ];
 
 function getSkillLevel(skill?: SkillValue | number | string | null): number | null {
-  if (!skill) return null;
+  if (skill === null || skill === undefined) return null;
   if (typeof skill === "number") return skill;
   if (typeof skill === "string") {
     const numeric = Number(skill);
@@ -147,7 +149,7 @@ function getSkillLevel(skill?: SkillValue | number | string | null): number | nu
 }
 
 function getSkillMax(skill?: SkillValue | number | string | null): number | null {
-  if (!skill) return null;
+  if (skill === null || skill === undefined) return null;
   if (typeof skill === "number") return skill;
   if (typeof skill === "string") {
     const numeric = Number(skill);
@@ -159,11 +161,21 @@ function getSkillMax(skill?: SkillValue | number | string | null): number | null
   return Number.isNaN(numeric) ? null : numeric;
 }
 
-function skillCellColor(value: number | null) {
+function skillCellColor(
+  value: number | null,
+  minSkillLevel: number,
+  maxSkillLevel: number
+) {
   if (value === null || value === undefined) {
     return undefined;
   }
-  const normalized = Math.min(Math.max((value - 1) / 6, 0), 1);
+  if (maxSkillLevel <= minSkillLevel) {
+    return undefined;
+  }
+  const normalized = Math.min(
+    Math.max((value - minSkillLevel) / (maxSkillLevel - minSkillLevel), 0),
+    1
+  );
   const hue = 120 * normalized;
   const alpha = 0.2 + normalized * 0.35;
   return `hsla(${hue}, 70%, 38%, ${alpha})`;
@@ -200,6 +212,7 @@ export default function PlayerDetailsPanel({
   playerDetailsById,
   skillsMatrixRows,
   ratingsMatrixResponse,
+  ratingsMatrixMatchHrefBuilder,
   ratingsMatrixSelectedName,
   ratingsMatrixSpecialtyByName,
   ratingsMatrixHiddenSpecialtyByName,
@@ -219,6 +232,9 @@ export default function PlayerDetailsPanel({
   hasNextPlayer = false,
   onPreviousPlayer,
   onNextPlayer,
+  playerKind = "youth",
+  skillMode = "currentMax",
+  maxSkillLevel = 8,
   messages,
 }: PlayerDetailsPanelProps) {
   const [activeTab, setActiveTab] = useState<
@@ -271,8 +287,10 @@ export default function PlayerDetailsPanel({
       const maxA = getSkillMax(skillsA?.[`${skillsSortKey}Max`]);
       const currentB = getSkillLevel(skillsB?.[skillsSortKey]);
       const maxB = getSkillMax(skillsB?.[`${skillsSortKey}Max`]);
-      const sumA = (currentA ?? 0) + (maxA ?? 0);
-      const sumB = (currentB ?? 0) + (maxB ?? 0);
+      const sumA =
+        skillMode === "single" ? (currentA ?? 0) : (currentA ?? 0) + (maxA ?? 0);
+      const sumB =
+        skillMode === "single" ? (currentB ?? 0) : (currentB ?? 0) + (maxB ?? 0);
       if (sumA === sumB) return 0;
       return (sumA - sumB) * direction;
     });
@@ -280,6 +298,7 @@ export default function PlayerDetailsPanel({
     playerById,
     playerDetailsById,
     skillsMatrixRows,
+    skillMode,
     skillsSortDir,
     skillsSortKey,
   ]);
@@ -584,7 +603,11 @@ export default function PlayerDetailsPanel({
                 {playerId}
                 <a
                   className={styles.infoLinkIcon}
-                  href={hattrickYouthPlayerUrl(playerId)}
+                  href={
+                    playerKind === "senior"
+                      ? hattrickPlayerUrl(playerId)
+                      : hattrickYouthPlayerUrl(playerId)
+                  }
                   target="_blank"
                   rel="noreferrer"
                   aria-label={messages.playerLinkLabel}
@@ -643,10 +666,10 @@ export default function PlayerDetailsPanel({
                 : messages.unknownShort;
               const maxText = hasMax ? String(max) : messages.unknownShort;
               const currentPct = hasCurrent
-                ? Math.min(100, (current / MAX_SKILL_LEVEL) * 100)
+                ? Math.min(100, (current / maxSkillLevel) * 100)
                 : null;
               const maxPct = hasMax
-                ? Math.min(100, (max / MAX_SKILL_LEVEL) * 100)
+                ? Math.min(100, (max / maxSkillLevel) * 100)
                 : null;
 
               return (
@@ -654,7 +677,16 @@ export default function PlayerDetailsPanel({
                   <div className={styles.skillLabel}>
                     {messages[row.labelKey as keyof Messages]}
                   </div>
-                  {isMaxed ? (
+                  {skillMode === "single" ? (
+                    <div className={styles.skillBar}>
+                      {hasCurrent ? (
+                        <div
+                          className={styles.skillFillCurrent}
+                          style={{ width: `${currentPct}%` }}
+                        />
+                      ) : null}
+                    </div>
+                  ) : isMaxed ? (
                     <Tooltip content={messages.skillMaxedTooltip} fullWidth>
                       <div className={`${styles.skillBar} ${styles.skillBarMaxed}`}>
                         {hasMax ? (
@@ -687,25 +719,38 @@ export default function PlayerDetailsPanel({
                       ) : null}
                     </div>
                   )}
-                  <div className={styles.skillValue}>
-                    <span className={styles.skillValuePartWithFlag}>
-                      <span>{currentText}</span>
-                      {isNewCurrent ? (
-                        <span className={styles.matrixNewPill}>
-                          {messages.matrixNewPillLabel}
-                        </span>
-                      ) : null}
-                    </span>
-                    /
-                    <span className={styles.skillValuePartWithFlag}>
-                      <span>{maxText}</span>
-                      {isNewMax ? (
-                        <span className={styles.matrixNewPill}>
-                          {messages.matrixNewPillLabel}
-                        </span>
-                      ) : null}
-                    </span>
-                  </div>
+                  {skillMode === "single" ? (
+                    <div className={styles.skillValue}>
+                      <span className={styles.skillValuePartWithFlag}>
+                        <span>{currentText}</span>
+                        {isNewCurrent ? (
+                          <span className={styles.matrixNewPill}>
+                            {messages.matrixNewPillLabel}
+                          </span>
+                        ) : null}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className={styles.skillValue}>
+                      <span className={styles.skillValuePartWithFlag}>
+                        <span>{currentText}</span>
+                        {isNewCurrent ? (
+                          <span className={styles.matrixNewPill}>
+                            {messages.matrixNewPillLabel}
+                          </span>
+                        ) : null}
+                      </span>
+                      /
+                      <span className={styles.skillValuePartWithFlag}>
+                        <span>{maxText}</span>
+                        {isNewMax ? (
+                          <span className={styles.matrixNewPill}>
+                            {messages.matrixNewPillLabel}
+                          </span>
+                        ) : null}
+                      </span>
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -855,8 +900,24 @@ export default function PlayerDetailsPanel({
                     const currentText =
                       current === null ? messages.unknownShort : String(current);
                     const maxText = max === null ? messages.unknownShort : String(max);
-                    const currentColor = skillCellColor(current);
-                    const maxColor = skillCellColor(max);
+                    const currentColor = skillCellColor(current, 0, maxSkillLevel);
+                    const maxColor = skillCellColor(max, 0, maxSkillLevel);
+                    if (skillMode === "single") {
+                      return (
+                        <td key={skill.key} className={styles.matrixCell}>
+                          <span
+                            className={styles.skillsMatrixHalf}
+                            style={
+                              currentColor
+                                ? { backgroundColor: currentColor }
+                                : undefined
+                            }
+                          >
+                            {currentText}
+                          </span>
+                        </td>
+                      );
+                    }
                     const cellContent = (
                       <div
                         className={`${styles.skillsMatrixSplit} ${
@@ -964,6 +1025,7 @@ export default function PlayerDetailsPanel({
           response={ratingsMatrixResponse}
           showTitle={false}
           messages={messages}
+          matchHrefBuilder={ratingsMatrixMatchHrefBuilder}
           specialtyByName={ratingsMatrixSpecialtyByName}
           hiddenSpecialtyByName={ratingsMatrixHiddenSpecialtyByName}
           newPlayerIds={matrixNewPlayerIds}

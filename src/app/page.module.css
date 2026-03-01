@@ -1036,6 +1036,22 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   gap: 3px;
 }
 
+.matrixRatingLink {
+  display: inline-flex;
+  color: inherit;
+  text-decoration: none;
+}
+
+.matrixRatingLink:hover {
+  text-decoration: underline;
+}
+
+.matrixRatingLink:focus-visible {
+  outline: 2px solid rgba(93, 80, 66, 0.35);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .matrixCellHasNew {
   position: relative;
 }

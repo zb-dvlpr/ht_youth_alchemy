@@ -61,6 +61,7 @@ import {
   writeChppDebugOauthErrorMode,
 } from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
+import { hattrickYouthMatchUrl } from "@/lib/hattrick/urls";
 
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
@@ -897,6 +898,21 @@ export default function Dashboard({
 
   const multiTeamEnabled = youthTeams.length > 1;
   const activeYouthTeamId = multiTeamEnabled ? selectedYouthTeamId : null;
+  const activeYouthTeamOption = useMemo(() => {
+    if (youthTeams.length === 0) return null;
+    if (!multiTeamEnabled) return youthTeams[0];
+    if (!selectedYouthTeamId) return youthTeams[0];
+    return (
+      youthTeams.find((team) => team.youthTeamId === selectedYouthTeamId) ??
+      youthTeams[0]
+    );
+  }, [multiTeamEnabled, selectedYouthTeamId, youthTeams]);
+  const ratingsMatrixMatchHrefBuilder = useMemo(() => {
+    const teamId = activeYouthTeamOption?.teamId;
+    const youthTeamId = activeYouthTeamOption?.youthTeamId;
+    if (!teamId || !youthTeamId) return undefined;
+    return (matchId: number) => hattrickYouthMatchUrl(matchId, teamId, youthTeamId);
+  }, [activeYouthTeamOption?.teamId, activeYouthTeamOption?.youthTeamId]);
   const storageKey = useMemo(() => {
     if (multiTeamEnabled && activeYouthTeamId) {
       return `ya_dashboard_state_v2_${activeYouthTeamId}`;
@@ -918,6 +934,14 @@ export default function Dashboard({
 
   const changelogEntries = useMemo(
     () => [
+      {
+        version: "3.0.0",
+        entries: [messages.changelog_3_0_0],
+      },
+      {
+        version: "2.24.0",
+        entries: [messages.changelog_2_24_0],
+      },
       {
         version: "2.23.0",
         entries: [messages.changelog_2_23_0],
@@ -1075,11 +1099,13 @@ export default function Dashboard({
       messages.changelog_2_16_0,
       messages.changelog_2_17_0,
       messages.changelog_2_18_0,
+      messages.changelog_2_24_0,
       messages.changelog_2_23_0,
       messages.changelog_2_22_0,
       messages.changelog_2_21_0,
       messages.changelog_2_20_0,
       messages.changelog_2_19_0,
+      messages.changelog_3_0_0,
     ]
   );
 
@@ -1214,10 +1240,14 @@ export default function Dashboard({
     if (playerList.length === 0) return null;
     const positions =
       ratingsResponseState?.positions ?? ratingsPositions ?? [];
+    const ratingMatchIdsByPlayerId = new Map(
+      (ratingsResponseState?.players ?? []).map((row) => [row.id, row.ratingMatchIds ?? {}])
+    );
     const players = playerList.map((player) => ({
       id: player.YouthPlayerID,
       name: formatPlayerName(player),
       ratings: ratingsCache[player.YouthPlayerID] ?? {},
+      ratingMatchIds: ratingMatchIdsByPlayerId.get(player.YouthPlayerID) ?? {},
     }));
     if (
       !ratingsResponseState &&
@@ -1229,6 +1259,7 @@ export default function Dashboard({
       response: {
         positions,
         players,
+        matchesAnalyzed: ratingsResponseState?.matchesAnalyzed,
       },
     };
   }, [playerList, ratingsCache, ratingsPositions, ratingsResponseState]);
@@ -2818,7 +2849,7 @@ export default function Dashboard({
           _sourceSystem:
             typeof match.SourceSystem === "string" && match.SourceSystem
               ? match.SourceSystem
-              : "Youth",
+              : "youth",
         }))
         .filter((match) => Number.isFinite(match._matchId))
         .sort((a, b) => b._date - a._date)
@@ -2836,6 +2867,7 @@ export default function Dashboard({
         setRatingsResponseState({
           positions: POSITION_COLUMNS,
           players: [],
+          matchesAnalyzed: 0,
         });
         return {
           ok: true,
@@ -2854,7 +2886,12 @@ export default function Dashboard({
 
       const playersMap = new Map<
         number,
-        { id: number; name: string; ratings: Record<string, number> }
+        {
+          id: number;
+          name: string;
+          ratings: Record<string, number>;
+          ratingMatchIds: Record<string, number>;
+        }
       >();
       const matchPlayerIdsByMatch = new Map<number, Set<number>>();
       const ratingsTraversedMatchIds = new Set<number>();
@@ -2866,7 +2903,7 @@ export default function Dashboard({
         async (match) => {
           try {
             const { response, payload } = await fetchChppJson<MatchLineupResponse>(
-              `/api/chpp/youth/match-lineup?matchId=${match._matchId}&teamId=${teamIdValue}`,
+              `/api/chpp/youth/match-lineup?matchId=${match._matchId}&teamId=${teamIdValue}&sourceSystem=youth`,
               { cache: "no-store" }
             );
             if (!response.ok || payload?.error) {
@@ -2923,6 +2960,7 @@ export default function Dashboard({
               id: playerId,
               name: fullName,
               ratings: {},
+              ratingMatchIds: {},
             });
           }
 
@@ -2932,6 +2970,7 @@ export default function Dashboard({
           const existing = entry.ratings[key];
           if (existing === undefined || rating > existing) {
             entry.ratings[key] = rating;
+            entry.ratingMatchIds[key] = result.matchId;
           }
         });
         matchPlayerIdsByMatch.set(result.matchId, matchPlayers);
@@ -2948,6 +2987,7 @@ export default function Dashboard({
       setRatingsResponseState({
         positions: POSITION_COLUMNS,
         players: Array.from(playersMap.values()),
+        matchesAnalyzed: ratingsTraversedMatchIds.size,
       });
 
       const ratingsByPlayerId: Record<number, Record<string, number>> = {};
@@ -3047,7 +3087,7 @@ export default function Dashboard({
               const { response, payload } =
                 await fetchChppJson<MatchDetailsEventsResponse>(
                   `/api/chpp/matchdetails?matchId=${match._matchId}&sourceSystem=${encodeURIComponent(
-                    match._sourceSystem
+                    "youth"
                   )}&matchEvents=true`,
                   { cache: "no-store" }
                 );
@@ -4377,6 +4417,7 @@ export default function Dashboard({
               playerDetailsById={playerDetailsById}
               skillsMatrixRows={skillsMatrixRows}
               ratingsMatrixResponse={ratingsMatrixData?.response ?? null}
+              ratingsMatrixMatchHrefBuilder={ratingsMatrixMatchHrefBuilder}
               ratingsMatrixSelectedName={
                 selectedPlayer ? formatPlayerName(selectedPlayer) : null
               }

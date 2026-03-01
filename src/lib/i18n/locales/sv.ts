@@ -11,6 +11,7 @@ export const messagesSv: Messages = {
     sidebarCollapseTooltip: "Fäll in sidofältet",
     sidebarExpandTooltip: "Fäll ut sidofältet",
     toolYouthOptimization: "Ungdomsoptimering",
+    toolSeniorOptimization: "Seniorlagsoptimering",
     toolClubChronicle: "Klubbkrönika",
     clubChronicleTitle: "Klubbkrönika",
     clubChronicleBody:
@@ -88,6 +89,10 @@ export const messagesSv: Messages = {
       "Ungdomsmatriser markerar nu nya/andrade eller nyupptackta skills/betyg och nya spelare med NEW-markeringar.",
     changelog_2_23_0:
       "Ungdomsoptimering far en Senaste uppdateringar-knapp med daterad NEW-historik.",
+    changelog_2_24_0:
+      "Seniorlagsoptimering tillagd med sorterbar spelarlista, skillsmatris med enkelvarden, betygsmatris och arbetsflode for uppstallning/matcher.",
+    changelog_3_0_0:
+      "Lansering av verktyget för seniorlagsoptimering.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -454,6 +459,7 @@ export const messagesSv: Messages = {
     playerDetailsNextPlayer: "Nästa spelare",
     refreshPlayerListTooltip: "Uppdatera juniorlistan från Hattrick.",
     refreshAllYouthDataTooltip: "Uppdatera all ungdomsdata.",
+    refreshAllSeniorDataTooltip: "Uppdatera all seniordata.",
     refreshStopButton: "Stopp",
     refreshStopTooltip: "Stoppa pågående uppdatering.",
     youthLastGlobalRefresh: "Senaste globala uppdatering",
@@ -648,6 +654,7 @@ export const messagesSv: Messages = {
     trainingSlotSecondary: "Sekundär",
     trainingSlotBoth: "Pri/sek",
     starPlayerLabel: "Ange stjärnspelare",
+    seniorPlayerListTitle: "Seniorspelare",
     sortLabel: "Sortera efter",
     sortName: "Namn",
     sortAge: "Ålder",
@@ -661,6 +668,12 @@ export const messagesSv: Messages = {
     sortPassing: "Passning",
     sortScorer: "Anfall",
     sortSetPieces: "Fasta situationer",
+    sortTsi: "TSI",
+    sortWage: "Lön",
+    sortForm: "Form",
+    sortStamina: "Kondition",
+    sortInjuries: "Skador",
+    sortCards: "Kort",
     sortCustom: "--",
     sortToggleAria: "Vänd sortering",
     sortAscLabel: "Stigande",
@@ -717,6 +730,7 @@ export const messagesSv: Messages = {
     awayLabel: "Borta",
     unknownDate: "Okänt datum",
     ratingsTitle: "Betygsmatris",
+    ratingsMatchesAnalyzed: "Data hämtad från {count} matcher.",
     ratingsIndexLabel: "Nr",
     ratingsMissingNote:
       "Vissa spelare saknar senaste matchdata och visas med —.",

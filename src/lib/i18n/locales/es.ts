@@ -11,6 +11,7 @@ export const messagesEs: Messages = {
     sidebarCollapseTooltip: "Contraer barra lateral",
     sidebarExpandTooltip: "Expandir barra lateral",
     toolYouthOptimization: "Optimización juvenil",
+    toolSeniorOptimization: "Optimización equipo senior",
     toolClubChronicle: "Crónica del club",
     clubChronicleTitle: "Crónica del club",
     clubChronicleBody:
@@ -90,6 +91,10 @@ export const messagesEs: Messages = {
       "Las matrices juveniles ahora marcan habilidades/calificaciones nuevas o cambiadas y nuevos jugadores con etiquetas NEW.",
     changelog_2_23_0:
       "Optimizacion juvenil agrega un boton de Ultimas actualizaciones con historial fechado de eventos NEW.",
+    changelog_2_24_0:
+      "Se agrega optimizacion de equipo senior: lista de jugadores ordenable, matriz de habilidades de valor unico, matriz de calificaciones y flujo de alineacion/partidos.",
+    changelog_3_0_0:
+      "Lanzamiento de la herramienta de optimización del equipo senior.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -461,6 +466,7 @@ export const messagesEs: Messages = {
     refreshPlayerListTooltip:
       "Actualizar la lista de juveniles desde Hattrick.",
     refreshAllYouthDataTooltip: "Actualizar todos los datos juveniles.",
+    refreshAllSeniorDataTooltip: "Actualizar todos los datos senior.",
     refreshStopButton: "Detener",
     refreshStopTooltip: "Detener la actualizacion en curso.",
     youthLastGlobalRefresh: "Última actualización global",
@@ -657,6 +663,7 @@ export const messagesEs: Messages = {
     trainingSlotSecondary: "Secundario",
     trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Definir jugador estrella",
+    seniorPlayerListTitle: "Jugadores senior",
     sortLabel: "Ordenar por",
     sortName: "Nombre",
     sortAge: "Edad",
@@ -670,6 +677,12 @@ export const messagesEs: Messages = {
     sortPassing: "Pase",
     sortScorer: "Anotador",
     sortSetPieces: "Balón parado",
+    sortTsi: "TSI",
+    sortWage: "Salario",
+    sortForm: "Forma",
+    sortStamina: "Resistencia",
+    sortInjuries: "Lesiones",
+    sortCards: "Tarjetas",
     sortCustom: "--",
     sortToggleAria: "Invertir orden",
     sortAscLabel: "Ascendente",
@@ -727,6 +740,7 @@ export const messagesEs: Messages = {
     awayLabel: "Visitante",
     unknownDate: "Fecha desconocida",
     ratingsTitle: "Matriz de calificaciones",
+    ratingsMatchesAnalyzed: "Datos obtenidos de {count} partidos.",
     ratingsIndexLabel: "N.º",
     ratingsMissingNote:
       "Algunos jugadores no tienen datos recientes y se muestran con —.",

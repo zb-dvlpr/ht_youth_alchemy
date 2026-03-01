@@ -11,6 +11,7 @@ export const messagesEn: Messages = {
     sidebarCollapseTooltip: "Collapse sidebar",
     sidebarExpandTooltip: "Expand sidebar",
     toolYouthOptimization: "Youth optimization",
+    toolSeniorOptimization: "Senior team optimization",
     toolClubChronicle: "Club chronicle",
     clubChronicleTitle: "Club Chronicle",
     clubChronicleBody:
@@ -76,6 +77,10 @@ export const messagesEn: Messages = {
     changelog_2_22_0: "Youth matrices now highlight newly changed or revealed skills/ratings and newly added players with NEW pills.",
     changelog_2_23_0:
       "Youth optimization adds a Latest updates button with dated NEW-event history.",
+    changelog_2_24_0:
+      "Senior team optimization tool added with player list sorting, single-value skills matrix, ratings matrix, and lineup/matches workflow.",
+    changelog_3_0_0:
+      "Senior team optimization tool release.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -430,6 +435,7 @@ export const messagesEn: Messages = {
     playerDetailsNextPlayer: "Next player",
     refreshPlayerListTooltip: "Refresh youth player list from Hattrick.",
     refreshAllYouthDataTooltip: "Refresh all youth data.",
+    refreshAllSeniorDataTooltip: "Refresh all senior data.",
     refreshStopButton: "Stop",
     refreshStopTooltip: "Stop ongoing refresh.",
     youthLastGlobalRefresh: "Last global refresh",
@@ -621,6 +627,7 @@ export const messagesEn: Messages = {
     trainingSlotSecondary: "Secondary",
     trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Set star player",
+    seniorPlayerListTitle: "Senior players",
     sortLabel: "Sort by",
     sortName: "Name",
     sortAge: "Age",
@@ -634,6 +641,12 @@ export const messagesEn: Messages = {
     sortPassing: "Passing",
     sortScorer: "Scorer",
     sortSetPieces: "Set pieces",
+    sortTsi: "TSI",
+    sortWage: "Wage",
+    sortForm: "Form",
+    sortStamina: "Stamina",
+    sortInjuries: "Injuries",
+    sortCards: "Cards",
     sortCustom: "--",
     sortToggleAria: "Reverse sort order",
     sortAscLabel: "Ascending",
@@ -690,6 +703,7 @@ export const messagesEn: Messages = {
     awayLabel: "Away",
     unknownDate: "Unknown date",
     ratingsTitle: "Ratings matrix",
+    ratingsMatchesAnalyzed: "Data retrieved from {count} matches.",
     ratingsIndexLabel: "#",
     ratingsMissingNote:
       "Some players have no recent match data and are shown with —.",

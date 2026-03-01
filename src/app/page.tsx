@@ -11,6 +11,7 @@ import ViewportScaler from "./components/ViewportScaler";
 import FeedbackButton from "./components/FeedbackButton";
 import SettingsButton from "./components/SettingsButton";
 import AppShell from "./components/AppShell";
+import SeniorDashboard from "./components/SeniorDashboard";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 import type { MatchesResponse } from "./components/UpcomingMatches";
@@ -283,6 +284,7 @@ export default async function Home() {
                 </div>
               </header>
             }
+            seniorTool={<SeniorDashboard messages={messages} />}
           >
             <Dashboard
               players={players}

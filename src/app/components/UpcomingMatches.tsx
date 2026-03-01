@@ -62,6 +62,7 @@ type UpcomingMatchesProps = {
   ) => void;
   loadedMatchId?: number | null;
   onSubmitSuccess?: () => void;
+  sourceSystem?: string;
 };
 
 function normalizeMatches(input?: Match[] | Match): Match[] {
@@ -348,6 +349,7 @@ export default function UpcomingMatches({
   onLoadLineup,
   loadedMatchId,
   onSubmitSuccess,
+  sourceSystem = "Youth",
 }: UpcomingMatchesProps) {
   const { addNotification } = useNotifications();
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
@@ -447,7 +449,9 @@ export default function UpcomingMatches({
         error?: string;
         details?: string;
       }>(
-        `/api/chpp/matchorders?matchId=${matchId}&teamId=${teamId}`,
+        `/api/chpp/matchorders?matchId=${matchId}&teamId=${teamId}&sourceSystem=${encodeURIComponent(
+          sourceSystem
+        )}`,
         { cache: "no-store" }
       );
       if (!response.ok || payload?.error) {
@@ -565,6 +569,7 @@ export default function UpcomingMatches({
         body: JSON.stringify({
           matchId,
           teamId,
+          sourceSystem,
           lineup: lineupPayload,
         }),
       });

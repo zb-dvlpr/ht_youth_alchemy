@@ -21,6 +21,7 @@ export type Messages = {
   sidebarCollapseTooltip: string;
   sidebarExpandTooltip: string;
   toolYouthOptimization: string;
+  toolSeniorOptimization: string;
   toolClubChronicle: string;
   clubChronicleTitle: string;
   clubChronicleBody: string;
@@ -75,6 +76,8 @@ export type Messages = {
   changelog_2_21_0: string;
   changelog_2_22_0: string;
   changelog_2_23_0: string;
+  changelog_2_24_0: string;
+  changelog_3_0_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -398,6 +401,7 @@ export type Messages = {
   playerDetailsNextPlayer: string;
   refreshPlayerListTooltip: string;
   refreshAllYouthDataTooltip: string;
+  refreshAllSeniorDataTooltip: string;
   refreshStopButton: string;
   refreshStopTooltip: string;
   youthLastGlobalRefresh: string;
@@ -575,6 +579,7 @@ export type Messages = {
   trainingSlotSecondary: string;
   trainingSlotBoth: string;
   starPlayerLabel: string;
+  seniorPlayerListTitle: string;
   sortLabel: string;
   sortName: string;
   sortAge: string;
@@ -588,6 +593,12 @@ export type Messages = {
   sortPassing: string;
   sortScorer: string;
   sortSetPieces: string;
+  sortTsi: string;
+  sortWage: string;
+  sortForm: string;
+  sortStamina: string;
+  sortInjuries: string;
+  sortCards: string;
   sortCustom: string;
   sortToggleAria: string;
   sortAscLabel: string;
@@ -643,6 +654,7 @@ export type Messages = {
   awayLabel: string;
   unknownDate: string;
   ratingsTitle: string;
+  ratingsMatchesAnalyzed: string;
   ratingsIndexLabel: string;
   ratingsMissingNote: string;
   ratingsSortBy: string;

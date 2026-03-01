@@ -5,23 +5,27 @@ import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { POSITION_COLUMNS, positionLabel } from "@/lib/positions";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
+import { hattrickMatchUrl } from "@/lib/hattrick/urls";
 import Tooltip from "./Tooltip";
 
 type RatingRow = {
   id: number;
   name: string;
   ratings: Record<string, number>;
+  ratingMatchIds?: Record<string, number>;
 };
 
 export type RatingsMatrixResponse = {
   positions: number[];
   players: RatingRow[];
+  matchesAnalyzed?: number;
 };
 
 type RatingsMatrixProps = {
   response: RatingsMatrixResponse | null;
   showTitle?: boolean;
   messages: Messages;
+  matchHrefBuilder?: (matchId: number) => string;
   specialtyByName?: Record<string, number | undefined>;
   hiddenSpecialtyByName?: Record<string, boolean>;
   newPlayerIds?: number[];
@@ -83,6 +87,7 @@ export default function RatingsMatrix({
   response,
   showTitle = true,
   messages,
+  matchHrefBuilder,
   specialtyByName,
   hiddenSpecialtyByName,
   newPlayerIds = [],
@@ -100,6 +105,24 @@ export default function RatingsMatrix({
     () => uniquePositions(response?.positions),
     [response?.positions]
   );
+  const matchesAnalyzed = useMemo(() => {
+    if (
+      typeof response?.matchesAnalyzed === "number" &&
+      Number.isFinite(response.matchesAnalyzed)
+    ) {
+      return Math.max(0, Math.floor(response.matchesAnalyzed));
+    }
+    const derived = new Set<number>();
+    (response?.players ?? []).forEach((row) => {
+      if (!row.ratingMatchIds) return;
+      Object.values(row.ratingMatchIds).forEach((matchId) => {
+        if (typeof matchId === "number" && Number.isFinite(matchId) && matchId > 0) {
+          derived.add(matchId);
+        }
+      });
+    });
+    return derived.size;
+  }, [response]);
   const [sortKey, setSortKey] = useState<number | "name" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const pendingSortRef = useRef(false);
@@ -311,6 +334,7 @@ export default function RatingsMatrix({
                 </td>
                 {positions.map((position) => {
                   const rating = row.ratings[String(position)] ?? null;
+                  const ratingMatchId = row.ratingMatchIds?.[String(position)];
                   const isNewRating =
                     newRatingsByPlayerId[row.id]?.includes(position) ?? false;
                   return (
@@ -326,9 +350,29 @@ export default function RatingsMatrix({
                           <span className={styles.matrixCellNewTag}>N</span>
                         </Tooltip>
                       ) : null}
-                      <span className={styles.matrixValueWithFlag}>
-                        <span>{formatRating(rating)}</span>
-                      </span>
+                      {rating !== null && Number.isFinite(ratingMatchId) ? (
+                        <a
+                          className={styles.matrixRatingLink}
+                          href={
+                            matchHrefBuilder
+                              ? matchHrefBuilder(ratingMatchId as number)
+                              : hattrickMatchUrl(ratingMatchId as number)
+                          }
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`${messages.lastMatchRatingLabel}: ${formatRating(
+                            rating
+                          )}`}
+                        >
+                          <span className={styles.matrixValueWithFlag}>
+                            <span>{formatRating(rating)}</span>
+                          </span>
+                        </a>
+                      ) : (
+                        <span className={styles.matrixValueWithFlag}>
+                          <span>{formatRating(rating)}</span>
+                        </span>
+                      )}
                     </td>
                   );
                 })}
@@ -338,6 +382,11 @@ export default function RatingsMatrix({
           </tbody>
         </table>
       </div>
+      {matchesAnalyzed !== null ? (
+        <p className={styles.muted}>
+          {messages.ratingsMatchesAnalyzed.replace("{count}", String(matchesAnalyzed))}
+        </p>
+      ) : null}
     </div>
   );
 }

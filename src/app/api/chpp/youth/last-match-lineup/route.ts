@@ -58,7 +58,7 @@ export async function GET(request: Request) {
       version: MATCHLINEUP_VERSION,
       matchID: String(matchId),
       teamID: String(teamId),
-      sourceSystem: "Youth",
+      sourceSystem: "youth",
     });
     const { rawXml: lineupXml, parsed: lineupParsed } = await fetchChppXml(
       auth,

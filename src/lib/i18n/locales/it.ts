@@ -11,6 +11,7 @@ export const messagesIt: Messages = {
     sidebarCollapseTooltip: "Comprimi barra laterale",
     sidebarExpandTooltip: "Espandi barra laterale",
     toolYouthOptimization: "Ottimizzazione giovani",
+    toolSeniorOptimization: "Ottimizzazione squadra senior",
     toolClubChronicle: "Cronaca del club",
     clubChronicleTitle: "Cronaca del club",
     clubChronicleBody:
@@ -90,6 +91,10 @@ export const messagesIt: Messages = {
       "Le matrici giovanili evidenziano ora skill/valutazioni nuove o cambiate e nuovi giocatori con pill NEW.",
     changelog_2_23_0:
       "Ottimizzazione giovanile aggiunge un pulsante Ultimi aggiornamenti con storico datato degli eventi NEW.",
+    changelog_2_24_0:
+      "Aggiunta ottimizzazione squadra senior: lista giocatori ordinabile, matrice skills a valore singolo, matrice valutazioni e flusso formazione/partite.",
+    changelog_3_0_0:
+      "Rilascio dello strumento di ottimizzazione squadra senior.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -462,6 +467,7 @@ export const messagesIt: Messages = {
     refreshPlayerListTooltip:
       "Aggiorna la lista dei giovani da Hattrick.",
     refreshAllYouthDataTooltip: "Aggiorna tutti i dati giovanili.",
+    refreshAllSeniorDataTooltip: "Aggiorna tutti i dati senior.",
     refreshStopButton: "Stop",
     refreshStopTooltip: "Interrompi l aggiornamento in corso.",
     youthLastGlobalRefresh: "Ultimo aggiornamento globale",
@@ -658,6 +664,7 @@ export const messagesIt: Messages = {
     trainingSlotSecondary: "Secondario",
     trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Imposta giocatore stella",
+    seniorPlayerListTitle: "Giocatori senior",
     sortLabel: "Ordina per",
     sortName: "Nome",
     sortAge: "Età",
@@ -671,6 +678,12 @@ export const messagesIt: Messages = {
     sortPassing: "Passaggi",
     sortScorer: "Attacco",
     sortSetPieces: "Calci piazzati",
+    sortTsi: "TSI",
+    sortWage: "Salario",
+    sortForm: "Forma",
+    sortStamina: "Resistenza",
+    sortInjuries: "Infortuni",
+    sortCards: "Cartellini",
     sortCustom: "--",
     sortToggleAria: "Inverti ordinamento",
     sortAscLabel: "Crescente",
@@ -727,6 +740,7 @@ export const messagesIt: Messages = {
     awayLabel: "Trasferta",
     unknownDate: "Data sconosciuta",
     ratingsTitle: "Matrice valutazioni",
+    ratingsMatchesAnalyzed: "Dati recuperati da {count} partite.",
     ratingsIndexLabel: "N.",
     ratingsMissingNote:
       "Alcuni giocatori non hanno dati recenti e vengono mostrati con —.",

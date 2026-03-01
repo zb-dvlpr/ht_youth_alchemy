@@ -18,6 +18,7 @@ const MATCHORDERS_VERSION = "3.1";
 type MatchOrdersRequest = {
   matchId?: number;
   teamId?: number;
+  sourceSystem?: string;
   lineup?: Record<string, unknown>;
 };
 
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
       actionType: "setmatchorder",
       matchID: String(payload.matchId),
       teamId: String(payload.teamId),
-      sourceSystem: "Youth",
+      sourceSystem: payload.sourceSystem ?? "Youth",
     });
 
     const bodyParams = {
@@ -116,6 +117,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const matchId = url.searchParams.get("matchId");
     const teamId = url.searchParams.get("teamId");
+    const sourceSystem = url.searchParams.get("sourceSystem") ?? "Youth";
 
     if (!matchId || !teamId) {
       return NextResponse.json(
@@ -131,7 +133,7 @@ export async function GET(request: Request) {
       actionType: "view",
       matchID: matchId,
       teamId,
-      sourceSystem: "Youth",
+      sourceSystem,
     });
 
     const { parsed, rawXml } = await fetchChppXml(auth, params);

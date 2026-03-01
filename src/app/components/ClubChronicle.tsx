@@ -44,6 +44,7 @@ import {
   hattrickTeamTransfersUrl,
 } from "@/lib/hattrick/urls";
 import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
+import { mapWithConcurrency } from "@/lib/async";
 
 type SupportedTeam = {
   teamId: number;
@@ -835,32 +836,6 @@ const normalizeSupportedTeams = (
       leagueLevelUnitName: team.LeagueLevelUnitName ?? null,
     }))
     .filter((team) => Number.isFinite(team.teamId) && team.teamId > 0);
-};
-
-const mapWithConcurrency = async <T, R>(
-  list: T[],
-  concurrency: number,
-  worker: (item: T, index: number) => Promise<R>
-): Promise<R[]> => {
-  if (list.length === 0) return [];
-  const safeConcurrency = Math.max(1, Math.floor(concurrency));
-  const results: R[] = new Array(list.length);
-  let cursor = 0;
-
-  const runWorker = async () => {
-    while (cursor < list.length) {
-      const index = cursor;
-      cursor += 1;
-      results[index] = await worker(list[index], index);
-    }
-  };
-
-  const runners = Array.from(
-    { length: Math.min(safeConcurrency, list.length) },
-    () => runWorker()
-  );
-  await Promise.all(runners);
-  return results;
 };
 
 const extractTeamDetailsNode = (
@@ -6666,85 +6641,100 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     historyCount: number,
     teams: ChronicleTeamData[] = trackedTeams
   ) => {
-    for (const team of teams) {
-      try {
-        const teamPlayers = await fetchTeamPlayers(team.teamId);
-        const transferListedPlayers = buildTransferListedPlayers(teamPlayers);
-        const latestTransfers = await fetchLatestTransfers(team.teamId, historyCount);
-        const snapshot: TransferActivitySnapshot = {
-          transferListedCount: transferListedPlayers.length,
-          transferListedPlayers,
-          numberOfBuys: latestTransfers.numberOfBuys,
-          numberOfSales: latestTransfers.numberOfSales,
-          latestTransfers: latestTransfers.transfers,
-          fetchedAt: Date.now(),
-        };
+    await mapWithConcurrency(
+      teams,
+      TEAM_REFRESH_CONCURRENCY,
+      async (team) => {
+        try {
+          const teamPlayers = await fetchTeamPlayers(team.teamId);
+          const transferListedPlayers = buildTransferListedPlayers(teamPlayers);
+          const latestTransfers = await fetchLatestTransfers(team.teamId, historyCount);
+          const snapshot: TransferActivitySnapshot = {
+            transferListedCount: transferListedPlayers.length,
+            transferListedPlayers,
+            numberOfBuys: latestTransfers.numberOfBuys,
+            numberOfSales: latestTransfers.numberOfSales,
+            latestTransfers: latestTransfers.transfers,
+            fetchedAt: Date.now(),
+          };
 
-        const previous = nextCache.teams[team.teamId]?.transferActivity?.current;
-        nextCache.teams[team.teamId] = {
-          ...nextCache.teams[team.teamId],
-          teamId: team.teamId,
-          teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
-          transferActivity: {
-            current: snapshot,
-            previous,
-          },
-        };
-      } catch (error) {
-        if (isChppAuthRequiredError(error)) throw error;
-        // ignore transfer activity failures
+          const previous = nextCache.teams[team.teamId]?.transferActivity?.current;
+          nextCache.teams[team.teamId] = {
+            ...nextCache.teams[team.teamId],
+            teamId: team.teamId,
+            teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+            transferActivity: {
+              current: snapshot,
+              previous,
+            },
+          };
+        } catch (error) {
+          if (isChppAuthRequiredError(error)) throw error;
+          // ignore transfer activity failures
+        }
+        return null;
       }
-    }
+    );
   };
 
   const refreshTsiSnapshots = async (
     nextCache: ChronicleCache,
     teams: ChronicleTeamData[] = trackedTeams
   ) => {
-    for (const team of teams) {
-      try {
-        const teamPlayers = await fetchTeamPlayers(team.teamId);
-        const snapshot = buildTsiSnapshot(teamPlayers);
-        const previous = nextCache.teams[team.teamId]?.tsi?.current;
-        nextCache.teams[team.teamId] = {
-          ...nextCache.teams[team.teamId],
-          teamId: team.teamId,
-          teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
-          tsi: {
-            current: snapshot,
-            previous,
-          },
-        };
-      } catch (error) {
-        if (isChppAuthRequiredError(error)) throw error;
-        // ignore tsi failures
+    await mapWithConcurrency(
+      teams,
+      TEAM_REFRESH_CONCURRENCY,
+      async (team) => {
+        try {
+          const teamPlayers = await fetchTeamPlayers(team.teamId);
+          const snapshot = buildTsiSnapshot(teamPlayers);
+          const previous = nextCache.teams[team.teamId]?.tsi?.current;
+          nextCache.teams[team.teamId] = {
+            ...nextCache.teams[team.teamId],
+            teamId: team.teamId,
+            teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+            tsi: {
+              current: snapshot,
+              previous,
+            },
+          };
+        } catch (error) {
+          if (isChppAuthRequiredError(error)) throw error;
+          // ignore tsi failures
+        }
+        return null;
       }
-    }
+    );
   };
 
   const refreshWagesSnapshots = async (
     nextCache: ChronicleCache,
     teams: ChronicleTeamData[] = trackedTeams
   ) => {
-    for (const team of teams) {
-      try {
-        const teamPlayers = await fetchTeamPlayers(team.teamId);
-        const snapshot = buildWagesSnapshot(teamPlayers);
-        const previous = nextCache.teams[team.teamId]?.wages?.current;
-        nextCache.teams[team.teamId] = {
-          ...nextCache.teams[team.teamId],
-          teamId: team.teamId,
-          teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
-          wages: {
-            current: snapshot,
-            previous,
-          },
-        };
-      } catch (error) {
-        if (isChppAuthRequiredError(error)) throw error;
-        // ignore wages failures
+    await mapWithConcurrency(
+      teams,
+      TEAM_REFRESH_CONCURRENCY,
+      async (team) => {
+        try {
+          const teamPlayers = await fetchTeamPlayers(team.teamId);
+          const snapshot = buildWagesSnapshot(teamPlayers);
+          const previous = nextCache.teams[team.teamId]?.wages?.current;
+          nextCache.teams[team.teamId] = {
+            ...nextCache.teams[team.teamId],
+            teamId: team.teamId,
+            teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+            wages: {
+              current: snapshot,
+              previous,
+            },
+          };
+        } catch (error) {
+          if (isChppAuthRequiredError(error)) throw error;
+          // ignore wages failures
+        }
+        return null;
       }
-    }
+    );
   };
 
   const refreshFinanceAndTransferSnapshots = async (
@@ -7552,136 +7542,167 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return latestHistoryWithChanges?.comparedAt ?? null;
   }, [globalUpdatesHistory, lastGlobalComparedAt, latestHistoryWithChanges]);
 
-  const leagueRows: LeagueTableRow[] = trackedTeams.map((team) => {
-    const cached = chronicleCache.teams[team.teamId];
-    return {
-      teamId: team.teamId,
-      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
-      snapshot: cached?.leaguePerformance?.current,
-      leaguePerformance: cached?.leaguePerformance,
-      meta:
-        team.leagueName || team.leagueLevelUnitName
-          ? [team.leagueName, team.leagueLevelUnitName].filter(Boolean).join(" · ")
-          : null,
-    };
-  });
+  const {
+    leagueRows,
+    pressRows,
+    financeRows,
+    fanclubRows,
+    arenaRows,
+    transferRows,
+    formationsTacticsRows,
+    likelyTrainingRows,
+    tsiRows,
+    wagesRows,
+    lastLoginRows,
+    coachRows,
+  } = useMemo(() => {
+    const leagueRowsValue: LeagueTableRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot: cached?.leaguePerformance?.current,
+        leaguePerformance: cached?.leaguePerformance,
+        meta:
+          team.leagueName || team.leagueLevelUnitName
+            ? [team.leagueName, team.leagueLevelUnitName].filter(Boolean).join(" · ")
+            : null,
+      };
+    });
 
-  const pressRows: PressAnnouncementRow[] = trackedTeams.map((team) => {
-    const cached = chronicleCache.teams[team.teamId];
-    return {
-      teamId: team.teamId,
-      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
-      snapshot: cached?.pressAnnouncement?.current,
-    };
-  });
+    const pressRowsValue: PressAnnouncementRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot: cached?.pressAnnouncement?.current,
+      };
+    });
 
-  const financeRows: FinanceEstimateRow[] = trackedTeams.map((team) => {
-    const cached = chronicleCache.teams[team.teamId];
-    return {
-      teamId: team.teamId,
-      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
-      snapshot: cached?.financeEstimate?.current,
-    };
-  });
+    const financeRowsValue: FinanceEstimateRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot: cached?.financeEstimate?.current,
+      };
+    });
 
-  const fanclubRows: FanclubRow[] = trackedTeams.map((team) => {
-    const cached = chronicleCache.teams[team.teamId];
-    return {
-      teamId: team.teamId,
-      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
-      snapshot: cached?.fanclub?.current,
-      fanclub: cached?.fanclub,
-    };
-  });
+    const fanclubRowsValue: FanclubRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot: cached?.fanclub?.current,
+        fanclub: cached?.fanclub,
+      };
+    });
 
-  const arenaRows: ArenaRow[] = trackedTeams.map((team) => {
-    const cached = chronicleCache.teams[team.teamId];
-    const snapshot = cached?.arena?.current ?? {
-      arenaName: cached?.arenaName ?? null,
-      currentTotalCapacity: null,
-      rebuiltDate: null,
-      currentAvailable: null,
-      terraces: null,
-      basic: null,
-      roof: null,
-      vip: null,
-      expandedAvailable: null,
-      expandedTotalCapacity: null,
-      expansionDate: null,
-      expandedTerraces: null,
-      expandedBasic: null,
-      expandedRoof: null,
-      expandedVip: null,
-      fetchedAt: 0,
-    };
-    return {
-      teamId: team.teamId,
-      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
-      snapshot,
-    };
-  });
+    const arenaRowsValue: ArenaRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      const snapshot = cached?.arena?.current ?? {
+        arenaName: cached?.arenaName ?? null,
+        currentTotalCapacity: null,
+        rebuiltDate: null,
+        currentAvailable: null,
+        terraces: null,
+        basic: null,
+        roof: null,
+        vip: null,
+        expandedAvailable: null,
+        expandedTotalCapacity: null,
+        expansionDate: null,
+        expandedTerraces: null,
+        expandedBasic: null,
+        expandedRoof: null,
+        expandedVip: null,
+        fetchedAt: 0,
+      };
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot,
+      };
+    });
 
-  const transferRows: TransferActivityRow[] = trackedTeams.map((team) => {
-    const cached = chronicleCache.teams[team.teamId];
-    return {
-      teamId: team.teamId,
-      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
-      snapshot: cached?.transferActivity?.current,
-    };
-  });
+    const transferRowsValue: TransferActivityRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot: cached?.transferActivity?.current,
+      };
+    });
 
-  const formationsTacticsRows: FormationTacticsRow[] = trackedTeams.map((team) => {
-    const cached = chronicleCache.teams[team.teamId];
-    return {
-      teamId: team.teamId,
-      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
-      snapshot: cached?.formationsTactics?.current,
-    };
-  });
+    const formationsTacticsRowsValue: FormationTacticsRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot: cached?.formationsTactics?.current,
+      };
+    });
 
-  const likelyTrainingRows: LikelyTrainingRow[] = trackedTeams.map((team) => {
-    const cached = chronicleCache.teams[team.teamId];
-    return {
-      teamId: team.teamId,
-      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
-      snapshot: cached?.formationsTactics?.current,
-    };
-  });
+    const likelyTrainingRowsValue: LikelyTrainingRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot: cached?.formationsTactics?.current,
+      };
+    });
 
-  const tsiRows: TsiRow[] = trackedTeams.map((team) => {
-    const cached = chronicleCache.teams[team.teamId];
-    return {
-      teamId: team.teamId,
-      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
-      snapshot: cached?.tsi?.current,
-    };
-  });
+    const tsiRowsValue: TsiRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot: cached?.tsi?.current,
+      };
+    });
 
-  const wagesRows: WagesRow[] = trackedTeams.map((team) => {
-    const cached = chronicleCache.teams[team.teamId];
-    return {
-      teamId: team.teamId,
-      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
-      snapshot: cached?.wages?.current,
-    };
-  });
+    const wagesRowsValue: WagesRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot: cached?.wages?.current,
+      };
+    });
 
-  const lastLoginRows: LastLoginRow[] = trackedTeams.map((team) => {
-    const cached = chronicleCache.teams[team.teamId];
+    const lastLoginRowsValue: LastLoginRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot: cached?.lastLogin?.current,
+      };
+    });
+
+    const coachRowsValue: CoachRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot: cached?.coach?.current,
+      };
+    });
+
     return {
-      teamId: team.teamId,
-      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
-      snapshot: cached?.lastLogin?.current,
+      leagueRows: leagueRowsValue,
+      pressRows: pressRowsValue,
+      financeRows: financeRowsValue,
+      fanclubRows: fanclubRowsValue,
+      arenaRows: arenaRowsValue,
+      transferRows: transferRowsValue,
+      formationsTacticsRows: formationsTacticsRowsValue,
+      likelyTrainingRows: likelyTrainingRowsValue,
+      tsiRows: tsiRowsValue,
+      wagesRows: wagesRowsValue,
+      lastLoginRows: lastLoginRowsValue,
+      coachRows: coachRowsValue,
     };
-  });
-  const coachRows: CoachRow[] = trackedTeams.map((team) => {
-    const cached = chronicleCache.teams[team.teamId];
-    return {
-      teamId: team.teamId,
-      teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
-      snapshot: cached?.coach?.current,
-    };
-  });
+  }, [trackedTeams, chronicleCache]);
 
   const sortedLeagueRows = useMemo(() => {
     if (!leagueSortState.key) return leagueRows;

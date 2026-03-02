@@ -113,6 +113,7 @@ type SortKey =
   | "setpieces";
 
 type SortDirection = "asc" | "desc";
+type SeniorSortSelectKey = SortKey | "custom";
 
 const SENIOR_REFRESH_REQUEST_EVENT = "ya:senior-refresh-request";
 const SENIOR_REFRESH_STOP_EVENT = "ya:senior-refresh-stop";
@@ -631,6 +632,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     }
     return sortedPlayers;
   }, [orderSource, orderedPlayerIds, players, sortedPlayers]);
+  const isMatrixSortActive = Boolean(
+    orderSource &&
+      orderSource !== "list" &&
+      (orderSource === "ratings" || orderSource === "skills") &&
+      orderedPlayerIds?.length
+  );
 
   const tsiRange = useMemo(() => {
     const values = players
@@ -1455,15 +1462,21 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                 <span className={styles.sortLabel}>{messages.sortLabel}</span>
                 <select
                   className={styles.sortSelect}
-                  value={sortKey}
+                  value={isMatrixSortActive ? "custom" : sortKey}
                   onChange={(event) => {
-                    const nextKey = event.target.value as SortKey;
+                    const nextKey = event.target.value as SeniorSortSelectKey;
+                    if (nextKey === "custom") return;
                     setSortKey(nextKey);
                     setOrderSource("list");
                     setOrderedPlayerIds(null);
                     addNotification(`${messages.notificationSortBy} ${sortLabel(messages, nextKey)}`);
                   }}
                 >
+                  {isMatrixSortActive ? (
+                    <option value="custom" hidden>
+                      {messages.sortCustom}
+                    </option>
+                  ) : null}
                   <option value="name">{messages.sortName}</option>
                   <option value="age">{messages.sortAge}</option>
                   <option value="arrival">{messages.sortArrival}</option>

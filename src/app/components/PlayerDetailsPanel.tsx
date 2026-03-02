@@ -321,7 +321,7 @@ export default function PlayerDetailsPanel({
   const [uncontrolledActiveTab, setUncontrolledActiveTab] =
     useState<PlayerDetailsPanelTab>("details");
   const [skillsSortKey, setSkillsSortKey] = useState<
-    (typeof SKILL_ROWS)[number]["key"] | "name" | null
+    (typeof SKILL_ROWS)[number]["key"] | "name" | "form" | "stamina" | null
   >(null);
   const [skillsSortDir, setSkillsSortDir] = useState<"asc" | "desc">("desc");
   const pendingSkillsSortRef = useRef(false);
@@ -386,6 +386,42 @@ export default function PlayerDetailsPanel({
         (a, b) => a.name.localeCompare(b.name) * direction
       );
     }
+    if (skillsSortKey === "form" || skillsSortKey === "stamina") {
+      return [...skillsMatrixRows].sort((a, b) => {
+        const detailsA = a.id ? playerDetailsById.get(a.id) : null;
+        const detailsB = b.id ? playerDetailsById.get(b.id) : null;
+        const playerA = a.id ? playerById.get(a.id) : null;
+        const playerB = b.id ? playerById.get(b.id) : null;
+        const valueA =
+          skillsSortKey === "form"
+            ? (typeof detailsA?.Form === "number"
+                ? detailsA.Form
+                : typeof playerA?.Form === "number"
+                ? playerA.Form
+                : null)
+            : (typeof detailsA?.StaminaSkill === "number"
+                ? detailsA.StaminaSkill
+                : typeof playerA?.StaminaSkill === "number"
+                ? playerA.StaminaSkill
+                : null);
+        const valueB =
+          skillsSortKey === "form"
+            ? (typeof detailsB?.Form === "number"
+                ? detailsB.Form
+                : typeof playerB?.Form === "number"
+                ? playerB.Form
+                : null)
+            : (typeof detailsB?.StaminaSkill === "number"
+                ? detailsB.StaminaSkill
+                : typeof playerB?.StaminaSkill === "number"
+                ? playerB.StaminaSkill
+                : null);
+        if (valueA === null && valueB === null) return 0;
+        if (valueA === null) return 1;
+        if (valueB === null) return -1;
+        return (valueA - valueB) * direction;
+      });
+    }
     return [...skillsMatrixRows].sort((a, b) => {
       const detailsA = a.id ? playerDetailsById.get(a.id) : null;
       const detailsB = b.id ? playerDetailsById.get(b.id) : null;
@@ -449,7 +485,7 @@ export default function PlayerDetailsPanel({
   ]);
 
   const handleSkillsSort = (
-    key: (typeof SKILL_ROWS)[number]["key"] | "name"
+    key: (typeof SKILL_ROWS)[number]["key"] | "name" | "form" | "stamina"
   ) => {
     pendingSkillsSortRef.current = true;
     onSkillsSortStart?.();
@@ -988,7 +1024,11 @@ export default function PlayerDetailsPanel({
 
     return (
       <div className={styles.matrixWrapper}>
-        <table className={styles.matrixTable}>
+        <table
+          className={`${styles.matrixTable} ${
+            playerKind === "senior" ? styles.matrixTableSeniorCompact : ""
+          }`}
+        >
           <thead>
             <tr>
               <th className={styles.matrixIndexHeader}>
@@ -1014,11 +1054,54 @@ export default function PlayerDetailsPanel({
               <th className={styles.matrixSpecialtyHeader}>
                 {messages.ratingsSpecialtyLabel}
               </th>
+                {playerKind === "senior" ? (
+                  <>
+                    <th className={styles.matrixSeniorMetricHeader}>
+                      <button
+                        type="button"
+                        className={styles.matrixSortButton}
+                        onClick={() => handleSkillsSort("form")}
+                        aria-label={`${messages.ratingsSortBy} ${messages.sortForm}`}
+                      >
+                        {messages.sortForm}
+                        <span className={styles.matrixSortIcon}>
+                          {skillsSortKey === "form"
+                            ? skillsSortDir === "asc"
+                              ? "▲"
+                              : "▼"
+                            : "⇅"}
+                        </span>
+                      </button>
+                    </th>
+                    <th
+                      className={`${styles.matrixSeniorMetricHeader} ${styles.matrixSeniorStaminaDivider}`}
+                    >
+                      <button
+                        type="button"
+                        className={styles.matrixSortButton}
+                        onClick={() => handleSkillsSort("stamina")}
+                        aria-label={`${messages.ratingsSortBy} ${messages.sortStamina}`}
+                      >
+                        {messages.sortStamina}
+                        <span className={styles.matrixSortIcon}>
+                          {skillsSortKey === "stamina"
+                            ? skillsSortDir === "asc"
+                              ? "▲"
+                              : "▼"
+                            : "⇅"}
+                        </span>
+                      </button>
+                    </th>
+                  </>
+                ) : null}
                 {SKILL_ROWS.map((row) => {
                   const isActive = skillsSortKey === row.key;
                   const direction = isActive ? skillsSortDir : "desc";
                   return (
-                    <th key={row.key}>
+                    <th
+                      key={row.key}
+                      className={playerKind === "senior" ? styles.matrixSeniorSkillHeader : undefined}
+                    >
                       <button
                         type="button"
                         className={styles.matrixSortButton}
@@ -1124,6 +1207,80 @@ export default function PlayerDetailsPanel({
                       );
                     })()}
                   </td>
+                  {playerKind === "senior" ? (
+                    <>
+                      <td className={`${styles.matrixCell} ${styles.matrixSeniorMetricCell}`}>
+                        <span
+                          className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfPill}`}
+                          style={
+                            skillCellColor(
+                              typeof details?.Form === "number"
+                                ? details.Form
+                                : typeof player?.Form === "number"
+                                ? player.Form
+                                : null,
+                              0,
+                              8
+                            )
+                              ? {
+                                  backgroundColor: skillCellColor(
+                                    typeof details?.Form === "number"
+                                      ? details.Form
+                                      : typeof player?.Form === "number"
+                                      ? player.Form
+                                      : null,
+                                    0,
+                                    8
+                                  ),
+                                }
+                              : undefined
+                          }
+                        >
+                          {typeof details?.Form === "number"
+                            ? details.Form
+                            : typeof player?.Form === "number"
+                            ? player.Form
+                            : messages.unknownShort}
+                        </span>
+                      </td>
+                      <td
+                        className={`${styles.matrixCell} ${styles.matrixSeniorMetricCell} ${styles.matrixSeniorStaminaDivider}`}
+                      >
+                        <span
+                          className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfPill}`}
+                          style={
+                            skillCellColor(
+                              typeof details?.StaminaSkill === "number"
+                                ? details.StaminaSkill
+                                : typeof player?.StaminaSkill === "number"
+                                ? player.StaminaSkill
+                                : null,
+                              0,
+                              9
+                            )
+                              ? {
+                                  backgroundColor: skillCellColor(
+                                    typeof details?.StaminaSkill === "number"
+                                      ? details.StaminaSkill
+                                      : typeof player?.StaminaSkill === "number"
+                                      ? player.StaminaSkill
+                                      : null,
+                                    0,
+                                    9
+                                  ),
+                                }
+                              : undefined
+                          }
+                        >
+                          {typeof details?.StaminaSkill === "number"
+                            ? details.StaminaSkill
+                            : typeof player?.StaminaSkill === "number"
+                            ? player.StaminaSkill
+                            : messages.unknownShort}
+                        </span>
+                      </td>
+                    </>
+                  ) : null}
                   {SKILL_ROWS.map((skill) => {
                     const current = getSkillLevel(skills?.[skill.key]);
                     const max = getSkillMax(skills?.[skill.maxKey]);
@@ -1146,9 +1303,16 @@ export default function PlayerDetailsPanel({
                     const maxColor = skillCellColor(max, 0, maxSkillLevel);
                     if (skillMode === "single") {
                       return (
-                        <td key={skill.key} className={styles.matrixCell}>
+                        <td
+                          key={skill.key}
+                          className={`${styles.matrixCell} ${
+                            playerKind === "senior" ? styles.matrixSeniorSkillCell : ""
+                          }`}
+                        >
                           <span
-                            className={styles.skillsMatrixHalf}
+                            className={`${styles.skillsMatrixHalf} ${
+                              playerKind === "senior" ? styles.skillsMatrixHalfPill : ""
+                            }`}
                             style={
                               currentColor
                                 ? { backgroundColor: currentColor }
@@ -1204,7 +1368,12 @@ export default function PlayerDetailsPanel({
                       </div>
                     );
                     return (
-                      <td key={skill.key} className={styles.matrixCell}>
+                      <td
+                        key={skill.key}
+                        className={`${styles.matrixCell} ${
+                          playerKind === "senior" ? styles.matrixSeniorSkillCell : ""
+                        }`}
+                      >
                         {isMaxed ? (
                           <Tooltip content={messages.skillMaxedTooltip}>
                             {cellContent}

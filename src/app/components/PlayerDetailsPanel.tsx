@@ -15,6 +15,8 @@ type YouthPlayer = {
   NickName: string;
   LastName: string;
   Specialty?: number;
+  Form?: number;
+  StaminaSkill?: number;
   PlayerSkills?: Record<string, SkillValue | number | string>;
 };
 
@@ -36,6 +38,8 @@ export type YouthPlayerDetails = {
   CanBePromotedIn?: number;
   NativeCountryName?: string;
   Specialty?: number;
+  Form?: number;
+  StaminaSkill?: number;
   OwningYouthTeam?: {
     YouthTeamName?: string;
     SeniorTeam?: {
@@ -138,6 +142,8 @@ const SKILL_ROWS = [
     shortLabelKey: "skillSetPiecesShort",
   },
 ];
+const FORM_MAX_LEVEL = 8;
+const STAMINA_MAX_LEVEL = 9;
 
 function getSkillLevel(skill?: SkillValue | number | string | null): number | null {
   if (skill === null || skill === undefined) return null;
@@ -643,6 +649,61 @@ export default function PlayerDetailsPanel({
             </div>
           ) : null}
         </div>
+
+        {playerKind === "senior" ? (
+          <>
+            <div className={styles.sectionDivider} />
+            <div className={styles.skillsGrid}>
+              <div className={styles.skillRow}>
+                <div className={styles.skillLabel}>{messages.sortForm}</div>
+                <div className={styles.skillBar}>
+                  {typeof detailsData.Form === "number" ? (
+                    <div
+                      className={styles.skillFillCurrent}
+                      style={{
+                        width: `${Math.min(100, (detailsData.Form / FORM_MAX_LEVEL) * 100)}%`,
+                      }}
+                    />
+                  ) : null}
+                </div>
+                <div className={styles.skillValue}>
+                  <span className={styles.skillValuePartWithFlag}>
+                    <span>
+                      {typeof detailsData.Form === "number"
+                        ? String(detailsData.Form)
+                        : messages.unknownShort}
+                    </span>
+                  </span>
+                </div>
+              </div>
+              <div className={styles.skillRow}>
+                <div className={styles.skillLabel}>{messages.sortStamina}</div>
+                <div className={styles.skillBar}>
+                  {typeof detailsData.StaminaSkill === "number" ? (
+                    <div
+                      className={styles.skillFillCurrent}
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          (detailsData.StaminaSkill / STAMINA_MAX_LEVEL) * 100
+                        )}%`,
+                      }}
+                    />
+                  ) : null}
+                </div>
+                <div className={styles.skillValue}>
+                  <span className={styles.skillValuePartWithFlag}>
+                    <span>
+                      {typeof detailsData.StaminaSkill === "number"
+                        ? String(detailsData.StaminaSkill)
+                        : messages.unknownShort}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : null}
 
         <div className={styles.sectionDivider} />
 

@@ -138,6 +138,12 @@ const UPDATES_HISTORY_LIMIT = 20;
 
 const parseNumber = (value: unknown): number | null => {
   if (value === null || value === undefined) return null;
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const text = record["#text"];
+    const parsed = Number(text);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 };
@@ -217,6 +223,58 @@ const normalizeSeniorPlayers = (input: unknown): SeniorPlayer[] => {
       } as SeniorPlayer;
     })
     .filter((player): player is SeniorPlayer => Boolean(player));
+};
+
+const normalizeSeniorPlayerDetails = (
+  input: unknown,
+  fallbackPlayerId?: number
+): SeniorPlayerDetails | null => {
+  if (!input || typeof input !== "object") return null;
+  const node = input as Record<string, unknown>;
+  const playerId = parseNumber(node.PlayerID) ?? fallbackPlayerId ?? null;
+  if (!playerId || playerId <= 0) return null;
+  const staminaFromSkills =
+    node.PlayerSkills && typeof node.PlayerSkills === "object"
+      ? parseSkill((node.PlayerSkills as Record<string, unknown>).StaminaSkill)
+      : null;
+
+  return {
+    PlayerID: playerId,
+    FirstName: node.FirstName ? String(node.FirstName) : undefined,
+    NickName: node.NickName ? String(node.NickName) : undefined,
+    LastName: node.LastName ? String(node.LastName) : undefined,
+    Age: parseNumber(node.Age) ?? undefined,
+    AgeDays: parseNumber(node.AgeDays) ?? undefined,
+    ArrivalDate: typeof node.ArrivalDate === "string" ? node.ArrivalDate : undefined,
+    NativeCountryName:
+      typeof node.NativeCountryName === "string" ? node.NativeCountryName : undefined,
+    Specialty: parseNumber(node.Specialty) ?? undefined,
+    Form: parseSkill(node.PlayerForm ?? node.Form) ?? undefined,
+    StaminaSkill:
+      parseSkill(node.StaminaSkill) ?? parseNumber(node.StaminaSkill) ?? staminaFromSkills ?? undefined,
+    InjuryLevel: parseNumber(node.InjuryLevel) ?? undefined,
+    Cards: parseNumber(node.Cards) ?? undefined,
+    TSI: parseNumber(node.TSI) ?? undefined,
+    Salary: parseNumber(node.Salary) ?? undefined,
+    PlayerSkills:
+      node.PlayerSkills && typeof node.PlayerSkills === "object"
+        ? (node.PlayerSkills as Record<string, SkillValue>)
+        : undefined,
+    LastMatch:
+      node.LastMatch && typeof node.LastMatch === "object"
+        ? {
+            Date:
+              typeof (node.LastMatch as Record<string, unknown>).Date === "string"
+                ? String((node.LastMatch as Record<string, unknown>).Date)
+                : undefined,
+            PositionCode:
+              parseNumber((node.LastMatch as Record<string, unknown>).PositionCode) ??
+              undefined,
+            Rating:
+              parseNumber((node.LastMatch as Record<string, unknown>).Rating) ?? undefined,
+          }
+        : undefined,
+  };
 };
 
 const readStoredLastRefresh = () => {
@@ -431,6 +489,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         AgeDays?: number;
         ArrivalDate?: string;
         Specialty?: number;
+        Form?: number;
+        StaminaSkill?: number;
         PlayerSkills?: Record<string, SkillValue>;
         LastMatch?: {
           Date?: string;
@@ -450,6 +510,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         AgeDays: detail.AgeDays ?? fallback?.AgeDays,
         ArrivalDate: detail.ArrivalDate ?? fallback?.ArrivalDate,
         Specialty: detail.Specialty ?? fallback?.Specialty,
+        Form: detail.Form ?? fallback?.Form,
+        StaminaSkill: detail.StaminaSkill ?? fallback?.StaminaSkill,
         PlayerSkills: detail.PlayerSkills ?? fallback?.PlayerSkills,
         LastMatch: detail.LastMatch,
       });
@@ -465,9 +527,16 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       NickName: selectedPlayer.NickName ?? "",
       LastName: selectedPlayer.LastName,
       Specialty: selectedPlayer.Specialty,
+      Form: selectedDetails?.Form ?? selectedPlayer.Form,
+      StaminaSkill: selectedDetails?.StaminaSkill ?? selectedPlayer.StaminaSkill,
       PlayerSkills: selectedDetails?.PlayerSkills ?? selectedPlayer.PlayerSkills,
     };
-  }, [selectedDetails?.PlayerSkills, selectedPlayer]);
+  }, [
+    selectedDetails?.Form,
+    selectedDetails?.PlayerSkills,
+    selectedDetails?.StaminaSkill,
+    selectedPlayer,
+  ]);
 
   const selectedPanelDetails = useMemo(() => {
     if (!selectedPlayer) return null;
@@ -481,6 +550,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         AgeDays: selectedPlayer.AgeDays,
         ArrivalDate: selectedPlayer.ArrivalDate,
         Specialty: selectedPlayer.Specialty,
+        Form: selectedPlayer.Form,
+        StaminaSkill: selectedPlayer.StaminaSkill,
         PlayerSkills: selectedPlayer.PlayerSkills,
       }
     );
@@ -606,7 +677,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     if (!response.ok || payload?.error || !payload?.data?.HattrickData?.Player) {
       return null;
     }
-    return payload.data.HattrickData.Player;
+    return normalizeSeniorPlayerDetails(payload.data.HattrickData.Player, playerId);
   };
 
   const ensureDetails = async (playerId: number, forceRefresh = false) => {

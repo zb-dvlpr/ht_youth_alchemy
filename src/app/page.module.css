@@ -2854,6 +2854,34 @@ html[data-theme="dark"] .playerButton[aria-pressed="true"] {
   color: #f7f1e3;
 }
 
+html[data-theme="dark"] .playerAgePillGreen {
+  background: rgba(47, 159, 91, 0.25);
+  color: #8fe5ae;
+  border-color: rgba(143, 229, 174, 0.4);
+}
+
+html[data-theme="dark"] .playerAgePillYellow {
+  background: rgba(214, 167, 54, 0.28);
+  color: #f2dca2;
+  border-color: rgba(242, 220, 162, 0.35);
+}
+
+html[data-theme="dark"] .playerAgePillFadedRed {
+  background: rgba(171, 75, 75, 0.32);
+  color: #f1cccc;
+  border-color: rgba(241, 204, 204, 0.3);
+}
+
+html[data-theme="dark"] .playerAgePillDarkRed {
+  background: rgba(143, 33, 33, 0.62);
+  color: #ffe5e5;
+  border-color: rgba(255, 196, 196, 0.32);
+}
+
+html[data-theme="dark"] .playerInjuryInline {
+  color: #ff5a5a;
+}
+
 html[data-theme="dark"] .playerAge {
   color: #d3c8bb;
   opacity: 0.85;
@@ -3116,6 +3144,62 @@ html[data-theme="dark"] .spinner {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   box-shadow: 0 0 8px rgba(183, 24, 24, 0.35);
+}
+
+.playerIndicators {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.playerAgePill {
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.playerAgePillGreen {
+  background: #d8f3e2;
+  color: #1f6f3f;
+  border: 1px solid #8fd3a8;
+}
+
+.playerAgePillYellow {
+  background: #f7e8bf;
+  color: #6f5217;
+  border: 1px solid #e1c47f;
+}
+
+.playerAgePillFadedRed {
+  background: #f2d7d7;
+  color: #7d3232;
+  border: 1px solid #daa5a5;
+}
+
+.playerAgePillDarkRed {
+  background: #c66f6f;
+  color: #fff2f2;
+  border: 1px solid #8f2c2c;
+}
+
+.playerInjuryInline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 1em;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  color: #e02020;
+  flex-shrink: 0;
 }
 
 .playerId {

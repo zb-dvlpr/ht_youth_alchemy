@@ -152,6 +152,25 @@ const parseSkill = (value: unknown): number | null => {
   return null;
 };
 
+const SUBSCRIPT_DIGITS: Record<string, string> = {
+  "0": "₀",
+  "1": "₁",
+  "2": "₂",
+  "3": "₃",
+  "4": "₄",
+  "5": "₅",
+  "6": "₆",
+  "7": "₇",
+  "8": "₈",
+  "9": "₉",
+};
+
+const toSubscript = (value: number) =>
+  String(Math.max(0, Math.floor(value)))
+    .split("")
+    .map((digit) => SUBSCRIPT_DIGITS[digit] ?? digit)
+    .join("");
+
 const formatPlayerName = (player: {
   FirstName?: string;
   NickName?: string;
@@ -1118,6 +1137,34 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                 const playerName = formatPlayerName(player);
                 const isSelected = selectedId === player.PlayerID;
                 const specialty = player.Specialty ?? null;
+                const isNameSort = sortKey === "name";
+                const ageYears = typeof player.Age === "number" ? player.Age : null;
+                const ageDays = typeof player.AgeDays === "number" ? player.AgeDays : null;
+                const ageLabel =
+                  ageYears !== null && ageDays !== null
+                    ? `${ageYears}${messages.ageYearsShort} ${ageDays}${messages.ageDaysShort}`
+                    : ageYears !== null
+                    ? `${ageYears}${messages.ageYearsShort}`
+                    : null;
+                const agePillClassName =
+                  ageYears === null
+                    ? null
+                    : ageYears > 35
+                    ? styles.playerAgePillDarkRed
+                    : ageYears > 30
+                    ? styles.playerAgePillFadedRed
+                    : ageYears >= 20
+                    ? styles.playerAgePillYellow
+                    : styles.playerAgePillGreen;
+                const injuryLevel =
+                  typeof player.InjuryLevel === "number" ? player.InjuryLevel : null;
+                const isBruised = injuryLevel !== null && injuryLevel > 0 && injuryLevel < 1;
+                const injuryWeeks = injuryLevel !== null && injuryLevel >= 1 ? Math.ceil(injuryLevel) : null;
+                const injuryLabel = isBruised
+                  ? messages.seniorListInjuryBruised
+                  : injuryWeeks !== null
+                  ? messages.seniorListInjuryWeeks.replace("{weeks}", String(injuryWeeks))
+                  : null;
                 const metric = (() => {
                   switch (sortKey) {
                     case "age":
@@ -1171,8 +1218,23 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                           addNotification(`${messages.notificationPlayerSelected} ${playerName}`);
                         }}
                       >
-                        <span className={styles.playerSortMetric}>{metric}</span>
-                        <span className={styles.playerNameRow}>
+                        {!isNameSort ? (
+                          <span className={styles.playerSortMetric}>{metric}</span>
+                        ) : null}
+                        <span
+                          className={`${styles.playerNameRow} ${
+                            isNameSort ? styles.playerNameRowTruncate : ""
+                          }`}
+                        >
+                          {injuryLabel ? (
+                            <span
+                              className={styles.playerInjuryInline}
+                              title={injuryLabel}
+                              aria-label={injuryLabel}
+                            >
+                              {isBruised ? "🩹" : `✚${toSubscript(injuryWeeks ?? 0)}`}
+                            </span>
+                          ) : null}
                           <span className={styles.playerName}>{playerName}</span>
                           {specialty && SPECIALTY_EMOJI[specialty] ? (
                             <span className={styles.playerSpecialty}>
@@ -1180,6 +1242,15 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                             </span>
                           ) : null}
                         </span>
+                        {isNameSort ? (
+                          <span className={styles.playerIndicators}>
+                            {ageLabel && agePillClassName ? (
+                              <span className={`${styles.playerAgePill} ${agePillClassName}`}>
+                                {ageLabel}
+                              </span>
+                            ) : null}
+                          </span>
+                        ) : null}
                       </button>
                     </div>
                   </li>

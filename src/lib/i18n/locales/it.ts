@@ -688,6 +688,8 @@ export const messagesIt: Messages = {
     sortInjuries: "Infortuni",
     sortCards: "Cartellini",
     sortCustom: "--",
+    seniorListInjuryBruised: "Contuso",
+    seniorListInjuryWeeks: "Infortunato ({weeks} sett.)",
     sortToggleAria: "Inverti ordinamento",
     sortAscLabel: "Crescente",
     sortDescLabel: "Decrescente",

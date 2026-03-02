@@ -602,6 +602,8 @@ export type Messages = {
   sortInjuries: string;
   sortCards: string;
   sortCustom: string;
+  seniorListInjuryBruised: string;
+  seniorListInjuryWeeks: string;
   sortToggleAria: string;
   sortAscLabel: string;
   sortDescLabel: string;

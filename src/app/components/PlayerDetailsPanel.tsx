@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { formatChppDate, formatDateTime } from "@/lib/datetime";
@@ -52,6 +52,8 @@ export type YouthPlayerDetails = {
   };
 };
 
+export type PlayerDetailsPanelTab = "details" | "skillsMatrix" | "ratingsMatrix";
+
 type PlayerDetailsPanelProps = {
   selectedPlayer: YouthPlayer | null;
   detailsData: YouthPlayerDetails | null;
@@ -87,6 +89,8 @@ type PlayerDetailsPanelProps = {
   playerKind?: "youth" | "senior";
   skillMode?: "currentMax" | "single";
   maxSkillLevel?: number;
+  activeTab?: PlayerDetailsPanelTab;
+  onActiveTabChange?: (tab: PlayerDetailsPanelTab) => void;
   messages: Messages;
 };
 
@@ -235,19 +239,36 @@ export default function PlayerDetailsPanel({
   playerKind = "youth",
   skillMode = "currentMax",
   maxSkillLevel = 8,
+  activeTab,
+  onActiveTabChange,
   messages,
 }: PlayerDetailsPanelProps) {
-  const [activeTab, setActiveTab] = useState<
-    "details" | "skillsMatrix" | "ratingsMatrix"
-  >("details");
+  const [uncontrolledActiveTab, setUncontrolledActiveTab] =
+    useState<PlayerDetailsPanelTab>("details");
   const [skillsSortKey, setSkillsSortKey] = useState<
     (typeof SKILL_ROWS)[number]["key"] | "name" | null
   >(null);
   const [skillsSortDir, setSkillsSortDir] = useState<"asc" | "desc">("desc");
   const pendingSkillsSortRef = useRef(false);
+  const activeTabRef = useRef(activeTab);
+  const onActiveTabChangeRef = useRef(onActiveTabChange);
+
+  const resolvedActiveTab = activeTab ?? uncontrolledActiveTab;
+
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+    onActiveTabChangeRef.current = onActiveTabChange;
+  }, [activeTab, onActiveTabChange]);
+
+  const setResolvedActiveTab = useCallback((nextTab: PlayerDetailsPanelTab) => {
+    if (activeTabRef.current === undefined) {
+      setUncontrolledActiveTab(nextTab);
+    }
+    onActiveTabChangeRef.current?.(nextTab);
+  }, []);
 
   const handleMatrixPlayerPick = (playerName: string) => {
-    setActiveTab("details");
+    setResolvedActiveTab("details");
     onSelectRatingsPlayer?.(playerName);
   };
 
@@ -260,13 +281,6 @@ export default function PlayerDetailsPanel({
     () => new Set(matrixNewPlayerIds),
     [matrixNewPlayerIds]
   );
-
-  useEffect(() => {
-    if (selectedPlayer?.YouthPlayerID) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setActiveTab("details");
-    }
-  }, [selectedPlayer?.YouthPlayerID]);
 
   const sortedSkillsRows = useMemo(() => {
     if (!skillsSortKey) return skillsMatrixRows;
@@ -989,36 +1003,36 @@ export default function PlayerDetailsPanel({
           <button
             type="button"
             className={`${styles.detailsTabButton} ${
-              activeTab === "details" ? styles.detailsTabActive : ""
+              resolvedActiveTab === "details" ? styles.detailsTabActive : ""
             }`}
-            onClick={() => setActiveTab("details")}
+            onClick={() => setResolvedActiveTab("details")}
           >
             {messages.detailsTabLabel}
           </button>
           <button
             type="button"
             className={`${styles.detailsTabButton} ${
-              activeTab === "skillsMatrix" ? styles.detailsTabActive : ""
+              resolvedActiveTab === "skillsMatrix" ? styles.detailsTabActive : ""
             }`}
-            onClick={() => setActiveTab("skillsMatrix")}
+            onClick={() => setResolvedActiveTab("skillsMatrix")}
           >
             {messages.skillsMatrixTabLabel}
           </button>
           <button
             type="button"
             className={`${styles.detailsTabButton} ${
-              activeTab === "ratingsMatrix" ? styles.detailsTabActive : ""
+              resolvedActiveTab === "ratingsMatrix" ? styles.detailsTabActive : ""
             }`}
-            onClick={() => setActiveTab("ratingsMatrix")}
+            onClick={() => setResolvedActiveTab("ratingsMatrix")}
           >
             {messages.ratingsMatrixTabLabel}
           </button>
         </div>
       </div>
 
-      {activeTab === "details" ? (
+      {resolvedActiveTab === "details" ? (
         renderDetails()
-      ) : activeTab === "skillsMatrix" ? (
+      ) : resolvedActiveTab === "skillsMatrix" ? (
         renderSkillsMatrix()
       ) : (
         <RatingsMatrix

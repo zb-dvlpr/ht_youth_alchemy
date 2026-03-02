@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import styles from "../page.module.css";
 import YouthPlayerList from "./YouthPlayerList";
 import PlayerDetailsPanel, {
+  type PlayerDetailsPanelTab,
   YouthPlayerDetails,
 } from "./PlayerDetailsPanel";
 import LineupField, {
@@ -584,6 +585,8 @@ export default function Dashboard({
   const [analyzedHiddenSpecialtyMatchIds, setAnalyzedHiddenSpecialtyMatchIds] =
     useState<number[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [activeDetailsTab, setActiveDetailsTab] =
+    useState<PlayerDetailsPanelTab>("details");
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
   const [cache, setCache] = useState<Record<number, CachedDetails>>({});
   const [unlockStatus, setUnlockStatus] = useState<"success" | "denied" | null>(
@@ -1336,10 +1339,18 @@ export default function Dashboard({
         analyzedRatingsMatchIds?: number[];
         matrixNewMarkers?: MatrixNewMarkers;
         youthUpdatesHistory?: YouthUpdatesGroupedEntry[];
+        activeDetailsTab?: PlayerDetailsPanelTab;
       };
       if (parsed.assignments) setAssignments(parsed.assignments);
       if (parsed.behaviors) setBehaviors(parsed.behaviors);
       if (parsed.selectedId !== undefined) setSelectedId(parsed.selectedId);
+      if (
+        parsed.activeDetailsTab === "details" ||
+        parsed.activeDetailsTab === "skillsMatrix" ||
+        parsed.activeDetailsTab === "ratingsMatrix"
+      ) {
+        setActiveDetailsTab(parsed.activeDetailsTab);
+      }
       if (parsed.starPlayerId !== undefined) setStarPlayerId(parsed.starPlayerId);
       if (parsed.primaryTraining !== undefined)
         setPrimaryTraining(
@@ -1526,6 +1537,7 @@ export default function Dashboard({
       assignments,
       behaviors,
       selectedId,
+      activeDetailsTab,
       starPlayerId,
       primaryTraining,
       secondaryTraining,
@@ -1557,6 +1569,7 @@ export default function Dashboard({
     secondaryTraining,
     tacticType,
     selectedId,
+    activeDetailsTab,
     starPlayerId,
     behaviors,
     playerList,
@@ -2191,6 +2204,7 @@ export default function Dashboard({
   };
 
   const handleSelect = async (playerId: number) => {
+    setActiveDetailsTab("details");
     setSelectedId(playerId);
     await loadDetails(playerId);
   };
@@ -4482,6 +4496,8 @@ export default function Dashboard({
                 if (!nextPlayerId) return;
                 void handleSelect(nextPlayerId);
               }}
+              activeTab={activeDetailsTab}
+              onActiveTabChange={setActiveDetailsTab}
               messages={messages}
             />
           </>

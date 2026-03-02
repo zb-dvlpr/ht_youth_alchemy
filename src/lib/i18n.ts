@@ -98,6 +98,10 @@ export type Messages = {
   settingsYouthTitle: string;
   settingsYouthStalenessLabel: string;
   settingsYouthStalenessHint: string;
+  settingsSenior: string;
+  settingsSeniorTitle: string;
+  settingsSeniorStalenessLabel: string;
+  settingsSeniorStalenessHint: string;
   behaviorNeutral: string;
   behaviorOffensive: string;
   behaviorDefensive: string;

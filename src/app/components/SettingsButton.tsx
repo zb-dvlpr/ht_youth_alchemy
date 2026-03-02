@@ -18,6 +18,9 @@ import {
   readYouthStalenessHours,
   writeYouthStalenessHours,
   YOUTH_SETTINGS_EVENT,
+  readSeniorStalenessDays,
+  writeSeniorStalenessDays,
+  SENIOR_SETTINGS_EVENT,
   readClubChronicleStalenessDays,
   writeClubChronicleStalenessDays,
   readClubChronicleTransferHistoryCount,
@@ -49,12 +52,14 @@ const STORAGE_PREFIX = "ya_";
 export default function SettingsButton({ messages }: SettingsButtonProps) {
   const [open, setOpen] = useState(false);
   const [youthSettingsOpen, setYouthSettingsOpen] = useState(false);
+  const [seniorSettingsOpen, setSeniorSettingsOpen] = useState(false);
   const [chronicleSettingsOpen, setChronicleSettingsOpen] = useState(false);
   const [generalSettingsOpen, setGeneralSettingsOpen] = useState(false);
   const [debugSettingsOpen, setDebugSettingsOpen] = useState(false);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
   const [stalenessHours, setStalenessHours] = useState(3);
+  const [seniorStalenessDays, setSeniorStalenessDays] = useState(1);
   const [chronicleStalenessDays, setChronicleStalenessDays] = useState(3);
   const [chronicleTransferHistoryCount, setChronicleTransferHistoryCount] =
     useState(5);
@@ -87,6 +92,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     if (typeof window === "undefined") return;
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
     setStalenessHours(readYouthStalenessHours());
+    setSeniorStalenessDays(readSeniorStalenessDays());
     setChronicleStalenessDays(readClubChronicleStalenessDays());
     setChronicleTransferHistoryCount(readClubChronicleTransferHistoryCount());
     setChronicleUpdatesHistoryCount(readClubChronicleUpdatesHistoryCount());
@@ -190,6 +196,19 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
       window.dispatchEvent(
         new CustomEvent(YOUTH_SETTINGS_EVENT, {
           detail: { stalenessHours: nextValue },
+        })
+      );
+    }
+  };
+
+  const handleSeniorStalenessDaysChange = (value: number) => {
+    const nextValue = Math.min(7, Math.max(1, Math.round(value)));
+    setSeniorStalenessDays(nextValue);
+    writeSeniorStalenessDays(nextValue);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(SENIOR_SETTINGS_EVENT, {
+          detail: { stalenessDays: nextValue },
         })
       );
     }
@@ -333,6 +352,16 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
             type="button"
             className={styles.feedbackLink}
             onClick={() => {
+              setSeniorSettingsOpen(true);
+              setOpen(false);
+            }}
+          >
+            {messages.settingsSenior}
+          </button>
+          <button
+            type="button"
+            className={styles.feedbackLink}
+            onClick={() => {
               setGeneralSettingsOpen(true);
               setOpen(false);
             }}
@@ -427,6 +456,45 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         }
         closeOnBackdrop
         onClose={() => setYouthSettingsOpen(false)}
+      />
+      <Modal
+        open={seniorSettingsOpen}
+        title={messages.settingsSeniorTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <Tooltip content={messages.settingsSeniorStalenessHint} fullWidth>
+              <label className={styles.settingsField}>
+                <span className={styles.settingsFieldLabel}>
+                  {messages.settingsSeniorStalenessLabel}
+                </span>
+                <input
+                  type="number"
+                  min={1}
+                  max={7}
+                  step={1}
+                  value={seniorStalenessDays}
+                  className={styles.settingsFieldInput}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    if (Number.isNaN(value)) return;
+                    handleSeniorStalenessDaysChange(value);
+                  }}
+                />
+              </label>
+            </Tooltip>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setSeniorSettingsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setSeniorSettingsOpen(false)}
       />
       <Modal
         open={chronicleSettingsOpen}

@@ -9,9 +9,14 @@ import { mapWithConcurrency } from "@/lib/async";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { formatDateTime } from "@/lib/datetime";
+import {
+  readSeniorStalenessDays,
+  SENIOR_SETTINGS_EVENT,
+  SENIOR_SETTINGS_STORAGE_KEY,
+} from "@/lib/settings";
 import Modal from "./Modal";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
-import PlayerDetailsPanel from "./PlayerDetailsPanel";
+import PlayerDetailsPanel, { type PlayerDetailsPanelTab } from "./PlayerDetailsPanel";
 import LineupField, { LineupAssignments, LineupBehaviors } from "./LineupField";
 import UpcomingMatches, { MatchesResponse } from "./UpcomingMatches";
 
@@ -115,6 +120,7 @@ const SENIOR_REFRESH_STATE_EVENT = "ya:senior-refresh-state";
 const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
 
 const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
+const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
 const LAST_REFRESH_STORAGE_KEY = "ya_senior_last_refresh_ts_v1";
 const LIST_SORT_STORAGE_KEY = "ya_senior_player_list_sort_v1";
 const DETAILS_TTL_MS = 60 * 60 * 1000;
@@ -297,10 +303,16 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [updatesOpen, setUpdatesOpen] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [activeDetailsTab, setActiveDetailsTab] =
+    useState<PlayerDetailsPanelTab>("details");
+  const [stateRestored, setStateRestored] = useState(false);
+  const [stalenessDays, setStalenessDays] = useState(1);
+  const [dataRestored, setDataRestored] = useState(false);
 
   const refreshRunSeqRef = useRef(0);
   const activeRefreshRunIdRef = useRef<number | null>(null);
   const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
+  const staleRefreshAttemptedRef = useRef(false);
 
   const selectedPlayer =
     selectedId !== null
@@ -830,54 +842,183 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const rawSort = window.localStorage.getItem(LIST_SORT_STORAGE_KEY);
-    if (rawSort) {
-      try {
-        const parsed = JSON.parse(rawSort) as {
-          sortKey?: SortKey;
-          sortDirection?: SortDirection;
-        };
-        if (parsed.sortKey) setSortKey(parsed.sortKey);
-        if (parsed.sortDirection === "asc" || parsed.sortDirection === "desc") {
-          setSortDirection(parsed.sortDirection);
+    try {
+      const rawSort = window.localStorage.getItem(LIST_SORT_STORAGE_KEY);
+      if (rawSort) {
+        try {
+          const parsed = JSON.parse(rawSort) as {
+            sortKey?: SortKey;
+            sortDirection?: SortDirection;
+          };
+          if (parsed.sortKey) setSortKey(parsed.sortKey);
+          if (parsed.sortDirection === "asc" || parsed.sortDirection === "desc") {
+            setSortDirection(parsed.sortDirection);
+          }
+        } catch {
+          // ignore parse errors
         }
-      } catch {
-        // ignore parse errors
       }
-    }
 
-    const rawState = window.localStorage.getItem(STATE_STORAGE_KEY);
-    if (rawState) {
-      try {
-        const parsed = JSON.parse(rawState) as {
-          selectedId?: number | null;
-          assignments?: LineupAssignments;
-          behaviors?: LineupBehaviors;
-          loadedMatchId?: number | null;
-          tacticType?: number;
-          includeTournamentMatches?: boolean;
-          updatesHistory?: SeniorUpdatesGroupedEntry[];
-          selectedUpdatesId?: string | null;
-        };
-        setSelectedId(typeof parsed.selectedId === "number" ? parsed.selectedId : null);
-        setAssignments(parsed.assignments && typeof parsed.assignments === "object" ? parsed.assignments : {});
-        setBehaviors(parsed.behaviors && typeof parsed.behaviors === "object" ? parsed.behaviors : {});
-        setLoadedMatchId(typeof parsed.loadedMatchId === "number" ? parsed.loadedMatchId : null);
-        setTacticType(typeof parsed.tacticType === "number" ? parsed.tacticType : 0);
-        setIncludeTournamentMatches(Boolean(parsed.includeTournamentMatches));
-        setUpdatesHistory(Array.isArray(parsed.updatesHistory) ? parsed.updatesHistory : []);
-        setSelectedUpdatesId(typeof parsed.selectedUpdatesId === "string" ? parsed.selectedUpdatesId : null);
-      } catch {
-        // ignore parse errors
+      const rawState = window.localStorage.getItem(STATE_STORAGE_KEY);
+      if (rawState) {
+        try {
+          const parsed = JSON.parse(rawState) as {
+            selectedId?: number | null;
+            assignments?: LineupAssignments;
+            behaviors?: LineupBehaviors;
+            loadedMatchId?: number | null;
+            tacticType?: number;
+            includeTournamentMatches?: boolean;
+            updatesHistory?: SeniorUpdatesGroupedEntry[];
+            selectedUpdatesId?: string | null;
+            activeDetailsTab?: PlayerDetailsPanelTab;
+          };
+          setSelectedId(typeof parsed.selectedId === "number" ? parsed.selectedId : null);
+          setAssignments(parsed.assignments && typeof parsed.assignments === "object" ? parsed.assignments : {});
+          setBehaviors(parsed.behaviors && typeof parsed.behaviors === "object" ? parsed.behaviors : {});
+          setLoadedMatchId(typeof parsed.loadedMatchId === "number" ? parsed.loadedMatchId : null);
+          setTacticType(typeof parsed.tacticType === "number" ? parsed.tacticType : 0);
+          setIncludeTournamentMatches(Boolean(parsed.includeTournamentMatches));
+          setUpdatesHistory(Array.isArray(parsed.updatesHistory) ? parsed.updatesHistory : []);
+          setSelectedUpdatesId(typeof parsed.selectedUpdatesId === "string" ? parsed.selectedUpdatesId : null);
+          if (
+            parsed.activeDetailsTab === "details" ||
+            parsed.activeDetailsTab === "skillsMatrix" ||
+            parsed.activeDetailsTab === "ratingsMatrix"
+          ) {
+            setActiveDetailsTab(parsed.activeDetailsTab);
+          }
+        } catch {
+          // ignore parse errors
+        }
       }
-    }
 
-    setLastRefreshAt(readStoredLastRefresh());
-    void refreshAll("manual");
+      const rawData = window.localStorage.getItem(DATA_STORAGE_KEY);
+      let restoredPlayersCount = 0;
+      if (rawData) {
+        try {
+          const parsed = JSON.parse(rawData) as {
+            players?: unknown;
+            matchesState?: MatchesResponse;
+            ratingsResponse?: RatingsMatrixResponse | null;
+            detailsCache?: Record<number, PlayerDetailCacheEntry>;
+          };
+          const restoredPlayers = normalizeSeniorPlayers(parsed.players);
+          restoredPlayersCount = restoredPlayers.length;
+          if (restoredPlayers.length > 0) {
+            setPlayers(restoredPlayers);
+          }
+          if (parsed.matchesState && typeof parsed.matchesState === "object") {
+            setMatchesState(parsed.matchesState);
+          }
+          if (parsed.ratingsResponse && typeof parsed.ratingsResponse === "object") {
+            setRatingsResponse(parsed.ratingsResponse);
+          }
+          if (parsed.detailsCache && typeof parsed.detailsCache === "object") {
+            setDetailsCache(parsed.detailsCache);
+          }
+        } catch {
+          // ignore parse errors
+        }
+      }
+
+      setLastRefreshAt(readStoredLastRefresh());
+      setStalenessDays(readSeniorStalenessDays());
+      const lastRefresh = readStoredLastRefresh();
+      const shouldRefresh =
+        !lastRefresh || Date.now() - lastRefresh >= readSeniorStalenessDays() * 24 * 60 * 60 * 1000;
+      const shouldBootstrap = restoredPlayersCount === 0;
+      if (shouldRefresh || shouldBootstrap) {
+        void refreshAll(shouldRefresh && lastRefresh ? "stale" : "manual");
+      }
+    } finally {
+      setStateRestored(true);
+      setDataRestored(true);
+    }
   }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const handle = (event: Event) => {
+      if (event instanceof StorageEvent) {
+        if (
+          event.key &&
+          event.key !== SENIOR_SETTINGS_STORAGE_KEY &&
+          event.key !== LAST_REFRESH_STORAGE_KEY
+        ) {
+          return;
+        }
+      }
+      if (event instanceof CustomEvent) {
+        const detail = event.detail as { stalenessDays?: number } | null;
+        if (typeof detail?.stalenessDays === "number") {
+          setStalenessDays(Math.min(7, Math.max(1, Math.round(detail.stalenessDays))));
+          return;
+        }
+      }
+      setStalenessDays(readSeniorStalenessDays());
+    };
+    window.addEventListener("storage", handle);
+    window.addEventListener(SENIOR_SETTINGS_EVENT, handle);
+    return () => {
+      window.removeEventListener("storage", handle);
+      window.removeEventListener(SENIOR_SETTINGS_EVENT, handle);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!lastRefreshAt) return;
+    const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
+    const isStale = Date.now() - lastRefreshAt >= maxAgeMs;
+    if (!isStale) {
+      staleRefreshAttemptedRef.current = false;
+      return;
+    }
+    if (refreshing) return;
+    if (staleRefreshAttemptedRef.current) return;
+    staleRefreshAttemptedRef.current = true;
+    void refreshAll("stale");
+  }, [lastRefreshAt, refreshing, stalenessDays]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const maybeRunStaleRefresh = () => {
+      if (document.visibilityState !== "visible") return;
+      const lastRefresh = readStoredLastRefresh();
+      if (!lastRefresh) return;
+      const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
+      const isStale = Date.now() - lastRefresh >= maxAgeMs;
+      if (!isStale) {
+        staleRefreshAttemptedRef.current = false;
+        return;
+      }
+      if (refreshing) return;
+      if (staleRefreshAttemptedRef.current) return;
+      staleRefreshAttemptedRef.current = true;
+      void refreshAll("stale");
+    };
+
+    const handleFocus = () => maybeRunStaleRefresh();
+    const handleVisibility = () => {
+      if (document.visibilityState !== "visible") return;
+      maybeRunStaleRefresh();
+    };
+
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("pageshow", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("pageshow", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
+    };
+  }, [refreshing, stalenessDays]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!stateRestored) return;
     const payload = {
       selectedId,
       assignments,
@@ -887,9 +1028,15 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       includeTournamentMatches,
       updatesHistory,
       selectedUpdatesId,
+      activeDetailsTab,
     };
-    window.localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(payload));
+    try {
+      window.localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      // ignore persist errors
+    }
   }, [
+    stateRestored,
     assignments,
     behaviors,
     includeTournamentMatches,
@@ -898,15 +1045,33 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     selectedUpdatesId,
     tacticType,
     updatesHistory,
+    activeDetailsTab,
   ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (!stateRestored) return;
     window.localStorage.setItem(
       LIST_SORT_STORAGE_KEY,
       JSON.stringify({ sortKey, sortDirection })
     );
-  }, [sortDirection, sortKey]);
+  }, [stateRestored, sortDirection, sortKey]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!dataRestored) return;
+    const payload = {
+      players,
+      matchesState,
+      ratingsResponse,
+      detailsCache,
+    };
+    try {
+      window.localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(payload));
+    } catch {
+      // ignore persist errors
+    }
+  }, [dataRestored, detailsCache, matchesState, players, ratingsResponse]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -1214,6 +1379,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                         className={styles.playerButton}
                         aria-pressed={isSelected}
                         onClick={() => {
+                          setActiveDetailsTab("details");
                           setSelectedId(player.PlayerID);
                           addNotification(`${messages.notificationPlayerSelected} ${playerName}`);
                         }}
@@ -1281,21 +1447,26 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             onSelectRatingsPlayer={(playerName) => {
               const player = players.find((item) => formatPlayerName(item) === playerName);
               if (!player) return;
+              setActiveDetailsTab("details");
               setSelectedId(player.PlayerID);
             }}
             hasPreviousPlayer={Boolean(previousPlayerId)}
             hasNextPlayer={Boolean(nextPlayerId)}
             onPreviousPlayer={() => {
               if (!previousPlayerId) return;
+              setActiveDetailsTab("details");
               setSelectedId(previousPlayerId);
             }}
             onNextPlayer={() => {
               if (!nextPlayerId) return;
+              setActiveDetailsTab("details");
               setSelectedId(nextPlayerId);
             }}
             playerKind="senior"
             skillMode="single"
             maxSkillLevel={20}
+            activeTab={activeDetailsTab}
+            onActiveTabChange={setActiveDetailsTab}
             messages={messages}
           />
         </div>
@@ -1351,6 +1522,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
               void ensureDetails(playerId);
             }}
             onSelectPlayer={(playerId) => {
+              setActiveDetailsTab("details");
               setSelectedId(playerId);
             }}
             messages={messages}

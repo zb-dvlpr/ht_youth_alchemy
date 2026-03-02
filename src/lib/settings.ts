@@ -11,6 +11,9 @@ export const DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT = 10;
 export const YOUTH_SETTINGS_STORAGE_KEY = "ya_youth_staleness_hours_v1";
 export const YOUTH_SETTINGS_EVENT = "ya:youth-settings";
 export const DEFAULT_YOUTH_STALENESS_HOURS = 3;
+export const SENIOR_SETTINGS_STORAGE_KEY = "ya_senior_staleness_days_v1";
+export const SENIOR_SETTINGS_EVENT = "ya:senior-settings";
+export const DEFAULT_SENIOR_STALENESS_DAYS = 1;
 export const LAST_REFRESH_STORAGE_KEY = "ya_last_refresh_ts_v1";
 export const DEBUG_SETTINGS_STORAGE_KEY = "ya_debug_disable_scaling_v1";
 export const DEBUG_SETTINGS_EVENT = "ya:debug-settings";
@@ -220,6 +223,35 @@ export function writeYouthStalenessHours(value: number) {
   try {
     const clamped = Math.min(24, Math.max(1, Math.round(value)));
     window.localStorage.setItem(YOUTH_SETTINGS_STORAGE_KEY, String(clamped));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function readSeniorStalenessDays(): number {
+  if (typeof window === "undefined") {
+    return DEFAULT_SENIOR_STALENESS_DAYS;
+  }
+  try {
+    const stored = window.localStorage.getItem(SENIOR_SETTINGS_STORAGE_KEY);
+    if (stored === null) {
+      return DEFAULT_SENIOR_STALENESS_DAYS;
+    }
+    const value = Number(stored);
+    if (!Number.isFinite(value)) {
+      return DEFAULT_SENIOR_STALENESS_DAYS;
+    }
+    return Math.min(7, Math.max(1, Math.round(value)));
+  } catch {
+    return DEFAULT_SENIOR_STALENESS_DAYS;
+  }
+}
+
+export function writeSeniorStalenessDays(value: number) {
+  if (typeof window === "undefined") return;
+  try {
+    const clamped = Math.min(7, Math.max(1, Math.round(value)));
+    window.localStorage.setItem(SENIOR_SETTINGS_STORAGE_KEY, String(clamped));
   } catch {
     // ignore storage errors
   }

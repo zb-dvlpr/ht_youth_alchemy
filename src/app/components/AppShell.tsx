@@ -522,10 +522,9 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
         aria-label={tool.label}
       >
         <span className={styles.sidebarIcon} aria-hidden="true">
-          <span className={styles.sidebarIconGlyph}>{tool.icon}</span>
-          {tool.badge ? (
-            <span className={styles.sidebarIconBadge}>{tool.badge}</span>
-          ) : null}
+          <span className={styles.sidebarIconGlyph}>
+            {tool.badge ? `${tool.badge}${tool.icon}` : tool.icon}
+          </span>
         </span>
         {!collapsed ? (
           <span className={styles.sidebarLabel}>{tool.label}</span>

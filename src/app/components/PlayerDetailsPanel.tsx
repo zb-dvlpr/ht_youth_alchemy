@@ -191,6 +191,34 @@ function skillCellColor(
   return `hsla(${hue}, 70%, 38%, ${alpha})`;
 }
 
+const seniorBarGradient = (
+  value: number | null,
+  minSkillLevel: number,
+  maxSkillLevel: number
+) => {
+  if (value === null || value === undefined) return undefined;
+  if (maxSkillLevel <= minSkillLevel) return undefined;
+  const t = Math.min(
+    1,
+    Math.max((value - minSkillLevel) / (maxSkillLevel - minSkillLevel), 0)
+  );
+  if (t >= 1) {
+    return "linear-gradient(90deg, #2f9f5b, #1f6f3f)";
+  }
+  if (t <= 0) {
+    return "linear-gradient(90deg, #cf3f3a, #8b241f)";
+  }
+  const startHue = 6 + (136 - 6) * t;
+  const startSat = 72 - 8 * t;
+  const startLight = 49 - 9 * t;
+  const endHue = 2 + (145 - 2) * t;
+  const endSat = 66 - 10 * t;
+  const endLight = 33 - 5 * t;
+  const startColor = `hsl(${Math.round(startHue)} ${Math.round(startSat)}% ${Math.round(startLight)}%)`;
+  const endColor = `hsl(${Math.round(endHue)} ${Math.round(endSat)}% ${Math.round(endLight)}%)`;
+  return `linear-gradient(90deg, ${startColor}, ${endColor})`;
+};
+
 function daysSince(dateString?: string) {
   if (!dateString) return null;
   const parsed = new Date(dateString.replace(" ", "T"));
@@ -662,6 +690,7 @@ export default function PlayerDetailsPanel({
                       className={styles.skillFillCurrent}
                       style={{
                         width: `${Math.min(100, (detailsData.Form / FORM_MAX_LEVEL) * 100)}%`,
+                        background: seniorBarGradient(detailsData.Form, 1, FORM_MAX_LEVEL),
                       }}
                     />
                   ) : null}
@@ -687,6 +716,11 @@ export default function PlayerDetailsPanel({
                           100,
                           (detailsData.StaminaSkill / STAMINA_MAX_LEVEL) * 100
                         )}%`,
+                        background: seniorBarGradient(
+                          detailsData.StaminaSkill,
+                          1,
+                          STAMINA_MAX_LEVEL
+                        ),
                       }}
                     />
                   ) : null}
@@ -746,6 +780,14 @@ export default function PlayerDetailsPanel({
               const maxPct = hasMax
                 ? Math.min(100, (max / maxSkillLevel) * 100)
                 : null;
+              const currentBarColor =
+                playerKind === "senior" && hasCurrent
+                  ? seniorBarGradient(current, 1, maxSkillLevel)
+                  : undefined;
+              const maxBarColor =
+                playerKind === "senior" && hasMax
+                  ? seniorBarGradient(max, 1, maxSkillLevel)
+                  : undefined;
 
               return (
                 <div key={row.key} className={styles.skillRow}>
@@ -757,7 +799,10 @@ export default function PlayerDetailsPanel({
                       {hasCurrent ? (
                         <div
                           className={styles.skillFillCurrent}
-                          style={{ width: `${currentPct}%` }}
+                          style={{
+                            width: `${currentPct}%`,
+                            background: currentBarColor,
+                          }}
                         />
                       ) : null}
                     </div>
@@ -767,13 +812,19 @@ export default function PlayerDetailsPanel({
                         {hasMax ? (
                           <div
                             className={styles.skillFillMax}
-                            style={{ width: `${maxPct}%` }}
+                            style={{
+                              width: `${maxPct}%`,
+                              background: maxBarColor,
+                            }}
                           />
                         ) : null}
                         {hasCurrent ? (
                           <div
                             className={styles.skillFillCurrent}
-                            style={{ width: `${currentPct}%` }}
+                            style={{
+                              width: `${currentPct}%`,
+                              background: currentBarColor,
+                            }}
                           />
                         ) : null}
                       </div>
@@ -783,13 +834,19 @@ export default function PlayerDetailsPanel({
                       {hasMax ? (
                         <div
                           className={styles.skillFillMax}
-                          style={{ width: `${maxPct}%` }}
+                          style={{
+                            width: `${maxPct}%`,
+                            background: maxBarColor,
+                          }}
                         />
                       ) : null}
                       {hasCurrent ? (
                         <div
                           className={styles.skillFillCurrent}
-                          style={{ width: `${currentPct}%` }}
+                          style={{
+                            width: `${currentPct}%`,
+                            background: currentBarColor,
+                          }}
                         />
                       ) : null}
                     </div>

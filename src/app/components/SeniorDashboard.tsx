@@ -361,6 +361,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [updatesOpen, setUpdatesOpen] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [orderedPlayerIds, setOrderedPlayerIds] = useState<number[] | null>(null);
+  const [orderSource, setOrderSource] = useState<"list" | "ratings" | "skills" | null>(null);
   const [activeDetailsTab, setActiveDetailsTab] =
     useState<PlayerDetailsPanelTab>("details");
   const [stateRestored, setStateRestored] = useState(false);
@@ -452,16 +454,24 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       .map((entry) => entry.player);
   }, [detailsById, players, sortDirection, sortKey]);
 
+  const playerNavigationIds = useMemo(() => {
+    if (orderedPlayerIds && orderedPlayerIds.length) {
+      const validIds = new Set(players.map((player) => player.PlayerID));
+      return orderedPlayerIds.filter((id) => validIds.has(id));
+    }
+    return sortedPlayers.map((player) => player.PlayerID);
+  }, [orderedPlayerIds, players, sortedPlayers]);
+
   const selectedSortedIndex = useMemo(() => {
     if (!selectedId) return -1;
-    return sortedPlayers.findIndex((player) => player.PlayerID === selectedId);
-  }, [selectedId, sortedPlayers]);
+    return playerNavigationIds.indexOf(selectedId);
+  }, [playerNavigationIds, selectedId]);
 
   const previousPlayerId =
-    selectedSortedIndex > 0 ? sortedPlayers[selectedSortedIndex - 1]?.PlayerID ?? null : null;
+    selectedSortedIndex > 0 ? playerNavigationIds[selectedSortedIndex - 1] ?? null : null;
   const nextPlayerId =
-    selectedSortedIndex >= 0 && selectedSortedIndex < sortedPlayers.length - 1
-      ? sortedPlayers[selectedSortedIndex + 1]?.PlayerID ?? null
+    selectedSortedIndex >= 0 && selectedSortedIndex < playerNavigationIds.length - 1
+      ? playerNavigationIds[selectedSortedIndex + 1] ?? null
       : null;
 
   const panelPlayers = useMemo(
@@ -565,12 +575,36 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
 
   const skillsMatrixRows = useMemo(
     () =>
-      sortedPlayers.map((player) => ({
+      players.map((player) => ({
         id: player.PlayerID,
         name: formatPlayerName(player),
       })),
-    [sortedPlayers]
+    [players]
   );
+
+  const orderedListPlayers = useMemo(() => {
+    if (orderedPlayerIds && orderSource && orderSource !== "list") {
+      const map = new Map(players.map((player) => [player.PlayerID, player]));
+      return orderedPlayerIds
+        .map((id) => map.get(id))
+        .filter((player): player is SeniorPlayer => Boolean(player));
+    }
+    return sortedPlayers;
+  }, [orderSource, orderedPlayerIds, players, sortedPlayers]);
+
+  const applyPlayerOrder = (ids: number[], source: "list" | "ratings" | "skills") => {
+    setOrderedPlayerIds((prev) => {
+      if (
+        prev &&
+        prev.length === ids.length &&
+        prev.every((id, index) => id === ids[index])
+      ) {
+        return prev;
+      }
+      return ids;
+    });
+    setOrderSource((prev) => (prev === source ? prev : source));
+  };
 
   const playersByIdForLineup = useMemo(() => {
     const map = new Map<
@@ -951,6 +985,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             updatesHistory?: SeniorUpdatesGroupedEntry[];
             selectedUpdatesId?: string | null;
             activeDetailsTab?: PlayerDetailsPanelTab;
+            orderedPlayerIds?: number[] | null;
+            orderSource?: "list" | "ratings" | "skills" | null;
           };
           setSelectedId(typeof parsed.selectedId === "number" ? parsed.selectedId : null);
           setAssignments(parsed.assignments && typeof parsed.assignments === "object" ? parsed.assignments : {});
@@ -966,6 +1002,18 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             parsed.activeDetailsTab === "ratingsMatrix"
           ) {
             setActiveDetailsTab(parsed.activeDetailsTab);
+          }
+          if (Array.isArray(parsed.orderedPlayerIds)) {
+            setOrderedPlayerIds(
+              parsed.orderedPlayerIds.filter((id): id is number => Number.isFinite(id))
+            );
+          }
+          if (
+            parsed.orderSource === "list" ||
+            parsed.orderSource === "ratings" ||
+            parsed.orderSource === "skills"
+          ) {
+            setOrderSource(parsed.orderSource);
           }
         } catch {
           // ignore parse errors
@@ -1108,6 +1156,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       updatesHistory,
       selectedUpdatesId,
       activeDetailsTab,
+      orderedPlayerIds,
+      orderSource,
     };
     try {
       window.localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(payload));
@@ -1125,6 +1175,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     tacticType,
     updatesHistory,
     activeDetailsTab,
+    orderedPlayerIds,
+    orderSource,
   ]);
 
   useEffect(() => {
@@ -1135,6 +1187,23 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       JSON.stringify({ sortKey, sortDirection })
     );
   }, [stateRestored, sortDirection, sortKey]);
+
+  useEffect(() => {
+    const nextOrder = sortedPlayers.map((player) => player.PlayerID);
+    if (nextOrder.length === 0) return;
+    if (orderSource && orderSource !== "list") return;
+    setOrderedPlayerIds((prev) => {
+      if (
+        prev &&
+        prev.length === nextOrder.length &&
+        prev.every((id, index) => id === nextOrder[index])
+      ) {
+        return prev;
+      }
+      return nextOrder;
+    });
+    setOrderSource("list");
+  }, [orderSource, sortedPlayers]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1334,6 +1403,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                   onChange={(event) => {
                     const nextKey = event.target.value as SortKey;
                     setSortKey(nextKey);
+                    setOrderSource("list");
+                    setOrderedPlayerIds(null);
                     addNotification(`${messages.notificationSortBy} ${sortLabel(messages, nextKey)}`);
                   }}
                 >
@@ -1362,6 +1433,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                 onClick={() => {
                   const next = sortDirection === "asc" ? "desc" : "asc";
                   setSortDirection(next);
+                  setOrderSource("list");
+                  setOrderedPlayerIds(null);
                   addNotification(
                     `${messages.notificationSortDirection} ${
                       next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
@@ -1373,11 +1446,11 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
               </button>
             </div>
           </div>
-          {sortedPlayers.length === 0 ? (
+          {orderedListPlayers.length === 0 ? (
             <p className={styles.muted}>{messages.unableToLoadPlayers}</p>
           ) : (
             <ul className={styles.list}>
-              {sortedPlayers.map((player) => {
+              {orderedListPlayers.map((player) => {
                 const playerName = formatPlayerName(player);
                 const isSelected = selectedId === player.PlayerID;
                 const specialty = player.Specialty ?? null;
@@ -1528,6 +1601,18 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
               if (!player) return;
               setActiveDetailsTab("details");
               setSelectedId(player.PlayerID);
+            }}
+            orderedPlayerIds={orderedPlayerIds}
+            orderSource={orderSource}
+            onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}
+            onSkillsOrderChange={(ids) => applyPlayerOrder(ids, "skills")}
+            onRatingsSortStart={() => {
+              setOrderSource("ratings");
+              setOrderedPlayerIds(null);
+            }}
+            onSkillsSortStart={() => {
+              setOrderSource("skills");
+              setOrderedPlayerIds(null);
             }}
             hasPreviousPlayer={Boolean(previousPlayerId)}
             hasNextPlayer={Boolean(nextPlayerId)}

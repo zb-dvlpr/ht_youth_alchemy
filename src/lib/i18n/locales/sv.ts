@@ -686,6 +686,7 @@ export const messagesSv: Messages = {
     sortCustom: "--",
     seniorListInjuryBruised: "Öm",
     seniorListInjuryWeeks: "Skadad ({weeks} v)",
+    seniorCardsMatchRunning: "match paagaar",
     sortToggleAria: "Vänd sortering",
     sortAscLabel: "Stigande",
     sortDescLabel: "Fallande",

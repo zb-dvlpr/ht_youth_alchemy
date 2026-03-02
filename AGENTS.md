@@ -28,6 +28,9 @@
 ## Modals
 - All modal UI must use the shared modal framework/component.
 
+## Currency
+- Any time currency is displayed in the UI, convert and display it in EUR.
+
 ## Changelog
 - When a MAJOR or MINOR version changes, the changelog should auto-expand.
 - Every MAJOR or MINOR bump must append a one-line changelog entry describing what’s new.

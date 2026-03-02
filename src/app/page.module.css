@@ -2922,6 +2922,18 @@ html[data-theme="dark"] .playerAgePillDarkRed {
   border-color: rgba(255, 196, 196, 0.32);
 }
 
+html[data-theme="dark"] .playerMetricPill {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(44, 38, 33, 0.9);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .playerMetricPillNeutral {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(70, 61, 53, 0.85);
+  color: #dcd2c5;
+}
+
 html[data-theme="dark"] .playerInjuryInline {
   color: #ff5a5a;
 }
@@ -3207,6 +3219,33 @@ html[data-theme="dark"] .spinner {
   font-weight: 700;
   line-height: 1.2;
   white-space: nowrap;
+}
+
+.playerMetricPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  border: 1px solid #bfae98;
+  background: #efe3d3;
+  color: #4b3f32;
+}
+
+.playerMetricPillNeutral {
+  border-color: #b5a690;
+  background: #e7ddd0;
+  color: #5d5348;
+}
+
+.playerCardIcon {
+  font-size: 12px;
+  line-height: 1;
 }
 
 .playerAgePillGreen {

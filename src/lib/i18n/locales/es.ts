@@ -695,6 +695,7 @@ export const messagesEs: Messages = {
     sortCustom: "--",
     seniorListInjuryBruised: "Magullado",
     seniorListInjuryWeeks: "Lesionado ({weeks} sem.)",
+    seniorCardsMatchRunning: "partido en curso",
     sortToggleAria: "Invertir orden",
     sortAscLabel: "Ascendente",
     sortDescLabel: "Descendente",

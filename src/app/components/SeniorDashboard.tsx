@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable react-hooks/exhaustive-deps */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { fetchChppJson, ChppAuthRequiredError } from "@/lib/chpp/client";
@@ -125,6 +125,7 @@ const LAST_REFRESH_STORAGE_KEY = "ya_senior_last_refresh_ts_v1";
 const LIST_SORT_STORAGE_KEY = "ya_senior_player_list_sort_v1";
 const DETAILS_TTL_MS = 60 * 60 * 1000;
 const SENIOR_DETAILS_CONCURRENCY = 6;
+const CHPP_SEK_PER_EUR = 10;
 const SKILL_KEYS = [
   "KeeperSkill",
   "DefenderSkill",
@@ -196,6 +197,10 @@ const normalizeSeniorPlayers = (input: unknown): SeniorPlayer[] => {
       const node = (item ?? {}) as Record<string, unknown>;
       const playerId = parseNumber(node.PlayerID);
       if (!playerId || playerId <= 0) return null;
+      const staminaFromSkills =
+        node.PlayerSkills && typeof node.PlayerSkills === "object"
+          ? parseSkill((node.PlayerSkills as Record<string, unknown>).StaminaSkill)
+          : null;
       return {
         PlayerID: playerId,
         FirstName: String(node.FirstName ?? ""),
@@ -208,8 +213,12 @@ const normalizeSeniorPlayers = (input: unknown): SeniorPlayer[] => {
         Specialty: parseNumber(node.Specialty) ?? undefined,
         TSI: parseNumber(node.TSI) ?? undefined,
         Salary: parseNumber(node.Salary) ?? undefined,
-        Form: parseNumber(node.Form) ?? undefined,
-        StaminaSkill: parseNumber(node.StaminaSkill) ?? undefined,
+        Form: parseSkill(node.PlayerForm ?? node.Form) ?? undefined,
+        StaminaSkill:
+          parseSkill(node.StaminaSkill) ??
+          parseNumber(node.StaminaSkill) ??
+          staminaFromSkills ??
+          undefined,
         InjuryLevel: parseNumber(node.InjuryLevel) ?? undefined,
         Cards:
           parseNumber(node.Cards) ??
@@ -338,6 +347,31 @@ const compareNullable = (left: number | string | null, right: number | string | 
   return Number(left) - Number(right);
 };
 
+const metricPillStyle = (
+  value: number | null,
+  minValue: number,
+  maxValue: number,
+  reverse = false
+): CSSProperties | undefined => {
+  if (value === null || value === undefined) return undefined;
+  if (maxValue <= minValue) return undefined;
+  const baseT = Math.min(1, Math.max((value - minValue) / (maxValue - minValue), 0));
+  const t = reverse ? 1 - baseT : baseT;
+  const hue = 5 + (130 - 5) * t;
+  return {
+    backgroundColor: `hsl(${Math.round(hue)} 72% 88%)`,
+    borderColor: `hsl(${Math.round(hue)} 62% 45%)`,
+    color: `hsl(${Math.round(hue)} 68% 24%)`,
+  };
+};
+
+const formatEurFromSek = (valueSek: number) =>
+  new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(valueSek / CHPP_SEK_PER_EUR);
+
 export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const { addNotification } = useNotifications();
   const [players, setPlayers] = useState<SeniorPlayer[]>([]);
@@ -397,12 +431,18 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return parseSkill(detailsSkills?.[key] ?? listSkills?.[key]);
   };
 
+  const salaryValueForPlayer = (player: SeniorPlayer) => {
+    const detailsSalary = detailsById.get(player.PlayerID)?.Salary;
+    return typeof detailsSalary === "number" ? detailsSalary : player.Salary ?? null;
+  };
+
   const sortedPlayers = useMemo(() => {
     const direction = sortDirection === "asc" ? 1 : -1;
     return [...players]
       .map((player, index) => ({ player, index }))
       .sort((left, right) => {
         const getMetric = (player: SeniorPlayer): number | string | null => {
+          const details = detailsById.get(player.PlayerID);
           switch (sortKey) {
             case "name":
               return formatPlayerName(player);
@@ -417,15 +457,15 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             case "tsi":
               return player.TSI ?? null;
             case "wage":
-              return player.Salary ?? null;
+              return salaryValueForPlayer(player);
             case "form":
-              return player.Form ?? null;
+              return details?.Form ?? player.Form ?? null;
             case "stamina":
-              return player.StaminaSkill ?? null;
+              return details?.StaminaSkill ?? player.StaminaSkill ?? null;
             case "injuries":
-              return player.InjuryLevel ?? null;
+              return details?.InjuryLevel ?? player.InjuryLevel ?? null;
             case "cards":
-              return player.Cards ?? null;
+              return details?.Cards ?? player.Cards ?? null;
             case "keeper":
               return skillValueForPlayer(player, "KeeperSkill");
             case "defender":
@@ -591,6 +631,22 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     }
     return sortedPlayers;
   }, [orderSource, orderedPlayerIds, players, sortedPlayers]);
+
+  const tsiRange = useMemo(() => {
+    const values = players
+      .map((player) => player.TSI)
+      .filter((value): value is number => typeof value === "number");
+    if (!values.length) return { min: 0, max: 0 };
+    return { min: Math.min(...values), max: Math.max(...values) };
+  }, [players]);
+
+  const wageRange = useMemo(() => {
+    const values = players
+      .map((player) => salaryValueForPlayer(player))
+      .filter((value): value is number => typeof value === "number");
+    if (!values.length) return { min: 0, max: 0 };
+    return { min: Math.min(...values), max: Math.max(...values) };
+  }, [players, detailsById]);
 
   const applyPlayerOrder = (ids: number[], source: "list" | "ratings" | "skills") => {
     setOrderedPlayerIds((prev) => {
@@ -1451,6 +1507,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           ) : (
             <ul className={styles.list}>
               {orderedListPlayers.map((player) => {
+                const playerDetails = detailsById.get(player.PlayerID);
                 const playerName = formatPlayerName(player);
                 const isSelected = selectedId === player.PlayerID;
                 const specialty = player.Specialty ?? null;
@@ -1474,7 +1531,11 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                     ? styles.playerAgePillYellow
                     : styles.playerAgePillGreen;
                 const injuryLevel =
-                  typeof player.InjuryLevel === "number" ? player.InjuryLevel : null;
+                  typeof playerDetails?.InjuryLevel === "number"
+                    ? playerDetails.InjuryLevel
+                    : typeof player.InjuryLevel === "number"
+                    ? player.InjuryLevel
+                    : null;
                 const isBruised = injuryLevel !== null && injuryLevel > 0 && injuryLevel < 1;
                 const injuryWeeks = injuryLevel !== null && injuryLevel >= 1 ? Math.ceil(injuryLevel) : null;
                 const injuryLabel = isBruised
@@ -1482,42 +1543,255 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                   : injuryWeeks !== null
                   ? messages.seniorListInjuryWeeks.replace("{weeks}", String(injuryWeeks))
                   : null;
-                const metric = (() => {
+                const formValue =
+                  typeof playerDetails?.Form === "number"
+                    ? playerDetails.Form
+                    : typeof player.Form === "number"
+                    ? player.Form
+                    : null;
+                const staminaValue =
+                  typeof playerDetails?.StaminaSkill === "number"
+                    ? playerDetails.StaminaSkill
+                    : typeof player.StaminaSkill === "number"
+                    ? player.StaminaSkill
+                    : null;
+                const cardsValue =
+                  typeof playerDetails?.Cards === "number"
+                    ? playerDetails.Cards
+                    : typeof player.Cards === "number"
+                    ? player.Cards
+                    : null;
+                const wageValue =
+                  typeof playerDetails?.Salary === "number"
+                    ? playerDetails.Salary
+                    : typeof player.Salary === "number"
+                    ? player.Salary
+                    : null;
+                const arrivalMetric = player.ArrivalDate
+                  ? formatDateTime(Date.parse(player.ArrivalDate.replace(" ", "T")))
+                  : messages.unknownShort;
+                const cardsMetric = (() => {
+                  if (typeof cardsValue !== "number") {
+                    return (
+                      <span
+                        className={`${styles.playerMetricPill} ${styles.playerMetricPillNeutral}`}
+                      >
+                        {messages.seniorCardsMatchRunning}
+                      </span>
+                    );
+                  }
+                  if (cardsValue >= 3) {
+                    return (
+                      <span className={styles.playerMetricPill} title={messages.sortCards}>
+                        <span className={styles.playerCardIcon}>🟥</span>
+                      </span>
+                    );
+                  }
+                  if (cardsValue === 2) {
+                    return (
+                      <span className={styles.playerMetricPill} title={messages.sortCards}>
+                        <span className={styles.playerCardIcon}>🟨</span>
+                        <span className={styles.playerCardIcon}>🟨</span>
+                      </span>
+                    );
+                  }
+                  if (cardsValue === 1) {
+                    return (
+                      <span className={styles.playerMetricPill} title={messages.sortCards}>
+                        <span className={styles.playerCardIcon}>🟨</span>
+                      </span>
+                    );
+                  }
+                  return null;
+                })();
+                const metricNode: ReactNode = (() => {
                   switch (sortKey) {
                     case "age":
-                      return ageLabel ?? messages.unknownShort;
+                      return ageLabel && agePillClassName ? (
+                        <span className={`${styles.playerAgePill} ${agePillClassName}`}>
+                          {ageLabel}
+                        </span>
+                      ) : (
+                        <span
+                          className={`${styles.playerMetricPill} ${styles.playerMetricPillNeutral}`}
+                        >
+                          {messages.unknownShort}
+                        </span>
+                      );
                     case "arrival":
-                      return player.ArrivalDate
-                        ? formatDateTime(Date.parse(player.ArrivalDate.replace(" ", "T")))
-                        : messages.unknownShort;
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            player.ArrivalDate ? "" : styles.playerMetricPillNeutral
+                          }`}
+                        >
+                          {arrivalMetric}
+                        </span>
+                      );
                     case "tsi":
-                      return player.TSI ?? messages.unknownShort;
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            typeof player.TSI === "number" ? "" : styles.playerMetricPillNeutral
+                          }`}
+                          style={metricPillStyle(player.TSI ?? null, tsiRange.min, tsiRange.max)}
+                        >
+                          {player.TSI ?? messages.unknownShort}
+                        </span>
+                      );
                     case "wage":
-                      return player.Salary ?? messages.unknownShort;
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            typeof wageValue === "number"
+                              ? ""
+                              : styles.playerMetricPillNeutral
+                          }`}
+                          style={metricPillStyle(
+                            wageValue,
+                            wageRange.min,
+                            wageRange.max,
+                            true
+                          )}
+                        >
+                          {wageValue !== null ? formatEurFromSek(wageValue) : messages.unknownShort}
+                        </span>
+                      );
                     case "form":
-                      return player.Form ?? messages.unknownShort;
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            typeof formValue === "number" ? "" : styles.playerMetricPillNeutral
+                          }`}
+                          style={metricPillStyle(formValue, 0, 8)}
+                        >
+                          {formValue ?? messages.unknownShort}
+                        </span>
+                      );
                     case "stamina":
-                      return player.StaminaSkill ?? messages.unknownShort;
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            typeof staminaValue === "number"
+                              ? ""
+                              : styles.playerMetricPillNeutral
+                          }`}
+                          style={metricPillStyle(staminaValue, 0, 9)}
+                        >
+                          {staminaValue ?? messages.unknownShort}
+                        </span>
+                      );
                     case "injuries":
-                      return player.InjuryLevel ?? messages.unknownShort;
+                      if (isBruised) {
+                        return (
+                          <span className={styles.playerMetricPill} title={messages.sortInjuries}>
+                            🩹
+                          </span>
+                        );
+                      }
+                      if (injuryWeeks !== null) {
+                        return (
+                          <span className={styles.playerMetricPill} title={messages.sortInjuries}>
+                            {`✚${toSubscript(injuryWeeks)}`}
+                          </span>
+                        );
+                      }
+                      return null;
                     case "cards":
-                      return player.Cards ?? messages.unknownShort;
-                    case "keeper":
-                      return skillValueForPlayer(player, "KeeperSkill") ?? messages.unknownShort;
-                    case "defender":
-                      return skillValueForPlayer(player, "DefenderSkill") ?? messages.unknownShort;
-                    case "playmaker":
-                      return skillValueForPlayer(player, "PlaymakerSkill") ?? messages.unknownShort;
-                    case "winger":
-                      return skillValueForPlayer(player, "WingerSkill") ?? messages.unknownShort;
-                    case "passing":
-                      return skillValueForPlayer(player, "PassingSkill") ?? messages.unknownShort;
-                    case "scorer":
-                      return skillValueForPlayer(player, "ScorerSkill") ?? messages.unknownShort;
-                    case "setpieces":
-                      return skillValueForPlayer(player, "SetPiecesSkill") ?? messages.unknownShort;
+                      return cardsMetric;
+                    case "keeper": {
+                      const value = skillValueForPlayer(player, "KeeperSkill");
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                          }`}
+                          style={metricPillStyle(value, 0, 20)}
+                        >
+                          {value ?? messages.unknownShort}
+                        </span>
+                      );
+                    }
+                    case "defender": {
+                      const value = skillValueForPlayer(player, "DefenderSkill");
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                          }`}
+                          style={metricPillStyle(value, 0, 20)}
+                        >
+                          {value ?? messages.unknownShort}
+                        </span>
+                      );
+                    }
+                    case "playmaker": {
+                      const value = skillValueForPlayer(player, "PlaymakerSkill");
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                          }`}
+                          style={metricPillStyle(value, 0, 20)}
+                        >
+                          {value ?? messages.unknownShort}
+                        </span>
+                      );
+                    }
+                    case "winger": {
+                      const value = skillValueForPlayer(player, "WingerSkill");
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                          }`}
+                          style={metricPillStyle(value, 0, 20)}
+                        >
+                          {value ?? messages.unknownShort}
+                        </span>
+                      );
+                    }
+                    case "passing": {
+                      const value = skillValueForPlayer(player, "PassingSkill");
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                          }`}
+                          style={metricPillStyle(value, 0, 20)}
+                        >
+                          {value ?? messages.unknownShort}
+                        </span>
+                      );
+                    }
+                    case "scorer": {
+                      const value = skillValueForPlayer(player, "ScorerSkill");
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                          }`}
+                          style={metricPillStyle(value, 0, 20)}
+                        >
+                          {value ?? messages.unknownShort}
+                        </span>
+                      );
+                    }
+                    case "setpieces": {
+                      const value = skillValueForPlayer(player, "SetPiecesSkill");
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                          }`}
+                          style={metricPillStyle(value, 0, 20)}
+                        >
+                          {value ?? messages.unknownShort}
+                        </span>
+                      );
+                    }
                     default:
-                      return "";
+                      return null;
                   }
                 })();
 
@@ -1536,13 +1810,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                       >
                         {!isNameSort ? (
                           <span className={styles.playerSortMetric}>
-                            {sortKey === "age" && ageLabel && agePillClassName ? (
-                              <span className={`${styles.playerAgePill} ${agePillClassName}`}>
-                                {ageLabel}
-                              </span>
-                            ) : (
-                              metric
-                            )}
+                            {metricNode}
                           </span>
                         ) : null}
                         <span

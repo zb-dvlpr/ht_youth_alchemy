@@ -694,6 +694,7 @@ export const messagesFr: Messages = {
     sortCustom: "--",
     seniorListInjuryBruised: "Contusion",
     seniorListInjuryWeeks: "Blessé ({weeks} sem.)",
+    seniorCardsMatchRunning: "match en cours",
     sortToggleAria: "Inverser l’ordre du tri",
     sortAscLabel: "Ascendant",
     sortDescLabel: "Descendant",

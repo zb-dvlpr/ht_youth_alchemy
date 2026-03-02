@@ -17,6 +17,7 @@ type YouthPlayer = {
   NickName?: string;
   LastName: string;
   Specialty?: number;
+  InjuryLevel?: number;
   Age?: number;
   AgeDays?: number;
   PlayerSkills?: Record<string, SkillValue>;
@@ -198,6 +199,40 @@ const behaviorOptionsForSlot = (slotId: string): BehaviorOption[] => {
 };
 
 const MAX_SKILL_LEVEL = 8;
+const SUBSCRIPT_DIGITS: Record<string, string> = {
+  "0": "₀",
+  "1": "₁",
+  "2": "₂",
+  "3": "₃",
+  "4": "₄",
+  "5": "₅",
+  "6": "₆",
+  "7": "₇",
+  "8": "₈",
+  "9": "₉",
+};
+
+const toSubscript = (value: number) =>
+  String(Math.max(0, Math.floor(value)))
+    .split("")
+    .map((digit) => SUBSCRIPT_DIGITS[digit] ?? digit)
+    .join("");
+
+const injuryStatus = (injuryLevel: number | null | undefined, messages: Messages) => {
+  if (typeof injuryLevel !== "number") return null;
+  if (injuryLevel === 0 || (injuryLevel > 0 && injuryLevel < 1)) {
+    return { display: "🩹", label: messages.seniorListInjuryBruised, isHealthy: false };
+  }
+  if (injuryLevel >= 1) {
+    const weeks = Math.ceil(injuryLevel);
+    return {
+      display: `✚${toSubscript(weeks)}`,
+      label: messages.seniorListInjuryWeeks.replace("{weeks}", String(weeks)),
+      isHealthy: false,
+    };
+  }
+  return null;
+};
 
 const SKILL_ROWS = [
   { key: "KeeperSkill", maxKey: "KeeperSkillMax", labelKey: "skillKeeper" },
@@ -554,6 +589,10 @@ export default function LineupField({
               const assignedPlayer = assignedId
                 ? playersById.get(assignedId) ?? null
                 : null;
+              const assignedInjuryStatus = injuryStatus(
+                assignedPlayer?.InjuryLevel,
+                messages
+              );
               const assignedDetails = assignedId
                 ? playerDetailsById?.get(assignedId) ?? null
                 : null;
@@ -732,6 +771,18 @@ export default function LineupField({
                         <span className={styles.slotName}>
                           {formatName(assignedPlayer)}
                         </span>
+                        {assignedInjuryStatus ? (
+                          <span
+                            className={
+                              assignedInjuryStatus.isHealthy
+                                ? styles.matrixInjuryHealthy
+                                : styles.matrixInjuryStatus
+                            }
+                            title={assignedInjuryStatus.label}
+                          >
+                            {assignedInjuryStatus.display}
+                          </span>
+                        ) : null}
                         {(() => {
                           const specialty = specialtyForPlayer(assignedPlayer);
                           if (!specialty.value) return null;
@@ -807,6 +858,10 @@ export default function LineupField({
           const assignedPlayer = assignedId
             ? playersById.get(assignedId) ?? null
             : null;
+          const assignedInjuryStatus = injuryStatus(
+            assignedPlayer?.InjuryLevel,
+            messages
+          );
           const assignedDetails = assignedId
             ? playerDetailsById?.get(assignedId) ?? null
             : null;
@@ -937,6 +992,18 @@ export default function LineupField({
                       <span className={styles.slotName}>
                         {formatName(assignedPlayer)}
                       </span>
+                      {assignedInjuryStatus ? (
+                        <span
+                          className={
+                            assignedInjuryStatus.isHealthy
+                              ? styles.matrixInjuryHealthy
+                              : styles.matrixInjuryStatus
+                          }
+                          title={assignedInjuryStatus.label}
+                        >
+                          {assignedInjuryStatus.display}
+                        </span>
+                      ) : null}
                         {(() => {
                           const specialty = specialtyForPlayer(assignedPlayer);
                           if (!specialty.value) return null;

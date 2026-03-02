@@ -28,6 +28,7 @@ type RatingsMatrixProps = {
   matchHrefBuilder?: (matchId: number) => string;
   specialtyByName?: Record<string, number | undefined>;
   hiddenSpecialtyByName?: Record<string, boolean>;
+  injuryStatusByName?: Record<string, { display: string; label: string; isHealthy: boolean }>;
   newPlayerIds?: number[];
   newRatingsByPlayerId?: Record<number, number[]>;
   selectedName?: string | null;
@@ -90,6 +91,7 @@ export default function RatingsMatrix({
   matchHrefBuilder,
   specialtyByName,
   hiddenSpecialtyByName,
+  injuryStatusByName,
   newPlayerIds = [],
   newRatingsByPlayerId = {},
   selectedName,
@@ -298,6 +300,18 @@ export default function RatingsMatrix({
                     >
                       {row.name}
                     </button>
+                    {injuryStatusByName?.[row.name] ? (
+                      <span
+                        className={
+                          injuryStatusByName[row.name].isHealthy
+                            ? styles.matrixInjuryHealthy
+                            : styles.matrixInjuryStatus
+                        }
+                        title={injuryStatusByName[row.name].label}
+                      >
+                        {injuryStatusByName[row.name].display}
+                      </span>
+                    ) : null}
                     {isNewPlayer ? (
                       <span className={styles.matrixNewPill}>
                         {messages.matrixNewPillLabel}

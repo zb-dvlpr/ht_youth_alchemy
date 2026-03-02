@@ -1090,6 +1090,26 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
 }
 
+.matrixInjuryStatus {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  color: #b32320;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.matrixInjuryHealthy {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  color: #1f7a3a;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1;
+}
+
 .card {
   width: 100%;
   padding: 18px;
@@ -2733,6 +2753,14 @@ html[data-theme="dark"] .matrixNewPill {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
 
+html[data-theme="dark"] .matrixInjuryStatus {
+  color: #ff7b74;
+}
+
+html[data-theme="dark"] .matrixInjuryHealthy {
+  color: #8fe5ae;
+}
+
 html[data-theme="dark"] .matrixCellNewTag {
   color: #ff8f7f;
 }
@@ -2832,6 +2860,14 @@ html[data-theme="dark"] .profileUpdated {
 html[data-theme="dark"] .infoValue,
 html[data-theme="dark"] .skillLabel {
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .injuryStatusSymbol {
+  color: #ff7b74;
+}
+
+html[data-theme="dark"] .injuryStatusHealthy {
+  color: #8fe5ae;
 }
 
 html[data-theme="dark"] .infoLinkIcon {
@@ -3574,6 +3610,18 @@ html[data-theme="dark"] .spinner {
   font-size: 15px;
   color: #2d261f;
   margin-top: 4px;
+}
+
+.injuryStatusSymbol {
+  color: #b32320;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.injuryStatusHealthy {
+  color: #1f7a3a;
+  font-weight: 700;
 }
 
 .lastMatchValue {

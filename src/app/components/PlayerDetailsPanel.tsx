@@ -15,6 +15,7 @@ type YouthPlayer = {
   NickName: string;
   LastName: string;
   Specialty?: number;
+  InjuryLevel?: number;
   Form?: number;
   StaminaSkill?: number;
   PlayerSkills?: Record<string, SkillValue | number | string>;
@@ -38,6 +39,7 @@ export type YouthPlayerDetails = {
   CanBePromotedIn?: number;
   NativeCountryName?: string;
   Specialty?: number;
+  InjuryLevel?: number;
   Form?: number;
   StaminaSkill?: number;
   OwningYouthTeam?: {
@@ -144,6 +146,45 @@ const SKILL_ROWS = [
 ];
 const FORM_MAX_LEVEL = 8;
 const STAMINA_MAX_LEVEL = 9;
+const SUBSCRIPT_DIGITS: Record<string, string> = {
+  "0": "₀",
+  "1": "₁",
+  "2": "₂",
+  "3": "₃",
+  "4": "₄",
+  "5": "₅",
+  "6": "₆",
+  "7": "₇",
+  "8": "₈",
+  "9": "₉",
+};
+
+const toSubscript = (value: number) =>
+  String(Math.max(0, Math.floor(value)))
+    .split("")
+    .map((digit) => SUBSCRIPT_DIGITS[digit] ?? digit)
+    .join("");
+
+const buildInjuryStatus = (injuryLevelRaw: number | null, messages: Messages) => {
+  if (injuryLevelRaw === null) return null;
+  const isBruised = injuryLevelRaw === 0 || (injuryLevelRaw > 0 && injuryLevelRaw < 1);
+  const injuryWeeks = injuryLevelRaw >= 1 ? Math.ceil(injuryLevelRaw) : null;
+  const label = isBruised
+    ? messages.seniorListInjuryBruised
+    : injuryWeeks !== null
+    ? messages.seniorListInjuryWeeks.replace("{weeks}", String(injuryWeeks))
+    : messages.clubChronicleInjuryHealthy;
+  const display = isBruised
+    ? "🩹"
+    : injuryWeeks !== null
+    ? `✚${toSubscript(injuryWeeks)}`
+    : messages.clubChronicleInjuryHealthy;
+  return {
+    label,
+    display,
+    isHealthy: !isBruised && injuryWeeks === null,
+  };
+};
 
 function getSkillLevel(skill?: SkillValue | number | string | null): number | null {
   if (skill === null || skill === undefined) return null;
@@ -311,6 +352,27 @@ export default function PlayerDetailsPanel({
     players.forEach((player) => map.set(player.YouthPlayerID, player));
     return map;
   }, [players]);
+  const ratingsMatrixInjuryStatusByName = useMemo(() => {
+    const payload: Record<
+      string,
+      { display: string; label: string; isHealthy: boolean }
+    > = {};
+    skillsMatrixRows.forEach((row) => {
+      if (!row.id) return;
+      const details = playerDetailsById.get(row.id);
+      const player = playerById.get(row.id);
+      const injuryLevel =
+        typeof details?.InjuryLevel === "number"
+          ? details.InjuryLevel
+          : typeof player?.InjuryLevel === "number"
+          ? player.InjuryLevel
+          : null;
+      const status = buildInjuryStatus(injuryLevel, messages);
+      if (!status || status.isHealthy) return;
+      payload[row.name] = status;
+    });
+    return payload;
+  }, [messages, playerById, playerDetailsById, skillsMatrixRows]);
   const matrixNewPlayerIdSet = useMemo(
     () => new Set(matrixNewPlayerIds),
     [matrixNewPlayerIds]
@@ -447,6 +509,13 @@ export default function PlayerDetailsPanel({
   const knownSpecialty = Number(detailsData?.Specialty ?? selectedPlayer?.Specialty ?? 0);
   const resolvedSpecialty = knownSpecialty > 0 ? knownSpecialty : hiddenSpecialty;
   const isHiddenResolvedSpecialty = knownSpecialty <= 0 && hiddenSpecialty !== null;
+  const injuryLevelRaw =
+    typeof detailsData?.InjuryLevel === "number"
+      ? detailsData.InjuryLevel
+      : typeof selectedPlayer?.InjuryLevel === "number"
+      ? selectedPlayer.InjuryLevel
+      : null;
+  const injuryStatus = buildInjuryStatus(injuryLevelRaw, messages);
   const lastMatchDate = detailsData?.LastMatch
     ? formatChppDate(detailsData.LastMatch.Date) ?? messages.unknownDate
     : null;
@@ -641,6 +710,26 @@ export default function PlayerDetailsPanel({
                 </Tooltip>{" "}
                 {specialtyName(resolvedSpecialty) ??
                   `${messages.specialtyLabel} ${resolvedSpecialty}`}
+              </div>
+            </div>
+          ) : null}
+          {playerKind === "senior" && injuryStatus ? (
+            <div>
+              <div className={styles.infoLabel}>
+                {messages.clubChronicleWagesInjuryColumn}
+              </div>
+              <div className={styles.infoValue} title={injuryStatus.label}>
+                {injuryStatus.display ? (
+                  <span
+                    className={
+                      injuryStatus.isHealthy
+                        ? styles.injuryStatusHealthy
+                        : styles.injuryStatusSymbol
+                    }
+                  >
+                    {injuryStatus.display}
+                  </span>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -954,6 +1043,13 @@ export default function PlayerDetailsPanel({
                 details?.PlayerSkills,
                 player?.PlayerSkills
               );
+              const rowInjuryLevel =
+                typeof details?.InjuryLevel === "number"
+                  ? details.InjuryLevel
+                  : typeof player?.InjuryLevel === "number"
+                  ? player.InjuryLevel
+                  : null;
+              const rowInjuryStatus = buildInjuryStatus(rowInjuryLevel, messages);
               const isSelected = ratingsMatrixSelectedName === row.name;
               const isNewPlayer = row.id ? matrixNewPlayerIdSet.has(row.id) : false;
 
@@ -975,6 +1071,20 @@ export default function PlayerDetailsPanel({
                       >
                         {row.name}
                       </button>
+                      {playerKind === "senior" &&
+                      rowInjuryStatus &&
+                      !rowInjuryStatus.isHealthy ? (
+                        <span
+                          className={
+                            rowInjuryStatus.isHealthy
+                              ? styles.matrixInjuryHealthy
+                              : styles.matrixInjuryStatus
+                          }
+                          title={rowInjuryStatus.label}
+                        >
+                          {rowInjuryStatus.display}
+                        </span>
+                      ) : null}
                       {isNewPlayer ? (
                         <span className={styles.matrixNewPill}>
                           {messages.matrixNewPillLabel}
@@ -1160,6 +1270,7 @@ export default function PlayerDetailsPanel({
           matchHrefBuilder={ratingsMatrixMatchHrefBuilder}
           specialtyByName={ratingsMatrixSpecialtyByName}
           hiddenSpecialtyByName={ratingsMatrixHiddenSpecialtyByName}
+          injuryStatusByName={playerKind === "senior" ? ratingsMatrixInjuryStatusByName : undefined}
           newPlayerIds={matrixNewPlayerIds}
           newRatingsByPlayerId={matrixNewRatingsByPlayerId}
           selectedName={ratingsMatrixSelectedName}

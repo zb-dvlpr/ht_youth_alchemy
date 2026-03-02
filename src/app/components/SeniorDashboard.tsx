@@ -472,6 +472,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         NickName: player.NickName ?? "",
         LastName: player.LastName,
         Specialty: player.Specialty,
+        InjuryLevel: player.InjuryLevel,
         PlayerSkills: player.PlayerSkills,
       })),
     [players]
@@ -489,6 +490,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         AgeDays?: number;
         ArrivalDate?: string;
         Specialty?: number;
+        InjuryLevel?: number;
         Form?: number;
         StaminaSkill?: number;
         PlayerSkills?: Record<string, SkillValue>;
@@ -510,6 +512,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         AgeDays: detail.AgeDays ?? fallback?.AgeDays,
         ArrivalDate: detail.ArrivalDate ?? fallback?.ArrivalDate,
         Specialty: detail.Specialty ?? fallback?.Specialty,
+        InjuryLevel: detail.InjuryLevel ?? fallback?.InjuryLevel,
         Form: detail.Form ?? fallback?.Form,
         StaminaSkill: detail.StaminaSkill ?? fallback?.StaminaSkill,
         PlayerSkills: detail.PlayerSkills ?? fallback?.PlayerSkills,
@@ -527,12 +530,14 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       NickName: selectedPlayer.NickName ?? "",
       LastName: selectedPlayer.LastName,
       Specialty: selectedPlayer.Specialty,
+      InjuryLevel: selectedDetails?.InjuryLevel ?? selectedPlayer.InjuryLevel,
       Form: selectedDetails?.Form ?? selectedPlayer.Form,
       StaminaSkill: selectedDetails?.StaminaSkill ?? selectedPlayer.StaminaSkill,
       PlayerSkills: selectedDetails?.PlayerSkills ?? selectedPlayer.PlayerSkills,
     };
   }, [
     selectedDetails?.Form,
+    selectedDetails?.InjuryLevel,
     selectedDetails?.PlayerSkills,
     selectedDetails?.StaminaSkill,
     selectedPlayer,
@@ -550,6 +555,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         AgeDays: selectedPlayer.AgeDays,
         ArrivalDate: selectedPlayer.ArrivalDate,
         Specialty: selectedPlayer.Specialty,
+        InjuryLevel: selectedPlayer.InjuryLevel,
         Form: selectedPlayer.Form,
         StaminaSkill: selectedPlayer.StaminaSkill,
         PlayerSkills: selectedPlayer.PlayerSkills,
@@ -575,6 +581,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         NickName?: string;
         LastName: string;
         Specialty?: number;
+        InjuryLevel?: number;
         Age?: number;
         AgeDays?: number;
         PlayerSkills?: Record<string, SkillValue>;
@@ -590,6 +597,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         Age: player.Age,
         AgeDays: player.AgeDays,
         PlayerSkills: detailsById.get(player.PlayerID)?.PlayerSkills,
+        InjuryLevel: player.InjuryLevel,
       });
     });
     return map;

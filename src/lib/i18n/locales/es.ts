@@ -491,6 +491,9 @@ export const messagesEs: Messages = {
     matchesTitle: "Partidos",
     matchesRefresh: "Actualizar partidos",
     matchesRefreshTooltip: "Actualizar partidos",
+    matchesIncludeTournamentLabel: "Incluir partidos de torneo",
+    matchesIncludeTournamentTooltip:
+      "Desactivado: solo liga, clasificación, copa y amistosos. Activado: incluye todos los tipos de partido, también torneo.",
     noUpcomingMatches: "No hay partidos PRÓXIMOS. Mostrando los recientes.",
     noMatchesReturned: "No se devolvieron partidos.",
     ordersLabel: "Órdenes",

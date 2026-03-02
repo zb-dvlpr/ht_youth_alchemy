@@ -492,6 +492,9 @@ export const messagesIt: Messages = {
     matchesTitle: "Partite",
     matchesRefresh: "Aggiorna partite",
     matchesRefreshTooltip: "Aggiorna partite",
+    matchesIncludeTournamentLabel: "Includi partite torneo",
+    matchesIncludeTournamentTooltip:
+      "Disattivato: mostra solo lega, qualificazione, coppa e amichevoli. Attivato: include tutti i tipi di partita, comprese quelle torneo.",
     noUpcomingMatches: "Nessuna partita IMMINENTE. Mostro le recenti.",
     noMatchesReturned: "Nessuna partita restituita.",
     ordersLabel: "Ordini",

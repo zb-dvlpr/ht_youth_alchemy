@@ -483,6 +483,9 @@ export const messagesSv: Messages = {
     matchesTitle: "Matcher",
     matchesRefresh: "Uppdatera matcher",
     matchesRefreshTooltip: "Uppdatera matcher",
+    matchesIncludeTournamentLabel: "Inkludera turneringsmatcher",
+    matchesIncludeTournamentTooltip:
+      "Av: visa bara liga-, kval-, cup- och träningsmatcher. På: inkludera alla matchtyper, även turneringsmatcher.",
     noUpcomingMatches: "Inga KOMMANDE matcher. Visar senaste matcher.",
     noMatchesReturned: "Inga matcher returnerades.",
     ordersLabel: "Order",

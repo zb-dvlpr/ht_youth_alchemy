@@ -459,6 +459,9 @@ export const messagesEn: Messages = {
     matchesTitle: "Matches",
     matchesRefresh: "Refresh matches",
     matchesRefreshTooltip: "Refresh matches",
+    matchesIncludeTournamentLabel: "Include tournament matches",
+    matchesIncludeTournamentTooltip:
+      "Off: show only league, qualification, cup, and friendly match types. On: include all match types, including tournament matches.",
     noUpcomingMatches: "No UPCOMING matches found. Showing recent matches instead.",
     noMatchesReturned: "No matches returned.",
     ordersLabel: "Orders",

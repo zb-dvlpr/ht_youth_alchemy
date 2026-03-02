@@ -490,6 +490,9 @@ export const messagesFr: Messages = {
     matchesTitle: "Matchs",
     matchesRefresh: "Actualiser les matchs",
     matchesRefreshTooltip: "Actualiser les matchs",
+    matchesIncludeTournamentLabel: "Inclure les matchs de tournoi",
+    matchesIncludeTournamentTooltip:
+      "Désactivé : afficher seulement ligue, qualification, coupe et amicaux. Activé : inclure tous les types de match, y compris les tournois.",
     noUpcomingMatches: "Aucun match À VENIR trouvé. Affichage des matchs récents.",
     noMatchesReturned: "Aucun match retourné.",
     ordersLabel: "Ordres",

@@ -480,6 +480,9 @@ export const messagesDe: Messages = {
     matchesTitle: "Spiele",
     matchesRefresh: "Spiele aktualisieren",
     matchesRefreshTooltip: "Spiele aktualisieren",
+    matchesIncludeTournamentLabel: "Turnierspiele einbeziehen",
+    matchesIncludeTournamentTooltip:
+      "Aus: nur Liga-, Qualifikations-, Pokal- und Freundschaftsspiele. An: alle Spieltypen einschliessen, inklusive Turnierspiele.",
     noUpcomingMatches: "Keine anstehenden Spiele gefunden. Zeige stattdessen letzte Spiele.",
     noMatchesReturned: "Keine Spiele zurückgegeben.",
     ordersLabel: "Anweisungen",

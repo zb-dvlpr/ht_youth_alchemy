@@ -2928,6 +2928,15 @@ html[data-theme="dark"] .matchType {
   color: #b9b0a5;
 }
 
+html[data-theme="dark"] .matchesFilterToggle {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .matchesFilterToggleTrack {
+  background: #3a342e;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 html[data-theme="dark"] .matchButtonSecondary {
   color: #8fe5ae;
   border-color: rgba(143, 229, 174, 0.35);
@@ -3601,6 +3610,75 @@ html[data-theme="dark"] .spinner {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 12px;
+}
+
+.matchesHeaderControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.matchesFilterToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b6256;
+  cursor: pointer;
+  user-select: none;
+}
+
+.matchesFilterToggleInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.matchesFilterToggleTrack {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: #d8cdc0;
+  border: 1px solid #c9b9a3;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.matchesFilterToggleTrack::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.matchesFilterToggleInput:checked + .matchesFilterToggleTrack {
+  background: #2f9f5b;
+  border-color: #2f9f5b;
+}
+
+.matchesFilterToggleInput:checked + .matchesFilterToggleTrack::after {
+  transform: translateX(14px);
+}
+
+.matchesFilterToggleInput:focus-visible + .matchesFilterToggleTrack {
+  outline: 2px solid rgba(47, 159, 91, 0.4);
+  outline-offset: 2px;
+}
+
+.matchesFilterToggleInput:disabled + .matchesFilterToggleTrack {
+  opacity: 0.5;
+}
+
+.matchesFilterToggleLabel {
+  line-height: 1.2;
 }
 
 .matchItem {

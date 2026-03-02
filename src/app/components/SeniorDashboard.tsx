@@ -119,7 +119,6 @@ const LAST_REFRESH_STORAGE_KEY = "ya_senior_last_refresh_ts_v1";
 const LIST_SORT_STORAGE_KEY = "ya_senior_player_list_sort_v1";
 const DETAILS_TTL_MS = 60 * 60 * 1000;
 const SENIOR_DETAILS_CONCURRENCY = 6;
-const ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
 const SKILL_KEYS = [
   "KeeperSkill",
   "DefenderSkill",
@@ -267,6 +266,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [tacticType, setTacticType] = useState(0);
+  const [includeTournamentMatches, setIncludeTournamentMatches] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -492,27 +492,6 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     });
     return map;
   }, [detailsById, players]);
-
-  const filteredMatchesResponse = useMemo<MatchesResponse>(() => {
-    const rawMatches = matchesState.data?.HattrickData?.MatchList?.Match;
-    const list = Array.isArray(rawMatches) ? rawMatches : rawMatches ? [rawMatches] : [];
-    const filtered = list.filter((match) => {
-      const matchType = Number((match as { MatchType?: number | string }).MatchType);
-      return Number.isFinite(matchType) && ALLOWED_MATCH_TYPES.has(matchType);
-    });
-    return {
-      ...matchesState,
-      data: {
-        ...matchesState.data,
-        HattrickData: {
-          ...matchesState.data?.HattrickData,
-          MatchList: {
-            Match: filtered,
-          },
-        },
-      },
-    };
-  }, [matchesState]);
 
   const ratingsByPlayerId = useMemo(() => {
     const payload: Record<number, Record<string, number>> = {};
@@ -857,6 +836,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           behaviors?: LineupBehaviors;
           loadedMatchId?: number | null;
           tacticType?: number;
+          includeTournamentMatches?: boolean;
           updatesHistory?: SeniorUpdatesGroupedEntry[];
           selectedUpdatesId?: string | null;
         };
@@ -865,6 +845,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         setBehaviors(parsed.behaviors && typeof parsed.behaviors === "object" ? parsed.behaviors : {});
         setLoadedMatchId(typeof parsed.loadedMatchId === "number" ? parsed.loadedMatchId : null);
         setTacticType(typeof parsed.tacticType === "number" ? parsed.tacticType : 0);
+        setIncludeTournamentMatches(Boolean(parsed.includeTournamentMatches));
         setUpdatesHistory(Array.isArray(parsed.updatesHistory) ? parsed.updatesHistory : []);
         setSelectedUpdatesId(typeof parsed.selectedUpdatesId === "string" ? parsed.selectedUpdatesId : null);
       } catch {
@@ -884,11 +865,21 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       behaviors,
       loadedMatchId,
       tacticType,
+      includeTournamentMatches,
       updatesHistory,
       selectedUpdatesId,
     };
     window.localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(payload));
-  }, [assignments, behaviors, loadedMatchId, selectedId, selectedUpdatesId, tacticType, updatesHistory]);
+  }, [
+    assignments,
+    behaviors,
+    includeTournamentMatches,
+    loadedMatchId,
+    selectedId,
+    selectedUpdatesId,
+    tacticType,
+    updatesHistory,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1294,12 +1285,14 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             messages={messages}
           />
           <UpcomingMatches
-            response={filteredMatchesResponse}
+            response={matchesState}
             messages={messages}
             assignments={assignments}
             behaviors={behaviors}
             tacticType={tacticType}
             sourceSystem="Hattrick"
+            includeTournamentMatches={includeTournamentMatches}
+            onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
             onRefresh={onRefreshMatchesOnly}
             onLoadLineup={(nextAssignments, nextBehaviors, matchId) => {
               setAssignments(nextAssignments);

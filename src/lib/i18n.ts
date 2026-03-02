@@ -422,6 +422,8 @@ export type Messages = {
   matchesTitle: string;
   matchesRefresh: string;
   matchesRefreshTooltip: string;
+  matchesIncludeTournamentLabel: string;
+  matchesIncludeTournamentTooltip: string;
   noUpcomingMatches: string;
   noMatchesReturned: string;
   ordersLabel: string;

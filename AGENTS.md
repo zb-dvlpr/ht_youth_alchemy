@@ -41,6 +41,9 @@
 
 ## Clarification
 - If an instruction is unclear, ask clarifying questions before starting any coding.
+- If it is not clear which tool/panel/workflow is being referenced, clarify with the user before making changes.
+- Never apply the same behavior change across multiple tools/panels unless the user explicitly confirms the cross-tool scope.
+- When tools have overlapping functionality, double-check scope with the user before implementing shared-component changes.
 
 ## Vibecoding Output
 - At the end of each vibecoding run for a prompt, provide a one-line git commit message suggestion that covers all changes since the last commit.

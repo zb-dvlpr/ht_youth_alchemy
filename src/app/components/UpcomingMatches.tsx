@@ -63,7 +63,11 @@ type UpcomingMatchesProps = {
   loadedMatchId?: number | null;
   onSubmitSuccess?: () => void;
   sourceSystem?: string;
+  includeTournamentMatches?: boolean;
+  onIncludeTournamentMatchesChange?: (next: boolean) => void;
 };
+
+const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
 
 function normalizeMatches(input?: Match[] | Match): Match[] {
   if (!input) return [];
@@ -350,6 +354,8 @@ export default function UpcomingMatches({
   loadedMatchId,
   onSubmitSuccess,
   sourceSystem = "Youth",
+  includeTournamentMatches = true,
+  onIncludeTournamentMatchesChange,
 }: UpcomingMatchesProps) {
   const { addNotification } = useNotifications();
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
@@ -373,6 +379,14 @@ export default function UpcomingMatches({
     response.data?.HattrickData?.MatchList?.Match ??
       response.data?.HattrickData?.Team?.MatchList?.Match
   );
+  const allowAllMatchTypes = onIncludeTournamentMatchesChange
+    ? includeTournamentMatches
+    : true;
+  const visibleMatches = allMatches.filter((match) => {
+    if (allowAllMatchTypes) return true;
+    const matchType = Number(match.MatchType);
+    return Number.isFinite(matchType) && DEFAULT_ALLOWED_MATCH_TYPES.has(matchType);
+  });
 
   const matchById = useMemo(() => {
     const map = new Map<number, Match>();
@@ -622,11 +636,64 @@ export default function UpcomingMatches({
       }));
     }
   };
+  const tournamentToggle = onIncludeTournamentMatchesChange ? (
+    <Tooltip content={messages.matchesIncludeTournamentTooltip}>
+      <label className={styles.matchesFilterToggle}>
+        <input
+          type="checkbox"
+          className={styles.matchesFilterToggleInput}
+          checked={includeTournamentMatches}
+          onChange={(event) =>
+            onIncludeTournamentMatchesChange(event.currentTarget.checked)
+          }
+          aria-label={messages.matchesIncludeTournamentLabel}
+        />
+        <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
+        <span className={styles.matchesFilterToggleLabel}>
+          {messages.matchesIncludeTournamentLabel}
+        </span>
+      </label>
+    </Tooltip>
+  ) : null;
+
   if (response.error) {
     return (
       <div className={styles.card}>
         <div className={styles.matchesHeader}>
           <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
+          <div className={styles.matchesHeaderControls}>
+            {tournamentToggle}
+            <Tooltip content={messages.matchesRefreshTooltip}>
+              <button
+                type="button"
+                className={styles.sortToggle}
+                onClick={handleRefresh}
+                disabled={refreshing}
+                aria-label={messages.matchesRefreshTooltip}
+              >
+                ↻
+              </button>
+            </Tooltip>
+          </div>
+        </div>
+        <p className={styles.errorText}>{messages.unableToLoadMatches}</p>
+        {response.details ? (
+          <p className={styles.errorDetails}>{response.details}</p>
+        ) : null}
+      </div>
+    );
+  }
+
+  const upcoming = visibleMatches.filter((match) => match.Status === "UPCOMING");
+  const sortedUpcoming = sortByDate(upcoming);
+  const sortedAll = sortByDate(visibleMatches);
+
+  return (
+    <div className={styles.card}>
+      <div className={styles.matchesHeader}>
+        <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
+        <div className={styles.matchesHeaderControls}>
+          {tournamentToggle}
           <Tooltip content={messages.matchesRefreshTooltip}>
             <button
               type="button"
@@ -639,33 +706,6 @@ export default function UpcomingMatches({
             </button>
           </Tooltip>
         </div>
-        <p className={styles.errorText}>{messages.unableToLoadMatches}</p>
-        {response.details ? (
-          <p className={styles.errorDetails}>{response.details}</p>
-        ) : null}
-      </div>
-    );
-  }
-
-  const upcoming = allMatches.filter((match) => match.Status === "UPCOMING");
-  const sortedUpcoming = sortByDate(upcoming);
-  const sortedAll = sortByDate(allMatches);
-
-  return (
-    <div className={styles.card}>
-      <div className={styles.matchesHeader}>
-        <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
-        <Tooltip content={messages.matchesRefreshTooltip}>
-          <button
-            type="button"
-            className={styles.sortToggle}
-            onClick={handleRefresh}
-            disabled={refreshing}
-            aria-label={messages.matchesRefreshTooltip}
-          >
-            ↻
-          </button>
-        </Tooltip>
       </div>
       <Modal
         open={!!confirmMatchId}

@@ -203,6 +203,32 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   align-items: center;
   justify-content: center;
   font-size: 16px;
+  position: relative;
+}
+
+.sidebarIconGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebarIconBadge {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  min-width: 12px;
+  height: 12px;
+  padding: 0 2px;
+  border-radius: 999px;
+  background: #2f9f5b;
+  color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  font-size: 8px;
+  font-weight: 800;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sidebarLabel {
@@ -2255,6 +2281,12 @@ html[data-theme="dark"] .sidebarItemActive {
   background: #2a241d;
   border-color: rgba(255, 255, 255, 0.12);
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .sidebarIconBadge {
+  background: #8fe5ae;
+  color: #12351f;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 html[data-theme="dark"] .version {

@@ -10,8 +10,10 @@ export const messagesEn: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Collapse sidebar",
     sidebarExpandTooltip: "Expand sidebar",
-    toolYouthOptimization: "Youth optimization",
-    toolSeniorOptimization: "Senior team optimization",
+    toolYouthOptimization: "Youth squad optimization",
+    toolSeniorOptimization: "Senior squad optimization",
+    toolYouthBadge: "Y",
+    toolSeniorBadge: "S",
     toolClubChronicle: "Club chronicle",
     clubChronicleTitle: "Club Chronicle",
     clubChronicleBody:

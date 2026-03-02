@@ -64,11 +64,13 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
         id: "youth" as const,
         label: messages.toolYouthOptimization,
         icon: "✨",
+        badge: messages.toolYouthBadge,
       },
       {
         id: "senior" as const,
         label: messages.toolSeniorOptimization,
-        icon: "🧪",
+        icon: "✨",
+        badge: messages.toolSeniorBadge,
       },
       {
         id: "chronicle" as const,
@@ -78,7 +80,9 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
     ],
     [
       messages.toolClubChronicle,
+      messages.toolSeniorBadge,
       messages.toolSeniorOptimization,
+      messages.toolYouthBadge,
       messages.toolYouthOptimization,
     ]
   );
@@ -518,7 +522,10 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
         aria-label={tool.label}
       >
         <span className={styles.sidebarIcon} aria-hidden="true">
-          {tool.icon}
+          <span className={styles.sidebarIconGlyph}>{tool.icon}</span>
+          {tool.badge ? (
+            <span className={styles.sidebarIconBadge}>{tool.badge}</span>
+          ) : null}
         </span>
         {!collapsed ? (
           <span className={styles.sidebarLabel}>{tool.label}</span>

@@ -22,6 +22,8 @@ export type Messages = {
   sidebarExpandTooltip: string;
   toolYouthOptimization: string;
   toolSeniorOptimization: string;
+  toolYouthBadge: string;
+  toolSeniorBadge: string;
   toolClubChronicle: string;
   clubChronicleTitle: string;
   clubChronicleBody: string;

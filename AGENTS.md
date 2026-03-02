@@ -52,6 +52,7 @@
 - Anchor the suggestion to git history, not memory: check `git log -1 --oneline` and `git diff --name-status HEAD` (or equivalent) before writing the message.
 - The suggested message must describe exactly what changed in `HEAD..working tree` at suggestion time; do not include work that has already been committed.
 - Use git commands for this verification every time (do not rely on memory), even if the change seems small.
+- Do not include version numbers in the suggested commit message.
 
 ## Code Reuse
 - When writing code, prioritize maximizing reuse and minimizing repetitive implementations.

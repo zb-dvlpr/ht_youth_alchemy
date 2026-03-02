@@ -10,8 +10,10 @@ export const messagesSv: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Fäll in sidofältet",
     sidebarExpandTooltip: "Fäll ut sidofältet",
-    toolYouthOptimization: "Ungdomsoptimering",
-    toolSeniorOptimization: "Seniorlagsoptimering",
+    toolYouthOptimization: "Ungdomstruppsoptimering",
+    toolSeniorOptimization: "Seniortruppsoptimering",
+    toolYouthBadge: "Y",
+    toolSeniorBadge: "S",
     toolClubChronicle: "Klubbkrönika",
     clubChronicleTitle: "Klubbkrönika",
     clubChronicleBody:

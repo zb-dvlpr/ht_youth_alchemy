@@ -10,8 +10,10 @@ export const messagesDe: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Seitenleiste einklappen",
     sidebarExpandTooltip: "Seitenleiste ausklappen",
-    toolYouthOptimization: "Jugend-Optimierung",
-    toolSeniorOptimization: "Senior-Team-Optimierung",
+    toolYouthOptimization: "Jugendkader-Optimierung",
+    toolSeniorOptimization: "Seniorkader-Optimierung",
+    toolYouthBadge: "Y",
+    toolSeniorBadge: "S",
     toolClubChronicle: "Club-Chronik",
     clubChronicleTitle: "Club-Chronik",
     clubChronicleBody:

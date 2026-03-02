@@ -1485,9 +1485,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                 const metric = (() => {
                   switch (sortKey) {
                     case "age":
-                      return player.Age !== undefined && player.AgeDays !== undefined
-                        ? `${player.Age}${messages.ageYearsShort} ${player.AgeDays}${messages.ageDaysShort}`
-                        : messages.unknownShort;
+                      return ageLabel ?? messages.unknownShort;
                     case "arrival":
                       return player.ArrivalDate
                         ? formatDateTime(Date.parse(player.ArrivalDate.replace(" ", "T")))
@@ -1537,7 +1535,15 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                         }}
                       >
                         {!isNameSort ? (
-                          <span className={styles.playerSortMetric}>{metric}</span>
+                          <span className={styles.playerSortMetric}>
+                            {sortKey === "age" && ageLabel && agePillClassName ? (
+                              <span className={`${styles.playerAgePill} ${agePillClassName}`}>
+                                {ageLabel}
+                              </span>
+                            ) : (
+                              metric
+                            )}
+                          </span>
                         ) : null}
                         <span
                           className={`${styles.playerNameRow} ${

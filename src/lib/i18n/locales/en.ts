@@ -432,6 +432,8 @@ export const messagesEn: Messages = {
     ratingsMatrixTabLabel: "Ratings matrix",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip: "N marks a value updated or newly revealed since the last refresh.",
+    scoutImportantSkillTooltip: "Important skill",
+    scoutOverallSkillLevelTooltip: "Overall skill level",
     youthUpdatesNewPlayerLabel: "New player discovered",
     youthUpdatesSkillCurrentTag: "curr",
     youthUpdatesSkillMaxTag: "max",

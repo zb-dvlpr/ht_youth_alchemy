@@ -456,6 +456,8 @@ export const messagesSv: Messages = {
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N markerar ett varde som uppdaterats eller nyupptackts sedan senaste uppdatering.",
+    scoutImportantSkillTooltip: "Viktig färdighet",
+    scoutOverallSkillLevelTooltip: "Overgripande färdighetsniva",
     youthUpdatesNewPlayerLabel: "Ny spelare upptackt",
     youthUpdatesSkillCurrentTag: "aktuell",
     youthUpdatesSkillMaxTag: "max",

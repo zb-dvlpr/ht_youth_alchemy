@@ -49,6 +49,19 @@ export type YouthPlayerDetails = {
     };
   };
   PlayerSkills?: Record<string, SkillValue>;
+  ScoutCall?: {
+    ScoutComments?: {
+      ScoutComment?:
+        | {
+            CommentType?: number | string;
+            CommentSkillType?: number | string;
+          }
+        | Array<{
+            CommentType?: number | string;
+            CommentSkillType?: number | string;
+          }>;
+    };
+  };
   LastMatch?: {
     Date?: string;
     YouthMatchID?: number;
@@ -80,6 +93,8 @@ type PlayerDetailsPanelProps = {
   matrixNewRatingsByPlayerId?: Record<number, number[]>;
   matrixNewSkillsCurrentByPlayerId?: Record<number, string[]>;
   matrixNewSkillsMaxByPlayerId?: Record<number, string[]>;
+  scoutImportantSkillsByPlayerId?: Record<number, string[]>;
+  scoutOverallSkillLevelByPlayerId?: Record<number, number>;
   hiddenSpecialtyByPlayerId?: Record<number, number>;
   onSelectRatingsPlayer: (playerName: string) => void;
   orderedPlayerIds?: number[] | null;
@@ -299,6 +314,8 @@ export default function PlayerDetailsPanel({
   matrixNewRatingsByPlayerId = {},
   matrixNewSkillsCurrentByPlayerId = {},
   matrixNewSkillsMaxByPlayerId = {},
+  scoutImportantSkillsByPlayerId = {},
+  scoutOverallSkillLevelByPlayerId = {},
   hiddenSpecialtyByPlayerId = {},
   onSelectRatingsPlayer,
   orderedPlayerIds,
@@ -1135,6 +1152,8 @@ export default function PlayerDetailsPanel({
               const rowInjuryStatus = buildInjuryStatus(rowInjuryLevel, messages);
               const isSelected = ratingsMatrixSelectedName === row.name;
               const isNewPlayer = row.id ? matrixNewPlayerIdSet.has(row.id) : false;
+              const scoutOverallSkillLevel =
+                row.id !== null ? scoutOverallSkillLevelByPlayerId[row.id] : undefined;
 
               return (
                 <tr
@@ -1172,6 +1191,14 @@ export default function PlayerDetailsPanel({
                         <span className={styles.matrixNewPill}>
                           {messages.matrixNewPillLabel}
                         </span>
+                      ) : null}
+                      {playerKind === "youth" &&
+                      typeof scoutOverallSkillLevel === "number" ? (
+                        <Tooltip content={messages.scoutOverallSkillLevelTooltip}>
+                          <span className={styles.matrixScoutOverallBadge}>
+                            {scoutOverallSkillLevel}
+                          </span>
+                        </Tooltip>
                       ) : null}
                     </div>
                   </td>
@@ -1296,12 +1323,33 @@ export default function PlayerDetailsPanel({
                         ? (matrixNewSkillsMaxByPlayerId[row.id]?.includes(skill.key) ??
                           false)
                         : false;
+                    const isScoutImportant =
+                      playerKind === "youth" && row.id !== null
+                        ? (scoutImportantSkillsByPlayerId[row.id]?.includes(skill.key) ??
+                          false)
+                        : false;
                     const currentText =
                       current === null ? messages.unknownShort : String(current);
                     const maxText = max === null ? messages.unknownShort : String(max);
                     const currentColor = skillCellColor(current, 0, maxSkillLevel);
                     const maxColor = skillCellColor(max, 0, maxSkillLevel);
                     if (skillMode === "single") {
+                      const singleContent = (
+                        <span
+                          className={`${styles.skillsMatrixHalf} ${
+                            playerKind === "senior" ? styles.skillsMatrixHalfPill : ""
+                          } ${
+                            isScoutImportant ? styles.skillsMatrixImportantUnderline : ""
+                          }`}
+                          style={
+                            currentColor
+                              ? { backgroundColor: currentColor }
+                              : undefined
+                          }
+                        >
+                          {currentText}
+                        </span>
+                      );
                       return (
                         <td
                           key={skill.key}
@@ -1309,18 +1357,13 @@ export default function PlayerDetailsPanel({
                             playerKind === "senior" ? styles.matrixSeniorSkillCell : ""
                           }`}
                         >
-                          <span
-                            className={`${styles.skillsMatrixHalf} ${
-                              playerKind === "senior" ? styles.skillsMatrixHalfPill : ""
-                            }`}
-                            style={
-                              currentColor
-                                ? { backgroundColor: currentColor }
-                                : undefined
-                            }
-                          >
-                            {currentText}
-                          </span>
+                          {isScoutImportant ? (
+                            <Tooltip content={messages.scoutImportantSkillTooltip}>
+                              {singleContent}
+                            </Tooltip>
+                          ) : (
+                            singleContent
+                          )}
                         </td>
                       );
                     }
@@ -1328,6 +1371,8 @@ export default function PlayerDetailsPanel({
                       <div
                         className={`${styles.skillsMatrixSplit} ${
                           isMaxed ? styles.skillsMatrixMaxed : ""
+                        } ${
+                          isScoutImportant ? styles.skillsMatrixImportantUnderline : ""
                         }`}
                       >
                         {isNewCurrent ? (
@@ -1374,7 +1419,11 @@ export default function PlayerDetailsPanel({
                           playerKind === "senior" ? styles.matrixSeniorSkillCell : ""
                         }`}
                       >
-                        {isMaxed ? (
+                        {isScoutImportant ? (
+                          <Tooltip content={messages.scoutImportantSkillTooltip}>
+                            {cellContent}
+                          </Tooltip>
+                        ) : isMaxed ? (
                           <Tooltip content={messages.skillMaxedTooltip}>
                             {cellContent}
                           </Tooltip>

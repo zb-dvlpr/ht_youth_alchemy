@@ -363,6 +363,16 @@ const TRAINING_SKILL_VALUE_KEYS: Record<
   setpieces: { current: "SetPiecesSkill", max: "SetPiecesSkillMax" },
 };
 
+const SCOUT_COMMENT_SKILL_KEY_BY_TYPE: Record<number, string> = {
+  1: "KeeperSkill",
+  3: "DefenderSkill",
+  4: "PlaymakerSkill",
+  5: "WingerSkill",
+  6: "ScorerSkill",
+  7: "SetPiecesSkill",
+  8: "PassingSkill",
+};
+
 const isTrainingSkill = (
   value: string | null | undefined
 ): value is TrainingSkillKey => TRAINING_SKILLS.includes(value as TrainingSkillKey);
@@ -938,6 +948,50 @@ export default function Dashboard({
     });
     return map;
   }, [cache]);
+
+  const scoutImportantSkillsByPlayerId = useMemo(() => {
+    const payload: Record<number, string[]> = {};
+    playerDetailsById.forEach((details, playerId) => {
+      const rawComments = details.ScoutCall?.ScoutComments?.ScoutComment;
+      const comments = Array.isArray(rawComments)
+        ? rawComments
+        : rawComments
+        ? [rawComments]
+        : [];
+      const importantSkills = new Set<string>();
+      comments.forEach((comment) => {
+        const commentType = Number(comment?.CommentType);
+        const commentSkillType = Number(comment?.CommentSkillType);
+        if (commentType !== 4 && commentType !== 5) return;
+        const skillKey = SCOUT_COMMENT_SKILL_KEY_BY_TYPE[commentSkillType];
+        if (!skillKey) return;
+        importantSkills.add(skillKey);
+      });
+      if (importantSkills.size > 0) {
+        payload[playerId] = Array.from(importantSkills.values());
+      }
+    });
+    return payload;
+  }, [playerDetailsById]);
+
+  const scoutOverallSkillLevelByPlayerId = useMemo(() => {
+    const payload: Record<number, number> = {};
+    playerDetailsById.forEach((details, playerId) => {
+      const rawComments = details.ScoutCall?.ScoutComments?.ScoutComment;
+      const comments = Array.isArray(rawComments)
+        ? rawComments
+        : rawComments
+        ? [rawComments]
+        : [];
+      const overallComment = comments.find(
+        (comment) => Number(comment?.CommentType) === 6
+      );
+      const overallValue = Number(overallComment?.CommentSkillType);
+      if (!Number.isFinite(overallValue)) return;
+      payload[playerId] = overallValue;
+    });
+    return payload;
+  }, [playerDetailsById]);
 
   const changelogEntries = useMemo(
     () => [
@@ -2117,7 +2171,7 @@ export default function Dashboard({
 
     try {
       const { response, payload } = await fetchChppJson<PlayerDetailsResponse>(
-        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&unlockSkills=1`,
+        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&showScoutCall=true&unlockSkills=1`,
         { cache: "no-store" }
       );
       if (!response.ok || payload?.error) {
@@ -2186,7 +2240,7 @@ export default function Dashboard({
 
     try {
       const { response, payload } = await fetchChppJson<PlayerDetailsResponse>(
-        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&unlockSkills=1`,
+        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&showScoutCall=true&unlockSkills=1`,
         { cache: "no-store" }
       );
       if (!response.ok || payload?.error) {
@@ -4519,6 +4573,8 @@ export default function Dashboard({
               matrixNewSkillsMaxByPlayerId={
                 activeMatrixNewMarkers.skillsMaxByPlayerId
               }
+              scoutImportantSkillsByPlayerId={scoutImportantSkillsByPlayerId}
+              scoutOverallSkillLevelByPlayerId={scoutOverallSkillLevelByPlayerId}
               hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
               onSelectRatingsPlayer={(playerName) => {
                 const match = playerList.find(

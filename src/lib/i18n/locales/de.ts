@@ -453,6 +453,8 @@ export const messagesDe: Messages = {
     ratingsMatrixTabLabel: "Bewertungsmatrix",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip: "N markiert einen seit der letzten Aktualisierung geänderten oder neu aufgedeckten Wert.",
+    scoutImportantSkillTooltip: "Wichtige Fähigkeit",
+    scoutOverallSkillLevelTooltip: "Gesamtfähigkeitsniveau",
     youthUpdatesNewPlayerLabel: "Neuer Spieler entdeckt",
     youthUpdatesSkillCurrentTag: "aktuell",
     youthUpdatesSkillMaxTag: "max",

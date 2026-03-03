@@ -398,6 +398,8 @@ export type Messages = {
   ratingsMatrixTabLabel: string;
   matrixNewPillLabel: string;
   matrixNewNTooltip: string;
+  scoutImportantSkillTooltip: string;
+  scoutOverallSkillLevelTooltip: string;
   youthUpdatesNewPlayerLabel: string;
   youthUpdatesSkillCurrentTag: string;
   youthUpdatesSkillMaxTag: string;

@@ -1161,6 +1161,26 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
 }
 
+.matrixScoutOverallBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #4b3f32;
+  color: #f7f1e3;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.skillsMatrixImportantUnderline {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
 .matrixInjuryStatus {
   display: inline-flex;
   align-items: center;
@@ -2822,6 +2842,11 @@ html[data-theme="dark"] .matrixNewPill {
   background: #ff6b5c;
   color: #2a1a14;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+html[data-theme="dark"] .matrixScoutOverallBadge {
+  background: #d8cab6;
+  color: #2c2217;
 }
 
 html[data-theme="dark"] .matrixInjuryStatus {

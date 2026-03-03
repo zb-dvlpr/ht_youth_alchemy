@@ -3582,8 +3582,6 @@ export default function Dashboard({
             ...nextMarkers,
             detectedAt: comparedAt,
           });
-        } else {
-          setMatrixNewMarkers(buildEmptyMatrixNewMarkers());
         }
         const updatesEntry = buildYouthUpdatesHistoryEntry(
           nextMarkers,

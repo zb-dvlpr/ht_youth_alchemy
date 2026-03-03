@@ -610,6 +610,7 @@ export type Messages = {
   sortCustom: string;
   seniorListInjuryBruised: string;
   seniorListInjuryWeeks: string;
+  seniorCardsMatchRunning: string;
   sortToggleAria: string;
   sortAscLabel: string;
   sortDescLabel: string;

@@ -37,13 +37,15 @@ export async function GET(request: Request) {
     const teamID = url.searchParams.get("teamID");
     const formatArchiveDate = (date: Date) => date.toISOString().slice(0, 10);
     const today = new Date();
+    const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
     const firstDate = new Date(today.getTime() - MATCH_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
     const matchesParams = new URLSearchParams({
       file: "matchesarchive",
       version: MATCHESARCHIVE_VERSION,
       isYouth: "true",
       FirstMatchDate: formatArchiveDate(firstDate),
-      LastMatchDate: formatArchiveDate(today),
+      // Include today's completed matches in archive window.
+      LastMatchDate: formatArchiveDate(tomorrow),
     });
     if (teamID) matchesParams.set("teamID", teamID);
     const { parsed: matchesParsed } = await fetchChppXml(auth, matchesParams);

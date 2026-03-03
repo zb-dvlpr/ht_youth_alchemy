@@ -1491,6 +1491,9 @@ export default function PlayerDetailsPanel({
           injuryStatusByName={playerKind === "senior" ? ratingsMatrixInjuryStatusByName : undefined}
           newPlayerIds={matrixNewPlayerIds}
           newRatingsByPlayerId={matrixNewRatingsByPlayerId}
+          overallSkillLevelByPlayerId={
+            playerKind === "youth" ? scoutOverallSkillLevelByPlayerId : undefined
+          }
           selectedName={ratingsMatrixSelectedName}
           onSelectPlayer={handleMatrixPlayerPick}
           orderedPlayerIds={orderedPlayerIds}

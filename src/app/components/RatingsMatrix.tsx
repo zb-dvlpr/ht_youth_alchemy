@@ -33,6 +33,7 @@ type RatingsMatrixProps = {
   newRatingsByPlayerId?: Record<number, number[]>;
   selectedName?: string | null;
   onSelectPlayer?: (playerName: string) => void;
+  overallSkillLevelByPlayerId?: Record<number, number>;
   orderedPlayerIds?: number[] | null;
   orderSource?: "list" | "ratings" | "skills" | null;
   onOrderChange?: (orderedIds: number[]) => void;
@@ -96,6 +97,7 @@ export default function RatingsMatrix({
   newRatingsByPlayerId = {},
   selectedName,
   onSelectPlayer,
+  overallSkillLevelByPlayerId = {},
   orderedPlayerIds,
   orderSource,
   onOrderChange,
@@ -316,6 +318,13 @@ export default function RatingsMatrix({
                       <span className={styles.matrixNewPill}>
                         {messages.matrixNewPillLabel}
                       </span>
+                    ) : null}
+                    {typeof overallSkillLevelByPlayerId[row.id] === "number" ? (
+                      <Tooltip content={messages.scoutOverallSkillLevelTooltip}>
+                        <span className={styles.matrixScoutOverallBadge}>
+                          {overallSkillLevelByPlayerId[row.id]}
+                        </span>
+                      </Tooltip>
                     ) : null}
                   </div>
                 </td>

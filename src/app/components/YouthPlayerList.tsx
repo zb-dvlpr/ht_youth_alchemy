@@ -6,6 +6,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
   type CSSProperties,
 } from "react";
 import styles from "../page.module.css";
@@ -15,7 +16,7 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import Tooltip from "./Tooltip";
 import { setDragGhost } from "@/lib/drag";
 import { parseChppDate } from "@/lib/chpp/utils";
-import { formatDate } from "@/lib/datetime";
+import { formatDateTime } from "@/lib/datetime";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -159,11 +160,14 @@ function getSkillScore(
 function getSkillPairText(
   player: YouthPlayer,
   currentKey: keyof PlayerSkills,
-  maxKey: keyof PlayerSkills
+  maxKey: keyof PlayerSkills,
+  messages: Messages
 ) {
-  const current = toSkillValue(player.PlayerSkills?.[currentKey]) ?? 0;
-  const max = toSkillValue(player.PlayerSkills?.[maxKey]) ?? 0;
-  return `${current}/${max}`;
+  const current = toSkillValue(player.PlayerSkills?.[currentKey]);
+  const max = toSkillValue(player.PlayerSkills?.[maxKey]);
+  const currentText = current === null ? messages.unknownShort : String(current);
+  const maxText = max === null ? messages.unknownShort : String(max);
+  return `${currentText}/${maxText}`;
 }
 
 function parseArrival(dateString?: string) {
@@ -196,6 +200,59 @@ function ageTotalDays(player: YouthPlayer) {
 
 const PROMOTION_AGE_GREEN_DAYS = 17 * 112;
 const PROMOTION_AGE_RED_DAYS = 18 * 112;
+const YOUTH_AGE_16_DAYS = 16 * 112;
+const YOUTH_AGE_17_DAYS = 17 * 112;
+const YOUTH_AGE_18_DAYS = 18 * 112;
+
+function formatAgeDaysLabel(totalDays: number | null, messages: Messages) {
+  if (totalDays === null) return messages.unknownShort;
+  const years = Math.floor(totalDays / 112);
+  const days = totalDays % 112;
+  return `${years}${messages.ageYearsShort} ${days}${messages.ageDaysShort}`;
+}
+
+function youthAgePillClassName(totalDays: number | null) {
+  if (totalDays === null) return styles.playerMetricPillNeutral;
+  if (totalDays < YOUTH_AGE_16_DAYS) return styles.playerAgePillGreen;
+  if (totalDays < YOUTH_AGE_17_DAYS) return styles.playerAgePillYellow;
+  if (totalDays < YOUTH_AGE_18_DAYS) return styles.playerAgePillFadedRed;
+  return styles.playerAgePillDarkRed;
+}
+
+function promotablePillClassName(days: number | null) {
+  if (days === null) return styles.playerMetricPillNeutral;
+  if (days < 30) return styles.playerAgePillDarkRed;
+  if (days <= 100) return styles.playerAgePillYellow;
+  return styles.playerAgePillGreen;
+}
+
+function youthSkillCellColor(value: number | null) {
+  if (value === null || value === undefined) return undefined;
+  const normalized = Math.min(Math.max(value / 8, 0), 1);
+  const hue = 120 * normalized;
+  const alpha = 0.2 + normalized * 0.35;
+  return `hsla(${hue}, 70%, 38%, ${alpha})`;
+}
+
+function youthSkillPairPillStyle(
+  player: YouthPlayer,
+  currentKey: keyof PlayerSkills,
+  maxKey: keyof PlayerSkills
+): CSSProperties | undefined {
+  const current = toSkillValue(player.PlayerSkills?.[currentKey]);
+  const max = toSkillValue(player.PlayerSkills?.[maxKey]);
+  const currentColor = youthSkillCellColor(current);
+  const maxColor = youthSkillCellColor(max);
+  if (currentColor && maxColor) {
+    return {
+      background: `linear-gradient(90deg, ${currentColor} 0 49%, rgba(70, 58, 42, 0.25) 49% 51%, ${maxColor} 51% 100%)`,
+    };
+  }
+  if (currentColor || maxColor) {
+    return { backgroundColor: currentColor ?? maxColor };
+  }
+  return undefined;
+}
 
 export default function YouthPlayerList({
   players,
@@ -429,22 +486,15 @@ export default function YouthPlayerList({
   }, [players, sortKey, sortDirection]);
 
   const sortMetricText = (player: YouthPlayer) => {
-    const formatAgeDays = (totalDays: number | null) => {
-      if (totalDays === null) return messages.unknownShort;
-      const years = Math.floor(totalDays / 112);
-      const days = totalDays % 112;
-      return `${years}${messages.ageYearsShort} ${days}${messages.ageDaysShort}`;
-    };
-
       switch (sortKey) {
         case "age":
-          return formatAgeDays(ageTotalDays(player));
+          return formatAgeDaysLabel(ageTotalDays(player), messages);
         case "promotionAge":
-          return formatAgeDays(promotionAgeTotalDays(player));
+          return formatAgeDaysLabel(promotionAgeTotalDays(player), messages);
         case "arrival": {
           const date = parseChppDate(player.ArrivalDate);
           if (!date) return messages.unknownShort;
-          return formatDate(date);
+          return formatDateTime(date);
         }
         case "promotable": {
           const days = player.CanBePromotedIn;
@@ -455,48 +505,55 @@ export default function YouthPlayerList({
           return `${sortLabelForKey("keeper")}: ${getSkillPairText(
             player,
             "KeeperSkill",
-            "KeeperSkillMax"
+            "KeeperSkillMax",
+            messages
           )}`;
         case "defender":
           return `${sortLabelForKey("defender")}: ${getSkillPairText(
             player,
             "DefenderSkill",
-            "DefenderSkillMax"
+            "DefenderSkillMax",
+            messages
           )}`;
         case "playmaker":
           return `${sortLabelForKey("playmaker")}: ${getSkillPairText(
             player,
             "PlaymakerSkill",
-            "PlaymakerSkillMax"
+            "PlaymakerSkillMax",
+            messages
           )}`;
         case "winger":
           return `${sortLabelForKey("winger")}: ${getSkillPairText(
             player,
             "WingerSkill",
-            "WingerSkillMax"
+            "WingerSkillMax",
+            messages
           )}`;
         case "passing":
           return `${sortLabelForKey("passing")}: ${getSkillPairText(
             player,
             "PassingSkill",
-            "PassingSkillMax"
+            "PassingSkillMax",
+            messages
           )}`;
         case "scorer":
           return `${sortLabelForKey("scorer")}: ${getSkillPairText(
             player,
             "ScorerSkill",
-            "ScorerSkillMax"
+            "ScorerSkillMax",
+            messages
           )}`;
         case "setpieces":
           return `${sortLabelForKey("setpieces")}: ${getSkillPairText(
             player,
             "SetPiecesSkill",
-            "SetPiecesSkillMax"
+            "SetPiecesSkillMax",
+            messages
           )}`;
         case "custom":
           return messages.sortCustom;
         case "name":
-          return formatAgeDays(ageTotalDays(player));
+          return formatAgeDaysLabel(ageTotalDays(player), messages);
         default:
           return messages.sortName;
       }
@@ -716,6 +773,116 @@ export default function YouthPlayerList({
               sortKey === "promotable" &&
               Number.isFinite(promotableDays) &&
               promotableDays <= 0;
+            const metricNode: ReactNode = (() => {
+              if (sortKey === "name" || sortKey === "age") {
+                const totalDays = ageTotalDays(player);
+                return (
+                  <span
+                    className={`${styles.playerAgePill} ${youthAgePillClassName(totalDays)}`}
+                  >
+                    {formatAgeDaysLabel(totalDays, messages)}
+                  </span>
+                );
+              }
+              if (sortKey === "arrival") {
+                const date = parseChppDate(player.ArrivalDate);
+                return (
+                  <span
+                    className={`${styles.playerMetricPill} ${
+                      date ? "" : styles.playerMetricPillNeutral
+                    }`}
+                  >
+                    {date ? formatDateTime(date) : messages.unknownShort}
+                  </span>
+                );
+              }
+              if (sortKey === "promotable") {
+                if (isPromotableNowMetric) return messages.promotableNowShort;
+                const daysValue = Number.isFinite(promotableDays)
+                  ? Math.max(0, promotableDays)
+                  : null;
+                return (
+                  <span
+                    className={`${styles.playerAgePill} ${promotablePillClassName(daysValue)}`}
+                  >
+                    {daysValue === null
+                      ? messages.unknownShort
+                      : `${daysValue}${messages.ageDaysShort}`}
+                  </span>
+                );
+              }
+              if (sortKey === "keeper") {
+                return (
+                  <span
+                    className={styles.playerMetricPill}
+                    style={youthSkillPairPillStyle(player, "KeeperSkill", "KeeperSkillMax")}
+                  >
+                    {getSkillPairText(player, "KeeperSkill", "KeeperSkillMax", messages)}
+                  </span>
+                );
+              }
+              if (sortKey === "defender") {
+                return (
+                  <span
+                    className={styles.playerMetricPill}
+                    style={youthSkillPairPillStyle(player, "DefenderSkill", "DefenderSkillMax")}
+                  >
+                    {getSkillPairText(player, "DefenderSkill", "DefenderSkillMax", messages)}
+                  </span>
+                );
+              }
+              if (sortKey === "playmaker") {
+                return (
+                  <span
+                    className={styles.playerMetricPill}
+                    style={youthSkillPairPillStyle(player, "PlaymakerSkill", "PlaymakerSkillMax")}
+                  >
+                    {getSkillPairText(player, "PlaymakerSkill", "PlaymakerSkillMax", messages)}
+                  </span>
+                );
+              }
+              if (sortKey === "winger") {
+                return (
+                  <span
+                    className={styles.playerMetricPill}
+                    style={youthSkillPairPillStyle(player, "WingerSkill", "WingerSkillMax")}
+                  >
+                    {getSkillPairText(player, "WingerSkill", "WingerSkillMax", messages)}
+                  </span>
+                );
+              }
+              if (sortKey === "passing") {
+                return (
+                  <span
+                    className={styles.playerMetricPill}
+                    style={youthSkillPairPillStyle(player, "PassingSkill", "PassingSkillMax")}
+                  >
+                    {getSkillPairText(player, "PassingSkill", "PassingSkillMax", messages)}
+                  </span>
+                );
+              }
+              if (sortKey === "scorer") {
+                return (
+                  <span
+                    className={styles.playerMetricPill}
+                    style={youthSkillPairPillStyle(player, "ScorerSkill", "ScorerSkillMax")}
+                  >
+                    {getSkillPairText(player, "ScorerSkill", "ScorerSkillMax", messages)}
+                  </span>
+                );
+              }
+              if (sortKey === "setpieces") {
+                return (
+                  <span
+                    className={styles.playerMetricPill}
+                    style={youthSkillPairPillStyle(player, "SetPiecesSkill", "SetPiecesSkillMax")}
+                  >
+                    {getSkillPairText(player, "SetPiecesSkill", "SetPiecesSkillMax", messages)}
+                  </span>
+                );
+              }
+              return sortMetricText(player);
+            })();
 
             const specialtyEmoji =
               Number(player.Specialty ?? 0) > 0
@@ -773,9 +940,7 @@ export default function YouthPlayerList({
                         sortValueRefs.current[player.YouthPlayerID] = node;
                       }}
                     >
-                      {isPromotableNowMetric
-                        ? messages.promotableNowShort
-                        : sortMetricText(player)}
+                      {metricNode}
                     </span>
                     <span
                       className={`${styles.playerNameRow}${

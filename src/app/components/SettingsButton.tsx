@@ -33,6 +33,7 @@ import {
   readGeneralEnableScaling,
   writeGeneralEnableScaling,
   YOUTH_NEW_MARKERS_DEBUG_EVENT,
+  YOUTH_DEBUG_SE_FETCH_EVENT,
   readYouthNewMarkersDebugEnabled,
   writeYouthNewMarkersDebugEnabled,
 } from "@/lib/settings";
@@ -70,6 +71,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     useState<ChppDebugOauthErrorMode>("off");
   const [debugRandomNewMarkersEnabled, setDebugRandomNewMarkersEnabled] =
     useState(false);
+  const [debugYouthSeMatchId, setDebugYouthSeMatchId] = useState("");
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -311,6 +313,18 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
             : messages.devOauthErrorSimOff
       }`
     );
+  };
+
+  const handleFetchYouthSpecialEvents = () => {
+    const matchId = Number(debugYouthSeMatchId.trim());
+    if (!Number.isFinite(matchId) || matchId <= 0) return;
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(YOUTH_DEBUG_SE_FETCH_EVENT, {
+          detail: { matchId: Math.floor(matchId) },
+        })
+      );
+    }
   };
 
   return (
@@ -666,6 +680,28 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
                 aria-hidden="true"
               />
             </label>
+            <label className={styles.settingsField}>
+              <span className={styles.settingsFieldLabel}>
+                {messages.debugYouthSeMatchIdLabel}
+              </span>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className={styles.settingsFieldInput}
+                  value={debugYouthSeMatchId}
+                  onChange={(event) => setDebugYouthSeMatchId(event.target.value)}
+                />
+                <button
+                  type="button"
+                  className={styles.confirmSubmit}
+                  onClick={handleFetchYouthSpecialEvents}
+                >
+                  {messages.debugYouthSeFetchButton}
+                </button>
+              </div>
+            </label>
+            <p className={styles.muted}>{messages.debugYouthSeFetchHint}</p>
           </div>
         }
         actions={

@@ -714,6 +714,10 @@ export const messagesPt: Messages = {
     devOauthErrorSim5xx: "Simular 5xx",
     devOauthErrorSimHint:
       "Somente dev. Simula falhas OAuth/CHPP para todas as requisições /api/chpp neste navegador.",
+    debugYouthSeMatchIdLabel: "ID da partida juvenil",
+    debugYouthSeFetchButton: "Buscar SEs",
+    debugYouthSeFetchHint:
+      "Registra no console os eventos especiais monitorados: id do evento, nomes objeto/sujeito e URL da partida.",
     statusLabel: "Status",
     matchStatusUpcoming: "Próximo",
     matchStatusFinished: "Finalizado",

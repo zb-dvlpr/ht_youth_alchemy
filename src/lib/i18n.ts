@@ -628,6 +628,9 @@ export type Messages = {
   devOauthErrorSim4xx: string;
   devOauthErrorSim5xx: string;
   devOauthErrorSimHint: string;
+  debugYouthSeMatchIdLabel: string;
+  debugYouthSeFetchButton: string;
+  debugYouthSeFetchHint: string;
   statusLabel: string;
   matchStatusUpcoming: string;
   matchStatusFinished: string;

@@ -51,6 +51,7 @@ import {
   YOUTH_SETTINGS_EVENT,
   YOUTH_SETTINGS_STORAGE_KEY,
   YOUTH_NEW_MARKERS_DEBUG_EVENT,
+  YOUTH_DEBUG_SE_FETCH_EVENT,
 } from "@/lib/settings";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import {
@@ -274,6 +275,8 @@ type MatchDetailsEvent = {
   EventTypeID?: number | string;
   SubjectPlayerID?: number | string;
   ObjectPlayerID?: number | string;
+  SubjectPlayerName?: string;
+  ObjectPlayerName?: string;
 };
 
 type MatchDetailsEventsResponse = {
@@ -1987,6 +1990,128 @@ export default function Dashboard({
     ratingsMatrixData,
     messages.notificationDebugNewMarkers,
   ]);
+
+  useEffect(() => {
+    if (!isDev) return;
+    if (typeof window === "undefined") return;
+
+    const resolveEventPlayerName = async (
+      playerIdRaw: unknown,
+      fallbackNameRaw?: unknown
+    ) => {
+      const playerId = Number(playerIdRaw);
+      const fallbackName =
+        typeof fallbackNameRaw === "string" ? fallbackNameRaw.trim() : "";
+      if (!Number.isFinite(playerId) || playerId <= 0) {
+        return fallbackName || "unknown";
+      }
+      const rosterPlayer = playerList.find(
+        (player) => player.YouthPlayerID === playerId
+      );
+      if (rosterPlayer) return formatPlayerName(rosterPlayer);
+      if (fallbackName) return fallbackName;
+      try {
+        const detailRaw = await ensureDetails(playerId);
+        const resolved = resolveDetails(detailRaw);
+        if (resolved) {
+          const detailName = [
+            resolved.FirstName,
+            resolved.NickName || null,
+            resolved.LastName,
+          ]
+            .filter(Boolean)
+            .join(" ");
+          if (detailName) return detailName;
+        }
+      } catch {
+        // try generic playerdetails as fallback below
+      }
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Player?: {
+                FirstName?: string;
+                NickName?: string;
+                LastName?: string;
+              };
+            };
+          };
+          error?: string;
+        }>(`/api/chpp/playerdetails?playerId=${playerId}`, { cache: "no-store" });
+        if (response.ok && !payload?.error) {
+          const fallbackPlayer = payload?.data?.HattrickData?.Player;
+          if (fallbackPlayer) {
+            const fallbackResolvedName = [
+              fallbackPlayer.FirstName,
+              fallbackPlayer.NickName || null,
+              fallbackPlayer.LastName,
+            ]
+              .filter(Boolean)
+              .join(" ");
+            if (fallbackResolvedName) return fallbackResolvedName;
+          }
+        }
+      } catch {
+        // ignore fallback lookup errors
+      }
+      return `unknown#${playerId}`;
+    };
+
+    const handler = (event: Event) => {
+      const detail =
+        event instanceof CustomEvent
+          ? (event.detail as { matchId?: unknown } | undefined)
+          : undefined;
+      const matchId = Number(detail?.matchId);
+      if (!Number.isFinite(matchId) || matchId <= 0) return;
+      void (async () => {
+        try {
+          const matchIdInt = Math.floor(matchId);
+          const { response, payload } = await fetchChppJson<MatchDetailsEventsResponse>(
+            `/api/chpp/matchdetails?matchId=${matchIdInt}&sourceSystem=${encodeURIComponent(
+              "youth"
+            )}&matchEvents=true`,
+            { cache: "no-store" }
+          );
+          if (!response.ok || payload?.error) {
+            console.log(`[hidden-spec-debug] Failed to fetch match ${matchIdInt}`);
+            return;
+          }
+          const events = normalizeArray<MatchDetailsEvent>(
+            payload?.data?.HattrickData?.Match?.EventList?.Event
+          );
+          const matchUrl =
+            (ratingsMatrixMatchHrefBuilder
+              ? ratingsMatrixMatchHrefBuilder(matchIdInt)
+              : null) ??
+            (resolvedYouthTeamId && resolvedYouthTeamId > 0
+              ? hattrickYouthMatchUrl(matchIdInt, resolvedYouthTeamId, resolvedYouthTeamId)
+              : `match:${matchIdInt}`);
+          for (const matchEvent of events) {
+            const eventTypeId = Number(matchEvent.EventTypeID);
+            if (!SPECIAL_EVENT_SPECIALTY_RULES[eventTypeId]) continue;
+            const objectName = await resolveEventPlayerName(
+              matchEvent.ObjectPlayerID,
+              matchEvent.ObjectPlayerName
+            );
+            const subjectName = await resolveEventPlayerName(
+              matchEvent.SubjectPlayerID,
+              matchEvent.SubjectPlayerName
+            );
+            console.log(
+              `${eventTypeId}: ${objectName} (object); ${subjectName} (subject); ${matchUrl}`
+            );
+          }
+        } catch {
+          console.log(`[hidden-spec-debug] Failed to process match ${matchId}`);
+        }
+      })();
+    };
+
+    window.addEventListener(YOUTH_DEBUG_SE_FETCH_EVENT, handler);
+    return () => window.removeEventListener(YOUTH_DEBUG_SE_FETCH_EVENT, handler);
+  }, [isDev, playerList, ratingsMatrixMatchHrefBuilder, resolvedYouthTeamId]);
 
   useEffect(() => {
     if (!showOptimizerDebug) return;

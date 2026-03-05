@@ -705,6 +705,10 @@ export const messagesSv: Messages = {
     devOauthErrorSim5xx: "Simulera 5xx",
     devOauthErrorSimHint:
       "Endast dev. Simulerar OAuth/CHPP-fel för alla /api/chpp-anrop i denna webbläsare.",
+    debugYouthSeMatchIdLabel: "Ungdomsmatch-ID",
+    debugYouthSeFetchButton: "Hamta SE",
+    debugYouthSeFetchHint:
+      "Loggar bevakade specialhändelser i konsolen: event-id, objekt/subjekt-namn och match-URL.",
     statusLabel: "Status",
     matchStatusUpcoming: "Kommande",
     matchStatusFinished: "Avslutad",

@@ -678,6 +678,10 @@ export const messagesEn: Messages = {
     devOauthErrorSim5xx: "Simulate 5xx",
     devOauthErrorSimHint:
       "Dev only. Simulates OAuth/CHPP failures for all /api/chpp requests in this browser.",
+    debugYouthSeMatchIdLabel: "Youth match ID",
+    debugYouthSeFetchButton: "Fetch SEs",
+    debugYouthSeFetchHint:
+      "Logs watched special events in console: event id, object/subject names, and match URL.",
     statusLabel: "Status",
     matchStatusUpcoming: "Upcoming",
     matchStatusFinished: "Finished",

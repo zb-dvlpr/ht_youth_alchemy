@@ -384,6 +384,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [tacticType, setTacticType] = useState(0);
+  const [trainingType, setTrainingType] = useState<number | null>(null);
   const [includeTournamentMatches, setIncludeTournamentMatches] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(null);
@@ -773,6 +774,24 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return payload as RatingsMatrixResponse;
   };
 
+  const fetchTrainingType = async (): Promise<number | null> => {
+    const { response, payload } = await fetchChppJson<{
+      data?: {
+        HattrickData?: {
+          Team?: {
+            TrainingType?: unknown;
+          };
+        };
+      };
+      error?: string;
+      details?: string;
+    }>("/api/chpp/training?actionType=view", { cache: "no-store" });
+    if (!response.ok || payload?.error) {
+      throw new Error(payload?.details ?? payload?.error ?? "Failed to fetch training");
+    }
+    return parseNumber(payload?.data?.HattrickData?.Team?.TrainingType);
+  };
+
   const fetchPlayerDetailsById = async (playerId: number) => {
     const { response, payload } = await fetchChppJson<{
       data?: { HattrickData?: { Player?: SeniorPlayerDetails } };
@@ -945,10 +964,19 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       setRefreshProgressPct(75);
       const nextRatings = await fetchRatings();
       if (isStopped()) return false;
+      let nextTrainingType: number | null | undefined = undefined;
+      try {
+        nextTrainingType = await fetchTrainingType();
+      } catch {
+        // Keep refresh flow intact even if training endpoint fails.
+      }
 
       setPlayers(nextPlayers);
       setMatchesState(nextMatches);
       setRatingsResponse(nextRatings);
+      if (nextTrainingType !== undefined) {
+        setTrainingType(nextTrainingType);
+      }
       setLoadError(null);
       setLoadErrorDetails(null);
 
@@ -1044,6 +1072,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             behaviors?: LineupBehaviors;
             loadedMatchId?: number | null;
             tacticType?: number;
+            trainingType?: number | null;
             includeTournamentMatches?: boolean;
             updatesHistory?: SeniorUpdatesGroupedEntry[];
             selectedUpdatesId?: string | null;
@@ -1056,6 +1085,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           setBehaviors(parsed.behaviors && typeof parsed.behaviors === "object" ? parsed.behaviors : {});
           setLoadedMatchId(typeof parsed.loadedMatchId === "number" ? parsed.loadedMatchId : null);
           setTacticType(typeof parsed.tacticType === "number" ? parsed.tacticType : 0);
+          setTrainingType(
+            typeof parsed.trainingType === "number" ? parsed.trainingType : null
+          );
           setIncludeTournamentMatches(Boolean(parsed.includeTournamentMatches));
           setUpdatesHistory(Array.isArray(parsed.updatesHistory) ? parsed.updatesHistory : []);
           setSelectedUpdatesId(typeof parsed.selectedUpdatesId === "string" ? parsed.selectedUpdatesId : null);
@@ -1215,6 +1247,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       behaviors,
       loadedMatchId,
       tacticType,
+      trainingType,
       includeTournamentMatches,
       updatesHistory,
       selectedUpdatesId,
@@ -1236,6 +1269,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     selectedId,
     selectedUpdatesId,
     tacticType,
+    trainingType,
     updatesHistory,
     activeDetailsTab,
     orderedPlayerIds,

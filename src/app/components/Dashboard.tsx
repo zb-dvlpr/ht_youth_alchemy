@@ -512,6 +512,18 @@ const buildRatingsBaselineByPlayerId = ({
   }, {});
 };
 
+const normalizeInjuryLevel = (value: unknown): number | null => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const isUnavailableForYouthOptimization = (injuryLevel: number | null) =>
+  injuryLevel !== null && injuryLevel >= 1;
+
 const buildYouthUpdatesHistoryEntry = (
   markers: MatrixNewMarkers,
   players: YouthPlayer[],
@@ -2449,37 +2461,10 @@ export default function Dashboard({
       setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
       return;
     }
-
-    const optimizerPlayers: OptimizerPlayer[] = playerList.map((player) => ({
-      id: player.YouthPlayerID,
-      name: [player.FirstName, player.NickName || null, player.LastName]
-        .filter(Boolean)
-        .join(" "),
-      age:
-        player.Age ??
-        playerDetailsById.get(player.YouthPlayerID)?.Age ??
-        null,
-      ageDays:
-        player.AgeDays ??
-        playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
-        null,
-      canBePromotedIn:
-        player.CanBePromotedIn ??
-        playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
-        null,
-      specialty:
-        Number(player.Specialty ?? 0) > 0
-          ? Number(player.Specialty)
-          : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
-            ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
-            : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
-              ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
-              : null,
-      skills:
-        playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
-        (player.PlayerSkills as OptimizerPlayer["skills"]) ??
-        null,
-    }));
+    if (!optimizerPlayers.some((player) => player.id === starPlayerId)) {
+      setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
+      return;
+    }
 
     const result = optimizeLineupForStar(
       optimizerPlayers,
@@ -2570,37 +2555,10 @@ export default function Dashboard({
         setOptimizeErrorMessage(messages.optimizeRatingsUnavailable);
         return;
       }
-
-      const optimizerPlayers: OptimizerPlayer[] = playerList.map((player) => ({
-        id: player.YouthPlayerID,
-        name: [player.FirstName, player.NickName || null, player.LastName]
-          .filter(Boolean)
-          .join(" "),
-        age:
-          player.Age ??
-          playerDetailsById.get(player.YouthPlayerID)?.Age ??
-          null,
-        ageDays:
-          player.AgeDays ??
-          playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
-          null,
-        canBePromotedIn:
-          player.CanBePromotedIn ??
-          playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
-          null,
-        specialty:
-          Number(player.Specialty ?? 0) > 0
-            ? Number(player.Specialty)
-            : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
-              ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
-              : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
-                ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
-                : null,
-        skills:
-          playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
-          (player.PlayerSkills as OptimizerPlayer["skills"]) ??
-          null,
-      }));
+      if (!optimizerPlayers.some((player) => player.id === starPlayerId)) {
+        setOptimizeErrorMessage(messages.optimizeRatingsUnavailable);
+        return;
+      }
 
       const result = optimizeByRatings(
         optimizerPlayers,
@@ -2731,37 +2689,14 @@ export default function Dashboard({
       }
       return;
     }
-
-    const optimizerPlayers: OptimizerPlayer[] = playerList.map((player) => ({
-      id: player.YouthPlayerID,
-      name: [player.FirstName, player.NickName || null, player.LastName]
-        .filter(Boolean)
-        .join(" "),
-      age:
-        player.Age ??
-        playerDetailsById.get(player.YouthPlayerID)?.Age ??
-        null,
-      ageDays:
-        player.AgeDays ??
-        playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
-        null,
-      canBePromotedIn:
-        player.CanBePromotedIn ??
-        playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
-        null,
-      specialty:
-        Number(player.Specialty ?? 0) > 0
-          ? Number(player.Specialty)
-          : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
-            ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
-            : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
-              ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
-              : null,
-      skills:
-        playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
-        (player.PlayerSkills as OptimizerPlayer["skills"]) ??
-        null,
-    }));
+    if (!optimizerPlayers.some((player) => player.id === starPlayerId)) {
+      if (mode === "revealSecondaryMax") {
+        setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
+      } else {
+        setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
+      }
+      return;
+    }
 
     const result =
       mode === "revealSecondaryMax"
@@ -3885,36 +3820,44 @@ export default function Dashboard({
 
   const optimizerPlayers = useMemo<OptimizerPlayer[]>(
     () =>
-      playerList.map((player) => ({
-        id: player.YouthPlayerID,
-        name: [player.FirstName, player.NickName || null, player.LastName]
-          .filter(Boolean)
-          .join(" "),
-        age:
-          player.Age ??
-          playerDetailsById.get(player.YouthPlayerID)?.Age ??
-          null,
-        ageDays:
-          player.AgeDays ??
-          playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
-          null,
-        canBePromotedIn:
-          player.CanBePromotedIn ??
-          playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
-          null,
-        specialty:
-          Number(player.Specialty ?? 0) > 0
-            ? Number(player.Specialty)
-            : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
-              ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
-              : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
-                ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
-                : null,
-        skills:
-          playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
-          (player.PlayerSkills as OptimizerPlayer["skills"]) ??
-          null,
-      })),
+      playerList
+        .filter((player) => {
+          const details = playerDetailsById.get(player.YouthPlayerID);
+          const injuryLevel = normalizeInjuryLevel(
+            details?.InjuryLevel ?? player.InjuryLevel
+          );
+          return !isUnavailableForYouthOptimization(injuryLevel);
+        })
+        .map((player) => ({
+          id: player.YouthPlayerID,
+          name: [player.FirstName, player.NickName || null, player.LastName]
+            .filter(Boolean)
+            .join(" "),
+          age:
+            player.Age ??
+            playerDetailsById.get(player.YouthPlayerID)?.Age ??
+            null,
+          ageDays:
+            player.AgeDays ??
+            playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
+            null,
+          canBePromotedIn:
+            player.CanBePromotedIn ??
+            playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
+            null,
+          specialty:
+            Number(player.Specialty ?? 0) > 0
+              ? Number(player.Specialty)
+              : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
+                ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
+                : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
+                  ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
+                  : null,
+          skills:
+            playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
+            (player.PlayerSkills as OptimizerPlayer["skills"]) ??
+            null,
+        })),
     [hiddenSpecialtyByPlayerId, playerList, playerDetailsById]
   );
 
@@ -3978,7 +3921,12 @@ export default function Dashboard({
     trainingPreferences,
   ]);
 
-  const manualReady = Boolean(starPlayerId && primaryTraining && secondaryTraining);
+  const manualReady = Boolean(
+    starPlayerId &&
+      primaryTraining &&
+      secondaryTraining &&
+      optimizerPlayers.some((player) => player.id === starPlayerId)
+  );
 
   const optimizeDisabledReason = !starPlayerId
     ? messages.optimizeLineupNeedsStar

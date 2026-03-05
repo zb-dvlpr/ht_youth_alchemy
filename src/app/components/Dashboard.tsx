@@ -277,6 +277,10 @@ type MatchDetailsEvent = {
   ObjectPlayerID?: number | string;
   SubjectPlayerName?: string;
   ObjectPlayerName?: string;
+  EventText?: string;
+  EventDescription?: string;
+  EventComment?: string;
+  EventCommentary?: string;
 };
 
 type MatchDetailsEventsResponse = {
@@ -2099,8 +2103,21 @@ export default function Dashboard({
               matchEvent.SubjectPlayerID,
               matchEvent.SubjectPlayerName
             );
+            const eventText = [
+              matchEvent.EventText,
+              matchEvent.EventDescription,
+              matchEvent.EventComment,
+              matchEvent.EventCommentary,
+            ]
+              .find(
+                (value): value is string =>
+                  typeof value === "string" && value.trim().length > 0
+              )
+              ?.trim();
             console.log(
-              `${eventTypeId}: ${objectName} (object); ${subjectName} (subject); ${matchUrl}`
+              `${eventTypeId}: ${objectName} (object); ${subjectName} (subject); ${matchUrl}${
+                eventText ? `; ${eventText}` : ""
+              }`
             );
           }
         } catch {

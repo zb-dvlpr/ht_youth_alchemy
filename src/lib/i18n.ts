@@ -607,6 +607,10 @@ export type Messages = {
   sortWage: string;
   sortForm: string;
   sortStamina: string;
+  seniorMatrixPlayerShortLabel: string;
+  seniorMatrixSpecialtyShortLabel: string;
+  seniorMatrixFormShortLabel: string;
+  seniorMatrixStaminaShortLabel: string;
   sortInjuries: string;
   sortCards: string;
   sortCustom: string;

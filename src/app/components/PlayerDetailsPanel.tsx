@@ -1063,6 +1063,31 @@ export default function PlayerDetailsPanel({
     if (skillsMatrixRows.length === 0) {
       return <p className={styles.muted}>{messages.noYouthPlayers}</p>;
     }
+    const shortHeader = (
+      preferred: string | undefined,
+      fallback: string
+    ): string => {
+      if (typeof preferred === "string" && preferred.trim().length > 0) {
+        return preferred;
+      }
+      return fallback;
+    };
+    const playerHeaderLabel =
+      playerKind === "senior"
+        ? messages.ratingsPlayerLabel
+        : messages.ratingsPlayerLabel;
+    const specialtyHeaderLabel =
+      playerKind === "senior"
+        ? shortHeader(messages.seniorMatrixSpecialtyShortLabel, "Sp")
+        : messages.ratingsSpecialtyLabel;
+    const formHeaderLabel =
+      playerKind === "senior"
+        ? shortHeader(messages.seniorMatrixFormShortLabel, "Fm")
+        : messages.sortForm;
+    const staminaHeaderLabel =
+      playerKind === "senior"
+        ? shortHeader(messages.seniorMatrixStaminaShortLabel, "St")
+        : messages.sortStamina;
 
     return (
       <div className={styles.matrixWrapper}>
@@ -1083,7 +1108,7 @@ export default function PlayerDetailsPanel({
                   onClick={() => handleSkillsSort("name")}
                   aria-label={`${messages.ratingsSortBy} ${messages.ratingsPlayerLabel}`}
                 >
-                  {messages.ratingsPlayerLabel}
+                  {playerHeaderLabel}
                   <span className={styles.matrixSortIcon}>
                     {skillsSortKey === "name"
                       ? skillsSortDir === "asc"
@@ -1094,7 +1119,7 @@ export default function PlayerDetailsPanel({
                 </button>
               </th>
               <th className={styles.matrixSpecialtyHeader}>
-                {messages.ratingsSpecialtyLabel}
+                {specialtyHeaderLabel}
               </th>
                 {playerKind === "senior" ? (
                   <>
@@ -1105,7 +1130,7 @@ export default function PlayerDetailsPanel({
                         onClick={() => handleSkillsSort("form")}
                         aria-label={`${messages.ratingsSortBy} ${messages.sortForm}`}
                       >
-                        {messages.sortForm}
+                        {formHeaderLabel}
                         <span className={styles.matrixSortIcon}>
                           {skillsSortKey === "form"
                             ? skillsSortDir === "asc"
@@ -1124,7 +1149,7 @@ export default function PlayerDetailsPanel({
                         onClick={() => handleSkillsSort("stamina")}
                         aria-label={`${messages.ratingsSortBy} ${messages.sortStamina}`}
                       >
-                        {messages.sortStamina}
+                        {staminaHeaderLabel}
                         <span className={styles.matrixSortIcon}>
                           {skillsSortKey === "stamina"
                             ? skillsSortDir === "asc"

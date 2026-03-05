@@ -868,18 +868,18 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 }
 
 .matrixTable.matrixTableSeniorCompact .matrixSpecialtyHeader {
-  width: 38px;
+  width: 34px;
 }
 
 .matrixTable.matrixTableSeniorCompact .matrixPlayerHeader,
 .matrixTable.matrixTableSeniorCompact td.matrixPlayer {
-  width: 180px;
-  max-width: 180px;
+  width: 140px;
+  max-width: 140px;
 }
 
 .matrixTable.matrixTableSeniorCompact .matrixSeniorMetricHeader,
 .matrixTable.matrixTableSeniorCompact .matrixSeniorMetricCell {
-  width: 42px;
+  width: 38px;
   text-align: center;
 }
 
@@ -895,10 +895,13 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 
 .matrixTable.matrixTableSeniorCompact .matrixPlayerContent {
   display: flex;
+  width: 100%;
+  overflow: hidden;
   min-width: 0;
 }
 
 .matrixTable.matrixTableSeniorCompact .matrixPlayerButton {
+  flex: 1 1 auto;
   min-width: 0;
   max-width: 100%;
   overflow: hidden;

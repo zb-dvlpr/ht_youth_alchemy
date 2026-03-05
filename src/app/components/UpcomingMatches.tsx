@@ -58,7 +58,8 @@ type UpcomingMatchesProps = {
   onLoadLineup?: (
     assignments: LineupAssignments,
     behaviors: LineupBehaviors,
-    matchId: number
+    matchId: number,
+    tacticType?: number
   ) => void;
   loadedMatchId?: number | null;
   onSubmitSuccess?: () => void;
@@ -162,6 +163,66 @@ function buildLineupPayload(
     },
     substitutions: [],
   };
+}
+
+function parseLoadedTacticType(payload: unknown): number | null {
+  const toNumber = (value: unknown): number | null => {
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : null;
+    }
+    if (typeof value === "string") {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    if (value && typeof value === "object") {
+      const record = value as Record<string, unknown>;
+      const text = record["#text"];
+      if (typeof text === "string" || typeof text === "number") {
+        const parsed = Number(text);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+    }
+    return null;
+  };
+  if (!payload || typeof payload !== "object") return null;
+  const root = payload as Record<string, unknown>;
+  const hattrickData =
+    root.data && typeof root.data === "object"
+      ? (root.data as Record<string, unknown>).HattrickData
+      : null;
+  if (!hattrickData || typeof hattrickData !== "object") return null;
+  const matchData = (hattrickData as Record<string, unknown>).MatchData;
+  if (!matchData || typeof matchData !== "object") return null;
+  const matchDataRecord = matchData as Record<string, unknown>;
+  const lineupNode =
+    matchDataRecord.Lineup && typeof matchDataRecord.Lineup === "object"
+      ? (matchDataRecord.Lineup as Record<string, unknown>)
+      : null;
+  const matchOrdersNode =
+    matchDataRecord.MatchOrders && typeof matchDataRecord.MatchOrders === "object"
+      ? (matchDataRecord.MatchOrders as Record<string, unknown>)
+      : null;
+  const settingsCandidates: unknown[] = [
+    lineupNode?.Settings,
+    matchDataRecord.Settings,
+    matchOrdersNode?.Settings,
+  ];
+  const valueCandidates: unknown[] = [matchDataRecord.TacticType, matchDataRecord.Tactic];
+  settingsCandidates.forEach((settings) => {
+    if (!settings || typeof settings !== "object") return;
+    const record = settings as Record<string, unknown>;
+    valueCandidates.push(
+      record.TacticType,
+      record.Tactic,
+      record.TacticTypeID,
+      record.TacticTypeId
+    );
+  });
+  for (const candidate of valueCandidates) {
+    const parsed = toNumber(candidate);
+    if (parsed !== null) return parsed;
+  }
+  return null;
 }
 
 function renderMatch(
@@ -537,7 +598,13 @@ export default function UpcomingMatches({
       if (Object.keys(next).length === 0) {
         throw new Error(messages.loadLineupUnavailable);
       }
-      onLoadLineup?.(next, nextBehaviors, matchId);
+      const loadedTacticType = parseLoadedTacticType(payload);
+      onLoadLineup?.(
+        next,
+        nextBehaviors,
+        matchId,
+        loadedTacticType !== null ? loadedTacticType : undefined
+      );
       addNotification(
         `${messages.notificationLineupLoaded} ${formatMatchName(
           matchById.get(matchId)

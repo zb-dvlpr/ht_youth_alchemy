@@ -1988,9 +1988,17 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             includeTournamentMatches={includeTournamentMatches}
             onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
             onRefresh={onRefreshMatchesOnly}
-            onLoadLineup={(nextAssignments, nextBehaviors, matchId) => {
+            onLoadLineup={(
+              nextAssignments,
+              nextBehaviors,
+              matchId,
+              loadedTacticType
+            ) => {
               setAssignments(nextAssignments);
               setBehaviors(nextBehaviors);
+              if (typeof loadedTacticType === "number") {
+                setTacticType(loadedTacticType);
+              }
               setLoadedMatchId(matchId);
             }}
             loadedMatchId={loadedMatchId}

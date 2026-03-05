@@ -100,6 +100,15 @@ export const messagesNl: Messages = {
   ordersNotSet: "Niet ingesteld",
   loadLineup: "Opstelling laden",
   loadLineupLoading: "Laden…",
+  setBestLineup: "Beste opstelling zetten",
+  setBestLineupLoading: "Instellen…",
+  setBestLineupTooltip: "Zet de best mogelijke opstelling met AI.",
+  setBestLineupTrainingAware: "Trainingsgericht",
+  setBestLineupTrainingAwareTooltip:
+    "Zet de beste opstelling met inachtneming van het trainingsregime. Alleen formaties waarbij alle trainingsslots gevuld zijn worden meegenomen.",
+  setBestLineupIgnoreTraining: "Training negeren",
+  setBestLineupIgnoreTrainingTooltip:
+    "Zet de beste opstelling zonder rekening te houden met het trainingsregime. Alle formaties worden meegenomen.",
   loadLineupUnavailable: "Geen opgeslagen opstelling",
   loadLineupActive: "Opstelling geladen",
   loadLineupError: "Fout bij laden opstelling",

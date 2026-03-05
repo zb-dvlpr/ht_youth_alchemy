@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
@@ -61,12 +61,19 @@ type UpcomingMatchesProps = {
     matchId: number,
     tacticType?: number
   ) => void;
+  onSetBestLineup?: (matchId: number) => void | Promise<void>;
+  onSetBestLineupMode?: (
+    matchId: number,
+    mode: SetBestLineupMode
+  ) => void | Promise<void>;
   loadedMatchId?: number | null;
   onSubmitSuccess?: () => void;
   sourceSystem?: string;
   includeTournamentMatches?: boolean;
   onIncludeTournamentMatchesChange?: (next: boolean) => void;
 };
+
+export type SetBestLineupMode = "trainingAware" | "ignoreTraining";
 
 const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
 
@@ -225,6 +232,86 @@ function parseLoadedTacticType(payload: unknown): number | null {
   return null;
 }
 
+type SetBestLineupMenuButtonProps = {
+  matchId: number;
+  loading: boolean;
+  messages: Messages;
+  onSelectMode: (matchId: number, mode: SetBestLineupMode) => void;
+};
+
+function SetBestLineupMenuButton({
+  matchId,
+  loading,
+  messages,
+  onSelectMode,
+}: SetBestLineupMenuButtonProps) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (triggerRef.current?.contains(target ?? null)) return;
+      if (menuRef.current?.contains(target ?? null)) return;
+      setOpen(false);
+    };
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, [open]);
+
+  const trigger = (
+    <button
+      type="button"
+      className={`${styles.matchButtonSecondary} ${styles.matchButtonAccent}`}
+      onClick={() => {
+        if (loading) return;
+        setOpen((prev) => !prev);
+      }}
+      disabled={loading}
+      aria-label={messages.setBestLineupTooltip}
+      ref={triggerRef}
+    >
+      {loading ? messages.setBestLineupLoading : messages.setBestLineup}
+    </button>
+  );
+
+  return (
+    <div className={styles.feedbackWrap}>
+      <Tooltip content={messages.setBestLineupTooltip}>{trigger}</Tooltip>
+      {open ? (
+        <div className={styles.feedbackMenu} ref={menuRef}>
+          <Tooltip content={messages.setBestLineupTrainingAwareTooltip} fullWidth>
+            <button
+              type="button"
+              className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+              onClick={() => {
+                setOpen(false);
+                onSelectMode(matchId, "trainingAware");
+              }}
+            >
+              {messages.setBestLineupTrainingAware}
+            </button>
+          </Tooltip>
+          <Tooltip content={messages.setBestLineupIgnoreTrainingTooltip} fullWidth>
+            <button
+              type="button"
+              className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+              onClick={() => {
+                setOpen(false);
+                onSelectMode(matchId, "ignoreTraining");
+              }}
+            >
+              {messages.setBestLineupIgnoreTraining}
+            </button>
+          </Tooltip>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function renderMatch(
   matchId: number,
   match: Match,
@@ -236,6 +323,8 @@ function renderMatch(
   updatedLabel?: string | null,
   loadState?: LoadState,
   onLoadLineup?: (matchId: number) => void,
+  onSetBestLineupMode?: (matchId: number, mode: SetBestLineupMode) => void,
+  bestLineupPending?: boolean,
   isLoaded?: boolean,
   assignedCount?: number
 ) {
@@ -352,6 +441,14 @@ function renderMatch(
                 : messages.loadLineup}
             </button>
           </Tooltip>
+          {onSetBestLineupMode ? (
+            <SetBestLineupMenuButton
+              matchId={matchId}
+              loading={Boolean(bestLineupPending)}
+              messages={messages}
+              onSelectMode={onSetBestLineupMode}
+            />
+          ) : null}
           <Tooltip content={messages.submitOrdersTooltip}>
             <button
               type="button"
@@ -412,6 +509,8 @@ export default function UpcomingMatches({
   tacticType,
   onRefresh,
   onLoadLineup,
+  onSetBestLineup,
+  onSetBestLineupMode,
   loadedMatchId,
   onSubmitSuccess,
   sourceSystem = "Youth",
@@ -423,6 +522,9 @@ export default function UpcomingMatches({
   const [loadStates, setLoadStates] = useState<Record<number, LoadState>>({});
   const [confirmMatchId, setConfirmMatchId] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [bestLineupPendingMatchId, setBestLineupPendingMatchId] = useState<number | null>(
+    null
+  );
   const teamId =
     response.data?.HattrickData?.Team?.TeamID ??
     null;
@@ -624,6 +726,24 @@ export default function UpcomingMatches({
     }
   };
 
+  const handleSetBestLineupMode = async (
+    matchId: number,
+    mode: SetBestLineupMode
+  ) => {
+    if (bestLineupPendingMatchId !== null) return;
+    if (!onSetBestLineupMode && !onSetBestLineup) return;
+    setBestLineupPendingMatchId(matchId);
+    try {
+      if (onSetBestLineupMode) {
+        await onSetBestLineupMode(matchId, mode);
+      } else if (onSetBestLineup) {
+        await onSetBestLineup(matchId);
+      }
+    } finally {
+      setBestLineupPendingMatchId((current) => (current === matchId ? null : current));
+    }
+  };
+
   const confirmSubmit = async () => {
     if (!confirmMatchId || !teamId) {
       setConfirmMatchId(null);
@@ -817,6 +937,8 @@ export default function UpcomingMatches({
               updatedLabel,
               loadStates[matchId],
               handleLoadLineup,
+              handleSetBestLineupMode,
+              bestLineupPendingMatchId === matchId,
               loadedMatchId === matchId,
               assignedCount
             );
@@ -844,6 +966,8 @@ export default function UpcomingMatches({
                 updatedLabel,
                 loadStates[matchId],
                 handleLoadLineup,
+                handleSetBestLineupMode,
+                bestLineupPendingMatchId === matchId,
                 loadedMatchId === matchId,
                 assignedCount
               );

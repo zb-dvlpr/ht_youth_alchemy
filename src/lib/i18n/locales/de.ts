@@ -612,6 +612,15 @@ export const messagesDe: Messages = {
     confirmSubmit: "Senden",
     loadLineup: "Aufstellung laden",
     loadLineupLoading: "Wird geladen…",
+    setBestLineup: "Beste Aufstellung setzen",
+    setBestLineupLoading: "Wird gesetzt…",
+    setBestLineupTooltip: "Setzt die bestmögliche Aufstellung mit KI.",
+    setBestLineupTrainingAware: "Trainingsbewusst",
+    setBestLineupTrainingAwareTooltip:
+      "Setzt die beste Aufstellung unter Berücksichtigung des Trainingsplans. Es werden nur Formationen berücksichtigt, bei denen alle Trainingsplätze besetzt sind.",
+    setBestLineupIgnoreTraining: "Training ignorieren",
+    setBestLineupIgnoreTrainingTooltip:
+      "Setzt die beste Aufstellung ohne Berücksichtigung des Trainingsplans. Alle Formationen werden berücksichtigt.",
     loadLineupUnavailable: "Keine gespeicherte Aufstellung",
     loadLineupActive: "Geladen",
     loadLineupError: "Laden fehlgeschlagen",

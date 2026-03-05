@@ -3129,6 +3129,16 @@ html[data-theme="dark"] .matchButtonSecondary:hover:not(:disabled) {
   background: rgba(143, 229, 174, 0.12);
 }
 
+html[data-theme="dark"] .matchButtonAccent {
+  color: #ffd79a;
+  border-color: rgba(255, 215, 154, 0.55);
+  background: rgba(255, 196, 106, 0.16);
+}
+
+html[data-theme="dark"] .matchButtonAccent:hover:not(:disabled) {
+  background: rgba(255, 196, 106, 0.24);
+}
+
 html[data-theme="dark"] .matchSuccess {
   color: #8fe5ae;
 }
@@ -4069,6 +4079,16 @@ html[data-theme="dark"] .spinner {
 
 .matchButtonSecondary:hover:not(:disabled) {
   background: rgba(36, 77, 43, 0.1);
+}
+
+.matchButtonAccent {
+  color: #7a4a00;
+  border-color: rgba(183, 120, 21, 0.55);
+  background: rgba(255, 208, 132, 0.32);
+}
+
+.matchButtonAccent:hover:not(:disabled) {
+  background: rgba(255, 208, 132, 0.48);
 }
 
 .matchSuccess {

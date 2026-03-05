@@ -701,14 +701,6 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return map;
   }, [detailsById, players]);
 
-  const ratingsByPlayerId = useMemo(() => {
-    const payload: Record<number, Record<string, number>> = {};
-    (ratingsResponse?.players ?? []).forEach((row) => {
-      payload[row.id] = { ...row.ratings };
-    });
-    return payload;
-  }, [ratingsResponse]);
-
   const selectedUpdatesEntry = useMemo(
     () =>
       selectedUpdatesId
@@ -2022,6 +2014,13 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             includeTournamentMatches={includeTournamentMatches}
             onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
             onRefresh={onRefreshMatchesOnly}
+            onSetBestLineupMode={(matchId, mode) => {
+              void matchId;
+              void mode;
+            }}
+            onSetBestLineup={(matchId) => {
+              void matchId;
+            }}
             onLoadLineup={(
               nextAssignments,
               nextBehaviors,

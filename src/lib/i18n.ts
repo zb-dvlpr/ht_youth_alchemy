@@ -543,6 +543,13 @@ export type Messages = {
   confirmSubmit: string;
   loadLineup: string;
   loadLineupLoading: string;
+  setBestLineup: string;
+  setBestLineupLoading: string;
+  setBestLineupTooltip: string;
+  setBestLineupTrainingAware: string;
+  setBestLineupTrainingAwareTooltip: string;
+  setBestLineupIgnoreTraining: string;
+  setBestLineupIgnoreTrainingTooltip: string;
   loadLineupUnavailable: string;
   loadLineupActive: string;
   loadLineupError: string;

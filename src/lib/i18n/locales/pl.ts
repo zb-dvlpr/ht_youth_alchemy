@@ -100,6 +100,15 @@ export const messagesPl: Messages = {
   ordersNotSet: "Nie ustawione",
   loadLineup: "Wczytaj skład",
   loadLineupLoading: "Wczytywanie…",
+  setBestLineup: "Ustaw najlepszy skład",
+  setBestLineupLoading: "Ustawianie…",
+  setBestLineupTooltip: "Ustawia najlepszy możliwy skład przy użyciu AI.",
+  setBestLineupTrainingAware: "Uwzględnij trening",
+  setBestLineupTrainingAwareTooltip:
+    "Ustaw najlepszy skład z uwzględnieniem reżimu treningowego. Brane są pod uwagę tylko formacje, które wypełniają wszystkie sloty treningowe.",
+  setBestLineupIgnoreTraining: "Ignoruj trening",
+  setBestLineupIgnoreTrainingTooltip:
+    "Ustaw najlepszy skład bez uwzględniania reżimu treningowego. Brane są pod uwagę wszystkie formacje.",
   loadLineupUnavailable: "Brak zapisanego składu",
   loadLineupActive: "Wczytany skład",
   loadLineupError: "Błąd wczytywania składu",

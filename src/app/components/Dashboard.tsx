@@ -81,6 +81,7 @@ type YouthPlayer = {
   NickName: string;
   LastName: string;
   Specialty?: number;
+  InjuryLevel?: number;
   Age?: number;
   AgeDays?: number;
   ArrivalDate?: string;
@@ -4477,6 +4478,7 @@ export default function Dashboard({
         <YouthPlayerList
           dataHelpAnchor="player-list"
           players={playerList}
+          playerDetailsById={playerDetailsById}
           orderedPlayerIds={orderedPlayerIds}
           orderSource={orderSource}
           youthTeams={youthTeams}

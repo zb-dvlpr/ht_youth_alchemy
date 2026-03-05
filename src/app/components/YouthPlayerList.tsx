@@ -24,6 +24,7 @@ type YouthPlayer = {
   NickName: string;
   LastName: string;
   Specialty?: number;
+  InjuryLevel?: number;
   Age?: number;
   AgeDays?: number;
   ArrivalDate?: string;
@@ -75,6 +76,7 @@ const specialtyName = (value: number | undefined, messages: Messages) => {
 
 type YouthPlayerListProps = {
   players: YouthPlayer[];
+  playerDetailsById?: Map<number, { InjuryLevel?: number }>;
   orderedPlayerIds?: number[] | null;
   orderSource?: "list" | "ratings" | "skills" | null;
   youthTeams?: { youthTeamId: number; youthTeamName: string }[];
@@ -203,6 +205,54 @@ const PROMOTION_AGE_RED_DAYS = 18 * 112;
 const YOUTH_AGE_16_DAYS = 16 * 112;
 const YOUTH_AGE_17_DAYS = 17 * 112;
 const YOUTH_AGE_18_DAYS = 18 * 112;
+const SUBSCRIPT_DIGITS: Record<string, string> = {
+  "0": "₀",
+  "1": "₁",
+  "2": "₂",
+  "3": "₃",
+  "4": "₄",
+  "5": "₅",
+  "6": "₆",
+  "7": "₇",
+  "8": "₈",
+  "9": "₉",
+};
+
+const toSubscript = (value: number) =>
+  String(Math.max(0, Math.floor(value)))
+    .split("")
+    .map((digit) => SUBSCRIPT_DIGITS[digit] ?? digit)
+    .join("");
+
+const normalizeInjuryLevel = (value: unknown): number | null => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const buildInjuryStatus = (
+  injuryLevelRaw: number | null,
+  messages: Messages
+) => {
+  if (injuryLevelRaw === null) return null;
+  const isBruised = injuryLevelRaw === 0 || (injuryLevelRaw > 0 && injuryLevelRaw < 1);
+  const injuryWeeks = injuryLevelRaw >= 1 ? Math.ceil(injuryLevelRaw) : null;
+  const label = isBruised
+    ? messages.seniorListInjuryBruised
+    : injuryWeeks !== null
+    ? messages.seniorListInjuryWeeks.replace("{weeks}", String(injuryWeeks))
+    : null;
+  const display = isBruised
+    ? "🩹"
+    : injuryWeeks !== null
+    ? `✚${toSubscript(injuryWeeks)}`
+    : null;
+  if (!display || !label) return null;
+  return { display, label };
+};
 
 function formatAgeDaysLabel(totalDays: number | null, messages: Messages) {
   if (totalDays === null) return messages.unknownShort;
@@ -256,6 +306,7 @@ function youthSkillPairPillStyle(
 
 export default function YouthPlayerList({
   players,
+  playerDetailsById,
   orderedPlayerIds,
   orderSource,
   youthTeams = [],
@@ -768,6 +819,11 @@ export default function YouthPlayerList({
             const isAssigned = assignedIds?.has(player.YouthPlayerID) ?? false;
             const isStar = starPlayerId === player.YouthPlayerID;
             const hasNewMarker = newMarkerPlayerIdSet.has(player.YouthPlayerID);
+            const injuryLevel = normalizeInjuryLevel(
+              playerDetailsById?.get(player.YouthPlayerID)?.InjuryLevel ??
+                player.InjuryLevel
+            );
+            const injuryStatus = buildInjuryStatus(injuryLevel, messages);
             const promotableDays = Number(player.CanBePromotedIn);
             const isPromotableNowMetric =
               sortKey === "promotable" &&
@@ -952,6 +1008,15 @@ export default function YouthPlayerList({
                         nameRowRefs.current[player.YouthPlayerID] = node;
                       }}
                     >
+                      {injuryStatus ? (
+                        <span
+                          className={styles.playerInjuryInline}
+                          title={injuryStatus.label}
+                          aria-label={injuryStatus.label}
+                        >
+                          {injuryStatus.display}
+                        </span>
+                      ) : null}
                       <span className={styles.playerName}>{fullName}</span>
                       {hasNewMarker ? (
                         <span className={styles.matrixNewPill}>

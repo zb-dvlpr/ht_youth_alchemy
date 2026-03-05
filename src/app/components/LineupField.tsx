@@ -40,7 +40,10 @@ type LineupFieldProps = {
   assignments: LineupAssignments;
   behaviors?: LineupBehaviors;
   playersById: Map<number, YouthPlayer>;
-  playerDetailsById?: Map<number, { PlayerSkills?: Record<string, SkillValue> }>;
+  playerDetailsById?: Map<
+    number,
+    { PlayerSkills?: Record<string, SkillValue>; InjuryLevel?: number }
+  >;
   onAssign: (slotId: string, playerId: number) => void;
   onClear: (slotId: string) => void;
   onMove?: (fromSlot: string, toSlot: string) => void;
@@ -218,8 +221,21 @@ const toSubscript = (value: number) =>
     .map((digit) => SUBSCRIPT_DIGITS[digit] ?? digit)
     .join("");
 
-const injuryStatus = (injuryLevel: number | null | undefined, messages: Messages) => {
-  if (typeof injuryLevel !== "number") return null;
+const normalizeInjuryLevel = (value: unknown): number | null => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const injuryStatus = (
+  injuryLevelRaw: unknown,
+  messages: Messages
+) => {
+  const injuryLevel = normalizeInjuryLevel(injuryLevelRaw);
+  if (injuryLevel === null) return null;
   if (injuryLevel === 0 || (injuryLevel > 0 && injuryLevel < 1)) {
     return { display: "🩹", label: messages.seniorListInjuryBruised, isHealthy: false };
   }
@@ -589,13 +605,13 @@ export default function LineupField({
               const assignedPlayer = assignedId
                 ? playersById.get(assignedId) ?? null
                 : null;
-              const assignedInjuryStatus = injuryStatus(
-                assignedPlayer?.InjuryLevel,
-                messages
-              );
               const assignedDetails = assignedId
                 ? playerDetailsById?.get(assignedId) ?? null
                 : null;
+              const assignedInjuryStatus = injuryStatus(
+                assignedDetails?.InjuryLevel ?? assignedPlayer?.InjuryLevel,
+                messages
+              );
               const behaviorValue = behaviors?.[position.id] ?? 0;
               const behaviorOptions = assignedPlayer
                 ? behaviorOptionsForSlot(position.id)
@@ -858,13 +874,13 @@ export default function LineupField({
           const assignedPlayer = assignedId
             ? playersById.get(assignedId) ?? null
             : null;
-          const assignedInjuryStatus = injuryStatus(
-            assignedPlayer?.InjuryLevel,
-            messages
-          );
           const assignedDetails = assignedId
             ? playerDetailsById?.get(assignedId) ?? null
             : null;
+          const assignedInjuryStatus = injuryStatus(
+            assignedDetails?.InjuryLevel ?? assignedPlayer?.InjuryLevel,
+            messages
+          );
           const dragPayload = assignedPlayer
             ? JSON.stringify({
                 type: "slot",

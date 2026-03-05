@@ -766,7 +766,7 @@ export default function PlayerDetailsPanel({
               </div>
             </div>
           ) : null}
-          {playerKind === "senior" && injuryStatus ? (
+          {injuryStatus && !injuryStatus.isHealthy ? (
             <div>
               <div className={styles.infoLabel}>
                 {messages.clubChronicleWagesInjuryColumn}
@@ -1173,8 +1173,7 @@ export default function PlayerDetailsPanel({
                       >
                         {row.name}
                       </button>
-                      {playerKind === "senior" &&
-                      rowInjuryStatus &&
+                      {rowInjuryStatus &&
                       !rowInjuryStatus.isHealthy ? (
                         <span
                           className={
@@ -1488,7 +1487,7 @@ export default function PlayerDetailsPanel({
           matchHrefBuilder={ratingsMatrixMatchHrefBuilder}
           specialtyByName={ratingsMatrixSpecialtyByName}
           hiddenSpecialtyByName={ratingsMatrixHiddenSpecialtyByName}
-          injuryStatusByName={playerKind === "senior" ? ratingsMatrixInjuryStatusByName : undefined}
+          injuryStatusByName={ratingsMatrixInjuryStatusByName}
           newPlayerIds={matrixNewPlayerIds}
           newRatingsByPlayerId={matrixNewRatingsByPlayerId}
           overallSkillLevelByPlayerId={

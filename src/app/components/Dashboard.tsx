@@ -1487,6 +1487,8 @@ export default function Dashboard({
         ratingsPositions?: number[];
         playerList?: YouthPlayer[];
         matchesState?: MatchesResponse;
+        hiddenSpecialtyByPlayerId?: Record<number, number>;
+        hiddenSpecialtyDiscoveredMatchByPlayerId?: Record<number, number>;
         analyzedRatingsMatchIds?: number[];
         matrixNewMarkers?: MatrixNewMarkers;
         youthUpdatesHistory?: YouthUpdatesGroupedEntry[];
@@ -1529,6 +1531,14 @@ export default function Dashboard({
       }
       if (parsed.matchesState && initialAuthError) {
         setMatchesState(parsed.matchesState);
+      }
+      if (parsed.hiddenSpecialtyByPlayerId) {
+        setHiddenSpecialtyByPlayerId(parsed.hiddenSpecialtyByPlayerId);
+      }
+      if (parsed.hiddenSpecialtyDiscoveredMatchByPlayerId) {
+        setHiddenSpecialtyDiscoveredMatchByPlayerId(
+          parsed.hiddenSpecialtyDiscoveredMatchByPlayerId
+        );
       }
       if (parsed.analyzedRatingsMatchIds !== undefined) {
         setAnalyzedRatingsMatchIds(parsed.analyzedRatingsMatchIds);
@@ -1693,6 +1703,8 @@ export default function Dashboard({
       ratingsPositions,
       playerList,
       matchesState,
+      hiddenSpecialtyByPlayerId,
+      hiddenSpecialtyDiscoveredMatchByPlayerId,
       analyzedRatingsMatchIds,
       matrixNewMarkers,
       youthUpdatesHistory: youthUpdatesHistoryWithChanges,
@@ -1717,6 +1729,8 @@ export default function Dashboard({
     behaviors,
     playerList,
     matchesState,
+    hiddenSpecialtyByPlayerId,
+    hiddenSpecialtyDiscoveredMatchByPlayerId,
     analyzedRatingsMatchIds,
     matrixNewMarkers,
     youthUpdatesHistoryWithChanges,

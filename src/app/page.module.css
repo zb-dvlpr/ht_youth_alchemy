@@ -3218,7 +3218,7 @@ html[data-theme="dark"] .spinner {
 }
 
 .playerAssigned {
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .assignedTag {
@@ -3286,6 +3286,14 @@ html[data-theme="dark"] .spinner {
   text-align: right;
 }
 
+.playerSortMetricYouth {
+  color: #4b3f32;
+  opacity: 1;
+  max-width: 58%;
+  overflow: visible;
+  text-overflow: clip;
+}
+
 .playerSortMetricUrgent {
   color: #fff1f1;
   background: linear-gradient(135deg, #d03333, #a10f0f);
@@ -3337,6 +3345,11 @@ html[data-theme="dark"] .spinner {
   border-color: #b5a690;
   background: #e7ddd0;
   color: #5d5348;
+}
+
+.youthSkillMetricPill {
+  color: #1f1a13;
+  font-weight: 800;
 }
 
 .playerCardIcon {

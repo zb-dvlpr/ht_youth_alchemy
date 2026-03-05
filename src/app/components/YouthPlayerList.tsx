@@ -280,8 +280,8 @@ function youthSkillCellColor(value: number | null) {
   if (value === null || value === undefined) return undefined;
   const normalized = Math.min(Math.max(value / 8, 0), 1);
   const hue = 120 * normalized;
-  const alpha = 0.2 + normalized * 0.35;
-  return `hsla(${hue}, 70%, 38%, ${alpha})`;
+  const alpha = 0.5 + normalized * 0.35;
+  return `hsla(${hue}, 82%, 30%, ${alpha})`;
 }
 
 function youthSkillPairPillStyle(
@@ -295,7 +295,7 @@ function youthSkillPairPillStyle(
   const maxColor = youthSkillCellColor(max);
   if (currentColor && maxColor) {
     return {
-      background: `linear-gradient(90deg, ${currentColor} 0 49%, rgba(70, 58, 42, 0.25) 49% 51%, ${maxColor} 51% 100%)`,
+      background: `linear-gradient(90deg, ${currentColor} 0 49%, rgba(70, 58, 42, 0.45) 49% 51%, ${maxColor} 51% 100%)`,
     };
   }
   if (currentColor || maxColor) {
@@ -819,6 +819,7 @@ export default function YouthPlayerList({
             const isAssigned = assignedIds?.has(player.YouthPlayerID) ?? false;
             const isStar = starPlayerId === player.YouthPlayerID;
             const hasNewMarker = newMarkerPlayerIdSet.has(player.YouthPlayerID);
+            const isNameSort = sortKey === "name";
             const injuryLevel = normalizeInjuryLevel(
               playerDetailsById?.get(player.YouthPlayerID)?.InjuryLevel ??
                 player.InjuryLevel
@@ -870,7 +871,7 @@ export default function YouthPlayerList({
               if (sortKey === "keeper") {
                 return (
                   <span
-                    className={styles.playerMetricPill}
+                    className={`${styles.playerMetricPill} ${styles.youthSkillMetricPill}`}
                     style={youthSkillPairPillStyle(player, "KeeperSkill", "KeeperSkillMax")}
                   >
                     {getSkillPairText(player, "KeeperSkill", "KeeperSkillMax", messages)}
@@ -880,7 +881,7 @@ export default function YouthPlayerList({
               if (sortKey === "defender") {
                 return (
                   <span
-                    className={styles.playerMetricPill}
+                    className={`${styles.playerMetricPill} ${styles.youthSkillMetricPill}`}
                     style={youthSkillPairPillStyle(player, "DefenderSkill", "DefenderSkillMax")}
                   >
                     {getSkillPairText(player, "DefenderSkill", "DefenderSkillMax", messages)}
@@ -890,7 +891,7 @@ export default function YouthPlayerList({
               if (sortKey === "playmaker") {
                 return (
                   <span
-                    className={styles.playerMetricPill}
+                    className={`${styles.playerMetricPill} ${styles.youthSkillMetricPill}`}
                     style={youthSkillPairPillStyle(player, "PlaymakerSkill", "PlaymakerSkillMax")}
                   >
                     {getSkillPairText(player, "PlaymakerSkill", "PlaymakerSkillMax", messages)}
@@ -900,7 +901,7 @@ export default function YouthPlayerList({
               if (sortKey === "winger") {
                 return (
                   <span
-                    className={styles.playerMetricPill}
+                    className={`${styles.playerMetricPill} ${styles.youthSkillMetricPill}`}
                     style={youthSkillPairPillStyle(player, "WingerSkill", "WingerSkillMax")}
                   >
                     {getSkillPairText(player, "WingerSkill", "WingerSkillMax", messages)}
@@ -910,7 +911,7 @@ export default function YouthPlayerList({
               if (sortKey === "passing") {
                 return (
                   <span
-                    className={styles.playerMetricPill}
+                    className={`${styles.playerMetricPill} ${styles.youthSkillMetricPill}`}
                     style={youthSkillPairPillStyle(player, "PassingSkill", "PassingSkillMax")}
                   >
                     {getSkillPairText(player, "PassingSkill", "PassingSkillMax", messages)}
@@ -920,7 +921,7 @@ export default function YouthPlayerList({
               if (sortKey === "scorer") {
                 return (
                   <span
-                    className={styles.playerMetricPill}
+                    className={`${styles.playerMetricPill} ${styles.youthSkillMetricPill}`}
                     style={youthSkillPairPillStyle(player, "ScorerSkill", "ScorerSkillMax")}
                   >
                     {getSkillPairText(player, "ScorerSkill", "ScorerSkillMax", messages)}
@@ -930,7 +931,7 @@ export default function YouthPlayerList({
               if (sortKey === "setpieces") {
                 return (
                   <span
-                    className={styles.playerMetricPill}
+                    className={`${styles.playerMetricPill} ${styles.youthSkillMetricPill}`}
                     style={youthSkillPairPillStyle(player, "SetPiecesSkill", "SetPiecesSkillMax")}
                   >
                     {getSkillPairText(player, "SetPiecesSkill", "SetPiecesSkillMax", messages)}
@@ -970,9 +971,7 @@ export default function YouthPlayerList({
                   </Tooltip>
                   <button
                     type="button"
-                    className={`${styles.playerButton} ${
-                      isAssigned ? styles.playerAssigned : ""
-                    }`}
+                    className={styles.playerButton}
                     onClick={() => {
                       if (!onSelect) return;
                       if (selectedId === player.YouthPlayerID) return;
@@ -987,17 +986,19 @@ export default function YouthPlayerList({
                     draggable
                     aria-pressed={isSelected}
                   >
-                    <span
-                      className={`${styles.playerSortMetric} ${
-                        isPromotableNowMetric ? styles.playerSortMetricUrgent : ""
-                      }`}
-                      style={promotionAgeMetricStyle(player)}
-                      ref={(node) => {
-                        sortValueRefs.current[player.YouthPlayerID] = node;
-                      }}
-                    >
-                      {metricNode}
-                    </span>
+                    {!isNameSort ? (
+                      <span
+                        className={`${styles.playerSortMetric} ${styles.playerSortMetricYouth} ${
+                          isPromotableNowMetric ? styles.playerSortMetricUrgent : ""
+                        }`}
+                        style={promotionAgeMetricStyle(player)}
+                        ref={(node) => {
+                          sortValueRefs.current[player.YouthPlayerID] = node;
+                        }}
+                      >
+                        {metricNode}
+                      </span>
+                    ) : null}
                     <span
                       className={`${styles.playerNameRow}${
                         nameAgeOverlap[player.YouthPlayerID]
@@ -1045,6 +1046,11 @@ export default function YouthPlayerList({
                         </Tooltip>
                       ) : null}
                     </span>
+                    {isNameSort ? (
+                      <span className={styles.playerIndicators}>
+                        {metricNode}
+                      </span>
+                    ) : null}
                     {isAssigned ? (
                       <span className={styles.assignedTag}>
                         {messages.assigned}

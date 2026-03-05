@@ -740,6 +740,8 @@ export const messagesEs: Messages = {
     specialtySupport: "Apoyo",
     hiddenSpecialtyTooltip:
       "Especialidad oculta descubierta desde eventos del partido",
+    hiddenSpecialtyTooltipLinkHint:
+      "Haz clic para abrir el partido donde se descubrió",
     skillsLabel: "Habilidades",
     skillMaxedTooltip: "Habilidad al máximo",
     unknownLabel: "desconocido",

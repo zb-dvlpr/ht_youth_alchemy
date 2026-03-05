@@ -74,6 +74,7 @@ type LineupFieldProps = {
     all: Set<string>;
   };
   hiddenSpecialtyByPlayerId?: Record<number, number>;
+  hiddenSpecialtyMatchHrefByPlayerId?: Record<number, string>;
   onHoverPlayer?: (playerId: number) => void;
   messages: Messages;
 };
@@ -328,6 +329,7 @@ export default function LineupField({
   optimizeModeDisabledReasons,
   trainedSlots,
   hiddenSpecialtyByPlayerId = {},
+  hiddenSpecialtyMatchHrefByPlayerId = {},
   onHoverPlayer,
   onSelectPlayer,
   messages,
@@ -805,21 +807,45 @@ export default function LineupField({
                           const label =
                             specialtyName(specialty.value, messages) ??
                             messages.specialtyLabel;
+                          const hiddenSpecialtyHref =
+                            specialty.hidden && assignedPlayer
+                              ? hiddenSpecialtyMatchHrefByPlayerId[
+                                  assignedPlayer.YouthPlayerID
+                                ]
+                              : undefined;
                           return (
                             <Tooltip
                               content={
                                 specialty.hidden
-                                  ? `${messages.hiddenSpecialtyTooltip}: ${label}`
+                                  ? `${messages.hiddenSpecialtyTooltip}: ${label} (${messages.hiddenSpecialtyTooltipLinkHint})`
                                   : label
                               }
                             >
-                              <span
-                                className={`${styles.slotEmoji} ${
-                                  specialty.hidden ? styles.hiddenSpecialtyBadge : ""
-                                }`}
-                              >
-                                {SPECIALTY_EMOJI[specialty.value]}
-                              </span>
+                              {hiddenSpecialtyHref ? (
+                                <a
+                                  className={styles.specialtyDiscoveryLink}
+                                  href={hiddenSpecialtyHref}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  <span
+                                    className={`${styles.slotEmoji} ${
+                                      specialty.hidden ? styles.hiddenSpecialtyBadge : ""
+                                    }`}
+                                  >
+                                    {SPECIALTY_EMOJI[specialty.value]}
+                                  </span>
+                                </a>
+                              ) : (
+                                <span
+                                  className={`${styles.slotEmoji} ${
+                                    specialty.hidden ? styles.hiddenSpecialtyBadge : ""
+                                  }`}
+                                >
+                                  {SPECIALTY_EMOJI[specialty.value]}
+                                </span>
+                              )}
                             </Tooltip>
                           );
                         })()}
@@ -1026,21 +1052,45 @@ export default function LineupField({
                           const label =
                             specialtyName(specialty.value, messages) ??
                             messages.specialtyLabel;
+                          const hiddenSpecialtyHref =
+                            specialty.hidden && assignedPlayer
+                              ? hiddenSpecialtyMatchHrefByPlayerId[
+                                  assignedPlayer.YouthPlayerID
+                                ]
+                              : undefined;
                           return (
                             <Tooltip
                               content={
                                 specialty.hidden
-                                  ? `${messages.hiddenSpecialtyTooltip}: ${label}`
+                                  ? `${messages.hiddenSpecialtyTooltip}: ${label} (${messages.hiddenSpecialtyTooltipLinkHint})`
                                   : label
                               }
                             >
-                              <span
-                                className={`${styles.slotEmoji} ${
-                                  specialty.hidden ? styles.hiddenSpecialtyBadge : ""
-                                }`}
-                              >
-                                {SPECIALTY_EMOJI[specialty.value]}
-                              </span>
+                              {hiddenSpecialtyHref ? (
+                                <a
+                                  className={styles.specialtyDiscoveryLink}
+                                  href={hiddenSpecialtyHref}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  <span
+                                    className={`${styles.slotEmoji} ${
+                                      specialty.hidden ? styles.hiddenSpecialtyBadge : ""
+                                    }`}
+                                  >
+                                    {SPECIALTY_EMOJI[specialty.value]}
+                                  </span>
+                                </a>
+                              ) : (
+                                <span
+                                  className={`${styles.slotEmoji} ${
+                                    specialty.hidden ? styles.hiddenSpecialtyBadge : ""
+                                  }`}
+                                >
+                                  {SPECIALTY_EMOJI[specialty.value]}
+                                </span>
+                              )}
                             </Tooltip>
                           );
                         })()}

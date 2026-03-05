@@ -89,6 +89,7 @@ type PlayerDetailsPanelProps = {
   ratingsMatrixSelectedName: string | null;
   ratingsMatrixSpecialtyByName: Record<string, number | undefined>;
   ratingsMatrixHiddenSpecialtyByName?: Record<string, boolean>;
+  ratingsMatrixHiddenSpecialtyMatchHrefByName?: Record<string, string | undefined>;
   matrixNewPlayerIds?: number[];
   matrixNewRatingsByPlayerId?: Record<number, number[]>;
   matrixNewSkillsCurrentByPlayerId?: Record<number, string[]>;
@@ -96,6 +97,7 @@ type PlayerDetailsPanelProps = {
   scoutImportantSkillsByPlayerId?: Record<number, string[]>;
   scoutOverallSkillLevelByPlayerId?: Record<number, number>;
   hiddenSpecialtyByPlayerId?: Record<number, number>;
+  hiddenSpecialtyMatchHrefByPlayerId?: Record<number, string>;
   onSelectRatingsPlayer: (playerName: string) => void;
   orderedPlayerIds?: number[] | null;
   orderSource?: "list" | "ratings" | "skills" | null;
@@ -310,6 +312,7 @@ export default function PlayerDetailsPanel({
   ratingsMatrixSelectedName,
   ratingsMatrixSpecialtyByName,
   ratingsMatrixHiddenSpecialtyByName,
+  ratingsMatrixHiddenSpecialtyMatchHrefByName,
   matrixNewPlayerIds = [],
   matrixNewRatingsByPlayerId = {},
   matrixNewSkillsCurrentByPlayerId = {},
@@ -317,6 +320,7 @@ export default function PlayerDetailsPanel({
   scoutImportantSkillsByPlayerId = {},
   scoutOverallSkillLevelByPlayerId = {},
   hiddenSpecialtyByPlayerId = {},
+  hiddenSpecialtyMatchHrefByPlayerId = {},
   onSelectRatingsPlayer,
   orderedPlayerIds,
   orderSource,
@@ -562,6 +566,10 @@ export default function PlayerDetailsPanel({
   const knownSpecialty = Number(detailsData?.Specialty ?? selectedPlayer?.Specialty ?? 0);
   const resolvedSpecialty = knownSpecialty > 0 ? knownSpecialty : hiddenSpecialty;
   const isHiddenResolvedSpecialty = knownSpecialty <= 0 && hiddenSpecialty !== null;
+  const hiddenSpecialtyMatchHref =
+    playerId !== null && isHiddenResolvedSpecialty
+      ? hiddenSpecialtyMatchHrefByPlayerId[playerId]
+      : undefined;
   const injuryLevelRaw =
     typeof detailsData?.InjuryLevel === "number"
       ? detailsData.InjuryLevel
@@ -749,17 +757,34 @@ export default function PlayerDetailsPanel({
                     isHiddenResolvedSpecialty
                       ? `${messages.hiddenSpecialtyTooltip}: ${
                           specialtyName(resolvedSpecialty) ?? messages.specialtyLabel
-                        }`
+                        } (${messages.hiddenSpecialtyTooltipLinkHint})`
                       : specialtyName(resolvedSpecialty) ?? messages.specialtyLabel
                   }
                 >
-                  <span
-                    className={`${styles.playerSpecialty} ${
-                      isHiddenResolvedSpecialty ? styles.hiddenSpecialtyBadge : ""
-                    }`}
-                  >
-                    {SPECIALTY_EMOJI[resolvedSpecialty] ?? "—"}
-                  </span>
+                  {hiddenSpecialtyMatchHref ? (
+                    <a
+                      className={styles.specialtyDiscoveryLink}
+                      href={hiddenSpecialtyMatchHref}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span
+                        className={`${styles.playerSpecialty} ${
+                          isHiddenResolvedSpecialty ? styles.hiddenSpecialtyBadge : ""
+                        }`}
+                      >
+                        {SPECIALTY_EMOJI[resolvedSpecialty] ?? "—"}
+                      </span>
+                    </a>
+                  ) : (
+                    <span
+                      className={`${styles.playerSpecialty} ${
+                        isHiddenResolvedSpecialty ? styles.hiddenSpecialtyBadge : ""
+                      }`}
+                    >
+                      {SPECIALTY_EMOJI[resolvedSpecialty] ?? "—"}
+                    </span>
+                  )}
                 </Tooltip>{" "}
                 {specialtyName(resolvedSpecialty) ??
                   `${messages.specialtyLabel} ${resolvedSpecialty}`}
@@ -1211,6 +1236,10 @@ export default function PlayerDetailsPanel({
                       const specialtyValue =
                         baseSpecialty > 0 ? baseSpecialty : hiddenForPlayer;
                       const isHidden = baseSpecialty <= 0 && hiddenForPlayer !== null;
+                      const hiddenSpecialtyHref =
+                        isHidden && player
+                          ? hiddenSpecialtyMatchHrefByPlayerId[player.YouthPlayerID]
+                          : undefined;
                       if (specialtyValue === null) return "—";
                       return (
                         <Tooltip
@@ -1218,17 +1247,34 @@ export default function PlayerDetailsPanel({
                             isHidden
                               ? `${messages.hiddenSpecialtyTooltip}: ${
                                   specialtyName(specialtyValue) ?? messages.specialtyLabel
-                                }`
+                                } (${messages.hiddenSpecialtyTooltipLinkHint})`
                               : specialtyName(specialtyValue) ?? messages.specialtyLabel
                           }
                         >
-                          <span
-                            className={`${styles.playerSpecialty} ${
-                              isHidden ? styles.hiddenSpecialtyBadge : ""
-                            }`}
-                          >
-                            {SPECIALTY_EMOJI[specialtyValue] ?? "—"}
-                          </span>
+                          {hiddenSpecialtyHref ? (
+                            <a
+                              className={styles.specialtyDiscoveryLink}
+                              href={hiddenSpecialtyHref}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <span
+                                className={`${styles.playerSpecialty} ${
+                                  isHidden ? styles.hiddenSpecialtyBadge : ""
+                                }`}
+                              >
+                                {SPECIALTY_EMOJI[specialtyValue] ?? "—"}
+                              </span>
+                            </a>
+                          ) : (
+                            <span
+                              className={`${styles.playerSpecialty} ${
+                                isHidden ? styles.hiddenSpecialtyBadge : ""
+                              }`}
+                            >
+                              {SPECIALTY_EMOJI[specialtyValue] ?? "—"}
+                            </span>
+                          )}
                         </Tooltip>
                       );
                     })()}
@@ -1487,6 +1533,7 @@ export default function PlayerDetailsPanel({
           matchHrefBuilder={ratingsMatrixMatchHrefBuilder}
           specialtyByName={ratingsMatrixSpecialtyByName}
           hiddenSpecialtyByName={ratingsMatrixHiddenSpecialtyByName}
+          hiddenSpecialtyMatchHrefByName={ratingsMatrixHiddenSpecialtyMatchHrefByName}
           injuryStatusByName={ratingsMatrixInjuryStatusByName}
           newPlayerIds={matrixNewPlayerIds}
           newRatingsByPlayerId={matrixNewRatingsByPlayerId}

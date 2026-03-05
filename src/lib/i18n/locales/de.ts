@@ -727,6 +727,8 @@ export const messagesDe: Messages = {
     specialtyResilient: "Widerstandsfähig",
     specialtySupport: "Unterstützend",
     hiddenSpecialtyTooltip: "Versteckte Spezialitat aus Match-Events erkannt",
+    hiddenSpecialtyTooltipLinkHint:
+      "Klicken, um das Match zu öffnen, in dem sie entdeckt wurde",
     skillsLabel: "Fähigkeiten",
     skillMaxedTooltip: "Fähigkeit ist ausgereizt",
     unknownLabel: "unbekannt",

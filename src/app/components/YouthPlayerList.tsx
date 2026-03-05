@@ -92,6 +92,7 @@ type YouthPlayerListProps = {
   onOrderChange?: (orderedIds: number[]) => void;
   onSortStart?: () => void;
   hiddenSpecialtyByPlayerId?: Record<number, number>;
+  hiddenSpecialtyMatchHrefByPlayerId?: Record<number, string>;
   newMarkerPlayerIds?: number[];
   messages: Messages;
 };
@@ -322,6 +323,7 @@ export default function YouthPlayerList({
   onOrderChange,
   onSortStart,
   hiddenSpecialtyByPlayerId = {},
+  hiddenSpecialtyMatchHrefByPlayerId = {},
   newMarkerPlayerIds = [],
   messages,
 }: YouthPlayerListProps) {
@@ -949,6 +951,9 @@ export default function YouthPlayerList({
                   : null;
             const isHiddenSpecialty =
               Number(player.Specialty ?? 0) <= 0 && specialtyEmoji !== null;
+            const hiddenSpecialtyHref = isHiddenSpecialty
+              ? hiddenSpecialtyMatchHrefByPlayerId[player.YouthPlayerID]
+              : undefined;
 
             return (
               <li key={player.YouthPlayerID} className={styles.listItem}>
@@ -1031,18 +1036,41 @@ export default function YouthPlayerList({
                               ? `${messages.hiddenSpecialtyTooltip}: ${
                                   specialtyName(specialtyEmoji, messages) ??
                                   messages.specialtyLabel
-                                }`
+                                } (${messages.hiddenSpecialtyTooltipLinkHint})`
                               : specialtyName(specialtyEmoji, messages) ??
                                 messages.specialtyLabel
                           }
                         >
-                          <span
-                            className={`${styles.playerSpecialty} ${
-                              isHiddenSpecialty ? styles.hiddenSpecialtyBadge : ""
-                            }`}
-                          >
-                            {SPECIALTY_EMOJI[specialtyEmoji]}
-                          </span>
+                          {hiddenSpecialtyHref ? (
+                            <span
+                              className={styles.specialtyDiscoveryLink}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                event.preventDefault();
+                                window.open(
+                                  hiddenSpecialtyHref,
+                                  "_blank",
+                                  "noopener,noreferrer"
+                                );
+                              }}
+                            >
+                              <span
+                                className={`${styles.playerSpecialty} ${
+                                  isHiddenSpecialty ? styles.hiddenSpecialtyBadge : ""
+                                }`}
+                              >
+                                {SPECIALTY_EMOJI[specialtyEmoji]}
+                              </span>
+                            </span>
+                          ) : (
+                            <span
+                              className={`${styles.playerSpecialty} ${
+                                isHiddenSpecialty ? styles.hiddenSpecialtyBadge : ""
+                              }`}
+                            >
+                              {SPECIALTY_EMOJI[specialtyEmoji]}
+                            </span>
+                          )}
                         </Tooltip>
                       ) : null}
                     </span>

@@ -703,6 +703,7 @@ export const messagesEn: Messages = {
     specialtyResilient: "Resilient",
     specialtySupport: "Support",
     hiddenSpecialtyTooltip: "Hidden specialty uncovered from match events",
+    hiddenSpecialtyTooltipLinkHint: "Click to open the match where it was discovered",
     skillsLabel: "Skills",
     skillMaxedTooltip: "Skill is maxed out",
     unknownLabel: "unknown",

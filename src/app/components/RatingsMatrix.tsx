@@ -28,6 +28,7 @@ type RatingsMatrixProps = {
   matchHrefBuilder?: (matchId: number) => string;
   specialtyByName?: Record<string, number | undefined>;
   hiddenSpecialtyByName?: Record<string, boolean>;
+  hiddenSpecialtyMatchHrefByName?: Record<string, string | undefined>;
   injuryStatusByName?: Record<string, { display: string; label: string; isHealthy: boolean }>;
   newPlayerIds?: number[];
   newRatingsByPlayerId?: Record<number, number[]>;
@@ -92,6 +93,7 @@ export default function RatingsMatrix({
   matchHrefBuilder,
   specialtyByName,
   hiddenSpecialtyByName,
+  hiddenSpecialtyMatchHrefByName,
   injuryStatusByName,
   newPlayerIds = [],
   newRatingsByPlayerId = {},
@@ -336,20 +338,40 @@ export default function RatingsMatrix({
                           ? `${messages.hiddenSpecialtyTooltip}: ${
                               specialtyName(specialtyByName[row.name], messages) ??
                               messages.specialtyLabel
-                            }`
+                            } (${messages.hiddenSpecialtyTooltipLinkHint})`
                           : specialtyName(specialtyByName[row.name], messages) ??
                             messages.specialtyLabel
                       }
                     >
-                      <span
-                        className={`${styles.playerSpecialty} ${
-                          hiddenSpecialtyByName?.[row.name]
-                            ? styles.hiddenSpecialtyBadge
-                            : ""
-                        }`}
-                      >
-                        {SPECIALTY_EMOJI[specialtyByName[row.name] as number] ?? "—"}
-                      </span>
+                      {hiddenSpecialtyByName?.[row.name] &&
+                      hiddenSpecialtyMatchHrefByName?.[row.name] ? (
+                        <a
+                          className={styles.specialtyDiscoveryLink}
+                          href={hiddenSpecialtyMatchHrefByName[row.name]}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <span
+                            className={`${styles.playerSpecialty} ${
+                              hiddenSpecialtyByName?.[row.name]
+                                ? styles.hiddenSpecialtyBadge
+                                : ""
+                            }`}
+                          >
+                            {SPECIALTY_EMOJI[specialtyByName[row.name] as number] ?? "—"}
+                          </span>
+                        </a>
+                      ) : (
+                        <span
+                          className={`${styles.playerSpecialty} ${
+                            hiddenSpecialtyByName?.[row.name]
+                              ? styles.hiddenSpecialtyBadge
+                              : ""
+                          }`}
+                        >
+                          {SPECIALTY_EMOJI[specialtyByName[row.name] as number] ?? "—"}
+                        </span>
+                      )}
                     </Tooltip>
                   ) : (
                     "—"

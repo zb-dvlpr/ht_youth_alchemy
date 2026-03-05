@@ -730,6 +730,8 @@ export const messagesSv: Messages = {
     specialtyResilient: "Motståndskraftig",
     specialtySupport: "Stödjande",
     hiddenSpecialtyTooltip: "Dold specialitet hittad via matchhandelser",
+    hiddenSpecialtyTooltipLinkHint:
+      "Klicka for att oppna matchen dar den upptacktes",
     skillsLabel: "Färdigheter",
     skillMaxedTooltip: "Färdighet är maxad",
     unknownLabel: "okänd",

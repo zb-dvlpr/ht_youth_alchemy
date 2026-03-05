@@ -740,6 +740,8 @@ export const messagesIt: Messages = {
     specialtyResilient: "Resistente",
     specialtySupport: "Supporto",
     hiddenSpecialtyTooltip: "Specialita nascosta scoperta dagli eventi partita",
+    hiddenSpecialtyTooltipLinkHint:
+      "Clicca per aprire la partita in cui e stata scoperta",
     skillsLabel: "Abilità",
     skillMaxedTooltip: "Abilità al massimo",
     unknownLabel: "sconosciuto",

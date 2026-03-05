@@ -69,7 +69,6 @@ const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
 const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
 const YOUTH_LATEST_UPDATES_OPEN_EVENT = "ya:youth-latest-updates-open";
 const YOUTH_UPDATES_HISTORY_LIMIT = 20;
-const YOUTH_HIDDEN_SPECIALTY_RULES_VERSION = 2;
 
 const formatPlayerName = (player: YouthPlayer) =>
   [player.FirstName, player.NickName || null, player.LastName]
@@ -309,37 +308,37 @@ type SpecialEventRule = {
 
 const SPECIAL_EVENT_SPECIALTY_RULES: Record<number, SpecialEventRule> = {
   105: { specialty: 4, players: ["object"] },
-  106: { specialty: 4, players: ["object"] },
-  108: { specialty: 4, players: ["object"] },
-  109: { specialty: 4, players: ["object"] },
-  115: { specialty: 2, players: ["object"] },
-  116: { specialty: 2, players: ["object"] },
-  119: { specialty: 5, players: ["subject"] },
-  125: { specialty: 4, players: ["object"] },
-  137: { specialty: 5, players: ["subject"] },
+  106: { specialty: 4, players: ["subject"] },
+  108: { specialty: 4, players: ["subject"] },
+  109: { specialty: 4, players: ["subject"] },
+  115: { specialty: 2, players: ["subject"] },
+  116: { specialty: 2, players: ["subject"] },
+  119: { specialty: 5, players: ["object"] },
+  125: { specialty: 4, players: ["subject"] },
+  137: { specialty: 5, players: ["object"] },
   139: { specialty: 1, players: ["subject", "object"] },
-  190: { specialty: 3, players: ["object"] },
+  190: { specialty: 3, players: ["subject"] },
   205: { specialty: 4, players: ["object"] },
-  206: { specialty: 4, players: ["object"] },
-  208: { specialty: 4, players: ["object"] },
-  209: { specialty: 4, players: ["object"] },
-  215: { specialty: 2, players: ["object"] },
-  216: { specialty: 2, players: ["object"] },
-  219: { specialty: 5, players: ["subject"] },
-  225: { specialty: 4, players: ["subject"] },
-  239: { specialty: 1, players: ["object"] },
+  206: { specialty: 4, players: ["subject"] },
+  208: { specialty: 4, players: ["subject"] },
+  209: { specialty: 4, players: ["subject"] },
+  215: { specialty: 2, players: ["subject"] },
+  216: { specialty: 2, players: ["subject"] },
+  219: { specialty: 5, players: ["object"] },
+  225: { specialty: 4, players: ["object"] },
+  239: { specialty: 1, players: ["subject"] },
   289: { specialty: 2, players: ["subject", "object"] },
-  290: { specialty: 3, players: ["object"] },
-  301: { specialty: 1, players: ["object"] },
-  302: { specialty: 3, players: ["object"] },
-  303: { specialty: 1, players: ["object"] },
-  304: { specialty: 3, players: ["object"] },
-  305: { specialty: 2, players: ["object"] },
-  306: { specialty: 2, players: ["object"] },
-  307: { specialty: 8, players: ["object"] },
-  308: { specialty: 8, players: ["object"] },
-  309: { specialty: 8, players: ["object"] },
-  310: { specialty: 3, players: ["object"] },
+  290: { specialty: 3, players: ["subject"] },
+  301: { specialty: 1, players: ["subject"] },
+  302: { specialty: 3, players: ["subject"] },
+  303: { specialty: 1, players: ["subject"] },
+  304: { specialty: 3, players: ["subject"] },
+  305: { specialty: 2, players: ["subject"] },
+  306: { specialty: 2, players: ["subject"] },
+  307: { specialty: 8, players: ["subject"] },
+  308: { specialty: 8, players: ["subject"] },
+  309: { specialty: 8, players: ["subject"] },
+  310: { specialty: 3, players: ["subject"] },
 };
 
 const DETAILS_TTL_MS = 5 * 60 * 1000;
@@ -641,10 +640,10 @@ export default function Dashboard({
   const [hiddenSpecialtyByPlayerId, setHiddenSpecialtyByPlayerId] = useState<
     Record<number, number>
   >({});
-  const [analyzedHiddenSpecialtyMatchIds, setAnalyzedHiddenSpecialtyMatchIds] =
-    useState<number[]>([]);
-  const [hiddenSpecialtyRulesVersion, setHiddenSpecialtyRulesVersion] =
-    useState<number>(YOUTH_HIDDEN_SPECIALTY_RULES_VERSION);
+  const [
+    hiddenSpecialtyDiscoveredMatchByPlayerId,
+    setHiddenSpecialtyDiscoveredMatchByPlayerId,
+  ] = useState<Record<number, number>>({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeDetailsTab, setActiveDetailsTab] =
     useState<PlayerDetailsPanelTab>("details");
@@ -981,6 +980,45 @@ export default function Dashboard({
     if (!teamId || !youthTeamId) return undefined;
     return (matchId: number) => hattrickYouthMatchUrl(matchId, teamId, youthTeamId);
   }, [activeYouthTeamOption?.teamId, activeYouthTeamOption?.youthTeamId]);
+  const hiddenSpecialtyMatchHrefByPlayerId = useMemo(() => {
+    if (!ratingsMatrixMatchHrefBuilder) return {} as Record<number, string>;
+    return Object.fromEntries(
+      Object.entries(hiddenSpecialtyDiscoveredMatchByPlayerId)
+        .map(([playerId, matchId]) => [Number(playerId), Number(matchId)])
+        .filter(
+          ([playerId, matchId]) =>
+            Number.isFinite(playerId) && Number.isFinite(matchId) && matchId > 0
+        )
+        .map(([playerId, matchId]) => [playerId, ratingsMatrixMatchHrefBuilder(matchId)])
+    ) as Record<number, string>;
+  }, [hiddenSpecialtyDiscoveredMatchByPlayerId, ratingsMatrixMatchHrefBuilder]);
+  const ratingsMatrixHiddenSpecialtyMatchHrefByName = useMemo(() => {
+    return Object.fromEntries(
+      playerList.map((player) => {
+        const hiddenSpecialty =
+          Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0 &&
+          Number(player.Specialty ?? 0) <= 0;
+        const discoveredMatchId = Number(
+          hiddenSpecialtyDiscoveredMatchByPlayerId[player.YouthPlayerID] ?? 0
+        );
+        const href =
+          hiddenSpecialty && discoveredMatchId > 0 && ratingsMatrixMatchHrefBuilder
+            ? ratingsMatrixMatchHrefBuilder(discoveredMatchId)
+            : undefined;
+        return [
+          [player.FirstName, player.NickName || null, player.LastName]
+            .filter(Boolean)
+            .join(" "),
+          href,
+        ] as const;
+      })
+    );
+  }, [
+    hiddenSpecialtyByPlayerId,
+    hiddenSpecialtyDiscoveredMatchByPlayerId,
+    playerList,
+    ratingsMatrixMatchHrefBuilder,
+  ]);
   const storageKey = useMemo(() => {
     if (multiTeamEnabled && activeYouthTeamId) {
       return `ya_dashboard_state_v2_${activeYouthTeamId}`;
@@ -1449,9 +1487,6 @@ export default function Dashboard({
         ratingsPositions?: number[];
         playerList?: YouthPlayer[];
         matchesState?: MatchesResponse;
-        hiddenSpecialtyByPlayerId?: Record<number, number>;
-        analyzedHiddenSpecialtyMatchIds?: number[];
-        hiddenSpecialtyRulesVersion?: number;
         analyzedRatingsMatchIds?: number[];
         matrixNewMarkers?: MatrixNewMarkers;
         youthUpdatesHistory?: YouthUpdatesGroupedEntry[];
@@ -1494,26 +1529,6 @@ export default function Dashboard({
       }
       if (parsed.matchesState && initialAuthError) {
         setMatchesState(parsed.matchesState);
-      }
-      if (parsed.hiddenSpecialtyByPlayerId) {
-        setHiddenSpecialtyByPlayerId(parsed.hiddenSpecialtyByPlayerId);
-      }
-      if (parsed.analyzedHiddenSpecialtyMatchIds) {
-        setAnalyzedHiddenSpecialtyMatchIds(parsed.analyzedHiddenSpecialtyMatchIds);
-      }
-      if (
-        typeof parsed.hiddenSpecialtyRulesVersion === "number" &&
-        Number.isFinite(parsed.hiddenSpecialtyRulesVersion)
-      ) {
-        setHiddenSpecialtyRulesVersion(parsed.hiddenSpecialtyRulesVersion);
-      } else if (
-        parsed.hiddenSpecialtyByPlayerId &&
-        Object.keys(parsed.hiddenSpecialtyByPlayerId).length > 0
-      ) {
-        // Legacy cached hidden specialties (before rules-version tracking) need one rebuild.
-        setHiddenSpecialtyRulesVersion(1);
-      } else {
-        setHiddenSpecialtyRulesVersion(YOUTH_HIDDEN_SPECIALTY_RULES_VERSION);
       }
       if (parsed.analyzedRatingsMatchIds !== undefined) {
         setAnalyzedRatingsMatchIds(parsed.analyzedRatingsMatchIds);
@@ -1678,9 +1693,6 @@ export default function Dashboard({
       ratingsPositions,
       playerList,
       matchesState,
-      hiddenSpecialtyByPlayerId,
-      analyzedHiddenSpecialtyMatchIds,
-      hiddenSpecialtyRulesVersion,
       analyzedRatingsMatchIds,
       matrixNewMarkers,
       youthUpdatesHistory: youthUpdatesHistoryWithChanges,
@@ -1705,9 +1717,6 @@ export default function Dashboard({
     behaviors,
     playerList,
     matchesState,
-    hiddenSpecialtyByPlayerId,
-    analyzedHiddenSpecialtyMatchIds,
-    hiddenSpecialtyRulesVersion,
     analyzedRatingsMatchIds,
     matrixNewMarkers,
     youthUpdatesHistoryWithChanges,
@@ -2906,13 +2915,12 @@ export default function Dashboard({
       playersChanged?: boolean;
       playersOverride?: YouthPlayer[];
       forceTraversal?: boolean;
-      forceHiddenSpecialtyRebuild?: boolean;
     }
   ): Promise<RefreshRatingsResult> => {
     const youthTeamId =
       typeof teamIdOverride === "number" ? teamIdOverride : resolvedYouthTeamId;
     const teamId = youthTeamId;
-    const nextPlayers = options?.playersOverride ?? playerList;
+      const nextPlayers = options?.playersOverride ?? playerList;
     try {
       setYouthRefreshStatus(messages.refreshStatusFetchingMatches, 70);
       const formatArchiveDate = (date: Date) => date.toISOString().slice(0, 10);
@@ -2952,7 +2960,7 @@ export default function Dashboard({
           teamId ??
           0
       );
-      const finishedMatches = normalizeArray<MatchSummary>(
+      const allFinishedMatches = normalizeArray<MatchSummary>(
         archiveTeam?.MatchList?.Match
       )
         .map((match) => ({
@@ -2965,8 +2973,8 @@ export default function Dashboard({
               : "youth",
         }))
         .filter((match) => Number.isFinite(match._matchId))
-        .sort((a, b) => b._date - a._date)
-        .slice(0, 50);
+        .sort((a, b) => b._date - a._date);
+      const finishedMatches = allFinishedMatches.slice(0, 50);
 
       const ratingsParam = teamId ? `?teamID=${teamId}` : "";
       const { response: ratingsResponse, payload: ratingsPayload } =
@@ -3117,27 +3125,6 @@ export default function Dashboard({
       }
 
       try {
-        const alreadyAnalyzedMatchIds = new Set(analyzedHiddenSpecialtyMatchIds);
-        const effectiveAlreadyAnalyzedMatchIds = options?.forceHiddenSpecialtyRebuild
-          ? new Set<number>()
-          : alreadyAnalyzedMatchIds;
-        const hasUnanalyzedFinishedMatch = finishedMatches.some(
-          (match) => !effectiveAlreadyAnalyzedMatchIds.has(match._matchId)
-        );
-        const shouldScanHiddenSpecialties =
-          Boolean(options?.forceHiddenSpecialtyRebuild) ||
-          Boolean(options?.playersChanged) ||
-          hasUnanalyzedFinishedMatch;
-
-        if (!shouldScanHiddenSpecialties) {
-          return {
-            ok: true,
-            ratingsByPlayerId,
-            positions: ratingsPositions,
-            hiddenSpecialtyScanOk: true,
-          };
-        }
-
         setYouthRefreshStatus(messages.refreshStatusFetchingHiddenSpecialties, 89);
         const knownSpecialties = new Map<number, number>();
         nextPlayers.forEach((player) => {
@@ -3152,57 +3139,12 @@ export default function Dashboard({
             knownSpecialties.set(playerId, specialty);
           }
         });
-        if (!options?.forceHiddenSpecialtyRebuild) {
-          Object.entries(hiddenSpecialtyByPlayerId).forEach(([id, specialty]) => {
-            const playerId = Number(id);
-            const specialtyValue = Number(specialty);
-            if (
-              Number.isFinite(playerId) &&
-              Number.isFinite(specialtyValue) &&
-              specialtyValue > 0
-            ) {
-              knownSpecialties.set(playerId, specialtyValue);
-            }
-          });
-        }
         const youthPlayerIds = new Set(
           nextPlayers.map((player) => player.YouthPlayerID)
         );
-        const unresolvedPlayerIds = new Set(
-          nextPlayers
-            .map((player) => player.YouthPlayerID)
-            .filter((playerId) => {
-              const known = knownSpecialties.get(playerId);
-              return !(known && known > 0);
-            })
-        );
         const discoveredThisRefresh: Record<number, number> = {};
-        const newlyAnalyzedMatchIds = new Set<number>();
-
-        if (unresolvedPlayerIds.size === 0) {
-          finishedMatches.forEach((match) => {
-            newlyAnalyzedMatchIds.add(match._matchId);
-          });
-        }
-
-        const matchesToAnalyze =
-          unresolvedPlayerIds.size > 0
-            ? finishedMatches.filter((match) => {
-                if (effectiveAlreadyAnalyzedMatchIds.has(match._matchId)) return false;
-                const participants = matchPlayerIdsByMatch.get(match._matchId);
-                if (!participants || participants.size === 0) return true;
-                let hasUnresolvedParticipant = false;
-                participants.forEach((playerId) => {
-                  if (unresolvedPlayerIds.has(playerId)) {
-                    hasUnresolvedParticipant = true;
-                  }
-                });
-                if (!hasUnresolvedParticipant) {
-                  newlyAnalyzedMatchIds.add(match._matchId);
-                }
-                return hasUnresolvedParticipant;
-              })
-            : [];
+        const discoveryMatchByPlayerIdThisRefresh: Record<number, number> = {};
+        const matchesToAnalyze = allFinishedMatches;
 
         let hiddenCompleted = 0;
         const hiddenResults = await mapWithConcurrency(
@@ -3228,10 +3170,10 @@ export default function Dashboard({
                 payload?.data?.HattrickData?.Match?.EventList?.Event
               );
               const candidates: Array<{ playerId: number; specialty: number }> = [];
-              events.forEach((event) => {
+              for (const event of events) {
                 const eventTypeId = Number(event.EventTypeID);
                 const rule = SPECIAL_EVENT_SPECIALTY_RULES[eventTypeId];
-                if (!rule) return;
+                if (!rule) continue;
                 const candidateIds = rule.players.map((ref) =>
                   Number(
                     ref === "subject" ? event.SubjectPlayerID : event.ObjectPlayerID
@@ -3245,7 +3187,7 @@ export default function Dashboard({
                     specialty: rule.specialty,
                   });
                 });
-              });
+              }
               return {
                 matchId: match._matchId,
                 analyzed: true,
@@ -3281,34 +3223,26 @@ export default function Dashboard({
           if (!result.analyzed) return;
           result.candidates.forEach((candidate) => {
             const known = knownSpecialties.get(candidate.playerId);
-            if (known && known > 0) return;
-            knownSpecialties.set(candidate.playerId, candidate.specialty);
-            discoveredThisRefresh[candidate.playerId] = candidate.specialty;
+            if (!(known && known > 0)) {
+              knownSpecialties.set(candidate.playerId, candidate.specialty);
+              discoveredThisRefresh[candidate.playerId] = candidate.specialty;
+            }
+            if (
+              !Object.prototype.hasOwnProperty.call(
+                discoveryMatchByPlayerIdThisRefresh,
+                candidate.playerId
+              )
+            ) {
+              discoveryMatchByPlayerIdThisRefresh[candidate.playerId] =
+                result.matchId;
+            }
           });
-          newlyAnalyzedMatchIds.add(result.matchId);
         });
 
-        if (options?.forceHiddenSpecialtyRebuild) {
-          setHiddenSpecialtyByPlayerId(discoveredThisRefresh);
-        } else if (Object.keys(discoveredThisRefresh).length > 0) {
-          setHiddenSpecialtyByPlayerId((prev) => ({
-            ...prev,
-            ...discoveredThisRefresh,
-          }));
-        }
-        if (newlyAnalyzedMatchIds.size > 0) {
-          if (options?.forceHiddenSpecialtyRebuild) {
-            setAnalyzedHiddenSpecialtyMatchIds(
-              Array.from(newlyAnalyzedMatchIds.values()).sort((a, b) => b - a)
-            );
-          } else {
-            setAnalyzedHiddenSpecialtyMatchIds((prev) => {
-              const merged = new Set<number>(prev);
-              newlyAnalyzedMatchIds.forEach((matchId) => merged.add(matchId));
-              return Array.from(merged.values()).sort((a, b) => b - a);
-            });
-          }
-        }
+        setHiddenSpecialtyByPlayerId(discoveredThisRefresh);
+        setHiddenSpecialtyDiscoveredMatchByPlayerId(
+          discoveryMatchByPlayerIdThisRefresh
+        );
       } catch {
         // Keep refreshed ratings even if hidden-specialty enrichment fails.
         hiddenSpecialtyScanOk = false;
@@ -3366,12 +3300,11 @@ export default function Dashboard({
       ratingsCache,
       ratingsPositions,
       hiddenSpecialtyByPlayerId,
-      analyzedHiddenSpecialtyMatchIds,
+      hiddenSpecialtyDiscoveredMatchByPlayerId,
       analyzedRatingsMatchIds,
       matrixNewMarkers,
       youthUpdatesHistory,
       selectedYouthUpdatesId,
-      hiddenSpecialtyRulesVersion,
       lastGlobalRefreshAt,
     };
     setPlayersLoading(true);
@@ -3392,8 +3325,6 @@ export default function Dashboard({
     });
     const previousRatingsPositionsSnapshot =
       ratingsResponseState?.positions ?? ratingsPositions;
-    const needsHiddenSpecialtyRulesMigration =
-      hiddenSpecialtyRulesVersion < YOUTH_HIDDEN_SPECIALTY_RULES_VERSION;
     let playersUpdated = false;
     let playerIdsChanged = false;
     let nextSelectedId = selectedId;
@@ -3520,7 +3451,6 @@ export default function Dashboard({
         matchesOk = matchesResult.ok;
         ratingsResult = await refreshRatings(youthTeamId, matchesResult.payload ?? null, {
           forceTraversal: true,
-          forceHiddenSpecialtyRebuild: needsHiddenSpecialtyRulesMigration,
           playersChanged: playerIdsChanged,
           playersOverride: nextPlayersSnapshot,
         });
@@ -3542,12 +3472,13 @@ export default function Dashboard({
         setRatingsCache(snapshot.ratingsCache);
         setRatingsPositions(snapshot.ratingsPositions);
         setHiddenSpecialtyByPlayerId(snapshot.hiddenSpecialtyByPlayerId);
-        setAnalyzedHiddenSpecialtyMatchIds(snapshot.analyzedHiddenSpecialtyMatchIds);
+        setHiddenSpecialtyDiscoveredMatchByPlayerId(
+          snapshot.hiddenSpecialtyDiscoveredMatchByPlayerId
+        );
         setAnalyzedRatingsMatchIds(snapshot.analyzedRatingsMatchIds);
         setMatrixNewMarkers(snapshot.matrixNewMarkers);
         setYouthUpdatesHistory(snapshot.youthUpdatesHistory);
         setSelectedYouthUpdatesId(snapshot.selectedYouthUpdatesId);
-        setHiddenSpecialtyRulesVersion(snapshot.hiddenSpecialtyRulesVersion);
         setLastGlobalRefreshAt(snapshot.lastGlobalRefreshAt);
         setPlayerRefreshStatus(null);
         setPlayerRefreshProgressPct(0);
@@ -3692,13 +3623,6 @@ export default function Dashboard({
           );
           setSelectedYouthUpdatesId(updatesEntry.id);
         }
-        if (
-          needsHiddenSpecialtyRulesMigration &&
-          ratingsResult.ok &&
-          ratingsResult.hiddenSpecialtyScanOk
-        ) {
-          setHiddenSpecialtyRulesVersion(YOUTH_HIDDEN_SPECIALTY_RULES_VERSION);
-        }
       }
       if (
         playersUpdated &&
@@ -3805,7 +3729,7 @@ export default function Dashboard({
     setSecondaryTraining("");
     setAutoSelectionApplied(false);
     setHiddenSpecialtyByPlayerId({});
-    setAnalyzedHiddenSpecialtyMatchIds([]);
+    setHiddenSpecialtyDiscoveredMatchByPlayerId({});
     setAnalyzedRatingsMatchIds([]);
     if (nextTeamId) {
       refreshPlayers(nextTeamId, { recordRefresh: true });
@@ -4548,6 +4472,7 @@ export default function Dashboard({
           }}
           onOrderChange={(ids) => applyPlayerOrder(ids, "list")}
           hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
+          hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}
           newMarkerPlayerIds={listNewMarkerPlayerIds}
           messages={messages}
         />
@@ -4634,6 +4559,10 @@ export default function Dashboard({
               scoutImportantSkillsByPlayerId={scoutImportantSkillsByPlayerId}
               scoutOverallSkillLevelByPlayerId={scoutOverallSkillLevelByPlayerId}
               hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
+              hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}
+              ratingsMatrixHiddenSpecialtyMatchHrefByName={
+                ratingsMatrixHiddenSpecialtyMatchHrefByName
+              }
               onSelectRatingsPlayer={(playerName) => {
                 const match = playerList.find(
                   (player) => formatPlayerName(player) === playerName
@@ -4778,6 +4707,7 @@ export default function Dashboard({
           optimizeModeDisabledReasons={optimizeModeDisabledReasons}
           trainedSlots={trainingSlots}
           hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
+          hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}
           onHoverPlayer={ensureDetails}
           onSelectPlayer={handleSelect}
           messages={messages}

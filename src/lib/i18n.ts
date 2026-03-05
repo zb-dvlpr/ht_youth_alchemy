@@ -653,6 +653,7 @@ export type Messages = {
   specialtyResilient: string;
   specialtySupport: string;
   hiddenSpecialtyTooltip: string;
+  hiddenSpecialtyTooltipLinkHint: string;
   skillsLabel: string;
   skillMaxedTooltip: string;
   unknownLabel: string;

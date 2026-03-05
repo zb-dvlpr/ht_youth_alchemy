@@ -1,4 +1,4 @@
-export type Locale = "en" | "de" | "fr" | "es" | "sv" | "it" | "pt";
+export type Locale = "en" | "de" | "fr" | "es" | "sv" | "it" | "pt" | "pl" | "nl";
 
 export const SUPPORTED_LOCALES: Locale[] = [
   "en",
@@ -8,6 +8,8 @@ export const SUPPORTED_LOCALES: Locale[] = [
   "sv",
   "it",
   "pt",
+  "pl",
+  "nl",
 ];
 
 export type Messages = {

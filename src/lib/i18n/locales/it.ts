@@ -463,7 +463,7 @@ export const messagesIt: Messages = {
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N indica un valore aggiornato o rivelato per la prima volta dall ultimo aggiornamento.",
-    scoutImportantSkillTooltip: "Abilità importante",
+    scoutImportantSkillTooltip: "Abilità top 3",
     scoutOverallSkillLevelTooltip: "Livello abilità complessivo",
     youthUpdatesNewPlayerLabel: "Nuovo giocatore rilevato",
     youthUpdatesSkillCurrentTag: "corrente",

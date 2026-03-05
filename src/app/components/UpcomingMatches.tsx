@@ -316,6 +316,7 @@ function renderMatch(
   matchId: number,
   match: Match,
   teamId: number | null,
+  sourceSystem: string,
   messages: Messages,
   hasLineup: boolean,
   state: MatchState,
@@ -408,6 +409,8 @@ function renderMatch(
       : assignedCount && assignedCount < 9
       ? messages.submitOrdersMinPlayers
       : null;
+  const canShowBestLineupMenu =
+    sourceSystem === "Hattrick" && Boolean(onSetBestLineupMode);
 
   return (
     <li key={matchId} className={styles.matchItem}>
@@ -441,12 +444,12 @@ function renderMatch(
                 : messages.loadLineup}
             </button>
           </Tooltip>
-          {onSetBestLineupMode ? (
+          {canShowBestLineupMenu ? (
             <SetBestLineupMenuButton
               matchId={matchId}
               loading={Boolean(bestLineupPending)}
               messages={messages}
-              onSelectMode={onSetBestLineupMode}
+              onSelectMode={onSetBestLineupMode!}
             />
           ) : null}
           <Tooltip content={messages.submitOrdersTooltip}>
@@ -930,6 +933,7 @@ export default function UpcomingMatches({
               matchId,
               match,
               teamId,
+              sourceSystem,
               messages,
               hasLineup,
               state,
@@ -959,6 +963,7 @@ export default function UpcomingMatches({
                 matchId,
                 match,
                 teamId,
+                sourceSystem,
                 messages,
                 hasLineup,
                 state,

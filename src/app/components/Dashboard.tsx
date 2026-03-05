@@ -477,6 +477,40 @@ const hasAnyMatrixNewMarkers = (markers: MatrixNewMarkers) =>
 const shouldKeepYouthUpdatesHistoryEntry = (entry: YouthUpdatesGroupedEntry) =>
   entry.hasChanges;
 
+const cloneRatingsRecord = (
+  ratings?: Record<string, number> | null
+): Record<string, number> => {
+  if (!ratings) return {};
+  return Object.fromEntries(
+    Object.entries(ratings).filter(
+      ([, value]) => typeof value === "number" && Number.isFinite(value)
+    )
+  );
+};
+
+const buildRatingsBaselineByPlayerId = ({
+  players,
+  ratingsResponseState,
+  ratingsCache,
+}: {
+  players: YouthPlayer[];
+  ratingsResponseState: RatingsMatrixResponse | null;
+  ratingsCache: Record<number, Record<string, number>>;
+}): Record<number, Record<string, number>> => {
+  const responseRatingsById = new Map<number, Record<string, number>>(
+    (ratingsResponseState?.players ?? []).map((row) => [
+      row.id,
+      cloneRatingsRecord(row.ratings),
+    ])
+  );
+  return players.reduce<Record<number, Record<string, number>>>((acc, player) => {
+    const playerId = player.YouthPlayerID;
+    acc[playerId] =
+      responseRatingsById.get(playerId) ?? cloneRatingsRecord(ratingsCache[playerId]);
+    return acc;
+  }, {});
+};
+
 const buildYouthUpdatesHistoryEntry = (
   markers: MatrixNewMarkers,
   players: YouthPlayer[],
@@ -1662,7 +1696,9 @@ export default function Dashboard({
       playerList.forEach((player) => {
         const rowRatings = byId.get(player.YouthPlayerID);
         if (!rowRatings) {
-          next[player.YouthPlayerID] = {};
+          if (!next[player.YouthPlayerID]) {
+            next[player.YouthPlayerID] = {};
+          }
           return;
         }
         next[player.YouthPlayerID] = { ...rowRatings };
@@ -3003,13 +3039,20 @@ export default function Dashboard({
             ? ratingsPayload.matchesAnalyzed
             : undefined,
       });
-      const ratingsByPlayerId: Record<number, Record<string, number>> = {};
-      nextPlayers.forEach((player) => {
-        ratingsByPlayerId[player.YouthPlayerID] = {};
-      });
-      ratingsPlayers.forEach((entry) => {
-        ratingsByPlayerId[entry.id] = { ...entry.ratings };
-      });
+      const ratingsById = new Map<number, Record<string, number>>(
+        ratingsPlayers.map((entry) => [entry.id, entry.ratings ?? {}])
+      );
+      const ratingsByPlayerId = nextPlayers.reduce<
+        Record<number, Record<string, number>>
+      >((acc, player) => {
+        const playerId = player.YouthPlayerID;
+        if (ratingsById.has(playerId)) {
+          acc[playerId] = cloneRatingsRecord(ratingsById.get(playerId));
+        } else {
+          acc[playerId] = cloneRatingsRecord(ratingsCache[playerId]);
+        }
+        return acc;
+      }, {});
       // Immediately hydrate matrix source state from latest fetched ratings.
       setRatingsPositions(ratingsPositions);
       setRatingsCache(ratingsByPlayerId);
@@ -3358,8 +3401,13 @@ export default function Dashboard({
     const previousDetailsByIdSnapshot = new Map<number, YouthPlayerDetails>(
       playerDetailsById
     );
-    const previousRatingsCacheSnapshot = ratingsCache;
-    const previousRatingsPositionsSnapshot = ratingsPositions;
+    const previousRatingsBaselineSnapshot = buildRatingsBaselineByPlayerId({
+      players: previousPlayersSnapshot,
+      ratingsResponseState,
+      ratingsCache,
+    });
+    const previousRatingsPositionsSnapshot =
+      ratingsResponseState?.positions ?? ratingsPositions;
     let playersUpdated = false;
     let playerIdsChanged = false;
     let nextSelectedId = selectedId;
@@ -3545,7 +3593,7 @@ export default function Dashboard({
           nextPlayersSnapshot.reduce<Record<number, Record<string, number>>>(
             (acc, player) => {
               acc[player.YouthPlayerID] = {
-                ...(previousRatingsCacheSnapshot[player.YouthPlayerID] ?? {}),
+                ...(previousRatingsBaselineSnapshot[player.YouthPlayerID] ?? {}),
               };
               return acc;
             },
@@ -3616,7 +3664,7 @@ export default function Dashboard({
             }
           });
 
-          const previousRatings = previousRatingsCacheSnapshot[playerId] ?? {};
+          const previousRatings = previousRatingsBaselineSnapshot[playerId] ?? {};
           const nextRatings = nextRatingsByPlayerId[playerId] ?? {};
           positionsToCompare.forEach((position) => {
             const previousValueRaw = previousRatings[String(position)];
@@ -3643,7 +3691,7 @@ export default function Dashboard({
           comparedAt,
           "refresh",
           {
-            previousRatingsByPlayerId: previousRatingsCacheSnapshot,
+            previousRatingsByPlayerId: previousRatingsBaselineSnapshot,
             currentRatingsByPlayerId: nextRatingsByPlayerId,
             previousSkillsByPlayerId,
             currentSkillsByPlayerId,

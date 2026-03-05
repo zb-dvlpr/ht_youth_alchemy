@@ -3890,7 +3890,6 @@ export default function Dashboard({
     if (nextTeamId) {
       refreshPlayers(nextTeamId, { recordRefresh: true });
       refreshMatches(nextTeamId);
-      refreshRatings(nextTeamId);
       const teamName =
         youthTeams.find((team) => team.youthTeamId === nextTeamId)
           ?.youthTeamName ?? nextTeamId;

@@ -69,6 +69,7 @@ const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
 const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
 const YOUTH_LATEST_UPDATES_OPEN_EVENT = "ya:youth-latest-updates-open";
 const YOUTH_UPDATES_HISTORY_LIMIT = 20;
+const YOUTH_HIDDEN_SPECIALTY_RULES_VERSION = 2;
 
 const formatPlayerName = (player: YouthPlayer) =>
   [player.FirstName, player.NickName || null, player.LastName]
@@ -296,6 +297,7 @@ type RefreshRatingsResult = {
   ok: boolean;
   ratingsByPlayerId: Record<number, Record<string, number>> | null;
   positions: number[] | null;
+  hiddenSpecialtyScanOk: boolean;
 };
 
 type EventPlayerRef = "subject" | "object";
@@ -306,38 +308,38 @@ type SpecialEventRule = {
 };
 
 const SPECIAL_EVENT_SPECIALTY_RULES: Record<number, SpecialEventRule> = {
-  105: { specialty: 4, players: ["subject"] },
-  106: { specialty: 4, players: ["subject"] },
-  108: { specialty: 4, players: ["subject"] },
-  109: { specialty: 4, players: ["subject"] },
-  115: { specialty: 2, players: ["subject"] },
+  105: { specialty: 4, players: ["object"] },
+  106: { specialty: 4, players: ["object"] },
+  108: { specialty: 4, players: ["object"] },
+  109: { specialty: 4, players: ["object"] },
+  115: { specialty: 2, players: ["object"] },
   116: { specialty: 2, players: ["object"] },
   119: { specialty: 5, players: ["subject"] },
-  125: { specialty: 4, players: ["subject"] },
+  125: { specialty: 4, players: ["object"] },
   137: { specialty: 5, players: ["subject"] },
-  139: { specialty: 1, players: ["subject"] },
-  190: { specialty: 3, players: ["subject"] },
-  205: { specialty: 4, players: ["subject"] },
-  206: { specialty: 4, players: ["subject"] },
-  208: { specialty: 4, players: ["subject"] },
-  209: { specialty: 4, players: ["subject"] },
-  215: { specialty: 2, players: ["subject"] },
+  139: { specialty: 1, players: ["subject", "object"] },
+  190: { specialty: 3, players: ["object"] },
+  205: { specialty: 4, players: ["object"] },
+  206: { specialty: 4, players: ["object"] },
+  208: { specialty: 4, players: ["object"] },
+  209: { specialty: 4, players: ["object"] },
+  215: { specialty: 2, players: ["object"] },
   216: { specialty: 2, players: ["object"] },
   219: { specialty: 5, players: ["subject"] },
   225: { specialty: 4, players: ["subject"] },
-  239: { specialty: 1, players: ["subject"] },
+  239: { specialty: 1, players: ["object"] },
   289: { specialty: 2, players: ["subject", "object"] },
-  290: { specialty: 3, players: ["subject"] },
-  301: { specialty: 1, players: ["subject"] },
-  302: { specialty: 3, players: ["subject"] },
-  303: { specialty: 1, players: ["subject"] },
-  304: { specialty: 3, players: ["subject"] },
-  305: { specialty: 2, players: ["subject"] },
-  306: { specialty: 2, players: ["subject"] },
-  307: { specialty: 8, players: ["subject"] },
-  308: { specialty: 8, players: ["subject"] },
-  309: { specialty: 8, players: ["subject"] },
-  310: { specialty: 3, players: ["subject"] },
+  290: { specialty: 3, players: ["object"] },
+  301: { specialty: 1, players: ["object"] },
+  302: { specialty: 3, players: ["object"] },
+  303: { specialty: 1, players: ["object"] },
+  304: { specialty: 3, players: ["object"] },
+  305: { specialty: 2, players: ["object"] },
+  306: { specialty: 2, players: ["object"] },
+  307: { specialty: 8, players: ["object"] },
+  308: { specialty: 8, players: ["object"] },
+  309: { specialty: 8, players: ["object"] },
+  310: { specialty: 3, players: ["object"] },
 };
 
 const DETAILS_TTL_MS = 5 * 60 * 1000;
@@ -641,6 +643,8 @@ export default function Dashboard({
   >({});
   const [analyzedHiddenSpecialtyMatchIds, setAnalyzedHiddenSpecialtyMatchIds] =
     useState<number[]>([]);
+  const [hiddenSpecialtyRulesVersion, setHiddenSpecialtyRulesVersion] =
+    useState<number>(YOUTH_HIDDEN_SPECIALTY_RULES_VERSION);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [activeDetailsTab, setActiveDetailsTab] =
     useState<PlayerDetailsPanelTab>("details");
@@ -1447,6 +1451,7 @@ export default function Dashboard({
         matchesState?: MatchesResponse;
         hiddenSpecialtyByPlayerId?: Record<number, number>;
         analyzedHiddenSpecialtyMatchIds?: number[];
+        hiddenSpecialtyRulesVersion?: number;
         analyzedRatingsMatchIds?: number[];
         matrixNewMarkers?: MatrixNewMarkers;
         youthUpdatesHistory?: YouthUpdatesGroupedEntry[];
@@ -1495,6 +1500,20 @@ export default function Dashboard({
       }
       if (parsed.analyzedHiddenSpecialtyMatchIds) {
         setAnalyzedHiddenSpecialtyMatchIds(parsed.analyzedHiddenSpecialtyMatchIds);
+      }
+      if (
+        typeof parsed.hiddenSpecialtyRulesVersion === "number" &&
+        Number.isFinite(parsed.hiddenSpecialtyRulesVersion)
+      ) {
+        setHiddenSpecialtyRulesVersion(parsed.hiddenSpecialtyRulesVersion);
+      } else if (
+        parsed.hiddenSpecialtyByPlayerId &&
+        Object.keys(parsed.hiddenSpecialtyByPlayerId).length > 0
+      ) {
+        // Legacy cached hidden specialties (before rules-version tracking) need one rebuild.
+        setHiddenSpecialtyRulesVersion(1);
+      } else {
+        setHiddenSpecialtyRulesVersion(YOUTH_HIDDEN_SPECIALTY_RULES_VERSION);
       }
       if (parsed.analyzedRatingsMatchIds !== undefined) {
         setAnalyzedRatingsMatchIds(parsed.analyzedRatingsMatchIds);
@@ -1661,6 +1680,7 @@ export default function Dashboard({
       matchesState,
       hiddenSpecialtyByPlayerId,
       analyzedHiddenSpecialtyMatchIds,
+      hiddenSpecialtyRulesVersion,
       analyzedRatingsMatchIds,
       matrixNewMarkers,
       youthUpdatesHistory: youthUpdatesHistoryWithChanges,
@@ -1687,6 +1707,7 @@ export default function Dashboard({
     matchesState,
     hiddenSpecialtyByPlayerId,
     analyzedHiddenSpecialtyMatchIds,
+    hiddenSpecialtyRulesVersion,
     analyzedRatingsMatchIds,
     matrixNewMarkers,
     youthUpdatesHistoryWithChanges,
@@ -2885,6 +2906,7 @@ export default function Dashboard({
       playersChanged?: boolean;
       playersOverride?: YouthPlayer[];
       forceTraversal?: boolean;
+      forceHiddenSpecialtyRebuild?: boolean;
     }
   ): Promise<RefreshRatingsResult> => {
     const youthTeamId =
@@ -2917,6 +2939,7 @@ export default function Dashboard({
           ok: false,
           ratingsByPlayerId: null,
           positions: null,
+          hiddenSpecialtyScanOk: false,
         };
       }
 
@@ -2958,6 +2981,7 @@ export default function Dashboard({
           ok: false,
           ratingsByPlayerId: null,
           positions: null,
+          hiddenSpecialtyScanOk: false,
         };
       }
       const ratingsPositions =
@@ -3007,6 +3031,7 @@ export default function Dashboard({
           ok: true,
           ratingsByPlayerId,
           positions: ratingsPositions,
+          hiddenSpecialtyScanOk: true,
         };
       }
 
@@ -3015,9 +3040,11 @@ export default function Dashboard({
           ok: true,
           ratingsByPlayerId,
           positions: ratingsPositions,
+          hiddenSpecialtyScanOk: true,
         };
       }
 
+      let hiddenSpecialtyScanOk = true;
       const matchPlayerIdsByMatch = new Map<number, Set<number>>();
       const ratingsTraversedMatchIds = new Set<number>();
 
@@ -3091,17 +3118,23 @@ export default function Dashboard({
 
       try {
         const alreadyAnalyzedMatchIds = new Set(analyzedHiddenSpecialtyMatchIds);
+        const effectiveAlreadyAnalyzedMatchIds = options?.forceHiddenSpecialtyRebuild
+          ? new Set<number>()
+          : alreadyAnalyzedMatchIds;
         const hasUnanalyzedFinishedMatch = finishedMatches.some(
-          (match) => !alreadyAnalyzedMatchIds.has(match._matchId)
+          (match) => !effectiveAlreadyAnalyzedMatchIds.has(match._matchId)
         );
         const shouldScanHiddenSpecialties =
-          Boolean(options?.playersChanged) || hasUnanalyzedFinishedMatch;
+          Boolean(options?.forceHiddenSpecialtyRebuild) ||
+          Boolean(options?.playersChanged) ||
+          hasUnanalyzedFinishedMatch;
 
         if (!shouldScanHiddenSpecialties) {
           return {
             ok: true,
             ratingsByPlayerId,
             positions: ratingsPositions,
+            hiddenSpecialtyScanOk: true,
           };
         }
 
@@ -3119,17 +3152,19 @@ export default function Dashboard({
             knownSpecialties.set(playerId, specialty);
           }
         });
-        Object.entries(hiddenSpecialtyByPlayerId).forEach(([id, specialty]) => {
-          const playerId = Number(id);
-          const specialtyValue = Number(specialty);
-          if (
-            Number.isFinite(playerId) &&
-            Number.isFinite(specialtyValue) &&
-            specialtyValue > 0
-          ) {
-            knownSpecialties.set(playerId, specialtyValue);
-          }
-        });
+        if (!options?.forceHiddenSpecialtyRebuild) {
+          Object.entries(hiddenSpecialtyByPlayerId).forEach(([id, specialty]) => {
+            const playerId = Number(id);
+            const specialtyValue = Number(specialty);
+            if (
+              Number.isFinite(playerId) &&
+              Number.isFinite(specialtyValue) &&
+              specialtyValue > 0
+            ) {
+              knownSpecialties.set(playerId, specialtyValue);
+            }
+          });
+        }
         const youthPlayerIds = new Set(
           nextPlayers.map((player) => player.YouthPlayerID)
         );
@@ -3153,7 +3188,7 @@ export default function Dashboard({
         const matchesToAnalyze =
           unresolvedPlayerIds.size > 0
             ? finishedMatches.filter((match) => {
-                if (alreadyAnalyzedMatchIds.has(match._matchId)) return false;
+                if (effectiveAlreadyAnalyzedMatchIds.has(match._matchId)) return false;
                 const participants = matchPlayerIdsByMatch.get(match._matchId);
                 if (!participants || participants.size === 0) return true;
                 let hasUnresolvedParticipant = false;
@@ -3253,26 +3288,36 @@ export default function Dashboard({
           newlyAnalyzedMatchIds.add(result.matchId);
         });
 
-        if (Object.keys(discoveredThisRefresh).length > 0) {
+        if (options?.forceHiddenSpecialtyRebuild) {
+          setHiddenSpecialtyByPlayerId(discoveredThisRefresh);
+        } else if (Object.keys(discoveredThisRefresh).length > 0) {
           setHiddenSpecialtyByPlayerId((prev) => ({
             ...prev,
             ...discoveredThisRefresh,
           }));
         }
         if (newlyAnalyzedMatchIds.size > 0) {
-          setAnalyzedHiddenSpecialtyMatchIds((prev) => {
-            const merged = new Set<number>(prev);
-            newlyAnalyzedMatchIds.forEach((matchId) => merged.add(matchId));
-            return Array.from(merged.values()).sort((a, b) => b - a);
-          });
+          if (options?.forceHiddenSpecialtyRebuild) {
+            setAnalyzedHiddenSpecialtyMatchIds(
+              Array.from(newlyAnalyzedMatchIds.values()).sort((a, b) => b - a)
+            );
+          } else {
+            setAnalyzedHiddenSpecialtyMatchIds((prev) => {
+              const merged = new Set<number>(prev);
+              newlyAnalyzedMatchIds.forEach((matchId) => merged.add(matchId));
+              return Array.from(merged.values()).sort((a, b) => b - a);
+            });
+          }
         }
       } catch {
         // Keep refreshed ratings even if hidden-specialty enrichment fails.
+        hiddenSpecialtyScanOk = false;
       }
       return {
         ok: true,
         ratingsByPlayerId,
         positions: ratingsPositions,
+        hiddenSpecialtyScanOk,
       };
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) {
@@ -3280,6 +3325,7 @@ export default function Dashboard({
           ok: false,
           ratingsByPlayerId: null,
           positions: null,
+          hiddenSpecialtyScanOk: false,
         };
       }
       setRatingsResponseState(null);
@@ -3287,6 +3333,7 @@ export default function Dashboard({
         ok: false,
         ratingsByPlayerId: null,
         positions: null,
+        hiddenSpecialtyScanOk: false,
       };
     }
   };
@@ -3324,6 +3371,7 @@ export default function Dashboard({
       matrixNewMarkers,
       youthUpdatesHistory,
       selectedYouthUpdatesId,
+      hiddenSpecialtyRulesVersion,
       lastGlobalRefreshAt,
     };
     setPlayersLoading(true);
@@ -3344,6 +3392,8 @@ export default function Dashboard({
     });
     const previousRatingsPositionsSnapshot =
       ratingsResponseState?.positions ?? ratingsPositions;
+    const needsHiddenSpecialtyRulesMigration =
+      hiddenSpecialtyRulesVersion < YOUTH_HIDDEN_SPECIALTY_RULES_VERSION;
     let playersUpdated = false;
     let playerIdsChanged = false;
     let nextSelectedId = selectedId;
@@ -3356,6 +3406,7 @@ export default function Dashboard({
       ok: true,
       ratingsByPlayerId: null,
       positions: null,
+      hiddenSpecialtyScanOk: true,
     };
     try {
       const teamParam = youthTeamId ? `&youthTeamID=${youthTeamId}` : "";
@@ -3469,6 +3520,7 @@ export default function Dashboard({
         matchesOk = matchesResult.ok;
         ratingsResult = await refreshRatings(youthTeamId, matchesResult.payload ?? null, {
           forceTraversal: true,
+          forceHiddenSpecialtyRebuild: needsHiddenSpecialtyRulesMigration,
           playersChanged: playerIdsChanged,
           playersOverride: nextPlayersSnapshot,
         });
@@ -3495,6 +3547,7 @@ export default function Dashboard({
         setMatrixNewMarkers(snapshot.matrixNewMarkers);
         setYouthUpdatesHistory(snapshot.youthUpdatesHistory);
         setSelectedYouthUpdatesId(snapshot.selectedYouthUpdatesId);
+        setHiddenSpecialtyRulesVersion(snapshot.hiddenSpecialtyRulesVersion);
         setLastGlobalRefreshAt(snapshot.lastGlobalRefreshAt);
         setPlayerRefreshStatus(null);
         setPlayerRefreshProgressPct(0);
@@ -3638,6 +3691,13 @@ export default function Dashboard({
             [updatesEntry, ...prev].slice(0, YOUTH_UPDATES_HISTORY_LIMIT)
           );
           setSelectedYouthUpdatesId(updatesEntry.id);
+        }
+        if (
+          needsHiddenSpecialtyRulesMigration &&
+          ratingsResult.ok &&
+          ratingsResult.hiddenSpecialtyScanOk
+        ) {
+          setHiddenSpecialtyRulesVersion(YOUTH_HIDDEN_SPECIALTY_RULES_VERSION);
         }
       }
       if (

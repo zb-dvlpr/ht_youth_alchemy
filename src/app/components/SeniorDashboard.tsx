@@ -815,6 +815,14 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return resolved;
   };
 
+  const ratingsByPlayerId = useMemo(() => {
+    const payload: Record<number, Record<string, number>> = {};
+    (ratingsResponse?.players ?? []).forEach((row) => {
+      payload[row.id] = { ...row.ratings };
+    });
+    return payload;
+  }, [ratingsResponse]);
+
   const buildUpdatesEntry = (
     prevPlayers: SeniorPlayer[],
     nextPlayers: SeniorPlayer[],

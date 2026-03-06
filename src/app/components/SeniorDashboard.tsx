@@ -1569,7 +1569,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             entry
           ): entry is {
             matchId: number;
-            matchType: number | null;
+            matchType: number;
             matchDate: string | null;
             sourceSystem: string;
           } => Boolean(entry)

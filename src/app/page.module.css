@@ -2097,6 +2097,115 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   text-underline-offset: 2px;
 }
 
+.opponentFormationsTableWrap {
+  width: 100%;
+  max-width: 100%;
+  max-height: min(60vh, 620px);
+  overflow: auto;
+  border: 1px solid #e0d6c6;
+  border-radius: 12px;
+  background: #f7f2ea;
+}
+
+.opponentFormationsTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+  font-size: 12px;
+  color: #4f463c;
+}
+
+.opponentFormationsTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #efe5d6;
+  color: #6a5f50;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  border-bottom: 1px solid #dfd2bf;
+  text-align: left;
+}
+
+.opponentFormationsTable th,
+.opponentFormationsTable td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eadfce;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.opponentFormationsTable tbody tr:hover {
+  background: #f2e9dc;
+}
+
+.opponentFormationsSelectedRow {
+  background: #e6f2e8;
+}
+
+.opponentFormationsMatchIdCell {
+  font-weight: 700;
+}
+
+.opponentFormationsNumberCell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.opponentFormationsAverageRow {
+  background: #eaf2fb;
+}
+
+.opponentFormationsAverageRow td {
+  border-top: 2px solid #c9d8e8;
+  border-bottom: none;
+}
+
+.generatedLineupCell {
+  min-width: 520px;
+}
+
+.generatedLineupBlock {
+  display: grid;
+  gap: 6px;
+}
+
+.generatedLineupRow {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 6px;
+  align-items: start;
+}
+
+.generatedLineupRowLabel {
+  font-weight: 700;
+  color: #5d5245;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.45;
+}
+
+.generatedLineupSlots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.generatedLineupSlot {
+  border: 1px solid #d8ccb9;
+  border-radius: 8px;
+  padding: 2px 6px;
+  background: #fff;
+  color: #3f362c;
+  line-height: 1.3;
+}
+
+.generatedLineupSlotEmpty {
+  opacity: 0.6;
+  background: #f3ece1;
+}
+
 .chronicleInlineLinkButton {
   border: 0;
   background: transparent;
@@ -2730,6 +2839,56 @@ html[data-theme="dark"] .chronicleDistributionTeamName {
 
 html[data-theme="dark"] .chroniclePressLink {
   color: #8cb8e6;
+}
+
+html[data-theme="dark"] .opponentFormationsTableWrap {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: #221f1b;
+}
+
+html[data-theme="dark"] .opponentFormationsTable {
+  color: #d9cbb8;
+}
+
+html[data-theme="dark"] .opponentFormationsTable thead th {
+  background: #2a241d;
+  color: #d9cbb8;
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .opponentFormationsTable th,
+html[data-theme="dark"] .opponentFormationsTable td {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .opponentFormationsTable tbody tr:hover {
+  background: #2b261f;
+}
+
+html[data-theme="dark"] .opponentFormationsSelectedRow {
+  background: #203126;
+}
+
+html[data-theme="dark"] .opponentFormationsAverageRow {
+  background: #1f2730;
+}
+
+html[data-theme="dark"] .opponentFormationsAverageRow td {
+  border-top-color: rgba(134, 184, 232, 0.5);
+}
+
+html[data-theme="dark"] .generatedLineupRowLabel {
+  color: #d9cbb8;
+}
+
+html[data-theme="dark"] .generatedLineupSlot {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: #2f2923;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .generatedLineupSlotEmpty {
+  background: #29241e;
 }
 
 html[data-theme="dark"] .chronicleInlineLinkButton {

@@ -690,6 +690,14 @@ export type Messages = {
   ratingsSortBy: string;
   ratingsPlayerLabel: string;
   ratingsSpecialtyLabel: string;
+  ratingSectorMidfieldShort: string;
+  ratingSectorRightDefShort: string;
+  ratingSectorMidDefShort: string;
+  ratingSectorLeftDefShort: string;
+  ratingSectorRightAttShort: string;
+  ratingSectorMidAttShort: string;
+  ratingSectorLeftAttShort: string;
+  averageLabel: string;
   posKeeper: string;
   posBack: string;
   posCentralDefender: string;

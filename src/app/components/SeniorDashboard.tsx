@@ -9,6 +9,8 @@ import { mapWithConcurrency } from "@/lib/async";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { formatDateTime } from "@/lib/datetime";
+import { parseChppDate } from "@/lib/chpp/utils";
+import { hattrickMatchUrl } from "@/lib/hattrick/urls";
 import {
   readSeniorStalenessDays,
   SENIOR_SETTINGS_EVENT,
@@ -18,7 +20,8 @@ import Modal from "./Modal";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import PlayerDetailsPanel, { type PlayerDetailsPanelTab } from "./PlayerDetailsPanel";
 import LineupField, { LineupAssignments, LineupBehaviors } from "./LineupField";
-import UpcomingMatches, { MatchesResponse } from "./UpcomingMatches";
+import UpcomingMatches, { Match, MatchesResponse } from "./UpcomingMatches";
+import type { SetBestLineupMode } from "./UpcomingMatches";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -137,6 +140,119 @@ const SKILL_KEYS = [
   "SetPiecesSkill",
 ] as const;
 const UPDATES_HISTORY_LIMIT = 20;
+const FRIENDLY_MATCH_TYPES = new Set<number>([4, 5, 8, 9]);
+const LEAGUE_CUP_QUALI_MATCH_TYPES = new Set<number>([1, 2, 3]);
+const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
+const OPPONENT_ARCHIVE_LIMIT = 20;
+const OPPONENT_DETAILS_CONCURRENCY = 6;
+const FORMATION_PREDICT_CONCURRENCY = 4;
+const FIELD_SLOT_ORDER = [
+  "KP",
+  "WB_L",
+  "CD_L",
+  "CD_C",
+  "CD_R",
+  "WB_R",
+  "W_L",
+  "IM_L",
+  "IM_C",
+  "IM_R",
+  "W_R",
+  "F_L",
+  "F_C",
+  "F_R",
+] as const;
+const BENCH_SLOT_ORDER = ["B_GK", "B_CD", "B_WB", "B_IM", "B_F", "B_W", "B_X"] as const;
+const DEFENSE_SLOTS = ["WB_L", "CD_L", "CD_C", "CD_R", "WB_R"] as const;
+const MIDFIELD_SLOTS = ["W_L", "IM_L", "IM_C", "IM_R", "W_R"] as const;
+const ATTACK_SLOTS = ["F_L", "F_C", "F_R"] as const;
+const DEFENSE_FORMATION_MAP: Record<number, string[]> = {
+  2: ["CD_L", "CD_R"],
+  3: ["CD_L", "CD_C", "CD_R"],
+  4: ["WB_L", "CD_L", "CD_R", "WB_R"],
+  5: [...DEFENSE_SLOTS],
+};
+const MIDFIELD_FORMATION_MAP: Record<number, string[]> = {
+  2: ["IM_L", "IM_R"],
+  3: ["IM_L", "IM_C", "IM_R"],
+  4: ["W_L", "IM_L", "IM_R", "W_R"],
+  5: [...MIDFIELD_SLOTS],
+};
+const ATTACK_FORMATION_MAP: Record<number, string[]> = {
+  1: ["F_C"],
+  2: ["F_L", "F_R"],
+  3: [...ATTACK_SLOTS],
+};
+const SLOT_TO_RATING_CODE: Record<string, number> = {
+  KP: 100,
+  WB_L: 101,
+  WB_R: 101,
+  CD_L: 103,
+  CD_C: 103,
+  CD_R: 103,
+  W_L: 106,
+  W_R: 106,
+  IM_L: 107,
+  IM_C: 107,
+  IM_R: 107,
+  F_L: 111,
+  F_C: 111,
+  F_R: 111,
+};
+
+type PredictedRatings = {
+  tacticType: number | null;
+  tacticSkill: number | null;
+  ratingMidfield: number | null;
+  ratingRightDef: number | null;
+  ratingMidDef: number | null;
+  ratingLeftDef: number | null;
+  ratingRightAtt: number | null;
+  ratingMidAtt: number | null;
+  ratingLeftAtt: number | null;
+};
+
+type GeneratedFormationRow = {
+  formation: string;
+  assignments: LineupAssignments;
+  slotRatings: Record<string, number | null>;
+  predicted: PredictedRatings | null;
+  error: string | null;
+};
+
+type CollectiveRatings = {
+  midfield: number;
+  defense: number;
+  attack: number;
+  overall: number;
+};
+
+type OpponentFormationRow = {
+  matchId: number;
+  matchType: number | null;
+  sourceSystem: string;
+  formation: string | null;
+  matchDate: string | null;
+  againstMyTeam: boolean;
+  ratingMidfield: number | null;
+  ratingRightDef: number | null;
+  ratingMidDef: number | null;
+  ratingLeftDef: number | null;
+  ratingRightAtt: number | null;
+  ratingMidAtt: number | null;
+  ratingLeftAtt: number | null;
+};
+
+type OpponentFormationAverages = {
+  sampleSize: number;
+  ratingMidfield: number | null;
+  ratingRightDef: number | null;
+  ratingMidDef: number | null;
+  ratingLeftDef: number | null;
+  ratingRightAtt: number | null;
+  ratingMidAtt: number | null;
+  ratingLeftAtt: number | null;
+};
 
 const parseNumber = (value: unknown): number | null => {
   if (value === null || value === undefined) return null;
@@ -373,6 +489,140 @@ const formatEurFromSek = (valueSek: number) =>
     maximumFractionDigits: 0,
   }).format(valueSek / CHPP_SEK_PER_EUR);
 
+const generateFormationShapes = () => {
+  const shapes: Array<{ defenders: number; midfielders: number; attackers: number }> = [];
+  for (let defenders = 2; defenders <= 5; defenders += 1) {
+    for (let midfielders = 2; midfielders <= 5; midfielders += 1) {
+      for (let attackers = 1; attackers <= 3; attackers += 1) {
+        if (defenders + midfielders + attackers !== 10) continue;
+        shapes.push({ defenders, midfielders, attackers });
+      }
+    }
+  }
+  return shapes.sort(
+    (left, right) =>
+      left.defenders - right.defenders ||
+      right.midfielders - left.midfielders ||
+      right.attackers - left.attackers
+  );
+};
+
+const buildLineupPayload = (
+  assignments: LineupAssignments,
+  tacticType: number
+) => {
+  const toId = (value: number | null | undefined) => value ?? 0;
+  return {
+    positions: FIELD_SLOT_ORDER.map((slot) => ({
+      id: toId(assignments[slot]),
+      behaviour: 0,
+    })),
+    bench: [
+      ...BENCH_SLOT_ORDER.map((slot) => ({ id: toId(assignments[slot]), behaviour: 0 })),
+      ...Array.from({ length: 7 }, () => ({ id: 0, behaviour: 0 })),
+    ],
+    kickers: Array.from({ length: 11 }, () => ({ id: 0, behaviour: 0 })),
+    captain: 0,
+    setPieces: 0,
+    settings: {
+      tactic: Number.isFinite(tacticType) ? tacticType : 0,
+      speechLevel: 0,
+      newLineup: "",
+      coachModifier: 0,
+      manMarkerPlayerId: 0,
+      manMarkingPlayerId: 0,
+    },
+    substitutions: [],
+  };
+};
+
+const toCollectiveRatings = (ratings: PredictedRatings): CollectiveRatings => {
+  const midfield = ratings.ratingMidfield ?? 0;
+  const defense =
+    (ratings.ratingRightDef ?? 0) + (ratings.ratingMidDef ?? 0) + (ratings.ratingLeftDef ?? 0);
+  const attack =
+    (ratings.ratingRightAtt ?? 0) + (ratings.ratingMidAtt ?? 0) + (ratings.ratingLeftAtt ?? 0);
+  return {
+    midfield,
+    defense,
+    attack,
+    overall: midfield + defense + attack,
+  };
+};
+
+const pickMostCommonFormation = (rows: OpponentFormationRow[]): string | null => {
+  const rowsWithFormation = rows.filter(
+    (row): row is OpponentFormationRow & { formation: string } =>
+      typeof row.formation === "string" && row.formation.trim().length > 0
+  );
+  if (rowsWithFormation.length === 0) return null;
+  const counts = new Map<string, number>();
+  rowsWithFormation.forEach((row) => {
+    counts.set(row.formation, (counts.get(row.formation) ?? 0) + 1);
+  });
+  const topCount = Math.max(...Array.from(counts.values()));
+  const tied = Array.from(counts.entries())
+    .filter(([, count]) => count === topCount)
+    .map(([formation]) => formation);
+  if (tied.length === 1) return tied[0] ?? null;
+  const tiedRows = rowsWithFormation
+    .filter((row) => tied.includes(row.formation))
+    .sort(
+      (left, right) =>
+        (parseChppDate(right.matchDate)?.getTime() ?? 0) -
+        (parseChppDate(left.matchDate)?.getTime() ?? 0)
+    );
+  return tiedRows[0]?.formation ?? null;
+};
+
+const chooseFormationByRules = (rows: OpponentFormationRow[]): string | null => {
+  const rowsWithFormation = rows.filter(
+    (row): row is OpponentFormationRow & { formation: string } =>
+      typeof row.formation === "string" && row.formation.trim().length > 0
+  );
+  if (rowsWithFormation.length === 0) return null;
+  const againstRows = rowsWithFormation.filter((row) => row.againstMyTeam);
+  if (againstRows.length === 1) return againstRows[0]?.formation ?? null;
+  if (againstRows.length > 1) {
+    const counts = new Map<string, number>();
+    againstRows.forEach((row) => {
+      counts.set(row.formation, (counts.get(row.formation) ?? 0) + 1);
+    });
+    const topCount = Math.max(...Array.from(counts.values()));
+    const winners = Array.from(counts.entries()).filter(([, count]) => count === topCount);
+    const againstChoice = pickMostCommonFormation(againstRows);
+    if (winners.length === 1) return againstChoice;
+    const otherRows = rowsWithFormation.filter((row) => !row.againstMyTeam);
+    return pickMostCommonFormation(otherRows) ?? againstChoice;
+  }
+  return pickMostCommonFormation(rowsWithFormation);
+};
+
+const computeAverageRating = (values: Array<number | null>): number | null => {
+  const valid = values.filter((value): value is number => typeof value === "number");
+  if (valid.length === 0) return null;
+  return valid.reduce((sum, value) => sum + value, 0) / valid.length;
+};
+
+const computeChosenFormationAverages = (
+  rows: OpponentFormationRow[],
+  chosenFormation: string | null
+): OpponentFormationAverages | null => {
+  if (!chosenFormation) return null;
+  const selected = rows.filter((row) => row.formation === chosenFormation);
+  if (selected.length === 0) return null;
+  return {
+    sampleSize: selected.length,
+    ratingMidfield: computeAverageRating(selected.map((row) => row.ratingMidfield)),
+    ratingRightDef: computeAverageRating(selected.map((row) => row.ratingRightDef)),
+    ratingMidDef: computeAverageRating(selected.map((row) => row.ratingMidDef)),
+    ratingLeftDef: computeAverageRating(selected.map((row) => row.ratingLeftDef)),
+    ratingRightAtt: computeAverageRating(selected.map((row) => row.ratingRightAtt)),
+    ratingMidAtt: computeAverageRating(selected.map((row) => row.ratingMidAtt)),
+    ratingLeftAtt: computeAverageRating(selected.map((row) => row.ratingLeftAtt)),
+  };
+};
+
 export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const { addNotification } = useNotifications();
   const [players, setPlayers] = useState<SeniorPlayer[]>([]);
@@ -404,6 +654,23 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [stateRestored, setStateRestored] = useState(false);
   const [stalenessDays, setStalenessDays] = useState(1);
   const [dataRestored, setDataRestored] = useState(false);
+  const [opponentFormationsModal, setOpponentFormationsModal] = useState<{
+    title: string;
+    opponentRows: OpponentFormationRow[];
+    chosenFormation: string | null;
+    chosenFormationAverages: OpponentFormationAverages | null;
+    generatedRows: GeneratedFormationRow[];
+    selectedGeneratedFormation: string | null;
+    selectedGeneratedTactic: number | null;
+    selectedComparison:
+      | {
+          ours: CollectiveRatings;
+          opponent: CollectiveRatings;
+        }
+      | null;
+    loading: boolean;
+    error: string | null;
+  } | null>(null);
 
   const refreshRunSeqRef = useRef(0);
   const activeRefreshRunIdRef = useRef<number | null>(null);
@@ -823,6 +1090,14 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return payload;
   }, [ratingsResponse]);
 
+  const playerNameById = useMemo(() => {
+    const map = new Map<number, string>();
+    players.forEach((player) => {
+      map.set(player.PlayerID, formatPlayerName(player) || String(player.PlayerID));
+    });
+    return map;
+  }, [players]);
+
   const buildUpdatesEntry = (
     prevPlayers: SeniorPlayer[],
     nextPlayers: SeniorPlayer[],
@@ -1041,6 +1316,575 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) return false;
       return false;
+    }
+  };
+
+  const allMatches = useMemo<Match[]>(
+    () => {
+      const list =
+        matchesState.data?.HattrickData?.MatchList?.Match ??
+        matchesState.data?.HattrickData?.Team?.MatchList?.Match;
+      if (!list) return [];
+      return Array.isArray(list) ? list : [list];
+    },
+    [matchesState]
+  );
+
+  const matchTypeLabel = (matchType: number | null) => {
+    if (matchType === null) return messages.matchTypeUnknown;
+    switch (matchType) {
+      case 1:
+        return messages.matchType1;
+      case 2:
+        return messages.matchType2;
+      case 3:
+        return messages.matchType3;
+      case 4:
+        return messages.matchType4;
+      case 5:
+        return messages.matchType5;
+      case 6:
+        return messages.matchType6;
+      case 7:
+        return messages.matchType7;
+      case 8:
+        return messages.matchType8;
+      case 9:
+        return messages.matchType9;
+      case 10:
+        return messages.matchType10;
+      case 11:
+        return messages.matchType11;
+      case 12:
+        return messages.matchType12;
+      case 50:
+        return messages.matchType50;
+      case 51:
+        return messages.matchType51;
+      case 61:
+        return messages.matchType61;
+      case 62:
+        return messages.matchType62;
+      case 80:
+        return messages.matchType80;
+      case 100:
+        return messages.matchType100;
+      case 101:
+        return messages.matchType101;
+      case 102:
+        return messages.matchType102;
+      case 103:
+        return messages.matchType103;
+      case 104:
+        return messages.matchType104;
+      case 105:
+        return messages.matchType105;
+      case 106:
+        return messages.matchType106;
+      case 107:
+        return messages.matchType107;
+      default:
+        return `${messages.matchTypeUnknown} ${matchType}`;
+    }
+  };
+
+  const classifyRequestedTypes = (selectedMatchType: number | null) => {
+    if (selectedMatchType !== null && FRIENDLY_MATCH_TYPES.has(selectedMatchType)) {
+      return FRIENDLY_MATCH_TYPES;
+    }
+    if (selectedMatchType !== null && TOURNAMENT_MATCH_TYPES.has(selectedMatchType)) {
+      return new Set<number>([...LEAGUE_CUP_QUALI_MATCH_TYPES, ...TOURNAMENT_MATCH_TYPES]);
+    }
+    return LEAGUE_CUP_QUALI_MATCH_TYPES;
+  };
+
+  const runSetBestLineupPredictRatings = async (
+    matchId: number,
+    mode: SetBestLineupMode
+  ) => {
+    const teamIdValue = Number(matchesState?.data?.HattrickData?.Team?.TeamID ?? 0);
+    if (!Number.isFinite(teamIdValue) || teamIdValue <= 0) return;
+    const selectedMatch = allMatches.find((match) => Number(match.MatchID) === matchId);
+    if (!selectedMatch) return;
+    const homeTeamId = Number(selectedMatch.HomeTeam?.HomeTeamID ?? 0);
+    const awayTeamId = Number(selectedMatch.AwayTeam?.AwayTeamID ?? 0);
+    const opponentTeamId =
+      homeTeamId === teamIdValue
+        ? awayTeamId
+        : awayTeamId === teamIdValue
+          ? homeTeamId
+          : 0;
+    if (!opponentTeamId) return;
+    const opponentName =
+      homeTeamId === teamIdValue
+        ? selectedMatch.AwayTeam?.AwayTeamName
+        : selectedMatch.HomeTeam?.HomeTeamName;
+    const requestedTypes = classifyRequestedTypes(
+      Number.isFinite(Number(selectedMatch.MatchType))
+        ? Number(selectedMatch.MatchType)
+        : null
+    );
+    const sourceSystem =
+      typeof (selectedMatch as Record<string, unknown>).SourceSystem === "string"
+        ? String((selectedMatch as Record<string, unknown>).SourceSystem)
+        : "Hattrick";
+
+    setOpponentFormationsModal({
+      title: opponentName
+        ? `${messages.setBestLineup} · ${opponentName}`
+        : messages.setBestLineup,
+      opponentRows: [],
+      chosenFormation: null,
+      chosenFormationAverages: null,
+      generatedRows: [],
+      selectedGeneratedFormation: null,
+      selectedGeneratedTactic: null,
+      selectedComparison: null,
+      loading: true,
+      error: null,
+    });
+
+    try {
+      const { response: archiveResponse, payload: archivePayload } = await fetchChppJson<{
+        data?: {
+          HattrickData?: {
+            Team?: {
+              MatchList?: {
+                Match?: unknown;
+              };
+            };
+          };
+        };
+        error?: string;
+        details?: string;
+      }>(`/api/chpp/matchesarchive?teamId=${opponentTeamId}`, { cache: "no-store" });
+      if (!archiveResponse.ok || archivePayload?.error) {
+        throw new Error(
+          archivePayload?.details ?? archivePayload?.error ?? messages.unableToLoadMatches
+        );
+      }
+      const archiveRaw = archivePayload?.data?.HattrickData?.Team?.MatchList?.Match;
+      const archiveMatches = Array.isArray(archiveRaw)
+        ? archiveRaw
+        : archiveRaw
+          ? [archiveRaw]
+          : [];
+      const scopedMatches = archiveMatches
+        .map((item) => {
+          const match = (item ?? {}) as Record<string, unknown>;
+          const candidateMatchId = parseNumber(match.MatchID);
+          if (!candidateMatchId || candidateMatchId <= 0) return null;
+          const candidateMatchType = parseNumber(match.MatchType);
+          if (candidateMatchType === null || !requestedTypes.has(candidateMatchType)) {
+            return null;
+          }
+          return {
+            matchId: candidateMatchId,
+            matchType: candidateMatchType,
+            matchDate:
+              typeof match.MatchDate === "string" ? String(match.MatchDate) : null,
+            sourceSystem:
+              typeof match.SourceSystem === "string" && match.SourceSystem
+                ? String(match.SourceSystem)
+                : "Hattrick",
+          };
+        })
+        .filter(
+          (
+            entry
+          ): entry is {
+            matchId: number;
+            matchType: number | null;
+            matchDate: string | null;
+            sourceSystem: string;
+          } => Boolean(entry)
+        )
+        .sort(
+          (left, right) =>
+            (parseChppDate(right.matchDate)?.getTime() ?? 0) -
+            (parseChppDate(left.matchDate)?.getTime() ?? 0)
+        )
+        .slice(0, OPPONENT_ARCHIVE_LIMIT);
+      const opponentRows = await mapWithConcurrency(
+        scopedMatches,
+        OPPONENT_DETAILS_CONCURRENCY,
+        async (entry) => {
+          const { response: detailsResponse, payload: detailsPayload } = await fetchChppJson<{
+            data?: {
+              HattrickData?: {
+                Match?: {
+                  HomeTeam?: Record<string, unknown>;
+                  AwayTeam?: Record<string, unknown>;
+                };
+              };
+            };
+            error?: string;
+          }>(
+            `/api/chpp/matchdetails?matchId=${entry.matchId}&sourceSystem=${encodeURIComponent(
+              entry.sourceSystem
+            )}`,
+            { cache: "no-store" }
+          );
+          if (!detailsResponse.ok || detailsPayload?.error) {
+            return {
+              ...entry,
+              againstMyTeam: false,
+              formation: null,
+              ratingMidfield: null,
+              ratingRightDef: null,
+              ratingMidDef: null,
+              ratingLeftDef: null,
+              ratingRightAtt: null,
+              ratingMidAtt: null,
+              ratingLeftAtt: null,
+            } as OpponentFormationRow;
+          }
+          const match = detailsPayload?.data?.HattrickData?.Match;
+          const home = match?.HomeTeam;
+          const away = match?.AwayTeam;
+          const homeId = parseNumber(home?.HomeTeamID);
+          const awayId = parseNumber(away?.AwayTeamID);
+          const againstMyTeam = homeId === teamIdValue || awayId === teamIdValue;
+          const isOpponentHome = homeId === opponentTeamId;
+          const formation = isOpponentHome
+            ? typeof home?.Formation === "string"
+              ? String(home.Formation)
+              : null
+            : awayId === opponentTeamId
+              ? typeof away?.Formation === "string"
+                ? String(away.Formation)
+                : null
+              : null;
+          return {
+            ...entry,
+            formation,
+            againstMyTeam,
+            ratingMidfield: isOpponentHome
+              ? parseNumber(home?.RatingMidfield)
+              : parseNumber(away?.RatingMidfield),
+            ratingRightDef: isOpponentHome
+              ? parseNumber(home?.RatingRightDef)
+              : parseNumber(away?.RatingRightDef),
+            ratingMidDef: isOpponentHome
+              ? parseNumber(home?.RatingMidDef)
+              : parseNumber(away?.RatingMidDef),
+            ratingLeftDef: isOpponentHome
+              ? parseNumber(home?.RatingLeftDef)
+              : parseNumber(away?.RatingLeftDef),
+            ratingRightAtt: isOpponentHome
+              ? parseNumber(home?.RatingRightAtt)
+              : parseNumber(away?.RatingRightAtt),
+            ratingMidAtt: isOpponentHome
+              ? parseNumber(home?.RatingMidAtt)
+              : parseNumber(away?.RatingMidAtt),
+            ratingLeftAtt: isOpponentHome
+              ? parseNumber(home?.RatingLeftAtt)
+              : parseNumber(away?.RatingLeftAtt),
+          } as OpponentFormationRow;
+        }
+      );
+      const chosenFormation = chooseFormationByRules(opponentRows);
+      const chosenFormationAverages = computeChosenFormationAverages(
+        opponentRows,
+        chosenFormation
+      );
+
+      let ratingsById = ratingsByPlayerId;
+      if (!ratingsResponse?.players?.length) {
+        const refreshedRatings = await fetchRatings();
+        setRatingsResponse(refreshedRatings);
+        ratingsById = {};
+        (refreshedRatings.players ?? []).forEach((row) => {
+          ratingsById[row.id] = { ...row.ratings };
+        });
+      }
+
+      const playerPool = players.map((player) => ({
+        id: player.PlayerID,
+        name: formatPlayerName(player) || String(player.PlayerID),
+      }));
+      if (playerPool.length < 11) {
+        throw new Error(messages.submitOrdersMinPlayers);
+      }
+
+      const baseRows = generateFormationShapes().map((shape) => {
+        const occupiedSlots = [
+          "KP",
+          ...(DEFENSE_FORMATION_MAP[shape.defenders] ?? []),
+          ...(MIDFIELD_FORMATION_MAP[shape.midfielders] ?? []),
+          ...(ATTACK_FORMATION_MAP[shape.attackers] ?? []),
+        ];
+        const orderedSlots = FIELD_SLOT_ORDER.filter((slot) => occupiedSlots.includes(slot));
+        const availablePlayers = [...playerPool];
+        const assignmentsForFormation: LineupAssignments = {};
+        const slotRatingsForFormation: Record<string, number | null> = {};
+
+        orderedSlots.forEach((slot) => {
+          const roleCode = SLOT_TO_RATING_CODE[slot];
+          availablePlayers.sort((left, right) => {
+            const leftRating =
+              typeof ratingsById[left.id]?.[String(roleCode)] === "number"
+                ? ratingsById[left.id]?.[String(roleCode)]
+                : -1;
+            const rightRating =
+              typeof ratingsById[right.id]?.[String(roleCode)] === "number"
+                ? ratingsById[right.id]?.[String(roleCode)]
+                : -1;
+            if (rightRating !== leftRating) {
+              return rightRating - leftRating;
+            }
+            return left.name.localeCompare(right.name);
+          });
+          const selectedPlayer = availablePlayers.shift() ?? null;
+          if (!selectedPlayer) return;
+          assignmentsForFormation[slot] = selectedPlayer.id;
+          slotRatingsForFormation[slot] =
+            typeof ratingsById[selectedPlayer.id]?.[String(roleCode)] === "number"
+              ? ratingsById[selectedPlayer.id]?.[String(roleCode)]
+              : null;
+        });
+
+        return {
+          formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
+          assignments: assignmentsForFormation,
+          slotRatings: slotRatingsForFormation,
+          predicted: null,
+          error: null,
+        } as GeneratedFormationRow;
+      });
+
+      const rows = await mapWithConcurrency(
+        baseRows,
+        FORMATION_PREDICT_CONCURRENCY,
+        async (row) => {
+          try {
+            const lineup = buildLineupPayload(row.assignments, tacticType);
+            const { response, payload } = await fetchChppJson<{
+              data?: { HattrickData?: { MatchData?: Record<string, unknown> } };
+              error?: string;
+              details?: string;
+            }>("/api/chpp/matchorders", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                matchId,
+                teamId: teamIdValue,
+                sourceSystem,
+                actionType: "predictratings",
+                lineup,
+              }),
+            });
+            if (!response.ok || payload?.error) {
+              throw new Error(payload?.details ?? payload?.error ?? messages.submitOrdersError);
+            }
+            const matchData = payload?.data?.HattrickData?.MatchData ?? {};
+            return {
+              ...row,
+              predicted: {
+                tacticType: parseNumber(matchData.TacticType),
+                tacticSkill: parseNumber(matchData.TacticSkill),
+                ratingMidfield: parseNumber(matchData.RatingMidfield),
+                ratingRightDef: parseNumber(matchData.RatingRightDef),
+                ratingMidDef: parseNumber(matchData.RatingMidDef),
+                ratingLeftDef: parseNumber(matchData.RatingLeftDef),
+                ratingRightAtt: parseNumber(matchData.RatingRightAtt),
+                ratingMidAtt: parseNumber(matchData.RatingMidAtt),
+                ratingLeftAtt: parseNumber(matchData.RatingLeftAtt),
+              },
+              error: null,
+            } as GeneratedFormationRow;
+          } catch (error) {
+            const details =
+              error instanceof Error ? error.message : messages.submitOrdersError;
+            return {
+              ...row,
+              predicted: null,
+              error: details,
+            } as GeneratedFormationRow;
+          }
+        }
+      );
+
+      let selectedGeneratedFormation: string | null = null;
+      let selectedGeneratedTactic: number | null = null;
+      let selectedComparison:
+        | {
+            ours: CollectiveRatings;
+            opponent: CollectiveRatings;
+          }
+        | null = null;
+
+      if (mode === "ignoreTraining" && chosenFormationAverages) {
+        const opponentCollective: CollectiveRatings = {
+          midfield: chosenFormationAverages.ratingMidfield ?? 0,
+          defense:
+            (chosenFormationAverages.ratingRightDef ?? 0) +
+            (chosenFormationAverages.ratingMidDef ?? 0) +
+            (chosenFormationAverages.ratingLeftDef ?? 0),
+          attack:
+            (chosenFormationAverages.ratingRightAtt ?? 0) +
+            (chosenFormationAverages.ratingMidAtt ?? 0) +
+            (chosenFormationAverages.ratingLeftAtt ?? 0),
+          overall: 0,
+        };
+        opponentCollective.overall =
+          opponentCollective.midfield + opponentCollective.defense + opponentCollective.attack;
+
+        const candidates = rows
+          .filter((row) => row.predicted && !row.error)
+          .map((row) => ({
+            row,
+            collective: toCollectiveRatings(row.predicted as PredictedRatings),
+          }));
+
+        const pickBest = (
+          filterFn: (item: { row: GeneratedFormationRow; collective: CollectiveRatings }) => boolean
+        ) =>
+          candidates
+            .filter(filterFn)
+            .sort(
+              (left, right) =>
+                right.collective.overall - left.collective.overall ||
+                right.collective.attack - left.collective.attack ||
+                right.collective.defense - left.collective.defense ||
+                right.collective.midfield - left.collective.midfield
+            )[0] ?? null;
+
+        const allSectorsWinner = pickBest(
+          (item) =>
+            item.collective.midfield > opponentCollective.midfield &&
+            item.collective.defense > opponentCollective.defense &&
+            item.collective.attack > opponentCollective.attack
+        );
+        const attackDefenseWinner = pickBest(
+          (item) =>
+            item.collective.attack > opponentCollective.attack &&
+            item.collective.defense > opponentCollective.defense &&
+            item.collective.midfield < opponentCollective.midfield
+        );
+        const defenseWinner = pickBest(
+          (item) => item.collective.defense > opponentCollective.defense
+        );
+        const fallback = [...candidates].sort(
+          (left, right) => right.collective.overall - left.collective.overall
+        )[0];
+
+        const chosenItem =
+          allSectorsWinner ?? attackDefenseWinner ?? defenseWinner ?? fallback ?? null;
+        if (chosenItem) {
+          const chosenTactic =
+            allSectorsWinner && chosenItem.row.formation === allSectorsWinner.row.formation
+              ? 0
+              : attackDefenseWinner &&
+                  chosenItem.row.formation === attackDefenseWinner.row.formation
+                ? 2
+                : 1;
+          selectedGeneratedFormation = chosenItem.row.formation;
+          selectedGeneratedTactic = chosenTactic;
+          selectedComparison = {
+            ours: chosenItem.collective,
+            opponent: opponentCollective,
+          };
+
+          const chosenAssignments: LineupAssignments = { ...chosenItem.row.assignments };
+          const used = new Set<number>(
+            Object.values(chosenAssignments).filter(
+              (id): id is number => typeof id === "number" && id > 0
+            )
+          );
+          const remaining = players
+            .filter((player) => !used.has(player.PlayerID))
+            .map((player) => ({
+              id: player.PlayerID,
+              name: formatPlayerName(player) || String(player.PlayerID),
+            }));
+          const pickBestForCode = (code: number) => {
+            if (remaining.length === 0) return null;
+            remaining.sort((left, right) => {
+              const leftValue =
+                typeof ratingsById[left.id]?.[String(code)] === "number"
+                  ? ratingsById[left.id]?.[String(code)]
+                  : -1;
+              const rightValue =
+                typeof ratingsById[right.id]?.[String(code)] === "number"
+                  ? ratingsById[right.id]?.[String(code)]
+                  : -1;
+              if (rightValue !== leftValue) return rightValue - leftValue;
+              return left.name.localeCompare(right.name);
+            });
+            return remaining.shift() ?? null;
+          };
+          const pickBestAny = () => {
+            if (remaining.length === 0) return null;
+            remaining.sort((left, right) => {
+              const score = (id: number) =>
+                [100, 101, 103, 106, 107, 111].reduce((sum, code) => {
+                  const value = ratingsById[id]?.[String(code)];
+                  return sum + (typeof value === "number" ? value : 0);
+                }, 0);
+              return score(right.id) - score(left.id) || left.name.localeCompare(right.name);
+            });
+            return remaining.shift() ?? null;
+          };
+          const benchPlan: Array<{ slot: string; code: number | null }> = [
+            { slot: "B_GK", code: 100 },
+            { slot: "B_CD", code: 103 },
+            { slot: "B_WB", code: 101 },
+            { slot: "B_IM", code: 107 },
+            { slot: "B_F", code: 111 },
+            { slot: "B_W", code: 106 },
+            { slot: "B_X", code: null },
+          ];
+          benchPlan.forEach((entry) => {
+            const picked = entry.code === null ? pickBestAny() : pickBestForCode(entry.code);
+            if (picked) {
+              chosenAssignments[entry.slot] = picked.id;
+            }
+          });
+
+          setAssignments(chosenAssignments);
+          setBehaviors({});
+          setTacticType(chosenTactic);
+          setLoadedMatchId(matchId);
+        }
+      }
+
+      setOpponentFormationsModal((prev) =>
+        prev
+          ? {
+              ...prev,
+              opponentRows,
+              chosenFormation,
+              chosenFormationAverages,
+              generatedRows: rows,
+              selectedGeneratedFormation,
+              selectedGeneratedTactic,
+              selectedComparison,
+              loading: false,
+              error: null,
+            }
+          : null
+      );
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return;
+      const details = error instanceof Error ? error.message : messages.unableToLoadMatches;
+      setOpponentFormationsModal((prev) =>
+        prev
+          ? {
+              ...prev,
+              opponentRows: [],
+              chosenFormation: null,
+              chosenFormationAverages: null,
+              generatedRows: [],
+              selectedGeneratedFormation: null,
+              selectedGeneratedTactic: null,
+              selectedComparison: null,
+              loading: false,
+              error: details,
+            }
+          : null
+      );
+      addNotification(details);
     }
   };
 
@@ -1483,6 +2327,294 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         }
         closeOnBackdrop
         onClose={() => setUpdatesOpen(false)}
+      />
+      <Modal
+        open={!!opponentFormationsModal}
+        title={opponentFormationsModal?.title ?? messages.setBestLineup}
+        className={styles.chronicleUpdatesModal}
+        body={
+          opponentFormationsModal ? (
+            opponentFormationsModal.loading ? (
+              <p className={styles.chronicleEmpty}>{messages.loadingDetails}</p>
+            ) : opponentFormationsModal.error ? (
+              <p className={styles.errorDetails}>{opponentFormationsModal.error}</p>
+            ) : opponentFormationsModal.generatedRows.length > 0 ||
+              opponentFormationsModal.opponentRows.length > 0 ? (
+              <>
+                {opponentFormationsModal.opponentRows.length > 0 ? (
+                  <>
+                    <p className={styles.chroniclePressMeta}>
+                      {messages.clubChronicleFormationsColumnFormation}:{" "}
+                      <strong>
+                        {opponentFormationsModal.chosenFormation ?? messages.unknownShort}
+                      </strong>
+                    </p>
+                    <div className={styles.opponentFormationsTableWrap}>
+                      <table className={styles.opponentFormationsTable}>
+                        <thead>
+                          <tr>
+                            <th>{messages.matchesTitle}</th>
+                            <th>{messages.ordersLabel}</th>
+                            <th>{messages.clubChronicleFormationsColumnFormation}</th>
+                            <th>{messages.ratingSectorMidfieldShort}</th>
+                            <th>{messages.ratingSectorRightDefShort}</th>
+                            <th>{messages.ratingSectorMidDefShort}</th>
+                            <th>{messages.ratingSectorLeftDefShort}</th>
+                            <th>{messages.ratingSectorRightAttShort}</th>
+                            <th>{messages.ratingSectorMidAttShort}</th>
+                            <th>{messages.ratingSectorLeftAttShort}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {opponentFormationsModal.opponentRows.map((row) => (
+                            <tr key={row.matchId}>
+                              <td className={styles.opponentFormationsMatchIdCell}>
+                                <a
+                                  className={styles.chroniclePressLink}
+                                  href={hattrickMatchUrl(row.matchId)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {row.matchId}
+                                  {row.againstMyTeam ? "*" : ""}
+                                </a>
+                              </td>
+                              <td>{matchTypeLabel(row.matchType)}</td>
+                              <td>{row.formation ?? messages.unknownShort}</td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.formation === opponentFormationsModal.chosenFormation
+                                  ? row.ratingMidfield ?? messages.unknownShort
+                                  : "—"}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.formation === opponentFormationsModal.chosenFormation
+                                  ? row.ratingRightDef ?? messages.unknownShort
+                                  : "—"}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.formation === opponentFormationsModal.chosenFormation
+                                  ? row.ratingMidDef ?? messages.unknownShort
+                                  : "—"}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.formation === opponentFormationsModal.chosenFormation
+                                  ? row.ratingLeftDef ?? messages.unknownShort
+                                  : "—"}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.formation === opponentFormationsModal.chosenFormation
+                                  ? row.ratingRightAtt ?? messages.unknownShort
+                                  : "—"}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.formation === opponentFormationsModal.chosenFormation
+                                  ? row.ratingMidAtt ?? messages.unknownShort
+                                  : "—"}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.formation === opponentFormationsModal.chosenFormation
+                                  ? row.ratingLeftAtt ?? messages.unknownShort
+                                  : "—"}
+                              </td>
+                            </tr>
+                          ))}
+                          {opponentFormationsModal.chosenFormationAverages ? (
+                            <tr className={styles.opponentFormationsAverageRow}>
+                              <td colSpan={3}>
+                                <strong>
+                                  {messages.averageLabel} (
+                                  {opponentFormationsModal.chosenFormationAverages.sampleSize})
+                                </strong>
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                <strong>
+                                  {opponentFormationsModal.chosenFormationAverages.ratingMidfield?.toFixed(
+                                    1
+                                  ) ?? messages.unknownShort}
+                                </strong>
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                <strong>
+                                  {opponentFormationsModal.chosenFormationAverages.ratingRightDef?.toFixed(
+                                    1
+                                  ) ?? messages.unknownShort}
+                                </strong>
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                <strong>
+                                  {opponentFormationsModal.chosenFormationAverages.ratingMidDef?.toFixed(
+                                    1
+                                  ) ?? messages.unknownShort}
+                                </strong>
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                <strong>
+                                  {opponentFormationsModal.chosenFormationAverages.ratingLeftDef?.toFixed(
+                                    1
+                                  ) ?? messages.unknownShort}
+                                </strong>
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                <strong>
+                                  {opponentFormationsModal.chosenFormationAverages.ratingRightAtt?.toFixed(
+                                    1
+                                  ) ?? messages.unknownShort}
+                                </strong>
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                <strong>
+                                  {opponentFormationsModal.chosenFormationAverages.ratingMidAtt?.toFixed(
+                                    1
+                                  ) ?? messages.unknownShort}
+                                </strong>
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                <strong>
+                                  {opponentFormationsModal.chosenFormationAverages.ratingLeftAtt?.toFixed(
+                                    1
+                                  ) ?? messages.unknownShort}
+                                </strong>
+                              </td>
+                            </tr>
+                          ) : null}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                ) : null}
+                <p className={styles.chroniclePressMeta}>
+                  {messages.lineupTitle} · {messages.ratingsTitle}
+                </p>
+                {opponentFormationsModal.selectedGeneratedFormation &&
+                opponentFormationsModal.selectedComparison ? (
+                  <p className={styles.chroniclePressMeta}>
+                    <strong>{opponentFormationsModal.selectedGeneratedFormation}</strong> ·{" "}
+                    {opponentFormationsModal.selectedGeneratedTactic === 0
+                      ? messages.tacticNormal
+                      : opponentFormationsModal.selectedGeneratedTactic === 2
+                        ? messages.tacticCounterAttacks
+                        : messages.tacticPressing}
+                    {" · "}
+                    MID {opponentFormationsModal.selectedComparison.ours.midfield.toFixed(1)} /{" "}
+                    {opponentFormationsModal.selectedComparison.opponent.midfield.toFixed(1)}
+                    {" · "}
+                    DEF {opponentFormationsModal.selectedComparison.ours.defense.toFixed(1)} /{" "}
+                    {opponentFormationsModal.selectedComparison.opponent.defense.toFixed(1)}
+                    {" · "}
+                    ATT {opponentFormationsModal.selectedComparison.ours.attack.toFixed(1)} /{" "}
+                    {opponentFormationsModal.selectedComparison.opponent.attack.toFixed(1)}
+                  </p>
+                ) : null}
+                <div className={styles.opponentFormationsTableWrap}>
+                  <table className={styles.opponentFormationsTable}>
+                    <thead>
+                      <tr>
+                        <th>{messages.clubChronicleFormationsColumnFormation}</th>
+                        <th>{messages.lineupTitle}</th>
+                        <th>{messages.ratingSectorMidfieldShort}</th>
+                        <th>{messages.ratingSectorRightDefShort}</th>
+                        <th>{messages.ratingSectorMidDefShort}</th>
+                        <th>{messages.ratingSectorLeftDefShort}</th>
+                        <th>{messages.ratingSectorRightAttShort}</th>
+                        <th>{messages.ratingSectorMidAttShort}</th>
+                        <th>{messages.ratingSectorLeftAttShort}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {opponentFormationsModal.generatedRows.map((row) => (
+                        <tr
+                          key={row.formation}
+                          className={
+                            row.formation === opponentFormationsModal.selectedGeneratedFormation
+                              ? styles.opponentFormationsSelectedRow
+                              : undefined
+                          }
+                        >
+                          <td className={styles.opponentFormationsMatchIdCell}>{row.formation}</td>
+                          <td className={styles.generatedLineupCell}>
+                            <div className={styles.generatedLineupBlock}>
+                              {[
+                                { label: messages.posKeeper, slots: ["KP"] },
+                                { label: messages.skillDefending, slots: [...DEFENSE_SLOTS] },
+                                { label: messages.skillPlaymaking, slots: [...MIDFIELD_SLOTS] },
+                                { label: messages.skillScoring, slots: [...ATTACK_SLOTS] },
+                              ].map((line) => (
+                                <div key={`${row.formation}-${line.label}`} className={styles.generatedLineupRow}>
+                                  <span className={styles.generatedLineupRowLabel}>{line.label}</span>
+                                  <div className={styles.generatedLineupSlots}>
+                                    {line.slots.map((slot) => {
+                                      const playerId = Number(row.assignments[slot] ?? 0);
+                                      const playerName =
+                                        playerId > 0
+                                          ? playerNameById.get(playerId) ?? String(playerId)
+                                          : "—";
+                                      const slotRating = row.slotRatings[slot];
+                                      const text =
+                                        playerId > 0
+                                          ? `${slot}: ${playerName} (${slotRating?.toFixed(1) ?? messages.unknownShort})`
+                                          : `${slot}: —`;
+                                      return (
+                                        <span
+                                          key={`${row.formation}-${slot}`}
+                                          className={`${styles.generatedLineupSlot} ${
+                                            playerId > 0 ? "" : styles.generatedLineupSlotEmpty
+                                          }`}
+                                        >
+                                          {text}
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              ))}
+                              {row.error ? (
+                                <p className={styles.errorDetails}>{row.error}</p>
+                              ) : null}
+                            </div>
+                          </td>
+                          <td className={styles.opponentFormationsNumberCell}>
+                            {row.predicted?.ratingMidfield?.toFixed(1) ?? messages.unknownShort}
+                          </td>
+                          <td className={styles.opponentFormationsNumberCell}>
+                            {row.predicted?.ratingRightDef?.toFixed(1) ?? messages.unknownShort}
+                          </td>
+                          <td className={styles.opponentFormationsNumberCell}>
+                            {row.predicted?.ratingMidDef?.toFixed(1) ?? messages.unknownShort}
+                          </td>
+                          <td className={styles.opponentFormationsNumberCell}>
+                            {row.predicted?.ratingLeftDef?.toFixed(1) ?? messages.unknownShort}
+                          </td>
+                          <td className={styles.opponentFormationsNumberCell}>
+                            {row.predicted?.ratingRightAtt?.toFixed(1) ?? messages.unknownShort}
+                          </td>
+                          <td className={styles.opponentFormationsNumberCell}>
+                            {row.predicted?.ratingMidAtt?.toFixed(1) ?? messages.unknownShort}
+                          </td>
+                          <td className={styles.opponentFormationsNumberCell}>
+                            {row.predicted?.ratingLeftAtt?.toFixed(1) ?? messages.unknownShort}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            ) : (
+              <p className={styles.chronicleEmpty}>{messages.noMatchesReturned}</p>
+            )
+          ) : null
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setOpponentFormationsModal(null)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setOpponentFormationsModal(null)}
       />
 
       <div className={styles.dashboardGrid}>
@@ -2023,8 +3155,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
             onRefresh={onRefreshMatchesOnly}
             onSetBestLineupMode={(matchId, mode) => {
-              void matchId;
-              void mode;
+              return runSetBestLineupPredictRatings(matchId, mode);
             }}
             onSetBestLineup={(matchId) => {
               void matchId;

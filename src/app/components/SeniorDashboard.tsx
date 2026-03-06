@@ -179,6 +179,7 @@ const MIDFIELD_FORMATION_MAP: Record<number, string[]> = {
   5: [...MIDFIELD_SLOTS],
 };
 const ATTACK_FORMATION_MAP: Record<number, string[]> = {
+  0: [],
   1: ["F_C"],
   2: ["F_L", "F_R"],
   3: [...ATTACK_SLOTS],
@@ -493,7 +494,7 @@ const generateFormationShapes = () => {
   const shapes: Array<{ defenders: number; midfielders: number; attackers: number }> = [];
   for (let defenders = 2; defenders <= 5; defenders += 1) {
     for (let midfielders = 2; midfielders <= 5; midfielders += 1) {
-      for (let attackers = 1; attackers <= 3; attackers += 1) {
+      for (let attackers = 0; attackers <= 3; attackers += 1) {
         if (defenders + midfielders + attackers !== 10) continue;
         shapes.push({ defenders, midfielders, attackers });
       }
@@ -548,6 +549,44 @@ const toCollectiveRatings = (ratings: PredictedRatings): CollectiveRatings => {
     attack,
     overall: midfield + defense + attack,
   };
+};
+
+const trainingAwareShapeAllowed = (
+  shape: { defenders: number; midfielders: number; attackers: number },
+  trainingType: number | null
+) => {
+  if (trainingType === null || trainingType === 0 || trainingType === 1) return true;
+  if (trainingType === 2 || trainingType === 6 || trainingType === 9) return true;
+  if (trainingType === 3 || trainingType === 11) {
+    return shape.defenders === 5 || shape.defenders === 4 || shape.defenders === 3;
+  }
+  if (trainingType === 4) return shape.attackers === 3;
+  if (trainingType === 5) return shape.defenders >= 4 && shape.midfielders >= 4;
+  if (trainingType === 7) return shape.defenders === 2 && shape.midfielders === 5 && shape.attackers === 3;
+  if (trainingType === 8) return shape.midfielders === 5;
+  if (trainingType === 10) return shape.defenders === 5 && shape.midfielders === 5 && shape.attackers === 0;
+  if (trainingType === 12) return shape.midfielders >= 4 && shape.attackers === 3;
+  return true;
+};
+
+const requiredTrainableSlots = (trainingType: number | null): string[] => {
+  switch (trainingType) {
+    case 3:
+    case 11:
+      return ["CD_L", "CD_C", "CD_R"];
+    case 4:
+      return ["F_L", "F_C", "F_R"];
+    case 5:
+      return ["WB_L", "WB_R", "W_L", "W_R"];
+    case 8:
+      return ["W_L", "IM_L", "IM_C", "IM_R", "W_R"];
+    case 10:
+      return [...DEFENSE_SLOTS, ...MIDFIELD_SLOTS];
+    case 12:
+      return ["W_L", "W_R", "F_L", "F_C", "F_R"];
+    default:
+      return [];
+  }
 };
 
 const pickMostCommonFormation = (rows: OpponentFormationRow[]): string | null => {
@@ -624,6 +663,7 @@ const computeChosenFormationAverages = (
 };
 
 export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
+  const showSetBestLineupDebugModal = process.env.NODE_ENV !== "production";
   const { addNotification } = useNotifications();
   const [players, setPlayers] = useState<SeniorPlayer[]>([]);
   const [matchesState, setMatchesState] = useState<MatchesResponse>({});
@@ -703,6 +743,39 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const salaryValueForPlayer = (player: SeniorPlayer) => {
     const detailsSalary = detailsById.get(player.PlayerID)?.Salary;
     return typeof detailsSalary === "number" ? detailsSalary : player.Salary ?? null;
+  };
+
+  const obtainedTrainingRegimenLabel = (value: number | null) => {
+    switch (value) {
+      case 0:
+        return messages.settingsGeneral;
+      case 1:
+        return messages.sortStamina;
+      case 2:
+        return messages.trainingSetPieces;
+      case 3:
+        return messages.trainingDefending;
+      case 4:
+        return messages.trainingScoring;
+      case 5:
+        return messages.trainingWinger;
+      case 6:
+        return `${messages.trainingScoring} + ${messages.trainingSetPieces}`;
+      case 7:
+        return messages.trainingPassing;
+      case 8:
+        return messages.trainingPlaymaking;
+      case 9:
+        return messages.trainingKeeper;
+      case 10:
+        return `${messages.trainingPassing} (${messages.sortDefender} + ${messages.sortPlaymaker})`;
+      case 11:
+        return `${messages.trainingDefending} (${messages.sortDefender} + ${messages.sortPlaymaker})`;
+      case 12:
+        return `${messages.trainingWinger} (${messages.trainingWinger} + ${messages.trainingScoring})`;
+      default:
+        return messages.unknownShort;
+    }
   };
 
   const sortedPlayers = useMemo(() => {
@@ -1429,20 +1502,22 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         ? String((selectedMatch as Record<string, unknown>).SourceSystem)
         : "Hattrick";
 
-    setOpponentFormationsModal({
-      title: opponentName
-        ? `${messages.setBestLineup} · ${opponentName}`
-        : messages.setBestLineup,
-      opponentRows: [],
-      chosenFormation: null,
-      chosenFormationAverages: null,
-      generatedRows: [],
-      selectedGeneratedFormation: null,
-      selectedGeneratedTactic: null,
-      selectedComparison: null,
-      loading: true,
-      error: null,
-    });
+    if (showSetBestLineupDebugModal) {
+      setOpponentFormationsModal({
+        title: opponentName
+          ? `${messages.setBestLineup} · ${opponentName}`
+          : messages.setBestLineup,
+        opponentRows: [],
+        chosenFormation: null,
+        chosenFormationAverages: null,
+        generatedRows: [],
+        selectedGeneratedFormation: null,
+        selectedGeneratedTactic: null,
+        selectedComparison: null,
+        loading: true,
+        error: null,
+      });
+    }
 
     try {
       const { response: archiveResponse, payload: archivePayload } = await fetchChppJson<{
@@ -1588,6 +1663,15 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         opponentRows,
         chosenFormation
       );
+      let activeTrainingType = trainingType;
+      if (mode === "trainingAware" && activeTrainingType === null) {
+        try {
+          activeTrainingType = await fetchTrainingType();
+          setTrainingType(activeTrainingType);
+        } catch {
+          activeTrainingType = null;
+        }
+      }
 
       let ratingsById = ratingsByPlayerId;
       if (!ratingsResponse?.players?.length) {
@@ -1607,14 +1691,33 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         throw new Error(messages.submitOrdersMinPlayers);
       }
 
-      const baseRows = generateFormationShapes().map((shape) => {
-        const occupiedSlots = [
-          "KP",
-          ...(DEFENSE_FORMATION_MAP[shape.defenders] ?? []),
-          ...(MIDFIELD_FORMATION_MAP[shape.midfielders] ?? []),
-          ...(ATTACK_FORMATION_MAP[shape.attackers] ?? []),
-        ];
-        const orderedSlots = FIELD_SLOT_ORDER.filter((slot) => occupiedSlots.includes(slot));
+      const baseRows = generateFormationShapes()
+        .map((shape) => {
+          if (
+            mode === "trainingAware" &&
+            !trainingAwareShapeAllowed(shape, activeTrainingType)
+          ) {
+            return null;
+          }
+          const defenseSlots =
+            mode === "trainingAware" &&
+            (activeTrainingType === 3 || activeTrainingType === 11) &&
+            shape.defenders === 4
+              ? ["WB_L", "CD_L", "CD_C", "CD_R"]
+              : DEFENSE_FORMATION_MAP[shape.defenders] ?? [];
+          const occupiedSlots = [
+            "KP",
+            ...defenseSlots,
+            ...(MIDFIELD_FORMATION_MAP[shape.midfielders] ?? []),
+            ...(ATTACK_FORMATION_MAP[shape.attackers] ?? []),
+          ];
+          if (mode === "trainingAware") {
+            const requiredSlots = requiredTrainableSlots(activeTrainingType);
+            if (requiredSlots.some((slot) => !occupiedSlots.includes(slot))) {
+              return null;
+            }
+          }
+          const orderedSlots = FIELD_SLOT_ORDER.filter((slot) => occupiedSlots.includes(slot));
         const availablePlayers = [...playerPool];
         const assignmentsForFormation: LineupAssignments = {};
         const slotRatingsForFormation: Record<string, number | null> = {};
@@ -1644,14 +1747,15 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
               : null;
         });
 
-        return {
-          formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
-          assignments: assignmentsForFormation,
-          slotRatings: slotRatingsForFormation,
-          predicted: null,
-          error: null,
-        } as GeneratedFormationRow;
-      });
+          return {
+            formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
+            assignments: assignmentsForFormation,
+            slotRatings: slotRatingsForFormation,
+            predicted: null,
+            error: null,
+          } as GeneratedFormationRow;
+        })
+        .filter((row): row is GeneratedFormationRow => Boolean(row));
 
       const rows = await mapWithConcurrency(
         baseRows,
@@ -1714,7 +1818,10 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           }
         | null = null;
 
-      if (mode === "ignoreTraining" && chosenFormationAverages) {
+      if (
+        (mode === "ignoreTraining" || mode === "trainingAware") &&
+        chosenFormationAverages
+      ) {
         const opponentCollective: CollectiveRatings = {
           midfield: chosenFormationAverages.ratingMidfield ?? 0,
           defense:
@@ -1849,41 +1956,45 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         }
       }
 
-      setOpponentFormationsModal((prev) =>
-        prev
-          ? {
-              ...prev,
-              opponentRows,
-              chosenFormation,
-              chosenFormationAverages,
-              generatedRows: rows,
-              selectedGeneratedFormation,
-              selectedGeneratedTactic,
-              selectedComparison,
-              loading: false,
-              error: null,
-            }
-          : null
-      );
+      if (showSetBestLineupDebugModal) {
+        setOpponentFormationsModal((prev) =>
+          prev
+            ? {
+                ...prev,
+                opponentRows,
+                chosenFormation,
+                chosenFormationAverages,
+                generatedRows: rows,
+                selectedGeneratedFormation,
+                selectedGeneratedTactic,
+                selectedComparison,
+                loading: false,
+                error: null,
+              }
+            : null
+        );
+      }
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) return;
       const details = error instanceof Error ? error.message : messages.unableToLoadMatches;
-      setOpponentFormationsModal((prev) =>
-        prev
-          ? {
-              ...prev,
-              opponentRows: [],
-              chosenFormation: null,
-              chosenFormationAverages: null,
-              generatedRows: [],
-              selectedGeneratedFormation: null,
-              selectedGeneratedTactic: null,
-              selectedComparison: null,
-              loading: false,
-              error: details,
-            }
-          : null
-      );
+      if (showSetBestLineupDebugModal) {
+        setOpponentFormationsModal((prev) =>
+          prev
+            ? {
+                ...prev,
+                opponentRows: [],
+                chosenFormation: null,
+                chosenFormationAverages: null,
+                generatedRows: [],
+                selectedGeneratedFormation: null,
+                selectedGeneratedTactic: null,
+                selectedComparison: null,
+                loading: false,
+                error: details,
+              }
+            : null
+        );
+      }
       addNotification(details);
     }
   };
@@ -2329,7 +2440,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         onClose={() => setUpdatesOpen(false)}
       />
       <Modal
-        open={!!opponentFormationsModal}
+        open={showSetBestLineupDebugModal && !!opponentFormationsModal}
         title={opponentFormationsModal?.title ?? messages.setBestLineup}
         className={styles.chronicleUpdatesModal}
         body={
@@ -2341,6 +2452,13 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             ) : opponentFormationsModal.generatedRows.length > 0 ||
               opponentFormationsModal.opponentRows.length > 0 ? (
               <>
+                <p className={styles.chroniclePressMeta}>
+                  {messages.trainingTitle}:{" "}
+                  <strong>
+                    {obtainedTrainingRegimenLabel(trainingType)}
+                    {typeof trainingType === "number" ? ` (#${trainingType})` : ""}
+                  </strong>
+                </p>
                 {opponentFormationsModal.opponentRows.length > 0 ? (
                   <>
                     <p className={styles.chroniclePressMeta}>
@@ -3132,6 +3250,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                 return next;
               });
               setLoadedMatchId(null);
+            }}
+            onReset={() => {
+              setAssignments({});
+              setBehaviors({});
+              setLoadedMatchId(null);
+              addNotification(messages.notificationLineupReset);
             }}
             tacticType={tacticType}
             onTacticChange={setTacticType}

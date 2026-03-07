@@ -97,6 +97,8 @@ export const messagesFr: Messages = {
       "Ajout de l optimisation equipe senior : liste joueurs triable, matrice de competences a valeur unique, matrice des notes et workflow composition/matchs.",
     changelog_3_0_0:
       "Sortie de l’outil d’optimisation d’équipe senior.",
+    changelog_3_1_0:
+      "L optimisation senior ajoute une aide contextuelle avec repères guidés pour Dernières mises à jour et Composition IA.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -449,6 +451,23 @@ export const messagesFr: Messages = {
       "Utilisez l’IA pour optimiser la compo selon le joueur vedette et l’entraînement.",
     helpCalloutAuto:
       "Utilisez l’IA pour choisir le joueur vedette et l’entraînement.",
+    seniorHelpTitle: "Guide d optimisation senior",
+    seniorHelpIntro:
+      "Cette vue vous aide a suivre les changements utiles de l effectif senior et a definir plus vite les compositions de match.",
+    seniorHelpCalloutUpdates:
+      "Dernieres mises a jour affiche uniquement les changements detectes dans les comparaisons enregistrees.",
+    seniorHelpCalloutSetLineupAi:
+      "Definir la composition avec IA ouvre les deux modes de composition pour ce match.",
+    seniorHelpBulletLatestUpdates:
+      "Une nouvelle comparaison est enregistree uniquement quand un rafraichissement detecte de vrais changements (nouveau joueur, notes/competences, blessures, cartons, forme, endurance ou traits).",
+    seniorHelpBulletAiOverview:
+      "Definir la composition avec IA applique la composition la plus efficace identifiee pour gagner a partir des informations Hattrick disponibles.",
+    seniorHelpBulletAiTrainingAware:
+      "Mode avec entrainement: respecte le regime d entrainement actuel et privilegie les compositions qui couvrent les postes d entrainement concernes.",
+    seniorHelpBulletAiIgnoreTraining:
+      "Mode sans entrainement: optimise uniquement l efficacite du match sans contrainte des postes d entrainement.",
+    seniorHelpBulletAiMatchTypes:
+      "Les matchs de ligue et de tournoi visent la meilleure configuration competitive. Les amicaux utilisent un onze sain de second niveau.",
     themeSwitchDark: "Passer en mode sombre",
     themeSwitchLight: "Passer en mode clair",
     helpDismissLabel: "J’ai compris",

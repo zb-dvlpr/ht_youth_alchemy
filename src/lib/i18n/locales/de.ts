@@ -95,6 +95,8 @@ export const messagesDe: Messages = {
       "Senior-Team-Optimierung hinzugefügt: sortierbare Spielerliste, Skills-Matrix mit Einzelwerten, Bewertungsmatrix sowie Aufstellungs- und Match-Workflow.",
     changelog_3_0_0:
       "Release des Senior-Team-Optimierungstools.",
+    changelog_3_1_0:
+      "Senior-Optimierung mit eigenem Hilfe-Overlay und geführten Hinweisen für Letzte Updates und KI-Aufstellung.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -441,6 +443,23 @@ export const messagesDe: Messages = {
       "KI nutzt die Aufstellung für Starspieler und Trainingsplan optimieren.",
     helpCalloutAuto:
       "KI nutzen, um Starspieler und Trainingsplan auszuwählen.",
+    seniorHelpTitle: "Leitfaden Senior-Optimierung",
+    seniorHelpIntro:
+      "Diese Ansicht hilft dir, relevante Kaderänderungen zu verfolgen und Match-Aufstellungen schneller zu setzen.",
+    seniorHelpCalloutUpdates:
+      "Letzte Updates zeigt nur Änderungen aus den zuletzt gespeicherten Refresh-Vergleichen.",
+    seniorHelpCalloutSetLineupAi:
+      "Aufstellung per KI setzen öffnet die zwei Aufstellungsmodi für dieses Match.",
+    seniorHelpBulletLatestUpdates:
+      "Ein neuer Vergleich wird nur gespeichert, wenn ein Refresh echte Änderungen erkennt (z. B. neue Spieler, Ratings-/Skill-Änderungen, Verletzungen, Karten, Form, Kondition oder Merkmale).",
+    seniorHelpBulletAiOverview:
+      "Aufstellung per KI setzen verwendet die nach den verfügbaren Hattrick-Daten effektivste Aufstellung für einen Sieg.",
+    seniorHelpBulletAiTrainingAware:
+      "Modus Trainingsbezogen berücksichtigt das aktuelle Trainingsschema und priorisiert Aufstellungen mit den relevanten Trainingsslots.",
+    seniorHelpBulletAiIgnoreTraining:
+      "Modus Training ignorieren optimiert rein auf Match-Effektivität ohne Trainingsslot-Beschränkung.",
+    seniorHelpBulletAiMatchTypes:
+      "Liga- und Turnierspiele nutzen die stärkste Wettbewerbsaufstellung. Freundschaftsspiele nutzen eine zweitbeste gesunde XI.",
     themeSwitchDark: "In den Dunkelmodus wechseln",
     themeSwitchLight: "In den Hellmodus wechseln",
     helpDismissLabel: "Verstanden",

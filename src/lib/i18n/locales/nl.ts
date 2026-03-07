@@ -142,6 +142,25 @@ export const messagesNl: Messages = {
   setBestLineupIgnoreTrainingTooltip:
     "Zet de opstelling zonder rekening te houden met het trainingsregime. Alle formaties worden meegenomen.",
   setBestLineupRejectedPlayersLabel: "Afgewezen spelers",
+  changelog_3_1_0:
+    "Senioroptimalisatie heeft nu een eigen help-overlay met gerichte callouts voor Laatste updates en opstelling met AI.",
+  seniorHelpTitle: "Handleiding senioroptimalisatie",
+  seniorHelpIntro:
+    "Deze weergave helpt je relevante wijzigingen in de seniorselectie te volgen en sneller wedstrijdopstellingen te zetten.",
+  seniorHelpCalloutUpdates:
+    "Laatste updates toont alleen gedetecteerde wijzigingen uit opgeslagen refresh-vergelijkingen.",
+  seniorHelpCalloutSetLineupAi:
+    "Opstelling met AI zetten opent de twee opstellingsmodi voor deze wedstrijd.",
+  seniorHelpBulletLatestUpdates:
+    "Er wordt alleen een nieuwe vergelijking opgeslagen wanneer een refresh echte wijzigingen detecteert (bijvoorbeeld nieuwe speler, wijzigingen in ratings/skills, blessures, kaarten, vorm, conditie of eigenschappen).",
+  seniorHelpBulletAiOverview:
+    "Opstelling met AI zetten gebruikt de meest effectieve opstelling voor winst op basis van de beschikbare Hattrick-informatie.",
+  seniorHelpBulletAiTrainingAware:
+    "Trainingsbewuste modus houdt rekening met het huidige trainingsregime en prioriteert opstellingen die de relevante trainingsslots vullen.",
+  seniorHelpBulletAiIgnoreTraining:
+    "Training negeren optimaliseert alleen voor wedstrijdeffectiviteit zonder trainingsslotbeperkingen.",
+  seniorHelpBulletAiMatchTypes:
+    "Competitie- en toernooiwedstrijden mikken op de sterkste competitieve opstelling. Vriendschappelijke wedstrijden gebruiken een tweede beste gezonde XI.",
   loadLineupUnavailable: "Geen opgeslagen opstelling",
   loadLineupActive: "Opstelling geladen",
   loadLineupError: "Fout bij laden opstelling",

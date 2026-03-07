@@ -97,6 +97,8 @@ export const messagesEs: Messages = {
       "Se agrega optimizacion de equipo senior: lista de jugadores ordenable, matriz de habilidades de valor unico, matriz de calificaciones y flujo de alineacion/partidos.",
     changelog_3_0_0:
       "Lanzamiento de la herramienta de optimización del equipo senior.",
+    changelog_3_1_0:
+      "La optimización senior añade una ayuda contextual con llamadas guiadas para Últimas actualizaciones y alineación con IA.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -449,6 +451,23 @@ export const messagesEs: Messages = {
       "Usa la IA para optimizar la alineación según el jugador estrella y el plan de entrenamiento.",
     helpCalloutAuto:
       "Usa la IA para elegir jugador estrella y plan de entrenamiento.",
+    seniorHelpTitle: "Guia de optimizacion senior",
+    seniorHelpIntro:
+      "Esta vista te ayuda a seguir cambios relevantes del plantel senior y a definir alineaciones mas rapido.",
+    seniorHelpCalloutUpdates:
+      "Ultimas actualizaciones muestra solo los cambios detectados en las comparaciones de refresco guardadas.",
+    seniorHelpCalloutSetLineupAi:
+      "Definir alineacion con IA abre los dos modos de alineacion para este partido.",
+    seniorHelpBulletLatestUpdates:
+      "Solo se guarda una nueva comparacion cuando un refresco detecta cambios reales (por ejemplo, jugador nuevo, cambios de valoraciones/habilidades, lesiones, tarjetas, forma, resistencia o rasgos).",
+    seniorHelpBulletAiOverview:
+      "Definir alineacion con IA aplica la alineacion mas efectiva identificada para ganar con la informacion de Hattrick disponible.",
+    seniorHelpBulletAiTrainingAware:
+      "Modo con entrenamiento: respeta el regimen de entrenamiento actual y prioriza alineaciones que cubren los puestos de entrenamiento relevantes.",
+    seniorHelpBulletAiIgnoreTraining:
+      "Modo sin entrenamiento: optimiza solo la efectividad del partido sin restricciones de puestos de entrenamiento.",
+    seniorHelpBulletAiMatchTypes:
+      "Liga y torneo buscan la configuracion competitiva mas fuerte. En amistosos se usa un once sano de segundo nivel.",
     themeSwitchDark: "Cambiar a modo oscuro",
     themeSwitchLight: "Cambiar a modo claro",
     helpDismissLabel: "Entendido",

@@ -83,6 +83,8 @@ export const messagesEn: Messages = {
       "Senior team optimization tool added with player list sorting, single-value skills matrix, ratings matrix, and lineup/matches workflow.",
     changelog_3_0_0:
       "Senior team optimization tool release.",
+    changelog_3_1_0:
+      "Senior optimization now has a dedicated help overlay with guided callouts for Latest updates and AI lineup actions.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -420,6 +422,23 @@ export const messagesEn: Messages = {
     helpCalloutOptimize:
       "Use AI to optimize lineup for the star player and training regimen.",
     helpCalloutAuto: "Use AI to select star player and training regimen.",
+    seniorHelpTitle: "Senior optimization guide",
+    seniorHelpIntro:
+      "This view helps you track meaningful senior squad changes and set match lineups faster.",
+    seniorHelpCalloutUpdates:
+      "Latest updates shows only what changed in the latest saved refresh comparisons.",
+    seniorHelpCalloutSetLineupAi:
+      "Set lineup using AI opens the two lineup modes for this match.",
+    seniorHelpBulletLatestUpdates:
+      "A new Latest updates comparison is saved only when a refresh detects real changes (for example new players, ratings/skills updates, injuries, cards, form, stamina, or traits).",
+    seniorHelpBulletAiOverview:
+      "Set lineup using AI applies the most effective lineup identified for a win from the Hattrick information currently available.",
+    seniorHelpBulletAiTrainingAware:
+      "Training-aware mode respects the current training regimen and prioritizes lineups that cover the relevant training slots.",
+    seniorHelpBulletAiIgnoreTraining:
+      "Ignore-training mode optimizes for match effectiveness without training-slot constraints.",
+    seniorHelpBulletAiMatchTypes:
+      "League and tournament matches target your strongest competitive setup. Friendlies use a second-best healthy XI.",
     themeSwitchDark: "Switch to dark mode",
     themeSwitchLight: "Switch to light mode",
     helpDismissLabel: "I understand",

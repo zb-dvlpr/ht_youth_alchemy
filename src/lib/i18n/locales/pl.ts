@@ -142,6 +142,25 @@ export const messagesPl: Messages = {
   setBestLineupIgnoreTrainingTooltip:
     "Ustaw skład bez uwzględniania reżimu treningowego. Brane są pod uwagę wszystkie formacje.",
   setBestLineupRejectedPlayersLabel: "Odrzuceni zawodnicy",
+  changelog_3_1_0:
+    "Optymalizacja seniorów ma teraz dedykowaną nakładkę pomocy z podpowiedziami dla Ostatnich aktualizacji i ustawiania składu przez AI.",
+  seniorHelpTitle: "Przewodnik optymalizacji seniorów",
+  seniorHelpIntro:
+    "Ten widok pomaga śledzić istotne zmiany w kadrze seniorów i szybciej ustawiać składy meczowe.",
+  seniorHelpCalloutUpdates:
+    "Ostatnie aktualizacje pokazują tylko zmiany wykryte w zapisanych porównaniach odświeżeń.",
+  seniorHelpCalloutSetLineupAi:
+    "Ustaw skład przez AI otwiera dwa tryby ustawiania składu dla tego meczu.",
+  seniorHelpBulletLatestUpdates:
+    "Nowe porównanie zapisywane jest tylko wtedy, gdy odświeżenie wykryje realne zmiany (np. nowy zawodnik, zmiany ocen/umiejętności, kontuzje, kartki, forma, kondycja lub cechy).",
+  seniorHelpBulletAiOverview:
+    "Ustaw skład przez AI stosuje najbardziej efektywny skład wskazany na podstawie dostępnych danych Hattrick.",
+  seniorHelpBulletAiTrainingAware:
+    "Tryb uwzględniający trening respektuje aktualny reżim treningowy i priorytetyzuje składy pokrywające odpowiednie sloty treningowe.",
+  seniorHelpBulletAiIgnoreTraining:
+    "Tryb ignorujący trening optymalizuje wyłącznie skuteczność meczową bez ograniczeń slotów treningowych.",
+  seniorHelpBulletAiMatchTypes:
+    "Mecze ligowe i turniejowe celują w najsilniejsze ustawienie rywalizacyjne. Sparingi korzystają z drugiego najlepszego zdrowego składu XI.",
   loadLineupUnavailable: "Brak zapisanego składu",
   loadLineupActive: "Wczytany skład",
   loadLineupError: "Błąd wczytywania składu",

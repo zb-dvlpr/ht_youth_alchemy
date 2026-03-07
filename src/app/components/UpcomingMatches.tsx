@@ -72,6 +72,7 @@ type UpcomingMatchesProps = {
   sourceSystem?: string;
   includeTournamentMatches?: boolean;
   onIncludeTournamentMatchesChange?: (next: boolean) => void;
+  setBestLineupHelpAnchor?: string;
 };
 
 export type SetBestLineupMode = "trainingAware" | "ignoreTraining";
@@ -255,6 +256,7 @@ type SetBestLineupMenuButtonProps = {
   loading: boolean;
   messages: Messages;
   onSelectMode: (matchId: number, mode: SetBestLineupMode) => void;
+  helpAnchor?: string;
 };
 
 function SetBestLineupMenuButton({
@@ -262,6 +264,7 @@ function SetBestLineupMenuButton({
   loading,
   messages,
   onSelectMode,
+  helpAnchor,
 }: SetBestLineupMenuButtonProps) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -290,6 +293,7 @@ function SetBestLineupMenuButton({
       disabled={loading}
       aria-label={messages.setBestLineupTooltip}
       ref={triggerRef}
+      data-help-anchor={helpAnchor}
     >
       {loading ? "…" : "✨"}
     </button>
@@ -345,7 +349,8 @@ function renderMatch(
   onSetBestLineupMode?: (matchId: number, mode: SetBestLineupMode) => void,
   bestLineupPending?: boolean,
   isLoaded?: boolean,
-  assignedCount?: number
+  assignedCount?: number,
+  setBestLineupHelpAnchor?: string
 ) {
   const isUpcoming = match.Status === "UPCOMING";
   const canSubmit = Boolean(teamId) && isUpcoming && hasLineup;
@@ -444,6 +449,7 @@ function renderMatch(
             loading={Boolean(bestLineupPending)}
             messages={messages}
             onSelectMode={onSetBestLineupMode!}
+            helpAnchor={setBestLineupHelpAnchor}
           />
         </div>
       ) : null}
@@ -544,6 +550,7 @@ export default function UpcomingMatches({
   sourceSystem = "Youth",
   includeTournamentMatches = true,
   onIncludeTournamentMatchesChange,
+  setBestLineupHelpAnchor,
 }: UpcomingMatchesProps) {
   const { addNotification } = useNotifications();
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
@@ -955,7 +962,7 @@ export default function UpcomingMatches({
       />
       {sortedUpcoming.length > 0 ? (
         <ul className={styles.matchList}>
-          {sortedUpcoming.map((match) => {
+          {sortedUpcoming.map((match, index) => {
             const matchId = Number(match.MatchID);
             if (!Number.isFinite(matchId)) return null;
             const state = matchStates[matchId] ?? { status: "idle" };
@@ -977,7 +984,8 @@ export default function UpcomingMatches({
               handleSetBestLineupMode,
               bestLineupPendingMatchId === matchId,
               loadedMatchId === matchId,
-              assignedCount
+              assignedCount,
+              index === 0 ? setBestLineupHelpAnchor : undefined
             );
           })}
         </ul>
@@ -985,7 +993,7 @@ export default function UpcomingMatches({
         <>
           <p className={styles.muted}>{messages.noUpcomingMatches}</p>
           <ul className={styles.matchList}>
-            {sortedAll.map((match) => {
+            {sortedAll.map((match, index) => {
               const matchId = Number(match.MatchID);
               if (!Number.isFinite(matchId)) return null;
               const state = matchStates[matchId] ?? { status: "idle" };
@@ -1007,7 +1015,8 @@ export default function UpcomingMatches({
                 handleSetBestLineupMode,
                 bestLineupPendingMatchId === matchId,
                 loadedMatchId === matchId,
-                assignedCount
+                assignedCount,
+                index === 0 ? setBestLineupHelpAnchor : undefined
               );
             })}
           </ul>

@@ -95,6 +95,8 @@ export const messagesSv: Messages = {
       "Seniorlagsoptimering tillagd med sorterbar spelarlista, skillsmatris med enkelvarden, betygsmatris och arbetsflode for uppstallning/matcher.",
     changelog_3_0_0:
       "Lansering av verktyget för seniorlagsoptimering.",
+    changelog_3_1_0:
+      "Senioroptimering har nu ett eget hjälp-overlay med guidade markeringar för Senaste uppdateringar och AI-uppställning.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -443,6 +445,23 @@ export const messagesSv: Messages = {
       "Använd AI för att optimera uppställningen för stjärnspelare och träningsupplägg.",
     helpCalloutAuto:
       "Använd AI för att välja stjärnspelare och träningsupplägg.",
+    seniorHelpTitle: "Guide for senioroptimering",
+    seniorHelpIntro:
+      "Den har vyn hjalper dig att folja relevanta andringar i seniortruppen och satta matchuppstallningar snabbare.",
+    seniorHelpCalloutUpdates:
+      "Senaste uppdateringar visar bara andringar som hittats i sparade uppdateringsjamforelser.",
+    seniorHelpCalloutSetLineupAi:
+      "Satt uppstallning med AI oppnar de tva uppstallningslagen for denna match.",
+    seniorHelpBulletLatestUpdates:
+      "En ny jamforelse sparas bara nar en uppdatering hittar verkliga andringar (t.ex. ny spelare, andrade betyg/skills, skador, kort, form, kondition eller egenskaper).",
+    seniorHelpBulletAiOverview:
+      "Satt uppstallning med AI anvander den mest effektiva uppstallningen for vinst baserat pa tillganglig Hattrick-information.",
+    seniorHelpBulletAiTrainingAware:
+      "Traningsmedvetet lage foljer aktuell traning och prioriterar uppstallningar som fyller relevanta traningsplatser.",
+    seniorHelpBulletAiIgnoreTraining:
+      "Ignorera traning optimerar bara matcheffektivitet utan krav pa traningsplatser.",
+    seniorHelpBulletAiMatchTypes:
+      "Liga- och turneringsmatcher riktas mot starkaste konkurrensuppstallning. Vanmatcher anvander en andrabasta frisk elva.",
     themeSwitchDark: "Växla till mörkt läge",
     themeSwitchLight: "Växla till ljust läge",
     helpDismissLabel: "Jag förstår",

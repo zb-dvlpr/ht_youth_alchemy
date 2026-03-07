@@ -82,6 +82,7 @@ export type Messages = {
   changelog_2_23_0: string;
   changelog_2_24_0: string;
   changelog_3_0_0: string;
+  changelog_3_1_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -388,6 +389,15 @@ export type Messages = {
   helpCalloutTraining: string;
   helpCalloutOptimize: string;
   helpCalloutAuto: string;
+  seniorHelpTitle: string;
+  seniorHelpIntro: string;
+  seniorHelpCalloutUpdates: string;
+  seniorHelpCalloutSetLineupAi: string;
+  seniorHelpBulletLatestUpdates: string;
+  seniorHelpBulletAiOverview: string;
+  seniorHelpBulletAiTrainingAware: string;
+  seniorHelpBulletAiIgnoreTraining: string;
+  seniorHelpBulletAiMatchTypes: string;
   themeSwitchDark: string;
   themeSwitchLight: string;
   helpDismissLabel: string;

@@ -90,6 +90,10 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
   const changelogEntries = useMemo(
     () => [
       {
+        version: "3.1.0",
+        entries: [messages.changelog_3_1_0],
+      },
+      {
         version: "3.0.0",
         entries: [messages.changelog_3_0_0],
       },
@@ -250,6 +254,7 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
       messages.changelog_2_21_0,
       messages.changelog_2_20_0,
       messages.changelog_2_19_0,
+      messages.changelog_3_1_0,
       messages.changelog_3_0_0,
     ]
   );
@@ -633,6 +638,9 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
                 )
               }
               aria-label={messages.clubChronicleUpdatesButton}
+              data-help-anchor={
+                activeTool === "senior" ? "senior-latest-updates" : undefined
+              }
             >
               {messages.clubChronicleUpdatesButton}
             </button>

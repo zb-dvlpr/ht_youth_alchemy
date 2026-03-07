@@ -97,6 +97,8 @@ export const messagesIt: Messages = {
       "Aggiunta ottimizzazione squadra senior: lista giocatori ordinabile, matrice skills a valore singolo, matrice valutazioni e flusso formazione/partite.",
     changelog_3_0_0:
       "Rilascio dello strumento di ottimizzazione squadra senior.",
+    changelog_3_1_0:
+      "L ottimizzazione senior aggiunge un overlay di aiuto dedicato con callout guidati per Ultimi aggiornamenti e impostazione formazione con IA.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
@@ -450,6 +452,23 @@ export const messagesIt: Messages = {
       "Usa l’IA per ottimizzare la formazione per il giocatore stella e il programma di allenamento.",
     helpCalloutAuto:
       "Usa l’IA per scegliere il giocatore stella e il programma di allenamento.",
+    seniorHelpTitle: "Guida ottimizzazione senior",
+    seniorHelpIntro:
+      "Questa vista ti aiuta a seguire i cambiamenti rilevanti della rosa senior e a impostare le formazioni piu velocemente.",
+    seniorHelpCalloutUpdates:
+      "Ultimi aggiornamenti mostra solo le differenze rilevate nei confronti salvati.",
+    seniorHelpCalloutSetLineupAi:
+      "Imposta formazione con IA apre le due modalita per questa partita.",
+    seniorHelpBulletLatestUpdates:
+      "Un nuovo confronto viene salvato solo quando un refresh rileva cambiamenti reali (per esempio nuovo giocatore, cambi di rating/skill, infortuni, cartellini, forma, resistenza o tratti).",
+    seniorHelpBulletAiOverview:
+      "Imposta formazione con IA applica la formazione piu efficace identificata per vincere in base alle informazioni Hattrick disponibili.",
+    seniorHelpBulletAiTrainingAware:
+      "Modalita con allenamento: rispetta il regime di allenamento corrente e privilegia formazioni che coprono gli slot di allenamento rilevanti.",
+    seniorHelpBulletAiIgnoreTraining:
+      "Modalita ignora allenamento: ottimizza solo l efficacia partita senza vincoli sugli slot di allenamento.",
+    seniorHelpBulletAiMatchTypes:
+      "Campionato e tornei puntano alla configurazione competitiva piu forte. Le amichevoli usano un undici sano di secondo livello.",
     themeSwitchDark: "Passa alla modalità scura",
     themeSwitchLight: "Passa alla modalità chiara",
     helpDismissLabel: "Ho capito",

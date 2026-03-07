@@ -97,6 +97,8 @@ export const messagesPt: Messages = {
       "Adicionada otimização do time sênior com lista de jogadores ordenável, matriz de skills em valor único, matriz de notas e fluxo de escalação/partidas.",
     changelog_3_0_0:
       "Lançamento da ferramenta de otimização do time sênior.",
+    changelog_3_1_0:
+      "A otimização sênior agora tem overlay de ajuda dedicado com callouts guiados para Últimas atualizações e escalação por IA.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -449,6 +451,23 @@ export const messagesPt: Messages = {
       "Use a IA para otimizar a escalação para o jogador estrela e o regime de treino.",
     helpCalloutAuto:
       "Use a IA para selecionar o jogador estrela e o regime de treino.",
+    seniorHelpTitle: "Guia de otimizacao senior",
+    seniorHelpIntro:
+      "Esta visao ajuda a acompanhar mudancas relevantes no elenco senior e a definir escalacoes mais rapido.",
+    seniorHelpCalloutUpdates:
+      "Ultimas atualizacoes mostra apenas mudancas detectadas nas comparacoes de refresh salvas.",
+    seniorHelpCalloutSetLineupAi:
+      "Definir escalacao com IA abre os dois modos de escalacao para esta partida.",
+    seniorHelpBulletLatestUpdates:
+      "Uma nova comparacao so e salva quando um refresh detecta mudancas reais (por exemplo novo jogador, mudancas de notas/skills, lesoes, cartoes, forma, resistencia ou tracos).",
+    seniorHelpBulletAiOverview:
+      "Definir escalacao com IA aplica a escalacao mais eficaz identificada para vencer com base nas informacoes disponiveis do Hattrick.",
+    seniorHelpBulletAiTrainingAware:
+      "Modo com treino: respeita o regime de treino atual e prioriza escalacoes que cobrem os slots de treino relevantes.",
+    seniorHelpBulletAiIgnoreTraining:
+      "Modo ignorar treino: otimiza apenas a eficacia da partida sem restricoes de slots de treino.",
+    seniorHelpBulletAiMatchTypes:
+      "Liga e torneio buscam a configuracao competitiva mais forte. Em amistosos, usa-se um XI saudavel de segundo nivel.",
     themeSwitchDark: "Mudar para modo escuro",
     themeSwitchLight: "Mudar para modo claro",
     helpDismissLabel: "Entendi",

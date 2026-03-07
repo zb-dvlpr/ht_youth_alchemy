@@ -177,11 +177,14 @@ const SENIOR_REFRESH_REQUEST_EVENT = "ya:senior-refresh-request";
 const SENIOR_REFRESH_STOP_EVENT = "ya:senior-refresh-stop";
 const SENIOR_REFRESH_STATE_EVENT = "ya:senior-refresh-state";
 const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
+const SENIOR_HELP_ANCHOR_UPDATES = "[data-help-anchor='senior-latest-updates']";
+const SENIOR_HELP_ANCHOR_SET_LINEUP_AI = "[data-help-anchor='senior-set-lineup-ai']";
 
 const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
 const LAST_REFRESH_STORAGE_KEY = "ya_senior_last_refresh_ts_v1";
 const LIST_SORT_STORAGE_KEY = "ya_senior_player_list_sort_v1";
+const SENIOR_HELP_STORAGE_KEY = "ya_senior_help_dismissed_v1";
 const SENIOR_UPDATES_SCHEMA_VERSION = 3;
 const DETAILS_TTL_MS = 60 * 60 * 1000;
 const SENIOR_DETAILS_CONCURRENCY = 6;
@@ -1044,6 +1047,22 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     useState<PlayerDetailsPanelTab>("details");
   const [showSeniorSkillBonusInMatrix, setShowSeniorSkillBonusInMatrix] =
     useState(true);
+  const [showHelp, setShowHelp] = useState(false);
+  const [currentToken, setCurrentToken] = useState<string | null>(null);
+  const [helpCallouts, setHelpCallouts] = useState<
+    {
+      id: string;
+      text: string;
+      style: CSSProperties;
+      hideIndex?: boolean;
+      placement?:
+        | "above-left"
+        | "above-center"
+        | "below-center"
+        | "right-center"
+        | "left-center";
+    }[]
+  >([]);
   const [stateRestored, setStateRestored] = useState(false);
   const [stalenessDays, setStalenessDays] = useState(1);
   const [dataRestored, setDataRestored] = useState(false);
@@ -1067,6 +1086,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   } | null>(null);
 
   const refreshRunSeqRef = useRef(0);
+  const dashboardRef = useRef<HTMLDivElement | null>(null);
   const activeRefreshRunIdRef = useRef<number | null>(null);
   const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
   const staleRefreshAttemptedRef = useRef(false);
@@ -3082,16 +3102,213 @@ const refreshDetailsForPlayers = async (
       addNotification(messages.notificationRefreshStoppedManual);
     };
     const handleUpdatesOpen = () => setUpdatesOpen(true);
+    const handleHelpOpen = () => setShowHelp(true);
 
     window.addEventListener(SENIOR_REFRESH_REQUEST_EVENT, handleRefresh);
     window.addEventListener(SENIOR_REFRESH_STOP_EVENT, handleStop);
     window.addEventListener(SENIOR_LATEST_UPDATES_OPEN_EVENT, handleUpdatesOpen);
+    window.addEventListener("ya:help-open", handleHelpOpen);
     return () => {
       window.removeEventListener(SENIOR_REFRESH_REQUEST_EVENT, handleRefresh);
       window.removeEventListener(SENIOR_REFRESH_STOP_EVENT, handleStop);
       window.removeEventListener(SENIOR_LATEST_UPDATES_OPEN_EVENT, handleUpdatesOpen);
+      window.removeEventListener("ya:help-open", handleHelpOpen);
     };
   }, [addNotification, messages.notificationRefreshStoppedManual]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+    const checkHelpVisibilityFromToken = async () => {
+      try {
+        const { payload } = await fetchChppJson<{ raw?: string }>("/api/chpp/oauth/check-token", {
+          cache: "no-store",
+        });
+        const raw = payload?.raw ?? "";
+        const match = raw.match(/<Token>(.*?)<\/Token>/);
+        const token = match?.[1]?.trim() ?? null;
+        if (cancelled) return;
+        setCurrentToken(token);
+        if (!token) {
+          setShowHelp(false);
+          return;
+        }
+        const dismissedToken = window.localStorage.getItem(SENIOR_HELP_STORAGE_KEY);
+        if (dismissedToken !== token) {
+          setShowHelp(true);
+        }
+      } catch (error) {
+        if (cancelled) return;
+        if (error instanceof ChppAuthRequiredError) {
+          setCurrentToken(null);
+          setShowHelp(false);
+        }
+      }
+    };
+
+    void checkHelpVisibilityFromToken();
+    const handleFocus = () => {
+      void checkHelpVisibilityFromToken();
+    };
+    window.addEventListener("focus", handleFocus);
+    window.addEventListener("pageshow", handleFocus);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("focus", handleFocus);
+      window.removeEventListener("pageshow", handleFocus);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showHelp) {
+      setHelpCallouts([]);
+      return;
+    }
+    const CALL_OUT_MAX_WIDTH = 340;
+    const targets: Array<{
+      id: string;
+      selector: string;
+      text: string;
+      placement:
+        | "above-left"
+        | "above-center"
+        | "below-center"
+        | "right-center"
+        | "left-center";
+      hideIndex?: boolean;
+      offsetX?: number;
+      offsetY?: number;
+    }> = [
+      {
+        id: "updates",
+        selector: SENIOR_HELP_ANCHOR_UPDATES,
+        text: messages.seniorHelpCalloutUpdates,
+        placement: "below-center",
+      },
+      {
+        id: "set-lineup-ai",
+        selector: SENIOR_HELP_ANCHOR_SET_LINEUP_AI,
+        text: messages.seniorHelpCalloutSetLineupAi,
+        placement: "left-center",
+      },
+    ];
+    const measureWidth = (text: string, hideIndex: boolean) => {
+      const probe = document.createElement("div");
+      probe.className = styles.helpCallout;
+      probe.style.position = "fixed";
+      probe.style.visibility = "hidden";
+      probe.style.pointerEvents = "none";
+      probe.style.maxWidth = `${CALL_OUT_MAX_WIDTH}px`;
+      if (!hideIndex) {
+        const badge = document.createElement("span");
+        badge.className = styles.helpCalloutIndex;
+        badge.textContent = "1";
+        probe.appendChild(badge);
+      }
+      const textSpan = document.createElement("span");
+      textSpan.className = styles.helpCalloutText;
+      textSpan.textContent = text;
+      probe.appendChild(textSpan);
+      document.body.appendChild(probe);
+      const width = probe.getBoundingClientRect().width;
+      probe.remove();
+      return Math.min(width, CALL_OUT_MAX_WIDTH);
+    };
+
+    const computeCallouts = () => {
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+      const next = targets.flatMap((target) => {
+        const el = document.querySelector(target.selector) as HTMLElement | null;
+        if (!el) return [];
+        const rect = el.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        let left = centerX;
+        let top = centerY;
+        let transform = "translate(-50%, -50%)";
+        const offsetX = target.offsetX ?? 0;
+        const offsetY = target.offsetY ?? 0;
+        switch (target.placement) {
+          case "above-left":
+            left = rect.left + 10;
+            top = rect.top - 8;
+            transform = "translate(0, -100%)";
+            break;
+          case "above-center":
+            left = centerX;
+            top = rect.top - 10;
+            transform = "translate(-50%, -100%)";
+            break;
+          case "below-center":
+            left = centerX;
+            top = rect.top + rect.height + 10;
+            transform = "translate(-50%, 0)";
+            break;
+          case "right-center":
+            left = rect.left + rect.width + 10;
+            top = centerY;
+            transform = "translate(0, -50%)";
+            break;
+          case "left-center":
+            left = rect.left - 10;
+            top = centerY;
+            transform = "translate(-100%, -50%)";
+            break;
+          default:
+            break;
+        }
+        left += offsetX;
+        top += offsetY;
+        const calloutWidth = measureWidth(target.text, target.hideIndex ?? false);
+        const clampedLeft = Math.min(Math.max(left, 12), viewportWidth - 12);
+        const maxLeft = viewportWidth - 12;
+        const minLeft = 12;
+        const needsCenterClamp = transform.includes("-50%");
+        const clampedLeftAdjusted = needsCenterClamp
+          ? Math.min(
+              Math.max(clampedLeft, minLeft + calloutWidth / 2),
+              maxLeft - calloutWidth / 2
+            )
+          : clampedLeft;
+        const pointerXRaw =
+          target.placement === "above-center" || target.placement === "below-center"
+            ? centerX - clampedLeftAdjusted + calloutWidth / 2
+            : centerX - clampedLeftAdjusted;
+        const pointerX = Math.min(Math.max(pointerXRaw, 18), calloutWidth - 18);
+        const clampedTop = Math.min(Math.max(top, 12), viewportHeight - 12);
+        return [
+          {
+            id: target.id,
+            text: target.text,
+            style: {
+              left: clampedLeftAdjusted,
+              top: clampedTop,
+              maxWidth: `${CALL_OUT_MAX_WIDTH}px`,
+              transform,
+              "--callout-pointer-x": `${pointerX}px`,
+            } as CSSProperties,
+            hideIndex: target.hideIndex ?? false,
+            placement: target.placement,
+          },
+        ];
+      });
+      setHelpCallouts(next);
+    };
+
+    const schedule = () => {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(computeCallouts);
+      });
+    };
+    schedule();
+    window.addEventListener("resize", schedule);
+    window.addEventListener("scroll", schedule, true);
+    return () => {
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("scroll", schedule, true);
+    };
+  }, [messages.seniorHelpCalloutSetLineupAi, messages.seniorHelpCalloutUpdates, showHelp]);
 
   const specialtyByName = useMemo(() => {
     const map: Record<string, number | undefined> = {};
@@ -3198,7 +3415,7 @@ const refreshDetailsForPlayers = async (
   };
 
   return (
-    <div className={styles.dashboardStack}>
+    <div className={styles.dashboardStack} ref={dashboardRef}>
       {loadError ? (
         <div className={styles.errorBox}>
           <h2 className={styles.sectionTitle}>{messages.unableToLoadPlayers}</h2>
@@ -3654,8 +3871,31 @@ const refreshDetailsForPlayers = async (
         onClose={() => setOpponentFormationsModal(null)}
       />
 
+      {showHelp ? (
+        <div className={styles.helpOverlay} aria-hidden="true" style={{ position: "fixed" }}>
+          <div className={styles.helpCallouts}>
+            {helpCallouts.map((callout, index) => (
+              <div
+                key={callout.id}
+                className={styles.helpCallout}
+                style={callout.style}
+                data-pointer={callout.hideIndex ? "left" : "right"}
+                data-placement={callout.placement}
+              >
+                {!callout.hideIndex ? (
+                  <span className={styles.helpCalloutIndex}>{index + 1}</span>
+                ) : null}
+                <span className={styles.helpCalloutText}>{callout.text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
       <div className={styles.dashboardGrid}>
-        <div className={styles.card}>
+        <div
+          className={`${styles.card}${showHelp ? ` ${styles.helpDisabledColumn}` : ""}`}
+          aria-hidden={showHelp ? "true" : undefined}
+        >
           <div className={styles.listHeader}>
             <h2 className={`${styles.sectionTitle} ${styles.listHeaderTitle}`}>
               {messages.seniorPlayerListTitle}
@@ -4133,7 +4373,32 @@ const refreshDetailsForPlayers = async (
         </div>
 
         <div className={styles.columnStack}>
-          <PlayerDetailsPanel
+          {showHelp ? (
+            <div className={styles.helpCard}>
+              <h2 className={styles.helpTitle}>{messages.seniorHelpTitle}</h2>
+              <p className={styles.helpIntro}>{messages.seniorHelpIntro}</p>
+              <ul className={styles.helpList}>
+                <li>{messages.seniorHelpBulletLatestUpdates}</li>
+                <li>{messages.seniorHelpBulletAiOverview}</li>
+                <li>{messages.seniorHelpBulletAiTrainingAware}</li>
+                <li>{messages.seniorHelpBulletAiIgnoreTraining}</li>
+                <li>{messages.seniorHelpBulletAiMatchTypes}</li>
+              </ul>
+              <button
+                type="button"
+                className={styles.helpDismiss}
+                onClick={() => {
+                  setShowHelp(false);
+                  if (typeof window !== "undefined") {
+                    window.localStorage.setItem(SENIOR_HELP_STORAGE_KEY, currentToken ?? "1");
+                  }
+                }}
+              >
+                {messages.helpDismissLabel}
+              </button>
+            </div>
+          ) : (
+            <PlayerDetailsPanel
             selectedPlayer={selectedPanelPlayer}
             detailsData={selectedPanelDetails}
             loading={false}
@@ -4195,9 +4460,13 @@ const refreshDetailsForPlayers = async (
             onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
             messages={messages}
           />
+          )}
         </div>
 
-        <div className={styles.columnStack}>
+        <div
+          className={`${styles.columnStack}${showHelp ? ` ${styles.helpDisabledColumn}` : ""}`}
+          aria-hidden={showHelp ? "true" : undefined}
+        >
           <LineupField
             assignments={assignments}
             behaviors={behaviors}
@@ -4275,6 +4544,7 @@ const refreshDetailsForPlayers = async (
             sourceSystem="Hattrick"
             includeTournamentMatches={includeTournamentMatches}
             onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
+            setBestLineupHelpAnchor="senior-set-lineup-ai"
             onRefresh={onRefreshMatchesOnly}
             onSetBestLineupMode={(matchId, mode) => {
               return runSetBestLineupPredictRatings(matchId, mode);

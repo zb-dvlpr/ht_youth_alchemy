@@ -719,6 +719,13 @@ export const messagesEn: Messages = {
     specialtyHeadSpecialist: "Head specialist",
     specialtyResilient: "Resilient",
     specialtySupport: "Support",
+    motherClubBonusTooltip: "Mother club bonus",
+    seniorSkillLevelLabels:
+      "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+    seniorTraitsSentenceExperienceLeadership:
+      "Has {{experienceLevel}} ({{experienceValue}}) experience and {{leadershipLevel}} ({{leadershipValue}}) leadership.",
+    seniorTraitsSentenceLoyalty:
+      "Has {{loyaltyLevel}} ({{loyaltyValue}}) loyalty.",
     hiddenSpecialtyTooltip: "Hidden specialty uncovered from match events",
     hiddenSpecialtyTooltipLinkHint: "Click to open the match where it was discovered",
     skillsLabel: "Skills",

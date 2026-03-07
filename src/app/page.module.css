@@ -3115,6 +3115,15 @@ html[data-theme="dark"] .profileUpdated {
   color: #b9b0a5;
 }
 
+html[data-theme="dark"] .seniorPersonaLine {
+  color: #c7b9a5;
+}
+
+html[data-theme="dark"] .seniorMotherClubHeart,
+html[data-theme="dark"] .seniorMotherClubHeartLarge {
+  color: #ff756b;
+}
+
 html[data-theme="dark"] .infoValue,
 html[data-theme="dark"] .skillLabel {
   color: #f3ede4;
@@ -3862,6 +3871,33 @@ html[data-theme="dark"] .spinner {
 .profileUpdated {
   font-size: 12px;
   color: #8a8074;
+}
+
+.seniorPersonaLine {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #7a6e60;
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+.seniorMotherClubHeart {
+  color: #c7362f;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seniorMotherClubHeartLarge {
+  color: #c7362f;
+  font-size: 19px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(1px);
 }
 
 .detailsRefresh {
@@ -5172,6 +5208,17 @@ html[data-theme="dark"] .spinner {
   gap: 6px;
 }
 
+.slotTooltipDivider {
+  height: 1px;
+  margin: 2px 0 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(130, 110, 82, 0),
+    rgba(130, 110, 82, 0.55),
+    rgba(130, 110, 82, 0)
+  );
+}
+
 .slotTooltipGrid .skillRow {
   grid-template-columns: 110px minmax(0, 1fr) auto;
   gap: 10px;
@@ -5227,6 +5274,15 @@ html[data-theme="dark"] .slotTooltipHint {
 
 html[data-theme="dark"] .slotTooltipMeta {
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .slotTooltipDivider {
+  background: linear-gradient(
+    90deg,
+    rgba(185, 168, 144, 0),
+    rgba(185, 168, 144, 0.55),
+    rgba(185, 168, 144, 0)
+  );
 }
 
 html[data-theme="dark"] .slotTooltipCard .skillLabel,

@@ -42,6 +42,11 @@ export type YouthPlayerDetails = {
   InjuryLevel?: number;
   Form?: number;
   StaminaSkill?: number;
+  PersonalityStatement?: string;
+  Experience?: number;
+  Leadership?: number;
+  Loyalty?: number;
+  MotherClubBonus?: boolean;
   OwningYouthTeam?: {
     YouthTeamName?: string;
     SeniorTeam?: {
@@ -90,6 +95,7 @@ type PlayerDetailsPanelProps = {
   ratingsMatrixSpecialtyByName: Record<string, number | undefined>;
   ratingsMatrixHiddenSpecialtyByName?: Record<string, boolean>;
   ratingsMatrixHiddenSpecialtyMatchHrefByName?: Record<string, string | undefined>;
+  ratingsMatrixMotherClubBonusByName?: Record<string, boolean>;
   matrixNewPlayerIds?: number[];
   matrixNewRatingsByPlayerId?: Record<number, number[]>;
   matrixNewSkillsCurrentByPlayerId?: Record<number, string[]>;
@@ -313,6 +319,7 @@ export default function PlayerDetailsPanel({
   ratingsMatrixSpecialtyByName,
   ratingsMatrixHiddenSpecialtyByName,
   ratingsMatrixHiddenSpecialtyMatchHrefByName,
+  ratingsMatrixMotherClubBonusByName,
   matrixNewPlayerIds = [],
   matrixNewRatingsByPlayerId = {},
   matrixNewSkillsCurrentByPlayerId = {},
@@ -604,6 +611,66 @@ export default function PlayerDetailsPanel({
           };
         })()
       : null;
+  const seniorSkillLevelLabels = useMemo(() => {
+    const raw = messages.seniorSkillLevelLabels
+      .split("|")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (raw.length >= 20) return raw.slice(0, 20);
+    return [
+      "disastrous",
+      "wretched",
+      "poor",
+      "weak",
+      "inadequate",
+      "passable",
+      "solid",
+      "excellent",
+      "formidable",
+      "outstanding",
+      "brilliant",
+      "magnificent",
+      "world class",
+      "supernatural",
+      "titanic",
+      "extra-terrestrial",
+      "mythical",
+      "magical",
+      "utopian",
+      "divine",
+    ];
+  }, [messages.seniorSkillLevelLabels]);
+  const formatSeniorSkillLevel = (value: number | undefined) => {
+    if (typeof value !== "number" || value <= 0) return messages.unknownLabel;
+    const index = Math.min(20, Math.max(1, Math.floor(value))) - 1;
+    return seniorSkillLevelLabels[index] ?? messages.unknownLabel;
+  };
+  const seniorTraitsSentence =
+    playerKind !== "senior" || !detailsData
+      ? null
+      : (() => {
+          const parts: string[] = [];
+          if (
+            typeof detailsData.Experience === "number" &&
+            typeof detailsData.Leadership === "number"
+          ) {
+            parts.push(
+              messages.seniorTraitsSentenceExperienceLeadership
+                .replace("{{experienceLevel}}", formatSeniorSkillLevel(detailsData.Experience))
+                .replace("{{experienceValue}}", String(detailsData.Experience))
+                .replace("{{leadershipLevel}}", formatSeniorSkillLevel(detailsData.Leadership))
+                .replace("{{leadershipValue}}", String(detailsData.Leadership))
+            );
+          }
+          if (typeof detailsData.Loyalty === "number") {
+            parts.push(
+              messages.seniorTraitsSentenceLoyalty
+                .replace("{{loyaltyLevel}}", formatSeniorSkillLevel(detailsData.Loyalty))
+                .replace("{{loyaltyValue}}", String(detailsData.Loyalty))
+            );
+          }
+          return parts.length ? parts.join(" ") : null;
+        })();
 
   const renderDetails = () => {
     if (loading) {
@@ -666,6 +733,16 @@ export default function PlayerDetailsPanel({
               <h4 className={styles.profileName}>
                 {detailsData.FirstName} {detailsData.LastName}
               </h4>
+              {playerKind === "senior" && detailsData.MotherClubBonus ? (
+                <Tooltip content={messages.motherClubBonusTooltip}>
+                  <span
+                    className={styles.seniorMotherClubHeartLarge}
+                    aria-label={messages.motherClubBonusTooltip}
+                  >
+                    ❤
+                  </span>
+                </Tooltip>
+              ) : null}
               {selectedPlayerHasNewMarker ? (
                 <span className={styles.matrixNewPill}>
                   {messages.matrixNewPillLabel}
@@ -677,6 +754,14 @@ export default function PlayerDetailsPanel({
                 </span>
               ) : null}
             </div>
+            {playerKind === "senior" && detailsData.PersonalityStatement ? (
+              <p className={styles.seniorPersonaLine}>
+                {detailsData.PersonalityStatement}
+              </p>
+            ) : null}
+            {playerKind === "senior" && seniorTraitsSentence ? (
+              <p className={styles.seniorPersonaLine}>{seniorTraitsSentence}</p>
+            ) : null}
             <p className={styles.profileMeta}>
               {detailsData.Age !== undefined ? (
                 <span className={styles.metaItem}>
@@ -1223,6 +1308,16 @@ export default function PlayerDetailsPanel({
                       >
                         {row.name}
                       </button>
+                      {playerKind === "senior" && details?.MotherClubBonus ? (
+                        <Tooltip content={messages.motherClubBonusTooltip}>
+                          <span
+                            className={styles.seniorMotherClubHeart}
+                            aria-label={messages.motherClubBonusTooltip}
+                          >
+                            ❤
+                          </span>
+                        </Tooltip>
+                      ) : null}
                       {rowInjuryStatus &&
                       !rowInjuryStatus.isHealthy ? (
                         <span
@@ -1559,6 +1654,7 @@ export default function PlayerDetailsPanel({
           specialtyByName={ratingsMatrixSpecialtyByName}
           hiddenSpecialtyByName={ratingsMatrixHiddenSpecialtyByName}
           hiddenSpecialtyMatchHrefByName={ratingsMatrixHiddenSpecialtyMatchHrefByName}
+          motherClubBonusByName={ratingsMatrixMotherClubBonusByName}
           injuryStatusByName={ratingsMatrixInjuryStatusByName}
           newPlayerIds={matrixNewPlayerIds}
           newRatingsByPlayerId={matrixNewRatingsByPlayerId}

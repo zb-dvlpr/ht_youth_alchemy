@@ -22,6 +22,7 @@ import PlayerDetailsPanel, { type PlayerDetailsPanelTab } from "./PlayerDetailsP
 import LineupField, { LineupAssignments, LineupBehaviors } from "./LineupField";
 import UpcomingMatches, { Match, MatchesResponse } from "./UpcomingMatches";
 import type { SetBestLineupMode } from "./UpcomingMatches";
+import Tooltip from "./Tooltip";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -57,6 +58,11 @@ type SeniorPlayerDetails = {
   Cards?: number;
   TSI?: number;
   Salary?: number;
+  PersonalityStatement?: string;
+  Experience?: number;
+  Leadership?: number;
+  Loyalty?: number;
+  MotherClubBonus?: boolean;
   PlayerSkills?: Record<string, SkillValue>;
   LastMatch?: {
     Date?: string;
@@ -267,6 +273,17 @@ const parseNumber = (value: unknown): number | null => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const parseBoolean = (value: unknown): boolean | null => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true" || normalized === "1") return true;
+    if (normalized === "false" || normalized === "0") return false;
+  }
+  return null;
+};
+
 const parseSkill = (value: unknown): number | null => {
   if (value === null || value === undefined) return null;
   if (typeof value === "number") return Number.isFinite(value) ? value : null;
@@ -364,6 +381,77 @@ const normalizeSeniorPlayerDetails = (
     node.PlayerSkills && typeof node.PlayerSkills === "object"
       ? parseSkill((node.PlayerSkills as Record<string, unknown>).StaminaSkill)
       : null;
+  const trainerData =
+    node.TrainerData && typeof node.TrainerData === "object"
+      ? (node.TrainerData as Record<string, unknown>)
+      : null;
+  const agreeability = parseNumber(trainerData?.Agreeability ?? node.Agreeability);
+  const aggressiveness = parseNumber(trainerData?.Aggressiveness ?? node.Aggressiveness);
+  const honesty = parseNumber(trainerData?.Honesty ?? node.Honesty);
+  const experience = parseNumber(trainerData?.Experience ?? node.Experience);
+  const leadership = parseNumber(trainerData?.Leadership ?? node.Leadership);
+  const loyalty = parseNumber(trainerData?.Loyalty ?? node.Loyalty);
+  const motherClubBonus = parseBoolean(
+    trainerData?.MotherClubBonus ?? node.MotherClubBonus
+  );
+  const agreeabilityText = (() => {
+    switch (agreeability) {
+      case 5:
+        return "Beloved team member";
+      case 4:
+        return "Popular guy";
+      case 3:
+        return "Sympathetic guy";
+      case 2:
+        return "Pleasant guy";
+      case 1:
+        return "Controversial person";
+      case 0:
+        return "Nasty fellow";
+      default:
+        return null;
+    }
+  })();
+  const aggressivenessText = (() => {
+    switch (aggressiveness) {
+      case 5:
+        return "Unstable";
+      case 4:
+        return "Fiery";
+      case 3:
+        return "Temperamental";
+      case 2:
+        return "Balanced";
+      case 1:
+        return "Calm";
+      case 0:
+        return "Tranquil";
+      default:
+        return null;
+    }
+  })();
+  const honestyText = (() => {
+    switch (honesty) {
+      case 5:
+        return "Saintly";
+      case 4:
+        return "Righteous";
+      case 3:
+        return "Upright";
+      case 2:
+        return "Honest";
+      case 1:
+        return "Dishonest";
+      case 0:
+        return "Infamous";
+      default:
+        return null;
+    }
+  })();
+  const personalityStatement =
+    agreeabilityText && aggressivenessText && honestyText
+      ? `${/^[AEIOU]/.test(agreeabilityText) ? "An" : "A"} ${agreeabilityText.toLowerCase()} who is ${aggressivenessText.toLowerCase()} and ${honestyText.toLowerCase()}.`
+      : undefined;
 
   return {
     PlayerID: playerId,
@@ -383,6 +471,11 @@ const normalizeSeniorPlayerDetails = (
     Cards: parseNumber(node.Cards) ?? undefined,
     TSI: parseNumber(node.TSI) ?? undefined,
     Salary: parseNumber(node.Salary) ?? undefined,
+    PersonalityStatement: personalityStatement,
+    Experience: experience ?? undefined,
+    Leadership: leadership ?? undefined,
+    Loyalty: loyalty ?? undefined,
+    MotherClubBonus: motherClubBonus ?? undefined,
     PlayerSkills:
       node.PlayerSkills && typeof node.PlayerSkills === "object"
         ? (node.PlayerSkills as Record<string, SkillValue>)
@@ -885,6 +978,11 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         InjuryLevel?: number;
         Form?: number;
         StaminaSkill?: number;
+        PersonalityStatement?: string;
+        Experience?: number;
+        Leadership?: number;
+        Loyalty?: number;
+        MotherClubBonus?: boolean;
         PlayerSkills?: Record<string, SkillValue>;
         LastMatch?: {
           Date?: string;
@@ -907,6 +1005,11 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         InjuryLevel: detail.InjuryLevel ?? fallback?.InjuryLevel,
         Form: detail.Form ?? fallback?.Form,
         StaminaSkill: detail.StaminaSkill ?? fallback?.StaminaSkill,
+        PersonalityStatement: detail.PersonalityStatement,
+        Experience: detail.Experience,
+        Leadership: detail.Leadership,
+        Loyalty: detail.Loyalty,
+        MotherClubBonus: detail.MotherClubBonus,
         PlayerSkills: detail.PlayerSkills ?? fallback?.PlayerSkills,
         LastMatch: detail.LastMatch,
       });
@@ -1022,6 +1125,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         InjuryLevel?: number;
         Age?: number;
         AgeDays?: number;
+        Form?: SkillValue | number | string | null;
+        StaminaSkill?: SkillValue | number | string | null;
         PlayerSkills?: Record<string, SkillValue>;
       }
     >();
@@ -1034,7 +1139,13 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         Specialty: player.Specialty,
         Age: player.Age,
         AgeDays: player.AgeDays,
-        PlayerSkills: detailsById.get(player.PlayerID)?.PlayerSkills,
+        Form:
+          detailsById.get(player.PlayerID)?.Form ??
+          (typeof player.Form === "number" ? player.Form : null),
+        StaminaSkill:
+          detailsById.get(player.PlayerID)?.StaminaSkill ??
+          (typeof player.StaminaSkill === "number" ? player.StaminaSkill : null),
+        PlayerSkills: detailsById.get(player.PlayerID)?.PlayerSkills ?? player.PlayerSkills,
         InjuryLevel: player.InjuryLevel,
       });
     });
@@ -1155,6 +1266,44 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return resolved;
   };
 
+  const refreshDetailsForPlayers = async (
+    playersToRefresh: SeniorPlayer[],
+    options?: {
+      isStopped?: () => boolean;
+      onProgress?: (completed: number, total: number) => void;
+    }
+  ) => {
+    const total = Math.max(1, playersToRefresh.length);
+    let completed = 0;
+    const rows = await mapWithConcurrency(
+      playersToRefresh,
+      SENIOR_DETAILS_CONCURRENCY,
+      async (player) => {
+        const detail = await fetchPlayerDetailsById(player.PlayerID);
+        completed += 1;
+        options?.onProgress?.(completed, total);
+        return {
+          playerId: player.PlayerID,
+          detail,
+          fetchedAt: Date.now(),
+        };
+      }
+    );
+    if (options?.isStopped?.()) return false;
+    const detailsPatch: Record<number, PlayerDetailCacheEntry> = {};
+    rows.forEach((row) => {
+      if (!row.detail) return;
+      detailsPatch[row.playerId] = {
+        data: row.detail,
+        fetchedAt: row.fetchedAt,
+      };
+    });
+    if (Object.keys(detailsPatch).length > 0) {
+      setDetailsCache((prev) => ({ ...prev, ...detailsPatch }));
+    }
+    return true;
+  };
+
   const ratingsByPlayerId = useMemo(() => {
     const payload: Record<number, Record<string, number>> = {};
     (ratingsResponse?.players ?? []).forEach((row) => {
@@ -1170,6 +1319,15 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     });
     return map;
   }, [players]);
+  const motherClubBonusByName = useMemo(() => {
+    const payload: Record<string, boolean> = {};
+    players.forEach((player) => {
+      const playerName = formatPlayerName(player);
+      if (!playerName) return;
+      payload[playerName] = Boolean(detailsById.get(player.PlayerID)?.MotherClubBonus);
+    });
+    return payload;
+  }, [detailsById, players]);
 
   const buildUpdatesEntry = (
     prevPlayers: SeniorPlayer[],
@@ -1271,37 +1429,19 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
 
       setRefreshStatus(messages.refreshStatusFetchingPlayerDetails);
       setRefreshProgressPct(30);
-      let detailsCompleted = 0;
-      const detailRows = await mapWithConcurrency(
+      const detailsRefreshed = await refreshDetailsForPlayers(
         nextPlayers,
-        SENIOR_DETAILS_CONCURRENCY,
-        async (player) => {
-          const detail = await fetchPlayerDetailsById(player.PlayerID);
-          detailsCompleted += 1;
-          if (!isStopped()) {
-            const pct = Math.round((detailsCompleted / Math.max(1, nextPlayers.length)) * 15);
-            setRefreshProgressPct(30 + pct);
-          }
-          return {
-            playerId: player.PlayerID,
-            detail,
-            fetchedAt: Date.now(),
-          };
+        {
+          isStopped,
+          onProgress: (detailsCompleted, totalPlayers) => {
+            if (!isStopped()) {
+              const pct = Math.round((detailsCompleted / Math.max(1, totalPlayers)) * 15);
+              setRefreshProgressPct(30 + pct);
+            }
+          },
         }
       );
-      if (isStopped()) return false;
-
-      const detailsPatch: Record<number, PlayerDetailCacheEntry> = {};
-      detailRows.forEach((row) => {
-        if (!row.detail) return;
-        detailsPatch[row.playerId] = {
-          data: row.detail,
-          fetchedAt: row.fetchedAt,
-        };
-      });
-      if (Object.keys(detailsPatch).length > 0) {
-        setDetailsCache((prev) => ({ ...prev, ...detailsPatch }));
-      }
+      if (!detailsRefreshed || isStopped()) return false;
 
       setRefreshStatus(messages.refreshStatusFetchingMatches);
       setRefreshProgressPct(45);
@@ -2806,6 +2946,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
               {orderedListPlayers.map((player) => {
                 const playerDetails = detailsById.get(player.PlayerID);
                 const playerName = formatPlayerName(player);
+                const hasMotherClubBonus = Boolean(playerDetails?.MotherClubBonus);
                 const isSelected = selectedId === player.PlayerID;
                 const specialty = player.Specialty ?? null;
                 const isNameSort = sortKey === "name";
@@ -3125,6 +3266,16 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                             </span>
                           ) : null}
                           <span className={styles.playerName}>{playerName}</span>
+                          {hasMotherClubBonus ? (
+                            <Tooltip content={messages.motherClubBonusTooltip}>
+                              <span
+                                className={styles.seniorMotherClubHeart}
+                                aria-label={messages.motherClubBonusTooltip}
+                              >
+                                ❤
+                              </span>
+                            </Tooltip>
+                          ) : null}
                           {specialty && SPECIALTY_EMOJI[specialty] ? (
                             <span className={styles.playerSpecialty}>
                               {SPECIALTY_EMOJI[specialty]}
@@ -3158,8 +3309,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             lastUpdated={selectedId ? (detailsCache[selectedId]?.fetchedAt ?? null) : null}
             unlockStatus={null}
             onRefresh={() => {
-              if (!selectedId) return;
-              void ensureDetails(selectedId, true);
+              if (refreshing || players.length === 0) return;
+              void refreshDetailsForPlayers(players);
             }}
             players={panelPlayers}
             playerDetailsById={panelDetailsById}
@@ -3167,6 +3318,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             ratingsMatrixResponse={ratingsResponse}
             ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
             ratingsMatrixSpecialtyByName={specialtyByName}
+            ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
             onSelectRatingsPlayer={(playerName) => {
               const player = players.find((item) => formatPlayerName(item) === playerName);
               if (!player) return;
@@ -3214,7 +3366,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             playerDetailsById={new Map(
               Array.from(detailsById.entries()).map(([id, detail]) => [
                 id,
-                { PlayerSkills: detail.PlayerSkills },
+                {
+                  PlayerSkills: detail.PlayerSkills,
+                  InjuryLevel: detail.InjuryLevel,
+                  Form: detail.Form,
+                  StaminaSkill: detail.StaminaSkill,
+                },
               ])
             )}
             onAssign={(slotId, playerId) => {
@@ -3266,6 +3423,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
               setActiveDetailsTab("details");
               setSelectedId(playerId);
             }}
+            skillMode="single"
+            maxSkillLevel={20}
             messages={messages}
           />
           <UpcomingMatches

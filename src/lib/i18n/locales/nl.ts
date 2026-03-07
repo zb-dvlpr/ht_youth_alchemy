@@ -166,6 +166,13 @@ export const messagesNl: Messages = {
   specialtyHeadSpecialist: "Kopsterk",
   specialtyResilient: "Taai",
   specialtySupport: "Ondersteunend",
+  motherClubBonusTooltip: "Moederclubbonus",
+  seniorSkillLevelLabels:
+    "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+  seniorTraitsSentenceExperienceLeadership:
+    "Heeft {{experienceLevel}} ({{experienceValue}}) ervaring en {{leadershipLevel}} ({{leadershipValue}}) leiderschap.",
+  seniorTraitsSentenceLoyalty:
+    "Heeft {{loyaltyLevel}} ({{loyaltyValue}}) loyaliteit.",
   hiddenSpecialtyTooltip: "Verborgen specialiteit ontdekt via wedstrijdgebeurtenissen",
   hiddenSpecialtyTooltipLinkHint: "Klik om de wedstrijd te openen waarin dit ontdekt werd",
   skillsLabel: "Vaardigheden",

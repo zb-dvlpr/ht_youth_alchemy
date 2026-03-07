@@ -746,6 +746,13 @@ export const messagesSv: Messages = {
     specialtyHeadSpecialist: "Huvudspel",
     specialtyResilient: "Motståndskraftig",
     specialtySupport: "Stödjande",
+    motherClubBonusTooltip: "Moderk klubbonus",
+    seniorSkillLevelLabels:
+      "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+    seniorTraitsSentenceExperienceLeadership:
+      "Har {{experienceLevel}} ({{experienceValue}}) erfarenhet och {{leadershipLevel}} ({{leadershipValue}}) ledarskap.",
+    seniorTraitsSentenceLoyalty:
+      "Har {{loyaltyLevel}} ({{loyaltyValue}}) lojalitet.",
     hiddenSpecialtyTooltip: "Dold specialitet hittad via matchhandelser",
     hiddenSpecialtyTooltipLinkHint:
       "Klicka for att oppna matchen dar den upptacktes",

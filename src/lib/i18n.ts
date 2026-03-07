@@ -668,6 +668,10 @@ export type Messages = {
   specialtyHeadSpecialist: string;
   specialtyResilient: string;
   specialtySupport: string;
+  motherClubBonusTooltip: string;
+  seniorSkillLevelLabels: string;
+  seniorTraitsSentenceExperienceLeadership: string;
+  seniorTraitsSentenceLoyalty: string;
   hiddenSpecialtyTooltip: string;
   hiddenSpecialtyTooltipLinkHint: string;
   skillsLabel: string;

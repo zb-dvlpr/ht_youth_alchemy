@@ -756,6 +756,13 @@ export const messagesIt: Messages = {
     specialtyHeadSpecialist: "Gioco di testa",
     specialtyResilient: "Resistente",
     specialtySupport: "Supporto",
+    motherClubBonusTooltip: "Bonus squadra madre",
+    seniorSkillLevelLabels:
+      "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+    seniorTraitsSentenceExperienceLeadership:
+      "Ha esperienza {{experienceLevel}} ({{experienceValue}}) e leadership {{leadershipLevel}} ({{leadershipValue}}).",
+    seniorTraitsSentenceLoyalty:
+      "Ha lealtà {{loyaltyLevel}} ({{loyaltyValue}}).",
     hiddenSpecialtyTooltip: "Specialita nascosta scoperta dagli eventi partita",
     hiddenSpecialtyTooltipLinkHint:
       "Clicca per aprire la partita in cui e stata scoperta",

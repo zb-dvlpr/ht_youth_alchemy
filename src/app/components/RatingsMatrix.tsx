@@ -29,6 +29,7 @@ type RatingsMatrixProps = {
   specialtyByName?: Record<string, number | undefined>;
   hiddenSpecialtyByName?: Record<string, boolean>;
   hiddenSpecialtyMatchHrefByName?: Record<string, string | undefined>;
+  motherClubBonusByName?: Record<string, boolean>;
   injuryStatusByName?: Record<string, { display: string; label: string; isHealthy: boolean }>;
   newPlayerIds?: number[];
   newRatingsByPlayerId?: Record<number, number[]>;
@@ -94,6 +95,7 @@ export default function RatingsMatrix({
   specialtyByName,
   hiddenSpecialtyByName,
   hiddenSpecialtyMatchHrefByName,
+  motherClubBonusByName,
   injuryStatusByName,
   newPlayerIds = [],
   newRatingsByPlayerId = {},
@@ -304,6 +306,16 @@ export default function RatingsMatrix({
                     >
                       {row.name}
                     </button>
+                    {motherClubBonusByName?.[row.name] ? (
+                      <Tooltip content={messages.motherClubBonusTooltip}>
+                        <span
+                          className={styles.seniorMotherClubHeart}
+                          aria-label={messages.motherClubBonusTooltip}
+                        >
+                          ❤
+                        </span>
+                      </Tooltip>
+                    ) : null}
                     {injuryStatusByName?.[row.name] ? (
                       <span
                         className={

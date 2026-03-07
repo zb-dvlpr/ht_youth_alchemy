@@ -2048,12 +2048,20 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         const defenseWinner = pickBest(
           (item) => item.collective.defense > opponentCollective.defense
         );
+        const attackWinner = pickBest(
+          (item) => item.collective.attack > opponentCollective.attack
+        );
         const fallback = [...candidates].sort(
           (left, right) => right.collective.overall - left.collective.overall
         )[0];
 
         const chosenItem =
-          allSectorsWinner ?? attackDefenseWinner ?? defenseWinner ?? fallback ?? null;
+          allSectorsWinner ??
+          attackDefenseWinner ??
+          defenseWinner ??
+          attackWinner ??
+          fallback ??
+          null;
         if (chosenItem) {
           const chosenTactic =
             allSectorsWinner && chosenItem.row.formation === allSectorsWinner.row.formation

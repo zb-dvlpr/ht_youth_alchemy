@@ -459,6 +459,9 @@ export const messagesEs: Messages = {
     detailsTabLabel: "Detalles del jugador",
     skillsMatrixTabLabel: "Matriz de habilidades",
     ratingsMatrixTabLabel: "Matriz de calificaciones",
+    seniorSkillsMatrixBonusToggleLabel: "Aplicar bono",
+    seniorSkillsMatrixBonusToggleTooltip:
+      "Activa o desactiva los valores con bono efectivo en la matriz de habilidades senior (bono de club de origen o lealtad).",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N marca un valor actualizado o revelado por primera vez desde la ultima actualizacion.",
@@ -701,6 +704,8 @@ export const messagesEs: Messages = {
     sortWage: "Salario",
     sortForm: "Forma",
     sortStamina: "Resistencia",
+    sortExperience: "Experiencia",
+    sortLoyalty: "Lealtad",
     seniorCareerStatsTitle: "Estadísticas de carrera y equipo",
     seniorCareerGoalsLabel: "Goles en la carrera",
     seniorCareerHattricksLabel: "Hat-tricks en la carrera",
@@ -766,6 +771,8 @@ export const messagesEs: Messages = {
     specialtyResilient: "Resistente",
     specialtySupport: "Apoyo",
     motherClubBonusTooltip: "Bonificación de club de origen",
+    skillBonusMotherClubTooltip: "Bonificación de club de origen",
+    skillBonusLoyaltyTooltip: "Bonificación por lealtad",
     seniorSkillLevelLabels:
       "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
     seniorTraitsSentenceExperienceLeadership:

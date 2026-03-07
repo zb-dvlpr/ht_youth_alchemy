@@ -453,6 +453,9 @@ export const messagesSv: Messages = {
     detailsTabLabel: "Spelardetaljer",
     skillsMatrixTabLabel: "Färdighetsmatris",
     ratingsMatrixTabLabel: "Betygsmatris",
+    seniorSkillsMatrixBonusToggleLabel: "Anvand bonus",
+    seniorSkillsMatrixBonusToggleTooltip:
+      "Slår av eller pa effektiva bonusvarden i seniorernas fardighetsmatris (moderklubbs- eller lojalitetsbonus).",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N markerar ett varde som uppdaterats eller nyupptackts sedan senaste uppdatering.",
@@ -692,6 +695,8 @@ export const messagesSv: Messages = {
     sortWage: "Lön",
     sortForm: "Form",
     sortStamina: "Kondition",
+    sortExperience: "Erfarenhet",
+    sortLoyalty: "Lojalitet",
     seniorCareerStatsTitle: "Karriär- och lagstatistik",
     seniorCareerGoalsLabel: "Karriärmål",
     seniorCareerHattricksLabel: "Karriärhattrick",
@@ -757,6 +762,8 @@ export const messagesSv: Messages = {
     specialtyResilient: "Motståndskraftig",
     specialtySupport: "Stödjande",
     motherClubBonusTooltip: "Moderk klubbonus",
+    skillBonusMotherClubTooltip: "Moderk klubbonus",
+    skillBonusLoyaltyTooltip: "Lojalitetsbonus",
     seniorSkillLevelLabels:
       "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
     seniorTraitsSentenceExperienceLeadership:

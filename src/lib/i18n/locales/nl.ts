@@ -57,6 +57,9 @@ export const messagesNl: Messages = {
   detailsTabLabel: "Details",
   skillsMatrixTabLabel: "Vaardighedenmatrix",
   ratingsMatrixTabLabel: "Beoordelingsmatrix",
+  seniorSkillsMatrixBonusToggleLabel: "Bonus toepassen",
+  seniorSkillsMatrixBonusToggleTooltip:
+    "Schakel effectieve bonuswaarden in de senior vaardighedenmatrix in of uit (moederclub- of loyaliteitsbonus).",
   ratingsTitle: "Beoordelingsmatrix",
   ratingsMatchesAnalyzed: "Gegevens opgehaald uit {count} wedstrijden.",
   ratingsIndexLabel: "#",
@@ -92,6 +95,8 @@ export const messagesNl: Messages = {
   sortWage: "Loon",
   sortForm: "Vorm",
   sortStamina: "Conditie",
+  sortExperience: "Ervaring",
+  sortLoyalty: "Loyaliteit",
   seniorCareerStatsTitle: "Carrière- en teamstatistieken",
   seniorCareerGoalsLabel: "Carrièredoelpunten",
   seniorCareerHattricksLabel: "Carrière-hattricks",
@@ -177,6 +182,8 @@ export const messagesNl: Messages = {
   specialtyResilient: "Taai",
   specialtySupport: "Ondersteunend",
   motherClubBonusTooltip: "Moederclubbonus",
+  skillBonusMotherClubTooltip: "Moederclubbonus",
+  skillBonusLoyaltyTooltip: "Loyaliteitsbonus",
   seniorSkillLevelLabels:
     "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
   seniorTraitsSentenceExperienceLeadership:

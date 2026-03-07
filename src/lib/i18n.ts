@@ -398,6 +398,8 @@ export type Messages = {
   detailsTabLabel: string;
   skillsMatrixTabLabel: string;
   ratingsMatrixTabLabel: string;
+  seniorSkillsMatrixBonusToggleLabel: string;
+  seniorSkillsMatrixBonusToggleTooltip: string;
   matrixNewPillLabel: string;
   matrixNewNTooltip: string;
   scoutImportantSkillTooltip: string;
@@ -616,6 +618,8 @@ export type Messages = {
   sortWage: string;
   sortForm: string;
   sortStamina: string;
+  sortExperience: string;
+  sortLoyalty: string;
   seniorCareerStatsTitle: string;
   seniorCareerGoalsLabel: string;
   seniorCareerHattricksLabel: string;
@@ -679,6 +683,8 @@ export type Messages = {
   specialtyResilient: string;
   specialtySupport: string;
   motherClubBonusTooltip: string;
+  skillBonusMotherClubTooltip: string;
+  skillBonusLoyaltyTooltip: string;
   seniorSkillLevelLabels: string;
   seniorTraitsSentenceExperienceLeadership: string;
   seniorTraitsSentenceLoyalty: string;

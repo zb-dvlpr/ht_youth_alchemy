@@ -2,6 +2,7 @@
 
 import {
   type FocusEvent,
+  type MouseEvent as ReactMouseEvent,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -20,9 +21,11 @@ type TooltipProps = {
   fullWidth?: boolean;
   variant?: "default" | "stacked";
   withCard?: boolean;
+  followCursor?: boolean;
 };
 
 type Position = { top: number; left: number };
+type CursorPoint = { x: number; y: number };
 
 const VIEWPORT_PADDING = 8;
 
@@ -35,22 +38,28 @@ export default function Tooltip({
   fullWidth = false,
   variant = "default",
   withCard = true,
+  followCursor = false,
 }: TooltipProps) {
   const triggerRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const cursorRef = useRef<CursorPoint | null>(null);
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<Position | null>(null);
 
-  const updatePosition = useCallback(() => {
+  const updatePosition = useCallback((cursorPoint: CursorPoint | null = null) => {
     if (!triggerRef.current || !tooltipRef.current) return;
     const triggerRect = triggerRef.current.getBoundingClientRect();
     const tooltipRect = tooltipRef.current.getBoundingClientRect();
+    const anchorX =
+      followCursor && cursorPoint ? cursorPoint.x : triggerRect.left + triggerRect.width / 2;
+    const anchorTop = followCursor && cursorPoint ? cursorPoint.y : triggerRect.top;
+    const anchorBottom = followCursor && cursorPoint ? cursorPoint.y : triggerRect.bottom;
 
-    let left = triggerRect.left + triggerRect.width / 2 - tooltipRect.width / 2;
+    let left = anchorX - tooltipRect.width / 2;
     let top =
       preferred === "top"
-        ? triggerRect.top - tooltipRect.height - offset
-        : triggerRect.bottom + offset;
+        ? anchorTop - tooltipRect.height - offset
+        : anchorBottom + offset;
 
     if (left < VIEWPORT_PADDING) left = VIEWPORT_PADDING;
     if (left + tooltipRect.width > window.innerWidth - VIEWPORT_PADDING) {
@@ -58,11 +67,11 @@ export default function Tooltip({
     }
 
     if (top < VIEWPORT_PADDING) {
-      top = triggerRect.bottom + offset;
+      top = anchorBottom + offset;
     }
 
     if (top + tooltipRect.height > window.innerHeight - VIEWPORT_PADDING) {
-      top = triggerRect.top - tooltipRect.height - offset;
+      top = anchorTop - tooltipRect.height - offset;
       if (top < VIEWPORT_PADDING) {
         top = Math.max(
           VIEWPORT_PADDING,
@@ -72,17 +81,16 @@ export default function Tooltip({
     }
 
     setPosition({ top, left });
-  }, [offset, preferred]);
+  }, [followCursor, offset, preferred]);
 
   useLayoutEffect(() => {
     if (!open) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    updatePosition();
+    updatePosition(cursorRef.current);
   }, [open, updatePosition]);
 
   useEffect(() => {
     if (!open) return;
-    const handle = () => updatePosition();
+    const handle = () => updatePosition(cursorRef.current);
     window.addEventListener("scroll", handle, true);
     window.addEventListener("resize", handle);
     return () => {
@@ -113,6 +121,25 @@ export default function Tooltip({
     }
   };
 
+  const handleMouseEnter = (event: ReactMouseEvent<HTMLSpanElement>) => {
+    if (followCursor) {
+      cursorRef.current = { x: event.clientX, y: event.clientY };
+    }
+    setOpen(true);
+  };
+
+  const handleMouseMove = (event: ReactMouseEvent<HTMLSpanElement>) => {
+    if (!followCursor || !open) return;
+    const point = { x: event.clientX, y: event.clientY };
+    cursorRef.current = point;
+    updatePosition(point);
+  };
+
+  const handleMouseLeave = () => {
+    setOpen(false);
+    cursorRef.current = null;
+  };
+
   if (!content || disabled) {
     return (
       <span className={fullWidth ? styles.triggerFull : styles.trigger}>
@@ -137,8 +164,9 @@ export default function Tooltip({
     <span
       className={fullWidth ? styles.triggerFull : styles.trigger}
       ref={triggerRef}
-      onMouseEnter={() => setOpen(true)}
-      onMouseLeave={() => setOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
       onFocus={handleFocus}
       onBlur={() => setOpen(false)}
     >

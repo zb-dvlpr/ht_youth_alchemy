@@ -57,6 +57,9 @@ export const messagesPl: Messages = {
   detailsTabLabel: "Szczegóły",
   skillsMatrixTabLabel: "Macierz umiejętności",
   ratingsMatrixTabLabel: "Macierz ocen",
+  seniorSkillsMatrixBonusToggleLabel: "Uwzględnij bonus",
+  seniorSkillsMatrixBonusToggleTooltip:
+    "Włącza lub wyłącza efektywne wartości z bonusu w macierzy umiejętności seniorów (bonus klubu macierzystego albo lojalności).",
   ratingsTitle: "Macierz ocen",
   ratingsMatchesAnalyzed: "Dane pobrane z {count} meczów.",
   ratingsIndexLabel: "#",
@@ -92,6 +95,8 @@ export const messagesPl: Messages = {
   sortWage: "Pensja",
   sortForm: "Forma",
   sortStamina: "Kondycja",
+  sortExperience: "Doświadczenie",
+  sortLoyalty: "Lojalność",
   seniorCareerStatsTitle: "Statystyki kariery i drużyny",
   seniorCareerGoalsLabel: "Bramki w karierze",
   seniorCareerHattricksLabel: "Hat-tricki w karierze",
@@ -177,6 +182,8 @@ export const messagesPl: Messages = {
   specialtyResilient: "Odporny",
   specialtySupport: "Wsparcie",
   motherClubBonusTooltip: "Bonus klubu macierzystego",
+  skillBonusMotherClubTooltip: "Bonus klubu macierzystego",
+  skillBonusLoyaltyTooltip: "Bonus lojalności",
   seniorSkillLevelLabels:
     "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
   seniorTraitsSentenceExperienceLeadership:

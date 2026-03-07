@@ -451,6 +451,9 @@ export const messagesDe: Messages = {
     detailsTabLabel: "Spielerdetails",
     skillsMatrixTabLabel: "Fähigkeitsmatrix",
     ratingsMatrixTabLabel: "Bewertungsmatrix",
+    seniorSkillsMatrixBonusToggleLabel: "Bonus anwenden",
+    seniorSkillsMatrixBonusToggleTooltip:
+      "Schaltet effektive Faehigkeitsboni in der Senior-Faehigkeitsmatrix ein oder aus (Muttervereins- oder Loyalitaetsbonus).",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip: "N markiert einen seit der letzten Aktualisierung geänderten oder neu aufgedeckten Wert.",
     scoutImportantSkillTooltip: "Top-3-Fähigkeit",
@@ -689,6 +692,8 @@ export const messagesDe: Messages = {
     sortWage: "Gehalt",
     sortForm: "Form",
     sortStamina: "Kondition",
+    sortExperience: "Erfahrung",
+    sortLoyalty: "Loyalität",
     seniorCareerStatsTitle: "Karriere- & Teamstatistiken",
     seniorCareerGoalsLabel: "Karrieretore",
     seniorCareerHattricksLabel: "Karriere-Hattricks",
@@ -754,6 +759,8 @@ export const messagesDe: Messages = {
     specialtyResilient: "Widerstandsfähig",
     specialtySupport: "Unterstützend",
     motherClubBonusTooltip: "Muttervereinsbonus",
+    skillBonusMotherClubTooltip: "Muttervereinsbonus",
+    skillBonusLoyaltyTooltip: "Loyalitätsbonus",
     seniorSkillLevelLabels:
       "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
     seniorTraitsSentenceExperienceLeadership:

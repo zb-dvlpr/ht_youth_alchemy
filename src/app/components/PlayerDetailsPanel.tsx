@@ -129,6 +129,8 @@ type PlayerDetailsPanelProps = {
   maxSkillLevel?: number;
   activeTab?: PlayerDetailsPanelTab;
   onActiveTabChange?: (tab: PlayerDetailsPanelTab) => void;
+  showSeniorSkillBonusInMatrix?: boolean;
+  onShowSeniorSkillBonusInMatrixChange?: (enabled: boolean) => void;
   messages: Messages;
 };
 
@@ -292,6 +294,44 @@ const seniorBarGradient = (
   return `linear-gradient(90deg, ${startColor}, ${endColor})`;
 };
 
+const SENIOR_SKILL_EFFECT_CAP = 20;
+
+const formatSkillMatrixFloat = (value: number) => {
+  if (!Number.isFinite(value)) return "0.0";
+  return value.toFixed(1);
+};
+
+const formatSkillBonusDelta = (value: number) => {
+  if (!Number.isFinite(value)) return "+0";
+  const trimmed = value.toFixed(2).replace(/\.?0+$/, "");
+  return `+${trimmed}`;
+};
+
+const computeSeniorSkillBonus = (
+  baseSkill: number | null,
+  details: YouthPlayerDetails | null
+) => {
+  if (baseSkill === null) return null;
+  if (baseSkill >= SENIOR_SKILL_EFFECT_CAP) return 0;
+  const remaining = Math.max(0, SENIOR_SKILL_EFFECT_CAP - baseSkill);
+  if (details?.MotherClubBonus) {
+    return Math.min(1.5, remaining);
+  }
+  const loyaltyRaw = typeof details?.Loyalty === "number" ? details.Loyalty : 0;
+  const loyalty = Math.max(0, loyaltyRaw);
+  return Math.min(loyalty / 20, remaining);
+};
+
+const computeSeniorEffectiveSkill = (
+  baseSkill: number | null,
+  details: YouthPlayerDetails | null
+) => {
+  if (baseSkill === null) return null;
+  const bonus = computeSeniorSkillBonus(baseSkill, details);
+  if (bonus === null) return null;
+  return Math.min(SENIOR_SKILL_EFFECT_CAP, baseSkill + bonus);
+};
+
 function daysSince(dateString?: string) {
   if (!dateString) return null;
   const parsed = new Date(dateString.replace(" ", "T"));
@@ -353,6 +393,8 @@ export default function PlayerDetailsPanel({
   maxSkillLevel = 8,
   activeTab,
   onActiveTabChange,
+  showSeniorSkillBonusInMatrix = true,
+  onShowSeniorSkillBonusInMatrixChange,
   messages,
 }: PlayerDetailsPanelProps) {
   const [uncontrolledActiveTab, setUncontrolledActiveTab] =
@@ -470,10 +512,26 @@ export default function PlayerDetailsPanel({
       const maxA = getSkillMax(skillsA?.[`${skillsSortKey}Max`]);
       const currentB = getSkillLevel(skillsB?.[skillsSortKey]);
       const maxB = getSkillMax(skillsB?.[`${skillsSortKey}Max`]);
+      const effectiveCurrentA =
+        playerKind === "senior" &&
+        skillMode === "single" &&
+        showSeniorSkillBonusInMatrix
+          ? computeSeniorEffectiveSkill(currentA, detailsA ?? null)
+          : currentA;
+      const effectiveCurrentB =
+        playerKind === "senior" &&
+        skillMode === "single" &&
+        showSeniorSkillBonusInMatrix
+          ? computeSeniorEffectiveSkill(currentB, detailsB ?? null)
+          : currentB;
       const sumA =
-        skillMode === "single" ? (currentA ?? 0) : (currentA ?? 0) + (maxA ?? 0);
+        skillMode === "single"
+          ? (effectiveCurrentA ?? 0)
+          : (currentA ?? 0) + (maxA ?? 0);
       const sumB =
-        skillMode === "single" ? (currentB ?? 0) : (currentB ?? 0) + (maxB ?? 0);
+        skillMode === "single"
+          ? (effectiveCurrentB ?? 0)
+          : (currentB ?? 0) + (maxB ?? 0);
       if (sumA === sumB) return 0;
       return (sumA - sumB) * direction;
     });
@@ -482,8 +540,10 @@ export default function PlayerDetailsPanel({
     playerDetailsById,
     skillsMatrixRows,
     skillMode,
+    showSeniorSkillBonusInMatrix,
     skillsSortDir,
     skillsSortKey,
+    playerKind,
   ]);
 
   const orderedSkillsRows = useMemo(() => {
@@ -1060,6 +1120,34 @@ export default function PlayerDetailsPanel({
               const currentPct = hasCurrent
                 ? Math.min(100, (current / maxSkillLevel) * 100)
                 : null;
+              const seniorEffectiveCurrent =
+                playerKind === "senior" && skillMode === "single"
+                  ? computeSeniorEffectiveSkill(current, detailsData)
+                  : current;
+              const seniorBonusRaw =
+                playerKind === "senior" && skillMode === "single"
+                  ? computeSeniorSkillBonus(current, detailsData)
+                  : null;
+              const seniorEffectiveCurrentPct =
+                seniorEffectiveCurrent !== null
+                  ? Math.min(100, (seniorEffectiveCurrent / maxSkillLevel) * 100)
+                  : null;
+              const seniorBonusPct =
+                currentPct !== null &&
+                seniorEffectiveCurrentPct !== null &&
+                seniorEffectiveCurrentPct > currentPct
+                  ? seniorEffectiveCurrentPct - currentPct
+                  : 0;
+              const seniorBonusTooltip =
+                playerKind === "senior"
+                  ? detailsData.MotherClubBonus
+                    ? messages.skillBonusMotherClubTooltip
+                    : messages.skillBonusLoyaltyTooltip
+                  : null;
+              const seniorBonusTooltipWithValue =
+                seniorBonusTooltip && seniorBonusRaw !== null && seniorBonusRaw > 0
+                  ? `${seniorBonusTooltip} (${formatSkillBonusDelta(seniorBonusRaw)})`
+                  : seniorBonusTooltip;
               const maxPct = hasMax
                 ? Math.min(100, (max / maxSkillLevel) * 100)
                 : null;
@@ -1087,6 +1175,22 @@ export default function PlayerDetailsPanel({
                             background: currentBarColor,
                           }}
                         />
+                      ) : null}
+                      {playerKind === "senior" &&
+                      seniorBonusPct > 0 &&
+                      currentPct !== null &&
+                      seniorBonusTooltipWithValue ? (
+                        <Tooltip content={seniorBonusTooltipWithValue} followCursor offset={8}>
+                          <span
+                            className={styles.skillFillBonusTrigger}
+                            style={{
+                              left: `${currentPct}%`,
+                              width: `${seniorBonusPct}%`,
+                            }}
+                          >
+                            <span className={styles.skillFillBonusHatched} />
+                          </span>
+                        </Tooltip>
                       ) : null}
                     </div>
                   ) : isMaxed ? (
@@ -1526,6 +1630,12 @@ export default function PlayerDetailsPanel({
                     const current = getSkillLevel(skills?.[skill.key]);
                     const max = getSkillMax(skills?.[skill.maxKey]);
                     const isMaxed = getSkillMaxReached(skills?.[skill.key]);
+                    const seniorEffectiveCurrent =
+                      playerKind === "senior" &&
+                      skillMode === "single" &&
+                      showSeniorSkillBonusInMatrix
+                        ? computeSeniorEffectiveSkill(current, details ?? null)
+                        : current;
                     const isNewCurrent =
                       row.id !== null
                         ? (matrixNewSkillsCurrentByPlayerId[row.id]?.includes(
@@ -1543,9 +1653,21 @@ export default function PlayerDetailsPanel({
                           false)
                         : false;
                     const currentText =
-                      current === null ? messages.unknownShort : String(current);
+                      skillMode === "single" && playerKind === "senior"
+                        ? seniorEffectiveCurrent === null
+                          ? messages.unknownShort
+                          : formatSkillMatrixFloat(seniorEffectiveCurrent)
+                        : current === null
+                        ? messages.unknownShort
+                        : String(current);
                     const maxText = max === null ? messages.unknownShort : String(max);
-                    const currentColor = skillCellColor(current, 0, maxSkillLevel);
+                    const currentColor = skillCellColor(
+                      playerKind === "senior" && skillMode === "single"
+                        ? seniorEffectiveCurrent
+                        : current,
+                      0,
+                      maxSkillLevel
+                    );
                     const maxColor = skillCellColor(max, 0, maxSkillLevel);
                     if (skillMode === "single") {
                       const singleContent = (
@@ -1688,6 +1810,28 @@ export default function PlayerDetailsPanel({
             {messages.ratingsMatrixTabLabel}
           </button>
         </div>
+        {playerKind === "senior" &&
+        resolvedActiveTab === "skillsMatrix" &&
+        skillMode === "single" ? (
+          <div className={styles.detailsHeaderAux}>
+            <Tooltip content={messages.seniorSkillsMatrixBonusToggleTooltip}>
+              <label className={styles.matchesFilterToggle}>
+                <input
+                  type="checkbox"
+                  className={styles.matchesFilterToggleInput}
+                  checked={showSeniorSkillBonusInMatrix}
+                  onChange={(event) =>
+                    onShowSeniorSkillBonusInMatrixChange?.(event.target.checked)
+                  }
+                />
+                <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
+                <span className={styles.matchesFilterToggleLabel}>
+                  {messages.seniorSkillsMatrixBonusToggleLabel}
+                </span>
+              </label>
+            </Tooltip>
+          </div>
+        ) : null}
       </div>
 
       {resolvedActiveTab === "details" ? (

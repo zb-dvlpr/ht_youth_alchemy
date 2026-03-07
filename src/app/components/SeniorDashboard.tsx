@@ -133,6 +133,8 @@ type SortKey =
   | "wage"
   | "form"
   | "stamina"
+  | "experience"
+  | "loyalty"
   | "injuries"
   | "cards"
   | "keeper"
@@ -675,6 +677,10 @@ const sortLabel = (messages: Messages, key: SortKey) => {
       return messages.sortForm;
     case "stamina":
       return messages.sortStamina;
+    case "experience":
+      return messages.sortExperience;
+    case "loyalty":
+      return messages.sortLoyalty;
     case "injuries":
       return messages.sortInjuries;
     case "cards":
@@ -960,6 +966,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [orderSource, setOrderSource] = useState<"list" | "ratings" | "skills" | null>(null);
   const [activeDetailsTab, setActiveDetailsTab] =
     useState<PlayerDetailsPanelTab>("details");
+  const [showSeniorSkillBonusInMatrix, setShowSeniorSkillBonusInMatrix] =
+    useState(true);
   const [stateRestored, setStateRestored] = useState(false);
   const [stalenessDays, setStalenessDays] = useState(1);
   const [dataRestored, setDataRestored] = useState(false);
@@ -1080,6 +1088,10 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
               return details?.Form ?? player.Form ?? null;
             case "stamina":
               return details?.StaminaSkill ?? player.StaminaSkill ?? null;
+            case "experience":
+              return details?.Experience ?? null;
+            case "loyalty":
+              return details?.Loyalty ?? null;
             case "injuries":
               return details?.InjuryLevel ?? player.InjuryLevel ?? null;
             case "cards":
@@ -2411,6 +2423,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             matrixNewMarkers?: SeniorMatrixNewMarkers;
             selectedUpdatesId?: string | null;
             activeDetailsTab?: PlayerDetailsPanelTab;
+            showSeniorSkillBonusInMatrix?: boolean;
             orderedPlayerIds?: number[] | null;
             orderSource?: "list" | "ratings" | "skills" | null;
           };
@@ -2434,6 +2447,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             parsed.activeDetailsTab === "ratingsMatrix"
           ) {
             setActiveDetailsTab(parsed.activeDetailsTab);
+          }
+          if (typeof parsed.showSeniorSkillBonusInMatrix === "boolean") {
+            setShowSeniorSkillBonusInMatrix(parsed.showSeniorSkillBonusInMatrix);
           }
           if (Array.isArray(parsed.orderedPlayerIds)) {
             setOrderedPlayerIds(
@@ -2602,6 +2618,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       matrixNewMarkers,
       selectedUpdatesId,
       activeDetailsTab,
+      showSeniorSkillBonusInMatrix,
       orderedPlayerIds,
       orderSource,
     };
@@ -2623,6 +2640,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     updatesHistory,
     matrixNewMarkers,
     activeDetailsTab,
+    showSeniorSkillBonusInMatrix,
     orderedPlayerIds,
     orderSource,
   ]);
@@ -3171,6 +3189,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                   <option value="wage">{messages.sortWage}</option>
                   <option value="form">{messages.sortForm}</option>
                   <option value="stamina">{messages.sortStamina}</option>
+                  <option value="experience">{messages.sortExperience}</option>
+                  <option value="loyalty">{messages.sortLoyalty}</option>
                   <option value="injuries">{messages.sortInjuries}</option>
                   <option value="cards">{messages.sortCards}</option>
                   <option value="keeper">{messages.sortKeeper}</option>
@@ -3255,6 +3275,14 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                     ? playerDetails.StaminaSkill
                     : typeof player.StaminaSkill === "number"
                     ? player.StaminaSkill
+                    : null;
+                const experienceValue =
+                  typeof playerDetails?.Experience === "number"
+                    ? playerDetails.Experience
+                    : null;
+                const loyaltyValue =
+                  typeof playerDetails?.Loyalty === "number"
+                    ? playerDetails.Loyalty
                     : null;
                 const cardsValue =
                   typeof playerDetails?.Cards === "number"
@@ -3380,6 +3408,32 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                           style={metricPillStyle(staminaValue, 0, 9)}
                         >
                           {staminaValue ?? messages.unknownShort}
+                        </span>
+                      );
+                    case "experience":
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            typeof experienceValue === "number"
+                              ? ""
+                              : styles.playerMetricPillNeutral
+                          }`}
+                          style={metricPillStyle(experienceValue, 0, 20)}
+                        >
+                          {experienceValue ?? messages.unknownShort}
+                        </span>
+                      );
+                    case "loyalty":
+                      return (
+                        <span
+                          className={`${styles.playerMetricPill} ${
+                            typeof loyaltyValue === "number"
+                              ? ""
+                              : styles.playerMetricPillNeutral
+                          }`}
+                          style={metricPillStyle(loyaltyValue, 0, 20)}
+                        >
+                          {loyaltyValue ?? messages.unknownShort}
                         </span>
                       );
                     case "injuries":
@@ -3626,6 +3680,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             maxSkillLevel={20}
             activeTab={activeDetailsTab}
             onActiveTabChange={setActiveDetailsTab}
+            showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
+            onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
             messages={messages}
           />
         </div>

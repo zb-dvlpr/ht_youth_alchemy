@@ -430,6 +430,9 @@ export const messagesEn: Messages = {
     detailsTabLabel: "Player details",
     skillsMatrixTabLabel: "Skills matrix",
     ratingsMatrixTabLabel: "Ratings matrix",
+    seniorSkillsMatrixBonusToggleLabel: "Apply bonus",
+    seniorSkillsMatrixBonusToggleTooltip:
+      "Toggle effective skill bonus values in the senior skills matrix (mother club or loyalty bonus).",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip: "N marks a value updated or newly revealed since the last refresh.",
     scoutImportantSkillTooltip: "Top-3 skill",
@@ -665,6 +668,8 @@ export const messagesEn: Messages = {
     sortWage: "Wage",
     sortForm: "Form",
     sortStamina: "Stamina",
+    sortExperience: "Experience",
+    sortLoyalty: "Loyalty",
     seniorCareerStatsTitle: "Career & Team Stats",
     seniorCareerGoalsLabel: "Career goals",
     seniorCareerHattricksLabel: "Career hattricks",
@@ -730,6 +735,8 @@ export const messagesEn: Messages = {
     specialtyResilient: "Resilient",
     specialtySupport: "Support",
     motherClubBonusTooltip: "Mother club bonus",
+    skillBonusMotherClubTooltip: "Mother club bonus",
+    skillBonusLoyaltyTooltip: "Loyalty bonus",
     seniorSkillLevelLabels:
       "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
     seniorTraitsSentenceExperienceLeadership:

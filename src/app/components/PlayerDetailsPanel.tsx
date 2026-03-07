@@ -827,10 +827,15 @@ export default function PlayerDetailsPanel({
         <div className={styles.profileHeader}>
           <div>
             <div className={styles.profileNameRow}>
-              {playerKind === "youth" &&
-              typeof detailsData.YouthPlayerID === "number" &&
+              {typeof detailsData.YouthPlayerID === "number" &&
               onMatrixPlayerDragStart ? (
-                <Tooltip content={messages.youthDragToLineupHint}>
+                <Tooltip
+                  content={
+                    playerKind === "youth"
+                      ? messages.youthDragToLineupHint
+                      : messages.dragPlayerHint
+                  }
+                >
                   <h4
                     className={styles.profileName}
                     draggable
@@ -1479,10 +1484,14 @@ export default function PlayerDetailsPanel({
                   <td className={styles.matrixIndex}>{index + 1}</td>
                   <td className={styles.matrixPlayer}>
                     <div className={styles.matrixPlayerContent}>
-                      {playerKind === "youth" &&
-                      typeof row.id === "number" &&
-                      onMatrixPlayerDragStart ? (
-                        <Tooltip content={messages.youthDragToLineupHint}>
+                      {typeof row.id === "number" && onMatrixPlayerDragStart ? (
+                        <Tooltip
+                          content={
+                            playerKind === "youth"
+                              ? messages.youthDragToLineupHint
+                              : messages.dragPlayerHint
+                          }
+                        >
                           <button
                             type="button"
                             className={styles.matrixPlayerButton}

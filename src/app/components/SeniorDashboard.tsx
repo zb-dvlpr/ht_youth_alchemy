@@ -1,7 +1,15 @@
 "use client";
 /* eslint-disable react-hooks/exhaustive-deps */
 
-import { CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import {
+  CSSProperties,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type DragEvent,
+} from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { fetchChppJson, ChppAuthRequiredError } from "@/lib/chpp/client";
@@ -23,6 +31,7 @@ import LineupField, { LineupAssignments, LineupBehaviors } from "./LineupField";
 import UpcomingMatches, { Match, MatchesResponse } from "./UpcomingMatches";
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
+import { setDragGhost } from "@/lib/drag";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -1394,6 +1403,24 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       return ids;
     });
     setOrderSource((prev) => (prev === source ? prev : source));
+  };
+
+  const handleSeniorPlayerDragStart = (
+    event: DragEvent<HTMLElement>,
+    playerId: number,
+    playerName: string
+  ) => {
+    setDragGhost(event, {
+      label: playerName,
+      className: styles.dragGhost,
+      slotSelector: `.${styles.fieldSlot}`,
+    });
+    event.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({ type: "player", playerId })
+    );
+    event.dataTransfer.setData("text/plain", String(playerId));
+    event.dataTransfer.effectAllowed = "move";
   };
 
   const playersByIdForLineup = useMemo(() => {
@@ -3935,16 +3962,27 @@ const refreshDetailsForPlayers = async (
                 return (
                   <li key={player.PlayerID} className={styles.listItem}>
                     <div className={styles.playerRow}>
-                      <button
-                        type="button"
-                        className={styles.playerButton}
-                        aria-pressed={isSelected}
-                        onClick={() => {
-                          setActiveDetailsTab("details");
-                          setSelectedId(player.PlayerID);
-                          addNotification(`${messages.notificationPlayerSelected} ${playerName}`);
-                        }}
-                      >
+                      <Tooltip content={messages.dragPlayerHint} fullWidth>
+                        <button
+                          type="button"
+                          className={styles.playerButton}
+                          aria-pressed={isSelected}
+                          onClick={() => {
+                            setActiveDetailsTab("details");
+                            setSelectedId(player.PlayerID);
+                            addNotification(
+                              `${messages.notificationPlayerSelected} ${playerName}`
+                            );
+                          }}
+                          draggable
+                          onDragStart={(event) =>
+                            handleSeniorPlayerDragStart(
+                              event,
+                              player.PlayerID,
+                              playerName
+                            )
+                          }
+                        >
                         {!isNameSort ? (
                           <span className={styles.playerSortMetric}>
                             {metricNode}
@@ -3995,7 +4033,8 @@ const refreshDetailsForPlayers = async (
                             ) : null}
                           </span>
                         ) : null}
-                      </button>
+                        </button>
+                      </Tooltip>
                     </div>
                   </li>
                 );
@@ -4033,6 +4072,7 @@ const refreshDetailsForPlayers = async (
               setActiveDetailsTab("details");
               setSelectedId(player.PlayerID);
             }}
+            onMatrixPlayerDragStart={handleSeniorPlayerDragStart}
             orderedPlayerIds={orderedPlayerIds}
             orderSource={orderSource}
             onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}

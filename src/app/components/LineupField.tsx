@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { setDragGhost } from "@/lib/drag";
@@ -514,7 +514,7 @@ export default function LineupField({
   ) => {
     const skillSource =
       assignedDetails?.PlayerSkills ?? assignedPlayer.PlayerSkills ?? null;
-    const rows: JSX.Element[] = [];
+    const rows: ReactElement[] = [];
     if (skillMode === "single") {
       const formValue = parseSkillValue(assignedDetails?.Form ?? assignedPlayer.Form);
       const staminaValue = parseSkillValue(

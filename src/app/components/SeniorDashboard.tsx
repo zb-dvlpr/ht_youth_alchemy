@@ -1148,6 +1148,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [showSeniorSkillBonusInMatrix, setShowSeniorSkillBonusInMatrix] =
     useState(true);
   const [showHelp, setShowHelp] = useState(false);
+  const [deferHelpUntilInitialRefresh, setDeferHelpUntilInitialRefresh] =
+    useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [helpCallouts, setHelpCallouts] = useState<
     {
@@ -1205,6 +1207,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const activeRefreshRunIdRef = useRef<number | null>(null);
   const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
   const staleRefreshAttemptedRef = useRef(false);
+  const seniorHasDataRef = useRef(false);
   const persistedMarkersBaselineRef = useRef<PersistedSeniorMarkersBaseline | null>(
     null
   );
@@ -1339,6 +1342,19 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       })
       .map((entry) => entry.player);
   }, [detailsById, players, sortDirection, sortKey]);
+
+  const hasSeniorData = useMemo(() => {
+    if (players.length > 0) return true;
+    const list =
+      matchesState.data?.HattrickData?.MatchList?.Match ??
+      matchesState.data?.HattrickData?.Team?.MatchList?.Match;
+    if (Array.isArray(list)) return list.length > 0;
+    return Boolean(list);
+  }, [matchesState, players.length]);
+
+  useEffect(() => {
+    seniorHasDataRef.current = hasSeniorData;
+  }, [hasSeniorData]);
 
   const playerNavigationIds = useMemo(() => {
     if (orderedPlayerIds && orderedPlayerIds.length) {
@@ -3452,7 +3468,15 @@ const refreshDetailsForPlayers = async (
         }
         const dismissedToken = window.localStorage.getItem(SENIOR_HELP_STORAGE_KEY);
         if (dismissedToken !== token) {
-          setShowHelp(true);
+          if (!seniorHasDataRef.current) {
+            setShowHelp(false);
+            setDeferHelpUntilInitialRefresh(true);
+          } else {
+            setShowHelp(true);
+            setDeferHelpUntilInitialRefresh(false);
+          }
+        } else {
+          setDeferHelpUntilInitialRefresh(false);
         }
       } catch (error) {
         if (cancelled) return;
@@ -3475,6 +3499,14 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener("pageshow", handleFocus);
     };
   }, []);
+
+  useEffect(() => {
+    if (!deferHelpUntilInitialRefresh) return;
+    if (refreshing) return;
+    if (!hasSeniorData) return;
+    setShowHelp(true);
+    setDeferHelpUntilInitialRefresh(false);
+  }, [deferHelpUntilInitialRefresh, hasSeniorData, refreshing]);
 
   useEffect(() => {
     if (!showHelp) {

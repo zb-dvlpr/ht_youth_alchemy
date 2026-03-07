@@ -105,6 +105,11 @@ type PlayerDetailsPanelProps = {
   ratingsMatrixHiddenSpecialtyByName?: Record<string, boolean>;
   ratingsMatrixHiddenSpecialtyMatchHrefByName?: Record<string, string | undefined>;
   ratingsMatrixMotherClubBonusByName?: Record<string, boolean>;
+  ratingsMatrixCardStatusByName?: Record<
+    string,
+    { display: string; label: string }
+  >;
+  cardStatusByPlayerId?: Record<number, { display: string; label: string }>;
   matrixNewPlayerIds?: number[];
   matrixNewRatingsByPlayerId?: Record<number, number[]>;
   matrixNewSkillsCurrentByPlayerId?: Record<number, string[]>;
@@ -374,6 +379,8 @@ export default function PlayerDetailsPanel({
   ratingsMatrixHiddenSpecialtyByName,
   ratingsMatrixHiddenSpecialtyMatchHrefByName,
   ratingsMatrixMotherClubBonusByName,
+  ratingsMatrixCardStatusByName = {},
+  cardStatusByPlayerId = {},
   matrixNewPlayerIds = [],
   matrixNewRatingsByPlayerId = {},
   matrixNewSkillsCurrentByPlayerId = {},
@@ -659,6 +666,10 @@ export default function PlayerDetailsPanel({
       ? selectedPlayer.InjuryLevel
       : null;
   const injuryStatus = buildInjuryStatus(injuryLevelRaw, messages);
+  const selectedCardStatus =
+    playerKind === "senior" && playerId !== null
+      ? cardStatusByPlayerId[playerId] ?? null
+      : null;
   const lastMatchDate = detailsData?.LastMatch
     ? formatChppDate(detailsData.LastMatch.Date) ?? messages.unknownDate
     : null;
@@ -1036,6 +1047,24 @@ export default function PlayerDetailsPanel({
                 >
                   ↗
                 </a>
+              </div>
+            </div>
+          ) : null}
+          {playerKind === "senior" ? (
+            <div>
+              <div className={styles.infoLabel}>{messages.cardStatusLabel}</div>
+              <div className={styles.infoValue}>
+                {selectedCardStatus ? (
+                  <span
+                    className={styles.matrixCardStatus}
+                    title={selectedCardStatus.label}
+                    aria-label={selectedCardStatus.label}
+                  >
+                    {selectedCardStatus.display}
+                  </span>
+                ) : (
+                  "-"
+                )}
               </div>
             </div>
           ) : null}
@@ -1469,6 +1498,15 @@ export default function PlayerDetailsPanel({
                   ? player.InjuryLevel
                   : null;
               const rowInjuryStatus = buildInjuryStatus(rowInjuryLevel, messages);
+              const rowCardStatus =
+                playerKind === "senior" && typeof row.id === "number"
+                  ? cardStatusByPlayerId[row.id] ?? null
+                  : null;
+              const hasSeniorIndicatorRow =
+                playerKind === "senior" &&
+                (Boolean(details?.MotherClubBonus) ||
+                  Boolean(rowCardStatus) ||
+                  Boolean(rowInjuryStatus && !rowInjuryStatus.isHealthy));
               const isSelected = ratingsMatrixSelectedName === row.name;
               const isNewPlayer = row.id ? matrixNewPlayerIdSet.has(row.id) : false;
               const scoutOverallSkillLevel =
@@ -1483,71 +1521,134 @@ export default function PlayerDetailsPanel({
                 >
                   <td className={styles.matrixIndex}>{index + 1}</td>
                   <td className={styles.matrixPlayer}>
-                    <div className={styles.matrixPlayerContent}>
-                      {typeof row.id === "number" && onMatrixPlayerDragStart ? (
-                        <Tooltip
-                          content={
-                            playerKind === "youth"
-                              ? messages.youthDragToLineupHint
-                              : messages.youthDragToLineupHint
-                          }
-                        >
+                    <div
+                      className={`${styles.matrixPlayerContent} ${
+                        hasSeniorIndicatorRow ? styles.matrixPlayerContentTwoRow : ""
+                      }`}
+                    >
+                      <div className={styles.matrixPlayerNameLine}>
+                        {typeof row.id === "number" && onMatrixPlayerDragStart ? (
+                          <Tooltip
+                            content={
+                              playerKind === "youth"
+                                ? messages.youthDragToLineupHint
+                                : messages.youthDragToLineupHint
+                            }
+                          >
+                            <button
+                              type="button"
+                              className={styles.matrixPlayerButton}
+                              onClick={() => handleMatrixPlayerPick(row.name)}
+                              disabled={!onSelectRatingsPlayer}
+                              draggable
+                              onDragStart={(event) => {
+                                onMatrixPlayerDragStart(event, row.id as number, row.name);
+                              }}
+                            >
+                              {row.name}
+                            </button>
+                          </Tooltip>
+                        ) : (
                           <button
                             type="button"
                             className={styles.matrixPlayerButton}
                             onClick={() => handleMatrixPlayerPick(row.name)}
                             disabled={!onSelectRatingsPlayer}
-                            draggable
-                            onDragStart={(event) => {
-                              onMatrixPlayerDragStart(event, row.id as number, row.name);
-                            }}
                           >
                             {row.name}
                           </button>
-                        </Tooltip>
+                        )}
+                        {isNewPlayer ? (
+                          <span className={styles.matrixNewPill}>
+                            {messages.matrixNewPillLabel}
+                          </span>
+                        ) : null}
+                        {playerKind === "youth" &&
+                        typeof scoutOverallSkillLevel === "number" ? (
+                          <Tooltip content={messages.scoutOverallSkillLevelTooltip}>
+                            <span className={styles.matrixScoutOverallBadge}>
+                              {scoutOverallSkillLevel}
+                            </span>
+                          </Tooltip>
+                        ) : null}
+                      </div>
+                      {hasSeniorIndicatorRow ? (
+                        <div className={styles.matrixPlayerIndicatorsLine}>
+                          {details?.MotherClubBonus ? (
+                            <Tooltip content={messages.motherClubBonusTooltip}>
+                              <span
+                                className={styles.seniorMotherClubHeart}
+                                aria-label={messages.motherClubBonusTooltip}
+                              >
+                                ❤
+                              </span>
+                            </Tooltip>
+                          ) : null}
+                          {rowInjuryStatus && !rowInjuryStatus.isHealthy ? (
+                            <span
+                              className={
+                                rowInjuryStatus.isHealthy
+                                  ? styles.matrixInjuryHealthy
+                                  : styles.matrixInjuryStatus
+                              }
+                              title={rowInjuryStatus.label}
+                            >
+                              {rowInjuryStatus.display}
+                            </span>
+                          ) : null}
+                          {rowCardStatus ? (
+                            <span
+                              className={styles.matrixCardStatus}
+                              title={rowCardStatus.label}
+                              aria-label={rowCardStatus.label}
+                            >
+                              {rowCardStatus.display}
+                            </span>
+                          ) : null}
+                        </div>
                       ) : (
-                        <button
-                          type="button"
-                          className={styles.matrixPlayerButton}
-                          onClick={() => handleMatrixPlayerPick(row.name)}
-                          disabled={!onSelectRatingsPlayer}
-                        >
-                          {row.name}
-                        </button>
+                        <>
+                          {playerKind === "senior" && details?.MotherClubBonus ? (
+                            <Tooltip content={messages.motherClubBonusTooltip}>
+                              <span
+                                className={styles.seniorMotherClubHeart}
+                                aria-label={messages.motherClubBonusTooltip}
+                              >
+                                ❤
+                              </span>
+                            </Tooltip>
+                          ) : null}
+                          {rowInjuryStatus &&
+                          !rowInjuryStatus.isHealthy ? (
+                            <span
+                              className={
+                                rowInjuryStatus.isHealthy
+                                  ? styles.matrixInjuryHealthy
+                                  : styles.matrixInjuryStatus
+                              }
+                              title={rowInjuryStatus.label}
+                            >
+                              {rowInjuryStatus.display}
+                            </span>
+                          ) : null}
+                          {rowCardStatus ? (
+                            <span
+                              className={styles.matrixCardStatus}
+                              title={rowCardStatus.label}
+                              aria-label={rowCardStatus.label}
+                            >
+                              {rowCardStatus.display}
+                            </span>
+                          ) : null}
+                        </>
                       )}
-                      {playerKind === "senior" && details?.MotherClubBonus ? (
+                      {playerKind !== "senior" && details?.MotherClubBonus ? (
                         <Tooltip content={messages.motherClubBonusTooltip}>
                           <span
                             className={styles.seniorMotherClubHeart}
                             aria-label={messages.motherClubBonusTooltip}
                           >
                             ❤
-                          </span>
-                        </Tooltip>
-                      ) : null}
-                      {rowInjuryStatus &&
-                      !rowInjuryStatus.isHealthy ? (
-                        <span
-                          className={
-                            rowInjuryStatus.isHealthy
-                              ? styles.matrixInjuryHealthy
-                              : styles.matrixInjuryStatus
-                          }
-                          title={rowInjuryStatus.label}
-                        >
-                          {rowInjuryStatus.display}
-                        </span>
-                      ) : null}
-                      {isNewPlayer ? (
-                        <span className={styles.matrixNewPill}>
-                          {messages.matrixNewPillLabel}
-                        </span>
-                      ) : null}
-                      {playerKind === "youth" &&
-                      typeof scoutOverallSkillLevel === "number" ? (
-                        <Tooltip content={messages.scoutOverallSkillLevelTooltip}>
-                          <span className={styles.matrixScoutOverallBadge}>
-                            {scoutOverallSkillLevel}
                           </span>
                         </Tooltip>
                       ) : null}
@@ -1907,6 +2008,7 @@ export default function PlayerDetailsPanel({
           hiddenSpecialtyMatchHrefByName={ratingsMatrixHiddenSpecialtyMatchHrefByName}
           motherClubBonusByName={ratingsMatrixMotherClubBonusByName}
           injuryStatusByName={ratingsMatrixInjuryStatusByName}
+          cardStatusByName={ratingsMatrixCardStatusByName}
           newPlayerIds={matrixNewPlayerIds}
           newRatingsByPlayerId={matrixNewRatingsByPlayerId}
           overallSkillLevelByPlayerId={

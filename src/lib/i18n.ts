@@ -730,6 +730,7 @@ export type Messages = {
   lastMatchPositionLabel: string;
   lastMatchRatingLabel: string;
   playerIdLabel: string;
+  cardStatusLabel: string;
   playerLinkLabel: string;
   dragPlayerHint: string;
   youthDragToLineupHint: string;

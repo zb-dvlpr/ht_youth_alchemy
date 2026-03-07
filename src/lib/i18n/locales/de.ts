@@ -828,6 +828,7 @@ export const messagesDe: Messages = {
     lastMatchPositionLabel: "Letzte Position",
     lastMatchRatingLabel: "Letzte Bewertung",
     playerIdLabel: "Spieler-ID",
+    cardStatusLabel: "Kartenstatus",
     playerLinkLabel: "Bei Hattrick ansehen",
     dragPlayerHint: "Zum Verschieben ziehen",
     youthDragToLineupHint: "In die Aufstellung ziehen",

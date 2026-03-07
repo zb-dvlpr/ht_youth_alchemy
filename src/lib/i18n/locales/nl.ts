@@ -252,6 +252,7 @@ export const messagesNl: Messages = {
   lastMatchPositionLabel: "Positie laatste wedstrijd",
   lastMatchRatingLabel: "Beoordeling laatste wedstrijd",
   playerIdLabel: "Speler-ID",
+  cardStatusLabel: "Kaartstatus",
   playerLinkLabel: "Bekijken op Hattrick",
   dragPlayerHint: "Sleep om te verplaatsen",
   youthDragToLineupHint: "Sleep naar de opstelling",

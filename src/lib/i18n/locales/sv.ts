@@ -831,6 +831,7 @@ export const messagesSv: Messages = {
     lastMatchPositionLabel: "Senaste matchposition",
     lastMatchRatingLabel: "Senaste matchbetyg",
     playerIdLabel: "Spelar-ID",
+    cardStatusLabel: "Kortstatus",
     playerLinkLabel: "Visa på Hattrick",
     dragPlayerHint: "Dra för att flytta",
     youthDragToLineupHint: "Dra till laguppställningen",

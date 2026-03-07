@@ -17,6 +17,7 @@ type YouthPlayer = {
   NickName?: string;
   LastName: string;
   Specialty?: number;
+  Cards?: number;
   InjuryLevel?: number;
   Age?: number;
   AgeDays?: number;
@@ -49,6 +50,7 @@ type LineupFieldProps = {
     {
       PlayerSkills?: Record<string, SkillValue>;
       InjuryLevel?: number;
+      Cards?: number;
       Form?: SkillInput;
       StaminaSkill?: SkillInput;
     }
@@ -288,6 +290,21 @@ const injuryStatus = (
       label: messages.seniorListInjuryWeeks.replace("{weeks}", String(weeks)),
       isHealthy: false,
     };
+  }
+  return null;
+};
+
+const cardStatus = (cardsRaw: unknown, messages: Messages) => {
+  const cards = normalizeInjuryLevel(cardsRaw);
+  if (cards === null) return null;
+  if (cards >= 3) {
+    return { display: "🟥", label: messages.sortCards };
+  }
+  if (cards >= 2) {
+    return { display: "🟨🟨", label: messages.sortCards };
+  }
+  if (cards >= 1) {
+    return { display: "🟨", label: messages.sortCards };
   }
   return null;
 };
@@ -775,6 +792,10 @@ export default function LineupField({
                 assignedDetails?.InjuryLevel ?? assignedPlayer?.InjuryLevel,
                 messages
               );
+              const assignedCardStatus = cardStatus(
+                assignedDetails?.Cards ?? assignedPlayer?.Cards,
+                messages
+              );
               const behaviorValue = behaviors?.[position.id] ?? 0;
               const behaviorOptions = assignedPlayer
                 ? behaviorOptionsForSlot(position.id)
@@ -953,6 +974,15 @@ export default function LineupField({
                             </Tooltip>
                           );
                         })()}
+                        {skillMode === "single" && assignedCardStatus ? (
+                          <span
+                            className={styles.slotCardStatus}
+                            title={assignedCardStatus.label}
+                            aria-label={assignedCardStatus.label}
+                          >
+                            {assignedCardStatus.display}
+                          </span>
+                        ) : null}
                         <button
                           type="button"
                           className={styles.slotClear}
@@ -1009,6 +1039,10 @@ export default function LineupField({
             : null;
           const assignedInjuryStatus = injuryStatus(
             assignedDetails?.InjuryLevel ?? assignedPlayer?.InjuryLevel,
+            messages
+          );
+          const assignedCardStatus = cardStatus(
+            assignedDetails?.Cards ?? assignedPlayer?.Cards,
             messages
           );
           const dragPayload = assignedPlayer
@@ -1141,6 +1175,15 @@ export default function LineupField({
                             </Tooltip>
                           );
                         })()}
+                      {skillMode === "single" && assignedCardStatus ? (
+                        <span
+                          className={styles.slotCardStatus}
+                          title={assignedCardStatus.label}
+                          aria-label={assignedCardStatus.label}
+                        >
+                          {assignedCardStatus.display}
+                        </span>
+                      ) : null}
                       <button
                         type="button"
                         className={styles.slotClear}

@@ -31,6 +31,7 @@ type RatingsMatrixProps = {
   hiddenSpecialtyMatchHrefByName?: Record<string, string | undefined>;
   motherClubBonusByName?: Record<string, boolean>;
   injuryStatusByName?: Record<string, { display: string; label: string; isHealthy: boolean }>;
+  cardStatusByName?: Record<string, { display: string; label: string }>;
   newPlayerIds?: number[];
   newRatingsByPlayerId?: Record<number, number[]>;
   selectedName?: string | null;
@@ -103,6 +104,7 @@ export default function RatingsMatrix({
   hiddenSpecialtyMatchHrefByName,
   motherClubBonusByName,
   injuryStatusByName,
+  cardStatusByName,
   newPlayerIds = [],
   newRatingsByPlayerId = {},
   selectedName,
@@ -351,6 +353,15 @@ export default function RatingsMatrix({
                         title={injuryStatusByName[row.name].label}
                       >
                         {injuryStatusByName[row.name].display}
+                      </span>
+                    ) : null}
+                    {cardStatusByName?.[row.name] ? (
+                      <span
+                        className={styles.matrixCardStatus}
+                        title={cardStatusByName[row.name].label}
+                        aria-label={cardStatusByName[row.name].label}
+                      >
+                        {cardStatusByName[row.name].display}
                       </span>
                     ) : null}
                     {isNewPlayer ? (

@@ -803,6 +803,7 @@ export const messagesEn: Messages = {
     lastMatchPositionLabel: "Last match position",
     lastMatchRatingLabel: "Last match rating",
     playerIdLabel: "Player ID",
+    cardStatusLabel: "Card status",
     playerLinkLabel: "View on Hattrick",
     dragPlayerHint: "Drag to move",
     youthDragToLineupHint: "Drag to lineup",

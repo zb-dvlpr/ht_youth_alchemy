@@ -556,6 +556,20 @@ const toSubscript = (value: number) =>
     .map((digit) => SUBSCRIPT_DIGITS[digit] ?? digit)
     .join("");
 
+const buildSeniorCardStatus = (cards: number | null, messages: Messages) => {
+  if (typeof cards !== "number") return null;
+  if (cards >= 3) {
+    return { display: "🟥", label: messages.sortCards };
+  }
+  if (cards === 2) {
+    return { display: "🟨🟨", label: messages.sortCards };
+  }
+  if (cards === 1) {
+    return { display: "🟨", label: messages.sortCards };
+  }
+  return null;
+};
+
 const formatPlayerName = (player: {
   FirstName?: string;
   NickName?: string;
@@ -1556,6 +1570,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         LastName: string;
         Specialty?: number;
         InjuryLevel?: number;
+        Cards?: number;
         Age?: number;
         AgeDays?: number;
         Form?: SkillValue | number | string | null;
@@ -1580,6 +1595,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           (typeof player.StaminaSkill === "number" ? player.StaminaSkill : null),
         PlayerSkills: detailsById.get(player.PlayerID)?.PlayerSkills ?? player.PlayerSkills,
         InjuryLevel: player.InjuryLevel,
+        Cards:
+          typeof detailsById.get(player.PlayerID)?.Cards === "number"
+            ? detailsById.get(player.PlayerID)?.Cards
+            : typeof player.Cards === "number"
+              ? player.Cards
+              : undefined,
       });
     });
     return map;
@@ -1614,6 +1635,34 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       })
       .slice(0, 11);
   }, [assignments, players, skillValueForPlayer]);
+
+  const seniorCardStatusByPlayerId = useMemo(() => {
+    const map: Record<number, { display: string; label: string }> = {};
+    players.forEach((player) => {
+      const details = detailsById.get(player.PlayerID);
+      const cardsValue =
+        typeof details?.Cards === "number"
+          ? details.Cards
+          : typeof player.Cards === "number"
+            ? player.Cards
+            : null;
+      const status = buildSeniorCardStatus(cardsValue, messages);
+      if (status) {
+        map[player.PlayerID] = status;
+      }
+    });
+    return map;
+  }, [detailsById, messages, players]);
+
+  const seniorCardStatusByName = useMemo(() => {
+    const map: Record<string, { display: string; label: string }> = {};
+    players.forEach((player) => {
+      const status = seniorCardStatusByPlayerId[player.PlayerID];
+      if (!status) return;
+      map[formatPlayerName(player)] = status;
+    });
+    return map;
+  }, [players, seniorCardStatusByPlayerId]);
 
   const selectedUpdatesEntry = useMemo(
     () =>
@@ -4481,6 +4530,7 @@ const refreshDetailsForPlayers = async (
                     : typeof player.Cards === "number"
                     ? player.Cards
                     : null;
+                const playerCardStatus = buildSeniorCardStatus(cardsValue, messages);
                 const wageValue =
                   typeof playerDetails?.Salary === "number"
                     ? playerDetails.Salary
@@ -4785,6 +4835,15 @@ const refreshDetailsForPlayers = async (
                             </span>
                           ) : null}
                           <span className={styles.playerName}>{playerName}</span>
+                          {playerCardStatus ? (
+                            <span
+                              className={styles.playerCardStatusInline}
+                              title={playerCardStatus.label}
+                              aria-label={playerCardStatus.label}
+                            >
+                              {playerCardStatus.display}
+                            </span>
+                          ) : null}
                           {matrixNewPlayerIdSet.has(player.PlayerID) ? (
                             <span className={styles.matrixNewPill}>
                               {messages.matrixNewPillLabel}
@@ -4869,6 +4928,8 @@ const refreshDetailsForPlayers = async (
             ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
             ratingsMatrixSpecialtyByName={specialtyByName}
             ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
+            ratingsMatrixCardStatusByName={seniorCardStatusByName}
+            cardStatusByPlayerId={seniorCardStatusByPlayerId}
             matrixNewPlayerIds={matrixNewMarkers.playerIds}
             matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
             matrixNewSkillsCurrentByPlayerId={matrixNewMarkers.skillsCurrentByPlayerId}
@@ -4930,6 +4991,7 @@ const refreshDetailsForPlayers = async (
                 {
                   PlayerSkills: detail.PlayerSkills,
                   InjuryLevel: detail.InjuryLevel,
+                  Cards: detail.Cards,
                   Form: detail.Form,
                   StaminaSkill: detail.StaminaSkill,
                 },

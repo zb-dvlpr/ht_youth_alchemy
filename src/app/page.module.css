@@ -905,6 +905,24 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   min-width: 0;
 }
 
+.matrixTable.matrixTableSeniorCompact .matrixPlayerContentTwoRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  overflow: visible;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixPlayerContentTwoRow .matrixPlayerNameLine {
+  width: 100%;
+  min-width: 0;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixPlayerContentTwoRow .matrixPlayerIndicatorsLine {
+  width: 100%;
+  min-width: 0;
+}
+
 .matrixTable.matrixTableSeniorCompact .matrixPlayerButton {
   display: block;
   min-width: 0;
@@ -1063,6 +1081,21 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   max-width: 100%;
 }
 
+.matrixPlayerNameLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.matrixPlayerIndicatorsLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 14px;
+}
+
 .matrixPlayerButton {
   display: block;
   width: 100%;
@@ -1213,6 +1246,23 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   font-weight: 700;
   font-size: 12px;
   line-height: 1;
+}
+
+.matrixCardStatus {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  color: #7f4a11;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.matrixPlayerIndicatorsLine .matrixInjuryStatus,
+.matrixPlayerIndicatorsLine .matrixInjuryHealthy,
+.matrixPlayerIndicatorsLine .matrixCardStatus {
+  margin-left: 0;
 }
 
 .card {
@@ -3034,6 +3084,11 @@ html[data-theme="dark"] .matrixInjuryHealthy {
   color: #8fe5ae;
 }
 
+html[data-theme="dark"] .matrixCardStatus,
+html[data-theme="dark"] .playerCardStatusInline {
+  color: #ffcf80;
+}
+
 html[data-theme="dark"] .matrixCellNewTag {
   color: #ff8f7f;
 }
@@ -3693,6 +3748,17 @@ html[data-theme="dark"] .spinner {
   font-weight: 800;
   line-height: 1;
   color: #e02020;
+  flex-shrink: 0;
+}
+
+.playerCardStatusInline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+  font-size: 12px;
+  line-height: 1;
+  color: #7f4a11;
   flex-shrink: 0;
 }
 
@@ -5583,6 +5649,18 @@ html[data-theme="dark"] .spinner {
   line-height: 1;
 }
 
+.slotCardStatus {
+  position: absolute;
+  right: 8px;
+  bottom: 7px;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  color: #f3cc80;
+  letter-spacing: 0.02em;
+  z-index: 1;
+}
+
 .slotTooltipCard {
   background: #f7f1e3;
   border: 1px solid #d8cbb6;
@@ -5716,6 +5794,10 @@ html[data-theme="dark"] .slotTooltipCard .skillBarMaxed .skillFillMax {
 
 html[data-theme="dark"] .slotTooltipCard .skillBarMaxed .skillFillCurrent {
   background: linear-gradient(90deg, #b9974f, #9a7430);
+}
+
+html[data-theme="dark"] .slotCardStatus {
+  color: #ffd98f;
 }
 
 .slotLabel {

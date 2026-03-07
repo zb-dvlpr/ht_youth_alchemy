@@ -70,6 +70,8 @@ const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
 const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
 const YOUTH_LATEST_UPDATES_OPEN_EVENT = "ya:youth-latest-updates-open";
 const YOUTH_UPDATES_HISTORY_LIMIT = 20;
+const YOUTH_UPDATES_SCHEMA_VERSION = 3;
+const YOUTH_UPDATES_GLOBAL_MIGRATION_KEY = "ya_youth_updates_schema_v2_migrated";
 
 const formatPlayerName = (player: YouthPlayer) =>
   [player.FirstName, player.NickName || null, player.LastName]
@@ -127,8 +129,19 @@ type YouthUpdatesGroupedEntry = {
         previous: number | null;
         current: number | null;
       }>;
+      attributes: Array<{
+        key: "hiddenSpecialtyDiscovered" | "injuryStatus";
+        previous: number | string | boolean | null;
+        current: number | string | boolean | null;
+      }>;
     }
   >;
+};
+
+type YouthAttributeChange = {
+  key: "hiddenSpecialtyDiscovered" | "injuryStatus";
+  previous: number | string | boolean | null;
+  current: number | string | boolean | null;
 };
 
 type YouthUpdatesBuildContext = {
@@ -142,6 +155,7 @@ type YouthUpdatesBuildContext = {
     number,
     Record<string, SkillValue | number | string> | null
   >;
+  attributeChangesByPlayerId?: Record<number, YouthAttributeChange[]>;
 };
 
 type PersistedYouthMarkersBaseline = {
@@ -311,6 +325,8 @@ type RefreshRatingsResult = {
   ratingsByPlayerId: Record<number, Record<string, number>> | null;
   positions: number[] | null;
   hiddenSpecialtyScanOk: boolean;
+  discoveredHiddenSpecialtyByPlayerId: Record<number, number>;
+  hiddenSpecialtyDiscoveredMatchByPlayerId: Record<number, number>;
 };
 
 type EventPlayerRef = "subject" | "object";
@@ -493,6 +509,45 @@ const hasAnyMatrixNewMarkers = (markers: MatrixNewMarkers) =>
 const shouldKeepYouthUpdatesHistoryEntry = (entry: YouthUpdatesGroupedEntry) =>
   entry.hasChanges;
 
+const migrateYouthUpdatesStateIfNeeded = () => {
+  if (typeof window === "undefined") return false;
+  const alreadyMigrated = window.localStorage.getItem(
+    YOUTH_UPDATES_GLOBAL_MIGRATION_KEY
+  );
+  if (alreadyMigrated === String(YOUTH_UPDATES_SCHEMA_VERSION)) {
+    return false;
+  }
+  const keysToMigrate: string[] = [];
+  for (let index = 0; index < window.localStorage.length; index += 1) {
+    const key = window.localStorage.key(index);
+    if (!key) continue;
+    if (key === "ya_dashboard_state_v2" || key.startsWith("ya_dashboard_state_v2_")) {
+      keysToMigrate.push(key);
+    }
+  }
+  keysToMigrate.forEach((key) => {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      const next = {
+        ...parsed,
+        updatesSchemaVersion: YOUTH_UPDATES_SCHEMA_VERSION,
+        matrixNewMarkers: buildEmptyMatrixNewMarkers(),
+        youthUpdatesHistory: [],
+      };
+      window.localStorage.setItem(key, JSON.stringify(next));
+    } catch {
+      // ignore malformed legacy payloads
+    }
+  });
+  window.localStorage.setItem(
+    YOUTH_UPDATES_GLOBAL_MIGRATION_KEY,
+    String(YOUTH_UPDATES_SCHEMA_VERSION)
+  );
+  return true;
+};
+
 const cloneRatingsRecord = (
   ratings?: Record<string, number> | null
 ): Record<string, number> => {
@@ -572,6 +627,7 @@ const buildYouthUpdatesHistoryEntry = (
         previous: number | null;
         current: number | null;
       }>,
+      attributes: [] as YouthAttributeChange[],
     };
     groupedByPlayerId[playerId] = next;
     return next;
@@ -616,11 +672,23 @@ const buildYouthUpdatesHistoryEntry = (
       current: getKnownSkillValue(currentSkills?.[`${skillKey}Max`] ?? null),
     }));
   });
+  Object.entries(context?.attributeChangesByPlayerId ?? {}).forEach(
+    ([playerId, changes]) => {
+      const numericPlayerId = Number(playerId);
+      if (!Number.isFinite(numericPlayerId) || !Array.isArray(changes)) return;
+      ensurePlayer(numericPlayerId).attributes = changes;
+    }
+  );
+  const hasChanges =
+    hasAnyMatrixNewMarkers(markers) ||
+    Object.values(groupedByPlayerId).some(
+      (entry) => entry.attributes && entry.attributes.length > 0
+    );
   return {
     id: `${comparedAt}-${Math.random().toString(36).slice(2, 8)}`,
     comparedAt,
     source,
-    hasChanges: hasAnyMatrixNewMarkers(markers),
+    hasChanges,
     groupedByPlayerId,
   };
 };
@@ -794,6 +862,7 @@ export default function Dashboard({
   const persistedMarkersBaselineRef = useRef<PersistedYouthMarkersBaseline | null>(
     null
   );
+  const suppressNextUpdatesRecordingRef = useRef(false);
   const refreshRunSeqRef = useRef(0);
   const activeRefreshRunIdRef = useRef<number | null>(null);
   const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
@@ -1488,9 +1557,20 @@ export default function Dashboard({
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
+      const migratedThisRun = migrateYouthUpdatesStateIfNeeded();
+      if (migratedThisRun) {
+        setMatrixNewMarkers(buildEmptyMatrixNewMarkers());
+        setYouthUpdatesHistory([]);
+        setSelectedYouthUpdatesId(null);
+        suppressNextUpdatesRecordingRef.current = true;
+      }
       const raw = window.localStorage.getItem(storageKey);
-      if (!raw) return;
+      if (!raw) {
+        suppressNextUpdatesRecordingRef.current = true;
+        return;
+      }
       const parsed = JSON.parse(raw) as {
+        updatesSchemaVersion?: number;
         assignments?: LineupAssignments;
         behaviors?: LineupBehaviors;
         selectedId?: number | null;
@@ -1511,6 +1591,12 @@ export default function Dashboard({
         youthUpdatesHistory?: YouthUpdatesGroupedEntry[];
         activeDetailsTab?: PlayerDetailsPanelTab;
       };
+      const forceWipeLegacyUpdatesState =
+        typeof parsed.updatesSchemaVersion !== "number" ||
+        parsed.updatesSchemaVersion < YOUTH_UPDATES_SCHEMA_VERSION;
+      if (forceWipeLegacyUpdatesState) {
+        suppressNextUpdatesRecordingRef.current = true;
+      }
       if (parsed.assignments) setAssignments(parsed.assignments);
       if (parsed.behaviors) setBehaviors(parsed.behaviors);
       if (parsed.selectedId !== undefined) setSelectedId(parsed.selectedId);
@@ -1561,10 +1647,16 @@ export default function Dashboard({
         setAnalyzedRatingsMatchIds(parsed.analyzedRatingsMatchIds);
       }
       if (parsed.matrixNewMarkers) {
-        setMatrixNewMarkers(normalizeMatrixNewMarkers(parsed.matrixNewMarkers));
+        if (forceWipeLegacyUpdatesState) {
+          setMatrixNewMarkers(buildEmptyMatrixNewMarkers());
+        } else {
+          setMatrixNewMarkers(normalizeMatrixNewMarkers(parsed.matrixNewMarkers));
+        }
       }
       if (Array.isArray(parsed.youthUpdatesHistory)) {
-        const normalized = parsed.youthUpdatesHistory
+        const normalized = forceWipeLegacyUpdatesState
+          ? []
+          : parsed.youthUpdatesHistory
           .map((entry) => {
             if (!entry || typeof entry !== "object") return null;
             const maybeEntry = entry as Partial<YouthUpdatesGroupedEntry>;
@@ -1676,6 +1768,11 @@ export default function Dashboard({
                       ratings: normalizedRatings,
                       skillsCurrent: normalizeSkillChanges(fallback.skillsCurrent),
                       skillsMax: normalizeSkillChanges(fallback.skillsMax),
+                      attributes: Array.isArray(
+                        (fallback as { attributes?: unknown }).attributes
+                      )
+                        ? ((fallback as { attributes?: unknown }).attributes as YouthAttributeChange[])
+                        : [],
                     },
                   ];
                 })
@@ -1694,6 +1791,9 @@ export default function Dashboard({
           .slice(0, YOUTH_UPDATES_HISTORY_LIMIT);
         setYouthUpdatesHistory(normalized);
         setSelectedYouthUpdatesId(normalized[0]?.id ?? null);
+      } else if (forceWipeLegacyUpdatesState) {
+        setYouthUpdatesHistory([]);
+        setSelectedYouthUpdatesId(null);
       }
 
       const persistedPlayers = Array.isArray(parsed.playerList)
@@ -1738,9 +1838,11 @@ export default function Dashboard({
             .filter((value) => Number.isFinite(value))
         : [];
       if (
+        !forceWipeLegacyUpdatesState &&
         persistedPlayers.length > 0 ||
-        persistedDetailsById.size > 0 ||
-        Object.keys(persistedRatingsByPlayerId).length > 0
+        (!forceWipeLegacyUpdatesState && persistedDetailsById.size > 0) ||
+        (!forceWipeLegacyUpdatesState &&
+          Object.keys(persistedRatingsByPlayerId).length > 0)
       ) {
         persistedMarkersBaselineRef.current = {
           players: persistedPlayers,
@@ -1760,6 +1862,7 @@ export default function Dashboard({
     if (typeof window === "undefined") return;
     if (restoredStorageKey !== storageKey) return;
     const payload = {
+      updatesSchemaVersion: YOUTH_UPDATES_SCHEMA_VERSION,
       assignments,
       behaviors,
       selectedId,
@@ -3168,6 +3271,8 @@ export default function Dashboard({
           ratingsByPlayerId: null,
           positions: null,
           hiddenSpecialtyScanOk: false,
+          discoveredHiddenSpecialtyByPlayerId: {},
+          hiddenSpecialtyDiscoveredMatchByPlayerId: {},
         };
       }
 
@@ -3210,6 +3315,8 @@ export default function Dashboard({
           ratingsByPlayerId: null,
           positions: null,
           hiddenSpecialtyScanOk: false,
+          discoveredHiddenSpecialtyByPlayerId: {},
+          hiddenSpecialtyDiscoveredMatchByPlayerId: {},
         };
       }
       const ratingsPositions =
@@ -3260,6 +3367,8 @@ export default function Dashboard({
           ratingsByPlayerId,
           positions: ratingsPositions,
           hiddenSpecialtyScanOk: true,
+          discoveredHiddenSpecialtyByPlayerId: {},
+          hiddenSpecialtyDiscoveredMatchByPlayerId: {},
         };
       }
 
@@ -3269,6 +3378,8 @@ export default function Dashboard({
           ratingsByPlayerId,
           positions: ratingsPositions,
           hiddenSpecialtyScanOk: true,
+          discoveredHiddenSpecialtyByPlayerId: {},
+          hiddenSpecialtyDiscoveredMatchByPlayerId: {},
         };
       }
 
@@ -3463,16 +3574,27 @@ export default function Dashboard({
         setHiddenSpecialtyDiscoveredMatchByPlayerId(
           discoveryMatchByPlayerIdThisRefresh
         );
+        return {
+          ok: true,
+          ratingsByPlayerId,
+          positions: ratingsPositions,
+          hiddenSpecialtyScanOk,
+          discoveredHiddenSpecialtyByPlayerId: discoveredThisRefresh,
+          hiddenSpecialtyDiscoveredMatchByPlayerId:
+            discoveryMatchByPlayerIdThisRefresh,
+        };
       } catch {
         // Keep refreshed ratings even if hidden-specialty enrichment fails.
         hiddenSpecialtyScanOk = false;
+        return {
+          ok: true,
+          ratingsByPlayerId,
+          positions: ratingsPositions,
+          hiddenSpecialtyScanOk,
+          discoveredHiddenSpecialtyByPlayerId: {},
+          hiddenSpecialtyDiscoveredMatchByPlayerId: {},
+        };
       }
-      return {
-        ok: true,
-        ratingsByPlayerId,
-        positions: ratingsPositions,
-        hiddenSpecialtyScanOk,
-      };
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) {
         return {
@@ -3480,6 +3602,8 @@ export default function Dashboard({
           ratingsByPlayerId: null,
           positions: null,
           hiddenSpecialtyScanOk: false,
+          discoveredHiddenSpecialtyByPlayerId: {},
+          hiddenSpecialtyDiscoveredMatchByPlayerId: {},
         };
       }
       setRatingsResponseState(null);
@@ -3488,6 +3612,8 @@ export default function Dashboard({
         ratingsByPlayerId: null,
         positions: null,
         hiddenSpecialtyScanOk: false,
+        discoveredHiddenSpecialtyByPlayerId: {},
+        hiddenSpecialtyDiscoveredMatchByPlayerId: {},
       };
     }
   };
@@ -3559,6 +3685,9 @@ export default function Dashboard({
       persistedMarkersBaseline.ratingsPositions.length > 0
         ? persistedMarkersBaseline.ratingsPositions
         : ratingsResponseState?.positions ?? ratingsPositions;
+    const previousHiddenSpecialtyByPlayerIdSnapshot = {
+      ...hiddenSpecialtyByPlayerId,
+    };
     let playersUpdated = false;
     let playerIdsChanged = false;
     let nextSelectedId = selectedId;
@@ -3572,6 +3701,8 @@ export default function Dashboard({
       ratingsByPlayerId: null,
       positions: null,
       hiddenSpecialtyScanOk: true,
+      discoveredHiddenSpecialtyByPlayerId: {},
+      hiddenSpecialtyDiscoveredMatchByPlayerId: {},
     };
     try {
       const teamParam = youthTeamId ? `&youthTeamID=${youthTeamId}` : "";
@@ -3782,6 +3913,14 @@ export default function Dashboard({
           number,
           Record<string, SkillValue | number | string> | null
         >();
+        const attributeChangesByPlayerId: Record<number, YouthAttributeChange[]> = {};
+        const addAttributeChange = (
+          playerId: number,
+          change: YouthAttributeChange
+        ) => {
+          const existing = attributeChangesByPlayerId[playerId] ?? [];
+          attributeChangesByPlayerId[playerId] = [...existing, change];
+        };
 
         nextPlayersSnapshot.forEach((player) => {
           const playerId = player.YouthPlayerID;
@@ -3830,15 +3969,42 @@ export default function Dashboard({
               addRatingMarker(playerId, position);
             }
           });
+
+          const previousInjury = normalizeInjuryLevel(
+            previousDetailsByIdSnapshot.get(playerId)?.InjuryLevel ??
+              previousPlayer?.InjuryLevel
+          );
+          const nextInjury = normalizeInjuryLevel(
+            nextDetailsByPlayerId.get(playerId)?.InjuryLevel ?? player.InjuryLevel
+          );
+          if (nextInjury !== null && previousInjury !== nextInjury) {
+            addAttributeChange(playerId, {
+              key: "injuryStatus",
+              previous: previousInjury,
+              current: nextInjury,
+            });
+          }
         });
 
+        Object.entries(ratingsResult.discoveredHiddenSpecialtyByPlayerId).forEach(
+          ([playerId, specialty]) => {
+            const numericPlayerId = Number(playerId);
+            if (!Number.isFinite(numericPlayerId) || numericPlayerId <= 0) return;
+            const previousHidden = Number(
+              previousHiddenSpecialtyByPlayerIdSnapshot[numericPlayerId] ?? 0
+            );
+            const nextHidden = Number(specialty ?? 0);
+            if (nextHidden > 0 && previousHidden !== nextHidden) {
+              addAttributeChange(numericPlayerId, {
+                key: "hiddenSpecialtyDiscovered",
+                previous: previousHidden > 0 ? previousHidden : null,
+                current: nextHidden,
+              });
+            }
+          }
+        );
+
         const comparedAt = Date.now();
-        if (hasAnyMatrixNewMarkers(nextMarkers)) {
-          setMatrixNewMarkers({
-            ...nextMarkers,
-            detectedAt: comparedAt,
-          });
-        }
         const updatesEntry = buildYouthUpdatesHistoryEntry(
           nextMarkers,
           nextPlayersSnapshot,
@@ -3849,9 +4015,23 @@ export default function Dashboard({
             currentRatingsByPlayerId: nextRatingsByPlayerId,
             previousSkillsByPlayerId,
             currentSkillsByPlayerId,
+            attributeChangesByPlayerId,
           }
         );
-        if (updatesEntry.hasChanges) {
+        if (suppressNextUpdatesRecordingRef.current) {
+          suppressNextUpdatesRecordingRef.current = false;
+          setMatrixNewMarkers(buildEmptyMatrixNewMarkers());
+          setYouthUpdatesHistory([]);
+          setSelectedYouthUpdatesId(null);
+        } else if (updatesEntry.hasChanges) {
+          setMatrixNewMarkers(
+            hasAnyMatrixNewMarkers(nextMarkers)
+              ? {
+                  ...nextMarkers,
+                  detectedAt: comparedAt,
+                }
+              : buildEmptyMatrixNewMarkers()
+          );
           setYouthUpdatesHistory((prev) =>
             [updatesEntry, ...prev].slice(0, YOUTH_UPDATES_HISTORY_LIMIT)
           );
@@ -4346,12 +4526,39 @@ export default function Dashboard({
         ratings: [...entry.ratings].sort((left, right) => left.position - right.position),
         skillsCurrent: [...entry.skillsCurrent],
         skillsMax: [...entry.skillsMax],
+        attributes: [...entry.attributes],
       }));
   }, [selectedYouthUpdatesEntry]);
 
   const formatUpdatesValue = (value: number | null, type: "skill" | "rating") => {
     if (value === null) return messages.unknownShort;
     if (type === "rating") return value.toFixed(1);
+    return String(value);
+  };
+
+  const youthUpdatesAttributeLabel = (
+    key: "hiddenSpecialtyDiscovered" | "injuryStatus"
+  ) => {
+    switch (key) {
+      case "hiddenSpecialtyDiscovered":
+        return messages.hiddenSpecialtyTooltip;
+      case "injuryStatus":
+        return messages.sortInjuries;
+      default:
+        return key;
+    }
+  };
+
+  const formatYouthUpdatesAttributeValue = (
+    key: "hiddenSpecialtyDiscovered" | "injuryStatus",
+    value: number | string | boolean | null
+  ) => {
+    if (value === null || value === undefined) return messages.unknownShort;
+    if (key === "injuryStatus" && typeof value === "number") {
+      if (value < 0) return messages.clubChronicleInjuryHealthy;
+      if (value === 0) return messages.seniorListInjuryBruised;
+      return value.toFixed(1);
+    }
     return String(value);
   };
 
@@ -4517,90 +4724,146 @@ export default function Dashboard({
       <Modal
         open={youthUpdatesOpen}
         title={messages.clubChronicleUpdatesTitle}
-        className={styles.chronicleUpdatesModal}
+        className={styles.seniorUpdatesModal}
+        movable={false}
         body={
           youthUpdatesHistoryWithChanges.length > 0 ? (
-            <>
-              <div className={styles.chronicleUpdatesMetaBlock}>
-                <p className={styles.chroniclePressMeta}>
-                  {messages.clubChronicleUpdatesSinceGlobal}
-                </p>
+            <div className={styles.seniorUpdatesShell}>
+              <div className={styles.seniorUpdatesTopBar}>
                 {selectedYouthUpdatesEntry ? (
-                  <p className={styles.chroniclePressMeta}>
+                  <span className={styles.seniorUpdatesComparedAt}>
                     {messages.clubChronicleUpdatesComparedAt}:{" "}
                     {formatDateTime(selectedYouthUpdatesEntry.comparedAt)}
-                  </p>
+                  </span>
                 ) : null}
               </div>
-              <div className={styles.chronicleUpdatesHistoryWrap}>
-                <div className={styles.chronicleUpdatesHistoryHeader}>
-                  {messages.clubChronicleUpdatesHistoryTitle}
-                </div>
-                <div className={styles.chronicleUpdatesHistoryList}>
-                  {youthUpdatesHistoryWithChanges.map((entry) => (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      className={`${styles.chronicleUpdatesHistoryItem}${
-                        selectedYouthUpdatesEntry?.id === entry.id
-                          ? ` ${styles.chronicleUpdatesHistoryItemActive}`
-                          : ""
-                      }`}
-                      onClick={() => setSelectedYouthUpdatesId(entry.id)}
-                      aria-pressed={selectedYouthUpdatesEntry?.id === entry.id}
-                    >
-                      <span>{formatDateTime(entry.comparedAt)}</span>
-                    </button>
-                  ))}
-                </div>
+              <div className={styles.seniorUpdatesGrid}>
+                <aside className={styles.seniorUpdatesHistoryPane}>
+                  <div className={styles.seniorUpdatesHistoryHeader}>
+                    {messages.clubChronicleUpdatesHistoryTitle}
+                  </div>
+                  <div className={styles.seniorUpdatesHistoryList}>
+                    {youthUpdatesHistoryWithChanges.map((entry) => (
+                      <button
+                        key={entry.id}
+                        type="button"
+                        className={`${styles.seniorUpdatesHistoryItem}${
+                          selectedYouthUpdatesEntry?.id === entry.id
+                            ? ` ${styles.seniorUpdatesHistoryItemActive}`
+                            : ""
+                        }`}
+                        onClick={() => setSelectedYouthUpdatesId(entry.id)}
+                        aria-pressed={selectedYouthUpdatesEntry?.id === entry.id}
+                      >
+                        <span className={styles.seniorUpdatesHistoryDate}>
+                          {formatDateTime(entry.comparedAt)}
+                        </span>
+                        <span className={styles.seniorUpdatesHistoryState}>
+                          {entry.hasChanges
+                            ? messages.clubChronicleUpdatesHistoryChanged
+                            : messages.clubChronicleUpdatesHistoryNoChanges}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </aside>
+                <section className={styles.seniorUpdatesDetailsPane}>
+                  {selectedYouthUpdatesEntry && youthUpdatesRows.length ? (
+                    <>
+                      {youthUpdatesRows.map((entry) => (
+                        <article
+                          key={entry.playerId}
+                          className={styles.seniorUpdatesPlayerCard}
+                        >
+                          <div className={styles.seniorUpdatesPlayerHeader}>
+                            <h4 className={styles.seniorUpdatesPlayerName}>
+                              {entry.playerName}
+                            </h4>
+                            {entry.isNewPlayer ? (
+                              <span className={styles.matrixNewPill}>
+                                {messages.youthUpdatesNewPlayerLabel}
+                              </span>
+                            ) : null}
+                          </div>
+                          <div className={styles.seniorUpdatesPlayerBody}>
+                            {entry.skillsCurrent.length > 0 ? (
+                              <div className={styles.seniorUpdatesSection}>
+                                <h5 className={styles.seniorUpdatesSectionTitle}>
+                                  {messages.skillsLabel}
+                                </h5>
+                                <ul className={styles.seniorUpdatesChangeList}>
+                                  {entry.skillsCurrent.map((change) => (
+                                    <li
+                                      key={`${entry.playerId}-current-${change.skillKey}`}
+                                    >
+                                      {skillLabelByKey(change.skillKey)} (
+                                      {messages.youthUpdatesSkillCurrentTag}):{" "}
+                                      {formatUpdatesValue(change.previous, "skill")} →{" "}
+                                      {formatUpdatesValue(change.current, "skill")}
+                                    </li>
+                                  ))}
+                                  {entry.skillsMax.map((change) => (
+                                    <li key={`${entry.playerId}-max-${change.skillKey}`}>
+                                      {skillLabelByKey(change.skillKey)} (
+                                      {messages.youthUpdatesSkillMaxTag}):{" "}
+                                      {formatUpdatesValue(change.previous, "skill")} →{" "}
+                                      {formatUpdatesValue(change.current, "skill")}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                            {entry.ratings.length > 0 ? (
+                              <div className={styles.seniorUpdatesSection}>
+                                <h5 className={styles.seniorUpdatesSectionTitle}>
+                                  {messages.ratingsTitle}
+                                </h5>
+                                <ul className={styles.seniorUpdatesChangeList}>
+                                  {entry.ratings.map((change) => (
+                                    <li key={`${entry.playerId}-rating-${change.position}`}>
+                                      {positionLabel(change.position, messages)}:{" "}
+                                      {formatUpdatesValue(change.previous, "rating")} →{" "}
+                                      {formatUpdatesValue(change.current, "rating")}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                            {entry.attributes.length > 0 ? (
+                              <div className={styles.seniorUpdatesSection}>
+                                <h5 className={styles.seniorUpdatesSectionTitle}>
+                                  {messages.clubChronicleUpdatesHistoryChanged}
+                                </h5>
+                                <ul className={styles.seniorUpdatesChangeList}>
+                                  {entry.attributes.map((change, idx) => (
+                                    <li key={`${entry.playerId}-attr-${change.key}-${idx}`}>
+                                      {youthUpdatesAttributeLabel(change.key)}:{" "}
+                                      {formatYouthUpdatesAttributeValue(
+                                        change.key,
+                                        change.previous
+                                      )}{" "}
+                                      →{" "}
+                                      {formatYouthUpdatesAttributeValue(
+                                        change.key,
+                                        change.current
+                                      )}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                          </div>
+                        </article>
+                      ))}
+                    </>
+                  ) : (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleUpdatesNoChangesGlobal}
+                    </p>
+                  )}
+                </section>
               </div>
-              {selectedYouthUpdatesEntry && youthUpdatesRows.length ? (
-                <div className={styles.chronicleUpdatesList}>
-                  {youthUpdatesRows.map((entry) => (
-                    <div
-                      key={entry.playerId}
-                      className={styles.chronicleUpdatesTeam}
-                    >
-                      <h3 className={styles.chronicleUpdatesTeamTitle}>
-                        {entry.playerName}
-                      </h3>
-                      <ul className={styles.helpList}>
-                        {entry.isNewPlayer ? (
-                          <li>{messages.youthUpdatesNewPlayerLabel}</li>
-                        ) : null}
-                        {entry.skillsCurrent.map((change) => (
-                          <li key={`${entry.playerId}-current-${change.skillKey}`}>
-                            {skillLabelByKey(change.skillKey)} (
-                            {messages.youthUpdatesSkillCurrentTag}):{" "}
-                            {formatUpdatesValue(change.previous, "skill")} →{" "}
-                            {formatUpdatesValue(change.current, "skill")}
-                          </li>
-                        ))}
-                        {entry.skillsMax.map((change) => (
-                          <li key={`${entry.playerId}-max-${change.skillKey}`}>
-                            {skillLabelByKey(change.skillKey)} (
-                            {messages.youthUpdatesSkillMaxTag}):{" "}
-                            {formatUpdatesValue(change.previous, "skill")} →{" "}
-                            {formatUpdatesValue(change.current, "skill")}
-                          </li>
-                        ))}
-                        {entry.ratings.map((change) => (
-                          <li key={`${entry.playerId}-rating-${change.position}`}>
-                            {positionLabel(change.position, messages)}:{" "}
-                            {formatUpdatesValue(change.previous, "rating")} →{" "}
-                            {formatUpdatesValue(change.current, "rating")}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className={styles.chronicleEmpty}>
-                  {messages.clubChronicleUpdatesNoChangesGlobal}
-                </p>
-              )}
-            </>
+            </div>
           ) : (
             <p className={styles.chronicleEmpty}>
               {messages.clubChronicleUpdatesEmpty}

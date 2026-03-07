@@ -655,6 +655,20 @@ export const messagesFr: Messages = {
     setBestLineupIgnoreTrainingTooltip:
       "Définit la composition sans tenir compte du programme d'entraînement. Toutes les formations sont prises en compte.",
     setBestLineupRejectedPlayersLabel: "Joueurs rejetés",
+    analyzeOpponent: "Analyser l'adversaire",
+    analyzeOpponentTooltip: "Analyser les matchs récents de l'adversaire.",
+    analyzeOpponentMatchId: "ID du match",
+    analyzeOpponentMatchType: "Type de match",
+    analyzeOpponentFormationColumn: "Formation",
+    analyzeOpponentTacticColumn: "Tactique",
+    analyzeOpponentAgainstYouMark: "* indique les matchs contre vous.",
+    analyzeOpponentNeverPlayedUs: "Ils n'ont jamais joué contre nous.",
+    analyzeOpponentSummaryPreferredFormation:
+      "la formation la plus utilisée dans ces matchs est",
+    analyzeOpponentSummaryPreferredTactic:
+      "Pour cette formation, la tactique la plus utilisée est",
+    analyzeOpponentSummaryVsYou: "Quand ils jouent contre vous, ils préfèrent",
+    analyzeOpponentSummaryWith: "avec",
     loadLineupUnavailable: "Aucune composition enregistrée",
     loadLineupActive: "Chargé",
     loadLineupError: "Chargement échoué",

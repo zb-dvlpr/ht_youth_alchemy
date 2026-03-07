@@ -647,6 +647,20 @@ export const messagesSv: Messages = {
     setBestLineupIgnoreTrainingTooltip:
       "Sätt uppställningen utan hänsyn till träningsupplägget. Alla formationer beaktas.",
     setBestLineupRejectedPlayersLabel: "Bortvalda spelare",
+    analyzeOpponent: "Analysera motståndare",
+    analyzeOpponentTooltip: "Analysera motståndarens senaste matcher.",
+    analyzeOpponentMatchId: "Match-ID",
+    analyzeOpponentMatchType: "Matchtyp",
+    analyzeOpponentFormationColumn: "Formation",
+    analyzeOpponentTacticColumn: "Taktik",
+    analyzeOpponentAgainstYouMark: "* markerar matcher mot dig.",
+    analyzeOpponentNeverPlayedUs: "De har aldrig spelat mot oss.",
+    analyzeOpponentSummaryPreferredFormation:
+      "mest använda formation i dessa matcher är",
+    analyzeOpponentSummaryPreferredTactic:
+      "För den formationen är deras vanligaste taktik",
+    analyzeOpponentSummaryVsYou: "När de möter dig föredrar de",
+    analyzeOpponentSummaryWith: "med",
     loadLineupUnavailable: "Ingen sparad uppställning",
     loadLineupActive: "Laddad",
     loadLineupError: "Misslyckades att ladda",

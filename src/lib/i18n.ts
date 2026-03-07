@@ -563,6 +563,18 @@ export type Messages = {
   setBestLineupIgnoreTraining: string;
   setBestLineupIgnoreTrainingTooltip: string;
   setBestLineupRejectedPlayersLabel: string;
+  analyzeOpponent: string;
+  analyzeOpponentTooltip: string;
+  analyzeOpponentMatchId: string;
+  analyzeOpponentMatchType: string;
+  analyzeOpponentFormationColumn: string;
+  analyzeOpponentTacticColumn: string;
+  analyzeOpponentAgainstYouMark: string;
+  analyzeOpponentNeverPlayedUs: string;
+  analyzeOpponentSummaryPreferredFormation: string;
+  analyzeOpponentSummaryPreferredTactic: string;
+  analyzeOpponentSummaryVsYou: string;
+  analyzeOpponentSummaryWith: string;
   loadLineupUnavailable: string;
   loadLineupActive: string;
   loadLineupError: string;

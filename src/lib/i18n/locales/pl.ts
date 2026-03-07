@@ -144,6 +144,20 @@ export const messagesPl: Messages = {
   setBestLineupIgnoreTrainingTooltip:
     "Ustaw skład bez uwzględniania reżimu treningowego. Brane są pod uwagę wszystkie formacje.",
   setBestLineupRejectedPlayersLabel: "Odrzuceni zawodnicy",
+  analyzeOpponent: "Analizuj przeciwnika",
+  analyzeOpponentTooltip: "Przeanalizuj ostatnie mecze przeciwnika.",
+  analyzeOpponentMatchId: "ID meczu",
+  analyzeOpponentMatchType: "Typ meczu",
+  analyzeOpponentFormationColumn: "Formacja",
+  analyzeOpponentTacticColumn: "Taktyka",
+  analyzeOpponentAgainstYouMark: "* oznacza mecze przeciwko tobie.",
+  analyzeOpponentNeverPlayedUs: "Nigdy nie grali przeciwko nam.",
+  analyzeOpponentSummaryPreferredFormation:
+    "najczęściej używana formacja w tych meczach to",
+  analyzeOpponentSummaryPreferredTactic:
+    "Dla tej formacji najczęściej używana taktyka to",
+  analyzeOpponentSummaryVsYou: "Gdy grają przeciwko tobie, preferują",
+  analyzeOpponentSummaryWith: "z",
   changelog_3_1_0:
     "Optymalizacja seniorów ma teraz dedykowaną nakładkę pomocy z podpowiedziami dla Ostatnich aktualizacji i ustawiania składu przez AI.",
   seniorHelpTitle: "Przewodnik optymalizacji seniorów",

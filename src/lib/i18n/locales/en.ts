@@ -622,6 +622,20 @@ export const messagesEn: Messages = {
     setBestLineupIgnoreTrainingTooltip:
       "Set lineup without considering the training regimen. All formations are considered.",
     setBestLineupRejectedPlayersLabel: "Rejected players",
+    analyzeOpponent: "Analyze opponent",
+    analyzeOpponentTooltip: "Analyze opponent recent matches.",
+    analyzeOpponentMatchId: "Match ID",
+    analyzeOpponentMatchType: "Match type",
+    analyzeOpponentFormationColumn: "Formation",
+    analyzeOpponentTacticColumn: "Tactic",
+    analyzeOpponentAgainstYouMark: "* indicates matches against you.",
+    analyzeOpponentNeverPlayedUs: "They have never played against us.",
+    analyzeOpponentSummaryPreferredFormation:
+      "most preferred formation in these matches is",
+    analyzeOpponentSummaryPreferredTactic:
+      "For this formation, their most preferred tactic is",
+    analyzeOpponentSummaryVsYou: "When they play against you, they prefer",
+    analyzeOpponentSummaryWith: "with",
     loadLineupUnavailable: "No saved lineup",
     loadLineupActive: "Loaded",
     loadLineupError: "Load failed",

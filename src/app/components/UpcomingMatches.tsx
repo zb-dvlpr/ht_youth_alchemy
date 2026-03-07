@@ -67,6 +67,7 @@ type UpcomingMatchesProps = {
     matchId: number,
     mode: SetBestLineupMode
   ) => void | Promise<void>;
+  onAnalyzeOpponent?: (matchId: number) => void | Promise<void>;
   loadedMatchId?: number | null;
   onSubmitSuccess?: () => void;
   sourceSystem?: string;
@@ -347,7 +348,9 @@ function renderMatch(
   loadState?: LoadState,
   onLoadLineup?: (matchId: number) => void,
   onSetBestLineupMode?: (matchId: number, mode: SetBestLineupMode) => void,
+  onAnalyzeOpponent?: (matchId: number) => void,
   bestLineupPending?: boolean,
+  analyzePending?: boolean,
   isLoaded?: boolean,
   assignedCount?: number,
   setBestLineupHelpAnchor?: string
@@ -434,6 +437,8 @@ function renderMatch(
       : null;
   const canShowBestLineupMenu =
     sourceSystem === "Hattrick" && Boolean(onSetBestLineupMode);
+  const canAnalyzeOpponent = sourceSystem === "Hattrick" && Boolean(onAnalyzeOpponent);
+  const showActionRow = isUpcoming || canAnalyzeOpponent;
 
   return (
     <li
@@ -468,8 +473,10 @@ function renderMatch(
           {messages.ordersLabel}: {ordersSet ? messages.ordersSet : messages.ordersNotSet}
         </span>
       </div>
-      {isUpcoming ? (
+      {showActionRow ? (
         <div className={styles.matchActions}>
+          {isUpcoming ? (
+            <>
           <Tooltip content={messages.loadLineupTooltip}>
             <button
               type="button"
@@ -528,6 +535,23 @@ function renderMatch(
               <pre>{state.raw}</pre>
             </details>
           ) : null}
+            </>
+          ) : null}
+          {canAnalyzeOpponent ? (
+            <span className={styles.matchAnalyzeOpponentWrap}>
+              <Tooltip content={messages.analyzeOpponentTooltip}>
+                <button
+                  type="button"
+                  className={styles.matchButtonSecondary}
+                  onClick={() => onAnalyzeOpponent?.(matchId)}
+                  disabled={Boolean(analyzePending)}
+                  aria-label={messages.analyzeOpponentTooltip}
+                >
+                  {messages.analyzeOpponent}
+                </button>
+              </Tooltip>
+            </span>
+          ) : null}
         </div>
       ) : null}
     </li>
@@ -545,6 +569,7 @@ export default function UpcomingMatches({
   onLoadLineup,
   onSetBestLineup,
   onSetBestLineupMode,
+  onAnalyzeOpponent,
   loadedMatchId,
   onSubmitSuccess,
   sourceSystem = "Youth",
@@ -560,6 +585,7 @@ export default function UpcomingMatches({
   const [bestLineupPendingMatchId, setBestLineupPendingMatchId] = useState<number | null>(
     null
   );
+  const [analyzePendingMatchId, setAnalyzePendingMatchId] = useState<number | null>(null);
   const teamId =
     response.data?.HattrickData?.Team?.TeamID ??
     null;
@@ -783,6 +809,16 @@ export default function UpcomingMatches({
     }
   };
 
+  const handleAnalyzeOpponent = async (matchId: number) => {
+    if (!onAnalyzeOpponent || analyzePendingMatchId !== null) return;
+    setAnalyzePendingMatchId(matchId);
+    try {
+      await onAnalyzeOpponent(matchId);
+    } finally {
+      setAnalyzePendingMatchId((current) => (current === matchId ? null : current));
+    }
+  };
+
   const confirmSubmit = async () => {
     if (!confirmMatchId || !teamId) {
       setConfirmMatchId(null);
@@ -982,7 +1018,9 @@ export default function UpcomingMatches({
               loadStates[matchId],
               handleLoadLineup,
               handleSetBestLineupMode,
+              handleAnalyzeOpponent,
               bestLineupPendingMatchId === matchId,
+              analyzePendingMatchId === matchId,
               loadedMatchId === matchId,
               assignedCount,
               index === 0 ? setBestLineupHelpAnchor : undefined
@@ -1013,7 +1051,9 @@ export default function UpcomingMatches({
                 loadStates[matchId],
                 handleLoadLineup,
                 handleSetBestLineupMode,
+                handleAnalyzeOpponent,
                 bestLineupPendingMatchId === matchId,
+                analyzePendingMatchId === matchId,
                 loadedMatchId === matchId,
                 assignedCount,
                 index === 0 ? setBestLineupHelpAnchor : undefined

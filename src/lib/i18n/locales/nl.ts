@@ -144,6 +144,20 @@ export const messagesNl: Messages = {
   setBestLineupIgnoreTrainingTooltip:
     "Zet de opstelling zonder rekening te houden met het trainingsregime. Alle formaties worden meegenomen.",
   setBestLineupRejectedPlayersLabel: "Afgewezen spelers",
+  analyzeOpponent: "Tegenstander analyseren",
+  analyzeOpponentTooltip: "Analyseer recente wedstrijden van de tegenstander.",
+  analyzeOpponentMatchId: "Wedstrijd-ID",
+  analyzeOpponentMatchType: "Wedstrijdtype",
+  analyzeOpponentFormationColumn: "Formatie",
+  analyzeOpponentTacticColumn: "Tactiek",
+  analyzeOpponentAgainstYouMark: "* markeert wedstrijden tegen jou.",
+  analyzeOpponentNeverPlayedUs: "Ze hebben nog nooit tegen ons gespeeld.",
+  analyzeOpponentSummaryPreferredFormation:
+    "de meest gebruikte formatie in deze wedstrijden is",
+  analyzeOpponentSummaryPreferredTactic:
+    "Voor die formatie is de meest gebruikte tactiek",
+  analyzeOpponentSummaryVsYou: "Wanneer ze tegen jou spelen, geven ze de voorkeur aan",
+  analyzeOpponentSummaryWith: "met",
   changelog_3_1_0:
     "Senioroptimalisatie heeft nu een eigen help-overlay met gerichte callouts voor Laatste updates en opstelling met AI.",
   seniorHelpTitle: "Handleiding senioroptimalisatie",

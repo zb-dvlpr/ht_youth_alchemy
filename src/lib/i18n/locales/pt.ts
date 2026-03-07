@@ -656,6 +656,20 @@ export const messagesPt: Messages = {
     setBestLineupIgnoreTrainingTooltip:
       "Define a escalação sem considerar o regime de treino. Todas as formações serão consideradas.",
     setBestLineupRejectedPlayersLabel: "Jogadores rejeitados",
+    analyzeOpponent: "Analisar adversário",
+    analyzeOpponentTooltip: "Analisar jogos recentes do adversário.",
+    analyzeOpponentMatchId: "ID da partida",
+    analyzeOpponentMatchType: "Tipo de partida",
+    analyzeOpponentFormationColumn: "Formação",
+    analyzeOpponentTacticColumn: "Tática",
+    analyzeOpponentAgainstYouMark: "* indica partidas contra você.",
+    analyzeOpponentNeverPlayedUs: "Eles nunca jogaram contra nós.",
+    analyzeOpponentSummaryPreferredFormation:
+      "a formação mais usada nessas partidas é",
+    analyzeOpponentSummaryPreferredTactic:
+      "Para essa formação, a tática mais usada é",
+    analyzeOpponentSummaryVsYou: "Quando jogam contra você, preferem",
+    analyzeOpponentSummaryWith: "com",
     loadLineupUnavailable: "Sem escalação salva",
     loadLineupActive: "Carregada",
     loadLineupError: "Falha ao carregar",

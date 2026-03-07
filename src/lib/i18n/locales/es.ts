@@ -656,6 +656,20 @@ export const messagesEs: Messages = {
     setBestLineupIgnoreTrainingTooltip:
       "Establece la alineación sin considerar el plan de entrenamiento. Se consideran todas las formaciones.",
     setBestLineupRejectedPlayersLabel: "Jugadores rechazados",
+    analyzeOpponent: "Analizar rival",
+    analyzeOpponentTooltip: "Analizar los partidos recientes del rival.",
+    analyzeOpponentMatchId: "ID del partido",
+    analyzeOpponentMatchType: "Tipo de partido",
+    analyzeOpponentFormationColumn: "Formación",
+    analyzeOpponentTacticColumn: "Táctica",
+    analyzeOpponentAgainstYouMark: "* indica partidos contra ti.",
+    analyzeOpponentNeverPlayedUs: "Nunca han jugado contra nosotros.",
+    analyzeOpponentSummaryPreferredFormation:
+      "la formación más usada en estos partidos es",
+    analyzeOpponentSummaryPreferredTactic:
+      "Para esa formación, su táctica más usada es",
+    analyzeOpponentSummaryVsYou: "Cuando juegan contra ti, prefieren",
+    analyzeOpponentSummaryWith: "con",
     loadLineupUnavailable: "Sin alineación guardada",
     loadLineupActive: "Cargada",
     loadLineupError: "Error al cargar",

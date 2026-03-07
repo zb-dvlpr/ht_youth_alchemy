@@ -4352,6 +4352,10 @@ html[data-theme="dark"] .spinner {
   margin-top: 8px;
 }
 
+.matchAnalyzeOpponentWrap {
+  margin-left: auto;
+}
+
 .matchBestLineupTopAction {
   position: absolute;
   top: 10px;

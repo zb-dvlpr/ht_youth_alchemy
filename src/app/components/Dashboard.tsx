@@ -144,6 +144,13 @@ type YouthUpdatesBuildContext = {
   >;
 };
 
+type PersistedYouthMarkersBaseline = {
+  players: YouthPlayer[];
+  detailsById: Map<number, YouthPlayerDetails>;
+  ratingsByPlayerId: Record<number, Record<string, number>>;
+  ratingsPositions: number[];
+};
+
 type PlayerDetailsResponse = {
   data?: Record<string, unknown>;
   unlockStatus?: "success" | "denied";
@@ -784,6 +791,9 @@ export default function Dashboard({
   );
   const staleRefreshAttemptedRef = useRef(false);
   const lastAuthNotificationAtRef = useRef(0);
+  const persistedMarkersBaselineRef = useRef<PersistedYouthMarkersBaseline | null>(
+    null
+  );
   const refreshRunSeqRef = useRef(0);
   const activeRefreshRunIdRef = useRef<number | null>(null);
   const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
@@ -1684,6 +1694,60 @@ export default function Dashboard({
           .slice(0, YOUTH_UPDATES_HISTORY_LIMIT);
         setYouthUpdatesHistory(normalized);
         setSelectedYouthUpdatesId(normalized[0]?.id ?? null);
+      }
+
+      const persistedPlayers = Array.isArray(parsed.playerList)
+        ? parsed.playerList
+        : [];
+      const persistedDetailsById = new Map<number, YouthPlayerDetails>();
+      if (parsed.cache && typeof parsed.cache === "object") {
+        Object.entries(parsed.cache).forEach(([id, entry]) => {
+          const playerId = Number(id);
+          if (!Number.isFinite(playerId) || playerId <= 0) return;
+          if (!entry || typeof entry !== "object") return;
+          const detailNode =
+            (entry as { data?: unknown }).data &&
+            typeof (entry as { data?: unknown }).data === "object"
+              ? ((entry as { data: Record<string, unknown> }).data as Record<
+                  string,
+                  unknown
+                >)
+              : null;
+          if (!detailNode) return;
+          const resolved = resolveDetails(detailNode);
+          if (!resolved) return;
+          persistedDetailsById.set(playerId, resolved);
+        });
+      }
+      const persistedRatingsByPlayerId: Record<number, Record<string, number>> =
+        {};
+      if (parsed.ratingsCache && typeof parsed.ratingsCache === "object") {
+        Object.entries(parsed.ratingsCache).forEach(([id, ratings]) => {
+          const playerId = Number(id);
+          if (!Number.isFinite(playerId) || playerId <= 0) return;
+          persistedRatingsByPlayerId[playerId] = cloneRatingsRecord(
+            ratings && typeof ratings === "object"
+              ? (ratings as Record<string, number>)
+              : null
+          );
+        });
+      }
+      const persistedRatingsPositions = Array.isArray(parsed.ratingsPositions)
+        ? parsed.ratingsPositions
+            .map((value) => Number(value))
+            .filter((value) => Number.isFinite(value))
+        : [];
+      if (
+        persistedPlayers.length > 0 ||
+        persistedDetailsById.size > 0 ||
+        Object.keys(persistedRatingsByPlayerId).length > 0
+      ) {
+        persistedMarkersBaselineRef.current = {
+          players: persistedPlayers,
+          detailsById: persistedDetailsById,
+          ratingsByPlayerId: persistedRatingsByPlayerId,
+          ratingsPositions: persistedRatingsPositions,
+        };
       }
     } catch {
       // ignore restore errors
@@ -3470,17 +3534,31 @@ export default function Dashboard({
       typeof teamIdOverride === "number" || teamIdOverride === null
         ? teamIdOverride ?? resolvedYouthTeamId
         : resolvedYouthTeamId;
-    const previousPlayersSnapshot = playerList;
-    const previousDetailsByIdSnapshot = new Map<number, YouthPlayerDetails>(
-      playerDetailsById
-    );
-    const previousRatingsBaselineSnapshot = buildRatingsBaselineByPlayerId({
-      players: previousPlayersSnapshot,
-      ratingsResponseState,
-      ratingsCache,
-    });
+    const persistedMarkersBaseline = persistedMarkersBaselineRef.current;
+    const usePersistedMarkersBaseline =
+      Boolean(persistedMarkersBaseline) && refreshAll;
+    const previousPlayersSnapshot =
+      usePersistedMarkersBaseline && persistedMarkersBaseline
+        ? persistedMarkersBaseline.players
+        : playerList;
+    const previousDetailsByIdSnapshot =
+      usePersistedMarkersBaseline && persistedMarkersBaseline
+        ? new Map<number, YouthPlayerDetails>(persistedMarkersBaseline.detailsById)
+        : new Map<number, YouthPlayerDetails>(playerDetailsById);
+    const previousRatingsBaselineSnapshot =
+      usePersistedMarkersBaseline && persistedMarkersBaseline
+        ? persistedMarkersBaseline.ratingsByPlayerId
+        : buildRatingsBaselineByPlayerId({
+            players: previousPlayersSnapshot,
+            ratingsResponseState,
+            ratingsCache,
+          });
     const previousRatingsPositionsSnapshot =
-      ratingsResponseState?.positions ?? ratingsPositions;
+      usePersistedMarkersBaseline &&
+      persistedMarkersBaseline &&
+      persistedMarkersBaseline.ratingsPositions.length > 0
+        ? persistedMarkersBaseline.ratingsPositions
+        : ratingsResponseState?.positions ?? ratingsPositions;
     let playersUpdated = false;
     let playerIdsChanged = false;
     let nextSelectedId = selectedId;
@@ -3793,6 +3871,9 @@ export default function Dashboard({
           addNotification(messages.notificationStaleRefresh);
         }
         addNotification(messages.notificationPlayersRefreshed);
+      }
+      if (usePersistedMarkersBaseline && playersUpdated) {
+        persistedMarkersBaselineRef.current = null;
       }
       setPlayerRefreshProgressPct(100);
       setPlayerRefreshStatus(null);

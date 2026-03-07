@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactElement } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { setDragGhost } from "@/lib/drag";
@@ -17,8 +17,12 @@ type YouthPlayer = {
   NickName?: string;
   LastName: string;
   Specialty?: number;
+  Cards?: number;
+  InjuryLevel?: number;
   Age?: number;
   AgeDays?: number;
+  Form?: SkillInput;
+  StaminaSkill?: SkillInput;
   PlayerSkills?: Record<string, SkillValue>;
 };
 
@@ -28,6 +32,8 @@ type SkillValue = {
   "@_IsMaxReached"?: string;
   "@_MayUnlock"?: string;
 };
+
+type SkillInput = SkillValue | number | string | null | undefined;
 
 export type OptimizeMode =
   | "star"
@@ -39,7 +45,16 @@ type LineupFieldProps = {
   assignments: LineupAssignments;
   behaviors?: LineupBehaviors;
   playersById: Map<number, YouthPlayer>;
-  playerDetailsById?: Map<number, { PlayerSkills?: Record<string, SkillValue> }>;
+  playerDetailsById?: Map<
+    number,
+    {
+      PlayerSkills?: Record<string, SkillValue>;
+      InjuryLevel?: number;
+      Cards?: number;
+      Form?: SkillInput;
+      StaminaSkill?: SkillInput;
+    }
+  >;
   onAssign: (slotId: string, playerId: number) => void;
   onClear: (slotId: string) => void;
   onMove?: (fromSlot: string, toSlot: string) => void;
@@ -70,7 +85,10 @@ type LineupFieldProps = {
     all: Set<string>;
   };
   hiddenSpecialtyByPlayerId?: Record<number, number>;
+  hiddenSpecialtyMatchHrefByPlayerId?: Record<number, string>;
   onHoverPlayer?: (playerId: number) => void;
+  skillMode?: "currentMax" | "single";
+  maxSkillLevel?: number;
   messages: Messages;
 };
 
@@ -198,6 +216,98 @@ const behaviorOptionsForSlot = (slotId: string): BehaviorOption[] => {
 };
 
 const MAX_SKILL_LEVEL = 8;
+const FORM_MAX_LEVEL = 8;
+const STAMINA_MAX_LEVEL = 9;
+const SUBSCRIPT_DIGITS: Record<string, string> = {
+  "0": "₀",
+  "1": "₁",
+  "2": "₂",
+  "3": "₃",
+  "4": "₄",
+  "5": "₅",
+  "6": "₆",
+  "7": "₇",
+  "8": "₈",
+  "9": "₉",
+};
+
+const toSubscript = (value: number) =>
+  String(Math.max(0, Math.floor(value)))
+    .split("")
+    .map((digit) => SUBSCRIPT_DIGITS[digit] ?? digit)
+    .join("");
+
+const seniorBarGradient = (
+  value: number | null,
+  minSkillLevel: number,
+  maxSkillLevel: number
+) => {
+  if (value === null || value === undefined) return undefined;
+  if (maxSkillLevel <= minSkillLevel) return undefined;
+  const t = Math.min(
+    1,
+    Math.max((value - minSkillLevel) / (maxSkillLevel - minSkillLevel), 0)
+  );
+  if (t >= 1) {
+    return "linear-gradient(90deg, #2f9f5b, #1f6f3f)";
+  }
+  if (t <= 0) {
+    return "linear-gradient(90deg, #cf3f3a, #8b241f)";
+  }
+  const startHue = 6 + (136 - 6) * t;
+  const startSat = 72 - 8 * t;
+  const startLight = 49 - 9 * t;
+  const endHue = 2 + (145 - 2) * t;
+  const endSat = 66 - 10 * t;
+  const endLight = 33 - 5 * t;
+  const startColor = `hsl(${Math.round(startHue)} ${Math.round(startSat)}% ${Math.round(startLight)}%)`;
+  const endColor = `hsl(${Math.round(endHue)} ${Math.round(endSat)}% ${Math.round(endLight)}%)`;
+  return `linear-gradient(90deg, ${startColor}, ${endColor})`;
+};
+
+const normalizeInjuryLevel = (value: unknown): number | null => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const injuryStatus = (
+  injuryLevelRaw: unknown,
+  messages: Messages
+) => {
+  const injuryLevel = normalizeInjuryLevel(injuryLevelRaw);
+  if (injuryLevel === null) return null;
+  if (injuryLevel === 0 || (injuryLevel > 0 && injuryLevel < 1)) {
+    return { display: "🩹", label: messages.seniorListInjuryBruised, isHealthy: false };
+  }
+  if (injuryLevel >= 1) {
+    const weeks = Math.ceil(injuryLevel);
+    return {
+      display: `✚${toSubscript(weeks)}`,
+      label: messages.seniorListInjuryWeeks.replace("{weeks}", String(weeks)),
+      isHealthy: false,
+    };
+  }
+  return null;
+};
+
+const cardStatus = (cardsRaw: unknown, messages: Messages) => {
+  const cards = normalizeInjuryLevel(cardsRaw);
+  if (cards === null) return null;
+  if (cards >= 3) {
+    return { display: "🟥", label: messages.sortCards };
+  }
+  if (cards >= 2) {
+    return { display: "🟨🟨", label: messages.sortCards };
+  }
+  if (cards >= 1) {
+    return { display: "🟨", label: messages.sortCards };
+  }
+  return null;
+};
 
 const SKILL_ROWS = [
   { key: "KeeperSkill", maxKey: "KeeperSkillMax", labelKey: "skillKeeper" },
@@ -215,21 +325,23 @@ function formatName(player: YouthPlayer) {
     .join(" ");
 }
 
-function getSkillLevel(skill?: SkillValue): number | null {
-  if (!skill) return null;
-  if (skill["@_IsAvailable"] !== "True") return null;
-  if (skill["#text"] === undefined || skill["#text"] === null) return null;
-  const numeric = Number(skill["#text"]);
+function parseSkillValue(skill: SkillInput): number | null {
+  if (skill === null || skill === undefined) return null;
+  if (typeof skill === "number") return Number.isFinite(skill) ? skill : null;
+  if (typeof skill === "string") {
+    const numeric = Number(skill);
+    return Number.isNaN(numeric) ? null : numeric;
+  }
+  const availability = skill["@_IsAvailable"];
+  if (typeof availability === "string" && availability !== "True") return null;
+  const raw = skill["#text"];
+  if (raw === undefined || raw === null) return null;
+  const numeric = Number(raw);
   return Number.isNaN(numeric) ? null : numeric;
 }
 
-function getSkillMax(skill?: SkillValue): number | null {
-  if (!skill) return null;
-  if (skill["@_IsAvailable"] !== "True") return null;
-  if (skill["#text"] === undefined || skill["#text"] === null) return null;
-  const numeric = Number(skill["#text"]);
-  return Number.isNaN(numeric) ? null : numeric;
-}
+const getSkillLevel = parseSkillValue;
+const getSkillMax = parseSkillValue;
 
 function specialtyName(value: number | undefined, messages: Messages) {
   switch (value) {
@@ -277,7 +389,10 @@ export default function LineupField({
   optimizeModeDisabledReasons,
   trainedSlots,
   hiddenSpecialtyByPlayerId = {},
+  hiddenSpecialtyMatchHrefByPlayerId = {},
   onHoverPlayer,
+  skillMode = "currentMax",
+  maxSkillLevel = MAX_SKILL_LEVEL,
   onSelectPlayer,
   messages,
 }: LineupFieldProps) {
@@ -322,6 +437,122 @@ export default function LineupField({
     optimizeModeDisabledReasons?.revealPrimaryCurrent;
   const revealSecondaryMaxDisabledReason =
     optimizeModeDisabledReasons?.revealSecondaryMax;
+  const resolvedMaxSkillLevel = Math.max(1, maxSkillLevel);
+
+  const renderSingleValueMetric = (
+    key: string,
+    label: string,
+    value: number | null,
+    maxLevel: number
+  ) => {
+    const hasValue = value !== null;
+    const pct = hasValue ? Math.min(100, (value / maxLevel) * 100) : null;
+    return (
+      <div key={key} className={styles.skillRow}>
+        <div className={styles.skillLabel}>{label}</div>
+        <div className={styles.skillBar}>
+          {hasValue ? (
+            <div
+              className={styles.skillFillCurrent}
+              style={{
+                width: `${pct}%`,
+                background: seniorBarGradient(value, 1, maxLevel),
+              }}
+            />
+          ) : null}
+        </div>
+        <div className={styles.skillValue}>
+          {hasValue ? String(value) : messages.unknownShort}
+        </div>
+      </div>
+    );
+  };
+
+  const renderTooltipSkills = (skillSource: Record<string, SkillValue> | null) =>
+    SKILL_ROWS.map((row) => {
+      const current = getSkillLevel(skillSource?.[row.key]);
+      const max = getSkillMax(skillSource?.[row.maxKey]);
+      const hasCurrent = current !== null;
+      const hasMax = max !== null;
+      const isMaxed = getSkillMaxReached(skillSource?.[row.key]);
+      const currentText = hasCurrent ? String(current) : messages.unknownShort;
+      const maxText = hasMax ? String(max) : messages.unknownShort;
+      const currentPct = hasCurrent
+        ? Math.min(100, (current / resolvedMaxSkillLevel) * 100)
+        : null;
+      const maxPct = hasMax
+        ? Math.min(100, (max / resolvedMaxSkillLevel) * 100)
+        : null;
+
+      return (
+        <div key={row.key} className={styles.skillRow}>
+          <div className={styles.skillLabel}>
+            {messages[row.labelKey as keyof Messages]}
+          </div>
+          <div
+            className={`${styles.skillBar} ${
+              skillMode !== "single" && isMaxed ? styles.skillBarMaxed : ""
+            }`}
+          >
+            {skillMode !== "single" && hasMax ? (
+              <div className={styles.skillFillMax} style={{ width: `${maxPct}%` }} />
+            ) : null}
+            {hasCurrent ? (
+              <div
+                className={styles.skillFillCurrent}
+                style={
+                  skillMode === "single"
+                    ? {
+                        width: `${currentPct}%`,
+                        background: seniorBarGradient(current, 1, resolvedMaxSkillLevel),
+                      }
+                    : { width: `${currentPct}%` }
+                }
+              />
+            ) : null}
+          </div>
+          <div className={styles.skillValue}>
+            {skillMode === "single" ? currentText : `${currentText}/${maxText}`}
+          </div>
+        </div>
+      );
+    });
+
+  const renderTooltipGrid = (
+    assignedPlayer: YouthPlayer,
+    assignedDetails:
+      | {
+          PlayerSkills?: Record<string, SkillValue>;
+          Form?: SkillInput;
+          StaminaSkill?: SkillInput;
+        }
+      | null
+      | undefined
+  ) => {
+    const skillSource =
+      assignedDetails?.PlayerSkills ?? assignedPlayer.PlayerSkills ?? null;
+    const rows: ReactElement[] = [];
+    if (skillMode === "single") {
+      const formValue = parseSkillValue(assignedDetails?.Form ?? assignedPlayer.Form);
+      const staminaValue = parseSkillValue(
+        assignedDetails?.StaminaSkill ?? skillSource?.StaminaSkill ?? assignedPlayer.StaminaSkill
+      );
+      rows.push(
+        renderSingleValueMetric("form", messages.sortForm, formValue, FORM_MAX_LEVEL)
+      );
+      rows.push(
+        renderSingleValueMetric(
+          "stamina",
+          messages.sortStamina,
+          staminaValue,
+          STAMINA_MAX_LEVEL
+        )
+      );
+      rows.push(<div key="senior-divider" className={styles.slotTooltipDivider} />);
+    }
+    rows.push(...renderTooltipSkills(skillSource));
+    return rows;
+  };
 
   const handleOptimizeSelect = (mode: OptimizeMode) => {
     if (!forceOptimizeOpen) {
@@ -557,6 +788,14 @@ export default function LineupField({
               const assignedDetails = assignedId
                 ? playerDetailsById?.get(assignedId) ?? null
                 : null;
+              const assignedInjuryStatus = injuryStatus(
+                assignedDetails?.InjuryLevel ?? assignedPlayer?.InjuryLevel,
+                messages
+              );
+              const assignedCardStatus = cardStatus(
+                assignedDetails?.Cards ?? assignedPlayer?.Cards,
+                messages
+              );
               const behaviorValue = behaviors?.[position.id] ?? 0;
               const behaviorOptions = assignedPlayer
                 ? behaviorOptionsForSlot(position.id)
@@ -635,64 +874,7 @@ export default function LineupField({
                             </div>
                           ) : null}
                           <div className={styles.slotTooltipGrid}>
-                            {SKILL_ROWS.map((row) => {
-                              const skillSource =
-                                assignedDetails?.PlayerSkills ??
-                                assignedPlayer.PlayerSkills ??
-                                null;
-                              const current = getSkillLevel(
-                                skillSource?.[row.key]
-                              );
-                              const max = getSkillMax(
-                                skillSource?.[row.maxKey]
-                              );
-                              const hasCurrent = current !== null;
-                              const hasMax = max !== null;
-                              const isMaxed = getSkillMaxReached(
-                                skillSource?.[row.key]
-                              );
-                              const currentText = hasCurrent
-                                ? String(current)
-                                : messages.unknownShort;
-                              const maxText = hasMax
-                                ? String(max)
-                                : messages.unknownShort;
-                              const currentPct = hasCurrent
-                                ? Math.min(100, (current / MAX_SKILL_LEVEL) * 100)
-                                : null;
-                              const maxPct = hasMax
-                                ? Math.min(100, (max / MAX_SKILL_LEVEL) * 100)
-                                : null;
-
-                              return (
-                                <div key={row.key} className={styles.skillRow}>
-                                  <div className={styles.skillLabel}>
-                                    {messages[row.labelKey as keyof Messages]}
-                                  </div>
-                                  <div
-                                    className={`${styles.skillBar} ${
-                                      isMaxed ? styles.skillBarMaxed : ""
-                                    }`}
-                                  >
-                                    {hasMax ? (
-                                      <div
-                                        className={styles.skillFillMax}
-                                        style={{ width: `${maxPct}%` }}
-                                      />
-                                    ) : null}
-                                    {hasCurrent ? (
-                                      <div
-                                        className={styles.skillFillCurrent}
-                                        style={{ width: `${currentPct}%` }}
-                                      />
-                                    ) : null}
-                                  </div>
-                                  <div className={styles.skillValue}>
-                                    {currentText}/{maxText}
-                                  </div>
-                                </div>
-                              );
-                            })}
+                            {renderTooltipGrid(assignedPlayer, assignedDetails)}
                           </div>
                         </div>
                       }
@@ -732,30 +914,75 @@ export default function LineupField({
                         <span className={styles.slotName}>
                           {formatName(assignedPlayer)}
                         </span>
+                        {assignedInjuryStatus ? (
+                          <span
+                            className={
+                              assignedInjuryStatus.isHealthy
+                                ? styles.matrixInjuryHealthy
+                                : styles.matrixInjuryStatus
+                            }
+                            title={assignedInjuryStatus.label}
+                          >
+                            {assignedInjuryStatus.display}
+                          </span>
+                        ) : null}
                         {(() => {
                           const specialty = specialtyForPlayer(assignedPlayer);
                           if (!specialty.value) return null;
                           const label =
                             specialtyName(specialty.value, messages) ??
                             messages.specialtyLabel;
+                          const hiddenSpecialtyHref =
+                            specialty.hidden && assignedPlayer
+                              ? hiddenSpecialtyMatchHrefByPlayerId[
+                                  assignedPlayer.YouthPlayerID
+                                ]
+                              : undefined;
                           return (
                             <Tooltip
                               content={
                                 specialty.hidden
-                                  ? `${messages.hiddenSpecialtyTooltip}: ${label}`
+                                  ? `${messages.hiddenSpecialtyTooltip}: ${label} (${messages.hiddenSpecialtyTooltipLinkHint})`
                                   : label
                               }
                             >
-                              <span
-                                className={`${styles.slotEmoji} ${
-                                  specialty.hidden ? styles.hiddenSpecialtyBadge : ""
-                                }`}
-                              >
-                                {SPECIALTY_EMOJI[specialty.value]}
-                              </span>
+                              {hiddenSpecialtyHref ? (
+                                <a
+                                  className={styles.specialtyDiscoveryLink}
+                                  href={hiddenSpecialtyHref}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  <span
+                                    className={`${styles.slotEmoji} ${
+                                      specialty.hidden ? styles.hiddenSpecialtyBadge : ""
+                                    }`}
+                                  >
+                                    {SPECIALTY_EMOJI[specialty.value]}
+                                  </span>
+                                </a>
+                              ) : (
+                                <span
+                                  className={`${styles.slotEmoji} ${
+                                    specialty.hidden ? styles.hiddenSpecialtyBadge : ""
+                                  }`}
+                                >
+                                  {SPECIALTY_EMOJI[specialty.value]}
+                                </span>
+                              )}
                             </Tooltip>
                           );
                         })()}
+                        {skillMode === "single" && assignedCardStatus ? (
+                          <span
+                            className={styles.slotCardStatus}
+                            title={assignedCardStatus.label}
+                            aria-label={assignedCardStatus.label}
+                          >
+                            {assignedCardStatus.display}
+                          </span>
+                        ) : null}
                         <button
                           type="button"
                           className={styles.slotClear}
@@ -810,6 +1037,14 @@ export default function LineupField({
           const assignedDetails = assignedId
             ? playerDetailsById?.get(assignedId) ?? null
             : null;
+          const assignedInjuryStatus = injuryStatus(
+            assignedDetails?.InjuryLevel ?? assignedPlayer?.InjuryLevel,
+            messages
+          );
+          const assignedCardStatus = cardStatus(
+            assignedDetails?.Cards ?? assignedPlayer?.Cards,
+            messages
+          );
           const dragPayload = assignedPlayer
             ? JSON.stringify({
                 type: "slot",
@@ -840,64 +1075,7 @@ export default function LineupField({
                           </div>
                         ) : null}
                         <div className={styles.slotTooltipGrid}>
-                          {SKILL_ROWS.map((row) => {
-                            const skillSource =
-                              assignedDetails?.PlayerSkills ??
-                              assignedPlayer.PlayerSkills ??
-                              null;
-                            const current = getSkillLevel(
-                              skillSource?.[row.key]
-                            );
-                            const max = getSkillMax(
-                              skillSource?.[row.maxKey]
-                            );
-                            const hasCurrent = current !== null;
-                            const hasMax = max !== null;
-                            const isMaxed = getSkillMaxReached(
-                              skillSource?.[row.key]
-                            );
-                            const currentText = hasCurrent
-                              ? String(current)
-                              : messages.unknownShort;
-                            const maxText = hasMax
-                              ? String(max)
-                              : messages.unknownShort;
-                            const currentPct = hasCurrent
-                              ? Math.min(100, (current / MAX_SKILL_LEVEL) * 100)
-                              : null;
-                            const maxPct = hasMax
-                              ? Math.min(100, (max / MAX_SKILL_LEVEL) * 100)
-                              : null;
-
-                            return (
-                              <div key={row.key} className={styles.skillRow}>
-                                <div className={styles.skillLabel}>
-                                  {messages[row.labelKey as keyof Messages]}
-                                </div>
-                                <div
-                                  className={`${styles.skillBar} ${
-                                    isMaxed ? styles.skillBarMaxed : ""
-                                  }`}
-                                >
-                                  {hasMax ? (
-                                    <div
-                                      className={styles.skillFillMax}
-                                      style={{ width: `${maxPct}%` }}
-                                    />
-                                  ) : null}
-                                  {hasCurrent ? (
-                                    <div
-                                      className={styles.skillFillCurrent}
-                                      style={{ width: `${currentPct}%` }}
-                                    />
-                                  ) : null}
-                                </div>
-                                <div className={styles.skillValue}>
-                                  {currentText}/{maxText}
-                                </div>
-                              </div>
-                            );
-                          })}
+                          {renderTooltipGrid(assignedPlayer, assignedDetails)}
                         </div>
                       </div>
                     }
@@ -937,30 +1115,75 @@ export default function LineupField({
                       <span className={styles.slotName}>
                         {formatName(assignedPlayer)}
                       </span>
+                      {assignedInjuryStatus ? (
+                        <span
+                          className={
+                            assignedInjuryStatus.isHealthy
+                              ? styles.matrixInjuryHealthy
+                              : styles.matrixInjuryStatus
+                          }
+                          title={assignedInjuryStatus.label}
+                        >
+                          {assignedInjuryStatus.display}
+                        </span>
+                      ) : null}
                         {(() => {
                           const specialty = specialtyForPlayer(assignedPlayer);
                           if (!specialty.value) return null;
                           const label =
                             specialtyName(specialty.value, messages) ??
                             messages.specialtyLabel;
+                          const hiddenSpecialtyHref =
+                            specialty.hidden && assignedPlayer
+                              ? hiddenSpecialtyMatchHrefByPlayerId[
+                                  assignedPlayer.YouthPlayerID
+                                ]
+                              : undefined;
                           return (
                             <Tooltip
                               content={
                                 specialty.hidden
-                                  ? `${messages.hiddenSpecialtyTooltip}: ${label}`
+                                  ? `${messages.hiddenSpecialtyTooltip}: ${label} (${messages.hiddenSpecialtyTooltipLinkHint})`
                                   : label
                               }
                             >
-                              <span
-                                className={`${styles.slotEmoji} ${
-                                  specialty.hidden ? styles.hiddenSpecialtyBadge : ""
-                                }`}
-                              >
-                                {SPECIALTY_EMOJI[specialty.value]}
-                              </span>
+                              {hiddenSpecialtyHref ? (
+                                <a
+                                  className={styles.specialtyDiscoveryLink}
+                                  href={hiddenSpecialtyHref}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  <span
+                                    className={`${styles.slotEmoji} ${
+                                      specialty.hidden ? styles.hiddenSpecialtyBadge : ""
+                                    }`}
+                                  >
+                                    {SPECIALTY_EMOJI[specialty.value]}
+                                  </span>
+                                </a>
+                              ) : (
+                                <span
+                                  className={`${styles.slotEmoji} ${
+                                    specialty.hidden ? styles.hiddenSpecialtyBadge : ""
+                                  }`}
+                                >
+                                  {SPECIALTY_EMOJI[specialty.value]}
+                                </span>
+                              )}
                             </Tooltip>
                           );
                         })()}
+                      {skillMode === "single" && assignedCardStatus ? (
+                        <span
+                          className={styles.slotCardStatus}
+                          title={assignedCardStatus.label}
+                          aria-label={assignedCardStatus.label}
+                        >
+                          {assignedCardStatus.display}
+                        </span>
+                      ) : null}
                       <button
                         type="button"
                         className={styles.slotClear}

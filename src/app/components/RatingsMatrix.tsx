@@ -5,29 +5,44 @@ import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { POSITION_COLUMNS, positionLabel } from "@/lib/positions";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
+import { hattrickMatchUrl } from "@/lib/hattrick/urls";
 import Tooltip from "./Tooltip";
 
 type RatingRow = {
   id: number;
   name: string;
   ratings: Record<string, number>;
+  ratingMatchIds?: Record<string, number>;
 };
 
 export type RatingsMatrixResponse = {
   positions: number[];
   players: RatingRow[];
+  matchesAnalyzed?: number;
 };
 
 type RatingsMatrixProps = {
   response: RatingsMatrixResponse | null;
   showTitle?: boolean;
   messages: Messages;
+  matchHrefBuilder?: (matchId: number) => string;
   specialtyByName?: Record<string, number | undefined>;
   hiddenSpecialtyByName?: Record<string, boolean>;
+  hiddenSpecialtyMatchHrefByName?: Record<string, string | undefined>;
+  motherClubBonusByName?: Record<string, boolean>;
+  injuryStatusByName?: Record<string, { display: string; label: string; isHealthy: boolean }>;
+  cardStatusByName?: Record<string, { display: string; label: string }>;
   newPlayerIds?: number[];
   newRatingsByPlayerId?: Record<number, number[]>;
   selectedName?: string | null;
   onSelectPlayer?: (playerName: string) => void;
+  onPlayerDragStart?: (
+    event: React.DragEvent<HTMLElement>,
+    playerId: number,
+    playerName: string
+  ) => void;
+  playerNameTooltip?: string;
+  overallSkillLevelByPlayerId?: Record<number, number>;
   orderedPlayerIds?: number[] | null;
   orderSource?: "list" | "ratings" | "skills" | null;
   onOrderChange?: (orderedIds: number[]) => void;
@@ -83,12 +98,20 @@ export default function RatingsMatrix({
   response,
   showTitle = true,
   messages,
+  matchHrefBuilder,
   specialtyByName,
   hiddenSpecialtyByName,
+  hiddenSpecialtyMatchHrefByName,
+  motherClubBonusByName,
+  injuryStatusByName,
+  cardStatusByName,
   newPlayerIds = [],
   newRatingsByPlayerId = {},
   selectedName,
   onSelectPlayer,
+  onPlayerDragStart,
+  playerNameTooltip,
+  overallSkillLevelByPlayerId = {},
   orderedPlayerIds,
   orderSource,
   onOrderChange,
@@ -100,6 +123,24 @@ export default function RatingsMatrix({
     () => uniquePositions(response?.positions),
     [response?.positions]
   );
+  const matchesAnalyzed = useMemo(() => {
+    if (
+      typeof response?.matchesAnalyzed === "number" &&
+      Number.isFinite(response.matchesAnalyzed)
+    ) {
+      return Math.max(0, Math.floor(response.matchesAnalyzed));
+    }
+    const derived = new Set<number>();
+    (response?.players ?? []).forEach((row) => {
+      if (!row.ratingMatchIds) return;
+      Object.values(row.ratingMatchIds).forEach((matchId) => {
+        if (typeof matchId === "number" && Number.isFinite(matchId) && matchId > 0) {
+          derived.add(matchId);
+        }
+      });
+    });
+    return derived.size;
+  }, [response]);
   const [sortKey, setSortKey] = useState<number | "name" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const pendingSortRef = useRef(false);
@@ -267,18 +308,73 @@ export default function RatingsMatrix({
                 <td className={styles.matrixIndex}>{index + 1}</td>
                 <td className={styles.matrixPlayer}>
                   <div className={styles.matrixPlayerContent}>
-                    <button
-                      type="button"
-                      className={styles.matrixPlayerButton}
-                      onClick={() => onSelectPlayer?.(row.name)}
-                      disabled={!onSelectPlayer}
-                    >
-                      {row.name}
-                    </button>
+                    {onPlayerDragStart ? (
+                      <Tooltip content={playerNameTooltip ?? messages.dragPlayerHint}>
+                        <button
+                          type="button"
+                          className={styles.matrixPlayerButton}
+                          onClick={() => onSelectPlayer?.(row.name)}
+                          disabled={!onSelectPlayer}
+                          draggable
+                          onDragStart={(event) =>
+                            onPlayerDragStart(event, row.id, row.name)
+                          }
+                        >
+                          {row.name}
+                        </button>
+                      </Tooltip>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.matrixPlayerButton}
+                        onClick={() => onSelectPlayer?.(row.name)}
+                        disabled={!onSelectPlayer}
+                      >
+                        {row.name}
+                      </button>
+                    )}
+                    {motherClubBonusByName?.[row.name] ? (
+                      <Tooltip content={messages.motherClubBonusTooltip}>
+                        <span
+                          className={styles.seniorMotherClubHeart}
+                          aria-label={messages.motherClubBonusTooltip}
+                        >
+                          ❤
+                        </span>
+                      </Tooltip>
+                    ) : null}
+                    {injuryStatusByName?.[row.name] ? (
+                      <span
+                        className={
+                          injuryStatusByName[row.name].isHealthy
+                            ? styles.matrixInjuryHealthy
+                            : styles.matrixInjuryStatus
+                        }
+                        title={injuryStatusByName[row.name].label}
+                      >
+                        {injuryStatusByName[row.name].display}
+                      </span>
+                    ) : null}
+                    {cardStatusByName?.[row.name] ? (
+                      <span
+                        className={styles.matrixCardStatus}
+                        title={cardStatusByName[row.name].label}
+                        aria-label={cardStatusByName[row.name].label}
+                      >
+                        {cardStatusByName[row.name].display}
+                      </span>
+                    ) : null}
                     {isNewPlayer ? (
                       <span className={styles.matrixNewPill}>
                         {messages.matrixNewPillLabel}
                       </span>
+                    ) : null}
+                    {typeof overallSkillLevelByPlayerId[row.id] === "number" ? (
+                      <Tooltip content={messages.scoutOverallSkillLevelTooltip}>
+                        <span className={styles.matrixScoutOverallBadge}>
+                          {overallSkillLevelByPlayerId[row.id]}
+                        </span>
+                      </Tooltip>
                     ) : null}
                   </div>
                 </td>
@@ -290,20 +386,40 @@ export default function RatingsMatrix({
                           ? `${messages.hiddenSpecialtyTooltip}: ${
                               specialtyName(specialtyByName[row.name], messages) ??
                               messages.specialtyLabel
-                            }`
+                            } (${messages.hiddenSpecialtyTooltipLinkHint})`
                           : specialtyName(specialtyByName[row.name], messages) ??
                             messages.specialtyLabel
                       }
                     >
-                      <span
-                        className={`${styles.playerSpecialty} ${
-                          hiddenSpecialtyByName?.[row.name]
-                            ? styles.hiddenSpecialtyBadge
-                            : ""
-                        }`}
-                      >
-                        {SPECIALTY_EMOJI[specialtyByName[row.name] as number] ?? "—"}
-                      </span>
+                      {hiddenSpecialtyByName?.[row.name] &&
+                      hiddenSpecialtyMatchHrefByName?.[row.name] ? (
+                        <a
+                          className={styles.specialtyDiscoveryLink}
+                          href={hiddenSpecialtyMatchHrefByName[row.name]}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <span
+                            className={`${styles.playerSpecialty} ${
+                              hiddenSpecialtyByName?.[row.name]
+                                ? styles.hiddenSpecialtyBadge
+                                : ""
+                            }`}
+                          >
+                            {SPECIALTY_EMOJI[specialtyByName[row.name] as number] ?? "—"}
+                          </span>
+                        </a>
+                      ) : (
+                        <span
+                          className={`${styles.playerSpecialty} ${
+                            hiddenSpecialtyByName?.[row.name]
+                              ? styles.hiddenSpecialtyBadge
+                              : ""
+                          }`}
+                        >
+                          {SPECIALTY_EMOJI[specialtyByName[row.name] as number] ?? "—"}
+                        </span>
+                      )}
                     </Tooltip>
                   ) : (
                     "—"
@@ -311,6 +427,7 @@ export default function RatingsMatrix({
                 </td>
                 {positions.map((position) => {
                   const rating = row.ratings[String(position)] ?? null;
+                  const ratingMatchId = row.ratingMatchIds?.[String(position)];
                   const isNewRating =
                     newRatingsByPlayerId[row.id]?.includes(position) ?? false;
                   return (
@@ -326,9 +443,29 @@ export default function RatingsMatrix({
                           <span className={styles.matrixCellNewTag}>N</span>
                         </Tooltip>
                       ) : null}
-                      <span className={styles.matrixValueWithFlag}>
-                        <span>{formatRating(rating)}</span>
-                      </span>
+                      {rating !== null && Number.isFinite(ratingMatchId) ? (
+                        <a
+                          className={styles.matrixRatingLink}
+                          href={
+                            matchHrefBuilder
+                              ? matchHrefBuilder(ratingMatchId as number)
+                              : hattrickMatchUrl(ratingMatchId as number)
+                          }
+                          target="_blank"
+                          rel="noreferrer"
+                          aria-label={`${messages.lastMatchRatingLabel}: ${formatRating(
+                            rating
+                          )}`}
+                        >
+                          <span className={styles.matrixValueWithFlag}>
+                            <span>{formatRating(rating)}</span>
+                          </span>
+                        </a>
+                      ) : (
+                        <span className={styles.matrixValueWithFlag}>
+                          <span>{formatRating(rating)}</span>
+                        </span>
+                      )}
                     </td>
                   );
                 })}
@@ -338,6 +475,11 @@ export default function RatingsMatrix({
           </tbody>
         </table>
       </div>
+      {matchesAnalyzed !== null ? (
+        <p className={styles.muted}>
+          {messages.ratingsMatchesAnalyzed.replace("{count}", String(matchesAnalyzed))}
+        </p>
+      ) : null}
     </div>
   );
 }

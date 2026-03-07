@@ -8,6 +8,15 @@ export const hattrickPlayerUrl = (playerId: number | string) =>
 export const hattrickMatchUrl = (matchId: number | string) =>
   buildGotoUrl(`/Club/Matches/Match.aspx?matchID=${matchId}`);
 
+export const hattrickYouthMatchUrl = (
+  matchId: number | string,
+  teamId: number | string,
+  youthTeamId: number | string
+) =>
+  buildGotoUrl(
+    `/Club/Matches/Match.aspx?matchId=${matchId}&sourceSystem=Youth&teamId=${teamId}&youthTeamId=${youthTeamId}`
+  );
+
 export const hattrickArticleUrl = (articleId: number | string) =>
   buildGotoUrl(`/Community/Press/?ArticleID=${articleId}`);
 

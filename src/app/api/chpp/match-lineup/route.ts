@@ -14,6 +14,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const matchId = url.searchParams.get("matchId");
     const teamId = url.searchParams.get("teamId") ?? url.searchParams.get("teamID");
+    const sourceSystem = url.searchParams.get("sourceSystem") ?? "Hattrick";
 
     if (!matchId || !teamId) {
       return NextResponse.json(
@@ -23,31 +24,15 @@ export async function GET(request: Request) {
     }
 
     const auth = await getChppAuth();
-    const sourceCandidates = ["youth", "Youth"];
-    let parsed: unknown = null;
-    let rawXml = "";
-    let lastError: unknown = null;
-    for (const sourceSystem of sourceCandidates) {
-      try {
-        const params = new URLSearchParams({
-          file: "matchlineup",
-          version: MATCHLINEUP_VERSION,
-          matchID: matchId,
-          teamID: teamId,
-          sourceSystem,
-        });
-        const result = await fetchChppXml(auth, params);
-        parsed = result.parsed;
-        rawXml = result.rawXml;
-        lastError = null;
-        break;
-      } catch (error) {
-        lastError = error;
-      }
-    }
-    if (lastError) {
-      throw lastError;
-    }
+    const params = new URLSearchParams({
+      file: "matchlineup",
+      version: MATCHLINEUP_VERSION,
+      matchID: matchId,
+      teamID: teamId,
+      sourceSystem,
+    });
+
+    const { parsed, rawXml } = await fetchChppXml(auth, params);
     const includeRaw = url.searchParams.get("raw") === "1";
 
     return NextResponse.json({
@@ -61,7 +46,7 @@ export async function GET(request: Request) {
         { status: error.status }
       );
     }
-    const payload = buildChppErrorPayload("Failed to fetch youth match lineup", error);
+    const payload = buildChppErrorPayload("Failed to fetch match lineup", error);
     return NextResponse.json(payload, {
       status: chppErrorHttpStatus(payload),
     });

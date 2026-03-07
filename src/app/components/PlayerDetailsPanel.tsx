@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { formatChppDate, formatDateTime } from "@/lib/datetime";
@@ -7,7 +7,7 @@ import RatingsMatrix, { RatingsMatrixResponse } from "./RatingsMatrix";
 import { positionLabelShortByRoleId } from "@/lib/positions";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { getSkillMaxReached } from "@/lib/skills";
-import { hattrickYouthPlayerUrl } from "@/lib/hattrick/urls";
+import { hattrickPlayerUrl, hattrickYouthPlayerUrl } from "@/lib/hattrick/urls";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -15,6 +15,9 @@ type YouthPlayer = {
   NickName: string;
   LastName: string;
   Specialty?: number;
+  InjuryLevel?: number;
+  Form?: number;
+  StaminaSkill?: number;
   PlayerSkills?: Record<string, SkillValue | number | string>;
 };
 
@@ -36,6 +39,23 @@ export type YouthPlayerDetails = {
   CanBePromotedIn?: number;
   NativeCountryName?: string;
   Specialty?: number;
+  InjuryLevel?: number;
+  Form?: number;
+  StaminaSkill?: number;
+  PersonalityStatement?: string;
+  Experience?: number;
+  Leadership?: number;
+  Loyalty?: number;
+  MotherClubBonus?: boolean;
+  CareerGoals?: number;
+  CareerHattricks?: number;
+  LeagueGoals?: number;
+  CupGoals?: number;
+  FriendliesGoals?: number;
+  GoalsCurrentTeam?: number;
+  AssistsCurrentTeam?: number;
+  CareerAssists?: number;
+  MatchesCurrentTeam?: number;
   OwningYouthTeam?: {
     YouthTeamName?: string;
     SeniorTeam?: {
@@ -43,6 +63,19 @@ export type YouthPlayerDetails = {
     };
   };
   PlayerSkills?: Record<string, SkillValue>;
+  ScoutCall?: {
+    ScoutComments?: {
+      ScoutComment?:
+        | {
+            CommentType?: number | string;
+            CommentSkillType?: number | string;
+          }
+        | Array<{
+            CommentType?: number | string;
+            CommentSkillType?: number | string;
+          }>;
+    };
+  };
   LastMatch?: {
     Date?: string;
     YouthMatchID?: number;
@@ -51,6 +84,8 @@ export type YouthPlayerDetails = {
     Rating?: number;
   };
 };
+
+export type PlayerDetailsPanelTab = "details" | "skillsMatrix" | "ratingsMatrix";
 
 type PlayerDetailsPanelProps = {
   selectedPlayer: YouthPlayer | null;
@@ -64,15 +99,31 @@ type PlayerDetailsPanelProps = {
   playerDetailsById: Map<number, YouthPlayerDetails>;
   skillsMatrixRows: { id: number | null; name: string }[];
   ratingsMatrixResponse: RatingsMatrixResponse | null;
+  ratingsMatrixMatchHrefBuilder?: (matchId: number) => string;
   ratingsMatrixSelectedName: string | null;
   ratingsMatrixSpecialtyByName: Record<string, number | undefined>;
   ratingsMatrixHiddenSpecialtyByName?: Record<string, boolean>;
+  ratingsMatrixHiddenSpecialtyMatchHrefByName?: Record<string, string | undefined>;
+  ratingsMatrixMotherClubBonusByName?: Record<string, boolean>;
+  ratingsMatrixCardStatusByName?: Record<
+    string,
+    { display: string; label: string }
+  >;
+  cardStatusByPlayerId?: Record<number, { display: string; label: string }>;
   matrixNewPlayerIds?: number[];
   matrixNewRatingsByPlayerId?: Record<number, number[]>;
   matrixNewSkillsCurrentByPlayerId?: Record<number, string[]>;
   matrixNewSkillsMaxByPlayerId?: Record<number, string[]>;
+  scoutImportantSkillsByPlayerId?: Record<number, string[]>;
+  scoutOverallSkillLevelByPlayerId?: Record<number, number>;
   hiddenSpecialtyByPlayerId?: Record<number, number>;
+  hiddenSpecialtyMatchHrefByPlayerId?: Record<number, string>;
   onSelectRatingsPlayer: (playerName: string) => void;
+  onMatrixPlayerDragStart?: (
+    event: React.DragEvent<HTMLElement>,
+    playerId: number,
+    playerName: string
+  ) => void;
   orderedPlayerIds?: number[] | null;
   orderSource?: "list" | "ratings" | "skills" | null;
   onRatingsOrderChange?: (orderedIds: number[]) => void;
@@ -83,10 +134,15 @@ type PlayerDetailsPanelProps = {
   hasNextPlayer?: boolean;
   onPreviousPlayer?: () => void;
   onNextPlayer?: () => void;
+  playerKind?: "youth" | "senior";
+  skillMode?: "currentMax" | "single";
+  maxSkillLevel?: number;
+  activeTab?: PlayerDetailsPanelTab;
+  onActiveTabChange?: (tab: PlayerDetailsPanelTab) => void;
+  showSeniorSkillBonusInMatrix?: boolean;
+  onShowSeniorSkillBonusInMatrixChange?: (enabled: boolean) => void;
   messages: Messages;
 };
-
-const MAX_SKILL_LEVEL = 8;
 
 const SKILL_ROWS = [
   {
@@ -132,9 +188,50 @@ const SKILL_ROWS = [
     shortLabelKey: "skillSetPiecesShort",
   },
 ];
+const FORM_MAX_LEVEL = 8;
+const STAMINA_MAX_LEVEL = 9;
+const SUBSCRIPT_DIGITS: Record<string, string> = {
+  "0": "₀",
+  "1": "₁",
+  "2": "₂",
+  "3": "₃",
+  "4": "₄",
+  "5": "₅",
+  "6": "₆",
+  "7": "₇",
+  "8": "₈",
+  "9": "₉",
+};
+
+const toSubscript = (value: number) =>
+  String(Math.max(0, Math.floor(value)))
+    .split("")
+    .map((digit) => SUBSCRIPT_DIGITS[digit] ?? digit)
+    .join("");
+
+const buildInjuryStatus = (injuryLevelRaw: number | null, messages: Messages) => {
+  if (injuryLevelRaw === null) return null;
+  const isBruised = injuryLevelRaw === 0 || (injuryLevelRaw > 0 && injuryLevelRaw < 1);
+  const injuryWeeks = injuryLevelRaw >= 1 ? Math.ceil(injuryLevelRaw) : null;
+  const label = isBruised
+    ? messages.seniorListInjuryBruised
+    : injuryWeeks !== null
+    ? messages.seniorListInjuryWeeks.replace("{weeks}", String(injuryWeeks))
+    : messages.clubChronicleInjuryHealthy;
+  const display = isBruised
+    ? "🩹"
+    : injuryWeeks !== null
+    ? `✚${toSubscript(injuryWeeks)}`
+    : messages.clubChronicleInjuryHealthy;
+  return {
+    label,
+    display,
+    isHealthy: !isBruised && injuryWeeks === null,
+  };
+};
 
 function getSkillLevel(skill?: SkillValue | number | string | null): number | null {
-  if (!skill) return null;
+  if (skill === null || skill === undefined) return null;
   if (typeof skill === "number") return skill;
   if (typeof skill === "string") {
     const numeric = Number(skill);
@@ -147,7 +244,7 @@ function getSkillLevel(skill?: SkillValue | number | string | null): number | nu
 }
 
 function getSkillMax(skill?: SkillValue | number | string | null): number | null {
-  if (!skill) return null;
+  if (skill === null || skill === undefined) return null;
   if (typeof skill === "number") return skill;
   if (typeof skill === "string") {
     const numeric = Number(skill);
@@ -159,15 +256,91 @@ function getSkillMax(skill?: SkillValue | number | string | null): number | null
   return Number.isNaN(numeric) ? null : numeric;
 }
 
-function skillCellColor(value: number | null) {
+function skillCellColor(
+  value: number | null,
+  minSkillLevel: number,
+  maxSkillLevel: number
+) {
   if (value === null || value === undefined) {
     return undefined;
   }
-  const normalized = Math.min(Math.max((value - 1) / 6, 0), 1);
+  if (maxSkillLevel <= minSkillLevel) {
+    return undefined;
+  }
+  const normalized = Math.min(
+    Math.max((value - minSkillLevel) / (maxSkillLevel - minSkillLevel), 0),
+    1
+  );
   const hue = 120 * normalized;
   const alpha = 0.2 + normalized * 0.35;
   return `hsla(${hue}, 70%, 38%, ${alpha})`;
 }
+
+const seniorBarGradient = (
+  value: number | null,
+  minSkillLevel: number,
+  maxSkillLevel: number
+) => {
+  if (value === null || value === undefined) return undefined;
+  if (maxSkillLevel <= minSkillLevel) return undefined;
+  const t = Math.min(
+    1,
+    Math.max((value - minSkillLevel) / (maxSkillLevel - minSkillLevel), 0)
+  );
+  if (t >= 1) {
+    return "linear-gradient(90deg, #2f9f5b, #1f6f3f)";
+  }
+  if (t <= 0) {
+    return "linear-gradient(90deg, #cf3f3a, #8b241f)";
+  }
+  const startHue = 6 + (136 - 6) * t;
+  const startSat = 72 - 8 * t;
+  const startLight = 49 - 9 * t;
+  const endHue = 2 + (145 - 2) * t;
+  const endSat = 66 - 10 * t;
+  const endLight = 33 - 5 * t;
+  const startColor = `hsl(${Math.round(startHue)} ${Math.round(startSat)}% ${Math.round(startLight)}%)`;
+  const endColor = `hsl(${Math.round(endHue)} ${Math.round(endSat)}% ${Math.round(endLight)}%)`;
+  return `linear-gradient(90deg, ${startColor}, ${endColor})`;
+};
+
+const SENIOR_SKILL_EFFECT_CAP = 20;
+
+const formatSkillMatrixFloat = (value: number) => {
+  if (!Number.isFinite(value)) return "0.0";
+  return value.toFixed(1);
+};
+
+const formatSkillBonusDelta = (value: number) => {
+  if (!Number.isFinite(value)) return "+0";
+  const trimmed = value.toFixed(2).replace(/\.?0+$/, "");
+  return `+${trimmed}`;
+};
+
+const computeSeniorSkillBonus = (
+  baseSkill: number | null,
+  details: YouthPlayerDetails | null
+) => {
+  if (baseSkill === null) return null;
+  if (baseSkill >= SENIOR_SKILL_EFFECT_CAP) return 0;
+  const remaining = Math.max(0, SENIOR_SKILL_EFFECT_CAP - baseSkill);
+  if (details?.MotherClubBonus) {
+    return Math.min(1.5, remaining);
+  }
+  const loyaltyRaw = typeof details?.Loyalty === "number" ? details.Loyalty : 0;
+  const loyalty = Math.max(0, loyaltyRaw);
+  return Math.min(loyalty / 20, remaining);
+};
+
+const computeSeniorEffectiveSkill = (
+  baseSkill: number | null,
+  details: YouthPlayerDetails | null
+) => {
+  if (baseSkill === null) return null;
+  const bonus = computeSeniorSkillBonus(baseSkill, details);
+  if (bonus === null) return null;
+  return Math.min(SENIOR_SKILL_EFFECT_CAP, baseSkill + bonus);
+};
 
 function daysSince(dateString?: string) {
   if (!dateString) return null;
@@ -200,15 +373,24 @@ export default function PlayerDetailsPanel({
   playerDetailsById,
   skillsMatrixRows,
   ratingsMatrixResponse,
+  ratingsMatrixMatchHrefBuilder,
   ratingsMatrixSelectedName,
   ratingsMatrixSpecialtyByName,
   ratingsMatrixHiddenSpecialtyByName,
+  ratingsMatrixHiddenSpecialtyMatchHrefByName,
+  ratingsMatrixMotherClubBonusByName,
+  ratingsMatrixCardStatusByName = {},
+  cardStatusByPlayerId = {},
   matrixNewPlayerIds = [],
   matrixNewRatingsByPlayerId = {},
   matrixNewSkillsCurrentByPlayerId = {},
   matrixNewSkillsMaxByPlayerId = {},
+  scoutImportantSkillsByPlayerId = {},
+  scoutOverallSkillLevelByPlayerId = {},
   hiddenSpecialtyByPlayerId = {},
+  hiddenSpecialtyMatchHrefByPlayerId = {},
   onSelectRatingsPlayer,
+  onMatrixPlayerDragStart,
   orderedPlayerIds,
   orderSource,
   onRatingsOrderChange,
@@ -219,19 +401,41 @@ export default function PlayerDetailsPanel({
   hasNextPlayer = false,
   onPreviousPlayer,
   onNextPlayer,
+  playerKind = "youth",
+  skillMode = "currentMax",
+  maxSkillLevel = 8,
+  activeTab,
+  onActiveTabChange,
+  showSeniorSkillBonusInMatrix = true,
+  onShowSeniorSkillBonusInMatrixChange,
   messages,
 }: PlayerDetailsPanelProps) {
-  const [activeTab, setActiveTab] = useState<
-    "details" | "skillsMatrix" | "ratingsMatrix"
-  >("details");
+  const [uncontrolledActiveTab, setUncontrolledActiveTab] =
+    useState<PlayerDetailsPanelTab>("details");
   const [skillsSortKey, setSkillsSortKey] = useState<
-    (typeof SKILL_ROWS)[number]["key"] | "name" | null
+    (typeof SKILL_ROWS)[number]["key"] | "name" | "form" | "stamina" | null
   >(null);
   const [skillsSortDir, setSkillsSortDir] = useState<"asc" | "desc">("desc");
   const pendingSkillsSortRef = useRef(false);
+  const activeTabRef = useRef(activeTab);
+  const onActiveTabChangeRef = useRef(onActiveTabChange);
+
+  const resolvedActiveTab = activeTab ?? uncontrolledActiveTab;
+
+  useEffect(() => {
+    activeTabRef.current = activeTab;
+    onActiveTabChangeRef.current = onActiveTabChange;
+  }, [activeTab, onActiveTabChange]);
+
+  const setResolvedActiveTab = useCallback((nextTab: PlayerDetailsPanelTab) => {
+    if (activeTabRef.current === undefined) {
+      setUncontrolledActiveTab(nextTab);
+    }
+    onActiveTabChangeRef.current?.(nextTab);
+  }, []);
 
   const handleMatrixPlayerPick = (playerName: string) => {
-    setActiveTab("details");
+    setResolvedActiveTab("details");
     onSelectRatingsPlayer?.(playerName);
   };
 
@@ -240,17 +444,31 @@ export default function PlayerDetailsPanel({
     players.forEach((player) => map.set(player.YouthPlayerID, player));
     return map;
   }, [players]);
+  const ratingsMatrixInjuryStatusByName = useMemo(() => {
+    const payload: Record<
+      string,
+      { display: string; label: string; isHealthy: boolean }
+    > = {};
+    skillsMatrixRows.forEach((row) => {
+      if (!row.id) return;
+      const details = playerDetailsById.get(row.id);
+      const player = playerById.get(row.id);
+      const injuryLevel =
+        typeof details?.InjuryLevel === "number"
+          ? details.InjuryLevel
+          : typeof player?.InjuryLevel === "number"
+          ? player.InjuryLevel
+          : null;
+      const status = buildInjuryStatus(injuryLevel, messages);
+      if (!status || status.isHealthy) return;
+      payload[row.name] = status;
+    });
+    return payload;
+  }, [messages, playerById, playerDetailsById, skillsMatrixRows]);
   const matrixNewPlayerIdSet = useMemo(
     () => new Set(matrixNewPlayerIds),
     [matrixNewPlayerIds]
   );
-
-  useEffect(() => {
-    if (selectedPlayer?.YouthPlayerID) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setActiveTab("details");
-    }
-  }, [selectedPlayer?.YouthPlayerID]);
 
   const sortedSkillsRows = useMemo(() => {
     if (!skillsSortKey) return skillsMatrixRows;
@@ -259,6 +477,42 @@ export default function PlayerDetailsPanel({
       return [...skillsMatrixRows].sort(
         (a, b) => a.name.localeCompare(b.name) * direction
       );
+    }
+    if (skillsSortKey === "form" || skillsSortKey === "stamina") {
+      return [...skillsMatrixRows].sort((a, b) => {
+        const detailsA = a.id ? playerDetailsById.get(a.id) : null;
+        const detailsB = b.id ? playerDetailsById.get(b.id) : null;
+        const playerA = a.id ? playerById.get(a.id) : null;
+        const playerB = b.id ? playerById.get(b.id) : null;
+        const valueA =
+          skillsSortKey === "form"
+            ? (typeof detailsA?.Form === "number"
+                ? detailsA.Form
+                : typeof playerA?.Form === "number"
+                ? playerA.Form
+                : null)
+            : (typeof detailsA?.StaminaSkill === "number"
+                ? detailsA.StaminaSkill
+                : typeof playerA?.StaminaSkill === "number"
+                ? playerA.StaminaSkill
+                : null);
+        const valueB =
+          skillsSortKey === "form"
+            ? (typeof detailsB?.Form === "number"
+                ? detailsB.Form
+                : typeof playerB?.Form === "number"
+                ? playerB.Form
+                : null)
+            : (typeof detailsB?.StaminaSkill === "number"
+                ? detailsB.StaminaSkill
+                : typeof playerB?.StaminaSkill === "number"
+                ? playerB.StaminaSkill
+                : null);
+        if (valueA === null && valueB === null) return 0;
+        if (valueA === null) return 1;
+        if (valueB === null) return -1;
+        return (valueA - valueB) * direction;
+      });
     }
     return [...skillsMatrixRows].sort((a, b) => {
       const detailsA = a.id ? playerDetailsById.get(a.id) : null;
@@ -271,8 +525,26 @@ export default function PlayerDetailsPanel({
       const maxA = getSkillMax(skillsA?.[`${skillsSortKey}Max`]);
       const currentB = getSkillLevel(skillsB?.[skillsSortKey]);
       const maxB = getSkillMax(skillsB?.[`${skillsSortKey}Max`]);
-      const sumA = (currentA ?? 0) + (maxA ?? 0);
-      const sumB = (currentB ?? 0) + (maxB ?? 0);
+      const effectiveCurrentA =
+        playerKind === "senior" &&
+        skillMode === "single" &&
+        showSeniorSkillBonusInMatrix
+          ? computeSeniorEffectiveSkill(currentA, detailsA ?? null)
+          : currentA;
+      const effectiveCurrentB =
+        playerKind === "senior" &&
+        skillMode === "single" &&
+        showSeniorSkillBonusInMatrix
+          ? computeSeniorEffectiveSkill(currentB, detailsB ?? null)
+          : currentB;
+      const sumA =
+        skillMode === "single"
+          ? (effectiveCurrentA ?? 0)
+          : (currentA ?? 0) + (maxA ?? 0);
+      const sumB =
+        skillMode === "single"
+          ? (effectiveCurrentB ?? 0)
+          : (currentB ?? 0) + (maxB ?? 0);
       if (sumA === sumB) return 0;
       return (sumA - sumB) * direction;
     });
@@ -280,8 +552,11 @@ export default function PlayerDetailsPanel({
     playerById,
     playerDetailsById,
     skillsMatrixRows,
+    skillMode,
+    showSeniorSkillBonusInMatrix,
     skillsSortDir,
     skillsSortKey,
+    playerKind,
   ]);
 
   const orderedSkillsRows = useMemo(() => {
@@ -320,7 +595,7 @@ export default function PlayerDetailsPanel({
   ]);
 
   const handleSkillsSort = (
-    key: (typeof SKILL_ROWS)[number]["key"] | "name"
+    key: (typeof SKILL_ROWS)[number]["key"] | "name" | "form" | "stamina"
   ) => {
     pendingSkillsSortRef.current = true;
     onSkillsSortStart?.();
@@ -380,6 +655,21 @@ export default function PlayerDetailsPanel({
   const knownSpecialty = Number(detailsData?.Specialty ?? selectedPlayer?.Specialty ?? 0);
   const resolvedSpecialty = knownSpecialty > 0 ? knownSpecialty : hiddenSpecialty;
   const isHiddenResolvedSpecialty = knownSpecialty <= 0 && hiddenSpecialty !== null;
+  const hiddenSpecialtyMatchHref =
+    playerId !== null && isHiddenResolvedSpecialty
+      ? hiddenSpecialtyMatchHrefByPlayerId[playerId]
+      : undefined;
+  const injuryLevelRaw =
+    typeof detailsData?.InjuryLevel === "number"
+      ? detailsData.InjuryLevel
+      : typeof selectedPlayer?.InjuryLevel === "number"
+      ? selectedPlayer.InjuryLevel
+      : null;
+  const injuryStatus = buildInjuryStatus(injuryLevelRaw, messages);
+  const selectedCardStatus =
+    playerKind === "senior" && playerId !== null
+      ? cardStatusByPlayerId[playerId] ?? null
+      : null;
   const lastMatchDate = detailsData?.LastMatch
     ? formatChppDate(detailsData.LastMatch.Date) ?? messages.unknownDate
     : null;
@@ -407,6 +697,88 @@ export default function PlayerDetailsPanel({
           };
         })()
       : null;
+  const seniorSkillLevelLabels = useMemo(() => {
+    const raw = messages.seniorSkillLevelLabels
+      .split("|")
+      .map((item) => item.trim())
+      .filter(Boolean);
+    if (raw.length >= 20) return raw.slice(0, 20);
+    return [
+      "disastrous",
+      "wretched",
+      "poor",
+      "weak",
+      "inadequate",
+      "passable",
+      "solid",
+      "excellent",
+      "formidable",
+      "outstanding",
+      "brilliant",
+      "magnificent",
+      "world class",
+      "supernatural",
+      "titanic",
+      "extra-terrestrial",
+      "mythical",
+      "magical",
+      "utopian",
+      "divine",
+    ];
+  }, [messages.seniorSkillLevelLabels]);
+  const formatSeniorSkillLevel = (value: number | undefined) => {
+    if (typeof value !== "number" || value <= 0) return messages.unknownLabel;
+    const index = Math.min(20, Math.max(1, Math.floor(value))) - 1;
+    return seniorSkillLevelLabels[index] ?? messages.unknownLabel;
+  };
+  const seniorTraitsSentence =
+    playerKind !== "senior" || !detailsData
+      ? null
+      : (() => {
+          const parts: string[] = [];
+          if (
+            typeof detailsData.Experience === "number" &&
+            typeof detailsData.Leadership === "number"
+          ) {
+            parts.push(
+              messages.seniorTraitsSentenceExperienceLeadership
+                .replace("{{experienceLevel}}", formatSeniorSkillLevel(detailsData.Experience))
+                .replace("{{experienceValue}}", String(detailsData.Experience))
+                .replace("{{leadershipLevel}}", formatSeniorSkillLevel(detailsData.Leadership))
+                .replace("{{leadershipValue}}", String(detailsData.Leadership))
+            );
+          }
+          if (typeof detailsData.Loyalty === "number") {
+            parts.push(
+              messages.seniorTraitsSentenceLoyalty
+                .replace("{{loyaltyLevel}}", formatSeniorSkillLevel(detailsData.Loyalty))
+                .replace("{{loyaltyValue}}", String(detailsData.Loyalty))
+            );
+          }
+          return parts.length ? parts.join(" ") : null;
+        })();
+  const seniorCareerStats =
+    playerKind !== "senior" || !detailsData
+      ? []
+      : [
+          { label: messages.seniorCareerGoalsLabel, value: detailsData.CareerGoals },
+          { label: messages.seniorCareerHattricksLabel, value: detailsData.CareerHattricks },
+          { label: messages.seniorLeagueGoalsLabel, value: detailsData.LeagueGoals },
+          { label: messages.seniorCupGoalsLabel, value: detailsData.CupGoals },
+          {
+            label: messages.seniorGoalsCurrentTeamLabel,
+            value: detailsData.GoalsCurrentTeam,
+          },
+          {
+            label: messages.seniorAssistsCurrentTeamLabel,
+            value: detailsData.AssistsCurrentTeam,
+          },
+          { label: messages.seniorCareerAssistsLabel, value: detailsData.CareerAssists },
+          {
+            label: messages.seniorMatchesCurrentTeamLabel,
+            value: detailsData.MatchesCurrentTeam,
+          },
+        ];
 
   const renderDetails = () => {
     if (loading) {
@@ -466,9 +838,44 @@ export default function PlayerDetailsPanel({
         <div className={styles.profileHeader}>
           <div>
             <div className={styles.profileNameRow}>
-              <h4 className={styles.profileName}>
-                {detailsData.FirstName} {detailsData.LastName}
-              </h4>
+              {typeof detailsData.YouthPlayerID === "number" &&
+              onMatrixPlayerDragStart ? (
+                <Tooltip
+                  content={
+                    playerKind === "youth"
+                      ? messages.youthDragToLineupHint
+                      : messages.youthDragToLineupHint
+                  }
+                >
+                  <h4
+                    className={styles.profileName}
+                    draggable
+                    onDragStart={(event) =>
+                      onMatrixPlayerDragStart(
+                        event,
+                        detailsData.YouthPlayerID as number,
+                        `${detailsData.FirstName} ${detailsData.LastName}`
+                      )
+                    }
+                  >
+                    {detailsData.FirstName} {detailsData.LastName}
+                  </h4>
+                </Tooltip>
+              ) : (
+                <h4 className={styles.profileName}>
+                  {detailsData.FirstName} {detailsData.LastName}
+                </h4>
+              )}
+              {playerKind === "senior" && detailsData.MotherClubBonus ? (
+                <Tooltip content={messages.motherClubBonusTooltip}>
+                  <span
+                    className={styles.seniorMotherClubHeartLarge}
+                    aria-label={messages.motherClubBonusTooltip}
+                  >
+                    ❤
+                  </span>
+                </Tooltip>
+              ) : null}
               {selectedPlayerHasNewMarker ? (
                 <span className={styles.matrixNewPill}>
                   {messages.matrixNewPillLabel}
@@ -480,6 +887,14 @@ export default function PlayerDetailsPanel({
                 </span>
               ) : null}
             </div>
+            {playerKind === "senior" && detailsData.PersonalityStatement ? (
+              <p className={styles.seniorPersonaLine}>
+                {detailsData.PersonalityStatement}
+              </p>
+            ) : null}
+            {playerKind === "senior" && seniorTraitsSentence ? (
+              <p className={styles.seniorPersonaLine}>{seniorTraitsSentence}</p>
+            ) : null}
             <p className={styles.profileMeta}>
               {detailsData.Age !== undefined ? (
                 <span className={styles.metaItem}>
@@ -560,20 +975,57 @@ export default function PlayerDetailsPanel({
                     isHiddenResolvedSpecialty
                       ? `${messages.hiddenSpecialtyTooltip}: ${
                           specialtyName(resolvedSpecialty) ?? messages.specialtyLabel
-                        }`
+                        } (${messages.hiddenSpecialtyTooltipLinkHint})`
                       : specialtyName(resolvedSpecialty) ?? messages.specialtyLabel
                   }
                 >
-                  <span
-                    className={`${styles.playerSpecialty} ${
-                      isHiddenResolvedSpecialty ? styles.hiddenSpecialtyBadge : ""
-                    }`}
-                  >
-                    {SPECIALTY_EMOJI[resolvedSpecialty] ?? "—"}
-                  </span>
+                  {hiddenSpecialtyMatchHref ? (
+                    <a
+                      className={styles.specialtyDiscoveryLink}
+                      href={hiddenSpecialtyMatchHref}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <span
+                        className={`${styles.playerSpecialty} ${
+                          isHiddenResolvedSpecialty ? styles.hiddenSpecialtyBadge : ""
+                        }`}
+                      >
+                        {SPECIALTY_EMOJI[resolvedSpecialty] ?? "—"}
+                      </span>
+                    </a>
+                  ) : (
+                    <span
+                      className={`${styles.playerSpecialty} ${
+                        isHiddenResolvedSpecialty ? styles.hiddenSpecialtyBadge : ""
+                      }`}
+                    >
+                      {SPECIALTY_EMOJI[resolvedSpecialty] ?? "—"}
+                    </span>
+                  )}
                 </Tooltip>{" "}
                 {specialtyName(resolvedSpecialty) ??
                   `${messages.specialtyLabel} ${resolvedSpecialty}`}
+              </div>
+            </div>
+          ) : null}
+          {injuryStatus && !injuryStatus.isHealthy ? (
+            <div>
+              <div className={styles.infoLabel}>
+                {messages.clubChronicleWagesInjuryColumn}
+              </div>
+              <div className={styles.infoValue} title={injuryStatus.label}>
+                {injuryStatus.display ? (
+                  <span
+                    className={
+                      injuryStatus.isHealthy
+                        ? styles.injuryStatusHealthy
+                        : styles.injuryStatusSymbol
+                    }
+                  >
+                    {injuryStatus.display}
+                  </span>
+                ) : null}
               </div>
             </div>
           ) : null}
@@ -584,13 +1036,35 @@ export default function PlayerDetailsPanel({
                 {playerId}
                 <a
                   className={styles.infoLinkIcon}
-                  href={hattrickYouthPlayerUrl(playerId)}
+                  href={
+                    playerKind === "senior"
+                      ? hattrickPlayerUrl(playerId)
+                      : hattrickYouthPlayerUrl(playerId)
+                  }
                   target="_blank"
                   rel="noreferrer"
                   aria-label={messages.playerLinkLabel}
                 >
                   ↗
                 </a>
+              </div>
+            </div>
+          ) : null}
+          {playerKind === "senior" ? (
+            <div>
+              <div className={styles.infoLabel}>{messages.cardStatusLabel}</div>
+              <div className={styles.infoValue}>
+                {selectedCardStatus ? (
+                  <span
+                    className={styles.matrixCardStatus}
+                    title={selectedCardStatus.label}
+                    aria-label={selectedCardStatus.label}
+                  >
+                    {selectedCardStatus.display}
+                  </span>
+                ) : (
+                  "-"
+                )}
               </div>
             </div>
           ) : null}
@@ -606,6 +1080,67 @@ export default function PlayerDetailsPanel({
             </div>
           ) : null}
         </div>
+
+        {playerKind === "senior" ? (
+          <>
+            <div className={styles.sectionDivider} />
+            <div className={styles.skillsGrid}>
+              <div className={styles.skillRow}>
+                <div className={styles.skillLabel}>{messages.sortForm}</div>
+                <div className={styles.skillBar}>
+                  {typeof detailsData.Form === "number" ? (
+                    <div
+                      className={styles.skillFillCurrent}
+                      style={{
+                        width: `${Math.min(100, (detailsData.Form / FORM_MAX_LEVEL) * 100)}%`,
+                        background: seniorBarGradient(detailsData.Form, 1, FORM_MAX_LEVEL),
+                      }}
+                    />
+                  ) : null}
+                </div>
+                <div className={styles.skillValue}>
+                  <span className={styles.skillValuePartWithFlag}>
+                    <span>
+                      {typeof detailsData.Form === "number"
+                        ? String(detailsData.Form)
+                        : messages.unknownShort}
+                    </span>
+                  </span>
+                </div>
+              </div>
+              <div className={styles.skillRow}>
+                <div className={styles.skillLabel}>{messages.sortStamina}</div>
+                <div className={styles.skillBar}>
+                  {typeof detailsData.StaminaSkill === "number" ? (
+                    <div
+                      className={styles.skillFillCurrent}
+                      style={{
+                        width: `${Math.min(
+                          100,
+                          (detailsData.StaminaSkill / STAMINA_MAX_LEVEL) * 100
+                        )}%`,
+                        background: seniorBarGradient(
+                          detailsData.StaminaSkill,
+                          1,
+                          STAMINA_MAX_LEVEL
+                        ),
+                      }}
+                    />
+                  ) : null}
+                </div>
+                <div className={styles.skillValue}>
+                  <span className={styles.skillValuePartWithFlag}>
+                    <span>
+                      {typeof detailsData.StaminaSkill === "number"
+                        ? String(detailsData.StaminaSkill)
+                        : messages.unknownShort}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : null}
 
         <div className={styles.sectionDivider} />
 
@@ -643,30 +1178,100 @@ export default function PlayerDetailsPanel({
                 : messages.unknownShort;
               const maxText = hasMax ? String(max) : messages.unknownShort;
               const currentPct = hasCurrent
-                ? Math.min(100, (current / MAX_SKILL_LEVEL) * 100)
+                ? Math.min(100, (current / maxSkillLevel) * 100)
                 : null;
+              const seniorEffectiveCurrent =
+                playerKind === "senior" && skillMode === "single"
+                  ? computeSeniorEffectiveSkill(current, detailsData)
+                  : current;
+              const seniorBonusRaw =
+                playerKind === "senior" && skillMode === "single"
+                  ? computeSeniorSkillBonus(current, detailsData)
+                  : null;
+              const seniorEffectiveCurrentPct =
+                seniorEffectiveCurrent !== null
+                  ? Math.min(100, (seniorEffectiveCurrent / maxSkillLevel) * 100)
+                  : null;
+              const seniorBonusPct =
+                currentPct !== null &&
+                seniorEffectiveCurrentPct !== null &&
+                seniorEffectiveCurrentPct > currentPct
+                  ? seniorEffectiveCurrentPct - currentPct
+                  : 0;
+              const seniorBonusTooltip =
+                playerKind === "senior"
+                  ? detailsData.MotherClubBonus
+                    ? messages.skillBonusMotherClubTooltip
+                    : messages.skillBonusLoyaltyTooltip
+                  : null;
+              const seniorBonusTooltipWithValue =
+                seniorBonusTooltip && seniorBonusRaw !== null && seniorBonusRaw > 0
+                  ? `${seniorBonusTooltip} (${formatSkillBonusDelta(seniorBonusRaw)})`
+                  : seniorBonusTooltip;
               const maxPct = hasMax
-                ? Math.min(100, (max / MAX_SKILL_LEVEL) * 100)
+                ? Math.min(100, (max / maxSkillLevel) * 100)
                 : null;
+              const currentBarColor =
+                playerKind === "senior" && hasCurrent
+                  ? seniorBarGradient(current, 1, maxSkillLevel)
+                  : undefined;
+              const maxBarColor =
+                playerKind === "senior" && hasMax
+                  ? seniorBarGradient(max, 1, maxSkillLevel)
+                  : undefined;
 
               return (
                 <div key={row.key} className={styles.skillRow}>
                   <div className={styles.skillLabel}>
                     {messages[row.labelKey as keyof Messages]}
                   </div>
-                  {isMaxed ? (
+                  {skillMode === "single" ? (
+                    <div className={styles.skillBar}>
+                      {hasCurrent ? (
+                        <div
+                          className={styles.skillFillCurrent}
+                          style={{
+                            width: `${currentPct}%`,
+                            background: currentBarColor,
+                          }}
+                        />
+                      ) : null}
+                      {playerKind === "senior" &&
+                      seniorBonusPct > 0 &&
+                      currentPct !== null &&
+                      seniorBonusTooltipWithValue ? (
+                        <Tooltip content={seniorBonusTooltipWithValue} followCursor offset={8}>
+                          <span
+                            className={styles.skillFillBonusTrigger}
+                            style={{
+                              left: `${currentPct}%`,
+                              width: `${seniorBonusPct}%`,
+                            }}
+                          >
+                            <span className={styles.skillFillBonusHatched} />
+                          </span>
+                        </Tooltip>
+                      ) : null}
+                    </div>
+                  ) : isMaxed ? (
                     <Tooltip content={messages.skillMaxedTooltip} fullWidth>
                       <div className={`${styles.skillBar} ${styles.skillBarMaxed}`}>
                         {hasMax ? (
                           <div
                             className={styles.skillFillMax}
-                            style={{ width: `${maxPct}%` }}
+                            style={{
+                              width: `${maxPct}%`,
+                              background: maxBarColor,
+                            }}
                           />
                         ) : null}
                         {hasCurrent ? (
                           <div
                             className={styles.skillFillCurrent}
-                            style={{ width: `${currentPct}%` }}
+                            style={{
+                              width: `${currentPct}%`,
+                              background: currentBarColor,
+                            }}
                           />
                         ) : null}
                       </div>
@@ -676,41 +1281,78 @@ export default function PlayerDetailsPanel({
                       {hasMax ? (
                         <div
                           className={styles.skillFillMax}
-                          style={{ width: `${maxPct}%` }}
+                          style={{
+                            width: `${maxPct}%`,
+                            background: maxBarColor,
+                          }}
                         />
                       ) : null}
                       {hasCurrent ? (
                         <div
                           className={styles.skillFillCurrent}
-                          style={{ width: `${currentPct}%` }}
+                          style={{
+                            width: `${currentPct}%`,
+                            background: currentBarColor,
+                          }}
                         />
                       ) : null}
                     </div>
                   )}
-                  <div className={styles.skillValue}>
-                    <span className={styles.skillValuePartWithFlag}>
-                      <span>{currentText}</span>
-                      {isNewCurrent ? (
-                        <span className={styles.matrixNewPill}>
-                          {messages.matrixNewPillLabel}
-                        </span>
-                      ) : null}
-                    </span>
-                    /
-                    <span className={styles.skillValuePartWithFlag}>
-                      <span>{maxText}</span>
-                      {isNewMax ? (
-                        <span className={styles.matrixNewPill}>
-                          {messages.matrixNewPillLabel}
-                        </span>
-                      ) : null}
-                    </span>
-                  </div>
+                  {skillMode === "single" ? (
+                    <div className={styles.skillValue}>
+                      <span className={styles.skillValuePartWithFlag}>
+                        <span>{currentText}</span>
+                        {isNewCurrent ? (
+                          <span className={styles.matrixNewPill}>
+                            {messages.matrixNewPillLabel}
+                          </span>
+                        ) : null}
+                      </span>
+                    </div>
+                  ) : (
+                    <div className={styles.skillValue}>
+                      <span className={styles.skillValuePartWithFlag}>
+                        <span>{currentText}</span>
+                        {isNewCurrent ? (
+                          <span className={styles.matrixNewPill}>
+                            {messages.matrixNewPillLabel}
+                          </span>
+                        ) : null}
+                      </span>
+                      /
+                      <span className={styles.skillValuePartWithFlag}>
+                        <span>{maxText}</span>
+                        {isNewMax ? (
+                          <span className={styles.matrixNewPill}>
+                            {messages.matrixNewPillLabel}
+                          </span>
+                        ) : null}
+                      </span>
+                    </div>
+                  )}
                 </div>
               );
             })}
           </div>
         </div>
+        {playerKind === "senior" ? (
+          <>
+            <div className={styles.sectionDivider} />
+            <div>
+              <h5 className={styles.sectionHeading}>{messages.seniorCareerStatsTitle}</h5>
+              <div className={styles.profileInfoRow}>
+                {seniorCareerStats.map((item) => (
+                  <div key={item.label}>
+                    <div className={styles.infoLabel}>{item.label}</div>
+                    <div className={styles.infoValue}>
+                      {typeof item.value === "number" ? item.value : messages.unknownShort}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : null}
       </div>
     );
   };
@@ -719,10 +1361,39 @@ export default function PlayerDetailsPanel({
     if (skillsMatrixRows.length === 0) {
       return <p className={styles.muted}>{messages.noYouthPlayers}</p>;
     }
+    const shortHeader = (
+      preferred: string | undefined,
+      fallback: string
+    ): string => {
+      if (typeof preferred === "string" && preferred.trim().length > 0) {
+        return preferred;
+      }
+      return fallback;
+    };
+    const playerHeaderLabel =
+      playerKind === "senior"
+        ? messages.ratingsPlayerLabel
+        : messages.ratingsPlayerLabel;
+    const specialtyHeaderLabel =
+      playerKind === "senior"
+        ? shortHeader(messages.seniorMatrixSpecialtyShortLabel, "Sp")
+        : messages.ratingsSpecialtyLabel;
+    const formHeaderLabel =
+      playerKind === "senior"
+        ? shortHeader(messages.seniorMatrixFormShortLabel, "Fm")
+        : messages.sortForm;
+    const staminaHeaderLabel =
+      playerKind === "senior"
+        ? shortHeader(messages.seniorMatrixStaminaShortLabel, "St")
+        : messages.sortStamina;
 
     return (
       <div className={styles.matrixWrapper}>
-        <table className={styles.matrixTable}>
+        <table
+          className={`${styles.matrixTable} ${
+            playerKind === "senior" ? styles.matrixTableSeniorCompact : ""
+          }`}
+        >
           <thead>
             <tr>
               <th className={styles.matrixIndexHeader}>
@@ -735,7 +1406,7 @@ export default function PlayerDetailsPanel({
                   onClick={() => handleSkillsSort("name")}
                   aria-label={`${messages.ratingsSortBy} ${messages.ratingsPlayerLabel}`}
                 >
-                  {messages.ratingsPlayerLabel}
+                  {playerHeaderLabel}
                   <span className={styles.matrixSortIcon}>
                     {skillsSortKey === "name"
                       ? skillsSortDir === "asc"
@@ -746,13 +1417,56 @@ export default function PlayerDetailsPanel({
                 </button>
               </th>
               <th className={styles.matrixSpecialtyHeader}>
-                {messages.ratingsSpecialtyLabel}
+                {specialtyHeaderLabel}
               </th>
+                {playerKind === "senior" ? (
+                  <>
+                    <th className={styles.matrixSeniorMetricHeader}>
+                      <button
+                        type="button"
+                        className={styles.matrixSortButton}
+                        onClick={() => handleSkillsSort("form")}
+                        aria-label={`${messages.ratingsSortBy} ${messages.sortForm}`}
+                      >
+                        {formHeaderLabel}
+                        <span className={styles.matrixSortIcon}>
+                          {skillsSortKey === "form"
+                            ? skillsSortDir === "asc"
+                              ? "▲"
+                              : "▼"
+                            : "⇅"}
+                        </span>
+                      </button>
+                    </th>
+                    <th
+                      className={`${styles.matrixSeniorMetricHeader} ${styles.matrixSeniorStaminaDivider}`}
+                    >
+                      <button
+                        type="button"
+                        className={styles.matrixSortButton}
+                        onClick={() => handleSkillsSort("stamina")}
+                        aria-label={`${messages.ratingsSortBy} ${messages.sortStamina}`}
+                      >
+                        {staminaHeaderLabel}
+                        <span className={styles.matrixSortIcon}>
+                          {skillsSortKey === "stamina"
+                            ? skillsSortDir === "asc"
+                              ? "▲"
+                              : "▼"
+                            : "⇅"}
+                        </span>
+                      </button>
+                    </th>
+                  </>
+                ) : null}
                 {SKILL_ROWS.map((row) => {
                   const isActive = skillsSortKey === row.key;
                   const direction = isActive ? skillsSortDir : "desc";
                   return (
-                    <th key={row.key}>
+                    <th
+                      key={row.key}
+                      className={playerKind === "senior" ? styles.matrixSeniorSkillHeader : undefined}
+                    >
                       <button
                         type="button"
                         className={styles.matrixSortButton}
@@ -777,8 +1491,26 @@ export default function PlayerDetailsPanel({
                 details?.PlayerSkills,
                 player?.PlayerSkills
               );
+              const rowInjuryLevel =
+                typeof details?.InjuryLevel === "number"
+                  ? details.InjuryLevel
+                  : typeof player?.InjuryLevel === "number"
+                  ? player.InjuryLevel
+                  : null;
+              const rowInjuryStatus = buildInjuryStatus(rowInjuryLevel, messages);
+              const rowCardStatus =
+                playerKind === "senior" && typeof row.id === "number"
+                  ? cardStatusByPlayerId[row.id] ?? null
+                  : null;
+              const hasSeniorIndicatorRow =
+                playerKind === "senior" &&
+                (Boolean(details?.MotherClubBonus) ||
+                  Boolean(rowCardStatus) ||
+                  Boolean(rowInjuryStatus && !rowInjuryStatus.isHealthy));
               const isSelected = ratingsMatrixSelectedName === row.name;
               const isNewPlayer = row.id ? matrixNewPlayerIdSet.has(row.id) : false;
+              const scoutOverallSkillLevel =
+                row.id !== null ? scoutOverallSkillLevelByPlayerId[row.id] : undefined;
 
               return (
                 <tr
@@ -789,19 +1521,136 @@ export default function PlayerDetailsPanel({
                 >
                   <td className={styles.matrixIndex}>{index + 1}</td>
                   <td className={styles.matrixPlayer}>
-                    <div className={styles.matrixPlayerContent}>
-                      <button
-                        type="button"
-                        className={styles.matrixPlayerButton}
-                        onClick={() => handleMatrixPlayerPick(row.name)}
-                        disabled={!onSelectRatingsPlayer}
-                      >
-                        {row.name}
-                      </button>
-                      {isNewPlayer ? (
-                        <span className={styles.matrixNewPill}>
-                          {messages.matrixNewPillLabel}
-                        </span>
+                    <div
+                      className={`${styles.matrixPlayerContent} ${
+                        hasSeniorIndicatorRow ? styles.matrixPlayerContentTwoRow : ""
+                      }`}
+                    >
+                      <div className={styles.matrixPlayerNameLine}>
+                        {typeof row.id === "number" && onMatrixPlayerDragStart ? (
+                          <Tooltip
+                            content={
+                              playerKind === "youth"
+                                ? messages.youthDragToLineupHint
+                                : messages.youthDragToLineupHint
+                            }
+                          >
+                            <button
+                              type="button"
+                              className={styles.matrixPlayerButton}
+                              onClick={() => handleMatrixPlayerPick(row.name)}
+                              disabled={!onSelectRatingsPlayer}
+                              draggable
+                              onDragStart={(event) => {
+                                onMatrixPlayerDragStart(event, row.id as number, row.name);
+                              }}
+                            >
+                              {row.name}
+                            </button>
+                          </Tooltip>
+                        ) : (
+                          <button
+                            type="button"
+                            className={styles.matrixPlayerButton}
+                            onClick={() => handleMatrixPlayerPick(row.name)}
+                            disabled={!onSelectRatingsPlayer}
+                          >
+                            {row.name}
+                          </button>
+                        )}
+                        {isNewPlayer ? (
+                          <span className={styles.matrixNewPill}>
+                            {messages.matrixNewPillLabel}
+                          </span>
+                        ) : null}
+                        {playerKind === "youth" &&
+                        typeof scoutOverallSkillLevel === "number" ? (
+                          <Tooltip content={messages.scoutOverallSkillLevelTooltip}>
+                            <span className={styles.matrixScoutOverallBadge}>
+                              {scoutOverallSkillLevel}
+                            </span>
+                          </Tooltip>
+                        ) : null}
+                      </div>
+                      {hasSeniorIndicatorRow ? (
+                        <div className={styles.matrixPlayerIndicatorsLine}>
+                          {details?.MotherClubBonus ? (
+                            <Tooltip content={messages.motherClubBonusTooltip}>
+                              <span
+                                className={styles.seniorMotherClubHeart}
+                                aria-label={messages.motherClubBonusTooltip}
+                              >
+                                ❤
+                              </span>
+                            </Tooltip>
+                          ) : null}
+                          {rowInjuryStatus && !rowInjuryStatus.isHealthy ? (
+                            <span
+                              className={
+                                rowInjuryStatus.isHealthy
+                                  ? styles.matrixInjuryHealthy
+                                  : styles.matrixInjuryStatus
+                              }
+                              title={rowInjuryStatus.label}
+                            >
+                              {rowInjuryStatus.display}
+                            </span>
+                          ) : null}
+                          {rowCardStatus ? (
+                            <span
+                              className={styles.matrixCardStatus}
+                              title={rowCardStatus.label}
+                              aria-label={rowCardStatus.label}
+                            >
+                              {rowCardStatus.display}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <>
+                          {playerKind === "senior" && details?.MotherClubBonus ? (
+                            <Tooltip content={messages.motherClubBonusTooltip}>
+                              <span
+                                className={styles.seniorMotherClubHeart}
+                                aria-label={messages.motherClubBonusTooltip}
+                              >
+                                ❤
+                              </span>
+                            </Tooltip>
+                          ) : null}
+                          {rowInjuryStatus &&
+                          !rowInjuryStatus.isHealthy ? (
+                            <span
+                              className={
+                                rowInjuryStatus.isHealthy
+                                  ? styles.matrixInjuryHealthy
+                                  : styles.matrixInjuryStatus
+                              }
+                              title={rowInjuryStatus.label}
+                            >
+                              {rowInjuryStatus.display}
+                            </span>
+                          ) : null}
+                          {rowCardStatus ? (
+                            <span
+                              className={styles.matrixCardStatus}
+                              title={rowCardStatus.label}
+                              aria-label={rowCardStatus.label}
+                            >
+                              {rowCardStatus.display}
+                            </span>
+                          ) : null}
+                        </>
+                      )}
+                      {playerKind !== "senior" && details?.MotherClubBonus ? (
+                        <Tooltip content={messages.motherClubBonusTooltip}>
+                          <span
+                            className={styles.seniorMotherClubHeart}
+                            aria-label={messages.motherClubBonusTooltip}
+                          >
+                            ❤
+                          </span>
+                        </Tooltip>
                       ) : null}
                     </div>
                   </td>
@@ -815,6 +1664,10 @@ export default function PlayerDetailsPanel({
                       const specialtyValue =
                         baseSpecialty > 0 ? baseSpecialty : hiddenForPlayer;
                       const isHidden = baseSpecialty <= 0 && hiddenForPlayer !== null;
+                      const hiddenSpecialtyHref =
+                        isHidden && player
+                          ? hiddenSpecialtyMatchHrefByPlayerId[player.YouthPlayerID]
+                          : undefined;
                       if (specialtyValue === null) return "—";
                       return (
                         <Tooltip
@@ -822,25 +1675,122 @@ export default function PlayerDetailsPanel({
                             isHidden
                               ? `${messages.hiddenSpecialtyTooltip}: ${
                                   specialtyName(specialtyValue) ?? messages.specialtyLabel
-                                }`
+                                } (${messages.hiddenSpecialtyTooltipLinkHint})`
                               : specialtyName(specialtyValue) ?? messages.specialtyLabel
                           }
                         >
-                          <span
-                            className={`${styles.playerSpecialty} ${
-                              isHidden ? styles.hiddenSpecialtyBadge : ""
-                            }`}
-                          >
-                            {SPECIALTY_EMOJI[specialtyValue] ?? "—"}
-                          </span>
+                          {hiddenSpecialtyHref ? (
+                            <a
+                              className={styles.specialtyDiscoveryLink}
+                              href={hiddenSpecialtyHref}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              <span
+                                className={`${styles.playerSpecialty} ${
+                                  isHidden ? styles.hiddenSpecialtyBadge : ""
+                                }`}
+                              >
+                                {SPECIALTY_EMOJI[specialtyValue] ?? "—"}
+                              </span>
+                            </a>
+                          ) : (
+                            <span
+                              className={`${styles.playerSpecialty} ${
+                                isHidden ? styles.hiddenSpecialtyBadge : ""
+                              }`}
+                            >
+                              {SPECIALTY_EMOJI[specialtyValue] ?? "—"}
+                            </span>
+                          )}
                         </Tooltip>
                       );
                     })()}
                   </td>
+                  {playerKind === "senior" ? (
+                    <>
+                      <td className={`${styles.matrixCell} ${styles.matrixSeniorMetricCell}`}>
+                        <span
+                          className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfPill}`}
+                          style={
+                            skillCellColor(
+                              typeof details?.Form === "number"
+                                ? details.Form
+                                : typeof player?.Form === "number"
+                                ? player.Form
+                                : null,
+                              0,
+                              8
+                            )
+                              ? {
+                                  backgroundColor: skillCellColor(
+                                    typeof details?.Form === "number"
+                                      ? details.Form
+                                      : typeof player?.Form === "number"
+                                      ? player.Form
+                                      : null,
+                                    0,
+                                    8
+                                  ),
+                                }
+                              : undefined
+                          }
+                        >
+                          {typeof details?.Form === "number"
+                            ? details.Form
+                            : typeof player?.Form === "number"
+                            ? player.Form
+                            : messages.unknownShort}
+                        </span>
+                      </td>
+                      <td
+                        className={`${styles.matrixCell} ${styles.matrixSeniorMetricCell} ${styles.matrixSeniorStaminaDivider}`}
+                      >
+                        <span
+                          className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfPill}`}
+                          style={
+                            skillCellColor(
+                              typeof details?.StaminaSkill === "number"
+                                ? details.StaminaSkill
+                                : typeof player?.StaminaSkill === "number"
+                                ? player.StaminaSkill
+                                : null,
+                              0,
+                              9
+                            )
+                              ? {
+                                  backgroundColor: skillCellColor(
+                                    typeof details?.StaminaSkill === "number"
+                                      ? details.StaminaSkill
+                                      : typeof player?.StaminaSkill === "number"
+                                      ? player.StaminaSkill
+                                      : null,
+                                    0,
+                                    9
+                                  ),
+                                }
+                              : undefined
+                          }
+                        >
+                          {typeof details?.StaminaSkill === "number"
+                            ? details.StaminaSkill
+                            : typeof player?.StaminaSkill === "number"
+                            ? player.StaminaSkill
+                            : messages.unknownShort}
+                        </span>
+                      </td>
+                    </>
+                  ) : null}
                   {SKILL_ROWS.map((skill) => {
                     const current = getSkillLevel(skills?.[skill.key]);
                     const max = getSkillMax(skills?.[skill.maxKey]);
                     const isMaxed = getSkillMaxReached(skills?.[skill.key]);
+                    const seniorEffectiveCurrent =
+                      playerKind === "senior" &&
+                      skillMode === "single" &&
+                      showSeniorSkillBonusInMatrix
+                        ? computeSeniorEffectiveSkill(current, details ?? null)
+                        : current;
                     const isNewCurrent =
                       row.id !== null
                         ? (matrixNewSkillsCurrentByPlayerId[row.id]?.includes(
@@ -852,15 +1802,72 @@ export default function PlayerDetailsPanel({
                         ? (matrixNewSkillsMaxByPlayerId[row.id]?.includes(skill.key) ??
                           false)
                         : false;
+                    const isScoutImportant =
+                      playerKind === "youth" && row.id !== null
+                        ? (scoutImportantSkillsByPlayerId[row.id]?.includes(skill.key) ??
+                          false)
+                        : false;
                     const currentText =
-                      current === null ? messages.unknownShort : String(current);
+                      skillMode === "single" && playerKind === "senior"
+                        ? (showSeniorSkillBonusInMatrix
+                            ? seniorEffectiveCurrent === null
+                              ? messages.unknownShort
+                              : formatSkillMatrixFloat(seniorEffectiveCurrent)
+                            : current === null
+                            ? messages.unknownShort
+                            : String(Math.round(current)))
+                        : current === null
+                          ? messages.unknownShort
+                          : String(current);
                     const maxText = max === null ? messages.unknownShort : String(max);
-                    const currentColor = skillCellColor(current);
-                    const maxColor = skillCellColor(max);
+                    const currentColor = skillCellColor(
+                      playerKind === "senior" && skillMode === "single"
+                        ? seniorEffectiveCurrent
+                        : current,
+                      0,
+                      maxSkillLevel
+                    );
+                    const maxColor = skillCellColor(max, 0, maxSkillLevel);
+                    if (skillMode === "single") {
+                      const singleContent = (
+                        <span
+                          className={`${styles.skillsMatrixHalf} ${
+                            playerKind === "senior" ? styles.skillsMatrixHalfPill : ""
+                          } ${
+                            isScoutImportant ? styles.skillsMatrixImportantUnderline : ""
+                          }`}
+                          style={
+                            currentColor
+                              ? { backgroundColor: currentColor }
+                              : undefined
+                          }
+                        >
+                          {currentText}
+                        </span>
+                      );
+                      return (
+                        <td
+                          key={skill.key}
+                          className={`${styles.matrixCell} ${
+                            playerKind === "senior" ? styles.matrixSeniorSkillCell : ""
+                          }`}
+                        >
+                          {isScoutImportant ? (
+                            <Tooltip content={messages.scoutImportantSkillTooltip}>
+                              {singleContent}
+                            </Tooltip>
+                          ) : (
+                            singleContent
+                          )}
+                        </td>
+                      );
+                    }
                     const cellContent = (
                       <div
                         className={`${styles.skillsMatrixSplit} ${
                           isMaxed ? styles.skillsMatrixMaxed : ""
+                        } ${
+                          isScoutImportant ? styles.skillsMatrixImportantUnderline : ""
                         }`}
                       >
                         {isNewCurrent ? (
@@ -901,8 +1908,17 @@ export default function PlayerDetailsPanel({
                       </div>
                     );
                     return (
-                      <td key={skill.key} className={styles.matrixCell}>
-                        {isMaxed ? (
+                      <td
+                        key={skill.key}
+                        className={`${styles.matrixCell} ${
+                          playerKind === "senior" ? styles.matrixSeniorSkillCell : ""
+                        }`}
+                      >
+                        {isScoutImportant ? (
+                          <Tooltip content={messages.scoutImportantSkillTooltip}>
+                            {cellContent}
+                          </Tooltip>
+                        ) : isMaxed ? (
                           <Tooltip content={messages.skillMaxedTooltip}>
                             {cellContent}
                           </Tooltip>
@@ -928,48 +1944,80 @@ export default function PlayerDetailsPanel({
           <button
             type="button"
             className={`${styles.detailsTabButton} ${
-              activeTab === "details" ? styles.detailsTabActive : ""
+              resolvedActiveTab === "details" ? styles.detailsTabActive : ""
             }`}
-            onClick={() => setActiveTab("details")}
+            onClick={() => setResolvedActiveTab("details")}
           >
             {messages.detailsTabLabel}
           </button>
           <button
             type="button"
             className={`${styles.detailsTabButton} ${
-              activeTab === "skillsMatrix" ? styles.detailsTabActive : ""
+              resolvedActiveTab === "skillsMatrix" ? styles.detailsTabActive : ""
             }`}
-            onClick={() => setActiveTab("skillsMatrix")}
+            onClick={() => setResolvedActiveTab("skillsMatrix")}
           >
             {messages.skillsMatrixTabLabel}
           </button>
           <button
             type="button"
             className={`${styles.detailsTabButton} ${
-              activeTab === "ratingsMatrix" ? styles.detailsTabActive : ""
+              resolvedActiveTab === "ratingsMatrix" ? styles.detailsTabActive : ""
             }`}
-            onClick={() => setActiveTab("ratingsMatrix")}
+            onClick={() => setResolvedActiveTab("ratingsMatrix")}
           >
             {messages.ratingsMatrixTabLabel}
           </button>
         </div>
+        {playerKind === "senior" &&
+        resolvedActiveTab === "skillsMatrix" &&
+        skillMode === "single" ? (
+          <div className={styles.detailsHeaderAux}>
+            <Tooltip content={messages.seniorSkillsMatrixBonusToggleTooltip}>
+              <label className={styles.matchesFilterToggle}>
+                <input
+                  type="checkbox"
+                  className={styles.matchesFilterToggleInput}
+                  checked={showSeniorSkillBonusInMatrix}
+                  onChange={(event) =>
+                    onShowSeniorSkillBonusInMatrixChange?.(event.target.checked)
+                  }
+                />
+                <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
+                <span className={styles.matchesFilterToggleLabel}>
+                  {messages.seniorSkillsMatrixBonusToggleLabel}
+                </span>
+              </label>
+            </Tooltip>
+          </div>
+        ) : null}
       </div>
 
-      {activeTab === "details" ? (
+      {resolvedActiveTab === "details" ? (
         renderDetails()
-      ) : activeTab === "skillsMatrix" ? (
+      ) : resolvedActiveTab === "skillsMatrix" ? (
         renderSkillsMatrix()
       ) : (
         <RatingsMatrix
           response={ratingsMatrixResponse}
           showTitle={false}
           messages={messages}
+          matchHrefBuilder={ratingsMatrixMatchHrefBuilder}
           specialtyByName={ratingsMatrixSpecialtyByName}
           hiddenSpecialtyByName={ratingsMatrixHiddenSpecialtyByName}
+          hiddenSpecialtyMatchHrefByName={ratingsMatrixHiddenSpecialtyMatchHrefByName}
+          motherClubBonusByName={ratingsMatrixMotherClubBonusByName}
+          injuryStatusByName={ratingsMatrixInjuryStatusByName}
+          cardStatusByName={ratingsMatrixCardStatusByName}
           newPlayerIds={matrixNewPlayerIds}
           newRatingsByPlayerId={matrixNewRatingsByPlayerId}
+          overallSkillLevelByPlayerId={
+            playerKind === "youth" ? scoutOverallSkillLevelByPlayerId : undefined
+          }
           selectedName={ratingsMatrixSelectedName}
           onSelectPlayer={handleMatrixPlayerPick}
+          onPlayerDragStart={onMatrixPlayerDragStart}
+          playerNameTooltip={messages.youthDragToLineupHint}
           orderedPlayerIds={orderedPlayerIds}
           orderSource={orderSource}
           onOrderChange={onRatingsOrderChange}

@@ -10,7 +10,10 @@ export const messagesPt: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Recolher barra lateral",
     sidebarExpandTooltip: "Expandir barra lateral",
-    toolYouthOptimization: "Otimização juvenil",
+    toolYouthOptimization: "Otimização elenco juvenil",
+    toolSeniorOptimization: "Otimização elenco sênior",
+    toolYouthBadge: "Y",
+    toolSeniorBadge: "S",
     toolClubChronicle: "Crônica do clube",
     clubChronicleTitle: "Crônica do clube",
     clubChronicleBody:
@@ -90,6 +93,12 @@ export const messagesPt: Messages = {
       "As matrizes juvenis agora destacam skills/avaliacoes novas ou alteradas e novos jogadores com pílulas NEW.",
     changelog_2_23_0:
       "Otimizacao juvenil adiciona um botao de Ultimas atualizacoes com historico datado de eventos NEW.",
+    changelog_2_24_0:
+      "Adicionada otimização do time sênior com lista de jogadores ordenável, matriz de skills em valor único, matriz de notas e fluxo de escalação/partidas.",
+    changelog_3_0_0:
+      "Lançamento da ferramenta de otimização do time sênior.",
+    changelog_3_1_0:
+      "A otimização sênior agora tem overlay de ajuda dedicado com callouts guiados para Últimas atualizações e escalação por IA.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -108,7 +117,10 @@ export const messagesPt: Messages = {
       "Quando selecionado, permite treinar jogadores até que a habilidade atinja o valor máximo. Se não selecionado, jogadores cujo nível atual = nível máximo não serão considerados para treino.",
     settingsYouth: "Juvenil",
     settingsYouthTitle: "Configurações do juvenil",
-    settingsYouthStalenessLabel: "Atualizar após (horas)",
+    settingsYouthStalenessLabel: "Atualização automática após (dias)",
+    settingsSenior: "Senior",
+    settingsSeniorTitle: "Configurações do senior",
+    settingsSeniorStalenessLabel: "Atualização automática após (dias)",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Ofensivo",
     behaviorDefensive: "Defensivo",
@@ -137,6 +149,7 @@ export const messagesPt: Messages = {
     skillLevel20: "divino",
     changelog_2_3_0: "Painel de desempenho na liga da Crônica do clube com atualizações em cache e controle de validade.",
     settingsYouthStalenessHint: "Quando os dados estão antigos, o app atualiza automaticamente jogadores, detalhes, skills, avaliações e partidas usando a última atualização (mesmo após reinícios).",
+    settingsSeniorStalenessHint: "Quando os dados estão antigos, o app atualiza automaticamente jogadores senior, detalhes, partidas e avaliações usando a última atualização.",
     settingsClubChronicle: "Crônica do clube",
     settingsClubChronicleTitle: "Configurações da Crônica do clube",
     settingsClubChronicleStalenessLabel: "Atualizar após (dias)",
@@ -438,6 +451,23 @@ export const messagesPt: Messages = {
       "Use a IA para otimizar a escalação para o jogador estrela e o regime de treino.",
     helpCalloutAuto:
       "Use a IA para selecionar o jogador estrela e o regime de treino.",
+    seniorHelpTitle: "Guia de otimizacao senior",
+    seniorHelpIntro:
+      "Esta visao ajuda a acompanhar mudancas relevantes no elenco senior e a definir escalacoes mais rapido.",
+    seniorHelpCalloutUpdates:
+      "Ultimas atualizacoes mostra apenas mudancas detectadas nas comparacoes de refresh salvas.",
+    seniorHelpCalloutSetLineupAi:
+      "Definir escalacao com IA abre os dois modos de escalacao para esta partida.",
+    seniorHelpBulletLatestUpdates:
+      "Uma nova comparacao so e salva quando um refresh detecta mudancas reais (por exemplo novo jogador, mudancas de notas/skills, lesoes, cartoes, forma, resistencia ou tracos).",
+    seniorHelpBulletAiOverview:
+      "Definir escalacao com IA aplica a escalacao mais eficaz identificada para vencer com base nas informacoes disponiveis do Hattrick.",
+    seniorHelpBulletAiTrainingAware:
+      "Modo com treino: respeita o regime de treino atual e prioriza escalacoes que cobrem os slots de treino relevantes.",
+    seniorHelpBulletAiIgnoreTraining:
+      "Modo ignorar treino: otimiza apenas a eficacia da partida sem restricoes de slots de treino.",
+    seniorHelpBulletAiMatchTypes:
+      "Liga e torneio buscam a configuracao competitiva mais forte. Em amistosos, usa-se um XI saudavel de segundo nivel.",
     themeSwitchDark: "Mudar para modo escuro",
     themeSwitchLight: "Mudar para modo claro",
     helpDismissLabel: "Entendi",
@@ -448,9 +478,14 @@ export const messagesPt: Messages = {
     detailsTabLabel: "Detalhes do jogador",
     skillsMatrixTabLabel: "Matriz de habilidades",
     ratingsMatrixTabLabel: "Matriz de avaliações",
+    seniorSkillsMatrixBonusToggleLabel: "Aplicar bonus",
+    seniorSkillsMatrixBonusToggleTooltip:
+      "Ativa ou desativa os valores com bonus efetivo na matriz de habilidades senior (bonus de clube de origem ou lealdade).",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N marca um valor atualizado ou revelado pela primeira vez desde a ultima atualizacao.",
+    scoutImportantSkillTooltip: "Habilidade top 3",
+    scoutOverallSkillLevelTooltip: "Nivel geral de habilidade",
     youthUpdatesNewPlayerLabel: "Novo jogador detectado",
     youthUpdatesSkillCurrentTag: "atual",
     youthUpdatesSkillMaxTag: "max",
@@ -461,6 +496,7 @@ export const messagesPt: Messages = {
     refreshPlayerListTooltip:
       "Atualizar a lista de jovens no Hattrick.",
     refreshAllYouthDataTooltip: "Atualizar todos os dados juvenis.",
+    refreshAllSeniorDataTooltip: "Atualizar todos os dados seniores.",
     refreshStopButton: "Parar",
     refreshStopTooltip: "Parar atualizacao em andamento.",
     youthLastGlobalRefresh: "Última atualização global",
@@ -485,6 +521,9 @@ export const messagesPt: Messages = {
     matchesTitle: "Partidas",
     matchesRefresh: "Atualizar partidas",
     matchesRefreshTooltip: "Atualizar partidas",
+    matchesIncludeTournamentLabel: "Incluir partidas de torneio",
+    matchesIncludeTournamentTooltip:
+      "Desligado: mostra apenas liga, qualificação, copa e amistosos. Ligado: inclui todos os tipos de partida, inclusive torneio.",
     noUpcomingMatches: "Nenhuma partida FUTURA. Mostrando as recentes.",
     noMatchesReturned: "Nenhuma partida retornada.",
     ordersLabel: "Ordens",
@@ -525,6 +564,22 @@ export const messagesPt: Messages = {
     submitOrdersUpdated: "Atualizado",
     submitOrdersMinPlayers: "Pelo menos 9 jogadores",
     submitOrdersMaxPlayers: "A escalação não pode passar de 11 jogadores",
+    seniorSubmitDisclaimerTitle: "⚠️ Aviso após envio da escalação",
+    seniorSubmitDisclaimerIntro: "Revise os pontos abaixo:",
+    seniorSubmitDisclaimerBulletBestEffort:
+      "Com base nas informações fornecidas pelo Hattrick, esta é a escalação mais eficaz que a IA conseguiu gerar.",
+    seniorSubmitDisclaimerBulletNoResponsibility:
+      "Esta ferramenta não assume responsabilidade pelo sucesso desta escalação.",
+    seniorSubmitDisclaimerBulletFineTune:
+      "A responsabilidade final pelo ajuste fino da escalação é sua.",
+    seniorSubmitDisclaimerBulletResubmit:
+      "Orientação dos jogadores, formação e tática podem ser ajustadas aqui e reenviadas com o botão Enviar escalação.",
+    seniorSubmitDisclaimerBulletKickers:
+      "Os cobradores de pênalti são definidos automaticamente em ordem decrescente de habilidade em bolas paradas.",
+    seniorSubmitDisclaimerBulletOrdersInHattrick:
+      "Se forem necessárias ordens de jogo, elas devem ser configuradas diretamente no Hattrick.",
+    seniorSubmitDisclaimerBulletVerify:
+      "Verifique disponibilidade, lesões e intenção tática antes do início.",
     loadLineupTooltip: "Carrega a escalação salva do Hattrick para esta partida.",
     submitOrdersTooltip: "Envia a escalação atual ao Hattrick para esta partida.",
     randomizeLineup: "Escalação aleatória",
@@ -607,6 +662,30 @@ export const messagesPt: Messages = {
     confirmSubmit: "Enviar",
     loadLineup: "Carregar escalação",
     loadLineupLoading: "Carregando…",
+    setBestLineup: "Definir melhor escalação",
+    setBestLineupLoading: "Definindo…",
+    setBestLineupTooltip: "Define a escalação usando IA.",
+    setBestLineupTrainingAware: "Com foco no treino",
+    setBestLineupTrainingAwareTooltip:
+      "Define a escalação considerando o regime de treino. Só serão consideradas formações que mantenham todos os slots de treino preenchidos.",
+    setBestLineupIgnoreTraining: "Ignorar treino",
+    setBestLineupIgnoreTrainingTooltip:
+      "Define a escalação sem considerar o regime de treino. Todas as formações serão consideradas.",
+    setBestLineupRejectedPlayersLabel: "Jogadores rejeitados",
+    analyzeOpponent: "Analisar adversário",
+    analyzeOpponentTooltip: "Analisar jogos recentes do adversário.",
+    analyzeOpponentMatchId: "ID da partida",
+    analyzeOpponentMatchType: "Tipo de partida",
+    analyzeOpponentFormationColumn: "Formação",
+    analyzeOpponentTacticColumn: "Tática",
+    analyzeOpponentAgainstYouMark: "* indica partidas contra você.",
+    analyzeOpponentNeverPlayedUs: "Eles nunca jogaram contra nós.",
+    analyzeOpponentSummaryPreferredFormation:
+      "a formação mais usada nessas partidas é",
+    analyzeOpponentSummaryPreferredTactic:
+      "Para essa formação, a tática mais usada é",
+    analyzeOpponentSummaryVsYou: "Quando jogam contra você, preferem",
+    analyzeOpponentSummaryWith: "com",
     loadLineupUnavailable: "Sem escalação salva",
     loadLineupActive: "Carregada",
     loadLineupError: "Falha ao carregar",
@@ -657,6 +736,7 @@ export const messagesPt: Messages = {
     trainingSlotSecondary: "Secundário",
     trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Definir jogador estrela",
+    seniorPlayerListTitle: "Jogadores seniores",
     sortLabel: "Ordenar por",
     sortName: "Nome",
     sortAge: "Idade",
@@ -670,7 +750,32 @@ export const messagesPt: Messages = {
     sortPassing: "Passe",
     sortScorer: "Artilheiro",
     sortSetPieces: "Bolas paradas",
+    sortTsi: "TSI",
+    sortWage: "Salário",
+    sortForm: "Forma",
+    sortStamina: "Resistência",
+    sortExperience: "Experiência",
+    sortLoyalty: "Lealdade",
+    seniorCareerStatsTitle: "Estatísticas de carreira e time",
+    seniorCareerGoalsLabel: "Gols na carreira",
+    seniorCareerHattricksLabel: "Hat-tricks na carreira",
+    seniorLeagueGoalsLabel: "Gols da liga (nesta temporada)",
+    seniorCupGoalsLabel: "Gols da copa (nesta temporada)",
+    seniorFriendliesGoalsLabel: "Gols em amistosos (temporada)",
+    seniorGoalsCurrentTeamLabel: "Gols pelo time atual",
+    seniorAssistsCurrentTeamLabel: "Assistências pelo time atual",
+    seniorCareerAssistsLabel: "Assistências na carreira",
+    seniorMatchesCurrentTeamLabel: "Partidas pelo time atual",
+    seniorMatrixPlayerShortLabel: "Jog",
+    seniorMatrixSpecialtyShortLabel: "Esp",
+    seniorMatrixFormShortLabel: "For",
+    seniorMatrixStaminaShortLabel: "Res",
+    sortInjuries: "Lesões",
+    sortCards: "Cartões",
     sortCustom: "--",
+    seniorListInjuryBruised: "Contundido",
+    seniorListInjuryWeeks: "Lesionado ({weeks} sem.)",
+    seniorCardsMatchRunning: "partida em andamento",
     sortToggleAria: "Inverter ordenação",
     sortAscLabel: "Crescente",
     sortDescLabel: "Decrescente",
@@ -683,6 +788,10 @@ export const messagesPt: Messages = {
     devOauthErrorSim5xx: "Simular 5xx",
     devOauthErrorSimHint:
       "Somente dev. Simula falhas OAuth/CHPP para todas as requisições /api/chpp neste navegador.",
+    debugYouthSeMatchIdLabel: "ID da partida juvenil",
+    debugYouthSeFetchButton: "Buscar SEs",
+    debugYouthSeFetchHint:
+      "Registra no console os eventos especiais monitorados: id do evento, nomes objeto/sujeito e URL da partida.",
     statusLabel: "Status",
     matchStatusUpcoming: "Próximo",
     matchStatusFinished: "Finalizado",
@@ -711,7 +820,18 @@ export const messagesPt: Messages = {
     specialtyHeadSpecialist: "Cabeceador",
     specialtyResilient: "Resistente",
     specialtySupport: "Apoio",
+    motherClubBonusTooltip: "Bônus de clube de origem",
+    skillBonusMotherClubTooltip: "Bônus de clube de origem",
+    skillBonusLoyaltyTooltip: "Bônus de lealdade",
+    seniorSkillLevelLabels:
+      "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+    seniorTraitsSentenceExperienceLeadership:
+      "Tem experiência {{experienceLevel}} ({{experienceValue}}) e liderança {{leadershipLevel}} ({{leadershipValue}}).",
+    seniorTraitsSentenceLoyalty:
+      "Tem lealdade {{loyaltyLevel}} ({{loyaltyValue}}).",
     hiddenSpecialtyTooltip: "Especialidade oculta descoberta por eventos da partida",
+    hiddenSpecialtyTooltipLinkHint:
+      "Clique para abrir a partida em que foi descoberta",
     skillsLabel: "Habilidades",
     skillMaxedTooltip: "Habilidade no máximo",
     unknownLabel: "desconhecido",
@@ -720,18 +840,29 @@ export const messagesPt: Messages = {
     lastMatchPositionLabel: "Posição do último jogo",
     lastMatchRatingLabel: "Avaliação do último jogo",
     playerIdLabel: "ID do jogador",
+    cardStatusLabel: "Status de cartões",
     playerLinkLabel: "Ver no Hattrick",
     dragPlayerHint: "Arraste para mover",
+    youthDragToLineupHint: "Arraste para a escalação",
     homeLabel: "Casa",
     awayLabel: "Fora",
     unknownDate: "Data desconhecida",
     ratingsTitle: "Matriz de avaliações",
+    ratingsMatchesAnalyzed: "Dados obtidos de {count} partidas.",
     ratingsIndexLabel: "Nº",
     ratingsMissingNote:
       "Alguns jogadores não têm dados recentes e são mostrados com —.",
     ratingsSortBy: "Ordenar por",
     ratingsPlayerLabel: "Jogador",
     ratingsSpecialtyLabel: "Especialidade",
+    ratingSectorMidfieldShort: "MEI",
+    ratingSectorRightDefShort: "DEF D",
+    ratingSectorMidDefShort: "DEF C",
+    ratingSectorLeftDefShort: "DEF E",
+    ratingSectorRightAttShort: "ATA D",
+    ratingSectorMidAttShort: "ATA C",
+    ratingSectorLeftAttShort: "ATA E",
+    averageLabel: "Média",
     posKeeper: "GOL",
     posBack: "LD",
     posCentralDefender: "ZA",

@@ -28,6 +28,9 @@
 ## Modals
 - All modal UI must use the shared modal framework/component.
 
+## Currency
+- Any time currency is displayed in the UI, convert and display it in EUR.
+
 ## Changelog
 - When a MAJOR or MINOR version changes, the changelog should auto-expand.
 - Every MAJOR or MINOR bump must append a one-line changelog entry describing what’s new.
@@ -41,6 +44,9 @@
 
 ## Clarification
 - If an instruction is unclear, ask clarifying questions before starting any coding.
+- If it is not clear which tool/panel/workflow is being referenced, clarify with the user before making changes.
+- Never apply the same behavior change across multiple tools/panels unless the user explicitly confirms the cross-tool scope.
+- When tools have overlapping functionality, double-check scope with the user before implementing shared-component changes.
 
 ## Vibecoding Output
 - At the end of each vibecoding run for a prompt, provide a one-line git commit message suggestion that covers all changes since the last commit.
@@ -48,6 +54,8 @@
 - Before suggesting the commit message, quickly scan `git status`/`git diff --stat` and ensure the message summarizes the full staged+unstaged scope.
 - Anchor the suggestion to git history, not memory: check `git log -1 --oneline` and `git diff --name-status HEAD` (or equivalent) before writing the message.
 - The suggested message must describe exactly what changed in `HEAD..working tree` at suggestion time; do not include work that has already been committed.
+- Use git commands for this verification every time (do not rely on memory), even if the change seems small.
+- Do not include version numbers in the suggested commit message.
 
 ## Code Reuse
 - When writing code, prioritize maximizing reuse and minimizing repetitive implementations.

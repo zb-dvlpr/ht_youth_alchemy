@@ -6,6 +6,8 @@ import { messagesEs } from "./es";
 import { messagesSv } from "./sv";
 import { messagesIt } from "./it";
 import { messagesPt } from "./pt";
+import { messagesPl } from "./pl";
+import { messagesNl } from "./nl";
 
 export const MESSAGES: Record<Locale, Messages> = {
   en: messagesEn,
@@ -15,4 +17,6 @@ export const MESSAGES: Record<Locale, Messages> = {
   sv: messagesSv,
   it: messagesIt,
   pt: messagesPt,
+  pl: messagesPl,
+  nl: messagesNl,
 };

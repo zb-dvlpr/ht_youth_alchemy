@@ -203,7 +203,15 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   align-items: center;
   justify-content: center;
   font-size: 16px;
+  position: relative;
 }
+
+.sidebarIconGlyph {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 
 .sidebarLabel {
   font-size: 12px;
@@ -843,6 +851,99 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   min-width: 620px;
 }
 
+.matrixTable.matrixTableSeniorCompact {
+  width: 100%;
+  min-width: 0;
+  table-layout: auto;
+}
+
+.matrixTable.matrixTableSeniorCompact th,
+.matrixTable.matrixTableSeniorCompact td {
+  padding: 4px 5px;
+  white-space: nowrap;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixIndexHeader {
+  width: 24px;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixSpecialtyHeader {
+  width: 34px;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixPlayerHeader,
+.matrixTable.matrixTableSeniorCompact td.matrixPlayer {
+  width: 140px;
+  max-width: 140px;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixSeniorMetricHeader,
+.matrixTable.matrixTableSeniorCompact .matrixSeniorMetricCell {
+  width: 38px;
+  text-align: center;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixSeniorSkillHeader,
+.matrixTable.matrixTableSeniorCompact .matrixSeniorSkillCell {
+  width: 46px;
+  text-align: center;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixSeniorStaminaDivider {
+  border-right: 1px solid #d8cdbb;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixPlayerContent {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixPlayerContentTwoRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  overflow: visible;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixPlayerContentTwoRow .matrixPlayerNameLine {
+  width: 100%;
+  min-width: 0;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixPlayerContentTwoRow .matrixPlayerIndicatorsLine {
+  width: 100%;
+  min-width: 0;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixPlayerButton {
+  display: block;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.matrixTable.matrixTableSeniorCompact .matrixPlayerContent > :not(.matrixPlayerButton) {
+  min-width: max-content;
+}
+
+.matrixTable.matrixTableSeniorCompact .skillsMatrixHalfPill {
+  width: auto;
+  min-width: 36px;
+  padding: 1px 6px;
+  font-variant-numeric: tabular-nums;
+}
+
 .playerDetailsCard {
   min-width: 0;
   overflow: hidden;
@@ -901,6 +1002,16 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   gap: 2px;
   padding: 2px 0;
   min-height: 22px;
+}
+
+.skillsMatrixHalfPill {
+  flex: 0 0 auto;
+  width: auto;
+  min-width: 28px;
+  margin: 0 auto;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(100, 85, 70, 0.25);
 }
 
 .matrixSplitNewTag {
@@ -970,6 +1081,21 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   max-width: 100%;
 }
 
+.matrixPlayerNameLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.matrixPlayerIndicatorsLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 14px;
+}
+
 .matrixPlayerButton {
   display: block;
   width: 100%;
@@ -1036,6 +1162,22 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   gap: 3px;
 }
 
+.matrixRatingLink {
+  display: inline-flex;
+  color: inherit;
+  text-decoration: none;
+}
+
+.matrixRatingLink:hover {
+  text-decoration: underline;
+}
+
+.matrixRatingLink:focus-visible {
+  outline: 2px solid rgba(93, 80, 66, 0.35);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .matrixCellHasNew {
   position: relative;
 }
@@ -1064,6 +1206,63 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   background: #e6452f;
   color: #fff8ef;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.18);
+}
+
+.matrixScoutOverallBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #4b3f32;
+  color: #f7f1e3;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.skillsMatrixImportantUnderline {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 2px;
+}
+
+.matrixInjuryStatus {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  color: #b32320;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 1;
+}
+
+.matrixInjuryHealthy {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  color: #1f7a3a;
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.matrixCardStatus {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  color: #7f4a11;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.matrixPlayerIndicatorsLine .matrixInjuryStatus,
+.matrixPlayerIndicatorsLine .matrixInjuryHealthy,
+.matrixPlayerIndicatorsLine .matrixCardStatus {
+  margin-left: 0;
 }
 
 .card {
@@ -1959,6 +2158,119 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   text-underline-offset: 2px;
 }
 
+.opponentFormationsTableWrap {
+  width: 100%;
+  max-width: 100%;
+  max-height: min(60vh, 620px);
+  overflow: auto;
+  border: 1px solid #e0d6c6;
+  border-radius: 12px;
+  background: #f7f2ea;
+}
+
+.opponentFormationsTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+  font-size: 12px;
+  color: #4f463c;
+}
+
+.opponentFormationsTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #efe5d6;
+  color: #6a5f50;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+  border-bottom: 1px solid #dfd2bf;
+  text-align: left;
+}
+
+.opponentFormationsTable th,
+.opponentFormationsTable td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #eadfce;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.opponentFormationsTable tbody tr:hover {
+  background: #f2e9dc;
+}
+
+.opponentFormationsSelectedRow {
+  background: #e6f2e8;
+}
+
+.opponentFormationsMatchIdCell {
+  font-weight: 700;
+}
+
+.opponentFormationsNumberCell {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.opponentFormationsNumberHeader {
+  text-align: right !important;
+}
+
+.opponentFormationsAverageRow {
+  background: #eaf2fb;
+}
+
+.opponentFormationsAverageRow td {
+  border-top: 2px solid #c9d8e8;
+  border-bottom: none;
+}
+
+.generatedLineupCell {
+  min-width: 520px;
+}
+
+.generatedLineupBlock {
+  display: grid;
+  gap: 6px;
+}
+
+.generatedLineupRow {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  gap: 6px;
+  align-items: start;
+}
+
+.generatedLineupRowLabel {
+  font-weight: 700;
+  color: #5d5245;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  line-height: 1.45;
+}
+
+.generatedLineupSlots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.generatedLineupSlot {
+  border: 1px solid #d8ccb9;
+  border-radius: 8px;
+  padding: 2px 6px;
+  background: #fff;
+  color: #3f362c;
+  line-height: 1.3;
+}
+
+.generatedLineupSlotEmpty {
+  opacity: 0.6;
+  background: #f3ece1;
+}
+
 .chronicleInlineLinkButton {
   border: 0;
   background: transparent;
@@ -2594,6 +2906,56 @@ html[data-theme="dark"] .chroniclePressLink {
   color: #8cb8e6;
 }
 
+html[data-theme="dark"] .opponentFormationsTableWrap {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: #221f1b;
+}
+
+html[data-theme="dark"] .opponentFormationsTable {
+  color: #d9cbb8;
+}
+
+html[data-theme="dark"] .opponentFormationsTable thead th {
+  background: #2a241d;
+  color: #d9cbb8;
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .opponentFormationsTable th,
+html[data-theme="dark"] .opponentFormationsTable td {
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .opponentFormationsTable tbody tr:hover {
+  background: #2b261f;
+}
+
+html[data-theme="dark"] .opponentFormationsSelectedRow {
+  background: #203126;
+}
+
+html[data-theme="dark"] .opponentFormationsAverageRow {
+  background: #1f2730;
+}
+
+html[data-theme="dark"] .opponentFormationsAverageRow td {
+  border-top-color: rgba(134, 184, 232, 0.5);
+}
+
+html[data-theme="dark"] .generatedLineupRowLabel {
+  color: #d9cbb8;
+}
+
+html[data-theme="dark"] .generatedLineupSlot {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: #2f2923;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .generatedLineupSlotEmpty {
+  background: #29241e;
+}
+
 html[data-theme="dark"] .chronicleInlineLinkButton {
   color: inherit;
 }
@@ -2709,6 +3071,24 @@ html[data-theme="dark"] .matrixNewPill {
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
 
+html[data-theme="dark"] .matrixScoutOverallBadge {
+  background: #d8cab6;
+  color: #2c2217;
+}
+
+html[data-theme="dark"] .matrixInjuryStatus {
+  color: #ff7b74;
+}
+
+html[data-theme="dark"] .matrixInjuryHealthy {
+  color: #8fe5ae;
+}
+
+html[data-theme="dark"] .matrixCardStatus,
+html[data-theme="dark"] .playerCardStatusInline {
+  color: #ffcf80;
+}
+
 html[data-theme="dark"] .matrixCellNewTag {
   color: #ff8f7f;
 }
@@ -2805,9 +3185,26 @@ html[data-theme="dark"] .profileUpdated {
   color: #b9b0a5;
 }
 
+html[data-theme="dark"] .seniorPersonaLine {
+  color: #c7b9a5;
+}
+
+html[data-theme="dark"] .seniorMotherClubHeart,
+html[data-theme="dark"] .seniorMotherClubHeartLarge {
+  color: #ff756b;
+}
+
 html[data-theme="dark"] .infoValue,
 html[data-theme="dark"] .skillLabel {
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .injuryStatusSymbol {
+  color: #ff7b74;
+}
+
+html[data-theme="dark"] .injuryStatusHealthy {
+  color: #8fe5ae;
 }
 
 html[data-theme="dark"] .infoLinkIcon {
@@ -2836,6 +3233,46 @@ html[data-theme="dark"] .playerButton:hover {
 html[data-theme="dark"] .playerButton[aria-pressed="true"] {
   background: #3a332c;
   color: #f7f1e3;
+}
+
+html[data-theme="dark"] .playerAgePillGreen {
+  background: rgba(47, 159, 91, 0.25);
+  color: #8fe5ae;
+  border-color: rgba(143, 229, 174, 0.4);
+}
+
+html[data-theme="dark"] .playerAgePillYellow {
+  background: rgba(214, 167, 54, 0.28);
+  color: #f2dca2;
+  border-color: rgba(242, 220, 162, 0.35);
+}
+
+html[data-theme="dark"] .playerAgePillFadedRed {
+  background: rgba(171, 75, 75, 0.32);
+  color: #f1cccc;
+  border-color: rgba(241, 204, 204, 0.3);
+}
+
+html[data-theme="dark"] .playerAgePillDarkRed {
+  background: rgba(143, 33, 33, 0.62);
+  color: #ffe5e5;
+  border-color: rgba(255, 196, 196, 0.32);
+}
+
+html[data-theme="dark"] .playerMetricPill {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(44, 38, 33, 0.9);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .playerMetricPillNeutral {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(70, 61, 53, 0.85);
+  color: #dcd2c5;
+}
+
+html[data-theme="dark"] .playerInjuryInline {
+  color: #ff5a5a;
 }
 
 html[data-theme="dark"] .playerAge {
@@ -2912,6 +3349,15 @@ html[data-theme="dark"] .matchType {
   color: #b9b0a5;
 }
 
+html[data-theme="dark"] .matchesFilterToggle {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .matchesFilterToggleTrack {
+  background: #3a342e;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 html[data-theme="dark"] .matchButtonSecondary {
   color: #8fe5ae;
   border-color: rgba(143, 229, 174, 0.35);
@@ -2919,6 +3365,40 @@ html[data-theme="dark"] .matchButtonSecondary {
 
 html[data-theme="dark"] .matchButtonSecondary:hover:not(:disabled) {
   background: rgba(143, 229, 174, 0.12);
+}
+
+html[data-theme="dark"] .matchButtonAccent {
+  color: #ffd79a;
+  border-color: rgba(255, 215, 154, 0.55);
+  background: rgba(255, 196, 106, 0.16);
+}
+
+html[data-theme="dark"] .matchButtonAccent:hover:not(:disabled) {
+  background: rgba(255, 196, 106, 0.24);
+}
+
+html[data-theme="dark"] .matchBestLineupDazzleButton {
+  color: #ffe1a8;
+  border-color: rgba(255, 202, 112, 0.7);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 205, 120, 0.38) 0%,
+    rgba(214, 138, 32, 0.32) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 224, 163, 0.24) inset,
+    0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .matchBestLineupDazzleButton:hover:not(:disabled) {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 215, 137, 0.46) 0%,
+    rgba(226, 150, 44, 0.4) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 233, 182, 0.34) inset,
+    0 6px 14px rgba(0, 0, 0, 0.42);
 }
 
 html[data-theme="dark"] .matchSuccess {
@@ -2946,6 +3426,73 @@ html[data-theme="dark"] .confirmCard {
 
 html[data-theme="dark"] .confirmBody {
   color: #cfc6bb;
+}
+
+html[data-theme="dark"] .seniorUpdatesComparedAt {
+  color: #d7cabc;
+}
+
+html[data-theme="dark"] .seniorUpdatesHistoryPane {
+  background: #211d1a;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .seniorUpdatesHistoryHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  color: #c7b7a3;
+}
+
+html[data-theme="dark"] .seniorUpdatesHistoryItem {
+  background: #2a2521;
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .seniorUpdatesHistoryItem:hover {
+  background: #342e29;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+html[data-theme="dark"] .seniorUpdatesHistoryItemActive,
+html[data-theme="dark"] .seniorUpdatesHistoryItemActive:hover {
+  background: #3d352f;
+  border-color: rgba(214, 181, 136, 0.45);
+}
+
+html[data-theme="dark"] .seniorUpdatesHistoryState,
+html[data-theme="dark"] .seniorUpdatesSectionTitle {
+  color: #bba891;
+}
+
+html[data-theme="dark"] .seniorUpdatesPlayerCard {
+  background: #25211d;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .seniorUpdatesPlayerName,
+html[data-theme="dark"] .seniorUpdatesChangeList {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .seniorDisclaimerBadgeRow {
+  border-color: rgba(255, 255, 255, 0.14);
+  background:
+    radial-gradient(circle at top left, rgba(255, 210, 138, 0.2), transparent 58%),
+    linear-gradient(180deg, #25211d 0%, #221d18 100%);
+}
+
+html[data-theme="dark"] .seniorDisclaimerBadgeIcon {
+  background: rgba(255, 207, 122, 0.24);
+  box-shadow: inset 0 0 0 1px rgba(255, 207, 122, 0.36);
+}
+
+html[data-theme="dark"] .seniorDisclaimerIntro,
+html[data-theme="dark"] .seniorDisclaimerList {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .seniorDisclaimerList li::marker {
+  color: #d9b678;
 }
 
 html[data-theme="dark"] .spinner {
@@ -3013,7 +3560,7 @@ html[data-theme="dark"] .spinner {
 }
 
 .playerAssigned {
-  opacity: 0.7;
+  opacity: 1;
 }
 
 .assignedTag {
@@ -3052,6 +3599,21 @@ html[data-theme="dark"] .spinner {
   line-height: 1;
 }
 
+.specialtyDiscoveryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.specialtyDiscoveryLink:focus-visible {
+  outline: 2px solid rgba(93, 80, 66, 0.35);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+
 .hiddenSpecialtyBadge {
   display: inline-flex;
   align-items: center;
@@ -3081,6 +3643,14 @@ html[data-theme="dark"] .spinner {
   text-align: right;
 }
 
+.playerSortMetricYouth {
+  color: #4b3f32;
+  opacity: 1;
+  max-width: 58%;
+  overflow: visible;
+  text-overflow: clip;
+}
+
 .playerSortMetricUrgent {
   color: #fff1f1;
   background: linear-gradient(135deg, #d03333, #a10f0f);
@@ -3091,6 +3661,105 @@ html[data-theme="dark"] .spinner {
   letter-spacing: 0.06em;
   text-transform: uppercase;
   box-shadow: 0 0 8px rgba(183, 24, 24, 0.35);
+}
+
+.playerIndicators {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.playerAgePill {
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.playerMetricPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  border: 1px solid #bfae98;
+  background: #efe3d3;
+  color: #4b3f32;
+}
+
+.playerMetricPillNeutral {
+  border-color: #b5a690;
+  background: #e7ddd0;
+  color: #5d5348;
+}
+
+.youthSkillMetricPill {
+  color: #1f1a13;
+  font-weight: 800;
+}
+
+.playerCardIcon {
+  font-size: 12px;
+  line-height: 1;
+}
+
+.playerAgePillGreen {
+  background: #d8f3e2;
+  color: #1f6f3f;
+  border: 1px solid #8fd3a8;
+}
+
+.playerAgePillYellow {
+  background: #f7e8bf;
+  color: #6f5217;
+  border: 1px solid #e1c47f;
+}
+
+.playerAgePillFadedRed {
+  background: #f2d7d7;
+  color: #7d3232;
+  border: 1px solid #daa5a5;
+}
+
+.playerAgePillDarkRed {
+  background: #c66f6f;
+  color: #fff2f2;
+  border: 1px solid #8f2c2c;
+}
+
+.playerInjuryInline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 1em;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  color: #e02020;
+  flex-shrink: 0;
+}
+
+.playerCardStatusInline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+  font-size: 12px;
+  line-height: 1;
+  color: #7f4a11;
+  flex-shrink: 0;
 }
 
 .playerId {
@@ -3119,6 +3788,12 @@ html[data-theme="dark"] .spinner {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  align-items: center;
+}
+
+.detailsHeaderAux {
+  margin-left: auto;
+  display: inline-flex;
   align-items: center;
 }
 
@@ -3376,6 +4051,33 @@ html[data-theme="dark"] .spinner {
   color: #8a8074;
 }
 
+.seniorPersonaLine {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: #7a6e60;
+  font-style: italic;
+  letter-spacing: 0.01em;
+}
+
+.seniorMotherClubHeart {
+  color: #c7362f;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seniorMotherClubHeartLarge {
+  color: #c7362f;
+  font-size: 19px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(1px);
+}
+
 .detailsRefresh {
   padding: 4px 7px;
   font-size: 13px;
@@ -3457,6 +4159,18 @@ html[data-theme="dark"] .spinner {
   font-size: 15px;
   color: #2d261f;
   margin-top: 4px;
+}
+
+.injuryStatusSymbol {
+  color: #b32320;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 700;
+}
+
+.injuryStatusHealthy {
+  color: #1f7a3a;
+  font-weight: 700;
 }
 
 .lastMatchValue {
@@ -3549,6 +4263,30 @@ html[data-theme="dark"] .spinner {
   border-radius: 999px;
 }
 
+.skillFillBonusHatched {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 999px;
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(255, 255, 255, 0.42) 0 4px,
+      rgba(255, 255, 255, 0.05) 4px 8px
+    ),
+    linear-gradient(90deg, rgba(49, 138, 83, 0.42), rgba(33, 102, 63, 0.42));
+  box-shadow: inset 0 0 0 1px rgba(31, 82, 52, 0.28);
+}
+
+.skillFillBonusTrigger {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  display: block;
+}
+
 .skillBarMaxed .skillFillMax {
   background: #caa85a;
 }
@@ -3587,6 +4325,75 @@ html[data-theme="dark"] .spinner {
   margin-bottom: 12px;
 }
 
+.matchesHeaderControls {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.matchesFilterToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #6b6256;
+  cursor: pointer;
+  user-select: none;
+}
+
+.matchesFilterToggleInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.matchesFilterToggleTrack {
+  position: relative;
+  width: 34px;
+  height: 20px;
+  border-radius: 999px;
+  background: #d8cdc0;
+  border: 1px solid #c9b9a3;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.matchesFilterToggleTrack::after {
+  content: "";
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.matchesFilterToggleInput:checked + .matchesFilterToggleTrack {
+  background: #2f9f5b;
+  border-color: #2f9f5b;
+}
+
+.matchesFilterToggleInput:checked + .matchesFilterToggleTrack::after {
+  transform: translateX(14px);
+}
+
+.matchesFilterToggleInput:focus-visible + .matchesFilterToggleTrack {
+  outline: 2px solid rgba(47, 159, 91, 0.4);
+  outline-offset: 2px;
+}
+
+.matchesFilterToggleInput:disabled + .matchesFilterToggleTrack {
+  opacity: 0.5;
+}
+
+.matchesFilterToggleLabel {
+  line-height: 1.2;
+}
+
 .matchItem {
   padding: 14px 16px;
   border-radius: 12px;
@@ -3595,6 +4402,10 @@ html[data-theme="dark"] .spinner {
   flex-direction: column;
   gap: 8px;
   position: relative;
+}
+
+.matchItemHasTopAction .matchTeams {
+  padding-right: 44px;
 }
 
 .matchTeams {
@@ -3626,6 +4437,17 @@ html[data-theme="dark"] .spinner {
   align-items: center;
   gap: 12px;
   margin-top: 8px;
+}
+
+.matchAnalyzeOpponentWrap {
+  margin-left: auto;
+}
+
+.matchBestLineupTopAction {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
 }
 
 .matchButton {
@@ -3669,6 +4491,36 @@ html[data-theme="dark"] .spinner {
 
 .matchButtonSecondary:hover:not(:disabled) {
   background: rgba(36, 77, 43, 0.1);
+}
+
+.matchButtonAccent {
+  color: #7a4a00;
+  border-color: rgba(183, 120, 21, 0.55);
+  background: rgba(255, 208, 132, 0.32);
+}
+
+.matchButtonAccent:hover:not(:disabled) {
+  background: rgba(255, 208, 132, 0.48);
+}
+
+.matchBestLineupDazzleButton {
+  padding: 4px 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #6e3900;
+  background: linear-gradient(180deg, #ffe7b2 0%, #ffd084 100%);
+  border: 1px solid rgba(146, 90, 10, 0.7);
+  box-shadow:
+    0 0 0 1px rgba(255, 241, 210, 0.7) inset,
+    0 4px 10px rgba(122, 74, 0, 0.28);
+}
+
+.matchBestLineupDazzleButton:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ffefc8 0%, #ffd891 100%);
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(255, 247, 224, 0.8) inset,
+    0 6px 14px rgba(122, 74, 0, 0.34);
 }
 
 .matchSuccess {
@@ -3757,6 +4609,242 @@ html[data-theme="dark"] .spinner {
 
 .confirmCard.chronicleUpdatesModal {
   width: min(1200px, 98vw);
+}
+
+.confirmCard.seniorUpdatesModal {
+  width: min(1120px, 96vw);
+  max-height: min(88vh, 920px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.seniorUpdatesModal .confirmBody {
+  margin-bottom: 0;
+  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.seniorUpdatesModal .confirmActions {
+  margin-top: 12px;
+}
+
+.seniorUpdatesShell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+
+.seniorUpdatesTopBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.seniorUpdatesComparedAt {
+  font-size: 12px;
+  color: #5f5141;
+  font-weight: 600;
+}
+
+.seniorUpdatesGrid {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  gap: 14px;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.seniorUpdatesHistoryPane {
+  border: 1px solid #e2d7c7;
+  border-radius: 12px;
+  background: #fbf7ef;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.seniorUpdatesHistoryHeader {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5dbcd;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #786955;
+  font-weight: 700;
+}
+
+.seniorUpdatesHistoryList {
+  overflow: auto;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+}
+
+.seniorUpdatesHistoryItem {
+  border: 1px solid #d8c9b4;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #fff;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 12px;
+  color: #3f362c;
+}
+
+.seniorUpdatesHistoryItem:hover {
+  background: #f7efe0;
+  border-color: #cdb89d;
+}
+
+.seniorUpdatesHistoryItemActive,
+.seniorUpdatesHistoryItemActive:hover {
+  background: #ede2d0;
+  border-color: #b79a79;
+}
+
+.seniorUpdatesHistoryDate {
+  font-weight: 700;
+}
+
+.seniorUpdatesHistoryState {
+  font-size: 11px;
+  color: #6b5e4d;
+}
+
+.seniorUpdatesDetailsPane {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding-right: 2px;
+}
+
+.seniorUpdatesPlayerCard {
+  border: 1px solid #dfd2c0;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.seniorUpdatesPlayerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.seniorUpdatesPlayerName {
+  margin: 0;
+  font-size: 14px;
+  color: #2d251b;
+}
+
+.seniorUpdatesPlayerBody {
+  display: grid;
+  gap: 8px;
+}
+
+.seniorUpdatesSection {
+  display: grid;
+  gap: 5px;
+}
+
+.seniorUpdatesSectionTitle {
+  margin: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7a6a56;
+}
+
+.seniorUpdatesChangeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: #3d3328;
+}
+
+.seniorDisclaimerBody {
+  display: grid;
+  gap: 12px;
+  padding: 2px;
+}
+
+.seniorDisclaimerBadgeRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e0d4c1;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 237, 201, 0.85), transparent 58%),
+    linear-gradient(180deg, #f8f2e8 0%, #f4ecdf 100%);
+}
+
+.seniorDisclaimerBadgeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 207, 122, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(154, 104, 23, 0.24);
+  font-size: 16px;
+  flex: 0 0 auto;
+}
+
+.seniorDisclaimerIntro {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #5d5245;
+  letter-spacing: 0.01em;
+}
+
+.seniorDisclaimerList {
+  margin: 0;
+  padding: 4px 0 0 18px;
+  display: grid;
+  gap: 8px;
+  color: #4d4338;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.seniorDisclaimerList li::marker {
+  color: #8a6e40;
+}
+
+@media (max-width: 900px) {
+  .confirmCard.seniorUpdatesModal {
+    width: min(96vw, 760px);
+    max-height: 92vh;
+  }
+
+  .seniorUpdatesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .seniorUpdatesHistoryPane {
+    max-height: 220px;
+  }
 }
 
 .confirmTitle {
@@ -4561,6 +5649,18 @@ html[data-theme="dark"] .spinner {
   line-height: 1;
 }
 
+.slotCardStatus {
+  position: absolute;
+  right: 8px;
+  bottom: 7px;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 700;
+  color: #f3cc80;
+  letter-spacing: 0.02em;
+  z-index: 1;
+}
+
 .slotTooltipCard {
   background: #f7f1e3;
   border: 1px solid #d8cbb6;
@@ -4591,6 +5691,17 @@ html[data-theme="dark"] .spinner {
 .slotTooltipGrid {
   display: grid;
   gap: 6px;
+}
+
+.slotTooltipDivider {
+  height: 1px;
+  margin: 2px 0 4px;
+  background: linear-gradient(
+    90deg,
+    rgba(130, 110, 82, 0),
+    rgba(130, 110, 82, 0.55),
+    rgba(130, 110, 82, 0)
+  );
 }
 
 .slotTooltipGrid .skillRow {
@@ -4650,6 +5761,15 @@ html[data-theme="dark"] .slotTooltipMeta {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .slotTooltipDivider {
+  background: linear-gradient(
+    90deg,
+    rgba(185, 168, 144, 0),
+    rgba(185, 168, 144, 0.55),
+    rgba(185, 168, 144, 0)
+  );
+}
+
 html[data-theme="dark"] .slotTooltipCard .skillLabel,
 html[data-theme="dark"] .slotTooltipCard .skillValue {
   color: #f3ede4;
@@ -4674,6 +5794,10 @@ html[data-theme="dark"] .slotTooltipCard .skillBarMaxed .skillFillMax {
 
 html[data-theme="dark"] .slotTooltipCard .skillBarMaxed .skillFillCurrent {
   background: linear-gradient(90deg, #b9974f, #9a7430);
+}
+
+html[data-theme="dark"] .slotCardStatus {
+  color: #ffd98f;
 }
 
 .slotLabel {

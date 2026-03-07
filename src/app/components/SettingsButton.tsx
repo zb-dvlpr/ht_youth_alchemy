@@ -15,9 +15,12 @@ import {
   ALGORITHM_SETTINGS_EVENT,
   readAllowTrainingUntilMaxedOut,
   writeAllowTrainingUntilMaxedOut,
-  readYouthStalenessHours,
-  writeYouthStalenessHours,
+  readYouthStalenessDays,
+  writeYouthStalenessDays,
   YOUTH_SETTINGS_EVENT,
+  readSeniorStalenessDays,
+  writeSeniorStalenessDays,
+  SENIOR_SETTINGS_EVENT,
   readClubChronicleStalenessDays,
   writeClubChronicleStalenessDays,
   readClubChronicleTransferHistoryCount,
@@ -30,6 +33,7 @@ import {
   readGeneralEnableScaling,
   writeGeneralEnableScaling,
   YOUTH_NEW_MARKERS_DEBUG_EVENT,
+  YOUTH_DEBUG_SE_FETCH_EVENT,
   readYouthNewMarkersDebugEnabled,
   writeYouthNewMarkersDebugEnabled,
 } from "@/lib/settings";
@@ -49,12 +53,14 @@ const STORAGE_PREFIX = "ya_";
 export default function SettingsButton({ messages }: SettingsButtonProps) {
   const [open, setOpen] = useState(false);
   const [youthSettingsOpen, setYouthSettingsOpen] = useState(false);
+  const [seniorSettingsOpen, setSeniorSettingsOpen] = useState(false);
   const [chronicleSettingsOpen, setChronicleSettingsOpen] = useState(false);
   const [generalSettingsOpen, setGeneralSettingsOpen] = useState(false);
   const [debugSettingsOpen, setDebugSettingsOpen] = useState(false);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
-  const [stalenessHours, setStalenessHours] = useState(3);
+  const [stalenessDays, setStalenessDays] = useState(1);
+  const [seniorStalenessDays, setSeniorStalenessDays] = useState(1);
   const [chronicleStalenessDays, setChronicleStalenessDays] = useState(3);
   const [chronicleTransferHistoryCount, setChronicleTransferHistoryCount] =
     useState(5);
@@ -65,6 +71,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     useState<ChppDebugOauthErrorMode>("off");
   const [debugRandomNewMarkersEnabled, setDebugRandomNewMarkersEnabled] =
     useState(false);
+  const [debugYouthSeMatchId, setDebugYouthSeMatchId] = useState("");
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -86,7 +93,8 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
-    setStalenessHours(readYouthStalenessHours());
+    setStalenessDays(readYouthStalenessDays());
+    setSeniorStalenessDays(readSeniorStalenessDays());
     setChronicleStalenessDays(readClubChronicleStalenessDays());
     setChronicleTransferHistoryCount(readClubChronicleTransferHistoryCount());
     setChronicleUpdatesHistoryCount(readClubChronicleUpdatesHistoryCount());
@@ -182,14 +190,27 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     }
   };
 
-  const handleStalenessHoursChange = (value: number) => {
-    const nextValue = Math.min(24, Math.max(1, Math.round(value)));
-    setStalenessHours(nextValue);
-    writeYouthStalenessHours(nextValue);
+  const handleStalenessDaysChange = (value: number) => {
+    const nextValue = Math.min(7, Math.max(1, Math.round(value)));
+    setStalenessDays(nextValue);
+    writeYouthStalenessDays(nextValue);
     if (typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent(YOUTH_SETTINGS_EVENT, {
-          detail: { stalenessHours: nextValue },
+          detail: { stalenessDays: nextValue },
+        })
+      );
+    }
+  };
+
+  const handleSeniorStalenessDaysChange = (value: number) => {
+    const nextValue = Math.min(7, Math.max(1, Math.round(value)));
+    setSeniorStalenessDays(nextValue);
+    writeSeniorStalenessDays(nextValue);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(SENIOR_SETTINGS_EVENT, {
+          detail: { stalenessDays: nextValue },
         })
       );
     }
@@ -294,6 +315,18 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     );
   };
 
+  const handleFetchYouthSpecialEvents = () => {
+    const matchId = Number(debugYouthSeMatchId.trim());
+    if (!Number.isFinite(matchId) || matchId <= 0) return;
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(YOUTH_DEBUG_SE_FETCH_EVENT, {
+          detail: { matchId: Math.floor(matchId) },
+        })
+      );
+    }
+  };
+
   return (
     <div className={styles.feedbackWrap}>
       <Tooltip content={messages.settingsTooltip}>
@@ -328,6 +361,16 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
             }}
           >
             {messages.settingsClubChronicle}
+          </button>
+          <button
+            type="button"
+            className={styles.feedbackLink}
+            onClick={() => {
+              setSeniorSettingsOpen(true);
+              setOpen(false);
+            }}
+          >
+            {messages.settingsSenior}
           </button>
           <button
             type="button"
@@ -402,14 +445,14 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
                 <input
                   type="number"
                   min={1}
-                  max={24}
+                  max={7}
                   step={1}
-                  value={stalenessHours}
+                  value={stalenessDays}
                   className={styles.settingsFieldInput}
                   onChange={(event) => {
                     const value = Number(event.target.value);
                     if (Number.isNaN(value)) return;
-                    handleStalenessHoursChange(value);
+                    handleStalenessDaysChange(value);
                   }}
                 />
               </label>
@@ -427,6 +470,45 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         }
         closeOnBackdrop
         onClose={() => setYouthSettingsOpen(false)}
+      />
+      <Modal
+        open={seniorSettingsOpen}
+        title={messages.settingsSeniorTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <Tooltip content={messages.settingsSeniorStalenessHint} fullWidth>
+              <label className={styles.settingsField}>
+                <span className={styles.settingsFieldLabel}>
+                  {messages.settingsSeniorStalenessLabel}
+                </span>
+                <input
+                  type="number"
+                  min={1}
+                  max={7}
+                  step={1}
+                  value={seniorStalenessDays}
+                  className={styles.settingsFieldInput}
+                  onChange={(event) => {
+                    const value = Number(event.target.value);
+                    if (Number.isNaN(value)) return;
+                    handleSeniorStalenessDaysChange(value);
+                  }}
+                />
+              </label>
+            </Tooltip>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setSeniorSettingsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setSeniorSettingsOpen(false)}
       />
       <Modal
         open={chronicleSettingsOpen}
@@ -598,6 +680,28 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
                 aria-hidden="true"
               />
             </label>
+            <label className={styles.settingsField}>
+              <span className={styles.settingsFieldLabel}>
+                {messages.debugYouthSeMatchIdLabel}
+              </span>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className={styles.settingsFieldInput}
+                  value={debugYouthSeMatchId}
+                  onChange={(event) => setDebugYouthSeMatchId(event.target.value)}
+                />
+                <button
+                  type="button"
+                  className={styles.confirmSubmit}
+                  onClick={handleFetchYouthSpecialEvents}
+                >
+                  {messages.debugYouthSeFetchButton}
+                </button>
+              </div>
+            </label>
+            <p className={styles.muted}>{messages.debugYouthSeFetchHint}</p>
           </div>
         }
         actions={

@@ -1,10 +1,18 @@
 "use client";
 /* eslint-disable react-hooks/exhaustive-deps */
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type DragEvent,
+} from "react";
 import styles from "../page.module.css";
 import YouthPlayerList from "./YouthPlayerList";
 import PlayerDetailsPanel, {
+  type PlayerDetailsPanelTab,
   YouthPlayerDetails,
 } from "./PlayerDetailsPanel";
 import LineupField, {
@@ -41,15 +49,16 @@ import {
 import {
   ALGORITHM_SETTINGS_EVENT,
   ALGORITHM_SETTINGS_STORAGE_KEY,
-  DEFAULT_YOUTH_STALENESS_HOURS,
+  DEFAULT_YOUTH_STALENESS_DAYS,
   LAST_REFRESH_STORAGE_KEY,
   readAllowTrainingUntilMaxedOut,
   readLastRefreshTimestamp,
-  readYouthStalenessHours,
+  readYouthStalenessDays,
   writeLastRefreshTimestamp,
   YOUTH_SETTINGS_EVENT,
   YOUTH_SETTINGS_STORAGE_KEY,
   YOUTH_NEW_MARKERS_DEBUG_EVENT,
+  YOUTH_DEBUG_SE_FETCH_EVENT,
 } from "@/lib/settings";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import {
@@ -60,12 +69,17 @@ import {
   readChppDebugOauthErrorMode,
   writeChppDebugOauthErrorMode,
 } from "@/lib/chpp/client";
+import { mapWithConcurrency } from "@/lib/async";
+import { hattrickYouthMatchUrl } from "@/lib/hattrick/urls";
+import { setDragGhost } from "@/lib/drag";
 
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
 const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
 const YOUTH_LATEST_UPDATES_OPEN_EVENT = "ya:youth-latest-updates-open";
 const YOUTH_UPDATES_HISTORY_LIMIT = 20;
+const YOUTH_UPDATES_SCHEMA_VERSION = 3;
+const YOUTH_UPDATES_GLOBAL_MIGRATION_KEY = "ya_youth_updates_schema_v2_migrated";
 
 const formatPlayerName = (player: YouthPlayer) =>
   [player.FirstName, player.NickName || null, player.LastName]
@@ -78,6 +92,7 @@ type YouthPlayer = {
   NickName: string;
   LastName: string;
   Specialty?: number;
+  InjuryLevel?: number;
   Age?: number;
   AgeDays?: number;
   ArrivalDate?: string;
@@ -122,8 +137,19 @@ type YouthUpdatesGroupedEntry = {
         previous: number | null;
         current: number | null;
       }>;
+      attributes: Array<{
+        key: "hiddenSpecialtyDiscovered" | "injuryStatus";
+        previous: number | string | boolean | null;
+        current: number | string | boolean | null;
+      }>;
     }
   >;
+};
+
+type YouthAttributeChange = {
+  key: "hiddenSpecialtyDiscovered" | "injuryStatus";
+  previous: number | string | boolean | null;
+  current: number | string | boolean | null;
 };
 
 type YouthUpdatesBuildContext = {
@@ -137,6 +163,14 @@ type YouthUpdatesBuildContext = {
     number,
     Record<string, SkillValue | number | string> | null
   >;
+  attributeChangesByPlayerId?: Record<number, YouthAttributeChange[]>;
+};
+
+type PersistedYouthMarkersBaseline = {
+  players: YouthPlayer[];
+  detailsById: Map<number, YouthPlayerDetails>;
+  ratingsByPlayerId: Record<number, Record<string, number>>;
+  ratingsPositions: number[];
 };
 
 type PlayerDetailsResponse = {
@@ -270,6 +304,12 @@ type MatchDetailsEvent = {
   EventTypeID?: number | string;
   SubjectPlayerID?: number | string;
   ObjectPlayerID?: number | string;
+  SubjectPlayerName?: string;
+  ObjectPlayerName?: string;
+  EventText?: string;
+  EventDescription?: string;
+  EventComment?: string;
+  EventCommentary?: string;
 };
 
 type MatchDetailsEventsResponse = {
@@ -292,6 +332,9 @@ type RefreshRatingsResult = {
   ok: boolean;
   ratingsByPlayerId: Record<number, Record<string, number>> | null;
   positions: number[] | null;
+  hiddenSpecialtyScanOk: boolean;
+  discoveredHiddenSpecialtyByPlayerId: Record<number, number>;
+  hiddenSpecialtyDiscoveredMatchByPlayerId: Record<number, number>;
 };
 
 type EventPlayerRef = "subject" | "object";
@@ -302,25 +345,25 @@ type SpecialEventRule = {
 };
 
 const SPECIAL_EVENT_SPECIALTY_RULES: Record<number, SpecialEventRule> = {
-  105: { specialty: 4, players: ["subject"] },
+  105: { specialty: 4, players: ["object"] },
   106: { specialty: 4, players: ["subject"] },
   108: { specialty: 4, players: ["subject"] },
   109: { specialty: 4, players: ["subject"] },
   115: { specialty: 2, players: ["subject"] },
   116: { specialty: 2, players: ["object"] },
-  119: { specialty: 5, players: ["subject"] },
+  119: { specialty: 5, players: ["object"] },
   125: { specialty: 4, players: ["subject"] },
-  137: { specialty: 5, players: ["subject"] },
-  139: { specialty: 1, players: ["subject"] },
+  137: { specialty: 5, players: ["object"] },
+  139: { specialty: 1, players: ["subject", "object"] },
   190: { specialty: 3, players: ["subject"] },
-  205: { specialty: 4, players: ["subject"] },
+  205: { specialty: 4, players: ["object"] },
   206: { specialty: 4, players: ["subject"] },
   208: { specialty: 4, players: ["subject"] },
-  209: { specialty: 4, players: ["subject"] },
+  209: { specialty: 4, players: ["object"] },
   215: { specialty: 2, players: ["subject"] },
   216: { specialty: 2, players: ["object"] },
-  219: { specialty: 5, players: ["subject"] },
-  225: { specialty: 4, players: ["subject"] },
+  219: { specialty: 5, players: ["object"] },
+  225: { specialty: 4, players: ["object"] },
   239: { specialty: 1, players: ["subject"] },
   289: { specialty: 2, players: ["subject", "object"] },
   290: { specialty: 3, players: ["subject"] },
@@ -358,6 +401,16 @@ const TRAINING_SKILL_VALUE_KEYS: Record<
   passing: { current: "PassingSkill", max: "PassingSkillMax" },
   scoring: { current: "ScorerSkill", max: "ScorerSkillMax" },
   setpieces: { current: "SetPiecesSkill", max: "SetPiecesSkillMax" },
+};
+
+const SCOUT_COMMENT_SKILL_KEY_BY_TYPE: Record<number, string> = {
+  1: "KeeperSkill",
+  3: "DefenderSkill",
+  4: "PlaymakerSkill",
+  5: "WingerSkill",
+  6: "ScorerSkill",
+  7: "SetPiecesSkill",
+  8: "PassingSkill",
 };
 
 const isTrainingSkill = (
@@ -464,6 +517,91 @@ const hasAnyMatrixNewMarkers = (markers: MatrixNewMarkers) =>
 const shouldKeepYouthUpdatesHistoryEntry = (entry: YouthUpdatesGroupedEntry) =>
   entry.hasChanges;
 
+const migrateYouthUpdatesStateIfNeeded = () => {
+  if (typeof window === "undefined") return false;
+  const alreadyMigrated = window.localStorage.getItem(
+    YOUTH_UPDATES_GLOBAL_MIGRATION_KEY
+  );
+  if (alreadyMigrated === String(YOUTH_UPDATES_SCHEMA_VERSION)) {
+    return false;
+  }
+  const keysToMigrate: string[] = [];
+  for (let index = 0; index < window.localStorage.length; index += 1) {
+    const key = window.localStorage.key(index);
+    if (!key) continue;
+    if (key === "ya_dashboard_state_v2" || key.startsWith("ya_dashboard_state_v2_")) {
+      keysToMigrate.push(key);
+    }
+  }
+  keysToMigrate.forEach((key) => {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return;
+    try {
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      const next = {
+        ...parsed,
+        updatesSchemaVersion: YOUTH_UPDATES_SCHEMA_VERSION,
+        matrixNewMarkers: buildEmptyMatrixNewMarkers(),
+        youthUpdatesHistory: [],
+      };
+      window.localStorage.setItem(key, JSON.stringify(next));
+    } catch {
+      // ignore malformed legacy payloads
+    }
+  });
+  window.localStorage.setItem(
+    YOUTH_UPDATES_GLOBAL_MIGRATION_KEY,
+    String(YOUTH_UPDATES_SCHEMA_VERSION)
+  );
+  return true;
+};
+
+const cloneRatingsRecord = (
+  ratings?: Record<string, number> | null
+): Record<string, number> => {
+  if (!ratings) return {};
+  return Object.fromEntries(
+    Object.entries(ratings).filter(
+      ([, value]) => typeof value === "number" && Number.isFinite(value)
+    )
+  );
+};
+
+const buildRatingsBaselineByPlayerId = ({
+  players,
+  ratingsResponseState,
+  ratingsCache,
+}: {
+  players: YouthPlayer[];
+  ratingsResponseState: RatingsMatrixResponse | null;
+  ratingsCache: Record<number, Record<string, number>>;
+}): Record<number, Record<string, number>> => {
+  const responseRatingsById = new Map<number, Record<string, number>>(
+    (ratingsResponseState?.players ?? []).map((row) => [
+      row.id,
+      cloneRatingsRecord(row.ratings),
+    ])
+  );
+  return players.reduce<Record<number, Record<string, number>>>((acc, player) => {
+    const playerId = player.YouthPlayerID;
+    acc[playerId] =
+      responseRatingsById.get(playerId) ?? cloneRatingsRecord(ratingsCache[playerId]);
+    return acc;
+  }, {});
+};
+
+const normalizeInjuryLevel = (value: unknown): number | null => {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
+const isUnavailableForYouthOptimization = (injuryLevel: number | null) =>
+  injuryLevel !== null && injuryLevel >= 1;
+
 const buildYouthUpdatesHistoryEntry = (
   markers: MatrixNewMarkers,
   players: YouthPlayer[],
@@ -497,6 +635,7 @@ const buildYouthUpdatesHistoryEntry = (
         previous: number | null;
         current: number | null;
       }>,
+      attributes: [] as YouthAttributeChange[],
     };
     groupedByPlayerId[playerId] = next;
     return next;
@@ -541,11 +680,23 @@ const buildYouthUpdatesHistoryEntry = (
       current: getKnownSkillValue(currentSkills?.[`${skillKey}Max`] ?? null),
     }));
   });
+  Object.entries(context?.attributeChangesByPlayerId ?? {}).forEach(
+    ([playerId, changes]) => {
+      const numericPlayerId = Number(playerId);
+      if (!Number.isFinite(numericPlayerId) || !Array.isArray(changes)) return;
+      ensurePlayer(numericPlayerId).attributes = changes;
+    }
+  );
+  const hasChanges =
+    hasAnyMatrixNewMarkers(markers) ||
+    Object.values(groupedByPlayerId).some(
+      (entry) => entry.attributes && entry.attributes.length > 0
+    );
   return {
     id: `${comparedAt}-${Math.random().toString(36).slice(2, 8)}`,
     comparedAt,
     source,
-    hasChanges: hasAnyMatrixNewMarkers(markers),
+    hasChanges,
     groupedByPlayerId,
   };
 };
@@ -563,7 +714,6 @@ export default function Dashboard({
   ratingsResponse,
   initialYouthTeams = [],
   initialYouthTeamId = null,
-  appVersion,
   messages,
   isConnected,
   initialLoadError = null,
@@ -579,9 +729,13 @@ export default function Dashboard({
   const [hiddenSpecialtyByPlayerId, setHiddenSpecialtyByPlayerId] = useState<
     Record<number, number>
   >({});
-  const [analyzedHiddenSpecialtyMatchIds, setAnalyzedHiddenSpecialtyMatchIds] =
-    useState<number[]>([]);
+  const [
+    hiddenSpecialtyDiscoveredMatchByPlayerId,
+    setHiddenSpecialtyDiscoveredMatchByPlayerId,
+  ] = useState<Record<number, number>>({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [activeDetailsTab, setActiveDetailsTab] =
+    useState<PlayerDetailsPanelTab>("details");
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
   const [cache, setCache] = useState<Record<number, CachedDetails>>({});
   const [unlockStatus, setUnlockStatus] = useState<"success" | "denied" | null>(
@@ -650,7 +804,6 @@ export default function Dashboard({
   const { addNotification } = useNotifications();
   const isDev = process.env.NODE_ENV !== "production";
   const helpStorageKey = "ya_help_dismissed_v1";
-  const changelogStorageKey = "ya_changelog_seen_major_minor_v1";
   const dashboardRef = useRef<HTMLDivElement | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
@@ -700,8 +853,8 @@ export default function Dashboard({
   >(null);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
-  const [stalenessHours, setStalenessHours] = useState(
-    DEFAULT_YOUTH_STALENESS_HOURS
+  const [stalenessDays, setStalenessDays] = useState(
+    DEFAULT_YOUTH_STALENESS_DAYS
   );
   const [lastGlobalRefreshAt, setLastGlobalRefreshAt] = useState<number | null>(
     null
@@ -712,6 +865,10 @@ export default function Dashboard({
   );
   const staleRefreshAttemptedRef = useRef(false);
   const lastAuthNotificationAtRef = useRef(0);
+  const persistedMarkersBaselineRef = useRef<PersistedYouthMarkersBaseline | null>(
+    null
+  );
+  const suppressNextUpdatesRecordingRef = useRef(false);
   const refreshRunSeqRef = useRef(0);
   const activeRefreshRunIdRef = useRef<number | null>(null);
   const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
@@ -896,6 +1053,64 @@ export default function Dashboard({
 
   const multiTeamEnabled = youthTeams.length > 1;
   const activeYouthTeamId = multiTeamEnabled ? selectedYouthTeamId : null;
+  const activeYouthTeamOption = useMemo(() => {
+    if (youthTeams.length === 0) return null;
+    if (!multiTeamEnabled) return youthTeams[0];
+    if (!selectedYouthTeamId) return youthTeams[0];
+    return (
+      youthTeams.find((team) => team.youthTeamId === selectedYouthTeamId) ??
+      youthTeams[0]
+    );
+  }, [multiTeamEnabled, selectedYouthTeamId, youthTeams]);
+  const resolvedYouthTeamId = useMemo(
+    () => activeYouthTeamId ?? activeYouthTeamOption?.youthTeamId ?? null,
+    [activeYouthTeamId, activeYouthTeamOption]
+  );
+  const ratingsMatrixMatchHrefBuilder = useMemo(() => {
+    const teamId = activeYouthTeamOption?.teamId;
+    const youthTeamId = activeYouthTeamOption?.youthTeamId;
+    if (!teamId || !youthTeamId) return undefined;
+    return (matchId: number) => hattrickYouthMatchUrl(matchId, teamId, youthTeamId);
+  }, [activeYouthTeamOption?.teamId, activeYouthTeamOption?.youthTeamId]);
+  const hiddenSpecialtyMatchHrefByPlayerId = useMemo(() => {
+    if (!ratingsMatrixMatchHrefBuilder) return {} as Record<number, string>;
+    return Object.fromEntries(
+      Object.entries(hiddenSpecialtyDiscoveredMatchByPlayerId)
+        .map(([playerId, matchId]) => [Number(playerId), Number(matchId)])
+        .filter(
+          ([playerId, matchId]) =>
+            Number.isFinite(playerId) && Number.isFinite(matchId) && matchId > 0
+        )
+        .map(([playerId, matchId]) => [playerId, ratingsMatrixMatchHrefBuilder(matchId)])
+    ) as Record<number, string>;
+  }, [hiddenSpecialtyDiscoveredMatchByPlayerId, ratingsMatrixMatchHrefBuilder]);
+  const ratingsMatrixHiddenSpecialtyMatchHrefByName = useMemo(() => {
+    return Object.fromEntries(
+      playerList.map((player) => {
+        const hiddenSpecialty =
+          Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0 &&
+          Number(player.Specialty ?? 0) <= 0;
+        const discoveredMatchId = Number(
+          hiddenSpecialtyDiscoveredMatchByPlayerId[player.YouthPlayerID] ?? 0
+        );
+        const href =
+          hiddenSpecialty && discoveredMatchId > 0 && ratingsMatrixMatchHrefBuilder
+            ? ratingsMatrixMatchHrefBuilder(discoveredMatchId)
+            : undefined;
+        return [
+          [player.FirstName, player.NickName || null, player.LastName]
+            .filter(Boolean)
+            .join(" "),
+          href,
+        ] as const;
+      })
+    );
+  }, [
+    hiddenSpecialtyByPlayerId,
+    hiddenSpecialtyDiscoveredMatchByPlayerId,
+    playerList,
+    ratingsMatrixMatchHrefBuilder,
+  ]);
   const storageKey = useMemo(() => {
     if (multiTeamEnabled && activeYouthTeamId) {
       return `ya_dashboard_state_v2_${activeYouthTeamId}`;
@@ -915,8 +1130,60 @@ export default function Dashboard({
     return map;
   }, [cache]);
 
+  const scoutImportantSkillsByPlayerId = useMemo(() => {
+    const payload: Record<number, string[]> = {};
+    playerDetailsById.forEach((details, playerId) => {
+      const rawComments = details.ScoutCall?.ScoutComments?.ScoutComment;
+      const comments = Array.isArray(rawComments)
+        ? rawComments
+        : rawComments
+        ? [rawComments]
+        : [];
+      const importantSkills = new Set<string>();
+      comments.forEach((comment) => {
+        const commentType = Number(comment?.CommentType);
+        const commentSkillType = Number(comment?.CommentSkillType);
+        if (commentType !== 4 && commentType !== 5) return;
+        const skillKey = SCOUT_COMMENT_SKILL_KEY_BY_TYPE[commentSkillType];
+        if (!skillKey) return;
+        importantSkills.add(skillKey);
+      });
+      if (importantSkills.size > 0) {
+        payload[playerId] = Array.from(importantSkills.values());
+      }
+    });
+    return payload;
+  }, [playerDetailsById]);
+
+  const scoutOverallSkillLevelByPlayerId = useMemo(() => {
+    const payload: Record<number, number> = {};
+    playerDetailsById.forEach((details, playerId) => {
+      const rawComments = details.ScoutCall?.ScoutComments?.ScoutComment;
+      const comments = Array.isArray(rawComments)
+        ? rawComments
+        : rawComments
+        ? [rawComments]
+        : [];
+      const overallComment = comments.find(
+        (comment) => Number(comment?.CommentType) === 6
+      );
+      const overallValue = Number(overallComment?.CommentSkillType);
+      if (!Number.isFinite(overallValue)) return;
+      payload[playerId] = overallValue;
+    });
+    return payload;
+  }, [playerDetailsById]);
+
   const changelogEntries = useMemo(
     () => [
+      {
+        version: "3.0.0",
+        entries: [messages.changelog_3_0_0],
+      },
+      {
+        version: "2.24.0",
+        entries: [messages.changelog_2_24_0],
+      },
       {
         version: "2.23.0",
         entries: [messages.changelog_2_23_0],
@@ -1074,11 +1341,13 @@ export default function Dashboard({
       messages.changelog_2_16_0,
       messages.changelog_2_17_0,
       messages.changelog_2_18_0,
+      messages.changelog_2_24_0,
       messages.changelog_2_23_0,
       messages.changelog_2_22_0,
       messages.changelog_2_21_0,
       messages.changelog_2_20_0,
       messages.changelog_2_19_0,
+      messages.changelog_3_0_0,
     ]
   );
 
@@ -1109,24 +1378,6 @@ export default function Dashboard({
     () => ({ allowTrainingUntilMaxedOut }),
     [allowTrainingUntilMaxedOut]
   );
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const majorMinor = appVersion.split(".").slice(0, 2).join(".");
-    try {
-      const previous = window.localStorage.getItem(changelogStorageKey);
-      if (!previous) {
-        window.localStorage.setItem(changelogStorageKey, majorMinor);
-        return;
-      }
-      if (previous !== majorMinor) {
-        window.localStorage.setItem(changelogStorageKey, majorMinor);
-        setShowChangelog(true);
-      }
-    } catch {
-      // ignore storage errors
-    }
-  }, [appVersion, changelogStorageKey]);
 
   useEffect(() => {
     if (!showChangelog) return;
@@ -1213,10 +1464,20 @@ export default function Dashboard({
     if (playerList.length === 0) return null;
     const positions =
       ratingsResponseState?.positions ?? ratingsPositions ?? [];
+    const ratingsByPlayerIdFromResponse = new Map<number, Record<string, number>>(
+      (ratingsResponseState?.players ?? []).map((row) => [row.id, row.ratings ?? {}])
+    );
+    const ratingMatchIdsByPlayerId = new Map(
+      (ratingsResponseState?.players ?? []).map((row) => [row.id, row.ratingMatchIds ?? {}])
+    );
     const players = playerList.map((player) => ({
       id: player.YouthPlayerID,
       name: formatPlayerName(player),
-      ratings: ratingsCache[player.YouthPlayerID] ?? {},
+      ratings:
+        ratingsByPlayerIdFromResponse.get(player.YouthPlayerID) ??
+        ratingsCache[player.YouthPlayerID] ??
+        {},
+      ratingMatchIds: ratingMatchIdsByPlayerId.get(player.YouthPlayerID) ?? {},
     }));
     if (
       !ratingsResponseState &&
@@ -1228,6 +1489,7 @@ export default function Dashboard({
       response: {
         positions,
         players,
+        matchesAnalyzed: ratingsResponseState?.matchesAnalyzed,
       },
     };
   }, [playerList, ratingsCache, ratingsPositions, ratingsResponseState]);
@@ -1280,12 +1542,41 @@ export default function Dashboard({
     setOrderSource((prev) => (prev === source ? prev : source));
   };
 
+  const handleMatrixPlayerDragStart = (
+    event: DragEvent<HTMLElement>,
+    playerId: number,
+    playerName: string
+  ) => {
+    setDragGhost(event, {
+      label: playerName,
+      className: styles.dragGhost,
+      slotSelector: `.${styles.fieldSlot}`,
+    });
+    event.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({ type: "player", playerId })
+    );
+    event.dataTransfer.setData("text/plain", String(playerId));
+    event.dataTransfer.effectAllowed = "move";
+  };
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
+      const migratedThisRun = migrateYouthUpdatesStateIfNeeded();
+      if (migratedThisRun) {
+        setMatrixNewMarkers(buildEmptyMatrixNewMarkers());
+        setYouthUpdatesHistory([]);
+        setSelectedYouthUpdatesId(null);
+        suppressNextUpdatesRecordingRef.current = true;
+      }
       const raw = window.localStorage.getItem(storageKey);
-      if (!raw) return;
+      if (!raw) {
+        suppressNextUpdatesRecordingRef.current = true;
+        return;
+      }
       const parsed = JSON.parse(raw) as {
+        updatesSchemaVersion?: number;
         assignments?: LineupAssignments;
         behaviors?: LineupBehaviors;
         selectedId?: number | null;
@@ -1300,14 +1591,28 @@ export default function Dashboard({
         playerList?: YouthPlayer[];
         matchesState?: MatchesResponse;
         hiddenSpecialtyByPlayerId?: Record<number, number>;
-        analyzedHiddenSpecialtyMatchIds?: number[];
+        hiddenSpecialtyDiscoveredMatchByPlayerId?: Record<number, number>;
         analyzedRatingsMatchIds?: number[];
         matrixNewMarkers?: MatrixNewMarkers;
         youthUpdatesHistory?: YouthUpdatesGroupedEntry[];
+        activeDetailsTab?: PlayerDetailsPanelTab;
       };
+      const forceWipeLegacyUpdatesState =
+        typeof parsed.updatesSchemaVersion !== "number" ||
+        parsed.updatesSchemaVersion < YOUTH_UPDATES_SCHEMA_VERSION;
+      if (forceWipeLegacyUpdatesState) {
+        suppressNextUpdatesRecordingRef.current = true;
+      }
       if (parsed.assignments) setAssignments(parsed.assignments);
       if (parsed.behaviors) setBehaviors(parsed.behaviors);
       if (parsed.selectedId !== undefined) setSelectedId(parsed.selectedId);
+      if (
+        parsed.activeDetailsTab === "details" ||
+        parsed.activeDetailsTab === "skillsMatrix" ||
+        parsed.activeDetailsTab === "ratingsMatrix"
+      ) {
+        setActiveDetailsTab(parsed.activeDetailsTab);
+      }
       if (parsed.starPlayerId !== undefined) setStarPlayerId(parsed.starPlayerId);
       if (parsed.primaryTraining !== undefined)
         setPrimaryTraining(
@@ -1339,17 +1644,25 @@ export default function Dashboard({
       if (parsed.hiddenSpecialtyByPlayerId) {
         setHiddenSpecialtyByPlayerId(parsed.hiddenSpecialtyByPlayerId);
       }
-      if (parsed.analyzedHiddenSpecialtyMatchIds) {
-        setAnalyzedHiddenSpecialtyMatchIds(parsed.analyzedHiddenSpecialtyMatchIds);
+      if (parsed.hiddenSpecialtyDiscoveredMatchByPlayerId) {
+        setHiddenSpecialtyDiscoveredMatchByPlayerId(
+          parsed.hiddenSpecialtyDiscoveredMatchByPlayerId
+        );
       }
       if (parsed.analyzedRatingsMatchIds !== undefined) {
         setAnalyzedRatingsMatchIds(parsed.analyzedRatingsMatchIds);
       }
       if (parsed.matrixNewMarkers) {
-        setMatrixNewMarkers(normalizeMatrixNewMarkers(parsed.matrixNewMarkers));
+        if (forceWipeLegacyUpdatesState) {
+          setMatrixNewMarkers(buildEmptyMatrixNewMarkers());
+        } else {
+          setMatrixNewMarkers(normalizeMatrixNewMarkers(parsed.matrixNewMarkers));
+        }
       }
       if (Array.isArray(parsed.youthUpdatesHistory)) {
-        const normalized = parsed.youthUpdatesHistory
+        const normalized = forceWipeLegacyUpdatesState
+          ? []
+          : parsed.youthUpdatesHistory
           .map((entry) => {
             if (!entry || typeof entry !== "object") return null;
             const maybeEntry = entry as Partial<YouthUpdatesGroupedEntry>;
@@ -1461,6 +1774,11 @@ export default function Dashboard({
                       ratings: normalizedRatings,
                       skillsCurrent: normalizeSkillChanges(fallback.skillsCurrent),
                       skillsMax: normalizeSkillChanges(fallback.skillsMax),
+                      attributes: Array.isArray(
+                        (fallback as { attributes?: unknown }).attributes
+                      )
+                        ? ((fallback as { attributes?: unknown }).attributes as YouthAttributeChange[])
+                        : [],
                     },
                   ];
                 })
@@ -1479,6 +1797,65 @@ export default function Dashboard({
           .slice(0, YOUTH_UPDATES_HISTORY_LIMIT);
         setYouthUpdatesHistory(normalized);
         setSelectedYouthUpdatesId(normalized[0]?.id ?? null);
+      } else if (forceWipeLegacyUpdatesState) {
+        setYouthUpdatesHistory([]);
+        setSelectedYouthUpdatesId(null);
+      }
+
+      const persistedPlayers = Array.isArray(parsed.playerList)
+        ? parsed.playerList
+        : [];
+      const persistedDetailsById = new Map<number, YouthPlayerDetails>();
+      if (parsed.cache && typeof parsed.cache === "object") {
+        Object.entries(parsed.cache).forEach(([id, entry]) => {
+          const playerId = Number(id);
+          if (!Number.isFinite(playerId) || playerId <= 0) return;
+          if (!entry || typeof entry !== "object") return;
+          const detailNode =
+            (entry as { data?: unknown }).data &&
+            typeof (entry as { data?: unknown }).data === "object"
+              ? ((entry as { data: Record<string, unknown> }).data as Record<
+                  string,
+                  unknown
+                >)
+              : null;
+          if (!detailNode) return;
+          const resolved = resolveDetails(detailNode);
+          if (!resolved) return;
+          persistedDetailsById.set(playerId, resolved);
+        });
+      }
+      const persistedRatingsByPlayerId: Record<number, Record<string, number>> =
+        {};
+      if (parsed.ratingsCache && typeof parsed.ratingsCache === "object") {
+        Object.entries(parsed.ratingsCache).forEach(([id, ratings]) => {
+          const playerId = Number(id);
+          if (!Number.isFinite(playerId) || playerId <= 0) return;
+          persistedRatingsByPlayerId[playerId] = cloneRatingsRecord(
+            ratings && typeof ratings === "object"
+              ? (ratings as Record<string, number>)
+              : null
+          );
+        });
+      }
+      const persistedRatingsPositions = Array.isArray(parsed.ratingsPositions)
+        ? parsed.ratingsPositions
+            .map((value) => Number(value))
+            .filter((value) => Number.isFinite(value))
+        : [];
+      if (
+        !forceWipeLegacyUpdatesState &&
+        persistedPlayers.length > 0 ||
+        (!forceWipeLegacyUpdatesState && persistedDetailsById.size > 0) ||
+        (!forceWipeLegacyUpdatesState &&
+          Object.keys(persistedRatingsByPlayerId).length > 0)
+      ) {
+        persistedMarkersBaselineRef.current = {
+          players: persistedPlayers,
+          detailsById: persistedDetailsById,
+          ratingsByPlayerId: persistedRatingsByPlayerId,
+          ratingsPositions: persistedRatingsPositions,
+        };
       }
     } catch {
       // ignore restore errors
@@ -1491,9 +1868,11 @@ export default function Dashboard({
     if (typeof window === "undefined") return;
     if (restoredStorageKey !== storageKey) return;
     const payload = {
+      updatesSchemaVersion: YOUTH_UPDATES_SCHEMA_VERSION,
       assignments,
       behaviors,
       selectedId,
+      activeDetailsTab,
       starPlayerId,
       primaryTraining,
       secondaryTraining,
@@ -1505,7 +1884,7 @@ export default function Dashboard({
       playerList,
       matchesState,
       hiddenSpecialtyByPlayerId,
-      analyzedHiddenSpecialtyMatchIds,
+      hiddenSpecialtyDiscoveredMatchByPlayerId,
       analyzedRatingsMatchIds,
       matrixNewMarkers,
       youthUpdatesHistory: youthUpdatesHistoryWithChanges,
@@ -1525,12 +1904,13 @@ export default function Dashboard({
     secondaryTraining,
     tacticType,
     selectedId,
+    activeDetailsTab,
     starPlayerId,
     behaviors,
     playerList,
     matchesState,
     hiddenSpecialtyByPlayerId,
-    analyzedHiddenSpecialtyMatchIds,
+    hiddenSpecialtyDiscoveredMatchByPlayerId,
     analyzedRatingsMatchIds,
     matrixNewMarkers,
     youthUpdatesHistoryWithChanges,
@@ -1553,7 +1933,9 @@ export default function Dashboard({
       playerList.forEach((player) => {
         const rowRatings = byId.get(player.YouthPlayerID);
         if (!rowRatings) {
-          next[player.YouthPlayerID] = {};
+          if (!next[player.YouthPlayerID]) {
+            next[player.YouthPlayerID] = {};
+          }
           return;
         }
         next[player.YouthPlayerID] = { ...rowRatings };
@@ -1582,7 +1964,7 @@ export default function Dashboard({
   useEffect(() => {
     if (typeof window === "undefined") return;
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
-    setStalenessHours(readYouthStalenessHours());
+    setStalenessDays(readYouthStalenessDays());
     setLastGlobalRefreshAt(readLastRefreshTimestamp());
     const handle = (event: Event) => {
       if (event instanceof StorageEvent) {
@@ -1597,16 +1979,16 @@ export default function Dashboard({
       }
       if (event instanceof CustomEvent) {
         const detail =
-          event.detail as { allowTrainingUntilMaxedOut?: boolean; stalenessHours?: number } | null;
+          event.detail as { allowTrainingUntilMaxedOut?: boolean; stalenessDays?: number } | null;
         if (typeof detail?.allowTrainingUntilMaxedOut === "boolean") {
           setAllowTrainingUntilMaxedOut(detail.allowTrainingUntilMaxedOut);
         }
-        if (typeof detail?.stalenessHours === "number") {
-          setStalenessHours(detail.stalenessHours);
+        if (typeof detail?.stalenessDays === "number") {
+          setStalenessDays(detail.stalenessDays);
         }
       }
       setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
-      setStalenessHours(readYouthStalenessHours());
+      setStalenessDays(readYouthStalenessDays());
       setLastGlobalRefreshAt(readLastRefreshTimestamp());
     };
     window.addEventListener("storage", handle);
@@ -1631,7 +2013,7 @@ export default function Dashboard({
       }
       return;
     }
-    const maxAgeMs = stalenessHours * 60 * 60 * 1000;
+    const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
     const isStale = Date.now() - lastRefresh >= maxAgeMs;
     if (!isStale) {
       staleRefreshAttemptedRef.current = false;
@@ -1641,7 +2023,7 @@ export default function Dashboard({
     if (staleRefreshAttemptedRef.current) return;
     staleRefreshAttemptedRef.current = true;
     void refreshPlayers(undefined, { refreshAll: true, reason: "stale" });
-  }, [playerList.length, stalenessHours, activeYouthTeamId, isConnected, playersLoading]);
+  }, [playerList.length, stalenessDays, activeYouthTeamId, isConnected, playersLoading]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -1658,7 +2040,7 @@ export default function Dashboard({
         }
         return;
       }
-      const maxAgeMs = stalenessHours * 60 * 60 * 1000;
+      const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
       const isStale = Date.now() - lastRefresh >= maxAgeMs;
       if (!isStale) {
         staleRefreshAttemptedRef.current = false;
@@ -1684,7 +2066,7 @@ export default function Dashboard({
       window.removeEventListener("pageshow", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [playerList.length, stalenessHours, activeYouthTeamId, isConnected, playersLoading]);
+  }, [playerList.length, stalenessDays, activeYouthTeamId, isConnected, playersLoading]);
 
   useEffect(() => {
     if (!initialAuthError) return;
@@ -1785,6 +2167,141 @@ export default function Dashboard({
     ratingsMatrixData,
     messages.notificationDebugNewMarkers,
   ]);
+
+  useEffect(() => {
+    if (!isDev) return;
+    if (typeof window === "undefined") return;
+
+    const resolveEventPlayerName = async (
+      playerIdRaw: unknown,
+      fallbackNameRaw?: unknown
+    ) => {
+      const playerId = Number(playerIdRaw);
+      const fallbackName =
+        typeof fallbackNameRaw === "string" ? fallbackNameRaw.trim() : "";
+      if (!Number.isFinite(playerId) || playerId <= 0) {
+        return fallbackName || "unknown";
+      }
+      const rosterPlayer = playerList.find(
+        (player) => player.YouthPlayerID === playerId
+      );
+      if (rosterPlayer) return formatPlayerName(rosterPlayer);
+      if (fallbackName) return fallbackName;
+      try {
+        const detailRaw = await ensureDetails(playerId);
+        const resolved = resolveDetails(detailRaw);
+        if (resolved) {
+          const detailName = [
+            resolved.FirstName,
+            resolved.NickName || null,
+            resolved.LastName,
+          ]
+            .filter(Boolean)
+            .join(" ");
+          if (detailName) return detailName;
+        }
+      } catch {
+        // try generic playerdetails as fallback below
+      }
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Player?: {
+                FirstName?: string;
+                NickName?: string;
+                LastName?: string;
+              };
+            };
+          };
+          error?: string;
+        }>(`/api/chpp/playerdetails?playerId=${playerId}`, { cache: "no-store" });
+        if (response.ok && !payload?.error) {
+          const fallbackPlayer = payload?.data?.HattrickData?.Player;
+          if (fallbackPlayer) {
+            const fallbackResolvedName = [
+              fallbackPlayer.FirstName,
+              fallbackPlayer.NickName || null,
+              fallbackPlayer.LastName,
+            ]
+              .filter(Boolean)
+              .join(" ");
+            if (fallbackResolvedName) return fallbackResolvedName;
+          }
+        }
+      } catch {
+        // ignore fallback lookup errors
+      }
+      return `unknown#${playerId}`;
+    };
+
+    const handler = (event: Event) => {
+      const detail =
+        event instanceof CustomEvent
+          ? (event.detail as { matchId?: unknown } | undefined)
+          : undefined;
+      const matchId = Number(detail?.matchId);
+      if (!Number.isFinite(matchId) || matchId <= 0) return;
+      void (async () => {
+        try {
+          const matchIdInt = Math.floor(matchId);
+          const { response, payload } = await fetchChppJson<MatchDetailsEventsResponse>(
+            `/api/chpp/matchdetails?matchId=${matchIdInt}&sourceSystem=${encodeURIComponent(
+              "youth"
+            )}&matchEvents=true`,
+            { cache: "no-store" }
+          );
+          if (!response.ok || payload?.error) {
+            console.log(`[hidden-spec-debug] Failed to fetch match ${matchIdInt}`);
+            return;
+          }
+          const events = normalizeArray<MatchDetailsEvent>(
+            payload?.data?.HattrickData?.Match?.EventList?.Event
+          );
+          const matchUrl =
+            (ratingsMatrixMatchHrefBuilder
+              ? ratingsMatrixMatchHrefBuilder(matchIdInt)
+              : null) ??
+            (resolvedYouthTeamId && resolvedYouthTeamId > 0
+              ? hattrickYouthMatchUrl(matchIdInt, resolvedYouthTeamId, resolvedYouthTeamId)
+              : `match:${matchIdInt}`);
+          for (const matchEvent of events) {
+            const eventTypeId = Number(matchEvent.EventTypeID);
+            if (!SPECIAL_EVENT_SPECIALTY_RULES[eventTypeId]) continue;
+            const objectName = await resolveEventPlayerName(
+              matchEvent.ObjectPlayerID,
+              matchEvent.ObjectPlayerName
+            );
+            const subjectName = await resolveEventPlayerName(
+              matchEvent.SubjectPlayerID,
+              matchEvent.SubjectPlayerName
+            );
+            const eventText = [
+              matchEvent.EventText,
+              matchEvent.EventDescription,
+              matchEvent.EventComment,
+              matchEvent.EventCommentary,
+            ]
+              .find(
+                (value): value is string =>
+                  typeof value === "string" && value.trim().length > 0
+              )
+              ?.trim();
+            console.log(
+              `${eventTypeId}: ${objectName} (object); ${subjectName} (subject); ${matchUrl}${
+                eventText ? `; ${eventText}` : ""
+              }`
+            );
+          }
+        } catch {
+          console.log(`[hidden-spec-debug] Failed to process match ${matchId}`);
+        }
+      })();
+    };
+
+    window.addEventListener(YOUTH_DEBUG_SE_FETCH_EVENT, handler);
+    return () => window.removeEventListener(YOUTH_DEBUG_SE_FETCH_EVENT, handler);
+  }, [isDev, playerList, ratingsMatrixMatchHrefBuilder, resolvedYouthTeamId]);
 
   useEffect(() => {
     if (!showOptimizerDebug) return;
@@ -2062,7 +2579,7 @@ export default function Dashboard({
 
     try {
       const { response, payload } = await fetchChppJson<PlayerDetailsResponse>(
-        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&unlockSkills=1`,
+        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&showScoutCall=true&unlockSkills=1`,
         { cache: "no-store" }
       );
       if (!response.ok || payload?.error) {
@@ -2131,7 +2648,7 @@ export default function Dashboard({
 
     try {
       const { response, payload } = await fetchChppJson<PlayerDetailsResponse>(
-        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&unlockSkills=1`,
+        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&showScoutCall=true&unlockSkills=1`,
         { cache: "no-store" }
       );
       if (!response.ok || payload?.error) {
@@ -2159,8 +2676,42 @@ export default function Dashboard({
   };
 
   const handleSelect = async (playerId: number) => {
+    setActiveDetailsTab("details");
     setSelectedId(playerId);
     await loadDetails(playerId);
+  };
+
+  const refreshRatingsMatrixFromServer = async (teamIdOverride?: number | null) => {
+    const youthTeamId =
+      typeof teamIdOverride === "number" ? teamIdOverride : resolvedYouthTeamId;
+    const teamId = youthTeamId;
+    const ratingsParam = teamId ? `?teamID=${teamId}` : "";
+    const { response, payload } = await fetchChppJson<
+      RatingsMatrixResponse & { error?: string }
+    >(`/api/chpp/youth/ratings${ratingsParam}`, {
+      cache: "no-store",
+    });
+    if (!response.ok || payload?.error) return false;
+    const positions =
+      Array.isArray(payload?.positions) && payload.positions.length > 0
+        ? payload.positions
+        : POSITION_COLUMNS;
+    const players = Array.isArray(payload?.players) ? payload.players : [];
+    setRatingsResponseState({
+      positions,
+      players,
+      matchesAnalyzed:
+        typeof payload?.matchesAnalyzed === "number"
+          ? payload.matchesAnalyzed
+          : undefined,
+    });
+    return true;
+  };
+
+  const handlePlayerDetailsRefresh = async () => {
+    if (!selectedId) return;
+    await loadDetails(selectedId, true);
+    await refreshRatingsMatrixFromServer();
   };
 
   const assignPlayer = (slotId: string, playerId: number) => {
@@ -2269,37 +2820,10 @@ export default function Dashboard({
       setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
       return;
     }
-
-    const optimizerPlayers: OptimizerPlayer[] = playerList.map((player) => ({
-      id: player.YouthPlayerID,
-      name: [player.FirstName, player.NickName || null, player.LastName]
-        .filter(Boolean)
-        .join(" "),
-      age:
-        player.Age ??
-        playerDetailsById.get(player.YouthPlayerID)?.Age ??
-        null,
-      ageDays:
-        player.AgeDays ??
-        playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
-        null,
-      canBePromotedIn:
-        player.CanBePromotedIn ??
-        playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
-        null,
-      specialty:
-        Number(player.Specialty ?? 0) > 0
-          ? Number(player.Specialty)
-          : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
-            ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
-            : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
-              ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
-              : null,
-      skills:
-        playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
-        (player.PlayerSkills as OptimizerPlayer["skills"]) ??
-        null,
-    }));
+    if (!optimizerPlayers.some((player) => player.id === starPlayerId)) {
+      setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
+      return;
+    }
 
     const result = optimizeLineupForStar(
       optimizerPlayers,
@@ -2390,37 +2914,10 @@ export default function Dashboard({
         setOptimizeErrorMessage(messages.optimizeRatingsUnavailable);
         return;
       }
-
-      const optimizerPlayers: OptimizerPlayer[] = playerList.map((player) => ({
-        id: player.YouthPlayerID,
-        name: [player.FirstName, player.NickName || null, player.LastName]
-          .filter(Boolean)
-          .join(" "),
-        age:
-          player.Age ??
-          playerDetailsById.get(player.YouthPlayerID)?.Age ??
-          null,
-        ageDays:
-          player.AgeDays ??
-          playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
-          null,
-        canBePromotedIn:
-          player.CanBePromotedIn ??
-          playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
-          null,
-        specialty:
-          Number(player.Specialty ?? 0) > 0
-            ? Number(player.Specialty)
-            : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
-              ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
-              : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
-                ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
-                : null,
-        skills:
-          playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
-          (player.PlayerSkills as OptimizerPlayer["skills"]) ??
-          null,
-      }));
+      if (!optimizerPlayers.some((player) => player.id === starPlayerId)) {
+        setOptimizeErrorMessage(messages.optimizeRatingsUnavailable);
+        return;
+      }
 
       const result = optimizeByRatings(
         optimizerPlayers,
@@ -2551,37 +3048,14 @@ export default function Dashboard({
       }
       return;
     }
-
-    const optimizerPlayers: OptimizerPlayer[] = playerList.map((player) => ({
-      id: player.YouthPlayerID,
-      name: [player.FirstName, player.NickName || null, player.LastName]
-        .filter(Boolean)
-        .join(" "),
-      age:
-        player.Age ??
-        playerDetailsById.get(player.YouthPlayerID)?.Age ??
-        null,
-      ageDays:
-        player.AgeDays ??
-        playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
-        null,
-      canBePromotedIn:
-        player.CanBePromotedIn ??
-        playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
-        null,
-      specialty:
-        Number(player.Specialty ?? 0) > 0
-          ? Number(player.Specialty)
-          : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
-            ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
-            : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
-              ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
-              : null,
-      skills:
-        playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
-        (player.PlayerSkills as OptimizerPlayer["skills"]) ??
-        null,
-    }));
+    if (!optimizerPlayers.some((player) => player.id === starPlayerId)) {
+      if (mode === "revealSecondaryMax") {
+        setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
+      } else {
+        setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
+      }
+      return;
+    }
 
     const result =
       mode === "revealSecondaryMax"
@@ -2684,27 +3158,6 @@ export default function Dashboard({
     return Array.isArray(input) ? input : [input];
   };
 
-  const mapWithConcurrency = async <T, R>(
-    items: T[],
-    concurrency: number,
-    worker: (item: T, index: number) => Promise<R>
-  ): Promise<R[]> => {
-    if (items.length === 0) return [];
-    const results = new Array<R>(items.length);
-    const limit = Math.max(1, Math.min(concurrency, items.length));
-    let nextIndex = 0;
-    const runners = Array.from({ length: limit }, async () => {
-      while (true) {
-        const currentIndex = nextIndex;
-        if (currentIndex >= items.length) return;
-        nextIndex += 1;
-        results[currentIndex] = await worker(items[currentIndex], currentIndex);
-      }
-    });
-    await Promise.all(runners);
-    return results;
-  };
-
   const formatStatusTemplate = (
     template: string,
     replacements: Record<string, string | number>
@@ -2717,7 +3170,9 @@ export default function Dashboard({
   };
 
   const fetchMatchesResponse = async (teamIdOverride?: number | null) => {
-    const teamId = teamIdOverride ?? activeYouthTeamId;
+    const youthTeamId =
+      typeof teamIdOverride === "number" ? teamIdOverride : resolvedYouthTeamId;
+    const teamId = youthTeamId;
     try {
       const teamParam = teamId ? `&teamID=${teamId}` : "";
       const { response, payload } = await fetchChppJson<
@@ -2788,19 +3243,24 @@ export default function Dashboard({
     options?: {
       playersChanged?: boolean;
       playersOverride?: YouthPlayer[];
+      forceTraversal?: boolean;
     }
   ): Promise<RefreshRatingsResult> => {
-    const teamId = teamIdOverride ?? activeYouthTeamId;
-    const nextPlayers = options?.playersOverride ?? playerList;
+    const youthTeamId =
+      typeof teamIdOverride === "number" ? teamIdOverride : resolvedYouthTeamId;
+    const teamId = youthTeamId;
+      const nextPlayers = options?.playersOverride ?? playerList;
     try {
       setYouthRefreshStatus(messages.refreshStatusFetchingMatches, 70);
       const formatArchiveDate = (date: Date) => date.toISOString().slice(0, 10);
       const today = new Date();
+      const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
       const firstDate = new Date(today.getTime() - 220 * 24 * 60 * 60 * 1000);
       const archiveParams = new URLSearchParams({
         isYouth: "true",
         FirstMatchDate: formatArchiveDate(firstDate),
-        LastMatchDate: formatArchiveDate(today),
+        // Include today's completed matches (date-only CHPP window upper-bound).
+        LastMatchDate: formatArchiveDate(tomorrow),
       });
       if (teamId) {
         archiveParams.set("teamId", String(teamId));
@@ -2816,6 +3276,9 @@ export default function Dashboard({
           ok: false,
           ratingsByPlayerId: null,
           positions: null,
+          hiddenSpecialtyScanOk: false,
+          discoveredHiddenSpecialtyByPlayerId: {},
+          hiddenSpecialtyDiscoveredMatchByPlayerId: {},
         };
       }
 
@@ -2828,7 +3291,7 @@ export default function Dashboard({
           teamId ??
           0
       );
-      const finishedMatches = normalizeArray<MatchSummary>(
+      const allFinishedMatches = normalizeArray<MatchSummary>(
         archiveTeam?.MatchList?.Match
       )
         .map((match) => ({
@@ -2838,44 +3301,95 @@ export default function Dashboard({
           _sourceSystem:
             typeof match.SourceSystem === "string" && match.SourceSystem
               ? match.SourceSystem
-              : "Youth",
+              : "youth",
         }))
         .filter((match) => Number.isFinite(match._matchId))
-        .sort((a, b) => b._date - a._date)
-        .slice(0, 50);
+        .sort((a, b) => b._date - a._date);
+      const finishedMatches = allFinishedMatches.slice(0, 50);
 
+      const ratingsParam = teamId ? `?teamID=${teamId}` : "";
+      const { response: ratingsResponse, payload: ratingsPayload } =
+        await fetchChppJson<
+          RatingsMatrixResponse & { error?: string; details?: string }
+        >(`/api/chpp/youth/ratings${ratingsParam}`, {
+          cache: "no-store",
+        });
+      if (!ratingsResponse.ok || ratingsPayload?.error) {
+        setRatingsResponseState(null);
+        return {
+          ok: false,
+          ratingsByPlayerId: null,
+          positions: null,
+          hiddenSpecialtyScanOk: false,
+          discoveredHiddenSpecialtyByPlayerId: {},
+          hiddenSpecialtyDiscoveredMatchByPlayerId: {},
+        };
+      }
+      const ratingsPositions =
+        Array.isArray(ratingsPayload?.positions) && ratingsPayload.positions.length > 0
+          ? ratingsPayload.positions
+          : POSITION_COLUMNS;
+      const ratingsPlayers = Array.isArray(ratingsPayload?.players)
+        ? ratingsPayload.players
+        : [];
+      setRatingsResponseState({
+        positions: ratingsPositions,
+        players: ratingsPlayers,
+        matchesAnalyzed:
+          typeof ratingsPayload?.matchesAnalyzed === "number"
+            ? ratingsPayload.matchesAnalyzed
+            : undefined,
+      });
+      const ratingsById = new Map<number, Record<string, number>>(
+        ratingsPlayers.map((entry) => [entry.id, entry.ratings ?? {}])
+      );
+      const ratingsByPlayerId = nextPlayers.reduce<
+        Record<number, Record<string, number>>
+      >((acc, player) => {
+        const playerId = player.YouthPlayerID;
+        if (ratingsById.has(playerId)) {
+          acc[playerId] = cloneRatingsRecord(ratingsById.get(playerId));
+        } else {
+          acc[playerId] = cloneRatingsRecord(ratingsCache[playerId]);
+        }
+        return acc;
+      }, {});
+      // Immediately hydrate matrix source state from latest fetched ratings.
+      setRatingsPositions(ratingsPositions);
+      setRatingsCache(ratingsByPlayerId);
       const analyzedRatingsMatchIdsSet = new Set(analyzedRatingsMatchIds);
       const matchesNeedingRatingsTraversal = finishedMatches.filter(
         (match) => !analyzedRatingsMatchIdsSet.has(match._matchId)
       );
       const shouldTraverseRatings =
+        Boolean(options?.forceTraversal) ||
         Boolean(options?.playersChanged) ||
         matchesNeedingRatingsTraversal.length > 0;
 
       if (!teamIdValue || finishedMatches.length === 0) {
-        setRatingsResponseState({
-          positions: POSITION_COLUMNS,
-          players: [],
-        });
+        // Keep the freshly fetched ratings payload; skip only traversal-dependent steps.
         return {
           ok: true,
-          ratingsByPlayerId: {},
-          positions: POSITION_COLUMNS,
+          ratingsByPlayerId,
+          positions: ratingsPositions,
+          hiddenSpecialtyScanOk: true,
+          discoveredHiddenSpecialtyByPlayerId: {},
+          hiddenSpecialtyDiscoveredMatchByPlayerId: {},
         };
       }
 
       if (!shouldTraverseRatings) {
         return {
           ok: true,
-          ratingsByPlayerId: null,
-          positions: null,
+          ratingsByPlayerId,
+          positions: ratingsPositions,
+          hiddenSpecialtyScanOk: true,
+          discoveredHiddenSpecialtyByPlayerId: {},
+          hiddenSpecialtyDiscoveredMatchByPlayerId: {},
         };
       }
 
-      const playersMap = new Map<
-        number,
-        { id: number; name: string; ratings: Record<string, number> }
-      >();
+      let hiddenSpecialtyScanOk = true;
       const matchPlayerIdsByMatch = new Map<number, Set<number>>();
       const ratingsTraversedMatchIds = new Set<number>();
 
@@ -2886,7 +3400,7 @@ export default function Dashboard({
         async (match) => {
           try {
             const { response, payload } = await fetchChppJson<MatchLineupResponse>(
-              `/api/chpp/youth/match-lineup?matchId=${match._matchId}&teamId=${teamIdValue}`,
+              `/api/chpp/youth/match-lineup?matchId=${match._matchId}&teamId=${teamIdValue}&sourceSystem=youth`,
               { cache: "no-store" }
             );
             if (!response.ok || payload?.error) {
@@ -2921,9 +3435,6 @@ export default function Dashboard({
       );
 
       lineupResults.forEach((result) => {
-        if (result.traversed) {
-          ratingsTraversedMatchIds.add(result.matchId);
-        }
         const matchPlayers = new Set<number>();
         result.lineupPlayers.forEach((player) => {
           const roleId = Number(player.RoleID);
@@ -2934,26 +3445,11 @@ export default function Dashboard({
           const playerId = Number(player.PlayerID);
           if (Number.isNaN(playerId)) return;
           matchPlayers.add(playerId);
-          const fullName = [player.FirstName, player.NickName, player.LastName]
-            .filter(Boolean)
-            .join(" ");
-
-          if (!playersMap.has(playerId)) {
-            playersMap.set(playerId, {
-              id: playerId,
-              name: fullName,
-              ratings: {},
-            });
-          }
-
-          const entry = playersMap.get(playerId);
-          if (!entry) return;
-          const key = String(column);
-          const existing = entry.ratings[key];
-          if (existing === undefined || rating > existing) {
-            entry.ratings[key] = rating;
-          }
         });
+        // Only consider a match analyzed when it yielded at least one usable rating.
+        if (result.traversed && matchPlayers.size > 0) {
+          ratingsTraversedMatchIds.add(result.matchId);
+        }
         matchPlayerIdsByMatch.set(result.matchId, matchPlayers);
       });
 
@@ -2965,35 +3461,7 @@ export default function Dashboard({
         });
       }
 
-      setRatingsResponseState({
-        positions: POSITION_COLUMNS,
-        players: Array.from(playersMap.values()),
-      });
-
-      const ratingsByPlayerId: Record<number, Record<string, number>> = {};
-      nextPlayers.forEach((player) => {
-        ratingsByPlayerId[player.YouthPlayerID] = {};
-      });
-      playersMap.forEach((entry, playerId) => {
-        ratingsByPlayerId[playerId] = { ...entry.ratings };
-      });
-
       try {
-        const alreadyAnalyzedMatchIds = new Set(analyzedHiddenSpecialtyMatchIds);
-        const hasUnanalyzedFinishedMatch = finishedMatches.some(
-          (match) => !alreadyAnalyzedMatchIds.has(match._matchId)
-        );
-        const shouldScanHiddenSpecialties =
-          Boolean(options?.playersChanged) || hasUnanalyzedFinishedMatch;
-
-        if (!shouldScanHiddenSpecialties) {
-          return {
-            ok: true,
-            ratingsByPlayerId,
-            positions: POSITION_COLUMNS,
-          };
-        }
-
         setYouthRefreshStatus(messages.refreshStatusFetchingHiddenSpecialties, 89);
         const knownSpecialties = new Map<number, number>();
         nextPlayers.forEach((player) => {
@@ -3008,55 +3476,12 @@ export default function Dashboard({
             knownSpecialties.set(playerId, specialty);
           }
         });
-        Object.entries(hiddenSpecialtyByPlayerId).forEach(([id, specialty]) => {
-          const playerId = Number(id);
-          const specialtyValue = Number(specialty);
-          if (
-            Number.isFinite(playerId) &&
-            Number.isFinite(specialtyValue) &&
-            specialtyValue > 0
-          ) {
-            knownSpecialties.set(playerId, specialtyValue);
-          }
-        });
         const youthPlayerIds = new Set(
           nextPlayers.map((player) => player.YouthPlayerID)
         );
-        const unresolvedPlayerIds = new Set(
-          nextPlayers
-            .map((player) => player.YouthPlayerID)
-            .filter((playerId) => {
-              const known = knownSpecialties.get(playerId);
-              return !(known && known > 0);
-            })
-        );
         const discoveredThisRefresh: Record<number, number> = {};
-        const newlyAnalyzedMatchIds = new Set<number>();
-
-        if (unresolvedPlayerIds.size === 0) {
-          finishedMatches.forEach((match) => {
-            newlyAnalyzedMatchIds.add(match._matchId);
-          });
-        }
-
-        const matchesToAnalyze =
-          unresolvedPlayerIds.size > 0
-            ? finishedMatches.filter((match) => {
-                if (alreadyAnalyzedMatchIds.has(match._matchId)) return false;
-                const participants = matchPlayerIdsByMatch.get(match._matchId);
-                if (!participants || participants.size === 0) return true;
-                let hasUnresolvedParticipant = false;
-                participants.forEach((playerId) => {
-                  if (unresolvedPlayerIds.has(playerId)) {
-                    hasUnresolvedParticipant = true;
-                  }
-                });
-                if (!hasUnresolvedParticipant) {
-                  newlyAnalyzedMatchIds.add(match._matchId);
-                }
-                return hasUnresolvedParticipant;
-              })
-            : [];
+        const discoveryMatchByPlayerIdThisRefresh: Record<number, number> = {};
+        const matchesToAnalyze = allFinishedMatches;
 
         let hiddenCompleted = 0;
         const hiddenResults = await mapWithConcurrency(
@@ -3067,7 +3492,7 @@ export default function Dashboard({
               const { response, payload } =
                 await fetchChppJson<MatchDetailsEventsResponse>(
                   `/api/chpp/matchdetails?matchId=${match._matchId}&sourceSystem=${encodeURIComponent(
-                    match._sourceSystem
+                    "youth"
                   )}&matchEvents=true`,
                   { cache: "no-store" }
                 );
@@ -3082,10 +3507,10 @@ export default function Dashboard({
                 payload?.data?.HattrickData?.Match?.EventList?.Event
               );
               const candidates: Array<{ playerId: number; specialty: number }> = [];
-              events.forEach((event) => {
+              for (const event of events) {
                 const eventTypeId = Number(event.EventTypeID);
                 const rule = SPECIAL_EVENT_SPECIALTY_RULES[eventTypeId];
-                if (!rule) return;
+                if (!rule) continue;
                 const candidateIds = rule.players.map((ref) =>
                   Number(
                     ref === "subject" ? event.SubjectPlayerID : event.ObjectPlayerID
@@ -3099,7 +3524,7 @@ export default function Dashboard({
                     specialty: rule.specialty,
                   });
                 });
-              });
+              }
               return {
                 matchId: match._matchId,
                 analyzed: true,
@@ -3135,40 +3560,56 @@ export default function Dashboard({
           if (!result.analyzed) return;
           result.candidates.forEach((candidate) => {
             const known = knownSpecialties.get(candidate.playerId);
-            if (known && known > 0) return;
-            knownSpecialties.set(candidate.playerId, candidate.specialty);
-            discoveredThisRefresh[candidate.playerId] = candidate.specialty;
+            if (!(known && known > 0)) {
+              knownSpecialties.set(candidate.playerId, candidate.specialty);
+              discoveredThisRefresh[candidate.playerId] = candidate.specialty;
+            }
+            if (
+              !Object.prototype.hasOwnProperty.call(
+                discoveryMatchByPlayerIdThisRefresh,
+                candidate.playerId
+              )
+            ) {
+              discoveryMatchByPlayerIdThisRefresh[candidate.playerId] =
+                result.matchId;
+            }
           });
-          newlyAnalyzedMatchIds.add(result.matchId);
         });
 
-        if (Object.keys(discoveredThisRefresh).length > 0) {
-          setHiddenSpecialtyByPlayerId((prev) => ({
-            ...prev,
-            ...discoveredThisRefresh,
-          }));
-        }
-        if (newlyAnalyzedMatchIds.size > 0) {
-          setAnalyzedHiddenSpecialtyMatchIds((prev) => {
-            const merged = new Set<number>(prev);
-            newlyAnalyzedMatchIds.forEach((matchId) => merged.add(matchId));
-            return Array.from(merged.values()).sort((a, b) => b - a);
-          });
-        }
+        setHiddenSpecialtyByPlayerId(discoveredThisRefresh);
+        setHiddenSpecialtyDiscoveredMatchByPlayerId(
+          discoveryMatchByPlayerIdThisRefresh
+        );
+        return {
+          ok: true,
+          ratingsByPlayerId,
+          positions: ratingsPositions,
+          hiddenSpecialtyScanOk,
+          discoveredHiddenSpecialtyByPlayerId: discoveredThisRefresh,
+          hiddenSpecialtyDiscoveredMatchByPlayerId:
+            discoveryMatchByPlayerIdThisRefresh,
+        };
       } catch {
         // Keep refreshed ratings even if hidden-specialty enrichment fails.
+        hiddenSpecialtyScanOk = false;
+        return {
+          ok: true,
+          ratingsByPlayerId,
+          positions: ratingsPositions,
+          hiddenSpecialtyScanOk,
+          discoveredHiddenSpecialtyByPlayerId: {},
+          hiddenSpecialtyDiscoveredMatchByPlayerId: {},
+        };
       }
-      return {
-        ok: true,
-        ratingsByPlayerId,
-        positions: POSITION_COLUMNS,
-      };
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) {
         return {
           ok: false,
           ratingsByPlayerId: null,
           positions: null,
+          hiddenSpecialtyScanOk: false,
+          discoveredHiddenSpecialtyByPlayerId: {},
+          hiddenSpecialtyDiscoveredMatchByPlayerId: {},
         };
       }
       setRatingsResponseState(null);
@@ -3176,6 +3617,9 @@ export default function Dashboard({
         ok: false,
         ratingsByPlayerId: null,
         positions: null,
+        hiddenSpecialtyScanOk: false,
+        discoveredHiddenSpecialtyByPlayerId: {},
+        hiddenSpecialtyDiscoveredMatchByPlayerId: {},
       };
     }
   };
@@ -3208,7 +3652,7 @@ export default function Dashboard({
       ratingsCache,
       ratingsPositions,
       hiddenSpecialtyByPlayerId,
-      analyzedHiddenSpecialtyMatchIds,
+      hiddenSpecialtyDiscoveredMatchByPlayerId,
       analyzedRatingsMatchIds,
       matrixNewMarkers,
       youthUpdatesHistory,
@@ -3218,16 +3662,38 @@ export default function Dashboard({
     setPlayersLoading(true);
     setYouthRefreshStatus(messages.refreshStatusFetchingPlayers, 8);
     const refreshAll = options?.refreshAll ?? false;
-    const teamId =
+    const youthTeamId =
       typeof teamIdOverride === "number" || teamIdOverride === null
-        ? teamIdOverride ?? activeYouthTeamId
-        : activeYouthTeamId;
-    const previousPlayersSnapshot = playerList;
-    const previousDetailsByIdSnapshot = new Map<number, YouthPlayerDetails>(
-      playerDetailsById
-    );
-    const previousRatingsCacheSnapshot = ratingsCache;
-    const previousRatingsPositionsSnapshot = ratingsPositions;
+        ? teamIdOverride ?? resolvedYouthTeamId
+        : resolvedYouthTeamId;
+    const persistedMarkersBaseline = persistedMarkersBaselineRef.current;
+    const usePersistedMarkersBaseline =
+      Boolean(persistedMarkersBaseline) && refreshAll;
+    const previousPlayersSnapshot =
+      usePersistedMarkersBaseline && persistedMarkersBaseline
+        ? persistedMarkersBaseline.players
+        : playerList;
+    const previousDetailsByIdSnapshot =
+      usePersistedMarkersBaseline && persistedMarkersBaseline
+        ? new Map<number, YouthPlayerDetails>(persistedMarkersBaseline.detailsById)
+        : new Map<number, YouthPlayerDetails>(playerDetailsById);
+    const previousRatingsBaselineSnapshot =
+      usePersistedMarkersBaseline && persistedMarkersBaseline
+        ? persistedMarkersBaseline.ratingsByPlayerId
+        : buildRatingsBaselineByPlayerId({
+            players: previousPlayersSnapshot,
+            ratingsResponseState,
+            ratingsCache,
+          });
+    const previousRatingsPositionsSnapshot =
+      usePersistedMarkersBaseline &&
+      persistedMarkersBaseline &&
+      persistedMarkersBaseline.ratingsPositions.length > 0
+        ? persistedMarkersBaseline.ratingsPositions
+        : ratingsResponseState?.positions ?? ratingsPositions;
+    const previousHiddenSpecialtyByPlayerIdSnapshot = {
+      ...hiddenSpecialtyByPlayerId,
+    };
     let playersUpdated = false;
     let playerIdsChanged = false;
     let nextSelectedId = selectedId;
@@ -3240,9 +3706,12 @@ export default function Dashboard({
       ok: true,
       ratingsByPlayerId: null,
       positions: null,
+      hiddenSpecialtyScanOk: true,
+      discoveredHiddenSpecialtyByPlayerId: {},
+      hiddenSpecialtyDiscoveredMatchByPlayerId: {},
     };
     try {
-      const teamParam = teamId ? `&youthTeamID=${teamId}` : "";
+      const teamParam = youthTeamId ? `&youthTeamID=${youthTeamId}` : "";
       const { response, payload } = await fetchChppJson<{
         data?: {
           HattrickData?: {
@@ -3295,12 +3764,26 @@ export default function Dashboard({
             return { id, detailRaw };
           })
         );
+        const resolvedDetailsEntries: Array<[number, CachedDetails]> = [];
         detailResponses.forEach(({ id, detailRaw }) => {
           const resolved = resolveDetails(detailRaw);
           if (resolved) {
             nextDetailsByPlayerId.set(id, resolved);
+            resolvedDetailsEntries.push([
+              id,
+              {
+                data: detailRaw as Record<string, unknown>,
+                fetchedAt: Date.now(),
+              },
+            ]);
           }
         });
+        if (resolvedDetailsEntries.length > 0) {
+          setCache((prev) => ({
+            ...prev,
+            ...Object.fromEntries(resolvedDetailsEntries),
+          }));
+        }
         if (nextSelectedId) {
           const selectedRaw = detailResponses.find(
             (entry) => entry.id === nextSelectedId
@@ -3332,12 +3815,13 @@ export default function Dashboard({
       let nextMatchesState = matchesState;
       if (refreshAll && !isRunStopped()) {
         setYouthRefreshStatus(messages.refreshStatusFetchingMatches, 60);
-        const matchesResult = await fetchMatchesResponse(teamId);
+        const matchesResult = await fetchMatchesResponse(youthTeamId);
         if (matchesResult.ok && matchesResult.payload) {
           nextMatchesState = matchesResult.payload;
         }
         matchesOk = matchesResult.ok;
-        ratingsResult = await refreshRatings(teamId, matchesResult.payload ?? null, {
+        ratingsResult = await refreshRatings(youthTeamId, matchesResult.payload ?? null, {
+          forceTraversal: true,
           playersChanged: playerIdsChanged,
           playersOverride: nextPlayersSnapshot,
         });
@@ -3359,7 +3843,9 @@ export default function Dashboard({
         setRatingsCache(snapshot.ratingsCache);
         setRatingsPositions(snapshot.ratingsPositions);
         setHiddenSpecialtyByPlayerId(snapshot.hiddenSpecialtyByPlayerId);
-        setAnalyzedHiddenSpecialtyMatchIds(snapshot.analyzedHiddenSpecialtyMatchIds);
+        setHiddenSpecialtyDiscoveredMatchByPlayerId(
+          snapshot.hiddenSpecialtyDiscoveredMatchByPlayerId
+        );
         setAnalyzedRatingsMatchIds(snapshot.analyzedRatingsMatchIds);
         setMatrixNewMarkers(snapshot.matrixNewMarkers);
         setYouthUpdatesHistory(snapshot.youthUpdatesHistory);
@@ -3398,7 +3884,7 @@ export default function Dashboard({
           nextPlayersSnapshot.reduce<Record<number, Record<string, number>>>(
             (acc, player) => {
               acc[player.YouthPlayerID] = {
-                ...(previousRatingsCacheSnapshot[player.YouthPlayerID] ?? {}),
+                ...(previousRatingsBaselineSnapshot[player.YouthPlayerID] ?? {}),
               };
               return acc;
             },
@@ -3433,6 +3919,14 @@ export default function Dashboard({
           number,
           Record<string, SkillValue | number | string> | null
         >();
+        const attributeChangesByPlayerId: Record<number, YouthAttributeChange[]> = {};
+        const addAttributeChange = (
+          playerId: number,
+          change: YouthAttributeChange
+        ) => {
+          const existing = attributeChangesByPlayerId[playerId] ?? [];
+          attributeChangesByPlayerId[playerId] = [...existing, change];
+        };
 
         nextPlayersSnapshot.forEach((player) => {
           const playerId = player.YouthPlayerID;
@@ -3469,7 +3963,7 @@ export default function Dashboard({
             }
           });
 
-          const previousRatings = previousRatingsCacheSnapshot[playerId] ?? {};
+          const previousRatings = previousRatingsBaselineSnapshot[playerId] ?? {};
           const nextRatings = nextRatingsByPlayerId[playerId] ?? {};
           positionsToCompare.forEach((position) => {
             const previousValueRaw = previousRatings[String(position)];
@@ -3481,30 +3975,69 @@ export default function Dashboard({
               addRatingMarker(playerId, position);
             }
           });
+
+          const previousInjury = normalizeInjuryLevel(
+            previousDetailsByIdSnapshot.get(playerId)?.InjuryLevel ??
+              previousPlayer?.InjuryLevel
+          );
+          const nextInjury = normalizeInjuryLevel(
+            nextDetailsByPlayerId.get(playerId)?.InjuryLevel ?? player.InjuryLevel
+          );
+          if (nextInjury !== null && previousInjury !== nextInjury) {
+            addAttributeChange(playerId, {
+              key: "injuryStatus",
+              previous: previousInjury,
+              current: nextInjury,
+            });
+          }
         });
 
+        Object.entries(ratingsResult.discoveredHiddenSpecialtyByPlayerId).forEach(
+          ([playerId, specialty]) => {
+            const numericPlayerId = Number(playerId);
+            if (!Number.isFinite(numericPlayerId) || numericPlayerId <= 0) return;
+            const previousHidden = Number(
+              previousHiddenSpecialtyByPlayerIdSnapshot[numericPlayerId] ?? 0
+            );
+            const nextHidden = Number(specialty ?? 0);
+            if (nextHidden > 0 && previousHidden !== nextHidden) {
+              addAttributeChange(numericPlayerId, {
+                key: "hiddenSpecialtyDiscovered",
+                previous: previousHidden > 0 ? previousHidden : null,
+                current: nextHidden,
+              });
+            }
+          }
+        );
+
         const comparedAt = Date.now();
-        if (hasAnyMatrixNewMarkers(nextMarkers)) {
-          setMatrixNewMarkers({
-            ...nextMarkers,
-            detectedAt: comparedAt,
-          });
-        } else {
-          setMatrixNewMarkers(buildEmptyMatrixNewMarkers());
-        }
         const updatesEntry = buildYouthUpdatesHistoryEntry(
           nextMarkers,
           nextPlayersSnapshot,
           comparedAt,
           "refresh",
           {
-            previousRatingsByPlayerId: previousRatingsCacheSnapshot,
+            previousRatingsByPlayerId: previousRatingsBaselineSnapshot,
             currentRatingsByPlayerId: nextRatingsByPlayerId,
             previousSkillsByPlayerId,
             currentSkillsByPlayerId,
+            attributeChangesByPlayerId,
           }
         );
-        if (updatesEntry.hasChanges) {
+        if (suppressNextUpdatesRecordingRef.current) {
+          suppressNextUpdatesRecordingRef.current = false;
+          setMatrixNewMarkers(buildEmptyMatrixNewMarkers());
+          setYouthUpdatesHistory([]);
+          setSelectedYouthUpdatesId(null);
+        } else if (updatesEntry.hasChanges) {
+          setMatrixNewMarkers(
+            hasAnyMatrixNewMarkers(nextMarkers)
+              ? {
+                  ...nextMarkers,
+                  detectedAt: comparedAt,
+                }
+              : buildEmptyMatrixNewMarkers()
+          );
           setYouthUpdatesHistory((prev) =>
             [updatesEntry, ...prev].slice(0, YOUTH_UPDATES_HISTORY_LIMIT)
           );
@@ -3524,6 +4057,9 @@ export default function Dashboard({
           addNotification(messages.notificationStaleRefresh);
         }
         addNotification(messages.notificationPlayersRefreshed);
+      }
+      if (usePersistedMarkersBaseline && playersUpdated) {
+        persistedMarkersBaselineRef.current = null;
       }
       setPlayerRefreshProgressPct(100);
       setPlayerRefreshStatus(null);
@@ -3616,12 +4152,11 @@ export default function Dashboard({
     setSecondaryTraining("");
     setAutoSelectionApplied(false);
     setHiddenSpecialtyByPlayerId({});
-    setAnalyzedHiddenSpecialtyMatchIds([]);
+    setHiddenSpecialtyDiscoveredMatchByPlayerId({});
     setAnalyzedRatingsMatchIds([]);
     if (nextTeamId) {
       refreshPlayers(nextTeamId, { recordRefresh: true });
       refreshMatches(nextTeamId);
-      refreshRatings(nextTeamId);
       const teamName =
         youthTeams.find((team) => team.youthTeamId === nextTeamId)
           ?.youthTeamName ?? nextTeamId;
@@ -3691,36 +4226,44 @@ export default function Dashboard({
 
   const optimizerPlayers = useMemo<OptimizerPlayer[]>(
     () =>
-      playerList.map((player) => ({
-        id: player.YouthPlayerID,
-        name: [player.FirstName, player.NickName || null, player.LastName]
-          .filter(Boolean)
-          .join(" "),
-        age:
-          player.Age ??
-          playerDetailsById.get(player.YouthPlayerID)?.Age ??
-          null,
-        ageDays:
-          player.AgeDays ??
-          playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
-          null,
-        canBePromotedIn:
-          player.CanBePromotedIn ??
-          playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
-          null,
-        specialty:
-          Number(player.Specialty ?? 0) > 0
-            ? Number(player.Specialty)
-            : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
-              ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
-              : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
-                ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
-                : null,
-        skills:
-          playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
-          (player.PlayerSkills as OptimizerPlayer["skills"]) ??
-          null,
-      })),
+      playerList
+        .filter((player) => {
+          const details = playerDetailsById.get(player.YouthPlayerID);
+          const injuryLevel = normalizeInjuryLevel(
+            details?.InjuryLevel ?? player.InjuryLevel
+          );
+          return !isUnavailableForYouthOptimization(injuryLevel);
+        })
+        .map((player) => ({
+          id: player.YouthPlayerID,
+          name: [player.FirstName, player.NickName || null, player.LastName]
+            .filter(Boolean)
+            .join(" "),
+          age:
+            player.Age ??
+            playerDetailsById.get(player.YouthPlayerID)?.Age ??
+            null,
+          ageDays:
+            player.AgeDays ??
+            playerDetailsById.get(player.YouthPlayerID)?.AgeDays ??
+            null,
+          canBePromotedIn:
+            player.CanBePromotedIn ??
+            playerDetailsById.get(player.YouthPlayerID)?.CanBePromotedIn ??
+            null,
+          specialty:
+            Number(player.Specialty ?? 0) > 0
+              ? Number(player.Specialty)
+              : Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty ?? 0) > 0
+                ? Number(playerDetailsById.get(player.YouthPlayerID)?.Specialty)
+                : Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0
+                  ? Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID])
+                  : null,
+          skills:
+            playerDetailsById.get(player.YouthPlayerID)?.PlayerSkills ??
+            (player.PlayerSkills as OptimizerPlayer["skills"]) ??
+            null,
+        })),
     [hiddenSpecialtyByPlayerId, playerList, playerDetailsById]
   );
 
@@ -3784,7 +4327,12 @@ export default function Dashboard({
     trainingPreferences,
   ]);
 
-  const manualReady = Boolean(starPlayerId && primaryTraining && secondaryTraining);
+  const manualReady = Boolean(
+    starPlayerId &&
+      primaryTraining &&
+      secondaryTraining &&
+      optimizerPlayers.some((player) => player.id === starPlayerId)
+  );
 
   const optimizeDisabledReason = !starPlayerId
     ? messages.optimizeLineupNeedsStar
@@ -3984,12 +4532,39 @@ export default function Dashboard({
         ratings: [...entry.ratings].sort((left, right) => left.position - right.position),
         skillsCurrent: [...entry.skillsCurrent],
         skillsMax: [...entry.skillsMax],
+        attributes: [...entry.attributes],
       }));
   }, [selectedYouthUpdatesEntry]);
 
   const formatUpdatesValue = (value: number | null, type: "skill" | "rating") => {
     if (value === null) return messages.unknownShort;
     if (type === "rating") return value.toFixed(1);
+    return String(value);
+  };
+
+  const youthUpdatesAttributeLabel = (
+    key: "hiddenSpecialtyDiscovered" | "injuryStatus"
+  ) => {
+    switch (key) {
+      case "hiddenSpecialtyDiscovered":
+        return messages.hiddenSpecialtyTooltip;
+      case "injuryStatus":
+        return messages.sortInjuries;
+      default:
+        return key;
+    }
+  };
+
+  const formatYouthUpdatesAttributeValue = (
+    key: "hiddenSpecialtyDiscovered" | "injuryStatus",
+    value: number | string | boolean | null
+  ) => {
+    if (value === null || value === undefined) return messages.unknownShort;
+    if (key === "injuryStatus" && typeof value === "number") {
+      if (value < 0) return messages.clubChronicleInjuryHealthy;
+      if (value === 0) return messages.seniorListInjuryBruised;
+      return value.toFixed(1);
+    }
     return String(value);
   };
 
@@ -4155,90 +4730,146 @@ export default function Dashboard({
       <Modal
         open={youthUpdatesOpen}
         title={messages.clubChronicleUpdatesTitle}
-        className={styles.chronicleUpdatesModal}
+        className={styles.seniorUpdatesModal}
+        movable={false}
         body={
           youthUpdatesHistoryWithChanges.length > 0 ? (
-            <>
-              <div className={styles.chronicleUpdatesMetaBlock}>
-                <p className={styles.chroniclePressMeta}>
-                  {messages.clubChronicleUpdatesSinceGlobal}
-                </p>
+            <div className={styles.seniorUpdatesShell}>
+              <div className={styles.seniorUpdatesTopBar}>
                 {selectedYouthUpdatesEntry ? (
-                  <p className={styles.chroniclePressMeta}>
+                  <span className={styles.seniorUpdatesComparedAt}>
                     {messages.clubChronicleUpdatesComparedAt}:{" "}
                     {formatDateTime(selectedYouthUpdatesEntry.comparedAt)}
-                  </p>
+                  </span>
                 ) : null}
               </div>
-              <div className={styles.chronicleUpdatesHistoryWrap}>
-                <div className={styles.chronicleUpdatesHistoryHeader}>
-                  {messages.clubChronicleUpdatesHistoryTitle}
-                </div>
-                <div className={styles.chronicleUpdatesHistoryList}>
-                  {youthUpdatesHistoryWithChanges.map((entry) => (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      className={`${styles.chronicleUpdatesHistoryItem}${
-                        selectedYouthUpdatesEntry?.id === entry.id
-                          ? ` ${styles.chronicleUpdatesHistoryItemActive}`
-                          : ""
-                      }`}
-                      onClick={() => setSelectedYouthUpdatesId(entry.id)}
-                      aria-pressed={selectedYouthUpdatesEntry?.id === entry.id}
-                    >
-                      <span>{formatDateTime(entry.comparedAt)}</span>
-                    </button>
-                  ))}
-                </div>
+              <div className={styles.seniorUpdatesGrid}>
+                <aside className={styles.seniorUpdatesHistoryPane}>
+                  <div className={styles.seniorUpdatesHistoryHeader}>
+                    {messages.clubChronicleUpdatesHistoryTitle}
+                  </div>
+                  <div className={styles.seniorUpdatesHistoryList}>
+                    {youthUpdatesHistoryWithChanges.map((entry) => (
+                      <button
+                        key={entry.id}
+                        type="button"
+                        className={`${styles.seniorUpdatesHistoryItem}${
+                          selectedYouthUpdatesEntry?.id === entry.id
+                            ? ` ${styles.seniorUpdatesHistoryItemActive}`
+                            : ""
+                        }`}
+                        onClick={() => setSelectedYouthUpdatesId(entry.id)}
+                        aria-pressed={selectedYouthUpdatesEntry?.id === entry.id}
+                      >
+                        <span className={styles.seniorUpdatesHistoryDate}>
+                          {formatDateTime(entry.comparedAt)}
+                        </span>
+                        <span className={styles.seniorUpdatesHistoryState}>
+                          {entry.hasChanges
+                            ? messages.clubChronicleUpdatesHistoryChanged
+                            : messages.clubChronicleUpdatesHistoryNoChanges}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </aside>
+                <section className={styles.seniorUpdatesDetailsPane}>
+                  {selectedYouthUpdatesEntry && youthUpdatesRows.length ? (
+                    <>
+                      {youthUpdatesRows.map((entry) => (
+                        <article
+                          key={entry.playerId}
+                          className={styles.seniorUpdatesPlayerCard}
+                        >
+                          <div className={styles.seniorUpdatesPlayerHeader}>
+                            <h4 className={styles.seniorUpdatesPlayerName}>
+                              {entry.playerName}
+                            </h4>
+                            {entry.isNewPlayer ? (
+                              <span className={styles.matrixNewPill}>
+                                {messages.youthUpdatesNewPlayerLabel}
+                              </span>
+                            ) : null}
+                          </div>
+                          <div className={styles.seniorUpdatesPlayerBody}>
+                            {entry.skillsCurrent.length > 0 ? (
+                              <div className={styles.seniorUpdatesSection}>
+                                <h5 className={styles.seniorUpdatesSectionTitle}>
+                                  {messages.skillsLabel}
+                                </h5>
+                                <ul className={styles.seniorUpdatesChangeList}>
+                                  {entry.skillsCurrent.map((change) => (
+                                    <li
+                                      key={`${entry.playerId}-current-${change.skillKey}`}
+                                    >
+                                      {skillLabelByKey(change.skillKey)} (
+                                      {messages.youthUpdatesSkillCurrentTag}):{" "}
+                                      {formatUpdatesValue(change.previous, "skill")} →{" "}
+                                      {formatUpdatesValue(change.current, "skill")}
+                                    </li>
+                                  ))}
+                                  {entry.skillsMax.map((change) => (
+                                    <li key={`${entry.playerId}-max-${change.skillKey}`}>
+                                      {skillLabelByKey(change.skillKey)} (
+                                      {messages.youthUpdatesSkillMaxTag}):{" "}
+                                      {formatUpdatesValue(change.previous, "skill")} →{" "}
+                                      {formatUpdatesValue(change.current, "skill")}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                            {entry.ratings.length > 0 ? (
+                              <div className={styles.seniorUpdatesSection}>
+                                <h5 className={styles.seniorUpdatesSectionTitle}>
+                                  {messages.ratingsTitle}
+                                </h5>
+                                <ul className={styles.seniorUpdatesChangeList}>
+                                  {entry.ratings.map((change) => (
+                                    <li key={`${entry.playerId}-rating-${change.position}`}>
+                                      {positionLabel(change.position, messages)}:{" "}
+                                      {formatUpdatesValue(change.previous, "rating")} →{" "}
+                                      {formatUpdatesValue(change.current, "rating")}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                            {entry.attributes.length > 0 ? (
+                              <div className={styles.seniorUpdatesSection}>
+                                <h5 className={styles.seniorUpdatesSectionTitle}>
+                                  {messages.clubChronicleUpdatesHistoryChanged}
+                                </h5>
+                                <ul className={styles.seniorUpdatesChangeList}>
+                                  {entry.attributes.map((change, idx) => (
+                                    <li key={`${entry.playerId}-attr-${change.key}-${idx}`}>
+                                      {youthUpdatesAttributeLabel(change.key)}:{" "}
+                                      {formatYouthUpdatesAttributeValue(
+                                        change.key,
+                                        change.previous
+                                      )}{" "}
+                                      →{" "}
+                                      {formatYouthUpdatesAttributeValue(
+                                        change.key,
+                                        change.current
+                                      )}
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+                          </div>
+                        </article>
+                      ))}
+                    </>
+                  ) : (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleUpdatesNoChangesGlobal}
+                    </p>
+                  )}
+                </section>
               </div>
-              {selectedYouthUpdatesEntry && youthUpdatesRows.length ? (
-                <div className={styles.chronicleUpdatesList}>
-                  {youthUpdatesRows.map((entry) => (
-                    <div
-                      key={entry.playerId}
-                      className={styles.chronicleUpdatesTeam}
-                    >
-                      <h3 className={styles.chronicleUpdatesTeamTitle}>
-                        {entry.playerName}
-                      </h3>
-                      <ul className={styles.helpList}>
-                        {entry.isNewPlayer ? (
-                          <li>{messages.youthUpdatesNewPlayerLabel}</li>
-                        ) : null}
-                        {entry.skillsCurrent.map((change) => (
-                          <li key={`${entry.playerId}-current-${change.skillKey}`}>
-                            {skillLabelByKey(change.skillKey)} (
-                            {messages.youthUpdatesSkillCurrentTag}):{" "}
-                            {formatUpdatesValue(change.previous, "skill")} →{" "}
-                            {formatUpdatesValue(change.current, "skill")}
-                          </li>
-                        ))}
-                        {entry.skillsMax.map((change) => (
-                          <li key={`${entry.playerId}-max-${change.skillKey}`}>
-                            {skillLabelByKey(change.skillKey)} (
-                            {messages.youthUpdatesSkillMaxTag}):{" "}
-                            {formatUpdatesValue(change.previous, "skill")} →{" "}
-                            {formatUpdatesValue(change.current, "skill")}
-                          </li>
-                        ))}
-                        {entry.ratings.map((change) => (
-                          <li key={`${entry.playerId}-rating-${change.position}`}>
-                            {positionLabel(change.position, messages)}:{" "}
-                            {formatUpdatesValue(change.previous, "rating")} →{" "}
-                            {formatUpdatesValue(change.current, "rating")}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className={styles.chronicleEmpty}>
-                  {messages.clubChronicleUpdatesNoChangesGlobal}
-                </p>
-              )}
-            </>
+            </div>
           ) : (
             <p className={styles.chronicleEmpty}>
               {messages.clubChronicleUpdatesEmpty}
@@ -4284,6 +4915,7 @@ export default function Dashboard({
         <YouthPlayerList
           dataHelpAnchor="player-list"
           players={playerList}
+          playerDetailsById={playerDetailsById}
           orderedPlayerIds={orderedPlayerIds}
           orderSource={orderSource}
           youthTeams={youthTeams}
@@ -4345,6 +4977,7 @@ export default function Dashboard({
           }}
           onOrderChange={(ids) => applyPlayerOrder(ids, "list")}
           hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
+          hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}
           newMarkerPlayerIds={listNewMarkerPlayerIds}
           messages={messages}
         />
@@ -4391,12 +5024,13 @@ export default function Dashboard({
               lastUpdated={lastUpdated}
               unlockStatus={unlockStatus}
               onRefresh={() =>
-                selectedId ? loadDetails(selectedId, true) : undefined
+                selectedId ? handlePlayerDetailsRefresh() : undefined
               }
               players={playerList}
               playerDetailsById={playerDetailsById}
               skillsMatrixRows={skillsMatrixRows}
               ratingsMatrixResponse={ratingsMatrixData?.response ?? null}
+              ratingsMatrixMatchHrefBuilder={ratingsMatrixMatchHrefBuilder}
               ratingsMatrixSelectedName={
                 selectedPlayer ? formatPlayerName(selectedPlayer) : null
               }
@@ -4427,7 +5061,13 @@ export default function Dashboard({
               matrixNewSkillsMaxByPlayerId={
                 activeMatrixNewMarkers.skillsMaxByPlayerId
               }
+              scoutImportantSkillsByPlayerId={scoutImportantSkillsByPlayerId}
+              scoutOverallSkillLevelByPlayerId={scoutOverallSkillLevelByPlayerId}
               hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
+              hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}
+              ratingsMatrixHiddenSpecialtyMatchHrefByName={
+                ratingsMatrixHiddenSpecialtyMatchHrefByName
+              }
               onSelectRatingsPlayer={(playerName) => {
                 const match = playerList.find(
                   (player) => formatPlayerName(player) === playerName
@@ -4439,6 +5079,7 @@ export default function Dashboard({
                   `${messages.notificationPlayerSelected} ${playerName}`
                 );
               }}
+              onMatrixPlayerDragStart={handleMatrixPlayerDragStart}
               orderedPlayerIds={orderedPlayerIds}
               orderSource={orderSource}
               onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}
@@ -4461,6 +5102,8 @@ export default function Dashboard({
                 if (!nextPlayerId) return;
                 void handleSelect(nextPlayerId);
               }}
+              activeTab={activeDetailsTab}
+              onActiveTabChange={setActiveDetailsTab}
               messages={messages}
             />
           </>
@@ -4570,8 +5213,16 @@ export default function Dashboard({
           optimizeModeDisabledReasons={optimizeModeDisabledReasons}
           trainedSlots={trainingSlots}
           hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
+          hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}
           onHoverPlayer={ensureDetails}
-          onSelectPlayer={handleSelect}
+          onSelectPlayer={(playerId) => {
+            if (activeDetailsTab === "details") {
+              void handleSelect(playerId);
+              return;
+            }
+            setSelectedId(playerId);
+            void ensureDetails(playerId);
+          }}
           messages={messages}
         />
         {isDev ? (

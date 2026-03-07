@@ -10,7 +10,10 @@ export const messagesEs: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Contraer barra lateral",
     sidebarExpandTooltip: "Expandir barra lateral",
-    toolYouthOptimization: "Optimización juvenil",
+    toolYouthOptimization: "Optimización plantilla juvenil",
+    toolSeniorOptimization: "Optimización plantilla senior",
+    toolYouthBadge: "Y",
+    toolSeniorBadge: "S",
     toolClubChronicle: "Crónica del club",
     clubChronicleTitle: "Crónica del club",
     clubChronicleBody:
@@ -90,6 +93,12 @@ export const messagesEs: Messages = {
       "Las matrices juveniles ahora marcan habilidades/calificaciones nuevas o cambiadas y nuevos jugadores con etiquetas NEW.",
     changelog_2_23_0:
       "Optimizacion juvenil agrega un boton de Ultimas actualizaciones con historial fechado de eventos NEW.",
+    changelog_2_24_0:
+      "Se agrega optimizacion de equipo senior: lista de jugadores ordenable, matriz de habilidades de valor unico, matriz de calificaciones y flujo de alineacion/partidos.",
+    changelog_3_0_0:
+      "Lanzamiento de la herramienta de optimización del equipo senior.",
+    changelog_3_1_0:
+      "La optimización senior añade una ayuda contextual con llamadas guiadas para Últimas actualizaciones y alineación con IA.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",
@@ -108,7 +117,10 @@ export const messagesEs: Messages = {
       "Cuando está seleccionado, permite entrenar jugadores hasta que la habilidad alcance el valor máximo. Si no está seleccionado, los jugadores cuyo nivel actual = nivel máximo no se considerarán para entrenamiento.",
     settingsYouth: "Juveniles",
     settingsYouthTitle: "Ajustes de juveniles",
-    settingsYouthStalenessLabel: "Actualizar después de (horas)",
+    settingsYouthStalenessLabel: "Autoactualizar después de (días)",
+    settingsSenior: "Senior",
+    settingsSeniorTitle: "Ajustes senior",
+    settingsSeniorStalenessLabel: "Autoactualizar después de (días)",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Ofensivo",
     behaviorDefensive: "Defensivo",
@@ -137,6 +149,7 @@ export const messagesEs: Messages = {
     skillLevel20: "divino",
     changelog_2_3_0: "Panel de rendimiento en liga de Crónica del club con actualizaciones en caché y control de caducidad.",
     settingsYouthStalenessHint: "Cuando los datos son antiguos, la app actualiza automáticamente jugadores, detalles, habilidades, valoraciones y partidos usando la última actualización (incluso tras reinicios).",
+    settingsSeniorStalenessHint: "Cuando los datos son antiguos, la app actualiza automáticamente jugadores senior, detalles, partidos y valoraciones usando la última actualización.",
     settingsClubChronicle: "Crónica del club",
     settingsClubChronicleTitle: "Ajustes de Crónica del club",
     settingsClubChronicleStalenessLabel: "Actualizar después de (días)",
@@ -438,6 +451,23 @@ export const messagesEs: Messages = {
       "Usa la IA para optimizar la alineación según el jugador estrella y el plan de entrenamiento.",
     helpCalloutAuto:
       "Usa la IA para elegir jugador estrella y plan de entrenamiento.",
+    seniorHelpTitle: "Guia de optimizacion senior",
+    seniorHelpIntro:
+      "Esta vista te ayuda a seguir cambios relevantes del plantel senior y a definir alineaciones mas rapido.",
+    seniorHelpCalloutUpdates:
+      "Ultimas actualizaciones muestra solo los cambios detectados en las comparaciones de refresco guardadas.",
+    seniorHelpCalloutSetLineupAi:
+      "Definir alineacion con IA abre los dos modos de alineacion para este partido.",
+    seniorHelpBulletLatestUpdates:
+      "Solo se guarda una nueva comparacion cuando un refresco detecta cambios reales (por ejemplo, jugador nuevo, cambios de valoraciones/habilidades, lesiones, tarjetas, forma, resistencia o rasgos).",
+    seniorHelpBulletAiOverview:
+      "Definir alineacion con IA aplica la alineacion mas efectiva identificada para ganar con la informacion de Hattrick disponible.",
+    seniorHelpBulletAiTrainingAware:
+      "Modo con entrenamiento: respeta el regimen de entrenamiento actual y prioriza alineaciones que cubren los puestos de entrenamiento relevantes.",
+    seniorHelpBulletAiIgnoreTraining:
+      "Modo sin entrenamiento: optimiza solo la efectividad del partido sin restricciones de puestos de entrenamiento.",
+    seniorHelpBulletAiMatchTypes:
+      "Liga y torneo buscan la configuracion competitiva mas fuerte. En amistosos se usa un once sano de segundo nivel.",
     themeSwitchDark: "Cambiar a modo oscuro",
     themeSwitchLight: "Cambiar a modo claro",
     helpDismissLabel: "Entendido",
@@ -448,9 +478,14 @@ export const messagesEs: Messages = {
     detailsTabLabel: "Detalles del jugador",
     skillsMatrixTabLabel: "Matriz de habilidades",
     ratingsMatrixTabLabel: "Matriz de calificaciones",
+    seniorSkillsMatrixBonusToggleLabel: "Aplicar bono",
+    seniorSkillsMatrixBonusToggleTooltip:
+      "Activa o desactiva los valores con bono efectivo en la matriz de habilidades senior (bono de club de origen o lealtad).",
     matrixNewPillLabel: "NEW",
     matrixNewNTooltip:
       "N marca un valor actualizado o revelado por primera vez desde la ultima actualizacion.",
+    scoutImportantSkillTooltip: "Habilidad top 3",
+    scoutOverallSkillLevelTooltip: "Nivel general de habilidad",
     youthUpdatesNewPlayerLabel: "Nuevo jugador detectado",
     youthUpdatesSkillCurrentTag: "actual",
     youthUpdatesSkillMaxTag: "max",
@@ -461,6 +496,7 @@ export const messagesEs: Messages = {
     refreshPlayerListTooltip:
       "Actualizar la lista de juveniles desde Hattrick.",
     refreshAllYouthDataTooltip: "Actualizar todos los datos juveniles.",
+    refreshAllSeniorDataTooltip: "Actualizar todos los datos senior.",
     refreshStopButton: "Detener",
     refreshStopTooltip: "Detener la actualizacion en curso.",
     youthLastGlobalRefresh: "Última actualización global",
@@ -485,6 +521,9 @@ export const messagesEs: Messages = {
     matchesTitle: "Partidos",
     matchesRefresh: "Actualizar partidos",
     matchesRefreshTooltip: "Actualizar partidos",
+    matchesIncludeTournamentLabel: "Incluir partidos de torneo",
+    matchesIncludeTournamentTooltip:
+      "Desactivado: solo liga, clasificación, copa y amistosos. Activado: incluye todos los tipos de partido, también torneo.",
     noUpcomingMatches: "No hay partidos PRÓXIMOS. Mostrando los recientes.",
     noMatchesReturned: "No se devolvieron partidos.",
     ordersLabel: "Órdenes",
@@ -525,6 +564,22 @@ export const messagesEs: Messages = {
     submitOrdersUpdated: "Actualizado",
     submitOrdersMinPlayers: "Se necesitan al menos 9 jugadores",
     submitOrdersMaxPlayers: "La alineación no puede superar 11 jugadores",
+    seniorSubmitDisclaimerTitle: "⚠️ Aviso tras enviar la alineación",
+    seniorSubmitDisclaimerIntro: "Revisa lo siguiente:",
+    seniorSubmitDisclaimerBulletBestEffort:
+      "Según la información proporcionada por Hattrick, esta es la alineación más efectiva que la IA pudo generar.",
+    seniorSubmitDisclaimerBulletNoResponsibility:
+      "Esta herramienta no asume responsabilidad por el éxito de esta alineación.",
+    seniorSubmitDisclaimerBulletFineTune:
+      "La responsabilidad final del ajuste fino de la alineación es tuya.",
+    seniorSubmitDisclaimerBulletResubmit:
+      "La orientación de jugadores, la formación y la táctica pueden ajustarse aquí y reenviarse con el botón Enviar alineación.",
+    seniorSubmitDisclaimerBulletKickers:
+      "Los lanzadores de penaltis se establecen automáticamente en orden descendente de habilidad de Balón parado.",
+    seniorSubmitDisclaimerBulletOrdersInHattrick:
+      "Si se requieren órdenes de partido, deben configurarse directamente en Hattrick.",
+    seniorSubmitDisclaimerBulletVerify:
+      "Verifica disponibilidad, lesiones e intención táctica antes del inicio.",
     loadLineupTooltip: "Carga la alineación guardada desde Hattrick para este partido.",
     submitOrdersTooltip: "Envía la alineación actual a Hattrick para este partido.",
     randomizeLineup: "Alineación aleatoria",
@@ -607,6 +662,30 @@ export const messagesEs: Messages = {
     confirmSubmit: "Enviar",
     loadLineup: "Cargar alineación",
     loadLineupLoading: "Cargando…",
+    setBestLineup: "Poner mejor alineación",
+    setBestLineupLoading: "Aplicando…",
+    setBestLineupTooltip: "Establece la alineación usando IA.",
+    setBestLineupTrainingAware: "Con enfoque de entrenamiento",
+    setBestLineupTrainingAwareTooltip:
+      "Establece la alineación considerando el plan de entrenamiento. Solo se consideran formaciones que mantienen todas las plazas de entrenamiento cubiertas.",
+    setBestLineupIgnoreTraining: "Ignorar entrenamiento",
+    setBestLineupIgnoreTrainingTooltip:
+      "Establece la alineación sin considerar el plan de entrenamiento. Se consideran todas las formaciones.",
+    setBestLineupRejectedPlayersLabel: "Jugadores rechazados",
+    analyzeOpponent: "Analizar rival",
+    analyzeOpponentTooltip: "Analizar los partidos recientes del rival.",
+    analyzeOpponentMatchId: "ID del partido",
+    analyzeOpponentMatchType: "Tipo de partido",
+    analyzeOpponentFormationColumn: "Formación",
+    analyzeOpponentTacticColumn: "Táctica",
+    analyzeOpponentAgainstYouMark: "* indica partidos contra ti.",
+    analyzeOpponentNeverPlayedUs: "Nunca han jugado contra nosotros.",
+    analyzeOpponentSummaryPreferredFormation:
+      "la formación más usada en estos partidos es",
+    analyzeOpponentSummaryPreferredTactic:
+      "Para esa formación, su táctica más usada es",
+    analyzeOpponentSummaryVsYou: "Cuando juegan contra ti, prefieren",
+    analyzeOpponentSummaryWith: "con",
     loadLineupUnavailable: "Sin alineación guardada",
     loadLineupActive: "Cargada",
     loadLineupError: "Error al cargar",
@@ -657,6 +736,7 @@ export const messagesEs: Messages = {
     trainingSlotSecondary: "Secundario",
     trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Definir jugador estrella",
+    seniorPlayerListTitle: "Jugadores senior",
     sortLabel: "Ordenar por",
     sortName: "Nombre",
     sortAge: "Edad",
@@ -670,7 +750,32 @@ export const messagesEs: Messages = {
     sortPassing: "Pase",
     sortScorer: "Anotador",
     sortSetPieces: "Balón parado",
+    sortTsi: "TSI",
+    sortWage: "Salario",
+    sortForm: "Forma",
+    sortStamina: "Resistencia",
+    sortExperience: "Experiencia",
+    sortLoyalty: "Lealtad",
+    seniorCareerStatsTitle: "Estadísticas de carrera y equipo",
+    seniorCareerGoalsLabel: "Goles en la carrera",
+    seniorCareerHattricksLabel: "Hat-tricks en la carrera",
+    seniorLeagueGoalsLabel: "Goles de liga (esta temporada)",
+    seniorCupGoalsLabel: "Goles de copa (esta temporada)",
+    seniorFriendliesGoalsLabel: "Goles en amistosos (temporada)",
+    seniorGoalsCurrentTeamLabel: "Goles con el equipo actual",
+    seniorAssistsCurrentTeamLabel: "Asistencias con el equipo actual",
+    seniorCareerAssistsLabel: "Asistencias en la carrera",
+    seniorMatchesCurrentTeamLabel: "Partidos con el equipo actual",
+    seniorMatrixPlayerShortLabel: "Jug",
+    seniorMatrixSpecialtyShortLabel: "Esp",
+    seniorMatrixFormShortLabel: "For",
+    seniorMatrixStaminaShortLabel: "Res",
+    sortInjuries: "Lesiones",
+    sortCards: "Tarjetas",
     sortCustom: "--",
+    seniorListInjuryBruised: "Magullado",
+    seniorListInjuryWeeks: "Lesionado ({weeks} sem.)",
+    seniorCardsMatchRunning: "partido en curso",
     sortToggleAria: "Invertir orden",
     sortAscLabel: "Ascendente",
     sortDescLabel: "Descendente",
@@ -683,6 +788,10 @@ export const messagesEs: Messages = {
     devOauthErrorSim5xx: "Simular 5xx",
     devOauthErrorSimHint:
       "Solo dev. Simula fallos OAuth/CHPP para todas las solicitudes /api/chpp en este navegador.",
+    debugYouthSeMatchIdLabel: "ID partido juvenil",
+    debugYouthSeFetchButton: "Obtener SEs",
+    debugYouthSeFetchHint:
+      "Registra en consola los eventos especiales vigilados: id de evento, nombres objeto/sujeto y URL del partido.",
     statusLabel: "Estado",
     matchStatusUpcoming: "Próximo",
     matchStatusFinished: "Finalizado",
@@ -711,8 +820,19 @@ export const messagesEs: Messages = {
     specialtyHeadSpecialist: "Cabeceador",
     specialtyResilient: "Resistente",
     specialtySupport: "Apoyo",
+    motherClubBonusTooltip: "Bonificación de club de origen",
+    skillBonusMotherClubTooltip: "Bonificación de club de origen",
+    skillBonusLoyaltyTooltip: "Bonificación por lealtad",
+    seniorSkillLevelLabels:
+      "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+    seniorTraitsSentenceExperienceLeadership:
+      "Tiene experiencia {{experienceLevel}} ({{experienceValue}}) y liderazgo {{leadershipLevel}} ({{leadershipValue}}).",
+    seniorTraitsSentenceLoyalty:
+      "Tiene lealtad {{loyaltyLevel}} ({{loyaltyValue}}).",
     hiddenSpecialtyTooltip:
       "Especialidad oculta descubierta desde eventos del partido",
+    hiddenSpecialtyTooltipLinkHint:
+      "Haz clic para abrir el partido donde se descubrió",
     skillsLabel: "Habilidades",
     skillMaxedTooltip: "Habilidad al máximo",
     unknownLabel: "desconocido",
@@ -721,18 +841,29 @@ export const messagesEs: Messages = {
     lastMatchPositionLabel: "Posición del último partido",
     lastMatchRatingLabel: "Calificación del último partido",
     playerIdLabel: "ID del jugador",
+    cardStatusLabel: "Estado de tarjetas",
     playerLinkLabel: "Ver en Hattrick",
     dragPlayerHint: "Arrastra para mover",
+    youthDragToLineupHint: "Arrastra a la alineación",
     homeLabel: "Local",
     awayLabel: "Visitante",
     unknownDate: "Fecha desconocida",
     ratingsTitle: "Matriz de calificaciones",
+    ratingsMatchesAnalyzed: "Datos obtenidos de {count} partidos.",
     ratingsIndexLabel: "N.º",
     ratingsMissingNote:
       "Algunos jugadores no tienen datos recientes y se muestran con —.",
     ratingsSortBy: "Ordenar por",
     ratingsPlayerLabel: "Jugador",
     ratingsSpecialtyLabel: "Especialidad",
+    ratingSectorMidfieldShort: "MED",
+    ratingSectorRightDefShort: "DEF D",
+    ratingSectorMidDefShort: "DEF C",
+    ratingSectorLeftDefShort: "DEF I",
+    ratingSectorRightAttShort: "ATA D",
+    ratingSectorMidAttShort: "ATA C",
+    ratingSectorLeftAttShort: "ATA I",
+    averageLabel: "Promedio",
     posKeeper: "POR",
     posBack: "LD",
     posCentralDefender: "DC",

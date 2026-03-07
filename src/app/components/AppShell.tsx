@@ -1,6 +1,7 @@
 "use client";
 
 import { type CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { Children } from "react";
 import styles from "../page.module.css";
 import Tooltip from "./Tooltip";
 import ClubChronicle from "./ClubChronicle";
@@ -12,9 +13,10 @@ type AppShellProps = {
   messages: Messages;
   globalHeader: ReactNode;
   children: ReactNode;
+  seniorTool: ReactNode;
 };
 
-type ToolId = "youth" | "chronicle";
+type ToolId = "youth" | "senior" | "chronicle";
 
 type ViewStateSnapshot = {
   activeTool: ToolId;
@@ -30,12 +32,17 @@ type ViewStateSnapshot = {
 const APP_SHELL_VIEW_STATE_KEY = "ya_app_shell_view_state_v1";
 const APP_SHELL_ACTIVE_TOOL_KEY = "ya_app_shell_active_tool_v1";
 const APP_SHELL_COLLAPSED_KEY = "ya_app_shell_collapsed_v1";
+const CHANGELOG_SEEN_LATEST_ENTRY_KEY = "ya_changelog_seen_latest_entry_v1";
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
 const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
 const YOUTH_LATEST_UPDATES_OPEN_EVENT = "ya:youth-latest-updates-open";
+const SENIOR_REFRESH_REQUEST_EVENT = "ya:senior-refresh-request";
+const SENIOR_REFRESH_STOP_EVENT = "ya:senior-refresh-stop";
+const SENIOR_REFRESH_STATE_EVENT = "ya:senior-refresh-state";
+const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
 
-export default function AppShell({ messages, globalHeader, children }: AppShellProps) {
+export default function AppShell({ messages, globalHeader, children, seniorTool }: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [activeTool, setActiveTool] = useState<ToolId>("youth");
   const [viewStateRestored, setViewStateRestored] = useState(false);
@@ -44,6 +51,10 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
   const [youthRefreshStatus, setYouthRefreshStatus] = useState<string | null>(null);
   const [youthRefreshProgressPct, setYouthRefreshProgressPct] = useState(0);
   const [youthLastRefreshAt, setYouthLastRefreshAt] = useState<number | null>(null);
+  const [seniorRefreshing, setSeniorRefreshing] = useState(false);
+  const [seniorRefreshStatus, setSeniorRefreshStatus] = useState<string | null>(null);
+  const [seniorRefreshProgressPct, setSeniorRefreshProgressPct] = useState(0);
+  const [seniorLastRefreshAt, setSeniorLastRefreshAt] = useState<number | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
   const [changelogPage, setChangelogPage] = useState(0);
   const shellTopBarRef = useRef<HTMLDivElement | null>(null);
@@ -54,6 +65,13 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
         id: "youth" as const,
         label: messages.toolYouthOptimization,
         icon: "✨",
+        badge: messages.toolYouthBadge,
+      },
+      {
+        id: "senior" as const,
+        label: messages.toolSeniorOptimization,
+        icon: "✨",
+        badge: messages.toolSeniorBadge,
       },
       {
         id: "chronicle" as const,
@@ -61,11 +79,29 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
         icon: "📰",
       },
     ],
-    [messages.toolClubChronicle, messages.toolYouthOptimization]
+    [
+      messages.toolClubChronicle,
+      messages.toolSeniorBadge,
+      messages.toolSeniorOptimization,
+      messages.toolYouthBadge,
+      messages.toolYouthOptimization,
+    ]
   );
 
   const changelogEntries = useMemo(
     () => [
+      {
+        version: "3.1.0",
+        entries: [messages.changelog_3_1_0],
+      },
+      {
+        version: "3.0.0",
+        entries: [messages.changelog_3_0_0],
+      },
+      {
+        version: "2.24.0",
+        entries: [messages.changelog_2_24_0],
+      },
       {
         version: "2.23.0",
         entries: [messages.changelog_2_23_0],
@@ -213,11 +249,14 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
       messages.changelog_2_14_0,
       messages.changelog_2_15_0,
       messages.changelog_2_16_0,
+      messages.changelog_2_24_0,
       messages.changelog_2_23_0,
       messages.changelog_2_22_0,
       messages.changelog_2_21_0,
       messages.changelog_2_20_0,
       messages.changelog_2_19_0,
+      messages.changelog_3_1_0,
+      messages.changelog_3_0_0,
     ]
   );
   const changelogRows = useMemo(
@@ -241,6 +280,26 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
     changelogPageStart,
     changelogPageStart + changelogPageSize
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const latestVersion = changelogEntries[0]?.version ?? null;
+    if (!latestVersion) return;
+    try {
+      const previous = window.localStorage.getItem(CHANGELOG_SEEN_LATEST_ENTRY_KEY);
+      if (!previous) {
+        window.localStorage.setItem(CHANGELOG_SEEN_LATEST_ENTRY_KEY, latestVersion);
+        return;
+      }
+      if (previous !== latestVersion) {
+        window.localStorage.setItem(CHANGELOG_SEEN_LATEST_ENTRY_KEY, latestVersion);
+        setChangelogPage(0);
+        setShowChangelog(true);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [changelogEntries]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -279,14 +338,24 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
           ) {
             setCollapsed(Boolean(parsed.collapsed));
             setActiveTool(
-              parsed.activeTool === "chronicle" ? "chronicle" : "youth"
+              parsed.activeTool === "chronicle"
+                ? "chronicle"
+                : parsed.activeTool === "senior"
+                  ? "senior"
+                  : "youth"
             );
             return;
           }
           window.localStorage.removeItem(APP_SHELL_VIEW_STATE_KEY);
         }
         const stored = window.localStorage.getItem(APP_SHELL_ACTIVE_TOOL_KEY);
-        setActiveTool(stored === "chronicle" ? "chronicle" : "youth");
+        setActiveTool(
+          stored === "chronicle"
+            ? "chronicle"
+            : stored === "senior"
+              ? "senior"
+              : "youth"
+        );
         const collapsedStored = window.localStorage.getItem(
           APP_SHELL_COLLAPSED_KEY
         );
@@ -410,6 +479,36 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
           }
         | undefined;
       if (!detail) return;
+      setSeniorRefreshing(Boolean(detail.refreshing));
+      setSeniorRefreshStatus(
+        typeof detail.status === "string" ? detail.status : null
+      );
+      setSeniorRefreshProgressPct(
+        typeof detail.progressPct === "number"
+          ? Math.max(0, Math.min(100, detail.progressPct))
+          : 0
+      );
+      setSeniorLastRefreshAt(
+        typeof detail.lastRefreshAt === "number" ? detail.lastRefreshAt : null
+      );
+    };
+    window.addEventListener(SENIOR_REFRESH_STATE_EVENT, handle);
+    return () => window.removeEventListener(SENIOR_REFRESH_STATE_EVENT, handle);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handle = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      const detail = event.detail as
+        | {
+            refreshing?: boolean;
+            status?: string | null;
+            progressPct?: number;
+            lastRefreshAt?: number | null;
+          }
+        | undefined;
+      if (!detail) return;
       setYouthRefreshing(Boolean(detail.refreshing));
       setYouthRefreshStatus(
         typeof detail.status === "string" ? detail.status : null
@@ -430,7 +529,7 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handler = () => {
-      if (activeTool !== "chronicle") return;
+      if (activeTool === "youth") return;
       setChangelogPage(0);
       setShowChangelog(true);
     };
@@ -449,7 +548,9 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
         aria-label={tool.label}
       >
         <span className={styles.sidebarIcon} aria-hidden="true">
-          {tool.icon}
+          <span className={styles.sidebarIconGlyph}>
+            {tool.badge ? `${tool.badge}${tool.icon}` : tool.icon}
+          </span>
         </span>
         {!collapsed ? (
           <span className={styles.sidebarLabel}>{tool.label}</span>
@@ -466,6 +567,12 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
     );
   };
 
+  const activeOptimizationLastRefreshAt =
+    activeTool === "youth" ? youthLastRefreshAt : seniorLastRefreshAt;
+  const headerChildren = useMemo(() => Children.toArray(globalHeader), [globalHeader]);
+  const youthToolChildren = useMemo(() => Children.toArray(children), [children]);
+  const seniorToolChildren = useMemo(() => Children.toArray(seniorTool), [seniorTool]);
+
   return (
     <div
       className={styles.shellFrame}
@@ -476,7 +583,7 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
       }
     >
       <div className={styles.shellTopBar} ref={shellTopBarRef}>
-        {globalHeader}
+        {headerChildren}
       </div>
       <aside
         className={`${styles.sidebar} ${
@@ -513,7 +620,7 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
           ))}
         </nav>
       </aside>
-      {activeTool === "youth" ? (
+      {activeTool === "youth" || activeTool === "senior" ? (
         <div className={styles.shellContextBar}>
           <div className={styles.youthActionBarActions}>
             <Tooltip content={messages.refreshAllYouthDataTooltip}>
@@ -521,10 +628,20 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
                 type="button"
                 className={styles.chronicleUpdatesButton}
                 onClick={() =>
-                  window.dispatchEvent(new CustomEvent(YOUTH_REFRESH_REQUEST_EVENT))
+                  window.dispatchEvent(
+                    new CustomEvent(
+                      activeTool === "youth"
+                        ? YOUTH_REFRESH_REQUEST_EVENT
+                        : SENIOR_REFRESH_REQUEST_EVENT
+                    )
+                  )
                 }
-                disabled={youthRefreshing}
-                aria-label={messages.refreshAllYouthDataTooltip}
+                disabled={activeTool === "youth" ? youthRefreshing : seniorRefreshing}
+                aria-label={
+                  activeTool === "youth"
+                    ? messages.refreshAllYouthDataTooltip
+                    : messages.refreshAllSeniorDataTooltip
+                }
               >
                 {messages.clubChronicleRefreshButton}
               </button>
@@ -534,35 +651,60 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
               className={styles.chronicleUpdatesButton}
               onClick={() =>
                 window.dispatchEvent(
-                  new CustomEvent(YOUTH_LATEST_UPDATES_OPEN_EVENT)
+                  new CustomEvent(
+                    activeTool === "youth"
+                      ? YOUTH_LATEST_UPDATES_OPEN_EVENT
+                      : SENIOR_LATEST_UPDATES_OPEN_EVENT
+                  )
                 )
               }
               aria-label={messages.clubChronicleUpdatesButton}
+              data-help-anchor={
+                activeTool === "senior" ? "senior-latest-updates" : undefined
+              }
             >
               {messages.clubChronicleUpdatesButton}
             </button>
           </div>
-          {youthRefreshStatus || youthRefreshing ? (
+          {(activeTool === "youth"
+            ? youthRefreshStatus || youthRefreshing
+            : seniorRefreshStatus || seniorRefreshing) ? (
             <div className={styles.chronicleRefreshStatusWrap} aria-live="polite">
               <span className={styles.chronicleRefreshStatusText}>
-                {youthRefreshStatus ?? messages.refreshingLabel}
+                {activeTool === "youth"
+                  ? youthRefreshStatus ?? messages.refreshingLabel
+                  : seniorRefreshStatus ?? messages.refreshingLabel}
               </span>
               <span className={styles.chronicleRefreshProgressRow}>
                 <span className={styles.chronicleRefreshProgressTrack} aria-hidden="true">
                   <span
                     className={styles.chronicleRefreshProgressFill}
                     style={{
-                      width: `${Math.max(0, Math.min(100, youthRefreshProgressPct))}%`,
+                      width: `${Math.max(
+                        0,
+                        Math.min(
+                          100,
+                          activeTool === "youth"
+                            ? youthRefreshProgressPct
+                            : seniorRefreshProgressPct
+                        )
+                      )}%`,
                     }}
                   />
                 </span>
-                {youthRefreshing ? (
+                {(activeTool === "youth" ? youthRefreshing : seniorRefreshing) ? (
                   <Tooltip content={messages.refreshStopTooltip}>
                     <button
                       type="button"
                       className={`${styles.chronicleUpdatesButton} ${styles.chronicleRefreshStopButton}`}
                       onClick={() =>
-                        window.dispatchEvent(new CustomEvent(YOUTH_REFRESH_STOP_EVENT))
+                        window.dispatchEvent(
+                          new CustomEvent(
+                            activeTool === "youth"
+                              ? YOUTH_REFRESH_STOP_EVENT
+                              : SENIOR_REFRESH_STOP_EVENT
+                          )
+                        )
                       }
                       aria-label={messages.refreshStopTooltip}
                     >
@@ -573,15 +715,18 @@ export default function AppShell({ messages, globalHeader, children }: AppShellP
               </span>
             </div>
           ) : null}
-          {youthLastRefreshAt ? (
+          {activeOptimizationLastRefreshAt ? (
             <span className={styles.chronicleRefreshStatusText}>
-              {messages.youthLastGlobalRefresh}: {formatDateTime(youthLastRefreshAt)}
+              {messages.youthLastGlobalRefresh}:{" "}
+              {formatDateTime(activeOptimizationLastRefreshAt)}
             </span>
           ) : null}
         </div>
       ) : null}
       <section className={styles.shellWorkspace} data-active-tool={activeTool}>
-        {activeTool === "youth" ? children : <ClubChronicle messages={messages} />}
+        {activeTool === "youth" ? youthToolChildren : null}
+        {activeTool === "senior" ? seniorToolChildren : null}
+        {activeTool === "chronicle" ? <ClubChronicle messages={messages} /> : null}
       </section>
       <Modal
         open={showChangelog}

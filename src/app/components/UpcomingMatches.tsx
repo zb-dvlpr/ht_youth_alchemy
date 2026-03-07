@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
@@ -25,6 +25,7 @@ export type Match = {
   Status?: string;
   OrdersGiven?: string | boolean;
   MatchType?: number | string;
+  SourceSystem?: string;
   HomeTeam?: MatchTeam;
   AwayTeam?: MatchTeam;
 };
@@ -53,16 +54,33 @@ type UpcomingMatchesProps = {
   assignments: LineupAssignments;
   behaviors?: LineupBehaviors;
   captainId?: number | null;
+  penaltyKickerIds?: number[];
   tacticType?: number;
   onRefresh?: () => boolean | Promise<boolean>;
   onLoadLineup?: (
     assignments: LineupAssignments,
     behaviors: LineupBehaviors,
-    matchId: number
+    matchId: number,
+    tacticType?: number
   ) => void;
+  onSetBestLineup?: (matchId: number) => void | Promise<void>;
+  onSetBestLineupMode?: (
+    matchId: number,
+    mode: SetBestLineupMode
+  ) => void | Promise<void>;
+  onAnalyzeOpponent?: (matchId: number) => void | Promise<void>;
   loadedMatchId?: number | null;
   onSubmitSuccess?: () => void;
+  sourceSystem?: string;
+  includeTournamentMatches?: boolean;
+  onIncludeTournamentMatchesChange?: (next: boolean) => void;
+  setBestLineupHelpAnchor?: string;
 };
+
+export type SetBestLineupMode = "trainingAware" | "ignoreTraining";
+
+const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
+const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
 
 function normalizeMatches(input?: Match[] | Match): Match[] {
   if (!input) return [];
@@ -79,6 +97,22 @@ function sortByDate(matches: Match[]) {
     const bTime = parseChppDate(b.MatchDate)?.getTime() ?? 0;
     return aTime - bTime;
   });
+}
+
+function resolveMatchSourceSystem(
+  match: Match | undefined,
+  fallbackSourceSystem: string
+): string {
+  const explicitSource =
+    match && typeof match.SourceSystem === "string" && match.SourceSystem.trim().length > 0
+      ? match.SourceSystem.trim()
+      : null;
+  if (explicitSource) return explicitSource;
+  const matchType = Number(match?.MatchType);
+  if (Number.isFinite(matchType) && TOURNAMENT_MATCH_TYPES.has(matchType)) {
+    return "htointegrated";
+  }
+  return fallbackSourceSystem;
 }
 
 type MatchState = {
@@ -124,7 +158,8 @@ function buildLineupPayload(
   assignments: LineupAssignments,
   behaviors?: LineupBehaviors,
   captainId?: number | null,
-  tacticType?: number
+  tacticType?: number,
+  penaltyKickerIds?: number[]
 ) {
   const toId = (value: number | null | undefined) => value ?? 0;
   const positions = POSITION_SLOT_ORDER.map((slot) => ({
@@ -139,7 +174,10 @@ function buildLineupPayload(
     })),
     ...Array.from({ length: 7 }, () => ({ id: 0, behaviour: 0 })),
   ];
-  const kickers = Array.from({ length: 11 }, () => ({ id: 0, behaviour: 0 }));
+  const kickers = Array.from({ length: 11 }, (_, index) => ({
+    id: Number(penaltyKickerIds?.[index] ?? 0) || 0,
+    behaviour: 0,
+  }));
 
   return {
     positions,
@@ -159,10 +197,154 @@ function buildLineupPayload(
   };
 }
 
+function parseLoadedTacticType(payload: unknown): number | null {
+  const toNumber = (value: unknown): number | null => {
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : null;
+    }
+    if (typeof value === "string") {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    if (value && typeof value === "object") {
+      const record = value as Record<string, unknown>;
+      const text = record["#text"];
+      if (typeof text === "string" || typeof text === "number") {
+        const parsed = Number(text);
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+    }
+    return null;
+  };
+  if (!payload || typeof payload !== "object") return null;
+  const root = payload as Record<string, unknown>;
+  const hattrickData =
+    root.data && typeof root.data === "object"
+      ? (root.data as Record<string, unknown>).HattrickData
+      : null;
+  if (!hattrickData || typeof hattrickData !== "object") return null;
+  const matchData = (hattrickData as Record<string, unknown>).MatchData;
+  if (!matchData || typeof matchData !== "object") return null;
+  const matchDataRecord = matchData as Record<string, unknown>;
+  const lineupNode =
+    matchDataRecord.Lineup && typeof matchDataRecord.Lineup === "object"
+      ? (matchDataRecord.Lineup as Record<string, unknown>)
+      : null;
+  const matchOrdersNode =
+    matchDataRecord.MatchOrders && typeof matchDataRecord.MatchOrders === "object"
+      ? (matchDataRecord.MatchOrders as Record<string, unknown>)
+      : null;
+  const settingsCandidates: unknown[] = [
+    lineupNode?.Settings,
+    matchDataRecord.Settings,
+    matchOrdersNode?.Settings,
+  ];
+  const valueCandidates: unknown[] = [matchDataRecord.TacticType, matchDataRecord.Tactic];
+  settingsCandidates.forEach((settings) => {
+    if (!settings || typeof settings !== "object") return;
+    const record = settings as Record<string, unknown>;
+    valueCandidates.push(
+      record.TacticType,
+      record.Tactic,
+      record.TacticTypeID,
+      record.TacticTypeId
+    );
+  });
+  for (const candidate of valueCandidates) {
+    const parsed = toNumber(candidate);
+    if (parsed !== null) return parsed;
+  }
+  return null;
+}
+
+type SetBestLineupMenuButtonProps = {
+  matchId: number;
+  loading: boolean;
+  messages: Messages;
+  onSelectMode: (matchId: number, mode: SetBestLineupMode) => void;
+  helpAnchor?: string;
+};
+
+function SetBestLineupMenuButton({
+  matchId,
+  loading,
+  messages,
+  onSelectMode,
+  helpAnchor,
+}: SetBestLineupMenuButtonProps) {
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (triggerRef.current?.contains(target ?? null)) return;
+      if (menuRef.current?.contains(target ?? null)) return;
+      setOpen(false);
+    };
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, [open]);
+
+  const trigger = (
+    <button
+      type="button"
+      className={`${styles.optimizeButton} ${styles.matchBestLineupDazzleButton}`}
+      onClick={() => {
+        if (loading) return;
+        setOpen((prev) => !prev);
+      }}
+      disabled={loading}
+      aria-label={messages.setBestLineupTooltip}
+      ref={triggerRef}
+      data-help-anchor={helpAnchor}
+    >
+      {loading ? "…" : "✨"}
+    </button>
+  );
+
+  return (
+    <div className={styles.feedbackWrap}>
+      <Tooltip content={messages.setBestLineupTooltip}>{trigger}</Tooltip>
+      {open ? (
+        <div className={styles.feedbackMenu} ref={menuRef}>
+          <Tooltip content={messages.setBestLineupTrainingAwareTooltip} fullWidth>
+            <button
+              type="button"
+              className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+              onClick={() => {
+                setOpen(false);
+                onSelectMode(matchId, "trainingAware");
+              }}
+            >
+              {messages.setBestLineupTrainingAware}
+            </button>
+          </Tooltip>
+          <Tooltip content={messages.setBestLineupIgnoreTrainingTooltip} fullWidth>
+            <button
+              type="button"
+              className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+              onClick={() => {
+                setOpen(false);
+                onSelectMode(matchId, "ignoreTraining");
+              }}
+            >
+              {messages.setBestLineupIgnoreTraining}
+            </button>
+          </Tooltip>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function renderMatch(
   matchId: number,
   match: Match,
   teamId: number | null,
+  sourceSystem: string,
   messages: Messages,
   hasLineup: boolean,
   state: MatchState,
@@ -170,8 +352,13 @@ function renderMatch(
   updatedLabel?: string | null,
   loadState?: LoadState,
   onLoadLineup?: (matchId: number) => void,
+  onSetBestLineupMode?: (matchId: number, mode: SetBestLineupMode) => void,
+  onAnalyzeOpponent?: (matchId: number) => void,
+  bestLineupPending?: boolean,
+  analyzePending?: boolean,
   isLoaded?: boolean,
-  assignedCount?: number
+  assignedCount?: number,
+  setBestLineupHelpAnchor?: string
 ) {
   const isUpcoming = match.Status === "UPCOMING";
   const canSubmit = Boolean(teamId) && isUpcoming && hasLineup;
@@ -253,9 +440,29 @@ function renderMatch(
       : assignedCount && assignedCount < 9
       ? messages.submitOrdersMinPlayers
       : null;
+  const canShowBestLineupMenu =
+    sourceSystem === "Hattrick" && Boolean(onSetBestLineupMode);
+  const canAnalyzeOpponent = sourceSystem === "Hattrick" && Boolean(onAnalyzeOpponent);
+  const showActionRow = isUpcoming || canAnalyzeOpponent;
 
   return (
-    <li key={matchId} className={styles.matchItem}>
+    <li
+      key={matchId}
+      className={`${styles.matchItem} ${
+        canShowBestLineupMenu ? styles.matchItemHasTopAction : ""
+      }`}
+    >
+      {canShowBestLineupMenu ? (
+        <div className={styles.matchBestLineupTopAction}>
+          <SetBestLineupMenuButton
+            matchId={matchId}
+            loading={Boolean(bestLineupPending)}
+            messages={messages}
+            onSelectMode={onSetBestLineupMode!}
+            helpAnchor={setBestLineupHelpAnchor}
+          />
+        </div>
+      ) : null}
       <div className={styles.matchTeams}>
         <span>{match.HomeTeam?.HomeTeamName ?? messages.homeLabel}</span>
         <span className={styles.vs}>vs</span>
@@ -271,8 +478,10 @@ function renderMatch(
           {messages.ordersLabel}: {ordersSet ? messages.ordersSet : messages.ordersNotSet}
         </span>
       </div>
-      {isUpcoming ? (
+      {showActionRow ? (
         <div className={styles.matchActions}>
+          {isUpcoming ? (
+            <>
           <Tooltip content={messages.loadLineupTooltip}>
             <button
               type="button"
@@ -331,6 +540,23 @@ function renderMatch(
               <pre>{state.raw}</pre>
             </details>
           ) : null}
+            </>
+          ) : null}
+          {canAnalyzeOpponent ? (
+            <span className={styles.matchAnalyzeOpponentWrap}>
+              <Tooltip content={messages.analyzeOpponentTooltip}>
+                <button
+                  type="button"
+                  className={styles.matchButtonSecondary}
+                  onClick={() => onAnalyzeOpponent?.(matchId)}
+                  disabled={Boolean(analyzePending)}
+                  aria-label={messages.analyzeOpponentTooltip}
+                >
+                  {messages.analyzeOpponent}
+                </button>
+              </Tooltip>
+            </span>
+          ) : null}
         </div>
       ) : null}
     </li>
@@ -343,17 +569,29 @@ export default function UpcomingMatches({
   assignments,
   behaviors,
   captainId,
+  penaltyKickerIds,
   tacticType,
   onRefresh,
   onLoadLineup,
+  onSetBestLineup,
+  onSetBestLineupMode,
+  onAnalyzeOpponent,
   loadedMatchId,
   onSubmitSuccess,
+  sourceSystem = "Youth",
+  includeTournamentMatches = true,
+  onIncludeTournamentMatchesChange,
+  setBestLineupHelpAnchor,
 }: UpcomingMatchesProps) {
   const { addNotification } = useNotifications();
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
   const [loadStates, setLoadStates] = useState<Record<number, LoadState>>({});
   const [confirmMatchId, setConfirmMatchId] = useState<number | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [bestLineupPendingMatchId, setBestLineupPendingMatchId] = useState<number | null>(
+    null
+  );
+  const [analyzePendingMatchId, setAnalyzePendingMatchId] = useState<number | null>(null);
   const teamId =
     response.data?.HattrickData?.Team?.TeamID ??
     null;
@@ -363,14 +601,29 @@ export default function UpcomingMatches({
   const hasLineup = assignedCount >= 9 && assignedCount <= 11;
 
   const lineupPayload = useMemo(
-    () => buildLineupPayload(assignments, behaviors, captainId, tacticType),
-    [assignments, behaviors, captainId, tacticType]
+    () =>
+      buildLineupPayload(
+        assignments,
+        behaviors,
+        captainId,
+        tacticType,
+        penaltyKickerIds
+      ),
+    [assignments, behaviors, captainId, tacticType, penaltyKickerIds]
   );
 
   const allMatches = normalizeMatches(
     response.data?.HattrickData?.MatchList?.Match ??
       response.data?.HattrickData?.Team?.MatchList?.Match
   );
+  const allowAllMatchTypes = onIncludeTournamentMatchesChange
+    ? includeTournamentMatches
+    : true;
+  const visibleMatches = allMatches.filter((match) => {
+    if (allowAllMatchTypes) return true;
+    const matchType = Number(match.MatchType);
+    return Number.isFinite(matchType) && DEFAULT_ALLOWED_MATCH_TYPES.has(matchType);
+  });
 
   const matchById = useMemo(() => {
     const map = new Map<number, Match>();
@@ -428,6 +681,10 @@ export default function UpcomingMatches({
 
   const handleLoadLineup = async (matchId: number) => {
     if (!teamId) return;
+    const matchSourceSystem = resolveMatchSourceSystem(
+      matchById.get(matchId),
+      sourceSystem
+    );
     setLoadStates((prev) => ({
       ...prev,
       [matchId]: { status: "loading", error: null },
@@ -447,7 +704,9 @@ export default function UpcomingMatches({
         error?: string;
         details?: string;
       }>(
-        `/api/chpp/matchorders?matchId=${matchId}&teamId=${teamId}`,
+        `/api/chpp/matchorders?matchId=${matchId}&teamId=${teamId}&sourceSystem=${encodeURIComponent(
+          matchSourceSystem
+        )}`,
         { cache: "no-store" }
       );
       if (!response.ok || payload?.error) {
@@ -519,7 +778,13 @@ export default function UpcomingMatches({
       if (Object.keys(next).length === 0) {
         throw new Error(messages.loadLineupUnavailable);
       }
-      onLoadLineup?.(next, nextBehaviors, matchId);
+      const loadedTacticType = parseLoadedTacticType(payload);
+      onLoadLineup?.(
+        next,
+        nextBehaviors,
+        matchId,
+        loadedTacticType !== null ? loadedTacticType : undefined
+      );
       addNotification(
         `${messages.notificationLineupLoaded} ${formatMatchName(
           matchById.get(matchId)
@@ -539,6 +804,34 @@ export default function UpcomingMatches({
     }
   };
 
+  const handleSetBestLineupMode = async (
+    matchId: number,
+    mode: SetBestLineupMode
+  ) => {
+    if (bestLineupPendingMatchId !== null) return;
+    if (!onSetBestLineupMode && !onSetBestLineup) return;
+    setBestLineupPendingMatchId(matchId);
+    try {
+      if (onSetBestLineupMode) {
+        await onSetBestLineupMode(matchId, mode);
+      } else if (onSetBestLineup) {
+        await onSetBestLineup(matchId);
+      }
+    } finally {
+      setBestLineupPendingMatchId((current) => (current === matchId ? null : current));
+    }
+  };
+
+  const handleAnalyzeOpponent = async (matchId: number) => {
+    if (!onAnalyzeOpponent || analyzePendingMatchId !== null) return;
+    setAnalyzePendingMatchId(matchId);
+    try {
+      await onAnalyzeOpponent(matchId);
+    } finally {
+      setAnalyzePendingMatchId((current) => (current === matchId ? null : current));
+    }
+  };
+
   const confirmSubmit = async () => {
     if (!confirmMatchId || !teamId) {
       setConfirmMatchId(null);
@@ -547,6 +840,10 @@ export default function UpcomingMatches({
 
     const matchId = confirmMatchId;
     setConfirmMatchId(null);
+    const matchSourceSystem = resolveMatchSourceSystem(
+      matchById.get(matchId),
+      sourceSystem
+    );
 
     setMatchStates((prev) => ({
       ...prev,
@@ -565,6 +862,7 @@ export default function UpcomingMatches({
         body: JSON.stringify({
           matchId,
           teamId,
+          sourceSystem: matchSourceSystem,
           lineup: lineupPayload,
         }),
       });
@@ -617,11 +915,64 @@ export default function UpcomingMatches({
       }));
     }
   };
+  const tournamentToggle = onIncludeTournamentMatchesChange ? (
+    <Tooltip content={messages.matchesIncludeTournamentTooltip}>
+      <label className={styles.matchesFilterToggle}>
+        <input
+          type="checkbox"
+          className={styles.matchesFilterToggleInput}
+          checked={includeTournamentMatches}
+          onChange={(event) =>
+            onIncludeTournamentMatchesChange(event.currentTarget.checked)
+          }
+          aria-label={messages.matchesIncludeTournamentLabel}
+        />
+        <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
+        <span className={styles.matchesFilterToggleLabel}>
+          {messages.matchesIncludeTournamentLabel}
+        </span>
+      </label>
+    </Tooltip>
+  ) : null;
+
   if (response.error) {
     return (
       <div className={styles.card}>
         <div className={styles.matchesHeader}>
           <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
+          <div className={styles.matchesHeaderControls}>
+            {tournamentToggle}
+            <Tooltip content={messages.matchesRefreshTooltip}>
+              <button
+                type="button"
+                className={styles.sortToggle}
+                onClick={handleRefresh}
+                disabled={refreshing}
+                aria-label={messages.matchesRefreshTooltip}
+              >
+                ↻
+              </button>
+            </Tooltip>
+          </div>
+        </div>
+        <p className={styles.errorText}>{messages.unableToLoadMatches}</p>
+        {response.details ? (
+          <p className={styles.errorDetails}>{response.details}</p>
+        ) : null}
+      </div>
+    );
+  }
+
+  const upcoming = visibleMatches.filter((match) => match.Status === "UPCOMING");
+  const sortedUpcoming = sortByDate(upcoming);
+  const sortedAll = sortByDate(visibleMatches);
+
+  return (
+    <div className={styles.card}>
+      <div className={styles.matchesHeader}>
+        <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
+        <div className={styles.matchesHeaderControls}>
+          {tournamentToggle}
           <Tooltip content={messages.matchesRefreshTooltip}>
             <button
               type="button"
@@ -634,33 +985,6 @@ export default function UpcomingMatches({
             </button>
           </Tooltip>
         </div>
-        <p className={styles.errorText}>{messages.unableToLoadMatches}</p>
-        {response.details ? (
-          <p className={styles.errorDetails}>{response.details}</p>
-        ) : null}
-      </div>
-    );
-  }
-
-  const upcoming = allMatches.filter((match) => match.Status === "UPCOMING");
-  const sortedUpcoming = sortByDate(upcoming);
-  const sortedAll = sortByDate(allMatches);
-
-  return (
-    <div className={styles.card}>
-      <div className={styles.matchesHeader}>
-        <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
-        <Tooltip content={messages.matchesRefreshTooltip}>
-          <button
-            type="button"
-            className={styles.sortToggle}
-            onClick={handleRefresh}
-            disabled={refreshing}
-            aria-label={messages.matchesRefreshTooltip}
-          >
-            ↻
-          </button>
-        </Tooltip>
       </div>
       <Modal
         open={!!confirmMatchId}
@@ -687,7 +1011,7 @@ export default function UpcomingMatches({
       />
       {sortedUpcoming.length > 0 ? (
         <ul className={styles.matchList}>
-          {sortedUpcoming.map((match) => {
+          {sortedUpcoming.map((match, index) => {
             const matchId = Number(match.MatchID);
             if (!Number.isFinite(matchId)) return null;
             const state = matchStates[matchId] ?? { status: "idle" };
@@ -698,6 +1022,7 @@ export default function UpcomingMatches({
               matchId,
               match,
               teamId,
+              sourceSystem,
               messages,
               hasLineup,
               state,
@@ -705,8 +1030,13 @@ export default function UpcomingMatches({
               updatedLabel,
               loadStates[matchId],
               handleLoadLineup,
+              handleSetBestLineupMode,
+              handleAnalyzeOpponent,
+              bestLineupPendingMatchId === matchId,
+              analyzePendingMatchId === matchId,
               loadedMatchId === matchId,
-              assignedCount
+              assignedCount,
+              index === 0 ? setBestLineupHelpAnchor : undefined
             );
           })}
         </ul>
@@ -714,7 +1044,7 @@ export default function UpcomingMatches({
         <>
           <p className={styles.muted}>{messages.noUpcomingMatches}</p>
           <ul className={styles.matchList}>
-            {sortedAll.map((match) => {
+            {sortedAll.map((match, index) => {
               const matchId = Number(match.MatchID);
               if (!Number.isFinite(matchId)) return null;
               const state = matchStates[matchId] ?? { status: "idle" };
@@ -725,6 +1055,7 @@ export default function UpcomingMatches({
                 matchId,
                 match,
                 teamId,
+                sourceSystem,
                 messages,
                 hasLineup,
                 state,
@@ -732,8 +1063,13 @@ export default function UpcomingMatches({
                 updatedLabel,
                 loadStates[matchId],
                 handleLoadLineup,
+                handleSetBestLineupMode,
+                handleAnalyzeOpponent,
+                bestLineupPendingMatchId === matchId,
+                analyzePendingMatchId === matchId,
                 loadedMatchId === matchId,
-                assignedCount
+                assignedCount,
+                index === 0 ? setBestLineupHelpAnchor : undefined
               );
             })}
           </ul>

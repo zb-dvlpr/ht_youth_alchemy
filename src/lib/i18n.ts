@@ -1,4 +1,4 @@
-export type Locale = "en" | "de" | "fr" | "es" | "sv" | "it" | "pt";
+export type Locale = "en" | "de" | "fr" | "es" | "sv" | "it" | "pt" | "pl" | "nl";
 
 export const SUPPORTED_LOCALES: Locale[] = [
   "en",
@@ -8,6 +8,8 @@ export const SUPPORTED_LOCALES: Locale[] = [
   "sv",
   "it",
   "pt",
+  "pl",
+  "nl",
 ];
 
 export type Messages = {
@@ -21,6 +23,9 @@ export type Messages = {
   sidebarCollapseTooltip: string;
   sidebarExpandTooltip: string;
   toolYouthOptimization: string;
+  toolSeniorOptimization: string;
+  toolYouthBadge: string;
+  toolSeniorBadge: string;
   toolClubChronicle: string;
   clubChronicleTitle: string;
   clubChronicleBody: string;
@@ -75,6 +80,9 @@ export type Messages = {
   changelog_2_21_0: string;
   changelog_2_22_0: string;
   changelog_2_23_0: string;
+  changelog_2_24_0: string;
+  changelog_3_0_0: string;
+  changelog_3_1_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -93,6 +101,10 @@ export type Messages = {
   settingsYouthTitle: string;
   settingsYouthStalenessLabel: string;
   settingsYouthStalenessHint: string;
+  settingsSenior: string;
+  settingsSeniorTitle: string;
+  settingsSeniorStalenessLabel: string;
+  settingsSeniorStalenessHint: string;
   behaviorNeutral: string;
   behaviorOffensive: string;
   behaviorDefensive: string;
@@ -377,6 +389,15 @@ export type Messages = {
   helpCalloutTraining: string;
   helpCalloutOptimize: string;
   helpCalloutAuto: string;
+  seniorHelpTitle: string;
+  seniorHelpIntro: string;
+  seniorHelpCalloutUpdates: string;
+  seniorHelpCalloutSetLineupAi: string;
+  seniorHelpBulletLatestUpdates: string;
+  seniorHelpBulletAiOverview: string;
+  seniorHelpBulletAiTrainingAware: string;
+  seniorHelpBulletAiIgnoreTraining: string;
+  seniorHelpBulletAiMatchTypes: string;
   themeSwitchDark: string;
   themeSwitchLight: string;
   helpDismissLabel: string;
@@ -387,8 +408,12 @@ export type Messages = {
   detailsTabLabel: string;
   skillsMatrixTabLabel: string;
   ratingsMatrixTabLabel: string;
+  seniorSkillsMatrixBonusToggleLabel: string;
+  seniorSkillsMatrixBonusToggleTooltip: string;
   matrixNewPillLabel: string;
   matrixNewNTooltip: string;
+  scoutImportantSkillTooltip: string;
+  scoutOverallSkillLevelTooltip: string;
   youthUpdatesNewPlayerLabel: string;
   youthUpdatesSkillCurrentTag: string;
   youthUpdatesSkillMaxTag: string;
@@ -398,6 +423,7 @@ export type Messages = {
   playerDetailsNextPlayer: string;
   refreshPlayerListTooltip: string;
   refreshAllYouthDataTooltip: string;
+  refreshAllSeniorDataTooltip: string;
   refreshStopButton: string;
   refreshStopTooltip: string;
   youthLastGlobalRefresh: string;
@@ -418,6 +444,8 @@ export type Messages = {
   matchesTitle: string;
   matchesRefresh: string;
   matchesRefreshTooltip: string;
+  matchesIncludeTournamentLabel: string;
+  matchesIncludeTournamentTooltip: string;
   noUpcomingMatches: string;
   noMatchesReturned: string;
   ordersLabel: string;
@@ -458,6 +486,15 @@ export type Messages = {
   submitOrdersUpdated: string;
   submitOrdersMinPlayers: string;
   submitOrdersMaxPlayers: string;
+  seniorSubmitDisclaimerTitle: string;
+  seniorSubmitDisclaimerIntro: string;
+  seniorSubmitDisclaimerBulletBestEffort: string;
+  seniorSubmitDisclaimerBulletNoResponsibility: string;
+  seniorSubmitDisclaimerBulletFineTune: string;
+  seniorSubmitDisclaimerBulletResubmit: string;
+  seniorSubmitDisclaimerBulletKickers: string;
+  seniorSubmitDisclaimerBulletOrdersInHattrick: string;
+  seniorSubmitDisclaimerBulletVerify: string;
   loadLineupTooltip: string;
   submitOrdersTooltip: string;
   randomizeLineup: string;
@@ -527,6 +564,26 @@ export type Messages = {
   confirmSubmit: string;
   loadLineup: string;
   loadLineupLoading: string;
+  setBestLineup: string;
+  setBestLineupLoading: string;
+  setBestLineupTooltip: string;
+  setBestLineupTrainingAware: string;
+  setBestLineupTrainingAwareTooltip: string;
+  setBestLineupIgnoreTraining: string;
+  setBestLineupIgnoreTrainingTooltip: string;
+  setBestLineupRejectedPlayersLabel: string;
+  analyzeOpponent: string;
+  analyzeOpponentTooltip: string;
+  analyzeOpponentMatchId: string;
+  analyzeOpponentMatchType: string;
+  analyzeOpponentFormationColumn: string;
+  analyzeOpponentTacticColumn: string;
+  analyzeOpponentAgainstYouMark: string;
+  analyzeOpponentNeverPlayedUs: string;
+  analyzeOpponentSummaryPreferredFormation: string;
+  analyzeOpponentSummaryPreferredTactic: string;
+  analyzeOpponentSummaryVsYou: string;
+  analyzeOpponentSummaryWith: string;
   loadLineupUnavailable: string;
   loadLineupActive: string;
   loadLineupError: string;
@@ -575,6 +632,7 @@ export type Messages = {
   trainingSlotSecondary: string;
   trainingSlotBoth: string;
   starPlayerLabel: string;
+  seniorPlayerListTitle: string;
   sortLabel: string;
   sortName: string;
   sortAge: string;
@@ -588,7 +646,32 @@ export type Messages = {
   sortPassing: string;
   sortScorer: string;
   sortSetPieces: string;
+  sortTsi: string;
+  sortWage: string;
+  sortForm: string;
+  sortStamina: string;
+  sortExperience: string;
+  sortLoyalty: string;
+  seniorCareerStatsTitle: string;
+  seniorCareerGoalsLabel: string;
+  seniorCareerHattricksLabel: string;
+  seniorLeagueGoalsLabel: string;
+  seniorCupGoalsLabel: string;
+  seniorFriendliesGoalsLabel: string;
+  seniorGoalsCurrentTeamLabel: string;
+  seniorAssistsCurrentTeamLabel: string;
+  seniorCareerAssistsLabel: string;
+  seniorMatchesCurrentTeamLabel: string;
+  seniorMatrixPlayerShortLabel: string;
+  seniorMatrixSpecialtyShortLabel: string;
+  seniorMatrixFormShortLabel: string;
+  seniorMatrixStaminaShortLabel: string;
+  sortInjuries: string;
+  sortCards: string;
   sortCustom: string;
+  seniorListInjuryBruised: string;
+  seniorListInjuryWeeks: string;
+  seniorCardsMatchRunning: string;
   sortToggleAria: string;
   sortAscLabel: string;
   sortDescLabel: string;
@@ -600,6 +683,9 @@ export type Messages = {
   devOauthErrorSim4xx: string;
   devOauthErrorSim5xx: string;
   devOauthErrorSimHint: string;
+  debugYouthSeMatchIdLabel: string;
+  debugYouthSeFetchButton: string;
+  debugYouthSeFetchHint: string;
   statusLabel: string;
   matchStatusUpcoming: string;
   matchStatusFinished: string;
@@ -628,7 +714,14 @@ export type Messages = {
   specialtyHeadSpecialist: string;
   specialtyResilient: string;
   specialtySupport: string;
+  motherClubBonusTooltip: string;
+  skillBonusMotherClubTooltip: string;
+  skillBonusLoyaltyTooltip: string;
+  seniorSkillLevelLabels: string;
+  seniorTraitsSentenceExperienceLeadership: string;
+  seniorTraitsSentenceLoyalty: string;
   hiddenSpecialtyTooltip: string;
+  hiddenSpecialtyTooltipLinkHint: string;
   skillsLabel: string;
   skillMaxedTooltip: string;
   unknownLabel: string;
@@ -637,17 +730,28 @@ export type Messages = {
   lastMatchPositionLabel: string;
   lastMatchRatingLabel: string;
   playerIdLabel: string;
+  cardStatusLabel: string;
   playerLinkLabel: string;
   dragPlayerHint: string;
+  youthDragToLineupHint: string;
   homeLabel: string;
   awayLabel: string;
   unknownDate: string;
   ratingsTitle: string;
+  ratingsMatchesAnalyzed: string;
   ratingsIndexLabel: string;
   ratingsMissingNote: string;
   ratingsSortBy: string;
   ratingsPlayerLabel: string;
   ratingsSpecialtyLabel: string;
+  ratingSectorMidfieldShort: string;
+  ratingSectorRightDefShort: string;
+  ratingSectorMidDefShort: string;
+  ratingSectorLeftDefShort: string;
+  ratingSectorRightAttShort: string;
+  ratingSectorMidAttShort: string;
+  ratingSectorLeftAttShort: string;
+  averageLabel: string;
   posKeeper: string;
   posBack: string;
   posCentralDefender: string;

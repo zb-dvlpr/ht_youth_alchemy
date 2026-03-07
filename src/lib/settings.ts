@@ -5,12 +5,17 @@ export const CLUB_CHRONICLE_SETTINGS_STORAGE_KEY = "ya_club_chronicle_settings_v
 export const CLUB_CHRONICLE_SETTINGS_EVENT = "ya:club-chronicle-settings";
 export const CLUB_CHRONICLE_DEBUG_EVENT = "ya:club-chronicle-debug";
 export const YOUTH_NEW_MARKERS_DEBUG_EVENT = "ya:youth-new-markers-debug";
+export const YOUTH_DEBUG_SE_FETCH_EVENT = "ya:youth-debug-se-fetch";
 export const DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS = 3;
 export const DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT = 5;
 export const DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT = 10;
-export const YOUTH_SETTINGS_STORAGE_KEY = "ya_youth_staleness_hours_v1";
+export const YOUTH_SETTINGS_STORAGE_KEY = "ya_youth_staleness_days_v1";
+export const YOUTH_SETTINGS_STORAGE_KEY_LEGACY = "ya_youth_staleness_hours_v1";
 export const YOUTH_SETTINGS_EVENT = "ya:youth-settings";
-export const DEFAULT_YOUTH_STALENESS_HOURS = 3;
+export const DEFAULT_YOUTH_STALENESS_DAYS = 1;
+export const SENIOR_SETTINGS_STORAGE_KEY = "ya_senior_staleness_days_v1";
+export const SENIOR_SETTINGS_EVENT = "ya:senior-settings";
+export const DEFAULT_SENIOR_STALENESS_DAYS = 1;
 export const LAST_REFRESH_STORAGE_KEY = "ya_last_refresh_ts_v1";
 export const DEBUG_SETTINGS_STORAGE_KEY = "ya_debug_disable_scaling_v1";
 export const DEBUG_SETTINGS_EVENT = "ya:debug-settings";
@@ -196,30 +201,69 @@ export function writeClubChronicleUpdatesHistoryCount(value: number) {
   }
 }
 
-export function readYouthStalenessHours(): number {
+export function readYouthStalenessDays(): number {
   if (typeof window === "undefined") {
-    return DEFAULT_YOUTH_STALENESS_HOURS;
+    return DEFAULT_YOUTH_STALENESS_DAYS;
   }
   try {
     const stored = window.localStorage.getItem(YOUTH_SETTINGS_STORAGE_KEY);
-    if (stored === null) {
-      return DEFAULT_YOUTH_STALENESS_HOURS;
+    if (stored !== null) {
+      const value = Number(stored);
+      if (!Number.isFinite(value)) {
+        return DEFAULT_YOUTH_STALENESS_DAYS;
+      }
+      return Math.min(7, Math.max(1, Math.round(value)));
     }
-    const value = Number(stored);
-    if (!Number.isFinite(value)) {
-      return DEFAULT_YOUTH_STALENESS_HOURS;
+
+    const legacyStored = window.localStorage.getItem(YOUTH_SETTINGS_STORAGE_KEY_LEGACY);
+    if (legacyStored === null) {
+      return DEFAULT_YOUTH_STALENESS_DAYS;
     }
-    return Math.min(24, Math.max(1, Math.round(value)));
+    const legacyHours = Number(legacyStored);
+    if (!Number.isFinite(legacyHours)) {
+      return DEFAULT_YOUTH_STALENESS_DAYS;
+    }
+    return Math.min(7, Math.max(1, Math.ceil(legacyHours / 24)));
   } catch {
-    return DEFAULT_YOUTH_STALENESS_HOURS;
+    return DEFAULT_YOUTH_STALENESS_DAYS;
   }
 }
 
-export function writeYouthStalenessHours(value: number) {
+export function writeYouthStalenessDays(value: number) {
   if (typeof window === "undefined") return;
   try {
-    const clamped = Math.min(24, Math.max(1, Math.round(value)));
+    const clamped = Math.min(7, Math.max(1, Math.round(value)));
     window.localStorage.setItem(YOUTH_SETTINGS_STORAGE_KEY, String(clamped));
+    window.localStorage.removeItem(YOUTH_SETTINGS_STORAGE_KEY_LEGACY);
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function readSeniorStalenessDays(): number {
+  if (typeof window === "undefined") {
+    return DEFAULT_SENIOR_STALENESS_DAYS;
+  }
+  try {
+    const stored = window.localStorage.getItem(SENIOR_SETTINGS_STORAGE_KEY);
+    if (stored === null) {
+      return DEFAULT_SENIOR_STALENESS_DAYS;
+    }
+    const value = Number(stored);
+    if (!Number.isFinite(value)) {
+      return DEFAULT_SENIOR_STALENESS_DAYS;
+    }
+    return Math.min(7, Math.max(1, Math.round(value)));
+  } catch {
+    return DEFAULT_SENIOR_STALENESS_DAYS;
+  }
+}
+
+export function writeSeniorStalenessDays(value: number) {
+  if (typeof window === "undefined") return;
+  try {
+    const clamped = Math.min(7, Math.max(1, Math.round(value)));
+    window.localStorage.setItem(SENIOR_SETTINGS_STORAGE_KEY, String(clamped));
   } catch {
     // ignore storage errors
   }

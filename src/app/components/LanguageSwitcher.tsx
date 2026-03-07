@@ -19,6 +19,8 @@ const LOCALE_LABELS: Record<Locale, string> = {
   sv: "Svenska",
   it: "Italiano",
   pt: "Português",
+  pl: "Polski",
+  nl: "Nederlands",
 };
 
 export default function LanguageSwitcher({

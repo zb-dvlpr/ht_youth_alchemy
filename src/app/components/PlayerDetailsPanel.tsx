@@ -114,6 +114,11 @@ type PlayerDetailsPanelProps = {
   hiddenSpecialtyByPlayerId?: Record<number, number>;
   hiddenSpecialtyMatchHrefByPlayerId?: Record<number, string>;
   onSelectRatingsPlayer: (playerName: string) => void;
+  onMatrixPlayerDragStart?: (
+    event: React.DragEvent<HTMLElement>,
+    playerId: number,
+    playerName: string
+  ) => void;
   orderedPlayerIds?: number[] | null;
   orderSource?: "list" | "ratings" | "skills" | null;
   onRatingsOrderChange?: (orderedIds: number[]) => void;
@@ -378,6 +383,7 @@ export default function PlayerDetailsPanel({
   hiddenSpecialtyByPlayerId = {},
   hiddenSpecialtyMatchHrefByPlayerId = {},
   onSelectRatingsPlayer,
+  onMatrixPlayerDragStart,
   orderedPlayerIds,
   orderSource,
   onRatingsOrderChange,
@@ -821,9 +827,29 @@ export default function PlayerDetailsPanel({
         <div className={styles.profileHeader}>
           <div>
             <div className={styles.profileNameRow}>
-              <h4 className={styles.profileName}>
-                {detailsData.FirstName} {detailsData.LastName}
-              </h4>
+              {playerKind === "youth" &&
+              typeof detailsData.YouthPlayerID === "number" &&
+              onMatrixPlayerDragStart ? (
+                <Tooltip content={messages.youthDragToLineupHint}>
+                  <h4
+                    className={styles.profileName}
+                    draggable
+                    onDragStart={(event) =>
+                      onMatrixPlayerDragStart(
+                        event,
+                        detailsData.YouthPlayerID as number,
+                        `${detailsData.FirstName} ${detailsData.LastName}`
+                      )
+                    }
+                  >
+                    {detailsData.FirstName} {detailsData.LastName}
+                  </h4>
+                </Tooltip>
+              ) : (
+                <h4 className={styles.profileName}>
+                  {detailsData.FirstName} {detailsData.LastName}
+                </h4>
+              )}
               {playerKind === "senior" && detailsData.MotherClubBonus ? (
                 <Tooltip content={messages.motherClubBonusTooltip}>
                   <span
@@ -1453,14 +1479,33 @@ export default function PlayerDetailsPanel({
                   <td className={styles.matrixIndex}>{index + 1}</td>
                   <td className={styles.matrixPlayer}>
                     <div className={styles.matrixPlayerContent}>
-                      <button
-                        type="button"
-                        className={styles.matrixPlayerButton}
-                        onClick={() => handleMatrixPlayerPick(row.name)}
-                        disabled={!onSelectRatingsPlayer}
-                      >
-                        {row.name}
-                      </button>
+                      {playerKind === "youth" &&
+                      typeof row.id === "number" &&
+                      onMatrixPlayerDragStart ? (
+                        <Tooltip content={messages.youthDragToLineupHint}>
+                          <button
+                            type="button"
+                            className={styles.matrixPlayerButton}
+                            onClick={() => handleMatrixPlayerPick(row.name)}
+                            disabled={!onSelectRatingsPlayer}
+                            draggable
+                            onDragStart={(event) => {
+                              onMatrixPlayerDragStart(event, row.id as number, row.name);
+                            }}
+                          >
+                            {row.name}
+                          </button>
+                        </Tooltip>
+                      ) : (
+                        <button
+                          type="button"
+                          className={styles.matrixPlayerButton}
+                          onClick={() => handleMatrixPlayerPick(row.name)}
+                          disabled={!onSelectRatingsPlayer}
+                        >
+                          {row.name}
+                        </button>
+                      )}
                       {playerKind === "senior" && details?.MotherClubBonus ? (
                         <Tooltip content={messages.motherClubBonusTooltip}>
                           <span
@@ -1856,6 +1901,10 @@ export default function PlayerDetailsPanel({
           }
           selectedName={ratingsMatrixSelectedName}
           onSelectPlayer={handleMatrixPlayerPick}
+          onPlayerDragStart={onMatrixPlayerDragStart}
+          playerNameTooltip={
+            playerKind === "youth" ? messages.youthDragToLineupHint : undefined
+          }
           orderedPlayerIds={orderedPlayerIds}
           orderSource={orderSource}
           onOrderChange={onRatingsOrderChange}

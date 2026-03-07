@@ -755,6 +755,7 @@ export const messagesEn: Messages = {
     playerIdLabel: "Player ID",
     playerLinkLabel: "View on Hattrick",
     dragPlayerHint: "Drag to move",
+    youthDragToLineupHint: "Drag to lineup",
     homeLabel: "Home",
     awayLabel: "Away",
     unknownDate: "Unknown date",

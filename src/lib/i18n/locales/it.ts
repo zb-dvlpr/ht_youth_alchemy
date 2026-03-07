@@ -793,6 +793,7 @@ export const messagesIt: Messages = {
     playerIdLabel: "ID giocatore",
     playerLinkLabel: "Vedi su Hattrick",
     dragPlayerHint: "Trascina per spostare",
+    youthDragToLineupHint: "Trascina nella formazione",
     homeLabel: "Casa",
     awayLabel: "Trasferta",
     unknownDate: "Data sconosciuta",

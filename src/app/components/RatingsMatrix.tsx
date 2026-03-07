@@ -35,6 +35,12 @@ type RatingsMatrixProps = {
   newRatingsByPlayerId?: Record<number, number[]>;
   selectedName?: string | null;
   onSelectPlayer?: (playerName: string) => void;
+  onPlayerDragStart?: (
+    event: React.DragEvent<HTMLElement>,
+    playerId: number,
+    playerName: string
+  ) => void;
+  playerNameTooltip?: string;
   overallSkillLevelByPlayerId?: Record<number, number>;
   orderedPlayerIds?: number[] | null;
   orderSource?: "list" | "ratings" | "skills" | null;
@@ -101,6 +107,8 @@ export default function RatingsMatrix({
   newRatingsByPlayerId = {},
   selectedName,
   onSelectPlayer,
+  onPlayerDragStart,
+  playerNameTooltip,
   overallSkillLevelByPlayerId = {},
   orderedPlayerIds,
   orderSource,
@@ -298,14 +306,31 @@ export default function RatingsMatrix({
                 <td className={styles.matrixIndex}>{index + 1}</td>
                 <td className={styles.matrixPlayer}>
                   <div className={styles.matrixPlayerContent}>
-                    <button
-                      type="button"
-                      className={styles.matrixPlayerButton}
-                      onClick={() => onSelectPlayer?.(row.name)}
-                      disabled={!onSelectPlayer}
-                    >
-                      {row.name}
-                    </button>
+                    {onPlayerDragStart ? (
+                      <Tooltip content={playerNameTooltip ?? messages.dragPlayerHint}>
+                        <button
+                          type="button"
+                          className={styles.matrixPlayerButton}
+                          onClick={() => onSelectPlayer?.(row.name)}
+                          disabled={!onSelectPlayer}
+                          draggable
+                          onDragStart={(event) =>
+                            onPlayerDragStart(event, row.id, row.name)
+                          }
+                        >
+                          {row.name}
+                        </button>
+                      </Tooltip>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.matrixPlayerButton}
+                        onClick={() => onSelectPlayer?.(row.name)}
+                        disabled={!onSelectPlayer}
+                      >
+                        {row.name}
+                      </button>
+                    )}
                     {motherClubBonusByName?.[row.name] ? (
                       <Tooltip content={messages.motherClubBonusTooltip}>
                         <span

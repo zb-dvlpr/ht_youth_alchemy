@@ -783,6 +783,7 @@ export const messagesSv: Messages = {
     playerIdLabel: "Spelar-ID",
     playerLinkLabel: "Visa på Hattrick",
     dragPlayerHint: "Dra för att flytta",
+    youthDragToLineupHint: "Dra till laguppställningen",
     homeLabel: "Hemma",
     awayLabel: "Borta",
     unknownDate: "Okänt datum",

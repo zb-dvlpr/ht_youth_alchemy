@@ -974,23 +974,24 @@ export default function YouthPlayerList({
                       ★
                     </button>
                   </Tooltip>
-                  <button
-                    type="button"
-                    className={styles.playerButton}
-                    onClick={() => {
-                      if (!onSelect) return;
-                      if (selectedId === player.YouthPlayerID) return;
-                      onSelect(player.YouthPlayerID);
-                      addNotification(
-                        `${messages.notificationPlayerSelected} ${fullName}`
-                      );
-                    }}
-                    onDragStart={(event) =>
-                      handleDragStart(event, player.YouthPlayerID)
-                    }
-                    draggable
-                    aria-pressed={isSelected}
-                  >
+                  <Tooltip content={messages.youthDragToLineupHint} fullWidth>
+                    <button
+                      type="button"
+                      className={styles.playerButton}
+                      onClick={() => {
+                        if (!onSelect) return;
+                        if (selectedId === player.YouthPlayerID) return;
+                        onSelect(player.YouthPlayerID);
+                        addNotification(
+                          `${messages.notificationPlayerSelected} ${fullName}`
+                        );
+                      }}
+                      onDragStart={(event) =>
+                        handleDragStart(event, player.YouthPlayerID)
+                      }
+                      draggable
+                      aria-pressed={isSelected}
+                    >
                     {!isNameSort ? (
                       <span
                         className={`${styles.playerSortMetric} ${styles.playerSortMetricYouth} ${
@@ -1084,7 +1085,8 @@ export default function YouthPlayerList({
                         {messages.assigned}
                       </span>
                     ) : null}
-                  </button>
+                    </button>
+                  </Tooltip>
                 </div>
               </li>
             );

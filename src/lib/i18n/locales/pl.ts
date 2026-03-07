@@ -202,6 +202,7 @@ export const messagesPl: Messages = {
   playerIdLabel: "Identyfikator zawodnika",
   playerLinkLabel: "Zobacz w Hattrick",
   dragPlayerHint: "Przeciągnij, aby przenieść",
+  youthDragToLineupHint: "Przeciągnij do składu",
   homeLabel: "Gospodarz",
   awayLabel: "Gość",
   unknownDate: "Nieznana data",

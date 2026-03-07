@@ -1,7 +1,14 @@
 "use client";
 /* eslint-disable react-hooks/exhaustive-deps */
 
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type DragEvent,
+} from "react";
 import styles from "../page.module.css";
 import YouthPlayerList from "./YouthPlayerList";
 import PlayerDetailsPanel, {
@@ -64,6 +71,7 @@ import {
 } from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
 import { hattrickYouthMatchUrl } from "@/lib/hattrick/urls";
+import { setDragGhost } from "@/lib/drag";
 
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
@@ -1552,6 +1560,24 @@ export default function Dashboard({
       return ids;
     });
     setOrderSource((prev) => (prev === source ? prev : source));
+  };
+
+  const handleMatrixPlayerDragStart = (
+    event: DragEvent<HTMLElement>,
+    playerId: number,
+    playerName: string
+  ) => {
+    setDragGhost(event, {
+      label: playerName,
+      className: styles.dragGhost,
+      slotSelector: `.${styles.fieldSlot}`,
+    });
+    event.dataTransfer.setData(
+      "application/json",
+      JSON.stringify({ type: "player", playerId })
+    );
+    event.dataTransfer.setData("text/plain", String(playerId));
+    event.dataTransfer.effectAllowed = "move";
   };
 
   useEffect(() => {
@@ -5073,6 +5099,7 @@ export default function Dashboard({
                   `${messages.notificationPlayerSelected} ${playerName}`
                 );
               }}
+              onMatrixPlayerDragStart={handleMatrixPlayerDragStart}
               orderedPlayerIds={orderedPlayerIds}
               orderSource={orderSource}
               onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}

@@ -793,6 +793,7 @@ export const messagesEs: Messages = {
     playerIdLabel: "ID del jugador",
     playerLinkLabel: "Ver en Hattrick",
     dragPlayerHint: "Arrastra para mover",
+    youthDragToLineupHint: "Arrastra a la alineación",
     homeLabel: "Local",
     awayLabel: "Visitante",
     unknownDate: "Fecha desconocida",

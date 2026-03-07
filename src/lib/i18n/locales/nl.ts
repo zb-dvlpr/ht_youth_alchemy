@@ -202,6 +202,7 @@ export const messagesNl: Messages = {
   playerIdLabel: "Speler-ID",
   playerLinkLabel: "Bekijken op Hattrick",
   dragPlayerHint: "Sleep om te verplaatsen",
+  youthDragToLineupHint: "Sleep naar de opstelling",
   homeLabel: "Thuis",
   awayLabel: "Uit",
   unknownDate: "Onbekende datum",

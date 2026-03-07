@@ -700,6 +700,7 @@ export type Messages = {
   playerIdLabel: string;
   playerLinkLabel: string;
   dragPlayerHint: string;
+  youthDragToLineupHint: string;
   homeLabel: string;
   awayLabel: string;
   unknownDate: string;

@@ -791,6 +791,7 @@ export const messagesFr: Messages = {
     playerIdLabel: "ID joueur",
     playerLinkLabel: "Voir sur Hattrick",
     dragPlayerHint: "Glisser pour déplacer",
+    youthDragToLineupHint: "Glisser vers la composition",
     homeLabel: "Domicile",
     awayLabel: "Extérieur",
     unknownDate: "Date inconnue",

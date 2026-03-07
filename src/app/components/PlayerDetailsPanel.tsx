@@ -833,7 +833,7 @@ export default function PlayerDetailsPanel({
                   content={
                     playerKind === "youth"
                       ? messages.youthDragToLineupHint
-                      : messages.dragPlayerHint
+                      : messages.youthDragToLineupHint
                   }
                 >
                   <h4
@@ -1489,7 +1489,7 @@ export default function PlayerDetailsPanel({
                           content={
                             playerKind === "youth"
                               ? messages.youthDragToLineupHint
-                              : messages.dragPlayerHint
+                              : messages.youthDragToLineupHint
                           }
                         >
                           <button
@@ -1911,9 +1911,7 @@ export default function PlayerDetailsPanel({
           selectedName={ratingsMatrixSelectedName}
           onSelectPlayer={handleMatrixPlayerPick}
           onPlayerDragStart={onMatrixPlayerDragStart}
-          playerNameTooltip={
-            playerKind === "youth" ? messages.youthDragToLineupHint : undefined
-          }
+          playerNameTooltip={messages.youthDragToLineupHint}
           orderedPlayerIds={orderedPlayerIds}
           orderSource={orderSource}
           onOrderChange={onRatingsOrderChange}

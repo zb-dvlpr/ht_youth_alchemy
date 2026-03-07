@@ -3962,7 +3962,7 @@ const refreshDetailsForPlayers = async (
                 return (
                   <li key={player.PlayerID} className={styles.listItem}>
                     <div className={styles.playerRow}>
-                      <Tooltip content={messages.dragPlayerHint} fullWidth>
+                      <Tooltip content={messages.youthDragToLineupHint} fullWidth>
                         <button
                           type="button"
                           className={styles.playerButton}

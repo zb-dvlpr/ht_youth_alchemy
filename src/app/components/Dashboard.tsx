@@ -4864,7 +4864,14 @@ export default function Dashboard({
           hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
           hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}
           onHoverPlayer={ensureDetails}
-          onSelectPlayer={handleSelect}
+          onSelectPlayer={(playerId) => {
+            if (activeDetailsTab === "details") {
+              void handleSelect(playerId);
+              return;
+            }
+            setSelectedId(playerId);
+            void ensureDetails(playerId);
+          }}
           messages={messages}
         />
         {isDev ? (

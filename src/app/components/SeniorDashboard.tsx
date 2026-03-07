@@ -3534,8 +3534,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
               void ensureDetails(playerId);
             }}
             onSelectPlayer={(playerId) => {
-              setActiveDetailsTab("details");
               setSelectedId(playerId);
+              void ensureDetails(playerId);
             }}
             skillMode="single"
             maxSkillLevel={20}

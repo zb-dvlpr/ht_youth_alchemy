@@ -4825,6 +4825,7 @@ const refreshDetailsForPlayers = async (
                             isNameSort ? styles.playerNameRowTruncate : ""
                           }`}
                         >
+                          <span className={styles.playerName}>{playerName}</span>
                           {injuryLabel ? (
                             <span
                               className={styles.playerInjuryInline}
@@ -4834,7 +4835,6 @@ const refreshDetailsForPlayers = async (
                               {isBruised ? "🩹" : `✚${toSubscript(injuryWeeks ?? 0)}`}
                             </span>
                           ) : null}
-                          <span className={styles.playerName}>{playerName}</span>
                           {playerCardStatus ? (
                             <span
                               className={styles.playerCardStatusInline}

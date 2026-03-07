@@ -1015,6 +1015,7 @@ export default function YouthPlayerList({
                         nameRowRefs.current[player.YouthPlayerID] = node;
                       }}
                     >
+                      <span className={styles.playerName}>{fullName}</span>
                       {injuryStatus ? (
                         <span
                           className={styles.playerInjuryInline}
@@ -1024,7 +1025,6 @@ export default function YouthPlayerList({
                           {injuryStatus.display}
                         </span>
                       ) : null}
-                      <span className={styles.playerName}>{fullName}</span>
                       {hasNewMarker ? (
                         <span className={styles.matrixNewPill}>
                           {messages.matrixNewPillLabel}

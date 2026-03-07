@@ -49,11 +49,11 @@ import {
 import {
   ALGORITHM_SETTINGS_EVENT,
   ALGORITHM_SETTINGS_STORAGE_KEY,
-  DEFAULT_YOUTH_STALENESS_HOURS,
+  DEFAULT_YOUTH_STALENESS_DAYS,
   LAST_REFRESH_STORAGE_KEY,
   readAllowTrainingUntilMaxedOut,
   readLastRefreshTimestamp,
-  readYouthStalenessHours,
+  readYouthStalenessDays,
   writeLastRefreshTimestamp,
   YOUTH_SETTINGS_EVENT,
   YOUTH_SETTINGS_STORAGE_KEY,
@@ -853,8 +853,8 @@ export default function Dashboard({
   >(null);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
-  const [stalenessHours, setStalenessHours] = useState(
-    DEFAULT_YOUTH_STALENESS_HOURS
+  const [stalenessDays, setStalenessDays] = useState(
+    DEFAULT_YOUTH_STALENESS_DAYS
   );
   const [lastGlobalRefreshAt, setLastGlobalRefreshAt] = useState<number | null>(
     null
@@ -1964,7 +1964,7 @@ export default function Dashboard({
   useEffect(() => {
     if (typeof window === "undefined") return;
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
-    setStalenessHours(readYouthStalenessHours());
+    setStalenessDays(readYouthStalenessDays());
     setLastGlobalRefreshAt(readLastRefreshTimestamp());
     const handle = (event: Event) => {
       if (event instanceof StorageEvent) {
@@ -1979,16 +1979,16 @@ export default function Dashboard({
       }
       if (event instanceof CustomEvent) {
         const detail =
-          event.detail as { allowTrainingUntilMaxedOut?: boolean; stalenessHours?: number } | null;
+          event.detail as { allowTrainingUntilMaxedOut?: boolean; stalenessDays?: number } | null;
         if (typeof detail?.allowTrainingUntilMaxedOut === "boolean") {
           setAllowTrainingUntilMaxedOut(detail.allowTrainingUntilMaxedOut);
         }
-        if (typeof detail?.stalenessHours === "number") {
-          setStalenessHours(detail.stalenessHours);
+        if (typeof detail?.stalenessDays === "number") {
+          setStalenessDays(detail.stalenessDays);
         }
       }
       setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
-      setStalenessHours(readYouthStalenessHours());
+      setStalenessDays(readYouthStalenessDays());
       setLastGlobalRefreshAt(readLastRefreshTimestamp());
     };
     window.addEventListener("storage", handle);
@@ -2013,7 +2013,7 @@ export default function Dashboard({
       }
       return;
     }
-    const maxAgeMs = stalenessHours * 60 * 60 * 1000;
+    const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
     const isStale = Date.now() - lastRefresh >= maxAgeMs;
     if (!isStale) {
       staleRefreshAttemptedRef.current = false;
@@ -2023,7 +2023,7 @@ export default function Dashboard({
     if (staleRefreshAttemptedRef.current) return;
     staleRefreshAttemptedRef.current = true;
     void refreshPlayers(undefined, { refreshAll: true, reason: "stale" });
-  }, [playerList.length, stalenessHours, activeYouthTeamId, isConnected, playersLoading]);
+  }, [playerList.length, stalenessDays, activeYouthTeamId, isConnected, playersLoading]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -2040,7 +2040,7 @@ export default function Dashboard({
         }
         return;
       }
-      const maxAgeMs = stalenessHours * 60 * 60 * 1000;
+      const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
       const isStale = Date.now() - lastRefresh >= maxAgeMs;
       if (!isStale) {
         staleRefreshAttemptedRef.current = false;
@@ -2066,7 +2066,7 @@ export default function Dashboard({
       window.removeEventListener("pageshow", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [playerList.length, stalenessHours, activeYouthTeamId, isConnected, playersLoading]);
+  }, [playerList.length, stalenessDays, activeYouthTeamId, isConnected, playersLoading]);
 
   useEffect(() => {
     if (!initialAuthError) return;

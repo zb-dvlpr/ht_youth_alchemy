@@ -15,8 +15,8 @@ import {
   ALGORITHM_SETTINGS_EVENT,
   readAllowTrainingUntilMaxedOut,
   writeAllowTrainingUntilMaxedOut,
-  readYouthStalenessHours,
-  writeYouthStalenessHours,
+  readYouthStalenessDays,
+  writeYouthStalenessDays,
   YOUTH_SETTINGS_EVENT,
   readSeniorStalenessDays,
   writeSeniorStalenessDays,
@@ -59,7 +59,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
   const [debugSettingsOpen, setDebugSettingsOpen] = useState(false);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
-  const [stalenessHours, setStalenessHours] = useState(3);
+  const [stalenessDays, setStalenessDays] = useState(1);
   const [seniorStalenessDays, setSeniorStalenessDays] = useState(1);
   const [chronicleStalenessDays, setChronicleStalenessDays] = useState(3);
   const [chronicleTransferHistoryCount, setChronicleTransferHistoryCount] =
@@ -93,7 +93,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
-    setStalenessHours(readYouthStalenessHours());
+    setStalenessDays(readYouthStalenessDays());
     setSeniorStalenessDays(readSeniorStalenessDays());
     setChronicleStalenessDays(readClubChronicleStalenessDays());
     setChronicleTransferHistoryCount(readClubChronicleTransferHistoryCount());
@@ -190,14 +190,14 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     }
   };
 
-  const handleStalenessHoursChange = (value: number) => {
-    const nextValue = Math.min(24, Math.max(1, Math.round(value)));
-    setStalenessHours(nextValue);
-    writeYouthStalenessHours(nextValue);
+  const handleStalenessDaysChange = (value: number) => {
+    const nextValue = Math.min(7, Math.max(1, Math.round(value)));
+    setStalenessDays(nextValue);
+    writeYouthStalenessDays(nextValue);
     if (typeof window !== "undefined") {
       window.dispatchEvent(
         new CustomEvent(YOUTH_SETTINGS_EVENT, {
-          detail: { stalenessHours: nextValue },
+          detail: { stalenessDays: nextValue },
         })
       );
     }
@@ -445,14 +445,14 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
                 <input
                   type="number"
                   min={1}
-                  max={24}
+                  max={7}
                   step={1}
-                  value={stalenessHours}
+                  value={stalenessDays}
                   className={styles.settingsFieldInput}
                   onChange={(event) => {
                     const value = Number(event.target.value);
                     if (Number.isNaN(value)) return;
-                    handleStalenessHoursChange(value);
+                    handleStalenessDaysChange(value);
                   }}
                 />
               </label>

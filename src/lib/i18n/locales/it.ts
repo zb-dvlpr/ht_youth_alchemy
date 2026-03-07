@@ -575,6 +575,8 @@ export const messagesIt: Messages = {
       "La responsabilità finale della rifinitura della formazione resta a te.",
     seniorSubmitDisclaimerBulletResubmit:
       "Orientamento giocatori, modulo e tattica possono essere regolati qui e reinviati con il pulsante Invia formazione.",
+    seniorSubmitDisclaimerBulletKickers:
+      "I rigoristi vengono impostati automaticamente in ordine decrescente di abilità sui calci piazzati.",
     seniorSubmitDisclaimerBulletOrdersInHattrick:
       "Se servono ordini partita, vanno impostati direttamente in Hattrick.",
     seniorSubmitDisclaimerBulletVerify:

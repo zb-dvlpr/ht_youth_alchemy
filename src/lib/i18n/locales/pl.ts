@@ -199,6 +199,8 @@ export const messagesPl: Messages = {
     "Ostateczna odpowiedzialność za dopracowanie składu pozostaje po Twojej stronie.",
   seniorSubmitDisclaimerBulletResubmit:
     "Ustawienie zawodników, formację i taktykę możesz tutaj dopracować i ponownie wysłać przyciskiem Wyślij skład.",
+  seniorSubmitDisclaimerBulletKickers:
+    "Wykonawcy rzutów karnych są ustawiani automatycznie malejąco według umiejętności stałych fragmentów.",
   seniorSubmitDisclaimerBulletOrdersInHattrick:
     "Jeśli potrzebne są polecenia meczowe, należy ustawić je bezpośrednio w Hattrick.",
   seniorSubmitDisclaimerBulletVerify:

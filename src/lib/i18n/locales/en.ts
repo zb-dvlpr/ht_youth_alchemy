@@ -542,6 +542,8 @@ export const messagesEn: Messages = {
       "Ultimate responsibility for fine-tuning the lineup remains with you.",
     seniorSubmitDisclaimerBulletResubmit:
       "Player orientation, formation, and tactic can be adjusted here and then resubmitted with the Submit lineup button.",
+    seniorSubmitDisclaimerBulletKickers:
+      "Penalty kickers are set automatically in descending order of Set Pieces skill.",
     seniorSubmitDisclaimerBulletOrdersInHattrick:
       "If match orders are needed, set them directly in Hattrick.",
     seniorSubmitDisclaimerBulletVerify:

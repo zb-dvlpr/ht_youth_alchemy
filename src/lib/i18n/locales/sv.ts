@@ -566,6 +566,8 @@ export const messagesSv: Messages = {
       "Det yttersta ansvaret för finjustering av uppställningen ligger på dig.",
     seniorSubmitDisclaimerBulletResubmit:
       "Spelarorientering, formation och taktik kan justeras här och skickas igen med knappen Skicka uppställning.",
+    seniorSubmitDisclaimerBulletKickers:
+      "Straffskyttar sätts automatiskt i fallande ordning efter fasta situationer.",
     seniorSubmitDisclaimerBulletOrdersInHattrick:
       "Om matchorder behövs måste de ställas in direkt i Hattrick.",
     seniorSubmitDisclaimerBulletVerify:

@@ -574,6 +574,8 @@ export const messagesPt: Messages = {
       "A responsabilidade final pelo ajuste fino da escalação é sua.",
     seniorSubmitDisclaimerBulletResubmit:
       "Orientação dos jogadores, formação e tática podem ser ajustadas aqui e reenviadas com o botão Enviar escalação.",
+    seniorSubmitDisclaimerBulletKickers:
+      "Os cobradores de pênalti são definidos automaticamente em ordem decrescente de habilidade em bolas paradas.",
     seniorSubmitDisclaimerBulletOrdersInHattrick:
       "Se forem necessárias ordens de jogo, elas devem ser configuradas diretamente no Hattrick.",
     seniorSubmitDisclaimerBulletVerify:

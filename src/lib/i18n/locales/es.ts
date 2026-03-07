@@ -574,6 +574,8 @@ export const messagesEs: Messages = {
       "La responsabilidad final del ajuste fino de la alineación es tuya.",
     seniorSubmitDisclaimerBulletResubmit:
       "La orientación de jugadores, la formación y la táctica pueden ajustarse aquí y reenviarse con el botón Enviar alineación.",
+    seniorSubmitDisclaimerBulletKickers:
+      "Los lanzadores de penaltis se establecen automáticamente en orden descendente de habilidad de Balón parado.",
     seniorSubmitDisclaimerBulletOrdersInHattrick:
       "Si se requieren órdenes de partido, deben configurarse directamente en Hattrick.",
     seniorSubmitDisclaimerBulletVerify:

@@ -492,6 +492,7 @@ export type Messages = {
   seniorSubmitDisclaimerBulletNoResponsibility: string;
   seniorSubmitDisclaimerBulletFineTune: string;
   seniorSubmitDisclaimerBulletResubmit: string;
+  seniorSubmitDisclaimerBulletKickers: string;
   seniorSubmitDisclaimerBulletOrdersInHattrick: string;
   seniorSubmitDisclaimerBulletVerify: string;
   loadLineupTooltip: string;

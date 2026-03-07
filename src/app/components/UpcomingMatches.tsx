@@ -54,6 +54,7 @@ type UpcomingMatchesProps = {
   assignments: LineupAssignments;
   behaviors?: LineupBehaviors;
   captainId?: number | null;
+  penaltyKickerIds?: number[];
   tacticType?: number;
   onRefresh?: () => boolean | Promise<boolean>;
   onLoadLineup?: (
@@ -157,7 +158,8 @@ function buildLineupPayload(
   assignments: LineupAssignments,
   behaviors?: LineupBehaviors,
   captainId?: number | null,
-  tacticType?: number
+  tacticType?: number,
+  penaltyKickerIds?: number[]
 ) {
   const toId = (value: number | null | undefined) => value ?? 0;
   const positions = POSITION_SLOT_ORDER.map((slot) => ({
@@ -172,7 +174,10 @@ function buildLineupPayload(
     })),
     ...Array.from({ length: 7 }, () => ({ id: 0, behaviour: 0 })),
   ];
-  const kickers = Array.from({ length: 11 }, () => ({ id: 0, behaviour: 0 }));
+  const kickers = Array.from({ length: 11 }, (_, index) => ({
+    id: Number(penaltyKickerIds?.[index] ?? 0) || 0,
+    behaviour: 0,
+  }));
 
   return {
     positions,
@@ -564,6 +569,7 @@ export default function UpcomingMatches({
   assignments,
   behaviors,
   captainId,
+  penaltyKickerIds,
   tacticType,
   onRefresh,
   onLoadLineup,
@@ -595,8 +601,15 @@ export default function UpcomingMatches({
   const hasLineup = assignedCount >= 9 && assignedCount <= 11;
 
   const lineupPayload = useMemo(
-    () => buildLineupPayload(assignments, behaviors, captainId, tacticType),
-    [assignments, behaviors, captainId, tacticType]
+    () =>
+      buildLineupPayload(
+        assignments,
+        behaviors,
+        captainId,
+        tacticType,
+        penaltyKickerIds
+      ),
+    [assignments, behaviors, captainId, tacticType, penaltyKickerIds]
   );
 
   const allMatches = normalizeMatches(

@@ -563,6 +563,8 @@ export const messagesDe: Messages = {
       "Die endgültige Verantwortung für die Feinabstimmung der Aufstellung liegt bei dir.",
     seniorSubmitDisclaimerBulletResubmit:
       "Spielerausrichtung, Formation und Taktik können hier angepasst und mit Aufstellung senden erneut übermittelt werden.",
+    seniorSubmitDisclaimerBulletKickers:
+      "Die Elfmeterschützen werden automatisch in absteigender Reihenfolge der Standardskills gesetzt.",
     seniorSubmitDisclaimerBulletOrdersInHattrick:
       "Falls zusätzliche Anweisungen nötig sind, müssen diese direkt in Hattrick gesetzt werden.",
     seniorSubmitDisclaimerBulletVerify:

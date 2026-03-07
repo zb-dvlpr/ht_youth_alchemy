@@ -573,6 +573,8 @@ export const messagesFr: Messages = {
       "La responsabilité finale de l’ajustement fin de la composition vous revient.",
     seniorSubmitDisclaimerBulletResubmit:
       "Orientation des joueurs, formation et tactique peuvent être ajustées ici puis renvoyées avec le bouton Envoyer la composition.",
+    seniorSubmitDisclaimerBulletKickers:
+      "Les tireurs de penalty sont définis automatiquement par ordre décroissant de niveau sur coups de pied arrêtés.",
     seniorSubmitDisclaimerBulletOrdersInHattrick:
       "Si des ordres de match sont nécessaires, ils doivent être définis directement dans Hattrick.",
     seniorSubmitDisclaimerBulletVerify:

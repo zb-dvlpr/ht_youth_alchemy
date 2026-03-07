@@ -1585,6 +1585,36 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return map;
   }, [detailsById, players]);
 
+  const seniorPenaltyKickerIds = useMemo(() => {
+    const assignedPlayerIds = Array.from(
+      new Set(
+        Object.values(assignments).filter(
+          (playerId): playerId is number =>
+            typeof playerId === "number" && playerId > 0
+        )
+      )
+    );
+    const setPiecesByPlayerId = new Map<number, number>();
+    const nameByPlayerId = new Map<number, string>();
+    players.forEach((player) => {
+      const value = skillValueForPlayer(player, "SetPiecesSkill");
+      if (typeof value === "number") {
+        setPiecesByPlayerId.set(player.PlayerID, value);
+      }
+      nameByPlayerId.set(player.PlayerID, formatPlayerName(player) || String(player.PlayerID));
+    });
+    return assignedPlayerIds
+      .sort((leftId, rightId) => {
+        const leftValue = setPiecesByPlayerId.get(leftId) ?? -1;
+        const rightValue = setPiecesByPlayerId.get(rightId) ?? -1;
+        if (rightValue !== leftValue) return rightValue - leftValue;
+        return (nameByPlayerId.get(leftId) ?? String(leftId)).localeCompare(
+          nameByPlayerId.get(rightId) ?? String(rightId)
+        );
+      })
+      .slice(0, 11);
+  }, [assignments, players, skillValueForPlayer]);
+
   const selectedUpdatesEntry = useMemo(
     () =>
       selectedUpdatesId
@@ -3814,6 +3844,7 @@ const refreshDetailsForPlayers = async (
               <li>{messages.seniorSubmitDisclaimerBulletNoResponsibility}</li>
               <li>{messages.seniorSubmitDisclaimerBulletFineTune}</li>
               <li>{messages.seniorSubmitDisclaimerBulletResubmit}</li>
+              <li>{messages.seniorSubmitDisclaimerBulletKickers}</li>
               <li>{messages.seniorSubmitDisclaimerBulletOrdersInHattrick}</li>
               <li>{messages.seniorSubmitDisclaimerBulletVerify}</li>
             </ul>
@@ -4962,6 +4993,7 @@ const refreshDetailsForPlayers = async (
             messages={messages}
             assignments={assignments}
             behaviors={behaviors}
+            penaltyKickerIds={seniorPenaltyKickerIds}
             tacticType={tacticType}
             sourceSystem="Hattrick"
             includeTournamentMatches={includeTournamentMatches}

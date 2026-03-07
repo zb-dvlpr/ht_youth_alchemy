@@ -199,6 +199,8 @@ export const messagesNl: Messages = {
     "De uiteindelijke verantwoordelijkheid voor het finetunen van de opstelling ligt bij jou.",
   seniorSubmitDisclaimerBulletResubmit:
     "Speleroriëntatie, formatie en tactiek kun je hier aanpassen en daarna opnieuw verzenden met de knop Opstelling verzenden.",
+  seniorSubmitDisclaimerBulletKickers:
+    "De penaltynemers worden automatisch ingesteld in aflopende volgorde van standaardsituatie-vaardigheid.",
   seniorSubmitDisclaimerBulletOrdersInHattrick:
     "Als matchorders nodig zijn, moeten die direct in Hattrick worden ingesteld.",
   seniorSubmitDisclaimerBulletVerify:

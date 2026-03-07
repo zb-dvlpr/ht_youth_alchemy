@@ -63,6 +63,15 @@ type SeniorPlayerDetails = {
   Leadership?: number;
   Loyalty?: number;
   MotherClubBonus?: boolean;
+  CareerGoals?: number;
+  CareerHattricks?: number;
+  LeagueGoals?: number;
+  CupGoals?: number;
+  FriendliesGoals?: number;
+  GoalsCurrentTeam?: number;
+  AssistsCurrentTeam?: number;
+  CareerAssists?: number;
+  MatchesCurrentTeam?: number;
   PlayerSkills?: Record<string, SkillValue>;
   LastMatch?: {
     Date?: string;
@@ -450,7 +459,7 @@ const normalizeSeniorPlayerDetails = (
   })();
   const personalityStatement =
     agreeabilityText && aggressivenessText && honestyText
-      ? `${/^[AEIOU]/.test(agreeabilityText) ? "An" : "A"} ${agreeabilityText.toLowerCase()} who is ${aggressivenessText.toLowerCase()} and ${honestyText.toLowerCase()}.`
+      ? `${/^[AEIOU]/.test(agreeabilityText) ? "An" : "A"} ${agreeabilityText.toLowerCase()} (${agreeability}) who is ${aggressivenessText.toLowerCase()} (${aggressiveness}) and ${honestyText.toLowerCase()} (${honesty}).`
       : undefined;
 
   return {
@@ -476,6 +485,15 @@ const normalizeSeniorPlayerDetails = (
     Leadership: leadership ?? undefined,
     Loyalty: loyalty ?? undefined,
     MotherClubBonus: motherClubBonus ?? undefined,
+    CareerGoals: parseNumber(node.CareerGoals) ?? undefined,
+    CareerHattricks: parseNumber(node.CareerHattricks) ?? undefined,
+    LeagueGoals: parseNumber(node.LeagueGoals) ?? undefined,
+    CupGoals: parseNumber(node.CupGoals) ?? undefined,
+    FriendliesGoals: parseNumber(node.FriendliesGoals) ?? undefined,
+    GoalsCurrentTeam: parseNumber(node.GoalsCurrentTeam) ?? undefined,
+    AssistsCurrentTeam: parseNumber(node.AssistsCurrentTeam) ?? undefined,
+    CareerAssists: parseNumber(node.CareerAssists) ?? undefined,
+    MatchesCurrentTeam: parseNumber(node.MatchesCurrentTeam) ?? undefined,
     PlayerSkills:
       node.PlayerSkills && typeof node.PlayerSkills === "object"
         ? (node.PlayerSkills as Record<string, SkillValue>)
@@ -983,6 +1001,15 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         Leadership?: number;
         Loyalty?: number;
         MotherClubBonus?: boolean;
+        CareerGoals?: number;
+        CareerHattricks?: number;
+        LeagueGoals?: number;
+        CupGoals?: number;
+        FriendliesGoals?: number;
+        GoalsCurrentTeam?: number;
+        AssistsCurrentTeam?: number;
+        CareerAssists?: number;
+        MatchesCurrentTeam?: number;
         PlayerSkills?: Record<string, SkillValue>;
         LastMatch?: {
           Date?: string;
@@ -1010,6 +1037,15 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         Leadership: detail.Leadership,
         Loyalty: detail.Loyalty,
         MotherClubBonus: detail.MotherClubBonus,
+        CareerGoals: detail.CareerGoals,
+        CareerHattricks: detail.CareerHattricks,
+        LeagueGoals: detail.LeagueGoals,
+        CupGoals: detail.CupGoals,
+        FriendliesGoals: detail.FriendliesGoals,
+        GoalsCurrentTeam: detail.GoalsCurrentTeam,
+        AssistsCurrentTeam: detail.AssistsCurrentTeam,
+        CareerAssists: detail.CareerAssists,
+        MatchesCurrentTeam: detail.MatchesCurrentTeam,
         PlayerSkills: detail.PlayerSkills ?? fallback?.PlayerSkills,
         LastMatch: detail.LastMatch,
       });

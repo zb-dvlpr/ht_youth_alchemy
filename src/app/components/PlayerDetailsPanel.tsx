@@ -47,6 +47,15 @@ export type YouthPlayerDetails = {
   Leadership?: number;
   Loyalty?: number;
   MotherClubBonus?: boolean;
+  CareerGoals?: number;
+  CareerHattricks?: number;
+  LeagueGoals?: number;
+  CupGoals?: number;
+  FriendliesGoals?: number;
+  GoalsCurrentTeam?: number;
+  AssistsCurrentTeam?: number;
+  CareerAssists?: number;
+  MatchesCurrentTeam?: number;
   OwningYouthTeam?: {
     YouthTeamName?: string;
     SeniorTeam?: {
@@ -671,6 +680,32 @@ export default function PlayerDetailsPanel({
           }
           return parts.length ? parts.join(" ") : null;
         })();
+  const seniorCareerStats =
+    playerKind !== "senior" || !detailsData
+      ? []
+      : [
+          { label: messages.seniorCareerGoalsLabel, value: detailsData.CareerGoals },
+          { label: messages.seniorCareerHattricksLabel, value: detailsData.CareerHattricks },
+          { label: messages.seniorLeagueGoalsLabel, value: detailsData.LeagueGoals },
+          { label: messages.seniorCupGoalsLabel, value: detailsData.CupGoals },
+          {
+            label: messages.seniorFriendliesGoalsLabel,
+            value: detailsData.FriendliesGoals,
+          },
+          {
+            label: messages.seniorGoalsCurrentTeamLabel,
+            value: detailsData.GoalsCurrentTeam,
+          },
+          {
+            label: messages.seniorAssistsCurrentTeamLabel,
+            value: detailsData.AssistsCurrentTeam,
+          },
+          { label: messages.seniorCareerAssistsLabel, value: detailsData.CareerAssists },
+          {
+            label: messages.seniorMatchesCurrentTeamLabel,
+            value: detailsData.MatchesCurrentTeam,
+          },
+        ];
 
   const renderDetails = () => {
     if (loading) {
@@ -1140,6 +1175,24 @@ export default function PlayerDetailsPanel({
             })}
           </div>
         </div>
+        {playerKind === "senior" ? (
+          <>
+            <div className={styles.sectionDivider} />
+            <div>
+              <h5 className={styles.sectionHeading}>{messages.seniorCareerStatsTitle}</h5>
+              <div className={styles.profileInfoRow}>
+                {seniorCareerStats.map((item) => (
+                  <div key={item.label}>
+                    <div className={styles.infoLabel}>{item.label}</div>
+                    <div className={styles.infoValue}>
+                      {typeof item.value === "number" ? item.value : messages.unknownShort}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        ) : null}
       </div>
     );
   };

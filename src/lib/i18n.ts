@@ -616,6 +616,16 @@ export type Messages = {
   sortWage: string;
   sortForm: string;
   sortStamina: string;
+  seniorCareerStatsTitle: string;
+  seniorCareerGoalsLabel: string;
+  seniorCareerHattricksLabel: string;
+  seniorLeagueGoalsLabel: string;
+  seniorCupGoalsLabel: string;
+  seniorFriendliesGoalsLabel: string;
+  seniorGoalsCurrentTeamLabel: string;
+  seniorAssistsCurrentTeamLabel: string;
+  seniorCareerAssistsLabel: string;
+  seniorMatchesCurrentTeamLabel: string;
   seniorMatrixPlayerShortLabel: string;
   seniorMatrixSpecialtyShortLabel: string;
   seniorMatrixFormShortLabel: string;

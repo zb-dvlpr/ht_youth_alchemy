@@ -25,6 +25,7 @@ export type Match = {
   Status?: string;
   OrdersGiven?: string | boolean;
   MatchType?: number | string;
+  SourceSystem?: string;
   HomeTeam?: MatchTeam;
   AwayTeam?: MatchTeam;
 };
@@ -76,6 +77,7 @@ type UpcomingMatchesProps = {
 export type SetBestLineupMode = "trainingAware" | "ignoreTraining";
 
 const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
+const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
 
 function normalizeMatches(input?: Match[] | Match): Match[] {
   if (!input) return [];
@@ -92,6 +94,22 @@ function sortByDate(matches: Match[]) {
     const bTime = parseChppDate(b.MatchDate)?.getTime() ?? 0;
     return aTime - bTime;
   });
+}
+
+function resolveMatchSourceSystem(
+  match: Match | undefined,
+  fallbackSourceSystem: string
+): string {
+  const explicitSource =
+    match && typeof match.SourceSystem === "string" && match.SourceSystem.trim().length > 0
+      ? match.SourceSystem.trim()
+      : null;
+  if (explicitSource) return explicitSource;
+  const matchType = Number(match?.MatchType);
+  if (Number.isFinite(matchType) && TOURNAMENT_MATCH_TYPES.has(matchType)) {
+    return "htointegrated";
+  }
+  return fallbackSourceSystem;
 }
 
 type MatchState = {
@@ -610,6 +628,10 @@ export default function UpcomingMatches({
 
   const handleLoadLineup = async (matchId: number) => {
     if (!teamId) return;
+    const matchSourceSystem = resolveMatchSourceSystem(
+      matchById.get(matchId),
+      sourceSystem
+    );
     setLoadStates((prev) => ({
       ...prev,
       [matchId]: { status: "loading", error: null },
@@ -630,7 +652,7 @@ export default function UpcomingMatches({
         details?: string;
       }>(
         `/api/chpp/matchorders?matchId=${matchId}&teamId=${teamId}&sourceSystem=${encodeURIComponent(
-          sourceSystem
+          matchSourceSystem
         )}`,
         { cache: "no-store" }
       );
@@ -755,6 +777,10 @@ export default function UpcomingMatches({
 
     const matchId = confirmMatchId;
     setConfirmMatchId(null);
+    const matchSourceSystem = resolveMatchSourceSystem(
+      matchById.get(matchId),
+      sourceSystem
+    );
 
     setMatchStates((prev) => ({
       ...prev,
@@ -773,7 +799,7 @@ export default function UpcomingMatches({
         body: JSON.stringify({
           matchId,
           teamId,
-          sourceSystem,
+          sourceSystem: matchSourceSystem,
           lineup: lineupPayload,
         }),
       });

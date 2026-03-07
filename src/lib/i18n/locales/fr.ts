@@ -563,6 +563,20 @@ export const messagesFr: Messages = {
     submitOrdersUpdated: "Mis à jour",
     submitOrdersMinPlayers: "Au moins 9 joueurs requis",
     submitOrdersMaxPlayers: "La composition ne peut pas dépasser 11 joueurs",
+    seniorSubmitDisclaimerTitle: "⚠️ Avertissement après l’envoi de la composition",
+    seniorSubmitDisclaimerIntro: "Merci de vérifier les points suivants :",
+    seniorSubmitDisclaimerBulletBestEffort:
+      "D’après les informations fournies par Hattrick, c’est la composition la plus efficace que l’IA a pu générer.",
+    seniorSubmitDisclaimerBulletNoResponsibility:
+      "Cet outil n’assume aucune responsabilité quant au succès de cette composition.",
+    seniorSubmitDisclaimerBulletFineTune:
+      "La responsabilité finale de l’ajustement fin de la composition vous revient.",
+    seniorSubmitDisclaimerBulletResubmit:
+      "Orientation des joueurs, formation et tactique peuvent être ajustées ici puis renvoyées avec le bouton Envoyer la composition.",
+    seniorSubmitDisclaimerBulletOrdersInHattrick:
+      "Si des ordres de match sont nécessaires, ils doivent être définis directement dans Hattrick.",
+    seniorSubmitDisclaimerBulletVerify:
+      "Vérifiez disponibilité, blessures et intention tactique avant le coup d’envoi.",
     loadLineupTooltip: "Charge la composition enregistrée depuis Hattrick pour ce match.",
     submitOrdersTooltip: "Envoie la composition actuelle à Hattrick pour ce match.",
     randomizeLineup: "Composition aléatoire",

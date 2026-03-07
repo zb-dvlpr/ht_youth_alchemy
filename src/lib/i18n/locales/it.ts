@@ -565,6 +565,20 @@ export const messagesIt: Messages = {
     submitOrdersUpdated: "Aggiornato",
     submitOrdersMinPlayers: "Servono almeno 9 giocatori",
     submitOrdersMaxPlayers: "La formazione non può superare 11 giocatori",
+    seniorSubmitDisclaimerTitle: "⚠️ Avvertenza dopo l'invio della formazione",
+    seniorSubmitDisclaimerIntro: "Controlla i seguenti punti:",
+    seniorSubmitDisclaimerBulletBestEffort:
+      "In base alle informazioni fornite da Hattrick, questa è la formazione più efficace che l'IA è riuscita a generare.",
+    seniorSubmitDisclaimerBulletNoResponsibility:
+      "Questo strumento non si assume alcuna responsabilità per il successo di questa formazione.",
+    seniorSubmitDisclaimerBulletFineTune:
+      "La responsabilità finale della rifinitura della formazione resta a te.",
+    seniorSubmitDisclaimerBulletResubmit:
+      "Orientamento giocatori, modulo e tattica possono essere regolati qui e reinviati con il pulsante Invia formazione.",
+    seniorSubmitDisclaimerBulletOrdersInHattrick:
+      "Se servono ordini partita, vanno impostati direttamente in Hattrick.",
+    seniorSubmitDisclaimerBulletVerify:
+      "Verifica disponibilità, infortuni e intento tattico prima del calcio d'inizio.",
     loadLineupTooltip: "Carica la formazione salvata da Hattrick per questa partita.",
     submitOrdersTooltip: "Invia la formazione attuale a Hattrick per questa partita.",
     randomizeLineup: "Formazione casuale",

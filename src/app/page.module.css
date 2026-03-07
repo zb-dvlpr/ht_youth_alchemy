@@ -3419,6 +3419,27 @@ html[data-theme="dark"] .seniorUpdatesChangeList {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .seniorDisclaimerBadgeRow {
+  border-color: rgba(255, 255, 255, 0.14);
+  background:
+    radial-gradient(circle at top left, rgba(255, 210, 138, 0.2), transparent 58%),
+    linear-gradient(180deg, #25211d 0%, #221d18 100%);
+}
+
+html[data-theme="dark"] .seniorDisclaimerBadgeIcon {
+  background: rgba(255, 207, 122, 0.24);
+  box-shadow: inset 0 0 0 1px rgba(255, 207, 122, 0.36);
+}
+
+html[data-theme="dark"] .seniorDisclaimerIntro,
+html[data-theme="dark"] .seniorDisclaimerList {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .seniorDisclaimerList li::marker {
+  color: #d9b678;
+}
+
 html[data-theme="dark"] .spinner {
   border-color: rgba(207, 198, 187, 0.3);
   border-top-color: #cfc6bb;
@@ -4690,6 +4711,59 @@ html[data-theme="dark"] .spinner {
   gap: 4px;
   font-size: 12px;
   color: #3d3328;
+}
+
+.seniorDisclaimerBody {
+  display: grid;
+  gap: 12px;
+  padding: 2px;
+}
+
+.seniorDisclaimerBadgeRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e0d4c1;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 237, 201, 0.85), transparent 58%),
+    linear-gradient(180deg, #f8f2e8 0%, #f4ecdf 100%);
+}
+
+.seniorDisclaimerBadgeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 207, 122, 0.45);
+  box-shadow: inset 0 0 0 1px rgba(154, 104, 23, 0.24);
+  font-size: 16px;
+  flex: 0 0 auto;
+}
+
+.seniorDisclaimerIntro {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #5d5245;
+  letter-spacing: 0.01em;
+}
+
+.seniorDisclaimerList {
+  margin: 0;
+  padding: 4px 0 0 18px;
+  display: grid;
+  gap: 8px;
+  color: #4d4338;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.seniorDisclaimerList li::marker {
+  color: #8a6e40;
 }
 
 @media (max-width: 900px) {

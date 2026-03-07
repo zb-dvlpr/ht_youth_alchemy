@@ -532,6 +532,20 @@ export const messagesEn: Messages = {
     submitOrdersUpdated: "Updated",
     submitOrdersMinPlayers: "Need at least 9 players set",
     submitOrdersMaxPlayers: "Lineup can’t exceed 11 players",
+    seniorSubmitDisclaimerTitle: "⚠️ Lineup submission disclaimer",
+    seniorSubmitDisclaimerIntro: "Please review before finalizing:",
+    seniorSubmitDisclaimerBulletBestEffort:
+      "Based on the information provided by Hattrick, this is the most effective lineup the AI could generate.",
+    seniorSubmitDisclaimerBulletNoResponsibility:
+      "This tool assumes no responsibility for the success of this lineup.",
+    seniorSubmitDisclaimerBulletFineTune:
+      "Ultimate responsibility for fine-tuning the lineup remains with you.",
+    seniorSubmitDisclaimerBulletResubmit:
+      "Player orientation, formation, and tactic can be adjusted here and then resubmitted with the Submit lineup button.",
+    seniorSubmitDisclaimerBulletOrdersInHattrick:
+      "If match orders are needed, set them directly in Hattrick.",
+    seniorSubmitDisclaimerBulletVerify:
+      "Verify availability, injuries, and tactical intent before kickoff.",
     loadLineupTooltip: "Load the saved lineup from Hattrick for this match.",
     submitOrdersTooltip: "Submit the current lineup to Hattrick for this match.",
     randomizeLineup: "Random lineup",

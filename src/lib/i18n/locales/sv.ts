@@ -556,6 +556,20 @@ export const messagesSv: Messages = {
     submitOrdersUpdated: "Uppdaterad",
     submitOrdersMinPlayers: "Minst 9 spelare krävs",
     submitOrdersMaxPlayers: "Uppställningen får inte överstiga 11 spelare",
+    seniorSubmitDisclaimerTitle: "⚠️ Varning efter inskickad uppställning",
+    seniorSubmitDisclaimerIntro: "Gå igenom följande:",
+    seniorSubmitDisclaimerBulletBestEffort:
+      "Baserat på informationen från Hattrick är detta den mest effektiva uppställning som AI kunde skapa.",
+    seniorSubmitDisclaimerBulletNoResponsibility:
+      "Detta verktyg tar inget ansvar för om uppställningen lyckas.",
+    seniorSubmitDisclaimerBulletFineTune:
+      "Det yttersta ansvaret för finjustering av uppställningen ligger på dig.",
+    seniorSubmitDisclaimerBulletResubmit:
+      "Spelarorientering, formation och taktik kan justeras här och skickas igen med knappen Skicka uppställning.",
+    seniorSubmitDisclaimerBulletOrdersInHattrick:
+      "Om matchorder behövs måste de ställas in direkt i Hattrick.",
+    seniorSubmitDisclaimerBulletVerify:
+      "Verifiera tillgänglighet, skador och taktisk avsikt före avspark.",
     loadLineupTooltip: "Laddar den sparade uppställningen från Hattrick för matchen.",
     submitOrdersTooltip: "Skickar den aktuella uppställningen till Hattrick för matchen.",
     randomizeLineup: "Slumpa uppställning",

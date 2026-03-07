@@ -564,6 +564,20 @@ export const messagesPt: Messages = {
     submitOrdersUpdated: "Atualizado",
     submitOrdersMinPlayers: "Pelo menos 9 jogadores",
     submitOrdersMaxPlayers: "A escalação não pode passar de 11 jogadores",
+    seniorSubmitDisclaimerTitle: "⚠️ Aviso após envio da escalação",
+    seniorSubmitDisclaimerIntro: "Revise os pontos abaixo:",
+    seniorSubmitDisclaimerBulletBestEffort:
+      "Com base nas informações fornecidas pelo Hattrick, esta é a escalação mais eficaz que a IA conseguiu gerar.",
+    seniorSubmitDisclaimerBulletNoResponsibility:
+      "Esta ferramenta não assume responsabilidade pelo sucesso desta escalação.",
+    seniorSubmitDisclaimerBulletFineTune:
+      "A responsabilidade final pelo ajuste fino da escalação é sua.",
+    seniorSubmitDisclaimerBulletResubmit:
+      "Orientação dos jogadores, formação e tática podem ser ajustadas aqui e reenviadas com o botão Enviar escalação.",
+    seniorSubmitDisclaimerBulletOrdersInHattrick:
+      "Se forem necessárias ordens de jogo, elas devem ser configuradas diretamente no Hattrick.",
+    seniorSubmitDisclaimerBulletVerify:
+      "Verifique disponibilidade, lesões e intenção tática antes do início.",
     loadLineupTooltip: "Carrega a escalação salva do Hattrick para esta partida.",
     submitOrdersTooltip: "Envia a escalação atual ao Hattrick para esta partida.",
     randomizeLineup: "Escalação aleatória",

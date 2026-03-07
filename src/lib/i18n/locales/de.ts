@@ -553,6 +553,20 @@ export const messagesDe: Messages = {
     submitOrdersUpdated: "Aktualisiert",
     submitOrdersMinPlayers: "Mindestens 9 Spieler erforderlich",
     submitOrdersMaxPlayers: "Aufstellung darf höchstens 11 Spieler haben",
+    seniorSubmitDisclaimerTitle: "⚠️ Hinweis nach dem Senden der Aufstellung",
+    seniorSubmitDisclaimerIntro: "Bitte beachte Folgendes:",
+    seniorSubmitDisclaimerBulletBestEffort:
+      "Basierend auf den von Hattrick bereitgestellten Informationen ist dies die effektivste Aufstellung, die die KI erzeugen konnte.",
+    seniorSubmitDisclaimerBulletNoResponsibility:
+      "Dieses Tool übernimmt keine Verantwortung für den Erfolg dieser Aufstellung.",
+    seniorSubmitDisclaimerBulletFineTune:
+      "Die endgültige Verantwortung für die Feinabstimmung der Aufstellung liegt bei dir.",
+    seniorSubmitDisclaimerBulletResubmit:
+      "Spielerausrichtung, Formation und Taktik können hier angepasst und mit Aufstellung senden erneut übermittelt werden.",
+    seniorSubmitDisclaimerBulletOrdersInHattrick:
+      "Falls zusätzliche Anweisungen nötig sind, müssen diese direkt in Hattrick gesetzt werden.",
+    seniorSubmitDisclaimerBulletVerify:
+      "Prüfe Verfügbarkeit, Verletzungen und die taktische Absicht vor dem Anpfiff.",
     loadLineupTooltip: "Lädt die gespeicherte Aufstellung aus Hattrick für dieses Spiel.",
     submitOrdersTooltip: "Sendet die aktuelle Aufstellung an Hattrick für dieses Spiel.",
     randomizeLineup: "Zufällige Aufstellung",

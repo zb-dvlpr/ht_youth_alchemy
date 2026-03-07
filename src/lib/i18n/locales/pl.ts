@@ -189,6 +189,20 @@ export const messagesPl: Messages = {
   submitOrdersUpdated: "Zaktualizowano",
   submitOrdersMinPlayers: "Skład musi mieć co najmniej 9 zawodników",
   submitOrdersMaxPlayers: "Skład nie może przekraczać 11 zawodników",
+  seniorSubmitDisclaimerTitle: "⚠️ Zastrzeżenie po wysłaniu składu",
+  seniorSubmitDisclaimerIntro: "Sprawdź proszę poniższe punkty:",
+  seniorSubmitDisclaimerBulletBestEffort:
+    "Na podstawie informacji dostarczonych przez Hattrick jest to najbardziej efektywny skład, jaki AI mogła wygenerować.",
+  seniorSubmitDisclaimerBulletNoResponsibility:
+    "To narzędzie nie ponosi odpowiedzialności za powodzenie tego składu.",
+  seniorSubmitDisclaimerBulletFineTune:
+    "Ostateczna odpowiedzialność za dopracowanie składu pozostaje po Twojej stronie.",
+  seniorSubmitDisclaimerBulletResubmit:
+    "Ustawienie zawodników, formację i taktykę możesz tutaj dopracować i ponownie wysłać przyciskiem Wyślij skład.",
+  seniorSubmitDisclaimerBulletOrdersInHattrick:
+    "Jeśli potrzebne są polecenia meczowe, należy ustawić je bezpośrednio w Hattrick.",
+  seniorSubmitDisclaimerBulletVerify:
+    "Przed pierwszym gwizdkiem sprawdź dostępność, kontuzje i założenia taktyczne.",
   submitOrdersTooltip: "Wyślij bieżący skład do Hattrick dla tego meczu.",
   confirmSubmitOrders: "Wysłać bieżący skład na ten mecz?",
   confirmCancel: "Anuluj",

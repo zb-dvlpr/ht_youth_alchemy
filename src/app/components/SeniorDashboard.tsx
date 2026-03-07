@@ -1184,6 +1184,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     loading: boolean;
     error: string | null;
   } | null>(null);
+  const [submitDisclaimerOpen, setSubmitDisclaimerOpen] = useState(false);
 
   const refreshRunSeqRef = useRef(0);
   const dashboardRef = useRef<HTMLDivElement | null>(null);
@@ -3796,6 +3797,40 @@ const refreshDetailsForPlayers = async (
         onClose={() => setUpdatesOpen(false)}
       />
       <Modal
+        open={submitDisclaimerOpen}
+        className={styles.chronicleTransferHistoryModal}
+        body={
+          <div className={styles.seniorDisclaimerBody}>
+            <div className={styles.seniorDisclaimerBadgeRow}>
+              <span className={styles.seniorDisclaimerBadgeIcon} aria-hidden="true">
+                ⚠️
+              </span>
+              <p className={styles.seniorDisclaimerIntro}>
+                {messages.seniorSubmitDisclaimerIntro}
+              </p>
+            </div>
+            <ul className={styles.seniorDisclaimerList}>
+              <li>{messages.seniorSubmitDisclaimerBulletBestEffort}</li>
+              <li>{messages.seniorSubmitDisclaimerBulletNoResponsibility}</li>
+              <li>{messages.seniorSubmitDisclaimerBulletFineTune}</li>
+              <li>{messages.seniorSubmitDisclaimerBulletResubmit}</li>
+              <li>{messages.seniorSubmitDisclaimerBulletOrdersInHattrick}</li>
+              <li>{messages.seniorSubmitDisclaimerBulletVerify}</li>
+            </ul>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setSubmitDisclaimerOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        onClose={() => setSubmitDisclaimerOpen(false)}
+      />
+      <Modal
         open={!!opponentAnalysisModal}
         title={opponentAnalysisModal?.title ?? messages.analyzeOpponent}
         className={styles.chronicleTransferHistoryModal}
@@ -4957,6 +4992,7 @@ const refreshDetailsForPlayers = async (
             }}
             loadedMatchId={loadedMatchId}
             onSubmitSuccess={() => {
+              setSubmitDisclaimerOpen(true);
               void onRefreshMatchesOnly();
             }}
           />

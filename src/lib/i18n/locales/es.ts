@@ -564,6 +564,20 @@ export const messagesEs: Messages = {
     submitOrdersUpdated: "Actualizado",
     submitOrdersMinPlayers: "Se necesitan al menos 9 jugadores",
     submitOrdersMaxPlayers: "La alineación no puede superar 11 jugadores",
+    seniorSubmitDisclaimerTitle: "⚠️ Aviso tras enviar la alineación",
+    seniorSubmitDisclaimerIntro: "Revisa lo siguiente:",
+    seniorSubmitDisclaimerBulletBestEffort:
+      "Según la información proporcionada por Hattrick, esta es la alineación más efectiva que la IA pudo generar.",
+    seniorSubmitDisclaimerBulletNoResponsibility:
+      "Esta herramienta no asume responsabilidad por el éxito de esta alineación.",
+    seniorSubmitDisclaimerBulletFineTune:
+      "La responsabilidad final del ajuste fino de la alineación es tuya.",
+    seniorSubmitDisclaimerBulletResubmit:
+      "La orientación de jugadores, la formación y la táctica pueden ajustarse aquí y reenviarse con el botón Enviar alineación.",
+    seniorSubmitDisclaimerBulletOrdersInHattrick:
+      "Si se requieren órdenes de partido, deben configurarse directamente en Hattrick.",
+    seniorSubmitDisclaimerBulletVerify:
+      "Verifica disponibilidad, lesiones e intención táctica antes del inicio.",
     loadLineupTooltip: "Carga la alineación guardada desde Hattrick para este partido.",
     submitOrdersTooltip: "Envía la alineación actual a Hattrick para este partido.",
     randomizeLineup: "Alineación aleatoria",

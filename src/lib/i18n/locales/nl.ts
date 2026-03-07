@@ -189,6 +189,20 @@ export const messagesNl: Messages = {
   submitOrdersUpdated: "Bijgewerkt",
   submitOrdersMinPlayers: "Opstelling moet minimaal 9 spelers hebben",
   submitOrdersMaxPlayers: "Opstelling mag niet meer dan 11 spelers hebben",
+  seniorSubmitDisclaimerTitle: "⚠️ Disclaimer na verzenden opstelling",
+  seniorSubmitDisclaimerIntro: "Controleer het volgende:",
+  seniorSubmitDisclaimerBulletBestEffort:
+    "Op basis van de informatie van Hattrick is dit de meest effectieve opstelling die de AI kon genereren.",
+  seniorSubmitDisclaimerBulletNoResponsibility:
+    "Deze tool aanvaardt geen verantwoordelijkheid voor het succes van deze opstelling.",
+  seniorSubmitDisclaimerBulletFineTune:
+    "De uiteindelijke verantwoordelijkheid voor het finetunen van de opstelling ligt bij jou.",
+  seniorSubmitDisclaimerBulletResubmit:
+    "Speleroriëntatie, formatie en tactiek kun je hier aanpassen en daarna opnieuw verzenden met de knop Opstelling verzenden.",
+  seniorSubmitDisclaimerBulletOrdersInHattrick:
+    "Als matchorders nodig zijn, moeten die direct in Hattrick worden ingesteld.",
+  seniorSubmitDisclaimerBulletVerify:
+    "Controleer beschikbaarheid, blessures en tactische intentie voor de aftrap.",
   submitOrdersTooltip: "Verstuur de huidige opstelling naar Hattrick voor deze wedstrijd.",
   confirmSubmitOrders: "Huidige opstelling voor deze wedstrijd verzenden?",
   confirmCancel: "Annuleren",

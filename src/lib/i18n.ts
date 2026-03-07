@@ -552,6 +552,7 @@ export type Messages = {
   setBestLineupTrainingAwareTooltip: string;
   setBestLineupIgnoreTraining: string;
   setBestLineupIgnoreTrainingTooltip: string;
+  setBestLineupRejectedPlayersLabel: string;
   loadLineupUnavailable: string;
   loadLineupActive: string;
   loadLineupError: string;

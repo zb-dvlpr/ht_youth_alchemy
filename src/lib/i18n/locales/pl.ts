@@ -141,6 +141,7 @@ export const messagesPl: Messages = {
   setBestLineupIgnoreTraining: "Ignoruj trening",
   setBestLineupIgnoreTrainingTooltip:
     "Ustaw skład bez uwzględniania reżimu treningowego. Brane są pod uwagę wszystkie formacje.",
+  setBestLineupRejectedPlayersLabel: "Odrzuceni zawodnicy",
   loadLineupUnavailable: "Brak zapisanego składu",
   loadLineupActive: "Wczytany skład",
   loadLineupError: "Błąd wczytywania składu",

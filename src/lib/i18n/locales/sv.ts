@@ -627,6 +627,7 @@ export const messagesSv: Messages = {
     setBestLineupIgnoreTraining: "Ignorera träning",
     setBestLineupIgnoreTrainingTooltip:
       "Sätt uppställningen utan hänsyn till träningsupplägget. Alla formationer beaktas.",
+    setBestLineupRejectedPlayersLabel: "Bortvalda spelare",
     loadLineupUnavailable: "Ingen sparad uppställning",
     loadLineupActive: "Laddad",
     loadLineupError: "Misslyckades att ladda",

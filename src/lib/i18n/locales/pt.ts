@@ -636,6 +636,7 @@ export const messagesPt: Messages = {
     setBestLineupIgnoreTraining: "Ignorar treino",
     setBestLineupIgnoreTrainingTooltip:
       "Define a escalação sem considerar o regime de treino. Todas as formações serão consideradas.",
+    setBestLineupRejectedPlayersLabel: "Jogadores rejeitados",
     loadLineupUnavailable: "Sem escalação salva",
     loadLineupActive: "Carregada",
     loadLineupError: "Falha ao carregar",

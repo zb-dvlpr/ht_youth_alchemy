@@ -296,6 +296,7 @@ type GeneratedFormationRow = {
   formation: string;
   assignments: LineupAssignments;
   slotRatings: Record<string, number | null>;
+  rejectedPlayerIds: number[];
   predicted: PredictedRatings | null;
   error: string | null;
 };
@@ -1054,6 +1055,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     generatedRows: GeneratedFormationRow[];
     selectedGeneratedFormation: string | null;
     selectedGeneratedTactic: number | null;
+    selectedRejectedPlayerIds: number[];
     selectedComparison:
       | {
           ours: CollectiveRatings;
@@ -2152,6 +2154,7 @@ const refreshDetailsForPlayers = async (
         generatedRows: [],
         selectedGeneratedFormation: null,
         selectedGeneratedTactic: null,
+        selectedRejectedPlayerIds: [],
         selectedComparison: null,
         loading: true,
         error: null,
@@ -2326,52 +2329,50 @@ const refreshDetailsForPlayers = async (
         });
       }
 
-      const playerPool = players.map((player) => ({
-        id: player.PlayerID,
-        name: formatPlayerName(player) || String(player.PlayerID),
-      }));
+      const playerPool = players
+        .map((player) => {
+          const details = detailsById.get(player.PlayerID);
+          const injuryLevel =
+            typeof details?.InjuryLevel === "number"
+              ? details.InjuryLevel
+              : typeof player.InjuryLevel === "number"
+                ? player.InjuryLevel
+                : null;
+          return {
+            id: player.PlayerID,
+            name: formatPlayerName(player) || String(player.PlayerID),
+            injuryLevel,
+          };
+        })
+        .filter((player) => !(typeof player.injuryLevel === "number" && player.injuryLevel >= 1))
+        .map(({ id, name }) => ({ id, name }));
       if (playerPool.length < 11) {
         throw new Error(messages.submitOrdersMinPlayers);
       }
-
-      const baseRows = generateFormationShapes()
-        .map((shape) => {
-          if (
-            mode === "trainingAware" &&
-            !trainingAwareShapeAllowed(shape, activeTrainingType)
-          ) {
-            return null;
-          }
-          const defenseSlots = DEFENSE_FORMATION_MAP[shape.defenders] ?? [];
-          const occupiedSlots = [
-            "KP",
-            ...defenseSlots,
-            ...(MIDFIELD_FORMATION_MAP[shape.midfielders] ?? []),
-            ...(ATTACK_FORMATION_MAP[shape.attackers] ?? []),
-          ];
-          if (mode === "trainingAware") {
-            const requiredSlots = requiredTrainableSlots(activeTrainingType);
-            if (requiredSlots.some((slot) => !occupiedSlots.includes(slot))) {
-              return null;
-            }
-          }
-          const orderedSlots = orderFormationSlotsForTraining(
-            occupiedSlots,
-            mode === "trainingAware" ? activeTrainingType : null
-          );
-        const availablePlayers = [...playerPool];
+      const isFriendlyTarget =
+        selectedMatchType !== null && FRIENDLY_MATCH_TYPES.has(selectedMatchType);
+      const buildAssignmentsForOrderedSlots = (
+        orderedSlots: string[],
+        excludedPlayerIds?: Set<number>
+      ) => {
+        const availablePlayers = playerPool.filter(
+          (candidate) => !excludedPlayerIds?.has(candidate.id)
+        );
         const assignmentsForFormation: LineupAssignments = {};
         const slotRatingsForFormation: Record<string, number | null> = {};
+        const usedPlayerIds = new Set<number>();
+        const ratingFor = (playerId: number, code: number) =>
+          typeof ratingsById[playerId]?.[String(code)] === "number"
+            ? (ratingsById[playerId]?.[String(code)] as number)
+            : -1;
+        const bestInSector = (playerId: number, sector: PlayerSector) =>
+          Math.max(
+            ...SECTOR_TO_RATING_CODES[sector].map((code) => ratingFor(playerId, code))
+          );
 
         orderedSlots.forEach((slot) => {
           const roleCode = SLOT_TO_RATING_CODE[slot];
           const slotSector = SLOT_TO_SECTOR[slot];
-          const ratingFor = (playerId: number, code: number) =>
-            typeof ratingsById[playerId]?.[String(code)] === "number"
-              ? (ratingsById[playerId]?.[String(code)] as number)
-              : -1;
-          const bestInSector = (playerId: number, sector: PlayerSector) =>
-            Math.max(...SECTOR_TO_RATING_CODES[sector].map((code) => ratingFor(playerId, code)));
           availablePlayers.sort((left, right) => {
             const leftRating = ratingFor(left.id, roleCode);
             const rightRating = ratingFor(right.id, roleCode);
@@ -2401,12 +2402,84 @@ const refreshDetailsForPlayers = async (
             typeof ratingsById[selectedPlayer.id]?.[String(roleCode)] === "number"
               ? ratingsById[selectedPlayer.id]?.[String(roleCode)]
               : null;
+          usedPlayerIds.add(selectedPlayer.id);
         });
+
+        return {
+          assignments: assignmentsForFormation,
+          slotRatings: slotRatingsForFormation,
+          usedPlayerIds,
+        };
+      };
+      const assignmentCount = (assignmentsForFormation: LineupAssignments) =>
+        Object.values(assignmentsForFormation).filter(
+          (id): id is number => typeof id === "number" && id > 0
+        ).length;
+
+      const baseRows = generateFormationShapes()
+        .map((shape) => {
+          if (
+            mode === "trainingAware" &&
+            !trainingAwareShapeAllowed(shape, activeTrainingType)
+          ) {
+            return null;
+          }
+          const defenseSlots = DEFENSE_FORMATION_MAP[shape.defenders] ?? [];
+          const occupiedSlots = [
+            "KP",
+            ...defenseSlots,
+            ...(MIDFIELD_FORMATION_MAP[shape.midfielders] ?? []),
+            ...(ATTACK_FORMATION_MAP[shape.attackers] ?? []),
+          ];
+          if (mode === "trainingAware") {
+            const requiredSlots = requiredTrainableSlots(activeTrainingType);
+            if (requiredSlots.some((slot) => !occupiedSlots.includes(slot))) {
+              return null;
+            }
+          }
+          const orderedSlots = orderFormationSlotsForTraining(
+            occupiedSlots,
+            mode === "trainingAware" ? activeTrainingType : null
+          );
+          const firstPass = buildAssignmentsForOrderedSlots(orderedSlots);
+          let resolvedPass = isFriendlyTarget
+            ? buildAssignmentsForOrderedSlots(orderedSlots, firstPass.usedPlayerIds)
+            : firstPass;
+          if (isFriendlyTarget && assignmentCount(resolvedPass.assignments) < 11) {
+            const mergedAssignments: LineupAssignments = { ...resolvedPass.assignments };
+            const mergedSlotRatings: Record<string, number | null> = { ...resolvedPass.slotRatings };
+            const usedMerged = new Set<number>(
+              Object.values(mergedAssignments).filter(
+                (id): id is number => typeof id === "number" && id > 0
+              )
+            );
+            orderedSlots.forEach((slot) => {
+              if (mergedAssignments[slot]) return;
+              const firstPassPlayerId = firstPass.assignments[slot];
+              if (!firstPassPlayerId || usedMerged.has(firstPassPlayerId)) return;
+              mergedAssignments[slot] = firstPassPlayerId;
+              mergedSlotRatings[slot] = firstPass.slotRatings[slot] ?? null;
+              usedMerged.add(firstPassPlayerId);
+            });
+            resolvedPass = {
+              assignments: mergedAssignments,
+              slotRatings: mergedSlotRatings,
+              usedPlayerIds: usedMerged,
+            };
+          }
+          if (assignmentCount(resolvedPass.assignments) < 11) {
+            return null;
+          }
 
           return {
             formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
-            assignments: assignmentsForFormation,
-            slotRatings: slotRatingsForFormation,
+            assignments: resolvedPass.assignments,
+            slotRatings: resolvedPass.slotRatings,
+            rejectedPlayerIds: isFriendlyTarget
+              ? Array.from(firstPass.usedPlayerIds).filter(
+                  (playerId) => !resolvedPass.usedPlayerIds.has(playerId)
+                )
+              : [],
             predicted: null,
             error: null,
           } as GeneratedFormationRow;
@@ -2451,6 +2524,7 @@ const refreshDetailsForPlayers = async (
                 ratingMidAtt: parseNumber(matchData.RatingMidAtt),
                 ratingLeftAtt: parseNumber(matchData.RatingLeftAtt),
               },
+              rejectedPlayerIds: row.rejectedPlayerIds,
               error: null,
             } as GeneratedFormationRow;
           } catch (error) {
@@ -2459,6 +2533,7 @@ const refreshDetailsForPlayers = async (
             return {
               ...row,
               predicted: null,
+              rejectedPlayerIds: row.rejectedPlayerIds,
               error: details,
             } as GeneratedFormationRow;
           }
@@ -2467,6 +2542,7 @@ const refreshDetailsForPlayers = async (
 
       let selectedGeneratedFormation: string | null = null;
       let selectedGeneratedTactic: number | null = null;
+      let selectedRejectedPlayerIds: number[] = [];
       let selectedComparison:
         | {
             ours: CollectiveRatings;
@@ -2552,6 +2628,7 @@ const refreshDetailsForPlayers = async (
                 : 1;
           selectedGeneratedFormation = chosenItem.row.formation;
           selectedGeneratedTactic = chosenTactic;
+          selectedRejectedPlayerIds = chosenItem.row.rejectedPlayerIds ?? [];
           selectedComparison = {
             ours: chosenItem.collective,
             opponent: opponentCollective,
@@ -2631,6 +2708,7 @@ const refreshDetailsForPlayers = async (
                 generatedRows: rows,
                 selectedGeneratedFormation,
                 selectedGeneratedTactic,
+                selectedRejectedPlayerIds,
                 selectedComparison,
                 loading: false,
                 error: null,
@@ -2652,6 +2730,7 @@ const refreshDetailsForPlayers = async (
                 generatedRows: [],
                 selectedGeneratedFormation: null,
                 selectedGeneratedTactic: null,
+                selectedRejectedPlayerIds: [],
                 selectedComparison: null,
                 loading: false,
                 error: details,
@@ -3435,23 +3514,33 @@ const refreshDetailsForPlayers = async (
                 </p>
                 {opponentFormationsModal.selectedGeneratedFormation &&
                 opponentFormationsModal.selectedComparison ? (
-                  <p className={styles.chroniclePressMeta}>
-                    <strong>{opponentFormationsModal.selectedGeneratedFormation}</strong> ·{" "}
-                    {opponentFormationsModal.selectedGeneratedTactic === 0
-                      ? messages.tacticNormal
-                      : opponentFormationsModal.selectedGeneratedTactic === 2
-                        ? messages.tacticCounterAttacks
-                        : messages.tacticPressing}
-                    {" · "}
-                    MID {opponentFormationsModal.selectedComparison.ours.midfield.toFixed(1)} /{" "}
-                    {opponentFormationsModal.selectedComparison.opponent.midfield.toFixed(1)}
-                    {" · "}
-                    DEF {opponentFormationsModal.selectedComparison.ours.defense.toFixed(1)} /{" "}
-                    {opponentFormationsModal.selectedComparison.opponent.defense.toFixed(1)}
-                    {" · "}
-                    ATT {opponentFormationsModal.selectedComparison.ours.attack.toFixed(1)} /{" "}
-                    {opponentFormationsModal.selectedComparison.opponent.attack.toFixed(1)}
-                  </p>
+                  <>
+                    <p className={styles.chroniclePressMeta}>
+                      <strong>{opponentFormationsModal.selectedGeneratedFormation}</strong> ·{" "}
+                      {opponentFormationsModal.selectedGeneratedTactic === 0
+                        ? messages.tacticNormal
+                        : opponentFormationsModal.selectedGeneratedTactic === 2
+                          ? messages.tacticCounterAttacks
+                          : messages.tacticPressing}
+                      {" · "}
+                      MID {opponentFormationsModal.selectedComparison.ours.midfield.toFixed(1)} /{" "}
+                      {opponentFormationsModal.selectedComparison.opponent.midfield.toFixed(1)}
+                      {" · "}
+                      DEF {opponentFormationsModal.selectedComparison.ours.defense.toFixed(1)} /{" "}
+                      {opponentFormationsModal.selectedComparison.opponent.defense.toFixed(1)}
+                      {" · "}
+                      ATT {opponentFormationsModal.selectedComparison.ours.attack.toFixed(1)} /{" "}
+                      {opponentFormationsModal.selectedComparison.opponent.attack.toFixed(1)}
+                    </p>
+                    {opponentFormationsModal.selectedRejectedPlayerIds.length > 0 ? (
+                      <p className={styles.chroniclePressMeta}>
+                        {messages.setBestLineupRejectedPlayersLabel}:{" "}
+                        {opponentFormationsModal.selectedRejectedPlayerIds
+                          .map((playerId) => playerNameById.get(playerId) ?? String(playerId))
+                          .join(", ")}
+                      </p>
+                    ) : null}
+                  </>
                 ) : null}
                 <div className={styles.opponentFormationsTableWrap}>
                   <table className={styles.opponentFormationsTable}>

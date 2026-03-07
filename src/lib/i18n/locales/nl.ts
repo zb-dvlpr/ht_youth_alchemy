@@ -141,6 +141,7 @@ export const messagesNl: Messages = {
   setBestLineupIgnoreTraining: "Training negeren",
   setBestLineupIgnoreTrainingTooltip:
     "Zet de opstelling zonder rekening te houden met het trainingsregime. Alle formaties worden meegenomen.",
+  setBestLineupRejectedPlayersLabel: "Afgewezen spelers",
   loadLineupUnavailable: "Geen opgeslagen opstelling",
   loadLineupActive: "Opstelling geladen",
   loadLineupError: "Fout bij laden opstelling",

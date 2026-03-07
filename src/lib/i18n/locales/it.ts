@@ -637,6 +637,7 @@ export const messagesIt: Messages = {
     setBestLineupIgnoreTraining: "Ignora allenamento",
     setBestLineupIgnoreTrainingTooltip:
       "Imposta la formazione senza considerare il regime di allenamento. Vengono considerate tutte le formazioni.",
+    setBestLineupRejectedPlayersLabel: "Giocatori scartati",
     loadLineupUnavailable: "Nessuna formazione salvata",
     loadLineupActive: "Caricata",
     loadLineupError: "Caricamento non riuscito",

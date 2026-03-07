@@ -635,6 +635,7 @@ export const messagesFr: Messages = {
     setBestLineupIgnoreTraining: "Ignorer l'entraînement",
     setBestLineupIgnoreTrainingTooltip:
       "Définit la composition sans tenir compte du programme d'entraînement. Toutes les formations sont prises en compte.",
+    setBestLineupRejectedPlayersLabel: "Joueurs rejetés",
     loadLineupUnavailable: "Aucune composition enregistrée",
     loadLineupActive: "Chargé",
     loadLineupError: "Chargement échoué",

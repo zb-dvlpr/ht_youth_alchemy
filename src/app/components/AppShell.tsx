@@ -32,6 +32,7 @@ type ViewStateSnapshot = {
 const APP_SHELL_VIEW_STATE_KEY = "ya_app_shell_view_state_v1";
 const APP_SHELL_ACTIVE_TOOL_KEY = "ya_app_shell_active_tool_v1";
 const APP_SHELL_COLLAPSED_KEY = "ya_app_shell_collapsed_v1";
+const CHANGELOG_SEEN_LATEST_ENTRY_KEY = "ya_changelog_seen_latest_entry_v1";
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
 const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
@@ -282,6 +283,26 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const latestVersion = changelogEntries[0]?.version ?? null;
+    if (!latestVersion) return;
+    try {
+      const previous = window.localStorage.getItem(CHANGELOG_SEEN_LATEST_ENTRY_KEY);
+      if (!previous) {
+        window.localStorage.setItem(CHANGELOG_SEEN_LATEST_ENTRY_KEY, latestVersion);
+        return;
+      }
+      if (previous !== latestVersion) {
+        window.localStorage.setItem(CHANGELOG_SEEN_LATEST_ENTRY_KEY, latestVersion);
+        setChangelogPage(0);
+        setShowChangelog(true);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }, [changelogEntries]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     if (!viewStateRestored) return;
     try {
       window.localStorage.setItem(APP_SHELL_ACTIVE_TOOL_KEY, activeTool);
@@ -508,7 +529,7 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handler = () => {
-      if (activeTool !== "chronicle") return;
+      if (activeTool === "youth") return;
       setChangelogPage(0);
       setShowChangelog(true);
     };

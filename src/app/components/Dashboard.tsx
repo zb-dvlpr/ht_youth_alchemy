@@ -714,7 +714,6 @@ export default function Dashboard({
   ratingsResponse,
   initialYouthTeams = [],
   initialYouthTeamId = null,
-  appVersion,
   messages,
   isConnected,
   initialLoadError = null,
@@ -805,7 +804,6 @@ export default function Dashboard({
   const { addNotification } = useNotifications();
   const isDev = process.env.NODE_ENV !== "production";
   const helpStorageKey = "ya_help_dismissed_v1";
-  const changelogStorageKey = "ya_changelog_seen_major_minor_v1";
   const dashboardRef = useRef<HTMLDivElement | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
@@ -1380,24 +1378,6 @@ export default function Dashboard({
     () => ({ allowTrainingUntilMaxedOut }),
     [allowTrainingUntilMaxedOut]
   );
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const majorMinor = appVersion.split(".").slice(0, 2).join(".");
-    try {
-      const previous = window.localStorage.getItem(changelogStorageKey);
-      if (!previous) {
-        window.localStorage.setItem(changelogStorageKey, majorMinor);
-        return;
-      }
-      if (previous !== majorMinor) {
-        window.localStorage.setItem(changelogStorageKey, majorMinor);
-        setShowChangelog(true);
-      }
-    } catch {
-      // ignore storage errors
-    }
-  }, [appVersion, changelogStorageKey]);
 
   useEffect(() => {
     if (!showChangelog) return;

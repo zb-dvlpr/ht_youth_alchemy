@@ -215,6 +215,29 @@ const SLOT_TO_RATING_CODE: Record<string, number> = {
   F_C: 111,
   F_R: 111,
 };
+type PlayerSector = "keeper" | "defense" | "midfield" | "attack";
+const SLOT_TO_SECTOR: Record<string, PlayerSector> = {
+  KP: "keeper",
+  WB_L: "defense",
+  WB_R: "defense",
+  CD_L: "defense",
+  CD_C: "defense",
+  CD_R: "defense",
+  W_L: "midfield",
+  W_R: "midfield",
+  IM_L: "midfield",
+  IM_C: "midfield",
+  IM_R: "midfield",
+  F_L: "attack",
+  F_C: "attack",
+  F_R: "attack",
+};
+const SECTOR_TO_RATING_CODES: Record<PlayerSector, number[]> = {
+  keeper: [100],
+  defense: [101, 103],
+  midfield: [106, 107],
+  attack: [111],
+};
 
 type PredictedRatings = {
   tacticType: number | null;
@@ -668,14 +691,13 @@ const trainingAwareShapeAllowed = (
 ) => {
   if (trainingType === null || trainingType === 0 || trainingType === 1) return true;
   if (trainingType === 2 || trainingType === 6 || trainingType === 9) return true;
-  if (trainingType === 3 || trainingType === 11) {
-    return shape.defenders === 5 || shape.defenders === 4 || shape.defenders === 3;
-  }
+  if (trainingType === 3) return shape.defenders === 5;
   if (trainingType === 4) return shape.attackers === 3;
   if (trainingType === 5) return shape.defenders >= 4 && shape.midfielders >= 4;
   if (trainingType === 7) return shape.defenders === 2 && shape.midfielders === 5 && shape.attackers === 3;
   if (trainingType === 8) return shape.midfielders === 5;
   if (trainingType === 10) return shape.defenders === 5 && shape.midfielders === 5 && shape.attackers === 0;
+  if (trainingType === 11) return shape.defenders === 5 && shape.midfielders === 5 && shape.attackers === 0;
   if (trainingType === 12) return shape.midfielders >= 4 && shape.attackers === 3;
   return true;
 };
@@ -683,8 +705,7 @@ const trainingAwareShapeAllowed = (
 const requiredTrainableSlots = (trainingType: number | null): string[] => {
   switch (trainingType) {
     case 3:
-    case 11:
-      return ["CD_L", "CD_C", "CD_R"];
+      return [...DEFENSE_SLOTS];
     case 4:
       return ["F_L", "F_C", "F_R"];
     case 5:
@@ -692,12 +713,37 @@ const requiredTrainableSlots = (trainingType: number | null): string[] => {
     case 8:
       return ["W_L", "IM_L", "IM_C", "IM_R", "W_R"];
     case 10:
+    case 11:
       return [...DEFENSE_SLOTS, ...MIDFIELD_SLOTS];
     case 12:
       return ["W_L", "W_R", "F_L", "F_C", "F_R"];
     default:
       return [];
   }
+};
+
+const orderFormationSlotsForTraining = (
+  occupiedSlots: string[],
+  trainingType: number | null
+): string[] => {
+  const defaultOrdered = FIELD_SLOT_ORDER.filter((slot) => occupiedSlots.includes(slot));
+  if (trainingType === 8) {
+    const priority = ["IM_L", "IM_C", "IM_R", "W_L", "W_R"];
+    const prioritySet = new Set(priority);
+    return [
+      ...priority.filter((slot) => occupiedSlots.includes(slot)),
+      ...defaultOrdered.filter((slot) => !prioritySet.has(slot)),
+    ];
+  }
+  if (trainingType === 5) {
+    const priority = ["W_L", "W_R", "WB_L", "WB_R"];
+    const prioritySet = new Set(priority);
+    return [
+      ...priority.filter((slot) => occupiedSlots.includes(slot)),
+      ...defaultOrdered.filter((slot) => !prioritySet.has(slot)),
+    ];
+  }
+  return defaultOrdered;
 };
 
 const pickMostCommonFormation = (rows: OpponentFormationRow[]): string | null => {
@@ -1696,6 +1742,14 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     }
 
     try {
+      let activeTrainingType = trainingType;
+      try {
+        activeTrainingType = await fetchTrainingType();
+        setTrainingType(activeTrainingType);
+      } catch {
+        // Keep best-lineup flow intact even if training endpoint fails.
+      }
+
       const { response: archiveResponse, payload: archivePayload } = await fetchChppJson<{
         data?: {
           HattrickData?: {
@@ -1839,15 +1893,6 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         opponentRows,
         chosenFormation
       );
-      let activeTrainingType = trainingType;
-      if (mode === "trainingAware" && activeTrainingType === null) {
-        try {
-          activeTrainingType = await fetchTrainingType();
-          setTrainingType(activeTrainingType);
-        } catch {
-          activeTrainingType = null;
-        }
-      }
 
       let ratingsById = ratingsByPlayerId;
       if (!ratingsResponse?.players?.length) {
@@ -1875,12 +1920,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           ) {
             return null;
           }
-          const defenseSlots =
-            mode === "trainingAware" &&
-            (activeTrainingType === 3 || activeTrainingType === 11) &&
-            shape.defenders === 4
-              ? ["WB_L", "CD_L", "CD_C", "CD_R"]
-              : DEFENSE_FORMATION_MAP[shape.defenders] ?? [];
+          const defenseSlots = DEFENSE_FORMATION_MAP[shape.defenders] ?? [];
           const occupiedSlots = [
             "KP",
             ...defenseSlots,
@@ -1893,28 +1933,46 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
               return null;
             }
           }
-          const orderedSlots = FIELD_SLOT_ORDER.filter((slot) => occupiedSlots.includes(slot));
+          const orderedSlots = orderFormationSlotsForTraining(
+            occupiedSlots,
+            mode === "trainingAware" ? activeTrainingType : null
+          );
         const availablePlayers = [...playerPool];
         const assignmentsForFormation: LineupAssignments = {};
         const slotRatingsForFormation: Record<string, number | null> = {};
 
         orderedSlots.forEach((slot) => {
           const roleCode = SLOT_TO_RATING_CODE[slot];
+          const slotSector = SLOT_TO_SECTOR[slot];
+          const ratingFor = (playerId: number, code: number) =>
+            typeof ratingsById[playerId]?.[String(code)] === "number"
+              ? (ratingsById[playerId]?.[String(code)] as number)
+              : -1;
+          const bestInSector = (playerId: number, sector: PlayerSector) =>
+            Math.max(...SECTOR_TO_RATING_CODES[sector].map((code) => ratingFor(playerId, code)));
           availablePlayers.sort((left, right) => {
-            const leftRating =
-              typeof ratingsById[left.id]?.[String(roleCode)] === "number"
-                ? ratingsById[left.id]?.[String(roleCode)]
-                : -1;
-            const rightRating =
-              typeof ratingsById[right.id]?.[String(roleCode)] === "number"
-                ? ratingsById[right.id]?.[String(roleCode)]
-                : -1;
+            const leftRating = ratingFor(left.id, roleCode);
+            const rightRating = ratingFor(right.id, roleCode);
             if (rightRating !== leftRating) {
               return rightRating - leftRating;
             }
             return left.name.localeCompare(right.name);
           });
-          const selectedPlayer = availablePlayers.shift() ?? null;
+          const selectedIndex = availablePlayers.findIndex((candidate) => {
+            const slotRating = ratingFor(candidate.id, roleCode);
+            if (slotRating < 0) return false;
+            const bestOtherSector = (Object.keys(SECTOR_TO_RATING_CODES) as PlayerSector[])
+              .filter((sector) => sector !== slotSector)
+              .reduce(
+                (best, sector) => Math.max(best, bestInSector(candidate.id, sector)),
+                -1
+              );
+            return bestOtherSector < slotRating;
+          });
+          const selectedPlayer =
+            selectedIndex >= 0
+              ? (availablePlayers.splice(selectedIndex, 1)[0] ?? null)
+              : null;
           if (!selectedPlayer) return;
           assignmentsForFormation[slot] = selectedPlayer.id;
           slotRatingsForFormation[slot] =

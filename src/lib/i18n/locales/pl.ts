@@ -38,6 +38,15 @@ export const messagesPl: Messages = {
   refreshTooltip: "Odśwież dane juniorów",
   refreshAllYouthDataTooltip: "Odśwież wszystkie dane juniorów.",
   refreshAllSeniorDataTooltip: "Odśwież wszystkie dane seniorów.",
+  refreshStatusFetchingPlayers: "Pobieranie juniorów…",
+  refreshStatusFetchingPlayerDetails: "Pobieranie szczegółów zawodników…",
+  refreshStatusFetchingMatches: "Pobieranie meczów…",
+  refreshStatusFetchingRatings: "Pobieranie ocen z poprzednich meczów…",
+  refreshStatusFetchingPastMatchesProgress:
+    "Pobieranie poprzednich meczów {completed}/{total}…",
+  refreshStatusFetchingHiddenSpecialties: "Wykrywanie ukrytych specjalności…",
+  refreshStatusFetchingHiddenSpecialtiesProgress:
+    "Wykrywanie ukrytych specjalności {completed}/{total}…",
   refreshStopButton: "Zatrzymaj",
   refreshStopTooltip: "Zatrzymaj trwające odświeżanie",
   youthLastGlobalRefresh: "Ostatnie globalne odświeżenie",

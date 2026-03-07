@@ -38,6 +38,15 @@ export const messagesNl: Messages = {
   refreshTooltip: "Jeugdgegevens vernieuwen",
   refreshAllYouthDataTooltip: "Alle jeugdgegevens vernieuwen.",
   refreshAllSeniorDataTooltip: "Alle seniorgegevens vernieuwen.",
+  refreshStatusFetchingPlayers: "Jeugdspelers ophalen…",
+  refreshStatusFetchingPlayerDetails: "Spelerdetails ophalen…",
+  refreshStatusFetchingMatches: "Wedstrijden ophalen…",
+  refreshStatusFetchingRatings: "Beoordelingen uit eerdere wedstrijden ophalen…",
+  refreshStatusFetchingPastMatchesProgress:
+    "Eerdere wedstrijden ophalen {completed}/{total}…",
+  refreshStatusFetchingHiddenSpecialties: "Verborgen specialiteiten detecteren…",
+  refreshStatusFetchingHiddenSpecialtiesProgress:
+    "Verborgen specialiteiten detecteren {completed}/{total}…",
   refreshStopButton: "Stoppen",
   refreshStopTooltip: "Lopende verversing stoppen",
   youthLastGlobalRefresh: "Laatste globale verversing",

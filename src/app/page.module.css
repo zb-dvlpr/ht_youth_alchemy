@@ -2153,6 +2153,10 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   font-variant-numeric: tabular-nums;
 }
 
+.opponentFormationsNumberHeader {
+  text-align: right !important;
+}
+
 .opponentFormationsAverageRow {
   background: #eaf2fb;
 }

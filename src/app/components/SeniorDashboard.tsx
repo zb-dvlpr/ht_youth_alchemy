@@ -1714,11 +1714,11 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       homeTeamId === teamIdValue
         ? selectedMatch.AwayTeam?.AwayTeamName
         : selectedMatch.HomeTeam?.HomeTeamName;
-    const requestedTypes = classifyRequestedTypes(
-      Number.isFinite(Number(selectedMatch.MatchType))
-        ? Number(selectedMatch.MatchType)
-        : null
-    );
+    const selectedMatchType = Number.isFinite(Number(selectedMatch.MatchType))
+      ? Number(selectedMatch.MatchType)
+      : null;
+    const requestedTypes = classifyRequestedTypes(selectedMatchType);
+    const includeHtoArchive = selectedMatchType !== null && TOURNAMENT_MATCH_TYPES.has(selectedMatchType);
     const sourceSystem =
       typeof (selectedMatch as Record<string, unknown>).SourceSystem === "string"
         ? String((selectedMatch as Record<string, unknown>).SourceSystem)
@@ -1762,7 +1762,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         };
         error?: string;
         details?: string;
-      }>(`/api/chpp/matchesarchive?teamId=${opponentTeamId}`, { cache: "no-store" });
+      }>(
+        `/api/chpp/matchesarchive?teamId=${opponentTeamId}${
+          includeHtoArchive ? "&includeHTO=true" : ""
+        }`,
+        { cache: "no-store" }
+      );
       if (!archiveResponse.ok || archivePayload?.error) {
         throw new Error(
           archivePayload?.details ?? archivePayload?.error ?? messages.unableToLoadMatches
@@ -2714,15 +2719,16 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                         <thead>
                           <tr>
                             <th>{messages.matchesTitle}</th>
+                            <th>{messages.clubChronicleTransferHistoryDateColumn}</th>
                             <th>{messages.ordersLabel}</th>
                             <th>{messages.clubChronicleFormationsColumnFormation}</th>
-                            <th>{messages.ratingSectorMidfieldShort}</th>
-                            <th>{messages.ratingSectorRightDefShort}</th>
-                            <th>{messages.ratingSectorMidDefShort}</th>
-                            <th>{messages.ratingSectorLeftDefShort}</th>
-                            <th>{messages.ratingSectorRightAttShort}</th>
-                            <th>{messages.ratingSectorMidAttShort}</th>
-                            <th>{messages.ratingSectorLeftAttShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidfieldShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorRightDefShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidDefShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorLeftDefShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorRightAttShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidAttShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorLeftAttShort}</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -2738,6 +2744,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                                   {row.matchId}
                                   {row.againstMyTeam ? "*" : ""}
                                 </a>
+                              </td>
+                              <td>
+                                {(() => {
+                                  const parsedDate = parseChppDate(row.matchDate);
+                                  return parsedDate ? formatDateTime(parsedDate) : messages.unknownDate;
+                                })()}
                               </td>
                               <td>{matchTypeLabel(row.matchType)}</td>
                               <td>{row.formation ?? messages.unknownShort}</td>
@@ -2780,7 +2792,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                           ))}
                           {opponentFormationsModal.chosenFormationAverages ? (
                             <tr className={styles.opponentFormationsAverageRow}>
-                              <td colSpan={3}>
+                              <td colSpan={4}>
                                 <strong>
                                   {messages.averageLabel} (
                                   {opponentFormationsModal.chosenFormationAverages.sampleSize})
@@ -2871,13 +2883,13 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                       <tr>
                         <th>{messages.clubChronicleFormationsColumnFormation}</th>
                         <th>{messages.lineupTitle}</th>
-                        <th>{messages.ratingSectorMidfieldShort}</th>
-                        <th>{messages.ratingSectorRightDefShort}</th>
-                        <th>{messages.ratingSectorMidDefShort}</th>
-                        <th>{messages.ratingSectorLeftDefShort}</th>
-                        <th>{messages.ratingSectorRightAttShort}</th>
-                        <th>{messages.ratingSectorMidAttShort}</th>
-                        <th>{messages.ratingSectorLeftAttShort}</th>
+                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidfieldShort}</th>
+                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorRightDefShort}</th>
+                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidDefShort}</th>
+                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorLeftDefShort}</th>
+                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorRightAttShort}</th>
+                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidAttShort}</th>
+                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorLeftAttShort}</th>
                       </tr>
                     </thead>
                     <tbody>

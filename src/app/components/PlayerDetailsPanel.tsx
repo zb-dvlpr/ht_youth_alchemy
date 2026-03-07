@@ -1708,12 +1708,16 @@ export default function PlayerDetailsPanel({
                         : false;
                     const currentText =
                       skillMode === "single" && playerKind === "senior"
-                        ? seniorEffectiveCurrent === null
-                          ? messages.unknownShort
-                          : formatSkillMatrixFloat(seniorEffectiveCurrent)
+                        ? (showSeniorSkillBonusInMatrix
+                            ? seniorEffectiveCurrent === null
+                              ? messages.unknownShort
+                              : formatSkillMatrixFloat(seniorEffectiveCurrent)
+                            : current === null
+                            ? messages.unknownShort
+                            : String(Math.round(current)))
                         : current === null
-                        ? messages.unknownShort
-                        : String(current);
+                          ? messages.unknownShort
+                          : String(current);
                     const maxText = max === null ? messages.unknownShort : String(max);
                     const currentColor = skillCellColor(
                       playerKind === "senior" && skillMode === "single"

@@ -443,6 +443,11 @@ const parseSkill = (value: unknown): number | null => {
   return null;
 };
 
+// NEW/N detection must always be based on raw skill values from CHPP data only.
+// Effective skill bonus layers (mother club / loyalty) are display-only and must
+// never contribute to change detection.
+const parseBaseSkillForNDetection = (value: unknown): number | null => parseSkill(value);
+
 const SUBSCRIPT_DIGITS: Record<string, string> = {
   "0": "₀",
   "1": "₁",
@@ -1573,8 +1578,10 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       const entry = upsert(playerId, playerName, !previous);
 
       SKILL_KEYS.forEach((skillKey) => {
-        const prevValue = previous ? parseSkill(previous.PlayerSkills?.[skillKey]) : null;
-        const nextValue = parseSkill(player.PlayerSkills?.[skillKey]);
+        const prevValue = previous
+          ? parseBaseSkillForNDetection(previous.PlayerSkills?.[skillKey])
+          : null;
+        const nextValue = parseBaseSkillForNDetection(player.PlayerSkills?.[skillKey]);
         if (nextValue !== null && nextValue !== prevValue) {
           entry.skills.push({
             skillKey,

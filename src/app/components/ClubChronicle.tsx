@@ -185,6 +185,7 @@ type TransferActivityEntry = {
 type TransferUpdatePlayer = {
   playerId: number | null;
   playerName: string | null;
+  priceSek?: number | null;
 };
 
 type TransferActivitySnapshot = {
@@ -4106,7 +4107,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           const label = encodeURIComponent(
             (player.playerName ?? "").trim() || String(playerId)
           );
-          return `${playerId}:${label}`;
+          const rawPriceSek = Number(player.priceSek);
+          const priceSek =
+            Number.isFinite(rawPriceSek) && rawPriceSek > 0 ? rawPriceSek : 0;
+          return `${playerId}:${label}:${priceSek}`;
         })
         .join(",");
     },
@@ -4117,13 +4121,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return value
       .split(",")
       .map((entry) => {
-        const [idRaw, labelRaw] = entry.split(":");
+        const [idRaw, labelRaw, priceRaw] = entry.split(":");
         const parsedId = Number(idRaw);
         const playerId = Number.isFinite(parsedId) && parsedId > 0 ? parsedId : null;
         const playerName = decodeURIComponent(labelRaw ?? "").trim();
+        const parsedPrice = Number(priceRaw);
+        const priceSek = Number.isFinite(parsedPrice) && parsedPrice > 0 ? parsedPrice : null;
         return {
           playerId,
           playerName: playerName || (playerId !== null ? String(playerId) : null),
+          priceSek,
         } as TransferUpdatePlayer;
       })
       .filter((entry) => entry.playerName !== null);
@@ -4156,6 +4163,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         fieldKey === "transfer.playersSold" ||
         fieldKey === "transfer.playersBought"
       ) {
+        const transferPriceByPlayerId = new Map<number, number>();
+        const ingestTransferPrices = (
+          entries: TransferActivityEntry[] | undefined | null
+        ) => {
+          entries?.forEach((entry) => {
+            const playerId = Number(entry.playerId);
+            const priceSek = Number(entry.priceSek);
+            if (!Number.isFinite(playerId) || playerId <= 0) return;
+            if (!Number.isFinite(priceSek) || priceSek <= 0) return;
+            if (!transferPriceByPlayerId.has(playerId)) {
+              transferPriceByPlayerId.set(playerId, priceSek);
+            }
+          });
+        };
+        const transferActivity = chronicleCache.teams[teamId]?.transferActivity;
+        ingestTransferPrices(transferActivity?.current?.latestTransfers);
+        ingestTransferPrices(transferActivity?.previous?.latestTransfers);
         const entries = parseTransferUpdatePlayers(formatted);
         if (entries.length === 0) {
           return formatted;
@@ -4175,6 +4199,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             ) : (
               entry.playerName
             )}
+            {(() => {
+              const priceSek =
+                entry.priceSek ??
+                (entry.playerId ? transferPriceByPlayerId.get(entry.playerId) ?? null : null);
+              return priceSek !== null ? ` (${formatChppCurrencyFromSek(priceSek)})` : "";
+            })()}
           </span>
         ));
       }
@@ -5171,6 +5201,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 .map((entry) => ({
                   playerId: entry.playerId,
                   playerName: entry.resolvedPlayerName ?? entry.playerName,
+                  priceSek: entry.priceSek,
                 }));
               if (soldPlayers.length > 0) {
                 transferChanges.push({
@@ -5190,6 +5221,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 .map((entry) => ({
                   playerId: entry.playerId,
                   playerName: entry.resolvedPlayerName ?? entry.playerName,
+                  priceSek: entry.priceSek,
                 }));
               if (boughtPlayers.length > 0) {
                 transferChanges.push({

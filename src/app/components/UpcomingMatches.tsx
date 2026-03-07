@@ -282,7 +282,7 @@ function SetBestLineupMenuButton({
   const trigger = (
     <button
       type="button"
-      className={`${styles.matchButtonSecondary} ${styles.matchButtonAccent}`}
+      className={`${styles.optimizeButton} ${styles.matchBestLineupDazzleButton}`}
       onClick={() => {
         if (loading) return;
         setOpen((prev) => !prev);
@@ -291,7 +291,7 @@ function SetBestLineupMenuButton({
       aria-label={messages.setBestLineupTooltip}
       ref={triggerRef}
     >
-      {loading ? messages.setBestLineupLoading : messages.setBestLineup}
+      {loading ? "…" : "✨"}
     </button>
   );
 
@@ -431,7 +431,22 @@ function renderMatch(
     sourceSystem === "Hattrick" && Boolean(onSetBestLineupMode);
 
   return (
-    <li key={matchId} className={styles.matchItem}>
+    <li
+      key={matchId}
+      className={`${styles.matchItem} ${
+        canShowBestLineupMenu ? styles.matchItemHasTopAction : ""
+      }`}
+    >
+      {canShowBestLineupMenu ? (
+        <div className={styles.matchBestLineupTopAction}>
+          <SetBestLineupMenuButton
+            matchId={matchId}
+            loading={Boolean(bestLineupPending)}
+            messages={messages}
+            onSelectMode={onSetBestLineupMode!}
+          />
+        </div>
+      ) : null}
       <div className={styles.matchTeams}>
         <span>{match.HomeTeam?.HomeTeamName ?? messages.homeLabel}</span>
         <span className={styles.vs}>vs</span>
@@ -462,14 +477,6 @@ function renderMatch(
                 : messages.loadLineup}
             </button>
           </Tooltip>
-          {canShowBestLineupMenu ? (
-            <SetBestLineupMenuButton
-              matchId={matchId}
-              loading={Boolean(bestLineupPending)}
-              messages={messages}
-              onSelectMode={onSetBestLineupMode!}
-            />
-          ) : null}
           <Tooltip content={messages.submitOrdersTooltip}>
             <button
               type="button"

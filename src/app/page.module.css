@@ -3312,6 +3312,30 @@ html[data-theme="dark"] .matchButtonAccent:hover:not(:disabled) {
   background: rgba(255, 196, 106, 0.24);
 }
 
+html[data-theme="dark"] .matchBestLineupDazzleButton {
+  color: #ffe1a8;
+  border-color: rgba(255, 202, 112, 0.7);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 205, 120, 0.38) 0%,
+    rgba(214, 138, 32, 0.32) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 224, 163, 0.24) inset,
+    0 4px 10px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .matchBestLineupDazzleButton:hover:not(:disabled) {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 215, 137, 0.46) 0%,
+    rgba(226, 150, 44, 0.4) 100%
+  );
+  box-shadow:
+    0 0 0 1px rgba(255, 233, 182, 0.34) inset,
+    0 6px 14px rgba(0, 0, 0, 0.42);
+}
+
 html[data-theme="dark"] .matchSuccess {
   color: #8fe5ae;
 }
@@ -4283,6 +4307,10 @@ html[data-theme="dark"] .spinner {
   position: relative;
 }
 
+.matchItemHasTopAction .matchTeams {
+  padding-right: 44px;
+}
+
 .matchTeams {
   display: flex;
   flex-wrap: wrap;
@@ -4312,6 +4340,13 @@ html[data-theme="dark"] .spinner {
   align-items: center;
   gap: 12px;
   margin-top: 8px;
+}
+
+.matchBestLineupTopAction {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
 }
 
 .matchButton {
@@ -4365,6 +4400,26 @@ html[data-theme="dark"] .spinner {
 
 .matchButtonAccent:hover:not(:disabled) {
   background: rgba(255, 208, 132, 0.48);
+}
+
+.matchBestLineupDazzleButton {
+  padding: 4px 10px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #6e3900;
+  background: linear-gradient(180deg, #ffe7b2 0%, #ffd084 100%);
+  border: 1px solid rgba(146, 90, 10, 0.7);
+  box-shadow:
+    0 0 0 1px rgba(255, 241, 210, 0.7) inset,
+    0 4px 10px rgba(122, 74, 0, 0.28);
+}
+
+.matchBestLineupDazzleButton:hover:not(:disabled) {
+  background: linear-gradient(180deg, #ffefc8 0%, #ffd891 100%);
+  transform: translateY(-1px);
+  box-shadow:
+    0 0 0 1px rgba(255, 247, 224, 0.8) inset,
+    0 6px 14px rgba(122, 74, 0, 0.34);
 }
 
 .matchSuccess {

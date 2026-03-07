@@ -108,6 +108,19 @@ type SeniorUpdatesGroupedEntry = {
   >;
 };
 
+type SeniorMatrixNewMarkers = {
+  detectedAt: number | null;
+  playerIds: number[];
+  ratingsByPlayerId: Record<number, number[]>;
+  skillsCurrentByPlayerId: Record<number, string[]>;
+  skillsMaxByPlayerId: Record<number, string[]>;
+};
+
+type PersistedSeniorMarkersBaseline = {
+  players: SeniorPlayer[];
+  ratingsByPlayerId: Record<number, Record<string, number>>;
+};
+
 type SeniorDashboardProps = {
   messages: Messages;
 };
@@ -303,6 +316,102 @@ const parseNumber = (value: unknown): number | null => {
   }
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
+};
+
+const buildEmptySeniorMatrixNewMarkers = (): SeniorMatrixNewMarkers => ({
+  detectedAt: null,
+  playerIds: [],
+  ratingsByPlayerId: {},
+  skillsCurrentByPlayerId: {},
+  skillsMaxByPlayerId: {},
+});
+
+const normalizeIdList = (value: unknown): number[] => {
+  if (!Array.isArray(value)) return [];
+  const unique = new Set<number>();
+  value.forEach((entry) => {
+    const numeric = Number(entry);
+    if (Number.isFinite(numeric) && numeric > 0) {
+      unique.add(numeric);
+    }
+  });
+  return Array.from(unique);
+};
+
+const normalizeIdArrayRecord = <T extends number | string>(
+  value: unknown
+): Record<number, T[]> => {
+  if (!value || typeof value !== "object") return {};
+  const next: Record<number, T[]> = {};
+  Object.entries(value as Record<string, unknown>).forEach(([id, entry]) => {
+    const playerId = Number(id);
+    if (!Number.isFinite(playerId) || playerId <= 0) return;
+    if (!Array.isArray(entry)) return;
+    const normalized = entry
+      .map((item) => item as T)
+      .filter(
+        (item) =>
+          (typeof item === "number" && Number.isFinite(item)) ||
+          typeof item === "string"
+      );
+    if (normalized.length === 0) return;
+    next[playerId] = Array.from(new Set(normalized));
+  });
+  return next;
+};
+
+const normalizeSeniorMatrixNewMarkers = (value: unknown): SeniorMatrixNewMarkers => {
+  if (!value || typeof value !== "object") {
+    return buildEmptySeniorMatrixNewMarkers();
+  }
+  const input = value as Partial<SeniorMatrixNewMarkers>;
+  return {
+    detectedAt:
+      typeof input.detectedAt === "number" && Number.isFinite(input.detectedAt)
+        ? input.detectedAt
+        : null,
+    playerIds: normalizeIdList(input.playerIds),
+    ratingsByPlayerId: normalizeIdArrayRecord<number>(input.ratingsByPlayerId),
+    skillsCurrentByPlayerId: normalizeIdArrayRecord<string>(
+      input.skillsCurrentByPlayerId
+    ),
+    skillsMaxByPlayerId: normalizeIdArrayRecord<string>(input.skillsMaxByPlayerId),
+  };
+};
+
+const buildSeniorMatrixMarkersFromUpdatesEntry = (
+  entry: SeniorUpdatesGroupedEntry
+): SeniorMatrixNewMarkers => {
+  const next = buildEmptySeniorMatrixNewMarkers();
+  next.detectedAt = entry.comparedAt;
+  Object.values(entry.groupedByPlayerId).forEach((playerEntry) => {
+    const playerId = Number(playerEntry.playerId);
+    if (!Number.isFinite(playerId) || playerId <= 0) return;
+    if (playerEntry.isNewPlayer) {
+      next.playerIds.push(playerId);
+    }
+    if (playerEntry.ratings.length > 0) {
+      next.ratingsByPlayerId[playerId] = Array.from(
+        new Set(playerEntry.ratings.map((rating) => rating.position))
+      );
+    }
+    if (playerEntry.skills.length > 0) {
+      next.skillsCurrentByPlayerId[playerId] = Array.from(
+        new Set(playerEntry.skills.map((skill) => skill.skillKey))
+      );
+    }
+  });
+  return next;
+};
+
+const buildRatingsByPlayerIdFromResponse = (
+  ratings: RatingsMatrixResponse | null | undefined
+): Record<number, Record<string, number>> => {
+  const payload: Record<number, Record<string, number>> = {};
+  (ratings?.players ?? []).forEach((row) => {
+    payload[row.id] = { ...row.ratings };
+  });
+  return payload;
 };
 
 const parseBoolean = (value: unknown): boolean | null => {
@@ -840,6 +949,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [refreshProgressPct, setRefreshProgressPct] = useState(0);
   const [lastRefreshAt, setLastRefreshAt] = useState<number | null>(null);
   const [updatesHistory, setUpdatesHistory] = useState<SeniorUpdatesGroupedEntry[]>([]);
+  const [matrixNewMarkers, setMatrixNewMarkers] = useState<SeniorMatrixNewMarkers>(
+    buildEmptySeniorMatrixNewMarkers
+  );
   const [selectedUpdatesId, setSelectedUpdatesId] = useState<string | null>(null);
   const [updatesOpen, setUpdatesOpen] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("name");
@@ -873,6 +985,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const activeRefreshRunIdRef = useRef<number | null>(null);
   const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
   const staleRefreshAttemptedRef = useRef(false);
+  const persistedMarkersBaselineRef = useRef<PersistedSeniorMarkersBaseline | null>(
+    null
+  );
 
   const selectedPlayer =
     selectedId !== null
@@ -890,6 +1005,10 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     });
     return map;
   }, [detailsCache]);
+  const matrixNewPlayerIdSet = useMemo(
+    () => new Set(matrixNewMarkers.playerIds),
+    [matrixNewMarkers.playerIds]
+  );
 
   const skillValueForPlayer = (player: SeniorPlayer, key: (typeof SKILL_KEYS)[number]) => {
     const detailsSkills = detailsById.get(player.PlayerID)?.PlayerSkills;
@@ -1498,8 +1617,16 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       stoppedRefreshRunIdsRef.current.has(refreshRunId) ||
       activeRefreshRunIdRef.current !== refreshRunId;
 
-    const previousPlayers = players;
-    const previousRatings = ratingsByPlayerId;
+    const persistedMarkersBaseline = persistedMarkersBaselineRef.current;
+    const usePersistedMarkersBaseline = Boolean(persistedMarkersBaseline);
+    const previousPlayers =
+      usePersistedMarkersBaseline && persistedMarkersBaseline
+        ? persistedMarkersBaseline.players
+        : players;
+    const previousRatings =
+      usePersistedMarkersBaseline && persistedMarkersBaseline
+        ? persistedMarkersBaseline.ratingsByPlayerId
+        : ratingsByPlayerId;
 
     setRefreshing(true);
     setRefreshStatus(messages.refreshStatusFetchingPlayers);
@@ -1566,8 +1693,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         nextRatingsById
       );
       if (updatesEntry.hasChanges) {
+        setMatrixNewMarkers(buildSeniorMatrixMarkersFromUpdatesEntry(updatesEntry));
         setUpdatesHistory((prev) => [updatesEntry, ...prev].slice(0, UPDATES_HISTORY_LIMIT));
         setSelectedUpdatesId(updatesEntry.id);
+      }
+      if (usePersistedMarkersBaseline) {
+        persistedMarkersBaselineRef.current = null;
       }
 
       const refreshedAt = Date.now();
@@ -2277,6 +2408,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             trainingType?: number | null;
             includeTournamentMatches?: boolean;
             updatesHistory?: SeniorUpdatesGroupedEntry[];
+            matrixNewMarkers?: SeniorMatrixNewMarkers;
             selectedUpdatesId?: string | null;
             activeDetailsTab?: PlayerDetailsPanelTab;
             orderedPlayerIds?: number[] | null;
@@ -2292,6 +2424,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           );
           setIncludeTournamentMatches(Boolean(parsed.includeTournamentMatches));
           setUpdatesHistory(Array.isArray(parsed.updatesHistory) ? parsed.updatesHistory : []);
+          if (parsed.matrixNewMarkers) {
+            setMatrixNewMarkers(normalizeSeniorMatrixNewMarkers(parsed.matrixNewMarkers));
+          }
           setSelectedUpdatesId(typeof parsed.selectedUpdatesId === "string" ? parsed.selectedUpdatesId : null);
           if (
             parsed.activeDetailsTab === "details" ||
@@ -2340,6 +2475,18 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           }
           if (parsed.detailsCache && typeof parsed.detailsCache === "object") {
             setDetailsCache(parsed.detailsCache);
+          }
+          const persistedRatingsByPlayerId = buildRatingsByPlayerIdFromResponse(
+            parsed.ratingsResponse ?? null
+          );
+          if (
+            restoredPlayers.length > 0 ||
+            Object.keys(persistedRatingsByPlayerId).length > 0
+          ) {
+            persistedMarkersBaselineRef.current = {
+              players: restoredPlayers,
+              ratingsByPlayerId: persistedRatingsByPlayerId,
+            };
           }
         } catch {
           // ignore parse errors
@@ -2452,6 +2599,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       trainingType,
       includeTournamentMatches,
       updatesHistory,
+      matrixNewMarkers,
       selectedUpdatesId,
       activeDetailsTab,
       orderedPlayerIds,
@@ -2473,6 +2621,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     tacticType,
     trainingType,
     updatesHistory,
+    matrixNewMarkers,
     activeDetailsTab,
     orderedPlayerIds,
     orderSource,
@@ -3380,6 +3529,11 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
                             </span>
                           ) : null}
                           <span className={styles.playerName}>{playerName}</span>
+                          {matrixNewPlayerIdSet.has(player.PlayerID) ? (
+                            <span className={styles.matrixNewPill}>
+                              {messages.matrixNewPillLabel}
+                            </span>
+                          ) : null}
                           {hasMotherClubBonus ? (
                             <Tooltip content={messages.motherClubBonusTooltip}>
                               <span
@@ -3433,6 +3587,10 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
             ratingsMatrixSpecialtyByName={specialtyByName}
             ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
+            matrixNewPlayerIds={matrixNewMarkers.playerIds}
+            matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
+            matrixNewSkillsCurrentByPlayerId={matrixNewMarkers.skillsCurrentByPlayerId}
+            matrixNewSkillsMaxByPlayerId={matrixNewMarkers.skillsMaxByPlayerId}
             onSelectRatingsPlayer={(playerName) => {
               const player = players.find((item) => formatPlayerName(item) === playerName);
               if (!player) return;

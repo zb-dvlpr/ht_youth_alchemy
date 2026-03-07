@@ -628,13 +628,13 @@ export const messagesFr: Messages = {
     loadLineupLoading: "Chargement…",
     setBestLineup: "Définir la meilleure compo",
     setBestLineupLoading: "Application…",
-    setBestLineupTooltip: "Définit la meilleure composition possible avec l'IA.",
+    setBestLineupTooltip: "Définit la composition avec l'IA.",
     setBestLineupTrainingAware: "Axé entraînement",
     setBestLineupTrainingAwareTooltip:
-      "Définit la meilleure composition en tenant compte du programme d'entraînement. Seules les formations qui remplissent tous les postes d'entraînement sont prises en compte.",
+      "Définit la composition en tenant compte du programme d'entraînement. Seules les formations qui remplissent tous les postes d'entraînement sont prises en compte.",
     setBestLineupIgnoreTraining: "Ignorer l'entraînement",
     setBestLineupIgnoreTrainingTooltip:
-      "Définit la meilleure composition sans tenir compte du programme d'entraînement. Toutes les formations sont prises en compte.",
+      "Définit la composition sans tenir compte du programme d'entraînement. Toutes les formations sont prises en compte.",
     loadLineupUnavailable: "Aucune composition enregistrée",
     loadLineupActive: "Chargé",
     loadLineupError: "Chargement échoué",

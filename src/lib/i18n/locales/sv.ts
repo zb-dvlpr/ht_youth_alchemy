@@ -620,13 +620,13 @@ export const messagesSv: Messages = {
     loadLineupLoading: "Laddar…",
     setBestLineup: "Sätt bästa uppställning",
     setBestLineupLoading: "Sätter…",
-    setBestLineupTooltip: "Sätter den bästa möjliga uppställningen med AI.",
+    setBestLineupTooltip: "Sätter uppställningen med AI.",
     setBestLineupTrainingAware: "Träningsanpassad",
     setBestLineupTrainingAwareTooltip:
-      "Sätt bästa uppställning med hänsyn till träningsupplägget. Endast formationer som fyller alla träningsplatser beaktas.",
+      "Sätt uppställningen med hänsyn till träningsupplägget. Endast formationer som fyller alla träningsplatser beaktas.",
     setBestLineupIgnoreTraining: "Ignorera träning",
     setBestLineupIgnoreTrainingTooltip:
-      "Sätt bästa uppställning utan hänsyn till träningsupplägget. Alla formationer beaktas.",
+      "Sätt uppställningen utan hänsyn till träningsupplägget. Alla formationer beaktas.",
     loadLineupUnavailable: "Ingen sparad uppställning",
     loadLineupActive: "Laddad",
     loadLineupError: "Misslyckades att ladda",

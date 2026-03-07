@@ -630,13 +630,13 @@ export const messagesIt: Messages = {
     loadLineupLoading: "Caricamento…",
     setBestLineup: "Imposta formazione migliore",
     setBestLineupLoading: "Impostazione…",
-    setBestLineupTooltip: "Imposta la migliore formazione possibile usando l'IA.",
+    setBestLineupTooltip: "Imposta la formazione usando l'IA.",
     setBestLineupTrainingAware: "Con priorità allenamento",
     setBestLineupTrainingAwareTooltip:
-      "Imposta la migliore formazione considerando il regime di allenamento. Vengono considerate solo formazioni che mantengono pieni tutti gli slot di allenamento.",
+      "Imposta la formazione considerando il regime di allenamento. Vengono considerate solo formazioni che mantengono pieni tutti gli slot di allenamento.",
     setBestLineupIgnoreTraining: "Ignora allenamento",
     setBestLineupIgnoreTrainingTooltip:
-      "Imposta la migliore formazione senza considerare il regime di allenamento. Vengono considerate tutte le formazioni.",
+      "Imposta la formazione senza considerare il regime di allenamento. Vengono considerate tutte le formazioni.",
     loadLineupUnavailable: "Nessuna formazione salvata",
     loadLineupActive: "Caricata",
     loadLineupError: "Caricamento non riuscito",

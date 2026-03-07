@@ -595,13 +595,13 @@ export const messagesEn: Messages = {
     loadLineupLoading: "Loading…",
     setBestLineup: "Set best lineup",
     setBestLineupLoading: "Setting…",
-    setBestLineupTooltip: "Set the best possible lineup using AI.",
+    setBestLineupTooltip: "Set lineup using AI.",
     setBestLineupTrainingAware: "Training-aware",
     setBestLineupTrainingAwareTooltip:
-      "Set the best lineup considering the training regimen. Only formations that keep all training slots filled are considered.",
+      "Set lineup considering the training regimen. Only formations that keep all training slots filled are considered.",
     setBestLineupIgnoreTraining: "Ignore training",
     setBestLineupIgnoreTrainingTooltip:
-      "Set the best lineup without considering the training regimen. All formations are considered.",
+      "Set lineup without considering the training regimen. All formations are considered.",
     loadLineupUnavailable: "No saved lineup",
     loadLineupActive: "Loaded",
     loadLineupError: "Load failed",

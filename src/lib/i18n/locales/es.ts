@@ -629,13 +629,13 @@ export const messagesEs: Messages = {
     loadLineupLoading: "Cargando…",
     setBestLineup: "Poner mejor alineación",
     setBestLineupLoading: "Aplicando…",
-    setBestLineupTooltip: "Establece la mejor alineación posible usando IA.",
+    setBestLineupTooltip: "Establece la alineación usando IA.",
     setBestLineupTrainingAware: "Con enfoque de entrenamiento",
     setBestLineupTrainingAwareTooltip:
-      "Establece la mejor alineación considerando el plan de entrenamiento. Solo se consideran formaciones que mantienen todas las plazas de entrenamiento cubiertas.",
+      "Establece la alineación considerando el plan de entrenamiento. Solo se consideran formaciones que mantienen todas las plazas de entrenamiento cubiertas.",
     setBestLineupIgnoreTraining: "Ignorar entrenamiento",
     setBestLineupIgnoreTrainingTooltip:
-      "Establece la mejor alineación sin considerar el plan de entrenamiento. Se consideran todas las formaciones.",
+      "Establece la alineación sin considerar el plan de entrenamiento. Se consideran todas las formaciones.",
     loadLineupUnavailable: "Sin alineación guardada",
     loadLineupActive: "Cargada",
     loadLineupError: "Error al cargar",

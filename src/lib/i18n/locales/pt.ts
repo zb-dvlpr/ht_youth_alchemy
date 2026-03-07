@@ -629,13 +629,13 @@ export const messagesPt: Messages = {
     loadLineupLoading: "Carregando…",
     setBestLineup: "Definir melhor escalação",
     setBestLineupLoading: "Definindo…",
-    setBestLineupTooltip: "Define a melhor escalação possível usando IA.",
+    setBestLineupTooltip: "Define a escalação usando IA.",
     setBestLineupTrainingAware: "Com foco no treino",
     setBestLineupTrainingAwareTooltip:
-      "Define a melhor escalação considerando o regime de treino. Só serão consideradas formações que mantenham todos os slots de treino preenchidos.",
+      "Define a escalação considerando o regime de treino. Só serão consideradas formações que mantenham todos os slots de treino preenchidos.",
     setBestLineupIgnoreTraining: "Ignorar treino",
     setBestLineupIgnoreTrainingTooltip:
-      "Define a melhor escalação sem considerar o regime de treino. Todas as formações serão consideradas.",
+      "Define a escalação sem considerar o regime de treino. Todas as formações serão consideradas.",
     loadLineupUnavailable: "Sem escalação salva",
     loadLineupActive: "Carregada",
     loadLineupError: "Falha ao carregar",

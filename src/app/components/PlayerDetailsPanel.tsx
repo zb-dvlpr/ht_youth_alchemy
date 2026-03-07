@@ -689,10 +689,6 @@ export default function PlayerDetailsPanel({
           { label: messages.seniorLeagueGoalsLabel, value: detailsData.LeagueGoals },
           { label: messages.seniorCupGoalsLabel, value: detailsData.CupGoals },
           {
-            label: messages.seniorFriendliesGoalsLabel,
-            value: detailsData.FriendliesGoals,
-          },
-          {
             label: messages.seniorGoalsCurrentTeamLabel,
             value: detailsData.GoalsCurrentTeam,
           },

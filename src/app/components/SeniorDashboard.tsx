@@ -104,6 +104,22 @@ type SeniorUpdatesGroupedEntry = {
       isNewPlayer: boolean;
       ratings: Array<{ position: number; previous: number | null; current: number | null }>;
       skills: Array<{ skillKey: string; previous: number | null; current: number | null }>;
+      attributes: Array<{
+        key:
+          | "injury"
+          | "cards"
+          | "form"
+          | "stamina"
+          | "tsi"
+          | "salary"
+          | "specialty"
+          | "experience"
+          | "leadership"
+          | "loyalty"
+          | "motherClubBonus";
+        previous: number | string | boolean | null;
+        current: number | string | boolean | null;
+      }>;
     }
   >;
 };
@@ -157,6 +173,7 @@ const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
 const LAST_REFRESH_STORAGE_KEY = "ya_senior_last_refresh_ts_v1";
 const LIST_SORT_STORAGE_KEY = "ya_senior_player_list_sort_v1";
+const SENIOR_UPDATES_SCHEMA_VERSION = 3;
 const DETAILS_TTL_MS = 60 * 60 * 1000;
 const SENIOR_DETAILS_CONCURRENCY = 6;
 const CHPP_SEK_PER_EUR = 10;
@@ -379,6 +396,50 @@ const normalizeSeniorMatrixNewMarkers = (value: unknown): SeniorMatrixNewMarkers
     ),
     skillsMaxByPlayerId: normalizeIdArrayRecord<string>(input.skillsMaxByPlayerId),
   };
+};
+
+const normalizeSeniorUpdatesHistory = (value: unknown): SeniorUpdatesGroupedEntry[] => {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => {
+      if (!entry || typeof entry !== "object") return null;
+      const node = entry as Partial<SeniorUpdatesGroupedEntry>;
+      const groupedRaw =
+        node.groupedByPlayerId && typeof node.groupedByPlayerId === "object"
+          ? node.groupedByPlayerId
+          : {};
+      const groupedByPlayerId: SeniorUpdatesGroupedEntry["groupedByPlayerId"] = {};
+      Object.entries(groupedRaw).forEach(([playerId, playerEntry]) => {
+        if (!playerEntry || typeof playerEntry !== "object") return;
+        const parsedPlayerId = Number(playerId);
+        if (!Number.isFinite(parsedPlayerId) || parsedPlayerId <= 0) return;
+        const row = playerEntry as SeniorUpdatesGroupedEntry["groupedByPlayerId"][number];
+        groupedByPlayerId[parsedPlayerId] = {
+          playerId: parsedPlayerId,
+          playerName:
+            typeof row.playerName === "string"
+              ? row.playerName
+              : String(parsedPlayerId),
+          isNewPlayer: Boolean(row.isNewPlayer),
+          ratings: Array.isArray(row.ratings) ? row.ratings : [],
+          skills: Array.isArray(row.skills) ? row.skills : [],
+          attributes: Array.isArray(row.attributes) ? row.attributes : [],
+        };
+      });
+      return {
+        id:
+          typeof node.id === "string"
+            ? node.id
+            : `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+        comparedAt:
+          typeof node.comparedAt === "number" && Number.isFinite(node.comparedAt)
+            ? node.comparedAt
+            : Date.now(),
+        hasChanges: Boolean(node.hasChanges),
+        groupedByPlayerId,
+      } satisfies SeniorUpdatesGroupedEntry;
+    })
+    .filter((entry): entry is SeniorUpdatesGroupedEntry => Boolean(entry));
 };
 
 const buildSeniorMatrixMarkersFromUpdatesEntry = (
@@ -1001,6 +1062,10 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const persistedMarkersBaselineRef = useRef<PersistedSeniorMarkersBaseline | null>(
     null
   );
+  const suppressNextUpdatesRecordingRef = useRef(false);
+  const refreshAllRef = useRef<((reason: "manual" | "stale") => Promise<boolean>) | null>(
+    null
+  );
 
   const selectedPlayer =
     selectedId !== null
@@ -1484,7 +1549,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return resolved;
   };
 
-  const refreshDetailsForPlayers = async (
+const refreshDetailsForPlayers = async (
     playersToRefresh: SeniorPlayer[],
     options?: {
       isStopped?: () => boolean;
@@ -1507,19 +1572,21 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         };
       }
     );
-    if (options?.isStopped?.()) return false;
+    if (options?.isStopped?.()) return null;
     const detailsPatch: Record<number, PlayerDetailCacheEntry> = {};
+    const detailsDataPatch: Record<number, SeniorPlayerDetails> = {};
     rows.forEach((row) => {
       if (!row.detail) return;
       detailsPatch[row.playerId] = {
         data: row.detail,
         fetchedAt: row.fetchedAt,
       };
+      detailsDataPatch[row.playerId] = row.detail;
     });
     if (Object.keys(detailsPatch).length > 0) {
       setDetailsCache((prev) => ({ ...prev, ...detailsPatch }));
     }
-    return true;
+    return detailsDataPatch;
   };
 
   const ratingsByPlayerId = useMemo(() => {
@@ -1550,6 +1617,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const buildUpdatesEntry = (
     prevPlayers: SeniorPlayer[],
     nextPlayers: SeniorPlayer[],
+    prevDetailsById: Map<number, SeniorPlayerDetails>,
+    nextDetailsById: Map<number, SeniorPlayerDetails>,
     prevRatingsById: Record<number, Record<string, number>>,
     nextRatingsById: Record<number, Record<string, number>>
   ): SeniorUpdatesGroupedEntry => {
@@ -1564,6 +1633,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           isNewPlayer,
           ratings: [],
           skills: [],
+          attributes: [],
         };
       } else if (isNewPlayer) {
         groupedByPlayerId[playerId].isNewPlayer = true;
@@ -1574,6 +1644,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     nextPlayers.forEach((player) => {
       const playerId = player.PlayerID;
       const previous = prevById.get(playerId);
+      const previousDetails = prevDetailsById.get(playerId);
+      const nextDetails = nextDetailsById.get(playerId);
       const playerName = formatPlayerName(player);
       const entry = upsert(playerId, playerName, !previous);
 
@@ -1614,10 +1686,160 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           });
         }
       });
+
+      const pushAttributeChange = (
+        key:
+          | "injury"
+          | "cards"
+          | "form"
+          | "stamina"
+          | "tsi"
+          | "salary"
+          | "specialty"
+          | "experience"
+          | "leadership"
+          | "loyalty"
+          | "motherClubBonus",
+        previousValue: number | string | boolean | null,
+        currentValue: number | string | boolean | null
+      ) => {
+        if (currentValue === null || currentValue === undefined) return;
+        if (previousValue === currentValue) return;
+        entry.attributes.push({
+          key,
+          previous: previousValue,
+          current: currentValue,
+        });
+      };
+
+      const prevForm =
+        typeof previousDetails?.Form === "number"
+          ? previousDetails.Form
+          : typeof previous?.Form === "number"
+            ? previous.Form
+            : null;
+      const nextForm =
+        typeof nextDetails?.Form === "number"
+          ? nextDetails.Form
+          : typeof player.Form === "number"
+            ? player.Form
+            : null;
+      pushAttributeChange("form", prevForm, nextForm);
+
+      const prevStamina =
+        typeof previousDetails?.StaminaSkill === "number"
+          ? previousDetails.StaminaSkill
+          : typeof previous?.StaminaSkill === "number"
+            ? previous.StaminaSkill
+            : null;
+      const nextStamina =
+        typeof nextDetails?.StaminaSkill === "number"
+          ? nextDetails.StaminaSkill
+          : typeof player.StaminaSkill === "number"
+            ? player.StaminaSkill
+            : null;
+      pushAttributeChange("stamina", prevStamina, nextStamina);
+
+      const prevInjury =
+        typeof previousDetails?.InjuryLevel === "number"
+          ? previousDetails.InjuryLevel
+          : typeof previous?.InjuryLevel === "number"
+            ? previous.InjuryLevel
+            : null;
+      const nextInjury =
+        typeof nextDetails?.InjuryLevel === "number"
+          ? nextDetails.InjuryLevel
+          : typeof player.InjuryLevel === "number"
+            ? player.InjuryLevel
+            : null;
+      pushAttributeChange("injury", prevInjury, nextInjury);
+
+      const prevCards =
+        typeof previousDetails?.Cards === "number"
+          ? previousDetails.Cards
+          : typeof previous?.Cards === "number"
+            ? previous.Cards
+            : null;
+      const nextCards =
+        typeof nextDetails?.Cards === "number"
+          ? nextDetails.Cards
+          : typeof player.Cards === "number"
+            ? player.Cards
+            : null;
+      pushAttributeChange("cards", prevCards, nextCards);
+
+      pushAttributeChange(
+        "tsi",
+        typeof previousDetails?.TSI === "number"
+          ? previousDetails.TSI
+          : typeof previous?.TSI === "number"
+            ? previous.TSI
+            : null,
+        typeof nextDetails?.TSI === "number"
+          ? nextDetails.TSI
+          : typeof player.TSI === "number"
+            ? player.TSI
+            : null
+      );
+
+      pushAttributeChange(
+        "salary",
+        typeof previousDetails?.Salary === "number"
+          ? previousDetails.Salary
+          : typeof previous?.Salary === "number"
+            ? previous.Salary
+            : null,
+        typeof nextDetails?.Salary === "number"
+          ? nextDetails.Salary
+          : typeof player.Salary === "number"
+            ? player.Salary
+            : null
+      );
+
+      pushAttributeChange(
+        "specialty",
+        typeof previousDetails?.Specialty === "number"
+          ? previousDetails.Specialty
+          : typeof previous?.Specialty === "number"
+            ? previous.Specialty
+            : null,
+        typeof nextDetails?.Specialty === "number"
+          ? nextDetails.Specialty
+          : typeof player.Specialty === "number"
+            ? player.Specialty
+            : null
+      );
+
+      pushAttributeChange(
+        "experience",
+        typeof previousDetails?.Experience === "number" ? previousDetails.Experience : null,
+        typeof nextDetails?.Experience === "number" ? nextDetails.Experience : null
+      );
+      pushAttributeChange(
+        "leadership",
+        typeof previousDetails?.Leadership === "number" ? previousDetails.Leadership : null,
+        typeof nextDetails?.Leadership === "number" ? nextDetails.Leadership : null
+      );
+      pushAttributeChange(
+        "loyalty",
+        typeof previousDetails?.Loyalty === "number" ? previousDetails.Loyalty : null,
+        typeof nextDetails?.Loyalty === "number" ? nextDetails.Loyalty : null
+      );
+      pushAttributeChange(
+        "motherClubBonus",
+        typeof previousDetails?.MotherClubBonus === "boolean"
+          ? previousDetails.MotherClubBonus
+          : null,
+        typeof nextDetails?.MotherClubBonus === "boolean" ? nextDetails.MotherClubBonus : null
+      );
     });
 
     const hasChanges = Object.values(groupedByPlayerId).some(
-      (entry) => entry.isNewPlayer || entry.skills.length > 0 || entry.ratings.length > 0
+      (entry) =>
+        entry.isNewPlayer ||
+        entry.skills.length > 0 ||
+        entry.ratings.length > 0 ||
+        entry.attributes.length > 0
     );
     return {
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
@@ -1646,6 +1868,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       usePersistedMarkersBaseline && persistedMarkersBaseline
         ? persistedMarkersBaseline.ratingsByPlayerId
         : ratingsByPlayerId;
+    const previousDetailsById = new Map(detailsById);
 
     setRefreshing(true);
     setRefreshStatus(messages.refreshStatusFetchingPlayers);
@@ -1670,6 +1893,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         }
       );
       if (!detailsRefreshed || isStopped()) return false;
+      const nextDetailsById = new Map(detailsById);
+      Object.entries(detailsRefreshed).forEach(([id, detail]) => {
+        const parsedId = Number(id);
+        if (!Number.isFinite(parsedId)) return;
+        nextDetailsById.set(parsedId, detail);
+      });
 
       setRefreshStatus(messages.refreshStatusFetchingMatches);
       setRefreshProgressPct(45);
@@ -1708,10 +1937,17 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       const updatesEntry = buildUpdatesEntry(
         previousPlayers,
         nextPlayers,
+        previousDetailsById,
+        nextDetailsById,
         previousRatings,
         nextRatingsById
       );
-      if (updatesEntry.hasChanges) {
+      if (suppressNextUpdatesRecordingRef.current) {
+        suppressNextUpdatesRecordingRef.current = false;
+        setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
+        setUpdatesHistory([]);
+        setSelectedUpdatesId(null);
+      } else if (updatesEntry.hasChanges) {
         setMatrixNewMarkers(buildSeniorMatrixMarkersFromUpdatesEntry(updatesEntry));
         setUpdatesHistory((prev) => [updatesEntry, ...prev].slice(0, UPDATES_HISTORY_LIMIT));
         setSelectedUpdatesId(updatesEntry.id);
@@ -1763,6 +1999,10 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       return false;
     }
   };
+
+  useEffect(() => {
+    refreshAllRef.current = refreshAll;
+  }, [refreshAll]);
 
   const allMatches = useMemo<Match[]>(
     () => {
@@ -2416,9 +2656,11 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       }
 
       const rawState = window.localStorage.getItem(STATE_STORAGE_KEY);
+      let forceWipeLegacyUpdatesState = false;
       if (rawState) {
         try {
           const parsed = JSON.parse(rawState) as {
+            updatesSchemaVersion?: number;
             selectedId?: number | null;
             assignments?: LineupAssignments;
             behaviors?: LineupBehaviors;
@@ -2434,6 +2676,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             orderedPlayerIds?: number[] | null;
             orderSource?: "list" | "ratings" | "skills" | null;
           };
+          forceWipeLegacyUpdatesState =
+            typeof parsed.updatesSchemaVersion !== "number" ||
+            parsed.updatesSchemaVersion < SENIOR_UPDATES_SCHEMA_VERSION;
+          if (forceWipeLegacyUpdatesState) {
+            suppressNextUpdatesRecordingRef.current = true;
+          }
           setSelectedId(typeof parsed.selectedId === "number" ? parsed.selectedId : null);
           setAssignments(parsed.assignments && typeof parsed.assignments === "object" ? parsed.assignments : {});
           setBehaviors(parsed.behaviors && typeof parsed.behaviors === "object" ? parsed.behaviors : {});
@@ -2443,11 +2691,19 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             typeof parsed.trainingType === "number" ? parsed.trainingType : null
           );
           setIncludeTournamentMatches(Boolean(parsed.includeTournamentMatches));
-          setUpdatesHistory(Array.isArray(parsed.updatesHistory) ? parsed.updatesHistory : []);
-          if (parsed.matrixNewMarkers) {
-            setMatrixNewMarkers(normalizeSeniorMatrixNewMarkers(parsed.matrixNewMarkers));
+          if (forceWipeLegacyUpdatesState) {
+            setUpdatesHistory([]);
+            setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
+            setSelectedUpdatesId(null);
+          } else {
+            setUpdatesHistory(normalizeSeniorUpdatesHistory(parsed.updatesHistory));
+            if (parsed.matrixNewMarkers) {
+              setMatrixNewMarkers(normalizeSeniorMatrixNewMarkers(parsed.matrixNewMarkers));
+            }
+            setSelectedUpdatesId(
+              typeof parsed.selectedUpdatesId === "string" ? parsed.selectedUpdatesId : null
+            );
           }
-          setSelectedUpdatesId(typeof parsed.selectedUpdatesId === "string" ? parsed.selectedUpdatesId : null);
           if (
             parsed.activeDetailsTab === "details" ||
             parsed.activeDetailsTab === "skillsMatrix" ||
@@ -2503,8 +2759,10 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             parsed.ratingsResponse ?? null
           );
           if (
+            !forceWipeLegacyUpdatesState &&
             restoredPlayers.length > 0 ||
-            Object.keys(persistedRatingsByPlayerId).length > 0
+            (!forceWipeLegacyUpdatesState &&
+              Object.keys(persistedRatingsByPlayerId).length > 0)
           ) {
             persistedMarkersBaselineRef.current = {
               players: restoredPlayers,
@@ -2522,6 +2780,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       const shouldRefresh =
         !lastRefresh || Date.now() - lastRefresh >= readSeniorStalenessDays() * 24 * 60 * 60 * 1000;
       const shouldBootstrap = restoredPlayersCount === 0;
+      if (shouldBootstrap) {
+        suppressNextUpdatesRecordingRef.current = true;
+      }
       if (shouldRefresh || shouldBootstrap) {
         void refreshAll(shouldRefresh && lastRefresh ? "stale" : "manual");
       }
@@ -2614,6 +2875,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     if (typeof window === "undefined") return;
     if (!stateRestored) return;
     const payload = {
+      updatesSchemaVersion: SENIOR_UPDATES_SCHEMA_VERSION,
       selectedId,
       assignments,
       behaviors,
@@ -2702,7 +2964,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handleRefresh = () => {
-      void refreshAll("manual");
+      void refreshAllRef.current?.("manual");
     };
     const handleStop = () => {
       const active = activeRefreshRunIdRef.current;
@@ -2761,6 +3023,74 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     }
   };
 
+  const updatesAttributeLabel = (
+    key:
+      | "injury"
+      | "cards"
+      | "form"
+      | "stamina"
+      | "tsi"
+      | "salary"
+      | "specialty"
+      | "experience"
+      | "leadership"
+      | "loyalty"
+      | "motherClubBonus"
+  ) => {
+    switch (key) {
+      case "injury":
+        return messages.sortInjuries;
+      case "cards":
+        return messages.sortCards;
+      case "form":
+        return messages.sortForm;
+      case "stamina":
+        return messages.sortStamina;
+      case "tsi":
+        return messages.sortTsi;
+      case "salary":
+        return messages.sortWage;
+      case "specialty":
+        return messages.specialtyLabel;
+      case "experience":
+        return messages.sortExperience;
+      case "leadership":
+        return messages.clubChronicleCoachColumnLeadership;
+      case "loyalty":
+        return messages.sortLoyalty;
+      case "motherClubBonus":
+        return messages.motherClubBonusTooltip;
+      default:
+        return key;
+    }
+  };
+
+  const formatUpdatesAttributeValue = (
+    key:
+      | "injury"
+      | "cards"
+      | "form"
+      | "stamina"
+      | "tsi"
+      | "salary"
+      | "specialty"
+      | "experience"
+      | "leadership"
+      | "loyalty"
+      | "motherClubBonus",
+    value: number | string | boolean | null
+  ) => {
+    if (value === null || value === undefined) return messages.unknownShort;
+    if (key === "salary" && typeof value === "number") return formatEurFromSek(value);
+    if (key === "motherClubBonus" && typeof value === "boolean") {
+      return value ? "✓" : "—";
+    }
+    if (typeof value === "number") {
+      return Number.isInteger(value) ? String(value) : value.toFixed(1);
+    }
+    return String(value);
+  };
+
   return (
     <div className={styles.dashboardStack}>
       {loadError ? (
@@ -2776,74 +3106,119 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       <Modal
         open={updatesOpen}
         title={messages.clubChronicleUpdatesTitle}
-        className={styles.chronicleUpdatesModal}
+        className={styles.seniorUpdatesModal}
+        movable={false}
         body={
           updatesHistory.length > 0 ? (
-            <>
-              <div className={styles.chronicleUpdatesMetaBlock}>
+            <div className={styles.seniorUpdatesShell}>
+              <div className={styles.seniorUpdatesTopBar}>
                 {selectedUpdatesEntry ? (
-                  <p className={styles.chroniclePressMeta}>
-                    {messages.clubChronicleUpdatesComparedAt}: {formatDateTime(selectedUpdatesEntry.comparedAt)}
-                  </p>
+                  <span className={styles.seniorUpdatesComparedAt}>
+                    {messages.clubChronicleUpdatesComparedAt}:{" "}
+                    {formatDateTime(selectedUpdatesEntry.comparedAt)}
+                  </span>
                 ) : null}
               </div>
-              <div className={styles.chronicleUpdatesHistoryWrap}>
-                <div className={styles.chronicleUpdatesHistoryHeader}>
-                  {messages.clubChronicleUpdatesHistoryTitle}
-                </div>
-                <div className={styles.chronicleUpdatesHistoryList}>
-                  {updatesHistory.map((entry) => (
-                    <button
-                      key={entry.id}
-                      type="button"
-                      className={`${styles.chronicleUpdatesHistoryItem}${
-                        selectedUpdatesEntry?.id === entry.id
-                          ? ` ${styles.chronicleUpdatesHistoryItemActive}`
-                          : ""
-                      }`}
-                      onClick={() => setSelectedUpdatesId(entry.id)}
-                    >
-                      <span>{formatDateTime(entry.comparedAt)}</span>
-                      <span className={styles.chronicleUpdatesLabel}>
-                        {entry.hasChanges
-                          ? messages.clubChronicleUpdatesHistoryChanged
-                          : messages.clubChronicleUpdatesHistoryNoChanges}
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className={styles.chronicleUpdatesBody}>
-                {selectedUpdatesRows.map((entry) => (
-                  <div key={entry.playerId} className={styles.chronicleUpdatesTeamBlock}>
-                    <h4 className={styles.chronicleUpdatesTeamHeading}>{entry.playerName}</h4>
-                    {entry.isNewPlayer ? (
-                      <p className={styles.chroniclePressMeta}>{messages.youthUpdatesNewPlayerLabel}</p>
-                    ) : null}
-                    {entry.skills.length > 0 ? (
-                      <ul className={styles.chronicleUpdatesList}>
-                        {entry.skills.map((change) => (
-                          <li key={`${entry.playerId}-skill-${change.skillKey}`}>
-                            {skillLabelByKey(change.skillKey)}: {change.previous ?? messages.unknownShort} →{" "}
-                            {change.current ?? messages.unknownShort}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                    {entry.ratings.length > 0 ? (
-                      <ul className={styles.chronicleUpdatesList}>
-                        {entry.ratings.map((change) => (
-                          <li key={`${entry.playerId}-rating-${change.position}`}>
-                            {change.position}: {change.previous?.toFixed(1) ?? messages.unknownShort} →{" "}
-                            {change.current?.toFixed(1) ?? messages.unknownShort}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
+              <div className={styles.seniorUpdatesGrid}>
+                <aside className={styles.seniorUpdatesHistoryPane}>
+                  <div className={styles.seniorUpdatesHistoryHeader}>
+                    {messages.clubChronicleUpdatesHistoryTitle}
                   </div>
-                ))}
-              </div>
-            </>
+                  <div className={styles.seniorUpdatesHistoryList}>
+                    {updatesHistory.map((entry) => (
+                      <button
+                        key={entry.id}
+                        type="button"
+                        className={`${styles.seniorUpdatesHistoryItem}${
+                          selectedUpdatesEntry?.id === entry.id
+                            ? ` ${styles.seniorUpdatesHistoryItemActive}`
+                            : ""
+                        }`}
+                        onClick={() => setSelectedUpdatesId(entry.id)}
+                      >
+                        <span className={styles.seniorUpdatesHistoryDate}>
+                          {formatDateTime(entry.comparedAt)}
+                        </span>
+                        <span className={styles.seniorUpdatesHistoryState}>
+                          {entry.hasChanges
+                            ? messages.clubChronicleUpdatesHistoryChanged
+                            : messages.clubChronicleUpdatesHistoryNoChanges}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                </aside>
+                <section className={styles.seniorUpdatesDetailsPane}>
+                  {selectedUpdatesRows.length === 0 ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleUpdatesHistoryNoChanges}
+                    </p>
+                  ) : null}
+                  {selectedUpdatesRows.map((entry) => (
+                    <article key={entry.playerId} className={styles.seniorUpdatesPlayerCard}>
+                      <div className={styles.seniorUpdatesPlayerHeader}>
+                        <h4 className={styles.seniorUpdatesPlayerName}>{entry.playerName}</h4>
+                        {entry.isNewPlayer ? (
+                          <span className={styles.matrixNewPill}>
+                            {messages.youthUpdatesNewPlayerLabel}
+                          </span>
+                        ) : null}
+                      </div>
+                      <div className={styles.seniorUpdatesPlayerBody}>
+                        {entry.skills.length > 0 ? (
+                          <div className={styles.seniorUpdatesSection}>
+                            <h5 className={styles.seniorUpdatesSectionTitle}>
+                              {messages.skillsLabel}
+                            </h5>
+                            <ul className={styles.seniorUpdatesChangeList}>
+                              {entry.skills.map((change) => (
+                                <li key={`${entry.playerId}-skill-${change.skillKey}`}>
+                                  {skillLabelByKey(change.skillKey)}:{" "}
+                                  {change.previous ?? messages.unknownShort} →{" "}
+                                  {change.current ?? messages.unknownShort}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                        {entry.ratings.length > 0 ? (
+                          <div className={styles.seniorUpdatesSection}>
+                            <h5 className={styles.seniorUpdatesSectionTitle}>
+                              {messages.ratingsTitle}
+                            </h5>
+                            <ul className={styles.seniorUpdatesChangeList}>
+                              {entry.ratings.map((change) => (
+                                <li key={`${entry.playerId}-rating-${change.position}`}>
+                                  {change.position}:{" "}
+                                  {change.previous?.toFixed(1) ?? messages.unknownShort} →{" "}
+                                  {change.current?.toFixed(1) ?? messages.unknownShort}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                        {entry.attributes.length > 0 ? (
+                          <div className={styles.seniorUpdatesSection}>
+                            <h5 className={styles.seniorUpdatesSectionTitle}>
+                              {messages.clubChronicleUpdatesHistoryChanged}
+                            </h5>
+                            <ul className={styles.seniorUpdatesChangeList}>
+                              {entry.attributes.map((change, idx) => (
+                                <li key={`${entry.playerId}-attr-${change.key}-${idx}`}>
+                                  {updatesAttributeLabel(change.key)}:{" "}
+                                  {formatUpdatesAttributeValue(change.key, change.previous)} →{" "}
+                                  {formatUpdatesAttributeValue(change.key, change.current)}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ) : null}
+                      </div>
+                    </article>
+                  ))}
+                </section>
+                </div>
+            </div>
           ) : (
             <p className={styles.chronicleEmpty}>{messages.clubChronicleUpdatesEmpty}</p>
           )

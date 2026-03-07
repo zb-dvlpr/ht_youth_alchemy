@@ -3339,6 +3339,52 @@ html[data-theme="dark"] .confirmBody {
   color: #cfc6bb;
 }
 
+html[data-theme="dark"] .seniorUpdatesComparedAt {
+  color: #d7cabc;
+}
+
+html[data-theme="dark"] .seniorUpdatesHistoryPane {
+  background: #211d1a;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .seniorUpdatesHistoryHeader {
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  color: #c7b7a3;
+}
+
+html[data-theme="dark"] .seniorUpdatesHistoryItem {
+  background: #2a2521;
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .seniorUpdatesHistoryItem:hover {
+  background: #342e29;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+html[data-theme="dark"] .seniorUpdatesHistoryItemActive,
+html[data-theme="dark"] .seniorUpdatesHistoryItemActive:hover {
+  background: #3d352f;
+  border-color: rgba(214, 181, 136, 0.45);
+}
+
+html[data-theme="dark"] .seniorUpdatesHistoryState,
+html[data-theme="dark"] .seniorUpdatesSectionTitle {
+  color: #bba891;
+}
+
+html[data-theme="dark"] .seniorUpdatesPlayerCard {
+  background: #25211d;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .seniorUpdatesPlayerName,
+html[data-theme="dark"] .seniorUpdatesChangeList {
+  color: #f3ede4;
+}
+
 html[data-theme="dark"] .spinner {
   border-color: rgba(207, 198, 187, 0.3);
   border-top-color: #cfc6bb;
@@ -4407,6 +4453,189 @@ html[data-theme="dark"] .spinner {
 
 .confirmCard.chronicleUpdatesModal {
   width: min(1200px, 98vw);
+}
+
+.confirmCard.seniorUpdatesModal {
+  width: min(1120px, 96vw);
+  max-height: min(88vh, 920px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.seniorUpdatesModal .confirmBody {
+  margin-bottom: 0;
+  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.seniorUpdatesModal .confirmActions {
+  margin-top: 12px;
+}
+
+.seniorUpdatesShell {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  min-height: 0;
+}
+
+.seniorUpdatesTopBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.seniorUpdatesComparedAt {
+  font-size: 12px;
+  color: #5f5141;
+  font-weight: 600;
+}
+
+.seniorUpdatesGrid {
+  display: grid;
+  grid-template-columns: minmax(220px, 260px) minmax(0, 1fr);
+  gap: 14px;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.seniorUpdatesHistoryPane {
+  border: 1px solid #e2d7c7;
+  border-radius: 12px;
+  background: #fbf7ef;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.seniorUpdatesHistoryHeader {
+  padding: 10px 12px;
+  border-bottom: 1px solid #e5dbcd;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #786955;
+  font-weight: 700;
+}
+
+.seniorUpdatesHistoryList {
+  overflow: auto;
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+}
+
+.seniorUpdatesHistoryItem {
+  border: 1px solid #d8c9b4;
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #fff;
+  display: grid;
+  gap: 2px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 12px;
+  color: #3f362c;
+}
+
+.seniorUpdatesHistoryItem:hover {
+  background: #f7efe0;
+  border-color: #cdb89d;
+}
+
+.seniorUpdatesHistoryItemActive,
+.seniorUpdatesHistoryItemActive:hover {
+  background: #ede2d0;
+  border-color: #b79a79;
+}
+
+.seniorUpdatesHistoryDate {
+  font-weight: 700;
+}
+
+.seniorUpdatesHistoryState {
+  font-size: 11px;
+  color: #6b5e4d;
+}
+
+.seniorUpdatesDetailsPane {
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  padding-right: 2px;
+}
+
+.seniorUpdatesPlayerCard {
+  border: 1px solid #dfd2c0;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.seniorUpdatesPlayerHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.seniorUpdatesPlayerName {
+  margin: 0;
+  font-size: 14px;
+  color: #2d251b;
+}
+
+.seniorUpdatesPlayerBody {
+  display: grid;
+  gap: 8px;
+}
+
+.seniorUpdatesSection {
+  display: grid;
+  gap: 5px;
+}
+
+.seniorUpdatesSectionTitle {
+  margin: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #7a6a56;
+}
+
+.seniorUpdatesChangeList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: #3d3328;
+}
+
+@media (max-width: 900px) {
+  .confirmCard.seniorUpdatesModal {
+    width: min(96vw, 760px);
+    max-height: 92vh;
+  }
+
+  .seniorUpdatesGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .seniorUpdatesHistoryPane {
+    max-height: 220px;
+  }
 }
 
 .confirmTitle {

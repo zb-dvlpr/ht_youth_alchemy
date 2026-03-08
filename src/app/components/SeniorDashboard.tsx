@@ -217,7 +217,7 @@ const SKILL_KEYS = [
 ] as const;
 const UPDATES_HISTORY_LIMIT = 20;
 const FRIENDLY_MATCH_TYPES = new Set<number>([4, 5, 8, 9]);
-const LEAGUE_CUP_QUALI_MATCH_TYPES = new Set<number>([1, 2, 3]);
+const LEAGUE_CUP_QUALI_MATCH_TYPES = new Set<number>([1, 2, 3, 6]);
 const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
 const OPPONENT_ARCHIVE_LIMIT = 20;
 const OPPONENT_DETAILS_CONCURRENCY = 6;
@@ -2811,19 +2811,45 @@ const refreshDetailsForPlayers = async (
       const playerPool = players
         .map((player) => {
           const details = detailsById.get(player.PlayerID);
+          const cardsValue =
+            typeof details?.Cards === "number"
+              ? details.Cards
+              : typeof player.Cards === "number"
+                ? player.Cards
+                : null;
+          return {
+            player,
+            details,
+            cardsValue,
+          };
+        })
+        .map((player) => {
+          const details = player.details;
           const injuryLevel =
             typeof details?.InjuryLevel === "number"
               ? details.InjuryLevel
-              : typeof player.InjuryLevel === "number"
-                ? player.InjuryLevel
+              : typeof player.player.InjuryLevel === "number"
+                ? player.player.InjuryLevel
                 : null;
           return {
-            id: player.PlayerID,
-            name: formatPlayerName(player) || String(player.PlayerID),
+            id: player.player.PlayerID,
+            name: formatPlayerName(player.player) || String(player.player.PlayerID),
             injuryLevel,
+            cardsValue: player.cardsValue,
           };
         })
-        .filter((player) => !(typeof player.injuryLevel === "number" && player.injuryLevel >= 1))
+        .filter((player) => {
+          if (typeof player.injuryLevel === "number" && player.injuryLevel >= 1) {
+            return false;
+          }
+          const isLeagueCupTarget =
+            selectedMatchType !== null &&
+            LEAGUE_CUP_QUALI_MATCH_TYPES.has(selectedMatchType);
+          if (isLeagueCupTarget && typeof player.cardsValue === "number" && player.cardsValue >= 3) {
+            return false;
+          }
+          return true;
+        })
         .map(({ id, name }) => ({ id, name }));
       if (playerPool.length < 11) {
         throw new Error(messages.submitOrdersMinPlayers);

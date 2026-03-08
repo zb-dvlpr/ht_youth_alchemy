@@ -73,6 +73,7 @@ type LineupFieldProps = {
   trainingTypeSetPendingValue?: number | null;
   trainingTypeOptions?: number[];
   trainingTypeLabelForValue?: (value: number) => string;
+  trainingTypeSectionTitleForValue?: (value: number) => string | null;
   trainingTypeAriaLabel?: string;
   optimizeDisabled?: boolean;
   optimizeDisabledReason?: string;
@@ -397,6 +398,7 @@ export default function LineupField({
   trainingTypeSetPendingValue = null,
   trainingTypeOptions = [],
   trainingTypeLabelForValue,
+  trainingTypeSectionTitleForValue,
   trainingTypeAriaLabel,
   optimizeDisabled = false,
   optimizeDisabledReason,
@@ -518,36 +520,44 @@ export default function LineupField({
           >
             {trainingTypeOptions.map((value) => {
               const isActive = value === (trainingType ?? trainingTypeOptions[0]);
+              const sectionTitle = trainingTypeSectionTitleForValue?.(value) ?? null;
               return (
-                <div key={value} className={styles.lineupTrainingTypeOptionRow}>
-                  <div
-                    className={`${styles.feedbackLink} ${styles.lineupTrainingTypeOption} ${
-                      isActive ? styles.lineupTrainingTypeOptionActive : ""
-                    }`}
-                    role="presentation"
-                  >
-                    {trainingTypeLabelForValue?.(value) ?? String(value)}
-                  </div>
-                  {!isActive ? (
-                    <Tooltip content={messages.trainingSetButtonTooltip}>
-                      <button
-                        type="button"
-                        className={styles.lineupTrainingTypeSetButton}
-                        disabled={trainingTypeSetPending}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          if (trainingTypeSetPending) return;
-                          void onTrainingTypeSet?.(value);
-                        }}
-                      >
-                        {trainingTypeSetPending && trainingTypeSetPendingValue === value ? (
-                          <span className={styles.spinner} aria-hidden="true" />
-                        ) : (
-                          messages.trainingSetButtonLabel
-                        )}
-                      </button>
-                    </Tooltip>
+                <div key={value}>
+                  {sectionTitle ? (
+                    <div className={styles.lineupTrainingTypeSectionHeader}>
+                      {sectionTitle}
+                    </div>
                   ) : null}
+                  <div className={styles.lineupTrainingTypeOptionRow}>
+                    <div
+                      className={`${styles.feedbackLink} ${styles.lineupTrainingTypeOption} ${
+                        isActive ? styles.lineupTrainingTypeOptionActive : ""
+                      }`}
+                      role="presentation"
+                    >
+                      {trainingTypeLabelForValue?.(value) ?? String(value)}
+                    </div>
+                    {!isActive ? (
+                      <Tooltip content={messages.trainingSetButtonTooltip}>
+                        <button
+                          type="button"
+                          className={styles.lineupTrainingTypeSetButton}
+                          disabled={trainingTypeSetPending}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            if (trainingTypeSetPending) return;
+                            void onTrainingTypeSet?.(value);
+                          }}
+                        >
+                          {trainingTypeSetPending && trainingTypeSetPendingValue === value ? (
+                            <span className={styles.spinner} aria-hidden="true" />
+                          ) : (
+                            messages.trainingSetButtonLabel
+                          )}
+                        </button>
+                      </Tooltip>
+                    ) : null}
+                  </div>
                 </div>
               );
             })}

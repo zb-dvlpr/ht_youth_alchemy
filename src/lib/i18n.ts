@@ -624,6 +624,9 @@ export type Messages = {
   autoSelectLabel: string;
   autoSelectTitle: string;
   trainingTitle: string;
+  trainingSectionFocused: string;
+  trainingSectionExtended: string;
+  trainingSectionCombined: string;
   trainingRegimenLabel: string;
   trainingSetButtonLabel: string;
   trainingSetButtonTooltip: string;

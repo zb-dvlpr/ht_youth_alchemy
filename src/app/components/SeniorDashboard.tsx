@@ -223,7 +223,7 @@ const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
 const OPPONENT_ARCHIVE_LIMIT = 20;
 const OPPONENT_DETAILS_CONCURRENCY = 6;
 const FORMATION_PREDICT_CONCURRENCY = 4;
-const NON_DEPRECATED_TRAINING_TYPES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
+const NON_DEPRECATED_TRAINING_TYPES = [9, 3, 8, 5, 7, 4, 2, 11, 12, 10, 6] as const;
 const FIELD_SLOT_ORDER = [
   "KP",
   "WB_L",
@@ -1301,6 +1301,13 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       default:
         return messages.unknownShort;
     }
+  };
+
+  const trainingSectionTitleForValue = (value: number) => {
+    if (value === 9) return messages.trainingSectionFocused;
+    if (value === 11) return messages.trainingSectionExtended;
+    if (value === 6) return messages.trainingSectionCombined;
+    return null;
   };
 
   const sortedPlayers = useMemo(() => {
@@ -5355,6 +5362,7 @@ const refreshDetailsForPlayers = async (
             trainingTypeSetPendingValue={trainingTypeSetPendingValue}
             trainingTypeOptions={[...NON_DEPRECATED_TRAINING_TYPES]}
             trainingTypeLabelForValue={obtainedTrainingRegimenLabel}
+            trainingTypeSectionTitleForValue={trainingSectionTitleForValue}
             trainingTypeAriaLabel={messages.trainingRegimenLabel}
             trainedSlots={seniorTrainedSlots}
             onHoverPlayer={(playerId) => {

@@ -875,6 +875,10 @@ export const messagesDe: Messages = {
       "Deine Hattrick-Autorisierung ist abgelaufen oder wurde entzogen. Bitte erneut verbinden.",
     authExpiredAction: "Erneut verbinden",
     authExpiredDismiss: "Schließen",
+    scopeReconnectTitle: "Berechtigungen erforderlich",
+    scopeReconnectBody:
+      "Aufgrund neu hinzugefügter Funktionen sind die Token-Berechtigungen unzureichend. Bitte erneut verbinden, um die erforderlichen Scopes anzufordern.",
+    scopeReconnectAction: "Erneut verbinden",
     oauthErrorClientExplanation:
       "Hattrick OAuth/CHPP hat die Anfrage abgelehnt (4xx). Das ist meist ein Autorisierungs- oder Validierungsproblem.",
     oauthErrorServerExplanation:

@@ -1,6 +1,7 @@
 export const REQUIRED_CHPP_EXTENDED_PERMISSIONS = [
   "set_matchorder",
   "manage_youthplayers",
+  "set_training",
 ] as const;
 
 const CHPP_PERMISSION_ALIASES: Record<string, readonly string[]> = {
@@ -16,6 +17,12 @@ const CHPP_PERMISSION_ALIASES: Record<string, readonly string[]> = {
     "manage_youthplayer",
     "unlockskills",
     "youthplayers",
+  ],
+  set_training: [
+    "set_training",
+    "settraining",
+    "set_trainingtype",
+    "training",
   ],
 };
 

@@ -887,6 +887,10 @@ export const messagesFr: Messages = {
       "Votre autorisation Hattrick a expiré ou a été révoquée. Reconnectez-vous pour continuer.",
     authExpiredAction: "Reconnecter",
     authExpiredDismiss: "Fermer",
+    scopeReconnectTitle: "Permissions requises",
+    scopeReconnectBody:
+      "En raison de nouvelles fonctionnalités ajoutées, les permissions du jeton sont insuffisantes. Reconnectez-vous pour demander les scopes requis.",
+    scopeReconnectAction: "Reconnecter",
     oauthErrorClientExplanation:
       "Hattrick OAuth/CHPP a rejeté la requête (4xx). C’est généralement un problème d’autorisation ou de validation.",
     oauthErrorServerExplanation:

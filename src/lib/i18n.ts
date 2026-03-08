@@ -775,6 +775,9 @@ export type Messages = {
   authExpiredBody: string;
   authExpiredAction: string;
   authExpiredDismiss: string;
+  scopeReconnectTitle: string;
+  scopeReconnectBody: string;
+  scopeReconnectAction: string;
   oauthErrorClientExplanation: string;
   oauthErrorServerExplanation: string;
   oauthErrorUnknownExplanation: string;

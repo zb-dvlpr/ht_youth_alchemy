@@ -66,12 +66,18 @@ import {
   type ChppDebugOauthErrorMode,
   ChppAuthRequiredError,
   fetchChppJson,
+  reconnectChppWithTokenReset,
   readChppDebugOauthErrorMode,
   writeChppDebugOauthErrorMode,
 } from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
 import { hattrickYouthMatchUrl } from "@/lib/hattrick/urls";
 import { setDragGhost } from "@/lib/drag";
+import {
+  getMissingChppPermissions,
+  parseExtendedPermissionsFromCheckToken,
+  REQUIRED_CHPP_EXTENDED_PERMISSIONS,
+} from "@/lib/chpp/permissions";
 
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
@@ -748,6 +754,7 @@ export default function Dashboard({
   const [authErrorDebugDetails, setAuthErrorDebugDetails] = useState<string | null>(
     null
   );
+  const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(initialLoadError);
   const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(
     initialLoadDetails
@@ -3237,6 +3244,51 @@ export default function Dashboard({
     return result.ok;
   };
 
+  const ensureRefreshScopes = async () => {
+    try {
+      const response = await fetch("/api/chpp/oauth/check-token", {
+        cache: "no-store",
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            permissions?: string[];
+            raw?: string;
+          }
+        | null;
+      if (!response.ok) {
+        setScopeReconnectModalOpen(true);
+        return false;
+      }
+      const grantedPermissions = Array.isArray(payload?.permissions)
+        ? payload.permissions
+        : [];
+      const missingPermissions = getMissingChppPermissions(
+        grantedPermissions,
+        REQUIRED_CHPP_EXTENDED_PERMISSIONS
+      );
+      const rawTokenCheck = typeof payload?.raw === "string" ? payload.raw : "";
+      const hasScopeTag = /<Scope>/i.test(rawTokenCheck);
+      const scopeTokens = hasScopeTag
+        ? parseExtendedPermissionsFromCheckToken(rawTokenCheck)
+        : [];
+      const missingDefaultScope = hasScopeTag && !scopeTokens.includes("default");
+      if (missingPermissions.length > 0 || missingDefaultScope) {
+        setScopeReconnectModalOpen(true);
+        return false;
+      }
+      return true;
+    } catch {
+      setScopeReconnectModalOpen(true);
+      return false;
+    }
+  };
+
+  const refreshMatchesWithScopeGuard = async (teamIdOverride?: number | null) => {
+    const hasRequiredScopes = await ensureRefreshScopes();
+    if (!hasRequiredScopes) return false;
+    return refreshMatches(teamIdOverride);
+  };
+
   const refreshRatings = async (
     teamIdOverride?: number | null,
     matchesPayload?: MatchesResponse | null,
@@ -4580,6 +4632,23 @@ export default function Dashboard({
         </div>
       ) : null}
       <Modal
+        open={scopeReconnectModalOpen}
+        title={messages.scopeReconnectTitle}
+        movable={false}
+        body={<p>{messages.scopeReconnectBody}</p>}
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => {
+              void reconnectChppWithTokenReset();
+            }}
+          >
+            {messages.scopeReconnectAction}
+          </button>
+        }
+      />
+      <Modal
         open={authError}
         title={messages.authExpiredTitle}
         body={
@@ -4602,9 +4671,15 @@ export default function Dashboard({
             >
               {messages.authExpiredDismiss}
             </button>
-            <a className={styles.confirmSubmit} href="/api/chpp/oauth/start">
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={() => {
+                void reconnectChppWithTokenReset();
+              }}
+            >
               {messages.authExpiredAction}
-            </a>
+            </button>
           </div>
         }
       />
@@ -5512,7 +5587,7 @@ export default function Dashboard({
           behaviors={behaviors}
           captainId={captainId}
           tacticType={tacticType}
-          onRefresh={refreshMatches}
+          onRefresh={refreshMatchesWithScopeGuard}
           onLoadLineup={loadLineup}
           loadedMatchId={loadedMatchId}
           onSubmitSuccess={() => setShowTrainingReminder(true)}

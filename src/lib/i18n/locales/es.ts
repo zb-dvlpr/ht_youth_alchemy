@@ -889,6 +889,10 @@ export const messagesEs: Messages = {
       "Tu autorización de Hattrick caducó o fue revocada. Vuelve a conectar para continuar.",
     authExpiredAction: "Reconectar",
     authExpiredDismiss: "Cerrar",
+    scopeReconnectTitle: "Permisos requeridos",
+    scopeReconnectBody:
+      "Debido a nuevas funciones añadidas, los permisos del token son insuficientes. Vuelve a conectar para solicitar los scopes requeridos.",
+    scopeReconnectAction: "Reconectar",
     oauthErrorClientExplanation:
       "Hattrick OAuth/CHPP rechazó la solicitud (4xx). Normalmente es un problema de autorización o validación.",
     oauthErrorServerExplanation:

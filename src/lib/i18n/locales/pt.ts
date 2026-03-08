@@ -888,6 +888,10 @@ export const messagesPt: Messages = {
       "Sua autorização do Hattrick expirou ou foi revogada. Reconecte para continuar.",
     authExpiredAction: "Reconectar",
     authExpiredDismiss: "Fechar",
+    scopeReconnectTitle: "Permissões necessárias",
+    scopeReconnectBody:
+      "Devido a recursos adicionados recentemente, as permissões do token são insuficientes. Reconecte para solicitar os escopos necessários.",
+    scopeReconnectAction: "Reconectar",
     oauthErrorClientExplanation:
       "O Hattrick OAuth/CHPP rejeitou a solicitação (4xx). Normalmente é um problema de autorização ou validação.",
     oauthErrorServerExplanation:

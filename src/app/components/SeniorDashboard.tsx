@@ -12,7 +12,11 @@ import {
 } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
-import { fetchChppJson, ChppAuthRequiredError } from "@/lib/chpp/client";
+import {
+  fetchChppJson,
+  ChppAuthRequiredError,
+  reconnectChppWithTokenReset,
+} from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
@@ -39,6 +43,11 @@ import UpcomingMatches, { Match, MatchesResponse } from "./UpcomingMatches";
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import { setDragGhost } from "@/lib/drag";
+import {
+  getMissingChppPermissions,
+  parseExtendedPermissionsFromCheckToken,
+  REQUIRED_CHPP_EXTENDED_PERMISSIONS,
+} from "@/lib/chpp/permissions";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -1157,6 +1166,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [deferHelpUntilInitialRefresh, setDeferHelpUntilInitialRefresh] =
     useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
+  const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [helpCallouts, setHelpCallouts] = useState<
     {
       id: string;
@@ -2241,6 +2251,41 @@ const refreshDetailsForPlayers = async (
   };
 
   const onRefreshMatchesOnly = async () => {
+    try {
+      const response = await fetch("/api/chpp/oauth/check-token", {
+        cache: "no-store",
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            permissions?: string[];
+            raw?: string;
+          }
+        | null;
+      if (!response.ok) {
+        setScopeReconnectModalOpen(true);
+        return false;
+      }
+      const grantedPermissions = Array.isArray(payload?.permissions)
+        ? payload.permissions
+        : [];
+      const missingPermissions = getMissingChppPermissions(
+        grantedPermissions,
+        REQUIRED_CHPP_EXTENDED_PERMISSIONS
+      );
+      const rawTokenCheck = typeof payload?.raw === "string" ? payload.raw : "";
+      const hasScopeTag = /<Scope>/i.test(rawTokenCheck);
+      const scopeTokens = hasScopeTag
+        ? parseExtendedPermissionsFromCheckToken(rawTokenCheck)
+        : [];
+      const missingDefaultScope = hasScopeTag && !scopeTokens.includes("default");
+      if (missingPermissions.length > 0 || missingDefaultScope) {
+        setScopeReconnectModalOpen(true);
+        return false;
+      }
+    } catch {
+      setScopeReconnectModalOpen(true);
+      return false;
+    }
     try {
       const nextMatches = await fetchMatches();
       setMatchesState(nextMatches);
@@ -3783,6 +3828,23 @@ const refreshDetailsForPlayers = async (
         </div>
       ) : null}
 
+      <Modal
+        open={scopeReconnectModalOpen}
+        title={messages.scopeReconnectTitle}
+        movable={false}
+        body={<p>{messages.scopeReconnectBody}</p>}
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => {
+              void reconnectChppWithTokenReset();
+            }}
+          >
+            {messages.scopeReconnectAction}
+          </button>
+        }
+      />
       <Modal
         open={updatesOpen}
         title={messages.clubChronicleUpdatesTitle}

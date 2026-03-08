@@ -879,6 +879,10 @@ export const messagesSv: Messages = {
       "Din Hattrick-auktorisering har gått ut eller återkallats. Anslut igen för att fortsätta.",
     authExpiredAction: "Anslut igen",
     authExpiredDismiss: "Stäng",
+    scopeReconnectTitle: "Behörigheter krävs",
+    scopeReconnectBody:
+      "På grund av nyligen tillagda funktioner är tokenbehörigheterna otillräckliga. Anslut igen för att begära nödvändiga scopes.",
+    scopeReconnectAction: "Anslut igen",
     oauthErrorClientExplanation:
       "Hattrick OAuth/CHPP avvisade begäran (4xx). Det är oftast ett behörighets- eller valideringsproblem.",
     oauthErrorServerExplanation:

@@ -8,11 +8,15 @@ import {
   getChppAuth,
 } from "@/lib/chpp/server";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const skipPermissionCheck =
+      new URL(request.url).searchParams.get("skipPermissionCheck") === "1";
     const auth = await getChppAuth();
     const { raw, permissions } = await fetchChppTokenCheck(auth);
-    await assertChppPermissions(auth, undefined, permissions);
+    if (!skipPermissionCheck) {
+      await assertChppPermissions(auth, undefined, permissions);
+    }
 
     return NextResponse.json({ raw, permissions });
   } catch (error) {

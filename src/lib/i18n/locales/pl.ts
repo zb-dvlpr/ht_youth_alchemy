@@ -169,6 +169,8 @@ export const messagesPl: Messages = {
     "Ostatnie aktualizacje pokazują tylko zmiany wykryte w zapisanych porównaniach odświeżeń.",
   seniorHelpCalloutSetLineupAi:
     "Ustaw skład przez AI otwiera dwa tryby ustawiania składu dla tego meczu.",
+  seniorHelpCalloutTrainingRegimen:
+    "To menu rozwijane pozwala bezpośrednio zmienić reżim treningowy seniorów.",
   seniorHelpBulletLatestUpdates:
     "Nowe porównanie zapisywane jest tylko wtedy, gdy odświeżenie wykryje realne zmiany (np. nowy zawodnik, zmiany ocen/umiejętności, kontuzje, kartki, forma, kondycja lub cechy).",
   seniorHelpBulletAiOverview:
@@ -179,6 +181,8 @@ export const messagesPl: Messages = {
     "Tryb ignorujący trening optymalizuje wyłącznie skuteczność meczową bez ograniczeń slotów treningowych.",
   seniorHelpBulletAiMatchTypes:
     "Mecze ligowe i turniejowe celują w najsilniejsze ustawienie rywalizacyjne. Sparingi korzystają z drugiego najlepszego zdrowego składu XI.",
+  seniorHelpBulletTrainingRegimen:
+    "Reżim treningowy seniorów można zmienić bezpośrednio w aplikacji z poziomu rozwijanego menu składu.",
   loadLineupUnavailable: "Brak zapisanego składu",
   loadLineupActive: "Wczytany skład",
   loadLineupError: "Błąd wczytywania składu",

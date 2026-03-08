@@ -195,6 +195,7 @@ const SENIOR_REFRESH_STATE_EVENT = "ya:senior-refresh-state";
 const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
 const SENIOR_HELP_ANCHOR_UPDATES = "[data-help-anchor='senior-latest-updates']";
 const SENIOR_HELP_ANCHOR_SET_LINEUP_AI = "[data-help-anchor='senior-set-lineup-ai']";
+const SENIOR_HELP_ANCHOR_TRAINING_REGIMEN = `.${styles.lineupTrainingTypeControl}`;
 
 const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
@@ -3725,6 +3726,7 @@ const refreshDetailsForPlayers = async (
       hideIndex?: boolean;
       offsetX?: number;
       offsetY?: number;
+      pointerOffsetX?: number;
     }> = [
       {
         id: "updates",
@@ -3737,6 +3739,13 @@ const refreshDetailsForPlayers = async (
         selector: SENIOR_HELP_ANCHOR_SET_LINEUP_AI,
         text: messages.seniorHelpCalloutSetLineupAi,
         placement: "left-center",
+      },
+      {
+        id: "training-regimen",
+        selector: SENIOR_HELP_ANCHOR_TRAINING_REGIMEN,
+        text: messages.seniorHelpCalloutTrainingRegimen,
+        placement: "below-center",
+        pointerOffsetX: -28,
       },
     ];
     const measureWidth = (text: string, hideIndex: boolean) => {
@@ -3822,7 +3831,10 @@ const refreshDetailsForPlayers = async (
           target.placement === "above-center" || target.placement === "below-center"
             ? centerX - clampedLeftAdjusted + calloutWidth / 2
             : centerX - clampedLeftAdjusted;
-        const pointerX = Math.min(Math.max(pointerXRaw, 18), calloutWidth - 18);
+        const pointerX = Math.min(
+          Math.max(pointerXRaw + (target.pointerOffsetX ?? 0), 24),
+          calloutWidth - 24
+        );
         const clampedTop = Math.min(Math.max(top, 12), viewportHeight - 12);
         return [
           {
@@ -3855,7 +3867,12 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener("resize", schedule);
       window.removeEventListener("scroll", schedule, true);
     };
-  }, [messages.seniorHelpCalloutSetLineupAi, messages.seniorHelpCalloutUpdates, showHelp]);
+  }, [
+    messages.seniorHelpCalloutSetLineupAi,
+    messages.seniorHelpCalloutTrainingRegimen,
+    messages.seniorHelpCalloutUpdates,
+    showHelp,
+  ]);
 
   const specialtyByName = useMemo(() => {
     const map: Record<string, number | undefined> = {};
@@ -5142,6 +5159,7 @@ const refreshDetailsForPlayers = async (
                 <li>{messages.seniorHelpBulletAiTrainingAware}</li>
                 <li>{messages.seniorHelpBulletAiIgnoreTraining}</li>
                 <li>{messages.seniorHelpBulletAiMatchTypes}</li>
+                <li>{messages.seniorHelpBulletTrainingRegimen}</li>
               </ul>
               <button
                 type="button"

@@ -460,6 +460,8 @@ export const messagesEs: Messages = {
       "Ultimas actualizaciones muestra solo los cambios detectados en las comparaciones de refresco guardadas.",
     seniorHelpCalloutSetLineupAi:
       "Definir alineacion con IA abre los dos modos de alineacion para este partido.",
+    seniorHelpCalloutTrainingRegimen:
+      "Este desplegable te permite cambiar directamente el regimen de entrenamiento senior.",
     seniorHelpBulletLatestUpdates:
       "Solo se guarda una nueva comparacion cuando un refresco detecta cambios reales (por ejemplo, jugador nuevo, cambios de valoraciones/habilidades, lesiones, tarjetas, forma, resistencia o rasgos).",
     seniorHelpBulletAiOverview:
@@ -470,6 +472,8 @@ export const messagesEs: Messages = {
       "Modo sin entrenamiento: optimiza solo la efectividad del partido sin restricciones de puestos de entrenamiento.",
     seniorHelpBulletAiMatchTypes:
       "Liga y torneo buscan la configuracion competitiva mas fuerte. En amistosos se usa un once sano de segundo nivel.",
+    seniorHelpBulletTrainingRegimen:
+      "El regimen de entrenamiento senior puede cambiarse directamente desde el desplegable de alineacion.",
     themeSwitchDark: "Cambiar a modo oscuro",
     themeSwitchLight: "Cambiar a modo claro",
     helpDismissLabel: "Entendido",

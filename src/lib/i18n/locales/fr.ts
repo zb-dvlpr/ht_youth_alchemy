@@ -460,6 +460,8 @@ export const messagesFr: Messages = {
       "Dernieres mises a jour affiche uniquement les changements detectes dans les comparaisons enregistrees.",
     seniorHelpCalloutSetLineupAi:
       "Definir la composition avec IA ouvre les deux modes de composition pour ce match.",
+    seniorHelpCalloutTrainingRegimen:
+      "Ce menu deroulant permet de modifier directement le regime d entrainement senior.",
     seniorHelpBulletLatestUpdates:
       "Une nouvelle comparaison est enregistree uniquement quand un rafraichissement detecte de vrais changements (nouveau joueur, notes/competences, blessures, cartons, forme, endurance ou traits).",
     seniorHelpBulletAiOverview:
@@ -470,6 +472,8 @@ export const messagesFr: Messages = {
       "Mode sans entrainement: optimise uniquement l efficacite du match sans contrainte des postes d entrainement.",
     seniorHelpBulletAiMatchTypes:
       "Les matchs de ligue et de tournoi visent la meilleure configuration competitive. Les amicaux utilisent un onze sain de second niveau.",
+    seniorHelpBulletTrainingRegimen:
+      "Le regime d entrainement senior peut etre modifie directement depuis le menu deroulant de composition.",
     themeSwitchDark: "Passer en mode sombre",
     themeSwitchLight: "Passer en mode clair",
     helpDismissLabel: "J’ai compris",

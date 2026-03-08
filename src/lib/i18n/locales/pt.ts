@@ -460,6 +460,8 @@ export const messagesPt: Messages = {
       "Ultimas atualizacoes mostra apenas mudancas detectadas nas comparacoes de refresh salvas.",
     seniorHelpCalloutSetLineupAi:
       "Definir escalacao com IA abre os dois modos de escalacao para esta partida.",
+    seniorHelpCalloutTrainingRegimen:
+      "Este dropdown permite alterar diretamente o regime de treino do elenco senior.",
     seniorHelpBulletLatestUpdates:
       "Uma nova comparacao so e salva quando um refresh detecta mudancas reais (por exemplo novo jogador, mudancas de notas/skills, lesoes, cartoes, forma, resistencia ou tracos).",
     seniorHelpBulletAiOverview:
@@ -470,6 +472,8 @@ export const messagesPt: Messages = {
       "Modo ignorar treino: otimiza apenas a eficacia da partida sem restricoes de slots de treino.",
     seniorHelpBulletAiMatchTypes:
       "Liga e torneio buscam a configuracao competitiva mais forte. Em amistosos, usa-se um XI saudavel de segundo nivel.",
+    seniorHelpBulletTrainingRegimen:
+      "O regime de treino senior pode ser alterado diretamente no app pelo dropdown da escalacao.",
     themeSwitchDark: "Mudar para modo escuro",
     themeSwitchLight: "Mudar para modo claro",
     helpDismissLabel: "Entendi",

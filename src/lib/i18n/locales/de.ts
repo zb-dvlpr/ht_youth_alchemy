@@ -452,6 +452,8 @@ export const messagesDe: Messages = {
       "Letzte Updates zeigt nur Änderungen aus den zuletzt gespeicherten Refresh-Vergleichen.",
     seniorHelpCalloutSetLineupAi:
       "Aufstellung per KI setzen öffnet die zwei Aufstellungsmodi für dieses Match.",
+    seniorHelpCalloutTrainingRegimen:
+      "Über dieses Dropdown kannst du das Trainingsregime der Senioren direkt ändern.",
     seniorHelpBulletLatestUpdates:
       "Ein neuer Vergleich wird nur gespeichert, wenn ein Refresh echte Änderungen erkennt (z. B. neue Spieler, Ratings-/Skill-Änderungen, Verletzungen, Karten, Form, Kondition oder Merkmale).",
     seniorHelpBulletAiOverview:
@@ -462,6 +464,8 @@ export const messagesDe: Messages = {
       "Modus Training ignorieren optimiert rein auf Match-Effektivität ohne Trainingsslot-Beschränkung.",
     seniorHelpBulletAiMatchTypes:
       "Liga- und Turnierspiele nutzen die stärkste Wettbewerbsaufstellung. Freundschaftsspiele nutzen eine zweitbeste gesunde XI.",
+    seniorHelpBulletTrainingRegimen:
+      "Das Trainingsregime der Senioren kann direkt in der App über das Aufstellungs-Dropdown geändert werden.",
     themeSwitchDark: "In den Dunkelmodus wechseln",
     themeSwitchLight: "In den Hellmodus wechseln",
     helpDismissLabel: "Verstanden",

@@ -431,6 +431,8 @@ export const messagesEn: Messages = {
       "Latest updates shows only what changed in the latest saved refresh comparisons.",
     seniorHelpCalloutSetLineupAi:
       "Set lineup using AI opens the two lineup modes for this match.",
+    seniorHelpCalloutTrainingRegimen:
+      "This dropdown lets you change the senior training regimen directly.",
     seniorHelpBulletLatestUpdates:
       "A new Latest updates comparison is saved only when a refresh detects real changes (for example new players, ratings/skills updates, injuries, cards, form, stamina, or traits).",
     seniorHelpBulletAiOverview:
@@ -441,6 +443,8 @@ export const messagesEn: Messages = {
       "Ignore-training mode optimizes for match effectiveness without training-slot constraints.",
     seniorHelpBulletAiMatchTypes:
       "League and tournament matches target your strongest competitive setup. Friendlies use a second-best healthy XI.",
+    seniorHelpBulletTrainingRegimen:
+      "You can change the senior training regimen directly from the lineup dropdown.",
     themeSwitchDark: "Switch to dark mode",
     themeSwitchLight: "Switch to light mode",
     helpDismissLabel: "I understand",

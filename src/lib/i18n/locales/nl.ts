@@ -169,6 +169,8 @@ export const messagesNl: Messages = {
     "Laatste updates toont alleen gedetecteerde wijzigingen uit opgeslagen refresh-vergelijkingen.",
   seniorHelpCalloutSetLineupAi:
     "Opstelling met AI zetten opent de twee opstellingsmodi voor deze wedstrijd.",
+  seniorHelpCalloutTrainingRegimen:
+    "Met deze dropdown kun je het trainingsregime van senioren direct wijzigen.",
   seniorHelpBulletLatestUpdates:
     "Er wordt alleen een nieuwe vergelijking opgeslagen wanneer een refresh echte wijzigingen detecteert (bijvoorbeeld nieuwe speler, wijzigingen in ratings/skills, blessures, kaarten, vorm, conditie of eigenschappen).",
   seniorHelpBulletAiOverview:
@@ -179,6 +181,8 @@ export const messagesNl: Messages = {
     "Training negeren optimaliseert alleen voor wedstrijdeffectiviteit zonder trainingsslotbeperkingen.",
   seniorHelpBulletAiMatchTypes:
     "Competitie- en toernooiwedstrijden mikken op de sterkste competitieve opstelling. Vriendschappelijke wedstrijden gebruiken een tweede beste gezonde XI.",
+  seniorHelpBulletTrainingRegimen:
+    "Het trainingsregime van senioren kan direct in de app worden aangepast via de opstellingsdropdown.",
   loadLineupUnavailable: "Geen opgeslagen opstelling",
   loadLineupActive: "Opstelling geladen",
   loadLineupError: "Fout bij laden opstelling",

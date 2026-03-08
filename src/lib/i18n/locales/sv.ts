@@ -454,6 +454,8 @@ export const messagesSv: Messages = {
       "Senaste uppdateringar visar bara andringar som hittats i sparade uppdateringsjamforelser.",
     seniorHelpCalloutSetLineupAi:
       "Satt uppstallning med AI oppnar de tva uppstallningslagen for denna match.",
+    seniorHelpCalloutTrainingRegimen:
+      "Den har rullgardinsmenyn later dig andra seniorlagets traningsregim direkt.",
     seniorHelpBulletLatestUpdates:
       "En ny jamforelse sparas bara nar en uppdatering hittar verkliga andringar (t.ex. ny spelare, andrade betyg/skills, skador, kort, form, kondition eller egenskaper).",
     seniorHelpBulletAiOverview:
@@ -464,6 +466,8 @@ export const messagesSv: Messages = {
       "Ignorera traning optimerar bara matcheffektivitet utan krav pa traningsplatser.",
     seniorHelpBulletAiMatchTypes:
       "Liga- och turneringsmatcher riktas mot starkaste konkurrensuppstallning. Vanmatcher anvander en andrabasta frisk elva.",
+    seniorHelpBulletTrainingRegimen:
+      "Seniorlagets traningsregim kan andras direkt i appen via uppstallningens rullgardinsmeny.",
     themeSwitchDark: "Växla till mörkt läge",
     themeSwitchLight: "Växla till ljust läge",
     helpDismissLabel: "Jag förstår",

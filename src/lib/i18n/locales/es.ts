@@ -462,6 +462,8 @@ export const messagesEs: Messages = {
       "Definir alineacion con IA abre los dos modos de alineacion para este partido.",
     seniorHelpCalloutTrainingRegimen:
       "Este desplegable te permite cambiar directamente el regimen de entrenamiento senior.",
+    seniorHelpCalloutAnalyzeOpponent:
+      "Analizar rival revisa formaciones, tácticas y tendencias recientes de valoraciones del rival.",
     seniorHelpBulletLatestUpdates:
       "Solo se guarda una nueva comparacion cuando un refresco detecta cambios reales (por ejemplo, jugador nuevo, cambios de valoraciones/habilidades, lesiones, tarjetas, forma, resistencia o rasgos).",
     seniorHelpBulletAiOverview:
@@ -474,6 +476,8 @@ export const messagesEs: Messages = {
       "Liga y torneo buscan la configuracion competitiva mas fuerte. En amistosos se usa un once sano de segundo nivel.",
     seniorHelpBulletTrainingRegimen:
       "El regimen de entrenamiento senior puede cambiarse directamente desde el desplegable de alineacion.",
+    seniorHelpBulletAnalyzeOpponent:
+      "Analizar rival resume patrones recientes para apoyar las decisiones de alineación con IA.",
     themeSwitchDark: "Cambiar a modo oscuro",
     themeSwitchLight: "Cambiar a modo claro",
     helpDismissLabel: "Entendido",

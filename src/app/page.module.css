@@ -669,6 +669,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   top: -10px;
   left: var(--callout-pointer-x, 50%);
   transform: translateX(-50%) rotate(225deg);
+  z-index: 0;
 }
 
 .helpCallout[data-placement="right-center"]::after {

@@ -463,6 +463,8 @@ export const messagesIt: Messages = {
       "Imposta formazione con IA apre le due modalita per questa partita.",
     seniorHelpCalloutTrainingRegimen:
       "Questo menu a discesa consente di cambiare direttamente il regime di allenamento senior.",
+    seniorHelpCalloutAnalyzeOpponent:
+      "Analizza avversario rivede formazioni, tattiche e trend recenti delle valutazioni.",
     seniorHelpBulletLatestUpdates:
       "Un nuovo confronto viene salvato solo quando un refresh rileva cambiamenti reali (per esempio nuovo giocatore, cambi di rating/skill, infortuni, cartellini, forma, resistenza o tratti).",
     seniorHelpBulletAiOverview:
@@ -475,6 +477,8 @@ export const messagesIt: Messages = {
       "Campionato e tornei puntano alla configurazione competitiva piu forte. Le amichevoli usano un undici sano di secondo livello.",
     seniorHelpBulletTrainingRegimen:
       "Il regime di allenamento senior puo essere cambiato direttamente dall app tramite il menu a discesa della formazione.",
+    seniorHelpBulletAnalyzeOpponent:
+      "Analizza avversario riassume i pattern recenti per supportare le decisioni IA sulla formazione.",
     themeSwitchDark: "Passa alla modalità scura",
     themeSwitchLight: "Passa alla modalità chiara",
     helpDismissLabel: "Ho capito",

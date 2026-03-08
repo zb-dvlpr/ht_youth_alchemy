@@ -462,6 +462,8 @@ export const messagesPt: Messages = {
       "Definir escalacao com IA abre os dois modos de escalacao para esta partida.",
     seniorHelpCalloutTrainingRegimen:
       "Este dropdown permite alterar diretamente o regime de treino do elenco senior.",
+    seniorHelpCalloutAnalyzeOpponent:
+      "Analisar adversário revisa formações, táticas e tendências recentes de notas do oponente.",
     seniorHelpBulletLatestUpdates:
       "Uma nova comparacao so e salva quando um refresh detecta mudancas reais (por exemplo novo jogador, mudancas de notas/skills, lesoes, cartoes, forma, resistencia ou tracos).",
     seniorHelpBulletAiOverview:
@@ -474,6 +476,8 @@ export const messagesPt: Messages = {
       "Liga e torneio buscam a configuracao competitiva mais forte. Em amistosos, usa-se um XI saudavel de segundo nivel.",
     seniorHelpBulletTrainingRegimen:
       "O regime de treino senior pode ser alterado diretamente no app pelo dropdown da escalacao.",
+    seniorHelpBulletAnalyzeOpponent:
+      "Analisar adversário resume padrões recentes para apoiar decisões da IA na escalação.",
     themeSwitchDark: "Mudar para modo escuro",
     themeSwitchLight: "Mudar para modo claro",
     helpDismissLabel: "Entendi",

@@ -395,12 +395,14 @@ export type Messages = {
   seniorHelpCalloutUpdates: string;
   seniorHelpCalloutSetLineupAi: string;
   seniorHelpCalloutTrainingRegimen: string;
+  seniorHelpCalloutAnalyzeOpponent: string;
   seniorHelpBulletLatestUpdates: string;
   seniorHelpBulletAiOverview: string;
   seniorHelpBulletAiTrainingAware: string;
   seniorHelpBulletAiIgnoreTraining: string;
   seniorHelpBulletAiMatchTypes: string;
   seniorHelpBulletTrainingRegimen: string;
+  seniorHelpBulletAnalyzeOpponent: string;
   themeSwitchDark: string;
   themeSwitchLight: string;
   helpDismissLabel: string;

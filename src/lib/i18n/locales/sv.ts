@@ -456,6 +456,8 @@ export const messagesSv: Messages = {
       "Satt uppstallning med AI oppnar de tva uppstallningslagen for denna match.",
     seniorHelpCalloutTrainingRegimen:
       "Den har rullgardinsmenyn later dig andra seniorlagets traningsregim direkt.",
+    seniorHelpCalloutAnalyzeOpponent:
+      "Analysera motståndare granskar senaste formationer, taktikval och betygstrender.",
     seniorHelpBulletLatestUpdates:
       "En ny jamforelse sparas bara nar en uppdatering hittar verkliga andringar (t.ex. ny spelare, andrade betyg/skills, skador, kort, form, kondition eller egenskaper).",
     seniorHelpBulletAiOverview:
@@ -468,6 +470,8 @@ export const messagesSv: Messages = {
       "Liga- och turneringsmatcher riktas mot starkaste konkurrensuppstallning. Vanmatcher anvander en andrabasta frisk elva.",
     seniorHelpBulletTrainingRegimen:
       "Seniorlagets traningsregim kan andras direkt i appen via uppstallningens rullgardinsmeny.",
+    seniorHelpBulletAnalyzeOpponent:
+      "Analysera motståndare sammanfattar senaste mönster för att stödja AI-val av uppställning.",
     themeSwitchDark: "Växla till mörkt läge",
     themeSwitchLight: "Växla till ljust läge",
     helpDismissLabel: "Jag förstår",

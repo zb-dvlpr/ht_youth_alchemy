@@ -196,6 +196,7 @@ const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
 const SENIOR_HELP_ANCHOR_UPDATES = "[data-help-anchor='senior-latest-updates']";
 const SENIOR_HELP_ANCHOR_SET_LINEUP_AI = "[data-help-anchor='senior-set-lineup-ai']";
 const SENIOR_HELP_ANCHOR_TRAINING_REGIMEN = `.${styles.lineupTrainingTypeControl}`;
+const SENIOR_HELP_ANCHOR_ANALYZE_OPPONENT = `.${styles.matchAnalyzeOpponentWrap}`;
 
 const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
@@ -3738,7 +3739,7 @@ const refreshDetailsForPlayers = async (
       setHelpCallouts([]);
       return;
     }
-    const CALL_OUT_MAX_WIDTH = 340;
+    const CALL_OUT_MAX_WIDTH = 240;
     const targets: Array<{
       id: string;
       selector: string;
@@ -3753,6 +3754,7 @@ const refreshDetailsForPlayers = async (
       offsetX?: number;
       offsetY?: number;
       pointerOffsetX?: number;
+      maxWidth?: number;
     }> = [
       {
         id: "updates",
@@ -3765,6 +3767,7 @@ const refreshDetailsForPlayers = async (
         selector: SENIOR_HELP_ANCHOR_SET_LINEUP_AI,
         text: messages.seniorHelpCalloutSetLineupAi,
         placement: "left-center",
+        maxWidth: 300,
       },
       {
         id: "training-regimen",
@@ -3773,14 +3776,21 @@ const refreshDetailsForPlayers = async (
         placement: "below-center",
         pointerOffsetX: -28,
       },
+      {
+        id: "analyze-opponent",
+        selector: SENIOR_HELP_ANCHOR_ANALYZE_OPPONENT,
+        text: messages.seniorHelpCalloutAnalyzeOpponent,
+        placement: "below-center",
+        pointerOffsetX: -36,
+      },
     ];
-    const measureWidth = (text: string, hideIndex: boolean) => {
+    const measureWidth = (text: string, hideIndex: boolean, maxWidth: number) => {
       const probe = document.createElement("div");
       probe.className = styles.helpCallout;
       probe.style.position = "fixed";
       probe.style.visibility = "hidden";
       probe.style.pointerEvents = "none";
-      probe.style.maxWidth = `${CALL_OUT_MAX_WIDTH}px`;
+      probe.style.maxWidth = `${maxWidth}px`;
       if (!hideIndex) {
         const badge = document.createElement("span");
         badge.className = styles.helpCalloutIndex;
@@ -3794,7 +3804,7 @@ const refreshDetailsForPlayers = async (
       document.body.appendChild(probe);
       const width = probe.getBoundingClientRect().width;
       probe.remove();
-      return Math.min(width, CALL_OUT_MAX_WIDTH);
+      return Math.min(width, maxWidth);
     };
 
     const computeCallouts = () => {
@@ -3842,7 +3852,12 @@ const refreshDetailsForPlayers = async (
         }
         left += offsetX;
         top += offsetY;
-        const calloutWidth = measureWidth(target.text, target.hideIndex ?? false);
+        const targetMaxWidth = target.maxWidth ?? CALL_OUT_MAX_WIDTH;
+        const calloutWidth = measureWidth(
+          target.text,
+          target.hideIndex ?? false,
+          targetMaxWidth
+        );
         const clampedLeft = Math.min(Math.max(left, 12), viewportWidth - 12);
         const maxLeft = viewportWidth - 12;
         const minLeft = 12;
@@ -3869,7 +3884,7 @@ const refreshDetailsForPlayers = async (
             style: {
               left: clampedLeftAdjusted,
               top: clampedTop,
-              maxWidth: `${CALL_OUT_MAX_WIDTH}px`,
+              maxWidth: `${targetMaxWidth}px`,
               transform,
               "--callout-pointer-x": `${pointerX}px`,
             } as CSSProperties,
@@ -3894,6 +3909,7 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener("scroll", schedule, true);
     };
   }, [
+    messages.seniorHelpCalloutAnalyzeOpponent,
     messages.seniorHelpCalloutSetLineupAi,
     messages.seniorHelpCalloutTrainingRegimen,
     messages.seniorHelpCalloutUpdates,
@@ -5186,6 +5202,7 @@ const refreshDetailsForPlayers = async (
                 <li>{messages.seniorHelpBulletAiIgnoreTraining}</li>
                 <li>{messages.seniorHelpBulletAiMatchTypes}</li>
                 <li>{messages.seniorHelpBulletTrainingRegimen}</li>
+                <li>{messages.seniorHelpBulletAnalyzeOpponent}</li>
               </ul>
               <button
                 type="button"

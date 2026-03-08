@@ -2520,7 +2520,7 @@ const refreshDetailsForPlayers = async (
       return FRIENDLY_MATCH_TYPES;
     }
     if (selectedMatchType !== null && TOURNAMENT_MATCH_TYPES.has(selectedMatchType)) {
-      return new Set<number>([...LEAGUE_CUP_QUALI_MATCH_TYPES, ...TOURNAMENT_MATCH_TYPES]);
+      return TOURNAMENT_MATCH_TYPES;
     }
     return LEAGUE_CUP_QUALI_MATCH_TYPES;
   };

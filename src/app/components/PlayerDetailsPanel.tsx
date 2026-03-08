@@ -308,6 +308,7 @@ const SENIOR_SKILL_EFFECT_CAP = 20;
 
 const formatSkillMatrixFloat = (value: number) => {
   if (!Number.isFinite(value)) return "0.0";
+  if (Number.isInteger(value)) return String(value);
   return value.toFixed(1);
 };
 

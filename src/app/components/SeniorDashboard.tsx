@@ -4816,14 +4816,14 @@ const refreshDetailsForPlayers = async (
                   }
                   if (cardsValue >= 3) {
                     return (
-                      <span className={styles.playerMetricPill} title={messages.sortCards}>
+                      <span className={styles.playerMetricPill}>
                         <span className={styles.playerCardIcon}>🟥</span>
                       </span>
                     );
                   }
                   if (cardsValue === 2) {
                     return (
-                      <span className={styles.playerMetricPill} title={messages.sortCards}>
+                      <span className={styles.playerMetricPill}>
                         <span className={styles.playerCardIcon}>🟨</span>
                         <span className={styles.playerCardIcon}>🟨</span>
                       </span>
@@ -4831,7 +4831,7 @@ const refreshDetailsForPlayers = async (
                   }
                   if (cardsValue === 1) {
                     return (
-                      <span className={styles.playerMetricPill} title={messages.sortCards}>
+                      <span className={styles.playerMetricPill}>
                         <span className={styles.playerCardIcon}>🟨</span>
                       </span>
                     );

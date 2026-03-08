@@ -43,6 +43,7 @@ import UpcomingMatches, { Match, MatchesResponse } from "./UpcomingMatches";
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import { setDragGhost } from "@/lib/drag";
+import { positionLabel } from "@/lib/positions";
 import {
   getMissingChppPermissions,
   parseExtendedPermissionsFromCheckToken,
@@ -3933,9 +3934,15 @@ const refreshDetailsForPlayers = async (
 
   const selectedUpdatesRows = useMemo(() => {
     if (!selectedUpdatesEntry) return [];
-    return Object.values(selectedUpdatesEntry.groupedByPlayerId).sort((a, b) =>
-      a.playerName.localeCompare(b.playerName)
-    );
+    return Object.values(selectedUpdatesEntry.groupedByPlayerId)
+      .filter(
+        (entry) =>
+          entry.isNewPlayer ||
+          entry.skills.length > 0 ||
+          entry.ratings.length > 0 ||
+          entry.attributes.length > 0
+      )
+      .sort((a, b) => a.playerName.localeCompare(b.playerName));
   }, [selectedUpdatesEntry]);
 
   const skillLabelByKey = (skillKey: string) => {
@@ -4142,7 +4149,7 @@ const refreshDetailsForPlayers = async (
                             <ul className={styles.seniorUpdatesChangeList}>
                               {entry.ratings.map((change) => (
                                 <li key={`${entry.playerId}-rating-${change.position}`}>
-                                  {change.position}:{" "}
+                                  {positionLabel(change.position, messages)}:{" "}
                                   {change.previous?.toFixed(1) ?? messages.unknownShort} →{" "}
                                   {change.current?.toFixed(1) ?? messages.unknownShort}
                                 </li>

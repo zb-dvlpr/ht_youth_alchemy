@@ -99,6 +99,8 @@ export const messagesFr: Messages = {
       "Sortie de l’outil d’optimisation d’équipe senior.",
     changelog_3_1_0:
       "L optimisation senior ajoute une aide contextuelle avec repères guidés pour Dernières mises à jour et Composition IA.",
+    changelog_3_2_0:
+      "Le régime d entraînement de l équipe senior peut maintenant être modifié directement dans l application avec vérification des permissions.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -714,6 +716,8 @@ export const messagesFr: Messages = {
     notificationDebugOauthMode: "Mode debug OAuth :",
     notificationMatchesRefreshed: "Matchs actualisés",
     notificationMatchesRefreshFailed: "Échec de l’actualisation des matchs",
+    notificationSeniorTrainingRegimenChanged:
+      "Le régime d’entraînement de l’équipe senior a été changé en {{training}}",
     notificationReauthRequired:
       "Actualisation annulée : réauthentification requise",
     permissionsLabel: "Permissions :",

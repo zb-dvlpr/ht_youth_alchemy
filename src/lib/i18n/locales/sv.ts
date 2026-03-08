@@ -97,6 +97,8 @@ export const messagesSv: Messages = {
       "Lansering av verktyget för seniorlagsoptimering.",
     changelog_3_1_0:
       "Senioroptimering har nu ett eget hjälp-overlay med guidade markeringar för Senaste uppdateringar och AI-uppställning.",
+    changelog_3_2_0:
+      "Seniorlagets träningsregim kan nu ändras direkt i appen med behörighetskontroll och verifiering.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -706,6 +708,8 @@ export const messagesSv: Messages = {
     notificationDebugOauthMode: "OAuth-debugläge:",
     notificationMatchesRefreshed: "Matcher uppdaterade",
     notificationMatchesRefreshFailed: "Misslyckades att uppdatera matcher",
+    notificationSeniorTrainingRegimenChanged:
+      "Seniorlagets träningsregim ändrades till {{training}}",
     notificationReauthRequired:
       "Uppdatering avbröts: ny autentisering krävs",
     permissionsLabel: "Behörigheter:",

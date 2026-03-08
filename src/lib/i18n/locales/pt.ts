@@ -99,6 +99,8 @@ export const messagesPt: Messages = {
       "Lançamento da ferramenta de otimização do time sênior.",
     changelog_3_1_0:
       "A otimização sênior agora tem overlay de ajuda dedicado com callouts guiados para Últimas atualizações e escalação por IA.",
+    changelog_3_2_0:
+      "O regime de treino do elenco sênior agora pode ser alterado direto no app com validação de permissões e verificação.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -715,6 +717,8 @@ export const messagesPt: Messages = {
     notificationDebugOauthMode: "Modo de debug OAuth:",
     notificationMatchesRefreshed: "Partidas atualizadas",
     notificationMatchesRefreshFailed: "Falha ao atualizar partidas",
+    notificationSeniorTrainingRegimenChanged:
+      "O regime de treino da equipa principal foi alterado para {{training}}",
     notificationReauthRequired:
       "Atualização cancelada: reautenticação necessária",
     permissionsLabel: "Permissões:",

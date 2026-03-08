@@ -85,6 +85,8 @@ export const messagesEn: Messages = {
       "Senior team optimization tool release.",
     changelog_3_1_0:
       "Senior optimization now has a dedicated help overlay with guided callouts for Latest updates and AI lineup actions.",
+    changelog_3_2_0:
+      "Senior lineup training regimen can now be changed directly in-app with permission checks and verification.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -680,6 +682,8 @@ export const messagesEn: Messages = {
     notificationDebugOauthMode: "OAuth debug mode:",
     notificationMatchesRefreshed: "Matches refreshed",
     notificationMatchesRefreshFailed: "Matches refresh failed",
+    notificationSeniorTrainingRegimenChanged:
+      "Senior squad training regimen changed to {{training}}",
     notificationReauthRequired: "Refresh aborted: re-auth required",
     permissionsLabel: "Permissions:",
     permissionsNone: "None",

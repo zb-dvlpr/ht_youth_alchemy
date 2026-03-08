@@ -83,6 +83,7 @@ export type Messages = {
   changelog_2_24_0: string;
   changelog_3_0_0: string;
   changelog_3_1_0: string;
+  changelog_3_2_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;
@@ -612,6 +613,7 @@ export type Messages = {
   notificationDebugOauthMode: string;
   notificationMatchesRefreshed: string;
   notificationMatchesRefreshFailed: string;
+  notificationSeniorTrainingRegimenChanged: string;
   notificationReauthRequired: string;
   permissionsLabel: string;
   permissionsNone: string;

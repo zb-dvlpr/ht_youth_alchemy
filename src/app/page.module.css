@@ -5103,6 +5103,16 @@ html[data-theme="dark"] .spinner {
   padding: 5px 8px;
   cursor: pointer;
   white-space: nowrap;
+  min-width: 46px;
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lineupTrainingTypeSetButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .optimizeButton {

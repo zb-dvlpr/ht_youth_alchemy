@@ -68,6 +68,9 @@ type LineupFieldProps = {
   tacticPlacement?: "headerRight" | "bottomRight" | "fieldTopLeft";
   trainingType?: number | null;
   onTrainingTypeChange?: (value: number) => void;
+  onTrainingTypeSet?: (value: number) => void | Promise<void>;
+  trainingTypeSetPending?: boolean;
+  trainingTypeSetPendingValue?: number | null;
   trainingTypeOptions?: number[];
   trainingTypeLabelForValue?: (value: number) => string;
   trainingTypeAriaLabel?: string;
@@ -389,6 +392,9 @@ export default function LineupField({
   tacticPlacement = "headerRight",
   trainingType = null,
   onTrainingTypeChange,
+  onTrainingTypeSet,
+  trainingTypeSetPending = false,
+  trainingTypeSetPendingValue = null,
   trainingTypeOptions = [],
   trainingTypeLabelForValue,
   trainingTypeAriaLabel,
@@ -527,11 +533,18 @@ export default function LineupField({
                       <button
                         type="button"
                         className={styles.lineupTrainingTypeSetButton}
+                        disabled={trainingTypeSetPending}
                         onClick={(event) => {
                           event.stopPropagation();
+                          if (trainingTypeSetPending) return;
+                          void onTrainingTypeSet?.(value);
                         }}
                       >
-                        {messages.trainingSetButtonLabel}
+                        {trainingTypeSetPending && trainingTypeSetPendingValue === value ? (
+                          <span className={styles.spinner} aria-hidden="true" />
+                        ) : (
+                          messages.trainingSetButtonLabel
+                        )}
                       </button>
                     </Tooltip>
                   ) : null}

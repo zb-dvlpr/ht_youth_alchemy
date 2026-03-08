@@ -160,6 +160,8 @@ export const messagesNl: Messages = {
   analyzeOpponentSummaryWith: "met",
   changelog_3_1_0:
     "Senioroptimalisatie heeft nu een eigen help-overlay met gerichte callouts voor Laatste updates en opstelling met AI.",
+  changelog_3_2_0:
+    "Het trainingsregime van senioren kan nu direct in de app worden gewijzigd met machtigingscontrole en verificatie.",
   seniorHelpTitle: "Handleiding senioroptimalisatie",
   seniorHelpIntro:
     "Deze weergave helpt je relevante wijzigingen in de seniorselectie te volgen en sneller wedstrijdopstellingen te zetten.",
@@ -277,6 +279,8 @@ export const messagesNl: Messages = {
   notificationPlayersRefreshed: "Spelers vernieuwd",
   notificationMatchesRefreshed: "Wedstrijden vernieuwd",
   notificationMatchesRefreshFailed: "Vernieuwen van wedstrijden mislukt",
+  notificationSeniorTrainingRegimenChanged:
+    "Trainingsregime van het seniorenteam gewijzigd naar {{training}}",
   notificationLineupLoaded: "Opstelling geladen:",
   notificationLineupSubmitted: "Opstelling verzonden:",
   notificationSortBy: "Sortering:",

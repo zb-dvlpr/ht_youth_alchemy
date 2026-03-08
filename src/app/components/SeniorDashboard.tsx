@@ -1141,6 +1141,10 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [tacticType, setTacticType] = useState(0);
   const [trainingType, setTrainingType] = useState<number | null>(null);
+  const [trainingTypeSetPending, setTrainingTypeSetPending] = useState(false);
+  const [trainingTypeSetPendingValue, setTrainingTypeSetPendingValue] = useState<number | null>(
+    null
+  );
   const [includeTournamentMatches, setIncludeTournamentMatches] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(null);
@@ -1761,12 +1765,16 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return payload as RatingsMatrixResponse;
   };
 
-  const fetchTrainingType = async (): Promise<number | null> => {
+  const fetchTrainingSnapshot = async (): Promise<{
+    trainingType: number | null;
+    teamId: number | null;
+  }> => {
     const { response, payload } = await fetchChppJson<{
       data?: {
         HattrickData?: {
           Team?: {
             TrainingType?: unknown;
+            TeamID?: unknown;
           };
         };
       };
@@ -1776,7 +1784,73 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     if (!response.ok || payload?.error) {
       throw new Error(payload?.details ?? payload?.error ?? "Failed to fetch training");
     }
-    return parseNumber(payload?.data?.HattrickData?.Team?.TrainingType);
+    return {
+      trainingType: parseNumber(payload?.data?.HattrickData?.Team?.TrainingType),
+      teamId: parseNumber(payload?.data?.HattrickData?.Team?.TeamID),
+    };
+  };
+
+  const fetchTrainingType = async (): Promise<number | null> => {
+    const snapshot = await fetchTrainingSnapshot();
+    return snapshot.trainingType;
+  };
+
+  const setSeniorTrainingRegimen = async (teamId: number, nextTrainingType: number) => {
+    const { response, payload } = await fetchChppJson<{
+      error?: string;
+      details?: string;
+    }>("/api/chpp/training", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        teamId,
+        trainingType: nextTrainingType,
+      }),
+    });
+    if (!response.ok || payload?.error) {
+      throw new Error(payload?.details ?? payload?.error ?? "Failed to set training");
+    }
+  };
+
+  const handleSetTrainingType = async (nextTrainingType: number) => {
+    if (trainingTypeSetPending) return;
+    if (nextTrainingType === trainingType) return;
+    const hasRequiredScopes = await ensureRequiredScopes();
+    if (!hasRequiredScopes) return;
+
+    setTrainingTypeSetPending(true);
+    setTrainingTypeSetPendingValue(nextTrainingType);
+    try {
+      let teamId = parseNumber(matchesState?.data?.HattrickData?.Team?.TeamID);
+      if (teamId === null) {
+        const snapshot = await fetchTrainingSnapshot();
+        teamId = snapshot.teamId;
+      }
+      if (teamId === null) {
+        throw new Error("Missing senior team id for training update");
+      }
+
+      await setSeniorTrainingRegimen(teamId, nextTrainingType);
+      const verifiedSnapshot = await fetchTrainingSnapshot();
+      const verifiedTrainingType = sanitizeTrainingType(verifiedSnapshot.trainingType);
+      if (verifiedTrainingType !== nextTrainingType) {
+        throw new Error("Training update could not be verified");
+      }
+      setTrainingType(verifiedTrainingType);
+      addNotification(
+        messages.notificationSeniorTrainingRegimenChanged.replace(
+          "{{training}}",
+          obtainedTrainingRegimenLabel(nextTrainingType)
+        )
+      );
+    } catch (error) {
+      const fallback = messages.notificationMatchesRefreshFailed;
+      const detail = error instanceof Error ? error.message : String(error);
+      addNotification(detail || fallback);
+    } finally {
+      setTrainingTypeSetPending(false);
+      setTrainingTypeSetPendingValue(null);
+    }
   };
 
   const fetchPlayerDetailsById = async (playerId: number) => {
@@ -2251,6 +2325,19 @@ const refreshDetailsForPlayers = async (
   };
 
   const onRefreshMatchesOnly = async () => {
+    const hasRequiredScopes = await ensureRequiredScopes();
+    if (!hasRequiredScopes) return false;
+    try {
+      const nextMatches = await fetchMatches();
+      setMatchesState(nextMatches);
+      return true;
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return false;
+      return false;
+    }
+  };
+
+  const ensureRequiredScopes = async () => {
     try {
       const response = await fetch("/api/chpp/oauth/check-token", {
         cache: "no-store",
@@ -2286,14 +2373,7 @@ const refreshDetailsForPlayers = async (
       setScopeReconnectModalOpen(true);
       return false;
     }
-    try {
-      const nextMatches = await fetchMatches();
-      setMatchesState(nextMatches);
-      return true;
-    } catch (error) {
-      if (error instanceof ChppAuthRequiredError) return false;
-      return false;
-    }
+    return true;
   };
 
   useEffect(() => {
@@ -5144,6 +5224,9 @@ const refreshDetailsForPlayers = async (
             tacticPlacement="fieldTopLeft"
             trainingType={trainingType}
             onTrainingTypeChange={setTrainingType}
+            onTrainingTypeSet={handleSetTrainingType}
+            trainingTypeSetPending={trainingTypeSetPending}
+            trainingTypeSetPendingValue={trainingTypeSetPendingValue}
             trainingTypeOptions={[...NON_DEPRECATED_TRAINING_TYPES]}
             trainingTypeLabelForValue={obtainedTrainingRegimenLabel}
             trainingTypeAriaLabel={messages.trainingRegimenLabel}

@@ -97,6 +97,8 @@ export const messagesDe: Messages = {
       "Release des Senior-Team-Optimierungstools.",
     changelog_3_1_0:
       "Senior-Optimierung mit eigenem Hilfe-Overlay und geführten Hinweisen für Letzte Updates und KI-Aufstellung.",
+    changelog_3_2_0:
+      "Das Trainingsregime der Senior-Aufstellung kann jetzt direkt in der App mit Berechtigungsprüfung und Verifizierung geändert werden.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -703,6 +705,8 @@ export const messagesDe: Messages = {
     notificationDebugOauthMode: "OAuth-Debugmodus:",
     notificationMatchesRefreshed: "Spiele aktualisiert",
     notificationMatchesRefreshFailed: "Aktualisierung der Spiele fehlgeschlagen",
+    notificationSeniorTrainingRegimenChanged:
+      "Trainingsregime der Seniorenmannschaft auf {{training}} geändert",
     notificationReauthRequired:
       "Aktualisierung abgebrochen: erneute Anmeldung erforderlich",
     permissionsLabel: "Rechte:",

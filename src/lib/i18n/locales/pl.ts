@@ -160,6 +160,8 @@ export const messagesPl: Messages = {
   analyzeOpponentSummaryWith: "z",
   changelog_3_1_0:
     "Optymalizacja seniorów ma teraz dedykowaną nakładkę pomocy z podpowiedziami dla Ostatnich aktualizacji i ustawiania składu przez AI.",
+  changelog_3_2_0:
+    "Reżim treningowy seniorów można teraz zmieniać bezpośrednio w aplikacji z kontrolą uprawnień i weryfikacją.",
   seniorHelpTitle: "Przewodnik optymalizacji seniorów",
   seniorHelpIntro:
     "Ten widok pomaga śledzić istotne zmiany w kadrze seniorów i szybciej ustawiać składy meczowe.",
@@ -277,6 +279,8 @@ export const messagesPl: Messages = {
   notificationPlayersRefreshed: "Zawodnicy odświeżeni",
   notificationMatchesRefreshed: "Mecze odświeżone",
   notificationMatchesRefreshFailed: "Nie udało się odświeżyć meczów",
+  notificationSeniorTrainingRegimenChanged:
+    "Reżim treningowy drużyny seniorów zmieniono na {{training}}",
   notificationLineupLoaded: "Wczytano skład:",
   notificationLineupSubmitted: "Wysłano skład:",
   notificationSortBy: "Sortowanie:",

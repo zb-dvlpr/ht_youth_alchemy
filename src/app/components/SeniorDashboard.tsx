@@ -1708,6 +1708,71 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     [selectedUpdatesId, updatesHistory]
   );
 
+  const seniorTrainedSlots = useMemo(() => {
+    const primaryFull = new Set<string>();
+    const primaryHalf = new Set<string>();
+
+    switch (trainingType) {
+      case 2: // Set pieces
+      case 6: // Scoring + Set pieces
+        FIELD_SLOT_ORDER.forEach((slot) => primaryFull.add(slot));
+        break;
+      case 3: // Defending
+        DEFENSE_SLOTS.forEach((slot) => primaryFull.add(slot));
+        break;
+      case 4: // Scoring
+        ATTACK_SLOTS.forEach((slot) => primaryFull.add(slot));
+        break;
+      case 5: // Winger
+        primaryFull.add("W_L");
+        primaryFull.add("W_R");
+        primaryHalf.add("WB_L");
+        primaryHalf.add("WB_R");
+        break;
+      case 7: // Passing
+        MIDFIELD_SLOTS.forEach((slot) => primaryFull.add(slot));
+        ATTACK_SLOTS.forEach((slot) => primaryFull.add(slot));
+        break;
+      case 8: // Playmaking
+        primaryFull.add("IM_L");
+        primaryFull.add("IM_C");
+        primaryFull.add("IM_R");
+        primaryHalf.add("W_L");
+        primaryHalf.add("W_R");
+        break;
+      case 9: // Keeper
+        primaryFull.add("KP");
+        break;
+      case 10: // Passing (Defenders + Midfielders)
+        DEFENSE_SLOTS.forEach((slot) => primaryFull.add(slot));
+        MIDFIELD_SLOTS.forEach((slot) => primaryFull.add(slot));
+        break;
+      case 11: // Defending (Defenders + Midfielders)
+        primaryFull.add("KP");
+        DEFENSE_SLOTS.forEach((slot) => primaryFull.add(slot));
+        MIDFIELD_SLOTS.forEach((slot) => primaryFull.add(slot));
+        break;
+      case 12: // Winger (Wingers + Attackers)
+        ATTACK_SLOTS.forEach((slot) => primaryFull.add(slot));
+        primaryFull.add("W_L");
+        primaryFull.add("W_R");
+        break;
+      default:
+        break;
+    }
+
+    const all = new Set<string>([...primaryFull, ...primaryHalf]);
+    return {
+      primary: new Set(all),
+      secondary: new Set<string>(),
+      primaryFull,
+      primaryHalf,
+      secondaryFull: new Set<string>(),
+      secondaryHalf: new Set<string>(),
+      all,
+    };
+  }, [trainingType]);
+
   const notifyRefreshState = (
     nextRefreshing: boolean,
     nextStatus: string | null,
@@ -5230,6 +5295,7 @@ const refreshDetailsForPlayers = async (
             trainingTypeOptions={[...NON_DEPRECATED_TRAINING_TYPES]}
             trainingTypeLabelForValue={obtainedTrainingRegimenLabel}
             trainingTypeAriaLabel={messages.trainingRegimenLabel}
+            trainedSlots={seniorTrainedSlots}
             onHoverPlayer={(playerId) => {
               void ensureDetails(playerId);
             }}

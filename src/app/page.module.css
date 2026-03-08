@@ -3142,6 +3142,19 @@ html[data-theme="dark"] .trainingSelectOptionActive {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .fieldTopLeftOverlay .trainingLabel {
+  color: rgba(210, 221, 201, 0.85);
+}
+
+html[data-theme="dark"] .fieldTopLeftOverlay .trainingSelectTrigger {
+  background: rgba(30, 39, 29, 0.9);
+  border-color: rgba(210, 221, 201, 0.2);
+}
+
+html[data-theme="dark"] .fieldTopLeftOverlay .trainingSelectTrigger:hover {
+  background: rgba(36, 47, 34, 0.95);
+}
+
 html[data-theme="dark"] .langSelect {
   background: #1b1917;
   border-color: rgba(255, 255, 255, 0.12);
@@ -5091,6 +5104,56 @@ html[data-theme="dark"] .spinner {
   top: 10px;
   left: 12px;
   z-index: 3;
+}
+
+.fieldTopLeftOverlay {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  z-index: 80;
+}
+
+.lineupTrainingControlStack {
+  display: grid;
+  gap: 4px;
+}
+
+.fieldTopLeftOverlay .trainingRow {
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.fieldTopLeftOverlay .trainingLabel {
+  color: rgba(208, 223, 193, 0.75);
+  font-size: 10px;
+  letter-spacing: 0.35px;
+  min-width: 24px;
+}
+
+.fieldTopLeftOverlay .trainingSelectTrigger {
+  min-width: 150px;
+  max-width: 160px;
+  padding: 4px 24px 4px 8px;
+  background: rgba(236, 243, 227, 0.92);
+  border-color: rgba(176, 197, 164, 0.9);
+  font-size: 11px;
+  line-height: 1.15;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.fieldTopLeftOverlay .trainingSelectTrigger:hover {
+  background: rgba(228, 237, 217, 0.95);
+  border-color: rgba(176, 197, 164, 1);
+}
+
+.fieldTopLeftOverlay .trainingSelectMenu {
+  min-width: 170px;
+  max-width: 210px;
+}
+
+.fieldTopLeftOverlay .feedbackMenu {
+  z-index: 3200;
 }
 
 .tacticOverlay:hover {

@@ -442,7 +442,8 @@ export const messagesSv: Messages = {
       "Du kan skicka uppställningar till Hattrick, men träningen måste ställas in manuellt (API:t tillåter inte det).",
     helpBulletDesktop: "Optimerad för desktop.",
     helpCalloutStar: "Välj din stjärnspelare.",
-    helpCalloutTraining: "Välj ditt träningsupplägg.",
+    helpCalloutTraining:
+      "Ställ in primär och sekundär träning innan du optimerar.",
     helpCalloutOptimize:
       "Använd AI för att optimera uppställningen för stjärnspelare och träningsupplägg.",
     helpCalloutAuto:

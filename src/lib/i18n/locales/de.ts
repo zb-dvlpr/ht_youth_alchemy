@@ -440,7 +440,8 @@ export const messagesDe: Messages = {
       "Aufstellungen kannst du direkt an Hattrick senden, Training musst du manuell setzen (die API erlaubt das nicht).",
     helpBulletDesktop: "Für Desktop optimiert.",
     helpCalloutStar: "Wähle deinen Starspieler.",
-    helpCalloutTraining: "Wähle dein Trainingsschema.",
+    helpCalloutTraining:
+      "Lege Primär- und Sekundärtraining fest, bevor du optimierst.",
     helpCalloutOptimize:
       "KI nutzt die Aufstellung für Starspieler und Trainingsplan optimieren.",
     helpCalloutAuto:

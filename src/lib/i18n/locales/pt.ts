@@ -448,7 +448,8 @@ export const messagesPt: Messages = {
       "Você pode enviar escalações ao Hattrick, mas o treino deve ser definido manualmente (a API não permite).",
     helpBulletDesktop: "Otimizado para desktop.",
     helpCalloutStar: "Escolha seu jogador estrela.",
-    helpCalloutTraining: "Escolha seu regime de treinamento.",
+    helpCalloutTraining:
+      "Defina treino primário e secundário antes de otimizar.",
     helpCalloutOptimize:
       "Use a IA para otimizar a escalação para o jogador estrela e o regime de treino.",
     helpCalloutAuto:

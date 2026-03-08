@@ -2486,7 +2486,7 @@ export default function Dashboard({
         },
         {
           id: "training",
-          selector: "[data-help-anchor='training-panel']",
+          selector: "[data-help-anchor='training-dropdowns']",
           text: messages.helpCalloutTraining,
           placement: "below-center",
           offsetY: 6,
@@ -4732,6 +4732,135 @@ export default function Dashboard({
     return String(value);
   };
 
+  const youthTrainingControls = (
+    <div className={styles.lineupTrainingControlStack} data-help-anchor="training-dropdowns">
+      <div className={styles.trainingRow}>
+        <span className={styles.trainingLabel}>
+          {(messages.primaryTrainingLabel || "Pri").slice(0, 3).toUpperCase()}
+        </span>
+        <div className={styles.feedbackWrap}>
+          <button
+            type="button"
+            className={styles.trainingSelectTrigger}
+            onClick={() => {
+              setPrimaryTrainingMenuOpen((prev) => !prev);
+              setSecondaryTrainingMenuOpen(false);
+            }}
+            ref={primaryTrainingButtonRef}
+            aria-haspopup="menu"
+            aria-expanded={primaryTrainingMenuOpen}
+          >
+            {trainingLabel(primaryTraining)}
+          </button>
+          {primaryTrainingMenuOpen ? (
+            <div
+              className={`${styles.feedbackMenu} ${styles.trainingSelectMenu}`}
+              ref={primaryTrainingMenuRef}
+              role="menu"
+            >
+              {TRAINING_SKILL_SECTIONS.map((section) => (
+                <div key={`primary-section-${section.title}`}>
+                  <div className={styles.trainingSelectSectionHeader}>
+                    {section.title === "focused"
+                      ? messages.trainingSectionFocused
+                      : messages.trainingSectionExtended}
+                  </div>
+                  <div className={styles.trainingSelectSectionOptions}>
+                    {section.options.map((value) => (
+                      <button
+                        key={`primary-${value}`}
+                        type="button"
+                        className={`${styles.feedbackLink} ${styles.trainingSelectOption} ${
+                          value === primaryTraining
+                            ? styles.trainingSelectOptionActive
+                            : ""
+                        }`}
+                        onClick={() => {
+                          setPrimaryTraining(value);
+                          setPrimaryTrainingMenuOpen(false);
+                          setAutoSelectionApplied(false);
+                          addNotification(
+                            `${messages.notificationPrimaryTrainingSet} ${trainingLabel(
+                              value
+                            )}`
+                          );
+                        }}
+                      >
+                        {trainingLabel(value)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+      <div className={styles.trainingRow}>
+        <span className={styles.trainingLabel}>
+          {(messages.secondaryTrainingLabel || "Sec").slice(0, 3).toUpperCase()}
+        </span>
+        <div className={styles.feedbackWrap}>
+          <button
+            type="button"
+            className={styles.trainingSelectTrigger}
+            onClick={() => {
+              setSecondaryTrainingMenuOpen((prev) => !prev);
+              setPrimaryTrainingMenuOpen(false);
+            }}
+            ref={secondaryTrainingButtonRef}
+            aria-haspopup="menu"
+            aria-expanded={secondaryTrainingMenuOpen}
+          >
+            {trainingLabel(secondaryTraining)}
+          </button>
+          {secondaryTrainingMenuOpen ? (
+            <div
+              className={`${styles.feedbackMenu} ${styles.trainingSelectMenu}`}
+              ref={secondaryTrainingMenuRef}
+              role="menu"
+            >
+              {TRAINING_SKILL_SECTIONS.map((section) => (
+                <div key={`secondary-section-${section.title}`}>
+                  <div className={styles.trainingSelectSectionHeader}>
+                    {section.title === "focused"
+                      ? messages.trainingSectionFocused
+                      : messages.trainingSectionExtended}
+                  </div>
+                  <div className={styles.trainingSelectSectionOptions}>
+                    {section.options.map((value) => (
+                      <button
+                        key={`secondary-${value}`}
+                        type="button"
+                        className={`${styles.feedbackLink} ${styles.trainingSelectOption} ${
+                          value === secondaryTraining
+                            ? styles.trainingSelectOptionActive
+                            : ""
+                        }`}
+                        onClick={() => {
+                          setSecondaryTraining(value);
+                          setSecondaryTrainingMenuOpen(false);
+                          setAutoSelectionApplied(false);
+                          addNotification(
+                            `${messages.notificationSecondaryTrainingSet} ${trainingLabel(
+                              value
+                            )}`
+                          );
+                        }}
+                      >
+                        {trainingLabel(value)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className={styles.dashboardStack}>
       {loadError && !authError ? (
@@ -5306,135 +5435,6 @@ export default function Dashboard({
         }`}
         aria-hidden={showHelp ? "true" : undefined}
       >
-        <div className={styles.card} data-help-anchor="training-panel">
-          <h2 className={styles.sectionTitle}>{messages.trainingTitle}</h2>
-          <div className={styles.trainingControls}>
-            <label className={styles.trainingRow}>
-              <span className={styles.trainingLabel}>
-                {messages.primaryTrainingLabel}
-              </span>
-              <div className={styles.feedbackWrap}>
-                <button
-                  type="button"
-                  className={styles.trainingSelectTrigger}
-                  onClick={() => {
-                    setPrimaryTrainingMenuOpen((prev) => !prev);
-                    setSecondaryTrainingMenuOpen(false);
-                  }}
-                  ref={primaryTrainingButtonRef}
-                  aria-haspopup="menu"
-                  aria-expanded={primaryTrainingMenuOpen}
-                >
-                  {trainingLabel(primaryTraining)}
-                </button>
-                {primaryTrainingMenuOpen ? (
-                  <div
-                    className={`${styles.feedbackMenu} ${styles.trainingSelectMenu}`}
-                    ref={primaryTrainingMenuRef}
-                    role="menu"
-                  >
-                    {TRAINING_SKILL_SECTIONS.map((section) => (
-                      <div key={`primary-section-${section.title}`}>
-                        <div className={styles.trainingSelectSectionHeader}>
-                          {section.title === "focused"
-                            ? messages.trainingSectionFocused
-                            : messages.trainingSectionExtended}
-                        </div>
-                        <div className={styles.trainingSelectSectionOptions}>
-                          {section.options.map((value) => (
-                            <button
-                              key={`primary-${value}`}
-                              type="button"
-                              className={`${styles.feedbackLink} ${styles.trainingSelectOption} ${
-                                value === primaryTraining
-                                  ? styles.trainingSelectOptionActive
-                                  : ""
-                              }`}
-                              onClick={() => {
-                                setPrimaryTraining(value);
-                                setPrimaryTrainingMenuOpen(false);
-                                setAutoSelectionApplied(false);
-                                addNotification(
-                                  `${messages.notificationPrimaryTrainingSet} ${trainingLabel(
-                                    value
-                                  )}`
-                                );
-                              }}
-                            >
-                              {trainingLabel(value)}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            </label>
-            <label className={styles.trainingRow}>
-              <span className={styles.trainingLabel}>
-                {messages.secondaryTrainingLabel}
-              </span>
-              <div className={styles.feedbackWrap}>
-                <button
-                  type="button"
-                  className={styles.trainingSelectTrigger}
-                  onClick={() => {
-                    setSecondaryTrainingMenuOpen((prev) => !prev);
-                    setPrimaryTrainingMenuOpen(false);
-                  }}
-                  ref={secondaryTrainingButtonRef}
-                  aria-haspopup="menu"
-                  aria-expanded={secondaryTrainingMenuOpen}
-                >
-                  {trainingLabel(secondaryTraining)}
-                </button>
-                {secondaryTrainingMenuOpen ? (
-                  <div
-                    className={`${styles.feedbackMenu} ${styles.trainingSelectMenu}`}
-                    ref={secondaryTrainingMenuRef}
-                    role="menu"
-                  >
-                    {TRAINING_SKILL_SECTIONS.map((section) => (
-                      <div key={`secondary-section-${section.title}`}>
-                        <div className={styles.trainingSelectSectionHeader}>
-                          {section.title === "focused"
-                            ? messages.trainingSectionFocused
-                            : messages.trainingSectionExtended}
-                        </div>
-                        <div className={styles.trainingSelectSectionOptions}>
-                          {section.options.map((value) => (
-                            <button
-                              key={`secondary-${value}`}
-                              type="button"
-                              className={`${styles.feedbackLink} ${styles.trainingSelectOption} ${
-                                value === secondaryTraining
-                                  ? styles.trainingSelectOptionActive
-                                  : ""
-                              }`}
-                              onClick={() => {
-                                setSecondaryTraining(value);
-                                setSecondaryTrainingMenuOpen(false);
-                                setAutoSelectionApplied(false);
-                                addNotification(
-                                  `${messages.notificationSecondaryTrainingSet} ${trainingLabel(
-                                    value
-                                  )}`
-                                );
-                              }}
-                            >
-                              {trainingLabel(value)}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            </label>
-          </div>
-        </div>
         <LineupField
           assignments={assignments}
           behaviors={behaviors}
@@ -5449,6 +5449,7 @@ export default function Dashboard({
           onOptimizeSelect={handleOptimizeSelect}
           tacticType={tacticType}
           onTacticChange={setTacticType}
+          topLeftOverlayContent={youthTrainingControls}
           optimizeDisabled={!manualReady}
           optimizeDisabledReason={optimizeDisabledReason}
           forceOptimizeOpen={showHelp}

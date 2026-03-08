@@ -448,7 +448,8 @@ export const messagesEs: Messages = {
       "Puedes enviar alineaciones a Hattrick, pero el entrenamiento debe configurarse manualmente (la API no lo permite).",
     helpBulletDesktop: "Optimizado para escritorio.",
     helpCalloutStar: "Elige tu jugador estrella.",
-    helpCalloutTraining: "Elige tu régimen de entrenamiento.",
+    helpCalloutTraining:
+      "Define el entrenamiento principal y secundario antes de optimizar.",
     helpCalloutOptimize:
       "Usa la IA para optimizar la alineación según el jugador estrella y el plan de entrenamiento.",
     helpCalloutAuto:

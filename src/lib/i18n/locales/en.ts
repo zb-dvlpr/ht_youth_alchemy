@@ -420,7 +420,8 @@ export const messagesEn: Messages = {
       "Submit lineups directly to Hattrick, but training must be set manually (the API doesn’t allow it).",
     helpBulletDesktop: "Desktop-optimized.",
     helpCalloutStar: "Select your star player.",
-    helpCalloutTraining: "Choose your training regimen.",
+    helpCalloutTraining:
+      "Set primary and secondary training before running optimization.",
     helpCalloutOptimize:
       "Use AI to optimize lineup for the star player and training regimen.",
     helpCalloutAuto: "Use AI to select star player and training regimen.",

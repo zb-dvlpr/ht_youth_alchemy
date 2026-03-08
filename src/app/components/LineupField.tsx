@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { setDragGhost } from "@/lib/drag";
@@ -66,6 +66,7 @@ type LineupFieldProps = {
   tacticType?: number;
   onTacticChange?: (value: number) => void;
   tacticPlacement?: "headerRight" | "bottomRight" | "fieldTopLeft";
+  topLeftOverlayContent?: ReactNode;
   trainingType?: number | null;
   onTrainingTypeChange?: (value: number) => void;
   onTrainingTypeSet?: (value: number) => void | Promise<void>;
@@ -391,6 +392,7 @@ export default function LineupField({
   tacticType = 7,
   onTacticChange,
   tacticPlacement = "headerRight",
+  topLeftOverlayContent,
   trainingType = null,
   onTrainingTypeChange,
   onTrainingTypeSet,
@@ -865,6 +867,9 @@ export default function LineupField({
         </div>
       </div>
       <div className={styles.fieldPitch}>
+        {topLeftOverlayContent ? (
+          <div className={styles.fieldTopLeftOverlay}>{topLeftOverlayContent}</div>
+        ) : null}
         {showFieldTopLeftTactic
           ? renderTacticControl(styles.tacticOverlayFieldTopLeft)
           : null}

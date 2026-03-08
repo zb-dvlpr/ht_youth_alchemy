@@ -448,7 +448,8 @@ export const messagesFr: Messages = {
       "Vous pouvez soumettre la compo à Hattrick, mais l’entraînement doit être réglé manuellement (l’API ne le permet pas).",
     helpBulletDesktop: "Optimisé pour ordinateur.",
     helpCalloutStar: "Choisissez votre joueur vedette.",
-    helpCalloutTraining: "Choisissez votre régime d’entraînement.",
+    helpCalloutTraining:
+      "Définissez l’entraînement principal et secondaire avant l’optimisation.",
     helpCalloutOptimize:
       "Utilisez l’IA pour optimiser la compo selon le joueur vedette et l’entraînement.",
     helpCalloutAuto:

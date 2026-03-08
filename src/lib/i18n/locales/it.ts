@@ -449,7 +449,8 @@ export const messagesIt: Messages = {
       "Puoi inviare le formazioni a Hattrick, ma l’allenamento va impostato manualmente (l’API non lo consente).",
     helpBulletDesktop: "Ottimizzato per desktop.",
     helpCalloutStar: "Scegli il tuo giocatore stella.",
-    helpCalloutTraining: "Scegli il tuo regime di allenamento.",
+    helpCalloutTraining:
+      "Imposta allenamento primario e secondario prima di ottimizzare.",
     helpCalloutOptimize:
       "Usa l’IA per ottimizzare la formazione per il giocatore stella e il programma di allenamento.",
     helpCalloutAuto:

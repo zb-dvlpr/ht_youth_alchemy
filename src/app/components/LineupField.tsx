@@ -65,6 +65,7 @@ type LineupFieldProps = {
   onOptimizeSelect?: (mode: OptimizeMode) => void;
   tacticType?: number;
   onTacticChange?: (value: number) => void;
+  tacticPlacement?: "headerRight" | "bottomRight" | "fieldTopLeft";
   optimizeDisabled?: boolean;
   optimizeDisabledReason?: string;
   forceOptimizeOpen?: boolean;
@@ -380,6 +381,7 @@ export default function LineupField({
   onOptimizeSelect,
   tacticType = 7,
   onTacticChange,
+  tacticPlacement = "headerRight",
   optimizeDisabled = false,
   optimizeDisabledReason,
   forceOptimizeOpen = false,
@@ -438,6 +440,29 @@ export default function LineupField({
   const revealSecondaryMaxDisabledReason =
     optimizeModeDisabledReasons?.revealSecondaryMax;
   const resolvedMaxSkillLevel = Math.max(1, maxSkillLevel);
+  const showBottomRightTactic = Boolean(onTacticChange && tacticPlacement === "bottomRight");
+  const showFieldTopLeftTactic = Boolean(
+    onTacticChange && tacticPlacement === "fieldTopLeft"
+  );
+
+  const renderTacticControl = (className?: string) => (
+    <label className={`${styles.tacticOverlay}${className ? ` ${className}` : ""}`}>
+      <span className={styles.tacticLabel}>{messages.tacticLabel}</span>
+      <select
+        className={styles.tacticSelect}
+        value={tacticType}
+        onChange={(event) => onTacticChange?.(Number(event.target.value))}
+      >
+        <option value={0}>{messages.tacticNormal}</option>
+        <option value={1}>{messages.tacticPressing}</option>
+        <option value={2}>{messages.tacticCounterAttacks}</option>
+        <option value={3}>{messages.tacticAttackMiddle}</option>
+        <option value={4}>{messages.tacticAttackWings}</option>
+        <option value={7}>{messages.tacticPlayCreatively}</option>
+        <option value={8}>{messages.tacticLongShots}</option>
+      </select>
+    </label>
+  );
 
   const renderSingleValueMetric = (
     key: string,
@@ -631,24 +656,9 @@ export default function LineupField({
       <div className={styles.fieldHeader}>
         <span>{messages.lineupTitle}</span>
         <div className={styles.fieldHeaderControls}>
-          {onTacticChange ? (
-            <label className={styles.tacticOverlay}>
-              <span className={styles.tacticLabel}>{messages.tacticLabel}</span>
-              <select
-                className={styles.tacticSelect}
-                value={tacticType}
-                onChange={(event) => onTacticChange(Number(event.target.value))}
-              >
-                <option value={0}>{messages.tacticNormal}</option>
-                <option value={1}>{messages.tacticPressing}</option>
-                <option value={2}>{messages.tacticCounterAttacks}</option>
-                <option value={3}>{messages.tacticAttackMiddle}</option>
-                <option value={4}>{messages.tacticAttackWings}</option>
-                <option value={7}>{messages.tacticPlayCreatively}</option>
-                <option value={8}>{messages.tacticLongShots}</option>
-              </select>
-            </label>
-          ) : null}
+          {onTacticChange && !showBottomRightTactic && !showFieldTopLeftTactic
+            ? renderTacticControl()
+            : null}
           {onOptimizeSelect ? (
             <div className={styles.feedbackWrap}>
               <Tooltip
@@ -751,6 +761,9 @@ export default function LineupField({
         </div>
       </div>
       <div className={styles.fieldPitch}>
+        {showFieldTopLeftTactic
+          ? renderTacticControl(styles.tacticOverlayFieldTopLeft)
+          : null}
         <div className={styles.penaltyBox} />
         <div className={styles.penaltyArc} />
         <div className={styles.fieldGoal}>
@@ -1005,7 +1018,7 @@ export default function LineupField({
         <div className={styles.centerCircle} />
         <div className={styles.centerSpot} />
         <div className={styles.fieldMidline} />
-        {onRandomize || onReset ? (
+        {onRandomize || onReset || showBottomRightTactic ? (
           <div className={styles.lineupActions}>
             {onReset ? (
               <button
@@ -1025,6 +1038,9 @@ export default function LineupField({
                 {messages.randomizeLineup}
               </button>
             ) : null}
+            {showBottomRightTactic
+              ? renderTacticControl(styles.tacticOverlayBottomRight)
+              : null}
           </div>
         ) : null}
       </div>

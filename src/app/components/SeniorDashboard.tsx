@@ -5071,6 +5071,7 @@ const refreshDetailsForPlayers = async (
             }}
             tacticType={tacticType}
             onTacticChange={setTacticType}
+            tacticPlacement="fieldTopLeft"
             onHoverPlayer={(playerId) => {
               void ensureDetails(playerId);
             }}

@@ -44,6 +44,7 @@ import {
   buildSkillRanking,
   type OptimizerPlayer,
   type OptimizerDebug,
+  type SkillKey,
   type TrainingSkillKey,
 } from "@/lib/optimizer";
 import {
@@ -66,12 +67,18 @@ import {
   type ChppDebugOauthErrorMode,
   ChppAuthRequiredError,
   fetchChppJson,
+  reconnectChppWithTokenReset,
   readChppDebugOauthErrorMode,
   writeChppDebugOauthErrorMode,
 } from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
 import { hattrickYouthMatchUrl } from "@/lib/hattrick/urls";
 import { setDragGhost } from "@/lib/drag";
+import {
+  getMissingChppPermissions,
+  parseExtendedPermissionsFromCheckToken,
+  REQUIRED_CHPP_EXTENDED_PERMISSIONS,
+} from "@/lib/chpp/permissions";
 
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
@@ -80,6 +87,27 @@ const YOUTH_LATEST_UPDATES_OPEN_EVENT = "ya:youth-latest-updates-open";
 const YOUTH_UPDATES_HISTORY_LIMIT = 20;
 const YOUTH_UPDATES_SCHEMA_VERSION = 3;
 const YOUTH_UPDATES_GLOBAL_MIGRATION_KEY = "ya_youth_updates_schema_v2_migrated";
+const BASE_TRAINING_SKILLS: SkillKey[] = [
+  "keeper",
+  "defending",
+  "playmaking",
+  "winger",
+  "passing",
+  "scoring",
+  "setpieces",
+];
+const TRAINING_BASE_SKILL_MAP: Record<TrainingSkillKey, SkillKey> = {
+  keeper: "keeper",
+  defending: "defending",
+  playmaking: "playmaking",
+  winger: "winger",
+  passing: "passing",
+  scoring: "scoring",
+  setpieces: "setpieces",
+  defending_defenders_midfielders: "defending",
+  winger_winger_attackers: "winger",
+  passing_defenders_midfielders: "passing",
+};
 
 const formatPlayerName = (player: YouthPlayer) =>
   [player.FirstName, player.NickName || null, player.LastName]
@@ -389,7 +417,37 @@ const TRAINING_SKILLS: TrainingSkillKey[] = [
   "passing",
   "scoring",
   "setpieces",
+  "defending_defenders_midfielders",
+  "winger_winger_attackers",
+  "passing_defenders_midfielders",
 ];
+const TRAINING_SKILL_SECTIONS: Array<{
+  title: "focused" | "extended";
+  options: TrainingSkillKey[];
+}> = [
+  {
+    title: "focused",
+    options: [
+      "keeper",
+      "defending",
+      "playmaking",
+      "winger",
+      "passing",
+      "scoring",
+      "setpieces",
+    ],
+  },
+  {
+    title: "extended",
+    options: [
+      "defending_defenders_midfielders",
+      "winger_winger_attackers",
+      "passing_defenders_midfielders",
+    ],
+  },
+];
+const DEFAULT_PRIMARY_TRAINING: TrainingSkillKey = "keeper";
+const DEFAULT_SECONDARY_TRAINING: TrainingSkillKey = "defending";
 const TRAINING_SKILL_VALUE_KEYS: Record<
   TrainingSkillKey,
   { current: string; max: string }
@@ -401,6 +459,15 @@ const TRAINING_SKILL_VALUE_KEYS: Record<
   passing: { current: "PassingSkill", max: "PassingSkillMax" },
   scoring: { current: "ScorerSkill", max: "ScorerSkillMax" },
   setpieces: { current: "SetPiecesSkill", max: "SetPiecesSkillMax" },
+  defending_defenders_midfielders: {
+    current: "DefenderSkill",
+    max: "DefenderSkillMax",
+  },
+  winger_winger_attackers: { current: "WingerSkill", max: "WingerSkillMax" },
+  passing_defenders_midfielders: {
+    current: "PassingSkill",
+    max: "PassingSkillMax",
+  },
 };
 
 const SCOUT_COMMENT_SKILL_KEY_BY_TYPE: Record<number, string> = {
@@ -416,6 +483,9 @@ const SCOUT_COMMENT_SKILL_KEY_BY_TYPE: Record<number, string> = {
 const isTrainingSkill = (
   value: string | null | undefined
 ): value is TrainingSkillKey => TRAINING_SKILLS.includes(value as TrainingSkillKey);
+
+const toBaseTrainingSkill = (value: TrainingSkillKey): SkillKey =>
+  TRAINING_BASE_SKILL_MAP[value];
 
 const buildEmptyMatrixNewMarkers = (): MatrixNewMarkers => ({
   detectedAt: null,
@@ -748,6 +818,7 @@ export default function Dashboard({
   const [authErrorDebugDetails, setAuthErrorDebugDetails] = useState<string | null>(
     null
   );
+  const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(initialLoadError);
   const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(
     initialLoadDetails
@@ -774,16 +845,22 @@ export default function Dashboard({
     useState<ChppDebugOauthErrorMode>("off");
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
-  const [primaryTraining, setPrimaryTraining] = useState<TrainingSkillKey | "">(
-    ""
+  const [primaryTraining, setPrimaryTraining] = useState<TrainingSkillKey>(
+    DEFAULT_PRIMARY_TRAINING
   );
-  const [secondaryTraining, setSecondaryTraining] = useState<
-    TrainingSkillKey | ""
-  >("");
+  const [secondaryTraining, setSecondaryTraining] = useState<TrainingSkillKey>(
+    DEFAULT_SECONDARY_TRAINING
+  );
   const [optimizerDebug, setOptimizerDebug] = useState<OptimizerDebug | null>(
     null
   );
   const [showOptimizerDebug, setShowOptimizerDebug] = useState(false);
+  const [primaryTrainingMenuOpen, setPrimaryTrainingMenuOpen] = useState(false);
+  const [secondaryTrainingMenuOpen, setSecondaryTrainingMenuOpen] = useState(false);
+  const primaryTrainingButtonRef = useRef<HTMLButtonElement | null>(null);
+  const primaryTrainingMenuRef = useRef<HTMLDivElement | null>(null);
+  const secondaryTrainingButtonRef = useRef<HTMLButtonElement | null>(null);
+  const secondaryTrainingMenuRef = useRef<HTMLDivElement | null>(null);
   const [optimizerDragOffset, setOptimizerDragOffset] = useState({
     x: 0,
     y: 0,
@@ -878,6 +955,24 @@ export default function Dashboard({
       setPlayerRefreshProgressPct(Math.max(0, Math.min(100, progressPct)));
     }
   };
+  useEffect(() => {
+    if (!primaryTrainingMenuOpen && !secondaryTrainingMenuOpen) return;
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (primaryTrainingMenuOpen) {
+        if (primaryTrainingButtonRef.current?.contains(target ?? null)) return;
+        if (primaryTrainingMenuRef.current?.contains(target ?? null)) return;
+      }
+      if (secondaryTrainingMenuOpen) {
+        if (secondaryTrainingButtonRef.current?.contains(target ?? null)) return;
+        if (secondaryTrainingMenuRef.current?.contains(target ?? null)) return;
+      }
+      if (primaryTrainingMenuOpen) setPrimaryTrainingMenuOpen(false);
+      if (secondaryTrainingMenuOpen) setSecondaryTrainingMenuOpen(false);
+    };
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, [primaryTrainingMenuOpen, secondaryTrainingMenuOpen]);
   const youthUpdatesHistoryWithChanges = useMemo(
     () => youthUpdatesHistory.filter(shouldKeepYouthUpdatesHistoryEntry),
     [youthUpdatesHistory]
@@ -1177,6 +1272,10 @@ export default function Dashboard({
   const changelogEntries = useMemo(
     () => [
       {
+        version: "3.2.0",
+        entries: [messages.changelog_3_2_0],
+      },
+      {
         version: "3.0.0",
         entries: [messages.changelog_3_0_0],
       },
@@ -1347,6 +1446,7 @@ export default function Dashboard({
       messages.changelog_2_21_0,
       messages.changelog_2_20_0,
       messages.changelog_2_19_0,
+      messages.changelog_3_2_0,
       messages.changelog_3_0_0,
     ]
   );
@@ -1616,11 +1716,15 @@ export default function Dashboard({
       if (parsed.starPlayerId !== undefined) setStarPlayerId(parsed.starPlayerId);
       if (parsed.primaryTraining !== undefined)
         setPrimaryTraining(
-          isTrainingSkill(parsed.primaryTraining) ? parsed.primaryTraining : ""
+          isTrainingSkill(parsed.primaryTraining)
+            ? parsed.primaryTraining
+            : DEFAULT_PRIMARY_TRAINING
         );
       if (parsed.secondaryTraining !== undefined)
         setSecondaryTraining(
-          isTrainingSkill(parsed.secondaryTraining) ? parsed.secondaryTraining : ""
+          isTrainingSkill(parsed.secondaryTraining)
+            ? parsed.secondaryTraining
+            : DEFAULT_SECONDARY_TRAINING
         );
       if (parsed.tacticType !== undefined && Number.isFinite(parsed.tacticType)) {
         setTacticType(parsed.tacticType);
@@ -2382,7 +2486,7 @@ export default function Dashboard({
         },
         {
           id: "training",
-          selector: "[data-help-anchor='training-panel']",
+          selector: "[data-help-anchor='training-dropdowns']",
           text: messages.helpCalloutTraining,
           placement: "below-center",
           offsetY: 6,
@@ -2828,8 +2932,8 @@ export default function Dashboard({
     const result = optimizeLineupForStar(
       optimizerPlayers,
       starPlayerId,
-      primaryTraining,
-      secondaryTraining,
+      toBaseTrainingSkill(primaryTraining),
+      toBaseTrainingSkill(secondaryTraining),
       autoSelectionApplied,
       trainingPreferences
     );
@@ -2838,8 +2942,8 @@ export default function Dashboard({
     const usedPlayers = new Set<number>(
       Object.values(nextAssignments).filter(Boolean) as number[]
     );
-    const rankingBySkill = new Map<TrainingSkillKey, number[]>();
-    (["keeper", "defending", "playmaking", "winger", "passing", "scoring", "setpieces"] as TrainingSkillKey[]).forEach(
+    const rankingBySkill = new Map<SkillKey, number[]>();
+    BASE_TRAINING_SKILLS.forEach(
       (skill) => {
         rankingBySkill.set(
           skill,
@@ -2861,7 +2965,7 @@ export default function Dashboard({
       return null;
     };
 
-    const benchSlots: Array<{ id: string; skill?: TrainingSkillKey }> = [
+    const benchSlots: Array<{ id: string; skill?: SkillKey }> = [
       { id: "B_GK", skill: "keeper" },
       { id: "B_CD", skill: "defending" },
       { id: "B_WB", skill: "defending" },
@@ -2882,10 +2986,12 @@ export default function Dashboard({
       if (!combinedExtra.includes(id)) combinedExtra.push(id);
     };
     if (isTrainingSkill(primaryTraining)) {
-      rankingBySkill.get(primaryTraining)?.forEach(pushUnique);
+      rankingBySkill.get(toBaseTrainingSkill(primaryTraining))?.forEach(pushUnique);
     }
     if (isTrainingSkill(secondaryTraining)) {
-      rankingBySkill.get(secondaryTraining)?.forEach(pushUnique);
+      rankingBySkill
+        .get(toBaseTrainingSkill(secondaryTraining))
+        ?.forEach(pushUnique);
     }
     optimizerPlayers.forEach((player) => pushUnique(player.id));
     const extraId = pickNextFrom(combinedExtra);
@@ -2923,8 +3029,8 @@ export default function Dashboard({
         optimizerPlayers,
         ratingsCache,
         starPlayerId,
-        primaryTraining,
-        secondaryTraining,
+        toBaseTrainingSkill(primaryTraining),
+        toBaseTrainingSkill(secondaryTraining),
         autoSelectionApplied,
         trainingPreferences
       );
@@ -3062,16 +3168,16 @@ export default function Dashboard({
         ? optimizeRevealSecondaryMax(
             optimizerPlayers,
             starPlayerId,
-            primaryTraining,
-            secondaryTraining,
+            toBaseTrainingSkill(primaryTraining),
+            toBaseTrainingSkill(secondaryTraining),
             autoSelectionApplied,
             trainingPreferences
           )
         : optimizeRevealPrimaryCurrent(
             optimizerPlayers,
             starPlayerId,
-            primaryTraining,
-            secondaryTraining,
+            toBaseTrainingSkill(primaryTraining),
+            toBaseTrainingSkill(secondaryTraining),
             autoSelectionApplied,
             trainingPreferences
           );
@@ -3099,16 +3205,8 @@ export default function Dashboard({
     const usedPlayers = new Set<number>(
       Object.values(nextAssignments).filter(Boolean) as number[]
     );
-    const rankingBySkill = new Map<TrainingSkillKey, number[]>();
-    ([
-      "keeper",
-      "defending",
-      "playmaking",
-      "winger",
-      "passing",
-      "scoring",
-      "setpieces",
-    ] as TrainingSkillKey[]).forEach((skill) => {
+    const rankingBySkill = new Map<SkillKey, number[]>();
+    BASE_TRAINING_SKILLS.forEach((skill) => {
       rankingBySkill.set(
         skill,
         buildSkillRanking(optimizerPlayers, skill, trainingPreferences).ordered.map(
@@ -3132,7 +3230,7 @@ export default function Dashboard({
       { id: "B_IM", skill: "playmaking" as const },
       { id: "B_F", skill: "scoring" as const },
       { id: "B_W", skill: "winger" as const },
-      { id: "B_X", skill: primaryTraining },
+      { id: "B_X", skill: toBaseTrainingSkill(primaryTraining) },
     ];
 
     benchOrder.forEach((slot) => {
@@ -3235,6 +3333,51 @@ export default function Dashboard({
       setMatchesState(result.payload);
     }
     return result.ok;
+  };
+
+  const ensureRefreshScopes = async () => {
+    try {
+      const response = await fetch("/api/chpp/oauth/check-token", {
+        cache: "no-store",
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            permissions?: string[];
+            raw?: string;
+          }
+        | null;
+      if (!response.ok) {
+        setScopeReconnectModalOpen(true);
+        return false;
+      }
+      const grantedPermissions = Array.isArray(payload?.permissions)
+        ? payload.permissions
+        : [];
+      const missingPermissions = getMissingChppPermissions(
+        grantedPermissions,
+        REQUIRED_CHPP_EXTENDED_PERMISSIONS
+      );
+      const rawTokenCheck = typeof payload?.raw === "string" ? payload.raw : "";
+      const hasScopeTag = /<Scope>/i.test(rawTokenCheck);
+      const scopeTokens = hasScopeTag
+        ? parseExtendedPermissionsFromCheckToken(rawTokenCheck)
+        : [];
+      const missingDefaultScope = hasScopeTag && !scopeTokens.includes("default");
+      if (missingPermissions.length > 0 || missingDefaultScope) {
+        setScopeReconnectModalOpen(true);
+        return false;
+      }
+      return true;
+    } catch {
+      setScopeReconnectModalOpen(true);
+      return false;
+    }
+  };
+
+  const refreshMatchesWithScopeGuard = async (teamIdOverride?: number | null) => {
+    const hasRequiredScopes = await ensureRefreshScopes();
+    if (!hasRequiredScopes) return false;
+    return refreshMatches(teamIdOverride);
   };
 
   const refreshRatings = async (
@@ -4148,8 +4291,8 @@ export default function Dashboard({
     setOrderSource(null);
     setOrderedPlayerIds(null);
     setStarPlayerId(null);
-    setPrimaryTraining("");
-    setSecondaryTraining("");
+    setPrimaryTraining(DEFAULT_PRIMARY_TRAINING);
+    setSecondaryTraining(DEFAULT_SECONDARY_TRAINING);
     setAutoSelectionApplied(false);
     setHiddenSpecialtyByPlayerId({});
     setHiddenSpecialtyDiscoveredMatchByPlayerId({});
@@ -4277,7 +4420,9 @@ export default function Dashboard({
     if (!autoSelection) return;
     setStarPlayerId(autoSelection.starPlayerId);
     setPrimaryTraining(autoSelection.primarySkill);
-    setSecondaryTraining(autoSelection.secondarySkill ?? "");
+    setSecondaryTraining(
+      autoSelection.secondarySkill ?? DEFAULT_SECONDARY_TRAINING
+    );
     setAutoSelectionApplied(true);
     const playerName =
       optimizerPlayers.find(
@@ -4311,8 +4456,8 @@ export default function Dashboard({
     const result = optimizeLineupForStar(
       optimizerPlayers,
       starPlayerId,
-      primaryTraining,
-      secondaryTraining,
+      toBaseTrainingSkill(primaryTraining),
+      toBaseTrainingSkill(secondaryTraining),
       autoSelectionApplied,
       trainingPreferences
     );
@@ -4374,8 +4519,26 @@ export default function Dashboard({
         return messages.trainingScoring;
       case "setpieces":
         return messages.trainingSetPieces;
+      case "defending_defenders_midfielders":
+        return messages.trainingDefendingDefendersMidfielders;
+      case "winger_winger_attackers":
+        return messages.trainingWingerWingerAttackers;
+      case "passing_defenders_midfielders":
+        return messages.trainingPassingDefendersMidfielders;
       default:
         return messages.unknownShort;
+    }
+  };
+  const optimizeTrainingLabel = (skill: TrainingSkillKey | "" | null) => {
+    switch (skill) {
+      case "defending_defenders_midfielders":
+        return messages.trainingDefending;
+      case "winger_winger_attackers":
+        return messages.trainingWinger;
+      case "passing_defenders_midfielders":
+        return messages.trainingPassing;
+      default:
+        return trainingLabel(skill);
     }
   };
 
@@ -4411,10 +4574,10 @@ export default function Dashboard({
     ? formatPlayerName(playersById.get(starPlayerId) ?? ({} as YouthPlayer))
     : messages.unknownShort;
   const optimizePrimaryTrainingName = isTrainingSkill(primaryTraining)
-    ? trainingLabel(primaryTraining)
+    ? optimizeTrainingLabel(primaryTraining)
     : messages.trainingUnset;
   const optimizeSecondaryTrainingName = isTrainingSkill(secondaryTraining)
-    ? trainingLabel(secondaryTraining)
+    ? optimizeTrainingLabel(secondaryTraining)
     : messages.trainingUnset;
   const optimizeModeDisabledReasons = useMemo(() => {
     const reasons: {
@@ -4442,8 +4605,9 @@ export default function Dashboard({
       [starPlayer?.FirstName, starPlayer?.NickName || null, starPlayer?.LastName]
         .filter(Boolean)
         .join(" ") || messages.unknownShort;
-    const primaryTrainingName = trainingLabel(primaryTraining).toLocaleLowerCase();
-    const secondaryTrainingName = trainingLabel(secondaryTraining).toLocaleLowerCase();
+    const primaryTrainingName = optimizeTrainingLabel(primaryTraining).toLocaleLowerCase();
+    const secondaryTrainingName =
+      optimizeTrainingLabel(secondaryTraining).toLocaleLowerCase();
 
     if (getKnownSkillValue(starSkills[primaryCurrentKey]) !== null) {
       reasons.revealPrimaryCurrent = messages.optimizeRevealPrimaryCurrentKnownTooltip
@@ -4568,6 +4732,135 @@ export default function Dashboard({
     return String(value);
   };
 
+  const youthTrainingControls = (
+    <div className={styles.lineupTrainingControlStack} data-help-anchor="training-dropdowns">
+      <div className={styles.trainingRow}>
+        <span className={styles.trainingLabel}>
+          {(messages.primaryTrainingLabel || "Pri").slice(0, 3).toUpperCase()}
+        </span>
+        <div className={styles.feedbackWrap}>
+          <button
+            type="button"
+            className={styles.trainingSelectTrigger}
+            onClick={() => {
+              setPrimaryTrainingMenuOpen((prev) => !prev);
+              setSecondaryTrainingMenuOpen(false);
+            }}
+            ref={primaryTrainingButtonRef}
+            aria-haspopup="menu"
+            aria-expanded={primaryTrainingMenuOpen}
+          >
+            {trainingLabel(primaryTraining)}
+          </button>
+          {primaryTrainingMenuOpen ? (
+            <div
+              className={`${styles.feedbackMenu} ${styles.trainingSelectMenu}`}
+              ref={primaryTrainingMenuRef}
+              role="menu"
+            >
+              {TRAINING_SKILL_SECTIONS.map((section) => (
+                <div key={`primary-section-${section.title}`}>
+                  <div className={styles.trainingSelectSectionHeader}>
+                    {section.title === "focused"
+                      ? messages.trainingSectionFocused
+                      : messages.trainingSectionExtended}
+                  </div>
+                  <div className={styles.trainingSelectSectionOptions}>
+                    {section.options.map((value) => (
+                      <button
+                        key={`primary-${value}`}
+                        type="button"
+                        className={`${styles.feedbackLink} ${styles.trainingSelectOption} ${
+                          value === primaryTraining
+                            ? styles.trainingSelectOptionActive
+                            : ""
+                        }`}
+                        onClick={() => {
+                          setPrimaryTraining(value);
+                          setPrimaryTrainingMenuOpen(false);
+                          setAutoSelectionApplied(false);
+                          addNotification(
+                            `${messages.notificationPrimaryTrainingSet} ${trainingLabel(
+                              value
+                            )}`
+                          );
+                        }}
+                      >
+                        {trainingLabel(value)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+      <div className={styles.trainingRow}>
+        <span className={styles.trainingLabel}>
+          {(messages.secondaryTrainingLabel || "Sec").slice(0, 3).toUpperCase()}
+        </span>
+        <div className={styles.feedbackWrap}>
+          <button
+            type="button"
+            className={styles.trainingSelectTrigger}
+            onClick={() => {
+              setSecondaryTrainingMenuOpen((prev) => !prev);
+              setPrimaryTrainingMenuOpen(false);
+            }}
+            ref={secondaryTrainingButtonRef}
+            aria-haspopup="menu"
+            aria-expanded={secondaryTrainingMenuOpen}
+          >
+            {trainingLabel(secondaryTraining)}
+          </button>
+          {secondaryTrainingMenuOpen ? (
+            <div
+              className={`${styles.feedbackMenu} ${styles.trainingSelectMenu}`}
+              ref={secondaryTrainingMenuRef}
+              role="menu"
+            >
+              {TRAINING_SKILL_SECTIONS.map((section) => (
+                <div key={`secondary-section-${section.title}`}>
+                  <div className={styles.trainingSelectSectionHeader}>
+                    {section.title === "focused"
+                      ? messages.trainingSectionFocused
+                      : messages.trainingSectionExtended}
+                  </div>
+                  <div className={styles.trainingSelectSectionOptions}>
+                    {section.options.map((value) => (
+                      <button
+                        key={`secondary-${value}`}
+                        type="button"
+                        className={`${styles.feedbackLink} ${styles.trainingSelectOption} ${
+                          value === secondaryTraining
+                            ? styles.trainingSelectOptionActive
+                            : ""
+                        }`}
+                        onClick={() => {
+                          setSecondaryTraining(value);
+                          setSecondaryTrainingMenuOpen(false);
+                          setAutoSelectionApplied(false);
+                          addNotification(
+                            `${messages.notificationSecondaryTrainingSet} ${trainingLabel(
+                              value
+                            )}`
+                          );
+                        }}
+                      >
+                        {trainingLabel(value)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+
   return (
     <div className={styles.dashboardStack}>
       {loadError && !authError ? (
@@ -4579,6 +4872,23 @@ export default function Dashboard({
           ) : null}
         </div>
       ) : null}
+      <Modal
+        open={scopeReconnectModalOpen}
+        title={messages.scopeReconnectTitle}
+        movable={false}
+        body={<p>{messages.scopeReconnectBody}</p>}
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => {
+              void reconnectChppWithTokenReset();
+            }}
+          >
+            {messages.scopeReconnectAction}
+          </button>
+        }
+      />
       <Modal
         open={authError}
         title={messages.authExpiredTitle}
@@ -4602,9 +4912,15 @@ export default function Dashboard({
             >
               {messages.authExpiredDismiss}
             </button>
-            <a className={styles.confirmSubmit} href="/api/chpp/oauth/start">
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={() => {
+                void reconnectChppWithTokenReset();
+              }}
+            >
               {messages.authExpiredAction}
-            </a>
+            </button>
           </div>
         }
       />
@@ -4943,12 +5259,14 @@ export default function Dashboard({
               trainingPreferences
             );
             if (!training) {
-              setPrimaryTraining("");
-              setSecondaryTraining("");
+              setPrimaryTraining(DEFAULT_PRIMARY_TRAINING);
+              setSecondaryTraining(DEFAULT_SECONDARY_TRAINING);
               return;
             }
             setPrimaryTraining(training.primarySkill);
-            setSecondaryTraining(training.secondarySkill ?? "");
+            setSecondaryTraining(
+              training.secondarySkill ?? DEFAULT_SECONDARY_TRAINING
+            );
             const playerName =
               optimizerPlayers.find((player) => player.id === playerId)?.name ??
               playerId;
@@ -4963,7 +5281,9 @@ export default function Dashboard({
             if (!autoSelection) return;
             setStarPlayerId(autoSelection.starPlayerId);
             setPrimaryTraining(autoSelection.primarySkill);
-            setSecondaryTraining(autoSelection.secondarySkill ?? "");
+            setSecondaryTraining(
+              autoSelection.secondarySkill ?? DEFAULT_SECONDARY_TRAINING
+            );
             setAutoSelectionApplied(true);
             const playerName =
               optimizerPlayers.find(
@@ -5115,81 +5435,6 @@ export default function Dashboard({
         }`}
         aria-hidden={showHelp ? "true" : undefined}
       >
-        <div className={styles.card} data-help-anchor="training-panel">
-          <h2 className={styles.sectionTitle}>{messages.trainingTitle}</h2>
-          <div className={styles.trainingControls}>
-            <label className={styles.trainingRow}>
-              <span className={styles.trainingLabel}>
-                {messages.primaryTrainingLabel}
-              </span>
-              <select
-                className={styles.trainingSelect}
-                value={primaryTraining}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  const nextValue = isTrainingSkill(value) ? value : "";
-                  setPrimaryTraining(nextValue);
-                  setAutoSelectionApplied(false);
-                  if (nextValue) {
-                    addNotification(
-                      `${messages.notificationPrimaryTrainingSet} ${trainingLabel(
-                        nextValue
-                      )}`
-                    );
-                  } else {
-                    addNotification(
-                      `${messages.notificationTrainingCleared} ${messages.primaryTrainingLabel}`
-                    );
-                  }
-                }}
-              >
-                <option value="">{messages.trainingUnset}</option>
-                <option value="keeper">{messages.trainingKeeper}</option>
-                <option value="defending">{messages.trainingDefending}</option>
-                <option value="playmaking">{messages.trainingPlaymaking}</option>
-                <option value="winger">{messages.trainingWinger}</option>
-                <option value="passing">{messages.trainingPassing}</option>
-                <option value="scoring">{messages.trainingScoring}</option>
-                <option value="setpieces">{messages.trainingSetPieces}</option>
-              </select>
-            </label>
-            <label className={styles.trainingRow}>
-              <span className={styles.trainingLabel}>
-                {messages.secondaryTrainingLabel}
-              </span>
-              <select
-                className={styles.trainingSelect}
-                value={secondaryTraining}
-                onChange={(event) => {
-                  const value = event.target.value;
-                  const nextValue = isTrainingSkill(value) ? value : "";
-                  setSecondaryTraining(nextValue);
-                  setAutoSelectionApplied(false);
-                  if (nextValue) {
-                    addNotification(
-                      `${messages.notificationSecondaryTrainingSet} ${trainingLabel(
-                        nextValue
-                      )}`
-                    );
-                  } else {
-                    addNotification(
-                      `${messages.notificationTrainingCleared} ${messages.secondaryTrainingLabel}`
-                    );
-                  }
-                }}
-              >
-                <option value="">{messages.trainingUnset}</option>
-                <option value="keeper">{messages.trainingKeeper}</option>
-                <option value="defending">{messages.trainingDefending}</option>
-                <option value="playmaking">{messages.trainingPlaymaking}</option>
-                <option value="winger">{messages.trainingWinger}</option>
-                <option value="passing">{messages.trainingPassing}</option>
-                <option value="scoring">{messages.trainingScoring}</option>
-                <option value="setpieces">{messages.trainingSetPieces}</option>
-              </select>
-            </label>
-          </div>
-        </div>
         <LineupField
           assignments={assignments}
           behaviors={behaviors}
@@ -5204,6 +5449,7 @@ export default function Dashboard({
           onOptimizeSelect={handleOptimizeSelect}
           tacticType={tacticType}
           onTacticChange={setTacticType}
+          topLeftOverlayContent={youthTrainingControls}
           optimizeDisabled={!manualReady}
           optimizeDisabledReason={optimizeDisabledReason}
           forceOptimizeOpen={showHelp}
@@ -5512,7 +5758,7 @@ export default function Dashboard({
           behaviors={behaviors}
           captainId={captainId}
           tacticType={tacticType}
-          onRefresh={refreshMatches}
+          onRefresh={refreshMatchesWithScopeGuard}
           onLoadLineup={loadLineup}
           loadedMatchId={loadedMatchId}
           onSubmitSuccess={() => setShowTrainingReminder(true)}

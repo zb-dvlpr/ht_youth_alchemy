@@ -5,7 +5,11 @@ const path = require("node:path");
 
 const repoRoot = path.resolve(__dirname, "..");
 
-const REQUIRED_PERMISSIONS = ["set_matchorder", "manage_youthplayers"];
+const REQUIRED_PERMISSIONS = [
+  "set_matchorder",
+  "manage_youthplayers",
+  "set_training",
+];
 
 const read = (relativePath) =>
   fs.readFileSync(path.join(repoRoot, relativePath), "utf8");

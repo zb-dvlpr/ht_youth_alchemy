@@ -99,6 +99,8 @@ export const messagesFr: Messages = {
       "Sortie de l’outil d’optimisation d’équipe senior.",
     changelog_3_1_0:
       "L optimisation senior ajoute une aide contextuelle avec repères guidés pour Dernières mises à jour et Composition IA.",
+    changelog_3_2_0:
+      "Le régime d entraînement de l équipe senior peut maintenant être modifié directement dans l application avec vérification des permissions.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -446,7 +448,8 @@ export const messagesFr: Messages = {
       "Vous pouvez soumettre la compo à Hattrick, mais l’entraînement doit être réglé manuellement (l’API ne le permet pas).",
     helpBulletDesktop: "Optimisé pour ordinateur.",
     helpCalloutStar: "Choisissez votre joueur vedette.",
-    helpCalloutTraining: "Choisissez votre régime d’entraînement.",
+    helpCalloutTraining:
+      "Définissez l’entraînement principal et secondaire avant l’optimisation.",
     helpCalloutOptimize:
       "Utilisez l’IA pour optimiser la compo selon le joueur vedette et l’entraînement.",
     helpCalloutAuto:
@@ -458,6 +461,10 @@ export const messagesFr: Messages = {
       "Dernieres mises a jour affiche uniquement les changements detectes dans les comparaisons enregistrees.",
     seniorHelpCalloutSetLineupAi:
       "Definir la composition avec IA ouvre les deux modes de composition pour ce match.",
+    seniorHelpCalloutTrainingRegimen:
+      "Ce menu deroulant permet de modifier directement le regime d entrainement senior.",
+    seniorHelpCalloutAnalyzeOpponent:
+      "Analyser l adversaire passe en revue les formations, tactiques et tendances de notes recentes.",
     seniorHelpBulletLatestUpdates:
       "Une nouvelle comparaison est enregistree uniquement quand un rafraichissement detecte de vrais changements (nouveau joueur, notes/competences, blessures, cartons, forme, endurance ou traits).",
     seniorHelpBulletAiOverview:
@@ -468,6 +475,10 @@ export const messagesFr: Messages = {
       "Mode sans entrainement: optimise uniquement l efficacite du match sans contrainte des postes d entrainement.",
     seniorHelpBulletAiMatchTypes:
       "Les matchs de ligue et de tournoi visent la meilleure configuration competitive. Les amicaux utilisent un onze sain de second niveau.",
+    seniorHelpBulletTrainingRegimen:
+      "Le regime d entrainement senior peut etre modifie directement depuis le menu deroulant de composition.",
+    seniorHelpBulletAnalyzeOpponent:
+      "Analyser l adversaire resume les tendances recentes pour aider les decisions de composition IA.",
     themeSwitchDark: "Passer en mode sombre",
     themeSwitchLight: "Passer en mode clair",
     helpDismissLabel: "J’ai compris",
@@ -714,6 +725,8 @@ export const messagesFr: Messages = {
     notificationDebugOauthMode: "Mode debug OAuth :",
     notificationMatchesRefreshed: "Matchs actualisés",
     notificationMatchesRefreshFailed: "Échec de l’actualisation des matchs",
+    notificationSeniorTrainingRegimenChanged:
+      "Le régime d’entraînement de l’équipe senior a été changé en {{training}}",
     notificationReauthRequired:
       "Actualisation annulée : réauthentification requise",
     permissionsLabel: "Permissions :",
@@ -721,6 +734,12 @@ export const messagesFr: Messages = {
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-sélectionner joueur star et entraînements",
     trainingTitle: "Entraînement ciblé",
+    trainingSectionFocused: "Entraînement ciblé",
+    trainingSectionExtended: "Entraînement étendu",
+    trainingSectionCombined: "Entraînement combiné",
+    trainingRegimenLabel: "Régime d’entraînement",
+    trainingSetButtonLabel: "Définir",
+    trainingSetButtonTooltip: "Définir comme nouveau régime d’entraînement",
     primaryTrainingLabel: "Principal",
     secondaryTrainingLabel: "Secondaire",
     trainingUnset: "—",
@@ -731,6 +750,9 @@ export const messagesFr: Messages = {
     trainingPassing: "Passes",
     trainingScoring: "Finition",
     trainingSetPieces: "Coups de pied arrêtés",
+    trainingDefendingDefendersMidfielders: "Défense (Défenseurs + Milieux)",
+    trainingWingerWingerAttackers: "Ailier (Ailiers + Attaquants)",
+    trainingPassingDefendersMidfielders: "Passes (Défenseurs + Milieux)",
     trainingSlotPrimary: "Primaire",
     trainingSlotSecondary: "Secondaire",
     trainingSlotBoth: "Pri/sec",
@@ -884,6 +906,10 @@ export const messagesFr: Messages = {
       "Votre autorisation Hattrick a expiré ou a été révoquée. Reconnectez-vous pour continuer.",
     authExpiredAction: "Reconnecter",
     authExpiredDismiss: "Fermer",
+    scopeReconnectTitle: "Permissions requises",
+    scopeReconnectBody:
+      "En raison de nouvelles fonctionnalités ajoutées, les permissions du jeton sont insuffisantes. Reconnectez-vous pour demander les scopes requis.",
+    scopeReconnectAction: "Reconnecter",
     oauthErrorClientExplanation:
       "Hattrick OAuth/CHPP a rejeté la requête (4xx). C’est généralement un problème d’autorisation ou de validation.",
     oauthErrorServerExplanation:

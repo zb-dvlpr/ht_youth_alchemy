@@ -97,6 +97,20 @@ export function writeChppDebugOauthErrorMode(mode: ChppDebugOauthErrorMode) {
   }
 }
 
+export async function reconnectChppWithTokenReset() {
+  try {
+    await fetch("/api/chpp/oauth/invalidate-token", {
+      method: "POST",
+      cache: "no-store",
+    });
+  } catch {
+    // Best effort only; continue to reconnect flow.
+  }
+  if (typeof window !== "undefined") {
+    window.location.href = "/api/chpp/oauth/start";
+  }
+}
+
 const asUrlString = (input: RequestInfo | URL): string => {
   if (typeof input === "string") return input;
   if (input instanceof URL) return input.toString();

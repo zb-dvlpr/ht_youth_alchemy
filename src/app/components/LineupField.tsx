@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactElement } from "react";
+import { useEffect, useRef, useState, type ReactElement, type ReactNode } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { setDragGhost } from "@/lib/drag";
@@ -65,6 +65,17 @@ type LineupFieldProps = {
   onOptimizeSelect?: (mode: OptimizeMode) => void;
   tacticType?: number;
   onTacticChange?: (value: number) => void;
+  tacticPlacement?: "headerRight" | "bottomRight" | "fieldTopLeft";
+  topLeftOverlayContent?: ReactNode;
+  trainingType?: number | null;
+  onTrainingTypeChange?: (value: number) => void;
+  onTrainingTypeSet?: (value: number) => void | Promise<void>;
+  trainingTypeSetPending?: boolean;
+  trainingTypeSetPendingValue?: number | null;
+  trainingTypeOptions?: number[];
+  trainingTypeLabelForValue?: (value: number) => string;
+  trainingTypeSectionTitleForValue?: (value: number) => string | null;
+  trainingTypeAriaLabel?: string;
   optimizeDisabled?: boolean;
   optimizeDisabledReason?: string;
   forceOptimizeOpen?: boolean;
@@ -380,6 +391,17 @@ export default function LineupField({
   onOptimizeSelect,
   tacticType = 7,
   onTacticChange,
+  tacticPlacement = "headerRight",
+  topLeftOverlayContent,
+  trainingType = null,
+  onTrainingTypeChange,
+  onTrainingTypeSet,
+  trainingTypeSetPending = false,
+  trainingTypeSetPendingValue = null,
+  trainingTypeOptions = [],
+  trainingTypeLabelForValue,
+  trainingTypeSectionTitleForValue,
+  trainingTypeAriaLabel,
   optimizeDisabled = false,
   optimizeDisabledReason,
   forceOptimizeOpen = false,
@@ -397,22 +419,31 @@ export default function LineupField({
   messages,
 }: LineupFieldProps) {
   const [optimizeOpen, setOptimizeOpen] = useState(false);
+  const [trainingMenuOpen, setTrainingMenuOpen] = useState(false);
   const optimizeButtonRef = useRef<HTMLButtonElement | null>(null);
   const optimizeMenuRef = useRef<HTMLDivElement | null>(null);
+  const trainingButtonRef = useRef<HTMLButtonElement | null>(null);
+  const trainingMenuRef = useRef<HTMLDivElement | null>(null);
   const isDragActive = useRef(false);
 
   useEffect(() => {
-    if (forceOptimizeOpen) return;
-    if (!optimizeOpen) return;
+    if (!optimizeOpen && !trainingMenuOpen) return;
     const handleClick = (event: MouseEvent) => {
       const target = event.target as Node | null;
-      if (optimizeButtonRef.current?.contains(target ?? null)) return;
-      if (optimizeMenuRef.current?.contains(target ?? null)) return;
-      setOptimizeOpen(false);
+      if (optimizeOpen) {
+        if (optimizeButtonRef.current?.contains(target ?? null)) return;
+        if (optimizeMenuRef.current?.contains(target ?? null)) return;
+      }
+      if (trainingMenuOpen) {
+        if (trainingButtonRef.current?.contains(target ?? null)) return;
+        if (trainingMenuRef.current?.contains(target ?? null)) return;
+      }
+      if (optimizeOpen && !forceOptimizeOpen) setOptimizeOpen(false);
+      if (trainingMenuOpen) setTrainingMenuOpen(false);
     };
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
-  }, [optimizeOpen, forceOptimizeOpen]);
+  }, [optimizeOpen, trainingMenuOpen, forceOptimizeOpen]);
 
   const menuOpen = forceOptimizeOpen || optimizeOpen;
   const revealPlayerLabel = optimizeStarPlayerName ?? messages.unknownShort;
@@ -438,6 +469,105 @@ export default function LineupField({
   const revealSecondaryMaxDisabledReason =
     optimizeModeDisabledReasons?.revealSecondaryMax;
   const resolvedMaxSkillLevel = Math.max(1, maxSkillLevel);
+  const showBottomRightTactic = Boolean(onTacticChange && tacticPlacement === "bottomRight");
+  const showFieldTopLeftTactic = Boolean(
+    onTacticChange && tacticPlacement === "fieldTopLeft"
+  );
+  const showTrainingTypeControl = Boolean(
+    onTrainingTypeChange && trainingTypeLabelForValue && trainingTypeOptions.length > 0
+  );
+
+  const renderTacticControl = (className?: string) => (
+    <label className={`${styles.tacticOverlay}${className ? ` ${className}` : ""}`}>
+      <span className={styles.tacticLabel}>{messages.tacticLabel}</span>
+      <select
+        className={styles.tacticSelect}
+        value={tacticType}
+        onChange={(event) => onTacticChange?.(Number(event.target.value))}
+      >
+        <option value={0}>{messages.tacticNormal}</option>
+        <option value={1}>{messages.tacticPressing}</option>
+        <option value={2}>{messages.tacticCounterAttacks}</option>
+        <option value={3}>{messages.tacticAttackMiddle}</option>
+        <option value={4}>{messages.tacticAttackWings}</option>
+        <option value={7}>{messages.tacticPlayCreatively}</option>
+        <option value={8}>{messages.tacticLongShots}</option>
+      </select>
+    </label>
+  );
+
+  const renderTrainingTypeControl = () => (
+    <div className={styles.lineupTrainingTypeControl}>
+      <span className={styles.lineupTrainingTypeLabel}>
+        {trainingTypeAriaLabel ?? messages.trainingRegimenLabel}
+      </span>
+      <div className={styles.feedbackWrap}>
+        <button
+          type="button"
+          className={styles.lineupTrainingTypeTrigger}
+          onClick={() => setTrainingMenuOpen((prev) => !prev)}
+          ref={trainingButtonRef}
+          aria-haspopup="menu"
+          aria-expanded={trainingMenuOpen}
+        >
+          <span className={styles.lineupTrainingTypeValue}>
+            {trainingTypeLabelForValue?.(trainingType ?? trainingTypeOptions[0]) ?? ""}
+          </span>
+        </button>
+        {trainingMenuOpen ? (
+          <div
+            className={`${styles.feedbackMenu} ${styles.lineupTrainingTypeMenu}`}
+            ref={trainingMenuRef}
+            role="menu"
+          >
+            {trainingTypeOptions.map((value) => {
+              const isActive = value === (trainingType ?? trainingTypeOptions[0]);
+              const sectionTitle = trainingTypeSectionTitleForValue?.(value) ?? null;
+              return (
+                <div key={value}>
+                  {sectionTitle ? (
+                    <div className={styles.lineupTrainingTypeSectionHeader}>
+                      {sectionTitle}
+                    </div>
+                  ) : null}
+                  <div className={styles.lineupTrainingTypeOptionRow}>
+                    <div
+                      className={`${styles.feedbackLink} ${styles.lineupTrainingTypeOption} ${
+                        isActive ? styles.lineupTrainingTypeOptionActive : ""
+                      }`}
+                      role="presentation"
+                    >
+                      {trainingTypeLabelForValue?.(value) ?? String(value)}
+                    </div>
+                    {!isActive ? (
+                      <Tooltip content={messages.trainingSetButtonTooltip}>
+                        <button
+                          type="button"
+                          className={styles.lineupTrainingTypeSetButton}
+                          disabled={trainingTypeSetPending}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            if (trainingTypeSetPending) return;
+                            void onTrainingTypeSet?.(value);
+                          }}
+                        >
+                          {trainingTypeSetPending && trainingTypeSetPendingValue === value ? (
+                            <span className={styles.spinner} aria-hidden="true" />
+                          ) : (
+                            messages.trainingSetButtonLabel
+                          )}
+                        </button>
+                      </Tooltip>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
+      </div>
+    </div>
+  );
 
   const renderSingleValueMetric = (
     key: string,
@@ -631,24 +761,9 @@ export default function LineupField({
       <div className={styles.fieldHeader}>
         <span>{messages.lineupTitle}</span>
         <div className={styles.fieldHeaderControls}>
-          {onTacticChange ? (
-            <label className={styles.tacticOverlay}>
-              <span className={styles.tacticLabel}>{messages.tacticLabel}</span>
-              <select
-                className={styles.tacticSelect}
-                value={tacticType}
-                onChange={(event) => onTacticChange(Number(event.target.value))}
-              >
-                <option value={0}>{messages.tacticNormal}</option>
-                <option value={1}>{messages.tacticPressing}</option>
-                <option value={2}>{messages.tacticCounterAttacks}</option>
-                <option value={3}>{messages.tacticAttackMiddle}</option>
-                <option value={4}>{messages.tacticAttackWings}</option>
-                <option value={7}>{messages.tacticPlayCreatively}</option>
-                <option value={8}>{messages.tacticLongShots}</option>
-              </select>
-            </label>
-          ) : null}
+          {onTacticChange && !showBottomRightTactic && !showFieldTopLeftTactic
+            ? renderTacticControl()
+            : null}
           {onOptimizeSelect ? (
             <div className={styles.feedbackWrap}>
               <Tooltip
@@ -748,9 +863,16 @@ export default function LineupField({
               ) : null}
             </div>
           ) : null}
+          {showTrainingTypeControl ? renderTrainingTypeControl() : null}
         </div>
       </div>
       <div className={styles.fieldPitch}>
+        {topLeftOverlayContent ? (
+          <div className={styles.fieldTopLeftOverlay}>{topLeftOverlayContent}</div>
+        ) : null}
+        {showFieldTopLeftTactic
+          ? renderTacticControl(styles.tacticOverlayFieldTopLeft)
+          : null}
         <div className={styles.penaltyBox} />
         <div className={styles.penaltyArc} />
         <div className={styles.fieldGoal}>
@@ -1005,7 +1127,7 @@ export default function LineupField({
         <div className={styles.centerCircle} />
         <div className={styles.centerSpot} />
         <div className={styles.fieldMidline} />
-        {onRandomize || onReset ? (
+        {onRandomize || onReset || showBottomRightTactic ? (
           <div className={styles.lineupActions}>
             {onReset ? (
               <button
@@ -1025,6 +1147,9 @@ export default function LineupField({
                 {messages.randomizeLineup}
               </button>
             ) : null}
+            {showBottomRightTactic
+              ? renderTacticControl(styles.tacticOverlayBottomRight)
+              : null}
           </div>
         ) : null}
       </div>

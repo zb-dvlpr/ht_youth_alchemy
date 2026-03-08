@@ -85,6 +85,8 @@ export const messagesEn: Messages = {
       "Senior team optimization tool release.",
     changelog_3_1_0:
       "Senior optimization now has a dedicated help overlay with guided callouts for Latest updates and AI lineup actions.",
+    changelog_3_2_0:
+      "Senior lineup training regimen can now be changed directly in-app with permission checks and verification.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -418,7 +420,8 @@ export const messagesEn: Messages = {
       "Submit lineups directly to Hattrick, but training must be set manually (the API doesn’t allow it).",
     helpBulletDesktop: "Desktop-optimized.",
     helpCalloutStar: "Select your star player.",
-    helpCalloutTraining: "Choose your training regimen.",
+    helpCalloutTraining:
+      "Set primary and secondary training before running optimization.",
     helpCalloutOptimize:
       "Use AI to optimize lineup for the star player and training regimen.",
     helpCalloutAuto: "Use AI to select star player and training regimen.",
@@ -429,6 +432,10 @@ export const messagesEn: Messages = {
       "Latest updates shows only what changed in the latest saved refresh comparisons.",
     seniorHelpCalloutSetLineupAi:
       "Set lineup using AI opens the two lineup modes for this match.",
+    seniorHelpCalloutTrainingRegimen:
+      "This dropdown lets you change the senior training regimen directly.",
+    seniorHelpCalloutAnalyzeOpponent:
+      "Analyze opponent reviews recent opponent formations, tactics, and ratings trends.",
     seniorHelpBulletLatestUpdates:
       "A new Latest updates comparison is saved only when a refresh detects real changes (for example new players, ratings/skills updates, injuries, cards, form, stamina, or traits).",
     seniorHelpBulletAiOverview:
@@ -439,6 +446,10 @@ export const messagesEn: Messages = {
       "Ignore-training mode optimizes for match effectiveness without training-slot constraints.",
     seniorHelpBulletAiMatchTypes:
       "League and tournament matches target your strongest competitive setup. Friendlies use a second-best healthy XI.",
+    seniorHelpBulletTrainingRegimen:
+      "You can change the senior training regimen directly from the lineup dropdown.",
+    seniorHelpBulletAnalyzeOpponent:
+      "Analyze opponent summarizes recent setup patterns to support AI lineup decisions.",
     themeSwitchDark: "Switch to dark mode",
     themeSwitchLight: "Switch to light mode",
     helpDismissLabel: "I understand",
@@ -680,12 +691,20 @@ export const messagesEn: Messages = {
     notificationDebugOauthMode: "OAuth debug mode:",
     notificationMatchesRefreshed: "Matches refreshed",
     notificationMatchesRefreshFailed: "Matches refresh failed",
+    notificationSeniorTrainingRegimenChanged:
+      "Senior squad training regimen changed to {{training}}",
     notificationReauthRequired: "Refresh aborted: re-auth required",
     permissionsLabel: "Permissions:",
     permissionsNone: "None",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-select star player and trainings",
     trainingTitle: "Focused skill training",
+    trainingSectionFocused: "Focused skill training",
+    trainingSectionExtended: "Extended skill training",
+    trainingSectionCombined: "Combined skill training",
+    trainingRegimenLabel: "Training regimen",
+    trainingSetButtonLabel: "Set",
+    trainingSetButtonTooltip: "Set as new training regimen",
     primaryTrainingLabel: "Primary",
     secondaryTrainingLabel: "Secondary",
     trainingUnset: "—",
@@ -696,6 +715,9 @@ export const messagesEn: Messages = {
     trainingPassing: "Passing",
     trainingScoring: "Scoring",
     trainingSetPieces: "Set pieces",
+    trainingDefendingDefendersMidfielders: "Defending (Defenders + Midfielders)",
+    trainingWingerWingerAttackers: "Winger (Wingers + Attackers)",
+    trainingPassingDefendersMidfielders: "Passing (Defenders + Midfielders)",
     trainingSlotPrimary: "Primary",
     trainingSlotSecondary: "Secondary",
     trainingSlotBoth: "Pri/sec",
@@ -847,6 +869,10 @@ export const messagesEn: Messages = {
       "Your Hattrick authorization expired or was revoked. Reconnect to continue.",
     authExpiredAction: "Reconnect",
     authExpiredDismiss: "Dismiss",
+    scopeReconnectTitle: "Permissions required",
+    scopeReconnectBody:
+      "Due to newly added features, your token permissions are insufficient. Reconnect to request the required scopes.",
+    scopeReconnectAction: "Reconnect",
     oauthErrorClientExplanation:
       "Hattrick OAuth/CHPP rejected the request (4xx). This is usually an authorization or request validation issue.",
     oauthErrorServerExplanation:

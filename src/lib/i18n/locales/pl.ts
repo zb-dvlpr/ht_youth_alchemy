@@ -160,6 +160,8 @@ export const messagesPl: Messages = {
   analyzeOpponentSummaryWith: "z",
   changelog_3_1_0:
     "Optymalizacja seniorów ma teraz dedykowaną nakładkę pomocy z podpowiedziami dla Ostatnich aktualizacji i ustawiania składu przez AI.",
+  changelog_3_2_0:
+    "Reżim treningowy seniorów można teraz zmieniać bezpośrednio w aplikacji z kontrolą uprawnień i weryfikacją.",
   seniorHelpTitle: "Przewodnik optymalizacji seniorów",
   seniorHelpIntro:
     "Ten widok pomaga śledzić istotne zmiany w kadrze seniorów i szybciej ustawiać składy meczowe.",
@@ -167,6 +169,10 @@ export const messagesPl: Messages = {
     "Ostatnie aktualizacje pokazują tylko zmiany wykryte w zapisanych porównaniach odświeżeń.",
   seniorHelpCalloutSetLineupAi:
     "Ustaw skład przez AI otwiera dwa tryby ustawiania składu dla tego meczu.",
+  seniorHelpCalloutTrainingRegimen:
+    "To menu rozwijane pozwala bezpośrednio zmienić reżim treningowy seniorów.",
+  seniorHelpCalloutAnalyzeOpponent:
+    "Analizuj przeciwnika sprawdza ostatnie formacje, taktyki i trendy ocen rywala.",
   seniorHelpBulletLatestUpdates:
     "Nowe porównanie zapisywane jest tylko wtedy, gdy odświeżenie wykryje realne zmiany (np. nowy zawodnik, zmiany ocen/umiejętności, kontuzje, kartki, forma, kondycja lub cechy).",
   seniorHelpBulletAiOverview:
@@ -177,6 +183,10 @@ export const messagesPl: Messages = {
     "Tryb ignorujący trening optymalizuje wyłącznie skuteczność meczową bez ograniczeń slotów treningowych.",
   seniorHelpBulletAiMatchTypes:
     "Mecze ligowe i turniejowe celują w najsilniejsze ustawienie rywalizacyjne. Sparingi korzystają z drugiego najlepszego zdrowego składu XI.",
+  seniorHelpBulletTrainingRegimen:
+    "Reżim treningowy seniorów można zmienić bezpośrednio w aplikacji z poziomu rozwijanego menu składu.",
+  seniorHelpBulletAnalyzeOpponent:
+    "Analizuj przeciwnika podsumowuje ostatnie wzorce, aby wspierać decyzje AI o składzie.",
   loadLineupUnavailable: "Brak zapisanego składu",
   loadLineupActive: "Wczytany skład",
   loadLineupError: "Błąd wczytywania składu",
@@ -267,6 +277,9 @@ export const messagesPl: Messages = {
   authExpiredBody: "Autoryzacja Hattrick wygasła lub została cofnięta. Połącz ponownie, aby kontynuować.",
   authExpiredAction: "Połącz ponownie",
   authExpiredDismiss: "Zamknij",
+  scopeReconnectTitle: "Wymagane uprawnienia",
+  scopeReconnectBody: "Z powodu nowo dodanych funkcji uprawnienia tokenu są niewystarczające. Połącz ponownie, aby pobrać wymagane zakresy.",
+  scopeReconnectAction: "Połącz ponownie",
   oauthErrorClientExplanation: "Hattrick OAuth/CHPP odrzucił żądanie (4xx). Zwykle to problem z autoryzacją lub walidacją.",
   oauthErrorServerExplanation: "Hattrick OAuth/CHPP zwrócił błąd serwera (5xx). To problem po stronie usługi zewnętrznej.",
   oauthErrorUnknownExplanation: "Hattrick OAuth/CHPP zwrócił nieoczekiwany błąd podczas odświeżania danych.",
@@ -274,6 +287,8 @@ export const messagesPl: Messages = {
   notificationPlayersRefreshed: "Zawodnicy odświeżeni",
   notificationMatchesRefreshed: "Mecze odświeżone",
   notificationMatchesRefreshFailed: "Nie udało się odświeżyć meczów",
+  notificationSeniorTrainingRegimenChanged:
+    "Reżim treningowy drużyny seniorów zmieniono na {{training}}",
   notificationLineupLoaded: "Wczytano skład:",
   notificationLineupSubmitted: "Wysłano skład:",
   notificationSortBy: "Sortowanie:",
@@ -285,6 +300,12 @@ export const messagesPl: Messages = {
   notificationReauthRequired: "Odświeżanie przerwane: wymagana ponowna autoryzacja",
   autoSelectTitle: "Automatycznie wybierz gwiazdę i trening",
   trainingTitle: "Skoncentrowany trening umiejętności",
+  trainingSectionFocused: "Skoncentrowany trening umiejętności",
+  trainingSectionExtended: "Rozszerzony trening umiejętności",
+  trainingSectionCombined: "Łączony trening umiejętności",
+  trainingRegimenLabel: "Reżim treningowy",
+  trainingSetButtonLabel: "Ustaw",
+  trainingSetButtonTooltip: "Ustaw jako nowy reżim treningowy",
   primaryTrainingLabel: "Główny",
   secondaryTrainingLabel: "Drugorzędny",
   trainingUnset: "—",
@@ -295,6 +316,9 @@ export const messagesPl: Messages = {
   trainingPassing: "Podania",
   trainingScoring: "Skuteczność",
   trainingSetPieces: "St. fragmenty",
+  trainingDefendingDefendersMidfielders: "Defensywa (Obrońcy + Pomocnicy)",
+  trainingWingerWingerAttackers: "Skrzydła (Skrzydłowi + Napastnicy)",
+  trainingPassingDefendersMidfielders: "Podania (Obrońcy + Pomocnicy)",
   trainingSlotPrimary: "Główny",
   trainingSlotSecondary: "Drugorzędny",
   trainingSlotBoth: "Gł/dr",

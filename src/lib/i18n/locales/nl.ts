@@ -160,6 +160,8 @@ export const messagesNl: Messages = {
   analyzeOpponentSummaryWith: "met",
   changelog_3_1_0:
     "Senioroptimalisatie heeft nu een eigen help-overlay met gerichte callouts voor Laatste updates en opstelling met AI.",
+  changelog_3_2_0:
+    "Het trainingsregime van senioren kan nu direct in de app worden gewijzigd met machtigingscontrole en verificatie.",
   seniorHelpTitle: "Handleiding senioroptimalisatie",
   seniorHelpIntro:
     "Deze weergave helpt je relevante wijzigingen in de seniorselectie te volgen en sneller wedstrijdopstellingen te zetten.",
@@ -167,6 +169,10 @@ export const messagesNl: Messages = {
     "Laatste updates toont alleen gedetecteerde wijzigingen uit opgeslagen refresh-vergelijkingen.",
   seniorHelpCalloutSetLineupAi:
     "Opstelling met AI zetten opent de twee opstellingsmodi voor deze wedstrijd.",
+  seniorHelpCalloutTrainingRegimen:
+    "Met deze dropdown kun je het trainingsregime van senioren direct wijzigen.",
+  seniorHelpCalloutAnalyzeOpponent:
+    "Tegenstander analyseren bekijkt recente formaties, tactieken en ratingtrends van de tegenstander.",
   seniorHelpBulletLatestUpdates:
     "Er wordt alleen een nieuwe vergelijking opgeslagen wanneer een refresh echte wijzigingen detecteert (bijvoorbeeld nieuwe speler, wijzigingen in ratings/skills, blessures, kaarten, vorm, conditie of eigenschappen).",
   seniorHelpBulletAiOverview:
@@ -177,6 +183,10 @@ export const messagesNl: Messages = {
     "Training negeren optimaliseert alleen voor wedstrijdeffectiviteit zonder trainingsslotbeperkingen.",
   seniorHelpBulletAiMatchTypes:
     "Competitie- en toernooiwedstrijden mikken op de sterkste competitieve opstelling. Vriendschappelijke wedstrijden gebruiken een tweede beste gezonde XI.",
+  seniorHelpBulletTrainingRegimen:
+    "Het trainingsregime van senioren kan direct in de app worden aangepast via de opstellingsdropdown.",
+  seniorHelpBulletAnalyzeOpponent:
+    "Tegenstander analyseren vat recente patronen samen om AI-opstellingskeuzes te ondersteunen.",
   loadLineupUnavailable: "Geen opgeslagen opstelling",
   loadLineupActive: "Opstelling geladen",
   loadLineupError: "Fout bij laden opstelling",
@@ -267,6 +277,9 @@ export const messagesNl: Messages = {
   authExpiredBody: "Je Hattrick-autorisatie is verlopen of ingetrokken. Koppel opnieuw om door te gaan.",
   authExpiredAction: "Opnieuw koppelen",
   authExpiredDismiss: "Sluiten",
+  scopeReconnectTitle: "Machtigingen vereist",
+  scopeReconnectBody: "Door nieuw toegevoegde functies zijn de tokenmachtigingen onvoldoende. Koppel opnieuw om de vereiste scopes aan te vragen.",
+  scopeReconnectAction: "Opnieuw koppelen",
   oauthErrorClientExplanation: "Hattrick OAuth/CHPP heeft het verzoek geweigerd (4xx). Dit is meestal een autorisatie- of validatieprobleem.",
   oauthErrorServerExplanation: "Hattrick OAuth/CHPP gaf een serverfout terug (5xx). Dit is een probleem bij een externe dienst.",
   oauthErrorUnknownExplanation: "Hattrick OAuth/CHPP gaf een onverwachte fout tijdens het vernieuwen van gegevens.",
@@ -274,6 +287,8 @@ export const messagesNl: Messages = {
   notificationPlayersRefreshed: "Spelers vernieuwd",
   notificationMatchesRefreshed: "Wedstrijden vernieuwd",
   notificationMatchesRefreshFailed: "Vernieuwen van wedstrijden mislukt",
+  notificationSeniorTrainingRegimenChanged:
+    "Trainingsregime van het seniorenteam gewijzigd naar {{training}}",
   notificationLineupLoaded: "Opstelling geladen:",
   notificationLineupSubmitted: "Opstelling verzonden:",
   notificationSortBy: "Sortering:",
@@ -285,6 +300,12 @@ export const messagesNl: Messages = {
   notificationReauthRequired: "Verversing afgebroken: opnieuw autoriseren vereist",
   autoSelectTitle: "Kies automatisch sterspeler en trainingen",
   trainingTitle: "Gerichte vaardigheidstraining",
+  trainingSectionFocused: "Gerichte vaardigheidstraining",
+  trainingSectionExtended: "Uitgebreide vaardigheidstraining",
+  trainingSectionCombined: "Gecombineerde vaardigheidstraining",
+  trainingRegimenLabel: "Trainingsregime",
+  trainingSetButtonLabel: "Instellen",
+  trainingSetButtonTooltip: "Instellen als nieuw trainingsregime",
   primaryTrainingLabel: "Primair",
   secondaryTrainingLabel: "Secundair",
   trainingUnset: "—",
@@ -295,6 +316,10 @@ export const messagesNl: Messages = {
   trainingPassing: "Passen",
   trainingScoring: "Scoren",
   trainingSetPieces: "Dode spelmomenten",
+  trainingDefendingDefendersMidfielders:
+    "Verdedigen (Verdedigers + Middenvelders)",
+  trainingWingerWingerAttackers: "Vleugelspel (Vleugelspelers + Aanvallers)",
+  trainingPassingDefendersMidfielders: "Passen (Verdedigers + Middenvelders)",
   trainingSlotPrimary: "Primair",
   trainingSlotSecondary: "Secundair",
   trainingSlotBoth: "Pri/sec",

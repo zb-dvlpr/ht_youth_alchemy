@@ -669,6 +669,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   top: -10px;
   left: var(--callout-pointer-x, 50%);
   transform: translateX(-50%) rotate(225deg);
+  z-index: 0;
 }
 
 .helpCallout[data-placement="right-center"]::after {
@@ -3124,10 +3125,34 @@ html[data-theme="dark"] .detailsTabActive {
 }
 
 html[data-theme="dark"] .trainingSelect,
-html[data-theme="dark"] .sortSelect {
+html[data-theme="dark"] .sortSelect,
+html[data-theme="dark"] .trainingSelectTrigger {
   background: #1b1917;
   border-color: rgba(255, 255, 255, 0.12);
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .trainingSelectTrigger::after {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%23f3ede4' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+}
+
+html[data-theme="dark"] .trainingSelectOptionActive {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: #2a241d;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .fieldTopLeftOverlay .trainingLabel {
+  color: rgba(210, 221, 201, 0.85);
+}
+
+html[data-theme="dark"] .fieldTopLeftOverlay .trainingSelectTrigger {
+  background: rgba(30, 39, 29, 0.9);
+  border-color: rgba(210, 221, 201, 0.2);
+}
+
+html[data-theme="dark"] .fieldTopLeftOverlay .trainingSelectTrigger:hover {
+  background: rgba(36, 47, 34, 0.95);
 }
 
 html[data-theme="dark"] .langSelect {
@@ -3843,12 +3868,112 @@ html[data-theme="dark"] .spinner {
 
 .trainingSelect {
   border: 1px solid #c9b9a3;
-  background: #fff;
-  border-radius: 999px;
-  padding: 4px 10px;
+  background: #f1e9dc;
+  border-radius: 12px;
+  padding: 6px 30px 6px 12px;
   font-size: 12px;
+  font-weight: 600;
   color: #3f362c;
   min-width: 160px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: background 0.2s ease, border-color 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%236b6256' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  cursor: pointer;
+}
+
+.trainingSelect:hover {
+  background-color: #ece2d2;
+  border-color: #c9b9a3;
+}
+
+.trainingSelect:focus {
+  outline: 2px solid rgba(233, 213, 182, 0.65);
+  outline-offset: 1px;
+}
+
+.trainingSelectTrigger {
+  border: 1px solid #c9b9a3;
+  background: #f1e9dc;
+  border-radius: 12px;
+  min-width: 250px;
+  padding: 6px 30px 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3f362c;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.trainingSelectTrigger::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 10px;
+  height: 6px;
+  transform: translateY(-50%);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%236b6256' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.trainingSelectTrigger:hover {
+  background: #ece2d2;
+  border-color: #c9b9a3;
+}
+
+.trainingSelectTrigger:focus {
+  outline: 2px solid rgba(233, 213, 182, 0.65);
+  outline-offset: 1px;
+}
+
+.trainingSelectMenu {
+  min-width: 250px;
+}
+
+.trainingSelectSectionHeader {
+  font-size: 11px;
+  font-weight: 800;
+  color: #3f362c;
+  margin: 6px 0 2px;
+  padding: 0 2px;
+}
+
+.trainingSelectSectionOptions {
+  display: grid;
+  gap: 6px;
+}
+
+.trainingSelectOption {
+  display: block;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  padding: 6px 8px;
+  cursor: pointer;
+}
+
+.trainingSelectOption:hover {
+  border-color: #c9b9a3;
+  background: #f1e9dc;
+}
+
+.trainingSelectOptionActive {
+  border-color: #c9b9a3;
+  background: #f1e9dc;
+  color: #3f362c;
 }
 
 .listHeader {
@@ -4970,6 +5095,67 @@ html[data-theme="dark"] .spinner {
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
+.tacticOverlayBottomRight {
+  margin-left: auto;
+}
+
+.tacticOverlayFieldTopLeft {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  z-index: 3;
+}
+
+.fieldTopLeftOverlay {
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  z-index: 80;
+}
+
+.lineupTrainingControlStack {
+  display: grid;
+  gap: 4px;
+}
+
+.fieldTopLeftOverlay .trainingRow {
+  justify-content: flex-start;
+  gap: 6px;
+}
+
+.fieldTopLeftOverlay .trainingLabel {
+  color: rgba(208, 223, 193, 0.75);
+  font-size: 10px;
+  letter-spacing: 0.35px;
+  min-width: 24px;
+}
+
+.fieldTopLeftOverlay .trainingSelectTrigger {
+  min-width: 150px;
+  max-width: 160px;
+  padding: 4px 24px 4px 8px;
+  background: rgba(236, 243, 227, 0.92);
+  border-color: rgba(176, 197, 164, 0.9);
+  font-size: 11px;
+  line-height: 1.15;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.fieldTopLeftOverlay .trainingSelectTrigger:hover {
+  background: rgba(228, 237, 217, 0.95);
+  border-color: rgba(176, 197, 164, 1);
+}
+
+.fieldTopLeftOverlay .trainingSelectMenu {
+  min-width: 170px;
+  max-width: 210px;
+}
+
+.fieldTopLeftOverlay .feedbackMenu {
+  z-index: 3200;
+}
+
 .tacticOverlay:hover {
   background: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);
@@ -5004,6 +5190,113 @@ html[data-theme="dark"] .spinner {
 .tacticSelect option {
   color: #2d261f;
   background: #f7f1e3;
+}
+
+.lineupTrainingTypeControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lineupTrainingTypeLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f7f1e3;
+}
+
+.lineupTrainingTypeTrigger {
+  border: 1px solid #c9b9a3;
+  background: #f1e9dc;
+  border-radius: 12px;
+  min-width: 230px;
+  padding: 6px 30px 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3f362c;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.lineupTrainingTypeTrigger::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 10px;
+  height: 6px;
+  transform: translateY(-50%);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%236b6256' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.lineupTrainingTypeTrigger:hover {
+  background: #ece2d2;
+  border-color: #c9b9a3;
+}
+
+.lineupTrainingTypeTrigger:focus {
+  outline: 2px solid rgba(233, 213, 182, 0.65);
+  outline-offset: 1px;
+}
+
+.lineupTrainingTypeValue {
+  display: block;
+}
+
+.lineupTrainingTypeMenu {
+  min-width: 230px;
+}
+
+.lineupTrainingTypeOption {
+  flex: 1 1 auto;
+  text-align: left;
+  cursor: default;
+}
+
+.lineupTrainingTypeOptionActive {
+  border-color: #c9b9a3;
+  background: #f1e9dc;
+}
+
+.lineupTrainingTypeOptionRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lineupTrainingTypeSectionHeader {
+  font-size: 11px;
+  font-weight: 800;
+  color: #3f362c;
+  margin: 6px 0 2px;
+  padding: 0 2px;
+  text-transform: none;
+}
+
+.lineupTrainingTypeSetButton {
+  border: 1px solid #d8cbb6;
+  background: #fff;
+  border-radius: 8px;
+  color: #3f362c;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+  min-width: 46px;
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.lineupTrainingTypeSetButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .optimizeButton {

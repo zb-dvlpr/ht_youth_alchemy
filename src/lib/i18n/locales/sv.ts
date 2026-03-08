@@ -97,6 +97,8 @@ export const messagesSv: Messages = {
       "Lansering av verktyget för seniorlagsoptimering.",
     changelog_3_1_0:
       "Senioroptimering har nu ett eget hjälp-overlay med guidade markeringar för Senaste uppdateringar och AI-uppställning.",
+    changelog_3_2_0:
+      "Seniorlagets träningsregim kan nu ändras direkt i appen med behörighetskontroll och verifiering.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -440,7 +442,8 @@ export const messagesSv: Messages = {
       "Du kan skicka uppställningar till Hattrick, men träningen måste ställas in manuellt (API:t tillåter inte det).",
     helpBulletDesktop: "Optimerad för desktop.",
     helpCalloutStar: "Välj din stjärnspelare.",
-    helpCalloutTraining: "Välj ditt träningsupplägg.",
+    helpCalloutTraining:
+      "Ställ in primär och sekundär träning innan du optimerar.",
     helpCalloutOptimize:
       "Använd AI för att optimera uppställningen för stjärnspelare och träningsupplägg.",
     helpCalloutAuto:
@@ -452,6 +455,10 @@ export const messagesSv: Messages = {
       "Senaste uppdateringar visar bara andringar som hittats i sparade uppdateringsjamforelser.",
     seniorHelpCalloutSetLineupAi:
       "Satt uppstallning med AI oppnar de tva uppstallningslagen for denna match.",
+    seniorHelpCalloutTrainingRegimen:
+      "Den har rullgardinsmenyn later dig andra seniorlagets traningsregim direkt.",
+    seniorHelpCalloutAnalyzeOpponent:
+      "Analysera motståndare granskar senaste formationer, taktikval och betygstrender.",
     seniorHelpBulletLatestUpdates:
       "En ny jamforelse sparas bara nar en uppdatering hittar verkliga andringar (t.ex. ny spelare, andrade betyg/skills, skador, kort, form, kondition eller egenskaper).",
     seniorHelpBulletAiOverview:
@@ -462,6 +469,10 @@ export const messagesSv: Messages = {
       "Ignorera traning optimerar bara matcheffektivitet utan krav pa traningsplatser.",
     seniorHelpBulletAiMatchTypes:
       "Liga- och turneringsmatcher riktas mot starkaste konkurrensuppstallning. Vanmatcher anvander en andrabasta frisk elva.",
+    seniorHelpBulletTrainingRegimen:
+      "Seniorlagets traningsregim kan andras direkt i appen via uppstallningens rullgardinsmeny.",
+    seniorHelpBulletAnalyzeOpponent:
+      "Analysera motståndare sammanfattar senaste mönster för att stödja AI-val av uppställning.",
     themeSwitchDark: "Växla till mörkt läge",
     themeSwitchLight: "Växla till ljust läge",
     helpDismissLabel: "Jag förstår",
@@ -706,6 +717,8 @@ export const messagesSv: Messages = {
     notificationDebugOauthMode: "OAuth-debugläge:",
     notificationMatchesRefreshed: "Matcher uppdaterade",
     notificationMatchesRefreshFailed: "Misslyckades att uppdatera matcher",
+    notificationSeniorTrainingRegimenChanged:
+      "Seniorlagets träningsregim ändrades till {{training}}",
     notificationReauthRequired:
       "Uppdatering avbröts: ny autentisering krävs",
     permissionsLabel: "Behörigheter:",
@@ -713,6 +726,12 @@ export const messagesSv: Messages = {
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-välj stjärnspelare och träningar",
     trainingTitle: "Fokuserad träning",
+    trainingSectionFocused: "Fokuserad träning",
+    trainingSectionExtended: "Utökad träning",
+    trainingSectionCombined: "Kombinerad träning",
+    trainingRegimenLabel: "Träningsregim",
+    trainingSetButtonLabel: "Sätt",
+    trainingSetButtonTooltip: "Sätt som ny träningsregim",
     primaryTrainingLabel: "Primär",
     secondaryTrainingLabel: "Sekundär",
     trainingUnset: "—",
@@ -723,6 +742,10 @@ export const messagesSv: Messages = {
     trainingPassing: "Passningar",
     trainingScoring: "Målskytte",
     trainingSetPieces: "Fasta situationer",
+    trainingDefendingDefendersMidfielders: "Försvar (Backar + Mittfältare)",
+    trainingWingerWingerAttackers: "Ytterspel (Yttrar + Anfallare)",
+    trainingPassingDefendersMidfielders:
+      "Passningar (Backar + Mittfältare)",
     trainingSlotPrimary: "Primär",
     trainingSlotSecondary: "Sekundär",
     trainingSlotBoth: "Pri/sek",
@@ -876,6 +899,10 @@ export const messagesSv: Messages = {
       "Din Hattrick-auktorisering har gått ut eller återkallats. Anslut igen för att fortsätta.",
     authExpiredAction: "Anslut igen",
     authExpiredDismiss: "Stäng",
+    scopeReconnectTitle: "Behörigheter krävs",
+    scopeReconnectBody:
+      "På grund av nyligen tillagda funktioner är tokenbehörigheterna otillräckliga. Anslut igen för att begära nödvändiga scopes.",
+    scopeReconnectAction: "Anslut igen",
     oauthErrorClientExplanation:
       "Hattrick OAuth/CHPP avvisade begäran (4xx). Det är oftast ett behörighets- eller valideringsproblem.",
     oauthErrorServerExplanation:

@@ -99,6 +99,8 @@ export const messagesPt: Messages = {
       "Lançamento da ferramenta de otimização do time sênior.",
     changelog_3_1_0:
       "A otimização sênior agora tem overlay de ajuda dedicado com callouts guiados para Últimas atualizações e escalação por IA.",
+    changelog_3_2_0:
+      "O regime de treino do elenco sênior agora pode ser alterado direto no app com validação de permissões e verificação.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",
@@ -446,7 +448,8 @@ export const messagesPt: Messages = {
       "Você pode enviar escalações ao Hattrick, mas o treino deve ser definido manualmente (a API não permite).",
     helpBulletDesktop: "Otimizado para desktop.",
     helpCalloutStar: "Escolha seu jogador estrela.",
-    helpCalloutTraining: "Escolha seu regime de treinamento.",
+    helpCalloutTraining:
+      "Defina treino primário e secundário antes de otimizar.",
     helpCalloutOptimize:
       "Use a IA para otimizar a escalação para o jogador estrela e o regime de treino.",
     helpCalloutAuto:
@@ -458,6 +461,10 @@ export const messagesPt: Messages = {
       "Ultimas atualizacoes mostra apenas mudancas detectadas nas comparacoes de refresh salvas.",
     seniorHelpCalloutSetLineupAi:
       "Definir escalacao com IA abre os dois modos de escalacao para esta partida.",
+    seniorHelpCalloutTrainingRegimen:
+      "Este dropdown permite alterar diretamente o regime de treino do elenco senior.",
+    seniorHelpCalloutAnalyzeOpponent:
+      "Analisar adversário revisa formações, táticas e tendências recentes de notas do oponente.",
     seniorHelpBulletLatestUpdates:
       "Uma nova comparacao so e salva quando um refresh detecta mudancas reais (por exemplo novo jogador, mudancas de notas/skills, lesoes, cartoes, forma, resistencia ou tracos).",
     seniorHelpBulletAiOverview:
@@ -468,6 +475,10 @@ export const messagesPt: Messages = {
       "Modo ignorar treino: otimiza apenas a eficacia da partida sem restricoes de slots de treino.",
     seniorHelpBulletAiMatchTypes:
       "Liga e torneio buscam a configuracao competitiva mais forte. Em amistosos, usa-se um XI saudavel de segundo nivel.",
+    seniorHelpBulletTrainingRegimen:
+      "O regime de treino senior pode ser alterado diretamente no app pelo dropdown da escalacao.",
+    seniorHelpBulletAnalyzeOpponent:
+      "Analisar adversário resume padrões recentes para apoiar decisões da IA na escalação.",
     themeSwitchDark: "Mudar para modo escuro",
     themeSwitchLight: "Mudar para modo claro",
     helpDismissLabel: "Entendi",
@@ -715,6 +726,8 @@ export const messagesPt: Messages = {
     notificationDebugOauthMode: "Modo de debug OAuth:",
     notificationMatchesRefreshed: "Partidas atualizadas",
     notificationMatchesRefreshFailed: "Falha ao atualizar partidas",
+    notificationSeniorTrainingRegimenChanged:
+      "O regime de treino da equipa principal foi alterado para {{training}}",
     notificationReauthRequired:
       "Atualização cancelada: reautenticação necessária",
     permissionsLabel: "Permissões:",
@@ -722,6 +735,12 @@ export const messagesPt: Messages = {
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-selecionar jogador estrela e treinos",
     trainingTitle: "Treino focado",
+    trainingSectionFocused: "Treino focado",
+    trainingSectionExtended: "Treino estendido",
+    trainingSectionCombined: "Treino combinado",
+    trainingRegimenLabel: "Regime de treino",
+    trainingSetButtonLabel: "Definir",
+    trainingSetButtonTooltip: "Definir como novo regime de treino",
     primaryTrainingLabel: "Primário",
     secondaryTrainingLabel: "Secundário",
     trainingUnset: "—",
@@ -732,6 +751,9 @@ export const messagesPt: Messages = {
     trainingPassing: "Passes",
     trainingScoring: "Finalização",
     trainingSetPieces: "Bolas paradas",
+    trainingDefendingDefendersMidfielders: "Defesa (Defesas + Médios)",
+    trainingWingerWingerAttackers: "Ala (Alas + Avançados)",
+    trainingPassingDefendersMidfielders: "Passes (Defesas + Médios)",
     trainingSlotPrimary: "Primário",
     trainingSlotSecondary: "Secundário",
     trainingSlotBoth: "Pri/sec",
@@ -885,6 +907,10 @@ export const messagesPt: Messages = {
       "Sua autorização do Hattrick expirou ou foi revogada. Reconecte para continuar.",
     authExpiredAction: "Reconectar",
     authExpiredDismiss: "Fechar",
+    scopeReconnectTitle: "Permissões necessárias",
+    scopeReconnectBody:
+      "Devido a recursos adicionados recentemente, as permissões do token são insuficientes. Reconecte para solicitar os escopos necessários.",
+    scopeReconnectAction: "Reconectar",
     oauthErrorClientExplanation:
       "O Hattrick OAuth/CHPP rejeitou a solicitação (4xx). Normalmente é um problema de autorização ou validação.",
     oauthErrorServerExplanation:

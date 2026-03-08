@@ -8,6 +8,12 @@ import ClubChronicle from "./ClubChronicle";
 import Modal from "./Modal";
 import { Messages } from "@/lib/i18n";
 import { formatDateTime } from "@/lib/datetime";
+import {
+  getMissingChppPermissions,
+  parseExtendedPermissionsFromCheckToken,
+  REQUIRED_CHPP_EXTENDED_PERMISSIONS,
+} from "@/lib/chpp/permissions";
+import { reconnectChppWithTokenReset } from "@/lib/chpp/client";
 
 type AppShellProps = {
   messages: Messages;
@@ -57,7 +63,47 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
   const [seniorLastRefreshAt, setSeniorLastRefreshAt] = useState<number | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
   const [changelogPage, setChangelogPage] = useState(0);
+  const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const shellTopBarRef = useRef<HTMLDivElement | null>(null);
+
+  const ensureRefreshScopes = async () => {
+    try {
+      const response = await fetch("/api/chpp/oauth/check-token", {
+        cache: "no-store",
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            permissions?: string[];
+            raw?: string;
+          }
+        | null;
+      if (!response.ok) {
+        setScopeReconnectModalOpen(true);
+        return false;
+      }
+      const grantedPermissions = Array.isArray(payload?.permissions)
+        ? payload.permissions
+        : [];
+      const missingPermissions = getMissingChppPermissions(
+        grantedPermissions,
+        REQUIRED_CHPP_EXTENDED_PERMISSIONS
+      );
+      const rawTokenCheck = typeof payload?.raw === "string" ? payload.raw : "";
+      const hasScopeTag = /<Scope>/i.test(rawTokenCheck);
+      const scopeTokens = hasScopeTag
+        ? parseExtendedPermissionsFromCheckToken(rawTokenCheck)
+        : [];
+      const missingDefaultScope = hasScopeTag && !scopeTokens.includes("default");
+      if (missingPermissions.length > 0 || missingDefaultScope) {
+        setScopeReconnectModalOpen(true);
+        return false;
+      }
+      return true;
+    } catch {
+      setScopeReconnectModalOpen(true);
+      return false;
+    }
+  };
 
   const tools = useMemo(
     () => [
@@ -90,6 +136,10 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
 
   const changelogEntries = useMemo(
     () => [
+      {
+        version: "3.2.0",
+        entries: [messages.changelog_3_2_0],
+      },
       {
         version: "3.1.0",
         entries: [messages.changelog_3_1_0],
@@ -255,6 +305,7 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
       messages.changelog_2_21_0,
       messages.changelog_2_20_0,
       messages.changelog_2_19_0,
+      messages.changelog_3_2_0,
       messages.changelog_3_1_0,
       messages.changelog_3_0_0,
     ]
@@ -627,15 +678,19 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
               <button
                 type="button"
                 className={styles.chronicleUpdatesButton}
-                onClick={() =>
-                  window.dispatchEvent(
-                    new CustomEvent(
-                      activeTool === "youth"
-                        ? YOUTH_REFRESH_REQUEST_EVENT
-                        : SENIOR_REFRESH_REQUEST_EVENT
-                    )
-                  )
-                }
+                onClick={() => {
+                  void (async () => {
+                    const hasRequiredScopes = await ensureRefreshScopes();
+                    if (!hasRequiredScopes) return;
+                    window.dispatchEvent(
+                      new CustomEvent(
+                        activeTool === "youth"
+                          ? YOUTH_REFRESH_REQUEST_EVENT
+                          : SENIOR_REFRESH_REQUEST_EVENT
+                      )
+                    );
+                  })();
+                }}
                 disabled={activeTool === "youth" ? youthRefreshing : seniorRefreshing}
                 aria-label={
                   activeTool === "youth"
@@ -728,6 +783,23 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
         {activeTool === "senior" ? seniorToolChildren : null}
         {activeTool === "chronicle" ? <ClubChronicle messages={messages} /> : null}
       </section>
+      <Modal
+        open={scopeReconnectModalOpen}
+        title={messages.scopeReconnectTitle}
+        movable={false}
+        body={<p>{messages.scopeReconnectBody}</p>}
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => {
+              void reconnectChppWithTokenReset();
+            }}
+          >
+            {messages.scopeReconnectAction}
+          </button>
+        }
+      />
       <Modal
         open={showChangelog}
         title={messages.changelogTitle}

@@ -12,7 +12,11 @@ import {
 } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
-import { fetchChppJson, ChppAuthRequiredError } from "@/lib/chpp/client";
+import {
+  fetchChppJson,
+  ChppAuthRequiredError,
+  reconnectChppWithTokenReset,
+} from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
@@ -39,6 +43,12 @@ import UpcomingMatches, { Match, MatchesResponse } from "./UpcomingMatches";
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import { setDragGhost } from "@/lib/drag";
+import { positionLabel } from "@/lib/positions";
+import {
+  getMissingChppPermissions,
+  parseExtendedPermissionsFromCheckToken,
+  REQUIRED_CHPP_EXTENDED_PERMISSIONS,
+} from "@/lib/chpp/permissions";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -186,6 +196,8 @@ const SENIOR_REFRESH_STATE_EVENT = "ya:senior-refresh-state";
 const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
 const SENIOR_HELP_ANCHOR_UPDATES = "[data-help-anchor='senior-latest-updates']";
 const SENIOR_HELP_ANCHOR_SET_LINEUP_AI = "[data-help-anchor='senior-set-lineup-ai']";
+const SENIOR_HELP_ANCHOR_TRAINING_REGIMEN = `.${styles.lineupTrainingTypeControl}`;
+const SENIOR_HELP_ANCHOR_ANALYZE_OPPONENT = `.${styles.matchAnalyzeOpponentWrap}`;
 
 const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
@@ -207,11 +219,12 @@ const SKILL_KEYS = [
 ] as const;
 const UPDATES_HISTORY_LIMIT = 20;
 const FRIENDLY_MATCH_TYPES = new Set<number>([4, 5, 8, 9]);
-const LEAGUE_CUP_QUALI_MATCH_TYPES = new Set<number>([1, 2, 3]);
+const LEAGUE_CUP_QUALI_MATCH_TYPES = new Set<number>([1, 2, 3, 6]);
 const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
 const OPPONENT_ARCHIVE_LIMIT = 20;
 const OPPONENT_DETAILS_CONCURRENCY = 6;
 const FORMATION_PREDICT_CONCURRENCY = 4;
+const NON_DEPRECATED_TRAINING_TYPES = [9, 3, 8, 5, 7, 4, 2, 11, 12, 10, 6] as const;
 const FIELD_SLOT_ORDER = [
   "KP",
   "WB_L",
@@ -266,6 +279,11 @@ const SLOT_TO_RATING_CODE: Record<string, number> = {
   F_C: 111,
   F_R: 111,
 };
+
+const sanitizeTrainingType = (value: number | null): number | null =>
+  typeof value === "number" && NON_DEPRECATED_TRAINING_TYPES.includes(value as (typeof NON_DEPRECATED_TRAINING_TYPES)[number])
+    ? value
+    : null;
 type PlayerSector = "keeper" | "defense" | "midfield" | "attack";
 const SLOT_TO_SECTOR: Record<string, PlayerSector> = {
   KP: "keeper",
@@ -1126,6 +1144,10 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [tacticType, setTacticType] = useState(0);
   const [trainingType, setTrainingType] = useState<number | null>(null);
+  const [trainingTypeSetPending, setTrainingTypeSetPending] = useState(false);
+  const [trainingTypeSetPendingValue, setTrainingTypeSetPendingValue] = useState<number | null>(
+    null
+  );
   const [includeTournamentMatches, setIncludeTournamentMatches] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(null);
@@ -1151,6 +1173,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [deferHelpUntilInitialRefresh, setDeferHelpUntilInitialRefresh] =
     useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
+  const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [helpCallouts, setHelpCallouts] = useState<
     {
       id: string;
@@ -1279,6 +1302,13 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       default:
         return messages.unknownShort;
     }
+  };
+
+  const trainingSectionTitleForValue = (value: number) => {
+    if (value === 9) return messages.trainingSectionFocused;
+    if (value === 11) return messages.trainingSectionExtended;
+    if (value === 6) return messages.trainingSectionCombined;
+    return null;
   };
 
   const sortedPlayers = useMemo(() => {
@@ -1688,6 +1718,71 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     [selectedUpdatesId, updatesHistory]
   );
 
+  const seniorTrainedSlots = useMemo(() => {
+    const primaryFull = new Set<string>();
+    const primaryHalf = new Set<string>();
+
+    switch (trainingType) {
+      case 2: // Set pieces
+      case 6: // Scoring + Set pieces
+        FIELD_SLOT_ORDER.forEach((slot) => primaryFull.add(slot));
+        break;
+      case 3: // Defending
+        DEFENSE_SLOTS.forEach((slot) => primaryFull.add(slot));
+        break;
+      case 4: // Scoring
+        ATTACK_SLOTS.forEach((slot) => primaryFull.add(slot));
+        break;
+      case 5: // Winger
+        primaryFull.add("W_L");
+        primaryFull.add("W_R");
+        primaryHalf.add("WB_L");
+        primaryHalf.add("WB_R");
+        break;
+      case 7: // Passing
+        MIDFIELD_SLOTS.forEach((slot) => primaryFull.add(slot));
+        ATTACK_SLOTS.forEach((slot) => primaryFull.add(slot));
+        break;
+      case 8: // Playmaking
+        primaryFull.add("IM_L");
+        primaryFull.add("IM_C");
+        primaryFull.add("IM_R");
+        primaryHalf.add("W_L");
+        primaryHalf.add("W_R");
+        break;
+      case 9: // Keeper
+        primaryFull.add("KP");
+        break;
+      case 10: // Passing (Defenders + Midfielders)
+        DEFENSE_SLOTS.forEach((slot) => primaryFull.add(slot));
+        MIDFIELD_SLOTS.forEach((slot) => primaryFull.add(slot));
+        break;
+      case 11: // Defending (Defenders + Midfielders)
+        primaryFull.add("KP");
+        DEFENSE_SLOTS.forEach((slot) => primaryFull.add(slot));
+        MIDFIELD_SLOTS.forEach((slot) => primaryFull.add(slot));
+        break;
+      case 12: // Winger (Wingers + Attackers)
+        ATTACK_SLOTS.forEach((slot) => primaryFull.add(slot));
+        primaryFull.add("W_L");
+        primaryFull.add("W_R");
+        break;
+      default:
+        break;
+    }
+
+    const all = new Set<string>([...primaryFull, ...primaryHalf]);
+    return {
+      primary: new Set(all),
+      secondary: new Set<string>(),
+      primaryFull,
+      primaryHalf,
+      secondaryFull: new Set<string>(),
+      secondaryHalf: new Set<string>(),
+      all,
+    };
+  }, [trainingType]);
+
   const notifyRefreshState = (
     nextRefreshing: boolean,
     nextStatus: string | null,
@@ -1745,12 +1840,16 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return payload as RatingsMatrixResponse;
   };
 
-  const fetchTrainingType = async (): Promise<number | null> => {
+  const fetchTrainingSnapshot = async (): Promise<{
+    trainingType: number | null;
+    teamId: number | null;
+  }> => {
     const { response, payload } = await fetchChppJson<{
       data?: {
         HattrickData?: {
           Team?: {
             TrainingType?: unknown;
+            TeamID?: unknown;
           };
         };
       };
@@ -1760,7 +1859,73 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     if (!response.ok || payload?.error) {
       throw new Error(payload?.details ?? payload?.error ?? "Failed to fetch training");
     }
-    return parseNumber(payload?.data?.HattrickData?.Team?.TrainingType);
+    return {
+      trainingType: parseNumber(payload?.data?.HattrickData?.Team?.TrainingType),
+      teamId: parseNumber(payload?.data?.HattrickData?.Team?.TeamID),
+    };
+  };
+
+  const fetchTrainingType = async (): Promise<number | null> => {
+    const snapshot = await fetchTrainingSnapshot();
+    return snapshot.trainingType;
+  };
+
+  const setSeniorTrainingRegimen = async (teamId: number, nextTrainingType: number) => {
+    const { response, payload } = await fetchChppJson<{
+      error?: string;
+      details?: string;
+    }>("/api/chpp/training", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        teamId,
+        trainingType: nextTrainingType,
+      }),
+    });
+    if (!response.ok || payload?.error) {
+      throw new Error(payload?.details ?? payload?.error ?? "Failed to set training");
+    }
+  };
+
+  const handleSetTrainingType = async (nextTrainingType: number) => {
+    if (trainingTypeSetPending) return;
+    if (nextTrainingType === trainingType) return;
+    const hasRequiredScopes = await ensureRequiredScopes();
+    if (!hasRequiredScopes) return;
+
+    setTrainingTypeSetPending(true);
+    setTrainingTypeSetPendingValue(nextTrainingType);
+    try {
+      let teamId = parseNumber(matchesState?.data?.HattrickData?.Team?.TeamID);
+      if (teamId === null) {
+        const snapshot = await fetchTrainingSnapshot();
+        teamId = snapshot.teamId;
+      }
+      if (teamId === null) {
+        throw new Error("Missing senior team id for training update");
+      }
+
+      await setSeniorTrainingRegimen(teamId, nextTrainingType);
+      const verifiedSnapshot = await fetchTrainingSnapshot();
+      const verifiedTrainingType = sanitizeTrainingType(verifiedSnapshot.trainingType);
+      if (verifiedTrainingType !== nextTrainingType) {
+        throw new Error("Training update could not be verified");
+      }
+      setTrainingType(verifiedTrainingType);
+      addNotification(
+        messages.notificationSeniorTrainingRegimenChanged.replace(
+          "{{training}}",
+          obtainedTrainingRegimenLabel(nextTrainingType)
+        )
+      );
+    } catch (error) {
+      const fallback = messages.notificationMatchesRefreshFailed;
+      const detail = error instanceof Error ? error.message : String(error);
+      addNotification(detail || fallback);
+    } finally {
+      setTrainingTypeSetPending(false);
+      setTrainingTypeSetPendingValue(null);
+    }
   };
 
   const fetchPlayerDetailsById = async (playerId: number) => {
@@ -2165,7 +2330,7 @@ const refreshDetailsForPlayers = async (
       setMatchesState(nextMatches);
       setRatingsResponse(nextRatings);
       if (nextTrainingType !== undefined) {
-        setTrainingType(nextTrainingType);
+        setTrainingType(sanitizeTrainingType(nextTrainingType));
       }
       setLoadError(null);
       setLoadErrorDetails(null);
@@ -2235,6 +2400,8 @@ const refreshDetailsForPlayers = async (
   };
 
   const onRefreshMatchesOnly = async () => {
+    const hasRequiredScopes = await ensureRequiredScopes();
+    if (!hasRequiredScopes) return false;
     try {
       const nextMatches = await fetchMatches();
       setMatchesState(nextMatches);
@@ -2243,6 +2410,45 @@ const refreshDetailsForPlayers = async (
       if (error instanceof ChppAuthRequiredError) return false;
       return false;
     }
+  };
+
+  const ensureRequiredScopes = async () => {
+    try {
+      const response = await fetch("/api/chpp/oauth/check-token", {
+        cache: "no-store",
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            permissions?: string[];
+            raw?: string;
+          }
+        | null;
+      if (!response.ok) {
+        setScopeReconnectModalOpen(true);
+        return false;
+      }
+      const grantedPermissions = Array.isArray(payload?.permissions)
+        ? payload.permissions
+        : [];
+      const missingPermissions = getMissingChppPermissions(
+        grantedPermissions,
+        REQUIRED_CHPP_EXTENDED_PERMISSIONS
+      );
+      const rawTokenCheck = typeof payload?.raw === "string" ? payload.raw : "";
+      const hasScopeTag = /<Scope>/i.test(rawTokenCheck);
+      const scopeTokens = hasScopeTag
+        ? parseExtendedPermissionsFromCheckToken(rawTokenCheck)
+        : [];
+      const missingDefaultScope = hasScopeTag && !scopeTokens.includes("default");
+      if (missingPermissions.length > 0 || missingDefaultScope) {
+        setScopeReconnectModalOpen(true);
+        return false;
+      }
+    } catch {
+      setScopeReconnectModalOpen(true);
+      return false;
+    }
+    return true;
   };
 
   useEffect(() => {
@@ -2323,7 +2529,7 @@ const refreshDetailsForPlayers = async (
       return FRIENDLY_MATCH_TYPES;
     }
     if (selectedMatchType !== null && TOURNAMENT_MATCH_TYPES.has(selectedMatchType)) {
-      return new Set<number>([...LEAGUE_CUP_QUALI_MATCH_TYPES, ...TOURNAMENT_MATCH_TYPES]);
+      return TOURNAMENT_MATCH_TYPES;
     }
     return LEAGUE_CUP_QUALI_MATCH_TYPES;
   };
@@ -2588,7 +2794,7 @@ const refreshDetailsForPlayers = async (
 
       let activeTrainingType = trainingType;
       try {
-        activeTrainingType = await fetchTrainingType();
+        activeTrainingType = sanitizeTrainingType(await fetchTrainingType());
         setTrainingType(activeTrainingType);
       } catch {
         // Keep best-lineup flow intact even if training endpoint fails.
@@ -2614,19 +2820,45 @@ const refreshDetailsForPlayers = async (
       const playerPool = players
         .map((player) => {
           const details = detailsById.get(player.PlayerID);
+          const cardsValue =
+            typeof details?.Cards === "number"
+              ? details.Cards
+              : typeof player.Cards === "number"
+                ? player.Cards
+                : null;
+          return {
+            player,
+            details,
+            cardsValue,
+          };
+        })
+        .map((player) => {
+          const details = player.details;
           const injuryLevel =
             typeof details?.InjuryLevel === "number"
               ? details.InjuryLevel
-              : typeof player.InjuryLevel === "number"
-                ? player.InjuryLevel
+              : typeof player.player.InjuryLevel === "number"
+                ? player.player.InjuryLevel
                 : null;
           return {
-            id: player.PlayerID,
-            name: formatPlayerName(player) || String(player.PlayerID),
+            id: player.player.PlayerID,
+            name: formatPlayerName(player.player) || String(player.player.PlayerID),
             injuryLevel,
+            cardsValue: player.cardsValue,
           };
         })
-        .filter((player) => !(typeof player.injuryLevel === "number" && player.injuryLevel >= 1))
+        .filter((player) => {
+          if (typeof player.injuryLevel === "number" && player.injuryLevel >= 1) {
+            return false;
+          }
+          const isLeagueCupTarget =
+            selectedMatchType !== null &&
+            LEAGUE_CUP_QUALI_MATCH_TYPES.has(selectedMatchType);
+          if (isLeagueCupTarget && typeof player.cardsValue === "number" && player.cardsValue >= 3) {
+            return false;
+          }
+          return true;
+        })
         .map(({ id, name }) => ({ id, name }));
       if (playerPool.length < 11) {
         throw new Error(messages.submitOrdersMinPlayers);
@@ -3147,7 +3379,9 @@ const refreshDetailsForPlayers = async (
           setLoadedMatchId(typeof parsed.loadedMatchId === "number" ? parsed.loadedMatchId : null);
           setTacticType(typeof parsed.tacticType === "number" ? parsed.tacticType : 0);
           setTrainingType(
-            typeof parsed.trainingType === "number" ? parsed.trainingType : null
+            sanitizeTrainingType(
+              typeof parsed.trainingType === "number" ? parsed.trainingType : null
+            )
           );
           setIncludeTournamentMatches(Boolean(parsed.includeTournamentMatches));
           if (forceWipeLegacyUpdatesState) {
@@ -3513,7 +3747,7 @@ const refreshDetailsForPlayers = async (
       setHelpCallouts([]);
       return;
     }
-    const CALL_OUT_MAX_WIDTH = 340;
+    const CALL_OUT_MAX_WIDTH = 240;
     const targets: Array<{
       id: string;
       selector: string;
@@ -3527,6 +3761,8 @@ const refreshDetailsForPlayers = async (
       hideIndex?: boolean;
       offsetX?: number;
       offsetY?: number;
+      pointerOffsetX?: number;
+      maxWidth?: number;
     }> = [
       {
         id: "updates",
@@ -3539,15 +3775,30 @@ const refreshDetailsForPlayers = async (
         selector: SENIOR_HELP_ANCHOR_SET_LINEUP_AI,
         text: messages.seniorHelpCalloutSetLineupAi,
         placement: "left-center",
+        maxWidth: 300,
+      },
+      {
+        id: "training-regimen",
+        selector: SENIOR_HELP_ANCHOR_TRAINING_REGIMEN,
+        text: messages.seniorHelpCalloutTrainingRegimen,
+        placement: "below-center",
+        pointerOffsetX: -28,
+      },
+      {
+        id: "analyze-opponent",
+        selector: SENIOR_HELP_ANCHOR_ANALYZE_OPPONENT,
+        text: messages.seniorHelpCalloutAnalyzeOpponent,
+        placement: "below-center",
+        pointerOffsetX: -36,
       },
     ];
-    const measureWidth = (text: string, hideIndex: boolean) => {
+    const measureWidth = (text: string, hideIndex: boolean, maxWidth: number) => {
       const probe = document.createElement("div");
       probe.className = styles.helpCallout;
       probe.style.position = "fixed";
       probe.style.visibility = "hidden";
       probe.style.pointerEvents = "none";
-      probe.style.maxWidth = `${CALL_OUT_MAX_WIDTH}px`;
+      probe.style.maxWidth = `${maxWidth}px`;
       if (!hideIndex) {
         const badge = document.createElement("span");
         badge.className = styles.helpCalloutIndex;
@@ -3561,7 +3812,7 @@ const refreshDetailsForPlayers = async (
       document.body.appendChild(probe);
       const width = probe.getBoundingClientRect().width;
       probe.remove();
-      return Math.min(width, CALL_OUT_MAX_WIDTH);
+      return Math.min(width, maxWidth);
     };
 
     const computeCallouts = () => {
@@ -3609,7 +3860,12 @@ const refreshDetailsForPlayers = async (
         }
         left += offsetX;
         top += offsetY;
-        const calloutWidth = measureWidth(target.text, target.hideIndex ?? false);
+        const targetMaxWidth = target.maxWidth ?? CALL_OUT_MAX_WIDTH;
+        const calloutWidth = measureWidth(
+          target.text,
+          target.hideIndex ?? false,
+          targetMaxWidth
+        );
         const clampedLeft = Math.min(Math.max(left, 12), viewportWidth - 12);
         const maxLeft = viewportWidth - 12;
         const minLeft = 12;
@@ -3624,7 +3880,10 @@ const refreshDetailsForPlayers = async (
           target.placement === "above-center" || target.placement === "below-center"
             ? centerX - clampedLeftAdjusted + calloutWidth / 2
             : centerX - clampedLeftAdjusted;
-        const pointerX = Math.min(Math.max(pointerXRaw, 18), calloutWidth - 18);
+        const pointerX = Math.min(
+          Math.max(pointerXRaw + (target.pointerOffsetX ?? 0), 24),
+          calloutWidth - 24
+        );
         const clampedTop = Math.min(Math.max(top, 12), viewportHeight - 12);
         return [
           {
@@ -3633,7 +3892,7 @@ const refreshDetailsForPlayers = async (
             style: {
               left: clampedLeftAdjusted,
               top: clampedTop,
-              maxWidth: `${CALL_OUT_MAX_WIDTH}px`,
+              maxWidth: `${targetMaxWidth}px`,
               transform,
               "--callout-pointer-x": `${pointerX}px`,
             } as CSSProperties,
@@ -3657,7 +3916,13 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener("resize", schedule);
       window.removeEventListener("scroll", schedule, true);
     };
-  }, [messages.seniorHelpCalloutSetLineupAi, messages.seniorHelpCalloutUpdates, showHelp]);
+  }, [
+    messages.seniorHelpCalloutAnalyzeOpponent,
+    messages.seniorHelpCalloutSetLineupAi,
+    messages.seniorHelpCalloutTrainingRegimen,
+    messages.seniorHelpCalloutUpdates,
+    showHelp,
+  ]);
 
   const specialtyByName = useMemo(() => {
     const map: Record<string, number | undefined> = {};
@@ -3669,9 +3934,15 @@ const refreshDetailsForPlayers = async (
 
   const selectedUpdatesRows = useMemo(() => {
     if (!selectedUpdatesEntry) return [];
-    return Object.values(selectedUpdatesEntry.groupedByPlayerId).sort((a, b) =>
-      a.playerName.localeCompare(b.playerName)
-    );
+    return Object.values(selectedUpdatesEntry.groupedByPlayerId)
+      .filter(
+        (entry) =>
+          entry.isNewPlayer ||
+          entry.skills.length > 0 ||
+          entry.ratings.length > 0 ||
+          entry.attributes.length > 0
+      )
+      .sort((a, b) => a.playerName.localeCompare(b.playerName));
   }, [selectedUpdatesEntry]);
 
   const skillLabelByKey = (skillKey: string) => {
@@ -3776,6 +4047,23 @@ const refreshDetailsForPlayers = async (
       ) : null}
 
       <Modal
+        open={scopeReconnectModalOpen}
+        title={messages.scopeReconnectTitle}
+        movable={false}
+        body={<p>{messages.scopeReconnectBody}</p>}
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => {
+              void reconnectChppWithTokenReset();
+            }}
+          >
+            {messages.scopeReconnectAction}
+          </button>
+        }
+      />
+      <Modal
         open={updatesOpen}
         title={messages.clubChronicleUpdatesTitle}
         className={styles.seniorUpdatesModal}
@@ -3861,7 +4149,7 @@ const refreshDetailsForPlayers = async (
                             <ul className={styles.seniorUpdatesChangeList}>
                               {entry.ratings.map((change) => (
                                 <li key={`${entry.playerId}-rating-${change.position}`}>
-                                  {change.position}:{" "}
+                                  {positionLabel(change.position, messages)}:{" "}
                                   {change.previous?.toFixed(1) ?? messages.unknownShort} →{" "}
                                   {change.current?.toFixed(1) ?? messages.unknownShort}
                                 </li>
@@ -4584,14 +4872,14 @@ const refreshDetailsForPlayers = async (
                   }
                   if (cardsValue >= 3) {
                     return (
-                      <span className={styles.playerMetricPill} title={messages.sortCards}>
+                      <span className={styles.playerMetricPill}>
                         <span className={styles.playerCardIcon}>🟥</span>
                       </span>
                     );
                   }
                   if (cardsValue === 2) {
                     return (
-                      <span className={styles.playerMetricPill} title={messages.sortCards}>
+                      <span className={styles.playerMetricPill}>
                         <span className={styles.playerCardIcon}>🟨</span>
                         <span className={styles.playerCardIcon}>🟨</span>
                       </span>
@@ -4599,7 +4887,7 @@ const refreshDetailsForPlayers = async (
                   }
                   if (cardsValue === 1) {
                     return (
-                      <span className={styles.playerMetricPill} title={messages.sortCards}>
+                      <span className={styles.playerMetricPill}>
                         <span className={styles.playerCardIcon}>🟨</span>
                       </span>
                     );
@@ -4927,6 +5215,8 @@ const refreshDetailsForPlayers = async (
                 <li>{messages.seniorHelpBulletAiTrainingAware}</li>
                 <li>{messages.seniorHelpBulletAiIgnoreTraining}</li>
                 <li>{messages.seniorHelpBulletAiMatchTypes}</li>
+                <li>{messages.seniorHelpBulletTrainingRegimen}</li>
+                <li>{messages.seniorHelpBulletAnalyzeOpponent}</li>
               </ul>
               <button
                 type="button"
@@ -5071,6 +5361,17 @@ const refreshDetailsForPlayers = async (
             }}
             tacticType={tacticType}
             onTacticChange={setTacticType}
+            tacticPlacement="fieldTopLeft"
+            trainingType={trainingType}
+            onTrainingTypeChange={setTrainingType}
+            onTrainingTypeSet={handleSetTrainingType}
+            trainingTypeSetPending={trainingTypeSetPending}
+            trainingTypeSetPendingValue={trainingTypeSetPendingValue}
+            trainingTypeOptions={[...NON_DEPRECATED_TRAINING_TYPES]}
+            trainingTypeLabelForValue={obtainedTrainingRegimenLabel}
+            trainingTypeSectionTitleForValue={trainingSectionTitleForValue}
+            trainingTypeAriaLabel={messages.trainingRegimenLabel}
+            trainedSlots={seniorTrainedSlots}
             onHoverPlayer={(playerId) => {
               void ensureDetails(playerId);
             }}

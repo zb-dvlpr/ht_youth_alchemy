@@ -5,6 +5,7 @@ import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
 import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
+import { parseExtendedPermissionsFromCheckToken } from "@/lib/chpp/permissions";
 
 type ConnectedStatusProps = {
   messages: Messages;
@@ -18,19 +19,18 @@ export default function ConnectedStatus({ messages }: ConnectedStatusProps) {
     let isActive = true;
     const load = async () => {
       try {
-        const { response, payload } = await fetchChppJson<{ raw?: string }>(
-          "/api/chpp/oauth/check-token",
+        const { response, payload } = await fetchChppJson<{
+          raw?: string;
+          permissions?: string[];
+        }>("/api/chpp/oauth/check-token?skipPermissionCheck=1",
           {
             cache: "no-store",
           }
         );
         if (!response.ok) return;
-        const raw = payload?.raw ?? "";
-        const match = raw.match(/<ExtendedPermissions>([^<]*)<\/ExtendedPermissions>/);
-        const content = match?.[1]?.trim() ?? "";
-        const list = content
-          ? content.split(",").map((value) => value.trim()).filter(Boolean)
-          : [];
+        const list = Array.isArray(payload?.permissions)
+          ? payload.permissions
+          : parseExtendedPermissionsFromCheckToken(payload?.raw ?? "");
         if (isActive) {
           setPermissions(list);
         }

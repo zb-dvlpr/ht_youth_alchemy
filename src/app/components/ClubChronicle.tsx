@@ -43,8 +43,17 @@ import {
   hattrickTeamPlayersUrl,
   hattrickTeamTransfersUrl,
 } from "@/lib/hattrick/urls";
-import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
+import {
+  ChppAuthRequiredError,
+  fetchChppJson,
+  reconnectChppWithTokenReset,
+} from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
+import {
+  getMissingChppPermissions,
+  parseExtendedPermissionsFromCheckToken,
+  REQUIRED_CHPP_EXTENDED_PERMISSIONS,
+} from "@/lib/chpp/permissions";
 
 type SupportedTeam = {
   teamId: number;
@@ -2091,6 +2100,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [showHelp, setShowHelp] = useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [tokenChecked, setTokenChecked] = useState(false);
+  const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [noDivulgoActive, setNoDivulgoActive] = useState(false);
   const [pendingNoDivulgoFetchTeamId, setPendingNoDivulgoFetchTeamId] = useState<
     number | null
@@ -2442,6 +2452,56 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setShowHelp(true);
     }
   }, [tokenChecked, currentToken]);
+
+  const ensureRefreshScopes = useCallback(async () => {
+    try {
+      const response = await fetch("/api/chpp/oauth/check-token", {
+        cache: "no-store",
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | {
+            permissions?: string[];
+            raw?: string;
+          }
+        | null;
+      if (!response.ok) {
+        setScopeReconnectModalOpen(true);
+        return false;
+      }
+      const grantedPermissions = Array.isArray(payload?.permissions)
+        ? payload.permissions
+        : [];
+      const missingPermissions = getMissingChppPermissions(
+        grantedPermissions,
+        REQUIRED_CHPP_EXTENDED_PERMISSIONS
+      );
+      const rawTokenCheck = typeof payload?.raw === "string" ? payload.raw : "";
+      const hasScopeTag = /<Scope>/i.test(rawTokenCheck);
+      const scopeTokens = hasScopeTag
+        ? parseExtendedPermissionsFromCheckToken(rawTokenCheck)
+        : [];
+      const missingDefaultScope = hasScopeTag && !scopeTokens.includes("default");
+      if (missingPermissions.length > 0 || missingDefaultScope) {
+        setScopeReconnectModalOpen(true);
+        return false;
+      }
+      return true;
+    } catch {
+      setScopeReconnectModalOpen(true);
+      return false;
+    }
+  }, []);
+
+  const runRefreshGuarded = useCallback(
+    (callback: () => Promise<void> | void) => {
+      void (async () => {
+        const hasRequiredScopes = await ensureRefreshScopes();
+        if (!hasRequiredScopes) return;
+        await callback();
+      })();
+    },
+    [ensureRefreshScopes]
+  );
 
   useEffect(() => {
     if (!showHelp) {
@@ -9131,7 +9191,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               type="button"
               className={styles.chronicleUpdatesButton}
               data-help-anchor="cc-refresh-all"
-              onClick={() => void refreshAllData("manual")}
+              onClick={() => runRefreshGuarded(() => refreshAllData("manual"))}
               disabled={anyRefreshing}
               aria-label={messages.clubChronicleRefreshAllTooltip}
             >
@@ -9221,7 +9281,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   progressPct={getPanelRefreshProgress(panelId)}
                   refreshLabel={messages.clubChronicleRefreshTooltip}
                   panelId={panelId}
-                  onRefresh={() => void refreshLeagueOnly()}
+                  onRefresh={() => runRefreshGuarded(() => refreshLeagueOnly())}
                   onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
@@ -9279,7 +9339,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   progressPct={getPanelRefreshProgress(panelId)}
                   refreshLabel={messages.clubChronicleRefreshPressTooltip}
                   panelId={panelId}
-                  onRefresh={() => void refreshPressOnly()}
+                  onRefresh={() => runRefreshGuarded(() => refreshPressOnly())}
                   onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
@@ -9337,7 +9397,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   progressPct={getPanelRefreshProgress(panelId)}
                   refreshLabel={messages.clubChronicleRefreshFinanceTooltip}
                   panelId={panelId}
-                  onRefresh={() => void refreshFinanceOnly()}
+                  onRefresh={() => runRefreshGuarded(() => refreshFinanceOnly())}
                   onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
@@ -9400,7 +9460,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   progressPct={getPanelRefreshProgress(panelId)}
                   refreshLabel={messages.clubChronicleRefreshLastLoginTooltip}
                   panelId={panelId}
-                  onRefresh={() => void refreshLastLoginOnly()}
+                  onRefresh={() => runRefreshGuarded(() => refreshLastLoginOnly())}
                   onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
@@ -9458,7 +9518,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   progressPct={getPanelRefreshProgress(panelId)}
                   refreshLabel={messages.clubChronicleRefreshCoachTooltip}
                   panelId={panelId}
-                  onRefresh={() => void refreshCoachOnly()}
+                  onRefresh={() => runRefreshGuarded(() => refreshCoachOnly())}
                   onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
@@ -9516,7 +9576,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   progressPct={getPanelRefreshProgress(panelId)}
                   refreshLabel={messages.clubChronicleRefreshTooltip}
                   panelId={panelId}
-                  onRefresh={() => void refreshFanclubOnly()}
+                  onRefresh={() => runRefreshGuarded(() => refreshFanclubOnly())}
                   onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
@@ -9574,7 +9634,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   progressPct={getPanelRefreshProgress(panelId)}
                   refreshLabel={messages.clubChronicleRefreshArenaTooltip}
                   panelId={panelId}
-                  onRefresh={() => void refreshArenaOnly()}
+                  onRefresh={() => runRefreshGuarded(() => refreshArenaOnly())}
                   onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
@@ -9632,7 +9692,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   progressPct={getPanelRefreshProgress(panelId)}
                   refreshLabel={messages.clubChronicleRefreshTransferTooltip}
                   panelId={panelId}
-                  onRefresh={() => void refreshTransferOnly()}
+                  onRefresh={() => runRefreshGuarded(() => refreshTransferOnly())}
                   onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
@@ -9714,7 +9774,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   progressPct={getPanelRefreshProgress(panelId)}
                   refreshLabel={messages.clubChronicleRefreshFormationsTooltip}
                   panelId={panelId}
-                  onRefresh={() => void refreshFormationsTacticsOnly()}
+                  onRefresh={() => runRefreshGuarded(() => refreshFormationsTacticsOnly())}
                   onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
@@ -9774,7 +9834,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   progressPct={getPanelRefreshProgress(panelId)}
                   refreshLabel={messages.clubChronicleRefreshLikelyTrainingTooltip}
                   panelId={panelId}
-                  onRefresh={() => void refreshFormationsTacticsOnly()}
+                  onRefresh={() => runRefreshGuarded(() => refreshFormationsTacticsOnly())}
                   onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
@@ -9832,7 +9892,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   progressPct={getPanelRefreshProgress(panelId)}
                   refreshLabel={messages.clubChronicleRefreshTsiTooltip}
                   panelId={panelId}
-                  onRefresh={() => void refreshTsiOnly()}
+                  onRefresh={() => runRefreshGuarded(() => refreshTsiOnly())}
                   onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
@@ -9888,7 +9948,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   progressPct={getPanelRefreshProgress(panelId)}
                   refreshLabel={messages.clubChronicleRefreshWagesTooltip}
                   panelId={panelId}
-                  onRefresh={() => void refreshWagesOnly()}
+                  onRefresh={() => runRefreshGuarded(() => refreshWagesOnly())}
                   onPointerDown={handlePanelPointerDown}
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
@@ -9929,6 +9989,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         })}
       </div>
 
+      <Modal
+        open={scopeReconnectModalOpen}
+        title={messages.scopeReconnectTitle}
+        movable={false}
+        body={<p>{messages.scopeReconnectBody}</p>}
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => {
+              void reconnectChppWithTokenReset();
+            }}
+          >
+            {messages.scopeReconnectAction}
+          </button>
+        }
+      />
       <Modal
         open={watchlistOpen}
         title={messages.watchlistTitle}

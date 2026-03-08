@@ -316,6 +316,10 @@ export const messagesNl: Messages = {
   trainingPassing: "Passen",
   trainingScoring: "Scoren",
   trainingSetPieces: "Dode spelmomenten",
+  trainingDefendingDefendersMidfielders:
+    "Verdedigen (Verdedigers + Middenvelders)",
+  trainingWingerWingerAttackers: "Vleugelspel (Vleugelspelers + Aanvallers)",
+  trainingPassingDefendersMidfielders: "Passen (Verdedigers + Middenvelders)",
   trainingSlotPrimary: "Primair",
   trainingSlotSecondary: "Secundair",
   trainingSlotBoth: "Pri/sec",

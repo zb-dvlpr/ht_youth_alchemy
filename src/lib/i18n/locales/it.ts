@@ -751,6 +751,11 @@ export const messagesIt: Messages = {
     trainingPassing: "Passaggi",
     trainingScoring: "Finalizzazione",
     trainingSetPieces: "Calci piazzati",
+    trainingDefendingDefendersMidfielders:
+      "Difesa (Difensori + Centrocampisti)",
+    trainingWingerWingerAttackers: "Ala (Ali + Attaccanti)",
+    trainingPassingDefendersMidfielders:
+      "Passaggi (Difensori + Centrocampisti)",
     trainingSlotPrimary: "Primario",
     trainingSlotSecondary: "Secondario",
     trainingSlotBoth: "Pri/sec",

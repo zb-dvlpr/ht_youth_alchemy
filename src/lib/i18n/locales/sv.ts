@@ -741,6 +741,10 @@ export const messagesSv: Messages = {
     trainingPassing: "Passningar",
     trainingScoring: "Målskytte",
     trainingSetPieces: "Fasta situationer",
+    trainingDefendingDefendersMidfielders: "Försvar (Backar + Mittfältare)",
+    trainingWingerWingerAttackers: "Ytterspel (Yttrar + Anfallare)",
+    trainingPassingDefendersMidfielders:
+      "Passningar (Backar + Mittfältare)",
     trainingSlotPrimary: "Primär",
     trainingSlotSecondary: "Sekundär",
     trainingSlotBoth: "Pri/sek",

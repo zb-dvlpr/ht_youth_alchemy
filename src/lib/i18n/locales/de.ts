@@ -738,6 +738,11 @@ export const messagesDe: Messages = {
     trainingPassing: "Passspiel",
     trainingScoring: "Torschuss",
     trainingSetPieces: "Standards",
+    trainingDefendingDefendersMidfielders:
+      "Verteidigung (Verteidiger + Mittelfeldspieler)",
+    trainingWingerWingerAttackers: "Flügelspiel (Flügel + Stürmer)",
+    trainingPassingDefendersMidfielders:
+      "Passspiel (Verteidiger + Mittelfeldspieler)",
     trainingSlotPrimary: "Primär",
     trainingSlotSecondary: "Sekundär",
     trainingSlotBoth: "Pri/sek",

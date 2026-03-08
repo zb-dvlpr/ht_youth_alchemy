@@ -640,6 +640,9 @@ export type Messages = {
   trainingPassing: string;
   trainingScoring: string;
   trainingSetPieces: string;
+  trainingDefendingDefendersMidfielders: string;
+  trainingWingerWingerAttackers: string;
+  trainingPassingDefendersMidfielders: string;
   trainingSlotPrimary: string;
   trainingSlotSecondary: string;
   trainingSlotBoth: string;

@@ -5017,6 +5017,94 @@ html[data-theme="dark"] .spinner {
   background: #f7f1e3;
 }
 
+.lineupTrainingTypeControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lineupTrainingTypeLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #f7f1e3;
+}
+
+.lineupTrainingTypeTrigger {
+  border: 1px solid #c9b9a3;
+  background: #f1e9dc;
+  border-radius: 12px;
+  min-width: 230px;
+  padding: 6px 30px 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #3f362c;
+  text-align: left;
+  cursor: pointer;
+  position: relative;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.lineupTrainingTypeTrigger::after {
+  content: "";
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  width: 10px;
+  height: 6px;
+  transform: translateY(-50%);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%236b6256' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.lineupTrainingTypeTrigger:hover {
+  background: #ece2d2;
+  border-color: #c9b9a3;
+}
+
+.lineupTrainingTypeTrigger:focus {
+  outline: 2px solid rgba(233, 213, 182, 0.65);
+  outline-offset: 1px;
+}
+
+.lineupTrainingTypeValue {
+  display: block;
+}
+
+.lineupTrainingTypeMenu {
+  min-width: 230px;
+}
+
+.lineupTrainingTypeOption {
+  flex: 1 1 auto;
+  text-align: left;
+  cursor: default;
+}
+
+.lineupTrainingTypeOptionActive {
+  border-color: #c9b9a3;
+  background: #f1e9dc;
+}
+
+.lineupTrainingTypeOptionRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.lineupTrainingTypeSetButton {
+  border: 1px solid #d8cbb6;
+  background: #fff;
+  border-radius: 8px;
+  color: #3f362c;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
 .optimizeButton {
   border: none;
   border-radius: 999px;

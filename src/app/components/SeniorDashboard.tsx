@@ -212,6 +212,7 @@ const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
 const OPPONENT_ARCHIVE_LIMIT = 20;
 const OPPONENT_DETAILS_CONCURRENCY = 6;
 const FORMATION_PREDICT_CONCURRENCY = 4;
+const NON_DEPRECATED_TRAINING_TYPES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as const;
 const FIELD_SLOT_ORDER = [
   "KP",
   "WB_L",
@@ -266,6 +267,11 @@ const SLOT_TO_RATING_CODE: Record<string, number> = {
   F_C: 111,
   F_R: 111,
 };
+
+const sanitizeTrainingType = (value: number | null): number | null =>
+  typeof value === "number" && NON_DEPRECATED_TRAINING_TYPES.includes(value as (typeof NON_DEPRECATED_TRAINING_TYPES)[number])
+    ? value
+    : null;
 type PlayerSector = "keeper" | "defense" | "midfield" | "attack";
 const SLOT_TO_SECTOR: Record<string, PlayerSector> = {
   KP: "keeper",
@@ -2165,7 +2171,7 @@ const refreshDetailsForPlayers = async (
       setMatchesState(nextMatches);
       setRatingsResponse(nextRatings);
       if (nextTrainingType !== undefined) {
-        setTrainingType(nextTrainingType);
+        setTrainingType(sanitizeTrainingType(nextTrainingType));
       }
       setLoadError(null);
       setLoadErrorDetails(null);
@@ -2588,7 +2594,7 @@ const refreshDetailsForPlayers = async (
 
       let activeTrainingType = trainingType;
       try {
-        activeTrainingType = await fetchTrainingType();
+        activeTrainingType = sanitizeTrainingType(await fetchTrainingType());
         setTrainingType(activeTrainingType);
       } catch {
         // Keep best-lineup flow intact even if training endpoint fails.
@@ -3147,7 +3153,9 @@ const refreshDetailsForPlayers = async (
           setLoadedMatchId(typeof parsed.loadedMatchId === "number" ? parsed.loadedMatchId : null);
           setTacticType(typeof parsed.tacticType === "number" ? parsed.tacticType : 0);
           setTrainingType(
-            typeof parsed.trainingType === "number" ? parsed.trainingType : null
+            sanitizeTrainingType(
+              typeof parsed.trainingType === "number" ? parsed.trainingType : null
+            )
           );
           setIncludeTournamentMatches(Boolean(parsed.includeTournamentMatches));
           if (forceWipeLegacyUpdatesState) {
@@ -5072,6 +5080,11 @@ const refreshDetailsForPlayers = async (
             tacticType={tacticType}
             onTacticChange={setTacticType}
             tacticPlacement="fieldTopLeft"
+            trainingType={trainingType}
+            onTrainingTypeChange={setTrainingType}
+            trainingTypeOptions={[...NON_DEPRECATED_TRAINING_TYPES]}
+            trainingTypeLabelForValue={obtainedTrainingRegimenLabel}
+            trainingTypeAriaLabel={messages.trainingRegimenLabel}
             onHoverPlayer={(playerId) => {
               void ensureDetails(playerId);
             }}

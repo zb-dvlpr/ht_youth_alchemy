@@ -618,6 +618,9 @@ export type Messages = {
   autoSelectLabel: string;
   autoSelectTitle: string;
   trainingTitle: string;
+  trainingRegimenLabel: string;
+  trainingSetButtonLabel: string;
+  trainingSetButtonTooltip: string;
   primaryTrainingLabel: string;
   secondaryTrainingLabel: string;
   trainingUnset: string;

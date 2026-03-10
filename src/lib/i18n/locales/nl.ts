@@ -169,7 +169,7 @@ export const messagesNl: Messages = {
   seniorExtraTimeModal120CupMiddle: "georganiseerd door",
   seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
   seniorExtraTimeModalWorkflow:
-    "Het idee is eenvoudig: op basis van je trainingsregime vraagt Alchemy je om de spelers te kiezen die training moeten krijgen. Jij kiest de spelers, klikt op Beste opstelling zetten, en Alchemy regelt de rest.",
+    "Het idee is eenvoudig: op basis van je trainingsregime vraagt Alchemy je om de spelers te kiezen die training moeten krijgen. Jij kiest de spelers, klikt op Beste opstelling zetten, en Alchemy regelt de rest (spelers positioneren en oriënteren, tactieken instellen, wissels configureren, penaltynemers instellen, de nemer van spelhervattingen bepalen, enz.).",
   seniorExtraTimeModalChooseTrainees:
     "Kies {{count}} trainees en klik daarna op Opstelling instellen.",
   seniorExtraTimeModalSetLineupButton: "Opstelling instellen",

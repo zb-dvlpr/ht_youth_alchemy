@@ -705,7 +705,7 @@ export const messagesFr: Messages = {
     seniorExtraTimeModal120CupMiddle: "organisée par",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "Le principe est simple : selon votre régime d'entraînement, Alchemy vous demande de choisir les joueurs à entraîner. Vous les identifiez, cliquez sur Définir la meilleure compo et Alchemy gère le reste.",
+      "Le principe est simple : selon votre régime d'entraînement, Alchemy vous demande de choisir les joueurs à entraîner. Vous les identifiez, cliquez sur Définir la meilleure compo et Alchemy gère le reste (placement et orientation des joueurs, réglage de la tactique, configuration des remplacements, définition des tireurs de penalty, choix du tireur de coups de pied arrêtés, etc.).",
     seniorExtraTimeModalChooseTrainees:
       "Choisissez {{count}} stagiaires, puis cliquez sur Définir la compo.",
     seniorExtraTimeModalSetLineupButton: "Définir la compo",

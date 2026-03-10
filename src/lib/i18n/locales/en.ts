@@ -671,7 +671,7 @@ export const messagesEn: Messages = {
     seniorExtraTimeModal120CupMiddle: "organized by",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "The workflow is simple: based on your training regimen, Alchemy asks you to pick the players to be trained. You choose the players, click Set lineup, and Alchemy handles the rest.",
+      "The workflow is simple: based on your training regimen, Alchemy asks you to pick the players to be trained. You choose the players, click Set lineup, and Alchemy handles the rest (positioning and orienting players, setting tactics, configuring substitutions, setting penalty takers, deciding the set pieces taker, etc.).",
     seniorExtraTimeModalChooseTrainees:
       "Choose {{count}} trainees, then click Set lineup.",
     seniorExtraTimeModalSetLineupButton: "Set lineup",

@@ -706,7 +706,7 @@ export const messagesPt: Messages = {
     seniorExtraTimeModal120CupMiddle: "organizada por",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "A ideia é simples: com base no seu regime de treino, o Alchemy pede que você escolha os jogadores a serem treinados. Você identifica os jogadores, clica em Definir melhor escalação e o Alchemy cuida do resto.",
+      "A ideia é simples: com base no seu regime de treino, o Alchemy pede que você escolha os jogadores a serem treinados. Você identifica os jogadores, clica em Definir melhor escalação e o Alchemy cuida do resto (posicionamento e orientação dos jogadores, ajuste de táticas, configuração de substituições, definição de cobradores de pênalti, escolha do cobrador de bolas paradas, etc.).",
     seniorExtraTimeModalChooseTrainees:
       "Escolha {{count}} treinandos e depois clique em Definir escalação.",
     seniorExtraTimeModalSetLineupButton: "Definir escalação",

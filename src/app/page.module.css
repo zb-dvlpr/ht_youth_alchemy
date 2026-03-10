@@ -5197,6 +5197,56 @@ html[data-theme="dark"] .spinner {
   z-index: 3200;
 }
 
+.seniorLineupFieldCompact .fieldTopLeftOverlay .lineupTrainingTypeLabel {
+  min-width: 0;
+}
+
+.seniorLineupFieldCompact .fieldTopLeftOverlay {
+  z-index: 1000;
+}
+
+.seniorLineupFieldCompact .fieldPitch {
+  isolation: isolate;
+  overflow: visible;
+  z-index: 2;
+}
+
+.seniorLineupFieldCompact .fieldRow,
+.seniorLineupFieldCompact .benchArea,
+.seniorLineupFieldCompact .lineupActions {
+  position: relative;
+  z-index: 1;
+}
+
+.seniorLineupFieldCompact .fieldTopLeftOverlay .feedbackWrap {
+  position: relative;
+  z-index: 1001;
+}
+
+.seniorLineupFieldCompact .fieldTopLeftOverlay .lineupTrainingTypeTrigger {
+  min-width: 122px;
+  max-width: 132px;
+  padding: 4px 18px 4px 6px;
+  position: relative;
+  z-index: 2147483000;
+}
+
+.seniorLineupFieldCompact .fieldTopLeftOverlay .lineupTrainingTypeValue {
+  white-space: normal;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.seniorLineupFieldCompact .fieldTopLeftOverlay .lineupTrainingTypeMenu {
+  min-width: 154px;
+  max-width: 196px;
+  z-index: 2147483001 !important;
+}
+
+.seniorLineupFieldCompact .fieldTopLeftOverlay .feedbackMenu {
+  z-index: 2147483001 !important;
+}
+
 .tacticOverlay:hover {
   background: rgba(255, 255, 255, 0.25);
   transform: translateY(-1px);

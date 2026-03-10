@@ -4373,6 +4373,9 @@ const refreshDetailsForPlayers = async (
     }
     return String(value);
   };
+  const seniorTrainingLabel =
+    messages.trainingRegimenLabel.split(/\s+/).find(Boolean) ??
+    messages.trainingRegimenLabel;
 
   return (
     <div className={styles.dashboardStack} ref={dashboardRef}>
@@ -5643,86 +5646,89 @@ const refreshDetailsForPlayers = async (
           className={`${styles.columnStack}${showHelp ? ` ${styles.helpDisabledColumn}` : ""}`}
           aria-hidden={showHelp ? "true" : undefined}
         >
-          <LineupField
-            assignments={assignments}
-            behaviors={behaviors}
-            playersById={playersByIdForLineup}
-            playerDetailsById={new Map(
-              Array.from(detailsById.entries()).map(([id, detail]) => [
-                id,
-                {
-                  PlayerSkills: detail.PlayerSkills,
-                  InjuryLevel: detail.InjuryLevel,
-                  Cards: detail.Cards,
-                  Form: detail.Form,
-                  StaminaSkill: detail.StaminaSkill,
-                },
-              ])
-            )}
-            onAssign={(slotId, playerId) => {
-              setAssignments((prev) => {
-                const next = { ...prev };
-                Object.keys(next).forEach((key) => {
-                  if (next[key] === playerId) {
-                    next[key] = null;
-                  }
+          <div className={styles.seniorLineupFieldCompact}>
+            <LineupField
+              assignments={assignments}
+              behaviors={behaviors}
+              playersById={playersByIdForLineup}
+              playerDetailsById={new Map(
+                Array.from(detailsById.entries()).map(([id, detail]) => [
+                  id,
+                  {
+                    PlayerSkills: detail.PlayerSkills,
+                    InjuryLevel: detail.InjuryLevel,
+                    Cards: detail.Cards,
+                    Form: detail.Form,
+                    StaminaSkill: detail.StaminaSkill,
+                  },
+                ])
+              )}
+              onAssign={(slotId, playerId) => {
+                setAssignments((prev) => {
+                  const next = { ...prev };
+                  Object.keys(next).forEach((key) => {
+                    if (next[key] === playerId) {
+                      next[key] = null;
+                    }
+                  });
+                  next[slotId] = playerId;
+                  return next;
                 });
-                next[slotId] = playerId;
-                return next;
-              });
-              setLoadedMatchId(null);
-            }}
-            onClear={(slotId) => {
-              setAssignments((prev) => ({ ...prev, [slotId]: null }));
-              setLoadedMatchId(null);
-            }}
-            onMove={(fromSlot, toSlot) => {
-              setAssignments((prev) => ({
-                ...prev,
-                [toSlot]: prev[fromSlot] ?? null,
-                [fromSlot]: prev[toSlot] ?? null,
-              }));
-              setLoadedMatchId(null);
-            }}
-            onChangeBehavior={(slotId, behavior) => {
-              setBehaviors((prev) => {
-                const next = { ...prev };
-                if (behavior) next[slotId] = behavior;
-                else delete next[slotId];
-                return next;
-              });
-              setLoadedMatchId(null);
-            }}
-            onReset={() => {
-              setAssignments({});
-              setBehaviors({});
-              setLoadedMatchId(null);
-              addNotification(messages.notificationLineupReset);
-            }}
-            tacticType={tacticType}
-            onTacticChange={setTacticType}
-            tacticPlacement="fieldTopLeft"
-            trainingType={trainingType}
-            onTrainingTypeChange={setTrainingType}
-            onTrainingTypeSet={handleSetTrainingType}
-            trainingTypeSetPending={trainingTypeSetPending}
-            trainingTypeSetPendingValue={trainingTypeSetPendingValue}
-            trainingTypeOptions={[...NON_DEPRECATED_TRAINING_TYPES]}
-            trainingTypeLabelForValue={obtainedTrainingRegimenLabel}
-            trainingTypeSectionTitleForValue={trainingSectionTitleForValue}
-            trainingTypeAriaLabel={messages.trainingRegimenLabel}
-            trainedSlots={seniorTrainedSlots}
-            onHoverPlayer={(playerId) => {
-              void ensureDetails(playerId);
-            }}
-            onSelectPlayer={(playerId) => {
-              setSelectedId(playerId);
-              void ensureDetails(playerId);
-            }}
-            skillMode="single"
-            maxSkillLevel={20}
-            messages={messages}
-          />
+                setLoadedMatchId(null);
+              }}
+              onClear={(slotId) => {
+                setAssignments((prev) => ({ ...prev, [slotId]: null }));
+                setLoadedMatchId(null);
+              }}
+              onMove={(fromSlot, toSlot) => {
+                setAssignments((prev) => ({
+                  ...prev,
+                  [toSlot]: prev[fromSlot] ?? null,
+                  [fromSlot]: prev[toSlot] ?? null,
+                }));
+                setLoadedMatchId(null);
+              }}
+              onChangeBehavior={(slotId, behavior) => {
+                setBehaviors((prev) => {
+                  const next = { ...prev };
+                  if (behavior) next[slotId] = behavior;
+                  else delete next[slotId];
+                  return next;
+                });
+                setLoadedMatchId(null);
+              }}
+              onReset={() => {
+                setAssignments({});
+                setBehaviors({});
+                setLoadedMatchId(null);
+                addNotification(messages.notificationLineupReset);
+              }}
+              tacticType={tacticType}
+              onTacticChange={setTacticType}
+              tacticPlacement="headerRight"
+              trainingType={trainingType}
+              onTrainingTypeChange={setTrainingType}
+              onTrainingTypeSet={handleSetTrainingType}
+              trainingTypeSetPending={trainingTypeSetPending}
+              trainingTypeSetPendingValue={trainingTypeSetPendingValue}
+              trainingTypePlacement="fieldTopLeft"
+              trainingTypeOptions={[...NON_DEPRECATED_TRAINING_TYPES]}
+              trainingTypeLabelForValue={obtainedTrainingRegimenLabel}
+              trainingTypeSectionTitleForValue={trainingSectionTitleForValue}
+              trainingTypeAriaLabel={seniorTrainingLabel}
+              trainedSlots={seniorTrainedSlots}
+              onHoverPlayer={(playerId) => {
+                void ensureDetails(playerId);
+              }}
+              onSelectPlayer={(playerId) => {
+                setSelectedId(playerId);
+                void ensureDetails(playerId);
+              }}
+              skillMode="single"
+              maxSkillLevel={20}
+              messages={messages}
+            />
+          </div>
           <UpcomingMatches
             response={matchesState}
             messages={messages}

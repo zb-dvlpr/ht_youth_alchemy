@@ -76,6 +76,7 @@ type UpcomingMatchesProps = {
   onIncludeTournamentMatchesChange?: (next: boolean) => void;
   setBestLineupHelpAnchor?: string;
   showExtraTimeSetBestLineupMode?: boolean;
+  keepBestLineupMenuTopmost?: boolean;
 };
 
 export type SetBestLineupMode = "trainingAware" | "ignoreTraining" | "extraTime";
@@ -602,6 +603,7 @@ export default function UpcomingMatches({
   onIncludeTournamentMatchesChange,
   setBestLineupHelpAnchor,
   showExtraTimeSetBestLineupMode = false,
+  keepBestLineupMenuTopmost = false,
 }: UpcomingMatchesProps) {
   const { addNotification } = useNotifications();
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
@@ -988,7 +990,9 @@ export default function UpcomingMatches({
   const sortedAll = sortByDate(visibleMatches);
 
   return (
-    <div className={styles.card}>
+    <div
+      className={`${styles.card}${keepBestLineupMenuTopmost ? ` ${styles.seniorUpcomingMatches}` : ""}`}
+    >
       <div className={styles.matchesHeader}>
         <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
         <div className={styles.matchesHeaderControls}>

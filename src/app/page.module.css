@@ -4570,6 +4570,19 @@ html[data-theme="dark"] .spinner {
   position: relative;
 }
 
+.seniorUpcomingMatches .matchList {
+  position: relative;
+  isolation: isolate;
+}
+
+.seniorUpcomingMatches .matchItem {
+  z-index: 0;
+}
+
+.seniorUpcomingMatches .matchItem:has(.feedbackMenu) {
+  z-index: 4500;
+}
+
 .matchItemHasTopAction .matchTeams {
   padding-right: 44px;
 }

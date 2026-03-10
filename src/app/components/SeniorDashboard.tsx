@@ -5741,6 +5741,7 @@ const refreshDetailsForPlayers = async (
             onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
             setBestLineupHelpAnchor="senior-set-lineup-ai"
             showExtraTimeSetBestLineupMode
+            keepBestLineupMenuTopmost
             onRefresh={onRefreshMatchesOnly}
             onSetBestLineupMode={(matchId, mode) => {
               return runSetBestLineupPredictRatings(matchId, mode);

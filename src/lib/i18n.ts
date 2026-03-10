@@ -581,6 +581,8 @@ export type Messages = {
   setBestLineupTrainingAwareTooltip: string;
   setBestLineupIgnoreTraining: string;
   setBestLineupIgnoreTrainingTooltip: string;
+  setBestLineupAimForExtraTime: string;
+  setBestLineupAimForExtraTimeTooltip: string;
   setBestLineupRejectedPlayersLabel: string;
   analyzeOpponent: string;
   analyzeOpponentTooltip: string;

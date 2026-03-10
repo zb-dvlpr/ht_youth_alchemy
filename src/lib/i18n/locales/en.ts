@@ -654,6 +654,9 @@ export const messagesEn: Messages = {
     setBestLineupIgnoreTraining: "Ignore training",
     setBestLineupIgnoreTrainingTooltip:
       "Set lineup without considering the training regimen. All formations are considered.",
+    setBestLineupAimForExtraTime: "Aim for extra time",
+    setBestLineupAimForExtraTimeTooltip:
+      "Play for a draw to gain extra training.",
     setBestLineupRejectedPlayersLabel: "Rejected players",
     analyzeOpponent: "Analyze opponent",
     analyzeOpponentTooltip: "Analyze opponent recent matches.",

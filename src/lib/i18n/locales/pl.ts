@@ -151,6 +151,9 @@ export const messagesPl: Messages = {
   setBestLineupIgnoreTraining: "Ignoruj trening",
   setBestLineupIgnoreTrainingTooltip:
     "Ustaw skład bez uwzględniania reżimu treningowego. Brane są pod uwagę wszystkie formacje.",
+  setBestLineupAimForExtraTime: "Graj pod dogrywkę",
+  setBestLineupAimForExtraTimeTooltip:
+    "Gra na remis, aby zyskać dodatkowy trening.",
   setBestLineupRejectedPlayersLabel: "Odrzuceni zawodnicy",
   analyzeOpponent: "Analizuj przeciwnika",
   analyzeOpponentTooltip: "Przeanalizuj ostatnie mecze przeciwnika.",

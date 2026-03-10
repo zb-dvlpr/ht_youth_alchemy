@@ -75,9 +75,10 @@ type UpcomingMatchesProps = {
   includeTournamentMatches?: boolean;
   onIncludeTournamentMatchesChange?: (next: boolean) => void;
   setBestLineupHelpAnchor?: string;
+  showExtraTimeSetBestLineupMode?: boolean;
 };
 
-export type SetBestLineupMode = "trainingAware" | "ignoreTraining";
+export type SetBestLineupMode = "trainingAware" | "ignoreTraining" | "extraTime";
 
 const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
 const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
@@ -263,6 +264,7 @@ type SetBestLineupMenuButtonProps = {
   messages: Messages;
   onSelectMode: (matchId: number, mode: SetBestLineupMode) => void;
   helpAnchor?: string;
+  showExtraTimeMode?: boolean;
 };
 
 function SetBestLineupMenuButton({
@@ -271,6 +273,7 @@ function SetBestLineupMenuButton({
   messages,
   onSelectMode,
   helpAnchor,
+  showExtraTimeMode = false,
 }: SetBestLineupMenuButtonProps) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -334,6 +337,20 @@ function SetBestLineupMenuButton({
               {messages.setBestLineupIgnoreTraining}
             </button>
           </Tooltip>
+          {showExtraTimeMode ? (
+            <Tooltip content={messages.setBestLineupAimForExtraTimeTooltip} fullWidth>
+              <button
+                type="button"
+                className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                onClick={() => {
+                  setOpen(false);
+                  onSelectMode(matchId, "extraTime");
+                }}
+              >
+                {messages.setBestLineupAimForExtraTime}
+              </button>
+            </Tooltip>
+          ) : null}
         </div>
       ) : null}
     </div>
@@ -358,7 +375,8 @@ function renderMatch(
   analyzePending?: boolean,
   isLoaded?: boolean,
   assignedCount?: number,
-  setBestLineupHelpAnchor?: string
+  setBestLineupHelpAnchor?: string,
+  showExtraTimeSetBestLineupMode?: boolean
 ) {
   const isUpcoming = match.Status === "UPCOMING";
   const canSubmit = Boolean(teamId) && isUpcoming && hasLineup;
@@ -460,6 +478,7 @@ function renderMatch(
             messages={messages}
             onSelectMode={onSetBestLineupMode!}
             helpAnchor={setBestLineupHelpAnchor}
+            showExtraTimeMode={showExtraTimeSetBestLineupMode}
           />
         </div>
       ) : null}
@@ -582,6 +601,7 @@ export default function UpcomingMatches({
   includeTournamentMatches = true,
   onIncludeTournamentMatchesChange,
   setBestLineupHelpAnchor,
+  showExtraTimeSetBestLineupMode = false,
 }: UpcomingMatchesProps) {
   const { addNotification } = useNotifications();
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
@@ -1036,7 +1056,8 @@ export default function UpcomingMatches({
               analyzePendingMatchId === matchId,
               loadedMatchId === matchId,
               assignedCount,
-              index === 0 ? setBestLineupHelpAnchor : undefined
+              index === 0 ? setBestLineupHelpAnchor : undefined,
+              showExtraTimeSetBestLineupMode
             );
           })}
         </ul>
@@ -1069,7 +1090,8 @@ export default function UpcomingMatches({
                 analyzePendingMatchId === matchId,
                 loadedMatchId === matchId,
                 assignedCount,
-                index === 0 ? setBestLineupHelpAnchor : undefined
+                index === 0 ? setBestLineupHelpAnchor : undefined,
+                showExtraTimeSetBestLineupMode
               );
             })}
           </ul>

@@ -679,6 +679,9 @@ export const messagesSv: Messages = {
     setBestLineupIgnoreTraining: "Ignorera träning",
     setBestLineupIgnoreTrainingTooltip:
       "Sätt uppställningen utan hänsyn till träningsupplägget. Alla formationer beaktas.",
+    setBestLineupAimForExtraTime: "Sikta på förlängning",
+    setBestLineupAimForExtraTimeTooltip:
+      "Spela för oavgjort för att få extra träning.",
     setBestLineupRejectedPlayersLabel: "Bortvalda spelare",
     analyzeOpponent: "Analysera motståndare",
     analyzeOpponentTooltip: "Analysera motståndarens senaste matcher.",

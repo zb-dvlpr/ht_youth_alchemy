@@ -151,6 +151,9 @@ export const messagesNl: Messages = {
   setBestLineupIgnoreTraining: "Training negeren",
   setBestLineupIgnoreTrainingTooltip:
     "Zet de opstelling zonder rekening te houden met het trainingsregime. Alle formaties worden meegenomen.",
+  setBestLineupAimForExtraTime: "Richten op verlenging",
+  setBestLineupAimForExtraTimeTooltip:
+    "Speel voor een gelijkspel om extra training te krijgen.",
   setBestLineupRejectedPlayersLabel: "Afgewezen spelers",
   analyzeOpponent: "Tegenstander analyseren",
   analyzeOpponentTooltip: "Analyseer recente wedstrijden van de tegenstander.",

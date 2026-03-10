@@ -3380,7 +3380,7 @@ const refreshDetailsForPlayers = async (
         | null = null;
 
       if (
-        (mode === "ignoreTraining" || mode === "trainingAware") &&
+        (mode === "ignoreTraining" || mode === "trainingAware" || mode === "extraTime") &&
         chosenFormationAverages
       ) {
         const opponentCollective: CollectiveRatings = {
@@ -5740,6 +5740,7 @@ const refreshDetailsForPlayers = async (
             includeTournamentMatches={includeTournamentMatches}
             onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
             setBestLineupHelpAnchor="senior-set-lineup-ai"
+            showExtraTimeSetBestLineupMode
             onRefresh={onRefreshMatchesOnly}
             onSetBestLineupMode={(matchId, mode) => {
               return runSetBestLineupPredictRatings(matchId, mode);

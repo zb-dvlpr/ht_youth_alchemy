@@ -121,6 +121,12 @@ export const messagesSv: Messages = {
     settingsSenior: "Senior",
     settingsSeniorTitle: "Seniorinställningar",
     settingsSeniorStalenessLabel: "Auto-uppdatera efter (dagar)",
+    settingsSeniorRatingsWipeLabel: "Nollställ betygsmatris",
+    settingsSeniorRatingsWipeButton: "Rensa seniorernas betygsmatris",
+    settingsSeniorRatingsWipeWarningTitle: "Rensa seniorernas betygsmatris",
+    settingsSeniorRatingsWipeWarningBody:
+      "Detta kan inte ångras. Vid nästa uppdatering fylls betygen automatiskt på igen från denna och föregående säsong i stigande ordning efter matchdatum. Varje uppdatering därefter använder bara nya matcher som ännu inte har bearbetats.",
+    settingsSeniorRatingsWipeWarningAcknowledge: "Jag förstår",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensiv",
     behaviorDefensive: "Defensiv",
@@ -719,6 +725,9 @@ export const messagesSv: Messages = {
     notificationMatchesRefreshFailed: "Misslyckades att uppdatera matcher",
     notificationSeniorTrainingRegimenChanged:
       "Seniorlagets träningsregim ändrades till {{training}}",
+    notificationSeniorRatingsMatrixWiped: "Seniorernas betygsmatris rensad.",
+    notificationSeniorRatingsBootstrapComplete:
+      "Bootstrap för seniorbetyg slutförd.",
     notificationReauthRequired:
       "Uppdatering avbröts: ny autentisering krävs",
     permissionsLabel: "Behörigheter:",
@@ -863,6 +872,8 @@ export const messagesSv: Messages = {
     unknownDate: "Okänt datum",
     ratingsTitle: "Betygsmatris",
     ratingsMatchesAnalyzed: "Data hämtad från {count} matcher.",
+    ratingsLastAppliedMatchLabel:
+      "Senast tillämpade betyg från match {matchId} kl. {dateTime}.",
     ratingsIndexLabel: "Nr",
     ratingsMissingNote:
       "Vissa spelare saknar senaste matchdata och visas med —.",

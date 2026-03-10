@@ -10,6 +10,7 @@ import ThemeToggle from "./components/ThemeToggle";
 import ViewportScaler from "./components/ViewportScaler";
 import FeedbackButton from "./components/FeedbackButton";
 import SettingsButton from "./components/SettingsButton";
+import SeasonBootstrap from "./components/SeasonBootstrap";
 import AppShell from "./components/AppShell";
 import SeniorDashboard from "./components/SeniorDashboard";
 import pkg from "../../package.json";
@@ -51,6 +52,7 @@ type YouthPlayerListResponse = {
 };
 
 type ManagerCompendiumResponse = {
+  season?: number | null;
   data?: {
     HattrickData?: {
       Manager?: {
@@ -255,6 +257,7 @@ export default async function Home() {
       <ViewportScaler />
       <NotificationsProvider>
         <div className={styles.scaleContainer} data-scale-container="true">
+          <SeasonBootstrap season={managerResponse.season ?? null} />
           <AppShell
             messages={messages}
             globalHeader={

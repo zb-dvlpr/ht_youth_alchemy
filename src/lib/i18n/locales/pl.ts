@@ -32,6 +32,12 @@ export const messagesPl: Messages = {
   settingsSenior: "Seniorzy",
   settingsSeniorTitle: "Ustawienia seniorów",
   settingsSeniorStalenessLabel: "Auto-odświeżanie po (dniach)",
+  settingsSeniorRatingsWipeLabel: "Reset macierzy ocen",
+  settingsSeniorRatingsWipeButton: "Wyczyść macierz ocen seniorów",
+  settingsSeniorRatingsWipeWarningTitle: "Wyczyść macierz ocen seniorów",
+  settingsSeniorRatingsWipeWarningBody:
+    "Tej operacji nie można cofnąć. Przy następnym odświeżeniu oceny zostaną automatycznie odbudowane z tego i poprzedniego sezonu w rosnącej kolejności dat meczów. Każde kolejne odświeżenie będzie już uwzględniało tylko nowe, nieprzetworzone mecze.",
+  settingsSeniorRatingsWipeWarningAcknowledge: "Rozumiem",
   settingsGeneral: "Ogólne",
   settingsGeneralTitle: "Ustawienia ogólne",
   settingsDebug: "Diagnostyka",
@@ -64,6 +70,8 @@ export const messagesPl: Messages = {
     "Włącza lub wyłącza efektywne wartości z bonusu w macierzy umiejętności seniorów (bonus klubu macierzystego albo lojalności).",
   ratingsTitle: "Macierz ocen",
   ratingsMatchesAnalyzed: "Dane pobrane z {count} meczów.",
+  ratingsLastAppliedMatchLabel:
+    "Ostatnio zastosowane oceny z meczu {matchId} o {dateTime}.",
   ratingsIndexLabel: "#",
   ratingsSortBy: "Sortuj wg",
   ratingsPlayerLabel: "Zawodnik",
@@ -289,6 +297,9 @@ export const messagesPl: Messages = {
   notificationMatchesRefreshFailed: "Nie udało się odświeżyć meczów",
   notificationSeniorTrainingRegimenChanged:
     "Reżim treningowy drużyny seniorów zmieniono na {{training}}",
+  notificationSeniorRatingsMatrixWiped: "Wyczyszczono macierz ocen seniorów.",
+  notificationSeniorRatingsBootstrapComplete:
+    "Bootstrap ocen seniorów zakończony.",
   notificationLineupLoaded: "Wczytano skład:",
   notificationLineupSubmitted: "Wysłano skład:",
   notificationSortBy: "Sortowanie:",

@@ -108,6 +108,12 @@ export const messagesEn: Messages = {
     settingsSenior: "Senior",
     settingsSeniorTitle: "Senior settings",
     settingsSeniorStalenessLabel: "Auto-refresh after (days)",
+    settingsSeniorRatingsWipeLabel: "Ratings matrix reset",
+    settingsSeniorRatingsWipeButton: "Wipe senior ratings matrix",
+    settingsSeniorRatingsWipeWarningTitle: "Wipe senior ratings matrix",
+    settingsSeniorRatingsWipeWarningBody:
+      "This cannot be undone. On the next refresh, ratings will be repopulated automatically from this season and the previous one in ascending match-date order. Every refresh after that only applies ratings updates from newly unprocessed matches.",
+    settingsSeniorRatingsWipeWarningAcknowledge: "I understand",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensive",
     behaviorDefensive: "Defensive",
@@ -693,6 +699,9 @@ export const messagesEn: Messages = {
     notificationMatchesRefreshFailed: "Matches refresh failed",
     notificationSeniorTrainingRegimenChanged:
       "Senior squad training regimen changed to {{training}}",
+    notificationSeniorRatingsMatrixWiped: "Senior ratings matrix wiped.",
+    notificationSeniorRatingsBootstrapComplete:
+      "Senior ratings bootstrap completed.",
     notificationReauthRequired: "Refresh aborted: re-auth required",
     permissionsLabel: "Permissions:",
     permissionsNone: "None",
@@ -834,6 +843,8 @@ export const messagesEn: Messages = {
     unknownDate: "Unknown date",
     ratingsTitle: "Ratings matrix",
     ratingsMatchesAnalyzed: "Data retrieved from {count} matches.",
+    ratingsLastAppliedMatchLabel:
+      "Latest applied ratings from match {matchId} at {dateTime}.",
     ratingsIndexLabel: "#",
     ratingsMissingNote:
       "Some players have no recent match data and are shown with —.",

@@ -8,6 +8,20 @@ export const hattrickPlayerUrl = (playerId: number | string) =>
 export const hattrickMatchUrl = (matchId: number | string) =>
   buildGotoUrl(`/Club/Matches/Match.aspx?matchID=${matchId}`);
 
+export const hattrickMatchUrlWithSourceSystem = (
+  matchId: number | string,
+  sourceSystem?: string | null
+) => {
+  const normalizedSourceSystem =
+    typeof sourceSystem === "string" ? sourceSystem.trim() : "";
+  if (!normalizedSourceSystem) {
+    return hattrickMatchUrl(matchId);
+  }
+  return buildGotoUrl(
+    `/Club/Matches/Match.aspx?matchID=${matchId}&sourceSystem=${encodeURIComponent(normalizedSourceSystem)}`
+  );
+};
+
 export const hattrickYouthMatchUrl = (
   matchId: number | string,
   teamId: number | string,

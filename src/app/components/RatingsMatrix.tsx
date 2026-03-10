@@ -5,7 +5,8 @@ import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { POSITION_COLUMNS, positionLabel } from "@/lib/positions";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
-import { hattrickMatchUrl } from "@/lib/hattrick/urls";
+import { hattrickMatchUrlWithSourceSystem } from "@/lib/hattrick/urls";
+import { formatDateTime } from "@/lib/datetime";
 import Tooltip from "./Tooltip";
 
 type RatingRow = {
@@ -13,12 +14,16 @@ type RatingRow = {
   name: string;
   ratings: Record<string, number>;
   ratingMatchIds?: Record<string, number>;
+  ratingMatchSourceSystems?: Record<string, string>;
 };
 
 export type RatingsMatrixResponse = {
   positions: number[];
   players: RatingRow[];
   matchesAnalyzed?: number;
+  lastAppliedMatchId?: number | null;
+  lastAppliedMatchDateTime?: number | null;
+  lastAppliedMatchSourceSystem?: string | null;
 };
 
 type RatingsMatrixProps = {
@@ -141,6 +146,57 @@ export default function RatingsMatrix({
     });
     return derived.size;
   }, [response]);
+  const lastAppliedFooterParts = useMemo(() => {
+    const matchId = response?.lastAppliedMatchId;
+    const matchDateTime = response?.lastAppliedMatchDateTime;
+    if (
+      typeof matchId !== "number" ||
+      !Number.isFinite(matchId) ||
+      matchId <= 0 ||
+      typeof matchDateTime !== "number" ||
+      !Number.isFinite(matchDateTime) ||
+      matchDateTime <= 0
+    ) {
+      return null;
+    }
+    const dateTimeLabel = formatDateTime(matchDateTime);
+    const template = messages.ratingsLastAppliedMatchLabel;
+    const token = "{matchId}";
+    const tokenIndex = template.indexOf(token);
+    const href = matchHrefBuilder
+      ? matchHrefBuilder(matchId)
+      : hattrickMatchUrlWithSourceSystem(
+          matchId,
+          response?.lastAppliedMatchSourceSystem
+        );
+    if (tokenIndex < 0) {
+      const resolved = template.replace("{dateTime}", dateTimeLabel);
+      return {
+        href,
+        matchId: Math.floor(matchId),
+        before: `${resolved} `,
+        after: "",
+      };
+    }
+    const before = template
+      .slice(0, tokenIndex)
+      .replace("{dateTime}", dateTimeLabel);
+    const after = template
+      .slice(tokenIndex + token.length)
+      .replace("{dateTime}", dateTimeLabel);
+    return {
+      href,
+      matchId: Math.floor(matchId),
+      before,
+      after,
+    };
+  }, [
+    matchHrefBuilder,
+    messages.ratingsLastAppliedMatchLabel,
+    response?.lastAppliedMatchDateTime,
+    response?.lastAppliedMatchId,
+    response?.lastAppliedMatchSourceSystem,
+  ]);
   const [sortKey, setSortKey] = useState<number | "name" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const pendingSortRef = useRef(false);
@@ -428,6 +484,8 @@ export default function RatingsMatrix({
                 {positions.map((position) => {
                   const rating = row.ratings[String(position)] ?? null;
                   const ratingMatchId = row.ratingMatchIds?.[String(position)];
+                  const ratingMatchSourceSystem =
+                    row.ratingMatchSourceSystems?.[String(position)];
                   const isNewRating =
                     newRatingsByPlayerId[row.id]?.includes(position) ?? false;
                   return (
@@ -449,7 +507,10 @@ export default function RatingsMatrix({
                           href={
                             matchHrefBuilder
                               ? matchHrefBuilder(ratingMatchId as number)
-                              : hattrickMatchUrl(ratingMatchId as number)
+                              : hattrickMatchUrlWithSourceSystem(
+                                  ratingMatchId as number,
+                                  ratingMatchSourceSystem
+                                )
                           }
                           target="_blank"
                           rel="noreferrer"
@@ -478,6 +539,20 @@ export default function RatingsMatrix({
       {matchesAnalyzed !== null ? (
         <p className={styles.muted}>
           {messages.ratingsMatchesAnalyzed.replace("{count}", String(matchesAnalyzed))}
+        </p>
+      ) : null}
+      {lastAppliedFooterParts ? (
+        <p className={styles.muted}>
+          {lastAppliedFooterParts.before}
+          <a
+            className={`${styles.matrixRatingLink} ${styles.matrixFooterLink}`}
+            href={lastAppliedFooterParts.href}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {lastAppliedFooterParts.matchId}
+          </a>
+          {lastAppliedFooterParts.after}
         </p>
       ) : null}
     </div>

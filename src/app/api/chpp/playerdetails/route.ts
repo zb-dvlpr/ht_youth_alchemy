@@ -13,6 +13,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const playerId = searchParams.get("playerId");
+    const includeMatchInfo = searchParams.get("includeMatchInfo");
     if (!playerId) {
       return NextResponse.json(
         { error: "Missing playerId query parameter." },
@@ -27,6 +28,9 @@ export async function GET(request: Request) {
       playerID: playerId,
       actionType: "view",
     });
+    if (includeMatchInfo === "true" || includeMatchInfo === "1") {
+      params.set("includeMatchInfo", "true");
+    }
 
     const { parsed, rawXml } = await fetchChppXml(auth, params);
     return NextResponse.json({ data: parsed, raw: rawXml });

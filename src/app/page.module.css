@@ -354,6 +354,22 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   color: #3f362c;
 }
 
+.settingsDangerButton {
+  justify-self: start;
+  border-radius: 999px;
+  border: 1px solid #a43731;
+  background: #fff4f2;
+  color: #8f241f;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.settingsDangerButton:hover {
+  background: #ffe3df;
+}
+
 .algorithmsToggle {
   position: relative;
   display: flex;
@@ -1177,6 +1193,17 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   outline: 2px solid rgba(93, 80, 66, 0.35);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+.matrixFooterLink {
+  color: #2453a6;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  font-weight: 600;
+}
+
+.matrixFooterLink:hover {
+  color: #1d4490;
 }
 
 .matrixCellHasNew {
@@ -2644,6 +2671,12 @@ html[data-theme="dark"] .settingsFieldInput {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .settingsDangerButton {
+  border-color: #c65d57;
+  background: rgba(198, 93, 87, 0.2);
+  color: #ffb3af;
+}
+
 
 html[data-theme="dark"] .card,
 html[data-theme="dark"] .helpCard,
@@ -3096,6 +3129,14 @@ html[data-theme="dark"] .matrixCellNewTag {
 
 html[data-theme="dark"] .matrixTable td {
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .matrixFooterLink {
+  color: #8fb8ff;
+}
+
+html[data-theme="dark"] .matrixFooterLink:hover {
+  color: #b8d1ff;
 }
 
 html[data-theme="dark"] .matrixIndex {
@@ -5154,6 +5195,42 @@ html[data-theme="dark"] .spinner {
 
 .fieldTopLeftOverlay .feedbackMenu {
   z-index: 3200;
+}
+
+.seniorLineupFieldCompact .fieldTopLeftOverlay .lineupTrainingTypeLabel {
+  min-width: 0;
+}
+
+.seniorLineupFieldCompact .fieldTopLeftOverlay {
+  z-index: 1000;
+}
+
+.seniorLineupFieldCompact .fieldPitch {
+  overflow: visible;
+}
+
+.seniorLineupFieldCompact .fieldTopLeftOverlay .lineupTrainingTypeTrigger {
+  min-width: 122px;
+  max-width: 132px;
+  padding: 4px 18px 4px 6px;
+  position: relative;
+  z-index: 2147483000;
+}
+
+.seniorLineupFieldCompact .fieldTopLeftOverlay .lineupTrainingTypeValue {
+  white-space: normal;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.seniorLineupFieldCompact .fieldTopLeftOverlay .lineupTrainingTypeMenu {
+  min-width: 154px;
+  max-width: 196px;
+  z-index: 2147483001 !important;
+}
+
+.seniorLineupFieldCompact .fieldTopLeftOverlay .feedbackMenu {
+  z-index: 2147483001 !important;
 }
 
 .tacticOverlay:hover {

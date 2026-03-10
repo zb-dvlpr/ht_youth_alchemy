@@ -72,6 +72,7 @@ type LineupFieldProps = {
   onTrainingTypeSet?: (value: number) => void | Promise<void>;
   trainingTypeSetPending?: boolean;
   trainingTypeSetPendingValue?: number | null;
+  trainingTypePlacement?: "headerRight" | "fieldTopLeft";
   trainingTypeOptions?: number[];
   trainingTypeLabelForValue?: (value: number) => string;
   trainingTypeSectionTitleForValue?: (value: number) => string | null;
@@ -398,6 +399,7 @@ export default function LineupField({
   onTrainingTypeSet,
   trainingTypeSetPending = false,
   trainingTypeSetPendingValue = null,
+  trainingTypePlacement = "headerRight",
   trainingTypeOptions = [],
   trainingTypeLabelForValue,
   trainingTypeSectionTitleForValue,
@@ -475,6 +477,12 @@ export default function LineupField({
   );
   const showTrainingTypeControl = Boolean(
     onTrainingTypeChange && trainingTypeLabelForValue && trainingTypeOptions.length > 0
+  );
+  const showFieldTopLeftTrainingType = Boolean(
+    showTrainingTypeControl && trainingTypePlacement === "fieldTopLeft"
+  );
+  const showHeaderTrainingType = Boolean(
+    showTrainingTypeControl && !showFieldTopLeftTrainingType
   );
 
   const renderTacticControl = (className?: string) => (
@@ -863,12 +871,17 @@ export default function LineupField({
               ) : null}
             </div>
           ) : null}
-          {showTrainingTypeControl ? renderTrainingTypeControl() : null}
+          {showHeaderTrainingType ? renderTrainingTypeControl() : null}
         </div>
       </div>
       <div className={styles.fieldPitch}>
         {topLeftOverlayContent ? (
           <div className={styles.fieldTopLeftOverlay}>{topLeftOverlayContent}</div>
+        ) : null}
+        {showFieldTopLeftTrainingType ? (
+          <div className={styles.fieldTopLeftOverlay}>
+            {renderTrainingTypeControl()}
+          </div>
         ) : null}
         {showFieldTopLeftTactic
           ? renderTacticControl(styles.tacticOverlayFieldTopLeft)

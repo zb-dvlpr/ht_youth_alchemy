@@ -21,6 +21,7 @@ import {
   readSeniorStalenessDays,
   writeSeniorStalenessDays,
   SENIOR_SETTINGS_EVENT,
+  SENIOR_RATINGS_WIPE_EVENT,
   readClubChronicleStalenessDays,
   writeClubChronicleStalenessDays,
   readClubChronicleTransferHistoryCount,
@@ -49,11 +50,14 @@ type ExportPayload = {
 };
 
 const STORAGE_PREFIX = "ya_";
+const SENIOR_DASHBOARD_DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
+const SENIOR_DASHBOARD_STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 
 export default function SettingsButton({ messages }: SettingsButtonProps) {
   const [open, setOpen] = useState(false);
   const [youthSettingsOpen, setYouthSettingsOpen] = useState(false);
   const [seniorSettingsOpen, setSeniorSettingsOpen] = useState(false);
+  const [seniorRatingsWipeWarningOpen, setSeniorRatingsWipeWarningOpen] = useState(false);
   const [chronicleSettingsOpen, setChronicleSettingsOpen] = useState(false);
   const [generalSettingsOpen, setGeneralSettingsOpen] = useState(false);
   const [debugSettingsOpen, setDebugSettingsOpen] = useState(false);
@@ -214,6 +218,53 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         })
       );
     }
+  };
+
+  const handleAcknowledgeSeniorRatingsWipeWarning = () => {
+    if (typeof window !== "undefined") {
+      try {
+        const rawData = window.localStorage.getItem(SENIOR_DASHBOARD_DATA_STORAGE_KEY);
+        if (rawData) {
+          const parsed = JSON.parse(rawData) as Record<string, unknown>;
+          window.localStorage.setItem(
+            SENIOR_DASHBOARD_DATA_STORAGE_KEY,
+            JSON.stringify({
+              ...parsed,
+              ratingsResponse: null,
+            })
+          );
+        }
+      } catch {
+        // ignore storage parse/write errors
+      }
+      try {
+        const rawState = window.localStorage.getItem(SENIOR_DASHBOARD_STATE_STORAGE_KEY);
+        if (rawState) {
+          const parsed = JSON.parse(rawState) as Record<string, unknown>;
+          window.localStorage.setItem(
+            SENIOR_DASHBOARD_STATE_STORAGE_KEY,
+            JSON.stringify({
+              ...parsed,
+              updatesHistory: [],
+              selectedUpdatesId: null,
+              matrixNewMarkers: {
+                playerIds: [],
+                ratingsByPlayerId: {},
+                skillsCurrentByPlayerId: {},
+                skillsMaxByPlayerId: {},
+              },
+            })
+          );
+        }
+      } catch {
+        // ignore storage parse/write errors
+      }
+    }
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent(SENIOR_RATINGS_WIPE_EVENT));
+    }
+    addNotification(messages.notificationSeniorRatingsMatrixWiped);
+    setSeniorRatingsWipeWarningOpen(false);
   };
 
   const handleChronicleStalenessChange = (value: number) => {
@@ -496,6 +547,18 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
                 />
               </label>
             </Tooltip>
+            <div className={styles.settingsField}>
+              <span className={styles.settingsFieldLabel}>
+                {messages.settingsSeniorRatingsWipeLabel}
+              </span>
+              <button
+                type="button"
+                className={styles.settingsDangerButton}
+                onClick={() => setSeniorRatingsWipeWarningOpen(true)}
+              >
+                {messages.settingsSeniorRatingsWipeButton}
+              </button>
+            </div>
           </div>
         }
         actions={
@@ -509,6 +572,22 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         }
         closeOnBackdrop
         onClose={() => setSeniorSettingsOpen(false)}
+      />
+      <Modal
+        open={seniorRatingsWipeWarningOpen}
+        title={messages.settingsSeniorRatingsWipeWarningTitle}
+        body={
+          <p>{messages.settingsSeniorRatingsWipeWarningBody}</p>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={handleAcknowledgeSeniorRatingsWipeWarning}
+          >
+            {messages.settingsSeniorRatingsWipeWarningAcknowledge}
+          </button>
+        }
       />
       <Modal
         open={chronicleSettingsOpen}

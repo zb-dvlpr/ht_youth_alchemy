@@ -25,9 +25,20 @@ export async function GET(request: Request) {
 
     const { rawXml, parsed } = await fetchChppXml(auth, params);
     const includeRaw = url.searchParams.get("raw") === "1";
+    const managerTeamNode = parsed?.HattrickData?.Manager?.Teams?.Team;
+    const managerTeams = Array.isArray(managerTeamNode)
+      ? managerTeamNode
+      : managerTeamNode
+        ? [managerTeamNode]
+        : [];
+    const season =
+      managerTeams
+        .map((team) => Number(team?.League?.Season))
+        .find((value) => Number.isFinite(value) && value > 0) ?? null;
 
     return NextResponse.json({
       data: parsed,
+      season: season !== null ? Math.floor(season) : null,
       ...(includeRaw ? { raw: rawXml } : {}),
     });
   } catch (error) {

@@ -25,6 +25,7 @@ import { parseChppDate } from "@/lib/chpp/utils";
 import { hattrickMatchUrl, hattrickTeamUrl } from "@/lib/hattrick/urls";
 import {
   readSeniorStalenessDays,
+  SENIOR_RATINGS_WIPE_EVENT,
   SENIOR_SETTINGS_EVENT,
   SENIOR_SETTINGS_STORAGE_KEY,
 } from "@/lib/settings";
@@ -49,6 +50,7 @@ import {
   parseExtendedPermissionsFromCheckToken,
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
+import { readGlobalSeason } from "@/lib/season";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -201,6 +203,7 @@ const SENIOR_HELP_ANCHOR_ANALYZE_OPPONENT = `.${styles.matchAnalyzeOpponentWrap}
 
 const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
+const RATINGS_ALGO_VERSION_STORAGE_KEY = "ya_senior_ratings_algo_version_v1";
 const LAST_REFRESH_STORAGE_KEY = "ya_senior_last_refresh_ts_v1";
 const LIST_SORT_STORAGE_KEY = "ya_senior_player_list_sort_v1";
 const SENIOR_HELP_STORAGE_KEY = "ya_senior_help_dismissed_v1";
@@ -224,6 +227,7 @@ const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
 const OPPONENT_ARCHIVE_LIMIT = 20;
 const OPPONENT_DETAILS_CONCURRENCY = 6;
 const FORMATION_PREDICT_CONCURRENCY = 4;
+const SENIOR_RATINGS_ALGO_VERSION = 2;
 const NON_DEPRECATED_TRAINING_TYPES = [9, 3, 8, 5, 7, 4, 2, 11, 12, 10, 6] as const;
 const FIELD_SLOT_ORDER = [
   "KP",
@@ -785,6 +789,186 @@ const readStoredLastRefresh = () => {
 const writeStoredLastRefresh = (value: number) => {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(LAST_REFRESH_STORAGE_KEY, String(value));
+};
+
+const readStoredRatingsAlgoVersion = () => {
+  if (typeof window === "undefined") return null;
+  const value = window.localStorage.getItem(RATINGS_ALGO_VERSION_STORAGE_KEY);
+  const parsed = Number(value ?? "");
+  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : null;
+};
+
+const writeStoredRatingsAlgoVersion = (value: number) => {
+  if (typeof window === "undefined") return;
+  if (!Number.isFinite(value) || value <= 0) return;
+  window.localStorage.setItem(RATINGS_ALGO_VERSION_STORAGE_KEY, String(Math.floor(value)));
+};
+
+const formatArchiveDateTimeParam = (timestamp: number) => {
+  if (!Number.isFinite(timestamp) || timestamp <= 0) return null;
+  const iso = new Date(timestamp).toISOString();
+  if (!iso) return null;
+  return iso.slice(0, 19).replace("T", " ");
+};
+
+const isRatingsMatrixEmpty = (ratings: RatingsMatrixResponse | null | undefined) =>
+  !ratings?.players?.some((row) => Object.keys(row.ratings ?? {}).length > 0);
+
+const mergeRatingsMatrices = (
+  first: RatingsMatrixResponse,
+  second: RatingsMatrixResponse
+): RatingsMatrixResponse => {
+  const mergedById = new Map<
+    number,
+    {
+      id: number;
+      name: string;
+      ratings: Record<string, number>;
+      ratingMatchIds: Record<string, number>;
+      ratingMatchSourceSystems: Record<string, string>;
+    }
+  >();
+  [first, second].forEach((source) => {
+    source.players.forEach((row) => {
+      if (!mergedById.has(row.id)) {
+        mergedById.set(row.id, {
+          id: row.id,
+          name: row.name,
+          ratings: {},
+          ratingMatchIds: {},
+          ratingMatchSourceSystems: {},
+        });
+      }
+      const existing = mergedById.get(row.id);
+      if (!existing) return;
+      if (!existing.name && row.name) {
+        existing.name = row.name;
+      }
+      Object.entries(row.ratings ?? {}).forEach(([position, rating]) => {
+        if (typeof rating !== "number" || !Number.isFinite(rating)) return;
+        existing.ratings[position] = rating;
+      });
+      Object.entries(row.ratingMatchIds ?? {}).forEach(([position, matchId]) => {
+        if (typeof matchId !== "number" || !Number.isFinite(matchId)) return;
+        existing.ratingMatchIds[position] = matchId;
+      });
+      Object.entries(row.ratingMatchSourceSystems ?? {}).forEach(
+        ([position, sourceSystem]) => {
+          if (typeof sourceSystem !== "string" || !sourceSystem) return;
+          existing.ratingMatchSourceSystems[position] = sourceSystem;
+        }
+      );
+    });
+  });
+  const resolvedLastAppliedMatchId =
+    typeof second.lastAppliedMatchId === "number" && Number.isFinite(second.lastAppliedMatchId)
+      ? second.lastAppliedMatchId
+      : typeof first.lastAppliedMatchId === "number" && Number.isFinite(first.lastAppliedMatchId)
+        ? first.lastAppliedMatchId
+        : null;
+  const resolvedLastAppliedMatchDateTime =
+    typeof second.lastAppliedMatchDateTime === "number" &&
+    Number.isFinite(second.lastAppliedMatchDateTime)
+      ? second.lastAppliedMatchDateTime
+      : typeof first.lastAppliedMatchDateTime === "number" &&
+          Number.isFinite(first.lastAppliedMatchDateTime)
+        ? first.lastAppliedMatchDateTime
+        : null;
+  const resolvedLastAppliedMatchSourceSystem =
+    typeof second.lastAppliedMatchSourceSystem === "string" &&
+    second.lastAppliedMatchSourceSystem
+      ? second.lastAppliedMatchSourceSystem
+      : typeof first.lastAppliedMatchSourceSystem === "string" &&
+          first.lastAppliedMatchSourceSystem
+        ? first.lastAppliedMatchSourceSystem
+        : null;
+  return {
+    positions: Array.from(new Set([...(first.positions ?? []), ...(second.positions ?? [])])),
+    players: Array.from(mergedById.values()).map((row) => ({
+      ...row,
+      ratingMatchIds: { ...row.ratingMatchIds },
+      ratingMatchSourceSystems: { ...row.ratingMatchSourceSystems },
+    })),
+    matchesAnalyzed: (first.matchesAnalyzed ?? 0) + (second.matchesAnalyzed ?? 0),
+    lastAppliedMatchId: resolvedLastAppliedMatchId,
+    lastAppliedMatchDateTime: resolvedLastAppliedMatchDateTime,
+    lastAppliedMatchSourceSystem: resolvedLastAppliedMatchSourceSystem,
+  };
+};
+
+const applyRatingsDelta = (
+  base: RatingsMatrixResponse,
+  delta: RatingsMatrixResponse
+): RatingsMatrixResponse => {
+  const byId = new Map<
+    number,
+    {
+      id: number;
+      name: string;
+      ratings: Record<string, number>;
+      ratingMatchIds: Record<string, number>;
+      ratingMatchSourceSystems: Record<string, string>;
+    }
+  >();
+  (base.players ?? []).forEach((row) => {
+    byId.set(row.id, {
+      id: row.id,
+      name: row.name,
+      ratings: { ...row.ratings },
+      ratingMatchIds: { ...(row.ratingMatchIds ?? {}) },
+      ratingMatchSourceSystems: { ...(row.ratingMatchSourceSystems ?? {}) },
+    });
+  });
+  (delta.players ?? []).forEach((row) => {
+    const existing = byId.get(row.id) ?? {
+      id: row.id,
+      name: row.name,
+      ratings: {},
+      ratingMatchIds: {},
+      ratingMatchSourceSystems: {},
+    };
+    if (!existing.name && row.name) {
+      existing.name = row.name;
+    }
+    Object.entries(row.ratings ?? {}).forEach(([position, rating]) => {
+      if (typeof rating !== "number" || !Number.isFinite(rating)) return;
+      existing.ratings[position] = rating;
+    });
+    Object.entries(row.ratingMatchIds ?? {}).forEach(([position, matchId]) => {
+      if (typeof matchId !== "number" || !Number.isFinite(matchId)) return;
+      existing.ratingMatchIds[position] = matchId;
+    });
+    Object.entries(row.ratingMatchSourceSystems ?? {}).forEach(
+      ([position, sourceSystem]) => {
+        if (typeof sourceSystem !== "string" || !sourceSystem) return;
+        existing.ratingMatchSourceSystems[position] = sourceSystem;
+      }
+    );
+    byId.set(row.id, existing);
+  });
+  return {
+    positions: Array.from(new Set([...(base.positions ?? []), ...(delta.positions ?? [])])),
+    players: Array.from(byId.values()).map((row) => ({
+      ...row,
+      ratingMatchIds: { ...row.ratingMatchIds },
+      ratingMatchSourceSystems: { ...row.ratingMatchSourceSystems },
+    })),
+    matchesAnalyzed: delta.matchesAnalyzed ?? 0,
+    lastAppliedMatchId:
+      typeof delta.lastAppliedMatchId === "number" && Number.isFinite(delta.lastAppliedMatchId)
+        ? delta.lastAppliedMatchId
+        : base.lastAppliedMatchId ?? null,
+    lastAppliedMatchDateTime:
+      typeof delta.lastAppliedMatchDateTime === "number" &&
+      Number.isFinite(delta.lastAppliedMatchDateTime)
+        ? delta.lastAppliedMatchDateTime
+        : base.lastAppliedMatchDateTime ?? null,
+    lastAppliedMatchSourceSystem:
+      typeof delta.lastAppliedMatchSourceSystem === "string" &&
+      delta.lastAppliedMatchSourceSystem
+        ? delta.lastAppliedMatchSourceSystem
+        : base.lastAppliedMatchSourceSystem ?? null,
+  };
 };
 
 const sortLabel = (messages: Messages, key: SortKey) => {
@@ -1829,15 +2013,78 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return payload as MatchesResponse;
   };
 
-  const fetchRatings = async () => {
-    const { response, payload } = await fetchChppJson<RatingsMatrixResponse & { error?: string; details?: string }>(
-      "/api/chpp/ratings",
-      { cache: "no-store" }
-    );
+  const fetchRatings = async (
+    season?: number,
+    fromTs?: number | null,
+    fromMatchId?: number | null,
+    firstMatchDate?: string | null,
+    lastMatchDate?: string | null
+  ) => {
+    const query =
+      new URLSearchParams(
+        Object.fromEntries(
+          [
+            typeof season === "number" && Number.isFinite(season) && season > 0
+              ? ["season", String(Math.floor(season))]
+              : null,
+            typeof fromTs === "number" && Number.isFinite(fromTs) && fromTs > 0
+              ? ["fromTs", String(Math.floor(fromTs))]
+              : null,
+            typeof fromMatchId === "number" &&
+            Number.isFinite(fromMatchId) &&
+            fromMatchId > 0
+              ? ["fromMatchId", String(Math.floor(fromMatchId))]
+              : null,
+            typeof firstMatchDate === "string" && firstMatchDate
+              ? ["firstMatchDate", firstMatchDate]
+              : null,
+            typeof lastMatchDate === "string" && lastMatchDate
+              ? ["lastMatchDate", lastMatchDate]
+              : null,
+          ].filter((entry): entry is [string, string] => Boolean(entry))
+        )
+      ).toString();
+    const suffix = query ? `?${query}` : "";
+    const { response, payload } = await fetchChppJson<
+      RatingsMatrixResponse & { error?: string; details?: string }
+    >(`/api/chpp/ratings${suffix}`, {
+      cache: "no-store",
+    });
     if (!response.ok || payload?.error) {
       throw new Error(payload?.details ?? payload?.error ?? messages.noMatchesReturned);
     }
     return payload as RatingsMatrixResponse;
+  };
+
+  const fetchCurrentSeason = async () => {
+    const cached = readGlobalSeason();
+    if (cached !== null) return cached;
+    const { response, payload } = await fetchChppJson<{
+      season?: number;
+      data?: { HattrickData?: { Manager?: { Teams?: { Team?: unknown } } } };
+      error?: string;
+      details?: string;
+    }>("/api/chpp/managercompendium", { cache: "no-store" });
+    if (!response.ok || payload?.error) {
+      throw new Error(payload?.details ?? payload?.error ?? messages.noMatchesReturned);
+    }
+    const directSeason =
+      typeof payload?.season === "number" && Number.isFinite(payload.season)
+        ? Math.floor(payload.season)
+        : null;
+    if (directSeason && directSeason > 0) return directSeason;
+
+    const teamsNode = payload?.data?.HattrickData?.Manager?.Teams?.Team;
+    const teams = Array.isArray(teamsNode) ? teamsNode : teamsNode ? [teamsNode] : [];
+    for (const team of teams) {
+      const maybeSeason = parseNumber(
+        (team as { League?: { Season?: unknown } })?.League?.Season
+      );
+      if (typeof maybeSeason === "number" && Number.isFinite(maybeSeason) && maybeSeason > 0) {
+        return Math.floor(maybeSeason);
+      }
+    }
+    throw new Error(messages.noMatchesReturned);
   };
 
   const fetchTrainingSnapshot = async (): Promise<{
@@ -1933,11 +2180,19 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       data?: { HattrickData?: { Player?: SeniorPlayerDetails } };
       error?: string;
       details?: string;
-    }>(`/api/chpp/playerdetails?playerId=${playerId}`, { cache: "no-store" });
+    }>(`/api/chpp/playerdetails?playerId=${playerId}&includeMatchInfo=true`, {
+      cache: "no-store",
+    });
     if (!response.ok || payload?.error || !payload?.data?.HattrickData?.Player) {
       return null;
     }
     return normalizeSeniorPlayerDetails(payload.data.HattrickData.Player, playerId);
+  };
+
+  const bootstrapRatingsFromSeasons = async (season: number) => {
+    const previousSeason = await fetchRatings(Math.max(1, season - 1));
+    const currentSeason = await fetchRatings(season);
+    return mergeRatingsMatrices(previousSeason, currentSeason);
   };
 
   const ensureDetails = async (playerId: number, forceRefresh = false) => {
@@ -2283,6 +2538,8 @@ const refreshDetailsForPlayers = async (
     setRefreshing(true);
     setRefreshStatus(messages.refreshStatusFetchingPlayers);
     setRefreshProgressPct(10);
+    setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
+    let didBootstrapRatings = false;
 
     try {
       const nextPlayers = await fetchPlayers();
@@ -2316,8 +2573,60 @@ const refreshDetailsForPlayers = async (
       if (isStopped()) return false;
 
       setRefreshStatus(messages.refreshStatusFetchingRatings);
-      setRefreshProgressPct(75);
-      const nextRatings = await fetchRatings();
+      setRefreshProgressPct(60);
+      const shouldBootstrapRatings = isRatingsMatrixEmpty(ratingsResponse);
+      didBootstrapRatings = shouldBootstrapRatings;
+      const nextRatings = shouldBootstrapRatings
+        ? await (async () => {
+            const currentSeason = await fetchCurrentSeason();
+            if (isStopped()) return null;
+            setRefreshProgressPct(72);
+            const previousSeasonRatings = await fetchRatings(Math.max(1, currentSeason - 1));
+            if (isStopped()) return null;
+            setRefreshProgressPct(84);
+            const currentSeasonRatings = await fetchRatings(currentSeason);
+            if (isStopped()) return null;
+            setRefreshProgressPct(90);
+            return mergeRatingsMatrices(previousSeasonRatings, currentSeasonRatings);
+          })()
+        : await (async () => {
+            const fromTs =
+              typeof ratingsResponse?.lastAppliedMatchDateTime === "number" &&
+              Number.isFinite(ratingsResponse.lastAppliedMatchDateTime) &&
+              ratingsResponse.lastAppliedMatchDateTime > 0
+                ? Math.floor(ratingsResponse.lastAppliedMatchDateTime)
+                : null;
+            const fromMatchId =
+              typeof ratingsResponse?.lastAppliedMatchId === "number" &&
+              Number.isFinite(ratingsResponse.lastAppliedMatchId) &&
+              ratingsResponse.lastAppliedMatchId > 0
+                ? Math.floor(ratingsResponse.lastAppliedMatchId)
+                : null;
+            const firstMatchDate =
+              fromTs !== null ? formatArchiveDateTimeParam(fromTs) : null;
+            const lastMatchDate = formatArchiveDateTimeParam(Date.now());
+            setRefreshProgressPct(72);
+            const incrementalRatings = await fetchRatings(
+              undefined,
+              fromTs,
+              fromMatchId,
+              firstMatchDate,
+              lastMatchDate
+            );
+            if (isStopped()) return null;
+            setRefreshProgressPct(90);
+            return applyRatingsDelta(
+              ratingsResponse ?? {
+                positions: [],
+                players: [],
+                matchesAnalyzed: 0,
+                lastAppliedMatchId: null,
+                lastAppliedMatchDateTime: null,
+              },
+              incrementalRatings
+            );
+          })();
+      if (!nextRatings) return false;
       if (isStopped()) return false;
       let nextTrainingType: number | null | undefined = undefined;
       try {
@@ -2357,6 +2666,8 @@ const refreshDetailsForPlayers = async (
         setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
         setUpdatesHistory([]);
         setSelectedUpdatesId(null);
+      } else if (didBootstrapRatings) {
+        setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
       } else if (updatesEntry.hasChanges) {
         setMatrixNewMarkers(buildSeniorMatrixMarkersFromUpdatesEntry(updatesEntry));
         setUpdatesHistory((prev) => [updatesEntry, ...prev].slice(0, UPDATES_HISTORY_LIMIT));
@@ -2372,6 +2683,9 @@ const refreshDetailsForPlayers = async (
       setRefreshStatus(null);
       setRefreshProgressPct(100);
       setRefreshProgressPct(0);
+      if (didBootstrapRatings) {
+        addNotification(messages.notificationSeniorRatingsBootstrapComplete);
+      }
       addNotification(
         reason === "stale"
           ? messages.notificationStaleRefresh
@@ -2808,8 +3122,9 @@ const refreshDetailsForPlayers = async (
       );
 
       let ratingsById = ratingsByPlayerId;
-      if (!ratingsResponse?.players?.length) {
-        const refreshedRatings = await fetchRatings();
+      if (isRatingsMatrixEmpty(ratingsResponse)) {
+        const currentSeason = await fetchCurrentSeason();
+        const refreshedRatings = await bootstrapRatingsFromSeasons(currentSeason);
         setRatingsResponse(refreshedRatings);
         ratingsById = {};
         (refreshedRatings.players ?? []).forEach((row) => {
@@ -3348,6 +3663,12 @@ const refreshDetailsForPlayers = async (
 
       const rawState = window.localStorage.getItem(STATE_STORAGE_KEY);
       let forceWipeLegacyUpdatesState = false;
+      const storedRatingsAlgoVersion = readStoredRatingsAlgoVersion();
+      const forceResetRatingsAlgorithm =
+        storedRatingsAlgoVersion !== SENIOR_RATINGS_ALGO_VERSION;
+      if (forceResetRatingsAlgorithm) {
+        suppressNextUpdatesRecordingRef.current = true;
+      }
       if (rawState) {
         try {
           const parsed = JSON.parse(rawState) as {
@@ -3442,14 +3763,18 @@ const refreshDetailsForPlayers = async (
           if (parsed.matchesState && typeof parsed.matchesState === "object") {
             setMatchesState(parsed.matchesState);
           }
-          if (parsed.ratingsResponse && typeof parsed.ratingsResponse === "object") {
+          if (
+            !forceResetRatingsAlgorithm &&
+            parsed.ratingsResponse &&
+            typeof parsed.ratingsResponse === "object"
+          ) {
             setRatingsResponse(parsed.ratingsResponse);
           }
           if (parsed.detailsCache && typeof parsed.detailsCache === "object") {
             setDetailsCache(parsed.detailsCache);
           }
           const persistedRatingsByPlayerId = buildRatingsByPlayerIdFromResponse(
-            parsed.ratingsResponse ?? null
+            forceResetRatingsAlgorithm ? null : parsed.ratingsResponse ?? null
           );
           if (
             !forceWipeLegacyUpdatesState &&
@@ -3466,6 +3791,8 @@ const refreshDetailsForPlayers = async (
           // ignore parse errors
         }
       }
+
+      writeStoredRatingsAlgoVersion(SENIOR_RATINGS_ALGO_VERSION);
 
       setLastRefreshAt(readStoredLastRefresh());
       setStalenessDays(readSeniorStalenessDays());
@@ -3506,13 +3833,26 @@ const refreshDetailsForPlayers = async (
       }
       setStalenessDays(readSeniorStalenessDays());
     };
+    const handleWipeRatingsMatrix = () => {
+      setRatingsResponse(null);
+      setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
+      setUpdatesHistory([]);
+      setSelectedUpdatesId(null);
+      const currentPlayers = players;
+      persistedMarkersBaselineRef.current = {
+        players: currentPlayers,
+        ratingsByPlayerId: {},
+      };
+    };
     window.addEventListener("storage", handle);
     window.addEventListener(SENIOR_SETTINGS_EVENT, handle);
+    window.addEventListener(SENIOR_RATINGS_WIPE_EVENT, handleWipeRatingsMatrix);
     return () => {
       window.removeEventListener("storage", handle);
       window.removeEventListener(SENIOR_SETTINGS_EVENT, handle);
+      window.removeEventListener(SENIOR_RATINGS_WIPE_EVENT, handleWipeRatingsMatrix);
     };
-  }, []);
+  }, [players]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -4033,6 +4373,9 @@ const refreshDetailsForPlayers = async (
     }
     return String(value);
   };
+  const seniorTrainingLabel =
+    messages.trainingRegimenLabel.split(/\s+/).find(Boolean) ??
+    messages.trainingRegimenLabel;
 
   return (
     <div className={styles.dashboardStack} ref={dashboardRef}>
@@ -5303,86 +5646,89 @@ const refreshDetailsForPlayers = async (
           className={`${styles.columnStack}${showHelp ? ` ${styles.helpDisabledColumn}` : ""}`}
           aria-hidden={showHelp ? "true" : undefined}
         >
-          <LineupField
-            assignments={assignments}
-            behaviors={behaviors}
-            playersById={playersByIdForLineup}
-            playerDetailsById={new Map(
-              Array.from(detailsById.entries()).map(([id, detail]) => [
-                id,
-                {
-                  PlayerSkills: detail.PlayerSkills,
-                  InjuryLevel: detail.InjuryLevel,
-                  Cards: detail.Cards,
-                  Form: detail.Form,
-                  StaminaSkill: detail.StaminaSkill,
-                },
-              ])
-            )}
-            onAssign={(slotId, playerId) => {
-              setAssignments((prev) => {
-                const next = { ...prev };
-                Object.keys(next).forEach((key) => {
-                  if (next[key] === playerId) {
-                    next[key] = null;
-                  }
+          <div className={styles.seniorLineupFieldCompact}>
+            <LineupField
+              assignments={assignments}
+              behaviors={behaviors}
+              playersById={playersByIdForLineup}
+              playerDetailsById={new Map(
+                Array.from(detailsById.entries()).map(([id, detail]) => [
+                  id,
+                  {
+                    PlayerSkills: detail.PlayerSkills,
+                    InjuryLevel: detail.InjuryLevel,
+                    Cards: detail.Cards,
+                    Form: detail.Form,
+                    StaminaSkill: detail.StaminaSkill,
+                  },
+                ])
+              )}
+              onAssign={(slotId, playerId) => {
+                setAssignments((prev) => {
+                  const next = { ...prev };
+                  Object.keys(next).forEach((key) => {
+                    if (next[key] === playerId) {
+                      next[key] = null;
+                    }
+                  });
+                  next[slotId] = playerId;
+                  return next;
                 });
-                next[slotId] = playerId;
-                return next;
-              });
-              setLoadedMatchId(null);
-            }}
-            onClear={(slotId) => {
-              setAssignments((prev) => ({ ...prev, [slotId]: null }));
-              setLoadedMatchId(null);
-            }}
-            onMove={(fromSlot, toSlot) => {
-              setAssignments((prev) => ({
-                ...prev,
-                [toSlot]: prev[fromSlot] ?? null,
-                [fromSlot]: prev[toSlot] ?? null,
-              }));
-              setLoadedMatchId(null);
-            }}
-            onChangeBehavior={(slotId, behavior) => {
-              setBehaviors((prev) => {
-                const next = { ...prev };
-                if (behavior) next[slotId] = behavior;
-                else delete next[slotId];
-                return next;
-              });
-              setLoadedMatchId(null);
-            }}
-            onReset={() => {
-              setAssignments({});
-              setBehaviors({});
-              setLoadedMatchId(null);
-              addNotification(messages.notificationLineupReset);
-            }}
-            tacticType={tacticType}
-            onTacticChange={setTacticType}
-            tacticPlacement="fieldTopLeft"
-            trainingType={trainingType}
-            onTrainingTypeChange={setTrainingType}
-            onTrainingTypeSet={handleSetTrainingType}
-            trainingTypeSetPending={trainingTypeSetPending}
-            trainingTypeSetPendingValue={trainingTypeSetPendingValue}
-            trainingTypeOptions={[...NON_DEPRECATED_TRAINING_TYPES]}
-            trainingTypeLabelForValue={obtainedTrainingRegimenLabel}
-            trainingTypeSectionTitleForValue={trainingSectionTitleForValue}
-            trainingTypeAriaLabel={messages.trainingRegimenLabel}
-            trainedSlots={seniorTrainedSlots}
-            onHoverPlayer={(playerId) => {
-              void ensureDetails(playerId);
-            }}
-            onSelectPlayer={(playerId) => {
-              setSelectedId(playerId);
-              void ensureDetails(playerId);
-            }}
-            skillMode="single"
-            maxSkillLevel={20}
-            messages={messages}
-          />
+                setLoadedMatchId(null);
+              }}
+              onClear={(slotId) => {
+                setAssignments((prev) => ({ ...prev, [slotId]: null }));
+                setLoadedMatchId(null);
+              }}
+              onMove={(fromSlot, toSlot) => {
+                setAssignments((prev) => ({
+                  ...prev,
+                  [toSlot]: prev[fromSlot] ?? null,
+                  [fromSlot]: prev[toSlot] ?? null,
+                }));
+                setLoadedMatchId(null);
+              }}
+              onChangeBehavior={(slotId, behavior) => {
+                setBehaviors((prev) => {
+                  const next = { ...prev };
+                  if (behavior) next[slotId] = behavior;
+                  else delete next[slotId];
+                  return next;
+                });
+                setLoadedMatchId(null);
+              }}
+              onReset={() => {
+                setAssignments({});
+                setBehaviors({});
+                setLoadedMatchId(null);
+                addNotification(messages.notificationLineupReset);
+              }}
+              tacticType={tacticType}
+              onTacticChange={setTacticType}
+              tacticPlacement="headerRight"
+              trainingType={trainingType}
+              onTrainingTypeChange={setTrainingType}
+              onTrainingTypeSet={handleSetTrainingType}
+              trainingTypeSetPending={trainingTypeSetPending}
+              trainingTypeSetPendingValue={trainingTypeSetPendingValue}
+              trainingTypePlacement="fieldTopLeft"
+              trainingTypeOptions={[...NON_DEPRECATED_TRAINING_TYPES]}
+              trainingTypeLabelForValue={obtainedTrainingRegimenLabel}
+              trainingTypeSectionTitleForValue={trainingSectionTitleForValue}
+              trainingTypeAriaLabel={seniorTrainingLabel}
+              trainedSlots={seniorTrainedSlots}
+              onHoverPlayer={(playerId) => {
+                void ensureDetails(playerId);
+              }}
+              onSelectPlayer={(playerId) => {
+                setSelectedId(playerId);
+                void ensureDetails(playerId);
+              }}
+              skillMode="single"
+              maxSkillLevel={20}
+              messages={messages}
+            />
+          </div>
           <UpcomingMatches
             response={matchesState}
             messages={messages}

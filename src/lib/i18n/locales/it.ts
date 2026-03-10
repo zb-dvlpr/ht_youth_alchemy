@@ -692,6 +692,20 @@ export const messagesIt: Messages = {
     setBestLineupAimForExtraTime: "Punta ai supplementari",
     setBestLineupAimForExtraTimeTooltip:
       "Gioca per il pareggio per ottenere allenamento extra.",
+    seniorExtraTimeModalTitle: "Perché puntare ai supplementari?",
+    seniorExtraTimeModalLead:
+      "Perché i supplementari possono offrire minuti di allenamento aggiuntivi.",
+    seniorExtraTimeModalTrainingLimit:
+      "In Hattrick, ogni giocatore può ricevere al massimo 90 minuti di allenamento a settimana.",
+    seniorExtraTimeModalRotation:
+      "Se la partita va ai supplementari e ruoti altri giocatori in posizioni allenabili, quei minuti possono trasformarsi in allenamento extra.",
+    seniorExtraTimeModal120CupPrefix:
+      "Esiste persino una competizione costruita su questa idea:",
+    seniorExtraTimeModal120CupLinkLabel: "la Coppa 120%",
+    seniorExtraTimeModal120CupMiddle: "organizzata da",
+    seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
+    seniorExtraTimeModalWorkflow:
+      "L'idea è semplice: in base al tuo regime di allenamento, Alchemy ti chiede di scegliere i giocatori da allenare. Tu li identifichi, clicchi su Imposta formazione migliore e Alchemy fa il resto.",
     setBestLineupRejectedPlayersLabel: "Giocatori scartati",
     analyzeOpponent: "Analizza avversario",
     analyzeOpponentTooltip: "Analizza le partite recenti dell'avversario.",

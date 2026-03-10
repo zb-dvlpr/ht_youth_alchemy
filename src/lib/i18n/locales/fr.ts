@@ -690,6 +690,20 @@ export const messagesFr: Messages = {
     setBestLineupAimForExtraTime: "Viser la prolongation",
     setBestLineupAimForExtraTimeTooltip:
       "Joue le nul pour obtenir un entraînement supplémentaire.",
+    seniorExtraTimeModalTitle: "Pourquoi viser la prolongation ?",
+    seniorExtraTimeModalLead:
+      "Parce que la prolongation peut offrir des minutes d'entraînement en plus.",
+    seniorExtraTimeModalTrainingLimit:
+      "Dans Hattrick, chaque joueur peut recevoir au maximum 90 minutes d'entraînement par semaine.",
+    seniorExtraTimeModalRotation:
+      "Si le match va en prolongation et que vous faites tourner d'autres joueurs sur des postes entraînables, ces minutes peuvent devenir un gain d'entraînement supplémentaire.",
+    seniorExtraTimeModal120CupPrefix:
+      "Il existe même une compétition dédiée à cette approche :",
+    seniorExtraTimeModal120CupLinkLabel: "la Coupe 120 %",
+    seniorExtraTimeModal120CupMiddle: "organisée par",
+    seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
+    seniorExtraTimeModalWorkflow:
+      "Le principe est simple : selon votre régime d'entraînement, Alchemy vous demande de choisir les joueurs à entraîner. Vous les identifiez, cliquez sur Définir la meilleure compo et Alchemy gère le reste.",
     setBestLineupRejectedPlayersLabel: "Joueurs rejetés",
     analyzeOpponent: "Analyser l'adversaire",
     analyzeOpponentTooltip: "Analyser les matchs récents de l'adversaire.",

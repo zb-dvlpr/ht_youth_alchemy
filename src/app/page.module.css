@@ -5011,6 +5011,31 @@ html[data-theme="dark"] .spinner {
   color: #8a6e40;
 }
 
+.seniorExtraTimeModalBody {
+  display: grid;
+  gap: 12px;
+  padding: 2px;
+  color: #3f352c;
+  line-height: 1.5;
+}
+
+.seniorExtraTimeModalBody p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.seniorExtraTimeModalLead {
+  font-size: 14px;
+  font-weight: 700;
+  color: #5d5245;
+  padding: 10px 12px;
+  border: 1px solid #e0d4c1;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at top left, rgba(255, 237, 201, 0.78), transparent 60%),
+    linear-gradient(180deg, #f8f2e8 0%, #f4ecdf 100%);
+}
+
 @media (max-width: 900px) {
   .confirmCard.seniorUpdatesModal {
     width: min(96vw, 760px);

@@ -657,6 +657,19 @@ export const messagesEn: Messages = {
     setBestLineupAimForExtraTime: "Aim for extra time",
     setBestLineupAimForExtraTimeTooltip:
       "Play for a draw to gain extra training.",
+    seniorExtraTimeModalTitle: "Why aim for extra time?",
+    seniorExtraTimeModalLead: "Because extra time can mean extra training.",
+    seniorExtraTimeModalTrainingLimit:
+      "In Hattrick, each player can receive a maximum of 90 training minutes per week.",
+    seniorExtraTimeModalRotation:
+      "If your match goes to extra time and you rotate other players into trainable slots, those minutes can become additional training gains.",
+    seniorExtraTimeModal120CupPrefix:
+      "There is even a competition built around this concept:",
+    seniorExtraTimeModal120CupLinkLabel: "the 120% Cup",
+    seniorExtraTimeModal120CupMiddle: "organized by",
+    seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
+    seniorExtraTimeModalWorkflow:
+      "The workflow is simple: based on your training regimen, Alchemy asks you to pick the players to be trained. You choose the players, click Set lineup, and Alchemy handles the rest.",
     setBestLineupRejectedPlayersLabel: "Rejected players",
     analyzeOpponent: "Analyze opponent",
     analyzeOpponentTooltip: "Analyze opponent recent matches.",

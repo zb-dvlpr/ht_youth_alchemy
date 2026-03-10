@@ -22,7 +22,12 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { formatDateTime } from "@/lib/datetime";
 import { parseChppDate } from "@/lib/chpp/utils";
-import { hattrickMatchUrl, hattrickTeamUrl } from "@/lib/hattrick/urls";
+import {
+  hattrickForumThreadUrl,
+  hattrickManagerUrl,
+  hattrickMatchUrl,
+  hattrickTeamUrl,
+} from "@/lib/hattrick/urls";
 import {
   readSeniorStalenessDays,
   SENIOR_RATINGS_WIPE_EVENT,
@@ -1408,6 +1413,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     error: string | null;
   } | null>(null);
   const [submitDisclaimerOpen, setSubmitDisclaimerOpen] = useState(false);
+  const [extraTimeInfoOpen, setExtraTimeInfoOpen] = useState(false);
 
   const refreshRunSeqRef = useRef(0);
   const dashboardRef = useRef<HTMLDivElement | null>(null);
@@ -4574,6 +4580,53 @@ const refreshDetailsForPlayers = async (
         onClose={() => setSubmitDisclaimerOpen(false)}
       />
       <Modal
+        open={extraTimeInfoOpen}
+        title={messages.seniorExtraTimeModalTitle}
+        className={styles.chronicleTransferListedModal}
+        body={
+          <div className={styles.seniorExtraTimeModalBody}>
+            <p className={styles.seniorExtraTimeModalLead}>
+              {messages.seniorExtraTimeModalLead}
+            </p>
+            <p>{messages.seniorExtraTimeModalTrainingLimit}</p>
+            <p>{messages.seniorExtraTimeModalRotation}</p>
+            <p>
+              {messages.seniorExtraTimeModal120CupPrefix}{" "}
+              <a
+                className={styles.chroniclePressLink}
+                href={hattrickForumThreadUrl(17665764, 2)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {messages.seniorExtraTimeModal120CupLinkLabel}
+              </a>{" "}
+              {messages.seniorExtraTimeModal120CupMiddle}{" "}
+              <a
+                className={styles.chroniclePressLink}
+                href={hattrickManagerUrl(4419616)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {messages.seniorExtraTimeModalMonomorphLinkLabel}
+              </a>
+              .
+            </p>
+            <p>{messages.seniorExtraTimeModalWorkflow}</p>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setExtraTimeInfoOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setExtraTimeInfoOpen(false)}
+      />
+      <Modal
         open={!!opponentAnalysisModal}
         title={opponentAnalysisModal?.title ?? messages.analyzeOpponent}
         className={styles.chronicleTransferHistoryModal}
@@ -5744,6 +5797,10 @@ const refreshDetailsForPlayers = async (
             keepBestLineupMenuTopmost
             onRefresh={onRefreshMatchesOnly}
             onSetBestLineupMode={(matchId, mode) => {
+              if (mode === "extraTime") {
+                setExtraTimeInfoOpen(true);
+                return Promise.resolve();
+              }
               return runSetBestLineupPredictRatings(matchId, mode);
             }}
             onAnalyzeOpponent={(matchId) => {

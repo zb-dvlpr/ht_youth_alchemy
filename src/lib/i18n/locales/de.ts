@@ -679,6 +679,20 @@ export const messagesDe: Messages = {
     setBestLineupAimForExtraTime: "Auf Verlängerung spielen",
     setBestLineupAimForExtraTimeTooltip:
       "Spiele auf ein Unentschieden, um zusätzliches Training zu erhalten.",
+    seniorExtraTimeModalTitle: "Warum auf Verlängerung spielen?",
+    seniorExtraTimeModalLead:
+      "Weil Verlängerung zusätzliche Trainingsminuten bedeuten kann.",
+    seniorExtraTimeModalTrainingLimit:
+      "In Hattrick kann jeder Spieler pro Woche maximal 90 Trainingsminuten erhalten.",
+    seniorExtraTimeModalRotation:
+      "Geht ein Spiel in die Verlängerung und rotierst du andere Spieler auf trainierbare Positionen, können diese Minuten zusätzliches Training bringen.",
+    seniorExtraTimeModal120CupPrefix:
+      "Es gibt sogar einen Wettbewerb, der genau darauf aufbaut:",
+    seniorExtraTimeModal120CupLinkLabel: "den 120%-Cup",
+    seniorExtraTimeModal120CupMiddle: "organisiert von",
+    seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
+    seniorExtraTimeModalWorkflow:
+      "Die Idee ist einfach: Basierend auf deinem Trainingsregime bittet Alchemy dich, die zu trainierenden Spieler auszuwählen. Du wählst die Spieler, klickst auf Aufstellung setzen, und Alchemy erledigt den Rest.",
     setBestLineupRejectedPlayersLabel: "Verworfene Spieler",
     analyzeOpponent: "Gegner analysieren",
     analyzeOpponentTooltip: "Aktuelle Gegner-Spiele analysieren.",

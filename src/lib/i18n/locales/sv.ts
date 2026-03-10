@@ -682,6 +682,20 @@ export const messagesSv: Messages = {
     setBestLineupAimForExtraTime: "Sikta på förlängning",
     setBestLineupAimForExtraTimeTooltip:
       "Spela för oavgjort för att få extra träning.",
+    seniorExtraTimeModalTitle: "Varför sikta på förlängning?",
+    seniorExtraTimeModalLead:
+      "För att förlängning kan ge extra träningsminuter.",
+    seniorExtraTimeModalTrainingLimit:
+      "I Hattrick kan varje spelare få högst 90 träningsminuter per vecka.",
+    seniorExtraTimeModalRotation:
+      "Om matchen går till förlängning och du roterar in andra spelare på träningsbara positioner kan de minuterna ge extra träning.",
+    seniorExtraTimeModal120CupPrefix:
+      "Det finns till och med en turnering byggd kring just detta:",
+    seniorExtraTimeModal120CupLinkLabel: "120%-cupen",
+    seniorExtraTimeModal120CupMiddle: "organiserad av",
+    seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
+    seniorExtraTimeModalWorkflow:
+      "Idén är enkel: utifrån ditt träningsupplägg ber Alchemy dig välja vilka spelare som ska tränas. Du väljer spelarna, klickar på Sätt bästa uppställning och Alchemy sköter resten.",
     setBestLineupRejectedPlayersLabel: "Bortvalda spelare",
     analyzeOpponent: "Analysera motståndare",
     analyzeOpponentTooltip: "Analysera motståndarens senaste matcher.",

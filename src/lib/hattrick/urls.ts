@@ -56,3 +56,11 @@ export const hattrickSeriesUrl = (
 
 export const hattrickYouthTeamUrl = (youthTeamId: number | string) =>
   buildGotoUrl(`/Club/Youth/?YouthTeamID=${youthTeamId}`);
+
+export const hattrickForumThreadUrl = (threadId: number | string, n?: number | string) => {
+  const nPart = n === undefined || n === null ? "" : `&n=${n}`;
+  return buildGotoUrl(`/Forum/Read.aspx?t=${threadId}${nPart}`);
+};
+
+export const hattrickManagerUrl = (userId: number | string) =>
+  buildGotoUrl(`/Club/Manager/?userId=${userId}`);

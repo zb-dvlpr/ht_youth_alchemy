@@ -583,6 +583,15 @@ export type Messages = {
   setBestLineupIgnoreTrainingTooltip: string;
   setBestLineupAimForExtraTime: string;
   setBestLineupAimForExtraTimeTooltip: string;
+  seniorExtraTimeModalTitle: string;
+  seniorExtraTimeModalLead: string;
+  seniorExtraTimeModalTrainingLimit: string;
+  seniorExtraTimeModalRotation: string;
+  seniorExtraTimeModal120CupPrefix: string;
+  seniorExtraTimeModal120CupLinkLabel: string;
+  seniorExtraTimeModal120CupMiddle: string;
+  seniorExtraTimeModalMonomorphLinkLabel: string;
+  seniorExtraTimeModalWorkflow: string;
   setBestLineupRejectedPlayersLabel: string;
   analyzeOpponent: string;
   analyzeOpponentTooltip: string;

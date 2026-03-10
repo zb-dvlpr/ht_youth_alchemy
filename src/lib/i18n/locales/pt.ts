@@ -691,6 +691,20 @@ export const messagesPt: Messages = {
     setBestLineupAimForExtraTime: "Mirar a prorrogação",
     setBestLineupAimForExtraTimeTooltip:
       "Jogue pelo empate para ganhar treino extra.",
+    seniorExtraTimeModalTitle: "Por que mirar a prorrogação?",
+    seniorExtraTimeModalLead:
+      "Porque a prorrogação pode render minutos extras de treino.",
+    seniorExtraTimeModalTrainingLimit:
+      "No Hattrick, cada jogador pode receber no máximo 90 minutos de treino por semana.",
+    seniorExtraTimeModalRotation:
+      "Se a partida for para a prorrogação e você rotacionar outros jogadores para posições treináveis, esses minutos podem virar ganho extra de treino.",
+    seniorExtraTimeModal120CupPrefix:
+      "Existe até uma competição focada nessa ideia:",
+    seniorExtraTimeModal120CupLinkLabel: "a Copa 120%",
+    seniorExtraTimeModal120CupMiddle: "organizada por",
+    seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
+    seniorExtraTimeModalWorkflow:
+      "A ideia é simples: com base no seu regime de treino, o Alchemy pede que você escolha os jogadores a serem treinados. Você identifica os jogadores, clica em Definir melhor escalação e o Alchemy cuida do resto.",
     setBestLineupRejectedPlayersLabel: "Jogadores rejeitados",
     analyzeOpponent: "Analisar adversário",
     analyzeOpponentTooltip: "Analisar jogos recentes do adversário.",

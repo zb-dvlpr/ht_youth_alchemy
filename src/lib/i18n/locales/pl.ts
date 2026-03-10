@@ -154,6 +154,20 @@ export const messagesPl: Messages = {
   setBestLineupAimForExtraTime: "Graj pod dogrywkę",
   setBestLineupAimForExtraTimeTooltip:
     "Gra na remis, aby zyskać dodatkowy trening.",
+  seniorExtraTimeModalTitle: "Dlaczego warto grać pod dogrywkę?",
+  seniorExtraTimeModalLead:
+    "Bo dogrywka może dać dodatkowe minuty treningowe.",
+  seniorExtraTimeModalTrainingLimit:
+    "W Hattrick każdy zawodnik może otrzymać maksymalnie 90 minut treningu tygodniowo.",
+  seniorExtraTimeModalRotation:
+    "Jeśli mecz wejdzie w dogrywkę i wprowadzisz innych zawodników na pozycje treningowe, te minuty mogą przełożyć się na dodatkowy trening.",
+  seniorExtraTimeModal120CupPrefix:
+    "Istnieje nawet rozgrywka oparta dokładnie na tym pomyśle:",
+  seniorExtraTimeModal120CupLinkLabel: "Puchar 120%",
+  seniorExtraTimeModal120CupMiddle: "organizowany przez",
+  seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
+  seniorExtraTimeModalWorkflow:
+    "To bardzo proste: na podstawie reżimu treningowego Alchemy poprosi Cię o wybór zawodników do treningu. Wskazujesz zawodników, klikasz Ustaw najlepszy skład, a Alchemy zajmuje się resztą.",
   setBestLineupRejectedPlayersLabel: "Odrzuceni zawodnicy",
   analyzeOpponent: "Analizuj przeciwnika",
   analyzeOpponentTooltip: "Przeanalizuj ostatnie mecze przeciwnika.",

@@ -154,6 +154,20 @@ export const messagesNl: Messages = {
   setBestLineupAimForExtraTime: "Richten op verlenging",
   setBestLineupAimForExtraTimeTooltip:
     "Speel voor een gelijkspel om extra training te krijgen.",
+  seniorExtraTimeModalTitle: "Waarom richten op verlenging?",
+  seniorExtraTimeModalLead:
+    "Omdat verlenging extra trainingsminuten kan opleveren.",
+  seniorExtraTimeModalTrainingLimit:
+    "In Hattrick kan elke speler maximaal 90 trainingsminuten per week krijgen.",
+  seniorExtraTimeModalRotation:
+    "Als de wedstrijd naar verlenging gaat en je andere spelers naar trainbare posities roteert, kunnen die minuten extra trainingswinst opleveren.",
+  seniorExtraTimeModal120CupPrefix:
+    "Er is zelfs een competitie die precies op dit idee is gebouwd:",
+  seniorExtraTimeModal120CupLinkLabel: "de 120%-Cup",
+  seniorExtraTimeModal120CupMiddle: "georganiseerd door",
+  seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
+  seniorExtraTimeModalWorkflow:
+    "Het idee is eenvoudig: op basis van je trainingsregime vraagt Alchemy je om de spelers te kiezen die training moeten krijgen. Jij kiest de spelers, klikt op Beste opstelling zetten, en Alchemy regelt de rest.",
   setBestLineupRejectedPlayersLabel: "Afgewezen spelers",
   analyzeOpponent: "Tegenstander analyseren",
   analyzeOpponentTooltip: "Analyseer recente wedstrijden van de tegenstander.",

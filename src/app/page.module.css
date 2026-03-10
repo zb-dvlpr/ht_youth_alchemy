@@ -5206,21 +5206,7 @@ html[data-theme="dark"] .spinner {
 }
 
 .seniorLineupFieldCompact .fieldPitch {
-  isolation: isolate;
   overflow: visible;
-  z-index: 2;
-}
-
-.seniorLineupFieldCompact .fieldRow,
-.seniorLineupFieldCompact .benchArea,
-.seniorLineupFieldCompact .lineupActions {
-  position: relative;
-  z-index: 1;
-}
-
-.seniorLineupFieldCompact .fieldTopLeftOverlay .feedbackWrap {
-  position: relative;
-  z-index: 1001;
 }
 
 .seniorLineupFieldCompact .fieldTopLeftOverlay .lineupTrainingTypeTrigger {

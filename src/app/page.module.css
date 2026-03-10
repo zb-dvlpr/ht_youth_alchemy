@@ -5036,6 +5036,11 @@ html[data-theme="dark"] .spinner {
     linear-gradient(180deg, #f8f2e8 0%, #f4ecdf 100%);
 }
 
+.seniorExtraTimeModalChooseTrainees {
+  font-weight: 800;
+  color: #3d2f20;
+}
+
 @media (max-width: 900px) {
   .confirmCard.seniorUpdatesModal {
     width: min(96vw, 760px);

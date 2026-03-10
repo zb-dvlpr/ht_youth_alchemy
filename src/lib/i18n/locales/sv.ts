@@ -682,6 +682,8 @@ export const messagesSv: Messages = {
     setBestLineupAimForExtraTime: "Sikta på förlängning",
     setBestLineupAimForExtraTimeTooltip:
       "Spela för oavgjort för att få extra träning.",
+    setBestLineupAimForExtraTimeDisabledTooltip:
+      "Endast tillgängligt för kval, cup och vänskapsmatcher med cupregler.",
     seniorExtraTimeModalTitle: "Varför sikta på förlängning?",
     seniorExtraTimeModalLead:
       "För att förlängning kan ge extra träningsminuter.",
@@ -696,6 +698,9 @@ export const messagesSv: Messages = {
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
       "Idén är enkel: utifrån ditt träningsupplägg ber Alchemy dig välja vilka spelare som ska tränas. Du väljer spelarna, klickar på Sätt bästa uppställning och Alchemy sköter resten.",
+    seniorExtraTimeModalChooseTrainees:
+      "Välj {{count}} traineer och klicka sedan på Sätt uppställning.",
+    seniorExtraTimeModalSetLineupButton: "Sätt uppställning",
     setBestLineupRejectedPlayersLabel: "Bortvalda spelare",
     analyzeOpponent: "Analysera motståndare",
     analyzeOpponentTooltip: "Analysera motståndarens senaste matcher.",
@@ -768,7 +773,8 @@ export const messagesSv: Messages = {
     trainingPassing: "Passningar",
     trainingScoring: "Målskytte",
     trainingSetPieces: "Fasta situationer",
-    trainingDefendingDefendersMidfielders: "Försvar (Backar + Mittfältare)",
+    trainingDefendingDefendersMidfielders:
+      "Försvar (Målvakter, Backar + Alla Mittfältare)",
     trainingWingerWingerAttackers: "Ytterspel (Yttrar + Anfallare)",
     trainingPassingDefendersMidfielders:
       "Passningar (Backar + Mittfältare)",

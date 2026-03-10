@@ -154,6 +154,8 @@ export const messagesPl: Messages = {
   setBestLineupAimForExtraTime: "Graj pod dogrywkę",
   setBestLineupAimForExtraTimeTooltip:
     "Gra na remis, aby zyskać dodatkowy trening.",
+  setBestLineupAimForExtraTimeDisabledTooltip:
+    "Dostępne tylko dla Baraży, Pucharu i sparingów z zasadami pucharowymi.",
   seniorExtraTimeModalTitle: "Dlaczego warto grać pod dogrywkę?",
   seniorExtraTimeModalLead:
     "Bo dogrywka może dać dodatkowe minuty treningowe.",
@@ -168,6 +170,9 @@ export const messagesPl: Messages = {
   seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
   seniorExtraTimeModalWorkflow:
     "To bardzo proste: na podstawie reżimu treningowego Alchemy poprosi Cię o wybór zawodników do treningu. Wskazujesz zawodników, klikasz Ustaw najlepszy skład, a Alchemy zajmuje się resztą.",
+  seniorExtraTimeModalChooseTrainees:
+    "Wybierz {{count}} trenowanych zawodników, a następnie kliknij Ustaw skład.",
+  seniorExtraTimeModalSetLineupButton: "Ustaw skład",
   setBestLineupRejectedPlayersLabel: "Odrzuceni zawodnicy",
   analyzeOpponent: "Analizuj przeciwnika",
   analyzeOpponentTooltip: "Przeanalizuj ostatnie mecze przeciwnika.",
@@ -344,7 +349,8 @@ export const messagesPl: Messages = {
   trainingPassing: "Podania",
   trainingScoring: "Skuteczność",
   trainingSetPieces: "St. fragmenty",
-  trainingDefendingDefendersMidfielders: "Defensywa (Obrońcy + Pomocnicy)",
+  trainingDefendingDefendersMidfielders:
+    "Defensywa (Bramkarze, Obrońcy + Wszyscy Pomocnicy)",
   trainingWingerWingerAttackers: "Skrzydła (Skrzydłowi + Napastnicy)",
   trainingPassingDefendersMidfielders: "Podania (Obrońcy + Pomocnicy)",
   trainingSlotPrimary: "Główny",

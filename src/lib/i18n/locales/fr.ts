@@ -690,6 +690,8 @@ export const messagesFr: Messages = {
     setBestLineupAimForExtraTime: "Viser la prolongation",
     setBestLineupAimForExtraTimeTooltip:
       "Joue le nul pour obtenir un entraînement supplémentaire.",
+    setBestLineupAimForExtraTimeDisabledTooltip:
+      "Disponible uniquement pour Qualification, Coupe et amicaux avec règles de coupe.",
     seniorExtraTimeModalTitle: "Pourquoi viser la prolongation ?",
     seniorExtraTimeModalLead:
       "Parce que la prolongation peut offrir des minutes d'entraînement en plus.",
@@ -704,6 +706,9 @@ export const messagesFr: Messages = {
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
       "Le principe est simple : selon votre régime d'entraînement, Alchemy vous demande de choisir les joueurs à entraîner. Vous les identifiez, cliquez sur Définir la meilleure compo et Alchemy gère le reste.",
+    seniorExtraTimeModalChooseTrainees:
+      "Choisissez {{count}} stagiaires, puis cliquez sur Définir la compo.",
+    seniorExtraTimeModalSetLineupButton: "Définir la compo",
     setBestLineupRejectedPlayersLabel: "Joueurs rejetés",
     analyzeOpponent: "Analyser l'adversaire",
     analyzeOpponentTooltip: "Analyser les matchs récents de l'adversaire.",
@@ -776,7 +781,8 @@ export const messagesFr: Messages = {
     trainingPassing: "Passes",
     trainingScoring: "Finition",
     trainingSetPieces: "Coups de pied arrêtés",
-    trainingDefendingDefendersMidfielders: "Défense (Défenseurs + Milieux)",
+    trainingDefendingDefendersMidfielders:
+      "Défense (Gardiens, Défenseurs + Tous les Milieux)",
     trainingWingerWingerAttackers: "Ailier (Ailiers + Attaquants)",
     trainingPassingDefendersMidfielders: "Passes (Défenseurs + Milieux)",
     trainingSlotPrimary: "Primaire",

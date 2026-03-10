@@ -679,6 +679,8 @@ export const messagesDe: Messages = {
     setBestLineupAimForExtraTime: "Auf Verlängerung spielen",
     setBestLineupAimForExtraTimeTooltip:
       "Spiele auf ein Unentschieden, um zusätzliches Training zu erhalten.",
+    setBestLineupAimForExtraTimeDisabledTooltip:
+      "Nur verfügbar für Qualifikation, Pokal und Freundschaftsspiele mit Pokalregeln.",
     seniorExtraTimeModalTitle: "Warum auf Verlängerung spielen?",
     seniorExtraTimeModalLead:
       "Weil Verlängerung zusätzliche Trainingsminuten bedeuten kann.",
@@ -693,6 +695,9 @@ export const messagesDe: Messages = {
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
       "Die Idee ist einfach: Basierend auf deinem Trainingsregime bittet Alchemy dich, die zu trainierenden Spieler auszuwählen. Du wählst die Spieler, klickst auf Aufstellung setzen, und Alchemy erledigt den Rest.",
+    seniorExtraTimeModalChooseTrainees:
+      "Wähle {{count}} Trainees und klicke dann auf Aufstellung setzen.",
+    seniorExtraTimeModalSetLineupButton: "Aufstellung setzen",
     setBestLineupRejectedPlayersLabel: "Verworfene Spieler",
     analyzeOpponent: "Gegner analysieren",
     analyzeOpponentTooltip: "Aktuelle Gegner-Spiele analysieren.",
@@ -766,7 +771,7 @@ export const messagesDe: Messages = {
     trainingScoring: "Torschuss",
     trainingSetPieces: "Standards",
     trainingDefendingDefendersMidfielders:
-      "Verteidigung (Verteidiger + Mittelfeldspieler)",
+      "Verteidigung (Torhüter, Verteidiger + alle Mittelfeldspieler)",
     trainingWingerWingerAttackers: "Flügelspiel (Flügel + Stürmer)",
     trainingPassingDefendersMidfielders:
       "Passspiel (Verteidiger + Mittelfeldspieler)",

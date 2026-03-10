@@ -154,6 +154,8 @@ export const messagesNl: Messages = {
   setBestLineupAimForExtraTime: "Richten op verlenging",
   setBestLineupAimForExtraTimeTooltip:
     "Speel voor een gelijkspel om extra training te krijgen.",
+  setBestLineupAimForExtraTimeDisabledTooltip:
+    "Alleen beschikbaar voor kwalificatie, beker en vriendschappelijke wedstrijden met bekerregels.",
   seniorExtraTimeModalTitle: "Waarom richten op verlenging?",
   seniorExtraTimeModalLead:
     "Omdat verlenging extra trainingsminuten kan opleveren.",
@@ -168,6 +170,9 @@ export const messagesNl: Messages = {
   seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
   seniorExtraTimeModalWorkflow:
     "Het idee is eenvoudig: op basis van je trainingsregime vraagt Alchemy je om de spelers te kiezen die training moeten krijgen. Jij kiest de spelers, klikt op Beste opstelling zetten, en Alchemy regelt de rest.",
+  seniorExtraTimeModalChooseTrainees:
+    "Kies {{count}} trainees en klik daarna op Opstelling instellen.",
+  seniorExtraTimeModalSetLineupButton: "Opstelling instellen",
   setBestLineupRejectedPlayersLabel: "Afgewezen spelers",
   analyzeOpponent: "Tegenstander analyseren",
   analyzeOpponentTooltip: "Analyseer recente wedstrijden van de tegenstander.",
@@ -345,7 +350,7 @@ export const messagesNl: Messages = {
   trainingScoring: "Scoren",
   trainingSetPieces: "Dode spelmomenten",
   trainingDefendingDefendersMidfielders:
-    "Verdedigen (Verdedigers + Middenvelders)",
+    "Verdedigen (Keepers, Verdedigers + Alle Middenvelders)",
   trainingWingerWingerAttackers: "Vleugelspel (Vleugelspelers + Aanvallers)",
   trainingPassingDefendersMidfielders: "Passen (Verdedigers + Middenvelders)",
   trainingSlotPrimary: "Primair",

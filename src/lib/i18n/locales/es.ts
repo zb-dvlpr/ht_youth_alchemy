@@ -691,6 +691,8 @@ export const messagesEs: Messages = {
     setBestLineupAimForExtraTime: "Apuntar a la prórroga",
     setBestLineupAimForExtraTimeTooltip:
       "Juega por el empate para obtener entrenamiento adicional.",
+    setBestLineupAimForExtraTimeDisabledTooltip:
+      "Solo disponible para Promoción, Copa y amistosos con reglas de copa.",
     seniorExtraTimeModalTitle: "¿Por qué apuntar a la prórroga?",
     seniorExtraTimeModalLead:
       "Porque la prórroga puede traducirse en minutos extra de entrenamiento.",
@@ -705,6 +707,9 @@ export const messagesEs: Messages = {
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
       "La idea es simple: según tu régimen de entrenamiento, Alchemy te pedirá elegir a los jugadores que deben entrenar. Tú los identificas, pulsas Establecer alineación y Alchemy se encarga del resto.",
+    seniorExtraTimeModalChooseTrainees:
+      "Elige {{count}} entrenables y luego haz clic en Establecer alineación.",
+    seniorExtraTimeModalSetLineupButton: "Establecer alineación",
     setBestLineupRejectedPlayersLabel: "Jugadores rechazados",
     analyzeOpponent: "Analizar rival",
     analyzeOpponentTooltip: "Analizar los partidos recientes del rival.",
@@ -778,7 +783,7 @@ export const messagesEs: Messages = {
     trainingScoring: "Finalización",
     trainingSetPieces: "Balón parado",
     trainingDefendingDefendersMidfielders:
-      "Defensa (Defensas + Mediocampistas)",
+      "Defensa (Porteros, Defensas + Todos los Mediocampistas)",
     trainingWingerWingerAttackers: "Extremos (Extremos + Delanteros)",
     trainingPassingDefendersMidfielders:
       "Pases (Defensas + Mediocampistas)",

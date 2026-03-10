@@ -83,6 +83,7 @@ export type SetBestLineupMode = "trainingAware" | "ignoreTraining" | "extraTime"
 
 const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
 const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
+const EXTRA_TIME_ALLOWED_MATCH_TYPES = new Set<number>([2, 3, 5, 9]);
 
 function normalizeMatches(input?: Match[] | Match): Match[] {
   if (!input) return [];
@@ -266,6 +267,7 @@ type SetBestLineupMenuButtonProps = {
   onSelectMode: (matchId: number, mode: SetBestLineupMode) => void;
   helpAnchor?: string;
   showExtraTimeMode?: boolean;
+  extraTimeModeEnabled?: boolean;
 };
 
 function SetBestLineupMenuButton({
@@ -275,6 +277,7 @@ function SetBestLineupMenuButton({
   onSelectMode,
   helpAnchor,
   showExtraTimeMode = false,
+  extraTimeModeEnabled = false,
 }: SetBestLineupMenuButtonProps) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
@@ -339,11 +342,22 @@ function SetBestLineupMenuButton({
             </button>
           </Tooltip>
           {showExtraTimeMode ? (
-            <Tooltip content={messages.setBestLineupAimForExtraTimeTooltip} fullWidth>
+            <Tooltip
+              content={
+                extraTimeModeEnabled
+                  ? messages.setBestLineupAimForExtraTimeTooltip
+                  : messages.setBestLineupAimForExtraTimeDisabledTooltip
+              }
+              fullWidth
+            >
               <button
                 type="button"
-                className={`${styles.feedbackLink} ${styles.optimizeMenuItem}`}
+                className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                  extraTimeModeEnabled ? "" : styles.optimizeMenuItemDisabled
+                }`}
+                disabled={!extraTimeModeEnabled}
                 onClick={() => {
+                  if (!extraTimeModeEnabled) return;
                   setOpen(false);
                   onSelectMode(matchId, "extraTime");
                 }}
@@ -461,6 +475,9 @@ function renderMatch(
       : null;
   const canShowBestLineupMenu =
     sourceSystem === "Hattrick" && Boolean(onSetBestLineupMode);
+  const extraTimeModeEnabled =
+    process.env.NODE_ENV !== "production" ||
+    (Number.isFinite(matchTypeId) && EXTRA_TIME_ALLOWED_MATCH_TYPES.has(matchTypeId));
   const canAnalyzeOpponent = sourceSystem === "Hattrick" && Boolean(onAnalyzeOpponent);
   const showActionRow = isUpcoming || canAnalyzeOpponent;
 
@@ -480,6 +497,7 @@ function renderMatch(
             onSelectMode={onSetBestLineupMode!}
             helpAnchor={setBestLineupHelpAnchor}
             showExtraTimeMode={showExtraTimeSetBestLineupMode}
+            extraTimeModeEnabled={extraTimeModeEnabled}
           />
         </div>
       ) : null}

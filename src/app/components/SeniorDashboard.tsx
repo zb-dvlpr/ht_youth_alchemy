@@ -1486,7 +1486,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       case 10:
         return `${messages.trainingPassing} (${messages.sortDefender} + ${messages.sortPlaymaker})`;
       case 11:
-        return `${messages.trainingDefending} (${messages.sortDefender} + ${messages.sortPlaymaker})`;
+        return messages.trainingDefendingDefendersMidfielders;
       case 12:
         return `${messages.trainingWinger} (${messages.trainingWinger} + ${messages.trainingScoring})`;
       default:
@@ -1499,6 +1499,35 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     if (value === 11) return messages.trainingSectionExtended;
     if (value === 6) return messages.trainingSectionCombined;
     return null;
+  };
+
+  const traineesTargetForTrainingType = (value: number | null) => {
+    switch (value) {
+      case 9:
+        return 2;
+      case 3:
+        return 7;
+      case 8:
+        return 7;
+      case 5:
+        return 6;
+      case 7:
+        return 13;
+      case 4:
+        return 4;
+      case 2:
+        return 13;
+      case 11:
+        return 14;
+      case 12:
+        return 10;
+      case 10:
+        return 13;
+      case 6:
+        return 14;
+      default:
+        return 0;
+    }
   };
 
   const sortedPlayers = useMemo(() => {
@@ -4612,6 +4641,12 @@ const refreshDetailsForPlayers = async (
               .
             </p>
             <p>{messages.seniorExtraTimeModalWorkflow}</p>
+            <p className={styles.seniorExtraTimeModalChooseTrainees}>
+              {messages.seniorExtraTimeModalChooseTrainees.replace(
+                "{{count}}",
+                String(traineesTargetForTrainingType(trainingType))
+              )}
+            </p>
           </div>
         }
         actions={
@@ -4620,7 +4655,7 @@ const refreshDetailsForPlayers = async (
             className={styles.confirmSubmit}
             onClick={() => setExtraTimeInfoOpen(false)}
           >
-            {messages.closeLabel}
+            {messages.seniorExtraTimeModalSetLineupButton}
           </button>
         }
         closeOnBackdrop

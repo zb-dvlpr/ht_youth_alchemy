@@ -657,6 +657,8 @@ export const messagesEn: Messages = {
     setBestLineupAimForExtraTime: "Aim for extra time",
     setBestLineupAimForExtraTimeTooltip:
       "Play for a draw to gain extra training.",
+    setBestLineupAimForExtraTimeDisabledTooltip:
+      "Only available for Qualification, Cup, and friendlies with cup rules.",
     seniorExtraTimeModalTitle: "Why aim for extra time?",
     seniorExtraTimeModalLead: "Because extra time can mean extra training.",
     seniorExtraTimeModalTrainingLimit:
@@ -670,6 +672,9 @@ export const messagesEn: Messages = {
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
       "The workflow is simple: based on your training regimen, Alchemy asks you to pick the players to be trained. You choose the players, click Set lineup, and Alchemy handles the rest.",
+    seniorExtraTimeModalChooseTrainees:
+      "Choose {{count}} trainees, then click Set lineup.",
+    seniorExtraTimeModalSetLineupButton: "Set lineup",
     setBestLineupRejectedPlayersLabel: "Rejected players",
     analyzeOpponent: "Analyze opponent",
     analyzeOpponentTooltip: "Analyze opponent recent matches.",
@@ -740,7 +745,8 @@ export const messagesEn: Messages = {
     trainingPassing: "Passing",
     trainingScoring: "Scoring",
     trainingSetPieces: "Set pieces",
-    trainingDefendingDefendersMidfielders: "Defending (Defenders + Midfielders)",
+    trainingDefendingDefendersMidfielders:
+      "Defending (Keepers, Defenders + All Midfielders)",
     trainingWingerWingerAttackers: "Winger (Wingers + Attackers)",
     trainingPassingDefendersMidfielders: "Passing (Defenders + Midfielders)",
     trainingSlotPrimary: "Primary",

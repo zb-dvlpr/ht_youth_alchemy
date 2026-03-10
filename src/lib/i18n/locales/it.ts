@@ -692,6 +692,8 @@ export const messagesIt: Messages = {
     setBestLineupAimForExtraTime: "Punta ai supplementari",
     setBestLineupAimForExtraTimeTooltip:
       "Gioca per il pareggio per ottenere allenamento extra.",
+    setBestLineupAimForExtraTimeDisabledTooltip:
+      "Disponibile solo per Qualificazione, Coppa e amichevoli con regole di coppa.",
     seniorExtraTimeModalTitle: "Perché puntare ai supplementari?",
     seniorExtraTimeModalLead:
       "Perché i supplementari possono offrire minuti di allenamento aggiuntivi.",
@@ -706,6 +708,9 @@ export const messagesIt: Messages = {
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
       "L'idea è semplice: in base al tuo regime di allenamento, Alchemy ti chiede di scegliere i giocatori da allenare. Tu li identifichi, clicchi su Imposta formazione migliore e Alchemy fa il resto.",
+    seniorExtraTimeModalChooseTrainees:
+      "Scegli {{count}} giocatori da allenare, poi clicca su Imposta formazione.",
+    seniorExtraTimeModalSetLineupButton: "Imposta formazione",
     setBestLineupRejectedPlayersLabel: "Giocatori scartati",
     analyzeOpponent: "Analizza avversario",
     analyzeOpponentTooltip: "Analizza le partite recenti dell'avversario.",
@@ -779,7 +784,7 @@ export const messagesIt: Messages = {
     trainingScoring: "Finalizzazione",
     trainingSetPieces: "Calci piazzati",
     trainingDefendingDefendersMidfielders:
-      "Difesa (Difensori + Centrocampisti)",
+      "Difesa (Portieri, Difensori + Tutti i Centrocampisti)",
     trainingWingerWingerAttackers: "Ala (Ali + Attaccanti)",
     trainingPassingDefendersMidfielders:
       "Passaggi (Difensori + Centrocampisti)",

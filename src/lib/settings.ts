@@ -15,6 +15,7 @@ export const YOUTH_SETTINGS_EVENT = "ya:youth-settings";
 export const DEFAULT_YOUTH_STALENESS_DAYS = 1;
 export const SENIOR_SETTINGS_STORAGE_KEY = "ya_senior_staleness_days_v1";
 export const SENIOR_SETTINGS_EVENT = "ya:senior-settings";
+export const SENIOR_RATINGS_WIPE_EVENT = "ya:senior-ratings-wipe";
 export const DEFAULT_SENIOR_STALENESS_DAYS = 1;
 export const LAST_REFRESH_STORAGE_KEY = "ya_last_refresh_ts_v1";
 export const DEBUG_SETTINGS_STORAGE_KEY = "ya_debug_disable_scaling_v1";

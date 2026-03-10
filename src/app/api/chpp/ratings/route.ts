@@ -13,10 +13,7 @@ import { mapWithConcurrency } from "@/lib/async";
 const MATCHESARCHIVE_VERSION = "1.5";
 const MATCHLINEUP_VERSION = "2.1";
 const PLAYERS_VERSION = "2.8";
-const RATING_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
 const MATCH_FETCH_CONCURRENCY = 6;
-const MATCH_LOOKBACK_DAYS = 420;
-const MATCH_LOOKBACK_LIMIT = 20;
 
 type MatchSummary = {
   Status?: string;
@@ -40,17 +37,33 @@ export async function GET(request: Request) {
     const auth = await getChppAuth();
     const url = new URL(request.url);
     const teamID = url.searchParams.get("teamID") ?? url.searchParams.get("teamId");
-    const formatArchiveDate = (date: Date) => date.toISOString().slice(0, 10);
-    const today = new Date();
-    const firstDate = new Date(today.getTime() - MATCH_LOOKBACK_DAYS * 24 * 60 * 60 * 1000);
+    const season = Number(url.searchParams.get("season") ?? 0);
+    const firstMatchDate = url.searchParams.get("firstMatchDate");
+    const lastMatchDate = url.searchParams.get("lastMatchDate");
+    const fromTsRaw = Number(url.searchParams.get("fromTs") ?? 0);
+    const fromMatchIdRaw = Number(url.searchParams.get("fromMatchId") ?? 0);
+    const fromTs =
+      Number.isFinite(fromTsRaw) && fromTsRaw > 0 ? Math.floor(fromTsRaw) : null;
+    const fromMatchId =
+      Number.isFinite(fromMatchIdRaw) && fromMatchIdRaw > 0
+        ? Math.floor(fromMatchIdRaw)
+        : null;
     const matchesParams = new URLSearchParams({
       file: "matchesarchive",
       version: MATCHESARCHIVE_VERSION,
       isYouth: "false",
-      FirstMatchDate: formatArchiveDate(firstDate),
-      LastMatchDate: formatArchiveDate(today),
+      includeHTO: "true",
     });
     if (teamID) matchesParams.set("teamID", teamID);
+    if (Number.isFinite(season) && season > 0) {
+      matchesParams.set("season", String(Math.floor(season)));
+    }
+    if (firstMatchDate) {
+      matchesParams.set("FirstMatchDate", firstMatchDate);
+    }
+    if (lastMatchDate) {
+      matchesParams.set("LastMatchDate", lastMatchDate);
+    }
     const { parsed: matchesParsed } = await fetchChppXml(auth, matchesParams);
 
     const team = matchesParsed?.HattrickData?.Team;
@@ -62,13 +75,12 @@ export async function GET(request: Request) {
     const finishedMatches = matchList
       .filter((match) => {
         if (typeof match?.Status === "string" && match.Status !== "FINISHED") return false;
-        const matchType = Number(match.MatchType);
-        return Number.isFinite(matchType) && RATING_MATCH_TYPES.has(matchType);
+        const matchTime = parseChppDate(match.MatchDate)?.getTime() ?? 0;
+        return matchTime > 0 && matchTime <= Date.now();
       })
       .map((match) => ({
         ...match,
         _matchId: Number(match.MatchID ?? 0),
-        _matchType: Number(match.MatchType ?? 0),
         _date: parseChppDate(match.MatchDate)?.getTime() ?? 0,
         _sourceSystem:
           typeof match.SourceSystem === "string" && match.SourceSystem
@@ -76,14 +88,30 @@ export async function GET(request: Request) {
             : "Hattrick",
       }))
       .filter((match) => Number.isFinite(match._matchId) && match._matchId > 0)
-      .sort((a, b) => b._date - a._date)
-      .slice(0, MATCH_LOOKBACK_LIMIT);
+      .filter((match) => {
+        if (fromTs !== null) {
+          if (match._date > fromTs) return true;
+          if (match._date < fromTs) return false;
+          if (fromMatchId !== null) {
+            return match._matchId > fromMatchId;
+          }
+          return true;
+        }
+        if (fromMatchId !== null) {
+          return match._matchId > fromMatchId;
+        }
+        return true;
+      })
+      .sort((a, b) => a._date - b._date);
 
     if (!resolvedTeamId || finishedMatches.length === 0) {
       return NextResponse.json({
         positions: POSITION_COLUMNS,
         players: [],
         matchesAnalyzed: 0,
+        lastAppliedMatchId: null,
+        lastAppliedMatchDateTime: null,
+        lastAppliedMatchSourceSystem: null,
       });
     }
 
@@ -113,6 +141,7 @@ export async function GET(request: Request) {
         name: string;
         ratings: Record<string, number>;
         ratingMatchIds: Record<string, number>;
+        ratingMatchSourceSystems: Record<string, string>;
       }
     >();
 
@@ -131,6 +160,8 @@ export async function GET(request: Request) {
           const { parsed: lineupParsed } = await fetchChppXml(auth, lineupParams);
           return {
             matchId: match._matchId,
+            matchDate: match._date,
+            sourceSystem: match._sourceSystem,
             ok: true,
             lineupPlayers: normalizeArray<LineupPlayer>(
               lineupParsed?.HattrickData?.Team?.Lineup?.Player as
@@ -142,6 +173,8 @@ export async function GET(request: Request) {
         } catch {
           return {
             matchId: match._matchId,
+            matchDate: match._date,
+            sourceSystem: match._sourceSystem,
             ok: false,
             lineupPlayers: [] as LineupPlayer[],
           };
@@ -169,24 +202,39 @@ export async function GET(request: Request) {
             name: fullName,
             ratings: {},
             ratingMatchIds: {},
+            ratingMatchSourceSystems: {},
           });
         }
 
         const entry = playersMap.get(playerId);
         if (!entry) return;
         const key = String(column);
-        const existing = entry.ratings[key];
-        if (existing === undefined || rating > existing) {
-          entry.ratings[key] = rating;
-          entry.ratingMatchIds[key] = result.matchId;
-        }
+        // Ratings matrix bootstrap is chronological: oldest to newest, newest overwrites.
+        entry.ratings[key] = rating;
+        entry.ratingMatchIds[key] = result.matchId;
+        entry.ratingMatchSourceSystems[key] = result.sourceSystem;
       });
     });
+
+    let lastAppliedMatchId: number | null = null;
+    let lastAppliedMatchDateTime: number | null = null;
+    let lastAppliedMatchSourceSystem: string | null = null;
+    for (let index = lineupResponses.length - 1; index >= 0; index -= 1) {
+      const row = lineupResponses[index];
+      if (!row.ok) continue;
+      lastAppliedMatchId = row.matchId;
+      lastAppliedMatchDateTime = row.matchDate;
+      lastAppliedMatchSourceSystem = row.sourceSystem;
+      break;
+    }
 
     return NextResponse.json({
       positions: POSITION_COLUMNS,
       players: Array.from(playersMap.values()),
       matchesAnalyzed: lineupResponses.filter((result) => result.ok).length,
+      lastAppliedMatchId,
+      lastAppliedMatchDateTime,
+      lastAppliedMatchSourceSystem,
     });
   } catch (error) {
     if (error instanceof ChppAuthError) {

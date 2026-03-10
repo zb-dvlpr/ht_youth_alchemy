@@ -123,6 +123,12 @@ export const messagesFr: Messages = {
     settingsSenior: "Senior",
     settingsSeniorTitle: "Paramètres senior",
     settingsSeniorStalenessLabel: "Actualisation auto après (jours)",
+    settingsSeniorRatingsWipeLabel: "Réinitialisation de la matrice des notes",
+    settingsSeniorRatingsWipeButton: "Effacer la matrice des notes senior",
+    settingsSeniorRatingsWipeWarningTitle: "Effacer la matrice des notes senior",
+    settingsSeniorRatingsWipeWarningBody:
+      "Cette action est irréversible. Lors du prochain rafraîchissement, les notes seront repeuplées automatiquement à partir de cette saison et de la précédente, dans l’ordre croissant des dates de match. Chaque rafraîchissement suivant n’appliquera ensuite que les mises à jour provenant de nouveaux matchs non encore traités.",
+    settingsSeniorRatingsWipeWarningAcknowledge: "Je comprends",
     behaviorNeutral: "Normal",
     behaviorOffensive: "Offensif",
     behaviorDefensive: "Défensif",
@@ -727,6 +733,9 @@ export const messagesFr: Messages = {
     notificationMatchesRefreshFailed: "Échec de l’actualisation des matchs",
     notificationSeniorTrainingRegimenChanged:
       "Le régime d’entraînement de l’équipe senior a été changé en {{training}}",
+    notificationSeniorRatingsMatrixWiped: "Matrice des notes senior effacée.",
+    notificationSeniorRatingsBootstrapComplete:
+      "Bootstrap des notes senior terminé.",
     notificationReauthRequired:
       "Actualisation annulée : réauthentification requise",
     permissionsLabel: "Permissions :",
@@ -870,6 +879,8 @@ export const messagesFr: Messages = {
     unknownDate: "Date inconnue",
     ratingsTitle: "Matrice des notes",
     ratingsMatchesAnalyzed: "Données récupérées à partir de {count} matchs.",
+    ratingsLastAppliedMatchLabel:
+      "Dernières notes appliquées depuis le match {matchId} à {dateTime}.",
     ratingsIndexLabel: "N°",
     ratingsMissingNote:
       "Certains joueurs n’ont pas de données récentes et sont affichés avec —.",

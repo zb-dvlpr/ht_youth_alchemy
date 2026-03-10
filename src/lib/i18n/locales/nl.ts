@@ -32,6 +32,12 @@ export const messagesNl: Messages = {
   settingsSenior: "Senior",
   settingsSeniorTitle: "Seniorinstellingen",
   settingsSeniorStalenessLabel: "Automatisch verversen na (dagen)",
+  settingsSeniorRatingsWipeLabel: "Reset beoordelingsmatrix",
+  settingsSeniorRatingsWipeButton: "Wis senior beoordelingsmatrix",
+  settingsSeniorRatingsWipeWarningTitle: "Wis senior beoordelingsmatrix",
+  settingsSeniorRatingsWipeWarningBody:
+    "Dit kan niet ongedaan worden gemaakt. Bij de volgende verversing worden beoordelingen automatisch opnieuw opgebouwd uit dit en vorig seizoen in oplopende volgorde van wedstrijddatum. Elke verversing daarna verwerkt alleen nog updates uit nieuwe, nog niet verwerkte wedstrijden.",
+  settingsSeniorRatingsWipeWarningAcknowledge: "Ik begrijp het",
   settingsGeneral: "Algemeen",
   settingsGeneralTitle: "Algemene instellingen",
   settingsDebug: "Diagnostiek",
@@ -64,6 +70,8 @@ export const messagesNl: Messages = {
     "Schakel effectieve bonuswaarden in de senior vaardighedenmatrix in of uit (moederclub- of loyaliteitsbonus).",
   ratingsTitle: "Beoordelingsmatrix",
   ratingsMatchesAnalyzed: "Gegevens opgehaald uit {count} wedstrijden.",
+  ratingsLastAppliedMatchLabel:
+    "Laatst toegepaste beoordelingen uit wedstrijd {matchId} om {dateTime}.",
   ratingsIndexLabel: "#",
   ratingsSortBy: "Sorteren op",
   ratingsPlayerLabel: "Speler",
@@ -289,6 +297,9 @@ export const messagesNl: Messages = {
   notificationMatchesRefreshFailed: "Vernieuwen van wedstrijden mislukt",
   notificationSeniorTrainingRegimenChanged:
     "Trainingsregime van het seniorenteam gewijzigd naar {{training}}",
+  notificationSeniorRatingsMatrixWiped: "Senior beoordelingsmatrix gewist.",
+  notificationSeniorRatingsBootstrapComplete:
+    "Bootstrap van senior beoordelingsmatrix voltooid.",
   notificationLineupLoaded: "Opstelling geladen:",
   notificationLineupSubmitted: "Opstelling verzonden:",
   notificationSortBy: "Sortering:",

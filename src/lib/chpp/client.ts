@@ -1,3 +1,8 @@
+import {
+  extractSeasonFromManagerCompendiumPayload,
+  writeGlobalSeason,
+} from "@/lib/season";
+
 export const CHPP_AUTH_REQUIRED_EVENT = "chpp:auth-required";
 export const CHPP_DEBUG_OAUTH_ERROR_STORAGE_KEY =
   "ya_debug_oauth_error_mode_v1";
@@ -136,7 +141,11 @@ export async function fetchChppJson<T = unknown>(
     ...init,
     headers,
   });
+  const requestUrl = asUrlString(input);
   const payload = (await response.json().catch(() => null)) as T | null;
+  if (requestUrl.includes("/api/chpp/managercompendium")) {
+    writeGlobalSeason(extractSeasonFromManagerCompendiumPayload(payload));
+  }
   if (isChppAuthErrorPayload(payload, response)) {
     const meta = getAuthMeta(payload);
     const userFacingDetails =

@@ -505,6 +505,12 @@ export type Messages = {
   seniorSubmitDisclaimerBulletKickers: string;
   seniorSubmitDisclaimerBulletOrdersInHattrick: string;
   seniorSubmitDisclaimerBulletVerify: string;
+  seniorExtraTimeSubmitDisclaimerIntro: string;
+  seniorExtraTimeSubmitDisclaimerSwap: string;
+  seniorExtraTimeSubmitDisclaimerPressing: string;
+  seniorExtraTimeSubmitDisclaimerSetPieces: string;
+  seniorExtraTimeSubmitDisclaimerPenalties: string;
+  seniorExtraTimeSubmitDisclaimerBehaviors: string;
   loadLineupTooltip: string;
   submitOrdersTooltip: string;
   randomizeLineup: string;
@@ -594,6 +600,8 @@ export type Messages = {
   seniorExtraTimeModalMonomorphLinkLabel: string;
   seniorExtraTimeModalWorkflow: string;
   seniorExtraTimeModalChooseTrainees: string;
+  seniorExtraTimeModalBTeamToggleLabel: string;
+  seniorExtraTimeModalInjuredCheckboxTooltip: string;
   seniorExtraTimeModalSetLineupButton: string;
   setBestLineupRejectedPlayersLabel: string;
   analyzeOpponent: string;

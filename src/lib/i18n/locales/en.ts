@@ -565,6 +565,18 @@ export const messagesEn: Messages = {
       "If match orders are needed, set them directly in Hattrick.",
     seniorSubmitDisclaimerBulletVerify:
       "Verify availability, injuries, and tactical intent before kickoff.",
+    seniorExtraTimeSubmitDisclaimerIntro:
+      "Orders for an extra-time lineup have been submitted for the {{training}} training regimen.",
+    seniorExtraTimeSubmitDisclaimerSwap:
+      "The trainees {{trainees}} will swap positions to maximize extra-time training if the match is drawn after full time.",
+    seniorExtraTimeSubmitDisclaimerPressing:
+      "To maximize the probability of a draw, the Pressing tactic has been used.",
+    seniorExtraTimeSubmitDisclaimerSetPieces:
+      "The set pieces taker is the player with the worst set pieces skill.",
+    seniorExtraTimeSubmitDisclaimerPenalties:
+      "The penalty takers have been ordered so the first taker is the one least likely to score.",
+    seniorExtraTimeSubmitDisclaimerBehaviors:
+      "Players have been oriented defensively where possible.",
     loadLineupTooltip: "Load the saved lineup from Hattrick for this match.",
     submitOrdersTooltip: "Submit the current lineup to Hattrick for this match.",
     randomizeLineup: "Random lineup",
@@ -671,7 +683,7 @@ export const messagesEn: Messages = {
     seniorExtraTimeModal120CupMiddle: "organized by",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "The workflow is simple: based on your training regimen, Alchemy asks you to pick the players to be trained. You choose the players, click Set lineup, and Alchemy handles the rest (positioning and orienting players, setting tactics, configuring substitutions, setting penalty takers, deciding the set pieces taker, etc.).",
+      "The workflow is simple: based on your training regimen, Alchemy asks you to pick the players to be trained. You choose the players, click Set lineup, and Alchemy handles the rest (positioning and orienting players, setting tactics, configuring substitutions, setting penalty takers, deciding the set pieces taker, etc.). Once you're happy with the lineup, click Submit lineup to send it to Hattrick.",
     seniorExtraTimeModalChooseTrainees:
       "Choose {{count}} trainees, then click Set lineup.",
     seniorExtraTimeModalBTeamToggleLabel: "B team",

@@ -596,6 +596,18 @@ export const messagesFr: Messages = {
       "Si des ordres de match sont nécessaires, ils doivent être définis directement dans Hattrick.",
     seniorSubmitDisclaimerBulletVerify:
       "Vérifiez disponibilité, blessures et intention tactique avant le coup d’envoi.",
+    seniorExtraTimeSubmitDisclaimerIntro:
+      "Des ordres pour une composition visant la prolongation ont été envoyés pour le régime d’entraînement {{training}}.",
+    seniorExtraTimeSubmitDisclaimerSwap:
+      "Les stagiaires {{trainees}} échangeront leurs positions afin de maximiser l’entraînement en prolongation si le match est nul à la fin du temps réglementaire.",
+    seniorExtraTimeSubmitDisclaimerPressing:
+      "Pour maximiser la probabilité d’un match nul, la tactique Pressing a été utilisée.",
+    seniorExtraTimeSubmitDisclaimerSetPieces:
+      "Le tireur de coups de pied arrêtés est le joueur avec le plus faible niveau en coups de pied arrêtés.",
+    seniorExtraTimeSubmitDisclaimerPenalties:
+      "Les tireurs de penalty ont été ordonnés de sorte que le premier tireur soit celui qui a le moins de chances de marquer.",
+    seniorExtraTimeSubmitDisclaimerBehaviors:
+      "Les joueurs ont été orientés défensivement lorsque cela était possible.",
     loadLineupTooltip: "Charge la composition enregistrée depuis Hattrick pour ce match.",
     submitOrdersTooltip: "Envoie la composition actuelle à Hattrick pour ce match.",
     randomizeLineup: "Composition aléatoire",
@@ -705,7 +717,7 @@ export const messagesFr: Messages = {
     seniorExtraTimeModal120CupMiddle: "organisée par",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "Le principe est simple : selon votre régime d'entraînement, Alchemy vous demande de choisir les joueurs à entraîner. Vous les identifiez, cliquez sur Définir la meilleure compo et Alchemy gère le reste (placement et orientation des joueurs, réglage de la tactique, configuration des remplacements, définition des tireurs de penalty, choix du tireur de coups de pied arrêtés, etc.).",
+      "Le principe est simple : selon votre régime d'entraînement, Alchemy vous demande de choisir les joueurs à entraîner. Vous les identifiez, cliquez sur Définir la meilleure compo et Alchemy gère le reste (placement et orientation des joueurs, réglage de la tactique, configuration des remplacements, définition des tireurs de penalty, choix du tireur de coups de pied arrêtés, etc.). Une fois que la composition vous convient, cliquez sur Envoyer la composition pour l’envoyer à Hattrick.",
     seniorExtraTimeModalChooseTrainees:
       "Choisissez {{count}} stagiaires, puis cliquez sur Définir la compo.",
     seniorExtraTimeModalBTeamToggleLabel: "Équipe B",

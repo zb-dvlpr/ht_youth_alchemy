@@ -26,6 +26,7 @@ import {
   hattrickForumThreadUrl,
   hattrickManagerUrl,
   hattrickMatchUrl,
+  hattrickPlayerUrl,
   hattrickTeamUrl,
 } from "@/lib/hattrick/urls";
 import {
@@ -1434,6 +1435,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [extraTimePreparedSubmission, setExtraTimePreparedSubmission] = useState<{
     matchId: number;
     traineeIds: number[];
+    trainingType: number | null;
   } | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [deferHelpUntilInitialRefresh, setDeferHelpUntilInitialRefresh] =
@@ -1490,6 +1492,10 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     error: string | null;
   } | null>(null);
   const [submitDisclaimerOpen, setSubmitDisclaimerOpen] = useState(false);
+  const [submitDisclaimerExtraTimeSummary, setSubmitDisclaimerExtraTimeSummary] = useState<{
+    trainingLabel: string;
+    trainees: Array<{ id: number; name: string }>;
+  } | null>(null);
   const [extraTimeInfoOpen, setExtraTimeInfoOpen] = useState(false);
   const [extraTimeTrainingMenuOpen, setExtraTimeTrainingMenuOpen] = useState(false);
 
@@ -2289,6 +2295,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       setExtraTimePreparedSubmission({
         matchId: extraTimeMatchId,
         traineeIds: selectedTraineeIds,
+        trainingType: resolvedExtraTimeTrainingType,
       });
       setExtraTimeInfoOpen(false);
       setExtraTimeMatchId(null);
@@ -5141,36 +5148,89 @@ const refreshDetailsForPlayers = async (
         open={submitDisclaimerOpen}
         className={styles.chronicleTransferHistoryModal}
         body={
-          <div className={styles.seniorDisclaimerBody}>
-            <div className={styles.seniorDisclaimerBadgeRow}>
-              <span className={styles.seniorDisclaimerBadgeIcon} aria-hidden="true">
-                ⚠️
-              </span>
-              <p className={styles.seniorDisclaimerIntro}>
-                {messages.seniorSubmitDisclaimerIntro}
-              </p>
+          submitDisclaimerExtraTimeSummary ? (
+            <div className={styles.seniorDisclaimerBody}>
+              <div className={styles.seniorDisclaimerBadgeRow}>
+                <span className={styles.seniorDisclaimerBadgeIcon} aria-hidden="true">
+                  ⚠️
+                </span>
+                <p className={styles.seniorDisclaimerIntro}>
+                  {messages.seniorExtraTimeSubmitDisclaimerIntro
+                    .replace("{{training}}", submitDisclaimerExtraTimeSummary.trainingLabel)}
+                </p>
+              </div>
+              <ul className={styles.seniorDisclaimerList}>
+                <li>
+                  {messages.seniorExtraTimeSubmitDisclaimerSwap.split("{{trainees}}")[0]}
+                  {submitDisclaimerExtraTimeSummary.trainees.length > 0
+                    ? submitDisclaimerExtraTimeSummary.trainees.map((trainee, index) => (
+                        <span key={trainee.id}>
+                          {index === 0
+                            ? null
+                            : index === submitDisclaimerExtraTimeSummary.trainees.length - 1
+                              ? submitDisclaimerExtraTimeSummary.trainees.length === 2
+                                ? " and "
+                                : ", and "
+                              : ", "}
+                          <a
+                            className={styles.chroniclePressLink}
+                            href={hattrickPlayerUrl(trainee.id)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {trainee.name}
+                          </a>
+                        </span>
+                      ))
+                    : messages.unknownLabel}
+                  {messages.seniorExtraTimeSubmitDisclaimerSwap.split("{{trainees}}")[1] ?? ""}
+                </li>
+                <li>{messages.seniorExtraTimeSubmitDisclaimerPressing}</li>
+                <li>{messages.seniorExtraTimeSubmitDisclaimerSetPieces}</li>
+                <li>{messages.seniorExtraTimeSubmitDisclaimerPenalties}</li>
+                <li>{messages.seniorExtraTimeSubmitDisclaimerBehaviors}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletNoResponsibility}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletFineTune}</li>
+              </ul>
             </div>
-            <ul className={styles.seniorDisclaimerList}>
-              <li>{messages.seniorSubmitDisclaimerBulletBestEffort}</li>
-              <li>{messages.seniorSubmitDisclaimerBulletNoResponsibility}</li>
-              <li>{messages.seniorSubmitDisclaimerBulletFineTune}</li>
-              <li>{messages.seniorSubmitDisclaimerBulletResubmit}</li>
-              <li>{messages.seniorSubmitDisclaimerBulletKickers}</li>
-              <li>{messages.seniorSubmitDisclaimerBulletOrdersInHattrick}</li>
-              <li>{messages.seniorSubmitDisclaimerBulletVerify}</li>
-            </ul>
-          </div>
+          ) : (
+            <div className={styles.seniorDisclaimerBody}>
+              <div className={styles.seniorDisclaimerBadgeRow}>
+                <span className={styles.seniorDisclaimerBadgeIcon} aria-hidden="true">
+                  ⚠️
+                </span>
+                <p className={styles.seniorDisclaimerIntro}>
+                  {messages.seniorSubmitDisclaimerIntro}
+                </p>
+              </div>
+              <ul className={styles.seniorDisclaimerList}>
+                <li>{messages.seniorSubmitDisclaimerBulletBestEffort}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletNoResponsibility}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletFineTune}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletResubmit}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletKickers}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletOrdersInHattrick}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletVerify}</li>
+              </ul>
+            </div>
+          )
         }
         actions={
           <button
             type="button"
             className={styles.confirmSubmit}
-            onClick={() => setSubmitDisclaimerOpen(false)}
+            onClick={() => {
+              setSubmitDisclaimerOpen(false);
+              setSubmitDisclaimerExtraTimeSummary(null);
+            }}
           >
             {messages.closeLabel}
           </button>
         }
-        onClose={() => setSubmitDisclaimerOpen(false)}
+        onClose={() => {
+          setSubmitDisclaimerOpen(false);
+          setSubmitDisclaimerExtraTimeSummary(null);
+        }}
       />
       <Modal
         open={extraTimeInfoOpen}
@@ -6639,6 +6699,22 @@ const refreshDetailsForPlayers = async (
             }}
             loadedMatchId={loadedMatchId}
             onSubmitSuccess={() => {
+              if (extraTimePreparedSubmission) {
+                setSubmitDisclaimerExtraTimeSummary({
+                  trainingLabel: obtainedTrainingRegimenLabel(
+                    extraTimePreparedSubmission.trainingType
+                  ),
+                  trainees: extraTimePreparedSubmission.traineeIds.map((playerId) => {
+                    const player = playersById.get(playerId);
+                    return {
+                      id: playerId,
+                      name: player ? formatPlayerName(player) : String(playerId),
+                    };
+                  }),
+                });
+              } else {
+                setSubmitDisclaimerExtraTimeSummary(null);
+              }
               setExtraTimePreparedSubmission(null);
               setSubmitDisclaimerOpen(true);
               void onRefreshMatchesOnly();

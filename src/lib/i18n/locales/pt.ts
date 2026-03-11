@@ -597,6 +597,18 @@ export const messagesPt: Messages = {
       "Se forem necessárias ordens de jogo, elas devem ser configuradas diretamente no Hattrick.",
     seniorSubmitDisclaimerBulletVerify:
       "Verifique disponibilidade, lesões e intenção tática antes do início.",
+    seniorExtraTimeSubmitDisclaimerIntro:
+      "Foram enviadas ordens para uma escalação de prolongamento para o regime de treino {{training}}.",
+    seniorExtraTimeSubmitDisclaimerSwap:
+      "Os treinandos {{trainees}} trocarão de posição para maximizar o treino no prolongamento se a partida estiver empatada no fim do tempo regulamentar.",
+    seniorExtraTimeSubmitDisclaimerPressing:
+      "Para maximizar a probabilidade de empate, foi utilizada a tática Pressing.",
+    seniorExtraTimeSubmitDisclaimerSetPieces:
+      "O cobrador de bolas paradas é o jogador com a pior habilidade de bolas paradas.",
+    seniorExtraTimeSubmitDisclaimerPenalties:
+      "Os cobradores de pênalti foram ordenados para que o primeiro seja o menos provável de marcar.",
+    seniorExtraTimeSubmitDisclaimerBehaviors:
+      "Os jogadores foram orientados defensivamente sempre que possível.",
     loadLineupTooltip: "Carrega a escalação salva do Hattrick para esta partida.",
     submitOrdersTooltip: "Envia a escalação atual ao Hattrick para esta partida.",
     randomizeLineup: "Escalação aleatória",
@@ -706,7 +718,7 @@ export const messagesPt: Messages = {
     seniorExtraTimeModal120CupMiddle: "organizada por",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "A ideia é simples: com base no seu regime de treino, o Alchemy pede que você escolha os jogadores a serem treinados. Você identifica os jogadores, clica em Definir melhor escalação e o Alchemy cuida do resto (posicionamento e orientação dos jogadores, ajuste de táticas, configuração de substituições, definição de cobradores de pênalti, escolha do cobrador de bolas paradas, etc.).",
+      "A ideia é simples: com base no seu regime de treino, o Alchemy pede que você escolha os jogadores a serem treinados. Você identifica os jogadores, clica em Definir melhor escalação e o Alchemy cuida do resto (posicionamento e orientação dos jogadores, ajuste de táticas, configuração de substituições, definição de cobradores de pênalti, escolha do cobrador de bolas paradas, etc.). Quando estiver satisfeito com a escalação, clique em Enviar escalação para mandá-la ao Hattrick.",
     seniorExtraTimeModalChooseTrainees:
       "Escolha {{count}} treinandos e depois clique em Definir escalação.",
     seniorExtraTimeModalBTeamToggleLabel: "Equipe B",

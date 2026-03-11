@@ -598,6 +598,18 @@ export const messagesIt: Messages = {
       "Se servono ordini partita, vanno impostati direttamente in Hattrick.",
     seniorSubmitDisclaimerBulletVerify:
       "Verifica disponibilità, infortuni e intento tattico prima del calcio d'inizio.",
+    seniorExtraTimeSubmitDisclaimerIntro:
+      "Sono stati inviati ordini per una formazione da tempi supplementari per il regime di allenamento {{training}}.",
+    seniorExtraTimeSubmitDisclaimerSwap:
+      "I trainee {{trainees}} si scambieranno di posizione per massimizzare l’allenamento nei tempi supplementari se la partita sarà in parità al termine dei tempi regolamentari.",
+    seniorExtraTimeSubmitDisclaimerPressing:
+      "Per massimizzare la probabilità di un pareggio è stata utilizzata la tattica Pressing.",
+    seniorExtraTimeSubmitDisclaimerSetPieces:
+      "Il battitore dei calci piazzati è il giocatore con il peggior livello di calci piazzati.",
+    seniorExtraTimeSubmitDisclaimerPenalties:
+      "I rigoristi sono stati ordinati in modo che il primo sia quello con minori probabilità di segnare.",
+    seniorExtraTimeSubmitDisclaimerBehaviors:
+      "I giocatori sono stati orientati in modo difensivo dove possibile.",
     loadLineupTooltip: "Carica la formazione salvata da Hattrick per questa partita.",
     submitOrdersTooltip: "Invia la formazione attuale a Hattrick per questa partita.",
     randomizeLineup: "Formazione casuale",
@@ -707,7 +719,7 @@ export const messagesIt: Messages = {
     seniorExtraTimeModal120CupMiddle: "organizzata da",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "L'idea è semplice: in base al tuo regime di allenamento, Alchemy ti chiede di scegliere i giocatori da allenare. Tu li identifichi, clicchi su Imposta formazione migliore e Alchemy fa il resto (posizionamento e orientamento dei giocatori, impostazione tattica, configurazione delle sostituzioni, impostazione dei rigoristi, scelta del battitore dei calci piazzati, ecc.).",
+      "L'idea è semplice: in base al tuo regime di allenamento, Alchemy ti chiede di scegliere i giocatori da allenare. Tu li identifichi, clicchi su Imposta formazione migliore e Alchemy fa il resto (posizionamento e orientamento dei giocatori, impostazione tattica, configurazione delle sostituzioni, impostazione dei rigoristi, scelta del battitore dei calci piazzati, ecc.). Quando sei soddisfatto della formazione, fai clic su Invia formazione per inviarla a Hattrick.",
     seniorExtraTimeModalChooseTrainees:
       "Scegli {{count}} giocatori da allenare, poi clicca su Imposta formazione.",
     seniorExtraTimeModalBTeamToggleLabel: "Squadra B",

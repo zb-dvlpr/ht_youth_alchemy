@@ -597,6 +597,18 @@ export const messagesEs: Messages = {
       "Si se requieren órdenes de partido, deben configurarse directamente en Hattrick.",
     seniorSubmitDisclaimerBulletVerify:
       "Verifica disponibilidad, lesiones e intención táctica antes del inicio.",
+    seniorExtraTimeSubmitDisclaimerIntro:
+      "Se han enviado órdenes para una alineación de prórroga para el régimen de entrenamiento {{training}}.",
+    seniorExtraTimeSubmitDisclaimerSwap:
+      "Los entrenados {{trainees}} intercambiarán posiciones para maximizar el entrenamiento en la prórroga si el partido termina empatado tras el tiempo reglamentario.",
+    seniorExtraTimeSubmitDisclaimerPressing:
+      "Para maximizar la probabilidad de empate, se ha utilizado la táctica Presión.",
+    seniorExtraTimeSubmitDisclaimerSetPieces:
+      "El encargado de balón parado es el jugador con peor nivel de balón parado.",
+    seniorExtraTimeSubmitDisclaimerPenalties:
+      "Los lanzadores de penaltis se han ordenado para que el primer lanzador sea el menos probable de marcar.",
+    seniorExtraTimeSubmitDisclaimerBehaviors:
+      "Los jugadores se han orientado defensivamente cuando ha sido posible.",
     loadLineupTooltip: "Carga la alineación guardada desde Hattrick para este partido.",
     submitOrdersTooltip: "Envía la alineación actual a Hattrick para este partido.",
     randomizeLineup: "Alineación aleatoria",
@@ -706,7 +718,7 @@ export const messagesEs: Messages = {
     seniorExtraTimeModal120CupMiddle: "organizada por",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "La idea es simple: según tu régimen de entrenamiento, Alchemy te pedirá elegir a los jugadores que deben entrenar. Tú los identificas, pulsas Establecer alineación y Alchemy se encarga del resto (posicionar y orientar a los jugadores, ajustar tácticas, configurar sustituciones, definir lanzadores de penalti, decidir el lanzador de jugadas a balón parado, etc.).",
+      "La idea es simple: según tu régimen de entrenamiento, Alchemy te pedirá elegir a los jugadores que deben entrenar. Tú los identificas, pulsas Establecer alineación y Alchemy se encarga del resto (posicionar y orientar a los jugadores, ajustar tácticas, configurar sustituciones, definir lanzadores de penalti, decidir el lanzador de jugadas a balón parado, etc.). Cuando estés conforme con la alineación, haz clic en Enviar alineación para mandarla a Hattrick.",
     seniorExtraTimeModalChooseTrainees:
       "Elige {{count}} entrenables y luego haz clic en Establecer alineación.",
     seniorExtraTimeModalBTeamToggleLabel: "Equipo B",

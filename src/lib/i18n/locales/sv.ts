@@ -589,6 +589,18 @@ export const messagesSv: Messages = {
       "Om matchorder behövs måste de ställas in direkt i Hattrick.",
     seniorSubmitDisclaimerBulletVerify:
       "Verifiera tillgänglighet, skador och taktisk avsikt före avspark.",
+    seniorExtraTimeSubmitDisclaimerIntro:
+      "Order för en förlängningsuppställning har skickats för träningsupplägget {{training}}.",
+    seniorExtraTimeSubmitDisclaimerSwap:
+      "Traineerna {{trainees}} kommer att byta positioner för att maximera träningen i förlängningen om matchen är oavgjord efter full tid.",
+    seniorExtraTimeSubmitDisclaimerPressing:
+      "För att maximera sannolikheten för oavgjort har taktiken Pressing använts.",
+    seniorExtraTimeSubmitDisclaimerSetPieces:
+      "Skytten för fasta situationer är spelaren med sämst fasta situationer.",
+    seniorExtraTimeSubmitDisclaimerPenalties:
+      "Straffskyttarna har ordnats så att den första skytten är den som har lägst sannolikhet att göra mål.",
+    seniorExtraTimeSubmitDisclaimerBehaviors:
+      "Spelare har orienterats defensivt där det varit möjligt.",
     loadLineupTooltip: "Laddar den sparade uppställningen från Hattrick för matchen.",
     submitOrdersTooltip: "Skickar den aktuella uppställningen till Hattrick för matchen.",
     randomizeLineup: "Slumpa uppställning",
@@ -697,7 +709,7 @@ export const messagesSv: Messages = {
     seniorExtraTimeModal120CupMiddle: "organiserad av",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "Idén är enkel: utifrån ditt träningsupplägg ber Alchemy dig välja vilka spelare som ska tränas. Du väljer spelarna, klickar på Sätt bästa uppställning och Alchemy sköter resten (placerar och orienterar spelare, ställer in taktik, konfigurerar byten, sätter straffskyttar, väljer frisparks-/fasta-situationer-skytt osv.).",
+      "Idén är enkel: utifrån ditt träningsupplägg ber Alchemy dig välja vilka spelare som ska tränas. Du väljer spelarna, klickar på Sätt bästa uppställning och Alchemy sköter resten (placerar och orienterar spelare, ställer in taktik, konfigurerar byten, sätter straffskyttar, väljer frisparks-/fasta-situationer-skytt osv.). När du är nöjd med uppställningen klickar du på Skicka uppställning för att skicka den till Hattrick.",
     seniorExtraTimeModalChooseTrainees:
       "Välj {{count}} traineer och klicka sedan på Sätt uppställning.",
     seniorExtraTimeModalBTeamToggleLabel: "B-lag",

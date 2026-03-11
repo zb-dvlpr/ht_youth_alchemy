@@ -586,6 +586,18 @@ export const messagesDe: Messages = {
       "Falls zusätzliche Anweisungen nötig sind, müssen diese direkt in Hattrick gesetzt werden.",
     seniorSubmitDisclaimerBulletVerify:
       "Prüfe Verfügbarkeit, Verletzungen und die taktische Absicht vor dem Anpfiff.",
+    seniorExtraTimeSubmitDisclaimerIntro:
+      "Anweisungen für eine Verlängerungs-Aufstellung wurden für das Trainingsprogramm {{training}} gesendet.",
+    seniorExtraTimeSubmitDisclaimerSwap:
+      "Die Trainees {{trainees}} tauschen die Positionen, um das Training in der Verlängerung zu maximieren, falls das Spiel nach 90 Minuten unentschieden steht.",
+    seniorExtraTimeSubmitDisclaimerPressing:
+      "Um die Wahrscheinlichkeit eines Unentschiedens zu maximieren, wurde die Taktik Pressing verwendet.",
+    seniorExtraTimeSubmitDisclaimerSetPieces:
+      "Der Standardschütze ist der Spieler mit dem schwächsten Standardwert.",
+    seniorExtraTimeSubmitDisclaimerPenalties:
+      "Die Elfmeterschützen wurden so geordnet, dass der erste Schütze derjenige ist, der am wenigsten wahrscheinlich trifft.",
+    seniorExtraTimeSubmitDisclaimerBehaviors:
+      "Spieler wurden, wo möglich, defensiv ausgerichtet.",
     loadLineupTooltip: "Lädt die gespeicherte Aufstellung aus Hattrick für dieses Spiel.",
     submitOrdersTooltip: "Sendet die aktuelle Aufstellung an Hattrick für dieses Spiel.",
     randomizeLineup: "Zufällige Aufstellung",
@@ -694,7 +706,7 @@ export const messagesDe: Messages = {
     seniorExtraTimeModal120CupMiddle: "organisiert von",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "Die Idee ist einfach: Basierend auf deinem Trainingsregime bittet Alchemy dich, die zu trainierenden Spieler auszuwählen. Du wählst die Spieler, klickst auf Aufstellung setzen, und Alchemy erledigt den Rest (Positionierung und Ausrichtung der Spieler, Taktik einstellen, Auswechslungen einrichten, Elfmeterschützen festlegen, Standardschützen bestimmen usw.).",
+      "Die Idee ist einfach: Basierend auf deinem Trainingsregime bittet Alchemy dich, die zu trainierenden Spieler auszuwählen. Du wählst die Spieler, klickst auf Aufstellung setzen, und Alchemy erledigt den Rest (Positionierung und Ausrichtung der Spieler, Taktik einstellen, Auswechslungen einrichten, Elfmeterschützen festlegen, Standardschützen bestimmen usw.). Wenn du mit der Aufstellung zufrieden bist, klicke auf Aufstellung senden, um sie an Hattrick zu schicken.",
     seniorExtraTimeModalChooseTrainees:
       "Wähle {{count}} Trainees und klicke dann auf Aufstellung setzen.",
     seniorExtraTimeModalBTeamToggleLabel: "B-Team",

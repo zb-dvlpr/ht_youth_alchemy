@@ -1398,6 +1398,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     useState<PlayerDetailsPanelTab>("details");
   const [showSeniorSkillBonusInMatrix, setShowSeniorSkillBonusInMatrix] =
     useState(true);
+  const [extraTimeBTeamEnabled, setExtraTimeBTeamEnabled] = useState(false);
   const [extraTimeSelectedPlayerIds, setExtraTimeSelectedPlayerIds] = useState<number[]>([]);
   const [extraTimeMatrixTrainingType, setExtraTimeMatrixTrainingType] =
     useState<number | null>(null);
@@ -3907,6 +3908,7 @@ const refreshDetailsForPlayers = async (
             selectedUpdatesId?: string | null;
             activeDetailsTab?: PlayerDetailsPanelTab;
             showSeniorSkillBonusInMatrix?: boolean;
+            extraTimeBTeamEnabled?: boolean;
             extraTimeSelectedPlayerIds?: number[];
             extraTimeMatrixTrainingType?: number | null;
             orderedPlayerIds?: number[] | null;
@@ -3951,6 +3953,9 @@ const refreshDetailsForPlayers = async (
           }
           if (typeof parsed.showSeniorSkillBonusInMatrix === "boolean") {
             setShowSeniorSkillBonusInMatrix(parsed.showSeniorSkillBonusInMatrix);
+          }
+          if (typeof parsed.extraTimeBTeamEnabled === "boolean") {
+            setExtraTimeBTeamEnabled(parsed.extraTimeBTeamEnabled);
           }
           if (Array.isArray(parsed.extraTimeSelectedPlayerIds)) {
             setExtraTimeSelectedPlayerIds(
@@ -4159,6 +4164,7 @@ const refreshDetailsForPlayers = async (
       selectedUpdatesId,
       activeDetailsTab,
       showSeniorSkillBonusInMatrix,
+      extraTimeBTeamEnabled,
       extraTimeSelectedPlayerIds,
       extraTimeMatrixTrainingType,
       orderedPlayerIds,
@@ -4183,6 +4189,7 @@ const refreshDetailsForPlayers = async (
     matrixNewMarkers,
     activeDetailsTab,
     showSeniorSkillBonusInMatrix,
+    extraTimeBTeamEnabled,
     extraTimeSelectedPlayerIds,
     extraTimeMatrixTrainingType,
     orderedPlayerIds,
@@ -4969,6 +4976,20 @@ const refreshDetailsForPlayers = async (
                     ) : null}
                   </div>
                 </div>
+              }
+              extraSkillsMatrixHeaderAux={
+                <label className={styles.matchesFilterToggle}>
+                  <input
+                    type="checkbox"
+                    className={styles.matchesFilterToggleInput}
+                    checked={extraTimeBTeamEnabled}
+                    onChange={(event) => setExtraTimeBTeamEnabled(event.target.checked)}
+                  />
+                  <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
+                  <span className={styles.matchesFilterToggleLabel}>
+                    {messages.seniorExtraTimeModalBTeamToggleLabel}
+                  </span>
+                </label>
               }
               skillsMatrixLeadingHeader={
                 <label className={styles.seniorMatrixCheckboxLabel}>

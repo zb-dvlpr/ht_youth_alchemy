@@ -709,6 +709,7 @@ export const messagesEs: Messages = {
       "La idea es simple: según tu régimen de entrenamiento, Alchemy te pedirá elegir a los jugadores que deben entrenar. Tú los identificas, pulsas Establecer alineación y Alchemy se encarga del resto (posicionar y orientar a los jugadores, ajustar tácticas, configurar sustituciones, definir lanzadores de penalti, decidir el lanzador de jugadas a balón parado, etc.).",
     seniorExtraTimeModalChooseTrainees:
       "Elige {{count}} entrenables y luego haz clic en Establecer alineación.",
+    seniorExtraTimeModalBTeamToggleLabel: "Equipo B",
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "No se puede seleccionar al jugador porque está lesionado.",
     seniorExtraTimeModalSetLineupButton: "Establecer alineación",

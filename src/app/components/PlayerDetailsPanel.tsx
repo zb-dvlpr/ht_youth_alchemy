@@ -143,6 +143,7 @@ type PlayerDetailsPanelProps = {
   onShowSeniorSkillBonusInMatrixChange?: (enabled: boolean) => void;
   showTabs?: boolean;
   skillsMatrixHeaderAux?: ReactNode;
+  extraSkillsMatrixHeaderAux?: ReactNode;
   skillsMatrixLeadingHeader?: ReactNode;
   renderSkillsMatrixLeadingCell?: (row: { id: number | null; name: string }) => ReactNode;
   messages: Messages;
@@ -415,6 +416,7 @@ export default function PlayerDetailsPanel({
   onShowSeniorSkillBonusInMatrixChange,
   showTabs = true,
   skillsMatrixHeaderAux,
+  extraSkillsMatrixHeaderAux,
   skillsMatrixLeadingHeader,
   renderSkillsMatrixLeadingCell,
   messages,
@@ -1993,6 +1995,7 @@ export default function PlayerDetailsPanel({
         {resolvedActiveTab === "skillsMatrix" ? (
           <div className={styles.detailsHeaderAux}>
             {skillsMatrixHeaderAux}
+            {extraSkillsMatrixHeaderAux}
             {playerKind === "senior" && skillMode === "single" ? (
               <Tooltip content={messages.seniorSkillsMatrixBonusToggleTooltip}>
                 <label className={styles.matchesFilterToggle}>

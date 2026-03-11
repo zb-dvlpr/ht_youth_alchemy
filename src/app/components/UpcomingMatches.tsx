@@ -48,6 +48,32 @@ export type MatchesResponse = {
   details?: string;
 };
 
+type MatchOrdersLineupPayload = {
+  positions: Array<{ id: number; behaviour: number }>;
+  bench: Array<{ id: number; behaviour: number }>;
+  kickers: Array<{ id: number; behaviour: number }>;
+  captain: number;
+  setPieces: number;
+  settings: {
+    tactic: number;
+    speechLevel: number;
+    newLineup: string;
+    coachModifier: number;
+    manMarkerPlayerId: number;
+    manMarkingPlayerId: number;
+  };
+  substitutions: Array<{
+    playerin: number;
+    playerout: number;
+    orderType: number;
+    min: number;
+    pos: number;
+    beh: number;
+    card: number;
+    standing: number;
+  }>;
+};
+
 type UpcomingMatchesProps = {
   response: MatchesResponse;
   messages: Messages;
@@ -71,6 +97,10 @@ type UpcomingMatchesProps = {
   onAnalyzeOpponent?: (matchId: number) => void | Promise<void>;
   loadedMatchId?: number | null;
   onSubmitSuccess?: () => void;
+  buildSubmitLineupPayload?: (
+    matchId: number,
+    defaultPayload: MatchOrdersLineupPayload
+  ) => MatchOrdersLineupPayload | Promise<MatchOrdersLineupPayload>;
   sourceSystem?: string;
   includeTournamentMatches?: boolean;
   onIncludeTournamentMatchesChange?: (next: boolean) => void;
@@ -163,7 +193,7 @@ function buildLineupPayload(
   captainId?: number | null,
   tacticType?: number,
   penaltyKickerIds?: number[]
-) {
+): MatchOrdersLineupPayload {
   const toId = (value: number | null | undefined) => value ?? 0;
   const positions = POSITION_SLOT_ORDER.map((slot) => ({
     id: toId(assignments[slot]),
@@ -616,6 +646,7 @@ export default function UpcomingMatches({
   onAnalyzeOpponent,
   loadedMatchId,
   onSubmitSuccess,
+  buildSubmitLineupPayload,
   sourceSystem = "Youth",
   includeTournamentMatches = true,
   onIncludeTournamentMatchesChange,
@@ -891,6 +922,9 @@ export default function UpcomingMatches({
     }));
 
     try {
+      const resolvedLineupPayload = buildSubmitLineupPayload
+        ? await buildSubmitLineupPayload(matchId, lineupPayload)
+        : lineupPayload;
       const { response, payload } = await fetchChppJson<{
         error?: string;
         details?: string;
@@ -903,7 +937,7 @@ export default function UpcomingMatches({
           matchId,
           teamId,
           sourceSystem: matchSourceSystem,
-          lineup: lineupPayload,
+          lineup: resolvedLineupPayload,
         }),
       });
       if (!response.ok || payload?.error) {

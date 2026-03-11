@@ -225,6 +225,7 @@ const SKILL_KEYS = [
   "ScorerSkill",
   "SetPiecesSkill",
 ] as const;
+const SENIOR_SKILL_EFFECT_CAP = 20;
 const UPDATES_HISTORY_LIMIT = 20;
 const FRIENDLY_MATCH_TYPES = new Set<number>([4, 5, 8, 9]);
 const LEAGUE_CUP_QUALI_MATCH_TYPES = new Set<number>([1, 2, 3, 6]);
@@ -234,6 +235,21 @@ const OPPONENT_DETAILS_CONCURRENCY = 6;
 const FORMATION_PREDICT_CONCURRENCY = 4;
 const SENIOR_RATINGS_ALGO_VERSION = 2;
 const NON_DEPRECATED_TRAINING_TYPES = [9, 3, 8, 5, 7, 4, 2, 11, 12, 10, 6] as const;
+const EXTRA_TIME_SORT_SKILL_BY_TRAINING_TYPE: Partial<
+  Record<number, (typeof SKILL_KEYS)[number]>
+> = {
+  2: "SetPiecesSkill",
+  3: "DefenderSkill",
+  4: "ScorerSkill",
+  5: "WingerSkill",
+  6: "ScorerSkill",
+  7: "PassingSkill",
+  8: "PlaymakerSkill",
+  9: "KeeperSkill",
+  10: "PassingSkill",
+  11: "DefenderSkill",
+  12: "WingerSkill",
+};
 const FIELD_SLOT_ORDER = [
   "KP",
   "WB_L",
@@ -557,6 +573,30 @@ const parseSkill = (value: unknown): number | null => {
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
+};
+
+const computeSeniorSkillBonus = (
+  baseSkill: number | null,
+  details: SeniorPlayerDetails | null
+) => {
+  if (baseSkill === null) return null;
+  if (baseSkill >= SENIOR_SKILL_EFFECT_CAP) return 0;
+  const remaining = Math.max(0, SENIOR_SKILL_EFFECT_CAP - baseSkill);
+  if (details?.MotherClubBonus) {
+    return Math.min(1.5, remaining);
+  }
+  const loyaltyRaw = typeof details?.Loyalty === "number" ? details.Loyalty : 0;
+  return Math.min(Math.max(0, loyaltyRaw) / 20, remaining);
+};
+
+const computeSeniorEffectiveSkill = (
+  baseSkill: number | null,
+  details: SeniorPlayerDetails | null
+) => {
+  if (baseSkill === null) return null;
+  const bonus = computeSeniorSkillBonus(baseSkill, details);
+  if (bonus === null) return null;
+  return Math.min(SENIOR_SKILL_EFFECT_CAP, baseSkill + bonus);
 };
 
 // NEW/N detection must always be based on raw skill values from CHPP data only.
@@ -1358,6 +1398,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     useState<PlayerDetailsPanelTab>("details");
   const [showSeniorSkillBonusInMatrix, setShowSeniorSkillBonusInMatrix] =
     useState(true);
+  const [extraTimeSelectedPlayerIds, setExtraTimeSelectedPlayerIds] = useState<number[]>([]);
+  const [extraTimeMatrixTrainingType, setExtraTimeMatrixTrainingType] =
+    useState<number | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [deferHelpUntilInitialRefresh, setDeferHelpUntilInitialRefresh] =
     useState(false);
@@ -1414,9 +1457,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   } | null>(null);
   const [submitDisclaimerOpen, setSubmitDisclaimerOpen] = useState(false);
   const [extraTimeInfoOpen, setExtraTimeInfoOpen] = useState(false);
+  const [extraTimeTrainingMenuOpen, setExtraTimeTrainingMenuOpen] = useState(false);
 
   const refreshRunSeqRef = useRef(0);
   const dashboardRef = useRef<HTMLDivElement | null>(null);
+  const extraTimeTrainingButtonRef = useRef<HTMLButtonElement | null>(null);
+  const extraTimeTrainingMenuRef = useRef<HTMLDivElement | null>(null);
   const activeRefreshRunIdRef = useRef<number | null>(null);
   const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
   const staleRefreshAttemptedRef = useRef(false);
@@ -1760,16 +1806,155 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       })),
     [players]
   );
+  const playersById = useMemo(
+    () => new Map(players.map((player) => [player.PlayerID, player])),
+    [players]
+  );
+  const resolvedExtraTimeTrainingType = extraTimeMatrixTrainingType ?? trainingType;
+  const extraTimeSortSkillKey = useMemo(
+    () =>
+      resolvedExtraTimeTrainingType !== null
+        ? EXTRA_TIME_SORT_SKILL_BY_TRAINING_TYPE[resolvedExtraTimeTrainingType] ?? null
+        : null,
+    [resolvedExtraTimeTrainingType]
+  );
+  const extraTimeSkillsMatrixRows = useMemo(() => {
+    if (!extraTimeSortSkillKey) return skillsMatrixRows;
+    return [...skillsMatrixRows].sort((left, right) => {
+      const leftPlayer = left.id !== null ? playersById.get(left.id) ?? null : null;
+      const rightPlayer = right.id !== null ? playersById.get(right.id) ?? null : null;
+      const leftDetails = left.id !== null ? detailsById.get(left.id) ?? null : null;
+      const rightDetails = right.id !== null ? detailsById.get(right.id) ?? null : null;
+      const leftBaseSkill = parseSkill(
+        leftDetails?.PlayerSkills?.[extraTimeSortSkillKey] ??
+          leftPlayer?.PlayerSkills?.[extraTimeSortSkillKey]
+      );
+      const rightBaseSkill = parseSkill(
+        rightDetails?.PlayerSkills?.[extraTimeSortSkillKey] ??
+          rightPlayer?.PlayerSkills?.[extraTimeSortSkillKey]
+      );
+      const leftValue = showSeniorSkillBonusInMatrix
+        ? computeSeniorEffectiveSkill(leftBaseSkill, leftDetails)
+        : leftBaseSkill;
+      const rightValue = showSeniorSkillBonusInMatrix
+        ? computeSeniorEffectiveSkill(rightBaseSkill, rightDetails)
+        : rightBaseSkill;
+      if (leftValue === null && rightValue === null) {
+        return left.name.localeCompare(right.name);
+      }
+      if (leftValue === null) return 1;
+      if (rightValue === null) return -1;
+      if (leftValue !== rightValue) return rightValue - leftValue;
+      return left.name.localeCompare(right.name);
+    });
+  }, [
+    detailsById,
+    extraTimeSortSkillKey,
+    playersById,
+    showSeniorSkillBonusInMatrix,
+    skillsMatrixRows,
+  ]);
+  const extraTimePlayerDetailsById = useMemo(
+    () =>
+      new Map(
+        Array.from(detailsById.entries()).map(([id, detail]) => [
+          id,
+          {
+            ...detail,
+            YouthPlayerID: id,
+          },
+        ])
+      ),
+    [detailsById]
+  );
+  const extraTimeInjuredPlayerIdSet = useMemo(() => {
+    const injuredIds = new Set<number>();
+    skillsMatrixRows.forEach((row) => {
+      if (typeof row.id !== "number") return;
+      const details = detailsById.get(row.id);
+      const player = playersById.get(row.id);
+      const injuryLevel =
+        typeof details?.InjuryLevel === "number"
+          ? details.InjuryLevel
+          : typeof player?.InjuryLevel === "number"
+            ? player.InjuryLevel
+            : null;
+      if (typeof injuryLevel === "number" && injuryLevel >= 0) {
+        injuredIds.add(row.id);
+      }
+    });
+    return injuredIds;
+  }, [detailsById, playersById, skillsMatrixRows]);
+  const extraTimeSelectablePlayerIds = useMemo(
+    () =>
+      extraTimeSkillsMatrixRows
+        .map((row) => row.id)
+        .filter(
+          (id): id is number =>
+            typeof id === "number" && !extraTimeInjuredPlayerIdSet.has(id)
+        ),
+    [extraTimeInjuredPlayerIdSet, extraTimeSkillsMatrixRows]
+  );
+  const requiredExtraTimeTrainees = traineesTargetForTrainingType(
+    resolvedExtraTimeTrainingType
+  );
+  const extraTimeSelectedCount = extraTimeSelectedPlayerIds.filter((playerId) =>
+    extraTimeSelectablePlayerIds.includes(playerId)
+  ).length;
+  const allExtraTimePlayersSelected =
+    extraTimeSelectablePlayerIds.length > 0 &&
+    extraTimeSelectablePlayerIds.every((playerId) =>
+      extraTimeSelectedPlayerIds.includes(playerId)
+    );
+  const someExtraTimePlayersSelected =
+    !allExtraTimePlayersSelected &&
+    extraTimeSelectablePlayerIds.some((playerId) =>
+      extraTimeSelectedPlayerIds.includes(playerId)
+    );
+
+  useEffect(() => {
+    setExtraTimeSelectedPlayerIds((prev) =>
+      prev.filter(
+        (playerId) =>
+          playersById.has(playerId) && !extraTimeInjuredPlayerIdSet.has(playerId)
+      )
+    );
+  }, [extraTimeInjuredPlayerIdSet, playersById]);
+
+  useEffect(() => {
+    setExtraTimeMatrixTrainingType((prev) => prev ?? trainingType);
+  }, [trainingType]);
+
+  useEffect(() => {
+    if (!extraTimeTrainingMenuOpen) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (extraTimeTrainingButtonRef.current?.contains(target)) return;
+      if (extraTimeTrainingMenuRef.current?.contains(target)) return;
+      setExtraTimeTrainingMenuOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setExtraTimeTrainingMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [extraTimeTrainingMenuOpen]);
 
   const orderedListPlayers = useMemo(() => {
     if (orderedPlayerIds && orderSource && orderSource !== "list") {
-      const map = new Map(players.map((player) => [player.PlayerID, player]));
       return orderedPlayerIds
-        .map((id) => map.get(id))
+        .map((id) => playersById.get(id))
         .filter((player): player is SeniorPlayer => Boolean(player));
     }
     return sortedPlayers;
-  }, [orderSource, orderedPlayerIds, players, sortedPlayers]);
+  }, [orderSource, orderedPlayerIds, playersById, sortedPlayers]);
   const isMatrixSortActive = Boolean(
     orderSource &&
       orderSource !== "list" &&
@@ -2194,6 +2379,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         throw new Error("Training update could not be verified");
       }
       setTrainingType(verifiedTrainingType);
+      setExtraTimeMatrixTrainingType(verifiedTrainingType);
+      setExtraTimeTrainingMenuOpen(false);
       addNotification(
         messages.notificationSeniorTrainingRegimenChanged.replace(
           "{{training}}",
@@ -3720,6 +3907,8 @@ const refreshDetailsForPlayers = async (
             selectedUpdatesId?: string | null;
             activeDetailsTab?: PlayerDetailsPanelTab;
             showSeniorSkillBonusInMatrix?: boolean;
+            extraTimeSelectedPlayerIds?: number[];
+            extraTimeMatrixTrainingType?: number | null;
             orderedPlayerIds?: number[] | null;
             orderSource?: "list" | "ratings" | "skills" | null;
           };
@@ -3763,6 +3952,20 @@ const refreshDetailsForPlayers = async (
           if (typeof parsed.showSeniorSkillBonusInMatrix === "boolean") {
             setShowSeniorSkillBonusInMatrix(parsed.showSeniorSkillBonusInMatrix);
           }
+          if (Array.isArray(parsed.extraTimeSelectedPlayerIds)) {
+            setExtraTimeSelectedPlayerIds(
+              parsed.extraTimeSelectedPlayerIds.filter(
+                (id): id is number => Number.isFinite(id)
+              )
+            );
+          }
+          setExtraTimeMatrixTrainingType(
+            sanitizeTrainingType(
+              typeof parsed.extraTimeMatrixTrainingType === "number"
+                ? parsed.extraTimeMatrixTrainingType
+                : null
+            )
+          );
           if (Array.isArray(parsed.orderedPlayerIds)) {
             setOrderedPlayerIds(
               parsed.orderedPlayerIds.filter((id): id is number => Number.isFinite(id))
@@ -3956,6 +4159,8 @@ const refreshDetailsForPlayers = async (
       selectedUpdatesId,
       activeDetailsTab,
       showSeniorSkillBonusInMatrix,
+      extraTimeSelectedPlayerIds,
+      extraTimeMatrixTrainingType,
       orderedPlayerIds,
       orderSource,
     };
@@ -3978,6 +4183,8 @@ const refreshDetailsForPlayers = async (
     matrixNewMarkers,
     activeDetailsTab,
     showSeniorSkillBonusInMatrix,
+    extraTimeSelectedPlayerIds,
+    extraTimeMatrixTrainingType,
     orderedPlayerIds,
     orderSource,
   ]);
@@ -4611,7 +4818,7 @@ const refreshDetailsForPlayers = async (
       <Modal
         open={extraTimeInfoOpen}
         title={messages.seniorExtraTimeModalTitle}
-        className={styles.chronicleTransferListedModal}
+        className={`${styles.chronicleTransferHistoryModal} ${styles.seniorExtraTimeModal}`}
         body={
           <div className={styles.seniorExtraTimeModalBody}>
             <p className={styles.seniorExtraTimeModalLead}>
@@ -4644,15 +4851,207 @@ const refreshDetailsForPlayers = async (
             <p className={styles.seniorExtraTimeModalChooseTrainees}>
               {messages.seniorExtraTimeModalChooseTrainees.replace(
                 "{{count}}",
-                String(traineesTargetForTrainingType(trainingType))
+                String(traineesTargetForTrainingType(resolvedExtraTimeTrainingType))
               )}
             </p>
+            <PlayerDetailsPanel
+              selectedPlayer={null}
+              detailsData={null}
+              loading={false}
+              error={null}
+              lastUpdated={null}
+              unlockStatus={null}
+              onRefresh={() => {
+                void 0;
+              }}
+              players={panelPlayers}
+              playerDetailsById={extraTimePlayerDetailsById}
+              skillsMatrixRows={extraTimeSkillsMatrixRows}
+              ratingsMatrixResponse={null}
+              ratingsMatrixSelectedName={null}
+              ratingsMatrixSpecialtyByName={specialtyByName}
+              ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
+              ratingsMatrixCardStatusByName={seniorCardStatusByName}
+              cardStatusByPlayerId={seniorCardStatusByPlayerId}
+              matrixNewPlayerIds={matrixNewMarkers.playerIds}
+              matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
+              matrixNewSkillsCurrentByPlayerId={matrixNewMarkers.skillsCurrentByPlayerId}
+              matrixNewSkillsMaxByPlayerId={matrixNewMarkers.skillsMaxByPlayerId}
+              onSelectRatingsPlayer={() => {
+                void 0;
+              }}
+              onMatrixPlayerDragStart={handleSeniorPlayerDragStart}
+              playerKind="senior"
+              skillMode="single"
+              maxSkillLevel={20}
+              activeTab="skillsMatrix"
+              showTabs={false}
+              showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
+              onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
+              skillsMatrixHeaderAux={
+                <div className={styles.seniorExtraTimeTrainingControl}>
+                  <span className={styles.trainingLabel}>
+                    {messages.trainingRegimenLabel.split(/\s+/).find(Boolean) ??
+                      messages.trainingRegimenLabel}
+                  </span>
+                  <div className={styles.feedbackWrap}>
+                    <button
+                      type="button"
+                      className={styles.lineupTrainingTypeTrigger}
+                      onClick={() => setExtraTimeTrainingMenuOpen((prev) => !prev)}
+                      ref={extraTimeTrainingButtonRef}
+                      aria-haspopup="menu"
+                      aria-expanded={extraTimeTrainingMenuOpen}
+                    >
+                      <span className={styles.lineupTrainingTypeValue}>
+                        {obtainedTrainingRegimenLabel(
+                          resolvedExtraTimeTrainingType ?? NON_DEPRECATED_TRAINING_TYPES[0]
+                        )}
+                      </span>
+                    </button>
+                    {extraTimeTrainingMenuOpen ? (
+                      <div
+                        className={`${styles.feedbackMenu} ${styles.lineupTrainingTypeMenu}`}
+                        ref={extraTimeTrainingMenuRef}
+                        role="menu"
+                      >
+                        {NON_DEPRECATED_TRAINING_TYPES.map((value) => {
+                          const isActive =
+                            value ===
+                            (resolvedExtraTimeTrainingType ?? NON_DEPRECATED_TRAINING_TYPES[0]);
+                          const sectionTitle = trainingSectionTitleForValue(value) ?? null;
+                          return (
+                            <div key={value}>
+                              {sectionTitle ? (
+                                <div className={styles.lineupTrainingTypeSectionHeader}>
+                                  {sectionTitle}
+                                </div>
+                              ) : null}
+                              <div className={styles.lineupTrainingTypeOptionRow}>
+                                <button
+                                  type="button"
+                                  className={`${styles.feedbackLink} ${styles.lineupTrainingTypeOption} ${
+                                    isActive ? styles.lineupTrainingTypeOptionActive : ""
+                                  }`}
+                                  onClick={() => {
+                                    setExtraTimeMatrixTrainingType(value);
+                                    setExtraTimeTrainingMenuOpen(false);
+                                  }}
+                                >
+                                  {obtainedTrainingRegimenLabel(value)}
+                                </button>
+                                {!isActive ? (
+                                  <Tooltip content={messages.trainingSetButtonTooltip}>
+                                    <button
+                                      type="button"
+                                      className={styles.lineupTrainingTypeSetButton}
+                                      disabled={trainingTypeSetPending}
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        if (trainingTypeSetPending) return;
+                                        void handleSetTrainingType(value);
+                                      }}
+                                    >
+                                      {trainingTypeSetPending &&
+                                      trainingTypeSetPendingValue === value ? (
+                                        <span className={styles.spinner} aria-hidden="true" />
+                                      ) : (
+                                        messages.trainingSetButtonLabel
+                                      )}
+                                    </button>
+                                  </Tooltip>
+                                ) : null}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              }
+              skillsMatrixLeadingHeader={
+                <label className={styles.seniorMatrixCheckboxLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.seniorMatrixCheckboxInput}
+                    checked={allExtraTimePlayersSelected}
+                    disabled={extraTimeSelectablePlayerIds.length === 0}
+                    aria-label={messages.seniorExtraTimeModalChooseTrainees.replace(
+                      "{{count}}",
+                      String(traineesTargetForTrainingType(resolvedExtraTimeTrainingType))
+                    )}
+                    ref={(node) => {
+                      if (!node) return;
+                      node.indeterminate = someExtraTimePlayersSelected;
+                    }}
+                    onChange={(event) => {
+                      setExtraTimeSelectedPlayerIds(
+                        event.target.checked ? extraTimeSelectablePlayerIds : []
+                      );
+                    }}
+                  />
+                  <span
+                    className={styles.seniorMatrixCheckboxBox}
+                    aria-hidden="true"
+                  />
+                </label>
+              }
+              renderSkillsMatrixLeadingCell={(row) => {
+                const isChecked =
+                  typeof row.id === "number" &&
+                  extraTimeSelectedPlayerIds.includes(row.id);
+                const isInjured =
+                  typeof row.id === "number" && extraTimeInjuredPlayerIdSet.has(row.id);
+                const checkbox = (
+                  <label className={styles.seniorMatrixCheckboxLabel}>
+                    <input
+                      type="checkbox"
+                      className={styles.seniorMatrixCheckboxInput}
+                      checked={Boolean(isChecked)}
+                      disabled={typeof row.id !== "number" || isInjured}
+                      aria-label={row.name}
+                      onChange={(event) => {
+                        if (typeof row.id !== "number" || isInjured) {
+                          return;
+                        }
+                        setExtraTimeSelectedPlayerIds((prev) => {
+                          if (event.target.checked) {
+                            if (prev.includes(row.id)) return prev;
+                            return [...prev, row.id];
+                          }
+                          return prev.filter((playerId) => playerId !== row.id);
+                        });
+                      }}
+                    />
+                    <span
+                      className={styles.seniorMatrixCheckboxBox}
+                      aria-hidden="true"
+                    />
+                  </label>
+                );
+                if (isInjured) {
+                  return (
+                    <Tooltip content={messages.seniorExtraTimeModalInjuredCheckboxTooltip}>
+                      <span className={styles.seniorExtraTimeDisabledCheckboxWrap}>
+                        {checkbox}
+                      </span>
+                    </Tooltip>
+                  );
+                }
+                return (
+                  checkbox
+                );
+              }}
+              messages={messages}
+            />
           </div>
         }
         actions={
           <button
             type="button"
             className={styles.confirmSubmit}
+            disabled={extraTimeSelectedCount !== requiredExtraTimeTrainees}
             onClick={() => setExtraTimeInfoOpen(false)}
           >
             {messages.seniorExtraTimeModalSetLineupButton}

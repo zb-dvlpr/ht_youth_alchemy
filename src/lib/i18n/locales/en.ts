@@ -674,6 +674,8 @@ export const messagesEn: Messages = {
       "The workflow is simple: based on your training regimen, Alchemy asks you to pick the players to be trained. You choose the players, click Set lineup, and Alchemy handles the rest (positioning and orienting players, setting tactics, configuring substitutions, setting penalty takers, deciding the set pieces taker, etc.).",
     seniorExtraTimeModalChooseTrainees:
       "Choose {{count}} trainees, then click Set lineup.",
+    seniorExtraTimeModalInjuredCheckboxTooltip:
+      "Player can't be selected because they're injured.",
     seniorExtraTimeModalSetLineupButton: "Set lineup",
     setBestLineupRejectedPlayersLabel: "Rejected players",
     analyzeOpponent: "Analyze opponent",

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import { formatChppDate, formatDateTime } from "@/lib/datetime";
@@ -141,6 +141,10 @@ type PlayerDetailsPanelProps = {
   onActiveTabChange?: (tab: PlayerDetailsPanelTab) => void;
   showSeniorSkillBonusInMatrix?: boolean;
   onShowSeniorSkillBonusInMatrixChange?: (enabled: boolean) => void;
+  showTabs?: boolean;
+  skillsMatrixHeaderAux?: ReactNode;
+  skillsMatrixLeadingHeader?: ReactNode;
+  renderSkillsMatrixLeadingCell?: (row: { id: number | null; name: string }) => ReactNode;
   messages: Messages;
 };
 
@@ -409,6 +413,10 @@ export default function PlayerDetailsPanel({
   onActiveTabChange,
   showSeniorSkillBonusInMatrix = true,
   onShowSeniorSkillBonusInMatrixChange,
+  showTabs = true,
+  skillsMatrixHeaderAux,
+  skillsMatrixLeadingHeader,
+  renderSkillsMatrixLeadingCell,
   messages,
 }: PlayerDetailsPanelProps) {
   const [uncontrolledActiveTab, setUncontrolledActiveTab] =
@@ -1400,6 +1408,9 @@ export default function PlayerDetailsPanel({
               <th className={styles.matrixIndexHeader}>
                 {messages.ratingsIndexLabel}
               </th>
+              {skillsMatrixLeadingHeader !== undefined ? (
+                <th className={styles.matrixSeniorSelectionHeader}>{skillsMatrixLeadingHeader}</th>
+              ) : null}
               <th className={styles.matrixPlayerHeader}>
                 <button
                   type="button"
@@ -1521,6 +1532,11 @@ export default function PlayerDetailsPanel({
                   }`}
                 >
                   <td className={styles.matrixIndex}>{index + 1}</td>
+                  {renderSkillsMatrixLeadingCell ? (
+                    <td className={styles.matrixSeniorSelectionCell}>
+                      {renderSkillsMatrixLeadingCell(row)}
+                    </td>
+                  ) : null}
                   <td className={styles.matrixPlayer}>
                     <div
                       className={`${styles.matrixPlayerContent} ${
@@ -1941,55 +1957,60 @@ export default function PlayerDetailsPanel({
   return (
     <div className={`${styles.card} ${styles.playerDetailsCard}`}>
       <div className={styles.detailsHeader}>
-        <div className={styles.detailsTabs}>
-          <button
-            type="button"
-            className={`${styles.detailsTabButton} ${
-              resolvedActiveTab === "details" ? styles.detailsTabActive : ""
-            }`}
-            onClick={() => setResolvedActiveTab("details")}
-          >
-            {messages.detailsTabLabel}
-          </button>
-          <button
-            type="button"
-            className={`${styles.detailsTabButton} ${
-              resolvedActiveTab === "skillsMatrix" ? styles.detailsTabActive : ""
-            }`}
-            onClick={() => setResolvedActiveTab("skillsMatrix")}
-          >
-            {messages.skillsMatrixTabLabel}
-          </button>
-          <button
-            type="button"
-            className={`${styles.detailsTabButton} ${
-              resolvedActiveTab === "ratingsMatrix" ? styles.detailsTabActive : ""
-            }`}
-            onClick={() => setResolvedActiveTab("ratingsMatrix")}
-          >
-            {messages.ratingsMatrixTabLabel}
-          </button>
-        </div>
-        {playerKind === "senior" &&
-        resolvedActiveTab === "skillsMatrix" &&
-        skillMode === "single" ? (
+        {showTabs ? (
+          <div className={styles.detailsTabs}>
+            <button
+              type="button"
+              className={`${styles.detailsTabButton} ${
+                resolvedActiveTab === "details" ? styles.detailsTabActive : ""
+              }`}
+              onClick={() => setResolvedActiveTab("details")}
+            >
+              {messages.detailsTabLabel}
+            </button>
+            <button
+              type="button"
+              className={`${styles.detailsTabButton} ${
+                resolvedActiveTab === "skillsMatrix" ? styles.detailsTabActive : ""
+              }`}
+              onClick={() => setResolvedActiveTab("skillsMatrix")}
+            >
+              {messages.skillsMatrixTabLabel}
+            </button>
+            <button
+              type="button"
+              className={`${styles.detailsTabButton} ${
+                resolvedActiveTab === "ratingsMatrix" ? styles.detailsTabActive : ""
+              }`}
+              onClick={() => setResolvedActiveTab("ratingsMatrix")}
+            >
+              {messages.ratingsMatrixTabLabel}
+            </button>
+          </div>
+        ) : (
+          <div className={styles.detailsTabs} />
+        )}
+        {resolvedActiveTab === "skillsMatrix" ? (
           <div className={styles.detailsHeaderAux}>
-            <Tooltip content={messages.seniorSkillsMatrixBonusToggleTooltip}>
-              <label className={styles.matchesFilterToggle}>
-                <input
-                  type="checkbox"
-                  className={styles.matchesFilterToggleInput}
-                  checked={showSeniorSkillBonusInMatrix}
-                  onChange={(event) =>
-                    onShowSeniorSkillBonusInMatrixChange?.(event.target.checked)
-                  }
-                />
-                <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
-                <span className={styles.matchesFilterToggleLabel}>
-                  {messages.seniorSkillsMatrixBonusToggleLabel}
-                </span>
-              </label>
-            </Tooltip>
+            {skillsMatrixHeaderAux}
+            {playerKind === "senior" && skillMode === "single" ? (
+              <Tooltip content={messages.seniorSkillsMatrixBonusToggleTooltip}>
+                <label className={styles.matchesFilterToggle}>
+                  <input
+                    type="checkbox"
+                    className={styles.matchesFilterToggleInput}
+                    checked={showSeniorSkillBonusInMatrix}
+                    onChange={(event) =>
+                      onShowSeniorSkillBonusInMatrixChange?.(event.target.checked)
+                    }
+                  />
+                  <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
+                  <span className={styles.matchesFilterToggleLabel}>
+                    {messages.seniorSkillsMatrixBonusToggleLabel}
+                  </span>
+                </label>
+              </Tooltip>
+            ) : null}
           </div>
         ) : null}
       </div>

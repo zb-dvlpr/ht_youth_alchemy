@@ -710,6 +710,8 @@ export const messagesIt: Messages = {
       "L'idea è semplice: in base al tuo regime di allenamento, Alchemy ti chiede di scegliere i giocatori da allenare. Tu li identifichi, clicchi su Imposta formazione migliore e Alchemy fa il resto (posizionamento e orientamento dei giocatori, impostazione tattica, configurazione delle sostituzioni, impostazione dei rigoristi, scelta del battitore dei calci piazzati, ecc.).",
     seniorExtraTimeModalChooseTrainees:
       "Scegli {{count}} giocatori da allenare, poi clicca su Imposta formazione.",
+    seniorExtraTimeModalInjuredCheckboxTooltip:
+      "Il giocatore non può essere selezionato perché è infortunato.",
     seniorExtraTimeModalSetLineupButton: "Imposta formazione",
     setBestLineupRejectedPlayersLabel: "Giocatori scartati",
     analyzeOpponent: "Analizza avversario",

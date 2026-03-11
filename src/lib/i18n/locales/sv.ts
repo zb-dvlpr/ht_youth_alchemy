@@ -700,6 +700,8 @@ export const messagesSv: Messages = {
       "Idén är enkel: utifrån ditt träningsupplägg ber Alchemy dig välja vilka spelare som ska tränas. Du väljer spelarna, klickar på Sätt bästa uppställning och Alchemy sköter resten (placerar och orienterar spelare, ställer in taktik, konfigurerar byten, sätter straffskyttar, väljer frisparks-/fasta-situationer-skytt osv.).",
     seniorExtraTimeModalChooseTrainees:
       "Välj {{count}} traineer och klicka sedan på Sätt uppställning.",
+    seniorExtraTimeModalInjuredCheckboxTooltip:
+      "Spelaren kan inte väljas eftersom han är skadad.",
     seniorExtraTimeModalSetLineupButton: "Sätt uppställning",
     setBestLineupRejectedPlayersLabel: "Bortvalda spelare",
     analyzeOpponent: "Analysera motståndare",

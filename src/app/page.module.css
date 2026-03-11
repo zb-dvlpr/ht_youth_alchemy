@@ -888,6 +888,12 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   width: 34px;
 }
 
+.matrixTable.matrixTableSeniorCompact .matrixSeniorSelectionHeader,
+.matrixTable.matrixTableSeniorCompact .matrixSeniorSelectionCell {
+  width: 26px;
+  text-align: center;
+}
+
 .matrixTable.matrixTableSeniorCompact .matrixPlayerHeader,
 .matrixTable.matrixTableSeniorCompact td.matrixPlayer {
   width: 140px;
@@ -959,6 +965,91 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   min-width: 36px;
   padding: 1px 6px;
   font-variant-numeric: tabular-nums;
+}
+
+.seniorMatrixCheckboxLabel {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.seniorMatrixCheckboxInput {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.seniorMatrixCheckboxBox {
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  border: 1px solid #c8b8a2;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(239, 230, 218, 0.96));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 1px 2px rgba(63, 53, 44, 0.12);
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.seniorMatrixCheckboxBox::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 2px;
+  width: 3px;
+  height: 8px;
+  border-right: 2px solid transparent;
+  border-bottom: 2px solid transparent;
+  transform: rotate(45deg);
+  transition: border-color 0.18s ease;
+}
+
+.seniorMatrixCheckboxInput:checked + .seniorMatrixCheckboxBox {
+  border-color: #2f9f5b;
+  background: linear-gradient(180deg, #46b56e, #2f9f5b);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 1px 2px rgba(47, 159, 91, 0.2);
+}
+
+.seniorMatrixCheckboxInput:checked + .seniorMatrixCheckboxBox::after {
+  border-right-color: #fff8ef;
+  border-bottom-color: #fff8ef;
+}
+
+.seniorMatrixCheckboxInput:focus-visible + .seniorMatrixCheckboxBox {
+  outline: 2px solid rgba(47, 159, 91, 0.35);
+  outline-offset: 2px;
+}
+
+.seniorMatrixCheckboxInput:disabled + .seniorMatrixCheckboxBox {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.seniorMatrixCheckboxHeaderMark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 6px;
+  border: 1px solid #d8cdbd;
+  background: #f6efe5;
+  color: #a89b88;
+  font-size: 11px;
+  font-weight: 800;
 }
 
 .playerDetailsCard {
@@ -3131,6 +3222,25 @@ html[data-theme="dark"] .matrixTable td {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .seniorMatrixCheckboxBox {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: linear-gradient(180deg, #2a2622, #1f1c19);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.32);
+}
+
+html[data-theme="dark"] .seniorMatrixCheckboxInput:checked + .seniorMatrixCheckboxBox {
+  border-color: #3bb56d;
+  background: linear-gradient(180deg, #3fb96f, #23824b);
+}
+
+html[data-theme="dark"] .seniorMatrixCheckboxHeaderMark {
+  border-color: rgba(255, 255, 255, 0.1);
+  background: #25211d;
+  color: #9f9487;
+}
+
 html[data-theme="dark"] .matrixFooterLink {
   color: #8fb8ff;
 }
@@ -3861,6 +3971,8 @@ html[data-theme="dark"] .spinner {
   margin-left: auto;
   display: inline-flex;
   align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .detailsTabButton {
@@ -4798,11 +4910,33 @@ html[data-theme="dark"] .spinner {
   overflow: hidden;
 }
 
+.confirmCard.seniorExtraTimeModal {
+  width: min(1080px, 96vw);
+  max-height: min(86vh, 860px);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .seniorUpdatesModal .confirmBody {
   margin-bottom: 0;
   overflow: auto;
   flex: 1 1 auto;
   min-height: 0;
+}
+
+.seniorExtraTimeModal .confirmBody {
+  margin-bottom: 0;
+  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-bottom: 6px;
+}
+
+.seniorExtraTimeModal .confirmActions {
+  margin-top: 18px;
+  padding-top: 6px;
 }
 
 .seniorUpdatesModal .confirmActions {
@@ -5013,22 +5147,23 @@ html[data-theme="dark"] .spinner {
 
 .seniorExtraTimeModalBody {
   display: grid;
-  gap: 12px;
-  padding: 2px;
+  gap: 8px;
+  padding: 0;
   color: #3f352c;
-  line-height: 1.5;
+  line-height: 1.35;
+  padding-bottom: 8px;
 }
 
 .seniorExtraTimeModalBody p {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .seniorExtraTimeModalLead {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
   color: #5d5245;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border: 1px solid #e0d4c1;
   border-radius: 12px;
   background:
@@ -5038,7 +5173,100 @@ html[data-theme="dark"] .spinner {
 
 .seniorExtraTimeModalChooseTrainees {
   font-weight: 800;
-  color: #3d2f20;
+  font-size: 15px;
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  color: #2f2418;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #d8c3a2;
+  background:
+    linear-gradient(180deg, rgba(255, 244, 214, 0.96), rgba(244, 231, 196, 0.96));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    0 1px 2px rgba(93, 82, 69, 0.08);
+}
+
+.seniorExtraTimeModalBody .playerDetailsCard {
+  border-radius: 12px;
+  padding: 6px 12px 10px;
+}
+
+.seniorExtraTimeModalBody .detailsHeader {
+  margin-bottom: 1px;
+  padding-bottom: 0;
+}
+
+.seniorExtraTimeModalBody .detailsHeaderAux {
+  display: flex;
+  gap: 4px;
+  margin-left: 0;
+  width: 100%;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-bottom: 6px;
+}
+
+.seniorExtraTimeTrainingControl {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.seniorExtraTimeTrainingControl .trainingLabel {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+}
+
+.seniorExtraTimeTrainingControl .trainingSelect {
+  min-width: 148px;
+  padding: 4px 24px 4px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+}
+
+.seniorExtraTimeModalBody .detailsHeaderAux .matchesFilterToggle {
+  margin-left: 12px;
+  flex: 0 0 auto;
+}
+
+.seniorExtraTimeDisabledCheckboxWrap {
+  display: inline-flex;
+}
+
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact {
+  font-size: 11px;
+}
+
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact th,
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact td {
+  padding: 3px 4px;
+}
+
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixIndexHeader,
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixIndex {
+  width: 20px;
+}
+
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixPlayerHeader,
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact td.matrixPlayer {
+  width: 104px;
+  max-width: 104px;
+}
+
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorMetricHeader,
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorMetricCell {
+  width: 30px;
+}
+
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorSkillHeader,
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorSkillCell {
+  width: 38px;
+}
+
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .skillsMatrixHalfPill {
+  min-width: 30px;
+  padding: 1px 4px;
 }
 
 @media (max-width: 900px) {
@@ -5053,6 +5281,20 @@ html[data-theme="dark"] .spinner {
 
   .seniorUpdatesHistoryPane {
     max-height: 220px;
+  }
+
+  .confirmCard.seniorExtraTimeModal {
+    width: min(96vw, 760px);
+    max-height: 90vh;
+    padding: 12px;
+  }
+
+  .seniorExtraTimeTrainingControl {
+    width: 100%;
+  }
+
+  .seniorExtraTimeTrainingControl .trainingSelect {
+    width: 100%;
   }
 }
 

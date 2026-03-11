@@ -697,6 +697,8 @@ export const messagesDe: Messages = {
       "Die Idee ist einfach: Basierend auf deinem Trainingsregime bittet Alchemy dich, die zu trainierenden Spieler auszuwählen. Du wählst die Spieler, klickst auf Aufstellung setzen, und Alchemy erledigt den Rest (Positionierung und Ausrichtung der Spieler, Taktik einstellen, Auswechslungen einrichten, Elfmeterschützen festlegen, Standardschützen bestimmen usw.).",
     seniorExtraTimeModalChooseTrainees:
       "Wähle {{count}} Trainees und klicke dann auf Aufstellung setzen.",
+    seniorExtraTimeModalInjuredCheckboxTooltip:
+      "Der Spieler kann nicht gewählt werden, weil er verletzt ist.",
     seniorExtraTimeModalSetLineupButton: "Aufstellung setzen",
     setBestLineupRejectedPlayersLabel: "Verworfene Spieler",
     analyzeOpponent: "Gegner analysieren",

@@ -4,7 +4,16 @@ const path = require("path");
 
 const LOCALES_DIR = path.join(__dirname, "..", "src", "lib", "i18n", "locales");
 
-const NON_EN_FILES = ["de.ts", "fr.ts", "es.ts", "sv.ts", "it.ts", "pt.ts"];
+const NON_EN_FILES = [
+  "de.ts",
+  "fr.ts",
+  "es.ts",
+  "sv.ts",
+  "it.ts",
+  "pt.ts",
+  "pl.ts",
+  "nl.ts",
+];
 const EN_FILE = "en.ts";
 
 const ENGLISH_LEAK_SNIPPETS = [

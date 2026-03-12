@@ -709,7 +709,7 @@ export const messagesSv: Messages = {
     seniorExtraTimeModal120CupMiddle: "organiserad av",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "Idén är enkel: utifrån ditt träningsupplägg ber Alchemy dig välja vilka spelare som ska tränas. Du väljer spelarna, klickar på Sätt bästa uppställning och Alchemy sköter resten (placerar och orienterar spelare, ställer in taktik, konfigurerar byten, sätter straffskyttar, väljer frisparks-/fasta-situationer-skytt osv.). När du är nöjd med uppställningen klickar du på Skicka uppställning för att skicka den till Hattrick.",
+      "Idén är enkel: utifrån ditt träningsupplägg ber Alchemy dig välja vilka spelare som ska tränas. Du väljer spelarna, klickar på Sätt bästa uppställning och Alchemy sköter resten (placerar och orienterar spelare, ställer in taktik, konfigurerar byten, sätter straffskyttar, väljer frisparks-/fasta-situationer-skytt osv.). När du är nöjd med uppställningen klickar du på Skicka uppställning för att skicka den till Hattrick. Chansen till oavgjort är mycket större om motståndaren också ställer upp på ett liknande sätt.",
     seniorExtraTimeModalChooseTrainees:
       "Välj {{count}} traineer och klicka sedan på Sätt uppställning. De som valts automatiskt kan ändras.",
     seniorExtraTimeModalBTeamToggleLabel: "B-lag",

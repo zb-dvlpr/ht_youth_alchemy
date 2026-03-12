@@ -706,7 +706,7 @@ export const messagesDe: Messages = {
     seniorExtraTimeModal120CupMiddle: "organisiert von",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "Die Idee ist einfach: Basierend auf deinem Trainingsregime bittet Alchemy dich, die zu trainierenden Spieler auszuwählen. Du wählst die Spieler, klickst auf Aufstellung setzen, und Alchemy erledigt den Rest (Positionierung und Ausrichtung der Spieler, Taktik einstellen, Auswechslungen einrichten, Elfmeterschützen festlegen, Standardschützen bestimmen usw.). Wenn du mit der Aufstellung zufrieden bist, klicke auf Aufstellung senden, um sie an Hattrick zu schicken.",
+      "Die Idee ist einfach: Basierend auf deinem Trainingsregime bittet Alchemy dich, die zu trainierenden Spieler auszuwählen. Du wählst die Spieler, klickst auf Aufstellung setzen, und Alchemy erledigt den Rest (Positionierung und Ausrichtung der Spieler, Taktik einstellen, Auswechslungen einrichten, Elfmeterschützen festlegen, Standardschützen bestimmen usw.). Wenn du mit der Aufstellung zufrieden bist, klicke auf Aufstellung senden, um sie an Hattrick zu schicken. Die Chancen auf ein Unentschieden sind deutlich höher, wenn dein Gegner seine Aufstellung auf ähnliche Weise setzt.",
     seniorExtraTimeModalChooseTrainees:
       "Wähle {{count}} Trainees und klicke dann auf Aufstellung setzen. Die automatisch ausgewählten können überschrieben werden.",
     seniorExtraTimeModalBTeamToggleLabel: "B-Team",

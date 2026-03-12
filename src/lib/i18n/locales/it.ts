@@ -719,7 +719,7 @@ export const messagesIt: Messages = {
     seniorExtraTimeModal120CupMiddle: "organizzata da",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "L'idea è semplice: in base al tuo regime di allenamento, Alchemy ti chiede di scegliere i giocatori da allenare. Tu li identifichi, clicchi su Imposta formazione migliore e Alchemy fa il resto (posizionamento e orientamento dei giocatori, impostazione tattica, configurazione delle sostituzioni, impostazione dei rigoristi, scelta del battitore dei calci piazzati, ecc.). Quando sei soddisfatto della formazione, fai clic su Invia formazione per inviarla a Hattrick.",
+      "L'idea è semplice: in base al tuo regime di allenamento, Alchemy ti chiede di scegliere i giocatori da allenare. Tu li identifichi, clicchi su Imposta formazione migliore e Alchemy fa il resto (posizionamento e orientamento dei giocatori, impostazione tattica, configurazione delle sostituzioni, impostazione dei rigoristi, scelta del battitore dei calci piazzati, ecc.). Quando sei soddisfatto della formazione, fai clic su Invia formazione per inviarla a Hattrick. Le probabilità di pareggio sono molto più alte se anche il tuo avversario imposta la formazione in modo simile.",
     seniorExtraTimeModalChooseTrainees:
       "Scegli {{count}} giocatori da allenare, poi clicca su Imposta formazione. Quelli selezionati automaticamente possono essere sostituiti.",
     seniorExtraTimeModalBTeamToggleLabel: "Squadra B",

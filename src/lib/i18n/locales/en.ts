@@ -683,7 +683,7 @@ export const messagesEn: Messages = {
     seniorExtraTimeModal120CupMiddle: "organized by",
     seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
     seniorExtraTimeModalWorkflow:
-      "The workflow is simple: based on your training regimen, Alchemy asks you to pick the players to be trained. You choose the players, click Set lineup, and Alchemy handles the rest (positioning and orienting players, setting tactics, configuring substitutions, setting penalty takers, deciding the set pieces taker, etc.). Once you're happy with the lineup, click Submit lineup to send it to Hattrick.",
+      "The workflow is simple: based on your training regimen, Alchemy asks you to pick the players to be trained. You choose the players, click Set lineup, and Alchemy handles the rest (positioning and orienting players, setting tactics, configuring substitutions, setting penalty takers, deciding the set pieces taker, etc.). Once you're happy with the lineup, click Submit lineup to send it to Hattrick. The chances of a draw are much higher if your opponent sets up in a similar way.",
     seniorExtraTimeModalChooseTrainees:
       "Choose {{count}} trainees, then click Set lineup. The auto-chosen ones can be overridden.",
     seniorExtraTimeModalBTeamToggleLabel: "B team",

@@ -315,6 +315,7 @@ const formatSkillMatrixFloat = (value: number) => {
   if (!Number.isFinite(value)) return "0.0";
   if (Number.isInteger(value)) return String(value);
   const rounded = Math.round((value + Number.EPSILON) * 10) / 10;
+  if (Number.isInteger(rounded)) return String(rounded);
   return rounded.toFixed(1);
 };
 

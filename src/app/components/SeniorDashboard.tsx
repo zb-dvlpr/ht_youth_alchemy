@@ -1952,21 +1952,24 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   );
   const extraTimeAutoSelectedPlayerIds = useMemo(
     () => {
-      const selectionStart =
-        extraTimeBTeamEnabled && resolvedExtraTimeTrainingType !== 7
-          ? requiredExtraTimeTrainees
-          : 0;
-      return extraTimeSelectablePlayerIds.slice(
-        selectionStart,
-        selectionStart + requiredExtraTimeTrainees
+      if (!extraTimeBTeamEnabled) {
+        return extraTimeSelectablePlayerIds.slice(0, requiredExtraTimeTrainees);
+      }
+      const skippedBest = extraTimeSelectablePlayerIds.slice(0, requiredExtraTimeTrainees);
+      const nextBest = extraTimeSelectablePlayerIds.slice(
+        requiredExtraTimeTrainees,
+        requiredExtraTimeTrainees * 2
       );
+      if (nextBest.length >= requiredExtraTimeTrainees) {
+        return nextBest;
+      }
+      const fallbackBestAscending = [...skippedBest].reverse().slice(
+        0,
+        requiredExtraTimeTrainees - nextBest.length
+      );
+      return [...nextBest, ...fallbackBestAscending];
     },
-    [
-      extraTimeBTeamEnabled,
-      extraTimeSelectablePlayerIds,
-      requiredExtraTimeTrainees,
-      resolvedExtraTimeTrainingType,
-    ]
+    [extraTimeBTeamEnabled, extraTimeSelectablePlayerIds, requiredExtraTimeTrainees]
   );
   const extraTimeSelectedCount = extraTimeSelectedPlayerIds.filter((playerId) =>
     extraTimeSelectablePlayerIds.includes(playerId)

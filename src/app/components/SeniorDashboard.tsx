@@ -1503,6 +1503,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const dashboardRef = useRef<HTMLDivElement | null>(null);
   const extraTimeTrainingButtonRef = useRef<HTMLButtonElement | null>(null);
   const extraTimeTrainingMenuRef = useRef<HTMLDivElement | null>(null);
+  const extraTimeAutoSelectionOpenRef = useRef(false);
+  const extraTimeAutoSelectionTrainingTypeRef = useRef<number | null>(null);
+  const extraTimeLastAutoSelectedPlayerIdsRef = useRef<number[] | null>(null);
   const activeRefreshRunIdRef = useRef<number | null>(null);
   const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
   const staleRefreshAttemptedRef = useRef(false);
@@ -1947,6 +1950,16 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const requiredExtraTimeTrainees = traineesTargetForTrainingType(
     resolvedExtraTimeTrainingType
   );
+  const extraTimeAutoSelectedPlayerIds = useMemo(
+    () => {
+      const selectionStart = extraTimeBTeamEnabled ? requiredExtraTimeTrainees : 0;
+      return extraTimeSelectablePlayerIds.slice(
+        selectionStart,
+        selectionStart + requiredExtraTimeTrainees
+      );
+    },
+    [extraTimeBTeamEnabled, extraTimeSelectablePlayerIds, requiredExtraTimeTrainees]
+  );
   const extraTimeSelectedCount = extraTimeSelectedPlayerIds.filter((playerId) =>
     extraTimeSelectablePlayerIds.includes(playerId)
   ).length;
@@ -1969,6 +1982,42 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       )
     );
   }, [extraTimeInjuredPlayerIdSet, playersById]);
+
+  useEffect(() => {
+    if (!extraTimeInfoOpen) {
+      extraTimeAutoSelectionOpenRef.current = false;
+      extraTimeLastAutoSelectedPlayerIdsRef.current = null;
+      return;
+    }
+
+    const lastAutoSelected = extraTimeLastAutoSelectedPlayerIdsRef.current;
+    const matchesLastAutoSelected =
+      Array.isArray(lastAutoSelected) &&
+      lastAutoSelected.length === extraTimeSelectedPlayerIds.length &&
+      lastAutoSelected.every(
+        (playerId, index) => extraTimeSelectedPlayerIds[index] === playerId
+      );
+    const shouldApplyAutoSelection =
+      !extraTimeAutoSelectionOpenRef.current ||
+      extraTimeAutoSelectionTrainingTypeRef.current !== resolvedExtraTimeTrainingType ||
+      matchesLastAutoSelected;
+
+    if (!shouldApplyAutoSelection) {
+      extraTimeAutoSelectionOpenRef.current = true;
+      extraTimeAutoSelectionTrainingTypeRef.current = resolvedExtraTimeTrainingType;
+      return;
+    }
+
+    setExtraTimeSelectedPlayerIds(extraTimeAutoSelectedPlayerIds);
+    extraTimeAutoSelectionOpenRef.current = true;
+    extraTimeAutoSelectionTrainingTypeRef.current = resolvedExtraTimeTrainingType;
+    extraTimeLastAutoSelectedPlayerIdsRef.current = extraTimeAutoSelectedPlayerIds;
+  }, [
+    extraTimeAutoSelectedPlayerIds,
+    extraTimeInfoOpen,
+    extraTimeSelectedPlayerIds,
+    resolvedExtraTimeTrainingType,
+  ]);
 
   useEffect(() => {
     setExtraTimeMatrixTrainingType((prev) => prev ?? trainingType);

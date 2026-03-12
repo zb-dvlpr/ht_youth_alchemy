@@ -81,6 +81,7 @@ type UpcomingMatchesProps = {
   behaviors?: LineupBehaviors;
   captainId?: number | null;
   penaltyKickerIds?: number[];
+  setPiecesId?: number | null;
   tacticType?: number;
   onRefresh?: () => boolean | Promise<boolean>;
   onLoadLineup?: (
@@ -192,7 +193,8 @@ function buildLineupPayload(
   behaviors?: LineupBehaviors,
   captainId?: number | null,
   tacticType?: number,
-  penaltyKickerIds?: number[]
+  penaltyKickerIds?: number[],
+  setPiecesId?: number | null
 ): MatchOrdersLineupPayload {
   const toId = (value: number | null | undefined) => value ?? 0;
   const positions = POSITION_SLOT_ORDER.map((slot) => ({
@@ -217,7 +219,7 @@ function buildLineupPayload(
     bench,
     kickers,
     captain: captainId ?? 0,
-    setPieces: 0,
+    setPieces: Number(setPiecesId ?? 0) || 0,
     settings: {
       tactic: typeof tacticType === "number" ? tacticType : 7,
       speechLevel: 0,
@@ -638,6 +640,7 @@ export default function UpcomingMatches({
   behaviors,
   captainId,
   penaltyKickerIds,
+  setPiecesId,
   tacticType,
   onRefresh,
   onLoadLineup,
@@ -678,9 +681,10 @@ export default function UpcomingMatches({
         behaviors,
         captainId,
         tacticType,
-        penaltyKickerIds
+        penaltyKickerIds,
+        setPiecesId
       ),
-    [assignments, behaviors, captainId, tacticType, penaltyKickerIds]
+    [assignments, behaviors, captainId, tacticType, penaltyKickerIds, setPiecesId]
   );
 
   const allMatches = normalizeMatches(

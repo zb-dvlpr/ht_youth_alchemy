@@ -1952,13 +1952,21 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   );
   const extraTimeAutoSelectedPlayerIds = useMemo(
     () => {
-      const selectionStart = extraTimeBTeamEnabled ? requiredExtraTimeTrainees : 0;
+      const selectionStart =
+        extraTimeBTeamEnabled && resolvedExtraTimeTrainingType !== 7
+          ? requiredExtraTimeTrainees
+          : 0;
       return extraTimeSelectablePlayerIds.slice(
         selectionStart,
         selectionStart + requiredExtraTimeTrainees
       );
     },
-    [extraTimeBTeamEnabled, extraTimeSelectablePlayerIds, requiredExtraTimeTrainees]
+    [
+      extraTimeBTeamEnabled,
+      extraTimeSelectablePlayerIds,
+      requiredExtraTimeTrainees,
+      resolvedExtraTimeTrainingType,
+    ]
   );
   const extraTimeSelectedCount = extraTimeSelectedPlayerIds.filter((playerId) =>
     extraTimeSelectablePlayerIds.includes(playerId)
@@ -2077,6 +2085,46 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     );
   };
 
+  const comparePlayersByExtraTimeMatrixOrder = (left: SeniorPlayer, right: SeniorPlayer) => {
+    const leftIndex = extraTimeSelectablePlayerIds.indexOf(left.PlayerID);
+    const rightIndex = extraTimeSelectablePlayerIds.indexOf(right.PlayerID);
+    if (leftIndex !== rightIndex) return leftIndex - rightIndex;
+    return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+      formatPlayerName(right) || String(right.PlayerID)
+    );
+  };
+
+  const buildExtraTimeSetPiecesSetup = (onFieldPlayers: SeniorPlayer[]) => {
+    const setPiecesOrdered = [...onFieldPlayers].sort(comparePlayersBySetPiecesAscending);
+    const setPiecesPlayer = setPiecesOrdered[0] ?? null;
+    const kickerIds = [
+      setPiecesPlayer?.PlayerID ?? 0,
+      ...setPiecesOrdered
+        .filter((player) => player.PlayerID !== setPiecesPlayer?.PlayerID)
+        .sort((left, right) => comparePlayersBySetPiecesAscending(right, left))
+        .map((player) => player.PlayerID),
+    ].slice(0, 11);
+    while (kickerIds.length < 11) kickerIds.push(0);
+    return {
+      kickerIds,
+      setPiecesPlayerId: setPiecesPlayer?.PlayerID ?? 0,
+    };
+  };
+
+  const ensureExtraTimeRatingsById = async () => {
+    let nextRatingsById = ratingsByPlayerId;
+    if (isRatingsMatrixEmpty(ratingsResponse)) {
+      const currentSeason = await fetchCurrentSeason();
+      const refreshedRatings = await bootstrapRatingsFromSeasons(currentSeason);
+      setRatingsResponse(refreshedRatings);
+      nextRatingsById = {};
+      (refreshedRatings.players ?? []).forEach((row) => {
+        nextRatingsById[row.id] = { ...row.ratings };
+      });
+    }
+    return nextRatingsById;
+  };
+
   const resolveExtraTimeMatchContext = async (matchId: number) => {
     const selectedMatch = allMatches.find((match) => match.MatchID === matchId);
     if (!selectedMatch) {
@@ -2104,16 +2152,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       throw new Error(messages.submitOrdersError);
     }
 
-    let ratingsById = ratingsByPlayerId;
-    if (isRatingsMatrixEmpty(ratingsResponse)) {
-      const currentSeason = await fetchCurrentSeason();
-      const refreshedRatings = await bootstrapRatingsFromSeasons(currentSeason);
-      setRatingsResponse(refreshedRatings);
-      ratingsById = {};
-      (refreshedRatings.players ?? []).forEach((row) => {
-        ratingsById[row.id] = { ...row.ratings };
-      });
-    }
+    const ratingsById = await ensureExtraTimeRatingsById();
 
     const isLeagueCupTarget =
       typeof options?.selectedMatchType === "number" &&
@@ -2251,44 +2290,147 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     if (onFieldPlayerIds.length < 11) {
       throw new Error(messages.submitOrdersMinPlayers);
     }
+    const requiredAssignedTraineeIds =
+      extraTimePreparedSubmission.trainingType === 7
+        ? [
+            ...onFieldPlayerIds,
+            assignments.B_IM,
+            assignments.B_F,
+          ].filter((playerId): playerId is number => typeof playerId === "number" && playerId > 0)
+        : onFieldPlayerIds;
     if (
-      extraTimePreparedSubmission.traineeIds.some((playerId) => !onFieldPlayerIds.includes(playerId))
+      extraTimePreparedSubmission.traineeIds.some(
+        (playerId) => !requiredAssignedTraineeIds.includes(playerId)
+      )
     ) {
       throw new Error(messages.submitOrdersError);
     }
     const onFieldPlayers = onFieldPlayerIds
       .map((playerId) => playersById.get(playerId) ?? null)
       .filter((player): player is SeniorPlayer => Boolean(player));
-    const setPiecesOrdered = [...onFieldPlayers].sort(comparePlayersBySetPiecesAscending);
-    const setPiecesPlayer = setPiecesOrdered[0] ?? null;
-    const kickerIds = [
-      setPiecesPlayer?.PlayerID ?? 0,
-      ...setPiecesOrdered
-        .filter((player) => player.PlayerID !== setPiecesPlayer?.PlayerID)
-        .sort((left, right) => comparePlayersBySetPiecesAscending(right, left))
-        .map((player) => player.PlayerID),
-    ].slice(0, 11);
-    while (kickerIds.length < 11) kickerIds.push(0);
+    const { kickerIds, setPiecesPlayerId } = buildExtraTimeSetPiecesSetup(onFieldPlayers);
     const benchIds = BENCH_SLOT_ORDER.map((slot) => {
       const playerId = assignments[slot];
       return typeof playerId === "number" ? playerId : 0;
     });
-    const forcedBehaviors: Partial<Record<(typeof FIELD_SLOT_ORDER)[number], number>> = {
-      ...behaviors,
-      WB_L: 2,
-      WB_R: 2,
-      W_L: 2,
-      IM_L: 2,
-      IM_C: 2,
-      IM_R: 2,
-      W_R: 2,
-    };
+    const forcedBehaviors: Partial<Record<(typeof FIELD_SLOT_ORDER)[number], number>> =
+      extraTimePreparedSubmission.trainingType === 7
+        ? {
+            ...behaviors,
+            W_L: 2,
+            IM_L: 2,
+            IM_C: 2,
+            IM_R: 2,
+            W_R: 2,
+            F_L: 2,
+            F_C: 2,
+            F_R: 2,
+          }
+        : {
+            ...behaviors,
+            WB_L: 2,
+            WB_R: 2,
+            W_L: 2,
+            IM_L: 2,
+            IM_C: 2,
+            IM_R: 2,
+            W_R: 2,
+          };
+    if (extraTimePreparedSubmission.trainingType === 7) {
+      const keeperId = assignments.KP;
+      const leftCenterBackId = assignments.CD_L;
+      const rightCenterBackId = assignments.CD_R;
+      const leftForwardId = assignments.F_L;
+      const centerForwardId = assignments.F_C;
+      const rightForwardId = assignments.F_R;
+      const benchMidId = assignments.B_IM;
+      const benchForwardId = assignments.B_F;
+      const leftMidId = assignments.IM_L;
+      const rightMidId = assignments.IM_R;
+      const requiredIds = [
+        keeperId,
+        leftCenterBackId,
+        rightCenterBackId,
+        leftForwardId,
+        centerForwardId,
+        rightForwardId,
+        benchMidId,
+        benchForwardId,
+        leftMidId,
+        rightMidId,
+      ];
+      if (
+        requiredIds.some((playerId) => typeof playerId !== "number" || playerId <= 0)
+      ) {
+        throw new Error(messages.submitOrdersError);
+      }
+
+      return buildLineupPayload(assignments, 1, {
+        behaviors: forcedBehaviors,
+        benchIds,
+        kickerIds,
+        captainId: 0,
+        setPiecesId: setPiecesPlayerId,
+        substitutions: [
+          {
+            playerin: keeperId as number,
+            playerout: centerForwardId as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+          {
+            playerin: leftCenterBackId as number,
+            playerout: leftForwardId as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+          {
+            playerin: rightCenterBackId as number,
+            playerout: rightForwardId as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+          {
+            playerin: benchMidId as number,
+            playerout: leftMidId as number,
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+          {
+            playerin: benchForwardId as number,
+            playerout: rightMidId as number,
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+        ],
+      });
+    }
     return buildLineupPayload(assignments, 1, {
       behaviors: forcedBehaviors,
       benchIds,
       kickerIds,
       captainId: 0,
-      setPiecesId: setPiecesPlayer?.PlayerID ?? 0,
+      setPiecesId: setPiecesPlayerId,
       substitutions: [
         {
           playerin: extraTimePreparedSubmission.traineeIds[0] ?? 0,
@@ -2298,14 +2440,130 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           pos: -1,
           beh: -1,
           card: -1,
-          standing: -1,
+          standing: 0,
         },
       ],
     });
   };
 
+  const buildPassingExtraTimeResult = async (traineeIds: number[]) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const orderedTrainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player))
+      .sort(comparePlayersByExtraTimeMatrixOrder);
+    if (orderedTrainees.length !== 13) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const rowTrainees = orderedTrainees.slice(0, 8);
+    const defensiveTrainees = orderedTrainees.slice(8, 11);
+    const benchTrainees = orderedTrainees.slice(11, 13);
+    const assignmentsForFormation: LineupAssignments = {};
+    const ratingForSlot = (playerId: number, slot: keyof LineupAssignments) =>
+      typeof ratingsById[playerId]?.[String(SLOT_TO_RATING_CODE[slot])] === "number"
+        ? (ratingsById[playerId]?.[String(SLOT_TO_RATING_CODE[slot])] as number)
+        : -1;
+    const overallFallback = (player: SeniorPlayer) => averageSkillLevelForPlayer(player);
+    const pickBestForSlot = (
+      candidates: SeniorPlayer[],
+      slot: keyof LineupAssignments
+    ) => {
+      const sorted = [...candidates].sort((left, right) => {
+        const leftRating = ratingForSlot(left.PlayerID, slot);
+        const rightRating = ratingForSlot(right.PlayerID, slot);
+        if (rightRating !== leftRating) return rightRating - leftRating;
+        const leftFallback = overallFallback(left);
+        const rightFallback = overallFallback(right);
+        if (rightFallback !== leftFallback) return rightFallback - leftFallback;
+        return comparePlayersByExtraTimeMatrixOrder(left, right);
+      });
+      return sorted[0] ?? null;
+    };
+    const assignSlotFromPool = (
+      pool: SeniorPlayer[],
+      slot: keyof LineupAssignments
+    ) => {
+      const selected = pickBestForSlot(pool, slot);
+      if (!selected) {
+        throw new Error(messages.submitOrdersError);
+      }
+      assignmentsForFormation[slot] = selected.PlayerID;
+      return pool.filter((player) => player.PlayerID !== selected.PlayerID);
+    };
+
+    let remainingRowTrainees = [...rowTrainees];
+    const trainedSlots = [
+      ...MIDFIELD_SLOTS,
+      ...ATTACK_SLOTS,
+    ] as Array<(typeof MIDFIELD_SLOTS)[number] | (typeof ATTACK_SLOTS)[number]>;
+    trainedSlots.forEach((slot) => {
+      remainingRowTrainees = assignSlotFromPool(remainingRowTrainees, slot);
+    });
+
+    let remainingDefensiveTrainees = [...defensiveTrainees];
+    (["KP", "CD_L", "CD_R"] as const).forEach((slot) => {
+      remainingDefensiveTrainees = assignSlotFromPool(remainingDefensiveTrainees, slot);
+    });
+
+    assignmentsForFormation.B_IM = benchTrainees[0]?.PlayerID ?? null;
+    assignmentsForFormation.B_F = benchTrainees[1]?.PlayerID ?? null;
+    if (!assignmentsForFormation.B_IM || !assignmentsForFormation.B_F) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    let benchCandidatePool = players
+      .filter((player) => !traineeIds.includes(player.PlayerID))
+      .filter((player) => {
+        const details = detailsById.get(player.PlayerID);
+        const injuryLevel =
+          typeof details?.InjuryLevel === "number"
+            ? details.InjuryLevel
+            : typeof player.InjuryLevel === "number"
+              ? player.InjuryLevel
+              : null;
+        return typeof injuryLevel !== "number" || injuryLevel < 1;
+      });
+    const benchSlotToFieldSlot = {
+      B_GK: "KP",
+      B_CD: "CD_C",
+      B_WB: "WB_L",
+      B_W: "W_L",
+    } as const;
+    (
+      Object.entries(benchSlotToFieldSlot) as Array<
+        [
+          keyof typeof benchSlotToFieldSlot,
+          (typeof benchSlotToFieldSlot)[keyof typeof benchSlotToFieldSlot],
+        ]
+      >
+    ).forEach(([benchSlot, fieldSlot]) => {
+      const selected = pickBestForSlot(benchCandidatePool, fieldSlot);
+      assignmentsForFormation[benchSlot] = selected?.PlayerID ?? null;
+      if (selected) {
+        benchCandidatePool = benchCandidatePool.filter(
+          (player) => player.PlayerID !== selected.PlayerID
+        );
+      }
+    });
+    const extraBenchPlayer =
+      [...benchCandidatePool].sort((left, right) => {
+        const leftValue = overallFallback(left);
+        const rightValue = overallFallback(right);
+        if (rightValue !== leftValue) return rightValue - leftValue;
+        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+          formatPlayerName(right) || String(right.PlayerID)
+        );
+      })[0] ?? null;
+    assignmentsForFormation.B_X = extraBenchPlayer?.PlayerID ?? null;
+
+    return {
+      assignments: assignmentsForFormation,
+    };
+  };
+
   const handleExtraTimeSetLineup = async () => {
-    if (resolvedExtraTimeTrainingType !== 9) {
+    if (resolvedExtraTimeTrainingType !== 7 && resolvedExtraTimeTrainingType !== 9) {
       setExtraTimeInfoOpen(false);
       return;
     }
@@ -2315,6 +2573,30 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       const selectedTraineeIds = extraTimeSelectedPlayerIds.filter((playerId) =>
         extraTimeSelectablePlayerIds.includes(playerId)
       );
+      if (resolvedExtraTimeTrainingType === 7) {
+        const result = await buildPassingExtraTimeResult(selectedTraineeIds);
+        setAssignments(result.assignments);
+        setBehaviors({
+          W_L: 2,
+          IM_L: 2,
+          IM_C: 2,
+          IM_R: 2,
+          W_R: 2,
+          F_L: 2,
+          F_C: 2,
+          F_R: 2,
+        });
+        setTacticType(1);
+        setLoadedMatchId(extraTimeMatchId);
+        setExtraTimePreparedSubmission({
+          matchId: extraTimeMatchId,
+          traineeIds: selectedTraineeIds,
+          trainingType: resolvedExtraTimeTrainingType,
+        });
+        setExtraTimeInfoOpen(false);
+        setExtraTimeMatchId(null);
+        return;
+      }
       const { selectedMatchType } = await resolveExtraTimeMatchContext(extraTimeMatchId);
       const firstPass = await buildForcedKeeperExtraTimeResult(selectedTraineeIds, {
         selectedMatchType,
@@ -2464,6 +2746,13 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   }, [detailsById, players]);
 
   const seniorPenaltyKickerIds = useMemo(() => {
+    if (extraTimePreparedSubmission) {
+      const onFieldPlayers = FIELD_SLOT_ORDER.map((slot) => assignments[slot])
+        .filter((playerId): playerId is number => typeof playerId === "number" && playerId > 0)
+        .map((playerId) => playersById.get(playerId) ?? null)
+        .filter((player): player is SeniorPlayer => Boolean(player));
+      return buildExtraTimeSetPiecesSetup(onFieldPlayers).kickerIds;
+    }
     const assignedPlayerIds = Array.from(
       new Set(
         Object.values(assignments).filter(
@@ -2491,7 +2780,23 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         );
       })
       .slice(0, 11);
-  }, [assignments, players, skillValueForPlayer]);
+  }, [
+    assignments,
+    buildExtraTimeSetPiecesSetup,
+    extraTimePreparedSubmission,
+    players,
+    playersById,
+    skillValueForPlayer,
+  ]);
+
+  const seniorSetPiecesPlayerId = useMemo(() => {
+    if (!extraTimePreparedSubmission) return 0;
+    const onFieldPlayers = FIELD_SLOT_ORDER.map((slot) => assignments[slot])
+      .filter((playerId): playerId is number => typeof playerId === "number" && playerId > 0)
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player));
+    return buildExtraTimeSetPiecesSetup(onFieldPlayers).setPiecesPlayerId;
+  }, [assignments, buildExtraTimeSetPiecesSetup, extraTimePreparedSubmission, playersById]);
 
   const seniorCardStatusByPlayerId = useMemo(() => {
     const map: Record<number, { display: string; label: string }> = {};
@@ -6709,6 +7014,7 @@ const refreshDetailsForPlayers = async (
             assignments={assignments}
             behaviors={behaviors}
             penaltyKickerIds={seniorPenaltyKickerIds}
+            setPiecesId={seniorSetPiecesPlayerId}
             tacticType={tacticType}
             sourceSystem="Hattrick"
             includeTournamentMatches={includeTournamentMatches}

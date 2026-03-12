@@ -1597,7 +1597,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       case 3:
         return 7;
       case 8:
-        return 7;
+        return 8;
       case 5:
         return 6;
       case 7:

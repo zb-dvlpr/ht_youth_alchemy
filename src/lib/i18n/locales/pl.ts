@@ -171,7 +171,7 @@ export const messagesPl: Messages = {
   seniorExtraTimeModalWorkflow:
     "To bardzo proste: na podstawie reżimu treningowego Alchemy poprosi Cię o wybór zawodników do treningu. Wskazujesz zawodników, klikasz Ustaw najlepszy skład, a Alchemy zajmuje się resztą (ustawianiem pozycji i orientacji zawodników, doborem taktyki, konfiguracją zmian, ustawieniem wykonawców rzutów karnych, wyborem wykonawcy stałych fragmentów gry itd.). Gdy będziesz zadowolony ze składu, kliknij Wyślij skład, aby wysłać go do Hattricka.",
   seniorExtraTimeModalChooseTrainees:
-    "Wybierz {{count}} trenowanych zawodników, a następnie kliknij Ustaw skład.",
+    "Wybierz {{count}} trenowanych zawodników, a następnie kliknij Ustaw skład. Zaznaczonych automatycznie można zmienić.",
   seniorExtraTimeModalSetLineupButton: "Ustaw skład",
   setBestLineupRejectedPlayersLabel: "Odrzuceni zawodnicy",
   analyzeOpponent: "Analizuj przeciwnika",

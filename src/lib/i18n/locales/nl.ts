@@ -171,7 +171,7 @@ export const messagesNl: Messages = {
   seniorExtraTimeModalWorkflow:
     "Het idee is eenvoudig: op basis van je trainingsregime vraagt Alchemy je om de spelers te kiezen die training moeten krijgen. Jij kiest de spelers, klikt op Beste opstelling zetten, en Alchemy regelt de rest (spelers positioneren en oriënteren, tactieken instellen, wissels configureren, penaltynemers instellen, de nemer van spelhervattingen bepalen, enz.). Zodra je tevreden bent met de opstelling, klik je op Opstelling verzenden om die naar Hattrick te sturen.",
   seniorExtraTimeModalChooseTrainees:
-    "Kies {{count}} trainees en klik daarna op Opstelling instellen.",
+    "Kies {{count}} trainees en klik daarna op Opstelling instellen. De automatisch gekozen spelers kun je overschrijven.",
   seniorExtraTimeModalSetLineupButton: "Opstelling instellen",
   setBestLineupRejectedPlayersLabel: "Afgewezen spelers",
   analyzeOpponent: "Tegenstander analyseren",

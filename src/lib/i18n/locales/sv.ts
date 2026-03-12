@@ -711,7 +711,7 @@ export const messagesSv: Messages = {
     seniorExtraTimeModalWorkflow:
       "Idén är enkel: utifrån ditt träningsupplägg ber Alchemy dig välja vilka spelare som ska tränas. Du väljer spelarna, klickar på Sätt bästa uppställning och Alchemy sköter resten (placerar och orienterar spelare, ställer in taktik, konfigurerar byten, sätter straffskyttar, väljer frisparks-/fasta-situationer-skytt osv.). När du är nöjd med uppställningen klickar du på Skicka uppställning för att skicka den till Hattrick.",
     seniorExtraTimeModalChooseTrainees:
-      "Välj {{count}} traineer och klicka sedan på Sätt uppställning.",
+      "Välj {{count}} traineer och klicka sedan på Sätt uppställning. De som valts automatiskt kan ändras.",
     seniorExtraTimeModalBTeamToggleLabel: "B-lag",
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "Spelaren kan inte väljas eftersom han är skadad.",

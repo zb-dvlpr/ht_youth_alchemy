@@ -720,7 +720,7 @@ export const messagesPt: Messages = {
     seniorExtraTimeModalWorkflow:
       "A ideia é simples: com base no seu regime de treino, o Alchemy pede que você escolha os jogadores a serem treinados. Você identifica os jogadores, clica em Definir melhor escalação e o Alchemy cuida do resto (posicionamento e orientação dos jogadores, ajuste de táticas, configuração de substituições, definição de cobradores de pênalti, escolha do cobrador de bolas paradas, etc.). Quando estiver satisfeito com a escalação, clique em Enviar escalação para mandá-la ao Hattrick.",
     seniorExtraTimeModalChooseTrainees:
-      "Escolha {{count}} treinandos e depois clique em Definir escalação.",
+      "Escolha {{count}} treinandos e depois clique em Definir escalação. Os escolhidos automaticamente podem ser substituídos.",
     seniorExtraTimeModalBTeamToggleLabel: "Equipe B",
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "O jogador não pode ser selecionado porque está lesionado.",

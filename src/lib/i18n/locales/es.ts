@@ -720,7 +720,7 @@ export const messagesEs: Messages = {
     seniorExtraTimeModalWorkflow:
       "La idea es simple: según tu régimen de entrenamiento, Alchemy te pedirá elegir a los jugadores que deben entrenar. Tú los identificas, pulsas Establecer alineación y Alchemy se encarga del resto (posicionar y orientar a los jugadores, ajustar tácticas, configurar sustituciones, definir lanzadores de penalti, decidir el lanzador de jugadas a balón parado, etc.). Cuando estés conforme con la alineación, haz clic en Enviar alineación para mandarla a Hattrick.",
     seniorExtraTimeModalChooseTrainees:
-      "Elige {{count}} entrenables y luego haz clic en Establecer alineación.",
+      "Elige {{count}} entrenables y luego haz clic en Establecer alineación. Los seleccionados automáticamente se pueden reemplazar.",
     seniorExtraTimeModalBTeamToggleLabel: "Equipo B",
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "No se puede seleccionar al jugador porque está lesionado.",

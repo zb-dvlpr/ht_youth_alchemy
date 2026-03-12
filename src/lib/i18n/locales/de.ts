@@ -708,7 +708,7 @@ export const messagesDe: Messages = {
     seniorExtraTimeModalWorkflow:
       "Die Idee ist einfach: Basierend auf deinem Trainingsregime bittet Alchemy dich, die zu trainierenden Spieler auszuwählen. Du wählst die Spieler, klickst auf Aufstellung setzen, und Alchemy erledigt den Rest (Positionierung und Ausrichtung der Spieler, Taktik einstellen, Auswechslungen einrichten, Elfmeterschützen festlegen, Standardschützen bestimmen usw.). Wenn du mit der Aufstellung zufrieden bist, klicke auf Aufstellung senden, um sie an Hattrick zu schicken.",
     seniorExtraTimeModalChooseTrainees:
-      "Wähle {{count}} Trainees und klicke dann auf Aufstellung setzen.",
+      "Wähle {{count}} Trainees und klicke dann auf Aufstellung setzen. Die automatisch ausgewählten können überschrieben werden.",
     seniorExtraTimeModalBTeamToggleLabel: "B-Team",
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "Der Spieler kann nicht gewählt werden, weil er verletzt ist.",

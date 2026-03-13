@@ -1864,26 +1864,38 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     [resolvedExtraTimeTrainingType]
   );
   const extraTimeSkillsMatrixRows = useMemo(() => {
-    if (!extraTimeSortSkillKey) return skillsMatrixRows;
+    if (!extraTimeSortSkillKey && resolvedExtraTimeTrainingType !== 6) return skillsMatrixRows;
     return [...skillsMatrixRows].sort((left, right) => {
       const leftPlayer = left.id !== null ? playersById.get(left.id) ?? null : null;
       const rightPlayer = right.id !== null ? playersById.get(right.id) ?? null : null;
       const leftDetails = left.id !== null ? detailsById.get(left.id) ?? null : null;
       const rightDetails = right.id !== null ? detailsById.get(right.id) ?? null : null;
-      const leftBaseSkill = parseSkill(
-        leftDetails?.PlayerSkills?.[extraTimeSortSkillKey] ??
-          leftPlayer?.PlayerSkills?.[extraTimeSortSkillKey]
-      );
-      const rightBaseSkill = parseSkill(
-        rightDetails?.PlayerSkills?.[extraTimeSortSkillKey] ??
-          rightPlayer?.PlayerSkills?.[extraTimeSortSkillKey]
-      );
-      const leftValue = showSeniorSkillBonusInMatrix
-        ? computeSeniorEffectiveSkill(leftBaseSkill, leftDetails)
-        : leftBaseSkill;
-      const rightValue = showSeniorSkillBonusInMatrix
-        ? computeSeniorEffectiveSkill(rightBaseSkill, rightDetails)
-        : rightBaseSkill;
+      const resolveEffectiveSkill = (
+        player: SeniorPlayer | null,
+        details: (typeof leftDetails) | null,
+        skillKey: (typeof SKILL_KEYS)[number]
+      ) => {
+        const baseSkill = parseSkill(
+          details?.PlayerSkills?.[skillKey] ?? player?.PlayerSkills?.[skillKey]
+        );
+        return showSeniorSkillBonusInMatrix
+          ? computeSeniorEffectiveSkill(baseSkill, details ?? undefined)
+          : baseSkill;
+      };
+      const leftValue =
+        resolvedExtraTimeTrainingType === 6
+          ? (resolveEffectiveSkill(leftPlayer, leftDetails, "ScorerSkill") ?? 0) +
+            (resolveEffectiveSkill(leftPlayer, leftDetails, "SetPiecesSkill") ?? 0)
+          : extraTimeSortSkillKey
+            ? resolveEffectiveSkill(leftPlayer, leftDetails, extraTimeSortSkillKey)
+            : null;
+      const rightValue =
+        resolvedExtraTimeTrainingType === 6
+          ? (resolveEffectiveSkill(rightPlayer, rightDetails, "ScorerSkill") ?? 0) +
+            (resolveEffectiveSkill(rightPlayer, rightDetails, "SetPiecesSkill") ?? 0)
+          : extraTimeSortSkillKey
+            ? resolveEffectiveSkill(rightPlayer, rightDetails, extraTimeSortSkillKey)
+            : null;
       if (leftValue === null && rightValue === null) {
         return left.name.localeCompare(right.name);
       }
@@ -1896,6 +1908,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     detailsById,
     extraTimeSortSkillKey,
     playersById,
+    resolvedExtraTimeTrainingType,
     showSeniorSkillBonusInMatrix,
     skillsMatrixRows,
   ]);

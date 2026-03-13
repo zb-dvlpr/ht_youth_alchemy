@@ -1974,6 +1974,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const extraTimeSelectedCount = extraTimeSelectedPlayerIds.filter((playerId) =>
     extraTimeSelectablePlayerIds.includes(playerId)
   ).length;
+  const extraTimeSetLineupDisabled =
+    extraTimeSelectedCount !== requiredExtraTimeTrainees;
   const allExtraTimePlayersSelected =
     extraTimeSelectablePlayerIds.length > 0 &&
     extraTimeSelectablePlayerIds.every((playerId) =>
@@ -6348,16 +6350,26 @@ const refreshDetailsForPlayers = async (
           </div>
         }
         actions={
-          <button
-            type="button"
-            className={styles.confirmSubmit}
-            disabled={extraTimeSelectedCount !== requiredExtraTimeTrainees}
-            onClick={() => {
-              void handleExtraTimeSetLineup();
-            }}
+          <Tooltip
+            content={
+              extraTimeSetLineupDisabled
+                ? messages.seniorExtraTimeModalSetLineupDisabledTooltip
+                : messages.seniorExtraTimeModalSetLineupReadyTooltip
+            }
           >
-            {messages.seniorExtraTimeModalSetLineupButton}
-          </button>
+            <span>
+              <button
+                type="button"
+                className={styles.confirmSubmit}
+                disabled={extraTimeSetLineupDisabled}
+                onClick={() => {
+                  void handleExtraTimeSetLineup();
+                }}
+              >
+                {messages.seniorExtraTimeModalSetLineupButton}
+              </button>
+            </span>
+          </Tooltip>
         }
         closeOnBackdrop
         onClose={() => {

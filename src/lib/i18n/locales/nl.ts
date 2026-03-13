@@ -173,6 +173,10 @@ export const messagesNl: Messages = {
   seniorExtraTimeModalChooseTrainees:
     "Kies {{count}} trainees en klik daarna op Opstelling instellen. De automatisch gekozen spelers kun je overschrijven.",
   seniorExtraTimeModalSetLineupButton: "Opstelling instellen",
+  seniorExtraTimeModalSetLineupDisabledTooltip:
+    "Selecteer het juiste aantal trainees om de opstelling in te stellen.",
+  seniorExtraTimeModalSetLineupReadyTooltip:
+    "Klik op Opstelling verzenden in de juiste wedstrijdkaart om de opstelling naar Hattrick te sturen.",
   setBestLineupRejectedPlayersLabel: "Afgewezen spelers",
   analyzeOpponent: "Tegenstander analyseren",
   analyzeOpponentTooltip: "Analyseer recente wedstrijden van de tegenstander.",

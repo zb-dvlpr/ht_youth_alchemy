@@ -726,6 +726,10 @@ export const messagesIt: Messages = {
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "Il giocatore non può essere selezionato perché è infortunato.",
     seniorExtraTimeModalSetLineupButton: "Imposta formazione",
+    seniorExtraTimeModalSetLineupDisabledTooltip:
+      "Seleziona il numero corretto di giocatori da allenare per impostare la formazione.",
+    seniorExtraTimeModalSetLineupReadyTooltip:
+      "Fai clic su Invia formazione nella scheda partita corretta per inviare la formazione a Hattrick.",
     setBestLineupRejectedPlayersLabel: "Giocatori scartati",
     analyzeOpponent: "Analizza avversario",
     analyzeOpponentTooltip: "Analizza le partite recenti dell'avversario.",

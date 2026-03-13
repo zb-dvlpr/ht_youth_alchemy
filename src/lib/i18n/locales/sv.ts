@@ -716,6 +716,10 @@ export const messagesSv: Messages = {
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "Spelaren kan inte väljas eftersom han är skadad.",
     seniorExtraTimeModalSetLineupButton: "Sätt uppställning",
+    seniorExtraTimeModalSetLineupDisabledTooltip:
+      "Välj rätt antal traineer för att sätta uppställningen.",
+    seniorExtraTimeModalSetLineupReadyTooltip:
+      "Klicka på Skicka uppställning i rätt matchkort för att skicka uppställningen till Hattrick.",
     setBestLineupRejectedPlayersLabel: "Bortvalda spelare",
     analyzeOpponent: "Analysera motståndare",
     analyzeOpponentTooltip: "Analysera motståndarens senaste matcher.",

@@ -725,6 +725,10 @@ export const messagesPt: Messages = {
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "O jogador não pode ser selecionado porque está lesionado.",
     seniorExtraTimeModalSetLineupButton: "Definir escalação",
+    seniorExtraTimeModalSetLineupDisabledTooltip:
+      "Selecione o número correto de treinandos para definir a escalação.",
+    seniorExtraTimeModalSetLineupReadyTooltip:
+      "Clique em Enviar escalação no cartão de partida apropriado para enviar a escalação ao Hattrick.",
     setBestLineupRejectedPlayersLabel: "Jogadores rejeitados",
     analyzeOpponent: "Analisar adversário",
     analyzeOpponentTooltip: "Analisar jogos recentes do adversário.",

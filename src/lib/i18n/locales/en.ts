@@ -690,6 +690,10 @@ export const messagesEn: Messages = {
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "Player can't be selected because they're injured.",
     seniorExtraTimeModalSetLineupButton: "Set lineup",
+    seniorExtraTimeModalSetLineupDisabledTooltip:
+      "Select the correct number of trainees to set the lineup.",
+    seniorExtraTimeModalSetLineupReadyTooltip:
+      "Click Submit lineup in the appropriate match card to send the lineup to Hattrick.",
     setBestLineupRejectedPlayersLabel: "Rejected players",
     analyzeOpponent: "Analyze opponent",
     analyzeOpponentTooltip: "Analyze opponent recent matches.",

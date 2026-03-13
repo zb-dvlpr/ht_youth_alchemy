@@ -724,6 +724,10 @@ export const messagesFr: Messages = {
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "Le joueur ne peut pas être sélectionné car il est blessé.",
     seniorExtraTimeModalSetLineupButton: "Définir la compo",
+    seniorExtraTimeModalSetLineupDisabledTooltip:
+      "Sélectionnez le bon nombre de stagiaires pour définir la compo.",
+    seniorExtraTimeModalSetLineupReadyTooltip:
+      "Cliquez sur Envoyer la composition dans la carte du match appropriée pour envoyer la composition à Hattrick.",
     setBestLineupRejectedPlayersLabel: "Joueurs rejetés",
     analyzeOpponent: "Analyser l'adversaire",
     analyzeOpponentTooltip: "Analyser les matchs récents de l'adversaire.",

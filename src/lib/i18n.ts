@@ -603,6 +603,8 @@ export type Messages = {
   seniorExtraTimeModalBTeamToggleLabel: string;
   seniorExtraTimeModalInjuredCheckboxTooltip: string;
   seniorExtraTimeModalSetLineupButton: string;
+  seniorExtraTimeModalSetLineupDisabledTooltip: string;
+  seniorExtraTimeModalSetLineupReadyTooltip: string;
   setBestLineupRejectedPlayersLabel: string;
   analyzeOpponent: string;
   analyzeOpponentTooltip: string;

@@ -173,6 +173,10 @@ export const messagesPl: Messages = {
   seniorExtraTimeModalChooseTrainees:
     "Wybierz {{count}} trenowanych zawodników, a następnie kliknij Ustaw skład. Zaznaczonych automatycznie można zmienić.",
   seniorExtraTimeModalSetLineupButton: "Ustaw skład",
+  seniorExtraTimeModalSetLineupDisabledTooltip:
+    "Wybierz właściwą liczbę trenowanych zawodników, aby ustawić skład.",
+  seniorExtraTimeModalSetLineupReadyTooltip:
+    "Kliknij Wyślij skład na odpowiedniej karcie meczu, aby wysłać skład do Hattricka.",
   setBestLineupRejectedPlayersLabel: "Odrzuceni zawodnicy",
   analyzeOpponent: "Analizuj przeciwnika",
   analyzeOpponentTooltip: "Przeanalizuj ostatnie mecze przeciwnika.",

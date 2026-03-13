@@ -1437,6 +1437,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     traineeIds: number[];
     trainingType: number | null;
     wingerRoleIds?: number[];
+    wingerAttackerRoleIds?: number[];
     scoringRoleIds?: number[];
   } | null>(null);
   const [showHelp, setShowHelp] = useState(false);
@@ -2481,6 +2482,20 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             F_C: 2,
             F_R: 2,
           }
+        : extraTimePreparedSubmission.trainingType === 12
+          ? {
+              ...behaviors,
+              WB_L: 2,
+              WB_R: 2,
+              W_L: 2,
+              IM_L: 2,
+              IM_C: 2,
+              IM_R: 2,
+              W_R: 2,
+              F_L: 2,
+              F_C: 2,
+              F_R: 2,
+            }
         : {
             ...behaviors,
             WB_L: 2,
@@ -2491,6 +2506,84 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
             IM_R: 2,
             W_R: 2,
           };
+    const buildSevenTraineeRotationPayload = (orderedTraineeIds: number[]) => {
+      const [
+        trainee1Id,
+        trainee2Id,
+        trainee3Id,
+        trainee4Id,
+        trainee5Id,
+        trainee6Id,
+        trainee7Id,
+      ] = orderedTraineeIds;
+      if (
+        [trainee1Id, trainee2Id, trainee3Id, trainee4Id, trainee5Id, trainee6Id, trainee7Id].some(
+          (playerId) => typeof playerId !== "number" || playerId <= 0
+        )
+      ) {
+        throw new Error(messages.submitOrdersError);
+      }
+
+      return buildLineupPayload(assignments, 1, {
+        behaviors: forcedBehaviors,
+        benchIds,
+        kickerIds,
+        captainId: 0,
+        setPiecesId: setPiecesPlayerId,
+        substitutions: [
+          {
+            playerin: trainee1Id as number,
+            playerout: trainee6Id as number,
+            orderType: 3,
+            min: 30,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: trainee1Id as number,
+            playerout: trainee2Id as number,
+            orderType: 3,
+            min: 60,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: trainee3Id as number,
+            playerout: trainee7Id as number,
+            orderType: 3,
+            min: 60,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: trainee4Id as number,
+            playerout: trainee2Id as number,
+            orderType: 3,
+            min: 90,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: trainee5Id as number,
+            playerout: trainee3Id as number,
+            orderType: 3,
+            min: 90,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+        ],
+      });
+    };
     if (extraTimePreparedSubmission.trainingType === 7) {
       const keeperId = assignments.KP;
       const leftCenterBackId = assignments.CD_L;
@@ -2866,82 +2959,21 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         .filter((player): player is SeniorPlayer => Boolean(player))
         .sort(comparePlayersByExtraTimeMatrixOrder)
         .map((player) => player.PlayerID);
-      const [
-        trainee1Id,
-        trainee2Id,
-        trainee3Id,
-        trainee4Id,
-        trainee5Id,
-        trainee6Id,
-        trainee7Id,
-      ] = orderedTraineeIds;
-      if (
-        [trainee1Id, trainee2Id, trainee3Id, trainee4Id, trainee5Id, trainee6Id, trainee7Id].some(
-          (playerId) => typeof playerId !== "number" || playerId <= 0
-        )
-      ) {
-        throw new Error(messages.submitOrdersError);
-      }
-
-      return buildLineupPayload(assignments, 1, {
-        behaviors: forcedBehaviors,
-        benchIds,
-        kickerIds,
-        captainId: 0,
-        setPiecesId: setPiecesPlayerId,
-        substitutions: [
-          {
-            playerin: trainee1Id as number,
-            playerout: trainee6Id as number,
-            orderType: 3,
-            min: 30,
-            pos: -1,
-            beh: -1,
-            card: -1,
-            standing: -1,
-          },
-          {
-            playerin: trainee1Id as number,
-            playerout: trainee2Id as number,
-            orderType: 3,
-            min: 60,
-            pos: -1,
-            beh: -1,
-            card: -1,
-            standing: -1,
-          },
-          {
-            playerin: trainee3Id as number,
-            playerout: trainee7Id as number,
-            orderType: 3,
-            min: 60,
-            pos: -1,
-            beh: -1,
-            card: -1,
-            standing: -1,
-          },
-          {
-            playerin: trainee4Id as number,
-            playerout: trainee2Id as number,
-            orderType: 3,
-            min: 90,
-            pos: -1,
-            beh: -1,
-            card: -1,
-            standing: -1,
-          },
-          {
-            playerin: trainee5Id as number,
-            playerout: trainee3Id as number,
-            orderType: 3,
-            min: 90,
-            pos: -1,
-            beh: -1,
-            card: -1,
-            standing: -1,
-          },
-        ],
-      });
+      return buildSevenTraineeRotationPayload(orderedTraineeIds);
+    }
+    if (extraTimePreparedSubmission.trainingType === 12) {
+      const orderedTraineeIds = (
+        extraTimePreparedSubmission.wingerAttackerRoleIds?.length === 7
+          ? extraTimePreparedSubmission.wingerAttackerRoleIds
+          : extraTimePreparedSubmission.traineeIds
+              .map((playerId) => playersById.get(playerId) ?? null)
+              .filter((player): player is SeniorPlayer => Boolean(player))
+              .sort((left, right) =>
+                comparePlayersBySkillDescending(left, right, "WingerSkill")
+              )
+              .map((player) => player.PlayerID)
+      ).slice(0, 7);
+      return buildSevenTraineeRotationPayload(orderedTraineeIds);
     }
     if (extraTimePreparedSubmission.trainingType === 8) {
       const orderedTraineeIds = extraTimePreparedSubmission.traineeIds
@@ -4438,12 +4470,119 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     };
   };
 
+  const buildWingerAttackersExtraTimeResult = async (
+    traineeIds: number[],
+    options?: {
+      excludedFieldPlayerIds?: Set<number>;
+    }
+  ) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const orderedTrainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player))
+      .sort((left, right) => comparePlayersBySkillDescending(left, right, "WingerSkill"));
+    if (orderedTrainees.length !== 7) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const { overallFallback, pickBestForSlot } = buildExtraTimeSlotPicker(ratingsById);
+    const numberedTraineeIds = orderedTrainees.map((player) => player.PlayerID);
+    const assignmentsForFormation: LineupAssignments = {
+      W_L: numberedTraineeIds[0] ?? null,
+      W_R: numberedTraineeIds[1] ?? null,
+      F_L: numberedTraineeIds[2] ?? null,
+      F_C: numberedTraineeIds[3] ?? null,
+      F_R: numberedTraineeIds[4] ?? null,
+      CD_L: numberedTraineeIds[5] ?? null,
+      CD_R: numberedTraineeIds[6] ?? null,
+    };
+    if (
+      !assignmentsForFormation.W_L ||
+      !assignmentsForFormation.W_R ||
+      !assignmentsForFormation.F_L ||
+      !assignmentsForFormation.F_C ||
+      !assignmentsForFormation.F_R ||
+      !assignmentsForFormation.CD_L ||
+      !assignmentsForFormation.CD_R
+    ) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    let fieldNonTraineePool = getExtraTimeEligibleNonTrainees(traineeIds, {
+      excludedFieldPlayerIds: options?.excludedFieldPlayerIds,
+    });
+    const fieldNonTraineeIds = new Set<number>();
+    (["KP", "WB_L", "CD_C", "WB_R"] as const).forEach((slot) => {
+      const selected = pickBestForSlot(fieldNonTraineePool, slot);
+      if (!selected) {
+        throw new Error(messages.submitOrdersMinPlayers);
+      }
+      assignmentsForFormation[slot] = selected.PlayerID;
+      fieldNonTraineeIds.add(selected.PlayerID);
+      fieldNonTraineePool = fieldNonTraineePool.filter(
+        (player) => player.PlayerID !== selected.PlayerID
+      );
+    });
+
+    const onFieldPlayerIds = new Set<number>(
+      FIELD_SLOT_ORDER.map((slot) => assignmentsForFormation[slot]).filter(
+        (playerId): playerId is number => typeof playerId === "number" && playerId > 0
+      )
+    );
+    let benchCandidatePool = getExtraTimeEligibleNonTrainees(traineeIds, {
+      excludedFieldPlayerIds: options?.excludedFieldPlayerIds,
+      excludeOnlyFromField: true,
+    }).filter((player) => !onFieldPlayerIds.has(player.PlayerID));
+
+    const benchSlotToFieldSlot = {
+      B_GK: "KP",
+      B_CD: "CD_C",
+      B_WB: "WB_L",
+      B_IM: "IM_C",
+      B_F: "F_C",
+      B_W: "W_L",
+    } as const;
+    (
+      Object.entries(benchSlotToFieldSlot) as Array<
+        [
+          keyof typeof benchSlotToFieldSlot,
+          (typeof benchSlotToFieldSlot)[keyof typeof benchSlotToFieldSlot],
+        ]
+      >
+    ).forEach(([benchSlot, fieldSlot]) => {
+      const selected = pickBestForSlot(benchCandidatePool, fieldSlot);
+      assignmentsForFormation[benchSlot] = selected?.PlayerID ?? null;
+      if (selected) {
+        benchCandidatePool = benchCandidatePool.filter(
+          (player) => player.PlayerID !== selected.PlayerID
+        );
+      }
+    });
+    const extraBenchPlayer =
+      [...benchCandidatePool].sort((left, right) => {
+        const leftValue = overallFallback(left);
+        const rightValue = overallFallback(right);
+        if (rightValue !== leftValue) return rightValue - leftValue;
+        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+          formatPlayerName(right) || String(right.PlayerID)
+        );
+      })[0] ?? null;
+    assignmentsForFormation.B_X = extraBenchPlayer?.PlayerID ?? null;
+
+    return {
+      assignments: assignmentsForFormation,
+      fieldNonTraineeIds,
+      wingerAttackerRoleIds: numberedTraineeIds,
+    };
+  };
+
   const handleExtraTimeSetLineup = async () => {
     if (
       resolvedExtraTimeTrainingType !== 2 &&
       resolvedExtraTimeTrainingType !== 4 &&
       resolvedExtraTimeTrainingType !== 3 &&
       resolvedExtraTimeTrainingType !== 5 &&
+      resolvedExtraTimeTrainingType !== 12 &&
       resolvedExtraTimeTrainingType !== 8 &&
       resolvedExtraTimeTrainingType !== 7 &&
       resolvedExtraTimeTrainingType !== 6 &&
@@ -4471,6 +4610,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           IM_C: 2,
           IM_R: 2,
           W_R: 2,
+          F_L: 2,
+          F_C: 2,
+          F_R: 2,
         });
         setTacticType(1);
         setLoadedMatchId(extraTimeMatchId);
@@ -4520,6 +4662,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           IM_C: 2,
           IM_R: 2,
           W_R: 2,
+          F_L: 2,
+          F_C: 2,
+          F_R: 2,
         });
         setTacticType(1);
         setLoadedMatchId(extraTimeMatchId);
@@ -4608,6 +4753,38 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
           traineeIds: selectedTraineeIds,
           trainingType: resolvedExtraTimeTrainingType,
           wingerRoleIds: finalResult.wingerRoleIds,
+        });
+        setExtraTimeInfoOpen(false);
+        setExtraTimeMatchId(null);
+        return;
+      }
+      if (resolvedExtraTimeTrainingType === 12) {
+        const firstPass = await buildWingerAttackersExtraTimeResult(selectedTraineeIds);
+        const finalResult = extraTimeBTeamEnabled
+          ? await buildWingerAttackersExtraTimeResult(selectedTraineeIds, {
+              excludedFieldPlayerIds: firstPass.fieldNonTraineeIds,
+            })
+          : firstPass;
+        setAssignments(finalResult.assignments);
+        setBehaviors({
+          WB_L: 2,
+          WB_R: 2,
+          W_L: 2,
+          IM_L: 2,
+          IM_C: 2,
+          IM_R: 2,
+          W_R: 2,
+          F_L: 2,
+          F_C: 2,
+          F_R: 2,
+        });
+        setTacticType(1);
+        setLoadedMatchId(extraTimeMatchId);
+        setExtraTimePreparedSubmission({
+          matchId: extraTimeMatchId,
+          traineeIds: selectedTraineeIds,
+          trainingType: resolvedExtraTimeTrainingType,
+          wingerAttackerRoleIds: finalResult.wingerAttackerRoleIds,
         });
         setExtraTimeInfoOpen(false);
         setExtraTimeMatchId(null);

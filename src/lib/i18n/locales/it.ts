@@ -34,6 +34,10 @@ export const messagesIt: Messages = {
     watchlistError: "Impossibile caricare le squadre supportate.",
     watchlistRemoveTooltip: "Rimuovi squadra",
     watchlistTeamLabel: "Squadra",
+    watchlistOwnSeniorTeamsTitle: "Squadre senior proprie",
+    watchlistOwnSeniorTeamsEmpty: "Nessuna squadra senior propria trovata.",
+    watchlistGenderMale: "Maschile",
+    watchlistGenderFemale: "Femminile",
     changelogVersionLabel: "Versione",
     changelogEntryLabel: "Aggiornamento",
     changelogNewer: "Più recenti",
@@ -103,6 +107,8 @@ export const messagesIt: Messages = {
       "Il regime di allenamento senior ora può essere cambiato direttamente nell app con controllo permessi e verifica.",
     changelog_3_3_0:
       "La formazione IA senior ora supporta un flusso Punta ai supplementari per assetti orientati ai minuti extra di allenamento.",
+    changelog_3_4_0:
+      "La watchlist di Club Chronicle ora include tutte le tue squadre senior dal managercompendium con etichette maschile/femminile.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",

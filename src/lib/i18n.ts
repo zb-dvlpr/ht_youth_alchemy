@@ -44,6 +44,10 @@ export type Messages = {
   watchlistError: string;
   watchlistRemoveTooltip: string;
   watchlistTeamLabel: string;
+  watchlistOwnSeniorTeamsTitle: string;
+  watchlistOwnSeniorTeamsEmpty: string;
+  watchlistGenderMale: string;
+  watchlistGenderFemale: string;
   changelogVersionLabel: string;
   changelogEntryLabel: string;
   changelogNewer: string;
@@ -85,6 +89,7 @@ export type Messages = {
   changelog_3_1_0: string;
   changelog_3_2_0: string;
   changelog_3_3_0: string;
+  changelog_3_4_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;

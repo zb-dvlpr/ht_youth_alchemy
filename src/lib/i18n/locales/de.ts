@@ -34,6 +34,10 @@ export const messagesDe: Messages = {
     watchlistError: "Unterstützte Teams konnten nicht geladen werden.",
     watchlistRemoveTooltip: "Team entfernen",
     watchlistTeamLabel: "Team",
+    watchlistOwnSeniorTeamsTitle: "Eigene Seniorenteams",
+    watchlistOwnSeniorTeamsEmpty: "Keine eigenen Seniorenteams gefunden.",
+    watchlistGenderMale: "Männlich",
+    watchlistGenderFemale: "Weiblich",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Update",
     changelogNewer: "Neuere",
@@ -101,6 +105,8 @@ export const messagesDe: Messages = {
       "Das Trainingsregime der Senior-Aufstellung kann jetzt direkt in der App mit Berechtigungsprüfung und Verifizierung geändert werden.",
     changelog_3_3_0:
       "Die KI-Aufstellung der Senioren unterstützt jetzt einen Auf Verlängerung zielen-Ablauf für trainingsorientierte Verlängerungs-Setups.",
+    changelog_3_4_0:
+      "Die Club-Chronik-Watchlist zeigt jetzt alle eigenen Seniorenteams aus dem Manager-Compendium mit Kennzeichnung für männlich/weiblich.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",

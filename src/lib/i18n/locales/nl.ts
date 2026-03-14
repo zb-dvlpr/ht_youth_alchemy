@@ -14,6 +14,10 @@ export const messagesNl: Messages = {
   toolYouthOptimization: "Jeugdselectie-optimalisatie",
   toolSeniorOptimization: "Seniorselectie-optimalisatie",
   toolClubChronicle: "Clubkroniek",
+  watchlistOwnSeniorTeamsTitle: "Eigen seniorenteams",
+  watchlistOwnSeniorTeamsEmpty: "Geen eigen seniorenteams gevonden.",
+  watchlistGenderMale: "Mannelijk",
+  watchlistGenderFemale: "Vrouwelijk",
   feedbackTooltip: "Terugkoppeling",
   feedbackBug: "Bug melden",
   feedbackFeature: "Functie aanvragen",
@@ -198,6 +202,8 @@ export const messagesNl: Messages = {
     "Het trainingsregime van senioren kan nu direct in de app worden gewijzigd met machtigingscontrole en verificatie.",
   changelog_3_3_0:
     "Senioropstelling met AI ondersteunt nu een Mik op verlenging-flow voor opstellingen gericht op extra trainingsminuten in verlenging.",
+  changelog_3_4_0:
+    "De Club Chronicle-watchlist bevat nu al je eigen seniorenteams uit managercompendium met aanduiding mannelijk/vrouwelijk.",
   seniorHelpTitle: "Handleiding senioroptimalisatie",
   seniorHelpIntro:
     "Deze weergave helpt je relevante wijzigingen in de seniorselectie te volgen en sneller wedstrijdopstellingen te zetten.",

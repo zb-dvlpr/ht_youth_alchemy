@@ -34,6 +34,10 @@ export const messagesPt: Messages = {
     watchlistError: "Não foi possível carregar os times apoiados.",
     watchlistRemoveTooltip: "Remover time",
     watchlistTeamLabel: "Time",
+    watchlistOwnSeniorTeamsTitle: "Seus times seniores",
+    watchlistOwnSeniorTeamsEmpty: "Nenhum time senior próprio encontrado.",
+    watchlistGenderMale: "Masculino",
+    watchlistGenderFemale: "Feminino",
     changelogVersionLabel: "Versão",
     changelogEntryLabel: "Atualização",
     changelogNewer: "Mais recentes",
@@ -103,6 +107,8 @@ export const messagesPt: Messages = {
       "O regime de treino do elenco sênior agora pode ser alterado direto no app com validação de permissões e verificação.",
     changelog_3_3_0:
       "A escalação por IA do senior agora suporta um fluxo Mirar prorrogação para montagens focadas em minutos extras de treino.",
+    changelog_3_4_0:
+      "A watchlist do Club Chronicle agora inclui todos os seus times seniores do managercompendium com indicação masculino/feminino.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",

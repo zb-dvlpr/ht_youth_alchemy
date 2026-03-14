@@ -14,6 +14,10 @@ export const messagesPl: Messages = {
   toolYouthOptimization: "Optymalizacja juniorów",
   toolSeniorOptimization: "Optymalizacja seniorów",
   toolClubChronicle: "Kronika klubu",
+  watchlistOwnSeniorTeamsTitle: "Własne drużyny seniorów",
+  watchlistOwnSeniorTeamsEmpty: "Nie znaleziono własnych drużyn seniorów.",
+  watchlistGenderMale: "Męska",
+  watchlistGenderFemale: "Żeńska",
   feedbackTooltip: "Opinie",
   feedbackBug: "Zgłoś błąd",
   feedbackFeature: "Poproś o funkcję",
@@ -198,6 +202,8 @@ export const messagesPl: Messages = {
     "Reżim treningowy seniorów można teraz zmieniać bezpośrednio w aplikacji z kontrolą uprawnień i weryfikacją.",
   changelog_3_3_0:
     "Skład seniorów ustawiany przez AI obsługuje teraz tryb Celuj w dogrywkę dla ustawień nastawionych na dodatkowe minuty treningowe.",
+  changelog_3_4_0:
+    "Watchlista Club Chronicle zawiera teraz wszystkie twoje własne drużyny seniorów z managercompendium z oznaczeniem męska/żeńska.",
   seniorHelpTitle: "Przewodnik optymalizacji seniorów",
   seniorHelpIntro:
     "Ten widok pomaga śledzić istotne zmiany w kadrze seniorów i szybciej ustawiać składy meczowe.",

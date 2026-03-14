@@ -34,6 +34,10 @@ export const messagesEn: Messages = {
     watchlistError: "Unable to load supported teams.",
     watchlistRemoveTooltip: "Remove team",
     watchlistTeamLabel: "Team",
+    watchlistOwnSeniorTeamsTitle: "Own senior teams",
+    watchlistOwnSeniorTeamsEmpty: "No own senior teams found.",
+    watchlistGenderMale: "Male",
+    watchlistGenderFemale: "Female",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Update",
     changelogNewer: "Newer",
@@ -89,6 +93,8 @@ export const messagesEn: Messages = {
       "Senior lineup training regimen can now be changed directly in-app with permission checks and verification.",
     changelog_3_3_0:
       "Senior AI lineup now supports an Aim for extra time flow for training-focused extra-time setups.",
+    changelog_3_4_0:
+      "Club Chronicle watchlist now includes all of your own senior teams from manager compendium with male/female labels.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",

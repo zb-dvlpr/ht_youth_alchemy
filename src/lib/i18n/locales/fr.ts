@@ -34,6 +34,10 @@ export const messagesFr: Messages = {
     watchlistError: "Impossible de charger les équipes soutenues.",
     watchlistRemoveTooltip: "Retirer l’équipe",
     watchlistTeamLabel: "Équipe",
+    watchlistOwnSeniorTeamsTitle: "Vos équipes seniors",
+    watchlistOwnSeniorTeamsEmpty: "Aucune équipe senior personnelle trouvée.",
+    watchlistGenderMale: "Masculin",
+    watchlistGenderFemale: "Féminin",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Mise à jour",
     changelogNewer: "Plus récent",
@@ -103,6 +107,8 @@ export const messagesFr: Messages = {
       "Le régime d entraînement de l équipe senior peut maintenant être modifié directement dans l application avec vérification des permissions.",
     changelog_3_3_0:
       "La composition IA senior prend maintenant en charge un mode Viser la prolongation pour des compositions axées sur les minutes d entraînement en prolongation.",
+    changelog_3_4_0:
+      "La watchlist de Club Chronicle inclut maintenant toutes vos propres equipes seniors depuis managercompendium avec indication masculin/feminin.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",

@@ -34,6 +34,10 @@ export const messagesSv: Messages = {
     watchlistError: "Kunde inte ladda stödda lag.",
     watchlistRemoveTooltip: "Ta bort lag",
     watchlistTeamLabel: "Lag",
+    watchlistOwnSeniorTeamsTitle: "Egna seniorlag",
+    watchlistOwnSeniorTeamsEmpty: "Inga egna seniorlag hittades.",
+    watchlistGenderMale: "Manligt",
+    watchlistGenderFemale: "Kvinnligt",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Uppdatering",
     changelogNewer: "Nyare",
@@ -101,6 +105,8 @@ export const messagesSv: Messages = {
       "Seniorlagets träningsregim kan nu ändras direkt i appen med behörighetskontroll och verifiering.",
     changelog_3_3_0:
       "Seniorernas AI-uppställning stöder nu ett Sikta på förlängning-flöde för träningsinriktade förlängningsupplägg.",
+    changelog_3_4_0:
+      "Club Chronicle-watchlisten innehåller nu alla dina egna seniorlag från managercompendium med markering för manligt/kvinnligt.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",

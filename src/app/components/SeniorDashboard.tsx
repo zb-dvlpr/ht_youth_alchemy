@@ -7063,9 +7063,16 @@ const refreshDetailsForPlayers = async (
             FORMATION_PREDICT_CONCURRENCY,
             async (nextTacticType) => {
               try {
+                const predicted = await predictRatingsForLineup(
+                  fixedRow.assignments,
+                  nextTacticType
+                );
                 return {
-                  tacticType: nextTacticType,
-                  predicted: await predictRatingsForLineup(fixedRow.assignments, nextTacticType),
+                  tacticType:
+                    typeof predicted.tacticType === "number"
+                      ? predicted.tacticType
+                      : nextTacticType,
+                  predicted,
                   error: null,
                 } satisfies FixedFormationTacticRow;
               } catch (error) {

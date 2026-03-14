@@ -43,6 +43,9 @@ export const messagesDe: Messages = {
     changelogNewer: "Neuere",
     changelogOlder: "Ältere",
     changelogPageLabel: "Seite {{current}} von {{total}}",
+    betaPillLabel: "Beta",
+    betaPillTooltip:
+      "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
     changelog_1_19_0: "Unterstützung für mehrere Teams.",
     changelog_1_21_0: "Einstellungen: Export/Import für lokale Datensicherungen.",
     changelog_1_22_0: "Training automatisch bei manuellem Star-Wechsel.",

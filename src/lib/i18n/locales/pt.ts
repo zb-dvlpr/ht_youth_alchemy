@@ -43,6 +43,9 @@ export const messagesPt: Messages = {
     changelogNewer: "Mais recentes",
     changelogOlder: "Mais antigas",
     changelogPageLabel: "Página {{current}} de {{total}}",
+    betaPillLabel: "Beta",
+    betaPillTooltip:
+      "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
     changelog_1_19_0: "Suporte a vários times.",
     changelog_1_21_0: "Configurações: exportação/importação de backups locais.",
     changelog_1_22_0: "Seleção automática do treino ao mudar a estrela.",

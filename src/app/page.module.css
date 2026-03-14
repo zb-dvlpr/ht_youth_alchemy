@@ -593,6 +593,32 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   color: #6b6256;
 }
 
+.betaPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  min-height: 20px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(141, 95, 34, 0.28);
+  background:
+    linear-gradient(135deg, rgba(186, 135, 52, 0.16), rgba(143, 101, 33, 0.24)),
+    rgba(255, 248, 236, 0.95);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 4px 12px rgba(118, 87, 35, 0.12);
+  color: #6a4514;
+  font-family: var(--font-brand), "Space Grotesk", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  cursor: help;
+  user-select: none;
+}
+
 .dashboardGrid {
   display: grid;
   gap: 20px;
@@ -2674,6 +2700,17 @@ html[data-theme="dark"] .sidebarItemActive {
 
 html[data-theme="dark"] .version {
   color: #b9b0a5;
+}
+
+html[data-theme="dark"] .betaPill {
+  border-color: rgba(231, 194, 122, 0.24);
+  background:
+    linear-gradient(135deg, rgba(196, 144, 49, 0.2), rgba(133, 90, 27, 0.3)),
+    rgba(47, 38, 25, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 6px 16px rgba(0, 0, 0, 0.24);
+  color: #f1d18f;
 }
 
 html[data-theme="dark"] .notificationItem {

@@ -43,6 +43,9 @@ export const messagesSv: Messages = {
     changelogNewer: "Nyare",
     changelogOlder: "Äldre",
     changelogPageLabel: "Sida {{current}} av {{total}}",
+    betaPillLabel: "Beta",
+    betaPillTooltip:
+      "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
     changelog_1_19_0: "Stöd för flera lag.",
     changelog_1_21_0: "Inställningar: export/import av lokala säkerhetskopior.",
     changelog_1_22_0: "Auto‑val av träning vid manuell stjärnändring.",

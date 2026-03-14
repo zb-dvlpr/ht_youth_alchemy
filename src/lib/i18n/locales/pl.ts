@@ -46,6 +46,9 @@ export const messagesPl: Messages = {
   settingsGeneralTitle: "Ustawienia ogólne",
   settingsDebug: "Diagnostyka",
   settingsDebugTitle: "Ustawienia diagnostyki",
+  betaPillLabel: "Beta",
+  betaPillTooltip:
+    "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
   refresh: "Odśwież",
   refreshTooltip: "Odśwież dane juniorów",
   refreshAllYouthDataTooltip: "Odśwież wszystkie dane juniorów.",

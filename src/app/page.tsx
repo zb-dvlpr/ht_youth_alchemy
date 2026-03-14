@@ -13,6 +13,7 @@ import SettingsButton from "./components/SettingsButton";
 import SeasonBootstrap from "./components/SeasonBootstrap";
 import AppShell from "./components/AppShell";
 import SeniorDashboard from "./components/SeniorDashboard";
+import Tooltip from "./components/Tooltip";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 import type { MatchesResponse } from "./components/UpcomingMatches";
@@ -291,6 +292,14 @@ export default async function Home() {
                 <div className={styles.brandRow}>
                   <span className={styles.brandTitle}>{messages.brandTitle}</span>
                   <span className={styles.version}>v{pkg.version}</span>
+                  <Tooltip content={messages.betaPillTooltip}>
+                    <span
+                      className={styles.betaPill}
+                      aria-label={messages.betaPillTooltip}
+                    >
+                      {messages.betaPillLabel}
+                    </span>
+                  </Tooltip>
                 </div>
                 <NotificationCenter locale={locale} messages={messages} />
                 <div className={styles.topBarControls}>

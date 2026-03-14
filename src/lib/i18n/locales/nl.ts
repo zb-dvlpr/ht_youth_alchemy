@@ -46,6 +46,9 @@ export const messagesNl: Messages = {
   settingsGeneralTitle: "Algemene instellingen",
   settingsDebug: "Diagnostiek",
   settingsDebugTitle: "Diagnostische instellingen",
+  betaPillLabel: "Beta",
+  betaPillTooltip:
+    "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
   refresh: "Vernieuwen",
   refreshTooltip: "Jeugdgegevens vernieuwen",
   refreshAllYouthDataTooltip: "Alle jeugdgegevens vernieuwen.",

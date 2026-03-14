@@ -43,6 +43,9 @@ export const messagesEn: Messages = {
     changelogNewer: "Newer",
     changelogOlder: "Older",
     changelogPageLabel: "Page {{current}} of {{total}}",
+    betaPillLabel: "Beta",
+    betaPillTooltip:
+      "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
     changelog_1_19_0: "Multi team support.",
     changelog_1_21_0: "Settings export/import for local data backups.",
     changelog_1_22_0: "Auto-select training regimen on manual star change.",

@@ -53,6 +53,8 @@ export type Messages = {
   changelogNewer: string;
   changelogOlder: string;
   changelogPageLabel: string;
+  betaPillLabel: string;
+  betaPillTooltip: string;
   changelog_1_19_0: string;
   changelog_1_21_0: string;
   changelog_1_22_0: string;

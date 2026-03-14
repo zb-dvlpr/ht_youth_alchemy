@@ -4821,9 +4821,10 @@ export default function Dashboard({
               ref={revealSecondaryTargetButtonRef}
               type="button"
               className={styles.optimizeMenuInlinePicker}
-              onClick={() =>
-                setRevealSecondaryTargetMenuOpen((current) => !current)
-              }
+              onClick={(event) => {
+                event.stopPropagation();
+                setRevealSecondaryTargetMenuOpen((current) => !current);
+              }}
               aria-haspopup="menu"
               aria-expanded={revealSecondaryTargetMenuOpen}
               disabled={!eligibleRevealSecondaryTargetOptions.length}
@@ -4851,7 +4852,8 @@ export default function Dashboard({
                         ? styles.optimizeMenuInlinePickerOptionActive
                         : ""
                     }`}
-                    onClick={() => {
+                    onClick={(event) => {
+                      event.stopPropagation();
                       setRevealSecondaryTargetPlayerId(option.playerId);
                       setRevealSecondaryTargetMenuOpen(false);
                     }}

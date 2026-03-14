@@ -4743,7 +4743,10 @@ export default function Dashboard({
   };
 
   const youthTrainingControls = (
-    <div className={styles.lineupTrainingControlStack} data-help-anchor="training-dropdowns">
+    <div
+      className={`${styles.lineupTrainingControlStack} ${styles.youthLineupTrainingControlStack}`}
+      data-help-anchor="training-dropdowns"
+    >
       <div className={styles.trainingRow}>
         <span className={styles.trainingLabel}>
           {(messages.primaryTrainingLabel || "Pri").slice(0, 3).toUpperCase()}

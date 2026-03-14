@@ -5489,6 +5489,30 @@ html[data-theme="dark"] .spinner {
   gap: 4px;
 }
 
+.youthLineupTrainingControlStack {
+  position: relative;
+  z-index: 2147483000;
+}
+
+.youthLineupTrainingControlStack .trainingRow,
+.youthLineupTrainingControlStack .feedbackWrap {
+  position: relative;
+  z-index: 2147483000;
+}
+
+.youthLineupTrainingControlStack .trainingSelectMenu,
+.youthLineupTrainingControlStack .feedbackMenu {
+  z-index: 2147483001 !important;
+}
+
+.fieldTopLeftOverlay:has(.youthLineupTrainingControlStack) {
+  z-index: 2147483000;
+}
+
+.fieldPitch:has(.youthLineupTrainingControlStack) {
+  overflow: visible;
+}
+
 .fieldTopLeftOverlay .trainingRow {
   justify-content: flex-start;
   gap: 6px;

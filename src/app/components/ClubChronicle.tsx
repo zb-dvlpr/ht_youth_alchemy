@@ -2877,36 +2877,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         leaguePerformance: existing?.leaguePerformance ?? cached?.leaguePerformance,
       });
     });
-    if (primaryTeam) {
-      const cached = chronicleCache.teams[primaryTeam.teamId];
-      const existing = map.get(primaryTeam.teamId);
-      map.set(primaryTeam.teamId, {
-        teamId: primaryTeam.teamId,
-        teamName:
-          primaryTeam.teamName ??
-          existing?.teamName ??
-          cached?.teamName ??
-          "",
-        leagueName:
-          primaryTeam.leagueName ??
-          existing?.leagueName ??
-          cached?.leagueName ??
-          null,
-        leagueLevelUnitName:
-          primaryTeam.leagueLevelUnitName ??
-          existing?.leagueLevelUnitName ??
-          cached?.leagueLevelUnitName ??
-          null,
-        leagueLevelUnitId:
-          primaryTeam.leagueLevelUnitId ??
-          existing?.leagueLevelUnitId ??
-          cached?.leagueLevelUnitId ??
-          null,
-        arenaId: existing?.arenaId ?? cached?.arenaId ?? null,
-        arenaName: existing?.arenaName ?? cached?.arenaName ?? null,
-        leaguePerformance: cached?.leaguePerformance ?? existing?.leaguePerformance,
-      });
-    }
     return Array.from(map.values()).sort((a, b) =>
       (a.teamName ?? "").localeCompare(b.teamName ?? "")
     );
@@ -2916,7 +2886,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     manualTeams,
     ownLeagueTeams,
     chronicleCache,
-    primaryTeam,
   ]);
 
   const isNoDivulgoTracked = useMemo(
@@ -3451,7 +3420,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               const nextSelections = Object.fromEntries(
                 enrichedSupported.map((team) => [
                   team.teamId,
-                  tab.supportedSelections[team.teamId] ?? true,
+                  tab.supportedSelections[team.teamId] ?? false,
                 ])
               ) as Record<number, boolean>;
               const nextOwnLeagueSelections = Object.fromEntries(
@@ -3752,20 +3721,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           },
         ];
     });
-    setChronicleTabs((prev) =>
-      prev.map((tab) => {
-        if (tab.supportedSelections[primaryTeam.teamId] !== undefined) {
-          return tab;
-        }
-        return {
-          ...tab,
-          supportedSelections: {
-            ...tab.supportedSelections,
-            [primaryTeam.teamId]: true,
-          },
-        };
-      })
-    );
   }, [primaryTeam]);
 
   useEffect(() => {
@@ -4150,7 +4105,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         buildChronicleTabState(messages, nextIndex, {
           id: nextTabId,
           supportedSelections: Object.fromEntries(
-            supportedTeams.map((team) => [team.teamId, true])
+            supportedTeams.map((team) => [team.teamId, false])
           ) as Record<number, boolean>,
           ownLeagueSelections: Object.fromEntries(
             ownLeagues.map((entry) => [entry.key, false])
@@ -4197,7 +4152,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         const fallbackTab = buildChronicleTabState(messages, 1, {
           id: "tab-1",
           supportedSelections: Object.fromEntries(
-            supportedTeams.map((team) => [team.teamId, true])
+            supportedTeams.map((team) => [team.teamId, false])
           ) as Record<number, boolean>,
           ownLeagueSelections: Object.fromEntries(
             ownLeagues.map((entry) => [entry.key, false])

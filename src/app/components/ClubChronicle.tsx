@@ -5823,7 +5823,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             error?: string;
             details?: string;
           }>(
-            `/api/chpp/managercompendium?version=1.6&userId=${userId}`,
+            `/api/chpp/managercompendium?version=1.7&userId=${userId}`,
             {
               cache: "no-store",
             }

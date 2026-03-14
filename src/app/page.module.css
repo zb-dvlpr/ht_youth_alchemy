@@ -4387,8 +4387,10 @@ html[data-theme="dark"] .spinner {
 }
 
 .spinner {
+  display: inline-block;
   width: 14px;
   height: 14px;
+  flex: 0 0 auto;
   border-radius: 50%;
   border: 2px solid rgba(122, 111, 97, 0.35);
   border-top-color: #7a6f61;
@@ -4941,6 +4943,13 @@ html[data-theme="dark"] .spinner {
   box-shadow:
     0 0 0 1px rgba(255, 247, 224, 0.8) inset,
     0 6px 14px rgba(122, 74, 0, 0.34);
+}
+
+.matchBestLineupDazzleButton .spinner {
+  width: 15px;
+  height: 15px;
+  border-color: rgba(110, 57, 0, 0.24);
+  border-top-color: #6e3900;
 }
 
 .matchSuccess {

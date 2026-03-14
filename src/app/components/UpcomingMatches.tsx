@@ -373,7 +373,7 @@ function SetBestLineupMenuButton({
       ref={triggerRef}
       data-help-anchor={helpAnchor}
     >
-      {loading ? "…" : "✨"}
+      {loading ? <span className={styles.spinner} aria-hidden="true" /> : "✨"}
     </button>
   );
 

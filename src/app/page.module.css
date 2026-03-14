@@ -5584,6 +5584,11 @@ html[data-theme="dark"] .spinner {
   z-index: 2147483000;
 }
 
+.youthLineupTrainingControlStack .trainingRow:has(.trainingSelectMenu),
+.youthLineupTrainingControlStack .feedbackWrap:has(.trainingSelectMenu) {
+  z-index: 2147483002;
+}
+
 .youthLineupTrainingControlStack .trainingSelectMenu,
 .youthLineupTrainingControlStack .feedbackMenu {
   z-index: 2147483001 !important;

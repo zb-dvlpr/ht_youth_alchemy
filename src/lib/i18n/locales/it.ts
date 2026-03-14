@@ -38,8 +38,19 @@ export const messagesIt: Messages = {
     watchlistOwnSeniorTeamsEmpty: "Nessuna squadra senior propria trovata.",
     watchlistOwnLeaguesTitle: "Leghe proprie",
     watchlistOwnLeaguesEmpty: "Nessuna lega propria trovata.",
+    watchlistAllItems: "Tutti gli elementi della watchlist",
+    watchlistSelectAll: "Seleziona tutto",
+    watchlistDeselectAll: "Deseleziona tutto",
     watchlistGenderMale: "Maschile",
     watchlistGenderFemale: "Femminile",
+    clubChronicleTabDefaultName: "Scheda {{number}}",
+    clubChronicleTabAdd: "Aggiungi scheda",
+    clubChronicleTabRenamePlaceholder: "Nome scheda",
+    clubChronicleTabDeleteTooltip: "Elimina scheda",
+    clubChronicleTabDeleteTitle: "Eliminare questa scheda?",
+    clubChronicleTabDeleteBody:
+      "Questa scheda di Club Chronicle con watchlist, ultimi aggiornamenti e stato locale verrà rimossa. L’operazione non può essere annullata.",
+    clubChronicleTabDeleteConfirm: "Elimina scheda",
     changelogVersionLabel: "Versione",
     changelogEntryLabel: "Aggiornamento",
     changelogNewer: "Più recenti",
@@ -48,6 +59,8 @@ export const messagesIt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Questa app è in beta. Funzioni, comportamento e dati locali in cache possono cambiare o essere azzerati senza preavviso.",
+    changelog_3_9_0:
+      "Club Chronicle ora supporta schede con watchlist indipendenti e ultimi aggiornamenti separati per scheda.",
     changelog_3_8_0:
       "La watchlist di Club Chronicle ora può estendere facoltativamente le tue leghe per seguire le altre squadre presenti in ciascuna.",
     changelog_3_7_0:

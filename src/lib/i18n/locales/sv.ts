@@ -38,8 +38,19 @@ export const messagesSv: Messages = {
     watchlistOwnSeniorTeamsEmpty: "Inga egna seniorlag hittades.",
     watchlistOwnLeaguesTitle: "Egna ligor",
     watchlistOwnLeaguesEmpty: "Inga egna ligor hittades.",
+    watchlistAllItems: "Alla bevakningslisteposter",
+    watchlistSelectAll: "Markera alla",
+    watchlistDeselectAll: "Avmarkera alla",
     watchlistGenderMale: "Manligt",
     watchlistGenderFemale: "Kvinnligt",
+    clubChronicleTabDefaultName: "Flik {{number}}",
+    clubChronicleTabAdd: "Lägg till flik",
+    clubChronicleTabRenamePlaceholder: "Fliknamn",
+    clubChronicleTabDeleteTooltip: "Ta bort flik",
+    clubChronicleTabDeleteTitle: "Ta bort den här fliken?",
+    clubChronicleTabDeleteBody:
+      "Den här Club Chronicle-fliken och dess bevakningslista, senaste uppdateringar och lokala tillstånd tas bort. Det går inte att ångra.",
+    clubChronicleTabDeleteConfirm: "Ta bort flik",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Uppdatering",
     changelogNewer: "Nyare",
@@ -48,6 +59,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_3_9_0:
+      "Club Chronicle har nu flikar med oberoende bevakningslistor och flikbegränsade senaste uppdateringar.",
     changelog_3_8_0:
       "Klubbkrönikans bevakningslista kan nu valfritt utöka dina egna ligor för att följa de andra lagen i varje liga.",
     changelog_3_7_0:

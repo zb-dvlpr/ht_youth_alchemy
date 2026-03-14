@@ -38,8 +38,19 @@ export const messagesEn: Messages = {
     watchlistOwnSeniorTeamsEmpty: "No own senior teams found.",
     watchlistOwnLeaguesTitle: "Own leagues",
     watchlistOwnLeaguesEmpty: "No own leagues found.",
+    watchlistAllItems: "All watchlist items",
+    watchlistSelectAll: "Select all",
+    watchlistDeselectAll: "Deselect all",
     watchlistGenderMale: "Male",
     watchlistGenderFemale: "Female",
+    clubChronicleTabDefaultName: "Tab {{number}}",
+    clubChronicleTabAdd: "Add tab",
+    clubChronicleTabRenamePlaceholder: "Tab name",
+    clubChronicleTabDeleteTooltip: "Delete tab",
+    clubChronicleTabDeleteTitle: "Delete this tab?",
+    clubChronicleTabDeleteBody:
+      "This Club Chronicle tab and its watchlist, latest updates, and local state will be removed. This cannot be undone.",
+    clubChronicleTabDeleteConfirm: "Delete tab",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Update",
     changelogNewer: "Newer",
@@ -48,6 +59,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_3_9_0:
+      "Club Chronicle now supports tabs with independent watchlists and tab-scoped latest updates.",
     changelog_3_8_0:
       "Club Chronicle watchlist adds optional own-league expansion to track the other teams in each of your leagues.",
     changelog_3_7_0:

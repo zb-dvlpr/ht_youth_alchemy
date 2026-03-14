@@ -18,8 +18,19 @@ export const messagesPl: Messages = {
   watchlistOwnSeniorTeamsEmpty: "Nie znaleziono własnych drużyn seniorów.",
   watchlistOwnLeaguesTitle: "Własne ligi",
   watchlistOwnLeaguesEmpty: "Nie znaleziono własnych lig.",
+  watchlistAllItems: "Wszystkie pozycje listy obserwowanych",
+  watchlistSelectAll: "Zaznacz wszystko",
+  watchlistDeselectAll: "Odznacz wszystko",
   watchlistGenderMale: "Męska",
   watchlistGenderFemale: "Żeńska",
+  clubChronicleTabDefaultName: "Karta {{number}}",
+  clubChronicleTabAdd: "Dodaj kartę",
+  clubChronicleTabRenamePlaceholder: "Nazwa karty",
+  clubChronicleTabDeleteTooltip: "Usuń kartę",
+  clubChronicleTabDeleteTitle: "Usunąć tę kartę?",
+  clubChronicleTabDeleteBody:
+    "Ta karta Club Chronicle wraz z listą obserwowanych, najnowszymi aktualizacjami i stanem lokalnym zostanie usunięta. Tej operacji nie można cofnąć.",
+  clubChronicleTabDeleteConfirm: "Usuń kartę",
   feedbackTooltip: "Opinie",
   feedbackBug: "Zgłoś błąd",
   feedbackFeature: "Poproś o funkcję",
@@ -51,6 +62,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_3_9_0:
+    "Club Chronicle obsługuje teraz karty z niezależnymi listami obserwowanych i aktualizacjami ograniczonymi do danej karty.",
   changelog_3_8_0:
     "Watchlista Club Chronicle może teraz opcjonalnie rozszerzać twoje własne ligi, aby śledzić pozostałe drużyny w każdej z nich.",
   changelog_3_7_0:

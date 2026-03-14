@@ -38,8 +38,19 @@ export const messagesDe: Messages = {
     watchlistOwnSeniorTeamsEmpty: "Keine eigenen Seniorenteams gefunden.",
     watchlistOwnLeaguesTitle: "Eigene Ligen",
     watchlistOwnLeaguesEmpty: "Keine eigenen Ligen gefunden.",
+    watchlistAllItems: "Alle Watchlist-Einträge",
+    watchlistSelectAll: "Alle auswählen",
+    watchlistDeselectAll: "Alle abwählen",
     watchlistGenderMale: "Männlich",
     watchlistGenderFemale: "Weiblich",
+    clubChronicleTabDefaultName: "Tab {{number}}",
+    clubChronicleTabAdd: "Tab hinzufügen",
+    clubChronicleTabRenamePlaceholder: "Tab-Name",
+    clubChronicleTabDeleteTooltip: "Tab löschen",
+    clubChronicleTabDeleteTitle: "Diesen Tab löschen?",
+    clubChronicleTabDeleteBody:
+      "Dieser Club-Chronicle-Tab mit Watchlist, neuesten Updates und lokalem Zustand wird entfernt. Das kann nicht rückgängig gemacht werden.",
+    clubChronicleTabDeleteConfirm: "Tab löschen",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Update",
     changelogNewer: "Neuere",
@@ -48,6 +59,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_3_9_0:
+      "Club Chronicle unterstützt jetzt Tabs mit unabhängigen Watchlists und tab-spezifischen neuesten Updates.",
     changelog_3_8_0:
       "Die Watchlist der Club-Chronik kann jetzt optional die anderen Teams aus jeder deiner eigenen Ligen verfolgen.",
     changelog_3_7_0:

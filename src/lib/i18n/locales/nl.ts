@@ -18,8 +18,19 @@ export const messagesNl: Messages = {
   watchlistOwnSeniorTeamsEmpty: "Geen eigen seniorenteams gevonden.",
   watchlistOwnLeaguesTitle: "Eigen competities",
   watchlistOwnLeaguesEmpty: "Geen eigen competities gevonden.",
+  watchlistAllItems: "Alle watchlist-items",
+  watchlistSelectAll: "Alles selecteren",
+  watchlistDeselectAll: "Alles deselecteren",
   watchlistGenderMale: "Mannelijk",
   watchlistGenderFemale: "Vrouwelijk",
+  clubChronicleTabDefaultName: "Tab {{number}}",
+  clubChronicleTabAdd: "Tab toevoegen",
+  clubChronicleTabRenamePlaceholder: "Tabnaam",
+  clubChronicleTabDeleteTooltip: "Tab verwijderen",
+  clubChronicleTabDeleteTitle: "Deze tab verwijderen?",
+  clubChronicleTabDeleteBody:
+    "Deze Club Chronicle-tab en de bijbehorende watchlist, laatste updates en lokale status worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
+  clubChronicleTabDeleteConfirm: "Tab verwijderen",
   feedbackTooltip: "Terugkoppeling",
   feedbackBug: "Bug melden",
   feedbackFeature: "Functie aanvragen",
@@ -57,6 +68,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_3_9_0:
+    "Club Chronicle ondersteunt nu tabs met onafhankelijke watchlists en tabgebonden laatste updates.",
   changelog_3_8_0:
     "De watchlist van Club Chronicle kan nu optioneel je eigen competities uitbreiden om de andere teams in elke competitie te volgen.",
   changelog_3_7_0:

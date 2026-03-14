@@ -38,8 +38,19 @@ export const messagesEs: Messages = {
     watchlistOwnSeniorTeamsEmpty: "No se encontraron equipos senior propios.",
     watchlistOwnLeaguesTitle: "Ligas propias",
     watchlistOwnLeaguesEmpty: "No se encontraron ligas propias.",
+    watchlistAllItems: "Todos los elementos de la lista",
+    watchlistSelectAll: "Seleccionar todo",
+    watchlistDeselectAll: "Deseleccionar todo",
     watchlistGenderMale: "Masculino",
     watchlistGenderFemale: "Femenino",
+    clubChronicleTabDefaultName: "Pestaña {{number}}",
+    clubChronicleTabAdd: "Añadir pestaña",
+    clubChronicleTabRenamePlaceholder: "Nombre de la pestaña",
+    clubChronicleTabDeleteTooltip: "Eliminar pestaña",
+    clubChronicleTabDeleteTitle: "¿Eliminar esta pestaña?",
+    clubChronicleTabDeleteBody:
+      "Esta pestaña de Club Chronicle y su watchlist, últimas actualizaciones y estado local se eliminarán. Esta acción no se puede deshacer.",
+    clubChronicleTabDeleteConfirm: "Eliminar pestaña",
     changelogVersionLabel: "Versión",
     changelogEntryLabel: "Actualización",
     changelogNewer: "Más reciente",
@@ -48,6 +59,8 @@ export const messagesEs: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Esta aplicación está en beta. Las funciones, el comportamiento y los datos locales en caché pueden cambiar o reiniciarse sin previo aviso.",
+    changelog_3_9_0:
+      "Club Chronicle ahora admite pestañas con watchlists independientes y últimas actualizaciones limitadas a cada pestaña.",
     changelog_3_8_0:
       "La lista de seguimiento de Club Chronicle ahora permite ampliar opcionalmente tus propias ligas para seguir al resto de equipos de cada una.",
     changelog_3_7_0:

@@ -38,8 +38,19 @@ export const messagesFr: Messages = {
     watchlistOwnSeniorTeamsEmpty: "Aucune équipe senior personnelle trouvée.",
     watchlistOwnLeaguesTitle: "Vos ligues",
     watchlistOwnLeaguesEmpty: "Aucune ligue personnelle trouvée.",
+    watchlistAllItems: "Tous les éléments de suivi",
+    watchlistSelectAll: "Tout sélectionner",
+    watchlistDeselectAll: "Tout désélectionner",
     watchlistGenderMale: "Masculin",
     watchlistGenderFemale: "Féminin",
+    clubChronicleTabDefaultName: "Onglet {{number}}",
+    clubChronicleTabAdd: "Ajouter un onglet",
+    clubChronicleTabRenamePlaceholder: "Nom de l’onglet",
+    clubChronicleTabDeleteTooltip: "Supprimer l’onglet",
+    clubChronicleTabDeleteTitle: "Supprimer cet onglet ?",
+    clubChronicleTabDeleteBody:
+      "Cet onglet Club Chronicle et sa watchlist, ses dernières mises à jour et son état local seront supprimés. Cette action est irréversible.",
+    clubChronicleTabDeleteConfirm: "Supprimer l’onglet",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Mise à jour",
     changelogNewer: "Plus récent",
@@ -48,6 +59,8 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_3_9_0:
+      "Club Chronicle prend désormais en charge des onglets avec des watchlists indépendantes et des dernières mises à jour propres à chaque onglet.",
     changelog_3_8_0:
       "La liste de suivi de Club Chronicle peut désormais étendre vos propres ligues pour suivre les autres équipes de chacune.",
     changelog_3_7_0:

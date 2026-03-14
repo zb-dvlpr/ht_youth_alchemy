@@ -82,6 +82,28 @@ type WatchlistStorage = {
   manualTeams: ManualTeam[] | number[];
 };
 
+type ChronicleTabState = {
+  id: string;
+  name: string;
+  supportedSelections: Record<number, boolean>;
+  ownLeagueSelections: Record<string, boolean>;
+  manualTeams: ManualTeam[];
+  updates: ChronicleUpdates | null;
+  globalUpdatesHistory: ChronicleGlobalUpdateEntry[];
+  globalBaselineCache: ChronicleCache | null;
+  lastRefreshAt: number | null;
+  lastComparedAt: number | null;
+  lastHadChanges: boolean;
+};
+
+type ChronicleTabsStorage = {
+  version: number;
+  activeTabId: string;
+  tabs: ChronicleTabState[];
+};
+
+type StateUpdater<T> = T | ((prev: T) => T);
+
 type ClubChronicleProps = {
   messages: Messages;
 };
@@ -778,6 +800,7 @@ const ChroniclePanel = ({
 );
 
 const STORAGE_KEY = "ya_club_chronicle_watchlist_v1";
+const TABS_STORAGE_KEY = "ya_cc_tabs_v1";
 const CACHE_KEY = "ya_cc_cache_v1";
 const UPDATES_KEY = "ya_cc_updates_v1";
 const GLOBAL_BASELINE_KEY = "ya_cc_global_baseline_v1";
@@ -836,6 +859,66 @@ const TACTIC_LABELS: Record<number, string> = {
   7: "Play creatively",
   8: "Long shots",
 };
+
+const normalizeStoredManualTeams = (
+  input: ManualTeam[] | number[] | undefined
+): ManualTeam[] =>
+  (input ?? []).map((item): ManualTeam => {
+    if (typeof item === "number") {
+      return { teamId: item };
+    }
+    return {
+      teamId: Number(item.teamId),
+      teamName: item.teamName ?? "",
+      leagueName: item.leagueName ?? null,
+      leagueLevelUnitName: item.leagueLevelUnitName ?? null,
+      teamGender:
+        item.teamGender === "female"
+          ? "female"
+          : item.teamGender === "male"
+            ? "male"
+            : null,
+      leagueLevelUnitId:
+        item.leagueLevelUnitId !== undefined && item.leagueLevelUnitId !== null
+          ? Number(item.leagueLevelUnitId)
+          : null,
+    };
+  });
+
+const buildChronicleTabName = (messages: Messages, index: number) =>
+  messages.clubChronicleTabDefaultName.replace("{{number}}", String(index));
+
+const buildChronicleTabState = (
+  messages: Messages,
+  index: number,
+  overrides?: Partial<ChronicleTabState>
+): ChronicleTabState => ({
+  id: overrides?.id ?? `tab-${Date.now()}-${index}`,
+  name: overrides?.name?.trim() || buildChronicleTabName(messages, index),
+  supportedSelections: overrides?.supportedSelections ?? {},
+  ownLeagueSelections: overrides?.ownLeagueSelections ?? {},
+  manualTeams: overrides?.manualTeams ?? [],
+  updates: overrides?.updates ?? null,
+  globalUpdatesHistory: overrides?.globalUpdatesHistory ?? [],
+  globalBaselineCache: overrides?.globalBaselineCache ?? null,
+  lastRefreshAt: overrides?.lastRefreshAt ?? null,
+  lastComparedAt: overrides?.lastComparedAt ?? null,
+  lastHadChanges: overrides?.lastHadChanges ?? true,
+});
+
+const writeChronicleTabsStorage = (payload: ChronicleTabsStorage) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const resolveNextState = <T,>(current: T, updater: StateUpdater<T>): T =>
+  typeof updater === "function"
+    ? (updater as (prev: T) => T)(current)
+    : updater;
 
 const readNumberLike = (value: unknown): number | null => {
   if (value === null || value === undefined || value === "") return null;
@@ -1811,6 +1894,100 @@ const writeGlobalUpdatesHistory = (payload: ChronicleGlobalUpdateEntry[]) => {
   }
 };
 
+const readChronicleTabsStorage = (
+  messages: Messages,
+  healthyLabel = "Healthy"
+): ChronicleTabsStorage => {
+  if (typeof window === "undefined") {
+    const initialTab = buildChronicleTabState(messages, 1, { id: "tab-1" });
+    return { version: 1, activeTabId: initialTab.id, tabs: [initialTab] };
+  }
+  try {
+    const rawTabs = window.localStorage.getItem(TABS_STORAGE_KEY);
+    if (rawTabs) {
+      const parsed = JSON.parse(rawTabs) as ChronicleTabsStorage;
+      const tabs = Array.isArray(parsed?.tabs)
+        ? parsed.tabs
+            .map((tab, index) =>
+              buildChronicleTabState(messages, index + 1, {
+                id:
+                  typeof tab?.id === "string" && tab.id.trim()
+                    ? tab.id
+                    : `tab-${index + 1}`,
+                name: typeof tab?.name === "string" ? tab.name : undefined,
+                supportedSelections:
+                  tab?.supportedSelections &&
+                  typeof tab.supportedSelections === "object"
+                    ? tab.supportedSelections
+                    : {},
+                ownLeagueSelections:
+                  tab?.ownLeagueSelections &&
+                  typeof tab.ownLeagueSelections === "object"
+                    ? tab.ownLeagueSelections
+                    : {},
+                manualTeams: normalizeStoredManualTeams(tab?.manualTeams),
+                updates: tab?.updates ?? null,
+                globalUpdatesHistory: Array.isArray(tab?.globalUpdatesHistory)
+                  ? tab.globalUpdatesHistory
+                  : [],
+                globalBaselineCache:
+                  tab?.globalBaselineCache &&
+                  typeof tab.globalBaselineCache === "object"
+                    ? pruneChronicleCache(tab.globalBaselineCache)
+                    : null,
+                lastRefreshAt:
+                  typeof tab?.lastRefreshAt === "number" ? tab.lastRefreshAt : null,
+                lastComparedAt:
+                  typeof tab?.lastComparedAt === "number" ? tab.lastComparedAt : null,
+                lastHadChanges:
+                  typeof tab?.lastHadChanges === "boolean"
+                    ? tab.lastHadChanges
+                    : true,
+              })
+            )
+            .filter((tab) => tab.id)
+        : [];
+      if (tabs.length > 0) {
+        const activeTabId =
+          typeof parsed?.activeTabId === "string" &&
+          tabs.some((tab) => tab.id === parsed.activeTabId)
+            ? parsed.activeTabId
+            : tabs[0].id;
+        return { version: 1, activeTabId, tabs };
+      }
+    }
+  } catch {
+    // fall through to migration
+  }
+
+  const initialGlobalUpdatesHistory = readGlobalUpdatesHistory(healthyLabel);
+  const watchlist = readStorage();
+  const initialTab = buildChronicleTabState(messages, 1, {
+    id: "tab-1",
+    supportedSelections: watchlist.supportedSelections ?? {},
+    ownLeagueSelections: watchlist.ownLeagueSelections ?? {},
+    manualTeams: normalizeStoredManualTeams(watchlist.manualTeams),
+    updates: readChronicleUpdates(),
+    globalUpdatesHistory: initialGlobalUpdatesHistory.slice(
+      0,
+      DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT
+    ),
+    globalBaselineCache: readGlobalBaseline(),
+    lastRefreshAt: readLastRefresh(),
+    lastComparedAt: initialGlobalUpdatesHistory[0]?.comparedAt ?? null,
+    lastHadChanges: initialGlobalUpdatesHistory[0]
+      ? initialGlobalUpdatesHistory[0].hasChanges
+      : true,
+  });
+  const migrated = {
+    version: 1,
+    activeTabId: initialTab.id,
+    tabs: [initialTab],
+  };
+  writeChronicleTabsStorage(migrated);
+  return migrated;
+};
+
 const readPanelOrder = (): string[] => {
   if (typeof window === "undefined") return [...PANEL_IDS];
   try {
@@ -2086,56 +2263,65 @@ const getLatestCacheTimestamp = (cache: ChronicleCache): number | null => {
   return latest > 0 ? latest : null;
 };
 
+const getLatestCacheTimestampForTeams = (
+  cache: ChronicleCache,
+  teamIds: Iterable<number>
+): number | null => {
+  let latest = 0;
+  for (const teamId of teamIds) {
+    const team = cache.teams[teamId];
+    if (!team) continue;
+    latest = Math.max(
+      latest,
+      team.leaguePerformance?.current?.fetchedAt ?? 0,
+      team.leaguePerformance?.previous?.fetchedAt ?? 0,
+      team.pressAnnouncement?.current?.fetchedAt ?? 0,
+      team.pressAnnouncement?.previous?.fetchedAt ?? 0,
+      team.fanclub?.current?.fetchedAt ?? 0,
+      team.fanclub?.previous?.fetchedAt ?? 0,
+      team.arena?.current?.fetchedAt ?? 0,
+      team.arena?.previous?.fetchedAt ?? 0,
+      team.financeEstimate?.current?.fetchedAt ?? 0,
+      team.financeEstimate?.previous?.fetchedAt ?? 0,
+      team.transferActivity?.current?.fetchedAt ?? 0,
+      team.transferActivity?.previous?.fetchedAt ?? 0,
+      team.tsi?.current?.fetchedAt ?? 0,
+      team.tsi?.previous?.fetchedAt ?? 0,
+      team.wages?.current?.fetchedAt ?? 0,
+      team.wages?.previous?.fetchedAt ?? 0,
+      team.formationsTactics?.current?.fetchedAt ?? 0,
+      team.formationsTactics?.previous?.fetchedAt ?? 0,
+      team.lastLogin?.current?.fetchedAt ?? 0,
+      team.lastLogin?.previous?.fetchedAt ?? 0,
+      team.coach?.current?.fetchedAt ?? 0,
+      team.coach?.previous?.fetchedAt ?? 0
+    );
+  }
+  return latest > 0 ? latest : null;
+};
+
 export default function ClubChronicle({ messages }: ClubChronicleProps) {
-  const initialGlobalUpdatesHistory = useMemo(
-    () => readGlobalUpdatesHistory(messages.clubChronicleInjuryHealthy),
+  const initialTabsState = useMemo(
+    () => readChronicleTabsStorage(messages, messages.clubChronicleInjuryHealthy),
     [messages.clubChronicleInjuryHealthy]
   );
   const chronicleRootRef = useRef<HTMLDivElement | null>(null);
   const [supportedTeams, setSupportedTeams] = useState<SupportedTeam[]>([]);
-  const [supportedSelections, setSupportedSelections] = useState<
-    Record<number, boolean>
-  >({});
+  const [chronicleTabs, setChronicleTabs] = useState<ChronicleTabState[]>(
+    () => initialTabsState.tabs
+  );
+  const [activeChronicleTabId, setActiveChronicleTabId] = useState<string>(
+    () => initialTabsState.activeTabId
+  );
   const [ownLeagues, setOwnLeagues] = useState<OwnLeagueEntry[]>([]);
-  const [ownLeagueSelections, setOwnLeagueSelections] = useState<
-    Record<string, boolean>
-  >({});
   const [ownLeagueTeams, setOwnLeagueTeams] = useState<SupportedTeam[]>([]);
-  const [manualTeams, setManualTeams] = useState<ManualTeam[]>([]);
   const [primaryTeam, setPrimaryTeam] = useState<ChronicleTeamData | null>(null);
   const [chronicleCache, setChronicleCache] = useState<ChronicleCache>(() =>
     pruneChronicleCache(readChronicleCache())
   );
-  const [globalBaselineCache, setGlobalBaselineCache] = useState<ChronicleCache | null>(
-    () => {
-      const baseline = readGlobalBaseline();
-      return baseline ? pruneChronicleCache(baseline) : null;
-    }
-  );
   const [panelOrder, setPanelOrder] = useState<string[]>(() =>
     readPanelOrder()
   );
-  const [updates, setUpdates] = useState<ChronicleUpdates | null>(() =>
-    readChronicleUpdates()
-  );
-  const [globalUpdatesHistory, setGlobalUpdatesHistory] = useState<
-    ChronicleGlobalUpdateEntry[]
-  >(() =>
-    initialGlobalUpdatesHistory.slice(
-      0,
-      DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT
-    )
-  );
-  const [lastGlobalRefreshAt, setLastGlobalRefreshAt] = useState<number | null>(() =>
-    readLastRefresh()
-  );
-  const [lastGlobalComparedAt, setLastGlobalComparedAt] = useState<number | null>(
-    () => initialGlobalUpdatesHistory[0]?.comparedAt ?? null
-  );
-  const [lastGlobalHadChanges, setLastGlobalHadChanges] = useState<boolean>(() => {
-    const latest = initialGlobalUpdatesHistory[0];
-    return latest ? latest.hasChanges : true;
-  });
   const [updatesOpen, setUpdatesOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
@@ -2285,6 +2471,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     useState(false);
   const [teamIdInput, setTeamIdInput] = useState("");
   const [watchlistReloadNonce, setWatchlistReloadNonce] = useState(0);
+  const [renamingTabId, setRenamingTabId] = useState<string | null>(null);
+  const [renamingTabValue, setRenamingTabValue] = useState("");
+  const [pendingDeleteTabId, setPendingDeleteTabId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
@@ -2314,10 +2503,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }[]
   >([]);
   const [helpCardTop, setHelpCardTop] = useState(84);
+  const watchlistMasterCheckboxRef = useRef<HTMLInputElement | null>(null);
   const initializedRef = useRef(false);
   const initialFetchRef = useRef(false);
   const staleRefreshRef = useRef(false);
   const chronicleStopRequestedRef = useRef(false);
+  const chronicleTabsRef = useRef<ChronicleTabState[]>(initialTabsState.tabs);
   const trackedTeamsRef = useRef<ChronicleTeamData[]>([]);
   const refreshAllDataRef = useRef<((reason: "stale" | "manual") => Promise<void>) | null>(
     null
@@ -2367,11 +2558,168 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => supportedTeams.filter((team) => !team.isOwnSeniorTeam),
     [supportedTeams]
   );
+  const activeChronicleTab = useMemo(
+    () =>
+      chronicleTabs.find((tab) => tab.id === activeChronicleTabId) ??
+      chronicleTabs[0] ??
+      buildChronicleTabState(messages, 1, { id: "tab-1" }),
+    [activeChronicleTabId, chronicleTabs, messages]
+  );
+  const activeChronicleTabIndex = useMemo(
+    () => chronicleTabs.findIndex((tab) => tab.id === activeChronicleTab.id),
+    [activeChronicleTab.id, chronicleTabs]
+  );
+  const updateActiveChronicleTab = useCallback(
+    (updater: StateUpdater<ChronicleTabState>) => {
+      setChronicleTabs((prev) =>
+        prev.map((tab) =>
+          tab.id === activeChronicleTab.id
+            ? resolveNextState(tab, updater)
+            : tab
+        )
+      );
+    },
+    [activeChronicleTab.id]
+  );
+  const supportedSelections = activeChronicleTab.supportedSelections;
+  const ownLeagueSelections = activeChronicleTab.ownLeagueSelections;
+  const manualTeams = activeChronicleTab.manualTeams;
+  const updates = activeChronicleTab.updates;
+  const globalUpdatesHistory = activeChronicleTab.globalUpdatesHistory;
+  const globalBaselineCache = activeChronicleTab.globalBaselineCache;
+  const lastGlobalRefreshAt = activeChronicleTab.lastRefreshAt;
+  const lastGlobalComparedAt = activeChronicleTab.lastComparedAt;
+  const lastGlobalHadChanges = activeChronicleTab.lastHadChanges;
+  const setSupportedSelections = useCallback(
+    (updater: StateUpdater<Record<number, boolean>>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        supportedSelections: resolveNextState(prev.supportedSelections, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setOwnLeagueSelections = useCallback(
+    (updater: StateUpdater<Record<string, boolean>>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        ownLeagueSelections: resolveNextState(prev.ownLeagueSelections, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setManualTeams = useCallback(
+    (updater: StateUpdater<ManualTeam[]>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        manualTeams: resolveNextState(prev.manualTeams, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setUpdates = useCallback(
+    (updater: StateUpdater<ChronicleUpdates | null>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        updates: resolveNextState(prev.updates, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setGlobalUpdatesHistory = useCallback(
+    (updater: StateUpdater<ChronicleGlobalUpdateEntry[]>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        globalUpdatesHistory: resolveNextState(prev.globalUpdatesHistory, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setGlobalBaselineCache = useCallback(
+    (updater: StateUpdater<ChronicleCache | null>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        globalBaselineCache: resolveNextState(prev.globalBaselineCache, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setLastGlobalRefreshAt = useCallback(
+    (updater: StateUpdater<number | null>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        lastRefreshAt: resolveNextState(prev.lastRefreshAt, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setLastGlobalComparedAt = useCallback(
+    (updater: StateUpdater<number | null>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        lastComparedAt: resolveNextState(prev.lastComparedAt, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setLastGlobalHadChanges = useCallback(
+    (updater: StateUpdater<boolean>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        lastHadChanges: resolveNextState(prev.lastHadChanges, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+
+  useEffect(() => {
+    if (chronicleTabs.length === 0) {
+      const fallbackTab = buildChronicleTabState(messages, 1, { id: "tab-1" });
+      setChronicleTabs([fallbackTab]);
+      setActiveChronicleTabId(fallbackTab.id);
+      return;
+    }
+    if (!chronicleTabs.some((tab) => tab.id === activeChronicleTabId)) {
+      setActiveChronicleTabId(chronicleTabs[0].id);
+    }
+  }, [activeChronicleTabId, chronicleTabs, messages]);
+
+  useEffect(() => {
+    initialFetchRef.current = false;
+    staleRefreshRef.current = false;
+  }, [activeChronicleTabId]);
+
+  useEffect(() => {
+    chronicleTabsRef.current = chronicleTabs;
+  }, [chronicleTabs]);
 
   const manualById = useMemo(
     () => new Set<number>(manualTeams.map((team) => Number(team.teamId))),
     [manualTeams]
   );
+  const watchlistSelectableTeamIds = useMemo(
+    () => supportedTeams.map((team) => team.teamId),
+    [supportedTeams]
+  );
+  const allWatchlistSelected = useMemo(
+    () =>
+      watchlistSelectableTeamIds.length > 0 &&
+      watchlistSelectableTeamIds.every((teamId) => supportedSelections[teamId] ?? false) &&
+      ownLeagues.every((entry) => ownLeagueSelections[entry.key] ?? false),
+    [ownLeagueSelections, ownLeagues, supportedSelections, watchlistSelectableTeamIds]
+  );
+  const hasAnyWatchlistSelection = useMemo(
+    () =>
+      watchlistSelectableTeamIds.some((teamId) => supportedSelections[teamId] ?? false) ||
+      ownLeagues.some((entry) => ownLeagueSelections[entry.key] ?? false),
+    [ownLeagueSelections, ownLeagues, supportedSelections, watchlistSelectableTeamIds]
+  );
+
+  useEffect(() => {
+    if (!watchlistMasterCheckboxRef.current) return;
+    watchlistMasterCheckboxRef.current.indeterminate =
+      hasAnyWatchlistSelection && !allWatchlistSelected;
+  }, [allWatchlistSelected, hasAnyWatchlistSelection]);
   const enrichWatchlistTeamGenders = useCallback(
     async (
       supportedInput: SupportedTeam[],
@@ -3093,63 +3441,42 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           nextSupportedTeams,
           nextOwnSeniorTeams
         );
-        const stored = readStorage();
-        const nextSelections: Record<number, boolean> = {};
-        nextAllSupportedTeams.forEach((team) => {
-          const key = team.teamId;
-          if (stored.supportedSelections[key] === undefined) {
-            nextSelections[key] = true;
-          } else {
-            nextSelections[key] = stored.supportedSelections[key];
-          }
-        });
-        const nextOwnLeagueSelections: Record<string, boolean> = {};
-        nextOwnLeagues.forEach((entry) => {
-          nextOwnLeagueSelections[entry.key] = Boolean(
-            stored.ownLeagueSelections?.[entry.key]
-          );
-        });
         if (active) {
-          const normalizedManualTeams: ManualTeam[] = (stored.manualTeams ?? []).map(
-            (item): ManualTeam => {
-              if (typeof item === "number") {
-                return { teamId: item };
-              }
-              return {
-                teamId: Number(item.teamId),
-                teamName: item.teamName ?? "",
-                leagueName: item.leagueName ?? null,
-                leagueLevelUnitName: item.leagueLevelUnitName ?? null,
-                teamGender:
-                  item.teamGender === "female"
-                    ? "female"
-                    : item.teamGender === "male"
-                      ? "male"
-                      : null,
-                leagueLevelUnitId:
-                  item.leagueLevelUnitId !== undefined &&
-                  item.leagueLevelUnitId !== null
-                    ? Number(item.leagueLevelUnitId)
-                    : null,
-              };
-            }
-          );
-          const enriched = await enrichWatchlistTeamGenders(
-            nextAllSupportedTeams,
-            normalizedManualTeams
+          const tabsSnapshot = chronicleTabsRef.current;
+          const enrichedSupported = (
+            await enrichWatchlistTeamGenders(nextAllSupportedTeams, [])
+          ).supported;
+          const enrichedTabs = await Promise.all(
+            tabsSnapshot.map(async (tab, index) => {
+              const nextSelections = Object.fromEntries(
+                enrichedSupported.map((team) => [
+                  team.teamId,
+                  tab.supportedSelections[team.teamId] ?? true,
+                ])
+              ) as Record<number, boolean>;
+              const nextOwnLeagueSelections = Object.fromEntries(
+                nextOwnLeagues.map((entry) => [
+                  entry.key,
+                  Boolean(tab.ownLeagueSelections[entry.key]),
+                ])
+              ) as Record<string, boolean>;
+              const enriched = await enrichWatchlistTeamGenders(
+                enrichedSupported,
+                tab.manualTeams
+              );
+              return buildChronicleTabState(messages, index + 1, {
+                ...tab,
+                supportedSelections: nextSelections,
+                ownLeagueSelections: nextOwnLeagueSelections,
+                manualTeams: enriched.manual,
+              });
+            })
           );
           if (!active) return;
-          setSupportedTeams(enriched.supported);
-          setSupportedSelections(nextSelections);
+          setSupportedTeams(enrichedSupported);
           setOwnLeagues(nextOwnLeagues);
-          setOwnLeagueSelections(nextOwnLeagueSelections);
-          setManualTeams(enriched.manual);
+          setChronicleTabs(enrichedTabs);
           initializedRef.current = true;
-          writeStorage({
-            supportedSelections: nextSelections,
-            ownLeagueSelections: nextOwnLeagueSelections,
-            manualTeams: enriched.manual,
-          });
         }
       } catch (error) {
         if (isChppAuthRequiredError(error)) return;
@@ -3171,6 +3498,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
   }, [
     enrichWatchlistTeamGenders,
+    messages,
     messages.watchlistError,
     watchlistOpen,
     watchlistReloadNonce,
@@ -3382,8 +3710,29 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   useEffect(() => {
     if (!initializedRef.current) return;
+    writeChronicleTabsStorage({
+      version: 1,
+      activeTabId: activeChronicleTabId,
+      tabs: chronicleTabs,
+    });
     writeStorage({ supportedSelections, ownLeagueSelections, manualTeams });
-  }, [supportedSelections, ownLeagueSelections, manualTeams]);
+    writeChronicleUpdates(updates);
+    writeGlobalBaseline(globalBaselineCache);
+    writeGlobalUpdatesHistory(globalUpdatesHistory);
+    if (lastGlobalRefreshAt !== null) {
+      writeLastRefresh(lastGlobalRefreshAt);
+    }
+  }, [
+    activeChronicleTabId,
+    chronicleTabs,
+    globalBaselineCache,
+    globalUpdatesHistory,
+    lastGlobalRefreshAt,
+    manualTeams,
+    ownLeagueSelections,
+    supportedSelections,
+    updates,
+  ]);
 
   useEffect(() => {
     if (!primaryTeam) return;
@@ -3402,11 +3751,21 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               null,
           },
         ];
-      });
-    setSupportedSelections((prev) => {
-      if (prev[primaryTeam.teamId] !== undefined) return prev;
-      return { ...prev, [primaryTeam.teamId]: true };
     });
+    setChronicleTabs((prev) =>
+      prev.map((tab) => {
+        if (tab.supportedSelections[primaryTeam.teamId] !== undefined) {
+          return tab;
+        }
+        return {
+          ...tab,
+          supportedSelections: {
+            ...tab.supportedSelections,
+            [primaryTeam.teamId]: true,
+          },
+        };
+      })
+    );
   }, [primaryTeam]);
 
   useEffect(() => {
@@ -3462,7 +3821,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   useEffect(() => {
     setGlobalUpdatesHistory((prev) => prev.slice(0, updatesHistoryCount));
-  }, [updatesHistoryCount]);
+  }, [setGlobalUpdatesHistory, updatesHistoryCount]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -3488,14 +3847,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   useEffect(() => {
     if (trackedTeams.length === 0) return;
-    const hasSnapshot = Object.values(chronicleCache.teams).some(
-      (team) => team.leaguePerformance?.current
+    const hasSnapshot = trackedTeams.some(
+      (team) => chronicleCache.teams[team.teamId]?.leaguePerformance?.current
     );
     if (hasSnapshot) return;
     if (anyRefreshing || initialFetchRef.current) return;
     initialFetchRef.current = true;
     void refreshAllData("manual");
-  }, [trackedTeams.length, chronicleCache, anyRefreshing]);
+  }, [trackedTeams, chronicleCache, anyRefreshing]);
 
   useEffect(() => {
     if (loading || isValidating) return;
@@ -3522,9 +3881,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (!initializedRef.current) return;
     if (loading || isValidating) return;
     if (trackedTeams.length === 0) return;
-    let lastRefresh = readLastRefresh();
+    const trackedTeamIds = trackedTeams.map((team) => team.teamId);
+    let lastRefresh = lastGlobalRefreshAt;
     if (!lastRefresh) {
-      const fallback = getLatestCacheTimestamp(chronicleCache);
+      const fallback = getLatestCacheTimestampForTeams(chronicleCache, trackedTeamIds);
       if (!fallback) return;
       lastRefresh = fallback;
       writeLastRefresh(fallback);
@@ -3541,9 +3901,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     void refreshAllData("stale");
   }, [
     trackedTeams.length,
+    trackedTeams,
     stalenessDays,
     anyRefreshing,
     chronicleCache,
+    lastGlobalRefreshAt,
     loading,
     isValidating,
   ]);
@@ -3556,9 +3918,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
     const maybeRunStaleRefresh = () => {
       if (document.visibilityState !== "visible") return;
-      let lastRefresh = readLastRefresh();
+      const trackedTeamIds = trackedTeams.map((team) => team.teamId);
+      let lastRefresh = lastGlobalRefreshAt;
       if (!lastRefresh) {
-        const fallback = getLatestCacheTimestamp(chronicleCache);
+        const fallback = getLatestCacheTimestampForTeams(chronicleCache, trackedTeamIds);
         if (!fallback) return;
         lastRefresh = fallback;
         writeLastRefresh(fallback);
@@ -3591,9 +3954,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
   }, [
     trackedTeams.length,
+    trackedTeams,
     stalenessDays,
     anyRefreshing,
     chronicleCache,
+    lastGlobalRefreshAt,
     loading,
     isValidating,
   ]);
@@ -3601,18 +3966,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   useEffect(() => {
     writeChronicleCache(chronicleCache);
   }, [chronicleCache]);
-
-  useEffect(() => {
-    writeChronicleUpdates(updates);
-  }, [updates]);
-
-  useEffect(() => {
-    writeGlobalBaseline(globalBaselineCache);
-  }, [globalBaselineCache]);
-
-  useEffect(() => {
-    writeGlobalUpdatesHistory(globalUpdatesHistory);
-  }, [globalUpdatesHistory]);
 
   useEffect(() => {
     const normalized = [
@@ -3739,6 +4092,142 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const handleRemoveManual = (teamId: number) => {
     setManualTeams((prev) => prev.filter((team) => team.teamId !== teamId));
   };
+
+  const handleSelectAllWatchlist = useCallback(() => {
+    const newlyEnabledTeamIds = supportedTeams
+      .map((team) => team.teamId)
+      .filter((teamId) => !(supportedSelections[teamId] ?? false));
+    setSupportedSelections(
+      Object.fromEntries(supportedTeams.map((team) => [team.teamId, true])) as Record<
+        number,
+        boolean
+      >
+    );
+    setOwnLeagueSelections(
+      Object.fromEntries(ownLeagues.map((entry) => [entry.key, true])) as Record<
+        string,
+        boolean
+      >
+    );
+    if (newlyEnabledTeamIds.length > 0) {
+      setPendingWatchlistFetchTeamIds((prev) => {
+        const next = new Set(prev);
+        newlyEnabledTeamIds.forEach((teamId) => next.add(teamId));
+        return Array.from(next);
+      });
+    }
+  }, [ownLeagues, setOwnLeagueSelections, setSupportedSelections, supportedSelections, supportedTeams]);
+
+  const handleDeselectAllWatchlist = useCallback(() => {
+    setSupportedSelections(
+      Object.fromEntries(supportedTeams.map((team) => [team.teamId, false])) as Record<
+        number,
+        boolean
+      >
+    );
+    setOwnLeagueSelections(
+      Object.fromEntries(ownLeagues.map((entry) => [entry.key, false])) as Record<
+        string,
+        boolean
+      >
+    );
+  }, [ownLeagues, setOwnLeagueSelections, setSupportedSelections, supportedTeams]);
+
+  const handleToggleWholeWatchlist = useCallback(() => {
+    if (allWatchlistSelected) {
+      handleDeselectAllWatchlist();
+      return;
+    }
+    handleSelectAllWatchlist();
+  }, [allWatchlistSelected, handleDeselectAllWatchlist, handleSelectAllWatchlist]);
+
+  const handleCreateChronicleTab = useCallback(() => {
+    const nextTabId = `tab-${Date.now()}`;
+    setChronicleTabs((prev) => {
+      const nextIndex = prev.length + 1;
+      return [
+        ...prev,
+        buildChronicleTabState(messages, nextIndex, {
+          id: nextTabId,
+          supportedSelections: Object.fromEntries(
+            supportedTeams.map((team) => [team.teamId, true])
+          ) as Record<number, boolean>,
+          ownLeagueSelections: Object.fromEntries(
+            ownLeagues.map((entry) => [entry.key, false])
+          ) as Record<string, boolean>,
+        }),
+      ];
+    });
+    setActiveChronicleTabId(nextTabId);
+  }, [messages, ownLeagues, supportedTeams]);
+
+  const handleStartRenamingTab = useCallback((tab: ChronicleTabState) => {
+    setRenamingTabId(tab.id);
+    setRenamingTabValue(tab.name);
+  }, []);
+
+  const handleCommitRenamingTab = useCallback(() => {
+    if (!renamingTabId) return;
+    setChronicleTabs((prev) =>
+      prev.map((tab, index) => {
+        if (tab.id !== renamingTabId) return tab;
+        const fallbackName = buildChronicleTabName(messages, index + 1);
+        const nextName = renamingTabValue.trim() || fallbackName;
+        return { ...tab, name: nextName };
+      })
+    );
+    setRenamingTabId(null);
+    setRenamingTabValue("");
+  }, [messages, renamingTabId, renamingTabValue]);
+
+  const handleCancelRenamingTab = useCallback(() => {
+    setRenamingTabId(null);
+    setRenamingTabValue("");
+  }, []);
+
+  const handleRequestDeleteTab = useCallback((tabId: string) => {
+    setPendingDeleteTabId(tabId);
+  }, []);
+
+  const handleConfirmDeleteTab = useCallback(() => {
+    if (!pendingDeleteTabId) return;
+    let nextActiveTabId: string | null = null;
+    setChronicleTabs((prev) => {
+      if (prev.length <= 1) {
+        const fallbackTab = buildChronicleTabState(messages, 1, {
+          id: "tab-1",
+          supportedSelections: Object.fromEntries(
+            supportedTeams.map((team) => [team.teamId, true])
+          ) as Record<number, boolean>,
+          ownLeagueSelections: Object.fromEntries(
+            ownLeagues.map((entry) => [entry.key, false])
+          ) as Record<string, boolean>,
+        });
+        nextActiveTabId = fallbackTab.id;
+        return [fallbackTab];
+      }
+      const remaining = prev.filter((tab) => tab.id !== pendingDeleteTabId);
+      nextActiveTabId =
+        activeChronicleTabId === pendingDeleteTabId
+          ? remaining[Math.max(0, prev.findIndex((tab) => tab.id === pendingDeleteTabId) - 1)]
+              ?.id ?? remaining[0]?.id ?? null
+          : activeChronicleTabId;
+      return remaining.map((tab, index) => ({
+        ...tab,
+        name: tab.name || buildChronicleTabName(messages, index + 1),
+      }));
+    });
+    if (nextActiveTabId) {
+      setActiveChronicleTabId(nextActiveTabId);
+    }
+    setPendingDeleteTabId(null);
+  }, [
+    activeChronicleTabId,
+    messages,
+    ownLeagues,
+    pendingDeleteTabId,
+    supportedTeams,
+  ]);
 
   const movePanel = useCallback((sourcePanelId: string, targetPanelId: string) => {
     if (!sourcePanelId || sourcePanelId === targetPanelId) return;
@@ -9789,6 +10278,83 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         </div>
       </div>
 
+      <div className={styles.chronicleTabsBar}>
+        <div className={styles.chronicleTabsList}>
+          {chronicleTabs.map((tab, index) => {
+            const isActive = tab.id === activeChronicleTab.id;
+            const isRenaming = tab.id === renamingTabId;
+            return (
+              <div
+                key={tab.id}
+                className={`${styles.chronicleTabChip}${isActive ? ` ${styles.chronicleTabChipActive}` : ""}`}
+              >
+                {isRenaming ? (
+                  <input
+                    type="text"
+                    className={styles.chronicleTabInput}
+                    value={renamingTabValue}
+                    placeholder={messages.clubChronicleTabRenamePlaceholder}
+                    autoFocus
+                    onChange={(event) => setRenamingTabValue(event.target.value)}
+                    onBlur={handleCommitRenamingTab}
+                    onClick={(event) => event.stopPropagation()}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleCommitRenamingTab();
+                      }
+                      if (event.key === "Escape") {
+                        event.preventDefault();
+                        handleCancelRenamingTab();
+                      }
+                    }}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.chronicleTabLabel}
+                    onClick={() => setActiveChronicleTabId(tab.id)}
+                    onDoubleClick={() => handleStartRenamingTab(tab)}
+                  >
+                    <span
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleStartRenamingTab(tab);
+                      }}
+                    >
+                      {tab.name || buildChronicleTabName(messages, index + 1)}
+                    </span>
+                  </button>
+                )}
+                <Tooltip content={messages.clubChronicleTabDeleteTooltip}>
+                  <button
+                    type="button"
+                    className={styles.chronicleTabDelete}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleRequestDeleteTab(tab.id);
+                    }}
+                    aria-label={messages.clubChronicleTabDeleteTooltip}
+                  >
+                    ×
+                  </button>
+                </Tooltip>
+              </div>
+            );
+          })}
+          <Tooltip content={messages.clubChronicleTabAdd}>
+            <button
+              type="button"
+              className={styles.chronicleTabAddButton}
+              onClick={handleCreateChronicleTab}
+              aria-label={messages.clubChronicleTabAdd}
+            >
+              +
+            </button>
+          </Tooltip>
+        </div>
+      </div>
+
       <div className={styles.chroniclePanels}>
         {panelOrder.map((panelId) => {
           if (panelId === "league-performance") {
@@ -10536,6 +11102,32 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
       />
       <Modal
+        open={pendingDeleteTabId !== null}
+        title={messages.clubChronicleTabDeleteTitle}
+        movable={false}
+        body={<p>{messages.clubChronicleTabDeleteBody}</p>}
+        actions={
+          <div className={styles.modalButtonRow}>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={() => setPendingDeleteTabId(null)}
+            >
+              {messages.closeLabel}
+            </button>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={handleConfirmDeleteTab}
+            >
+              {messages.clubChronicleTabDeleteConfirm}
+            </button>
+          </div>
+        }
+        closeOnBackdrop
+        onClose={() => setPendingDeleteTabId(null)}
+      />
+      <Modal
         open={watchlistOpen}
         title={messages.watchlistTitle}
         className={styles.watchlistModal}
@@ -10544,6 +11136,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             {loading ? (
               <p className={styles.muted}>{messages.watchlistLoading}</p>
             ) : null}
+            <label className={styles.watchlistMasterRow}>
+              <input
+                ref={watchlistMasterCheckboxRef}
+                type="checkbox"
+                checked={allWatchlistSelected}
+                onChange={handleToggleWholeWatchlist}
+                disabled={loading}
+              />
+              <span className={styles.watchlistMasterLabel}>
+                {messages.watchlistAllItems}
+              </span>
+            </label>
             <div className={styles.watchlistSection}>
               <h3 className={styles.watchlistHeading}>
                 {messages.watchlistOwnSeniorTeamsTitle}

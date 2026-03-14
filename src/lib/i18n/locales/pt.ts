@@ -38,8 +38,19 @@ export const messagesPt: Messages = {
     watchlistOwnSeniorTeamsEmpty: "Nenhum time senior próprio encontrado.",
     watchlistOwnLeaguesTitle: "Próprias ligas",
     watchlistOwnLeaguesEmpty: "Nenhuma liga própria encontrada.",
+    watchlistAllItems: "Todos os itens da watchlist",
+    watchlistSelectAll: "Selecionar tudo",
+    watchlistDeselectAll: "Desmarcar tudo",
     watchlistGenderMale: "Masculino",
     watchlistGenderFemale: "Feminino",
+    clubChronicleTabDefaultName: "Aba {{number}}",
+    clubChronicleTabAdd: "Adicionar aba",
+    clubChronicleTabRenamePlaceholder: "Nome da aba",
+    clubChronicleTabDeleteTooltip: "Excluir aba",
+    clubChronicleTabDeleteTitle: "Excluir esta aba?",
+    clubChronicleTabDeleteBody:
+      "Esta aba do Club Chronicle e sua watchlist, últimas atualizações e estado local serão removidos. Isso não pode ser desfeito.",
+    clubChronicleTabDeleteConfirm: "Excluir aba",
     changelogVersionLabel: "Versão",
     changelogEntryLabel: "Atualização",
     changelogNewer: "Mais recentes",
@@ -48,6 +59,8 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    changelog_3_9_0:
+      "O Club Chronicle agora oferece abas com watchlists independentes e últimas atualizações separadas por aba.",
     changelog_3_8_0:
       "A watchlist do Club Chronicle agora pode expandir opcionalmente as tuas próprias ligas para acompanhar as outras equipas de cada uma.",
     changelog_3_7_0:

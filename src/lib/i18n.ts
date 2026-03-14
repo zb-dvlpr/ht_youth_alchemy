@@ -48,8 +48,18 @@ export type Messages = {
   watchlistOwnSeniorTeamsEmpty: string;
   watchlistOwnLeaguesTitle: string;
   watchlistOwnLeaguesEmpty: string;
+  watchlistAllItems: string;
+  watchlistSelectAll: string;
+  watchlistDeselectAll: string;
   watchlistGenderMale: string;
   watchlistGenderFemale: string;
+  clubChronicleTabDefaultName: string;
+  clubChronicleTabAdd: string;
+  clubChronicleTabRenamePlaceholder: string;
+  clubChronicleTabDeleteTooltip: string;
+  clubChronicleTabDeleteTitle: string;
+  clubChronicleTabDeleteBody: string;
+  clubChronicleTabDeleteConfirm: string;
   changelogVersionLabel: string;
   changelogEntryLabel: string;
   changelogNewer: string;
@@ -57,6 +67,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_3_9_0: string;
   changelog_3_8_0: string;
   changelog_3_7_0: string;
   changelog_1_19_0: string;

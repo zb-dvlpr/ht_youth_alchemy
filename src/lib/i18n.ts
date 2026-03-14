@@ -529,12 +529,16 @@ export type Messages = {
   optimizeMenuRatings: string;
   optimizeMenuRevealPrimaryCurrent: string;
   optimizeMenuRevealSecondaryMax: string;
+  optimizeMenuRevealPrimaryCurrentAndSecondaryMax: string;
   optimizeRevealPrimaryCurrentKnown: string;
   optimizeRevealPrimaryCurrentKnownTooltip: string;
   optimizeRevealPrimaryCurrentUnavailable: string;
   optimizeRevealSecondaryMaxKnown: string;
   optimizeRevealSecondaryMaxKnownTooltip: string;
   optimizeRevealSecondaryMaxUnavailable: string;
+  optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable: string;
+  optimizeRevealTargetPlaceholder: string;
+  optimizeRevealCombinedButton: string;
   optimizeRatingsUnavailable: string;
   optimizeRatingsStarMaxed: string;
   optimizeLineupNeedsStar: string;

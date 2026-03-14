@@ -46,6 +46,12 @@ export const messagesNl: Messages = {
   settingsGeneralTitle: "Algemene instellingen",
   settingsDebug: "Diagnostiek",
   settingsDebugTitle: "Diagnostische instellingen",
+  optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
+    "Onthul de huidige {{trainingLower}}-waarde van {{player}} en de maximale {{secondaryTrainingLower}}-waarde van {{secondaryPlayer}}",
+  optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
+    "Gecombineerd onthullen is niet beschikbaar. Selecteer een sterspeler, beide trainingen en een geldig secundair doel.",
+  optimizeRevealTargetPlaceholder: "Selecteer een secundair doel",
+  optimizeRevealCombinedButton: "Gecombineerd toepassen",
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",

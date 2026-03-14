@@ -39,7 +39,8 @@ export type OptimizeMode =
   | "star"
   | "ratings"
   | "revealPrimaryCurrent"
-  | "revealSecondaryMax";
+  | "revealSecondaryMax"
+  | "revealPrimaryCurrentAndSecondaryMax";
 
 type LineupFieldProps = {
   assignments: LineupAssignments;
@@ -86,7 +87,9 @@ type LineupFieldProps = {
   optimizeModeDisabledReasons?: {
     revealPrimaryCurrent?: string;
     revealSecondaryMax?: string;
+    revealPrimaryCurrentAndSecondaryMax?: string;
   };
+  optimizeCustomMenuContent?: ReactNode;
   trainedSlots?: {
     primary: Set<string>;
     secondary: Set<string>;
@@ -411,6 +414,7 @@ export default function LineupField({
   optimizePrimaryTrainingName,
   optimizeSecondaryTrainingName,
   optimizeModeDisabledReasons,
+  optimizeCustomMenuContent,
   trainedSlots,
   hiddenSpecialtyByPlayerId = {},
   hiddenSpecialtyMatchHrefByPlayerId = {},
@@ -867,6 +871,7 @@ export default function LineupField({
                       </button>
                     </span>
                   </Tooltip>
+                  {optimizeCustomMenuContent}
                 </div>
               ) : null}
             </div>

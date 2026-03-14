@@ -399,6 +399,8 @@ export const messagesPl: Messages = {
     "Odkryj bieżącą wartość umiejętności {{trainingLower}} zawodnika {{player}}",
   optimizeMenuRevealSecondaryMax:
     "Odkryj maksymalną wartość umiejętności {{trainingLower}} zawodnika {{player}}",
+  optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
+    "Odkryj bieżącą wartość {{trainingLower}} zawodnika {{player}} oraz maksymalną wartość {{secondaryTrainingLower}} zawodnika {{secondaryPlayer}}",
   optimizeRevealPrimaryCurrentKnown:
     "Odkrywanie bieżącej wartości głównej niedostępne: bieżąca wartość głównej umiejętności gwiazdy jest już znana.",
   optimizeRevealPrimaryCurrentKnownTooltip:
@@ -411,6 +413,10 @@ export const messagesPl: Messages = {
     "Odkrywanie niedostępne: maksymalna wartość umiejętności {{training}} zawodnika {{player}} jest już znana.",
   optimizeRevealSecondaryMaxUnavailable:
     "Odkrywanie maksymalnej wartości drugorzędnej niedostępne. Wybierz gwiazdę i trening drugorzędny.",
+  optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
+    "Łączone odkrywanie niedostępne. Wybierz gwiazdę, oba treningi i prawidłowy cel drugorzędny.",
+  optimizeRevealTargetPlaceholder: "Wybierz cel drugorzędny",
+  optimizeRevealCombinedButton: "Zastosuj łączone odkrywanie",
   optimizeRatingsUnavailable:
     "Optymalizacja wg ocen niedostępna. Wybierz gwiazdę oraz oba treningi.",
   optimizeRatingsStarMaxed:

@@ -622,6 +622,8 @@ export const messagesDe: Messages = {
       "{{player}}: aktuellen {{training}}-Wert aufdecken",
     optimizeMenuRevealSecondaryMax:
       "{{player}}: maximalen {{training}}-Wert aufdecken",
+    optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
+      "Aktuellen {{trainingLower}}-Wert von {{player}} und maximalen {{secondaryTrainingLower}}-Wert von {{secondaryPlayer}} aufdecken",
     optimizeRevealPrimaryCurrentKnown:
       "Primärwert aufdecken nicht verfügbar: Primärwert des Stars ist bekannt.",
     optimizeRevealPrimaryCurrentKnownTooltip:
@@ -634,6 +636,10 @@ export const messagesDe: Messages = {
       "Aufdecken nicht verfügbar: maximaler {{training}}-Wert von {{player}} ist bereits bekannt.",
     optimizeRevealSecondaryMaxUnavailable:
       "Sekundärmax aufdecken nicht verfügbar. Starspieler und Sekundärtraining wählen.",
+    optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
+      "Kombiniertes Aufdecken nicht verfügbar. Starspieler, beide Trainings und ein geeignetes Sekundärziel wählen.",
+    optimizeRevealTargetPlaceholder: "Sekundärziel auswählen",
+    optimizeRevealCombinedButton: "Kombiniert anwenden",
     optimizeRatingsUnavailable:
       "Optimierung nach Bewertungen nicht verfügbar. Starspieler und beide Trainings wählen.",
     optimizeRatingsStarMaxed:

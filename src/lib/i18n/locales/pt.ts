@@ -633,6 +633,8 @@ export const messagesPt: Messages = {
       "Revelar valor atual de {{trainingLower}} de {{player}}",
     optimizeMenuRevealSecondaryMax:
       "Revelar valor máx. de {{trainingLower}} de {{player}}",
+    optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
+      "Revelar o valor atual de {{trainingLower}} de {{player}} e o valor máximo de {{secondaryTrainingLower}} de {{secondaryPlayer}}",
     optimizeRevealPrimaryCurrentKnown:
       "Revelação indisponível: valor primário já conhecido.",
     optimizeRevealPrimaryCurrentKnownTooltip:
@@ -645,6 +647,10 @@ export const messagesPt: Messages = {
       "Revelação indisponível: o valor máximo de {{training}} de {{player}} já é conhecido.",
     optimizeRevealSecondaryMaxUnavailable:
       "Revelação indisponível. Selecione estrela e treino secundário.",
+    optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
+      "A revelação combinada está indisponível. Selecione uma estrela, ambos os treinos e um alvo secundário elegível.",
+    optimizeRevealTargetPlaceholder: "Selecione um alvo secundário",
+    optimizeRevealCombinedButton: "Aplicar revelação combinada",
     optimizeRatingsUnavailable:
       "Otimização por avaliações indisponível. Selecione estrela e ambos os treinos.",
     optimizeRatingsStarMaxed:

@@ -41,6 +41,7 @@ import {
   optimizeByRatings,
   optimizeRevealPrimaryCurrent,
   optimizeRevealSecondaryMax,
+  optimizeRevealPrimaryCurrentAndSecondaryMax,
   buildSkillRanking,
   type OptimizerPlayer,
   type OptimizerDebug,
@@ -845,6 +846,10 @@ export default function Dashboard({
     useState<ChppDebugOauthErrorMode>("off");
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
+  const [revealSecondaryTargetPlayerId, setRevealSecondaryTargetPlayerId] =
+    useState<number | null>(null);
+  const [revealSecondaryTargetMenuOpen, setRevealSecondaryTargetMenuOpen] =
+    useState(false);
   const [primaryTraining, setPrimaryTraining] = useState<TrainingSkillKey>(
     DEFAULT_PRIMARY_TRAINING
   );
@@ -861,6 +866,8 @@ export default function Dashboard({
   const primaryTrainingMenuRef = useRef<HTMLDivElement | null>(null);
   const secondaryTrainingButtonRef = useRef<HTMLButtonElement | null>(null);
   const secondaryTrainingMenuRef = useRef<HTMLDivElement | null>(null);
+  const revealSecondaryTargetButtonRef = useRef<HTMLButtonElement | null>(null);
+  const revealSecondaryTargetMenuRef = useRef<HTMLDivElement | null>(null);
   const [optimizerDragOffset, setOptimizerDragOffset] = useState({
     x: 0,
     y: 0,
@@ -956,7 +963,13 @@ export default function Dashboard({
     }
   };
   useEffect(() => {
-    if (!primaryTrainingMenuOpen && !secondaryTrainingMenuOpen) return;
+    if (
+      !primaryTrainingMenuOpen &&
+      !secondaryTrainingMenuOpen &&
+      !revealSecondaryTargetMenuOpen
+    ) {
+      return;
+    }
     const handleClick = (event: MouseEvent) => {
       const target = event.target as Node | null;
       if (primaryTrainingMenuOpen) {
@@ -967,12 +980,21 @@ export default function Dashboard({
         if (secondaryTrainingButtonRef.current?.contains(target ?? null)) return;
         if (secondaryTrainingMenuRef.current?.contains(target ?? null)) return;
       }
+      if (revealSecondaryTargetMenuOpen) {
+        if (revealSecondaryTargetButtonRef.current?.contains(target ?? null)) return;
+        if (revealSecondaryTargetMenuRef.current?.contains(target ?? null)) return;
+      }
       if (primaryTrainingMenuOpen) setPrimaryTrainingMenuOpen(false);
       if (secondaryTrainingMenuOpen) setSecondaryTrainingMenuOpen(false);
+      if (revealSecondaryTargetMenuOpen) setRevealSecondaryTargetMenuOpen(false);
     };
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
-  }, [primaryTrainingMenuOpen, secondaryTrainingMenuOpen]);
+  }, [
+    primaryTrainingMenuOpen,
+    revealSecondaryTargetMenuOpen,
+    secondaryTrainingMenuOpen,
+  ]);
   const youthUpdatesHistoryWithChanges = useMemo(
     () => youthUpdatesHistory.filter(shouldKeepYouthUpdatesHistoryEntry),
     [youthUpdatesHistory]
@@ -1706,6 +1728,7 @@ export default function Dashboard({
         matrixNewMarkers?: MatrixNewMarkers;
         youthUpdatesHistory?: YouthUpdatesGroupedEntry[];
         activeDetailsTab?: PlayerDetailsPanelTab;
+        revealSecondaryTargetPlayerId?: number | null;
       };
       const forceWipeLegacyUpdatesState =
         typeof parsed.updatesSchemaVersion !== "number" ||
@@ -1724,6 +1747,9 @@ export default function Dashboard({
         setActiveDetailsTab(parsed.activeDetailsTab);
       }
       if (parsed.starPlayerId !== undefined) setStarPlayerId(parsed.starPlayerId);
+      if (parsed.revealSecondaryTargetPlayerId !== undefined) {
+        setRevealSecondaryTargetPlayerId(parsed.revealSecondaryTargetPlayerId);
+      }
       if (parsed.primaryTraining !== undefined)
         setPrimaryTraining(
           isTrainingSkill(parsed.primaryTraining)
@@ -1988,6 +2014,7 @@ export default function Dashboard({
       selectedId,
       activeDetailsTab,
       starPlayerId,
+      revealSecondaryTargetPlayerId,
       primaryTraining,
       secondaryTraining,
       tacticType,
@@ -2020,6 +2047,7 @@ export default function Dashboard({
     selectedId,
     activeDetailsTab,
     starPlayerId,
+    revealSecondaryTargetPlayerId,
     behaviors,
     playerList,
     matchesState,
@@ -3148,7 +3176,8 @@ export default function Dashboard({
     }
     if (
       mode !== "revealPrimaryCurrent" &&
-      mode !== "revealSecondaryMax"
+      mode !== "revealSecondaryMax" &&
+      mode !== "revealPrimaryCurrentAndSecondaryMax"
     ) {
       return;
     }
@@ -3159,14 +3188,31 @@ export default function Dashboard({
     ) {
       if (mode === "revealSecondaryMax") {
         setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
+      } else if (mode === "revealPrimaryCurrentAndSecondaryMax") {
+        setOptimizeErrorMessage(
+          messages.optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable
+        );
       } else {
         setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
       }
       return;
     }
+    if (
+      mode === "revealPrimaryCurrentAndSecondaryMax" &&
+      !revealSecondaryTargetPlayerId
+    ) {
+      setOptimizeErrorMessage(
+        messages.optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable
+      );
+      return;
+    }
     if (!optimizerPlayers.some((player) => player.id === starPlayerId)) {
       if (mode === "revealSecondaryMax") {
         setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
+      } else if (mode === "revealPrimaryCurrentAndSecondaryMax") {
+        setOptimizeErrorMessage(
+          messages.optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable
+        );
       } else {
         setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
       }
@@ -3183,6 +3229,16 @@ export default function Dashboard({
             autoSelectionApplied,
             trainingPreferences
           )
+        : mode === "revealPrimaryCurrentAndSecondaryMax"
+          ? optimizeRevealPrimaryCurrentAndSecondaryMax(
+              optimizerPlayers,
+              starPlayerId,
+              revealSecondaryTargetPlayerId,
+              toBaseTrainingSkill(primaryTraining),
+              toBaseTrainingSkill(secondaryTraining),
+              autoSelectionApplied,
+              trainingPreferences
+            )
         : optimizeRevealPrimaryCurrent(
             optimizerPlayers,
             starPlayerId,
@@ -3205,6 +3261,10 @@ export default function Dashboard({
     if (result.error) {
       if (mode === "revealSecondaryMax") {
         setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
+      } else if (mode === "revealPrimaryCurrentAndSecondaryMax") {
+        setOptimizeErrorMessage(
+          messages.optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable
+        );
       } else {
         setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
       }
@@ -4589,10 +4649,60 @@ export default function Dashboard({
   const optimizeSecondaryTrainingName = isTrainingSkill(secondaryTraining)
     ? optimizeTrainingLabel(secondaryTraining)
     : messages.trainingUnset;
+  const eligibleRevealSecondaryTargetOptions = useMemo(() => {
+    if (!isTrainingSkill(secondaryTraining)) return [];
+    const secondaryMaxKey = TRAINING_SKILL_VALUE_KEYS[secondaryTraining].max;
+    return optimizerPlayers
+      .filter((player) => player.id !== starPlayerId)
+      .filter((player) => {
+        const sourceSkills =
+          playerDetailsById.get(player.id)?.PlayerSkills ??
+          playerList.find((entry) => entry.YouthPlayerID === player.id)?.PlayerSkills ??
+          null;
+        return getKnownSkillValue(sourceSkills?.[secondaryMaxKey]) === null;
+      })
+      .map((player) => ({
+        playerId: player.id,
+        label: player.name ?? String(player.id),
+      }))
+      .sort((left, right) => left.label.localeCompare(right.label));
+  }, [optimizerPlayers, playerDetailsById, playerList, secondaryTraining, starPlayerId]);
+  const selectedRevealSecondaryTargetOption =
+    eligibleRevealSecondaryTargetOptions.find(
+      (option) => option.playerId === revealSecondaryTargetPlayerId
+    ) ?? null;
+  const optimizeRevealComboTargetName =
+    selectedRevealSecondaryTargetOption?.label ?? messages.optimizeRevealTargetPlaceholder;
+  const optimizeRevealInlineTargetName = selectedRevealSecondaryTargetOption?.label ?? "?";
+  const optimizePrimaryTrainingNameLower =
+    optimizePrimaryTrainingName.toLocaleLowerCase();
+  const optimizeSecondaryTrainingNameLower =
+    optimizeSecondaryTrainingName.toLocaleLowerCase();
+  const optimizeRevealPrimaryCurrentAndSecondaryMaxLabel =
+    messages.optimizeMenuRevealPrimaryCurrentAndSecondaryMax
+      .replace("{{player}}", optimizeStarPlayerName)
+      .replace("{{training}}", optimizePrimaryTrainingName)
+      .replace("{{trainingLower}}", optimizePrimaryTrainingNameLower)
+      .replace("{{secondaryPlayer}}", optimizeRevealComboTargetName)
+      .replace("{{secondaryTraining}}", optimizeSecondaryTrainingName)
+      .replace("{{secondaryTrainingLower}}", optimizeSecondaryTrainingNameLower);
+  const optimizeRevealInlineTemplate =
+    messages.optimizeMenuRevealPrimaryCurrentAndSecondaryMax
+      .replace("{{player}}", optimizeStarPlayerName)
+      .replace("{{training}}", optimizePrimaryTrainingName)
+      .replace("{{trainingLower}}", optimizePrimaryTrainingNameLower)
+      .replace("{{secondaryPlayer}}", "__SECONDARY_PLAYER__")
+      .replace("{{secondaryTraining}}", optimizeSecondaryTrainingName)
+      .replace("{{secondaryTrainingLower}}", optimizeSecondaryTrainingNameLower);
+  const [
+    optimizeRevealInlinePrefix,
+    optimizeRevealInlineSuffix = "",
+  ] = optimizeRevealInlineTemplate.split("__SECONDARY_PLAYER__");
   const optimizeModeDisabledReasons = useMemo(() => {
     const reasons: {
       revealPrimaryCurrent?: string;
       revealSecondaryMax?: string;
+      revealPrimaryCurrentAndSecondaryMax?: string;
     } = {};
     if (
       !starPlayerId ||
@@ -4623,24 +4733,152 @@ export default function Dashboard({
       reasons.revealPrimaryCurrent = messages.optimizeRevealPrimaryCurrentKnownTooltip
         .replace("{{player}}", starName)
         .replace("{{training}}", primaryTrainingName);
+      reasons.revealPrimaryCurrentAndSecondaryMax = reasons.revealPrimaryCurrent;
     }
     if (getKnownSkillValue(starSkills[secondaryMaxKey]) !== null) {
       reasons.revealSecondaryMax = messages.optimizeRevealSecondaryMaxKnownTooltip
         .replace("{{player}}", starName)
         .replace("{{training}}", secondaryTrainingName);
     }
+    if (!reasons.revealPrimaryCurrentAndSecondaryMax) {
+      if (!eligibleRevealSecondaryTargetOptions.length) {
+        reasons.revealPrimaryCurrentAndSecondaryMax =
+          messages.optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable;
+      } else if (!selectedRevealSecondaryTargetOption) {
+        reasons.revealPrimaryCurrentAndSecondaryMax =
+          messages.optimizeRevealTargetPlaceholder;
+      } else {
+        const targetSkills =
+          playerDetailsById.get(selectedRevealSecondaryTargetOption.playerId)?.PlayerSkills ??
+          playerList.find(
+            (player) => player.YouthPlayerID === selectedRevealSecondaryTargetOption.playerId
+          )?.PlayerSkills ??
+          null;
+        if (getKnownSkillValue(targetSkills?.[secondaryMaxKey]) !== null) {
+          reasons.revealPrimaryCurrentAndSecondaryMax =
+            messages.optimizeRevealSecondaryMaxKnownTooltip
+              .replace("{{player}}", selectedRevealSecondaryTargetOption.label)
+              .replace("{{training}}", secondaryTrainingName);
+        }
+      }
+    }
     return reasons;
   }, [
+    eligibleRevealSecondaryTargetOptions.length,
     messages.optimizeRevealPrimaryCurrentKnownTooltip,
+    messages.optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable,
     messages.optimizeRevealSecondaryMaxKnownTooltip,
+    messages.optimizeRevealTargetPlaceholder,
     messages.unknownShort,
     playerDetailsById,
     playerList,
     primaryTraining,
+    selectedRevealSecondaryTargetOption,
     secondaryTraining,
     starPlayerId,
   ]);
-
+  useEffect(() => {
+    if (!eligibleRevealSecondaryTargetOptions.length) {
+      if (revealSecondaryTargetPlayerId !== null) {
+        setRevealSecondaryTargetPlayerId(null);
+      }
+      if (revealSecondaryTargetMenuOpen) {
+        setRevealSecondaryTargetMenuOpen(false);
+      }
+      return;
+    }
+    const currentStillEligible = eligibleRevealSecondaryTargetOptions.some(
+      (option) => option.playerId === revealSecondaryTargetPlayerId
+    );
+    if (!currentStillEligible && revealSecondaryTargetPlayerId !== null) {
+      setRevealSecondaryTargetPlayerId(null);
+    }
+  }, [
+    eligibleRevealSecondaryTargetOptions,
+    revealSecondaryTargetMenuOpen,
+    revealSecondaryTargetPlayerId,
+  ]);
+  const optimizeCustomMenuContent = (
+    <Tooltip
+      content={
+        optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ?? ""
+      }
+      disabled={!optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax}
+      fullWidth
+    >
+      <span className={styles.optimizeMenuCustomWrap}>
+        <span className={styles.optimizeMenuCustomLabel}>
+          {optimizeRevealInlinePrefix}
+          <span className={styles.optimizeMenuInlinePickerWrap}>
+            <button
+              ref={revealSecondaryTargetButtonRef}
+              type="button"
+              className={styles.optimizeMenuInlinePicker}
+              onClick={() =>
+                setRevealSecondaryTargetMenuOpen((current) => !current)
+              }
+              aria-haspopup="menu"
+              aria-expanded={revealSecondaryTargetMenuOpen}
+              disabled={!eligibleRevealSecondaryTargetOptions.length}
+            >
+              <span className={styles.optimizeMenuInlinePickerText}>
+                {optimizeRevealInlineTargetName}
+              </span>
+              <span className={styles.optimizeMenuInlinePickerChevron}>⌄</span>
+            </button>
+            {revealSecondaryTargetMenuOpen &&
+            eligibleRevealSecondaryTargetOptions.length ? (
+              <div
+                ref={revealSecondaryTargetMenuRef}
+                className={`${styles.feedbackMenu} ${styles.optimizeMenuInlinePickerMenu}`}
+                role="menu"
+              >
+                {eligibleRevealSecondaryTargetOptions.map((option) => (
+                  <button
+                    key={option.playerId}
+                    type="button"
+                    role="menuitem"
+                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                      revealSecondaryTargetPlayerId === option.playerId
+                        ? styles.optimizeMenuInlinePickerOptionActive
+                        : ""
+                    }`}
+                    onClick={() => {
+                      setRevealSecondaryTargetPlayerId(option.playerId);
+                      setRevealSecondaryTargetMenuOpen(false);
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </span>
+          {optimizeRevealInlineSuffix}
+        </span>
+        <div className={styles.optimizeMenuCustomControls}>
+          <button
+            type="button"
+            className={`${styles.feedbackLink} ${styles.optimizeMenuActionButton} ${
+              optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
+                ? styles.optimizeMenuItemDisabled
+                : ""
+            }`}
+            onClick={() => handleOptimizeSelect("revealPrimaryCurrentAndSecondaryMax")}
+            disabled={Boolean(
+              optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
+            )}
+            aria-label={
+              optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ??
+              optimizeRevealPrimaryCurrentAndSecondaryMaxLabel
+            }
+          >
+            {messages.optimizeRevealCombinedButton}
+          </button>
+        </div>
+      </span>
+    </Tooltip>
+  );
   const trainingSlots = useMemo(() => {
     if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
       return {
@@ -5470,6 +5708,7 @@ export default function Dashboard({
           optimizePrimaryTrainingName={optimizePrimaryTrainingName}
           optimizeSecondaryTrainingName={optimizeSecondaryTrainingName}
           optimizeModeDisabledReasons={optimizeModeDisabledReasons}
+          optimizeCustomMenuContent={optimizeCustomMenuContent}
           trainedSlots={trainingSlots}
           hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
           hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}

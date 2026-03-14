@@ -224,6 +224,7 @@ export type Messages = {
   clubChronicleHelpCalloutUpdates: string;
   clubChronicleHelpCalloutWatchlist: string;
   clubChronicleHelpBulletControls: string;
+  clubChronicleHelpBulletTabs: string;
   clubChronicleHelpBulletLeague: string;
   clubChronicleHelpBulletPress: string;
   clubChronicleHelpBulletFinance: string;

@@ -273,6 +273,8 @@ export const messagesPt: Messages = {
       "A watchlist controla quais times sao acompanhados em cada painel.",
     clubChronicleHelpBulletControls:
       "Controles do cabecalho: use Atualizar para uma carga completa de dados, acompanhe o progresso pela barra de status e mini barras por painel, use Ultimas atualizacoes para diffs, a watchlist para gerenciar times acompanhados, e arraste cabecalhos de painel para reordenar o dashboard.",
+    clubChronicleHelpBulletTabs:
+      "As abas ajudam a organizar diferentes espacos do Chronicle. Cada aba mantem sua propria watchlist e suas proprias ultimas atualizacoes.",
     clubChronicleHelpBulletLeague:
       "Desempenho na liga: tabela com posicao, pontos, serie, mudanca de posicao e saldo de gols. Clique em uma linha para comparacao anterior/atual por atributo.",
     clubChronicleHelpBulletPress:
@@ -502,7 +504,7 @@ export const messagesPt: Messages = {
     seniorHelpCalloutUpdates:
       "Ultimas atualizacoes mostra apenas mudancas detectadas nas comparacoes de refresh salvas.",
     seniorHelpCalloutSetLineupAi:
-      "Definir escalacao com IA abre os dois modos de escalacao para esta partida.",
+      "Definir escalacao com IA abre os quatro modos de escalacao para esta partida.",
     seniorHelpCalloutTrainingRegimen:
       "Este dropdown permite alterar diretamente o regime de treino do elenco senior.",
     seniorHelpCalloutAnalyzeOpponent:
@@ -510,13 +512,13 @@ export const messagesPt: Messages = {
     seniorHelpBulletLatestUpdates:
       "Uma nova comparacao so e salva quando um refresh detecta mudancas reais (por exemplo novo jogador, mudancas de notas/skills, lesoes, cartoes, forma, resistencia ou tracos).",
     seniorHelpBulletAiOverview:
-      "Definir escalacao com IA aplica a escalacao mais eficaz identificada para vencer com base nas informacoes disponiveis do Hattrick.",
+      "Definir escalacao com IA aplica a escalacao mais eficaz com base nas informacoes disponiveis do Hattrick, incluindo os modos com treino, ignorar treino, prorrogação e formacao fixa.",
     seniorHelpBulletAiTrainingAware:
       "Modo com treino: respeita o regime de treino atual e prioriza escalacoes que cobrem os slots de treino relevantes.",
     seniorHelpBulletAiIgnoreTraining:
       "Modo ignorar treino: otimiza apenas a eficacia da partida sem restricoes de slots de treino.",
     seniorHelpBulletAiMatchTypes:
-      "Liga e torneio buscam a configuracao competitiva mais forte. Em amistosos, usa-se um XI saudavel de segundo nivel.",
+      "Use Buscar prorrogacao quando quiser uma configuracao voltada para minutos extras de treino na prorrogacao, e Otimizar por formacao quando quiser fixar um desenho e deixar o Alchemy escolher a melhor escalacao.",
     seniorHelpBulletTrainingRegimen:
       "O regime de treino senior pode ser alterado diretamente no app pelo dropdown da escalacao.",
     seniorHelpBulletAnalyzeOpponent:

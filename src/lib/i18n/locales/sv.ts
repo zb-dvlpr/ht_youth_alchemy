@@ -267,6 +267,8 @@ export const messagesSv: Messages = {
       "Watchlist styr vilka lag som foljs i varje panel.",
     clubChronicleHelpBulletControls:
       "Headerkontroller: anvand Uppdatera for en full datakorning, folj framsteg via statusrad och mini-staplar per panel, anvand Senaste uppdateringar for diffar, watchlist for att hantera foljda lag och dra panelrubriker for att ordna om dashboarden.",
+    clubChronicleHelpBulletTabs:
+      "Flikar hjalper dig att organisera olika Chronicle-ytor. Varje flik behaller sin egen watchlist och sina egna senaste uppdateringar.",
     clubChronicleHelpBulletLeague:
       "Ligaprestanda: tabell med placering, poang, serie, placeringsforandring och malskillnad. Klicka pa en rad for jamforelse mellan tidigare/nuvarande per attribut.",
     clubChronicleHelpBulletPress:
@@ -496,7 +498,7 @@ export const messagesSv: Messages = {
     seniorHelpCalloutUpdates:
       "Senaste uppdateringar visar bara andringar som hittats i sparade uppdateringsjamforelser.",
     seniorHelpCalloutSetLineupAi:
-      "Satt uppstallning med AI oppnar de tva uppstallningslagen for denna match.",
+      "Satt uppstallning med AI oppnar de fyra uppstallningslagen for denna match.",
     seniorHelpCalloutTrainingRegimen:
       "Den har rullgardinsmenyn later dig andra seniorlagets traningsregim direkt.",
     seniorHelpCalloutAnalyzeOpponent:
@@ -504,13 +506,13 @@ export const messagesSv: Messages = {
     seniorHelpBulletLatestUpdates:
       "En ny jamforelse sparas bara nar en uppdatering hittar verkliga andringar (t.ex. ny spelare, andrade betyg/skills, skador, kort, form, kondition eller egenskaper).",
     seniorHelpBulletAiOverview:
-      "Satt uppstallning med AI anvander den mest effektiva uppstallningen for vinst baserat pa tillganglig Hattrick-information.",
+      "Satt uppstallning med AI anvander den mest effektiva uppstallningen utifran tillganglig Hattrick-information, inklusive lagen for traningsmedveten, ignorera traning, forlangning och fast formation.",
     seniorHelpBulletAiTrainingAware:
       "Traningsmedvetet lage foljer aktuell traning och prioriterar uppstallningar som fyller relevanta traningsplatser.",
     seniorHelpBulletAiIgnoreTraining:
       "Ignorera traning optimerar bara matcheffektivitet utan krav pa traningsplatser.",
     seniorHelpBulletAiMatchTypes:
-      "Liga- och turneringsmatcher riktas mot starkaste konkurrensuppstallning. Vanmatcher anvander en andrabasta frisk elva.",
+      "Anvand Sikta pa forlangning om du vill ha en uppstallning inriktad pa extra traningsminuter i forlangning, och Optimera efter formation om du vill lasa en formation och lata Alchemy valja basta uppstallning.",
     seniorHelpBulletTrainingRegimen:
       "Seniorlagets traningsregim kan andras direkt i appen via uppstallningens rullgardinsmeny.",
     seniorHelpBulletAnalyzeOpponent:

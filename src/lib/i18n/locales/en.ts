@@ -245,6 +245,8 @@ export const messagesEn: Messages = {
     clubChronicleHelpCalloutWatchlist: "Watchlist controls which teams are tracked in every panel.",
     clubChronicleHelpBulletControls:
       "Header controls: use Refresh for a full data pass, monitor progress via the status bar and per-panel mini bars, use Latest updates for tracked diffs, use Watchlist to manage tracked teams, and drag panel headers to reorder the dashboard.",
+    clubChronicleHelpBulletTabs:
+      "Tabs help you organize different Chronicle workspaces. Each tab keeps its own watchlist and latest updates.",
     clubChronicleHelpBulletLeague:
       "League performance: table of position, points, series, position change, and goal delta. Click a row for previous/current attribute-level comparison.",
     clubChronicleHelpBulletPress:
@@ -473,7 +475,7 @@ export const messagesEn: Messages = {
     seniorHelpCalloutUpdates:
       "Latest updates shows only what changed in the latest saved refresh comparisons.",
     seniorHelpCalloutSetLineupAi:
-      "Set lineup using AI opens the two lineup modes for this match.",
+      "Set lineup using AI opens the four lineup modes for this match.",
     seniorHelpCalloutTrainingRegimen:
       "This dropdown lets you change the senior training regimen directly.",
     seniorHelpCalloutAnalyzeOpponent:
@@ -481,13 +483,13 @@ export const messagesEn: Messages = {
     seniorHelpBulletLatestUpdates:
       "A new Latest updates comparison is saved only when a refresh detects real changes (for example new players, ratings/skills updates, injuries, cards, form, stamina, or traits).",
     seniorHelpBulletAiOverview:
-      "Set lineup using AI applies the most effective lineup identified for a win from the Hattrick information currently available.",
+      "Set lineup using AI applies the most effective lineup identified from the Hattrick information currently available, including training-aware, ignore-training, extra-time, and fixed-formation modes.",
     seniorHelpBulletAiTrainingAware:
       "Training-aware mode respects the current training regimen and prioritizes lineups that cover the relevant training slots.",
     seniorHelpBulletAiIgnoreTraining:
       "Ignore-training mode optimizes for match effectiveness without training-slot constraints.",
     seniorHelpBulletAiMatchTypes:
-      "League and tournament matches target your strongest competitive setup. Friendlies use a second-best healthy XI.",
+      "Use Aim for extra time when you want a setup geared toward added training minutes in extra time, and use Optimize by formation when you want to lock a shape and let Alchemy choose the best lineup for it.",
     seniorHelpBulletTrainingRegimen:
       "You can change the senior training regimen directly from the lineup dropdown.",
     seniorHelpBulletAnalyzeOpponent:

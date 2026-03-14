@@ -273,6 +273,8 @@ export const messagesEs: Messages = {
       "La watchlist controla que equipos se siguen en cada panel.",
     clubChronicleHelpBulletControls:
       "Controles de cabecera: usa Actualizar para una carga completa, sigue el progreso con la barra de estado y mini barras por panel, usa Ultimas actualizaciones para diffs, la watchlist para gestionar equipos seguidos, y arrastra cabeceras de panel para reordenar el tablero.",
+    clubChronicleHelpBulletTabs:
+      "Las pestanas te ayudan a organizar distintos espacios de Chronicle. Cada pestana mantiene su propia watchlist y sus ultimas actualizaciones.",
     clubChronicleHelpBulletLeague:
       "Rendimiento en liga: tabla con posicion, puntos, serie, cambio de posicion y diferencia de goles. Haz clic en una fila para comparar anterior/actual por atributo.",
     clubChronicleHelpBulletPress:
@@ -502,7 +504,7 @@ export const messagesEs: Messages = {
     seniorHelpCalloutUpdates:
       "Ultimas actualizaciones muestra solo los cambios detectados en las comparaciones de refresco guardadas.",
     seniorHelpCalloutSetLineupAi:
-      "Definir alineacion con IA abre los dos modos de alineacion para este partido.",
+      "Definir alineacion con IA abre los cuatro modos de alineacion para este partido.",
     seniorHelpCalloutTrainingRegimen:
       "Este desplegable te permite cambiar directamente el regimen de entrenamiento senior.",
     seniorHelpCalloutAnalyzeOpponent:
@@ -510,13 +512,13 @@ export const messagesEs: Messages = {
     seniorHelpBulletLatestUpdates:
       "Solo se guarda una nueva comparacion cuando un refresco detecta cambios reales (por ejemplo, jugador nuevo, cambios de valoraciones/habilidades, lesiones, tarjetas, forma, resistencia o rasgos).",
     seniorHelpBulletAiOverview:
-      "Definir alineacion con IA aplica la alineacion mas efectiva identificada para ganar con la informacion de Hattrick disponible.",
+      "Definir alineacion con IA aplica la alineacion mas efectiva segun la informacion de Hattrick disponible, incluidos los modos con entrenamiento, sin entrenamiento, tiempo extra y formacion fija.",
     seniorHelpBulletAiTrainingAware:
       "Modo con entrenamiento: respeta el regimen de entrenamiento actual y prioriza alineaciones que cubren los puestos de entrenamiento relevantes.",
     seniorHelpBulletAiIgnoreTraining:
       "Modo sin entrenamiento: optimiza solo la efectividad del partido sin restricciones de puestos de entrenamiento.",
     seniorHelpBulletAiMatchTypes:
-      "Liga y torneo buscan la configuracion competitiva mas fuerte. En amistosos se usa un once sano de segundo nivel.",
+      "Usa Buscar prorroga cuando quieras una configuracion orientada a minutos extra de entrenamiento en la prorroga, y Optimizar por formacion cuando quieras fijar una forma y dejar que Alchemy elija la mejor alineacion para ella.",
     seniorHelpBulletTrainingRegimen:
       "El regimen de entrenamiento senior puede cambiarse directamente desde el desplegable de alineacion.",
     seniorHelpBulletAnalyzeOpponent:

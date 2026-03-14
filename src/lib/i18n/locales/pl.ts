@@ -33,6 +33,8 @@ export const messagesPl: Messages = {
   clubChronicleTabDeleteBody:
     "Ta karta Club Chronicle wraz z listą obserwowanych, najnowszymi aktualizacjami i stanem lokalnym zostanie usunięta. Tej operacji nie można cofnąć.",
   clubChronicleTabDeleteConfirm: "Usuń kartę",
+  clubChronicleHelpBulletTabs:
+    "Karty pomagają organizować różne przestrzenie Chronicle. Każda karta zachowuje własną listę obserwowanych i własne najnowsze aktualizacje.",
   feedbackTooltip: "Opinie",
   feedbackBug: "Zgłoś błąd",
   feedbackFeature: "Poproś o funkcję",
@@ -248,7 +250,7 @@ export const messagesPl: Messages = {
   seniorHelpCalloutUpdates:
     "Ostatnie aktualizacje pokazują tylko zmiany wykryte w zapisanych porównaniach odświeżeń.",
   seniorHelpCalloutSetLineupAi:
-    "Ustaw skład przez AI otwiera dwa tryby ustawiania składu dla tego meczu.",
+    "Ustaw skład przez AI otwiera cztery tryby ustawiania składu dla tego meczu.",
   seniorHelpCalloutTrainingRegimen:
     "To menu rozwijane pozwala bezpośrednio zmienić reżim treningowy seniorów.",
   seniorHelpCalloutAnalyzeOpponent:
@@ -256,13 +258,13 @@ export const messagesPl: Messages = {
   seniorHelpBulletLatestUpdates:
     "Nowe porównanie zapisywane jest tylko wtedy, gdy odświeżenie wykryje realne zmiany (np. nowy zawodnik, zmiany ocen/umiejętności, kontuzje, kartki, forma, kondycja lub cechy).",
   seniorHelpBulletAiOverview:
-    "Ustaw skład przez AI stosuje najbardziej efektywny skład wskazany na podstawie dostępnych danych Hattrick.",
+    "Ustaw skład przez AI dobiera najbardziej efektywny skład na podstawie dostępnych danych Hattrick, w tym tryby uwzględniające trening, ignorujące trening, pod dogrywkę i pod stałą formację.",
   seniorHelpBulletAiTrainingAware:
     "Tryb uwzględniający trening respektuje aktualny reżim treningowy i priorytetyzuje składy pokrywające odpowiednie sloty treningowe.",
   seniorHelpBulletAiIgnoreTraining:
     "Tryb ignorujący trening optymalizuje wyłącznie skuteczność meczową bez ograniczeń slotów treningowych.",
   seniorHelpBulletAiMatchTypes:
-    "Mecze ligowe i turniejowe celują w najsilniejsze ustawienie rywalizacyjne. Sparingi korzystają z drugiego najlepszego zdrowego składu XI.",
+    "Użyj opcji Celuj w dogrywkę, jeśli chcesz ustawienia pod dodatkowe minuty treningowe w dogrywce, a Optymalizuj według formacji, jeśli chcesz zablokować kształt i pozwolić Alchemy wybrać najlepszy skład.",
   seniorHelpBulletTrainingRegimen:
     "Reżim treningowy seniorów można zmienić bezpośrednio w aplikacji z poziomu rozwijanego menu składu.",
   seniorHelpBulletAnalyzeOpponent:

@@ -33,6 +33,8 @@ export const messagesNl: Messages = {
   clubChronicleTabDeleteBody:
     "Deze Club Chronicle-tab en de bijbehorende watchlist, laatste updates en lokale status worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
   clubChronicleTabDeleteConfirm: "Tab verwijderen",
+  clubChronicleHelpBulletTabs:
+    "Tabs helpen je verschillende Chronicle-werkruimtes te organiseren. Elke tab houdt zijn eigen watchlist en laatste updates bij.",
   feedbackTooltip: "Terugkoppeling",
   feedbackBug: "Bug melden",
   feedbackFeature: "Functie aanvragen",
@@ -254,7 +256,7 @@ export const messagesNl: Messages = {
   seniorHelpCalloutUpdates:
     "Laatste updates toont alleen gedetecteerde wijzigingen uit opgeslagen refresh-vergelijkingen.",
   seniorHelpCalloutSetLineupAi:
-    "Opstelling met AI zetten opent de twee opstellingsmodi voor deze wedstrijd.",
+    "Opstelling met AI zetten opent de vier opstellingsmodi voor deze wedstrijd.",
   seniorHelpCalloutTrainingRegimen:
     "Met deze dropdown kun je het trainingsregime van senioren direct wijzigen.",
   seniorHelpCalloutAnalyzeOpponent:
@@ -262,13 +264,13 @@ export const messagesNl: Messages = {
   seniorHelpBulletLatestUpdates:
     "Er wordt alleen een nieuwe vergelijking opgeslagen wanneer een refresh echte wijzigingen detecteert (bijvoorbeeld nieuwe speler, wijzigingen in ratings/skills, blessures, kaarten, vorm, conditie of eigenschappen).",
   seniorHelpBulletAiOverview:
-    "Opstelling met AI zetten gebruikt de meest effectieve opstelling voor winst op basis van de beschikbare Hattrick-informatie.",
+    "Opstelling met AI zetten gebruikt op basis van de beschikbare Hattrick-informatie de meest effectieve opstelling, inclusief trainingsbewuste, training-negerende, verlengings- en vaste-formaties modi.",
   seniorHelpBulletAiTrainingAware:
     "Trainingsbewuste modus houdt rekening met het huidige trainingsregime en prioriteert opstellingen die de relevante trainingsslots vullen.",
   seniorHelpBulletAiIgnoreTraining:
     "Training negeren optimaliseert alleen voor wedstrijdeffectiviteit zonder trainingsslotbeperkingen.",
   seniorHelpBulletAiMatchTypes:
-    "Competitie- en toernooiwedstrijden mikken op de sterkste competitieve opstelling. Vriendschappelijke wedstrijden gebruiken een tweede beste gezonde XI.",
+    "Gebruik Mik op verlenging als je een opstelling wilt die gericht is op extra trainingsminuten in de verlenging, en Optimaliseer op formatie als je een formatie wilt vastzetten en Alchemy de beste opstelling wilt laten kiezen.",
   seniorHelpBulletTrainingRegimen:
     "Het trainingsregime van senioren kan direct in de app worden aangepast via de opstellingsdropdown.",
   seniorHelpBulletAnalyzeOpponent:

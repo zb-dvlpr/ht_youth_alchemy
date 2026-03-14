@@ -272,6 +272,8 @@ export const messagesFr: Messages = {
       "La watchlist controle quelles equipes sont suivies dans chaque panneau.",
     clubChronicleHelpBulletControls:
       "Commandes d en-tete : utilisez Actualiser pour un passage complet, suivez la progression via la barre d etat et les mini-barres de panneau, utilisez Dernieres mises a jour pour les diffs, la watchlist pour gerer les equipes suivies, et faites glisser les en-tetes de panneau pour reordonner le tableau de bord.",
+    clubChronicleHelpBulletTabs:
+      "Les onglets vous aident a organiser plusieurs espaces Chronicle. Chaque onglet conserve sa propre watchlist et ses propres dernieres mises a jour.",
     clubChronicleHelpBulletLeague:
       "Performance en ligue : tableau position, points, serie, variation de position et difference de buts. Cliquez une ligne pour la comparaison precedent/courant par attribut.",
     clubChronicleHelpBulletPress:
@@ -502,7 +504,7 @@ export const messagesFr: Messages = {
     seniorHelpCalloutUpdates:
       "Dernieres mises a jour affiche uniquement les changements detectes dans les comparaisons enregistrees.",
     seniorHelpCalloutSetLineupAi:
-      "Definir la composition avec IA ouvre les deux modes de composition pour ce match.",
+      "Definir la composition avec IA ouvre les quatre modes de composition pour ce match.",
     seniorHelpCalloutTrainingRegimen:
       "Ce menu deroulant permet de modifier directement le regime d entrainement senior.",
     seniorHelpCalloutAnalyzeOpponent:
@@ -510,13 +512,13 @@ export const messagesFr: Messages = {
     seniorHelpBulletLatestUpdates:
       "Une nouvelle comparaison est enregistree uniquement quand un rafraichissement detecte de vrais changements (nouveau joueur, notes/competences, blessures, cartons, forme, endurance ou traits).",
     seniorHelpBulletAiOverview:
-      "Definir la composition avec IA applique la composition la plus efficace identifiee pour gagner a partir des informations Hattrick disponibles.",
+      "Definir la composition avec IA applique la composition la plus efficace selon les informations Hattrick disponibles, y compris les modes avec entrainement, sans entrainement, prolongation et formation fixe.",
     seniorHelpBulletAiTrainingAware:
       "Mode avec entrainement: respecte le regime d entrainement actuel et privilegie les compositions qui couvrent les postes d entrainement concernes.",
     seniorHelpBulletAiIgnoreTraining:
       "Mode sans entrainement: optimise uniquement l efficacite du match sans contrainte des postes d entrainement.",
     seniorHelpBulletAiMatchTypes:
-      "Les matchs de ligue et de tournoi visent la meilleure configuration competitive. Les amicaux utilisent un onze sain de second niveau.",
+      "Utilisez Viser la prolongation si vous voulez une configuration orientee vers des minutes d entrainement supplementaires en prolongation, et Optimiser par formation si vous voulez verrouiller une structure et laisser Alchemy choisir la meilleure composition.",
     seniorHelpBulletTrainingRegimen:
       "Le regime d entrainement senior peut etre modifie directement depuis le menu deroulant de composition.",
     seniorHelpBulletAnalyzeOpponent:

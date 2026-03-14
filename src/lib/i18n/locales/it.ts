@@ -273,6 +273,8 @@ export const messagesIt: Messages = {
       "La watchlist controlla quali squadre vengono tracciate in ogni pannello.",
     clubChronicleHelpBulletControls:
       "Controlli header: usa Aggiorna per un passaggio completo dei dati, monitora il progresso con barra di stato e mini barre per pannello, usa Ultimi aggiornamenti per i diff, la watchlist per gestire le squadre tracciate e trascina le intestazioni pannello per riordinare la dashboard.",
+    clubChronicleHelpBulletTabs:
+      "Le schede ti aiutano a organizzare diversi spazi Chronicle. Ogni scheda mantiene la propria watchlist e i propri ultimi aggiornamenti.",
     clubChronicleHelpBulletLeague:
       "Prestazioni in lega: tabella con posizione, punti, serie, variazione posizione e differenza reti. Clicca una riga per il confronto precedente/corrente per attributo.",
     clubChronicleHelpBulletPress:
@@ -503,7 +505,7 @@ export const messagesIt: Messages = {
     seniorHelpCalloutUpdates:
       "Ultimi aggiornamenti mostra solo le differenze rilevate nei confronti salvati.",
     seniorHelpCalloutSetLineupAi:
-      "Imposta formazione con IA apre le due modalita per questa partita.",
+      "Imposta formazione con IA apre le quattro modalita per questa partita.",
     seniorHelpCalloutTrainingRegimen:
       "Questo menu a discesa consente di cambiare direttamente il regime di allenamento senior.",
     seniorHelpCalloutAnalyzeOpponent:
@@ -511,13 +513,13 @@ export const messagesIt: Messages = {
     seniorHelpBulletLatestUpdates:
       "Un nuovo confronto viene salvato solo quando un refresh rileva cambiamenti reali (per esempio nuovo giocatore, cambi di rating/skill, infortuni, cartellini, forma, resistenza o tratti).",
     seniorHelpBulletAiOverview:
-      "Imposta formazione con IA applica la formazione piu efficace identificata per vincere in base alle informazioni Hattrick disponibili.",
+      "Imposta formazione con IA applica la formazione piu efficace in base alle informazioni Hattrick disponibili, incluse le modalita con allenamento, ignora allenamento, tempi supplementari e formazione fissa.",
     seniorHelpBulletAiTrainingAware:
       "Modalita con allenamento: rispetta il regime di allenamento corrente e privilegia formazioni che coprono gli slot di allenamento rilevanti.",
     seniorHelpBulletAiIgnoreTraining:
       "Modalita ignora allenamento: ottimizza solo l efficacia partita senza vincoli sugli slot di allenamento.",
     seniorHelpBulletAiMatchTypes:
-      "Campionato e tornei puntano alla configurazione competitiva piu forte. Le amichevoli usano un undici sano di secondo livello.",
+      "Usa Punta ai supplementari se vuoi una configurazione orientata a minuti extra di allenamento nei supplementari, e Ottimizza per formazione se vuoi bloccare un modulo e lasciare ad Alchemy la scelta della formazione migliore.",
     seniorHelpBulletTrainingRegimen:
       "Il regime di allenamento senior puo essere cambiato direttamente dall app tramite il menu a discesa della formazione.",
     seniorHelpBulletAnalyzeOpponent:

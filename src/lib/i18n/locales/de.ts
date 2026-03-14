@@ -265,6 +265,8 @@ export const messagesDe: Messages = {
       "Die Watchlist steuert, welche Teams in allen Panels verfolgt werden.",
     clubChronicleHelpBulletControls:
       "Kopfbereich: Aktualisieren startet einen vollen Datenlauf; Fortschritt ueber Statusleiste und Mini-Balken je Panel; Neueste Updates zeigt Diffs; Watchlist verwaltet verfolgte Teams; Panel-Header lassen sich zum Umordnen ziehen.",
+    clubChronicleHelpBulletTabs:
+      "Tabs helfen dir, verschiedene Chronicle-Arbeitsbereiche zu organisieren. Jeder Tab behaelt seine eigene Watchlist und seine eigenen neuesten Updates.",
     clubChronicleHelpBulletLeague:
       "Ligaleistung: Tabelle mit Position, Punkten, Serie, Positionsaenderung und Tordifferenz. Klick auf eine Zeile zeigt den Vorher/Nachher-Vergleich auf Attributebene.",
     clubChronicleHelpBulletPress:
@@ -494,7 +496,7 @@ export const messagesDe: Messages = {
     seniorHelpCalloutUpdates:
       "Letzte Updates zeigt nur Änderungen aus den zuletzt gespeicherten Refresh-Vergleichen.",
     seniorHelpCalloutSetLineupAi:
-      "Aufstellung per KI setzen öffnet die zwei Aufstellungsmodi für dieses Match.",
+      "Aufstellung per KI setzen öffnet die vier Aufstellungsmodi für dieses Match.",
     seniorHelpCalloutTrainingRegimen:
       "Über dieses Dropdown kannst du das Trainingsregime der Senioren direkt ändern.",
     seniorHelpCalloutAnalyzeOpponent:
@@ -502,13 +504,13 @@ export const messagesDe: Messages = {
     seniorHelpBulletLatestUpdates:
       "Ein neuer Vergleich wird nur gespeichert, wenn ein Refresh echte Änderungen erkennt (z. B. neue Spieler, Ratings-/Skill-Änderungen, Verletzungen, Karten, Form, Kondition oder Merkmale).",
     seniorHelpBulletAiOverview:
-      "Aufstellung per KI setzen verwendet die nach den verfügbaren Hattrick-Daten effektivste Aufstellung für einen Sieg.",
+      "Aufstellung per KI setzen nutzt anhand der verfügbaren Hattrick-Daten die effektivste Aufstellung, einschließlich trainingsbezogener, training-ignorierender, Verlängerungs- und fester Formationsmodi.",
     seniorHelpBulletAiTrainingAware:
       "Modus Trainingsbezogen berücksichtigt das aktuelle Trainingsschema und priorisiert Aufstellungen mit den relevanten Trainingsslots.",
     seniorHelpBulletAiIgnoreTraining:
       "Modus Training ignorieren optimiert rein auf Match-Effektivität ohne Trainingsslot-Beschränkung.",
     seniorHelpBulletAiMatchTypes:
-      "Liga- und Turnierspiele nutzen die stärkste Wettbewerbsaufstellung. Freundschaftsspiele nutzen eine zweitbeste gesunde XI.",
+      "Nutze Auf Verlängerung spielen, wenn du auf zusätzliche Trainingsminuten in der Verlängerung abzielst, und Optimieren nach Formation, wenn du eine Formation fest vorgeben und die beste Aufstellung dafür wählen lassen willst.",
     seniorHelpBulletTrainingRegimen:
       "Das Trainingsregime der Senioren kann direkt in der App über das Aufstellungs-Dropdown geändert werden.",
     seniorHelpBulletAnalyzeOpponent:

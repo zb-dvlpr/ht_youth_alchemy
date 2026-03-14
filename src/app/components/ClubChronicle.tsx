@@ -10164,6 +10164,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             <p className={styles.helpIntro}>{messages.clubChronicleHelpIntro}</p>
             <ul className={styles.helpList}>
               <li>{messages.clubChronicleHelpBulletControls}</li>
+              <li>{messages.clubChronicleHelpBulletTabs}</li>
               <li>{messages.clubChronicleHelpBulletLeague}</li>
               <li>{messages.clubChronicleHelpBulletPress}</li>
               <li>{messages.clubChronicleHelpBulletFinance}</li>

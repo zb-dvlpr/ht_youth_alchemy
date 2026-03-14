@@ -46,6 +46,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_3_7_0:
+      "Seniorlagets AI-optimering har nu ett läge för fast formation som provar alla taktiker och väljer den bästa.",
     changelog_1_19_0: "Stöd för flera lag.",
     changelog_1_21_0: "Inställningar: export/import av lokala säkerhetskopior.",
     changelog_1_22_0: "Auto‑val av träning vid manuell stjärnändring.",
@@ -717,6 +719,16 @@ export const messagesSv: Messages = {
       "Spela för oavgjort för att få extra träning.",
     setBestLineupAimForExtraTimeDisabledTooltip:
       "Endast tillgängligt för kval, cup och vänskapsmatcher med cupregler.",
+    setBestLineupOptimizeByFormation: "Optimera efter {{formation}}",
+    setBestLineupOptimizeByFormationTooltip:
+      "Lås först formationen, tilldela de högst bedömda spelarna för den och prova sedan alla taktiker för att behålla det bästa resultatet.",
+    setBestLineupOptimizeByFormationDisabledTooltip:
+      "Välj en formation först.",
+    setBestLineupOptimizeByFormationUnavailable:
+      "Det gick inte att bygga en komplett laguppställning för den formationen med tillgängliga spelare.",
+    setBestLineupOptimizeByFormationApply: "Tillämpa formationsoptimering",
+    seniorFixedFormationTotalRatingsLabel: "Totala betyg",
+    seniorFixedFormationWeightedSumLabel: "Viktad summa",
     seniorExtraTimeModalTitle: "Varför sikta på förlängning?",
     seniorExtraTimeModalLead:
       "För att förlängning kan ge extra träningsminuter.",

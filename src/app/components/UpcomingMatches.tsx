@@ -93,7 +93,8 @@ type UpcomingMatchesProps = {
   onSetBestLineup?: (matchId: number) => void | Promise<void>;
   onSetBestLineupMode?: (
     matchId: number,
-    mode: SetBestLineupMode
+    mode: SetBestLineupMode,
+    fixedFormation?: string | null
   ) => void | Promise<void>;
   onAnalyzeOpponent?: (matchId: number) => void | Promise<void>;
   loadedMatchId?: number | null;
@@ -108,9 +109,16 @@ type UpcomingMatchesProps = {
   setBestLineupHelpAnchor?: string;
   showExtraTimeSetBestLineupMode?: boolean;
   keepBestLineupMenuTopmost?: boolean;
+  fixedFormationOptions?: string[];
+  selectedFixedFormation?: string | null;
+  onSelectedFixedFormationChange?: (formation: string | null) => void;
 };
 
-export type SetBestLineupMode = "trainingAware" | "ignoreTraining" | "extraTime";
+export type SetBestLineupMode =
+  | "trainingAware"
+  | "ignoreTraining"
+  | "extraTime"
+  | "fixedFormation";
 
 const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
 const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
@@ -296,10 +304,17 @@ type SetBestLineupMenuButtonProps = {
   matchId: number;
   loading: boolean;
   messages: Messages;
-  onSelectMode: (matchId: number, mode: SetBestLineupMode) => void;
+  onSelectMode: (
+    matchId: number,
+    mode: SetBestLineupMode,
+    fixedFormation?: string | null
+  ) => void;
   helpAnchor?: string;
   showExtraTimeMode?: boolean;
   extraTimeModeEnabled?: boolean;
+  fixedFormationOptions?: string[];
+  selectedFixedFormation?: string | null;
+  onSelectedFixedFormationChange?: (formation: string | null) => void;
 };
 
 function SetBestLineupMenuButton({
@@ -310,10 +325,16 @@ function SetBestLineupMenuButton({
   helpAnchor,
   showExtraTimeMode = false,
   extraTimeModeEnabled = false,
+  fixedFormationOptions = [],
+  selectedFixedFormation = null,
+  onSelectedFixedFormationChange,
 }: SetBestLineupMenuButtonProps) {
   const [open, setOpen] = useState(false);
+  const [fixedFormationMenuOpen, setFixedFormationMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const fixedFormationButtonRef = useRef<HTMLButtonElement | null>(null);
+  const fixedFormationMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -321,11 +342,23 @@ function SetBestLineupMenuButton({
       const target = event.target as Node | null;
       if (triggerRef.current?.contains(target ?? null)) return;
       if (menuRef.current?.contains(target ?? null)) return;
+      if (fixedFormationButtonRef.current?.contains(target ?? null)) return;
+      if (fixedFormationMenuRef.current?.contains(target ?? null)) return;
       setOpen(false);
+      setFixedFormationMenuOpen(false);
     };
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
   }, [open]);
+
+  const fixedFormationTemplate = messages.setBestLineupOptimizeByFormation.replace(
+    "{{formation}}",
+    "__FORMATION__"
+  );
+  const [fixedFormationPrefix, fixedFormationSuffix = ""] =
+    fixedFormationTemplate.split("__FORMATION__");
+  const fixedFormationInlineLabel = selectedFixedFormation ?? "?";
+  const fixedFormationDisabled = !selectedFixedFormation;
 
   const trigger = (
     <button
@@ -398,6 +431,86 @@ function SetBestLineupMenuButton({
               </button>
             </Tooltip>
           ) : null}
+          <Tooltip
+            content={
+              fixedFormationMenuOpen
+                ? ""
+                : fixedFormationDisabled
+                  ? messages.setBestLineupOptimizeByFormationDisabledTooltip
+                  : messages.setBestLineupOptimizeByFormationTooltip
+            }
+            fullWidth
+          >
+            <span className={styles.optimizeMenuCustomWrap}>
+              <span className={styles.optimizeMenuCustomLabel}>
+                {fixedFormationPrefix}
+                <span className={styles.optimizeMenuInlinePickerWrap}>
+                  <button
+                    ref={fixedFormationButtonRef}
+                    type="button"
+                    className={styles.optimizeMenuInlinePicker}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setFixedFormationMenuOpen((current) => !current);
+                    }}
+                    aria-haspopup="menu"
+                    aria-expanded={fixedFormationMenuOpen}
+                    disabled={fixedFormationOptions.length === 0}
+                  >
+                    <span className={styles.optimizeMenuInlinePickerText}>
+                      {fixedFormationInlineLabel}
+                    </span>
+                    <span className={styles.optimizeMenuInlinePickerChevron}>⌄</span>
+                  </button>
+                  {fixedFormationMenuOpen && fixedFormationOptions.length ? (
+                    <div
+                      ref={fixedFormationMenuRef}
+                      className={`${styles.feedbackMenu} ${styles.optimizeMenuInlinePickerMenu}`}
+                      role="menu"
+                    >
+                      {fixedFormationOptions.map((formation) => (
+                        <button
+                          key={formation}
+                          type="button"
+                          role="menuitem"
+                          className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                            selectedFixedFormation === formation
+                              ? styles.optimizeMenuInlinePickerOptionActive
+                              : ""
+                          }`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onSelectedFixedFormationChange?.(formation);
+                            setFixedFormationMenuOpen(false);
+                          }}
+                        >
+                          {formation}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </span>
+                {fixedFormationSuffix}
+              </span>
+              <div className={styles.optimizeMenuCustomControls}>
+                <button
+                  type="button"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuActionButton} ${
+                    fixedFormationDisabled ? styles.optimizeMenuItemDisabled : ""
+                  }`}
+                  onClick={() => {
+                    if (!selectedFixedFormation) return;
+                    setOpen(false);
+                    setFixedFormationMenuOpen(false);
+                    onSelectMode(matchId, "fixedFormation", selectedFixedFormation);
+                  }}
+                  disabled={fixedFormationDisabled}
+                >
+                  {messages.setBestLineupOptimizeByFormationApply}
+                </button>
+              </div>
+            </span>
+          </Tooltip>
         </div>
       ) : null}
     </div>
@@ -416,14 +529,21 @@ function renderMatch(
   updatedLabel?: string | null,
   loadState?: LoadState,
   onLoadLineup?: (matchId: number) => void,
-  onSetBestLineupMode?: (matchId: number, mode: SetBestLineupMode) => void,
+  onSetBestLineupMode?: (
+    matchId: number,
+    mode: SetBestLineupMode,
+    fixedFormation?: string | null
+  ) => void,
   onAnalyzeOpponent?: (matchId: number) => void,
   bestLineupPending?: boolean,
   analyzePending?: boolean,
   isLoaded?: boolean,
   assignedCount?: number,
   setBestLineupHelpAnchor?: string,
-  showExtraTimeSetBestLineupMode?: boolean
+  showExtraTimeSetBestLineupMode?: boolean,
+  fixedFormationOptions?: string[],
+  selectedFixedFormation?: string | null,
+  onSelectedFixedFormationChange?: (formation: string | null) => void
 ) {
   const isUpcoming = match.Status === "UPCOMING";
   const canSubmit = Boolean(teamId) && isUpcoming && hasLineup;
@@ -530,6 +650,9 @@ function renderMatch(
             helpAnchor={setBestLineupHelpAnchor}
             showExtraTimeMode={showExtraTimeSetBestLineupMode}
             extraTimeModeEnabled={extraTimeModeEnabled}
+            fixedFormationOptions={fixedFormationOptions}
+            selectedFixedFormation={selectedFixedFormation}
+            onSelectedFixedFormationChange={onSelectedFixedFormationChange}
           />
         </div>
       ) : null}
@@ -656,6 +779,9 @@ export default function UpcomingMatches({
   setBestLineupHelpAnchor,
   showExtraTimeSetBestLineupMode = false,
   keepBestLineupMenuTopmost = false,
+  fixedFormationOptions = [],
+  selectedFixedFormation = null,
+  onSelectedFixedFormationChange,
 }: UpcomingMatchesProps) {
   const { addNotification } = useNotifications();
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
@@ -881,14 +1007,15 @@ export default function UpcomingMatches({
 
   const handleSetBestLineupMode = async (
     matchId: number,
-    mode: SetBestLineupMode
+    mode: SetBestLineupMode,
+    fixedFormation?: string | null
   ) => {
     if (bestLineupPendingMatchId !== null) return;
     if (!onSetBestLineupMode && !onSetBestLineup) return;
     setBestLineupPendingMatchId(matchId);
     try {
       if (onSetBestLineupMode) {
-        await onSetBestLineupMode(matchId, mode);
+        await onSetBestLineupMode(matchId, mode, fixedFormation);
       } else if (onSetBestLineup) {
         await onSetBestLineup(matchId);
       }
@@ -1117,7 +1244,10 @@ export default function UpcomingMatches({
               loadedMatchId === matchId,
               assignedCount,
               index === 0 ? setBestLineupHelpAnchor : undefined,
-              showExtraTimeSetBestLineupMode
+              showExtraTimeSetBestLineupMode,
+              fixedFormationOptions,
+              selectedFixedFormation,
+              onSelectedFixedFormationChange
             );
           })}
         </ul>
@@ -1151,7 +1281,10 @@ export default function UpcomingMatches({
                 loadedMatchId === matchId,
                 assignedCount,
                 index === 0 ? setBestLineupHelpAnchor : undefined,
-                showExtraTimeSetBestLineupMode
+                showExtraTimeSetBestLineupMode,
+                fixedFormationOptions,
+                selectedFixedFormation,
+                onSelectedFixedFormationChange
               );
             })}
           </ul>

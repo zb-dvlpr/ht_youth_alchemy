@@ -46,6 +46,8 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    changelog_3_7_0:
+      "A otimização IA senior agora inclui um modo de formação fixa que testa todas as táticas e escolhe a melhor.",
     changelog_1_19_0: "Suporte a vários times.",
     changelog_1_21_0: "Configurações: exportação/importação de backups locais.",
     changelog_1_22_0: "Seleção automática do treino ao mudar a estrela.",
@@ -726,6 +728,16 @@ export const messagesPt: Messages = {
       "Jogue pelo empate para ganhar treino extra.",
     setBestLineupAimForExtraTimeDisabledTooltip:
       "Disponível apenas para Qualificação, Copa e amistosos com regras de copa.",
+    setBestLineupOptimizeByFormation: "Otimizar por {{formation}}",
+    setBestLineupOptimizeByFormationTooltip:
+      "Fixa primeiro a formação, atribui-lhe os jogadores com melhor classificação e depois testa todas as táticas para ficar com o melhor resultado.",
+    setBestLineupOptimizeByFormationDisabledTooltip:
+      "Seleciona primeiro uma formação.",
+    setBestLineupOptimizeByFormationUnavailable:
+      "Não foi possível montar uma equipe completa para essa formação com os jogadores disponíveis.",
+    setBestLineupOptimizeByFormationApply: "Aplicar otimização de formação",
+    seniorFixedFormationTotalRatingsLabel: "Ratings totais",
+    seniorFixedFormationWeightedSumLabel: "Soma ponderada",
     seniorExtraTimeModalTitle: "Por que mirar a prorrogação?",
     seniorExtraTimeModalLead:
       "Porque a prorrogação pode render minutos extras de treino.",

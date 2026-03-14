@@ -49,6 +49,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_3_7_0:
+    "Senior AI dodaje optymalizację pod stałą formację, która testuje wszystkie taktyki i wybiera najlepszą.",
   refresh: "Odśwież",
   refreshTooltip: "Odśwież dane juniorów",
   refreshAllYouthDataTooltip: "Odśwież wszystkie dane juniorów.",
@@ -163,6 +165,16 @@ export const messagesPl: Messages = {
     "Gra na remis, aby zyskać dodatkowy trening.",
   setBestLineupAimForExtraTimeDisabledTooltip:
     "Dostępne tylko dla Baraży, Pucharu i sparingów z zasadami pucharowymi.",
+  setBestLineupOptimizeByFormation: "Optymalizuj pod {{formation}}",
+  setBestLineupOptimizeByFormationTooltip:
+    "Najpierw zablokuj formację, przypisz do niej najlepiej ocenianych zawodników, a potem przetestuj wszystkie taktyki i zachowaj najlepszy wynik.",
+  setBestLineupOptimizeByFormationDisabledTooltip:
+    "Najpierw wybierz formację.",
+  setBestLineupOptimizeByFormationUnavailable:
+    "Nie udało się zbudować pełnego składu dla tej formacji z dostępnych zawodników.",
+  setBestLineupOptimizeByFormationApply: "Zastosuj optymalizację formacji",
+  seniorFixedFormationTotalRatingsLabel: "Suma ocen",
+  seniorFixedFormationWeightedSumLabel: "Suma ważona",
   seniorExtraTimeModalTitle: "Dlaczego warto grać pod dogrywkę?",
   seniorExtraTimeModalLead:
     "Bo dogrywka może dać dodatkowe minuty treningowe.",

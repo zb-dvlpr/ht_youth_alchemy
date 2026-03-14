@@ -55,6 +55,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_3_7_0: string;
   changelog_1_19_0: string;
   changelog_1_21_0: string;
   changelog_1_22_0: string;
@@ -604,6 +605,13 @@ export type Messages = {
   setBestLineupAimForExtraTime: string;
   setBestLineupAimForExtraTimeTooltip: string;
   setBestLineupAimForExtraTimeDisabledTooltip: string;
+  setBestLineupOptimizeByFormation: string;
+  setBestLineupOptimizeByFormationTooltip: string;
+  setBestLineupOptimizeByFormationDisabledTooltip: string;
+  setBestLineupOptimizeByFormationUnavailable: string;
+  setBestLineupOptimizeByFormationApply: string;
+  seniorFixedFormationTotalRatingsLabel: string;
+  seniorFixedFormationWeightedSumLabel: string;
   seniorExtraTimeModalTitle: string;
   seniorExtraTimeModalLead: string;
   seniorExtraTimeModalTrainingLimit: string;

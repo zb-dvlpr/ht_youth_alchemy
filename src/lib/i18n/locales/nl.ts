@@ -55,6 +55,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_3_7_0:
+    "De senior AI-opstelling heeft nu een optimalisatie voor een vaste formatie die alle tactieken test en de beste kiest.",
   refresh: "Vernieuwen",
   refreshTooltip: "Jeugdgegevens vernieuwen",
   refreshAllYouthDataTooltip: "Alle jeugdgegevens vernieuwen.",
@@ -169,6 +171,16 @@ export const messagesNl: Messages = {
     "Speel voor een gelijkspel om extra training te krijgen.",
   setBestLineupAimForExtraTimeDisabledTooltip:
     "Alleen beschikbaar voor kwalificatie, beker en vriendschappelijke wedstrijden met bekerregels.",
+  setBestLineupOptimizeByFormation: "Optimaliseer op {{formation}}",
+  setBestLineupOptimizeByFormationTooltip:
+    "Zet eerst de formatie vast, wijs daarna de best beoordeelde spelers toe en test vervolgens alle tactieken om de beste uitkomst te houden.",
+  setBestLineupOptimizeByFormationDisabledTooltip:
+    "Kies eerst een formatie.",
+  setBestLineupOptimizeByFormationUnavailable:
+    "Met de beschikbare spelers kon voor die formatie geen volledige opstelling worden gemaakt.",
+  setBestLineupOptimizeByFormationApply: "Formatie-optimalisatie toepassen",
+  seniorFixedFormationTotalRatingsLabel: "Totale ratings",
+  seniorFixedFormationWeightedSumLabel: "Gewogen som",
   seniorExtraTimeModalTitle: "Waarom richten op verlenging?",
   seniorExtraTimeModalLead:
     "Omdat verlenging extra trainingsminuten kan opleveren.",

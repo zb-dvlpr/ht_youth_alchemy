@@ -403,6 +403,12 @@ type GeneratedFormationRow = {
   error: string | null;
 };
 
+type FixedFormationTacticRow = {
+  tacticType: number;
+  predicted: PredictedRatings | null;
+  error: string | null;
+};
+
 type CollectiveRatings = {
   midfield: number;
   defense: number;
@@ -427,6 +433,21 @@ type OpponentFormationRow = {
   ratingMidAtt: number | null;
   ratingLeftAtt: number | null;
 };
+
+const FIXED_FORMATION_OPTIONS = [
+  "5-5-0",
+  "5-4-1",
+  "5-3-2",
+  "5-2-3",
+  "4-5-1",
+  "4-4-2",
+  "4-3-3",
+  "3-5-2",
+  "3-4-3",
+  "2-5-3",
+] as const;
+
+const AI_TACTIC_OPTIONS = [0, 1, 2, 3, 4, 7, 8] as const;
 
 type FormationTacticsDistribution = {
   key: string;
@@ -1201,6 +1222,38 @@ const generateFormationShapes = () => {
   );
 };
 
+const parseFormationShape = (formation: string) => {
+  const [defendersRaw, midfieldersRaw, attackersRaw] = formation
+    .split("-")
+    .map((value) => Number(value));
+  if (
+    !Number.isFinite(defendersRaw) ||
+    !Number.isFinite(midfieldersRaw) ||
+    !Number.isFinite(attackersRaw)
+  ) {
+    return null;
+  }
+  const defenders = Math.trunc(defendersRaw);
+  const midfielders = Math.trunc(midfieldersRaw);
+  const attackers = Math.trunc(attackersRaw);
+  if (defenders + midfielders + attackers !== 10) return null;
+  return { defenders, midfielders, attackers };
+};
+
+const occupiedSlotsForFormationShape = (shape: {
+  defenders: number;
+  midfielders: number;
+  attackers: number;
+}) => {
+  const defenseSlots = DEFENSE_FORMATION_MAP[shape.defenders] ?? [];
+  return [
+    "KP",
+    ...defenseSlots,
+    ...(MIDFIELD_FORMATION_MAP[shape.midfielders] ?? []),
+    ...(ATTACK_FORMATION_MAP[shape.attackers] ?? []),
+  ];
+};
+
 const buildLineupPayload = (
   assignments: LineupAssignments,
   tacticType: number,
@@ -1260,6 +1313,12 @@ const toCollectiveRatings = (ratings: PredictedRatings): CollectiveRatings => {
     overall: midfield + defense + attack,
   };
 };
+
+const fixedFormationTacticWeightedScore = (collective: CollectiveRatings) =>
+  collective.overall +
+  collective.attack / 100 +
+  collective.defense / 10_000 +
+  collective.midfield / 1_000_000;
 
 const trainingAwareShapeAllowed = (
   shape: { defenders: number; midfielders: number; attackers: number },
@@ -1489,6 +1548,9 @@ export default function SeniorDashboard({
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [tacticType, setTacticType] = useState(0);
   const [trainingType, setTrainingType] = useState<number | null>(null);
+  const [setBestLineupFixedFormation, setSetBestLineupFixedFormation] = useState<
+    string | null
+  >(null);
   const [trainingTypeSetPending, setTrainingTypeSetPending] = useState(false);
   const [trainingTypeSetPendingValue, setTrainingTypeSetPendingValue] = useState<number | null>(
     null
@@ -1551,10 +1613,13 @@ export default function SeniorDashboard({
   const [dataRestored, setDataRestored] = useState(false);
   const [opponentFormationsModal, setOpponentFormationsModal] = useState<{
     title: string;
+    mode: SetBestLineupMode;
     opponentRows: OpponentFormationRow[];
     chosenFormation: string | null;
     chosenFormationAverages: OpponentFormationAverages | null;
     generatedRows: GeneratedFormationRow[];
+    fixedFormation: string | null;
+    fixedFormationTacticRows: FixedFormationTacticRow[];
     selectedGeneratedFormation: string | null;
     selectedGeneratedTactic: number | null;
     selectedRejectedPlayerIds: number[];
@@ -6592,7 +6657,8 @@ const refreshDetailsForPlayers = async (
 
   const runSetBestLineupPredictRatings = async (
     matchId: number,
-    mode: SetBestLineupMode
+    mode: SetBestLineupMode,
+    fixedFormationOverride?: string | null
   ) => {
     try {
       const opponentContext = await fetchOpponentFormationRowsForMatch(matchId);
@@ -6602,10 +6668,13 @@ const refreshDetailsForPlayers = async (
       if (showSetBestLineupDebugModal) {
         setOpponentFormationsModal({
           title: `${messages.setBestLineup} · ${opponentName}`,
+          mode,
           opponentRows: [],
           chosenFormation: null,
           chosenFormationAverages: null,
           generatedRows: [],
+          fixedFormation: fixedFormationOverride ?? null,
+          fixedFormationTacticRows: [],
           selectedGeneratedFormation: null,
           selectedGeneratedTactic: null,
           selectedRejectedPlayerIds: [],
@@ -6756,130 +6825,158 @@ const refreshDetailsForPlayers = async (
         Object.values(assignmentsForFormation).filter(
           (id): id is number => typeof id === "number" && id > 0
         ).length;
-
-      const baseRows = generateFormationShapes()
-        .map((shape) => {
-          if (
-            mode === "trainingAware" &&
-            !trainingAwareShapeAllowed(shape, activeTrainingType)
-          ) {
+      const buildBaseRowForShape = (shape: {
+        defenders: number;
+        midfielders: number;
+        attackers: number;
+      }) => {
+        if (
+          mode === "trainingAware" &&
+          !trainingAwareShapeAllowed(shape, activeTrainingType)
+        ) {
+          return null;
+        }
+        const occupiedSlots = occupiedSlotsForFormationShape(shape);
+        if (mode === "trainingAware") {
+          const requiredSlots = requiredTrainableSlots(activeTrainingType);
+          if (requiredSlots.some((slot) => !occupiedSlots.includes(slot))) {
             return null;
-          }
-          const defenseSlots = DEFENSE_FORMATION_MAP[shape.defenders] ?? [];
-          const occupiedSlots = [
-            "KP",
-            ...defenseSlots,
-            ...(MIDFIELD_FORMATION_MAP[shape.midfielders] ?? []),
-            ...(ATTACK_FORMATION_MAP[shape.attackers] ?? []),
-          ];
-          if (mode === "trainingAware") {
-            const requiredSlots = requiredTrainableSlots(activeTrainingType);
-            if (requiredSlots.some((slot) => !occupiedSlots.includes(slot))) {
-              return null;
-            }
-          }
-          const orderedSlots = orderFormationSlotsForTraining(
-            occupiedSlots,
-            mode === "trainingAware" ? activeTrainingType : null
-          );
-          const firstPass = buildAssignmentsForOrderedSlots(orderedSlots);
-          let resolvedPass = isFriendlyTarget
-            ? buildAssignmentsForOrderedSlots(orderedSlots, firstPass.usedPlayerIds)
-            : firstPass;
-          if (isFriendlyTarget && assignmentCount(resolvedPass.assignments) < 11) {
-            const mergedAssignments: LineupAssignments = { ...resolvedPass.assignments };
-            const mergedSlotRatings: Record<string, number | null> = { ...resolvedPass.slotRatings };
-            const usedMerged = new Set<number>(
-              Object.values(mergedAssignments).filter(
-                (id): id is number => typeof id === "number" && id > 0
-              )
-            );
-            orderedSlots.forEach((slot) => {
-              if (mergedAssignments[slot]) return;
-              const firstPassPlayerId = firstPass.assignments[slot];
-              if (!firstPassPlayerId || usedMerged.has(firstPassPlayerId)) return;
-              mergedAssignments[slot] = firstPassPlayerId;
-              mergedSlotRatings[slot] = firstPass.slotRatings[slot] ?? null;
-              usedMerged.add(firstPassPlayerId);
-            });
-            resolvedPass = {
-              assignments: mergedAssignments,
-              slotRatings: mergedSlotRatings,
-              usedPlayerIds: usedMerged,
-            };
-          }
-          if (assignmentCount(resolvedPass.assignments) < 11) {
-            return null;
-          }
-
-          return {
-            formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
-            assignments: resolvedPass.assignments,
-            slotRatings: resolvedPass.slotRatings,
-            rejectedPlayerIds: isFriendlyTarget
-              ? Array.from(firstPass.usedPlayerIds).filter(
-                  (playerId) => !resolvedPass.usedPlayerIds.has(playerId)
-                )
-              : [],
-            predicted: null,
-            error: null,
-          } as GeneratedFormationRow;
-        })
-        .filter((row): row is GeneratedFormationRow => Boolean(row));
-
-      const rows = await mapWithConcurrency(
-        baseRows,
-        FORMATION_PREDICT_CONCURRENCY,
-        async (row) => {
-          try {
-            const lineup = buildLineupPayload(row.assignments, tacticType);
-            const { response, payload } = await fetchChppJson<{
-              data?: { HattrickData?: { MatchData?: Record<string, unknown> } };
-              error?: string;
-              details?: string;
-            }>("/api/chpp/matchorders", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                matchId,
-                teamId: teamIdValue,
-                sourceSystem: selectedMatchSourceSystem,
-                actionType: "predictratings",
-                lineup,
-              }),
-            });
-            if (!response.ok || payload?.error) {
-              throw new Error(payload?.details ?? payload?.error ?? messages.submitOrdersError);
-            }
-            const matchData = payload?.data?.HattrickData?.MatchData ?? {};
-            return {
-              ...row,
-              predicted: {
-                tacticType: parseNumber(matchData.TacticType),
-                tacticSkill: parseNumber(matchData.TacticSkill),
-                ratingMidfield: parseNumber(matchData.RatingMidfield),
-                ratingRightDef: parseNumber(matchData.RatingRightDef),
-                ratingMidDef: parseNumber(matchData.RatingMidDef),
-                ratingLeftDef: parseNumber(matchData.RatingLeftDef),
-                ratingRightAtt: parseNumber(matchData.RatingRightAtt),
-                ratingMidAtt: parseNumber(matchData.RatingMidAtt),
-                ratingLeftAtt: parseNumber(matchData.RatingLeftAtt),
-              },
-              rejectedPlayerIds: row.rejectedPlayerIds,
-              error: null,
-            } as GeneratedFormationRow;
-          } catch (error) {
-            const details =
-              error instanceof Error ? error.message : messages.submitOrdersError;
-            return {
-              ...row,
-              predicted: null,
-              rejectedPlayerIds: row.rejectedPlayerIds,
-              error: details,
-            } as GeneratedFormationRow;
           }
         }
-      );
+        const orderedSlots = orderFormationSlotsForTraining(
+          occupiedSlots,
+          mode === "trainingAware" ? activeTrainingType : null
+        );
+        const firstPass = buildAssignmentsForOrderedSlots(orderedSlots);
+        let resolvedPass = isFriendlyTarget
+          ? buildAssignmentsForOrderedSlots(orderedSlots, firstPass.usedPlayerIds)
+          : firstPass;
+        if (isFriendlyTarget && assignmentCount(resolvedPass.assignments) < 11) {
+          const mergedAssignments: LineupAssignments = { ...resolvedPass.assignments };
+          const mergedSlotRatings: Record<string, number | null> = { ...resolvedPass.slotRatings };
+          const usedMerged = new Set<number>(
+            Object.values(mergedAssignments).filter(
+              (id): id is number => typeof id === "number" && id > 0
+            )
+          );
+          orderedSlots.forEach((slot) => {
+            if (mergedAssignments[slot]) return;
+            const firstPassPlayerId = firstPass.assignments[slot];
+            if (!firstPassPlayerId || usedMerged.has(firstPassPlayerId)) return;
+            mergedAssignments[slot] = firstPassPlayerId;
+            mergedSlotRatings[slot] = firstPass.slotRatings[slot] ?? null;
+            usedMerged.add(firstPassPlayerId);
+          });
+          resolvedPass = {
+            assignments: mergedAssignments,
+            slotRatings: mergedSlotRatings,
+            usedPlayerIds: usedMerged,
+          };
+        }
+        if (assignmentCount(resolvedPass.assignments) < 11) {
+          return null;
+        }
+        return {
+          formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
+          assignments: resolvedPass.assignments,
+          slotRatings: resolvedPass.slotRatings,
+          rejectedPlayerIds: isFriendlyTarget
+            ? Array.from(firstPass.usedPlayerIds).filter(
+                (playerId) => !resolvedPass.usedPlayerIds.has(playerId)
+              )
+            : [],
+          predicted: null,
+          error: null,
+        } as GeneratedFormationRow;
+      };
+
+      const predictRatingsForLineup = async (
+        assignmentsForFormation: LineupAssignments,
+        nextTacticType: number
+      ) => {
+        const lineup = buildLineupPayload(assignmentsForFormation, nextTacticType);
+        const { response, payload } = await fetchChppJson<{
+          data?: { HattrickData?: { MatchData?: Record<string, unknown> } };
+          error?: string;
+          details?: string;
+        }>("/api/chpp/matchorders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            matchId,
+            teamId: teamIdValue,
+            sourceSystem: selectedMatchSourceSystem,
+            actionType: "predictratings",
+            lineup,
+          }),
+        });
+        if (!response.ok || payload?.error) {
+          throw new Error(payload?.details ?? payload?.error ?? messages.submitOrdersError);
+        }
+        const matchData = payload?.data?.HattrickData?.MatchData ?? {};
+        return {
+          tacticType: parseNumber(matchData.TacticType),
+          tacticSkill: parseNumber(matchData.TacticSkill),
+          ratingMidfield: parseNumber(matchData.RatingMidfield),
+          ratingRightDef: parseNumber(matchData.RatingRightDef),
+          ratingMidDef: parseNumber(matchData.RatingMidDef),
+          ratingLeftDef: parseNumber(matchData.RatingLeftDef),
+          ratingRightAtt: parseNumber(matchData.RatingRightAtt),
+          ratingMidAtt: parseNumber(matchData.RatingMidAtt),
+          ratingLeftAtt: parseNumber(matchData.RatingLeftAtt),
+        } satisfies PredictedRatings;
+      };
+
+      const baseRows =
+        mode === "fixedFormation"
+          ? (() => {
+              const targetFormation =
+                typeof fixedFormationOverride === "string" ? fixedFormationOverride : null;
+              const targetShape =
+                targetFormation && FIXED_FORMATION_OPTIONS.includes(
+                  targetFormation as (typeof FIXED_FORMATION_OPTIONS)[number]
+                )
+                  ? parseFormationShape(targetFormation)
+                  : null;
+              if (!targetFormation || !targetShape) {
+                throw new Error(messages.setBestLineupOptimizeByFormationDisabledTooltip);
+              }
+              const row = buildBaseRowForShape(targetShape);
+              if (!row) {
+                throw new Error(messages.setBestLineupOptimizeByFormationUnavailable);
+              }
+              return [row];
+            })()
+          : generateFormationShapes()
+              .map((shape) => buildBaseRowForShape(shape))
+              .filter((row): row is GeneratedFormationRow => Boolean(row));
+
+      const rows =
+        mode === "fixedFormation"
+          ? baseRows
+          : await mapWithConcurrency(
+              baseRows,
+              FORMATION_PREDICT_CONCURRENCY,
+              async (row) => {
+                try {
+                  return {
+                    ...row,
+                    predicted: await predictRatingsForLineup(row.assignments, tacticType),
+                    rejectedPlayerIds: row.rejectedPlayerIds,
+                    error: null,
+                  } as GeneratedFormationRow;
+                } catch (error) {
+                  const details =
+                    error instanceof Error ? error.message : messages.submitOrdersError;
+                  return {
+                    ...row,
+                    predicted: null,
+                    rejectedPlayerIds: row.rejectedPlayerIds,
+                    error: details,
+                  } as GeneratedFormationRow;
+                }
+              }
+            );
 
       let selectedGeneratedFormation: string | null = null;
       let selectedGeneratedTactic: number | null = null;
@@ -6890,11 +6987,130 @@ const refreshDetailsForPlayers = async (
             opponent: CollectiveRatings;
           }
         | null = null;
+      let fixedFormationTacticRows: FixedFormationTacticRow[] = [];
 
-      if (
-        (mode === "ignoreTraining" || mode === "trainingAware" || mode === "extraTime") &&
-        chosenFormationAverages
-      ) {
+      const applyChosenAssignments = (
+        chosenAssignmentsBase: LineupAssignments,
+        chosenTactic: number
+      ) => {
+        const chosenAssignments: LineupAssignments = { ...chosenAssignmentsBase };
+        const used = new Set<number>(
+          Object.values(chosenAssignments).filter(
+            (id): id is number => typeof id === "number" && id > 0
+          )
+        );
+        const remaining = players
+          .filter((player) => !used.has(player.PlayerID))
+          .map((player) => ({
+            id: player.PlayerID,
+            name: formatPlayerName(player) || String(player.PlayerID),
+          }));
+        const pickBestForCode = (code: number) => {
+          if (remaining.length === 0) return null;
+          remaining.sort((left, right) => {
+            const leftValue =
+              typeof ratingsById[left.id]?.[String(code)] === "number"
+                ? ratingsById[left.id]?.[String(code)]
+                : -1;
+            const rightValue =
+              typeof ratingsById[right.id]?.[String(code)] === "number"
+                ? ratingsById[right.id]?.[String(code)]
+                : -1;
+            if (rightValue !== leftValue) return rightValue - leftValue;
+            return left.name.localeCompare(right.name);
+          });
+          return remaining.shift() ?? null;
+        };
+        const pickBestAny = () => {
+          if (remaining.length === 0) return null;
+          remaining.sort((left, right) => {
+            const score = (id: number) =>
+              [100, 101, 103, 106, 107, 111].reduce((sum, code) => {
+                const value = ratingsById[id]?.[String(code)];
+                return sum + (typeof value === "number" ? value : 0);
+              }, 0);
+            return score(right.id) - score(left.id) || left.name.localeCompare(right.name);
+          });
+          return remaining.shift() ?? null;
+        };
+        const benchPlan: Array<{ slot: string; code: number | null }> = [
+          { slot: "B_GK", code: 100 },
+          { slot: "B_CD", code: 103 },
+          { slot: "B_WB", code: 101 },
+          { slot: "B_IM", code: 107 },
+          { slot: "B_F", code: 111 },
+          { slot: "B_W", code: 106 },
+          { slot: "B_X", code: null },
+        ];
+        benchPlan.forEach((entry) => {
+          const picked = entry.code === null ? pickBestAny() : pickBestForCode(entry.code);
+          if (picked) {
+            chosenAssignments[entry.slot] = picked.id;
+          }
+        });
+
+        setAssignments(chosenAssignments);
+        setBehaviors({});
+        setTacticType(chosenTactic);
+        setLoadedMatchId(matchId);
+      };
+
+      if (mode === "fixedFormation") {
+        const fixedRow = baseRows[0] ?? null;
+        if (fixedRow) {
+          fixedFormationTacticRows = await mapWithConcurrency(
+            [...AI_TACTIC_OPTIONS],
+            FORMATION_PREDICT_CONCURRENCY,
+            async (nextTacticType) => {
+              try {
+                return {
+                  tacticType: nextTacticType,
+                  predicted: await predictRatingsForLineup(fixedRow.assignments, nextTacticType),
+                  error: null,
+                } satisfies FixedFormationTacticRow;
+              } catch (error) {
+                return {
+                  tacticType: nextTacticType,
+                  predicted: null,
+                  error:
+                    error instanceof Error ? error.message : messages.submitOrdersError,
+                } satisfies FixedFormationTacticRow;
+              }
+            }
+          );
+
+          const bestTacticRow =
+            fixedFormationTacticRows
+              .filter(
+                (row): row is FixedFormationTacticRow & { predicted: PredictedRatings } =>
+                  Boolean(row.predicted) && !row.error
+              )
+              .sort(
+                (left, right) =>
+                  fixedFormationTacticWeightedScore(
+                    toCollectiveRatings(right.predicted)
+                  ) -
+                    fixedFormationTacticWeightedScore(
+                      toCollectiveRatings(left.predicted)
+                    ) ||
+                  toCollectiveRatings(right.predicted).overall -
+                    toCollectiveRatings(left.predicted).overall ||
+                  toCollectiveRatings(right.predicted).attack -
+                    toCollectiveRatings(left.predicted).attack ||
+                  toCollectiveRatings(right.predicted).defense -
+                    toCollectiveRatings(left.predicted).defense ||
+                  toCollectiveRatings(right.predicted).midfield -
+                    toCollectiveRatings(left.predicted).midfield
+              )[0] ?? null;
+
+          if (bestTacticRow?.predicted) {
+            selectedGeneratedFormation = fixedRow.formation;
+            selectedGeneratedTactic = bestTacticRow.tacticType;
+            selectedRejectedPlayerIds = fixedRow.rejectedPlayerIds ?? [];
+            applyChosenAssignments(fixedRow.assignments, bestTacticRow.tacticType);
+          }
+        }
+      } else if (chosenFormationAverages) {
         const opponentCollective: CollectiveRatings = {
           midfield: chosenFormationAverages.ratingMidfield ?? 0,
           defense:
@@ -6974,67 +7190,7 @@ const refreshDetailsForPlayers = async (
             ours: chosenItem.collective,
             opponent: opponentCollective,
           };
-
-          const chosenAssignments: LineupAssignments = { ...chosenItem.row.assignments };
-          const used = new Set<number>(
-            Object.values(chosenAssignments).filter(
-              (id): id is number => typeof id === "number" && id > 0
-            )
-          );
-          const remaining = players
-            .filter((player) => !used.has(player.PlayerID))
-            .map((player) => ({
-              id: player.PlayerID,
-              name: formatPlayerName(player) || String(player.PlayerID),
-            }));
-          const pickBestForCode = (code: number) => {
-            if (remaining.length === 0) return null;
-            remaining.sort((left, right) => {
-              const leftValue =
-                typeof ratingsById[left.id]?.[String(code)] === "number"
-                  ? ratingsById[left.id]?.[String(code)]
-                  : -1;
-              const rightValue =
-                typeof ratingsById[right.id]?.[String(code)] === "number"
-                  ? ratingsById[right.id]?.[String(code)]
-                  : -1;
-              if (rightValue !== leftValue) return rightValue - leftValue;
-              return left.name.localeCompare(right.name);
-            });
-            return remaining.shift() ?? null;
-          };
-          const pickBestAny = () => {
-            if (remaining.length === 0) return null;
-            remaining.sort((left, right) => {
-              const score = (id: number) =>
-                [100, 101, 103, 106, 107, 111].reduce((sum, code) => {
-                  const value = ratingsById[id]?.[String(code)];
-                  return sum + (typeof value === "number" ? value : 0);
-                }, 0);
-              return score(right.id) - score(left.id) || left.name.localeCompare(right.name);
-            });
-            return remaining.shift() ?? null;
-          };
-          const benchPlan: Array<{ slot: string; code: number | null }> = [
-            { slot: "B_GK", code: 100 },
-            { slot: "B_CD", code: 103 },
-            { slot: "B_WB", code: 101 },
-            { slot: "B_IM", code: 107 },
-            { slot: "B_F", code: 111 },
-            { slot: "B_W", code: 106 },
-            { slot: "B_X", code: null },
-          ];
-          benchPlan.forEach((entry) => {
-            const picked = entry.code === null ? pickBestAny() : pickBestForCode(entry.code);
-            if (picked) {
-              chosenAssignments[entry.slot] = picked.id;
-            }
-          });
-
-          setAssignments(chosenAssignments);
-          setBehaviors({});
-          setTacticType(chosenTactic);
-          setLoadedMatchId(matchId);
+          applyChosenAssignments(chosenItem.row.assignments, chosenTactic);
         }
       }
 
@@ -7043,10 +7199,13 @@ const refreshDetailsForPlayers = async (
           prev
             ? {
                 ...prev,
+                mode,
                 opponentRows,
                 chosenFormation,
                 chosenFormationAverages,
                 generatedRows: rows,
+                fixedFormation: fixedFormationOverride ?? null,
+                fixedFormationTacticRows,
                 selectedGeneratedFormation,
                 selectedGeneratedTactic,
                 selectedRejectedPlayerIds,
@@ -7065,10 +7224,13 @@ const refreshDetailsForPlayers = async (
           prev
             ? {
                 ...prev,
+                mode,
                 opponentRows: [],
                 chosenFormation: null,
                 chosenFormationAverages: null,
                 generatedRows: [],
+                fixedFormation: fixedFormationOverride ?? null,
+                fixedFormationTacticRows: [],
                 selectedGeneratedFormation: null,
                 selectedGeneratedTactic: null,
                 selectedRejectedPlayerIds: [],
@@ -7220,6 +7382,7 @@ const refreshDetailsForPlayers = async (
             loadedMatchId?: number | null;
             tacticType?: number;
             trainingType?: number | null;
+            setBestLineupFixedFormation?: string | null;
             includeTournamentMatches?: boolean;
             updatesHistory?: SeniorUpdatesGroupedEntry[];
             matrixNewMarkers?: SeniorMatrixNewMarkers;
@@ -7247,6 +7410,14 @@ const refreshDetailsForPlayers = async (
             sanitizeTrainingType(
               typeof parsed.trainingType === "number" ? parsed.trainingType : null
             )
+          );
+          setSetBestLineupFixedFormation(
+            typeof parsed.setBestLineupFixedFormation === "string" &&
+              FIXED_FORMATION_OPTIONS.includes(
+                parsed.setBestLineupFixedFormation as (typeof FIXED_FORMATION_OPTIONS)[number]
+              )
+              ? parsed.setBestLineupFixedFormation
+              : null
           );
           setIncludeTournamentMatches(Boolean(parsed.includeTournamentMatches));
           if (forceWipeLegacyUpdatesState) {
@@ -7479,6 +7650,7 @@ const refreshDetailsForPlayers = async (
       loadedMatchId,
       tacticType,
       trainingType,
+      setBestLineupFixedFormation,
       includeTournamentMatches,
       updatesHistory,
       matrixNewMarkers,
@@ -7506,6 +7678,7 @@ const refreshDetailsForPlayers = async (
     selectedUpdatesId,
     tacticType,
     trainingType,
+    setBestLineupFixedFormation,
     updatesHistory,
     matrixNewMarkers,
     activeDetailsTab,
@@ -8799,125 +8972,340 @@ const refreshDetailsForPlayers = async (
                 <p className={styles.chroniclePressMeta}>
                   {messages.lineupTitle} · {messages.ratingsTitle}
                 </p>
-                {opponentFormationsModal.selectedGeneratedFormation &&
-                opponentFormationsModal.selectedComparison ? (
+                {opponentFormationsModal.mode === "fixedFormation" ? (
                   <>
-                    <p className={styles.chroniclePressMeta}>
-                      <strong>{opponentFormationsModal.selectedGeneratedFormation}</strong> ·{" "}
-                      {tacticTypeLabel(opponentFormationsModal.selectedGeneratedTactic)}
-                      {" · "}
-                      MID {opponentFormationsModal.selectedComparison.ours.midfield.toFixed(1)} /{" "}
-                      {opponentFormationsModal.selectedComparison.opponent.midfield.toFixed(1)}
-                      {" · "}
-                      DEF {opponentFormationsModal.selectedComparison.ours.defense.toFixed(1)} /{" "}
-                      {opponentFormationsModal.selectedComparison.opponent.defense.toFixed(1)}
-                      {" · "}
-                      ATT {opponentFormationsModal.selectedComparison.ours.attack.toFixed(1)} /{" "}
-                      {opponentFormationsModal.selectedComparison.opponent.attack.toFixed(1)}
-                    </p>
-                    {opponentFormationsModal.selectedRejectedPlayerIds.length > 0 ? (
-                      <p className={styles.chroniclePressMeta}>
-                        {messages.setBestLineupRejectedPlayersLabel}:{" "}
-                        {opponentFormationsModal.selectedRejectedPlayerIds
-                          .map((playerId) => playerNameById.get(playerId) ?? String(playerId))
-                          .join(", ")}
-                      </p>
-                    ) : null}
-                  </>
-                ) : null}
-                <div className={styles.opponentFormationsTableWrap}>
-                  <table className={styles.opponentFormationsTable}>
-                    <thead>
-                      <tr>
-                        <th>{messages.analyzeOpponentFormationColumn}</th>
-                        <th>{messages.lineupTitle}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidfieldShort}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorRightDefShort}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidDefShort}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorLeftDefShort}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorRightAttShort}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidAttShort}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorLeftAttShort}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {opponentFormationsModal.generatedRows.map((row) => (
-                        <tr
-                          key={row.formation}
-                          className={
-                            row.formation === opponentFormationsModal.selectedGeneratedFormation
-                              ? styles.opponentFormationsSelectedRow
-                              : undefined
-                          }
-                        >
-                          <td className={styles.opponentFormationsMatchIdCell}>{row.formation}</td>
-                          <td className={styles.generatedLineupCell}>
-                            <div className={styles.generatedLineupBlock}>
-                              {[
-                                { label: messages.posKeeper, slots: ["KP"] },
-                                { label: messages.skillDefending, slots: [...DEFENSE_SLOTS] },
-                                { label: messages.skillPlaymaking, slots: [...MIDFIELD_SLOTS] },
-                                { label: messages.skillScoring, slots: [...ATTACK_SLOTS] },
-                              ].map((line) => (
-                                <div key={`${row.formation}-${line.label}`} className={styles.generatedLineupRow}>
-                                  <span className={styles.generatedLineupRowLabel}>{line.label}</span>
-                                  <div className={styles.generatedLineupSlots}>
-                                    {line.slots.map((slot) => {
-                                      const playerId = Number(row.assignments[slot] ?? 0);
-                                      const playerName =
-                                        playerId > 0
-                                          ? playerNameById.get(playerId) ?? String(playerId)
-                                          : "—";
-                                      const slotRating = row.slotRatings[slot];
-                                      const text =
-                                        playerId > 0
-                                          ? `${slot}: ${playerName} (${slotRating?.toFixed(1) ?? messages.unknownShort})`
-                                          : `${slot}: —`;
-                                      return (
-                                        <span
-                                          key={`${row.formation}-${slot}`}
-                                          className={`${styles.generatedLineupSlot} ${
-                                            playerId > 0 ? "" : styles.generatedLineupSlotEmpty
-                                          }`}
-                                        >
-                                          {text}
-                                        </span>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              ))}
-                              {row.error ? (
-                                <p className={styles.errorDetails}>{row.error}</p>
-                              ) : null}
+                    {(() => {
+                      const selectedFixedTacticRow =
+                        opponentFormationsModal.fixedFormationTacticRows.find(
+                          (row) =>
+                            row.tacticType === opponentFormationsModal.selectedGeneratedTactic
+                        ) ?? null;
+                      const selectedCollective = selectedFixedTacticRow?.predicted
+                        ? toCollectiveRatings(selectedFixedTacticRow.predicted)
+                        : null;
+                      const selectedGeneratedRow =
+                        opponentFormationsModal.generatedRows[0] ?? null;
+                      return (
+                        <>
+                          {opponentFormationsModal.selectedGeneratedFormation &&
+                          selectedCollective ? (
+                            <p className={styles.chroniclePressMeta}>
+                              <strong>
+                                {opponentFormationsModal.selectedGeneratedFormation}
+                              </strong>{" "}
+                              · {tacticTypeLabel(opponentFormationsModal.selectedGeneratedTactic)}
+                              {" · "}
+                              MID {selectedCollective.midfield.toFixed(1)}
+                              {" · "}
+                              DEF {selectedCollective.defense.toFixed(1)}
+                              {" · "}
+                              ATT {selectedCollective.attack.toFixed(1)}
+                            </p>
+                          ) : null}
+                          {opponentFormationsModal.selectedRejectedPlayerIds.length > 0 ? (
+                            <p className={styles.chroniclePressMeta}>
+                              {messages.setBestLineupRejectedPlayersLabel}:{" "}
+                              {opponentFormationsModal.selectedRejectedPlayerIds
+                                .map(
+                                  (playerId) =>
+                                    playerNameById.get(playerId) ?? String(playerId)
+                                )
+                                .join(", ")}
+                            </p>
+                          ) : null}
+                          {selectedGeneratedRow ? (
+                            <div className={styles.opponentFormationsTableWrap}>
+                              <table className={styles.opponentFormationsTable}>
+                                <thead>
+                                  <tr>
+                                    <th>{messages.analyzeOpponentFormationColumn}</th>
+                                    <th>{messages.lineupTitle}</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr className={styles.opponentFormationsSelectedRow}>
+                                    <td className={styles.opponentFormationsMatchIdCell}>
+                                      {selectedGeneratedRow.formation}
+                                    </td>
+                                    <td className={styles.generatedLineupCell}>
+                                      <div className={styles.generatedLineupBlock}>
+                                        {[
+                                          { label: messages.posKeeper, slots: ["KP"] },
+                                          {
+                                            label: messages.skillDefending,
+                                            slots: [...DEFENSE_SLOTS],
+                                          },
+                                          {
+                                            label: messages.skillPlaymaking,
+                                            slots: [...MIDFIELD_SLOTS],
+                                          },
+                                          {
+                                            label: messages.skillScoring,
+                                            slots: [...ATTACK_SLOTS],
+                                          },
+                                        ].map((line) => (
+                                          <div
+                                            key={`${selectedGeneratedRow.formation}-${line.label}`}
+                                            className={styles.generatedLineupRow}
+                                          >
+                                            <span className={styles.generatedLineupRowLabel}>
+                                              {line.label}
+                                            </span>
+                                            <div className={styles.generatedLineupSlots}>
+                                              {line.slots.map((slot) => {
+                                                const playerId = Number(
+                                                  selectedGeneratedRow.assignments[slot] ?? 0
+                                                );
+                                                const playerName =
+                                                  playerId > 0
+                                                    ? playerNameById.get(playerId) ??
+                                                      String(playerId)
+                                                    : "—";
+                                                const slotRating =
+                                                  selectedGeneratedRow.slotRatings[slot];
+                                                const text =
+                                                  playerId > 0
+                                                    ? `${slot}: ${playerName} (${slotRating?.toFixed(1) ?? messages.unknownShort})`
+                                                    : `${slot}: —`;
+                                                return (
+                                                  <span
+                                                    key={`${selectedGeneratedRow.formation}-${slot}`}
+                                                    className={`${styles.generatedLineupSlot} ${
+                                                      playerId > 0
+                                                        ? ""
+                                                        : styles.generatedLineupSlotEmpty
+                                                    }`}
+                                                  >
+                                                    {text}
+                                                  </span>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
                             </div>
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingMidfield?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingRightDef?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingMidDef?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingLeftDef?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingRightAtt?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingMidAtt?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingLeftAtt?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          ) : null}
+                        </>
+                      );
+                    })()}
+                    <p className={styles.chroniclePressMeta}>
+                      {messages.tacticLabel} · {messages.ratingsTitle}
+                    </p>
+                    <div className={styles.opponentFormationsTableWrap}>
+                      <table className={styles.opponentFormationsTable}>
+                        <thead>
+                          <tr>
+                            <th>{messages.tacticLabel}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorMidfieldShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorRightDefShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorMidDefShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorLeftDefShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorRightAttShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorMidAttShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorLeftAttShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.seniorFixedFormationTotalRatingsLabel}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.seniorFixedFormationWeightedSumLabel}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {opponentFormationsModal.fixedFormationTacticRows.map((row) => {
+                            const collective = row.predicted
+                              ? toCollectiveRatings(row.predicted)
+                              : null;
+                            return (
+                              <tr
+                                key={`${opponentFormationsModal.fixedFormation ?? "fixed"}-${row.tacticType}`}
+                                className={
+                                  row.tacticType === opponentFormationsModal.selectedGeneratedTactic
+                                    ? styles.opponentFormationsSelectedRow
+                                    : undefined
+                                }
+                              >
+                                <td className={styles.opponentFormationsMatchIdCell}>
+                                  {tacticTypeLabel(row.tacticType)}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingMidfield?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingRightDef?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingMidDef?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingLeftDef?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingRightAtt?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingMidAtt?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingLeftAtt?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {collective?.overall.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {collective
+                                    ? fixedFormationTacticWeightedScore(collective).toFixed(6)
+                                    : messages.unknownShort}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {opponentFormationsModal.selectedGeneratedFormation &&
+                    opponentFormationsModal.selectedComparison ? (
+                      <>
+                        <p className={styles.chroniclePressMeta}>
+                          <strong>{opponentFormationsModal.selectedGeneratedFormation}</strong> ·{" "}
+                          {tacticTypeLabel(opponentFormationsModal.selectedGeneratedTactic)}
+                          {" · "}
+                          MID {opponentFormationsModal.selectedComparison.ours.midfield.toFixed(1)} /{" "}
+                          {opponentFormationsModal.selectedComparison.opponent.midfield.toFixed(1)}
+                          {" · "}
+                          DEF {opponentFormationsModal.selectedComparison.ours.defense.toFixed(1)} /{" "}
+                          {opponentFormationsModal.selectedComparison.opponent.defense.toFixed(1)}
+                          {" · "}
+                          ATT {opponentFormationsModal.selectedComparison.ours.attack.toFixed(1)} /{" "}
+                          {opponentFormationsModal.selectedComparison.opponent.attack.toFixed(1)}
+                        </p>
+                        {opponentFormationsModal.selectedRejectedPlayerIds.length > 0 ? (
+                          <p className={styles.chroniclePressMeta}>
+                            {messages.setBestLineupRejectedPlayersLabel}:{" "}
+                            {opponentFormationsModal.selectedRejectedPlayerIds
+                              .map((playerId) => playerNameById.get(playerId) ?? String(playerId))
+                              .join(", ")}
+                          </p>
+                        ) : null}
+                      </>
+                    ) : null}
+                    <div className={styles.opponentFormationsTableWrap}>
+                      <table className={styles.opponentFormationsTable}>
+                        <thead>
+                          <tr>
+                            <th>{messages.analyzeOpponentFormationColumn}</th>
+                            <th>{messages.lineupTitle}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidfieldShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorRightDefShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidDefShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorLeftDefShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorRightAttShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidAttShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorLeftAttShort}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {opponentFormationsModal.generatedRows.map((row) => (
+                            <tr
+                              key={row.formation}
+                              className={
+                                row.formation === opponentFormationsModal.selectedGeneratedFormation
+                                  ? styles.opponentFormationsSelectedRow
+                                  : undefined
+                              }
+                            >
+                              <td className={styles.opponentFormationsMatchIdCell}>{row.formation}</td>
+                              <td className={styles.generatedLineupCell}>
+                                <div className={styles.generatedLineupBlock}>
+                                  {[
+                                    { label: messages.posKeeper, slots: ["KP"] },
+                                    { label: messages.skillDefending, slots: [...DEFENSE_SLOTS] },
+                                    { label: messages.skillPlaymaking, slots: [...MIDFIELD_SLOTS] },
+                                    { label: messages.skillScoring, slots: [...ATTACK_SLOTS] },
+                                  ].map((line) => (
+                                    <div key={`${row.formation}-${line.label}`} className={styles.generatedLineupRow}>
+                                      <span className={styles.generatedLineupRowLabel}>{line.label}</span>
+                                      <div className={styles.generatedLineupSlots}>
+                                        {line.slots.map((slot) => {
+                                          const playerId = Number(row.assignments[slot] ?? 0);
+                                          const playerName =
+                                            playerId > 0
+                                              ? playerNameById.get(playerId) ?? String(playerId)
+                                              : "—";
+                                          const slotRating = row.slotRatings[slot];
+                                          const text =
+                                            playerId > 0
+                                              ? `${slot}: ${playerName} (${slotRating?.toFixed(1) ?? messages.unknownShort})`
+                                              : `${slot}: —`;
+                                          return (
+                                            <span
+                                              key={`${row.formation}-${slot}`}
+                                              className={`${styles.generatedLineupSlot} ${
+                                                playerId > 0 ? "" : styles.generatedLineupSlotEmpty
+                                              }`}
+                                            >
+                                              {text}
+                                            </span>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {row.error ? (
+                                    <p className={styles.errorDetails}>{row.error}</p>
+                                  ) : null}
+                                </div>
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingMidfield?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingRightDef?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingMidDef?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingLeftDef?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingRightAtt?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingMidAtt?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingLeftAtt?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
               </>
             ) : (
               <p className={styles.chronicleEmpty}>{messages.noMatchesReturned}</p>
@@ -9669,15 +10057,18 @@ const refreshDetailsForPlayers = async (
             setBestLineupHelpAnchor="senior-set-lineup-ai"
             showExtraTimeSetBestLineupMode
             keepBestLineupMenuTopmost
+            fixedFormationOptions={[...FIXED_FORMATION_OPTIONS]}
+            selectedFixedFormation={setBestLineupFixedFormation}
+            onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
             onRefresh={onRefreshMatchesOnly}
-            onSetBestLineupMode={(matchId, mode) => {
+            onSetBestLineupMode={(matchId, mode, fixedFormation) => {
               if (mode === "extraTime") {
                 setExtraTimeMatchId(matchId);
                 setExtraTimeInfoOpen(true);
                 return Promise.resolve();
               }
               setExtraTimePreparedSubmission(null);
-              return runSetBestLineupPredictRatings(matchId, mode);
+              return runSetBestLineupPredictRatings(matchId, mode, fixedFormation);
             }}
             onAnalyzeOpponent={(matchId) => {
               return handleAnalyzeOpponent(matchId);

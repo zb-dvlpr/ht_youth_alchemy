@@ -46,6 +46,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_3_7_0:
+      "Senior AI lineup adds a fixed-formation optimizer that tests every tactic and picks the best one.",
     changelog_1_19_0: "Multi team support.",
     changelog_1_21_0: "Settings export/import for local data backups.",
     changelog_1_22_0: "Auto-select training regimen on manual star change.",
@@ -692,6 +694,16 @@ export const messagesEn: Messages = {
       "Play for a draw to gain extra training.",
     setBestLineupAimForExtraTimeDisabledTooltip:
       "Only available for Qualification, Cup, and friendlies with cup rules.",
+    setBestLineupOptimizeByFormation: "Optimize by {{formation}}",
+    setBestLineupOptimizeByFormationTooltip:
+      "Lock the formation first, assign the best-rated players for it, then test every tactic and keep the best result.",
+    setBestLineupOptimizeByFormationDisabledTooltip:
+      "Select a formation first.",
+    setBestLineupOptimizeByFormationUnavailable:
+      "Unable to build a full lineup for that formation with the available players.",
+    setBestLineupOptimizeByFormationApply: "Apply formation optimization",
+    seniorFixedFormationTotalRatingsLabel: "Total ratings",
+    seniorFixedFormationWeightedSumLabel: "Weighted sum",
     seniorExtraTimeModalTitle: "Why aim for extra time?",
     seniorExtraTimeModalLead: "Because extra time can mean extra training.",
     seniorExtraTimeModalTrainingLimit:

@@ -46,6 +46,8 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_3_7_0:
+      "L'optimisation IA senior ajoute un mode à formation fixe qui teste toutes les tactiques et retient la meilleure.",
     changelog_1_19_0: "Prise en charge de plusieurs équipes.",
     changelog_1_21_0: "Paramètres : export/import pour sauvegardes locales.",
     changelog_1_22_0: "Auto‑sélection du plan d’entraînement au changement de star.",
@@ -725,6 +727,16 @@ export const messagesFr: Messages = {
       "Joue le nul pour obtenir un entraînement supplémentaire.",
     setBestLineupAimForExtraTimeDisabledTooltip:
       "Disponible uniquement pour Qualification, Coupe et amicaux avec règles de coupe.",
+    setBestLineupOptimizeByFormation: "Optimiser en {{formation}}",
+    setBestLineupOptimizeByFormationTooltip:
+      "Fixez d'abord la formation, attribuez-y les joueurs les mieux notés, puis testez toutes les tactiques pour conserver la meilleure.",
+    setBestLineupOptimizeByFormationDisabledTooltip:
+      "Sélectionnez d'abord une formation.",
+    setBestLineupOptimizeByFormationUnavailable:
+      "Impossible de construire une composition complète pour cette formation avec les joueurs disponibles.",
+    setBestLineupOptimizeByFormationApply: "Appliquer l'optimisation de formation",
+    seniorFixedFormationTotalRatingsLabel: "Notes totales",
+    seniorFixedFormationWeightedSumLabel: "Somme pondérée",
     seniorExtraTimeModalTitle: "Pourquoi viser la prolongation ?",
     seniorExtraTimeModalLead:
       "Parce que la prolongation peut offrir des minutes d'entraînement en plus.",

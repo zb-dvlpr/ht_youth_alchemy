@@ -46,6 +46,8 @@ export const messagesIt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Questa app è in beta. Funzioni, comportamento e dati locali in cache possono cambiare o essere azzerati senza preavviso.",
+    changelog_3_7_0:
+      "L'IA della formazione senior ora include un'ottimizzazione a formazione fissa che prova tutte le tattiche e sceglie la migliore.",
     changelog_1_19_0: "Supporto multi‑squadra.",
     changelog_1_21_0: "Impostazioni: export/import per backup locali.",
     changelog_1_22_0: "Selezione automatica del training al cambio stella.",
@@ -727,6 +729,16 @@ export const messagesIt: Messages = {
       "Gioca per il pareggio per ottenere allenamento extra.",
     setBestLineupAimForExtraTimeDisabledTooltip:
       "Disponibile solo per Qualificazione, Coppa e amichevoli con regole di coppa.",
+    setBestLineupOptimizeByFormation: "Ottimizza per {{formation}}",
+    setBestLineupOptimizeByFormationTooltip:
+      "Blocca prima la formazione, assegna i giocatori con i voti migliori per quella disposizione e poi prova tutte le tattiche per tenere il risultato migliore.",
+    setBestLineupOptimizeByFormationDisabledTooltip:
+      "Seleziona prima una formazione.",
+    setBestLineupOptimizeByFormationUnavailable:
+      "Impossibile costruire una formazione completa per questo modulo con i giocatori disponibili.",
+    setBestLineupOptimizeByFormationApply: "Applica ottimizzazione modulo",
+    seniorFixedFormationTotalRatingsLabel: "Valutazioni totali",
+    seniorFixedFormationWeightedSumLabel: "Somma pesata",
     seniorExtraTimeModalTitle: "Perché puntare ai supplementari?",
     seniorExtraTimeModalLead:
       "Perché i supplementari possono offrire minuti di allenamento aggiuntivi.",

@@ -46,6 +46,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_3_7_0:
+      "Die KI-Aufstellung bei den Senioren bietet jetzt eine Optimierung für feste Formationen, die alle Taktiken prüft und die beste wählt.",
     changelog_1_19_0: "Unterstützung für mehrere Teams.",
     changelog_1_21_0: "Einstellungen: Export/Import für lokale Datensicherungen.",
     changelog_1_22_0: "Training automatisch bei manuellem Star-Wechsel.",
@@ -714,6 +716,16 @@ export const messagesDe: Messages = {
       "Spiele auf ein Unentschieden, um zusätzliches Training zu erhalten.",
     setBestLineupAimForExtraTimeDisabledTooltip:
       "Nur verfügbar für Qualifikation, Pokal und Freundschaftsspiele mit Pokalregeln.",
+    setBestLineupOptimizeByFormation: "Optimieren nach {{formation}}",
+    setBestLineupOptimizeByFormationTooltip:
+      "Zuerst die Formation festlegen, dann die am besten bewerteten Spieler dafür zuweisen und anschließend alle Taktiken testen, um das beste Ergebnis zu behalten.",
+    setBestLineupOptimizeByFormationDisabledTooltip:
+      "Wähle zuerst eine Formation aus.",
+    setBestLineupOptimizeByFormationUnavailable:
+      "Mit den verfügbaren Spielern konnte für diese Formation keine vollständige Aufstellung erstellt werden.",
+    setBestLineupOptimizeByFormationApply: "Formationsoptimierung anwenden",
+    seniorFixedFormationTotalRatingsLabel: "Gesamtbewertungen",
+    seniorFixedFormationWeightedSumLabel: "Gewichtete Summe",
     seniorExtraTimeModalTitle: "Warum auf Verlängerung spielen?",
     seniorExtraTimeModalLead:
       "Weil Verlängerung zusätzliche Trainingsminuten bedeuten kann.",

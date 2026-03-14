@@ -3845,6 +3845,9 @@ html[data-theme="dark"] .spinner {
   position: absolute;
   right: 10px;
   bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
   font-size: 11px;
   color: #6f6354;
   opacity: 0.9;
@@ -3854,6 +3857,11 @@ html[data-theme="dark"] .spinner {
   text-overflow: ellipsis;
   white-space: nowrap;
   text-align: right;
+}
+
+.playerSortMetricPill {
+  overflow: visible;
+  max-width: none;
 }
 
 .playerSortMetricYouth {

@@ -9400,7 +9400,11 @@ const refreshDetailsForPlayers = async (
                           }
                         >
                         {!isNameSort ? (
-                          <span className={styles.playerSortMetric}>
+                          <span
+                            className={`${styles.playerSortMetric} ${
+                              sortKey === "age" ? styles.playerSortMetricPill : ""
+                            }`}
+                          >
                             {metricNode}
                           </span>
                         ) : null}

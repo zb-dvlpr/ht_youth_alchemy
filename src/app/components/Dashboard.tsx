@@ -4698,6 +4698,13 @@ export default function Dashboard({
     optimizeRevealInlinePrefix,
     optimizeRevealInlineSuffix = "",
   ] = optimizeRevealInlineTemplate.split("__SECONDARY_PLAYER__");
+  const optimizeRevealInlinePickerSuffixMatch =
+    optimizeRevealInlineSuffix.match(/^(['\u2019]s\b\s*)/);
+  const optimizeRevealInlinePickerSuffix =
+    optimizeRevealInlinePickerSuffixMatch?.[0] ?? "";
+  const optimizeRevealInlineSuffixRemainder = optimizeRevealInlineSuffix.slice(
+    optimizeRevealInlinePickerSuffix.length
+  );
   const optimizeModeDisabledReasons = useMemo(() => {
     const reasons: {
       revealPrimaryCurrent?: string;
@@ -4823,6 +4830,7 @@ export default function Dashboard({
             >
               <span className={styles.optimizeMenuInlinePickerText}>
                 {optimizeRevealInlineTargetName}
+                {optimizeRevealInlinePickerSuffix}
               </span>
               <span className={styles.optimizeMenuInlinePickerChevron}>⌄</span>
             </button>
@@ -4854,7 +4862,7 @@ export default function Dashboard({
               </div>
             ) : null}
           </span>
-          {optimizeRevealInlineSuffix}
+          {optimizeRevealInlineSuffixRemainder}
         </span>
         <div className={styles.optimizeMenuCustomControls}>
           <button

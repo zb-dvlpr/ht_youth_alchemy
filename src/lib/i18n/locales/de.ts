@@ -107,6 +107,8 @@ export const messagesDe: Messages = {
       "Die KI-Aufstellung der Senioren unterstützt jetzt einen Auf Verlängerung zielen-Ablauf für trainingsorientierte Verlängerungs-Setups.",
     changelog_3_4_0:
       "Die Club-Chronik-Watchlist zeigt jetzt alle eigenen Seniorenteams aus dem Manager-Compendium mit Kennzeichnung für männlich/weiblich.",
+    changelog_3_5_0:
+      "Die Senior-Optimierung unterstützt jetzt mehrere Seniorenteams mit geschlechtsmarkierter Teamauswahl und teambezogen gespeichertem Zustand.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",

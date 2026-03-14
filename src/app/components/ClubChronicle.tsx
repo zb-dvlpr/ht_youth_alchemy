@@ -2964,27 +2964,30 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           }
         });
         if (active) {
-          const normalizedManualTeams = (stored.manualTeams ?? []).map((item) => {
-            if (typeof item === "number") {
-              return { teamId: item };
+          const normalizedManualTeams: ManualTeam[] = (stored.manualTeams ?? []).map(
+            (item): ManualTeam => {
+              if (typeof item === "number") {
+                return { teamId: item };
+              }
+              return {
+                teamId: Number(item.teamId),
+                teamName: item.teamName ?? "",
+                leagueName: item.leagueName ?? null,
+                leagueLevelUnitName: item.leagueLevelUnitName ?? null,
+                teamGender:
+                  item.teamGender === "female"
+                    ? "female"
+                    : item.teamGender === "male"
+                      ? "male"
+                      : null,
+                leagueLevelUnitId:
+                  item.leagueLevelUnitId !== undefined &&
+                  item.leagueLevelUnitId !== null
+                    ? Number(item.leagueLevelUnitId)
+                    : null,
+              };
             }
-            return {
-              teamId: Number(item.teamId),
-              teamName: item.teamName ?? "",
-              leagueName: item.leagueName ?? null,
-              leagueLevelUnitName: item.leagueLevelUnitName ?? null,
-              teamGender: item.teamGender === "female"
-                ? "female"
-                : item.teamGender === "male"
-                  ? "male"
-                  : null,
-              leagueLevelUnitId:
-                item.leagueLevelUnitId !== undefined &&
-                item.leagueLevelUnitId !== null
-                  ? Number(item.leagueLevelUnitId)
-                  : null,
-            };
-          });
+          );
           const enriched = await enrichWatchlistTeamGenders(
             nextAllSupportedTeams,
             normalizedManualTeams

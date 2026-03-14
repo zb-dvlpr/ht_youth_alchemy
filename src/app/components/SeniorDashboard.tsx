@@ -4,6 +4,7 @@
 import {
   CSSProperties,
   ReactNode,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -30,6 +31,9 @@ import {
   hattrickTeamUrl,
 } from "@/lib/hattrick/urls";
 import {
+  readSeniorDebugManagerUserId,
+  SENIOR_DEBUG_MANAGER_USER_ID_EVENT,
+  SENIOR_DEBUG_MANAGER_USER_ID_STORAGE_KEY,
   readSeniorStalenessDays,
   SENIOR_RATINGS_WIPE_EVENT,
   SENIOR_SETTINGS_EVENT,
@@ -173,6 +177,42 @@ type PersistedSeniorMarkersBaseline = {
 
 type SeniorDashboardProps = {
   messages: Messages;
+  initialSeniorTeams?: Array<{
+    teamId: number;
+    teamName: string;
+    teamGender: "male" | "female" | null;
+  }>;
+  initialSeniorTeamId?: number | null;
+};
+
+type SeniorTeamOption = {
+  teamId: number;
+  teamName: string;
+  teamGender: "male" | "female" | null;
+};
+
+type ManagerCompendiumTeam = {
+  TeamId?: unknown;
+  TeamName?: unknown;
+  GenderID?: unknown;
+  League?: {
+    Season?: unknown;
+  };
+};
+
+type ManagerCompendiumResponse = {
+  season?: number | null;
+  data?: {
+    HattrickData?: {
+      Manager?: {
+        Teams?: {
+          Team?: ManagerCompendiumTeam | ManagerCompendiumTeam[];
+        };
+      };
+    };
+  };
+  error?: string;
+  details?: string;
 };
 
 type SortKey =
@@ -310,6 +350,14 @@ const sanitizeTrainingType = (value: number | null): number | null =>
   typeof value === "number" && NON_DEPRECATED_TRAINING_TYPES.includes(value as (typeof NON_DEPRECATED_TRAINING_TYPES)[number])
     ? value
     : null;
+const resolveScopedStorageKey = (
+  baseKey: string,
+  teamId: number | null,
+  multiTeamEnabled: boolean
+) =>
+  multiTeamEnabled && typeof teamId === "number" && teamId > 0
+    ? `${baseKey}_${teamId}`
+    : baseKey;
 type PlayerSector = "keeper" | "defense" | "midfield" | "attack";
 const SLOT_TO_SECTOR: Record<string, PlayerSector> = {
   KP: "keeper",
@@ -419,6 +467,32 @@ const parseNumber = (value: unknown): number | null => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 };
+
+const normalizeManagerCompendiumTeams = (
+  input?: ManagerCompendiumTeam | ManagerCompendiumTeam[]
+): ManagerCompendiumTeam[] => {
+  if (!input) return [];
+  return Array.isArray(input) ? input : [input];
+};
+
+const extractSeniorTeams = (
+  payload: ManagerCompendiumResponse | null | undefined
+): SeniorTeamOption[] =>
+  normalizeManagerCompendiumTeams(payload?.data?.HattrickData?.Manager?.Teams?.Team).reduce<
+    SeniorTeamOption[]
+  >((teams, team) => {
+    const teamId = parseNumber(team?.TeamId);
+    if (!teamId || teamId <= 0) return teams;
+    const teamName =
+      typeof team?.TeamName === "string" ? team.TeamName : String(team?.TeamName ?? "");
+    const genderId = parseNumber(team?.GenderID);
+    teams.push({
+      teamId,
+      teamName,
+      teamGender: genderId === 2 ? "female" : genderId === 1 ? "male" : null,
+    });
+    return teams;
+  }, []);
 
 const buildEmptySeniorMatrixNewMarkers = (): SeniorMatrixNewMarkers => ({
   detectedAt: null,
@@ -836,16 +910,19 @@ const normalizeSeniorPlayerDetails = (
   };
 };
 
-const readStoredLastRefresh = () => {
+const readStoredLastRefresh = (storageKey = LAST_REFRESH_STORAGE_KEY) => {
   if (typeof window === "undefined") return null;
-  const value = window.localStorage.getItem(LAST_REFRESH_STORAGE_KEY);
+  const value = window.localStorage.getItem(storageKey);
   const parsed = Number(value ?? "");
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
-const writeStoredLastRefresh = (value: number) => {
+const writeStoredLastRefresh = (
+  value: number,
+  storageKey = LAST_REFRESH_STORAGE_KEY
+) => {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(LAST_REFRESH_STORAGE_KEY, String(value));
+  window.localStorage.setItem(storageKey, String(value));
 };
 
 const readStoredRatingsAlgoVersion = () => {
@@ -1389,9 +1466,19 @@ const buildDistribution = (counts: Map<string, number>): FormationTacticsDistrib
     .map(([key, count]) => ({ key, label: key, count }))
     .sort((left, right) => right.count - left.count || left.key.localeCompare(right.key));
 
-export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
+export default function SeniorDashboard({
+  messages,
+  initialSeniorTeams = [],
+  initialSeniorTeamId = null,
+}: SeniorDashboardProps) {
   const showSetBestLineupDebugModal = process.env.NODE_ENV !== "production";
   const { addNotification } = useNotifications();
+  const [seniorTeams, setSeniorTeams] = useState<SeniorTeamOption[]>(initialSeniorTeams);
+  const [selectedSeniorTeamId, setSelectedSeniorTeamId] = useState<number | null>(
+    initialSeniorTeamId
+  );
+  const [managerCompendiumUserIdOverride, setManagerCompendiumUserIdOverride] =
+    useState<string | null>(null);
   const [players, setPlayers] = useState<SeniorPlayer[]>([]);
   const [matchesState, setMatchesState] = useState<MatchesResponse>({});
   const [ratingsResponse, setRatingsResponse] = useState<RatingsMatrixResponse | null>(null);
@@ -1520,6 +1607,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const refreshAllRef = useRef<((reason: "manual" | "stale") => Promise<boolean>) | null>(
     null
   );
+  const restoredStateStorageKeyRef = useRef<string | null>(null);
+  const restoredDataStorageKeyRef = useRef<string | null>(null);
 
   const selectedPlayer =
     selectedId !== null
@@ -1527,6 +1616,56 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       : null;
   const selectedDetails =
     selectedId !== null ? detailsCache[selectedId]?.data ?? null : null;
+  const multiTeamEnabled = seniorTeams.length > 1;
+  const activeSeniorTeamId = multiTeamEnabled ? selectedSeniorTeamId : null;
+  const activeSeniorTeamOption = useMemo(() => {
+    if (seniorTeams.length === 0) return null;
+    if (!multiTeamEnabled) return seniorTeams[0];
+    if (!selectedSeniorTeamId) return seniorTeams[0];
+    return (
+      seniorTeams.find((team) => team.teamId === selectedSeniorTeamId) ??
+      seniorTeams[0]
+    );
+  }, [multiTeamEnabled, selectedSeniorTeamId, seniorTeams]);
+  const resolvedSeniorTeamId = useMemo(
+    () => activeSeniorTeamId ?? activeSeniorTeamOption?.teamId ?? null,
+    [activeSeniorTeamId, activeSeniorTeamOption]
+  );
+  const stateStorageKey = useMemo(
+    () => resolveScopedStorageKey(STATE_STORAGE_KEY, activeSeniorTeamId, multiTeamEnabled),
+    [activeSeniorTeamId, multiTeamEnabled]
+  );
+  const dataStorageKey = useMemo(
+    () => resolveScopedStorageKey(DATA_STORAGE_KEY, activeSeniorTeamId, multiTeamEnabled),
+    [activeSeniorTeamId, multiTeamEnabled]
+  );
+  const lastRefreshStorageKey = useMemo(
+    () =>
+      resolveScopedStorageKey(
+        LAST_REFRESH_STORAGE_KEY,
+        activeSeniorTeamId,
+        multiTeamEnabled
+      ),
+    [activeSeniorTeamId, multiTeamEnabled]
+  );
+  const listSortStorageKey = useMemo(
+    () =>
+      resolveScopedStorageKey(
+        LIST_SORT_STORAGE_KEY,
+        activeSeniorTeamId,
+        multiTeamEnabled
+      ),
+    [activeSeniorTeamId, multiTeamEnabled]
+  );
+
+  useEffect(() => {
+    if (!multiTeamEnabled) return;
+    if (activeSeniorTeamId) return;
+    const fallbackId = seniorTeams[0]?.teamId ?? null;
+    if (fallbackId) {
+      setSelectedSeniorTeamId(fallbackId);
+    }
+  }, [activeSeniorTeamId, multiTeamEnabled, seniorTeams]);
 
   const detailsById = useMemo(() => {
     const map = new Map<number, SeniorPlayerDetails>();
@@ -2221,7 +2360,10 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     let nextRatingsById = ratingsByPlayerId;
     if (isRatingsMatrixEmpty(ratingsResponse)) {
       const currentSeason = await fetchCurrentSeason();
-      const refreshedRatings = await bootstrapRatingsFromSeasons(currentSeason);
+      const refreshedRatings = await bootstrapRatingsFromSeasons(
+        resolvedSeniorTeamId,
+        currentSeason
+      );
       setRatingsResponse(refreshedRatings);
       nextRatingsById = {};
       (refreshedRatings.players ?? []).forEach((row) => {
@@ -5209,21 +5351,41 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     notifyRefreshState(refreshing, refreshStatus, refreshProgressPct, lastRefreshAt);
   }, [lastRefreshAt, refreshProgressPct, refreshStatus, refreshing]);
 
-  const fetchPlayers = async () => {
+  const formatSeniorTeamOptionLabel = useCallback(
+    (team: { teamName: string; teamId: number; teamGender: "male" | "female" | null }) => {
+      const baseName = team.teamName || `${messages.seniorTeamLabel} ${team.teamId}`;
+      const genderLabel =
+        team.teamGender === "female"
+          ? messages.watchlistGenderFemale
+          : team.teamGender === "male"
+            ? messages.watchlistGenderMale
+            : null;
+      return genderLabel ? `${baseName} (${genderLabel})` : baseName;
+    },
+    [
+      messages.seniorTeamLabel,
+      messages.watchlistGenderFemale,
+      messages.watchlistGenderMale,
+    ]
+  );
+
+  const fetchPlayers = async (teamId?: number | null) => {
+    const teamParam = teamId ? `&teamId=${teamId}` : "";
     const { response, payload } = await fetchChppJson<{
       data?: { HattrickData?: { Team?: { PlayerList?: { Player?: unknown } } } };
       error?: string;
       details?: string;
-    }>("/api/chpp/players?orderBy=PlayerNumber", { cache: "no-store" });
+    }>(`/api/chpp/players?orderBy=PlayerNumber${teamParam}`, { cache: "no-store" });
     if (!response.ok || payload?.error) {
       throw new Error(payload?.details ?? payload?.error ?? messages.unableToLoadPlayers);
     }
     return normalizeSeniorPlayers(payload?.data?.HattrickData?.Team?.PlayerList?.Player);
   };
 
-  const fetchMatches = async () => {
+  const fetchMatches = async (teamId?: number | null) => {
+    const teamParam = teamId ? `&teamID=${teamId}` : "";
     const { response, payload } = await fetchChppJson<MatchesResponse>(
-      "/api/chpp/matches?isYouth=false",
+      `/api/chpp/matches?isYouth=false${teamParam}`,
       { cache: "no-store" }
     );
     if (!response.ok || payload?.error) {
@@ -5233,6 +5395,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   };
 
   const fetchRatings = async (
+    teamId?: number | null,
     season?: number,
     fromTs?: number | null,
     fromMatchId?: number | null,
@@ -5243,6 +5406,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       new URLSearchParams(
         Object.fromEntries(
           [
+            typeof teamId === "number" && Number.isFinite(teamId) && teamId > 0
+              ? ["teamId", String(Math.floor(teamId))]
+              : null,
             typeof season === "number" && Number.isFinite(season) && season > 0
               ? ["season", String(Math.floor(season))]
               : null,
@@ -5275,30 +5441,55 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return payload as RatingsMatrixResponse;
   };
 
+  const fetchManagerCompendium = async (
+    userId?: string | null
+  ): Promise<ManagerCompendiumResponse> => {
+    const query = userId ? `?userId=${encodeURIComponent(userId)}` : "";
+    const { response, payload } = await fetchChppJson<ManagerCompendiumResponse>(
+      `/api/chpp/managercompendium${query}`,
+      { cache: "no-store" }
+    );
+    if (!response.ok || payload?.error) {
+      throw new Error(payload?.details ?? payload?.error ?? "Failed to fetch manager compendium");
+    }
+    return payload ?? {};
+  };
+
+  const applyManagerCompendiumTeams = useCallback(
+    async (userId?: string | null) => {
+      const payload = await fetchManagerCompendium(userId);
+      const teams = extractSeniorTeams(payload);
+      setSeniorTeams(teams);
+      setSelectedSeniorTeamId((current) => {
+        if (teams.length <= 1) return null;
+        if (
+          typeof current === "number" &&
+          teams.some((team) => team.teamId === current)
+        ) {
+          return current;
+        }
+        return teams[0]?.teamId ?? null;
+      });
+      return teams;
+    },
+    []
+  );
+
   const fetchCurrentSeason = async () => {
     const cached = readGlobalSeason();
     if (cached !== null) return cached;
-    const { response, payload } = await fetchChppJson<{
-      season?: number;
-      data?: { HattrickData?: { Manager?: { Teams?: { Team?: unknown } } } };
-      error?: string;
-      details?: string;
-    }>("/api/chpp/managercompendium", { cache: "no-store" });
-    if (!response.ok || payload?.error) {
-      throw new Error(payload?.details ?? payload?.error ?? messages.noMatchesReturned);
-    }
+    const payload = await fetchManagerCompendium(managerCompendiumUserIdOverride);
     const directSeason =
       typeof payload?.season === "number" && Number.isFinite(payload.season)
         ? Math.floor(payload.season)
         : null;
     if (directSeason && directSeason > 0) return directSeason;
 
-    const teamsNode = payload?.data?.HattrickData?.Manager?.Teams?.Team;
-    const teams = Array.isArray(teamsNode) ? teamsNode : teamsNode ? [teamsNode] : [];
+    const teams = normalizeManagerCompendiumTeams(
+      payload?.data?.HattrickData?.Manager?.Teams?.Team
+    );
     for (const team of teams) {
-      const maybeSeason = parseNumber(
-        (team as { League?: { Season?: unknown } })?.League?.Season
-      );
+      const maybeSeason = parseNumber(team?.League?.Season);
       if (typeof maybeSeason === "number" && Number.isFinite(maybeSeason) && maybeSeason > 0) {
         return Math.floor(maybeSeason);
       }
@@ -5306,7 +5497,63 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     throw new Error(messages.noMatchesReturned);
   };
 
-  const fetchTrainingSnapshot = async (): Promise<{
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const applyOverride = async (rawUserId?: string | null) => {
+      const normalizedUserId = rawUserId?.trim() || "";
+      setManagerCompendiumUserIdOverride(normalizedUserId || null);
+      staleRefreshAttemptedRef.current = false;
+      try {
+        await applyManagerCompendiumTeams(normalizedUserId || null);
+        addNotification(messages.notificationTeamsLoaded);
+      } catch (error) {
+        if (error instanceof ChppAuthRequiredError) return;
+        addNotification(messages.notificationTeamsLoadFailed);
+      }
+    };
+
+    const initialOverride = readSeniorDebugManagerUserId();
+    if (initialOverride) {
+      void applyOverride(initialOverride);
+    }
+
+    const handleOverrideEvent = (event: Event) => {
+      const detail = (event as CustomEvent<{ userId?: string | null }>).detail;
+      const nextUserId =
+        typeof detail?.userId === "string" ? detail.userId : readSeniorDebugManagerUserId();
+      void applyOverride(nextUserId);
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (
+        event.key !== null &&
+        event.key !== SENIOR_DEBUG_MANAGER_USER_ID_STORAGE_KEY
+      ) {
+        return;
+      }
+      void applyOverride(readSeniorDebugManagerUserId());
+    };
+
+    window.addEventListener(SENIOR_DEBUG_MANAGER_USER_ID_EVENT, handleOverrideEvent);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener(
+        SENIOR_DEBUG_MANAGER_USER_ID_EVENT,
+        handleOverrideEvent
+      );
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [
+    addNotification,
+    applyManagerCompendiumTeams,
+    messages.notificationTeamsLoadFailed,
+    messages.notificationTeamsLoaded,
+  ]);
+
+  const fetchTrainingSnapshot = async (
+    teamId?: number | null
+  ): Promise<{
     trainingType: number | null;
     teamId: number | null;
   }> => {
@@ -5321,7 +5568,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       };
       error?: string;
       details?: string;
-    }>("/api/chpp/training?actionType=view", { cache: "no-store" });
+    }>(
+      `/api/chpp/training?actionType=view${
+        teamId ? `&teamId=${teamId}` : ""
+      }`,
+      { cache: "no-store" }
+    );
     if (!response.ok || payload?.error) {
       throw new Error(payload?.details ?? payload?.error ?? "Failed to fetch training");
     }
@@ -5331,8 +5583,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     };
   };
 
-  const fetchTrainingType = async (): Promise<number | null> => {
-    const snapshot = await fetchTrainingSnapshot();
+  const fetchTrainingType = async (teamId?: number | null): Promise<number | null> => {
+    const snapshot = await fetchTrainingSnapshot(teamId);
     return snapshot.trainingType;
   };
 
@@ -5362,9 +5614,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     setTrainingTypeSetPending(true);
     setTrainingTypeSetPendingValue(nextTrainingType);
     try {
-      let teamId = parseNumber(matchesState?.data?.HattrickData?.Team?.TeamID);
+      let teamId = resolvedSeniorTeamId;
       if (teamId === null) {
-        const snapshot = await fetchTrainingSnapshot();
+        teamId = parseNumber(matchesState?.data?.HattrickData?.Team?.TeamID);
+      }
+      if (teamId === null) {
+        const snapshot = await fetchTrainingSnapshot(resolvedSeniorTeamId);
         teamId = snapshot.teamId;
       }
       if (teamId === null) {
@@ -5372,7 +5627,7 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       }
 
       await setSeniorTrainingRegimen(teamId, nextTrainingType);
-      const verifiedSnapshot = await fetchTrainingSnapshot();
+      const verifiedSnapshot = await fetchTrainingSnapshot(teamId);
       const verifiedTrainingType = sanitizeTrainingType(verifiedSnapshot.trainingType);
       if (verifiedTrainingType !== nextTrainingType) {
         throw new Error("Training update could not be verified");
@@ -5410,9 +5665,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return normalizeSeniorPlayerDetails(payload.data.HattrickData.Player, playerId);
   };
 
-  const bootstrapRatingsFromSeasons = async (season: number) => {
-    const previousSeason = await fetchRatings(Math.max(1, season - 1));
-    const currentSeason = await fetchRatings(season);
+  const bootstrapRatingsFromSeasons = async (teamId: number | null, season: number) => {
+    const previousSeason = await fetchRatings(teamId, Math.max(1, season - 1));
+    const currentSeason = await fetchRatings(teamId, season);
     return mergeRatingsMatrices(previousSeason, currentSeason);
   };
 
@@ -5763,7 +6018,7 @@ const refreshDetailsForPlayers = async (
     let didBootstrapRatings = false;
 
     try {
-      const nextPlayers = await fetchPlayers();
+      const nextPlayers = await fetchPlayers(resolvedSeniorTeamId);
       if (isStopped()) return false;
 
       setRefreshStatus(messages.refreshStatusFetchingPlayerDetails);
@@ -5790,7 +6045,7 @@ const refreshDetailsForPlayers = async (
 
       setRefreshStatus(messages.refreshStatusFetchingMatches);
       setRefreshProgressPct(45);
-      const nextMatches = await fetchMatches();
+      const nextMatches = await fetchMatches(resolvedSeniorTeamId);
       if (isStopped()) return false;
 
       setRefreshStatus(messages.refreshStatusFetchingRatings);
@@ -5802,10 +6057,16 @@ const refreshDetailsForPlayers = async (
             const currentSeason = await fetchCurrentSeason();
             if (isStopped()) return null;
             setRefreshProgressPct(72);
-            const previousSeasonRatings = await fetchRatings(Math.max(1, currentSeason - 1));
+            const previousSeasonRatings = await fetchRatings(
+              resolvedSeniorTeamId,
+              Math.max(1, currentSeason - 1)
+            );
             if (isStopped()) return null;
             setRefreshProgressPct(84);
-            const currentSeasonRatings = await fetchRatings(currentSeason);
+            const currentSeasonRatings = await fetchRatings(
+              resolvedSeniorTeamId,
+              currentSeason
+            );
             if (isStopped()) return null;
             setRefreshProgressPct(90);
             return mergeRatingsMatrices(previousSeasonRatings, currentSeasonRatings);
@@ -5828,6 +6089,7 @@ const refreshDetailsForPlayers = async (
             const lastMatchDate = formatArchiveDateTimeParam(Date.now());
             setRefreshProgressPct(72);
             const incrementalRatings = await fetchRatings(
+              resolvedSeniorTeamId,
               undefined,
               fromTs,
               fromMatchId,
@@ -5851,7 +6113,7 @@ const refreshDetailsForPlayers = async (
       if (isStopped()) return false;
       let nextTrainingType: number | null | undefined = undefined;
       try {
-        nextTrainingType = await fetchTrainingType();
+        nextTrainingType = await fetchTrainingType(resolvedSeniorTeamId);
       } catch {
         // Keep refresh flow intact even if training endpoint fails.
       }
@@ -5899,7 +6161,7 @@ const refreshDetailsForPlayers = async (
       }
 
       const refreshedAt = Date.now();
-      writeStoredLastRefresh(refreshedAt);
+      writeStoredLastRefresh(refreshedAt, lastRefreshStorageKey);
       setLastRefreshAt(refreshedAt);
       setRefreshStatus(null);
       setRefreshProgressPct(100);
@@ -5938,12 +6200,38 @@ const refreshDetailsForPlayers = async (
     const hasRequiredScopes = await ensureRequiredScopes();
     if (!hasRequiredScopes) return false;
     try {
-      const nextMatches = await fetchMatches();
+      const nextMatches = await fetchMatches(resolvedSeniorTeamId);
       setMatchesState(nextMatches);
       return true;
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) return false;
       return false;
+    }
+  };
+
+  const handleSeniorTeamChange = (nextTeamId: number | null) => {
+    if (nextTeamId === selectedSeniorTeamId) return;
+    staleRefreshAttemptedRef.current = false;
+    setSelectedId(null);
+    setAssignments({});
+    setBehaviors({});
+    setLoadedMatchId(null);
+    setPlayers([]);
+    setMatchesState({});
+    setRatingsResponse(null);
+    setDetailsCache({});
+    setUpdatesHistory([]);
+    setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
+    setSelectedUpdatesId(null);
+    setOrderedPlayerIds(null);
+    setOrderSource(null);
+    setLoadError(null);
+    setLoadErrorDetails(null);
+    setSelectedSeniorTeamId(nextTeamId);
+    if (nextTeamId) {
+      const teamName =
+        seniorTeams.find((team) => team.teamId === nextTeamId)?.teamName ?? nextTeamId;
+      addNotification(`${messages.notificationTeamSwitched} ${teamName}`);
     }
   };
 
@@ -6345,7 +6633,10 @@ const refreshDetailsForPlayers = async (
       let ratingsById = ratingsByPlayerId;
       if (isRatingsMatrixEmpty(ratingsResponse)) {
         const currentSeason = await fetchCurrentSeason();
-        const refreshedRatings = await bootstrapRatingsFromSeasons(currentSeason);
+        const refreshedRatings = await bootstrapRatingsFromSeasons(
+          resolvedSeniorTeamId,
+          currentSeason
+        );
         setRatingsResponse(refreshedRatings);
         ratingsById = {};
         (refreshedRatings.players ?? []).forEach((row) => {
@@ -6865,8 +7156,37 @@ const refreshDetailsForPlayers = async (
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    restoredStateStorageKeyRef.current = null;
+    restoredDataStorageKeyRef.current = null;
+    setStateRestored(false);
+    setDataRestored(false);
+    setSelectedId(null);
+    setAssignments({});
+    setBehaviors({});
+    setLoadedMatchId(null);
+    setTacticType(0);
+    setTrainingType(null);
+    setIncludeTournamentMatches(false);
+    setUpdatesHistory([]);
+    setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
+    setSelectedUpdatesId(null);
+    setActiveDetailsTab("details");
+    setShowSeniorSkillBonusInMatrix(true);
+    setExtraTimeBTeamEnabled(false);
+    setExtraTimeSelectedPlayerIds([]);
+    setExtraTimeMatrixTrainingType(null);
+    setOrderedPlayerIds(null);
+    setOrderSource(null);
+    setPlayers([]);
+    setMatchesState({});
+    setRatingsResponse(null);
+    setDetailsCache({});
+    setLoadError(null);
+    setLoadErrorDetails(null);
+    setLastRefreshAt(null);
+    persistedMarkersBaselineRef.current = null;
     try {
-      const rawSort = window.localStorage.getItem(LIST_SORT_STORAGE_KEY);
+      const rawSort = window.localStorage.getItem(listSortStorageKey);
       if (rawSort) {
         try {
           const parsed = JSON.parse(rawSort) as {
@@ -6882,7 +7202,7 @@ const refreshDetailsForPlayers = async (
         }
       }
 
-      const rawState = window.localStorage.getItem(STATE_STORAGE_KEY);
+      const rawState = window.localStorage.getItem(stateStorageKey);
       let forceWipeLegacyUpdatesState = false;
       const storedRatingsAlgoVersion = readStoredRatingsAlgoVersion();
       const forceResetRatingsAlgorithm =
@@ -6986,7 +7306,7 @@ const refreshDetailsForPlayers = async (
         }
       }
 
-      const rawData = window.localStorage.getItem(DATA_STORAGE_KEY);
+      const rawData = window.localStorage.getItem(dataStorageKey);
       let restoredPlayersCount = 0;
       if (rawData) {
         try {
@@ -7035,9 +7355,9 @@ const refreshDetailsForPlayers = async (
 
       writeStoredRatingsAlgoVersion(SENIOR_RATINGS_ALGO_VERSION);
 
-      setLastRefreshAt(readStoredLastRefresh());
+      setLastRefreshAt(readStoredLastRefresh(lastRefreshStorageKey));
       setStalenessDays(readSeniorStalenessDays());
-      const lastRefresh = readStoredLastRefresh();
+      const lastRefresh = readStoredLastRefresh(lastRefreshStorageKey);
       const shouldRefresh =
         !lastRefresh || Date.now() - lastRefresh >= readSeniorStalenessDays() * 24 * 60 * 60 * 1000;
       const shouldBootstrap = restoredPlayersCount === 0;
@@ -7048,10 +7368,12 @@ const refreshDetailsForPlayers = async (
         void refreshAll(shouldRefresh && lastRefresh ? "stale" : "manual");
       }
     } finally {
+      restoredStateStorageKeyRef.current = stateStorageKey;
+      restoredDataStorageKeyRef.current = dataStorageKey;
       setStateRestored(true);
       setDataRestored(true);
     }
-  }, []);
+  }, [dataStorageKey, lastRefreshStorageKey, listSortStorageKey, stateStorageKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -7060,7 +7382,7 @@ const refreshDetailsForPlayers = async (
         if (
           event.key &&
           event.key !== SENIOR_SETTINGS_STORAGE_KEY &&
-          event.key !== LAST_REFRESH_STORAGE_KEY
+          event.key !== lastRefreshStorageKey
         ) {
           return;
         }
@@ -7093,7 +7415,7 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener(SENIOR_SETTINGS_EVENT, handle);
       window.removeEventListener(SENIOR_RATINGS_WIPE_EVENT, handleWipeRatingsMatrix);
     };
-  }, [players]);
+  }, [lastRefreshStorageKey, players]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -7115,7 +7437,7 @@ const refreshDetailsForPlayers = async (
 
     const maybeRunStaleRefresh = () => {
       if (document.visibilityState !== "visible") return;
-      const lastRefresh = readStoredLastRefresh();
+      const lastRefresh = readStoredLastRefresh(lastRefreshStorageKey);
       if (!lastRefresh) return;
       const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
       const isStale = Date.now() - lastRefresh >= maxAgeMs;
@@ -7143,11 +7465,12 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener("pageshow", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [refreshing, stalenessDays]);
+  }, [lastRefreshStorageKey, refreshing, stalenessDays]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!stateRestored) return;
+    if (restoredStateStorageKeyRef.current !== stateStorageKey) return;
     const payload = {
       updatesSchemaVersion: SENIOR_UPDATES_SCHEMA_VERSION,
       selectedId,
@@ -7169,7 +7492,7 @@ const refreshDetailsForPlayers = async (
       orderSource,
     };
     try {
-      window.localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(payload));
+      window.localStorage.setItem(stateStorageKey, JSON.stringify(payload));
     } catch {
       // ignore persist errors
     }
@@ -7192,16 +7515,18 @@ const refreshDetailsForPlayers = async (
     extraTimeMatrixTrainingType,
     orderedPlayerIds,
     orderSource,
+    stateStorageKey,
   ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!stateRestored) return;
+    if (restoredStateStorageKeyRef.current !== stateStorageKey) return;
     window.localStorage.setItem(
-      LIST_SORT_STORAGE_KEY,
+      listSortStorageKey,
       JSON.stringify({ sortKey, sortDirection })
     );
-  }, [stateRestored, sortDirection, sortKey]);
+  }, [listSortStorageKey, sortDirection, sortKey, stateRestored, stateStorageKey]);
 
   useEffect(() => {
     const nextOrder = sortedPlayers.map((player) => player.PlayerID);
@@ -7223,6 +7548,7 @@ const refreshDetailsForPlayers = async (
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!dataRestored) return;
+    if (restoredDataStorageKeyRef.current !== dataStorageKey) return;
     const payload = {
       players,
       matchesState,
@@ -7230,11 +7556,11 @@ const refreshDetailsForPlayers = async (
       detailsCache,
     };
     try {
-      window.localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(payload));
+      window.localStorage.setItem(dataStorageKey, JSON.stringify(payload));
     } catch {
       // ignore persist errors
     }
-  }, [dataRestored, detailsCache, matchesState, players, ratingsResponse]);
+  }, [dataRestored, dataStorageKey, detailsCache, matchesState, players, ratingsResponse]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -8641,6 +8967,26 @@ const refreshDetailsForPlayers = async (
               {messages.seniorPlayerListTitle}
             </h2>
             <div className={styles.listHeaderControls}>
+              {seniorTeams.length > 1 ? (
+                <label className={styles.sortControl}>
+                  <span className={styles.sortLabel}>{messages.seniorTeamLabel}</span>
+                  <select
+                    className={styles.sortSelect}
+                    value={selectedSeniorTeamId ?? ""}
+                    onChange={(event) => {
+                      const nextId = Number(event.target.value);
+                      if (Number.isNaN(nextId)) return;
+                      handleSeniorTeamChange(nextId);
+                    }}
+                  >
+                    {seniorTeams.map((team) => (
+                      <option key={team.teamId} value={team.teamId}>
+                        {formatSeniorTeamOptionLabel(team)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
               <label className={styles.sortControl}>
                 <span className={styles.sortLabel}>{messages.sortLabel}</span>
                 <select

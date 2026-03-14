@@ -204,6 +204,8 @@ export const messagesNl: Messages = {
     "Senioropstelling met AI ondersteunt nu een Mik op verlenging-flow voor opstellingen gericht op extra trainingsminuten in verlenging.",
   changelog_3_4_0:
     "De Club Chronicle-watchlist bevat nu al je eigen seniorenteams uit managercompendium met aanduiding mannelijk/vrouwelijk.",
+  changelog_3_5_0:
+    "Senioroptimalisatie ondersteunt nu meerdere seniorenteams met een teamselector met geslachtslabel en per team opgeslagen status.",
   seniorHelpTitle: "Handleiding senioroptimalisatie",
   seniorHelpIntro:
     "Deze weergave helpt je relevante wijzigingen in de seniorselectie te volgen en sneller wedstrijdopstellingen te zetten.",

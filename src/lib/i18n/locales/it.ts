@@ -109,6 +109,8 @@ export const messagesIt: Messages = {
       "La formazione IA senior ora supporta un flusso Punta ai supplementari per assetti orientati ai minuti extra di allenamento.",
     changelog_3_4_0:
       "La watchlist di Club Chronicle ora include tutte le tue squadre senior dal managercompendium con etichette maschile/femminile.",
+    changelog_3_5_0:
+      "L ottimizzazione senior ora supporta piu squadre senior con selettore squadra con genere tra parentesi e stato persistito per squadra.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",

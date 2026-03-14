@@ -109,6 +109,8 @@ export const messagesEs: Messages = {
       "La alineación con IA para senior ahora admite un flujo Apuntar a la prórroga para configuraciones orientadas a minutos extra de entrenamiento.",
     changelog_3_4_0:
       "La watchlist de Cronica del club ahora incluye todos tus equipos senior propios desde managercompendium con etiquetas masculino/femenino.",
+    changelog_3_5_0:
+      "La optimizacion senior ahora admite varios equipos senior con selector de equipo con genero y estado persistido por equipo.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",

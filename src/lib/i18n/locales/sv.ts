@@ -107,6 +107,8 @@ export const messagesSv: Messages = {
       "Seniorernas AI-uppställning stöder nu ett Sikta på förlängning-flöde för träningsinriktade förlängningsupplägg.",
     changelog_3_4_0:
       "Club Chronicle-watchlisten innehåller nu alla dina egna seniorlag från managercompendium med markering för manligt/kvinnligt.",
+    changelog_3_5_0:
+      "Senioroptimeringen stöder nu flera seniorlag med en könsmärkt lagväljare och lagvis sparat tillstånd.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",

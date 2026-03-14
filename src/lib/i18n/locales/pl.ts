@@ -204,6 +204,8 @@ export const messagesPl: Messages = {
     "Skład seniorów ustawiany przez AI obsługuje teraz tryb Celuj w dogrywkę dla ustawień nastawionych na dodatkowe minuty treningowe.",
   changelog_3_4_0:
     "Watchlista Club Chronicle zawiera teraz wszystkie twoje własne drużyny seniorów z managercompendium z oznaczeniem męska/żeńska.",
+  changelog_3_5_0:
+    "Optymalizacja seniorów obsługuje teraz wiele drużyn seniorów z selektorem drużyny z oznaczeniem płci i stanem zapisywanym osobno dla każdej drużyny.",
   seniorHelpTitle: "Przewodnik optymalizacji seniorów",
   seniorHelpIntro:
     "Ten widok pomaga śledzić istotne zmiany w kadrze seniorów i szybciej ustawiać składy meczowe.",

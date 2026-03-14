@@ -95,6 +95,8 @@ export const messagesEn: Messages = {
       "Senior AI lineup now supports an Aim for extra time flow for training-focused extra-time setups.",
     changelog_3_4_0:
       "Club Chronicle watchlist now includes all of your own senior teams from manager compendium with male/female labels.",
+    changelog_3_5_0:
+      "Senior optimization now supports multiple senior teams with a gender-labeled team selector and per-team persisted state.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",

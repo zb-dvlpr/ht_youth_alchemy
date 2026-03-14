@@ -109,6 +109,8 @@ export const messagesPt: Messages = {
       "A escalação por IA do senior agora suporta um fluxo Mirar prorrogação para montagens focadas em minutos extras de treino.",
     changelog_3_4_0:
       "A watchlist do Club Chronicle agora inclui todos os seus times seniores do managercompendium com indicação masculino/feminino.",
+    changelog_3_5_0:
+      "A otimizacao senior agora suporta varios times seniores com seletor de time com genero e estado persistido por time.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",

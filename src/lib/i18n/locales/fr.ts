@@ -109,6 +109,8 @@ export const messagesFr: Messages = {
       "La composition IA senior prend maintenant en charge un mode Viser la prolongation pour des compositions axées sur les minutes d entraînement en prolongation.",
     changelog_3_4_0:
       "La watchlist de Club Chronicle inclut maintenant toutes vos propres equipes seniors depuis managercompendium avec indication masculin/feminin.",
+    changelog_3_5_0:
+      "L optimisation senior prend maintenant en charge plusieurs equipes seniors avec un selecteur d equipe annote par genre et un etat persiste par equipe.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",

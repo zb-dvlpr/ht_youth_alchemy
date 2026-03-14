@@ -22,6 +22,9 @@ import {
   writeSeniorStalenessDays,
   SENIOR_SETTINGS_EVENT,
   SENIOR_RATINGS_WIPE_EVENT,
+  readSeniorDebugManagerUserId,
+  writeSeniorDebugManagerUserId,
+  SENIOR_DEBUG_MANAGER_USER_ID_EVENT,
   readClubChronicleStalenessDays,
   writeClubChronicleStalenessDays,
   readClubChronicleTransferHistoryCount,
@@ -75,6 +78,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     useState<ChppDebugOauthErrorMode>("off");
   const [debugRandomNewMarkersEnabled, setDebugRandomNewMarkersEnabled] =
     useState(false);
+  const [debugSeniorManagerUserId, setDebugSeniorManagerUserId] = useState("");
   const [debugYouthSeMatchId, setDebugYouthSeMatchId] = useState("");
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -106,6 +110,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     if (process.env.NODE_ENV !== "production") {
       setDebugOauthErrorMode(readChppDebugOauthErrorMode());
       setDebugRandomNewMarkersEnabled(readYouthNewMarkersDebugEnabled());
+      setDebugSeniorManagerUserId(readSeniorDebugManagerUserId());
     }
   }, []);
 
@@ -373,6 +378,21 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
       window.dispatchEvent(
         new CustomEvent(YOUTH_DEBUG_SE_FETCH_EVENT, {
           detail: { matchId: Math.floor(matchId) },
+        })
+      );
+    }
+  };
+
+  const handleApplySeniorDebugManagerUserId = () => {
+    const normalizedUserId = debugSeniorManagerUserId.trim().replace(/\D+/g, "");
+    setDebugSeniorManagerUserId(normalizedUserId);
+    writeSeniorDebugManagerUserId(normalizedUserId);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(SENIOR_DEBUG_MANAGER_USER_ID_EVENT, {
+          detail: {
+            userId: normalizedUserId || null,
+          },
         })
       );
     }
@@ -758,6 +778,32 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
                 className={styles.algorithmsToggleSwitch}
                 aria-hidden="true"
               />
+            </label>
+            <label className={styles.settingsField}>
+              <span className={styles.settingsFieldLabel}>
+                {messages.devManagerUserIdLabel}
+              </span>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className={styles.settingsFieldInput}
+                  placeholder={messages.devManagerUserIdPlaceholder}
+                  value={debugSeniorManagerUserId}
+                  onChange={(event) =>
+                    setDebugSeniorManagerUserId(
+                      event.target.value.replace(/\D+/g, "")
+                    )
+                  }
+                />
+                <button
+                  type="button"
+                  className={styles.confirmSubmit}
+                  onClick={handleApplySeniorDebugManagerUserId}
+                >
+                  {messages.devManagerLoadTeams}
+                </button>
+              </div>
             </label>
             <label className={styles.settingsField}>
               <span className={styles.settingsFieldLabel}>

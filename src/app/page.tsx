@@ -71,6 +71,7 @@ type ManagerCompendiumResponse = {
 type ManagerTeam = {
   TeamId?: number | string;
   TeamName?: string;
+  GenderID?: number | string;
   YouthTeam?: {
     YouthTeamId?: number | string;
     YouthTeamName?: string;
@@ -87,6 +88,12 @@ export type YouthTeamOption = {
   youthTeamId: number;
   youthTeamName: string;
   youthLeagueName?: string | null;
+};
+
+export type SeniorTeamOption = {
+  teamId: number;
+  teamName: string;
+  teamGender: "male" | "female" | null;
 };
 
 async function getBaseUrl() {
@@ -222,6 +229,23 @@ function extractYouthTeams(response: ManagerCompendiumResponse): YouthTeamOption
   }, []);
 }
 
+function extractSeniorTeams(response: ManagerCompendiumResponse): SeniorTeamOption[] {
+  const teams = normalizeTeams(
+    response.data?.HattrickData?.Manager?.Teams?.Team
+  );
+  return teams.reduce<SeniorTeamOption[]>((acc, team) => {
+    const teamId = Number(team.TeamId ?? 0);
+    if (!teamId) return acc;
+    const genderId = Number(team.GenderID ?? 0);
+    acc.push({
+      teamId,
+      teamName: team.TeamName ?? "",
+      teamGender: genderId === 2 ? "female" : genderId === 1 ? "male" : null,
+    });
+    return acc;
+  }, []);
+}
+
 export default async function Home() {
   const cookieStore = await cookies();
   const locale = (cookieStore.get("lang")?.value as Locale | undefined) ?? "en";
@@ -230,7 +254,9 @@ export default async function Home() {
 
   const managerResponse = await getManagerCompendium();
   const youthTeams = extractYouthTeams(managerResponse);
+  const seniorTeams = extractSeniorTeams(managerResponse);
   const defaultYouthTeamId = youthTeams.length > 1 ? youthTeams[0]?.youthTeamId : null;
+  const defaultSeniorTeamId = seniorTeams.length > 1 ? seniorTeams[0]?.teamId : null;
 
   const [playersResponse, matchesResponse, ratingsResponse] =
     await Promise.all([
@@ -287,7 +313,13 @@ export default async function Home() {
                 </div>
               </header>
             }
-            seniorTool={<SeniorDashboard messages={messages} />}
+            seniorTool={
+              <SeniorDashboard
+                messages={messages}
+                initialSeniorTeams={seniorTeams}
+                initialSeniorTeamId={defaultSeniorTeamId}
+              />
+            }
           >
             <Dashboard
               players={players}

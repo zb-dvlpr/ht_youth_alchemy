@@ -112,6 +112,8 @@ export const messagesDe: Messages = {
       "Die Club-Chronik-Watchlist zeigt jetzt alle eigenen Seniorenteams aus dem Manager-Compendium mit Kennzeichnung für männlich/weiblich.",
     changelog_3_5_0:
       "Die Senior-Optimierung unterstützt jetzt mehrere Seniorenteams mit geschlechtsmarkierter Teamauswahl und teambezogen gespeichertem Zustand.",
+    changelog_3_6_0:
+      "Die Jugend-Optimierung ergänzt jetzt einen kombinierten Aufdecken-Modus für den aktuellen Primärwert des Stars und den maximalen Sekundärwert eines anderen Spielers.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",

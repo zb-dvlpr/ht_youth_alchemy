@@ -93,6 +93,7 @@ export type Messages = {
   changelog_3_3_0: string;
   changelog_3_4_0: string;
   changelog_3_5_0: string;
+  changelog_3_6_0: string;
   feedbackTooltip: string;
   feedbackBug: string;
   feedbackFeature: string;

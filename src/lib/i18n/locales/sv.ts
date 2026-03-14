@@ -112,6 +112,8 @@ export const messagesSv: Messages = {
       "Club Chronicle-watchlisten innehåller nu alla dina egna seniorlag från managercompendium med markering för manligt/kvinnligt.",
     changelog_3_5_0:
       "Senioroptimeringen stöder nu flera seniorlag med en könsmärkt lagväljare och lagvis sparat tillstånd.",
+    changelog_3_6_0:
+      "Ungdomsoptimeringen lägger nu till ett kombinerat avslöjandeläge för stjärnspelarens nuvarande primärvärde och en annan spelares sekundära maxvärde.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",

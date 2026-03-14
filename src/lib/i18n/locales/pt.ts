@@ -114,6 +114,8 @@ export const messagesPt: Messages = {
       "A watchlist do Club Chronicle agora inclui todos os seus times seniores do managercompendium com indicação masculino/feminino.",
     changelog_3_5_0:
       "A otimizacao senior agora suporta varios times seniores com seletor de time com genero e estado persistido por time.",
+    changelog_3_6_0:
+      "A otimizacao juvenil agora adiciona um modo de revelacao combinada para o valor atual primario da estrela e o maximo secundario de outro jogador.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",

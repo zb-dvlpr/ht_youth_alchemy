@@ -137,6 +137,10 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
   const changelogEntries = useMemo(
     () => [
       {
+        version: "3.6.0",
+        entries: [messages.changelog_3_6_0],
+      },
+      {
         version: "3.5.0",
         entries: [messages.changelog_3_5_0],
       },
@@ -317,6 +321,7 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
       messages.changelog_2_21_0,
       messages.changelog_2_20_0,
       messages.changelog_2_19_0,
+      messages.changelog_3_6_0,
       messages.changelog_3_5_0,
       messages.changelog_3_4_0,
       messages.changelog_3_3_0,

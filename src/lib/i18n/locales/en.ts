@@ -100,6 +100,8 @@ export const messagesEn: Messages = {
       "Club Chronicle watchlist now includes all of your own senior teams from manager compendium with male/female labels.",
     changelog_3_5_0:
       "Senior optimization now supports multiple senior teams with a gender-labeled team selector and per-team persisted state.",
+    changelog_3_6_0:
+      "Youth optimization adds a combined reveal mode for a star player's primary current value and another player's secondary max value.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",

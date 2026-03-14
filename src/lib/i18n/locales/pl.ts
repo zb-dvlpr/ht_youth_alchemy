@@ -209,6 +209,8 @@ export const messagesPl: Messages = {
     "Watchlista Club Chronicle zawiera teraz wszystkie twoje własne drużyny seniorów z managercompendium z oznaczeniem męska/żeńska.",
   changelog_3_5_0:
     "Optymalizacja seniorów obsługuje teraz wiele drużyn seniorów z selektorem drużyny z oznaczeniem płci i stanem zapisywanym osobno dla każdej drużyny.",
+  changelog_3_6_0:
+    "Optymalizacja juniorów dodaje teraz łączony tryb odkrywania bieżącej wartości głównej gwiazdy i maksymalnej wartości drugorzędnej innego zawodnika.",
   seniorHelpTitle: "Przewodnik optymalizacji seniorów",
   seniorHelpIntro:
     "Ten widok pomaga śledzić istotne zmiany w kadrze seniorów i szybciej ustawiać składy meczowe.",

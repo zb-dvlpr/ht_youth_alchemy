@@ -114,6 +114,8 @@ export const messagesEs: Messages = {
       "La watchlist de Cronica del club ahora incluye todos tus equipos senior propios desde managercompendium con etiquetas masculino/femenino.",
     changelog_3_5_0:
       "La optimizacion senior ahora admite varios equipos senior con selector de equipo con genero y estado persistido por equipo.",
+    changelog_3_6_0:
+      "La optimizacion juvenil ahora añade un modo de revelacion combinada para el valor actual primario de la estrella y el maximo secundario de otro jugador.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",

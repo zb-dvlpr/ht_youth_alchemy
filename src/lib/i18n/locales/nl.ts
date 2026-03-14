@@ -215,6 +215,8 @@ export const messagesNl: Messages = {
     "De Club Chronicle-watchlist bevat nu al je eigen seniorenteams uit managercompendium met aanduiding mannelijk/vrouwelijk.",
   changelog_3_5_0:
     "Senioroptimalisatie ondersteunt nu meerdere seniorenteams met een teamselector met geslachtslabel en per team opgeslagen status.",
+  changelog_3_6_0:
+    "Jeugdoptimalisatie voegt nu een gecombineerde onthulmodus toe voor de huidige primaire waarde van de sterspeler en de secundaire maximumwaarde van een andere speler.",
   seniorHelpTitle: "Handleiding senioroptimalisatie",
   seniorHelpIntro:
     "Deze weergave helpt je relevante wijzigingen in de seniorselectie te volgen en sneller wedstrijdopstellingen te zetten.",

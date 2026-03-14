@@ -114,6 +114,8 @@ export const messagesFr: Messages = {
       "La watchlist de Club Chronicle inclut maintenant toutes vos propres equipes seniors depuis managercompendium avec indication masculin/feminin.",
     changelog_3_5_0:
       "L optimisation senior prend maintenant en charge plusieurs equipes seniors avec un selecteur d equipe annote par genre et un etat persiste par equipe.",
+    changelog_3_6_0:
+      "L optimisation jeunesse ajoute maintenant un mode de revelation combinee pour la valeur primaire actuelle du joueur star et le maximum secondaire d un autre joueur.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",

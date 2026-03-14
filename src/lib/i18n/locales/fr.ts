@@ -814,9 +814,9 @@ export const messagesFr: Messages = {
     trainingScoring: "Finition",
     trainingSetPieces: "Coups de pied arrêtés",
     trainingDefendingDefendersMidfielders:
-      "Défense (Gardiens, Défenseurs + Tous les Milieux)",
+      "Défense (Gardien, Défenseurs + Tous les Milieux)",
     trainingWingerWingerAttackers: "Ailier (Ailiers + Attaquants)",
-    trainingPassingDefendersMidfielders: "Passes (Défenseurs + Milieux)",
+    trainingPassingDefendersMidfielders: "Passes (Défenseurs + Tous les Milieux)",
     trainingSlotPrimary: "Primaire",
     trainingSlotSecondary: "Secondaire",
     trainingSlotBoth: "Pri/sec",

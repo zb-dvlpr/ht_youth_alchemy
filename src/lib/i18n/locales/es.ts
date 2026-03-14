@@ -815,10 +815,10 @@ export const messagesEs: Messages = {
     trainingScoring: "Finalización",
     trainingSetPieces: "Balón parado",
     trainingDefendingDefendersMidfielders:
-      "Defensa (Porteros, Defensas + Todos los Mediocampistas)",
+      "Defensa (Portero, Defensas + Todos los Mediocampistas)",
     trainingWingerWingerAttackers: "Extremos (Extremos + Delanteros)",
     trainingPassingDefendersMidfielders:
-      "Pases (Defensas + Mediocampistas)",
+      "Pases (Defensas + Todos los Mediocampistas)",
     trainingSlotPrimary: "Primario",
     trainingSlotSecondary: "Secundario",
     trainingSlotBoth: "Pri/sec",

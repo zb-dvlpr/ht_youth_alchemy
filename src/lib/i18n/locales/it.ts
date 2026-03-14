@@ -816,10 +816,10 @@ export const messagesIt: Messages = {
     trainingScoring: "Finalizzazione",
     trainingSetPieces: "Calci piazzati",
     trainingDefendingDefendersMidfielders:
-      "Difesa (Portieri, Difensori + Tutti i Centrocampisti)",
+      "Difesa (Portiere, Difensori + Tutti i Centrocampisti)",
     trainingWingerWingerAttackers: "Ala (Ali + Attaccanti)",
     trainingPassingDefendersMidfielders:
-      "Passaggi (Difensori + Centrocampisti)",
+      "Passaggi (Difensori + Tutti i Centrocampisti)",
     trainingSlotPrimary: "Primario",
     trainingSlotSecondary: "Secondario",
     trainingSlotBoth: "Pri/sec",

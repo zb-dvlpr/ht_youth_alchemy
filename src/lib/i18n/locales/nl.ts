@@ -367,9 +367,9 @@ export const messagesNl: Messages = {
   trainingScoring: "Scoren",
   trainingSetPieces: "Dode spelmomenten",
   trainingDefendingDefendersMidfielders:
-    "Verdedigen (Keepers, Verdedigers + Alle Middenvelders)",
+    "Verdedigen (Keeper, Verdedigers + Alle Middenvelders)",
   trainingWingerWingerAttackers: "Vleugelspel (Vleugelspelers + Aanvallers)",
-  trainingPassingDefendersMidfielders: "Passen (Verdedigers + Middenvelders)",
+  trainingPassingDefendersMidfielders: "Passen (Verdedigers + Alle Middenvelders)",
   trainingSlotPrimary: "Primair",
   trainingSlotSecondary: "Secundair",
   trainingSlotBoth: "Pri/sec",

@@ -778,9 +778,9 @@ export const messagesEn: Messages = {
     trainingScoring: "Scoring",
     trainingSetPieces: "Set pieces",
     trainingDefendingDefendersMidfielders:
-      "Defending (Keepers, Defenders + All Midfielders)",
+      "Defending (Keeper, Defenders + All Midfielders)",
     trainingWingerWingerAttackers: "Winger (Wingers + Attackers)",
-    trainingPassingDefendersMidfielders: "Passing (Defenders + Midfielders)",
+    trainingPassingDefendersMidfielders: "Passing (Defenders + All Midfielders)",
     trainingSlotPrimary: "Primary",
     trainingSlotSecondary: "Secondary",
     trainingSlotBoth: "Pri/sec",

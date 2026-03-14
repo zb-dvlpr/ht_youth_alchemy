@@ -367,9 +367,9 @@ export const messagesPl: Messages = {
   trainingScoring: "Skuteczność",
   trainingSetPieces: "St. fragmenty",
   trainingDefendingDefendersMidfielders:
-    "Defensywa (Bramkarze, Obrońcy + Wszyscy Pomocnicy)",
+    "Defensywa (Bramkarz, Obrońcy + Wszyscy Pomocnicy)",
   trainingWingerWingerAttackers: "Skrzydła (Skrzydłowi + Napastnicy)",
-  trainingPassingDefendersMidfielders: "Podania (Obrońcy + Pomocnicy)",
+  trainingPassingDefendersMidfielders: "Podania (Obrońcy + Wszyscy Pomocnicy)",
   trainingSlotPrimary: "Główny",
   trainingSlotSecondary: "Drugorzędny",
   trainingSlotBoth: "Gł/dr",

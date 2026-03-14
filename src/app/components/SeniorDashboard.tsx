@@ -1715,11 +1715,11 @@ export default function SeniorDashboard({
       case 9:
         return messages.trainingKeeper;
       case 10:
-        return `${messages.trainingPassing} (${messages.sortDefender} + ${messages.sortPlaymaker})`;
+        return messages.trainingPassingDefendersMidfielders;
       case 11:
         return messages.trainingDefendingDefendersMidfielders;
       case 12:
-        return `${messages.trainingWinger} (${messages.trainingWinger} + ${messages.trainingScoring})`;
+        return messages.trainingWingerWingerAttackers;
       default:
         return messages.unknownShort;
     }

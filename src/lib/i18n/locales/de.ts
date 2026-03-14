@@ -806,7 +806,7 @@ export const messagesDe: Messages = {
       "Verteidigung (Torhüter, Verteidiger + alle Mittelfeldspieler)",
     trainingWingerWingerAttackers: "Flügelspiel (Flügel + Stürmer)",
     trainingPassingDefendersMidfielders:
-      "Passspiel (Verteidiger + Mittelfeldspieler)",
+      "Passspiel (Verteidiger + alle Mittelfeldspieler)",
     trainingSlotPrimary: "Primär",
     trainingSlotSecondary: "Sekundär",
     trainingSlotBoth: "Pri/sek",

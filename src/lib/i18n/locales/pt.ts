@@ -817,7 +817,7 @@ export const messagesPt: Messages = {
     trainingDefendingDefendersMidfielders:
       "Defesa (Guarda-redes, Defesas + Todos os Médios)",
     trainingWingerWingerAttackers: "Ala (Alas + Avançados)",
-    trainingPassingDefendersMidfielders: "Passes (Defesas + Médios)",
+    trainingPassingDefendersMidfielders: "Passes (Defesas + Todos os Médios)",
     trainingSlotPrimary: "Primário",
     trainingSlotSecondary: "Secundário",
     trainingSlotBoth: "Pri/sec",

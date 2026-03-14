@@ -806,10 +806,10 @@ export const messagesSv: Messages = {
     trainingScoring: "Målskytte",
     trainingSetPieces: "Fasta situationer",
     trainingDefendingDefendersMidfielders:
-      "Försvar (Målvakter, Backar + Alla Mittfältare)",
+      "Försvar (Målvakt, Backar + Alla Mittfältare)",
     trainingWingerWingerAttackers: "Ytterspel (Yttrar + Anfallare)",
     trainingPassingDefendersMidfielders:
-      "Passningar (Backar + Mittfältare)",
+      "Passningar (Backar + Alla Mittfältare)",
     trainingSlotPrimary: "Primär",
     trainingSlotSecondary: "Sekundär",
     trainingSlotBoth: "Pri/sek",

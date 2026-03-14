@@ -99,6 +99,8 @@ export const messagesSv: Messages = {
       "Senioroptimering har nu ett eget hjälp-overlay med guidade markeringar för Senaste uppdateringar och AI-uppställning.",
     changelog_3_2_0:
       "Seniorlagets träningsregim kan nu ändras direkt i appen med behörighetskontroll och verifiering.",
+    changelog_3_3_0:
+      "Seniorernas AI-uppställning stöder nu ett Sikta på förlängning-flöde för träningsinriktade förlängningsupplägg.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",

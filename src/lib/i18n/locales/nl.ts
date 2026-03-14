@@ -196,6 +196,8 @@ export const messagesNl: Messages = {
     "Senioroptimalisatie heeft nu een eigen help-overlay met gerichte callouts voor Laatste updates en opstelling met AI.",
   changelog_3_2_0:
     "Het trainingsregime van senioren kan nu direct in de app worden gewijzigd met machtigingscontrole en verificatie.",
+  changelog_3_3_0:
+    "Senioropstelling met AI ondersteunt nu een Mik op verlenging-flow voor opstellingen gericht op extra trainingsminuten in verlenging.",
   seniorHelpTitle: "Handleiding senioroptimalisatie",
   seniorHelpIntro:
     "Deze weergave helpt je relevante wijzigingen in de seniorselectie te volgen en sneller wedstrijdopstellingen te zetten.",

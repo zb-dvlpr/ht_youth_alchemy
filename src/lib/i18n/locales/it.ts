@@ -101,6 +101,8 @@ export const messagesIt: Messages = {
       "L ottimizzazione senior aggiunge un overlay di aiuto dedicato con callout guidati per Ultimi aggiornamenti e impostazione formazione con IA.",
     changelog_3_2_0:
       "Il regime di allenamento senior ora può essere cambiato direttamente nell app con controllo permessi e verifica.",
+    changelog_3_3_0:
+      "La formazione IA senior ora supporta un flusso Punta ai supplementari per assetti orientati ai minuti extra di allenamento.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",

@@ -99,6 +99,8 @@ export const messagesDe: Messages = {
       "Senior-Optimierung mit eigenem Hilfe-Overlay und geführten Hinweisen für Letzte Updates und KI-Aufstellung.",
     changelog_3_2_0:
       "Das Trainingsregime der Senior-Aufstellung kann jetzt direkt in der App mit Berechtigungsprüfung und Verifizierung geändert werden.",
+    changelog_3_3_0:
+      "Die KI-Aufstellung der Senioren unterstützt jetzt einen Auf Verlängerung zielen-Ablauf für trainingsorientierte Verlängerungs-Setups.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",

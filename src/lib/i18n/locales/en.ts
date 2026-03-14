@@ -87,6 +87,8 @@ export const messagesEn: Messages = {
       "Senior optimization now has a dedicated help overlay with guided callouts for Latest updates and AI lineup actions.",
     changelog_3_2_0:
       "Senior lineup training regimen can now be changed directly in-app with permission checks and verification.",
+    changelog_3_3_0:
+      "Senior AI lineup now supports an Aim for extra time flow for training-focused extra-time setups.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",

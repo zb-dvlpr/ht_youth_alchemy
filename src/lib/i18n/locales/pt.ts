@@ -101,6 +101,8 @@ export const messagesPt: Messages = {
       "A otimização sênior agora tem overlay de ajuda dedicado com callouts guiados para Últimas atualizações e escalação por IA.",
     changelog_3_2_0:
       "O regime de treino do elenco sênior agora pode ser alterado direto no app com validação de permissões e verificação.",
+    changelog_3_3_0:
+      "A escalação por IA do senior agora suporta um fluxo Mirar prorrogação para montagens focadas em minutos extras de treino.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Relatar um bug",
     feedbackFeature: "Solicitar recurso",

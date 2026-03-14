@@ -101,6 +101,8 @@ export const messagesFr: Messages = {
       "L optimisation senior ajoute une aide contextuelle avec repères guidés pour Dernières mises à jour et Composition IA.",
     changelog_3_2_0:
       "Le régime d entraînement de l équipe senior peut maintenant être modifié directement dans l application avec vérification des permissions.",
+    changelog_3_3_0:
+      "La composition IA senior prend maintenant en charge un mode Viser la prolongation pour des compositions axées sur les minutes d entraînement en prolongation.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",

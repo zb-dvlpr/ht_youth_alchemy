@@ -101,6 +101,8 @@ export const messagesEs: Messages = {
       "La optimización senior añade una ayuda contextual con llamadas guiadas para Últimas actualizaciones y alineación con IA.",
     changelog_3_2_0:
       "El régimen de entrenamiento senior ahora se puede cambiar directamente en la app con validación de permisos y verificación.",
+    changelog_3_3_0:
+      "La alineación con IA para senior ahora admite un flujo Apuntar a la prórroga para configuraciones orientadas a minutos extra de entrenamiento.",
     feedbackTooltip: "Comentarios",
     feedbackBug: "Informar de un error",
     feedbackFeature: "Solicitar función",

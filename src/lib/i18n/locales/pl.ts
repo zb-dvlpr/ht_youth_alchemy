@@ -196,6 +196,8 @@ export const messagesPl: Messages = {
     "Optymalizacja seniorów ma teraz dedykowaną nakładkę pomocy z podpowiedziami dla Ostatnich aktualizacji i ustawiania składu przez AI.",
   changelog_3_2_0:
     "Reżim treningowy seniorów można teraz zmieniać bezpośrednio w aplikacji z kontrolą uprawnień i weryfikacją.",
+  changelog_3_3_0:
+    "Skład seniorów ustawiany przez AI obsługuje teraz tryb Celuj w dogrywkę dla ustawień nastawionych na dodatkowe minuty treningowe.",
   seniorHelpTitle: "Przewodnik optymalizacji seniorów",
   seniorHelpIntro:
     "Ten widok pomaga śledzić istotne zmiany w kadrze seniorów i szybciej ustawiać składy meczowe.",

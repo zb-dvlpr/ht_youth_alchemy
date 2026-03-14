@@ -46,6 +46,8 @@ export type Messages = {
   watchlistTeamLabel: string;
   watchlistOwnSeniorTeamsTitle: string;
   watchlistOwnSeniorTeamsEmpty: string;
+  watchlistOwnLeaguesTitle: string;
+  watchlistOwnLeaguesEmpty: string;
   watchlistGenderMale: string;
   watchlistGenderFemale: string;
   changelogVersionLabel: string;
@@ -55,6 +57,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_3_8_0: string;
   changelog_3_7_0: string;
   changelog_1_19_0: string;
   changelog_1_21_0: string;

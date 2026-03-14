@@ -36,6 +36,8 @@ export const messagesSv: Messages = {
     watchlistTeamLabel: "Lag",
     watchlistOwnSeniorTeamsTitle: "Egna seniorlag",
     watchlistOwnSeniorTeamsEmpty: "Inga egna seniorlag hittades.",
+    watchlistOwnLeaguesTitle: "Egna ligor",
+    watchlistOwnLeaguesEmpty: "Inga egna ligor hittades.",
     watchlistGenderMale: "Manligt",
     watchlistGenderFemale: "Kvinnligt",
     changelogVersionLabel: "Version",
@@ -46,6 +48,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_3_8_0:
+      "Klubbkrönikans bevakningslista kan nu valfritt utöka dina egna ligor för att följa de andra lagen i varje liga.",
     changelog_3_7_0:
       "Seniorlagets AI-optimering har nu ett läge för fast formation som provar alla taktiker och väljer den bästa.",
     changelog_1_19_0: "Stöd för flera lag.",

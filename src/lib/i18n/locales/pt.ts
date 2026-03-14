@@ -36,6 +36,8 @@ export const messagesPt: Messages = {
     watchlistTeamLabel: "Time",
     watchlistOwnSeniorTeamsTitle: "Seus times seniores",
     watchlistOwnSeniorTeamsEmpty: "Nenhum time senior próprio encontrado.",
+    watchlistOwnLeaguesTitle: "Próprias ligas",
+    watchlistOwnLeaguesEmpty: "Nenhuma liga própria encontrada.",
     watchlistGenderMale: "Masculino",
     watchlistGenderFemale: "Feminino",
     changelogVersionLabel: "Versão",
@@ -46,6 +48,8 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    changelog_3_8_0:
+      "A watchlist do Club Chronicle agora pode expandir opcionalmente as tuas próprias ligas para acompanhar as outras equipas de cada uma.",
     changelog_3_7_0:
       "A otimização IA senior agora inclui um modo de formação fixa que testa todas as táticas e escolhe a melhor.",
     changelog_1_19_0: "Suporte a vários times.",

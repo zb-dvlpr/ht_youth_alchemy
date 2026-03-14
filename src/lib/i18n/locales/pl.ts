@@ -16,6 +16,8 @@ export const messagesPl: Messages = {
   toolClubChronicle: "Kronika klubu",
   watchlistOwnSeniorTeamsTitle: "Własne drużyny seniorów",
   watchlistOwnSeniorTeamsEmpty: "Nie znaleziono własnych drużyn seniorów.",
+  watchlistOwnLeaguesTitle: "Własne ligi",
+  watchlistOwnLeaguesEmpty: "Nie znaleziono własnych lig.",
   watchlistGenderMale: "Męska",
   watchlistGenderFemale: "Żeńska",
   feedbackTooltip: "Opinie",
@@ -49,6 +51,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_3_8_0:
+    "Watchlista Club Chronicle może teraz opcjonalnie rozszerzać twoje własne ligi, aby śledzić pozostałe drużyny w każdej z nich.",
   changelog_3_7_0:
     "Senior AI dodaje optymalizację pod stałą formację, która testuje wszystkie taktyki i wybiera najlepszą.",
   refresh: "Odśwież",

@@ -36,6 +36,8 @@ export const messagesDe: Messages = {
     watchlistTeamLabel: "Team",
     watchlistOwnSeniorTeamsTitle: "Eigene Seniorenteams",
     watchlistOwnSeniorTeamsEmpty: "Keine eigenen Seniorenteams gefunden.",
+    watchlistOwnLeaguesTitle: "Eigene Ligen",
+    watchlistOwnLeaguesEmpty: "Keine eigenen Ligen gefunden.",
     watchlistGenderMale: "Männlich",
     watchlistGenderFemale: "Weiblich",
     changelogVersionLabel: "Version",
@@ -46,6 +48,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_3_8_0:
+      "Die Watchlist der Club-Chronik kann jetzt optional die anderen Teams aus jeder deiner eigenen Ligen verfolgen.",
     changelog_3_7_0:
       "Die KI-Aufstellung bei den Senioren bietet jetzt eine Optimierung für feste Formationen, die alle Taktiken prüft und die beste wählt.",
     changelog_1_19_0: "Unterstützung für mehrere Teams.",

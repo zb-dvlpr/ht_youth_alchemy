@@ -36,6 +36,8 @@ export const messagesEn: Messages = {
     watchlistTeamLabel: "Team",
     watchlistOwnSeniorTeamsTitle: "Own senior teams",
     watchlistOwnSeniorTeamsEmpty: "No own senior teams found.",
+    watchlistOwnLeaguesTitle: "Own leagues",
+    watchlistOwnLeaguesEmpty: "No own leagues found.",
     watchlistGenderMale: "Male",
     watchlistGenderFemale: "Female",
     changelogVersionLabel: "Version",
@@ -46,6 +48,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_3_8_0:
+      "Club Chronicle watchlist adds optional own-league expansion to track the other teams in each of your leagues.",
     changelog_3_7_0:
       "Senior AI lineup adds a fixed-formation optimizer that tests every tactic and picks the best one.",
     changelog_1_19_0: "Multi team support.",

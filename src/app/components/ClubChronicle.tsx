@@ -60,12 +60,25 @@ type SupportedTeam = {
   teamName: string;
   leagueName?: string | null;
   leagueLevelUnitName?: string | null;
+  leagueLevelUnitId?: number | null;
   teamGender?: "male" | "female" | null;
   isOwnSeniorTeam?: boolean;
 };
 
+type OwnLeagueEntry = {
+  key: string;
+  ownTeamId: number;
+  ownTeamName: string;
+  ownTeamGender?: "male" | "female" | null;
+  leagueId?: number | null;
+  leagueName?: string | null;
+  leagueLevelUnitId?: number | null;
+  leagueLevelUnitName?: string | null;
+};
+
 type WatchlistStorage = {
   supportedSelections: Record<number, boolean>;
+  ownLeagueSelections?: Record<string, boolean>;
   manualTeams: ManualTeam[] | number[];
 };
 
@@ -926,11 +939,80 @@ const normalizeOwnSeniorTeams = (input: unknown): SupportedTeam[] => {
           readStringLike(leagueLevelUnit?.LeagueLevelUnitName) ??
           readStringLike(leagueLevelUnit?.Name) ??
           null,
+        leagueLevelUnitId:
+          readNumberLike(team.LeagueLevelUnitID) ??
+          readNumberLike(team.LeagueLevelUnitId) ??
+          readNumberLike(leagueLevelUnit?.LeagueLevelUnitID) ??
+          readNumberLike(leagueLevelUnit?.LeagueLevelUnitId) ??
+          null,
         teamGender: normalizeTeamGender(team.GenderID),
         isOwnSeniorTeam: true,
       } satisfies SupportedTeam;
     })
     .filter((team) => Number.isFinite(team.teamId) && team.teamId > 0);
+};
+
+const buildOwnLeagueKey = (
+  ownTeamId: number,
+  leagueLevelUnitId: number | null,
+  leagueId: number | null
+) => `${ownTeamId}:${leagueLevelUnitId ?? 0}:${leagueId ?? 0}`;
+
+const normalizeOwnLeagues = (input: unknown): OwnLeagueEntry[] => {
+  if (!input) return [];
+  const list = Array.isArray(input) ? input : [input];
+  return list
+    .map((teamNode) => {
+      const team =
+        typeof teamNode === "object" && teamNode !== null
+          ? (teamNode as Record<string, unknown>)
+          : {};
+      const league =
+        typeof team.League === "object" && team.League !== null
+          ? (team.League as Record<string, unknown>)
+          : undefined;
+      const leagueLevelUnit =
+        typeof team.LeagueLevelUnit === "object" && team.LeagueLevelUnit !== null
+          ? (team.LeagueLevelUnit as Record<string, unknown>)
+          : undefined;
+      const ownTeamId = readNumberLike(team.TeamId ?? team.TeamID) ?? 0;
+      const leagueLevelUnitId =
+        readNumberLike(team.LeagueLevelUnitID) ??
+        readNumberLike(team.LeagueLevelUnitId) ??
+        readNumberLike(leagueLevelUnit?.LeagueLevelUnitID) ??
+        readNumberLike(leagueLevelUnit?.LeagueLevelUnitId) ??
+        null;
+      const leagueId =
+        readNumberLike(team.LeagueID) ??
+        readNumberLike(team.LeagueId) ??
+        readNumberLike(league?.LeagueID) ??
+        readNumberLike(league?.LeagueId) ??
+        null;
+      return {
+        key: buildOwnLeagueKey(ownTeamId, leagueLevelUnitId, leagueId),
+        ownTeamId,
+        ownTeamName: readStringLike(team.TeamName) ?? "",
+        ownTeamGender: normalizeTeamGender(team.GenderID),
+        leagueId,
+        leagueName:
+          readStringLike(team.LeagueName) ??
+          readStringLike(league?.LeagueName) ??
+          readStringLike(league?.Name) ??
+          null,
+        leagueLevelUnitId,
+        leagueLevelUnitName:
+          readStringLike(team.LeagueLevelUnitName) ??
+          readStringLike(leagueLevelUnit?.LeagueLevelUnitName) ??
+          readStringLike(leagueLevelUnit?.Name) ??
+          null,
+      } satisfies OwnLeagueEntry;
+    })
+    .filter(
+      (entry) =>
+        Number.isFinite(entry.ownTeamId) &&
+        entry.ownTeamId > 0 &&
+        (Number.isFinite(entry.leagueLevelUnitId) || Number.isFinite(entry.leagueId))
+    );
 };
 
 const mergeSupportedTeamLists = (...lists: SupportedTeam[][]): SupportedTeam[] => {
@@ -943,6 +1025,7 @@ const mergeSupportedTeamLists = (...lists: SupportedTeam[][]): SupportedTeam[] =
       leagueName: team.leagueName ?? existing?.leagueName ?? null,
       leagueLevelUnitName:
         team.leagueLevelUnitName ?? existing?.leagueLevelUnitName ?? null,
+      leagueLevelUnitId: team.leagueLevelUnitId ?? existing?.leagueLevelUnitId ?? null,
       teamGender: team.teamGender ?? existing?.teamGender ?? null,
       isOwnSeniorTeam: Boolean(team.isOwnSeniorTeam || existing?.isOwnSeniorTeam),
     });
@@ -1429,18 +1512,19 @@ const extractPressReferenceIds = (text: string) => {
 
 const readStorage = (): WatchlistStorage => {
   if (typeof window === "undefined") {
-    return { supportedSelections: {}, manualTeams: [] };
+    return { supportedSelections: {}, ownLeagueSelections: {}, manualTeams: [] };
   }
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { supportedSelections: {}, manualTeams: [] };
+    if (!raw) return { supportedSelections: {}, ownLeagueSelections: {}, manualTeams: [] };
     const parsed = JSON.parse(raw) as WatchlistStorage;
     return {
       supportedSelections: parsed.supportedSelections ?? {},
+      ownLeagueSelections: parsed.ownLeagueSelections ?? {},
       manualTeams: parsed.manualTeams ?? [],
     };
   } catch {
-    return { supportedSelections: {}, manualTeams: [] };
+    return { supportedSelections: {}, ownLeagueSelections: {}, manualTeams: [] };
   }
 };
 
@@ -2012,6 +2096,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [supportedSelections, setSupportedSelections] = useState<
     Record<number, boolean>
   >({});
+  const [ownLeagues, setOwnLeagues] = useState<OwnLeagueEntry[]>([]);
+  const [ownLeagueSelections, setOwnLeagueSelections] = useState<
+    Record<string, boolean>
+  >({});
+  const [ownLeagueTeams, setOwnLeagueTeams] = useState<SupportedTeam[]>([]);
   const [manualTeams, setManualTeams] = useState<ManualTeam[]>([]);
   const [primaryTeam, setPrimaryTeam] = useState<ChronicleTeamData | null>(null);
   const [chronicleCache, setChronicleCache] = useState<ChronicleCache>(() =>
@@ -2270,6 +2359,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => supportedTeams.filter((team) => team.isOwnSeniorTeam),
     [supportedTeams]
   );
+  const ownSeniorTeamIds = useMemo(
+    () => new Set<number>(ownSeniorTeams.map((team) => team.teamId)),
+    [ownSeniorTeams]
+  );
   const supportedWatchlistTeams = useMemo(
     () => supportedTeams.filter((team) => !team.isOwnSeniorTeam),
     [supportedTeams]
@@ -2364,6 +2457,22 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.watchlistTeamLabel,
     ]
   );
+  const formatOwnLeagueName = useCallback(
+    (league: OwnLeagueEntry) => {
+      const teamLabel = formatWatchlistTeamName({
+        teamId: league.ownTeamId,
+        teamName: league.ownTeamName,
+        teamGender: league.ownTeamGender ?? null,
+      });
+      return `${teamLabel}: ${[
+        league.leagueName,
+        league.leagueLevelUnitName,
+      ]
+        .filter(Boolean)
+        .join(" · ")}`;
+    },
+    [formatWatchlistTeamName]
+  );
 
   const trackedTeams = useMemo(() => {
     const map = new Map<number, ChronicleTeamData>();
@@ -2395,6 +2504,29 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         arenaId: cached?.arenaId ?? null,
         arenaName: cached?.arenaName ?? null,
         leaguePerformance: cached?.leaguePerformance,
+      });
+    });
+    ownLeagueTeams.forEach((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      const existing = map.get(team.teamId);
+      map.set(team.teamId, {
+        teamId: team.teamId,
+        teamName: existing?.teamName ?? team.teamName ?? cached?.teamName ?? "",
+        leagueName:
+          existing?.leagueName ?? team.leagueName ?? cached?.leagueName ?? null,
+        leagueLevelUnitName:
+          existing?.leagueLevelUnitName ??
+          team.leagueLevelUnitName ??
+          cached?.leagueLevelUnitName ??
+          null,
+        leagueLevelUnitId:
+          existing?.leagueLevelUnitId ??
+          team.leagueLevelUnitId ??
+          cached?.leagueLevelUnitId ??
+          null,
+        arenaId: existing?.arenaId ?? cached?.arenaId ?? null,
+        arenaName: existing?.arenaName ?? cached?.arenaName ?? null,
+        leaguePerformance: existing?.leaguePerformance ?? cached?.leaguePerformance,
       });
     });
     if (primaryTeam) {
@@ -2430,7 +2562,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return Array.from(map.values()).sort((a, b) =>
       (a.teamName ?? "").localeCompare(b.teamName ?? "")
     );
-  }, [supportedTeams, supportedSelections, manualTeams, chronicleCache, primaryTeam]);
+  }, [
+    supportedTeams,
+    supportedSelections,
+    manualTeams,
+    ownLeagueTeams,
+    chronicleCache,
+    primaryTeam,
+  ]);
 
   const isNoDivulgoTracked = useMemo(
     () => trackedTeams.some((team) => team.teamId === NO_DIVULGO_TARGET_TEAM_ID),
@@ -2949,6 +3088,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         const rawOwnSeniorTeams =
           managerPayload?.payload?.data?.HattrickData?.Manager?.Teams?.Team;
         const nextOwnSeniorTeams = normalizeOwnSeniorTeams(rawOwnSeniorTeams);
+        const nextOwnLeagues = normalizeOwnLeagues(rawOwnSeniorTeams);
         const nextAllSupportedTeams = mergeSupportedTeamLists(
           nextSupportedTeams,
           nextOwnSeniorTeams
@@ -2962,6 +3102,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           } else {
             nextSelections[key] = stored.supportedSelections[key];
           }
+        });
+        const nextOwnLeagueSelections: Record<string, boolean> = {};
+        nextOwnLeagues.forEach((entry) => {
+          nextOwnLeagueSelections[entry.key] = Boolean(
+            stored.ownLeagueSelections?.[entry.key]
+          );
         });
         if (active) {
           const normalizedManualTeams: ManualTeam[] = (stored.manualTeams ?? []).map(
@@ -2995,10 +3141,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           if (!active) return;
           setSupportedTeams(enriched.supported);
           setSupportedSelections(nextSelections);
+          setOwnLeagues(nextOwnLeagues);
+          setOwnLeagueSelections(nextOwnLeagueSelections);
           setManualTeams(enriched.manual);
           initializedRef.current = true;
           writeStorage({
             supportedSelections: nextSelections,
+            ownLeagueSelections: nextOwnLeagueSelections,
             manualTeams: enriched.manual,
           });
         }
@@ -3025,6 +3174,111 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     messages.watchlistError,
     watchlistOpen,
     watchlistReloadNonce,
+  ]);
+
+  useEffect(() => {
+    let active = true;
+    const loadOwnLeagueTeams = async () => {
+      const selectedLeagues = ownLeagues.filter(
+        (entry) => ownLeagueSelections[entry.key]
+      );
+      if (selectedLeagues.length === 0) {
+        setOwnLeagueTeams([]);
+        return;
+      }
+      const selectedByLeagueUnit = new Map<number, OwnLeagueEntry[]>();
+      selectedLeagues.forEach((entry) => {
+        const leagueLevelUnitId = Number(entry.leagueLevelUnitId ?? 0);
+        if (!Number.isFinite(leagueLevelUnitId) || leagueLevelUnitId <= 0) return;
+        const existing = selectedByLeagueUnit.get(leagueLevelUnitId) ?? [];
+        existing.push(entry);
+        selectedByLeagueUnit.set(leagueLevelUnitId, existing);
+      });
+      const merged = new Map<number, SupportedTeam>();
+      try {
+        await mapWithConcurrency(
+          Array.from(selectedByLeagueUnit.entries()),
+          TEAM_REFRESH_CONCURRENCY,
+          async ([leagueLevelUnitId, entries]) => {
+            try {
+              const { response, payload } = await fetchChppJson<{
+                data?: {
+                  HattrickData?: {
+                    LeagueName?: string;
+                    LeagueLevelUnitName?: string;
+                    LeagueLevelUnitID?: number | string;
+                    Team?: unknown;
+                  };
+                };
+                error?: string;
+                details?: string;
+              }>(
+                `/api/chpp/leaguedetails?leagueLevelUnitId=${leagueLevelUnitId}`,
+                { cache: "no-store" }
+              );
+              if (!response.ok || payload?.error) return;
+              const leagueData = payload?.data?.HattrickData as RawNode | undefined;
+              const rawTeams = leagueData?.Team as RawNode | RawNode[] | null | undefined;
+              const teams = Array.isArray(rawTeams) ? rawTeams : rawTeams ? [rawTeams] : [];
+              const excludedTeamIds = new Set<number>(
+                entries
+                  .map((entry) => Number(entry.ownTeamId))
+                  .filter((teamId) => Number.isFinite(teamId) && teamId > 0)
+              );
+              teams.forEach((teamNode) => {
+                const teamId = readNumberLike(teamNode.TeamID) ?? 0;
+                if (!Number.isFinite(teamId) || teamId <= 0) return;
+                if (excludedTeamIds.has(teamId)) return;
+                const existing = merged.get(teamId);
+                merged.set(teamId, {
+                  teamId,
+                  teamName:
+                    readStringLike(teamNode.TeamName) ?? existing?.teamName ?? "",
+                  leagueName:
+                    readStringLike(leagueData?.LeagueName) ??
+                    existing?.leagueName ??
+                    null,
+                  leagueLevelUnitName:
+                    readStringLike(leagueData?.LeagueLevelUnitName) ??
+                    existing?.leagueLevelUnitName ??
+                    null,
+                  leagueLevelUnitId:
+                    readNumberLike(leagueData?.LeagueLevelUnitID) ??
+                    existing?.leagueLevelUnitId ??
+                    leagueLevelUnitId,
+                });
+              });
+            } catch (error) {
+              if (isChppAuthRequiredError(error)) throw error;
+            }
+          }
+        );
+        if (!active) return;
+        setOwnLeagueTeams(
+          Array.from(merged.values())
+            .filter((team) => !ownSeniorTeamIds.has(team.teamId))
+            .sort((left, right) => left.teamName.localeCompare(right.teamName))
+        );
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) return;
+        if (!active) return;
+        setOwnLeagueTeams([]);
+        setError(getReadableErrorMessage(error, messages.watchlistError));
+        if (watchlistOpen) {
+          setErrorOpen(true);
+        }
+      }
+    };
+    void loadOwnLeagueTeams();
+    return () => {
+      active = false;
+    };
+  }, [
+    messages.watchlistError,
+    ownLeagueSelections,
+    ownLeagues,
+    ownSeniorTeamIds,
+    watchlistOpen,
   ]);
 
   useEffect(() => {
@@ -3128,8 +3382,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   useEffect(() => {
     if (!initializedRef.current) return;
-    writeStorage({ supportedSelections, manualTeams });
-  }, [supportedSelections, manualTeams]);
+    writeStorage({ supportedSelections, ownLeagueSelections, manualTeams });
+  }, [supportedSelections, ownLeagueSelections, manualTeams]);
 
   useEffect(() => {
     if (!primaryTeam) return;
@@ -3473,6 +3727,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         prev.includes(teamId) ? prev : [...prev, teamId]
       );
     }
+  };
+
+  const handleToggleOwnLeague = (key: string) => {
+    setOwnLeagueSelections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
   };
 
   const handleRemoveManual = (teamId: number) => {
@@ -10315,6 +10576,33 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               ) : (
                 <p className={styles.muted}>
                   {messages.watchlistOwnSeniorTeamsEmpty}
+                </p>
+              )}
+            </div>
+            <div className={styles.watchlistSection}>
+              <h3 className={styles.watchlistHeading}>
+                {messages.watchlistOwnLeaguesTitle}
+              </h3>
+              {ownLeagues.length ? (
+                <ul className={styles.watchlistList}>
+                  {ownLeagues.map((entry) => (
+                    <li key={entry.key} className={styles.watchlistRow}>
+                      <label className={styles.watchlistTeam}>
+                        <input
+                          type="checkbox"
+                          checked={ownLeagueSelections[entry.key] ?? false}
+                          onChange={() => handleToggleOwnLeague(entry.key)}
+                        />
+                        <span className={styles.watchlistName}>
+                          {formatOwnLeagueName(entry)}
+                        </span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={styles.muted}>
+                  {messages.watchlistOwnLeaguesEmpty}
                 </p>
               )}
             </div>

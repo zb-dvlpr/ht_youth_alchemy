@@ -16,6 +16,8 @@ export const messagesNl: Messages = {
   toolClubChronicle: "Clubkroniek",
   watchlistOwnSeniorTeamsTitle: "Eigen seniorenteams",
   watchlistOwnSeniorTeamsEmpty: "Geen eigen seniorenteams gevonden.",
+  watchlistOwnLeaguesTitle: "Eigen competities",
+  watchlistOwnLeaguesEmpty: "Geen eigen competities gevonden.",
   watchlistGenderMale: "Mannelijk",
   watchlistGenderFemale: "Vrouwelijk",
   feedbackTooltip: "Terugkoppeling",
@@ -55,6 +57,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_3_8_0:
+    "De watchlist van Club Chronicle kan nu optioneel je eigen competities uitbreiden om de andere teams in elke competitie te volgen.",
   changelog_3_7_0:
     "De senior AI-opstelling heeft nu een optimalisatie voor een vaste formatie die alle tactieken test en de beste kiest.",
   refresh: "Vernieuwen",

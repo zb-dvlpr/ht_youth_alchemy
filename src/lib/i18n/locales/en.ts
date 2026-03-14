@@ -46,6 +46,8 @@ export const messagesEn: Messages = {
     clubChronicleTabDefaultName: "Tab {{number}}",
     clubChronicleTabAdd: "Add tab",
     clubChronicleTabRenamePlaceholder: "Tab name",
+    clubChronicleTabRenameTooltip: "Rename tab",
+    clubChronicleTabShortcutHint: "Prev/next: j/k",
     clubChronicleTabDeleteTooltip: "Delete tab",
     clubChronicleTabDeleteTitle: "Delete this tab?",
     clubChronicleTabDeleteBody:

@@ -46,6 +46,8 @@ export const messagesEs: Messages = {
     clubChronicleTabDefaultName: "Pestaña {{number}}",
     clubChronicleTabAdd: "Añadir pestaña",
     clubChronicleTabRenamePlaceholder: "Nombre de la pestaña",
+    clubChronicleTabRenameTooltip: "Renombrar pestaña",
+    clubChronicleTabShortcutHint: "Anterior/siguiente: j/k",
     clubChronicleTabDeleteTooltip: "Eliminar pestaña",
     clubChronicleTabDeleteTitle: "¿Eliminar esta pestaña?",
     clubChronicleTabDeleteBody:

@@ -46,6 +46,8 @@ export const messagesIt: Messages = {
     clubChronicleTabDefaultName: "Scheda {{number}}",
     clubChronicleTabAdd: "Aggiungi scheda",
     clubChronicleTabRenamePlaceholder: "Nome scheda",
+    clubChronicleTabRenameTooltip: "Rinomina scheda",
+    clubChronicleTabShortcutHint: "Prec./succ.: j/k",
     clubChronicleTabDeleteTooltip: "Elimina scheda",
     clubChronicleTabDeleteTitle: "Eliminare questa scheda?",
     clubChronicleTabDeleteBody:

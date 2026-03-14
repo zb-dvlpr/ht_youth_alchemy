@@ -46,6 +46,8 @@ export const messagesPt: Messages = {
     clubChronicleTabDefaultName: "Aba {{number}}",
     clubChronicleTabAdd: "Adicionar aba",
     clubChronicleTabRenamePlaceholder: "Nome da aba",
+    clubChronicleTabRenameTooltip: "Renomear aba",
+    clubChronicleTabShortcutHint: "Anterior/próx.: j/k",
     clubChronicleTabDeleteTooltip: "Excluir aba",
     clubChronicleTabDeleteTitle: "Excluir esta aba?",
     clubChronicleTabDeleteBody:

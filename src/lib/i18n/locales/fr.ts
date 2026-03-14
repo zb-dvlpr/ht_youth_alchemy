@@ -46,6 +46,8 @@ export const messagesFr: Messages = {
     clubChronicleTabDefaultName: "Onglet {{number}}",
     clubChronicleTabAdd: "Ajouter un onglet",
     clubChronicleTabRenamePlaceholder: "Nom de l’onglet",
+    clubChronicleTabRenameTooltip: "Renommer l’onglet",
+    clubChronicleTabShortcutHint: "Préc./suiv. : j/k",
     clubChronicleTabDeleteTooltip: "Supprimer l’onglet",
     clubChronicleTabDeleteTitle: "Supprimer cet onglet ?",
     clubChronicleTabDeleteBody:

@@ -1693,6 +1693,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+  min-width: 0;
 }
 
 .chronicleTabInput {
@@ -1707,6 +1708,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   font-weight: 700;
 }
 
+.chronicleTabRename,
 .chronicleTabDelete,
 .chronicleTabAddButton {
   border: 1px solid #d1c1ab;
@@ -1723,6 +1725,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   flex-shrink: 0;
 }
 
+.chronicleTabRename:hover,
 .chronicleTabDelete:hover,
 .chronicleTabAddButton:hover {
   background: #f6ebdc;
@@ -1735,6 +1738,13 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   height: 34px;
   font-size: 20px;
   font-weight: 700;
+}
+
+.chronicleTabShortcutHint {
+  font-size: 11px;
+  color: #7a6f61;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .chroniclePanels {
@@ -3087,6 +3097,7 @@ html[data-theme="dark"] .chronicleTabInput {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .chronicleTabRename,
 html[data-theme="dark"] .chronicleTabDelete,
 html[data-theme="dark"] .chronicleTabAddButton {
   background: #1b1917;
@@ -3094,10 +3105,15 @@ html[data-theme="dark"] .chronicleTabAddButton {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .chronicleTabRename:hover,
 html[data-theme="dark"] .chronicleTabDelete:hover,
 html[data-theme="dark"] .chronicleTabAddButton:hover {
   background: #2a2521;
   border-color: rgba(255, 255, 255, 0.2);
+}
+
+html[data-theme="dark"] .chronicleTabShortcutHint {
+  color: #b9b0a5;
 }
 
 html[data-theme="dark"] .shellContextBar {

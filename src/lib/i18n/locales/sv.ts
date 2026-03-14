@@ -46,6 +46,8 @@ export const messagesSv: Messages = {
     clubChronicleTabDefaultName: "Flik {{number}}",
     clubChronicleTabAdd: "Lägg till flik",
     clubChronicleTabRenamePlaceholder: "Fliknamn",
+    clubChronicleTabRenameTooltip: "Byt namn på flik",
+    clubChronicleTabShortcutHint: "Föreg./nästa: j/k",
     clubChronicleTabDeleteTooltip: "Ta bort flik",
     clubChronicleTabDeleteTitle: "Ta bort den här fliken?",
     clubChronicleTabDeleteBody:

@@ -2671,6 +2671,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     },
     [updateActiveChronicleTab]
   );
+  const switchChronicleTabByOffset = useCallback(
+    (offset: -1 | 1) => {
+      if (chronicleTabs.length <= 1 || activeChronicleTabIndex < 0) return;
+      const nextIndex =
+        (activeChronicleTabIndex + offset + chronicleTabs.length) %
+        chronicleTabs.length;
+      const nextTab = chronicleTabs[nextIndex];
+      if (!nextTab) return;
+      setActiveChronicleTabId(nextTab.id);
+    },
+    [activeChronicleTabIndex, chronicleTabs]
+  );
 
   useEffect(() => {
     if (chronicleTabs.length === 0) {
@@ -2720,6 +2732,32 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     watchlistMasterCheckboxRef.current.indeterminate =
       hasAnyWatchlistSelection && !allWatchlistSelected;
   }, [allWatchlistSelected, hasAnyWatchlistSelection]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isEditableTarget = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false;
+      if (target.isContentEditable) return true;
+      const tagName = target.tagName.toLowerCase();
+      return tagName === "input" || tagName === "textarea" || tagName === "select";
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      if (isEditableTarget(event.target) || renamingTabId) return;
+      if (event.key === "j") {
+        event.preventDefault();
+        switchChronicleTabByOffset(-1);
+      } else if (event.key === "k") {
+        event.preventDefault();
+        switchChronicleTabByOffset(1);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [renamingTabId, switchChronicleTabByOffset]);
   const enrichWatchlistTeamGenders = useCallback(
     async (
       supportedInput: SupportedTeam[],
@@ -10269,18 +10307,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     type="button"
                     className={styles.chronicleTabLabel}
                     onClick={() => setActiveChronicleTabId(tab.id)}
-                    onDoubleClick={() => handleStartRenamingTab(tab)}
                   >
-                    <span
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        handleStartRenamingTab(tab);
-                      }}
-                    >
-                      {tab.name || buildChronicleTabName(messages, index + 1)}
-                    </span>
+                    <span>{tab.name || buildChronicleTabName(messages, index + 1)}</span>
                   </button>
                 )}
+                <Tooltip content={messages.clubChronicleTabRenameTooltip}>
+                  <button
+                    type="button"
+                    className={styles.chronicleTabRename}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleStartRenamingTab(tab);
+                    }}
+                    aria-label={messages.clubChronicleTabRenameTooltip}
+                  >
+                    ✎
+                  </button>
+                </Tooltip>
                 <Tooltip content={messages.clubChronicleTabDeleteTooltip}>
                   <button
                     type="button"
@@ -10307,6 +10350,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               +
             </button>
           </Tooltip>
+          <span className={styles.chronicleTabShortcutHint}>
+            {messages.clubChronicleTabShortcutHint}
+          </span>
         </div>
       </div>
 

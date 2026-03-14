@@ -26,6 +26,8 @@ export const messagesPl: Messages = {
   clubChronicleTabDefaultName: "Karta {{number}}",
   clubChronicleTabAdd: "Dodaj kartę",
   clubChronicleTabRenamePlaceholder: "Nazwa karty",
+  clubChronicleTabRenameTooltip: "Zmień nazwę karty",
+  clubChronicleTabShortcutHint: "Poprz./nast.: j/k",
   clubChronicleTabDeleteTooltip: "Usuń kartę",
   clubChronicleTabDeleteTitle: "Usunąć tę kartę?",
   clubChronicleTabDeleteBody:

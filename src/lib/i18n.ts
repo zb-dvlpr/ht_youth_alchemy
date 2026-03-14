@@ -56,6 +56,8 @@ export type Messages = {
   clubChronicleTabDefaultName: string;
   clubChronicleTabAdd: string;
   clubChronicleTabRenamePlaceholder: string;
+  clubChronicleTabRenameTooltip: string;
+  clubChronicleTabShortcutHint: string;
   clubChronicleTabDeleteTooltip: string;
   clubChronicleTabDeleteTitle: string;
   clubChronicleTabDeleteBody: string;

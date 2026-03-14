@@ -800,6 +800,15 @@ export function buildSkillRanking(
   preferences?: Partial<TrainingPreferences>
 ) {
   const { allowTrainingUntilMaxedOut } = resolveTrainingPreferences(preferences);
+  const totalAgeDaysByPlayerId = new Map<number, number | null>();
+  players.forEach((player) => {
+    const age = typeof player.age === "number" ? player.age : null;
+    const ageDays = typeof player.ageDays === "number" ? player.ageDays : 0;
+    totalAgeDaysByPlayerId.set(
+      player.id,
+      age !== null ? age * 112 + ageDays : null
+    );
+  });
   const entries: RankingEntry[] = players.map((player) => {
     const { current, max } = skillValues(player, skill);
     const maxReached = isMaxReached(player, skill);
@@ -849,21 +858,26 @@ export function buildSkillRanking(
 
   const byRankDesc = (a: RankingEntry, b: RankingEntry) =>
     (b.rankValue ?? -1) - (a.rankValue ?? -1);
+  const byYoungestFirst = (a: RankingEntry, b: RankingEntry) => {
+    const aAgeDays = totalAgeDaysByPlayerId.get(a.playerId) ?? null;
+    const bAgeDays = totalAgeDaysByPlayerId.get(b.playerId) ?? null;
+    if (aAgeDays === null && bAgeDays === null) {
+      return a.playerId - b.playerId;
+    }
+    if (aAgeDays === null) return 1;
+    if (bAgeDays === null) return -1;
+    if (aAgeDays !== bAgeDays) return aAgeDays - bAgeDays;
+    return a.playerId - b.playerId;
+  };
 
   const cat1 = entries.filter((entry) => entry.category === "cat1").sort(byRankDesc);
   const cat4 = entries.filter((entry) => entry.category === "cat4").sort(byRankDesc);
   const cat3 = entries.filter((entry) => entry.category === "cat3").sort(byRankDesc);
-  const cat2 = entries.filter((entry) => entry.category === "cat2");
+  const cat2 = entries.filter((entry) => entry.category === "cat2").sort(byYoungestFirst);
   const dontCare = entries
     .filter((entry) => entry.category === "dontCare")
-    .sort((a, b) => {
-      const aCapped = a.current !== null && a.max !== null && a.current === a.max;
-      const bCapped = b.current !== null && b.max !== null && b.current === b.max;
-      if (aCapped && !bCapped) return 1;
-      if (!aCapped && bCapped) return -1;
-      return byRankDesc(a, b);
-    });
-  const maxed = entries.filter((entry) => entry.category === "maxed");
+    .sort(byYoungestFirst);
+  const maxed = entries.filter((entry) => entry.category === "maxed").sort(byYoungestFirst);
 
   const ordered = [...cat1, ...cat4, ...cat3, ...cat2, ...dontCare, ...maxed];
   return { ordered, debug: ordered };

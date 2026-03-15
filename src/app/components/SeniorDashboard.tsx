@@ -2394,6 +2394,20 @@ export default function SeniorDashboard({
     return { ratingForSlot, overallFallback, pickBestForSlot };
   };
 
+  const seniorAiInjuryLevelForPlayer = (player: SeniorPlayer) => {
+    const details = detailsById.get(player.PlayerID);
+    return typeof details?.InjuryLevel === "number"
+      ? details.InjuryLevel
+      : typeof player.InjuryLevel === "number"
+        ? player.InjuryLevel
+        : null;
+  };
+
+  const isSeniorAiEligiblePlayer = (player: SeniorPlayer) => {
+    const injuryLevel = seniorAiInjuryLevelForPlayer(player);
+    return typeof injuryLevel !== "number" || injuryLevel < 1;
+  };
+
   const getExtraTimeEligibleNonTrainees = (
     traineeIds: number[],
     options?: {
@@ -2404,14 +2418,7 @@ export default function SeniorDashboard({
     players
       .filter((player) => !traineeIds.includes(player.PlayerID))
       .filter((player) => {
-        const details = detailsById.get(player.PlayerID);
-        const injuryLevel =
-          typeof details?.InjuryLevel === "number"
-            ? details.InjuryLevel
-            : typeof player.InjuryLevel === "number"
-              ? player.InjuryLevel
-              : null;
-        if (typeof injuryLevel === "number" && injuryLevel >= 1) return false;
+        if (!isSeniorAiEligiblePlayer(player)) return false;
         if (
           !options?.excludeOnlyFromField &&
           options?.excludedFieldPlayerIds?.has(player.PlayerID)
@@ -7000,7 +7007,9 @@ const refreshDetailsForPlayers = async (
           )
         );
         const remaining = players
-          .filter((player) => !used.has(player.PlayerID))
+          .filter(
+            (player) => !used.has(player.PlayerID) && isSeniorAiEligiblePlayer(player)
+          )
           .map((player) => ({
             id: player.PlayerID,
             name: formatPlayerName(player) || String(player.PlayerID),

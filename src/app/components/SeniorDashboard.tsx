@@ -1580,6 +1580,8 @@ export default function SeniorDashboard({
   const [extraTimeSelectedPlayerIds, setExtraTimeSelectedPlayerIds] = useState<number[]>([]);
   const [extraTimeMatrixTrainingType, setExtraTimeMatrixTrainingType] =
     useState<number | null>(null);
+  const [extraTimeMatrixTrainingTypeManual, setExtraTimeMatrixTrainingTypeManual] =
+    useState(false);
   const [extraTimeMatchId, setExtraTimeMatchId] = useState<number | null>(null);
   const [extraTimePreparedSubmission, setExtraTimePreparedSubmission] = useState<{
     matchId: number;
@@ -2060,7 +2062,10 @@ export default function SeniorDashboard({
     () => new Map(players.map((player) => [player.PlayerID, player])),
     [players]
   );
-  const resolvedExtraTimeTrainingType = extraTimeMatrixTrainingType ?? trainingType;
+  const resolvedExtraTimeTrainingType =
+    extraTimeMatrixTrainingTypeManual && extraTimeMatrixTrainingType !== null
+      ? extraTimeMatrixTrainingType
+      : trainingType;
   const extraTimeSortSkillKey = useMemo(
     () =>
       resolvedExtraTimeTrainingType !== null
@@ -2253,8 +2258,9 @@ export default function SeniorDashboard({
   ]);
 
   useEffect(() => {
-    setExtraTimeMatrixTrainingType((prev) => prev ?? trainingType);
-  }, [trainingType]);
+    if (extraTimeMatrixTrainingTypeManual) return;
+    setExtraTimeMatrixTrainingType(trainingType);
+  }, [extraTimeMatrixTrainingTypeManual, trainingType]);
 
   useEffect(() => {
     if (!extraTimeTrainingMenuOpen) return;
@@ -5706,6 +5712,7 @@ export default function SeniorDashboard({
       }
       setTrainingType(verifiedTrainingType);
       setExtraTimeMatrixTrainingType(verifiedTrainingType);
+      setExtraTimeMatrixTrainingTypeManual(false);
       setExtraTimeTrainingMenuOpen(false);
       addNotification(
         messages.notificationSeniorTrainingRegimenChanged.replace(
@@ -5720,6 +5727,18 @@ export default function SeniorDashboard({
     } finally {
       setTrainingTypeSetPending(false);
       setTrainingTypeSetPendingValue(null);
+    }
+  };
+
+  const syncExtraTimeModalTrainingType = async () => {
+    try {
+      const currentTrainingType = sanitizeTrainingType(
+        await fetchTrainingType(resolvedSeniorTeamId)
+      );
+      setTrainingType(currentTrainingType);
+      setExtraTimeMatrixTrainingType(currentTrainingType);
+    } finally {
+      setExtraTimeMatrixTrainingTypeManual(false);
     }
   };
 
@@ -7353,6 +7372,7 @@ const refreshDetailsForPlayers = async (
     setExtraTimeBTeamEnabled(false);
     setExtraTimeSelectedPlayerIds([]);
     setExtraTimeMatrixTrainingType(null);
+    setExtraTimeMatrixTrainingTypeManual(false);
     setOrderedPlayerIds(null);
     setOrderSource(null);
     setPlayers([]);
@@ -7408,6 +7428,7 @@ const refreshDetailsForPlayers = async (
             extraTimeBTeamEnabled?: boolean;
             extraTimeSelectedPlayerIds?: number[];
             extraTimeMatrixTrainingType?: number | null;
+            extraTimeMatrixTrainingTypeManual?: boolean;
             orderedPlayerIds?: number[] | null;
             orderSource?: "list" | "ratings" | "skills" | null;
           };
@@ -7469,13 +7490,21 @@ const refreshDetailsForPlayers = async (
               )
             );
           }
-          setExtraTimeMatrixTrainingType(
-            sanitizeTrainingType(
-              typeof parsed.extraTimeMatrixTrainingType === "number"
-                ? parsed.extraTimeMatrixTrainingType
-                : null
-            )
+          const parsedTrainingType = sanitizeTrainingType(
+            typeof parsed.trainingType === "number" ? parsed.trainingType : null
           );
+          const parsedExtraTimeTrainingType = sanitizeTrainingType(
+            typeof parsed.extraTimeMatrixTrainingType === "number"
+              ? parsed.extraTimeMatrixTrainingType
+              : null
+          );
+          const parsedExtraTimeManual =
+            typeof parsed.extraTimeMatrixTrainingTypeManual === "boolean"
+              ? parsed.extraTimeMatrixTrainingTypeManual
+              : parsedExtraTimeTrainingType !== null &&
+                parsedExtraTimeTrainingType !== parsedTrainingType;
+          setExtraTimeMatrixTrainingType(parsedExtraTimeTrainingType);
+          setExtraTimeMatrixTrainingTypeManual(parsedExtraTimeManual);
           if (Array.isArray(parsed.orderedPlayerIds)) {
             setOrderedPlayerIds(
               parsed.orderedPlayerIds.filter((id): id is number => Number.isFinite(id))
@@ -7676,6 +7705,7 @@ const refreshDetailsForPlayers = async (
       extraTimeBTeamEnabled,
       extraTimeSelectedPlayerIds,
       extraTimeMatrixTrainingType,
+      extraTimeMatrixTrainingTypeManual,
       orderedPlayerIds,
       orderSource,
     };
@@ -7702,6 +7732,7 @@ const refreshDetailsForPlayers = async (
     extraTimeBTeamEnabled,
     extraTimeSelectedPlayerIds,
     extraTimeMatrixTrainingType,
+    extraTimeMatrixTrainingTypeManual,
     orderedPlayerIds,
     orderSource,
     stateStorageKey,
@@ -8508,6 +8539,7 @@ const refreshDetailsForPlayers = async (
                                   }`}
                                   onClick={() => {
                                     setExtraTimeMatrixTrainingType(value);
+                                    setExtraTimeMatrixTrainingTypeManual(value !== trainingType);
                                     setExtraTimeTrainingMenuOpen(false);
                                   }}
                                 >
@@ -10077,11 +10109,14 @@ const refreshDetailsForPlayers = async (
             selectedFixedFormation={setBestLineupFixedFormation}
             onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
             onRefresh={onRefreshMatchesOnly}
-            onSetBestLineupMode={(matchId, mode, fixedFormation) => {
+            onSetBestLineupMode={async (matchId, mode, fixedFormation) => {
               if (mode === "extraTime") {
                 setExtraTimeMatchId(matchId);
+                await syncExtraTimeModalTrainingType().catch(() => {
+                  // Fall back to the last known senior training if the live fetch fails.
+                });
                 setExtraTimeInfoOpen(true);
-                return Promise.resolve();
+                return;
               }
               setExtraTimePreparedSubmission(null);
               return runSetBestLineupPredictRatings(matchId, mode, fixedFormation);

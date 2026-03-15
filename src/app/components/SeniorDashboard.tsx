@@ -3,6 +3,7 @@
 
 import {
   CSSProperties,
+  Fragment,
   ReactNode,
   useCallback,
   useEffect,
@@ -267,6 +268,7 @@ const SENIOR_UPDATES_SCHEMA_VERSION = 3;
 const DETAILS_TTL_MS = 60 * 60 * 1000;
 const SENIOR_DETAILS_CONCURRENCY = 6;
 const CHPP_SEK_PER_EUR = 10;
+const I18N_TEMPLATE_TOKEN_PATTERN = /(\{\{[a-zA-Z0-9]+\}\})/g;
 const SKILL_KEYS = [
   "KeeperSkill",
   "DefenderSkill",
@@ -290,6 +292,21 @@ const EXTRA_TIME_B_TEAM_MATCH_TYPES = new Set<number>([1, 2, 4, 5, 8, 9]);
 const EXTRA_TIME_B_TEAM_LOOKBACK_MS = 6 * 24 * 60 * 60 * 1000;
 const EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD = 45;
 const EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE = 18;
+const renderTemplateTokens = (
+  template: string,
+  replacements: Record<string, ReactNode>
+): ReactNode[] =>
+  template
+    .split(I18N_TEMPLATE_TOKEN_PATTERN)
+    .filter(Boolean)
+    .map((part, index) => {
+      const match = /^\{\{([a-zA-Z0-9]+)\}\}$/.exec(part);
+      if (!match) {
+        return <Fragment key={`text-${index}`}>{part}</Fragment>;
+      }
+      const replacement = replacements[match[1]];
+      return <Fragment key={`token-${index}`}>{replacement ?? part}</Fragment>;
+    });
 const EXTRA_TIME_SORT_SKILL_BY_TRAINING_TYPE: Partial<
   Record<number, (typeof SKILL_KEYS)[number]>
 > = {
@@ -2320,6 +2337,10 @@ export default function SeniorDashboard({
   const extraTimeBTeamCanBeEnabled =
     extraTimeBTeamRecentMatchState.status === "ready" &&
     Boolean(extraTimeBTeamRecentMatchState.recentMatch);
+  const extraTimeCurrentMatchHref =
+    typeof extraTimeMatchId === "number" && Number.isFinite(extraTimeMatchId) && extraTimeMatchId > 0
+      ? hattrickMatchUrl(extraTimeMatchId)
+      : null;
   const extraTimeBTeamStatusMessage = (() => {
     if (extraTimeBTeamRecentMatchState.status === "loading") {
       return messages.seniorExtraTimeModalBTeamLoading;
@@ -9014,26 +9035,40 @@ const refreshDetailsForPlayers = async (
                     </span>
                   </label>
                   {extraTimeBTeamEnabled && extraTimeBTeamCanBeEnabled ? (
-                    <label className={styles.seniorExtraTimeBTeamThresholdLabel}>
-                      <span>{messages.seniorExtraTimeModalBTeamThresholdPrefix}</span>
-                      <select
-                        className={styles.seniorExtraTimeBTeamThresholdSelect}
-                        aria-label={messages.seniorExtraTimeModalBTeamThresholdAriaLabel}
-                        value={extraTimeBTeamMinutesThreshold}
-                        onChange={(event) =>
-                          setExtraTimeBTeamMinutesThreshold(
-                            Math.min(90, Math.max(1, Number(event.target.value) || 1))
-                          )
-                        }
-                      >
-                        {Array.from({ length: 90 }, (_, index) => index + 1).map((value) => (
-                          <option key={value} value={value}>
-                            {value}
-                          </option>
-                        ))}
-                      </select>
-                      <span>{messages.seniorExtraTimeModalBTeamThresholdSuffix}</span>
-                    </label>
+                    <div className={styles.seniorExtraTimeBTeamThresholdLabel}>
+                      {renderTemplateTokens(messages.seniorExtraTimeModalBTeamThresholdText, {
+                        minutes: (
+                          <select
+                            className={styles.seniorExtraTimeBTeamThresholdSelect}
+                            aria-label={messages.seniorExtraTimeModalBTeamThresholdAriaLabel}
+                            value={extraTimeBTeamMinutesThreshold}
+                            onChange={(event) =>
+                              setExtraTimeBTeamMinutesThreshold(
+                                Math.min(90, Math.max(1, Number(event.target.value) || 1))
+                              )
+                            }
+                          >
+                            {Array.from({ length: 90 }, (_, index) => index + 1).map((value) => (
+                              <option key={value} value={value}>
+                                {value}
+                              </option>
+                            ))}
+                          </select>
+                        ),
+                        weekLink: extraTimeCurrentMatchHref ? (
+                          <a
+                            className={styles.seniorExtraTimeInlineLink}
+                            href={extraTimeCurrentMatchHref}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {messages.seniorExtraTimeModalBTeamThresholdWeekLinkLabel}
+                          </a>
+                        ) : (
+                          messages.seniorExtraTimeModalBTeamThresholdWeekLinkLabel
+                        ),
+                      })}
+                    </div>
                   ) : extraTimeBTeamStatusMessage ? (
                     <span className={styles.seniorExtraTimeBTeamStatus}>
                       {extraTimeBTeamStatusMessage}

@@ -5574,11 +5574,10 @@ html[data-theme="dark"] .spinner {
 }
 
 .seniorExtraTimeBTeamThresholdLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  display: inline;
   font-size: 11px;
   color: inherit;
+  line-height: 1.4;
 }
 
 .seniorExtraTimeBTeamThresholdSelect {
@@ -5589,11 +5588,23 @@ html[data-theme="dark"] .spinner {
   background: color-mix(in srgb, rgba(255, 255, 255, 0.9) 88%, transparent);
   font: inherit;
   color: inherit;
+  vertical-align: middle;
+  margin: 0 4px;
 }
 
 .seniorExtraTimeBTeamStatus {
   font-size: 11px;
   color: color-mix(in srgb, currentColor 78%, transparent);
+}
+
+.seniorExtraTimeInlineLink {
+  color: #1d63c6;
+  text-decoration: underline;
+  text-underline-offset: 1px;
+}
+
+.seniorExtraTimeInlineLink:hover {
+  color: #154e9c;
 }
 
 .seniorExtraTimeDisabledCheckboxWrap {

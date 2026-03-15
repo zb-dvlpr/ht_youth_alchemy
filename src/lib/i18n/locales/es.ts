@@ -776,9 +776,9 @@ export const messagesEs: Messages = {
     seniorExtraTimeModalChooseTrainees:
       "Elige {{count}} entrenables y luego haz clic en Establecer alineación. Los seleccionados automáticamente se pueden reemplazar.",
     seniorExtraTimeModalBTeamToggleLabel: "Equipo B",
-    seniorExtraTimeModalBTeamThresholdPrefix:
-      "Ignorar jugadores que ya hayan jugado",
-    seniorExtraTimeModalBTeamThresholdSuffix: "minutos esta semana.",
+    seniorExtraTimeModalBTeamThresholdText:
+      "Ignorar jugadores que ya hayan jugado {{minutes}} minutos {{weekLink}}.",
+    seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "esta semana",
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Umbral de minutos para ignorar jugadores que ya jugaron esta semana",
     seniorExtraTimeModalBTeamNoRecentMatch:

@@ -219,9 +219,9 @@ export const messagesNl: Messages = {
   seniorExtraTimeModalChooseTrainees:
     "Kies {{count}} trainees en klik daarna op Opstelling instellen. De automatisch gekozen spelers kun je overschrijven.",
   seniorExtraTimeModalBTeamToggleLabel: "B-team",
-  seniorExtraTimeModalBTeamThresholdPrefix:
-    "Negeer spelers die al",
-  seniorExtraTimeModalBTeamThresholdSuffix: "minuten hebben gespeeld deze week.",
+  seniorExtraTimeModalBTeamThresholdText:
+    "Negeer spelers die {{weekLink}} al {{minutes}} minuten hebben gespeeld.",
+  seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "deze week",
   seniorExtraTimeModalBTeamThresholdAriaLabel:
     "Minutendrempel om spelers die deze week al speelden te negeren",
   seniorExtraTimeModalBTeamNoRecentMatch:

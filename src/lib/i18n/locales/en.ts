@@ -741,9 +741,9 @@ export const messagesEn: Messages = {
     seniorExtraTimeModalChooseTrainees:
       "Choose {{count}} trainees, then click Set lineup. The auto-chosen ones can be overridden.",
     seniorExtraTimeModalBTeamToggleLabel: "B team",
-    seniorExtraTimeModalBTeamThresholdPrefix:
-      "Disregard players who already played",
-    seniorExtraTimeModalBTeamThresholdSuffix: "minutes this week.",
+    seniorExtraTimeModalBTeamThresholdText:
+      "Disregard players who already played {{minutes}} minutes {{weekLink}}.",
+    seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "this week",
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Minutes threshold for disregarding players this week",
     seniorExtraTimeModalBTeamNoRecentMatch:

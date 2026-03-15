@@ -191,6 +191,16 @@ type SeniorTeamOption = {
   teamGender: "male" | "female" | null;
 };
 
+type ExtraTimeBTeamRecentMatchState = {
+  status: "idle" | "loading" | "ready" | "error";
+  recentMatch: {
+    matchId: number;
+    sourceSystem: string;
+    matchDate: string;
+  } | null;
+  playerMinutesById: Record<number, number>;
+};
+
 type ManagerCompendiumTeam = {
   TeamId?: unknown;
   TeamName?: unknown;
@@ -276,6 +286,10 @@ const OPPONENT_DETAILS_CONCURRENCY = 6;
 const FORMATION_PREDICT_CONCURRENCY = 4;
 const SENIOR_RATINGS_ALGO_VERSION = 2;
 const NON_DEPRECATED_TRAINING_TYPES = [9, 3, 8, 5, 7, 4, 2, 11, 12, 10, 6] as const;
+const EXTRA_TIME_B_TEAM_MATCH_TYPES = new Set<number>([1, 2, 4, 5, 8, 9]);
+const EXTRA_TIME_B_TEAM_LOOKBACK_MS = 6 * 24 * 60 * 60 * 1000;
+const EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD = 45;
+const EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE = 18;
 const EXTRA_TIME_SORT_SKILL_BY_TRAINING_TYPE: Partial<
   Record<number, (typeof SKILL_KEYS)[number]>
 > = {
@@ -1577,6 +1591,15 @@ export default function SeniorDashboard({
   const [showSeniorSkillBonusInMatrix, setShowSeniorSkillBonusInMatrix] =
     useState(true);
   const [extraTimeBTeamEnabled, setExtraTimeBTeamEnabled] = useState(false);
+  const [extraTimeBTeamMinutesThreshold, setExtraTimeBTeamMinutesThreshold] = useState(
+    EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD
+  );
+  const [extraTimeBTeamRecentMatchState, setExtraTimeBTeamRecentMatchState] =
+    useState<ExtraTimeBTeamRecentMatchState>({
+      status: "idle",
+      recentMatch: null,
+      playerMinutesById: {},
+    });
   const [extraTimeSelectedPlayerIds, setExtraTimeSelectedPlayerIds] = useState<number[]>([]);
   const [extraTimeMatrixTrainingType, setExtraTimeMatrixTrainingType] =
     useState<number | null>(null);
@@ -2156,49 +2179,159 @@ export default function SeniorDashboard({
           : typeof player?.InjuryLevel === "number"
             ? player.InjuryLevel
             : null;
-      if (typeof injuryLevel === "number" && injuryLevel >= 0) {
+      if (typeof injuryLevel === "number" && injuryLevel >= 1) {
         injuredIds.add(row.id);
       }
     });
     return injuredIds;
   }, [detailsById, playersById, skillsMatrixRows]);
+  const extraTimeHealthyPlayerIdSet = useMemo(
+    () =>
+      new Set(
+        skillsMatrixRows
+          .map((row) => row.id)
+          .filter(
+            (id): id is number =>
+              typeof id === "number" && !extraTimeInjuredPlayerIdSet.has(id)
+          )
+      ),
+    [extraTimeInjuredPlayerIdSet, skillsMatrixRows]
+  );
+  const extraTimeBTeamExcludedPlayerIds = useMemo(() => {
+    if (!extraTimeBTeamEnabled) return new Set<number>();
+    if (
+      extraTimeBTeamRecentMatchState.status !== "ready" ||
+      !extraTimeBTeamRecentMatchState.recentMatch
+    ) {
+      return new Set<number>();
+    }
+    return new Set(
+      Object.entries(extraTimeBTeamRecentMatchState.playerMinutesById)
+        .filter(([, minutes]) => minutes > extraTimeBTeamMinutesThreshold)
+        .map(([playerId]) => Number(playerId))
+        .filter((playerId) => Number.isFinite(playerId))
+    );
+  }, [
+    extraTimeBTeamEnabled,
+    extraTimeBTeamMinutesThreshold,
+    extraTimeBTeamRecentMatchState,
+  ]);
+  const extraTimeFallbackBTeamPlayerIds = useMemo(() => {
+    if (!extraTimeBTeamEnabled) return new Set<number>();
+    if (
+      extraTimeBTeamRecentMatchState.status !== "ready" ||
+      !extraTimeBTeamRecentMatchState.recentMatch
+    ) {
+      return new Set<number>();
+    }
+    const initialEligibleIds = Array.from(extraTimeHealthyPlayerIdSet).filter(
+      (playerId) => !extraTimeBTeamExcludedPlayerIds.has(playerId)
+    );
+    if (initialEligibleIds.length >= EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE) {
+      return new Set<number>();
+    }
+    const needed =
+      EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE - initialEligibleIds.length;
+    const fallbackIds = players
+      .filter(
+        (player) =>
+          extraTimeHealthyPlayerIdSet.has(player.PlayerID) &&
+          extraTimeBTeamExcludedPlayerIds.has(player.PlayerID)
+      )
+      .sort((left, right) => {
+        const leftMinutes =
+          extraTimeBTeamRecentMatchState.playerMinutesById[left.PlayerID] ?? Number.MAX_SAFE_INTEGER;
+        const rightMinutes =
+          extraTimeBTeamRecentMatchState.playerMinutesById[right.PlayerID] ?? Number.MAX_SAFE_INTEGER;
+        if (leftMinutes !== rightMinutes) return leftMinutes - rightMinutes;
+        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+          formatPlayerName(right) || String(right.PlayerID)
+        );
+      })
+      .slice(0, needed)
+      .map((player) => player.PlayerID);
+    return new Set(fallbackIds);
+  }, [
+    extraTimeBTeamEnabled,
+    extraTimeBTeamExcludedPlayerIds,
+    extraTimeBTeamRecentMatchState,
+    extraTimeHealthyPlayerIdSet,
+    players,
+  ]);
+  const extraTimeAvailablePlayerIdSet = useMemo(() => {
+    if (
+      !extraTimeBTeamEnabled ||
+      extraTimeBTeamRecentMatchState.status !== "ready" ||
+      !extraTimeBTeamRecentMatchState.recentMatch
+    ) {
+      return new Set(extraTimeHealthyPlayerIdSet);
+    }
+    return new Set(
+      Array.from(extraTimeHealthyPlayerIdSet).filter(
+        (playerId) =>
+          !extraTimeBTeamExcludedPlayerIds.has(playerId) ||
+          extraTimeFallbackBTeamPlayerIds.has(playerId)
+      )
+    );
+  }, [
+    extraTimeBTeamEnabled,
+    extraTimeBTeamExcludedPlayerIds,
+    extraTimeBTeamRecentMatchState,
+    extraTimeFallbackBTeamPlayerIds,
+    extraTimeHealthyPlayerIdSet,
+  ]);
   const extraTimeSelectablePlayerIds = useMemo(
     () =>
       extraTimeSkillsMatrixRows
         .map((row) => row.id)
         .filter(
           (id): id is number =>
-            typeof id === "number" && !extraTimeInjuredPlayerIdSet.has(id)
+            typeof id === "number" && extraTimeAvailablePlayerIdSet.has(id)
         ),
-    [extraTimeInjuredPlayerIdSet, extraTimeSkillsMatrixRows]
+    [extraTimeAvailablePlayerIdSet, extraTimeSkillsMatrixRows]
+  );
+  const extraTimeDisregardedPlayerIds = useMemo(
+    () =>
+      new Set(
+        Array.from(extraTimeBTeamExcludedPlayerIds).filter(
+          (playerId) => !extraTimeFallbackBTeamPlayerIds.has(playerId)
+        )
+      ),
+    [extraTimeBTeamExcludedPlayerIds, extraTimeFallbackBTeamPlayerIds]
+  );
+  const extraTimeDisregardedTooltip = useMemo(
+    () =>
+      messages.seniorExtraTimeModalBTeamDisregardedTooltip.replace(
+        "{{minutes}}",
+        String(extraTimeBTeamMinutesThreshold)
+      ),
+    [extraTimeBTeamMinutesThreshold, messages.seniorExtraTimeModalBTeamDisregardedTooltip]
   );
   const requiredExtraTimeTrainees = traineesTargetForTrainingType(
     resolvedExtraTimeTrainingType
   );
   const extraTimeAutoSelectedPlayerIds = useMemo(
-    () => {
-      if (!extraTimeBTeamEnabled) {
-        return extraTimeSelectablePlayerIds.slice(0, requiredExtraTimeTrainees);
-      }
-      const skippedBest = extraTimeSelectablePlayerIds.slice(0, requiredExtraTimeTrainees);
-      const nextBest = extraTimeSelectablePlayerIds.slice(
-        requiredExtraTimeTrainees,
-        requiredExtraTimeTrainees * 2
-      );
-      if (nextBest.length >= requiredExtraTimeTrainees) {
-        return nextBest;
-      }
-      const fallbackBestAscending = [...skippedBest].reverse().slice(
-        0,
-        requiredExtraTimeTrainees - nextBest.length
-      );
-      return [...nextBest, ...fallbackBestAscending];
-    },
-    [extraTimeBTeamEnabled, extraTimeSelectablePlayerIds, requiredExtraTimeTrainees]
+    () => extraTimeSelectablePlayerIds.slice(0, requiredExtraTimeTrainees),
+    [extraTimeSelectablePlayerIds, requiredExtraTimeTrainees]
   );
   const extraTimeSelectedCount = extraTimeSelectedPlayerIds.filter((playerId) =>
     extraTimeSelectablePlayerIds.includes(playerId)
   ).length;
+  const extraTimeBTeamCanBeEnabled =
+    extraTimeBTeamRecentMatchState.status === "ready" &&
+    Boolean(extraTimeBTeamRecentMatchState.recentMatch);
+  const extraTimeBTeamStatusMessage = (() => {
+    if (extraTimeBTeamRecentMatchState.status === "loading") {
+      return messages.seniorExtraTimeModalBTeamLoading;
+    }
+    if (extraTimeBTeamRecentMatchState.status === "error") {
+      return messages.seniorExtraTimeModalBTeamError;
+    }
+    if (!extraTimeBTeamRecentMatchState.recentMatch) {
+      return messages.seniorExtraTimeModalBTeamNoRecentMatch;
+    }
+    return null;
+  })();
   const extraTimeSetLineupDisabled =
     extraTimeSelectedCount !== requiredExtraTimeTrainees;
   const allExtraTimePlayersSelected =
@@ -2214,12 +2347,53 @@ export default function SeniorDashboard({
 
   useEffect(() => {
     setExtraTimeSelectedPlayerIds((prev) =>
-      prev.filter(
-        (playerId) =>
-          playersById.has(playerId) && !extraTimeInjuredPlayerIdSet.has(playerId)
-      )
+      prev.filter((playerId) => playersById.has(playerId) && extraTimeAvailablePlayerIdSet.has(playerId))
     );
-  }, [extraTimeInjuredPlayerIdSet, playersById]);
+  }, [extraTimeAvailablePlayerIdSet, playersById]);
+
+  useEffect(() => {
+    if (!extraTimeInfoOpen) {
+      setExtraTimeBTeamRecentMatchState({
+        status: "idle",
+        recentMatch: null,
+        playerMinutesById: {},
+      });
+      return;
+    }
+    let cancelled = false;
+    setExtraTimeBTeamRecentMatchState({
+      status: "loading",
+      recentMatch: null,
+      playerMinutesById: {},
+    });
+    void fetchExtraTimeBTeamRecentMatchState(resolvedSeniorTeamId)
+      .then((nextState) => {
+        if (cancelled) return;
+        setExtraTimeBTeamRecentMatchState(nextState);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setExtraTimeBTeamRecentMatchState({
+          status: "error",
+          recentMatch: null,
+          playerMinutesById: {},
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [extraTimeInfoOpen, resolvedSeniorTeamId]);
+
+  useEffect(() => {
+    if (!extraTimeInfoOpen) return;
+    if (extraTimeBTeamRecentMatchState.status === "error") {
+      setExtraTimeBTeamEnabled(false);
+      return;
+    }
+    if (extraTimeBTeamRecentMatchState.status !== "ready") return;
+    if (extraTimeBTeamRecentMatchState.recentMatch) return;
+    setExtraTimeBTeamEnabled(false);
+  }, [extraTimeBTeamRecentMatchState, extraTimeInfoOpen]);
 
   useEffect(() => {
     if (!extraTimeInfoOpen) {
@@ -2414,6 +2588,10 @@ export default function SeniorDashboard({
     return typeof injuryLevel !== "number" || injuryLevel < 1;
   };
 
+  const isSeniorExtraTimePoolEligiblePlayer = (player: SeniorPlayer) =>
+    isSeniorAiEligiblePlayer(player) &&
+    extraTimeAvailablePlayerIdSet.has(player.PlayerID);
+
   const getExtraTimeEligibleNonTrainees = (
     traineeIds: number[],
     options?: {
@@ -2424,7 +2602,7 @@ export default function SeniorDashboard({
     players
       .filter((player) => !traineeIds.includes(player.PlayerID))
       .filter((player) => {
-        if (!isSeniorAiEligiblePlayer(player)) return false;
+        if (!isSeniorExtraTimePoolEligiblePlayer(player)) return false;
         if (
           !options?.excludeOnlyFromField &&
           options?.excludedFieldPlayerIds?.has(player.PlayerID)
@@ -2502,6 +2680,12 @@ export default function SeniorDashboard({
         return { player, cardsValue, injuryLevel };
       })
       .filter(({ player, cardsValue, injuryLevel }) => {
+        if (
+          !isSeniorExtraTimePoolEligiblePlayer(player) &&
+          !traineeIds.includes(player.PlayerID)
+        ) {
+          return false;
+        }
         if (typeof injuryLevel === "number" && injuryLevel >= 1) return false;
         if (
           options?.excludedFieldPlayerIds?.has(player.PlayerID) &&
@@ -3523,16 +3707,7 @@ export default function SeniorDashboard({
 
     let benchCandidatePool = players
       .filter((player) => !traineeIds.includes(player.PlayerID))
-      .filter((player) => {
-        const details = detailsById.get(player.PlayerID);
-        const injuryLevel =
-          typeof details?.InjuryLevel === "number"
-            ? details.InjuryLevel
-            : typeof player.InjuryLevel === "number"
-              ? player.InjuryLevel
-              : null;
-        return typeof injuryLevel !== "number" || injuryLevel < 1;
-      });
+      .filter((player) => isSeniorExtraTimePoolEligiblePlayer(player));
     const benchSlotToFieldSlot = {
       B_GK: "KP",
       B_CD: "CD_C",
@@ -4846,12 +5021,7 @@ export default function SeniorDashboard({
         return;
       }
       if (resolvedExtraTimeTrainingType === 4) {
-        const firstPass = await buildScoringExtraTimeResult(selectedTraineeIds);
-        const finalResult = extraTimeBTeamEnabled
-          ? await buildScoringExtraTimeResult(selectedTraineeIds, {
-              excludedFieldPlayerIds: firstPass.fieldNonTraineeIds,
-            })
-          : firstPass;
+        const finalResult = await buildScoringExtraTimeResult(selectedTraineeIds);
         setAssignments(finalResult.assignments);
         setBehaviors({
           WB_L: 2,
@@ -4922,12 +5092,7 @@ export default function SeniorDashboard({
         return;
       }
       if (resolvedExtraTimeTrainingType === 10) {
-        const firstPass = await buildExtendedPassingExtraTimeResult(selectedTraineeIds);
-        const finalResult = extraTimeBTeamEnabled
-          ? await buildExtendedPassingExtraTimeResult(selectedTraineeIds, {
-              excludedFieldPlayerIds: firstPass.fieldNonTraineeIds,
-            })
-          : firstPass;
+        const finalResult = await buildExtendedPassingExtraTimeResult(selectedTraineeIds);
         setAssignments(finalResult.assignments);
         setBehaviors({
           WB_L: 2,
@@ -4950,12 +5115,7 @@ export default function SeniorDashboard({
         return;
       }
       if (resolvedExtraTimeTrainingType === 5) {
-        const firstPass = await buildWingerExtraTimeResult(selectedTraineeIds);
-        const finalResult = extraTimeBTeamEnabled
-          ? await buildWingerExtraTimeResult(selectedTraineeIds, {
-              excludedFieldPlayerIds: firstPass.fieldNonTraineeIds,
-            })
-          : firstPass;
+        const finalResult = await buildWingerExtraTimeResult(selectedTraineeIds);
         setAssignments(finalResult.assignments);
         setBehaviors({
           WB_L: 2,
@@ -4979,12 +5139,7 @@ export default function SeniorDashboard({
         return;
       }
       if (resolvedExtraTimeTrainingType === 12) {
-        const firstPass = await buildWingerAttackersExtraTimeResult(selectedTraineeIds);
-        const finalResult = extraTimeBTeamEnabled
-          ? await buildWingerAttackersExtraTimeResult(selectedTraineeIds, {
-              excludedFieldPlayerIds: firstPass.fieldNonTraineeIds,
-            })
-          : firstPass;
+        const finalResult = await buildWingerAttackersExtraTimeResult(selectedTraineeIds);
         setAssignments(finalResult.assignments);
         setBehaviors({
           WB_L: 2,
@@ -5011,12 +5166,7 @@ export default function SeniorDashboard({
         return;
       }
       if (resolvedExtraTimeTrainingType === 3) {
-        const firstPass = await buildDefendingExtraTimeResult(selectedTraineeIds);
-        const finalResult = extraTimeBTeamEnabled
-          ? await buildDefendingExtraTimeResult(selectedTraineeIds, {
-              excludedFieldPlayerIds: firstPass.fieldNonTraineeIds,
-            })
-          : firstPass;
+        const finalResult = await buildDefendingExtraTimeResult(selectedTraineeIds);
         setAssignments(finalResult.assignments);
         setBehaviors({
           WB_L: 2,
@@ -5039,12 +5189,7 @@ export default function SeniorDashboard({
         return;
       }
       if (resolvedExtraTimeTrainingType === 8) {
-        const firstPass = await buildPlaymakingExtraTimeResult(selectedTraineeIds);
-        const finalResult = extraTimeBTeamEnabled
-          ? await buildPlaymakingExtraTimeResult(selectedTraineeIds, {
-              excludedFieldPlayerIds: firstPass.fieldNonTraineeIds,
-            })
-          : firstPass;
+        const finalResult = await buildPlaymakingExtraTimeResult(selectedTraineeIds);
         setAssignments(finalResult.assignments);
         setBehaviors({
           WB_L: 2,
@@ -5090,19 +5235,9 @@ export default function SeniorDashboard({
         return;
       }
       const { selectedMatchType } = await resolveExtraTimeMatchContext(extraTimeMatchId);
-      const firstPass = await buildForcedKeeperExtraTimeResult(selectedTraineeIds, {
+      const finalResult = await buildForcedKeeperExtraTimeResult(selectedTraineeIds, {
         selectedMatchType,
       });
-      const finalResult = extraTimeBTeamEnabled
-        ? await buildForcedKeeperExtraTimeResult(selectedTraineeIds, {
-            selectedMatchType,
-            excludedFieldPlayerIds: new Set(
-              Array.from(firstPass.fieldPlayerIds).filter(
-                (playerId) => !selectedTraineeIds.includes(playerId)
-              )
-            ),
-          })
-        : firstPass;
       setAssignments(finalResult.assignments);
       setBehaviors({
         WB_L: 2,
@@ -5470,6 +5605,277 @@ export default function SeniorDashboard({
       throw new Error(payload?.details ?? payload?.error ?? messages.unableToLoadMatches);
     }
     return payload as MatchesResponse;
+  };
+
+  const normalizeMatchList = (input?: Match[] | Match) => {
+    if (!input) return [];
+    return Array.isArray(input) ? input : [input];
+  };
+
+  const inferExtraTimeBTeamMatchMinutes = (
+    matchDate: string | null,
+    finishedDate: string | null,
+    addedMinutes: number | null
+  ) => {
+    const added = Math.max(0, addedMinutes ?? 0);
+    const baselineElapsedMinutes = 45 + 15 + 45 + added;
+    const startedAt = matchDate ? parseChppDate(matchDate) : null;
+    const finishedAt = finishedDate ? parseChppDate(finishedDate) : null;
+    const elapsedMinutes =
+      startedAt && finishedAt
+        ? Math.max(0, Math.round((finishedAt.getTime() - startedAt.getTime()) / 60000))
+        : baselineElapsedMinutes;
+    const hadExtraTime = elapsedMinutes > baselineElapsedMinutes;
+    return 90 + added + (hadExtraTime ? 30 : 0);
+  };
+
+  const fetchExtraTimeBTeamRecentMatchState = async (
+    teamId?: number | null
+  ): Promise<ExtraTimeBTeamRecentMatchState> => {
+    const matchesPayload = await fetchMatches(teamId);
+    const normalizedMatches = normalizeMatchList(
+      matchesPayload?.data?.HattrickData?.Team?.MatchList?.Match ??
+        matchesPayload?.data?.HattrickData?.MatchList?.Match
+    );
+    const now = Date.now();
+    const recentMatch =
+      [...normalizedMatches]
+        .filter((match) => String(match.Status ?? "").toUpperCase() === "FINISHED")
+        .filter((match) => EXTRA_TIME_B_TEAM_MATCH_TYPES.has(Number(match.MatchType)))
+        .filter((match) => {
+          const startedAt = parseChppDate(match.MatchDate)?.getTime() ?? null;
+          return (
+            typeof startedAt === "number" &&
+            Number.isFinite(startedAt) &&
+            now - startedAt >= 0 &&
+            now - startedAt <= EXTRA_TIME_B_TEAM_LOOKBACK_MS
+          );
+        })
+        .sort((left, right) => {
+          const leftTime = parseChppDate(left.MatchDate)?.getTime() ?? 0;
+          const rightTime = parseChppDate(right.MatchDate)?.getTime() ?? 0;
+          return rightTime - leftTime;
+        })[0] ?? null;
+
+    if (!recentMatch) {
+      return {
+        status: "ready",
+        recentMatch: null,
+        playerMinutesById: {},
+      };
+    }
+
+    const teamIdValue =
+      typeof teamId === "number" && Number.isFinite(teamId) && teamId > 0
+        ? Math.floor(teamId)
+        : parseNumber(matchesPayload?.data?.HattrickData?.Team?.TeamID);
+    if (!teamIdValue) {
+      return {
+        status: "error",
+        recentMatch: null,
+        playerMinutesById: {},
+      };
+    }
+
+    const matchId = Number(recentMatch.MatchID);
+    const sourceSystem =
+      typeof recentMatch.SourceSystem === "string" && recentMatch.SourceSystem.trim().length > 0
+        ? recentMatch.SourceSystem.trim()
+        : "Hattrick";
+
+    const [{ response: lineupResponse, payload: lineupPayload }, { response: detailsResponse, payload: detailsPayload }] =
+      await Promise.all([
+        fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Team?: {
+                StartingLineup?: { Player?: unknown };
+                Substitutions?: { Substitution?: unknown };
+              };
+            };
+          };
+          error?: string;
+          details?: string;
+        }>(
+          `/api/chpp/match-lineup?matchId=${matchId}&teamId=${teamIdValue}&sourceSystem=${encodeURIComponent(
+            sourceSystem
+          )}`,
+          { cache: "no-store" }
+        ),
+        fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Match?: {
+                MatchDate?: unknown;
+                FinishedDate?: unknown;
+                AddedMinutes?: unknown;
+                Bookings?: { Booking?: unknown };
+              };
+            };
+          };
+          error?: string;
+          details?: string;
+        }>(
+          `/api/chpp/matchdetails?matchId=${matchId}&sourceSystem=${encodeURIComponent(
+            sourceSystem
+          )}&matchEvents=false`,
+          { cache: "no-store" }
+        ),
+      ]);
+
+    if (!lineupResponse.ok || lineupPayload?.error || !detailsResponse.ok || detailsPayload?.error) {
+      return {
+        status: "error",
+        recentMatch: null,
+        playerMinutesById: {},
+      };
+    }
+
+    const matchData = detailsPayload?.data?.HattrickData?.Match;
+    const totalMatchMinutes = inferExtraTimeBTeamMatchMinutes(
+      typeof matchData?.MatchDate === "string" ? matchData.MatchDate : null,
+      typeof matchData?.FinishedDate === "string" ? matchData.FinishedDate : null,
+      parseNumber(matchData?.AddedMinutes)
+    );
+    const normalizeList = <T,>(value: T | T[] | null | undefined) =>
+      !value ? [] : Array.isArray(value) ? value : [value];
+    const startingLineupPlayers = normalizeList(
+      lineupPayload?.data?.HattrickData?.Team?.StartingLineup?.Player as
+        | Record<string, unknown>
+        | Array<Record<string, unknown>>
+        | undefined
+    );
+    const substitutions = normalizeList(
+      lineupPayload?.data?.HattrickData?.Team?.Substitutions?.Substitution as
+        | Record<string, unknown>
+        | Array<Record<string, unknown>>
+        | undefined
+    );
+    const bookings = normalizeList(
+      matchData?.Bookings?.Booking as
+        | Record<string, unknown>
+        | Array<Record<string, unknown>>
+        | undefined
+    );
+
+    const events: Array<
+      | {
+          type: "sub";
+          minute: number;
+          subjectPlayerId: number;
+          objectPlayerId: number;
+        }
+      | {
+          type: "red";
+          minute: number;
+          playerId: number;
+        }
+    > = [];
+
+    substitutions.forEach((substitution) => {
+      const orderType = parseNumber(substitution.OrderType);
+      const subjectPlayerId = parseNumber(substitution.SubjectPlayerID);
+      const objectPlayerId = parseNumber(substitution.ObjectPlayerID);
+      const minute = Math.min(
+        totalMatchMinutes,
+        Math.max(0, parseNumber(substitution.MatchMinute) ?? totalMatchMinutes)
+      );
+      if (
+        orderType === 1 &&
+        typeof subjectPlayerId === "number" &&
+        typeof objectPlayerId === "number" &&
+        subjectPlayerId !== objectPlayerId
+      ) {
+        events.push({
+          type: "sub",
+          minute,
+          subjectPlayerId,
+          objectPlayerId,
+        });
+      }
+    });
+
+    bookings.forEach((booking) => {
+      const bookingType = parseNumber(booking.BookingType);
+      const bookingTeamId = parseNumber(booking.BookingTeamID);
+      const bookingPlayerId = parseNumber(booking.BookingPlayerID);
+      const minute = Math.min(
+        totalMatchMinutes,
+        Math.max(0, parseNumber(booking.BookingMinute) ?? totalMatchMinutes)
+      );
+      if (
+        bookingType === 2 &&
+        bookingTeamId === teamIdValue &&
+        typeof bookingPlayerId === "number"
+      ) {
+        events.push({
+          type: "red",
+          minute,
+          playerId: bookingPlayerId,
+        });
+      }
+    });
+
+    events.sort((left, right) => {
+      if (left.minute !== right.minute) return left.minute - right.minute;
+      return left.type.localeCompare(right.type);
+    });
+
+    const playedMinutesById = new Map<number, number>();
+    const onFieldSince = new Map<number, number>();
+    startingLineupPlayers.forEach((player) => {
+      const playerId = parseNumber(player.PlayerID);
+      const roleId = parseNumber(player.RoleID);
+      if (
+        typeof playerId !== "number" ||
+        typeof roleId !== "number" ||
+        roleId < 100 ||
+        roleId > 113
+      ) {
+        return;
+      }
+      if (!onFieldSince.has(playerId)) {
+        onFieldSince.set(playerId, 0);
+      }
+    });
+
+    const closeInterval = (playerId: number, minute: number) => {
+      const startedAt = onFieldSince.get(playerId);
+      if (typeof startedAt !== "number") return;
+      playedMinutesById.set(
+        playerId,
+        (playedMinutesById.get(playerId) ?? 0) + Math.max(0, minute - startedAt)
+      );
+      onFieldSince.delete(playerId);
+    };
+
+    events.forEach((event) => {
+      if (event.type === "sub") {
+        closeInterval(event.subjectPlayerId, event.minute);
+        if (!onFieldSince.has(event.objectPlayerId)) {
+          onFieldSince.set(event.objectPlayerId, event.minute);
+        }
+        return;
+      }
+      closeInterval(event.playerId, event.minute);
+    });
+
+    onFieldSince.forEach((startedAt, playerId) => {
+      playedMinutesById.set(
+        playerId,
+        (playedMinutesById.get(playerId) ?? 0) + Math.max(0, totalMatchMinutes - startedAt)
+      );
+    });
+
+    return {
+      status: "ready",
+      recentMatch: {
+        matchId,
+        sourceSystem,
+        matchDate: recentMatch.MatchDate ?? "",
+      },
+      playerMinutesById: Object.fromEntries(playedMinutesById.entries()),
+    };
   };
 
   const fetchRatings = async (
@@ -7370,6 +7776,12 @@ const refreshDetailsForPlayers = async (
     setActiveDetailsTab("details");
     setShowSeniorSkillBonusInMatrix(true);
     setExtraTimeBTeamEnabled(false);
+    setExtraTimeBTeamMinutesThreshold(EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD);
+    setExtraTimeBTeamRecentMatchState({
+      status: "idle",
+      recentMatch: null,
+      playerMinutesById: {},
+    });
     setExtraTimeSelectedPlayerIds([]);
     setExtraTimeMatrixTrainingType(null);
     setExtraTimeMatrixTrainingTypeManual(false);
@@ -7426,6 +7838,7 @@ const refreshDetailsForPlayers = async (
             activeDetailsTab?: PlayerDetailsPanelTab;
             showSeniorSkillBonusInMatrix?: boolean;
             extraTimeBTeamEnabled?: boolean;
+            extraTimeBTeamMinutesThreshold?: number;
             extraTimeSelectedPlayerIds?: number[];
             extraTimeMatrixTrainingType?: number | null;
             extraTimeMatrixTrainingTypeManual?: boolean;
@@ -7482,6 +7895,14 @@ const refreshDetailsForPlayers = async (
           }
           if (typeof parsed.extraTimeBTeamEnabled === "boolean") {
             setExtraTimeBTeamEnabled(parsed.extraTimeBTeamEnabled);
+          }
+          if (
+            typeof parsed.extraTimeBTeamMinutesThreshold === "number" &&
+            Number.isFinite(parsed.extraTimeBTeamMinutesThreshold)
+          ) {
+            setExtraTimeBTeamMinutesThreshold(
+              Math.min(90, Math.max(1, Math.round(parsed.extraTimeBTeamMinutesThreshold)))
+            );
           }
           if (Array.isArray(parsed.extraTimeSelectedPlayerIds)) {
             setExtraTimeSelectedPlayerIds(
@@ -7703,6 +8124,7 @@ const refreshDetailsForPlayers = async (
       activeDetailsTab,
       showSeniorSkillBonusInMatrix,
       extraTimeBTeamEnabled,
+      extraTimeBTeamMinutesThreshold,
       extraTimeSelectedPlayerIds,
       extraTimeMatrixTrainingType,
       extraTimeMatrixTrainingTypeManual,
@@ -7730,6 +8152,7 @@ const refreshDetailsForPlayers = async (
     activeDetailsTab,
     showSeniorSkillBonusInMatrix,
     extraTimeBTeamEnabled,
+    extraTimeBTeamMinutesThreshold,
     extraTimeSelectedPlayerIds,
     extraTimeMatrixTrainingType,
     extraTimeMatrixTrainingTypeManual,
@@ -8576,18 +8999,47 @@ const refreshDetailsForPlayers = async (
                 </div>
               }
               extraSkillsMatrixHeaderAux={
-                <label className={styles.matchesFilterToggle}>
-                  <input
-                    type="checkbox"
-                    className={styles.matchesFilterToggleInput}
-                    checked={extraTimeBTeamEnabled}
-                    onChange={(event) => setExtraTimeBTeamEnabled(event.target.checked)}
-                  />
-                  <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
-                  <span className={styles.matchesFilterToggleLabel}>
-                    {messages.seniorExtraTimeModalBTeamToggleLabel}
-                  </span>
-                </label>
+                <div className={styles.seniorExtraTimeBTeamControls}>
+                  <label className={styles.matchesFilterToggle}>
+                    <input
+                      type="checkbox"
+                      className={styles.matchesFilterToggleInput}
+                      checked={extraTimeBTeamEnabled}
+                      disabled={!extraTimeBTeamCanBeEnabled}
+                      onChange={(event) => setExtraTimeBTeamEnabled(event.target.checked)}
+                    />
+                    <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
+                    <span className={styles.matchesFilterToggleLabel}>
+                      {messages.seniorExtraTimeModalBTeamToggleLabel}
+                    </span>
+                  </label>
+                  {extraTimeBTeamEnabled && extraTimeBTeamCanBeEnabled ? (
+                    <label className={styles.seniorExtraTimeBTeamThresholdLabel}>
+                      <span>{messages.seniorExtraTimeModalBTeamThresholdPrefix}</span>
+                      <select
+                        className={styles.seniorExtraTimeBTeamThresholdSelect}
+                        aria-label={messages.seniorExtraTimeModalBTeamThresholdAriaLabel}
+                        value={extraTimeBTeamMinutesThreshold}
+                        onChange={(event) =>
+                          setExtraTimeBTeamMinutesThreshold(
+                            Math.min(90, Math.max(1, Number(event.target.value) || 1))
+                          )
+                        }
+                      >
+                        {Array.from({ length: 90 }, (_, index) => index + 1).map((value) => (
+                          <option key={value} value={value}>
+                            {value}
+                          </option>
+                        ))}
+                      </select>
+                      <span>{messages.seniorExtraTimeModalBTeamThresholdSuffix}</span>
+                    </label>
+                  ) : extraTimeBTeamStatusMessage ? (
+                    <span className={styles.seniorExtraTimeBTeamStatus}>
+                      {extraTimeBTeamStatusMessage}
+                    </span>
+                  ) : null}
+                </div>
               }
               skillsMatrixLeadingHeader={
                 <label className={styles.seniorMatrixCheckboxLabel}>
@@ -8623,16 +9075,18 @@ const refreshDetailsForPlayers = async (
                   extraTimeSelectedPlayerIds.includes(rowId);
                 const isInjured =
                   typeof rowId === "number" && extraTimeInjuredPlayerIdSet.has(rowId);
+                const isDisregarded =
+                  typeof rowId === "number" && extraTimeDisregardedPlayerIds.has(rowId);
                 const checkbox = (
                   <label className={styles.seniorMatrixCheckboxLabel}>
                     <input
                       type="checkbox"
                       className={styles.seniorMatrixCheckboxInput}
                       checked={Boolean(isChecked)}
-                      disabled={typeof rowId !== "number" || isInjured}
+                      disabled={typeof rowId !== "number" || isInjured || isDisregarded}
                       aria-label={row.name}
                       onChange={(event) => {
-                        if (typeof rowId !== "number" || isInjured) {
+                        if (typeof rowId !== "number" || isInjured || isDisregarded) {
                           return;
                         }
                         setExtraTimeSelectedPlayerIds((prev) => {
@@ -8659,9 +9113,36 @@ const refreshDetailsForPlayers = async (
                     </Tooltip>
                   );
                 }
-                return (
-                  checkbox
-                );
+                if (isDisregarded) {
+                  return (
+                    <Tooltip content={extraTimeDisregardedTooltip}>
+                      <span className={styles.seniorExtraTimeDisabledCheckboxWrap}>
+                        {checkbox}
+                      </span>
+                    </Tooltip>
+                  );
+                }
+                return checkbox;
+              }}
+              skillsMatrixRowClassName={(row) => {
+                if (
+                  !extraTimeBTeamEnabled ||
+                  typeof row.id !== "number" ||
+                  !extraTimeDisregardedPlayerIds.has(row.id)
+                ) {
+                  return null;
+                }
+                return styles.matrixRowDisregarded;
+              }}
+              skillsMatrixRowTooltip={(row) => {
+                if (
+                  !extraTimeBTeamEnabled ||
+                  typeof row.id !== "number" ||
+                  !extraTimeDisregardedPlayerIds.has(row.id)
+                ) {
+                  return null;
+                }
+                return extraTimeDisregardedTooltip;
               }}
               messages={messages}
             />

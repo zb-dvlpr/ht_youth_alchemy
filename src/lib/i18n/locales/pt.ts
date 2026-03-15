@@ -776,6 +776,19 @@ export const messagesPt: Messages = {
     seniorExtraTimeModalChooseTrainees:
       "Escolha {{count}} treinandos e depois clique em Definir escalação. Os escolhidos automaticamente podem ser substituídos.",
     seniorExtraTimeModalBTeamToggleLabel: "Equipe B",
+    seniorExtraTimeModalBTeamThresholdPrefix:
+      "Ignorar jogadores que já tenham jogado",
+    seniorExtraTimeModalBTeamThresholdSuffix: "minutos nesta semana.",
+    seniorExtraTimeModalBTeamThresholdAriaLabel:
+      "Limite de minutos para ignorar jogadores que já atuaram nesta semana",
+    seniorExtraTimeModalBTeamNoRecentMatch:
+      "Nenhuma partida relevante para treino foi jogada nesta semana.",
+    seniorExtraTimeModalBTeamLoading:
+      "Verificando as partidas relevantes para treino desta semana...",
+    seniorExtraTimeModalBTeamError:
+      "Nao foi possivel verificar as partidas relevantes para treino desta semana.",
+    seniorExtraTimeModalBTeamDisregardedTooltip:
+      "Este jogador é desconsiderado porque já jogou pelo menos {{minutes}} minutos nesta semana.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "O jogador não pode ser selecionado porque está lesionado.",
     seniorExtraTimeModalSetLineupButton: "Definir escalação",

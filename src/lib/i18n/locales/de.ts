@@ -764,6 +764,19 @@ export const messagesDe: Messages = {
     seniorExtraTimeModalChooseTrainees:
       "Wähle {{count}} Trainees und klicke dann auf Aufstellung setzen. Die automatisch ausgewählten können überschrieben werden.",
     seniorExtraTimeModalBTeamToggleLabel: "B-Team",
+    seniorExtraTimeModalBTeamThresholdPrefix:
+      "Spieler ignorieren, die diese Woche schon",
+    seniorExtraTimeModalBTeamThresholdSuffix: "Minuten gespielt haben.",
+    seniorExtraTimeModalBTeamThresholdAriaLabel:
+      "Minutengrenze zum Ignorieren bereits eingesetzter Spieler",
+    seniorExtraTimeModalBTeamNoRecentMatch:
+      "Diese Woche wurden keine trainingsrelevanten Spiele bestritten.",
+    seniorExtraTimeModalBTeamLoading:
+      "Trainingsrelevante Spiele dieser Woche werden geprüft...",
+    seniorExtraTimeModalBTeamError:
+      "Trainingsrelevante Spiele dieser Woche konnten nicht geprüft werden.",
+    seniorExtraTimeModalBTeamDisregardedTooltip:
+      "Dieser Spieler wird ignoriert, weil er diese Woche bereits mindestens {{minutes}} Minuten gespielt hat.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "Der Spieler kann nicht gewählt werden, weil er verletzt ist.",
     seniorExtraTimeModalSetLineupButton: "Aufstellung setzen",

@@ -776,6 +776,19 @@ export const messagesEs: Messages = {
     seniorExtraTimeModalChooseTrainees:
       "Elige {{count}} entrenables y luego haz clic en Establecer alineación. Los seleccionados automáticamente se pueden reemplazar.",
     seniorExtraTimeModalBTeamToggleLabel: "Equipo B",
+    seniorExtraTimeModalBTeamThresholdPrefix:
+      "Ignorar jugadores que ya hayan jugado",
+    seniorExtraTimeModalBTeamThresholdSuffix: "minutos esta semana.",
+    seniorExtraTimeModalBTeamThresholdAriaLabel:
+      "Umbral de minutos para ignorar jugadores que ya jugaron esta semana",
+    seniorExtraTimeModalBTeamNoRecentMatch:
+      "No se han jugado partidos relevantes para el entrenamiento esta semana.",
+    seniorExtraTimeModalBTeamLoading:
+      "Comprobando los partidos relevantes para el entrenamiento de esta semana...",
+    seniorExtraTimeModalBTeamError:
+      "No se pudieron comprobar los partidos relevantes para el entrenamiento de esta semana.",
+    seniorExtraTimeModalBTeamDisregardedTooltip:
+      "Este jugador se descarta porque ya ha jugado al menos {{minutes}} minutos esta semana.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "No se puede seleccionar al jugador porque está lesionado.",
     seniorExtraTimeModalSetLineupButton: "Establecer alineación",

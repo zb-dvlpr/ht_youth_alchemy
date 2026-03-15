@@ -767,6 +767,19 @@ export const messagesSv: Messages = {
     seniorExtraTimeModalChooseTrainees:
       "Välj {{count}} traineer och klicka sedan på Sätt uppställning. De som valts automatiskt kan ändras.",
     seniorExtraTimeModalBTeamToggleLabel: "B-lag",
+    seniorExtraTimeModalBTeamThresholdPrefix:
+      "Bortse från spelare som redan har spelat",
+    seniorExtraTimeModalBTeamThresholdSuffix: "minuter den här veckan.",
+    seniorExtraTimeModalBTeamThresholdAriaLabel:
+      "Minutgräns för att bortse från spelare som redan spelat den här veckan",
+    seniorExtraTimeModalBTeamNoRecentMatch:
+      "Inga träningsrelevanta matcher har spelats den här veckan.",
+    seniorExtraTimeModalBTeamLoading:
+      "Kontrollerar veckans träningsrelevanta matcher...",
+    seniorExtraTimeModalBTeamError:
+      "Det gick inte att kontrollera veckans träningsrelevanta matcher.",
+    seniorExtraTimeModalBTeamDisregardedTooltip:
+      "Spelaren ignoreras eftersom han redan har spelat minst {{minutes}} minuter den här veckan.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "Spelaren kan inte väljas eftersom han är skadad.",
     seniorExtraTimeModalSetLineupButton: "Sätt uppställning",

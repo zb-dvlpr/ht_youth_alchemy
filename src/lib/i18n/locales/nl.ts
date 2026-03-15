@@ -218,6 +218,20 @@ export const messagesNl: Messages = {
     "Het idee is eenvoudig: op basis van je trainingsregime vraagt Alchemy je om de spelers te kiezen die training moeten krijgen. Jij kiest de spelers, klikt op Beste opstelling zetten, en Alchemy regelt de rest (spelers positioneren en oriënteren, tactieken instellen, wissels configureren, penaltynemers instellen, de nemer van spelhervattingen bepalen, enz.). Zodra je tevreden bent met de opstelling, klik je op Opstelling verzenden om die naar Hattrick te sturen. De kans op een gelijkspel is veel groter als je tegenstander de opstelling op een vergelijkbare manier instelt.",
   seniorExtraTimeModalChooseTrainees:
     "Kies {{count}} trainees en klik daarna op Opstelling instellen. De automatisch gekozen spelers kun je overschrijven.",
+  seniorExtraTimeModalBTeamToggleLabel: "B-team",
+  seniorExtraTimeModalBTeamThresholdPrefix:
+    "Negeer spelers die al",
+  seniorExtraTimeModalBTeamThresholdSuffix: "minuten hebben gespeeld deze week.",
+  seniorExtraTimeModalBTeamThresholdAriaLabel:
+    "Minutendrempel om spelers die deze week al speelden te negeren",
+  seniorExtraTimeModalBTeamNoRecentMatch:
+    "Er zijn deze week geen trainingsrelevante wedstrijden gespeeld.",
+  seniorExtraTimeModalBTeamLoading:
+    "Trainingsrelevante wedstrijden van deze week worden gecontroleerd...",
+  seniorExtraTimeModalBTeamError:
+    "De trainingsrelevante wedstrijden van deze week konden niet worden gecontroleerd.",
+  seniorExtraTimeModalBTeamDisregardedTooltip:
+    "Deze speler wordt genegeerd omdat hij deze week al minstens {{minutes}} minuten heeft gespeeld.",
   seniorExtraTimeModalSetLineupButton: "Opstelling instellen",
   seniorExtraTimeModalSetLineupDisabledTooltip:
     "Selecteer het juiste aantal trainees om de opstelling in te stellen.",

@@ -775,6 +775,19 @@ export const messagesFr: Messages = {
     seniorExtraTimeModalChooseTrainees:
       "Choisissez {{count}} stagiaires, puis cliquez sur Définir la compo. Les joueurs sélectionnés automatiquement peuvent être remplacés.",
     seniorExtraTimeModalBTeamToggleLabel: "Équipe B",
+    seniorExtraTimeModalBTeamThresholdPrefix:
+      "Ignorer les joueurs ayant déjà joué",
+    seniorExtraTimeModalBTeamThresholdSuffix: "minutes cette semaine.",
+    seniorExtraTimeModalBTeamThresholdAriaLabel:
+      "Seuil de minutes pour ignorer les joueurs déjà utilisés cette semaine",
+    seniorExtraTimeModalBTeamNoRecentMatch:
+      "Aucun match pertinent pour l entraînement n a été joué cette semaine.",
+    seniorExtraTimeModalBTeamLoading:
+      "Vérification des matchs pertinents pour l entraînement de cette semaine...",
+    seniorExtraTimeModalBTeamError:
+      "Impossible de vérifier les matchs pertinents pour l entraînement cette semaine.",
+    seniorExtraTimeModalBTeamDisregardedTooltip:
+      "Ce joueur est ignoré, car il a déjà joué au moins {{minutes}} minutes cette semaine.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "Le joueur ne peut pas être sélectionné car il est blessé.",
     seniorExtraTimeModalSetLineupButton: "Définir la compo",

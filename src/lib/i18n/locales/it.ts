@@ -777,6 +777,19 @@ export const messagesIt: Messages = {
     seniorExtraTimeModalChooseTrainees:
       "Scegli {{count}} giocatori da allenare, poi clicca su Imposta formazione. Quelli selezionati automaticamente possono essere sostituiti.",
     seniorExtraTimeModalBTeamToggleLabel: "Squadra B",
+    seniorExtraTimeModalBTeamThresholdPrefix:
+      "Ignora i giocatori che hanno già giocato",
+    seniorExtraTimeModalBTeamThresholdSuffix: "minuti questa settimana.",
+    seniorExtraTimeModalBTeamThresholdAriaLabel:
+      "Soglia minuti per ignorare i giocatori già impiegati questa settimana",
+    seniorExtraTimeModalBTeamNoRecentMatch:
+      "Questa settimana non sono state giocate partite rilevanti per l allenamento.",
+    seniorExtraTimeModalBTeamLoading:
+      "Controllo delle partite rilevanti per l allenamento di questa settimana...",
+    seniorExtraTimeModalBTeamError:
+      "Impossibile controllare le partite rilevanti per l allenamento di questa settimana.",
+    seniorExtraTimeModalBTeamDisregardedTooltip:
+      "Questo giocatore viene ignorato perché ha già giocato almeno {{minutes}} minuti questa settimana.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "Il giocatore non può essere selezionato perché è infortunato.",
     seniorExtraTimeModalSetLineupButton: "Imposta formazione",

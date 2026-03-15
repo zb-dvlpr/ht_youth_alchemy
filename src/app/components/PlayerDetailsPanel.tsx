@@ -146,6 +146,8 @@ type PlayerDetailsPanelProps = {
   extraSkillsMatrixHeaderAux?: ReactNode;
   skillsMatrixLeadingHeader?: ReactNode;
   renderSkillsMatrixLeadingCell?: (row: { id: number | null; name: string }) => ReactNode;
+  skillsMatrixRowClassName?: (row: { id: number | null; name: string }) => string | null;
+  skillsMatrixRowTooltip?: (row: { id: number | null; name: string }) => ReactNode;
   messages: Messages;
 };
 
@@ -421,6 +423,8 @@ export default function PlayerDetailsPanel({
   extraSkillsMatrixHeaderAux,
   skillsMatrixLeadingHeader,
   renderSkillsMatrixLeadingCell,
+  skillsMatrixRowClassName,
+  skillsMatrixRowTooltip,
   messages,
 }: PlayerDetailsPanelProps) {
   const [uncontrolledActiveTab, setUncontrolledActiveTab] =
@@ -1527,143 +1531,63 @@ export default function PlayerDetailsPanel({
               const isNewPlayer = row.id ? matrixNewPlayerIdSet.has(row.id) : false;
               const scoutOverallSkillLevel =
                 row.id !== null ? scoutOverallSkillLevelByPlayerId[row.id] : undefined;
-
-              return (
-                <tr
-                  key={`${row.name}-${row.id ?? "unknown"}`}
-                  className={`${styles.matrixRow} ${
-                    isSelected ? styles.matrixRowSelected : ""
+              const rowClassName = skillsMatrixRowClassName?.(row) ?? "";
+              const rowTooltip = skillsMatrixRowTooltip?.(row) ?? null;
+              const matrixPlayerContent = (
+                <div
+                  className={`${styles.matrixPlayerContent} ${
+                    hasSeniorIndicatorRow ? styles.matrixPlayerContentTwoRow : ""
                   }`}
                 >
-                  <td className={styles.matrixIndex}>{index + 1}</td>
-                  {renderSkillsMatrixLeadingCell ? (
-                    <td className={styles.matrixSeniorSelectionCell}>
-                      {renderSkillsMatrixLeadingCell(row)}
-                    </td>
-                  ) : null}
-                  <td className={styles.matrixPlayer}>
-                    <div
-                      className={`${styles.matrixPlayerContent} ${
-                        hasSeniorIndicatorRow ? styles.matrixPlayerContentTwoRow : ""
-                      }`}
-                    >
-                      <div className={styles.matrixPlayerNameLine}>
-                        {typeof row.id === "number" && onMatrixPlayerDragStart ? (
-                          <Tooltip
-                            content={
-                              playerKind === "youth"
-                                ? messages.youthDragToLineupHint
-                                : messages.youthDragToLineupHint
-                            }
-                          >
-                            <button
-                              type="button"
-                              className={styles.matrixPlayerButton}
-                              onClick={() => handleMatrixPlayerPick(row.name)}
-                              disabled={!onSelectRatingsPlayer}
-                              draggable
-                              onDragStart={(event) => {
-                                onMatrixPlayerDragStart(event, row.id as number, row.name);
-                              }}
-                            >
-                              {row.name}
-                            </button>
-                          </Tooltip>
-                        ) : (
-                          <button
-                            type="button"
-                            className={styles.matrixPlayerButton}
-                            onClick={() => handleMatrixPlayerPick(row.name)}
-                            disabled={!onSelectRatingsPlayer}
-                          >
-                            {row.name}
-                          </button>
-                        )}
-                        {isNewPlayer ? (
-                          <span className={styles.matrixNewPill}>
-                            {messages.matrixNewPillLabel}
-                          </span>
-                        ) : null}
-                        {playerKind === "youth" &&
-                        typeof scoutOverallSkillLevel === "number" ? (
-                          <Tooltip content={messages.scoutOverallSkillLevelTooltip}>
-                            <span className={styles.matrixScoutOverallBadge}>
-                              {scoutOverallSkillLevel}
-                            </span>
-                          </Tooltip>
-                        ) : null}
-                      </div>
-                      {hasSeniorIndicatorRow ? (
-                        <div className={styles.matrixPlayerIndicatorsLine}>
-                          {details?.MotherClubBonus ? (
-                            <Tooltip content={messages.motherClubBonusTooltip}>
-                              <span
-                                className={styles.seniorMotherClubHeart}
-                                aria-label={messages.motherClubBonusTooltip}
-                              >
-                                ❤
-                              </span>
-                            </Tooltip>
-                          ) : null}
-                          {rowInjuryStatus && !rowInjuryStatus.isHealthy ? (
-                            <span
-                              className={
-                                rowInjuryStatus.isHealthy
-                                  ? styles.matrixInjuryHealthy
-                                  : styles.matrixInjuryStatus
-                              }
-                              title={rowInjuryStatus.label}
-                            >
-                              {rowInjuryStatus.display}
-                            </span>
-                          ) : null}
-                          {rowCardStatus ? (
-                            <span
-                              className={styles.matrixCardStatus}
-                              title={rowCardStatus.label}
-                              aria-label={rowCardStatus.label}
-                            >
-                              {rowCardStatus.display}
-                            </span>
-                          ) : null}
-                        </div>
-                      ) : (
-                        <>
-                          {playerKind === "senior" && details?.MotherClubBonus ? (
-                            <Tooltip content={messages.motherClubBonusTooltip}>
-                              <span
-                                className={styles.seniorMotherClubHeart}
-                                aria-label={messages.motherClubBonusTooltip}
-                              >
-                                ❤
-                              </span>
-                            </Tooltip>
-                          ) : null}
-                          {rowInjuryStatus &&
-                          !rowInjuryStatus.isHealthy ? (
-                            <span
-                              className={
-                                rowInjuryStatus.isHealthy
-                                  ? styles.matrixInjuryHealthy
-                                  : styles.matrixInjuryStatus
-                              }
-                              title={rowInjuryStatus.label}
-                            >
-                              {rowInjuryStatus.display}
-                            </span>
-                          ) : null}
-                          {rowCardStatus ? (
-                            <span
-                              className={styles.matrixCardStatus}
-                              title={rowCardStatus.label}
-                              aria-label={rowCardStatus.label}
-                            >
-                              {rowCardStatus.display}
-                            </span>
-                          ) : null}
-                        </>
-                      )}
-                      {playerKind !== "senior" && details?.MotherClubBonus ? (
+                  <div className={styles.matrixPlayerNameLine}>
+                    {typeof row.id === "number" && onMatrixPlayerDragStart ? (
+                      <Tooltip
+                        content={
+                          playerKind === "youth"
+                            ? messages.youthDragToLineupHint
+                            : messages.youthDragToLineupHint
+                        }
+                      >
+                        <button
+                          type="button"
+                          className={styles.matrixPlayerButton}
+                          onClick={() => handleMatrixPlayerPick(row.name)}
+                          disabled={!onSelectRatingsPlayer}
+                          draggable
+                          onDragStart={(event) => {
+                            onMatrixPlayerDragStart(event, row.id as number, row.name);
+                          }}
+                        >
+                          {row.name}
+                        </button>
+                      </Tooltip>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.matrixPlayerButton}
+                        onClick={() => handleMatrixPlayerPick(row.name)}
+                        disabled={!onSelectRatingsPlayer}
+                      >
+                        {row.name}
+                      </button>
+                    )}
+                    {isNewPlayer ? (
+                      <span className={styles.matrixNewPill}>
+                        {messages.matrixNewPillLabel}
+                      </span>
+                    ) : null}
+                    {playerKind === "youth" &&
+                    typeof scoutOverallSkillLevel === "number" ? (
+                      <Tooltip content={messages.scoutOverallSkillLevelTooltip}>
+                        <span className={styles.matrixScoutOverallBadge}>
+                          {scoutOverallSkillLevel}
+                        </span>
+                      </Tooltip>
+                    ) : null}
+                  </div>
+                  {hasSeniorIndicatorRow ? (
+                    <div className={styles.matrixPlayerIndicatorsLine}>
+                      {details?.MotherClubBonus ? (
                         <Tooltip content={messages.motherClubBonusTooltip}>
                           <span
                             className={styles.seniorMotherClubHeart}
@@ -1673,7 +1597,98 @@ export default function PlayerDetailsPanel({
                           </span>
                         </Tooltip>
                       ) : null}
+                      {rowInjuryStatus && !rowInjuryStatus.isHealthy ? (
+                        <span
+                          className={
+                            rowInjuryStatus.isHealthy
+                              ? styles.matrixInjuryHealthy
+                              : styles.matrixInjuryStatus
+                          }
+                          title={rowInjuryStatus.label}
+                        >
+                          {rowInjuryStatus.display}
+                        </span>
+                      ) : null}
+                      {rowCardStatus ? (
+                        <span
+                          className={styles.matrixCardStatus}
+                          title={rowCardStatus.label}
+                          aria-label={rowCardStatus.label}
+                        >
+                          {rowCardStatus.display}
+                        </span>
+                      ) : null}
                     </div>
+                  ) : (
+                    <>
+                      {playerKind === "senior" && details?.MotherClubBonus ? (
+                        <Tooltip content={messages.motherClubBonusTooltip}>
+                          <span
+                            className={styles.seniorMotherClubHeart}
+                            aria-label={messages.motherClubBonusTooltip}
+                          >
+                            ❤
+                          </span>
+                        </Tooltip>
+                      ) : null}
+                      {rowInjuryStatus &&
+                      !rowInjuryStatus.isHealthy ? (
+                        <span
+                          className={
+                            rowInjuryStatus.isHealthy
+                              ? styles.matrixInjuryHealthy
+                              : styles.matrixInjuryStatus
+                          }
+                          title={rowInjuryStatus.label}
+                        >
+                          {rowInjuryStatus.display}
+                        </span>
+                      ) : null}
+                      {rowCardStatus ? (
+                        <span
+                          className={styles.matrixCardStatus}
+                          title={rowCardStatus.label}
+                          aria-label={rowCardStatus.label}
+                        >
+                          {rowCardStatus.display}
+                        </span>
+                      ) : null}
+                    </>
+                  )}
+                  {playerKind !== "senior" && details?.MotherClubBonus ? (
+                    <Tooltip content={messages.motherClubBonusTooltip}>
+                      <span
+                        className={styles.seniorMotherClubHeart}
+                        aria-label={messages.motherClubBonusTooltip}
+                      >
+                        ❤
+                      </span>
+                    </Tooltip>
+                  ) : null}
+                </div>
+              );
+
+              return (
+                <tr
+                  key={`${row.name}-${row.id ?? "unknown"}`}
+                  className={`${styles.matrixRow} ${
+                    isSelected ? styles.matrixRowSelected : ""
+                  } ${rowClassName}`.trim()}
+                >
+                  <td className={styles.matrixIndex}>{index + 1}</td>
+                  {renderSkillsMatrixLeadingCell ? (
+                    <td className={styles.matrixSeniorSelectionCell}>
+                      {renderSkillsMatrixLeadingCell(row)}
+                    </td>
+                  ) : null}
+                  <td className={styles.matrixPlayer}>
+                    {rowTooltip ? (
+                      <Tooltip content={rowTooltip}>
+                        {matrixPlayerContent}
+                      </Tooltip>
+                    ) : (
+                      matrixPlayerContent
+                    )}
                   </td>
                   <td className={styles.matrixSpecialty}>
                     {(() => {

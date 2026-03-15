@@ -212,6 +212,20 @@ export const messagesPl: Messages = {
     "To bardzo proste: na podstawie reżimu treningowego Alchemy poprosi Cię o wybór zawodników do treningu. Wskazujesz zawodników, klikasz Ustaw najlepszy skład, a Alchemy zajmuje się resztą (ustawianiem pozycji i orientacji zawodników, doborem taktyki, konfiguracją zmian, ustawieniem wykonawców rzutów karnych, wyborem wykonawcy stałych fragmentów gry itd.). Gdy będziesz zadowolony ze składu, kliknij Wyślij skład, aby wysłać go do Hattricka. Szanse na remis są znacznie większe, jeśli przeciwnik również ustawi skład w podobny sposób.",
   seniorExtraTimeModalChooseTrainees:
     "Wybierz {{count}} trenowanych zawodników, a następnie kliknij Ustaw skład. Zaznaczonych automatycznie można zmienić.",
+  seniorExtraTimeModalBTeamToggleLabel: "Drugi skład",
+  seniorExtraTimeModalBTeamThresholdPrefix:
+    "Pomijaj zawodników, którzy już zagrali",
+  seniorExtraTimeModalBTeamThresholdSuffix: "minut w tym tygodniu.",
+  seniorExtraTimeModalBTeamThresholdAriaLabel:
+    "Próg minut do pomijania zawodników, którzy już grali w tym tygodniu",
+  seniorExtraTimeModalBTeamNoRecentMatch:
+    "W tym tygodniu nie rozegrano meczów istotnych dla treningu.",
+  seniorExtraTimeModalBTeamLoading:
+    "Sprawdzanie meczów istotnych dla treningu w tym tygodniu...",
+  seniorExtraTimeModalBTeamError:
+    "Nie udało się sprawdzić meczów istotnych dla treningu w tym tygodniu.",
+  seniorExtraTimeModalBTeamDisregardedTooltip:
+    "Ten zawodnik jest pomijany, ponieważ w tym tygodniu rozegrał już co najmniej {{minutes}} minut.",
   seniorExtraTimeModalSetLineupButton: "Ustaw skład",
   seniorExtraTimeModalSetLineupDisabledTooltip:
     "Wybierz właściwą liczbę trenowanych zawodników, aby ustawić skład.",

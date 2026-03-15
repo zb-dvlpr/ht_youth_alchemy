@@ -741,6 +741,19 @@ export const messagesEn: Messages = {
     seniorExtraTimeModalChooseTrainees:
       "Choose {{count}} trainees, then click Set lineup. The auto-chosen ones can be overridden.",
     seniorExtraTimeModalBTeamToggleLabel: "B team",
+    seniorExtraTimeModalBTeamThresholdPrefix:
+      "Disregard players who already played",
+    seniorExtraTimeModalBTeamThresholdSuffix: "minutes this week.",
+    seniorExtraTimeModalBTeamThresholdAriaLabel:
+      "Minutes threshold for disregarding players this week",
+    seniorExtraTimeModalBTeamNoRecentMatch:
+      "No training-relevant matches were played this week.",
+    seniorExtraTimeModalBTeamLoading:
+      "Checking this week's training-relevant matches...",
+    seniorExtraTimeModalBTeamError:
+      "Couldn't check this week's training-relevant matches.",
+    seniorExtraTimeModalBTeamDisregardedTooltip:
+      "Player is disregarded because they have already played at least {{minutes}} minutes this week.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
       "Player can't be selected because they're injured.",
     seniorExtraTimeModalSetLineupButton: "Set lineup",

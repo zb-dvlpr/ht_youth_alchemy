@@ -28,6 +28,7 @@ import {
   hattrickForumThreadUrl,
   hattrickManagerUrl,
   hattrickMatchUrl,
+  hattrickMatchUrlWithSourceSystem,
   hattrickPlayerUrl,
   hattrickTeamUrl,
 } from "@/lib/hattrick/urls";
@@ -2337,9 +2338,14 @@ export default function SeniorDashboard({
   const extraTimeBTeamCanBeEnabled =
     extraTimeBTeamRecentMatchState.status === "ready" &&
     Boolean(extraTimeBTeamRecentMatchState.recentMatch);
-  const extraTimeCurrentMatchHref =
-    typeof extraTimeMatchId === "number" && Number.isFinite(extraTimeMatchId) && extraTimeMatchId > 0
-      ? hattrickMatchUrl(extraTimeMatchId)
+  const extraTimeBTeamReferenceMatchHref =
+    typeof extraTimeBTeamRecentMatchState.recentMatch?.matchId === "number" &&
+    Number.isFinite(extraTimeBTeamRecentMatchState.recentMatch.matchId) &&
+    extraTimeBTeamRecentMatchState.recentMatch.matchId > 0
+      ? hattrickMatchUrlWithSourceSystem(
+          extraTimeBTeamRecentMatchState.recentMatch.matchId,
+          extraTimeBTeamRecentMatchState.recentMatch.sourceSystem
+        )
       : null;
   const extraTimeBTeamStatusMessage = (() => {
     if (extraTimeBTeamRecentMatchState.status === "loading") {
@@ -9055,10 +9061,10 @@ const refreshDetailsForPlayers = async (
                             ))}
                           </select>
                         ),
-                        weekLink: extraTimeCurrentMatchHref ? (
+                        weekLink: extraTimeBTeamReferenceMatchHref ? (
                           <a
                             className={styles.seniorExtraTimeInlineLink}
-                            href={extraTimeCurrentMatchHref}
+                            href={extraTimeBTeamReferenceMatchHref}
                             target="_blank"
                             rel="noreferrer"
                           >

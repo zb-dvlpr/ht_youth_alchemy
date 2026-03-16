@@ -7353,11 +7353,18 @@ const refreshDetailsForPlayers = async (
               : typeof player.player.InjuryLevel === "number"
                 ? player.player.InjuryLevel
                 : null;
+          const formValue =
+            typeof details?.Form === "number"
+              ? details.Form
+              : typeof player.player.Form === "number"
+                ? player.player.Form
+                : -1;
           return {
             id: player.player.PlayerID,
             name: formatPlayerName(player.player) || String(player.player.PlayerID),
             injuryLevel,
             cardsValue: player.cardsValue,
+            formValue,
           };
         })
         .filter((player) => {
@@ -7378,7 +7385,7 @@ const refreshDetailsForPlayers = async (
           }
           return true;
         })
-        .map(({ id, name }) => ({ id, name }));
+        .map(({ id, name, formValue }) => ({ id, name, formValue }));
       const playerPoolIds = playerPool.map((player) => player.id);
       if (playerPool.length < 11) {
         throw new Error(messages.submitOrdersMinPlayers);
@@ -7397,11 +7404,10 @@ const refreshDetailsForPlayers = async (
           Math.max(
             ...SECTOR_TO_RATING_CODES[sector].map((code) => ratingFor(playerId, code))
           );
-
-        orderedSlots.forEach((slot) => {
+        const evaluateSlotCandidates = (slot: string) => {
           const roleCode = SLOT_TO_RATING_CODE[slot];
           const slotSector = SLOT_TO_SECTOR[slot];
-          availablePlayers.sort((left, right) => {
+          const sortedBySlot = [...availablePlayers].sort((left, right) => {
             const leftRating = ratingFor(left.id, roleCode);
             const rightRating = ratingFor(right.id, roleCode);
             if (rightRating !== leftRating) {
@@ -7412,11 +7418,14 @@ const refreshDetailsForPlayers = async (
           const noSlotRatingPlayerIds: number[] = [];
           const betterOtherSectorPlayerIds: number[] = [];
           const tiedOtherSectorPlayerIds: number[] = [];
-          const selectedIndex = availablePlayers.findIndex((candidate) => {
+          let strictCandidateId: number | null = null;
+          let tiedCandidateId: number | null = null;
+          let betterOtherCandidateId: number | null = null;
+          sortedBySlot.forEach((candidate) => {
             const slotRating = ratingFor(candidate.id, roleCode);
             if (slotRating < 0) {
               noSlotRatingPlayerIds.push(candidate.id);
-              return false;
+              return;
             }
             const bestOtherSector = (Object.keys(SECTOR_TO_RATING_CODES) as PlayerSector[])
               .filter((sector) => sector !== slotSector)
@@ -7426,14 +7435,55 @@ const refreshDetailsForPlayers = async (
               );
             if (bestOtherSector > slotRating) {
               betterOtherSectorPlayerIds.push(candidate.id);
-              return false;
+              if (betterOtherCandidateId === null) {
+                betterOtherCandidateId = candidate.id;
+              }
+              return;
             }
             if (bestOtherSector === slotRating) {
               tiedOtherSectorPlayerIds.push(candidate.id);
-              return false;
+              if (tiedCandidateId === null) {
+                tiedCandidateId = candidate.id;
+              }
+              return;
             }
-            return true;
+            if (strictCandidateId === null) {
+              strictCandidateId = candidate.id;
+            }
           });
+          const formFallbackCandidateId =
+            [...availablePlayers]
+              .sort((left, right) => {
+                if (right.formValue !== left.formValue) {
+                  return right.formValue - left.formValue;
+                }
+                return left.name.localeCompare(right.name);
+              })[0]?.id ?? null;
+          return {
+            roleCode,
+            noSlotRatingPlayerIds,
+            betterOtherSectorPlayerIds,
+            tiedOtherSectorPlayerIds,
+            strictCandidateId,
+            tiedCandidateId,
+            betterOtherCandidateId,
+            formFallbackCandidateId,
+          };
+        };
+        const assignPlayerToSlot = (
+          slot: string,
+          roleCode: number,
+          playerId: number | null,
+          diagnostics: {
+            noSlotRatingPlayerIds: number[];
+            betterOtherSectorPlayerIds: number[];
+            tiedOtherSectorPlayerIds: number[];
+          }
+        ) => {
+          const selectedIndex =
+            playerId === null
+              ? -1
+              : availablePlayers.findIndex((candidate) => candidate.id === playerId);
           const selectedPlayer =
             selectedIndex >= 0
               ? (availablePlayers.splice(selectedIndex, 1)[0] ?? null)
@@ -7441,9 +7491,9 @@ const refreshDetailsForPlayers = async (
           slotDiagnostics.push({
             slot,
             assignedPlayerId: selectedPlayer?.id ?? null,
-            noSlotRatingPlayerIds,
-            betterOtherSectorPlayerIds,
-            tiedOtherSectorPlayerIds,
+            noSlotRatingPlayerIds: diagnostics.noSlotRatingPlayerIds,
+            betterOtherSectorPlayerIds: diagnostics.betterOtherSectorPlayerIds,
+            tiedOtherSectorPlayerIds: diagnostics.tiedOtherSectorPlayerIds,
             alreadyUsedPlayerIds: Array.from(usedPlayerIds),
           });
           if (!selectedPlayer) return;
@@ -7453,6 +7503,25 @@ const refreshDetailsForPlayers = async (
               ? ratingsById[selectedPlayer.id]?.[String(roleCode)]
               : null;
           usedPlayerIds.add(selectedPlayer.id);
+        };
+        const unresolvedSlots: string[] = [];
+
+        orderedSlots.forEach((slot) => {
+          const evaluation = evaluateSlotCandidates(slot);
+          if (evaluation.strictCandidateId === null) {
+            unresolvedSlots.push(slot);
+            return;
+          }
+          assignPlayerToSlot(slot, evaluation.roleCode, evaluation.strictCandidateId, evaluation);
+        });
+
+        unresolvedSlots.forEach((slot) => {
+          const evaluation = evaluateSlotCandidates(slot);
+          const fallbackCandidateId =
+            evaluation.tiedCandidateId ??
+            evaluation.betterOtherCandidateId ??
+            evaluation.formFallbackCandidateId;
+          assignPlayerToSlot(slot, evaluation.roleCode, fallbackCandidateId, evaluation);
         });
 
         return {

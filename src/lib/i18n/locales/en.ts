@@ -952,7 +952,7 @@ export const messagesEn: Messages = {
     ratingsTitle: "Ratings matrix",
     ratingsMatchesAnalyzed: "Data retrieved from {count} matches.",
     ratingsLastAppliedMatchLabel:
-      "Latest applied ratings from match {matchId} at {dateTime}.",
+      "Latest applied end-of-match ratings from match {matchId} at {dateTime}.",
     ratingsIndexLabel: "#",
     ratingsMissingNote:
       "Some players have no recent match data and are shown with —.",

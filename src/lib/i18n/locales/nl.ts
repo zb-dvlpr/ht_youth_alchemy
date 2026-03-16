@@ -107,7 +107,7 @@ export const messagesNl: Messages = {
   ratingsTitle: "Beoordelingsmatrix",
   ratingsMatchesAnalyzed: "Gegevens opgehaald uit {count} wedstrijden.",
   ratingsLastAppliedMatchLabel:
-    "Laatst toegepaste beoordelingen uit wedstrijd {matchId} om {dateTime}.",
+    "Laatst toegepaste eindstand-beoordelingen uit wedstrijd {matchId} om {dateTime}.",
   ratingsIndexLabel: "#",
   ratingsSortBy: "Sorteren op",
   ratingsPlayerLabel: "Speler",

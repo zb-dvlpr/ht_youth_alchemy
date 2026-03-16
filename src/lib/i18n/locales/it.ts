@@ -992,7 +992,7 @@ export const messagesIt: Messages = {
     ratingsTitle: "Matrice valutazioni",
     ratingsMatchesAnalyzed: "Dati recuperati da {count} partite.",
     ratingsLastAppliedMatchLabel:
-      "Ultime valutazioni applicate dalla partita {matchId} alle {dateTime}.",
+      "Ultime valutazioni di fine partita applicate dalla partita {matchId} alle {dateTime}.",
     ratingsIndexLabel: "N.",
     ratingsMissingNote:
       "Alcuni giocatori non hanno dati recenti e vengono mostrati con —.",

@@ -261,7 +261,6 @@ const SENIOR_HELP_ANCHOR_ANALYZE_OPPONENT = `.${styles.matchAnalyzeOpponentWrap}
 
 const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
-const RATINGS_ALGO_VERSION_STORAGE_KEY = "ya_senior_ratings_algo_version_v1";
 const LAST_REFRESH_STORAGE_KEY = "ya_senior_last_refresh_ts_v1";
 const LIST_SORT_STORAGE_KEY = "ya_senior_player_list_sort_v1";
 const SENIOR_HELP_STORAGE_KEY = "ya_senior_help_dismissed_v1";
@@ -287,7 +286,7 @@ const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
 const OPPONENT_ARCHIVE_LIMIT = 20;
 const OPPONENT_DETAILS_CONCURRENCY = 6;
 const FORMATION_PREDICT_CONCURRENCY = 4;
-const SENIOR_RATINGS_ALGO_VERSION = 2;
+const SENIOR_RATINGS_ALGO_VERSION = 4;
 const NON_DEPRECATED_TRAINING_TYPES = [9, 3, 8, 5, 7, 4, 2, 11, 12, 10, 6] as const;
 const EXTRA_TIME_B_TEAM_MATCH_TYPES = new Set<number>([1, 2, 4, 5, 8, 9]);
 const EXTRA_TIME_B_TEAM_LOOKBACK_MS = 6 * 24 * 60 * 60 * 1000;
@@ -978,19 +977,6 @@ const writeStoredLastRefresh = (
   window.localStorage.setItem(storageKey, String(value));
 };
 
-const readStoredRatingsAlgoVersion = () => {
-  if (typeof window === "undefined") return null;
-  const value = window.localStorage.getItem(RATINGS_ALGO_VERSION_STORAGE_KEY);
-  const parsed = Number(value ?? "");
-  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : null;
-};
-
-const writeStoredRatingsAlgoVersion = (value: number) => {
-  if (typeof window === "undefined") return;
-  if (!Number.isFinite(value) || value <= 0) return;
-  window.localStorage.setItem(RATINGS_ALGO_VERSION_STORAGE_KEY, String(Math.floor(value)));
-};
-
 const formatArchiveDateTimeParam = (timestamp: number) => {
   if (!Number.isFinite(timestamp) || timestamp <= 0) return null;
   const iso = new Date(timestamp).toISOString();
@@ -998,8 +984,26 @@ const formatArchiveDateTimeParam = (timestamp: number) => {
   return iso.slice(0, 19).replace("T", " ");
 };
 
+const hasCurrentSeniorRatingsAlgorithmVersion = (
+  ratings: RatingsMatrixResponse | null | undefined
+) =>
+  typeof ratings?.ratingsAlgorithmVersion === "number" &&
+  Number.isFinite(ratings.ratingsAlgorithmVersion) &&
+  Math.floor(ratings.ratingsAlgorithmVersion) === SENIOR_RATINGS_ALGO_VERSION;
+
 const isRatingsMatrixEmpty = (ratings: RatingsMatrixResponse | null | undefined) =>
   !ratings?.players?.some((row) => Object.keys(row.ratings ?? {}).length > 0);
+
+const hasUsableSeniorRatingsMatrix = (
+  ratings: RatingsMatrixResponse | null | undefined
+) => hasCurrentSeniorRatingsAlgorithmVersion(ratings) && !isRatingsMatrixEmpty(ratings);
+
+const stampSeniorRatingsAlgorithmVersion = (
+  ratings: RatingsMatrixResponse
+): RatingsMatrixResponse => ({
+  ...ratings,
+  ratingsAlgorithmVersion: SENIOR_RATINGS_ALGO_VERSION,
+});
 
 const mergeRatingsMatrices = (
   first: RatingsMatrixResponse,
@@ -1070,6 +1074,7 @@ const mergeRatingsMatrices = (
         ? first.lastAppliedMatchSourceSystem
         : null;
   return {
+    ratingsAlgorithmVersion: SENIOR_RATINGS_ALGO_VERSION,
     positions: Array.from(new Set([...(first.positions ?? []), ...(second.positions ?? [])])),
     players: Array.from(mergedById.values()).map((row) => ({
       ...row,
@@ -1134,6 +1139,14 @@ const applyRatingsDelta = (
     byId.set(row.id, existing);
   });
   return {
+    ratingsAlgorithmVersion:
+      typeof delta.ratingsAlgorithmVersion === "number" &&
+      Number.isFinite(delta.ratingsAlgorithmVersion)
+        ? Math.floor(delta.ratingsAlgorithmVersion)
+        : typeof base.ratingsAlgorithmVersion === "number" &&
+            Number.isFinite(base.ratingsAlgorithmVersion)
+          ? Math.floor(base.ratingsAlgorithmVersion)
+          : SENIOR_RATINGS_ALGO_VERSION,
     positions: Array.from(new Set([...(base.positions ?? []), ...(delta.positions ?? [])])),
     players: Array.from(byId.values()).map((row) => ({
       ...row,
@@ -2644,11 +2657,10 @@ export default function SeniorDashboard({
 
   const ensureExtraTimeRatingsById = async () => {
     let nextRatingsById = ratingsByPlayerId;
-    if (isRatingsMatrixEmpty(ratingsResponse)) {
+    if (!hasUsableSeniorRatingsMatrix(ratingsResponse)) {
       const currentSeason = await fetchCurrentSeason();
-      const refreshedRatings = await bootstrapRatingsFromSeasons(
-        resolvedSeniorTeamId,
-        currentSeason
+      const refreshedRatings = stampSeniorRatingsAlgorithmVersion(
+        await bootstrapRatingsFromSeasons(resolvedSeniorTeamId, currentSeason)
       );
       setRatingsResponse(refreshedRatings);
       nextRatingsById = {};
@@ -6533,6 +6545,21 @@ const refreshDetailsForPlayers = async (
     const isStopped = () =>
       stoppedRefreshRunIdsRef.current.has(refreshRunId) ||
       activeRefreshRunIdRef.current !== refreshRunId;
+    const forceResetRatingsAlgorithm =
+      !hasCurrentSeniorRatingsAlgorithmVersion(ratingsResponse);
+    const effectiveRatingsResponse = forceResetRatingsAlgorithm ? null : ratingsResponse;
+
+    if (forceResetRatingsAlgorithm) {
+      suppressNextUpdatesRecordingRef.current = true;
+      persistedMarkersBaselineRef.current = {
+        players,
+        ratingsByPlayerId: {},
+      };
+      setRatingsResponse(null);
+      setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
+      setUpdatesHistory([]);
+      setSelectedUpdatesId(null);
+    }
 
     const persistedMarkersBaseline = persistedMarkersBaselineRef.current;
     const usePersistedMarkersBaseline = Boolean(persistedMarkersBaseline);
@@ -6541,7 +6568,9 @@ const refreshDetailsForPlayers = async (
         ? persistedMarkersBaseline.players
         : players;
     const previousRatings =
-      usePersistedMarkersBaseline && persistedMarkersBaseline
+      forceResetRatingsAlgorithm
+        ? {}
+        : usePersistedMarkersBaseline && persistedMarkersBaseline
         ? persistedMarkersBaseline.ratingsByPlayerId
         : ratingsByPlayerId;
     const previousDetailsById = new Map(detailsById);
@@ -6585,7 +6614,7 @@ const refreshDetailsForPlayers = async (
 
       setRefreshStatus(messages.refreshStatusFetchingRatings);
       setRefreshProgressPct(60);
-      const shouldBootstrapRatings = isRatingsMatrixEmpty(ratingsResponse);
+      const shouldBootstrapRatings = !hasUsableSeniorRatingsMatrix(effectiveRatingsResponse);
       didBootstrapRatings = shouldBootstrapRatings;
       const nextRatings = shouldBootstrapRatings
         ? await (async () => {
@@ -6604,20 +6633,22 @@ const refreshDetailsForPlayers = async (
             );
             if (isStopped()) return null;
             setRefreshProgressPct(90);
-            return mergeRatingsMatrices(previousSeasonRatings, currentSeasonRatings);
+            return stampSeniorRatingsAlgorithmVersion(
+              mergeRatingsMatrices(previousSeasonRatings, currentSeasonRatings)
+            );
           })()
         : await (async () => {
             const fromTs =
-              typeof ratingsResponse?.lastAppliedMatchDateTime === "number" &&
-              Number.isFinite(ratingsResponse.lastAppliedMatchDateTime) &&
-              ratingsResponse.lastAppliedMatchDateTime > 0
-                ? Math.floor(ratingsResponse.lastAppliedMatchDateTime)
+              typeof effectiveRatingsResponse?.lastAppliedMatchDateTime === "number" &&
+              Number.isFinite(effectiveRatingsResponse.lastAppliedMatchDateTime) &&
+              effectiveRatingsResponse.lastAppliedMatchDateTime > 0
+                ? Math.floor(effectiveRatingsResponse.lastAppliedMatchDateTime)
                 : null;
             const fromMatchId =
-              typeof ratingsResponse?.lastAppliedMatchId === "number" &&
-              Number.isFinite(ratingsResponse.lastAppliedMatchId) &&
-              ratingsResponse.lastAppliedMatchId > 0
-                ? Math.floor(ratingsResponse.lastAppliedMatchId)
+              typeof effectiveRatingsResponse?.lastAppliedMatchId === "number" &&
+              Number.isFinite(effectiveRatingsResponse.lastAppliedMatchId) &&
+              effectiveRatingsResponse.lastAppliedMatchId > 0
+                ? Math.floor(effectiveRatingsResponse.lastAppliedMatchId)
                 : null;
             const firstMatchDate =
               fromTs !== null ? formatArchiveDateTimeParam(fromTs) : null;
@@ -6633,15 +6664,18 @@ const refreshDetailsForPlayers = async (
             );
             if (isStopped()) return null;
             setRefreshProgressPct(90);
-            return applyRatingsDelta(
-              ratingsResponse ?? {
-                positions: [],
-                players: [],
-                matchesAnalyzed: 0,
-                lastAppliedMatchId: null,
-                lastAppliedMatchDateTime: null,
-              },
-              incrementalRatings
+            return stampSeniorRatingsAlgorithmVersion(
+              applyRatingsDelta(
+                effectiveRatingsResponse ?? {
+                  ratingsAlgorithmVersion: SENIOR_RATINGS_ALGO_VERSION,
+                  positions: [],
+                  players: [],
+                  matchesAnalyzed: 0,
+                  lastAppliedMatchId: null,
+                  lastAppliedMatchDateTime: null,
+                },
+                incrementalRatings
+              )
             );
           })();
       if (!nextRatings) return false;
@@ -7170,11 +7204,10 @@ const refreshDetailsForPlayers = async (
       );
 
       let ratingsById = ratingsByPlayerId;
-      if (isRatingsMatrixEmpty(ratingsResponse)) {
+      if (!hasUsableSeniorRatingsMatrix(ratingsResponse)) {
         const currentSeason = await fetchCurrentSeason();
-        const refreshedRatings = await bootstrapRatingsFromSeasons(
-          resolvedSeniorTeamId,
-          currentSeason
+        const refreshedRatings = stampSeniorRatingsAlgorithmVersion(
+          await bootstrapRatingsFromSeasons(resolvedSeniorTeamId, currentSeason)
         );
         setRatingsResponse(refreshedRatings);
         ratingsById = {};
@@ -7852,9 +7885,7 @@ const refreshDetailsForPlayers = async (
 
       const rawState = window.localStorage.getItem(stateStorageKey);
       let forceWipeLegacyUpdatesState = false;
-      const storedRatingsAlgoVersion = readStoredRatingsAlgoVersion();
-      const forceResetRatingsAlgorithm =
-        storedRatingsAlgoVersion !== SENIOR_RATINGS_ALGO_VERSION;
+      const forceResetRatingsAlgorithm = false;
       if (forceResetRatingsAlgorithm) {
         suppressNextUpdatesRecordingRef.current = true;
       }
@@ -8000,9 +8031,9 @@ const refreshDetailsForPlayers = async (
             setMatchesState(parsed.matchesState);
           }
           if (
-            !forceResetRatingsAlgorithm &&
             parsed.ratingsResponse &&
-            typeof parsed.ratingsResponse === "object"
+            typeof parsed.ratingsResponse === "object" &&
+            hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
           ) {
             setRatingsResponse(parsed.ratingsResponse);
           }
@@ -8010,7 +8041,9 @@ const refreshDetailsForPlayers = async (
             setDetailsCache(parsed.detailsCache);
           }
           const persistedRatingsByPlayerId = buildRatingsByPlayerIdFromResponse(
-            forceResetRatingsAlgorithm ? null : parsed.ratingsResponse ?? null
+            hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
+              ? parsed.ratingsResponse
+              : null
           );
           if (
             !forceWipeLegacyUpdatesState &&
@@ -8027,9 +8060,6 @@ const refreshDetailsForPlayers = async (
           // ignore parse errors
         }
       }
-
-      writeStoredRatingsAlgoVersion(SENIOR_RATINGS_ALGO_VERSION);
-
       setLastRefreshAt(readStoredLastRefresh(lastRefreshStorageKey));
       setStalenessDays(readSeniorStalenessDays());
       const lastRefresh = readStoredLastRefresh(lastRefreshStorageKey);

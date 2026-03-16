@@ -18,6 +18,7 @@ type RatingRow = {
 };
 
 export type RatingsMatrixResponse = {
+  ratingsAlgorithmVersion?: number;
   positions: number[];
   players: RatingRow[];
   matchesAnalyzed?: number;

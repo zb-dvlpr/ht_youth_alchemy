@@ -14,6 +14,7 @@ const MATCHESARCHIVE_VERSION = "1.5";
 const MATCHLINEUP_VERSION = "2.1";
 const PLAYERS_VERSION = "2.8";
 const MATCH_FETCH_CONCURRENCY = 6;
+const SENIOR_RATINGS_ALGORITHM_VERSION = 4;
 
 type MatchSummary = {
   Status?: string;
@@ -26,6 +27,7 @@ type MatchSummary = {
 type LineupPlayer = {
   RoleID?: number | string;
   RatingStars?: number | string;
+  RatingStarsEndOfMatch?: number | string;
   PlayerID?: number | string;
   FirstName?: string;
   NickName?: string;
@@ -106,6 +108,7 @@ export async function GET(request: Request) {
 
     if (!resolvedTeamId || finishedMatches.length === 0) {
       return NextResponse.json({
+        ratingsAlgorithmVersion: SENIOR_RATINGS_ALGORITHM_VERSION,
         positions: POSITION_COLUMNS,
         players: [],
         matchesAnalyzed: 0,
@@ -187,7 +190,7 @@ export async function GET(request: Request) {
         const roleId = Number(player.RoleID);
         const column = normalizeMatchRoleId(roleId);
         if (!column) return;
-        const rating = Number(player.RatingStars);
+        const rating = Number(player.RatingStarsEndOfMatch);
         if (!Number.isFinite(rating)) return;
         const playerId = Number(player.PlayerID);
         if (!Number.isFinite(playerId) || playerId <= 0) return;
@@ -229,6 +232,7 @@ export async function GET(request: Request) {
     }
 
     return NextResponse.json({
+      ratingsAlgorithmVersion: SENIOR_RATINGS_ALGORITHM_VERSION,
       positions: POSITION_COLUMNS,
       players: Array.from(playersMap.values()),
       matchesAnalyzed: lineupResponses.filter((result) => result.ok).length,

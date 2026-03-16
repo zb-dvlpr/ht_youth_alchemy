@@ -3348,7 +3348,12 @@ export default function SeniorDashboard({
       }
 
       return buildLineupPayload(assignments, 1, {
-        behaviors: forcedBehaviors,
+        behaviors: {
+          ...forcedBehaviors,
+          F_L: 2,
+          F_C: 2,
+          F_R: 2,
+        },
         benchIds,
         kickerIds,
         captainId: 0,
@@ -5058,6 +5063,9 @@ export default function SeniorDashboard({
           WB_R: 2,
           IM_L: 2,
           IM_R: 2,
+          F_L: 2,
+          F_C: 2,
+          F_R: 2,
         });
         setTacticType(1);
         setLoadedMatchId(extraTimeMatchId);

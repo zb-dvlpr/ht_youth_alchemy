@@ -5184,7 +5184,7 @@ html[data-theme="dark"] .spinner {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 20;
+  z-index: 2147483647;
 }
 
 .trainingOverlay {
@@ -5194,7 +5194,7 @@ html[data-theme="dark"] .spinner {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 40;
+  z-index: 2147483647;
 }
 
 .confirmCard {

@@ -10,6 +10,7 @@ export const messagesEn: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Collapse sidebar",
     sidebarExpandTooltip: "Expand sidebar",
+    supportOnKofi: "Buy me a coffee",
     toolYouthOptimization: "Youth squad optimization",
     toolSeniorOptimization: "Senior squad optimization",
     toolYouthBadge: "Y",

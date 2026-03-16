@@ -10,6 +10,7 @@ export const messagesSv: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Fäll in sidofältet",
     sidebarExpandTooltip: "Fäll ut sidofältet",
+    supportOnKofi: "Bjud mig på kaffe",
     toolYouthOptimization: "Ungdomstruppsoptimering",
     toolSeniorOptimization: "Seniortruppsoptimering",
     toolYouthBadge: "Y",

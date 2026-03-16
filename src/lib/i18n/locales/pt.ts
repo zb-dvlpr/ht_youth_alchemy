@@ -10,6 +10,7 @@ export const messagesPt: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Recolher barra lateral",
     sidebarExpandTooltip: "Expandir barra lateral",
+    supportOnKofi: "Paga-me um café",
     toolYouthOptimization: "Otimização elenco juvenil",
     toolSeniorOptimization: "Otimização elenco sênior",
     toolYouthBadge: "Y",

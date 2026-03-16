@@ -10,6 +10,7 @@ export const messagesFr: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Réduire la barre latérale",
     sidebarExpandTooltip: "Déployer la barre latérale",
+    supportOnKofi: "Offre-moi un café",
     toolYouthOptimization: "Optimisation effectif jeunes",
     toolSeniorOptimization: "Optimisation effectif senior",
     toolYouthBadge: "Y",

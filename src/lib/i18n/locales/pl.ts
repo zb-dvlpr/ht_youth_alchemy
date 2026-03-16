@@ -11,6 +11,7 @@ export const messagesPl: Messages = {
   changelogTitle: "Dziennik zmian",
   sidebarCollapseTooltip: "Zwiń pasek boczny",
   sidebarExpandTooltip: "Rozwiń pasek boczny",
+  supportOnKofi: "Postaw mi kawę",
   toolYouthOptimization: "Optymalizacja juniorów",
   toolSeniorOptimization: "Optymalizacja seniorów",
   toolClubChronicle: "Kronika klubu",

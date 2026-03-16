@@ -10,6 +10,7 @@ export const messagesIt: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Comprimi barra laterale",
     sidebarExpandTooltip: "Espandi barra laterale",
+    supportOnKofi: "Offrimi un caffè",
     toolYouthOptimization: "Ottimizzazione squadra giovanile",
     toolSeniorOptimization: "Ottimizzazione squadra senior",
     toolYouthBadge: "Y",

@@ -22,6 +22,7 @@ export type Messages = {
   changelogTitle: string;
   sidebarCollapseTooltip: string;
   sidebarExpandTooltip: string;
+  supportOnKofi: string;
   toolYouthOptimization: string;
   toolSeniorOptimization: string;
   toolYouthBadge: string;

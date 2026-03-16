@@ -444,6 +444,21 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
     );
   };
 
+  const kofiButton = (
+    <a
+      className={styles.sidebarItem}
+      href="https://ko-fi.com/zbdvlpr"
+      target="_blank"
+      rel="noreferrer"
+      aria-label={messages.supportOnKofi}
+    >
+      <span className={styles.sidebarIcon} aria-hidden="true">
+        <span className={styles.sidebarIconGlyph}>☕</span>
+      </span>
+      {!collapsed ? <span className={styles.sidebarLabel}>{messages.supportOnKofi}</span> : null}
+    </a>
+  );
+
   const activeOptimizationLastRefreshAt =
     activeTool === "youth" ? youthLastRefreshAt : seniorLastRefreshAt;
   const headerChildren = useMemo(() => Children.toArray(globalHeader), [globalHeader]);
@@ -495,6 +510,15 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
               {renderToolButton(tool)}
             </div>
           ))}
+          <div className={styles.sidebarItemWrap}>
+            {collapsed ? (
+              <Tooltip content={messages.supportOnKofi} fullWidth>
+                {kofiButton}
+              </Tooltip>
+            ) : (
+              kofiButton
+            )}
+          </div>
         </nav>
       </aside>
       {activeTool === "youth" || activeTool === "senior" ? (

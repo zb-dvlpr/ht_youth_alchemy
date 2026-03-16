@@ -11,6 +11,7 @@ export const messagesNl: Messages = {
   changelogTitle: "Wijzigingslogboek",
   sidebarCollapseTooltip: "Zijbalk inklappen",
   sidebarExpandTooltip: "Zijbalk uitklappen",
+  supportOnKofi: "Koop een koffie voor me",
   toolYouthOptimization: "Jeugdselectie-optimalisatie",
   toolSeniorOptimization: "Seniorselectie-optimalisatie",
   toolClubChronicle: "Clubkroniek",

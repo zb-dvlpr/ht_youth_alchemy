@@ -703,6 +703,39 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   user-select: none;
 }
 
+.kofiIconLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid #c9b9a3;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.65), transparent 55%),
+    linear-gradient(135deg, rgba(207, 154, 63, 0.14), rgba(160, 93, 22, 0.16)),
+    #fff;
+  color: #7a4d14;
+  font-size: 16px;
+  line-height: 1;
+  text-decoration: none;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.kofiIconLink:hover {
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.7), transparent 55%),
+    linear-gradient(135deg, rgba(207, 154, 63, 0.18), rgba(160, 93, 22, 0.2)),
+    #f1e9dc;
+  transform: translateY(-1px);
+}
+
+.kofiIconLink:focus-visible {
+  outline: 2px solid rgba(120, 75, 22, 0.45);
+  outline-offset: 2px;
+}
+
 .dashboardGrid {
   display: grid;
   gap: 20px;
@@ -2932,6 +2965,15 @@ html[data-theme="dark"] .betaPill {
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 6px 16px rgba(0, 0, 0, 0.24);
+  color: #f1d18f;
+}
+
+html[data-theme="dark"] .kofiIconLink {
+  border-color: rgba(255, 255, 255, 0.12);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.08), transparent 55%),
+    linear-gradient(135deg, rgba(196, 144, 49, 0.18), rgba(133, 90, 27, 0.24)),
+    #1b1917;
   color: #f1d18f;
 }
 

@@ -312,16 +312,17 @@ export default async function Home() {
                   <ThemeToggle messages={messages} />
                   <FeedbackButton messages={messages} />
                   <SettingsButton messages={messages} />
-                  <a
-                    className={styles.kofiIconLink}
-                    href="https://ko-fi.com/zbdvlpr"
-                    target="_blank"
-                    rel="noreferrer"
-                    aria-label={messages.supportOnKofi}
-                    title={messages.supportOnKofi}
-                  >
-                    ☕
-                  </a>
+                  <Tooltip content={messages.supportOnKofi}>
+                    <a
+                      className={styles.kofiIconLink}
+                      href="https://ko-fi.com/zbdvlpr"
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={messages.supportOnKofi}
+                    >
+                      ☕
+                    </a>
+                  </Tooltip>
                   {isConnected ? (
                     <ConnectedStatus messages={messages} />
                   ) : (

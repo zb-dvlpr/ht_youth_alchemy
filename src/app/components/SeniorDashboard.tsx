@@ -434,6 +434,15 @@ type GeneratedFormationRow = {
   error: string | null;
 };
 
+type FixedFormationSlotDiagnostic = {
+  slot: string;
+  assignedPlayerId: number | null;
+  noSlotRatingPlayerIds: number[];
+  betterOtherSectorPlayerIds: number[];
+  tiedOtherSectorPlayerIds: number[];
+  alreadyUsedPlayerIds: number[];
+};
+
 type FixedFormationTacticRow = {
   tacticType: number;
   predicted: PredictedRatings | null;
@@ -1693,6 +1702,8 @@ export default function SeniorDashboard({
     selectedGeneratedTactic: number | null;
     selectedRejectedPlayerIds: number[];
     selectedIneligiblePlayerIds: number[];
+    fixedFormationFailureEligiblePlayerIds: number[];
+    fixedFormationFailureSlotDiagnostics: FixedFormationSlotDiagnostic[];
     selectedComparison:
       | {
           ours: CollectiveRatings;
@@ -6388,6 +6399,8 @@ const refreshDetailsForPlayers = async (
     });
     return map;
   }, [players]);
+  const formatDebugPlayerNames = (playerIds: number[]) =>
+    playerIds.map((playerId) => playerNameById.get(playerId) ?? String(playerId)).join(", ");
   const motherClubBonusByName = useMemo(() => {
     const payload: Record<string, boolean> = {};
     players.forEach((player) => {
@@ -7260,6 +7273,8 @@ const refreshDetailsForPlayers = async (
     mode: SetBestLineupMode,
     fixedFormationOverride?: string | null
   ) => {
+    let fixedFormationFailureSlotDiagnostics: FixedFormationSlotDiagnostic[] = [];
+    let fixedFormationFailureEligiblePlayerIds: number[] = [];
     try {
       const opponentContext = await fetchOpponentFormationRowsForMatch(matchId);
       if (!opponentContext) return;
@@ -7279,6 +7294,8 @@ const refreshDetailsForPlayers = async (
           selectedGeneratedTactic: null,
           selectedRejectedPlayerIds: [],
           selectedIneligiblePlayerIds: [],
+          fixedFormationFailureEligiblePlayerIds: [],
+          fixedFormationFailureSlotDiagnostics: [],
           selectedComparison: null,
           loading: true,
           error: null,
@@ -7362,6 +7379,7 @@ const refreshDetailsForPlayers = async (
           return true;
         })
         .map(({ id, name }) => ({ id, name }));
+      const playerPoolIds = playerPool.map((player) => player.id);
       if (playerPool.length < 11) {
         throw new Error(messages.submitOrdersMinPlayers);
       }
@@ -7370,6 +7388,7 @@ const refreshDetailsForPlayers = async (
         const assignmentsForFormation: LineupAssignments = {};
         const slotRatingsForFormation: Record<string, number | null> = {};
         const usedPlayerIds = new Set<number>();
+        const slotDiagnostics: FixedFormationSlotDiagnostic[] = [];
         const ratingFor = (playerId: number, code: number) =>
           typeof ratingsById[playerId]?.[String(code)] === "number"
             ? (ratingsById[playerId]?.[String(code)] as number)
@@ -7390,21 +7409,43 @@ const refreshDetailsForPlayers = async (
             }
             return left.name.localeCompare(right.name);
           });
+          const noSlotRatingPlayerIds: number[] = [];
+          const betterOtherSectorPlayerIds: number[] = [];
+          const tiedOtherSectorPlayerIds: number[] = [];
           const selectedIndex = availablePlayers.findIndex((candidate) => {
             const slotRating = ratingFor(candidate.id, roleCode);
-            if (slotRating < 0) return false;
+            if (slotRating < 0) {
+              noSlotRatingPlayerIds.push(candidate.id);
+              return false;
+            }
             const bestOtherSector = (Object.keys(SECTOR_TO_RATING_CODES) as PlayerSector[])
               .filter((sector) => sector !== slotSector)
               .reduce(
                 (best, sector) => Math.max(best, bestInSector(candidate.id, sector)),
                 -1
               );
-            return bestOtherSector < slotRating;
+            if (bestOtherSector > slotRating) {
+              betterOtherSectorPlayerIds.push(candidate.id);
+              return false;
+            }
+            if (bestOtherSector === slotRating) {
+              tiedOtherSectorPlayerIds.push(candidate.id);
+              return false;
+            }
+            return true;
           });
           const selectedPlayer =
             selectedIndex >= 0
               ? (availablePlayers.splice(selectedIndex, 1)[0] ?? null)
               : null;
+          slotDiagnostics.push({
+            slot,
+            assignedPlayerId: selectedPlayer?.id ?? null,
+            noSlotRatingPlayerIds,
+            betterOtherSectorPlayerIds,
+            tiedOtherSectorPlayerIds,
+            alreadyUsedPlayerIds: Array.from(usedPlayerIds),
+          });
           if (!selectedPlayer) return;
           assignmentsForFormation[slot] = selectedPlayer.id;
           slotRatingsForFormation[slot] =
@@ -7418,6 +7459,7 @@ const refreshDetailsForPlayers = async (
           assignments: assignmentsForFormation,
           slotRatings: slotRatingsForFormation,
           usedPlayerIds,
+          slotDiagnostics,
         };
       };
       const assignmentCount = (assignmentsForFormation: LineupAssignments) =>
@@ -7448,18 +7490,23 @@ const refreshDetailsForPlayers = async (
         );
         const resolvedPass = buildAssignmentsForOrderedSlots(orderedSlots);
         if (assignmentCount(resolvedPass.assignments) < 11) {
-          return null;
+          return {
+            row: null,
+            slotDiagnostics: resolvedPass.slotDiagnostics,
+          };
         }
         return {
-          formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
-          assignments: resolvedPass.assignments,
-          slotRatings: resolvedPass.slotRatings,
-          rejectedPlayerIds: [],
-          predicted: null,
-          error: null,
-        } as GeneratedFormationRow;
+          row: {
+            formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
+            assignments: resolvedPass.assignments,
+            slotRatings: resolvedPass.slotRatings,
+            rejectedPlayerIds: [],
+            predicted: null,
+            error: null,
+          } as GeneratedFormationRow,
+          slotDiagnostics: resolvedPass.slotDiagnostics,
+        };
       };
-
       const predictRatingsForLineup = async (
         assignmentsForFormation: LineupAssignments,
         nextTacticType: number
@@ -7511,14 +7558,17 @@ const refreshDetailsForPlayers = async (
               if (!targetFormation || !targetShape) {
                 throw new Error(messages.setBestLineupOptimizeByFormationDisabledTooltip);
               }
-              const row = buildBaseRowForShape(targetShape);
-              if (!row) {
+              const result = buildBaseRowForShape(targetShape);
+              if (!result || !result.row) {
+                fixedFormationFailureSlotDiagnostics = result?.slotDiagnostics ?? [];
+                fixedFormationFailureEligiblePlayerIds = playerPoolIds;
                 throw new Error(messages.setBestLineupOptimizeByFormationUnavailable);
               }
-              return [row];
+              return [result.row];
             })()
           : generateFormationShapes()
               .map((shape) => buildBaseRowForShape(shape))
+              .map((result) => result?.row ?? null)
               .filter((row): row is GeneratedFormationRow => Boolean(row));
 
       const rows =
@@ -7796,6 +7846,8 @@ const refreshDetailsForPlayers = async (
                   mode === "trainingAware" || mode === "ignoreTraining"
                     ? Array.from(extraTimeDisregardedPlayerIds)
                     : [],
+                fixedFormationFailureEligiblePlayerIds: [],
+                fixedFormationFailureSlotDiagnostics: [],
                 selectedComparison,
                 loading: false,
                 error: null,
@@ -7822,6 +7874,8 @@ const refreshDetailsForPlayers = async (
                 selectedGeneratedTactic: null,
                 selectedRejectedPlayerIds: [],
                 selectedIneligiblePlayerIds: [],
+                fixedFormationFailureEligiblePlayerIds,
+                fixedFormationFailureSlotDiagnostics,
                 selectedComparison: null,
                 loading: false,
                 error: details,
@@ -9440,7 +9494,63 @@ const refreshDetailsForPlayers = async (
             opponentFormationsModal.loading ? (
               <p className={styles.chronicleEmpty}>{messages.loadingDetails}</p>
             ) : opponentFormationsModal.error ? (
-              <p className={styles.errorDetails}>{opponentFormationsModal.error}</p>
+              <>
+                <p className={styles.errorDetails}>{opponentFormationsModal.error}</p>
+                {process.env.NODE_ENV !== "production" &&
+                opponentFormationsModal.fixedFormationFailureEligiblePlayerIds.length > 0 ? (
+                  <p className={styles.chroniclePressMeta}>
+                    {messages.setBestLineupDevEligiblePlayersLabel}:{" "}
+                    {formatDebugPlayerNames(
+                      opponentFormationsModal.fixedFormationFailureEligiblePlayerIds
+                    )}
+                  </p>
+                ) : null}
+                {process.env.NODE_ENV !== "production" &&
+                opponentFormationsModal.fixedFormationFailureSlotDiagnostics.length > 0 ? (
+                  <div className={styles.algorithmsModalBody}>
+                    <p className={styles.chroniclePressMeta}>
+                      <strong>{messages.setBestLineupDevAssignmentTraceLabel}</strong>
+                    </p>
+                    {opponentFormationsModal.fixedFormationFailureSlotDiagnostics.map((entry) => (
+                      <div key={entry.slot} className={styles.chroniclePressMeta}>
+                        <strong>{entry.slot}</strong>:{" "}
+                        {entry.assignedPlayerId !== null
+                          ? playerNameById.get(entry.assignedPlayerId) ??
+                            String(entry.assignedPlayerId)
+                          : messages.setBestLineupDevUnfilledLabel}
+                        {entry.assignedPlayerId === null ? (
+                          <>
+                            {entry.noSlotRatingPlayerIds.length > 0 ? (
+                              <div>
+                                {messages.setBestLineupDevNoSlotRatingLabel}:{" "}
+                                {formatDebugPlayerNames(entry.noSlotRatingPlayerIds)}
+                              </div>
+                            ) : null}
+                            {entry.betterOtherSectorPlayerIds.length > 0 ? (
+                              <div>
+                                {messages.setBestLineupDevBetterOtherSectorLabel}:{" "}
+                                {formatDebugPlayerNames(entry.betterOtherSectorPlayerIds)}
+                              </div>
+                            ) : null}
+                            {entry.tiedOtherSectorPlayerIds.length > 0 ? (
+                              <div>
+                                {messages.setBestLineupDevTiedOtherSectorLabel}:{" "}
+                                {formatDebugPlayerNames(entry.tiedOtherSectorPlayerIds)}
+                              </div>
+                            ) : null}
+                            {entry.alreadyUsedPlayerIds.length > 0 ? (
+                              <div>
+                                {messages.setBestLineupDevAlreadyUsedLabel}:{" "}
+                                {formatDebugPlayerNames(entry.alreadyUsedPlayerIds)}
+                              </div>
+                            ) : null}
+                          </>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </>
             ) : opponentFormationsModal.generatedRows.length > 0 ||
               opponentFormationsModal.opponentRows.length > 0 ? (
               <>

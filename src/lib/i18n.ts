@@ -654,6 +654,13 @@ export type Messages = {
   seniorExtraTimeModalSetLineupReadyTooltip: string;
   setBestLineupRejectedPlayersLabel: string;
   setBestLineupIneligiblePlayersLabel: string;
+  setBestLineupDevAssignmentTraceLabel: string;
+  setBestLineupDevEligiblePlayersLabel: string;
+  setBestLineupDevUnfilledLabel: string;
+  setBestLineupDevNoSlotRatingLabel: string;
+  setBestLineupDevBetterOtherSectorLabel: string;
+  setBestLineupDevTiedOtherSectorLabel: string;
+  setBestLineupDevAlreadyUsedLabel: string;
   analyzeOpponent: string;
   analyzeOpponentTooltip: string;
   analyzeOpponentMatchId: string;

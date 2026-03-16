@@ -2317,13 +2317,16 @@ export default function SeniorDashboard({
       ),
     [extraTimeBTeamExcludedPlayerIds, extraTimeFallbackBTeamPlayerIds]
   );
-  const extraTimeDisregardedTooltip = useMemo(
-    () =>
+  const getExtraTimeDisregardedTooltip = useCallback(
+    (playerId: number) =>
       messages.seniorExtraTimeModalBTeamDisregardedTooltip.replace(
         "{{minutes}}",
-        String(extraTimeBTeamMinutesThreshold)
+        String(extraTimeBTeamRecentMatchState.playerMinutesById[playerId] ?? 0)
       ),
-    [extraTimeBTeamMinutesThreshold, messages.seniorExtraTimeModalBTeamDisregardedTooltip]
+    [
+      extraTimeBTeamRecentMatchState.playerMinutesById,
+      messages.seniorExtraTimeModalBTeamDisregardedTooltip,
+    ]
   );
   const requiredExtraTimeTrainees = traineesTargetForTrainingType(
     resolvedExtraTimeTrainingType
@@ -9156,7 +9159,7 @@ const refreshDetailsForPlayers = async (
                 }
                 if (isDisregarded) {
                   return (
-                    <Tooltip content={extraTimeDisregardedTooltip}>
+                    <Tooltip content={getExtraTimeDisregardedTooltip(rowId)}>
                       <span className={styles.seniorExtraTimeDisabledCheckboxWrap}>
                         {checkbox}
                       </span>
@@ -9183,7 +9186,7 @@ const refreshDetailsForPlayers = async (
                 ) {
                   return null;
                 }
-                return extraTimeDisregardedTooltip;
+                return getExtraTimeDisregardedTooltip(row.id);
               }}
               messages={messages}
             />

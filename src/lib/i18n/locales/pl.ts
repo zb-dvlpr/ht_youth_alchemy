@@ -224,6 +224,8 @@ export const messagesPl: Messages = {
     "Sprawdzanie meczów istotnych dla treningu w tym tygodniu...",
   seniorExtraTimeModalBTeamError:
     "Nie udało się sprawdzić meczów istotnych dla treningu w tym tygodniu.",
+  seniorExtraTimeModalBTeamWeekendTooltip:
+    "Wybór składu B jest dostępny tylko od poniedziałku do piątku (CET).",
   seniorExtraTimeModalBTeamDisregardedTooltip:
     "Ten zawodnik jest pomijany, ponieważ w tym tygodniu rozegrał już co najmniej {{minutes}} minut.",
   seniorExtraTimeModalSetLineupButton: "Ustaw skład",
@@ -232,6 +234,7 @@ export const messagesPl: Messages = {
   seniorExtraTimeModalSetLineupReadyTooltip:
     "Kliknij Wyślij skład na odpowiedniej karcie meczu, aby wysłać skład do Hattricka.",
   setBestLineupRejectedPlayersLabel: "Odrzuceni zawodnicy",
+  setBestLineupIneligiblePlayersLabel: "Nieuprawnieni zawodnicy",
   analyzeOpponent: "Analizuj przeciwnika",
   analyzeOpponentTooltip: "Przeanalizuj ostatnie mecze przeciwnika.",
   analyzeOpponentMatchId: "ID meczu",

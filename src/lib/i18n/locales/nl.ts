@@ -230,6 +230,8 @@ export const messagesNl: Messages = {
     "Trainingsrelevante wedstrijden van deze week worden gecontroleerd...",
   seniorExtraTimeModalBTeamError:
     "De trainingsrelevante wedstrijden van deze week konden niet worden gecontroleerd.",
+  seniorExtraTimeModalBTeamWeekendTooltip:
+    "De B-teamselectie is alleen beschikbaar van maandag tot en met vrijdag (CET).",
   seniorExtraTimeModalBTeamDisregardedTooltip:
     "Deze speler wordt genegeerd omdat hij deze week al minstens {{minutes}} minuten heeft gespeeld.",
   seniorExtraTimeModalSetLineupButton: "Opstelling instellen",
@@ -238,6 +240,7 @@ export const messagesNl: Messages = {
   seniorExtraTimeModalSetLineupReadyTooltip:
     "Klik op Opstelling verzenden in de juiste wedstrijdkaart om de opstelling naar Hattrick te sturen.",
   setBestLineupRejectedPlayersLabel: "Afgewezen spelers",
+  setBestLineupIneligiblePlayersLabel: "Niet-speelgerechtigde spelers",
   analyzeOpponent: "Tegenstander analyseren",
   analyzeOpponentTooltip: "Analyseer recente wedstrijden van de tegenstander.",
   analyzeOpponentMatchId: "Wedstrijd-ID",

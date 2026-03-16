@@ -984,6 +984,16 @@ const formatArchiveDateTimeParam = (timestamp: number) => {
   return iso.slice(0, 19).replace("T", " ");
 };
 
+const berlinWeekdayFormatter = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  timeZone: "Europe/Berlin",
+});
+
+const isBerlinWeekend = (value: Date) => {
+  const weekday = berlinWeekdayFormatter.format(value);
+  return weekday === "Sat" || weekday === "Sun";
+};
+
 const hasCurrentSeniorRatingsAlgorithmVersion = (
   ratings: RatingsMatrixResponse | null | undefined
 ) =>
@@ -1622,6 +1632,9 @@ export default function SeniorDashboard({
   const [showSeniorSkillBonusInMatrix, setShowSeniorSkillBonusInMatrix] =
     useState(true);
   const [extraTimeBTeamEnabled, setExtraTimeBTeamEnabled] = useState(false);
+  const [extraTimeBTeamBerlinWeekend, setExtraTimeBTeamBerlinWeekend] = useState(() =>
+    isBerlinWeekend(new Date())
+  );
   const [extraTimeBTeamMinutesThreshold, setExtraTimeBTeamMinutesThreshold] = useState(
     EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD
   );
@@ -1679,6 +1692,7 @@ export default function SeniorDashboard({
     selectedGeneratedFormation: string | null;
     selectedGeneratedTactic: number | null;
     selectedRejectedPlayerIds: number[];
+    selectedIneligiblePlayerIds: number[];
     selectedComparison:
       | {
           ours: CollectiveRatings;
@@ -1778,6 +1792,19 @@ export default function SeniorDashboard({
       ),
     [activeSeniorTeamId, multiTeamEnabled]
   );
+  const extraTimeBTeamWeekendLocked =
+    process.env.NODE_ENV === "production" && extraTimeBTeamBerlinWeekend;
+  const effectiveExtraTimeBTeamEnabled =
+    extraTimeBTeamEnabled && !extraTimeBTeamWeekendLocked;
+
+  useEffect(() => {
+    const updateWeekendLock = () => {
+      setExtraTimeBTeamBerlinWeekend(isBerlinWeekend(new Date()));
+    };
+    updateWeekendLock();
+    const intervalId = window.setInterval(updateWeekendLock, 60 * 1000);
+    return () => window.clearInterval(intervalId);
+  }, []);
 
   useEffect(() => {
     if (!multiTeamEnabled) return;
@@ -2229,7 +2256,7 @@ export default function SeniorDashboard({
     [extraTimeInjuredPlayerIdSet, skillsMatrixRows]
   );
   const extraTimeBTeamExcludedPlayerIds = useMemo(() => {
-    if (!extraTimeBTeamEnabled) return new Set<number>();
+    if (!effectiveExtraTimeBTeamEnabled) return new Set<number>();
     if (
       extraTimeBTeamRecentMatchState.status !== "ready" ||
       !extraTimeBTeamRecentMatchState.recentMatch
@@ -2243,12 +2270,12 @@ export default function SeniorDashboard({
         .filter((playerId) => Number.isFinite(playerId))
     );
   }, [
-    extraTimeBTeamEnabled,
+    effectiveExtraTimeBTeamEnabled,
     extraTimeBTeamMinutesThreshold,
     extraTimeBTeamRecentMatchState,
   ]);
   const extraTimeFallbackBTeamPlayerIds = useMemo(() => {
-    if (!extraTimeBTeamEnabled) return new Set<number>();
+    if (!effectiveExtraTimeBTeamEnabled) return new Set<number>();
     if (
       extraTimeBTeamRecentMatchState.status !== "ready" ||
       !extraTimeBTeamRecentMatchState.recentMatch
@@ -2283,7 +2310,7 @@ export default function SeniorDashboard({
       .map((player) => player.PlayerID);
     return new Set(fallbackIds);
   }, [
-    extraTimeBTeamEnabled,
+    effectiveExtraTimeBTeamEnabled,
     extraTimeBTeamExcludedPlayerIds,
     extraTimeBTeamRecentMatchState,
     extraTimeHealthyPlayerIdSet,
@@ -2291,7 +2318,7 @@ export default function SeniorDashboard({
   ]);
   const extraTimeAvailablePlayerIdSet = useMemo(() => {
     if (
-      !extraTimeBTeamEnabled ||
+      !effectiveExtraTimeBTeamEnabled ||
       extraTimeBTeamRecentMatchState.status !== "ready" ||
       !extraTimeBTeamRecentMatchState.recentMatch
     ) {
@@ -2305,7 +2332,7 @@ export default function SeniorDashboard({
       )
     );
   }, [
-    extraTimeBTeamEnabled,
+    effectiveExtraTimeBTeamEnabled,
     extraTimeBTeamExcludedPlayerIds,
     extraTimeBTeamRecentMatchState,
     extraTimeFallbackBTeamPlayerIds,
@@ -2364,6 +2391,9 @@ export default function SeniorDashboard({
         )
       : null;
   const extraTimeBTeamStatusMessage = (() => {
+    if (extraTimeBTeamWeekendLocked) {
+      return null;
+    }
     if (extraTimeBTeamRecentMatchState.status === "loading") {
       return messages.seniorExtraTimeModalBTeamLoading;
     }
@@ -2375,6 +2405,73 @@ export default function SeniorDashboard({
     }
     return null;
   })();
+  const setBestLineupBTeamMenuContent = (
+    <div className={styles.seniorSetBestLineupBTeamMenuSection}>
+      <div className={styles.seniorExtraTimeBTeamControls}>
+        <Tooltip
+          content={
+            extraTimeBTeamWeekendLocked
+              ? messages.seniorExtraTimeModalBTeamWeekendTooltip
+              : null
+          }
+        >
+          <label className={styles.matchesFilterToggle}>
+            <input
+              type="checkbox"
+              className={styles.matchesFilterToggleInput}
+              checked={effectiveExtraTimeBTeamEnabled}
+              disabled={extraTimeBTeamWeekendLocked || !extraTimeBTeamCanBeEnabled}
+              onChange={(event) => setExtraTimeBTeamEnabled(event.target.checked)}
+            />
+            <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
+            <span className={styles.matchesFilterToggleLabel}>
+              {messages.seniorExtraTimeModalBTeamToggleLabel}
+            </span>
+          </label>
+        </Tooltip>
+        {effectiveExtraTimeBTeamEnabled && extraTimeBTeamCanBeEnabled ? (
+          <div className={styles.seniorExtraTimeBTeamThresholdLabel}>
+            {renderTemplateTokens(messages.seniorExtraTimeModalBTeamThresholdText, {
+              minutes: (
+                <select
+                  className={styles.seniorExtraTimeBTeamThresholdSelect}
+                  aria-label={messages.seniorExtraTimeModalBTeamThresholdAriaLabel}
+                  value={extraTimeBTeamMinutesThreshold}
+                  onChange={(event) =>
+                    setExtraTimeBTeamMinutesThreshold(
+                      Math.min(90, Math.max(1, Number(event.target.value) || 1))
+                    )
+                  }
+                >
+                  {Array.from({ length: 90 }, (_, index) => index + 1).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              ),
+              weekLink: extraTimeBTeamReferenceMatchHref ? (
+                <a
+                  className={styles.seniorExtraTimeInlineLink}
+                  href={extraTimeBTeamReferenceMatchHref}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {messages.seniorExtraTimeModalBTeamThresholdWeekLinkLabel}
+                </a>
+              ) : (
+                messages.seniorExtraTimeModalBTeamThresholdWeekLinkLabel
+              ),
+            })}
+          </div>
+        ) : extraTimeBTeamStatusMessage ? (
+          <span className={styles.seniorExtraTimeBTeamStatus}>
+            {extraTimeBTeamStatusMessage}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
   const extraTimeSetLineupDisabled =
     extraTimeSelectedCount !== requiredExtraTimeTrainees;
   const allExtraTimePlayersSelected =
@@ -2395,7 +2492,7 @@ export default function SeniorDashboard({
   }, [extraTimeAvailablePlayerIdSet, playersById]);
 
   useEffect(() => {
-    if (!extraTimeInfoOpen) {
+    if (resolvedSeniorTeamId === null) {
       setExtraTimeBTeamRecentMatchState({
         status: "idle",
         recentMatch: null,
@@ -2425,10 +2522,9 @@ export default function SeniorDashboard({
     return () => {
       cancelled = true;
     };
-  }, [extraTimeInfoOpen, resolvedSeniorTeamId]);
+  }, [resolvedSeniorTeamId]);
 
   useEffect(() => {
-    if (!extraTimeInfoOpen) return;
     if (extraTimeBTeamRecentMatchState.status === "error") {
       setExtraTimeBTeamEnabled(false);
       return;
@@ -2436,7 +2532,7 @@ export default function SeniorDashboard({
     if (extraTimeBTeamRecentMatchState.status !== "ready") return;
     if (extraTimeBTeamRecentMatchState.recentMatch) return;
     setExtraTimeBTeamEnabled(false);
-  }, [extraTimeBTeamRecentMatchState, extraTimeInfoOpen]);
+  }, [extraTimeBTeamRecentMatchState]);
 
   useEffect(() => {
     if (!extraTimeInfoOpen) {
@@ -7182,6 +7278,7 @@ const refreshDetailsForPlayers = async (
           selectedGeneratedFormation: null,
           selectedGeneratedTactic: null,
           selectedRejectedPlayerIds: [],
+          selectedIneligiblePlayerIds: [],
           selectedComparison: null,
           loading: true,
           error: null,
@@ -7256,21 +7353,20 @@ const refreshDetailsForPlayers = async (
           if (isLeagueCupTarget && typeof player.cardsValue === "number" && player.cardsValue >= 3) {
             return false;
           }
+          if (
+            effectiveExtraTimeBTeamEnabled &&
+            extraTimeDisregardedPlayerIds.has(player.id)
+          ) {
+            return false;
+          }
           return true;
         })
         .map(({ id, name }) => ({ id, name }));
       if (playerPool.length < 11) {
         throw new Error(messages.submitOrdersMinPlayers);
       }
-      const isFriendlyTarget =
-        selectedMatchType !== null && FRIENDLY_MATCH_TYPES.has(selectedMatchType);
-      const buildAssignmentsForOrderedSlots = (
-        orderedSlots: string[],
-        excludedPlayerIds?: Set<number>
-      ) => {
-        const availablePlayers = playerPool.filter(
-          (candidate) => !excludedPlayerIds?.has(candidate.id)
-        );
+      const buildAssignmentsForOrderedSlots = (orderedSlots: string[]) => {
+        const availablePlayers = [...playerPool];
         const assignmentsForFormation: LineupAssignments = {};
         const slotRatingsForFormation: Record<string, number | null> = {};
         const usedPlayerIds = new Set<number>();
@@ -7350,32 +7446,7 @@ const refreshDetailsForPlayers = async (
           occupiedSlots,
           mode === "trainingAware" ? activeTrainingType : null
         );
-        const firstPass = buildAssignmentsForOrderedSlots(orderedSlots);
-        let resolvedPass = isFriendlyTarget
-          ? buildAssignmentsForOrderedSlots(orderedSlots, firstPass.usedPlayerIds)
-          : firstPass;
-        if (isFriendlyTarget && assignmentCount(resolvedPass.assignments) < 11) {
-          const mergedAssignments: LineupAssignments = { ...resolvedPass.assignments };
-          const mergedSlotRatings: Record<string, number | null> = { ...resolvedPass.slotRatings };
-          const usedMerged = new Set<number>(
-            Object.values(mergedAssignments).filter(
-              (id): id is number => typeof id === "number" && id > 0
-            )
-          );
-          orderedSlots.forEach((slot) => {
-            if (mergedAssignments[slot]) return;
-            const firstPassPlayerId = firstPass.assignments[slot];
-            if (!firstPassPlayerId || usedMerged.has(firstPassPlayerId)) return;
-            mergedAssignments[slot] = firstPassPlayerId;
-            mergedSlotRatings[slot] = firstPass.slotRatings[slot] ?? null;
-            usedMerged.add(firstPassPlayerId);
-          });
-          resolvedPass = {
-            assignments: mergedAssignments,
-            slotRatings: mergedSlotRatings,
-            usedPlayerIds: usedMerged,
-          };
-        }
+        const resolvedPass = buildAssignmentsForOrderedSlots(orderedSlots);
         if (assignmentCount(resolvedPass.assignments) < 11) {
           return null;
         }
@@ -7383,11 +7454,7 @@ const refreshDetailsForPlayers = async (
           formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
           assignments: resolvedPass.assignments,
           slotRatings: resolvedPass.slotRatings,
-          rejectedPlayerIds: isFriendlyTarget
-            ? Array.from(firstPass.usedPlayerIds).filter(
-                (playerId) => !resolvedPass.usedPlayerIds.has(playerId)
-              )
-            : [],
+          rejectedPlayerIds: [],
           predicted: null,
           error: null,
         } as GeneratedFormationRow;
@@ -7504,7 +7571,11 @@ const refreshDetailsForPlayers = async (
         );
         const remaining = players
           .filter(
-            (player) => !used.has(player.PlayerID) && isSeniorAiEligiblePlayer(player)
+            (player) =>
+              !used.has(player.PlayerID) &&
+              isSeniorAiEligiblePlayer(player) &&
+              (!effectiveExtraTimeBTeamEnabled ||
+                !extraTimeDisregardedPlayerIds.has(player.PlayerID))
           )
           .map((player) => ({
             id: player.PlayerID,
@@ -7721,6 +7792,10 @@ const refreshDetailsForPlayers = async (
                 selectedGeneratedFormation,
                 selectedGeneratedTactic,
                 selectedRejectedPlayerIds,
+                selectedIneligiblePlayerIds:
+                  mode === "trainingAware" || mode === "ignoreTraining"
+                    ? Array.from(extraTimeDisregardedPlayerIds)
+                    : [],
                 selectedComparison,
                 loading: false,
                 error: null,
@@ -7746,6 +7821,7 @@ const refreshDetailsForPlayers = async (
                 selectedGeneratedFormation: null,
                 selectedGeneratedTactic: null,
                 selectedRejectedPlayerIds: [],
+                selectedIneligiblePlayerIds: [],
                 selectedComparison: null,
                 loading: false,
                 error: details,
@@ -9066,63 +9142,6 @@ const refreshDetailsForPlayers = async (
                   </div>
                 </div>
               }
-              extraSkillsMatrixHeaderAux={
-                <div className={styles.seniorExtraTimeBTeamControls}>
-                  <label className={styles.matchesFilterToggle}>
-                    <input
-                      type="checkbox"
-                      className={styles.matchesFilterToggleInput}
-                      checked={extraTimeBTeamEnabled}
-                      disabled={!extraTimeBTeamCanBeEnabled}
-                      onChange={(event) => setExtraTimeBTeamEnabled(event.target.checked)}
-                    />
-                    <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
-                    <span className={styles.matchesFilterToggleLabel}>
-                      {messages.seniorExtraTimeModalBTeamToggleLabel}
-                    </span>
-                  </label>
-                  {extraTimeBTeamEnabled && extraTimeBTeamCanBeEnabled ? (
-                    <div className={styles.seniorExtraTimeBTeamThresholdLabel}>
-                      {renderTemplateTokens(messages.seniorExtraTimeModalBTeamThresholdText, {
-                        minutes: (
-                          <select
-                            className={styles.seniorExtraTimeBTeamThresholdSelect}
-                            aria-label={messages.seniorExtraTimeModalBTeamThresholdAriaLabel}
-                            value={extraTimeBTeamMinutesThreshold}
-                            onChange={(event) =>
-                              setExtraTimeBTeamMinutesThreshold(
-                                Math.min(90, Math.max(1, Number(event.target.value) || 1))
-                              )
-                            }
-                          >
-                            {Array.from({ length: 90 }, (_, index) => index + 1).map((value) => (
-                              <option key={value} value={value}>
-                                {value}
-                              </option>
-                            ))}
-                          </select>
-                        ),
-                        weekLink: extraTimeBTeamReferenceMatchHref ? (
-                          <a
-                            className={styles.seniorExtraTimeInlineLink}
-                            href={extraTimeBTeamReferenceMatchHref}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {messages.seniorExtraTimeModalBTeamThresholdWeekLinkLabel}
-                          </a>
-                        ) : (
-                          messages.seniorExtraTimeModalBTeamThresholdWeekLinkLabel
-                        ),
-                      })}
-                    </div>
-                  ) : extraTimeBTeamStatusMessage ? (
-                    <span className={styles.seniorExtraTimeBTeamStatus}>
-                      {extraTimeBTeamStatusMessage}
-                    </span>
-                  ) : null}
-                </div>
-              }
               skillsMatrixLeadingHeader={
                 <label className={styles.seniorMatrixCheckboxLabel}>
                   <input
@@ -9208,7 +9227,7 @@ const refreshDetailsForPlayers = async (
               }}
               skillsMatrixRowClassName={(row) => {
                 if (
-                  !extraTimeBTeamEnabled ||
+                  !effectiveExtraTimeBTeamEnabled ||
                   typeof row.id !== "number" ||
                   !extraTimeDisregardedPlayerIds.has(row.id)
                 ) {
@@ -9218,7 +9237,7 @@ const refreshDetailsForPlayers = async (
               }}
               skillsMatrixRowTooltip={(row) => {
                 if (
-                  !extraTimeBTeamEnabled ||
+                  !effectiveExtraTimeBTeamEnabled ||
                   typeof row.id !== "number" ||
                   !extraTimeDisregardedPlayerIds.has(row.id)
                 ) {
@@ -9816,6 +9835,14 @@ const refreshDetailsForPlayers = async (
                           <p className={styles.chroniclePressMeta}>
                             {messages.setBestLineupRejectedPlayersLabel}:{" "}
                             {opponentFormationsModal.selectedRejectedPlayerIds
+                              .map((playerId) => playerNameById.get(playerId) ?? String(playerId))
+                              .join(", ")}
+                          </p>
+                        ) : null}
+                        {opponentFormationsModal.selectedIneligiblePlayerIds.length > 0 ? (
+                          <p className={styles.chroniclePressMeta}>
+                            {messages.setBestLineupIneligiblePlayersLabel}:{" "}
+                            {opponentFormationsModal.selectedIneligiblePlayerIds
                               .map((playerId) => playerNameById.get(playerId) ?? String(playerId))
                               .join(", ")}
                           </p>
@@ -10671,6 +10698,7 @@ const refreshDetailsForPlayers = async (
             fixedFormationOptions={[...FIXED_FORMATION_OPTIONS]}
             selectedFixedFormation={setBestLineupFixedFormation}
             onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
+            setBestLineupCustomContent={setBestLineupBTeamMenuContent}
             onRefresh={onRefreshMatchesOnly}
             onSetBestLineupMode={async (matchId, mode, fixedFormation) => {
               if (mode === "extraTime") {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
@@ -112,6 +112,7 @@ type UpcomingMatchesProps = {
   fixedFormationOptions?: string[];
   selectedFixedFormation?: string | null;
   onSelectedFixedFormationChange?: (formation: string | null) => void;
+  setBestLineupCustomContent?: ReactNode;
 };
 
 export type SetBestLineupMode =
@@ -315,6 +316,7 @@ type SetBestLineupMenuButtonProps = {
   fixedFormationOptions?: string[];
   selectedFixedFormation?: string | null;
   onSelectedFixedFormationChange?: (formation: string | null) => void;
+  customContent?: ReactNode;
 };
 
 function SetBestLineupMenuButton({
@@ -328,6 +330,7 @@ function SetBestLineupMenuButton({
   fixedFormationOptions = [],
   selectedFixedFormation = null,
   onSelectedFixedFormationChange,
+  customContent,
 }: SetBestLineupMenuButtonProps) {
   const [open, setOpen] = useState(false);
   const [fixedFormationMenuOpen, setFixedFormationMenuOpen] = useState(false);
@@ -382,6 +385,7 @@ function SetBestLineupMenuButton({
       <Tooltip content={messages.setBestLineupTooltip}>{trigger}</Tooltip>
       {open ? (
         <div className={styles.feedbackMenu} ref={menuRef}>
+          {customContent ? customContent : null}
           <Tooltip content={messages.setBestLineupTrainingAwareTooltip} fullWidth>
             <button
               type="button"
@@ -543,7 +547,8 @@ function renderMatch(
   showExtraTimeSetBestLineupMode?: boolean,
   fixedFormationOptions?: string[],
   selectedFixedFormation?: string | null,
-  onSelectedFixedFormationChange?: (formation: string | null) => void
+  onSelectedFixedFormationChange?: (formation: string | null) => void,
+  setBestLineupCustomContent?: ReactNode
 ) {
   const isUpcoming = match.Status === "UPCOMING";
   const canSubmit = Boolean(teamId) && isUpcoming && hasLineup;
@@ -653,6 +658,7 @@ function renderMatch(
             fixedFormationOptions={fixedFormationOptions}
             selectedFixedFormation={selectedFixedFormation}
             onSelectedFixedFormationChange={onSelectedFixedFormationChange}
+            customContent={setBestLineupCustomContent}
           />
         </div>
       ) : null}
@@ -782,6 +788,7 @@ export default function UpcomingMatches({
   fixedFormationOptions = [],
   selectedFixedFormation = null,
   onSelectedFixedFormationChange,
+  setBestLineupCustomContent,
 }: UpcomingMatchesProps) {
   const { addNotification } = useNotifications();
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
@@ -1247,7 +1254,8 @@ export default function UpcomingMatches({
               showExtraTimeSetBestLineupMode,
               fixedFormationOptions,
               selectedFixedFormation,
-              onSelectedFixedFormationChange
+              onSelectedFixedFormationChange,
+              setBestLineupCustomContent
             );
           })}
         </ul>
@@ -1284,7 +1292,8 @@ export default function UpcomingMatches({
                 showExtraTimeSetBestLineupMode,
                 fixedFormationOptions,
                 selectedFixedFormation,
-                onSelectedFixedFormationChange
+                onSelectedFixedFormationChange,
+                setBestLineupCustomContent
               );
             })}
           </ul>

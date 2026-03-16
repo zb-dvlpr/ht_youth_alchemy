@@ -787,6 +787,8 @@ export const messagesPt: Messages = {
       "Verificando as partidas relevantes para treino desta semana...",
     seniorExtraTimeModalBTeamError:
       "Nao foi possivel verificar as partidas relevantes para treino desta semana.",
+    seniorExtraTimeModalBTeamWeekendTooltip:
+      "A seleção da equipa B só está disponível de segunda a sexta-feira (CET).",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Este jogador é desconsiderado porque já jogou pelo menos {{minutes}} minutos nesta semana.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
@@ -797,6 +799,7 @@ export const messagesPt: Messages = {
     seniorExtraTimeModalSetLineupReadyTooltip:
       "Clique em Enviar escalação no cartão de partida apropriado para enviar a escalação ao Hattrick.",
     setBestLineupRejectedPlayersLabel: "Jogadores rejeitados",
+    setBestLineupIneligiblePlayersLabel: "Jogadores inelegíveis",
     analyzeOpponent: "Analisar adversário",
     analyzeOpponentTooltip: "Analisar jogos recentes do adversário.",
     analyzeOpponentMatchId: "ID da partida",

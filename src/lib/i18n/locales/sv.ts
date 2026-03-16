@@ -778,6 +778,8 @@ export const messagesSv: Messages = {
       "Kontrollerar veckans träningsrelevanta matcher...",
     seniorExtraTimeModalBTeamError:
       "Det gick inte att kontrollera veckans träningsrelevanta matcher.",
+    seniorExtraTimeModalBTeamWeekendTooltip:
+      "B-lagsvalet är bara tillgängligt från måndag till fredag (CET).",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Spelaren ignoreras eftersom han redan har spelat minst {{minutes}} minuter den här veckan.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
@@ -788,6 +790,7 @@ export const messagesSv: Messages = {
     seniorExtraTimeModalSetLineupReadyTooltip:
       "Klicka på Skicka uppställning i rätt matchkort för att skicka uppställningen till Hattrick.",
     setBestLineupRejectedPlayersLabel: "Bortvalda spelare",
+    setBestLineupIneligiblePlayersLabel: "Ej valbara spelare",
     analyzeOpponent: "Analysera motståndare",
     analyzeOpponentTooltip: "Analysera motståndarens senaste matcher.",
     analyzeOpponentMatchId: "Match-ID",

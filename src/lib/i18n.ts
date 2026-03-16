@@ -646,12 +646,14 @@ export type Messages = {
   seniorExtraTimeModalBTeamNoRecentMatch: string;
   seniorExtraTimeModalBTeamLoading: string;
   seniorExtraTimeModalBTeamError: string;
+  seniorExtraTimeModalBTeamWeekendTooltip: string;
   seniorExtraTimeModalBTeamDisregardedTooltip: string;
   seniorExtraTimeModalInjuredCheckboxTooltip: string;
   seniorExtraTimeModalSetLineupButton: string;
   seniorExtraTimeModalSetLineupDisabledTooltip: string;
   seniorExtraTimeModalSetLineupReadyTooltip: string;
   setBestLineupRejectedPlayersLabel: string;
+  setBestLineupIneligiblePlayersLabel: string;
   analyzeOpponent: string;
   analyzeOpponentTooltip: string;
   analyzeOpponentMatchId: string;

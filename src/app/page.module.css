@@ -5573,6 +5573,15 @@ html[data-theme="dark"] .spinner {
   flex-wrap: wrap;
 }
 
+.seniorSetBestLineupBTeamMenuSection {
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  padding: 0 0 8px;
+  margin: 0 0 2px;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
 .seniorExtraTimeBTeamThresholdLabel {
   display: inline;
   font-size: 11px;

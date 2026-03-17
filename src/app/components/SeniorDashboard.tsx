@@ -8761,7 +8761,8 @@ const refreshDetailsForPlayers = async (
       const trainingAwareBaseRows =
         mode === "trainingAware"
           ? await Promise.all(
-              generateFormationShapes().map(async (shape) => {
+              generateFormationShapes().map(
+                async (shape): Promise<GeneratedFormationRow | null> => {
                 const result = buildBaseRowForShape(shape);
                 if (!result) return null;
                 const resolvedAssignments = await result.trainingAwareAssignments;
@@ -8774,7 +8775,8 @@ const refreshDetailsForPlayers = async (
                   predicted: null,
                   error: null,
                 } satisfies GeneratedFormationRow;
-              })
+                }
+              )
             ).then((rows) => rows.filter((row): row is GeneratedFormationRow => Boolean(row)))
           : [];
 

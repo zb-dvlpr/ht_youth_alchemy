@@ -7,13 +7,13 @@ import {
 } from "@/lib/settings";
 
 type BuyCoffeeButtonProps = {
-  ariaLabel: string;
+  "aria-label": string;
   className?: string;
   children: ReactNode;
 };
 
 export default function BuyCoffeeButton({
-  ariaLabel,
+  "aria-label": ariaLabel,
   className,
   children,
 }: BuyCoffeeButtonProps) {

@@ -12,7 +12,7 @@ export const messagesSv: Messages = {
     sidebarExpandTooltip: "Fäll ut sidofältet",
     supportOnKofi: "Bjud mig på kaffe",
     buyCoffeePromptTitle: "☕ Tack för att du är här",
-    buyCoffeePromptLead: "🙏 Jag är verkligen tacksam att du använder HT Youth Alchemy.",
+    buyCoffeePromptLead: "🙏 Jag är verkligen tacksam att du använder HT Alchemy.",
     buyCoffeePromptBody:
       "✨ Den här appen kräver mycket löpande arbete, och om den har hjälpt dig skulle en kaffe vara ett väldigt meningsfullt sätt att stötta fortsatt utveckling. Varje stöd hjälper mig att lägga mer tid på att förbättra och underhålla appen.",
     buyCoffeePromptFoot:

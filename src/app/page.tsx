@@ -314,7 +314,7 @@ export default async function Home() {
                   <SettingsButton messages={messages} />
                   <Tooltip content={messages.supportOnKofi}>
                     <a
-                      className={styles.kofiIconLink}
+                      className={`${styles.feedbackButton} ${styles.kofiIconLink}`}
                       href="https://ko-fi.com/zbdvlpr"
                       target="_blank"
                       rel="noreferrer"

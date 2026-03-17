@@ -12,7 +12,7 @@ export const messagesIt: Messages = {
     sidebarExpandTooltip: "Espandi barra laterale",
     supportOnKofi: "Offrimi un caffè",
     buyCoffeePromptTitle: "☕ Grazie di essere qui",
-    buyCoffeePromptLead: "🙏 Sono davvero felice che tu stia usando HT Youth Alchemy.",
+    buyCoffeePromptLead: "🙏 Sono davvero felice che tu stia usando HT Alchemy.",
     buyCoffeePromptBody:
       "✨ Questa app richiede molto lavoro continuo e, se ti è stata utile, offrirmi un caffè sarebbe un modo davvero significativo per sostenere lo sviluppo futuro. Ogni contributo mi aiuta a dedicare più tempo a migliorarla e mantenerla.",
     buyCoffeePromptFoot:

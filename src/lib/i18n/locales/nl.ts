@@ -14,7 +14,7 @@ export const messagesNl: Messages = {
   supportOnKofi: "Koop een koffie voor me",
   settingsDebugBuyCoffeePromptButton: "Toon koop-een-koffie-voor-me-modal",
   buyCoffeePromptTitle: "☕ Fijn dat je hier bent",
-  buyCoffeePromptLead: "🙏 Ik ben echt dankbaar dat je HT Youth Alchemy gebruikt.",
+  buyCoffeePromptLead: "🙏 Ik ben echt dankbaar dat je HT Alchemy gebruikt.",
   buyCoffeePromptBody:
     "✨ Deze app kost veel doorlopend werk en als hij je heeft geholpen, dan is een koffie voor mij een heel betekenisvolle manier om de verdere ontwikkeling te steunen. Elke bijdrage helpt me om meer tijd te steken in verbeteren en onderhouden.",
   buyCoffeePromptFoot:

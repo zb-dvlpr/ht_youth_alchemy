@@ -14,7 +14,7 @@ export const messagesPl: Messages = {
   supportOnKofi: "Postaw mi kawę",
   settingsDebugBuyCoffeePromptButton: "Pokaż modal postaw mi kawę",
   buyCoffeePromptTitle: "☕ Dzięki, że tu jesteś",
-  buyCoffeePromptLead: "🙏 Jestem naprawdę wdzięczny, że korzystasz z HT Youth Alchemy.",
+  buyCoffeePromptLead: "🙏 Jestem naprawdę wdzięczny, że korzystasz z HT Alchemy.",
   buyCoffeePromptBody:
     "✨ Ta aplikacja wymaga dużo stałej pracy, a jeśli Ci pomogła, postawienie mi kawy byłoby dla mnie bardzo miłym wsparciem dalszego rozwoju. Każde wsparcie pomaga mi poświęcać więcej czasu na ulepszanie i utrzymanie aplikacji.",
   buyCoffeePromptFoot:

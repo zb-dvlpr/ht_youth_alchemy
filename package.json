@@ -1,6 +1,6 @@
 {
   "name": "ht_youth_alchemy",
-  "version": "3.9.44",
+  "version": "3.9.48",
   "private": true,
   "scripts": {
     "dev": "next dev",

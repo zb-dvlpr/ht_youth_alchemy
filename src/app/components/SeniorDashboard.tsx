@@ -1674,6 +1674,16 @@ export default function SeniorDashboard({
     wingerAttackerRoleIds?: number[];
     scoringRoleIds?: number[];
   } | null>(null);
+  const [trainingAwareInfoOpen, setTrainingAwareInfoOpen] = useState(false);
+  const [trainingAwareSelectedPlayerIds, setTrainingAwareSelectedPlayerIds] = useState<
+    number[]
+  >([]);
+  const [trainingAwareMatrixTrainingType, setTrainingAwareMatrixTrainingType] =
+    useState<number | null>(null);
+  const [trainingAwareMatrixTrainingTypeManual, setTrainingAwareMatrixTrainingTypeManual] =
+    useState(false);
+  const [trainingAwareMatchId, setTrainingAwareMatchId] = useState<number | null>(null);
+  const [trainingAwareTrainingMenuOpen, setTrainingAwareTrainingMenuOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [deferHelpUntilInitialRefresh, setDeferHelpUntilInitialRefresh] =
     useState(false);
@@ -1749,6 +1759,11 @@ export default function SeniorDashboard({
   const extraTimeAutoSelectionOpenRef = useRef(false);
   const extraTimeAutoSelectionTrainingTypeRef = useRef<number | null>(null);
   const extraTimeLastAutoSelectedPlayerIdsRef = useRef<number[] | null>(null);
+  const trainingAwareTrainingButtonRef = useRef<HTMLButtonElement | null>(null);
+  const trainingAwareTrainingMenuRef = useRef<HTMLDivElement | null>(null);
+  const trainingAwareAutoSelectionOpenRef = useRef(false);
+  const trainingAwareAutoSelectionTrainingTypeRef = useRef<number | null>(null);
+  const trainingAwareLastAutoSelectedPlayerIdsRef = useRef<number[] | null>(null);
   const activeRefreshRunIdRef = useRef<number | null>(null);
   const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
   const staleRefreshAttemptedRef = useRef(false);
@@ -1922,6 +1937,35 @@ export default function SeniorDashboard({
         return 13;
       case 6:
         return 14;
+      default:
+        return 0;
+    }
+  };
+
+  const trainingAwareTraineesTargetForTrainingType = (value: number | null) => {
+    switch (value) {
+      case 9:
+        return 2;
+      case 3:
+        return 7;
+      case 8:
+        return 7;
+      case 5:
+        return 6;
+      case 7:
+        return 11;
+      case 4:
+        return 4;
+      case 2:
+        return 18;
+      case 11:
+        return 16;
+      case 12:
+        return 7;
+      case 10:
+        return 14;
+      case 6:
+        return 18;
       default:
         return 0;
     }
@@ -2243,6 +2287,84 @@ export default function SeniorDashboard({
       ),
     [detailsById, playersById]
   );
+  const resolvedTrainingAwareTrainingType =
+    trainingAwareMatrixTrainingTypeManual && trainingAwareMatrixTrainingType !== null
+      ? trainingAwareMatrixTrainingType
+      : trainingType;
+  const trainingAwareSortSkillKey = useMemo(
+    () =>
+      resolvedTrainingAwareTrainingType !== null
+        ? EXTRA_TIME_SORT_SKILL_BY_TRAINING_TYPE[resolvedTrainingAwareTrainingType] ?? null
+        : null,
+    [resolvedTrainingAwareTrainingType]
+  );
+  const trainingAwareSkillsMatrixRows = useMemo(() => {
+    if (!trainingAwareSortSkillKey && resolvedTrainingAwareTrainingType !== 6) {
+      return skillsMatrixRows;
+    }
+    return [...skillsMatrixRows].sort((left, right) => {
+      const leftPlayer = left.id !== null ? playersById.get(left.id) ?? null : null;
+      const rightPlayer = right.id !== null ? playersById.get(right.id) ?? null : null;
+      const leftDetails = left.id !== null ? detailsById.get(left.id) ?? null : null;
+      const rightDetails = right.id !== null ? detailsById.get(right.id) ?? null : null;
+      const resolveEffectiveSkill = (
+        player: SeniorPlayer | null,
+        details: (typeof leftDetails) | null,
+        skillKey: (typeof SKILL_KEYS)[number]
+      ) => {
+        const baseSkill = parseSkill(
+          details?.PlayerSkills?.[skillKey] ?? player?.PlayerSkills?.[skillKey]
+        );
+        return showSeniorSkillBonusInMatrix
+          ? computeSeniorEffectiveSkill(baseSkill, details)
+          : baseSkill;
+      };
+      const leftValue =
+        resolvedTrainingAwareTrainingType === 6
+          ? (resolveEffectiveSkill(leftPlayer, leftDetails, "ScorerSkill") ?? 0) +
+            (resolveEffectiveSkill(leftPlayer, leftDetails, "SetPiecesSkill") ?? 0)
+          : trainingAwareSortSkillKey
+            ? resolveEffectiveSkill(leftPlayer, leftDetails, trainingAwareSortSkillKey)
+            : null;
+      const rightValue =
+        resolvedTrainingAwareTrainingType === 6
+          ? (resolveEffectiveSkill(rightPlayer, rightDetails, "ScorerSkill") ?? 0) +
+            (resolveEffectiveSkill(rightPlayer, rightDetails, "SetPiecesSkill") ?? 0)
+          : trainingAwareSortSkillKey
+            ? resolveEffectiveSkill(rightPlayer, rightDetails, trainingAwareSortSkillKey)
+            : null;
+      if (leftValue === null && rightValue === null) {
+        return left.name.localeCompare(right.name);
+      }
+      if (leftValue === null) return 1;
+      if (rightValue === null) return -1;
+      if (leftValue !== rightValue) return rightValue - leftValue;
+      return left.name.localeCompare(right.name);
+    });
+  }, [
+    detailsById,
+    playersById,
+    resolvedTrainingAwareTrainingType,
+    showSeniorSkillBonusInMatrix,
+    skillsMatrixRows,
+    trainingAwareSortSkillKey,
+  ]);
+  const trainingAwareSelectedMatchType = useMemo(() => {
+    if (trainingAwareMatchId === null) return null;
+    const rawMatches =
+      matchesState.data?.HattrickData?.MatchList?.Match ??
+      matchesState.data?.HattrickData?.Team?.MatchList?.Match;
+    const matchList = rawMatches
+      ? Array.isArray(rawMatches)
+        ? rawMatches
+        : [rawMatches]
+      : [];
+    const selectedMatch = matchList.find((match) => match.MatchID === trainingAwareMatchId);
+    if (!selectedMatch) return null;
+    return Number.isFinite(Number(selectedMatch.MatchType))
+      ? Number(selectedMatch.MatchType)
+      : null;
+  }, [matchesState, trainingAwareMatchId]);
   const getSeniorAiLastMatchAgeDays = useCallback(
     (playerId: number) => {
       const lastMatchDate = detailsById.get(playerId)?.LastMatch?.Date;
@@ -2685,6 +2807,11 @@ export default function SeniorDashboard({
   }, [extraTimeMatrixTrainingTypeManual, trainingType]);
 
   useEffect(() => {
+    if (trainingAwareMatrixTrainingTypeManual) return;
+    setTrainingAwareMatrixTrainingType(trainingType);
+  }, [trainingAwareMatrixTrainingTypeManual, trainingType]);
+
+  useEffect(() => {
     if (!extraTimeTrainingMenuOpen) return;
     const handlePointerDown = (event: MouseEvent) => {
       const target = event.target as Node | null;
@@ -2705,6 +2832,28 @@ export default function SeniorDashboard({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [extraTimeTrainingMenuOpen]);
+
+  useEffect(() => {
+    if (!trainingAwareTrainingMenuOpen) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (trainingAwareTrainingButtonRef.current?.contains(target)) return;
+      if (trainingAwareTrainingMenuRef.current?.contains(target)) return;
+      setTrainingAwareTrainingMenuOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setTrainingAwareTrainingMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [trainingAwareTrainingMenuOpen]);
 
   const averageSkillLevelForPlayer = (player: SeniorPlayer) => {
     const values = SKILL_KEYS.map((key) => skillValueForPlayer(player, key)).filter(
@@ -2822,6 +2971,680 @@ export default function SeniorDashboard({
     return { ratingForSlot, overallFallback, pickBestForSlot };
   };
 
+  const totalSkillLevelForPlayer = (player: SeniorPlayer) =>
+    SKILL_KEYS.reduce((sum, key) => sum + (skillValueForPlayer(player, key) ?? 0), 0);
+
+  const formValueForPlayer = (player: SeniorPlayer) => {
+    const details = detailsById.get(player.PlayerID);
+    return typeof details?.Form === "number"
+      ? details.Form
+      : typeof player.Form === "number"
+        ? player.Form
+        : -1;
+  };
+
+  const staminaValueForPlayer = (player: SeniorPlayer) => {
+    const details = detailsById.get(player.PlayerID);
+    return typeof details?.StaminaSkill === "number"
+      ? details.StaminaSkill
+      : typeof player.StaminaSkill === "number"
+        ? player.StaminaSkill
+        : -1;
+  };
+
+  const ageDaysValueForPlayer = (player: SeniorPlayer) =>
+    typeof player.Age === "number" && typeof player.AgeDays === "number"
+      ? player.Age * 112 + player.AgeDays
+      : Number.MAX_SAFE_INTEGER;
+
+  const chooseRandomPlayer = <T,>(pool: T[]) =>
+    pool[Math.floor(Math.random() * Math.max(1, pool.length))] ?? null;
+
+  const pickBestPlayerWithRandomTie = (
+    pool: SeniorPlayer[],
+    comparator: (left: SeniorPlayer, right: SeniorPlayer) => number
+  ) => {
+    if (pool.length === 0) return null;
+    const ordered = [...pool].sort(comparator);
+    const best = ordered[0] ?? null;
+    if (!best) return null;
+    const tied = ordered.filter(
+      (player) => comparator(best, player) === 0 && comparator(player, best) === 0
+    );
+    return chooseRandomPlayer(tied) ?? best;
+  };
+
+  const comparePlayersBySkillForTrainingAware = (
+    left: SeniorPlayer,
+    right: SeniorPlayer,
+    key: (typeof SKILL_KEYS)[number]
+  ) => {
+    const leftValue = skillValueForPlayer(left, key) ?? -1;
+    const rightValue = skillValueForPlayer(right, key) ?? -1;
+    if (rightValue !== leftValue) return rightValue - leftValue;
+    const leftOverall = totalSkillLevelForPlayer(left);
+    const rightOverall = totalSkillLevelForPlayer(right);
+    if (rightOverall !== leftOverall) return rightOverall - leftOverall;
+    return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+      formatPlayerName(right) || String(right.PlayerID)
+    );
+  };
+
+  const removePlayersFromPool = (pool: SeniorPlayer[], playerIds: number[]) => {
+    const blocked = new Set(playerIds);
+    return pool.filter((player) => !blocked.has(player.PlayerID));
+  };
+
+  const takePlayersByComparator = (
+    pool: SeniorPlayer[],
+    count: number,
+    comparator: (left: SeniorPlayer, right: SeniorPlayer) => number
+  ) => {
+    const ordered = [...pool].sort(comparator);
+    const selected = ordered.slice(0, count);
+    return {
+      selected,
+      remaining: removePlayersFromPool(
+        pool,
+        selected.map((player) => player.PlayerID)
+      ),
+    };
+  };
+
+  const representativeSlotForAssignment = (
+    slot: keyof LineupAssignments
+  ): keyof LineupAssignments | null => {
+    switch (slot) {
+      case "B_GK":
+        return "KP";
+      case "B_CD":
+        return "CD_C";
+      case "B_WB":
+        return "WB_L";
+      case "B_IM":
+        return "IM_C";
+      case "B_F":
+        return "F_C";
+      case "B_W":
+        return "W_L";
+      case "B_X":
+        return null;
+      default:
+        return slot;
+    }
+  };
+
+  const assignmentRowForSlot = (slot: keyof LineupAssignments) => {
+    const representative = representativeSlotForAssignment(slot);
+    if (representative === "KP") return "keeper";
+    if (
+      representative === "WB_L" ||
+      representative === "WB_R" ||
+      representative === "CD_L" ||
+      representative === "CD_C" ||
+      representative === "CD_R"
+    ) {
+      return "defense";
+    }
+    if (
+      representative === "W_L" ||
+      representative === "W_R" ||
+      representative === "IM_L" ||
+      representative === "IM_C" ||
+      representative === "IM_R"
+    ) {
+      return "midfield";
+    }
+    if (
+      representative === "F_L" ||
+      representative === "F_C" ||
+      representative === "F_R"
+    ) {
+      return "attack";
+    }
+    return null;
+  };
+
+  const skillComboValueForAssignmentSlot = (
+    player: SeniorPlayer,
+    slot: keyof LineupAssignments
+  ) => {
+    const representative = representativeSlotForAssignment(slot);
+    switch (representative) {
+      case "KP":
+        return (
+          (skillValueForPlayer(player, "KeeperSkill") ?? 0) +
+          (skillValueForPlayer(player, "DefenderSkill") ?? 0) +
+          (skillValueForPlayer(player, "SetPiecesSkill") ?? 0)
+        );
+      case "WB_L":
+      case "WB_R":
+        return (
+          (skillValueForPlayer(player, "DefenderSkill") ?? 0) +
+          (skillValueForPlayer(player, "WingerSkill") ?? 0) +
+          (skillValueForPlayer(player, "PlaymakerSkill") ?? 0)
+        );
+      case "CD_L":
+      case "CD_C":
+      case "CD_R":
+        return (
+          (skillValueForPlayer(player, "DefenderSkill") ?? 0) +
+          (skillValueForPlayer(player, "PlaymakerSkill") ?? 0)
+        );
+      case "W_L":
+      case "W_R":
+        return (
+          (skillValueForPlayer(player, "WingerSkill") ?? 0) +
+          (skillValueForPlayer(player, "PlaymakerSkill") ?? 0) +
+          (skillValueForPlayer(player, "DefenderSkill") ?? 0) +
+          (skillValueForPlayer(player, "PassingSkill") ?? 0)
+        );
+      case "IM_L":
+      case "IM_C":
+      case "IM_R":
+        return (
+          (skillValueForPlayer(player, "PlaymakerSkill") ?? 0) +
+          (skillValueForPlayer(player, "DefenderSkill") ?? 0) +
+          (skillValueForPlayer(player, "PassingSkill") ?? 0) +
+          (skillValueForPlayer(player, "ScorerSkill") ?? 0)
+        );
+      case "F_L":
+      case "F_C":
+      case "F_R":
+        return (
+          (skillValueForPlayer(player, "ScorerSkill") ?? 0) +
+          (skillValueForPlayer(player, "PassingSkill") ?? 0) +
+          (skillValueForPlayer(player, "WingerSkill") ?? 0) +
+          (skillValueForPlayer(player, "PlaymakerSkill") ?? 0)
+        );
+      default:
+        return totalSkillLevelForPlayer(player);
+    }
+  };
+
+  const comparePlayersForReusableAssignment = (
+    left: SeniorPlayer,
+    right: SeniorPlayer,
+    slot: keyof LineupAssignments,
+    ratingsById: Record<number, Record<string, number>>
+  ) => {
+    const representative = representativeSlotForAssignment(slot);
+    const leftRating =
+      representative && typeof ratingsById[left.PlayerID]?.[String(SLOT_TO_RATING_CODE[representative])] === "number"
+        ? (ratingsById[left.PlayerID]?.[String(SLOT_TO_RATING_CODE[representative])] as number)
+        : -1;
+    const rightRating =
+      representative && typeof ratingsById[right.PlayerID]?.[String(SLOT_TO_RATING_CODE[representative])] === "number"
+        ? (ratingsById[right.PlayerID]?.[String(SLOT_TO_RATING_CODE[representative])] as number)
+        : -1;
+    if (rightRating !== leftRating) return rightRating - leftRating;
+    const leftCombo = skillComboValueForAssignmentSlot(left, slot);
+    const rightCombo = skillComboValueForAssignmentSlot(right, slot);
+    if (rightCombo !== leftCombo) return rightCombo - leftCombo;
+    const leftForm = formValueForPlayer(left);
+    const rightForm = formValueForPlayer(right);
+    if (rightForm !== leftForm) return rightForm - leftForm;
+    const leftStamina = staminaValueForPlayer(left);
+    const rightStamina = staminaValueForPlayer(right);
+    if (rightStamina !== leftStamina) return rightStamina - leftStamina;
+    const leftOverall = totalSkillLevelForPlayer(left);
+    const rightOverall = totalSkillLevelForPlayer(right);
+    if (rightOverall !== leftOverall) return rightOverall - leftOverall;
+    const leftAgeDays = ageDaysValueForPlayer(left);
+    const rightAgeDays = ageDaysValueForPlayer(right);
+    if (leftAgeDays !== rightAgeDays) return leftAgeDays - rightAgeDays;
+    return 0;
+  };
+
+  const bestOtherRowRatingForPlayer = (
+    playerId: number,
+    slot: keyof LineupAssignments,
+    ratingsById: Record<number, Record<string, number>>
+  ) => {
+    const currentRow = assignmentRowForSlot(slot);
+    const rowToCodes: Record<"keeper" | "defense" | "midfield" | "attack", number[]> = {
+      keeper: [100],
+      defense: [101, 103],
+      midfield: [106, 107],
+      attack: [111],
+    };
+    return (Object.entries(rowToCodes) as Array<
+      ["keeper" | "defense" | "midfield" | "attack", number[]]
+    >)
+      .filter(([row]) => row !== currentRow)
+      .reduce((best, [, codes]) => {
+        const nextBest = codes.reduce((codeBest, code) => {
+          const value = ratingsById[playerId]?.[String(code)];
+          return Math.max(codeBest, typeof value === "number" ? value : -1);
+        }, -1);
+        return Math.max(best, nextBest);
+      }, -1);
+  };
+
+  const assignPlayersWithReusableSlotAlgorithm = (
+    pool: SeniorPlayer[],
+    slots: Array<keyof LineupAssignments>,
+    ratingsById: Record<number, Record<string, number>>
+  ) => {
+    let available = [...pool];
+    const assignments: Partial<LineupAssignments> = {};
+    const unresolvedSlots: Array<keyof LineupAssignments> = [];
+
+    slots.forEach((slot) => {
+      const representative = representativeSlotForAssignment(slot);
+      if (!representative) {
+        unresolvedSlots.push(slot);
+        return;
+      }
+      const orderedCandidates = [...available].sort((left, right) => {
+        const compared = comparePlayersForReusableAssignment(left, right, slot, ratingsById);
+        if (compared !== 0) return compared;
+        return 0;
+      });
+      const selected =
+        orderedCandidates.find((candidate) => {
+          const slotRating = ratingsById[candidate.PlayerID]?.[
+            String(SLOT_TO_RATING_CODE[representative])
+          ];
+          const resolvedSlotRating = typeof slotRating === "number" ? slotRating : -1;
+          return (
+            bestOtherRowRatingForPlayer(candidate.PlayerID, slot, ratingsById) <=
+            resolvedSlotRating
+          );
+        }) ?? null;
+      if (!selected) {
+        unresolvedSlots.push(slot);
+        return;
+      }
+      assignments[slot] = selected.PlayerID;
+      available = available.filter((player) => player.PlayerID !== selected.PlayerID);
+    });
+
+    unresolvedSlots.forEach((slot) => {
+      const selected = chooseRandomPlayer(available);
+      assignments[slot] = selected?.PlayerID ?? null;
+      if (selected) {
+        available = available.filter((player) => player.PlayerID !== selected.PlayerID);
+      }
+    });
+
+    return {
+      assignments,
+      remaining: available,
+    };
+  };
+
+  const buildTrainingAwareAssignmentsForShape = async (
+    occupiedSlots: string[],
+    activeTrainingType: number | null,
+    traineeIds: number[],
+    selectedMatchType: number | null
+  ) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const traineeCountTarget = trainingAwareTraineesTargetForTrainingType(activeTrainingType);
+    const trainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player));
+    if (trainees.length !== traineeCountTarget) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const allEligiblePlayers = players.filter((player) =>
+      isSeniorAiEligibleForMatch(player, selectedMatchType)
+    );
+    const traineeIdSet = new Set(traineeIds);
+    const assignments: LineupAssignments = {};
+    let remainingTrainees = [...trainees];
+
+    const assignPlayersToSlots = (
+      slots: Array<keyof LineupAssignments>,
+      selectedPlayers: SeniorPlayer[]
+    ) => {
+      if (slots.length !== selectedPlayers.length) {
+        throw new Error(messages.submitOrdersError);
+      }
+      slots.forEach((slot, index) => {
+        assignments[slot] = selectedPlayers[index]?.PlayerID ?? null;
+      });
+    };
+
+    const assignTopPlayersBySkill = (
+      pool: SeniorPlayer[],
+      count: number,
+      key: (typeof SKILL_KEYS)[number]
+    ) => takePlayersByComparator(pool, count, (left, right) =>
+      comparePlayersBySkillForTrainingAware(left, right, key)
+    );
+
+    const resolveBenchPair = (
+      playersForPair: SeniorPlayer[],
+      options: {
+        preferredWideSlot: keyof LineupAssignments;
+        preferredCoreSlot: keyof LineupAssignments;
+        coreSkillKey: (typeof SKILL_KEYS)[number];
+        tertiarySkillKey: (typeof SKILL_KEYS)[number];
+      }
+    ) => {
+      const [first, second] = playersForPair;
+      if (!first || !second) {
+        throw new Error(messages.submitOrdersError);
+      }
+      const firstWinger = skillValueForPlayer(first, "WingerSkill") ?? -1;
+      const secondWinger = skillValueForPlayer(second, "WingerSkill") ?? -1;
+      if (firstWinger !== secondWinger) {
+        if (firstWinger > secondWinger) {
+          assignments[options.preferredWideSlot] = first.PlayerID;
+          assignments[options.preferredCoreSlot] = second.PlayerID;
+        } else {
+          assignments[options.preferredWideSlot] = second.PlayerID;
+          assignments[options.preferredCoreSlot] = first.PlayerID;
+        }
+        return;
+      }
+      const firstCore = skillValueForPlayer(first, options.coreSkillKey) ?? -1;
+      const secondCore = skillValueForPlayer(second, options.coreSkillKey) ?? -1;
+      if (firstCore !== secondCore) {
+        if (firstCore > secondCore) {
+          assignments[options.preferredCoreSlot] = first.PlayerID;
+          assignments[options.preferredWideSlot] = second.PlayerID;
+        } else {
+          assignments[options.preferredCoreSlot] = second.PlayerID;
+          assignments[options.preferredWideSlot] = first.PlayerID;
+        }
+        return;
+      }
+      const firstTertiary = skillValueForPlayer(first, options.tertiarySkillKey) ?? -1;
+      const secondTertiary = skillValueForPlayer(second, options.tertiarySkillKey) ?? -1;
+      if (firstTertiary !== secondTertiary) {
+        if (firstTertiary > secondTertiary) {
+          assignments[options.preferredCoreSlot] = first.PlayerID;
+          assignments[options.preferredWideSlot] = second.PlayerID;
+        } else {
+          assignments[options.preferredCoreSlot] = second.PlayerID;
+          assignments[options.preferredWideSlot] = first.PlayerID;
+        }
+        return;
+      }
+      const firstOverall = totalSkillLevelForPlayer(first);
+      const secondOverall = totalSkillLevelForPlayer(second);
+      if (firstOverall !== secondOverall) {
+        if (firstOverall > secondOverall) {
+          assignments[options.preferredCoreSlot] = first.PlayerID;
+          assignments[options.preferredWideSlot] = second.PlayerID;
+        } else {
+          assignments[options.preferredCoreSlot] = second.PlayerID;
+          assignments[options.preferredWideSlot] = first.PlayerID;
+        }
+        return;
+      }
+      const randomCore = chooseRandomPlayer(playersForPair);
+      assignments[options.preferredCoreSlot] = randomCore?.PlayerID ?? null;
+      assignments[options.preferredWideSlot] =
+        playersForPair.find((player) => player.PlayerID !== randomCore?.PlayerID)?.PlayerID ??
+        null;
+    };
+
+    switch (activeTrainingType) {
+      case 9: {
+        const keeperComparator = (left: SeniorPlayer, right: SeniorPlayer) => {
+          const leftKeeping = skillValueForPlayer(left, "KeeperSkill") ?? -1;
+          const rightKeeping = skillValueForPlayer(right, "KeeperSkill") ?? -1;
+          if (rightKeeping !== leftKeeping) return rightKeeping - leftKeeping;
+          const leftSetPieces = skillValueForPlayer(left, "SetPiecesSkill") ?? -1;
+          const rightSetPieces = skillValueForPlayer(right, "SetPiecesSkill") ?? -1;
+          if (rightSetPieces !== leftSetPieces) return rightSetPieces - leftSetPieces;
+          const leftAverage = averageSkillLevelForPlayer(left);
+          const rightAverage = averageSkillLevelForPlayer(right);
+          if (rightAverage !== leftAverage) return rightAverage - leftAverage;
+          return 0;
+        };
+        const startingKeeper = pickBestPlayerWithRandomTie(remainingTrainees, keeperComparator);
+        if (!startingKeeper) {
+          throw new Error(messages.submitOrdersError);
+        }
+        assignments.KP = startingKeeper.PlayerID;
+        remainingTrainees = removePlayersFromPool(remainingTrainees, [startingKeeper.PlayerID]);
+        const benchKeeper = remainingTrainees[0] ?? null;
+        assignments.B_GK = benchKeeper?.PlayerID ?? null;
+        remainingTrainees = [];
+        break;
+      }
+      case 3: {
+        const wide = assignTopPlayersBySkill(remainingTrainees, 2, "WingerSkill");
+        assignPlayersToSlots(["WB_L", "WB_R"], wide.selected);
+        const central = assignTopPlayersBySkill(wide.remaining, 3, "DefenderSkill");
+        assignPlayersToSlots(["CD_L", "CD_C", "CD_R"], central.selected);
+        resolveBenchPair(central.remaining, {
+          preferredWideSlot: "B_WB",
+          preferredCoreSlot: "B_CD",
+          coreSkillKey: "DefenderSkill",
+          tertiarySkillKey: "PlaymakerSkill",
+        });
+        remainingTrainees = [];
+        break;
+      }
+      case 8: {
+        const wide = assignTopPlayersBySkill(remainingTrainees, 2, "WingerSkill");
+        assignPlayersToSlots(["W_L", "W_R"], wide.selected);
+        const midfield = assignTopPlayersBySkill(wide.remaining, 3, "PlaymakerSkill");
+        assignPlayersToSlots(["IM_L", "IM_C", "IM_R"], midfield.selected);
+        resolveBenchPair(midfield.remaining, {
+          preferredWideSlot: "B_W",
+          preferredCoreSlot: "B_IM",
+          coreSkillKey: "PlaymakerSkill",
+          tertiarySkillKey: "DefenderSkill",
+        });
+        remainingTrainees = [];
+        break;
+      }
+      case 5: {
+        const ordered = assignTopPlayersBySkill(remainingTrainees, remainingTrainees.length, "WingerSkill").selected;
+        assignPlayersToSlots(["W_L", "W_R"], ordered.slice(0, 2));
+        assignPlayersToSlots(["WB_L", "WB_R"], ordered.slice(2, 4));
+        const benchPair = ordered.slice(4, 6);
+        const [first, second] = benchPair;
+        if (!first || !second) {
+          throw new Error(messages.submitOrdersError);
+        }
+        const firstWinger = skillValueForPlayer(first, "WingerSkill") ?? -1;
+        const secondWinger = skillValueForPlayer(second, "WingerSkill") ?? -1;
+        if (firstWinger !== secondWinger) {
+          assignments.B_W = firstWinger > secondWinger ? first.PlayerID : second.PlayerID;
+          assignments.B_WB = firstWinger > secondWinger ? second.PlayerID : first.PlayerID;
+        } else {
+          const firstOverall = totalSkillLevelForPlayer(first);
+          const secondOverall = totalSkillLevelForPlayer(second);
+          if (firstOverall !== secondOverall) {
+            assignments.B_W = firstOverall > secondOverall ? first.PlayerID : second.PlayerID;
+            assignments.B_WB = firstOverall > secondOverall ? second.PlayerID : first.PlayerID;
+          } else {
+            const randomWide = chooseRandomPlayer(benchPair);
+            assignments.B_W = randomWide?.PlayerID ?? null;
+            assignments.B_WB =
+              benchPair.find((player) => player.PlayerID !== randomWide?.PlayerID)?.PlayerID ??
+              null;
+          }
+        }
+        remainingTrainees = [];
+        break;
+      }
+      case 7: {
+        const forwards = assignTopPlayersBySkill(remainingTrainees, 3, "ScorerSkill");
+        assignPlayersToSlots(["F_L", "F_C", "F_R"], forwards.selected);
+        const wingers = assignTopPlayersBySkill(forwards.remaining, 2, "WingerSkill");
+        assignPlayersToSlots(["W_L", "W_R"], wingers.selected);
+        const mids = assignTopPlayersBySkill(wingers.remaining, 3, "PlaymakerSkill");
+        assignPlayersToSlots(["IM_L", "IM_C", "IM_R"], mids.selected);
+        let benchPool = mids.remaining;
+        const forwardComparator = (left: SeniorPlayer, right: SeniorPlayer) => {
+          const leftScoring = skillValueForPlayer(left, "ScorerSkill") ?? -1;
+          const rightScoring = skillValueForPlayer(right, "ScorerSkill") ?? -1;
+          if (rightScoring !== leftScoring) return rightScoring - leftScoring;
+          return 0;
+        };
+        const wingComparator = (left: SeniorPlayer, right: SeniorPlayer) => {
+          const leftWinger = skillValueForPlayer(left, "WingerSkill") ?? -1;
+          const rightWinger = skillValueForPlayer(right, "WingerSkill") ?? -1;
+          if (rightWinger !== leftWinger) return rightWinger - leftWinger;
+          return 0;
+        };
+        const midfieldComparator = (left: SeniorPlayer, right: SeniorPlayer) => {
+          const leftPm = skillValueForPlayer(left, "PlaymakerSkill") ?? -1;
+          const rightPm = skillValueForPlayer(right, "PlaymakerSkill") ?? -1;
+          if (rightPm !== leftPm) return rightPm - leftPm;
+          return 0;
+        };
+        const benchForward = pickBestPlayerWithRandomTie(benchPool, forwardComparator);
+        if (!benchForward) {
+          throw new Error(messages.submitOrdersError);
+        }
+        assignments.B_F = benchForward.PlayerID;
+        benchPool = removePlayersFromPool(benchPool, [benchForward.PlayerID]);
+        const benchWing = pickBestPlayerWithRandomTie(benchPool, wingComparator);
+        if (!benchWing) {
+          throw new Error(messages.submitOrdersError);
+        }
+        assignments.B_W = benchWing.PlayerID;
+        benchPool = removePlayersFromPool(benchPool, [benchWing.PlayerID]);
+        const benchMid = pickBestPlayerWithRandomTie(benchPool, midfieldComparator);
+        assignments.B_IM = benchMid?.PlayerID ?? null;
+        remainingTrainees = [];
+        break;
+      }
+      case 4: {
+        const forwards = assignTopPlayersBySkill(remainingTrainees, 4, "ScorerSkill").selected;
+        assignPlayersToSlots(["F_L", "F_C", "F_R"], forwards.slice(0, 3));
+        assignments.B_F = forwards[3]?.PlayerID ?? null;
+        remainingTrainees = [];
+        break;
+      }
+      case 2:
+      case 6: {
+        const orderedBySetPieces = [...remainingTrainees].sort(comparePlayersBySetPiecesDescending);
+        const fieldTrainees = orderedBySetPieces.slice(0, occupiedSlots.length);
+        const benchTrainees = orderedBySetPieces.slice(occupiedSlots.length);
+        const fieldAssigned = assignPlayersWithReusableSlotAlgorithm(
+          fieldTrainees,
+          occupiedSlots as Array<keyof LineupAssignments>,
+          ratingsById
+        );
+        Object.assign(assignments, fieldAssigned.assignments);
+        const benchAssigned = assignPlayersWithReusableSlotAlgorithm(
+          benchTrainees,
+          [...BENCH_SLOT_ORDER],
+          ratingsById
+        );
+        Object.assign(assignments, benchAssigned.assignments);
+        remainingTrainees = [];
+        break;
+      }
+      case 11: {
+        const keepers = takePlayersByComparator(remainingTrainees, 2, compareKeeperTrainees);
+        assignments.KP = keepers.selected[0]?.PlayerID ?? null;
+        assignments.B_GK = keepers.selected[1]?.PlayerID ?? null;
+        const wide = assignTopPlayersBySkill(keepers.remaining, 6, "WingerSkill").selected;
+        assignPlayersToSlots(["W_L", "W_R", "WB_L", "WB_R", "B_W", "B_WB"], wide);
+        const afterWide = removePlayersFromPool(
+          keepers.remaining,
+          wide.map((player) => player.PlayerID)
+        );
+        const midfield = assignTopPlayersBySkill(afterWide, 4, "PlaymakerSkill").selected;
+        assignPlayersToSlots(["IM_L", "IM_C", "IM_R", "B_IM"], midfield);
+        const afterMid = removePlayersFromPool(
+          afterWide,
+          midfield.map((player) => player.PlayerID)
+        );
+        const defenders = assignTopPlayersBySkill(afterMid, 4, "DefenderSkill").selected;
+        assignPlayersToSlots(["CD_L", "CD_C", "CD_R", "B_CD"], defenders);
+        remainingTrainees = [];
+        break;
+      }
+      case 12: {
+        const forwards = assignTopPlayersBySkill(remainingTrainees, 4, "ScorerSkill");
+        assignPlayersToSlots(["F_L", "F_C", "F_R", "B_F"], forwards.selected);
+        const wingers = assignTopPlayersBySkill(forwards.remaining, 3, "WingerSkill").selected;
+        assignPlayersToSlots(["W_L", "W_R", "B_W"], wingers);
+        remainingTrainees = [];
+        break;
+      }
+      case 10: {
+        const wide = assignTopPlayersBySkill(remainingTrainees, 6, "WingerSkill").selected;
+        assignPlayersToSlots(["W_L", "W_R", "WB_L", "WB_R", "B_W", "B_WB"], wide);
+        const afterWide = removePlayersFromPool(
+          remainingTrainees,
+          wide.map((player) => player.PlayerID)
+        );
+        const midfield = assignTopPlayersBySkill(afterWide, 4, "PlaymakerSkill").selected;
+        assignPlayersToSlots(["IM_L", "IM_C", "IM_R", "B_IM"], midfield);
+        const afterMid = removePlayersFromPool(
+          afterWide,
+          midfield.map((player) => player.PlayerID)
+        );
+        const defenders = assignTopPlayersBySkill(afterMid, 4, "DefenderSkill").selected;
+        assignPlayersToSlots(["CD_L", "CD_C", "CD_R", "B_CD"], defenders);
+        remainingTrainees = [];
+        break;
+      }
+      default:
+        break;
+    }
+
+    const nonTraineePool = allEligiblePlayers.filter(
+      (player) => !traineeIdSet.has(player.PlayerID)
+    );
+    const remainingFieldSlots = occupiedSlots.filter(
+      (slot) => typeof assignments[slot] !== "number" || (assignments[slot] ?? 0) <= 0
+    ) as Array<keyof LineupAssignments>;
+    const fieldAssigned = assignPlayersWithReusableSlotAlgorithm(
+      nonTraineePool,
+      remainingFieldSlots,
+      ratingsById
+    );
+    Object.entries(fieldAssigned.assignments).forEach(([slot, playerId]) => {
+      assignments[slot] = playerId ?? null;
+    });
+    const remainingBenchSlots = [...BENCH_SLOT_ORDER].filter(
+      (slot) => typeof assignments[slot] !== "number" || (assignments[slot] ?? 0) <= 0
+    ) as Array<keyof LineupAssignments>;
+    const benchAssigned = assignPlayersWithReusableSlotAlgorithm(
+      fieldAssigned.remaining,
+      remainingBenchSlots,
+      ratingsById
+    );
+    Object.entries(benchAssigned.assignments).forEach(([slot, playerId]) => {
+      assignments[slot] = playerId ?? null;
+    });
+
+    if (
+      occupiedSlots.some(
+        (slot) => typeof assignments[slot as keyof LineupAssignments] !== "number"
+      )
+    ) {
+      throw new Error(messages.submitOrdersMinPlayers);
+    }
+
+    return assignments;
+  };
+
+  const handleTrainingAwareSetLineup = async () => {
+    if (!NON_DEPRECATED_TRAINING_TYPES.includes((resolvedTrainingAwareTrainingType ?? -1) as (typeof NON_DEPRECATED_TRAINING_TYPES)[number])) {
+      setTrainingAwareInfoOpen(false);
+      return;
+    }
+    if (trainingAwareSetLineupDisabled) return;
+    if (trainingAwareMatchId === null) return;
+    const selectedTraineeIds = trainingAwareSelectedPlayerIds.filter((playerId) =>
+      trainingAwareSelectablePlayerIds.includes(playerId)
+    );
+    setTrainingAwareInfoOpen(false);
+    setExtraTimePreparedSubmission(null);
+    await runSetBestLineupPredictRatings(trainingAwareMatchId, "trainingAware", null, {
+      trainingAwareTraineeIds: selectedTraineeIds,
+      trainingAwareTrainingType: resolvedTrainingAwareTrainingType,
+    });
+    setTrainingAwareMatchId(null);
+  };
+
   const seniorAiInjuryLevelForPlayer = (player: SeniorPlayer) => {
     const details = detailsById.get(player.PlayerID);
     return typeof details?.InjuryLevel === "number"
@@ -2839,9 +3662,119 @@ export default function SeniorDashboard({
     );
   };
 
+  const isSeniorAiEligibleForMatch = (
+    player: SeniorPlayer,
+    selectedMatchType: number | null
+  ) => {
+    if (!isSeniorAiEligiblePlayer(player)) return false;
+    if (
+      effectiveExtraTimeBTeamEnabled &&
+      extraTimeDisregardedPlayerIds.has(player.PlayerID)
+    ) {
+      return false;
+    }
+    const isLeagueCupTarget =
+      selectedMatchType !== null &&
+      LEAGUE_CUP_QUALI_MATCH_TYPES.has(selectedMatchType);
+    if (!isLeagueCupTarget) return true;
+    const details = detailsById.get(player.PlayerID);
+    const cardsValue =
+      typeof details?.Cards === "number"
+        ? details.Cards
+        : typeof player.Cards === "number"
+          ? player.Cards
+          : null;
+    return typeof cardsValue !== "number" || cardsValue < 3;
+  };
+
   const isSeniorExtraTimePoolEligiblePlayer = (player: SeniorPlayer) =>
     isSeniorAiEligiblePlayer(player) &&
     extraTimeAvailablePlayerIdSet.has(player.PlayerID);
+
+  const trainingAwareSelectablePlayerIds = useMemo(
+    () =>
+      trainingAwareSkillsMatrixRows
+        .map((row) => row.id)
+        .filter((id): id is number => {
+          if (typeof id !== "number") return false;
+          const player = playersById.get(id);
+          return player
+            ? isSeniorAiEligibleForMatch(player, trainingAwareSelectedMatchType)
+            : false;
+        }),
+    [
+      playersById,
+      trainingAwareSelectedMatchType,
+      trainingAwareSkillsMatrixRows,
+    ]
+  );
+  const requiredTrainingAwareTrainees = trainingAwareTraineesTargetForTrainingType(
+    resolvedTrainingAwareTrainingType
+  );
+  const trainingAwareAutoSelectedPlayerIds = useMemo(
+    () => trainingAwareSelectablePlayerIds.slice(0, requiredTrainingAwareTrainees),
+    [requiredTrainingAwareTrainees, trainingAwareSelectablePlayerIds]
+  );
+  const trainingAwareSelectedCount = trainingAwareSelectedPlayerIds.filter((playerId) =>
+    trainingAwareSelectablePlayerIds.includes(playerId)
+  ).length;
+  const trainingAwareSetLineupDisabled =
+    trainingAwareSelectedCount !== requiredTrainingAwareTrainees;
+  const allTrainingAwarePlayersSelected =
+    trainingAwareSelectablePlayerIds.length > 0 &&
+    trainingAwareSelectablePlayerIds.every((playerId) =>
+      trainingAwareSelectedPlayerIds.includes(playerId)
+    );
+  const someTrainingAwarePlayersSelected =
+    !allTrainingAwarePlayersSelected &&
+    trainingAwareSelectablePlayerIds.some((playerId) =>
+      trainingAwareSelectedPlayerIds.includes(playerId)
+    );
+
+  useEffect(() => {
+    setTrainingAwareSelectedPlayerIds((prev) =>
+      prev.filter(
+        (playerId) => playersById.has(playerId) && trainingAwareSelectablePlayerIds.includes(playerId)
+      )
+    );
+  }, [playersById, trainingAwareSelectablePlayerIds]);
+
+  useEffect(() => {
+    if (!trainingAwareInfoOpen) {
+      trainingAwareAutoSelectionOpenRef.current = false;
+      trainingAwareLastAutoSelectedPlayerIdsRef.current = null;
+      return;
+    }
+
+    const lastAutoSelected = trainingAwareLastAutoSelectedPlayerIdsRef.current;
+    const matchesLastAutoSelected =
+      Array.isArray(lastAutoSelected) &&
+      lastAutoSelected.length === trainingAwareSelectedPlayerIds.length &&
+      lastAutoSelected.every(
+        (playerId, index) => trainingAwareSelectedPlayerIds[index] === playerId
+      );
+    const shouldApplyAutoSelection =
+      !trainingAwareAutoSelectionOpenRef.current ||
+      trainingAwareAutoSelectionTrainingTypeRef.current !==
+        resolvedTrainingAwareTrainingType ||
+      matchesLastAutoSelected;
+
+    if (!shouldApplyAutoSelection) {
+      trainingAwareAutoSelectionOpenRef.current = true;
+      trainingAwareAutoSelectionTrainingTypeRef.current = resolvedTrainingAwareTrainingType;
+      return;
+    }
+
+    setTrainingAwareSelectedPlayerIds(trainingAwareAutoSelectedPlayerIds);
+    trainingAwareAutoSelectionOpenRef.current = true;
+    trainingAwareAutoSelectionTrainingTypeRef.current = resolvedTrainingAwareTrainingType;
+    trainingAwareLastAutoSelectedPlayerIdsRef.current = trainingAwareAutoSelectedPlayerIds;
+  }, [
+    resolvedTrainingAwareTrainingType,
+    trainingAwareAutoSelectedPlayerIds,
+    trainingAwareInfoOpen,
+    trainingAwareSelectedPlayerIds,
+  ]);
 
   const getExtraTimeEligibleNonTrainees = (
     traineeIds: number[],
@@ -6378,6 +7311,9 @@ export default function SeniorDashboard({
       setExtraTimeMatrixTrainingType(verifiedTrainingType);
       setExtraTimeMatrixTrainingTypeManual(false);
       setExtraTimeTrainingMenuOpen(false);
+      setTrainingAwareMatrixTrainingType(verifiedTrainingType);
+      setTrainingAwareMatrixTrainingTypeManual(false);
+      setTrainingAwareTrainingMenuOpen(false);
       addNotification(
         messages.notificationSeniorTrainingRegimenChanged.replace(
           "{{training}}",
@@ -6403,6 +7339,18 @@ export default function SeniorDashboard({
       setExtraTimeMatrixTrainingType(currentTrainingType);
     } finally {
       setExtraTimeMatrixTrainingTypeManual(false);
+    }
+  };
+
+  const syncTrainingAwareModalTrainingType = async () => {
+    try {
+      const currentTrainingType = sanitizeTrainingType(
+        await fetchTrainingType(resolvedSeniorTeamId)
+      );
+      setTrainingType(currentTrainingType);
+      setTrainingAwareMatrixTrainingType(currentTrainingType);
+    } finally {
+      setTrainingAwareMatrixTrainingTypeManual(false);
     }
   };
 
@@ -7372,7 +8320,11 @@ const refreshDetailsForPlayers = async (
   const runSetBestLineupPredictRatings = async (
     matchId: number,
     mode: SetBestLineupMode,
-    fixedFormationOverride?: string | null
+    fixedFormationOverride?: string | null,
+    options?: {
+      trainingAwareTraineeIds?: number[];
+      trainingAwareTrainingType?: number | null;
+    }
   ) => {
     let fixedFormationFailureSlotDiagnostics: FixedFormationSlotDiagnostic[] = [];
     let fixedFormationFailureEligiblePlayerIds: number[] = [];
@@ -7404,11 +8356,18 @@ const refreshDetailsForPlayers = async (
       }
 
       let activeTrainingType = trainingType;
-      try {
-        activeTrainingType = sanitizeTrainingType(await fetchTrainingType());
-        setTrainingType(activeTrainingType);
-      } catch {
-        // Keep best-lineup flow intact even if training endpoint fails.
+      if (
+        mode === "trainingAware" &&
+        typeof options?.trainingAwareTrainingType === "number"
+      ) {
+        activeTrainingType = sanitizeTrainingType(options.trainingAwareTrainingType);
+      } else {
+        try {
+          activeTrainingType = sanitizeTrainingType(await fetchTrainingType());
+          setTrainingType(activeTrainingType);
+        } catch {
+          // Keep best-lineup flow intact even if training endpoint fails.
+        }
       }
 
       const opponentRows = opponentContext.rows;
@@ -7469,22 +8428,10 @@ const refreshDetailsForPlayers = async (
           };
         })
         .filter((player) => {
-          if (typeof player.injuryLevel === "number" && player.injuryLevel >= 1) {
-            return false;
-          }
-          const isLeagueCupTarget =
-            selectedMatchType !== null &&
-            LEAGUE_CUP_QUALI_MATCH_TYPES.has(selectedMatchType);
-          if (isLeagueCupTarget && typeof player.cardsValue === "number" && player.cardsValue >= 3) {
-            return false;
-          }
-          if (
-            effectiveExtraTimeBTeamEnabled &&
-            extraTimeDisregardedPlayerIds.has(player.id)
-          ) {
-            return false;
-          }
-          return true;
+          const candidatePlayer = playersById.get(player.id);
+          return candidatePlayer
+            ? isSeniorAiEligibleForMatch(candidatePlayer, selectedMatchType)
+            : false;
         })
         .map(({ id, name, formValue }) => ({ id, name, formValue }));
       const playerPoolIds = playerPool.map((player) => player.id);
@@ -7632,10 +8579,6 @@ const refreshDetailsForPlayers = async (
           slotDiagnostics,
         };
       };
-      const assignmentCount = (assignmentsForFormation: LineupAssignments) =>
-        Object.values(assignmentsForFormation).filter(
-          (id): id is number => typeof id === "number" && id > 0
-        ).length;
       const buildBaseRowForShape = (shape: {
         defenders: number;
         midfielders: number;
@@ -7658,23 +8601,43 @@ const refreshDetailsForPlayers = async (
           occupiedSlots,
           mode === "trainingAware" ? activeTrainingType : null
         );
-        const resolvedPass = buildAssignmentsForOrderedSlots(orderedSlots);
-        if (assignmentCount(resolvedPass.assignments) < 11) {
+        const resolvedPass =
+          mode === "trainingAware"
+            ? null
+            : buildAssignmentsForOrderedSlots(orderedSlots);
+        const trainingAwareAssignments =
+          mode === "trainingAware"
+            ? buildTrainingAwareAssignmentsForShape(
+                occupiedSlots,
+                activeTrainingType,
+                options?.trainingAwareTraineeIds ?? [],
+                selectedMatchType
+              )
+            : null;
+        if (mode !== "trainingAware" && resolvedPass && occupiedSlots.some((slot) => !resolvedPass.assignments[slot])) {
           return {
             row: null,
             slotDiagnostics: resolvedPass.slotDiagnostics,
           };
         }
+        if (mode === "trainingAware") {
+          return {
+            row: null,
+            slotDiagnostics: [],
+            trainingAwareAssignments,
+          };
+        }
         return {
           row: {
             formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
-            assignments: resolvedPass.assignments,
-            slotRatings: resolvedPass.slotRatings,
+            assignments: resolvedPass?.assignments ?? {},
+            slotRatings: resolvedPass?.slotRatings ?? {},
             rejectedPlayerIds: [],
             predicted: null,
             error: null,
           } as GeneratedFormationRow,
-          slotDiagnostics: resolvedPass.slotDiagnostics,
+          slotDiagnostics: resolvedPass?.slotDiagnostics ?? [],
+          trainingAwareAssignments: null,
         };
       };
       const predictRatingsForLineup = async (
@@ -7741,9 +8704,53 @@ const refreshDetailsForPlayers = async (
               .map((result) => result?.row ?? null)
               .filter((row): row is GeneratedFormationRow => Boolean(row));
 
+      const trainingAwareBaseRows =
+        mode === "trainingAware"
+          ? await Promise.all(
+              generateFormationShapes().map(async (shape) => {
+                const result = buildBaseRowForShape(shape);
+                if (!result) return null;
+                const resolvedAssignments = await result.trainingAwareAssignments;
+                if (!resolvedAssignments) return null;
+                return {
+                  formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
+                  assignments: resolvedAssignments,
+                  slotRatings: {},
+                  rejectedPlayerIds: [],
+                  predicted: null,
+                  error: null,
+                } satisfies GeneratedFormationRow;
+              })
+            ).then((rows) => rows.filter((row): row is GeneratedFormationRow => Boolean(row)))
+          : [];
+
       const rows =
         mode === "fixedFormation"
           ? baseRows
+          : mode === "trainingAware"
+            ? await mapWithConcurrency(
+                trainingAwareBaseRows,
+                FORMATION_PREDICT_CONCURRENCY,
+                async (row) => {
+                  try {
+                    return {
+                      ...row,
+                      predicted: await predictRatingsForLineup(row.assignments, tacticType),
+                      rejectedPlayerIds: row.rejectedPlayerIds,
+                      error: null,
+                    } as GeneratedFormationRow;
+                  } catch (error) {
+                    const details =
+                      error instanceof Error ? error.message : messages.submitOrdersError;
+                    return {
+                      ...row,
+                      predicted: null,
+                      rejectedPlayerIds: row.rejectedPlayerIds,
+                      error: details,
+                    } as GeneratedFormationRow;
+                  }
+                }
+              )
           : await mapWithConcurrency(
               baseRows,
               FORMATION_PREDICT_CONCURRENCY,
@@ -7793,9 +8800,7 @@ const refreshDetailsForPlayers = async (
           .filter(
             (player) =>
               !used.has(player.PlayerID) &&
-              isSeniorAiEligiblePlayer(player) &&
-              (!effectiveExtraTimeBTeamEnabled ||
-                !extraTimeDisregardedPlayerIds.has(player.PlayerID))
+              isSeniorAiEligibleForMatch(player, selectedMatchType)
           )
           .map((player) => ({
             id: player.PlayerID,
@@ -7839,6 +8844,9 @@ const refreshDetailsForPlayers = async (
           { slot: "B_X", code: null },
         ];
         benchPlan.forEach((entry) => {
+          if (typeof chosenAssignments[entry.slot] === "number" && (chosenAssignments[entry.slot] ?? 0) > 0) {
+            return;
+          }
           const picked = entry.code === null ? pickBestAny() : pickBestForCode(entry.code);
           if (picked) {
             chosenAssignments[entry.slot] = picked.id;
@@ -8154,6 +9162,9 @@ const refreshDetailsForPlayers = async (
     setExtraTimeSelectedPlayerIds([]);
     setExtraTimeMatrixTrainingType(null);
     setExtraTimeMatrixTrainingTypeManual(false);
+    setTrainingAwareSelectedPlayerIds([]);
+    setTrainingAwareMatrixTrainingType(null);
+    setTrainingAwareMatrixTrainingTypeManual(false);
     setOrderedPlayerIds(null);
     setOrderSource(null);
     setPlayers([]);
@@ -8210,6 +9221,9 @@ const refreshDetailsForPlayers = async (
             extraTimeSelectedPlayerIds?: number[];
             extraTimeMatrixTrainingType?: number | null;
             extraTimeMatrixTrainingTypeManual?: boolean;
+            trainingAwareSelectedPlayerIds?: number[];
+            trainingAwareMatrixTrainingType?: number | null;
+            trainingAwareMatrixTrainingTypeManual?: boolean;
             orderedPlayerIds?: number[] | null;
             orderSource?: "list" | "ratings" | "skills" | null;
           };
@@ -8308,6 +9322,25 @@ const refreshDetailsForPlayers = async (
                 parsedExtraTimeTrainingType !== parsedTrainingType;
           setExtraTimeMatrixTrainingType(parsedExtraTimeTrainingType);
           setExtraTimeMatrixTrainingTypeManual(parsedExtraTimeManual);
+          if (Array.isArray(parsed.trainingAwareSelectedPlayerIds)) {
+            setTrainingAwareSelectedPlayerIds(
+              parsed.trainingAwareSelectedPlayerIds.filter(
+                (id): id is number => Number.isFinite(id)
+              )
+            );
+          }
+          const parsedTrainingAwareTrainingType = sanitizeTrainingType(
+            typeof parsed.trainingAwareMatrixTrainingType === "number"
+              ? parsed.trainingAwareMatrixTrainingType
+              : null
+          );
+          const parsedTrainingAwareManual =
+            typeof parsed.trainingAwareMatrixTrainingTypeManual === "boolean"
+              ? parsed.trainingAwareMatrixTrainingTypeManual
+              : parsedTrainingAwareTrainingType !== null &&
+                parsedTrainingAwareTrainingType !== parsedTrainingType;
+          setTrainingAwareMatrixTrainingType(parsedTrainingAwareTrainingType);
+          setTrainingAwareMatrixTrainingTypeManual(parsedTrainingAwareManual);
           if (Array.isArray(parsed.orderedPlayerIds)) {
             setOrderedPlayerIds(
               parsed.orderedPlayerIds.filter((id): id is number => Number.isFinite(id))
@@ -8510,6 +9543,9 @@ const refreshDetailsForPlayers = async (
       extraTimeSelectedPlayerIds,
       extraTimeMatrixTrainingType,
       extraTimeMatrixTrainingTypeManual,
+      trainingAwareSelectedPlayerIds,
+      trainingAwareMatrixTrainingType,
+      trainingAwareMatrixTrainingTypeManual,
       orderedPlayerIds,
       orderSource,
     };
@@ -8539,6 +9575,9 @@ const refreshDetailsForPlayers = async (
     extraTimeSelectedPlayerIds,
     extraTimeMatrixTrainingType,
     extraTimeMatrixTrainingTypeManual,
+    trainingAwareSelectedPlayerIds,
+    trainingAwareMatrixTrainingType,
+    trainingAwareMatrixTrainingTypeManual,
     orderedPlayerIds,
     orderSource,
     stateStorageKey,
@@ -9223,6 +10262,291 @@ const refreshDetailsForPlayers = async (
         onClose={() => {
           setSubmitDisclaimerOpen(false);
           setSubmitDisclaimerExtraTimeSummary(null);
+        }}
+      />
+      <Modal
+        open={trainingAwareInfoOpen}
+        title={messages.setBestLineupTrainingAware}
+        className={`${styles.chronicleTransferHistoryModal} ${styles.seniorExtraTimeModal}`}
+        body={
+          <div className={styles.seniorExtraTimeModalBody}>
+            <p className={styles.seniorExtraTimeModalChooseTrainees}>
+              {messages.seniorExtraTimeModalChooseTrainees.replace(
+                "{{count}}",
+                String(
+                  trainingAwareTraineesTargetForTrainingType(
+                    resolvedTrainingAwareTrainingType
+                  )
+                )
+              )}
+            </p>
+            <PlayerDetailsPanel
+              selectedPlayer={null}
+              detailsData={null}
+              loading={false}
+              error={null}
+              lastUpdated={null}
+              unlockStatus={null}
+              onRefresh={() => {
+                void 0;
+              }}
+              players={panelPlayers}
+              playerDetailsById={extraTimePlayerDetailsById}
+              skillsMatrixRows={trainingAwareSkillsMatrixRows}
+              ratingsMatrixResponse={null}
+              ratingsMatrixSelectedName={null}
+              ratingsMatrixSpecialtyByName={specialtyByName}
+              ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
+              ratingsMatrixCardStatusByName={seniorCardStatusByName}
+              cardStatusByPlayerId={seniorCardStatusByPlayerId}
+              matrixNewPlayerIds={matrixNewMarkers.playerIds}
+              matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
+              matrixNewSkillsCurrentByPlayerId={matrixNewMarkers.skillsCurrentByPlayerId}
+              matrixNewSkillsMaxByPlayerId={matrixNewMarkers.skillsMaxByPlayerId}
+              onSelectRatingsPlayer={() => {
+                void 0;
+              }}
+              onMatrixPlayerDragStart={handleSeniorPlayerDragStart}
+              playerKind="senior"
+              skillMode="single"
+              maxSkillLevel={20}
+              activeTab="skillsMatrix"
+              showTabs={false}
+              showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
+              onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
+              skillsMatrixHeaderAux={
+                <div className={styles.seniorExtraTimeTrainingControl}>
+                  <span className={styles.trainingLabel}>
+                    {messages.trainingRegimenLabel.split(/\s+/).find(Boolean) ??
+                      messages.trainingRegimenLabel}
+                  </span>
+                  <div className={styles.feedbackWrap}>
+                    <button
+                      type="button"
+                      className={styles.lineupTrainingTypeTrigger}
+                      onClick={() => setTrainingAwareTrainingMenuOpen((prev) => !prev)}
+                      ref={trainingAwareTrainingButtonRef}
+                      aria-haspopup="menu"
+                      aria-expanded={trainingAwareTrainingMenuOpen}
+                    >
+                      <span className={styles.lineupTrainingTypeValue}>
+                        {obtainedTrainingRegimenLabel(
+                          resolvedTrainingAwareTrainingType ??
+                            NON_DEPRECATED_TRAINING_TYPES[0]
+                        )}
+                      </span>
+                    </button>
+                    {trainingAwareTrainingMenuOpen ? (
+                      <div
+                        className={`${styles.feedbackMenu} ${styles.lineupTrainingTypeMenu}`}
+                        ref={trainingAwareTrainingMenuRef}
+                        role="menu"
+                      >
+                        {NON_DEPRECATED_TRAINING_TYPES.map((value) => {
+                          const isActive =
+                            value ===
+                            (resolvedTrainingAwareTrainingType ??
+                              NON_DEPRECATED_TRAINING_TYPES[0]);
+                          const sectionTitle = trainingSectionTitleForValue(value) ?? null;
+                          return (
+                            <div key={value}>
+                              {sectionTitle ? (
+                                <div className={styles.lineupTrainingTypeSectionHeader}>
+                                  {sectionTitle}
+                                </div>
+                              ) : null}
+                              <div className={styles.lineupTrainingTypeOptionRow}>
+                                <button
+                                  type="button"
+                                  className={`${styles.feedbackLink} ${styles.lineupTrainingTypeOption} ${
+                                    isActive ? styles.lineupTrainingTypeOptionActive : ""
+                                  }`}
+                                  onClick={() => {
+                                    setTrainingAwareMatrixTrainingType(value);
+                                    setTrainingAwareMatrixTrainingTypeManual(
+                                      value !== trainingType
+                                    );
+                                    setTrainingAwareTrainingMenuOpen(false);
+                                  }}
+                                >
+                                  {obtainedTrainingRegimenLabel(value)}
+                                </button>
+                                {!isActive ? (
+                                  <Tooltip content={messages.trainingSetButtonTooltip}>
+                                    <button
+                                      type="button"
+                                      className={styles.lineupTrainingTypeSetButton}
+                                      disabled={trainingTypeSetPending}
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        if (trainingTypeSetPending) return;
+                                        void handleSetTrainingType(value);
+                                      }}
+                                    >
+                                      {trainingTypeSetPending &&
+                                      trainingTypeSetPendingValue === value ? (
+                                        <span className={styles.spinner} aria-hidden="true" />
+                                      ) : (
+                                        messages.trainingSetButtonLabel
+                                      )}
+                                    </button>
+                                  </Tooltip>
+                                ) : null}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              }
+              skillsMatrixLeadingHeader={
+                <label className={styles.seniorMatrixCheckboxLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.seniorMatrixCheckboxInput}
+                    checked={allTrainingAwarePlayersSelected}
+                    disabled={trainingAwareSelectablePlayerIds.length === 0}
+                    aria-label={messages.seniorExtraTimeModalChooseTrainees.replace(
+                      "{{count}}",
+                      String(
+                        trainingAwareTraineesTargetForTrainingType(
+                          resolvedTrainingAwareTrainingType
+                        )
+                      )
+                    )}
+                    ref={(node) => {
+                      if (!node) return;
+                      node.indeterminate = someTrainingAwarePlayersSelected;
+                    }}
+                    onChange={(event) => {
+                      setTrainingAwareSelectedPlayerIds(
+                        event.target.checked ? trainingAwareSelectablePlayerIds : []
+                      );
+                    }}
+                  />
+                  <span className={styles.seniorMatrixCheckboxBox} aria-hidden="true" />
+                </label>
+              }
+              renderSkillsMatrixLeadingCell={(row) => {
+                const rowId = typeof row.id === "number" ? row.id : null;
+                const isChecked =
+                  typeof rowId === "number" &&
+                  trainingAwareSelectedPlayerIds.includes(rowId);
+                const isInjured =
+                  typeof rowId === "number" && extraTimeInjuredPlayerIdSet.has(rowId);
+                const isDisregarded =
+                  typeof rowId === "number" && extraTimeDisregardedPlayerIds.has(rowId);
+                const isUnavailable =
+                  typeof rowId !== "number" ||
+                  !trainingAwareSelectablePlayerIds.includes(rowId);
+                const checkbox = (
+                  <label className={styles.seniorMatrixCheckboxLabel}>
+                    <input
+                      type="checkbox"
+                      className={styles.seniorMatrixCheckboxInput}
+                      checked={Boolean(isChecked)}
+                      disabled={isUnavailable || isInjured || isDisregarded}
+                      aria-label={row.name}
+                      onChange={(event) => {
+                        if (
+                          typeof rowId !== "number" ||
+                          isUnavailable ||
+                          isInjured ||
+                          isDisregarded
+                        ) {
+                          return;
+                        }
+                        setTrainingAwareSelectedPlayerIds((prev) => {
+                          if (event.target.checked) {
+                            if (prev.includes(rowId)) return prev;
+                            return [...prev, rowId];
+                          }
+                          return prev.filter((playerId) => playerId !== rowId);
+                        });
+                      }}
+                    />
+                    <span className={styles.seniorMatrixCheckboxBox} aria-hidden="true" />
+                  </label>
+                );
+                if (isInjured) {
+                  return (
+                    <Tooltip content={messages.seniorExtraTimeModalInjuredCheckboxTooltip}>
+                      <span className={styles.seniorExtraTimeDisabledCheckboxWrap}>
+                        {checkbox}
+                      </span>
+                    </Tooltip>
+                  );
+                }
+                if (isDisregarded) {
+                  return (
+                    <Tooltip content={getExtraTimeDisregardedTooltip(rowId ?? 0)}>
+                      <span className={styles.seniorExtraTimeDisabledCheckboxWrap}>
+                        {checkbox}
+                      </span>
+                    </Tooltip>
+                  );
+                }
+                if (isUnavailable) {
+                  return (
+                    <span className={styles.seniorExtraTimeDisabledCheckboxWrap}>
+                      {checkbox}
+                    </span>
+                  );
+                }
+                return checkbox;
+              }}
+              skillsMatrixRowClassName={(row) => {
+                if (
+                  typeof row.id !== "number" ||
+                  trainingAwareSelectablePlayerIds.includes(row.id)
+                ) {
+                  return null;
+                }
+                return styles.matrixRowDisregarded;
+              }}
+              skillsMatrixRowTooltip={(row) => {
+                if (
+                  typeof row.id !== "number" ||
+                  trainingAwareSelectablePlayerIds.includes(row.id)
+                ) {
+                  return null;
+                }
+                return extraTimeDisregardedPlayerIds.has(row.id)
+                  ? getExtraTimeDisregardedTooltip(row.id)
+                  : null;
+              }}
+              messages={messages}
+            />
+          </div>
+        }
+        actions={
+          <Tooltip
+            content={
+              trainingAwareSetLineupDisabled
+                ? messages.seniorExtraTimeModalSetLineupDisabledTooltip
+                : messages.seniorExtraTimeModalSetLineupReadyTooltip
+            }
+          >
+            <span>
+              <button
+                type="button"
+                className={styles.confirmSubmit}
+                disabled={trainingAwareSetLineupDisabled}
+                onClick={() => {
+                  void handleTrainingAwareSetLineup();
+                }}
+              >
+                {messages.seniorExtraTimeModalSetLineupButton}
+              </button>
+            </span>
+          </Tooltip>
+        }
+        closeOnBackdrop
+        onClose={() => {
+          setTrainingAwareInfoOpen(false);
+          setTrainingAwareMatchId(null);
         }}
       />
       <Modal
@@ -11000,6 +12324,14 @@ const refreshDetailsForPlayers = async (
                   // Fall back to the last known senior training if the live fetch fails.
                 });
                 setExtraTimeInfoOpen(true);
+                return;
+              }
+              if (mode === "trainingAware") {
+                setTrainingAwareMatchId(matchId);
+                await syncTrainingAwareModalTrainingType().catch(() => {
+                  // Fall back to the last known senior training if the live fetch fails.
+                });
+                setTrainingAwareInfoOpen(true);
                 return;
               }
               setExtraTimePreparedSubmission(null);

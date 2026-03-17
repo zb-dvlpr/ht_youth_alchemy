@@ -293,6 +293,7 @@ const EXTRA_TIME_B_TEAM_LOOKBACK_MS = 6 * 24 * 60 * 60 * 1000;
 const EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD = 45;
 const EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE = 18;
 const SENIOR_AI_LAST_MATCH_WEEKS_DEFAULT = 3;
+const SENIOR_AI_LAST_MATCH_WEEKS_DISABLED = 0;
 const SENIOR_AI_LAST_MATCH_WEEKS_MIN = 2;
 const SENIOR_AI_LAST_MATCH_WEEKS_MAX = 16;
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
@@ -2378,6 +2379,9 @@ export default function SeniorDashboard({
     [detailsById]
   );
   const seniorAiLastMatchIneligiblePlayerIds = useMemo(() => {
+    if (seniorAiLastMatchWeeksThreshold === SENIOR_AI_LAST_MATCH_WEEKS_DISABLED) {
+      return new Set<number>();
+    }
     const cutoffDays = seniorAiLastMatchWeeksThreshold * 7;
     return new Set(
       players
@@ -2662,40 +2666,53 @@ export default function SeniorDashboard({
       </div>
       <div className={styles.seniorSetBestLineupMenuDivider} aria-hidden="true" />
       <div className={styles.seniorExtraTimeBTeamThresholdLabel}>
-        {renderTemplateTokens(messages.seniorAiLastMatchThresholdText, {
-          weeks: (
-            <select
-              className={styles.seniorExtraTimeBTeamThresholdSelect}
-              aria-label={messages.seniorAiLastMatchThresholdAriaLabel}
-              value={seniorAiLastMatchWeeksThreshold}
-              onChange={(event) =>
-                setSeniorAiLastMatchWeeksThreshold(
-                  Math.min(
-                    SENIOR_AI_LAST_MATCH_WEEKS_MAX,
-                    Math.max(
-                      SENIOR_AI_LAST_MATCH_WEEKS_MIN,
-                      Number(event.target.value) || SENIOR_AI_LAST_MATCH_WEEKS_DEFAULT
+        {renderTemplateTokens(
+          seniorAiLastMatchWeeksThreshold === SENIOR_AI_LAST_MATCH_WEEKS_DISABLED
+            ? messages.seniorAiLastMatchThresholdDisabledText
+            : messages.seniorAiLastMatchThresholdText,
+          {
+            weeks: (
+              <select
+                className={styles.seniorExtraTimeBTeamThresholdSelect}
+                aria-label={messages.seniorAiLastMatchThresholdAriaLabel}
+                value={seniorAiLastMatchWeeksThreshold}
+                onChange={(event) => {
+                  const nextValue = Number(event.target.value);
+                  if (nextValue === SENIOR_AI_LAST_MATCH_WEEKS_DISABLED) {
+                    setSeniorAiLastMatchWeeksThreshold(
+                      SENIOR_AI_LAST_MATCH_WEEKS_DISABLED
+                    );
+                    return;
+                  }
+                  setSeniorAiLastMatchWeeksThreshold(
+                    Math.min(
+                      SENIOR_AI_LAST_MATCH_WEEKS_MAX,
+                      Math.max(
+                        SENIOR_AI_LAST_MATCH_WEEKS_MIN,
+                        nextValue || SENIOR_AI_LAST_MATCH_WEEKS_DEFAULT
+                      )
                     )
-                  )
-                )
-              }
-            >
-              {Array.from(
-                {
-                  length:
-                    SENIOR_AI_LAST_MATCH_WEEKS_MAX -
-                    SENIOR_AI_LAST_MATCH_WEEKS_MIN +
-                    1,
-                },
-                (_, index) => SENIOR_AI_LAST_MATCH_WEEKS_MIN + index
-              ).map((value) => (
-                <option key={value} value={value}>
-                  {value}
-                </option>
-              ))}
-            </select>
-          ),
-        })}
+                  );
+                }}
+              >
+                <option value={SENIOR_AI_LAST_MATCH_WEEKS_DISABLED}>∞</option>
+                {Array.from(
+                  {
+                    length:
+                      SENIOR_AI_LAST_MATCH_WEEKS_MAX -
+                      SENIOR_AI_LAST_MATCH_WEEKS_MIN +
+                      1,
+                  },
+                  (_, index) => SENIOR_AI_LAST_MATCH_WEEKS_MIN + index
+                ).map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            ),
+          }
+        )}
       </div>
       <div
         className={`${styles.seniorSetBestLineupMenuDivider} ${styles.seniorSetBestLineupMenuDividerStrong}`}
@@ -9344,14 +9361,19 @@ const refreshDetailsForPlayers = async (
             typeof parsed.seniorAiLastMatchWeeksThreshold === "number" &&
             Number.isFinite(parsed.seniorAiLastMatchWeeksThreshold)
           ) {
+            const roundedLastMatchThreshold = Math.round(
+              parsed.seniorAiLastMatchWeeksThreshold
+            );
             setSeniorAiLastMatchWeeksThreshold(
-              Math.min(
-                SENIOR_AI_LAST_MATCH_WEEKS_MAX,
-                Math.max(
-                  SENIOR_AI_LAST_MATCH_WEEKS_MIN,
-                  Math.round(parsed.seniorAiLastMatchWeeksThreshold)
-                )
-              )
+              roundedLastMatchThreshold === SENIOR_AI_LAST_MATCH_WEEKS_DISABLED
+                ? SENIOR_AI_LAST_MATCH_WEEKS_DISABLED
+                : Math.min(
+                    SENIOR_AI_LAST_MATCH_WEEKS_MAX,
+                    Math.max(
+                      SENIOR_AI_LAST_MATCH_WEEKS_MIN,
+                      roundedLastMatchThreshold
+                    )
+                  )
             );
           }
           if (Array.isArray(parsed.extraTimeSelectedPlayerIds)) {

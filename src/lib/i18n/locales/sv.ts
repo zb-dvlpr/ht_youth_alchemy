@@ -779,6 +779,8 @@ export const messagesSv: Messages = {
     seniorExtraTimeModalBTeamToggleLabel: "B-lag",
     seniorAiLastMatchThresholdText:
       "Ignorera spelare vars senaste match spelades för mer än {{weeks}} veckor sedan.",
+    seniorAiLastMatchThresholdDisabledText:
+      "Bortse inte från spelare utifrån datumet för deras senaste match. {{weeks}}",
     seniorAiLastMatchThresholdAriaLabel:
       "Veckogräns för att bortse från spelare utifrån senaste matchdatum",
     seniorAiLastMatchDisregardedTooltip:

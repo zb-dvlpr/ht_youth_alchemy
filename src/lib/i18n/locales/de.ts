@@ -776,6 +776,8 @@ export const messagesDe: Messages = {
     seniorExtraTimeModalBTeamToggleLabel: "B-Team",
     seniorAiLastMatchThresholdText:
       "Spieler ignorieren, deren letztes Spiel mehr als {{weeks}} Wochen zurückliegt.",
+    seniorAiLastMatchThresholdDisabledText:
+      "Spieler nicht anhand des Datums ihres letzten Spiels ignorieren. {{weeks}}",
     seniorAiLastMatchThresholdAriaLabel:
       "Wochen-Grenzwert zum Ignorieren von Spielern anhand des letzten Spiels",
     seniorAiLastMatchDisregardedTooltip:

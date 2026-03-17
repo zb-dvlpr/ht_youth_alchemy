@@ -225,6 +225,8 @@ export const messagesPl: Messages = {
   seniorExtraTimeModalBTeamToggleLabel: "Drugi skład",
   seniorAiLastMatchThresholdText:
     "Pomijaj zawodników, których ostatni mecz był dawniej niż {{weeks}} tygodni temu.",
+  seniorAiLastMatchThresholdDisabledText:
+    "Nie pomijaj zawodników na podstawie daty ich ostatniego meczu. {{weeks}}",
   seniorAiLastMatchThresholdAriaLabel:
     "Próg tygodni do pomijania zawodników według daty ostatniego meczu",
   seniorAiLastMatchDisregardedTooltip:

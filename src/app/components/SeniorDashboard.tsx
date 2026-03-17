@@ -292,6 +292,10 @@ const EXTRA_TIME_B_TEAM_MATCH_TYPES = new Set<number>([1, 2, 4, 5, 8, 9]);
 const EXTRA_TIME_B_TEAM_LOOKBACK_MS = 6 * 24 * 60 * 60 * 1000;
 const EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD = 45;
 const EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE = 18;
+const SENIOR_AI_LAST_MATCH_WEEKS_DEFAULT = 3;
+const SENIOR_AI_LAST_MATCH_WEEKS_MIN = 2;
+const SENIOR_AI_LAST_MATCH_WEEKS_MAX = 16;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const renderTemplateTokens = (
   template: string,
   replacements: Record<string, ReactNode>
@@ -1647,6 +1651,9 @@ export default function SeniorDashboard({
   const [extraTimeBTeamMinutesThreshold, setExtraTimeBTeamMinutesThreshold] = useState(
     EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD
   );
+  const [seniorAiLastMatchWeeksThreshold, setSeniorAiLastMatchWeeksThreshold] = useState(
+    SENIOR_AI_LAST_MATCH_WEEKS_DEFAULT
+  );
   const [extraTimeBTeamRecentMatchState, setExtraTimeBTeamRecentMatchState] =
     useState<ExtraTimeBTeamRecentMatchState>({
       status: "idle",
@@ -2236,6 +2243,41 @@ export default function SeniorDashboard({
       ),
     [detailsById, playersById]
   );
+  const getSeniorAiLastMatchAgeDays = useCallback(
+    (playerId: number) => {
+      const lastMatchDate = detailsById.get(playerId)?.LastMatch?.Date;
+      if (!lastMatchDate) return null;
+      const parsedDate = parseChppDate(lastMatchDate);
+      if (!parsedDate) return null;
+      const ageMs = Date.now() - parsedDate.getTime();
+      if (!Number.isFinite(ageMs) || ageMs < 0) return null;
+      return Math.floor(ageMs / ONE_DAY_MS);
+    },
+    [detailsById]
+  );
+  const seniorAiLastMatchIneligiblePlayerIds = useMemo(() => {
+    const cutoffDays = seniorAiLastMatchWeeksThreshold * 7;
+    return new Set(
+      players
+        .map((player) => player.PlayerID)
+        .filter((playerId) => {
+          const ageDays = getSeniorAiLastMatchAgeDays(playerId);
+          return typeof ageDays === "number" && ageDays > cutoffDays;
+        })
+    );
+  }, [getSeniorAiLastMatchAgeDays, players, seniorAiLastMatchWeeksThreshold]);
+  const getSeniorAiLastMatchIneligibleTooltip = useCallback(
+    (playerId: number) => {
+      const ageDays = getSeniorAiLastMatchAgeDays(playerId);
+      const weeksAgo =
+        typeof ageDays === "number" ? Math.max(1, Math.floor(ageDays / 7)) : 0;
+      return messages.seniorAiLastMatchDisregardedTooltip.replace(
+        "{{weeks}}",
+        String(weeksAgo)
+      );
+    },
+    [getSeniorAiLastMatchAgeDays, messages.seniorAiLastMatchDisregardedTooltip]
+  );
   const extraTimeInjuredPlayerIdSet = useMemo(() => {
     const injuredIds = new Set<number>();
     skillsMatrixRows.forEach((row) => {
@@ -2261,10 +2303,12 @@ export default function SeniorDashboard({
           .map((row) => row.id)
           .filter(
             (id): id is number =>
-              typeof id === "number" && !extraTimeInjuredPlayerIdSet.has(id)
+              typeof id === "number" &&
+              !extraTimeInjuredPlayerIdSet.has(id) &&
+              !seniorAiLastMatchIneligiblePlayerIds.has(id)
           )
       ),
-    [extraTimeInjuredPlayerIdSet, skillsMatrixRows]
+    [extraTimeInjuredPlayerIdSet, seniorAiLastMatchIneligiblePlayerIds, skillsMatrixRows]
   );
   const extraTimeBTeamExcludedPlayerIds = useMemo(() => {
     if (!effectiveExtraTimeBTeamEnabled) return new Set<number>();
@@ -2362,21 +2406,34 @@ export default function SeniorDashboard({
   const extraTimeDisregardedPlayerIds = useMemo(
     () =>
       new Set(
-        Array.from(extraTimeBTeamExcludedPlayerIds).filter(
-          (playerId) => !extraTimeFallbackBTeamPlayerIds.has(playerId)
-        )
-      ),
-    [extraTimeBTeamExcludedPlayerIds, extraTimeFallbackBTeamPlayerIds]
-  );
-  const getExtraTimeDisregardedTooltip = useCallback(
-    (playerId: number) =>
-      messages.seniorExtraTimeModalBTeamDisregardedTooltip.replace(
-        "{{minutes}}",
-        String(extraTimeBTeamRecentMatchState.playerMinutesById[playerId] ?? 0)
+        [
+          ...Array.from(seniorAiLastMatchIneligiblePlayerIds),
+          ...Array.from(extraTimeBTeamExcludedPlayerIds).filter(
+            (playerId) => !extraTimeFallbackBTeamPlayerIds.has(playerId)
+          ),
+        ]
       ),
     [
+      extraTimeBTeamExcludedPlayerIds,
+      extraTimeFallbackBTeamPlayerIds,
+      seniorAiLastMatchIneligiblePlayerIds,
+    ]
+  );
+  const getExtraTimeDisregardedTooltip = useCallback(
+    (playerId: number) => {
+      if (seniorAiLastMatchIneligiblePlayerIds.has(playerId)) {
+        return getSeniorAiLastMatchIneligibleTooltip(playerId);
+      }
+      return messages.seniorExtraTimeModalBTeamDisregardedTooltip.replace(
+        "{{minutes}}",
+        String(extraTimeBTeamRecentMatchState.playerMinutesById[playerId] ?? 0)
+      );
+    },
+    [
       extraTimeBTeamRecentMatchState.playerMinutesById,
+      getSeniorAiLastMatchIneligibleTooltip,
       messages.seniorExtraTimeModalBTeamDisregardedTooltip,
+      seniorAiLastMatchIneligiblePlayerIds,
     ]
   );
   const requiredExtraTimeTrainees = traineesTargetForTrainingType(
@@ -2481,6 +2538,47 @@ export default function SeniorDashboard({
           </span>
         ) : null}
       </div>
+      <div className={styles.seniorSetBestLineupMenuDivider} aria-hidden="true" />
+      <div className={styles.seniorExtraTimeBTeamThresholdLabel}>
+        {renderTemplateTokens(messages.seniorAiLastMatchThresholdText, {
+          weeks: (
+            <select
+              className={styles.seniorExtraTimeBTeamThresholdSelect}
+              aria-label={messages.seniorAiLastMatchThresholdAriaLabel}
+              value={seniorAiLastMatchWeeksThreshold}
+              onChange={(event) =>
+                setSeniorAiLastMatchWeeksThreshold(
+                  Math.min(
+                    SENIOR_AI_LAST_MATCH_WEEKS_MAX,
+                    Math.max(
+                      SENIOR_AI_LAST_MATCH_WEEKS_MIN,
+                      Number(event.target.value) || SENIOR_AI_LAST_MATCH_WEEKS_DEFAULT
+                    )
+                  )
+                )
+              }
+            >
+              {Array.from(
+                {
+                  length:
+                    SENIOR_AI_LAST_MATCH_WEEKS_MAX -
+                    SENIOR_AI_LAST_MATCH_WEEKS_MIN +
+                    1,
+                },
+                (_, index) => SENIOR_AI_LAST_MATCH_WEEKS_MIN + index
+              ).map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+          ),
+        })}
+      </div>
+      <div
+        className={`${styles.seniorSetBestLineupMenuDivider} ${styles.seniorSetBestLineupMenuDividerStrong}`}
+        aria-hidden="true"
+      />
     </div>
   );
   const extraTimeSetLineupDisabled =
@@ -2735,7 +2833,10 @@ export default function SeniorDashboard({
 
   const isSeniorAiEligiblePlayer = (player: SeniorPlayer) => {
     const injuryLevel = seniorAiInjuryLevelForPlayer(player);
-    return typeof injuryLevel !== "number" || injuryLevel < 1;
+    return (
+      (typeof injuryLevel !== "number" || injuryLevel < 1) &&
+      !seniorAiLastMatchIneligiblePlayerIds.has(player.PlayerID)
+    );
   };
 
   const isSeniorExtraTimePoolEligiblePlayer = (player: SeniorPlayer) =>
@@ -7911,10 +8012,7 @@ const refreshDetailsForPlayers = async (
                 selectedGeneratedFormation,
                 selectedGeneratedTactic,
                 selectedRejectedPlayerIds,
-                selectedIneligiblePlayerIds:
-                  mode === "trainingAware" || mode === "ignoreTraining"
-                    ? Array.from(extraTimeDisregardedPlayerIds)
-                    : [],
+                selectedIneligiblePlayerIds: Array.from(extraTimeDisregardedPlayerIds),
                 fixedFormationFailureEligiblePlayerIds: [],
                 fixedFormationFailureSlotDiagnostics: [],
                 selectedComparison,
@@ -8047,6 +8145,7 @@ const refreshDetailsForPlayers = async (
     setShowSeniorSkillBonusInMatrix(true);
     setExtraTimeBTeamEnabled(false);
     setExtraTimeBTeamMinutesThreshold(EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD);
+    setSeniorAiLastMatchWeeksThreshold(SENIOR_AI_LAST_MATCH_WEEKS_DEFAULT);
     setExtraTimeBTeamRecentMatchState({
       status: "idle",
       recentMatch: null,
@@ -8107,6 +8206,7 @@ const refreshDetailsForPlayers = async (
             showSeniorSkillBonusInMatrix?: boolean;
             extraTimeBTeamEnabled?: boolean;
             extraTimeBTeamMinutesThreshold?: number;
+            seniorAiLastMatchWeeksThreshold?: number;
             extraTimeSelectedPlayerIds?: number[];
             extraTimeMatrixTrainingType?: number | null;
             extraTimeMatrixTrainingTypeManual?: boolean;
@@ -8170,6 +8270,20 @@ const refreshDetailsForPlayers = async (
           ) {
             setExtraTimeBTeamMinutesThreshold(
               Math.min(90, Math.max(1, Math.round(parsed.extraTimeBTeamMinutesThreshold)))
+            );
+          }
+          if (
+            typeof parsed.seniorAiLastMatchWeeksThreshold === "number" &&
+            Number.isFinite(parsed.seniorAiLastMatchWeeksThreshold)
+          ) {
+            setSeniorAiLastMatchWeeksThreshold(
+              Math.min(
+                SENIOR_AI_LAST_MATCH_WEEKS_MAX,
+                Math.max(
+                  SENIOR_AI_LAST_MATCH_WEEKS_MIN,
+                  Math.round(parsed.seniorAiLastMatchWeeksThreshold)
+                )
+              )
             );
           }
           if (Array.isArray(parsed.extraTimeSelectedPlayerIds)) {
@@ -8392,6 +8506,7 @@ const refreshDetailsForPlayers = async (
       showSeniorSkillBonusInMatrix,
       extraTimeBTeamEnabled,
       extraTimeBTeamMinutesThreshold,
+      seniorAiLastMatchWeeksThreshold,
       extraTimeSelectedPlayerIds,
       extraTimeMatrixTrainingType,
       extraTimeMatrixTrainingTypeManual,
@@ -8420,6 +8535,7 @@ const refreshDetailsForPlayers = async (
     showSeniorSkillBonusInMatrix,
     extraTimeBTeamEnabled,
     extraTimeBTeamMinutesThreshold,
+    seniorAiLastMatchWeeksThreshold,
     extraTimeSelectedPlayerIds,
     extraTimeMatrixTrainingType,
     extraTimeMatrixTrainingTypeManual,
@@ -9350,7 +9466,6 @@ const refreshDetailsForPlayers = async (
               }}
               skillsMatrixRowClassName={(row) => {
                 if (
-                  !effectiveExtraTimeBTeamEnabled ||
                   typeof row.id !== "number" ||
                   !extraTimeDisregardedPlayerIds.has(row.id)
                 ) {
@@ -9360,7 +9475,6 @@ const refreshDetailsForPlayers = async (
               }}
               skillsMatrixRowTooltip={(row) => {
                 if (
-                  !effectiveExtraTimeBTeamEnabled ||
                   typeof row.id !== "number" ||
                   !extraTimeDisregardedPlayerIds.has(row.id)
                 ) {

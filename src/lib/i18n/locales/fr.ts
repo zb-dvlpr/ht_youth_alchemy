@@ -785,6 +785,12 @@ export const messagesFr: Messages = {
     seniorExtraTimeModalChooseTrainees:
       "Choisissez {{count}} stagiaires, puis cliquez sur Définir la compo. Les joueurs sélectionnés automatiquement peuvent être remplacés.",
     seniorExtraTimeModalBTeamToggleLabel: "Équipe B",
+    seniorAiLastMatchThresholdText:
+      "Ignorer les joueurs dont le dernier match remonte à plus de {{weeks}} semaines.",
+    seniorAiLastMatchThresholdAriaLabel:
+      "Seuil en semaines pour écarter des joueurs selon la date de leur dernier match",
+    seniorAiLastMatchDisregardedTooltip:
+      "Le joueur est écarté car son dernier match remonte à {{weeks}} semaines.",
     seniorExtraTimeModalBTeamThresholdText:
       "Ignorer les joueurs ayant déjà joué {{minutes}} minutes {{weekLink}}.",
     seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "cette semaine",

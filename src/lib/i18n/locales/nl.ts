@@ -229,6 +229,12 @@ export const messagesNl: Messages = {
   seniorExtraTimeModalChooseTrainees:
     "Kies {{count}} trainees en klik daarna op Opstelling instellen. De automatisch gekozen spelers kun je overschrijven.",
   seniorExtraTimeModalBTeamToggleLabel: "B-team",
+  seniorAiLastMatchThresholdText:
+    "Negeer spelers van wie de laatste wedstrijd meer dan {{weeks}} weken geleden was.",
+  seniorAiLastMatchThresholdAriaLabel:
+    "Wekengrens om spelers uit te sluiten op basis van hun laatste wedstrijd",
+  seniorAiLastMatchDisregardedTooltip:
+    "Deze speler wordt genegeerd omdat hij {{weeks}} weken geleden voor het laatst speelde.",
   seniorExtraTimeModalBTeamThresholdText:
     "Negeer spelers die {{weekLink}} al {{minutes}} minuten hebben gespeeld.",
   seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "deze week",

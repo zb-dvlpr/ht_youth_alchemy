@@ -777,6 +777,12 @@ export const messagesSv: Messages = {
     seniorExtraTimeModalChooseTrainees:
       "Välj {{count}} traineer och klicka sedan på Sätt uppställning. De som valts automatiskt kan ändras.",
     seniorExtraTimeModalBTeamToggleLabel: "B-lag",
+    seniorAiLastMatchThresholdText:
+      "Ignorera spelare vars senaste match spelades för mer än {{weeks}} veckor sedan.",
+    seniorAiLastMatchThresholdAriaLabel:
+      "Veckogräns för att bortse från spelare utifrån senaste matchdatum",
+    seniorAiLastMatchDisregardedTooltip:
+      "Spelaren ignoreras eftersom han senast spelade för {{weeks}} veckor sedan.",
     seniorExtraTimeModalBTeamThresholdText:
       "Bortse från spelare som redan har spelat {{minutes}} minuter {{weekLink}}.",
     seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "den här veckan",

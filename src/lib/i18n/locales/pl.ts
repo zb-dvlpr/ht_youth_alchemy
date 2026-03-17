@@ -223,6 +223,12 @@ export const messagesPl: Messages = {
   seniorExtraTimeModalChooseTrainees:
     "Wybierz {{count}} trenowanych zawodników, a następnie kliknij Ustaw skład. Zaznaczonych automatycznie można zmienić.",
   seniorExtraTimeModalBTeamToggleLabel: "Drugi skład",
+  seniorAiLastMatchThresholdText:
+    "Pomijaj zawodników, których ostatni mecz był dawniej niż {{weeks}} tygodni temu.",
+  seniorAiLastMatchThresholdAriaLabel:
+    "Próg tygodni do pomijania zawodników według daty ostatniego meczu",
+  seniorAiLastMatchDisregardedTooltip:
+    "Ten zawodnik jest pomijany, ponieważ ostatni raz grał {{weeks}} tygodni temu.",
   seniorExtraTimeModalBTeamThresholdText:
     "Pomijaj zawodników, którzy już zagrali {{minutes}} minut {{weekLink}}.",
   seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "w tym tygodniu",

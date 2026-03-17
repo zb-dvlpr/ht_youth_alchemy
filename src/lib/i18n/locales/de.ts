@@ -774,6 +774,12 @@ export const messagesDe: Messages = {
     seniorExtraTimeModalChooseTrainees:
       "Wähle {{count}} Trainees und klicke dann auf Aufstellung setzen. Die automatisch ausgewählten können überschrieben werden.",
     seniorExtraTimeModalBTeamToggleLabel: "B-Team",
+    seniorAiLastMatchThresholdText:
+      "Spieler ignorieren, deren letztes Spiel mehr als {{weeks}} Wochen zurückliegt.",
+    seniorAiLastMatchThresholdAriaLabel:
+      "Wochen-Grenzwert zum Ignorieren von Spielern anhand des letzten Spiels",
+    seniorAiLastMatchDisregardedTooltip:
+      "Dieser Spieler wird ignoriert, weil sein letztes Spiel {{weeks}} Wochen zurückliegt.",
     seniorExtraTimeModalBTeamThresholdText:
       "Spieler ignorieren, die {{weekLink}} schon {{minutes}} Minuten gespielt haben.",
     seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "diese Woche",

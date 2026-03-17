@@ -5600,7 +5600,6 @@ html[data-theme="dark"] .spinner {
   width: 100%;
   padding: 0 0 8px;
   margin: 0 0 2px;
-  border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent);
 }
 
 .seniorExtraTimeBTeamThresholdLabel {
@@ -5608,6 +5607,16 @@ html[data-theme="dark"] .spinner {
   font-size: 11px;
   color: inherit;
   line-height: 1.4;
+}
+
+.seniorSetBestLineupMenuDivider {
+  width: 100%;
+  border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.seniorSetBestLineupMenuDividerStrong {
+  border-top-width: 2px;
+  border-top-color: color-mix(in srgb, currentColor 32%, transparent);
 }
 
 .seniorExtraTimeBTeamThresholdSelect {

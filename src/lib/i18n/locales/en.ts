@@ -751,6 +751,12 @@ export const messagesEn: Messages = {
     seniorExtraTimeModalChooseTrainees:
       "Choose {{count}} trainees, then click Set lineup. The auto-chosen ones can be overridden.",
     seniorExtraTimeModalBTeamToggleLabel: "B team",
+    seniorAiLastMatchThresholdText:
+      "Ignore players whose last match was more than {{weeks}} weeks ago.",
+    seniorAiLastMatchThresholdAriaLabel:
+      "Weeks threshold for disregarding players by last match date",
+    seniorAiLastMatchDisregardedTooltip:
+      "Player is disregarded because they last played {{weeks}} weeks ago.",
     seniorExtraTimeModalBTeamThresholdText:
       "Disregard players who already played {{minutes}} minutes {{weekLink}}.",
     seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "this week",

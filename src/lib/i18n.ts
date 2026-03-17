@@ -648,6 +648,9 @@ export type Messages = {
   seniorExtraTimeModalWorkflow: string;
   seniorExtraTimeModalChooseTrainees: string;
   seniorExtraTimeModalBTeamToggleLabel: string;
+  seniorAiLastMatchThresholdText: string;
+  seniorAiLastMatchThresholdAriaLabel: string;
+  seniorAiLastMatchDisregardedTooltip: string;
   seniorExtraTimeModalBTeamThresholdText: string;
   seniorExtraTimeModalBTeamThresholdWeekLinkLabel: string;
   seniorExtraTimeModalBTeamThresholdAriaLabel: string;

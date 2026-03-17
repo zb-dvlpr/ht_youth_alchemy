@@ -13,6 +13,7 @@ import SettingsButton from "./components/SettingsButton";
 import SeasonBootstrap from "./components/SeasonBootstrap";
 import AppShell from "./components/AppShell";
 import SeniorDashboard from "./components/SeniorDashboard";
+import BuyCoffeeButton from "./components/BuyCoffeeButton";
 import Tooltip from "./components/Tooltip";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
@@ -313,15 +314,12 @@ export default async function Home() {
                   <FeedbackButton messages={messages} />
                   <SettingsButton messages={messages} />
                   <Tooltip content={messages.supportOnKofi}>
-                    <a
+                    <BuyCoffeeButton
                       className={`${styles.feedbackButton} ${styles.kofiIconLink}`}
-                      href="https://ko-fi.com/zbdvlpr"
-                      target="_blank"
-                      rel="noreferrer"
                       aria-label={messages.supportOnKofi}
                     >
                       ☕
-                    </a>
+                    </BuyCoffeeButton>
                   </Tooltip>
                   {isConnected ? (
                     <ConnectedStatus messages={messages} />

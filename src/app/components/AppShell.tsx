@@ -6,6 +6,7 @@ import styles from "../page.module.css";
 import Tooltip from "./Tooltip";
 import ClubChronicle from "./ClubChronicle";
 import Modal from "./Modal";
+import BuyCoffeeButton from "./BuyCoffeeButton";
 import { Messages } from "@/lib/i18n";
 import { getChangelogEntries } from "@/lib/changelog";
 import { formatDateTime } from "@/lib/datetime";
@@ -15,7 +16,10 @@ import {
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
 import { reconnectChppWithTokenReset } from "@/lib/chpp/client";
-import { BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT } from "@/lib/settings";
+import {
+  BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT,
+  BUY_COFFEE_PROMPT_OPEN_EVENT,
+} from "@/lib/settings";
 
 type AppShellProps = {
   messages: Messages;
@@ -300,9 +304,12 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
       buyCoffeePromptShownThisSessionRef.current = true;
       setBuyCoffeePromptOpen(true);
     };
+    window.addEventListener(BUY_COFFEE_PROMPT_OPEN_EVENT, handler);
     window.addEventListener(BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT, handler);
-    return () =>
+    return () => {
+      window.removeEventListener(BUY_COFFEE_PROMPT_OPEN_EVENT, handler);
       window.removeEventListener(BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT, handler);
+    };
   }, []);
 
   useEffect(() => {
@@ -572,18 +579,15 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
   };
 
   const kofiButton = (
-    <a
+    <BuyCoffeeButton
       className={styles.sidebarItem}
-      href="https://ko-fi.com/zbdvlpr"
-      target="_blank"
-      rel="noreferrer"
       aria-label={messages.supportOnKofi}
     >
       <span className={styles.sidebarIcon} aria-hidden="true">
         <span className={styles.sidebarIconGlyph}>☕</span>
       </span>
       {!collapsed ? <span className={styles.sidebarLabel}>{messages.supportOnKofi}</span> : null}
-    </a>
+    </BuyCoffeeButton>
   );
 
   const activeOptimizationLastRefreshAt =

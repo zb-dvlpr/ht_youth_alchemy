@@ -8639,7 +8639,7 @@ const refreshDetailsForPlayers = async (
         const resolvedPass =
           mode === "trainingAware"
             ? null
-            : mode === "ignoreTraining"
+            : mode === "ignoreTraining" || mode === "fixedFormation"
               ? buildAssignmentsWithReusableAlgorithm(orderedSlots)
               : buildAssignmentsForOrderedSlots(orderedSlots);
         const trainingAwareAssignments =
@@ -8879,7 +8879,7 @@ const refreshDetailsForPlayers = async (
           { slot: "B_W", code: 106 },
           { slot: "B_X", code: null },
         ];
-        if (mode === "ignoreTraining") {
+        if (mode === "ignoreTraining" || mode === "fixedFormation") {
           const emptyBenchSlots = benchPlan
             .map((entry) => entry.slot)
             .filter(

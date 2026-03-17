@@ -8434,10 +8434,45 @@ const refreshDetailsForPlayers = async (
             : false;
         })
         .map(({ id, name, formValue }) => ({ id, name, formValue }));
+      const eligiblePoolPlayers = playerPool
+        .map((player) => playersById.get(player.id) ?? null)
+        .filter((player): player is SeniorPlayer => Boolean(player));
       const playerPoolIds = playerPool.map((player) => player.id);
       if (playerPool.length < 11) {
         throw new Error(messages.submitOrdersMinPlayers);
       }
+      const buildAssignmentsWithReusableAlgorithm = (
+        orderedSlots: string[]
+      ) => {
+        const resolvedPass = assignPlayersWithReusableSlotAlgorithm(
+          eligiblePoolPlayers,
+          orderedSlots as Array<keyof LineupAssignments>,
+          ratingsById
+        );
+        const slotRatingsForFormation: Record<string, number | null> = {};
+        Object.entries(resolvedPass.assignments).forEach(([slot, playerId]) => {
+          if (typeof playerId !== "number" || playerId <= 0) {
+            slotRatingsForFormation[slot] = null;
+            return;
+          }
+          const roleCode = SLOT_TO_RATING_CODE[slot];
+          slotRatingsForFormation[slot] =
+            typeof roleCode === "number" &&
+            typeof ratingsById[playerId]?.[String(roleCode)] === "number"
+              ? (ratingsById[playerId]?.[String(roleCode)] as number)
+              : null;
+        });
+        return {
+          assignments: resolvedPass.assignments,
+          slotRatings: slotRatingsForFormation,
+          usedPlayerIds: new Set<number>(
+            Object.values(resolvedPass.assignments).filter(
+              (playerId): playerId is number => typeof playerId === "number" && playerId > 0
+            )
+          ),
+          slotDiagnostics: [] as FixedFormationSlotDiagnostic[],
+        };
+      };
       const buildAssignmentsForOrderedSlots = (orderedSlots: string[]) => {
         const availablePlayers = [...playerPool];
         const assignmentsForFormation: LineupAssignments = {};
@@ -8604,7 +8639,9 @@ const refreshDetailsForPlayers = async (
         const resolvedPass =
           mode === "trainingAware"
             ? null
-            : buildAssignmentsForOrderedSlots(orderedSlots);
+            : mode === "ignoreTraining"
+              ? buildAssignmentsWithReusableAlgorithm(orderedSlots)
+              : buildAssignmentsForOrderedSlots(orderedSlots);
         const trainingAwareAssignments =
           mode === "trainingAware"
             ? buildTrainingAwareAssignmentsForShape(
@@ -8796,16 +8833,15 @@ const refreshDetailsForPlayers = async (
             (id): id is number => typeof id === "number" && id > 0
           )
         );
-        const remaining = players
-          .filter(
-            (player) =>
-              !used.has(player.PlayerID) &&
-              isSeniorAiEligibleForMatch(player, selectedMatchType)
-          )
-          .map((player) => ({
-            id: player.PlayerID,
-            name: formatPlayerName(player) || String(player.PlayerID),
-          }));
+        const remainingEligiblePlayers = players.filter(
+          (player) =>
+            !used.has(player.PlayerID) &&
+            isSeniorAiEligibleForMatch(player, selectedMatchType)
+        );
+        const remaining = remainingEligiblePlayers.map((player) => ({
+          id: player.PlayerID,
+          name: formatPlayerName(player) || String(player.PlayerID),
+        }));
         const pickBestForCode = (code: number) => {
           if (remaining.length === 0) return null;
           remaining.sort((left, right) => {
@@ -8843,15 +8879,33 @@ const refreshDetailsForPlayers = async (
           { slot: "B_W", code: 106 },
           { slot: "B_X", code: null },
         ];
-        benchPlan.forEach((entry) => {
-          if (typeof chosenAssignments[entry.slot] === "number" && (chosenAssignments[entry.slot] ?? 0) > 0) {
-            return;
-          }
-          const picked = entry.code === null ? pickBestAny() : pickBestForCode(entry.code);
-          if (picked) {
-            chosenAssignments[entry.slot] = picked.id;
-          }
-        });
+        if (mode === "ignoreTraining") {
+          const emptyBenchSlots = benchPlan
+            .map((entry) => entry.slot)
+            .filter(
+              (slot) =>
+                typeof chosenAssignments[slot] !== "number" ||
+                (chosenAssignments[slot] ?? 0) <= 0
+            ) as Array<keyof LineupAssignments>;
+          const benchAssigned = assignPlayersWithReusableSlotAlgorithm(
+            remainingEligiblePlayers,
+            emptyBenchSlots,
+            ratingsById
+          );
+          Object.entries(benchAssigned.assignments).forEach(([slot, playerId]) => {
+            chosenAssignments[slot] = playerId ?? null;
+          });
+        } else {
+          benchPlan.forEach((entry) => {
+            if (typeof chosenAssignments[entry.slot] === "number" && (chosenAssignments[entry.slot] ?? 0) > 0) {
+              return;
+            }
+            const picked = entry.code === null ? pickBestAny() : pickBestForCode(entry.code);
+            if (picked) {
+              chosenAssignments[entry.slot] = picked.id;
+            }
+          });
+        }
 
         setAssignments(chosenAssignments);
         setBehaviors({});

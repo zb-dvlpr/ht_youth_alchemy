@@ -38,6 +38,7 @@ import {
   writeGeneralEnableScaling,
   YOUTH_NEW_MARKERS_DEBUG_EVENT,
   YOUTH_DEBUG_SE_FETCH_EVENT,
+  BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT,
   readYouthNewMarkersDebugEnabled,
   writeYouthNewMarkersDebugEnabled,
 } from "@/lib/settings";
@@ -396,6 +397,15 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         })
       );
     }
+  };
+
+  const handleOpenBuyCoffeePromptDebug = () => {
+    setDebugSettingsOpen(false);
+    setOpen(false);
+    if (typeof window === "undefined") return;
+    window.requestAnimationFrame(() => {
+      window.dispatchEvent(new CustomEvent(BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT));
+    });
   };
 
   return (
@@ -827,6 +837,13 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
               </div>
             </label>
             <p className={styles.muted}>{messages.debugYouthSeFetchHint}</p>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={handleOpenBuyCoffeePromptDebug}
+            >
+              {messages.settingsDebugBuyCoffeePromptButton}
+            </button>
           </div>
         }
         actions={

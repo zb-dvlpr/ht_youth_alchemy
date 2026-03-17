@@ -15,6 +15,7 @@ import {
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
 import { reconnectChppWithTokenReset } from "@/lib/chpp/client";
+import { BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT } from "@/lib/settings";
 
 type AppShellProps = {
   messages: Messages;
@@ -36,10 +37,21 @@ type ViewStateSnapshot = {
   capturedAt: number;
 };
 
+type BuyCoffeePromptState = {
+  firstSeenAt: number;
+  lastPromptAt: number | null;
+  cadenceDays: number;
+};
+
 const APP_SHELL_VIEW_STATE_KEY = "ya_app_shell_view_state_v1";
 const APP_SHELL_ACTIVE_TOOL_KEY = "ya_app_shell_active_tool_v1";
 const APP_SHELL_COLLAPSED_KEY = "ya_app_shell_collapsed_v1";
 const CHANGELOG_SEEN_LATEST_ENTRY_KEY = "ya_changelog_seen_latest_entry_v1";
+const BUY_COFFEE_PROMPT_STORAGE_KEY = "ya_buy_me_coffee_prompt_v1";
+const BUY_COFFEE_INITIAL_DELAY_MS = 30 * 1000;
+const BUY_COFFEE_FIRST_PROMPT_MS = 7 * 24 * 60 * 60 * 1000;
+const BUY_COFFEE_DEFAULT_CADENCE_DAYS = 30;
+const BUY_COFFEE_SUPPORTED_CADENCE_DAYS = 60;
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
 const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
@@ -65,7 +77,25 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
   const [showChangelog, setShowChangelog] = useState(false);
   const [changelogPage, setChangelogPage] = useState(0);
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
+  const [buyCoffeePromptOpen, setBuyCoffeePromptOpen] = useState(false);
+  const [buyCoffeePromptState, setBuyCoffeePromptState] =
+    useState<BuyCoffeePromptState | null>(null);
+  const [buyCoffeeSessionReady, setBuyCoffeeSessionReady] = useState(false);
   const shellTopBarRef = useRef<HTMLDivElement | null>(null);
+  const buyCoffeePromptShownThisSessionRef = useRef(false);
+
+  const persistBuyCoffeePromptState = (nextState: BuyCoffeePromptState) => {
+    setBuyCoffeePromptState(nextState);
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(
+        BUY_COFFEE_PROMPT_STORAGE_KEY,
+        JSON.stringify(nextState)
+      );
+    } catch {
+      // ignore storage errors
+    }
+  };
 
   const ensureRefreshScopes = async () => {
     try {
@@ -177,6 +207,103 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
       // ignore storage errors
     }
   }, [changelogEntries]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem(BUY_COFFEE_PROMPT_STORAGE_KEY);
+      if (!raw) {
+        const initialState: BuyCoffeePromptState = {
+          firstSeenAt: Date.now(),
+          lastPromptAt: null,
+          cadenceDays: BUY_COFFEE_DEFAULT_CADENCE_DAYS,
+        };
+        window.localStorage.setItem(
+          BUY_COFFEE_PROMPT_STORAGE_KEY,
+          JSON.stringify(initialState)
+        );
+        setBuyCoffeePromptState(initialState);
+        return;
+      }
+      const parsed = JSON.parse(raw) as Partial<BuyCoffeePromptState> | null;
+      const normalized: BuyCoffeePromptState = {
+        firstSeenAt:
+          typeof parsed?.firstSeenAt === "number" &&
+          Number.isFinite(parsed.firstSeenAt)
+            ? parsed.firstSeenAt
+            : Date.now(),
+        lastPromptAt:
+          typeof parsed?.lastPromptAt === "number" &&
+          Number.isFinite(parsed.lastPromptAt)
+            ? parsed.lastPromptAt
+            : null,
+        cadenceDays:
+          parsed?.cadenceDays === BUY_COFFEE_SUPPORTED_CADENCE_DAYS
+            ? BUY_COFFEE_SUPPORTED_CADENCE_DAYS
+            : BUY_COFFEE_DEFAULT_CADENCE_DAYS,
+      };
+      window.localStorage.setItem(
+        BUY_COFFEE_PROMPT_STORAGE_KEY,
+        JSON.stringify(normalized)
+      );
+      setBuyCoffeePromptState(normalized);
+    } catch {
+      setBuyCoffeePromptState({
+        firstSeenAt: Date.now(),
+        lastPromptAt: null,
+        cadenceDays: BUY_COFFEE_DEFAULT_CADENCE_DAYS,
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const timer = window.setTimeout(() => {
+      setBuyCoffeeSessionReady(true);
+    }, BUY_COFFEE_INITIAL_DELAY_MS);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!buyCoffeePromptState) return;
+    if (!buyCoffeeSessionReady) return;
+    if (buyCoffeePromptOpen) return;
+    if (buyCoffeePromptShownThisSessionRef.current) return;
+    if (showChangelog || scopeReconnectModalOpen) return;
+    if (youthRefreshing || seniorRefreshing) return;
+    if (document.hidden) return;
+    const otherModalOpen =
+      document.querySelectorAll('[role="dialog"][aria-modal="true"]').length > 0;
+    if (otherModalOpen) return;
+    const nextPromptAt =
+      buyCoffeePromptState.lastPromptAt === null
+        ? buyCoffeePromptState.firstSeenAt + BUY_COFFEE_FIRST_PROMPT_MS
+        : buyCoffeePromptState.lastPromptAt +
+          buyCoffeePromptState.cadenceDays * 24 * 60 * 60 * 1000;
+    if (Date.now() < nextPromptAt) return;
+    buyCoffeePromptShownThisSessionRef.current = true;
+    setBuyCoffeePromptOpen(true);
+  }, [
+    buyCoffeePromptOpen,
+    buyCoffeePromptState,
+    buyCoffeeSessionReady,
+    scopeReconnectModalOpen,
+    seniorRefreshing,
+    showChangelog,
+    youthRefreshing,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = () => {
+      buyCoffeePromptShownThisSessionRef.current = true;
+      setBuyCoffeePromptOpen(true);
+    };
+    window.addEventListener(BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT, handler);
+    return () =>
+      window.removeEventListener(BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT, handler);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -465,6 +592,36 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
   const youthToolChildren = useMemo(() => Children.toArray(children), [children]);
   const seniorToolChildren = useMemo(() => Children.toArray(seniorTool), [seniorTool]);
 
+  const handleBuyCoffeeLater = () => {
+    const baseState = buyCoffeePromptState ?? {
+      firstSeenAt: Date.now(),
+      lastPromptAt: null,
+      cadenceDays: BUY_COFFEE_DEFAULT_CADENCE_DAYS,
+    };
+    persistBuyCoffeePromptState({
+      ...baseState,
+      lastPromptAt: Date.now(),
+    });
+    setBuyCoffeePromptOpen(false);
+  };
+
+  const handleBuyCoffeeAction = () => {
+    if (typeof window !== "undefined") {
+      window.open("https://ko-fi.com/zbdvlpr", "_blank", "noopener,noreferrer");
+    }
+    const baseState = buyCoffeePromptState ?? {
+      firstSeenAt: Date.now(),
+      lastPromptAt: null,
+      cadenceDays: BUY_COFFEE_DEFAULT_CADENCE_DAYS,
+    };
+    persistBuyCoffeePromptState({
+      ...baseState,
+      lastPromptAt: Date.now(),
+      cadenceDays: BUY_COFFEE_SUPPORTED_CADENCE_DAYS,
+    });
+    setBuyCoffeePromptOpen(false);
+  };
+
   return (
     <div
       className={styles.shellFrame}
@@ -633,6 +790,36 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
         {activeTool === "senior" ? seniorToolChildren : null}
         {activeTool === "chronicle" ? <ClubChronicle messages={messages} /> : null}
       </section>
+      <Modal
+        open={buyCoffeePromptOpen}
+        title={messages.buyCoffeePromptTitle}
+        movable={false}
+        body={
+          <div className={styles.algorithmsModalBody}>
+            <p>{messages.buyCoffeePromptLead}</p>
+            <p>{messages.buyCoffeePromptBody}</p>
+            <p>{messages.buyCoffeePromptFoot}</p>
+          </div>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={handleBuyCoffeeLater}
+            >
+              {messages.buyCoffeePromptLater}
+            </button>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={handleBuyCoffeeAction}
+            >
+              {messages.buyCoffeePromptAction}
+            </button>
+          </>
+        }
+      />
       <Modal
         open={scopeReconnectModalOpen}
         title={messages.scopeReconnectTitle}

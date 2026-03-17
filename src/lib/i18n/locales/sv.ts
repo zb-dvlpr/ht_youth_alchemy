@@ -11,6 +11,14 @@ export const messagesSv: Messages = {
     sidebarCollapseTooltip: "Fäll in sidofältet",
     sidebarExpandTooltip: "Fäll ut sidofältet",
     supportOnKofi: "Bjud mig på kaffe",
+    buyCoffeePromptTitle: "☕ Tack för att du är här",
+    buyCoffeePromptLead: "🙏 Jag är verkligen tacksam att du använder HT Youth Alchemy.",
+    buyCoffeePromptBody:
+      "✨ Den här appen kräver mycket löpande arbete, och om den har hjälpt dig skulle en kaffe vara ett väldigt meningsfullt sätt att stötta fortsatt utveckling. Varje stöd hjälper mig att lägga mer tid på att förbättra och underhålla appen.",
+    buyCoffeePromptFoot:
+      "💛 Och om inte så är det helt okej. Jag är redan glad att appen är användbar för dig.",
+    buyCoffeePromptAction: "☕ Bjud mig på kaffe",
+    buyCoffeePromptLater: "🙏 Inte nu",
     toolYouthOptimization: "Ungdomstruppsoptimering",
     toolSeniorOptimization: "Seniortruppsoptimering",
     toolYouthBadge: "Y",
@@ -206,6 +214,7 @@ export const messagesSv: Messages = {
       "Hur många ändrade globala uppdateringsdifferenser som sparas och visas i historiken för Senaste uppdateringar.",
     settingsGeneral: "Allmänt",
     settingsGeneralTitle: "Allmänna inställningar",
+    settingsDebugBuyCoffeePromptButton: "Visa bjud mig på kaffe-modal",
     settingsGeneralEnableScalingLabel: "Aktivera appskalning",
     settingsGeneralEnableScalingTooltip:
       "När aktiverad skalas appen för att passa viewporten och minska scrollning. När avstängd används normal storlek och sidan kan scrollas.",

@@ -11,6 +11,14 @@ export const messagesPt: Messages = {
     sidebarCollapseTooltip: "Recolher barra lateral",
     sidebarExpandTooltip: "Expandir barra lateral",
     supportOnKofi: "Paga-me um café",
+    buyCoffeePromptTitle: "☕ Obrigado por estares aqui",
+    buyCoffeePromptLead: "🙏 Fico mesmo grato por estares a usar o HT Youth Alchemy.",
+    buyCoffeePromptBody:
+      "✨ Esta app exige muito trabalho contínuo e, se te ajudou, pagar-me um café seria uma forma muito especial de apoiar o desenvolvimento contínuo. Cada apoio ajuda-me a dedicar mais tempo a melhorar e manter a app.",
+    buyCoffeePromptFoot:
+      "💛 E se não, está tudo bem na mesma. Já fico contente por a app te ser útil.",
+    buyCoffeePromptAction: "☕ Paga-me um café",
+    buyCoffeePromptLater: "🙏 Agora não",
     toolYouthOptimization: "Otimização elenco juvenil",
     toolSeniorOptimization: "Otimização elenco sênior",
     toolYouthBadge: "Y",
@@ -206,6 +214,7 @@ export const messagesPt: Messages = {
       "Diferenças de últimas atualizações para manter",
     settingsClubChronicleUpdatesHistoryHint:
       "Quantas diferenças com mudanças de refresh global são salvas e exibidas no histórico de Últimas atualizações.",
+    settingsDebugBuyCoffeePromptButton: "Mostrar modal paga-me um café",
     settingsGeneral: "Geral",
     settingsGeneralTitle: "Configurações gerais",
     settingsGeneralEnableScalingLabel: "Ativar escala do app",

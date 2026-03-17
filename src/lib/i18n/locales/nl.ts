@@ -12,6 +12,15 @@ export const messagesNl: Messages = {
   sidebarCollapseTooltip: "Zijbalk inklappen",
   sidebarExpandTooltip: "Zijbalk uitklappen",
   supportOnKofi: "Koop een koffie voor me",
+  settingsDebugBuyCoffeePromptButton: "Toon koop-een-koffie-voor-me-modal",
+  buyCoffeePromptTitle: "☕ Fijn dat je hier bent",
+  buyCoffeePromptLead: "🙏 Ik ben echt dankbaar dat je HT Youth Alchemy gebruikt.",
+  buyCoffeePromptBody:
+    "✨ Deze app kost veel doorlopend werk en als hij je heeft geholpen, dan is een koffie voor mij een heel betekenisvolle manier om de verdere ontwikkeling te steunen. Elke bijdrage helpt me om meer tijd te steken in verbeteren en onderhouden.",
+  buyCoffeePromptFoot:
+    "💛 En als niet, is dat ook helemaal prima. Ik ben al blij dat de app nuttig voor je is.",
+  buyCoffeePromptAction: "☕ Koop een koffie voor me",
+  buyCoffeePromptLater: "🙏 Niet nu",
   toolYouthOptimization: "Jeugdselectie-optimalisatie",
   toolSeniorOptimization: "Seniorselectie-optimalisatie",
   toolClubChronicle: "Clubkroniek",

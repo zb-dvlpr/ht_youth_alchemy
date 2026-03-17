@@ -11,6 +11,14 @@ export const messagesEn: Messages = {
     sidebarCollapseTooltip: "Collapse sidebar",
     sidebarExpandTooltip: "Expand sidebar",
     supportOnKofi: "Buy me a coffee",
+    buyCoffeePromptTitle: "☕ Thanks for being here",
+    buyCoffeePromptLead: "🙏 I’m really grateful you’re using HT Youth Alchemy.",
+    buyCoffeePromptBody:
+      "✨ This app takes a lot of ongoing work, and if it has helped you, buying me a coffee would be a meaningful way to support continued development. Every bit of support helps me spend more time improving and maintaining it.",
+    buyCoffeePromptFoot:
+      "💛 If not, that’s completely fine too. I’m happy the app is useful to you.",
+    buyCoffeePromptAction: "☕ Buy me a coffee",
+    buyCoffeePromptLater: "🙏 Not now",
     toolYouthOptimization: "Youth squad optimization",
     toolSeniorOptimization: "Senior squad optimization",
     toolYouthBadge: "Y",
@@ -200,6 +208,7 @@ export const messagesEn: Messages = {
     settingsDebugDisableScalingLabel: "Show dummy latest updates",
     settingsDebugRandomNewMarkersLabel: "Show random NEW markers",
     settingsDebugRandomNewMarkersOffLabel: "Hide random NEW markers",
+    settingsDebugBuyCoffeePromptButton: "Show buy me a coffee modal",
     clubChronicleLeaguePanelTitle: "League performance",
     clubChronicleLeaguePanelEmpty: "No league data yet.",
     clubChronicleNoTeams: "No tracked teams selected.",

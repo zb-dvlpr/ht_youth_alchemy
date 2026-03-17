@@ -23,6 +23,12 @@ export type Messages = {
   sidebarCollapseTooltip: string;
   sidebarExpandTooltip: string;
   supportOnKofi: string;
+  buyCoffeePromptTitle: string;
+  buyCoffeePromptLead: string;
+  buyCoffeePromptBody: string;
+  buyCoffeePromptFoot: string;
+  buyCoffeePromptAction: string;
+  buyCoffeePromptLater: string;
   toolYouthOptimization: string;
   toolSeniorOptimization: string;
   toolYouthBadge: string;
@@ -183,6 +189,7 @@ export type Messages = {
   settingsDebugDisableScalingLabel: string;
   settingsDebugRandomNewMarkersLabel: string;
   settingsDebugRandomNewMarkersOffLabel: string;
+  settingsDebugBuyCoffeePromptButton: string;
   clubChronicleLeaguePanelTitle: string;
   clubChronicleLeaguePanelEmpty: string;
   clubChronicleNoTeams: string;

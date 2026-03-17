@@ -11,6 +11,14 @@ export const messagesDe: Messages = {
     sidebarCollapseTooltip: "Seitenleiste einklappen",
     sidebarExpandTooltip: "Seitenleiste ausklappen",
     supportOnKofi: "Kauf mir einen Kaffee",
+    buyCoffeePromptTitle: "☕ Danke, dass du hier bist",
+    buyCoffeePromptLead: "🙏 Ich freue mich wirklich, dass du HT Youth Alchemy nutzt.",
+    buyCoffeePromptBody:
+      "✨ In diese App fließt laufend viel Arbeit, und wenn sie dir geholfen hat, wäre ein Kaffee eine wirklich schöne Unterstützung für die weitere Entwicklung. Jede Unterstützung hilft mir, mehr Zeit in Verbesserungen und Pflege zu stecken.",
+    buyCoffeePromptFoot:
+      "💛 Wenn nicht, ist das natürlich auch völlig in Ordnung. Ich freue mich einfach, wenn dir die App nützt.",
+    buyCoffeePromptAction: "☕ Kauf mir einen Kaffee",
+    buyCoffeePromptLater: "🙏 Nicht jetzt",
     toolYouthOptimization: "Jugendkader-Optimierung",
     toolSeniorOptimization: "Seniorkader-Optimierung",
     toolYouthBadge: "Y",
@@ -206,6 +214,7 @@ export const messagesDe: Messages = {
     settingsGeneral: "Allgemein",
     settingsGeneralTitle: "Allgemeine Einstellungen",
     settingsGeneralEnableScalingLabel: "App-Skalierung aktivieren",
+    settingsDebugBuyCoffeePromptButton: "Kauf-mir-einen-Kaffee-Modal zeigen",
     settingsGeneralEnableScalingTooltip:
       "Wenn aktiviert, skaliert die App, um in den Viewport zu passen und Scrollen zu reduzieren. Wenn deaktiviert, nutzt die App normale Größe und kann scrollen.",
     settingsDebug: "Debug",

@@ -12,6 +12,15 @@ export const messagesPl: Messages = {
   sidebarCollapseTooltip: "Zwiń pasek boczny",
   sidebarExpandTooltip: "Rozwiń pasek boczny",
   supportOnKofi: "Postaw mi kawę",
+  settingsDebugBuyCoffeePromptButton: "Pokaż modal postaw mi kawę",
+  buyCoffeePromptTitle: "☕ Dzięki, że tu jesteś",
+  buyCoffeePromptLead: "🙏 Jestem naprawdę wdzięczny, że korzystasz z HT Youth Alchemy.",
+  buyCoffeePromptBody:
+    "✨ Ta aplikacja wymaga dużo stałej pracy, a jeśli Ci pomogła, postawienie mi kawy byłoby dla mnie bardzo miłym wsparciem dalszego rozwoju. Każde wsparcie pomaga mi poświęcać więcej czasu na ulepszanie i utrzymanie aplikacji.",
+  buyCoffeePromptFoot:
+    "💛 A jeśli nie, to też jest całkowicie w porządku. Cieszę się już z tego, że aplikacja jest dla Ciebie przydatna.",
+  buyCoffeePromptAction: "☕ Postaw mi kawę",
+  buyCoffeePromptLater: "🙏 Nie teraz",
   toolYouthOptimization: "Optymalizacja juniorów",
   toolSeniorOptimization: "Optymalizacja seniorów",
   toolClubChronicle: "Kronika klubu",

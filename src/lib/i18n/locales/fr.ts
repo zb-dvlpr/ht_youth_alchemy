@@ -11,6 +11,14 @@ export const messagesFr: Messages = {
     sidebarCollapseTooltip: "Réduire la barre latérale",
     sidebarExpandTooltip: "Déployer la barre latérale",
     supportOnKofi: "Offre-moi un café",
+    buyCoffeePromptTitle: "☕ Merci d’être là",
+    buyCoffeePromptLead: "🙏 Je suis vraiment reconnaissant que tu utilises HT Youth Alchemy.",
+    buyCoffeePromptBody:
+      "✨ Cette app demande beaucoup de travail en continu et, si elle t’a aidé, m’offrir un café serait une manière très appréciée de soutenir son développement. Chaque soutien m’aide à consacrer plus de temps à l’améliorer et à la maintenir.",
+    buyCoffeePromptFoot:
+      "💛 Et si ce n’est pas le cas, c’est tout à fait OK. Je suis déjà heureux qu’elle te soit utile.",
+    buyCoffeePromptAction: "☕ Offre-moi un café",
+    buyCoffeePromptLater: "🙏 Pas maintenant",
     toolYouthOptimization: "Optimisation effectif jeunes",
     toolSeniorOptimization: "Optimisation effectif senior",
     toolYouthBadge: "Y",
@@ -206,6 +214,7 @@ export const messagesFr: Messages = {
       "Nombre de diffs des dernières mises à jour",
     settingsClubChronicleUpdatesHistoryHint:
       "Combien de diffs modifiés des rafraîchissements globaux sont enregistrés et affichés dans l’historique des dernières mises à jour.",
+    settingsDebugBuyCoffeePromptButton: "Afficher la modale offre-moi un café",
     settingsGeneral: "Général",
     settingsGeneralTitle: "Paramètres généraux",
     settingsGeneralEnableScalingLabel: "Activer la mise à l échelle de l app",

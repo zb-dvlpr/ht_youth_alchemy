@@ -6,6 +6,7 @@ export const CLUB_CHRONICLE_SETTINGS_EVENT = "ya:club-chronicle-settings";
 export const CLUB_CHRONICLE_DEBUG_EVENT = "ya:club-chronicle-debug";
 export const YOUTH_NEW_MARKERS_DEBUG_EVENT = "ya:youth-new-markers-debug";
 export const YOUTH_DEBUG_SE_FETCH_EVENT = "ya:youth-debug-se-fetch";
+export const BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT = "ya:buy-coffee-prompt-debug-open";
 export const DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS = 3;
 export const DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT = 5;
 export const DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT = 10;

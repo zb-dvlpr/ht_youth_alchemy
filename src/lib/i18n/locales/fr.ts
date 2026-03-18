@@ -10,6 +10,15 @@ export const messagesFr: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Réduire la barre latérale",
     sidebarExpandTooltip: "Déployer la barre latérale",
+    supportOnKofi: "Offre-moi un café",
+    buyCoffeePromptTitle: "☕ Merci d’être là",
+    buyCoffeePromptLead: "🙏 Je suis vraiment reconnaissant que tu utilises HT Alchemy.",
+    buyCoffeePromptBody:
+      "✨ Cette app demande beaucoup de travail en continu et, si elle t’a aidé, m’offrir un café serait une manière très appréciée de soutenir son développement. Chaque soutien m’aide à consacrer plus de temps à l’améliorer et à la maintenir.",
+    buyCoffeePromptFoot:
+      "💛 Et si ce n’est pas le cas, c’est tout à fait OK. Je suis déjà heureux qu’elle te soit utile.",
+    buyCoffeePromptAction: "☕ Offre-moi un café",
+    buyCoffeePromptLater: "🙏 Pas maintenant",
     toolYouthOptimization: "Optimisation effectif jeunes",
     toolSeniorOptimization: "Optimisation effectif senior",
     toolYouthBadge: "Y",
@@ -34,11 +43,39 @@ export const messagesFr: Messages = {
     watchlistError: "Impossible de charger les équipes soutenues.",
     watchlistRemoveTooltip: "Retirer l’équipe",
     watchlistTeamLabel: "Équipe",
+    watchlistOwnSeniorTeamsTitle: "Vos équipes seniors",
+    watchlistOwnSeniorTeamsEmpty: "Aucune équipe senior personnelle trouvée.",
+    watchlistOwnLeaguesTitle: "Vos ligues",
+    watchlistOwnLeaguesEmpty: "Aucune ligue personnelle trouvée.",
+    watchlistAllItems: "Tous les éléments de suivi",
+    watchlistSelectAll: "Tout sélectionner",
+    watchlistDeselectAll: "Tout désélectionner",
+    watchlistGenderMale: "Masculin",
+    watchlistGenderFemale: "Féminin",
+    clubChronicleTabDefaultName: "Onglet {{number}}",
+    clubChronicleTabAdd: "Ajouter un onglet",
+    clubChronicleTabRenamePlaceholder: "Nom de l’onglet",
+    clubChronicleTabRenameTooltip: "Renommer l’onglet",
+    clubChronicleTabShortcutHint: "Préc./suiv. : j/k",
+    clubChronicleTabDeleteTooltip: "Supprimer l’onglet",
+    clubChronicleTabDeleteTitle: "Supprimer cet onglet ?",
+    clubChronicleTabDeleteBody:
+      "Cet onglet Club Chronicle et sa watchlist, ses dernières mises à jour et son état local seront supprimés. Cette action est irréversible.",
+    clubChronicleTabDeleteConfirm: "Supprimer l’onglet",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Mise à jour",
     changelogNewer: "Plus récent",
     changelogOlder: "Plus ancien",
     changelogPageLabel: "Page {{current}} sur {{total}}",
+    betaPillLabel: "Bêta",
+    betaPillTooltip:
+      "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_3_9_0:
+      "Club Chronicle prend désormais en charge des onglets avec des watchlists indépendantes et des dernières mises à jour propres à chaque onglet.",
+    changelog_3_8_0:
+      "La liste de suivi de Club Chronicle peut désormais étendre vos propres ligues pour suivre les autres équipes de chacune.",
+    changelog_3_7_0:
+      "L'optimisation IA senior ajoute un mode à formation fixe qui teste toutes les tactiques et retient la meilleure.",
     changelog_1_19_0: "Prise en charge de plusieurs équipes.",
     changelog_1_21_0: "Paramètres : export/import pour sauvegardes locales.",
     changelog_1_22_0: "Auto‑sélection du plan d’entraînement au changement de star.",
@@ -101,6 +138,14 @@ export const messagesFr: Messages = {
       "L optimisation senior ajoute une aide contextuelle avec repères guidés pour Dernières mises à jour et Composition IA.",
     changelog_3_2_0:
       "Le régime d entraînement de l équipe senior peut maintenant être modifié directement dans l application avec vérification des permissions.",
+    changelog_3_3_0:
+      "La composition IA senior prend maintenant en charge un mode Viser la prolongation pour des compositions axées sur les minutes d entraînement en prolongation.",
+    changelog_3_4_0:
+      "La watchlist de Club Chronicle inclut maintenant toutes vos propres equipes seniors depuis managercompendium avec indication masculin/feminin.",
+    changelog_3_5_0:
+      "L optimisation senior prend maintenant en charge plusieurs equipes seniors avec un selecteur d equipe annote par genre et un etat persiste par equipe.",
+    changelog_3_6_0:
+      "L optimisation jeunesse ajoute maintenant un mode de revelation combinee pour la valeur primaire actuelle du joueur star et le maximum secondaire d un autre joueur.",
     feedbackTooltip: "Retour",
     feedbackBug: "Signaler un bug",
     feedbackFeature: "Demander une fonctionnalité",
@@ -169,6 +214,7 @@ export const messagesFr: Messages = {
       "Nombre de diffs des dernières mises à jour",
     settingsClubChronicleUpdatesHistoryHint:
       "Combien de diffs modifiés des rafraîchissements globaux sont enregistrés et affichés dans l’historique des dernières mises à jour.",
+    settingsDebugBuyCoffeePromptButton: "Afficher la modale offre-moi un café",
     settingsGeneral: "Général",
     settingsGeneralTitle: "Paramètres généraux",
     settingsGeneralEnableScalingLabel: "Activer la mise à l échelle de l app",
@@ -236,6 +282,8 @@ export const messagesFr: Messages = {
       "La watchlist controle quelles equipes sont suivies dans chaque panneau.",
     clubChronicleHelpBulletControls:
       "Commandes d en-tete : utilisez Actualiser pour un passage complet, suivez la progression via la barre d etat et les mini-barres de panneau, utilisez Dernieres mises a jour pour les diffs, la watchlist pour gerer les equipes suivies, et faites glisser les en-tetes de panneau pour reordonner le tableau de bord.",
+    clubChronicleHelpBulletTabs:
+      "Les onglets vous aident a organiser plusieurs espaces Chronicle. Chaque onglet conserve sa propre watchlist et ses propres dernieres mises a jour.",
     clubChronicleHelpBulletLeague:
       "Performance en ligue : tableau position, points, serie, variation de position et difference de buts. Cliquez une ligne pour la comparaison precedent/courant par attribut.",
     clubChronicleHelpBulletPress:
@@ -466,7 +514,7 @@ export const messagesFr: Messages = {
     seniorHelpCalloutUpdates:
       "Dernieres mises a jour affiche uniquement les changements detectes dans les comparaisons enregistrees.",
     seniorHelpCalloutSetLineupAi:
-      "Definir la composition avec IA ouvre les deux modes de composition pour ce match.",
+      "Definir la composition avec IA ouvre les quatre modes de composition pour ce match.",
     seniorHelpCalloutTrainingRegimen:
       "Ce menu deroulant permet de modifier directement le regime d entrainement senior.",
     seniorHelpCalloutAnalyzeOpponent:
@@ -474,13 +522,13 @@ export const messagesFr: Messages = {
     seniorHelpBulletLatestUpdates:
       "Une nouvelle comparaison est enregistree uniquement quand un rafraichissement detecte de vrais changements (nouveau joueur, notes/competences, blessures, cartons, forme, endurance ou traits).",
     seniorHelpBulletAiOverview:
-      "Definir la composition avec IA applique la composition la plus efficace identifiee pour gagner a partir des informations Hattrick disponibles.",
+      "Definir la composition avec IA applique la composition la plus efficace selon les informations Hattrick disponibles, y compris les modes avec entrainement, sans entrainement, prolongation et formation fixe.",
     seniorHelpBulletAiTrainingAware:
       "Mode avec entrainement: respecte le regime d entrainement actuel et privilegie les compositions qui couvrent les postes d entrainement concernes.",
     seniorHelpBulletAiIgnoreTraining:
       "Mode sans entrainement: optimise uniquement l efficacite du match sans contrainte des postes d entrainement.",
     seniorHelpBulletAiMatchTypes:
-      "Les matchs de ligue et de tournoi visent la meilleure configuration competitive. Les amicaux utilisent un onze sain de second niveau.",
+      "Utilisez Viser la prolongation si vous voulez une configuration orientee vers des minutes d entrainement supplementaires en prolongation, et Optimiser par formation si vous voulez verrouiller une structure et laisser Alchemy choisir la meilleure composition.",
     seniorHelpBulletTrainingRegimen:
       "Le regime d entrainement senior peut etre modifie directement depuis le menu deroulant de composition.",
     seniorHelpBulletAnalyzeOpponent:
@@ -516,6 +564,13 @@ export const messagesFr: Messages = {
     refreshStopButton: "Stop",
     refreshStopTooltip: "Arreter l actualisation en cours.",
     youthLastGlobalRefresh: "Dernière actualisation globale",
+    startupLoadingTitle: "Préparation de l’espace de travail…",
+    startupLoadingSubtitle: "Le premier chargement peut prendre un instant.",
+    startupLoadingTeamContext: "Chargement du contexte d’équipe…",
+    startupLoadingPlayers: "Chargement des joueurs…",
+    startupLoadingMatches: "Chargement des matchs…",
+    startupLoadingRatings: "Chargement des évaluations…",
+    startupLoadingFinalize: "Finalisation de l’interface…",
     refreshStatusFetchingPlayers: "Chargement des joueurs jeunes…",
     refreshStatusFetchingPlayerDetails: "Chargement des details joueurs…",
     refreshStatusFetchingMatches: "Chargement des matchs…",
@@ -596,6 +651,18 @@ export const messagesFr: Messages = {
       "Si des ordres de match sont nécessaires, ils doivent être définis directement dans Hattrick.",
     seniorSubmitDisclaimerBulletVerify:
       "Vérifiez disponibilité, blessures et intention tactique avant le coup d’envoi.",
+    seniorExtraTimeSubmitDisclaimerIntro:
+      "Des ordres pour une composition visant la prolongation ont été envoyés pour le régime d’entraînement {{training}}.",
+    seniorExtraTimeSubmitDisclaimerSwap:
+      "Les stagiaires {{trainees}} échangeront leurs positions afin de maximiser l’entraînement en prolongation si le match est nul à la fin du temps réglementaire.",
+    seniorExtraTimeSubmitDisclaimerPressing:
+      "Pour maximiser la probabilité d’un match nul, la tactique Pressing a été utilisée.",
+    seniorExtraTimeSubmitDisclaimerSetPieces:
+      "Le tireur de coups de pied arrêtés est le joueur avec le plus faible niveau en coups de pied arrêtés.",
+    seniorExtraTimeSubmitDisclaimerPenalties:
+      "Les tireurs de penalty ont été ordonnés de sorte que le premier tireur soit celui qui a le moins de chances de marquer.",
+    seniorExtraTimeSubmitDisclaimerBehaviors:
+      "Les joueurs ont été orientés défensivement lorsque cela était possible.",
     loadLineupTooltip: "Charge la composition enregistrée depuis Hattrick pour ce match.",
     submitOrdersTooltip: "Envoie la composition actuelle à Hattrick pour ce match.",
     randomizeLineup: "Composition aléatoire",
@@ -607,6 +674,8 @@ export const messagesFr: Messages = {
       "Révéler la valeur actuelle de {{trainingLower}} pour {{player}}",
     optimizeMenuRevealSecondaryMax:
       "Révéler la valeur max de {{trainingLower}} pour {{player}}",
+    optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
+      "Révéler la valeur actuelle de {{trainingLower}} pour {{player}} et la valeur max de {{secondaryTrainingLower}} pour {{secondaryPlayer}}",
     optimizeRevealPrimaryCurrentKnown:
       "Révélation indisponible : valeur primaire actuelle déjà connue.",
     optimizeRevealPrimaryCurrentKnownTooltip:
@@ -619,6 +688,10 @@ export const messagesFr: Messages = {
       "Révélation indisponible : la valeur max en {{training}} de {{player}} est déjà connue.",
     optimizeRevealSecondaryMaxUnavailable:
       "Révélation indisponible. Sélectionnez un joueur star et un entraînement secondaire.",
+    optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
+      "Révélation combinée indisponible. Sélectionnez un joueur star, les deux entraînements et une cible secondaire éligible.",
+    optimizeRevealTargetPlaceholder: "Sélectionner une cible secondaire",
+    optimizeRevealCombinedButton: "Appliquer la révélation combinée",
     optimizeRatingsUnavailable:
       "Optimisation par notes indisponible. Sélectionnez un joueur star et les deux entraînements.",
     optimizeRatingsStarMaxed:
@@ -687,7 +760,77 @@ export const messagesFr: Messages = {
     setBestLineupIgnoreTraining: "Ignorer l'entraînement",
     setBestLineupIgnoreTrainingTooltip:
       "Définit la composition sans tenir compte du programme d'entraînement. Toutes les formations sont prises en compte.",
+    setBestLineupAimForExtraTime: "Viser la prolongation",
+    setBestLineupAimForExtraTimeTooltip:
+      "Joue le nul pour obtenir un entraînement supplémentaire.",
+    setBestLineupAimForExtraTimeDisabledTooltip:
+      "Disponible uniquement pour Qualification, Coupe et amicaux avec règles de coupe.",
+    setBestLineupOptimizeByFormation: "Optimiser en {{formation}}",
+    setBestLineupOptimizeByFormationTooltip:
+      "Fixez d'abord la formation, attribuez-y les joueurs les mieux notés, puis testez toutes les tactiques pour conserver la meilleure.",
+    setBestLineupOptimizeByFormationDisabledTooltip:
+      "Sélectionnez d'abord une formation.",
+    setBestLineupOptimizeByFormationUnavailable:
+      "Impossible de construire une composition complète pour cette formation avec les joueurs disponibles.",
+    setBestLineupOptimizeByFormationApply: "Appliquer l'optimisation de formation",
+    seniorFixedFormationTotalRatingsLabel: "Notes totales",
+    seniorFixedFormationWeightedSumLabel: "Somme pondérée",
+    seniorExtraTimeModalTitle: "Pourquoi viser la prolongation ?",
+    seniorExtraTimeModalLead:
+      "Parce que la prolongation peut offrir des minutes d'entraînement en plus.",
+    seniorExtraTimeModalTrainingLimit:
+      "Dans Hattrick, chaque joueur peut recevoir au maximum 90 minutes d'entraînement par semaine.",
+    seniorExtraTimeModalRotation:
+      "Si le match va en prolongation et que vous faites tourner d'autres joueurs sur des postes entraînables, ces minutes peuvent devenir un gain d'entraînement supplémentaire.",
+    seniorExtraTimeModal120CupPrefix:
+      "Il existe même une compétition dédiée à cette approche :",
+    seniorExtraTimeModal120CupLinkLabel: "la Coupe 120 %",
+    seniorExtraTimeModal120CupMiddle: "organisée par",
+    seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
+    seniorExtraTimeModalWorkflow:
+      "Le principe est simple : selon votre régime d'entraînement, Alchemy vous demande de choisir les joueurs à entraîner. Vous les identifiez, cliquez sur Définir la meilleure compo et Alchemy gère le reste (placement et orientation des joueurs, réglage de la tactique, configuration des remplacements, définition des tireurs de penalty, choix du tireur de coups de pied arrêtés, etc.). Une fois que la composition vous convient, cliquez sur Envoyer la composition pour l’envoyer à Hattrick. Les chances de match nul sont bien plus élevées si votre adversaire met en place une composition similaire.",
+    seniorExtraTimeModalChooseTrainees:
+      "Choisissez {{count}} stagiaires, puis cliquez sur Définir la compo. Les joueurs sélectionnés automatiquement peuvent être remplacés.",
+    seniorExtraTimeModalBTeamToggleLabel: "Équipe B",
+    seniorAiLastMatchThresholdText:
+      "Ignorer les joueurs dont le dernier match remonte à plus de {{weeks}} semaines.",
+    seniorAiLastMatchThresholdDisabledText:
+      "Ne pas écarter les joueurs selon la date de leur dernier match. {{weeks}}",
+    seniorAiLastMatchThresholdAriaLabel:
+      "Seuil en semaines pour écarter des joueurs selon la date de leur dernier match",
+    seniorAiLastMatchDisregardedTooltip:
+      "Le joueur est écarté car son dernier match remonte à {{weeks}} semaines.",
+    seniorExtraTimeModalBTeamThresholdText:
+      "Ignorer les joueurs ayant déjà joué {{minutes}} minutes {{weekLink}}.",
+    seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "cette semaine",
+    seniorExtraTimeModalBTeamThresholdAriaLabel:
+      "Seuil de minutes pour ignorer les joueurs déjà utilisés cette semaine",
+    seniorExtraTimeModalBTeamNoRecentMatch:
+      "Aucun match pertinent pour l entraînement n a été joué cette semaine.",
+    seniorExtraTimeModalBTeamLoading:
+      "Vérification des matchs pertinents pour l entraînement de cette semaine...",
+    seniorExtraTimeModalBTeamError:
+      "Impossible de vérifier les matchs pertinents pour l entraînement cette semaine.",
+    seniorExtraTimeModalBTeamWeekendTooltip:
+      "La sélection de l équipe B n est disponible que du lundi au vendredi (CET).",
+    seniorExtraTimeModalBTeamDisregardedTooltip:
+      "Ce joueur est ignoré, car il a déjà joué au moins {{minutes}} minutes cette semaine.",
+    seniorExtraTimeModalInjuredCheckboxTooltip:
+      "Le joueur ne peut pas être sélectionné car il est blessé.",
+    seniorExtraTimeModalSetLineupButton: "Définir la compo",
+    seniorExtraTimeModalSetLineupDisabledTooltip:
+      "Sélectionnez le bon nombre de stagiaires pour définir la compo.",
+    seniorExtraTimeModalSetLineupReadyTooltip:
+      "Cliquez sur Envoyer la composition dans la carte du match appropriée pour envoyer la composition à Hattrick.",
     setBestLineupRejectedPlayersLabel: "Joueurs rejetés",
+    setBestLineupIneligiblePlayersLabel: "Joueurs inéligibles",
+    setBestLineupDevAssignmentTraceLabel: "Trace d affectation",
+    setBestLineupDevEligiblePlayersLabel: "Joueurs éligibles",
+    setBestLineupDevUnfilledLabel: "Non pourvu",
+    setBestLineupDevNoSlotRatingLabel: "Aucune note pour ce poste",
+    setBestLineupDevBetterOtherSectorLabel: "Meilleur dans un autre secteur",
+    setBestLineupDevTiedOtherSectorLabel: "A égalité avec un autre secteur",
+    setBestLineupDevAlreadyUsedLabel: "Déjà utilisé",
     analyzeOpponent: "Analyser l'adversaire",
     analyzeOpponentTooltip: "Analyser les matchs récents de l'adversaire.",
     analyzeOpponentMatchId: "ID du match",
@@ -759,9 +902,10 @@ export const messagesFr: Messages = {
     trainingPassing: "Passes",
     trainingScoring: "Finition",
     trainingSetPieces: "Coups de pied arrêtés",
-    trainingDefendingDefendersMidfielders: "Défense (Défenseurs + Milieux)",
+    trainingDefendingDefendersMidfielders:
+      "Défense (Gardien, Défenseurs + Tous les Milieux)",
     trainingWingerWingerAttackers: "Ailier (Ailiers + Attaquants)",
-    trainingPassingDefendersMidfielders: "Passes (Défenseurs + Milieux)",
+    trainingPassingDefendersMidfielders: "Passes (Défenseurs + Tous les Milieux)",
     trainingSlotPrimary: "Primaire",
     trainingSlotSecondary: "Secondaire",
     trainingSlotBoth: "Pri/sec",
@@ -880,7 +1024,7 @@ export const messagesFr: Messages = {
     ratingsTitle: "Matrice des notes",
     ratingsMatchesAnalyzed: "Données récupérées à partir de {count} matchs.",
     ratingsLastAppliedMatchLabel:
-      "Dernières notes appliquées depuis le match {matchId} à {dateTime}.",
+      "Dernières notes de fin de match appliquées depuis le match {matchId} à {dateTime}.",
     ratingsIndexLabel: "N°",
     ratingsMissingNote:
       "Certains joueurs n’ont pas de données récentes et sont affichés avec —.",

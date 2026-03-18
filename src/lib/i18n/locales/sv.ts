@@ -10,6 +10,15 @@ export const messagesSv: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Fäll in sidofältet",
     sidebarExpandTooltip: "Fäll ut sidofältet",
+    supportOnKofi: "Bjud mig på kaffe",
+    buyCoffeePromptTitle: "☕ Tack för att du är här",
+    buyCoffeePromptLead: "🙏 Jag är verkligen tacksam att du använder HT Alchemy.",
+    buyCoffeePromptBody:
+      "✨ Den här appen kräver mycket löpande arbete, och om den har hjälpt dig skulle en kaffe vara ett väldigt meningsfullt sätt att stötta fortsatt utveckling. Varje stöd hjälper mig att lägga mer tid på att förbättra och underhålla appen.",
+    buyCoffeePromptFoot:
+      "💛 Och om inte så är det helt okej. Jag är redan glad att appen är användbar för dig.",
+    buyCoffeePromptAction: "☕ Bjud mig på kaffe",
+    buyCoffeePromptLater: "🙏 Inte nu",
     toolYouthOptimization: "Ungdomstruppsoptimering",
     toolSeniorOptimization: "Seniortruppsoptimering",
     toolYouthBadge: "Y",
@@ -34,11 +43,39 @@ export const messagesSv: Messages = {
     watchlistError: "Kunde inte ladda stödda lag.",
     watchlistRemoveTooltip: "Ta bort lag",
     watchlistTeamLabel: "Lag",
+    watchlistOwnSeniorTeamsTitle: "Egna seniorlag",
+    watchlistOwnSeniorTeamsEmpty: "Inga egna seniorlag hittades.",
+    watchlistOwnLeaguesTitle: "Egna ligor",
+    watchlistOwnLeaguesEmpty: "Inga egna ligor hittades.",
+    watchlistAllItems: "Alla bevakningslisteposter",
+    watchlistSelectAll: "Markera alla",
+    watchlistDeselectAll: "Avmarkera alla",
+    watchlistGenderMale: "Manligt",
+    watchlistGenderFemale: "Kvinnligt",
+    clubChronicleTabDefaultName: "Flik {{number}}",
+    clubChronicleTabAdd: "Lägg till flik",
+    clubChronicleTabRenamePlaceholder: "Fliknamn",
+    clubChronicleTabRenameTooltip: "Byt namn på flik",
+    clubChronicleTabShortcutHint: "Föreg./nästa: j/k",
+    clubChronicleTabDeleteTooltip: "Ta bort flik",
+    clubChronicleTabDeleteTitle: "Ta bort den här fliken?",
+    clubChronicleTabDeleteBody:
+      "Den här Club Chronicle-fliken och dess bevakningslista, senaste uppdateringar och lokala tillstånd tas bort. Det går inte att ångra.",
+    clubChronicleTabDeleteConfirm: "Ta bort flik",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Uppdatering",
     changelogNewer: "Nyare",
     changelogOlder: "Äldre",
     changelogPageLabel: "Sida {{current}} av {{total}}",
+    betaPillLabel: "Beta",
+    betaPillTooltip:
+      "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_3_9_0:
+      "Club Chronicle har nu flikar med oberoende bevakningslistor och flikbegränsade senaste uppdateringar.",
+    changelog_3_8_0:
+      "Klubbkrönikans bevakningslista kan nu valfritt utöka dina egna ligor för att följa de andra lagen i varje liga.",
+    changelog_3_7_0:
+      "Seniorlagets AI-optimering har nu ett läge för fast formation som provar alla taktiker och väljer den bästa.",
     changelog_1_19_0: "Stöd för flera lag.",
     changelog_1_21_0: "Inställningar: export/import av lokala säkerhetskopior.",
     changelog_1_22_0: "Auto‑val av träning vid manuell stjärnändring.",
@@ -99,6 +136,14 @@ export const messagesSv: Messages = {
       "Senioroptimering har nu ett eget hjälp-overlay med guidade markeringar för Senaste uppdateringar och AI-uppställning.",
     changelog_3_2_0:
       "Seniorlagets träningsregim kan nu ändras direkt i appen med behörighetskontroll och verifiering.",
+    changelog_3_3_0:
+      "Seniorernas AI-uppställning stöder nu ett Sikta på förlängning-flöde för träningsinriktade förlängningsupplägg.",
+    changelog_3_4_0:
+      "Club Chronicle-watchlisten innehåller nu alla dina egna seniorlag från managercompendium med markering för manligt/kvinnligt.",
+    changelog_3_5_0:
+      "Senioroptimeringen stöder nu flera seniorlag med en könsmärkt lagväljare och lagvis sparat tillstånd.",
+    changelog_3_6_0:
+      "Ungdomsoptimeringen lägger nu till ett kombinerat avslöjandeläge för stjärnspelarens nuvarande primärvärde och en annan spelares sekundära maxvärde.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Rapportera en bugg",
     feedbackFeature: "Föreslå en funktion",
@@ -169,6 +214,7 @@ export const messagesSv: Messages = {
       "Hur många ändrade globala uppdateringsdifferenser som sparas och visas i historiken för Senaste uppdateringar.",
     settingsGeneral: "Allmänt",
     settingsGeneralTitle: "Allmänna inställningar",
+    settingsDebugBuyCoffeePromptButton: "Visa bjud mig på kaffe-modal",
     settingsGeneralEnableScalingLabel: "Aktivera appskalning",
     settingsGeneralEnableScalingTooltip:
       "När aktiverad skalas appen för att passa viewporten och minska scrollning. När avstängd används normal storlek och sidan kan scrollas.",
@@ -231,6 +277,8 @@ export const messagesSv: Messages = {
       "Watchlist styr vilka lag som foljs i varje panel.",
     clubChronicleHelpBulletControls:
       "Headerkontroller: anvand Uppdatera for en full datakorning, folj framsteg via statusrad och mini-staplar per panel, anvand Senaste uppdateringar for diffar, watchlist for att hantera foljda lag och dra panelrubriker for att ordna om dashboarden.",
+    clubChronicleHelpBulletTabs:
+      "Flikar hjalper dig att organisera olika Chronicle-ytor. Varje flik behaller sin egen watchlist och sina egna senaste uppdateringar.",
     clubChronicleHelpBulletLeague:
       "Ligaprestanda: tabell med placering, poang, serie, placeringsforandring och malskillnad. Klicka pa en rad for jamforelse mellan tidigare/nuvarande per attribut.",
     clubChronicleHelpBulletPress:
@@ -460,7 +508,7 @@ export const messagesSv: Messages = {
     seniorHelpCalloutUpdates:
       "Senaste uppdateringar visar bara andringar som hittats i sparade uppdateringsjamforelser.",
     seniorHelpCalloutSetLineupAi:
-      "Satt uppstallning med AI oppnar de tva uppstallningslagen for denna match.",
+      "Satt uppstallning med AI oppnar de fyra uppstallningslagen for denna match.",
     seniorHelpCalloutTrainingRegimen:
       "Den har rullgardinsmenyn later dig andra seniorlagets traningsregim direkt.",
     seniorHelpCalloutAnalyzeOpponent:
@@ -468,13 +516,13 @@ export const messagesSv: Messages = {
     seniorHelpBulletLatestUpdates:
       "En ny jamforelse sparas bara nar en uppdatering hittar verkliga andringar (t.ex. ny spelare, andrade betyg/skills, skador, kort, form, kondition eller egenskaper).",
     seniorHelpBulletAiOverview:
-      "Satt uppstallning med AI anvander den mest effektiva uppstallningen for vinst baserat pa tillganglig Hattrick-information.",
+      "Satt uppstallning med AI anvander den mest effektiva uppstallningen utifran tillganglig Hattrick-information, inklusive lagen for traningsmedveten, ignorera traning, forlangning och fast formation.",
     seniorHelpBulletAiTrainingAware:
       "Traningsmedvetet lage foljer aktuell traning och prioriterar uppstallningar som fyller relevanta traningsplatser.",
     seniorHelpBulletAiIgnoreTraining:
       "Ignorera traning optimerar bara matcheffektivitet utan krav pa traningsplatser.",
     seniorHelpBulletAiMatchTypes:
-      "Liga- och turneringsmatcher riktas mot starkaste konkurrensuppstallning. Vanmatcher anvander en andrabasta frisk elva.",
+      "Anvand Sikta pa forlangning om du vill ha en uppstallning inriktad pa extra traningsminuter i forlangning, och Optimera efter formation om du vill lasa en formation och lata Alchemy valja basta uppstallning.",
     seniorHelpBulletTrainingRegimen:
       "Seniorlagets traningsregim kan andras direkt i appen via uppstallningens rullgardinsmeny.",
     seniorHelpBulletAnalyzeOpponent:
@@ -510,6 +558,13 @@ export const messagesSv: Messages = {
     refreshStopButton: "Stopp",
     refreshStopTooltip: "Stoppa pågående uppdatering.",
     youthLastGlobalRefresh: "Senaste globala uppdatering",
+    startupLoadingTitle: "Förbereder arbetsytan…",
+    startupLoadingSubtitle: "Den första laddningen kan ta en liten stund.",
+    startupLoadingTeamContext: "Laddar lagkontext…",
+    startupLoadingPlayers: "Laddar spelare…",
+    startupLoadingMatches: "Laddar matcher…",
+    startupLoadingRatings: "Laddar betyg…",
+    startupLoadingFinalize: "Slutför gränssnittet…",
     refreshStatusFetchingPlayers: "Hamtar ungdomsspelare…",
     refreshStatusFetchingPlayerDetails: "Hamtar spelardetaljer…",
     refreshStatusFetchingMatches: "Hamtar matcher…",
@@ -589,6 +644,18 @@ export const messagesSv: Messages = {
       "Om matchorder behövs måste de ställas in direkt i Hattrick.",
     seniorSubmitDisclaimerBulletVerify:
       "Verifiera tillgänglighet, skador och taktisk avsikt före avspark.",
+    seniorExtraTimeSubmitDisclaimerIntro:
+      "Order för en förlängningsuppställning har skickats för träningsupplägget {{training}}.",
+    seniorExtraTimeSubmitDisclaimerSwap:
+      "Traineerna {{trainees}} kommer att byta positioner för att maximera träningen i förlängningen om matchen är oavgjord efter full tid.",
+    seniorExtraTimeSubmitDisclaimerPressing:
+      "För att maximera sannolikheten för oavgjort har taktiken Pressing använts.",
+    seniorExtraTimeSubmitDisclaimerSetPieces:
+      "Skytten för fasta situationer är spelaren med sämst fasta situationer.",
+    seniorExtraTimeSubmitDisclaimerPenalties:
+      "Straffskyttarna har ordnats så att den första skytten är den som har lägst sannolikhet att göra mål.",
+    seniorExtraTimeSubmitDisclaimerBehaviors:
+      "Spelare har orienterats defensivt där det varit möjligt.",
     loadLineupTooltip: "Laddar den sparade uppställningen från Hattrick för matchen.",
     submitOrdersTooltip: "Skickar den aktuella uppställningen till Hattrick för matchen.",
     randomizeLineup: "Slumpa uppställning",
@@ -600,6 +667,8 @@ export const messagesSv: Messages = {
       "Avslöja {{player}}s nuvarande värde i {{trainingLower}}",
     optimizeMenuRevealSecondaryMax:
       "Avslöja {{player}}s maxvärde i {{trainingLower}}",
+    optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
+      "Avslöja {{player}}s nuvarande värde i {{trainingLower}} och {{secondaryPlayer}}s maxvärde i {{secondaryTrainingLower}}",
     optimizeRevealPrimaryCurrentKnown:
       "Avslöjande ej tillgängligt: stjärnans primärvärde är redan känt.",
     optimizeRevealPrimaryCurrentKnownTooltip:
@@ -612,6 +681,10 @@ export const messagesSv: Messages = {
       "Avslöjande ej tillgängligt: {{player}}s maxvärde i {{training}} är redan känt.",
     optimizeRevealSecondaryMaxUnavailable:
       "Avslöjande ej tillgängligt. Välj stjärnspelare och sekundärträning.",
+    optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
+      "Kombinerat avslöjande är inte tillgängligt. Välj en stjärnspelare, båda träningarna och ett giltigt sekundärmål.",
+    optimizeRevealTargetPlaceholder: "Välj ett sekundärmål",
+    optimizeRevealCombinedButton: "Använd kombinerat avslöjande",
     optimizeRatingsUnavailable:
       "Optimering efter betyg ej tillgänglig. Välj stjärnspelare och båda träningarna.",
     optimizeRatingsStarMaxed:
@@ -679,7 +752,77 @@ export const messagesSv: Messages = {
     setBestLineupIgnoreTraining: "Ignorera träning",
     setBestLineupIgnoreTrainingTooltip:
       "Sätt uppställningen utan hänsyn till träningsupplägget. Alla formationer beaktas.",
+    setBestLineupAimForExtraTime: "Sikta på förlängning",
+    setBestLineupAimForExtraTimeTooltip:
+      "Spela för oavgjort för att få extra träning.",
+    setBestLineupAimForExtraTimeDisabledTooltip:
+      "Endast tillgängligt för kval, cup och vänskapsmatcher med cupregler.",
+    setBestLineupOptimizeByFormation: "Optimera efter {{formation}}",
+    setBestLineupOptimizeByFormationTooltip:
+      "Lås först formationen, tilldela de högst bedömda spelarna för den och prova sedan alla taktiker för att behålla det bästa resultatet.",
+    setBestLineupOptimizeByFormationDisabledTooltip:
+      "Välj en formation först.",
+    setBestLineupOptimizeByFormationUnavailable:
+      "Det gick inte att bygga en komplett laguppställning för den formationen med tillgängliga spelare.",
+    setBestLineupOptimizeByFormationApply: "Tillämpa formationsoptimering",
+    seniorFixedFormationTotalRatingsLabel: "Totala betyg",
+    seniorFixedFormationWeightedSumLabel: "Viktad summa",
+    seniorExtraTimeModalTitle: "Varför sikta på förlängning?",
+    seniorExtraTimeModalLead:
+      "För att förlängning kan ge extra träningsminuter.",
+    seniorExtraTimeModalTrainingLimit:
+      "I Hattrick kan varje spelare få högst 90 träningsminuter per vecka.",
+    seniorExtraTimeModalRotation:
+      "Om matchen går till förlängning och du roterar in andra spelare på träningsbara positioner kan de minuterna ge extra träning.",
+    seniorExtraTimeModal120CupPrefix:
+      "Det finns till och med en turnering byggd kring just detta:",
+    seniorExtraTimeModal120CupLinkLabel: "120%-cupen",
+    seniorExtraTimeModal120CupMiddle: "organiserad av",
+    seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
+    seniorExtraTimeModalWorkflow:
+      "Idén är enkel: utifrån ditt träningsupplägg ber Alchemy dig välja vilka spelare som ska tränas. Du väljer spelarna, klickar på Sätt bästa uppställning och Alchemy sköter resten (placerar och orienterar spelare, ställer in taktik, konfigurerar byten, sätter straffskyttar, väljer frisparks-/fasta-situationer-skytt osv.). När du är nöjd med uppställningen klickar du på Skicka uppställning för att skicka den till Hattrick. Chansen till oavgjort är mycket större om motståndaren också ställer upp på ett liknande sätt.",
+    seniorExtraTimeModalChooseTrainees:
+      "Välj {{count}} traineer och klicka sedan på Sätt uppställning. De som valts automatiskt kan ändras.",
+    seniorExtraTimeModalBTeamToggleLabel: "B-lag",
+    seniorAiLastMatchThresholdText:
+      "Ignorera spelare vars senaste match spelades för mer än {{weeks}} veckor sedan.",
+    seniorAiLastMatchThresholdDisabledText:
+      "Bortse inte från spelare utifrån datumet för deras senaste match. {{weeks}}",
+    seniorAiLastMatchThresholdAriaLabel:
+      "Veckogräns för att bortse från spelare utifrån senaste matchdatum",
+    seniorAiLastMatchDisregardedTooltip:
+      "Spelaren ignoreras eftersom han senast spelade för {{weeks}} veckor sedan.",
+    seniorExtraTimeModalBTeamThresholdText:
+      "Bortse från spelare som redan har spelat {{minutes}} minuter {{weekLink}}.",
+    seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "den här veckan",
+    seniorExtraTimeModalBTeamThresholdAriaLabel:
+      "Minutgräns för att bortse från spelare som redan spelat den här veckan",
+    seniorExtraTimeModalBTeamNoRecentMatch:
+      "Inga träningsrelevanta matcher har spelats den här veckan.",
+    seniorExtraTimeModalBTeamLoading:
+      "Kontrollerar veckans träningsrelevanta matcher...",
+    seniorExtraTimeModalBTeamError:
+      "Det gick inte att kontrollera veckans träningsrelevanta matcher.",
+    seniorExtraTimeModalBTeamWeekendTooltip:
+      "B-lagsvalet är bara tillgängligt från måndag till fredag (CET).",
+    seniorExtraTimeModalBTeamDisregardedTooltip:
+      "Spelaren ignoreras eftersom han redan har spelat minst {{minutes}} minuter den här veckan.",
+    seniorExtraTimeModalInjuredCheckboxTooltip:
+      "Spelaren kan inte väljas eftersom han är skadad.",
+    seniorExtraTimeModalSetLineupButton: "Sätt uppställning",
+    seniorExtraTimeModalSetLineupDisabledTooltip:
+      "Välj rätt antal traineer för att sätta uppställningen.",
+    seniorExtraTimeModalSetLineupReadyTooltip:
+      "Klicka på Skicka uppställning i rätt matchkort för att skicka uppställningen till Hattrick.",
     setBestLineupRejectedPlayersLabel: "Bortvalda spelare",
+    setBestLineupIneligiblePlayersLabel: "Ej valbara spelare",
+    setBestLineupDevAssignmentTraceLabel: "Tilldelningsspår",
+    setBestLineupDevEligiblePlayersLabel: "Behöriga spelare",
+    setBestLineupDevUnfilledLabel: "Oifylld",
+    setBestLineupDevNoSlotRatingLabel: "Ingen rating för platsen",
+    setBestLineupDevBetterOtherSectorLabel: "Bättre i en annan sektor",
+    setBestLineupDevTiedOtherSectorLabel: "Lika med en annan sektor",
+    setBestLineupDevAlreadyUsedLabel: "Redan använd",
     analyzeOpponent: "Analysera motståndare",
     analyzeOpponentTooltip: "Analysera motståndarens senaste matcher.",
     analyzeOpponentMatchId: "Match-ID",
@@ -751,10 +894,11 @@ export const messagesSv: Messages = {
     trainingPassing: "Passningar",
     trainingScoring: "Målskytte",
     trainingSetPieces: "Fasta situationer",
-    trainingDefendingDefendersMidfielders: "Försvar (Backar + Mittfältare)",
+    trainingDefendingDefendersMidfielders:
+      "Försvar (Målvakt, Backar + Alla Mittfältare)",
     trainingWingerWingerAttackers: "Ytterspel (Yttrar + Anfallare)",
     trainingPassingDefendersMidfielders:
-      "Passningar (Backar + Mittfältare)",
+      "Passningar (Backar + Alla Mittfältare)",
     trainingSlotPrimary: "Primär",
     trainingSlotSecondary: "Sekundär",
     trainingSlotBoth: "Pri/sek",
@@ -873,7 +1017,7 @@ export const messagesSv: Messages = {
     ratingsTitle: "Betygsmatris",
     ratingsMatchesAnalyzed: "Data hämtad från {count} matcher.",
     ratingsLastAppliedMatchLabel:
-      "Senast tillämpade betyg från match {matchId} kl. {dateTime}.",
+      "Senast tillämpade slutmatchbetyg från match {matchId} kl. {dateTime}.",
     ratingsIndexLabel: "Nr",
     ratingsMissingNote:
       "Vissa spelare saknar senaste matchdata och visas med —.",

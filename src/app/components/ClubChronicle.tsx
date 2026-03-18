@@ -60,12 +60,49 @@ type SupportedTeam = {
   teamName: string;
   leagueName?: string | null;
   leagueLevelUnitName?: string | null;
+  leagueLevelUnitId?: number | null;
+  teamGender?: "male" | "female" | null;
+  isOwnSeniorTeam?: boolean;
+};
+
+type OwnLeagueEntry = {
+  key: string;
+  ownTeamId: number;
+  ownTeamName: string;
+  ownTeamGender?: "male" | "female" | null;
+  leagueId?: number | null;
+  leagueName?: string | null;
+  leagueLevelUnitId?: number | null;
+  leagueLevelUnitName?: string | null;
 };
 
 type WatchlistStorage = {
   supportedSelections: Record<number, boolean>;
+  ownLeagueSelections?: Record<string, boolean>;
   manualTeams: ManualTeam[] | number[];
 };
+
+type ChronicleTabState = {
+  id: string;
+  name: string;
+  supportedSelections: Record<number, boolean>;
+  ownLeagueSelections: Record<string, boolean>;
+  manualTeams: ManualTeam[];
+  updates: ChronicleUpdates | null;
+  globalUpdatesHistory: ChronicleGlobalUpdateEntry[];
+  globalBaselineCache: ChronicleCache | null;
+  lastRefreshAt: number | null;
+  lastComparedAt: number | null;
+  lastHadChanges: boolean;
+};
+
+type ChronicleTabsStorage = {
+  version: number;
+  activeTabId: string;
+  tabs: ChronicleTabState[];
+};
+
+type StateUpdater<T> = T | ((prev: T) => T);
 
 type ClubChronicleProps = {
   messages: Messages;
@@ -92,6 +129,7 @@ type ManualTeam = {
   leagueName?: string | null;
   leagueLevelUnitName?: string | null;
   leagueLevelUnitId?: number | null;
+  teamGender?: "male" | "female" | null;
 };
 
 type LeaguePerformanceSnapshot = {
@@ -462,6 +500,7 @@ type ChronicleTeamData = {
   leagueName?: string | null;
   leagueLevelUnitName?: string | null;
   leagueLevelUnitId?: number | null;
+  teamGender?: "male" | "female" | null;
   arenaId?: number | null;
   arenaName?: string | null;
   leaguePerformance?: LeaguePerformanceData;
@@ -761,6 +800,7 @@ const ChroniclePanel = ({
 );
 
 const STORAGE_KEY = "ya_club_chronicle_watchlist_v1";
+const TABS_STORAGE_KEY = "ya_cc_tabs_v1";
 const CACHE_KEY = "ya_cc_cache_v1";
 const UPDATES_KEY = "ya_cc_updates_v1";
 const GLOBAL_BASELINE_KEY = "ya_cc_global_baseline_v1";
@@ -820,6 +860,107 @@ const TACTIC_LABELS: Record<number, string> = {
   8: "Long shots",
 };
 
+const normalizeStoredManualTeams = (
+  input: ManualTeam[] | number[] | undefined
+): ManualTeam[] =>
+  (input ?? []).map((item): ManualTeam => {
+    if (typeof item === "number") {
+      return { teamId: item };
+    }
+    return {
+      teamId: Number(item.teamId),
+      teamName: item.teamName ?? "",
+      leagueName: item.leagueName ?? null,
+      leagueLevelUnitName: item.leagueLevelUnitName ?? null,
+      teamGender:
+        item.teamGender === "female"
+          ? "female"
+          : item.teamGender === "male"
+            ? "male"
+            : null,
+      leagueLevelUnitId:
+        item.leagueLevelUnitId !== undefined && item.leagueLevelUnitId !== null
+          ? Number(item.leagueLevelUnitId)
+          : null,
+    };
+  });
+
+const buildChronicleTabName = (messages: Messages, index: number) =>
+  messages.clubChronicleTabDefaultName.replace("{{number}}", String(index));
+
+const buildChronicleTabState = (
+  messages: Messages,
+  index: number,
+  overrides?: Partial<ChronicleTabState>
+): ChronicleTabState => ({
+  id: overrides?.id ?? `tab-${Date.now()}-${index}`,
+  name: overrides?.name?.trim() || buildChronicleTabName(messages, index),
+  supportedSelections: overrides?.supportedSelections ?? {},
+  ownLeagueSelections: overrides?.ownLeagueSelections ?? {},
+  manualTeams: overrides?.manualTeams ?? [],
+  updates: overrides?.updates ?? null,
+  globalUpdatesHistory: overrides?.globalUpdatesHistory ?? [],
+  globalBaselineCache: overrides?.globalBaselineCache ?? null,
+  lastRefreshAt: overrides?.lastRefreshAt ?? null,
+  lastComparedAt: overrides?.lastComparedAt ?? null,
+  lastHadChanges: overrides?.lastHadChanges ?? true,
+});
+
+const writeChronicleTabsStorage = (payload: ChronicleTabsStorage) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(payload));
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const resolveNextState = <T,>(current: T, updater: StateUpdater<T>): T =>
+  typeof updater === "function"
+    ? (updater as (prev: T) => T)(current)
+    : updater;
+
+const readNumberLike = (value: unknown): number | null => {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "#text" in (value as Record<string, unknown>)
+  ) {
+    return readNumberLike((value as Record<string, unknown>)["#text"]);
+  }
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const readStringLike = (value: unknown): string | null => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+  }
+  if (
+    typeof value === "object" &&
+    value !== null &&
+    "#text" in (value as Record<string, unknown>)
+  ) {
+    return readStringLike((value as Record<string, unknown>)["#text"]);
+  }
+  return null;
+};
+
+const normalizeTeamGender = (
+  value: unknown
+): SupportedTeam["teamGender"] => {
+  const numeric = readNumberLike(value);
+  if (numeric === 1) return "male";
+  if (numeric === 2) return "female";
+  return null;
+};
+
 const normalizeSupportedTeams = (
   input:
     | {
@@ -827,12 +968,14 @@ const normalizeSupportedTeams = (
         TeamName?: string;
         LeagueName?: string;
         LeagueLevelUnitName?: string;
+        GenderID?: number | string;
       }[]
     | {
         TeamId?: number | string;
         TeamName?: string;
         LeagueName?: string;
         LeagueLevelUnitName?: string;
+        GenderID?: number | string;
       }
     | undefined
 ): SupportedTeam[] => {
@@ -844,8 +987,135 @@ const normalizeSupportedTeams = (
       teamName: team.TeamName ?? "",
       leagueName: team.LeagueName ?? null,
       leagueLevelUnitName: team.LeagueLevelUnitName ?? null,
+      teamGender: normalizeTeamGender(team.GenderID),
     }))
     .filter((team) => Number.isFinite(team.teamId) && team.teamId > 0);
+};
+
+const normalizeOwnSeniorTeams = (input: unknown): SupportedTeam[] => {
+  if (!input) return [];
+  const list = Array.isArray(input) ? input : [input];
+  return list
+    .map((teamNode) => {
+      const team =
+        typeof teamNode === "object" && teamNode !== null
+          ? (teamNode as Record<string, unknown>)
+          : {};
+      const league =
+        typeof team.League === "object" && team.League !== null
+          ? (team.League as Record<string, unknown>)
+          : undefined;
+      const leagueLevelUnit =
+        typeof team.LeagueLevelUnit === "object" && team.LeagueLevelUnit !== null
+          ? (team.LeagueLevelUnit as Record<string, unknown>)
+          : undefined;
+      return {
+        teamId: readNumberLike(team.TeamId ?? team.TeamID) ?? 0,
+        teamName: readStringLike(team.TeamName) ?? "",
+        leagueName:
+          readStringLike(team.LeagueName) ??
+          readStringLike(league?.LeagueName) ??
+          readStringLike(league?.Name) ??
+          null,
+        leagueLevelUnitName:
+          readStringLike(team.LeagueLevelUnitName) ??
+          readStringLike(leagueLevelUnit?.LeagueLevelUnitName) ??
+          readStringLike(leagueLevelUnit?.Name) ??
+          null,
+        leagueLevelUnitId:
+          readNumberLike(team.LeagueLevelUnitID) ??
+          readNumberLike(team.LeagueLevelUnitId) ??
+          readNumberLike(leagueLevelUnit?.LeagueLevelUnitID) ??
+          readNumberLike(leagueLevelUnit?.LeagueLevelUnitId) ??
+          null,
+        teamGender: normalizeTeamGender(team.GenderID),
+        isOwnSeniorTeam: true,
+      } satisfies SupportedTeam;
+    })
+    .filter((team) => Number.isFinite(team.teamId) && team.teamId > 0);
+};
+
+const buildOwnLeagueKey = (
+  ownTeamId: number,
+  leagueLevelUnitId: number | null,
+  leagueId: number | null
+) => `${ownTeamId}:${leagueLevelUnitId ?? 0}:${leagueId ?? 0}`;
+
+const normalizeOwnLeagues = (input: unknown): OwnLeagueEntry[] => {
+  if (!input) return [];
+  const list = Array.isArray(input) ? input : [input];
+  return list
+    .map((teamNode) => {
+      const team =
+        typeof teamNode === "object" && teamNode !== null
+          ? (teamNode as Record<string, unknown>)
+          : {};
+      const league =
+        typeof team.League === "object" && team.League !== null
+          ? (team.League as Record<string, unknown>)
+          : undefined;
+      const leagueLevelUnit =
+        typeof team.LeagueLevelUnit === "object" && team.LeagueLevelUnit !== null
+          ? (team.LeagueLevelUnit as Record<string, unknown>)
+          : undefined;
+      const ownTeamId = readNumberLike(team.TeamId ?? team.TeamID) ?? 0;
+      const leagueLevelUnitId =
+        readNumberLike(team.LeagueLevelUnitID) ??
+        readNumberLike(team.LeagueLevelUnitId) ??
+        readNumberLike(leagueLevelUnit?.LeagueLevelUnitID) ??
+        readNumberLike(leagueLevelUnit?.LeagueLevelUnitId) ??
+        null;
+      const leagueId =
+        readNumberLike(team.LeagueID) ??
+        readNumberLike(team.LeagueId) ??
+        readNumberLike(league?.LeagueID) ??
+        readNumberLike(league?.LeagueId) ??
+        null;
+      return {
+        key: buildOwnLeagueKey(ownTeamId, leagueLevelUnitId, leagueId),
+        ownTeamId,
+        ownTeamName: readStringLike(team.TeamName) ?? "",
+        ownTeamGender: normalizeTeamGender(team.GenderID),
+        leagueId,
+        leagueName:
+          readStringLike(team.LeagueName) ??
+          readStringLike(league?.LeagueName) ??
+          readStringLike(league?.Name) ??
+          null,
+        leagueLevelUnitId,
+        leagueLevelUnitName:
+          readStringLike(team.LeagueLevelUnitName) ??
+          readStringLike(leagueLevelUnit?.LeagueLevelUnitName) ??
+          readStringLike(leagueLevelUnit?.Name) ??
+          null,
+      } satisfies OwnLeagueEntry;
+    })
+    .filter(
+      (entry) =>
+        Number.isFinite(entry.ownTeamId) &&
+        entry.ownTeamId > 0 &&
+        (Number.isFinite(entry.leagueLevelUnitId) || Number.isFinite(entry.leagueId))
+    );
+};
+
+const mergeSupportedTeamLists = (...lists: SupportedTeam[][]): SupportedTeam[] => {
+  const merged = new Map<number, SupportedTeam>();
+  lists.flat().forEach((team) => {
+    const existing = merged.get(team.teamId);
+    merged.set(team.teamId, {
+      teamId: team.teamId,
+      teamName: team.teamName || existing?.teamName || "",
+      leagueName: team.leagueName ?? existing?.leagueName ?? null,
+      leagueLevelUnitName:
+        team.leagueLevelUnitName ?? existing?.leagueLevelUnitName ?? null,
+      leagueLevelUnitId: team.leagueLevelUnitId ?? existing?.leagueLevelUnitId ?? null,
+      teamGender: team.teamGender ?? existing?.teamGender ?? null,
+      isOwnSeniorTeam: Boolean(team.isOwnSeniorTeam || existing?.isOwnSeniorTeam),
+    });
+  });
+  return Array.from(merged.values()).sort((left, right) =>
+    (left.teamName ?? "").localeCompare(right.teamName ?? "")
+  );
 };
 
 const extractTeamDetailsNode = (
@@ -1325,18 +1595,19 @@ const extractPressReferenceIds = (text: string) => {
 
 const readStorage = (): WatchlistStorage => {
   if (typeof window === "undefined") {
-    return { supportedSelections: {}, manualTeams: [] };
+    return { supportedSelections: {}, ownLeagueSelections: {}, manualTeams: [] };
   }
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { supportedSelections: {}, manualTeams: [] };
+    if (!raw) return { supportedSelections: {}, ownLeagueSelections: {}, manualTeams: [] };
     const parsed = JSON.parse(raw) as WatchlistStorage;
     return {
       supportedSelections: parsed.supportedSelections ?? {},
+      ownLeagueSelections: parsed.ownLeagueSelections ?? {},
       manualTeams: parsed.manualTeams ?? [],
     };
   } catch {
-    return { supportedSelections: {}, manualTeams: [] };
+    return { supportedSelections: {}, ownLeagueSelections: {}, manualTeams: [] };
   }
 };
 
@@ -1623,6 +1894,100 @@ const writeGlobalUpdatesHistory = (payload: ChronicleGlobalUpdateEntry[]) => {
   }
 };
 
+const readChronicleTabsStorage = (
+  messages: Messages,
+  healthyLabel = "Healthy"
+): ChronicleTabsStorage => {
+  if (typeof window === "undefined") {
+    const initialTab = buildChronicleTabState(messages, 1, { id: "tab-1" });
+    return { version: 1, activeTabId: initialTab.id, tabs: [initialTab] };
+  }
+  try {
+    const rawTabs = window.localStorage.getItem(TABS_STORAGE_KEY);
+    if (rawTabs) {
+      const parsed = JSON.parse(rawTabs) as ChronicleTabsStorage;
+      const tabs = Array.isArray(parsed?.tabs)
+        ? parsed.tabs
+            .map((tab, index) =>
+              buildChronicleTabState(messages, index + 1, {
+                id:
+                  typeof tab?.id === "string" && tab.id.trim()
+                    ? tab.id
+                    : `tab-${index + 1}`,
+                name: typeof tab?.name === "string" ? tab.name : undefined,
+                supportedSelections:
+                  tab?.supportedSelections &&
+                  typeof tab.supportedSelections === "object"
+                    ? tab.supportedSelections
+                    : {},
+                ownLeagueSelections:
+                  tab?.ownLeagueSelections &&
+                  typeof tab.ownLeagueSelections === "object"
+                    ? tab.ownLeagueSelections
+                    : {},
+                manualTeams: normalizeStoredManualTeams(tab?.manualTeams),
+                updates: tab?.updates ?? null,
+                globalUpdatesHistory: Array.isArray(tab?.globalUpdatesHistory)
+                  ? tab.globalUpdatesHistory
+                  : [],
+                globalBaselineCache:
+                  tab?.globalBaselineCache &&
+                  typeof tab.globalBaselineCache === "object"
+                    ? pruneChronicleCache(tab.globalBaselineCache)
+                    : null,
+                lastRefreshAt:
+                  typeof tab?.lastRefreshAt === "number" ? tab.lastRefreshAt : null,
+                lastComparedAt:
+                  typeof tab?.lastComparedAt === "number" ? tab.lastComparedAt : null,
+                lastHadChanges:
+                  typeof tab?.lastHadChanges === "boolean"
+                    ? tab.lastHadChanges
+                    : true,
+              })
+            )
+            .filter((tab) => tab.id)
+        : [];
+      if (tabs.length > 0) {
+        const activeTabId =
+          typeof parsed?.activeTabId === "string" &&
+          tabs.some((tab) => tab.id === parsed.activeTabId)
+            ? parsed.activeTabId
+            : tabs[0].id;
+        return { version: 1, activeTabId, tabs };
+      }
+    }
+  } catch {
+    // fall through to migration
+  }
+
+  const initialGlobalUpdatesHistory = readGlobalUpdatesHistory(healthyLabel);
+  const watchlist = readStorage();
+  const initialTab = buildChronicleTabState(messages, 1, {
+    id: "tab-1",
+    supportedSelections: watchlist.supportedSelections ?? {},
+    ownLeagueSelections: watchlist.ownLeagueSelections ?? {},
+    manualTeams: normalizeStoredManualTeams(watchlist.manualTeams),
+    updates: readChronicleUpdates(),
+    globalUpdatesHistory: initialGlobalUpdatesHistory.slice(
+      0,
+      DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT
+    ),
+    globalBaselineCache: readGlobalBaseline(),
+    lastRefreshAt: readLastRefresh(),
+    lastComparedAt: initialGlobalUpdatesHistory[0]?.comparedAt ?? null,
+    lastHadChanges: initialGlobalUpdatesHistory[0]
+      ? initialGlobalUpdatesHistory[0].hasChanges
+      : true,
+  });
+  const migrated = {
+    version: 1,
+    activeTabId: initialTab.id,
+    tabs: [initialTab],
+  };
+  writeChronicleTabsStorage(migrated);
+  return migrated;
+};
+
 const readPanelOrder = (): string[] => {
   if (typeof window === "undefined") return [...PANEL_IDS];
   try {
@@ -1898,51 +2263,65 @@ const getLatestCacheTimestamp = (cache: ChronicleCache): number | null => {
   return latest > 0 ? latest : null;
 };
 
+const getLatestCacheTimestampForTeams = (
+  cache: ChronicleCache,
+  teamIds: Iterable<number>
+): number | null => {
+  let latest = 0;
+  for (const teamId of teamIds) {
+    const team = cache.teams[teamId];
+    if (!team) continue;
+    latest = Math.max(
+      latest,
+      team.leaguePerformance?.current?.fetchedAt ?? 0,
+      team.leaguePerformance?.previous?.fetchedAt ?? 0,
+      team.pressAnnouncement?.current?.fetchedAt ?? 0,
+      team.pressAnnouncement?.previous?.fetchedAt ?? 0,
+      team.fanclub?.current?.fetchedAt ?? 0,
+      team.fanclub?.previous?.fetchedAt ?? 0,
+      team.arena?.current?.fetchedAt ?? 0,
+      team.arena?.previous?.fetchedAt ?? 0,
+      team.financeEstimate?.current?.fetchedAt ?? 0,
+      team.financeEstimate?.previous?.fetchedAt ?? 0,
+      team.transferActivity?.current?.fetchedAt ?? 0,
+      team.transferActivity?.previous?.fetchedAt ?? 0,
+      team.tsi?.current?.fetchedAt ?? 0,
+      team.tsi?.previous?.fetchedAt ?? 0,
+      team.wages?.current?.fetchedAt ?? 0,
+      team.wages?.previous?.fetchedAt ?? 0,
+      team.formationsTactics?.current?.fetchedAt ?? 0,
+      team.formationsTactics?.previous?.fetchedAt ?? 0,
+      team.lastLogin?.current?.fetchedAt ?? 0,
+      team.lastLogin?.previous?.fetchedAt ?? 0,
+      team.coach?.current?.fetchedAt ?? 0,
+      team.coach?.previous?.fetchedAt ?? 0
+    );
+  }
+  return latest > 0 ? latest : null;
+};
+
 export default function ClubChronicle({ messages }: ClubChronicleProps) {
-  const initialGlobalUpdatesHistory = useMemo(
-    () => readGlobalUpdatesHistory(messages.clubChronicleInjuryHealthy),
+  const initialTabsState = useMemo(
+    () => readChronicleTabsStorage(messages, messages.clubChronicleInjuryHealthy),
     [messages.clubChronicleInjuryHealthy]
   );
   const chronicleRootRef = useRef<HTMLDivElement | null>(null);
   const [supportedTeams, setSupportedTeams] = useState<SupportedTeam[]>([]);
-  const [supportedSelections, setSupportedSelections] = useState<
-    Record<number, boolean>
-  >({});
-  const [manualTeams, setManualTeams] = useState<ManualTeam[]>([]);
+  const [chronicleTabs, setChronicleTabs] = useState<ChronicleTabState[]>(
+    () => initialTabsState.tabs
+  );
+  const [activeChronicleTabId, setActiveChronicleTabId] = useState<string>(
+    () => initialTabsState.activeTabId
+  );
+  const [ownLeagues, setOwnLeagues] = useState<OwnLeagueEntry[]>([]);
+  const [ownLeagueTeams, setOwnLeagueTeams] = useState<SupportedTeam[]>([]);
   const [primaryTeam, setPrimaryTeam] = useState<ChronicleTeamData | null>(null);
   const [chronicleCache, setChronicleCache] = useState<ChronicleCache>(() =>
     pruneChronicleCache(readChronicleCache())
   );
-  const [globalBaselineCache, setGlobalBaselineCache] = useState<ChronicleCache | null>(
-    () => {
-      const baseline = readGlobalBaseline();
-      return baseline ? pruneChronicleCache(baseline) : null;
-    }
-  );
   const [panelOrder, setPanelOrder] = useState<string[]>(() =>
     readPanelOrder()
   );
-  const [updates, setUpdates] = useState<ChronicleUpdates | null>(() =>
-    readChronicleUpdates()
-  );
-  const [globalUpdatesHistory, setGlobalUpdatesHistory] = useState<
-    ChronicleGlobalUpdateEntry[]
-  >(() =>
-    initialGlobalUpdatesHistory.slice(
-      0,
-      DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT
-    )
-  );
-  const [lastGlobalRefreshAt, setLastGlobalRefreshAt] = useState<number | null>(() =>
-    readLastRefresh()
-  );
-  const [lastGlobalComparedAt, setLastGlobalComparedAt] = useState<number | null>(
-    () => initialGlobalUpdatesHistory[0]?.comparedAt ?? null
-  );
-  const [lastGlobalHadChanges, setLastGlobalHadChanges] = useState<boolean>(() => {
-    const latest = initialGlobalUpdatesHistory[0];
-    return latest ? latest.hasChanges : true;
-  });
   const [updatesOpen, setUpdatesOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
@@ -2092,6 +2471,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     useState(false);
   const [teamIdInput, setTeamIdInput] = useState("");
   const [watchlistReloadNonce, setWatchlistReloadNonce] = useState(0);
+  const [renamingTabId, setRenamingTabId] = useState<string | null>(null);
+  const [renamingTabValue, setRenamingTabValue] = useState("");
+  const [pendingDeleteTabId, setPendingDeleteTabId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
@@ -2121,10 +2503,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }[]
   >([]);
   const [helpCardTop, setHelpCardTop] = useState(84);
+  const watchlistMasterCheckboxRef = useRef<HTMLInputElement | null>(null);
   const initializedRef = useRef(false);
   const initialFetchRef = useRef(false);
   const staleRefreshRef = useRef(false);
   const chronicleStopRequestedRef = useRef(false);
+  const chronicleTabsRef = useRef<ChronicleTabState[]>(initialTabsState.tabs);
   const trackedTeamsRef = useRef<ChronicleTeamData[]>([]);
   const refreshAllDataRef = useRef<((reason: "stale" | "manual") => Promise<void>) | null>(
     null
@@ -2162,10 +2546,318 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       new Set<number>(supportedTeams.map((team) => Number(team.teamId ?? 0))),
     [supportedTeams]
   );
+  const ownSeniorTeams = useMemo(
+    () => supportedTeams.filter((team) => team.isOwnSeniorTeam),
+    [supportedTeams]
+  );
+  const ownSeniorTeamIds = useMemo(
+    () => new Set<number>(ownSeniorTeams.map((team) => team.teamId)),
+    [ownSeniorTeams]
+  );
+  const supportedWatchlistTeams = useMemo(
+    () => supportedTeams.filter((team) => !team.isOwnSeniorTeam),
+    [supportedTeams]
+  );
+  const activeChronicleTab = useMemo(
+    () =>
+      chronicleTabs.find((tab) => tab.id === activeChronicleTabId) ??
+      chronicleTabs[0] ??
+      buildChronicleTabState(messages, 1, { id: "tab-1" }),
+    [activeChronicleTabId, chronicleTabs, messages]
+  );
+  const activeChronicleTabIndex = useMemo(
+    () => chronicleTabs.findIndex((tab) => tab.id === activeChronicleTab.id),
+    [activeChronicleTab.id, chronicleTabs]
+  );
+  const updateActiveChronicleTab = useCallback(
+    (updater: StateUpdater<ChronicleTabState>) => {
+      setChronicleTabs((prev) =>
+        prev.map((tab) =>
+          tab.id === activeChronicleTab.id
+            ? resolveNextState(tab, updater)
+            : tab
+        )
+      );
+    },
+    [activeChronicleTab.id]
+  );
+  const supportedSelections = activeChronicleTab.supportedSelections;
+  const ownLeagueSelections = activeChronicleTab.ownLeagueSelections;
+  const manualTeams = activeChronicleTab.manualTeams;
+  const updates = activeChronicleTab.updates;
+  const globalUpdatesHistory = activeChronicleTab.globalUpdatesHistory;
+  const globalBaselineCache = activeChronicleTab.globalBaselineCache;
+  const lastGlobalRefreshAt = activeChronicleTab.lastRefreshAt;
+  const lastGlobalComparedAt = activeChronicleTab.lastComparedAt;
+  const lastGlobalHadChanges = activeChronicleTab.lastHadChanges;
+  const setSupportedSelections = useCallback(
+    (updater: StateUpdater<Record<number, boolean>>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        supportedSelections: resolveNextState(prev.supportedSelections, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setOwnLeagueSelections = useCallback(
+    (updater: StateUpdater<Record<string, boolean>>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        ownLeagueSelections: resolveNextState(prev.ownLeagueSelections, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setManualTeams = useCallback(
+    (updater: StateUpdater<ManualTeam[]>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        manualTeams: resolveNextState(prev.manualTeams, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setUpdates = useCallback(
+    (updater: StateUpdater<ChronicleUpdates | null>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        updates: resolveNextState(prev.updates, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setGlobalUpdatesHistory = useCallback(
+    (updater: StateUpdater<ChronicleGlobalUpdateEntry[]>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        globalUpdatesHistory: resolveNextState(prev.globalUpdatesHistory, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setGlobalBaselineCache = useCallback(
+    (updater: StateUpdater<ChronicleCache | null>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        globalBaselineCache: resolveNextState(prev.globalBaselineCache, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setLastGlobalRefreshAt = useCallback(
+    (updater: StateUpdater<number | null>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        lastRefreshAt: resolveNextState(prev.lastRefreshAt, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setLastGlobalComparedAt = useCallback(
+    (updater: StateUpdater<number | null>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        lastComparedAt: resolveNextState(prev.lastComparedAt, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const setLastGlobalHadChanges = useCallback(
+    (updater: StateUpdater<boolean>) => {
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        lastHadChanges: resolveNextState(prev.lastHadChanges, updater),
+      }));
+    },
+    [updateActiveChronicleTab]
+  );
+  const switchChronicleTabByOffset = useCallback(
+    (offset: -1 | 1) => {
+      if (chronicleTabs.length <= 1 || activeChronicleTabIndex < 0) return;
+      const nextIndex =
+        (activeChronicleTabIndex + offset + chronicleTabs.length) %
+        chronicleTabs.length;
+      const nextTab = chronicleTabs[nextIndex];
+      if (!nextTab) return;
+      setActiveChronicleTabId(nextTab.id);
+    },
+    [activeChronicleTabIndex, chronicleTabs]
+  );
+
+  useEffect(() => {
+    if (chronicleTabs.length === 0) {
+      const fallbackTab = buildChronicleTabState(messages, 1, { id: "tab-1" });
+      setChronicleTabs([fallbackTab]);
+      setActiveChronicleTabId(fallbackTab.id);
+      return;
+    }
+    if (!chronicleTabs.some((tab) => tab.id === activeChronicleTabId)) {
+      setActiveChronicleTabId(chronicleTabs[0].id);
+    }
+  }, [activeChronicleTabId, chronicleTabs, messages]);
+
+  useEffect(() => {
+    initialFetchRef.current = false;
+    staleRefreshRef.current = false;
+  }, [activeChronicleTabId]);
+
+  useEffect(() => {
+    chronicleTabsRef.current = chronicleTabs;
+  }, [chronicleTabs]);
 
   const manualById = useMemo(
     () => new Set<number>(manualTeams.map((team) => Number(team.teamId))),
     [manualTeams]
+  );
+  const watchlistSelectableTeamIds = useMemo(
+    () => supportedTeams.map((team) => team.teamId),
+    [supportedTeams]
+  );
+  const allWatchlistSelected = useMemo(
+    () =>
+      watchlistSelectableTeamIds.length > 0 &&
+      watchlistSelectableTeamIds.every((teamId) => supportedSelections[teamId] ?? false) &&
+      ownLeagues.every((entry) => ownLeagueSelections[entry.key] ?? false),
+    [ownLeagueSelections, ownLeagues, supportedSelections, watchlistSelectableTeamIds]
+  );
+  const hasAnyWatchlistSelection = useMemo(
+    () =>
+      watchlistSelectableTeamIds.some((teamId) => supportedSelections[teamId] ?? false) ||
+      ownLeagues.some((entry) => ownLeagueSelections[entry.key] ?? false),
+    [ownLeagueSelections, ownLeagues, supportedSelections, watchlistSelectableTeamIds]
+  );
+
+  useEffect(() => {
+    if (!watchlistMasterCheckboxRef.current) return;
+    watchlistMasterCheckboxRef.current.indeterminate =
+      hasAnyWatchlistSelection && !allWatchlistSelected;
+  }, [allWatchlistSelected, hasAnyWatchlistSelection]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const isEditableTarget = (target: EventTarget | null) => {
+      if (!(target instanceof HTMLElement)) return false;
+      if (target.isContentEditable) return true;
+      const tagName = target.tagName.toLowerCase();
+      return tagName === "input" || tagName === "textarea" || tagName === "select";
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented) return;
+      if (event.altKey || event.ctrlKey || event.metaKey) return;
+      if (isEditableTarget(event.target) || renamingTabId) return;
+      if (event.key === "j") {
+        event.preventDefault();
+        switchChronicleTabByOffset(-1);
+      } else if (event.key === "k") {
+        event.preventDefault();
+        switchChronicleTabByOffset(1);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [renamingTabId, switchChronicleTabByOffset]);
+  const enrichWatchlistTeamGenders = useCallback(
+    async (
+      supportedInput: SupportedTeam[],
+      manualInput: ManualTeam[]
+    ): Promise<{ supported: SupportedTeam[]; manual: ManualTeam[] }> => {
+      const missingIds = Array.from(
+        new Set(
+          [...supportedInput, ...manualInput]
+            .filter((team) => !team.teamGender)
+            .map((team) => Number(team.teamId))
+            .filter((teamId) => Number.isFinite(teamId) && teamId > 0)
+        )
+      );
+      if (missingIds.length === 0) {
+        return { supported: supportedInput, manual: manualInput };
+      }
+      const genders = new Map<number, SupportedTeam["teamGender"]>();
+      await mapWithConcurrency(
+        missingIds,
+        TEAM_REFRESH_CONCURRENCY,
+        async (teamId) => {
+          try {
+            const { response, payload } = await fetchChppJson<{
+              data?: {
+                HattrickData?: {
+                  Team?: {
+                    GenderID?: number | string;
+                  };
+                  Teams?: {
+                    Team?: unknown;
+                  };
+                };
+              };
+              error?: string;
+            }>(`/api/chpp/teamdetails?teamId=${teamId}`, {
+              cache: "no-store",
+            });
+            if (!response.ok || payload?.error) return null;
+            const team = extractTeamDetailsNode(payload, teamId) as
+              | {
+                  GenderID?: number | string;
+                }
+              | undefined;
+            genders.set(teamId, normalizeTeamGender(team?.GenderID));
+          } catch (error) {
+            if (isChppAuthRequiredError(error)) throw error;
+          }
+          return null;
+        }
+      );
+      return {
+        supported: supportedInput.map((team) => ({
+          ...team,
+          teamGender: team.teamGender ?? genders.get(team.teamId) ?? null,
+        })),
+        manual: manualInput.map((team) => ({
+          ...team,
+          teamGender: team.teamGender ?? genders.get(team.teamId) ?? null,
+        })),
+      };
+    },
+    []
+  );
+  const formatWatchlistTeamName = useCallback(
+    (team: {
+      teamId: number;
+      teamName?: string | null;
+      teamGender?: "male" | "female" | null;
+    }) => {
+      const baseName =
+        team.teamName || `${messages.watchlistTeamLabel} ${team.teamId}`;
+      const genderLabel =
+        team.teamGender === "female"
+          ? messages.watchlistGenderFemale
+          : team.teamGender === "male"
+            ? messages.watchlistGenderMale
+            : null;
+      return genderLabel ? `${baseName} (${genderLabel})` : baseName;
+    },
+    [
+      messages.watchlistGenderFemale,
+      messages.watchlistGenderMale,
+      messages.watchlistTeamLabel,
+    ]
+  );
+  const formatOwnLeagueName = useCallback(
+    (league: OwnLeagueEntry) => {
+      const teamLabel = formatWatchlistTeamName({
+        teamId: league.ownTeamId,
+        teamName: league.ownTeamName,
+        teamGender: league.ownTeamGender ?? null,
+      });
+      return `${teamLabel}: ${[
+        league.leagueName,
+        league.leagueLevelUnitName,
+      ]
+        .filter(Boolean)
+        .join(" · ")}`;
+    },
+    [formatWatchlistTeamName]
   );
 
   const trackedTeams = useMemo(() => {
@@ -2200,40 +2892,39 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         leaguePerformance: cached?.leaguePerformance,
       });
     });
-    if (primaryTeam) {
-      const cached = chronicleCache.teams[primaryTeam.teamId];
-      const existing = map.get(primaryTeam.teamId);
-      map.set(primaryTeam.teamId, {
-        teamId: primaryTeam.teamId,
-        teamName:
-          primaryTeam.teamName ??
-          existing?.teamName ??
-          cached?.teamName ??
-          "",
+    ownLeagueTeams.forEach((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      const existing = map.get(team.teamId);
+      map.set(team.teamId, {
+        teamId: team.teamId,
+        teamName: existing?.teamName ?? team.teamName ?? cached?.teamName ?? "",
         leagueName:
-          primaryTeam.leagueName ??
-          existing?.leagueName ??
-          cached?.leagueName ??
-          null,
+          existing?.leagueName ?? team.leagueName ?? cached?.leagueName ?? null,
         leagueLevelUnitName:
-          primaryTeam.leagueLevelUnitName ??
           existing?.leagueLevelUnitName ??
+          team.leagueLevelUnitName ??
           cached?.leagueLevelUnitName ??
           null,
         leagueLevelUnitId:
-          primaryTeam.leagueLevelUnitId ??
           existing?.leagueLevelUnitId ??
+          team.leagueLevelUnitId ??
           cached?.leagueLevelUnitId ??
           null,
         arenaId: existing?.arenaId ?? cached?.arenaId ?? null,
         arenaName: existing?.arenaName ?? cached?.arenaName ?? null,
-        leaguePerformance: cached?.leaguePerformance ?? existing?.leaguePerformance,
+        leaguePerformance: existing?.leaguePerformance ?? cached?.leaguePerformance,
       });
-    }
+    });
     return Array.from(map.values()).sort((a, b) =>
       (a.teamName ?? "").localeCompare(b.teamName ?? "")
     );
-  }, [supportedTeams, supportedSelections, manualTeams, chronicleCache, primaryTeam]);
+  }, [
+    supportedTeams,
+    supportedSelections,
+    manualTeams,
+    ownLeagueTeams,
+    chronicleCache,
+  ]);
 
   const isNoDivulgoTracked = useMemo(
     () => trackedTeams.some((team) => team.teamId === NO_DIVULGO_TARGET_TEAM_ID),
@@ -2681,72 +3372,118 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setLoading(true);
       setError(null);
       try {
-        const { response, payload } = await fetchChppJson<{
-          data?: {
-            HattrickData?: {
-              SupportedTeams?: {
-                SupportedTeam?:
-                  | {
-                      TeamId?: number | string;
-                      TeamName?: string;
-                      LeagueName?: string;
-                      LeagueLevelUnitName?: string;
-                    }[]
-                  | {
-                      TeamId?: number | string;
-                      TeamName?: string;
-                      LeagueName?: string;
-                      LeagueLevelUnitName?: string;
-                    };
+        const [supportersResult, managerResult] = await Promise.allSettled([
+          fetchChppJson<{
+            data?: {
+              HattrickData?: {
+                SupportedTeams?: {
+                  SupportedTeam?:
+                    | {
+                        TeamId?: number | string;
+                        TeamName?: string;
+                        LeagueName?: string;
+                        LeagueLevelUnitName?: string;
+                      }[]
+                    | {
+                        TeamId?: number | string;
+                        TeamName?: string;
+                        LeagueName?: string;
+                        LeagueLevelUnitName?: string;
+                      };
+                };
               };
             };
-          };
-          error?: string;
-          details?: string;
-        }>("/api/chpp/supporters", {
-          cache: "no-store",
-        });
-        if (!response.ok || payload?.error) {
-          throw new Error(payload?.details || payload?.error || "Fetch failed");
+            error?: string;
+            details?: string;
+          }>("/api/chpp/supporters", {
+            cache: "no-store",
+          }),
+          fetchChppJson<{
+            data?: {
+              HattrickData?: {
+                Manager?: {
+                  Teams?: {
+                    Team?: unknown;
+                  };
+                };
+              };
+            };
+            error?: string;
+            details?: string;
+          }>("/api/chpp/managercompendium?version=1.7", {
+            cache: "no-store",
+          }),
+        ]);
+        const supportersPayload =
+          supportersResult.status === "fulfilled" ? supportersResult.value : null;
+        const managerPayload =
+          managerResult.status === "fulfilled" ? managerResult.value : null;
+        const supportersFailed =
+          !supportersPayload ||
+          !supportersPayload.response.ok ||
+          supportersPayload.payload?.error;
+        const managerFailed =
+          !managerPayload ||
+          !managerPayload.response.ok ||
+          managerPayload.payload?.error;
+        if (supportersFailed && managerFailed) {
+          const supportersMessage =
+            supportersPayload?.payload?.details ||
+            supportersPayload?.payload?.error ||
+            null;
+          const managerMessage =
+            managerPayload?.payload?.details || managerPayload?.payload?.error || null;
+          throw new Error(
+            supportersMessage || managerMessage || "Fetch failed"
+          );
         }
-        const raw =
-          payload?.data?.HattrickData?.SupportedTeams?.SupportedTeam;
-        const nextSupportedTeams = normalizeSupportedTeams(raw);
-        const stored = readStorage();
-        const nextSelections: Record<number, boolean> = {};
-        nextSupportedTeams.forEach((team) => {
-          const key = team.teamId;
-          if (stored.supportedSelections[key] === undefined) {
-            nextSelections[key] = true;
-          } else {
-            nextSelections[key] = stored.supportedSelections[key];
-          }
-        });
+        const rawSupported =
+          supportersPayload?.payload?.data?.HattrickData?.SupportedTeams?.SupportedTeam;
+        const nextSupportedTeams = normalizeSupportedTeams(rawSupported);
+        const rawOwnSeniorTeams =
+          managerPayload?.payload?.data?.HattrickData?.Manager?.Teams?.Team;
+        const nextOwnSeniorTeams = normalizeOwnSeniorTeams(rawOwnSeniorTeams);
+        const nextOwnLeagues = normalizeOwnLeagues(rawOwnSeniorTeams);
+        const nextAllSupportedTeams = mergeSupportedTeamLists(
+          nextSupportedTeams,
+          nextOwnSeniorTeams
+        );
         if (active) {
-        const normalizedManualTeams = (stored.manualTeams ?? []).map((item) => {
-          if (typeof item === "number") {
-            return { teamId: item };
-          }
-          return {
-            teamId: Number(item.teamId),
-            teamName: item.teamName ?? "",
-            leagueName: item.leagueName ?? null,
-            leagueLevelUnitName: item.leagueLevelUnitName ?? null,
-            leagueLevelUnitId:
-              item.leagueLevelUnitId !== undefined &&
-              item.leagueLevelUnitId !== null
-                ? Number(item.leagueLevelUnitId)
-                : null,
-          };
-        });
-          setSupportedTeams(nextSupportedTeams);
-          setSupportedSelections(nextSelections);
-          setManualTeams(normalizedManualTeams);
+          const tabsSnapshot = chronicleTabsRef.current;
+          const enrichedSupported = (
+            await enrichWatchlistTeamGenders(nextAllSupportedTeams, [])
+          ).supported;
+          const enrichedTabs = await Promise.all(
+            tabsSnapshot.map(async (tab, index) => {
+              const nextSelections = Object.fromEntries(
+                enrichedSupported.map((team) => [
+                  team.teamId,
+                  tab.supportedSelections[team.teamId] ?? false,
+                ])
+              ) as Record<number, boolean>;
+              const nextOwnLeagueSelections = Object.fromEntries(
+                nextOwnLeagues.map((entry) => [
+                  entry.key,
+                  Boolean(tab.ownLeagueSelections[entry.key]),
+                ])
+              ) as Record<string, boolean>;
+              const enriched = await enrichWatchlistTeamGenders(
+                enrichedSupported,
+                tab.manualTeams
+              );
+              return buildChronicleTabState(messages, index + 1, {
+                ...tab,
+                supportedSelections: nextSelections,
+                ownLeagueSelections: nextOwnLeagueSelections,
+                manualTeams: enriched.manual,
+              });
+            })
+          );
+          if (!active) return;
+          setSupportedTeams(enrichedSupported);
+          setOwnLeagues(nextOwnLeagues);
+          setChronicleTabs(enrichedTabs);
           initializedRef.current = true;
-          writeStorage({
-            supportedSelections: nextSelections,
-            manualTeams: normalizedManualTeams,
-          });
         }
       } catch (error) {
         if (isChppAuthRequiredError(error)) return;
@@ -2766,7 +3503,118 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return () => {
       active = false;
     };
-  }, [messages.watchlistError, watchlistOpen, watchlistReloadNonce]);
+  }, [
+    enrichWatchlistTeamGenders,
+    messages,
+    messages.watchlistError,
+    watchlistOpen,
+    watchlistReloadNonce,
+  ]);
+
+  useEffect(() => {
+    let active = true;
+    const loadOwnLeagueTeams = async () => {
+      const selectedLeagues = ownLeagues.filter(
+        (entry) => ownLeagueSelections[entry.key]
+      );
+      if (selectedLeagues.length === 0) {
+        setOwnLeagueTeams([]);
+        return;
+      }
+      const selectedByLeagueUnit = new Map<number, OwnLeagueEntry[]>();
+      selectedLeagues.forEach((entry) => {
+        const leagueLevelUnitId = Number(entry.leagueLevelUnitId ?? 0);
+        if (!Number.isFinite(leagueLevelUnitId) || leagueLevelUnitId <= 0) return;
+        const existing = selectedByLeagueUnit.get(leagueLevelUnitId) ?? [];
+        existing.push(entry);
+        selectedByLeagueUnit.set(leagueLevelUnitId, existing);
+      });
+      const merged = new Map<number, SupportedTeam>();
+      try {
+        await mapWithConcurrency(
+          Array.from(selectedByLeagueUnit.entries()),
+          TEAM_REFRESH_CONCURRENCY,
+          async ([leagueLevelUnitId, entries]) => {
+            try {
+              const { response, payload } = await fetchChppJson<{
+                data?: {
+                  HattrickData?: {
+                    LeagueName?: string;
+                    LeagueLevelUnitName?: string;
+                    LeagueLevelUnitID?: number | string;
+                    Team?: unknown;
+                  };
+                };
+                error?: string;
+                details?: string;
+              }>(
+                `/api/chpp/leaguedetails?leagueLevelUnitId=${leagueLevelUnitId}`,
+                { cache: "no-store" }
+              );
+              if (!response.ok || payload?.error) return;
+              const leagueData = payload?.data?.HattrickData as RawNode | undefined;
+              const rawTeams = leagueData?.Team as RawNode | RawNode[] | null | undefined;
+              const teams = Array.isArray(rawTeams) ? rawTeams : rawTeams ? [rawTeams] : [];
+              const excludedTeamIds = new Set<number>(
+                entries
+                  .map((entry) => Number(entry.ownTeamId))
+                  .filter((teamId) => Number.isFinite(teamId) && teamId > 0)
+              );
+              teams.forEach((teamNode) => {
+                const teamId = readNumberLike(teamNode.TeamID) ?? 0;
+                if (!Number.isFinite(teamId) || teamId <= 0) return;
+                if (excludedTeamIds.has(teamId)) return;
+                const existing = merged.get(teamId);
+                merged.set(teamId, {
+                  teamId,
+                  teamName:
+                    readStringLike(teamNode.TeamName) ?? existing?.teamName ?? "",
+                  leagueName:
+                    readStringLike(leagueData?.LeagueName) ??
+                    existing?.leagueName ??
+                    null,
+                  leagueLevelUnitName:
+                    readStringLike(leagueData?.LeagueLevelUnitName) ??
+                    existing?.leagueLevelUnitName ??
+                    null,
+                  leagueLevelUnitId:
+                    readNumberLike(leagueData?.LeagueLevelUnitID) ??
+                    existing?.leagueLevelUnitId ??
+                    leagueLevelUnitId,
+                });
+              });
+            } catch (error) {
+              if (isChppAuthRequiredError(error)) throw error;
+            }
+          }
+        );
+        if (!active) return;
+        setOwnLeagueTeams(
+          Array.from(merged.values())
+            .filter((team) => !ownSeniorTeamIds.has(team.teamId))
+            .sort((left, right) => left.teamName.localeCompare(right.teamName))
+        );
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) return;
+        if (!active) return;
+        setOwnLeagueTeams([]);
+        setError(getReadableErrorMessage(error, messages.watchlistError));
+        if (watchlistOpen) {
+          setErrorOpen(true);
+        }
+      }
+    };
+    void loadOwnLeagueTeams();
+    return () => {
+      active = false;
+    };
+  }, [
+    messages.watchlistError,
+    ownLeagueSelections,
+    ownLeagues,
+    ownSeniorTeamIds,
+    watchlistOpen,
+  ]);
 
   useEffect(() => {
     let active = true;
@@ -2781,6 +3629,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 LeagueName?: string;
                 LeagueLevelUnitName?: string;
                 LeagueLevelUnitID?: number | string;
+                GenderID?: number | string;
                 LeagueLevelUnit?: {
                   LeagueLevelUnitID?: number | string;
                   LeagueLevelUnitName?: string;
@@ -2805,6 +3654,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               LeagueName?: string;
               LeagueLevelUnitName?: string;
               LeagueLevelUnitID?: number | string;
+              GenderID?: number | string;
               LeagueLevelUnit?: {
                 LeagueLevelUnitID?: number | string;
                 LeagueLevelUnitName?: string;
@@ -2827,6 +3677,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           leagueName: meta.leagueName,
           leagueLevelUnitName: meta.leagueLevelUnitName,
           leagueLevelUnitId: meta.leagueLevelUnitId,
+          teamGender: normalizeTeamGender(teamDetails?.GenderID),
           arenaId: meta.arenaId,
           arenaName: meta.arenaName,
         });
@@ -2866,8 +3717,29 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   useEffect(() => {
     if (!initializedRef.current) return;
-    writeStorage({ supportedSelections, manualTeams });
-  }, [supportedSelections, manualTeams]);
+    writeChronicleTabsStorage({
+      version: 1,
+      activeTabId: activeChronicleTabId,
+      tabs: chronicleTabs,
+    });
+    writeStorage({ supportedSelections, ownLeagueSelections, manualTeams });
+    writeChronicleUpdates(updates);
+    writeGlobalBaseline(globalBaselineCache);
+    writeGlobalUpdatesHistory(globalUpdatesHistory);
+    if (lastGlobalRefreshAt !== null) {
+      writeLastRefresh(lastGlobalRefreshAt);
+    }
+  }, [
+    activeChronicleTabId,
+    chronicleTabs,
+    globalBaselineCache,
+    globalUpdatesHistory,
+    lastGlobalRefreshAt,
+    manualTeams,
+    ownLeagueSelections,
+    supportedSelections,
+    updates,
+  ]);
 
   useEffect(() => {
     if (!primaryTeam) return;
@@ -2877,15 +3749,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         ...prev,
         {
           teamId: primaryTeam.teamId,
-          teamName: primaryTeam.teamName ?? "",
-          leagueName: primaryTeam.leagueName ?? null,
-          leagueLevelUnitName: primaryTeam.leagueLevelUnitName ?? null,
-        },
-      ];
-    });
-    setSupportedSelections((prev) => {
-      if (prev[primaryTeam.teamId] !== undefined) return prev;
-      return { ...prev, [primaryTeam.teamId]: true };
+            teamName: primaryTeam.teamName ?? "",
+            leagueName: primaryTeam.leagueName ?? null,
+            leagueLevelUnitName: primaryTeam.leagueLevelUnitName ?? null,
+            teamGender:
+              prev.find((team) => team.teamId === primaryTeam.teamId)?.teamGender ??
+              primaryTeam.teamGender ??
+              null,
+          },
+        ];
     });
   }, [primaryTeam]);
 
@@ -2942,7 +3814,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   useEffect(() => {
     setGlobalUpdatesHistory((prev) => prev.slice(0, updatesHistoryCount));
-  }, [updatesHistoryCount]);
+  }, [setGlobalUpdatesHistory, updatesHistoryCount]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -2968,14 +3840,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   useEffect(() => {
     if (trackedTeams.length === 0) return;
-    const hasSnapshot = Object.values(chronicleCache.teams).some(
-      (team) => team.leaguePerformance?.current
+    const hasSnapshot = trackedTeams.some(
+      (team) => chronicleCache.teams[team.teamId]?.leaguePerformance?.current
     );
     if (hasSnapshot) return;
     if (anyRefreshing || initialFetchRef.current) return;
     initialFetchRef.current = true;
     void refreshAllData("manual");
-  }, [trackedTeams.length, chronicleCache, anyRefreshing]);
+  }, [trackedTeams, chronicleCache, anyRefreshing]);
 
   useEffect(() => {
     if (loading || isValidating) return;
@@ -3002,9 +3874,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (!initializedRef.current) return;
     if (loading || isValidating) return;
     if (trackedTeams.length === 0) return;
-    let lastRefresh = readLastRefresh();
+    const trackedTeamIds = trackedTeams.map((team) => team.teamId);
+    let lastRefresh = lastGlobalRefreshAt;
     if (!lastRefresh) {
-      const fallback = getLatestCacheTimestamp(chronicleCache);
+      const fallback = getLatestCacheTimestampForTeams(chronicleCache, trackedTeamIds);
       if (!fallback) return;
       lastRefresh = fallback;
       writeLastRefresh(fallback);
@@ -3021,9 +3894,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     void refreshAllData("stale");
   }, [
     trackedTeams.length,
+    trackedTeams,
     stalenessDays,
     anyRefreshing,
     chronicleCache,
+    lastGlobalRefreshAt,
     loading,
     isValidating,
   ]);
@@ -3036,9 +3911,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
     const maybeRunStaleRefresh = () => {
       if (document.visibilityState !== "visible") return;
-      let lastRefresh = readLastRefresh();
+      const trackedTeamIds = trackedTeams.map((team) => team.teamId);
+      let lastRefresh = lastGlobalRefreshAt;
       if (!lastRefresh) {
-        const fallback = getLatestCacheTimestamp(chronicleCache);
+        const fallback = getLatestCacheTimestampForTeams(chronicleCache, trackedTeamIds);
         if (!fallback) return;
         lastRefresh = fallback;
         writeLastRefresh(fallback);
@@ -3071,9 +3947,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
   }, [
     trackedTeams.length,
+    trackedTeams,
     stalenessDays,
     anyRefreshing,
     chronicleCache,
+    lastGlobalRefreshAt,
     loading,
     isValidating,
   ]);
@@ -3081,18 +3959,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   useEffect(() => {
     writeChronicleCache(chronicleCache);
   }, [chronicleCache]);
-
-  useEffect(() => {
-    writeChronicleUpdates(updates);
-  }, [updates]);
-
-  useEffect(() => {
-    writeGlobalBaseline(globalBaselineCache);
-  }, [globalBaselineCache]);
-
-  useEffect(() => {
-    writeGlobalUpdatesHistory(globalUpdatesHistory);
-  }, [globalUpdatesHistory]);
 
   useEffect(() => {
     const normalized = [
@@ -3151,6 +4017,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             TeamName?: string;
             LeagueName?: string;
             LeagueLevelUnitName?: string;
+            GenderID?: number | string;
             League?: {
               LeagueName?: string;
               Name?: string;
@@ -3181,6 +4048,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           leagueName: meta.leagueName,
           leagueLevelUnitName: meta.leagueLevelUnitName,
           leagueLevelUnitId: meta.leagueLevelUnitId,
+          teamGender: normalizeTeamGender(team?.GenderID),
         },
       ]);
       setTeamIdInput("");
@@ -3207,9 +4075,152 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
   };
 
+  const handleToggleOwnLeague = (key: string) => {
+    setOwnLeagueSelections((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
   const handleRemoveManual = (teamId: number) => {
     setManualTeams((prev) => prev.filter((team) => team.teamId !== teamId));
   };
+
+  const handleSelectAllWatchlist = useCallback(() => {
+    const newlyEnabledTeamIds = supportedTeams
+      .map((team) => team.teamId)
+      .filter((teamId) => !(supportedSelections[teamId] ?? false));
+    setSupportedSelections(
+      Object.fromEntries(supportedTeams.map((team) => [team.teamId, true])) as Record<
+        number,
+        boolean
+      >
+    );
+    setOwnLeagueSelections(
+      Object.fromEntries(ownLeagues.map((entry) => [entry.key, true])) as Record<
+        string,
+        boolean
+      >
+    );
+    if (newlyEnabledTeamIds.length > 0) {
+      setPendingWatchlistFetchTeamIds((prev) => {
+        const next = new Set(prev);
+        newlyEnabledTeamIds.forEach((teamId) => next.add(teamId));
+        return Array.from(next);
+      });
+    }
+  }, [ownLeagues, setOwnLeagueSelections, setSupportedSelections, supportedSelections, supportedTeams]);
+
+  const handleDeselectAllWatchlist = useCallback(() => {
+    setSupportedSelections(
+      Object.fromEntries(supportedTeams.map((team) => [team.teamId, false])) as Record<
+        number,
+        boolean
+      >
+    );
+    setOwnLeagueSelections(
+      Object.fromEntries(ownLeagues.map((entry) => [entry.key, false])) as Record<
+        string,
+        boolean
+      >
+    );
+  }, [ownLeagues, setOwnLeagueSelections, setSupportedSelections, supportedTeams]);
+
+  const handleToggleWholeWatchlist = useCallback(() => {
+    if (allWatchlistSelected) {
+      handleDeselectAllWatchlist();
+      return;
+    }
+    handleSelectAllWatchlist();
+  }, [allWatchlistSelected, handleDeselectAllWatchlist, handleSelectAllWatchlist]);
+
+  const handleCreateChronicleTab = useCallback(() => {
+    const nextTabId = `tab-${Date.now()}`;
+    setChronicleTabs((prev) => {
+      const nextIndex = prev.length + 1;
+      return [
+        ...prev,
+        buildChronicleTabState(messages, nextIndex, {
+          id: nextTabId,
+          supportedSelections: Object.fromEntries(
+            supportedTeams.map((team) => [team.teamId, false])
+          ) as Record<number, boolean>,
+          ownLeagueSelections: Object.fromEntries(
+            ownLeagues.map((entry) => [entry.key, false])
+          ) as Record<string, boolean>,
+        }),
+      ];
+    });
+    setActiveChronicleTabId(nextTabId);
+  }, [messages, ownLeagues, supportedTeams]);
+
+  const handleStartRenamingTab = useCallback((tab: ChronicleTabState) => {
+    setRenamingTabId(tab.id);
+    setRenamingTabValue(tab.name);
+  }, []);
+
+  const handleCommitRenamingTab = useCallback(() => {
+    if (!renamingTabId) return;
+    setChronicleTabs((prev) =>
+      prev.map((tab, index) => {
+        if (tab.id !== renamingTabId) return tab;
+        const fallbackName = buildChronicleTabName(messages, index + 1);
+        const nextName = renamingTabValue.trim() || fallbackName;
+        return { ...tab, name: nextName };
+      })
+    );
+    setRenamingTabId(null);
+    setRenamingTabValue("");
+  }, [messages, renamingTabId, renamingTabValue]);
+
+  const handleCancelRenamingTab = useCallback(() => {
+    setRenamingTabId(null);
+    setRenamingTabValue("");
+  }, []);
+
+  const handleRequestDeleteTab = useCallback((tabId: string) => {
+    setPendingDeleteTabId(tabId);
+  }, []);
+
+  const handleConfirmDeleteTab = useCallback(() => {
+    if (!pendingDeleteTabId) return;
+    let nextActiveTabId: string | null = null;
+    setChronicleTabs((prev) => {
+      if (prev.length <= 1) {
+        const fallbackTab = buildChronicleTabState(messages, 1, {
+          id: "tab-1",
+          supportedSelections: Object.fromEntries(
+            supportedTeams.map((team) => [team.teamId, false])
+          ) as Record<number, boolean>,
+          ownLeagueSelections: Object.fromEntries(
+            ownLeagues.map((entry) => [entry.key, false])
+          ) as Record<string, boolean>,
+        });
+        nextActiveTabId = fallbackTab.id;
+        return [fallbackTab];
+      }
+      const remaining = prev.filter((tab) => tab.id !== pendingDeleteTabId);
+      nextActiveTabId =
+        activeChronicleTabId === pendingDeleteTabId
+          ? remaining[Math.max(0, prev.findIndex((tab) => tab.id === pendingDeleteTabId) - 1)]
+              ?.id ?? remaining[0]?.id ?? null
+          : activeChronicleTabId;
+      return remaining.map((tab, index) => ({
+        ...tab,
+        name: tab.name || buildChronicleTabName(messages, index + 1),
+      }));
+    });
+    if (nextActiveTabId) {
+      setActiveChronicleTabId(nextActiveTabId);
+    }
+    setPendingDeleteTabId(null);
+  }, [
+    activeChronicleTabId,
+    messages,
+    ownLeagues,
+    pendingDeleteTabId,
+    supportedTeams,
+  ]);
 
   const movePanel = useCallback((sourcePanelId: string, targetPanelId: string) => {
     if (!sourcePanelId || sourcePanelId === targetPanelId) return;
@@ -5823,7 +6834,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             error?: string;
             details?: string;
           }>(
-            `/api/chpp/managercompendium?version=1.6&userId=${userId}`,
+            `/api/chpp/managercompendium?version=1.7&userId=${userId}`,
             {
               cache: "no-store",
             }
@@ -9153,6 +10164,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             <p className={styles.helpIntro}>{messages.clubChronicleHelpIntro}</p>
             <ul className={styles.helpList}>
               <li>{messages.clubChronicleHelpBulletControls}</li>
+              <li>{messages.clubChronicleHelpBulletTabs}</li>
               <li>{messages.clubChronicleHelpBulletLeague}</li>
               <li>{messages.clubChronicleHelpBulletPress}</li>
               <li>{messages.clubChronicleHelpBulletFinance}</li>
@@ -9257,6 +10269,91 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               ☰
             </button>
           </Tooltip>
+        </div>
+      </div>
+
+      <div className={styles.chronicleTabsBar}>
+        <div className={styles.chronicleTabsList}>
+          {chronicleTabs.map((tab, index) => {
+            const isActive = tab.id === activeChronicleTab.id;
+            const isRenaming = tab.id === renamingTabId;
+            return (
+              <div
+                key={tab.id}
+                className={`${styles.chronicleTabChip}${isActive ? ` ${styles.chronicleTabChipActive}` : ""}`}
+              >
+                {isRenaming ? (
+                  <input
+                    type="text"
+                    className={styles.chronicleTabInput}
+                    value={renamingTabValue}
+                    placeholder={messages.clubChronicleTabRenamePlaceholder}
+                    autoFocus
+                    onChange={(event) => setRenamingTabValue(event.target.value)}
+                    onBlur={handleCommitRenamingTab}
+                    onClick={(event) => event.stopPropagation()}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        handleCommitRenamingTab();
+                      }
+                      if (event.key === "Escape") {
+                        event.preventDefault();
+                        handleCancelRenamingTab();
+                      }
+                    }}
+                  />
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.chronicleTabLabel}
+                    onClick={() => setActiveChronicleTabId(tab.id)}
+                  >
+                    <span>{tab.name || buildChronicleTabName(messages, index + 1)}</span>
+                  </button>
+                )}
+                <Tooltip content={messages.clubChronicleTabRenameTooltip}>
+                  <button
+                    type="button"
+                    className={styles.chronicleTabRename}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleStartRenamingTab(tab);
+                    }}
+                    aria-label={messages.clubChronicleTabRenameTooltip}
+                  >
+                    ✎
+                  </button>
+                </Tooltip>
+                <Tooltip content={messages.clubChronicleTabDeleteTooltip}>
+                  <button
+                    type="button"
+                    className={styles.chronicleTabDelete}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleRequestDeleteTab(tab.id);
+                    }}
+                    aria-label={messages.clubChronicleTabDeleteTooltip}
+                  >
+                    ×
+                  </button>
+                </Tooltip>
+              </div>
+            );
+          })}
+          <Tooltip content={messages.clubChronicleTabAdd}>
+            <button
+              type="button"
+              className={styles.chronicleTabAddButton}
+              onClick={handleCreateChronicleTab}
+              aria-label={messages.clubChronicleTabAdd}
+            >
+              +
+            </button>
+          </Tooltip>
+          <span className={styles.chronicleTabShortcutHint}>
+            {messages.clubChronicleTabShortcutHint}
+          </span>
         </div>
       </div>
 
@@ -10007,6 +11104,32 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
       />
       <Modal
+        open={pendingDeleteTabId !== null}
+        title={messages.clubChronicleTabDeleteTitle}
+        movable={false}
+        body={<p>{messages.clubChronicleTabDeleteBody}</p>}
+        actions={
+          <div className={styles.modalButtonRow}>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={() => setPendingDeleteTabId(null)}
+            >
+              {messages.closeLabel}
+            </button>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={handleConfirmDeleteTab}
+            >
+              {messages.clubChronicleTabDeleteConfirm}
+            </button>
+          </div>
+        }
+        closeOnBackdrop
+        onClose={() => setPendingDeleteTabId(null)}
+      />
+      <Modal
         open={watchlistOpen}
         title={messages.watchlistTitle}
         className={styles.watchlistModal}
@@ -10015,13 +11138,25 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             {loading ? (
               <p className={styles.muted}>{messages.watchlistLoading}</p>
             ) : null}
+            <label className={styles.watchlistMasterRow}>
+              <input
+                ref={watchlistMasterCheckboxRef}
+                type="checkbox"
+                checked={allWatchlistSelected}
+                onChange={handleToggleWholeWatchlist}
+                disabled={loading}
+              />
+              <span className={styles.watchlistMasterLabel}>
+                {messages.watchlistAllItems}
+              </span>
+            </label>
             <div className={styles.watchlistSection}>
               <h3 className={styles.watchlistHeading}>
-                {messages.watchlistSupportedTitle}
+                {messages.watchlistOwnSeniorTeamsTitle}
               </h3>
-              {supportedTeams.length ? (
+              {ownSeniorTeams.length ? (
                 <ul className={styles.watchlistList}>
-                  {supportedTeams.map((team) => (
+                  {ownSeniorTeams.map((team) => (
                     <li key={team.teamId} className={styles.watchlistRow}>
                       <label className={styles.watchlistTeam}>
                         <input
@@ -10030,8 +11165,69 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                           onChange={() => handleToggleSupported(team.teamId)}
                         />
                         <span className={styles.watchlistName}>
-                          {team.teamName ||
-                            `${messages.watchlistTeamLabel} ${team.teamId}`}
+                          {formatWatchlistTeamName(team)}
+                        </span>
+                      </label>
+                      <span className={styles.watchlistMeta}>
+                        {[
+                          team.leagueName,
+                          team.leagueLevelUnitName,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={styles.muted}>
+                  {messages.watchlistOwnSeniorTeamsEmpty}
+                </p>
+              )}
+            </div>
+            <div className={styles.watchlistSection}>
+              <h3 className={styles.watchlistHeading}>
+                {messages.watchlistOwnLeaguesTitle}
+              </h3>
+              {ownLeagues.length ? (
+                <ul className={styles.watchlistList}>
+                  {ownLeagues.map((entry) => (
+                    <li key={entry.key} className={styles.watchlistRow}>
+                      <label className={styles.watchlistTeam}>
+                        <input
+                          type="checkbox"
+                          checked={ownLeagueSelections[entry.key] ?? false}
+                          onChange={() => handleToggleOwnLeague(entry.key)}
+                        />
+                        <span className={styles.watchlistName}>
+                          {formatOwnLeagueName(entry)}
+                        </span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className={styles.muted}>
+                  {messages.watchlistOwnLeaguesEmpty}
+                </p>
+              )}
+            </div>
+            <div className={styles.watchlistSection}>
+              <h3 className={styles.watchlistHeading}>
+                {messages.watchlistSupportedTitle}
+              </h3>
+              {supportedWatchlistTeams.length ? (
+                <ul className={styles.watchlistList}>
+                  {supportedWatchlistTeams.map((team) => (
+                    <li key={team.teamId} className={styles.watchlistRow}>
+                      <label className={styles.watchlistTeam}>
+                        <input
+                          type="checkbox"
+                          checked={supportedSelections[team.teamId] ?? false}
+                          onChange={() => handleToggleSupported(team.teamId)}
+                        />
+                        <span className={styles.watchlistName}>
+                          {formatWatchlistTeamName(team)}
                         </span>
                       </label>
                       {team.leagueName || team.leagueLevelUnitName ? (
@@ -10071,8 +11267,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                           </button>
                         </Tooltip>
                         <span className={styles.watchlistName}>
-                          {team.teamName ||
-                            `${messages.watchlistTeamLabel} ${team.teamId}`}
+                          {formatWatchlistTeamName(team)}
                         </span>
                       </div>
                       {team.leagueName || team.leagueLevelUnitName ? (

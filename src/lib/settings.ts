@@ -6,6 +6,8 @@ export const CLUB_CHRONICLE_SETTINGS_EVENT = "ya:club-chronicle-settings";
 export const CLUB_CHRONICLE_DEBUG_EVENT = "ya:club-chronicle-debug";
 export const YOUTH_NEW_MARKERS_DEBUG_EVENT = "ya:youth-new-markers-debug";
 export const YOUTH_DEBUG_SE_FETCH_EVENT = "ya:youth-debug-se-fetch";
+export const BUY_COFFEE_PROMPT_OPEN_EVENT = "ya:buy-coffee-prompt-open";
+export const BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT = "ya:buy-coffee-prompt-debug-open";
 export const DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS = 3;
 export const DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT = 5;
 export const DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT = 10;
@@ -16,6 +18,10 @@ export const DEFAULT_YOUTH_STALENESS_DAYS = 1;
 export const SENIOR_SETTINGS_STORAGE_KEY = "ya_senior_staleness_days_v1";
 export const SENIOR_SETTINGS_EVENT = "ya:senior-settings";
 export const SENIOR_RATINGS_WIPE_EVENT = "ya:senior-ratings-wipe";
+export const SENIOR_DEBUG_MANAGER_USER_ID_STORAGE_KEY =
+  "ya_senior_debug_manager_user_id_v1";
+export const SENIOR_DEBUG_MANAGER_USER_ID_EVENT =
+  "ya:senior-debug-manager-user-id";
 export const DEFAULT_SENIOR_STALENESS_DAYS = 1;
 export const LAST_REFRESH_STORAGE_KEY = "ya_last_refresh_ts_v1";
 export const DEBUG_SETTINGS_STORAGE_KEY = "ya_debug_disable_scaling_v1";
@@ -265,6 +271,37 @@ export function writeSeniorStalenessDays(value: number) {
   try {
     const clamped = Math.min(7, Math.max(1, Math.round(value)));
     window.localStorage.setItem(SENIOR_SETTINGS_STORAGE_KEY, String(clamped));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function readSeniorDebugManagerUserId(): string {
+  if (typeof window === "undefined") {
+    return "";
+  }
+  try {
+    const stored = window.localStorage.getItem(
+      SENIOR_DEBUG_MANAGER_USER_ID_STORAGE_KEY
+    );
+    return typeof stored === "string" ? stored.trim() : "";
+  } catch {
+    return "";
+  }
+}
+
+export function writeSeniorDebugManagerUserId(value: string) {
+  if (typeof window === "undefined") return;
+  try {
+    const normalized = value.trim();
+    if (normalized) {
+      window.localStorage.setItem(
+        SENIOR_DEBUG_MANAGER_USER_ID_STORAGE_KEY,
+        normalized
+      );
+      return;
+    }
+    window.localStorage.removeItem(SENIOR_DEBUG_MANAGER_USER_ID_STORAGE_KEY);
   } catch {
     // ignore storage errors
   }

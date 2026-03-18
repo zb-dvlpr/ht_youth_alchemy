@@ -22,6 +22,9 @@ import {
   writeSeniorStalenessDays,
   SENIOR_SETTINGS_EVENT,
   SENIOR_RATINGS_WIPE_EVENT,
+  readSeniorDebugManagerUserId,
+  writeSeniorDebugManagerUserId,
+  SENIOR_DEBUG_MANAGER_USER_ID_EVENT,
   readClubChronicleStalenessDays,
   writeClubChronicleStalenessDays,
   readClubChronicleTransferHistoryCount,
@@ -35,6 +38,7 @@ import {
   writeGeneralEnableScaling,
   YOUTH_NEW_MARKERS_DEBUG_EVENT,
   YOUTH_DEBUG_SE_FETCH_EVENT,
+  BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT,
   readYouthNewMarkersDebugEnabled,
   writeYouthNewMarkersDebugEnabled,
 } from "@/lib/settings";
@@ -75,6 +79,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     useState<ChppDebugOauthErrorMode>("off");
   const [debugRandomNewMarkersEnabled, setDebugRandomNewMarkersEnabled] =
     useState(false);
+  const [debugSeniorManagerUserId, setDebugSeniorManagerUserId] = useState("");
   const [debugYouthSeMatchId, setDebugYouthSeMatchId] = useState("");
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -106,6 +111,7 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     if (process.env.NODE_ENV !== "production") {
       setDebugOauthErrorMode(readChppDebugOauthErrorMode());
       setDebugRandomNewMarkersEnabled(readYouthNewMarkersDebugEnabled());
+      setDebugSeniorManagerUserId(readSeniorDebugManagerUserId());
     }
   }, []);
 
@@ -376,6 +382,30 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         })
       );
     }
+  };
+
+  const handleApplySeniorDebugManagerUserId = () => {
+    const normalizedUserId = debugSeniorManagerUserId.trim().replace(/\D+/g, "");
+    setDebugSeniorManagerUserId(normalizedUserId);
+    writeSeniorDebugManagerUserId(normalizedUserId);
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(SENIOR_DEBUG_MANAGER_USER_ID_EVENT, {
+          detail: {
+            userId: normalizedUserId || null,
+          },
+        })
+      );
+    }
+  };
+
+  const handleOpenBuyCoffeePromptDebug = () => {
+    setDebugSettingsOpen(false);
+    setOpen(false);
+    if (typeof window === "undefined") return;
+    window.requestAnimationFrame(() => {
+      window.dispatchEvent(new CustomEvent(BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT));
+    });
   };
 
   return (
@@ -761,6 +791,32 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
             </label>
             <label className={styles.settingsField}>
               <span className={styles.settingsFieldLabel}>
+                {messages.devManagerUserIdLabel}
+              </span>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className={styles.settingsFieldInput}
+                  placeholder={messages.devManagerUserIdPlaceholder}
+                  value={debugSeniorManagerUserId}
+                  onChange={(event) =>
+                    setDebugSeniorManagerUserId(
+                      event.target.value.replace(/\D+/g, "")
+                    )
+                  }
+                />
+                <button
+                  type="button"
+                  className={styles.confirmSubmit}
+                  onClick={handleApplySeniorDebugManagerUserId}
+                >
+                  {messages.devManagerLoadTeams}
+                </button>
+              </div>
+            </label>
+            <label className={styles.settingsField}>
+              <span className={styles.settingsFieldLabel}>
                 {messages.debugYouthSeMatchIdLabel}
               </span>
               <div style={{ display: "flex", gap: 8 }}>
@@ -781,6 +837,13 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
               </div>
             </label>
             <p className={styles.muted}>{messages.debugYouthSeFetchHint}</p>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={handleOpenBuyCoffeePromptDebug}
+            >
+              {messages.settingsDebugBuyCoffeePromptButton}
+            </button>
           </div>
         }
         actions={

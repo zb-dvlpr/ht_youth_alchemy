@@ -3,7 +3,9 @@
 
 import {
   CSSProperties,
+  Fragment,
   ReactNode,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -22,8 +24,18 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { formatDateTime } from "@/lib/datetime";
 import { parseChppDate } from "@/lib/chpp/utils";
-import { hattrickMatchUrl, hattrickTeamUrl } from "@/lib/hattrick/urls";
 import {
+  hattrickForumThreadUrl,
+  hattrickManagerUrl,
+  hattrickMatchUrl,
+  hattrickMatchUrlWithSourceSystem,
+  hattrickPlayerUrl,
+  hattrickTeamUrl,
+} from "@/lib/hattrick/urls";
+import {
+  readSeniorDebugManagerUserId,
+  SENIOR_DEBUG_MANAGER_USER_ID_EVENT,
+  SENIOR_DEBUG_MANAGER_USER_ID_STORAGE_KEY,
   readSeniorStalenessDays,
   SENIOR_RATINGS_WIPE_EVENT,
   SENIOR_SETTINGS_EVENT,
@@ -31,6 +43,7 @@ import {
 } from "@/lib/settings";
 import Modal from "./Modal";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
+import StartupLoadingExperience from "./StartupLoadingExperience";
 import {
   Cell,
   Pie,
@@ -167,6 +180,52 @@ type PersistedSeniorMarkersBaseline = {
 
 type SeniorDashboardProps = {
   messages: Messages;
+  initialSeniorTeams?: Array<{
+    teamId: number;
+    teamName: string;
+    teamGender: "male" | "female" | null;
+  }>;
+  initialSeniorTeamId?: number | null;
+};
+
+type SeniorTeamOption = {
+  teamId: number;
+  teamName: string;
+  teamGender: "male" | "female" | null;
+};
+
+type ExtraTimeBTeamRecentMatchState = {
+  status: "idle" | "loading" | "ready" | "error";
+  recentMatch: {
+    matchId: number;
+    sourceSystem: string;
+    matchDate: string;
+  } | null;
+  playerMinutesById: Record<number, number>;
+};
+
+type ManagerCompendiumTeam = {
+  TeamId?: unknown;
+  TeamName?: unknown;
+  GenderID?: unknown;
+  League?: {
+    Season?: unknown;
+  };
+};
+
+type ManagerCompendiumResponse = {
+  season?: number | null;
+  data?: {
+    HattrickData?: {
+      Manager?: {
+        Teams?: {
+          Team?: ManagerCompendiumTeam | ManagerCompendiumTeam[];
+        };
+      };
+    };
+  };
+  error?: string;
+  details?: string;
 };
 
 type SortKey =
@@ -203,7 +262,6 @@ const SENIOR_HELP_ANCHOR_ANALYZE_OPPONENT = `.${styles.matchAnalyzeOpponentWrap}
 
 const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
-const RATINGS_ALGO_VERSION_STORAGE_KEY = "ya_senior_ratings_algo_version_v1";
 const LAST_REFRESH_STORAGE_KEY = "ya_senior_last_refresh_ts_v1";
 const LIST_SORT_STORAGE_KEY = "ya_senior_player_list_sort_v1";
 const SENIOR_HELP_STORAGE_KEY = "ya_senior_help_dismissed_v1";
@@ -211,6 +269,7 @@ const SENIOR_UPDATES_SCHEMA_VERSION = 3;
 const DETAILS_TTL_MS = 60 * 60 * 1000;
 const SENIOR_DETAILS_CONCURRENCY = 6;
 const CHPP_SEK_PER_EUR = 10;
+const I18N_TEMPLATE_TOKEN_PATTERN = /(\{\{[a-zA-Z0-9]+\}\})/g;
 const SKILL_KEYS = [
   "KeeperSkill",
   "DefenderSkill",
@@ -220,6 +279,7 @@ const SKILL_KEYS = [
   "ScorerSkill",
   "SetPiecesSkill",
 ] as const;
+const SENIOR_SKILL_EFFECT_CAP = 20;
 const UPDATES_HISTORY_LIMIT = 20;
 const FRIENDLY_MATCH_TYPES = new Set<number>([4, 5, 8, 9]);
 const LEAGUE_CUP_QUALI_MATCH_TYPES = new Set<number>([1, 2, 3, 6]);
@@ -227,8 +287,47 @@ const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
 const OPPONENT_ARCHIVE_LIMIT = 20;
 const OPPONENT_DETAILS_CONCURRENCY = 6;
 const FORMATION_PREDICT_CONCURRENCY = 4;
-const SENIOR_RATINGS_ALGO_VERSION = 2;
+const SENIOR_RATINGS_ALGO_VERSION = 4;
 const NON_DEPRECATED_TRAINING_TYPES = [9, 3, 8, 5, 7, 4, 2, 11, 12, 10, 6] as const;
+const EXTRA_TIME_B_TEAM_MATCH_TYPES = new Set<number>([1, 2, 4, 5, 8, 9]);
+const EXTRA_TIME_B_TEAM_LOOKBACK_MS = 6 * 24 * 60 * 60 * 1000;
+const EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD = 45;
+const EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE = 18;
+const SENIOR_AI_LAST_MATCH_WEEKS_DEFAULT = 3;
+const SENIOR_AI_LAST_MATCH_WEEKS_DISABLED = 0;
+const SENIOR_AI_LAST_MATCH_WEEKS_MIN = 2;
+const SENIOR_AI_LAST_MATCH_WEEKS_MAX = 16;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const renderTemplateTokens = (
+  template: string,
+  replacements: Record<string, ReactNode>
+): ReactNode[] =>
+  template
+    .split(I18N_TEMPLATE_TOKEN_PATTERN)
+    .filter(Boolean)
+    .map((part, index) => {
+      const match = /^\{\{([a-zA-Z0-9]+)\}\}$/.exec(part);
+      if (!match) {
+        return <Fragment key={`text-${index}`}>{part}</Fragment>;
+      }
+      const replacement = replacements[match[1]];
+      return <Fragment key={`token-${index}`}>{replacement ?? part}</Fragment>;
+    });
+const EXTRA_TIME_SORT_SKILL_BY_TRAINING_TYPE: Partial<
+  Record<number, (typeof SKILL_KEYS)[number]>
+> = {
+  2: "SetPiecesSkill",
+  3: "DefenderSkill",
+  4: "ScorerSkill",
+  5: "WingerSkill",
+  6: "ScorerSkill",
+  7: "PassingSkill",
+  8: "PlaymakerSkill",
+  9: "KeeperSkill",
+  10: "PassingSkill",
+  11: "DefenderSkill",
+  12: "WingerSkill",
+};
 const FIELD_SLOT_ORDER = [
   "KP",
   "WB_L",
@@ -288,6 +387,14 @@ const sanitizeTrainingType = (value: number | null): number | null =>
   typeof value === "number" && NON_DEPRECATED_TRAINING_TYPES.includes(value as (typeof NON_DEPRECATED_TRAINING_TYPES)[number])
     ? value
     : null;
+const resolveScopedStorageKey = (
+  baseKey: string,
+  teamId: number | null,
+  multiTeamEnabled: boolean
+) =>
+  multiTeamEnabled && typeof teamId === "number" && teamId > 0
+    ? `${baseKey}_${teamId}`
+    : baseKey;
 type PlayerSector = "keeper" | "defense" | "midfield" | "attack";
 const SLOT_TO_SECTOR: Record<string, PlayerSector> = {
   KP: "keeper",
@@ -333,6 +440,21 @@ type GeneratedFormationRow = {
   error: string | null;
 };
 
+type FixedFormationSlotDiagnostic = {
+  slot: string;
+  assignedPlayerId: number | null;
+  noSlotRatingPlayerIds: number[];
+  betterOtherSectorPlayerIds: number[];
+  tiedOtherSectorPlayerIds: number[];
+  alreadyUsedPlayerIds: number[];
+};
+
+type FixedFormationTacticRow = {
+  tacticType: number;
+  predicted: PredictedRatings | null;
+  error: string | null;
+};
+
 type CollectiveRatings = {
   midfield: number;
   defense: number;
@@ -358,6 +480,21 @@ type OpponentFormationRow = {
   ratingLeftAtt: number | null;
 };
 
+const FIXED_FORMATION_OPTIONS = [
+  "5-5-0",
+  "5-4-1",
+  "5-3-2",
+  "5-2-3",
+  "4-5-1",
+  "4-4-2",
+  "4-3-3",
+  "3-5-2",
+  "3-4-3",
+  "2-5-3",
+] as const;
+
+const AI_TACTIC_OPTIONS = [0, 1, 2, 3, 4, 7, 8] as const;
+
 type FormationTacticsDistribution = {
   key: string;
   label: string;
@@ -375,6 +512,24 @@ type OpponentFormationAverages = {
   ratingLeftAtt: number | null;
 };
 
+type MatchOrderSubstitution = {
+  playerin: number;
+  playerout: number;
+  orderType: number;
+  min: number;
+  pos: number;
+  beh: number;
+  card: number;
+  standing: number;
+};
+
+type StartupLoadingPhase =
+  | "teamContext"
+  | "players"
+  | "matches"
+  | "ratings"
+  | "finalize";
+
 const parseNumber = (value: unknown): number | null => {
   if (value === null || value === undefined) return null;
   if (typeof value === "object") {
@@ -386,6 +541,32 @@ const parseNumber = (value: unknown): number | null => {
   const parsed = Number(value);
   return Number.isFinite(parsed) ? parsed : null;
 };
+
+const normalizeManagerCompendiumTeams = (
+  input?: ManagerCompendiumTeam | ManagerCompendiumTeam[]
+): ManagerCompendiumTeam[] => {
+  if (!input) return [];
+  return Array.isArray(input) ? input : [input];
+};
+
+const extractSeniorTeams = (
+  payload: ManagerCompendiumResponse | null | undefined
+): SeniorTeamOption[] =>
+  normalizeManagerCompendiumTeams(payload?.data?.HattrickData?.Manager?.Teams?.Team).reduce<
+    SeniorTeamOption[]
+  >((teams, team) => {
+    const teamId = parseNumber(team?.TeamId);
+    if (!teamId || teamId <= 0) return teams;
+    const teamName =
+      typeof team?.TeamName === "string" ? team.TeamName : String(team?.TeamName ?? "");
+    const genderId = parseNumber(team?.GenderID);
+    teams.push({
+      teamId,
+      teamName,
+      teamGender: genderId === 2 ? "female" : genderId === 1 ? "male" : null,
+    });
+    return teams;
+  }, []);
 
 const buildEmptySeniorMatrixNewMarkers = (): SeniorMatrixNewMarkers => ({
   detectedAt: null,
@@ -552,6 +733,30 @@ const parseSkill = (value: unknown): number | null => {
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
+};
+
+const computeSeniorSkillBonus = (
+  baseSkill: number | null,
+  details: SeniorPlayerDetails | null
+) => {
+  if (baseSkill === null) return null;
+  if (baseSkill >= SENIOR_SKILL_EFFECT_CAP) return 0;
+  const remaining = Math.max(0, SENIOR_SKILL_EFFECT_CAP - baseSkill);
+  if (details?.MotherClubBonus) {
+    return Math.min(1.5, remaining);
+  }
+  const loyaltyRaw = typeof details?.Loyalty === "number" ? details.Loyalty : 0;
+  return Math.min(Math.max(0, loyaltyRaw) / 20, remaining);
+};
+
+const computeSeniorEffectiveSkill = (
+  baseSkill: number | null,
+  details: SeniorPlayerDetails | null
+) => {
+  if (baseSkill === null) return null;
+  const bonus = computeSeniorSkillBonus(baseSkill, details);
+  if (bonus === null) return null;
+  return Math.min(SENIOR_SKILL_EFFECT_CAP, baseSkill + bonus);
 };
 
 // NEW/N detection must always be based on raw skill values from CHPP data only.
@@ -779,29 +984,19 @@ const normalizeSeniorPlayerDetails = (
   };
 };
 
-const readStoredLastRefresh = () => {
+const readStoredLastRefresh = (storageKey = LAST_REFRESH_STORAGE_KEY) => {
   if (typeof window === "undefined") return null;
-  const value = window.localStorage.getItem(LAST_REFRESH_STORAGE_KEY);
+  const value = window.localStorage.getItem(storageKey);
   const parsed = Number(value ?? "");
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
-const writeStoredLastRefresh = (value: number) => {
+const writeStoredLastRefresh = (
+  value: number,
+  storageKey = LAST_REFRESH_STORAGE_KEY
+) => {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(LAST_REFRESH_STORAGE_KEY, String(value));
-};
-
-const readStoredRatingsAlgoVersion = () => {
-  if (typeof window === "undefined") return null;
-  const value = window.localStorage.getItem(RATINGS_ALGO_VERSION_STORAGE_KEY);
-  const parsed = Number(value ?? "");
-  return Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : null;
-};
-
-const writeStoredRatingsAlgoVersion = (value: number) => {
-  if (typeof window === "undefined") return;
-  if (!Number.isFinite(value) || value <= 0) return;
-  window.localStorage.setItem(RATINGS_ALGO_VERSION_STORAGE_KEY, String(Math.floor(value)));
+  window.localStorage.setItem(storageKey, String(value));
 };
 
 const formatArchiveDateTimeParam = (timestamp: number) => {
@@ -811,8 +1006,36 @@ const formatArchiveDateTimeParam = (timestamp: number) => {
   return iso.slice(0, 19).replace("T", " ");
 };
 
+const berlinWeekdayFormatter = new Intl.DateTimeFormat("en-US", {
+  weekday: "short",
+  timeZone: "Europe/Berlin",
+});
+
+const isBerlinWeekend = (value: Date) => {
+  const weekday = berlinWeekdayFormatter.format(value);
+  return weekday === "Sat" || weekday === "Sun";
+};
+
+const hasCurrentSeniorRatingsAlgorithmVersion = (
+  ratings: RatingsMatrixResponse | null | undefined
+) =>
+  typeof ratings?.ratingsAlgorithmVersion === "number" &&
+  Number.isFinite(ratings.ratingsAlgorithmVersion) &&
+  Math.floor(ratings.ratingsAlgorithmVersion) === SENIOR_RATINGS_ALGO_VERSION;
+
 const isRatingsMatrixEmpty = (ratings: RatingsMatrixResponse | null | undefined) =>
   !ratings?.players?.some((row) => Object.keys(row.ratings ?? {}).length > 0);
+
+const hasUsableSeniorRatingsMatrix = (
+  ratings: RatingsMatrixResponse | null | undefined
+) => hasCurrentSeniorRatingsAlgorithmVersion(ratings) && !isRatingsMatrixEmpty(ratings);
+
+const stampSeniorRatingsAlgorithmVersion = (
+  ratings: RatingsMatrixResponse
+): RatingsMatrixResponse => ({
+  ...ratings,
+  ratingsAlgorithmVersion: SENIOR_RATINGS_ALGO_VERSION,
+});
 
 const mergeRatingsMatrices = (
   first: RatingsMatrixResponse,
@@ -883,6 +1106,7 @@ const mergeRatingsMatrices = (
         ? first.lastAppliedMatchSourceSystem
         : null;
   return {
+    ratingsAlgorithmVersion: SENIOR_RATINGS_ALGO_VERSION,
     positions: Array.from(new Set([...(first.positions ?? []), ...(second.positions ?? [])])),
     players: Array.from(mergedById.values()).map((row) => ({
       ...row,
@@ -947,6 +1171,14 @@ const applyRatingsDelta = (
     byId.set(row.id, existing);
   });
   return {
+    ratingsAlgorithmVersion:
+      typeof delta.ratingsAlgorithmVersion === "number" &&
+      Number.isFinite(delta.ratingsAlgorithmVersion)
+        ? Math.floor(delta.ratingsAlgorithmVersion)
+        : typeof base.ratingsAlgorithmVersion === "number" &&
+            Number.isFinite(base.ratingsAlgorithmVersion)
+          ? Math.floor(base.ratingsAlgorithmVersion)
+          : SENIOR_RATINGS_ALGO_VERSION,
     positions: Array.from(new Set([...(base.positions ?? []), ...(delta.positions ?? [])])),
     players: Array.from(byId.values()).map((row) => ({
       ...row,
@@ -1067,23 +1299,72 @@ const generateFormationShapes = () => {
   );
 };
 
+const parseFormationShape = (formation: string) => {
+  const [defendersRaw, midfieldersRaw, attackersRaw] = formation
+    .split("-")
+    .map((value) => Number(value));
+  if (
+    !Number.isFinite(defendersRaw) ||
+    !Number.isFinite(midfieldersRaw) ||
+    !Number.isFinite(attackersRaw)
+  ) {
+    return null;
+  }
+  const defenders = Math.trunc(defendersRaw);
+  const midfielders = Math.trunc(midfieldersRaw);
+  const attackers = Math.trunc(attackersRaw);
+  if (defenders + midfielders + attackers !== 10) return null;
+  return { defenders, midfielders, attackers };
+};
+
+const occupiedSlotsForFormationShape = (shape: {
+  defenders: number;
+  midfielders: number;
+  attackers: number;
+}) => {
+  const defenseSlots = DEFENSE_FORMATION_MAP[shape.defenders] ?? [];
+  return [
+    "KP",
+    ...defenseSlots,
+    ...(MIDFIELD_FORMATION_MAP[shape.midfielders] ?? []),
+    ...(ATTACK_FORMATION_MAP[shape.attackers] ?? []),
+  ];
+};
+
 const buildLineupPayload = (
   assignments: LineupAssignments,
-  tacticType: number
+  tacticType: number,
+  options?: {
+    behaviors?: Partial<Record<(typeof FIELD_SLOT_ORDER)[number], number>>;
+    benchIds?: number[];
+    kickerIds?: number[];
+    captainId?: number | null;
+    setPiecesId?: number | null;
+    substitutions?: MatchOrderSubstitution[];
+  }
 ) => {
   const toId = (value: number | null | undefined) => value ?? 0;
   return {
     positions: FIELD_SLOT_ORDER.map((slot) => ({
       id: toId(assignments[slot]),
-      behaviour: 0,
+      behaviour: options?.behaviors?.[slot] ?? 0,
     })),
     bench: [
-      ...BENCH_SLOT_ORDER.map((slot) => ({ id: toId(assignments[slot]), behaviour: 0 })),
-      ...Array.from({ length: 7 }, () => ({ id: 0, behaviour: 0 })),
+      ...Array.from({ length: 7 }, (_, index) => ({
+        id: Number(options?.benchIds?.[index] ?? 0) || toId(assignments[BENCH_SLOT_ORDER[index]]),
+        behaviour: 0,
+      })),
+      ...Array.from({ length: 7 }, (_, index) => ({
+        id: Number(options?.benchIds?.[index + 7] ?? 0) || 0,
+        behaviour: 0,
+      })),
     ],
-    kickers: Array.from({ length: 11 }, () => ({ id: 0, behaviour: 0 })),
-    captain: 0,
-    setPieces: 0,
+    kickers: Array.from({ length: 11 }, (_, index) => ({
+      id: Number(options?.kickerIds?.[index] ?? 0) || 0,
+      behaviour: 0,
+    })),
+    captain: Number(options?.captainId ?? 0) || 0,
+    setPieces: Number(options?.setPiecesId ?? 0) || 0,
     settings: {
       tactic: Number.isFinite(tacticType) ? tacticType : 0,
       speechLevel: 0,
@@ -1092,7 +1373,7 @@ const buildLineupPayload = (
       manMarkerPlayerId: 0,
       manMarkingPlayerId: 0,
     },
-    substitutions: [],
+    substitutions: options?.substitutions ?? [],
   };
 };
 
@@ -1109,6 +1390,12 @@ const toCollectiveRatings = (ratings: PredictedRatings): CollectiveRatings => {
     overall: midfield + defense + attack,
   };
 };
+
+const fixedFormationTacticWeightedScore = (collective: CollectiveRatings) =>
+  collective.overall +
+  collective.attack / 100 +
+  collective.defense / 10_000 +
+  collective.midfield / 1_000_000;
 
 const trainingAwareShapeAllowed = (
   shape: { defenders: number; midfielders: number; attackers: number },
@@ -1315,9 +1602,19 @@ const buildDistribution = (counts: Map<string, number>): FormationTacticsDistrib
     .map(([key, count]) => ({ key, label: key, count }))
     .sort((left, right) => right.count - left.count || left.key.localeCompare(right.key));
 
-export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
+export default function SeniorDashboard({
+  messages,
+  initialSeniorTeams = [],
+  initialSeniorTeamId = null,
+}: SeniorDashboardProps) {
   const showSetBestLineupDebugModal = process.env.NODE_ENV !== "production";
   const { addNotification } = useNotifications();
+  const [seniorTeams, setSeniorTeams] = useState<SeniorTeamOption[]>(initialSeniorTeams);
+  const [selectedSeniorTeamId, setSelectedSeniorTeamId] = useState<number | null>(
+    initialSeniorTeamId
+  );
+  const [managerCompendiumUserIdOverride, setManagerCompendiumUserIdOverride] =
+    useState<string | null>(null);
   const [players, setPlayers] = useState<SeniorPlayer[]>([]);
   const [matchesState, setMatchesState] = useState<MatchesResponse>({});
   const [ratingsResponse, setRatingsResponse] = useState<RatingsMatrixResponse | null>(null);
@@ -1326,8 +1623,14 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
+  const [seniorAiPreparedSubmissionMode, setSeniorAiPreparedSubmissionMode] = useState<
+    Exclude<SetBestLineupMode, "extraTime"> | null
+  >(null);
   const [tacticType, setTacticType] = useState(0);
   const [trainingType, setTrainingType] = useState<number | null>(null);
+  const [setBestLineupFixedFormation, setSetBestLineupFixedFormation] = useState<
+    string | null
+  >(null);
   const [trainingTypeSetPending, setTrainingTypeSetPending] = useState(false);
   const [trainingTypeSetPendingValue, setTrainingTypeSetPendingValue] = useState<number | null>(
     null
@@ -1338,6 +1641,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [refreshing, setRefreshing] = useState(false);
   const [refreshStatus, setRefreshStatus] = useState<string | null>(null);
   const [refreshProgressPct, setRefreshProgressPct] = useState(0);
+  const [startupLoadingPhase, setStartupLoadingPhase] =
+    useState<StartupLoadingPhase>("teamContext");
+  const [startupLoadingProgressPct, setStartupLoadingProgressPct] = useState(8);
+  const [startupBootstrapActive, setStartupBootstrapActive] = useState(false);
+  const [startupOverlayMounted, setStartupOverlayMounted] = useState(true);
+  const [startupOverlayFading, setStartupOverlayFading] = useState(false);
   const [lastRefreshAt, setLastRefreshAt] = useState<number | null>(null);
   const [updatesHistory, setUpdatesHistory] = useState<SeniorUpdatesGroupedEntry[]>([]);
   const [matrixNewMarkers, setMatrixNewMarkers] = useState<SeniorMatrixNewMarkers>(
@@ -1353,6 +1662,46 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     useState<PlayerDetailsPanelTab>("details");
   const [showSeniorSkillBonusInMatrix, setShowSeniorSkillBonusInMatrix] =
     useState(true);
+  const [extraTimeBTeamEnabled, setExtraTimeBTeamEnabled] = useState(false);
+  const [extraTimeBTeamBerlinWeekend, setExtraTimeBTeamBerlinWeekend] = useState(() =>
+    isBerlinWeekend(new Date())
+  );
+  const [extraTimeBTeamMinutesThreshold, setExtraTimeBTeamMinutesThreshold] = useState(
+    EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD
+  );
+  const [seniorAiLastMatchWeeksThreshold, setSeniorAiLastMatchWeeksThreshold] = useState(
+    SENIOR_AI_LAST_MATCH_WEEKS_DEFAULT
+  );
+  const [extraTimeBTeamRecentMatchState, setExtraTimeBTeamRecentMatchState] =
+    useState<ExtraTimeBTeamRecentMatchState>({
+      status: "idle",
+      recentMatch: null,
+      playerMinutesById: {},
+    });
+  const [extraTimeSelectedPlayerIds, setExtraTimeSelectedPlayerIds] = useState<number[]>([]);
+  const [extraTimeMatrixTrainingType, setExtraTimeMatrixTrainingType] =
+    useState<number | null>(null);
+  const [extraTimeMatrixTrainingTypeManual, setExtraTimeMatrixTrainingTypeManual] =
+    useState(false);
+  const [extraTimeMatchId, setExtraTimeMatchId] = useState<number | null>(null);
+  const [extraTimePreparedSubmission, setExtraTimePreparedSubmission] = useState<{
+    matchId: number;
+    traineeIds: number[];
+    trainingType: number | null;
+    wingerRoleIds?: number[];
+    wingerAttackerRoleIds?: number[];
+    scoringRoleIds?: number[];
+  } | null>(null);
+  const [trainingAwareInfoOpen, setTrainingAwareInfoOpen] = useState(false);
+  const [trainingAwareSelectedPlayerIds, setTrainingAwareSelectedPlayerIds] = useState<
+    number[]
+  >([]);
+  const [trainingAwareMatrixTrainingType, setTrainingAwareMatrixTrainingType] =
+    useState<number | null>(null);
+  const [trainingAwareMatrixTrainingTypeManual, setTrainingAwareMatrixTrainingTypeManual] =
+    useState(false);
+  const [trainingAwareMatchId, setTrainingAwareMatchId] = useState<number | null>(null);
+  const [trainingAwareTrainingMenuOpen, setTrainingAwareTrainingMenuOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [deferHelpUntilInitialRefresh, setDeferHelpUntilInitialRefresh] =
     useState(false);
@@ -1377,13 +1726,19 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   const [dataRestored, setDataRestored] = useState(false);
   const [opponentFormationsModal, setOpponentFormationsModal] = useState<{
     title: string;
+    mode: SetBestLineupMode;
     opponentRows: OpponentFormationRow[];
     chosenFormation: string | null;
     chosenFormationAverages: OpponentFormationAverages | null;
     generatedRows: GeneratedFormationRow[];
+    fixedFormation: string | null;
+    fixedFormationTacticRows: FixedFormationTacticRow[];
     selectedGeneratedFormation: string | null;
     selectedGeneratedTactic: number | null;
     selectedRejectedPlayerIds: number[];
+    selectedIneligiblePlayerIds: number[];
+    fixedFormationFailureEligiblePlayerIds: number[];
+    fixedFormationFailureSlotDiagnostics: FixedFormationSlotDiagnostic[];
     selectedComparison:
       | {
           ours: CollectiveRatings;
@@ -1408,9 +1763,25 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     error: string | null;
   } | null>(null);
   const [submitDisclaimerOpen, setSubmitDisclaimerOpen] = useState(false);
+  const [submitDisclaimerExtraTimeSummary, setSubmitDisclaimerExtraTimeSummary] = useState<{
+    trainingLabel: string;
+    trainees: Array<{ id: number; name: string }>;
+  } | null>(null);
+  const [extraTimeInfoOpen, setExtraTimeInfoOpen] = useState(false);
+  const [extraTimeTrainingMenuOpen, setExtraTimeTrainingMenuOpen] = useState(false);
 
   const refreshRunSeqRef = useRef(0);
   const dashboardRef = useRef<HTMLDivElement | null>(null);
+  const extraTimeTrainingButtonRef = useRef<HTMLButtonElement | null>(null);
+  const extraTimeTrainingMenuRef = useRef<HTMLDivElement | null>(null);
+  const extraTimeAutoSelectionOpenRef = useRef(false);
+  const extraTimeAutoSelectionTrainingTypeRef = useRef<number | null>(null);
+  const extraTimeLastAutoSelectedPlayerIdsRef = useRef<number[] | null>(null);
+  const trainingAwareTrainingButtonRef = useRef<HTMLButtonElement | null>(null);
+  const trainingAwareTrainingMenuRef = useRef<HTMLDivElement | null>(null);
+  const trainingAwareAutoSelectionOpenRef = useRef(false);
+  const trainingAwareAutoSelectionTrainingTypeRef = useRef<number | null>(null);
+  const trainingAwareLastAutoSelectedPlayerIdsRef = useRef<number[] | null>(null);
   const activeRefreshRunIdRef = useRef<number | null>(null);
   const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
   const staleRefreshAttemptedRef = useRef(false);
@@ -1419,9 +1790,14 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     null
   );
   const suppressNextUpdatesRecordingRef = useRef(false);
-  const refreshAllRef = useRef<((reason: "manual" | "stale") => Promise<boolean>) | null>(
-    null
-  );
+  const refreshAllRef = useRef<
+    ((
+      reason: "manual" | "stale",
+      options?: { startup?: boolean }
+    ) => Promise<boolean>) | null
+  >(null);
+  const restoredStateStorageKeyRef = useRef<string | null>(null);
+  const restoredDataStorageKeyRef = useRef<string | null>(null);
 
   const selectedPlayer =
     selectedId !== null
@@ -1429,6 +1805,69 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       : null;
   const selectedDetails =
     selectedId !== null ? detailsCache[selectedId]?.data ?? null : null;
+  const multiTeamEnabled = seniorTeams.length > 1;
+  const activeSeniorTeamId = multiTeamEnabled ? selectedSeniorTeamId : null;
+  const activeSeniorTeamOption = useMemo(() => {
+    if (seniorTeams.length === 0) return null;
+    if (!multiTeamEnabled) return seniorTeams[0];
+    if (!selectedSeniorTeamId) return seniorTeams[0];
+    return (
+      seniorTeams.find((team) => team.teamId === selectedSeniorTeamId) ??
+      seniorTeams[0]
+    );
+  }, [multiTeamEnabled, selectedSeniorTeamId, seniorTeams]);
+  const resolvedSeniorTeamId = useMemo(
+    () => activeSeniorTeamId ?? activeSeniorTeamOption?.teamId ?? null,
+    [activeSeniorTeamId, activeSeniorTeamOption]
+  );
+  const stateStorageKey = useMemo(
+    () => resolveScopedStorageKey(STATE_STORAGE_KEY, activeSeniorTeamId, multiTeamEnabled),
+    [activeSeniorTeamId, multiTeamEnabled]
+  );
+  const dataStorageKey = useMemo(
+    () => resolveScopedStorageKey(DATA_STORAGE_KEY, activeSeniorTeamId, multiTeamEnabled),
+    [activeSeniorTeamId, multiTeamEnabled]
+  );
+  const lastRefreshStorageKey = useMemo(
+    () =>
+      resolveScopedStorageKey(
+        LAST_REFRESH_STORAGE_KEY,
+        activeSeniorTeamId,
+        multiTeamEnabled
+      ),
+    [activeSeniorTeamId, multiTeamEnabled]
+  );
+  const listSortStorageKey = useMemo(
+    () =>
+      resolveScopedStorageKey(
+        LIST_SORT_STORAGE_KEY,
+        activeSeniorTeamId,
+        multiTeamEnabled
+      ),
+    [activeSeniorTeamId, multiTeamEnabled]
+  );
+  const extraTimeBTeamWeekendLocked =
+    process.env.NODE_ENV === "production" && extraTimeBTeamBerlinWeekend;
+  const effectiveExtraTimeBTeamEnabled =
+    extraTimeBTeamEnabled && !extraTimeBTeamWeekendLocked;
+
+  useEffect(() => {
+    const updateWeekendLock = () => {
+      setExtraTimeBTeamBerlinWeekend(isBerlinWeekend(new Date()));
+    };
+    updateWeekendLock();
+    const intervalId = window.setInterval(updateWeekendLock, 60 * 1000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
+    if (!multiTeamEnabled) return;
+    if (activeSeniorTeamId) return;
+    const fallbackId = seniorTeams[0]?.teamId ?? null;
+    if (fallbackId) {
+      setSelectedSeniorTeamId(fallbackId);
+    }
+  }, [activeSeniorTeamId, multiTeamEnabled, seniorTeams]);
 
   const detailsById = useMemo(() => {
     const map = new Map<number, SeniorPlayerDetails>();
@@ -1478,11 +1917,11 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       case 9:
         return messages.trainingKeeper;
       case 10:
-        return `${messages.trainingPassing} (${messages.sortDefender} + ${messages.sortPlaymaker})`;
+        return messages.trainingPassingDefendersMidfielders;
       case 11:
-        return `${messages.trainingDefending} (${messages.sortDefender} + ${messages.sortPlaymaker})`;
+        return messages.trainingDefendingDefendersMidfielders;
       case 12:
-        return `${messages.trainingWinger} (${messages.trainingWinger} + ${messages.trainingScoring})`;
+        return messages.trainingWingerWingerAttackers;
       default:
         return messages.unknownShort;
     }
@@ -1493,6 +1932,64 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     if (value === 11) return messages.trainingSectionExtended;
     if (value === 6) return messages.trainingSectionCombined;
     return null;
+  };
+
+  const traineesTargetForTrainingType = (value: number | null) => {
+    switch (value) {
+      case 9:
+        return 2;
+      case 3:
+        return 7;
+      case 8:
+        return 8;
+      case 5:
+        return 6;
+      case 7:
+        return 13;
+      case 4:
+        return 4;
+      case 2:
+        return 13;
+      case 11:
+        return 14;
+      case 12:
+        return 7;
+      case 10:
+        return 13;
+      case 6:
+        return 14;
+      default:
+        return 0;
+    }
+  };
+
+  const trainingAwareTraineesTargetForTrainingType = (value: number | null) => {
+    switch (value) {
+      case 9:
+        return 2;
+      case 3:
+        return 7;
+      case 8:
+        return 7;
+      case 5:
+        return 6;
+      case 7:
+        return 11;
+      case 4:
+        return 4;
+      case 2:
+        return 18;
+      case 11:
+        return 16;
+      case 12:
+        return 7;
+      case 10:
+        return 14;
+      case 6:
+        return 18;
+      default:
+        return 0;
+    }
   };
 
   const sortedPlayers = useMemo(() => {
@@ -1725,16 +2222,4402 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       })),
     [players]
   );
+  const playersById = useMemo(
+    () => new Map(players.map((player) => [player.PlayerID, player])),
+    [players]
+  );
+  const resolvedExtraTimeTrainingType =
+    extraTimeMatrixTrainingTypeManual && extraTimeMatrixTrainingType !== null
+      ? extraTimeMatrixTrainingType
+      : trainingType;
+  const extraTimeSortSkillKey = useMemo(
+    () =>
+      resolvedExtraTimeTrainingType !== null
+        ? EXTRA_TIME_SORT_SKILL_BY_TRAINING_TYPE[resolvedExtraTimeTrainingType] ?? null
+        : null,
+    [resolvedExtraTimeTrainingType]
+  );
+  const extraTimeSkillsMatrixRows = useMemo(() => {
+    if (!extraTimeSortSkillKey && resolvedExtraTimeTrainingType !== 6) return skillsMatrixRows;
+    return [...skillsMatrixRows].sort((left, right) => {
+      const leftPlayer = left.id !== null ? playersById.get(left.id) ?? null : null;
+      const rightPlayer = right.id !== null ? playersById.get(right.id) ?? null : null;
+      const leftDetails = left.id !== null ? detailsById.get(left.id) ?? null : null;
+      const rightDetails = right.id !== null ? detailsById.get(right.id) ?? null : null;
+      const resolveEffectiveSkill = (
+        player: SeniorPlayer | null,
+        details: (typeof leftDetails) | null,
+        skillKey: (typeof SKILL_KEYS)[number]
+      ) => {
+        const baseSkill = parseSkill(
+          details?.PlayerSkills?.[skillKey] ?? player?.PlayerSkills?.[skillKey]
+        );
+        return showSeniorSkillBonusInMatrix
+          ? computeSeniorEffectiveSkill(baseSkill, details)
+          : baseSkill;
+      };
+      const leftValue =
+        resolvedExtraTimeTrainingType === 6
+          ? (resolveEffectiveSkill(leftPlayer, leftDetails, "ScorerSkill") ?? 0) +
+            (resolveEffectiveSkill(leftPlayer, leftDetails, "SetPiecesSkill") ?? 0)
+          : extraTimeSortSkillKey
+            ? resolveEffectiveSkill(leftPlayer, leftDetails, extraTimeSortSkillKey)
+            : null;
+      const rightValue =
+        resolvedExtraTimeTrainingType === 6
+          ? (resolveEffectiveSkill(rightPlayer, rightDetails, "ScorerSkill") ?? 0) +
+            (resolveEffectiveSkill(rightPlayer, rightDetails, "SetPiecesSkill") ?? 0)
+          : extraTimeSortSkillKey
+            ? resolveEffectiveSkill(rightPlayer, rightDetails, extraTimeSortSkillKey)
+            : null;
+      if (leftValue === null && rightValue === null) {
+        return left.name.localeCompare(right.name);
+      }
+      if (leftValue === null) return 1;
+      if (rightValue === null) return -1;
+      if (leftValue !== rightValue) return rightValue - leftValue;
+      return left.name.localeCompare(right.name);
+    });
+  }, [
+    detailsById,
+    extraTimeSortSkillKey,
+    playersById,
+    resolvedExtraTimeTrainingType,
+    showSeniorSkillBonusInMatrix,
+    skillsMatrixRows,
+  ]);
+  const extraTimePlayerDetailsById = useMemo(
+    () =>
+      new Map(
+        Array.from(detailsById.entries()).flatMap(([id, detail]) => {
+          const fallback = playersById.get(id);
+          if (!fallback) return [];
+          return [
+            [
+              id,
+              {
+                ...detail,
+                YouthPlayerID: id,
+                FirstName: detail.FirstName ?? fallback.FirstName,
+                NickName: detail.NickName ?? fallback.NickName,
+                LastName: detail.LastName ?? fallback.LastName,
+              },
+            ] as const,
+          ];
+        })
+      ),
+    [detailsById, playersById]
+  );
+  const resolvedTrainingAwareTrainingType =
+    trainingAwareMatrixTrainingTypeManual && trainingAwareMatrixTrainingType !== null
+      ? trainingAwareMatrixTrainingType
+      : trainingType;
+  const trainingAwareSortSkillKey = useMemo(
+    () =>
+      resolvedTrainingAwareTrainingType !== null
+        ? EXTRA_TIME_SORT_SKILL_BY_TRAINING_TYPE[resolvedTrainingAwareTrainingType] ?? null
+        : null,
+    [resolvedTrainingAwareTrainingType]
+  );
+  const trainingAwareSkillsMatrixRows = useMemo(() => {
+    if (!trainingAwareSortSkillKey && resolvedTrainingAwareTrainingType !== 6) {
+      return skillsMatrixRows;
+    }
+    return [...skillsMatrixRows].sort((left, right) => {
+      const leftPlayer = left.id !== null ? playersById.get(left.id) ?? null : null;
+      const rightPlayer = right.id !== null ? playersById.get(right.id) ?? null : null;
+      const leftDetails = left.id !== null ? detailsById.get(left.id) ?? null : null;
+      const rightDetails = right.id !== null ? detailsById.get(right.id) ?? null : null;
+      const resolveEffectiveSkill = (
+        player: SeniorPlayer | null,
+        details: (typeof leftDetails) | null,
+        skillKey: (typeof SKILL_KEYS)[number]
+      ) => {
+        const baseSkill = parseSkill(
+          details?.PlayerSkills?.[skillKey] ?? player?.PlayerSkills?.[skillKey]
+        );
+        return showSeniorSkillBonusInMatrix
+          ? computeSeniorEffectiveSkill(baseSkill, details)
+          : baseSkill;
+      };
+      const leftValue =
+        resolvedTrainingAwareTrainingType === 6
+          ? (resolveEffectiveSkill(leftPlayer, leftDetails, "ScorerSkill") ?? 0) +
+            (resolveEffectiveSkill(leftPlayer, leftDetails, "SetPiecesSkill") ?? 0)
+          : trainingAwareSortSkillKey
+            ? resolveEffectiveSkill(leftPlayer, leftDetails, trainingAwareSortSkillKey)
+            : null;
+      const rightValue =
+        resolvedTrainingAwareTrainingType === 6
+          ? (resolveEffectiveSkill(rightPlayer, rightDetails, "ScorerSkill") ?? 0) +
+            (resolveEffectiveSkill(rightPlayer, rightDetails, "SetPiecesSkill") ?? 0)
+          : trainingAwareSortSkillKey
+            ? resolveEffectiveSkill(rightPlayer, rightDetails, trainingAwareSortSkillKey)
+            : null;
+      if (leftValue === null && rightValue === null) {
+        return left.name.localeCompare(right.name);
+      }
+      if (leftValue === null) return 1;
+      if (rightValue === null) return -1;
+      if (leftValue !== rightValue) return rightValue - leftValue;
+      return left.name.localeCompare(right.name);
+    });
+  }, [
+    detailsById,
+    playersById,
+    resolvedTrainingAwareTrainingType,
+    showSeniorSkillBonusInMatrix,
+    skillsMatrixRows,
+    trainingAwareSortSkillKey,
+  ]);
+  const trainingAwareSelectedMatchType = useMemo(() => {
+    if (trainingAwareMatchId === null) return null;
+    const rawMatches =
+      matchesState.data?.HattrickData?.MatchList?.Match ??
+      matchesState.data?.HattrickData?.Team?.MatchList?.Match;
+    const matchList = rawMatches
+      ? Array.isArray(rawMatches)
+        ? rawMatches
+        : [rawMatches]
+      : [];
+    const selectedMatch = matchList.find((match) => match.MatchID === trainingAwareMatchId);
+    if (!selectedMatch) return null;
+    return Number.isFinite(Number(selectedMatch.MatchType))
+      ? Number(selectedMatch.MatchType)
+      : null;
+  }, [matchesState, trainingAwareMatchId]);
+  const getSeniorAiLastMatchAgeDays = useCallback(
+    (playerId: number) => {
+      const lastMatchDate = detailsById.get(playerId)?.LastMatch?.Date;
+      if (!lastMatchDate) return null;
+      const parsedDate = parseChppDate(lastMatchDate);
+      if (!parsedDate) return null;
+      const ageMs = Date.now() - parsedDate.getTime();
+      if (!Number.isFinite(ageMs) || ageMs < 0) return null;
+      return Math.floor(ageMs / ONE_DAY_MS);
+    },
+    [detailsById]
+  );
+  const seniorAiLastMatchIneligiblePlayerIds = useMemo(() => {
+    if (seniorAiLastMatchWeeksThreshold === SENIOR_AI_LAST_MATCH_WEEKS_DISABLED) {
+      return new Set<number>();
+    }
+    const cutoffDays = seniorAiLastMatchWeeksThreshold * 7;
+    return new Set(
+      players
+        .map((player) => player.PlayerID)
+        .filter((playerId) => {
+          const ageDays = getSeniorAiLastMatchAgeDays(playerId);
+          return typeof ageDays === "number" && ageDays > cutoffDays;
+        })
+    );
+  }, [getSeniorAiLastMatchAgeDays, players, seniorAiLastMatchWeeksThreshold]);
+  const getSeniorAiLastMatchIneligibleTooltip = useCallback(
+    (playerId: number) => {
+      const ageDays = getSeniorAiLastMatchAgeDays(playerId);
+      const weeksAgo =
+        typeof ageDays === "number" ? Math.max(1, Math.floor(ageDays / 7)) : 0;
+      return messages.seniorAiLastMatchDisregardedTooltip.replace(
+        "{{weeks}}",
+        String(weeksAgo)
+      );
+    },
+    [getSeniorAiLastMatchAgeDays, messages.seniorAiLastMatchDisregardedTooltip]
+  );
+  const extraTimeInjuredPlayerIdSet = useMemo(() => {
+    const injuredIds = new Set<number>();
+    skillsMatrixRows.forEach((row) => {
+      if (typeof row.id !== "number") return;
+      const details = detailsById.get(row.id);
+      const player = playersById.get(row.id);
+      const injuryLevel =
+        typeof details?.InjuryLevel === "number"
+          ? details.InjuryLevel
+          : typeof player?.InjuryLevel === "number"
+            ? player.InjuryLevel
+            : null;
+      if (typeof injuryLevel === "number" && injuryLevel >= 1) {
+        injuredIds.add(row.id);
+      }
+    });
+    return injuredIds;
+  }, [detailsById, playersById, skillsMatrixRows]);
+  const extraTimeHealthyPlayerIdSet = useMemo(
+    () =>
+      new Set(
+        skillsMatrixRows
+          .map((row) => row.id)
+          .filter(
+            (id): id is number =>
+              typeof id === "number" &&
+              !extraTimeInjuredPlayerIdSet.has(id) &&
+              !seniorAiLastMatchIneligiblePlayerIds.has(id)
+          )
+      ),
+    [extraTimeInjuredPlayerIdSet, seniorAiLastMatchIneligiblePlayerIds, skillsMatrixRows]
+  );
+  const extraTimeBTeamExcludedPlayerIds = useMemo(() => {
+    if (!effectiveExtraTimeBTeamEnabled) return new Set<number>();
+    if (
+      extraTimeBTeamRecentMatchState.status !== "ready" ||
+      !extraTimeBTeamRecentMatchState.recentMatch
+    ) {
+      return new Set<number>();
+    }
+    return new Set(
+      Object.entries(extraTimeBTeamRecentMatchState.playerMinutesById)
+        .filter(([, minutes]) => minutes > extraTimeBTeamMinutesThreshold)
+        .map(([playerId]) => Number(playerId))
+        .filter((playerId) => Number.isFinite(playerId))
+    );
+  }, [
+    effectiveExtraTimeBTeamEnabled,
+    extraTimeBTeamMinutesThreshold,
+    extraTimeBTeamRecentMatchState,
+  ]);
+  const extraTimeFallbackBTeamPlayerIds = useMemo(() => {
+    if (!effectiveExtraTimeBTeamEnabled) return new Set<number>();
+    if (
+      extraTimeBTeamRecentMatchState.status !== "ready" ||
+      !extraTimeBTeamRecentMatchState.recentMatch
+    ) {
+      return new Set<number>();
+    }
+    const initialEligibleIds = Array.from(extraTimeHealthyPlayerIdSet).filter(
+      (playerId) => !extraTimeBTeamExcludedPlayerIds.has(playerId)
+    );
+    if (initialEligibleIds.length >= EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE) {
+      return new Set<number>();
+    }
+    const needed =
+      EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE - initialEligibleIds.length;
+    const fallbackIds = players
+      .filter(
+        (player) =>
+          extraTimeHealthyPlayerIdSet.has(player.PlayerID) &&
+          extraTimeBTeamExcludedPlayerIds.has(player.PlayerID)
+      )
+      .sort((left, right) => {
+        const leftMinutes =
+          extraTimeBTeamRecentMatchState.playerMinutesById[left.PlayerID] ?? Number.MAX_SAFE_INTEGER;
+        const rightMinutes =
+          extraTimeBTeamRecentMatchState.playerMinutesById[right.PlayerID] ?? Number.MAX_SAFE_INTEGER;
+        if (leftMinutes !== rightMinutes) return leftMinutes - rightMinutes;
+        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+          formatPlayerName(right) || String(right.PlayerID)
+        );
+      })
+      .slice(0, needed)
+      .map((player) => player.PlayerID);
+    return new Set(fallbackIds);
+  }, [
+    effectiveExtraTimeBTeamEnabled,
+    extraTimeBTeamExcludedPlayerIds,
+    extraTimeBTeamRecentMatchState,
+    extraTimeHealthyPlayerIdSet,
+    players,
+  ]);
+  const extraTimeAvailablePlayerIdSet = useMemo(() => {
+    if (
+      !effectiveExtraTimeBTeamEnabled ||
+      extraTimeBTeamRecentMatchState.status !== "ready" ||
+      !extraTimeBTeamRecentMatchState.recentMatch
+    ) {
+      return new Set(extraTimeHealthyPlayerIdSet);
+    }
+    return new Set(
+      Array.from(extraTimeHealthyPlayerIdSet).filter(
+        (playerId) =>
+          !extraTimeBTeamExcludedPlayerIds.has(playerId) ||
+          extraTimeFallbackBTeamPlayerIds.has(playerId)
+      )
+    );
+  }, [
+    effectiveExtraTimeBTeamEnabled,
+    extraTimeBTeamExcludedPlayerIds,
+    extraTimeBTeamRecentMatchState,
+    extraTimeFallbackBTeamPlayerIds,
+    extraTimeHealthyPlayerIdSet,
+  ]);
+  const extraTimeSelectablePlayerIds = useMemo(
+    () =>
+      extraTimeSkillsMatrixRows
+        .map((row) => row.id)
+        .filter(
+          (id): id is number =>
+            typeof id === "number" && extraTimeAvailablePlayerIdSet.has(id)
+        ),
+    [extraTimeAvailablePlayerIdSet, extraTimeSkillsMatrixRows]
+  );
+  const extraTimeDisregardedPlayerIds = useMemo(
+    () =>
+      new Set(
+        [
+          ...Array.from(seniorAiLastMatchIneligiblePlayerIds),
+          ...Array.from(extraTimeBTeamExcludedPlayerIds).filter(
+            (playerId) => !extraTimeFallbackBTeamPlayerIds.has(playerId)
+          ),
+        ]
+      ),
+    [
+      extraTimeBTeamExcludedPlayerIds,
+      extraTimeFallbackBTeamPlayerIds,
+      seniorAiLastMatchIneligiblePlayerIds,
+    ]
+  );
+  const getExtraTimeDisregardedTooltip = useCallback(
+    (playerId: number) => {
+      if (seniorAiLastMatchIneligiblePlayerIds.has(playerId)) {
+        return getSeniorAiLastMatchIneligibleTooltip(playerId);
+      }
+      return messages.seniorExtraTimeModalBTeamDisregardedTooltip.replace(
+        "{{minutes}}",
+        String(extraTimeBTeamRecentMatchState.playerMinutesById[playerId] ?? 0)
+      );
+    },
+    [
+      extraTimeBTeamRecentMatchState.playerMinutesById,
+      getSeniorAiLastMatchIneligibleTooltip,
+      messages.seniorExtraTimeModalBTeamDisregardedTooltip,
+      seniorAiLastMatchIneligiblePlayerIds,
+    ]
+  );
+  const requiredExtraTimeTrainees = traineesTargetForTrainingType(
+    resolvedExtraTimeTrainingType
+  );
+  const extraTimeAutoSelectedPlayerIds = useMemo(
+    () => extraTimeSelectablePlayerIds.slice(0, requiredExtraTimeTrainees),
+    [extraTimeSelectablePlayerIds, requiredExtraTimeTrainees]
+  );
+  const extraTimeSelectedCount = extraTimeSelectedPlayerIds.filter((playerId) =>
+    extraTimeSelectablePlayerIds.includes(playerId)
+  ).length;
+  const extraTimeBTeamCanBeEnabled =
+    extraTimeBTeamRecentMatchState.status === "ready" &&
+    Boolean(extraTimeBTeamRecentMatchState.recentMatch);
+  const extraTimeBTeamReferenceMatchHref =
+    typeof extraTimeBTeamRecentMatchState.recentMatch?.matchId === "number" &&
+    Number.isFinite(extraTimeBTeamRecentMatchState.recentMatch.matchId) &&
+    extraTimeBTeamRecentMatchState.recentMatch.matchId > 0
+      ? hattrickMatchUrlWithSourceSystem(
+          extraTimeBTeamRecentMatchState.recentMatch.matchId,
+          extraTimeBTeamRecentMatchState.recentMatch.sourceSystem
+        )
+      : null;
+  const extraTimeBTeamStatusMessage = (() => {
+    if (extraTimeBTeamWeekendLocked) {
+      return null;
+    }
+    if (extraTimeBTeamRecentMatchState.status === "loading") {
+      return messages.seniorExtraTimeModalBTeamLoading;
+    }
+    if (extraTimeBTeamRecentMatchState.status === "error") {
+      return messages.seniorExtraTimeModalBTeamError;
+    }
+    if (!extraTimeBTeamRecentMatchState.recentMatch) {
+      return messages.seniorExtraTimeModalBTeamNoRecentMatch;
+    }
+    return null;
+  })();
+  const setBestLineupBTeamMenuContent = (
+    <div className={styles.seniorSetBestLineupBTeamMenuSection}>
+      <div className={styles.seniorExtraTimeBTeamControls}>
+        <Tooltip
+          content={
+            extraTimeBTeamWeekendLocked
+              ? messages.seniorExtraTimeModalBTeamWeekendTooltip
+              : null
+          }
+        >
+          <label className={styles.matchesFilterToggle}>
+            <input
+              type="checkbox"
+              className={styles.matchesFilterToggleInput}
+              checked={effectiveExtraTimeBTeamEnabled}
+              disabled={extraTimeBTeamWeekendLocked || !extraTimeBTeamCanBeEnabled}
+              onChange={(event) => setExtraTimeBTeamEnabled(event.target.checked)}
+            />
+            <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
+            <span className={styles.matchesFilterToggleLabel}>
+              {messages.seniorExtraTimeModalBTeamToggleLabel}
+            </span>
+          </label>
+        </Tooltip>
+        {effectiveExtraTimeBTeamEnabled && extraTimeBTeamCanBeEnabled ? (
+          <div className={styles.seniorExtraTimeBTeamThresholdLabel}>
+            {renderTemplateTokens(messages.seniorExtraTimeModalBTeamThresholdText, {
+              minutes: (
+                <select
+                  className={styles.seniorExtraTimeBTeamThresholdSelect}
+                  aria-label={messages.seniorExtraTimeModalBTeamThresholdAriaLabel}
+                  value={extraTimeBTeamMinutesThreshold}
+                  onChange={(event) =>
+                    setExtraTimeBTeamMinutesThreshold(
+                      Math.min(90, Math.max(1, Number(event.target.value) || 1))
+                    )
+                  }
+                >
+                  {Array.from({ length: 90 }, (_, index) => index + 1).map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              ),
+              weekLink: extraTimeBTeamReferenceMatchHref ? (
+                <a
+                  className={styles.seniorExtraTimeInlineLink}
+                  href={extraTimeBTeamReferenceMatchHref}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {messages.seniorExtraTimeModalBTeamThresholdWeekLinkLabel}
+                </a>
+              ) : (
+                messages.seniorExtraTimeModalBTeamThresholdWeekLinkLabel
+              ),
+            })}
+          </div>
+        ) : extraTimeBTeamStatusMessage ? (
+          <span className={styles.seniorExtraTimeBTeamStatus}>
+            {extraTimeBTeamStatusMessage}
+          </span>
+        ) : null}
+      </div>
+      <div className={styles.seniorSetBestLineupMenuDivider} aria-hidden="true" />
+      <div className={styles.seniorExtraTimeBTeamThresholdLabel}>
+        {renderTemplateTokens(
+          seniorAiLastMatchWeeksThreshold === SENIOR_AI_LAST_MATCH_WEEKS_DISABLED
+            ? messages.seniorAiLastMatchThresholdDisabledText
+            : messages.seniorAiLastMatchThresholdText,
+          {
+            weeks: (
+              <select
+                className={styles.seniorExtraTimeBTeamThresholdSelect}
+                aria-label={messages.seniorAiLastMatchThresholdAriaLabel}
+                value={seniorAiLastMatchWeeksThreshold}
+                onChange={(event) => {
+                  const nextValue = Number(event.target.value);
+                  if (nextValue === SENIOR_AI_LAST_MATCH_WEEKS_DISABLED) {
+                    setSeniorAiLastMatchWeeksThreshold(
+                      SENIOR_AI_LAST_MATCH_WEEKS_DISABLED
+                    );
+                    return;
+                  }
+                  setSeniorAiLastMatchWeeksThreshold(
+                    Math.min(
+                      SENIOR_AI_LAST_MATCH_WEEKS_MAX,
+                      Math.max(
+                        SENIOR_AI_LAST_MATCH_WEEKS_MIN,
+                        nextValue || SENIOR_AI_LAST_MATCH_WEEKS_DEFAULT
+                      )
+                    )
+                  );
+                }}
+              >
+                <option value={SENIOR_AI_LAST_MATCH_WEEKS_DISABLED}>∞</option>
+                {Array.from(
+                  {
+                    length:
+                      SENIOR_AI_LAST_MATCH_WEEKS_MAX -
+                      SENIOR_AI_LAST_MATCH_WEEKS_MIN +
+                      1,
+                  },
+                  (_, index) => SENIOR_AI_LAST_MATCH_WEEKS_MIN + index
+                ).map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
+            ),
+          }
+        )}
+      </div>
+      <div
+        className={`${styles.seniorSetBestLineupMenuDivider} ${styles.seniorSetBestLineupMenuDividerStrong}`}
+        aria-hidden="true"
+      />
+    </div>
+  );
+  const extraTimeSetLineupDisabled =
+    extraTimeSelectedCount !== requiredExtraTimeTrainees;
+  const allExtraTimePlayersSelected =
+    extraTimeSelectablePlayerIds.length > 0 &&
+    extraTimeSelectablePlayerIds.every((playerId) =>
+      extraTimeSelectedPlayerIds.includes(playerId)
+    );
+  const someExtraTimePlayersSelected =
+    !allExtraTimePlayersSelected &&
+    extraTimeSelectablePlayerIds.some((playerId) =>
+      extraTimeSelectedPlayerIds.includes(playerId)
+    );
+
+  useEffect(() => {
+    setExtraTimeSelectedPlayerIds((prev) =>
+      prev.filter((playerId) => playersById.has(playerId) && extraTimeAvailablePlayerIdSet.has(playerId))
+    );
+  }, [extraTimeAvailablePlayerIdSet, playersById]);
+
+  useEffect(() => {
+    if (resolvedSeniorTeamId === null) {
+      setExtraTimeBTeamRecentMatchState({
+        status: "idle",
+        recentMatch: null,
+        playerMinutesById: {},
+      });
+      return;
+    }
+    let cancelled = false;
+    setExtraTimeBTeamRecentMatchState({
+      status: "loading",
+      recentMatch: null,
+      playerMinutesById: {},
+    });
+    void fetchExtraTimeBTeamRecentMatchState(resolvedSeniorTeamId)
+      .then((nextState) => {
+        if (cancelled) return;
+        setExtraTimeBTeamRecentMatchState(nextState);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setExtraTimeBTeamRecentMatchState({
+          status: "error",
+          recentMatch: null,
+          playerMinutesById: {},
+        });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [resolvedSeniorTeamId]);
+
+  useEffect(() => {
+    if (extraTimeBTeamRecentMatchState.status === "error") {
+      setExtraTimeBTeamEnabled(false);
+      return;
+    }
+    if (extraTimeBTeamRecentMatchState.status !== "ready") return;
+    if (extraTimeBTeamRecentMatchState.recentMatch) return;
+    setExtraTimeBTeamEnabled(false);
+  }, [extraTimeBTeamRecentMatchState]);
+
+  useEffect(() => {
+    if (!extraTimeInfoOpen) {
+      extraTimeAutoSelectionOpenRef.current = false;
+      extraTimeLastAutoSelectedPlayerIdsRef.current = null;
+      return;
+    }
+
+    const lastAutoSelected = extraTimeLastAutoSelectedPlayerIdsRef.current;
+    const matchesLastAutoSelected =
+      Array.isArray(lastAutoSelected) &&
+      lastAutoSelected.length === extraTimeSelectedPlayerIds.length &&
+      lastAutoSelected.every(
+        (playerId, index) => extraTimeSelectedPlayerIds[index] === playerId
+      );
+    const shouldApplyAutoSelection =
+      !extraTimeAutoSelectionOpenRef.current ||
+      extraTimeAutoSelectionTrainingTypeRef.current !== resolvedExtraTimeTrainingType ||
+      matchesLastAutoSelected;
+
+    if (!shouldApplyAutoSelection) {
+      extraTimeAutoSelectionOpenRef.current = true;
+      extraTimeAutoSelectionTrainingTypeRef.current = resolvedExtraTimeTrainingType;
+      return;
+    }
+
+    setExtraTimeSelectedPlayerIds(extraTimeAutoSelectedPlayerIds);
+    extraTimeAutoSelectionOpenRef.current = true;
+    extraTimeAutoSelectionTrainingTypeRef.current = resolvedExtraTimeTrainingType;
+    extraTimeLastAutoSelectedPlayerIdsRef.current = extraTimeAutoSelectedPlayerIds;
+  }, [
+    extraTimeAutoSelectedPlayerIds,
+    extraTimeInfoOpen,
+    extraTimeSelectedPlayerIds,
+    resolvedExtraTimeTrainingType,
+  ]);
+
+  useEffect(() => {
+    if (extraTimeMatrixTrainingTypeManual) return;
+    setExtraTimeMatrixTrainingType(trainingType);
+  }, [extraTimeMatrixTrainingTypeManual, trainingType]);
+
+  useEffect(() => {
+    if (trainingAwareMatrixTrainingTypeManual) return;
+    setTrainingAwareMatrixTrainingType(trainingType);
+  }, [trainingAwareMatrixTrainingTypeManual, trainingType]);
+
+  useEffect(() => {
+    if (!extraTimeTrainingMenuOpen) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (extraTimeTrainingButtonRef.current?.contains(target)) return;
+      if (extraTimeTrainingMenuRef.current?.contains(target)) return;
+      setExtraTimeTrainingMenuOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setExtraTimeTrainingMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [extraTimeTrainingMenuOpen]);
+
+  useEffect(() => {
+    if (!trainingAwareTrainingMenuOpen) return;
+    const handlePointerDown = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (trainingAwareTrainingButtonRef.current?.contains(target)) return;
+      if (trainingAwareTrainingMenuRef.current?.contains(target)) return;
+      setTrainingAwareTrainingMenuOpen(false);
+    };
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setTrainingAwareTrainingMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [trainingAwareTrainingMenuOpen]);
+
+  const averageSkillLevelForPlayer = (player: SeniorPlayer) => {
+    const values = SKILL_KEYS.map((key) => skillValueForPlayer(player, key)).filter(
+      (value): value is number => typeof value === "number"
+    );
+    if (values.length === 0) return -1;
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+  };
+
+  const comparePlayersBySetPiecesAscending = (left: SeniorPlayer, right: SeniorPlayer) => {
+    const leftValue = skillValueForPlayer(left, "SetPiecesSkill") ?? -1;
+    const rightValue = skillValueForPlayer(right, "SetPiecesSkill") ?? -1;
+    if (leftValue !== rightValue) return leftValue - rightValue;
+    return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+      formatPlayerName(right) || String(right.PlayerID)
+    );
+  };
+
+  const comparePlayersBySetPiecesDescending = (left: SeniorPlayer, right: SeniorPlayer) =>
+    comparePlayersBySetPiecesAscending(right, left);
+
+  const compareKeeperTrainees = (left: SeniorPlayer, right: SeniorPlayer) => {
+    const leftKeeping = skillValueForPlayer(left, "KeeperSkill") ?? -1;
+    const rightKeeping = skillValueForPlayer(right, "KeeperSkill") ?? -1;
+    if (rightKeeping !== leftKeeping) return rightKeeping - leftKeeping;
+    const leftSetPieces = skillValueForPlayer(left, "SetPiecesSkill") ?? -1;
+    const rightSetPieces = skillValueForPlayer(right, "SetPiecesSkill") ?? -1;
+    if (rightSetPieces !== leftSetPieces) return rightSetPieces - leftSetPieces;
+    const leftAverage = averageSkillLevelForPlayer(left);
+    const rightAverage = averageSkillLevelForPlayer(right);
+    if (rightAverage !== leftAverage) return rightAverage - leftAverage;
+    return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+      formatPlayerName(right) || String(right.PlayerID)
+    );
+  };
+
+  const comparePlayersBySkillDescending = (
+    left: SeniorPlayer,
+    right: SeniorPlayer,
+    key: (typeof SKILL_KEYS)[number]
+  ) => {
+    const leftValue = skillValueForPlayer(left, key) ?? -1;
+    const rightValue = skillValueForPlayer(right, key) ?? -1;
+    if (rightValue !== leftValue) return rightValue - leftValue;
+    const leftAverage = averageSkillLevelForPlayer(left);
+    const rightAverage = averageSkillLevelForPlayer(right);
+    if (rightAverage !== leftAverage) return rightAverage - leftAverage;
+    return comparePlayersByExtraTimeMatrixOrder(left, right);
+  };
+
+  const comparePlayersByExtraTimeMatrixOrder = (left: SeniorPlayer, right: SeniorPlayer) => {
+    const leftIndex = extraTimeSelectablePlayerIds.indexOf(left.PlayerID);
+    const rightIndex = extraTimeSelectablePlayerIds.indexOf(right.PlayerID);
+    if (leftIndex !== rightIndex) return leftIndex - rightIndex;
+    return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+      formatPlayerName(right) || String(right.PlayerID)
+    );
+  };
+
+  const buildExtraTimeSetPiecesSetup = (onFieldPlayers: SeniorPlayer[]) => {
+    const setPiecesOrdered = [...onFieldPlayers].sort(comparePlayersBySetPiecesAscending);
+    const setPiecesPlayer = setPiecesOrdered[0] ?? null;
+    const kickerIds = [
+      setPiecesPlayer?.PlayerID ?? 0,
+      ...setPiecesOrdered
+        .filter((player) => player.PlayerID !== setPiecesPlayer?.PlayerID)
+        .sort((left, right) => comparePlayersBySetPiecesAscending(right, left))
+        .map((player) => player.PlayerID),
+    ].slice(0, 11);
+    while (kickerIds.length < 11) kickerIds.push(0);
+    return {
+      kickerIds,
+      setPiecesPlayerId: setPiecesPlayer?.PlayerID ?? 0,
+    };
+  };
+
+  const buildSetPiecesExtraTimeSetup = (onFieldPlayers: SeniorPlayer[]) => {
+    const setPiecesOrderedAscending = [...onFieldPlayers].sort(comparePlayersBySetPiecesAscending);
+    const setPiecesOrderedDescending = [...onFieldPlayers].sort(comparePlayersBySetPiecesDescending);
+    const worstSetPiecesPlayer = setPiecesOrderedAscending[0] ?? null;
+    const bestSetPiecesPlayer = setPiecesOrderedDescending[0] ?? null;
+    const kickerIds = [
+      worstSetPiecesPlayer?.PlayerID ?? 0,
+      ...setPiecesOrderedDescending
+        .filter((player) => player.PlayerID !== worstSetPiecesPlayer?.PlayerID)
+        .map((player) => player.PlayerID),
+    ].slice(0, 11);
+    while (kickerIds.length < 11) kickerIds.push(0);
+    return {
+      kickerIds,
+      setPiecesPlayerId: bestSetPiecesPlayer?.PlayerID ?? 0,
+    };
+  };
+
+  const buildExtraTimeSlotPicker = (ratingsById: Record<number, Record<string, number>>) => {
+    const ratingForSlot = (playerId: number, slot: keyof LineupAssignments) =>
+      typeof ratingsById[playerId]?.[String(SLOT_TO_RATING_CODE[slot])] === "number"
+        ? (ratingsById[playerId]?.[String(SLOT_TO_RATING_CODE[slot])] as number)
+        : -1;
+    const overallFallback = (player: SeniorPlayer) => averageSkillLevelForPlayer(player);
+    const pickBestForSlot = (candidates: SeniorPlayer[], slot: keyof LineupAssignments) => {
+      const sorted = [...candidates].sort((left, right) => {
+        const leftRating = ratingForSlot(left.PlayerID, slot);
+        const rightRating = ratingForSlot(right.PlayerID, slot);
+        if (rightRating !== leftRating) return rightRating - leftRating;
+        const leftFallback = overallFallback(left);
+        const rightFallback = overallFallback(right);
+        if (rightFallback !== leftFallback) return rightFallback - leftFallback;
+        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+          formatPlayerName(right) || String(right.PlayerID)
+        );
+      });
+      return sorted[0] ?? null;
+    };
+    return { ratingForSlot, overallFallback, pickBestForSlot };
+  };
+
+  const totalSkillLevelForPlayer = (player: SeniorPlayer) =>
+    SKILL_KEYS.reduce((sum, key) => sum + (skillValueForPlayer(player, key) ?? 0), 0);
+
+  const formValueForPlayer = (player: SeniorPlayer) => {
+    const details = detailsById.get(player.PlayerID);
+    return typeof details?.Form === "number"
+      ? details.Form
+      : typeof player.Form === "number"
+        ? player.Form
+        : -1;
+  };
+
+  const staminaValueForPlayer = (player: SeniorPlayer) => {
+    const details = detailsById.get(player.PlayerID);
+    return typeof details?.StaminaSkill === "number"
+      ? details.StaminaSkill
+      : typeof player.StaminaSkill === "number"
+        ? player.StaminaSkill
+        : -1;
+  };
+
+  const ageDaysValueForPlayer = (player: SeniorPlayer) =>
+    typeof player.Age === "number" && typeof player.AgeDays === "number"
+      ? player.Age * 112 + player.AgeDays
+      : Number.MAX_SAFE_INTEGER;
+
+  const chooseRandomPlayer = <T,>(pool: T[]) =>
+    pool[Math.floor(Math.random() * Math.max(1, pool.length))] ?? null;
+
+  const pickBestPlayerWithRandomTie = (
+    pool: SeniorPlayer[],
+    comparator: (left: SeniorPlayer, right: SeniorPlayer) => number
+  ) => {
+    if (pool.length === 0) return null;
+    const ordered = [...pool].sort(comparator);
+    const best = ordered[0] ?? null;
+    if (!best) return null;
+    const tied = ordered.filter(
+      (player) => comparator(best, player) === 0 && comparator(player, best) === 0
+    );
+    return chooseRandomPlayer(tied) ?? best;
+  };
+
+  const comparePlayersBySkillForTrainingAware = (
+    left: SeniorPlayer,
+    right: SeniorPlayer,
+    key: (typeof SKILL_KEYS)[number]
+  ) => {
+    const leftValue = skillValueForPlayer(left, key) ?? -1;
+    const rightValue = skillValueForPlayer(right, key) ?? -1;
+    if (rightValue !== leftValue) return rightValue - leftValue;
+    const leftOverall = totalSkillLevelForPlayer(left);
+    const rightOverall = totalSkillLevelForPlayer(right);
+    if (rightOverall !== leftOverall) return rightOverall - leftOverall;
+    return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+      formatPlayerName(right) || String(right.PlayerID)
+    );
+  };
+
+  const removePlayersFromPool = (pool: SeniorPlayer[], playerIds: number[]) => {
+    const blocked = new Set(playerIds);
+    return pool.filter((player) => !blocked.has(player.PlayerID));
+  };
+
+  const takePlayersByComparator = (
+    pool: SeniorPlayer[],
+    count: number,
+    comparator: (left: SeniorPlayer, right: SeniorPlayer) => number
+  ) => {
+    const ordered = [...pool].sort(comparator);
+    const selected = ordered.slice(0, count);
+    return {
+      selected,
+      remaining: removePlayersFromPool(
+        pool,
+        selected.map((player) => player.PlayerID)
+      ),
+    };
+  };
+
+  const representativeSlotForAssignment = (
+    slot: keyof LineupAssignments
+  ): keyof LineupAssignments | null => {
+    switch (slot) {
+      case "B_GK":
+        return "KP";
+      case "B_CD":
+        return "CD_C";
+      case "B_WB":
+        return "WB_L";
+      case "B_IM":
+        return "IM_C";
+      case "B_F":
+        return "F_C";
+      case "B_W":
+        return "W_L";
+      case "B_X":
+        return null;
+      default:
+        return slot;
+    }
+  };
+
+  const assignmentRowForSlot = (slot: keyof LineupAssignments) => {
+    const representative = representativeSlotForAssignment(slot);
+    if (representative === "KP") return "keeper";
+    if (
+      representative === "WB_L" ||
+      representative === "WB_R" ||
+      representative === "CD_L" ||
+      representative === "CD_C" ||
+      representative === "CD_R"
+    ) {
+      return "defense";
+    }
+    if (
+      representative === "W_L" ||
+      representative === "W_R" ||
+      representative === "IM_L" ||
+      representative === "IM_C" ||
+      representative === "IM_R"
+    ) {
+      return "midfield";
+    }
+    if (
+      representative === "F_L" ||
+      representative === "F_C" ||
+      representative === "F_R"
+    ) {
+      return "attack";
+    }
+    return null;
+  };
+
+  const buildSeniorAiStaminaSubstitutions = () => {
+    if (
+      seniorAiPreparedSubmissionMode !== "trainingAware" &&
+      seniorAiPreparedSubmissionMode !== "ignoreTraining" &&
+      seniorAiPreparedSubmissionMode !== "fixedFormation"
+    ) {
+      return [] as MatchOrderSubstitution[];
+    }
+
+    const eligibleEntries = FIELD_SLOT_ORDER.map((slot) => {
+      const playerId = assignments[slot];
+      if (typeof playerId !== "number" || playerId <= 0) return null;
+      const player = playersById.get(playerId);
+      if (!player) return null;
+
+      let positionGroup: "KP" | "CD" | "WB" | "IM" | "W" | "F" | null = null;
+      let benchSlot: keyof LineupAssignments | null = null;
+      switch (slot) {
+        case "KP":
+          positionGroup = "KP";
+          benchSlot = "B_GK";
+          break;
+        case "CD_L":
+        case "CD_C":
+        case "CD_R":
+          positionGroup = "CD";
+          benchSlot = "B_CD";
+          break;
+        case "WB_L":
+        case "WB_R":
+          positionGroup = "WB";
+          benchSlot = "B_WB";
+          break;
+        case "IM_L":
+        case "IM_C":
+        case "IM_R":
+          positionGroup = "IM";
+          benchSlot = "B_IM";
+          break;
+        case "W_L":
+        case "W_R":
+          positionGroup = "W";
+          benchSlot = "B_W";
+          break;
+        case "F_L":
+        case "F_C":
+        case "F_R":
+          positionGroup = "F";
+          benchSlot = "B_F";
+          break;
+        default:
+          return null;
+      }
+
+      const benchPlayerId = assignments[benchSlot];
+      if (typeof benchPlayerId !== "number" || benchPlayerId <= 0) return null;
+
+      const stamina = staminaValueForPlayer(player);
+      if (stamina < 0 || stamina > 5) return null;
+
+      return {
+        playerId,
+        benchPlayerId,
+        positionGroup,
+        stamina,
+        slotIndex: FIELD_SLOT_ORDER.indexOf(slot),
+      };
+    }).filter(
+      (
+        entry
+      ): entry is {
+        playerId: number;
+        benchPlayerId: number;
+        positionGroup: "KP" | "CD" | "WB" | "IM" | "W" | "F";
+        stamina: number;
+        slotIndex: number;
+      } => Boolean(entry)
+    );
+
+    const selectedEntries: typeof eligibleEntries = [];
+    const seenGroups = new Set<string>();
+    [...eligibleEntries]
+      .sort(
+        (left, right) =>
+          left.stamina - right.stamina ||
+          left.slotIndex - right.slotIndex ||
+          left.playerId - right.playerId
+      )
+      .forEach((entry) => {
+        if (selectedEntries.length >= 3 || seenGroups.has(entry.positionGroup)) return;
+        seenGroups.add(entry.positionGroup);
+        selectedEntries.push(entry);
+      });
+
+    return selectedEntries
+      .map((entry) => {
+        const minute = entry.stamina <= 3 ? 45 : entry.stamina === 4 ? 60 : 70;
+        return {
+          playerin: entry.benchPlayerId,
+          playerout: entry.playerId,
+          orderType: 1,
+          min: minute,
+          pos: -1,
+          beh: -1,
+          card: -1,
+          standing: -1,
+        } satisfies MatchOrderSubstitution;
+      })
+      .filter((entry): entry is MatchOrderSubstitution => Boolean(entry));
+  };
+
+  const skillComboValueForAssignmentSlot = (
+    player: SeniorPlayer,
+    slot: keyof LineupAssignments
+  ) => {
+    const representative = representativeSlotForAssignment(slot);
+    switch (representative) {
+      case "KP":
+        return (
+          (skillValueForPlayer(player, "KeeperSkill") ?? 0) +
+          (skillValueForPlayer(player, "DefenderSkill") ?? 0) +
+          (skillValueForPlayer(player, "SetPiecesSkill") ?? 0)
+        );
+      case "WB_L":
+      case "WB_R":
+        return (
+          (skillValueForPlayer(player, "DefenderSkill") ?? 0) +
+          (skillValueForPlayer(player, "WingerSkill") ?? 0) +
+          (skillValueForPlayer(player, "PlaymakerSkill") ?? 0)
+        );
+      case "CD_L":
+      case "CD_C":
+      case "CD_R":
+        return (
+          (skillValueForPlayer(player, "DefenderSkill") ?? 0) +
+          (skillValueForPlayer(player, "PlaymakerSkill") ?? 0)
+        );
+      case "W_L":
+      case "W_R":
+        return (
+          (skillValueForPlayer(player, "WingerSkill") ?? 0) +
+          (skillValueForPlayer(player, "PlaymakerSkill") ?? 0) +
+          (skillValueForPlayer(player, "DefenderSkill") ?? 0) +
+          (skillValueForPlayer(player, "PassingSkill") ?? 0)
+        );
+      case "IM_L":
+      case "IM_C":
+      case "IM_R":
+        return (
+          (skillValueForPlayer(player, "PlaymakerSkill") ?? 0) +
+          (skillValueForPlayer(player, "DefenderSkill") ?? 0) +
+          (skillValueForPlayer(player, "PassingSkill") ?? 0) +
+          (skillValueForPlayer(player, "ScorerSkill") ?? 0)
+        );
+      case "F_L":
+      case "F_C":
+      case "F_R":
+        return (
+          (skillValueForPlayer(player, "ScorerSkill") ?? 0) +
+          (skillValueForPlayer(player, "PassingSkill") ?? 0) +
+          (skillValueForPlayer(player, "WingerSkill") ?? 0) +
+          (skillValueForPlayer(player, "PlaymakerSkill") ?? 0)
+        );
+      default:
+        return totalSkillLevelForPlayer(player);
+    }
+  };
+
+  const comparePlayersForReusableAssignment = (
+    left: SeniorPlayer,
+    right: SeniorPlayer,
+    slot: keyof LineupAssignments,
+    ratingsById: Record<number, Record<string, number>>
+  ) => {
+    const representative = representativeSlotForAssignment(slot);
+    const leftRating =
+      representative && typeof ratingsById[left.PlayerID]?.[String(SLOT_TO_RATING_CODE[representative])] === "number"
+        ? (ratingsById[left.PlayerID]?.[String(SLOT_TO_RATING_CODE[representative])] as number)
+        : -1;
+    const rightRating =
+      representative && typeof ratingsById[right.PlayerID]?.[String(SLOT_TO_RATING_CODE[representative])] === "number"
+        ? (ratingsById[right.PlayerID]?.[String(SLOT_TO_RATING_CODE[representative])] as number)
+        : -1;
+    if (rightRating !== leftRating) return rightRating - leftRating;
+    const leftCombo = skillComboValueForAssignmentSlot(left, slot);
+    const rightCombo = skillComboValueForAssignmentSlot(right, slot);
+    if (rightCombo !== leftCombo) return rightCombo - leftCombo;
+    const leftForm = formValueForPlayer(left);
+    const rightForm = formValueForPlayer(right);
+    if (rightForm !== leftForm) return rightForm - leftForm;
+    const leftStamina = staminaValueForPlayer(left);
+    const rightStamina = staminaValueForPlayer(right);
+    if (rightStamina !== leftStamina) return rightStamina - leftStamina;
+    const leftOverall = totalSkillLevelForPlayer(left);
+    const rightOverall = totalSkillLevelForPlayer(right);
+    if (rightOverall !== leftOverall) return rightOverall - leftOverall;
+    const leftAgeDays = ageDaysValueForPlayer(left);
+    const rightAgeDays = ageDaysValueForPlayer(right);
+    if (leftAgeDays !== rightAgeDays) return leftAgeDays - rightAgeDays;
+    return 0;
+  };
+
+  const bestOtherRowRatingForPlayer = (
+    playerId: number,
+    slot: keyof LineupAssignments,
+    ratingsById: Record<number, Record<string, number>>
+  ) => {
+    const currentRow = assignmentRowForSlot(slot);
+    const rowToCodes: Record<"keeper" | "defense" | "midfield" | "attack", number[]> = {
+      keeper: [100],
+      defense: [101, 103],
+      midfield: [106, 107],
+      attack: [111],
+    };
+    return (Object.entries(rowToCodes) as Array<
+      ["keeper" | "defense" | "midfield" | "attack", number[]]
+    >)
+      .filter(([row]) => row !== currentRow)
+      .reduce((best, [, codes]) => {
+        const nextBest = codes.reduce((codeBest, code) => {
+          const value = ratingsById[playerId]?.[String(code)];
+          return Math.max(codeBest, typeof value === "number" ? value : -1);
+        }, -1);
+        return Math.max(best, nextBest);
+      }, -1);
+  };
+
+  const assignPlayersWithReusableSlotAlgorithm = (
+    pool: SeniorPlayer[],
+    slots: Array<keyof LineupAssignments>,
+    ratingsById: Record<number, Record<string, number>>
+  ) => {
+    let available = [...pool];
+    const assignments: Partial<LineupAssignments> = {};
+    const unresolvedSlots: Array<keyof LineupAssignments> = [];
+
+    slots.forEach((slot) => {
+      const representative = representativeSlotForAssignment(slot);
+      if (!representative) {
+        unresolvedSlots.push(slot);
+        return;
+      }
+      const orderedCandidates = [...available].sort((left, right) => {
+        const compared = comparePlayersForReusableAssignment(left, right, slot, ratingsById);
+        if (compared !== 0) return compared;
+        return 0;
+      });
+      const selected =
+        orderedCandidates.find((candidate) => {
+          const slotRating = ratingsById[candidate.PlayerID]?.[
+            String(SLOT_TO_RATING_CODE[representative])
+          ];
+          const resolvedSlotRating = typeof slotRating === "number" ? slotRating : -1;
+          return (
+            bestOtherRowRatingForPlayer(candidate.PlayerID, slot, ratingsById) <=
+            resolvedSlotRating
+          );
+        }) ?? null;
+      if (!selected) {
+        unresolvedSlots.push(slot);
+        return;
+      }
+      assignments[slot] = selected.PlayerID;
+      available = available.filter((player) => player.PlayerID !== selected.PlayerID);
+    });
+
+    unresolvedSlots.forEach((slot) => {
+      const selected = chooseRandomPlayer(available);
+      assignments[slot] = selected?.PlayerID ?? null;
+      if (selected) {
+        available = available.filter((player) => player.PlayerID !== selected.PlayerID);
+      }
+    });
+
+    return {
+      assignments,
+      remaining: available,
+    };
+  };
+
+  const buildTrainingAwareAssignmentsForShape = async (
+    occupiedSlots: string[],
+    activeTrainingType: number | null,
+    traineeIds: number[],
+    selectedMatchType: number | null
+  ) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const traineeCountTarget = trainingAwareTraineesTargetForTrainingType(activeTrainingType);
+    const trainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player));
+    if (trainees.length !== traineeCountTarget) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const allEligiblePlayers = players.filter((player) =>
+      isSeniorAiEligibleForMatch(player, selectedMatchType)
+    );
+    const traineeIdSet = new Set(traineeIds);
+    const assignments: LineupAssignments = {};
+    let remainingTrainees = [...trainees];
+
+    const assignPlayersToSlots = (
+      slots: Array<keyof LineupAssignments>,
+      selectedPlayers: SeniorPlayer[]
+    ) => {
+      if (slots.length !== selectedPlayers.length) {
+        throw new Error(messages.submitOrdersError);
+      }
+      slots.forEach((slot, index) => {
+        assignments[slot] = selectedPlayers[index]?.PlayerID ?? null;
+      });
+    };
+
+    const assignTopPlayersBySkill = (
+      pool: SeniorPlayer[],
+      count: number,
+      key: (typeof SKILL_KEYS)[number]
+    ) => takePlayersByComparator(pool, count, (left, right) =>
+      comparePlayersBySkillForTrainingAware(left, right, key)
+    );
+
+    const resolveBenchPair = (
+      playersForPair: SeniorPlayer[],
+      options: {
+        preferredWideSlot: keyof LineupAssignments;
+        preferredCoreSlot: keyof LineupAssignments;
+        coreSkillKey: (typeof SKILL_KEYS)[number];
+        tertiarySkillKey: (typeof SKILL_KEYS)[number];
+      }
+    ) => {
+      const [first, second] = playersForPair;
+      if (!first || !second) {
+        throw new Error(messages.submitOrdersError);
+      }
+      const firstWinger = skillValueForPlayer(first, "WingerSkill") ?? -1;
+      const secondWinger = skillValueForPlayer(second, "WingerSkill") ?? -1;
+      if (firstWinger !== secondWinger) {
+        if (firstWinger > secondWinger) {
+          assignments[options.preferredWideSlot] = first.PlayerID;
+          assignments[options.preferredCoreSlot] = second.PlayerID;
+        } else {
+          assignments[options.preferredWideSlot] = second.PlayerID;
+          assignments[options.preferredCoreSlot] = first.PlayerID;
+        }
+        return;
+      }
+      const firstCore = skillValueForPlayer(first, options.coreSkillKey) ?? -1;
+      const secondCore = skillValueForPlayer(second, options.coreSkillKey) ?? -1;
+      if (firstCore !== secondCore) {
+        if (firstCore > secondCore) {
+          assignments[options.preferredCoreSlot] = first.PlayerID;
+          assignments[options.preferredWideSlot] = second.PlayerID;
+        } else {
+          assignments[options.preferredCoreSlot] = second.PlayerID;
+          assignments[options.preferredWideSlot] = first.PlayerID;
+        }
+        return;
+      }
+      const firstTertiary = skillValueForPlayer(first, options.tertiarySkillKey) ?? -1;
+      const secondTertiary = skillValueForPlayer(second, options.tertiarySkillKey) ?? -1;
+      if (firstTertiary !== secondTertiary) {
+        if (firstTertiary > secondTertiary) {
+          assignments[options.preferredCoreSlot] = first.PlayerID;
+          assignments[options.preferredWideSlot] = second.PlayerID;
+        } else {
+          assignments[options.preferredCoreSlot] = second.PlayerID;
+          assignments[options.preferredWideSlot] = first.PlayerID;
+        }
+        return;
+      }
+      const firstOverall = totalSkillLevelForPlayer(first);
+      const secondOverall = totalSkillLevelForPlayer(second);
+      if (firstOverall !== secondOverall) {
+        if (firstOverall > secondOverall) {
+          assignments[options.preferredCoreSlot] = first.PlayerID;
+          assignments[options.preferredWideSlot] = second.PlayerID;
+        } else {
+          assignments[options.preferredCoreSlot] = second.PlayerID;
+          assignments[options.preferredWideSlot] = first.PlayerID;
+        }
+        return;
+      }
+      const randomCore = chooseRandomPlayer(playersForPair);
+      assignments[options.preferredCoreSlot] = randomCore?.PlayerID ?? null;
+      assignments[options.preferredWideSlot] =
+        playersForPair.find((player) => player.PlayerID !== randomCore?.PlayerID)?.PlayerID ??
+        null;
+    };
+
+    switch (activeTrainingType) {
+      case 9: {
+        const keeperComparator = (left: SeniorPlayer, right: SeniorPlayer) => {
+          const leftKeeping = skillValueForPlayer(left, "KeeperSkill") ?? -1;
+          const rightKeeping = skillValueForPlayer(right, "KeeperSkill") ?? -1;
+          if (rightKeeping !== leftKeeping) return rightKeeping - leftKeeping;
+          const leftSetPieces = skillValueForPlayer(left, "SetPiecesSkill") ?? -1;
+          const rightSetPieces = skillValueForPlayer(right, "SetPiecesSkill") ?? -1;
+          if (rightSetPieces !== leftSetPieces) return rightSetPieces - leftSetPieces;
+          const leftAverage = averageSkillLevelForPlayer(left);
+          const rightAverage = averageSkillLevelForPlayer(right);
+          if (rightAverage !== leftAverage) return rightAverage - leftAverage;
+          return 0;
+        };
+        const startingKeeper = pickBestPlayerWithRandomTie(remainingTrainees, keeperComparator);
+        if (!startingKeeper) {
+          throw new Error(messages.submitOrdersError);
+        }
+        assignments.KP = startingKeeper.PlayerID;
+        remainingTrainees = removePlayersFromPool(remainingTrainees, [startingKeeper.PlayerID]);
+        const benchKeeper = remainingTrainees[0] ?? null;
+        assignments.B_GK = benchKeeper?.PlayerID ?? null;
+        remainingTrainees = [];
+        break;
+      }
+      case 3: {
+        const wide = assignTopPlayersBySkill(remainingTrainees, 2, "WingerSkill");
+        assignPlayersToSlots(["WB_L", "WB_R"], wide.selected);
+        const central = assignTopPlayersBySkill(wide.remaining, 3, "DefenderSkill");
+        assignPlayersToSlots(["CD_L", "CD_C", "CD_R"], central.selected);
+        resolveBenchPair(central.remaining, {
+          preferredWideSlot: "B_WB",
+          preferredCoreSlot: "B_CD",
+          coreSkillKey: "DefenderSkill",
+          tertiarySkillKey: "PlaymakerSkill",
+        });
+        remainingTrainees = [];
+        break;
+      }
+      case 8: {
+        const wide = assignTopPlayersBySkill(remainingTrainees, 2, "WingerSkill");
+        assignPlayersToSlots(["W_L", "W_R"], wide.selected);
+        const midfield = assignTopPlayersBySkill(wide.remaining, 3, "PlaymakerSkill");
+        assignPlayersToSlots(["IM_L", "IM_C", "IM_R"], midfield.selected);
+        resolveBenchPair(midfield.remaining, {
+          preferredWideSlot: "B_W",
+          preferredCoreSlot: "B_IM",
+          coreSkillKey: "PlaymakerSkill",
+          tertiarySkillKey: "DefenderSkill",
+        });
+        remainingTrainees = [];
+        break;
+      }
+      case 5: {
+        const ordered = assignTopPlayersBySkill(remainingTrainees, remainingTrainees.length, "WingerSkill").selected;
+        assignPlayersToSlots(["W_L", "W_R"], ordered.slice(0, 2));
+        assignPlayersToSlots(["WB_L", "WB_R"], ordered.slice(2, 4));
+        const benchPair = ordered.slice(4, 6);
+        const [first, second] = benchPair;
+        if (!first || !second) {
+          throw new Error(messages.submitOrdersError);
+        }
+        const firstWinger = skillValueForPlayer(first, "WingerSkill") ?? -1;
+        const secondWinger = skillValueForPlayer(second, "WingerSkill") ?? -1;
+        if (firstWinger !== secondWinger) {
+          assignments.B_W = firstWinger > secondWinger ? first.PlayerID : second.PlayerID;
+          assignments.B_WB = firstWinger > secondWinger ? second.PlayerID : first.PlayerID;
+        } else {
+          const firstOverall = totalSkillLevelForPlayer(first);
+          const secondOverall = totalSkillLevelForPlayer(second);
+          if (firstOverall !== secondOverall) {
+            assignments.B_W = firstOverall > secondOverall ? first.PlayerID : second.PlayerID;
+            assignments.B_WB = firstOverall > secondOverall ? second.PlayerID : first.PlayerID;
+          } else {
+            const randomWide = chooseRandomPlayer(benchPair);
+            assignments.B_W = randomWide?.PlayerID ?? null;
+            assignments.B_WB =
+              benchPair.find((player) => player.PlayerID !== randomWide?.PlayerID)?.PlayerID ??
+              null;
+          }
+        }
+        remainingTrainees = [];
+        break;
+      }
+      case 7: {
+        const forwards = assignTopPlayersBySkill(remainingTrainees, 3, "ScorerSkill");
+        assignPlayersToSlots(["F_L", "F_C", "F_R"], forwards.selected);
+        const wingers = assignTopPlayersBySkill(forwards.remaining, 2, "WingerSkill");
+        assignPlayersToSlots(["W_L", "W_R"], wingers.selected);
+        const mids = assignTopPlayersBySkill(wingers.remaining, 3, "PlaymakerSkill");
+        assignPlayersToSlots(["IM_L", "IM_C", "IM_R"], mids.selected);
+        let benchPool = mids.remaining;
+        const forwardComparator = (left: SeniorPlayer, right: SeniorPlayer) => {
+          const leftScoring = skillValueForPlayer(left, "ScorerSkill") ?? -1;
+          const rightScoring = skillValueForPlayer(right, "ScorerSkill") ?? -1;
+          if (rightScoring !== leftScoring) return rightScoring - leftScoring;
+          return 0;
+        };
+        const wingComparator = (left: SeniorPlayer, right: SeniorPlayer) => {
+          const leftWinger = skillValueForPlayer(left, "WingerSkill") ?? -1;
+          const rightWinger = skillValueForPlayer(right, "WingerSkill") ?? -1;
+          if (rightWinger !== leftWinger) return rightWinger - leftWinger;
+          return 0;
+        };
+        const midfieldComparator = (left: SeniorPlayer, right: SeniorPlayer) => {
+          const leftPm = skillValueForPlayer(left, "PlaymakerSkill") ?? -1;
+          const rightPm = skillValueForPlayer(right, "PlaymakerSkill") ?? -1;
+          if (rightPm !== leftPm) return rightPm - leftPm;
+          return 0;
+        };
+        const benchForward = pickBestPlayerWithRandomTie(benchPool, forwardComparator);
+        if (!benchForward) {
+          throw new Error(messages.submitOrdersError);
+        }
+        assignments.B_F = benchForward.PlayerID;
+        benchPool = removePlayersFromPool(benchPool, [benchForward.PlayerID]);
+        const benchWing = pickBestPlayerWithRandomTie(benchPool, wingComparator);
+        if (!benchWing) {
+          throw new Error(messages.submitOrdersError);
+        }
+        assignments.B_W = benchWing.PlayerID;
+        benchPool = removePlayersFromPool(benchPool, [benchWing.PlayerID]);
+        const benchMid = pickBestPlayerWithRandomTie(benchPool, midfieldComparator);
+        assignments.B_IM = benchMid?.PlayerID ?? null;
+        remainingTrainees = [];
+        break;
+      }
+      case 4: {
+        const forwards = assignTopPlayersBySkill(remainingTrainees, 4, "ScorerSkill").selected;
+        assignPlayersToSlots(["F_L", "F_C", "F_R"], forwards.slice(0, 3));
+        assignments.B_F = forwards[3]?.PlayerID ?? null;
+        remainingTrainees = [];
+        break;
+      }
+      case 2:
+      case 6: {
+        const orderedBySetPieces = [...remainingTrainees].sort(comparePlayersBySetPiecesDescending);
+        const fieldTrainees = orderedBySetPieces.slice(0, occupiedSlots.length);
+        const benchTrainees = orderedBySetPieces.slice(occupiedSlots.length);
+        const fieldAssigned = assignPlayersWithReusableSlotAlgorithm(
+          fieldTrainees,
+          occupiedSlots as Array<keyof LineupAssignments>,
+          ratingsById
+        );
+        Object.assign(assignments, fieldAssigned.assignments);
+        const benchAssigned = assignPlayersWithReusableSlotAlgorithm(
+          benchTrainees,
+          [...BENCH_SLOT_ORDER],
+          ratingsById
+        );
+        Object.assign(assignments, benchAssigned.assignments);
+        remainingTrainees = [];
+        break;
+      }
+      case 11: {
+        const keepers = takePlayersByComparator(remainingTrainees, 2, compareKeeperTrainees);
+        assignments.KP = keepers.selected[0]?.PlayerID ?? null;
+        assignments.B_GK = keepers.selected[1]?.PlayerID ?? null;
+        const wide = assignTopPlayersBySkill(keepers.remaining, 6, "WingerSkill").selected;
+        assignPlayersToSlots(["W_L", "W_R", "WB_L", "WB_R", "B_W", "B_WB"], wide);
+        const afterWide = removePlayersFromPool(
+          keepers.remaining,
+          wide.map((player) => player.PlayerID)
+        );
+        const midfield = assignTopPlayersBySkill(afterWide, 4, "PlaymakerSkill").selected;
+        assignPlayersToSlots(["IM_L", "IM_C", "IM_R", "B_IM"], midfield);
+        const afterMid = removePlayersFromPool(
+          afterWide,
+          midfield.map((player) => player.PlayerID)
+        );
+        const defenders = assignTopPlayersBySkill(afterMid, 4, "DefenderSkill").selected;
+        assignPlayersToSlots(["CD_L", "CD_C", "CD_R", "B_CD"], defenders);
+        remainingTrainees = [];
+        break;
+      }
+      case 12: {
+        const forwards = assignTopPlayersBySkill(remainingTrainees, 4, "ScorerSkill");
+        assignPlayersToSlots(["F_L", "F_C", "F_R", "B_F"], forwards.selected);
+        const wingers = assignTopPlayersBySkill(forwards.remaining, 3, "WingerSkill").selected;
+        assignPlayersToSlots(["W_L", "W_R", "B_W"], wingers);
+        remainingTrainees = [];
+        break;
+      }
+      case 10: {
+        const wide = assignTopPlayersBySkill(remainingTrainees, 6, "WingerSkill").selected;
+        assignPlayersToSlots(["W_L", "W_R", "WB_L", "WB_R", "B_W", "B_WB"], wide);
+        const afterWide = removePlayersFromPool(
+          remainingTrainees,
+          wide.map((player) => player.PlayerID)
+        );
+        const midfield = assignTopPlayersBySkill(afterWide, 4, "PlaymakerSkill").selected;
+        assignPlayersToSlots(["IM_L", "IM_C", "IM_R", "B_IM"], midfield);
+        const afterMid = removePlayersFromPool(
+          afterWide,
+          midfield.map((player) => player.PlayerID)
+        );
+        const defenders = assignTopPlayersBySkill(afterMid, 4, "DefenderSkill").selected;
+        assignPlayersToSlots(["CD_L", "CD_C", "CD_R", "B_CD"], defenders);
+        remainingTrainees = [];
+        break;
+      }
+      default:
+        break;
+    }
+
+    const nonTraineePool = allEligiblePlayers.filter(
+      (player) => !traineeIdSet.has(player.PlayerID)
+    );
+    const remainingFieldSlots = occupiedSlots.filter(
+      (slot) => typeof assignments[slot] !== "number" || (assignments[slot] ?? 0) <= 0
+    ) as Array<keyof LineupAssignments>;
+    const fieldAssigned = assignPlayersWithReusableSlotAlgorithm(
+      nonTraineePool,
+      remainingFieldSlots,
+      ratingsById
+    );
+    Object.entries(fieldAssigned.assignments).forEach(([slot, playerId]) => {
+      assignments[slot] = playerId ?? null;
+    });
+    const remainingBenchSlots = [...BENCH_SLOT_ORDER].filter(
+      (slot) => typeof assignments[slot] !== "number" || (assignments[slot] ?? 0) <= 0
+    ) as Array<keyof LineupAssignments>;
+    const benchAssigned = assignPlayersWithReusableSlotAlgorithm(
+      fieldAssigned.remaining,
+      remainingBenchSlots,
+      ratingsById
+    );
+    Object.entries(benchAssigned.assignments).forEach(([slot, playerId]) => {
+      assignments[slot] = playerId ?? null;
+    });
+
+    if (
+      occupiedSlots.some(
+        (slot) => typeof assignments[slot as keyof LineupAssignments] !== "number"
+      )
+    ) {
+      throw new Error(messages.submitOrdersMinPlayers);
+    }
+
+    return assignments;
+  };
+
+  const handleTrainingAwareSetLineup = async () => {
+    if (!NON_DEPRECATED_TRAINING_TYPES.includes((resolvedTrainingAwareTrainingType ?? -1) as (typeof NON_DEPRECATED_TRAINING_TYPES)[number])) {
+      setTrainingAwareInfoOpen(false);
+      return;
+    }
+    if (trainingAwareSetLineupDisabled) return;
+    if (trainingAwareMatchId === null) return;
+    const selectedTraineeIds = trainingAwareSelectedPlayerIds.filter((playerId) =>
+      trainingAwareSelectablePlayerIds.includes(playerId)
+    );
+    setTrainingAwareInfoOpen(false);
+    setExtraTimePreparedSubmission(null);
+    await runSetBestLineupPredictRatings(trainingAwareMatchId, "trainingAware", null, {
+      trainingAwareTraineeIds: selectedTraineeIds,
+      trainingAwareTrainingType: resolvedTrainingAwareTrainingType,
+    });
+    setTrainingAwareMatchId(null);
+  };
+
+  const seniorAiInjuryLevelForPlayer = (player: SeniorPlayer) => {
+    const details = detailsById.get(player.PlayerID);
+    return typeof details?.InjuryLevel === "number"
+      ? details.InjuryLevel
+      : typeof player.InjuryLevel === "number"
+        ? player.InjuryLevel
+        : null;
+  };
+
+  const isSeniorAiEligiblePlayer = (player: SeniorPlayer) => {
+    const injuryLevel = seniorAiInjuryLevelForPlayer(player);
+    return (
+      (typeof injuryLevel !== "number" || injuryLevel < 1) &&
+      !seniorAiLastMatchIneligiblePlayerIds.has(player.PlayerID)
+    );
+  };
+
+  const isSeniorAiEligibleForMatch = (
+    player: SeniorPlayer,
+    selectedMatchType: number | null
+  ) => {
+    if (!isSeniorAiEligiblePlayer(player)) return false;
+    if (
+      effectiveExtraTimeBTeamEnabled &&
+      extraTimeDisregardedPlayerIds.has(player.PlayerID)
+    ) {
+      return false;
+    }
+    const isLeagueCupTarget =
+      selectedMatchType !== null &&
+      LEAGUE_CUP_QUALI_MATCH_TYPES.has(selectedMatchType);
+    if (!isLeagueCupTarget) return true;
+    const details = detailsById.get(player.PlayerID);
+    const cardsValue =
+      typeof details?.Cards === "number"
+        ? details.Cards
+        : typeof player.Cards === "number"
+          ? player.Cards
+          : null;
+    return typeof cardsValue !== "number" || cardsValue < 3;
+  };
+
+  const isSeniorExtraTimePoolEligiblePlayer = (player: SeniorPlayer) =>
+    isSeniorAiEligiblePlayer(player) &&
+    extraTimeAvailablePlayerIdSet.has(player.PlayerID);
+
+  const trainingAwareSelectablePlayerIds = useMemo(
+    () =>
+      trainingAwareSkillsMatrixRows
+        .map((row) => row.id)
+        .filter((id): id is number => {
+          if (typeof id !== "number") return false;
+          const player = playersById.get(id);
+          return player
+            ? isSeniorAiEligibleForMatch(player, trainingAwareSelectedMatchType)
+            : false;
+        }),
+    [
+      playersById,
+      trainingAwareSelectedMatchType,
+      trainingAwareSkillsMatrixRows,
+    ]
+  );
+  const requiredTrainingAwareTrainees = trainingAwareTraineesTargetForTrainingType(
+    resolvedTrainingAwareTrainingType
+  );
+  const trainingAwareAutoSelectedPlayerIds = useMemo(
+    () => trainingAwareSelectablePlayerIds.slice(0, requiredTrainingAwareTrainees),
+    [requiredTrainingAwareTrainees, trainingAwareSelectablePlayerIds]
+  );
+  const trainingAwareSelectedCount = trainingAwareSelectedPlayerIds.filter((playerId) =>
+    trainingAwareSelectablePlayerIds.includes(playerId)
+  ).length;
+  const trainingAwareSetLineupDisabled =
+    trainingAwareSelectedCount !== requiredTrainingAwareTrainees;
+  const allTrainingAwarePlayersSelected =
+    trainingAwareSelectablePlayerIds.length > 0 &&
+    trainingAwareSelectablePlayerIds.every((playerId) =>
+      trainingAwareSelectedPlayerIds.includes(playerId)
+    );
+  const someTrainingAwarePlayersSelected =
+    !allTrainingAwarePlayersSelected &&
+    trainingAwareSelectablePlayerIds.some((playerId) =>
+      trainingAwareSelectedPlayerIds.includes(playerId)
+    );
+
+  useEffect(() => {
+    setTrainingAwareSelectedPlayerIds((prev) =>
+      prev.filter(
+        (playerId) => playersById.has(playerId) && trainingAwareSelectablePlayerIds.includes(playerId)
+      )
+    );
+  }, [playersById, trainingAwareSelectablePlayerIds]);
+
+  useEffect(() => {
+    if (!trainingAwareInfoOpen) {
+      trainingAwareAutoSelectionOpenRef.current = false;
+      trainingAwareLastAutoSelectedPlayerIdsRef.current = null;
+      return;
+    }
+
+    const lastAutoSelected = trainingAwareLastAutoSelectedPlayerIdsRef.current;
+    const matchesLastAutoSelected =
+      Array.isArray(lastAutoSelected) &&
+      lastAutoSelected.length === trainingAwareSelectedPlayerIds.length &&
+      lastAutoSelected.every(
+        (playerId, index) => trainingAwareSelectedPlayerIds[index] === playerId
+      );
+    const shouldApplyAutoSelection =
+      !trainingAwareAutoSelectionOpenRef.current ||
+      trainingAwareAutoSelectionTrainingTypeRef.current !==
+        resolvedTrainingAwareTrainingType ||
+      matchesLastAutoSelected;
+
+    if (!shouldApplyAutoSelection) {
+      trainingAwareAutoSelectionOpenRef.current = true;
+      trainingAwareAutoSelectionTrainingTypeRef.current = resolvedTrainingAwareTrainingType;
+      return;
+    }
+
+    setTrainingAwareSelectedPlayerIds(trainingAwareAutoSelectedPlayerIds);
+    trainingAwareAutoSelectionOpenRef.current = true;
+    trainingAwareAutoSelectionTrainingTypeRef.current = resolvedTrainingAwareTrainingType;
+    trainingAwareLastAutoSelectedPlayerIdsRef.current = trainingAwareAutoSelectedPlayerIds;
+  }, [
+    resolvedTrainingAwareTrainingType,
+    trainingAwareAutoSelectedPlayerIds,
+    trainingAwareInfoOpen,
+    trainingAwareSelectedPlayerIds,
+  ]);
+
+  const getExtraTimeEligibleNonTrainees = (
+    traineeIds: number[],
+    options?: {
+      excludedFieldPlayerIds?: Set<number>;
+      excludeOnlyFromField?: boolean;
+    }
+  ) =>
+    players
+      .filter((player) => !traineeIds.includes(player.PlayerID))
+      .filter((player) => {
+        if (!isSeniorExtraTimePoolEligiblePlayer(player)) return false;
+        if (
+          !options?.excludeOnlyFromField &&
+          options?.excludedFieldPlayerIds?.has(player.PlayerID)
+        ) {
+          return false;
+        }
+        return true;
+      });
+
+  const ensureExtraTimeRatingsById = async () => {
+    let nextRatingsById = ratingsByPlayerId;
+    if (!hasUsableSeniorRatingsMatrix(ratingsResponse)) {
+      const currentSeason = await fetchCurrentSeason();
+      const refreshedRatings = stampSeniorRatingsAlgorithmVersion(
+        await bootstrapRatingsFromSeasons(resolvedSeniorTeamId, currentSeason)
+      );
+      setRatingsResponse(refreshedRatings);
+      nextRatingsById = {};
+      (refreshedRatings.players ?? []).forEach((row) => {
+        nextRatingsById[row.id] = { ...row.ratings };
+      });
+    }
+    return nextRatingsById;
+  };
+
+  const resolveExtraTimeMatchContext = async (matchId: number) => {
+    const selectedMatch = allMatches.find((match) => match.MatchID === matchId);
+    if (!selectedMatch) {
+      throw new Error(messages.unableToLoadMatches);
+    }
+    const selectedMatchType = Number.isFinite(Number(selectedMatch.MatchType))
+      ? Number(selectedMatch.MatchType)
+      : null;
+    return {
+      selectedMatchType,
+    };
+  };
+
+  const buildForcedKeeperExtraTimeResult = async (
+    traineeIds: number[],
+    options?: {
+      selectedMatchType?: number | null;
+      excludedFieldPlayerIds?: Set<number>;
+    }
+  ) => {
+    const trainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player));
+    if (trainees.length !== 2) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const ratingsById = await ensureExtraTimeRatingsById();
+
+    const isLeagueCupTarget =
+      typeof options?.selectedMatchType === "number" &&
+      LEAGUE_CUP_QUALI_MATCH_TYPES.has(options.selectedMatchType);
+    const orderedSlots = ["KP", ...DEFENSE_SLOTS, ...MIDFIELD_SLOTS];
+    const playerPool = players
+      .map((player) => {
+        const details = detailsById.get(player.PlayerID);
+        const cardsValue =
+          typeof details?.Cards === "number"
+            ? details.Cards
+            : typeof player.Cards === "number"
+              ? player.Cards
+              : null;
+        const injuryLevel =
+          typeof details?.InjuryLevel === "number"
+            ? details.InjuryLevel
+            : typeof player.InjuryLevel === "number"
+              ? player.InjuryLevel
+              : null;
+        return { player, cardsValue, injuryLevel };
+      })
+      .filter(({ player, cardsValue, injuryLevel }) => {
+        if (
+          !isSeniorExtraTimePoolEligiblePlayer(player) &&
+          !traineeIds.includes(player.PlayerID)
+        ) {
+          return false;
+        }
+        if (typeof injuryLevel === "number" && injuryLevel >= 1) return false;
+        if (
+          options?.excludedFieldPlayerIds?.has(player.PlayerID) &&
+          !traineeIds.includes(player.PlayerID)
+        ) {
+          return false;
+        }
+        if (
+          isLeagueCupTarget &&
+          typeof cardsValue === "number" &&
+          cardsValue >= 3 &&
+          !traineeIds.includes(player.PlayerID)
+        ) {
+          return false;
+        }
+        return true;
+      })
+      .map(({ player }) => ({
+        id: player.PlayerID,
+        name: formatPlayerName(player) || String(player.PlayerID),
+      }));
+
+    const keeperTrainee = [...trainees].sort(compareKeeperTrainees)[0] ?? null;
+    const fieldTrainee =
+      trainees.find((player) => player.PlayerID !== keeperTrainee?.PlayerID) ?? null;
+    if (!keeperTrainee || !fieldTrainee) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const ratingFor = (playerId: number, code: number) =>
+      typeof ratingsById[playerId]?.[String(code)] === "number"
+        ? (ratingsById[playerId]?.[String(code)] as number)
+        : -1;
+    const bestInSector = (playerId: number, sector: PlayerSector) =>
+      Math.max(...SECTOR_TO_RATING_CODES[sector].map((code) => ratingFor(playerId, code)));
+
+    const assignmentsForFormation: LineupAssignments = { KP: keeperTrainee.PlayerID };
+    const bestFieldSlot =
+      orderedSlots
+        .filter((slot) => slot !== "KP")
+        .sort((left, right) => {
+          const leftRating = ratingFor(fieldTrainee.PlayerID, SLOT_TO_RATING_CODE[left]);
+          const rightRating = ratingFor(fieldTrainee.PlayerID, SLOT_TO_RATING_CODE[right]);
+          if (rightRating !== leftRating) return rightRating - leftRating;
+          return orderedSlots.indexOf(left) - orderedSlots.indexOf(right);
+        })[0] ?? "CD_C";
+    assignmentsForFormation[bestFieldSlot] = fieldTrainee.PlayerID;
+
+    const availablePlayers = playerPool.filter(
+      (candidate) =>
+        candidate.id !== keeperTrainee.PlayerID && candidate.id !== fieldTrainee.PlayerID
+    );
+
+    orderedSlots.forEach((slot) => {
+      if (assignmentsForFormation[slot]) return;
+      const roleCode = SLOT_TO_RATING_CODE[slot];
+      const slotSector = SLOT_TO_SECTOR[slot];
+      availablePlayers.sort((left, right) => {
+        const leftRating = ratingFor(left.id, roleCode);
+        const rightRating = ratingFor(right.id, roleCode);
+        if (rightRating !== leftRating) return rightRating - leftRating;
+        return left.name.localeCompare(right.name);
+      });
+      const selectedIndex = availablePlayers.findIndex((candidate) => {
+        const slotRating = ratingFor(candidate.id, roleCode);
+        if (slotRating < 0) return false;
+        const bestOtherSector = (Object.keys(SECTOR_TO_RATING_CODES) as PlayerSector[])
+          .filter((sector) => sector !== slotSector)
+          .reduce((best, sector) => Math.max(best, bestInSector(candidate.id, sector)), -1);
+        return bestOtherSector < slotRating;
+      });
+      const selectedPlayer =
+        selectedIndex >= 0 ? (availablePlayers.splice(selectedIndex, 1)[0] ?? null) : null;
+      const fallbackPlayer = selectedPlayer ?? availablePlayers.shift() ?? null;
+      if (!fallbackPlayer) return;
+      assignmentsForFormation[slot] = fallbackPlayer.id;
+    });
+
+    if (orderedSlots.some((slot) => !assignmentsForFormation[slot])) {
+      throw new Error(messages.submitOrdersMinPlayers);
+    }
+
+    const fieldPlayerIds = new Set<number>(
+      orderedSlots
+        .map((slot) => assignmentsForFormation[slot])
+        .filter((playerId): playerId is number => typeof playerId === "number" && playerId > 0)
+    );
+    const benchIds = playerPool
+      .map((candidate) => candidate.id)
+      .filter((playerId) => !fieldPlayerIds.has(playerId))
+      .slice(0, BENCH_SLOT_ORDER.length);
+    const resultAssignments: LineupAssignments = { ...assignmentsForFormation };
+    BENCH_SLOT_ORDER.forEach((slot, index) => {
+      resultAssignments[slot] = benchIds[index] ?? null;
+    });
+
+    return {
+      assignments: resultAssignments,
+      fieldPlayerIds,
+      keeperTraineeId: keeperTrainee.PlayerID,
+      fieldTraineeId: fieldTrainee.PlayerID,
+    };
+  };
+
+  const buildPreparedExtraTimeSubmitPayload = (
+    matchId: number,
+    defaultPayload: ReturnType<typeof buildLineupPayload>
+  ) => {
+    if (!extraTimePreparedSubmission || extraTimePreparedSubmission.matchId !== matchId) {
+      const staminaSubstitutions = buildSeniorAiStaminaSubstitutions();
+      if (!staminaSubstitutions.length) {
+        return defaultPayload;
+      }
+      return {
+        ...defaultPayload,
+        substitutions: staminaSubstitutions,
+      };
+    }
+    const onFieldPlayerIds = FIELD_SLOT_ORDER.map((slot) => assignments[slot]).filter(
+      (playerId): playerId is number => typeof playerId === "number" && playerId > 0
+    );
+    if (onFieldPlayerIds.length < 11) {
+      throw new Error(messages.submitOrdersMinPlayers);
+    }
+    const requiredAssignedTraineeIds =
+      extraTimePreparedSubmission.trainingType === 7
+        ? [
+            ...onFieldPlayerIds,
+            assignments.B_IM,
+            assignments.B_F,
+          ].filter((playerId): playerId is number => typeof playerId === "number" && playerId > 0)
+        : extraTimePreparedSubmission.trainingType === 6
+          ? [
+              ...onFieldPlayerIds,
+              assignments.B_GK,
+              assignments.B_CD,
+              assignments.B_WB,
+              assignments.B_IM,
+              assignments.B_W,
+            ].filter(
+              (playerId): playerId is number =>
+                typeof playerId === "number" && playerId > 0
+            )
+        : extraTimePreparedSubmission.trainingType === 10
+          ? [
+              ...onFieldPlayerIds,
+              assignments.B_CD,
+              assignments.B_WB,
+              assignments.B_IM,
+            ].filter(
+              (playerId): playerId is number =>
+                typeof playerId === "number" && playerId > 0
+            )
+        : extraTimePreparedSubmission.trainingType === 2
+          ? [...onFieldPlayerIds, assignments.B_GK, assignments.B_X].filter(
+              (playerId): playerId is number =>
+                typeof playerId === "number" && playerId > 0
+            )
+        : extraTimePreparedSubmission.trainingType === 4
+          ? onFieldPlayerIds
+        : extraTimePreparedSubmission.trainingType === 8
+          ? [...onFieldPlayerIds, assignments.B_IM].filter(
+              (playerId): playerId is number =>
+                typeof playerId === "number" && playerId > 0
+            )
+        : extraTimePreparedSubmission.trainingType === 11
+          ? [
+              ...onFieldPlayerIds,
+              assignments.B_GK,
+              assignments.B_CD,
+              assignments.B_WB,
+            ].filter(
+              (playerId): playerId is number =>
+                typeof playerId === "number" && playerId > 0
+            )
+        : onFieldPlayerIds;
+    if (
+      extraTimePreparedSubmission.traineeIds.some(
+        (playerId) => !requiredAssignedTraineeIds.includes(playerId)
+      )
+    ) {
+      throw new Error(messages.submitOrdersError);
+    }
+    const onFieldPlayers = onFieldPlayerIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player));
+    const { kickerIds, setPiecesPlayerId } =
+      extraTimePreparedSubmission.trainingType === 2
+        ? buildSetPiecesExtraTimeSetup(onFieldPlayers)
+        : buildExtraTimeSetPiecesSetup(onFieldPlayers);
+    const benchIds = BENCH_SLOT_ORDER.map((slot) => {
+      const playerId = assignments[slot];
+      return typeof playerId === "number" ? playerId : 0;
+    });
+    const forcedBehaviors: Partial<Record<(typeof FIELD_SLOT_ORDER)[number], number>> =
+      extraTimePreparedSubmission.trainingType === 7
+        ? {
+            ...behaviors,
+            W_L: 2,
+            IM_L: 2,
+            IM_C: 2,
+            IM_R: 2,
+            W_R: 2,
+            F_L: 2,
+            F_C: 2,
+            F_R: 2,
+          }
+        : extraTimePreparedSubmission.trainingType === 12
+          ? {
+              ...behaviors,
+              WB_L: 2,
+              WB_R: 2,
+              W_L: 2,
+              IM_L: 2,
+              IM_C: 2,
+              IM_R: 2,
+              W_R: 2,
+              F_L: 2,
+              F_C: 2,
+              F_R: 2,
+            }
+        : {
+            ...behaviors,
+            WB_L: 2,
+            WB_R: 2,
+            W_L: 2,
+            IM_L: 2,
+            IM_C: 2,
+            IM_R: 2,
+            W_R: 2,
+          };
+    const buildSevenTraineeRotationPayload = (orderedTraineeIds: number[]) => {
+      const [
+        trainee1Id,
+        trainee2Id,
+        trainee3Id,
+        trainee4Id,
+        trainee5Id,
+        trainee6Id,
+        trainee7Id,
+      ] = orderedTraineeIds;
+      if (
+        [trainee1Id, trainee2Id, trainee3Id, trainee4Id, trainee5Id, trainee6Id, trainee7Id].some(
+          (playerId) => typeof playerId !== "number" || playerId <= 0
+        )
+      ) {
+        throw new Error(messages.submitOrdersError);
+      }
+
+      return buildLineupPayload(assignments, 1, {
+        behaviors: forcedBehaviors,
+        benchIds,
+        kickerIds,
+        captainId: 0,
+        setPiecesId: setPiecesPlayerId,
+        substitutions: [
+          {
+            playerin: trainee1Id as number,
+            playerout: trainee6Id as number,
+            orderType: 3,
+            min: 30,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: trainee1Id as number,
+            playerout: trainee2Id as number,
+            orderType: 3,
+            min: 60,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: trainee3Id as number,
+            playerout: trainee7Id as number,
+            orderType: 3,
+            min: 60,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: trainee4Id as number,
+            playerout: trainee2Id as number,
+            orderType: 3,
+            min: 90,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: trainee5Id as number,
+            playerout: trainee3Id as number,
+            orderType: 3,
+            min: 90,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+        ],
+      });
+    };
+    if (extraTimePreparedSubmission.trainingType === 7) {
+      const keeperId = assignments.KP;
+      const leftCenterBackId = assignments.CD_L;
+      const rightCenterBackId = assignments.CD_R;
+      const leftForwardId = assignments.F_L;
+      const centerForwardId = assignments.F_C;
+      const rightForwardId = assignments.F_R;
+      const benchMidId = assignments.B_IM;
+      const benchForwardId = assignments.B_F;
+      const leftMidId = assignments.IM_L;
+      const rightMidId = assignments.IM_R;
+      const requiredIds = [
+        keeperId,
+        leftCenterBackId,
+        rightCenterBackId,
+        leftForwardId,
+        centerForwardId,
+        rightForwardId,
+        benchMidId,
+        benchForwardId,
+        leftMidId,
+        rightMidId,
+      ];
+      if (
+        requiredIds.some((playerId) => typeof playerId !== "number" || playerId <= 0)
+      ) {
+        throw new Error(messages.submitOrdersError);
+      }
+
+      return buildLineupPayload(assignments, 1, {
+        behaviors: forcedBehaviors,
+        benchIds,
+        kickerIds,
+        captainId: 0,
+        setPiecesId: setPiecesPlayerId,
+        substitutions: [
+          {
+            playerin: keeperId as number,
+            playerout: centerForwardId as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+          {
+            playerin: leftCenterBackId as number,
+            playerout: leftForwardId as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+          {
+            playerin: rightCenterBackId as number,
+            playerout: rightForwardId as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+          {
+            playerin: benchMidId as number,
+            playerout: leftMidId as number,
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+          {
+            playerin: benchForwardId as number,
+            playerout: rightMidId as number,
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+        ],
+      });
+    }
+    if (extraTimePreparedSubmission.trainingType === 6) {
+      const benchKeeperId = assignments.B_GK;
+      const chooseSwapTarget = (
+        incomingPlayerId: number,
+        candidateSlots: Array<(typeof FIELD_SLOT_ORDER)[number]>
+      ) => {
+        const selectedSlot = [...candidateSlots].sort((left, right) => {
+          const leftRating =
+            typeof ratingsByPlayerId[incomingPlayerId]?.[String(SLOT_TO_RATING_CODE[left])] ===
+            "number"
+              ? (ratingsByPlayerId[incomingPlayerId]?.[
+                  String(SLOT_TO_RATING_CODE[left])
+                ] as number)
+              : -1;
+          const rightRating =
+            typeof ratingsByPlayerId[incomingPlayerId]?.[String(SLOT_TO_RATING_CODE[right])] ===
+            "number"
+              ? (ratingsByPlayerId[incomingPlayerId]?.[
+                  String(SLOT_TO_RATING_CODE[right])
+                ] as number)
+              : -1;
+          if (rightRating !== leftRating) return rightRating - leftRating;
+          return FIELD_SLOT_ORDER.indexOf(left) - FIELD_SLOT_ORDER.indexOf(right);
+        })[0];
+        const playerOutId = selectedSlot ? assignments[selectedSlot] : null;
+        if (typeof playerOutId !== "number" || playerOutId <= 0) {
+          throw new Error(messages.submitOrdersError);
+        }
+        return playerOutId;
+      };
+      const substitutions: MatchOrderSubstitution[] = [];
+      if (typeof benchKeeperId === "number" && benchKeeperId > 0) {
+        const keeperId = assignments.KP;
+        if (typeof keeperId !== "number" || keeperId <= 0) {
+          throw new Error(messages.submitOrdersError);
+        }
+        substitutions.push({
+          playerin: benchKeeperId,
+          playerout: keeperId,
+          orderType: 1,
+          min: 89,
+          pos: -1,
+          beh: -1,
+          card: -1,
+          standing: -1,
+        });
+      }
+      const traineeBenchMappings = [
+        {
+          benchSlot: "B_CD",
+          candidateSlots: ["CD_L", "CD_C", "CD_R"] as Array<(typeof FIELD_SLOT_ORDER)[number]>,
+        },
+        {
+          benchSlot: "B_WB",
+          candidateSlots: ["WB_L", "WB_R"] as Array<(typeof FIELD_SLOT_ORDER)[number]>,
+        },
+        {
+          benchSlot: "B_IM",
+          candidateSlots: ["IM_L", "IM_C", "IM_R"] as Array<(typeof FIELD_SLOT_ORDER)[number]>,
+        },
+        {
+          benchSlot: "B_W",
+          candidateSlots: ["W_L", "W_R"] as Array<(typeof FIELD_SLOT_ORDER)[number]>,
+        },
+      ] as const;
+      traineeBenchMappings.forEach(({ benchSlot, candidateSlots }) => {
+        const playerInId = assignments[benchSlot];
+        if (
+          typeof playerInId !== "number" ||
+          playerInId <= 0 ||
+          !extraTimePreparedSubmission.traineeIds.includes(playerInId)
+        ) {
+          return;
+        }
+        substitutions.push({
+          playerin: playerInId,
+          playerout: chooseSwapTarget(playerInId, candidateSlots),
+          orderType: 1,
+          min: 89,
+          pos: -1,
+          beh: -1,
+          card: -1,
+          standing: -1,
+        });
+      });
+      if (substitutions.length !== 3) {
+        throw new Error(messages.submitOrdersError);
+      }
+
+      return buildLineupPayload(assignments, 1, {
+        behaviors: forcedBehaviors,
+        benchIds,
+        kickerIds,
+        captainId: 0,
+        setPiecesId: setPiecesPlayerId,
+        substitutions,
+      });
+    }
+    if (extraTimePreparedSubmission.trainingType === 10) {
+      const benchCenterDefenderId = assignments.B_CD;
+      const benchWingBackId = assignments.B_WB;
+      const benchMidId = assignments.B_IM;
+      if (
+        [benchCenterDefenderId, benchWingBackId, benchMidId].some(
+          (playerId) => typeof playerId !== "number" || playerId <= 0
+        )
+      ) {
+        throw new Error(messages.submitOrdersError);
+      }
+
+      const chooseSwapTarget = (
+        incomingPlayerId: number,
+        candidateSlots: Array<(typeof FIELD_SLOT_ORDER)[number]>
+      ) => {
+        const selectedSlot = [...candidateSlots].sort((left, right) => {
+          const leftRating =
+            typeof ratingsByPlayerId[incomingPlayerId]?.[String(SLOT_TO_RATING_CODE[left])] ===
+            "number"
+              ? (ratingsByPlayerId[incomingPlayerId]?.[
+                  String(SLOT_TO_RATING_CODE[left])
+                ] as number)
+              : -1;
+          const rightRating =
+            typeof ratingsByPlayerId[incomingPlayerId]?.[String(SLOT_TO_RATING_CODE[right])] ===
+            "number"
+              ? (ratingsByPlayerId[incomingPlayerId]?.[
+                  String(SLOT_TO_RATING_CODE[right])
+                ] as number)
+              : -1;
+          if (rightRating !== leftRating) return rightRating - leftRating;
+          return FIELD_SLOT_ORDER.indexOf(left) - FIELD_SLOT_ORDER.indexOf(right);
+        })[0];
+        const playerOutId = selectedSlot ? assignments[selectedSlot] : null;
+        if (typeof playerOutId !== "number" || playerOutId <= 0) {
+          throw new Error(messages.submitOrdersError);
+        }
+        return playerOutId;
+      };
+
+      return buildLineupPayload(assignments, 1, {
+        behaviors: forcedBehaviors,
+        benchIds,
+        kickerIds,
+        captainId: 0,
+        setPiecesId: setPiecesPlayerId,
+        substitutions: [
+          {
+            playerin: benchCenterDefenderId as number,
+            playerout: chooseSwapTarget(benchCenterDefenderId as number, [
+              "CD_L",
+              "CD_C",
+              "CD_R",
+            ]),
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: benchMidId as number,
+            playerout: chooseSwapTarget(benchMidId as number, ["IM_L", "IM_C", "IM_R"]),
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: benchWingBackId as number,
+            playerout: chooseSwapTarget(benchWingBackId as number, ["WB_L", "WB_R"]),
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+        ],
+      });
+    }
+    if (extraTimePreparedSubmission.trainingType === 2) {
+      const keeperId = assignments.KP;
+      const benchKeeperId = assignments.B_GK;
+      const extraBenchSetPiecesId = assignments.B_X;
+      if (
+        [keeperId, benchKeeperId, extraBenchSetPiecesId, setPiecesPlayerId].some(
+          (playerId) => typeof playerId !== "number" || playerId <= 0
+        )
+      ) {
+        throw new Error(messages.submitOrdersError);
+      }
+
+      return buildLineupPayload(assignments, 1, {
+        behaviors: forcedBehaviors,
+        benchIds,
+        kickerIds,
+        captainId: 0,
+        setPiecesId: setPiecesPlayerId,
+        substitutions: [
+          {
+            playerin: benchKeeperId as number,
+            playerout: keeperId as number,
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: extraBenchSetPiecesId as number,
+            playerout: setPiecesPlayerId as number,
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+        ],
+      });
+    }
+    if (extraTimePreparedSubmission.trainingType === 4) {
+      const numberedTraineeIds = (
+        extraTimePreparedSubmission.scoringRoleIds?.length === 4
+          ? extraTimePreparedSubmission.scoringRoleIds
+          : extraTimePreparedSubmission.traineeIds
+      ).slice(0, 4);
+      const [trainee1Id, trainee2Id, trainee3Id, trainee4Id] = numberedTraineeIds;
+      if (
+        [trainee1Id, trainee2Id, trainee3Id, trainee4Id].some(
+          (playerId) => typeof playerId !== "number" || playerId <= 0
+        )
+      ) {
+        throw new Error(messages.submitOrdersError);
+      }
+
+      return buildLineupPayload(assignments, 1, {
+        behaviors: {
+          ...forcedBehaviors,
+          F_L: 2,
+          F_C: 2,
+          F_R: 2,
+        },
+        benchIds,
+        kickerIds,
+        captainId: 0,
+        setPiecesId: setPiecesPlayerId,
+        substitutions: [
+          {
+            playerin: trainee3Id as number,
+            playerout: trainee4Id as number,
+            orderType: 3,
+            min: 30,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: trainee2Id as number,
+            playerout: trainee3Id as number,
+            orderType: 3,
+            min: 60,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: trainee1Id as number,
+            playerout: trainee2Id as number,
+            orderType: 3,
+            min: 90,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+        ],
+      });
+    }
+    if (extraTimePreparedSubmission.trainingType === 3) {
+      const orderedTraineeIds = extraTimePreparedSubmission.traineeIds
+        .map((playerId) => playersById.get(playerId) ?? null)
+        .filter((player): player is SeniorPlayer => Boolean(player))
+        .sort(comparePlayersByExtraTimeMatrixOrder)
+        .map((player) => player.PlayerID);
+      return buildSevenTraineeRotationPayload(orderedTraineeIds);
+    }
+    if (extraTimePreparedSubmission.trainingType === 12) {
+      const orderedTraineeIds = (
+        extraTimePreparedSubmission.wingerAttackerRoleIds?.length === 7
+          ? extraTimePreparedSubmission.wingerAttackerRoleIds
+          : extraTimePreparedSubmission.traineeIds
+              .map((playerId) => playersById.get(playerId) ?? null)
+              .filter((player): player is SeniorPlayer => Boolean(player))
+              .sort((left, right) =>
+                comparePlayersBySkillDescending(left, right, "WingerSkill")
+              )
+              .map((player) => player.PlayerID)
+      ).slice(0, 7);
+      return buildSevenTraineeRotationPayload(orderedTraineeIds);
+    }
+    if (extraTimePreparedSubmission.trainingType === 8) {
+      const orderedTraineeIds = extraTimePreparedSubmission.traineeIds
+        .map((playerId) => playersById.get(playerId) ?? null)
+        .filter((player): player is SeniorPlayer => Boolean(player))
+        .sort(comparePlayersByExtraTimeMatrixOrder)
+        .map((player) => player.PlayerID);
+      const [
+        trainee1Id,
+        trainee2Id,
+        trainee3Id,
+        trainee4Id,
+        trainee5Id,
+        trainee6Id,
+        trainee7Id,
+        trainee8Id,
+      ] = orderedTraineeIds;
+      const benchMidId = assignments.B_IM;
+      const centerMidId = assignments.IM_C;
+      if (
+        [
+          trainee1Id,
+          trainee2Id,
+          trainee3Id,
+          trainee4Id,
+          trainee5Id,
+          trainee6Id,
+          trainee7Id,
+          trainee8Id,
+          benchMidId,
+          centerMidId,
+        ].some((playerId) => typeof playerId !== "number" || playerId <= 0)
+      ) {
+        throw new Error(messages.submitOrdersError);
+      }
+
+      return buildLineupPayload(assignments, 1, {
+        behaviors: forcedBehaviors,
+        benchIds,
+        kickerIds,
+        captainId: 0,
+        setPiecesId: setPiecesPlayerId,
+        substitutions: [
+          {
+            playerin: trainee1Id as number,
+            playerout: trainee2Id as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: trainee2Id as number,
+            playerout: trainee6Id as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: trainee5Id as number,
+            playerout: trainee4Id as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: trainee4Id as number,
+            playerout: trainee7Id as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: benchMidId as number,
+            playerout: centerMidId as number,
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+        ],
+      });
+    }
+    if (extraTimePreparedSubmission.trainingType === 5) {
+      const orderedTraineeIds = (
+        extraTimePreparedSubmission.wingerRoleIds?.length === 6
+          ? extraTimePreparedSubmission.wingerRoleIds
+          : extraTimePreparedSubmission.traineeIds
+              .map((playerId) => playersById.get(playerId) ?? null)
+              .filter((player): player is SeniorPlayer => Boolean(player))
+              .sort(comparePlayersByExtraTimeMatrixOrder)
+              .map((player) => player.PlayerID)
+      ).slice(0, 6);
+      const [trainee1Id, trainee2Id, trainee3Id, trainee4Id, trainee5Id, trainee6Id] =
+        orderedTraineeIds;
+      if (
+        [trainee1Id, trainee2Id, trainee3Id, trainee4Id, trainee5Id, trainee6Id].some(
+          (playerId) => typeof playerId !== "number" || playerId <= 0
+        )
+      ) {
+        throw new Error(messages.submitOrdersError);
+      }
+
+      return buildLineupPayload(assignments, 1, {
+        behaviors: forcedBehaviors,
+        benchIds,
+        kickerIds,
+        captainId: 0,
+        setPiecesId: setPiecesPlayerId,
+        substitutions: [
+          {
+            playerin: trainee1Id as number,
+            playerout: trainee3Id as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+          {
+            playerin: trainee2Id as number,
+            playerout: trainee4Id as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+          {
+            playerin: trainee1Id as number,
+            playerout: trainee5Id as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+          {
+            playerin: trainee2Id as number,
+            playerout: trainee6Id as number,
+            orderType: 3,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: 0,
+          },
+        ],
+      });
+    }
+    if (extraTimePreparedSubmission.trainingType === 11) {
+      const benchCenterDefenderId = assignments.B_CD;
+      const benchWingBackId = assignments.B_WB;
+      if (
+        [benchCenterDefenderId, benchWingBackId].some(
+          (playerId) => typeof playerId !== "number" || playerId <= 0
+        )
+      ) {
+        throw new Error(messages.submitOrdersError);
+      }
+
+      const chooseSwapTarget = (
+        incomingPlayerId: number,
+        candidateSlots: Array<(typeof FIELD_SLOT_ORDER)[number]>
+      ) => {
+        const selectedSlot = [...candidateSlots].sort((left, right) => {
+          const leftRating =
+            typeof ratingsByPlayerId[incomingPlayerId]?.[String(SLOT_TO_RATING_CODE[left])] ===
+            "number"
+              ? (ratingsByPlayerId[incomingPlayerId]?.[
+                  String(SLOT_TO_RATING_CODE[left])
+                ] as number)
+              : -1;
+          const rightRating =
+            typeof ratingsByPlayerId[incomingPlayerId]?.[String(SLOT_TO_RATING_CODE[right])] ===
+            "number"
+              ? (ratingsByPlayerId[incomingPlayerId]?.[
+                  String(SLOT_TO_RATING_CODE[right])
+                ] as number)
+              : -1;
+          if (rightRating !== leftRating) return rightRating - leftRating;
+          return FIELD_SLOT_ORDER.indexOf(left) - FIELD_SLOT_ORDER.indexOf(right);
+        })[0];
+        const playerOutId = selectedSlot ? assignments[selectedSlot] : null;
+        if (typeof playerOutId !== "number" || playerOutId <= 0) {
+          throw new Error(messages.submitOrdersError);
+        }
+        return playerOutId;
+      };
+
+      return buildLineupPayload(assignments, 1, {
+        behaviors: forcedBehaviors,
+        benchIds,
+        kickerIds,
+        captainId: 0,
+        setPiecesId: setPiecesPlayerId,
+        substitutions: [
+          {
+            playerin: benchCenterDefenderId as number,
+            playerout: chooseSwapTarget(benchCenterDefenderId as number, [
+              "CD_L",
+              "CD_C",
+              "CD_R",
+            ]),
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: benchWingBackId as number,
+            playerout: chooseSwapTarget(benchWingBackId as number, ["WB_L", "WB_R"]),
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+        ],
+      });
+    }
+    return buildLineupPayload(assignments, 1, {
+      behaviors: forcedBehaviors,
+      benchIds,
+      kickerIds,
+      captainId: 0,
+      setPiecesId: setPiecesPlayerId,
+      substitutions: [
+        {
+          playerin: extraTimePreparedSubmission.traineeIds[0] ?? 0,
+          playerout: extraTimePreparedSubmission.traineeIds[1] ?? 0,
+          orderType: 3,
+          min: 89,
+          pos: -1,
+          beh: -1,
+          card: -1,
+          standing: 0,
+        },
+      ],
+    });
+  };
+
+  const buildPassingExtraTimeResult = async (traineeIds: number[]) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const orderedTrainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player))
+      .sort(comparePlayersByExtraTimeMatrixOrder);
+    if (orderedTrainees.length !== 13) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const rowTrainees = orderedTrainees.slice(0, 8);
+    const defensiveTrainees = orderedTrainees.slice(8, 11);
+    const benchTrainees = orderedTrainees.slice(11, 13);
+    const assignmentsForFormation: LineupAssignments = {};
+    const ratingForSlot = (playerId: number, slot: keyof LineupAssignments) =>
+      typeof ratingsById[playerId]?.[String(SLOT_TO_RATING_CODE[slot])] === "number"
+        ? (ratingsById[playerId]?.[String(SLOT_TO_RATING_CODE[slot])] as number)
+        : -1;
+    const overallFallback = (player: SeniorPlayer) => averageSkillLevelForPlayer(player);
+    const pickBestForSlot = (
+      candidates: SeniorPlayer[],
+      slot: keyof LineupAssignments
+    ) => {
+      const sorted = [...candidates].sort((left, right) => {
+        const leftRating = ratingForSlot(left.PlayerID, slot);
+        const rightRating = ratingForSlot(right.PlayerID, slot);
+        if (rightRating !== leftRating) return rightRating - leftRating;
+        const leftFallback = overallFallback(left);
+        const rightFallback = overallFallback(right);
+        if (rightFallback !== leftFallback) return rightFallback - leftFallback;
+        return comparePlayersByExtraTimeMatrixOrder(left, right);
+      });
+      return sorted[0] ?? null;
+    };
+    const assignSlotFromPool = (
+      pool: SeniorPlayer[],
+      slot: keyof LineupAssignments
+    ) => {
+      const selected = pickBestForSlot(pool, slot);
+      if (!selected) {
+        throw new Error(messages.submitOrdersError);
+      }
+      assignmentsForFormation[slot] = selected.PlayerID;
+      return pool.filter((player) => player.PlayerID !== selected.PlayerID);
+    };
+
+    let remainingRowTrainees = [...rowTrainees];
+    const trainedSlots = [
+      ...MIDFIELD_SLOTS,
+      ...ATTACK_SLOTS,
+    ] as Array<(typeof MIDFIELD_SLOTS)[number] | (typeof ATTACK_SLOTS)[number]>;
+    trainedSlots.forEach((slot) => {
+      remainingRowTrainees = assignSlotFromPool(remainingRowTrainees, slot);
+    });
+
+    let remainingDefensiveTrainees = [...defensiveTrainees];
+    (["KP", "CD_L", "CD_R"] as const).forEach((slot) => {
+      remainingDefensiveTrainees = assignSlotFromPool(remainingDefensiveTrainees, slot);
+    });
+
+    assignmentsForFormation.B_IM = benchTrainees[0]?.PlayerID ?? null;
+    assignmentsForFormation.B_F = benchTrainees[1]?.PlayerID ?? null;
+    if (!assignmentsForFormation.B_IM || !assignmentsForFormation.B_F) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    let benchCandidatePool = players
+      .filter((player) => !traineeIds.includes(player.PlayerID))
+      .filter((player) => isSeniorExtraTimePoolEligiblePlayer(player));
+    const benchSlotToFieldSlot = {
+      B_GK: "KP",
+      B_CD: "CD_C",
+      B_WB: "WB_L",
+      B_W: "W_L",
+    } as const;
+    (
+      Object.entries(benchSlotToFieldSlot) as Array<
+        [
+          keyof typeof benchSlotToFieldSlot,
+          (typeof benchSlotToFieldSlot)[keyof typeof benchSlotToFieldSlot],
+        ]
+      >
+    ).forEach(([benchSlot, fieldSlot]) => {
+      const selected = pickBestForSlot(benchCandidatePool, fieldSlot);
+      assignmentsForFormation[benchSlot] = selected?.PlayerID ?? null;
+      if (selected) {
+        benchCandidatePool = benchCandidatePool.filter(
+          (player) => player.PlayerID !== selected.PlayerID
+        );
+      }
+    });
+    const extraBenchPlayer =
+      [...benchCandidatePool].sort((left, right) => {
+        const leftValue = overallFallback(left);
+        const rightValue = overallFallback(right);
+        if (rightValue !== leftValue) return rightValue - leftValue;
+        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+          formatPlayerName(right) || String(right.PlayerID)
+        );
+      })[0] ?? null;
+    assignmentsForFormation.B_X = extraBenchPlayer?.PlayerID ?? null;
+
+    return {
+      assignments: assignmentsForFormation,
+    };
+  };
+
+  const buildExtendedPassingExtraTimeResult = async (
+    traineeIds: number[],
+    options?: {
+      excludedFieldPlayerIds?: Set<number>;
+    }
+  ) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const trainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player));
+    if (trainees.length !== 13) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const assignmentsForFormation: LineupAssignments = {};
+    const { overallFallback, pickBestForSlot, ratingForSlot } =
+      buildExtraTimeSlotPicker(ratingsById);
+    const orderedByPassing = [...trainees].sort((left, right) =>
+      comparePlayersBySkillDescending(left, right, "PassingSkill")
+    );
+    const fieldTrainees = orderedByPassing.slice(0, 10);
+    const benchTrainees = orderedByPassing.slice(10, 13);
+    if (fieldTrainees.length !== 10 || benchTrainees.length !== 3) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const solveBestAssignment = <
+      Slot extends keyof LineupAssignments,
+      Candidate extends SeniorPlayer,
+    >(
+      candidates: Candidate[],
+      slots: readonly Slot[],
+      slotRatingSlot: (slot: Slot) => keyof LineupAssignments
+    ) => {
+      if (candidates.length !== slots.length || candidates.length === 0) {
+        throw new Error(messages.submitOrdersError);
+      }
+      const memo = new Map<number, { totalRating: number; slotByPlayerId: Map<number, Slot> }>();
+      const solve = (slotIndex: number, usedMask: number) => {
+        if (slotIndex >= slots.length) {
+          return {
+            totalRating: 0,
+            slotByPlayerId: new Map<number, Slot>(),
+          };
+        }
+        if (memo.has(usedMask)) {
+          return memo.get(usedMask) as { totalRating: number; slotByPlayerId: Map<number, Slot> };
+        }
+        const slot = slots[slotIndex];
+        let best:
+          | {
+              totalRating: number;
+              slotByPlayerId: Map<number, Slot>;
+            }
+          | null = null;
+
+        candidates.forEach((candidate, candidateIndex) => {
+          if (usedMask & (1 << candidateIndex)) return;
+          const next = solve(slotIndex + 1, usedMask | (1 << candidateIndex));
+          const totalRating =
+            ratingForSlot(candidate.PlayerID, slotRatingSlot(slot)) + next.totalRating;
+          const slotByPlayerId = new Map(next.slotByPlayerId);
+          slotByPlayerId.set(candidate.PlayerID, slot);
+          const candidateResult = {
+            totalRating,
+            slotByPlayerId,
+          };
+          const currentBest = best;
+          const bestSignature = currentBest
+            ? slots
+                .map((currentSlot) => {
+                  const mappedPlayerId =
+                    candidates.find(
+                      (player) => currentBest.slotByPlayerId.get(player.PlayerID) === currentSlot
+                    )?.PlayerID ?? 0;
+                  return `${currentSlot}:${mappedPlayerId}`;
+                })
+                .join("|")
+            : "";
+          const candidateSignature = slots
+            .map((currentSlot) => {
+              const mappedPlayerId =
+                candidates.find(
+                  (player) => candidateResult.slotByPlayerId.get(player.PlayerID) === currentSlot
+                )?.PlayerID ?? 0;
+              return `${currentSlot}:${mappedPlayerId}`;
+            })
+            .join("|");
+          if (
+            !best ||
+            candidateResult.totalRating > best.totalRating ||
+            (candidateResult.totalRating === best.totalRating &&
+              candidateSignature.localeCompare(bestSignature) < 0)
+          ) {
+            best = candidateResult;
+          }
+        });
+
+        if (!best) {
+          throw new Error(messages.submitOrdersError);
+        }
+        memo.set(usedMask, best);
+        return best;
+      };
+      return solve(0, 0);
+    };
+
+    const fieldSlots = [
+      "WB_L",
+      "WB_R",
+      "CD_L",
+      "CD_C",
+      "CD_R",
+      "W_L",
+      "W_R",
+      "IM_L",
+      "IM_C",
+      "IM_R",
+    ] as const;
+    const fieldAssignments = solveBestAssignment(fieldTrainees, fieldSlots, (slot) => slot);
+    fieldTrainees.forEach((player) => {
+      const slot = fieldAssignments.slotByPlayerId.get(player.PlayerID);
+      if (!slot) {
+        throw new Error(messages.submitOrdersError);
+      }
+      assignmentsForFormation[slot] = player.PlayerID;
+    });
+
+    const benchSlots = ["B_CD", "B_WB", "B_IM"] as const;
+    const benchAssignments = solveBestAssignment(benchTrainees, benchSlots, (slot) =>
+      slot === "B_CD" ? "CD_C" : slot === "B_WB" ? "WB_L" : "IM_C"
+    );
+    benchTrainees.forEach((player) => {
+      const slot = benchAssignments.slotByPlayerId.get(player.PlayerID);
+      if (!slot) {
+        throw new Error(messages.submitOrdersError);
+      }
+      assignmentsForFormation[slot] = player.PlayerID;
+    });
+
+    const fieldNonTraineePool = getExtraTimeEligibleNonTrainees(traineeIds, {
+      excludedFieldPlayerIds: options?.excludedFieldPlayerIds,
+    });
+    const fieldKeeper = pickBestForSlot(fieldNonTraineePool, "KP");
+    if (!fieldKeeper) {
+      throw new Error(messages.submitOrdersMinPlayers);
+    }
+    assignmentsForFormation.KP = fieldKeeper.PlayerID;
+    const fieldNonTraineeIds = new Set<number>([fieldKeeper.PlayerID]);
+
+    const onFieldPlayerIds = new Set<number>(
+      FIELD_SLOT_ORDER.map((slot) => assignmentsForFormation[slot]).filter(
+        (playerId): playerId is number => typeof playerId === "number" && playerId > 0
+      )
+    );
+    let benchCandidatePool = getExtraTimeEligibleNonTrainees(traineeIds, {
+      excludedFieldPlayerIds: options?.excludedFieldPlayerIds,
+      excludeOnlyFromField: true,
+    }).filter((player) => !onFieldPlayerIds.has(player.PlayerID));
+
+    const benchKeeper = pickBestForSlot(benchCandidatePool, "KP");
+    assignmentsForFormation.B_GK = benchKeeper?.PlayerID ?? null;
+    if (benchKeeper) {
+      benchCandidatePool = benchCandidatePool.filter(
+        (player) => player.PlayerID !== benchKeeper.PlayerID
+      );
+    }
+
+    const benchSlotToFieldSlot = {
+      B_F: "F_C",
+      B_W: "W_L",
+    } as const;
+    (
+      Object.entries(benchSlotToFieldSlot) as Array<
+        [
+          keyof typeof benchSlotToFieldSlot,
+          (typeof benchSlotToFieldSlot)[keyof typeof benchSlotToFieldSlot],
+        ]
+      >
+    ).forEach(([benchSlot, fieldSlot]) => {
+      const selected = pickBestForSlot(benchCandidatePool, fieldSlot);
+      assignmentsForFormation[benchSlot] = selected?.PlayerID ?? null;
+      if (selected) {
+        benchCandidatePool = benchCandidatePool.filter(
+          (player) => player.PlayerID !== selected.PlayerID
+        );
+      }
+    });
+
+    const extraBenchPlayer =
+      [...benchCandidatePool].sort((left, right) => {
+        const leftValue = overallFallback(left);
+        const rightValue = overallFallback(right);
+        if (rightValue !== leftValue) return rightValue - leftValue;
+        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+          formatPlayerName(right) || String(right.PlayerID)
+        );
+      })[0] ?? null;
+    assignmentsForFormation.B_X = extraBenchPlayer?.PlayerID ?? null;
+
+    return {
+      assignments: assignmentsForFormation,
+      fieldNonTraineeIds,
+    };
+  };
+
+  const buildScoringSetPiecesExtraTimeResult = async (traineeIds: number[]) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const trainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player));
+    if (trainees.length !== 14) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const assignmentsForFormation: LineupAssignments = {};
+    const { overallFallback, pickBestForSlot, ratingForSlot } =
+      buildExtraTimeSlotPicker(ratingsById);
+    const solveBestAssignment = <
+      Slot extends keyof LineupAssignments,
+      Candidate extends SeniorPlayer,
+    >(
+      candidates: Candidate[],
+      slots: readonly Slot[],
+      slotRatingSlot: (slot: Slot) => keyof LineupAssignments
+    ) => {
+      if (candidates.length !== slots.length || candidates.length === 0) {
+        throw new Error(messages.submitOrdersError);
+      }
+      const memo = new Map<number, { totalRating: number; slotByPlayerId: Map<number, Slot> }>();
+      const solve = (slotIndex: number, usedMask: number) => {
+        if (slotIndex >= slots.length) {
+          return {
+            totalRating: 0,
+            slotByPlayerId: new Map<number, Slot>(),
+          };
+        }
+        if (memo.has(usedMask)) {
+          return memo.get(usedMask) as { totalRating: number; slotByPlayerId: Map<number, Slot> };
+        }
+        const slot = slots[slotIndex];
+        let best:
+          | {
+              totalRating: number;
+              slotByPlayerId: Map<number, Slot>;
+            }
+          | null = null;
+
+        candidates.forEach((candidate, candidateIndex) => {
+          if (usedMask & (1 << candidateIndex)) return;
+          const next = solve(slotIndex + 1, usedMask | (1 << candidateIndex));
+          const totalRating =
+            ratingForSlot(candidate.PlayerID, slotRatingSlot(slot)) + next.totalRating;
+          const slotByPlayerId = new Map(next.slotByPlayerId);
+          slotByPlayerId.set(candidate.PlayerID, slot);
+          const candidateResult = {
+            totalRating,
+            slotByPlayerId,
+          };
+          const currentBest = best;
+          const bestSignature = currentBest
+            ? slots
+                .map((currentSlot) => {
+                  const mappedPlayerId =
+                    candidates.find(
+                      (player) => currentBest.slotByPlayerId.get(player.PlayerID) === currentSlot
+                    )?.PlayerID ?? 0;
+                  return `${currentSlot}:${mappedPlayerId}`;
+                })
+                .join("|")
+            : "";
+          const candidateSignature = slots
+            .map((currentSlot) => {
+              const mappedPlayerId =
+                candidates.find(
+                  (player) => candidateResult.slotByPlayerId.get(player.PlayerID) === currentSlot
+                )?.PlayerID ?? 0;
+              return `${currentSlot}:${mappedPlayerId}`;
+            })
+            .join("|");
+          if (
+            !best ||
+            candidateResult.totalRating > best.totalRating ||
+            (candidateResult.totalRating === best.totalRating &&
+              candidateSignature.localeCompare(bestSignature) < 0)
+          ) {
+            best = candidateResult;
+          }
+        });
+
+        if (!best) {
+          throw new Error(messages.submitOrdersError);
+        }
+        memo.set(usedMask, best);
+        return best;
+      };
+      return solve(0, 0);
+    };
+
+    const keeperCandidates = [...trainees].sort((left, right) => {
+      const leftValue = ratingForSlot(left.PlayerID, "KP");
+      const rightValue = ratingForSlot(right.PlayerID, "KP");
+      if (rightValue !== leftValue) return rightValue - leftValue;
+      return compareKeeperTrainees(left, right);
+    });
+    const startingKeeper = keeperCandidates[0] ?? null;
+    const benchKeeper =
+      keeperCandidates.find((player) => player.PlayerID !== startingKeeper?.PlayerID) ?? null;
+    if (!startingKeeper || !benchKeeper) {
+      throw new Error(messages.submitOrdersError);
+    }
+    assignmentsForFormation.KP = startingKeeper.PlayerID;
+    assignmentsForFormation.B_GK = benchKeeper.PlayerID;
+
+    const remainingAfterKeepers = trainees.filter(
+      (player) =>
+        player.PlayerID !== startingKeeper.PlayerID && player.PlayerID !== benchKeeper.PlayerID
+    );
+    const combinedScoringSetPieces = (player: SeniorPlayer) =>
+      (skillValueForPlayer(player, "ScorerSkill") ?? -1) +
+      (skillValueForPlayer(player, "SetPiecesSkill") ?? -1);
+    const orderedByCombined = [...remainingAfterKeepers].sort((left, right) => {
+      const leftValue = combinedScoringSetPieces(left);
+      const rightValue = combinedScoringSetPieces(right);
+      if (rightValue !== leftValue) return rightValue - leftValue;
+      return comparePlayersByExtraTimeMatrixOrder(left, right);
+    });
+
+    const fieldTrainees = orderedByCombined.slice(0, 10);
+    const benchTrainees = orderedByCombined.slice(10, 12);
+    if (fieldTrainees.length !== 10 || benchTrainees.length !== 2) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const fieldSlots = [
+      "WB_L",
+      "WB_R",
+      "CD_L",
+      "CD_C",
+      "CD_R",
+      "W_L",
+      "W_R",
+      "IM_L",
+      "IM_C",
+      "IM_R",
+    ] as const;
+    const fieldAssignments = solveBestAssignment(fieldTrainees, fieldSlots, (slot) => slot);
+    fieldTrainees.forEach((player) => {
+      const slot = fieldAssignments.slotByPlayerId.get(player.PlayerID);
+      if (!slot) {
+        throw new Error(messages.submitOrdersError);
+      }
+      assignmentsForFormation[slot] = player.PlayerID;
+    });
+
+    const traineeBenchSlots = ["B_CD", "B_WB", "B_IM", "B_W"] as const;
+    let bestBenchAssignments:
+      | {
+          totalRating: number;
+          slotByPlayerId: Map<number, (typeof traineeBenchSlots)[number]>;
+        }
+      | null = null;
+    traineeBenchSlots.forEach((firstSlot) => {
+      traineeBenchSlots.forEach((secondSlot) => {
+        if (secondSlot === firstSlot) return;
+        const slotByPlayerId = new Map<number, (typeof traineeBenchSlots)[number]>([
+          [benchTrainees[0]?.PlayerID ?? 0, firstSlot],
+          [benchTrainees[1]?.PlayerID ?? 0, secondSlot],
+        ]);
+        const totalRating =
+          ratingForSlot(
+            benchTrainees[0]?.PlayerID ?? 0,
+            firstSlot === "B_CD"
+              ? "CD_C"
+              : firstSlot === "B_WB"
+                ? "WB_L"
+                : firstSlot === "B_IM"
+                  ? "IM_C"
+                  : "W_L"
+          ) +
+          ratingForSlot(
+            benchTrainees[1]?.PlayerID ?? 0,
+            secondSlot === "B_CD"
+              ? "CD_C"
+              : secondSlot === "B_WB"
+                ? "WB_L"
+                : secondSlot === "B_IM"
+                  ? "IM_C"
+                  : "W_L"
+          );
+        if (
+          !bestBenchAssignments ||
+          totalRating > bestBenchAssignments.totalRating ||
+          (
+            totalRating === bestBenchAssignments.totalRating &&
+            `${firstSlot}-${secondSlot}` <
+              Array.from(bestBenchAssignments.slotByPlayerId.values()).join("-")
+          )
+        ) {
+          bestBenchAssignments = {
+            totalRating,
+            slotByPlayerId,
+          };
+        }
+      });
+    });
+    if (!bestBenchAssignments) {
+      throw new Error(messages.submitOrdersError);
+    }
+    const bestBenchSlotByPlayerId = (
+      bestBenchAssignments as {
+        totalRating: number;
+        slotByPlayerId: Map<number, (typeof traineeBenchSlots)[number]>;
+      }
+    ).slotByPlayerId;
+    benchTrainees.forEach((player) => {
+      const slot = bestBenchSlotByPlayerId?.get(player.PlayerID) ?? null;
+      if (!slot) {
+        throw new Error(messages.submitOrdersError);
+      }
+      assignmentsForFormation[slot] = player.PlayerID;
+    });
+
+    const onFieldPlayerIds = new Set<number>(
+      FIELD_SLOT_ORDER.map((slot) => assignmentsForFormation[slot]).filter(
+        (playerId): playerId is number => typeof playerId === "number" && playerId > 0
+      )
+    );
+    let benchCandidatePool = getExtraTimeEligibleNonTrainees(traineeIds, {
+      excludeOnlyFromField: true,
+    }).filter((player) => !onFieldPlayerIds.has(player.PlayerID));
+
+    const benchSlotToFieldSlot = {
+      B_CD: "CD_C",
+      B_WB: "WB_L",
+      B_IM: "IM_C",
+      B_F: "F_C",
+      B_W: "W_L",
+    } as const;
+    (
+      Object.entries(benchSlotToFieldSlot) as Array<
+        [
+          keyof typeof benchSlotToFieldSlot,
+          (typeof benchSlotToFieldSlot)[keyof typeof benchSlotToFieldSlot],
+        ]
+      >
+    ).forEach(([benchSlot, fieldSlot]) => {
+      if (assignmentsForFormation[benchSlot]) return;
+      const selected = pickBestForSlot(benchCandidatePool, fieldSlot);
+      assignmentsForFormation[benchSlot] = selected?.PlayerID ?? null;
+      if (selected) {
+        benchCandidatePool = benchCandidatePool.filter(
+          (player) => player.PlayerID !== selected.PlayerID
+        );
+      }
+    });
+
+    const extraBenchPlayer =
+      [...benchCandidatePool].sort((left, right) => {
+        const leftValue = overallFallback(left);
+        const rightValue = overallFallback(right);
+        if (rightValue !== leftValue) return rightValue - leftValue;
+        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+          formatPlayerName(right) || String(right.PlayerID)
+        );
+      })[0] ?? null;
+    assignmentsForFormation.B_X = extraBenchPlayer?.PlayerID ?? null;
+
+    return {
+      assignments: assignmentsForFormation,
+    };
+  };
+
+  const buildDefendingExtraTimeResult = async (
+    traineeIds: number[],
+    options?: {
+      excludedFieldPlayerIds?: Set<number>;
+    }
+  ) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const orderedTrainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player))
+      .sort(comparePlayersByExtraTimeMatrixOrder);
+    if (orderedTrainees.length !== 7) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const assignmentsForFormation: LineupAssignments = {
+      WB_L: orderedTrainees[0]?.PlayerID ?? null,
+      CD_L: orderedTrainees[1]?.PlayerID ?? null,
+      CD_C: orderedTrainees[2]?.PlayerID ?? null,
+      CD_R: orderedTrainees[3]?.PlayerID ?? null,
+      WB_R: orderedTrainees[4]?.PlayerID ?? null,
+      W_L: orderedTrainees[5]?.PlayerID ?? null,
+      W_R: orderedTrainees[6]?.PlayerID ?? null,
+    };
+    if (
+      !assignmentsForFormation.WB_L ||
+      !assignmentsForFormation.CD_L ||
+      !assignmentsForFormation.CD_C ||
+      !assignmentsForFormation.CD_R ||
+      !assignmentsForFormation.WB_R ||
+      !assignmentsForFormation.W_L ||
+      !assignmentsForFormation.W_R
+    ) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const { overallFallback, pickBestForSlot } = buildExtraTimeSlotPicker(ratingsById);
+    const assignSlotFromPool = (pool: SeniorPlayer[], slot: keyof LineupAssignments) => {
+      const selected = pickBestForSlot(pool, slot);
+      if (!selected) {
+        throw new Error(messages.submitOrdersError);
+      }
+      assignmentsForFormation[slot] = selected.PlayerID;
+      return {
+        remainingPool: pool.filter((player) => player.PlayerID !== selected.PlayerID),
+        selectedPlayerId: selected.PlayerID,
+      };
+    };
+
+    let nonTraineePool = getExtraTimeEligibleNonTrainees(traineeIds, {
+      excludedFieldPlayerIds: options?.excludedFieldPlayerIds,
+    });
+    const fieldNonTraineeIds = new Set<number>();
+
+    const keeperAssignment = assignSlotFromPool(nonTraineePool, "KP");
+    nonTraineePool = keeperAssignment.remainingPool;
+    fieldNonTraineeIds.add(keeperAssignment.selectedPlayerId);
+    (["IM_L", "IM_C", "IM_R"] as const).forEach((slot) => {
+      const assignment = assignSlotFromPool(nonTraineePool, slot);
+      nonTraineePool = assignment.remainingPool;
+      fieldNonTraineeIds.add(assignment.selectedPlayerId);
+    });
+
+    const benchSlotToFieldSlot = {
+      B_GK: "KP",
+      B_CD: "CD_C",
+      B_WB: "WB_L",
+      B_IM: "IM_C",
+      B_F: "F_C",
+      B_W: "W_L",
+    } as const;
+    (
+      Object.entries(benchSlotToFieldSlot) as Array<
+        [
+          keyof typeof benchSlotToFieldSlot,
+          (typeof benchSlotToFieldSlot)[keyof typeof benchSlotToFieldSlot],
+        ]
+      >
+    ).forEach(([benchSlot, fieldSlot]) => {
+      const selected = pickBestForSlot(nonTraineePool, fieldSlot);
+      assignmentsForFormation[benchSlot] = selected?.PlayerID ?? null;
+      if (selected) {
+        nonTraineePool = nonTraineePool.filter(
+          (player) => player.PlayerID !== selected.PlayerID
+        );
+      }
+    });
+    const extraBenchPlayer =
+      [...nonTraineePool].sort((left, right) => {
+        const leftValue = overallFallback(left);
+        const rightValue = overallFallback(right);
+        if (rightValue !== leftValue) return rightValue - leftValue;
+        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+          formatPlayerName(right) || String(right.PlayerID)
+        );
+      })[0] ?? null;
+    assignmentsForFormation.B_X = extraBenchPlayer?.PlayerID ?? null;
+
+    return {
+      assignments: assignmentsForFormation,
+      fieldNonTraineeIds,
+    };
+  };
+
+  const buildExtendedDefendingExtraTimeResult = async (traineeIds: number[]) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const trainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player));
+    if (trainees.length !== 14) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const orderedKeepers = [...trainees].sort(compareKeeperTrainees);
+    const startingKeeper = orderedKeepers[0] ?? null;
+    const benchKeeper = orderedKeepers[1] ?? null;
+    if (!startingKeeper || !benchKeeper) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const remainingAfterKeepers = trainees.filter(
+      (player) =>
+        player.PlayerID !== startingKeeper.PlayerID && player.PlayerID !== benchKeeper.PlayerID
+    );
+    const orderedDefenders = [...remainingAfterKeepers].sort((left, right) =>
+      comparePlayersBySkillDescending(left, right, "DefenderSkill")
+    );
+    const fieldTrainees = orderedDefenders.slice(0, 10);
+    const benchTrainees = orderedDefenders.slice(10, 12);
+    if (fieldTrainees.length !== 10 || benchTrainees.length !== 2) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const assignmentsForFormation: LineupAssignments = {
+      KP: startingKeeper.PlayerID,
+      B_GK: benchKeeper.PlayerID,
+    };
+    const { overallFallback, pickBestForSlot } = buildExtraTimeSlotPicker(ratingsById);
+
+    const assignSlotFromPool = (pool: SeniorPlayer[], slot: keyof LineupAssignments) => {
+      const selected = pickBestForSlot(pool, slot);
+      if (!selected) {
+        throw new Error(messages.submitOrdersError);
+      }
+      assignmentsForFormation[slot] = selected.PlayerID;
+      return pool.filter((player) => player.PlayerID !== selected.PlayerID);
+    };
+
+    let remainingFieldTrainees = [...fieldTrainees];
+    [...DEFENSE_SLOTS, ...MIDFIELD_SLOTS].forEach((slot) => {
+      remainingFieldTrainees = assignSlotFromPool(remainingFieldTrainees, slot);
+    });
+
+    let remainingBenchTrainees = [...benchTrainees];
+    (["B_CD", "B_WB"] as const).forEach((slot) => {
+      const fieldSlot = slot === "B_CD" ? "CD_C" : "WB_L";
+      const selected = pickBestForSlot(remainingBenchTrainees, fieldSlot);
+      if (!selected) {
+        throw new Error(messages.submitOrdersError);
+      }
+      assignmentsForFormation[slot] = selected.PlayerID;
+      remainingBenchTrainees = remainingBenchTrainees.filter(
+        (player) => player.PlayerID !== selected.PlayerID
+      );
+    });
+
+    let benchCandidatePool = getExtraTimeEligibleNonTrainees(traineeIds);
+    const benchSlotToFieldSlot = {
+      B_IM: "IM_C",
+      B_F: "F_C",
+      B_W: "W_L",
+    } as const;
+    (
+      Object.entries(benchSlotToFieldSlot) as Array<
+        [
+          keyof typeof benchSlotToFieldSlot,
+          (typeof benchSlotToFieldSlot)[keyof typeof benchSlotToFieldSlot],
+        ]
+      >
+    ).forEach(([benchSlot, fieldSlot]) => {
+      const selected = pickBestForSlot(benchCandidatePool, fieldSlot);
+      assignmentsForFormation[benchSlot] = selected?.PlayerID ?? null;
+      if (selected) {
+        benchCandidatePool = benchCandidatePool.filter(
+          (player) => player.PlayerID !== selected.PlayerID
+        );
+      }
+    });
+    const extraBenchPlayer =
+      [...benchCandidatePool].sort((left, right) => {
+        const leftValue = overallFallback(left);
+        const rightValue = overallFallback(right);
+        if (rightValue !== leftValue) return rightValue - leftValue;
+        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+          formatPlayerName(right) || String(right.PlayerID)
+        );
+      })[0] ?? null;
+    assignmentsForFormation.B_X = extraBenchPlayer?.PlayerID ?? null;
+
+    return {
+      assignments: assignmentsForFormation,
+    };
+  };
+
+  const buildPlaymakingExtraTimeResult = async (
+    traineeIds: number[],
+    options?: {
+      excludedFieldPlayerIds?: Set<number>;
+    }
+  ) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const orderedTrainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player))
+      .sort(comparePlayersByExtraTimeMatrixOrder);
+    if (orderedTrainees.length !== 8) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const assignmentsForFormation: LineupAssignments = {
+      W_L: orderedTrainees[0]?.PlayerID ?? null,
+      IM_L: orderedTrainees[1]?.PlayerID ?? null,
+      IM_C: orderedTrainees[2]?.PlayerID ?? null,
+      IM_R: orderedTrainees[3]?.PlayerID ?? null,
+      W_R: orderedTrainees[4]?.PlayerID ?? null,
+      WB_L: orderedTrainees[5]?.PlayerID ?? null,
+      WB_R: orderedTrainees[6]?.PlayerID ?? null,
+      B_IM: orderedTrainees[7]?.PlayerID ?? null,
+    };
+    if (
+      !assignmentsForFormation.W_L ||
+      !assignmentsForFormation.IM_L ||
+      !assignmentsForFormation.IM_C ||
+      !assignmentsForFormation.IM_R ||
+      !assignmentsForFormation.W_R ||
+      !assignmentsForFormation.WB_L ||
+      !assignmentsForFormation.WB_R ||
+      !assignmentsForFormation.B_IM
+    ) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const { overallFallback, pickBestForSlot } = buildExtraTimeSlotPicker(ratingsById);
+    const assignSlotFromPool = (pool: SeniorPlayer[], slot: keyof LineupAssignments) => {
+      const selected = pickBestForSlot(pool, slot);
+      if (!selected) {
+        throw new Error(messages.submitOrdersError);
+      }
+      assignmentsForFormation[slot] = selected.PlayerID;
+      return {
+        remainingPool: pool.filter((player) => player.PlayerID !== selected.PlayerID),
+        selectedPlayerId: selected.PlayerID,
+      };
+    };
+
+    let nonTraineePool = getExtraTimeEligibleNonTrainees(traineeIds, {
+      excludedFieldPlayerIds: options?.excludedFieldPlayerIds,
+    });
+    const fieldNonTraineeIds = new Set<number>();
+
+    const keeperAssignment = assignSlotFromPool(nonTraineePool, "KP");
+    nonTraineePool = keeperAssignment.remainingPool;
+    fieldNonTraineeIds.add(keeperAssignment.selectedPlayerId);
+    (["CD_L", "CD_C", "CD_R"] as const).forEach((slot) => {
+      const assignment = assignSlotFromPool(nonTraineePool, slot);
+      nonTraineePool = assignment.remainingPool;
+      fieldNonTraineeIds.add(assignment.selectedPlayerId);
+    });
+
+    const benchSlotToFieldSlot = {
+      B_GK: "KP",
+      B_CD: "CD_C",
+      B_WB: "WB_L",
+      B_F: "F_C",
+      B_W: "W_L",
+    } as const;
+    (
+      Object.entries(benchSlotToFieldSlot) as Array<
+        [
+          keyof typeof benchSlotToFieldSlot,
+          (typeof benchSlotToFieldSlot)[keyof typeof benchSlotToFieldSlot],
+        ]
+      >
+    ).forEach(([benchSlot, fieldSlot]) => {
+      const selected = pickBestForSlot(nonTraineePool, fieldSlot);
+      assignmentsForFormation[benchSlot] = selected?.PlayerID ?? null;
+      if (selected) {
+        nonTraineePool = nonTraineePool.filter(
+          (player) => player.PlayerID !== selected.PlayerID
+        );
+      }
+    });
+    const extraBenchPlayer =
+      [...nonTraineePool].sort((left, right) => {
+        const leftValue = overallFallback(left);
+        const rightValue = overallFallback(right);
+        if (rightValue !== leftValue) return rightValue - leftValue;
+        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+          formatPlayerName(right) || String(right.PlayerID)
+        );
+      })[0] ?? null;
+    assignmentsForFormation.B_X = extraBenchPlayer?.PlayerID ?? null;
+
+    return {
+      assignments: assignmentsForFormation,
+      fieldNonTraineeIds,
+    };
+  };
+
+  const buildSetPiecesExtraTimeResult = async (traineeIds: number[]) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const trainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player));
+    if (trainees.length !== 13) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const { pickBestForSlot } = buildExtraTimeSlotPicker(ratingsById);
+    const assignmentsForFormation: LineupAssignments = {};
+
+    const orderedKeepers = [...trainees].sort(compareKeeperTrainees);
+    const startingKeeper = orderedKeepers[0] ?? null;
+    const benchKeeper =
+      orderedKeepers.find((player) => player.PlayerID !== startingKeeper?.PlayerID) ?? null;
+    const orderedSetPieces = [...trainees].sort(comparePlayersBySetPiecesDescending);
+    const extraBenchSetPiecesPlayer =
+      orderedSetPieces.find(
+        (player) =>
+          player.PlayerID !== startingKeeper?.PlayerID &&
+          player.PlayerID !== benchKeeper?.PlayerID
+      ) ?? null;
+    if (!startingKeeper || !benchKeeper || !extraBenchSetPiecesPlayer) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    assignmentsForFormation.KP = startingKeeper.PlayerID;
+    assignmentsForFormation.B_GK = benchKeeper.PlayerID;
+    assignmentsForFormation.B_X = extraBenchSetPiecesPlayer.PlayerID;
+
+    let remainingTrainees = trainees.filter(
+      (player) =>
+        player.PlayerID !== startingKeeper.PlayerID &&
+        player.PlayerID !== benchKeeper.PlayerID &&
+        player.PlayerID !== extraBenchSetPiecesPlayer.PlayerID
+    );
+
+    (
+      ["WB_L", "CD_L", "CD_C", "CD_R", "WB_R", "W_L", "IM_L", "IM_C", "IM_R", "W_R"] as const
+    ).forEach((slot) => {
+      const selected = pickBestForSlot(remainingTrainees, slot);
+      if (!selected) {
+        throw new Error(messages.submitOrdersError);
+      }
+      assignmentsForFormation[slot] = selected.PlayerID;
+      remainingTrainees = remainingTrainees.filter(
+        (player) => player.PlayerID !== selected.PlayerID
+      );
+    });
+
+    if (remainingTrainees.length !== 0) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    let benchCandidatePool = getExtraTimeEligibleNonTrainees(traineeIds);
+    const benchSlotToFieldSlot = {
+      B_CD: "CD_C",
+      B_WB: "WB_L",
+      B_IM: "IM_C",
+      B_F: "F_C",
+      B_W: "W_L",
+    } as const;
+    (
+      Object.entries(benchSlotToFieldSlot) as Array<
+        [
+          keyof typeof benchSlotToFieldSlot,
+          (typeof benchSlotToFieldSlot)[keyof typeof benchSlotToFieldSlot],
+        ]
+      >
+    ).forEach(([benchSlot, fieldSlot]) => {
+      const selected = pickBestForSlot(benchCandidatePool, fieldSlot);
+      assignmentsForFormation[benchSlot] = selected?.PlayerID ?? null;
+      if (selected) {
+        benchCandidatePool = benchCandidatePool.filter(
+          (player) => player.PlayerID !== selected.PlayerID
+        );
+      }
+    });
+
+    return {
+      assignments: assignmentsForFormation,
+    };
+  };
+
+  const buildScoringExtraTimeResult = async (
+    traineeIds: number[],
+    options?: {
+      excludedFieldPlayerIds?: Set<number>;
+    }
+  ) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const orderedTrainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player))
+      .sort(comparePlayersByExtraTimeMatrixOrder);
+    if (orderedTrainees.length !== 4) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const { pickBestForSlot } = buildExtraTimeSlotPicker(ratingsById);
+    const numberedTraineeIds = orderedTrainees.map((player) => player.PlayerID);
+    const assignmentsForFormation: LineupAssignments = {
+      F_L: numberedTraineeIds[0] ?? null,
+      F_C: numberedTraineeIds[1] ?? null,
+      F_R: numberedTraineeIds[2] ?? null,
+      IM_L: numberedTraineeIds[3] ?? null,
+    };
+    if (
+      !assignmentsForFormation.F_L ||
+      !assignmentsForFormation.F_C ||
+      !assignmentsForFormation.F_R ||
+      !assignmentsForFormation.IM_L
+    ) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    let nonTraineePool = getExtraTimeEligibleNonTrainees(traineeIds, {
+      excludedFieldPlayerIds: options?.excludedFieldPlayerIds,
+    });
+    const fieldNonTraineeIds = new Set<number>();
+    const assignFieldNonTrainee = (slot: keyof LineupAssignments) => {
+      const selected = pickBestForSlot(nonTraineePool, slot);
+      if (!selected) {
+        throw new Error(messages.submitOrdersMinPlayers);
+      }
+      assignmentsForFormation[slot] = selected.PlayerID;
+      fieldNonTraineeIds.add(selected.PlayerID);
+      nonTraineePool = nonTraineePool.filter(
+        (player) => player.PlayerID !== selected.PlayerID
+      );
+    };
+
+    (["KP", "WB_L", "CD_L", "CD_C", "CD_R", "WB_R", "IM_R"] as const).forEach((slot) => {
+      assignFieldNonTrainee(slot);
+    });
+
+    const benchSlotToFieldSlot = {
+      B_GK: "KP",
+      B_CD: "CD_C",
+      B_WB: "WB_L",
+      B_IM: "IM_C",
+      B_F: "F_C",
+      B_W: "W_L",
+    } as const;
+    (
+      Object.entries(benchSlotToFieldSlot) as Array<
+        [
+          keyof typeof benchSlotToFieldSlot,
+          (typeof benchSlotToFieldSlot)[keyof typeof benchSlotToFieldSlot],
+        ]
+      >
+    ).forEach(([benchSlot, fieldSlot]) => {
+      const selected = pickBestForSlot(nonTraineePool, fieldSlot);
+      assignmentsForFormation[benchSlot] = selected?.PlayerID ?? null;
+      if (selected) {
+        nonTraineePool = nonTraineePool.filter(
+          (player) => player.PlayerID !== selected.PlayerID
+        );
+      }
+    });
+
+    const extraBenchPlayer = nonTraineePool[0] ?? null;
+    assignmentsForFormation.B_X = extraBenchPlayer?.PlayerID ?? null;
+
+    return {
+      assignments: assignmentsForFormation,
+      fieldNonTraineeIds,
+      scoringRoleIds: numberedTraineeIds,
+    };
+  };
+
+  const buildWingerExtraTimeResult = async (
+    traineeIds: number[],
+    options?: {
+      excludedFieldPlayerIds?: Set<number>;
+    }
+  ) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const orderedTrainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player))
+      .sort(comparePlayersByExtraTimeMatrixOrder);
+    if (orderedTrainees.length !== 6) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const { overallFallback, pickBestForSlot, ratingForSlot } =
+      buildExtraTimeSlotPicker(ratingsById);
+    const numberedTraineeIds = orderedTrainees.map((player) => player.PlayerID);
+    const assignmentsForFormation: LineupAssignments = {
+      WB_L: numberedTraineeIds[2] ?? null,
+      WB_R: numberedTraineeIds[3] ?? null,
+      W_L: numberedTraineeIds[0] ?? null,
+      W_R: numberedTraineeIds[1] ?? null,
+    };
+    if (
+      !assignmentsForFormation.WB_L ||
+      !assignmentsForFormation.WB_R ||
+      !assignmentsForFormation.W_L ||
+      !assignmentsForFormation.W_R
+    ) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const freeTrainees = orderedTrainees.slice(4);
+    const freeTraineeSlots = ["CD_L", "CD_C", "CD_R", "IM_L", "IM_C", "IM_R"] as const;
+    let bestFreeAssignments:
+      | {
+          totalRating: number;
+          slotByPlayerId: Map<number, (typeof freeTraineeSlots)[number]>;
+        }
+      | null = null;
+    freeTraineeSlots.forEach((firstSlot) => {
+      freeTraineeSlots.forEach((secondSlot) => {
+        if (secondSlot === firstSlot) return;
+        const slotByPlayerId = new Map<number, (typeof freeTraineeSlots)[number]>([
+          [freeTrainees[0]?.PlayerID ?? 0, firstSlot],
+          [freeTrainees[1]?.PlayerID ?? 0, secondSlot],
+        ]);
+        const totalRating =
+          ratingForSlot(freeTrainees[0]?.PlayerID ?? 0, firstSlot) +
+          ratingForSlot(freeTrainees[1]?.PlayerID ?? 0, secondSlot);
+        if (
+          !bestFreeAssignments ||
+          totalRating > bestFreeAssignments.totalRating ||
+          (
+            totalRating === bestFreeAssignments.totalRating &&
+            `${firstSlot}-${secondSlot}` <
+              Array.from(bestFreeAssignments.slotByPlayerId.values()).join("-")
+          )
+        ) {
+          bestFreeAssignments = {
+            totalRating,
+            slotByPlayerId,
+          };
+        }
+      });
+    });
+    const trainee5Id = numberedTraineeIds[4] ?? null;
+    const trainee6Id = numberedTraineeIds[5] ?? null;
+    const bestFreeSlotByPlayerId =
+      (
+        bestFreeAssignments as
+          | {
+              totalRating: number;
+              slotByPlayerId: Map<number, (typeof freeTraineeSlots)[number]>;
+            }
+          | null
+      )?.slotByPlayerId ?? null;
+    const trainee5Slot = trainee5Id
+      ? bestFreeSlotByPlayerId?.get(trainee5Id) ?? null
+      : null;
+    const trainee6Slot = trainee6Id
+      ? bestFreeSlotByPlayerId?.get(trainee6Id) ?? null
+      : null;
+    if (!trainee5Id || !trainee6Id || !trainee5Slot || !trainee6Slot) {
+      throw new Error(messages.submitOrdersError);
+    }
+    assignmentsForFormation[trainee5Slot] = trainee5Id;
+    assignmentsForFormation[trainee6Slot] = trainee6Id;
+
+    const fieldNonTraineeIds = new Set<number>();
+    let fieldNonTraineePool = getExtraTimeEligibleNonTrainees(traineeIds, {
+      excludedFieldPlayerIds: options?.excludedFieldPlayerIds,
+    });
+    const assignFieldNonTrainee = (slot: keyof LineupAssignments) => {
+      const selected = pickBestForSlot(fieldNonTraineePool, slot);
+      if (!selected) {
+        throw new Error(messages.submitOrdersMinPlayers);
+      }
+      assignmentsForFormation[slot] = selected.PlayerID;
+      fieldNonTraineeIds.add(selected.PlayerID);
+      fieldNonTraineePool = fieldNonTraineePool.filter(
+        (player) => player.PlayerID !== selected.PlayerID
+      );
+    };
+
+    assignFieldNonTrainee("KP");
+    (["CD_L", "CD_C", "CD_R", "IM_L", "IM_C", "IM_R"] as const).forEach((slot) => {
+      if (assignmentsForFormation[slot]) return;
+      assignFieldNonTrainee(slot);
+    });
+
+    const onFieldPlayerIds = new Set<number>(
+      FIELD_SLOT_ORDER.map((slot) => assignmentsForFormation[slot]).filter(
+        (playerId): playerId is number => typeof playerId === "number" && playerId > 0
+      )
+    );
+    const benchCandidatePool = getExtraTimeEligibleNonTrainees(traineeIds, {
+      excludedFieldPlayerIds: options?.excludedFieldPlayerIds,
+      excludeOnlyFromField: true,
+    }).filter((player) => !onFieldPlayerIds.has(player.PlayerID));
+
+    const benchSlotToFieldSlot = {
+      B_GK: "KP",
+      B_CD: "CD_C",
+      B_WB: "WB_L",
+      B_IM: "IM_C",
+      B_F: "F_C",
+      B_W: "W_L",
+    } as const;
+    let remainingBenchCandidates = [...benchCandidatePool];
+    (
+      Object.entries(benchSlotToFieldSlot) as Array<
+        [
+          keyof typeof benchSlotToFieldSlot,
+          (typeof benchSlotToFieldSlot)[keyof typeof benchSlotToFieldSlot],
+        ]
+      >
+    ).forEach(([benchSlot, fieldSlot]) => {
+      const selected = pickBestForSlot(remainingBenchCandidates, fieldSlot);
+      assignmentsForFormation[benchSlot] = selected?.PlayerID ?? null;
+      if (selected) {
+        remainingBenchCandidates = remainingBenchCandidates.filter(
+          (player) => player.PlayerID !== selected.PlayerID
+        );
+      }
+    });
+    const extraBenchPlayer =
+      [...remainingBenchCandidates].sort((left, right) => {
+        const leftValue = overallFallback(left);
+        const rightValue = overallFallback(right);
+        if (rightValue !== leftValue) return rightValue - leftValue;
+        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+          formatPlayerName(right) || String(right.PlayerID)
+        );
+      })[0] ?? null;
+    assignmentsForFormation.B_X = extraBenchPlayer?.PlayerID ?? null;
+
+    return {
+      assignments: assignmentsForFormation,
+      fieldNonTraineeIds,
+      wingerRoleIds: numberedTraineeIds,
+    };
+  };
+
+  const buildWingerAttackersExtraTimeResult = async (
+    traineeIds: number[],
+    options?: {
+      excludedFieldPlayerIds?: Set<number>;
+    }
+  ) => {
+    const ratingsById = await ensureExtraTimeRatingsById();
+    const orderedTrainees = traineeIds
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player))
+      .sort((left, right) => comparePlayersBySkillDescending(left, right, "WingerSkill"));
+    if (orderedTrainees.length !== 7) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    const { overallFallback, pickBestForSlot } = buildExtraTimeSlotPicker(ratingsById);
+    const numberedTraineeIds = orderedTrainees.map((player) => player.PlayerID);
+    const assignmentsForFormation: LineupAssignments = {
+      W_L: numberedTraineeIds[0] ?? null,
+      W_R: numberedTraineeIds[1] ?? null,
+      F_L: numberedTraineeIds[2] ?? null,
+      F_C: numberedTraineeIds[3] ?? null,
+      F_R: numberedTraineeIds[4] ?? null,
+      CD_L: numberedTraineeIds[5] ?? null,
+      CD_R: numberedTraineeIds[6] ?? null,
+    };
+    if (
+      !assignmentsForFormation.W_L ||
+      !assignmentsForFormation.W_R ||
+      !assignmentsForFormation.F_L ||
+      !assignmentsForFormation.F_C ||
+      !assignmentsForFormation.F_R ||
+      !assignmentsForFormation.CD_L ||
+      !assignmentsForFormation.CD_R
+    ) {
+      throw new Error(messages.submitOrdersError);
+    }
+
+    let fieldNonTraineePool = getExtraTimeEligibleNonTrainees(traineeIds, {
+      excludedFieldPlayerIds: options?.excludedFieldPlayerIds,
+    });
+    const fieldNonTraineeIds = new Set<number>();
+    (["KP", "WB_L", "CD_C", "WB_R"] as const).forEach((slot) => {
+      const selected = pickBestForSlot(fieldNonTraineePool, slot);
+      if (!selected) {
+        throw new Error(messages.submitOrdersMinPlayers);
+      }
+      assignmentsForFormation[slot] = selected.PlayerID;
+      fieldNonTraineeIds.add(selected.PlayerID);
+      fieldNonTraineePool = fieldNonTraineePool.filter(
+        (player) => player.PlayerID !== selected.PlayerID
+      );
+    });
+
+    const onFieldPlayerIds = new Set<number>(
+      FIELD_SLOT_ORDER.map((slot) => assignmentsForFormation[slot]).filter(
+        (playerId): playerId is number => typeof playerId === "number" && playerId > 0
+      )
+    );
+    let benchCandidatePool = getExtraTimeEligibleNonTrainees(traineeIds, {
+      excludedFieldPlayerIds: options?.excludedFieldPlayerIds,
+      excludeOnlyFromField: true,
+    }).filter((player) => !onFieldPlayerIds.has(player.PlayerID));
+
+    const benchSlotToFieldSlot = {
+      B_GK: "KP",
+      B_CD: "CD_C",
+      B_WB: "WB_L",
+      B_IM: "IM_C",
+      B_F: "F_C",
+      B_W: "W_L",
+    } as const;
+    (
+      Object.entries(benchSlotToFieldSlot) as Array<
+        [
+          keyof typeof benchSlotToFieldSlot,
+          (typeof benchSlotToFieldSlot)[keyof typeof benchSlotToFieldSlot],
+        ]
+      >
+    ).forEach(([benchSlot, fieldSlot]) => {
+      const selected = pickBestForSlot(benchCandidatePool, fieldSlot);
+      assignmentsForFormation[benchSlot] = selected?.PlayerID ?? null;
+      if (selected) {
+        benchCandidatePool = benchCandidatePool.filter(
+          (player) => player.PlayerID !== selected.PlayerID
+        );
+      }
+    });
+    const extraBenchPlayer =
+      [...benchCandidatePool].sort((left, right) => {
+        const leftValue = overallFallback(left);
+        const rightValue = overallFallback(right);
+        if (rightValue !== leftValue) return rightValue - leftValue;
+        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+          formatPlayerName(right) || String(right.PlayerID)
+        );
+      })[0] ?? null;
+    assignmentsForFormation.B_X = extraBenchPlayer?.PlayerID ?? null;
+
+    return {
+      assignments: assignmentsForFormation,
+      fieldNonTraineeIds,
+      wingerAttackerRoleIds: numberedTraineeIds,
+    };
+  };
+
+  const handleExtraTimeSetLineup = async () => {
+    if (
+      resolvedExtraTimeTrainingType !== 2 &&
+      resolvedExtraTimeTrainingType !== 4 &&
+      resolvedExtraTimeTrainingType !== 3 &&
+      resolvedExtraTimeTrainingType !== 5 &&
+      resolvedExtraTimeTrainingType !== 12 &&
+      resolvedExtraTimeTrainingType !== 8 &&
+      resolvedExtraTimeTrainingType !== 7 &&
+      resolvedExtraTimeTrainingType !== 6 &&
+      resolvedExtraTimeTrainingType !== 9 &&
+      resolvedExtraTimeTrainingType !== 10 &&
+      resolvedExtraTimeTrainingType !== 11
+    ) {
+      setExtraTimeInfoOpen(false);
+      return;
+    }
+    if (extraTimeSelectedCount !== requiredExtraTimeTrainees) return;
+    if (extraTimeMatchId === null) return;
+    try {
+      const selectedTraineeIds = extraTimeSelectedPlayerIds.filter((playerId) =>
+        extraTimeSelectablePlayerIds.includes(playerId)
+      );
+      setSeniorAiPreparedSubmissionMode(null);
+      if (resolvedExtraTimeTrainingType === 2) {
+        const result = await buildSetPiecesExtraTimeResult(selectedTraineeIds);
+        setAssignments(result.assignments);
+        setBehaviors({
+          WB_L: 2,
+          WB_R: 2,
+          W_L: 2,
+          IM_L: 2,
+          IM_C: 2,
+          IM_R: 2,
+          W_R: 2,
+          F_L: 2,
+          F_C: 2,
+          F_R: 2,
+        });
+        setTacticType(1);
+        setLoadedMatchId(extraTimeMatchId);
+        setExtraTimePreparedSubmission({
+          matchId: extraTimeMatchId,
+          traineeIds: selectedTraineeIds,
+          trainingType: resolvedExtraTimeTrainingType,
+        });
+        setExtraTimeInfoOpen(false);
+        setExtraTimeMatchId(null);
+        return;
+      }
+      if (resolvedExtraTimeTrainingType === 4) {
+        const finalResult = await buildScoringExtraTimeResult(selectedTraineeIds);
+        setAssignments(finalResult.assignments);
+        setBehaviors({
+          WB_L: 2,
+          WB_R: 2,
+          IM_L: 2,
+          IM_R: 2,
+          F_L: 2,
+          F_C: 2,
+          F_R: 2,
+        });
+        setTacticType(1);
+        setLoadedMatchId(extraTimeMatchId);
+        setExtraTimePreparedSubmission({
+          matchId: extraTimeMatchId,
+          traineeIds: selectedTraineeIds,
+          trainingType: resolvedExtraTimeTrainingType,
+          scoringRoleIds: finalResult.scoringRoleIds,
+        });
+        setExtraTimeInfoOpen(false);
+        setExtraTimeMatchId(null);
+        return;
+      }
+      if (resolvedExtraTimeTrainingType === 6) {
+        const result = await buildScoringSetPiecesExtraTimeResult(selectedTraineeIds);
+        setAssignments(result.assignments);
+        setBehaviors({
+          WB_L: 2,
+          WB_R: 2,
+          W_L: 2,
+          IM_L: 2,
+          IM_C: 2,
+          IM_R: 2,
+          W_R: 2,
+          F_L: 2,
+          F_C: 2,
+          F_R: 2,
+        });
+        setTacticType(1);
+        setLoadedMatchId(extraTimeMatchId);
+        setExtraTimePreparedSubmission({
+          matchId: extraTimeMatchId,
+          traineeIds: selectedTraineeIds,
+          trainingType: resolvedExtraTimeTrainingType,
+        });
+        setExtraTimeInfoOpen(false);
+        setExtraTimeMatchId(null);
+        return;
+      }
+      if (resolvedExtraTimeTrainingType === 7) {
+        const result = await buildPassingExtraTimeResult(selectedTraineeIds);
+        setAssignments(result.assignments);
+        setBehaviors({
+          W_L: 2,
+          IM_L: 2,
+          IM_C: 2,
+          IM_R: 2,
+          W_R: 2,
+          F_L: 2,
+          F_C: 2,
+          F_R: 2,
+        });
+        setTacticType(1);
+        setLoadedMatchId(extraTimeMatchId);
+        setExtraTimePreparedSubmission({
+          matchId: extraTimeMatchId,
+          traineeIds: selectedTraineeIds,
+          trainingType: resolvedExtraTimeTrainingType,
+        });
+        setExtraTimeInfoOpen(false);
+        setExtraTimeMatchId(null);
+        return;
+      }
+      if (resolvedExtraTimeTrainingType === 10) {
+        const finalResult = await buildExtendedPassingExtraTimeResult(selectedTraineeIds);
+        setAssignments(finalResult.assignments);
+        setBehaviors({
+          WB_L: 2,
+          WB_R: 2,
+          W_L: 2,
+          IM_L: 2,
+          IM_C: 2,
+          IM_R: 2,
+          W_R: 2,
+        });
+        setTacticType(1);
+        setLoadedMatchId(extraTimeMatchId);
+        setExtraTimePreparedSubmission({
+          matchId: extraTimeMatchId,
+          traineeIds: selectedTraineeIds,
+          trainingType: resolvedExtraTimeTrainingType,
+        });
+        setExtraTimeInfoOpen(false);
+        setExtraTimeMatchId(null);
+        return;
+      }
+      if (resolvedExtraTimeTrainingType === 5) {
+        const finalResult = await buildWingerExtraTimeResult(selectedTraineeIds);
+        setAssignments(finalResult.assignments);
+        setBehaviors({
+          WB_L: 2,
+          WB_R: 2,
+          W_L: 2,
+          IM_L: 2,
+          IM_C: 2,
+          IM_R: 2,
+          W_R: 2,
+        });
+        setTacticType(1);
+        setLoadedMatchId(extraTimeMatchId);
+        setExtraTimePreparedSubmission({
+          matchId: extraTimeMatchId,
+          traineeIds: selectedTraineeIds,
+          trainingType: resolvedExtraTimeTrainingType,
+          wingerRoleIds: finalResult.wingerRoleIds,
+        });
+        setExtraTimeInfoOpen(false);
+        setExtraTimeMatchId(null);
+        return;
+      }
+      if (resolvedExtraTimeTrainingType === 12) {
+        const finalResult = await buildWingerAttackersExtraTimeResult(selectedTraineeIds);
+        setAssignments(finalResult.assignments);
+        setBehaviors({
+          WB_L: 2,
+          WB_R: 2,
+          W_L: 2,
+          IM_L: 2,
+          IM_C: 2,
+          IM_R: 2,
+          W_R: 2,
+          F_L: 2,
+          F_C: 2,
+          F_R: 2,
+        });
+        setTacticType(1);
+        setLoadedMatchId(extraTimeMatchId);
+        setExtraTimePreparedSubmission({
+          matchId: extraTimeMatchId,
+          traineeIds: selectedTraineeIds,
+          trainingType: resolvedExtraTimeTrainingType,
+          wingerAttackerRoleIds: finalResult.wingerAttackerRoleIds,
+        });
+        setExtraTimeInfoOpen(false);
+        setExtraTimeMatchId(null);
+        return;
+      }
+      if (resolvedExtraTimeTrainingType === 3) {
+        const finalResult = await buildDefendingExtraTimeResult(selectedTraineeIds);
+        setAssignments(finalResult.assignments);
+        setBehaviors({
+          WB_L: 2,
+          WB_R: 2,
+          W_L: 2,
+          IM_L: 2,
+          IM_C: 2,
+          IM_R: 2,
+          W_R: 2,
+        });
+        setTacticType(1);
+        setLoadedMatchId(extraTimeMatchId);
+        setExtraTimePreparedSubmission({
+          matchId: extraTimeMatchId,
+          traineeIds: selectedTraineeIds,
+          trainingType: resolvedExtraTimeTrainingType,
+        });
+        setExtraTimeInfoOpen(false);
+        setExtraTimeMatchId(null);
+        return;
+      }
+      if (resolvedExtraTimeTrainingType === 8) {
+        const finalResult = await buildPlaymakingExtraTimeResult(selectedTraineeIds);
+        setAssignments(finalResult.assignments);
+        setBehaviors({
+          WB_L: 2,
+          WB_R: 2,
+          W_L: 2,
+          IM_L: 2,
+          IM_C: 2,
+          IM_R: 2,
+          W_R: 2,
+        });
+        setTacticType(1);
+        setLoadedMatchId(extraTimeMatchId);
+        setExtraTimePreparedSubmission({
+          matchId: extraTimeMatchId,
+          traineeIds: selectedTraineeIds,
+          trainingType: resolvedExtraTimeTrainingType,
+        });
+        setExtraTimeInfoOpen(false);
+        setExtraTimeMatchId(null);
+        return;
+      }
+      if (resolvedExtraTimeTrainingType === 11) {
+        const result = await buildExtendedDefendingExtraTimeResult(selectedTraineeIds);
+        setAssignments(result.assignments);
+        setBehaviors({
+          WB_L: 2,
+          WB_R: 2,
+          W_L: 2,
+          IM_L: 2,
+          IM_C: 2,
+          IM_R: 2,
+          W_R: 2,
+        });
+        setTacticType(1);
+        setLoadedMatchId(extraTimeMatchId);
+        setExtraTimePreparedSubmission({
+          matchId: extraTimeMatchId,
+          traineeIds: selectedTraineeIds,
+          trainingType: resolvedExtraTimeTrainingType,
+        });
+        setExtraTimeInfoOpen(false);
+        setExtraTimeMatchId(null);
+        return;
+      }
+      const { selectedMatchType } = await resolveExtraTimeMatchContext(extraTimeMatchId);
+      const finalResult = await buildForcedKeeperExtraTimeResult(selectedTraineeIds, {
+        selectedMatchType,
+      });
+      setAssignments(finalResult.assignments);
+      setBehaviors({
+        WB_L: 2,
+        WB_R: 2,
+        W_L: 2,
+        IM_L: 2,
+        IM_C: 2,
+        IM_R: 2,
+        W_R: 2,
+      });
+      setTacticType(1);
+      setLoadedMatchId(extraTimeMatchId);
+      setExtraTimePreparedSubmission({
+        matchId: extraTimeMatchId,
+        traineeIds: selectedTraineeIds,
+        trainingType: resolvedExtraTimeTrainingType,
+      });
+      setExtraTimeInfoOpen(false);
+      setExtraTimeMatchId(null);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : messages.submitOrdersError;
+      addNotification(detail);
+    }
+  };
 
   const orderedListPlayers = useMemo(() => {
     if (orderedPlayerIds && orderSource && orderSource !== "list") {
-      const map = new Map(players.map((player) => [player.PlayerID, player]));
       return orderedPlayerIds
-        .map((id) => map.get(id))
+        .map((id) => playersById.get(id))
         .filter((player): player is SeniorPlayer => Boolean(player));
     }
     return sortedPlayers;
-  }, [orderSource, orderedPlayerIds, players, sortedPlayers]);
+  }, [orderSource, orderedPlayerIds, playersById, sortedPlayers]);
   const isMatrixSortActive = Boolean(
     orderSource &&
       orderSource !== "list" &&
@@ -1837,6 +6720,17 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
   }, [detailsById, players]);
 
   const seniorPenaltyKickerIds = useMemo(() => {
+    if (extraTimePreparedSubmission) {
+      const onFieldPlayers = FIELD_SLOT_ORDER.map((slot) => assignments[slot])
+        .filter((playerId): playerId is number => typeof playerId === "number" && playerId > 0)
+        .map((playerId) => playersById.get(playerId) ?? null)
+        .filter((player): player is SeniorPlayer => Boolean(player));
+      return (
+        extraTimePreparedSubmission.trainingType === 2
+          ? buildSetPiecesExtraTimeSetup(onFieldPlayers)
+          : buildExtraTimeSetPiecesSetup(onFieldPlayers)
+      ).kickerIds;
+    }
     const assignedPlayerIds = Array.from(
       new Set(
         Object.values(assignments).filter(
@@ -1864,7 +6758,34 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
         );
       })
       .slice(0, 11);
-  }, [assignments, players, skillValueForPlayer]);
+  }, [
+    assignments,
+    buildExtraTimeSetPiecesSetup,
+    buildSetPiecesExtraTimeSetup,
+    extraTimePreparedSubmission,
+    players,
+    playersById,
+    skillValueForPlayer,
+  ]);
+
+  const seniorSetPiecesPlayerId = useMemo(() => {
+    if (!extraTimePreparedSubmission) return 0;
+    const onFieldPlayers = FIELD_SLOT_ORDER.map((slot) => assignments[slot])
+      .filter((playerId): playerId is number => typeof playerId === "number" && playerId > 0)
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player));
+    return (
+      extraTimePreparedSubmission.trainingType === 2
+        ? buildSetPiecesExtraTimeSetup(onFieldPlayers)
+        : buildExtraTimeSetPiecesSetup(onFieldPlayers)
+    ).setPiecesPlayerId;
+  }, [
+    assignments,
+    buildExtraTimeSetPiecesSetup,
+    buildSetPiecesExtraTimeSetup,
+    extraTimePreparedSubmission,
+    playersById,
+  ]);
 
   const seniorCardStatusByPlayerId = useMemo(() => {
     const map: Record<number, { display: string; label: string }> = {};
@@ -1990,21 +6911,41 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     notifyRefreshState(refreshing, refreshStatus, refreshProgressPct, lastRefreshAt);
   }, [lastRefreshAt, refreshProgressPct, refreshStatus, refreshing]);
 
-  const fetchPlayers = async () => {
+  const formatSeniorTeamOptionLabel = useCallback(
+    (team: { teamName: string; teamId: number; teamGender: "male" | "female" | null }) => {
+      const baseName = team.teamName || `${messages.seniorTeamLabel} ${team.teamId}`;
+      const genderLabel =
+        team.teamGender === "female"
+          ? messages.watchlistGenderFemale
+          : team.teamGender === "male"
+            ? messages.watchlistGenderMale
+            : null;
+      return genderLabel ? `${baseName} (${genderLabel})` : baseName;
+    },
+    [
+      messages.seniorTeamLabel,
+      messages.watchlistGenderFemale,
+      messages.watchlistGenderMale,
+    ]
+  );
+
+  const fetchPlayers = async (teamId?: number | null) => {
+    const teamParam = teamId ? `&teamId=${teamId}` : "";
     const { response, payload } = await fetchChppJson<{
       data?: { HattrickData?: { Team?: { PlayerList?: { Player?: unknown } } } };
       error?: string;
       details?: string;
-    }>("/api/chpp/players?orderBy=PlayerNumber", { cache: "no-store" });
+    }>(`/api/chpp/players?orderBy=PlayerNumber${teamParam}`, { cache: "no-store" });
     if (!response.ok || payload?.error) {
       throw new Error(payload?.details ?? payload?.error ?? messages.unableToLoadPlayers);
     }
     return normalizeSeniorPlayers(payload?.data?.HattrickData?.Team?.PlayerList?.Player);
   };
 
-  const fetchMatches = async () => {
+  const fetchMatches = async (teamId?: number | null) => {
+    const teamParam = teamId ? `&teamID=${teamId}` : "";
     const { response, payload } = await fetchChppJson<MatchesResponse>(
-      "/api/chpp/matches?isYouth=false",
+      `/api/chpp/matches?isYouth=false${teamParam}`,
       { cache: "no-store" }
     );
     if (!response.ok || payload?.error) {
@@ -2013,7 +6954,279 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return payload as MatchesResponse;
   };
 
+  const normalizeMatchList = (input?: Match[] | Match) => {
+    if (!input) return [];
+    return Array.isArray(input) ? input : [input];
+  };
+
+  const inferExtraTimeBTeamMatchMinutes = (
+    matchDate: string | null,
+    finishedDate: string | null,
+    addedMinutes: number | null
+  ) => {
+    const added = Math.max(0, addedMinutes ?? 0);
+    const baselineElapsedMinutes = 45 + 15 + 45 + added;
+    const startedAt = matchDate ? parseChppDate(matchDate) : null;
+    const finishedAt = finishedDate ? parseChppDate(finishedDate) : null;
+    const elapsedMinutes =
+      startedAt && finishedAt
+        ? Math.max(0, Math.round((finishedAt.getTime() - startedAt.getTime()) / 60000))
+        : baselineElapsedMinutes;
+    const hadExtraTime = elapsedMinutes > baselineElapsedMinutes;
+    return 90 + added + (hadExtraTime ? 30 : 0);
+  };
+
+  const fetchExtraTimeBTeamRecentMatchState = async (
+    teamId?: number | null
+  ): Promise<ExtraTimeBTeamRecentMatchState> => {
+    const matchesPayload = await fetchMatches(teamId);
+    const normalizedMatches = normalizeMatchList(
+      matchesPayload?.data?.HattrickData?.Team?.MatchList?.Match ??
+        matchesPayload?.data?.HattrickData?.MatchList?.Match
+    );
+    const now = Date.now();
+    const recentMatch =
+      [...normalizedMatches]
+        .filter((match) => String(match.Status ?? "").toUpperCase() === "FINISHED")
+        .filter((match) => EXTRA_TIME_B_TEAM_MATCH_TYPES.has(Number(match.MatchType)))
+        .filter((match) => {
+          const startedAt = parseChppDate(match.MatchDate)?.getTime() ?? null;
+          return (
+            typeof startedAt === "number" &&
+            Number.isFinite(startedAt) &&
+            now - startedAt >= 0 &&
+            now - startedAt <= EXTRA_TIME_B_TEAM_LOOKBACK_MS
+          );
+        })
+        .sort((left, right) => {
+          const leftTime = parseChppDate(left.MatchDate)?.getTime() ?? 0;
+          const rightTime = parseChppDate(right.MatchDate)?.getTime() ?? 0;
+          return rightTime - leftTime;
+        })[0] ?? null;
+
+    if (!recentMatch) {
+      return {
+        status: "ready",
+        recentMatch: null,
+        playerMinutesById: {},
+      };
+    }
+
+    const teamIdValue =
+      typeof teamId === "number" && Number.isFinite(teamId) && teamId > 0
+        ? Math.floor(teamId)
+        : parseNumber(matchesPayload?.data?.HattrickData?.Team?.TeamID);
+    if (!teamIdValue) {
+      return {
+        status: "error",
+        recentMatch: null,
+        playerMinutesById: {},
+      };
+    }
+
+    const matchId = Number(recentMatch.MatchID);
+    const sourceSystem =
+      typeof recentMatch.SourceSystem === "string" && recentMatch.SourceSystem.trim().length > 0
+        ? recentMatch.SourceSystem.trim()
+        : "Hattrick";
+
+    const [{ response: lineupResponse, payload: lineupPayload }, { response: detailsResponse, payload: detailsPayload }] =
+      await Promise.all([
+        fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Team?: {
+                StartingLineup?: { Player?: unknown };
+                Substitutions?: { Substitution?: unknown };
+              };
+            };
+          };
+          error?: string;
+          details?: string;
+        }>(
+          `/api/chpp/match-lineup?matchId=${matchId}&teamId=${teamIdValue}&sourceSystem=${encodeURIComponent(
+            sourceSystem
+          )}`,
+          { cache: "no-store" }
+        ),
+        fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Match?: {
+                MatchDate?: unknown;
+                FinishedDate?: unknown;
+                AddedMinutes?: unknown;
+                Bookings?: { Booking?: unknown };
+              };
+            };
+          };
+          error?: string;
+          details?: string;
+        }>(
+          `/api/chpp/matchdetails?matchId=${matchId}&sourceSystem=${encodeURIComponent(
+            sourceSystem
+          )}&matchEvents=false`,
+          { cache: "no-store" }
+        ),
+      ]);
+
+    if (!lineupResponse.ok || lineupPayload?.error || !detailsResponse.ok || detailsPayload?.error) {
+      return {
+        status: "error",
+        recentMatch: null,
+        playerMinutesById: {},
+      };
+    }
+
+    const matchData = detailsPayload?.data?.HattrickData?.Match;
+    const totalMatchMinutes = inferExtraTimeBTeamMatchMinutes(
+      typeof matchData?.MatchDate === "string" ? matchData.MatchDate : null,
+      typeof matchData?.FinishedDate === "string" ? matchData.FinishedDate : null,
+      parseNumber(matchData?.AddedMinutes)
+    );
+    const normalizeList = <T,>(value: T | T[] | null | undefined) =>
+      !value ? [] : Array.isArray(value) ? value : [value];
+    const startingLineupPlayers = normalizeList(
+      lineupPayload?.data?.HattrickData?.Team?.StartingLineup?.Player as
+        | Record<string, unknown>
+        | Array<Record<string, unknown>>
+        | undefined
+    );
+    const substitutions = normalizeList(
+      lineupPayload?.data?.HattrickData?.Team?.Substitutions?.Substitution as
+        | Record<string, unknown>
+        | Array<Record<string, unknown>>
+        | undefined
+    );
+    const bookings = normalizeList(
+      matchData?.Bookings?.Booking as
+        | Record<string, unknown>
+        | Array<Record<string, unknown>>
+        | undefined
+    );
+
+    const events: Array<
+      | {
+          type: "sub";
+          minute: number;
+          subjectPlayerId: number;
+          objectPlayerId: number;
+        }
+      | {
+          type: "red";
+          minute: number;
+          playerId: number;
+        }
+    > = [];
+
+    substitutions.forEach((substitution) => {
+      const orderType = parseNumber(substitution.OrderType);
+      const subjectPlayerId = parseNumber(substitution.SubjectPlayerID);
+      const objectPlayerId = parseNumber(substitution.ObjectPlayerID);
+      const minute = Math.min(
+        totalMatchMinutes,
+        Math.max(0, parseNumber(substitution.MatchMinute) ?? totalMatchMinutes)
+      );
+      if (
+        orderType === 1 &&
+        typeof subjectPlayerId === "number" &&
+        typeof objectPlayerId === "number" &&
+        subjectPlayerId !== objectPlayerId
+      ) {
+        events.push({
+          type: "sub",
+          minute,
+          subjectPlayerId,
+          objectPlayerId,
+        });
+      }
+    });
+
+    bookings.forEach((booking) => {
+      const bookingType = parseNumber(booking.BookingType);
+      const bookingTeamId = parseNumber(booking.BookingTeamID);
+      const bookingPlayerId = parseNumber(booking.BookingPlayerID);
+      const minute = Math.min(
+        totalMatchMinutes,
+        Math.max(0, parseNumber(booking.BookingMinute) ?? totalMatchMinutes)
+      );
+      if (
+        bookingType === 2 &&
+        bookingTeamId === teamIdValue &&
+        typeof bookingPlayerId === "number"
+      ) {
+        events.push({
+          type: "red",
+          minute,
+          playerId: bookingPlayerId,
+        });
+      }
+    });
+
+    events.sort((left, right) => {
+      if (left.minute !== right.minute) return left.minute - right.minute;
+      return left.type.localeCompare(right.type);
+    });
+
+    const playedMinutesById = new Map<number, number>();
+    const onFieldSince = new Map<number, number>();
+    startingLineupPlayers.forEach((player) => {
+      const playerId = parseNumber(player.PlayerID);
+      const roleId = parseNumber(player.RoleID);
+      if (
+        typeof playerId !== "number" ||
+        typeof roleId !== "number" ||
+        roleId < 100 ||
+        roleId > 113
+      ) {
+        return;
+      }
+      if (!onFieldSince.has(playerId)) {
+        onFieldSince.set(playerId, 0);
+      }
+    });
+
+    const closeInterval = (playerId: number, minute: number) => {
+      const startedAt = onFieldSince.get(playerId);
+      if (typeof startedAt !== "number") return;
+      playedMinutesById.set(
+        playerId,
+        (playedMinutesById.get(playerId) ?? 0) + Math.max(0, minute - startedAt)
+      );
+      onFieldSince.delete(playerId);
+    };
+
+    events.forEach((event) => {
+      if (event.type === "sub") {
+        closeInterval(event.subjectPlayerId, event.minute);
+        if (!onFieldSince.has(event.objectPlayerId)) {
+          onFieldSince.set(event.objectPlayerId, event.minute);
+        }
+        return;
+      }
+      closeInterval(event.playerId, event.minute);
+    });
+
+    onFieldSince.forEach((startedAt, playerId) => {
+      playedMinutesById.set(
+        playerId,
+        (playedMinutesById.get(playerId) ?? 0) + Math.max(0, totalMatchMinutes - startedAt)
+      );
+    });
+
+    return {
+      status: "ready",
+      recentMatch: {
+        matchId,
+        sourceSystem,
+        matchDate: recentMatch.MatchDate ?? "",
+      },
+      playerMinutesById: Object.fromEntries(playedMinutesById.entries()),
+    };
+  };
+
   const fetchRatings = async (
+    teamId?: number | null,
     season?: number,
     fromTs?: number | null,
     fromMatchId?: number | null,
@@ -2024,6 +7237,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       new URLSearchParams(
         Object.fromEntries(
           [
+            typeof teamId === "number" && Number.isFinite(teamId) && teamId > 0
+              ? ["teamId", String(Math.floor(teamId))]
+              : null,
             typeof season === "number" && Number.isFinite(season) && season > 0
               ? ["season", String(Math.floor(season))]
               : null,
@@ -2056,30 +7272,55 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return payload as RatingsMatrixResponse;
   };
 
+  const fetchManagerCompendium = async (
+    userId?: string | null
+  ): Promise<ManagerCompendiumResponse> => {
+    const query = userId ? `?userId=${encodeURIComponent(userId)}` : "";
+    const { response, payload } = await fetchChppJson<ManagerCompendiumResponse>(
+      `/api/chpp/managercompendium${query}`,
+      { cache: "no-store" }
+    );
+    if (!response.ok || payload?.error) {
+      throw new Error(payload?.details ?? payload?.error ?? "Failed to fetch manager compendium");
+    }
+    return payload ?? {};
+  };
+
+  const applyManagerCompendiumTeams = useCallback(
+    async (userId?: string | null) => {
+      const payload = await fetchManagerCompendium(userId);
+      const teams = extractSeniorTeams(payload);
+      setSeniorTeams(teams);
+      setSelectedSeniorTeamId((current) => {
+        if (teams.length <= 1) return null;
+        if (
+          typeof current === "number" &&
+          teams.some((team) => team.teamId === current)
+        ) {
+          return current;
+        }
+        return teams[0]?.teamId ?? null;
+      });
+      return teams;
+    },
+    []
+  );
+
   const fetchCurrentSeason = async () => {
     const cached = readGlobalSeason();
     if (cached !== null) return cached;
-    const { response, payload } = await fetchChppJson<{
-      season?: number;
-      data?: { HattrickData?: { Manager?: { Teams?: { Team?: unknown } } } };
-      error?: string;
-      details?: string;
-    }>("/api/chpp/managercompendium", { cache: "no-store" });
-    if (!response.ok || payload?.error) {
-      throw new Error(payload?.details ?? payload?.error ?? messages.noMatchesReturned);
-    }
+    const payload = await fetchManagerCompendium(managerCompendiumUserIdOverride);
     const directSeason =
       typeof payload?.season === "number" && Number.isFinite(payload.season)
         ? Math.floor(payload.season)
         : null;
     if (directSeason && directSeason > 0) return directSeason;
 
-    const teamsNode = payload?.data?.HattrickData?.Manager?.Teams?.Team;
-    const teams = Array.isArray(teamsNode) ? teamsNode : teamsNode ? [teamsNode] : [];
+    const teams = normalizeManagerCompendiumTeams(
+      payload?.data?.HattrickData?.Manager?.Teams?.Team
+    );
     for (const team of teams) {
-      const maybeSeason = parseNumber(
-        (team as { League?: { Season?: unknown } })?.League?.Season
-      );
+      const maybeSeason = parseNumber(team?.League?.Season);
       if (typeof maybeSeason === "number" && Number.isFinite(maybeSeason) && maybeSeason > 0) {
         return Math.floor(maybeSeason);
       }
@@ -2087,7 +7328,63 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     throw new Error(messages.noMatchesReturned);
   };
 
-  const fetchTrainingSnapshot = async (): Promise<{
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const applyOverride = async (rawUserId?: string | null) => {
+      const normalizedUserId = rawUserId?.trim() || "";
+      setManagerCompendiumUserIdOverride(normalizedUserId || null);
+      staleRefreshAttemptedRef.current = false;
+      try {
+        await applyManagerCompendiumTeams(normalizedUserId || null);
+        addNotification(messages.notificationTeamsLoaded);
+      } catch (error) {
+        if (error instanceof ChppAuthRequiredError) return;
+        addNotification(messages.notificationTeamsLoadFailed);
+      }
+    };
+
+    const initialOverride = readSeniorDebugManagerUserId();
+    if (initialOverride) {
+      void applyOverride(initialOverride);
+    }
+
+    const handleOverrideEvent = (event: Event) => {
+      const detail = (event as CustomEvent<{ userId?: string | null }>).detail;
+      const nextUserId =
+        typeof detail?.userId === "string" ? detail.userId : readSeniorDebugManagerUserId();
+      void applyOverride(nextUserId);
+    };
+
+    const handleStorage = (event: StorageEvent) => {
+      if (
+        event.key !== null &&
+        event.key !== SENIOR_DEBUG_MANAGER_USER_ID_STORAGE_KEY
+      ) {
+        return;
+      }
+      void applyOverride(readSeniorDebugManagerUserId());
+    };
+
+    window.addEventListener(SENIOR_DEBUG_MANAGER_USER_ID_EVENT, handleOverrideEvent);
+    window.addEventListener("storage", handleStorage);
+    return () => {
+      window.removeEventListener(
+        SENIOR_DEBUG_MANAGER_USER_ID_EVENT,
+        handleOverrideEvent
+      );
+      window.removeEventListener("storage", handleStorage);
+    };
+  }, [
+    addNotification,
+    applyManagerCompendiumTeams,
+    messages.notificationTeamsLoadFailed,
+    messages.notificationTeamsLoaded,
+  ]);
+
+  const fetchTrainingSnapshot = async (
+    teamId?: number | null
+  ): Promise<{
     trainingType: number | null;
     teamId: number | null;
   }> => {
@@ -2102,7 +7399,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       };
       error?: string;
       details?: string;
-    }>("/api/chpp/training?actionType=view", { cache: "no-store" });
+    }>(
+      `/api/chpp/training?actionType=view${
+        teamId ? `&teamId=${teamId}` : ""
+      }`,
+      { cache: "no-store" }
+    );
     if (!response.ok || payload?.error) {
       throw new Error(payload?.details ?? payload?.error ?? "Failed to fetch training");
     }
@@ -2112,8 +7414,8 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     };
   };
 
-  const fetchTrainingType = async (): Promise<number | null> => {
-    const snapshot = await fetchTrainingSnapshot();
+  const fetchTrainingType = async (teamId?: number | null): Promise<number | null> => {
+    const snapshot = await fetchTrainingSnapshot(teamId);
     return snapshot.trainingType;
   };
 
@@ -2143,9 +7445,12 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     setTrainingTypeSetPending(true);
     setTrainingTypeSetPendingValue(nextTrainingType);
     try {
-      let teamId = parseNumber(matchesState?.data?.HattrickData?.Team?.TeamID);
+      let teamId = resolvedSeniorTeamId;
       if (teamId === null) {
-        const snapshot = await fetchTrainingSnapshot();
+        teamId = parseNumber(matchesState?.data?.HattrickData?.Team?.TeamID);
+      }
+      if (teamId === null) {
+        const snapshot = await fetchTrainingSnapshot(resolvedSeniorTeamId);
         teamId = snapshot.teamId;
       }
       if (teamId === null) {
@@ -2153,12 +7458,18 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
       }
 
       await setSeniorTrainingRegimen(teamId, nextTrainingType);
-      const verifiedSnapshot = await fetchTrainingSnapshot();
+      const verifiedSnapshot = await fetchTrainingSnapshot(teamId);
       const verifiedTrainingType = sanitizeTrainingType(verifiedSnapshot.trainingType);
       if (verifiedTrainingType !== nextTrainingType) {
         throw new Error("Training update could not be verified");
       }
       setTrainingType(verifiedTrainingType);
+      setExtraTimeMatrixTrainingType(verifiedTrainingType);
+      setExtraTimeMatrixTrainingTypeManual(false);
+      setExtraTimeTrainingMenuOpen(false);
+      setTrainingAwareMatrixTrainingType(verifiedTrainingType);
+      setTrainingAwareMatrixTrainingTypeManual(false);
+      setTrainingAwareTrainingMenuOpen(false);
       addNotification(
         messages.notificationSeniorTrainingRegimenChanged.replace(
           "{{training}}",
@@ -2172,6 +7483,30 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     } finally {
       setTrainingTypeSetPending(false);
       setTrainingTypeSetPendingValue(null);
+    }
+  };
+
+  const syncExtraTimeModalTrainingType = async () => {
+    try {
+      const currentTrainingType = sanitizeTrainingType(
+        await fetchTrainingType(resolvedSeniorTeamId)
+      );
+      setTrainingType(currentTrainingType);
+      setExtraTimeMatrixTrainingType(currentTrainingType);
+    } finally {
+      setExtraTimeMatrixTrainingTypeManual(false);
+    }
+  };
+
+  const syncTrainingAwareModalTrainingType = async () => {
+    try {
+      const currentTrainingType = sanitizeTrainingType(
+        await fetchTrainingType(resolvedSeniorTeamId)
+      );
+      setTrainingType(currentTrainingType);
+      setTrainingAwareMatrixTrainingType(currentTrainingType);
+    } finally {
+      setTrainingAwareMatrixTrainingTypeManual(false);
     }
   };
 
@@ -2189,9 +7524,9 @@ export default function SeniorDashboard({ messages }: SeniorDashboardProps) {
     return normalizeSeniorPlayerDetails(payload.data.HattrickData.Player, playerId);
   };
 
-  const bootstrapRatingsFromSeasons = async (season: number) => {
-    const previousSeason = await fetchRatings(Math.max(1, season - 1));
-    const currentSeason = await fetchRatings(season);
+  const bootstrapRatingsFromSeasons = async (teamId: number | null, season: number) => {
+    const previousSeason = await fetchRatings(teamId, Math.max(1, season - 1));
+    const currentSeason = await fetchRatings(teamId, season);
     return mergeRatingsMatrices(previousSeason, currentSeason);
   };
 
@@ -2269,6 +7604,8 @@ const refreshDetailsForPlayers = async (
     });
     return map;
   }, [players]);
+  const formatDebugPlayerNames = (playerIds: number[]) =>
+    playerIds.map((playerId) => playerNameById.get(playerId) ?? String(playerId)).join(", ");
   const motherClubBonusByName = useMemo(() => {
     const payload: Record<string, boolean> = {};
     players.forEach((player) => {
@@ -2514,14 +7851,33 @@ const refreshDetailsForPlayers = async (
     };
   };
 
-  const refreshAll = async (reason: "manual" | "stale") => {
+  const refreshAll = async (
+    reason: "manual" | "stale",
+    options?: { startup?: boolean }
+  ) => {
     if (refreshing) return false;
+    const isStartup = options?.startup ?? false;
     const refreshRunId = ++refreshRunSeqRef.current;
     activeRefreshRunIdRef.current = refreshRunId;
     stoppedRefreshRunIdsRef.current.delete(refreshRunId);
     const isStopped = () =>
       stoppedRefreshRunIdsRef.current.has(refreshRunId) ||
       activeRefreshRunIdRef.current !== refreshRunId;
+    const forceResetRatingsAlgorithm =
+      !hasCurrentSeniorRatingsAlgorithmVersion(ratingsResponse);
+    const effectiveRatingsResponse = forceResetRatingsAlgorithm ? null : ratingsResponse;
+
+    if (forceResetRatingsAlgorithm) {
+      suppressNextUpdatesRecordingRef.current = true;
+      persistedMarkersBaselineRef.current = {
+        players,
+        ratingsByPlayerId: {},
+      };
+      setRatingsResponse(null);
+      setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
+      setUpdatesHistory([]);
+      setSelectedUpdatesId(null);
+    }
 
     const persistedMarkersBaseline = persistedMarkersBaselineRef.current;
     const usePersistedMarkersBaseline = Boolean(persistedMarkersBaseline);
@@ -2530,19 +7886,45 @@ const refreshDetailsForPlayers = async (
         ? persistedMarkersBaseline.players
         : players;
     const previousRatings =
-      usePersistedMarkersBaseline && persistedMarkersBaseline
+      forceResetRatingsAlgorithm
+        ? {}
+        : usePersistedMarkersBaseline && persistedMarkersBaseline
         ? persistedMarkersBaseline.ratingsByPlayerId
         : ratingsByPlayerId;
     const previousDetailsById = new Map(detailsById);
 
     setRefreshing(true);
-    setRefreshStatus(messages.refreshStatusFetchingPlayers);
-    setRefreshProgressPct(10);
+    if (isStartup) {
+      setStartupBootstrapActive(true);
+      setStartupLoadingPhase("teamContext");
+      setStartupLoadingProgressPct(8);
+    }
+    setRefreshStatus(messages.startupLoadingTeamContext);
+    setRefreshProgressPct(5);
     setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
     let didBootstrapRatings = false;
+    let effectiveTeamId = resolvedSeniorTeamId;
 
     try {
-      const nextPlayers = await fetchPlayers();
+      try {
+        const trainingSnapshot = await fetchTrainingSnapshot(resolvedSeniorTeamId);
+        if (isStopped()) return false;
+        effectiveTeamId = trainingSnapshot.teamId ?? effectiveTeamId;
+        setTrainingType(sanitizeTrainingType(trainingSnapshot.trainingType));
+        if (isStartup) {
+          setStartupLoadingProgressPct(16);
+        }
+      } catch {
+        // Keep refresh flow intact even if team context fails.
+      }
+
+      if (isStartup) {
+        setStartupLoadingPhase("players");
+        setStartupLoadingProgressPct(24);
+      }
+      setRefreshStatus(messages.refreshStatusFetchingPlayers);
+      setRefreshProgressPct(10);
+      const nextPlayers = await fetchPlayers(effectiveTeamId);
       if (isStopped()) return false;
 
       setRefreshStatus(messages.refreshStatusFetchingPlayerDetails);
@@ -2555,6 +7937,9 @@ const refreshDetailsForPlayers = async (
             if (!isStopped()) {
               const pct = Math.round((detailsCompleted / Math.max(1, totalPlayers)) * 15);
               setRefreshProgressPct(30 + pct);
+              if (isStartup) {
+                setStartupLoadingProgressPct(24 + pct);
+              }
             }
           },
         }
@@ -2567,46 +7952,75 @@ const refreshDetailsForPlayers = async (
         nextDetailsById.set(parsedId, detail);
       });
 
+      if (isStartup) {
+        setStartupLoadingPhase("matches");
+        setStartupLoadingProgressPct(55);
+      }
       setRefreshStatus(messages.refreshStatusFetchingMatches);
       setRefreshProgressPct(45);
-      const nextMatches = await fetchMatches();
+      const nextMatches = await fetchMatches(effectiveTeamId);
       if (isStopped()) return false;
 
+      if (isStartup) {
+        setStartupLoadingPhase("ratings");
+        setStartupLoadingProgressPct(68);
+      }
       setRefreshStatus(messages.refreshStatusFetchingRatings);
       setRefreshProgressPct(60);
-      const shouldBootstrapRatings = isRatingsMatrixEmpty(ratingsResponse);
+      const shouldBootstrapRatings = !hasUsableSeniorRatingsMatrix(effectiveRatingsResponse);
       didBootstrapRatings = shouldBootstrapRatings;
       const nextRatings = shouldBootstrapRatings
         ? await (async () => {
             const currentSeason = await fetchCurrentSeason();
             if (isStopped()) return null;
             setRefreshProgressPct(72);
-            const previousSeasonRatings = await fetchRatings(Math.max(1, currentSeason - 1));
+            if (isStartup) {
+              setStartupLoadingProgressPct(76);
+            }
+            const previousSeasonRatings = await fetchRatings(
+              effectiveTeamId,
+              Math.max(1, currentSeason - 1)
+            );
             if (isStopped()) return null;
             setRefreshProgressPct(84);
-            const currentSeasonRatings = await fetchRatings(currentSeason);
+            if (isStartup) {
+              setStartupLoadingProgressPct(84);
+            }
+            const currentSeasonRatings = await fetchRatings(
+              effectiveTeamId,
+              currentSeason
+            );
             if (isStopped()) return null;
             setRefreshProgressPct(90);
-            return mergeRatingsMatrices(previousSeasonRatings, currentSeasonRatings);
+            if (isStartup) {
+              setStartupLoadingProgressPct(92);
+            }
+            return stampSeniorRatingsAlgorithmVersion(
+              mergeRatingsMatrices(previousSeasonRatings, currentSeasonRatings)
+            );
           })()
         : await (async () => {
             const fromTs =
-              typeof ratingsResponse?.lastAppliedMatchDateTime === "number" &&
-              Number.isFinite(ratingsResponse.lastAppliedMatchDateTime) &&
-              ratingsResponse.lastAppliedMatchDateTime > 0
-                ? Math.floor(ratingsResponse.lastAppliedMatchDateTime)
+              typeof effectiveRatingsResponse?.lastAppliedMatchDateTime === "number" &&
+              Number.isFinite(effectiveRatingsResponse.lastAppliedMatchDateTime) &&
+              effectiveRatingsResponse.lastAppliedMatchDateTime > 0
+                ? Math.floor(effectiveRatingsResponse.lastAppliedMatchDateTime)
                 : null;
             const fromMatchId =
-              typeof ratingsResponse?.lastAppliedMatchId === "number" &&
-              Number.isFinite(ratingsResponse.lastAppliedMatchId) &&
-              ratingsResponse.lastAppliedMatchId > 0
-                ? Math.floor(ratingsResponse.lastAppliedMatchId)
+              typeof effectiveRatingsResponse?.lastAppliedMatchId === "number" &&
+              Number.isFinite(effectiveRatingsResponse.lastAppliedMatchId) &&
+              effectiveRatingsResponse.lastAppliedMatchId > 0
+                ? Math.floor(effectiveRatingsResponse.lastAppliedMatchId)
                 : null;
             const firstMatchDate =
               fromTs !== null ? formatArchiveDateTimeParam(fromTs) : null;
             const lastMatchDate = formatArchiveDateTimeParam(Date.now());
             setRefreshProgressPct(72);
+            if (isStartup) {
+              setStartupLoadingProgressPct(76);
+            }
             const incrementalRatings = await fetchRatings(
+              effectiveTeamId,
               undefined,
               fromTs,
               fromMatchId,
@@ -2615,32 +8029,33 @@ const refreshDetailsForPlayers = async (
             );
             if (isStopped()) return null;
             setRefreshProgressPct(90);
-            return applyRatingsDelta(
-              ratingsResponse ?? {
-                positions: [],
-                players: [],
-                matchesAnalyzed: 0,
-                lastAppliedMatchId: null,
-                lastAppliedMatchDateTime: null,
-              },
-              incrementalRatings
+            if (isStartup) {
+              setStartupLoadingProgressPct(92);
+            }
+            return stampSeniorRatingsAlgorithmVersion(
+              applyRatingsDelta(
+                effectiveRatingsResponse ?? {
+                  ratingsAlgorithmVersion: SENIOR_RATINGS_ALGO_VERSION,
+                  positions: [],
+                  players: [],
+                  matchesAnalyzed: 0,
+                  lastAppliedMatchId: null,
+                  lastAppliedMatchDateTime: null,
+                },
+                incrementalRatings
+              )
             );
           })();
       if (!nextRatings) return false;
       if (isStopped()) return false;
-      let nextTrainingType: number | null | undefined = undefined;
-      try {
-        nextTrainingType = await fetchTrainingType();
-      } catch {
-        // Keep refresh flow intact even if training endpoint fails.
+      if (isStartup) {
+        setStartupLoadingPhase("finalize");
+        setStartupLoadingProgressPct(96);
       }
 
       setPlayers(nextPlayers);
       setMatchesState(nextMatches);
       setRatingsResponse(nextRatings);
-      if (nextTrainingType !== undefined) {
-        setTrainingType(sanitizeTrainingType(nextTrainingType));
-      }
       setLoadError(null);
       setLoadErrorDetails(null);
 
@@ -2678,10 +8093,13 @@ const refreshDetailsForPlayers = async (
       }
 
       const refreshedAt = Date.now();
-      writeStoredLastRefresh(refreshedAt);
+      writeStoredLastRefresh(refreshedAt, lastRefreshStorageKey);
       setLastRefreshAt(refreshedAt);
       setRefreshStatus(null);
       setRefreshProgressPct(100);
+      if (isStartup) {
+        setStartupLoadingProgressPct(100);
+      }
       setRefreshProgressPct(0);
       if (didBootstrapRatings) {
         addNotification(messages.notificationSeniorRatingsBootstrapComplete);
@@ -2710,6 +8128,9 @@ const refreshDetailsForPlayers = async (
       setRefreshing(false);
       setRefreshStatus(null);
       setRefreshProgressPct(0);
+      if (isStartup) {
+        setStartupBootstrapActive(false);
+      }
     }
   };
 
@@ -2717,12 +8138,38 @@ const refreshDetailsForPlayers = async (
     const hasRequiredScopes = await ensureRequiredScopes();
     if (!hasRequiredScopes) return false;
     try {
-      const nextMatches = await fetchMatches();
+      const nextMatches = await fetchMatches(resolvedSeniorTeamId);
       setMatchesState(nextMatches);
       return true;
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) return false;
       return false;
+    }
+  };
+
+  const handleSeniorTeamChange = (nextTeamId: number | null) => {
+    if (nextTeamId === selectedSeniorTeamId) return;
+    staleRefreshAttemptedRef.current = false;
+    setSelectedId(null);
+    setAssignments({});
+    setBehaviors({});
+    setLoadedMatchId(null);
+    setPlayers([]);
+    setMatchesState({});
+    setRatingsResponse(null);
+    setDetailsCache({});
+    setUpdatesHistory([]);
+    setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
+    setSelectedUpdatesId(null);
+    setOrderedPlayerIds(null);
+    setOrderSource(null);
+    setLoadError(null);
+    setLoadErrorDetails(null);
+    setSelectedSeniorTeamId(nextTeamId);
+    if (nextTeamId) {
+      const teamName =
+        seniorTeams.find((team) => team.teamId === nextTeamId)?.teamName ?? nextTeamId;
+      addNotification(`${messages.notificationTeamSwitched} ${teamName}`);
     }
   };
 
@@ -3083,8 +8530,15 @@ const refreshDetailsForPlayers = async (
 
   const runSetBestLineupPredictRatings = async (
     matchId: number,
-    mode: SetBestLineupMode
+    mode: SetBestLineupMode,
+    fixedFormationOverride?: string | null,
+    options?: {
+      trainingAwareTraineeIds?: number[];
+      trainingAwareTrainingType?: number | null;
+    }
   ) => {
+    let fixedFormationFailureSlotDiagnostics: FixedFormationSlotDiagnostic[] = [];
+    let fixedFormationFailureEligiblePlayerIds: number[] = [];
     try {
       const opponentContext = await fetchOpponentFormationRowsForMatch(matchId);
       if (!opponentContext) return;
@@ -3093,13 +8547,19 @@ const refreshDetailsForPlayers = async (
       if (showSetBestLineupDebugModal) {
         setOpponentFormationsModal({
           title: `${messages.setBestLineup} · ${opponentName}`,
+          mode,
           opponentRows: [],
           chosenFormation: null,
           chosenFormationAverages: null,
           generatedRows: [],
+          fixedFormation: fixedFormationOverride ?? null,
+          fixedFormationTacticRows: [],
           selectedGeneratedFormation: null,
           selectedGeneratedTactic: null,
           selectedRejectedPlayerIds: [],
+          selectedIneligiblePlayerIds: [],
+          fixedFormationFailureEligiblePlayerIds: [],
+          fixedFormationFailureSlotDiagnostics: [],
           selectedComparison: null,
           loading: true,
           error: null,
@@ -3107,11 +8567,18 @@ const refreshDetailsForPlayers = async (
       }
 
       let activeTrainingType = trainingType;
-      try {
-        activeTrainingType = sanitizeTrainingType(await fetchTrainingType());
-        setTrainingType(activeTrainingType);
-      } catch {
-        // Keep best-lineup flow intact even if training endpoint fails.
+      if (
+        mode === "trainingAware" &&
+        typeof options?.trainingAwareTrainingType === "number"
+      ) {
+        activeTrainingType = sanitizeTrainingType(options.trainingAwareTrainingType);
+      } else {
+        try {
+          activeTrainingType = sanitizeTrainingType(await fetchTrainingType());
+          setTrainingType(activeTrainingType);
+        } catch {
+          // Keep best-lineup flow intact even if training endpoint fails.
+        }
       }
 
       const opponentRows = opponentContext.rows;
@@ -3122,9 +8589,11 @@ const refreshDetailsForPlayers = async (
       );
 
       let ratingsById = ratingsByPlayerId;
-      if (isRatingsMatrixEmpty(ratingsResponse)) {
+      if (!hasUsableSeniorRatingsMatrix(ratingsResponse)) {
         const currentSeason = await fetchCurrentSeason();
-        const refreshedRatings = await bootstrapRatingsFromSeasons(currentSeason);
+        const refreshedRatings = stampSeniorRatingsAlgorithmVersion(
+          await bootstrapRatingsFromSeasons(resolvedSeniorTeamId, currentSeason)
+        );
         setRatingsResponse(refreshedRatings);
         ratingsById = {};
         (refreshedRatings.players ?? []).forEach((row) => {
@@ -3155,41 +8624,72 @@ const refreshDetailsForPlayers = async (
               : typeof player.player.InjuryLevel === "number"
                 ? player.player.InjuryLevel
                 : null;
+          const formValue =
+            typeof details?.Form === "number"
+              ? details.Form
+              : typeof player.player.Form === "number"
+                ? player.player.Form
+                : -1;
           return {
             id: player.player.PlayerID,
             name: formatPlayerName(player.player) || String(player.player.PlayerID),
             injuryLevel,
             cardsValue: player.cardsValue,
+            formValue,
           };
         })
         .filter((player) => {
-          if (typeof player.injuryLevel === "number" && player.injuryLevel >= 1) {
-            return false;
-          }
-          const isLeagueCupTarget =
-            selectedMatchType !== null &&
-            LEAGUE_CUP_QUALI_MATCH_TYPES.has(selectedMatchType);
-          if (isLeagueCupTarget && typeof player.cardsValue === "number" && player.cardsValue >= 3) {
-            return false;
-          }
-          return true;
+          const candidatePlayer = playersById.get(player.id);
+          return candidatePlayer
+            ? isSeniorAiEligibleForMatch(candidatePlayer, selectedMatchType)
+            : false;
         })
-        .map(({ id, name }) => ({ id, name }));
+        .map(({ id, name, formValue }) => ({ id, name, formValue }));
+      const eligiblePoolPlayers = playerPool
+        .map((player) => playersById.get(player.id) ?? null)
+        .filter((player): player is SeniorPlayer => Boolean(player));
+      const playerPoolIds = playerPool.map((player) => player.id);
       if (playerPool.length < 11) {
         throw new Error(messages.submitOrdersMinPlayers);
       }
-      const isFriendlyTarget =
-        selectedMatchType !== null && FRIENDLY_MATCH_TYPES.has(selectedMatchType);
-      const buildAssignmentsForOrderedSlots = (
-        orderedSlots: string[],
-        excludedPlayerIds?: Set<number>
+      const buildAssignmentsWithReusableAlgorithm = (
+        orderedSlots: string[]
       ) => {
-        const availablePlayers = playerPool.filter(
-          (candidate) => !excludedPlayerIds?.has(candidate.id)
+        const resolvedPass = assignPlayersWithReusableSlotAlgorithm(
+          eligiblePoolPlayers,
+          orderedSlots as Array<keyof LineupAssignments>,
+          ratingsById
         );
+        const slotRatingsForFormation: Record<string, number | null> = {};
+        Object.entries(resolvedPass.assignments).forEach(([slot, playerId]) => {
+          if (typeof playerId !== "number" || playerId <= 0) {
+            slotRatingsForFormation[slot] = null;
+            return;
+          }
+          const roleCode = SLOT_TO_RATING_CODE[slot];
+          slotRatingsForFormation[slot] =
+            typeof roleCode === "number" &&
+            typeof ratingsById[playerId]?.[String(roleCode)] === "number"
+              ? (ratingsById[playerId]?.[String(roleCode)] as number)
+              : null;
+        });
+        return {
+          assignments: resolvedPass.assignments,
+          slotRatings: slotRatingsForFormation,
+          usedPlayerIds: new Set<number>(
+            Object.values(resolvedPass.assignments).filter(
+              (playerId): playerId is number => typeof playerId === "number" && playerId > 0
+            )
+          ),
+          slotDiagnostics: [] as FixedFormationSlotDiagnostic[],
+        };
+      };
+      const buildAssignmentsForOrderedSlots = (orderedSlots: string[]) => {
+        const availablePlayers = [...playerPool];
         const assignmentsForFormation: LineupAssignments = {};
         const slotRatingsForFormation: Record<string, number | null> = {};
         const usedPlayerIds = new Set<number>();
+        const slotDiagnostics: FixedFormationSlotDiagnostic[] = [];
         const ratingFor = (playerId: number, code: number) =>
           typeof ratingsById[playerId]?.[String(code)] === "number"
             ? (ratingsById[playerId]?.[String(code)] as number)
@@ -3198,11 +8698,10 @@ const refreshDetailsForPlayers = async (
           Math.max(
             ...SECTOR_TO_RATING_CODES[sector].map((code) => ratingFor(playerId, code))
           );
-
-        orderedSlots.forEach((slot) => {
+        const evaluateSlotCandidates = (slot: string) => {
           const roleCode = SLOT_TO_RATING_CODE[slot];
           const slotSector = SLOT_TO_SECTOR[slot];
-          availablePlayers.sort((left, right) => {
+          const sortedBySlot = [...availablePlayers].sort((left, right) => {
             const leftRating = ratingFor(left.id, roleCode);
             const rightRating = ratingFor(right.id, roleCode);
             if (rightRating !== leftRating) {
@@ -3210,21 +8709,87 @@ const refreshDetailsForPlayers = async (
             }
             return left.name.localeCompare(right.name);
           });
-          const selectedIndex = availablePlayers.findIndex((candidate) => {
+          const noSlotRatingPlayerIds: number[] = [];
+          const betterOtherSectorPlayerIds: number[] = [];
+          const tiedOtherSectorPlayerIds: number[] = [];
+          let strictCandidateId: number | null = null;
+          let tiedCandidateId: number | null = null;
+          let betterOtherCandidateId: number | null = null;
+          sortedBySlot.forEach((candidate) => {
             const slotRating = ratingFor(candidate.id, roleCode);
-            if (slotRating < 0) return false;
+            if (slotRating < 0) {
+              noSlotRatingPlayerIds.push(candidate.id);
+              return;
+            }
             const bestOtherSector = (Object.keys(SECTOR_TO_RATING_CODES) as PlayerSector[])
               .filter((sector) => sector !== slotSector)
               .reduce(
                 (best, sector) => Math.max(best, bestInSector(candidate.id, sector)),
                 -1
               );
-            return bestOtherSector < slotRating;
+            if (bestOtherSector > slotRating) {
+              betterOtherSectorPlayerIds.push(candidate.id);
+              if (betterOtherCandidateId === null) {
+                betterOtherCandidateId = candidate.id;
+              }
+              return;
+            }
+            if (bestOtherSector === slotRating) {
+              tiedOtherSectorPlayerIds.push(candidate.id);
+              if (tiedCandidateId === null) {
+                tiedCandidateId = candidate.id;
+              }
+              return;
+            }
+            if (strictCandidateId === null) {
+              strictCandidateId = candidate.id;
+            }
           });
+          const formFallbackCandidateId =
+            [...availablePlayers]
+              .sort((left, right) => {
+                if (right.formValue !== left.formValue) {
+                  return right.formValue - left.formValue;
+                }
+                return left.name.localeCompare(right.name);
+              })[0]?.id ?? null;
+          return {
+            roleCode,
+            noSlotRatingPlayerIds,
+            betterOtherSectorPlayerIds,
+            tiedOtherSectorPlayerIds,
+            strictCandidateId,
+            tiedCandidateId,
+            betterOtherCandidateId,
+            formFallbackCandidateId,
+          };
+        };
+        const assignPlayerToSlot = (
+          slot: string,
+          roleCode: number,
+          playerId: number | null,
+          diagnostics: {
+            noSlotRatingPlayerIds: number[];
+            betterOtherSectorPlayerIds: number[];
+            tiedOtherSectorPlayerIds: number[];
+          }
+        ) => {
+          const selectedIndex =
+            playerId === null
+              ? -1
+              : availablePlayers.findIndex((candidate) => candidate.id === playerId);
           const selectedPlayer =
             selectedIndex >= 0
               ? (availablePlayers.splice(selectedIndex, 1)[0] ?? null)
               : null;
+          slotDiagnostics.push({
+            slot,
+            assignedPlayerId: selectedPlayer?.id ?? null,
+            noSlotRatingPlayerIds: diagnostics.noSlotRatingPlayerIds,
+            betterOtherSectorPlayerIds: diagnostics.betterOtherSectorPlayerIds,
+            tiedOtherSectorPlayerIds: diagnostics.tiedOtherSectorPlayerIds,
+            alreadyUsedPlayerIds: Array.from(usedPlayerIds),
+          });
           if (!selectedPlayer) return;
           assignmentsForFormation[slot] = selectedPlayer.id;
           slotRatingsForFormation[slot] =
@@ -3232,142 +8797,233 @@ const refreshDetailsForPlayers = async (
               ? ratingsById[selectedPlayer.id]?.[String(roleCode)]
               : null;
           usedPlayerIds.add(selectedPlayer.id);
+        };
+        const unresolvedSlots: string[] = [];
+
+        orderedSlots.forEach((slot) => {
+          const evaluation = evaluateSlotCandidates(slot);
+          if (evaluation.strictCandidateId === null) {
+            unresolvedSlots.push(slot);
+            return;
+          }
+          assignPlayerToSlot(slot, evaluation.roleCode, evaluation.strictCandidateId, evaluation);
+        });
+
+        unresolvedSlots.forEach((slot) => {
+          const evaluation = evaluateSlotCandidates(slot);
+          const fallbackCandidateId =
+            evaluation.tiedCandidateId ??
+            evaluation.betterOtherCandidateId ??
+            evaluation.formFallbackCandidateId;
+          assignPlayerToSlot(slot, evaluation.roleCode, fallbackCandidateId, evaluation);
         });
 
         return {
           assignments: assignmentsForFormation,
           slotRatings: slotRatingsForFormation,
           usedPlayerIds,
+          slotDiagnostics,
         };
       };
-      const assignmentCount = (assignmentsForFormation: LineupAssignments) =>
-        Object.values(assignmentsForFormation).filter(
-          (id): id is number => typeof id === "number" && id > 0
-        ).length;
-
-      const baseRows = generateFormationShapes()
-        .map((shape) => {
-          if (
-            mode === "trainingAware" &&
-            !trainingAwareShapeAllowed(shape, activeTrainingType)
-          ) {
+      const buildBaseRowForShape = (shape: {
+        defenders: number;
+        midfielders: number;
+        attackers: number;
+      }) => {
+        if (
+          mode === "trainingAware" &&
+          !trainingAwareShapeAllowed(shape, activeTrainingType)
+        ) {
+          return null;
+        }
+        const occupiedSlots = occupiedSlotsForFormationShape(shape);
+        if (mode === "trainingAware") {
+          const requiredSlots = requiredTrainableSlots(activeTrainingType);
+          if (requiredSlots.some((slot) => !occupiedSlots.includes(slot))) {
             return null;
-          }
-          const defenseSlots = DEFENSE_FORMATION_MAP[shape.defenders] ?? [];
-          const occupiedSlots = [
-            "KP",
-            ...defenseSlots,
-            ...(MIDFIELD_FORMATION_MAP[shape.midfielders] ?? []),
-            ...(ATTACK_FORMATION_MAP[shape.attackers] ?? []),
-          ];
-          if (mode === "trainingAware") {
-            const requiredSlots = requiredTrainableSlots(activeTrainingType);
-            if (requiredSlots.some((slot) => !occupiedSlots.includes(slot))) {
-              return null;
-            }
-          }
-          const orderedSlots = orderFormationSlotsForTraining(
-            occupiedSlots,
-            mode === "trainingAware" ? activeTrainingType : null
-          );
-          const firstPass = buildAssignmentsForOrderedSlots(orderedSlots);
-          let resolvedPass = isFriendlyTarget
-            ? buildAssignmentsForOrderedSlots(orderedSlots, firstPass.usedPlayerIds)
-            : firstPass;
-          if (isFriendlyTarget && assignmentCount(resolvedPass.assignments) < 11) {
-            const mergedAssignments: LineupAssignments = { ...resolvedPass.assignments };
-            const mergedSlotRatings: Record<string, number | null> = { ...resolvedPass.slotRatings };
-            const usedMerged = new Set<number>(
-              Object.values(mergedAssignments).filter(
-                (id): id is number => typeof id === "number" && id > 0
-              )
-            );
-            orderedSlots.forEach((slot) => {
-              if (mergedAssignments[slot]) return;
-              const firstPassPlayerId = firstPass.assignments[slot];
-              if (!firstPassPlayerId || usedMerged.has(firstPassPlayerId)) return;
-              mergedAssignments[slot] = firstPassPlayerId;
-              mergedSlotRatings[slot] = firstPass.slotRatings[slot] ?? null;
-              usedMerged.add(firstPassPlayerId);
-            });
-            resolvedPass = {
-              assignments: mergedAssignments,
-              slotRatings: mergedSlotRatings,
-              usedPlayerIds: usedMerged,
-            };
-          }
-          if (assignmentCount(resolvedPass.assignments) < 11) {
-            return null;
-          }
-
-          return {
-            formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
-            assignments: resolvedPass.assignments,
-            slotRatings: resolvedPass.slotRatings,
-            rejectedPlayerIds: isFriendlyTarget
-              ? Array.from(firstPass.usedPlayerIds).filter(
-                  (playerId) => !resolvedPass.usedPlayerIds.has(playerId)
-                )
-              : [],
-            predicted: null,
-            error: null,
-          } as GeneratedFormationRow;
-        })
-        .filter((row): row is GeneratedFormationRow => Boolean(row));
-
-      const rows = await mapWithConcurrency(
-        baseRows,
-        FORMATION_PREDICT_CONCURRENCY,
-        async (row) => {
-          try {
-            const lineup = buildLineupPayload(row.assignments, tacticType);
-            const { response, payload } = await fetchChppJson<{
-              data?: { HattrickData?: { MatchData?: Record<string, unknown> } };
-              error?: string;
-              details?: string;
-            }>("/api/chpp/matchorders", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                matchId,
-                teamId: teamIdValue,
-                sourceSystem: selectedMatchSourceSystem,
-                actionType: "predictratings",
-                lineup,
-              }),
-            });
-            if (!response.ok || payload?.error) {
-              throw new Error(payload?.details ?? payload?.error ?? messages.submitOrdersError);
-            }
-            const matchData = payload?.data?.HattrickData?.MatchData ?? {};
-            return {
-              ...row,
-              predicted: {
-                tacticType: parseNumber(matchData.TacticType),
-                tacticSkill: parseNumber(matchData.TacticSkill),
-                ratingMidfield: parseNumber(matchData.RatingMidfield),
-                ratingRightDef: parseNumber(matchData.RatingRightDef),
-                ratingMidDef: parseNumber(matchData.RatingMidDef),
-                ratingLeftDef: parseNumber(matchData.RatingLeftDef),
-                ratingRightAtt: parseNumber(matchData.RatingRightAtt),
-                ratingMidAtt: parseNumber(matchData.RatingMidAtt),
-                ratingLeftAtt: parseNumber(matchData.RatingLeftAtt),
-              },
-              rejectedPlayerIds: row.rejectedPlayerIds,
-              error: null,
-            } as GeneratedFormationRow;
-          } catch (error) {
-            const details =
-              error instanceof Error ? error.message : messages.submitOrdersError;
-            return {
-              ...row,
-              predicted: null,
-              rejectedPlayerIds: row.rejectedPlayerIds,
-              error: details,
-            } as GeneratedFormationRow;
           }
         }
-      );
+        const orderedSlots = orderFormationSlotsForTraining(
+          occupiedSlots,
+          mode === "trainingAware" ? activeTrainingType : null
+        );
+        const resolvedPass =
+          mode === "trainingAware"
+            ? null
+            : mode === "ignoreTraining" || mode === "fixedFormation"
+              ? buildAssignmentsWithReusableAlgorithm(orderedSlots)
+              : buildAssignmentsForOrderedSlots(orderedSlots);
+        const trainingAwareAssignments =
+          mode === "trainingAware"
+            ? buildTrainingAwareAssignmentsForShape(
+                occupiedSlots,
+                activeTrainingType,
+                options?.trainingAwareTraineeIds ?? [],
+                selectedMatchType
+              )
+            : null;
+        if (mode !== "trainingAware" && resolvedPass && occupiedSlots.some((slot) => !resolvedPass.assignments[slot])) {
+          return {
+            row: null,
+            slotDiagnostics: resolvedPass.slotDiagnostics,
+          };
+        }
+        if (mode === "trainingAware") {
+          return {
+            row: null,
+            slotDiagnostics: [],
+            trainingAwareAssignments,
+          };
+        }
+        return {
+          row: {
+            formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
+            assignments: resolvedPass?.assignments ?? {},
+            slotRatings: resolvedPass?.slotRatings ?? {},
+            rejectedPlayerIds: [],
+            predicted: null,
+            error: null,
+          } as GeneratedFormationRow,
+          slotDiagnostics: resolvedPass?.slotDiagnostics ?? [],
+          trainingAwareAssignments: null,
+        };
+      };
+      const predictRatingsForLineup = async (
+        assignmentsForFormation: LineupAssignments,
+        nextTacticType: number
+      ) => {
+        const lineup = buildLineupPayload(assignmentsForFormation, nextTacticType);
+        const { response, payload } = await fetchChppJson<{
+          data?: { HattrickData?: { MatchData?: Record<string, unknown> } };
+          error?: string;
+          details?: string;
+        }>("/api/chpp/matchorders", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            matchId,
+            teamId: teamIdValue,
+            sourceSystem: selectedMatchSourceSystem,
+            actionType: "predictratings",
+            lineup,
+          }),
+        });
+        if (!response.ok || payload?.error) {
+          throw new Error(payload?.details ?? payload?.error ?? messages.submitOrdersError);
+        }
+        const matchData = payload?.data?.HattrickData?.MatchData ?? {};
+        return {
+          tacticType: parseNumber(matchData.TacticType),
+          tacticSkill: parseNumber(matchData.TacticSkill),
+          ratingMidfield: parseNumber(matchData.RatingMidfield),
+          ratingRightDef: parseNumber(matchData.RatingRightDef),
+          ratingMidDef: parseNumber(matchData.RatingMidDef),
+          ratingLeftDef: parseNumber(matchData.RatingLeftDef),
+          ratingRightAtt: parseNumber(matchData.RatingRightAtt),
+          ratingMidAtt: parseNumber(matchData.RatingMidAtt),
+          ratingLeftAtt: parseNumber(matchData.RatingLeftAtt),
+        } satisfies PredictedRatings;
+      };
+
+      const baseRows =
+        mode === "fixedFormation"
+          ? (() => {
+              const targetFormation =
+                typeof fixedFormationOverride === "string" ? fixedFormationOverride : null;
+              const targetShape =
+                targetFormation && FIXED_FORMATION_OPTIONS.includes(
+                  targetFormation as (typeof FIXED_FORMATION_OPTIONS)[number]
+                )
+                  ? parseFormationShape(targetFormation)
+                  : null;
+              if (!targetFormation || !targetShape) {
+                throw new Error(messages.setBestLineupOptimizeByFormationDisabledTooltip);
+              }
+              const result = buildBaseRowForShape(targetShape);
+              if (!result || !result.row) {
+                fixedFormationFailureSlotDiagnostics = result?.slotDiagnostics ?? [];
+                fixedFormationFailureEligiblePlayerIds = playerPoolIds;
+                throw new Error(messages.setBestLineupOptimizeByFormationUnavailable);
+              }
+              return [result.row];
+            })()
+          : generateFormationShapes()
+              .map((shape) => buildBaseRowForShape(shape))
+              .map((result) => result?.row ?? null)
+              .filter((row): row is GeneratedFormationRow => Boolean(row));
+
+      const trainingAwareBaseRows =
+        mode === "trainingAware"
+          ? await Promise.all(
+              generateFormationShapes().map(
+                async (shape): Promise<GeneratedFormationRow | null> => {
+                const result = buildBaseRowForShape(shape);
+                if (!result) return null;
+                const resolvedAssignments = await result.trainingAwareAssignments;
+                if (!resolvedAssignments) return null;
+                return {
+                  formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
+                  assignments: resolvedAssignments,
+                  slotRatings: {},
+                  rejectedPlayerIds: [],
+                  predicted: null,
+                  error: null,
+                } satisfies GeneratedFormationRow;
+                }
+              )
+            ).then((rows) => rows.filter((row): row is GeneratedFormationRow => Boolean(row)))
+          : [];
+
+      const rows =
+        mode === "fixedFormation"
+          ? baseRows
+          : mode === "trainingAware"
+            ? await mapWithConcurrency(
+                trainingAwareBaseRows,
+                FORMATION_PREDICT_CONCURRENCY,
+                async (row) => {
+                  try {
+                    return {
+                      ...row,
+                      predicted: await predictRatingsForLineup(row.assignments, tacticType),
+                      rejectedPlayerIds: row.rejectedPlayerIds,
+                      error: null,
+                    } as GeneratedFormationRow;
+                  } catch (error) {
+                    const details =
+                      error instanceof Error ? error.message : messages.submitOrdersError;
+                    return {
+                      ...row,
+                      predicted: null,
+                      rejectedPlayerIds: row.rejectedPlayerIds,
+                      error: details,
+                    } as GeneratedFormationRow;
+                  }
+                }
+              )
+          : await mapWithConcurrency(
+              baseRows,
+              FORMATION_PREDICT_CONCURRENCY,
+              async (row) => {
+                try {
+                  return {
+                    ...row,
+                    predicted: await predictRatingsForLineup(row.assignments, tacticType),
+                    rejectedPlayerIds: row.rejectedPlayerIds,
+                    error: null,
+                  } as GeneratedFormationRow;
+                } catch (error) {
+                  const details =
+                    error instanceof Error ? error.message : messages.submitOrdersError;
+                  return {
+                    ...row,
+                    predicted: null,
+                    rejectedPlayerIds: row.rejectedPlayerIds,
+                    error: details,
+                  } as GeneratedFormationRow;
+                }
+              }
+            );
 
       let selectedGeneratedFormation: string | null = null;
       let selectedGeneratedTactic: number | null = null;
@@ -3378,11 +9034,167 @@ const refreshDetailsForPlayers = async (
             opponent: CollectiveRatings;
           }
         | null = null;
+      let fixedFormationTacticRows: FixedFormationTacticRow[] = [];
 
-      if (
-        (mode === "ignoreTraining" || mode === "trainingAware") &&
-        chosenFormationAverages
-      ) {
+      const applyChosenAssignments = (
+        chosenAssignmentsBase: LineupAssignments,
+        chosenTactic: number
+      ) => {
+        const chosenAssignments: LineupAssignments = { ...chosenAssignmentsBase };
+        const used = new Set<number>(
+          Object.values(chosenAssignments).filter(
+            (id): id is number => typeof id === "number" && id > 0
+          )
+        );
+        const remainingEligiblePlayers = players.filter(
+          (player) =>
+            !used.has(player.PlayerID) &&
+            isSeniorAiEligibleForMatch(player, selectedMatchType)
+        );
+        const remaining = remainingEligiblePlayers.map((player) => ({
+          id: player.PlayerID,
+          name: formatPlayerName(player) || String(player.PlayerID),
+        }));
+        const pickBestForCode = (code: number) => {
+          if (remaining.length === 0) return null;
+          remaining.sort((left, right) => {
+            const leftValue =
+              typeof ratingsById[left.id]?.[String(code)] === "number"
+                ? ratingsById[left.id]?.[String(code)]
+                : -1;
+            const rightValue =
+              typeof ratingsById[right.id]?.[String(code)] === "number"
+                ? ratingsById[right.id]?.[String(code)]
+                : -1;
+            if (rightValue !== leftValue) return rightValue - leftValue;
+            return left.name.localeCompare(right.name);
+          });
+          return remaining.shift() ?? null;
+        };
+        const pickBestAny = () => {
+          if (remaining.length === 0) return null;
+          remaining.sort((left, right) => {
+            const score = (id: number) =>
+              [100, 101, 103, 106, 107, 111].reduce((sum, code) => {
+                const value = ratingsById[id]?.[String(code)];
+                return sum + (typeof value === "number" ? value : 0);
+              }, 0);
+            return score(right.id) - score(left.id) || left.name.localeCompare(right.name);
+          });
+          return remaining.shift() ?? null;
+        };
+        const benchPlan: Array<{ slot: string; code: number | null }> = [
+          { slot: "B_GK", code: 100 },
+          { slot: "B_CD", code: 103 },
+          { slot: "B_WB", code: 101 },
+          { slot: "B_IM", code: 107 },
+          { slot: "B_F", code: 111 },
+          { slot: "B_W", code: 106 },
+          { slot: "B_X", code: null },
+        ];
+        if (mode === "ignoreTraining" || mode === "fixedFormation") {
+          const emptyBenchSlots = benchPlan
+            .map((entry) => entry.slot)
+            .filter(
+              (slot) =>
+                typeof chosenAssignments[slot] !== "number" ||
+                (chosenAssignments[slot] ?? 0) <= 0
+            ) as Array<keyof LineupAssignments>;
+          const benchAssigned = assignPlayersWithReusableSlotAlgorithm(
+            remainingEligiblePlayers,
+            emptyBenchSlots,
+            ratingsById
+          );
+          Object.entries(benchAssigned.assignments).forEach(([slot, playerId]) => {
+            chosenAssignments[slot] = playerId ?? null;
+          });
+        } else {
+          benchPlan.forEach((entry) => {
+            if (typeof chosenAssignments[entry.slot] === "number" && (chosenAssignments[entry.slot] ?? 0) > 0) {
+              return;
+            }
+            const picked = entry.code === null ? pickBestAny() : pickBestForCode(entry.code);
+            if (picked) {
+              chosenAssignments[entry.slot] = picked.id;
+            }
+          });
+        }
+
+        setAssignments(chosenAssignments);
+        setBehaviors({});
+        setTacticType(chosenTactic);
+        setLoadedMatchId(matchId);
+        setExtraTimePreparedSubmission(null);
+        setSeniorAiPreparedSubmissionMode(
+          mode === "trainingAware" || mode === "ignoreTraining" || mode === "fixedFormation"
+            ? mode
+            : null
+        );
+      };
+
+      if (mode === "fixedFormation") {
+        const fixedRow = baseRows[0] ?? null;
+        if (fixedRow) {
+          fixedFormationTacticRows = await mapWithConcurrency(
+            [...AI_TACTIC_OPTIONS],
+            FORMATION_PREDICT_CONCURRENCY,
+            async (nextTacticType) => {
+              try {
+                const predicted = await predictRatingsForLineup(
+                  fixedRow.assignments,
+                  nextTacticType
+                );
+                return {
+                  tacticType:
+                    typeof predicted.tacticType === "number"
+                      ? predicted.tacticType
+                      : nextTacticType,
+                  predicted,
+                  error: null,
+                } satisfies FixedFormationTacticRow;
+              } catch (error) {
+                return {
+                  tacticType: nextTacticType,
+                  predicted: null,
+                  error:
+                    error instanceof Error ? error.message : messages.submitOrdersError,
+                } satisfies FixedFormationTacticRow;
+              }
+            }
+          );
+
+          const bestTacticRow =
+            fixedFormationTacticRows
+              .filter(
+                (row): row is FixedFormationTacticRow & { predicted: PredictedRatings } =>
+                  Boolean(row.predicted) && !row.error
+              )
+              .sort(
+                (left, right) =>
+                  fixedFormationTacticWeightedScore(
+                    toCollectiveRatings(right.predicted)
+                  ) -
+                    fixedFormationTacticWeightedScore(
+                      toCollectiveRatings(left.predicted)
+                    ) ||
+                  toCollectiveRatings(right.predicted).overall -
+                    toCollectiveRatings(left.predicted).overall ||
+                  toCollectiveRatings(right.predicted).attack -
+                    toCollectiveRatings(left.predicted).attack ||
+                  toCollectiveRatings(right.predicted).defense -
+                    toCollectiveRatings(left.predicted).defense ||
+                  toCollectiveRatings(right.predicted).midfield -
+                    toCollectiveRatings(left.predicted).midfield
+              )[0] ?? null;
+
+          if (bestTacticRow?.predicted) {
+            selectedGeneratedFormation = fixedRow.formation;
+            selectedGeneratedTactic = bestTacticRow.tacticType;
+            selectedRejectedPlayerIds = fixedRow.rejectedPlayerIds ?? [];
+            applyChosenAssignments(fixedRow.assignments, bestTacticRow.tacticType);
+          }
+        }
+      } else if (chosenFormationAverages) {
         const opponentCollective: CollectiveRatings = {
           midfield: chosenFormationAverages.ratingMidfield ?? 0,
           defense:
@@ -3462,67 +9274,7 @@ const refreshDetailsForPlayers = async (
             ours: chosenItem.collective,
             opponent: opponentCollective,
           };
-
-          const chosenAssignments: LineupAssignments = { ...chosenItem.row.assignments };
-          const used = new Set<number>(
-            Object.values(chosenAssignments).filter(
-              (id): id is number => typeof id === "number" && id > 0
-            )
-          );
-          const remaining = players
-            .filter((player) => !used.has(player.PlayerID))
-            .map((player) => ({
-              id: player.PlayerID,
-              name: formatPlayerName(player) || String(player.PlayerID),
-            }));
-          const pickBestForCode = (code: number) => {
-            if (remaining.length === 0) return null;
-            remaining.sort((left, right) => {
-              const leftValue =
-                typeof ratingsById[left.id]?.[String(code)] === "number"
-                  ? ratingsById[left.id]?.[String(code)]
-                  : -1;
-              const rightValue =
-                typeof ratingsById[right.id]?.[String(code)] === "number"
-                  ? ratingsById[right.id]?.[String(code)]
-                  : -1;
-              if (rightValue !== leftValue) return rightValue - leftValue;
-              return left.name.localeCompare(right.name);
-            });
-            return remaining.shift() ?? null;
-          };
-          const pickBestAny = () => {
-            if (remaining.length === 0) return null;
-            remaining.sort((left, right) => {
-              const score = (id: number) =>
-                [100, 101, 103, 106, 107, 111].reduce((sum, code) => {
-                  const value = ratingsById[id]?.[String(code)];
-                  return sum + (typeof value === "number" ? value : 0);
-                }, 0);
-              return score(right.id) - score(left.id) || left.name.localeCompare(right.name);
-            });
-            return remaining.shift() ?? null;
-          };
-          const benchPlan: Array<{ slot: string; code: number | null }> = [
-            { slot: "B_GK", code: 100 },
-            { slot: "B_CD", code: 103 },
-            { slot: "B_WB", code: 101 },
-            { slot: "B_IM", code: 107 },
-            { slot: "B_F", code: 111 },
-            { slot: "B_W", code: 106 },
-            { slot: "B_X", code: null },
-          ];
-          benchPlan.forEach((entry) => {
-            const picked = entry.code === null ? pickBestAny() : pickBestForCode(entry.code);
-            if (picked) {
-              chosenAssignments[entry.slot] = picked.id;
-            }
-          });
-
-          setAssignments(chosenAssignments);
-          setBehaviors({});
-          setTacticType(chosenTactic);
-          setLoadedMatchId(matchId);
+          applyChosenAssignments(chosenItem.row.assignments, chosenTactic);
         }
       }
 
@@ -3531,13 +9283,19 @@ const refreshDetailsForPlayers = async (
           prev
             ? {
                 ...prev,
+                mode,
                 opponentRows,
                 chosenFormation,
                 chosenFormationAverages,
                 generatedRows: rows,
+                fixedFormation: fixedFormationOverride ?? null,
+                fixedFormationTacticRows,
                 selectedGeneratedFormation,
                 selectedGeneratedTactic,
                 selectedRejectedPlayerIds,
+                selectedIneligiblePlayerIds: Array.from(extraTimeDisregardedPlayerIds),
+                fixedFormationFailureEligiblePlayerIds: [],
+                fixedFormationFailureSlotDiagnostics: [],
                 selectedComparison,
                 loading: false,
                 error: null,
@@ -3553,13 +9311,19 @@ const refreshDetailsForPlayers = async (
           prev
             ? {
                 ...prev,
+                mode,
                 opponentRows: [],
                 chosenFormation: null,
                 chosenFormationAverages: null,
                 generatedRows: [],
+                fixedFormation: fixedFormationOverride ?? null,
+                fixedFormationTacticRows: [],
                 selectedGeneratedFormation: null,
                 selectedGeneratedTactic: null,
                 selectedRejectedPlayerIds: [],
+                selectedIneligiblePlayerIds: [],
+                fixedFormationFailureEligiblePlayerIds,
+                fixedFormationFailureSlotDiagnostics,
                 selectedComparison: null,
                 loading: false,
                 error: details,
@@ -3644,8 +9408,49 @@ const refreshDetailsForPlayers = async (
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    restoredStateStorageKeyRef.current = null;
+    restoredDataStorageKeyRef.current = null;
+    setStateRestored(false);
+    setDataRestored(false);
+    setSelectedId(null);
+    setAssignments({});
+    setBehaviors({});
+    setLoadedMatchId(null);
+    setSeniorAiPreparedSubmissionMode(null);
+    setTacticType(0);
+    setTrainingType(null);
+    setIncludeTournamentMatches(false);
+    setUpdatesHistory([]);
+    setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
+    setSelectedUpdatesId(null);
+    setActiveDetailsTab("details");
+    setShowSeniorSkillBonusInMatrix(true);
+    setExtraTimeBTeamEnabled(false);
+    setExtraTimeBTeamMinutesThreshold(EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD);
+    setSeniorAiLastMatchWeeksThreshold(SENIOR_AI_LAST_MATCH_WEEKS_DEFAULT);
+    setExtraTimeBTeamRecentMatchState({
+      status: "idle",
+      recentMatch: null,
+      playerMinutesById: {},
+    });
+    setExtraTimeSelectedPlayerIds([]);
+    setExtraTimeMatrixTrainingType(null);
+    setExtraTimeMatrixTrainingTypeManual(false);
+    setTrainingAwareSelectedPlayerIds([]);
+    setTrainingAwareMatrixTrainingType(null);
+    setTrainingAwareMatrixTrainingTypeManual(false);
+    setOrderedPlayerIds(null);
+    setOrderSource(null);
+    setPlayers([]);
+    setMatchesState({});
+    setRatingsResponse(null);
+    setDetailsCache({});
+    setLoadError(null);
+    setLoadErrorDetails(null);
+    setLastRefreshAt(null);
+    persistedMarkersBaselineRef.current = null;
     try {
-      const rawSort = window.localStorage.getItem(LIST_SORT_STORAGE_KEY);
+      const rawSort = window.localStorage.getItem(listSortStorageKey);
       if (rawSort) {
         try {
           const parsed = JSON.parse(rawSort) as {
@@ -3661,11 +9466,9 @@ const refreshDetailsForPlayers = async (
         }
       }
 
-      const rawState = window.localStorage.getItem(STATE_STORAGE_KEY);
+      const rawState = window.localStorage.getItem(stateStorageKey);
       let forceWipeLegacyUpdatesState = false;
-      const storedRatingsAlgoVersion = readStoredRatingsAlgoVersion();
-      const forceResetRatingsAlgorithm =
-        storedRatingsAlgoVersion !== SENIOR_RATINGS_ALGO_VERSION;
+      const forceResetRatingsAlgorithm = false;
       if (forceResetRatingsAlgorithm) {
         suppressNextUpdatesRecordingRef.current = true;
       }
@@ -3677,14 +9480,25 @@ const refreshDetailsForPlayers = async (
             assignments?: LineupAssignments;
             behaviors?: LineupBehaviors;
             loadedMatchId?: number | null;
+            seniorAiPreparedSubmissionMode?: Exclude<SetBestLineupMode, "extraTime"> | null;
             tacticType?: number;
             trainingType?: number | null;
+            setBestLineupFixedFormation?: string | null;
             includeTournamentMatches?: boolean;
             updatesHistory?: SeniorUpdatesGroupedEntry[];
             matrixNewMarkers?: SeniorMatrixNewMarkers;
             selectedUpdatesId?: string | null;
             activeDetailsTab?: PlayerDetailsPanelTab;
             showSeniorSkillBonusInMatrix?: boolean;
+            extraTimeBTeamEnabled?: boolean;
+            extraTimeBTeamMinutesThreshold?: number;
+            seniorAiLastMatchWeeksThreshold?: number;
+            extraTimeSelectedPlayerIds?: number[];
+            extraTimeMatrixTrainingType?: number | null;
+            extraTimeMatrixTrainingTypeManual?: boolean;
+            trainingAwareSelectedPlayerIds?: number[];
+            trainingAwareMatrixTrainingType?: number | null;
+            trainingAwareMatrixTrainingTypeManual?: boolean;
             orderedPlayerIds?: number[] | null;
             orderSource?: "list" | "ratings" | "skills" | null;
           };
@@ -3698,11 +9512,26 @@ const refreshDetailsForPlayers = async (
           setAssignments(parsed.assignments && typeof parsed.assignments === "object" ? parsed.assignments : {});
           setBehaviors(parsed.behaviors && typeof parsed.behaviors === "object" ? parsed.behaviors : {});
           setLoadedMatchId(typeof parsed.loadedMatchId === "number" ? parsed.loadedMatchId : null);
+          setSeniorAiPreparedSubmissionMode(
+            parsed.seniorAiPreparedSubmissionMode === "trainingAware" ||
+              parsed.seniorAiPreparedSubmissionMode === "ignoreTraining" ||
+              parsed.seniorAiPreparedSubmissionMode === "fixedFormation"
+              ? parsed.seniorAiPreparedSubmissionMode
+              : null
+          );
           setTacticType(typeof parsed.tacticType === "number" ? parsed.tacticType : 0);
           setTrainingType(
             sanitizeTrainingType(
               typeof parsed.trainingType === "number" ? parsed.trainingType : null
             )
+          );
+          setSetBestLineupFixedFormation(
+            typeof parsed.setBestLineupFixedFormation === "string" &&
+              FIXED_FORMATION_OPTIONS.includes(
+                parsed.setBestLineupFixedFormation as (typeof FIXED_FORMATION_OPTIONS)[number]
+              )
+              ? parsed.setBestLineupFixedFormation
+              : null
           );
           setIncludeTournamentMatches(Boolean(parsed.includeTournamentMatches));
           if (forceWipeLegacyUpdatesState) {
@@ -3728,6 +9557,77 @@ const refreshDetailsForPlayers = async (
           if (typeof parsed.showSeniorSkillBonusInMatrix === "boolean") {
             setShowSeniorSkillBonusInMatrix(parsed.showSeniorSkillBonusInMatrix);
           }
+          if (typeof parsed.extraTimeBTeamEnabled === "boolean") {
+            setExtraTimeBTeamEnabled(parsed.extraTimeBTeamEnabled);
+          }
+          if (
+            typeof parsed.extraTimeBTeamMinutesThreshold === "number" &&
+            Number.isFinite(parsed.extraTimeBTeamMinutesThreshold)
+          ) {
+            setExtraTimeBTeamMinutesThreshold(
+              Math.min(90, Math.max(1, Math.round(parsed.extraTimeBTeamMinutesThreshold)))
+            );
+          }
+          if (
+            typeof parsed.seniorAiLastMatchWeeksThreshold === "number" &&
+            Number.isFinite(parsed.seniorAiLastMatchWeeksThreshold)
+          ) {
+            const roundedLastMatchThreshold = Math.round(
+              parsed.seniorAiLastMatchWeeksThreshold
+            );
+            setSeniorAiLastMatchWeeksThreshold(
+              roundedLastMatchThreshold === SENIOR_AI_LAST_MATCH_WEEKS_DISABLED
+                ? SENIOR_AI_LAST_MATCH_WEEKS_DISABLED
+                : Math.min(
+                    SENIOR_AI_LAST_MATCH_WEEKS_MAX,
+                    Math.max(
+                      SENIOR_AI_LAST_MATCH_WEEKS_MIN,
+                      roundedLastMatchThreshold
+                    )
+                  )
+            );
+          }
+          if (Array.isArray(parsed.extraTimeSelectedPlayerIds)) {
+            setExtraTimeSelectedPlayerIds(
+              parsed.extraTimeSelectedPlayerIds.filter(
+                (id): id is number => Number.isFinite(id)
+              )
+            );
+          }
+          const parsedTrainingType = sanitizeTrainingType(
+            typeof parsed.trainingType === "number" ? parsed.trainingType : null
+          );
+          const parsedExtraTimeTrainingType = sanitizeTrainingType(
+            typeof parsed.extraTimeMatrixTrainingType === "number"
+              ? parsed.extraTimeMatrixTrainingType
+              : null
+          );
+          const parsedExtraTimeManual =
+            typeof parsed.extraTimeMatrixTrainingTypeManual === "boolean"
+              ? parsed.extraTimeMatrixTrainingTypeManual
+              : parsedExtraTimeTrainingType !== null &&
+                parsedExtraTimeTrainingType !== parsedTrainingType;
+          setExtraTimeMatrixTrainingType(parsedExtraTimeTrainingType);
+          setExtraTimeMatrixTrainingTypeManual(parsedExtraTimeManual);
+          if (Array.isArray(parsed.trainingAwareSelectedPlayerIds)) {
+            setTrainingAwareSelectedPlayerIds(
+              parsed.trainingAwareSelectedPlayerIds.filter(
+                (id): id is number => Number.isFinite(id)
+              )
+            );
+          }
+          const parsedTrainingAwareTrainingType = sanitizeTrainingType(
+            typeof parsed.trainingAwareMatrixTrainingType === "number"
+              ? parsed.trainingAwareMatrixTrainingType
+              : null
+          );
+          const parsedTrainingAwareManual =
+            typeof parsed.trainingAwareMatrixTrainingTypeManual === "boolean"
+              ? parsed.trainingAwareMatrixTrainingTypeManual
+              : parsedTrainingAwareTrainingType !== null &&
+                parsedTrainingAwareTrainingType !== parsedTrainingType;
+          setTrainingAwareMatrixTrainingType(parsedTrainingAwareTrainingType);
+          setTrainingAwareMatrixTrainingTypeManual(parsedTrainingAwareManual);
           if (Array.isArray(parsed.orderedPlayerIds)) {
             setOrderedPlayerIds(
               parsed.orderedPlayerIds.filter((id): id is number => Number.isFinite(id))
@@ -3745,7 +9645,7 @@ const refreshDetailsForPlayers = async (
         }
       }
 
-      const rawData = window.localStorage.getItem(DATA_STORAGE_KEY);
+      const rawData = window.localStorage.getItem(dataStorageKey);
       let restoredPlayersCount = 0;
       if (rawData) {
         try {
@@ -3764,9 +9664,9 @@ const refreshDetailsForPlayers = async (
             setMatchesState(parsed.matchesState);
           }
           if (
-            !forceResetRatingsAlgorithm &&
             parsed.ratingsResponse &&
-            typeof parsed.ratingsResponse === "object"
+            typeof parsed.ratingsResponse === "object" &&
+            hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
           ) {
             setRatingsResponse(parsed.ratingsResponse);
           }
@@ -3774,7 +9674,9 @@ const refreshDetailsForPlayers = async (
             setDetailsCache(parsed.detailsCache);
           }
           const persistedRatingsByPlayerId = buildRatingsByPlayerIdFromResponse(
-            forceResetRatingsAlgorithm ? null : parsed.ratingsResponse ?? null
+            hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
+              ? parsed.ratingsResponse
+              : null
           );
           if (
             !forceWipeLegacyUpdatesState &&
@@ -3791,12 +9693,9 @@ const refreshDetailsForPlayers = async (
           // ignore parse errors
         }
       }
-
-      writeStoredRatingsAlgoVersion(SENIOR_RATINGS_ALGO_VERSION);
-
-      setLastRefreshAt(readStoredLastRefresh());
+      setLastRefreshAt(readStoredLastRefresh(lastRefreshStorageKey));
       setStalenessDays(readSeniorStalenessDays());
-      const lastRefresh = readStoredLastRefresh();
+      const lastRefresh = readStoredLastRefresh(lastRefreshStorageKey);
       const shouldRefresh =
         !lastRefresh || Date.now() - lastRefresh >= readSeniorStalenessDays() * 24 * 60 * 60 * 1000;
       const shouldBootstrap = restoredPlayersCount === 0;
@@ -3804,13 +9703,17 @@ const refreshDetailsForPlayers = async (
         suppressNextUpdatesRecordingRef.current = true;
       }
       if (shouldRefresh || shouldBootstrap) {
-        void refreshAll(shouldRefresh && lastRefresh ? "stale" : "manual");
+        void refreshAll(shouldRefresh && lastRefresh ? "stale" : "manual", {
+          startup: true,
+        });
       }
     } finally {
+      restoredStateStorageKeyRef.current = stateStorageKey;
+      restoredDataStorageKeyRef.current = dataStorageKey;
       setStateRestored(true);
       setDataRestored(true);
     }
-  }, []);
+  }, [dataStorageKey, lastRefreshStorageKey, listSortStorageKey, stateStorageKey]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -3819,7 +9722,7 @@ const refreshDetailsForPlayers = async (
         if (
           event.key &&
           event.key !== SENIOR_SETTINGS_STORAGE_KEY &&
-          event.key !== LAST_REFRESH_STORAGE_KEY
+          event.key !== lastRefreshStorageKey
         ) {
           return;
         }
@@ -3852,7 +9755,7 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener(SENIOR_SETTINGS_EVENT, handle);
       window.removeEventListener(SENIOR_RATINGS_WIPE_EVENT, handleWipeRatingsMatrix);
     };
-  }, [players]);
+  }, [lastRefreshStorageKey, players]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -3874,7 +9777,7 @@ const refreshDetailsForPlayers = async (
 
     const maybeRunStaleRefresh = () => {
       if (document.visibilityState !== "visible") return;
-      const lastRefresh = readStoredLastRefresh();
+      const lastRefresh = readStoredLastRefresh(lastRefreshStorageKey);
       if (!lastRefresh) return;
       const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
       const isStale = Date.now() - lastRefresh >= maxAgeMs;
@@ -3902,30 +9805,42 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener("pageshow", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [refreshing, stalenessDays]);
+  }, [lastRefreshStorageKey, refreshing, stalenessDays]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!stateRestored) return;
+    if (restoredStateStorageKeyRef.current !== stateStorageKey) return;
     const payload = {
       updatesSchemaVersion: SENIOR_UPDATES_SCHEMA_VERSION,
       selectedId,
       assignments,
       behaviors,
       loadedMatchId,
+      seniorAiPreparedSubmissionMode,
       tacticType,
       trainingType,
+      setBestLineupFixedFormation,
       includeTournamentMatches,
       updatesHistory,
       matrixNewMarkers,
       selectedUpdatesId,
       activeDetailsTab,
       showSeniorSkillBonusInMatrix,
+      extraTimeBTeamEnabled,
+      extraTimeBTeamMinutesThreshold,
+      seniorAiLastMatchWeeksThreshold,
+      extraTimeSelectedPlayerIds,
+      extraTimeMatrixTrainingType,
+      extraTimeMatrixTrainingTypeManual,
+      trainingAwareSelectedPlayerIds,
+      trainingAwareMatrixTrainingType,
+      trainingAwareMatrixTrainingTypeManual,
       orderedPlayerIds,
       orderSource,
     };
     try {
-      window.localStorage.setItem(STATE_STORAGE_KEY, JSON.stringify(payload));
+      window.localStorage.setItem(stateStorageKey, JSON.stringify(payload));
     } catch {
       // ignore persist errors
     }
@@ -3935,26 +9850,39 @@ const refreshDetailsForPlayers = async (
     behaviors,
     includeTournamentMatches,
     loadedMatchId,
+    seniorAiPreparedSubmissionMode,
     selectedId,
     selectedUpdatesId,
     tacticType,
     trainingType,
+    setBestLineupFixedFormation,
     updatesHistory,
     matrixNewMarkers,
     activeDetailsTab,
     showSeniorSkillBonusInMatrix,
+    extraTimeBTeamEnabled,
+    extraTimeBTeamMinutesThreshold,
+    seniorAiLastMatchWeeksThreshold,
+    extraTimeSelectedPlayerIds,
+    extraTimeMatrixTrainingType,
+    extraTimeMatrixTrainingTypeManual,
+    trainingAwareSelectedPlayerIds,
+    trainingAwareMatrixTrainingType,
+    trainingAwareMatrixTrainingTypeManual,
     orderedPlayerIds,
     orderSource,
+    stateStorageKey,
   ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!stateRestored) return;
+    if (restoredStateStorageKeyRef.current !== stateStorageKey) return;
     window.localStorage.setItem(
-      LIST_SORT_STORAGE_KEY,
+      listSortStorageKey,
       JSON.stringify({ sortKey, sortDirection })
     );
-  }, [stateRestored, sortDirection, sortKey]);
+  }, [listSortStorageKey, sortDirection, sortKey, stateRestored, stateStorageKey]);
 
   useEffect(() => {
     const nextOrder = sortedPlayers.map((player) => player.PlayerID);
@@ -3976,6 +9904,7 @@ const refreshDetailsForPlayers = async (
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!dataRestored) return;
+    if (restoredDataStorageKeyRef.current !== dataStorageKey) return;
     const payload = {
       players,
       matchesState,
@@ -3983,11 +9912,11 @@ const refreshDetailsForPlayers = async (
       detailsCache,
     };
     try {
-      window.localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(payload));
+      window.localStorage.setItem(dataStorageKey, JSON.stringify(payload));
     } catch {
       // ignore persist errors
     }
-  }, [dataRestored, detailsCache, matchesState, players, ratingsResponse]);
+  }, [dataRestored, dataStorageKey, detailsCache, matchesState, players, ratingsResponse]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -4376,9 +10305,46 @@ const refreshDetailsForPlayers = async (
   const seniorTrainingLabel =
     messages.trainingRegimenLabel.split(/\s+/).find(Boolean) ??
     messages.trainingRegimenLabel;
+  const startupLoadingStatus =
+    startupLoadingPhase === "teamContext"
+      ? messages.startupLoadingTeamContext
+      : startupLoadingPhase === "players"
+        ? messages.startupLoadingPlayers
+        : startupLoadingPhase === "matches"
+          ? messages.startupLoadingMatches
+          : startupLoadingPhase === "ratings"
+            ? messages.startupLoadingRatings
+            : messages.startupLoadingFinalize;
+  const startupOverlayShouldShow = !stateRestored || !dataRestored || startupBootstrapActive;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (startupOverlayShouldShow) {
+      setStartupOverlayMounted(true);
+      setStartupOverlayFading(false);
+      return;
+    }
+    if (!startupOverlayMounted) return;
+    setStartupOverlayFading(true);
+    const timeoutId = window.setTimeout(() => {
+      setStartupOverlayMounted(false);
+      setStartupOverlayFading(false);
+    }, 240);
+    return () => window.clearTimeout(timeoutId);
+  }, [startupOverlayMounted, startupOverlayShouldShow]);
 
   return (
     <div className={styles.dashboardStack} ref={dashboardRef}>
+      {startupOverlayMounted ? (
+        <StartupLoadingExperience
+          title={messages.startupLoadingTitle}
+          subtitle={messages.startupLoadingSubtitle}
+          status={startupLoadingStatus}
+          progressPct={startupLoadingProgressPct}
+          overlay
+          fading={startupOverlayFading}
+        />
+      ) : null}
       {loadError ? (
         <div className={styles.errorBox}>
           <h2 className={styles.sectionTitle}>{messages.unableToLoadPlayers}</h2>
@@ -4542,36 +10508,663 @@ const refreshDetailsForPlayers = async (
         open={submitDisclaimerOpen}
         className={styles.chronicleTransferHistoryModal}
         body={
-          <div className={styles.seniorDisclaimerBody}>
-            <div className={styles.seniorDisclaimerBadgeRow}>
-              <span className={styles.seniorDisclaimerBadgeIcon} aria-hidden="true">
-                ⚠️
-              </span>
-              <p className={styles.seniorDisclaimerIntro}>
-                {messages.seniorSubmitDisclaimerIntro}
-              </p>
+          submitDisclaimerExtraTimeSummary ? (
+            <div className={styles.seniorDisclaimerBody}>
+              <div className={styles.seniorDisclaimerBadgeRow}>
+                <span className={styles.seniorDisclaimerBadgeIcon} aria-hidden="true">
+                  ⚠️
+                </span>
+                <p className={styles.seniorDisclaimerIntro}>
+                  {messages.seniorExtraTimeSubmitDisclaimerIntro
+                    .replace("{{training}}", submitDisclaimerExtraTimeSummary.trainingLabel)}
+                </p>
+              </div>
+              <ul className={styles.seniorDisclaimerList}>
+                <li>
+                  {messages.seniorExtraTimeSubmitDisclaimerSwap.split("{{trainees}}")[0]}
+                  {submitDisclaimerExtraTimeSummary.trainees.length > 0
+                    ? submitDisclaimerExtraTimeSummary.trainees.map((trainee, index) => (
+                        <span key={trainee.id}>
+                          {index === 0
+                            ? null
+                            : index === submitDisclaimerExtraTimeSummary.trainees.length - 1
+                              ? submitDisclaimerExtraTimeSummary.trainees.length === 2
+                                ? " and "
+                                : ", and "
+                              : ", "}
+                          <a
+                            className={styles.chroniclePressLink}
+                            href={hattrickPlayerUrl(trainee.id)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {trainee.name}
+                          </a>
+                        </span>
+                      ))
+                    : messages.unknownLabel}
+                  {messages.seniorExtraTimeSubmitDisclaimerSwap.split("{{trainees}}")[1] ?? ""}
+                </li>
+                <li>{messages.seniorExtraTimeSubmitDisclaimerPressing}</li>
+                <li>{messages.seniorExtraTimeSubmitDisclaimerSetPieces}</li>
+                <li>{messages.seniorExtraTimeSubmitDisclaimerPenalties}</li>
+                <li>{messages.seniorExtraTimeSubmitDisclaimerBehaviors}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletNoResponsibility}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletFineTune}</li>
+              </ul>
             </div>
-            <ul className={styles.seniorDisclaimerList}>
-              <li>{messages.seniorSubmitDisclaimerBulletBestEffort}</li>
-              <li>{messages.seniorSubmitDisclaimerBulletNoResponsibility}</li>
-              <li>{messages.seniorSubmitDisclaimerBulletFineTune}</li>
-              <li>{messages.seniorSubmitDisclaimerBulletResubmit}</li>
-              <li>{messages.seniorSubmitDisclaimerBulletKickers}</li>
-              <li>{messages.seniorSubmitDisclaimerBulletOrdersInHattrick}</li>
-              <li>{messages.seniorSubmitDisclaimerBulletVerify}</li>
-            </ul>
-          </div>
+          ) : (
+            <div className={styles.seniorDisclaimerBody}>
+              <div className={styles.seniorDisclaimerBadgeRow}>
+                <span className={styles.seniorDisclaimerBadgeIcon} aria-hidden="true">
+                  ⚠️
+                </span>
+                <p className={styles.seniorDisclaimerIntro}>
+                  {messages.seniorSubmitDisclaimerIntro}
+                </p>
+              </div>
+              <ul className={styles.seniorDisclaimerList}>
+                <li>{messages.seniorSubmitDisclaimerBulletBestEffort}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletNoResponsibility}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletFineTune}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletResubmit}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletKickers}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletOrdersInHattrick}</li>
+                <li>{messages.seniorSubmitDisclaimerBulletVerify}</li>
+              </ul>
+            </div>
+          )
         }
         actions={
           <button
             type="button"
             className={styles.confirmSubmit}
-            onClick={() => setSubmitDisclaimerOpen(false)}
+            onClick={() => {
+              setSubmitDisclaimerOpen(false);
+              setSubmitDisclaimerExtraTimeSummary(null);
+            }}
           >
             {messages.closeLabel}
           </button>
         }
-        onClose={() => setSubmitDisclaimerOpen(false)}
+        onClose={() => {
+          setSubmitDisclaimerOpen(false);
+          setSubmitDisclaimerExtraTimeSummary(null);
+        }}
+      />
+      <Modal
+        open={trainingAwareInfoOpen}
+        title={messages.setBestLineupTrainingAware}
+        className={`${styles.chronicleTransferHistoryModal} ${styles.seniorExtraTimeModal}`}
+        body={
+          <div className={styles.seniorExtraTimeModalBody}>
+            <p className={styles.seniorExtraTimeModalChooseTrainees}>
+              {messages.seniorExtraTimeModalChooseTrainees.replace(
+                "{{count}}",
+                String(
+                  trainingAwareTraineesTargetForTrainingType(
+                    resolvedTrainingAwareTrainingType
+                  )
+                )
+              )}
+            </p>
+            <PlayerDetailsPanel
+              selectedPlayer={null}
+              detailsData={null}
+              loading={false}
+              error={null}
+              lastUpdated={null}
+              unlockStatus={null}
+              onRefresh={() => {
+                void 0;
+              }}
+              players={panelPlayers}
+              playerDetailsById={extraTimePlayerDetailsById}
+              skillsMatrixRows={trainingAwareSkillsMatrixRows}
+              ratingsMatrixResponse={null}
+              ratingsMatrixSelectedName={null}
+              ratingsMatrixSpecialtyByName={specialtyByName}
+              ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
+              ratingsMatrixCardStatusByName={seniorCardStatusByName}
+              cardStatusByPlayerId={seniorCardStatusByPlayerId}
+              matrixNewPlayerIds={matrixNewMarkers.playerIds}
+              matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
+              matrixNewSkillsCurrentByPlayerId={matrixNewMarkers.skillsCurrentByPlayerId}
+              matrixNewSkillsMaxByPlayerId={matrixNewMarkers.skillsMaxByPlayerId}
+              onSelectRatingsPlayer={() => {
+                void 0;
+              }}
+              onMatrixPlayerDragStart={handleSeniorPlayerDragStart}
+              playerKind="senior"
+              skillMode="single"
+              maxSkillLevel={20}
+              activeTab="skillsMatrix"
+              showTabs={false}
+              showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
+              onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
+              skillsMatrixHeaderAux={
+                <div className={styles.seniorExtraTimeTrainingControl}>
+                  <span className={styles.trainingLabel}>
+                    {messages.trainingRegimenLabel.split(/\s+/).find(Boolean) ??
+                      messages.trainingRegimenLabel}
+                  </span>
+                  <div className={styles.feedbackWrap}>
+                    <button
+                      type="button"
+                      className={styles.lineupTrainingTypeTrigger}
+                      onClick={() => setTrainingAwareTrainingMenuOpen((prev) => !prev)}
+                      ref={trainingAwareTrainingButtonRef}
+                      aria-haspopup="menu"
+                      aria-expanded={trainingAwareTrainingMenuOpen}
+                    >
+                      <span className={styles.lineupTrainingTypeValue}>
+                        {obtainedTrainingRegimenLabel(
+                          resolvedTrainingAwareTrainingType ??
+                            NON_DEPRECATED_TRAINING_TYPES[0]
+                        )}
+                      </span>
+                    </button>
+                    {trainingAwareTrainingMenuOpen ? (
+                      <div
+                        className={`${styles.feedbackMenu} ${styles.lineupTrainingTypeMenu}`}
+                        ref={trainingAwareTrainingMenuRef}
+                        role="menu"
+                      >
+                        {NON_DEPRECATED_TRAINING_TYPES.map((value) => {
+                          const isActive =
+                            value ===
+                            (resolvedTrainingAwareTrainingType ??
+                              NON_DEPRECATED_TRAINING_TYPES[0]);
+                          const sectionTitle = trainingSectionTitleForValue(value) ?? null;
+                          return (
+                            <div key={value}>
+                              {sectionTitle ? (
+                                <div className={styles.lineupTrainingTypeSectionHeader}>
+                                  {sectionTitle}
+                                </div>
+                              ) : null}
+                              <div className={styles.lineupTrainingTypeOptionRow}>
+                                <button
+                                  type="button"
+                                  className={`${styles.feedbackLink} ${styles.lineupTrainingTypeOption} ${
+                                    isActive ? styles.lineupTrainingTypeOptionActive : ""
+                                  }`}
+                                  onClick={() => {
+                                    setTrainingAwareMatrixTrainingType(value);
+                                    setTrainingAwareMatrixTrainingTypeManual(
+                                      value !== trainingType
+                                    );
+                                    setTrainingAwareTrainingMenuOpen(false);
+                                  }}
+                                >
+                                  {obtainedTrainingRegimenLabel(value)}
+                                </button>
+                                {!isActive ? (
+                                  <Tooltip content={messages.trainingSetButtonTooltip}>
+                                    <button
+                                      type="button"
+                                      className={styles.lineupTrainingTypeSetButton}
+                                      disabled={trainingTypeSetPending}
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        if (trainingTypeSetPending) return;
+                                        void handleSetTrainingType(value);
+                                      }}
+                                    >
+                                      {trainingTypeSetPending &&
+                                      trainingTypeSetPendingValue === value ? (
+                                        <span className={styles.spinner} aria-hidden="true" />
+                                      ) : (
+                                        messages.trainingSetButtonLabel
+                                      )}
+                                    </button>
+                                  </Tooltip>
+                                ) : null}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              }
+              skillsMatrixLeadingHeader={
+                <label className={styles.seniorMatrixCheckboxLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.seniorMatrixCheckboxInput}
+                    checked={allTrainingAwarePlayersSelected}
+                    disabled={trainingAwareSelectablePlayerIds.length === 0}
+                    aria-label={messages.seniorExtraTimeModalChooseTrainees.replace(
+                      "{{count}}",
+                      String(
+                        trainingAwareTraineesTargetForTrainingType(
+                          resolvedTrainingAwareTrainingType
+                        )
+                      )
+                    )}
+                    ref={(node) => {
+                      if (!node) return;
+                      node.indeterminate = someTrainingAwarePlayersSelected;
+                    }}
+                    onChange={(event) => {
+                      setTrainingAwareSelectedPlayerIds(
+                        event.target.checked ? trainingAwareSelectablePlayerIds : []
+                      );
+                    }}
+                  />
+                  <span className={styles.seniorMatrixCheckboxBox} aria-hidden="true" />
+                </label>
+              }
+              renderSkillsMatrixLeadingCell={(row) => {
+                const rowId = typeof row.id === "number" ? row.id : null;
+                const isChecked =
+                  typeof rowId === "number" &&
+                  trainingAwareSelectedPlayerIds.includes(rowId);
+                const isInjured =
+                  typeof rowId === "number" && extraTimeInjuredPlayerIdSet.has(rowId);
+                const isDisregarded =
+                  typeof rowId === "number" && extraTimeDisregardedPlayerIds.has(rowId);
+                const isUnavailable =
+                  typeof rowId !== "number" ||
+                  !trainingAwareSelectablePlayerIds.includes(rowId);
+                const checkbox = (
+                  <label className={styles.seniorMatrixCheckboxLabel}>
+                    <input
+                      type="checkbox"
+                      className={styles.seniorMatrixCheckboxInput}
+                      checked={Boolean(isChecked)}
+                      disabled={isUnavailable || isInjured || isDisregarded}
+                      aria-label={row.name}
+                      onChange={(event) => {
+                        if (
+                          typeof rowId !== "number" ||
+                          isUnavailable ||
+                          isInjured ||
+                          isDisregarded
+                        ) {
+                          return;
+                        }
+                        setTrainingAwareSelectedPlayerIds((prev) => {
+                          if (event.target.checked) {
+                            if (prev.includes(rowId)) return prev;
+                            return [...prev, rowId];
+                          }
+                          return prev.filter((playerId) => playerId !== rowId);
+                        });
+                      }}
+                    />
+                    <span className={styles.seniorMatrixCheckboxBox} aria-hidden="true" />
+                  </label>
+                );
+                if (isInjured) {
+                  return (
+                    <Tooltip content={messages.seniorExtraTimeModalInjuredCheckboxTooltip}>
+                      <span className={styles.seniorExtraTimeDisabledCheckboxWrap}>
+                        {checkbox}
+                      </span>
+                    </Tooltip>
+                  );
+                }
+                if (isDisregarded) {
+                  return (
+                    <Tooltip content={getExtraTimeDisregardedTooltip(rowId ?? 0)}>
+                      <span className={styles.seniorExtraTimeDisabledCheckboxWrap}>
+                        {checkbox}
+                      </span>
+                    </Tooltip>
+                  );
+                }
+                if (isUnavailable) {
+                  return (
+                    <span className={styles.seniorExtraTimeDisabledCheckboxWrap}>
+                      {checkbox}
+                    </span>
+                  );
+                }
+                return checkbox;
+              }}
+              skillsMatrixRowClassName={(row) => {
+                if (
+                  typeof row.id !== "number" ||
+                  trainingAwareSelectablePlayerIds.includes(row.id)
+                ) {
+                  return null;
+                }
+                return styles.matrixRowDisregarded;
+              }}
+              skillsMatrixRowTooltip={(row) => {
+                if (
+                  typeof row.id !== "number" ||
+                  trainingAwareSelectablePlayerIds.includes(row.id)
+                ) {
+                  return null;
+                }
+                return extraTimeDisregardedPlayerIds.has(row.id)
+                  ? getExtraTimeDisregardedTooltip(row.id)
+                  : null;
+              }}
+              messages={messages}
+            />
+          </div>
+        }
+        actions={
+          <Tooltip
+            content={
+              trainingAwareSetLineupDisabled
+                ? messages.seniorExtraTimeModalSetLineupDisabledTooltip
+                : messages.seniorExtraTimeModalSetLineupReadyTooltip
+            }
+          >
+            <span>
+              <button
+                type="button"
+                className={styles.confirmSubmit}
+                disabled={trainingAwareSetLineupDisabled}
+                onClick={() => {
+                  void handleTrainingAwareSetLineup();
+                }}
+              >
+                {messages.seniorExtraTimeModalSetLineupButton}
+              </button>
+            </span>
+          </Tooltip>
+        }
+        closeOnBackdrop
+        onClose={() => {
+          setTrainingAwareInfoOpen(false);
+          setTrainingAwareMatchId(null);
+        }}
+      />
+      <Modal
+        open={extraTimeInfoOpen}
+        title={messages.seniorExtraTimeModalTitle}
+        className={`${styles.chronicleTransferHistoryModal} ${styles.seniorExtraTimeModal}`}
+        body={
+          <div className={styles.seniorExtraTimeModalBody}>
+            <p className={styles.seniorExtraTimeModalLead}>
+              {messages.seniorExtraTimeModalLead}
+            </p>
+            <p>{messages.seniorExtraTimeModalTrainingLimit}</p>
+            <p>{messages.seniorExtraTimeModalRotation}</p>
+            <p>
+              {messages.seniorExtraTimeModal120CupPrefix}{" "}
+              <a
+                className={styles.chroniclePressLink}
+                href={hattrickForumThreadUrl(17665764, 2)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {messages.seniorExtraTimeModal120CupLinkLabel}
+              </a>{" "}
+              {messages.seniorExtraTimeModal120CupMiddle}{" "}
+              <a
+                className={styles.chroniclePressLink}
+                href={hattrickManagerUrl(4419616)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {messages.seniorExtraTimeModalMonomorphLinkLabel}
+              </a>
+              .
+            </p>
+            <p>{messages.seniorExtraTimeModalWorkflow}</p>
+            <p className={styles.seniorExtraTimeModalChooseTrainees}>
+              {messages.seniorExtraTimeModalChooseTrainees.replace(
+                "{{count}}",
+                String(traineesTargetForTrainingType(resolvedExtraTimeTrainingType))
+              )}
+            </p>
+            <PlayerDetailsPanel
+              selectedPlayer={null}
+              detailsData={null}
+              loading={false}
+              error={null}
+              lastUpdated={null}
+              unlockStatus={null}
+              onRefresh={() => {
+                void 0;
+              }}
+              players={panelPlayers}
+              playerDetailsById={extraTimePlayerDetailsById}
+              skillsMatrixRows={extraTimeSkillsMatrixRows}
+              ratingsMatrixResponse={null}
+              ratingsMatrixSelectedName={null}
+              ratingsMatrixSpecialtyByName={specialtyByName}
+              ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
+              ratingsMatrixCardStatusByName={seniorCardStatusByName}
+              cardStatusByPlayerId={seniorCardStatusByPlayerId}
+              matrixNewPlayerIds={matrixNewMarkers.playerIds}
+              matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
+              matrixNewSkillsCurrentByPlayerId={matrixNewMarkers.skillsCurrentByPlayerId}
+              matrixNewSkillsMaxByPlayerId={matrixNewMarkers.skillsMaxByPlayerId}
+              onSelectRatingsPlayer={() => {
+                void 0;
+              }}
+              onMatrixPlayerDragStart={handleSeniorPlayerDragStart}
+              playerKind="senior"
+              skillMode="single"
+              maxSkillLevel={20}
+              activeTab="skillsMatrix"
+              showTabs={false}
+              showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
+              onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
+              skillsMatrixHeaderAux={
+                <div className={styles.seniorExtraTimeTrainingControl}>
+                  <span className={styles.trainingLabel}>
+                    {messages.trainingRegimenLabel.split(/\s+/).find(Boolean) ??
+                      messages.trainingRegimenLabel}
+                  </span>
+                  <div className={styles.feedbackWrap}>
+                    <button
+                      type="button"
+                      className={styles.lineupTrainingTypeTrigger}
+                      onClick={() => setExtraTimeTrainingMenuOpen((prev) => !prev)}
+                      ref={extraTimeTrainingButtonRef}
+                      aria-haspopup="menu"
+                      aria-expanded={extraTimeTrainingMenuOpen}
+                    >
+                      <span className={styles.lineupTrainingTypeValue}>
+                        {obtainedTrainingRegimenLabel(
+                          resolvedExtraTimeTrainingType ?? NON_DEPRECATED_TRAINING_TYPES[0]
+                        )}
+                      </span>
+                    </button>
+                    {extraTimeTrainingMenuOpen ? (
+                      <div
+                        className={`${styles.feedbackMenu} ${styles.lineupTrainingTypeMenu}`}
+                        ref={extraTimeTrainingMenuRef}
+                        role="menu"
+                      >
+                        {NON_DEPRECATED_TRAINING_TYPES.map((value) => {
+                          const isActive =
+                            value ===
+                            (resolvedExtraTimeTrainingType ?? NON_DEPRECATED_TRAINING_TYPES[0]);
+                          const sectionTitle = trainingSectionTitleForValue(value) ?? null;
+                          return (
+                            <div key={value}>
+                              {sectionTitle ? (
+                                <div className={styles.lineupTrainingTypeSectionHeader}>
+                                  {sectionTitle}
+                                </div>
+                              ) : null}
+                              <div className={styles.lineupTrainingTypeOptionRow}>
+                                <button
+                                  type="button"
+                                  className={`${styles.feedbackLink} ${styles.lineupTrainingTypeOption} ${
+                                    isActive ? styles.lineupTrainingTypeOptionActive : ""
+                                  }`}
+                                  onClick={() => {
+                                    setExtraTimeMatrixTrainingType(value);
+                                    setExtraTimeMatrixTrainingTypeManual(value !== trainingType);
+                                    setExtraTimeTrainingMenuOpen(false);
+                                  }}
+                                >
+                                  {obtainedTrainingRegimenLabel(value)}
+                                </button>
+                                {!isActive ? (
+                                  <Tooltip content={messages.trainingSetButtonTooltip}>
+                                    <button
+                                      type="button"
+                                      className={styles.lineupTrainingTypeSetButton}
+                                      disabled={trainingTypeSetPending}
+                                      onClick={(event) => {
+                                        event.stopPropagation();
+                                        if (trainingTypeSetPending) return;
+                                        void handleSetTrainingType(value);
+                                      }}
+                                    >
+                                      {trainingTypeSetPending &&
+                                      trainingTypeSetPendingValue === value ? (
+                                        <span className={styles.spinner} aria-hidden="true" />
+                                      ) : (
+                                        messages.trainingSetButtonLabel
+                                      )}
+                                    </button>
+                                  </Tooltip>
+                                ) : null}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              }
+              skillsMatrixLeadingHeader={
+                <label className={styles.seniorMatrixCheckboxLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.seniorMatrixCheckboxInput}
+                    checked={allExtraTimePlayersSelected}
+                    disabled={extraTimeSelectablePlayerIds.length === 0}
+                    aria-label={messages.seniorExtraTimeModalChooseTrainees.replace(
+                      "{{count}}",
+                      String(traineesTargetForTrainingType(resolvedExtraTimeTrainingType))
+                    )}
+                    ref={(node) => {
+                      if (!node) return;
+                      node.indeterminate = someExtraTimePlayersSelected;
+                    }}
+                    onChange={(event) => {
+                      setExtraTimeSelectedPlayerIds(
+                        event.target.checked ? extraTimeSelectablePlayerIds : []
+                      );
+                    }}
+                  />
+                  <span
+                    className={styles.seniorMatrixCheckboxBox}
+                    aria-hidden="true"
+                  />
+                </label>
+              }
+              renderSkillsMatrixLeadingCell={(row) => {
+                const rowId = typeof row.id === "number" ? row.id : null;
+                const isChecked =
+                  typeof rowId === "number" &&
+                  extraTimeSelectedPlayerIds.includes(rowId);
+                const isInjured =
+                  typeof rowId === "number" && extraTimeInjuredPlayerIdSet.has(rowId);
+                const isDisregarded =
+                  typeof rowId === "number" && extraTimeDisregardedPlayerIds.has(rowId);
+                const checkbox = (
+                  <label className={styles.seniorMatrixCheckboxLabel}>
+                    <input
+                      type="checkbox"
+                      className={styles.seniorMatrixCheckboxInput}
+                      checked={Boolean(isChecked)}
+                      disabled={typeof rowId !== "number" || isInjured || isDisregarded}
+                      aria-label={row.name}
+                      onChange={(event) => {
+                        if (typeof rowId !== "number" || isInjured || isDisregarded) {
+                          return;
+                        }
+                        setExtraTimeSelectedPlayerIds((prev) => {
+                          if (event.target.checked) {
+                            if (prev.includes(rowId)) return prev;
+                            return [...prev, rowId];
+                          }
+                          return prev.filter((playerId) => playerId !== rowId);
+                        });
+                      }}
+                    />
+                    <span
+                      className={styles.seniorMatrixCheckboxBox}
+                      aria-hidden="true"
+                    />
+                  </label>
+                );
+                if (isInjured) {
+                  return (
+                    <Tooltip content={messages.seniorExtraTimeModalInjuredCheckboxTooltip}>
+                      <span className={styles.seniorExtraTimeDisabledCheckboxWrap}>
+                        {checkbox}
+                      </span>
+                    </Tooltip>
+                  );
+                }
+                if (isDisregarded) {
+                  return (
+                    <Tooltip content={getExtraTimeDisregardedTooltip(rowId)}>
+                      <span className={styles.seniorExtraTimeDisabledCheckboxWrap}>
+                        {checkbox}
+                      </span>
+                    </Tooltip>
+                  );
+                }
+                return checkbox;
+              }}
+              skillsMatrixRowClassName={(row) => {
+                if (
+                  typeof row.id !== "number" ||
+                  !extraTimeDisregardedPlayerIds.has(row.id)
+                ) {
+                  return null;
+                }
+                return styles.matrixRowDisregarded;
+              }}
+              skillsMatrixRowTooltip={(row) => {
+                if (
+                  typeof row.id !== "number" ||
+                  !extraTimeDisregardedPlayerIds.has(row.id)
+                ) {
+                  return null;
+                }
+                return getExtraTimeDisregardedTooltip(row.id);
+              }}
+              messages={messages}
+            />
+          </div>
+        }
+        actions={
+          <Tooltip
+            content={
+              extraTimeSetLineupDisabled
+                ? messages.seniorExtraTimeModalSetLineupDisabledTooltip
+                : messages.seniorExtraTimeModalSetLineupReadyTooltip
+            }
+          >
+            <span>
+              <button
+                type="button"
+                className={styles.confirmSubmit}
+                disabled={extraTimeSetLineupDisabled}
+                onClick={() => {
+                  void handleExtraTimeSetLineup();
+                }}
+              >
+                {messages.seniorExtraTimeModalSetLineupButton}
+              </button>
+            </span>
+          </Tooltip>
+        }
+        closeOnBackdrop
+        onClose={() => {
+          setExtraTimeInfoOpen(false);
+          setExtraTimeMatchId(null);
+        }}
       />
       <Modal
         open={!!opponentAnalysisModal}
@@ -4736,7 +11329,63 @@ const refreshDetailsForPlayers = async (
             opponentFormationsModal.loading ? (
               <p className={styles.chronicleEmpty}>{messages.loadingDetails}</p>
             ) : opponentFormationsModal.error ? (
-              <p className={styles.errorDetails}>{opponentFormationsModal.error}</p>
+              <>
+                <p className={styles.errorDetails}>{opponentFormationsModal.error}</p>
+                {process.env.NODE_ENV !== "production" &&
+                opponentFormationsModal.fixedFormationFailureEligiblePlayerIds.length > 0 ? (
+                  <p className={styles.chroniclePressMeta}>
+                    {messages.setBestLineupDevEligiblePlayersLabel}:{" "}
+                    {formatDebugPlayerNames(
+                      opponentFormationsModal.fixedFormationFailureEligiblePlayerIds
+                    )}
+                  </p>
+                ) : null}
+                {process.env.NODE_ENV !== "production" &&
+                opponentFormationsModal.fixedFormationFailureSlotDiagnostics.length > 0 ? (
+                  <div className={styles.algorithmsModalBody}>
+                    <p className={styles.chroniclePressMeta}>
+                      <strong>{messages.setBestLineupDevAssignmentTraceLabel}</strong>
+                    </p>
+                    {opponentFormationsModal.fixedFormationFailureSlotDiagnostics.map((entry) => (
+                      <div key={entry.slot} className={styles.chroniclePressMeta}>
+                        <strong>{entry.slot}</strong>:{" "}
+                        {entry.assignedPlayerId !== null
+                          ? playerNameById.get(entry.assignedPlayerId) ??
+                            String(entry.assignedPlayerId)
+                          : messages.setBestLineupDevUnfilledLabel}
+                        {entry.assignedPlayerId === null ? (
+                          <>
+                            {entry.noSlotRatingPlayerIds.length > 0 ? (
+                              <div>
+                                {messages.setBestLineupDevNoSlotRatingLabel}:{" "}
+                                {formatDebugPlayerNames(entry.noSlotRatingPlayerIds)}
+                              </div>
+                            ) : null}
+                            {entry.betterOtherSectorPlayerIds.length > 0 ? (
+                              <div>
+                                {messages.setBestLineupDevBetterOtherSectorLabel}:{" "}
+                                {formatDebugPlayerNames(entry.betterOtherSectorPlayerIds)}
+                              </div>
+                            ) : null}
+                            {entry.tiedOtherSectorPlayerIds.length > 0 ? (
+                              <div>
+                                {messages.setBestLineupDevTiedOtherSectorLabel}:{" "}
+                                {formatDebugPlayerNames(entry.tiedOtherSectorPlayerIds)}
+                              </div>
+                            ) : null}
+                            {entry.alreadyUsedPlayerIds.length > 0 ? (
+                              <div>
+                                {messages.setBestLineupDevAlreadyUsedLabel}:{" "}
+                                {formatDebugPlayerNames(entry.alreadyUsedPlayerIds)}
+                              </div>
+                            ) : null}
+                          </>
+                        ) : null}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </>
             ) : opponentFormationsModal.generatedRows.length > 0 ||
               opponentFormationsModal.opponentRows.length > 0 ? (
               <>
@@ -4898,125 +11547,348 @@ const refreshDetailsForPlayers = async (
                 <p className={styles.chroniclePressMeta}>
                   {messages.lineupTitle} · {messages.ratingsTitle}
                 </p>
-                {opponentFormationsModal.selectedGeneratedFormation &&
-                opponentFormationsModal.selectedComparison ? (
+                {opponentFormationsModal.mode === "fixedFormation" ? (
                   <>
-                    <p className={styles.chroniclePressMeta}>
-                      <strong>{opponentFormationsModal.selectedGeneratedFormation}</strong> ·{" "}
-                      {tacticTypeLabel(opponentFormationsModal.selectedGeneratedTactic)}
-                      {" · "}
-                      MID {opponentFormationsModal.selectedComparison.ours.midfield.toFixed(1)} /{" "}
-                      {opponentFormationsModal.selectedComparison.opponent.midfield.toFixed(1)}
-                      {" · "}
-                      DEF {opponentFormationsModal.selectedComparison.ours.defense.toFixed(1)} /{" "}
-                      {opponentFormationsModal.selectedComparison.opponent.defense.toFixed(1)}
-                      {" · "}
-                      ATT {opponentFormationsModal.selectedComparison.ours.attack.toFixed(1)} /{" "}
-                      {opponentFormationsModal.selectedComparison.opponent.attack.toFixed(1)}
-                    </p>
-                    {opponentFormationsModal.selectedRejectedPlayerIds.length > 0 ? (
-                      <p className={styles.chroniclePressMeta}>
-                        {messages.setBestLineupRejectedPlayersLabel}:{" "}
-                        {opponentFormationsModal.selectedRejectedPlayerIds
-                          .map((playerId) => playerNameById.get(playerId) ?? String(playerId))
-                          .join(", ")}
-                      </p>
-                    ) : null}
-                  </>
-                ) : null}
-                <div className={styles.opponentFormationsTableWrap}>
-                  <table className={styles.opponentFormationsTable}>
-                    <thead>
-                      <tr>
-                        <th>{messages.analyzeOpponentFormationColumn}</th>
-                        <th>{messages.lineupTitle}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidfieldShort}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorRightDefShort}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidDefShort}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorLeftDefShort}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorRightAttShort}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidAttShort}</th>
-                        <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorLeftAttShort}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {opponentFormationsModal.generatedRows.map((row) => (
-                        <tr
-                          key={row.formation}
-                          className={
-                            row.formation === opponentFormationsModal.selectedGeneratedFormation
-                              ? styles.opponentFormationsSelectedRow
-                              : undefined
-                          }
-                        >
-                          <td className={styles.opponentFormationsMatchIdCell}>{row.formation}</td>
-                          <td className={styles.generatedLineupCell}>
-                            <div className={styles.generatedLineupBlock}>
-                              {[
-                                { label: messages.posKeeper, slots: ["KP"] },
-                                { label: messages.skillDefending, slots: [...DEFENSE_SLOTS] },
-                                { label: messages.skillPlaymaking, slots: [...MIDFIELD_SLOTS] },
-                                { label: messages.skillScoring, slots: [...ATTACK_SLOTS] },
-                              ].map((line) => (
-                                <div key={`${row.formation}-${line.label}`} className={styles.generatedLineupRow}>
-                                  <span className={styles.generatedLineupRowLabel}>{line.label}</span>
-                                  <div className={styles.generatedLineupSlots}>
-                                    {line.slots.map((slot) => {
-                                      const playerId = Number(row.assignments[slot] ?? 0);
-                                      const playerName =
-                                        playerId > 0
-                                          ? playerNameById.get(playerId) ?? String(playerId)
-                                          : "—";
-                                      const slotRating = row.slotRatings[slot];
-                                      const text =
-                                        playerId > 0
-                                          ? `${slot}: ${playerName} (${slotRating?.toFixed(1) ?? messages.unknownShort})`
-                                          : `${slot}: —`;
-                                      return (
-                                        <span
-                                          key={`${row.formation}-${slot}`}
-                                          className={`${styles.generatedLineupSlot} ${
-                                            playerId > 0 ? "" : styles.generatedLineupSlotEmpty
-                                          }`}
-                                        >
-                                          {text}
-                                        </span>
-                                      );
-                                    })}
-                                  </div>
-                                </div>
-                              ))}
-                              {row.error ? (
-                                <p className={styles.errorDetails}>{row.error}</p>
-                              ) : null}
+                    {(() => {
+                      const selectedFixedTacticRow =
+                        opponentFormationsModal.fixedFormationTacticRows.find(
+                          (row) =>
+                            row.tacticType === opponentFormationsModal.selectedGeneratedTactic
+                        ) ?? null;
+                      const selectedCollective = selectedFixedTacticRow?.predicted
+                        ? toCollectiveRatings(selectedFixedTacticRow.predicted)
+                        : null;
+                      const selectedGeneratedRow =
+                        opponentFormationsModal.generatedRows[0] ?? null;
+                      return (
+                        <>
+                          {opponentFormationsModal.selectedGeneratedFormation &&
+                          selectedCollective ? (
+                            <p className={styles.chroniclePressMeta}>
+                              <strong>
+                                {opponentFormationsModal.selectedGeneratedFormation}
+                              </strong>{" "}
+                              · {tacticTypeLabel(opponentFormationsModal.selectedGeneratedTactic)}
+                              {" · "}
+                              MID {selectedCollective.midfield.toFixed(1)}
+                              {" · "}
+                              DEF {selectedCollective.defense.toFixed(1)}
+                              {" · "}
+                              ATT {selectedCollective.attack.toFixed(1)}
+                            </p>
+                          ) : null}
+                          {opponentFormationsModal.selectedRejectedPlayerIds.length > 0 ? (
+                            <p className={styles.chroniclePressMeta}>
+                              {messages.setBestLineupRejectedPlayersLabel}:{" "}
+                              {opponentFormationsModal.selectedRejectedPlayerIds
+                                .map(
+                                  (playerId) =>
+                                    playerNameById.get(playerId) ?? String(playerId)
+                                )
+                                .join(", ")}
+                            </p>
+                          ) : null}
+                          {selectedGeneratedRow ? (
+                            <div className={styles.opponentFormationsTableWrap}>
+                              <table className={styles.opponentFormationsTable}>
+                                <thead>
+                                  <tr>
+                                    <th>{messages.analyzeOpponentFormationColumn}</th>
+                                    <th>{messages.lineupTitle}</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr className={styles.opponentFormationsSelectedRow}>
+                                    <td className={styles.opponentFormationsMatchIdCell}>
+                                      {selectedGeneratedRow.formation}
+                                    </td>
+                                    <td className={styles.generatedLineupCell}>
+                                      <div className={styles.generatedLineupBlock}>
+                                        {[
+                                          { label: messages.posKeeper, slots: ["KP"] },
+                                          {
+                                            label: messages.skillDefending,
+                                            slots: [...DEFENSE_SLOTS],
+                                          },
+                                          {
+                                            label: messages.skillPlaymaking,
+                                            slots: [...MIDFIELD_SLOTS],
+                                          },
+                                          {
+                                            label: messages.skillScoring,
+                                            slots: [...ATTACK_SLOTS],
+                                          },
+                                        ].map((line) => (
+                                          <div
+                                            key={`${selectedGeneratedRow.formation}-${line.label}`}
+                                            className={styles.generatedLineupRow}
+                                          >
+                                            <span className={styles.generatedLineupRowLabel}>
+                                              {line.label}
+                                            </span>
+                                            <div className={styles.generatedLineupSlots}>
+                                              {line.slots.map((slot) => {
+                                                const playerId = Number(
+                                                  selectedGeneratedRow.assignments[slot] ?? 0
+                                                );
+                                                const playerName =
+                                                  playerId > 0
+                                                    ? playerNameById.get(playerId) ??
+                                                      String(playerId)
+                                                    : "—";
+                                                const slotRating =
+                                                  selectedGeneratedRow.slotRatings[slot];
+                                                const text =
+                                                  playerId > 0
+                                                    ? `${slot}: ${playerName} (${slotRating?.toFixed(1) ?? messages.unknownShort})`
+                                                    : `${slot}: —`;
+                                                return (
+                                                  <span
+                                                    key={`${selectedGeneratedRow.formation}-${slot}`}
+                                                    className={`${styles.generatedLineupSlot} ${
+                                                      playerId > 0
+                                                        ? ""
+                                                        : styles.generatedLineupSlotEmpty
+                                                    }`}
+                                                  >
+                                                    {text}
+                                                  </span>
+                                                );
+                                              })}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                </tbody>
+                              </table>
                             </div>
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingMidfield?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingRightDef?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingMidDef?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingLeftDef?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingRightAtt?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingMidAtt?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                          <td className={styles.opponentFormationsNumberCell}>
-                            {row.predicted?.ratingLeftAtt?.toFixed(1) ?? messages.unknownShort}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                          ) : null}
+                        </>
+                      );
+                    })()}
+                    <p className={styles.chroniclePressMeta}>
+                      {messages.tacticLabel} · {messages.ratingsTitle}
+                    </p>
+                    <div className={styles.opponentFormationsTableWrap}>
+                      <table className={styles.opponentFormationsTable}>
+                        <thead>
+                          <tr>
+                            <th>{messages.tacticLabel}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorMidfieldShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorRightDefShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorMidDefShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorLeftDefShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorRightAttShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorMidAttShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.ratingSectorLeftAttShort}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.seniorFixedFormationTotalRatingsLabel}
+                            </th>
+                            <th className={styles.opponentFormationsNumberHeader}>
+                              {messages.seniorFixedFormationWeightedSumLabel}
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {opponentFormationsModal.fixedFormationTacticRows.map((row) => {
+                            const collective = row.predicted
+                              ? toCollectiveRatings(row.predicted)
+                              : null;
+                            return (
+                              <tr
+                                key={`${opponentFormationsModal.fixedFormation ?? "fixed"}-${row.tacticType}`}
+                                className={
+                                  row.tacticType === opponentFormationsModal.selectedGeneratedTactic
+                                    ? styles.opponentFormationsSelectedRow
+                                    : undefined
+                                }
+                              >
+                                <td className={styles.opponentFormationsMatchIdCell}>
+                                  {tacticTypeLabel(row.tacticType)}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingMidfield?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingRightDef?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingMidDef?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingLeftDef?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingRightAtt?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingMidAtt?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {row.predicted?.ratingLeftAtt?.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {collective?.overall.toFixed(1) ?? messages.unknownShort}
+                                </td>
+                                <td className={styles.opponentFormationsNumberCell}>
+                                  {collective
+                                    ? fixedFormationTacticWeightedScore(collective).toFixed(6)
+                                    : messages.unknownShort}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    {opponentFormationsModal.selectedGeneratedFormation &&
+                    opponentFormationsModal.selectedComparison ? (
+                      <>
+                        <p className={styles.chroniclePressMeta}>
+                          <strong>{opponentFormationsModal.selectedGeneratedFormation}</strong> ·{" "}
+                          {tacticTypeLabel(opponentFormationsModal.selectedGeneratedTactic)}
+                          {" · "}
+                          MID {opponentFormationsModal.selectedComparison.ours.midfield.toFixed(1)} /{" "}
+                          {opponentFormationsModal.selectedComparison.opponent.midfield.toFixed(1)}
+                          {" · "}
+                          DEF {opponentFormationsModal.selectedComparison.ours.defense.toFixed(1)} /{" "}
+                          {opponentFormationsModal.selectedComparison.opponent.defense.toFixed(1)}
+                          {" · "}
+                          ATT {opponentFormationsModal.selectedComparison.ours.attack.toFixed(1)} /{" "}
+                          {opponentFormationsModal.selectedComparison.opponent.attack.toFixed(1)}
+                        </p>
+                        {opponentFormationsModal.selectedRejectedPlayerIds.length > 0 ? (
+                          <p className={styles.chroniclePressMeta}>
+                            {messages.setBestLineupRejectedPlayersLabel}:{" "}
+                            {opponentFormationsModal.selectedRejectedPlayerIds
+                              .map((playerId) => playerNameById.get(playerId) ?? String(playerId))
+                              .join(", ")}
+                          </p>
+                        ) : null}
+                        {opponentFormationsModal.selectedIneligiblePlayerIds.length > 0 ? (
+                          <p className={styles.chroniclePressMeta}>
+                            {messages.setBestLineupIneligiblePlayersLabel}:{" "}
+                            {opponentFormationsModal.selectedIneligiblePlayerIds
+                              .map((playerId) => playerNameById.get(playerId) ?? String(playerId))
+                              .join(", ")}
+                          </p>
+                        ) : null}
+                      </>
+                    ) : null}
+                    <div className={styles.opponentFormationsTableWrap}>
+                      <table className={styles.opponentFormationsTable}>
+                        <thead>
+                          <tr>
+                            <th>{messages.analyzeOpponentFormationColumn}</th>
+                            <th>{messages.lineupTitle}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidfieldShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorRightDefShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidDefShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorLeftDefShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorRightAttShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorMidAttShort}</th>
+                            <th className={styles.opponentFormationsNumberHeader}>{messages.ratingSectorLeftAttShort}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {opponentFormationsModal.generatedRows.map((row) => (
+                            <tr
+                              key={row.formation}
+                              className={
+                                row.formation === opponentFormationsModal.selectedGeneratedFormation
+                                  ? styles.opponentFormationsSelectedRow
+                                  : undefined
+                              }
+                            >
+                              <td className={styles.opponentFormationsMatchIdCell}>{row.formation}</td>
+                              <td className={styles.generatedLineupCell}>
+                                <div className={styles.generatedLineupBlock}>
+                                  {[
+                                    { label: messages.posKeeper, slots: ["KP"] },
+                                    { label: messages.skillDefending, slots: [...DEFENSE_SLOTS] },
+                                    { label: messages.skillPlaymaking, slots: [...MIDFIELD_SLOTS] },
+                                    { label: messages.skillScoring, slots: [...ATTACK_SLOTS] },
+                                  ].map((line) => (
+                                    <div key={`${row.formation}-${line.label}`} className={styles.generatedLineupRow}>
+                                      <span className={styles.generatedLineupRowLabel}>{line.label}</span>
+                                      <div className={styles.generatedLineupSlots}>
+                                        {line.slots.map((slot) => {
+                                          const playerId = Number(row.assignments[slot] ?? 0);
+                                          const playerName =
+                                            playerId > 0
+                                              ? playerNameById.get(playerId) ?? String(playerId)
+                                              : "—";
+                                          const slotRating = row.slotRatings[slot];
+                                          const text =
+                                            playerId > 0
+                                              ? `${slot}: ${playerName} (${slotRating?.toFixed(1) ?? messages.unknownShort})`
+                                              : `${slot}: —`;
+                                          return (
+                                            <span
+                                              key={`${row.formation}-${slot}`}
+                                              className={`${styles.generatedLineupSlot} ${
+                                                playerId > 0 ? "" : styles.generatedLineupSlotEmpty
+                                              }`}
+                                            >
+                                              {text}
+                                            </span>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  ))}
+                                  {row.error ? (
+                                    <p className={styles.errorDetails}>{row.error}</p>
+                                  ) : null}
+                                </div>
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingMidfield?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingRightDef?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingMidDef?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingLeftDef?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingRightAtt?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingMidAtt?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                              <td className={styles.opponentFormationsNumberCell}>
+                                {row.predicted?.ratingLeftAtt?.toFixed(1) ?? messages.unknownShort}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </>
+                )}
               </>
             ) : (
               <p className={styles.chronicleEmpty}>{messages.noMatchesReturned}</p>
@@ -5066,6 +11938,26 @@ const refreshDetailsForPlayers = async (
               {messages.seniorPlayerListTitle}
             </h2>
             <div className={styles.listHeaderControls}>
+              {seniorTeams.length > 1 ? (
+                <label className={styles.sortControl}>
+                  <span className={styles.sortLabel}>{messages.seniorTeamLabel}</span>
+                  <select
+                    className={styles.sortSelect}
+                    value={selectedSeniorTeamId ?? ""}
+                    onChange={(event) => {
+                      const nextId = Number(event.target.value);
+                      if (Number.isNaN(nextId)) return;
+                      handleSeniorTeamChange(nextId);
+                    }}
+                  >
+                    {seniorTeams.map((team) => (
+                      <option key={team.teamId} value={team.teamId}>
+                        {formatSeniorTeamOptionLabel(team)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : null}
               <label className={styles.sortControl}>
                 <span className={styles.sortLabel}>{messages.sortLabel}</span>
                 <select
@@ -5479,7 +12371,11 @@ const refreshDetailsForPlayers = async (
                           }
                         >
                         {!isNameSort ? (
-                          <span className={styles.playerSortMetric}>
+                          <span
+                            className={`${styles.playerSortMetric} ${
+                              sortKey === "age" ? styles.playerSortMetricPill : ""
+                            }`}
+                          >
                             {metricNode}
                           </span>
                         ) : null}
@@ -5701,6 +12597,7 @@ const refreshDetailsForPlayers = async (
                 setAssignments({});
                 setBehaviors({});
                 setLoadedMatchId(null);
+                setExtraTimePreparedSubmission(null);
                 addNotification(messages.notificationLineupReset);
               }}
               tacticType={tacticType}
@@ -5735,14 +12632,39 @@ const refreshDetailsForPlayers = async (
             assignments={assignments}
             behaviors={behaviors}
             penaltyKickerIds={seniorPenaltyKickerIds}
+            setPiecesId={seniorSetPiecesPlayerId}
             tacticType={tacticType}
             sourceSystem="Hattrick"
             includeTournamentMatches={includeTournamentMatches}
             onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
             setBestLineupHelpAnchor="senior-set-lineup-ai"
+            showExtraTimeSetBestLineupMode
+            keepBestLineupMenuTopmost
+            fixedFormationOptions={[...FIXED_FORMATION_OPTIONS]}
+            selectedFixedFormation={setBestLineupFixedFormation}
+            onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
+            setBestLineupCustomContent={setBestLineupBTeamMenuContent}
             onRefresh={onRefreshMatchesOnly}
-            onSetBestLineupMode={(matchId, mode) => {
-              return runSetBestLineupPredictRatings(matchId, mode);
+            onSetBestLineupMode={async (matchId, mode, fixedFormation) => {
+              if (mode === "extraTime") {
+                setExtraTimeMatchId(matchId);
+                await syncExtraTimeModalTrainingType().catch(() => {
+                  // Fall back to the last known senior training if the live fetch fails.
+                });
+                setExtraTimeInfoOpen(true);
+                return;
+              }
+              if (mode === "trainingAware") {
+                setTrainingAwareMatchId(matchId);
+                await syncTrainingAwareModalTrainingType().catch(() => {
+                  // Fall back to the last known senior training if the live fetch fails.
+                });
+                setTrainingAwareInfoOpen(true);
+                return;
+              }
+              setExtraTimePreparedSubmission(null);
+              setSeniorAiPreparedSubmissionMode(null);
+              return runSetBestLineupPredictRatings(matchId, mode, fixedFormation);
             }}
             onAnalyzeOpponent={(matchId) => {
               return handleAnalyzeOpponent(matchId);
@@ -5756,6 +12678,8 @@ const refreshDetailsForPlayers = async (
               matchId,
               loadedTacticType
             ) => {
+              setExtraTimePreparedSubmission(null);
+              setSeniorAiPreparedSubmissionMode(null);
               setAssignments(nextAssignments);
               setBehaviors(nextBehaviors);
               if (typeof loadedTacticType === "number") {
@@ -5765,9 +12689,30 @@ const refreshDetailsForPlayers = async (
             }}
             loadedMatchId={loadedMatchId}
             onSubmitSuccess={() => {
+              if (extraTimePreparedSubmission) {
+                setSubmitDisclaimerExtraTimeSummary({
+                  trainingLabel: obtainedTrainingRegimenLabel(
+                    extraTimePreparedSubmission.trainingType
+                  ),
+                  trainees: extraTimePreparedSubmission.traineeIds.map((playerId) => {
+                    const player = playersById.get(playerId);
+                    return {
+                      id: playerId,
+                      name: player ? formatPlayerName(player) : String(playerId),
+                    };
+                  }),
+                });
+              } else {
+                setSubmitDisclaimerExtraTimeSummary(null);
+              }
+              setExtraTimePreparedSubmission(null);
+              setSeniorAiPreparedSubmissionMode(null);
               setSubmitDisclaimerOpen(true);
               void onRefreshMatchesOnly();
             }}
+            buildSubmitLineupPayload={(matchId, defaultPayload) =>
+              buildPreparedExtraTimeSubmitPayload(matchId, defaultPayload)
+            }
           />
         </div>
       </div>

@@ -11,9 +11,40 @@ export const messagesNl: Messages = {
   changelogTitle: "Wijzigingslogboek",
   sidebarCollapseTooltip: "Zijbalk inklappen",
   sidebarExpandTooltip: "Zijbalk uitklappen",
+  supportOnKofi: "Koop een koffie voor me",
+  settingsDebugBuyCoffeePromptButton: "Toon koop-een-koffie-voor-me-modal",
+  buyCoffeePromptTitle: "☕ Fijn dat je hier bent",
+  buyCoffeePromptLead: "🙏 Ik ben echt dankbaar dat je HT Alchemy gebruikt.",
+  buyCoffeePromptBody:
+    "✨ Deze app kost veel doorlopend werk en als hij je heeft geholpen, dan is een koffie voor mij een heel betekenisvolle manier om de verdere ontwikkeling te steunen. Elke bijdrage helpt me om meer tijd te steken in verbeteren en onderhouden.",
+  buyCoffeePromptFoot:
+    "💛 En als niet, is dat ook helemaal prima. Ik ben al blij dat de app nuttig voor je is.",
+  buyCoffeePromptAction: "☕ Koop een koffie voor me",
+  buyCoffeePromptLater: "🙏 Niet nu",
   toolYouthOptimization: "Jeugdselectie-optimalisatie",
   toolSeniorOptimization: "Seniorselectie-optimalisatie",
   toolClubChronicle: "Clubkroniek",
+  watchlistOwnSeniorTeamsTitle: "Eigen seniorenteams",
+  watchlistOwnSeniorTeamsEmpty: "Geen eigen seniorenteams gevonden.",
+  watchlistOwnLeaguesTitle: "Eigen competities",
+  watchlistOwnLeaguesEmpty: "Geen eigen competities gevonden.",
+  watchlistAllItems: "Alle watchlist-items",
+  watchlistSelectAll: "Alles selecteren",
+  watchlistDeselectAll: "Alles deselecteren",
+  watchlistGenderMale: "Mannelijk",
+  watchlistGenderFemale: "Vrouwelijk",
+  clubChronicleTabDefaultName: "Tab {{number}}",
+  clubChronicleTabAdd: "Tab toevoegen",
+  clubChronicleTabRenamePlaceholder: "Tabnaam",
+  clubChronicleTabRenameTooltip: "Tab hernoemen",
+  clubChronicleTabShortcutHint: "Vorige/volgende: j/k",
+  clubChronicleTabDeleteTooltip: "Tab verwijderen",
+  clubChronicleTabDeleteTitle: "Deze tab verwijderen?",
+  clubChronicleTabDeleteBody:
+    "Deze Club Chronicle-tab en de bijbehorende watchlist, laatste updates en lokale status worden verwijderd. Dit kan niet ongedaan worden gemaakt.",
+  clubChronicleTabDeleteConfirm: "Tab verwijderen",
+  clubChronicleHelpBulletTabs:
+    "Tabs helpen je verschillende Chronicle-werkruimtes te organiseren. Elke tab houdt zijn eigen watchlist en laatste updates bij.",
   feedbackTooltip: "Terugkoppeling",
   feedbackBug: "Bug melden",
   feedbackFeature: "Functie aanvragen",
@@ -42,10 +73,32 @@ export const messagesNl: Messages = {
   settingsGeneralTitle: "Algemene instellingen",
   settingsDebug: "Diagnostiek",
   settingsDebugTitle: "Diagnostische instellingen",
+  optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
+    "Onthul de huidige {{trainingLower}}-waarde van {{player}} en de maximale {{secondaryTrainingLower}}-waarde van {{secondaryPlayer}}",
+  optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
+    "Gecombineerd onthullen is niet beschikbaar. Selecteer een sterspeler, beide trainingen en een geldig secundair doel.",
+  optimizeRevealTargetPlaceholder: "Selecteer een secundair doel",
+  optimizeRevealCombinedButton: "Gecombineerd toepassen",
+  betaPillLabel: "Beta",
+  betaPillTooltip:
+    "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_3_9_0:
+    "Club Chronicle ondersteunt nu tabs met onafhankelijke watchlists en tabgebonden laatste updates.",
+  changelog_3_8_0:
+    "De watchlist van Club Chronicle kan nu optioneel je eigen competities uitbreiden om de andere teams in elke competitie te volgen.",
+  changelog_3_7_0:
+    "De senior AI-opstelling heeft nu een optimalisatie voor een vaste formatie die alle tactieken test en de beste kiest.",
   refresh: "Vernieuwen",
   refreshTooltip: "Jeugdgegevens vernieuwen",
   refreshAllYouthDataTooltip: "Alle jeugdgegevens vernieuwen.",
   refreshAllSeniorDataTooltip: "Alle seniorgegevens vernieuwen.",
+  startupLoadingTitle: "Werkruimte voorbereiden…",
+  startupLoadingSubtitle: "De eerste keer laden kan even duren.",
+  startupLoadingTeamContext: "Teamcontext laden…",
+  startupLoadingPlayers: "Spelers laden…",
+  startupLoadingMatches: "Wedstrijden laden…",
+  startupLoadingRatings: "Beoordelingen laden…",
+  startupLoadingFinalize: "Interface afronden…",
   refreshStatusFetchingPlayers: "Jeugdspelers ophalen…",
   refreshStatusFetchingPlayerDetails: "Spelerdetails ophalen…",
   refreshStatusFetchingMatches: "Wedstrijden ophalen…",
@@ -71,7 +124,7 @@ export const messagesNl: Messages = {
   ratingsTitle: "Beoordelingsmatrix",
   ratingsMatchesAnalyzed: "Gegevens opgehaald uit {count} wedstrijden.",
   ratingsLastAppliedMatchLabel:
-    "Laatst toegepaste beoordelingen uit wedstrijd {matchId} om {dateTime}.",
+    "Laatst toegepaste eindstand-beoordelingen uit wedstrijd {matchId} om {dateTime}.",
   ratingsIndexLabel: "#",
   ratingsSortBy: "Sorteren op",
   ratingsPlayerLabel: "Speler",
@@ -151,7 +204,75 @@ export const messagesNl: Messages = {
   setBestLineupIgnoreTraining: "Training negeren",
   setBestLineupIgnoreTrainingTooltip:
     "Zet de opstelling zonder rekening te houden met het trainingsregime. Alle formaties worden meegenomen.",
+  setBestLineupAimForExtraTime: "Richten op verlenging",
+  setBestLineupAimForExtraTimeTooltip:
+    "Speel voor een gelijkspel om extra training te krijgen.",
+  setBestLineupAimForExtraTimeDisabledTooltip:
+    "Alleen beschikbaar voor kwalificatie, beker en vriendschappelijke wedstrijden met bekerregels.",
+  setBestLineupOptimizeByFormation: "Optimaliseer op {{formation}}",
+  setBestLineupOptimizeByFormationTooltip:
+    "Zet eerst de formatie vast, wijs daarna de best beoordeelde spelers toe en test vervolgens alle tactieken om de beste uitkomst te houden.",
+  setBestLineupOptimizeByFormationDisabledTooltip:
+    "Kies eerst een formatie.",
+  setBestLineupOptimizeByFormationUnavailable:
+    "Met de beschikbare spelers kon voor die formatie geen volledige opstelling worden gemaakt.",
+  setBestLineupOptimizeByFormationApply: "Formatie-optimalisatie toepassen",
+  seniorFixedFormationTotalRatingsLabel: "Totale ratings",
+  seniorFixedFormationWeightedSumLabel: "Gewogen som",
+  seniorExtraTimeModalTitle: "Waarom richten op verlenging?",
+  seniorExtraTimeModalLead:
+    "Omdat verlenging extra trainingsminuten kan opleveren.",
+  seniorExtraTimeModalTrainingLimit:
+    "In Hattrick kan elke speler maximaal 90 trainingsminuten per week krijgen.",
+  seniorExtraTimeModalRotation:
+    "Als de wedstrijd naar verlenging gaat en je andere spelers naar trainbare posities roteert, kunnen die minuten extra trainingswinst opleveren.",
+  seniorExtraTimeModal120CupPrefix:
+    "Er is zelfs een competitie die precies op dit idee is gebouwd:",
+  seniorExtraTimeModal120CupLinkLabel: "de 120%-Cup",
+  seniorExtraTimeModal120CupMiddle: "georganiseerd door",
+  seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
+  seniorExtraTimeModalWorkflow:
+    "Het idee is eenvoudig: op basis van je trainingsregime vraagt Alchemy je om de spelers te kiezen die training moeten krijgen. Jij kiest de spelers, klikt op Beste opstelling zetten, en Alchemy regelt de rest (spelers positioneren en oriënteren, tactieken instellen, wissels configureren, penaltynemers instellen, de nemer van spelhervattingen bepalen, enz.). Zodra je tevreden bent met de opstelling, klik je op Opstelling verzenden om die naar Hattrick te sturen. De kans op een gelijkspel is veel groter als je tegenstander de opstelling op een vergelijkbare manier instelt.",
+  seniorExtraTimeModalChooseTrainees:
+    "Kies {{count}} trainees en klik daarna op Opstelling instellen. De automatisch gekozen spelers kun je overschrijven.",
+  seniorExtraTimeModalBTeamToggleLabel: "B-team",
+  seniorAiLastMatchThresholdText:
+    "Negeer spelers van wie de laatste wedstrijd meer dan {{weeks}} weken geleden was.",
+  seniorAiLastMatchThresholdDisabledText:
+    "Negeer spelers niet op basis van de datum van hun laatste wedstrijd. {{weeks}}",
+  seniorAiLastMatchThresholdAriaLabel:
+    "Wekengrens om spelers uit te sluiten op basis van hun laatste wedstrijd",
+  seniorAiLastMatchDisregardedTooltip:
+    "Deze speler wordt genegeerd omdat hij {{weeks}} weken geleden voor het laatst speelde.",
+  seniorExtraTimeModalBTeamThresholdText:
+    "Negeer spelers die {{weekLink}} al {{minutes}} minuten hebben gespeeld.",
+  seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "deze week",
+  seniorExtraTimeModalBTeamThresholdAriaLabel:
+    "Minutendrempel om spelers die deze week al speelden te negeren",
+  seniorExtraTimeModalBTeamNoRecentMatch:
+    "Er zijn deze week geen trainingsrelevante wedstrijden gespeeld.",
+  seniorExtraTimeModalBTeamLoading:
+    "Trainingsrelevante wedstrijden van deze week worden gecontroleerd...",
+  seniorExtraTimeModalBTeamError:
+    "De trainingsrelevante wedstrijden van deze week konden niet worden gecontroleerd.",
+  seniorExtraTimeModalBTeamWeekendTooltip:
+    "De B-teamselectie is alleen beschikbaar van maandag tot en met vrijdag (CET).",
+  seniorExtraTimeModalBTeamDisregardedTooltip:
+    "Deze speler wordt genegeerd omdat hij deze week al minstens {{minutes}} minuten heeft gespeeld.",
+  seniorExtraTimeModalSetLineupButton: "Opstelling instellen",
+  seniorExtraTimeModalSetLineupDisabledTooltip:
+    "Selecteer het juiste aantal trainees om de opstelling in te stellen.",
+  seniorExtraTimeModalSetLineupReadyTooltip:
+    "Klik op Opstelling verzenden in de juiste wedstrijdkaart om de opstelling naar Hattrick te sturen.",
   setBestLineupRejectedPlayersLabel: "Afgewezen spelers",
+  setBestLineupIneligiblePlayersLabel: "Niet-speelgerechtigde spelers",
+  setBestLineupDevAssignmentTraceLabel: "Toewijzingstrace",
+  setBestLineupDevEligiblePlayersLabel: "Speelgerechtigde spelers",
+  setBestLineupDevUnfilledLabel: "Niet ingevuld",
+  setBestLineupDevNoSlotRatingLabel: "Geen rating voor deze positie",
+  setBestLineupDevBetterOtherSectorLabel: "Beter in een andere sector",
+  setBestLineupDevTiedOtherSectorLabel: "Gelijk met een andere sector",
+  setBestLineupDevAlreadyUsedLabel: "Al gebruikt",
   analyzeOpponent: "Tegenstander analyseren",
   analyzeOpponentTooltip: "Analyseer recente wedstrijden van de tegenstander.",
   analyzeOpponentMatchId: "Wedstrijd-ID",
@@ -170,13 +291,21 @@ export const messagesNl: Messages = {
     "Senioroptimalisatie heeft nu een eigen help-overlay met gerichte callouts voor Laatste updates en opstelling met AI.",
   changelog_3_2_0:
     "Het trainingsregime van senioren kan nu direct in de app worden gewijzigd met machtigingscontrole en verificatie.",
+  changelog_3_3_0:
+    "Senioropstelling met AI ondersteunt nu een Mik op verlenging-flow voor opstellingen gericht op extra trainingsminuten in verlenging.",
+  changelog_3_4_0:
+    "De Club Chronicle-watchlist bevat nu al je eigen seniorenteams uit managercompendium met aanduiding mannelijk/vrouwelijk.",
+  changelog_3_5_0:
+    "Senioroptimalisatie ondersteunt nu meerdere seniorenteams met een teamselector met geslachtslabel en per team opgeslagen status.",
+  changelog_3_6_0:
+    "Jeugdoptimalisatie voegt nu een gecombineerde onthulmodus toe voor de huidige primaire waarde van de sterspeler en de secundaire maximumwaarde van een andere speler.",
   seniorHelpTitle: "Handleiding senioroptimalisatie",
   seniorHelpIntro:
     "Deze weergave helpt je relevante wijzigingen in de seniorselectie te volgen en sneller wedstrijdopstellingen te zetten.",
   seniorHelpCalloutUpdates:
     "Laatste updates toont alleen gedetecteerde wijzigingen uit opgeslagen refresh-vergelijkingen.",
   seniorHelpCalloutSetLineupAi:
-    "Opstelling met AI zetten opent de twee opstellingsmodi voor deze wedstrijd.",
+    "Opstelling met AI zetten opent de vier opstellingsmodi voor deze wedstrijd.",
   seniorHelpCalloutTrainingRegimen:
     "Met deze dropdown kun je het trainingsregime van senioren direct wijzigen.",
   seniorHelpCalloutAnalyzeOpponent:
@@ -184,13 +313,13 @@ export const messagesNl: Messages = {
   seniorHelpBulletLatestUpdates:
     "Er wordt alleen een nieuwe vergelijking opgeslagen wanneer een refresh echte wijzigingen detecteert (bijvoorbeeld nieuwe speler, wijzigingen in ratings/skills, blessures, kaarten, vorm, conditie of eigenschappen).",
   seniorHelpBulletAiOverview:
-    "Opstelling met AI zetten gebruikt de meest effectieve opstelling voor winst op basis van de beschikbare Hattrick-informatie.",
+    "Opstelling met AI zetten gebruikt op basis van de beschikbare Hattrick-informatie de meest effectieve opstelling, inclusief trainingsbewuste, training-negerende, verlengings- en vaste-formaties modi.",
   seniorHelpBulletAiTrainingAware:
     "Trainingsbewuste modus houdt rekening met het huidige trainingsregime en prioriteert opstellingen die de relevante trainingsslots vullen.",
   seniorHelpBulletAiIgnoreTraining:
     "Training negeren optimaliseert alleen voor wedstrijdeffectiviteit zonder trainingsslotbeperkingen.",
   seniorHelpBulletAiMatchTypes:
-    "Competitie- en toernooiwedstrijden mikken op de sterkste competitieve opstelling. Vriendschappelijke wedstrijden gebruiken een tweede beste gezonde XI.",
+    "Gebruik Mik op verlenging als je een opstelling wilt die gericht is op extra trainingsminuten in de verlenging, en Optimaliseer op formatie als je een formatie wilt vastzetten en Alchemy de beste opstelling wilt laten kiezen.",
   seniorHelpBulletTrainingRegimen:
     "Het trainingsregime van senioren kan direct in de app worden aangepast via de opstellingsdropdown.",
   seniorHelpBulletAnalyzeOpponent:
@@ -328,9 +457,9 @@ export const messagesNl: Messages = {
   trainingScoring: "Scoren",
   trainingSetPieces: "Dode spelmomenten",
   trainingDefendingDefendersMidfielders:
-    "Verdedigen (Verdedigers + Middenvelders)",
+    "Verdedigen (Keeper, Verdedigers + Alle Middenvelders)",
   trainingWingerWingerAttackers: "Vleugelspel (Vleugelspelers + Aanvallers)",
-  trainingPassingDefendersMidfielders: "Passen (Verdedigers + Middenvelders)",
+  trainingPassingDefendersMidfielders: "Passen (Verdedigers + Alle Middenvelders)",
   trainingSlotPrimary: "Primair",
   trainingSlotSecondary: "Secundair",
   trainingSlotBoth: "Pri/sec",

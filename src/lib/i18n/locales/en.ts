@@ -10,6 +10,15 @@ export const messagesEn: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Collapse sidebar",
     sidebarExpandTooltip: "Expand sidebar",
+    supportOnKofi: "Buy me a coffee",
+    buyCoffeePromptTitle: "☕ Thanks for being here",
+    buyCoffeePromptLead: "🙏 I’m really grateful you’re using HT Alchemy.",
+    buyCoffeePromptBody:
+      "✨ This app takes a lot of ongoing work, and if it has helped you, buying me a coffee would be a meaningful way to support continued development. Every bit of support helps me spend more time improving and maintaining it.",
+    buyCoffeePromptFoot:
+      "💛 If not, that’s completely fine too. I’m happy the app is useful to you.",
+    buyCoffeePromptAction: "☕ Buy me a coffee",
+    buyCoffeePromptLater: "🙏 Not now",
     toolYouthOptimization: "Youth squad optimization",
     toolSeniorOptimization: "Senior squad optimization",
     toolYouthBadge: "Y",
@@ -34,11 +43,39 @@ export const messagesEn: Messages = {
     watchlistError: "Unable to load supported teams.",
     watchlistRemoveTooltip: "Remove team",
     watchlistTeamLabel: "Team",
+    watchlistOwnSeniorTeamsTitle: "Own senior teams",
+    watchlistOwnSeniorTeamsEmpty: "No own senior teams found.",
+    watchlistOwnLeaguesTitle: "Own leagues",
+    watchlistOwnLeaguesEmpty: "No own leagues found.",
+    watchlistAllItems: "All watchlist items",
+    watchlistSelectAll: "Select all",
+    watchlistDeselectAll: "Deselect all",
+    watchlistGenderMale: "Male",
+    watchlistGenderFemale: "Female",
+    clubChronicleTabDefaultName: "Tab {{number}}",
+    clubChronicleTabAdd: "Add tab",
+    clubChronicleTabRenamePlaceholder: "Tab name",
+    clubChronicleTabRenameTooltip: "Rename tab",
+    clubChronicleTabShortcutHint: "Prev/next: j/k",
+    clubChronicleTabDeleteTooltip: "Delete tab",
+    clubChronicleTabDeleteTitle: "Delete this tab?",
+    clubChronicleTabDeleteBody:
+      "This Club Chronicle tab and its watchlist, latest updates, and local state will be removed. This cannot be undone.",
+    clubChronicleTabDeleteConfirm: "Delete tab",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Update",
     changelogNewer: "Newer",
     changelogOlder: "Older",
     changelogPageLabel: "Page {{current}} of {{total}}",
+    betaPillLabel: "Beta",
+    betaPillTooltip:
+      "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_3_9_0:
+      "Club Chronicle now supports tabs with independent watchlists and tab-scoped latest updates.",
+    changelog_3_8_0:
+      "Club Chronicle watchlist adds optional own-league expansion to track the other teams in each of your leagues.",
+    changelog_3_7_0:
+      "Senior AI lineup adds a fixed-formation optimizer that tests every tactic and picks the best one.",
     changelog_1_19_0: "Multi team support.",
     changelog_1_21_0: "Settings export/import for local data backups.",
     changelog_1_22_0: "Auto-select training regimen on manual star change.",
@@ -87,6 +124,14 @@ export const messagesEn: Messages = {
       "Senior optimization now has a dedicated help overlay with guided callouts for Latest updates and AI lineup actions.",
     changelog_3_2_0:
       "Senior lineup training regimen can now be changed directly in-app with permission checks and verification.",
+    changelog_3_3_0:
+      "Senior AI lineup now supports an Aim for extra time flow for training-focused extra-time setups.",
+    changelog_3_4_0:
+      "Club Chronicle watchlist now includes all of your own senior teams from manager compendium with male/female labels.",
+    changelog_3_5_0:
+      "Senior optimization now supports multiple senior teams with a gender-labeled team selector and per-team persisted state.",
+    changelog_3_6_0:
+      "Youth optimization adds a combined reveal mode for a star player's primary current value and another player's secondary max value.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Report a bug",
     feedbackFeature: "Request a feature",
@@ -163,6 +208,7 @@ export const messagesEn: Messages = {
     settingsDebugDisableScalingLabel: "Show dummy latest updates",
     settingsDebugRandomNewMarkersLabel: "Show random NEW markers",
     settingsDebugRandomNewMarkersOffLabel: "Hide random NEW markers",
+    settingsDebugBuyCoffeePromptButton: "Show buy me a coffee modal",
     clubChronicleLeaguePanelTitle: "League performance",
     clubChronicleLeaguePanelEmpty: "No league data yet.",
     clubChronicleNoTeams: "No tracked teams selected.",
@@ -209,6 +255,8 @@ export const messagesEn: Messages = {
     clubChronicleHelpCalloutWatchlist: "Watchlist controls which teams are tracked in every panel.",
     clubChronicleHelpBulletControls:
       "Header controls: use Refresh for a full data pass, monitor progress via the status bar and per-panel mini bars, use Latest updates for tracked diffs, use Watchlist to manage tracked teams, and drag panel headers to reorder the dashboard.",
+    clubChronicleHelpBulletTabs:
+      "Tabs help you organize different Chronicle workspaces. Each tab keeps its own watchlist and latest updates.",
     clubChronicleHelpBulletLeague:
       "League performance: table of position, points, series, position change, and goal delta. Click a row for previous/current attribute-level comparison.",
     clubChronicleHelpBulletPress:
@@ -437,7 +485,7 @@ export const messagesEn: Messages = {
     seniorHelpCalloutUpdates:
       "Latest updates shows only what changed in the latest saved refresh comparisons.",
     seniorHelpCalloutSetLineupAi:
-      "Set lineup using AI opens the two lineup modes for this match.",
+      "Set lineup using AI opens the four lineup modes for this match.",
     seniorHelpCalloutTrainingRegimen:
       "This dropdown lets you change the senior training regimen directly.",
     seniorHelpCalloutAnalyzeOpponent:
@@ -445,13 +493,13 @@ export const messagesEn: Messages = {
     seniorHelpBulletLatestUpdates:
       "A new Latest updates comparison is saved only when a refresh detects real changes (for example new players, ratings/skills updates, injuries, cards, form, stamina, or traits).",
     seniorHelpBulletAiOverview:
-      "Set lineup using AI applies the most effective lineup identified for a win from the Hattrick information currently available.",
+      "Set lineup using AI applies the most effective lineup identified from the Hattrick information currently available, including training-aware, ignore-training, extra-time, and fixed-formation modes.",
     seniorHelpBulletAiTrainingAware:
       "Training-aware mode respects the current training regimen and prioritizes lineups that cover the relevant training slots.",
     seniorHelpBulletAiIgnoreTraining:
       "Ignore-training mode optimizes for match effectiveness without training-slot constraints.",
     seniorHelpBulletAiMatchTypes:
-      "League and tournament matches target your strongest competitive setup. Friendlies use a second-best healthy XI.",
+      "Use Aim for extra time when you want a setup geared toward added training minutes in extra time, and use Optimize by formation when you want to lock a shape and let Alchemy choose the best lineup for it.",
     seniorHelpBulletTrainingRegimen:
       "You can change the senior training regimen directly from the lineup dropdown.",
     seniorHelpBulletAnalyzeOpponent:
@@ -486,6 +534,13 @@ export const messagesEn: Messages = {
     refreshStopButton: "Stop",
     refreshStopTooltip: "Stop ongoing refresh.",
     youthLastGlobalRefresh: "Last global refresh",
+    startupLoadingTitle: "Preparing workspace…",
+    startupLoadingSubtitle: "First load can take a moment.",
+    startupLoadingTeamContext: "Loading team context…",
+    startupLoadingPlayers: "Loading players…",
+    startupLoadingMatches: "Loading matches…",
+    startupLoadingRatings: "Loading ratings…",
+    startupLoadingFinalize: "Finalizing UI…",
     refreshStatusFetchingPlayers: "Fetching youth players…",
     refreshStatusFetchingPlayerDetails: "Fetching player details…",
     refreshStatusFetchingMatches: "Fetching matches…",
@@ -565,6 +620,18 @@ export const messagesEn: Messages = {
       "If match orders are needed, set them directly in Hattrick.",
     seniorSubmitDisclaimerBulletVerify:
       "Verify availability, injuries, and tactical intent before kickoff.",
+    seniorExtraTimeSubmitDisclaimerIntro:
+      "Orders for an extra-time lineup have been submitted for the {{training}} training regimen.",
+    seniorExtraTimeSubmitDisclaimerSwap:
+      "The trainees {{trainees}} will swap positions to maximize extra-time training if the match is drawn after full time.",
+    seniorExtraTimeSubmitDisclaimerPressing:
+      "To maximize the probability of a draw, the Pressing tactic has been used.",
+    seniorExtraTimeSubmitDisclaimerSetPieces:
+      "The set pieces taker is the player with the worst set pieces skill.",
+    seniorExtraTimeSubmitDisclaimerPenalties:
+      "The penalty takers have been ordered so the first taker is the one least likely to score.",
+    seniorExtraTimeSubmitDisclaimerBehaviors:
+      "Players have been oriented defensively where possible.",
     loadLineupTooltip: "Load the saved lineup from Hattrick for this match.",
     submitOrdersTooltip: "Submit the current lineup to Hattrick for this match.",
     randomizeLineup: "Random lineup",
@@ -576,6 +643,8 @@ export const messagesEn: Messages = {
       "Reveal {{player}}'s {{trainingLower}} current value",
     optimizeMenuRevealSecondaryMax:
       "Reveal {{player}}'s {{trainingLower}} max value",
+    optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
+      "Reveal {{player}}'s {{trainingLower}} current value and {{secondaryPlayer}}'s {{secondaryTrainingLower}} max value",
     optimizeRevealPrimaryCurrentKnown:
       "Reveal primary current unavailable: star primary current already known.",
     optimizeRevealPrimaryCurrentKnownTooltip:
@@ -588,6 +657,10 @@ export const messagesEn: Messages = {
       "Reveal unavailable: {{player}}'s max {{training}} is already known.",
     optimizeRevealSecondaryMaxUnavailable:
       "Reveal secondary max unavailable. Select a star player and secondary training.",
+    optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
+      "Combined reveal unavailable. Select a star player, both trainings, and an eligible secondary target.",
+    optimizeRevealTargetPlaceholder: "Select a secondary target",
+    optimizeRevealCombinedButton: "Apply combined reveal",
     optimizeRatingsUnavailable:
       "Optimize by ratings unavailable. Select a star player and both trainings.",
     optimizeRatingsStarMaxed:
@@ -654,7 +727,76 @@ export const messagesEn: Messages = {
     setBestLineupIgnoreTraining: "Ignore training",
     setBestLineupIgnoreTrainingTooltip:
       "Set lineup without considering the training regimen. All formations are considered.",
+    setBestLineupAimForExtraTime: "Aim for extra time",
+    setBestLineupAimForExtraTimeTooltip:
+      "Play for a draw to gain extra training.",
+    setBestLineupAimForExtraTimeDisabledTooltip:
+      "Only available for Qualification, Cup, and friendlies with cup rules.",
+    setBestLineupOptimizeByFormation: "Optimize by {{formation}}",
+    setBestLineupOptimizeByFormationTooltip:
+      "Lock the formation first, assign the best-rated players for it, then test every tactic and keep the best result.",
+    setBestLineupOptimizeByFormationDisabledTooltip:
+      "Select a formation first.",
+    setBestLineupOptimizeByFormationUnavailable:
+      "Unable to build a full lineup for that formation with the available players.",
+    setBestLineupOptimizeByFormationApply: "Apply formation optimization",
+    seniorFixedFormationTotalRatingsLabel: "Total ratings",
+    seniorFixedFormationWeightedSumLabel: "Weighted sum",
+    seniorExtraTimeModalTitle: "Why aim for extra time?",
+    seniorExtraTimeModalLead: "Because extra time can mean extra training.",
+    seniorExtraTimeModalTrainingLimit:
+      "In Hattrick, each player can receive a maximum of 90 training minutes per week.",
+    seniorExtraTimeModalRotation:
+      "If your match goes to extra time and you rotate other players into trainable slots, those minutes can become additional training gains.",
+    seniorExtraTimeModal120CupPrefix:
+      "There is even a competition built around this concept:",
+    seniorExtraTimeModal120CupLinkLabel: "the 120% Cup",
+    seniorExtraTimeModal120CupMiddle: "organized by",
+    seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
+    seniorExtraTimeModalWorkflow:
+      "The workflow is simple: based on your training regimen, Alchemy asks you to pick the players to be trained. You choose the players, click Set lineup, and Alchemy handles the rest (positioning and orienting players, setting tactics, configuring substitutions, setting penalty takers, deciding the set pieces taker, etc.). Once you're happy with the lineup, click Submit lineup to send it to Hattrick. The chances of a draw are much higher if your opponent sets up in a similar way.",
+    seniorExtraTimeModalChooseTrainees:
+      "Choose {{count}} trainees, then click Set lineup. The auto-chosen ones can be overridden.",
+    seniorExtraTimeModalBTeamToggleLabel: "B team",
+    seniorAiLastMatchThresholdText:
+      "Ignore players whose last match was more than {{weeks}} weeks ago.",
+    seniorAiLastMatchThresholdDisabledText:
+      "Do not disregard players by last match date. {{weeks}}",
+    seniorAiLastMatchThresholdAriaLabel:
+      "Weeks threshold for disregarding players by last match date",
+    seniorAiLastMatchDisregardedTooltip:
+      "Player is disregarded because they last played {{weeks}} weeks ago.",
+    seniorExtraTimeModalBTeamThresholdText:
+      "Disregard players who already played {{minutes}} minutes {{weekLink}}.",
+    seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "this week",
+    seniorExtraTimeModalBTeamThresholdAriaLabel:
+      "Minutes threshold for disregarding players this week",
+    seniorExtraTimeModalBTeamNoRecentMatch:
+      "No training-relevant matches were played this week.",
+    seniorExtraTimeModalBTeamLoading:
+      "Checking this week's training-relevant matches...",
+    seniorExtraTimeModalBTeamError:
+      "Couldn't check this week's training-relevant matches.",
+    seniorExtraTimeModalBTeamWeekendTooltip:
+      "B team selection is only available Monday through Friday (CET).",
+    seniorExtraTimeModalBTeamDisregardedTooltip:
+      "Player is disregarded because they have already played at least {{minutes}} minutes this week.",
+    seniorExtraTimeModalInjuredCheckboxTooltip:
+      "Player can't be selected because they're injured.",
+    seniorExtraTimeModalSetLineupButton: "Set lineup",
+    seniorExtraTimeModalSetLineupDisabledTooltip:
+      "Select the correct number of trainees to set the lineup.",
+    seniorExtraTimeModalSetLineupReadyTooltip:
+      "Click Submit lineup in the appropriate match card to send the lineup to Hattrick.",
     setBestLineupRejectedPlayersLabel: "Rejected players",
+    setBestLineupIneligiblePlayersLabel: "Ineligible players",
+    setBestLineupDevAssignmentTraceLabel: "Assignment trace",
+    setBestLineupDevEligiblePlayersLabel: "Eligible players",
+    setBestLineupDevUnfilledLabel: "Unfilled",
+    setBestLineupDevNoSlotRatingLabel: "No slot rating",
+    setBestLineupDevBetterOtherSectorLabel: "Better in another sector",
+    setBestLineupDevTiedOtherSectorLabel: "Tied with another sector",
+    setBestLineupDevAlreadyUsedLabel: "Already used",
     analyzeOpponent: "Analyze opponent",
     analyzeOpponentTooltip: "Analyze opponent recent matches.",
     analyzeOpponentMatchId: "Match ID",
@@ -724,9 +866,10 @@ export const messagesEn: Messages = {
     trainingPassing: "Passing",
     trainingScoring: "Scoring",
     trainingSetPieces: "Set pieces",
-    trainingDefendingDefendersMidfielders: "Defending (Defenders + Midfielders)",
+    trainingDefendingDefendersMidfielders:
+      "Defending (Keeper, Defenders + All Midfielders)",
     trainingWingerWingerAttackers: "Winger (Wingers + Attackers)",
-    trainingPassingDefendersMidfielders: "Passing (Defenders + Midfielders)",
+    trainingPassingDefendersMidfielders: "Passing (Defenders + All Midfielders)",
     trainingSlotPrimary: "Primary",
     trainingSlotSecondary: "Secondary",
     trainingSlotBoth: "Pri/sec",
@@ -844,7 +987,7 @@ export const messagesEn: Messages = {
     ratingsTitle: "Ratings matrix",
     ratingsMatchesAnalyzed: "Data retrieved from {count} matches.",
     ratingsLastAppliedMatchLabel:
-      "Latest applied ratings from match {matchId} at {dateTime}.",
+      "Latest applied end-of-match ratings from match {matchId} at {dateTime}.",
     ratingsIndexLabel: "#",
     ratingsMissingNote:
       "Some players have no recent match data and are shown with —.",

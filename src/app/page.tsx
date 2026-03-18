@@ -13,6 +13,8 @@ import SettingsButton from "./components/SettingsButton";
 import SeasonBootstrap from "./components/SeasonBootstrap";
 import AppShell from "./components/AppShell";
 import SeniorDashboard from "./components/SeniorDashboard";
+import BuyCoffeeButton from "./components/BuyCoffeeButton";
+import Tooltip from "./components/Tooltip";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 import type { MatchesResponse } from "./components/UpcomingMatches";
@@ -71,6 +73,7 @@ type ManagerCompendiumResponse = {
 type ManagerTeam = {
   TeamId?: number | string;
   TeamName?: string;
+  GenderID?: number | string;
   YouthTeam?: {
     YouthTeamId?: number | string;
     YouthTeamName?: string;
@@ -87,6 +90,12 @@ export type YouthTeamOption = {
   youthTeamId: number;
   youthTeamName: string;
   youthLeagueName?: string | null;
+};
+
+export type SeniorTeamOption = {
+  teamId: number;
+  teamName: string;
+  teamGender: "male" | "female" | null;
 };
 
 async function getBaseUrl() {
@@ -222,6 +231,23 @@ function extractYouthTeams(response: ManagerCompendiumResponse): YouthTeamOption
   }, []);
 }
 
+function extractSeniorTeams(response: ManagerCompendiumResponse): SeniorTeamOption[] {
+  const teams = normalizeTeams(
+    response.data?.HattrickData?.Manager?.Teams?.Team
+  );
+  return teams.reduce<SeniorTeamOption[]>((acc, team) => {
+    const teamId = Number(team.TeamId ?? 0);
+    if (!teamId) return acc;
+    const genderId = Number(team.GenderID ?? 0);
+    acc.push({
+      teamId,
+      teamName: team.TeamName ?? "",
+      teamGender: genderId === 2 ? "female" : genderId === 1 ? "male" : null,
+    });
+    return acc;
+  }, []);
+}
+
 export default async function Home() {
   const cookieStore = await cookies();
   const locale = (cookieStore.get("lang")?.value as Locale | undefined) ?? "en";
@@ -230,7 +256,9 @@ export default async function Home() {
 
   const managerResponse = await getManagerCompendium();
   const youthTeams = extractYouthTeams(managerResponse);
+  const seniorTeams = extractSeniorTeams(managerResponse);
   const defaultYouthTeamId = youthTeams.length > 1 ? youthTeams[0]?.youthTeamId : null;
+  const defaultSeniorTeamId = seniorTeams.length > 1 ? seniorTeams[0]?.teamId : null;
 
   const [playersResponse, matchesResponse, ratingsResponse] =
     await Promise.all([
@@ -265,6 +293,14 @@ export default async function Home() {
                 <div className={styles.brandRow}>
                   <span className={styles.brandTitle}>{messages.brandTitle}</span>
                   <span className={styles.version}>v{pkg.version}</span>
+                  <Tooltip content={messages.betaPillTooltip}>
+                    <span
+                      className={styles.betaPill}
+                      aria-label={messages.betaPillTooltip}
+                    >
+                      {messages.betaPillLabel}
+                    </span>
+                  </Tooltip>
                 </div>
                 <NotificationCenter locale={locale} messages={messages} />
                 <div className={styles.topBarControls}>
@@ -277,6 +313,14 @@ export default async function Home() {
                   <ThemeToggle messages={messages} />
                   <FeedbackButton messages={messages} />
                   <SettingsButton messages={messages} />
+                  <Tooltip content={messages.supportOnKofi}>
+                    <BuyCoffeeButton
+                      className={`${styles.feedbackButton} ${styles.kofiIconLink}`}
+                      aria-label={messages.supportOnKofi}
+                    >
+                      ☕
+                    </BuyCoffeeButton>
+                  </Tooltip>
                   {isConnected ? (
                     <ConnectedStatus messages={messages} />
                   ) : (
@@ -287,7 +331,13 @@ export default async function Home() {
                 </div>
               </header>
             }
-            seniorTool={<SeniorDashboard messages={messages} />}
+            seniorTool={
+              <SeniorDashboard
+                messages={messages}
+                initialSeniorTeams={seniorTeams}
+                initialSeniorTeamId={defaultSeniorTeamId}
+              />
+            }
           >
             <Dashboard
               players={players}

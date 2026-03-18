@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
@@ -48,6 +48,32 @@ export type MatchesResponse = {
   details?: string;
 };
 
+type MatchOrdersLineupPayload = {
+  positions: Array<{ id: number; behaviour: number }>;
+  bench: Array<{ id: number; behaviour: number }>;
+  kickers: Array<{ id: number; behaviour: number }>;
+  captain: number;
+  setPieces: number;
+  settings: {
+    tactic: number;
+    speechLevel: number;
+    newLineup: string;
+    coachModifier: number;
+    manMarkerPlayerId: number;
+    manMarkingPlayerId: number;
+  };
+  substitutions: Array<{
+    playerin: number;
+    playerout: number;
+    orderType: number;
+    min: number;
+    pos: number;
+    beh: number;
+    card: number;
+    standing: number;
+  }>;
+};
+
 type UpcomingMatchesProps = {
   response: MatchesResponse;
   messages: Messages;
@@ -55,6 +81,7 @@ type UpcomingMatchesProps = {
   behaviors?: LineupBehaviors;
   captainId?: number | null;
   penaltyKickerIds?: number[];
+  setPiecesId?: number | null;
   tacticType?: number;
   onRefresh?: () => boolean | Promise<boolean>;
   onLoadLineup?: (
@@ -66,21 +93,37 @@ type UpcomingMatchesProps = {
   onSetBestLineup?: (matchId: number) => void | Promise<void>;
   onSetBestLineupMode?: (
     matchId: number,
-    mode: SetBestLineupMode
+    mode: SetBestLineupMode,
+    fixedFormation?: string | null
   ) => void | Promise<void>;
   onAnalyzeOpponent?: (matchId: number) => void | Promise<void>;
   loadedMatchId?: number | null;
   onSubmitSuccess?: () => void;
+  buildSubmitLineupPayload?: (
+    matchId: number,
+    defaultPayload: MatchOrdersLineupPayload
+  ) => MatchOrdersLineupPayload | Promise<MatchOrdersLineupPayload>;
   sourceSystem?: string;
   includeTournamentMatches?: boolean;
   onIncludeTournamentMatchesChange?: (next: boolean) => void;
   setBestLineupHelpAnchor?: string;
+  showExtraTimeSetBestLineupMode?: boolean;
+  keepBestLineupMenuTopmost?: boolean;
+  fixedFormationOptions?: string[];
+  selectedFixedFormation?: string | null;
+  onSelectedFixedFormationChange?: (formation: string | null) => void;
+  setBestLineupCustomContent?: ReactNode;
 };
 
-export type SetBestLineupMode = "trainingAware" | "ignoreTraining";
+export type SetBestLineupMode =
+  | "trainingAware"
+  | "ignoreTraining"
+  | "extraTime"
+  | "fixedFormation";
 
 const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
 const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
+const EXTRA_TIME_ALLOWED_MATCH_TYPES = new Set<number>([2, 3, 5, 9]);
 
 function normalizeMatches(input?: Match[] | Match): Match[] {
   if (!input) return [];
@@ -159,8 +202,9 @@ function buildLineupPayload(
   behaviors?: LineupBehaviors,
   captainId?: number | null,
   tacticType?: number,
-  penaltyKickerIds?: number[]
-) {
+  penaltyKickerIds?: number[],
+  setPiecesId?: number | null
+): MatchOrdersLineupPayload {
   const toId = (value: number | null | undefined) => value ?? 0;
   const positions = POSITION_SLOT_ORDER.map((slot) => ({
     id: toId(assignments[slot]),
@@ -184,7 +228,7 @@ function buildLineupPayload(
     bench,
     kickers,
     captain: captainId ?? 0,
-    setPieces: 0,
+    setPieces: Number(setPiecesId ?? 0) || 0,
     settings: {
       tactic: typeof tacticType === "number" ? tacticType : 7,
       speechLevel: 0,
@@ -261,8 +305,18 @@ type SetBestLineupMenuButtonProps = {
   matchId: number;
   loading: boolean;
   messages: Messages;
-  onSelectMode: (matchId: number, mode: SetBestLineupMode) => void;
+  onSelectMode: (
+    matchId: number,
+    mode: SetBestLineupMode,
+    fixedFormation?: string | null
+  ) => void;
   helpAnchor?: string;
+  showExtraTimeMode?: boolean;
+  extraTimeModeEnabled?: boolean;
+  fixedFormationOptions?: string[];
+  selectedFixedFormation?: string | null;
+  onSelectedFixedFormationChange?: (formation: string | null) => void;
+  customContent?: ReactNode;
 };
 
 function SetBestLineupMenuButton({
@@ -271,10 +325,19 @@ function SetBestLineupMenuButton({
   messages,
   onSelectMode,
   helpAnchor,
+  showExtraTimeMode = false,
+  extraTimeModeEnabled = false,
+  fixedFormationOptions = [],
+  selectedFixedFormation = null,
+  onSelectedFixedFormationChange,
+  customContent,
 }: SetBestLineupMenuButtonProps) {
   const [open, setOpen] = useState(false);
+  const [fixedFormationMenuOpen, setFixedFormationMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
+  const fixedFormationButtonRef = useRef<HTMLButtonElement | null>(null);
+  const fixedFormationMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -282,11 +345,23 @@ function SetBestLineupMenuButton({
       const target = event.target as Node | null;
       if (triggerRef.current?.contains(target ?? null)) return;
       if (menuRef.current?.contains(target ?? null)) return;
+      if (fixedFormationButtonRef.current?.contains(target ?? null)) return;
+      if (fixedFormationMenuRef.current?.contains(target ?? null)) return;
       setOpen(false);
+      setFixedFormationMenuOpen(false);
     };
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
   }, [open]);
+
+  const fixedFormationTemplate = messages.setBestLineupOptimizeByFormation.replace(
+    "{{formation}}",
+    "__FORMATION__"
+  );
+  const [fixedFormationPrefix, fixedFormationSuffix = ""] =
+    fixedFormationTemplate.split("__FORMATION__");
+  const fixedFormationInlineLabel = selectedFixedFormation ?? "?";
+  const fixedFormationDisabled = !selectedFixedFormation;
 
   const trigger = (
     <button
@@ -301,7 +376,7 @@ function SetBestLineupMenuButton({
       ref={triggerRef}
       data-help-anchor={helpAnchor}
     >
-      {loading ? "…" : "✨"}
+      {loading ? <span className={styles.spinner} aria-hidden="true" /> : "✨"}
     </button>
   );
 
@@ -310,6 +385,7 @@ function SetBestLineupMenuButton({
       <Tooltip content={messages.setBestLineupTooltip}>{trigger}</Tooltip>
       {open ? (
         <div className={styles.feedbackMenu} ref={menuRef}>
+          {customContent ? customContent : null}
           <Tooltip content={messages.setBestLineupTrainingAwareTooltip} fullWidth>
             <button
               type="button"
@@ -334,6 +410,111 @@ function SetBestLineupMenuButton({
               {messages.setBestLineupIgnoreTraining}
             </button>
           </Tooltip>
+          {showExtraTimeMode ? (
+            <Tooltip
+              content={
+                extraTimeModeEnabled
+                  ? messages.setBestLineupAimForExtraTimeTooltip
+                  : messages.setBestLineupAimForExtraTimeDisabledTooltip
+              }
+              fullWidth
+            >
+              <button
+                type="button"
+                className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                  extraTimeModeEnabled ? "" : styles.optimizeMenuItemDisabled
+                }`}
+                disabled={!extraTimeModeEnabled}
+                onClick={() => {
+                  if (!extraTimeModeEnabled) return;
+                  setOpen(false);
+                  onSelectMode(matchId, "extraTime");
+                }}
+              >
+                {messages.setBestLineupAimForExtraTime}
+              </button>
+            </Tooltip>
+          ) : null}
+          <Tooltip
+            content={
+              fixedFormationMenuOpen
+                ? ""
+                : fixedFormationDisabled
+                  ? messages.setBestLineupOptimizeByFormationDisabledTooltip
+                  : messages.setBestLineupOptimizeByFormationTooltip
+            }
+            fullWidth
+          >
+            <span className={styles.optimizeMenuCustomWrap}>
+              <span className={styles.optimizeMenuCustomLabel}>
+                {fixedFormationPrefix}
+                <span className={styles.optimizeMenuInlinePickerWrap}>
+                  <button
+                    ref={fixedFormationButtonRef}
+                    type="button"
+                    className={styles.optimizeMenuInlinePicker}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setFixedFormationMenuOpen((current) => !current);
+                    }}
+                    aria-haspopup="menu"
+                    aria-expanded={fixedFormationMenuOpen}
+                    disabled={fixedFormationOptions.length === 0}
+                  >
+                    <span className={styles.optimizeMenuInlinePickerText}>
+                      {fixedFormationInlineLabel}
+                    </span>
+                    <span className={styles.optimizeMenuInlinePickerChevron}>⌄</span>
+                  </button>
+                  {fixedFormationMenuOpen && fixedFormationOptions.length ? (
+                    <div
+                      ref={fixedFormationMenuRef}
+                      className={`${styles.feedbackMenu} ${styles.optimizeMenuInlinePickerMenu}`}
+                      role="menu"
+                    >
+                      {fixedFormationOptions.map((formation) => (
+                        <button
+                          key={formation}
+                          type="button"
+                          role="menuitem"
+                          className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                            selectedFixedFormation === formation
+                              ? styles.optimizeMenuInlinePickerOptionActive
+                              : ""
+                          }`}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onSelectedFixedFormationChange?.(formation);
+                            setFixedFormationMenuOpen(false);
+                          }}
+                        >
+                          {formation}
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </span>
+                {fixedFormationSuffix}
+              </span>
+              <div className={styles.optimizeMenuCustomControls}>
+                <button
+                  type="button"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuActionButton} ${
+                    fixedFormationDisabled ? styles.optimizeMenuItemDisabled : ""
+                  }`}
+                  onClick={() => {
+                    if (!selectedFixedFormation) return;
+                    setOpen(false);
+                    setFixedFormationMenuOpen(false);
+                    onSelectMode(matchId, "fixedFormation", selectedFixedFormation);
+                  }}
+                  disabled={fixedFormationDisabled}
+                >
+                  {messages.setBestLineupOptimizeByFormationApply}
+                </button>
+              </div>
+            </span>
+          </Tooltip>
         </div>
       ) : null}
     </div>
@@ -352,13 +533,22 @@ function renderMatch(
   updatedLabel?: string | null,
   loadState?: LoadState,
   onLoadLineup?: (matchId: number) => void,
-  onSetBestLineupMode?: (matchId: number, mode: SetBestLineupMode) => void,
+  onSetBestLineupMode?: (
+    matchId: number,
+    mode: SetBestLineupMode,
+    fixedFormation?: string | null
+  ) => void,
   onAnalyzeOpponent?: (matchId: number) => void,
   bestLineupPending?: boolean,
   analyzePending?: boolean,
   isLoaded?: boolean,
   assignedCount?: number,
-  setBestLineupHelpAnchor?: string
+  setBestLineupHelpAnchor?: string,
+  showExtraTimeSetBestLineupMode?: boolean,
+  fixedFormationOptions?: string[],
+  selectedFixedFormation?: string | null,
+  onSelectedFixedFormationChange?: (formation: string | null) => void,
+  setBestLineupCustomContent?: ReactNode
 ) {
   const isUpcoming = match.Status === "UPCOMING";
   const canSubmit = Boolean(teamId) && isUpcoming && hasLineup;
@@ -442,6 +632,9 @@ function renderMatch(
       : null;
   const canShowBestLineupMenu =
     sourceSystem === "Hattrick" && Boolean(onSetBestLineupMode);
+  const extraTimeModeEnabled =
+    process.env.NODE_ENV !== "production" ||
+    (Number.isFinite(matchTypeId) && EXTRA_TIME_ALLOWED_MATCH_TYPES.has(matchTypeId));
   const canAnalyzeOpponent = sourceSystem === "Hattrick" && Boolean(onAnalyzeOpponent);
   const showActionRow = isUpcoming || canAnalyzeOpponent;
 
@@ -460,6 +653,12 @@ function renderMatch(
             messages={messages}
             onSelectMode={onSetBestLineupMode!}
             helpAnchor={setBestLineupHelpAnchor}
+            showExtraTimeMode={showExtraTimeSetBestLineupMode}
+            extraTimeModeEnabled={extraTimeModeEnabled}
+            fixedFormationOptions={fixedFormationOptions}
+            selectedFixedFormation={selectedFixedFormation}
+            onSelectedFixedFormationChange={onSelectedFixedFormationChange}
+            customContent={setBestLineupCustomContent}
           />
         </div>
       ) : null}
@@ -570,6 +769,7 @@ export default function UpcomingMatches({
   behaviors,
   captainId,
   penaltyKickerIds,
+  setPiecesId,
   tacticType,
   onRefresh,
   onLoadLineup,
@@ -578,10 +778,17 @@ export default function UpcomingMatches({
   onAnalyzeOpponent,
   loadedMatchId,
   onSubmitSuccess,
+  buildSubmitLineupPayload,
   sourceSystem = "Youth",
   includeTournamentMatches = true,
   onIncludeTournamentMatchesChange,
   setBestLineupHelpAnchor,
+  showExtraTimeSetBestLineupMode = false,
+  keepBestLineupMenuTopmost = false,
+  fixedFormationOptions = [],
+  selectedFixedFormation = null,
+  onSelectedFixedFormationChange,
+  setBestLineupCustomContent,
 }: UpcomingMatchesProps) {
   const { addNotification } = useNotifications();
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
@@ -607,9 +814,10 @@ export default function UpcomingMatches({
         behaviors,
         captainId,
         tacticType,
-        penaltyKickerIds
+        penaltyKickerIds,
+        setPiecesId
       ),
-    [assignments, behaviors, captainId, tacticType, penaltyKickerIds]
+    [assignments, behaviors, captainId, tacticType, penaltyKickerIds, setPiecesId]
   );
 
   const allMatches = normalizeMatches(
@@ -806,14 +1014,15 @@ export default function UpcomingMatches({
 
   const handleSetBestLineupMode = async (
     matchId: number,
-    mode: SetBestLineupMode
+    mode: SetBestLineupMode,
+    fixedFormation?: string | null
   ) => {
     if (bestLineupPendingMatchId !== null) return;
     if (!onSetBestLineupMode && !onSetBestLineup) return;
     setBestLineupPendingMatchId(matchId);
     try {
       if (onSetBestLineupMode) {
-        await onSetBestLineupMode(matchId, mode);
+        await onSetBestLineupMode(matchId, mode, fixedFormation);
       } else if (onSetBestLineup) {
         await onSetBestLineup(matchId);
       }
@@ -851,6 +1060,9 @@ export default function UpcomingMatches({
     }));
 
     try {
+      const resolvedLineupPayload = buildSubmitLineupPayload
+        ? await buildSubmitLineupPayload(matchId, lineupPayload)
+        : lineupPayload;
       const { response, payload } = await fetchChppJson<{
         error?: string;
         details?: string;
@@ -863,7 +1075,7 @@ export default function UpcomingMatches({
           matchId,
           teamId,
           sourceSystem: matchSourceSystem,
-          lineup: lineupPayload,
+          lineup: resolvedLineupPayload,
         }),
       });
       if (!response.ok || payload?.error) {
@@ -968,7 +1180,9 @@ export default function UpcomingMatches({
   const sortedAll = sortByDate(visibleMatches);
 
   return (
-    <div className={styles.card}>
+    <div
+      className={`${styles.card}${keepBestLineupMenuTopmost ? ` ${styles.seniorUpcomingMatches}` : ""}`}
+    >
       <div className={styles.matchesHeader}>
         <h2 className={styles.sectionTitle}>{messages.matchesTitle}</h2>
         <div className={styles.matchesHeaderControls}>
@@ -1036,7 +1250,12 @@ export default function UpcomingMatches({
               analyzePendingMatchId === matchId,
               loadedMatchId === matchId,
               assignedCount,
-              index === 0 ? setBestLineupHelpAnchor : undefined
+              index === 0 ? setBestLineupHelpAnchor : undefined,
+              showExtraTimeSetBestLineupMode,
+              fixedFormationOptions,
+              selectedFixedFormation,
+              onSelectedFixedFormationChange,
+              setBestLineupCustomContent
             );
           })}
         </ul>
@@ -1069,7 +1288,12 @@ export default function UpcomingMatches({
                 analyzePendingMatchId === matchId,
                 loadedMatchId === matchId,
                 assignedCount,
-                index === 0 ? setBestLineupHelpAnchor : undefined
+                index === 0 ? setBestLineupHelpAnchor : undefined,
+                showExtraTimeSetBestLineupMode,
+                fixedFormationOptions,
+                selectedFixedFormation,
+                onSelectedFixedFormationChange,
+                setBestLineupCustomContent
               );
             })}
           </ul>

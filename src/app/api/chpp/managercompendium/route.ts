@@ -7,7 +7,7 @@ import {
   getChppAuth,
 } from "@/lib/chpp/server";
 
-const DEFAULT_VERSION = "1.5";
+const DEFAULT_VERSION = "1.7";
 
 export async function GET(request: Request) {
   try {

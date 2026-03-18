@@ -23,6 +23,7 @@ import LineupField, {
 import UpcomingMatches, { type MatchesResponse } from "./UpcomingMatches";
 import type { YouthTeamOption } from "../page";
 import { Messages } from "@/lib/i18n";
+import { getChangelogEntries } from "@/lib/changelog";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
@@ -41,6 +42,7 @@ import {
   optimizeByRatings,
   optimizeRevealPrimaryCurrent,
   optimizeRevealSecondaryMax,
+  optimizeRevealPrimaryCurrentAndSecondaryMax,
   buildSkillRanking,
   type OptimizerPlayer,
   type OptimizerDebug,
@@ -845,6 +847,10 @@ export default function Dashboard({
     useState<ChppDebugOauthErrorMode>("off");
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [starPlayerId, setStarPlayerId] = useState<number | null>(null);
+  const [revealSecondaryTargetPlayerId, setRevealSecondaryTargetPlayerId] =
+    useState<number | null>(null);
+  const [revealSecondaryTargetMenuOpen, setRevealSecondaryTargetMenuOpen] =
+    useState(false);
   const [primaryTraining, setPrimaryTraining] = useState<TrainingSkillKey>(
     DEFAULT_PRIMARY_TRAINING
   );
@@ -861,6 +867,8 @@ export default function Dashboard({
   const primaryTrainingMenuRef = useRef<HTMLDivElement | null>(null);
   const secondaryTrainingButtonRef = useRef<HTMLButtonElement | null>(null);
   const secondaryTrainingMenuRef = useRef<HTMLDivElement | null>(null);
+  const revealSecondaryTargetButtonRef = useRef<HTMLButtonElement | null>(null);
+  const revealSecondaryTargetMenuRef = useRef<HTMLDivElement | null>(null);
   const [optimizerDragOffset, setOptimizerDragOffset] = useState({
     x: 0,
     y: 0,
@@ -956,7 +964,13 @@ export default function Dashboard({
     }
   };
   useEffect(() => {
-    if (!primaryTrainingMenuOpen && !secondaryTrainingMenuOpen) return;
+    if (
+      !primaryTrainingMenuOpen &&
+      !secondaryTrainingMenuOpen &&
+      !revealSecondaryTargetMenuOpen
+    ) {
+      return;
+    }
     const handleClick = (event: MouseEvent) => {
       const target = event.target as Node | null;
       if (primaryTrainingMenuOpen) {
@@ -967,12 +981,21 @@ export default function Dashboard({
         if (secondaryTrainingButtonRef.current?.contains(target ?? null)) return;
         if (secondaryTrainingMenuRef.current?.contains(target ?? null)) return;
       }
+      if (revealSecondaryTargetMenuOpen) {
+        if (revealSecondaryTargetButtonRef.current?.contains(target ?? null)) return;
+        if (revealSecondaryTargetMenuRef.current?.contains(target ?? null)) return;
+      }
       if (primaryTrainingMenuOpen) setPrimaryTrainingMenuOpen(false);
       if (secondaryTrainingMenuOpen) setSecondaryTrainingMenuOpen(false);
+      if (revealSecondaryTargetMenuOpen) setRevealSecondaryTargetMenuOpen(false);
     };
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
-  }, [primaryTrainingMenuOpen, secondaryTrainingMenuOpen]);
+  }, [
+    primaryTrainingMenuOpen,
+    revealSecondaryTargetMenuOpen,
+    secondaryTrainingMenuOpen,
+  ]);
   const youthUpdatesHistoryWithChanges = useMemo(
     () => youthUpdatesHistory.filter(shouldKeepYouthUpdatesHistoryEntry),
     [youthUpdatesHistory]
@@ -1269,187 +1292,7 @@ export default function Dashboard({
     return payload;
   }, [playerDetailsById]);
 
-  const changelogEntries = useMemo(
-    () => [
-      {
-        version: "3.2.0",
-        entries: [messages.changelog_3_2_0],
-      },
-      {
-        version: "3.0.0",
-        entries: [messages.changelog_3_0_0],
-      },
-      {
-        version: "2.24.0",
-        entries: [messages.changelog_2_24_0],
-      },
-      {
-        version: "2.23.0",
-        entries: [messages.changelog_2_23_0],
-      },
-      {
-        version: "2.22.0",
-        entries: [messages.changelog_2_22_0],
-      },
-      {
-        version: "2.21.0",
-        entries: [messages.changelog_2_21_0],
-      },
-      {
-        version: "2.20.0",
-        entries: [messages.changelog_2_20_0],
-      },
-      {
-        version: "2.19.0",
-        entries: [messages.changelog_2_19_0],
-      },
-      {
-        version: "2.18.0",
-        entries: [messages.changelog_2_18_0],
-      },
-      {
-        version: "2.17.0",
-        entries: [messages.changelog_2_17_0],
-      },
-      {
-        version: "2.16.0",
-        entries: [messages.changelog_2_16_0],
-      },
-      {
-        version: "2.15.0",
-        entries: [messages.changelog_2_15_0],
-      },
-      {
-        version: "2.14.0",
-        entries: [messages.changelog_2_14_0],
-      },
-      {
-        version: "2.13.0",
-        entries: [messages.changelog_2_13_0],
-      },
-      {
-        version: "2.12.0",
-        entries: [messages.changelog_2_12_0],
-      },
-      {
-        version: "2.11.0",
-        entries: [messages.changelog_2_11_0],
-      },
-      {
-        version: "2.10.0",
-        entries: [messages.changelog_2_10_0],
-      },
-      {
-        version: "2.9.0",
-        entries: [messages.changelog_2_9_0],
-      },
-      {
-        version: "2.8.0",
-        entries: [messages.changelog_2_8_0],
-      },
-      {
-        version: "2.7.0",
-        entries: [messages.changelog_2_7_0],
-      },
-      {
-        version: "2.6.0",
-        entries: [messages.changelog_2_6_0],
-      },
-      {
-        version: "2.5.0",
-        entries: [messages.changelog_2_5_0],
-      },
-      {
-        version: "2.4.0",
-        entries: [messages.changelog_2_4_0],
-      },
-      {
-        version: "2.3.0",
-        entries: [messages.changelog_2_3_0],
-      },
-      {
-        version: "2.2.0",
-        entries: [messages.changelog_2_2_0],
-      },
-      {
-        version: "2.1.0",
-        entries: [messages.changelog_2_1_0],
-      },
-      {
-        version: "2.0.0",
-        entries: [messages.changelog_2_0_0],
-      },
-      {
-        version: "1.28.0",
-        entries: [messages.changelog_1_28_0],
-      },
-      {
-        version: "1.26.0",
-        entries: [messages.changelog_1_26_0],
-      },
-      {
-        version: "1.25.0",
-        entries: [messages.changelog_1_25_0],
-      },
-      {
-        version: "1.24.0",
-        entries: [messages.changelog_1_24_0],
-      },
-      {
-        version: "1.23.0",
-        entries: [messages.changelog_1_23_0],
-      },
-      {
-        version: "1.22.0",
-        entries: [messages.changelog_1_22_0],
-      },
-      {
-        version: "1.21.0",
-        entries: [messages.changelog_1_21_0],
-      },
-      {
-        version: "1.19.0",
-        entries: [messages.changelog_1_19_0],
-      },
-    ],
-    [
-      messages.changelog_1_19_0,
-      messages.changelog_1_21_0,
-      messages.changelog_1_22_0,
-      messages.changelog_1_23_0,
-      messages.changelog_1_24_0,
-      messages.changelog_1_25_0,
-      messages.changelog_1_26_0,
-      messages.changelog_1_28_0,
-      messages.changelog_2_1_0,
-      messages.changelog_2_0_0,
-      messages.changelog_2_2_0,
-      messages.changelog_2_3_0,
-      messages.changelog_2_4_0,
-      messages.changelog_2_5_0,
-      messages.changelog_2_6_0,
-      messages.changelog_2_7_0,
-      messages.changelog_2_8_0,
-      messages.changelog_2_9_0,
-      messages.changelog_2_10_0,
-      messages.changelog_2_11_0,
-      messages.changelog_2_12_0,
-      messages.changelog_2_13_0,
-      messages.changelog_2_14_0,
-      messages.changelog_2_15_0,
-      messages.changelog_2_16_0,
-      messages.changelog_2_17_0,
-      messages.changelog_2_18_0,
-      messages.changelog_2_24_0,
-      messages.changelog_2_23_0,
-      messages.changelog_2_22_0,
-      messages.changelog_2_21_0,
-      messages.changelog_2_20_0,
-      messages.changelog_2_19_0,
-      messages.changelog_3_2_0,
-      messages.changelog_3_0_0,
-    ]
-  );
+  const changelogEntries = useMemo(() => getChangelogEntries(messages), [messages]);
 
   const changelogRows = useMemo(
     () =>
@@ -1696,6 +1539,7 @@ export default function Dashboard({
         matrixNewMarkers?: MatrixNewMarkers;
         youthUpdatesHistory?: YouthUpdatesGroupedEntry[];
         activeDetailsTab?: PlayerDetailsPanelTab;
+        revealSecondaryTargetPlayerId?: number | null;
       };
       const forceWipeLegacyUpdatesState =
         typeof parsed.updatesSchemaVersion !== "number" ||
@@ -1714,6 +1558,9 @@ export default function Dashboard({
         setActiveDetailsTab(parsed.activeDetailsTab);
       }
       if (parsed.starPlayerId !== undefined) setStarPlayerId(parsed.starPlayerId);
+      if (parsed.revealSecondaryTargetPlayerId !== undefined) {
+        setRevealSecondaryTargetPlayerId(parsed.revealSecondaryTargetPlayerId);
+      }
       if (parsed.primaryTraining !== undefined)
         setPrimaryTraining(
           isTrainingSkill(parsed.primaryTraining)
@@ -1978,6 +1825,7 @@ export default function Dashboard({
       selectedId,
       activeDetailsTab,
       starPlayerId,
+      revealSecondaryTargetPlayerId,
       primaryTraining,
       secondaryTraining,
       tacticType,
@@ -2010,6 +1858,7 @@ export default function Dashboard({
     selectedId,
     activeDetailsTab,
     starPlayerId,
+    revealSecondaryTargetPlayerId,
     behaviors,
     playerList,
     matchesState,
@@ -3138,7 +2987,8 @@ export default function Dashboard({
     }
     if (
       mode !== "revealPrimaryCurrent" &&
-      mode !== "revealSecondaryMax"
+      mode !== "revealSecondaryMax" &&
+      mode !== "revealPrimaryCurrentAndSecondaryMax"
     ) {
       return;
     }
@@ -3149,14 +2999,31 @@ export default function Dashboard({
     ) {
       if (mode === "revealSecondaryMax") {
         setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
+      } else if (mode === "revealPrimaryCurrentAndSecondaryMax") {
+        setOptimizeErrorMessage(
+          messages.optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable
+        );
       } else {
         setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
       }
       return;
     }
+    if (
+      mode === "revealPrimaryCurrentAndSecondaryMax" &&
+      !revealSecondaryTargetPlayerId
+    ) {
+      setOptimizeErrorMessage(
+        messages.optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable
+      );
+      return;
+    }
     if (!optimizerPlayers.some((player) => player.id === starPlayerId)) {
       if (mode === "revealSecondaryMax") {
         setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
+      } else if (mode === "revealPrimaryCurrentAndSecondaryMax") {
+        setOptimizeErrorMessage(
+          messages.optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable
+        );
       } else {
         setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
       }
@@ -3173,6 +3040,16 @@ export default function Dashboard({
             autoSelectionApplied,
             trainingPreferences
           )
+        : mode === "revealPrimaryCurrentAndSecondaryMax"
+          ? optimizeRevealPrimaryCurrentAndSecondaryMax(
+              optimizerPlayers,
+              starPlayerId,
+              revealSecondaryTargetPlayerId,
+              toBaseTrainingSkill(primaryTraining),
+              toBaseTrainingSkill(secondaryTraining),
+              autoSelectionApplied,
+              trainingPreferences
+            )
         : optimizeRevealPrimaryCurrent(
             optimizerPlayers,
             starPlayerId,
@@ -3195,6 +3072,10 @@ export default function Dashboard({
     if (result.error) {
       if (mode === "revealSecondaryMax") {
         setOptimizeErrorMessage(messages.optimizeRevealSecondaryMaxUnavailable);
+      } else if (mode === "revealPrimaryCurrentAndSecondaryMax") {
+        setOptimizeErrorMessage(
+          messages.optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable
+        );
       } else {
         setOptimizeErrorMessage(messages.optimizeRevealPrimaryCurrentUnavailable);
       }
@@ -4579,10 +4460,67 @@ export default function Dashboard({
   const optimizeSecondaryTrainingName = isTrainingSkill(secondaryTraining)
     ? optimizeTrainingLabel(secondaryTraining)
     : messages.trainingUnset;
+  const eligibleRevealSecondaryTargetOptions = useMemo(() => {
+    if (!isTrainingSkill(secondaryTraining)) return [];
+    const secondaryMaxKey = TRAINING_SKILL_VALUE_KEYS[secondaryTraining].max;
+    return optimizerPlayers
+      .filter((player) => player.id !== starPlayerId)
+      .filter((player) => {
+        const sourceSkills =
+          playerDetailsById.get(player.id)?.PlayerSkills ??
+          playerList.find((entry) => entry.YouthPlayerID === player.id)?.PlayerSkills ??
+          null;
+        return getKnownSkillValue(sourceSkills?.[secondaryMaxKey]) === null;
+      })
+      .map((player) => ({
+        playerId: player.id,
+        label: player.name ?? String(player.id),
+      }))
+      .sort((left, right) => left.label.localeCompare(right.label));
+  }, [optimizerPlayers, playerDetailsById, playerList, secondaryTraining, starPlayerId]);
+  const selectedRevealSecondaryTargetOption =
+    eligibleRevealSecondaryTargetOptions.find(
+      (option) => option.playerId === revealSecondaryTargetPlayerId
+    ) ?? null;
+  const optimizeRevealComboTargetName =
+    selectedRevealSecondaryTargetOption?.label ?? messages.optimizeRevealTargetPlaceholder;
+  const optimizeRevealInlineTargetName = selectedRevealSecondaryTargetOption?.label ?? "?";
+  const optimizePrimaryTrainingNameLower =
+    optimizePrimaryTrainingName.toLocaleLowerCase();
+  const optimizeSecondaryTrainingNameLower =
+    optimizeSecondaryTrainingName.toLocaleLowerCase();
+  const optimizeRevealPrimaryCurrentAndSecondaryMaxLabel =
+    messages.optimizeMenuRevealPrimaryCurrentAndSecondaryMax
+      .replace("{{player}}", optimizeStarPlayerName)
+      .replace("{{training}}", optimizePrimaryTrainingName)
+      .replace("{{trainingLower}}", optimizePrimaryTrainingNameLower)
+      .replace("{{secondaryPlayer}}", optimizeRevealComboTargetName)
+      .replace("{{secondaryTraining}}", optimizeSecondaryTrainingName)
+      .replace("{{secondaryTrainingLower}}", optimizeSecondaryTrainingNameLower);
+  const optimizeRevealInlineTemplate =
+    messages.optimizeMenuRevealPrimaryCurrentAndSecondaryMax
+      .replace("{{player}}", optimizeStarPlayerName)
+      .replace("{{training}}", optimizePrimaryTrainingName)
+      .replace("{{trainingLower}}", optimizePrimaryTrainingNameLower)
+      .replace("{{secondaryPlayer}}", "__SECONDARY_PLAYER__")
+      .replace("{{secondaryTraining}}", optimizeSecondaryTrainingName)
+      .replace("{{secondaryTrainingLower}}", optimizeSecondaryTrainingNameLower);
+  const [
+    optimizeRevealInlinePrefix,
+    optimizeRevealInlineSuffix = "",
+  ] = optimizeRevealInlineTemplate.split("__SECONDARY_PLAYER__");
+  const optimizeRevealInlinePickerSuffixMatch =
+    optimizeRevealInlineSuffix.match(/^(['\u2019]s\b\s*)/);
+  const optimizeRevealInlinePickerSuffix =
+    optimizeRevealInlinePickerSuffixMatch?.[0] ?? "";
+  const optimizeRevealInlineSuffixRemainder = optimizeRevealInlineSuffix.slice(
+    optimizeRevealInlinePickerSuffix.length
+  );
   const optimizeModeDisabledReasons = useMemo(() => {
     const reasons: {
       revealPrimaryCurrent?: string;
       revealSecondaryMax?: string;
+      revealPrimaryCurrentAndSecondaryMax?: string;
     } = {};
     if (
       !starPlayerId ||
@@ -4613,24 +4551,155 @@ export default function Dashboard({
       reasons.revealPrimaryCurrent = messages.optimizeRevealPrimaryCurrentKnownTooltip
         .replace("{{player}}", starName)
         .replace("{{training}}", primaryTrainingName);
+      reasons.revealPrimaryCurrentAndSecondaryMax = reasons.revealPrimaryCurrent;
     }
     if (getKnownSkillValue(starSkills[secondaryMaxKey]) !== null) {
       reasons.revealSecondaryMax = messages.optimizeRevealSecondaryMaxKnownTooltip
         .replace("{{player}}", starName)
         .replace("{{training}}", secondaryTrainingName);
     }
+    if (!reasons.revealPrimaryCurrentAndSecondaryMax) {
+      if (!eligibleRevealSecondaryTargetOptions.length) {
+        reasons.revealPrimaryCurrentAndSecondaryMax =
+          messages.optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable;
+      } else if (!selectedRevealSecondaryTargetOption) {
+        reasons.revealPrimaryCurrentAndSecondaryMax =
+          messages.optimizeRevealTargetPlaceholder;
+      } else {
+        const targetSkills =
+          playerDetailsById.get(selectedRevealSecondaryTargetOption.playerId)?.PlayerSkills ??
+          playerList.find(
+            (player) => player.YouthPlayerID === selectedRevealSecondaryTargetOption.playerId
+          )?.PlayerSkills ??
+          null;
+        if (getKnownSkillValue(targetSkills?.[secondaryMaxKey]) !== null) {
+          reasons.revealPrimaryCurrentAndSecondaryMax =
+            messages.optimizeRevealSecondaryMaxKnownTooltip
+              .replace("{{player}}", selectedRevealSecondaryTargetOption.label)
+              .replace("{{training}}", secondaryTrainingName);
+        }
+      }
+    }
     return reasons;
   }, [
+    eligibleRevealSecondaryTargetOptions.length,
     messages.optimizeRevealPrimaryCurrentKnownTooltip,
+    messages.optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable,
     messages.optimizeRevealSecondaryMaxKnownTooltip,
+    messages.optimizeRevealTargetPlaceholder,
     messages.unknownShort,
     playerDetailsById,
     playerList,
     primaryTraining,
+    selectedRevealSecondaryTargetOption,
     secondaryTraining,
     starPlayerId,
   ]);
-
+  useEffect(() => {
+    if (!eligibleRevealSecondaryTargetOptions.length) {
+      if (revealSecondaryTargetPlayerId !== null) {
+        setRevealSecondaryTargetPlayerId(null);
+      }
+      if (revealSecondaryTargetMenuOpen) {
+        setRevealSecondaryTargetMenuOpen(false);
+      }
+      return;
+    }
+    const currentStillEligible = eligibleRevealSecondaryTargetOptions.some(
+      (option) => option.playerId === revealSecondaryTargetPlayerId
+    );
+    if (!currentStillEligible && revealSecondaryTargetPlayerId !== null) {
+      setRevealSecondaryTargetPlayerId(null);
+    }
+  }, [
+    eligibleRevealSecondaryTargetOptions,
+    revealSecondaryTargetMenuOpen,
+    revealSecondaryTargetPlayerId,
+  ]);
+  const optimizeCustomMenuContent = (
+    <Tooltip
+      content={
+        optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ?? ""
+      }
+      disabled={!optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax}
+      fullWidth
+    >
+      <span className={styles.optimizeMenuCustomWrap}>
+        <span className={styles.optimizeMenuCustomLabel}>
+          {optimizeRevealInlinePrefix}
+          <span className={styles.optimizeMenuInlinePickerWrap}>
+            <button
+              ref={revealSecondaryTargetButtonRef}
+              type="button"
+              className={styles.optimizeMenuInlinePicker}
+              onClick={(event) => {
+                event.stopPropagation();
+                setRevealSecondaryTargetMenuOpen((current) => !current);
+              }}
+              aria-haspopup="menu"
+              aria-expanded={revealSecondaryTargetMenuOpen}
+              disabled={!eligibleRevealSecondaryTargetOptions.length}
+            >
+              <span className={styles.optimizeMenuInlinePickerText}>
+                {optimizeRevealInlineTargetName}
+                {optimizeRevealInlinePickerSuffix}
+              </span>
+              <span className={styles.optimizeMenuInlinePickerChevron}>⌄</span>
+            </button>
+            {revealSecondaryTargetMenuOpen &&
+            eligibleRevealSecondaryTargetOptions.length ? (
+              <div
+                ref={revealSecondaryTargetMenuRef}
+                className={`${styles.feedbackMenu} ${styles.optimizeMenuInlinePickerMenu}`}
+                role="menu"
+              >
+                {eligibleRevealSecondaryTargetOptions.map((option) => (
+                  <button
+                    key={option.playerId}
+                    type="button"
+                    role="menuitem"
+                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                      revealSecondaryTargetPlayerId === option.playerId
+                        ? styles.optimizeMenuInlinePickerOptionActive
+                        : ""
+                    }`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setRevealSecondaryTargetPlayerId(option.playerId);
+                      setRevealSecondaryTargetMenuOpen(false);
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </span>
+          {optimizeRevealInlineSuffixRemainder}
+        </span>
+        <div className={styles.optimizeMenuCustomControls}>
+          <button
+            type="button"
+            className={`${styles.feedbackLink} ${styles.optimizeMenuActionButton} ${
+              optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
+                ? styles.optimizeMenuItemDisabled
+                : ""
+            }`}
+            onClick={() => handleOptimizeSelect("revealPrimaryCurrentAndSecondaryMax")}
+            disabled={Boolean(
+              optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
+            )}
+            aria-label={
+              optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ??
+              optimizeRevealPrimaryCurrentAndSecondaryMaxLabel
+            }
+          >
+            {messages.optimizeRevealCombinedButton}
+          </button>
+        </div>
+      </span>
+    </Tooltip>
+  );
   const trainingSlots = useMemo(() => {
     if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
       return {
@@ -4733,7 +4802,10 @@ export default function Dashboard({
   };
 
   const youthTrainingControls = (
-    <div className={styles.lineupTrainingControlStack} data-help-anchor="training-dropdowns">
+    <div
+      className={`${styles.lineupTrainingControlStack} ${styles.youthLineupTrainingControlStack}`}
+      data-help-anchor="training-dropdowns"
+    >
       <div className={styles.trainingRow}>
         <span className={styles.trainingLabel}>
           {(messages.primaryTrainingLabel || "Pri").slice(0, 3).toUpperCase()}
@@ -5457,6 +5529,7 @@ export default function Dashboard({
           optimizePrimaryTrainingName={optimizePrimaryTrainingName}
           optimizeSecondaryTrainingName={optimizeSecondaryTrainingName}
           optimizeModeDisabledReasons={optimizeModeDisabledReasons}
+          optimizeCustomMenuContent={optimizeCustomMenuContent}
           trainedSlots={trainingSlots}
           hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
           hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}

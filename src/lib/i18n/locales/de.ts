@@ -10,6 +10,15 @@ export const messagesDe: Messages = {
     changelogTitle: "Changelog",
     sidebarCollapseTooltip: "Seitenleiste einklappen",
     sidebarExpandTooltip: "Seitenleiste ausklappen",
+    supportOnKofi: "Kauf mir einen Kaffee",
+    buyCoffeePromptTitle: "☕ Danke, dass du hier bist",
+    buyCoffeePromptLead: "🙏 Ich freue mich wirklich, dass du HT Alchemy nutzt.",
+    buyCoffeePromptBody:
+      "✨ In diese App fließt laufend viel Arbeit, und wenn sie dir geholfen hat, wäre ein Kaffee eine wirklich schöne Unterstützung für die weitere Entwicklung. Jede Unterstützung hilft mir, mehr Zeit in Verbesserungen und Pflege zu stecken.",
+    buyCoffeePromptFoot:
+      "💛 Wenn nicht, ist das natürlich auch völlig in Ordnung. Ich freue mich einfach, wenn dir die App nützt.",
+    buyCoffeePromptAction: "☕ Kauf mir einen Kaffee",
+    buyCoffeePromptLater: "🙏 Nicht jetzt",
     toolYouthOptimization: "Jugendkader-Optimierung",
     toolSeniorOptimization: "Seniorkader-Optimierung",
     toolYouthBadge: "Y",
@@ -34,11 +43,39 @@ export const messagesDe: Messages = {
     watchlistError: "Unterstützte Teams konnten nicht geladen werden.",
     watchlistRemoveTooltip: "Team entfernen",
     watchlistTeamLabel: "Team",
+    watchlistOwnSeniorTeamsTitle: "Eigene Seniorenteams",
+    watchlistOwnSeniorTeamsEmpty: "Keine eigenen Seniorenteams gefunden.",
+    watchlistOwnLeaguesTitle: "Eigene Ligen",
+    watchlistOwnLeaguesEmpty: "Keine eigenen Ligen gefunden.",
+    watchlistAllItems: "Alle Watchlist-Einträge",
+    watchlistSelectAll: "Alle auswählen",
+    watchlistDeselectAll: "Alle abwählen",
+    watchlistGenderMale: "Männlich",
+    watchlistGenderFemale: "Weiblich",
+    clubChronicleTabDefaultName: "Tab {{number}}",
+    clubChronicleTabAdd: "Tab hinzufügen",
+    clubChronicleTabRenamePlaceholder: "Tab-Name",
+    clubChronicleTabRenameTooltip: "Tab umbenennen",
+    clubChronicleTabShortcutHint: "Zurück/weiter: j/k",
+    clubChronicleTabDeleteTooltip: "Tab löschen",
+    clubChronicleTabDeleteTitle: "Diesen Tab löschen?",
+    clubChronicleTabDeleteBody:
+      "Dieser Club-Chronicle-Tab mit Watchlist, neuesten Updates und lokalem Zustand wird entfernt. Das kann nicht rückgängig gemacht werden.",
+    clubChronicleTabDeleteConfirm: "Tab löschen",
     changelogVersionLabel: "Version",
     changelogEntryLabel: "Update",
     changelogNewer: "Neuere",
     changelogOlder: "Ältere",
     changelogPageLabel: "Seite {{current}} von {{total}}",
+    betaPillLabel: "Beta",
+    betaPillTooltip:
+      "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_3_9_0:
+      "Club Chronicle unterstützt jetzt Tabs mit unabhängigen Watchlists und tab-spezifischen neuesten Updates.",
+    changelog_3_8_0:
+      "Die Watchlist der Club-Chronik kann jetzt optional die anderen Teams aus jeder deiner eigenen Ligen verfolgen.",
+    changelog_3_7_0:
+      "Die KI-Aufstellung bei den Senioren bietet jetzt eine Optimierung für feste Formationen, die alle Taktiken prüft und die beste wählt.",
     changelog_1_19_0: "Unterstützung für mehrere Teams.",
     changelog_1_21_0: "Einstellungen: Export/Import für lokale Datensicherungen.",
     changelog_1_22_0: "Training automatisch bei manuellem Star-Wechsel.",
@@ -99,6 +136,14 @@ export const messagesDe: Messages = {
       "Senior-Optimierung mit eigenem Hilfe-Overlay und geführten Hinweisen für Letzte Updates und KI-Aufstellung.",
     changelog_3_2_0:
       "Das Trainingsregime der Senior-Aufstellung kann jetzt direkt in der App mit Berechtigungsprüfung und Verifizierung geändert werden.",
+    changelog_3_3_0:
+      "Die KI-Aufstellung der Senioren unterstützt jetzt einen Auf Verlängerung zielen-Ablauf für trainingsorientierte Verlängerungs-Setups.",
+    changelog_3_4_0:
+      "Die Club-Chronik-Watchlist zeigt jetzt alle eigenen Seniorenteams aus dem Manager-Compendium mit Kennzeichnung für männlich/weiblich.",
+    changelog_3_5_0:
+      "Die Senior-Optimierung unterstützt jetzt mehrere Seniorenteams mit geschlechtsmarkierter Teamauswahl und teambezogen gespeichertem Zustand.",
+    changelog_3_6_0:
+      "Die Jugend-Optimierung ergänzt jetzt einen kombinierten Aufdecken-Modus für den aktuellen Primärwert des Stars und den maximalen Sekundärwert eines anderen Spielers.",
     feedbackTooltip: "Feedback",
     feedbackBug: "Fehler melden",
     feedbackFeature: "Feature vorschlagen",
@@ -169,6 +214,7 @@ export const messagesDe: Messages = {
     settingsGeneral: "Allgemein",
     settingsGeneralTitle: "Allgemeine Einstellungen",
     settingsGeneralEnableScalingLabel: "App-Skalierung aktivieren",
+    settingsDebugBuyCoffeePromptButton: "Kauf-mir-einen-Kaffee-Modal zeigen",
     settingsGeneralEnableScalingTooltip:
       "Wenn aktiviert, skaliert die App, um in den Viewport zu passen und Scrollen zu reduzieren. Wenn deaktiviert, nutzt die App normale Größe und kann scrollen.",
     settingsDebug: "Debug",
@@ -229,6 +275,8 @@ export const messagesDe: Messages = {
       "Die Watchlist steuert, welche Teams in allen Panels verfolgt werden.",
     clubChronicleHelpBulletControls:
       "Kopfbereich: Aktualisieren startet einen vollen Datenlauf; Fortschritt ueber Statusleiste und Mini-Balken je Panel; Neueste Updates zeigt Diffs; Watchlist verwaltet verfolgte Teams; Panel-Header lassen sich zum Umordnen ziehen.",
+    clubChronicleHelpBulletTabs:
+      "Tabs helfen dir, verschiedene Chronicle-Arbeitsbereiche zu organisieren. Jeder Tab behaelt seine eigene Watchlist und seine eigenen neuesten Updates.",
     clubChronicleHelpBulletLeague:
       "Ligaleistung: Tabelle mit Position, Punkten, Serie, Positionsaenderung und Tordifferenz. Klick auf eine Zeile zeigt den Vorher/Nachher-Vergleich auf Attributebene.",
     clubChronicleHelpBulletPress:
@@ -458,7 +506,7 @@ export const messagesDe: Messages = {
     seniorHelpCalloutUpdates:
       "Letzte Updates zeigt nur Änderungen aus den zuletzt gespeicherten Refresh-Vergleichen.",
     seniorHelpCalloutSetLineupAi:
-      "Aufstellung per KI setzen öffnet die zwei Aufstellungsmodi für dieses Match.",
+      "Aufstellung per KI setzen öffnet die vier Aufstellungsmodi für dieses Match.",
     seniorHelpCalloutTrainingRegimen:
       "Über dieses Dropdown kannst du das Trainingsregime der Senioren direkt ändern.",
     seniorHelpCalloutAnalyzeOpponent:
@@ -466,13 +514,13 @@ export const messagesDe: Messages = {
     seniorHelpBulletLatestUpdates:
       "Ein neuer Vergleich wird nur gespeichert, wenn ein Refresh echte Änderungen erkennt (z. B. neue Spieler, Ratings-/Skill-Änderungen, Verletzungen, Karten, Form, Kondition oder Merkmale).",
     seniorHelpBulletAiOverview:
-      "Aufstellung per KI setzen verwendet die nach den verfügbaren Hattrick-Daten effektivste Aufstellung für einen Sieg.",
+      "Aufstellung per KI setzen nutzt anhand der verfügbaren Hattrick-Daten die effektivste Aufstellung, einschließlich trainingsbezogener, training-ignorierender, Verlängerungs- und fester Formationsmodi.",
     seniorHelpBulletAiTrainingAware:
       "Modus Trainingsbezogen berücksichtigt das aktuelle Trainingsschema und priorisiert Aufstellungen mit den relevanten Trainingsslots.",
     seniorHelpBulletAiIgnoreTraining:
       "Modus Training ignorieren optimiert rein auf Match-Effektivität ohne Trainingsslot-Beschränkung.",
     seniorHelpBulletAiMatchTypes:
-      "Liga- und Turnierspiele nutzen die stärkste Wettbewerbsaufstellung. Freundschaftsspiele nutzen eine zweitbeste gesunde XI.",
+      "Nutze Auf Verlängerung spielen, wenn du auf zusätzliche Trainingsminuten in der Verlängerung abzielst, und Optimieren nach Formation, wenn du eine Formation fest vorgeben und die beste Aufstellung dafür wählen lassen willst.",
     seniorHelpBulletTrainingRegimen:
       "Das Trainingsregime der Senioren kann direkt in der App über das Aufstellungs-Dropdown geändert werden.",
     seniorHelpBulletAnalyzeOpponent:
@@ -507,6 +555,13 @@ export const messagesDe: Messages = {
     refreshStopButton: "Stopp",
     refreshStopTooltip: "Laufende Aktualisierung stoppen.",
     youthLastGlobalRefresh: "Letzte globale Aktualisierung",
+    startupLoadingTitle: "Arbeitsbereich wird vorbereitet…",
+    startupLoadingSubtitle: "Der erste Ladevorgang kann einen Moment dauern.",
+    startupLoadingTeamContext: "Teamkontext wird geladen…",
+    startupLoadingPlayers: "Spieler werden geladen…",
+    startupLoadingMatches: "Spiele werden geladen…",
+    startupLoadingRatings: "Bewertungen werden geladen…",
+    startupLoadingFinalize: "Oberflaeche wird finalisiert…",
     refreshStatusFetchingPlayers: "Jugendspieler werden geladen…",
     refreshStatusFetchingPlayerDetails: "Spielerdetails werden geladen…",
     refreshStatusFetchingMatches: "Spiele werden geladen…",
@@ -586,6 +641,18 @@ export const messagesDe: Messages = {
       "Falls zusätzliche Anweisungen nötig sind, müssen diese direkt in Hattrick gesetzt werden.",
     seniorSubmitDisclaimerBulletVerify:
       "Prüfe Verfügbarkeit, Verletzungen und die taktische Absicht vor dem Anpfiff.",
+    seniorExtraTimeSubmitDisclaimerIntro:
+      "Anweisungen für eine Verlängerungs-Aufstellung wurden für das Trainingsprogramm {{training}} gesendet.",
+    seniorExtraTimeSubmitDisclaimerSwap:
+      "Die Trainees {{trainees}} tauschen die Positionen, um das Training in der Verlängerung zu maximieren, falls das Spiel nach 90 Minuten unentschieden steht.",
+    seniorExtraTimeSubmitDisclaimerPressing:
+      "Um die Wahrscheinlichkeit eines Unentschiedens zu maximieren, wurde die Taktik Pressing verwendet.",
+    seniorExtraTimeSubmitDisclaimerSetPieces:
+      "Der Standardschütze ist der Spieler mit dem schwächsten Standardwert.",
+    seniorExtraTimeSubmitDisclaimerPenalties:
+      "Die Elfmeterschützen wurden so geordnet, dass der erste Schütze derjenige ist, der am wenigsten wahrscheinlich trifft.",
+    seniorExtraTimeSubmitDisclaimerBehaviors:
+      "Spieler wurden, wo möglich, defensiv ausgerichtet.",
     loadLineupTooltip: "Lädt die gespeicherte Aufstellung aus Hattrick für dieses Spiel.",
     submitOrdersTooltip: "Sendet die aktuelle Aufstellung an Hattrick für dieses Spiel.",
     randomizeLineup: "Zufällige Aufstellung",
@@ -597,6 +664,8 @@ export const messagesDe: Messages = {
       "{{player}}: aktuellen {{training}}-Wert aufdecken",
     optimizeMenuRevealSecondaryMax:
       "{{player}}: maximalen {{training}}-Wert aufdecken",
+    optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
+      "Aktuellen {{trainingLower}}-Wert von {{player}} und maximalen {{secondaryTrainingLower}}-Wert von {{secondaryPlayer}} aufdecken",
     optimizeRevealPrimaryCurrentKnown:
       "Primärwert aufdecken nicht verfügbar: Primärwert des Stars ist bekannt.",
     optimizeRevealPrimaryCurrentKnownTooltip:
@@ -609,6 +678,10 @@ export const messagesDe: Messages = {
       "Aufdecken nicht verfügbar: maximaler {{training}}-Wert von {{player}} ist bereits bekannt.",
     optimizeRevealSecondaryMaxUnavailable:
       "Sekundärmax aufdecken nicht verfügbar. Starspieler und Sekundärtraining wählen.",
+    optimizeRevealPrimaryCurrentAndSecondaryMaxUnavailable:
+      "Kombiniertes Aufdecken nicht verfügbar. Starspieler, beide Trainings und ein geeignetes Sekundärziel wählen.",
+    optimizeRevealTargetPlaceholder: "Sekundärziel auswählen",
+    optimizeRevealCombinedButton: "Kombiniert anwenden",
     optimizeRatingsUnavailable:
       "Optimierung nach Bewertungen nicht verfügbar. Starspieler und beide Trainings wählen.",
     optimizeRatingsStarMaxed:
@@ -676,7 +749,77 @@ export const messagesDe: Messages = {
     setBestLineupIgnoreTraining: "Training ignorieren",
     setBestLineupIgnoreTrainingTooltip:
       "Setzt die Aufstellung ohne Berücksichtigung des Trainingsplans. Alle Formationen werden berücksichtigt.",
+    setBestLineupAimForExtraTime: "Auf Verlängerung spielen",
+    setBestLineupAimForExtraTimeTooltip:
+      "Spiele auf ein Unentschieden, um zusätzliches Training zu erhalten.",
+    setBestLineupAimForExtraTimeDisabledTooltip:
+      "Nur verfügbar für Qualifikation, Pokal und Freundschaftsspiele mit Pokalregeln.",
+    setBestLineupOptimizeByFormation: "Optimieren nach {{formation}}",
+    setBestLineupOptimizeByFormationTooltip:
+      "Zuerst die Formation festlegen, dann die am besten bewerteten Spieler dafür zuweisen und anschließend alle Taktiken testen, um das beste Ergebnis zu behalten.",
+    setBestLineupOptimizeByFormationDisabledTooltip:
+      "Wähle zuerst eine Formation aus.",
+    setBestLineupOptimizeByFormationUnavailable:
+      "Mit den verfügbaren Spielern konnte für diese Formation keine vollständige Aufstellung erstellt werden.",
+    setBestLineupOptimizeByFormationApply: "Formationsoptimierung anwenden",
+    seniorFixedFormationTotalRatingsLabel: "Gesamtbewertungen",
+    seniorFixedFormationWeightedSumLabel: "Gewichtete Summe",
+    seniorExtraTimeModalTitle: "Warum auf Verlängerung spielen?",
+    seniorExtraTimeModalLead:
+      "Weil Verlängerung zusätzliche Trainingsminuten bedeuten kann.",
+    seniorExtraTimeModalTrainingLimit:
+      "In Hattrick kann jeder Spieler pro Woche maximal 90 Trainingsminuten erhalten.",
+    seniorExtraTimeModalRotation:
+      "Geht ein Spiel in die Verlängerung und rotierst du andere Spieler auf trainierbare Positionen, können diese Minuten zusätzliches Training bringen.",
+    seniorExtraTimeModal120CupPrefix:
+      "Es gibt sogar einen Wettbewerb, der genau darauf aufbaut:",
+    seniorExtraTimeModal120CupLinkLabel: "den 120%-Cup",
+    seniorExtraTimeModal120CupMiddle: "organisiert von",
+    seniorExtraTimeModalMonomorphLinkLabel: "monomorph",
+    seniorExtraTimeModalWorkflow:
+      "Die Idee ist einfach: Basierend auf deinem Trainingsregime bittet Alchemy dich, die zu trainierenden Spieler auszuwählen. Du wählst die Spieler, klickst auf Aufstellung setzen, und Alchemy erledigt den Rest (Positionierung und Ausrichtung der Spieler, Taktik einstellen, Auswechslungen einrichten, Elfmeterschützen festlegen, Standardschützen bestimmen usw.). Wenn du mit der Aufstellung zufrieden bist, klicke auf Aufstellung senden, um sie an Hattrick zu schicken. Die Chancen auf ein Unentschieden sind deutlich höher, wenn dein Gegner seine Aufstellung auf ähnliche Weise setzt.",
+    seniorExtraTimeModalChooseTrainees:
+      "Wähle {{count}} Trainees und klicke dann auf Aufstellung setzen. Die automatisch ausgewählten können überschrieben werden.",
+    seniorExtraTimeModalBTeamToggleLabel: "B-Team",
+    seniorAiLastMatchThresholdText:
+      "Spieler ignorieren, deren letztes Spiel mehr als {{weeks}} Wochen zurückliegt.",
+    seniorAiLastMatchThresholdDisabledText:
+      "Spieler nicht anhand des Datums ihres letzten Spiels ignorieren. {{weeks}}",
+    seniorAiLastMatchThresholdAriaLabel:
+      "Wochen-Grenzwert zum Ignorieren von Spielern anhand des letzten Spiels",
+    seniorAiLastMatchDisregardedTooltip:
+      "Dieser Spieler wird ignoriert, weil sein letztes Spiel {{weeks}} Wochen zurückliegt.",
+    seniorExtraTimeModalBTeamThresholdText:
+      "Spieler ignorieren, die {{weekLink}} schon {{minutes}} Minuten gespielt haben.",
+    seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "diese Woche",
+    seniorExtraTimeModalBTeamThresholdAriaLabel:
+      "Minutengrenze zum Ignorieren bereits eingesetzter Spieler",
+    seniorExtraTimeModalBTeamNoRecentMatch:
+      "Diese Woche wurden keine trainingsrelevanten Spiele bestritten.",
+    seniorExtraTimeModalBTeamLoading:
+      "Trainingsrelevante Spiele dieser Woche werden geprüft...",
+    seniorExtraTimeModalBTeamError:
+      "Trainingsrelevante Spiele dieser Woche konnten nicht geprüft werden.",
+    seniorExtraTimeModalBTeamWeekendTooltip:
+      "Die B-Team-Auswahl ist nur von Montag bis Freitag (CET) verfügbar.",
+    seniorExtraTimeModalBTeamDisregardedTooltip:
+      "Dieser Spieler wird ignoriert, weil er diese Woche bereits mindestens {{minutes}} Minuten gespielt hat.",
+    seniorExtraTimeModalInjuredCheckboxTooltip:
+      "Der Spieler kann nicht gewählt werden, weil er verletzt ist.",
+    seniorExtraTimeModalSetLineupButton: "Aufstellung setzen",
+    seniorExtraTimeModalSetLineupDisabledTooltip:
+      "Wähle die richtige Anzahl an Trainees aus, um die Aufstellung zu setzen.",
+    seniorExtraTimeModalSetLineupReadyTooltip:
+      "Klicke in der passenden Spielkarte auf Aufstellung senden, um die Aufstellung an Hattrick zu schicken.",
     setBestLineupRejectedPlayersLabel: "Verworfene Spieler",
+    setBestLineupIneligiblePlayersLabel: "Nicht spielberechtigte Spieler",
+    setBestLineupDevAssignmentTraceLabel: "Zuweisungsspur",
+    setBestLineupDevEligiblePlayersLabel: "Spielberechtigte Spieler",
+    setBestLineupDevUnfilledLabel: "Nicht besetzt",
+    setBestLineupDevNoSlotRatingLabel: "Keine Positionsbewertung",
+    setBestLineupDevBetterOtherSectorLabel: "Besser in einem anderen Sektor",
+    setBestLineupDevTiedOtherSectorLabel: "Gleichstand mit anderem Sektor",
+    setBestLineupDevAlreadyUsedLabel: "Bereits verwendet",
     analyzeOpponent: "Gegner analysieren",
     analyzeOpponentTooltip: "Aktuelle Gegner-Spiele analysieren.",
     analyzeOpponentMatchId: "Spiel-ID",
@@ -749,10 +892,10 @@ export const messagesDe: Messages = {
     trainingScoring: "Torschuss",
     trainingSetPieces: "Standards",
     trainingDefendingDefendersMidfielders:
-      "Verteidigung (Verteidiger + Mittelfeldspieler)",
+      "Verteidigung (Torhüter, Verteidiger + alle Mittelfeldspieler)",
     trainingWingerWingerAttackers: "Flügelspiel (Flügel + Stürmer)",
     trainingPassingDefendersMidfielders:
-      "Passspiel (Verteidiger + Mittelfeldspieler)",
+      "Passspiel (Verteidiger + alle Mittelfeldspieler)",
     trainingSlotPrimary: "Primär",
     trainingSlotSecondary: "Sekundär",
     trainingSlotBoth: "Pri/sek",
@@ -871,7 +1014,7 @@ export const messagesDe: Messages = {
     ratingsTitle: "Bewertungsmatrix",
     ratingsMatchesAnalyzed: "Daten aus {count} Spielen abgerufen.",
     ratingsLastAppliedMatchLabel:
-      "Zuletzt angewendete Bewertungen aus Spiel {matchId} um {dateTime}.",
+      "Zuletzt angewendete Endstand-Bewertungen aus Spiel {matchId} um {dateTime}.",
     ratingsIndexLabel: "Nr.",
     ratingsMissingNote:
       "Einige Spieler haben keine aktuellen Matchdaten und werden mit — angezeigt.",

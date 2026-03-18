@@ -6,7 +6,7 @@ import {
   fetchChppXml,
   getChppAuth,
 } from "@/lib/chpp/server";
-const DEFAULT_VERSION = "1.2";
+const DEFAULT_VERSION = "1.3";
 const DEFAULT_ACTION = "list";
 
 function buildParams(url: URL) {

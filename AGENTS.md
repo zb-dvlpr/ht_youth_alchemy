@@ -12,7 +12,7 @@
 ## Localization
 - Any new visible user-facing text must be added in a multi-language ready way (i.e., sourced from the i18n messages table rather than hardcoded).
 - Localization messages are split per locale file; keep locale content in the correct locale file and never bulk copy translated blocks between locales.
-- When adding or changing i18n keys, update all supported locales (`en`, `de`, `fr`, `es`, `sv`, `it`, `pt`) in the same change.
+- When adding or changing i18n keys, update all supported locales (`en`, `de`, `fr`, `es`, `sv`, `it`, `pt`, `pl`, `nl`) in the same change.
 - For any localization edit, verify the changed keys in each locale file before finishing to prevent cross-locale text leakage.
 - Run `npm run check:i18n` after locale changes and before finishing. If it fails, fix locale leakage before any other work.
 

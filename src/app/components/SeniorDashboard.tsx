@@ -43,6 +43,7 @@ import {
 } from "@/lib/settings";
 import Modal from "./Modal";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
+import StartupLoadingExperience from "./StartupLoadingExperience";
 import {
   Cell,
   Pie,
@@ -521,6 +522,13 @@ type MatchOrderSubstitution = {
   card: number;
   standing: number;
 };
+
+type StartupLoadingPhase =
+  | "teamContext"
+  | "players"
+  | "matches"
+  | "ratings"
+  | "finalize";
 
 const parseNumber = (value: unknown): number | null => {
   if (value === null || value === undefined) return null;
@@ -1633,6 +1641,12 @@ export default function SeniorDashboard({
   const [refreshing, setRefreshing] = useState(false);
   const [refreshStatus, setRefreshStatus] = useState<string | null>(null);
   const [refreshProgressPct, setRefreshProgressPct] = useState(0);
+  const [startupLoadingPhase, setStartupLoadingPhase] =
+    useState<StartupLoadingPhase>("teamContext");
+  const [startupLoadingProgressPct, setStartupLoadingProgressPct] = useState(8);
+  const [startupBootstrapActive, setStartupBootstrapActive] = useState(false);
+  const [startupOverlayMounted, setStartupOverlayMounted] = useState(true);
+  const [startupOverlayFading, setStartupOverlayFading] = useState(false);
   const [lastRefreshAt, setLastRefreshAt] = useState<number | null>(null);
   const [updatesHistory, setUpdatesHistory] = useState<SeniorUpdatesGroupedEntry[]>([]);
   const [matrixNewMarkers, setMatrixNewMarkers] = useState<SeniorMatrixNewMarkers>(
@@ -1776,9 +1790,12 @@ export default function SeniorDashboard({
     null
   );
   const suppressNextUpdatesRecordingRef = useRef(false);
-  const refreshAllRef = useRef<((reason: "manual" | "stale") => Promise<boolean>) | null>(
-    null
-  );
+  const refreshAllRef = useRef<
+    ((
+      reason: "manual" | "stale",
+      options?: { startup?: boolean }
+    ) => Promise<boolean>) | null
+  >(null);
   const restoredStateStorageKeyRef = useRef<string | null>(null);
   const restoredDataStorageKeyRef = useRef<string | null>(null);
 
@@ -7834,8 +7851,12 @@ const refreshDetailsForPlayers = async (
     };
   };
 
-  const refreshAll = async (reason: "manual" | "stale") => {
+  const refreshAll = async (
+    reason: "manual" | "stale",
+    options?: { startup?: boolean }
+  ) => {
     if (refreshing) return false;
+    const isStartup = options?.startup ?? false;
     const refreshRunId = ++refreshRunSeqRef.current;
     activeRefreshRunIdRef.current = refreshRunId;
     stoppedRefreshRunIdsRef.current.delete(refreshRunId);
@@ -7873,13 +7894,37 @@ const refreshDetailsForPlayers = async (
     const previousDetailsById = new Map(detailsById);
 
     setRefreshing(true);
-    setRefreshStatus(messages.refreshStatusFetchingPlayers);
-    setRefreshProgressPct(10);
+    if (isStartup) {
+      setStartupBootstrapActive(true);
+      setStartupLoadingPhase("teamContext");
+      setStartupLoadingProgressPct(8);
+    }
+    setRefreshStatus(messages.startupLoadingTeamContext);
+    setRefreshProgressPct(5);
     setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
     let didBootstrapRatings = false;
+    let effectiveTeamId = resolvedSeniorTeamId;
 
     try {
-      const nextPlayers = await fetchPlayers(resolvedSeniorTeamId);
+      try {
+        const trainingSnapshot = await fetchTrainingSnapshot(resolvedSeniorTeamId);
+        if (isStopped()) return false;
+        effectiveTeamId = trainingSnapshot.teamId ?? effectiveTeamId;
+        setTrainingType(sanitizeTrainingType(trainingSnapshot.trainingType));
+        if (isStartup) {
+          setStartupLoadingProgressPct(16);
+        }
+      } catch {
+        // Keep refresh flow intact even if team context fails.
+      }
+
+      if (isStartup) {
+        setStartupLoadingPhase("players");
+        setStartupLoadingProgressPct(24);
+      }
+      setRefreshStatus(messages.refreshStatusFetchingPlayers);
+      setRefreshProgressPct(10);
+      const nextPlayers = await fetchPlayers(effectiveTeamId);
       if (isStopped()) return false;
 
       setRefreshStatus(messages.refreshStatusFetchingPlayerDetails);
@@ -7892,6 +7937,9 @@ const refreshDetailsForPlayers = async (
             if (!isStopped()) {
               const pct = Math.round((detailsCompleted / Math.max(1, totalPlayers)) * 15);
               setRefreshProgressPct(30 + pct);
+              if (isStartup) {
+                setStartupLoadingProgressPct(24 + pct);
+              }
             }
           },
         }
@@ -7904,11 +7952,19 @@ const refreshDetailsForPlayers = async (
         nextDetailsById.set(parsedId, detail);
       });
 
+      if (isStartup) {
+        setStartupLoadingPhase("matches");
+        setStartupLoadingProgressPct(55);
+      }
       setRefreshStatus(messages.refreshStatusFetchingMatches);
       setRefreshProgressPct(45);
-      const nextMatches = await fetchMatches(resolvedSeniorTeamId);
+      const nextMatches = await fetchMatches(effectiveTeamId);
       if (isStopped()) return false;
 
+      if (isStartup) {
+        setStartupLoadingPhase("ratings");
+        setStartupLoadingProgressPct(68);
+      }
       setRefreshStatus(messages.refreshStatusFetchingRatings);
       setRefreshProgressPct(60);
       const shouldBootstrapRatings = !hasUsableSeniorRatingsMatrix(effectiveRatingsResponse);
@@ -7918,18 +7974,27 @@ const refreshDetailsForPlayers = async (
             const currentSeason = await fetchCurrentSeason();
             if (isStopped()) return null;
             setRefreshProgressPct(72);
+            if (isStartup) {
+              setStartupLoadingProgressPct(76);
+            }
             const previousSeasonRatings = await fetchRatings(
-              resolvedSeniorTeamId,
+              effectiveTeamId,
               Math.max(1, currentSeason - 1)
             );
             if (isStopped()) return null;
             setRefreshProgressPct(84);
+            if (isStartup) {
+              setStartupLoadingProgressPct(84);
+            }
             const currentSeasonRatings = await fetchRatings(
-              resolvedSeniorTeamId,
+              effectiveTeamId,
               currentSeason
             );
             if (isStopped()) return null;
             setRefreshProgressPct(90);
+            if (isStartup) {
+              setStartupLoadingProgressPct(92);
+            }
             return stampSeniorRatingsAlgorithmVersion(
               mergeRatingsMatrices(previousSeasonRatings, currentSeasonRatings)
             );
@@ -7951,8 +8016,11 @@ const refreshDetailsForPlayers = async (
               fromTs !== null ? formatArchiveDateTimeParam(fromTs) : null;
             const lastMatchDate = formatArchiveDateTimeParam(Date.now());
             setRefreshProgressPct(72);
+            if (isStartup) {
+              setStartupLoadingProgressPct(76);
+            }
             const incrementalRatings = await fetchRatings(
-              resolvedSeniorTeamId,
+              effectiveTeamId,
               undefined,
               fromTs,
               fromMatchId,
@@ -7961,6 +8029,9 @@ const refreshDetailsForPlayers = async (
             );
             if (isStopped()) return null;
             setRefreshProgressPct(90);
+            if (isStartup) {
+              setStartupLoadingProgressPct(92);
+            }
             return stampSeniorRatingsAlgorithmVersion(
               applyRatingsDelta(
                 effectiveRatingsResponse ?? {
@@ -7977,19 +8048,14 @@ const refreshDetailsForPlayers = async (
           })();
       if (!nextRatings) return false;
       if (isStopped()) return false;
-      let nextTrainingType: number | null | undefined = undefined;
-      try {
-        nextTrainingType = await fetchTrainingType(resolvedSeniorTeamId);
-      } catch {
-        // Keep refresh flow intact even if training endpoint fails.
+      if (isStartup) {
+        setStartupLoadingPhase("finalize");
+        setStartupLoadingProgressPct(96);
       }
 
       setPlayers(nextPlayers);
       setMatchesState(nextMatches);
       setRatingsResponse(nextRatings);
-      if (nextTrainingType !== undefined) {
-        setTrainingType(sanitizeTrainingType(nextTrainingType));
-      }
       setLoadError(null);
       setLoadErrorDetails(null);
 
@@ -8031,6 +8097,9 @@ const refreshDetailsForPlayers = async (
       setLastRefreshAt(refreshedAt);
       setRefreshStatus(null);
       setRefreshProgressPct(100);
+      if (isStartup) {
+        setStartupLoadingProgressPct(100);
+      }
       setRefreshProgressPct(0);
       if (didBootstrapRatings) {
         addNotification(messages.notificationSeniorRatingsBootstrapComplete);
@@ -8059,6 +8128,9 @@ const refreshDetailsForPlayers = async (
       setRefreshing(false);
       setRefreshStatus(null);
       setRefreshProgressPct(0);
+      if (isStartup) {
+        setStartupBootstrapActive(false);
+      }
     }
   };
 
@@ -9053,7 +9125,11 @@ const refreshDetailsForPlayers = async (
         setTacticType(chosenTactic);
         setLoadedMatchId(matchId);
         setExtraTimePreparedSubmission(null);
-        setSeniorAiPreparedSubmissionMode(mode);
+        setSeniorAiPreparedSubmissionMode(
+          mode === "trainingAware" || mode === "ignoreTraining" || mode === "fixedFormation"
+            ? mode
+            : null
+        );
       };
 
       if (mode === "fixedFormation") {
@@ -9627,7 +9703,9 @@ const refreshDetailsForPlayers = async (
         suppressNextUpdatesRecordingRef.current = true;
       }
       if (shouldRefresh || shouldBootstrap) {
-        void refreshAll(shouldRefresh && lastRefresh ? "stale" : "manual");
+        void refreshAll(shouldRefresh && lastRefresh ? "stale" : "manual", {
+          startup: true,
+        });
       }
     } finally {
       restoredStateStorageKeyRef.current = stateStorageKey;
@@ -10227,9 +10305,46 @@ const refreshDetailsForPlayers = async (
   const seniorTrainingLabel =
     messages.trainingRegimenLabel.split(/\s+/).find(Boolean) ??
     messages.trainingRegimenLabel;
+  const startupLoadingStatus =
+    startupLoadingPhase === "teamContext"
+      ? messages.startupLoadingTeamContext
+      : startupLoadingPhase === "players"
+        ? messages.startupLoadingPlayers
+        : startupLoadingPhase === "matches"
+          ? messages.startupLoadingMatches
+          : startupLoadingPhase === "ratings"
+            ? messages.startupLoadingRatings
+            : messages.startupLoadingFinalize;
+  const startupOverlayShouldShow = !stateRestored || !dataRestored || startupBootstrapActive;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (startupOverlayShouldShow) {
+      setStartupOverlayMounted(true);
+      setStartupOverlayFading(false);
+      return;
+    }
+    if (!startupOverlayMounted) return;
+    setStartupOverlayFading(true);
+    const timeoutId = window.setTimeout(() => {
+      setStartupOverlayMounted(false);
+      setStartupOverlayFading(false);
+    }, 240);
+    return () => window.clearTimeout(timeoutId);
+  }, [startupOverlayMounted, startupOverlayShouldShow]);
 
   return (
     <div className={styles.dashboardStack} ref={dashboardRef}>
+      {startupOverlayMounted ? (
+        <StartupLoadingExperience
+          title={messages.startupLoadingTitle}
+          subtitle={messages.startupLoadingSubtitle}
+          status={startupLoadingStatus}
+          progressPct={startupLoadingProgressPct}
+          overlay
+          fading={startupOverlayFading}
+        />
+      ) : null}
       {loadError ? (
         <div className={styles.errorBox}>
           <h2 className={styles.sectionTitle}>{messages.unableToLoadPlayers}</h2>

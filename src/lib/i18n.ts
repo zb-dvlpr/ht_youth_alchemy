@@ -473,6 +473,13 @@ export type Messages = {
   refreshStopButton: string;
   refreshStopTooltip: string;
   youthLastGlobalRefresh: string;
+  startupLoadingTitle: string;
+  startupLoadingSubtitle: string;
+  startupLoadingTeamContext: string;
+  startupLoadingPlayers: string;
+  startupLoadingMatches: string;
+  startupLoadingRatings: string;
+  startupLoadingFinalize: string;
   refreshStatusFetchingPlayers: string;
   refreshStatusFetchingPlayerDetails: string;
   refreshStatusFetchingMatches: string;

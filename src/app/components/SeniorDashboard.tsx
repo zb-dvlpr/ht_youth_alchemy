@@ -1615,6 +1615,9 @@ export default function SeniorDashboard({
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
+  const [seniorAiPreparedSubmissionMode, setSeniorAiPreparedSubmissionMode] = useState<
+    Exclude<SetBestLineupMode, "extraTime"> | null
+  >(null);
   const [tacticType, setTacticType] = useState(0);
   const [trainingType, setTrainingType] = useState<number | null>(null);
   const [setBestLineupFixedFormation, setSetBestLineupFixedFormation] = useState<
@@ -3122,6 +3125,117 @@ export default function SeniorDashboard({
     return null;
   };
 
+  const buildSeniorAiStaminaSubstitutions = () => {
+    if (
+      seniorAiPreparedSubmissionMode !== "trainingAware" &&
+      seniorAiPreparedSubmissionMode !== "ignoreTraining" &&
+      seniorAiPreparedSubmissionMode !== "fixedFormation"
+    ) {
+      return [] as MatchOrderSubstitution[];
+    }
+
+    const eligibleEntries = FIELD_SLOT_ORDER.map((slot) => {
+      const playerId = assignments[slot];
+      if (typeof playerId !== "number" || playerId <= 0) return null;
+      const player = playersById.get(playerId);
+      if (!player) return null;
+
+      let positionGroup: "KP" | "CD" | "WB" | "IM" | "W" | "F" | null = null;
+      let benchSlot: keyof LineupAssignments | null = null;
+      switch (slot) {
+        case "KP":
+          positionGroup = "KP";
+          benchSlot = "B_GK";
+          break;
+        case "CD_L":
+        case "CD_C":
+        case "CD_R":
+          positionGroup = "CD";
+          benchSlot = "B_CD";
+          break;
+        case "WB_L":
+        case "WB_R":
+          positionGroup = "WB";
+          benchSlot = "B_WB";
+          break;
+        case "IM_L":
+        case "IM_C":
+        case "IM_R":
+          positionGroup = "IM";
+          benchSlot = "B_IM";
+          break;
+        case "W_L":
+        case "W_R":
+          positionGroup = "W";
+          benchSlot = "B_W";
+          break;
+        case "F_L":
+        case "F_C":
+        case "F_R":
+          positionGroup = "F";
+          benchSlot = "B_F";
+          break;
+        default:
+          return null;
+      }
+
+      const benchPlayerId = assignments[benchSlot];
+      if (typeof benchPlayerId !== "number" || benchPlayerId <= 0) return null;
+
+      const stamina = staminaValueForPlayer(player);
+      if (stamina < 0 || stamina > 5) return null;
+
+      return {
+        playerId,
+        benchPlayerId,
+        positionGroup,
+        stamina,
+        slotIndex: FIELD_SLOT_ORDER.indexOf(slot),
+      };
+    }).filter(
+      (
+        entry
+      ): entry is {
+        playerId: number;
+        benchPlayerId: number;
+        positionGroup: "KP" | "CD" | "WB" | "IM" | "W" | "F";
+        stamina: number;
+        slotIndex: number;
+      } => Boolean(entry)
+    );
+
+    const selectedEntries: typeof eligibleEntries = [];
+    const seenGroups = new Set<string>();
+    [...eligibleEntries]
+      .sort(
+        (left, right) =>
+          left.stamina - right.stamina ||
+          left.slotIndex - right.slotIndex ||
+          left.playerId - right.playerId
+      )
+      .forEach((entry) => {
+        if (selectedEntries.length >= 3 || seenGroups.has(entry.positionGroup)) return;
+        seenGroups.add(entry.positionGroup);
+        selectedEntries.push(entry);
+      });
+
+    return selectedEntries
+      .map((entry) => {
+        const minute = entry.stamina <= 3 ? 45 : entry.stamina === 4 ? 60 : 70;
+        return {
+          playerin: entry.benchPlayerId,
+          playerout: entry.playerId,
+          orderType: 1,
+          min: minute,
+          pos: -1,
+          beh: -1,
+          card: -1,
+          standing: -1,
+        } satisfies MatchOrderSubstitution;
+      })
+      .filter((entry): entry is MatchOrderSubstitution => Boolean(entry));
+  };
+
   const skillComboValueForAssignmentSlot = (
     player: SeniorPlayer,
     slot: keyof LineupAssignments
@@ -3995,7 +4109,14 @@ export default function SeniorDashboard({
     defaultPayload: ReturnType<typeof buildLineupPayload>
   ) => {
     if (!extraTimePreparedSubmission || extraTimePreparedSubmission.matchId !== matchId) {
-      return defaultPayload;
+      const staminaSubstitutions = buildSeniorAiStaminaSubstitutions();
+      if (!staminaSubstitutions.length) {
+        return defaultPayload;
+      }
+      return {
+        ...defaultPayload,
+        substitutions: staminaSubstitutions,
+      };
     }
     const onFieldPlayerIds = FIELD_SLOT_ORDER.map((slot) => assignments[slot]).filter(
       (playerId): playerId is number => typeof playerId === "number" && playerId > 0
@@ -6199,6 +6320,7 @@ export default function SeniorDashboard({
       const selectedTraineeIds = extraTimeSelectedPlayerIds.filter((playerId) =>
         extraTimeSelectablePlayerIds.includes(playerId)
       );
+      setSeniorAiPreparedSubmissionMode(null);
       if (resolvedExtraTimeTrainingType === 2) {
         const result = await buildSetPiecesExtraTimeResult(selectedTraineeIds);
         setAssignments(result.assignments);
@@ -8930,6 +9052,8 @@ const refreshDetailsForPlayers = async (
         setBehaviors({});
         setTacticType(chosenTactic);
         setLoadedMatchId(matchId);
+        setExtraTimePreparedSubmission(null);
+        setSeniorAiPreparedSubmissionMode(mode);
       };
 
       if (mode === "fixedFormation") {
@@ -9216,6 +9340,7 @@ const refreshDetailsForPlayers = async (
     setAssignments({});
     setBehaviors({});
     setLoadedMatchId(null);
+    setSeniorAiPreparedSubmissionMode(null);
     setTacticType(0);
     setTrainingType(null);
     setIncludeTournamentMatches(false);
@@ -9279,6 +9404,7 @@ const refreshDetailsForPlayers = async (
             assignments?: LineupAssignments;
             behaviors?: LineupBehaviors;
             loadedMatchId?: number | null;
+            seniorAiPreparedSubmissionMode?: Exclude<SetBestLineupMode, "extraTime"> | null;
             tacticType?: number;
             trainingType?: number | null;
             setBestLineupFixedFormation?: string | null;
@@ -9310,6 +9436,13 @@ const refreshDetailsForPlayers = async (
           setAssignments(parsed.assignments && typeof parsed.assignments === "object" ? parsed.assignments : {});
           setBehaviors(parsed.behaviors && typeof parsed.behaviors === "object" ? parsed.behaviors : {});
           setLoadedMatchId(typeof parsed.loadedMatchId === "number" ? parsed.loadedMatchId : null);
+          setSeniorAiPreparedSubmissionMode(
+            parsed.seniorAiPreparedSubmissionMode === "trainingAware" ||
+              parsed.seniorAiPreparedSubmissionMode === "ignoreTraining" ||
+              parsed.seniorAiPreparedSubmissionMode === "fixedFormation"
+              ? parsed.seniorAiPreparedSubmissionMode
+              : null
+          );
           setTacticType(typeof parsed.tacticType === "number" ? parsed.tacticType : 0);
           setTrainingType(
             sanitizeTrainingType(
@@ -9606,6 +9739,7 @@ const refreshDetailsForPlayers = async (
       assignments,
       behaviors,
       loadedMatchId,
+      seniorAiPreparedSubmissionMode,
       tacticType,
       trainingType,
       setBestLineupFixedFormation,
@@ -9638,6 +9772,7 @@ const refreshDetailsForPlayers = async (
     behaviors,
     includeTournamentMatches,
     loadedMatchId,
+    seniorAiPreparedSubmissionMode,
     selectedId,
     selectedUpdatesId,
     tacticType,
@@ -12413,6 +12548,7 @@ const refreshDetailsForPlayers = async (
                 return;
               }
               setExtraTimePreparedSubmission(null);
+              setSeniorAiPreparedSubmissionMode(null);
               return runSetBestLineupPredictRatings(matchId, mode, fixedFormation);
             }}
             onAnalyzeOpponent={(matchId) => {
@@ -12428,6 +12564,7 @@ const refreshDetailsForPlayers = async (
               loadedTacticType
             ) => {
               setExtraTimePreparedSubmission(null);
+              setSeniorAiPreparedSubmissionMode(null);
               setAssignments(nextAssignments);
               setBehaviors(nextBehaviors);
               if (typeof loadedTacticType === "number") {
@@ -12454,6 +12591,7 @@ const refreshDetailsForPlayers = async (
                 setSubmitDisclaimerExtraTimeSummary(null);
               }
               setExtraTimePreparedSubmission(null);
+              setSeniorAiPreparedSubmissionMode(null);
               setSubmitDisclaimerOpen(true);
               void onRefreshMatchesOnly();
             }}

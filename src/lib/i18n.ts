@@ -76,6 +76,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_3_10_0: string;
   changelog_3_9_0: string;
   changelog_3_8_0: string;
   changelog_3_7_0: string;
@@ -217,6 +218,7 @@ export type Messages = {
   clubChronicleRefreshLikelyTrainingTooltip: string;
   clubChronicleRefreshLastLoginTooltip: string;
   clubChronicleRefreshCoachTooltip: string;
+  clubChronicleRefreshPowerRatingsTooltip: string;
   clubChronicleRefreshStatusTeamDetails: string;
   clubChronicleRefreshStatusLeague: string;
   clubChronicleRefreshStatusLastLogin: string;
@@ -331,6 +333,12 @@ export type Messages = {
   clubChronicleCoachStatusPlayingTrainer: string;
   clubChronicleCoachStatusOnlyTrainer: string;
   clubChronicleCoachStatusHofTrainer: string;
+  clubChroniclePowerRatingsPanelTitle: string;
+  clubChroniclePowerRatingsDetailsTitle: string;
+  clubChroniclePowerRatingsColumnValue: string;
+  clubChroniclePowerRatingsColumnGlobalRanking: string;
+  clubChroniclePowerRatingsColumnLeagueRanking: string;
+  clubChroniclePowerRatingsColumnRegionRanking: string;
   clubChronicleTableTeam: string;
   clubChronicleTableSummary: string;
   clubChronicleMoveUp: string;

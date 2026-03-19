@@ -76,6 +76,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_3_10_0:
+    "Club Chronicle dodaje panel Power ratings z danych teamdetails w pamięci podręcznej wraz z rozbiciem rankingów.",
   changelog_3_9_0:
     "Club Chronicle obsługuje teraz karty z niezależnymi listami obserwowanych i aktualizacjami ograniczonymi do danej karty.",
   changelog_3_8_0:
@@ -475,6 +477,13 @@ export const messagesPl: Messages = {
     "Loguje w konsoli obserwowane wydarzenia specjalne: identyfikator wydarzenia, nazwy obiektu/podmiotu i adres URL meczu.",
   clubChronicleUpdatesButton: "Najnowsze aktualizacje",
   clubChronicleRefreshButton: "Odśwież",
+  clubChronicleRefreshPowerRatingsTooltip: "Odśwież dane power ratings.",
+  clubChroniclePowerRatingsPanelTitle: "Power ratings",
+  clubChroniclePowerRatingsDetailsTitle: "Power ratings",
+  clubChroniclePowerRatingsColumnValue: "Power rating",
+  clubChroniclePowerRatingsColumnGlobalRanking: "Ranking globalny",
+  clubChroniclePowerRatingsColumnLeagueRanking: "Ranking ligi",
+  clubChroniclePowerRatingsColumnRegionRanking: "Ranking regionu",
   themeSwitchDark: "Przełącz na tryb ciemny",
   optimizeLineupTitle: "Optymalizuj skład",
   optimizeMenuStar: "Optymalizuj wokół {{player}}",

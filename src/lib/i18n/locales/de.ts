@@ -70,6 +70,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_3_10_0:
+      "Club Chronicle ergänzt ein Power-Ratings-Panel aus zwischengespeicherten Teamdetails mit Ranking-Aufschlüsselung.",
     changelog_3_9_0:
       "Club Chronicle unterstützt jetzt Tabs mit unabhängigen Watchlists und tab-spezifischen neuesten Updates.",
     changelog_3_8_0:
@@ -251,6 +253,7 @@ export const messagesDe: Messages = {
       "Daten zum wahrscheinlichen Trainingsschema aktualisieren.",
     clubChronicleRefreshLastLoginTooltip: "Daten der letzten Anmeldung aktualisieren.",
     clubChronicleRefreshCoachTooltip: "Trainerdaten aktualisieren.",
+    clubChronicleRefreshPowerRatingsTooltip: "Power-Rating-Daten aktualisieren.",
     clubChronicleRefreshStatusTeamDetails: "Teamdetails werden geladen…",
     clubChronicleRefreshStatusLeague: "Ligaleistungsdaten werden geladen…",
     clubChronicleRefreshStatusLastLogin: "Letzte Anmeldungen werden geladen…",
@@ -390,6 +393,12 @@ export const messagesDe: Messages = {
     clubChronicleCoachStatusPlayingTrainer: "Spielender Trainer",
     clubChronicleCoachStatusOnlyTrainer: "Nur Trainer",
     clubChronicleCoachStatusHofTrainer: "HoF-Trainer",
+    clubChroniclePowerRatingsPanelTitle: "Power Ratings",
+    clubChroniclePowerRatingsDetailsTitle: "Power Ratings",
+    clubChroniclePowerRatingsColumnValue: "Power Rating",
+    clubChroniclePowerRatingsColumnGlobalRanking: "Globales Ranking",
+    clubChroniclePowerRatingsColumnLeagueRanking: "Liga-Ranking",
+    clubChroniclePowerRatingsColumnRegionRanking: "Regionales Ranking",
     clubChronicleTableTeam: "Team",
     clubChronicleTableSummary: "Zusammenfassung",
     clubChronicleColumnTeam: "Team",

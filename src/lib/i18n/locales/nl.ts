@@ -82,6 +82,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_3_10_0:
+    "Club Chronicle voegt een Power ratings-paneel toe uit gecachte teamdetails met uitsplitsing van rankings.",
   changelog_3_9_0:
     "Club Chronicle ondersteunt nu tabs met onafhankelijke watchlists en tabgebonden laatste updates.",
   changelog_3_8_0:
@@ -481,6 +483,13 @@ export const messagesNl: Messages = {
     "Logt gevolgde speciale gebeurtenissen in de console: gebeurtenis-id, object-/onderwerpnamen en wedstrijd-URL.",
   clubChronicleUpdatesButton: "Laatste updates",
   clubChronicleRefreshButton: "Vernieuwen",
+  clubChronicleRefreshPowerRatingsTooltip: "Power-ratingsgegevens vernieuwen.",
+  clubChroniclePowerRatingsPanelTitle: "Power ratings",
+  clubChroniclePowerRatingsDetailsTitle: "Power ratings",
+  clubChroniclePowerRatingsColumnValue: "Power rating",
+  clubChroniclePowerRatingsColumnGlobalRanking: "Wereldranglijst",
+  clubChroniclePowerRatingsColumnLeagueRanking: "Ligaranglijst",
+  clubChroniclePowerRatingsColumnRegionRanking: "Regioranglijst",
   themeSwitchDark: "Naar donkere modus schakelen",
   optimizeLineupTitle: "Opstelling optimaliseren",
   optimizeMenuStar: "Optimaliseer rond {{player}}",

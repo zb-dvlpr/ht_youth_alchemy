@@ -70,6 +70,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_3_10_0:
+      "Club Chronicle lägger till en Power ratings-panel från cachade teamdetails med uppdelade rankingar.",
     changelog_3_9_0:
       "Club Chronicle har nu flikar med oberoende bevakningslistor och flikbegränsade senaste uppdateringar.",
     changelog_3_8_0:
@@ -253,6 +255,7 @@ export const messagesSv: Messages = {
     clubChronicleRefreshLastLoginTooltip:
       "Uppdatera data för senaste inloggning.",
     clubChronicleRefreshCoachTooltip: "Uppdatera tranardata.",
+    clubChronicleRefreshPowerRatingsTooltip: "Uppdatera data för power ratings.",
     clubChronicleRefreshStatusTeamDetails: "Hämtar lagdetaljer…",
     clubChronicleRefreshStatusLeague: "Hämtar ligaprestanda…",
     clubChronicleRefreshStatusLastLogin: "Hämtar senaste inloggningar…",
@@ -392,6 +395,12 @@ export const messagesSv: Messages = {
     clubChronicleCoachStatusPlayingTrainer: "Spelande tranare",
     clubChronicleCoachStatusOnlyTrainer: "Bara tranare",
     clubChronicleCoachStatusHofTrainer: "Hall of Fame-tranare",
+    clubChroniclePowerRatingsPanelTitle: "Power ratings",
+    clubChroniclePowerRatingsDetailsTitle: "Power ratings",
+    clubChroniclePowerRatingsColumnValue: "Power rating",
+    clubChroniclePowerRatingsColumnGlobalRanking: "Global ranking",
+    clubChroniclePowerRatingsColumnLeagueRanking: "Ligaranking",
+    clubChroniclePowerRatingsColumnRegionRanking: "Regionranking",
     clubChronicleTableTeam: "Lag",
     clubChronicleTableSummary: "Sammanfattning",
     clubChronicleColumnTeam: "Lag",

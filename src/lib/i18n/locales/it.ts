@@ -70,6 +70,8 @@ export const messagesIt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Questa app è in beta. Funzioni, comportamento e dati locali in cache possono cambiare o essere azzerati senza preavviso.",
+    changelog_3_10_0:
+      "Club Chronicle aggiunge un pannello Power ratings ricavato dai teamdetails in cache con dettaglio dei ranking.",
     changelog_3_9_0:
       "Club Chronicle ora supporta schede con watchlist indipendenti e ultimi aggiornamenti separati per scheda.",
     changelog_3_8_0:
@@ -255,6 +257,7 @@ export const messagesIt: Messages = {
     clubChronicleRefreshLastLoginTooltip:
       "Aggiorna i dati degli ultimi accessi.",
     clubChronicleRefreshCoachTooltip: "Aggiorna i dati dell allenatore.",
+    clubChronicleRefreshPowerRatingsTooltip: "Aggiorna i dati dei power ratings.",
     clubChronicleRefreshStatusTeamDetails:
       "Recupero dettagli squadra…",
     clubChronicleRefreshStatusLeague:
@@ -399,6 +402,12 @@ export const messagesIt: Messages = {
     clubChronicleCoachStatusPlayingTrainer: "Allenatore-giocatore",
     clubChronicleCoachStatusOnlyTrainer: "Solo allenatore",
     clubChronicleCoachStatusHofTrainer: "Allenatore Hall of Fame",
+    clubChroniclePowerRatingsPanelTitle: "Power ratings",
+    clubChroniclePowerRatingsDetailsTitle: "Power ratings",
+    clubChroniclePowerRatingsColumnValue: "Power rating",
+    clubChroniclePowerRatingsColumnGlobalRanking: "Ranking globale",
+    clubChroniclePowerRatingsColumnLeagueRanking: "Ranking lega",
+    clubChroniclePowerRatingsColumnRegionRanking: "Ranking regionale",
     clubChronicleTableTeam: "Squadra",
     clubChronicleTableSummary: "Riepilogo",
     clubChronicleColumnTeam: "Squadra",

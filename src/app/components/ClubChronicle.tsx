@@ -419,6 +419,25 @@ type CoachRow = {
   snapshot?: CoachSnapshot | null;
 };
 
+type PowerRatingsSnapshot = {
+  powerRating: number | null;
+  globalRanking: number | null;
+  leagueRanking: number | null;
+  regionRanking: number | null;
+  fetchedAt: number;
+};
+
+type PowerRatingsData = {
+  current: PowerRatingsSnapshot;
+  previous?: PowerRatingsSnapshot;
+};
+
+type PowerRatingsRow = {
+  teamId: number;
+  teamName: string;
+  snapshot?: PowerRatingsSnapshot | null;
+};
+
 type WagesPlayerRow = {
   teamId: number;
   playerId: number;
@@ -514,6 +533,7 @@ type ChronicleTeamData = {
   formationsTactics?: FormationTacticsData;
   lastLogin?: LastLoginData;
   coach?: CoachData;
+  powerRatings?: PowerRatingsData;
 };
 
 type ChronicleCache = {
@@ -559,7 +579,8 @@ type UpdatePanel =
   | "formationsTactics"
   | "likelyTraining"
   | "lastLogin"
-  | "coach";
+  | "coach"
+  | "powerRatings";
 
 type ChronicleTableColumn<Row, Snapshot> = {
   key: string;
@@ -819,6 +840,7 @@ const PANEL_IDS = [
   "press-announcements",
   "last-login",
   "coach",
+  "power-ratings",
   "fanclub",
   "arena",
   "finance-estimate",
@@ -1544,6 +1566,41 @@ const resolveFanclub = (
   };
 };
 
+const resolvePowerRatings = (
+  team:
+    | {
+        PowerRating?: {
+          GlobalRanking?: unknown;
+          LeagueRanking?: unknown;
+          RegionRanking?: unknown;
+          PowerRating?: unknown;
+        };
+      }
+    | undefined
+): PowerRatingsSnapshot | null => {
+  const powerRatingNode = team?.PowerRating;
+  if (!powerRatingNode) return null;
+  const powerRating = parseOptionalNumber(powerRatingNode.PowerRating);
+  const globalRanking = parseOptionalNumber(powerRatingNode.GlobalRanking);
+  const leagueRanking = parseOptionalNumber(powerRatingNode.LeagueRanking);
+  const regionRanking = parseOptionalNumber(powerRatingNode.RegionRanking);
+  if (
+    powerRating === null &&
+    globalRanking === null &&
+    leagueRanking === null &&
+    regionRanking === null
+  ) {
+    return null;
+  }
+  return {
+    powerRating,
+    globalRanking,
+    leagueRanking,
+    regionRanking,
+    fetchedAt: Date.now(),
+  };
+};
+
 const tokenizePressText = (text: string): PressToken[] => {
   const regex = /\[(playerid|matchid|teamid|articleid|link)=([^\]]+)\]/gi;
   const tokens: PressToken[] = [];
@@ -2226,6 +2283,21 @@ const pruneChronicleCache = (cache: ChronicleCache): ChronicleCache => {
         }
         return coach;
       })(),
+      powerRatings: (() => {
+        const powerRatings = team.powerRatings;
+        if (!powerRatings?.current) return powerRatings;
+        const currentAge = now - powerRatings.current.fetchedAt;
+        if (currentAge > MAX_CACHE_AGE_MS) return undefined;
+        if (!powerRatings.previous) return powerRatings;
+        const previousAge = now - powerRatings.previous.fetchedAt;
+        if (previousAge > MAX_CACHE_AGE_MS) {
+          return {
+            ...powerRatings,
+            previous: undefined,
+          };
+        }
+        return powerRatings;
+      })(),
     };
   });
   return { ...cache, teams: nextTeams };
@@ -2257,7 +2329,9 @@ const getLatestCacheTimestamp = (cache: ChronicleCache): number | null => {
       team.lastLogin?.current?.fetchedAt ?? 0,
       team.lastLogin?.previous?.fetchedAt ?? 0,
       team.coach?.current?.fetchedAt ?? 0,
-      team.coach?.previous?.fetchedAt ?? 0
+      team.coach?.previous?.fetchedAt ?? 0,
+      team.powerRatings?.current?.fetchedAt ?? 0,
+      team.powerRatings?.previous?.fetchedAt ?? 0
     );
   });
   return latest > 0 ? latest : null;
@@ -2294,7 +2368,9 @@ const getLatestCacheTimestampForTeams = (
       team.lastLogin?.current?.fetchedAt ?? 0,
       team.lastLogin?.previous?.fetchedAt ?? 0,
       team.coach?.current?.fetchedAt ?? 0,
-      team.coach?.previous?.fetchedAt ?? 0
+      team.coach?.previous?.fetchedAt ?? 0,
+      team.powerRatings?.current?.fetchedAt ?? 0,
+      team.powerRatings?.previous?.fetchedAt ?? 0
     );
   }
   return latest > 0 ? latest : null;
@@ -2370,6 +2446,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [selectedCoachTeamId, setSelectedCoachTeamId] = useState<number | null>(
     null
   );
+  const [powerRatingsDetailsOpen, setPowerRatingsDetailsOpen] = useState(false);
+  const [selectedPowerRatingsTeamId, setSelectedPowerRatingsTeamId] = useState<
+    number | null
+  >(null);
   const [tsiDetailsSortState, setTsiDetailsSortState] = useState<{
     key: string;
     direction: "asc" | "desc";
@@ -2444,6 +2524,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     key: string;
     direction: "asc" | "desc";
   }>({ key: "team", direction: "asc" });
+  const [powerRatingsSortState, setPowerRatingsSortState] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({ key: "team", direction: "asc" });
   const [refreshingGlobal, setRefreshingGlobal] = useState(false);
   const [refreshingLeague, setRefreshingLeague] = useState(false);
   const [refreshingPress, setRefreshingPress] = useState(false);
@@ -2457,6 +2541,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [refreshingWages, setRefreshingWages] = useState(false);
   const [refreshingLastLogin, setRefreshingLastLogin] = useState(false);
   const [refreshingCoach, setRefreshingCoach] = useState(false);
+  const [refreshingPowerRatings, setRefreshingPowerRatings] = useState(false);
   const [globalRefreshProgressPct, setGlobalRefreshProgressPct] = useState(0);
   const [globalRefreshStatus, setGlobalRefreshStatus] = useState<string | null>(null);
   const [panelRefreshProgressPct, setPanelRefreshProgressPct] = useState<
@@ -2535,7 +2620,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     refreshingTsi ||
     refreshingWages ||
     refreshingLastLogin ||
-    refreshingCoach;
+    refreshingCoach ||
+    refreshingPowerRatings;
   const getPanelRefreshProgress = useCallback(
     (panelId: string) => panelRefreshProgressPct[panelId] ?? 0,
     [panelRefreshProgressPct]
@@ -2950,7 +3036,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           cached.wages?.current &&
           cached.formationsTactics?.current &&
           cached.lastLogin?.current &&
-          cached.coach?.current
+          cached.coach?.current &&
+          cached.powerRatings?.current
         );
       })
       .map((team) => team.teamId);
@@ -3079,6 +3166,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 label: messages.clubChronicleWagesColumnTop11,
                 previous: "301000",
                 current: "308000",
+              },
+              {
+                fieldKey: "powerRatings.value",
+                label: messages.clubChroniclePowerRatingsColumnValue,
+                previous: "860",
+                current: "879",
+              },
+              {
+                fieldKey: "powerRatings.globalRanking",
+                label: messages.clubChroniclePowerRatingsColumnGlobalRanking,
+                previous: "86120",
+                current: "84881",
               },
             ],
           },
@@ -4382,6 +4481,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setCoachDetailsOpen(true);
   };
 
+  const handleOpenPowerRatingsDetails = (teamId: number) => {
+    setSelectedPowerRatingsTeamId(teamId);
+    setPowerRatingsDetailsOpen(true);
+  };
+
   const handleOpenTransferListedDetails = useCallback((teamId: number) => {
     setSelectedTransferTeamId(teamId);
     setTransferListedDetailsOpen(true);
@@ -4581,6 +4685,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const handleCoachSort = (key: string) => {
     setCoachSortState((prev) => ({
+      key,
+      direction:
+        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
+    }));
+  };
+
+  const handlePowerRatingsSort = (key: string) => {
+    setPowerRatingsSortState((prev) => ({
       key,
       direction:
         prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
@@ -5566,6 +5678,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         return messages.clubChronicleCoachColumnTrainerLevel;
       case "coach.status":
         return messages.clubChronicleCoachColumnStatus;
+      case "powerRatings.value":
+        return messages.clubChroniclePowerRatingsColumnValue;
+      case "powerRatings.globalRanking":
+        return messages.clubChroniclePowerRatingsColumnGlobalRanking;
+      case "powerRatings.leagueRanking":
+        return messages.clubChroniclePowerRatingsColumnLeagueRanking;
+      case "powerRatings.regionRanking":
+        return messages.clubChroniclePowerRatingsColumnRegionRanking;
       case "tsi.total":
         return messages.clubChronicleTsiColumnTotal;
       case "tsi.top11":
@@ -5776,6 +5896,28 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleCoachColumnName,
       messages.clubChronicleCoachColumnTrainerLevel,
       messages.clubChronicleColumnTeam,
+    ]
+  );
+
+  const powerRatingsTableColumns = useMemo<
+    ChronicleTableColumn<PowerRatingsRow, PowerRatingsSnapshot>[]
+  >(
+    () => [
+      {
+        key: "team",
+        label: messages.clubChronicleColumnTeam,
+        getValue: (_snapshot, row) => row?.teamName ?? null,
+      },
+      {
+        key: "powerRating",
+        label: messages.clubChroniclePowerRatingsColumnValue,
+        getValue: (snapshot: PowerRatingsSnapshot | undefined) =>
+          snapshot?.powerRating ?? null,
+      },
+    ],
+    [
+      messages.clubChronicleColumnTeam,
+      messages.clubChroniclePowerRatingsColumnValue,
     ]
   );
 
@@ -6427,6 +6569,49 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
       }
 
+      if (panels.includes("powerRatings")) {
+        const previous = baselineCache
+          ? baselineTeam?.powerRatings?.current
+          : cached.powerRatings?.previous;
+        const current = cached.powerRatings?.current;
+        if (current && previous) {
+          const powerRatingsChanges: ChronicleUpdateField[] = [];
+          if (previous.powerRating !== current.powerRating) {
+            powerRatingsChanges.push({
+              fieldKey: "powerRatings.value",
+              label: messages.clubChroniclePowerRatingsColumnValue,
+              previous: formatValue(previous.powerRating),
+              current: formatValue(current.powerRating),
+            });
+          }
+          if (previous.globalRanking !== current.globalRanking) {
+            powerRatingsChanges.push({
+              fieldKey: "powerRatings.globalRanking",
+              label: messages.clubChroniclePowerRatingsColumnGlobalRanking,
+              previous: formatValue(previous.globalRanking),
+              current: formatValue(current.globalRanking),
+            });
+          }
+          if (previous.leagueRanking !== current.leagueRanking) {
+            powerRatingsChanges.push({
+              fieldKey: "powerRatings.leagueRanking",
+              label: messages.clubChroniclePowerRatingsColumnLeagueRanking,
+              previous: formatValue(previous.leagueRanking),
+              current: formatValue(current.leagueRanking),
+            });
+          }
+          if (previous.regionRanking !== current.regionRanking) {
+            powerRatingsChanges.push({
+              fieldKey: "powerRatings.regionRanking",
+              label: messages.clubChroniclePowerRatingsColumnRegionRanking,
+              previous: formatValue(previous.regionRanking),
+              current: formatValue(current.regionRanking),
+            });
+          }
+          appendTeamChanges(updatesMap, teamId, teamName, powerRatingsChanges);
+        }
+      }
+
       if (panels.includes("tsi")) {
         const previous = baselineCache
           ? baselineTeam?.tsi?.current
@@ -6594,6 +6779,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   FanclubName?: string;
                   FanclubSize?: unknown;
                 };
+                PowerRating?: {
+                  GlobalRanking?: unknown;
+                  LeagueRanking?: unknown;
+                  RegionRanking?: unknown;
+                  PowerRating?: unknown;
+                };
               };
             };
           };
@@ -6628,6 +6819,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 FanclubName?: string;
                 FanclubSize?: unknown;
               };
+              PowerRating?: {
+                GlobalRanking?: unknown;
+                LeagueRanking?: unknown;
+                RegionRanking?: unknown;
+                PowerRating?: unknown;
+              };
             }
           | undefined;
         if (!teamDetails) return;
@@ -6643,6 +6840,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           fanclubSize: null,
           fetchedAt: Date.now(),
         };
+        const powerRatingsSnapshot = resolvePowerRatings(teamDetails) ?? {
+          powerRating: null,
+          globalRanking: null,
+          leagueRanking: null,
+          regionRanking: null,
+          fetchedAt: Date.now(),
+        };
         const nextTeamName = teamDetails?.TeamName ?? team.teamName ?? "";
         const previousPress = nextCache.teams[team.teamId]?.pressAnnouncement?.current;
         const existingFanclub = nextCache.teams[team.teamId]?.fanclub;
@@ -6653,6 +6857,20 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           : true;
         const nextFanclubPrevious =
           fanclubChanged ? previousFanclubCurrent : existingFanclub?.previous;
+        const existingPowerRatings = nextCache.teams[team.teamId]?.powerRatings;
+        const previousPowerRatingsCurrent = existingPowerRatings?.current;
+        const powerRatingsChanged = previousPowerRatingsCurrent
+          ? previousPowerRatingsCurrent.powerRating !== powerRatingsSnapshot.powerRating ||
+            previousPowerRatingsCurrent.globalRanking !==
+              powerRatingsSnapshot.globalRanking ||
+            previousPowerRatingsCurrent.leagueRanking !==
+              powerRatingsSnapshot.leagueRanking ||
+            previousPowerRatingsCurrent.regionRanking !==
+              powerRatingsSnapshot.regionRanking
+          : true;
+        const nextPowerRatingsPrevious = powerRatingsChanged
+          ? previousPowerRatingsCurrent
+          : existingPowerRatings?.previous;
         nextCache.teams[team.teamId] = {
           ...nextCache.teams[team.teamId],
           teamId: team.teamId,
@@ -6673,6 +6891,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           fanclub: {
             current: fanclubSnapshot,
             previous: nextFanclubPrevious,
+          },
+          powerRatings: {
+            current: powerRatingsSnapshot,
+            previous: nextPowerRatingsPrevious,
           },
         };
         const manualIndex = nextManualTeams.findIndex(
@@ -7942,6 +8164,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setRefreshingWages(false);
     setRefreshingLastLogin(false);
     setRefreshingCoach(false);
+    setRefreshingPowerRatings(false);
   }, []);
 
   const requestStopRefresh = useCallback(() => {
@@ -7988,7 +8211,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setStage(
         0,
         messages.clubChronicleRefreshStatusTeamDetails,
-        ["press-announcements", "fanclub", "arena"]
+        ["press-announcements", "fanclub", "power-ratings", "arena"]
       );
       await refreshTeamDetails(nextCache, nextManualTeams, {
         updatePress: true,
@@ -8080,6 +8303,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           "league",
           "press",
           "fanclub",
+          "powerRatings",
           "arena",
           "finance",
           "transfer",
@@ -8304,6 +8528,34 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
     } finally {
       setRefreshingCoach(false);
+      clearProgressIndicators();
+    }
+  };
+
+  const refreshPowerRatingsOnly = async () => {
+    if (anyRefreshing) return;
+    if (trackedTeams.length === 0) return;
+    chronicleStopRequestedRef.current = false;
+    setRefreshingPowerRatings(true);
+    try {
+      setGlobalRefreshStatus(messages.clubChronicleRefreshStatusTeamDetails);
+      setGlobalRefreshProgressPct(20);
+      setPanelProgress(["power-ratings"], 20);
+      const nextCache = pruneChronicleCache(readChronicleCache());
+      const nextManualTeams = [...manualTeams];
+      await refreshTeamDetails(nextCache, nextManualTeams, { updatePress: false });
+      if (chronicleStopRequestedRef.current) return;
+      setManualTeams(nextManualTeams);
+      setChronicleCache(nextCache);
+      setGlobalRefreshProgressPct(100);
+      setPanelProgress(["power-ratings"], 100);
+      addNotification(messages.notificationChronicleRefreshComplete);
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
+    } finally {
+      setRefreshingPowerRatings(false);
       clearProgressIndicators();
     }
   };
@@ -8587,6 +8839,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         "league",
         "press",
         "fanclub",
+        "powerRatings",
         "arena",
         "finance",
         "transfer",
@@ -8658,6 +8911,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     wagesRows,
     lastLoginRows,
     coachRows,
+    powerRatingsRows,
   } = useMemo(() => {
     const leagueRowsValue: LeagueTableRow[] = trackedTeams.map((team) => {
       const cached = chronicleCache.teams[team.teamId];
@@ -8791,6 +9045,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       };
     });
 
+    const powerRatingsRowsValue: PowerRatingsRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot: cached?.powerRatings?.current,
+      };
+    });
+
     return {
       leagueRows: leagueRowsValue,
       pressRows: pressRowsValue,
@@ -8804,6 +9067,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       wagesRows: wagesRowsValue,
       lastLoginRows: lastLoginRowsValue,
       coachRows: coachRowsValue,
+      powerRatingsRows: powerRatingsRowsValue,
     };
   }, [trackedTeams, chronicleCache]);
 
@@ -9100,6 +9364,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       .map((item) => item.row);
   }, [coachRows, coachTableColumns, coachSortState]);
 
+  const sortedPowerRatingsRows = useMemo(() => {
+    if (!powerRatingsSortState.key) return powerRatingsRows;
+    const column = powerRatingsTableColumns.find(
+      (item) => item.key === powerRatingsSortState.key
+    );
+    if (!column) return powerRatingsRows;
+    const direction = powerRatingsSortState.direction === "desc" ? -1 : 1;
+    return [...powerRatingsRows]
+      .map((row, index) => ({ row, index }))
+      .sort((left, right) => {
+        const leftValue = normalizeSortValue(
+          column.getSortValue?.(left.row.snapshot ?? undefined, left.row) ??
+            column.getValue(left.row.snapshot ?? undefined, left.row)
+        );
+        const rightValue = normalizeSortValue(
+          column.getSortValue?.(right.row.snapshot ?? undefined, right.row) ??
+            column.getValue(right.row.snapshot ?? undefined, right.row)
+        );
+        const result = compareSortValues(leftValue, rightValue);
+        if (result !== 0) return result * direction;
+        return left.index - right.index;
+      })
+      .map((item) => item.row);
+  }, [powerRatingsRows, powerRatingsSortState, powerRatingsTableColumns]);
+
   const selectedTeam = selectedTeamId
     ? leagueRows.find((team) => team.teamId === selectedTeamId) ?? null
     : null;
@@ -9138,6 +9427,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     : null;
   const selectedCoachTeam = selectedCoachTeamId
     ? coachRows.find((team) => team.teamId === selectedCoachTeamId) ?? null
+    : null;
+  const selectedPowerRatingsTeam = selectedPowerRatingsTeamId
+    ? powerRatingsRows.find((team) => team.teamId === selectedPowerRatingsTeamId) ??
+      null
     : null;
   const lastLoginDetailRows = useMemo(
     () => {
@@ -10034,6 +10327,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [fanclubDetailsColumns.length]
   );
 
+  const powerRatingsTableStyle = useMemo(
+    () =>
+      ({
+        "--cc-columns": powerRatingsTableColumns.length,
+        "--cc-template": "minmax(180px, 1.4fr) minmax(120px, 0.8fr)",
+      }) as CSSProperties,
+    [powerRatingsTableColumns.length]
+  );
+
   const arenaTableStyle = useMemo(
     () =>
       ({
@@ -10642,6 +10944,64 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       sortKey={coachSortState.key}
                       sortDirection={coachSortState.direction}
                       onSort={handleCoachSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) =>
+                        handleNoDivulgoDismiss(row.teamId)
+                      }
+                    />
+                  )}
+                </ChroniclePanel>
+              </div>
+            );
+          }
+          if (panelId === "power-ratings") {
+            return (
+              <div
+                key={panelId}
+                className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
+                onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDragEnter={(event) => handlePanelDragEnter(event, panelId)}
+                onDragLeave={(event) => handlePanelDragLeave(event, panelId)}
+                onDrop={(event) => handlePanelDrop(event, panelId)}
+                onPointerEnter={() => handlePanelPointerEnter(panelId)}
+                onPointerUp={() => handlePanelPointerUp(panelId)}
+                onDragEnd={handlePanelDragEnd}
+              >
+                <ChroniclePanel
+                  title={messages.clubChroniclePowerRatingsPanelTitle}
+                  refreshing={refreshingGlobal || refreshingPowerRatings}
+                  progressPct={getPanelRefreshProgress(panelId)}
+                  refreshLabel={messages.clubChronicleRefreshPowerRatingsTooltip}
+                  panelId={panelId}
+                  onRefresh={() => runRefreshGuarded(() => refreshPowerRatingsOnly())}
+                  onPointerDown={handlePanelPointerDown}
+                  onDragStart={handlePanelDragStart}
+                  onDragEnd={handlePanelDragEnd}
+                >
+                  {trackedTeams.length === 0 ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
+                    </p>
+                  ) : (refreshingGlobal || refreshingPowerRatings) &&
+                    powerRatingsRows.every((row) => !row.snapshot) ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleLoading}
+                    </p>
+                  ) : (
+                    <ChronicleTable
+                      columns={powerRatingsTableColumns}
+                      rows={sortedPowerRatingsRows}
+                      getRowKey={(row) => row.teamId}
+                      getSnapshot={(row) => row.snapshot ?? undefined}
+                      getRowClassName={getTeamRowClassName}
+                      onRowClick={(row) => handleOpenPowerRatingsDetails(row.teamId)}
+                      formatValue={formatValue}
+                      style={powerRatingsTableStyle}
+                      sortKey={powerRatingsSortState.key}
+                      sortDirection={powerRatingsSortState.direction}
+                      onSort={handlePowerRatingsSort}
                       maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
                       maskText={messages.clubChronicleNoDivulgoMask}
                       isMaskActive={noDivulgoActive}
@@ -11747,6 +12107,64 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
         closeOnBackdrop
         onClose={() => setFinanceDetailsOpen(false)}
+      />
+
+      <Modal
+        open={powerRatingsDetailsOpen}
+        title={messages.clubChroniclePowerRatingsDetailsTitle}
+        body={
+          selectedPowerRatingsTeam?.snapshot ? (
+            <div className={styles.chronicleDetailsGrid}>
+              <h3 className={styles.chronicleDetailsSectionTitle}>
+                {renderTeamNameLink(
+                  selectedPowerRatingsTeam.teamId,
+                  selectedPowerRatingsTeam.teamName
+                )}
+              </h3>
+              <div className={styles.chronicleDetailsRow}>
+                <span className={styles.chronicleDetailsLabel}>
+                  {messages.clubChroniclePowerRatingsColumnValue}
+                </span>
+                <span />
+                <span>{formatValue(selectedPowerRatingsTeam.snapshot.powerRating)}</span>
+              </div>
+              <div className={styles.chronicleDetailsRow}>
+                <span className={styles.chronicleDetailsLabel}>
+                  {messages.clubChroniclePowerRatingsColumnGlobalRanking}
+                </span>
+                <span />
+                <span>{formatValue(selectedPowerRatingsTeam.snapshot.globalRanking)}</span>
+              </div>
+              <div className={styles.chronicleDetailsRow}>
+                <span className={styles.chronicleDetailsLabel}>
+                  {messages.clubChroniclePowerRatingsColumnLeagueRanking}
+                </span>
+                <span />
+                <span>{formatValue(selectedPowerRatingsTeam.snapshot.leagueRanking)}</span>
+              </div>
+              <div className={styles.chronicleDetailsRow}>
+                <span className={styles.chronicleDetailsLabel}>
+                  {messages.clubChroniclePowerRatingsColumnRegionRanking}
+                </span>
+                <span />
+                <span>{formatValue(selectedPowerRatingsTeam.snapshot.regionRanking)}</span>
+              </div>
+            </div>
+          ) : (
+            <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setPowerRatingsDetailsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setPowerRatingsDetailsOpen(false)}
       />
 
       <Modal

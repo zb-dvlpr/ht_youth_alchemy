@@ -254,6 +254,7 @@ export const messagesFr: Messages = {
       "Actualiser les données du régime d entraînement probable.",
     clubChronicleRefreshLastLoginTooltip: "Actualiser les données des dernières connexions.",
     clubChronicleRefreshCoachTooltip: "Actualiser les donnees du coach.",
+    clubChronicleRefreshPowerRatingsTooltip: "Actualiser les donnees des power ratings.",
     clubChronicleRefreshStatusTeamDetails:
       "Récupération des informations d équipe…",
     clubChronicleRefreshStatusLeague:
@@ -398,6 +399,12 @@ export const messagesFr: Messages = {
     clubChronicleCoachStatusPlayingTrainer: "Coach-joueur",
     clubChronicleCoachStatusOnlyTrainer: "Coach uniquement",
     clubChronicleCoachStatusHofTrainer: "Coach Hall of Fame",
+    clubChroniclePowerRatingsPanelTitle: "Power ratings",
+    clubChroniclePowerRatingsDetailsTitle: "Power ratings",
+    clubChroniclePowerRatingsColumnValue: "Power rating",
+    clubChroniclePowerRatingsColumnGlobalRanking: "Classement mondial",
+    clubChroniclePowerRatingsColumnLeagueRanking: "Classement ligue",
+    clubChroniclePowerRatingsColumnRegionRanking: "Classement region",
     clubChronicleTableTeam: "Équipe",
     clubChronicleTableSummary: "Résumé",
     clubChronicleColumnTeam: "Équipe",

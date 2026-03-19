@@ -255,6 +255,7 @@ export const messagesIt: Messages = {
     clubChronicleRefreshLastLoginTooltip:
       "Aggiorna i dati degli ultimi accessi.",
     clubChronicleRefreshCoachTooltip: "Aggiorna i dati dell allenatore.",
+    clubChronicleRefreshPowerRatingsTooltip: "Aggiorna i dati dei power ratings.",
     clubChronicleRefreshStatusTeamDetails:
       "Recupero dettagli squadra…",
     clubChronicleRefreshStatusLeague:
@@ -399,6 +400,12 @@ export const messagesIt: Messages = {
     clubChronicleCoachStatusPlayingTrainer: "Allenatore-giocatore",
     clubChronicleCoachStatusOnlyTrainer: "Solo allenatore",
     clubChronicleCoachStatusHofTrainer: "Allenatore Hall of Fame",
+    clubChroniclePowerRatingsPanelTitle: "Power ratings",
+    clubChroniclePowerRatingsDetailsTitle: "Power ratings",
+    clubChroniclePowerRatingsColumnValue: "Power rating",
+    clubChroniclePowerRatingsColumnGlobalRanking: "Ranking globale",
+    clubChroniclePowerRatingsColumnLeagueRanking: "Ranking lega",
+    clubChroniclePowerRatingsColumnRegionRanking: "Ranking regionale",
     clubChronicleTableTeam: "Squadra",
     clubChronicleTableSummary: "Riepilogo",
     clubChronicleColumnTeam: "Squadra",

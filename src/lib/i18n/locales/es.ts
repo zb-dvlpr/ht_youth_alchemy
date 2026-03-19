@@ -70,6 +70,8 @@ export const messagesEs: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Esta aplicación está en beta. Las funciones, el comportamiento y los datos locales en caché pueden cambiar o reiniciarse sin previo aviso.",
+    changelog_3_10_0:
+      "Club Chronicle añade un panel de Power ratings obtenido de teamdetails en caché con desglose de rankings.",
     changelog_3_9_0:
       "Club Chronicle ahora admite pestañas con watchlists independientes y últimas actualizaciones limitadas a cada pestaña.",
     changelog_3_8_0:

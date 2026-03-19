@@ -76,6 +76,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_3_10_0:
+    "Club Chronicle dodaje panel Power ratings z danych teamdetails w pamięci podręcznej wraz z rozbiciem rankingów.",
   changelog_3_9_0:
     "Club Chronicle obsługuje teraz karty z niezależnymi listami obserwowanych i aktualizacjami ograniczonymi do danej karty.",
   changelog_3_8_0:

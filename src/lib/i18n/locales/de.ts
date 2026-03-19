@@ -70,6 +70,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_3_10_0:
+      "Club Chronicle ergänzt ein Power-Ratings-Panel aus zwischengespeicherten Teamdetails mit Ranking-Aufschlüsselung.",
     changelog_3_9_0:
       "Club Chronicle unterstützt jetzt Tabs mit unabhängigen Watchlists und tab-spezifischen neuesten Updates.",
     changelog_3_8_0:

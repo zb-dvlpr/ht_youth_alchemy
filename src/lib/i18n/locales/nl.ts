@@ -82,6 +82,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_3_10_0:
+    "Club Chronicle voegt een Power ratings-paneel toe uit gecachte teamdetails met uitsplitsing van rankings.",
   changelog_3_9_0:
     "Club Chronicle ondersteunt nu tabs met onafhankelijke watchlists en tabgebonden laatste updates.",
   changelog_3_8_0:

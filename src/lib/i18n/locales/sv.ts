@@ -70,6 +70,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_3_10_0:
+      "Club Chronicle lägger till en Power ratings-panel från cachade teamdetails med uppdelade rankingar.",
     changelog_3_9_0:
       "Club Chronicle har nu flikar med oberoende bevakningslistor och flikbegränsade senaste uppdateringar.",
     changelog_3_8_0:

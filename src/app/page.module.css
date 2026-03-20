@@ -5363,6 +5363,14 @@ html[data-theme="dark"] .spinner {
   width: min(1200px, 98vw);
 }
 
+.confirmCard.nonTraineeAssignmentDebugModal {
+  width: min(1120px, 96vw);
+  max-height: min(88vh, 920px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .confirmCard.seniorUpdatesModal {
   width: min(1120px, 96vw);
   max-height: min(88vh, 920px);
@@ -5387,6 +5395,14 @@ html[data-theme="dark"] .spinner {
   min-height: 0;
 }
 
+.nonTraineeAssignmentDebugModal .confirmBody {
+  margin-bottom: 0;
+  overflow: auto;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-bottom: 6px;
+}
+
 .seniorExtraTimeModal .confirmBody {
   margin-bottom: 0;
   overflow: auto;
@@ -5401,6 +5417,10 @@ html[data-theme="dark"] .spinner {
 }
 
 .seniorUpdatesModal .confirmActions {
+  margin-top: 12px;
+}
+
+.nonTraineeAssignmentDebugModal .confirmActions {
   margin-top: 12px;
 }
 

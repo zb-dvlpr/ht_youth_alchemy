@@ -3470,14 +3470,72 @@ export default function SeniorDashboard({
       }, -1);
   };
 
+  const playerHasNoRatingsForAnyPosition = (
+    playerId: number,
+    ratingsById: Record<number, Record<string, number>>
+  ) =>
+    Array.from(new Set(Object.values(SLOT_TO_RATING_CODE))).every(
+      (ratingCode) =>
+        typeof ratingsById[playerId]?.[String(ratingCode)] !== "number"
+    );
+
+  const selectUnratedPriorityCandidateForSlot = (
+    candidates: SeniorPlayer[],
+    slot: keyof LineupAssignments,
+    ratingsById: Record<number, Record<string, number>>
+  ) => {
+    const unratedCandidates = candidates.filter((player) =>
+      playerHasNoRatingsForAnyPosition(player.PlayerID, ratingsById)
+    );
+    if (unratedCandidates.length === 0) return null;
+
+    const bestUnratedCandidate =
+      [...unratedCandidates].sort((left, right) =>
+        comparePlayersForReusableAssignment(left, right, slot, ratingsById)
+      )[0] ?? null;
+    if (!bestUnratedCandidate) return null;
+
+    const bestAvailableSkillCombo = candidates.reduce(
+      (best, player) => Math.max(best, skillComboValueForAssignmentSlot(player, slot)),
+      -1
+    );
+    const bestUnratedSkillCombo = skillComboValueForAssignmentSlot(
+      bestUnratedCandidate,
+      slot
+    );
+
+    return bestUnratedSkillCombo >= bestAvailableSkillCombo ? bestUnratedCandidate : null;
+  };
+
+  const buildOrderedCandidatesForReusableAssignment = (
+    candidates: SeniorPlayer[],
+    slot: keyof LineupAssignments,
+    ratingsById: Record<number, Record<string, number>>
+  ) => {
+    const selectedUnratedCandidate = selectUnratedPriorityCandidateForSlot(
+      candidates,
+      slot,
+      ratingsById
+    );
+    const orderedCandidates = [...candidates].sort((left, right) =>
+      comparePlayersForReusableAssignment(left, right, slot, ratingsById)
+    );
+    if (!selectedUnratedCandidate) return orderedCandidates;
+    return [
+      selectedUnratedCandidate,
+      ...orderedCandidates.filter(
+        (player) => player.PlayerID !== selectedUnratedCandidate.PlayerID
+      ),
+    ];
+  };
+
   const buildNonTraineeRankingEntries = (
     candidates: SeniorPlayer[],
     slot: keyof LineupAssignments,
     ratingsById: Record<number, Record<string, number>>
   ): NonTraineeAssignmentRankingEntry[] => {
     const representative = representativeSlotForAssignment(slot);
-    return [...candidates]
-      .sort((left, right) => comparePlayersForReusableAssignment(left, right, slot, ratingsById))
+    return buildOrderedCandidatesForReusableAssignment(candidates, slot, ratingsById)
       .map((player) => {
         const slotRating =
           representative &&
@@ -3585,14 +3643,38 @@ export default function SeniorDashboard({
 
     slots.forEach((slot) => {
       const representative = representativeSlotForAssignment(slot);
+      const selectedUnratedCandidate = selectUnratedPriorityCandidateForSlot(
+        available,
+        slot,
+        ratingsById
+      );
       if (!representative) {
+        if (selectedUnratedCandidate) {
+          assignments[slot] = selectedUnratedCandidate.PlayerID;
+          if (options?.collectTrace) {
+            const ranking = buildNonTraineeRankingEntries(available, slot, ratingsById);
+            nonTraineeAssignmentTrace.push({
+              slot,
+              selectedPlayerId: selectedUnratedCandidate.PlayerID,
+              selectedReason: labelForNonTraineeReason("skillCombo"),
+              ranking,
+            });
+          }
+          available = available.filter(
+            (player) => player.PlayerID !== selectedUnratedCandidate.PlayerID
+          );
+          return;
+        }
         unresolvedSlots.push(slot);
         return;
       }
-      const orderedCandidates = [...available].sort((left, right) =>
-        comparePlayersForReusableAssignment(left, right, slot, ratingsById)
+      const orderedCandidates = buildOrderedCandidatesForReusableAssignment(
+        available,
+        slot,
+        ratingsById
       );
       const selected =
+        selectedUnratedCandidate ??
         orderedCandidates.find((candidate) => {
           const slotRating = ratingsById[candidate.PlayerID]?.[
             String(SLOT_TO_RATING_CODE[representative])
@@ -3602,7 +3684,8 @@ export default function SeniorDashboard({
             bestOtherRowRatingForPlayer(candidate.PlayerID, slot, ratingsById) <=
             resolvedSlotRating
           );
-        }) ?? null;
+        }) ??
+        null;
       if (!selected) {
         unresolvedSlots.push(slot);
         return;
@@ -3614,7 +3697,7 @@ export default function SeniorDashboard({
           slot,
           selectedPlayerId: selected.PlayerID,
           selectedReason: labelForNonTraineeReason(
-            reasonMetricForReusableOrder(ranking, selected.PlayerID)
+            selectedUnratedCandidate ? "skillCombo" : reasonMetricForReusableOrder(ranking, selected.PlayerID)
           ),
           ranking,
         });
@@ -3626,13 +3709,20 @@ export default function SeniorDashboard({
       const ranking = options?.collectTrace
         ? buildNonTraineeRankingEntries(available, slot, ratingsById)
         : [];
-      const selected = chooseRandomPlayer(available);
+      const selected =
+        selectUnratedPriorityCandidateForSlot(available, slot, ratingsById) ??
+        chooseRandomPlayer(available);
       assignments[slot] = selected?.PlayerID ?? null;
       if (options?.collectTrace) {
         nonTraineeAssignmentTrace.push({
           slot,
           selectedPlayerId: selected?.PlayerID ?? null,
-          selectedReason: labelForNonTraineeReason("randomFallback"),
+          selectedReason: labelForNonTraineeReason(
+            selected &&
+              playerHasNoRatingsForAnyPosition(selected.PlayerID, ratingsById)
+              ? "skillCombo"
+              : "randomFallback"
+          ),
           ranking,
         });
       }

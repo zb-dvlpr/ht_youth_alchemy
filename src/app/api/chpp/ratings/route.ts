@@ -12,9 +12,10 @@ import { mapWithConcurrency } from "@/lib/async";
 
 const MATCHESARCHIVE_VERSION = "1.5";
 const MATCHLINEUP_VERSION = "2.1";
+const MATCHDETAILS_VERSION = "3.1";
 const PLAYERS_VERSION = "2.8";
 const MATCH_FETCH_CONCURRENCY = 6;
-const SENIOR_RATINGS_ALGORITHM_VERSION = 4;
+const SENIOR_RATINGS_ALGORITHM_VERSION = 5;
 
 type MatchSummary = {
   Status?: string;
@@ -32,6 +33,95 @@ type LineupPlayer = {
   FirstName?: string;
   NickName?: string;
   LastName?: string;
+};
+
+type MatchSubstitution = {
+  OrderType?: number | string;
+  SubjectPlayerID?: number | string;
+  ObjectPlayerID?: number | string;
+  MatchMinute?: number | string;
+};
+
+const inferSeniorMatchMinutes = (
+  matchDate: string | null,
+  finishedDate: string | null,
+  addedMinutes: number | null
+) => {
+  const added = Math.max(0, addedMinutes ?? 0);
+  const baselineElapsedMinutes = 45 + 15 + 45 + added;
+  const startedAt = matchDate ? parseChppDate(matchDate) : null;
+  const finishedAt = finishedDate ? parseChppDate(finishedDate) : null;
+  const elapsedMinutes =
+    startedAt && finishedAt
+      ? Math.max(0, Math.round((finishedAt.getTime() - startedAt.getTime()) / 60000))
+      : baselineElapsedMinutes;
+  const hadExtraTime = elapsedMinutes > baselineElapsedMinutes;
+  return 90 + added + (hadExtraTime ? 30 : 0);
+};
+
+const buildPlayedMinutesByPlayerId = (
+  lineupPlayers: LineupPlayer[],
+  substitutions: MatchSubstitution[],
+  totalMatchMinutes: number
+) => {
+  const playedMinutesById = new Map<number, number>();
+  const onFieldSince = new Map<number, number>();
+
+  lineupPlayers.forEach((player) => {
+    const playerId = Number(player.PlayerID);
+    const roleId = Number(player.RoleID);
+    if (!Number.isFinite(playerId) || playerId <= 0) return;
+    if (!Number.isFinite(roleId) || roleId < 100 || roleId > 113) return;
+    if (!onFieldSince.has(playerId)) {
+      onFieldSince.set(playerId, 0);
+    }
+  });
+
+  const closeInterval = (playerId: number, minute: number) => {
+    const startedAt = onFieldSince.get(playerId);
+    if (typeof startedAt !== "number") return;
+    playedMinutesById.set(
+      playerId,
+      (playedMinutesById.get(playerId) ?? 0) + Math.max(0, minute - startedAt)
+    );
+    onFieldSince.delete(playerId);
+  };
+
+  [...substitutions]
+    .map((substitution) => ({
+      orderType: Number(substitution.OrderType),
+      subjectPlayerId: Number(substitution.SubjectPlayerID),
+      objectPlayerId: Number(substitution.ObjectPlayerID),
+      minute: Math.min(
+        totalMatchMinutes,
+        Math.max(0, Number(substitution.MatchMinute) || totalMatchMinutes)
+      ),
+    }))
+    .filter(
+      (substitution) =>
+        substitution.orderType === 1 &&
+        Number.isFinite(substitution.subjectPlayerId) &&
+        substitution.subjectPlayerId > 0 &&
+        Number.isFinite(substitution.objectPlayerId) &&
+        substitution.objectPlayerId > 0 &&
+        substitution.subjectPlayerId !== substitution.objectPlayerId
+    )
+    .sort((left, right) => left.minute - right.minute)
+    .forEach((substitution) => {
+      closeInterval(substitution.subjectPlayerId, substitution.minute);
+      if (!onFieldSince.has(substitution.objectPlayerId)) {
+        onFieldSince.set(substitution.objectPlayerId, substitution.minute);
+      }
+    });
+
+  onFieldSince.forEach((startedAt, playerId) => {
+    playedMinutesById.set(
+      playerId,
+      (playedMinutesById.get(playerId) ?? 0) + Math.max(0, totalMatchMinutes - startedAt)
+    );
+  });
+
+  return playedMinutesById;
 };
 
 export async function GET(request: Request) {
@@ -160,18 +250,53 @@ export async function GET(request: Request) {
             teamID: String(resolvedTeamId),
             sourceSystem: match._sourceSystem,
           });
-          const { parsed: lineupParsed } = await fetchChppXml(auth, lineupParams);
+          const detailsParams = new URLSearchParams({
+            file: "matchdetails",
+            version: MATCHDETAILS_VERSION,
+            matchID: String(match._matchId),
+            sourceSystem: match._sourceSystem,
+            matchEvents: "false",
+          });
+          const [{ parsed: lineupParsed }, { parsed: detailsParsed }] = await Promise.all([
+            fetchChppXml(auth, lineupParams),
+            fetchChppXml(auth, detailsParams),
+          ]);
+          const matchDetails = detailsParsed?.HattrickData?.Match;
+          const totalMatchMinutes = inferSeniorMatchMinutes(
+            typeof matchDetails?.MatchDate === "string" ? matchDetails.MatchDate : null,
+            typeof matchDetails?.FinishedDate === "string" ? matchDetails.FinishedDate : null,
+            Number.isFinite(Number(matchDetails?.AddedMinutes))
+              ? Number(matchDetails?.AddedMinutes)
+              : null
+          );
+          const lineupPlayers = normalizeArray<LineupPlayer>(
+            lineupParsed?.HattrickData?.Team?.Lineup?.Player as
+              | LineupPlayer
+              | LineupPlayer[]
+              | undefined
+          );
+          const playedMinutesById = buildPlayedMinutesByPlayerId(
+            normalizeArray<LineupPlayer>(
+              lineupParsed?.HattrickData?.Team?.StartingLineup?.Player as
+                | LineupPlayer
+                | LineupPlayer[]
+                | undefined
+            ),
+            normalizeArray<MatchSubstitution>(
+              lineupParsed?.HattrickData?.Team?.Substitutions?.Substitution as
+                | MatchSubstitution
+                | MatchSubstitution[]
+                | undefined
+            ),
+            totalMatchMinutes
+          );
           return {
             matchId: match._matchId,
             matchDate: match._date,
             sourceSystem: match._sourceSystem,
             ok: true,
-            lineupPlayers: normalizeArray<LineupPlayer>(
-              lineupParsed?.HattrickData?.Team?.Lineup?.Player as
-                | LineupPlayer
-                | LineupPlayer[]
-                | undefined
-            ),
+            lineupPlayers,
+            playedMinutesById,
           };
         } catch {
           return {
@@ -180,6 +305,7 @@ export async function GET(request: Request) {
             sourceSystem: match._sourceSystem,
             ok: false,
             lineupPlayers: [] as LineupPlayer[],
+            playedMinutesById: new Map<number, number>(),
           };
         }
       }
@@ -195,6 +321,7 @@ export async function GET(request: Request) {
         const playerId = Number(player.PlayerID);
         if (!Number.isFinite(playerId) || playerId <= 0) return;
         if (!seniorPlayerIdSet.has(playerId)) return;
+        if ((result.playedMinutesById.get(playerId) ?? 0) < 90) return;
         const fullName = [player.FirstName, player.NickName, player.LastName]
           .filter(Boolean)
           .join(" ");

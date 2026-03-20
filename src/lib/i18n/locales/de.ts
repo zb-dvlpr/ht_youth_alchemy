@@ -1045,7 +1045,7 @@ export const messagesDe: Messages = {
     ratingsTitle: "Bewertungsmatrix",
     ratingsMatchesAnalyzed: "Daten aus {count} Spielen abgerufen.",
     ratingsLastAppliedMatchLabel:
-      "Zuletzt angewendete Endstand-Bewertungen aus Spiel {matchId} um {dateTime}.",
+      "Zuletzt angewendete Endstand-Bewertungen (>= 90 gespielte Minuten) aus Spiel {matchId} um {dateTime}.",
     ratingsIndexLabel: "Nr.",
     ratingsMissingNote:
       "Einige Spieler haben keine aktuellen Matchdaten und werden mit — angezeigt.",

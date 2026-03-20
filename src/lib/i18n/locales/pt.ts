@@ -1056,7 +1056,7 @@ export const messagesPt: Messages = {
     ratingsTitle: "Matriz de avaliações",
     ratingsMatchesAnalyzed: "Dados obtidos de {count} partidas.",
     ratingsLastAppliedMatchLabel:
-      "Últimas avaliações de fim de jogo aplicadas da partida {matchId} às {dateTime}.",
+      "Últimas avaliações de fim de jogo aplicadas (>= 90 minutos jogados) da partida {matchId} às {dateTime}.",
     ratingsIndexLabel: "Nº",
     ratingsMissingNote:
       "Alguns jogadores não têm dados recentes e são mostrados com —.",

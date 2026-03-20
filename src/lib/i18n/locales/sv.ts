@@ -1048,7 +1048,7 @@ export const messagesSv: Messages = {
     ratingsTitle: "Betygsmatris",
     ratingsMatchesAnalyzed: "Data hämtad från {count} matcher.",
     ratingsLastAppliedMatchLabel:
-      "Senast tillämpade slutmatchbetyg från match {matchId} kl. {dateTime}.",
+      "Senast tillämpade slutmatchbetyg (>= 90 spelade minuter) från match {matchId} kl. {dateTime}.",
     ratingsIndexLabel: "Nr",
     ratingsMissingNote:
       "Vissa spelare saknar senaste matchdata och visas med —.",

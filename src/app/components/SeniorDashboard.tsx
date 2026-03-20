@@ -2995,7 +2995,10 @@ export default function SeniorDashboard({
     const setPiecesOrderedAscending = [...onFieldPlayers].sort(comparePlayersBySetPiecesAscending);
     const setPiecesOrderedDescending = [...onFieldPlayers].sort(comparePlayersBySetPiecesDescending);
     const worstSetPiecesPlayer = setPiecesOrderedAscending[0] ?? null;
-    const bestSetPiecesPlayer = setPiecesOrderedDescending[0] ?? null;
+    const keeperId =
+      typeof assignments.KP === "number" && assignments.KP > 0 ? assignments.KP : null;
+    const worstOutfieldSetPiecesPlayer =
+      setPiecesOrderedAscending.find((player) => player.PlayerID !== keeperId) ?? null;
     const kickerIds = [
       worstSetPiecesPlayer?.PlayerID ?? 0,
       ...setPiecesOrderedDescending
@@ -3005,7 +3008,8 @@ export default function SeniorDashboard({
     while (kickerIds.length < 11) kickerIds.push(0);
     return {
       kickerIds,
-      setPiecesPlayerId: bestSetPiecesPlayer?.PlayerID ?? 0,
+      setPiecesPlayerId:
+        worstOutfieldSetPiecesPlayer?.PlayerID ?? worstSetPiecesPlayer?.PlayerID ?? 0,
     };
   };
 

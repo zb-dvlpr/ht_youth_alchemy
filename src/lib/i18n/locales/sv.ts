@@ -807,13 +807,13 @@ export const messagesSv: Messages = {
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Minutgräns för att bortse från spelare som redan spelat den här veckan",
     seniorExtraTimeModalBTeamNoRecentMatch:
-      "Inga träningsrelevanta matcher har spelats den här veckan.",
+      "B-lagsfönstret är öppet från måndag till torsdag (CET).",
     seniorExtraTimeModalBTeamLoading:
       "Kontrollerar veckans träningsrelevanta matcher...",
     seniorExtraTimeModalBTeamError:
       "Det gick inte att kontrollera veckans träningsrelevanta matcher.",
     seniorExtraTimeModalBTeamWeekendTooltip:
-      "B-lagsvalet är bara tillgängligt från måndag till fredag (CET).",
+      "B-lagsvalet är bara tillgängligt från måndag till torsdag (CET).",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Spelaren ignoreras eftersom han redan har spelat minst {{minutes}} minuter den här veckan.",
     seniorExtraTimeModalInjuredCheckboxTooltip:

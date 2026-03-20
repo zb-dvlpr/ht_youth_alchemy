@@ -816,13 +816,13 @@ export const messagesPt: Messages = {
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Limite de minutos para ignorar jogadores que já atuaram nesta semana",
     seniorExtraTimeModalBTeamNoRecentMatch:
-      "Nenhuma partida relevante para treino foi jogada nesta semana.",
+      "A janela da equipa B está aberta de segunda a quinta-feira (CET).",
     seniorExtraTimeModalBTeamLoading:
       "Verificando as partidas relevantes para treino desta semana...",
     seniorExtraTimeModalBTeamError:
       "Nao foi possivel verificar as partidas relevantes para treino desta semana.",
     seniorExtraTimeModalBTeamWeekendTooltip:
-      "A seleção da equipa B só está disponível de segunda a sexta-feira (CET).",
+      "A seleção da equipa B só está disponível de segunda a quinta-feira (CET).",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Este jogador é desconsiderado porque já jogou pelo menos {{minutes}} minutos nesta semana.",
     seniorExtraTimeModalInjuredCheckboxTooltip:

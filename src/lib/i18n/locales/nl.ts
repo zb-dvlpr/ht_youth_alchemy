@@ -252,13 +252,13 @@ export const messagesNl: Messages = {
   seniorExtraTimeModalBTeamThresholdAriaLabel:
     "Minutendrempel om spelers die deze week al speelden te negeren",
   seniorExtraTimeModalBTeamNoRecentMatch:
-    "Er zijn deze week geen trainingsrelevante wedstrijden gespeeld.",
+    "Het B-teamvenster is geopend van maandag tot en met donderdag (CET).",
   seniorExtraTimeModalBTeamLoading:
     "Trainingsrelevante wedstrijden van deze week worden gecontroleerd...",
   seniorExtraTimeModalBTeamError:
     "De trainingsrelevante wedstrijden van deze week konden niet worden gecontroleerd.",
   seniorExtraTimeModalBTeamWeekendTooltip:
-    "De B-teamselectie is alleen beschikbaar van maandag tot en met vrijdag (CET).",
+    "De B-teamselectie is alleen beschikbaar van maandag tot en met donderdag (CET).",
   seniorExtraTimeModalBTeamDisregardedTooltip:
     "Deze speler wordt genegeerd omdat hij deze week al minstens {{minutes}} minuten heeft gespeeld.",
   seniorExtraTimeModalSetLineupButton: "Opstelling instellen",

@@ -246,13 +246,13 @@ export const messagesPl: Messages = {
   seniorExtraTimeModalBTeamThresholdAriaLabel:
     "Próg minut do pomijania zawodników, którzy już grali w tym tygodniu",
   seniorExtraTimeModalBTeamNoRecentMatch:
-    "W tym tygodniu nie rozegrano meczów istotnych dla treningu.",
+    "Okno drużyny B jest otwarte od poniedziałku do czwartku (CET).",
   seniorExtraTimeModalBTeamLoading:
     "Sprawdzanie meczów istotnych dla treningu w tym tygodniu...",
   seniorExtraTimeModalBTeamError:
     "Nie udało się sprawdzić meczów istotnych dla treningu w tym tygodniu.",
   seniorExtraTimeModalBTeamWeekendTooltip:
-    "Wybór składu B jest dostępny tylko od poniedziałku do piątku (CET).",
+    "Wybór składu B jest dostępny tylko od poniedziałku do czwartku (CET).",
   seniorExtraTimeModalBTeamDisregardedTooltip:
     "Ten zawodnik jest pomijany, ponieważ w tym tygodniu rozegrał już co najmniej {{minutes}} minut.",
   seniorExtraTimeModalSetLineupButton: "Ustaw skład",

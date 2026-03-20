@@ -1033,7 +1033,7 @@ const berlinWeekdayFormatter = new Intl.DateTimeFormat("en-US", {
 
 const isBerlinWeekend = (value: Date) => {
   const weekday = berlinWeekdayFormatter.format(value);
-  return weekday === "Sat" || weekday === "Sun";
+  return weekday === "Fri" || weekday === "Sat" || weekday === "Sun";
 };
 
 const hasCurrentSeniorRatingsAlgorithmVersion = (
@@ -1870,8 +1870,7 @@ export default function SeniorDashboard({
       ),
     [activeSeniorTeamId, multiTeamEnabled]
   );
-  const extraTimeBTeamWeekendLocked =
-    process.env.NODE_ENV === "production" && extraTimeBTeamBerlinWeekend;
+  const extraTimeBTeamWeekendLocked = extraTimeBTeamBerlinWeekend;
   const effectiveExtraTimeBTeamEnabled =
     extraTimeBTeamEnabled && !extraTimeBTeamWeekendLocked;
 

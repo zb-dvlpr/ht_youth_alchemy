@@ -126,7 +126,7 @@ export const messagesNl: Messages = {
   ratingsTitle: "Beoordelingsmatrix",
   ratingsMatchesAnalyzed: "Gegevens opgehaald uit {count} wedstrijden.",
   ratingsLastAppliedMatchLabel:
-    "Laatst toegepaste eindstand-beoordelingen uit wedstrijd {matchId} om {dateTime}.",
+    "Laatst toegepaste eindstand-beoordelingen (>= 90 gespeelde minuten) uit wedstrijd {matchId} om {dateTime}.",
   ratingsIndexLabel: "#",
   ratingsSortBy: "Sorteren op",
   ratingsPlayerLabel: "Speler",
@@ -252,13 +252,13 @@ export const messagesNl: Messages = {
   seniorExtraTimeModalBTeamThresholdAriaLabel:
     "Minutendrempel om spelers die deze week al speelden te negeren",
   seniorExtraTimeModalBTeamNoRecentMatch:
-    "Er zijn deze week geen trainingsrelevante wedstrijden gespeeld.",
+    "Het B-teamvenster is geopend van maandag tot en met donderdag (CET).",
   seniorExtraTimeModalBTeamLoading:
     "Trainingsrelevante wedstrijden van deze week worden gecontroleerd...",
   seniorExtraTimeModalBTeamError:
     "De trainingsrelevante wedstrijden van deze week konden niet worden gecontroleerd.",
   seniorExtraTimeModalBTeamWeekendTooltip:
-    "De B-teamselectie is alleen beschikbaar van maandag tot en met vrijdag (CET).",
+    "De B-teamselectie is alleen beschikbaar van maandag tot en met donderdag (CET).",
   seniorExtraTimeModalBTeamDisregardedTooltip:
     "Deze speler wordt genegeerd omdat hij deze week al minstens {{minutes}} minuten heeft gespeeld.",
   seniorExtraTimeModalSetLineupButton: "Opstelling instellen",
@@ -275,6 +275,28 @@ export const messagesNl: Messages = {
   setBestLineupDevBetterOtherSectorLabel: "Beter in een andere sector",
   setBestLineupDevTiedOtherSectorLabel: "Gelijk met een andere sector",
   setBestLineupDevAlreadyUsedLabel: "Al gebruikt",
+  setBestLineupDevNonTraineeTraceTitle: "Trace niet-getrainde toewijzingen",
+  setBestLineupDevSelectedReasonLabel: "Geselecteerd omdat",
+  setBestLineupDevRankingLabel: "Ranglijst beschikbare spelers",
+  setBestLineupDevRankLabel: "Rang",
+  setBestLineupDevSlotRatingLabel: "Positierating",
+  setBestLineupDevSkillComboLabel: "Skillcombinatie",
+  setBestLineupDevOverallLabel: "Totaal",
+  setBestLineupDevBestOtherRowLabel: "Beste andere rij",
+  setBestLineupDevRowFitLabel: "Rij-fit",
+  setBestLineupDevReasonBestSlotRating: "Beste positierating",
+  setBestLineupDevReasonBestSkillCombo: "Beste skillcombinatie als tiebreak",
+  setBestLineupDevReasonBestForm: "Beste vorm als tiebreak",
+  setBestLineupDevReasonBestStamina: "Beste conditie als tiebreak",
+  setBestLineupDevReasonBestOverall: "Beste totaalscore als tiebreak",
+  setBestLineupDevReasonYoungestTieBreak: "Jongste als tiebreak",
+  setBestLineupDevReasonFirstRowFit: "Eerste speler die netjes in deze rij past",
+  setBestLineupDevReasonRandomFallback: "Willekeurige fallback na geen nette rij-fit",
+  setBestLineupDevReasonTiedOtherSectorFallback: "Fallback tussen spelers gelijk met een andere sector",
+  setBestLineupDevReasonBetterOtherSectorFallback: "Fallback tussen spelers die beter zijn in een andere sector",
+  setBestLineupDevReasonFormFallback: "Vorm-fallback zonder passende kandidaat",
+  setBestLineupDevReasonBestAggregate: "Beste geaggregeerde bankscore",
+  setBestLineupDevReasonAlphabeticalTieBreak: "Alfabetische tiebreak",
   analyzeOpponent: "Tegenstander analyseren",
   analyzeOpponentTooltip: "Analyseer recente wedstrijden van de tegenstander.",
   analyzeOpponentMatchId: "Wedstrijd-ID",

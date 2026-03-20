@@ -807,13 +807,13 @@ export const messagesSv: Messages = {
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Minutgräns för att bortse från spelare som redan spelat den här veckan",
     seniorExtraTimeModalBTeamNoRecentMatch:
-      "Inga träningsrelevanta matcher har spelats den här veckan.",
+      "B-lagsfönstret är öppet från måndag till torsdag (CET).",
     seniorExtraTimeModalBTeamLoading:
       "Kontrollerar veckans träningsrelevanta matcher...",
     seniorExtraTimeModalBTeamError:
       "Det gick inte att kontrollera veckans träningsrelevanta matcher.",
     seniorExtraTimeModalBTeamWeekendTooltip:
-      "B-lagsvalet är bara tillgängligt från måndag till fredag (CET).",
+      "B-lagsvalet är bara tillgängligt från måndag till torsdag (CET).",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Spelaren ignoreras eftersom han redan har spelat minst {{minutes}} minuter den här veckan.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
@@ -832,6 +832,28 @@ export const messagesSv: Messages = {
     setBestLineupDevBetterOtherSectorLabel: "Bättre i en annan sektor",
     setBestLineupDevTiedOtherSectorLabel: "Lika med en annan sektor",
     setBestLineupDevAlreadyUsedLabel: "Redan använd",
+    setBestLineupDevNonTraineeTraceTitle: "Spår för otränade tilldelningar",
+    setBestLineupDevSelectedReasonLabel: "Vald eftersom",
+    setBestLineupDevRankingLabel: "Ranking för tillgängliga spelare",
+    setBestLineupDevRankLabel: "Rank",
+    setBestLineupDevSlotRatingLabel: "Slotbetyg",
+    setBestLineupDevSkillComboLabel: "Skillkombination",
+    setBestLineupDevOverallLabel: "Total",
+    setBestLineupDevBestOtherRowLabel: "Bästa andra rad",
+    setBestLineupDevRowFitLabel: "Radpassning",
+    setBestLineupDevReasonBestSlotRating: "Bästa slotbetyg",
+    setBestLineupDevReasonBestSkillCombo: "Bästa skillkombination i skiljning",
+    setBestLineupDevReasonBestForm: "Bästa form i skiljning",
+    setBestLineupDevReasonBestStamina: "Bästa kondition i skiljning",
+    setBestLineupDevReasonBestOverall: "Bästa totalvärde i skiljning",
+    setBestLineupDevReasonYoungestTieBreak: "Yngst i skiljning",
+    setBestLineupDevReasonFirstRowFit: "Första spelaren som passade raden rent",
+    setBestLineupDevReasonRandomFallback: "Slumpreserv när ingen ren radpassning fanns",
+    setBestLineupDevReasonTiedOtherSectorFallback: "Reserv bland spelare lika med en annan sektor",
+    setBestLineupDevReasonBetterOtherSectorFallback: "Reserv bland spelare starkare i en annan sektor",
+    setBestLineupDevReasonFormFallback: "Formreserv när ingen slotpassande kandidat fanns",
+    setBestLineupDevReasonBestAggregate: "Bästa aggregerade bänkscore",
+    setBestLineupDevReasonAlphabeticalTieBreak: "Alfabetisk skiljning",
     analyzeOpponent: "Analysera motståndare",
     analyzeOpponentTooltip: "Analysera motståndarens senaste matcher.",
     analyzeOpponentMatchId: "Match-ID",
@@ -1026,7 +1048,7 @@ export const messagesSv: Messages = {
     ratingsTitle: "Betygsmatris",
     ratingsMatchesAnalyzed: "Data hämtad från {count} matcher.",
     ratingsLastAppliedMatchLabel:
-      "Senast tillämpade slutmatchbetyg från match {matchId} kl. {dateTime}.",
+      "Senast tillämpade slutmatchbetyg (>= 90 spelade minuter) från match {matchId} kl. {dateTime}.",
     ratingsIndexLabel: "Nr",
     ratingsMissingNote:
       "Vissa spelare saknar senaste matchdata och visas med —.",

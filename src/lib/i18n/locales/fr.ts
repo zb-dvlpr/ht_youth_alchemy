@@ -815,13 +815,13 @@ export const messagesFr: Messages = {
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Seuil de minutes pour ignorer les joueurs déjà utilisés cette semaine",
     seniorExtraTimeModalBTeamNoRecentMatch:
-      "Aucun match pertinent pour l entraînement n a été joué cette semaine.",
+      "La fenêtre de l équipe B est ouverte du lundi au jeudi (CET).",
     seniorExtraTimeModalBTeamLoading:
       "Vérification des matchs pertinents pour l entraînement de cette semaine...",
     seniorExtraTimeModalBTeamError:
       "Impossible de vérifier les matchs pertinents pour l entraînement cette semaine.",
     seniorExtraTimeModalBTeamWeekendTooltip:
-      "La sélection de l équipe B n est disponible que du lundi au vendredi (CET).",
+      "La sélection de l équipe B n est disponible que du lundi au jeudi (CET).",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Ce joueur est ignoré, car il a déjà joué au moins {{minutes}} minutes cette semaine.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
@@ -840,6 +840,28 @@ export const messagesFr: Messages = {
     setBestLineupDevBetterOtherSectorLabel: "Meilleur dans un autre secteur",
     setBestLineupDevTiedOtherSectorLabel: "A égalité avec un autre secteur",
     setBestLineupDevAlreadyUsedLabel: "Déjà utilisé",
+    setBestLineupDevNonTraineeTraceTitle: "Trace d affectation des non-entraines",
+    setBestLineupDevSelectedReasonLabel: "Selectionne parce que",
+    setBestLineupDevRankingLabel: "Classement des joueurs disponibles",
+    setBestLineupDevRankLabel: "Rang",
+    setBestLineupDevSlotRatingLabel: "Note du poste",
+    setBestLineupDevSkillComboLabel: "Combinaison de competences",
+    setBestLineupDevOverallLabel: "Global",
+    setBestLineupDevBestOtherRowLabel: "Meilleure autre ligne",
+    setBestLineupDevRowFitLabel: "Compatibilite de ligne",
+    setBestLineupDevReasonBestSlotRating: "Meilleure note du poste",
+    setBestLineupDevReasonBestSkillCombo: "Meilleure combinaison de competences au departage",
+    setBestLineupDevReasonBestForm: "Meilleure forme au departage",
+    setBestLineupDevReasonBestStamina: "Meilleure endurance au departage",
+    setBestLineupDevReasonBestOverall: "Meilleur total global au departage",
+    setBestLineupDevReasonYoungestTieBreak: "Plus jeune au departage",
+    setBestLineupDevReasonFirstRowFit: "Premier joueur correspondant proprement a cette ligne",
+    setBestLineupDevReasonRandomFallback: "Secours aleatoire faute de compatibilite propre",
+    setBestLineupDevReasonTiedOtherSectorFallback: "Secours parmi les joueurs a egalite avec un autre secteur",
+    setBestLineupDevReasonBetterOtherSectorFallback: "Secours parmi les joueurs meilleurs dans un autre secteur",
+    setBestLineupDevReasonFormFallback: "Secours par la forme faute de candidat compatible",
+    setBestLineupDevReasonBestAggregate: "Meilleur score agrege de banc",
+    setBestLineupDevReasonAlphabeticalTieBreak: "Departage alphabetique",
     analyzeOpponent: "Analyser l'adversaire",
     analyzeOpponentTooltip: "Analyser les matchs récents de l'adversaire.",
     analyzeOpponentMatchId: "ID du match",
@@ -1033,7 +1055,7 @@ export const messagesFr: Messages = {
     ratingsTitle: "Matrice des notes",
     ratingsMatchesAnalyzed: "Données récupérées à partir de {count} matchs.",
     ratingsLastAppliedMatchLabel:
-      "Dernières notes de fin de match appliquées depuis le match {matchId} à {dateTime}.",
+      "Dernières notes de fin de match appliquées (>= 90 minutes jouées) depuis le match {matchId} à {dateTime}.",
     ratingsIndexLabel: "N°",
     ratingsMissingNote:
       "Certains joueurs n’ont pas de données récentes et sont affichés avec —.",

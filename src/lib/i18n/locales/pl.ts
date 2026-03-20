@@ -120,7 +120,7 @@ export const messagesPl: Messages = {
   ratingsTitle: "Macierz ocen",
   ratingsMatchesAnalyzed: "Dane pobrane z {count} meczów.",
   ratingsLastAppliedMatchLabel:
-    "Ostatnio zastosowane oceny z końca meczu {matchId} o {dateTime}.",
+    "Ostatnio zastosowane oceny z końca meczu (>= 90 rozegranych minut) z meczu {matchId} o {dateTime}.",
   ratingsIndexLabel: "#",
   ratingsSortBy: "Sortuj wg",
   ratingsPlayerLabel: "Zawodnik",
@@ -246,13 +246,13 @@ export const messagesPl: Messages = {
   seniorExtraTimeModalBTeamThresholdAriaLabel:
     "Próg minut do pomijania zawodników, którzy już grali w tym tygodniu",
   seniorExtraTimeModalBTeamNoRecentMatch:
-    "W tym tygodniu nie rozegrano meczów istotnych dla treningu.",
+    "Okno drużyny B jest otwarte od poniedziałku do czwartku (CET).",
   seniorExtraTimeModalBTeamLoading:
     "Sprawdzanie meczów istotnych dla treningu w tym tygodniu...",
   seniorExtraTimeModalBTeamError:
     "Nie udało się sprawdzić meczów istotnych dla treningu w tym tygodniu.",
   seniorExtraTimeModalBTeamWeekendTooltip:
-    "Wybór składu B jest dostępny tylko od poniedziałku do piątku (CET).",
+    "Wybór składu B jest dostępny tylko od poniedziałku do czwartku (CET).",
   seniorExtraTimeModalBTeamDisregardedTooltip:
     "Ten zawodnik jest pomijany, ponieważ w tym tygodniu rozegrał już co najmniej {{minutes}} minut.",
   seniorExtraTimeModalSetLineupButton: "Ustaw skład",
@@ -269,6 +269,28 @@ export const messagesPl: Messages = {
   setBestLineupDevBetterOtherSectorLabel: "Lepszy w innym sektorze",
   setBestLineupDevTiedOtherSectorLabel: "Remis z innym sektorem",
   setBestLineupDevAlreadyUsedLabel: "Już użyty",
+  setBestLineupDevNonTraineeTraceTitle: "Ślad przydziałów nietrenowanych",
+  setBestLineupDevSelectedReasonLabel: "Wybrany, bo",
+  setBestLineupDevRankingLabel: "Ranking dostępnych zawodników",
+  setBestLineupDevRankLabel: "Pozycja",
+  setBestLineupDevSlotRatingLabel: "Ocena pozycji",
+  setBestLineupDevSkillComboLabel: "Kombinacja umiejętności",
+  setBestLineupDevOverallLabel: "Ogółem",
+  setBestLineupDevBestOtherRowLabel: "Najlepszy inny rząd",
+  setBestLineupDevRowFitLabel: "Dopasowanie do rzędu",
+  setBestLineupDevReasonBestSlotRating: "Najlepsza ocena pozycji",
+  setBestLineupDevReasonBestSkillCombo: "Najlepsza kombinacja umiejętności w dogrywce remisu",
+  setBestLineupDevReasonBestForm: "Najlepsza forma w dogrywce remisu",
+  setBestLineupDevReasonBestStamina: "Najlepsza kondycja w dogrywce remisu",
+  setBestLineupDevReasonBestOverall: "Najlepsza suma ogólna w dogrywce remisu",
+  setBestLineupDevReasonYoungestTieBreak: "Najmłodszy w dogrywce remisu",
+  setBestLineupDevReasonFirstRowFit: "Pierwszy zawodnik czysto pasujący do tego rzędu",
+  setBestLineupDevReasonRandomFallback: "Losowy fallback po braku czystego dopasowania",
+  setBestLineupDevReasonTiedOtherSectorFallback: "Fallback wśród zawodników z remisem z innym sektorem",
+  setBestLineupDevReasonBetterOtherSectorFallback: "Fallback wśród zawodników lepszych w innym sektorze",
+  setBestLineupDevReasonFormFallback: "Fallback formy bez pasującego kandydata",
+  setBestLineupDevReasonBestAggregate: "Najlepszy łączny wynik ławki",
+  setBestLineupDevReasonAlphabeticalTieBreak: "Alfabetyczny tie-break",
   analyzeOpponent: "Analizuj przeciwnika",
   analyzeOpponentTooltip: "Przeanalizuj ostatnie mecze przeciwnika.",
   analyzeOpponentMatchId: "ID meczu",

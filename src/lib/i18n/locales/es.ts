@@ -816,13 +816,13 @@ export const messagesEs: Messages = {
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Umbral de minutos para ignorar jugadores que ya jugaron esta semana",
     seniorExtraTimeModalBTeamNoRecentMatch:
-      "No se han jugado partidos relevantes para el entrenamiento esta semana.",
+      "La ventana del equipo B está abierta de lunes a jueves (CET).",
     seniorExtraTimeModalBTeamLoading:
       "Comprobando los partidos relevantes para el entrenamiento de esta semana...",
     seniorExtraTimeModalBTeamError:
       "No se pudieron comprobar los partidos relevantes para el entrenamiento de esta semana.",
     seniorExtraTimeModalBTeamWeekendTooltip:
-      "La selección del equipo B solo está disponible de lunes a viernes (CET).",
+      "La selección del equipo B solo está disponible de lunes a jueves (CET).",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Este jugador se descarta porque ya ha jugado al menos {{minutes}} minutos esta semana.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
@@ -841,6 +841,28 @@ export const messagesEs: Messages = {
     setBestLineupDevBetterOtherSectorLabel: "Mejor en otro sector",
     setBestLineupDevTiedOtherSectorLabel: "Empatado con otro sector",
     setBestLineupDevAlreadyUsedLabel: "Ya usado",
+    setBestLineupDevNonTraineeTraceTitle: "Rastro de asignación no entrenada",
+    setBestLineupDevSelectedReasonLabel: "Seleccionado por",
+    setBestLineupDevRankingLabel: "Ranking de jugadores disponibles",
+    setBestLineupDevRankLabel: "Rango",
+    setBestLineupDevSlotRatingLabel: "Valoración del puesto",
+    setBestLineupDevSkillComboLabel: "Combinación de habilidades",
+    setBestLineupDevOverallLabel: "Global",
+    setBestLineupDevBestOtherRowLabel: "Mejor otra línea",
+    setBestLineupDevRowFitLabel: "Ajuste de línea",
+    setBestLineupDevReasonBestSlotRating: "Mejor valoración del puesto",
+    setBestLineupDevReasonBestSkillCombo: "Mejor combinación de habilidades en desempate",
+    setBestLineupDevReasonBestForm: "Mejor forma en desempate",
+    setBestLineupDevReasonBestStamina: "Mejor resistencia en desempate",
+    setBestLineupDevReasonBestOverall: "Mejor valor global en desempate",
+    setBestLineupDevReasonYoungestTieBreak: "Más joven en desempate",
+    setBestLineupDevReasonFirstRowFit: "Primer jugador que encajó limpiamente en la línea",
+    setBestLineupDevReasonRandomFallback: "Fallback aleatorio tras no encontrar ajuste limpio",
+    setBestLineupDevReasonTiedOtherSectorFallback: "Fallback entre jugadores empatados con otro sector",
+    setBestLineupDevReasonBetterOtherSectorFallback: "Fallback entre jugadores mejores en otro sector",
+    setBestLineupDevReasonFormFallback: "Fallback por forma sin candidato que encaje en el puesto",
+    setBestLineupDevReasonBestAggregate: "Mejor puntuación agregada de banquillo",
+    setBestLineupDevReasonAlphabeticalTieBreak: "Desempate alfabético",
     analyzeOpponent: "Analizar rival",
     analyzeOpponentTooltip: "Analizar los partidos recientes del rival.",
     analyzeOpponentMatchId: "ID del partido",
@@ -1036,7 +1058,7 @@ export const messagesEs: Messages = {
     ratingsTitle: "Matriz de calificaciones",
     ratingsMatchesAnalyzed: "Datos obtenidos de {count} partidos.",
     ratingsLastAppliedMatchLabel:
-      "Últimas calificaciones de final de partido aplicadas desde el partido {matchId} a las {dateTime}.",
+      "Últimas calificaciones de final de partido aplicadas (>= 90 minutos jugados) desde el partido {matchId} a las {dateTime}.",
     ratingsIndexLabel: "N.º",
     ratingsMissingNote:
       "Algunos jugadores no tienen datos recientes y se muestran con —.",

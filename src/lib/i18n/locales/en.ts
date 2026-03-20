@@ -781,13 +781,13 @@ export const messagesEn: Messages = {
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Minutes threshold for disregarding players this week",
     seniorExtraTimeModalBTeamNoRecentMatch:
-      "No training-relevant matches were played this week.",
+      "B team window is open Monday through Thursday (CET).",
     seniorExtraTimeModalBTeamLoading:
       "Checking this week's training-relevant matches...",
     seniorExtraTimeModalBTeamError:
       "Couldn't check this week's training-relevant matches.",
     seniorExtraTimeModalBTeamWeekendTooltip:
-      "B team selection is only available Monday through Friday (CET).",
+      "B team selection is only available Monday through Thursday (CET).",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Player is disregarded because they have already played at least {{minutes}} minutes this week.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
@@ -806,6 +806,28 @@ export const messagesEn: Messages = {
     setBestLineupDevBetterOtherSectorLabel: "Better in another sector",
     setBestLineupDevTiedOtherSectorLabel: "Tied with another sector",
     setBestLineupDevAlreadyUsedLabel: "Already used",
+    setBestLineupDevNonTraineeTraceTitle: "Non-trained assignment trace",
+    setBestLineupDevSelectedReasonLabel: "Selected because",
+    setBestLineupDevRankingLabel: "Available players ranking",
+    setBestLineupDevRankLabel: "Rank",
+    setBestLineupDevSlotRatingLabel: "Slot rating",
+    setBestLineupDevSkillComboLabel: "Skill combo",
+    setBestLineupDevOverallLabel: "Overall",
+    setBestLineupDevBestOtherRowLabel: "Best other row",
+    setBestLineupDevRowFitLabel: "Row fit",
+    setBestLineupDevReasonBestSlotRating: "Best slot rating",
+    setBestLineupDevReasonBestSkillCombo: "Best skill combo tie-break",
+    setBestLineupDevReasonBestForm: "Best form tie-break",
+    setBestLineupDevReasonBestStamina: "Best stamina tie-break",
+    setBestLineupDevReasonBestOverall: "Best overall tie-break",
+    setBestLineupDevReasonYoungestTieBreak: "Youngest tie-break",
+    setBestLineupDevReasonFirstRowFit: "First player that cleanly fit this row",
+    setBestLineupDevReasonRandomFallback: "Random fallback after no clean row fit",
+    setBestLineupDevReasonTiedOtherSectorFallback: "Fallback among players tied with another sector",
+    setBestLineupDevReasonBetterOtherSectorFallback: "Fallback among players stronger in another sector",
+    setBestLineupDevReasonFormFallback: "Form fallback after no slot-fit candidate",
+    setBestLineupDevReasonBestAggregate: "Best aggregate bench score",
+    setBestLineupDevReasonAlphabeticalTieBreak: "Alphabetical tie-break",
     analyzeOpponent: "Analyze opponent",
     analyzeOpponentTooltip: "Analyze opponent recent matches.",
     analyzeOpponentMatchId: "Match ID",
@@ -996,7 +1018,7 @@ export const messagesEn: Messages = {
     ratingsTitle: "Ratings matrix",
     ratingsMatchesAnalyzed: "Data retrieved from {count} matches.",
     ratingsLastAppliedMatchLabel:
-      "Latest applied end-of-match ratings from match {matchId} at {dateTime}.",
+      "Latest applied end-of-match (>= 90 minutes played) ratings from match {matchId} at {dateTime}.",
     ratingsIndexLabel: "#",
     ratingsMissingNote:
       "Some players have no recent match data and are shown with —.",

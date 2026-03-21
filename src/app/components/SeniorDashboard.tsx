@@ -551,6 +551,7 @@ type ExtraTimeSubmitDisclaimerSubstitution = {
 };
 
 type ExtraTimeSubmitDisclaimerTrainingRow = {
+  number: number;
   id: number;
   name: string;
   scenario90: number;
@@ -5285,8 +5286,10 @@ export default function SeniorDashboard({
     if (extraTimePreparedSubmission.trainingType === 11) {
       const benchCenterDefenderId = assignments.B_CD;
       const benchWingBackId = assignments.B_WB;
+      const benchMidId = assignments.B_IM;
+      const centerMidId = assignments.IM_C;
       if (
-        [benchCenterDefenderId, benchWingBackId].some(
+        [benchCenterDefenderId, benchWingBackId, benchMidId, centerMidId].some(
           (playerId) => typeof playerId !== "number" || playerId <= 0
         )
       ) {
@@ -5346,6 +5349,16 @@ export default function SeniorDashboard({
           {
             playerin: benchWingBackId as number,
             playerout: chooseSwapTarget(benchWingBackId as number, ["WB_L", "WB_R"]),
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: benchMidId as number,
+            playerout: centerMidId as number,
             orderType: 1,
             min: 89,
             pos: -1,
@@ -6766,33 +6779,47 @@ export default function SeniorDashboard({
           },
         } satisfies ExtraTimeSubmitDisclaimerSubstitution;
       });
+    const candidateTrainingPlayerIds = Array.from(
+      new Set<number>([
+        ...extraTimePreparedSubmission.traineeIds,
+        ...BENCH_SLOT_ORDER.map((slot) => assignments[slot]).filter(
+          (playerId): playerId is number => typeof playerId === "number" && playerId > 0
+        ),
+      ])
+    );
     const training90 = calculateTrainingMinutesForScenario(
       assignments,
       submitPayload.substitutions ?? [],
-      extraTimePreparedSubmission.traineeIds,
+      candidateTrainingPlayerIds,
       extraTimePreparedSubmission.trainingType,
       90
     );
     const training120 = calculateTrainingMinutesForScenario(
       assignments,
       submitPayload.substitutions ?? [],
-      extraTimePreparedSubmission.traineeIds,
+      candidateTrainingPlayerIds,
       extraTimePreparedSubmission.trainingType,
       120
     );
-    const trainees = extraTimePreparedSubmission.traineeIds.map((playerId) => {
+    const trainees = candidateTrainingPlayerIds.map((playerId) => {
       const player = playersById.get(playerId);
       return {
         id: playerId,
         name: player ? formatPlayerName(player) : String(playerId),
       };
     });
-    const trainingRows = trainees.map((trainee) => ({
-      id: trainee.id,
-      name: trainee.name,
-      scenario90: Math.min(90, training90.get(trainee.id) ?? 0),
-      scenario120: Math.min(90, training120.get(trainee.id) ?? 0),
-    }));
+    const trainingRows = trainees
+      .map((trainee) => ({
+        id: trainee.id,
+        name: trainee.name,
+        scenario90: Math.min(90, training90.get(trainee.id) ?? 0),
+        scenario120: Math.min(90, training120.get(trainee.id) ?? 0),
+      }))
+      .filter((row) => row.scenario90 > 0 || row.scenario120 > 0)
+      .map((row, index) => ({
+        number: index + 1,
+        ...row,
+      }));
 
     return {
       trainingLabel: obtainedTrainingRegimenLabel(extraTimePreparedSubmission.trainingType),
@@ -10767,6 +10794,7 @@ const refreshDetailsForPlayers = async (
                   <table className={styles.opponentFormationsTable}>
                     <thead>
                       <tr>
+                        <th>{messages.ratingsIndexLabel}</th>
                         <th>{messages.seniorExtraTimeSubmitDisclaimerTrainingPlayerHeader}</th>
                         <th>{messages.seniorExtraTimeSubmitDisclaimerTrainingScenario90Header}</th>
                         <th>{messages.seniorExtraTimeSubmitDisclaimerTrainingScenario120Header}</th>
@@ -10775,6 +10803,7 @@ const refreshDetailsForPlayers = async (
                     <tbody>
                       {submitDisclaimerExtraTimeSummary.trainingRows.map((row) => (
                         <tr key={row.id}>
+                          <td>{row.number}</td>
                           <td>
                             <a
                               className={styles.chroniclePressLink}

@@ -98,6 +98,7 @@ type UpcomingMatchesProps = {
   ) => void | Promise<void>;
   onAnalyzeOpponent?: (matchId: number) => void | Promise<void>;
   loadedMatchId?: number | null;
+  submitEnabledMatchId?: number | null;
   onSubmitSuccess?: () => void;
   buildSubmitLineupPayload?: (
     matchId: number,
@@ -542,6 +543,7 @@ function renderMatch(
   bestLineupPending?: boolean,
   analyzePending?: boolean,
   isLoaded?: boolean,
+  submitEnabledMatchId?: number | null,
   assignedCount?: number,
   setBestLineupHelpAnchor?: string,
   showExtraTimeSetBestLineupMode?: boolean,
@@ -551,7 +553,13 @@ function renderMatch(
   setBestLineupCustomContent?: ReactNode
 ) {
   const isUpcoming = match.Status === "UPCOMING";
-  const canSubmit = Boolean(teamId) && isUpcoming && hasLineup;
+  const submitMatchRestrictionActive =
+    typeof submitEnabledMatchId === "number" && submitEnabledMatchId > 0;
+  const canSubmit =
+    Boolean(teamId) &&
+    isUpcoming &&
+    hasLineup &&
+    (!submitMatchRestrictionActive || submitEnabledMatchId === matchId);
   const ordersSet =
     match.OrdersGiven === "true" ||
     match.OrdersGiven === "True" ||
@@ -777,6 +785,7 @@ export default function UpcomingMatches({
   onSetBestLineupMode,
   onAnalyzeOpponent,
   loadedMatchId,
+  submitEnabledMatchId = null,
   onSubmitSuccess,
   buildSubmitLineupPayload,
   sourceSystem = "Youth",
@@ -851,8 +860,14 @@ export default function UpcomingMatches({
     return `${home} vs ${away}`;
   };
 
+  const submitRestrictionActive =
+    typeof submitEnabledMatchId === "number" && submitEnabledMatchId > 0;
+  const canSubmitMatchId = (matchId: number) =>
+    !submitRestrictionActive || submitEnabledMatchId === matchId;
+
   const handleSubmit = async (matchId: number) => {
     if (!teamId) return;
+    if (!canSubmitMatchId(matchId)) return;
     if (!hasLineup) {
       setMatchStates((prev) => ({
         ...prev,
@@ -1049,6 +1064,7 @@ export default function UpcomingMatches({
 
     const matchId = confirmMatchId;
     setConfirmMatchId(null);
+    if (!canSubmitMatchId(matchId)) return;
     const matchSourceSystem = resolveMatchSourceSystem(
       matchById.get(matchId),
       sourceSystem
@@ -1249,6 +1265,7 @@ export default function UpcomingMatches({
               bestLineupPendingMatchId === matchId,
               analyzePendingMatchId === matchId,
               loadedMatchId === matchId,
+              submitEnabledMatchId,
               assignedCount,
               index === 0 ? setBestLineupHelpAnchor : undefined,
               showExtraTimeSetBestLineupMode,
@@ -1287,6 +1304,7 @@ export default function UpcomingMatches({
                 bestLineupPendingMatchId === matchId,
                 analyzePendingMatchId === matchId,
                 loadedMatchId === matchId,
+                submitEnabledMatchId,
                 assignedCount,
                 index === 0 ? setBestLineupHelpAnchor : undefined,
                 showExtraTimeSetBestLineupMode,

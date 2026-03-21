@@ -376,6 +376,35 @@ export const messagesNl: Messages = {
     "Als matchorders nodig zijn, moeten die direct in Hattrick worden ingesteld.",
   seniorSubmitDisclaimerBulletVerify:
     "Controleer beschikbaarheid, blessures en tactische intentie voor de aftrap.",
+  seniorExtraTimeSubmitDisclaimerIntro:
+    "Orders voor een op verlenging gerichte opstelling zijn verzonden voor het trainingsregime {{training}}.",
+  seniorExtraTimeSubmitDisclaimerSwap:
+    "De trainees {{trainees}} wisselen van positie om de training in verlenging te maximaliseren als de wedstrijd na 90 minuten gelijk staat.",
+  seniorExtraTimeSubmitDisclaimerPressing:
+    "Om de kans op een gelijkspel te maximaliseren is de tactiek Pressing gebruikt.",
+  seniorExtraTimeSubmitDisclaimerSetPieces:
+    "De nemer van standaardsituaties is de speler met de zwakste standaardsituaties.",
+  seniorExtraTimeSubmitDisclaimerPenalties:
+    "De penaltynemers zijn zo geordend dat de eerste nemer de kleinste kans heeft om te scoren.",
+  seniorExtraTimeSubmitDisclaimerBehaviors:
+    "Spelers zijn waar mogelijk defensief georiënteerd.",
+  seniorExtraTimeSubmitDisclaimerSubstitutionsTitle:
+    "Geplande wissels en positiewissels",
+  seniorExtraTimeSubmitDisclaimerSwapLine:
+    "{{minute}}': {{playerIn}} wisselt van positie met {{playerOut}}.",
+  seniorExtraTimeSubmitDisclaimerReplaceLine:
+    "{{minute}}': {{playerIn}} vervangt {{playerOut}}.",
+  seniorExtraTimeSubmitDisclaimerTrainingTitle:
+    "Trainingsoverzicht per scenario",
+  seniorExtraTimeSubmitDisclaimerTrainingIntro:
+    "De effectieve trainingsminuten hieronder zijn afgestemd op deze verzonden opstelling. Scenario 2 gaat ervan uit dat de wedstrijd naar verlenging gaat.",
+  seniorExtraTimeSubmitDisclaimerTrainingPlayerHeader: "Trainee",
+  seniorExtraTimeSubmitDisclaimerTrainingScenario90Header:
+    "Trainingsminuten zonder verlenging",
+  seniorExtraTimeSubmitDisclaimerTrainingScenario120Header:
+    "Trainingsminuten met verlenging",
+  seniorExtraTimeSubmitDisclaimerFurtherTitle:
+    "Meer informatie en disclaimer",
   submitOrdersTooltip: "Verstuur de huidige opstelling naar Hattrick voor deze wedstrijd.",
   confirmSubmitOrders: "Huidige opstelling voor deze wedstrijd verzenden?",
   confirmCancel: "Annuleren",

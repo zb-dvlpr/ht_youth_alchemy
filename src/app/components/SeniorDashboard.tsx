@@ -543,6 +543,28 @@ type MatchOrderSubstitution = {
   standing: number;
 };
 
+type ExtraTimeSubmitDisclaimerSubstitution = {
+  minute: number;
+  type: "swap" | "replace";
+  playerIn: { id: number; name: string };
+  playerOut: { id: number; name: string };
+};
+
+type ExtraTimeSubmitDisclaimerTrainingRow = {
+  number: number;
+  id: number;
+  name: string;
+  scenario90: number;
+  scenario120: number;
+};
+
+type ExtraTimeSubmitDisclaimerSummary = {
+  trainingLabel: string;
+  trainees: Array<{ id: number; name: string }>;
+  substitutions: ExtraTimeSubmitDisclaimerSubstitution[];
+  trainingRows: ExtraTimeSubmitDisclaimerTrainingRow[];
+};
+
 type StartupLoadingPhase =
   | "teamContext"
   | "players"
@@ -1478,6 +1500,121 @@ const orderFormationSlotsForTraining = (
   return defaultOrdered;
 };
 
+const trainingWeightBySlot = (trainingType: number | null) => {
+  const weights = new Map<string, number>();
+  const setWeight = (slots: string[], value: number) => {
+    slots.forEach((slot) => weights.set(slot, value));
+  };
+
+  switch (trainingType) {
+    case 2:
+    case 6:
+      setWeight([...FIELD_SLOT_ORDER], 1);
+      break;
+    case 3:
+      setWeight([...DEFENSE_SLOTS], 1);
+      break;
+    case 4:
+      setWeight([...ATTACK_SLOTS], 1);
+      break;
+    case 5:
+      setWeight(["W_L", "W_R"], 1);
+      setWeight(["WB_L", "WB_R"], 0.5);
+      break;
+    case 7:
+      setWeight([...MIDFIELD_SLOTS, ...ATTACK_SLOTS], 1);
+      break;
+    case 8:
+      setWeight(["IM_L", "IM_C", "IM_R"], 1);
+      setWeight(["W_L", "W_R"], 0.5);
+      break;
+    case 9:
+      setWeight(["KP"], 1);
+      break;
+    case 10:
+    case 11:
+      setWeight([...DEFENSE_SLOTS, ...MIDFIELD_SLOTS], 1);
+      if (trainingType === 11) {
+        setWeight(["KP"], 1);
+      }
+      break;
+    case 12:
+      setWeight(["W_L", "W_R", ...ATTACK_SLOTS], 1);
+      break;
+    default:
+      break;
+  }
+
+  return weights;
+};
+
+const calculateTrainingMinutesForScenario = (
+  assignments: LineupAssignments,
+  substitutions: MatchOrderSubstitution[],
+  traineeIds: number[],
+  trainingType: number | null,
+  totalMinutes: number
+) => {
+  const weights = trainingWeightBySlot(trainingType);
+  const currentSlotByPlayerId = new Map<number, string | null>();
+  const accumulatedByPlayerId = new Map<number, number>();
+  traineeIds.forEach((playerId) => accumulatedByPlayerId.set(playerId, 0));
+  FIELD_SLOT_ORDER.forEach((slot) => {
+    const playerId = assignments[slot];
+    if (typeof playerId === "number" && playerId > 0) {
+      currentSlotByPlayerId.set(playerId, slot);
+    }
+  });
+
+  const sortedSubstitutions = [...substitutions].sort(
+    (left, right) => left.min - right.min || left.orderType - right.orderType
+  );
+  let intervalStart = 0;
+
+  const applyInterval = (intervalEnd: number) => {
+    const duration = Math.max(0, intervalEnd - intervalStart);
+    if (duration <= 0) {
+      intervalStart = intervalEnd;
+      return;
+    }
+    traineeIds.forEach((playerId) => {
+      const slot = currentSlotByPlayerId.get(playerId) ?? null;
+      const weight = slot ? (weights.get(slot) ?? 0) : 0;
+      accumulatedByPlayerId.set(
+        playerId,
+        (accumulatedByPlayerId.get(playerId) ?? 0) + duration * weight
+      );
+    });
+    intervalStart = intervalEnd;
+  };
+
+  sortedSubstitutions.forEach((substitution) => {
+    const minute = Math.min(totalMinutes, Math.max(0, substitution.min));
+    applyInterval(minute);
+    if (minute >= totalMinutes) return;
+
+    if (substitution.orderType === 3) {
+      const playerInSlot = currentSlotByPlayerId.get(substitution.playerin) ?? null;
+      const playerOutSlot = currentSlotByPlayerId.get(substitution.playerout) ?? null;
+      if (!playerInSlot || !playerOutSlot) return;
+      currentSlotByPlayerId.set(substitution.playerin, playerOutSlot);
+      currentSlotByPlayerId.set(substitution.playerout, playerInSlot);
+      return;
+    }
+
+    if (substitution.orderType === 1) {
+      const playerOutSlot = currentSlotByPlayerId.get(substitution.playerout) ?? null;
+      if (!playerOutSlot) return;
+      currentSlotByPlayerId.set(substitution.playerout, null);
+      currentSlotByPlayerId.set(substitution.playerin, playerOutSlot);
+    }
+  });
+
+  applyInterval(totalMinutes);
+
+  return accumulatedByPlayerId;
+};
+
 const pickMostCommonFormation = (rows: OpponentFormationRow[]): string | null => {
   const rowsWithFormation = rows.filter(
     (row): row is OpponentFormationRow & { formation: string } =>
@@ -1643,6 +1780,10 @@ export default function SeniorDashboard({
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
+  const [seniorAiSubmitLockActive, setSeniorAiSubmitLockActive] = useState(false);
+  const [seniorAiSubmitEnabledMatchId, setSeniorAiSubmitEnabledMatchId] = useState<
+    number | null
+  >(null);
   const [seniorAiPreparedSubmissionMode, setSeniorAiPreparedSubmissionMode] = useState<
     Exclude<SetBestLineupMode, "extraTime"> | null
   >(null);
@@ -1768,6 +1909,22 @@ export default function SeniorDashboard({
     loading: boolean;
     error: string | null;
   } | null>(null);
+
+  const clearSeniorAiSubmitLock = () => {
+    setSeniorAiSubmitLockActive(false);
+    setSeniorAiSubmitEnabledMatchId(null);
+    setSeniorAiPreparedSubmissionMode(null);
+    setExtraTimePreparedSubmission(null);
+  };
+
+  const lockSeniorAiSubmitToMatch = (
+    matchId: number,
+    mode: Exclude<SetBestLineupMode, "extraTime"> | null
+  ) => {
+    setSeniorAiSubmitLockActive(true);
+    setSeniorAiSubmitEnabledMatchId(matchId);
+    setSeniorAiPreparedSubmissionMode(mode);
+  };
   const [opponentAnalysisModal, setOpponentAnalysisModal] = useState<{
     title: string;
     opponentTeamId: number;
@@ -1787,10 +1944,8 @@ export default function SeniorDashboard({
     entries: NonTraineeAssignmentTraceEntry[];
   } | null>(null);
   const [submitDisclaimerOpen, setSubmitDisclaimerOpen] = useState(false);
-  const [submitDisclaimerExtraTimeSummary, setSubmitDisclaimerExtraTimeSummary] = useState<{
-    trainingLabel: string;
-    trainees: Array<{ id: number; name: string }>;
-  } | null>(null);
+  const [submitDisclaimerExtraTimeSummary, setSubmitDisclaimerExtraTimeSummary] =
+    useState<ExtraTimeSubmitDisclaimerSummary | null>(null);
   const [extraTimeInfoOpen, setExtraTimeInfoOpen] = useState(false);
   const [extraTimeTrainingMenuOpen, setExtraTimeTrainingMenuOpen] = useState(false);
 
@@ -4100,6 +4255,7 @@ export default function SeniorDashboard({
   const handleTrainingAwareSetLineup = async () => {
     if (!NON_DEPRECATED_TRAINING_TYPES.includes((resolvedTrainingAwareTrainingType ?? -1) as (typeof NON_DEPRECATED_TRAINING_TYPES)[number])) {
       setTrainingAwareInfoOpen(false);
+      clearSeniorAiSubmitLock();
       return;
     }
     if (trainingAwareSetLineupDisabled) return;
@@ -5130,8 +5286,10 @@ export default function SeniorDashboard({
     if (extraTimePreparedSubmission.trainingType === 11) {
       const benchCenterDefenderId = assignments.B_CD;
       const benchWingBackId = assignments.B_WB;
+      const benchMidId = assignments.B_IM;
+      const centerMidId = assignments.IM_C;
       if (
-        [benchCenterDefenderId, benchWingBackId].some(
+        [benchCenterDefenderId, benchWingBackId, benchMidId, centerMidId].some(
           (playerId) => typeof playerId !== "number" || playerId <= 0
         )
       ) {
@@ -5191,6 +5349,16 @@ export default function SeniorDashboard({
           {
             playerin: benchWingBackId as number,
             playerout: chooseSwapTarget(benchWingBackId as number, ["WB_L", "WB_R"]),
+            orderType: 1,
+            min: 89,
+            pos: -1,
+            beh: -1,
+            card: -1,
+            standing: -1,
+          },
+          {
+            playerin: benchMidId as number,
+            playerout: centerMidId as number,
             orderType: 1,
             min: 89,
             pos: -1,
@@ -6092,6 +6260,7 @@ export default function SeniorDashboard({
       resolvedExtraTimeTrainingType !== 11
     ) {
       setExtraTimeInfoOpen(false);
+      clearSeniorAiSubmitLock();
       return;
     }
     if (extraTimeSelectedCount !== requiredExtraTimeTrainees) return;
@@ -6107,284 +6276,290 @@ export default function SeniorDashboard({
           entries,
         });
       };
+      const applyExtraTimePreparedLineup = (
+        matchId: number,
+        nextAssignments: LineupAssignments,
+        nextBehaviors: LineupBehaviors,
+        preparedSubmission: NonNullable<typeof extraTimePreparedSubmission>,
+        nonTraineeAssignmentTrace: NonTraineeAssignmentTraceEntry[]
+      ) => {
+        setAssignments(nextAssignments);
+        setBehaviors(nextBehaviors);
+        setTacticType(1);
+        setLoadedMatchId(matchId);
+        setExtraTimePreparedSubmission(preparedSubmission);
+        lockSeniorAiSubmitToMatch(matchId, null);
+        openExtraTimeNonTraineeDebugModal(nonTraineeAssignmentTrace);
+        setExtraTimeInfoOpen(false);
+        setExtraTimeMatchId(null);
+      };
       setSeniorAiPreparedSubmissionMode(null);
       if (resolvedExtraTimeTrainingType === 2) {
         const result = await buildSetPiecesExtraTimeResult(selectedTraineeIds);
-        setAssignments(result.assignments);
-        setBehaviors({
-          WB_L: 2,
-          WB_R: 2,
-          W_L: 2,
-          IM_L: 2,
-          IM_C: 2,
-          IM_R: 2,
-          W_R: 2,
-          F_L: 2,
-          F_C: 2,
-          F_R: 2,
-        });
-        setTacticType(1);
-        setLoadedMatchId(extraTimeMatchId);
-        setExtraTimePreparedSubmission({
-          matchId: extraTimeMatchId,
-          traineeIds: selectedTraineeIds,
-          trainingType: resolvedExtraTimeTrainingType,
-        });
-        openExtraTimeNonTraineeDebugModal(result.nonTraineeAssignmentTrace);
-        setExtraTimeInfoOpen(false);
-        setExtraTimeMatchId(null);
+        applyExtraTimePreparedLineup(
+          extraTimeMatchId,
+          result.assignments,
+          {
+            WB_L: 2,
+            WB_R: 2,
+            W_L: 2,
+            IM_L: 2,
+            IM_C: 2,
+            IM_R: 2,
+            W_R: 2,
+            F_L: 2,
+            F_C: 2,
+            F_R: 2,
+          },
+          {
+            matchId: extraTimeMatchId,
+            traineeIds: selectedTraineeIds,
+            trainingType: resolvedExtraTimeTrainingType,
+          },
+          result.nonTraineeAssignmentTrace
+        );
         return;
       }
       if (resolvedExtraTimeTrainingType === 4) {
         const finalResult = await buildScoringExtraTimeResult(selectedTraineeIds);
-        setAssignments(finalResult.assignments);
-        setBehaviors({
-          WB_L: 2,
-          WB_R: 2,
-          IM_L: 2,
-          IM_R: 2,
-          F_L: 2,
-          F_C: 2,
-          F_R: 2,
-        });
-        setTacticType(1);
-        setLoadedMatchId(extraTimeMatchId);
-        setExtraTimePreparedSubmission({
-          matchId: extraTimeMatchId,
-          traineeIds: selectedTraineeIds,
-          trainingType: resolvedExtraTimeTrainingType,
-          scoringRoleIds: finalResult.scoringRoleIds,
-        });
-        openExtraTimeNonTraineeDebugModal(finalResult.nonTraineeAssignmentTrace);
-        setExtraTimeInfoOpen(false);
-        setExtraTimeMatchId(null);
+        applyExtraTimePreparedLineup(
+          extraTimeMatchId,
+          finalResult.assignments,
+          {
+            WB_L: 2,
+            WB_R: 2,
+            IM_L: 2,
+            IM_R: 2,
+            F_L: 2,
+            F_C: 2,
+            F_R: 2,
+          },
+          {
+            matchId: extraTimeMatchId,
+            traineeIds: selectedTraineeIds,
+            trainingType: resolvedExtraTimeTrainingType,
+            scoringRoleIds: finalResult.scoringRoleIds,
+          },
+          finalResult.nonTraineeAssignmentTrace
+        );
         return;
       }
       if (resolvedExtraTimeTrainingType === 6) {
         const result = await buildScoringSetPiecesExtraTimeResult(selectedTraineeIds);
-        setAssignments(result.assignments);
-        setBehaviors({
-          WB_L: 2,
-          WB_R: 2,
-          W_L: 2,
-          IM_L: 2,
-          IM_C: 2,
-          IM_R: 2,
-          W_R: 2,
-          F_L: 2,
-          F_C: 2,
-          F_R: 2,
-        });
-        setTacticType(1);
-        setLoadedMatchId(extraTimeMatchId);
-        setExtraTimePreparedSubmission({
-          matchId: extraTimeMatchId,
-          traineeIds: selectedTraineeIds,
-          trainingType: resolvedExtraTimeTrainingType,
-        });
-        openExtraTimeNonTraineeDebugModal(result.nonTraineeAssignmentTrace);
-        setExtraTimeInfoOpen(false);
-        setExtraTimeMatchId(null);
+        applyExtraTimePreparedLineup(
+          extraTimeMatchId,
+          result.assignments,
+          {
+            WB_L: 2,
+            WB_R: 2,
+            W_L: 2,
+            IM_L: 2,
+            IM_C: 2,
+            IM_R: 2,
+            W_R: 2,
+            F_L: 2,
+            F_C: 2,
+            F_R: 2,
+          },
+          {
+            matchId: extraTimeMatchId,
+            traineeIds: selectedTraineeIds,
+            trainingType: resolvedExtraTimeTrainingType,
+          },
+          result.nonTraineeAssignmentTrace
+        );
         return;
       }
       if (resolvedExtraTimeTrainingType === 7) {
         const result = await buildPassingExtraTimeResult(selectedTraineeIds);
-        setAssignments(result.assignments);
-        setBehaviors({
-          W_L: 2,
-          IM_L: 2,
-          IM_C: 2,
-          IM_R: 2,
-          W_R: 2,
-          F_L: 2,
-          F_C: 2,
-          F_R: 2,
-        });
-        setTacticType(1);
-        setLoadedMatchId(extraTimeMatchId);
-        setExtraTimePreparedSubmission({
-          matchId: extraTimeMatchId,
-          traineeIds: selectedTraineeIds,
-          trainingType: resolvedExtraTimeTrainingType,
-        });
-        openExtraTimeNonTraineeDebugModal(result.nonTraineeAssignmentTrace);
-        setExtraTimeInfoOpen(false);
-        setExtraTimeMatchId(null);
+        applyExtraTimePreparedLineup(
+          extraTimeMatchId,
+          result.assignments,
+          {
+            W_L: 2,
+            IM_L: 2,
+            IM_C: 2,
+            IM_R: 2,
+            W_R: 2,
+            F_L: 2,
+            F_C: 2,
+            F_R: 2,
+          },
+          {
+            matchId: extraTimeMatchId,
+            traineeIds: selectedTraineeIds,
+            trainingType: resolvedExtraTimeTrainingType,
+          },
+          result.nonTraineeAssignmentTrace
+        );
         return;
       }
       if (resolvedExtraTimeTrainingType === 10) {
         const finalResult = await buildExtendedPassingExtraTimeResult(selectedTraineeIds);
-        setAssignments(finalResult.assignments);
-        setBehaviors({
-          WB_L: 2,
-          WB_R: 2,
-          W_L: 2,
-          IM_L: 2,
-          IM_C: 2,
-          IM_R: 2,
-          W_R: 2,
-        });
-        setTacticType(1);
-        setLoadedMatchId(extraTimeMatchId);
-        setExtraTimePreparedSubmission({
-          matchId: extraTimeMatchId,
-          traineeIds: selectedTraineeIds,
-          trainingType: resolvedExtraTimeTrainingType,
-        });
-        openExtraTimeNonTraineeDebugModal(finalResult.nonTraineeAssignmentTrace);
-        setExtraTimeInfoOpen(false);
-        setExtraTimeMatchId(null);
+        applyExtraTimePreparedLineup(
+          extraTimeMatchId,
+          finalResult.assignments,
+          {
+            WB_L: 2,
+            WB_R: 2,
+            W_L: 2,
+            IM_L: 2,
+            IM_C: 2,
+            IM_R: 2,
+            W_R: 2,
+          },
+          {
+            matchId: extraTimeMatchId,
+            traineeIds: selectedTraineeIds,
+            trainingType: resolvedExtraTimeTrainingType,
+          },
+          finalResult.nonTraineeAssignmentTrace
+        );
         return;
       }
       if (resolvedExtraTimeTrainingType === 5) {
         const finalResult = await buildWingerExtraTimeResult(selectedTraineeIds);
-        setAssignments(finalResult.assignments);
-        setBehaviors({
-          WB_L: 2,
-          WB_R: 2,
-          W_L: 2,
-          IM_L: 2,
-          IM_C: 2,
-          IM_R: 2,
-          W_R: 2,
-        });
-        setTacticType(1);
-        setLoadedMatchId(extraTimeMatchId);
-        setExtraTimePreparedSubmission({
-          matchId: extraTimeMatchId,
-          traineeIds: selectedTraineeIds,
-          trainingType: resolvedExtraTimeTrainingType,
-          wingerRoleIds: finalResult.wingerRoleIds,
-        });
-        openExtraTimeNonTraineeDebugModal(finalResult.nonTraineeAssignmentTrace);
-        setExtraTimeInfoOpen(false);
-        setExtraTimeMatchId(null);
+        applyExtraTimePreparedLineup(
+          extraTimeMatchId,
+          finalResult.assignments,
+          {
+            WB_L: 2,
+            WB_R: 2,
+            W_L: 2,
+            IM_L: 2,
+            IM_C: 2,
+            IM_R: 2,
+            W_R: 2,
+          },
+          {
+            matchId: extraTimeMatchId,
+            traineeIds: selectedTraineeIds,
+            trainingType: resolvedExtraTimeTrainingType,
+            wingerRoleIds: finalResult.wingerRoleIds,
+          },
+          finalResult.nonTraineeAssignmentTrace
+        );
         return;
       }
       if (resolvedExtraTimeTrainingType === 12) {
         const finalResult = await buildWingerAttackersExtraTimeResult(selectedTraineeIds);
-        setAssignments(finalResult.assignments);
-        setBehaviors({
-          WB_L: 2,
-          WB_R: 2,
-          W_L: 2,
-          IM_L: 2,
-          IM_C: 2,
-          IM_R: 2,
-          W_R: 2,
-          F_L: 2,
-          F_C: 2,
-          F_R: 2,
-        });
-        setTacticType(1);
-        setLoadedMatchId(extraTimeMatchId);
-        setExtraTimePreparedSubmission({
-          matchId: extraTimeMatchId,
-          traineeIds: selectedTraineeIds,
-          trainingType: resolvedExtraTimeTrainingType,
-          wingerAttackerRoleIds: finalResult.wingerAttackerRoleIds,
-        });
-        openExtraTimeNonTraineeDebugModal(finalResult.nonTraineeAssignmentTrace);
-        setExtraTimeInfoOpen(false);
-        setExtraTimeMatchId(null);
+        applyExtraTimePreparedLineup(
+          extraTimeMatchId,
+          finalResult.assignments,
+          {
+            WB_L: 2,
+            WB_R: 2,
+            W_L: 2,
+            IM_L: 2,
+            IM_C: 2,
+            IM_R: 2,
+            W_R: 2,
+            F_L: 2,
+            F_C: 2,
+            F_R: 2,
+          },
+          {
+            matchId: extraTimeMatchId,
+            traineeIds: selectedTraineeIds,
+            trainingType: resolvedExtraTimeTrainingType,
+            wingerAttackerRoleIds: finalResult.wingerAttackerRoleIds,
+          },
+          finalResult.nonTraineeAssignmentTrace
+        );
         return;
       }
       if (resolvedExtraTimeTrainingType === 3) {
         const finalResult = await buildDefendingExtraTimeResult(selectedTraineeIds);
-        setAssignments(finalResult.assignments);
-        setBehaviors({
-          WB_L: 2,
-          WB_R: 2,
-          W_L: 2,
-          IM_L: 2,
-          IM_C: 2,
-          IM_R: 2,
-          W_R: 2,
-        });
-        setTacticType(1);
-        setLoadedMatchId(extraTimeMatchId);
-        setExtraTimePreparedSubmission({
-          matchId: extraTimeMatchId,
-          traineeIds: selectedTraineeIds,
-          trainingType: resolvedExtraTimeTrainingType,
-        });
-        openExtraTimeNonTraineeDebugModal(finalResult.nonTraineeAssignmentTrace);
-        setExtraTimeInfoOpen(false);
-        setExtraTimeMatchId(null);
+        applyExtraTimePreparedLineup(
+          extraTimeMatchId,
+          finalResult.assignments,
+          {
+            WB_L: 2,
+            WB_R: 2,
+            W_L: 2,
+            IM_L: 2,
+            IM_C: 2,
+            IM_R: 2,
+            W_R: 2,
+          },
+          {
+            matchId: extraTimeMatchId,
+            traineeIds: selectedTraineeIds,
+            trainingType: resolvedExtraTimeTrainingType,
+          },
+          finalResult.nonTraineeAssignmentTrace
+        );
         return;
       }
       if (resolvedExtraTimeTrainingType === 8) {
         const finalResult = await buildPlaymakingExtraTimeResult(selectedTraineeIds);
-        setAssignments(finalResult.assignments);
-        setBehaviors({
-          WB_L: 2,
-          WB_R: 2,
-          W_L: 2,
-          IM_L: 2,
-          IM_C: 2,
-          IM_R: 2,
-          W_R: 2,
-        });
-        setTacticType(1);
-        setLoadedMatchId(extraTimeMatchId);
-        setExtraTimePreparedSubmission({
-          matchId: extraTimeMatchId,
-          traineeIds: selectedTraineeIds,
-          trainingType: resolvedExtraTimeTrainingType,
-        });
-        openExtraTimeNonTraineeDebugModal(finalResult.nonTraineeAssignmentTrace);
-        setExtraTimeInfoOpen(false);
-        setExtraTimeMatchId(null);
+        applyExtraTimePreparedLineup(
+          extraTimeMatchId,
+          finalResult.assignments,
+          {
+            WB_L: 2,
+            WB_R: 2,
+            W_L: 2,
+            IM_L: 2,
+            IM_C: 2,
+            IM_R: 2,
+            W_R: 2,
+          },
+          {
+            matchId: extraTimeMatchId,
+            traineeIds: selectedTraineeIds,
+            trainingType: resolvedExtraTimeTrainingType,
+          },
+          finalResult.nonTraineeAssignmentTrace
+        );
         return;
       }
       if (resolvedExtraTimeTrainingType === 11) {
         const result = await buildExtendedDefendingExtraTimeResult(selectedTraineeIds);
-        setAssignments(result.assignments);
-        setBehaviors({
-          WB_L: 2,
-          WB_R: 2,
-          W_L: 2,
-          IM_L: 2,
-          IM_C: 2,
-          IM_R: 2,
-          W_R: 2,
-        });
-        setTacticType(1);
-        setLoadedMatchId(extraTimeMatchId);
-        setExtraTimePreparedSubmission({
-          matchId: extraTimeMatchId,
-          traineeIds: selectedTraineeIds,
-          trainingType: resolvedExtraTimeTrainingType,
-        });
-        openExtraTimeNonTraineeDebugModal(result.nonTraineeAssignmentTrace);
-        setExtraTimeInfoOpen(false);
-        setExtraTimeMatchId(null);
+        applyExtraTimePreparedLineup(
+          extraTimeMatchId,
+          result.assignments,
+          {
+            WB_L: 2,
+            WB_R: 2,
+            W_L: 2,
+            IM_L: 2,
+            IM_C: 2,
+            IM_R: 2,
+            W_R: 2,
+          },
+          {
+            matchId: extraTimeMatchId,
+            traineeIds: selectedTraineeIds,
+            trainingType: resolvedExtraTimeTrainingType,
+          },
+          result.nonTraineeAssignmentTrace
+        );
         return;
       }
       const { selectedMatchType } = await resolveExtraTimeMatchContext(extraTimeMatchId);
       const finalResult = await buildForcedKeeperExtraTimeResult(selectedTraineeIds, {
         selectedMatchType,
       });
-      setAssignments(finalResult.assignments);
-      setBehaviors({
-        WB_L: 2,
-        WB_R: 2,
-        W_L: 2,
-        IM_L: 2,
-        IM_C: 2,
-        IM_R: 2,
-        W_R: 2,
-      });
-      setTacticType(1);
-      setLoadedMatchId(extraTimeMatchId);
-      setExtraTimePreparedSubmission({
-        matchId: extraTimeMatchId,
-        traineeIds: selectedTraineeIds,
-        trainingType: resolvedExtraTimeTrainingType,
-      });
-      openExtraTimeNonTraineeDebugModal(finalResult.nonTraineeAssignmentTrace);
-      setExtraTimeInfoOpen(false);
-      setExtraTimeMatchId(null);
+      applyExtraTimePreparedLineup(
+        extraTimeMatchId,
+        finalResult.assignments,
+        {
+          WB_L: 2,
+          WB_R: 2,
+          W_L: 2,
+          IM_L: 2,
+          IM_C: 2,
+          IM_R: 2,
+          W_R: 2,
+        },
+        {
+          matchId: extraTimeMatchId,
+          traineeIds: selectedTraineeIds,
+          trainingType: resolvedExtraTimeTrainingType,
+        },
+        finalResult.nonTraineeAssignmentTrace
+      );
     } catch (error) {
       const detail = error instanceof Error ? error.message : messages.submitOrdersError;
       addNotification(detail);
@@ -6567,6 +6742,92 @@ export default function SeniorDashboard({
     extraTimePreparedSubmission,
     playersById,
   ]);
+
+  const formatEffectiveTrainingMinutes = (value: number) => {
+    const capped = Math.min(90, Math.max(0, value));
+    return Number.isInteger(capped) ? String(capped) : capped.toFixed(1).replace(/\.0$/, "");
+  };
+
+  const buildExtraTimeSubmitDisclaimerSummary = (): ExtraTimeSubmitDisclaimerSummary | null => {
+    if (!extraTimePreparedSubmission) return null;
+    const submitPayload = buildPreparedExtraTimeSubmitPayload(
+      extraTimePreparedSubmission.matchId,
+      buildLineupPayload(assignments, 1)
+    );
+    const substitutions = (submitPayload.substitutions ?? [])
+      .filter(
+        (substitution) =>
+          typeof substitution.playerin === "number" &&
+          substitution.playerin > 0 &&
+          typeof substitution.playerout === "number" &&
+          substitution.playerout > 0
+      )
+      .sort((left, right) => left.min - right.min || left.orderType - right.orderType)
+      .map((substitution) => {
+        const playerIn = playersById.get(substitution.playerin);
+        const playerOut = playersById.get(substitution.playerout);
+        return {
+          minute: substitution.min,
+          type: substitution.orderType === 3 ? "swap" : "replace",
+          playerIn: {
+            id: substitution.playerin,
+            name: playerIn ? formatPlayerName(playerIn) : String(substitution.playerin),
+          },
+          playerOut: {
+            id: substitution.playerout,
+            name: playerOut ? formatPlayerName(playerOut) : String(substitution.playerout),
+          },
+        } satisfies ExtraTimeSubmitDisclaimerSubstitution;
+      });
+    const candidateTrainingPlayerIds = Array.from(
+      new Set<number>([
+        ...extraTimePreparedSubmission.traineeIds,
+        ...BENCH_SLOT_ORDER.map((slot) => assignments[slot]).filter(
+          (playerId): playerId is number => typeof playerId === "number" && playerId > 0
+        ),
+      ])
+    );
+    const training90 = calculateTrainingMinutesForScenario(
+      assignments,
+      submitPayload.substitutions ?? [],
+      candidateTrainingPlayerIds,
+      extraTimePreparedSubmission.trainingType,
+      90
+    );
+    const training120 = calculateTrainingMinutesForScenario(
+      assignments,
+      submitPayload.substitutions ?? [],
+      candidateTrainingPlayerIds,
+      extraTimePreparedSubmission.trainingType,
+      120
+    );
+    const trainees = candidateTrainingPlayerIds.map((playerId) => {
+      const player = playersById.get(playerId);
+      return {
+        id: playerId,
+        name: player ? formatPlayerName(player) : String(playerId),
+      };
+    });
+    const trainingRows = trainees
+      .map((trainee) => ({
+        id: trainee.id,
+        name: trainee.name,
+        scenario90: Math.min(90, training90.get(trainee.id) ?? 0),
+        scenario120: Math.min(90, training120.get(trainee.id) ?? 0),
+      }))
+      .filter((row) => row.scenario90 > 0 || row.scenario120 > 0)
+      .map((row, index) => ({
+        number: index + 1,
+        ...row,
+      }));
+
+    return {
+      trainingLabel: obtainedTrainingRegimenLabel(extraTimePreparedSubmission.trainingType),
+      trainees,
+      substitutions,
+      trainingRows,
+    };
+  };
 
   const seniorCardStatusByPlayerId = useMemo(() => {
     const map: Record<number, { display: string; label: string }> = {};
@@ -9046,7 +9307,8 @@ const refreshDetailsForPlayers = async (
         setTacticType(chosenTactic);
         setLoadedMatchId(matchId);
         setExtraTimePreparedSubmission(null);
-        setSeniorAiPreparedSubmissionMode(
+        lockSeniorAiSubmitToMatch(
+          matchId,
           mode === "trainingAware" || mode === "ignoreTraining" || mode === "fixedFormation"
             ? mode
             : null
@@ -9351,6 +9613,8 @@ const refreshDetailsForPlayers = async (
     setAssignments({});
     setBehaviors({});
     setLoadedMatchId(null);
+    setSeniorAiSubmitLockActive(false);
+    setSeniorAiSubmitEnabledMatchId(null);
     setSeniorAiPreparedSubmissionMode(null);
     setTacticType(0);
     setTrainingType(null);
@@ -9415,6 +9679,8 @@ const refreshDetailsForPlayers = async (
             assignments?: LineupAssignments;
             behaviors?: LineupBehaviors;
             loadedMatchId?: number | null;
+            seniorAiSubmitLockActive?: boolean;
+            seniorAiSubmitEnabledMatchId?: number | null;
             seniorAiPreparedSubmissionMode?: Exclude<SetBestLineupMode, "extraTime"> | null;
             tacticType?: number;
             trainingType?: number | null;
@@ -9447,6 +9713,12 @@ const refreshDetailsForPlayers = async (
           setAssignments(parsed.assignments && typeof parsed.assignments === "object" ? parsed.assignments : {});
           setBehaviors(parsed.behaviors && typeof parsed.behaviors === "object" ? parsed.behaviors : {});
           setLoadedMatchId(typeof parsed.loadedMatchId === "number" ? parsed.loadedMatchId : null);
+          setSeniorAiSubmitLockActive(Boolean(parsed.seniorAiSubmitLockActive));
+          setSeniorAiSubmitEnabledMatchId(
+            typeof parsed.seniorAiSubmitEnabledMatchId === "number"
+              ? parsed.seniorAiSubmitEnabledMatchId
+              : null
+          );
           setSeniorAiPreparedSubmissionMode(
             parsed.seniorAiPreparedSubmissionMode === "trainingAware" ||
               parsed.seniorAiPreparedSubmissionMode === "ignoreTraining" ||
@@ -9752,6 +10024,8 @@ const refreshDetailsForPlayers = async (
       assignments,
       behaviors,
       loadedMatchId,
+      seniorAiSubmitLockActive,
+      seniorAiSubmitEnabledMatchId,
       seniorAiPreparedSubmissionMode,
       tacticType,
       trainingType,
@@ -9785,6 +10059,8 @@ const refreshDetailsForPlayers = async (
     behaviors,
     includeTournamentMatches,
     loadedMatchId,
+    seniorAiSubmitLockActive,
+    seniorAiSubmitEnabledMatchId,
     seniorAiPreparedSubmissionMode,
     selectedId,
     selectedUpdatesId,
@@ -10251,6 +10527,9 @@ const refreshDetailsForPlayers = async (
             ? messages.startupLoadingRatings
             : messages.startupLoadingFinalize;
   const startupOverlayShouldShow = !stateRestored || !dataRestored || startupBootstrapActive;
+  const seniorAiSubmitTargetMatchId = seniorAiSubmitLockActive
+    ? seniorAiSubmitEnabledMatchId ?? extraTimePreparedSubmission?.matchId ?? loadedMatchId
+    : null;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -10441,6 +10720,7 @@ const refreshDetailsForPlayers = async (
       />
       <Modal
         open={submitDisclaimerOpen}
+        title={messages.seniorSubmitDisclaimerTitle}
         className={styles.chronicleTransferHistoryModal}
         body={
           submitDisclaimerExtraTimeSummary ? (
@@ -10454,32 +10734,100 @@ const refreshDetailsForPlayers = async (
                     .replace("{{training}}", submitDisclaimerExtraTimeSummary.trainingLabel)}
                 </p>
               </div>
+              <div>
+                <p className={styles.seniorDisclaimerIntro}>
+                  {messages.seniorExtraTimeSubmitDisclaimerSubstitutionsTitle}
+                </p>
+                <ul className={styles.seniorDisclaimerList}>
+                  {submitDisclaimerExtraTimeSummary.substitutions.map((substitution, index) => (
+                    <li key={`${substitution.type}-${substitution.minute}-${index}`}>
+                      {(
+                        substitution.type === "swap"
+                          ? messages.seniorExtraTimeSubmitDisclaimerSwapLine
+                          : messages.seniorExtraTimeSubmitDisclaimerReplaceLine
+                      )
+                        .replace("{{minute}}", String(substitution.minute))
+                        .split("{{playerIn}}")
+                        .flatMap((segment, segmentIndex, segments) => {
+                          if (segmentIndex === segments.length - 1) return [segment];
+                          return [
+                            segment,
+                            <a
+                              key={`player-in-${substitution.playerIn.id}`}
+                              className={styles.chroniclePressLink}
+                              href={hattrickPlayerUrl(substitution.playerIn.id)}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {substitution.playerIn.name}
+                            </a>,
+                          ];
+                        })
+                        .flatMap((segment) => {
+                          if (typeof segment !== "string") return [segment];
+                          return segment.split("{{playerOut}}").flatMap((part, partIndex, parts) => {
+                            if (partIndex === parts.length - 1) return [part];
+                            return [
+                              part,
+                              <a
+                                key={`player-out-${substitution.playerOut.id}`}
+                                className={styles.chroniclePressLink}
+                                href={hattrickPlayerUrl(substitution.playerOut.id)}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {substitution.playerOut.name}
+                              </a>,
+                            ];
+                          });
+                        })}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className={styles.seniorDisclaimerIntro}>
+                  {messages.seniorExtraTimeSubmitDisclaimerTrainingTitle}
+                </p>
+                <p>{messages.seniorExtraTimeModalTrainingLimit}</p>
+                <div className={styles.opponentFormationsTableWrap}>
+                  <table className={styles.opponentFormationsTable}>
+                    <thead>
+                      <tr>
+                        <th>{messages.ratingsIndexLabel}</th>
+                        <th>{messages.seniorExtraTimeSubmitDisclaimerTrainingPlayerHeader}</th>
+                        <th>{messages.seniorExtraTimeSubmitDisclaimerTrainingScenario90Header}</th>
+                        <th>{messages.seniorExtraTimeSubmitDisclaimerTrainingScenario120Header}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {submitDisclaimerExtraTimeSummary.trainingRows.map((row) => (
+                        <tr key={row.id}>
+                          <td>{row.number}</td>
+                          <td>
+                            <a
+                              className={styles.chroniclePressLink}
+                              href={hattrickPlayerUrl(row.id)}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {row.name}
+                            </a>
+                          </td>
+                          <td>{formatEffectiveTrainingMinutes(row.scenario90)}</td>
+                          <td>{formatEffectiveTrainingMinutes(row.scenario120)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div>
+                <p className={styles.seniorDisclaimerIntro}>
+                  {messages.seniorExtraTimeSubmitDisclaimerFurtherTitle}
+                </p>
+              </div>
               <ul className={styles.seniorDisclaimerList}>
-                <li>
-                  {messages.seniorExtraTimeSubmitDisclaimerSwap.split("{{trainees}}")[0]}
-                  {submitDisclaimerExtraTimeSummary.trainees.length > 0
-                    ? submitDisclaimerExtraTimeSummary.trainees.map((trainee, index) => (
-                        <span key={trainee.id}>
-                          {index === 0
-                            ? null
-                            : index === submitDisclaimerExtraTimeSummary.trainees.length - 1
-                              ? submitDisclaimerExtraTimeSummary.trainees.length === 2
-                                ? " and "
-                                : ", and "
-                              : ", "}
-                          <a
-                            className={styles.chroniclePressLink}
-                            href={hattrickPlayerUrl(trainee.id)}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {trainee.name}
-                          </a>
-                        </span>
-                      ))
-                    : messages.unknownLabel}
-                  {messages.seniorExtraTimeSubmitDisclaimerSwap.split("{{trainees}}")[1] ?? ""}
-                </li>
                 <li>{messages.seniorExtraTimeSubmitDisclaimerPressing}</li>
                 <li>{messages.seniorExtraTimeSubmitDisclaimerSetPieces}</li>
                 <li>{messages.seniorExtraTimeSubmitDisclaimerPenalties}</li>
@@ -10810,6 +11158,7 @@ const refreshDetailsForPlayers = async (
         onClose={() => {
           setTrainingAwareInfoOpen(false);
           setTrainingAwareMatchId(null);
+          clearSeniorAiSubmitLock();
         }}
       />
       <Modal
@@ -11099,6 +11448,7 @@ const refreshDetailsForPlayers = async (
         onClose={() => {
           setExtraTimeInfoOpen(false);
           setExtraTimeMatchId(null);
+          clearSeniorAiSubmitLock();
         }}
       />
       <Modal
@@ -12618,10 +12968,12 @@ const refreshDetailsForPlayers = async (
                   return next;
                 });
                 setLoadedMatchId(null);
+                clearSeniorAiSubmitLock();
               }}
               onClear={(slotId) => {
                 setAssignments((prev) => ({ ...prev, [slotId]: null }));
                 setLoadedMatchId(null);
+                clearSeniorAiSubmitLock();
               }}
               onMove={(fromSlot, toSlot) => {
                 setAssignments((prev) => ({
@@ -12630,6 +12982,7 @@ const refreshDetailsForPlayers = async (
                   [fromSlot]: prev[toSlot] ?? null,
                 }));
                 setLoadedMatchId(null);
+                clearSeniorAiSubmitLock();
               }}
               onChangeBehavior={(slotId, behavior) => {
                 setBehaviors((prev) => {
@@ -12639,12 +12992,13 @@ const refreshDetailsForPlayers = async (
                   return next;
                 });
                 setLoadedMatchId(null);
+                clearSeniorAiSubmitLock();
               }}
               onReset={() => {
                 setAssignments({});
                 setBehaviors({});
                 setLoadedMatchId(null);
-                setExtraTimePreparedSubmission(null);
+                clearSeniorAiSubmitLock();
                 addNotification(messages.notificationLineupReset);
               }}
               tacticType={tacticType}
@@ -12693,6 +13047,7 @@ const refreshDetailsForPlayers = async (
             setBestLineupCustomContent={setBestLineupBTeamMenuContent}
             onRefresh={onRefreshMatchesOnly}
             onSetBestLineupMode={async (matchId, mode, fixedFormation) => {
+              clearSeniorAiSubmitLock();
               if (mode === "extraTime") {
                 setExtraTimeMatchId(matchId);
                 await syncExtraTimeModalTrainingType().catch(() => {
@@ -12709,8 +13064,6 @@ const refreshDetailsForPlayers = async (
                 setTrainingAwareInfoOpen(true);
                 return;
               }
-              setExtraTimePreparedSubmission(null);
-              setSeniorAiPreparedSubmissionMode(null);
               return runSetBestLineupPredictRatings(matchId, mode, fixedFormation);
             }}
             onAnalyzeOpponent={(matchId) => {
@@ -12725,8 +13078,7 @@ const refreshDetailsForPlayers = async (
               matchId,
               loadedTacticType
             ) => {
-              setExtraTimePreparedSubmission(null);
-              setSeniorAiPreparedSubmissionMode(null);
+              clearSeniorAiSubmitLock();
               setAssignments(nextAssignments);
               setBehaviors(nextBehaviors);
               if (typeof loadedTacticType === "number") {
@@ -12737,26 +13089,19 @@ const refreshDetailsForPlayers = async (
             loadedMatchId={loadedMatchId}
             onSubmitSuccess={() => {
               if (extraTimePreparedSubmission) {
-                setSubmitDisclaimerExtraTimeSummary({
-                  trainingLabel: obtainedTrainingRegimenLabel(
-                    extraTimePreparedSubmission.trainingType
-                  ),
-                  trainees: extraTimePreparedSubmission.traineeIds.map((playerId) => {
-                    const player = playersById.get(playerId);
-                    return {
-                      id: playerId,
-                      name: player ? formatPlayerName(player) : String(playerId),
-                    };
-                  }),
-                });
+                try {
+                  setSubmitDisclaimerExtraTimeSummary(buildExtraTimeSubmitDisclaimerSummary());
+                } catch {
+                  setSubmitDisclaimerExtraTimeSummary(null);
+                }
               } else {
                 setSubmitDisclaimerExtraTimeSummary(null);
               }
-              setExtraTimePreparedSubmission(null);
-              setSeniorAiPreparedSubmissionMode(null);
+              clearSeniorAiSubmitLock();
               setSubmitDisclaimerOpen(true);
               void onRefreshMatchesOnly();
             }}
+            submitEnabledMatchId={seniorAiSubmitTargetMatchId}
             buildSubmitLineupPayload={(matchId, defaultPayload) =>
               buildPreparedExtraTimeSubmitPayload(matchId, defaultPayload)
             }

@@ -674,6 +674,22 @@ export const messagesIt: Messages = {
       "I rigoristi sono stati ordinati in modo che il primo sia quello con minori probabilità di segnare.",
     seniorExtraTimeSubmitDisclaimerBehaviors:
       "I giocatori sono stati orientati in modo difensivo dove possibile.",
+    seniorExtraTimeSubmitDisclaimerSubstitutionsTitle:
+      "Sostituzioni e scambi previsti",
+    seniorExtraTimeSubmitDisclaimerSwapLine:
+      "{{minute}}': {{playerIn}} scambia posizione con {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerReplaceLine:
+      "{{minute}}': {{playerIn}} sostituisce {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerTrainingTitle:
+      "Riepilogo allenamento per scenario",
+    seniorExtraTimeSubmitDisclaimerTrainingIntro:
+      "I minuti di allenamento effettivi qui sotto sono personalizzati per questa formazione inviata. Lo scenario 2 presuppone i supplementari.",
+    seniorExtraTimeSubmitDisclaimerTrainingPlayerHeader: "Trainee",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario90Header:
+      "Minuti di allenamento senza supplementari",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario120Header:
+      "Minuti di allenamento con supplementari",
+    seniorExtraTimeSubmitDisclaimerFurtherTitle: "Ulteriori informazioni e disclaimer",
     loadLineupTooltip: "Carica la formazione salvata da Hattrick per questa partita.",
     submitOrdersTooltip: "Invia la formazione attuale a Hattrick per questa partita.",
     randomizeLineup: "Formazione casuale",

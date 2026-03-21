@@ -665,6 +665,22 @@ export const messagesSv: Messages = {
       "Straffskyttarna har ordnats så att den första skytten är den som har lägst sannolikhet att göra mål.",
     seniorExtraTimeSubmitDisclaimerBehaviors:
       "Spelare har orienterats defensivt där det varit möjligt.",
+    seniorExtraTimeSubmitDisclaimerSubstitutionsTitle:
+      "Planerade byten och positionsbyten",
+    seniorExtraTimeSubmitDisclaimerSwapLine:
+      "{{minute}}': {{playerIn}} byter position med {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerReplaceLine:
+      "{{minute}}': {{playerIn}} ersätter {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerTrainingTitle:
+      "Träningssammanfattning per scenario",
+    seniorExtraTimeSubmitDisclaimerTrainingIntro:
+      "De effektiva träningsminuterna nedan är anpassade för den här skickade uppställningen. Scenario 2 förutsätter förlängning.",
+    seniorExtraTimeSubmitDisclaimerTrainingPlayerHeader: "Trainee",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario90Header:
+      "Träningsminuter utan förlängning",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario120Header:
+      "Träningsminuter med förlängning",
+    seniorExtraTimeSubmitDisclaimerFurtherTitle: "Mer information och ansvarsfriskrivning",
     loadLineupTooltip: "Laddar den sparade uppställningen från Hattrick för matchen.",
     submitOrdersTooltip: "Skickar den aktuella uppställningen till Hattrick för matchen.",
     randomizeLineup: "Slumpa uppställning",

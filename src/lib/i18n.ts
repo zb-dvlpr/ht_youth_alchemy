@@ -562,6 +562,15 @@ export type Messages = {
   seniorExtraTimeSubmitDisclaimerSetPieces: string;
   seniorExtraTimeSubmitDisclaimerPenalties: string;
   seniorExtraTimeSubmitDisclaimerBehaviors: string;
+  seniorExtraTimeSubmitDisclaimerSubstitutionsTitle: string;
+  seniorExtraTimeSubmitDisclaimerSwapLine: string;
+  seniorExtraTimeSubmitDisclaimerReplaceLine: string;
+  seniorExtraTimeSubmitDisclaimerTrainingTitle: string;
+  seniorExtraTimeSubmitDisclaimerTrainingIntro: string;
+  seniorExtraTimeSubmitDisclaimerTrainingPlayerHeader: string;
+  seniorExtraTimeSubmitDisclaimerTrainingScenario90Header: string;
+  seniorExtraTimeSubmitDisclaimerTrainingScenario120Header: string;
+  seniorExtraTimeSubmitDisclaimerFurtherTitle: string;
   loadLineupTooltip: string;
   submitOrdersTooltip: string;
   randomizeLineup: string;

@@ -370,6 +370,35 @@ export const messagesPl: Messages = {
     "Jeśli potrzebne są polecenia meczowe, należy ustawić je bezpośrednio w Hattrick.",
   seniorSubmitDisclaimerBulletVerify:
     "Przed pierwszym gwizdkiem sprawdź dostępność, kontuzje i założenia taktyczne.",
+  seniorExtraTimeSubmitDisclaimerIntro:
+    "Polecenia dla składu ustawionego pod dogrywkę zostały wysłane dla reżimu treningowego {{training}}.",
+  seniorExtraTimeSubmitDisclaimerSwap:
+    "Trenowani zawodnicy {{trainees}} będą zamieniać się pozycjami, aby maksymalizować trening w dogrywce, jeśli mecz po 90 minutach będzie remisowy.",
+  seniorExtraTimeSubmitDisclaimerPressing:
+    "Aby zwiększyć szansę na remis, użyto taktyki Pressing.",
+  seniorExtraTimeSubmitDisclaimerSetPieces:
+    "Stałe fragmenty wykonuje zawodnik z najsłabszym poziomem stałych fragmentów.",
+  seniorExtraTimeSubmitDisclaimerPenalties:
+    "Kolejność wykonawców karnych została ustawiona tak, aby pierwszy strzelał zawodnik z najmniejszą szansą na zdobycie gola.",
+  seniorExtraTimeSubmitDisclaimerBehaviors:
+    "Gdzie było to możliwe, zawodnicy zostali ustawieni defensywnie.",
+  seniorExtraTimeSubmitDisclaimerSubstitutionsTitle:
+    "Planowane zmiany i zamiany pozycji",
+  seniorExtraTimeSubmitDisclaimerSwapLine:
+    "{{minute}}': {{playerIn}} zamienia się pozycją z {{playerOut}}.",
+  seniorExtraTimeSubmitDisclaimerReplaceLine:
+    "{{minute}}': {{playerIn}} zmienia {{playerOut}}.",
+  seniorExtraTimeSubmitDisclaimerTrainingTitle:
+    "Podsumowanie treningu według scenariusza",
+  seniorExtraTimeSubmitDisclaimerTrainingIntro:
+    "Poniższe efektywne minuty treningowe są wyliczone dla tego konkretnego wysłanego składu. Scenariusz 2 zakłada dogrywkę.",
+  seniorExtraTimeSubmitDisclaimerTrainingPlayerHeader: "Trenowany",
+  seniorExtraTimeSubmitDisclaimerTrainingScenario90Header:
+    "Minuty treningu bez dogrywki",
+  seniorExtraTimeSubmitDisclaimerTrainingScenario120Header:
+    "Minuty treningu z dogrywką",
+  seniorExtraTimeSubmitDisclaimerFurtherTitle:
+    "Dalsze informacje i zastrzeżenie",
   submitOrdersTooltip: "Wyślij bieżący skład do Hattrick dla tego meczu.",
   confirmSubmitOrders: "Wysłać bieżący skład na ten mecz?",
   confirmCancel: "Anuluj",

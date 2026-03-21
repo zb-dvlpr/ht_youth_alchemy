@@ -673,6 +673,22 @@ export const messagesEs: Messages = {
       "Los lanzadores de penaltis se han ordenado para que el primer lanzador sea el menos probable de marcar.",
     seniorExtraTimeSubmitDisclaimerBehaviors:
       "Los jugadores se han orientado defensivamente cuando ha sido posible.",
+    seniorExtraTimeSubmitDisclaimerSubstitutionsTitle:
+      "Cambios e intercambios previstos",
+    seniorExtraTimeSubmitDisclaimerSwapLine:
+      "{{minute}}': {{playerIn}} intercambia posición con {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerReplaceLine:
+      "{{minute}}': {{playerIn}} sustituye a {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerTrainingTitle:
+      "Resumen de entrenamiento por escenario",
+    seniorExtraTimeSubmitDisclaimerTrainingIntro:
+      "Los minutos efectivos de entrenamiento a continuación están personalizados para esta alineación enviada. El escenario 2 asume prórroga.",
+    seniorExtraTimeSubmitDisclaimerTrainingPlayerHeader: "Entrenado",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario90Header:
+      "Minutos de entrenamiento sin prórroga",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario120Header:
+      "Minutos de entrenamiento con prórroga",
+    seniorExtraTimeSubmitDisclaimerFurtherTitle: "Más información y descargo de responsabilidad",
     loadLineupTooltip: "Carga la alineación guardada desde Hattrick para este partido.",
     submitOrdersTooltip: "Envía la alineación actual a Hattrick para este partido.",
     randomizeLineup: "Alineación aleatoria",

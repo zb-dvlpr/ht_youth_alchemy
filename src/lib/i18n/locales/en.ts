@@ -641,6 +641,20 @@ export const messagesEn: Messages = {
       "The penalty takers have been ordered so the first taker is the one least likely to score.",
     seniorExtraTimeSubmitDisclaimerBehaviors:
       "Players have been oriented defensively where possible.",
+    seniorExtraTimeSubmitDisclaimerSubstitutionsTitle: "Planned substitutions and swaps",
+    seniorExtraTimeSubmitDisclaimerSwapLine:
+      "{{minute}}': {{playerIn}} swaps positions with {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerReplaceLine:
+      "{{minute}}': {{playerIn}} replaces {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerTrainingTitle: "Training summary by scenario",
+    seniorExtraTimeSubmitDisclaimerTrainingIntro:
+      "Effective training minutes below are personalized to this submitted lineup. Scenario 2 assumes the match goes to extra time.",
+    seniorExtraTimeSubmitDisclaimerTrainingPlayerHeader: "Trainee",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario90Header:
+      "Training minutes assuming no extra time",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario120Header:
+      "Training minutes assuming extra time",
+    seniorExtraTimeSubmitDisclaimerFurtherTitle: "Further Information & Disclaimer",
     loadLineupTooltip: "Load the saved lineup from Hattrick for this match.",
     submitOrdersTooltip: "Submit the current lineup to Hattrick for this match.",
     randomizeLineup: "Random lineup",

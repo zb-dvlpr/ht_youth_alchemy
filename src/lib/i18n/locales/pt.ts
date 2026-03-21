@@ -673,6 +673,22 @@ export const messagesPt: Messages = {
       "Os cobradores de pênalti foram ordenados para que o primeiro seja o menos provável de marcar.",
     seniorExtraTimeSubmitDisclaimerBehaviors:
       "Os jogadores foram orientados defensivamente sempre que possível.",
+    seniorExtraTimeSubmitDisclaimerSubstitutionsTitle:
+      "Substituições e trocas previstas",
+    seniorExtraTimeSubmitDisclaimerSwapLine:
+      "{{minute}}': {{playerIn}} troca de posição com {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerReplaceLine:
+      "{{minute}}': {{playerIn}} substitui {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerTrainingTitle:
+      "Resumo do treino por cenário",
+    seniorExtraTimeSubmitDisclaimerTrainingIntro:
+      "Os minutos efetivos de treino abaixo são personalizados para esta escalação enviada. O cenário 2 assume prolongamento.",
+    seniorExtraTimeSubmitDisclaimerTrainingPlayerHeader: "Treinando",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario90Header:
+      "Minutos de treino sem prolongamento",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario120Header:
+      "Minutos de treino com prolongamento",
+    seniorExtraTimeSubmitDisclaimerFurtherTitle: "Mais informações e aviso legal",
     loadLineupTooltip: "Carrega a escalação salva do Hattrick para esta partida.",
     submitOrdersTooltip: "Envia a escalação atual ao Hattrick para esta partida.",
     randomizeLineup: "Escalação aleatória",

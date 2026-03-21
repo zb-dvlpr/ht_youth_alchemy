@@ -672,6 +672,22 @@ export const messagesFr: Messages = {
       "Les tireurs de penalty ont été ordonnés de sorte que le premier tireur soit celui qui a le moins de chances de marquer.",
     seniorExtraTimeSubmitDisclaimerBehaviors:
       "Les joueurs ont été orientés défensivement lorsque cela était possible.",
+    seniorExtraTimeSubmitDisclaimerSubstitutionsTitle:
+      "Remplacements et permutations prévus",
+    seniorExtraTimeSubmitDisclaimerSwapLine:
+      "{{minute}}': {{playerIn}} échange sa position avec {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerReplaceLine:
+      "{{minute}}': {{playerIn}} remplace {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerTrainingTitle:
+      "Résumé de l’entraînement par scénario",
+    seniorExtraTimeSubmitDisclaimerTrainingIntro:
+      "Les minutes d’entraînement effectives ci-dessous sont personnalisées pour cette composition envoyée. Le scénario 2 suppose une prolongation.",
+    seniorExtraTimeSubmitDisclaimerTrainingPlayerHeader: "Stagiaire",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario90Header:
+      "Minutes d’entraînement sans prolongation",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario120Header:
+      "Minutes d’entraînement avec prolongation",
+    seniorExtraTimeSubmitDisclaimerFurtherTitle: "Informations complémentaires & avertissement",
     loadLineupTooltip: "Charge la composition enregistrée depuis Hattrick pour ce match.",
     submitOrdersTooltip: "Envoie la composition actuelle à Hattrick pour ce match.",
     randomizeLineup: "Composition aléatoire",

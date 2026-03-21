@@ -543,6 +543,27 @@ type MatchOrderSubstitution = {
   standing: number;
 };
 
+type ExtraTimeSubmitDisclaimerSubstitution = {
+  minute: number;
+  type: "swap" | "replace";
+  playerIn: { id: number; name: string };
+  playerOut: { id: number; name: string };
+};
+
+type ExtraTimeSubmitDisclaimerTrainingRow = {
+  id: number;
+  name: string;
+  scenario90: number;
+  scenario120: number;
+};
+
+type ExtraTimeSubmitDisclaimerSummary = {
+  trainingLabel: string;
+  trainees: Array<{ id: number; name: string }>;
+  substitutions: ExtraTimeSubmitDisclaimerSubstitution[];
+  trainingRows: ExtraTimeSubmitDisclaimerTrainingRow[];
+};
+
 type StartupLoadingPhase =
   | "teamContext"
   | "players"
@@ -1478,6 +1499,121 @@ const orderFormationSlotsForTraining = (
   return defaultOrdered;
 };
 
+const trainingWeightBySlot = (trainingType: number | null) => {
+  const weights = new Map<string, number>();
+  const setWeight = (slots: string[], value: number) => {
+    slots.forEach((slot) => weights.set(slot, value));
+  };
+
+  switch (trainingType) {
+    case 2:
+    case 6:
+      setWeight([...FIELD_SLOT_ORDER], 1);
+      break;
+    case 3:
+      setWeight([...DEFENSE_SLOTS], 1);
+      break;
+    case 4:
+      setWeight([...ATTACK_SLOTS], 1);
+      break;
+    case 5:
+      setWeight(["W_L", "W_R"], 1);
+      setWeight(["WB_L", "WB_R"], 0.5);
+      break;
+    case 7:
+      setWeight([...MIDFIELD_SLOTS, ...ATTACK_SLOTS], 1);
+      break;
+    case 8:
+      setWeight(["IM_L", "IM_C", "IM_R"], 1);
+      setWeight(["W_L", "W_R"], 0.5);
+      break;
+    case 9:
+      setWeight(["KP"], 1);
+      break;
+    case 10:
+    case 11:
+      setWeight([...DEFENSE_SLOTS, ...MIDFIELD_SLOTS], 1);
+      if (trainingType === 11) {
+        setWeight(["KP"], 1);
+      }
+      break;
+    case 12:
+      setWeight(["W_L", "W_R", ...ATTACK_SLOTS], 1);
+      break;
+    default:
+      break;
+  }
+
+  return weights;
+};
+
+const calculateTrainingMinutesForScenario = (
+  assignments: LineupAssignments,
+  substitutions: MatchOrderSubstitution[],
+  traineeIds: number[],
+  trainingType: number | null,
+  totalMinutes: number
+) => {
+  const weights = trainingWeightBySlot(trainingType);
+  const currentSlotByPlayerId = new Map<number, string | null>();
+  const accumulatedByPlayerId = new Map<number, number>();
+  traineeIds.forEach((playerId) => accumulatedByPlayerId.set(playerId, 0));
+  FIELD_SLOT_ORDER.forEach((slot) => {
+    const playerId = assignments[slot];
+    if (typeof playerId === "number" && playerId > 0) {
+      currentSlotByPlayerId.set(playerId, slot);
+    }
+  });
+
+  const sortedSubstitutions = [...substitutions].sort(
+    (left, right) => left.min - right.min || left.orderType - right.orderType
+  );
+  let intervalStart = 0;
+
+  const applyInterval = (intervalEnd: number) => {
+    const duration = Math.max(0, intervalEnd - intervalStart);
+    if (duration <= 0) {
+      intervalStart = intervalEnd;
+      return;
+    }
+    traineeIds.forEach((playerId) => {
+      const slot = currentSlotByPlayerId.get(playerId) ?? null;
+      const weight = slot ? (weights.get(slot) ?? 0) : 0;
+      accumulatedByPlayerId.set(
+        playerId,
+        (accumulatedByPlayerId.get(playerId) ?? 0) + duration * weight
+      );
+    });
+    intervalStart = intervalEnd;
+  };
+
+  sortedSubstitutions.forEach((substitution) => {
+    const minute = Math.min(totalMinutes, Math.max(0, substitution.min));
+    applyInterval(minute);
+    if (minute >= totalMinutes) return;
+
+    if (substitution.orderType === 3) {
+      const playerInSlot = currentSlotByPlayerId.get(substitution.playerin) ?? null;
+      const playerOutSlot = currentSlotByPlayerId.get(substitution.playerout) ?? null;
+      if (!playerInSlot || !playerOutSlot) return;
+      currentSlotByPlayerId.set(substitution.playerin, playerOutSlot);
+      currentSlotByPlayerId.set(substitution.playerout, playerInSlot);
+      return;
+    }
+
+    if (substitution.orderType === 1) {
+      const playerOutSlot = currentSlotByPlayerId.get(substitution.playerout) ?? null;
+      if (!playerOutSlot) return;
+      currentSlotByPlayerId.set(substitution.playerout, null);
+      currentSlotByPlayerId.set(substitution.playerin, playerOutSlot);
+    }
+  });
+
+  applyInterval(totalMinutes);
+
+  return accumulatedByPlayerId;
+};
+
 const pickMostCommonFormation = (rows: OpponentFormationRow[]): string | null => {
   const rowsWithFormation = rows.filter(
     (row): row is OpponentFormationRow & { formation: string } =>
@@ -1807,10 +1943,8 @@ export default function SeniorDashboard({
     entries: NonTraineeAssignmentTraceEntry[];
   } | null>(null);
   const [submitDisclaimerOpen, setSubmitDisclaimerOpen] = useState(false);
-  const [submitDisclaimerExtraTimeSummary, setSubmitDisclaimerExtraTimeSummary] = useState<{
-    trainingLabel: string;
-    trainees: Array<{ id: number; name: string }>;
-  } | null>(null);
+  const [submitDisclaimerExtraTimeSummary, setSubmitDisclaimerExtraTimeSummary] =
+    useState<ExtraTimeSubmitDisclaimerSummary | null>(null);
   const [extraTimeInfoOpen, setExtraTimeInfoOpen] = useState(false);
   const [extraTimeTrainingMenuOpen, setExtraTimeTrainingMenuOpen] = useState(false);
 
@@ -6596,6 +6730,78 @@ export default function SeniorDashboard({
     playersById,
   ]);
 
+  const formatEffectiveTrainingMinutes = (value: number) => {
+    const capped = Math.min(90, Math.max(0, value));
+    return Number.isInteger(capped) ? String(capped) : capped.toFixed(1).replace(/\.0$/, "");
+  };
+
+  const buildExtraTimeSubmitDisclaimerSummary = (): ExtraTimeSubmitDisclaimerSummary | null => {
+    if (!extraTimePreparedSubmission) return null;
+    const submitPayload = buildPreparedExtraTimeSubmitPayload(
+      extraTimePreparedSubmission.matchId,
+      buildLineupPayload(assignments, 1)
+    );
+    const substitutions = (submitPayload.substitutions ?? [])
+      .filter(
+        (substitution) =>
+          typeof substitution.playerin === "number" &&
+          substitution.playerin > 0 &&
+          typeof substitution.playerout === "number" &&
+          substitution.playerout > 0
+      )
+      .sort((left, right) => left.min - right.min || left.orderType - right.orderType)
+      .map((substitution) => {
+        const playerIn = playersById.get(substitution.playerin);
+        const playerOut = playersById.get(substitution.playerout);
+        return {
+          minute: substitution.min,
+          type: substitution.orderType === 3 ? "swap" : "replace",
+          playerIn: {
+            id: substitution.playerin,
+            name: playerIn ? formatPlayerName(playerIn) : String(substitution.playerin),
+          },
+          playerOut: {
+            id: substitution.playerout,
+            name: playerOut ? formatPlayerName(playerOut) : String(substitution.playerout),
+          },
+        } satisfies ExtraTimeSubmitDisclaimerSubstitution;
+      });
+    const training90 = calculateTrainingMinutesForScenario(
+      assignments,
+      submitPayload.substitutions ?? [],
+      extraTimePreparedSubmission.traineeIds,
+      extraTimePreparedSubmission.trainingType,
+      90
+    );
+    const training120 = calculateTrainingMinutesForScenario(
+      assignments,
+      submitPayload.substitutions ?? [],
+      extraTimePreparedSubmission.traineeIds,
+      extraTimePreparedSubmission.trainingType,
+      120
+    );
+    const trainees = extraTimePreparedSubmission.traineeIds.map((playerId) => {
+      const player = playersById.get(playerId);
+      return {
+        id: playerId,
+        name: player ? formatPlayerName(player) : String(playerId),
+      };
+    });
+    const trainingRows = trainees.map((trainee) => ({
+      id: trainee.id,
+      name: trainee.name,
+      scenario90: Math.min(90, training90.get(trainee.id) ?? 0),
+      scenario120: Math.min(90, training120.get(trainee.id) ?? 0),
+    }));
+
+    return {
+      trainingLabel: obtainedTrainingRegimenLabel(extraTimePreparedSubmission.trainingType),
+      trainees,
+      substitutions,
+      trainingRows,
+    };
+  };
+
   const seniorCardStatusByPlayerId = useMemo(() => {
     const map: Record<number, { display: string; label: string }> = {};
     players.forEach((player) => {
@@ -10487,6 +10693,7 @@ const refreshDetailsForPlayers = async (
       />
       <Modal
         open={submitDisclaimerOpen}
+        title={messages.seniorSubmitDisclaimerTitle}
         className={styles.chronicleTransferHistoryModal}
         body={
           submitDisclaimerExtraTimeSummary ? (
@@ -10500,32 +10707,98 @@ const refreshDetailsForPlayers = async (
                     .replace("{{training}}", submitDisclaimerExtraTimeSummary.trainingLabel)}
                 </p>
               </div>
+              <div>
+                <p className={styles.seniorDisclaimerIntro}>
+                  {messages.seniorExtraTimeSubmitDisclaimerSubstitutionsTitle}
+                </p>
+                <ul className={styles.seniorDisclaimerList}>
+                  {submitDisclaimerExtraTimeSummary.substitutions.map((substitution, index) => (
+                    <li key={`${substitution.type}-${substitution.minute}-${index}`}>
+                      {(
+                        substitution.type === "swap"
+                          ? messages.seniorExtraTimeSubmitDisclaimerSwapLine
+                          : messages.seniorExtraTimeSubmitDisclaimerReplaceLine
+                      )
+                        .replace("{{minute}}", String(substitution.minute))
+                        .split("{{playerIn}}")
+                        .flatMap((segment, segmentIndex, segments) => {
+                          if (segmentIndex === segments.length - 1) return [segment];
+                          return [
+                            segment,
+                            <a
+                              key={`player-in-${substitution.playerIn.id}`}
+                              className={styles.chroniclePressLink}
+                              href={hattrickPlayerUrl(substitution.playerIn.id)}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {substitution.playerIn.name}
+                            </a>,
+                          ];
+                        })
+                        .flatMap((segment) => {
+                          if (typeof segment !== "string") return [segment];
+                          return segment.split("{{playerOut}}").flatMap((part, partIndex, parts) => {
+                            if (partIndex === parts.length - 1) return [part];
+                            return [
+                              part,
+                              <a
+                                key={`player-out-${substitution.playerOut.id}`}
+                                className={styles.chroniclePressLink}
+                                href={hattrickPlayerUrl(substitution.playerOut.id)}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {substitution.playerOut.name}
+                              </a>,
+                            ];
+                          });
+                        })}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <p className={styles.seniorDisclaimerIntro}>
+                  {messages.seniorExtraTimeSubmitDisclaimerTrainingTitle}
+                </p>
+                <p>{messages.seniorExtraTimeModalTrainingLimit}</p>
+                <div className={styles.opponentFormationsTableWrap}>
+                  <table className={styles.opponentFormationsTable}>
+                    <thead>
+                      <tr>
+                        <th>{messages.seniorExtraTimeSubmitDisclaimerTrainingPlayerHeader}</th>
+                        <th>{messages.seniorExtraTimeSubmitDisclaimerTrainingScenario90Header}</th>
+                        <th>{messages.seniorExtraTimeSubmitDisclaimerTrainingScenario120Header}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {submitDisclaimerExtraTimeSummary.trainingRows.map((row) => (
+                        <tr key={row.id}>
+                          <td>
+                            <a
+                              className={styles.chroniclePressLink}
+                              href={hattrickPlayerUrl(row.id)}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {row.name}
+                            </a>
+                          </td>
+                          <td>{formatEffectiveTrainingMinutes(row.scenario90)}</td>
+                          <td>{formatEffectiveTrainingMinutes(row.scenario120)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div>
+                <p className={styles.seniorDisclaimerIntro}>
+                  {messages.seniorExtraTimeSubmitDisclaimerFurtherTitle}
+                </p>
+              </div>
               <ul className={styles.seniorDisclaimerList}>
-                <li>
-                  {messages.seniorExtraTimeSubmitDisclaimerSwap.split("{{trainees}}")[0]}
-                  {submitDisclaimerExtraTimeSummary.trainees.length > 0
-                    ? submitDisclaimerExtraTimeSummary.trainees.map((trainee, index) => (
-                        <span key={trainee.id}>
-                          {index === 0
-                            ? null
-                            : index === submitDisclaimerExtraTimeSummary.trainees.length - 1
-                              ? submitDisclaimerExtraTimeSummary.trainees.length === 2
-                                ? " and "
-                                : ", and "
-                              : ", "}
-                          <a
-                            className={styles.chroniclePressLink}
-                            href={hattrickPlayerUrl(trainee.id)}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {trainee.name}
-                          </a>
-                        </span>
-                      ))
-                    : messages.unknownLabel}
-                  {messages.seniorExtraTimeSubmitDisclaimerSwap.split("{{trainees}}")[1] ?? ""}
-                </li>
                 <li>{messages.seniorExtraTimeSubmitDisclaimerPressing}</li>
                 <li>{messages.seniorExtraTimeSubmitDisclaimerSetPieces}</li>
                 <li>{messages.seniorExtraTimeSubmitDisclaimerPenalties}</li>
@@ -12787,18 +13060,11 @@ const refreshDetailsForPlayers = async (
             loadedMatchId={loadedMatchId}
             onSubmitSuccess={() => {
               if (extraTimePreparedSubmission) {
-                setSubmitDisclaimerExtraTimeSummary({
-                  trainingLabel: obtainedTrainingRegimenLabel(
-                    extraTimePreparedSubmission.trainingType
-                  ),
-                  trainees: extraTimePreparedSubmission.traineeIds.map((playerId) => {
-                    const player = playersById.get(playerId);
-                    return {
-                      id: playerId,
-                      name: player ? formatPlayerName(player) : String(playerId),
-                    };
-                  }),
-                });
+                try {
+                  setSubmitDisclaimerExtraTimeSummary(buildExtraTimeSubmitDisclaimerSummary());
+                } catch {
+                  setSubmitDisclaimerExtraTimeSummary(null);
+                }
               } else {
                 setSubmitDisclaimerExtraTimeSummary(null);
               }

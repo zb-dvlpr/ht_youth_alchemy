@@ -662,6 +662,20 @@ export const messagesDe: Messages = {
       "Die Elfmeterschützen wurden so geordnet, dass der erste Schütze derjenige ist, der am wenigsten wahrscheinlich trifft.",
     seniorExtraTimeSubmitDisclaimerBehaviors:
       "Spieler wurden, wo möglich, defensiv ausgerichtet.",
+    seniorExtraTimeSubmitDisclaimerSubstitutionsTitle: "Geplante Wechsel und Positionswechsel",
+    seniorExtraTimeSubmitDisclaimerSwapLine:
+      "{{minute}}': {{playerIn}} tauscht die Position mit {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerReplaceLine:
+      "{{minute}}': {{playerIn}} ersetzt {{playerOut}}.",
+    seniorExtraTimeSubmitDisclaimerTrainingTitle: "Trainingsübersicht nach Szenario",
+    seniorExtraTimeSubmitDisclaimerTrainingIntro:
+      "Die folgenden effektiven Trainingsminuten sind auf diese gesendete Aufstellung zugeschnitten. Szenario 2 setzt Verlängerung voraus.",
+    seniorExtraTimeSubmitDisclaimerTrainingPlayerHeader: "Trainee",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario90Header:
+      "Trainingsminuten ohne Verlängerung",
+    seniorExtraTimeSubmitDisclaimerTrainingScenario120Header:
+      "Trainingsminuten mit Verlängerung",
+    seniorExtraTimeSubmitDisclaimerFurtherTitle: "Weitere Hinweise & Haftungsausschluss",
     loadLineupTooltip: "Lädt die gespeicherte Aufstellung aus Hattrick für dieses Spiel.",
     submitOrdersTooltip: "Sendet die aktuelle Aufstellung an Hattrick für dieses Spiel.",
     randomizeLineup: "Zufällige Aufstellung",

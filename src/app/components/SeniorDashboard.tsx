@@ -27,7 +27,6 @@ import { parseChppDate } from "@/lib/chpp/utils";
 import {
   hattrickForumThreadUrl,
   hattrickManagerUrl,
-  hattrickMatchUrl,
   hattrickMatchUrlWithSourceSystem,
   hattrickPlayerUrl,
   hattrickTeamUrl,
@@ -11658,7 +11657,10 @@ const refreshDetailsForPlayers = async (
                           <td className={styles.opponentFormationsMatchIdCell}>
                             <a
                               className={styles.chroniclePressLink}
-                              href={hattrickMatchUrl(row.matchId)}
+                              href={hattrickMatchUrlWithSourceSystem(
+                                row.matchId,
+                                row.sourceSystem
+                              )}
                               target="_blank"
                               rel="noreferrer"
                             >
@@ -12002,7 +12004,10 @@ const refreshDetailsForPlayers = async (
                               <td className={styles.opponentFormationsMatchIdCell}>
                                 <a
                                   className={styles.chroniclePressLink}
-                                  href={hattrickMatchUrl(row.matchId)}
+                                  href={hattrickMatchUrlWithSourceSystem(
+                                    row.matchId,
+                                    row.sourceSystem
+                                  )}
                                   target="_blank"
                                   rel="noreferrer"
                                 >

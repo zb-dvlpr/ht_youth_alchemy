@@ -832,6 +832,8 @@ export const messagesSv: Messages = {
       "Det gick inte att kontrollera veckans träningsrelevanta matcher.",
     seniorExtraTimeModalBTeamWeekendTooltip:
       "B-lagsvalet är bara tillgängligt från måndag till torsdag (CET).",
+    seniorExtraTimeModalBTeamEnabledTooltip:
+      "Aktivera for att satta upp en laguppstallning som bortser fran spelare som redan har spelat en match den har veckan.",
     seniorExtraTimeModalBTeamNoATeamMatchTooltip:
       "Ingen A-lagsmatch har upptackts hittills den har veckan.",
     seniorExtraTimeModalBTeamAlreadyPlayedTooltip:

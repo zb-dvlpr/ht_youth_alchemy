@@ -827,6 +827,8 @@ export const messagesDe: Messages = {
       "Trainingsrelevante Spiele dieser Woche konnten nicht geprüft werden.",
     seniorExtraTimeModalBTeamWeekendTooltip:
       "Die B-Team-Auswahl ist nur von Montag bis Donnerstag (CET) verfügbar.",
+    seniorExtraTimeModalBTeamEnabledTooltip:
+      "Aktivieren, um eine Aufstellung zu erstellen, die Spieler ignoriert, die diese Woche bereits ein Spiel absolviert haben.",
     seniorExtraTimeModalBTeamNoATeamMatchTooltip:
       "Bisher wurde in dieser Woche kein A-Team-Spiel erkannt.",
     seniorExtraTimeModalBTeamAlreadyPlayedTooltip:

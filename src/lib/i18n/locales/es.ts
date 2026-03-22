@@ -841,6 +841,8 @@ export const messagesEs: Messages = {
       "No se pudieron comprobar los partidos relevantes para el entrenamiento de esta semana.",
     seniorExtraTimeModalBTeamWeekendTooltip:
       "La selección del equipo B solo está disponible de lunes a jueves (CET).",
+    seniorExtraTimeModalBTeamEnabledTooltip:
+      "Activa esta opción para preparar una alineación ignorando a los jugadores que ya hayan jugado un partido esta semana.",
     seniorExtraTimeModalBTeamNoATeamMatchTooltip:
       "No se detecto ningun partido del equipo A hasta ahora esta semana.",
     seniorExtraTimeModalBTeamAlreadyPlayedTooltip:

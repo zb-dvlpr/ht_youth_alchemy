@@ -2911,10 +2911,13 @@ export default function SeniorDashboard({
     }
     return null;
   })();
+  const extraTimeBTeamToggleTooltip = extraTimeBTeamCanBeEnabled
+    ? messages.seniorExtraTimeModalBTeamEnabledTooltip
+    : extraTimeBTeamDisabledTooltip;
   const setBestLineupBTeamMenuContent = (
     <div className={styles.seniorSetBestLineupBTeamMenuSection}>
       <div className={styles.seniorExtraTimeBTeamControls}>
-        <Tooltip content={extraTimeBTeamDisabledTooltip}>
+        <Tooltip content={extraTimeBTeamToggleTooltip}>
           <label className={styles.matchesFilterToggle}>
             <input
               type="checkbox"

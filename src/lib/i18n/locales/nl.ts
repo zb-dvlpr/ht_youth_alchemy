@@ -261,6 +261,8 @@ export const messagesNl: Messages = {
     "De trainingsrelevante wedstrijden van deze week konden niet worden gecontroleerd.",
   seniorExtraTimeModalBTeamWeekendTooltip:
     "De B-teamselectie is alleen beschikbaar van maandag tot en met donderdag (CET).",
+  seniorExtraTimeModalBTeamEnabledTooltip:
+    "Schakel in om een opstelling te maken waarbij spelers die deze week al een wedstrijd hebben gespeeld worden genegeerd.",
   seniorExtraTimeModalBTeamNoATeamMatchTooltip:
     "Er is deze week nog geen A-teamwedstrijd gedetecteerd.",
   seniorExtraTimeModalBTeamAlreadyPlayedTooltip:

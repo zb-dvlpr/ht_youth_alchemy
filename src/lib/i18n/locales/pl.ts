@@ -255,6 +255,8 @@ export const messagesPl: Messages = {
     "Nie udało się sprawdzić meczów istotnych dla treningu w tym tygodniu.",
   seniorExtraTimeModalBTeamWeekendTooltip:
     "Wybór składu B jest dostępny tylko od poniedziałku do czwartku (CET).",
+  seniorExtraTimeModalBTeamEnabledTooltip:
+    "Wlacz, aby przygotowac sklad z pominieciem zawodnikow, ktorzy rozegrali juz mecz w tym tygodniu.",
   seniorExtraTimeModalBTeamNoATeamMatchTooltip:
     "Jak dotad w tym tygodniu nie wykryto meczu skladu A.",
   seniorExtraTimeModalBTeamAlreadyPlayedTooltip:

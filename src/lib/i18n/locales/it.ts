@@ -842,6 +842,8 @@ export const messagesIt: Messages = {
       "Impossibile controllare le partite rilevanti per l allenamento di questa settimana.",
     seniorExtraTimeModalBTeamWeekendTooltip:
       "La selezione della squadra B è disponibile solo dal lunedì al giovedì (CET).",
+    seniorExtraTimeModalBTeamEnabledTooltip:
+      "Attiva per preparare una formazione ignorando i giocatori che hanno gia giocato una partita questa settimana.",
     seniorExtraTimeModalBTeamNoATeamMatchTooltip:
       "Nessuna partita della squadra A rilevata finora questa settimana.",
     seniorExtraTimeModalBTeamAlreadyPlayedTooltip:

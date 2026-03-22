@@ -647,6 +647,8 @@ export const messagesEs: Messages = {
     submitOrdersUpdated: "Actualizado",
     submitOrdersMinPlayers: "Se necesitan al menos 9 jugadores",
     submitOrdersMaxPlayers: "La alineación no puede superar 11 jugadores",
+    seniorSubmitOrdersOtherMatchTooltip:
+      "No es posible enviar esta alineacion porque fue preparada para otro partido: {{home}} vs {{away}} el {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Aviso tras enviar la alineación",
     seniorSubmitDisclaimerIntro: "Revisa lo siguiente:",
     seniorSubmitDisclaimerBulletBestEffort:

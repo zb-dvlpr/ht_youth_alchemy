@@ -363,6 +363,8 @@ export const messagesPl: Messages = {
   submitOrdersUpdated: "Zaktualizowano",
   submitOrdersMinPlayers: "Skład musi mieć co najmniej 9 zawodników",
   submitOrdersMaxPlayers: "Skład nie może przekraczać 11 zawodników",
+  seniorSubmitOrdersOtherMatchTooltip:
+    "Nie mozna wyslac tego skladu, poniewaz zostal przygotowany na inny mecz: {{home}} vs {{away}} dnia {{datetime}}.",
   seniorSubmitDisclaimerTitle: "⚠️ Zastrzeżenie po wysłaniu składu",
   seniorSubmitDisclaimerIntro: "Sprawdź proszę poniższe punkty:",
   seniorSubmitDisclaimerBulletBestEffort:

@@ -639,6 +639,8 @@ export const messagesSv: Messages = {
     submitOrdersUpdated: "Uppdaterad",
     submitOrdersMinPlayers: "Minst 9 spelare krävs",
     submitOrdersMaxPlayers: "Uppställningen får inte överstiga 11 spelare",
+    seniorSubmitOrdersOtherMatchTooltip:
+      "Det gar inte att skicka den har uppstallningen eftersom den sattes upp for en annan match: {{home}} vs {{away}} den {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Varning efter inskickad uppställning",
     seniorSubmitDisclaimerIntro: "Gå igenom följande:",
     seniorSubmitDisclaimerBulletBestEffort:

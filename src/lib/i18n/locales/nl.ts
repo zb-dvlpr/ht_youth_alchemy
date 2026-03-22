@@ -369,6 +369,8 @@ export const messagesNl: Messages = {
   submitOrdersUpdated: "Bijgewerkt",
   submitOrdersMinPlayers: "Opstelling moet minimaal 9 spelers hebben",
   submitOrdersMaxPlayers: "Opstelling mag niet meer dan 11 spelers hebben",
+  seniorSubmitOrdersOtherMatchTooltip:
+    "Deze opstelling kan niet worden verzonden omdat die voor een andere wedstrijd is voorbereid: {{home}} vs {{away}} op {{datetime}}.",
   seniorSubmitDisclaimerTitle: "⚠️ Disclaimer na verzenden opstelling",
   seniorSubmitDisclaimerIntro: "Controleer het volgende:",
   seniorSubmitDisclaimerBulletBestEffort:

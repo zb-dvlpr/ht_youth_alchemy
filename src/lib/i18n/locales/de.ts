@@ -636,6 +636,8 @@ export const messagesDe: Messages = {
     submitOrdersUpdated: "Aktualisiert",
     submitOrdersMinPlayers: "Mindestens 9 Spieler erforderlich",
     submitOrdersMaxPlayers: "Aufstellung darf höchstens 11 Spieler haben",
+    seniorSubmitOrdersOtherMatchTooltip:
+      "Diese Aufstellung kann nicht gesendet werden, weil sie fur ein anderes Spiel erstellt wurde: {{home}} vs {{away}} am {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Hinweis nach dem Senden der Aufstellung",
     seniorSubmitDisclaimerIntro: "Bitte beachte Folgendes:",
     seniorSubmitDisclaimerBulletBestEffort:

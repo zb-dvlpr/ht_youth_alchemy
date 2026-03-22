@@ -13288,6 +13288,19 @@ const refreshDetailsForPlayers = async (
               void onRefreshMatchesOnly();
             }}
             submitEnabledMatchId={seniorAiSubmitTargetMatchId}
+            submitRestrictedTooltipBuilder={(targetMatch) => {
+              if (!targetMatch) return messages.submitOrdersTooltip;
+              const home = targetMatch.HomeTeam?.HomeTeamName ?? messages.homeLabel;
+              const away = targetMatch.AwayTeam?.AwayTeamName ?? messages.awayLabel;
+              const parsedMatchDate = parseChppDate(targetMatch.MatchDate);
+              const datetime = parsedMatchDate
+                ? formatDateTime(parsedMatchDate)
+                : messages.unknownDate;
+              return messages.seniorSubmitOrdersOtherMatchTooltip
+                .replace("{{home}}", home)
+                .replace("{{away}}", away)
+                .replace("{{datetime}}", datetime);
+            }}
             buildSubmitLineupPayload={(matchId, defaultPayload) =>
               buildPreparedExtraTimeSubmitPayload(matchId, defaultPayload)
             }

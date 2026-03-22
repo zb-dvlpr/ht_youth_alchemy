@@ -646,6 +646,8 @@ export const messagesFr: Messages = {
     submitOrdersUpdated: "Mis à jour",
     submitOrdersMinPlayers: "Au moins 9 joueurs requis",
     submitOrdersMaxPlayers: "La composition ne peut pas dépasser 11 joueurs",
+    seniorSubmitOrdersOtherMatchTooltip:
+      "L envoi de cette composition est impossible car elle a ete preparee pour un autre match : {{home}} vs {{away}} le {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Avertissement après l’envoi de la composition",
     seniorSubmitDisclaimerIntro: "Merci de vérifier les points suivants :",
     seniorSubmitDisclaimerBulletBestEffort:

@@ -615,6 +615,8 @@ export const messagesEn: Messages = {
     submitOrdersUpdated: "Updated",
     submitOrdersMinPlayers: "Need at least 9 players set",
     submitOrdersMaxPlayers: "Lineup can’t exceed 11 players",
+    seniorSubmitOrdersOtherMatchTooltip:
+      "Submitting this lineup is not possible because it was set up for another match: {{home}} vs {{away}} on {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Lineup submission disclaimer",
     seniorSubmitDisclaimerIntro: "Please review before finalizing:",
     seniorSubmitDisclaimerBulletBestEffort:

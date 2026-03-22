@@ -548,6 +548,7 @@ export type Messages = {
   submitOrdersUpdated: string;
   submitOrdersMinPlayers: string;
   submitOrdersMaxPlayers: string;
+  seniorSubmitOrdersOtherMatchTooltip: string;
   seniorSubmitDisclaimerTitle: string;
   seniorSubmitDisclaimerIntro: string;
   seniorSubmitDisclaimerBulletBestEffort: string;

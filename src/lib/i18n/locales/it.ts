@@ -648,6 +648,8 @@ export const messagesIt: Messages = {
     submitOrdersUpdated: "Aggiornato",
     submitOrdersMinPlayers: "Servono almeno 9 giocatori",
     submitOrdersMaxPlayers: "La formazione non può superare 11 giocatori",
+    seniorSubmitOrdersOtherMatchTooltip:
+      "Non e possibile inviare questa formazione perche e stata preparata per un altra partita: {{home}} vs {{away}} il {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Avvertenza dopo l'invio della formazione",
     seniorSubmitDisclaimerIntro: "Controlla i seguenti punti:",
     seniorSubmitDisclaimerBulletBestEffort:

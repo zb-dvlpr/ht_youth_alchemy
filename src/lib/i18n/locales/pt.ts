@@ -647,6 +647,8 @@ export const messagesPt: Messages = {
     submitOrdersUpdated: "Atualizado",
     submitOrdersMinPlayers: "Pelo menos 9 jogadores",
     submitOrdersMaxPlayers: "A escalação não pode passar de 11 jogadores",
+    seniorSubmitOrdersOtherMatchTooltip:
+      "Nao e possivel enviar esta escalacao porque ela foi preparada para outra partida: {{home}} vs {{away}} em {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Aviso após envio da escalação",
     seniorSubmitDisclaimerIntro: "Revise os pontos abaixo:",
     seniorSubmitDisclaimerBulletBestEffort:

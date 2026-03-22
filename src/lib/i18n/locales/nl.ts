@@ -82,6 +82,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_3_12_0:
+    "Seniorspelerdetails hebben nu een transfermarktzoeker voor vergelijkbare spelers met aanpasbare filters en Supporter-biedingen.",
   changelog_3_11_0:
     "Beschikbaarheid van het senior B-team volgt nu de A-team- en B-team-vensters van de huidige week in plaats van een vaste weekendblokkering.",
   changelog_3_10_0:
@@ -181,6 +183,39 @@ export const messagesNl: Messages = {
   sortAscLabel: "Oplopend",
   sortDescLabel: "Aflopend",
   seniorPlayerListTitle: "Seniorspelers",
+  seniorTransferSearchButtonLabel: "Zoek markt",
+  seniorTransferSearchFemaleTeamTooltip:
+    "Transfermarkt zoeken is niet beschikbaar voor femme-teams.",
+  seniorTransferSearchModalTitle: "Transfermarkt zoeken",
+  seniorTransferSearchCriteriaTitle: "Zoekcriteria",
+  seniorTransferSearchResultsTitle: "Resultaten",
+  seniorTransferSearchSourcePlayerLabel: "Gebaseerd op {{player}}",
+  seniorTransferSearchMinLabel: "Min",
+  seniorTransferSearchMaxLabel: "Max",
+  seniorTransferSearchAnySpecialtyLabel: "Elke",
+  seniorTransferSearchAgeRangeLabel: "Leeftijd",
+  seniorTransferSearchTsiRangeLabel: "TSI",
+  seniorTransferSearchPriceRangeLabel: "Prijs (EUR)",
+  seniorTransferSearchSearchButton: "Zoeken",
+  seniorTransferSearchCloseButton: "Sluiten",
+  seniorTransferSearchLoading: "Transfermarkt wordt doorzocht…",
+  seniorTransferSearchNoResults:
+    "Geen spelers op de transferlijst voldoen aan deze criteria.",
+  seniorTransferSearchFallbackNotice:
+    "De exacte vaardigheidzoekopdracht leverde niets op. Automatisch is een bredere zoekopdracht uitgevoerd met minimumskills 1 lager, leeftijd verbreed naar ±50 dagen en zonder specialiteitsfilter.",
+  seniorTransferSearchResultsCount: "{{count}} resultaten",
+  seniorTransferSearchResultsMany: "Veel resultaten",
+  seniorTransferSearchHighestBidLabel: "Hoogste bod",
+  seniorTransferSearchDeadlineLabel: "Deadline",
+  seniorTransferSearchSellerLabel: "Verkoper",
+  seniorTransferSearchBidAmountLabel: "Bodbedrag (EUR)",
+  seniorTransferSearchMaxBidAmountLabel: "Maxbod (EUR)",
+  seniorTransferSearchPlaceBidButton: "Bieden",
+  seniorTransferSearchPlaceMaxBidButton: "Maxbod instellen",
+  seniorTransferSearchSupporterOnlyTooltip: "Dit is alleen voor Supporters.",
+  seniorTransferSearchBidMissingAmount: "Voer eerst een bodbedrag in.",
+  seniorTransferSearchBidPlaced: "Bod geplaatst op {{player}}.",
+  seniorTransferSearchBidFailed: "Bod mislukt: {{details}}",
   seniorListInjuryBruised: "Gekneusd",
   seniorListInjuryWeeks: "Geblesseerd ({weeks}w)",
   seniorCardsMatchRunning: "wedstrijd bezig",

@@ -4,6 +4,11 @@ export const REQUIRED_CHPP_EXTENDED_PERMISSIONS = [
   "set_training",
 ] as const;
 
+export const REQUESTED_CHPP_EXTENDED_PERMISSIONS = [
+  ...REQUIRED_CHPP_EXTENDED_PERMISSIONS,
+  "place_bid",
+] as const;
+
 const CHPP_PERMISSION_ALIASES: Record<string, readonly string[]> = {
   set_matchorder: [
     "set_matchorder",
@@ -24,10 +29,16 @@ const CHPP_PERMISSION_ALIASES: Record<string, readonly string[]> = {
     "set_trainingtype",
     "training",
   ],
+  place_bid: [
+    "place_bid",
+    "placebid",
+    "bid",
+    "place_bidamount",
+  ],
 };
 
 export function toChppScopeParam(
-  permissions: readonly string[] = REQUIRED_CHPP_EXTENDED_PERMISSIONS
+  permissions: readonly string[] = REQUESTED_CHPP_EXTENDED_PERMISSIONS
 ) {
   return permissions.join(",");
 }

@@ -76,6 +76,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_3_12_0:
+    "Szczegoly zawodnika seniora zawieraja teraz wyszukiwanie podobnych graczy na rynku transferowym z edytowalnymi filtrami i licytacja dla Supporterow.",
   changelog_3_11_0:
     "Dostepnosc skladu B seniorow zalezy teraz od okien meczow skladu A i B w biezacym tygodniu zamiast od stalej blokady weekendowej.",
   changelog_3_10_0:
@@ -175,6 +177,39 @@ export const messagesPl: Messages = {
   sortAscLabel: "Rosnąco",
   sortDescLabel: "Malejąco",
   seniorPlayerListTitle: "Zawodnicy seniorów",
+  seniorTransferSearchButtonLabel: "Szukaj rynku",
+  seniorTransferSearchFemaleTeamTooltip:
+    "Wyszukiwanie na rynku transferowym nie jest dostepne dla druzyn femme.",
+  seniorTransferSearchModalTitle: "Wyszukiwanie transferowe",
+  seniorTransferSearchCriteriaTitle: "Kryteria wyszukiwania",
+  seniorTransferSearchResultsTitle: "Wyniki",
+  seniorTransferSearchSourcePlayerLabel: "Na podstawie {{player}}",
+  seniorTransferSearchMinLabel: "Min",
+  seniorTransferSearchMaxLabel: "Max",
+  seniorTransferSearchAnySpecialtyLabel: "Dowolna",
+  seniorTransferSearchAgeRangeLabel: "Wiek",
+  seniorTransferSearchTsiRangeLabel: "TSI",
+  seniorTransferSearchPriceRangeLabel: "Cena (EUR)",
+  seniorTransferSearchSearchButton: "Szukaj",
+  seniorTransferSearchCloseButton: "Zamknij",
+  seniorTransferSearchLoading: "Trwa wyszukiwanie na rynku transferowym…",
+  seniorTransferSearchNoResults:
+    "Brak zawodnikow na liscie transferowej spelniajacych te kryteria.",
+  seniorTransferSearchFallbackNotice:
+    "Dokladne wyszukiwanie umiejetnosci nic nie zwrocilo. Automatycznie uruchomiono szersze wyszukiwanie z obnizonymi minimami o 1, wiekiem rozszerzonym do ±50 dni i bez filtra specjalnosci.",
+  seniorTransferSearchResultsCount: "{{count}} wynikow",
+  seniorTransferSearchResultsMany: "Wiele wynikow",
+  seniorTransferSearchHighestBidLabel: "Najwyzsza oferta",
+  seniorTransferSearchDeadlineLabel: "Koniec aukcji",
+  seniorTransferSearchSellerLabel: "Sprzedajacy",
+  seniorTransferSearchBidAmountLabel: "Kwota oferty (EUR)",
+  seniorTransferSearchMaxBidAmountLabel: "Maks. oferta (EUR)",
+  seniorTransferSearchPlaceBidButton: "Zloz oferte",
+  seniorTransferSearchPlaceMaxBidButton: "Ustaw maks. oferte",
+  seniorTransferSearchSupporterOnlyTooltip: "To funkcja tylko dla Supporterow.",
+  seniorTransferSearchBidMissingAmount: "Najpierw wpisz kwote oferty.",
+  seniorTransferSearchBidPlaced: "Zlozono oferte na {{player}}.",
+  seniorTransferSearchBidFailed: "Oferta nie powiodla sie: {{details}}",
   seniorListInjuryBruised: "Stłuczony",
   seniorListInjuryWeeks: "Kontuzjowany ({weeks} tyg.)",
   seniorCardsMatchRunning: "mecz w toku",

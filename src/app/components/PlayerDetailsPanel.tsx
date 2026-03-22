@@ -145,6 +145,7 @@ type PlayerDetailsPanelProps = {
   showSeniorSkillBonusInMatrix?: boolean;
   onShowSeniorSkillBonusInMatrixChange?: (enabled: boolean) => void;
   showTabs?: boolean;
+  detailsHeaderActions?: ReactNode;
   skillsMatrixHeaderAux?: ReactNode;
   extraSkillsMatrixHeaderAux?: ReactNode;
   skillsMatrixLeadingHeader?: ReactNode;
@@ -441,6 +442,7 @@ export default function PlayerDetailsPanel({
   showSeniorSkillBonusInMatrix = true,
   onShowSeniorSkillBonusInMatrixChange,
   showTabs = true,
+  detailsHeaderActions,
   skillsMatrixHeaderAux,
   extraSkillsMatrixHeaderAux,
   skillsMatrixLeadingHeader,
@@ -891,6 +893,7 @@ export default function PlayerDetailsPanel({
     return (
       <div className={styles.profileCard}>
         <div className={styles.detailsRefreshCorner}>
+          {detailsHeaderActions}
           <Tooltip content={messages.playerDetailsPreviousPlayer}>
             <button
               type="button"

@@ -76,6 +76,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_3_11_0: string;
   changelog_3_10_0: string;
   changelog_3_9_0: string;
   changelog_3_8_0: string;
@@ -683,6 +684,9 @@ export type Messages = {
   seniorExtraTimeModalBTeamLoading: string;
   seniorExtraTimeModalBTeamError: string;
   seniorExtraTimeModalBTeamWeekendTooltip: string;
+  seniorExtraTimeModalBTeamNoATeamMatchTooltip: string;
+  seniorExtraTimeModalBTeamAlreadyPlayedTooltip: string;
+  seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: string;
   seniorExtraTimeModalBTeamDisregardedTooltip: string;
   seniorExtraTimeModalInjuredCheckboxTooltip: string;
   seniorExtraTimeModalSetLineupButton: string;

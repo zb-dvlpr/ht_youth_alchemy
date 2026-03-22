@@ -201,6 +201,12 @@ type ExtraTimeBTeamRecentMatchState = {
     sourceSystem: string;
     matchDate: string;
   } | null;
+  availabilityReason: "missingATeamMatch" | "bTeamAlreadyPlayed" | null;
+  availabilityMatch: {
+    matchId: number;
+    sourceSystem: string;
+    matchDate: string;
+  } | null;
   playerMinutesById: Record<number, number>;
 };
 
@@ -290,7 +296,7 @@ const FORMATION_PREDICT_CONCURRENCY = 4;
 const SENIOR_RATINGS_ALGO_VERSION = 5;
 const NON_DEPRECATED_TRAINING_TYPES = [9, 3, 8, 5, 7, 4, 2, 11, 12, 10, 6] as const;
 const EXTRA_TIME_B_TEAM_MATCH_TYPES = new Set<number>([1, 2, 4, 5, 8, 9]);
-const EXTRA_TIME_B_TEAM_LOOKBACK_MS = 6 * 24 * 60 * 60 * 1000;
+const EXTRA_TIME_B_TEAM_PLAYED_MATCH_TYPES = new Set<number>([4, 5, 8, 9]);
 const EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD = 45;
 const EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE = 18;
 const SENIOR_AI_LAST_MATCH_WEEKS_DEFAULT = 3;
@@ -1048,14 +1054,133 @@ const formatArchiveDateTimeParam = (timestamp: number) => {
   return iso.slice(0, 19).replace("T", " ");
 };
 
-const berlinWeekdayFormatter = new Intl.DateTimeFormat("en-US", {
+const BERLIN_TIME_ZONE = "Europe/Berlin";
+const berlinCalendarFormatter = new Intl.DateTimeFormat("en-CA", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
   weekday: "short",
-  timeZone: "Europe/Berlin",
+  timeZone: BERLIN_TIME_ZONE,
+});
+const berlinDateTimeFormatter = new Intl.DateTimeFormat("en-CA", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hour12: false,
+  timeZone: BERLIN_TIME_ZONE,
 });
 
-const isBerlinWeekend = (value: Date) => {
-  const weekday = berlinWeekdayFormatter.format(value);
-  return weekday === "Fri" || weekday === "Sat" || weekday === "Sun";
+type BerlinCalendarDay = {
+  year: number;
+  month: number;
+  day: number;
+  weekday: string;
+};
+
+const formatBerlinDateTimeParam = (timestamp: number) => {
+  if (!Number.isFinite(timestamp) || timestamp <= 0) return null;
+  const parts = berlinDateTimeFormatter.formatToParts(new Date(timestamp));
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  const year = get("year");
+  const month = get("month");
+  const day = get("day");
+  const hour = get("hour");
+  const minute = get("minute");
+  const second = get("second");
+  if (!year || !month || !day || !hour || !minute || !second) return null;
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+};
+
+const getBerlinCalendarDay = (value: Date): BerlinCalendarDay => {
+  const parts = berlinCalendarFormatter.formatToParts(value);
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? "";
+  return {
+    year: Number(get("year")),
+    month: Number(get("month")),
+    day: Number(get("day")),
+    weekday: get("weekday"),
+  };
+};
+
+const addBerlinCalendarDays = (value: BerlinCalendarDay, days: number): BerlinCalendarDay => {
+  const shifted = new Date(Date.UTC(value.year, value.month - 1, value.day, 12, 0, 0));
+  shifted.setUTCDate(shifted.getUTCDate() + days);
+  return getBerlinCalendarDay(shifted);
+};
+
+const formatBerlinCalendarDateTime = (
+  value: BerlinCalendarDay,
+  hour: number,
+  minute: number,
+  second = 0
+) =>
+  `${String(value.year).padStart(4, "0")}-${String(value.month).padStart(2, "0")}-${String(
+    value.day
+  ).padStart(2, "0")} ${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:${String(
+    second
+  ).padStart(2, "0")}`;
+
+const normalizeChppDateTime = (value?: string | null) => {
+  if (typeof value !== "string") return null;
+  const normalized = value.trim().replace("T", " ").slice(0, 19);
+  return normalized.length === 19 ? normalized : null;
+};
+
+const isChppDateTimeWithinWindow = (
+  value: string | null,
+  windowStart: string,
+  windowEnd: string
+) => Boolean(value && value >= windowStart && value <= windowEnd);
+
+const resolveCurrentHattrickWeekWindows = (value: Date) => {
+  const berlinNow = formatBerlinDateTimeParam(value.getTime());
+  const berlinDay = getBerlinCalendarDay(value);
+  const daysSinceSaturdayByWeekday: Record<string, number> = {
+    Sat: 0,
+    Sun: 1,
+    Mon: 2,
+    Tue: 3,
+    Wed: 4,
+    Thu: 5,
+    Fri: 6,
+  };
+  const daysSinceSaturday = daysSinceSaturdayByWeekday[berlinDay.weekday] ?? 0;
+  const weekSaturday = addBerlinCalendarDays(berlinDay, -daysSinceSaturday);
+
+  const aTeamWindowStart = formatBerlinCalendarDateTime(
+    addBerlinCalendarDays(weekSaturday, -1),
+    21,
+    0
+  );
+  const aTeamWindowEnd = formatBerlinCalendarDateTime(
+    addBerlinCalendarDays(weekSaturday, 2),
+    3,
+    0
+  );
+  const bTeamWindowStart = formatBerlinCalendarDateTime(
+    addBerlinCalendarDays(weekSaturday, 2),
+    21,
+    0
+  );
+  const bTeamWindowEnd = formatBerlinCalendarDateTime(
+    addBerlinCalendarDays(weekSaturday, 6),
+    3,
+    0
+  );
+
+  return {
+    now: berlinNow,
+    aTeamWindowStart,
+    aTeamWindowEnd,
+    bTeamWindowStart,
+    bTeamWindowEnd,
+    isBTeamWindowOpen: Boolean(berlinNow && berlinNow >= bTeamWindowStart),
+  };
 };
 
 const hasCurrentSeniorRatingsAlgorithmVersion = (
@@ -1824,9 +1949,6 @@ export default function SeniorDashboard({
   const [showSeniorSkillBonusInMatrix, setShowSeniorSkillBonusInMatrix] =
     useState(true);
   const [extraTimeBTeamEnabled, setExtraTimeBTeamEnabled] = useState(false);
-  const [extraTimeBTeamBerlinWeekend, setExtraTimeBTeamBerlinWeekend] = useState(() =>
-    isBerlinWeekend(new Date())
-  );
   const [extraTimeBTeamMinutesThreshold, setExtraTimeBTeamMinutesThreshold] = useState(
     EXTRA_TIME_B_TEAM_DEFAULT_THRESHOLD
   );
@@ -1837,6 +1959,8 @@ export default function SeniorDashboard({
     useState<ExtraTimeBTeamRecentMatchState>({
       status: "idle",
       recentMatch: null,
+      availabilityReason: null,
+      availabilityMatch: null,
       playerMinutesById: {},
     });
   const [extraTimeSelectedPlayerIds, setExtraTimeSelectedPlayerIds] = useState<number[]>([]);
@@ -2025,18 +2149,11 @@ export default function SeniorDashboard({
       ),
     [activeSeniorTeamId, multiTeamEnabled]
   );
-  const extraTimeBTeamWeekendLocked = extraTimeBTeamBerlinWeekend;
   const effectiveExtraTimeBTeamEnabled =
-    extraTimeBTeamEnabled && !extraTimeBTeamWeekendLocked;
-
-  useEffect(() => {
-    const updateWeekendLock = () => {
-      setExtraTimeBTeamBerlinWeekend(isBerlinWeekend(new Date()));
-    };
-    updateWeekendLock();
-    const intervalId = window.setInterval(updateWeekendLock, 60 * 1000);
-    return () => window.clearInterval(intervalId);
-  }, []);
+    extraTimeBTeamEnabled &&
+    extraTimeBTeamRecentMatchState.status === "ready" &&
+    extraTimeBTeamRecentMatchState.availabilityReason === null &&
+    Boolean(extraTimeBTeamRecentMatchState.recentMatch);
 
   useEffect(() => {
     if (!multiTeamEnabled) return;
@@ -2772,6 +2889,7 @@ export default function SeniorDashboard({
   ).length;
   const extraTimeBTeamCanBeEnabled =
     extraTimeBTeamRecentMatchState.status === "ready" &&
+    extraTimeBTeamRecentMatchState.availabilityReason === null &&
     Boolean(extraTimeBTeamRecentMatchState.recentMatch);
   const extraTimeBTeamReferenceMatchHref =
     typeof extraTimeBTeamRecentMatchState.recentMatch?.matchId === "number" &&
@@ -2782,37 +2900,76 @@ export default function SeniorDashboard({
           extraTimeBTeamRecentMatchState.recentMatch.sourceSystem
         )
       : null;
-  const extraTimeBTeamStatusMessage = (() => {
-    if (extraTimeBTeamWeekendLocked) {
-      return null;
-    }
+  const extraTimeBTeamAvailabilityMatchHref =
+    typeof extraTimeBTeamRecentMatchState.availabilityMatch?.matchId === "number" &&
+    Number.isFinite(extraTimeBTeamRecentMatchState.availabilityMatch.matchId) &&
+    extraTimeBTeamRecentMatchState.availabilityMatch.matchId > 0
+      ? hattrickMatchUrlWithSourceSystem(
+          extraTimeBTeamRecentMatchState.availabilityMatch.matchId,
+          extraTimeBTeamRecentMatchState.availabilityMatch.sourceSystem
+        )
+      : null;
+  const extraTimeBTeamAlreadyPlayedMessage =
+    extraTimeBTeamRecentMatchState.availabilityReason === "bTeamAlreadyPlayed"
+      ? renderTemplateTokens(messages.seniorExtraTimeModalBTeamAlreadyPlayedTooltip, {
+          matchLink: extraTimeBTeamAvailabilityMatchHref ? (
+            <a
+              className={styles.seniorExtraTimeInlineLink}
+              href={extraTimeBTeamAvailabilityMatchHref}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {messages.seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel}
+            </a>
+          ) : (
+            messages.seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel
+          ),
+        })
+      : null;
+  const extraTimeBTeamStatusMessage: ReactNode = (() => {
     if (extraTimeBTeamRecentMatchState.status === "loading") {
       return messages.seniorExtraTimeModalBTeamLoading;
     }
     if (extraTimeBTeamRecentMatchState.status === "error") {
       return messages.seniorExtraTimeModalBTeamError;
     }
+    if (extraTimeBTeamRecentMatchState.availabilityReason === "missingATeamMatch") {
+      return messages.seniorExtraTimeModalBTeamNoATeamMatchTooltip;
+    }
+    if (extraTimeBTeamAlreadyPlayedMessage) {
+      return extraTimeBTeamAlreadyPlayedMessage;
+    }
     if (!extraTimeBTeamRecentMatchState.recentMatch) {
       return messages.seniorExtraTimeModalBTeamNoRecentMatch;
+    }
+    return null;
+  })();
+  const extraTimeBTeamDisabledTooltip: ReactNode = (() => {
+    if (extraTimeBTeamCanBeEnabled) return null;
+    if (extraTimeBTeamRecentMatchState.status === "loading") {
+      return messages.seniorExtraTimeModalBTeamLoading;
+    }
+    if (extraTimeBTeamRecentMatchState.status === "error") {
+      return messages.seniorExtraTimeModalBTeamError;
+    }
+    if (extraTimeBTeamRecentMatchState.availabilityReason === "missingATeamMatch") {
+      return messages.seniorExtraTimeModalBTeamNoATeamMatchTooltip;
+    }
+    if (extraTimeBTeamAlreadyPlayedMessage) {
+      return extraTimeBTeamAlreadyPlayedMessage;
     }
     return null;
   })();
   const setBestLineupBTeamMenuContent = (
     <div className={styles.seniorSetBestLineupBTeamMenuSection}>
       <div className={styles.seniorExtraTimeBTeamControls}>
-        <Tooltip
-          content={
-            extraTimeBTeamWeekendLocked
-              ? messages.seniorExtraTimeModalBTeamWeekendTooltip
-              : null
-          }
-        >
+        <Tooltip content={extraTimeBTeamDisabledTooltip}>
           <label className={styles.matchesFilterToggle}>
             <input
               type="checkbox"
               className={styles.matchesFilterToggleInput}
               checked={effectiveExtraTimeBTeamEnabled}
-              disabled={extraTimeBTeamWeekendLocked || !extraTimeBTeamCanBeEnabled}
+              disabled={!extraTimeBTeamCanBeEnabled}
               onChange={(event) => setExtraTimeBTeamEnabled(event.target.checked)}
             />
             <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
@@ -2942,6 +3099,8 @@ export default function SeniorDashboard({
       setExtraTimeBTeamRecentMatchState({
         status: "idle",
         recentMatch: null,
+        availabilityReason: null,
+        availabilityMatch: null,
         playerMinutesById: {},
       });
       return;
@@ -2950,6 +3109,8 @@ export default function SeniorDashboard({
     setExtraTimeBTeamRecentMatchState({
       status: "loading",
       recentMatch: null,
+      availabilityReason: null,
+      availabilityMatch: null,
       playerMinutesById: {},
     });
     void fetchExtraTimeBTeamRecentMatchState(resolvedSeniorTeamId)
@@ -2962,6 +3123,8 @@ export default function SeniorDashboard({
         setExtraTimeBTeamRecentMatchState({
           status: "error",
           recentMatch: null,
+          availabilityReason: null,
+          availabilityMatch: null,
           playerMinutesById: {},
         });
       });
@@ -2976,7 +3139,12 @@ export default function SeniorDashboard({
       return;
     }
     if (extraTimeBTeamRecentMatchState.status !== "ready") return;
-    if (extraTimeBTeamRecentMatchState.recentMatch) return;
+    if (
+      extraTimeBTeamRecentMatchState.recentMatch &&
+      extraTimeBTeamRecentMatchState.availabilityReason === null
+    ) {
+      return;
+    }
     setExtraTimeBTeamEnabled(false);
   }, [extraTimeBTeamRecentMatchState]);
 
@@ -6984,10 +7152,13 @@ export default function SeniorDashboard({
     return normalizeSeniorPlayers(payload?.data?.HattrickData?.Team?.PlayerList?.Player);
   };
 
-  const fetchMatches = async (teamId?: number | null) => {
+  const fetchMatches = async (teamId?: number | null, lastMatchDate?: string | null) => {
     const teamParam = teamId ? `&teamID=${teamId}` : "";
+    const lastMatchDateParam = lastMatchDate
+      ? `&LastMatchDate=${encodeURIComponent(lastMatchDate)}`
+      : "";
     const { response, payload } = await fetchChppJson<MatchesResponse>(
-      `/api/chpp/matches?isYouth=false${teamParam}`,
+      `/api/chpp/matches?isYouth=false${teamParam}${lastMatchDateParam}`,
       { cache: "no-store" }
     );
     if (!response.ok || payload?.error) {
@@ -7021,35 +7192,56 @@ export default function SeniorDashboard({
   const fetchExtraTimeBTeamRecentMatchState = async (
     teamId?: number | null
   ): Promise<ExtraTimeBTeamRecentMatchState> => {
-    const matchesPayload = await fetchMatches(teamId);
+    const windows = resolveCurrentHattrickWeekWindows(new Date());
+    const lastMatchDate = windows.isBTeamWindowOpen
+      ? windows.bTeamWindowEnd
+      : windows.aTeamWindowEnd;
+    const matchesPayload = await fetchMatches(teamId, lastMatchDate);
     const normalizedMatches = normalizeMatchList(
       matchesPayload?.data?.HattrickData?.Team?.MatchList?.Match ??
         matchesPayload?.data?.HattrickData?.MatchList?.Match
     );
-    const now = Date.now();
+    const finishedMatches = normalizedMatches.filter(
+      (match) => String(match.Status ?? "").toUpperCase() === "FINISHED"
+    );
+    const sortDescendingByMatchDate = (left: Match, right: Match) => {
+      const leftValue = normalizeChppDateTime(left.MatchDate) ?? "";
+      const rightValue = normalizeChppDateTime(right.MatchDate) ?? "";
+      return rightValue.localeCompare(leftValue);
+    };
     const recentMatch =
-      [...normalizedMatches]
-        .filter((match) => String(match.Status ?? "").toUpperCase() === "FINISHED")
+      [...finishedMatches]
         .filter((match) => EXTRA_TIME_B_TEAM_MATCH_TYPES.has(Number(match.MatchType)))
         .filter((match) => {
-          const startedAt = parseChppDate(match.MatchDate)?.getTime() ?? null;
-          return (
-            typeof startedAt === "number" &&
-            Number.isFinite(startedAt) &&
-            now - startedAt >= 0 &&
-            now - startedAt <= EXTRA_TIME_B_TEAM_LOOKBACK_MS
+          return isChppDateTimeWithinWindow(
+            normalizeChppDateTime(match.MatchDate),
+            windows.aTeamWindowStart,
+            windows.aTeamWindowEnd
           );
         })
-        .sort((left, right) => {
-          const leftTime = parseChppDate(left.MatchDate)?.getTime() ?? 0;
-          const rightTime = parseChppDate(right.MatchDate)?.getTime() ?? 0;
-          return rightTime - leftTime;
-        })[0] ?? null;
+        .sort(sortDescendingByMatchDate)[0] ?? null;
+    const playedBTeamMatch =
+      windows.isBTeamWindowOpen
+        ? [...finishedMatches]
+            .filter((match) =>
+              EXTRA_TIME_B_TEAM_PLAYED_MATCH_TYPES.has(Number(match.MatchType))
+            )
+            .filter((match) =>
+              isChppDateTimeWithinWindow(
+                normalizeChppDateTime(match.MatchDate),
+                windows.bTeamWindowStart,
+                windows.bTeamWindowEnd
+              )
+            )
+            .sort(sortDescendingByMatchDate)[0] ?? null
+        : null;
 
     if (!recentMatch) {
       return {
         status: "ready",
         recentMatch: null,
+        availabilityReason: "missingATeamMatch",
+        availabilityMatch: null,
         playerMinutesById: {},
       };
     }
@@ -7062,6 +7254,8 @@ export default function SeniorDashboard({
       return {
         status: "error",
         recentMatch: null,
+        availabilityReason: null,
+        availabilityMatch: null,
         playerMinutesById: {},
       };
     }
@@ -7071,6 +7265,32 @@ export default function SeniorDashboard({
       typeof recentMatch.SourceSystem === "string" && recentMatch.SourceSystem.trim().length > 0
         ? recentMatch.SourceSystem.trim()
         : "Hattrick";
+    if (playedBTeamMatch) {
+      const playedMatchId = Number(playedBTeamMatch.MatchID);
+      const playedSourceSystem =
+        typeof playedBTeamMatch.SourceSystem === "string" &&
+        playedBTeamMatch.SourceSystem.trim().length > 0
+          ? playedBTeamMatch.SourceSystem.trim()
+          : "Hattrick";
+      return {
+        status: "ready",
+        recentMatch: {
+          matchId,
+          sourceSystem,
+          matchDate: recentMatch.MatchDate ?? "",
+        },
+        availabilityReason: "bTeamAlreadyPlayed",
+        availabilityMatch:
+          Number.isFinite(playedMatchId) && playedMatchId > 0
+            ? {
+                matchId: playedMatchId,
+                sourceSystem: playedSourceSystem,
+                matchDate: playedBTeamMatch.MatchDate ?? "",
+              }
+            : null,
+        playerMinutesById: {},
+      };
+    }
 
     const [{ response: lineupResponse, payload: lineupPayload }, { response: detailsResponse, payload: detailsPayload }] =
       await Promise.all([
@@ -7116,6 +7336,8 @@ export default function SeniorDashboard({
       return {
         status: "error",
         recentMatch: null,
+        availabilityReason: null,
+        availabilityMatch: null,
         playerMinutesById: {},
       };
     }
@@ -7263,6 +7485,8 @@ export default function SeniorDashboard({
         sourceSystem,
         matchDate: recentMatch.MatchDate ?? "",
       },
+      availabilityReason: null,
+      availabilityMatch: null,
       playerMinutesById: Object.fromEntries(playedMinutesById.entries()),
     };
   };
@@ -9630,6 +9854,8 @@ const refreshDetailsForPlayers = async (
     setExtraTimeBTeamRecentMatchState({
       status: "idle",
       recentMatch: null,
+      availabilityReason: null,
+      availabilityMatch: null,
       playerMinutesById: {},
     });
     setExtraTimeSelectedPlayerIds([]);

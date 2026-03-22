@@ -76,6 +76,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_3_11_0:
+    "Dostepnosc skladu B seniorow zalezy teraz od okien meczow skladu A i B w biezacym tygodniu zamiast od stalej blokady weekendowej.",
   changelog_3_10_0:
     "Club Chronicle dodaje panel Power ratings z danych teamdetails w pamięci podręcznej wraz z rozbiciem rankingów.",
   changelog_3_9_0:
@@ -246,13 +248,18 @@ export const messagesPl: Messages = {
   seniorExtraTimeModalBTeamThresholdAriaLabel:
     "Próg minut do pomijania zawodników, którzy już grali w tym tygodniu",
   seniorExtraTimeModalBTeamNoRecentMatch:
-    "Okno drużyny B jest otwarte od poniedziałku do czwartku (CET).",
+    "Nie znaleziono meczu skladu A przydatnego treningowo dla tego tygodnia.",
   seniorExtraTimeModalBTeamLoading:
     "Sprawdzanie meczów istotnych dla treningu w tym tygodniu...",
   seniorExtraTimeModalBTeamError:
     "Nie udało się sprawdzić meczów istotnych dla treningu w tym tygodniu.",
   seniorExtraTimeModalBTeamWeekendTooltip:
     "Wybór składu B jest dostępny tylko od poniedziałku do czwartku (CET).",
+  seniorExtraTimeModalBTeamNoATeamMatchTooltip:
+    "Jak dotad w tym tygodniu nie wykryto meczu skladu A.",
+  seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
+    "Mecz skladu B zostal juz rozegrany w tym tygodniu: {{matchLink}}.",
+  seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "mecz",
   seniorExtraTimeModalBTeamDisregardedTooltip:
     "Ten zawodnik jest pomijany, ponieważ w tym tygodniu rozegrał już co najmniej {{minutes}} minut.",
   seniorExtraTimeModalSetLineupButton: "Ustaw skład",

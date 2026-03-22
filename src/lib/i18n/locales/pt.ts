@@ -70,6 +70,8 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    changelog_3_11_0:
+      "A disponibilidade do time B senior agora segue as janelas semanais de partidas do time A e do time B em vez de um bloqueio fixo de fim de semana.",
     changelog_3_10_0:
       "O Club Chronicle adiciona um painel de Power ratings obtido de teamdetails em cache com detalhamento dos rankings.",
     changelog_3_9_0:
@@ -832,13 +834,18 @@ export const messagesPt: Messages = {
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Limite de minutos para ignorar jogadores que já atuaram nesta semana",
     seniorExtraTimeModalBTeamNoRecentMatch:
-      "A janela da equipa B está aberta de segunda a quinta-feira (CET).",
+      "Nenhuma partida relevante da equipa A pode ser usada para esta semana.",
     seniorExtraTimeModalBTeamLoading:
       "Verificando as partidas relevantes para treino desta semana...",
     seniorExtraTimeModalBTeamError:
       "Nao foi possivel verificar as partidas relevantes para treino desta semana.",
     seniorExtraTimeModalBTeamWeekendTooltip:
       "A seleção da equipa B só está disponível de segunda a quinta-feira (CET).",
+    seniorExtraTimeModalBTeamNoATeamMatchTooltip:
+      "Nenhuma partida da equipa A foi detectada ate agora nesta semana.",
+    seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
+      "A partida da equipa B ja foi jogada nesta semana: {{matchLink}}.",
+    seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "partida",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Este jogador é desconsiderado porque já jogou pelo menos {{minutes}} minutos nesta semana.",
     seniorExtraTimeModalInjuredCheckboxTooltip:

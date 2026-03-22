@@ -82,6 +82,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_3_11_0:
+    "Beschikbaarheid van het senior B-team volgt nu de A-team- en B-team-vensters van de huidige week in plaats van een vaste weekendblokkering.",
   changelog_3_10_0:
     "Club Chronicle voegt een Power ratings-paneel toe uit gecachte teamdetails met uitsplitsing van rankings.",
   changelog_3_9_0:
@@ -252,13 +254,18 @@ export const messagesNl: Messages = {
   seniorExtraTimeModalBTeamThresholdAriaLabel:
     "Minutendrempel om spelers die deze week al speelden te negeren",
   seniorExtraTimeModalBTeamNoRecentMatch:
-    "Het B-teamvenster is geopend van maandag tot en met donderdag (CET).",
+    "Er kon deze week geen trainingsrelevante A-teamwedstrijd worden gebruikt.",
   seniorExtraTimeModalBTeamLoading:
     "Trainingsrelevante wedstrijden van deze week worden gecontroleerd...",
   seniorExtraTimeModalBTeamError:
     "De trainingsrelevante wedstrijden van deze week konden niet worden gecontroleerd.",
   seniorExtraTimeModalBTeamWeekendTooltip:
     "De B-teamselectie is alleen beschikbaar van maandag tot en met donderdag (CET).",
+  seniorExtraTimeModalBTeamNoATeamMatchTooltip:
+    "Er is deze week nog geen A-teamwedstrijd gedetecteerd.",
+  seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
+    "De B-teamwedstrijd is deze week al gespeeld: {{matchLink}}.",
+  seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "wedstrijd",
   seniorExtraTimeModalBTeamDisregardedTooltip:
     "Deze speler wordt genegeerd omdat hij deze week al minstens {{minutes}} minuten heeft gespeeld.",
   seniorExtraTimeModalSetLineupButton: "Opstelling instellen",

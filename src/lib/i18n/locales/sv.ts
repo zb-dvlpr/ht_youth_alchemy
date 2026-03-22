@@ -70,6 +70,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_3_11_0:
+      "Tillgang till seniorernas B-lag foljer nu den aktuella veckans A-lags- och B-lagsfonster i stallet for en statisk helgsparr.",
     changelog_3_10_0:
       "Club Chronicle lägger till en Power ratings-panel från cachade teamdetails med uppdelade rankingar.",
     changelog_3_9_0:
@@ -823,13 +825,18 @@ export const messagesSv: Messages = {
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Minutgräns för att bortse från spelare som redan spelat den här veckan",
     seniorExtraTimeModalBTeamNoRecentMatch:
-      "B-lagsfönstret är öppet från måndag till torsdag (CET).",
+      "Ingen traningsrelevant A-lagsmatch kunde anvandas for den har veckan.",
     seniorExtraTimeModalBTeamLoading:
       "Kontrollerar veckans träningsrelevanta matcher...",
     seniorExtraTimeModalBTeamError:
       "Det gick inte att kontrollera veckans träningsrelevanta matcher.",
     seniorExtraTimeModalBTeamWeekendTooltip:
       "B-lagsvalet är bara tillgängligt från måndag till torsdag (CET).",
+    seniorExtraTimeModalBTeamNoATeamMatchTooltip:
+      "Ingen A-lagsmatch har upptackts hittills den har veckan.",
+    seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
+      "B-lagsmatchen har redan spelats den har veckan: {{matchLink}}.",
+    seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "match",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Spelaren ignoreras eftersom han redan har spelat minst {{minutes}} minuter den här veckan.",
     seniorExtraTimeModalInjuredCheckboxTooltip:

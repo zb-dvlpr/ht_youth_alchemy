@@ -70,6 +70,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_3_11_0:
+      "Die Verfugbarkeit des Senior-B-Teams folgt jetzt den A-Team- und B-Team-Fenstern der aktuellen Woche statt einer statischen Wochenendsperre.",
     changelog_3_10_0:
       "Club Chronicle ergänzt ein Power-Ratings-Panel aus zwischengespeicherten Teamdetails mit Ranking-Aufschlüsselung.",
     changelog_3_9_0:
@@ -818,13 +820,18 @@ export const messagesDe: Messages = {
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Minutengrenze zum Ignorieren bereits eingesetzter Spieler",
     seniorExtraTimeModalBTeamNoRecentMatch:
-      "Das B-Team-Fenster ist von Montag bis Donnerstag (CET) geöffnet.",
+      "Kein trainingsrelevantes A-Team-Spiel konnte fur diese Woche verwendet werden.",
     seniorExtraTimeModalBTeamLoading:
       "Trainingsrelevante Spiele dieser Woche werden geprüft...",
     seniorExtraTimeModalBTeamError:
       "Trainingsrelevante Spiele dieser Woche konnten nicht geprüft werden.",
     seniorExtraTimeModalBTeamWeekendTooltip:
       "Die B-Team-Auswahl ist nur von Montag bis Donnerstag (CET) verfügbar.",
+    seniorExtraTimeModalBTeamNoATeamMatchTooltip:
+      "Bisher wurde in dieser Woche kein A-Team-Spiel erkannt.",
+    seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
+      "Das B-Team-Spiel wurde in dieser Woche bereits gespielt: {{matchLink}}.",
+    seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "Spiel",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Dieser Spieler wird ignoriert, weil er diese Woche bereits mindestens {{minutes}} Minuten gespielt hat.",
     seniorExtraTimeModalInjuredCheckboxTooltip:

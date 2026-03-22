@@ -1056,6 +1056,14 @@ export const messagesIt: Messages = {
     skillBonusLoyaltyTooltip: "Bonus fedeltà",
     seniorSkillLevelLabels:
       "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+    seniorAgreeabilityLabels:
+      "sgradevole|controversa|piacevole|simpatica|popolare|amata",
+    seniorAggressivenessLabels:
+      "tranquilla|calma|equilibrata|temperamentale|focosa|instabile",
+    seniorHonestyLabels:
+      "infame|disonesta|onesta|retta|giusta|santa",
+    seniorPersonalitySentence:
+      "Una persona {{agreeabilityLabel}} ({{agreeabilityValue}}) che e {{aggressivenessLabel}} ({{aggressivenessValue}}) e {{honestyLabel}} ({{honestyValue}}).",
     seniorTraitsSentenceExperienceLeadership:
       "Ha esperienza {{experienceLevel}} ({{experienceValue}}) e leadership {{leadershipLevel}} ({{leadershipValue}}).",
     seniorTraitsSentenceLoyalty:

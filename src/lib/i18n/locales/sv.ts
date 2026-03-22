@@ -1046,6 +1046,14 @@ export const messagesSv: Messages = {
     skillBonusLoyaltyTooltip: "Lojalitetsbonus",
     seniorSkillLevelLabels:
       "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+    seniorAgreeabilityLabels:
+      "otrevlig|kontroversiell|trevlig|sympatisk|popular|omtyckt",
+    seniorAggressivenessLabels:
+      "lugn|sansad|balanserad|temperamentsfull|eldig|instabil",
+    seniorHonestyLabels:
+      "okand for daligt rykte|oarlig|arlig|uppriktig|rattskaffens|helgonlik",
+    seniorPersonalitySentence:
+      "En {{agreeabilityLabel}} person ({{agreeabilityValue}}) som ar {{aggressivenessLabel}} ({{aggressivenessValue}}) och {{honestyLabel}} ({{honestyValue}}).",
     seniorTraitsSentenceExperienceLeadership:
       "Har {{experienceLevel}} ({{experienceValue}}) erfarenhet och {{leadershipLevel}} ({{leadershipValue}}) ledarskap.",
     seniorTraitsSentenceLoyalty:

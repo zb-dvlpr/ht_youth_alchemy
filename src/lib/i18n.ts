@@ -881,6 +881,10 @@ export type Messages = {
   skillBonusMotherClubTooltip: string;
   skillBonusLoyaltyTooltip: string;
   seniorSkillLevelLabels: string;
+  seniorAgreeabilityLabels: string;
+  seniorAggressivenessLabels: string;
+  seniorHonestyLabels: string;
+  seniorPersonalitySentence: string;
   seniorTraitsSentenceExperienceLeadership: string;
   seniorTraitsSentenceLoyalty: string;
   hiddenSpecialtyTooltip: string;

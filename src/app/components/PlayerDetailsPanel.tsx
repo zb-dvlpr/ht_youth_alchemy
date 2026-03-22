@@ -43,6 +43,9 @@ export type YouthPlayerDetails = {
   Form?: number;
   StaminaSkill?: number;
   PersonalityStatement?: string;
+  Agreeability?: number;
+  Aggressiveness?: number;
+  Honesty?: number;
   Experience?: number;
   Leadership?: number;
   Loyalty?: number;
@@ -235,6 +238,25 @@ const buildInjuryStatus = (injuryLevelRaw: number | null, messages: Messages) =>
     display,
     isHealthy: !isBruised && injuryWeeks === null,
   };
+};
+
+const neutralizeSeniorPersonalityFallback = (value: string | undefined | null) => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  return trimmed
+    .replace(/\b[Pp]opular guy\b/g, (match) =>
+      match[0] === "P" ? "Popular person" : "popular person"
+    )
+    .replace(/\b[Ss]ympathetic guy\b/g, (match) =>
+      match[0] === "S" ? "Sympathetic person" : "sympathetic person"
+    )
+    .replace(/\b[Pp]leasant guy\b/g, (match) =>
+      match[0] === "P" ? "Pleasant person" : "pleasant person"
+    )
+    .replace(/\b[Nn]asty fellow\b/g, (match) =>
+      match[0] === "N" ? "Nasty person" : "nasty person"
+    );
 };
 
 function getSkillLevel(skill?: SkillValue | number | string | null): number | null {
@@ -748,6 +770,57 @@ export default function PlayerDetailsPanel({
     const index = Math.min(20, Math.max(1, Math.floor(value))) - 1;
     return seniorSkillLevelLabels[index] ?? messages.unknownLabel;
   };
+  const seniorAgreeabilityLabels = useMemo(
+    () =>
+      messages.seniorAgreeabilityLabels
+        .split("|")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    [messages.seniorAgreeabilityLabels]
+  );
+  const seniorAggressivenessLabels = useMemo(
+    () =>
+      messages.seniorAggressivenessLabels
+        .split("|")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    [messages.seniorAggressivenessLabels]
+  );
+  const seniorHonestyLabels = useMemo(
+    () =>
+      messages.seniorHonestyLabels
+        .split("|")
+        .map((item) => item.trim())
+        .filter(Boolean),
+    [messages.seniorHonestyLabels]
+  );
+  const seniorPersonalitySentence =
+    playerKind !== "senior" || !detailsData
+      ? null
+      : (() => {
+          const agreeability =
+            typeof detailsData.Agreeability === "number" ? detailsData.Agreeability : null;
+          const aggressiveness =
+            typeof detailsData.Aggressiveness === "number" ? detailsData.Aggressiveness : null;
+          const honesty = typeof detailsData.Honesty === "number" ? detailsData.Honesty : null;
+          if (
+            agreeability === null ||
+            aggressiveness === null ||
+            honesty === null ||
+            !seniorAgreeabilityLabels[agreeability] ||
+            !seniorAggressivenessLabels[aggressiveness] ||
+            !seniorHonestyLabels[honesty]
+          ) {
+            return neutralizeSeniorPersonalityFallback(detailsData.PersonalityStatement);
+          }
+          return messages.seniorPersonalitySentence
+            .replace("{{agreeabilityLabel}}", seniorAgreeabilityLabels[agreeability])
+            .replace("{{agreeabilityValue}}", String(agreeability))
+            .replace("{{aggressivenessLabel}}", seniorAggressivenessLabels[aggressiveness])
+            .replace("{{aggressivenessValue}}", String(aggressiveness))
+            .replace("{{honestyLabel}}", seniorHonestyLabels[honesty])
+            .replace("{{honestyValue}}", String(honesty));
+        })();
   const seniorTraitsSentence =
     playerKind !== "senior" || !detailsData
       ? null
@@ -904,9 +977,9 @@ export default function PlayerDetailsPanel({
                 </span>
               ) : null}
             </div>
-            {playerKind === "senior" && detailsData.PersonalityStatement ? (
+            {playerKind === "senior" && seniorPersonalitySentence ? (
               <p className={styles.seniorPersonaLine}>
-                {detailsData.PersonalityStatement}
+                {seniorPersonalitySentence}
               </p>
             ) : null}
             {playerKind === "senior" && seniorTraitsSentence ? (

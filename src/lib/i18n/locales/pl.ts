@@ -439,6 +439,14 @@ export const messagesPl: Messages = {
   skillBonusLoyaltyTooltip: "Bonus lojalności",
   seniorSkillLevelLabels:
     "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+  seniorAgreeabilityLabels:
+    "niemila|kontrowersyjna|przyjemna|sympatyczna|popularna|lubiana",
+  seniorAggressivenessLabels:
+    "spokojna|opanowana|zrownowazona|temperamentalna|ognista|niestabilna",
+  seniorHonestyLabels:
+    "nieslawna|nieuczciwa|uczciwa|prawa|sprawiedliwa|swieta",
+  seniorPersonalitySentence:
+    "To {{agreeabilityLabel}} osoba ({{agreeabilityValue}}), ktora jest {{aggressivenessLabel}} ({{aggressivenessValue}}) i {{honestyLabel}} ({{honestyValue}}).",
   seniorTraitsSentenceExperienceLeadership:
     "Ma {{experienceLevel}} ({{experienceValue}}) doświadczenia i {{leadershipLevel}} ({{leadershipValue}}) przywództwa.",
   seniorTraitsSentenceLoyalty:

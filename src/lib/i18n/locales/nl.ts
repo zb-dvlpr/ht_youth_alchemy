@@ -445,6 +445,14 @@ export const messagesNl: Messages = {
   skillBonusLoyaltyTooltip: "Loyaliteitsbonus",
   seniorSkillLevelLabels:
     "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+  seniorAgreeabilityLabels:
+    "naar|omstreden|aangenaam|sympathiek|populair|geliefd",
+  seniorAggressivenessLabels:
+    "rustig|kalm|evenwichtig|temperamentvol|vurig|instabiel",
+  seniorHonestyLabels:
+    "berucht|oneerlijk|eerlijk|oprecht|rechtschapen|heilig",
+  seniorPersonalitySentence:
+    "Een {{agreeabilityLabel}} persoon ({{agreeabilityValue}}) die {{aggressivenessLabel}} ({{aggressivenessValue}}) en {{honestyLabel}} ({{honestyValue}}) is.",
   seniorTraitsSentenceExperienceLeadership:
     "Heeft {{experienceLevel}} ({{experienceValue}}) ervaring en {{leadershipLevel}} ({{leadershipValue}}) leiderschap.",
   seniorTraitsSentenceLoyalty:

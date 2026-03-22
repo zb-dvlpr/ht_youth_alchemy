@@ -100,6 +100,9 @@ type SeniorPlayerDetails = {
   TSI?: number;
   Salary?: number;
   PersonalityStatement?: string;
+  Agreeability?: number;
+  Aggressiveness?: number;
+  Honesty?: number;
   Experience?: number;
   Leadership?: number;
   Loyalty?: number;
@@ -920,65 +923,6 @@ const normalizeSeniorPlayerDetails = (
   const motherClubBonus = parseBoolean(
     trainerData?.MotherClubBonus ?? node.MotherClubBonus
   );
-  const agreeabilityText = (() => {
-    switch (agreeability) {
-      case 5:
-        return "Beloved team member";
-      case 4:
-        return "Popular guy";
-      case 3:
-        return "Sympathetic guy";
-      case 2:
-        return "Pleasant guy";
-      case 1:
-        return "Controversial person";
-      case 0:
-        return "Nasty fellow";
-      default:
-        return null;
-    }
-  })();
-  const aggressivenessText = (() => {
-    switch (aggressiveness) {
-      case 5:
-        return "Unstable";
-      case 4:
-        return "Fiery";
-      case 3:
-        return "Temperamental";
-      case 2:
-        return "Balanced";
-      case 1:
-        return "Calm";
-      case 0:
-        return "Tranquil";
-      default:
-        return null;
-    }
-  })();
-  const honestyText = (() => {
-    switch (honesty) {
-      case 5:
-        return "Saintly";
-      case 4:
-        return "Righteous";
-      case 3:
-        return "Upright";
-      case 2:
-        return "Honest";
-      case 1:
-        return "Dishonest";
-      case 0:
-        return "Infamous";
-      default:
-        return null;
-    }
-  })();
-  const personalityStatement =
-    agreeabilityText && aggressivenessText && honestyText
-      ? `${/^[AEIOU]/.test(agreeabilityText) ? "An" : "A"} ${agreeabilityText.toLowerCase()} (${agreeability}) who is ${aggressivenessText.toLowerCase()} (${aggressiveness}) and ${honestyText.toLowerCase()} (${honesty}).`
-      : undefined;
-
   return {
     PlayerID: playerId,
     FirstName: node.FirstName ? String(node.FirstName) : undefined,
@@ -997,7 +941,9 @@ const normalizeSeniorPlayerDetails = (
     Cards: parseNumber(node.Cards) ?? undefined,
     TSI: parseNumber(node.TSI) ?? undefined,
     Salary: parseNumber(node.Salary) ?? undefined,
-    PersonalityStatement: personalityStatement,
+    Agreeability: agreeability ?? undefined,
+    Aggressiveness: aggressiveness ?? undefined,
+    Honesty: honesty ?? undefined,
     Experience: experience ?? undefined,
     Leadership: leadership ?? undefined,
     Loyalty: loyalty ?? undefined,
@@ -2412,6 +2358,9 @@ export default function SeniorDashboard({
         Form?: number;
         StaminaSkill?: number;
         PersonalityStatement?: string;
+        Agreeability?: number;
+        Aggressiveness?: number;
+        Honesty?: number;
         Experience?: number;
         Leadership?: number;
         Loyalty?: number;
@@ -2448,6 +2397,9 @@ export default function SeniorDashboard({
         Form: detail.Form ?? fallback?.Form,
         StaminaSkill: detail.StaminaSkill ?? fallback?.StaminaSkill,
         PersonalityStatement: detail.PersonalityStatement,
+        Agreeability: detail.Agreeability,
+        Aggressiveness: detail.Aggressiveness,
+        Honesty: detail.Honesty,
         Experience: detail.Experience,
         Leadership: detail.Leadership,
         Loyalty: detail.Loyalty,

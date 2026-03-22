@@ -600,7 +600,8 @@ export const messagesFr: Messages = {
     loadingDetails: "Chargement des détails…",
     refreshingLabel: "Actualisation…",
     selectPlayerPrompt: "Sélectionnez un joueur pour charger les détails.",
-    unableToLoadPlayers: "Impossible de charger les joueurs",
+    unableToLoadPlayers:
+      "Impossible de charger les joueurs. Essayez de deconnecter puis reconnecter avec un jeton frais.",
     unableToLoadMatches: "Impossible de charger les matchs",
     matchesTitle: "Matchs",
     matchesRefresh: "Actualiser les matchs",

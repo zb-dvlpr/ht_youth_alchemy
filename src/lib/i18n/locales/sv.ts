@@ -593,7 +593,8 @@ export const messagesSv: Messages = {
     loadingDetails: "Laddar detaljer…",
     refreshingLabel: "Uppdaterar…",
     selectPlayerPrompt: "Välj en spelare för att ladda detaljer.",
-    unableToLoadPlayers: "Kunde inte ladda spelare",
+    unableToLoadPlayers:
+      "Kunde inte ladda spelare. Prova att koppla från och ansluta igen med en ny token.",
     unableToLoadMatches: "Kunde inte ladda matcher",
     matchesTitle: "Matcher",
     matchesRefresh: "Uppdatera matcher",

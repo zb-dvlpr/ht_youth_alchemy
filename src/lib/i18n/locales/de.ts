@@ -590,7 +590,8 @@ export const messagesDe: Messages = {
     loadingDetails: "Details werden geladen…",
     refreshingLabel: "Wird aktualisiert…",
     selectPlayerPrompt: "Spieler auswählen, um Details zu laden.",
-    unableToLoadPlayers: "Spieler konnten nicht geladen werden",
+    unableToLoadPlayers:
+      "Spieler konnten nicht geladen werden. Versuche, die Verbindung zu trennen und mit einem frischen Token neu zu verbinden.",
     unableToLoadMatches: "Spiele konnten nicht geladen werden",
     matchesTitle: "Spiele",
     matchesRefresh: "Spiele aktualisieren",

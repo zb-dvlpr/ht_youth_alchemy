@@ -99,6 +99,8 @@ export const messagesPl: Messages = {
   startupLoadingMatches: "Ładowanie meczów…",
   startupLoadingRatings: "Ładowanie ocen…",
   startupLoadingFinalize: "Finalizowanie interfejsu…",
+  unableToLoadPlayers:
+    "Nie udalo sie zaladowac zawodnikow. Sprobuj rozlaczyc i polaczyc ponownie ze swiezym tokenem.",
   refreshStatusFetchingPlayers: "Pobieranie juniorów…",
   refreshStatusFetchingPlayerDetails: "Pobieranie szczegółów zawodników…",
   refreshStatusFetchingMatches: "Pobieranie meczów…",

@@ -569,7 +569,8 @@ export const messagesEn: Messages = {
     loadingDetails: "Loading details…",
     refreshingLabel: "Refreshing…",
     selectPlayerPrompt: "Select a player to load details.",
-    unableToLoadPlayers: "Unable to load players",
+    unableToLoadPlayers:
+      "Unable to load players. Try disconnecting and reconnecting with a fresh token.",
     unableToLoadMatches: "Unable to load matches",
     matchesTitle: "Matches",
     matchesRefresh: "Refresh matches",

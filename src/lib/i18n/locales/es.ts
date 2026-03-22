@@ -601,7 +601,8 @@ export const messagesEs: Messages = {
     loadingDetails: "Cargando detalles…",
     refreshingLabel: "Actualizando…",
     selectPlayerPrompt: "Selecciona un jugador para cargar detalles.",
-    unableToLoadPlayers: "No se pudieron cargar los jugadores",
+    unableToLoadPlayers:
+      "No se pudieron cargar los jugadores. Intenta desconectar y volver a conectar con un token nuevo.",
     unableToLoadMatches: "No se pudieron cargar los partidos",
     matchesTitle: "Partidos",
     matchesRefresh: "Actualizar partidos",

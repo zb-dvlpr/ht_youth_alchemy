@@ -602,7 +602,8 @@ export const messagesIt: Messages = {
     loadingDetails: "Caricamento dettagli…",
     refreshingLabel: "Aggiornamento in corso…",
     selectPlayerPrompt: "Seleziona un giocatore per caricare i dettagli.",
-    unableToLoadPlayers: "Impossibile caricare i giocatori",
+    unableToLoadPlayers:
+      "Impossibile caricare i giocatori. Prova a disconnetterti e riconnetterti con un token nuovo.",
     unableToLoadMatches: "Impossibile caricare le partite",
     matchesTitle: "Partite",
     matchesRefresh: "Aggiorna partite",

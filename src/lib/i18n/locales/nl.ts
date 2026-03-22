@@ -105,6 +105,8 @@ export const messagesNl: Messages = {
   startupLoadingMatches: "Wedstrijden laden…",
   startupLoadingRatings: "Beoordelingen laden…",
   startupLoadingFinalize: "Interface afronden…",
+  unableToLoadPlayers:
+    "Spelers konden niet worden geladen. Probeer los te koppelen en opnieuw te verbinden met een nieuwe token.",
   refreshStatusFetchingPlayers: "Jeugdspelers ophalen…",
   refreshStatusFetchingPlayerDetails: "Spelerdetails ophalen…",
   refreshStatusFetchingMatches: "Wedstrijden ophalen…",

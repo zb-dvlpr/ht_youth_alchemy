@@ -82,6 +82,10 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_3_12_0:
+    "Seniorspelerdetails hebben nu een transfermarktzoeker voor vergelijkbare spelers met aanpasbare filters en Supporter-biedingen.",
+  changelog_3_11_0:
+    "Beschikbaarheid van het senior B-team volgt nu de A-team- en B-team-vensters van de huidige week in plaats van een vaste weekendblokkering.",
   changelog_3_10_0:
     "Club Chronicle voegt een Power ratings-paneel toe uit gecachte teamdetails met uitsplitsing van rankings.",
   changelog_3_9_0:
@@ -101,6 +105,8 @@ export const messagesNl: Messages = {
   startupLoadingMatches: "Wedstrijden laden…",
   startupLoadingRatings: "Beoordelingen laden…",
   startupLoadingFinalize: "Interface afronden…",
+  unableToLoadPlayers:
+    "Spelers konden niet worden geladen. Probeer los te koppelen en opnieuw te verbinden met een nieuwe token.",
   refreshStatusFetchingPlayers: "Jeugdspelers ophalen…",
   refreshStatusFetchingPlayerDetails: "Spelerdetails ophalen…",
   refreshStatusFetchingMatches: "Wedstrijden ophalen…",
@@ -179,6 +185,39 @@ export const messagesNl: Messages = {
   sortAscLabel: "Oplopend",
   sortDescLabel: "Aflopend",
   seniorPlayerListTitle: "Seniorspelers",
+  seniorTransferSearchButtonLabel: "Zoek markt",
+  seniorTransferSearchFemaleTeamTooltip:
+    "Transfermarkt zoeken is niet beschikbaar voor femme-teams.",
+  seniorTransferSearchModalTitle: "Transfermarkt zoeken",
+  seniorTransferSearchCriteriaTitle: "Zoekcriteria",
+  seniorTransferSearchResultsTitle: "Resultaten",
+  seniorTransferSearchSourcePlayerLabel: "Gebaseerd op {{player}}",
+  seniorTransferSearchMinLabel: "Min",
+  seniorTransferSearchMaxLabel: "Max",
+  seniorTransferSearchAnySpecialtyLabel: "Elke",
+  seniorTransferSearchAgeRangeLabel: "Leeftijd",
+  seniorTransferSearchTsiRangeLabel: "TSI",
+  seniorTransferSearchPriceRangeLabel: "Prijs (EUR)",
+  seniorTransferSearchSearchButton: "Zoeken",
+  seniorTransferSearchCloseButton: "Sluiten",
+  seniorTransferSearchLoading: "Transfermarkt wordt doorzocht…",
+  seniorTransferSearchNoResults:
+    "Geen spelers op de transferlijst voldoen aan deze criteria.",
+  seniorTransferSearchFallbackNotice:
+    "De exacte vaardigheidzoekopdracht leverde niets op. Automatisch is een bredere zoekopdracht uitgevoerd met minimumskills 1 lager, leeftijd verbreed naar ±50 dagen en zonder specialiteitsfilter.",
+  seniorTransferSearchResultsCount: "{{count}} resultaten",
+  seniorTransferSearchResultsMany: "Veel resultaten",
+  seniorTransferSearchHighestBidLabel: "Hoogste bod",
+  seniorTransferSearchDeadlineLabel: "Deadline",
+  seniorTransferSearchSellerLabel: "Verkoper",
+  seniorTransferSearchBidAmountLabel: "Bodbedrag (EUR)",
+  seniorTransferSearchMaxBidAmountLabel: "Maxbod (EUR)",
+  seniorTransferSearchPlaceBidButton: "Bieden",
+  seniorTransferSearchPlaceMaxBidButton: "Maxbod instellen",
+  seniorTransferSearchSupporterOnlyTooltip: "Dit is alleen voor Supporters.",
+  seniorTransferSearchBidMissingAmount: "Voer eerst een bodbedrag in.",
+  seniorTransferSearchBidPlaced: "Bod geplaatst op {{player}}.",
+  seniorTransferSearchBidFailed: "Bod mislukt: {{details}}",
   seniorListInjuryBruised: "Gekneusd",
   seniorListInjuryWeeks: "Geblesseerd ({weeks}w)",
   seniorCardsMatchRunning: "wedstrijd bezig",
@@ -252,13 +291,20 @@ export const messagesNl: Messages = {
   seniorExtraTimeModalBTeamThresholdAriaLabel:
     "Minutendrempel om spelers die deze week al speelden te negeren",
   seniorExtraTimeModalBTeamNoRecentMatch:
-    "Het B-teamvenster is geopend van maandag tot en met donderdag (CET).",
+    "Er kon deze week geen trainingsrelevante A-teamwedstrijd worden gebruikt.",
   seniorExtraTimeModalBTeamLoading:
     "Trainingsrelevante wedstrijden van deze week worden gecontroleerd...",
   seniorExtraTimeModalBTeamError:
     "De trainingsrelevante wedstrijden van deze week konden niet worden gecontroleerd.",
   seniorExtraTimeModalBTeamWeekendTooltip:
     "De B-teamselectie is alleen beschikbaar van maandag tot en met donderdag (CET).",
+  seniorExtraTimeModalBTeamEnabledTooltip:
+    "Schakel in om een opstelling te maken waarbij spelers die deze week al een wedstrijd hebben gespeeld worden genegeerd.",
+  seniorExtraTimeModalBTeamNoATeamMatchTooltip:
+    "Er is deze week nog geen A-teamwedstrijd gedetecteerd.",
+  seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
+    "De B-teamwedstrijd is deze week al gespeeld: {{matchLink}}.",
+  seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "wedstrijd",
   seniorExtraTimeModalBTeamDisregardedTooltip:
     "Deze speler wordt genegeerd omdat hij deze week al minstens {{minutes}} minuten heeft gespeeld.",
   seniorExtraTimeModalSetLineupButton: "Opstelling instellen",
@@ -360,6 +406,8 @@ export const messagesNl: Messages = {
   submitOrdersUpdated: "Bijgewerkt",
   submitOrdersMinPlayers: "Opstelling moet minimaal 9 spelers hebben",
   submitOrdersMaxPlayers: "Opstelling mag niet meer dan 11 spelers hebben",
+  seniorSubmitOrdersOtherMatchTooltip:
+    "Deze opstelling kan niet worden verzonden omdat die voor een andere wedstrijd is voorbereid: {{home}} vs {{away}} op {{datetime}}.",
   seniorSubmitDisclaimerTitle: "⚠️ Disclaimer na verzenden opstelling",
   seniorSubmitDisclaimerIntro: "Controleer het volgende:",
   seniorSubmitDisclaimerBulletBestEffort:
@@ -438,6 +486,14 @@ export const messagesNl: Messages = {
   skillBonusLoyaltyTooltip: "Loyaliteitsbonus",
   seniorSkillLevelLabels:
     "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+  seniorAgreeabilityLabels:
+    "naar|omstreden|aangenaam|sympathiek|populair|geliefd",
+  seniorAggressivenessLabels:
+    "rustig|kalm|evenwichtig|temperamentvol|vurig|instabiel",
+  seniorHonestyLabels:
+    "berucht|oneerlijk|eerlijk|oprecht|rechtschapen|heilig",
+  seniorPersonalitySentence:
+    "Een {{agreeabilityLabel}} persoon ({{agreeabilityValue}}) die {{aggressivenessLabel}} ({{aggressivenessValue}}) en {{honestyLabel}} ({{honestyValue}}) is.",
   seniorTraitsSentenceExperienceLeadership:
     "Heeft {{experienceLevel}} ({{experienceValue}}) ervaring en {{leadershipLevel}} ({{leadershipValue}}) leiderschap.",
   seniorTraitsSentenceLoyalty:

@@ -99,6 +99,7 @@ type UpcomingMatchesProps = {
   onAnalyzeOpponent?: (matchId: number) => void | Promise<void>;
   loadedMatchId?: number | null;
   submitEnabledMatchId?: number | null;
+  submitRestrictedTooltipBuilder?: (targetMatch: Match | undefined) => ReactNode;
   onSubmitSuccess?: () => void;
   buildSubmitLineupPayload?: (
     matchId: number,
@@ -544,6 +545,7 @@ function renderMatch(
   analyzePending?: boolean,
   isLoaded?: boolean,
   submitEnabledMatchId?: number | null,
+  submitRestrictedTooltip?: ReactNode,
   assignedCount?: number,
   setBestLineupHelpAnchor?: string,
   showExtraTimeSetBestLineupMode?: boolean,
@@ -560,6 +562,8 @@ function renderMatch(
     isUpcoming &&
     hasLineup &&
     (!submitMatchRestrictionActive || submitEnabledMatchId === matchId);
+  const submitRestrictedByOtherMatch =
+    submitMatchRestrictionActive && submitEnabledMatchId !== matchId;
   const ordersSet =
     match.OrdersGiven === "true" ||
     match.OrdersGiven === "True" ||
@@ -702,7 +706,13 @@ function renderMatch(
                 : messages.loadLineup}
             </button>
           </Tooltip>
-          <Tooltip content={messages.submitOrdersTooltip}>
+          <Tooltip
+            content={
+              submitRestrictedByOtherMatch && submitRestrictedTooltip
+                ? submitRestrictedTooltip
+                : messages.submitOrdersTooltip
+            }
+          >
             <button
               type="button"
               className={styles.matchButton}
@@ -786,6 +796,7 @@ export default function UpcomingMatches({
   onAnalyzeOpponent,
   loadedMatchId,
   submitEnabledMatchId = null,
+  submitRestrictedTooltipBuilder,
   onSubmitSuccess,
   buildSubmitLineupPayload,
   sourceSystem = "Youth",
@@ -862,6 +873,10 @@ export default function UpcomingMatches({
 
   const submitRestrictionActive =
     typeof submitEnabledMatchId === "number" && submitEnabledMatchId > 0;
+  const submitRestrictedMatch =
+    submitRestrictionActive && submitEnabledMatchId !== null
+      ? matchById.get(submitEnabledMatchId)
+      : undefined;
   const canSubmitMatchId = (matchId: number) =>
     !submitRestrictionActive || submitEnabledMatchId === matchId;
 
@@ -1266,6 +1281,7 @@ export default function UpcomingMatches({
               analyzePendingMatchId === matchId,
               loadedMatchId === matchId,
               submitEnabledMatchId,
+              submitRestrictedTooltipBuilder?.(submitRestrictedMatch),
               assignedCount,
               index === 0 ? setBestLineupHelpAnchor : undefined,
               showExtraTimeSetBestLineupMode,
@@ -1305,6 +1321,7 @@ export default function UpcomingMatches({
                 analyzePendingMatchId === matchId,
                 loadedMatchId === matchId,
                 submitEnabledMatchId,
+                submitRestrictedTooltipBuilder?.(submitRestrictedMatch),
                 assignedCount,
                 index === 0 ? setBestLineupHelpAnchor : undefined,
                 showExtraTimeSetBestLineupMode,

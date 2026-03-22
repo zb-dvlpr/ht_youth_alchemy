@@ -70,6 +70,10 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_3_12_0:
+      "Seniorspelardetaljer har nu en transfermarknadssokning for liknande spelare med redigerbara filter och Supporter-bud.",
+    changelog_3_11_0:
+      "Tillgang till seniorernas B-lag foljer nu den aktuella veckans A-lags- och B-lagsfonster i stallet for en statisk helgsparr.",
     changelog_3_10_0:
       "Club Chronicle lägger till en Power ratings-panel från cachade teamdetails med uppdelade rankingar.",
     changelog_3_9_0:
@@ -589,7 +593,8 @@ export const messagesSv: Messages = {
     loadingDetails: "Laddar detaljer…",
     refreshingLabel: "Uppdaterar…",
     selectPlayerPrompt: "Välj en spelare för att ladda detaljer.",
-    unableToLoadPlayers: "Kunde inte ladda spelare",
+    unableToLoadPlayers:
+      "Kunde inte ladda spelare. Prova att koppla från och ansluta igen med en ny token.",
     unableToLoadMatches: "Kunde inte ladda matcher",
     matchesTitle: "Matcher",
     matchesRefresh: "Uppdatera matcher",
@@ -637,6 +642,8 @@ export const messagesSv: Messages = {
     submitOrdersUpdated: "Uppdaterad",
     submitOrdersMinPlayers: "Minst 9 spelare krävs",
     submitOrdersMaxPlayers: "Uppställningen får inte överstiga 11 spelare",
+    seniorSubmitOrdersOtherMatchTooltip:
+      "Det gar inte att skicka den har uppstallningen eftersom den sattes upp for en annan match: {{home}} vs {{away}} den {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Varning efter inskickad uppställning",
     seniorSubmitDisclaimerIntro: "Gå igenom följande:",
     seniorSubmitDisclaimerBulletBestEffort:
@@ -823,13 +830,20 @@ export const messagesSv: Messages = {
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Minutgräns för att bortse från spelare som redan spelat den här veckan",
     seniorExtraTimeModalBTeamNoRecentMatch:
-      "B-lagsfönstret är öppet från måndag till torsdag (CET).",
+      "Ingen traningsrelevant A-lagsmatch kunde anvandas for den har veckan.",
     seniorExtraTimeModalBTeamLoading:
       "Kontrollerar veckans träningsrelevanta matcher...",
     seniorExtraTimeModalBTeamError:
       "Det gick inte att kontrollera veckans träningsrelevanta matcher.",
     seniorExtraTimeModalBTeamWeekendTooltip:
       "B-lagsvalet är bara tillgängligt från måndag till torsdag (CET).",
+    seniorExtraTimeModalBTeamEnabledTooltip:
+      "Aktivera for att satta upp en laguppstallning som bortser fran spelare som redan har spelat en match den har veckan.",
+    seniorExtraTimeModalBTeamNoATeamMatchTooltip:
+      "Ingen A-lagsmatch har upptackts hittills den har veckan.",
+    seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
+      "B-lagsmatchen har redan spelats den har veckan: {{matchLink}}.",
+    seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "match",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Spelaren ignoreras eftersom han redan har spelat minst {{minutes}} minuter den här veckan.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
@@ -951,6 +965,38 @@ export const messagesSv: Messages = {
     trainingSlotBoth: "Pri/sek",
     starPlayerLabel: "Ange stjärnspelare",
     seniorPlayerListTitle: "Seniorspelare",
+    seniorTransferSearchButtonLabel: "Sok marknad",
+    seniorTransferSearchFemaleTeamTooltip:
+      "Transfersokning ar inte tillganglig for femme-lag.",
+    seniorTransferSearchModalTitle: "Transfersokning",
+    seniorTransferSearchCriteriaTitle: "Sokkriterier",
+    seniorTransferSearchResultsTitle: "Resultat",
+    seniorTransferSearchSourcePlayerLabel: "Baserad pa {{player}}",
+    seniorTransferSearchMinLabel: "Min",
+    seniorTransferSearchMaxLabel: "Max",
+    seniorTransferSearchAnySpecialtyLabel: "Valfri",
+    seniorTransferSearchAgeRangeLabel: "Alder",
+    seniorTransferSearchTsiRangeLabel: "TSI",
+    seniorTransferSearchPriceRangeLabel: "Pris (EUR)",
+    seniorTransferSearchSearchButton: "Sok",
+    seniorTransferSearchCloseButton: "Stang",
+    seniorTransferSearchLoading: "Soker pa transfermarknaden…",
+    seniorTransferSearchNoResults: "Inga spelare pa transferlistan matchar dessa kriterier.",
+    seniorTransferSearchFallbackNotice:
+      "Den exakta sokningen gav inga traffar. En bredare reservsokning koerdes automatiskt med skill-minimum sankt med 1, alder utokad till ±50 dagar och utan specialitetsfilter.",
+    seniorTransferSearchResultsCount: "{{count}} resultat",
+    seniorTransferSearchResultsMany: "Manga resultat",
+    seniorTransferSearchHighestBidLabel: "Hogsta bud",
+    seniorTransferSearchDeadlineLabel: "Deadline",
+    seniorTransferSearchSellerLabel: "Saljare",
+    seniorTransferSearchBidAmountLabel: "Budbelopp (EUR)",
+    seniorTransferSearchMaxBidAmountLabel: "Maxbud (EUR)",
+    seniorTransferSearchPlaceBidButton: "Lag bud",
+    seniorTransferSearchPlaceMaxBidButton: "Satt maxbud",
+    seniorTransferSearchSupporterOnlyTooltip: "Detta ar en Supporter-funktion.",
+    seniorTransferSearchBidMissingAmount: "Ange ett budbelopp forst.",
+    seniorTransferSearchBidPlaced: "Bud lagt pa {{player}}.",
+    seniorTransferSearchBidFailed: "Bud misslyckades: {{details}}",
     sortLabel: "Sortera efter",
     sortName: "Namn",
     sortAge: "Ålder",
@@ -1039,6 +1085,14 @@ export const messagesSv: Messages = {
     skillBonusLoyaltyTooltip: "Lojalitetsbonus",
     seniorSkillLevelLabels:
       "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+    seniorAgreeabilityLabels:
+      "otrevlig|kontroversiell|trevlig|sympatisk|popular|omtyckt",
+    seniorAggressivenessLabels:
+      "lugn|sansad|balanserad|temperamentsfull|eldig|instabil",
+    seniorHonestyLabels:
+      "okand for daligt rykte|oarlig|arlig|uppriktig|rattskaffens|helgonlik",
+    seniorPersonalitySentence:
+      "En {{agreeabilityLabel}} person ({{agreeabilityValue}}) som ar {{aggressivenessLabel}} ({{aggressivenessValue}}) och {{honestyLabel}} ({{honestyValue}}).",
     seniorTraitsSentenceExperienceLeadership:
       "Har {{experienceLevel}} ({{experienceValue}}) erfarenhet och {{leadershipLevel}} ({{leadershipValue}}) ledarskap.",
     seniorTraitsSentenceLoyalty:

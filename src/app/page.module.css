@@ -3735,6 +3735,38 @@ html[data-theme="dark"] .infoLinkIcon:hover {
   background: #332d28;
 }
 
+html[data-theme="dark"] .transferSearchModalSidebar,
+html[data-theme="dark"] .transferSearchModalResults,
+html[data-theme="dark"] .transferSearchResultCard,
+html[data-theme="dark"] .transferSearchSkillRow {
+  background: #1f1c19;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .transferSearchSelect,
+html[data-theme="dark"] .transferSearchInput,
+html[data-theme="dark"] .transferSearchSpecialtyButton,
+html[data-theme="dark"] .transferSearchStepperButton {
+  background: #2a2521;
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .transferSearchSpecialtyButtonActive {
+  background: #3d7f4b;
+  border-color: #3d7f4b;
+}
+
+html[data-theme="dark"] .transferSearchFallbackNotice {
+  background: #4f3f1d;
+  color: #f1dfb8;
+}
+
+html[data-theme="dark"] .infoValueTiny,
+html[data-theme="dark"] .transferSearchSliderValue {
+  color: #c6bdaf;
+}
+
 html[data-theme="dark"] .playerId,
 html[data-theme="dark"] .assignedTag {
   color: #c6bdaf;
@@ -4893,6 +4925,419 @@ html[data-theme="dark"] .spinner {
   margin-top: 4px;
 }
 
+.infoValueTiny {
+  font-size: 12px;
+  color: #7a6f61;
+}
+
+.transferSearchModal {
+  width: min(1180px, calc(100vw - 32px));
+}
+
+.transferSearchModalShell {
+  display: grid;
+  grid-template-columns: minmax(440px, 500px) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  flex: 1 1 auto;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.transferSearchModalSidebar,
+.transferSearchModalResults {
+  border-radius: 16px;
+  border: 1px solid #e8dece;
+  background: #fbf7f0;
+  padding: 16px;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  overflow: auto;
+}
+
+.transferSearchModalResults {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.transferSearchSidebarHeader,
+.transferSearchResultsHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+
+.transferSearchSection {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.transferSearchCriteriaGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.transferSearchSkillRow {
+  border: 1px solid #ebdfcf;
+  background: #fffdf9;
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.transferSearchSelect,
+.transferSearchInput {
+  border: 1px solid #ccb9a0;
+  background: #fff;
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #2d261f;
+}
+
+.transferSearchSlider {
+  width: 100%;
+  accent-color: #244d2b;
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  background: transparent;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.transferSearchSliderValue {
+  font-size: 13px;
+  font-weight: 700;
+  color: #3d352a;
+  text-align: center;
+  min-width: 22px;
+}
+
+.transferSearchSliderDualWrap {
+  display: grid;
+  gap: 8px;
+}
+
+.transferSearchSliderValues {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
+.transferSearchStepperGroup {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.transferSearchStepperButton {
+  border: 1px solid #ccb9a0;
+  background: #fff;
+  color: #2d261f;
+  border-radius: 999px;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.transferSearchStepperButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.transferSearchDualSlider {
+  position: relative;
+  height: 22px;
+  display: flex;
+  align-items: center;
+}
+
+.transferSearchDualSlider::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 999px;
+  background: #e8e1d6;
+}
+
+.transferSearchDualSliderRange {
+  position: absolute;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2f9f5b, #1f6f3f);
+}
+
+.transferSearchSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #244d2b;
+  border: 2px solid #f7f1e3;
+  box-shadow: 0 0 0 1px rgba(36, 77, 43, 0.25);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.transferSearchSlider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #244d2b;
+  border: 2px solid #f7f1e3;
+  box-shadow: 0 0 0 1px rgba(36, 77, 43, 0.25);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.transferSearchSlider::-webkit-slider-runnable-track {
+  height: 6px;
+  background: transparent;
+}
+
+.transferSearchSlider::-moz-range-track {
+  height: 6px;
+  background: transparent;
+}
+
+.transferSearchSliderThumbMin {
+  z-index: 2;
+}
+
+.transferSearchSliderThumbMax {
+  z-index: 3;
+}
+
+.transferSearchSliderThumbOverlapMin {
+  z-index: 4;
+}
+
+.transferSearchSliderThumbOverlapMax {
+  z-index: 4;
+}
+
+.transferSearchSliderThumbActive {
+  z-index: 5;
+}
+
+.transferSearchSliderThumbOverlapMin::-webkit-slider-thumb {
+  transform: translateX(-9px);
+}
+
+.transferSearchSliderThumbOverlapMax::-webkit-slider-thumb {
+  transform: translateX(9px);
+}
+
+.transferSearchSliderThumbOverlapMin::-moz-range-thumb {
+  transform: translateX(-9px);
+}
+
+.transferSearchSliderThumbOverlapMax::-moz-range-thumb {
+  transform: translateX(9px);
+}
+
+.transferSearchSpecialtyRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.transferSearchSpecialtyButton {
+  border: 1px solid #ccb9a0;
+  background: #fff;
+  color: #2d261f;
+  border-radius: 999px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.transferSearchSpecialtyButtonActive {
+  background: #244d2b;
+  border-color: #244d2b;
+  color: #fff;
+}
+
+.transferSearchRangeGrid {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) 44px minmax(0, 1fr) 44px;
+  gap: 8px;
+  align-items: center;
+}
+
+.transferSearchSimpleRange {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.transferSearchSidebarActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.transferSearchFallbackNotice {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f5ead5;
+  color: #5c4821;
+  font-size: 13px;
+}
+
+.transferSearchResultsList {
+  display: grid;
+  gap: 14px;
+  padding-right: 2px;
+  min-width: 0;
+  width: 100%;
+}
+
+.transferSearchResultCard {
+  border-radius: 16px;
+  border: 1px solid #e8dece;
+  background: #fffdf9;
+  padding: 14px 16px;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.transferSearchResultHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.transferSearchResultHeader > * {
+  min-width: 0;
+}
+
+.transferSearchPriceBlock {
+  width: fit-content;
+  min-width: 0;
+  text-align: right;
+  display: grid;
+  justify-items: end;
+  gap: 4px;
+  align-self: start;
+}
+
+.transferSearchPriceValue {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+  color: #244d2b;
+  letter-spacing: -0.02em;
+}
+
+.transferSearchResultCard .profileInfoRow {
+  margin-top: 4px;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  min-width: 0;
+}
+
+.transferSearchResultCard .profileMeta {
+  margin-top: 4px;
+  gap: 8px;
+}
+
+.transferSearchResultCard .sectionDivider {
+  margin: 8px 0;
+}
+
+.transferSearchResultCard .sectionHeading {
+  margin-bottom: 8px;
+}
+
+.transferSearchResultCard .skillsGrid {
+  gap: 8px;
+}
+
+.transferSearchResultCard .skillRow {
+  grid-template-columns: 92px minmax(0, 1fr) 24px;
+  gap: 8px;
+}
+
+.transferSearchResultCard .skillLabel {
+  font-size: 13px;
+}
+
+.transferSearchResultCard .skillValue {
+  min-width: 24px;
+  font-size: 13px;
+}
+
+.transferSearchBidGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    "bidField maxBidField"
+    "bidAction maxBidAction";
+  gap: 8px 10px;
+  align-items: end;
+  min-width: 0;
+}
+
+.transferSearchBidField {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.transferSearchBidAction {
+  align-self: end;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.transferSearchBidGrid > :nth-child(1) {
+  grid-area: bidField;
+}
+
+.transferSearchBidGrid > :nth-child(2) {
+  grid-area: bidAction;
+}
+
+.transferSearchBidGrid > :nth-child(3) {
+  grid-area: maxBidField;
+}
+
+.transferSearchBidGrid > :nth-child(4) {
+  grid-area: maxBidAction;
+}
+
 .injuryStatusSymbol {
   color: #b32320;
   font-size: 24px;
@@ -5388,6 +5833,15 @@ html[data-theme="dark"] .spinner {
   overflow: hidden;
 }
 
+.confirmCard.transferSearchModal {
+  width: min(1180px, 96vw);
+  max-height: min(88vh, 920px);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .seniorUpdatesModal .confirmBody {
   margin-bottom: 0;
   overflow: auto;
@@ -5411,8 +5865,25 @@ html[data-theme="dark"] .spinner {
   padding-bottom: 6px;
 }
 
+.transferSearchModal .confirmBody {
+  margin-bottom: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  height: 100%;
+  max-height: 100%;
+  min-height: 0;
+  padding-bottom: 6px;
+}
+
 .seniorExtraTimeModal .confirmActions {
   margin-top: 18px;
+  padding-top: 6px;
+}
+
+.transferSearchModal .confirmActions {
+  margin-top: 12px;
   padding-top: 6px;
 }
 
@@ -7091,11 +7562,34 @@ html[data-theme="dark"] .slotCardStatus {
   .dashboardGrid {
     grid-template-columns: 1fr;
   }
+
+  .transferSearchModalShell {
+    grid-template-columns: 1fr;
+  }
+
+  .transferSearchCriteriaGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .confirmCard.transferSearchModal {
+    width: min(96vw, 760px);
+    max-height: 92vh;
+  }
 }
 
 @media (max-width: 800px) {
   .skillRow {
     grid-template-columns: 1fr;
+  }
+
+  .transferSearchResultHeader {
+    grid-template-columns: 1fr;
+  }
+
+  .transferSearchPriceBlock {
+    width: 100%;
+    justify-items: start;
+    text-align: left;
   }
 }
 
@@ -7115,5 +7609,42 @@ html[data-theme="dark"] .slotCardStatus {
 
   .topBar {
     padding: 8px 12px;
+  }
+
+  .transferSearchRangeGrid,
+  .transferSearchSimpleRange,
+  .transferSearchBidGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .transferSearchSliderValues {
+    grid-template-columns: 1fr;
+  }
+
+  .transferSearchStepperGroup {
+    grid-template-columns: auto auto minmax(20px, auto) auto;
+    justify-content: start;
+  }
+
+  .transferSearchBidAction {
+    width: 100%;
+  }
+
+  .transferSearchPriceBlock {
+    text-align: left;
+    min-width: 0;
+  }
+
+  .transferSearchResultHeader,
+  .transferSearchSidebarHeader,
+  .transferSearchResultsHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .confirmCard.transferSearchModal {
+    width: 96vw;
+    max-height: 94vh;
+    padding: 12px;
   }
 }

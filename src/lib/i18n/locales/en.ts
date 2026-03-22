@@ -70,6 +70,10 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_3_12_0:
+      "Senior player details now include a transfer-market similarity search with editable filters and supporter bidding.",
+    changelog_3_11_0:
+      "Senior B-team availability now follows current-week A-team and B-team match windows instead of a static weekend lock.",
     changelog_3_10_0:
       "Club Chronicle adds a Power Ratings panel sourced from cached team details with ranking breakdowns.",
     changelog_3_9_0:
@@ -565,7 +569,8 @@ export const messagesEn: Messages = {
     loadingDetails: "Loading details…",
     refreshingLabel: "Refreshing…",
     selectPlayerPrompt: "Select a player to load details.",
-    unableToLoadPlayers: "Unable to load players",
+    unableToLoadPlayers:
+      "Unable to load players. Try disconnecting and reconnecting with a fresh token.",
     unableToLoadMatches: "Unable to load matches",
     matchesTitle: "Matches",
     matchesRefresh: "Refresh matches",
@@ -613,6 +618,8 @@ export const messagesEn: Messages = {
     submitOrdersUpdated: "Updated",
     submitOrdersMinPlayers: "Need at least 9 players set",
     submitOrdersMaxPlayers: "Lineup can’t exceed 11 players",
+    seniorSubmitOrdersOtherMatchTooltip:
+      "Submitting this lineup is not possible because it was set up for another match: {{home}} vs {{away}} on {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Lineup submission disclaimer",
     seniorSubmitDisclaimerIntro: "Please review before finalizing:",
     seniorSubmitDisclaimerBulletBestEffort:
@@ -795,13 +802,20 @@ export const messagesEn: Messages = {
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Minutes threshold for disregarding players this week",
     seniorExtraTimeModalBTeamNoRecentMatch:
-      "B team window is open Monday through Thursday (CET).",
+      "No training-relevant A-team match could be used for this week.",
     seniorExtraTimeModalBTeamLoading:
       "Checking this week's training-relevant matches...",
     seniorExtraTimeModalBTeamError:
       "Couldn't check this week's training-relevant matches.",
     seniorExtraTimeModalBTeamWeekendTooltip:
       "B team selection is only available Monday through Thursday (CET).",
+    seniorExtraTimeModalBTeamEnabledTooltip:
+      "Enable to set up a lineup disregarding players who have already played a match this week.",
+    seniorExtraTimeModalBTeamNoATeamMatchTooltip:
+      "No A-team match detected so far this week.",
+    seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
+      "B-team match has already been played this week: {{matchLink}}.",
+    seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "match",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Player is disregarded because they have already played at least {{minutes}} minutes this week.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
@@ -920,6 +934,37 @@ export const messagesEn: Messages = {
     trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Set star player",
     seniorPlayerListTitle: "Senior players",
+    seniorTransferSearchButtonLabel: "Search market",
+    seniorTransferSearchFemaleTeamTooltip: "Transfer market search is not available for femme teams.",
+    seniorTransferSearchModalTitle: "Transfer market search",
+    seniorTransferSearchCriteriaTitle: "Search criteria",
+    seniorTransferSearchResultsTitle: "Results",
+    seniorTransferSearchSourcePlayerLabel: "Based on {{player}}",
+    seniorTransferSearchMinLabel: "Min",
+    seniorTransferSearchMaxLabel: "Max",
+    seniorTransferSearchAnySpecialtyLabel: "Any",
+    seniorTransferSearchAgeRangeLabel: "Age",
+    seniorTransferSearchTsiRangeLabel: "TSI",
+    seniorTransferSearchPriceRangeLabel: "Price (EUR)",
+    seniorTransferSearchSearchButton: "Search",
+    seniorTransferSearchCloseButton: "Close",
+    seniorTransferSearchLoading: "Searching transfer market…",
+    seniorTransferSearchNoResults: "No transfer-listed players match these criteria.",
+    seniorTransferSearchFallbackNotice:
+      "Exact skill search returned nothing. A broader fallback search was run with skill minimums reduced by 1, age widened to ±50 days, and no specialty filter.",
+    seniorTransferSearchResultsCount: "{{count}} results",
+    seniorTransferSearchResultsMany: "Many results",
+    seniorTransferSearchHighestBidLabel: "Highest bid",
+    seniorTransferSearchDeadlineLabel: "Deadline",
+    seniorTransferSearchSellerLabel: "Seller",
+    seniorTransferSearchBidAmountLabel: "Bid amount (EUR)",
+    seniorTransferSearchMaxBidAmountLabel: "Max bid (EUR)",
+    seniorTransferSearchPlaceBidButton: "Place bid",
+    seniorTransferSearchPlaceMaxBidButton: "Set max bid",
+    seniorTransferSearchSupporterOnlyTooltip: "This is a Supporter feature only.",
+    seniorTransferSearchBidMissingAmount: "Enter a bid amount first.",
+    seniorTransferSearchBidPlaced: "Bid placed for {{player}}.",
+    seniorTransferSearchBidFailed: "Bid failed: {{details}}",
     sortLabel: "Sort by",
     sortName: "Name",
     sortAge: "Age",
@@ -1008,6 +1053,14 @@ export const messagesEn: Messages = {
     skillBonusLoyaltyTooltip: "Loyalty bonus",
     seniorSkillLevelLabels:
       "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+    seniorAgreeabilityLabels:
+      "nasty|controversial|pleasant|sympathetic|popular|beloved",
+    seniorAggressivenessLabels:
+      "tranquil|calm|balanced|temperamental|fiery|unstable",
+    seniorHonestyLabels:
+      "infamous|dishonest|honest|upright|righteous|saintly",
+    seniorPersonalitySentence:
+      "A {{agreeabilityLabel}} person ({{agreeabilityValue}}) who is {{aggressivenessLabel}} ({{aggressivenessValue}}) and {{honestyLabel}} ({{honestyValue}}).",
     seniorTraitsSentenceExperienceLeadership:
       "Has {{experienceLevel}} ({{experienceValue}}) experience and {{leadershipLevel}} ({{leadershipValue}}) leadership.",
     seniorTraitsSentenceLoyalty:

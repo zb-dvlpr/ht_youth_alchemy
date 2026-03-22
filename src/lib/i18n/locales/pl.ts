@@ -76,6 +76,10 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_3_12_0:
+    "Szczegoly zawodnika seniora zawieraja teraz wyszukiwanie podobnych graczy na rynku transferowym z edytowalnymi filtrami i licytacja dla Supporterow.",
+  changelog_3_11_0:
+    "Dostepnosc skladu B seniorow zalezy teraz od okien meczow skladu A i B w biezacym tygodniu zamiast od stalej blokady weekendowej.",
   changelog_3_10_0:
     "Club Chronicle dodaje panel Power ratings z danych teamdetails w pamięci podręcznej wraz z rozbiciem rankingów.",
   changelog_3_9_0:
@@ -95,6 +99,8 @@ export const messagesPl: Messages = {
   startupLoadingMatches: "Ładowanie meczów…",
   startupLoadingRatings: "Ładowanie ocen…",
   startupLoadingFinalize: "Finalizowanie interfejsu…",
+  unableToLoadPlayers:
+    "Nie udalo sie zaladowac zawodnikow. Sprobuj rozlaczyc i polaczyc ponownie ze swiezym tokenem.",
   refreshStatusFetchingPlayers: "Pobieranie juniorów…",
   refreshStatusFetchingPlayerDetails: "Pobieranie szczegółów zawodników…",
   refreshStatusFetchingMatches: "Pobieranie meczów…",
@@ -173,6 +179,39 @@ export const messagesPl: Messages = {
   sortAscLabel: "Rosnąco",
   sortDescLabel: "Malejąco",
   seniorPlayerListTitle: "Zawodnicy seniorów",
+  seniorTransferSearchButtonLabel: "Szukaj rynku",
+  seniorTransferSearchFemaleTeamTooltip:
+    "Wyszukiwanie na rynku transferowym nie jest dostepne dla druzyn femme.",
+  seniorTransferSearchModalTitle: "Wyszukiwanie transferowe",
+  seniorTransferSearchCriteriaTitle: "Kryteria wyszukiwania",
+  seniorTransferSearchResultsTitle: "Wyniki",
+  seniorTransferSearchSourcePlayerLabel: "Na podstawie {{player}}",
+  seniorTransferSearchMinLabel: "Min",
+  seniorTransferSearchMaxLabel: "Max",
+  seniorTransferSearchAnySpecialtyLabel: "Dowolna",
+  seniorTransferSearchAgeRangeLabel: "Wiek",
+  seniorTransferSearchTsiRangeLabel: "TSI",
+  seniorTransferSearchPriceRangeLabel: "Cena (EUR)",
+  seniorTransferSearchSearchButton: "Szukaj",
+  seniorTransferSearchCloseButton: "Zamknij",
+  seniorTransferSearchLoading: "Trwa wyszukiwanie na rynku transferowym…",
+  seniorTransferSearchNoResults:
+    "Brak zawodnikow na liscie transferowej spelniajacych te kryteria.",
+  seniorTransferSearchFallbackNotice:
+    "Dokladne wyszukiwanie umiejetnosci nic nie zwrocilo. Automatycznie uruchomiono szersze wyszukiwanie z obnizonymi minimami o 1, wiekiem rozszerzonym do ±50 dni i bez filtra specjalnosci.",
+  seniorTransferSearchResultsCount: "{{count}} wynikow",
+  seniorTransferSearchResultsMany: "Wiele wynikow",
+  seniorTransferSearchHighestBidLabel: "Najwyzsza oferta",
+  seniorTransferSearchDeadlineLabel: "Koniec aukcji",
+  seniorTransferSearchSellerLabel: "Sprzedajacy",
+  seniorTransferSearchBidAmountLabel: "Kwota oferty (EUR)",
+  seniorTransferSearchMaxBidAmountLabel: "Maks. oferta (EUR)",
+  seniorTransferSearchPlaceBidButton: "Zloz oferte",
+  seniorTransferSearchPlaceMaxBidButton: "Ustaw maks. oferte",
+  seniorTransferSearchSupporterOnlyTooltip: "To funkcja tylko dla Supporterow.",
+  seniorTransferSearchBidMissingAmount: "Najpierw wpisz kwote oferty.",
+  seniorTransferSearchBidPlaced: "Zlozono oferte na {{player}}.",
+  seniorTransferSearchBidFailed: "Oferta nie powiodla sie: {{details}}",
   seniorListInjuryBruised: "Stłuczony",
   seniorListInjuryWeeks: "Kontuzjowany ({weeks} tyg.)",
   seniorCardsMatchRunning: "mecz w toku",
@@ -246,13 +285,20 @@ export const messagesPl: Messages = {
   seniorExtraTimeModalBTeamThresholdAriaLabel:
     "Próg minut do pomijania zawodników, którzy już grali w tym tygodniu",
   seniorExtraTimeModalBTeamNoRecentMatch:
-    "Okno drużyny B jest otwarte od poniedziałku do czwartku (CET).",
+    "Nie znaleziono meczu skladu A przydatnego treningowo dla tego tygodnia.",
   seniorExtraTimeModalBTeamLoading:
     "Sprawdzanie meczów istotnych dla treningu w tym tygodniu...",
   seniorExtraTimeModalBTeamError:
     "Nie udało się sprawdzić meczów istotnych dla treningu w tym tygodniu.",
   seniorExtraTimeModalBTeamWeekendTooltip:
     "Wybór składu B jest dostępny tylko od poniedziałku do czwartku (CET).",
+  seniorExtraTimeModalBTeamEnabledTooltip:
+    "Wlacz, aby przygotowac sklad z pominieciem zawodnikow, ktorzy rozegrali juz mecz w tym tygodniu.",
+  seniorExtraTimeModalBTeamNoATeamMatchTooltip:
+    "Jak dotad w tym tygodniu nie wykryto meczu skladu A.",
+  seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
+    "Mecz skladu B zostal juz rozegrany w tym tygodniu: {{matchLink}}.",
+  seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "mecz",
   seniorExtraTimeModalBTeamDisregardedTooltip:
     "Ten zawodnik jest pomijany, ponieważ w tym tygodniu rozegrał już co najmniej {{minutes}} minut.",
   seniorExtraTimeModalSetLineupButton: "Ustaw skład",
@@ -354,6 +400,8 @@ export const messagesPl: Messages = {
   submitOrdersUpdated: "Zaktualizowano",
   submitOrdersMinPlayers: "Skład musi mieć co najmniej 9 zawodników",
   submitOrdersMaxPlayers: "Skład nie może przekraczać 11 zawodników",
+  seniorSubmitOrdersOtherMatchTooltip:
+    "Nie mozna wyslac tego skladu, poniewaz zostal przygotowany na inny mecz: {{home}} vs {{away}} dnia {{datetime}}.",
   seniorSubmitDisclaimerTitle: "⚠️ Zastrzeżenie po wysłaniu składu",
   seniorSubmitDisclaimerIntro: "Sprawdź proszę poniższe punkty:",
   seniorSubmitDisclaimerBulletBestEffort:
@@ -432,6 +480,14 @@ export const messagesPl: Messages = {
   skillBonusLoyaltyTooltip: "Bonus lojalności",
   seniorSkillLevelLabels:
     "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+  seniorAgreeabilityLabels:
+    "niemila|kontrowersyjna|przyjemna|sympatyczna|popularna|lubiana",
+  seniorAggressivenessLabels:
+    "spokojna|opanowana|zrownowazona|temperamentalna|ognista|niestabilna",
+  seniorHonestyLabels:
+    "nieslawna|nieuczciwa|uczciwa|prawa|sprawiedliwa|swieta",
+  seniorPersonalitySentence:
+    "To {{agreeabilityLabel}} osoba ({{agreeabilityValue}}), ktora jest {{aggressivenessLabel}} ({{aggressivenessValue}}) i {{honestyLabel}} ({{honestyValue}}).",
   seniorTraitsSentenceExperienceLeadership:
     "Ma {{experienceLevel}} ({{experienceValue}}) doświadczenia i {{leadershipLevel}} ({{leadershipValue}}) przywództwa.",
   seniorTraitsSentenceLoyalty:

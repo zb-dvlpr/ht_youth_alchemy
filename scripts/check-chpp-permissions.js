@@ -11,6 +11,8 @@ const REQUIRED_PERMISSIONS = [
   "set_training",
 ];
 
+const REQUESTED_ONLY_PERMISSIONS = ["place_bid"];
+
 const read = (relativePath) =>
   fs.readFileSync(path.join(repoRoot, relativePath), "utf8");
 
@@ -21,6 +23,13 @@ for (const permission of REQUIRED_PERMISSIONS) {
   if (!permissionsSource.includes(`"${permission}"`)) {
     errors.push(
       `Missing required CHPP permission "${permission}" in src/lib/chpp/permissions.ts`
+    );
+  }
+}
+for (const permission of REQUESTED_ONLY_PERMISSIONS) {
+  if (!permissionsSource.includes(`"${permission}"`)) {
+    errors.push(
+      `Missing requested CHPP permission "${permission}" in src/lib/chpp/permissions.ts`
     );
   }
 }
@@ -38,6 +47,11 @@ if (!oauthStartSource.includes("&scope=")) {
 const checkTokenSource = read("src/app/api/chpp/oauth/check-token/route.ts");
 if (!checkTokenSource.includes("assertChppPermissions(")) {
   errors.push("OAuth check-token route no longer enforces required permissions.");
+}
+
+const playerDetailsSource = read("src/app/api/chpp/playerdetails/route.ts");
+if (!playerDetailsSource.includes('assertChppPermissions(auth, ["place_bid"])')) {
+  errors.push("Player details route no longer enforces place_bid permission for bidding.");
 }
 
 const matchordersSource = read("src/app/api/chpp/matchorders/route.ts");

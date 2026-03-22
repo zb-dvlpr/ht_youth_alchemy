@@ -12,7 +12,8 @@ function buildParams(url: URL) {
   const version = url.searchParams.get("version") ?? DEFAULT_VERSION;
   const isYouth = url.searchParams.get("isYouth") ?? "true";
   const teamID = url.searchParams.get("teamID");
-  const lastMatchDate = url.searchParams.get("lastMatchDate");
+  const lastMatchDate =
+    url.searchParams.get("lastMatchDate") ?? url.searchParams.get("LastMatchDate");
 
   const params = new URLSearchParams({
     file: "matches",
@@ -21,7 +22,7 @@ function buildParams(url: URL) {
   });
 
   if (teamID) params.set("teamID", teamID);
-  if (lastMatchDate) params.set("lastMatchDate", lastMatchDate);
+  if (lastMatchDate) params.set("LastMatchDate", lastMatchDate);
 
   return params;
 }

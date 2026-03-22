@@ -70,6 +70,10 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_3_12_0:
+      "Les details des joueurs seniors incluent maintenant une recherche de joueurs similaires sur le marche des transferts avec filtres modifiables et encheres Supporter.",
+    changelog_3_11_0:
+      "La disponibilite de l equipe B senior suit maintenant les fenetres hebdomadaires de matchs de l equipe A et B au lieu d un verrouillage fixe du week-end.",
     changelog_3_10_0:
       "Club Chronicle ajoute un panneau Power ratings issu des team details en cache avec le détail des classements.",
     changelog_3_9_0:
@@ -596,7 +600,8 @@ export const messagesFr: Messages = {
     loadingDetails: "Chargement des détails…",
     refreshingLabel: "Actualisation…",
     selectPlayerPrompt: "Sélectionnez un joueur pour charger les détails.",
-    unableToLoadPlayers: "Impossible de charger les joueurs",
+    unableToLoadPlayers:
+      "Impossible de charger les joueurs. Essayez de deconnecter puis reconnecter avec un jeton frais.",
     unableToLoadMatches: "Impossible de charger les matchs",
     matchesTitle: "Matchs",
     matchesRefresh: "Actualiser les matchs",
@@ -644,6 +649,8 @@ export const messagesFr: Messages = {
     submitOrdersUpdated: "Mis à jour",
     submitOrdersMinPlayers: "Au moins 9 joueurs requis",
     submitOrdersMaxPlayers: "La composition ne peut pas dépasser 11 joueurs",
+    seniorSubmitOrdersOtherMatchTooltip:
+      "L envoi de cette composition est impossible car elle a ete preparee pour un autre match : {{home}} vs {{away}} le {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Avertissement après l’envoi de la composition",
     seniorSubmitDisclaimerIntro: "Merci de vérifier les points suivants :",
     seniorSubmitDisclaimerBulletBestEffort:
@@ -831,13 +838,20 @@ export const messagesFr: Messages = {
     seniorExtraTimeModalBTeamThresholdAriaLabel:
       "Seuil de minutes pour ignorer les joueurs déjà utilisés cette semaine",
     seniorExtraTimeModalBTeamNoRecentMatch:
-      "La fenêtre de l équipe B est ouverte du lundi au jeudi (CET).",
+      "Aucun match d equipe A utile a l entrainement n a pu etre retenu pour cette semaine.",
     seniorExtraTimeModalBTeamLoading:
       "Vérification des matchs pertinents pour l entraînement de cette semaine...",
     seniorExtraTimeModalBTeamError:
       "Impossible de vérifier les matchs pertinents pour l entraînement cette semaine.",
     seniorExtraTimeModalBTeamWeekendTooltip:
       "La sélection de l équipe B n est disponible que du lundi au jeudi (CET).",
+    seniorExtraTimeModalBTeamEnabledTooltip:
+      "Activez pour preparer une composition en ignorant les joueurs qui ont deja joue un match cette semaine.",
+    seniorExtraTimeModalBTeamNoATeamMatchTooltip:
+      "Aucun match d equipe A detecte jusqu ici cette semaine.",
+    seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
+      "Le match de l equipe B a deja ete joue cette semaine : {{matchLink}}.",
+    seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "match",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Ce joueur est ignoré, car il a déjà joué au moins {{minutes}} minutes cette semaine.",
     seniorExtraTimeModalInjuredCheckboxTooltip:
@@ -958,6 +972,38 @@ export const messagesFr: Messages = {
     trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Définir joueur star",
     seniorPlayerListTitle: "Joueurs seniors",
+    seniorTransferSearchButtonLabel: "Chercher le marche",
+    seniorTransferSearchFemaleTeamTooltip:
+      "La recherche sur le marche des transferts n'est pas disponible pour les equipes femme.",
+    seniorTransferSearchModalTitle: "Recherche sur le marche des transferts",
+    seniorTransferSearchCriteriaTitle: "Criteres de recherche",
+    seniorTransferSearchResultsTitle: "Resultats",
+    seniorTransferSearchSourcePlayerLabel: "Base sur {{player}}",
+    seniorTransferSearchMinLabel: "Min",
+    seniorTransferSearchMaxLabel: "Max",
+    seniorTransferSearchAnySpecialtyLabel: "Tous",
+    seniorTransferSearchAgeRangeLabel: "Age",
+    seniorTransferSearchTsiRangeLabel: "TSI",
+    seniorTransferSearchPriceRangeLabel: "Prix (EUR)",
+    seniorTransferSearchSearchButton: "Chercher",
+    seniorTransferSearchCloseButton: "Fermer",
+    seniorTransferSearchLoading: "Recherche sur le marche des transferts…",
+    seniorTransferSearchNoResults: "Aucun joueur liste ne correspond a ces criteres.",
+    seniorTransferSearchFallbackNotice:
+      "La recherche exacte n a rien trouve. Une recherche plus large a ete lancee automatiquement avec les minimums de competences reduits de 1, un age elargi a ±50 jours et sans filtre de specialite.",
+    seniorTransferSearchResultsCount: "{{count}} resultats",
+    seniorTransferSearchResultsMany: "Beaucoup de resultats",
+    seniorTransferSearchHighestBidLabel: "Meilleure enchere",
+    seniorTransferSearchDeadlineLabel: "Echeance",
+    seniorTransferSearchSellerLabel: "Vendeur",
+    seniorTransferSearchBidAmountLabel: "Montant de l enchere (EUR)",
+    seniorTransferSearchMaxBidAmountLabel: "Enchere max (EUR)",
+    seniorTransferSearchPlaceBidButton: "Encherir",
+    seniorTransferSearchPlaceMaxBidButton: "Definir l enchere max",
+    seniorTransferSearchSupporterOnlyTooltip: "Fonction reservee aux Supporters.",
+    seniorTransferSearchBidMissingAmount: "Saisissez d abord un montant.",
+    seniorTransferSearchBidPlaced: "Enchere placee pour {{player}}.",
+    seniorTransferSearchBidFailed: "Echec de l enchere : {{details}}",
     sortLabel: "Trier par",
     sortName: "Nom",
     sortAge: "Âge",
@@ -1046,6 +1092,14 @@ export const messagesFr: Messages = {
     skillBonusLoyaltyTooltip: "Bonus de loyauté",
     seniorSkillLevelLabels:
       "disastrous|wretched|poor|weak|inadequate|passable|solid|excellent|formidable|outstanding|brilliant|magnificent|world class|supernatural|titanic|extra-terrestrial|mythical|magical|utopian|divine",
+    seniorAgreeabilityLabels:
+      "detestable|controversee|agreable|sympathique|populaire|appreciee",
+    seniorAggressivenessLabels:
+      "tranquille|calme|equilibree|temperamentale|fougueuse|instable",
+    seniorHonestyLabels:
+      "infame|malhonnete|honnete|droite|juste|sainte",
+    seniorPersonalitySentence:
+      "Une personne {{agreeabilityLabel}} ({{agreeabilityValue}}) qui est {{aggressivenessLabel}} ({{aggressivenessValue}}) et {{honestyLabel}} ({{honestyValue}}).",
     seniorTraitsSentenceExperienceLeadership:
       "A une expérience {{experienceLevel}} ({{experienceValue}}) et un leadership {{leadershipLevel}} ({{leadershipValue}}).",
     seniorTraitsSentenceLoyalty:

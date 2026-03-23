@@ -185,7 +185,7 @@ export const messagesNl: Messages = {
   sortAscLabel: "Oplopend",
   sortDescLabel: "Aflopend",
   seniorPlayerListTitle: "Seniorspelers",
-  seniorTransferSearchButtonLabel: "Zoek markt",
+  seniorTransferSearchButtonLabel: "Vergelijkbare spelers vinden",
   seniorTransferSearchFemaleTeamTooltip:
     "Transfermarkt zoeken is niet beschikbaar voor femme-teams.",
   seniorTransferSearchModalTitle: "Transfermarkt zoeken",

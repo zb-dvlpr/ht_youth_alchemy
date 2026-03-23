@@ -960,7 +960,7 @@ export const messagesDe: Messages = {
     trainingSlotBoth: "Pri/sek",
     starPlayerLabel: "Starspieler festlegen",
     seniorPlayerListTitle: "Senior-Spieler",
-    seniorTransferSearchButtonLabel: "Markt suchen",
+    seniorTransferSearchButtonLabel: "Ahnliche Spieler finden",
     seniorTransferSearchFemaleTeamTooltip:
       "Die Transfersuche ist für Femme-Teams nicht verfügbar.",
     seniorTransferSearchModalTitle: "Transfermarktsuche",

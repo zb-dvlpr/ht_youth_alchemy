@@ -179,7 +179,7 @@ export const messagesPl: Messages = {
   sortAscLabel: "Rosnąco",
   sortDescLabel: "Malejąco",
   seniorPlayerListTitle: "Zawodnicy seniorów",
-  seniorTransferSearchButtonLabel: "Szukaj rynku",
+  seniorTransferSearchButtonLabel: "Znajdz podobnych graczy",
   seniorTransferSearchFemaleTeamTooltip:
     "Wyszukiwanie na rynku transferowym nie jest dostepne dla druzyn femme.",
   seniorTransferSearchModalTitle: "Wyszukiwanie transferowe",

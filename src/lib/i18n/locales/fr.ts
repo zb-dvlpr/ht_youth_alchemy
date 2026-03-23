@@ -972,7 +972,7 @@ export const messagesFr: Messages = {
     trainingSlotBoth: "Pri/sec",
     starPlayerLabel: "Définir joueur star",
     seniorPlayerListTitle: "Joueurs seniors",
-    seniorTransferSearchButtonLabel: "Chercher le marche",
+    seniorTransferSearchButtonLabel: "Trouver des joueurs similaires",
     seniorTransferSearchFemaleTeamTooltip:
       "La recherche sur le marche des transferts n'est pas disponible pour les equipes femme.",
     seniorTransferSearchModalTitle: "Recherche sur le marche des transferts",

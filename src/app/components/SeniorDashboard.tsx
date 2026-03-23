@@ -1242,25 +1242,25 @@ const SeniorTransferSearchModal = memo(function SeniorTransferSearchModal({
                       { value: 6, label: messages.specialtyResilient, emoji: SPECIALTY_EMOJI[6] ?? "6" },
                       { value: 8, label: messages.specialtySupport, emoji: SPECIALTY_EMOJI[8] ?? "8" },
                     ].map((entry) => (
-                      <button
-                        key={`spec-${String(entry.value)}`}
-                        type="button"
-                        className={`${styles.transferSearchSpecialtyButton}${
-                          filters.specialty === entry.value
-                            ? ` ${styles.transferSearchSpecialtyButtonActive}`
-                            : ""
-                        }`}
-                        onClick={() =>
-                          onUpdateFilterField(
-                            "specialty",
-                            filters.specialty === entry.value ? null : entry.value
-                          )
-                        }
-                        title={entry.label}
-                        disabled={loading}
-                      >
-                        <span>{entry.emoji}</span>
-                      </button>
+                      <Tooltip key={`spec-${String(entry.value)}`} content={entry.label}>
+                        <button
+                          type="button"
+                          className={`${styles.transferSearchSpecialtyButton}${
+                            filters.specialty === entry.value
+                              ? ` ${styles.transferSearchSpecialtyButtonActive}`
+                              : ""
+                          }`}
+                          onClick={() =>
+                            onUpdateFilterField(
+                              "specialty",
+                              filters.specialty === entry.value ? null : entry.value
+                            )
+                          }
+                          disabled={loading}
+                        >
+                          <span>{entry.emoji}</span>
+                        </button>
+                      </Tooltip>
                     ))}
                   </div>
                 </div>
@@ -1425,10 +1425,11 @@ const SeniorTransferSearchModal = memo(function SeniorTransferSearchModal({
         </div>
       }
       actions={
-        <button type="button" className={styles.secondaryButton} onClick={onClose}>
+        <button type="button" className={styles.confirmSubmit} onClick={onClose}>
           {messages.seniorTransferSearchCloseButton}
         </button>
       }
+      closeOnBackdrop
       onClose={onClose}
     />
   );
@@ -1670,6 +1671,23 @@ const eurToSek = (value: string) => {
   if (!Number.isFinite(parsed) || parsed <= 0) return null;
   return Math.round(parsed * CHPP_SEK_PER_EUR);
 };
+
+const buildTransferSearchMinimumBidEur = (result: TransferSearchResult) => {
+  if (typeof result.highestBidSek === "number" && result.highestBidSek > 0) {
+    const nextBidSek = Math.max(
+      result.highestBidSek + 1000 * CHPP_SEK_PER_EUR,
+      Math.ceil(result.highestBidSek * 1.02)
+    );
+    return Math.ceil(nextBidSek / CHPP_SEK_PER_EUR);
+  }
+  if (typeof result.askingPriceSek === "number" && result.askingPriceSek > 0) {
+    return Math.ceil(result.askingPriceSek / CHPP_SEK_PER_EUR);
+  }
+  return 1000;
+};
+
+const formatTransferSearchBidDraftEur = (valueEur: number | string) =>
+  typeof valueEur === "string" ? valueEur : String(valueEur);
 
 const neutralizeSeniorPersonalityFallback = (value: string | undefined | null) => {
   if (typeof value !== "string") return null;
@@ -8915,8 +8933,18 @@ export default function SeniorDashboard({
           formatTransferSearchPlayerName(result)
         )
       );
+      const refreshedDetail = await fetchPlayerDetailsById(result.playerId);
+      if (refreshedDetail) {
+        setDetailsCache((prev) => ({
+          ...prev,
+          [result.playerId]: {
+            data: refreshedDetail,
+            fetchedAt: Date.now(),
+          },
+        }));
+      }
       if (transferSearchFilters) {
-        void runTransferSearch(transferSearchFilters);
+        await runTransferSearch(transferSearchFilters);
       }
     } catch (error) {
       addNotification(
@@ -8930,6 +8958,7 @@ export default function SeniorDashboard({
     }
   }, [
     addNotification,
+    fetchPlayerDetailsById,
     messages.seniorTransferSearchBidFailed,
     messages.seniorTransferSearchBidMissingAmount,
     messages.seniorTransferSearchBidPlaced,
@@ -12001,11 +12030,32 @@ const refreshDetailsForPlayers = async (
   const transferSearchSelectedPlayerName = transferSearchSourcePlayer
     ? formatPlayerName(transferSearchSourcePlayer)
     : null;
+  useEffect(() => {
+    setTransferSearchBidDrafts((prev) => {
+      const next = { ...prev };
+      transferSearchResults.forEach((result) => {
+        const existing = next[result.playerId] ?? { bidEur: "", maxBidEur: "" };
+        next[result.playerId] = {
+          bidEur: formatTransferSearchBidDraftEur(buildTransferSearchMinimumBidEur(result)),
+          maxBidEur: existing.maxBidEur,
+        };
+      });
+      return next;
+    });
+  }, [transferSearchResults]);
   const renderTransferSearchResultCard = useCallback((result: TransferSearchResult) => {
     const resultDetails = detailsById.get(result.playerId) ?? null;
     const draft = transferSearchBidDrafts[result.playerId] ?? { bidEur: "", maxBidEur: "" };
     const pending = transferSearchBidPendingPlayerId === result.playerId;
     const playerName = formatTransferSearchPlayerName(result);
+    const displayPriceSek =
+      typeof result.highestBidSek === "number" && result.highestBidSek > 0
+        ? result.highestBidSek
+        : result.askingPriceSek;
+    const displayPriceLabel =
+      typeof result.highestBidSek === "number" && result.highestBidSek > 0
+        ? messages.seniorTransferSearchHighestBidLabel
+        : messages.clubChronicleTransferListedAskingPriceColumn;
     const deadlineDate = parseChppDate(result.deadline ?? undefined);
     const seniorSkillLevelLabels = messages.seniorSkillLevelLabels
       .split("|")
@@ -12126,10 +12176,10 @@ const refreshDetailsForPlayers = async (
             </p>
           </div>
           <div className={styles.transferSearchPriceBlock}>
-            <div className={styles.infoLabel}>{messages.clubChronicleTransferListedAskingPriceColumn}</div>
+            <div className={styles.infoLabel}>{displayPriceLabel}</div>
             <div className={`${styles.infoValue} ${styles.transferSearchPriceValue}`}>
-              {result.askingPriceSek !== null
-                ? formatEurFromSek(result.askingPriceSek)
+              {displayPriceSek !== null
+                ? formatEurFromSek(displayPriceSek)
                 : messages.unknownShort}
             </div>
           </div>
@@ -12165,14 +12215,6 @@ const refreshDetailsForPlayers = async (
               </div>
             </div>
           ) : null}
-          <div>
-            <div className={styles.infoLabel}>{messages.seniorTransferSearchHighestBidLabel}</div>
-            <div className={styles.infoValue}>
-              {result.highestBidSek !== null && result.highestBidSek > 0
-                ? formatEurFromSek(result.highestBidSek)
-                : messages.unknownShort}
-            </div>
-          </div>
           <div>
             <div className={styles.infoLabel}>{messages.seniorTransferSearchDeadlineLabel}</div>
             <div className={styles.infoValue}>

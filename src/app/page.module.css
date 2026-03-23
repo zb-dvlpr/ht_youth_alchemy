@@ -5009,7 +5009,7 @@ html[data-theme="dark"] .spinner {
   display: grid;
   grid-template-columns: auto minmax(132px, 1fr) auto;
   gap: 14px;
-  align-items: center;
+  align-items: end;
 }
 
 .transferSearchSelect,
@@ -5027,6 +5027,7 @@ html[data-theme="dark"] .spinner {
   gap: 4px;
   justify-items: center;
   min-width: 0;
+  align-self: end;
 }
 
 .transferSearchValueStepper {
@@ -5041,6 +5042,11 @@ html[data-theme="dark"] .spinner {
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: #8b755b;
+  line-height: 1;
+}
+
+.transferSearchSelect {
+  align-self: end;
 }
 
 .transferSearchSkillNumberInput {

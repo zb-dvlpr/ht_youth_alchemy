@@ -89,6 +89,29 @@ const YOUTH_LATEST_UPDATES_OPEN_EVENT = "ya:youth-latest-updates-open";
 const YOUTH_UPDATES_HISTORY_LIMIT = 20;
 const YOUTH_UPDATES_SCHEMA_VERSION = 3;
 const YOUTH_UPDATES_GLOBAL_MIGRATION_KEY = "ya_youth_updates_schema_v2_migrated";
+const VALID_LINEUP_SLOT_IDS = new Set([
+  "KP",
+  "WB_L",
+  "CD_L",
+  "CD_C",
+  "CD_R",
+  "WB_R",
+  "W_L",
+  "IM_L",
+  "IM_C",
+  "IM_R",
+  "W_R",
+  "F_L",
+  "F_C",
+  "F_R",
+  "B_GK",
+  "B_CD",
+  "B_WB",
+  "B_IM",
+  "B_F",
+  "B_W",
+  "B_X",
+]);
 const BASE_TRAINING_SKILLS: SkillKey[] = [
   "keeper",
   "defending",
@@ -115,6 +138,13 @@ const formatPlayerName = (player: YouthPlayer) =>
   [player.FirstName, player.NickName || null, player.LastName]
     .filter(Boolean)
     .join(" ");
+
+const sanitizeLineupAssignments = (
+  assignments: LineupAssignments
+): LineupAssignments =>
+  Object.fromEntries(
+    Object.entries(assignments).filter(([slotId]) => VALID_LINEUP_SLOT_IDS.has(slotId))
+  );
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -1343,7 +1373,13 @@ export default function Dashboard({
   };
 
   const assignedIds = useMemo(
-    () => new Set(Object.values(assignments).filter(Boolean) as number[]),
+    () =>
+      new Set(
+        Object.entries(assignments)
+          .filter(([slotId]) => VALID_LINEUP_SLOT_IDS.has(slotId))
+          .map(([, playerId]) => playerId)
+          .filter(Boolean) as number[]
+      ),
     [assignments]
   );
 
@@ -2787,7 +2823,7 @@ export default function Dashboard({
       trainingPreferences
     );
 
-    const nextAssignments: LineupAssignments = { ...result.lineup };
+    const nextAssignments: LineupAssignments = sanitizeLineupAssignments(result.lineup);
     const usedPlayers = new Set<number>(
       Object.values(nextAssignments).filter(Boolean) as number[]
     );
@@ -2894,7 +2930,7 @@ export default function Dashboard({
         return;
       }
 
-      const nextAssignments: LineupAssignments = { ...result.lineup };
+      const nextAssignments: LineupAssignments = sanitizeLineupAssignments(result.lineup);
       const usedPlayers = new Set<number>(
         Object.values(nextAssignments).filter(Boolean) as number[]
       );
@@ -3082,7 +3118,7 @@ export default function Dashboard({
       return;
     }
 
-    const nextAssignments: LineupAssignments = { ...result.lineup };
+    const nextAssignments: LineupAssignments = sanitizeLineupAssignments(result.lineup);
     const usedPlayers = new Set<number>(
       Object.values(nextAssignments).filter(Boolean) as number[]
     );
@@ -4464,7 +4500,6 @@ export default function Dashboard({
     if (!isTrainingSkill(secondaryTraining)) return [];
     const secondaryMaxKey = TRAINING_SKILL_VALUE_KEYS[secondaryTraining].max;
     return optimizerPlayers
-      .filter((player) => player.id !== starPlayerId)
       .filter((player) => {
         const sourceSkills =
           playerDetailsById.get(player.id)?.PlayerSkills ??
@@ -4477,7 +4512,7 @@ export default function Dashboard({
         label: player.name ?? String(player.id),
       }))
       .sort((left, right) => left.label.localeCompare(right.label));
-  }, [optimizerPlayers, playerDetailsById, playerList, secondaryTraining, starPlayerId]);
+  }, [optimizerPlayers, playerDetailsById, playerList, secondaryTraining]);
   const selectedRevealSecondaryTargetOption =
     eligibleRevealSecondaryTargetOptions.find(
       (option) => option.playerId === revealSecondaryTargetPlayerId

@@ -3081,8 +3081,8 @@ export default function Dashboard({
               optimizerPlayers,
               starPlayerId,
               revealSecondaryTargetPlayerId,
-              toBaseTrainingSkill(primaryTraining),
-              toBaseTrainingSkill(secondaryTraining),
+              primaryTraining,
+              secondaryTraining,
               autoSelectionApplied,
               trainingPreferences
             )

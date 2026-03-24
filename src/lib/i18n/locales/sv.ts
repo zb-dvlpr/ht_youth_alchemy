@@ -965,7 +965,7 @@ export const messagesSv: Messages = {
     trainingSlotBoth: "Pri/sek",
     starPlayerLabel: "Ange stjärnspelare",
     seniorPlayerListTitle: "Seniorspelare",
-    seniorTransferSearchButtonLabel: "Sok marknad",
+    seniorTransferSearchButtonLabel: "Hitta liknande spelare",
     seniorTransferSearchFemaleTeamTooltip:
       "Transfersokning ar inte tillganglig for femme-lag.",
     seniorTransferSearchModalTitle: "Transfersokning",

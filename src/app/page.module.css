@@ -1030,6 +1030,11 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   text-align: center;
 }
 
+.matrixTable.matrixTableSeniorCompact .matrixSeniorAgeHeader,
+.matrixTable.matrixTableSeniorCompact .matrixSeniorAgeCell {
+  width: 72px;
+}
+
 .matrixTable.matrixTableSeniorCompact .matrixSeniorSkillHeader,
 .matrixTable.matrixTableSeniorCompact .matrixSeniorSkillCell {
   width: 46px;
@@ -3743,10 +3748,20 @@ html[data-theme="dark"] .transferSearchSkillRow {
   border-color: rgba(255, 255, 255, 0.08);
 }
 
+html[data-theme="dark"] .transferSearchSkillRow {
+  background:
+    linear-gradient(180deg, rgba(43, 37, 31, 0.96), rgba(29, 25, 22, 0.98)),
+    #1f1c19;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 12px 24px rgba(0, 0, 0, 0.18);
+}
+
 html[data-theme="dark"] .transferSearchSelect,
 html[data-theme="dark"] .transferSearchInput,
 html[data-theme="dark"] .transferSearchSpecialtyButton,
-html[data-theme="dark"] .transferSearchStepperButton {
+html[data-theme="dark"] .transferSearchSkillNumberInput,
+html[data-theme="dark"] .transferSearchSkillStepperButton {
   background: #2a2521;
   border-color: rgba(255, 255, 255, 0.14);
   color: #f3ede4;
@@ -3757,13 +3772,16 @@ html[data-theme="dark"] .transferSearchSpecialtyButtonActive {
   border-color: #3d7f4b;
 }
 
+html[data-theme="dark"] .transferSearchValueLabel {
+  color: #b8aa95;
+}
+
 html[data-theme="dark"] .transferSearchFallbackNotice {
   background: #4f3f1d;
   color: #f1dfb8;
 }
 
-html[data-theme="dark"] .infoValueTiny,
-html[data-theme="dark"] .transferSearchSliderValue {
+html[data-theme="dark"] .infoValueTiny {
   color: #c6bdaf;
 }
 
@@ -4797,17 +4815,29 @@ html[data-theme="dark"] .spinner {
   padding-top: 0;
 }
 
+.profileHeaderMain {
+  min-width: 0;
+  flex: 1 1 420px;
+}
+
 .profileNameRow {
   display: flex;
   align-items: baseline;
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 0;
+  min-width: 0;
+}
+
+.profileHeaderSubrow {
+  margin-top: 4px;
 }
 
 .profileName {
   margin: 0;
   font-size: 22px;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .profileUpdated {
@@ -4979,17 +5009,24 @@ html[data-theme="dark"] .spinner {
 }
 
 .transferSearchCriteriaGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
 .transferSearchSkillRow {
-  border: 1px solid #ebdfcf;
-  background: #fffdf9;
-  border-radius: 14px;
-  padding: 10px 12px;
+  border: 1px solid #e6d7c1;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(252, 246, 237, 0.96)),
+    #fffdf9;
+  border-radius: 18px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 10px 22px rgba(102, 77, 42, 0.08);
+  padding: 12px 14px;
   display: grid;
-  gap: 8px;
+  grid-template-columns: auto minmax(132px, 1fr) auto;
+  gap: 14px;
+  align-items: end;
 }
 
 .transferSearchSelect,
@@ -4997,57 +5034,74 @@ html[data-theme="dark"] .spinner {
   border: 1px solid #ccb9a0;
   background: #fff;
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 7px 10px;
   font-size: 13px;
   color: #2d261f;
 }
 
-.transferSearchSlider {
-  width: 100%;
-  accent-color: #244d2b;
-  position: absolute;
-  inset: 0;
-  margin: 0;
-  background: transparent;
-  pointer-events: none;
-  -webkit-appearance: none;
-  appearance: none;
-}
-
-.transferSearchSliderValue {
-  font-size: 13px;
-  font-weight: 700;
-  color: #3d352a;
-  text-align: center;
-  min-width: 22px;
-}
-
-.transferSearchSliderDualWrap {
+.transferSearchValueGroup {
   display: grid;
-  gap: 8px;
+  gap: 4px;
+  justify-items: center;
+  min-width: 0;
+  align-self: end;
 }
 
-.transferSearchSliderValues {
+.transferSearchValueStepper {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-}
-
-.transferSearchStepperGroup {
-  display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+  grid-template-columns: 28px 52px 28px;
   gap: 6px;
   align-items: center;
-  min-width: 0;
 }
 
-.transferSearchStepperButton {
-  border: 1px solid #ccb9a0;
-  background: #fff;
+.transferSearchValueLabel {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #8b755b;
+  line-height: 1;
+}
+
+.transferSearchSelect {
+  align-self: end;
+}
+
+.transferSearchSkillNumberInput {
+  width: 52px;
+  border: 1px solid #dccab0;
+  background: rgba(255, 255, 255, 0.92);
   color: #2d261f;
-  border-radius: 999px;
-  width: 22px;
-  height: 22px;
+  border-radius: 12px;
+  padding: 5px 7px;
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.transferSearchSkillNumberInput[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.transferSearchSkillNumberInput::-webkit-outer-spin-button,
+.transferSearchSkillNumberInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.transferSearchSkillNumberInput:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.transferSearchSkillStepperButton {
+  border: 1px solid #ccb9a0;
+  background: linear-gradient(180deg, #fff, #f5ede2);
+  color: #4f4333;
+  border-radius: 10px;
+  width: 28px;
+  height: 28px;
   padding: 0;
   font-size: 14px;
   line-height: 1;
@@ -5055,105 +5109,14 @@ html[data-theme="dark"] .spinner {
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 3px 8px rgba(92, 69, 38, 0.08);
 }
 
-.transferSearchStepperButton:disabled {
+.transferSearchSkillStepperButton:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-}
-
-.transferSearchDualSlider {
-  position: relative;
-  height: 22px;
-  display: flex;
-  align-items: center;
-}
-
-.transferSearchDualSlider::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 6px;
-  border-radius: 999px;
-  background: #e8e1d6;
-}
-
-.transferSearchDualSliderRange {
-  position: absolute;
-  height: 6px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #2f9f5b, #1f6f3f);
-}
-
-.transferSearchSlider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  background: #244d2b;
-  border: 2px solid #f7f1e3;
-  box-shadow: 0 0 0 1px rgba(36, 77, 43, 0.25);
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-.transferSearchSlider::-moz-range-thumb {
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  background: #244d2b;
-  border: 2px solid #f7f1e3;
-  box-shadow: 0 0 0 1px rgba(36, 77, 43, 0.25);
-  pointer-events: auto;
-  cursor: pointer;
-}
-
-.transferSearchSlider::-webkit-slider-runnable-track {
-  height: 6px;
-  background: transparent;
-}
-
-.transferSearchSlider::-moz-range-track {
-  height: 6px;
-  background: transparent;
-}
-
-.transferSearchSliderThumbMin {
-  z-index: 2;
-}
-
-.transferSearchSliderThumbMax {
-  z-index: 3;
-}
-
-.transferSearchSliderThumbOverlapMin {
-  z-index: 4;
-}
-
-.transferSearchSliderThumbOverlapMax {
-  z-index: 4;
-}
-
-.transferSearchSliderThumbActive {
-  z-index: 5;
-}
-
-.transferSearchSliderThumbOverlapMin::-webkit-slider-thumb {
-  transform: translateX(-9px);
-}
-
-.transferSearchSliderThumbOverlapMax::-webkit-slider-thumb {
-  transform: translateX(9px);
-}
-
-.transferSearchSliderThumbOverlapMin::-moz-range-thumb {
-  transform: translateX(-9px);
-}
-
-.transferSearchSliderThumbOverlapMax::-moz-range-thumb {
-  transform: translateX(9px);
 }
 
 .transferSearchSpecialtyRow {
@@ -6268,6 +6231,11 @@ html[data-theme="dark"] .spinner {
 .seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorMetricHeader,
 .seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorMetricCell {
   width: 30px;
+}
+
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorAgeHeader,
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorAgeCell {
+  width: 60px;
 }
 
 .seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorSkillHeader,
@@ -7617,13 +7585,22 @@ html[data-theme="dark"] .slotCardStatus {
     grid-template-columns: 1fr;
   }
 
-  .transferSearchSliderValues {
+  .transferSearchSkillRow {
     grid-template-columns: 1fr;
+    gap: 12px;
   }
 
-  .transferSearchStepperGroup {
-    grid-template-columns: auto auto minmax(20px, auto) auto;
-    justify-content: start;
+  .transferSearchSkillRow {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .transferSearchValueGroup {
+    justify-items: start;
+  }
+
+  .transferSearchValueStepper {
+    grid-template-columns: 28px 52px 28px;
   }
 
   .transferSearchBidAction {

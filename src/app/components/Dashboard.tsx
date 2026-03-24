@@ -4726,24 +4726,31 @@ export default function Dashboard({
         {optimizeRevealInlineSuffixRemainder}
       </span>
       <div className={styles.optimizeMenuCustomControls}>
-        <button
-          type="button"
-          className={`${styles.feedbackLink} ${styles.optimizeMenuActionButton} ${
-            optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
-              ? styles.optimizeMenuItemDisabled
-              : ""
-          }`}
-          onClick={() => handleOptimizeSelect("revealPrimaryCurrentAndSecondaryMax")}
-          disabled={Boolean(
-            optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
-          )}
-          aria-label={
-            optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ??
-            optimizeRevealPrimaryCurrentAndSecondaryMaxLabel
-          }
+        <Tooltip
+          content={optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ?? ""}
+          disabled={!optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax}
         >
-          {messages.optimizeRevealCombinedButton}
-        </button>
+          <span>
+            <button
+              type="button"
+              className={`${styles.feedbackLink} ${styles.optimizeMenuActionButton} ${
+                optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
+                  ? styles.optimizeMenuItemDisabled
+                  : ""
+              }`}
+              onClick={() => handleOptimizeSelect("revealPrimaryCurrentAndSecondaryMax")}
+              disabled={Boolean(
+                optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
+              )}
+              aria-label={
+                optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ??
+                optimizeRevealPrimaryCurrentAndSecondaryMaxLabel
+              }
+            >
+              {messages.optimizeRevealCombinedButton}
+            </button>
+          </span>
+        </Tooltip>
       </div>
     </span>
   );

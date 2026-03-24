@@ -1030,6 +1030,11 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   text-align: center;
 }
 
+.matrixTable.matrixTableSeniorCompact .matrixSeniorAgeHeader,
+.matrixTable.matrixTableSeniorCompact .matrixSeniorAgeCell {
+  width: 72px;
+}
+
 .matrixTable.matrixTableSeniorCompact .matrixSeniorSkillHeader,
 .matrixTable.matrixTableSeniorCompact .matrixSeniorSkillCell {
   width: 46px;
@@ -6214,6 +6219,11 @@ html[data-theme="dark"] .spinner {
 .seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorMetricHeader,
 .seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorMetricCell {
   width: 30px;
+}
+
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorAgeHeader,
+.seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorAgeCell {
+  width: 60px;
 }
 
 .seniorExtraTimeModalBody .matrixTable.matrixTableSeniorCompact .matrixSeniorSkillHeader,

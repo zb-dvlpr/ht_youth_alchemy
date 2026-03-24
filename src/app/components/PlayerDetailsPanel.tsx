@@ -14,6 +14,8 @@ type YouthPlayer = {
   FirstName: string;
   NickName: string;
   LastName: string;
+  Age?: number;
+  AgeDays?: number;
   Specialty?: number;
   InjuryLevel?: number;
   Form?: number;
@@ -201,6 +203,7 @@ const SKILL_ROWS = [
 ];
 const FORM_MAX_LEVEL = 8;
 const STAMINA_MAX_LEVEL = 9;
+const HATTRICK_AGE_DAYS_PER_YEAR = 112;
 const SUBSCRIPT_DIGITS: Record<string, string> = {
   "0": "₀",
   "1": "₁",
@@ -394,6 +397,41 @@ function mergedSkills(
   };
 }
 
+const resolvePlayerAge = (
+  player: YouthPlayer | null,
+  details: YouthPlayerDetails | null
+) => {
+  const years =
+    typeof details?.Age === "number"
+      ? details.Age
+      : typeof player?.Age === "number"
+      ? player.Age
+      : null;
+  const days =
+    typeof details?.AgeDays === "number"
+      ? details.AgeDays
+      : typeof player?.AgeDays === "number"
+      ? player.AgeDays
+      : null;
+  if (years === null) return null;
+  return {
+    years,
+    days,
+    totalDays: years * HATTRICK_AGE_DAYS_PER_YEAR + Math.max(0, days ?? 0),
+  };
+};
+
+const resolveSeniorAgePillClassName = (
+  years: number | null,
+  stylesModule: Record<string, string>
+) => {
+  if (years === null) return null;
+  if (years > 35) return stylesModule.playerAgePillDarkRed;
+  if (years > 30) return stylesModule.playerAgePillFadedRed;
+  if (years >= 20) return stylesModule.playerAgePillYellow;
+  return stylesModule.playerAgePillGreen;
+};
+
 export default function PlayerDetailsPanel({
   selectedPlayer,
   detailsData,
@@ -454,7 +492,7 @@ export default function PlayerDetailsPanel({
   const [uncontrolledActiveTab, setUncontrolledActiveTab] =
     useState<PlayerDetailsPanelTab>("details");
   const [skillsSortKey, setSkillsSortKey] = useState<
-    (typeof SKILL_ROWS)[number]["key"] | "name" | "form" | "stamina" | null
+    (typeof SKILL_ROWS)[number]["key"] | "name" | "age" | "form" | "stamina" | null
   >(null);
   const [skillsSortDir, setSkillsSortDir] = useState<"asc" | "desc">("desc");
   const pendingSkillsSortRef = useRef(false);
@@ -519,14 +557,16 @@ export default function PlayerDetailsPanel({
         (a, b) => a.name.localeCompare(b.name) * direction
       );
     }
-    if (skillsSortKey === "form" || skillsSortKey === "stamina") {
+    if (skillsSortKey === "age" || skillsSortKey === "form" || skillsSortKey === "stamina") {
       return [...skillsMatrixRows].sort((a, b) => {
         const detailsA = a.id ? playerDetailsById.get(a.id) : null;
         const detailsB = b.id ? playerDetailsById.get(b.id) : null;
         const playerA = a.id ? playerById.get(a.id) : null;
         const playerB = b.id ? playerById.get(b.id) : null;
         const valueA =
-          skillsSortKey === "form"
+          skillsSortKey === "age"
+            ? resolvePlayerAge(playerA ?? null, detailsA ?? null)?.totalDays ?? null
+            : skillsSortKey === "form"
             ? (typeof detailsA?.Form === "number"
                 ? detailsA.Form
                 : typeof playerA?.Form === "number"
@@ -538,7 +578,9 @@ export default function PlayerDetailsPanel({
                 ? playerA.StaminaSkill
                 : null);
         const valueB =
-          skillsSortKey === "form"
+          skillsSortKey === "age"
+            ? resolvePlayerAge(playerB ?? null, detailsB ?? null)?.totalDays ?? null
+            : skillsSortKey === "form"
             ? (typeof detailsB?.Form === "number"
                 ? detailsB.Form
                 : typeof playerB?.Form === "number"
@@ -636,7 +678,7 @@ export default function PlayerDetailsPanel({
   ]);
 
   const handleSkillsSort = (
-    key: (typeof SKILL_ROWS)[number]["key"] | "name" | "form" | "stamina"
+    key: (typeof SKILL_ROWS)[number]["key"] | "name" | "age" | "form" | "stamina"
   ) => {
     pendingSkillsSortRef.current = true;
     onSkillsSortStart?.();
@@ -644,7 +686,7 @@ export default function PlayerDetailsPanel({
       setSkillsSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
       setSkillsSortKey(key);
-      setSkillsSortDir("desc");
+      setSkillsSortDir(key === "age" ? "asc" : "desc");
     }
   };
 
@@ -1479,6 +1521,7 @@ export default function PlayerDetailsPanel({
       playerKind === "senior"
         ? shortHeader(messages.seniorMatrixStaminaShortLabel, "St")
         : messages.sortStamina;
+    const ageHeaderLabel = messages.sortAge;
 
     return (
       <div className={styles.matrixWrapper}>
@@ -1512,6 +1555,27 @@ export default function PlayerDetailsPanel({
                   </span>
                 </button>
               </th>
+              {playerKind === "senior" ? (
+                <th
+                  className={`${styles.matrixSeniorMetricHeader} ${styles.matrixSeniorAgeHeader}`}
+                >
+                  <button
+                    type="button"
+                    className={styles.matrixSortButton}
+                    onClick={() => handleSkillsSort("age")}
+                    aria-label={`${messages.ratingsSortBy} ${messages.sortAge}`}
+                  >
+                    {ageHeaderLabel}
+                    <span className={styles.matrixSortIcon}>
+                      {skillsSortKey === "age"
+                        ? skillsSortDir === "asc"
+                          ? "▲"
+                          : "▼"
+                        : "⇅"}
+                    </span>
+                  </button>
+                </th>
+              ) : null}
               <th className={styles.matrixSpecialtyHeader}>
                 {specialtyHeaderLabel}
               </th>
@@ -1583,6 +1647,17 @@ export default function PlayerDetailsPanel({
             {orderedSkillsRows.map((row, index) => {
               const player = row.id ? playerById.get(row.id) : null;
               const details = row.id ? playerDetailsById.get(row.id) : null;
+              const playerAge = resolvePlayerAge(player ?? null, details ?? null);
+              const ageLabel = playerAge
+                ? `${playerAge.years}${messages.ageYearsShort} ${Math.max(
+                    0,
+                    playerAge.days ?? 0
+                  )}${messages.ageDaysShort}`
+                : messages.unknownShort;
+              const seniorAgePillClassName =
+                playerKind === "senior"
+                  ? resolveSeniorAgePillClassName(playerAge?.years ?? null, styles)
+                  : null;
               const skills = mergedSkills(
                 details?.PlayerSkills,
                 player?.PlayerSkills
@@ -1766,6 +1841,21 @@ export default function PlayerDetailsPanel({
                       matrixPlayerContent
                     )}
                   </td>
+                  {playerKind === "senior" ? (
+                    <td
+                      className={`${styles.matrixCell} ${styles.matrixSeniorMetricCell} ${styles.matrixSeniorAgeCell}`}
+                    >
+                      {seniorAgePillClassName ? (
+                        <span className={`${styles.playerAgePill} ${seniorAgePillClassName}`}>
+                          {ageLabel}
+                        </span>
+                      ) : (
+                        <span className={`${styles.skillsMatrixHalf} ${styles.skillsMatrixHalfPill}`}>
+                          {ageLabel}
+                        </span>
+                      )}
+                    </td>
+                  ) : null}
                   <td className={styles.matrixSpecialty}>
                     {(() => {
                       const baseSpecialty = Number(player?.Specialty ?? 0);

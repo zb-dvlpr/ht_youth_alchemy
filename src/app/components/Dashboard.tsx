@@ -2817,8 +2817,8 @@ export default function Dashboard({
     const result = optimizeLineupForStar(
       optimizerPlayers,
       starPlayerId,
-      toBaseTrainingSkill(primaryTraining),
-      toBaseTrainingSkill(secondaryTraining),
+      primaryTraining,
+      secondaryTraining,
       autoSelectionApplied,
       trainingPreferences
     );
@@ -4373,8 +4373,8 @@ export default function Dashboard({
     const result = optimizeLineupForStar(
       optimizerPlayers,
       starPlayerId,
-      toBaseTrainingSkill(primaryTraining),
-      toBaseTrainingSkill(secondaryTraining),
+      primaryTraining,
+      secondaryTraining,
       autoSelectionApplied,
       trainingPreferences
     );

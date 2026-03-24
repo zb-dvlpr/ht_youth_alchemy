@@ -3071,8 +3071,8 @@ export default function Dashboard({
         ? optimizeRevealSecondaryMax(
             optimizerPlayers,
             starPlayerId,
-            toBaseTrainingSkill(primaryTraining),
-            toBaseTrainingSkill(secondaryTraining),
+            primaryTraining,
+            secondaryTraining,
             autoSelectionApplied,
             trainingPreferences
           )
@@ -3089,8 +3089,8 @@ export default function Dashboard({
         : optimizeRevealPrimaryCurrent(
             optimizerPlayers,
             starPlayerId,
-            toBaseTrainingSkill(primaryTraining),
-            toBaseTrainingSkill(secondaryTraining),
+            primaryTraining,
+            secondaryTraining,
             autoSelectionApplied,
             trainingPreferences
           );

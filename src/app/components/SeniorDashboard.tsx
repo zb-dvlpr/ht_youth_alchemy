@@ -3305,8 +3305,13 @@ export default function SeniorDashboard({
         FirstName: player.FirstName,
         NickName: player.NickName ?? "",
         LastName: player.LastName,
+        Age: player.Age,
+        AgeDays: player.AgeDays,
+        TSI: player.TSI,
         Specialty: player.Specialty,
         InjuryLevel: player.InjuryLevel,
+        Form: player.Form,
+        StaminaSkill: player.StaminaSkill,
         PlayerSkills: player.PlayerSkills,
       })),
     [players]
@@ -3322,6 +3327,7 @@ export default function SeniorDashboard({
         LastName: string;
         Age?: number;
         AgeDays?: number;
+        TSI?: number;
         ArrivalDate?: string;
         Specialty?: number;
         InjuryLevel?: number;
@@ -3361,6 +3367,7 @@ export default function SeniorDashboard({
         LastName: detail.LastName ?? fallback?.LastName ?? "",
         Age: detail.Age ?? fallback?.Age,
         AgeDays: detail.AgeDays ?? fallback?.AgeDays,
+        TSI: detail.TSI ?? fallback?.TSI,
         ArrivalDate: detail.ArrivalDate ?? fallback?.ArrivalDate,
         Specialty: detail.Specialty ?? fallback?.Specialty,
         InjuryLevel: detail.InjuryLevel ?? fallback?.InjuryLevel,
@@ -3397,6 +3404,9 @@ export default function SeniorDashboard({
       FirstName: selectedPlayer.FirstName,
       NickName: selectedPlayer.NickName ?? "",
       LastName: selectedPlayer.LastName,
+      Age: selectedDetails?.Age ?? selectedPlayer.Age,
+      AgeDays: selectedDetails?.AgeDays ?? selectedPlayer.AgeDays,
+      TSI: selectedDetails?.TSI ?? selectedPlayer.TSI,
       Specialty: selectedPlayer.Specialty,
       InjuryLevel: selectedDetails?.InjuryLevel ?? selectedPlayer.InjuryLevel,
       Form: selectedDetails?.Form ?? selectedPlayer.Form,
@@ -3408,6 +3418,7 @@ export default function SeniorDashboard({
     selectedDetails?.InjuryLevel,
     selectedDetails?.PlayerSkills,
     selectedDetails?.StaminaSkill,
+    selectedDetails?.TSI,
     selectedPlayer,
   ]);
 
@@ -3421,6 +3432,7 @@ export default function SeniorDashboard({
         LastName: selectedPlayer.LastName,
         Age: selectedPlayer.Age,
         AgeDays: selectedPlayer.AgeDays,
+        TSI: selectedPlayer.TSI,
         ArrivalDate: selectedPlayer.ArrivalDate,
         Specialty: selectedPlayer.Specialty,
         InjuryLevel: selectedPlayer.InjuryLevel,

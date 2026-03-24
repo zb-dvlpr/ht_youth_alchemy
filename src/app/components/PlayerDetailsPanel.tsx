@@ -16,6 +16,7 @@ type YouthPlayer = {
   LastName: string;
   Age?: number;
   AgeDays?: number;
+  TSI?: number;
   Specialty?: number;
   InjuryLevel?: number;
   Form?: number;
@@ -37,6 +38,7 @@ export type YouthPlayerDetails = {
   LastName: string;
   Age?: number;
   AgeDays?: number;
+  TSI?: number;
   ArrivalDate?: string;
   CanBePromotedIn?: number;
   NativeCountryName?: string;
@@ -308,6 +310,24 @@ function skillCellColor(
   const alpha = 0.2 + normalized * 0.35;
   return `hsla(${hue}, 70%, 38%, ${alpha})`;
 }
+
+const metricPillStyle = (
+  value: number | null,
+  minValue: number,
+  maxValue: number,
+  reverse = false
+) => {
+  if (value === null || value === undefined) return undefined;
+  if (maxValue <= minValue) return undefined;
+  const baseT = Math.min(1, Math.max((value - minValue) / (maxValue - minValue), 0));
+  const t = reverse ? 1 - baseT : baseT;
+  const hue = 5 + (130 - 5) * t;
+  return {
+    backgroundColor: `hsl(${Math.round(hue)} 72% 88%)`,
+    borderColor: `hsl(${Math.round(hue)} 62% 45%)`,
+    color: `hsl(${Math.round(hue)} 68% 24%)`,
+  };
+};
 
 const seniorBarGradient = (
   value: number | null,
@@ -729,6 +749,13 @@ export default function PlayerDetailsPanel({
 
   const playerId =
     detailsData?.YouthPlayerID ?? selectedPlayer?.YouthPlayerID ?? null;
+  const seniorTsiRange = useMemo(() => {
+    const values = players
+      .map((player) => player.TSI)
+      .filter((value): value is number => typeof value === "number");
+    if (!values.length) return { min: 0, max: 0 };
+    return { min: Math.min(...values), max: Math.max(...values) };
+  }, [players]);
   const selectedPlayerHasNewMarker =
     playerId !== null && matrixNewPlayerIdSet.has(playerId);
   const hiddenSpecialty =
@@ -779,6 +806,29 @@ export default function PlayerDetailsPanel({
             totalDays,
           };
         })()
+      : null;
+  const seniorTsiValue =
+    playerKind === "senior"
+      ? (typeof detailsData?.TSI === "number"
+          ? detailsData.TSI
+          : typeof selectedPlayer?.TSI === "number"
+            ? selectedPlayer.TSI
+            : null)
+      : null;
+  const seniorAgeLabel =
+    playerKind === "senior" && typeof detailsData?.Age === "number"
+      ? `${detailsData.Age}${messages.ageYearsShort}${
+          typeof detailsData.AgeDays === "number"
+            ? ` ${detailsData.AgeDays}${messages.ageDaysShort}`
+            : ""
+        }`
+      : null;
+  const seniorAgePillClassName =
+    playerKind === "senior"
+      ? resolveSeniorAgePillClassName(
+          typeof detailsData?.Age === "number" ? detailsData.Age : null,
+          styles
+        )
       : null;
   const seniorSkillLevelLabels = useMemo(() => {
     const raw = messages.seniorSkillLevelLabels
@@ -1032,11 +1082,44 @@ export default function PlayerDetailsPanel({
             ) : null}
             <p className={styles.profileMeta}>
               {detailsData.Age !== undefined ? (
-                <span className={styles.metaItem}>
-                  {detailsData.Age} {messages.yearsLabel}
-                  {detailsData.AgeDays !== undefined
-                    ? ` ${detailsData.AgeDays} ${messages.daysLabel}`
-                    : ""}
+                <span
+                  className={
+                    playerKind === "senior" && seniorAgeLabel && seniorAgePillClassName
+                      ? undefined
+                      : styles.metaItem
+                  }
+                >
+                  {playerKind === "senior" && seniorAgeLabel && seniorAgePillClassName ? (
+                    <>
+                      <span className={`${styles.playerAgePill} ${seniorAgePillClassName}`}>
+                        {seniorAgeLabel}
+                      </span>{" "}
+                      <span
+                        className={`${styles.playerMetricPill} ${
+                          typeof seniorTsiValue === "number"
+                            ? ""
+                            : styles.playerMetricPillNeutral
+                        }`}
+                        style={metricPillStyle(
+                          seniorTsiValue,
+                          seniorTsiRange.min,
+                          seniorTsiRange.max
+                        )}
+                      >
+                        {messages.sortTsi}:{" "}
+                        {typeof seniorTsiValue === "number"
+                          ? seniorTsiValue
+                          : messages.unknownShort}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      {detailsData.Age} {messages.yearsLabel}
+                      {detailsData.AgeDays !== undefined
+                        ? ` ${detailsData.AgeDays} ${messages.daysLabel}`
+                        : ""}
+                    </>
+                  )}
                   {promotionAge ? (
                     <>
                       {" "}

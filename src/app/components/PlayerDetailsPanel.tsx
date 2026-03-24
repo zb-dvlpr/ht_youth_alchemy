@@ -1021,7 +1021,7 @@ export default function PlayerDetailsPanel({
           </Tooltip>
         </div>
         <div className={styles.profileHeader}>
-          <div>
+          <div className={styles.profileHeaderMain}>
             <div className={styles.profileNameRow}>
               {typeof detailsData.YouthPlayerID === "number" &&
               onMatrixPlayerDragStart ? (
@@ -1066,12 +1066,19 @@ export default function PlayerDetailsPanel({
                   {messages.matrixNewPillLabel}
                 </span>
               ) : null}
-              {lastUpdated ? (
+              {lastUpdated && playerKind !== "senior" ? (
                 <span className={styles.profileUpdated}>
                   {messages.lastUpdated}: {formatDateTime(lastUpdated)}
                 </span>
               ) : null}
             </div>
+            {lastUpdated && playerKind === "senior" ? (
+              <div className={styles.profileHeaderSubrow}>
+                <span className={styles.profileUpdated}>
+                  {messages.lastUpdated}: {formatDateTime(lastUpdated)}
+                </span>
+              </div>
+            ) : null}
             {playerKind === "senior" && seniorPersonalitySentence ? (
               <p className={styles.seniorPersonaLine}>
                 {seniorPersonalitySentence}

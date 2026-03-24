@@ -1228,11 +1228,13 @@ function shuffleSlots<T>(slots: T[]) {
 export function optimizeLineupForStar(
   players: OptimizerPlayer[],
   starPlayerId: number | null,
-  primary: SkillKey | null,
-  secondary: SkillKey | null,
+  primaryTraining: TrainingSkillKey | null,
+  secondaryTraining: TrainingSkillKey | null,
   autoSelected = false,
   preferences?: Partial<TrainingPreferences>
 ) {
+  const primary = primaryTraining ? toBaseTrainingSkill(primaryTraining) : null;
+  const secondary = secondaryTraining ? toBaseTrainingSkill(secondaryTraining) : null;
   let selection = {
     starPlayerId: starPlayerId ?? 0,
     primarySkill: primary ?? "passing",
@@ -1242,7 +1244,7 @@ export function optimizeLineupForStar(
 
   const autoCandidates =
     chooseStarAndTraining(players, preferences)?.candidates ?? null;
-  if (!starPlayerId || !primary || !secondary) {
+  if (!starPlayerId || !primaryTraining || !secondaryTraining || !primary || !secondary) {
     return {
       lineup: {} as LineupAssignments,
       debug: null as OptimizerDebug | null,
@@ -1263,21 +1265,21 @@ export function optimizeLineupForStar(
     return { lineup: {} as LineupAssignments, debug: null as OptimizerDebug | null };
   }
 
-  const trainingInfo = trainingSlotSet(
-    selection.primarySkill,
-    selection.secondarySkill ?? selection.primarySkill
-  );
-  const primarySkill = trainingInfo.primarySkill;
-  const secondarySkill = trainingInfo.secondarySkill;
+  const primarySkill = selection.primarySkill;
+  const secondarySkill = selection.secondarySkill;
+  const trainingInfo = getTrainingSlots(primaryTraining, secondaryTraining);
   const primarySlots = trainingInfo.primarySlots;
-  const secondarySlots = trainingInfo.secondarySlots;
+  const secondarySlots =
+    secondarySkill && secondaryTraining !== primaryTraining
+      ? trainingInfo.secondarySlots
+      : new Set<(typeof ALL_SLOTS)[number]>();
   const trainingSlots = new Set<(typeof ALL_SLOTS)[number]>([
     ...primarySlots,
     ...secondarySlots,
   ]);
-  const primaryFullSlots = slotsForSkillByIntensity(primarySkill, 1);
+  const primaryFullSlots = trainingInfo.primaryFullSlots;
   const fullSecondarySlots = secondarySkill
-    ? slotsForSkillByIntensity(secondarySkill, 1)
+    ? trainingInfo.secondaryFullSlots
     : null;
 
   const baseSlots = new Set<(typeof ALL_SLOTS)[number]>(trainingSlots);

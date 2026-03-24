@@ -4496,11 +4496,24 @@ export default function Dashboard({
   const optimizeSecondaryTrainingName = isTrainingSkill(secondaryTraining)
     ? optimizeTrainingLabel(secondaryTraining)
     : messages.trainingUnset;
+  const combinedRevealAllowsSamePlayerTarget = useMemo(() => {
+    if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
+      return false;
+    }
+    const slots = getTrainingSlots(primaryTraining, secondaryTraining);
+    return Array.from(slots.primarySlots).some((slot) => slots.secondarySlots.has(slot));
+  }, [primaryTraining, secondaryTraining]);
   const eligibleRevealSecondaryTargetOptions = useMemo(() => {
     if (!isTrainingSkill(secondaryTraining)) return [];
     const secondaryMaxKey = TRAINING_SKILL_VALUE_KEYS[secondaryTraining].max;
     return optimizerPlayers
       .filter((player) => {
+        if (
+          player.id === starPlayerId &&
+          !combinedRevealAllowsSamePlayerTarget
+        ) {
+          return false;
+        }
         const sourceSkills =
           playerDetailsById.get(player.id)?.PlayerSkills ??
           playerList.find((entry) => entry.YouthPlayerID === player.id)?.PlayerSkills ??
@@ -4512,7 +4525,14 @@ export default function Dashboard({
         label: player.name ?? String(player.id),
       }))
       .sort((left, right) => left.label.localeCompare(right.label));
-  }, [optimizerPlayers, playerDetailsById, playerList, secondaryTraining]);
+  }, [
+    combinedRevealAllowsSamePlayerTarget,
+    optimizerPlayers,
+    playerDetailsById,
+    playerList,
+    secondaryTraining,
+    starPlayerId,
+  ]);
   const selectedRevealSecondaryTargetOption =
     eligibleRevealSecondaryTargetOptions.find(
       (option) => option.playerId === revealSecondaryTargetPlayerId
@@ -4652,88 +4672,80 @@ export default function Dashboard({
     revealSecondaryTargetPlayerId,
   ]);
   const optimizeCustomMenuContent = (
-    <Tooltip
-      content={
-        optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ?? ""
-      }
-      disabled={!optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax}
-      fullWidth
-    >
-      <span className={styles.optimizeMenuCustomWrap}>
-        <span className={styles.optimizeMenuCustomLabel}>
-          {optimizeRevealInlinePrefix}
-          <span className={styles.optimizeMenuInlinePickerWrap}>
-            <button
-              ref={revealSecondaryTargetButtonRef}
-              type="button"
-              className={styles.optimizeMenuInlinePicker}
-              onClick={(event) => {
-                event.stopPropagation();
-                setRevealSecondaryTargetMenuOpen((current) => !current);
-              }}
-              aria-haspopup="menu"
-              aria-expanded={revealSecondaryTargetMenuOpen}
-              disabled={!eligibleRevealSecondaryTargetOptions.length}
-            >
-              <span className={styles.optimizeMenuInlinePickerText}>
-                {optimizeRevealInlineTargetName}
-                {optimizeRevealInlinePickerSuffix}
-              </span>
-              <span className={styles.optimizeMenuInlinePickerChevron}>⌄</span>
-            </button>
-            {revealSecondaryTargetMenuOpen &&
-            eligibleRevealSecondaryTargetOptions.length ? (
-              <div
-                ref={revealSecondaryTargetMenuRef}
-                className={`${styles.feedbackMenu} ${styles.optimizeMenuInlinePickerMenu}`}
-                role="menu"
-              >
-                {eligibleRevealSecondaryTargetOptions.map((option) => (
-                  <button
-                    key={option.playerId}
-                    type="button"
-                    role="menuitem"
-                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
-                      revealSecondaryTargetPlayerId === option.playerId
-                        ? styles.optimizeMenuInlinePickerOptionActive
-                        : ""
-                    }`}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      setRevealSecondaryTargetPlayerId(option.playerId);
-                      setRevealSecondaryTargetMenuOpen(false);
-                    }}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            ) : null}
-          </span>
-          {optimizeRevealInlineSuffixRemainder}
-        </span>
-        <div className={styles.optimizeMenuCustomControls}>
+    <span className={styles.optimizeMenuCustomWrap}>
+      <span className={styles.optimizeMenuCustomLabel}>
+        {optimizeRevealInlinePrefix}
+        <span className={styles.optimizeMenuInlinePickerWrap}>
           <button
+            ref={revealSecondaryTargetButtonRef}
             type="button"
-            className={`${styles.feedbackLink} ${styles.optimizeMenuActionButton} ${
-              optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
-                ? styles.optimizeMenuItemDisabled
-                : ""
-            }`}
-            onClick={() => handleOptimizeSelect("revealPrimaryCurrentAndSecondaryMax")}
-            disabled={Boolean(
-              optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
-            )}
-            aria-label={
-              optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ??
-              optimizeRevealPrimaryCurrentAndSecondaryMaxLabel
-            }
+            className={styles.optimizeMenuInlinePicker}
+            onClick={(event) => {
+              event.stopPropagation();
+              setRevealSecondaryTargetMenuOpen((current) => !current);
+            }}
+            aria-haspopup="menu"
+            aria-expanded={revealSecondaryTargetMenuOpen}
+            disabled={!eligibleRevealSecondaryTargetOptions.length}
           >
-            {messages.optimizeRevealCombinedButton}
+            <span className={styles.optimizeMenuInlinePickerText}>
+              {optimizeRevealInlineTargetName}
+              {optimizeRevealInlinePickerSuffix}
+            </span>
+            <span className={styles.optimizeMenuInlinePickerChevron}>⌄</span>
           </button>
-        </div>
+          {revealSecondaryTargetMenuOpen &&
+          eligibleRevealSecondaryTargetOptions.length ? (
+            <div
+              ref={revealSecondaryTargetMenuRef}
+              className={`${styles.feedbackMenu} ${styles.optimizeMenuInlinePickerMenu}`}
+              role="menu"
+            >
+              {eligibleRevealSecondaryTargetOptions.map((option) => (
+                <button
+                  key={option.playerId}
+                  type="button"
+                  role="menuitem"
+                  className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                    revealSecondaryTargetPlayerId === option.playerId
+                      ? styles.optimizeMenuInlinePickerOptionActive
+                      : ""
+                  }`}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    setRevealSecondaryTargetPlayerId(option.playerId);
+                    setRevealSecondaryTargetMenuOpen(false);
+                  }}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </span>
+        {optimizeRevealInlineSuffixRemainder}
       </span>
-    </Tooltip>
+      <div className={styles.optimizeMenuCustomControls}>
+        <button
+          type="button"
+          className={`${styles.feedbackLink} ${styles.optimizeMenuActionButton} ${
+            optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
+              ? styles.optimizeMenuItemDisabled
+              : ""
+          }`}
+          onClick={() => handleOptimizeSelect("revealPrimaryCurrentAndSecondaryMax")}
+          disabled={Boolean(
+            optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
+          )}
+          aria-label={
+            optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax ??
+            optimizeRevealPrimaryCurrentAndSecondaryMaxLabel
+          }
+        >
+          {messages.optimizeRevealCombinedButton}
+        </button>
+      </div>
+    </span>
   );
   const trainingSlots = useMemo(() => {
     if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {

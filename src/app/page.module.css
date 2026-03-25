@@ -6152,6 +6152,28 @@ html[data-theme="dark"] .spinner {
   flex-wrap: wrap;
 }
 
+.seniorAiManMarkingFuzzinessControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: inherit;
+}
+
+.seniorAiManMarkingFuzzinessLabel {
+  white-space: nowrap;
+}
+
+.seniorAiManMarkingFuzzinessSliderRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.seniorAiManMarkingFuzzinessSlider {
+  width: 112px;
+}
+
 .seniorSetBestLineupBTeamMenuSection {
   display: grid;
   gap: 8px;

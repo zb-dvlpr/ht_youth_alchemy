@@ -801,6 +801,11 @@ export const messagesEn: Messages = {
     seniorAiLastMatchDisregardedTooltip:
       "Player is disregarded because they last played {{weeks}} weeks ago.",
     seniorAiManMarkingToggleLabel: "Man marking",
+    seniorAiManMarkingFuzzinessLabel: "AI fuzziness",
+    seniorAiManMarkingFuzzinessTooltip:
+      "Strictness for man-marking target identification.",
+    seniorAiManMarkingFuzzinessAriaLabel:
+      "Strictness for man-marking target identification",
     seniorAiManMarkingNeedsLineupTooltip:
       "Man marking can only be enabled once a lineup has been set and if a man marker and a man marking target have been identified.",
     seniorAiManMarkingEnabledTooltip:

@@ -288,6 +288,11 @@ export const messagesNl: Messages = {
   seniorAiLastMatchDisregardedTooltip:
     "Deze speler wordt genegeerd omdat hij {{weeks}} weken geleden voor het laatst speelde.",
   seniorAiManMarkingToggleLabel: "Mandekking",
+  seniorAiManMarkingFuzzinessLabel: "AI-vaagheid",
+  seniorAiManMarkingFuzzinessTooltip:
+    "Striktheid voor het identificeren van het mandekkingsdoel.",
+  seniorAiManMarkingFuzzinessAriaLabel:
+    "Striktheid voor het identificeren van het mandekkingsdoel",
   seniorAiManMarkingNeedsLineupTooltip:
     "Mandekking kan pas worden ingeschakeld nadat een opstelling is gezet en zowel een mandekker als een doelwit zijn geïdentificeerd.",
   seniorAiManMarkingEnabledTooltip:

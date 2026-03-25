@@ -839,6 +839,11 @@ export const messagesIt: Messages = {
     seniorAiLastMatchDisregardedTooltip:
       "Questo giocatore viene ignorato perché ha giocato l'ultima partita {{weeks}} settimane fa.",
     seniorAiManMarkingToggleLabel: "Marcatura a uomo",
+    seniorAiManMarkingFuzzinessLabel: "Sfocatura IA",
+    seniorAiManMarkingFuzzinessTooltip:
+      "Rigidita per identificare il bersaglio della marcatura a uomo.",
+    seniorAiManMarkingFuzzinessAriaLabel:
+      "Rigidita per identificare il bersaglio della marcatura a uomo",
     seniorAiManMarkingNeedsLineupTooltip:
       "La marcatura a uomo può essere attivata solo dopo aver impostato una formazione e aver identificato sia il marcatore sia il bersaglio.",
     seniorAiManMarkingEnabledTooltip:

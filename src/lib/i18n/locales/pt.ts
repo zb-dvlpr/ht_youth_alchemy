@@ -838,6 +838,11 @@ export const messagesPt: Messages = {
     seniorAiLastMatchDisregardedTooltip:
       "Este jogador é desconsiderado porque jogou pela última vez há {{weeks}} semanas.",
     seniorAiManMarkingToggleLabel: "Marcacao individual",
+    seniorAiManMarkingFuzzinessLabel: "Difusao IA",
+    seniorAiManMarkingFuzzinessTooltip:
+      "Rigidez para identificar o alvo de marcacao individual.",
+    seniorAiManMarkingFuzzinessAriaLabel:
+      "Rigidez para identificar o alvo de marcacao individual",
     seniorAiManMarkingNeedsLineupTooltip:
       "A marcacao individual so pode ser ativada depois que uma escalação for definida e se um marcador e um alvo tiverem sido identificados.",
     seniorAiManMarkingEnabledTooltip:

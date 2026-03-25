@@ -829,6 +829,11 @@ export const messagesSv: Messages = {
     seniorAiLastMatchDisregardedTooltip:
       "Spelaren ignoreras eftersom han senast spelade för {{weeks}} veckor sedan.",
     seniorAiManMarkingToggleLabel: "Manmarkering",
+    seniorAiManMarkingFuzzinessLabel: "AI-oskarpa",
+    seniorAiManMarkingFuzzinessTooltip:
+      "Strikthet for identifiering av manmarkeringsmal.",
+    seniorAiManMarkingFuzzinessAriaLabel:
+      "Strikthet for identifiering av manmarkeringsmal",
     seniorAiManMarkingNeedsLineupTooltip:
       "Manmarkering kan bara aktiveras när en uppställning har satts och en markerare och ett mål har identifierats.",
     seniorAiManMarkingEnabledTooltip:

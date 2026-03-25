@@ -682,6 +682,9 @@ export type Messages = {
   seniorAiLastMatchThresholdAriaLabel: string;
   seniorAiLastMatchDisregardedTooltip: string;
   seniorAiManMarkingToggleLabel: string;
+  seniorAiManMarkingFuzzinessLabel: string;
+  seniorAiManMarkingFuzzinessTooltip: string;
+  seniorAiManMarkingFuzzinessAriaLabel: string;
   seniorAiManMarkingNeedsLineupTooltip: string;
   seniorAiManMarkingEnabledTooltip: string;
   seniorAiManMarkingMissingMarkerTooltip: string;

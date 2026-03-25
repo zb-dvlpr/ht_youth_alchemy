@@ -837,6 +837,11 @@ export const messagesFr: Messages = {
     seniorAiLastMatchDisregardedTooltip:
       "Le joueur est écarté car son dernier match remonte à {{weeks}} semaines.",
     seniorAiManMarkingToggleLabel: "Marquage individuel",
+    seniorAiManMarkingFuzzinessLabel: "Flou IA",
+    seniorAiManMarkingFuzzinessTooltip:
+      "Niveau d'exigence pour identifier la cible de marquage individuel.",
+    seniorAiManMarkingFuzzinessAriaLabel:
+      "Niveau d'exigence pour identifier la cible de marquage individuel",
     seniorAiManMarkingNeedsLineupTooltip:
       "Le marquage individuel ne peut être activé qu une fois la composition définie et si un marqueur et une cible ont été identifiés.",
     seniorAiManMarkingEnabledTooltip:

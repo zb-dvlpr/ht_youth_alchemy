@@ -304,6 +304,8 @@ export const messagesNl: Messages = {
     "Er is deze week nog geen A-teamwedstrijd gedetecteerd.",
   seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
     "De B-teamwedstrijd is deze week al gespeeld: {{matchLink}}.",
+  seniorExtraTimeModalBTeamAlreadyPlayedDisabledTooltip:
+    "De B-teamwedstrijd is deze week al gespeeld.",
   seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "wedstrijd",
   seniorExtraTimeModalBTeamDisregardedTooltip:
     "Deze speler wordt genegeerd omdat hij deze week al minstens {{minutes}} minuten heeft gespeeld.",

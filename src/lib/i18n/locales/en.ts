@@ -815,6 +815,8 @@ export const messagesEn: Messages = {
       "No A-team match detected so far this week.",
     seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
       "B-team match has already been played this week: {{matchLink}}.",
+    seniorExtraTimeModalBTeamAlreadyPlayedDisabledTooltip:
+      "B-team match has already been played this week.",
     seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "match",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Player is disregarded because they have already played at least {{minutes}} minutes this week.",

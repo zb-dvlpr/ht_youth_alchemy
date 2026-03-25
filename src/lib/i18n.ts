@@ -689,6 +689,7 @@ export type Messages = {
   seniorExtraTimeModalBTeamEnabledTooltip: string;
   seniorExtraTimeModalBTeamNoATeamMatchTooltip: string;
   seniorExtraTimeModalBTeamAlreadyPlayedTooltip: string;
+  seniorExtraTimeModalBTeamAlreadyPlayedDisabledTooltip: string;
   seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: string;
   seniorExtraTimeModalBTeamDisregardedTooltip: string;
   seniorExtraTimeModalInjuredCheckboxTooltip: string;

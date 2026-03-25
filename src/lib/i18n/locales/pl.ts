@@ -298,6 +298,8 @@ export const messagesPl: Messages = {
     "Jak dotad w tym tygodniu nie wykryto meczu skladu A.",
   seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
     "Mecz skladu B zostal juz rozegrany w tym tygodniu: {{matchLink}}.",
+  seniorExtraTimeModalBTeamAlreadyPlayedDisabledTooltip:
+    "Mecz skladu B zostal juz rozegrany w tym tygodniu.",
   seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "mecz",
   seniorExtraTimeModalBTeamDisregardedTooltip:
     "Ten zawodnik jest pomijany, ponieważ w tym tygodniu rozegrał już co najmniej {{minutes}} minut.",

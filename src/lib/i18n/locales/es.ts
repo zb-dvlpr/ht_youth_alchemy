@@ -852,6 +852,8 @@ export const messagesEs: Messages = {
       "No se detecto ningun partido del equipo A hasta ahora esta semana.",
     seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
       "El partido del equipo B ya se jugo esta semana: {{matchLink}}.",
+    seniorExtraTimeModalBTeamAlreadyPlayedDisabledTooltip:
+      "El partido del equipo B ya se jugo esta semana.",
     seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "partido",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Este jugador se descarta porque ya ha jugado al menos {{minutes}} minutos esta semana.",

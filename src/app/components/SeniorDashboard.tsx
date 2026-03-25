@@ -3900,7 +3900,7 @@ export default function SeniorDashboard({
       return messages.seniorExtraTimeModalBTeamNoATeamMatchTooltip;
     }
     if (extraTimeBTeamAlreadyPlayedMessage) {
-      return extraTimeBTeamAlreadyPlayedMessage;
+      return messages.seniorExtraTimeModalBTeamAlreadyPlayedDisabledTooltip;
     }
     return null;
   })();

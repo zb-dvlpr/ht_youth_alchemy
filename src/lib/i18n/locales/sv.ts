@@ -843,6 +843,8 @@ export const messagesSv: Messages = {
       "Ingen A-lagsmatch har upptackts hittills den har veckan.",
     seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
       "B-lagsmatchen har redan spelats den har veckan: {{matchLink}}.",
+    seniorExtraTimeModalBTeamAlreadyPlayedDisabledTooltip:
+      "B-lagsmatchen har redan spelats den har veckan.",
     seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "match",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Spelaren ignoreras eftersom han redan har spelat minst {{minutes}} minuter den här veckan.",

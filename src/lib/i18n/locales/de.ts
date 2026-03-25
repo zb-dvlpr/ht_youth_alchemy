@@ -838,6 +838,8 @@ export const messagesDe: Messages = {
       "Bisher wurde in dieser Woche kein A-Team-Spiel erkannt.",
     seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
       "Das B-Team-Spiel wurde in dieser Woche bereits gespielt: {{matchLink}}.",
+    seniorExtraTimeModalBTeamAlreadyPlayedDisabledTooltip:
+      "Das B-Team-Spiel wurde in dieser Woche bereits gespielt.",
     seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "Spiel",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Dieser Spieler wird ignoriert, weil er diese Woche bereits mindestens {{minutes}} Minuten gespielt hat.",

@@ -76,6 +76,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_3_13_0:
+    "Senior AI obsluguje teraz wykrywanie krycia indywidualnego, wysylke zlecenia i podsumowanie po wyslaniu.",
   changelog_3_12_0:
     "Szczegoly zawodnika seniora zawieraja teraz wyszukiwanie podobnych graczy na rynku transferowym z edytowalnymi filtrami i licytacja dla Supporterow.",
   changelog_3_11_0:
@@ -279,6 +281,17 @@ export const messagesPl: Messages = {
     "Próg tygodni do pomijania zawodników według daty ostatniego meczu",
   seniorAiLastMatchDisregardedTooltip:
     "Ten zawodnik jest pomijany, ponieważ ostatni raz grał {{weeks}} tygodni temu.",
+  seniorAiManMarkingToggleLabel: "Krycie indywidualne",
+  seniorAiManMarkingNeedsLineupTooltip:
+    "Krycie indywidualne można włączyć dopiero po ustawieniu składu oraz po zidentyfikowaniu kryjącego i celu krycia.",
+  seniorAiManMarkingEnabledTooltip:
+    "Włącz krycie indywidualne {{target}} przez {{marker}}.",
+  seniorAiManMarkingMissingMarkerTooltip:
+    "Nie zidentyfikowano odpowiedniego kryjącego.",
+  seniorAiManMarkingMissingTargetTooltip:
+    "Nie zidentyfikowano odpowiedniego celu krycia indywidualnego.",
+  seniorAiManMarkingMissingBothTooltip:
+    "Nie zidentyfikowano ani odpowiedniego kryjącego, ani celu krycia indywidualnego.",
   seniorExtraTimeModalBTeamThresholdText:
     "Pomijaj zawodników, którzy już zagrali {{minutes}} minut {{weekLink}}.",
   seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "w tym tygodniu",
@@ -339,6 +352,12 @@ export const messagesPl: Messages = {
   setBestLineupDevReasonFormFallback: "Fallback formy bez pasującego kandydata",
   setBestLineupDevReasonBestAggregate: "Najlepszy łączny wynik ławki",
   setBestLineupDevReasonAlphabeticalTieBreak: "Alfabetyczny tie-break",
+  setBestLineupDevLineupColumn: "Skład",
+  setBestLineupDevPotentialTargetsLabel: "Potencjalne cele krycia indywidualnego",
+  setBestLineupDevPotentialTargetsNone: "Nie zidentyfikowano",
+  setBestLineupDevFinalTargetLabel: "Wybrany cel krycia indywidualnego",
+  setBestLineupDevPotentialTargetBadge: "potencjalny cel",
+  setBestLineupDevSelectedTargetBadge: "wybrany cel",
   analyzeOpponent: "Analizuj przeciwnika",
   analyzeOpponentTooltip: "Przeanalizuj ostatnie mecze przeciwnika.",
   analyzeOpponentMatchId: "ID meczu",
@@ -406,6 +425,8 @@ export const messagesPl: Messages = {
     "Nie mozna wyslac tego skladu, poniewaz zostal przygotowany na inny mecz: {{home}} vs {{away}} dnia {{datetime}}.",
   seniorSubmitDisclaimerTitle: "⚠️ Zastrzeżenie po wysłaniu składu",
   seniorSubmitDisclaimerIntro: "Sprawdź proszę poniższe punkty:",
+  seniorSubmitDisclaimerManMarkingSummary:
+    "Krycie indywidualne {{target}} przez {{marker}} zostanie wysłane.",
   seniorSubmitDisclaimerBulletBestEffort:
     "Na podstawie informacji dostarczonych przez Hattrick jest to najbardziej efektywny skład, jaki AI mogła wygenerować.",
   seniorSubmitDisclaimerBulletNoResponsibility:

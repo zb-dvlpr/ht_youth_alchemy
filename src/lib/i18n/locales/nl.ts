@@ -82,6 +82,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_3_13_0:
+    "Senior-AI-opstellingen ondersteunen nu detectie, verzending en controle achteraf van mandekking.",
   changelog_3_12_0:
     "Seniorspelerdetails hebben nu een transfermarktzoeker voor vergelijkbare spelers met aanpasbare filters en Supporter-biedingen.",
   changelog_3_11_0:
@@ -285,6 +287,17 @@ export const messagesNl: Messages = {
     "Wekengrens om spelers uit te sluiten op basis van hun laatste wedstrijd",
   seniorAiLastMatchDisregardedTooltip:
     "Deze speler wordt genegeerd omdat hij {{weeks}} weken geleden voor het laatst speelde.",
+  seniorAiManMarkingToggleLabel: "Mandekking",
+  seniorAiManMarkingNeedsLineupTooltip:
+    "Mandekking kan pas worden ingeschakeld nadat een opstelling is gezet en zowel een mandekker als een doelwit zijn geïdentificeerd.",
+  seniorAiManMarkingEnabledTooltip:
+    "Mandekking van {{target}} door {{marker}} inschakelen.",
+  seniorAiManMarkingMissingMarkerTooltip:
+    "Geen geschikte mandekker geïdentificeerd.",
+  seniorAiManMarkingMissingTargetTooltip:
+    "Geen geschikt mandekkingsdoel geïdentificeerd.",
+  seniorAiManMarkingMissingBothTooltip:
+    "Geen geschikte mandekker en geen geschikt mandekkingsdoel geïdentificeerd.",
   seniorExtraTimeModalBTeamThresholdText:
     "Negeer spelers die {{weekLink}} al {{minutes}} minuten hebben gespeeld.",
   seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "deze week",
@@ -345,6 +358,12 @@ export const messagesNl: Messages = {
   setBestLineupDevReasonFormFallback: "Vorm-fallback zonder passende kandidaat",
   setBestLineupDevReasonBestAggregate: "Beste geaggregeerde bankscore",
   setBestLineupDevReasonAlphabeticalTieBreak: "Alfabetische tiebreak",
+  setBestLineupDevLineupColumn: "Opstelling",
+  setBestLineupDevPotentialTargetsLabel: "Potentiele mandekkingsdoelen",
+  setBestLineupDevPotentialTargetsNone: "Geen geidentificeerd",
+  setBestLineupDevFinalTargetLabel: "Geselecteerd mandekkingsdoel",
+  setBestLineupDevPotentialTargetBadge: "potentieel doel",
+  setBestLineupDevSelectedTargetBadge: "geselecteerd doel",
   analyzeOpponent: "Tegenstander analyseren",
   analyzeOpponentTooltip: "Analyseer recente wedstrijden van de tegenstander.",
   analyzeOpponentMatchId: "Wedstrijd-ID",
@@ -412,6 +431,8 @@ export const messagesNl: Messages = {
     "Deze opstelling kan niet worden verzonden omdat die voor een andere wedstrijd is voorbereid: {{home}} vs {{away}} op {{datetime}}.",
   seniorSubmitDisclaimerTitle: "⚠️ Disclaimer na verzenden opstelling",
   seniorSubmitDisclaimerIntro: "Controleer het volgende:",
+  seniorSubmitDisclaimerManMarkingSummary:
+    "Mandekking van {{target}} door {{marker}} wordt meegestuurd.",
   seniorSubmitDisclaimerBulletBestEffort:
     "Op basis van de informatie van Hattrick is dit de meest effectieve opstelling die de AI kon genereren.",
   seniorSubmitDisclaimerBulletNoResponsibility:

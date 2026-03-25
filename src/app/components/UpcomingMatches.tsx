@@ -100,7 +100,7 @@ type UpcomingMatchesProps = {
   loadedMatchId?: number | null;
   submitEnabledMatchId?: number | null;
   submitRestrictedTooltipBuilder?: (targetMatch: Match | undefined) => ReactNode;
-  onSubmitSuccess?: () => void;
+  onSubmitSuccess?: (matchId: number) => void;
   buildSubmitLineupPayload?: (
     matchId: number,
     defaultPayload: MatchOrdersLineupPayload
@@ -1142,7 +1142,7 @@ export default function UpcomingMatches({
           matchById.get(matchId)
         )}`
       );
-      onSubmitSuccess?.();
+      onSubmitSuccess?.(matchId);
       onRefresh?.();
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) return;

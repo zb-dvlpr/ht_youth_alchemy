@@ -70,6 +70,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_3_13_0:
+      "Senior AI lineups now support man-marking detection, submission, and post-submit review.",
     changelog_3_12_0:
       "Senior player details now include a transfer-market similarity search with editable filters and supporter bidding.",
     changelog_3_11_0:
@@ -622,6 +624,8 @@ export const messagesEn: Messages = {
       "Submitting this lineup is not possible because it was set up for another match: {{home}} vs {{away}} on {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Lineup submission disclaimer",
     seniorSubmitDisclaimerIntro: "Please review before finalizing:",
+    seniorSubmitDisclaimerManMarkingSummary:
+      "Man marking of {{target}} by {{marker}} will be submitted.",
     seniorSubmitDisclaimerBulletBestEffort:
       "Based on the information provided by Hattrick, this is the most effective lineup the AI could generate.",
     seniorSubmitDisclaimerBulletNoResponsibility:
@@ -796,6 +800,17 @@ export const messagesEn: Messages = {
       "Weeks threshold for disregarding players by last match date",
     seniorAiLastMatchDisregardedTooltip:
       "Player is disregarded because they last played {{weeks}} weeks ago.",
+    seniorAiManMarkingToggleLabel: "Man marking",
+    seniorAiManMarkingNeedsLineupTooltip:
+      "Man marking can only be enabled once a lineup has been set and if a man marker and a man marking target have been identified.",
+    seniorAiManMarkingEnabledTooltip:
+      "Enable man marking of {{target}} by {{marker}}.",
+    seniorAiManMarkingMissingMarkerTooltip:
+      "Suitable man marker not identified.",
+    seniorAiManMarkingMissingTargetTooltip:
+      "Suitable man marking target not identified.",
+    seniorAiManMarkingMissingBothTooltip:
+      "Suitable man marker and man marking target not identified.",
     seniorExtraTimeModalBTeamThresholdText:
       "Disregard players who already played {{minutes}} minutes {{weekLink}}.",
     seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "this week",
@@ -858,6 +873,12 @@ export const messagesEn: Messages = {
     setBestLineupDevReasonFormFallback: "Form fallback after no slot-fit candidate",
     setBestLineupDevReasonBestAggregate: "Best aggregate bench score",
     setBestLineupDevReasonAlphabeticalTieBreak: "Alphabetical tie-break",
+    setBestLineupDevLineupColumn: "Lineup",
+    setBestLineupDevPotentialTargetsLabel: "Potential man-marking targets",
+    setBestLineupDevPotentialTargetsNone: "None identified",
+    setBestLineupDevFinalTargetLabel: "Selected man-marking target",
+    setBestLineupDevPotentialTargetBadge: "potential target",
+    setBestLineupDevSelectedTargetBadge: "selected target",
     analyzeOpponent: "Analyze opponent",
     analyzeOpponentTooltip: "Analyze opponent recent matches.",
     analyzeOpponentMatchId: "Match ID",

@@ -70,6 +70,8 @@ export const messagesEs: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Esta aplicación está en beta. Las funciones, el comportamiento y los datos locales en caché pueden cambiar o reiniciarse sin previo aviso.",
+    changelog_3_13_0:
+      "Las alineaciones IA senior ahora admiten deteccion, envio y revision posterior del marcaje individual.",
     changelog_3_12_0:
       "Los detalles de jugadores senior ahora incluyen una busqueda de jugadores similares en el mercado de transferencias con filtros editables y pujas para Supporters.",
     changelog_3_11_0:
@@ -654,6 +656,8 @@ export const messagesEs: Messages = {
       "No es posible enviar esta alineacion porque fue preparada para otro partido: {{home}} vs {{away}} el {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Aviso tras enviar la alineación",
     seniorSubmitDisclaimerIntro: "Revisa lo siguiente:",
+    seniorSubmitDisclaimerManMarkingSummary:
+      "Se enviará el marcaje individual de {{target}} por {{marker}}.",
     seniorSubmitDisclaimerBulletBestEffort:
       "Según la información proporcionada por Hattrick, esta es la alineación más efectiva que la IA pudo generar.",
     seniorSubmitDisclaimerBulletNoResponsibility:
@@ -833,6 +837,17 @@ export const messagesEs: Messages = {
       "Umbral en semanas para descartar jugadores según la fecha de su último partido",
     seniorAiLastMatchDisregardedTooltip:
       "Este jugador se descarta porque jugó por última vez hace {{weeks}} semanas.",
+    seniorAiManMarkingToggleLabel: "Marcaje individual",
+    seniorAiManMarkingNeedsLineupTooltip:
+      "El marcaje individual solo puede activarse una vez que se haya fijado una alineacion y se hayan identificado un marcador y un objetivo.",
+    seniorAiManMarkingEnabledTooltip:
+      "Activar marcaje individual de {{target}} por {{marker}}.",
+    seniorAiManMarkingMissingMarkerTooltip:
+      "No se identifico un marcador adecuado.",
+    seniorAiManMarkingMissingTargetTooltip:
+      "No se identifico un objetivo adecuado para el marcaje individual.",
+    seniorAiManMarkingMissingBothTooltip:
+      "No se identificaron ni un marcador adecuado ni un objetivo adecuado para el marcaje individual.",
     seniorExtraTimeModalBTeamThresholdText:
       "Ignorar jugadores que ya hayan jugado {{minutes}} minutos {{weekLink}}.",
     seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "esta semana",
@@ -895,6 +910,12 @@ export const messagesEs: Messages = {
     setBestLineupDevReasonFormFallback: "Fallback por forma sin candidato que encaje en el puesto",
     setBestLineupDevReasonBestAggregate: "Mejor puntuación agregada de banquillo",
     setBestLineupDevReasonAlphabeticalTieBreak: "Desempate alfabético",
+    setBestLineupDevLineupColumn: "Alineación",
+    setBestLineupDevPotentialTargetsLabel: "Posibles objetivos de marcaje individual",
+    setBestLineupDevPotentialTargetsNone: "Ninguno identificado",
+    setBestLineupDevFinalTargetLabel: "Objetivo de marcaje individual seleccionado",
+    setBestLineupDevPotentialTargetBadge: "objetivo potencial",
+    setBestLineupDevSelectedTargetBadge: "objetivo seleccionado",
     analyzeOpponent: "Analizar rival",
     analyzeOpponentTooltip: "Analizar los partidos recientes del rival.",
     analyzeOpponentMatchId: "ID del partido",

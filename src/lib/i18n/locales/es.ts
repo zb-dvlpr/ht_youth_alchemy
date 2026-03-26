@@ -658,6 +658,10 @@ export const messagesEs: Messages = {
     seniorSubmitDisclaimerIntro: "Revisa lo siguiente:",
     seniorSubmitDisclaimerManMarkingSummary:
       "Se enviará el marcaje individual de {{target}} por {{marker}}.",
+    seniorSubmitDisclaimerOrdersTitle: "Sustituciones e intercambios previstos",
+    seniorSubmitDisclaimerOrdersNone: "No hay sustituciones ni intercambios previstos.",
+    seniorSubmitDisclaimerPenaltyOrderTitle: "Orden de lanzadores de penalti",
+    seniorSubmitDisclaimerSetPiecesTitle: "Lanzador de jugadas a balón parado designado",
     seniorSubmitDisclaimerBulletBestEffort:
       "Según la información proporcionada por Hattrick, esta es la alineación más efectiva que la IA pudo generar.",
     seniorSubmitDisclaimerBulletNoResponsibility:
@@ -840,7 +844,7 @@ export const messagesEs: Messages = {
     seniorAiManMarkingToggleLabel: "Marcaje individual",
     seniorAiManMarkingToggleTooltip:
       "Enviar ordenes de marcaje individual si se identifican un marcador adecuado y un objetivo de marcaje adecuado.",
-    seniorAiManMarkingFuzzinessLabel: "Difuminado IA",
+    seniorAiManMarkingFuzzinessLabel: "Rigidez MM",
     seniorAiManMarkingFuzzinessTooltip:
       "Rigidez para identificar el objetivo de marcaje individual.",
     seniorAiManMarkingFuzzinessAriaLabel:

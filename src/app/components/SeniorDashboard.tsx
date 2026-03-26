@@ -55,7 +55,11 @@ import {
 } from "recharts";
 import PlayerDetailsPanel, { type PlayerDetailsPanelTab } from "./PlayerDetailsPanel";
 import LineupField, { LineupAssignments, LineupBehaviors } from "./LineupField";
-import UpcomingMatches, { Match, MatchesResponse } from "./UpcomingMatches";
+import UpcomingMatches, {
+  Match,
+  MatchOrdersLineupPayload,
+  MatchesResponse,
+} from "./UpcomingMatches";
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import { setDragGhost } from "@/lib/drag";
@@ -696,6 +700,12 @@ type SeniorSubmitDisclaimerManMarkingSummary = {
   target: { id: number; name: string };
 };
 
+type SeniorSubmitDisclaimerOrdersSummary = {
+  substitutions: ExtraTimeSubmitDisclaimerSubstitution[];
+  penaltyTakers: Array<{ id: number; name: string; setPiecesSkill: number | null }>;
+  setPiecesTaker: { id: number; name: string; setPiecesSkill: number | null } | null;
+};
+
 type SeniorAiManMarkingReadyContext = {
   signature: string;
 };
@@ -763,6 +773,8 @@ type ExtraTimeSubmitDisclaimerSummary = {
   trainees: Array<{ id: number; name: string }>;
   substitutions: ExtraTimeSubmitDisclaimerSubstitution[];
   trainingRows: ExtraTimeSubmitDisclaimerTrainingRow[];
+  penaltyTakers: Array<{ id: number; name: string; setPiecesSkill: number | null }>;
+  setPiecesTaker: { id: number; name: string; setPiecesSkill: number | null } | null;
 };
 
 type StartupLoadingPhase =
@@ -3201,6 +3213,8 @@ export default function SeniorDashboard({
     useState<ExtraTimeSubmitDisclaimerSummary | null>(null);
   const [submitDisclaimerManMarkingSummary, setSubmitDisclaimerManMarkingSummary] =
     useState<SeniorSubmitDisclaimerManMarkingSummary | null>(null);
+  const [submitDisclaimerSeniorOrdersSummary, setSubmitDisclaimerSeniorOrdersSummary] =
+    useState<SeniorSubmitDisclaimerOrdersSummary | null>(null);
   const [extraTimeInfoOpen, setExtraTimeInfoOpen] = useState(false);
   const [extraTimeTrainingMenuOpen, setExtraTimeTrainingMenuOpen] = useState(false);
 
@@ -8429,12 +8443,101 @@ function buildSeniorAiManMarkingReadySignature(params: {
         number: index + 1,
         ...row,
       }));
+    const penaltyTakers = (submitPayload.kickers ?? [])
+      .map((entry) => entry.id)
+      .filter(
+        (playerId, index, list): playerId is number =>
+          playerId > 0 && list.indexOf(playerId) === index
+      )
+      .map((playerId) => {
+        const player = playersById.get(playerId);
+        return {
+          id: playerId,
+          name: player ? formatPlayerName(player) : String(playerId),
+          setPiecesSkill: player ? skillValueForPlayer(player, "SetPiecesSkill") : null,
+        };
+      });
+    const setPiecesTaker =
+      typeof submitPayload.setPieces === "number" && submitPayload.setPieces > 0
+        ? (() => {
+            const playerId = submitPayload.setPieces;
+            const player = playersById.get(playerId);
+            return {
+              id: playerId,
+              name: player ? formatPlayerName(player) : String(playerId),
+              setPiecesSkill: player ? skillValueForPlayer(player, "SetPiecesSkill") : null,
+            };
+          })()
+        : null;
 
     return {
       trainingLabel: obtainedTrainingRegimenLabel(extraTimePreparedSubmission.trainingType),
       trainees,
       substitutions,
       trainingRows,
+      penaltyTakers,
+      setPiecesTaker,
+    };
+  };
+
+  const buildSeniorSubmitDisclaimerOrdersSummary = (
+    lineupPayload: MatchOrdersLineupPayload
+  ): SeniorSubmitDisclaimerOrdersSummary => {
+    const substitutions = (lineupPayload.substitutions ?? [])
+      .filter(
+        (substitution) =>
+          typeof substitution.playerin === "number" &&
+          substitution.playerin > 0 &&
+          typeof substitution.playerout === "number" &&
+          substitution.playerout > 0
+      )
+      .sort((left, right) => left.min - right.min || left.orderType - right.orderType)
+      .map((substitution) => {
+        const playerIn = playersById.get(substitution.playerin);
+        const playerOut = playersById.get(substitution.playerout);
+        return {
+          minute: substitution.min,
+          type: substitution.orderType === 3 ? "swap" : "replace",
+          playerIn: {
+            id: substitution.playerin,
+            name: playerIn ? formatPlayerName(playerIn) : String(substitution.playerin),
+          },
+          playerOut: {
+            id: substitution.playerout,
+            name: playerOut ? formatPlayerName(playerOut) : String(substitution.playerout),
+          },
+        } satisfies ExtraTimeSubmitDisclaimerSubstitution;
+      });
+
+    const penaltyTakers = (lineupPayload.kickers ?? [])
+      .map((entry) => entry.id)
+      .filter((playerId, index, list): playerId is number => playerId > 0 && list.indexOf(playerId) === index)
+      .map((playerId) => {
+        const player = playersById.get(playerId);
+        return {
+          id: playerId,
+          name: player ? formatPlayerName(player) : String(playerId),
+          setPiecesSkill: player ? skillValueForPlayer(player, "SetPiecesSkill") : null,
+        };
+      });
+
+    const setPiecesTaker =
+      typeof lineupPayload.setPieces === "number" && lineupPayload.setPieces > 0
+        ? (() => {
+            const playerId = lineupPayload.setPieces;
+            const player = playersById.get(playerId);
+            return {
+              id: playerId,
+              name: player ? formatPlayerName(player) : String(playerId),
+              setPiecesSkill: player ? skillValueForPlayer(player, "SetPiecesSkill") : null,
+            };
+          })()
+        : null;
+
+    return {
+      substitutions,
+      penaltyTakers,
+      setPiecesTaker,
     };
   };
 
@@ -13657,7 +13760,6 @@ const refreshDetailsForPlayers = async (
       />
       <Modal
         open={submitDisclaimerOpen}
-        title={messages.seniorSubmitDisclaimerTitle}
         className={styles.chronicleTransferHistoryModal}
         body={
           submitDisclaimerExtraTimeSummary ? (
@@ -13761,6 +13863,51 @@ const refreshDetailsForPlayers = async (
               </div>
               <div>
                 <p className={styles.seniorDisclaimerIntro}>
+                  {messages.seniorSubmitDisclaimerPenaltyOrderTitle}
+                </p>
+                <ol className={styles.seniorDisclaimerList}>
+                  {submitDisclaimerExtraTimeSummary.penaltyTakers.map((player) => (
+                    <li key={`extra-time-penalty-${player.id}`}>
+                      <a
+                        className={styles.chroniclePressLink}
+                        href={hattrickPlayerUrl(player.id)}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {player.name}
+                      </a>{" "}
+                      ({player.setPiecesSkill ?? messages.unknownShort})
+                    </li>
+                  ))}
+                </ol>
+              </div>
+              <div>
+                <p className={styles.seniorDisclaimerIntro}>
+                  {messages.seniorSubmitDisclaimerSetPiecesTitle}
+                </p>
+                <p>
+                  {submitDisclaimerExtraTimeSummary.setPiecesTaker ? (
+                    <>
+                      <a
+                        className={styles.chroniclePressLink}
+                        href={hattrickPlayerUrl(
+                          submitDisclaimerExtraTimeSummary.setPiecesTaker.id
+                        )}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {submitDisclaimerExtraTimeSummary.setPiecesTaker.name}
+                      </a>{" "}
+                      ({submitDisclaimerExtraTimeSummary.setPiecesTaker.setPiecesSkill ??
+                        messages.unknownShort})
+                    </>
+                  ) : (
+                    messages.unknownShort
+                  )}
+                </p>
+              </div>
+              <div>
+                <p className={styles.seniorDisclaimerIntro}>
                   {messages.seniorExtraTimeSubmitDisclaimerFurtherTitle}
                 </p>
               </div>
@@ -13809,6 +13956,116 @@ const refreshDetailsForPlayers = async (
                   })}
                 </p>
               ) : null}
+              {submitDisclaimerSeniorOrdersSummary ? (
+                <>
+                  <div>
+                    <p className={styles.seniorDisclaimerIntro}>
+                      {messages.seniorSubmitDisclaimerOrdersTitle}
+                    </p>
+                    {submitDisclaimerSeniorOrdersSummary.substitutions.length > 0 ? (
+                      <ul className={styles.seniorDisclaimerList}>
+                        {submitDisclaimerSeniorOrdersSummary.substitutions.map(
+                          (substitution, index) => (
+                            <li key={`${substitution.type}-${substitution.minute}-${index}`}>
+                              {(
+                                substitution.type === "swap"
+                                  ? messages.seniorExtraTimeSubmitDisclaimerSwapLine
+                                  : messages.seniorExtraTimeSubmitDisclaimerReplaceLine
+                              )
+                                .replace("{{minute}}", String(substitution.minute))
+                                .split("{{playerIn}}")
+                                .flatMap((segment, segmentIndex, segments) => {
+                                  if (segmentIndex === segments.length - 1) return [segment];
+                                  return [
+                                    segment,
+                                    <a
+                                      key={`senior-orders-player-in-${substitution.playerIn.id}`}
+                                      className={styles.chroniclePressLink}
+                                      href={hattrickPlayerUrl(substitution.playerIn.id)}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                    >
+                                      {substitution.playerIn.name}
+                                    </a>,
+                                  ];
+                                })
+                                .flatMap((segment) => {
+                                  if (typeof segment !== "string") return [segment];
+                                  return segment
+                                    .split("{{playerOut}}")
+                                    .flatMap((part, partIndex, parts) => {
+                                      if (partIndex === parts.length - 1) return [part];
+                                      return [
+                                        part,
+                                        <a
+                                          key={`senior-orders-player-out-${substitution.playerOut.id}`}
+                                          className={styles.chroniclePressLink}
+                                          href={hattrickPlayerUrl(substitution.playerOut.id)}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                        >
+                                          {substitution.playerOut.name}
+                                        </a>,
+                                      ];
+                                    });
+                                })}
+                            </li>
+                          )
+                        )}
+                      </ul>
+                    ) : (
+                      <p>{messages.seniorSubmitDisclaimerOrdersNone}</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className={styles.seniorDisclaimerIntro}>
+                      {messages.seniorSubmitDisclaimerPenaltyOrderTitle}
+                    </p>
+                    <ol className={styles.seniorDisclaimerList}>
+                      {submitDisclaimerSeniorOrdersSummary.penaltyTakers.map((player) => (
+                        <li key={`penalty-${player.id}`}>
+                          <a
+                            className={styles.chroniclePressLink}
+                            href={hattrickPlayerUrl(player.id)}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {player.name}
+                          </a>{" "}
+                          ({player.setPiecesSkill ?? messages.unknownShort})
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                  <div>
+                    <p className={styles.seniorDisclaimerIntro}>
+                      {messages.seniorSubmitDisclaimerSetPiecesTitle}
+                    </p>
+                    <p>
+                      {submitDisclaimerSeniorOrdersSummary.setPiecesTaker ? (
+                        <>
+                          <a
+                            className={styles.chroniclePressLink}
+                            href={hattrickPlayerUrl(
+                              submitDisclaimerSeniorOrdersSummary.setPiecesTaker.id
+                            )}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {submitDisclaimerSeniorOrdersSummary.setPiecesTaker.name}
+                          </a>{" "}
+                          (
+                          {submitDisclaimerSeniorOrdersSummary.setPiecesTaker.setPiecesSkill ??
+                            messages.unknownShort}
+                          )
+                        </>
+                      ) : (
+                        messages.unknownShort
+                      )}
+                    </p>
+                  </div>
+                </>
+              ) : null}
               <ul className={styles.seniorDisclaimerList}>
                 <li>{messages.seniorSubmitDisclaimerBulletBestEffort}</li>
                 <li>{messages.seniorSubmitDisclaimerBulletNoResponsibility}</li>
@@ -13829,6 +14086,7 @@ const refreshDetailsForPlayers = async (
               setSubmitDisclaimerOpen(false);
               setSubmitDisclaimerExtraTimeSummary(null);
               setSubmitDisclaimerManMarkingSummary(null);
+              setSubmitDisclaimerSeniorOrdersSummary(null);
             }}
           >
             {messages.closeLabel}
@@ -13838,6 +14096,7 @@ const refreshDetailsForPlayers = async (
           setSubmitDisclaimerOpen(false);
           setSubmitDisclaimerExtraTimeSummary(null);
           setSubmitDisclaimerManMarkingSummary(null);
+          setSubmitDisclaimerSeniorOrdersSummary(null);
         }}
       />
       <Modal
@@ -16125,7 +16384,7 @@ const refreshDetailsForPlayers = async (
               setLoadedMatchId(matchId);
             }}
             loadedMatchId={loadedMatchId}
-            onSubmitSuccess={(submittedMatchId) => {
+            onSubmitSuccess={(submittedMatchId, submittedLineupPayload) => {
               if (extraTimePreparedSubmission) {
                 try {
                   setSubmitDisclaimerExtraTimeSummary(buildExtraTimeSubmitDisclaimerSummary());
@@ -16133,8 +16392,16 @@ const refreshDetailsForPlayers = async (
                   setSubmitDisclaimerExtraTimeSummary(null);
                 }
                 setSubmitDisclaimerManMarkingSummary(null);
+                setSubmitDisclaimerSeniorOrdersSummary(null);
               } else {
                 setSubmitDisclaimerExtraTimeSummary(null);
+                setSubmitDisclaimerSeniorOrdersSummary(
+                  seniorAiPreparedSubmissionMode === "trainingAware" ||
+                    seniorAiPreparedSubmissionMode === "ignoreTraining" ||
+                    seniorAiPreparedSubmissionMode === "fixedFormation"
+                    ? buildSeniorSubmitDisclaimerOrdersSummary(submittedLineupPayload)
+                    : null
+                );
                 setSubmitDisclaimerManMarkingSummary(
                   seniorAiManMarkingEnabled &&
                     seniorAiManMarkingSelection &&

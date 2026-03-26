@@ -650,6 +650,10 @@ export const messagesSv: Messages = {
     seniorSubmitDisclaimerIntro: "Gå igenom följande:",
     seniorSubmitDisclaimerManMarkingSummary:
       "Manmarkering av {{target}} med {{marker}} kommer att skickas.",
+    seniorSubmitDisclaimerOrdersTitle: "Planerade byten och positionsbyten",
+    seniorSubmitDisclaimerOrdersNone: "Inga planerade byten eller positionsbyten.",
+    seniorSubmitDisclaimerPenaltyOrderTitle: "Straffskyttarnas ordning",
+    seniorSubmitDisclaimerSetPiecesTitle: "Utsedd frisparks- och hörnläggare",
     seniorSubmitDisclaimerBulletBestEffort:
       "Baserat på informationen från Hattrick är detta den mest effektiva uppställning som AI kunde skapa.",
     seniorSubmitDisclaimerBulletNoResponsibility:
@@ -831,7 +835,7 @@ export const messagesSv: Messages = {
     seniorAiManMarkingToggleLabel: "Manmarkering",
     seniorAiManMarkingToggleTooltip:
       "Skicka manmarkeringsorder om en lamplig markerare och ett lampligt manmarkeringsmal identifieras.",
-    seniorAiManMarkingFuzzinessLabel: "AI-oskarpa",
+    seniorAiManMarkingFuzzinessLabel: "MM-strikthet",
     seniorAiManMarkingFuzzinessTooltip:
       "Strikthet for identifiering av manmarkeringsmal.",
     seniorAiManMarkingFuzzinessAriaLabel:

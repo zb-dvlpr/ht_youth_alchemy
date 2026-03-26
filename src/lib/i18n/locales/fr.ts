@@ -657,6 +657,10 @@ export const messagesFr: Messages = {
     seniorSubmitDisclaimerIntro: "Merci de vérifier les points suivants :",
     seniorSubmitDisclaimerManMarkingSummary:
       "Le marquage individuel de {{target}} par {{marker}} sera envoyé.",
+    seniorSubmitDisclaimerOrdersTitle: "Remplacements et permutations prévus",
+    seniorSubmitDisclaimerOrdersNone: "Aucun remplacement ou permutation prévu.",
+    seniorSubmitDisclaimerPenaltyOrderTitle: "Ordre des tireurs de penalty",
+    seniorSubmitDisclaimerSetPiecesTitle: "Tireur de coups de pied arrêtés désigné",
     seniorSubmitDisclaimerBulletBestEffort:
       "D’après les informations fournies par Hattrick, c’est la composition la plus efficace que l’IA a pu générer.",
     seniorSubmitDisclaimerBulletNoResponsibility:
@@ -839,7 +843,7 @@ export const messagesFr: Messages = {
     seniorAiManMarkingToggleLabel: "Marquage individuel",
     seniorAiManMarkingToggleTooltip:
       "Soumettre les ordres de marquage individuel si un marqueur approprie et une cible de marquage appropriee sont identifies.",
-    seniorAiManMarkingFuzzinessLabel: "Flou IA",
+    seniorAiManMarkingFuzzinessLabel: "Rigueur MM",
     seniorAiManMarkingFuzzinessTooltip:
       "Niveau d'exigence pour identifier la cible de marquage individuel.",
     seniorAiManMarkingFuzzinessAriaLabel:

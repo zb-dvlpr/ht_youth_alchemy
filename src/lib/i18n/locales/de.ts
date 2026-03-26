@@ -647,6 +647,10 @@ export const messagesDe: Messages = {
     seniorSubmitDisclaimerIntro: "Bitte beachte Folgendes:",
     seniorSubmitDisclaimerManMarkingSummary:
       "Manndeckung von {{target}} durch {{marker}} wird mitgesendet.",
+    seniorSubmitDisclaimerOrdersTitle: "Geplante Auswechslungen und Wechsel",
+    seniorSubmitDisclaimerOrdersNone: "Keine geplanten Auswechslungen oder Wechsel.",
+    seniorSubmitDisclaimerPenaltyOrderTitle: "Reihenfolge der Elfmeterschützen",
+    seniorSubmitDisclaimerSetPiecesTitle: "Festgelegter Standardschütze",
     seniorSubmitDisclaimerBulletBestEffort:
       "Basierend auf den von Hattrick bereitgestellten Informationen ist dies die effektivste Aufstellung, die die KI erzeugen konnte.",
     seniorSubmitDisclaimerBulletNoResponsibility:
@@ -826,7 +830,7 @@ export const messagesDe: Messages = {
     seniorAiManMarkingToggleLabel: "Manndeckung",
     seniorAiManMarkingToggleTooltip:
       "Manndeckungsanweisungen beim Absenden ubermitteln, wenn ein geeigneter Manndecker und ein geeignetes Manndeckungsziel identifiziert wurden.",
-    seniorAiManMarkingFuzzinessLabel: "KI-Unschaerfe",
+    seniorAiManMarkingFuzzinessLabel: "MM-Strenge",
     seniorAiManMarkingFuzzinessTooltip:
       "Strenge fuer die Identifikation des Manndeckungsziels.",
     seniorAiManMarkingFuzzinessAriaLabel:

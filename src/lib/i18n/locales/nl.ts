@@ -290,7 +290,7 @@ export const messagesNl: Messages = {
   seniorAiManMarkingToggleLabel: "Mandekking",
   seniorAiManMarkingToggleTooltip:
     "Dien mandekkingsorders in als een geschikte mandekker en een geschikt mandekkingsdoel zijn geidentificeerd.",
-  seniorAiManMarkingFuzzinessLabel: "AI-vaagheid",
+  seniorAiManMarkingFuzzinessLabel: "MM-striktheid",
   seniorAiManMarkingFuzzinessTooltip:
     "Striktheid voor het identificeren van het mandekkingsdoel.",
   seniorAiManMarkingFuzzinessAriaLabel:
@@ -440,6 +440,10 @@ export const messagesNl: Messages = {
   seniorSubmitDisclaimerIntro: "Controleer het volgende:",
   seniorSubmitDisclaimerManMarkingSummary:
     "Mandekking van {{target}} door {{marker}} wordt meegestuurd.",
+  seniorSubmitDisclaimerOrdersTitle: "Geplande wissels en positiewissels",
+  seniorSubmitDisclaimerOrdersNone: "Geen geplande wissels of positiewissels.",
+  seniorSubmitDisclaimerPenaltyOrderTitle: "Volgorde van penaltynemers",
+  seniorSubmitDisclaimerSetPiecesTitle: "Aangewezen nemer van spelhervattingen",
   seniorSubmitDisclaimerBulletBestEffort:
     "Op basis van de informatie van Hattrick is dit de meest effectieve opstelling die de AI kon genereren.",
   seniorSubmitDisclaimerBulletNoResponsibility:

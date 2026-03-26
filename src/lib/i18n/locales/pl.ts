@@ -284,7 +284,7 @@ export const messagesPl: Messages = {
   seniorAiManMarkingToggleLabel: "Krycie indywidualne",
   seniorAiManMarkingToggleTooltip:
     "Wyslij polecenia krycia indywidualnego, jesli zostana zidentyfikowani odpowiedni kryjacy i odpowiedni cel krycia.",
-  seniorAiManMarkingFuzzinessLabel: "Rozmycie AI",
+  seniorAiManMarkingFuzzinessLabel: "Rygor MM",
   seniorAiManMarkingFuzzinessTooltip:
     "Surowosc identyfikacji celu krycia indywidualnego.",
   seniorAiManMarkingFuzzinessAriaLabel:
@@ -434,6 +434,10 @@ export const messagesPl: Messages = {
   seniorSubmitDisclaimerIntro: "Sprawdź proszę poniższe punkty:",
   seniorSubmitDisclaimerManMarkingSummary:
     "Krycie indywidualne {{target}} przez {{marker}} zostanie wysłane.",
+  seniorSubmitDisclaimerOrdersTitle: "Planowane zmiany i zamiany pozycji",
+  seniorSubmitDisclaimerOrdersNone: "Brak planowanych zmian lub zamian pozycji.",
+  seniorSubmitDisclaimerPenaltyOrderTitle: "Kolejność wykonawców rzutów karnych",
+  seniorSubmitDisclaimerSetPiecesTitle: "Wyznaczony wykonawca stałych fragmentów",
   seniorSubmitDisclaimerBulletBestEffort:
     "Na podstawie informacji dostarczonych przez Hattrick jest to najbardziej efektywny skład, jaki AI mogła wygenerować.",
   seniorSubmitDisclaimerBulletNoResponsibility:

@@ -659,6 +659,10 @@ export const messagesIt: Messages = {
     seniorSubmitDisclaimerIntro: "Controlla i seguenti punti:",
     seniorSubmitDisclaimerManMarkingSummary:
       "Sarà inviato il marcamento a uomo di {{target}} da parte di {{marker}}.",
+    seniorSubmitDisclaimerOrdersTitle: "Sostituzioni e scambi pianificati",
+    seniorSubmitDisclaimerOrdersNone: "Nessuna sostituzione o scambio pianificato.",
+    seniorSubmitDisclaimerPenaltyOrderTitle: "Ordine dei rigoristi",
+    seniorSubmitDisclaimerSetPiecesTitle: "Battitore dei calci piazzati designato",
     seniorSubmitDisclaimerBulletBestEffort:
       "In base alle informazioni fornite da Hattrick, questa è la formazione più efficace che l'IA è riuscita a generare.",
     seniorSubmitDisclaimerBulletNoResponsibility:
@@ -841,7 +845,7 @@ export const messagesIt: Messages = {
     seniorAiManMarkingToggleLabel: "Marcatura a uomo",
     seniorAiManMarkingToggleTooltip:
       "Invia gli ordini di marcatura a uomo se vengono identificati un marcatore adatto e un bersaglio adatto.",
-    seniorAiManMarkingFuzzinessLabel: "Sfocatura IA",
+    seniorAiManMarkingFuzzinessLabel: "Rigidita MM",
     seniorAiManMarkingFuzzinessTooltip:
       "Rigidita per identificare il bersaglio della marcatura a uomo.",
     seniorAiManMarkingFuzzinessAriaLabel:

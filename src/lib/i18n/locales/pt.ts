@@ -658,6 +658,10 @@ export const messagesPt: Messages = {
     seniorSubmitDisclaimerIntro: "Revise os pontos abaixo:",
     seniorSubmitDisclaimerManMarkingSummary:
       "A marcacao individual de {{target}} por {{marker}} sera enviada.",
+    seniorSubmitDisclaimerOrdersTitle: "Substituicoes e trocas planejadas",
+    seniorSubmitDisclaimerOrdersNone: "Nenhuma substituicao ou troca planejada.",
+    seniorSubmitDisclaimerPenaltyOrderTitle: "Ordem dos cobradores de penalti",
+    seniorSubmitDisclaimerSetPiecesTitle: "Cobrador designado de bolas paradas",
     seniorSubmitDisclaimerBulletBestEffort:
       "Com base nas informações fornecidas pelo Hattrick, esta é a escalação mais eficaz que a IA conseguiu gerar.",
     seniorSubmitDisclaimerBulletNoResponsibility:
@@ -840,7 +844,7 @@ export const messagesPt: Messages = {
     seniorAiManMarkingToggleLabel: "Marcacao individual",
     seniorAiManMarkingToggleTooltip:
       "Enviar ordens de marcacao individual se um marcador adequado e um alvo de marcacao adequado forem identificados.",
-    seniorAiManMarkingFuzzinessLabel: "Difusao IA",
+    seniorAiManMarkingFuzzinessLabel: "Rigidez MM",
     seniorAiManMarkingFuzzinessTooltip:
       "Rigidez para identificar o alvo de marcacao individual.",
     seniorAiManMarkingFuzzinessAriaLabel:

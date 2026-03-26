@@ -48,7 +48,7 @@ export type MatchesResponse = {
   details?: string;
 };
 
-type MatchOrdersLineupPayload = {
+export type MatchOrdersLineupPayload = {
   positions: Array<{ id: number; behaviour: number }>;
   bench: Array<{ id: number; behaviour: number }>;
   kickers: Array<{ id: number; behaviour: number }>;
@@ -100,7 +100,7 @@ type UpcomingMatchesProps = {
   loadedMatchId?: number | null;
   submitEnabledMatchId?: number | null;
   submitRestrictedTooltipBuilder?: (targetMatch: Match | undefined) => ReactNode;
-  onSubmitSuccess?: (matchId: number) => void;
+  onSubmitSuccess?: (matchId: number, lineupPayload: MatchOrdersLineupPayload) => void;
   buildSubmitLineupPayload?: (
     matchId: number,
     defaultPayload: MatchOrdersLineupPayload
@@ -1142,7 +1142,7 @@ export default function UpcomingMatches({
           matchById.get(matchId)
         )}`
       );
-      onSubmitSuccess?.(matchId);
+      onSubmitSuccess?.(matchId, resolvedLineupPayload);
       onRefresh?.();
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) return;

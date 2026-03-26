@@ -626,6 +626,10 @@ export const messagesEn: Messages = {
     seniorSubmitDisclaimerIntro: "Please review before finalizing:",
     seniorSubmitDisclaimerManMarkingSummary:
       "Man marking of {{target}} by {{marker}} will be submitted.",
+    seniorSubmitDisclaimerOrdersTitle: "Planned substitutions and swaps",
+    seniorSubmitDisclaimerOrdersNone: "No planned substitutions or swaps.",
+    seniorSubmitDisclaimerPenaltyOrderTitle: "Penalty taker order",
+    seniorSubmitDisclaimerSetPiecesTitle: "Designated set pieces taker",
     seniorSubmitDisclaimerBulletBestEffort:
       "Based on the information provided by Hattrick, this is the most effective lineup the AI could generate.",
     seniorSubmitDisclaimerBulletNoResponsibility:
@@ -803,7 +807,7 @@ export const messagesEn: Messages = {
     seniorAiManMarkingToggleLabel: "Man marking",
     seniorAiManMarkingToggleTooltip:
       "Submit man-marking orders if a suitable man marker and man-marking target are identified.",
-    seniorAiManMarkingFuzzinessLabel: "AI fuzziness",
+    seniorAiManMarkingFuzzinessLabel: "MM strictness",
     seniorAiManMarkingFuzzinessTooltip:
       "Strictness for man-marking target identification.",
     seniorAiManMarkingFuzzinessAriaLabel:

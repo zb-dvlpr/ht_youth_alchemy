@@ -3138,6 +3138,46 @@ export default function SeniorDashboard({
     setSeniorAiSubmitEnabledMatchId(matchId);
     setSeniorAiPreparedSubmissionMode(mode);
   };
+
+  const preparedSeniorAiLineupActive =
+    seniorAiSubmitLockActive &&
+    seniorAiSubmitEnabledMatchId !== null &&
+    (extraTimePreparedSubmission !== null ||
+      seniorAiPreparedSubmissionMode === "trainingAware" ||
+      seniorAiPreparedSubmissionMode === "ignoreTraining" ||
+      seniorAiPreparedSubmissionMode === "fixedFormation");
+
+  const preservePreparedSeniorAiContextAfterManualEdit = (
+    nextAssignments: LineupAssignments,
+    nextBehaviors: LineupBehaviors,
+    nextTacticType: number
+  ) => {
+    if (!preparedSeniorAiLineupActive) {
+      setLoadedMatchId(null);
+      clearSeniorAiSubmitLock();
+      return;
+    }
+    const lockedMatchId = seniorAiSubmitEnabledMatchId;
+    if (typeof lockedMatchId === "number" && lockedMatchId > 0) {
+      setLoadedMatchId(lockedMatchId);
+    }
+    if (
+      seniorAiPreparedSubmissionMode === "trainingAware" ||
+      seniorAiPreparedSubmissionMode === "ignoreTraining" ||
+      seniorAiPreparedSubmissionMode === "fixedFormation"
+    ) {
+      setSeniorAiManMarkingReadyContext({
+        signature:
+          buildSeniorAiManMarkingReadySignature({
+            matchId: lockedMatchId,
+            mode: seniorAiPreparedSubmissionMode,
+            tacticType: nextTacticType,
+            assignments: nextAssignments,
+            behaviors: nextBehaviors,
+          }) ?? "",
+      });
+    }
+  };
   const [opponentAnalysisModal, setOpponentAnalysisModal] = useState<{
     title: string;
     opponentTeamId: number;
@@ -15938,42 +15978,52 @@ const refreshDetailsForPlayers = async (
                 ])
               )}
               onAssign={(slotId, playerId) => {
-                setAssignments((prev) => {
-                  const next = { ...prev };
-                  Object.keys(next).forEach((key) => {
-                    if (next[key] === playerId) {
-                      next[key] = null;
-                    }
-                  });
-                  next[slotId] = playerId;
-                  return next;
+                const nextAssignments = { ...assignments };
+                Object.keys(nextAssignments).forEach((key) => {
+                  if (nextAssignments[key] === playerId) {
+                    nextAssignments[key] = null;
+                  }
                 });
-                setLoadedMatchId(null);
-                clearSeniorAiSubmitLock();
+                nextAssignments[slotId] = playerId;
+                setAssignments(nextAssignments);
+                preservePreparedSeniorAiContextAfterManualEdit(
+                  nextAssignments,
+                  behaviors,
+                  tacticType
+                );
               }}
               onClear={(slotId) => {
-                setAssignments((prev) => ({ ...prev, [slotId]: null }));
-                setLoadedMatchId(null);
-                clearSeniorAiSubmitLock();
+                const nextAssignments = { ...assignments, [slotId]: null };
+                setAssignments(nextAssignments);
+                preservePreparedSeniorAiContextAfterManualEdit(
+                  nextAssignments,
+                  behaviors,
+                  tacticType
+                );
               }}
               onMove={(fromSlot, toSlot) => {
-                setAssignments((prev) => ({
-                  ...prev,
-                  [toSlot]: prev[fromSlot] ?? null,
-                  [fromSlot]: prev[toSlot] ?? null,
-                }));
-                setLoadedMatchId(null);
-                clearSeniorAiSubmitLock();
+                const nextAssignments = {
+                  ...assignments,
+                  [toSlot]: assignments[fromSlot] ?? null,
+                  [fromSlot]: assignments[toSlot] ?? null,
+                };
+                setAssignments(nextAssignments);
+                preservePreparedSeniorAiContextAfterManualEdit(
+                  nextAssignments,
+                  behaviors,
+                  tacticType
+                );
               }}
               onChangeBehavior={(slotId, behavior) => {
-                setBehaviors((prev) => {
-                  const next = { ...prev };
-                  if (behavior) next[slotId] = behavior;
-                  else delete next[slotId];
-                  return next;
-                });
-                setLoadedMatchId(null);
-                clearSeniorAiSubmitLock();
+                const nextBehaviors = { ...behaviors };
+                if (behavior) nextBehaviors[slotId] = behavior;
+                else delete nextBehaviors[slotId];
+                setBehaviors(nextBehaviors);
+                preservePreparedSeniorAiContextAfterManualEdit(
+                  assignments,
+                  nextBehaviors,
+                  tacticType
+                );
               }}
               onReset={() => {
                 setAssignments({});
@@ -15983,7 +16033,14 @@ const refreshDetailsForPlayers = async (
                 addNotification(messages.notificationLineupReset);
               }}
               tacticType={tacticType}
-              onTacticChange={setTacticType}
+              onTacticChange={(nextTacticType) => {
+                setTacticType(nextTacticType);
+                preservePreparedSeniorAiContextAfterManualEdit(
+                  assignments,
+                  behaviors,
+                  nextTacticType
+                );
+              }}
               tacticPlacement="headerRight"
               trainingType={trainingType}
               onTrainingTypeChange={setTrainingType}

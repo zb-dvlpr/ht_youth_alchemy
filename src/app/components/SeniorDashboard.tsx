@@ -772,6 +772,15 @@ type StartupLoadingPhase =
   | "ratings"
   | "finalize";
 
+const clampSeniorAiManMarkingFuzziness = (value: number) =>
+  Math.min(
+    SENIOR_AI_MAN_MARKING_FUZZINESS_MAX,
+    Math.max(
+      SENIOR_AI_MAN_MARKING_FUZZINESS_MIN,
+      Number.isFinite(value) ? Math.round(value) : SENIOR_AI_MAN_MARKING_FUZZINESS_DEFAULT
+    )
+  );
+
 const parseNumber = (value: unknown): number | null => {
   if (value === null || value === undefined) return null;
   if (typeof value === "object") {
@@ -992,6 +1001,70 @@ const parseSkill = (value: unknown): number | null => {
   }
   return null;
 };
+
+const SeniorAiManMarkingFuzzinessSlider = memo(function SeniorAiManMarkingFuzzinessSlider({
+  value,
+  label,
+  ariaLabel,
+  onCommit,
+}: {
+  value: number;
+  label: string;
+  ariaLabel: string;
+  onCommit: (value: number) => void;
+}) {
+  const [draftValue, setDraftValue] = useState(value);
+
+  useEffect(() => {
+    setDraftValue(value);
+  }, [value]);
+
+  const commitDraftValue = useCallback(() => {
+    const nextValue = clampSeniorAiManMarkingFuzziness(draftValue);
+    if (nextValue !== draftValue) {
+      setDraftValue(nextValue);
+    }
+    if (nextValue !== value) {
+      onCommit(nextValue);
+    }
+  }, [draftValue, onCommit, value]);
+
+  return (
+    <label className={styles.seniorAiManMarkingFuzzinessControl}>
+      <span className={styles.seniorAiManMarkingFuzzinessLabel}>{label}</span>
+      <div className={styles.seniorAiManMarkingFuzzinessSliderRow}>
+        <input
+          type="range"
+          min={SENIOR_AI_MAN_MARKING_FUZZINESS_MIN}
+          max={SENIOR_AI_MAN_MARKING_FUZZINESS_MAX}
+          step={1}
+          value={draftValue}
+          className={styles.seniorAiManMarkingFuzzinessSlider}
+          aria-label={ariaLabel}
+          onChange={(event: ChangeEvent<HTMLInputElement>) => {
+            setDraftValue(clampSeniorAiManMarkingFuzziness(Number(event.target.value)));
+          }}
+          onPointerUp={commitDraftValue}
+          onBlur={commitDraftValue}
+          onKeyUp={(event) => {
+            if (
+              event.key === "ArrowLeft" ||
+              event.key === "ArrowRight" ||
+              event.key === "ArrowUp" ||
+              event.key === "ArrowDown" ||
+              event.key === "Home" ||
+              event.key === "End" ||
+              event.key === "PageUp" ||
+              event.key === "PageDown"
+            ) {
+              commitDraftValue();
+            }
+          }}
+        />
+      </div>
+    </label>
+  );
+});
 
 const ageToTotalDays = (years: number, days: number) =>
   Math.max(0, years) * HATTRICK_AGE_DAYS_PER_YEAR + Math.max(0, days);
@@ -4253,34 +4326,12 @@ export default function SeniorDashboard({
           </label>
         </Tooltip>
         <Tooltip content={messages.seniorAiManMarkingFuzzinessTooltip}>
-          <label className={styles.seniorAiManMarkingFuzzinessControl}>
-            <span className={styles.seniorAiManMarkingFuzzinessLabel}>
-              {messages.seniorAiManMarkingFuzzinessLabel}
-            </span>
-            <div className={styles.seniorAiManMarkingFuzzinessSliderRow}>
-              <input
-                type="range"
-                min={SENIOR_AI_MAN_MARKING_FUZZINESS_MIN}
-                max={SENIOR_AI_MAN_MARKING_FUZZINESS_MAX}
-                step={1}
-                value={seniorAiManMarkingFuzziness}
-                className={styles.seniorAiManMarkingFuzzinessSlider}
-                aria-label={messages.seniorAiManMarkingFuzzinessAriaLabel}
-                onChange={(event) =>
-                  setSeniorAiManMarkingFuzziness(
-                    Math.min(
-                      SENIOR_AI_MAN_MARKING_FUZZINESS_MAX,
-                      Math.max(
-                        SENIOR_AI_MAN_MARKING_FUZZINESS_MIN,
-                        Number(event.target.value) ||
-                          SENIOR_AI_MAN_MARKING_FUZZINESS_DEFAULT
-                      )
-                    )
-                  )
-                }
-              />
-            </div>
-          </label>
+          <SeniorAiManMarkingFuzzinessSlider
+            value={seniorAiManMarkingFuzziness}
+            label={messages.seniorAiManMarkingFuzzinessLabel}
+            ariaLabel={messages.seniorAiManMarkingFuzzinessAriaLabel}
+            onCommit={setSeniorAiManMarkingFuzziness}
+          />
         </Tooltip>
         {seniorAiManMarkingSelection ? (
           <span className={styles.seniorExtraTimeBTeamStatus}>

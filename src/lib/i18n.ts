@@ -554,6 +554,10 @@ export type Messages = {
   seniorSubmitDisclaimerTitle: string;
   seniorSubmitDisclaimerIntro: string;
   seniorSubmitDisclaimerManMarkingSummary: string;
+  seniorSubmitDisclaimerOrdersTitle: string;
+  seniorSubmitDisclaimerOrdersNone: string;
+  seniorSubmitDisclaimerPenaltyOrderTitle: string;
+  seniorSubmitDisclaimerSetPiecesTitle: string;
   seniorSubmitDisclaimerBulletBestEffort: string;
   seniorSubmitDisclaimerBulletNoResponsibility: string;
   seniorSubmitDisclaimerBulletFineTune: string;
@@ -682,6 +686,7 @@ export type Messages = {
   seniorAiLastMatchThresholdAriaLabel: string;
   seniorAiLastMatchDisregardedTooltip: string;
   seniorAiManMarkingToggleLabel: string;
+  seniorAiManMarkingToggleTooltip: string;
   seniorAiManMarkingFuzzinessLabel: string;
   seniorAiManMarkingFuzzinessTooltip: string;
   seniorAiManMarkingFuzzinessAriaLabel: string;

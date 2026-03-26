@@ -282,6 +282,8 @@ export const messagesPl: Messages = {
   seniorAiLastMatchDisregardedTooltip:
     "Ten zawodnik jest pomijany, ponieważ ostatni raz grał {{weeks}} tygodni temu.",
   seniorAiManMarkingToggleLabel: "Krycie indywidualne",
+  seniorAiManMarkingToggleTooltip:
+    "Wyslij polecenia krycia indywidualnego, jesli zostana zidentyfikowani odpowiedni kryjacy i odpowiedni cel krycia.",
   seniorAiManMarkingFuzzinessLabel: "Rozmycie AI",
   seniorAiManMarkingFuzzinessTooltip:
     "Surowosc identyfikacji celu krycia indywidualnego.",

@@ -1006,11 +1006,13 @@ const SeniorAiManMarkingFuzzinessSlider = memo(function SeniorAiManMarkingFuzzin
   value,
   label,
   ariaLabel,
+  disabled,
   onCommit,
 }: {
   value: number;
   label: string;
   ariaLabel: string;
+  disabled?: boolean;
   onCommit: (value: number) => void;
 }) {
   const [draftValue, setDraftValue] = useState(value);
@@ -1041,6 +1043,7 @@ const SeniorAiManMarkingFuzzinessSlider = memo(function SeniorAiManMarkingFuzzin
           value={draftValue}
           className={styles.seniorAiManMarkingFuzzinessSlider}
           aria-label={ariaLabel}
+          disabled={disabled}
           onChange={(event: ChangeEvent<HTMLInputElement>) => {
             setDraftValue(clampSeniorAiManMarkingFuzziness(Number(event.target.value)));
           }}
@@ -4118,7 +4121,7 @@ export default function SeniorDashboard({
       IM: null,
       CD: null,
     };
-    if (!seniorAiManMarkingSupported) {
+    if (!seniorAiManMarkingSupported || !seniorAiManMarkingEnabled) {
       return bestByRole;
     }
     (Object.entries(assignments) as Array<[keyof LineupAssignments, number | null | undefined]>)
@@ -4148,7 +4151,9 @@ export default function SeniorDashboard({
     return bestByRole;
   }, [assignments, playersById, seniorAiManMarkingSupported, detailsById]);
   const seniorAiManMarkingSelection = useMemo(() => {
-    if (!seniorAiManMarkingSupported || !seniorAiManMarkingTarget) return null;
+    if (!seniorAiManMarkingSupported || !seniorAiManMarkingEnabled || !seniorAiManMarkingTarget) {
+      return null;
+    }
     const requiredRole: SeniorAiManMarkingRole =
       seniorAiManMarkingTarget.role === "F"
         ? "CD"
@@ -4168,37 +4173,8 @@ export default function SeniorDashboard({
     seniorAiManMarkingSupported,
     seniorAiManMarkingTarget,
   ]);
-  const seniorAiManMarkingDisabledReason = (() => {
-    if (!seniorAiManMarkingReady) {
-      return "precondition";
-    }
-    const target = seniorAiManMarkingTarget;
-    const marker =
-      target?.role === "F"
-        ? seniorAiManMarkingCandidates.CD
-        : target?.role === "IM"
-          ? seniorAiManMarkingCandidates.IM
-          : target?.role === "W"
-            ? seniorAiManMarkingCandidates.WB
-            : null;
-    const hasTarget = Boolean(target);
-    const hasMarker = Boolean(marker && target && marker.tsi > target.tsi);
-    if (!hasMarker && !hasTarget) return "both";
-    if (!hasTarget) return "target";
-    if (!hasMarker) return "marker";
-    return null;
-  })();
-  const seniorAiManMarkingToggleTooltip: ReactNode = seniorAiManMarkingSelection
-    ? messages.seniorAiManMarkingEnabledTooltip
-        .replace("{{target}}", seniorAiManMarkingSelection.target.name)
-        .replace("{{marker}}", seniorAiManMarkingSelection.marker.name)
-    : seniorAiManMarkingDisabledReason === "precondition"
-      ? messages.seniorAiManMarkingNeedsLineupTooltip
-      : seniorAiManMarkingDisabledReason === "both"
-        ? messages.seniorAiManMarkingMissingBothTooltip
-        : seniorAiManMarkingDisabledReason === "target"
-          ? messages.seniorAiManMarkingMissingTargetTooltip
-          : messages.seniorAiManMarkingMissingMarkerTooltip;
+  const seniorAiManMarkingToggleTooltip: ReactNode =
+    messages.seniorAiManMarkingToggleTooltip;
   const setBestLineupBTeamMenuContent = (
     <div className={styles.seniorSetBestLineupBTeamMenuSection}>
       <div className={styles.seniorExtraTimeBTeamControls}>
@@ -4315,8 +4291,7 @@ export default function SeniorDashboard({
             <input
               type="checkbox"
               className={styles.matchesFilterToggleInput}
-              checked={seniorAiManMarkingEnabled && Boolean(seniorAiManMarkingSelection)}
-              disabled={!seniorAiManMarkingReady || !seniorAiManMarkingSelection}
+              checked={seniorAiManMarkingEnabled}
               onChange={(event) => setSeniorAiManMarkingEnabled(event.target.checked)}
             />
             <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
@@ -4330,35 +4305,10 @@ export default function SeniorDashboard({
             value={seniorAiManMarkingFuzziness}
             label={messages.seniorAiManMarkingFuzzinessLabel}
             ariaLabel={messages.seniorAiManMarkingFuzzinessAriaLabel}
+            disabled={!seniorAiManMarkingEnabled}
             onCommit={setSeniorAiManMarkingFuzziness}
           />
         </Tooltip>
-        {seniorAiManMarkingSelection ? (
-          <span className={styles.seniorExtraTimeBTeamStatus}>
-            {renderTemplateTokens(messages.seniorAiManMarkingEnabledTooltip, {
-              target: (
-                <a
-                  className={styles.seniorExtraTimeInlineLink}
-                  href={hattrickPlayerUrl(seniorAiManMarkingSelection.target.playerId)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {seniorAiManMarkingSelection.target.name}
-                </a>
-              ),
-              marker: (
-                <a
-                  className={styles.seniorExtraTimeInlineLink}
-                  href={hattrickPlayerUrl(seniorAiManMarkingSelection.marker.playerId)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {seniorAiManMarkingSelection.marker.name}
-                </a>
-              ),
-            })}
-          </span>
-        ) : null}
       </div>
       <div
         className={`${styles.seniorSetBestLineupMenuDivider} ${styles.seniorSetBestLineupMenuDividerStrong}`}
@@ -4386,12 +4336,7 @@ export default function SeniorDashboard({
   }, [extraTimeAvailablePlayerIdSet, playersById]);
 
   useEffect(() => {
-    if (seniorAiManMarkingSelection) return;
-    setSeniorAiManMarkingEnabled(false);
-  }, [seniorAiManMarkingSelection]);
-
-  useEffect(() => {
-    if (!seniorAiManMarkingSupported || loadedMatchId === null) {
+    if (!seniorAiManMarkingEnabled || !seniorAiManMarkingSupported || loadedMatchId === null) {
       setSeniorAiManMarkingTarget(null);
       setOpponentFormationsModal((prev) =>
         prev
@@ -4424,15 +4369,10 @@ export default function SeniorDashboard({
     };
   }, [
     loadedMatchId,
+    seniorAiManMarkingEnabled,
     seniorAiManMarkingFuzziness,
     seniorAiManMarkingSupported,
   ]);
-
-  useEffect(() => {
-    if (seniorAiManMarkingSupported && loadedMatchId !== null) return;
-    setSeniorAiManMarkingEnabled(false);
-    setSeniorAiManMarkingTarget(null);
-  }, [loadedMatchId, seniorAiManMarkingSupported]);
 
   useEffect(() => {
     if (resolvedSeniorTeamId === null) {

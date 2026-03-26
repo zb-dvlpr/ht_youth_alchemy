@@ -824,6 +824,8 @@ export const messagesDe: Messages = {
     seniorAiLastMatchDisregardedTooltip:
       "Dieser Spieler wird ignoriert, weil sein letztes Spiel {{weeks}} Wochen zurückliegt.",
     seniorAiManMarkingToggleLabel: "Manndeckung",
+    seniorAiManMarkingToggleTooltip:
+      "Manndeckungsanweisungen beim Absenden ubermitteln, wenn ein geeigneter Manndecker und ein geeignetes Manndeckungsziel identifiziert wurden.",
     seniorAiManMarkingFuzzinessLabel: "KI-Unschaerfe",
     seniorAiManMarkingFuzzinessTooltip:
       "Strenge fuer die Identifikation des Manndeckungsziels.",

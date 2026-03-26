@@ -4598,6 +4598,66 @@ export default function SeniorDashboard({
   const comparePlayersBySetPiecesDescending = (left: SeniorPlayer, right: SeniorPlayer) =>
     comparePlayersBySetPiecesAscending(right, left);
 
+  const comparePlayersBySeniorAiSetPiecesPreference = (
+    left: SeniorPlayer,
+    right: SeniorPlayer
+  ) => {
+    const leftSetPieces = skillValueForPlayer(left, "SetPiecesSkill") ?? -1;
+    const rightSetPieces = skillValueForPlayer(right, "SetPiecesSkill") ?? -1;
+    if (rightSetPieces !== leftSetPieces) return rightSetPieces - leftSetPieces;
+
+    const leftStamina = parseSkill(
+      detailsById.get(left.PlayerID)?.StaminaSkill ?? left.StaminaSkill
+    ) ?? -1;
+    const rightStamina = parseSkill(
+      detailsById.get(right.PlayerID)?.StaminaSkill ?? right.StaminaSkill
+    ) ?? -1;
+    if (rightStamina !== leftStamina) return rightStamina - leftStamina;
+
+    const leftForm = parseSkill(detailsById.get(left.PlayerID)?.Form ?? left.Form) ?? -1;
+    const rightForm = parseSkill(detailsById.get(right.PlayerID)?.Form ?? right.Form) ?? -1;
+    if (rightForm !== leftForm) return rightForm - leftForm;
+
+    const leftAge = ageToTotalDays(left.Age ?? Number.MAX_SAFE_INTEGER, left.AgeDays ?? 0);
+    const rightAge = ageToTotalDays(right.Age ?? Number.MAX_SAFE_INTEGER, right.AgeDays ?? 0);
+    if (leftAge !== rightAge) return leftAge - rightAge;
+
+    return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
+      formatPlayerName(right) || String(right.PlayerID)
+    );
+  };
+
+  const selectSeniorAiSetPiecesPlayerId = (
+    mode: Exclude<SetBestLineupMode, "extraTime"> | null
+  ) => {
+    if (
+      mode !== "trainingAware" &&
+      mode !== "ignoreTraining" &&
+      mode !== "fixedFormation"
+    ) {
+      return 0;
+    }
+    const onFieldPlayers = FIELD_SLOT_ORDER.map((slot) => assignments[slot])
+      .filter((playerId): playerId is number => typeof playerId === "number" && playerId > 0)
+      .map((playerId) => playersById.get(playerId) ?? null)
+      .filter((player): player is SeniorPlayer => Boolean(player));
+    if (!onFieldPlayers.length) return 0;
+
+    const orderedPlayers = [...onFieldPlayers].sort(comparePlayersBySeniorAiSetPiecesPreference);
+    const initialSetPiecesPlayer = orderedPlayers[0] ?? null;
+    const keeperId =
+      typeof assignments.KP === "number" && assignments.KP > 0 ? assignments.KP : null;
+
+    if (!initialSetPiecesPlayer) return 0;
+    if (initialSetPiecesPlayer.PlayerID !== keeperId) {
+      return initialSetPiecesPlayer.PlayerID;
+    }
+
+    const nextBestOutfieldPlayer =
+      orderedPlayers.find((player) => player.PlayerID !== keeperId) ?? null;
+    return nextBestOutfieldPlayer?.PlayerID ?? 0;
+  };
+
   const compareKeeperTrainees = (left: SeniorPlayer, right: SeniorPlayer) => {
     const leftKeeping = skillValueForPlayer(left, "KeeperSkill") ?? -1;
     const rightKeeping = skillValueForPlayer(right, "KeeperSkill") ?? -1;
@@ -8403,6 +8463,16 @@ function buildSeniorAiManMarkingReadySignature(params: {
     defaultPayload: ReturnType<typeof buildLineupPayload>
   ) => {
     const basePayload = buildPreparedExtraTimeSubmitPayload(matchId, defaultPayload);
+    const seniorAiSetPiecesPlayerId = selectSeniorAiSetPiecesPlayerId(
+      seniorAiPreparedSubmissionMode
+    );
+    const payloadWithSeniorAiSetPieces =
+      seniorAiSetPiecesPlayerId > 0 && seniorAiSubmitEnabledMatchId === matchId
+        ? {
+            ...basePayload,
+            setPieces: seniorAiSetPiecesPlayerId,
+          }
+        : basePayload;
     if (
       !seniorAiManMarkingEnabled ||
       !seniorAiManMarkingSelection ||
@@ -8410,12 +8480,12 @@ function buildSeniorAiManMarkingReadySignature(params: {
       !seniorAiManMarkingSupported ||
       seniorAiSubmitEnabledMatchId !== matchId
     ) {
-      return basePayload;
+      return payloadWithSeniorAiSetPieces;
     }
     return {
-      ...basePayload,
+      ...payloadWithSeniorAiSetPieces,
       settings: {
-        ...basePayload.settings,
+        ...payloadWithSeniorAiSetPieces.settings,
         manMarkerPlayerId: seniorAiManMarkingSelection.marker.playerId,
         manMarkingPlayerId: seniorAiManMarkingSelection.target.playerId,
       },

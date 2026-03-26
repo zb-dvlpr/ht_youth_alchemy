@@ -70,6 +70,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_3_13_0:
+      "Senior-AI-uppställningar stöder nu upptäckt, inskickning och granskning efteråt av manmarkering.",
     changelog_3_12_0:
       "Seniorspelardetaljer har nu en transfermarknadssokning for liknande spelare med redigerbara filter och Supporter-bud.",
     changelog_3_11_0:
@@ -646,6 +648,12 @@ export const messagesSv: Messages = {
       "Det gar inte att skicka den har uppstallningen eftersom den sattes upp for en annan match: {{home}} vs {{away}} den {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Varning efter inskickad uppställning",
     seniorSubmitDisclaimerIntro: "Gå igenom följande:",
+    seniorSubmitDisclaimerManMarkingSummary:
+      "Manmarkering av {{target}} med {{marker}} kommer att skickas.",
+    seniorSubmitDisclaimerOrdersTitle: "Planerade byten och positionsbyten",
+    seniorSubmitDisclaimerOrdersNone: "Inga planerade byten eller positionsbyten.",
+    seniorSubmitDisclaimerPenaltyOrderTitle: "Straffskyttarnas ordning",
+    seniorSubmitDisclaimerSetPiecesTitle: "Utsedd frisparks- och hörnläggare",
     seniorSubmitDisclaimerBulletBestEffort:
       "Baserat på informationen från Hattrick är detta den mest effektiva uppställning som AI kunde skapa.",
     seniorSubmitDisclaimerBulletNoResponsibility:
@@ -824,6 +832,24 @@ export const messagesSv: Messages = {
       "Veckogräns för att bortse från spelare utifrån senaste matchdatum",
     seniorAiLastMatchDisregardedTooltip:
       "Spelaren ignoreras eftersom han senast spelade för {{weeks}} veckor sedan.",
+    seniorAiManMarkingToggleLabel: "Manmarkering",
+    seniorAiManMarkingToggleTooltip:
+      "Skicka manmarkeringsorder om en lamplig markerare och ett lampligt manmarkeringsmal identifieras.",
+    seniorAiManMarkingFuzzinessLabel: "MM-strikthet",
+    seniorAiManMarkingFuzzinessTooltip:
+      "Strikthet for identifiering av manmarkeringsmal.",
+    seniorAiManMarkingFuzzinessAriaLabel:
+      "Strikthet for identifiering av manmarkeringsmal",
+    seniorAiManMarkingNeedsLineupTooltip:
+      "Manmarkering kan bara aktiveras när en uppställning har satts och en markerare och ett mål har identifierats.",
+    seniorAiManMarkingEnabledTooltip:
+      "Aktivera manmarkering av {{target}} med {{marker}}.",
+    seniorAiManMarkingMissingMarkerTooltip:
+      "Ingen lämplig markerare identifierad.",
+    seniorAiManMarkingMissingTargetTooltip:
+      "Ingen lämplig måltavla för manmarkering identifierad.",
+    seniorAiManMarkingMissingBothTooltip:
+      "Varken lämplig markerare eller måltavla för manmarkering identifierad.",
     seniorExtraTimeModalBTeamThresholdText:
       "Bortse från spelare som redan har spelat {{minutes}} minuter {{weekLink}}.",
     seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "den här veckan",
@@ -843,6 +869,8 @@ export const messagesSv: Messages = {
       "Ingen A-lagsmatch har upptackts hittills den har veckan.",
     seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
       "B-lagsmatchen har redan spelats den har veckan: {{matchLink}}.",
+    seniorExtraTimeModalBTeamAlreadyPlayedDisabledTooltip:
+      "B-lagsmatchen har redan spelats den har veckan.",
     seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "match",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Spelaren ignoreras eftersom han redan har spelat minst {{minutes}} minuter den här veckan.",
@@ -884,6 +912,12 @@ export const messagesSv: Messages = {
     setBestLineupDevReasonFormFallback: "Formreserv när ingen slotpassande kandidat fanns",
     setBestLineupDevReasonBestAggregate: "Bästa aggregerade bänkscore",
     setBestLineupDevReasonAlphabeticalTieBreak: "Alfabetisk skiljning",
+    setBestLineupDevLineupColumn: "Uppställning",
+    setBestLineupDevPotentialTargetsLabel: "Potentiella manmarkeringsmal",
+    setBestLineupDevPotentialTargetsNone: "Inga identifierade",
+    setBestLineupDevFinalTargetLabel: "Valt manmarkeringsmal",
+    setBestLineupDevPotentialTargetBadge: "potentiellt mal",
+    setBestLineupDevSelectedTargetBadge: "valt mal",
     analyzeOpponent: "Analysera motståndare",
     analyzeOpponentTooltip: "Analysera motståndarens senaste matcher.",
     analyzeOpponentMatchId: "Match-ID",

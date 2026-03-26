@@ -70,6 +70,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_3_13_0:
+      "Senior-KI-Aufstellungen unterstützen jetzt die Erkennung, Übermittlung und Nachprüfung von Manndeckung.",
     changelog_3_12_0:
       "Senior-Spielerdetails enthalten jetzt eine Transfermarkt-Aehnlichkeitssuche mit editierbaren Filtern und Supporter-Geboten.",
     changelog_3_11_0:
@@ -643,6 +645,12 @@ export const messagesDe: Messages = {
       "Diese Aufstellung kann nicht gesendet werden, weil sie fur ein anderes Spiel erstellt wurde: {{home}} vs {{away}} am {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Hinweis nach dem Senden der Aufstellung",
     seniorSubmitDisclaimerIntro: "Bitte beachte Folgendes:",
+    seniorSubmitDisclaimerManMarkingSummary:
+      "Manndeckung von {{target}} durch {{marker}} wird mitgesendet.",
+    seniorSubmitDisclaimerOrdersTitle: "Geplante Auswechslungen und Wechsel",
+    seniorSubmitDisclaimerOrdersNone: "Keine geplanten Auswechslungen oder Wechsel.",
+    seniorSubmitDisclaimerPenaltyOrderTitle: "Reihenfolge der Elfmeterschützen",
+    seniorSubmitDisclaimerSetPiecesTitle: "Festgelegter Standardschütze",
     seniorSubmitDisclaimerBulletBestEffort:
       "Basierend auf den von Hattrick bereitgestellten Informationen ist dies die effektivste Aufstellung, die die KI erzeugen konnte.",
     seniorSubmitDisclaimerBulletNoResponsibility:
@@ -819,6 +827,24 @@ export const messagesDe: Messages = {
       "Wochen-Grenzwert zum Ignorieren von Spielern anhand des letzten Spiels",
     seniorAiLastMatchDisregardedTooltip:
       "Dieser Spieler wird ignoriert, weil sein letztes Spiel {{weeks}} Wochen zurückliegt.",
+    seniorAiManMarkingToggleLabel: "Manndeckung",
+    seniorAiManMarkingToggleTooltip:
+      "Manndeckungsanweisungen beim Absenden ubermitteln, wenn ein geeigneter Manndecker und ein geeignetes Manndeckungsziel identifiziert wurden.",
+    seniorAiManMarkingFuzzinessLabel: "MM-Strenge",
+    seniorAiManMarkingFuzzinessTooltip:
+      "Strenge fuer die Identifikation des Manndeckungsziels.",
+    seniorAiManMarkingFuzzinessAriaLabel:
+      "Strenge fuer die Identifikation des Manndeckungsziels",
+    seniorAiManMarkingNeedsLineupTooltip:
+      "Manndeckung kann erst aktiviert werden, nachdem eine Aufstellung gesetzt wurde und sowohl ein Manndecker als auch ein Ziel identifiziert wurden.",
+    seniorAiManMarkingEnabledTooltip:
+      "Manndeckung von {{target}} durch {{marker}} aktivieren.",
+    seniorAiManMarkingMissingMarkerTooltip:
+      "Kein geeigneter Manndecker identifiziert.",
+    seniorAiManMarkingMissingTargetTooltip:
+      "Kein geeignetes Manndeckungsziel identifiziert.",
+    seniorAiManMarkingMissingBothTooltip:
+      "Weder geeigneter Manndecker noch geeignetes Manndeckungsziel identifiziert.",
     seniorExtraTimeModalBTeamThresholdText:
       "Spieler ignorieren, die {{weekLink}} schon {{minutes}} Minuten gespielt haben.",
     seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "diese Woche",
@@ -838,6 +864,8 @@ export const messagesDe: Messages = {
       "Bisher wurde in dieser Woche kein A-Team-Spiel erkannt.",
     seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
       "Das B-Team-Spiel wurde in dieser Woche bereits gespielt: {{matchLink}}.",
+    seniorExtraTimeModalBTeamAlreadyPlayedDisabledTooltip:
+      "Das B-Team-Spiel wurde in dieser Woche bereits gespielt.",
     seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "Spiel",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Dieser Spieler wird ignoriert, weil er diese Woche bereits mindestens {{minutes}} Minuten gespielt hat.",
@@ -879,6 +907,12 @@ export const messagesDe: Messages = {
     setBestLineupDevReasonFormFallback: "Form-Fallback ohne passenden Slot-Kandidaten",
     setBestLineupDevReasonBestAggregate: "Beste aggregierte Bankwertung",
     setBestLineupDevReasonAlphabeticalTieBreak: "Alphabetischer Tiebreak",
+    setBestLineupDevLineupColumn: "Aufstellung",
+    setBestLineupDevPotentialTargetsLabel: "Moegliche Manndeckungsziele",
+    setBestLineupDevPotentialTargetsNone: "Keine identifiziert",
+    setBestLineupDevFinalTargetLabel: "Gewaehltes Manndeckungsziel",
+    setBestLineupDevPotentialTargetBadge: "moegliches Ziel",
+    setBestLineupDevSelectedTargetBadge: "gewaehltes Ziel",
     analyzeOpponent: "Gegner analysieren",
     analyzeOpponentTooltip: "Aktuelle Gegner-Spiele analysieren.",
     analyzeOpponentMatchId: "Spiel-ID",

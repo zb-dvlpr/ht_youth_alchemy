@@ -76,6 +76,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_3_13_0: string;
   changelog_3_12_0: string;
   changelog_3_11_0: string;
   changelog_3_10_0: string;
@@ -552,6 +553,11 @@ export type Messages = {
   seniorSubmitOrdersOtherMatchTooltip: string;
   seniorSubmitDisclaimerTitle: string;
   seniorSubmitDisclaimerIntro: string;
+  seniorSubmitDisclaimerManMarkingSummary: string;
+  seniorSubmitDisclaimerOrdersTitle: string;
+  seniorSubmitDisclaimerOrdersNone: string;
+  seniorSubmitDisclaimerPenaltyOrderTitle: string;
+  seniorSubmitDisclaimerSetPiecesTitle: string;
   seniorSubmitDisclaimerBulletBestEffort: string;
   seniorSubmitDisclaimerBulletNoResponsibility: string;
   seniorSubmitDisclaimerBulletFineTune: string;
@@ -679,6 +685,16 @@ export type Messages = {
   seniorAiLastMatchThresholdDisabledText: string;
   seniorAiLastMatchThresholdAriaLabel: string;
   seniorAiLastMatchDisregardedTooltip: string;
+  seniorAiManMarkingToggleLabel: string;
+  seniorAiManMarkingToggleTooltip: string;
+  seniorAiManMarkingFuzzinessLabel: string;
+  seniorAiManMarkingFuzzinessTooltip: string;
+  seniorAiManMarkingFuzzinessAriaLabel: string;
+  seniorAiManMarkingNeedsLineupTooltip: string;
+  seniorAiManMarkingEnabledTooltip: string;
+  seniorAiManMarkingMissingMarkerTooltip: string;
+  seniorAiManMarkingMissingTargetTooltip: string;
+  seniorAiManMarkingMissingBothTooltip: string;
   seniorExtraTimeModalBTeamThresholdText: string;
   seniorExtraTimeModalBTeamThresholdWeekLinkLabel: string;
   seniorExtraTimeModalBTeamThresholdAriaLabel: string;
@@ -689,6 +705,7 @@ export type Messages = {
   seniorExtraTimeModalBTeamEnabledTooltip: string;
   seniorExtraTimeModalBTeamNoATeamMatchTooltip: string;
   seniorExtraTimeModalBTeamAlreadyPlayedTooltip: string;
+  seniorExtraTimeModalBTeamAlreadyPlayedDisabledTooltip: string;
   seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: string;
   seniorExtraTimeModalBTeamDisregardedTooltip: string;
   seniorExtraTimeModalInjuredCheckboxTooltip: string;
@@ -726,6 +743,12 @@ export type Messages = {
   setBestLineupDevReasonFormFallback: string;
   setBestLineupDevReasonBestAggregate: string;
   setBestLineupDevReasonAlphabeticalTieBreak: string;
+  setBestLineupDevLineupColumn: string;
+  setBestLineupDevPotentialTargetsLabel: string;
+  setBestLineupDevPotentialTargetsNone: string;
+  setBestLineupDevFinalTargetLabel: string;
+  setBestLineupDevPotentialTargetBadge: string;
+  setBestLineupDevSelectedTargetBadge: string;
   analyzeOpponent: string;
   analyzeOpponentTooltip: string;
   analyzeOpponentMatchId: string;

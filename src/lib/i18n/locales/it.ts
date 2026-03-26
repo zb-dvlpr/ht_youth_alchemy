@@ -70,6 +70,8 @@ export const messagesIt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Questa app è in beta. Funzioni, comportamento e dati locali in cache possono cambiare o essere azzerati senza preavviso.",
+    changelog_3_13_0:
+      "Le formazioni IA senior ora supportano rilevamento, invio e verifica post-invio della marcatura a uomo.",
     changelog_3_12_0:
       "I dettagli dei giocatori senior includono ora una ricerca di giocatori simili sul mercato trasferimenti con filtri modificabili e offerte per Supporter.",
     changelog_3_11_0:
@@ -655,6 +657,12 @@ export const messagesIt: Messages = {
       "Non e possibile inviare questa formazione perche e stata preparata per un altra partita: {{home}} vs {{away}} il {{datetime}}.",
     seniorSubmitDisclaimerTitle: "⚠️ Avvertenza dopo l'invio della formazione",
     seniorSubmitDisclaimerIntro: "Controlla i seguenti punti:",
+    seniorSubmitDisclaimerManMarkingSummary:
+      "Sarà inviato il marcamento a uomo di {{target}} da parte di {{marker}}.",
+    seniorSubmitDisclaimerOrdersTitle: "Sostituzioni e scambi pianificati",
+    seniorSubmitDisclaimerOrdersNone: "Nessuna sostituzione o scambio pianificato.",
+    seniorSubmitDisclaimerPenaltyOrderTitle: "Ordine dei rigoristi",
+    seniorSubmitDisclaimerSetPiecesTitle: "Battitore dei calci piazzati designato",
     seniorSubmitDisclaimerBulletBestEffort:
       "In base alle informazioni fornite da Hattrick, questa è la formazione più efficace che l'IA è riuscita a generare.",
     seniorSubmitDisclaimerBulletNoResponsibility:
@@ -834,6 +842,24 @@ export const messagesIt: Messages = {
       "Soglia in settimane per escludere i giocatori in base alla data dell'ultima partita",
     seniorAiLastMatchDisregardedTooltip:
       "Questo giocatore viene ignorato perché ha giocato l'ultima partita {{weeks}} settimane fa.",
+    seniorAiManMarkingToggleLabel: "Marcatura a uomo",
+    seniorAiManMarkingToggleTooltip:
+      "Invia gli ordini di marcatura a uomo se vengono identificati un marcatore adatto e un bersaglio adatto.",
+    seniorAiManMarkingFuzzinessLabel: "Rigidita MM",
+    seniorAiManMarkingFuzzinessTooltip:
+      "Rigidita per identificare il bersaglio della marcatura a uomo.",
+    seniorAiManMarkingFuzzinessAriaLabel:
+      "Rigidita per identificare il bersaglio della marcatura a uomo",
+    seniorAiManMarkingNeedsLineupTooltip:
+      "La marcatura a uomo può essere attivata solo dopo aver impostato una formazione e aver identificato sia il marcatore sia il bersaglio.",
+    seniorAiManMarkingEnabledTooltip:
+      "Attiva la marcatura a uomo di {{target}} da parte di {{marker}}.",
+    seniorAiManMarkingMissingMarkerTooltip:
+      "Nessun marcatore adatto identificato.",
+    seniorAiManMarkingMissingTargetTooltip:
+      "Nessun bersaglio adatto per la marcatura a uomo identificato.",
+    seniorAiManMarkingMissingBothTooltip:
+      "Nessun marcatore adatto e nessun bersaglio adatto per la marcatura a uomo identificati.",
     seniorExtraTimeModalBTeamThresholdText:
       "Ignora i giocatori che hanno già giocato {{minutes}} minuti {{weekLink}}.",
     seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "questa settimana",
@@ -853,6 +879,8 @@ export const messagesIt: Messages = {
       "Nessuna partita della squadra A rilevata finora questa settimana.",
     seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
       "La partita della squadra B e gia stata giocata questa settimana: {{matchLink}}.",
+    seniorExtraTimeModalBTeamAlreadyPlayedDisabledTooltip:
+      "La partita della squadra B e gia stata giocata questa settimana.",
     seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "partita",
     seniorExtraTimeModalBTeamDisregardedTooltip:
       "Questo giocatore viene ignorato perché ha già giocato almeno {{minutes}} minuti questa settimana.",
@@ -894,6 +922,12 @@ export const messagesIt: Messages = {
     setBestLineupDevReasonFormFallback: "Fallback per forma senza candidato adatto al ruolo",
     setBestLineupDevReasonBestAggregate: "Miglior punteggio aggregato da panchina",
     setBestLineupDevReasonAlphabeticalTieBreak: "Spareggio alfabetico",
+    setBestLineupDevLineupColumn: "Formazione",
+    setBestLineupDevPotentialTargetsLabel: "Potenziali bersagli per la marcatura a uomo",
+    setBestLineupDevPotentialTargetsNone: "Nessuno identificato",
+    setBestLineupDevFinalTargetLabel: "Bersaglio selezionato per la marcatura a uomo",
+    setBestLineupDevPotentialTargetBadge: "bersaglio potenziale",
+    setBestLineupDevSelectedTargetBadge: "bersaglio selezionato",
     analyzeOpponent: "Analizza avversario",
     analyzeOpponentTooltip: "Analizza le partite recenti dell'avversario.",
     analyzeOpponentMatchId: "ID partita",

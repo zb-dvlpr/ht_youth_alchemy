@@ -82,6 +82,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_3_13_0:
+    "Senior-AI-opstellingen ondersteunen nu detectie, verzending en controle achteraf van mandekking.",
   changelog_3_12_0:
     "Seniorspelerdetails hebben nu een transfermarktzoeker voor vergelijkbare spelers met aanpasbare filters en Supporter-biedingen.",
   changelog_3_11_0:
@@ -285,6 +287,24 @@ export const messagesNl: Messages = {
     "Wekengrens om spelers uit te sluiten op basis van hun laatste wedstrijd",
   seniorAiLastMatchDisregardedTooltip:
     "Deze speler wordt genegeerd omdat hij {{weeks}} weken geleden voor het laatst speelde.",
+  seniorAiManMarkingToggleLabel: "Mandekking",
+  seniorAiManMarkingToggleTooltip:
+    "Dien mandekkingsorders in als een geschikte mandekker en een geschikt mandekkingsdoel zijn geidentificeerd.",
+  seniorAiManMarkingFuzzinessLabel: "MM-striktheid",
+  seniorAiManMarkingFuzzinessTooltip:
+    "Striktheid voor het identificeren van het mandekkingsdoel.",
+  seniorAiManMarkingFuzzinessAriaLabel:
+    "Striktheid voor het identificeren van het mandekkingsdoel",
+  seniorAiManMarkingNeedsLineupTooltip:
+    "Mandekking kan pas worden ingeschakeld nadat een opstelling is gezet en zowel een mandekker als een doelwit zijn geïdentificeerd.",
+  seniorAiManMarkingEnabledTooltip:
+    "Mandekking van {{target}} door {{marker}} inschakelen.",
+  seniorAiManMarkingMissingMarkerTooltip:
+    "Geen geschikte mandekker geïdentificeerd.",
+  seniorAiManMarkingMissingTargetTooltip:
+    "Geen geschikt mandekkingsdoel geïdentificeerd.",
+  seniorAiManMarkingMissingBothTooltip:
+    "Geen geschikte mandekker en geen geschikt mandekkingsdoel geïdentificeerd.",
   seniorExtraTimeModalBTeamThresholdText:
     "Negeer spelers die {{weekLink}} al {{minutes}} minuten hebben gespeeld.",
   seniorExtraTimeModalBTeamThresholdWeekLinkLabel: "deze week",
@@ -304,6 +324,8 @@ export const messagesNl: Messages = {
     "Er is deze week nog geen A-teamwedstrijd gedetecteerd.",
   seniorExtraTimeModalBTeamAlreadyPlayedTooltip:
     "De B-teamwedstrijd is deze week al gespeeld: {{matchLink}}.",
+  seniorExtraTimeModalBTeamAlreadyPlayedDisabledTooltip:
+    "De B-teamwedstrijd is deze week al gespeeld.",
   seniorExtraTimeModalBTeamAlreadyPlayedLinkLabel: "wedstrijd",
   seniorExtraTimeModalBTeamDisregardedTooltip:
     "Deze speler wordt genegeerd omdat hij deze week al minstens {{minutes}} minuten heeft gespeeld.",
@@ -343,6 +365,12 @@ export const messagesNl: Messages = {
   setBestLineupDevReasonFormFallback: "Vorm-fallback zonder passende kandidaat",
   setBestLineupDevReasonBestAggregate: "Beste geaggregeerde bankscore",
   setBestLineupDevReasonAlphabeticalTieBreak: "Alfabetische tiebreak",
+  setBestLineupDevLineupColumn: "Opstelling",
+  setBestLineupDevPotentialTargetsLabel: "Potentiele mandekkingsdoelen",
+  setBestLineupDevPotentialTargetsNone: "Geen geidentificeerd",
+  setBestLineupDevFinalTargetLabel: "Geselecteerd mandekkingsdoel",
+  setBestLineupDevPotentialTargetBadge: "potentieel doel",
+  setBestLineupDevSelectedTargetBadge: "geselecteerd doel",
   analyzeOpponent: "Tegenstander analyseren",
   analyzeOpponentTooltip: "Analyseer recente wedstrijden van de tegenstander.",
   analyzeOpponentMatchId: "Wedstrijd-ID",
@@ -410,6 +438,12 @@ export const messagesNl: Messages = {
     "Deze opstelling kan niet worden verzonden omdat die voor een andere wedstrijd is voorbereid: {{home}} vs {{away}} op {{datetime}}.",
   seniorSubmitDisclaimerTitle: "⚠️ Disclaimer na verzenden opstelling",
   seniorSubmitDisclaimerIntro: "Controleer het volgende:",
+  seniorSubmitDisclaimerManMarkingSummary:
+    "Mandekking van {{target}} door {{marker}} wordt meegestuurd.",
+  seniorSubmitDisclaimerOrdersTitle: "Geplande wissels en positiewissels",
+  seniorSubmitDisclaimerOrdersNone: "Geen geplande wissels of positiewissels.",
+  seniorSubmitDisclaimerPenaltyOrderTitle: "Volgorde van penaltynemers",
+  seniorSubmitDisclaimerSetPiecesTitle: "Aangewezen nemer van spelhervattingen",
   seniorSubmitDisclaimerBulletBestEffort:
     "Op basis van de informatie van Hattrick is dit de meest effectieve opstelling die de AI kon genereren.",
   seniorSubmitDisclaimerBulletNoResponsibility:

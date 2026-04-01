@@ -1,6 +1,6 @@
 {
   "name": "ht_youth_alchemy",
-  "version": "3.13.20",
+  "version": "3.13.23",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -15,11 +15,11 @@
   "dependencies": {
     "@vercel/analytics": "^1.6.1",
     "fast-xml-parser": "^5.3.3",
-    "next": "16.1.6",
+    "next": "^16.1.6",
     "oauth": "^0.10.2",
     "oauth-1.0a": "^2.2.6",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "recharts": "^3.7.0"
   },
   "devDependencies": {

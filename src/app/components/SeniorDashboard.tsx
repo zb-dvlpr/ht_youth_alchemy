@@ -8310,27 +8310,35 @@ function buildSeniorAiManMarkingReadySignature(params: {
           : buildExtraTimeSetPiecesSetup(onFieldPlayers)
       ).kickerIds;
     }
+    const keeperId =
+      typeof assignments.KP === "number" && assignments.KP > 0 ? assignments.KP : null;
     const assignedPlayerIds = Array.from(
       new Set(
-        Object.values(assignments).filter(
-          (playerId): playerId is number =>
-            typeof playerId === "number" && playerId > 0
+        FIELD_SLOT_ORDER.map((slot) => assignments[slot]).filter(
+          (playerId): playerId is number => typeof playerId === "number" && playerId > 0
         )
       )
     );
-    const setPiecesByPlayerId = new Map<number, number>();
+    const penaltyRankingByPlayerId = new Map<number, number>();
     const nameByPlayerId = new Map<number, string>();
     players.forEach((player) => {
-      const value = skillValueForPlayer(player, "SetPiecesSkill");
+      const isKeeper = keeperId !== null && player.PlayerID === keeperId;
+      const specialty = specialtyValueForPlayer(player);
+      const value = isKeeper
+        ? specialty === 2
+          ? skillValueForPlayer(player, "KeeperSkill")
+          : null
+        : skillValueForPlayer(player, "SetPiecesSkill");
       if (typeof value === "number") {
-        setPiecesByPlayerId.set(player.PlayerID, value);
+        penaltyRankingByPlayerId.set(player.PlayerID, value);
       }
       nameByPlayerId.set(player.PlayerID, formatPlayerName(player) || String(player.PlayerID));
     });
     return assignedPlayerIds
+      .filter((playerId) => penaltyRankingByPlayerId.has(playerId))
       .sort((leftId, rightId) => {
-        const leftValue = setPiecesByPlayerId.get(leftId) ?? -1;
-        const rightValue = setPiecesByPlayerId.get(rightId) ?? -1;
+        const leftValue = penaltyRankingByPlayerId.get(leftId) ?? -1;
+        const rightValue = penaltyRankingByPlayerId.get(rightId) ?? -1;
         if (rightValue !== leftValue) return rightValue - leftValue;
         return (nameByPlayerId.get(leftId) ?? String(leftId)).localeCompare(
           nameByPlayerId.get(rightId) ?? String(rightId)
@@ -8345,6 +8353,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     players,
     playersById,
     skillValueForPlayer,
+    specialtyValueForPlayer,
   ]);
 
   const seniorSetPiecesPlayerId = useMemo(() => {

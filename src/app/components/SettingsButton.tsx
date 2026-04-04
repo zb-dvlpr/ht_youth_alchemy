@@ -62,6 +62,7 @@ export default function SettingsButton({
   messages,
   variant = "icon",
 }: SettingsButtonProps) {
+  const isMobileLauncherVariant = variant === "launcher";
   const [open, setOpen] = useState(false);
   const [youthSettingsOpen, setYouthSettingsOpen] = useState(false);
   const [seniorSettingsOpen, setSeniorSettingsOpen] = useState(false);
@@ -472,16 +473,18 @@ export default function SettingsButton({
           >
             {messages.settingsSenior}
           </button>
-          <button
-            type="button"
-            className={styles.feedbackLink}
-            onClick={() => {
-              setGeneralSettingsOpen(true);
-              setOpen(false);
-            }}
-          >
-            {messages.settingsGeneral}
-          </button>
+          {!isMobileLauncherVariant ? (
+            <button
+              type="button"
+              className={styles.feedbackLink}
+              onClick={() => {
+                setGeneralSettingsOpen(true);
+                setOpen(false);
+              }}
+            >
+              {messages.settingsGeneral}
+            </button>
+          ) : null}
           {isDev ? (
             <button
               type="button"
@@ -731,28 +734,30 @@ export default function SettingsButton({
         title={messages.settingsGeneralTitle}
         body={
           <div className={styles.settingsModalBody}>
-            <Tooltip
-              content={messages.settingsGeneralEnableScalingTooltip}
-              fullWidth
-            >
-              <label className={styles.algorithmsToggle}>
-                <span className={styles.algorithmsToggleText}>
-                  {messages.settingsGeneralEnableScalingLabel}
-                </span>
-                <input
-                  type="checkbox"
-                  className={styles.algorithmsToggleInput}
-                  checked={enableAppScaling}
-                  onChange={(event) =>
-                    handleEnableScalingToggle(event.target.checked)
-                  }
-                />
-                <span
-                  className={styles.algorithmsToggleSwitch}
-                  aria-hidden="true"
-                />
-              </label>
-            </Tooltip>
+            {!isMobileLauncherVariant ? (
+              <Tooltip
+                content={messages.settingsGeneralEnableScalingTooltip}
+                fullWidth
+              >
+                <label className={styles.algorithmsToggle}>
+                  <span className={styles.algorithmsToggleText}>
+                    {messages.settingsGeneralEnableScalingLabel}
+                  </span>
+                  <input
+                    type="checkbox"
+                    className={styles.algorithmsToggleInput}
+                    checked={enableAppScaling}
+                    onChange={(event) =>
+                      handleEnableScalingToggle(event.target.checked)
+                    }
+                  />
+                  <span
+                    className={styles.algorithmsToggleSwitch}
+                    aria-hidden="true"
+                  />
+                </label>
+              </Tooltip>
+            ) : null}
           </div>
         }
         actions={

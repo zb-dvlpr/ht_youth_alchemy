@@ -20,10 +20,10 @@ Last updated: 2026-04-04
 - Update this roadmap as mobile tasks are completed or re-scoped.
 
 ## Phase 1: Mobile Shell
-- [ ] Build a mobile-only launcher/home screen with primary tool entry points.
-- [ ] Add mobile top-bar navigation that supports returning to the launcher.
-- [ ] Add mobile tool switching without exposing the desktop sidebar.
-- [ ] Preserve the existing desktop shell unchanged.
+- [x] Build a mobile-only launcher/home screen with primary tool entry points.
+- [x] Add mobile top-bar navigation that supports returning to the launcher.
+- [x] Add mobile tool switching without exposing the desktop sidebar.
+- [x] Preserve the existing desktop shell unchanged.
 - [ ] Verify desktop shell and tool switching after the mobile shell lands.
 
 ## Phase 2: Youth Mobile

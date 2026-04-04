@@ -24,6 +24,7 @@ export const messagesPt: Messages = {
     toolYouthBadge: "Y",
     toolSeniorBadge: "S",
     toolClubChronicle: "Crônica do clube",
+    mobileToolsLabel: "Ferramentas",
     clubChronicleTitle: "Crônica do clube",
     clubChronicleBody:
       "A Crônica do clube chega em breve. Este espaço acompanhará o que os times seniores fazem.",
@@ -1190,6 +1191,7 @@ export const messagesPt: Messages = {
     posInnerMidfieldFull: "Meio-campista",
     posForwardFull: "Atacante",
     connectLabel: "Conectar Hattrick",
+    mobileConnectLabel: "Conectar",
     connectedLabel: "Conectado",
     connectHint:
       "Use o botão Conectar no canto superior direito para entrar novamente.",

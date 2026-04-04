@@ -34,6 +34,7 @@ export type Messages = {
   toolYouthBadge: string;
   toolSeniorBadge: string;
   toolClubChronicle: string;
+  mobileToolsLabel: string;
   clubChronicleTitle: string;
   clubChronicleBody: string;
   watchlistTitle: string;
@@ -990,6 +991,7 @@ export type Messages = {
   posInnerMidfieldFull: string;
   posForwardFull: string;
   connectLabel: string;
+  mobileConnectLabel: string;
   connectedLabel: string;
   connectHint: string;
   disconnectLabel: string;

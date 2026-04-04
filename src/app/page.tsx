@@ -291,20 +291,37 @@ export default async function Home() {
             messages={messages}
             globalHeader={
               <header className={styles.topBar}>
-                <div className={styles.brandRow}>
-                  <span className={styles.brandTitle}>{messages.brandTitle}</span>
-                  <span className={styles.version}>v{pkg.version}</span>
-                  <Tooltip content={messages.betaPillTooltip}>
-                    <span
-                      className={styles.betaPill}
-                      aria-label={messages.betaPillTooltip}
-                    >
-                      {messages.betaPillLabel}
-                    </span>
-                  </Tooltip>
+                <div className={styles.desktopHeaderBrand}>
+                  <div className={styles.brandRow}>
+                    <span className={styles.brandTitle}>{messages.brandTitle}</span>
+                    <span className={styles.version}>v{pkg.version}</span>
+                    <Tooltip content={messages.betaPillTooltip}>
+                      <span
+                        className={styles.betaPill}
+                        aria-label={messages.betaPillTooltip}
+                      >
+                        {messages.betaPillLabel}
+                      </span>
+                    </Tooltip>
+                  </div>
                 </div>
-                <NotificationCenter locale={locale} messages={messages} />
-                <div className={styles.topBarActions}>
+                <div className={styles.mobileLauncherHeader}>
+                  <div className={styles.mobileLauncherTitleRow}>
+                    <span className={styles.brandTitle}>{messages.brandTitle}</span>
+                    <span className={styles.version}>v{pkg.version}</span>
+                  </div>
+                  {isConnected ? (
+                    <ConnectedStatus messages={messages} variant="buttonOnly" />
+                  ) : (
+                    <a className={styles.mobileConnectButton} href="/api/chpp/oauth/start">
+                      {messages.mobileConnectLabel}
+                    </a>
+                  )}
+                </div>
+                <div className={styles.desktopHeaderNotifications}>
+                  <NotificationCenter locale={locale} messages={messages} />
+                </div>
+                <div className={styles.desktopTopBarActions}>
                   <div className={styles.topBarControls}>
                     <LanguageSwitcher
                       locale={locale}
@@ -333,7 +350,34 @@ export default async function Home() {
                   </div>
                   <BrandClock />
                 </div>
+                <div className={styles.mobileTopBarControls}>
+                  <div className={styles.mobileTopBarUtilityCluster}>
+                    <LanguageSwitcher
+                      locale={locale}
+                      label={messages.languageLabel}
+                      switchingLabel={messages.languageSwitching}
+                    />
+                    <ThemeToggle messages={messages} />
+                  </div>
+                  <div className={styles.mobileTopBarStatusCluster}>
+                    <BrandClock />
+                  </div>
+                </div>
               </header>
+            }
+            mobileLauncherUtility={
+              <>
+                <SettingsButton messages={messages} variant="launcher" />
+                <BuyCoffeeButton
+                  className={styles.mobileLauncherUtilityButton}
+                  aria-label={messages.supportOnKofi}
+                >
+                  <span className={styles.mobileLauncherUtilityIcon} aria-hidden="true">
+                    ☕
+                  </span>
+                  <span>{messages.supportOnKofi}</span>
+                </BuyCoffeeButton>
+              </>
             }
             seniorTool={
               <SeniorDashboard

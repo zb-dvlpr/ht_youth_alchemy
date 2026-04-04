@@ -45,6 +45,7 @@ import {
 
 type SettingsButtonProps = {
   messages: Messages;
+  variant?: "icon" | "launcher";
 };
 
 type ExportPayload = {
@@ -57,7 +58,10 @@ const STORAGE_PREFIX = "ya_";
 const SENIOR_DASHBOARD_DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
 const SENIOR_DASHBOARD_STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 
-export default function SettingsButton({ messages }: SettingsButtonProps) {
+export default function SettingsButton({
+  messages,
+  variant = "icon",
+}: SettingsButtonProps) {
   const [open, setOpen] = useState(false);
   const [youthSettingsOpen, setYouthSettingsOpen] = useState(false);
   const [seniorSettingsOpen, setSeniorSettingsOpen] = useState(false);
@@ -410,17 +414,32 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
 
   return (
     <div className={styles.feedbackWrap}>
-      <Tooltip content={messages.settingsTooltip}>
+      {variant === "launcher" ? (
         <button
           type="button"
-          className={styles.feedbackButton}
+          className={styles.mobileLauncherUtilityButton}
           onClick={() => setOpen((prev) => !prev)}
           aria-label={messages.settingsTooltip}
           ref={buttonRef}
         >
-          ⚙️
+          <span className={styles.mobileLauncherUtilityIcon} aria-hidden="true">
+            ⚙️
+          </span>
+          <span>{messages.settingsTooltip}</span>
         </button>
-      </Tooltip>
+      ) : (
+        <Tooltip content={messages.settingsTooltip}>
+          <button
+            type="button"
+            className={styles.feedbackButton}
+            onClick={() => setOpen((prev) => !prev)}
+            aria-label={messages.settingsTooltip}
+            ref={buttonRef}
+          >
+            ⚙️
+          </button>
+        </Tooltip>
+      )}
       {open ? (
         <div className={styles.feedbackMenu} ref={menuRef}>
           <button

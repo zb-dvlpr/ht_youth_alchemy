@@ -24,6 +24,7 @@ export const messagesSv: Messages = {
     toolYouthBadge: "Y",
     toolSeniorBadge: "S",
     toolClubChronicle: "Klubbkrönika",
+    mobileToolsLabel: "Verktyg",
     clubChronicleTitle: "Klubbkrönika",
     clubChronicleBody:
       "Klubbkrönikan kommer snart. Här följer du vad andra seniorlag gör.",
@@ -1182,6 +1183,7 @@ export const messagesSv: Messages = {
     posInnerMidfieldFull: "Mittfältare",
     posForwardFull: "Forward",
     connectLabel: "Anslut Hattrick",
+    mobileConnectLabel: "Anslut",
     connectedLabel: "Ansluten",
     connectHint:
       "Använd knappen Anslut uppe till höger för att logga in igen.",

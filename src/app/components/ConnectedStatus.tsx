@@ -9,9 +9,13 @@ import { parseExtendedPermissionsFromCheckToken } from "@/lib/chpp/permissions";
 
 type ConnectedStatusProps = {
   messages: Messages;
+  variant?: "default" | "buttonOnly";
 };
 
-export default function ConnectedStatus({ messages }: ConnectedStatusProps) {
+export default function ConnectedStatus({
+  messages,
+  variant = "default",
+}: ConnectedStatusProps) {
   const [permissions, setPermissions] = useState<string[] | null>(null);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
 
@@ -62,6 +66,20 @@ export default function ConnectedStatus({ messages }: ConnectedStatusProps) {
       window.location.reload();
     }
   };
+
+  if (variant === "buttonOnly") {
+    return (
+      <button
+        type="button"
+        className={styles.mobileDisconnectButton}
+        onClick={handleDisconnect}
+        aria-label={messages.disconnectTitle}
+        disabled={isDisconnecting}
+      >
+        {messages.disconnectLabel}
+      </button>
+    );
+  }
 
   return (
     <div className={styles.connectedInfo}>

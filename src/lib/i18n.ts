@@ -76,6 +76,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_4_0_0: string;
   changelog_3_13_0: string;
   changelog_3_12_0: string;
   changelog_3_11_0: string;

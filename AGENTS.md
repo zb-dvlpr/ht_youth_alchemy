@@ -48,6 +48,19 @@
 - Never apply the same behavior change across multiple tools/panels unless the user explicitly confirms the cross-tool scope.
 - When tools have overlapping functionality, double-check scope with the user before implementing shared-component changes.
 
+## Mobile UX
+- For mobile-only prompts, default to mobile-only scope unless the user explicitly requests cross-platform changes.
+- Preserve desktop behavior, layout, navigation, and visual structure unless the user explicitly approves desktop changes.
+- Prefer breakpoint-scoped mobile shells, wrappers, and layout variants over shared rewrites when reducing desktop regression risk.
+- If a requested mobile change would materially alter shared desktop behavior, pause and clarify before broadening scope.
+- If a request targets a shared component or shared surface and the desktop/mobile impact is meaningfully different, clarify whether the requested change applies to desktop, mobile, or both before implementing it.
+- Do not assume that a shared data or feature request automatically implies the same layout or density change on both desktop and mobile.
+- For ambiguous shared-UI requests such as added columns, controls, or panels, confirm platform scope before changing both experiences.
+- For mobile navigation redesigns, do not silently replace desktop navigation patterns; keep desktop navigation intact unless explicitly requested.
+- After mobile changes, verify core desktop flows most likely to regress, especially shell layout, tool switching, panels, and submission workflows.
+- For mobile prompts, aim for an app-like UX rather than a compressed responsive website.
+- Avoid mobile solutions that simply shrink desktop UI, including persistent desktop sidebars, dense multi-column carryover, and viewport-scaling workarounds as the primary mobile strategy.
+
 ## Vibecoding Output
 - At the end of each vibecoding run for a prompt, provide a one-line git commit message suggestion that covers all changes since the last commit.
 - Never suggest a commit message that only describes the latest delta if multiple uncommitted changes exist.

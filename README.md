@@ -12,6 +12,7 @@ Hattrick Alchemy is a CHPP-approved web app for Hattrick optimization workflows.
 - Hidden youth specialty detection from past match events
 - Match list with load/submit match orders
 - Club Chronicle panels for league, press, fan club, arena, formations/tactics, likely training, last logins, coach details, transfers, TSI, and wages
+- Shared workflows with platform-aware UX evolution for distinct desktop and mobile ergonomics
 - Localization (`en`, `de`, `fr`, `es`, `sv`, `it`, `pt`)
 - Local settings export/import and persisted UI state
 

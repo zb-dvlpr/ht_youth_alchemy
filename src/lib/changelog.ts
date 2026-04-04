@@ -1,6 +1,7 @@
 import type { Messages } from "./i18n";
 
 type ChangelogKey =
+  | "changelog_4_0_0"
   | "changelog_3_13_0"
   | "changelog_3_12_0"
   | "changelog_3_11_0"
@@ -53,6 +54,7 @@ const CHANGELOG_DEFINITIONS: ReadonlyArray<{
   version: string;
   key: ChangelogKey;
 }> = [
+  { version: "4.0.0", key: "changelog_4_0_0" },
   { version: "3.13.0", key: "changelog_3_13_0" },
   { version: "3.12.0", key: "changelog_3_12_0" },
   { version: "3.11.0", key: "changelog_3_11_0" },

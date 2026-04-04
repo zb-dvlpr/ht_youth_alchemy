@@ -70,6 +70,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_4_0_0:
+      "Project guidance now treats mobile UX as a first-class track with explicit desktop regression safeguards.",
     changelog_3_13_0:
       "Senior AI lineups now support man-marking detection, submission, and post-submit review.",
     changelog_3_12_0:

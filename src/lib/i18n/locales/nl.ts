@@ -82,6 +82,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_0_0:
+    "De projectregels behandelen mobiele UX nu als een volwaardige werkstroom met expliciete waarborgen tegen desktop-regressies.",
   changelog_3_13_0:
     "Senior-AI-opstellingen ondersteunen nu detectie, verzending en controle achteraf van mandekking.",
   changelog_3_12_0:

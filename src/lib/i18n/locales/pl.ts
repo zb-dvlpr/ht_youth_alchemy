@@ -76,6 +76,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_0_0:
+    "Zasady projektu traktują teraz mobilny UX jako pełnoprawny nurt prac z wyraźnymi zabezpieczeniami przed regresjami desktopowymi.",
   changelog_3_13_0:
     "Senior AI obsluguje teraz wykrywanie krycia indywidualnego, wysylke zlecenia i podsumowanie po wyslaniu.",
   changelog_3_12_0:

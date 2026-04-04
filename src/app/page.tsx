@@ -14,6 +14,7 @@ import SeasonBootstrap from "./components/SeasonBootstrap";
 import AppShell from "./components/AppShell";
 import SeniorDashboard from "./components/SeniorDashboard";
 import BuyCoffeeButton from "./components/BuyCoffeeButton";
+import BrandClock from "./components/BrandClock";
 import Tooltip from "./components/Tooltip";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
@@ -303,31 +304,34 @@ export default async function Home() {
                   </Tooltip>
                 </div>
                 <NotificationCenter locale={locale} messages={messages} />
-                <div className={styles.topBarControls}>
-                  <LanguageSwitcher
-                    locale={locale}
-                    label={messages.languageLabel}
-                    switchingLabel={messages.languageSwitching}
-                  />
-                  <HelpToggleButton messages={messages} />
-                  <ThemeToggle messages={messages} />
-                  <FeedbackButton messages={messages} />
-                  <SettingsButton messages={messages} />
-                  <Tooltip content={messages.supportOnKofi}>
-                    <BuyCoffeeButton
-                      className={`${styles.feedbackButton} ${styles.kofiIconLink}`}
-                      aria-label={messages.supportOnKofi}
-                    >
-                      ☕
-                    </BuyCoffeeButton>
-                  </Tooltip>
-                  {isConnected ? (
-                    <ConnectedStatus messages={messages} />
-                  ) : (
-                    <a className={styles.connectButton} href="/api/chpp/oauth/start">
-                      {messages.connectLabel}
-                    </a>
-                  )}
+                <div className={styles.topBarActions}>
+                  <div className={styles.topBarControls}>
+                    <LanguageSwitcher
+                      locale={locale}
+                      label={messages.languageLabel}
+                      switchingLabel={messages.languageSwitching}
+                    />
+                    <HelpToggleButton messages={messages} />
+                    <ThemeToggle messages={messages} />
+                    <FeedbackButton messages={messages} />
+                    <SettingsButton messages={messages} />
+                    <Tooltip content={messages.supportOnKofi}>
+                      <BuyCoffeeButton
+                        className={`${styles.feedbackButton} ${styles.kofiIconLink}`}
+                        aria-label={messages.supportOnKofi}
+                      >
+                        ☕
+                      </BuyCoffeeButton>
+                    </Tooltip>
+                    {isConnected ? (
+                      <ConnectedStatus messages={messages} />
+                    ) : (
+                      <a className={styles.connectButton} href="/api/chpp/oauth/start">
+                        {messages.connectLabel}
+                      </a>
+                    )}
+                  </div>
+                  <BrandClock />
                 </div>
               </header>
             }

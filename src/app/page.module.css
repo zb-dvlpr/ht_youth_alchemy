@@ -44,6 +44,46 @@ html[data-app-scaling="off"] .scaleContainer {
   gap: 12px;
 }
 
+.topBarActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.brandClock {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 6px;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+  color: rgba(74, 60, 46, 0.74);
+  box-shadow: none;
+  white-space: nowrap;
+  opacity: 0.82;
+  min-width: 12ch;
+  font-variant-numeric: tabular-nums;
+}
+
+.brandClockZone {
+  font-family: var(--font-brand), "Space Grotesk", sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+.brandClockTime {
+  font-family: var(--font-brand), "Space Grotesk", sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
 .shellFrame {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -2941,6 +2981,12 @@ html[data-theme="dark"] .sidebarItemActive {
 
 html[data-theme="dark"] .version {
   color: #b9b0a5;
+}
+
+html[data-theme="dark"] .brandClock {
+  background: transparent;
+  color: rgba(233, 225, 215, 0.72);
+  box-shadow: none;
 }
 
 html[data-theme="dark"] .betaPill {

@@ -1,6 +1,6 @@
 # Mobile Roadmap
 
-Status: not started
+Status: in progress
 Last updated: 2026-04-04
 
 ## Goals
@@ -24,7 +24,7 @@ Last updated: 2026-04-04
 - [x] Add mobile top-bar navigation that supports returning to the launcher.
 - [x] Add mobile tool switching without exposing the desktop sidebar.
 - [x] Preserve the existing desktop shell unchanged.
-- [ ] Verify desktop shell and tool switching after the mobile shell lands.
+- [x] Verify desktop shell and tool switching after the mobile shell lands.
 
 ## Phase 2: Youth Mobile
 - [ ] Convert Youth into a single-column mobile flow.

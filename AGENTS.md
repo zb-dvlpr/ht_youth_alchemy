@@ -56,6 +56,8 @@
 - If a request targets a shared component or shared surface and the desktop/mobile impact is meaningfully different, clarify whether the requested change applies to desktop, mobile, or both before implementing it.
 - Do not assume that a shared data or feature request automatically implies the same layout or density change on both desktop and mobile.
 - For ambiguous shared-UI requests such as added columns, controls, or panels, confirm platform scope before changing both experiences.
+- For mobile work, refer to `docs/mobile-roadmap.md` before making changes so implementation stays aligned with the tracked rollout plan.
+- When a mobile task or milestone is completed, update `docs/mobile-roadmap.md` in the same change and check off the relevant item(s).
 - For mobile navigation redesigns, do not silently replace desktop navigation patterns; keep desktop navigation intact unless explicitly requested.
 - After mobile changes, verify core desktop flows most likely to regress, especially shell layout, tool switching, panels, and submission workflows.
 - For mobile prompts, aim for an app-like UX rather than a compressed responsive website.

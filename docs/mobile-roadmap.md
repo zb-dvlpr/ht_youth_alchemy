@@ -30,12 +30,14 @@ Last updated: 2026-04-04
 - [ ] Convert Youth into a single-column mobile flow.
 - [ ] Make player list, details, and lineup hierarchy usable without horizontal page scrolling.
 - [ ] Keep mobile match cards and actions touch-friendly.
+- [ ] Adapt Youth-specific dense tables, matrices, filters, and toolbars as part of finishing Youth.
 - [ ] Verify desktop Youth layout and interactions after mobile Youth changes.
 
 ## Phase 3: Senior Mobile
 - [ ] Convert Senior into a single-column mobile flow.
 - [ ] Make match cards, lineup controls, and submission flows mobile-friendly.
 - [ ] Collapse dense control clusters into mobile-safe actions or sheets.
+- [ ] Adapt Senior-specific dense tables, matrices, filters, and toolbars as part of finishing Senior.
 - [ ] Verify desktop Senior layout and interactions after mobile Senior changes.
 
 ## Phase 4: Club Chronicle Mobile
@@ -44,18 +46,13 @@ Last updated: 2026-04-04
 - [ ] Add explicit previous/next or picker controls so swipe is not the only navigation path.
 - [ ] Keep panel order, active tab, and current panel position persisted.
 - [ ] Move Latest Updates to a separate vertical mobile screen grouped by team.
+- [ ] Adapt Chronicle tables, dense panels, filters, and modal content as part of finishing Club Chronicle.
 - [ ] Verify desktop Chronicle layout and interactions after mobile Chronicle changes.
 
-## Phase 5: Shared Dense Components
-- [ ] Add mobile-safe variants for Chronicle tables and other dense tables.
-- [ ] Adapt skills/rating matrices for mobile readability.
-- [ ] Make filters, toolbars, and action clusters mobile-safe.
-- [ ] Review modal content layouts for mobile overflow and touch ergonomics.
-- [ ] Verify shared-component desktop behavior after each mobile variant lands.
-
-## Phase 6: Polish and Verification
+## Phase 5: Polish and Verification
 - [ ] Tune spacing, touch targets, and motion for mobile ergonomics.
 - [ ] Audit persistence and state restoration on mobile navigation flows.
+- [ ] Clean up any remaining truly cross-cutting mobile component issues left after Youth, Senior, and Chronicle are complete.
 - [ ] Run a desktop regression pass across Youth, Senior, and Club Chronicle.
 - [ ] Run a mobile usability pass across launcher, navigation, and core workflows.
 

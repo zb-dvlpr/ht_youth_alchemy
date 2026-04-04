@@ -27,17 +27,19 @@ Last updated: 2026-04-04
 - [x] Verify desktop shell and tool switching after the mobile shell lands.
 
 ## Phase 2: Youth Mobile
-- [ ] Convert Youth into a single-column mobile flow.
-- [ ] Make player list, details, and lineup hierarchy usable without horizontal page scrolling.
-- [ ] Keep mobile match cards and actions touch-friendly.
-- [ ] Adapt Youth-specific dense tables, matrices, filters, and toolbars as part of finishing Youth.
+- [ ] Establish the overall Youth mobile look and feel.
+- [ ] Make Youth player details mobile-friendly.
+- [ ] Adapt the Youth skills matrix for mobile readability.
+- [ ] Adapt the Youth ratings matrix for mobile readability.
+- [ ] Make the Youth lineup optimizer mobile-friendly.
 - [ ] Verify desktop Youth layout and interactions after mobile Youth changes.
 
 ## Phase 3: Senior Mobile
-- [ ] Convert Senior into a single-column mobile flow.
-- [ ] Make match cards, lineup controls, and submission flows mobile-friendly.
-- [ ] Collapse dense control clusters into mobile-safe actions or sheets.
-- [ ] Adapt Senior-specific dense tables, matrices, filters, and toolbars as part of finishing Senior.
+- [ ] Establish the overall Senior mobile look and feel.
+- [ ] Make Senior player details mobile-friendly.
+- [ ] Adapt the Senior skills matrix for mobile readability.
+- [ ] Adapt the Senior ratings matrix for mobile readability.
+- [ ] Make the Senior lineup optimizer mobile-friendly.
 - [ ] Verify desktop Senior layout and interactions after mobile Senior changes.
 
 ## Phase 4: Club Chronicle Mobile

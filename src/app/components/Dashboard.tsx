@@ -1533,10 +1533,6 @@ export default function Dashboard({
     [pushMobileYouthState]
   );
 
-  const handleMobileYouthBack = useCallback(() => {
-    if (typeof window === "undefined") return;
-    window.history.back();
-  }, []);
   useEffect(() => {
     if (!mobileYouthActive) return;
     if (mobileYouthPlayerScreen !== "detail") return;
@@ -5414,16 +5410,6 @@ export default function Dashboard({
     mobileYouthView,
   ]);
 
-  const mobileYouthMatrixHeaderAux = (
-    <button
-      type="button"
-      className={styles.mobileYouthBackButton}
-      onClick={handleMobileYouthBack}
-    >
-      {messages.mobileYouthBackLabel}
-    </button>
-  );
-
   const mobileYouthMatrixHint = !mobileYouthLandscapeActive ? (
     <span className={styles.mobileYouthLandscapeHint}>
       {messages.mobileYouthLandscapeHint}
@@ -5524,15 +5510,6 @@ export default function Dashboard({
           }}
           activeTab="details"
           showTabs={false}
-          detailsHeaderActions={
-            <button
-              type="button"
-              className={styles.mobileYouthBackButton}
-              onClick={handleMobileYouthBack}
-            >
-              {messages.mobileYouthBackToPlayerList}
-            </button>
-          }
           messages={messages}
         />
       </div>
@@ -5681,7 +5658,6 @@ export default function Dashboard({
           }}
           activeTab="skillsMatrix"
           showTabs={false}
-          skillsMatrixHeaderAux={mobileYouthMatrixHeaderAux}
           extraSkillsMatrixHeaderAux={mobileYouthMatrixHint}
           messages={messages}
         />
@@ -5755,22 +5731,12 @@ export default function Dashboard({
           }}
           activeTab="ratingsMatrix"
           showTabs={false}
-          skillsMatrixHeaderAux={mobileYouthMatrixHeaderAux}
           extraSkillsMatrixHeaderAux={mobileYouthMatrixHint}
           messages={messages}
         />
       </div>
     ) : mobileYouthView === "lineupOptimizer" ? (
       <div className={styles.mobileYouthContent}>
-        <div className={styles.mobileYouthLineupHeader}>
-          <button
-            type="button"
-            className={styles.mobileYouthBackButton}
-            onClick={handleMobileYouthBack}
-          >
-            {messages.mobileYouthBackLabel}
-          </button>
-        </div>
         <LineupField
           assignments={assignments}
           behaviors={behaviors}

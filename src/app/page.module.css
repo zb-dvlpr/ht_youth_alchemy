@@ -438,18 +438,6 @@ html[data-mobile-shell="true"] .scaleContainer {
   overflow-x: hidden;
 }
 
-.mobileYouthBackButton {
-  border: 1px solid rgba(151, 125, 84, 0.22);
-  background: rgba(255, 255, 255, 0.88);
-  color: #443628;
-  border-radius: 999px;
-  padding: 8px 12px;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-}
-
 .mobileYouthPlaceholderCard {
   min-height: 180px;
 }
@@ -465,11 +453,6 @@ html[data-mobile-shell="true"] .scaleContainer {
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.03em;
-}
-
-.mobileYouthLineupHeader {
-  display: flex;
-  justify-content: flex-start;
 }
 
 .mobileYouthLineupPickerList {
@@ -3649,12 +3632,6 @@ html[data-theme="dark"] .mobileYouthMenuActionActive {
   color: #fff2de;
 }
 
-html[data-theme="dark"] .mobileYouthBackButton {
-  background: rgba(30, 26, 22, 0.96);
-  color: #efe4d8;
-  border-color: rgba(230, 199, 146, 0.14);
-}
-
 html[data-theme="dark"] .mobileYouthLineupPickerOption {
   background: rgba(39, 33, 26, 0.98);
   border-color: rgba(230, 199, 146, 0.14);
@@ -5791,6 +5768,12 @@ html[data-mobile-shell="true"] .mobileYouthContent .detailsRefreshCorner {
   margin-bottom: 12px;
 }
 
+html[data-mobile-shell="true"] .mobileYouthContent .detailsHeaderAux {
+  margin-left: 0;
+  width: 100%;
+  justify-content: flex-start;
+}
+
 html[data-mobile-shell="true"] .mobileYouthContent .profileHeader {
   display: grid;
   gap: 10px;
@@ -5800,6 +5783,10 @@ html[data-mobile-shell="true"] .mobileYouthContent .profileHeaderMain {
   width: 100%;
   min-width: 0;
   flex: none;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
+  align-self: flex-start;
 }
 
 .profileMeta {

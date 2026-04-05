@@ -567,6 +567,35 @@ html[data-mobile-shell="true"] .mobileYouthContent .benchArea .slotName {
   -webkit-line-clamp: 3;
 }
 
+html[data-mobile-shell="true"] .matchMeta {
+  gap: 8px 12px;
+}
+
+html[data-mobile-shell="true"] .matchActions {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 10px;
+}
+
+html[data-mobile-shell="true"] .matchActions > * {
+  flex: 0 0 auto;
+}
+
+html[data-mobile-shell="true"] .matchAnalyzeOpponentWrap {
+  margin-left: 0;
+}
+
+html[data-mobile-shell="true"] .matchActions .matchSuccess,
+html[data-mobile-shell="true"] .matchActions .matchError,
+html[data-mobile-shell="true"] .matchActions .matchUpdated {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+html[data-mobile-shell="true"] .matchActions .matchLoaded {
+  flex: 0 0 auto;
+}
+
 html[data-mobile-shell="true"] .mobileYouthContent .slotEmoji {
   left: 5px;
   bottom: 5px;

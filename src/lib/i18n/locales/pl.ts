@@ -588,7 +588,7 @@ export const messagesPl: Messages = {
   mobileYouthBackLabel: "Wstecz",
   mobileYouthBackToPlayerList: "Powrót do listy zawodników",
   mobileYouthLandscapeHint:
-    "Obróć ekran poziomo, aby zobaczyć pełną macierz umiejętności.",
+    "Obróć ekran poziomo, aby zobaczyć pełną macierz.",
   mobileYouthViewComingSoon:
     "Ten mobilny widok juniorów nie jest jeszcze gotowy.",
   trainingTitle: "Skoncentrowany trening umiejętności",

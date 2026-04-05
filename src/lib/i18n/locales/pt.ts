@@ -992,7 +992,7 @@ export const messagesPt: Messages = {
     mobileYouthBackLabel: "Voltar",
     mobileYouthBackToPlayerList: "Voltar à lista de jogadores",
     mobileYouthLandscapeHint:
-      "Rode para paisagem para ver a matriz de habilidades completa.",
+      "Rode para paisagem para ver a matriz completa.",
     mobileYouthViewComingSoon:
       "Esta vista móvel juvenil ainda não está implementada.",
     trainingTitle: "Treino focado",

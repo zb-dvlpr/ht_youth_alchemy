@@ -992,7 +992,7 @@ export const messagesEs: Messages = {
     mobileYouthBackLabel: "Atrás",
     mobileYouthBackToPlayerList: "Volver a la lista de jugadores",
     mobileYouthLandscapeHint:
-      "Gira a horizontal para ver la matriz de habilidades completa.",
+      "Gira a horizontal para ver la matriz completa.",
     mobileYouthViewComingSoon:
       "Esta vista móvil juvenil aún no está implementada.",
     trainingTitle: "Entrenamiento enfocado",

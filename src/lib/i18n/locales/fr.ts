@@ -991,7 +991,7 @@ export const messagesFr: Messages = {
     mobileYouthBackLabel: "Retour",
     mobileYouthBackToPlayerList: "Retour à la liste des joueurs",
     mobileYouthLandscapeHint:
-      "Passez en paysage pour voir la matrice de compétences complète.",
+      "Passez en paysage pour voir la matrice complète.",
     mobileYouthViewComingSoon:
       "Cette vue mobile des jeunes n'est pas encore implémentée.",
     trainingTitle: "Entraînement ciblé",

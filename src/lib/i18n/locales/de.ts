@@ -978,7 +978,7 @@ export const messagesDe: Messages = {
     mobileYouthBackLabel: "Zurück",
     mobileYouthBackToPlayerList: "Zurück zur Spielerliste",
     mobileYouthLandscapeHint:
-      "Für die vollständige Fähigkeitsmatrix bitte ins Querformat drehen.",
+      "Für die vollständige Matrix bitte ins Querformat drehen.",
     mobileYouthViewComingSoon:
       "Diese mobile Jugendansicht ist noch nicht implementiert.",
     trainingTitle: "Fokussiertes Fähigkeitstraining",

@@ -993,7 +993,7 @@ export const messagesIt: Messages = {
     mobileYouthBackLabel: "Indietro",
     mobileYouthBackToPlayerList: "Torna alla lista giocatori",
     mobileYouthLandscapeHint:
-      "Ruota in orizzontale per vedere la matrice abilità completa.",
+      "Ruota in orizzontale per vedere la matrice completa.",
     mobileYouthViewComingSoon:
       "Questa vista mobile giovanile non è ancora implementata.",
     trainingTitle: "Allenamento mirato",

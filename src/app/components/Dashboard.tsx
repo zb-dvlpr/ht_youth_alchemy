@@ -2139,7 +2139,10 @@ export default function Dashboard({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!mobileYouthActive || mobileYouthView !== "skillsMatrix") {
+    const shouldUseLandscapeMatrixMode =
+      mobileYouthActive &&
+      (mobileYouthView === "skillsMatrix" || mobileYouthView === "ratingsMatrix");
+    if (!shouldUseLandscapeMatrixMode) {
       setMobileYouthLandscapeActive(false);
       return;
     }
@@ -5284,6 +5287,22 @@ export default function Dashboard({
     mobileYouthView,
   ]);
 
+  const mobileYouthMatrixHeaderAux = (
+    <button
+      type="button"
+      className={styles.mobileYouthBackButton}
+      onClick={handleMobileYouthBack}
+    >
+      {messages.mobileYouthBackLabel}
+    </button>
+  );
+
+  const mobileYouthMatrixHint = !mobileYouthLandscapeActive ? (
+    <span className={styles.mobileYouthLandscapeHint}>
+      {messages.mobileYouthLandscapeHint}
+    </span>
+  ) : null;
+
   const mobileYouthContent =
     mobileYouthPlayerScreen === "detail" ? (
       <div className={styles.mobileYouthContent}>
@@ -5521,22 +5540,82 @@ export default function Dashboard({
           }}
           activeTab="skillsMatrix"
           showTabs={false}
-          skillsMatrixHeaderAux={
-            <button
-              type="button"
-              className={styles.mobileYouthBackButton}
-              onClick={handleMobileYouthBack}
-            >
-              {messages.mobileYouthBackLabel}
-            </button>
+          skillsMatrixHeaderAux={mobileYouthMatrixHeaderAux}
+          extraSkillsMatrixHeaderAux={mobileYouthMatrixHint}
+          messages={messages}
+        />
+      </div>
+    ) : mobileYouthView === "ratingsMatrix" ? (
+      <div className={styles.mobileYouthContent}>
+        <PlayerDetailsPanel
+          selectedPlayer={selectedPlayer}
+          detailsData={detailsData}
+          loading={loading}
+          error={error}
+          lastUpdated={lastUpdated}
+          unlockStatus={unlockStatus}
+          onRefresh={() =>
+            selectedId ? handlePlayerDetailsRefresh() : undefined
           }
-          extraSkillsMatrixHeaderAux={
-            !mobileYouthLandscapeActive ? (
-              <span className={styles.mobileYouthLandscapeHint}>
-                {messages.mobileYouthLandscapeHint}
-              </span>
-            ) : null
+          players={playerList}
+          playerDetailsById={playerDetailsById}
+          skillsMatrixRows={skillsMatrixRows}
+          ratingsMatrixResponse={ratingsMatrixData?.response ?? null}
+          ratingsMatrixMatchHrefBuilder={ratingsMatrixMatchHrefBuilder}
+          ratingsMatrixSelectedName={
+            selectedPlayer ? formatPlayerName(selectedPlayer) : null
           }
+          ratingsMatrixSpecialtyByName={Object.fromEntries(
+            playerList.map((player) => [
+              [player.FirstName, player.NickName || null, player.LastName]
+                .filter(Boolean)
+                .join(" "),
+              Number(player.Specialty ?? 0) > 0
+                ? player.Specialty
+                : hiddenSpecialtyByPlayerId[player.YouthPlayerID],
+            ])
+          )}
+          ratingsMatrixHiddenSpecialtyByName={Object.fromEntries(
+            playerList.map((player) => [
+              [player.FirstName, player.NickName || null, player.LastName]
+                .filter(Boolean)
+                .join(" "),
+              Number(player.Specialty ?? 0) <= 0 &&
+                Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0,
+            ])
+          )}
+          matrixNewPlayerIds={newPlayerNameMarkerIds}
+          matrixNewRatingsByPlayerId={activeMatrixNewMarkers.ratingsByPlayerId}
+          matrixNewSkillsCurrentByPlayerId={
+            activeMatrixNewMarkers.skillsCurrentByPlayerId
+          }
+          matrixNewSkillsMaxByPlayerId={activeMatrixNewMarkers.skillsMaxByPlayerId}
+          hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
+          hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}
+          onSelectRatingsPlayer={(playerName) => {
+            const match = playerList.find(
+              (entry) => formatPlayerName(entry) === playerName
+            );
+            if (!match) return;
+            handleMobilePlayerSelect(match.YouthPlayerID);
+          }}
+          onMatrixPlayerDragStart={handleMatrixPlayerDragStart}
+          orderedPlayerIds={orderedPlayerIds}
+          orderSource={orderSource}
+          onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}
+          onSkillsOrderChange={(ids) => applyPlayerOrder(ids, "skills")}
+          onRatingsSortStart={() => {
+            setOrderSource("ratings");
+            setOrderedPlayerIds(null);
+          }}
+          onSkillsSortStart={() => {
+            setOrderSource("skills");
+            setOrderedPlayerIds(null);
+          }}
+          activeTab="ratingsMatrix"
+          showTabs={false}
+          skillsMatrixHeaderAux={mobileYouthMatrixHeaderAux}
+          extraSkillsMatrixHeaderAux={mobileYouthMatrixHint}
           messages={messages}
         />
       </div>

@@ -983,7 +983,7 @@ export const messagesSv: Messages = {
     mobileYouthBackLabel: "Tillbaka",
     mobileYouthBackToPlayerList: "Tillbaka till spelarlistan",
     mobileYouthLandscapeHint:
-      "Rotera till liggande läge för att se hela färdighetsmatrisen.",
+      "Rotera till liggande läge för att se hela matrisen.",
     mobileYouthViewComingSoon:
       "Den här mobila ungdomsvyn är inte implementerad ännu.",
     trainingTitle: "Fokuserad träning",

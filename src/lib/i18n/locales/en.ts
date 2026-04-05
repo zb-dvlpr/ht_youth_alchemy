@@ -952,7 +952,7 @@ export const messagesEn: Messages = {
       "Use the floating menu to open player details, matrices, or the lineup optimizer.",
     mobileYouthBackLabel: "Back",
     mobileYouthBackToPlayerList: "Back to player list",
-    mobileYouthLandscapeHint: "Rotate to landscape for the full skills matrix view.",
+    mobileYouthLandscapeHint: "Rotate to landscape for the full matrix view.",
     mobileYouthViewComingSoon: "This Youth mobile view is not implemented yet.",
     trainingTitle: "Focused skill training",
     trainingSectionFocused: "Focused skill training",

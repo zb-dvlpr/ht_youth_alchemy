@@ -594,7 +594,7 @@ export const messagesNl: Messages = {
   mobileYouthBackLabel: "Terug",
   mobileYouthBackToPlayerList: "Terug naar spelerslijst",
   mobileYouthLandscapeHint:
-    "Draai naar liggende stand voor de volledige vaardighedenmatrix.",
+    "Draai naar liggende stand voor de volledige matrix.",
   mobileYouthViewComingSoon:
     "Deze mobiele jeugdweergave is nog niet geïmplementeerd.",
   trainingTitle: "Gerichte vaardigheidstraining",

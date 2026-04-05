@@ -39,7 +39,7 @@ Last updated: 2026-04-05
 - [x] Make Senior player details mobile-friendly.
 - [x] Adapt the Senior skills matrix for mobile readability.
 - [x] Adapt the Senior ratings matrix for mobile readability.
-- [ ] Make the Senior lineup optimizer mobile-friendly.
+- [x] Make the Senior lineup optimizer mobile-friendly.
 - [ ] Verify desktop Senior layout and interactions after mobile Senior changes.
 
 ## Phase 4: Club Chronicle Mobile

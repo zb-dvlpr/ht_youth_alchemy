@@ -544,6 +544,11 @@ html[data-mobile-shell="true"] .mobileYouthContent .benchArea {
 html[data-mobile-shell="true"] .mobileYouthContent .slotContent {
   padding: 6px 12px 6px;
   gap: 4px;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
 html[data-mobile-shell="true"] .mobileYouthContent .slotName {
@@ -7175,6 +7180,35 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 }
 
 @media (max-width: 900px) {
+  .trainingOverlay,
+  .confirmOverlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: max(12px, env(safe-area-inset-top)) 12px
+      max(12px, env(safe-area-inset-bottom));
+  }
+
+  .confirmCard {
+    width: min(96vw, 760px);
+    max-height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin: auto 0;
+  }
+
+  .confirmBody {
+    margin-bottom: 0;
+    overflow: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-bottom: 6px;
+  }
+
+  .confirmActions {
+    flex: 0 0 auto;
+  }
+
   .confirmCard.seniorUpdatesModal {
     width: min(96vw, 760px);
     max-height: 92vh;
@@ -8060,6 +8094,16 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   text-align: center;
   padding: 6px 10px;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
+}
+
+.touchDragGhost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  max-width: min(160px, 40vw);
 }
 
 .fieldLabel {

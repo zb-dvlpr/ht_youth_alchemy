@@ -2996,6 +2996,8 @@ export default function SeniorDashboard({
   });
   const [mobileSeniorLandscapeActive, setMobileSeniorLandscapeActive] =
     useState(false);
+  const [mobileSeniorLineupPickerSlotId, setMobileSeniorLineupPickerSlotId] =
+    useState<string | null>(null);
   const [mobileSeniorRefreshFeedbackVisible, setMobileSeniorRefreshFeedbackVisible] =
     useState(false);
   const [assignments, setAssignments] = useState<LineupAssignments>({});
@@ -13988,6 +13990,20 @@ const refreshDetailsForPlayers = async (
     </span>
   ) : null;
 
+  const mobileSeniorLineupPickerPlayers = useMemo(
+    () =>
+      [...players]
+        .map((player) => ({
+          id: player.PlayerID,
+          name: formatPlayerName(player) || String(player.PlayerID),
+          age: typeof player.Age === "number" ? player.Age : null,
+        }))
+        .sort((left, right) =>
+          left.name.localeCompare(right.name, undefined, { sensitivity: "base" })
+        ),
+    [players]
+  );
+
   const seniorMobileDetailsPanel = (
     <PlayerDetailsPanel
       selectedPlayer={selectedPanelPlayer}
@@ -14644,6 +14660,173 @@ const refreshDetailsForPlayers = async (
           showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
           onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
           messages={messages}
+        />
+      </div>
+    ) : mobileSeniorView === "lineupOptimizer" ? (
+      <div className={styles.mobileYouthContent}>
+        <LineupField
+          assignments={assignments}
+          behaviors={behaviors}
+          playersById={playersByIdForLineup}
+          playerDetailsById={new Map(
+            Array.from(detailsById.entries()).map(([id, detail]) => [
+              id,
+              {
+                PlayerSkills: detail.PlayerSkills,
+                InjuryLevel: detail.InjuryLevel,
+                Cards: detail.Cards,
+                Form: detail.Form,
+                StaminaSkill: detail.StaminaSkill,
+              },
+            ])
+          )}
+          onAssign={(slotId, playerId) => {
+            const nextAssignments = { ...assignments };
+            Object.keys(nextAssignments).forEach((key) => {
+              if (nextAssignments[key] === playerId) {
+                nextAssignments[key] = null;
+              }
+            });
+            nextAssignments[slotId] = playerId;
+            setAssignments(nextAssignments);
+            preservePreparedSeniorAiContextAfterManualEdit(
+              nextAssignments,
+              behaviors,
+              tacticType
+            );
+          }}
+          onClear={(slotId) => {
+            const nextAssignments = { ...assignments, [slotId]: null };
+            setAssignments(nextAssignments);
+            preservePreparedSeniorAiContextAfterManualEdit(
+              nextAssignments,
+              behaviors,
+              tacticType
+            );
+          }}
+          onMove={(fromSlot, toSlot) => {
+            const nextAssignments = {
+              ...assignments,
+              [toSlot]: assignments[fromSlot] ?? null,
+              [fromSlot]: assignments[toSlot] ?? null,
+            };
+            setAssignments(nextAssignments);
+            preservePreparedSeniorAiContextAfterManualEdit(
+              nextAssignments,
+              behaviors,
+              tacticType
+            );
+          }}
+          onChangeBehavior={(slotId, behavior) => {
+            const nextBehaviors = { ...behaviors };
+            if (behavior) nextBehaviors[slotId] = behavior;
+            else delete nextBehaviors[slotId];
+            setBehaviors(nextBehaviors);
+            preservePreparedSeniorAiContextAfterManualEdit(
+              assignments,
+              nextBehaviors,
+              tacticType
+            );
+          }}
+          onReset={() => {
+            setAssignments({});
+            setBehaviors({});
+            setLoadedMatchId(null);
+            clearSeniorAiSubmitLock();
+            addNotification(messages.notificationLineupReset);
+          }}
+          tacticType={tacticType}
+          onTacticChange={(nextTacticType) => {
+            setTacticType(nextTacticType);
+            preservePreparedSeniorAiContextAfterManualEdit(
+              assignments,
+              behaviors,
+              nextTacticType
+            );
+          }}
+          tacticPlacement="headerRight"
+          trainingType={trainingType}
+          onTrainingTypeChange={setTrainingType}
+          onTrainingTypeSet={handleSetTrainingType}
+          trainingTypeSetPending={trainingTypeSetPending}
+          trainingTypeSetPendingValue={trainingTypeSetPendingValue}
+          trainingTypePlacement="fieldTopLeft"
+          trainingTypeOptions={[...NON_DEPRECATED_TRAINING_TYPES]}
+          trainingTypeLabelForValue={obtainedTrainingRegimenLabel}
+          trainingTypeSectionTitleForValue={trainingSectionTitleForValue}
+          trainingTypeAriaLabel={seniorTrainingLabel}
+          trainedSlots={seniorTrainedSlots}
+          onHoverPlayer={(playerId) => {
+            void ensureDetails(playerId);
+          }}
+          onSelectPlayer={(playerId) => {
+            setSelectedId(playerId);
+            void ensureDetails(playerId);
+          }}
+          onEmptySlotSelect={setMobileSeniorLineupPickerSlotId}
+          skillMode="single"
+          maxSkillLevel={20}
+          allowExternalPlayerDrop={false}
+          messages={messages}
+        />
+        <UpcomingMatches
+          response={matchesState}
+          messages={messages}
+          assignments={assignments}
+          behaviors={behaviors}
+          penaltyKickerIds={seniorPenaltyKickerIds}
+          setPiecesId={seniorSetPiecesPlayerId}
+          tacticType={tacticType}
+          sourceSystem="Hattrick"
+          includeTournamentMatches={includeTournamentMatches}
+          onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
+          setBestLineupHelpAnchor="senior-set-lineup-ai"
+          showExtraTimeSetBestLineupMode
+          keepBestLineupMenuTopmost
+          fixedFormationOptions={[...FIXED_FORMATION_OPTIONS]}
+          selectedFixedFormation={setBestLineupFixedFormation}
+          onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
+          setBestLineupCustomContent={setBestLineupBTeamMenuContent}
+          onRefresh={onRefreshMatchesOnly}
+          onSetBestLineupMode={async (matchId, mode, fixedFormation) => {
+            clearSeniorAiSubmitLock();
+            if (mode === "extraTime") {
+              setExtraTimeMatchId(matchId);
+              await syncExtraTimeModalTrainingType().catch(() => {
+                // Fall back to the last known senior training if the live fetch fails.
+              });
+              setExtraTimeInfoOpen(true);
+              return;
+            }
+            if (mode === "trainingAware") {
+              setTrainingAwareMatchId(matchId);
+              await syncTrainingAwareModalTrainingType().catch(() => {
+                // Fall back to the last known senior training if the live fetch fails.
+              });
+              setTrainingAwareInfoOpen(true);
+              return;
+            }
+            return runSetBestLineupPredictRatings(matchId, mode, fixedFormation);
+          }}
+          onAnalyzeOpponent={(matchId) => {
+            return handleAnalyzeOpponent(matchId);
+          }}
+          onSetBestLineup={(matchId) => {
+            void matchId;
+          }}
+          onLoadLineup={(nextAssignments, nextBehaviors, matchId, loadedTacticType) => {
+            clearSeniorAiSubmitLock();
+            setAssignments(nextAssignments);
+            setBehaviors(nextBehaviors);
+            if (typeof loadedTacticType === "number") {
+              setTacticType(loadedTacticType);
+            }
+            setLoadedMatchId(matchId);
+          }}
+          loadedMatchId={loadedMatchId}
+          onSubmitSuccess={(submittedMatchId) => {
+            setLoadedMatchId(submittedMatchId);
+          }}
         />
       </div>
     ) : mobileSeniorView === "playerDetails" ? (
@@ -16655,6 +16838,64 @@ const refreshDetailsForPlayers = async (
         }
         closeOnBackdrop
         onClose={() => setOpponentFormationsModal(null)}
+      />
+
+      <Modal
+        open={Boolean(mobileSeniorLineupPickerSlotId)}
+        title={messages.mobileYouthLineupPickerTitle}
+        movable={false}
+        body={
+          mobileSeniorLineupPickerPlayers.length > 0 ? (
+            <div className={styles.mobileYouthLineupPickerList}>
+              {mobileSeniorLineupPickerPlayers.map((player) => (
+                <button
+                  key={player.id}
+                  type="button"
+                  className={styles.mobileYouthLineupPickerOption}
+                  onClick={() => {
+                    if (!mobileSeniorLineupPickerSlotId) return;
+                    const nextAssignments = { ...assignments };
+                    Object.keys(nextAssignments).forEach((key) => {
+                      if (nextAssignments[key] === player.id) {
+                        nextAssignments[key] = null;
+                      }
+                    });
+                    nextAssignments[mobileSeniorLineupPickerSlotId] = player.id;
+                    setAssignments(nextAssignments);
+                    preservePreparedSeniorAiContextAfterManualEdit(
+                      nextAssignments,
+                      behaviors,
+                      tacticType
+                    );
+                    setMobileSeniorLineupPickerSlotId(null);
+                  }}
+                >
+                  <span className={styles.mobileYouthLineupPickerName}>
+                    {player.name}
+                  </span>
+                  <span className={styles.mobileYouthLineupPickerMeta}>
+                    {player.age !== null
+                      ? `${player.age}${messages.ageYearsShort}`
+                      : messages.unknownShort}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.muted}>{messages.mobileYouthLineupPickerEmpty}</p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmCancel}
+            onClick={() => setMobileSeniorLineupPickerSlotId(null)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setMobileSeniorLineupPickerSlotId(null)}
       />
 
       {mobileSeniorActive ? (

@@ -15156,6 +15156,39 @@ const refreshDetailsForPlayers = async (
                   {messages.seniorExtraTimeSubmitDisclaimerTrainingTitle}
                 </p>
                 <p>{messages.seniorExtraTimeModalTrainingLimit}</p>
+                <div className={styles.seniorDisclaimerTrainingCards}>
+                  {submitDisclaimerExtraTimeSummary.trainingRows.map((row) => (
+                    <article key={`mobile-training-${row.id}`} className={styles.seniorDisclaimerTrainingCard}>
+                      <div className={styles.seniorDisclaimerTrainingCardHeader}>
+                        <span className={styles.seniorDisclaimerTrainingCardIndex}>
+                          {row.number}
+                        </span>
+                        <a
+                          className={styles.chroniclePressLink}
+                          href={hattrickPlayerUrl(row.id)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {row.name}
+                        </a>
+                      </div>
+                      <div className={styles.seniorDisclaimerTrainingCardGrid}>
+                        <div className={styles.seniorDisclaimerTrainingCardMetric}>
+                          <span className={styles.seniorDisclaimerTrainingCardLabel}>
+                            {messages.seniorExtraTimeSubmitDisclaimerTrainingScenario90Header}
+                          </span>
+                          <span>{formatEffectiveTrainingMinutes(row.scenario90)}</span>
+                        </div>
+                        <div className={styles.seniorDisclaimerTrainingCardMetric}>
+                          <span className={styles.seniorDisclaimerTrainingCardLabel}>
+                            {messages.seniorExtraTimeSubmitDisclaimerTrainingScenario120Header}
+                          </span>
+                          <span>{formatEffectiveTrainingMinutes(row.scenario120)}</span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
                 <div className={styles.opponentFormationsTableWrap}>
                   <table className={styles.opponentFormationsTable}>
                     <thead>

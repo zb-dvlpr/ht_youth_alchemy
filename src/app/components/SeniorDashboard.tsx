@@ -13078,7 +13078,11 @@ const refreshDetailsForPlayers = async (
     const syncLandscapeState = () => setMobileSeniorLandscapeActive(mediaQuery.matches);
     syncLandscapeState();
 
-    const orientationApi = window.screen?.orientation;
+    const orientationApi = window.screen?.orientation as
+      | (ScreenOrientation & {
+          lock?: (orientation: "landscape") => Promise<void>;
+        })
+      | undefined;
     if (orientationApi && typeof orientationApi.lock === "function") {
       orientationApi.lock("landscape").catch(() => {
         // Some mobile browsers require fullscreen or reject orientation locks.

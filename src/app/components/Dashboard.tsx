@@ -2269,7 +2269,11 @@ export default function Dashboard({
     const syncLandscapeState = () => setMobileYouthLandscapeActive(mediaQuery.matches);
     syncLandscapeState();
 
-    const orientationApi = window.screen?.orientation;
+    const orientationApi = window.screen?.orientation as
+      | (ScreenOrientation & {
+          lock?: (orientation: "landscape") => Promise<void>;
+        })
+      | undefined;
     if (orientationApi && typeof orientationApi.lock === "function") {
       orientationApi.lock("landscape").catch(() => {
         // Some mobile browsers require fullscreen or reject orientation locks.
@@ -5419,7 +5423,7 @@ export default function Dashboard({
   const mobileYouthLineupPickerPlayers = useMemo(
     () =>
       [...optimizerPlayers].sort((a, b) =>
-        a.name.localeCompare(b.name, undefined, { sensitivity: "base" })
+        (a.name ?? "").localeCompare(b.name ?? "", undefined, { sensitivity: "base" })
       ),
     [optimizerPlayers]
   );

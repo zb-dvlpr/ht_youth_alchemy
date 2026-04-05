@@ -862,6 +862,8 @@ export default function Dashboard({
     useState(false);
   const [mobileYouthLineupPickerSlotId, setMobileYouthLineupPickerSlotId] =
     useState<string | null>(null);
+  const [mobileYouthRefreshFeedbackVisible, setMobileYouthRefreshFeedbackVisible] =
+    useState(false);
   const [activeDetailsTab, setActiveDetailsTab] =
     useState<PlayerDetailsPanelTab>("details");
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
@@ -1000,6 +1002,8 @@ export default function Dashboard({
   const [lastGlobalRefreshAt, setLastGlobalRefreshAt] = useState<number | null>(
     null
   );
+  const previousPlayersLoadingRef = useRef(playersLoading);
+  const previousLastGlobalRefreshAtRef = useRef(lastGlobalRefreshAt);
   const [tacticType, setTacticType] = useState(7);
   const [restoredStorageKey, setRestoredStorageKey] = useState<string | null>(
     null
@@ -1217,6 +1221,45 @@ export default function Dashboard({
     playerRefreshProgressPct,
     playerRefreshStatus,
     lastGlobalRefreshAt,
+  ]);
+
+  useEffect(() => {
+    if (!mobileYouthActive) {
+      previousPlayersLoadingRef.current = playersLoading;
+      previousLastGlobalRefreshAtRef.current = lastGlobalRefreshAt;
+      setMobileYouthRefreshFeedbackVisible(false);
+      return;
+    }
+
+    let timeoutId: number | null = null;
+    const refreshJustCompleted =
+      previousPlayersLoadingRef.current &&
+      !playersLoading &&
+      lastGlobalRefreshAt !== null &&
+      lastGlobalRefreshAt !== previousLastGlobalRefreshAtRef.current;
+
+    if (playersLoading || playerRefreshStatus) {
+      setMobileYouthRefreshFeedbackVisible(true);
+    } else if (refreshJustCompleted) {
+      setMobileYouthRefreshFeedbackVisible(true);
+      timeoutId = window.setTimeout(() => {
+        setMobileYouthRefreshFeedbackVisible(false);
+      }, 5000);
+    }
+
+    previousPlayersLoadingRef.current = playersLoading;
+    previousLastGlobalRefreshAtRef.current = lastGlobalRefreshAt;
+
+    return () => {
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [
+    lastGlobalRefreshAt,
+    mobileYouthActive,
+    playerRefreshStatus,
+    playersLoading,
   ]);
 
   const playersById = useMemo(() => {
@@ -5318,6 +5361,12 @@ export default function Dashboard({
     [optimizerPlayers]
   );
 
+  const mobileYouthRefreshStatus = playersLoading
+    ? playerRefreshStatus ?? messages.refreshingLabel
+    : lastGlobalRefreshAt
+    ? `${messages.youthLastGlobalRefresh}: ${formatDateTime(lastGlobalRefreshAt)}`
+    : null;
+
   const mobileYouthContent =
     mobileYouthPlayerScreen === "detail" ? (
       <div className={styles.mobileYouthContent}>
@@ -6125,6 +6174,26 @@ export default function Dashboard({
             position={mobileYouthMenuPosition}
             onPositionChange={setMobileYouthMenuPosition}
           />
+          {mobileYouthRefreshFeedbackVisible && mobileYouthRefreshStatus ? (
+            <div className={styles.mobileYouthRefreshStatus} aria-live="polite">
+              <span className={styles.mobileYouthRefreshStatusText}>
+                {mobileYouthRefreshStatus}
+              </span>
+              {playersLoading ? (
+                <span className={styles.mobileYouthRefreshProgressTrack} aria-hidden="true">
+                  <span
+                    className={styles.mobileYouthRefreshProgressFill}
+                    style={{
+                      width: `${Math.max(
+                        0,
+                        Math.min(100, playerRefreshProgressPct || 0)
+                      )}%`,
+                    }}
+                  />
+                </span>
+              ) : null}
+            </div>
+          ) : null}
           {mobileYouthContent}
         </>
       ) : (

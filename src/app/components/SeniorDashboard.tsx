@@ -2994,6 +2994,8 @@ export default function SeniorDashboard({
     x: 16,
     y: 108,
   });
+  const [mobileSeniorLandscapeActive, setMobileSeniorLandscapeActive] =
+    useState(false);
   const [mobileSeniorRefreshFeedbackVisible, setMobileSeniorRefreshFeedbackVisible] =
     useState(false);
   const [assignments, setAssignments] = useState<LineupAssignments>({});
@@ -13062,6 +13064,31 @@ const refreshDetailsForPlayers = async (
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const shouldUseLandscapeMatrixMode =
+      mobileSeniorActive &&
+      (mobileSeniorView === "skillsMatrix" || mobileSeniorView === "ratingsMatrix");
+    if (!shouldUseLandscapeMatrixMode) {
+      setMobileSeniorLandscapeActive(false);
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(orientation: landscape)");
+    const syncLandscapeState = () => setMobileSeniorLandscapeActive(mediaQuery.matches);
+    syncLandscapeState();
+
+    const orientationApi = window.screen?.orientation;
+    if (orientationApi && typeof orientationApi.lock === "function") {
+      orientationApi.lock("landscape").catch(() => {
+        // Some mobile browsers require fullscreen or reject orientation locks.
+      });
+    }
+
+    mediaQuery.addEventListener("change", syncLandscapeState);
+    return () => mediaQuery.removeEventListener("change", syncLandscapeState);
+  }, [mobileSeniorActive, mobileSeniorView]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     const handleRefresh = () => {
       void refreshAllRef.current?.("manual");
     };
@@ -13955,6 +13982,12 @@ const refreshDetailsForPlayers = async (
       </Tooltip>
     ) : null;
 
+  const mobileSeniorMatrixHint = !mobileSeniorLandscapeActive ? (
+    <span className={styles.mobileYouthLandscapeHint}>
+      {messages.mobileYouthLandscapeHint}
+    </span>
+  ) : null;
+
   const seniorMobileDetailsPanel = (
     <PlayerDetailsPanel
       selectedPlayer={selectedPanelPlayer}
@@ -14503,6 +14536,116 @@ const refreshDetailsForPlayers = async (
       <div className={styles.mobileYouthContent}>{seniorMobileDetailsPanel}</div>
     ) : mobileSeniorPlayerScreen === "list" ? (
       <div className={styles.mobileYouthContent}>{mobileSeniorListCard}</div>
+    ) : mobileSeniorView === "skillsMatrix" ? (
+      <div className={styles.mobileYouthContent}>
+        <PlayerDetailsPanel
+          selectedPlayer={selectedPanelPlayer}
+          detailsData={selectedPanelDetails}
+          loading={false}
+          error={null}
+          lastUpdated={selectedId ? (detailsCache[selectedId]?.fetchedAt ?? null) : null}
+          unlockStatus={null}
+          onRefresh={() => {
+            if (refreshing || players.length === 0) return;
+            void refreshDetailsForPlayers(players);
+          }}
+          players={panelPlayers}
+          playerDetailsById={panelDetailsById}
+          skillsMatrixRows={skillsMatrixRows}
+          ratingsMatrixResponse={ratingsResponse}
+          ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
+          ratingsMatrixSpecialtyByName={specialtyByName}
+          ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
+          ratingsMatrixCardStatusByName={seniorCardStatusByName}
+          cardStatusByPlayerId={seniorCardStatusByPlayerId}
+          matrixNewPlayerIds={matrixNewMarkers.playerIds}
+          matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
+          matrixNewSkillsCurrentByPlayerId={matrixNewMarkers.skillsCurrentByPlayerId}
+          matrixNewSkillsMaxByPlayerId={matrixNewMarkers.skillsMaxByPlayerId}
+          onSelectRatingsPlayer={(playerName) => {
+            const player = players.find((item) => formatPlayerName(item) === playerName);
+            if (!player) return;
+            setSelectedId(player.PlayerID);
+          }}
+          onMatrixPlayerDragStart={handleSeniorPlayerDragStart}
+          orderedPlayerIds={orderedPlayerIds}
+          orderSource={orderSource}
+          onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}
+          onSkillsOrderChange={(ids) => applyPlayerOrder(ids, "skills")}
+          onRatingsSortStart={() => {
+            setOrderSource("ratings");
+            setOrderedPlayerIds(null);
+          }}
+          onSkillsSortStart={() => {
+            setOrderSource("skills");
+            setOrderedPlayerIds(null);
+          }}
+          playerKind="senior"
+          skillMode="single"
+          maxSkillLevel={20}
+          activeTab="skillsMatrix"
+          showTabs={false}
+          extraSkillsMatrixHeaderAux={mobileSeniorMatrixHint}
+          showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
+          onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
+          messages={messages}
+        />
+      </div>
+    ) : mobileSeniorView === "ratingsMatrix" ? (
+      <div className={styles.mobileYouthContent}>
+        <PlayerDetailsPanel
+          selectedPlayer={selectedPanelPlayer}
+          detailsData={selectedPanelDetails}
+          loading={false}
+          error={null}
+          lastUpdated={selectedId ? (detailsCache[selectedId]?.fetchedAt ?? null) : null}
+          unlockStatus={null}
+          onRefresh={() => {
+            if (refreshing || players.length === 0) return;
+            void refreshDetailsForPlayers(players);
+          }}
+          players={panelPlayers}
+          playerDetailsById={panelDetailsById}
+          skillsMatrixRows={skillsMatrixRows}
+          ratingsMatrixResponse={ratingsResponse}
+          ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
+          ratingsMatrixSpecialtyByName={specialtyByName}
+          ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
+          ratingsMatrixCardStatusByName={seniorCardStatusByName}
+          cardStatusByPlayerId={seniorCardStatusByPlayerId}
+          matrixNewPlayerIds={matrixNewMarkers.playerIds}
+          matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
+          matrixNewSkillsCurrentByPlayerId={matrixNewMarkers.skillsCurrentByPlayerId}
+          matrixNewSkillsMaxByPlayerId={matrixNewMarkers.skillsMaxByPlayerId}
+          onSelectRatingsPlayer={(playerName) => {
+            const player = players.find((item) => formatPlayerName(item) === playerName);
+            if (!player) return;
+            setSelectedId(player.PlayerID);
+          }}
+          onMatrixPlayerDragStart={handleSeniorPlayerDragStart}
+          orderedPlayerIds={orderedPlayerIds}
+          orderSource={orderSource}
+          onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}
+          onSkillsOrderChange={(ids) => applyPlayerOrder(ids, "skills")}
+          onRatingsSortStart={() => {
+            setOrderSource("ratings");
+            setOrderedPlayerIds(null);
+          }}
+          onSkillsSortStart={() => {
+            setOrderSource("skills");
+            setOrderedPlayerIds(null);
+          }}
+          playerKind="senior"
+          skillMode="single"
+          maxSkillLevel={20}
+          activeTab="ratingsMatrix"
+          showTabs={false}
+          extraSkillsMatrixHeaderAux={mobileSeniorMatrixHint}
+          showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
+          onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
+          messages={messages}
+        />
+      </div>
     ) : mobileSeniorView === "playerDetails" ? (
       <div className={styles.mobileYouthContent}>
         <div className={`${styles.card} ${styles.mobileYouthPlaceholderCard}`}>

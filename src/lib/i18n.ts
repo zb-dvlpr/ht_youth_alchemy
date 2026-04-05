@@ -803,7 +803,9 @@ export type Messages = {
   mobileYouthMenuToggleLabel: string;
   mobileYouthRootTitle: string;
   mobileYouthRootPrompt: string;
+  mobileYouthBackLabel: string;
   mobileYouthBackToPlayerList: string;
+  mobileYouthLandscapeHint: string;
   mobileYouthViewComingSoon: string;
   trainingTitle: string;
   trainingSectionFocused: string;

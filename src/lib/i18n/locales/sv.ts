@@ -980,7 +980,10 @@ export const messagesSv: Messages = {
     mobileYouthRootTitle: "Optimera ungdomstruppen",
     mobileYouthRootPrompt:
       "Använd den flytande menyn för att öppna spelardetaljer, matriser eller laguppställningsoptimeraren.",
+    mobileYouthBackLabel: "Tillbaka",
     mobileYouthBackToPlayerList: "Tillbaka till spelarlistan",
+    mobileYouthLandscapeHint:
+      "Rotera till liggande läge för att se hela färdighetsmatrisen.",
     mobileYouthViewComingSoon:
       "Den här mobila ungdomsvyn är inte implementerad ännu.",
     trainingTitle: "Fokuserad träning",

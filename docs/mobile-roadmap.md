@@ -29,7 +29,7 @@ Last updated: 2026-04-05
 ## Phase 2: Youth Mobile
 - [x] Establish the overall Youth mobile look and feel.
 - [x] Make Youth player details mobile-friendly.
-- [ ] Adapt the Youth skills matrix for mobile readability.
+- [x] Adapt the Youth skills matrix for mobile readability.
 - [ ] Adapt the Youth ratings matrix for mobile readability.
 - [ ] Make the Youth lineup optimizer mobile-friendly.
 - [ ] Verify desktop Youth layout and interactions after mobile Youth changes.

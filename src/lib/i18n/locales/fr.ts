@@ -988,7 +988,10 @@ export const messagesFr: Messages = {
     mobileYouthRootTitle: "Optimisation de l'effectif jeunes",
     mobileYouthRootPrompt:
       "Utilisez le menu flottant pour ouvrir les détails joueur, les matrices ou l'optimiseur de composition.",
+    mobileYouthBackLabel: "Retour",
     mobileYouthBackToPlayerList: "Retour à la liste des joueurs",
+    mobileYouthLandscapeHint:
+      "Passez en paysage pour voir la matrice de compétences complète.",
     mobileYouthViewComingSoon:
       "Cette vue mobile des jeunes n'est pas encore implémentée.",
     trainingTitle: "Entraînement ciblé",

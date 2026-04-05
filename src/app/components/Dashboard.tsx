@@ -858,6 +858,8 @@ export default function Dashboard({
     x: 16,
     y: 108,
   });
+  const [mobileYouthLandscapeActive, setMobileYouthLandscapeActive] =
+    useState(false);
   const [activeDetailsTab, setActiveDetailsTab] =
     useState<PlayerDetailsPanelTab>("details");
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
@@ -2134,6 +2136,44 @@ export default function Dashboard({
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
   }, [mobileYouthActive]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!mobileYouthActive || mobileYouthView !== "skillsMatrix") {
+      setMobileYouthLandscapeActive(false);
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(orientation: landscape)");
+    const syncLandscapeState = () => setMobileYouthLandscapeActive(mediaQuery.matches);
+    syncLandscapeState();
+
+    const orientationApi = window.screen?.orientation;
+    if (orientationApi && typeof orientationApi.lock === "function") {
+      orientationApi.lock("landscape").catch(() => {
+        // Some mobile browsers require fullscreen or reject orientation locks.
+      });
+    }
+
+    const handleChange = (event: MediaQueryListEvent) =>
+      setMobileYouthLandscapeActive(event.matches);
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleChange);
+    } else {
+      mediaQuery.addListener(handleChange);
+    }
+
+    return () => {
+      if (typeof mediaQuery.removeEventListener === "function") {
+        mediaQuery.removeEventListener("change", handleChange);
+      } else {
+        mediaQuery.removeListener(handleChange);
+      }
+      if (orientationApi && typeof orientationApi.unlock === "function") {
+        orientationApi.unlock();
+      }
+    };
+  }, [mobileYouthActive, mobileYouthView]);
 
   useEffect(() => {
     if (!ratingsResponseState) return;
@@ -5409,6 +5449,94 @@ export default function Dashboard({
           hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
           hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}
           newMarkerPlayerIds={listNewMarkerPlayerIds}
+          messages={messages}
+        />
+      </div>
+    ) : mobileYouthView === "skillsMatrix" ? (
+      <div className={styles.mobileYouthContent}>
+        <PlayerDetailsPanel
+          selectedPlayer={selectedPlayer}
+          detailsData={detailsData}
+          loading={loading}
+          error={error}
+          lastUpdated={lastUpdated}
+          unlockStatus={unlockStatus}
+          onRefresh={() =>
+            selectedId ? handlePlayerDetailsRefresh() : undefined
+          }
+          players={playerList}
+          playerDetailsById={playerDetailsById}
+          skillsMatrixRows={skillsMatrixRows}
+          ratingsMatrixResponse={ratingsMatrixData?.response ?? null}
+          ratingsMatrixMatchHrefBuilder={ratingsMatrixMatchHrefBuilder}
+          ratingsMatrixSelectedName={
+            selectedPlayer ? formatPlayerName(selectedPlayer) : null
+          }
+          ratingsMatrixSpecialtyByName={Object.fromEntries(
+            playerList.map((player) => [
+              [player.FirstName, player.NickName || null, player.LastName]
+                .filter(Boolean)
+                .join(" "),
+              Number(player.Specialty ?? 0) > 0
+                ? player.Specialty
+                : hiddenSpecialtyByPlayerId[player.YouthPlayerID],
+            ])
+          )}
+          ratingsMatrixHiddenSpecialtyByName={Object.fromEntries(
+            playerList.map((player) => [
+              [player.FirstName, player.NickName || null, player.LastName]
+                .filter(Boolean)
+                .join(" "),
+              Number(player.Specialty ?? 0) <= 0 &&
+                Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0,
+            ])
+          )}
+          matrixNewPlayerIds={newPlayerNameMarkerIds}
+          matrixNewRatingsByPlayerId={activeMatrixNewMarkers.ratingsByPlayerId}
+          matrixNewSkillsCurrentByPlayerId={
+            activeMatrixNewMarkers.skillsCurrentByPlayerId
+          }
+          matrixNewSkillsMaxByPlayerId={activeMatrixNewMarkers.skillsMaxByPlayerId}
+          hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
+          hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}
+          onSelectRatingsPlayer={(playerName) => {
+            const match = playerList.find(
+              (entry) => formatPlayerName(entry) === playerName
+            );
+            if (!match) return;
+            handleMobilePlayerSelect(match.YouthPlayerID);
+          }}
+          onMatrixPlayerDragStart={handleMatrixPlayerDragStart}
+          orderedPlayerIds={orderedPlayerIds}
+          orderSource={orderSource}
+          onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}
+          onSkillsOrderChange={(ids) => applyPlayerOrder(ids, "skills")}
+          onRatingsSortStart={() => {
+            setOrderSource("ratings");
+            setOrderedPlayerIds(null);
+          }}
+          onSkillsSortStart={() => {
+            setOrderSource("skills");
+            setOrderedPlayerIds(null);
+          }}
+          activeTab="skillsMatrix"
+          showTabs={false}
+          skillsMatrixHeaderAux={
+            <button
+              type="button"
+              className={styles.mobileYouthBackButton}
+              onClick={handleMobileYouthBack}
+            >
+              {messages.mobileYouthBackLabel}
+            </button>
+          }
+          extraSkillsMatrixHeaderAux={
+            !mobileYouthLandscapeActive ? (
+              <span className={styles.mobileYouthLandscapeHint}>
+                {messages.mobileYouthLandscapeHint}
+              </span>
+            ) : null
+          }
           messages={messages}
         />
       </div>

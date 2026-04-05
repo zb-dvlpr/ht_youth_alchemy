@@ -990,7 +990,10 @@ export const messagesIt: Messages = {
     mobileYouthRootTitle: "Ottimizzazione rosa giovanile",
     mobileYouthRootPrompt:
       "Usa il menu mobile per aprire dettagli giocatore, matrici o l'ottimizzatore della formazione.",
+    mobileYouthBackLabel: "Indietro",
     mobileYouthBackToPlayerList: "Torna alla lista giocatori",
+    mobileYouthLandscapeHint:
+      "Ruota in orizzontale per vedere la matrice abilità completa.",
     mobileYouthViewComingSoon:
       "Questa vista mobile giovanile non è ancora implementata.",
     trainingTitle: "Allenamento mirato",

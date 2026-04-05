@@ -989,7 +989,10 @@ export const messagesEs: Messages = {
     mobileYouthRootTitle: "Optimización del plantel juvenil",
     mobileYouthRootPrompt:
       "Usa el menú flotante para abrir detalles del jugador, matrices o el optimizador de alineación.",
+    mobileYouthBackLabel: "Atrás",
     mobileYouthBackToPlayerList: "Volver a la lista de jugadores",
+    mobileYouthLandscapeHint:
+      "Gira a horizontal para ver la matriz de habilidades completa.",
     mobileYouthViewComingSoon:
       "Esta vista móvil juvenil aún no está implementada.",
     trainingTitle: "Entrenamiento enfocado",

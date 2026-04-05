@@ -591,7 +591,10 @@ export const messagesNl: Messages = {
   mobileYouthRootTitle: "Optimalisatie van de jeugdselectie",
   mobileYouthRootPrompt:
     "Gebruik het zwevende menu om spelerdetails, matrices of de opstellingsoptimalisatie te openen.",
+  mobileYouthBackLabel: "Terug",
   mobileYouthBackToPlayerList: "Terug naar spelerslijst",
+  mobileYouthLandscapeHint:
+    "Draai naar liggende stand voor de volledige vaardighedenmatrix.",
   mobileYouthViewComingSoon:
     "Deze mobiele jeugdweergave is nog niet geïmplementeerd.",
   trainingTitle: "Gerichte vaardigheidstraining",

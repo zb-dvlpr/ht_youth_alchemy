@@ -975,7 +975,10 @@ export const messagesDe: Messages = {
     mobileYouthRootTitle: "Jugendkader-Optimierung",
     mobileYouthRootPrompt:
       "Über das schwebende Menü öffnest du Spielerdetails, Matrizen oder den Aufstellungsoptimierer.",
+    mobileYouthBackLabel: "Zurück",
     mobileYouthBackToPlayerList: "Zurück zur Spielerliste",
+    mobileYouthLandscapeHint:
+      "Für die vollständige Fähigkeitsmatrix bitte ins Querformat drehen.",
     mobileYouthViewComingSoon:
       "Diese mobile Jugendansicht ist noch nicht implementiert.",
     trainingTitle: "Fokussiertes Fähigkeitstraining",

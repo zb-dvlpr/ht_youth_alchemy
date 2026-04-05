@@ -585,7 +585,10 @@ export const messagesPl: Messages = {
   mobileYouthRootTitle: "Optymalizacja składu juniorów",
   mobileYouthRootPrompt:
     "Użyj pływającego menu, aby otworzyć szczegóły zawodnika, macierze lub optymalizator składu.",
+  mobileYouthBackLabel: "Wstecz",
   mobileYouthBackToPlayerList: "Powrót do listy zawodników",
+  mobileYouthLandscapeHint:
+    "Obróć ekran poziomo, aby zobaczyć pełną macierz umiejętności.",
   mobileYouthViewComingSoon:
     "Ten mobilny widok juniorów nie jest jeszcze gotowy.",
   trainingTitle: "Skoncentrowany trening umiejętności",

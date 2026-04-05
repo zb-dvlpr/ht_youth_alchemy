@@ -595,6 +595,9 @@ export const messagesNl: Messages = {
   mobileYouthBackToPlayerList: "Terug naar spelerslijst",
   mobileYouthLandscapeHint:
     "Draai naar liggende stand voor de volledige matrix.",
+  mobileYouthLineupPickerTitle: "Kies speler",
+  mobileYouthLineupPickerEmpty:
+    "Geen spelers beschikbaar voor deze positie.",
   mobileYouthViewComingSoon:
     "Deze mobiele jeugdweergave is nog niet geïmplementeerd.",
   trainingTitle: "Gerichte vaardigheidstraining",

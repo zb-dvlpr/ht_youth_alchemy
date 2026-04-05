@@ -391,6 +391,104 @@ html[data-mobile-shell="true"] .scaleContainer {
   letter-spacing: 0.03em;
 }
 
+.mobileYouthLineupHeader {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.mobileYouthLineupPickerList {
+  display: grid;
+  gap: 10px;
+  max-height: min(60vh, 440px);
+  overflow: auto;
+}
+
+.mobileYouthLineupPickerOption {
+  width: 100%;
+  border: 1px solid rgba(151, 125, 84, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  color: #352c24;
+}
+
+.mobileYouthLineupPickerName {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mobileYouthLineupPickerMeta {
+  font-size: 12px;
+  color: #7a6447;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .fieldPitch {
+  padding: 22px 10px 18px;
+  min-height: 0;
+  gap: 14px;
+  --row-gap: 8px;
+  --slot-height: clamp(68px, 14vw, 92px);
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .lineupActions {
+  left: 10px;
+  right: 10px;
+  bottom: 8px;
+  gap: 8px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .benchArea {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 0 4px;
+  --slot-height: 58px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .slotContent {
+  padding: 6px 12px 6px;
+  gap: 4px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .slotName {
+  font-size: 10px;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  text-align: center;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .benchArea .slotName {
+  font-size: 9px;
+  -webkit-line-clamp: 3;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .slotEmoji {
+  left: 5px;
+  bottom: 5px;
+  font-size: 12px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .slotCardStatus {
+  right: 5px;
+  bottom: 5px;
+  font-size: 10px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+}
+
 .topBarActions {
   display: flex;
   flex-direction: column;
@@ -3434,6 +3532,16 @@ html[data-theme="dark"] .mobileYouthBackButton {
   background: rgba(30, 26, 22, 0.96);
   color: #efe4d8;
   border-color: rgba(230, 199, 146, 0.14);
+}
+
+html[data-theme="dark"] .mobileYouthLineupPickerOption {
+  background: rgba(39, 33, 26, 0.98);
+  border-color: rgba(230, 199, 146, 0.14);
+  color: #efe4d8;
+}
+
+html[data-theme="dark"] .mobileYouthLineupPickerMeta {
+  color: #cfb692;
 }
 
 @media (max-width: 900px) {

@@ -994,6 +994,9 @@ export const messagesIt: Messages = {
     mobileYouthBackToPlayerList: "Torna alla lista giocatori",
     mobileYouthLandscapeHint:
       "Ruota in orizzontale per vedere la matrice completa.",
+    mobileYouthLineupPickerTitle: "Scegli giocatore",
+    mobileYouthLineupPickerEmpty:
+      "Nessun giocatore disponibile per questo slot.",
     mobileYouthViewComingSoon:
       "Questa vista mobile giovanile non è ancora implementata.",
     trainingTitle: "Allenamento mirato",

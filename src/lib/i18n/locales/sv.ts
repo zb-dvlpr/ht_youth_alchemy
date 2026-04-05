@@ -984,6 +984,9 @@ export const messagesSv: Messages = {
     mobileYouthBackToPlayerList: "Tillbaka till spelarlistan",
     mobileYouthLandscapeHint:
       "Rotera till liggande läge för att se hela matrisen.",
+    mobileYouthLineupPickerTitle: "Välj spelare",
+    mobileYouthLineupPickerEmpty:
+      "Inga spelare är tillgängliga för den här platsen.",
     mobileYouthViewComingSoon:
       "Den här mobila ungdomsvyn är inte implementerad ännu.",
     trainingTitle: "Fokuserad träning",

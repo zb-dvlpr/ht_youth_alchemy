@@ -979,6 +979,9 @@ export const messagesDe: Messages = {
     mobileYouthBackToPlayerList: "Zurück zur Spielerliste",
     mobileYouthLandscapeHint:
       "Für die vollständige Matrix bitte ins Querformat drehen.",
+    mobileYouthLineupPickerTitle: "Spieler wählen",
+    mobileYouthLineupPickerEmpty:
+      "Für diesen Platz sind keine Spieler verfügbar.",
     mobileYouthViewComingSoon:
       "Diese mobile Jugendansicht ist noch nicht implementiert.",
     trainingTitle: "Fokussiertes Fähigkeitstraining",

@@ -953,6 +953,8 @@ export const messagesEn: Messages = {
     mobileYouthBackLabel: "Back",
     mobileYouthBackToPlayerList: "Back to player list",
     mobileYouthLandscapeHint: "Rotate to landscape for the full matrix view.",
+    mobileYouthLineupPickerTitle: "Choose player",
+    mobileYouthLineupPickerEmpty: "No players available for this slot.",
     mobileYouthViewComingSoon: "This Youth mobile view is not implemented yet.",
     trainingTitle: "Focused skill training",
     trainingSectionFocused: "Focused skill training",

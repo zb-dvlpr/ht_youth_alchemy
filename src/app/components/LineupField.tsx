@@ -60,6 +60,7 @@ type LineupFieldProps = {
   onClear: (slotId: string) => void;
   onMove?: (fromSlot: string, toSlot: string) => void;
   onSelectPlayer?: (playerId: number) => void | Promise<void>;
+  onEmptySlotSelect?: (slotId: string) => void;
   onChangeBehavior?: (slotId: string, behavior: number) => void;
   onRandomize?: () => void;
   onReset?: () => void;
@@ -105,6 +106,7 @@ type LineupFieldProps = {
   skillMode?: "currentMax" | "single";
   maxSkillLevel?: number;
   messages: Messages;
+  allowExternalPlayerDrop?: boolean;
 };
 
 type PositionRow = {
@@ -422,7 +424,9 @@ export default function LineupField({
   skillMode = "currentMax",
   maxSkillLevel = MAX_SKILL_LEVEL,
   onSelectPlayer,
+  onEmptySlotSelect,
   messages,
+  allowExternalPlayerDrop = true,
 }: LineupFieldProps) {
   const [optimizeOpen, setOptimizeOpen] = useState(false);
   const [trainingMenuOpen, setTrainingMenuOpen] = useState(false);
@@ -749,7 +753,7 @@ export default function LineupField({
           onMove(payload.fromSlot, slotId);
           return;
         }
-        if (payload.type === "player" && payload.playerId) {
+        if (allowExternalPlayerDrop && payload.type === "player" && payload.playerId) {
           onAssign(slotId, payload.playerId);
           return;
         }
@@ -759,6 +763,7 @@ export default function LineupField({
     }
 
     const fallback = event.dataTransfer.getData("text/plain");
+    if (!allowExternalPlayerDrop) return;
     const playerId = Number(fallback);
     if (Number.isNaN(playerId)) return;
     onAssign(slotId, playerId);
@@ -963,6 +968,10 @@ export default function LineupField({
                   } ${behaviorValue ? styles.fieldSlotHasBehavior : ""}`}
                   onDrop={(event) => handleDrop(position.id, event)}
                   onDragOver={handleDragOver}
+                  onClick={() => {
+                    if (assignedPlayer) return;
+                    onEmptySlotSelect?.(position.id);
+                  }}
                 >
                   {assignedPlayer && behaviorOptions.length ? (
                     <>
@@ -1201,6 +1210,10 @@ export default function LineupField({
                 className={styles.fieldSlot}
                 onDrop={(event) => handleDrop(slot.id, event)}
                 onDragOver={handleDragOver}
+                onClick={() => {
+                  if (assignedPlayer) return;
+                  onEmptySlotSelect?.(slot.id);
+                }}
               >
                 {assignedPlayer ? (
                   <Tooltip

@@ -89,6 +89,8 @@ const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
 const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
 const YOUTH_LATEST_UPDATES_OPEN_EVENT = "ya:youth-latest-updates-open";
 const MOBILE_LAUNCHER_REQUEST_EVENT = "ya:mobile-launcher-request";
+const MOBILE_NAV_TRAIL_STATE_EVENT = "ya:mobile-nav-trail-state";
+const MOBILE_NAV_TRAIL_JUMP_EVENT = "ya:mobile-nav-trail-jump";
 const MOBILE_YOUTH_MEDIA_QUERY = "(max-width: 900px)";
 const YOUTH_UPDATES_HISTORY_LIMIT = 20;
 const YOUTH_UPDATES_SCHEMA_VERSION = 3;
@@ -1546,6 +1548,81 @@ export default function Dashboard({
     pushMobileYouthState,
     selectedPlayer,
   ]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!mobileYouthActive) return;
+    const segments =
+      mobileYouthView === "playerDetails"
+        ? mobileYouthPlayerScreen === "detail"
+          ? [
+              { id: "player-list", label: messages.youthPlayerList },
+              { id: "player-details", label: messages.detailsTabLabel },
+            ]
+          : mobileYouthPlayerScreen === "list"
+            ? [{ id: "player-list", label: messages.youthPlayerList }]
+            : []
+        : mobileYouthView === "skillsMatrix"
+          ? [{ id: "skills-matrix", label: messages.skillsMatrixTabLabel }]
+          : mobileYouthView === "ratingsMatrix"
+            ? [{ id: "ratings-matrix", label: messages.ratingsMatrixTabLabel }]
+            : mobileYouthView === "lineupOptimizer"
+              ? [{ id: "lineup-optimizer", label: messages.lineupTitle }]
+              : [];
+    window.dispatchEvent(
+      new CustomEvent(MOBILE_NAV_TRAIL_STATE_EVENT, {
+        detail: {
+          tool: "youth",
+          segments,
+        },
+      })
+    );
+  }, [
+    messages.detailsTabLabel,
+    messages.lineupTitle,
+    messages.ratingsMatrixTabLabel,
+    messages.skillsMatrixTabLabel,
+    messages.youthPlayerList,
+    mobileYouthActive,
+    mobileYouthPlayerScreen,
+    mobileYouthView,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handle = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      const detail = event.detail as { tool?: string; target?: string } | undefined;
+      if (!detail || detail.tool !== "youth") return;
+      switch (detail.target) {
+        case "tool-root":
+          pushMobileYouthState("playerDetails", "root");
+          return;
+        case "player-list":
+          pushMobileYouthState("playerDetails", "list");
+          return;
+        case "player-details":
+          pushMobileYouthState(
+            "playerDetails",
+            selectedPlayer ? "detail" : "list"
+          );
+          return;
+        case "skills-matrix":
+          pushMobileYouthState("skillsMatrix", "root");
+          return;
+        case "ratings-matrix":
+          pushMobileYouthState("ratingsMatrix", "root");
+          return;
+        case "lineup-optimizer":
+          pushMobileYouthState("lineupOptimizer", "root");
+          return;
+        default:
+          return;
+      }
+    };
+    window.addEventListener(MOBILE_NAV_TRAIL_JUMP_EVENT, handle);
+    return () => window.removeEventListener(MOBILE_NAV_TRAIL_JUMP_EVENT, handle);
+  }, [pushMobileYouthState, selectedPlayer]);
+
   const playerNavigationIds = useMemo(() => {
     if (orderedPlayerIds && orderedPlayerIds.length) {
       const validIds = new Set(playerList.map((player) => player.YouthPlayerID));

@@ -1,7 +1,15 @@
 "use client";
 
-import { type CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { Children } from "react";
+import {
+  Children,
+  Fragment,
+  type CSSProperties,
+  ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "../page.module.css";
 import Tooltip from "./Tooltip";
 import ClubChronicle from "./ClubChronicle";
@@ -66,7 +74,14 @@ const SENIOR_REFRESH_STOP_EVENT = "ya:senior-refresh-stop";
 const SENIOR_REFRESH_STATE_EVENT = "ya:senior-refresh-state";
 const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
 const MOBILE_LAUNCHER_REQUEST_EVENT = "ya:mobile-launcher-request";
+const MOBILE_NAV_TRAIL_STATE_EVENT = "ya:mobile-nav-trail-state";
+const MOBILE_NAV_TRAIL_JUMP_EVENT = "ya:mobile-nav-trail-jump";
 const MOBILE_LAYOUT_MEDIA_QUERY = "(max-width: 900px)";
+
+type MobileNavSegment = {
+  id: string;
+  label: string;
+};
 
 export default function AppShell({
   messages,
@@ -79,6 +94,7 @@ export default function AppShell({
   const [activeTool, setActiveTool] = useState<ToolId>("youth");
   const [mobileLayoutActive, setMobileLayoutActive] = useState(false);
   const [mobileLauncherOpen, setMobileLauncherOpen] = useState(false);
+  const [mobileNavSegments, setMobileNavSegments] = useState<MobileNavSegment[]>([]);
   const [viewStateRestored, setViewStateRestored] = useState(false);
   const [topBarHeight, setTopBarHeight] = useState(56);
   const [youthRefreshing, setYouthRefreshing] = useState(false);
@@ -517,6 +533,34 @@ export default function AppShell({
   }, [activeTool]);
 
   useEffect(() => {
+    setMobileNavSegments([]);
+  }, [activeTool, mobileLauncherOpen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handle = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      const detail = event.detail as
+        | { tool?: ToolId; segments?: MobileNavSegment[] }
+        | undefined;
+      if (!detail || detail.tool !== activeTool) return;
+      const segments = Array.isArray(detail.segments)
+        ? detail.segments.filter(
+            (segment): segment is MobileNavSegment =>
+              Boolean(
+                segment &&
+                  typeof segment.id === "string" &&
+                  typeof segment.label === "string"
+              )
+          )
+        : [];
+      setMobileNavSegments(segments);
+    };
+    window.addEventListener(MOBILE_NAV_TRAIL_STATE_EVENT, handle);
+    return () => window.removeEventListener(MOBILE_NAV_TRAIL_STATE_EVENT, handle);
+  }, [activeTool]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     const captureViewState = () => {
       const main = document.querySelector("[data-app-main='true']") as HTMLElement | null;
@@ -734,6 +778,66 @@ export default function AppShell({
     setBuyCoffeePromptOpen(false);
   };
 
+  const mobileNavTrail = mobileLayoutActive && !mobileLauncherOpen ? (
+    <div className={styles.mobileNavTrail} aria-label={messages.brandTitle}>
+      <button
+        type="button"
+        className={styles.mobileNavTrailButton}
+        onClick={() => {
+          window.dispatchEvent(new CustomEvent(MOBILE_LAUNCHER_REQUEST_EVENT));
+        }}
+      >
+        {messages.brandTitle}
+      </button>
+      <span className={styles.mobileNavTrailSeparator} aria-hidden="true">
+        ›
+      </span>
+      <button
+        type="button"
+        className={`${styles.mobileNavTrailButton} ${
+          mobileNavSegments.length === 0 ? styles.mobileNavTrailCurrent : ""
+        }`}
+        disabled={mobileNavSegments.length === 0}
+        onClick={() => {
+          if (activeTool !== "youth") return;
+          window.dispatchEvent(
+            new CustomEvent(MOBILE_NAV_TRAIL_JUMP_EVENT, {
+              detail: { tool: "youth", target: "tool-root" },
+            })
+          );
+        }}
+      >
+        {activeToolMeta.label}
+      </button>
+      {mobileNavSegments.map((segment, index) => {
+        const isCurrent = index === mobileNavSegments.length - 1;
+        return (
+          <Fragment key={segment.id}>
+            <span className={styles.mobileNavTrailSeparator} aria-hidden="true">
+              ›
+            </span>
+            <button
+              type="button"
+              className={`${styles.mobileNavTrailButton} ${
+                isCurrent ? styles.mobileNavTrailCurrent : ""
+              }`}
+              disabled={isCurrent}
+              onClick={() =>
+                window.dispatchEvent(
+                  new CustomEvent(MOBILE_NAV_TRAIL_JUMP_EVENT, {
+                    detail: { tool: activeTool, target: segment.id },
+                  })
+                )
+              }
+            >
+              {segment.label}
+            </button>
+          </Fragment>
+        );
+      })}
+    </div>
+  ) : null;
+
   return (
     <div
       className={styles.shellFrame}
@@ -934,25 +1038,7 @@ export default function AppShell({
             </div>
           ) : (
             <>
-              {activeTool !== "youth" ? (
-                <div className={styles.mobileToolBar}>
-                  <button
-                    type="button"
-                    className={styles.mobileToolsHomeButton}
-                    onClick={() => {
-                      setMobileLauncherOpen(true);
-                      window.history.pushState(
-                        { appShell: "launcher" },
-                        "",
-                        window.location.href
-                      );
-                    }}
-                  >
-                    {messages.mobileToolsLabel}
-                  </button>
-                  <span className={styles.mobileToolBarTitle}>{activeToolMeta.label}</span>
-                </div>
-              ) : null}
+              {mobileNavTrail}
               {activeTool === "youth" ? youthToolChildren : null}
               {activeTool === "senior" ? seniorToolChildren : null}
               {activeTool === "chronicle" ? <ClubChronicle messages={messages} /> : null}

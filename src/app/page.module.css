@@ -171,6 +171,58 @@ html[data-mobile-shell="true"] .scaleContainer {
   margin-bottom: 12px;
 }
 
+.mobileNavTrail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  margin-bottom: 12px;
+  padding: 4px 0 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mobileNavTrail::-webkit-scrollbar {
+  display: none;
+}
+
+.mobileNavTrailButton {
+  flex: 0 0 auto;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #6c5840;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.mobileNavTrailButton:hover {
+  color: #443628;
+}
+
+.mobileNavTrailButton:disabled {
+  cursor: default;
+}
+
+.mobileNavTrailCurrent {
+  color: #443628;
+}
+
+.mobileNavTrailSeparator {
+  flex: 0 0 auto;
+  color: rgba(108, 88, 64, 0.55);
+  font-size: 11px;
+  font-weight: 700;
+  user-select: none;
+}
+
 .mobileToolsHomeButton {
   border: 1px solid rgba(151, 125, 84, 0.22);
   background: rgba(255, 255, 255, 0.84);
@@ -3481,8 +3533,18 @@ html[data-theme="dark"] .brandClock {
 }
 
 html[data-theme="dark"] .mobileLauncherEyebrow,
-html[data-theme="dark"] .mobileToolBarTitle {
+html[data-theme="dark"] .mobileToolBarTitle,
+html[data-theme="dark"] .mobileNavTrailButton {
   color: #cfb692;
+}
+
+html[data-theme="dark"] .mobileNavTrailButton:hover,
+html[data-theme="dark"] .mobileNavTrailCurrent {
+  color: #efe4d8;
+}
+
+html[data-theme="dark"] .mobileNavTrailSeparator {
+  color: rgba(207, 182, 146, 0.55);
 }
 
 html[data-theme="dark"] .mobileLauncherToolCard {

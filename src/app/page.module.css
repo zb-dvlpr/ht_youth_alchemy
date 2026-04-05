@@ -171,6 +171,30 @@ html[data-mobile-shell="true"] .scaleContainer {
   margin-bottom: 12px;
 }
 
+.mobileNavHeader {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.mobileNavAppMeta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mobileNavAppTitle {
+  min-width: 0;
+  font-family: var(--font-brand), "Space Grotesk", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6c5840;
+  white-space: nowrap;
+}
+
 .mobileNavTrail {
   display: flex;
   align-items: center;
@@ -3534,7 +3558,8 @@ html[data-theme="dark"] .brandClock {
 
 html[data-theme="dark"] .mobileLauncherEyebrow,
 html[data-theme="dark"] .mobileToolBarTitle,
-html[data-theme="dark"] .mobileNavTrailButton {
+html[data-theme="dark"] .mobileNavTrailButton,
+html[data-theme="dark"] .mobileNavAppTitle {
   color: #cfb692;
 }
 

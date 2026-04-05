@@ -31,6 +31,7 @@ import {
 
 type AppShellProps = {
   messages: Messages;
+  appVersion: string;
   globalHeader: ReactNode;
   children: ReactNode;
   seniorTool: ReactNode;
@@ -85,6 +86,7 @@ type MobileNavSegment = {
 
 export default function AppShell({
   messages,
+  appVersion,
   globalHeader,
   children,
   seniorTool,
@@ -779,62 +781,68 @@ export default function AppShell({
   };
 
   const mobileNavTrail = mobileLayoutActive && !mobileLauncherOpen ? (
-    <div className={styles.mobileNavTrail} aria-label={messages.brandTitle}>
-      <button
-        type="button"
-        className={styles.mobileNavTrailButton}
-        onClick={() => {
-          window.dispatchEvent(new CustomEvent(MOBILE_LAUNCHER_REQUEST_EVENT));
-        }}
-      >
-        {messages.brandTitle}
-      </button>
-      <span className={styles.mobileNavTrailSeparator} aria-hidden="true">
-        ›
-      </span>
-      <button
-        type="button"
-        className={`${styles.mobileNavTrailButton} ${
-          mobileNavSegments.length === 0 ? styles.mobileNavTrailCurrent : ""
-        }`}
-        disabled={mobileNavSegments.length === 0}
-        onClick={() => {
-          if (activeTool !== "youth") return;
-          window.dispatchEvent(
-            new CustomEvent(MOBILE_NAV_TRAIL_JUMP_EVENT, {
-              detail: { tool: "youth", target: "tool-root" },
-            })
+    <div className={styles.mobileNavHeader}>
+      <div className={styles.mobileNavAppMeta}>
+        <span className={styles.mobileNavAppTitle}>{messages.brandTitle}</span>
+        <span className={styles.version}>v{appVersion}</span>
+      </div>
+      <div className={styles.mobileNavTrail} aria-label={messages.brandTitle}>
+        <button
+          type="button"
+          className={styles.mobileNavTrailButton}
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent(MOBILE_LAUNCHER_REQUEST_EVENT));
+          }}
+        >
+          {messages.brandTitle}
+        </button>
+        <span className={styles.mobileNavTrailSeparator} aria-hidden="true">
+          ›
+        </span>
+        <button
+          type="button"
+          className={`${styles.mobileNavTrailButton} ${
+            mobileNavSegments.length === 0 ? styles.mobileNavTrailCurrent : ""
+          }`}
+          disabled={mobileNavSegments.length === 0}
+          onClick={() => {
+            if (activeTool !== "youth") return;
+            window.dispatchEvent(
+              new CustomEvent(MOBILE_NAV_TRAIL_JUMP_EVENT, {
+                detail: { tool: "youth", target: "tool-root" },
+              })
+            );
+          }}
+        >
+          {activeToolMeta.label}
+        </button>
+        {mobileNavSegments.map((segment, index) => {
+          const isCurrent = index === mobileNavSegments.length - 1;
+          return (
+            <Fragment key={segment.id}>
+              <span className={styles.mobileNavTrailSeparator} aria-hidden="true">
+                ›
+              </span>
+              <button
+                type="button"
+                className={`${styles.mobileNavTrailButton} ${
+                  isCurrent ? styles.mobileNavTrailCurrent : ""
+                }`}
+                disabled={isCurrent}
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent(MOBILE_NAV_TRAIL_JUMP_EVENT, {
+                      detail: { tool: activeTool, target: segment.id },
+                    })
+                  )
+                }
+              >
+                {segment.label}
+              </button>
+            </Fragment>
           );
-        }}
-      >
-        {activeToolMeta.label}
-      </button>
-      {mobileNavSegments.map((segment, index) => {
-        const isCurrent = index === mobileNavSegments.length - 1;
-        return (
-          <Fragment key={segment.id}>
-            <span className={styles.mobileNavTrailSeparator} aria-hidden="true">
-              ›
-            </span>
-            <button
-              type="button"
-              className={`${styles.mobileNavTrailButton} ${
-                isCurrent ? styles.mobileNavTrailCurrent : ""
-              }`}
-              disabled={isCurrent}
-              onClick={() =>
-                window.dispatchEvent(
-                  new CustomEvent(MOBILE_NAV_TRAIL_JUMP_EVENT, {
-                    detail: { tool: activeTool, target: segment.id },
-                  })
-                )
-              }
-            >
-              {segment.label}
-            </button>
-          </Fragment>
-        );
-      })}
+        })}
+      </div>
     </div>
   ) : null;
 

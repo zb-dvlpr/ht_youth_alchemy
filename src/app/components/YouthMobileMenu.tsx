@@ -28,6 +28,12 @@ const MENU_BUTTON_SIZE = 44;
 const MENU_WIDTH = 248;
 const VIEWPORT_PADDING = 12;
 const DRAG_THRESHOLD = 6;
+const MOMENTUM_MIN_SPEED = 0.12;
+const MOMENTUM_MAX_SPEED = 1.7;
+const MOMENTUM_LAUNCH_MULTIPLIER = 1.2;
+const MOMENTUM_FRICTION = 0.88;
+const MOMENTUM_STOP_SPEED = 0.025;
+const WALL_BOUNCE_DAMPING = 0.55;
 
 function clampPosition(
   position: { x: number; y: number },
@@ -69,9 +75,18 @@ export default function YouthMobileMenu({
     originX: number;
     originY: number;
     dragged: boolean;
+    lastX: number;
+    lastY: number;
+    lastTimestamp: number;
+    velocityX: number;
+    velocityY: number;
   } | null>(null);
+  const momentumFrameRef = useRef<number | null>(null);
+  const momentumActiveRef = useRef(false);
   const [open, setOpen] = useState(false);
   const [viewport, setViewport] = useState({ width: 0, height: 0 });
+  const [displayPosition, setDisplayPosition] = useState(position);
+  const [positionAnimating, setPositionAnimating] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -82,10 +97,20 @@ export default function YouthMobileMenu({
     return () => window.removeEventListener("resize", syncViewport);
   }, []);
 
+  useEffect(
+    () => () => {
+      if (momentumFrameRef.current !== null) {
+        window.cancelAnimationFrame(momentumFrameRef.current);
+      }
+    },
+    []
+  );
+
+  const basePosition = positionAnimating ? displayPosition : position;
   const resolvedPosition =
     viewport.width > 0 && viewport.height > 0
-      ? clampPosition(position, viewport)
-      : position;
+      ? clampPosition(basePosition, viewport)
+      : basePosition;
 
   useEffect(() => {
     if (!open) return;
@@ -123,10 +148,71 @@ export default function YouthMobileMenu({
       viewport.width > 0 && viewport.height > 0
         ? clampPosition(nextPosition, viewport)
         : nextPosition;
+    setDisplayPosition(clamped);
+    setPositionAnimating(false);
     onPositionChange(clamped);
   };
 
+  const stopMomentum = () => {
+    if (momentumFrameRef.current !== null) {
+      window.cancelAnimationFrame(momentumFrameRef.current);
+      momentumFrameRef.current = null;
+    }
+    momentumActiveRef.current = false;
+  };
+
+  const startMomentum = (
+    nextPosition: { x: number; y: number },
+    velocity: { x: number; y: number }
+  ) => {
+    if (typeof window === "undefined") return;
+    stopMomentum();
+    momentumActiveRef.current = true;
+    let currentPosition = nextPosition;
+    let currentVelocity = velocity;
+
+    const step = () => {
+      currentVelocity = {
+        x: currentVelocity.x * MOMENTUM_FRICTION,
+        y: currentVelocity.y * MOMENTUM_FRICTION,
+      };
+
+      if (
+        Math.abs(currentVelocity.x) < MOMENTUM_STOP_SPEED &&
+        Math.abs(currentVelocity.y) < MOMENTUM_STOP_SPEED
+      ) {
+        commitPosition(currentPosition);
+        momentumActiveRef.current = false;
+        momentumFrameRef.current = null;
+        return;
+      }
+
+      const unclampedPosition = {
+        x: currentPosition.x + currentVelocity.x * 16,
+        y: currentPosition.y + currentVelocity.y * 16,
+      };
+      if (viewport.width > 0 && viewport.height > 0) {
+        const bounds = clampPosition(unclampedPosition, viewport);
+        if (bounds.x !== unclampedPosition.x) {
+          currentVelocity.x = -currentVelocity.x * WALL_BOUNCE_DAMPING;
+        }
+        if (bounds.y !== unclampedPosition.y) {
+          currentVelocity.y = -currentVelocity.y * WALL_BOUNCE_DAMPING;
+        }
+        currentPosition = bounds;
+      } else {
+        currentPosition = unclampedPosition;
+      }
+      setDisplayPosition(currentPosition);
+      momentumFrameRef.current = window.requestAnimationFrame(step);
+    };
+
+    momentumFrameRef.current = window.requestAnimationFrame(step);
+  };
+
   const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    stopMomentum();
+    setPositionAnimating(true);
     dragStateRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -134,6 +220,11 @@ export default function YouthMobileMenu({
       originX: resolvedPosition.x,
       originY: resolvedPosition.y,
       dragged: false,
+      lastX: event.clientX,
+      lastY: event.clientY,
+      lastTimestamp: event.timeStamp,
+      velocityX: 0,
+      velocityY: 0,
     };
     event.currentTarget.setPointerCapture(event.pointerId);
   };
@@ -146,6 +237,12 @@ export default function YouthMobileMenu({
     if (!drag.dragged && Math.hypot(deltaX, deltaY) >= DRAG_THRESHOLD) {
       drag.dragged = true;
     }
+    const elapsed = Math.max(1, event.timeStamp - drag.lastTimestamp);
+    drag.velocityX = (event.clientX - drag.lastX) / elapsed;
+    drag.velocityY = (event.clientY - drag.lastY) / elapsed;
+    drag.lastX = event.clientX;
+    drag.lastY = event.clientY;
+    drag.lastTimestamp = event.timeStamp;
     if (!drag.dragged) return;
     const nextPosition = {
       x: drag.originX + deltaX,
@@ -155,7 +252,7 @@ export default function YouthMobileMenu({
       viewport.width > 0 && viewport.height > 0
         ? clampPosition(nextPosition, viewport)
         : nextPosition;
-    onPositionChange(clamped);
+    setDisplayPosition(clamped);
   };
 
   const handlePointerUp = (event: React.PointerEvent<HTMLButtonElement>) => {
@@ -164,9 +261,36 @@ export default function YouthMobileMenu({
     event.currentTarget.releasePointerCapture(event.pointerId);
     dragStateRef.current = null;
     if (drag.dragged) {
-      commitPosition(position);
+      const releasePosition =
+        viewport.width > 0 && viewport.height > 0
+          ? clampPosition(
+              {
+                x: drag.originX + (event.clientX - drag.startX),
+                y: drag.originY + (event.clientY - drag.startY),
+              },
+              viewport
+            )
+          : {
+              x: drag.originX + (event.clientX - drag.startX),
+              y: drag.originY + (event.clientY - drag.startY),
+            };
+      const speed = Math.hypot(drag.velocityX, drag.velocityY);
+      if (speed >= MOMENTUM_MIN_SPEED) {
+        const launchSpeed = Math.min(
+          MOMENTUM_MAX_SPEED,
+          speed * MOMENTUM_LAUNCH_MULTIPLIER
+        );
+        const scale = launchSpeed / speed;
+        startMomentum(releasePosition, {
+          x: drag.velocityX * scale,
+          y: drag.velocityY * scale,
+        });
+      } else {
+        commitPosition(releasePosition);
+      }
       return;
     }
+    setPositionAnimating(false);
     setOpen((prev) => !prev);
   };
 

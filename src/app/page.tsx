@@ -289,6 +289,7 @@ export default async function Home() {
           <SeasonBootstrap season={managerResponse.season ?? null} />
           <AppShell
             messages={messages}
+            appVersion={pkg.version}
             globalHeader={
               <header className={styles.topBar}>
                 <div className={styles.desktopHeaderBrand}>

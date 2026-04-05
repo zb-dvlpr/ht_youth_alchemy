@@ -32,7 +32,7 @@ Last updated: 2026-04-05
 - [x] Adapt the Youth skills matrix for mobile readability.
 - [x] Adapt the Youth ratings matrix for mobile readability.
 - [x] Make the Youth lineup optimizer mobile-friendly.
-- [ ] Verify desktop Youth layout and interactions after mobile Youth changes.
+- [x] Verify desktop Youth layout and interactions after mobile Youth changes.
 
 ## Phase 3: Senior Mobile
 - [ ] Establish the overall Senior mobile look and feel.

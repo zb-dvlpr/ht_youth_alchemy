@@ -977,6 +977,7 @@ export const messagesSv: Messages = {
     autoSelectTitle: "Auto-välj stjärnspelare och träningar",
     mobileHomeLabel: "Hem",
     mobileYouthMenuToggleLabel: "Öppna ungdomsmeny",
+    mobileSeniorMenuToggleLabel: "Öppna seniormeny",
     mobileYouthRootTitle: "Optimera ungdomstruppen",
     mobileYouthRootPrompt:
       "Använd den flytande menyn för att öppna spelardetaljer, matriser eller laguppställningsoptimeraren.",
@@ -989,6 +990,8 @@ export const messagesSv: Messages = {
       "Inga spelare är tillgängliga för den här platsen.",
     mobileYouthViewComingSoon:
       "Den här mobila ungdomsvyn är inte implementerad ännu.",
+    mobileSeniorViewComingSoon:
+      "Den här mobila seniorvyn är inte implementerad ännu.",
     trainingTitle: "Fokuserad träning",
     trainingSectionFocused: "Fokuserad träning",
     trainingSectionExtended: "Utökad träning",

@@ -806,10 +806,9 @@ export default function AppShell({
           }`}
           disabled={mobileNavSegments.length === 0}
           onClick={() => {
-            if (activeTool !== "youth") return;
             window.dispatchEvent(
               new CustomEvent(MOBILE_NAV_TRAIL_JUMP_EVENT, {
-                detail: { tool: "youth", target: "tool-root" },
+                detail: { tool: activeTool, target: "tool-root" },
               })
             );
           }}
@@ -907,8 +906,8 @@ export default function AppShell({
         </aside>
       ) : null}
       {!mobileLauncherOpen &&
-      ((!mobileLayoutActive && (activeTool === "youth" || activeTool === "senior")) ||
-        (mobileLayoutActive && activeTool === "senior")) ? (
+      !mobileLayoutActive &&
+      (activeTool === "youth" || activeTool === "senior") ? (
         <div className={styles.shellContextBar}>
           <div className={styles.youthActionBarActions}>
             <Tooltip content={messages.refreshAllYouthDataTooltip}>

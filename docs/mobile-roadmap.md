@@ -35,8 +35,8 @@ Last updated: 2026-04-05
 - [x] Verify desktop Youth layout and interactions after mobile Youth changes.
 
 ## Phase 3: Senior Mobile
-- [ ] Establish the overall Senior mobile look and feel.
-- [ ] Make Senior player details mobile-friendly.
+- [x] Establish the overall Senior mobile look and feel.
+- [x] Make Senior player details mobile-friendly.
 - [ ] Adapt the Senior skills matrix for mobile readability.
 - [ ] Adapt the Senior ratings matrix for mobile readability.
 - [ ] Make the Senior lineup optimizer mobile-friendly.

@@ -987,6 +987,7 @@ export const messagesIt: Messages = {
     autoSelectTitle: "Auto-seleziona giocatore stella e allenamenti",
     mobileHomeLabel: "Home",
     mobileYouthMenuToggleLabel: "Apri menu giovanile",
+    mobileSeniorMenuToggleLabel: "Apri menu senior",
     mobileYouthRootTitle: "Ottimizzazione rosa giovanile",
     mobileYouthRootPrompt:
       "Usa il menu mobile per aprire dettagli giocatore, matrici o l'ottimizzatore della formazione.",
@@ -999,6 +1000,8 @@ export const messagesIt: Messages = {
       "Nessun giocatore disponibile per questo slot.",
     mobileYouthViewComingSoon:
       "Questa vista mobile giovanile non è ancora implementata.",
+    mobileSeniorViewComingSoon:
+      "Questa vista mobile senior non è ancora implementata.",
     trainingTitle: "Allenamento mirato",
     trainingSectionFocused: "Allenamento mirato",
     trainingSectionExtended: "Allenamento esteso",

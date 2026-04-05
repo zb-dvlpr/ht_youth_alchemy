@@ -972,6 +972,7 @@ export const messagesDe: Messages = {
     autoSelectTitle: "Starspieler und Training automatisch wählen",
     mobileHomeLabel: "Start",
     mobileYouthMenuToggleLabel: "Jugendmenü öffnen",
+    mobileSeniorMenuToggleLabel: "Seniorenmenü öffnen",
     mobileYouthRootTitle: "Jugendkader-Optimierung",
     mobileYouthRootPrompt:
       "Über das schwebende Menü öffnest du Spielerdetails, Matrizen oder den Aufstellungsoptimierer.",
@@ -984,6 +985,8 @@ export const messagesDe: Messages = {
       "Für diesen Platz sind keine Spieler verfügbar.",
     mobileYouthViewComingSoon:
       "Diese mobile Jugendansicht ist noch nicht implementiert.",
+    mobileSeniorViewComingSoon:
+      "Diese mobile Seniorenansicht ist noch nicht implementiert.",
     trainingTitle: "Fokussiertes Fähigkeitstraining",
     trainingSectionFocused: "Fokussiertes Fähigkeitstraining",
     trainingSectionExtended: "Erweitertes Fähigkeitstraining",

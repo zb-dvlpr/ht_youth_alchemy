@@ -582,6 +582,7 @@ export const messagesPl: Messages = {
   autoSelectTitle: "Automatycznie wybierz gwiazdę i trening",
   mobileHomeLabel: "Start",
   mobileYouthMenuToggleLabel: "Otwórz menu juniorów",
+  mobileSeniorMenuToggleLabel: "Otwórz menu seniorów",
   mobileYouthRootTitle: "Optymalizacja składu juniorów",
   mobileYouthRootPrompt:
     "Użyj pływającego menu, aby otworzyć szczegóły zawodnika, macierze lub optymalizator składu.",
@@ -594,6 +595,8 @@ export const messagesPl: Messages = {
     "Brak zawodników dostępnych dla tego miejsca.",
   mobileYouthViewComingSoon:
     "Ten mobilny widok juniorów nie jest jeszcze gotowy.",
+  mobileSeniorViewComingSoon:
+    "Ten mobilny widok seniorów nie jest jeszcze gotowy.",
   trainingTitle: "Skoncentrowany trening umiejętności",
   trainingSectionFocused: "Skoncentrowany trening umiejętności",
   trainingSectionExtended: "Rozszerzony trening umiejętności",

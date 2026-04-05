@@ -947,6 +947,7 @@ export const messagesEn: Messages = {
     autoSelectTitle: "Auto-select star player and trainings",
     mobileHomeLabel: "Home",
     mobileYouthMenuToggleLabel: "Open youth menu",
+    mobileSeniorMenuToggleLabel: "Open senior menu",
     mobileYouthRootTitle: "Youth squad optimization",
     mobileYouthRootPrompt:
       "Use the floating menu to open player details, matrices, or the lineup optimizer.",
@@ -956,6 +957,7 @@ export const messagesEn: Messages = {
     mobileYouthLineupPickerTitle: "Choose player",
     mobileYouthLineupPickerEmpty: "No players available for this slot.",
     mobileYouthViewComingSoon: "This Youth mobile view is not implemented yet.",
+    mobileSeniorViewComingSoon: "This Senior mobile view is not implemented yet.",
     trainingTitle: "Focused skill training",
     trainingSectionFocused: "Focused skill training",
     trainingSectionExtended: "Extended skill training",

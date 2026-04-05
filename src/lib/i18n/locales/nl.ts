@@ -588,6 +588,7 @@ export const messagesNl: Messages = {
   autoSelectTitle: "Kies automatisch sterspeler en trainingen",
   mobileHomeLabel: "Home",
   mobileYouthMenuToggleLabel: "Open jeugdmenu",
+  mobileSeniorMenuToggleLabel: "Open seniorenmenu",
   mobileYouthRootTitle: "Optimalisatie van de jeugdselectie",
   mobileYouthRootPrompt:
     "Gebruik het zwevende menu om spelerdetails, matrices of de opstellingsoptimalisatie te openen.",
@@ -600,6 +601,8 @@ export const messagesNl: Messages = {
     "Geen spelers beschikbaar voor deze positie.",
   mobileYouthViewComingSoon:
     "Deze mobiele jeugdweergave is nog niet geïmplementeerd.",
+  mobileSeniorViewComingSoon:
+    "Deze mobiele seniorweergave is nog niet geïmplementeerd.",
   trainingTitle: "Gerichte vaardigheidstraining",
   trainingSectionFocused: "Gerichte vaardigheidstraining",
   trainingSectionExtended: "Uitgebreide vaardigheidstraining",

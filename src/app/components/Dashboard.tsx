@@ -22,7 +22,7 @@ import LineupField, {
   OptimizeMode,
 } from "./LineupField";
 import UpcomingMatches, { type MatchesResponse } from "./UpcomingMatches";
-import YouthMobileMenu, { type YouthMobileView } from "./YouthMobileMenu";
+import MobileToolMenu, { type MobileToolView as YouthMobileView } from "./MobileToolMenu";
 import type { YouthTeamOption } from "../page";
 import { Messages } from "@/lib/i18n";
 import { getChangelogEntries } from "@/lib/changelog";
@@ -6202,10 +6202,15 @@ export default function Dashboard({
       />
       {mobileYouthActive ? (
         <>
-          <YouthMobileMenu
+          <MobileToolMenu
             messages={messages}
-            youthTeams={youthTeams}
-            selectedYouthTeamId={selectedYouthTeamId}
+            toggleLabel={messages.mobileYouthMenuToggleLabel}
+            teamLabel={messages.youthTeamLabel}
+            teamOptions={youthTeams.map((team) => ({
+              id: team.youthTeamId,
+              label: team.youthTeamName,
+            }))}
+            selectedTeamId={selectedYouthTeamId}
             onHome={openMobileYouthHome}
             onTeamChange={handleTeamChange}
             onRefresh={() => {

@@ -801,6 +801,7 @@ export type Messages = {
   autoSelectTitle: string;
   mobileHomeLabel: string;
   mobileYouthMenuToggleLabel: string;
+  mobileSeniorMenuToggleLabel: string;
   mobileYouthRootTitle: string;
   mobileYouthRootPrompt: string;
   mobileYouthBackLabel: string;
@@ -809,6 +810,7 @@ export type Messages = {
   mobileYouthLineupPickerTitle: string;
   mobileYouthLineupPickerEmpty: string;
   mobileYouthViewComingSoon: string;
+  mobileSeniorViewComingSoon: string;
   trainingTitle: string;
   trainingSectionFocused: string;
   trainingSectionExtended: string;

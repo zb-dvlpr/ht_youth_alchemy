@@ -970,6 +970,14 @@ export const messagesDe: Messages = {
     permissionsNone: "Keine",
     autoSelectLabel: "✨",
     autoSelectTitle: "Starspieler und Training automatisch wählen",
+    mobileHomeLabel: "Start",
+    mobileYouthMenuToggleLabel: "Jugendmenü öffnen",
+    mobileYouthRootTitle: "Jugendkader-Optimierung",
+    mobileYouthRootPrompt:
+      "Über das schwebende Menü öffnest du Spielerdetails, Matrizen oder den Aufstellungsoptimierer.",
+    mobileYouthBackToPlayerList: "Zurück zur Spielerliste",
+    mobileYouthViewComingSoon:
+      "Diese mobile Jugendansicht ist noch nicht implementiert.",
     trainingTitle: "Fokussiertes Fähigkeitstraining",
     trainingSectionFocused: "Fokussiertes Fähigkeitstraining",
     trainingSectionExtended: "Erweitertes Fähigkeitstraining",

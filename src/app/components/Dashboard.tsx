@@ -2,6 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -21,6 +22,7 @@ import LineupField, {
   OptimizeMode,
 } from "./LineupField";
 import UpcomingMatches, { type MatchesResponse } from "./UpcomingMatches";
+import YouthMobileMenu, { type YouthMobileView } from "./YouthMobileMenu";
 import type { YouthTeamOption } from "../page";
 import { Messages } from "@/lib/i18n";
 import { getChangelogEntries } from "@/lib/changelog";
@@ -86,6 +88,8 @@ const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
 const YOUTH_REFRESH_STATE_EVENT = "ya:youth-refresh-state";
 const YOUTH_LATEST_UPDATES_OPEN_EVENT = "ya:youth-latest-updates-open";
+const MOBILE_LAUNCHER_REQUEST_EVENT = "ya:mobile-launcher-request";
+const MOBILE_YOUTH_MEDIA_QUERY = "(max-width: 900px)";
 const YOUTH_UPDATES_HISTORY_LIMIT = 20;
 const YOUTH_UPDATES_SCHEMA_VERSION = 3;
 const YOUTH_UPDATES_GLOBAL_MIGRATION_KEY = "ya_youth_updates_schema_v2_migrated";
@@ -310,6 +314,15 @@ const extractYouthTeams = (response: ManagerCompendiumResponse): YouthTeamOption
 type CachedDetails = {
   data: Record<string, unknown>;
   fetchedAt: number;
+};
+
+type MobileYouthPlayerScreen = "root" | "list" | "detail";
+
+type MobileYouthHistoryState = {
+  appShell?: "launcher" | "tool";
+  tool?: "youth" | "senior" | "chronicle";
+  youthView?: YouthMobileView;
+  youthScreen?: MobileYouthPlayerScreen;
 };
 
 type MatchSummary = {
@@ -836,6 +849,15 @@ export default function Dashboard({
     setHiddenSpecialtyDiscoveredMatchByPlayerId,
   ] = useState<Record<number, number>>({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [mobileYouthActive, setMobileYouthActive] = useState(false);
+  const [mobileYouthView, setMobileYouthView] =
+    useState<YouthMobileView>("playerDetails");
+  const [mobileYouthPlayerScreen, setMobileYouthPlayerScreen] =
+    useState<MobileYouthPlayerScreen>("root");
+  const [mobileYouthMenuPosition, setMobileYouthMenuPosition] = useState({
+    x: 16,
+    y: 108,
+  });
   const [activeDetailsTab, setActiveDetailsTab] =
     useState<PlayerDetailsPanelTab>("details");
   const [details, setDetails] = useState<Record<string, unknown> | null>(null);
@@ -1421,6 +1443,62 @@ export default function Dashboard({
       playerList.find((player) => player.YouthPlayerID === selectedId) ?? null,
     [playerList, selectedId]
   );
+
+  const pushMobileYouthState = useCallback(
+    (
+      view: YouthMobileView,
+      screen: MobileYouthPlayerScreen,
+      mode: "push" | "replace" = "push"
+    ) => {
+      setMobileYouthView(view);
+      setMobileYouthPlayerScreen(screen);
+      if (typeof window === "undefined" || !mobileYouthActive) return;
+      const nextState: MobileYouthHistoryState = {
+        appShell: "tool",
+        tool: "youth",
+        youthView: view,
+        youthScreen: screen,
+      };
+      if (mode === "replace") {
+        window.history.replaceState(nextState, "", window.location.href);
+      } else {
+        window.history.pushState(nextState, "", window.location.href);
+      }
+    },
+    [mobileYouthActive]
+  );
+
+  const openMobileYouthHome = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(new CustomEvent(MOBILE_LAUNCHER_REQUEST_EVENT));
+  }, []);
+
+  const handleMobileYouthViewSelect = useCallback(
+    (view: YouthMobileView) => {
+      if (view === "playerDetails") {
+        pushMobileYouthState("playerDetails", "list");
+        return;
+      }
+      pushMobileYouthState(view, "root");
+    },
+    [pushMobileYouthState]
+  );
+
+  const handleMobileYouthBack = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.history.back();
+  }, []);
+  useEffect(() => {
+    if (!mobileYouthActive) return;
+    if (mobileYouthPlayerScreen !== "detail") return;
+    if (selectedPlayer) return;
+    pushMobileYouthState("playerDetails", "list", "replace");
+  }, [
+    mobileYouthActive,
+    mobileYouthPlayerScreen,
+    pushMobileYouthState,
+    selectedPlayer,
+  ]);
   const playerNavigationIds = useMemo(() => {
     if (orderedPlayerIds && orderedPlayerIds.length) {
       const validIds = new Set(playerList.map((player) => player.YouthPlayerID));
@@ -1541,6 +1619,21 @@ export default function Dashboard({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (typeof window.matchMedia !== "function") return;
+    const mediaQuery = window.matchMedia(MOBILE_YOUTH_MEDIA_QUERY);
+    const apply = (matches: boolean) => setMobileYouthActive(matches);
+    apply(mediaQuery.matches);
+    const handleChange = (event: MediaQueryListEvent) => apply(event.matches);
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }
+    mediaQuery.addListener(handleChange);
+    return () => mediaQuery.removeListener(handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     try {
       const migratedThisRun = migrateYouthUpdatesStateIfNeeded();
       if (migratedThisRun) {
@@ -1576,6 +1669,9 @@ export default function Dashboard({
         youthUpdatesHistory?: YouthUpdatesGroupedEntry[];
         activeDetailsTab?: PlayerDetailsPanelTab;
         revealSecondaryTargetPlayerId?: number | null;
+        mobileYouthView?: YouthMobileView;
+        mobileYouthPlayerScreen?: MobileYouthPlayerScreen;
+        mobileYouthMenuPosition?: { x?: number; y?: number } | null;
       };
       const forceWipeLegacyUpdatesState =
         typeof parsed.updatesSchemaVersion !== "number" ||
@@ -1586,6 +1682,28 @@ export default function Dashboard({
       if (parsed.assignments) setAssignments(parsed.assignments);
       if (parsed.behaviors) setBehaviors(parsed.behaviors);
       if (parsed.selectedId !== undefined) setSelectedId(parsed.selectedId);
+      if (
+        parsed.mobileYouthView === "playerDetails" ||
+        parsed.mobileYouthView === "skillsMatrix" ||
+        parsed.mobileYouthView === "ratingsMatrix" ||
+        parsed.mobileYouthView === "lineupOptimizer"
+      ) {
+        setMobileYouthView(parsed.mobileYouthView);
+      }
+      if (
+        parsed.mobileYouthPlayerScreen === "root" ||
+        parsed.mobileYouthPlayerScreen === "list" ||
+        parsed.mobileYouthPlayerScreen === "detail"
+      ) {
+        setMobileYouthPlayerScreen(parsed.mobileYouthPlayerScreen);
+      }
+      if (parsed.mobileYouthMenuPosition) {
+        const nextX = Number(parsed.mobileYouthMenuPosition.x);
+        const nextY = Number(parsed.mobileYouthMenuPosition.y);
+        if (Number.isFinite(nextX) && Number.isFinite(nextY)) {
+          setMobileYouthMenuPosition({ x: nextX, y: nextY });
+        }
+      }
       if (
         parsed.activeDetailsTab === "details" ||
         parsed.activeDetailsTab === "skillsMatrix" ||
@@ -1859,6 +1977,9 @@ export default function Dashboard({
       assignments,
       behaviors,
       selectedId,
+      mobileYouthView,
+      mobileYouthPlayerScreen,
+      mobileYouthMenuPosition,
       activeDetailsTab,
       starPlayerId,
       revealSecondaryTargetPlayerId,
@@ -1891,8 +2012,11 @@ export default function Dashboard({
     ratingsPositions,
     secondaryTraining,
     tacticType,
-    selectedId,
-    activeDetailsTab,
+      selectedId,
+      mobileYouthView,
+      mobileYouthPlayerScreen,
+      mobileYouthMenuPosition,
+      activeDetailsTab,
     starPlayerId,
     revealSecondaryTargetPlayerId,
     behaviors,
@@ -1906,6 +2030,110 @@ export default function Dashboard({
     storageKey,
     restoredStorageKey,
   ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!mobileYouthActive) return;
+    const currentState = window.history.state as MobileYouthHistoryState | null;
+    if (currentState?.appShell !== "tool" || currentState.tool !== "youth") {
+      return;
+    }
+    if (currentState.youthView && currentState.youthScreen) {
+      return;
+    }
+    if (mobileYouthPlayerScreen === "detail") {
+      window.history.replaceState(
+        {
+          appShell: "tool",
+          tool: "youth",
+          youthView: "playerDetails",
+          youthScreen: "root",
+        } satisfies MobileYouthHistoryState,
+        "",
+        window.location.href
+      );
+      window.history.pushState(
+        {
+          appShell: "tool",
+          tool: "youth",
+          youthView: "playerDetails",
+          youthScreen: "list",
+        } satisfies MobileYouthHistoryState,
+        "",
+        window.location.href
+      );
+      window.history.pushState(
+        {
+          appShell: "tool",
+          tool: "youth",
+          youthView: "playerDetails",
+          youthScreen: "detail",
+        } satisfies MobileYouthHistoryState,
+        "",
+        window.location.href
+      );
+      return;
+    }
+    if (mobileYouthPlayerScreen === "list") {
+      window.history.replaceState(
+        {
+          appShell: "tool",
+          tool: "youth",
+          youthView: "playerDetails",
+          youthScreen: "root",
+        } satisfies MobileYouthHistoryState,
+        "",
+        window.location.href
+      );
+      window.history.pushState(
+        {
+          appShell: "tool",
+          tool: "youth",
+          youthView: "playerDetails",
+          youthScreen: "list",
+        } satisfies MobileYouthHistoryState,
+        "",
+        window.location.href
+      );
+      return;
+    }
+    window.history.replaceState(
+      {
+        appShell: "tool",
+        tool: "youth",
+        youthView: mobileYouthView,
+        youthScreen: "root",
+      } satisfies MobileYouthHistoryState,
+      "",
+      window.location.href
+    );
+  }, [mobileYouthActive, mobileYouthPlayerScreen, mobileYouthView]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!mobileYouthActive) return;
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state as MobileYouthHistoryState | null;
+      if (state?.appShell !== "tool" || state.tool !== "youth") return;
+      const nextView =
+        state.youthView === "skillsMatrix" ||
+        state.youthView === "ratingsMatrix" ||
+        state.youthView === "lineupOptimizer" ||
+        state.youthView === "playerDetails"
+          ? state.youthView
+          : "playerDetails";
+      const nextScreen =
+        state.youthScreen === "detail" ||
+        state.youthScreen === "list" ||
+        state.youthScreen === "root"
+          ? state.youthScreen
+          : "root";
+      setMobileYouthView(nextView);
+      setMobileYouthPlayerScreen(nextScreen);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [mobileYouthActive]);
 
   useEffect(() => {
     if (!ratingsResponseState) return;
@@ -2668,6 +2896,11 @@ export default function Dashboard({
     setActiveDetailsTab("details");
     setSelectedId(playerId);
     await loadDetails(playerId);
+  };
+
+  const handleMobilePlayerSelect = (playerId: number) => {
+    pushMobileYouthState("playerDetails", "detail");
+    void handleSelect(playerId);
   };
 
   const refreshRatingsMatrixFromServer = async (teamIdOverride?: number | null) => {
@@ -4202,6 +4435,11 @@ export default function Dashboard({
     setOptimizerDebug(null);
     setShowOptimizerDebug(false);
     setSelectedId(null);
+    pushMobileYouthState(
+      mobileYouthView,
+      mobileYouthView === "playerDetails" ? "list" : "root",
+      "replace"
+    );
     setPlayerList([]);
     setCache({});
     setDetails(null);
@@ -4283,7 +4521,6 @@ export default function Dashboard({
 
   const detailsData = resolveDetails(details);
   const lastUpdated = selectedId ? cache[selectedId]?.fetchedAt ?? null : null;
-
   const optimizerPlayers = useMemo<OptimizerPlayer[]>(
     () =>
       playerList
@@ -4987,6 +5224,210 @@ export default function Dashboard({
     </div>
   );
 
+  const mobileYouthViewLabel = useMemo(() => {
+    switch (mobileYouthView) {
+      case "skillsMatrix":
+        return messages.skillsMatrixTabLabel;
+      case "ratingsMatrix":
+        return messages.ratingsMatrixTabLabel;
+      case "lineupOptimizer":
+        return messages.lineupTitle;
+      case "playerDetails":
+      default:
+        return messages.detailsTabLabel;
+    }
+  }, [
+    messages.detailsTabLabel,
+    messages.lineupTitle,
+    messages.ratingsMatrixTabLabel,
+    messages.skillsMatrixTabLabel,
+    mobileYouthView,
+  ]);
+
+  const mobileYouthContent =
+    mobileYouthPlayerScreen === "detail" ? (
+      <div className={styles.mobileYouthContent}>
+        <PlayerDetailsPanel
+          selectedPlayer={selectedPlayer}
+          detailsData={detailsData}
+          loading={loading}
+          error={error}
+          lastUpdated={lastUpdated}
+          unlockStatus={unlockStatus}
+          onRefresh={() =>
+            selectedId ? handlePlayerDetailsRefresh() : undefined
+          }
+          players={playerList}
+          playerDetailsById={playerDetailsById}
+          skillsMatrixRows={skillsMatrixRows}
+          ratingsMatrixResponse={ratingsMatrixData?.response ?? null}
+          ratingsMatrixMatchHrefBuilder={ratingsMatrixMatchHrefBuilder}
+          ratingsMatrixSelectedName={
+            selectedPlayer ? formatPlayerName(selectedPlayer) : null
+          }
+          ratingsMatrixSpecialtyByName={Object.fromEntries(
+            playerList.map((player) => [
+              [player.FirstName, player.NickName || null, player.LastName]
+                .filter(Boolean)
+                .join(" "),
+              Number(player.Specialty ?? 0) > 0
+                ? player.Specialty
+                : hiddenSpecialtyByPlayerId[player.YouthPlayerID],
+            ])
+          )}
+          ratingsMatrixHiddenSpecialtyByName={Object.fromEntries(
+            playerList.map((player) => [
+              [player.FirstName, player.NickName || null, player.LastName]
+                .filter(Boolean)
+                .join(" "),
+              Number(player.Specialty ?? 0) <= 0 &&
+                Number(hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0) > 0,
+            ])
+          )}
+          matrixNewPlayerIds={newPlayerNameMarkerIds}
+          matrixNewRatingsByPlayerId={activeMatrixNewMarkers.ratingsByPlayerId}
+          matrixNewSkillsCurrentByPlayerId={
+            activeMatrixNewMarkers.skillsCurrentByPlayerId
+          }
+          matrixNewSkillsMaxByPlayerId={activeMatrixNewMarkers.skillsMaxByPlayerId}
+          hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
+          hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}
+          onSelectRatingsPlayer={(playerName) => {
+            const match = playerList.find(
+              (entry) => formatPlayerName(entry) === playerName
+            );
+            if (!match) return;
+            handleMobilePlayerSelect(match.YouthPlayerID);
+          }}
+          onMatrixPlayerDragStart={handleMatrixPlayerDragStart}
+          orderedPlayerIds={orderedPlayerIds}
+          orderSource={orderSource}
+          onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}
+          onSkillsOrderChange={(ids) => applyPlayerOrder(ids, "skills")}
+          onRatingsSortStart={() => {
+            setOrderSource("ratings");
+            setOrderedPlayerIds(null);
+          }}
+          onSkillsSortStart={() => {
+            setOrderSource("skills");
+            setOrderedPlayerIds(null);
+          }}
+          hasPreviousPlayer={Boolean(previousPlayerId)}
+          hasNextPlayer={Boolean(nextPlayerId)}
+          onPreviousPlayer={() => {
+            if (!previousPlayerId) return;
+            handleMobilePlayerSelect(previousPlayerId);
+          }}
+          onNextPlayer={() => {
+            if (!nextPlayerId) return;
+            handleMobilePlayerSelect(nextPlayerId);
+          }}
+          activeTab="details"
+          showTabs={false}
+          detailsHeaderActions={
+            <button
+              type="button"
+              className={styles.mobileYouthBackButton}
+              onClick={handleMobileYouthBack}
+            >
+              {messages.mobileYouthBackToPlayerList}
+            </button>
+          }
+          messages={messages}
+        />
+      </div>
+    ) : mobileYouthPlayerScreen === "list" ? (
+      <div className={styles.mobileYouthContent}>
+        <YouthPlayerList
+          players={playerList}
+          playerDetailsById={playerDetailsById}
+          orderedPlayerIds={orderedPlayerIds}
+          orderSource={orderSource}
+          youthTeams={youthTeams}
+          selectedYouthTeamId={selectedYouthTeamId}
+          showTeamSelector={false}
+          onTeamChange={handleTeamChange}
+          assignedIds={assignedIds}
+          selectedId={selectedId}
+          starPlayerId={starPlayerId}
+          onSortStart={() => {
+            setOrderSource("list");
+            setOrderedPlayerIds(null);
+          }}
+          onToggleStar={(playerId) => {
+            const nextIsClear = starPlayerId === playerId;
+            setStarPlayerId((prev) => (prev === playerId ? null : playerId));
+            setAutoSelectionApplied(false);
+            if (nextIsClear) {
+              addNotification(messages.notificationStarCleared);
+              return;
+            }
+            void handleSelect(playerId);
+            const training = getTrainingForStar(
+              optimizerPlayers,
+              playerId,
+              trainingPreferences
+            );
+            if (!training) {
+              setPrimaryTraining(DEFAULT_PRIMARY_TRAINING);
+              setSecondaryTraining(DEFAULT_SECONDARY_TRAINING);
+              return;
+            }
+            setPrimaryTraining(training.primarySkill);
+            setSecondaryTraining(
+              training.secondarySkill ?? DEFAULT_SECONDARY_TRAINING
+            );
+            const playerName =
+              optimizerPlayers.find((player) => player.id === playerId)?.name ??
+              playerId;
+            const primaryLabel = trainingLabel(training.primarySkill);
+            const secondaryLabel = trainingLabel(training.secondarySkill);
+            addNotification(
+              `${messages.notificationStarSet} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
+            );
+          }}
+          onSelect={handleMobilePlayerSelect}
+          onAutoSelect={() => {
+            if (!autoSelection) return;
+            setStarPlayerId(autoSelection.starPlayerId);
+            setPrimaryTraining(autoSelection.primarySkill);
+            setSecondaryTraining(
+              autoSelection.secondarySkill ?? DEFAULT_SECONDARY_TRAINING
+            );
+            setAutoSelectionApplied(true);
+            const playerName =
+              optimizerPlayers.find(
+                (player) => player.id === autoSelection.starPlayerId
+              )?.name ?? autoSelection.starPlayerId;
+            const primaryLabel = trainingLabel(autoSelection.primarySkill);
+            const secondaryLabel = trainingLabel(autoSelection.secondarySkill);
+            addNotification(
+              `${messages.notificationAutoSelection} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
+            );
+          }}
+          onOrderChange={(ids) => applyPlayerOrder(ids, "list")}
+          hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
+          hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}
+          newMarkerPlayerIds={listNewMarkerPlayerIds}
+          messages={messages}
+        />
+      </div>
+    ) : mobileYouthView === "playerDetails" ? (
+      <div className={styles.mobileYouthContent}>
+        <div className={`${styles.card} ${styles.mobileYouthPlaceholderCard}`}>
+          <h2 className={styles.sectionTitle}>{messages.mobileYouthRootTitle}</h2>
+          <p className={styles.muted}>{messages.mobileYouthRootPrompt}</p>
+        </div>
+      </div>
+    ) : (
+      <div className={styles.mobileYouthContent}>
+        <div className={`${styles.card} ${styles.mobileYouthPlaceholderCard}`}>
+          <h2 className={styles.sectionTitle}>{mobileYouthViewLabel}</h2>
+          <p className={styles.muted}>{messages.mobileYouthViewComingSoon}</p>
+        </div>
+      </div>
+    );
+
   return (
     <div className={styles.dashboardStack}>
       {loadError && !authError ? (
@@ -5083,7 +5524,10 @@ export default function Dashboard({
         closeOnBackdrop
         onClose={() => setServiceErrorModal(null)}
       />
-      <div className={styles.dashboardGrid} ref={dashboardRef}>
+      <div
+        className={mobileYouthActive ? styles.mobileYouthShell : styles.dashboardGrid}
+        ref={dashboardRef}
+      >
         <Modal
         open={showTrainingReminder}
         title={messages.trainingReminderTitle}
@@ -5330,6 +5774,27 @@ export default function Dashboard({
         closeOnBackdrop
         onClose={() => setYouthUpdatesOpen(false)}
       />
+      {mobileYouthActive ? (
+        <>
+          <YouthMobileMenu
+            messages={messages}
+            youthTeams={youthTeams}
+            selectedYouthTeamId={selectedYouthTeamId}
+            onHome={openMobileYouthHome}
+            onTeamChange={handleTeamChange}
+            onRefresh={() => {
+              void refreshPlayers(undefined, { refreshAll: true, reason: "manual" });
+            }}
+            onOpenUpdates={() => setYouthUpdatesOpen(true)}
+            activeView={mobileYouthView}
+            onSelectView={handleMobileYouthViewSelect}
+            position={mobileYouthMenuPosition}
+            onPositionChange={setMobileYouthMenuPosition}
+          />
+          {mobileYouthContent}
+        </>
+      ) : (
+        <>
       {showHelp ? (
         <div className={styles.helpOverlay} aria-hidden="true">
           <div className={styles.helpCallouts}>
@@ -5891,6 +6356,8 @@ export default function Dashboard({
           onSubmitSuccess={() => setShowTrainingReminder(true)}
         />
       </div>
+      </>
+      )}
     </div>
     </div>
   );

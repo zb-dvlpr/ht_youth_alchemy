@@ -586,6 +586,14 @@ export const messagesNl: Messages = {
   notificationStaleRefresh: "Verversing gestart door verouderde gegevens.",
   notificationReauthRequired: "Verversing afgebroken: opnieuw autoriseren vereist",
   autoSelectTitle: "Kies automatisch sterspeler en trainingen",
+  mobileHomeLabel: "Home",
+  mobileYouthMenuToggleLabel: "Open jeugdmenu",
+  mobileYouthRootTitle: "Optimalisatie van de jeugdselectie",
+  mobileYouthRootPrompt:
+    "Gebruik het zwevende menu om spelerdetails, matrices of de opstellingsoptimalisatie te openen.",
+  mobileYouthBackToPlayerList: "Terug naar spelerslijst",
+  mobileYouthViewComingSoon:
+    "Deze mobiele jeugdweergave is nog niet geïmplementeerd.",
   trainingTitle: "Gerichte vaardigheidstraining",
   trainingSectionFocused: "Gerichte vaardigheidstraining",
   trainingSectionExtended: "Uitgebreide vaardigheidstraining",

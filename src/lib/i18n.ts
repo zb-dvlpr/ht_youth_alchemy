@@ -799,6 +799,12 @@ export type Messages = {
   permissionsNone: string;
   autoSelectLabel: string;
   autoSelectTitle: string;
+  mobileHomeLabel: string;
+  mobileYouthMenuToggleLabel: string;
+  mobileYouthRootTitle: string;
+  mobileYouthRootPrompt: string;
+  mobileYouthBackToPlayerList: string;
+  mobileYouthViewComingSoon: string;
   trainingTitle: string;
   trainingSectionFocused: string;
   trainingSectionExtended: string;

@@ -975,6 +975,14 @@ export const messagesSv: Messages = {
     permissionsNone: "Inga",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-välj stjärnspelare och träningar",
+    mobileHomeLabel: "Hem",
+    mobileYouthMenuToggleLabel: "Öppna ungdomsmeny",
+    mobileYouthRootTitle: "Optimera ungdomstruppen",
+    mobileYouthRootPrompt:
+      "Använd den flytande menyn för att öppna spelardetaljer, matriser eller laguppställningsoptimeraren.",
+    mobileYouthBackToPlayerList: "Tillbaka till spelarlistan",
+    mobileYouthViewComingSoon:
+      "Den här mobila ungdomsvyn är inte implementerad ännu.",
     trainingTitle: "Fokuserad träning",
     trainingSectionFocused: "Fokuserad träning",
     trainingSectionExtended: "Utökad träning",

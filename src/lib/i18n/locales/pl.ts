@@ -580,6 +580,14 @@ export const messagesPl: Messages = {
   notificationStaleRefresh: "Uruchomiono odświeżanie z powodu przestarzałych danych.",
   notificationReauthRequired: "Odświeżanie przerwane: wymagana ponowna autoryzacja",
   autoSelectTitle: "Automatycznie wybierz gwiazdę i trening",
+  mobileHomeLabel: "Start",
+  mobileYouthMenuToggleLabel: "Otwórz menu juniorów",
+  mobileYouthRootTitle: "Optymalizacja składu juniorów",
+  mobileYouthRootPrompt:
+    "Użyj pływającego menu, aby otworzyć szczegóły zawodnika, macierze lub optymalizator składu.",
+  mobileYouthBackToPlayerList: "Powrót do listy zawodników",
+  mobileYouthViewComingSoon:
+    "Ten mobilny widok juniorów nie jest jeszcze gotowy.",
   trainingTitle: "Skoncentrowany trening umiejętności",
   trainingSectionFocused: "Skoncentrowany trening umiejętności",
   trainingSectionExtended: "Rozszerzony trening umiejętności",

@@ -945,6 +945,13 @@ export const messagesEn: Messages = {
     permissionsNone: "None",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-select star player and trainings",
+    mobileHomeLabel: "Home",
+    mobileYouthMenuToggleLabel: "Open youth menu",
+    mobileYouthRootTitle: "Youth squad optimization",
+    mobileYouthRootPrompt:
+      "Use the floating menu to open player details, matrices, or the lineup optimizer.",
+    mobileYouthBackToPlayerList: "Back to player list",
+    mobileYouthViewComingSoon: "This Youth mobile view is not implemented yet.",
     trainingTitle: "Focused skill training",
     trainingSectionFocused: "Focused skill training",
     trainingSectionExtended: "Extended skill training",

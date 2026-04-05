@@ -983,6 +983,14 @@ export const messagesFr: Messages = {
     permissionsNone: "Aucune",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-sélectionner joueur star et entraînements",
+    mobileHomeLabel: "Accueil",
+    mobileYouthMenuToggleLabel: "Ouvrir le menu jeunes",
+    mobileYouthRootTitle: "Optimisation de l'effectif jeunes",
+    mobileYouthRootPrompt:
+      "Utilisez le menu flottant pour ouvrir les détails joueur, les matrices ou l'optimiseur de composition.",
+    mobileYouthBackToPlayerList: "Retour à la liste des joueurs",
+    mobileYouthViewComingSoon:
+      "Cette vue mobile des jeunes n'est pas encore implémentée.",
     trainingTitle: "Entraînement ciblé",
     trainingSectionFocused: "Entraînement ciblé",
     trainingSectionExtended: "Entraînement étendu",

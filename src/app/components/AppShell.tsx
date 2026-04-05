@@ -65,6 +65,7 @@ const SENIOR_REFRESH_REQUEST_EVENT = "ya:senior-refresh-request";
 const SENIOR_REFRESH_STOP_EVENT = "ya:senior-refresh-stop";
 const SENIOR_REFRESH_STATE_EVENT = "ya:senior-refresh-state";
 const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
+const MOBILE_LAUNCHER_REQUEST_EVENT = "ya:mobile-launcher-request";
 const MOBILE_LAYOUT_MEDIA_QUERY = "(max-width: 900px)";
 
 export default function AppShell({
@@ -316,6 +317,50 @@ export default function AppShell({
     return () => {
       delete root.dataset.mobileShell;
     };
+  }, [mobileLayoutActive]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!mobileLayoutActive) return;
+    if (mobileLauncherOpen) {
+      window.history.replaceState({ appShell: "launcher" }, "", window.location.href);
+    }
+  }, [mobileLayoutActive, mobileLauncherOpen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!mobileLayoutActive) return;
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state as
+        | { appShell?: "launcher" | "tool"; tool?: ToolId }
+        | null;
+      if (state?.appShell === "tool" && state.tool) {
+        setActiveTool(
+          state.tool === "chronicle"
+            ? "chronicle"
+            : state.tool === "senior"
+            ? "senior"
+            : "youth"
+        );
+        setMobileLauncherOpen(false);
+        return;
+      }
+      setMobileLauncherOpen(true);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [mobileLayoutActive]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handle = () => {
+      setMobileLauncherOpen(true);
+      if (mobileLayoutActive) {
+        window.history.pushState({ appShell: "launcher" }, "", window.location.href);
+      }
+    };
+    window.addEventListener(MOBILE_LAUNCHER_REQUEST_EVENT, handle);
+    return () => window.removeEventListener(MOBILE_LAUNCHER_REQUEST_EVENT, handle);
   }, [mobileLayoutActive]);
 
   useEffect(() => {
@@ -602,6 +647,11 @@ export default function AppShell({
     setActiveTool(toolId);
     if (mobileLayoutActive) {
       setMobileLauncherOpen(false);
+      window.history.pushState(
+        { appShell: "tool", tool: toolId },
+        "",
+        window.location.href
+      );
     }
   };
 
@@ -744,7 +794,9 @@ export default function AppShell({
           </nav>
         </aside>
       ) : null}
-      {!mobileLauncherOpen && (activeTool === "youth" || activeTool === "senior") ? (
+      {!mobileLauncherOpen &&
+      ((!mobileLayoutActive && (activeTool === "youth" || activeTool === "senior")) ||
+        (mobileLayoutActive && activeTool === "senior")) ? (
         <div className={styles.shellContextBar}>
           <div className={styles.youthActionBarActions}>
             <Tooltip content={messages.refreshAllYouthDataTooltip}>
@@ -882,16 +934,25 @@ export default function AppShell({
             </div>
           ) : (
             <>
-              <div className={styles.mobileToolBar}>
-                <button
-                  type="button"
-                  className={styles.mobileToolsHomeButton}
-                  onClick={() => setMobileLauncherOpen(true)}
-                >
-                  {messages.mobileToolsLabel}
-                </button>
-                <span className={styles.mobileToolBarTitle}>{activeToolMeta.label}</span>
-              </div>
+              {activeTool !== "youth" ? (
+                <div className={styles.mobileToolBar}>
+                  <button
+                    type="button"
+                    className={styles.mobileToolsHomeButton}
+                    onClick={() => {
+                      setMobileLauncherOpen(true);
+                      window.history.pushState(
+                        { appShell: "launcher" },
+                        "",
+                        window.location.href
+                      );
+                    }}
+                  >
+                    {messages.mobileToolsLabel}
+                  </button>
+                  <span className={styles.mobileToolBarTitle}>{activeToolMeta.label}</span>
+                </div>
+              ) : null}
               {activeTool === "youth" ? youthToolChildren : null}
               {activeTool === "senior" ? seniorToolChildren : null}
               {activeTool === "chronicle" ? <ClubChronicle messages={messages} /> : null}

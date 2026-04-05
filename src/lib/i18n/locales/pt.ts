@@ -984,6 +984,14 @@ export const messagesPt: Messages = {
     permissionsNone: "Nenhuma",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-selecionar jogador estrela e treinos",
+    mobileHomeLabel: "Início",
+    mobileYouthMenuToggleLabel: "Abrir menu juvenil",
+    mobileYouthRootTitle: "Otimização do plantel juvenil",
+    mobileYouthRootPrompt:
+      "Use o menu flutuante para abrir detalhes do jogador, matrizes ou o otimizador da escalação.",
+    mobileYouthBackToPlayerList: "Voltar à lista de jogadores",
+    mobileYouthViewComingSoon:
+      "Esta vista móvel juvenil ainda não está implementada.",
     trainingTitle: "Treino focado",
     trainingSectionFocused: "Treino focado",
     trainingSectionExtended: "Treino estendido",

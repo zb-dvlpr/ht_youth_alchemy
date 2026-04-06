@@ -148,6 +148,8 @@ type MobileChronicleHistoryState = {
   chronicleDetailTeamId?: number | null;
 };
 
+export type { ChroniclePanelId };
+
 const isChppAuthRequiredError = (error: unknown): error is ChppAuthRequiredError =>
   error instanceof ChppAuthRequiredError;
 
@@ -11493,21 +11495,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     {
                       key: "metric",
                       label: messages.clubChronicleLeagueSectionTitle,
-                      getValue: (row: { label: string }) => row.label,
+                      getValue: (_snapshot, row) => row?.label,
                       sortable: false,
                     },
                     {
                       key: "previous",
                       label: messages.clubChronicleDetailsPreviousLabel,
-                      getValue: (row: { previous: string | number | null | undefined }) =>
-                        row.previous,
+                      getValue: (_snapshot, row) => row?.previous,
                       sortable: false,
                     },
                     {
                       key: "current",
                       label: messages.clubChronicleDetailsCurrentLabel,
-                      getValue: (row: { current: string | number | null | undefined }) =>
-                        row.current,
+                      getValue: (_snapshot, row) => row?.current,
                       sortable: false,
                     },
                   ]}
@@ -11644,15 +11644,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   {
                     key: "metric",
                     label: messages.clubChronicleArenaDetailsMetric,
-                    getValue: (row: { metric: string }) => row.metric,
+                    getValue: (_snapshot, row) => row?.metric,
                     sortable: false,
                   },
                   {
                     key: "value",
                     label: messages.clubChronicleDetailsCurrentLabel,
-                    getValue: (
-                      row: { value: string | number | null | undefined }
-                    ) => row.value,
+                    getValue: (_snapshot, row) => row?.value,
                     sortable: false,
                   },
                 ]}
@@ -11707,15 +11705,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   {
                     key: "metric",
                     label: messages.clubChronicleArenaDetailsMetric,
-                    getValue: (row: { metric: string }) => row.metric,
+                    getValue: (_snapshot, row) => row?.metric,
                     sortable: false,
                   },
                   {
                     key: "value",
                     label: messages.clubChronicleDetailsCurrentLabel,
-                    getValue: (
-                      row: { value: string | number | null | undefined }
-                    ) => row.value,
+                    getValue: (_snapshot, row) => row?.value,
                     sortable: false,
                   },
                 ]}
@@ -11772,21 +11768,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   {
                     key: "metric",
                     label: messages.clubChronicleArenaDetailsMetric,
-                    getValue: (row: { metric: string }) => row.metric,
+                    getValue: (_snapshot, row) => row?.metric,
                     sortable: false,
                   },
                   {
                     key: "current",
                     label: messages.clubChronicleDetailsCurrentLabel,
-                    getValue: (row: { current: string | number | null | undefined }) =>
-                      row.current,
+                    getValue: (_snapshot, row) => row?.current,
                     sortable: false,
                   },
                   {
                     key: "expanded",
                     label: messages.clubChronicleArenaDetailsExpandedColumn,
-                    getValue: (row: { expanded: string | number | null | undefined }) =>
-                      row.expanded,
+                    getValue: (_snapshot, row) => row?.expanded,
                     sortable: false,
                   },
                 ]}

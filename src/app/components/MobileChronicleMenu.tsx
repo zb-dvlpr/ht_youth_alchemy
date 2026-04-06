@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
+import type { ChroniclePanelId } from "./ClubChronicle";
 
 type ChronicleMenuPanelOption = {
-  id: string;
+  id: ChroniclePanelId;
   label: string;
 };
 
@@ -19,7 +20,7 @@ type MobileChronicleMenuProps = {
   onOpenUpdates: () => void;
   panelOptions: ChronicleMenuPanelOption[];
   activeTarget: string;
-  onSelectPanel: (panelId: string) => void;
+  onSelectPanel: (panelId: ChroniclePanelId) => void;
   position: { x: number; y: number };
   onPositionChange: (position: { x: number; y: number }) => void;
 };

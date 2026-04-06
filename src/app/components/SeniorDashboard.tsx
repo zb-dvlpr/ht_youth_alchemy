@@ -13953,6 +13953,12 @@ const refreshDetailsForPlayers = async (
           : startupLoadingPhase === "ratings"
             ? messages.startupLoadingRatings
             : messages.startupLoadingFinalize;
+  const startupOverlayStatus =
+    startupBootstrapActive && refreshStatus ? refreshStatus : startupLoadingStatus;
+  const startupOverlayProgressPct =
+    startupBootstrapActive && refreshProgressPct > 0
+      ? Math.max(startupLoadingProgressPct, refreshProgressPct)
+      : startupLoadingProgressPct;
   const startupOverlayShouldShow = !stateRestored || !dataRestored || startupBootstrapActive;
   const seniorAiSubmitTargetMatchId = seniorAiSubmitLockActive
     ? seniorAiSubmitEnabledMatchId ?? extraTimePreparedSubmission?.matchId ?? loadedMatchId
@@ -14969,8 +14975,8 @@ const refreshDetailsForPlayers = async (
         <StartupLoadingExperience
           title={messages.startupLoadingTitle}
           subtitle={messages.startupLoadingSubtitle}
-          status={startupLoadingStatus}
-          progressPct={startupLoadingProgressPct}
+          status={startupOverlayStatus}
+          progressPct={startupOverlayProgressPct}
           overlay
           fading={startupOverlayFading}
         />

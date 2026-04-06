@@ -9,6 +9,7 @@ type StartupLoadingExperienceProps = {
   status?: string | null;
   statuses?: string[];
   progressPct?: number | null;
+  showProgress?: boolean;
   overlay?: boolean;
   fading?: boolean;
 };
@@ -22,6 +23,7 @@ export default function StartupLoadingExperience({
   status = null,
   statuses = [],
   progressPct = null,
+  showProgress = true,
   overlay = false,
   fading = false,
 }: StartupLoadingExperienceProps) {
@@ -74,15 +76,17 @@ export default function StartupLoadingExperience({
           {subtitle ? <p className={styles.startupLoadingSubtitle}>{subtitle}</p> : null}
           {resolvedStatus ? <p className={styles.startupLoadingStatus}>{resolvedStatus}</p> : null}
         </div>
-        <div className={styles.startupLoadingProgressRow}>
-          <div className={styles.startupLoadingProgressTrack} aria-hidden="true">
-            <span
-              className={styles.startupLoadingProgressFill}
-              style={{ width: `${resolvedProgressPct}%` }}
-            />
+        {showProgress ? (
+          <div className={styles.startupLoadingProgressRow}>
+            <div className={styles.startupLoadingProgressTrack} aria-hidden="true">
+              <span
+                className={styles.startupLoadingProgressFill}
+                style={{ width: `${resolvedProgressPct}%` }}
+              />
+            </div>
+            <span className={styles.startupLoadingProgressValue}>{resolvedProgressPct}%</span>
           </div>
-          <span className={styles.startupLoadingProgressValue}>{resolvedProgressPct}%</span>
-        </div>
+        ) : null}
       </div>
     </div>
   );

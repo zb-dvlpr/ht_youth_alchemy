@@ -73,7 +73,7 @@ export const messagesDe: Messages = {
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
     changelog_4_0_0:
-      "Die Projektregeln behandeln Mobile-UX jetzt als eigenständigen Schwerpunkt mit ausdrücklichen Schutzvorgaben gegen Desktop-Regressionen.",
+      "HT Alchemy bietet jetzt eine eigene mobile Unterstützung in der gesamten App.",
     changelog_3_13_0:
       "Senior-KI-Aufstellungen unterstützen jetzt die Erkennung, Übermittlung und Nachprüfung von Manndeckung.",
     changelog_3_12_0:

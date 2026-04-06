@@ -73,7 +73,7 @@ export const messagesSv: Messages = {
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
     changelog_4_0_0:
-      "Projektreglerna behandlar nu mobil UX som ett förstklassigt arbetsomrade med uttryckliga skydd mot desktop-regressioner.",
+      "HT Alchemy har nu dedikerat mobilstöd i hela appen.",
     changelog_3_13_0:
       "Senior-AI-uppställningar stöder nu upptäckt, inskickning och granskning efteråt av manmarkering.",
     changelog_3_12_0:

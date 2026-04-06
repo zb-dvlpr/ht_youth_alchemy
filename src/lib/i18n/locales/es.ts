@@ -25,6 +25,7 @@ export const messagesEs: Messages = {
     toolSeniorBadge: "S",
     toolClubChronicle: "Crónica del club",
     mobileToolsLabel: "Herramientas",
+    mobileHelpLabel: "Ayuda",
     clubChronicleTitle: "Crónica del club",
     clubChronicleBody:
       "La Crónica del club llegará pronto. Este espacio seguirá lo que hacen los equipos sénior.",
@@ -519,6 +520,9 @@ export const messagesEs: Messages = {
     helpBulletTraining:
       "Puedes enviar alineaciones a Hattrick, pero el entrenamiento debe configurarse manualmente (la API no lo permite).",
     helpBulletDesktop: "Optimizado para escritorio.",
+    helpOptimizerLocationTitle: "Dónde encontrar el optimizador",
+    helpOptimizerLocationYouth:
+      "Abre el optimizador de alineación desde el menú flotante y luego busca este botón en el encabezado de la alineación.",
     helpCalloutStar: "Elige tu jugador estrella.",
     helpCalloutTraining:
       "Define el entrenamiento principal y secundario antes de optimizar.",
@@ -551,6 +555,8 @@ export const messagesEs: Messages = {
       "El regimen de entrenamiento senior puede cambiarse directamente desde el desplegable de alineacion.",
     seniorHelpBulletAnalyzeOpponent:
       "Analizar rival resume patrones recientes para apoyar las decisiones de alineación con IA.",
+    seniorHelpOptimizerLocation:
+      "Abre el optimizador de alineación desde el menú flotante y luego busca este botón en la tarjeta del partido correspondiente.",
     themeSwitchDark: "Cambiar a modo oscuro",
     themeSwitchLight: "Cambiar a modo claro",
     helpDismissLabel: "Entendido",

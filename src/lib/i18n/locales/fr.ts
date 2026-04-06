@@ -25,6 +25,7 @@ export const messagesFr: Messages = {
     toolSeniorBadge: "S",
     toolClubChronicle: "Chronique du club",
     mobileToolsLabel: "Outils",
+    mobileHelpLabel: "Aide",
     clubChronicleTitle: "Chronique du club",
     clubChronicleBody:
       "La Chronique du club arrive bientôt. Cet espace suivra les activités des équipes seniors.",
@@ -519,6 +520,9 @@ export const messagesFr: Messages = {
     helpBulletTraining:
       "Vous pouvez soumettre la compo à Hattrick, mais l’entraînement doit être réglé manuellement (l’API ne le permet pas).",
     helpBulletDesktop: "Optimisé pour ordinateur.",
+    helpOptimizerLocationTitle: "Où trouver l'optimiseur",
+    helpOptimizerLocationYouth:
+      "Ouvre l'optimiseur de composition depuis le menu flottant, puis repère ce bouton dans l'en-tête de la composition.",
     helpCalloutStar: "Choisissez votre joueur vedette.",
     helpCalloutTraining:
       "Définissez l’entraînement principal et secondaire avant l’optimisation.",
@@ -551,6 +555,8 @@ export const messagesFr: Messages = {
       "Le regime d entrainement senior peut etre modifie directement depuis le menu deroulant de composition.",
     seniorHelpBulletAnalyzeOpponent:
       "Analyser l adversaire resume les tendances recentes pour aider les decisions de composition IA.",
+    seniorHelpOptimizerLocation:
+      "Ouvre l'optimiseur de composition depuis le menu flottant, puis repère ce bouton sur la carte du match concerné.",
     themeSwitchDark: "Passer en mode sombre",
     themeSwitchLight: "Passer en mode clair",
     helpDismissLabel: "J’ai compris",

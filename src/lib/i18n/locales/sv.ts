@@ -25,6 +25,7 @@ export const messagesSv: Messages = {
     toolSeniorBadge: "S",
     toolClubChronicle: "Klubbkrönika",
     mobileToolsLabel: "Verktyg",
+    mobileHelpLabel: "Hjälp",
     clubChronicleTitle: "Klubbkrönika",
     clubChronicleBody:
       "Klubbkrönikan kommer snart. Här följer du vad andra seniorlag gör.",
@@ -513,6 +514,9 @@ export const messagesSv: Messages = {
     helpBulletTraining:
       "Du kan skicka uppställningar till Hattrick, men träningen måste ställas in manuellt (API:t tillåter inte det).",
     helpBulletDesktop: "Optimerad för desktop.",
+    helpOptimizerLocationTitle: "Var du hittar optimeraren",
+    helpOptimizerLocationYouth:
+      "Öppna laguppställningsoptimeraren från den flytande menyn och leta sedan efter den här knappen i laguppställningens rubrik.",
     helpCalloutStar: "Välj din stjärnspelare.",
     helpCalloutTraining:
       "Ställ in primär och sekundär träning innan du optimerar.",
@@ -545,6 +549,8 @@ export const messagesSv: Messages = {
       "Seniorlagets traningsregim kan andras direkt i appen via uppstallningens rullgardinsmeny.",
     seniorHelpBulletAnalyzeOpponent:
       "Analysera motståndare sammanfattar senaste mönster för att stödja AI-val av uppställning.",
+    seniorHelpOptimizerLocation:
+      "Öppna laguppställningsoptimeraren från den flytande menyn och leta sedan efter den här knappen på rätt matchkort.",
     themeSwitchDark: "Växla till mörkt läge",
     themeSwitchLight: "Växla till ljust läge",
     helpDismissLabel: "Jag förstår",

@@ -25,6 +25,7 @@ export const messagesEn: Messages = {
     toolSeniorBadge: "S",
     toolClubChronicle: "Club chronicle",
     mobileToolsLabel: "Tools",
+    mobileHelpLabel: "Help",
     clubChronicleTitle: "Club Chronicle",
     clubChronicleBody:
       "Club Chronicle is coming soon. This space will track what other senior squads are up to.",
@@ -491,6 +492,9 @@ export const messagesEn: Messages = {
     helpBulletTraining:
       "Submit lineups directly to Hattrick, but training must be set manually (the API doesn’t allow it).",
     helpBulletDesktop: "Desktop-optimized.",
+    helpOptimizerLocationTitle: "Where to find the optimizer",
+    helpOptimizerLocationYouth:
+      "Open Lineup optimizer from the floating menu, then look for this button in the lineup header.",
     helpCalloutStar: "Select your star player.",
     helpCalloutTraining:
       "Set primary and secondary training before running optimization.",
@@ -522,6 +526,8 @@ export const messagesEn: Messages = {
       "You can change the senior training regimen directly from the lineup dropdown.",
     seniorHelpBulletAnalyzeOpponent:
       "Analyze opponent summarizes recent setup patterns to support AI lineup decisions.",
+    seniorHelpOptimizerLocation:
+      "Open Lineup optimizer from the floating menu, then look for this button on the relevant match card.",
     themeSwitchDark: "Switch to dark mode",
     themeSwitchLight: "Switch to light mode",
     helpDismissLabel: "I understand",

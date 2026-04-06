@@ -25,6 +25,7 @@ export const messagesIt: Messages = {
     toolSeniorBadge: "S",
     toolClubChronicle: "Cronaca del club",
     mobileToolsLabel: "Strumenti",
+    mobileHelpLabel: "Aiuto",
     clubChronicleTitle: "Cronaca del club",
     clubChronicleBody:
       "La Cronaca del club arriverà presto. Qui seguirai cosa fanno le squadre senior.",
@@ -520,6 +521,9 @@ export const messagesIt: Messages = {
     helpBulletTraining:
       "Puoi inviare le formazioni a Hattrick, ma l’allenamento va impostato manualmente (l’API non lo consente).",
     helpBulletDesktop: "Ottimizzato per desktop.",
+    helpOptimizerLocationTitle: "Dove trovare l'ottimizzatore",
+    helpOptimizerLocationYouth:
+      "Apri l'ottimizzatore della formazione dal menu flottante, poi cerca questo pulsante nell'intestazione della formazione.",
     helpCalloutStar: "Scegli il tuo giocatore stella.",
     helpCalloutTraining:
       "Imposta allenamento primario e secondario prima di ottimizzare.",
@@ -552,6 +556,8 @@ export const messagesIt: Messages = {
       "Il regime di allenamento senior puo essere cambiato direttamente dall app tramite il menu a discesa della formazione.",
     seniorHelpBulletAnalyzeOpponent:
       "Analizza avversario riassume i pattern recenti per supportare le decisioni IA sulla formazione.",
+    seniorHelpOptimizerLocation:
+      "Apri l'ottimizzatore della formazione dal menu flottante, poi cerca questo pulsante sulla scheda della partita interessata.",
     themeSwitchDark: "Passa alla modalità scura",
     themeSwitchLight: "Passa alla modalità chiara",
     helpDismissLabel: "Ho capito",

@@ -8,7 +8,8 @@ export type MobileToolView =
   | "playerDetails"
   | "skillsMatrix"
   | "ratingsMatrix"
-  | "lineupOptimizer";
+  | "lineupOptimizer"
+  | "help";
 
 type MobileToolMenuProps = {
   messages: Messages;
@@ -17,6 +18,7 @@ type MobileToolMenuProps = {
   teamOptions: { id: number; label: string }[];
   selectedTeamId: number | null;
   onHome: () => void;
+  onOpenHelp: () => void;
   onTeamChange: (teamId: number) => void;
   onRefresh: () => void;
   onOpenUpdates: () => void;
@@ -62,6 +64,7 @@ export default function MobileToolMenu({
   teamOptions,
   selectedTeamId,
   onHome,
+  onOpenHelp,
   onTeamChange,
   onRefresh,
   onOpenUpdates,
@@ -334,6 +337,20 @@ export default function MobileToolMenu({
           >
             {messages.mobileHomeLabel}
           </button>
+          <div className={styles.mobileYouthMenuDivider} />
+          <button
+            type="button"
+            className={`${styles.mobileYouthMenuAction} ${
+              activeView === "help" ? styles.mobileYouthMenuActionActive : ""
+            }`}
+            onClick={() => {
+              onOpenHelp();
+              setOpen(false);
+            }}
+          >
+            {messages.mobileHelpLabel}
+          </button>
+          <div className={styles.mobileYouthMenuDivider} />
           {teamOptions.length > 1 ? (
             <label className={styles.mobileYouthMenuField}>
               <span className={styles.mobileYouthMenuLabel}>{teamLabel}</span>

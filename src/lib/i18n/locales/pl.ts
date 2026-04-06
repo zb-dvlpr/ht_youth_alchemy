@@ -25,6 +25,12 @@ export const messagesPl: Messages = {
   toolSeniorOptimization: "Optymalizacja seniorów",
   toolClubChronicle: "Kronika klubu",
   mobileToolsLabel: "Narzędzia",
+  mobileHelpLabel: "Pomoc",
+  helpOptimizerLocationTitle: "Gdzie znaleźć optymalizator",
+  helpOptimizerLocationYouth:
+    "Otwórz Lineup optimizer z pływającego menu, a potem szukaj tego przycisku w nagłówku składu.",
+  seniorHelpOptimizerLocation:
+    "Otwórz Lineup optimizer z pływającego menu, a potem szukaj tego przycisku na odpowiedniej karcie meczu.",
   watchlistOwnSeniorTeamsTitle: "Własne drużyny seniorów",
   watchlistOwnSeniorTeamsEmpty: "Nie znaleziono własnych drużyn seniorów.",
   watchlistOwnLeaguesTitle: "Własne ligi",

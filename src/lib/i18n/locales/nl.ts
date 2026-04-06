@@ -25,6 +25,12 @@ export const messagesNl: Messages = {
   toolSeniorOptimization: "Seniorselectie-optimalisatie",
   toolClubChronicle: "Clubkroniek",
   mobileToolsLabel: "Tools",
+  mobileHelpLabel: "Help",
+  helpOptimizerLocationTitle: "Waar je de optimizer vindt",
+  helpOptimizerLocationYouth:
+    "Open Lineup optimizer via het zwevende menu en zoek daarna naar deze knop in de opstellingskop.",
+  seniorHelpOptimizerLocation:
+    "Open Lineup optimizer via het zwevende menu en zoek daarna naar deze knop op de juiste wedstrijdkaart.",
   watchlistOwnSeniorTeamsTitle: "Eigen seniorenteams",
   watchlistOwnSeniorTeamsEmpty: "Geen eigen seniorenteams gevonden.",
   watchlistOwnLeaguesTitle: "Eigen competities",

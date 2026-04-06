@@ -25,6 +25,7 @@ export const messagesDe: Messages = {
     toolSeniorBadge: "S",
     toolClubChronicle: "Club-Chronik",
     mobileToolsLabel: "Werkzeuge",
+    mobileHelpLabel: "Hilfe",
     clubChronicleTitle: "Club-Chronik",
     clubChronicleBody:
       "Die Club-Chronik kommt bald. Hier siehst du, was andere Seniorenteams planen.",
@@ -511,6 +512,9 @@ export const messagesDe: Messages = {
     helpBulletTraining:
       "Aufstellungen kannst du direkt an Hattrick senden, Training musst du manuell setzen (die API erlaubt das nicht).",
     helpBulletDesktop: "Für Desktop optimiert.",
+    helpOptimizerLocationTitle: "Wo du den Optimierer findest",
+    helpOptimizerLocationYouth:
+      "Öffne die Aufstellungsoptimierung über das schwebende Menü und suche dann nach dieser Schaltfläche in der Aufstellungsleiste.",
     helpCalloutStar: "Wähle deinen Starspieler.",
     helpCalloutTraining:
       "Lege Primär- und Sekundärtraining fest, bevor du optimierst.",
@@ -543,6 +547,8 @@ export const messagesDe: Messages = {
       "Das Trainingsregime der Senioren kann direkt in der App über das Aufstellungs-Dropdown geändert werden.",
     seniorHelpBulletAnalyzeOpponent:
       "Gegner analysieren fasst aktuelle Muster zusammen und unterstützt die KI-Aufstellungsentscheidung.",
+    seniorHelpOptimizerLocation:
+      "Öffne die Aufstellungsoptimierung über das schwebende Menü und suche dann nach dieser Schaltfläche auf der passenden Spielkarte.",
     themeSwitchDark: "In den Dunkelmodus wechseln",
     themeSwitchLight: "In den Hellmodus wechseln",
     helpDismissLabel: "Verstanden",

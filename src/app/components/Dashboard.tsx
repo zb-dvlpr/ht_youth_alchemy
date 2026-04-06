@@ -1559,10 +1559,12 @@ export default function Dashboard({
             : []
         : mobileYouthView === "skillsMatrix"
           ? [{ id: "skills-matrix", label: messages.skillsMatrixTabLabel }]
-          : mobileYouthView === "ratingsMatrix"
+        : mobileYouthView === "ratingsMatrix"
             ? [{ id: "ratings-matrix", label: messages.ratingsMatrixTabLabel }]
             : mobileYouthView === "lineupOptimizer"
               ? [{ id: "lineup-optimizer", label: messages.lineupTitle }]
+              : mobileYouthView === "help"
+                ? [{ id: "help", label: messages.mobileHelpLabel }]
               : [];
     window.dispatchEvent(
       new CustomEvent(MOBILE_NAV_TRAIL_STATE_EVENT, {
@@ -1575,6 +1577,7 @@ export default function Dashboard({
   }, [
     messages.detailsTabLabel,
     messages.lineupTitle,
+    messages.mobileHelpLabel,
     messages.ratingsMatrixTabLabel,
     messages.skillsMatrixTabLabel,
     messages.youthPlayerList,
@@ -1601,6 +1604,9 @@ export default function Dashboard({
             "playerDetails",
             selectedPlayer ? "detail" : "list"
           );
+          return;
+        case "help":
+          pushMobileYouthState("help", "root");
           return;
         case "skills-matrix":
           pushMobileYouthState("skillsMatrix", "root");
@@ -1806,7 +1812,8 @@ export default function Dashboard({
         parsed.mobileYouthView === "playerDetails" ||
         parsed.mobileYouthView === "skillsMatrix" ||
         parsed.mobileYouthView === "ratingsMatrix" ||
-        parsed.mobileYouthView === "lineupOptimizer"
+        parsed.mobileYouthView === "lineupOptimizer" ||
+        parsed.mobileYouthView === "help"
       ) {
         setMobileYouthView(parsed.mobileYouthView);
       }
@@ -2504,6 +2511,7 @@ export default function Dashboard({
         const token = match?.[1]?.trim() ?? null;
         if (!token) return;
         setCurrentToken(token);
+        if (mobileYouthActive) return;
         const storedToken = window.localStorage.getItem(helpStorageKey);
         if (storedToken !== token) {
           setShowHelp(true);
@@ -2514,7 +2522,7 @@ export default function Dashboard({
       }
     };
     fetchToken();
-  }, [isConnected]);
+  }, [isConnected, mobileYouthActive]);
 
   useEffect(() => {
     if (!isDev) return;
@@ -2523,10 +2531,18 @@ export default function Dashboard({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const handler = () => setShowHelp(true);
+    const handler = () => {
+      if (mobileYouthActive) return;
+      setShowHelp(true);
+    };
     window.addEventListener("ya:help-open", handler);
     return () => window.removeEventListener("ya:help-open", handler);
-  }, []);
+  }, [mobileYouthActive]);
+
+  useEffect(() => {
+    if (!mobileYouthActive) return;
+    setShowHelp(false);
+  }, [mobileYouthActive]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -5396,6 +5412,8 @@ export default function Dashboard({
 
   const mobileYouthViewLabel = useMemo(() => {
     switch (mobileYouthView) {
+      case "help":
+        return messages.mobileHelpLabel;
       case "skillsMatrix":
         return messages.skillsMatrixTabLabel;
       case "ratingsMatrix":
@@ -5409,6 +5427,7 @@ export default function Dashboard({
   }, [
     messages.detailsTabLabel,
     messages.lineupTitle,
+    messages.mobileHelpLabel,
     messages.ratingsMatrixTabLabel,
     messages.skillsMatrixTabLabel,
     mobileYouthView,
@@ -5592,6 +5611,44 @@ export default function Dashboard({
           newMarkerPlayerIds={listNewMarkerPlayerIds}
           messages={messages}
         />
+      </div>
+    ) : mobileYouthView === "help" ? (
+      <div className={styles.mobileYouthContent}>
+        <div className={styles.helpCard}>
+          <h2 className={styles.helpTitle}>{messages.helpTitle}</h2>
+          <p className={styles.helpIntro}>{messages.helpIntro}</p>
+          <ul className={styles.helpList}>
+            <li>{messages.helpBulletOverview}</li>
+            <li>{messages.helpBulletWorkflow}</li>
+            <li>{messages.helpBulletMatches}</li>
+            <li>{messages.helpBulletAdjust}</li>
+            <li>{messages.helpBulletOptimizerModes}</li>
+            <li>{messages.helpBulletTraining}</li>
+          </ul>
+          <div className={styles.helpOptimizerSection}>
+            <h3 className={styles.helpOptimizerTitle}>
+              {messages.helpOptimizerLocationTitle}
+            </h3>
+            <p className={styles.helpOptimizerLead}>
+              {messages.helpOptimizerLocationYouth}
+            </p>
+            <div className={styles.helpOptimizerMockSurface}>
+              <div className={styles.helpOptimizerMockHeader}>
+                <span className={styles.helpOptimizerMockLabel}>
+                  {messages.lineupTitle}
+                </span>
+                <button
+                  type="button"
+                  className={styles.optimizeButton}
+                  aria-label={messages.setBestLineupTooltip}
+                  tabIndex={-1}
+                >
+                  ✨
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     ) : mobileYouthView === "skillsMatrix" ? (
       <div className={styles.mobileYouthContent}>
@@ -6216,6 +6273,7 @@ export default function Dashboard({
             }))}
             selectedTeamId={selectedYouthTeamId}
             onHome={openMobileYouthHome}
+            onOpenHelp={() => pushMobileYouthState("help", "root")}
             onTeamChange={handleTeamChange}
             onRefresh={() => {
               void refreshPlayers(undefined, { refreshAll: true, reason: "manual" });

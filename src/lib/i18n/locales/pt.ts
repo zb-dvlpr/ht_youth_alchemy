@@ -25,6 +25,7 @@ export const messagesPt: Messages = {
     toolSeniorBadge: "S",
     toolClubChronicle: "Crônica do clube",
     mobileToolsLabel: "Ferramentas",
+    mobileHelpLabel: "Ajuda",
     clubChronicleTitle: "Crônica do clube",
     clubChronicleBody:
       "A Crônica do clube chega em breve. Este espaço acompanhará o que os times seniores fazem.",
@@ -519,6 +520,9 @@ export const messagesPt: Messages = {
     helpBulletTraining:
       "Você pode enviar escalações ao Hattrick, mas o treino deve ser definido manualmente (a API não permite).",
     helpBulletDesktop: "Otimizado para desktop.",
+    helpOptimizerLocationTitle: "Onde encontrar o otimizador",
+    helpOptimizerLocationYouth:
+      "Abra o otimizador de escalação pelo menu flutuante e depois procure este botão no cabeçalho da escalação.",
     helpCalloutStar: "Escolha seu jogador estrela.",
     helpCalloutTraining:
       "Defina treino primário e secundário antes de otimizar.",
@@ -551,6 +555,8 @@ export const messagesPt: Messages = {
       "O regime de treino senior pode ser alterado diretamente no app pelo dropdown da escalacao.",
     seniorHelpBulletAnalyzeOpponent:
       "Analisar adversário resume padrões recentes para apoiar decisões da IA na escalação.",
+    seniorHelpOptimizerLocation:
+      "Abra o otimizador de escalação pelo menu flutuante e depois procure este botão no cartão da partida relevante.",
     themeSwitchDark: "Mudar para modo escuro",
     themeSwitchLight: "Mudar para modo claro",
     helpDismissLabel: "Entendi",

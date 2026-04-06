@@ -35,6 +35,7 @@ export type Messages = {
   toolSeniorBadge: string;
   toolClubChronicle: string;
   mobileToolsLabel: string;
+  mobileHelpLabel: string;
   clubChronicleTitle: string;
   clubChronicleBody: string;
   watchlistTitle: string;
@@ -440,6 +441,8 @@ export type Messages = {
   helpBulletWorkflow: string;
   helpBulletOptimizerModes: string;
   helpBulletDesktop: string;
+  helpOptimizerLocationTitle: string;
+  helpOptimizerLocationYouth: string;
   helpCalloutStar: string;
   helpCalloutTraining: string;
   helpCalloutOptimize: string;
@@ -457,6 +460,7 @@ export type Messages = {
   seniorHelpBulletAiMatchTypes: string;
   seniorHelpBulletTrainingRegimen: string;
   seniorHelpBulletAnalyzeOpponent: string;
+  seniorHelpOptimizerLocation: string;
   themeSwitchDark: string;
   themeSwitchLight: string;
   helpDismissLabel: string;

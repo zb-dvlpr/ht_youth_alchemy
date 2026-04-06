@@ -12351,7 +12351,8 @@ const refreshDetailsForPlayers = async (
             parsed.mobileSeniorView === "playerDetails" ||
             parsed.mobileSeniorView === "skillsMatrix" ||
             parsed.mobileSeniorView === "ratingsMatrix" ||
-            parsed.mobileSeniorView === "lineupOptimizer"
+            parsed.mobileSeniorView === "lineupOptimizer" ||
+            parsed.mobileSeniorView === "help"
           ) {
             setMobileSeniorView(parsed.mobileSeniorView);
           }
@@ -12891,10 +12892,12 @@ const refreshDetailsForPlayers = async (
             : []
         : mobileSeniorView === "skillsMatrix"
           ? [{ id: "skills-matrix", label: messages.skillsMatrixTabLabel }]
-          : mobileSeniorView === "ratingsMatrix"
+        : mobileSeniorView === "ratingsMatrix"
             ? [{ id: "ratings-matrix", label: messages.ratingsMatrixTabLabel }]
             : mobileSeniorView === "lineupOptimizer"
               ? [{ id: "lineup-optimizer", label: messages.lineupTitle }]
+              : mobileSeniorView === "help"
+                ? [{ id: "help", label: messages.mobileHelpLabel }]
               : [];
     window.dispatchEvent(
       new CustomEvent(MOBILE_NAV_TRAIL_STATE_EVENT, {
@@ -12907,6 +12910,7 @@ const refreshDetailsForPlayers = async (
   }, [
     messages.detailsTabLabel,
     messages.lineupTitle,
+    messages.mobileHelpLabel,
     messages.ratingsMatrixTabLabel,
     messages.seniorPlayerListTitle,
     messages.skillsMatrixTabLabel,
@@ -12930,6 +12934,9 @@ const refreshDetailsForPlayers = async (
           return;
         case "player-details":
           pushMobileSeniorState("playerDetails", selectedPlayer ? "detail" : "list");
+          return;
+        case "help":
+          pushMobileSeniorState("help", "root");
           return;
         case "skills-matrix":
           pushMobileSeniorState("skillsMatrix", "root");
@@ -13108,7 +13115,10 @@ const refreshDetailsForPlayers = async (
       addNotification(messages.notificationRefreshStoppedManual);
     };
     const handleUpdatesOpen = () => setUpdatesOpen(true);
-    const handleHelpOpen = () => setShowHelp(true);
+    const handleHelpOpen = () => {
+      if (mobileSeniorActive) return;
+      setShowHelp(true);
+    };
 
     window.addEventListener(SENIOR_REFRESH_REQUEST_EVENT, handleRefresh);
     window.addEventListener(SENIOR_REFRESH_STOP_EVENT, handleStop);
@@ -13120,7 +13130,7 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener(SENIOR_LATEST_UPDATES_OPEN_EVENT, handleUpdatesOpen);
       window.removeEventListener("ya:help-open", handleHelpOpen);
     };
-  }, [addNotification, messages.notificationRefreshStoppedManual]);
+  }, [addNotification, messages.notificationRefreshStoppedManual, mobileSeniorActive]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -13137,6 +13147,11 @@ const refreshDetailsForPlayers = async (
         setCurrentToken(token);
         if (!token) {
           setShowHelp(false);
+          return;
+        }
+        if (mobileSeniorActive) {
+          setShowHelp(false);
+          setDeferHelpUntilInitialRefresh(false);
           return;
         }
         const dismissedToken = window.localStorage.getItem(SENIOR_HELP_STORAGE_KEY);
@@ -13171,7 +13186,7 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("pageshow", handleFocus);
     };
-  }, []);
+  }, [mobileSeniorActive]);
 
   useEffect(() => {
     if (!resolvedSeniorTeamId) return;
@@ -13179,12 +13194,17 @@ const refreshDetailsForPlayers = async (
   }, [resolvedSeniorTeamId]);
 
   useEffect(() => {
+    if (mobileSeniorActive) {
+      setShowHelp(false);
+      setDeferHelpUntilInitialRefresh(false);
+      return;
+    }
     if (!deferHelpUntilInitialRefresh) return;
     if (refreshing) return;
     if (!hasSeniorData) return;
     setShowHelp(true);
     setDeferHelpUntilInitialRefresh(false);
-  }, [deferHelpUntilInitialRefresh, hasSeniorData, refreshing]);
+  }, [deferHelpUntilInitialRefresh, hasSeniorData, mobileSeniorActive, refreshing]);
 
   useEffect(() => {
     if (!showHelp) {
@@ -13961,7 +13981,9 @@ const refreshDetailsForPlayers = async (
     : null;
 
   const mobileSeniorViewLabel =
-    mobileSeniorView === "skillsMatrix"
+    mobileSeniorView === "help"
+      ? messages.mobileHelpLabel
+      : mobileSeniorView === "skillsMatrix"
       ? messages.skillsMatrixTabLabel
       : mobileSeniorView === "ratingsMatrix"
         ? messages.ratingsMatrixTabLabel
@@ -14556,6 +14578,45 @@ const refreshDetailsForPlayers = async (
       <div className={styles.mobileYouthContent}>{seniorMobileDetailsPanel}</div>
     ) : mobileSeniorPlayerScreen === "list" ? (
       <div className={styles.mobileYouthContent}>{mobileSeniorListCard}</div>
+    ) : mobileSeniorView === "help" ? (
+      <div className={styles.mobileYouthContent}>
+        <div className={styles.helpCard}>
+          <h2 className={styles.helpTitle}>{messages.seniorHelpTitle}</h2>
+          <p className={styles.helpIntro}>{messages.seniorHelpIntro}</p>
+          <ul className={styles.helpList}>
+            <li>{messages.seniorHelpBulletLatestUpdates}</li>
+            <li>{messages.seniorHelpBulletAiOverview}</li>
+            <li>{messages.seniorHelpBulletAiTrainingAware}</li>
+            <li>{messages.seniorHelpBulletAiIgnoreTraining}</li>
+            <li>{messages.seniorHelpBulletAiMatchTypes}</li>
+            <li>{messages.seniorHelpBulletTrainingRegimen}</li>
+            <li>{messages.seniorHelpBulletAnalyzeOpponent}</li>
+          </ul>
+          <div className={styles.helpOptimizerSection}>
+            <h3 className={styles.helpOptimizerTitle}>
+              {messages.helpOptimizerLocationTitle}
+            </h3>
+            <p className={styles.helpOptimizerLead}>
+              {messages.seniorHelpOptimizerLocation}
+            </p>
+            <div className={styles.helpOptimizerMatchCard}>
+              <div className={styles.helpOptimizerMatchCardHeader}>
+                <span className={styles.helpOptimizerMockLabel}>
+                  {messages.matchesTitle}
+                </span>
+                <button
+                  type="button"
+                  className={`${styles.optimizeButton} ${styles.matchBestLineupDazzleButton}`}
+                  aria-label={messages.setBestLineupTooltip}
+                  tabIndex={-1}
+                >
+                  ✨
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     ) : mobileSeniorView === "skillsMatrix" ? (
       <div className={styles.mobileYouthContent}>
         <PlayerDetailsPanel
@@ -17000,6 +17061,7 @@ const refreshDetailsForPlayers = async (
             }))}
             selectedTeamId={selectedSeniorTeamId}
             onHome={openMobileSeniorHome}
+            onOpenHelp={() => pushMobileSeniorState("help", "root")}
             onTeamChange={handleSeniorTeamChange}
             onRefresh={() => {
               void refreshAllRef.current?.("manual");

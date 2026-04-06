@@ -13,6 +13,7 @@ type MobileChronicleMenuProps = {
   messages: Messages;
   toggleLabel: string;
   onHome: () => void;
+  onOpenHelp: () => void;
   onOpenWatchlist: () => void;
   onRefresh: () => void;
   onOpenUpdates: () => void;
@@ -56,6 +57,7 @@ export default function MobileChronicleMenu({
   messages,
   toggleLabel,
   onHome,
+  onOpenHelp,
   onOpenWatchlist,
   onRefresh,
   onOpenUpdates,
@@ -323,6 +325,20 @@ export default function MobileChronicleMenu({
             >
               {messages.mobileHomeLabel}
             </button>
+            <div className={styles.mobileYouthMenuDivider} />
+            <button
+              type="button"
+              className={`${styles.mobileYouthMenuAction} ${
+                activeTarget === "help" ? styles.mobileYouthMenuActionActive : ""
+              }`}
+              onClick={() => {
+                onOpenHelp();
+                setOpen(false);
+              }}
+            >
+              {messages.mobileHelpLabel}
+            </button>
+            <div className={styles.mobileYouthMenuDivider} />
             <button
               type="button"
               className={`${styles.mobileYouthMenuAction} ${

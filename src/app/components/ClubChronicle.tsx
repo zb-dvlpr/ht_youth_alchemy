@@ -119,6 +119,7 @@ type MobileChronicleScreen =
   | "panel"
   | "watchlist"
   | "latest-updates"
+  | "help"
   | "detail"
   | "formations-matches";
 
@@ -3358,6 +3359,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (mobileChronicleActive) {
+      setShowHelp(false);
+      return;
+    }
     const firstUseSeen = window.localStorage.getItem(FIRST_USE_KEY) === "1";
     if (!firstUseSeen) {
       setShowHelp(true);
@@ -3367,19 +3372,26 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (firstUseSeen && !dismissed) {
       setShowHelp(true);
     }
-    const handler = () => setShowHelp(true);
+    const handler = () => {
+      if (mobileChronicleActive) return;
+      setShowHelp(true);
+    };
     window.addEventListener("ya:help-open", handler);
     return () => window.removeEventListener("ya:help-open", handler);
-  }, []);
+  }, [mobileChronicleActive]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (mobileChronicleActive) {
+      setShowHelp(false);
+      return;
+    }
     if (!tokenChecked || !currentToken) return;
     const dismissedToken = window.localStorage.getItem(HELP_DISMISSED_TOKEN_KEY);
     if (dismissedToken !== currentToken) {
       setShowHelp(true);
     }
-  }, [tokenChecked, currentToken]);
+  }, [tokenChecked, currentToken, mobileChronicleActive]);
 
   const ensureRefreshScopes = useCallback(async () => {
     try {
@@ -10899,6 +10911,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const mobileChronicleDetailLabel = useMemo(() => {
     switch (mobileChronicleScreen) {
+      case "help":
+        return messages.mobileHelpLabel;
       case "watchlist":
         return messages.watchlistTitle;
       case "latest-updates":
@@ -10950,6 +10964,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     messages.clubChronicleFormationsMatchesListTitle,
     messages.clubChronicleLastLoginDetailsTitle,
     messages.clubChronicleLikelyTrainingDetailsTitle,
+    messages.mobileHelpLabel,
     messages.clubChroniclePowerRatingsDetailsTitle,
     messages.clubChroniclePressDetailsTitle,
     messages.clubChronicleTransferHistoryModalTitle,
@@ -10975,6 +10990,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               label: resolvedMobileChroniclePanelTitle,
             },
           ]
+        : mobileChronicleScreen === "help"
+          ? [{ id: "help", label: messages.mobileHelpLabel }]
         : mobileChronicleScreen === "watchlist"
           ? [{ id: "watchlist", label: messages.watchlistTitle }]
           : mobileChronicleScreen === "latest-updates"
@@ -11008,6 +11025,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [
     messages.clubChronicleFormationsMatchesListTitle,
     messages.clubChronicleUpdatesTitle,
+    messages.mobileHelpLabel,
     messages.watchlistTitle,
     mobileChronicleActive,
     mobileChronicleDetailLabel,
@@ -11028,6 +11046,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           {
             panelId: resolvedMobileChroniclePanelId,
             screen: "panel",
+            detailKind: null,
+            detailTeamId: null,
+          },
+          "push"
+        );
+        return;
+      }
+      if (detail.target === "help") {
+        updateMobileChronicleState(
+          {
+            panelId: resolvedMobileChroniclePanelId,
+            screen: "help",
             detailKind: null,
             detailTeamId: null,
           },
@@ -11370,6 +11400,29 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
 
   const renderMobileChronicleDetailContent = (): ReactNode => {
+    if (mobileChronicleScreen === "help") {
+      return (
+        <div className={styles.helpCard}>
+          <h2 className={styles.helpTitle}>{messages.clubChronicleHelpTitle}</h2>
+          <p className={styles.helpIntro}>{messages.clubChronicleHelpIntro}</p>
+          <ul className={styles.helpList}>
+            <li>{messages.clubChronicleHelpBulletControls}</li>
+            <li>{messages.clubChronicleHelpBulletTabs}</li>
+            <li>{messages.clubChronicleHelpBulletLeague}</li>
+            <li>{messages.clubChronicleHelpBulletPress}</li>
+            <li>{messages.clubChronicleHelpBulletFinance}</li>
+            <li>{messages.clubChronicleHelpBulletFanclub}</li>
+            <li>{messages.clubChronicleHelpBulletArena}</li>
+            <li>{messages.clubChronicleHelpBulletTransfer}</li>
+            <li>{messages.clubChronicleHelpBulletFormations}</li>
+            <li>{messages.clubChronicleHelpBulletLikelyTraining}</li>
+            <li>{messages.clubChronicleHelpBulletTsi}</li>
+            <li>{messages.clubChronicleHelpBulletWages}</li>
+            <li>{messages.clubChronicleHelpBulletLatestUpdates}</li>
+          </ul>
+        </div>
+      );
+    }
     if (mobileChronicleScreen === "watchlist") return watchlistBody;
     if (mobileChronicleScreen === "latest-updates") return updatesBody;
     if (mobileChronicleScreen === "formations-matches") {
@@ -12129,6 +12182,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         messages={messages}
         toggleLabel={messages.toolClubChronicle}
         onHome={openMobileChronicleHome}
+        onOpenHelp={() =>
+          updateMobileChronicleState(
+            {
+              panelId: resolvedMobileChroniclePanelId,
+              screen: "help",
+              detailKind: null,
+              detailTeamId: null,
+            },
+            "push"
+          )
+        }
         onOpenWatchlist={openChronicleWatchlist}
         onRefresh={() => runRefreshGuarded(() => refreshAllData("manual"))}
         onOpenUpdates={openChronicleUpdates}
@@ -12137,7 +12201,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           label: panelTitleById[panelId],
         }))}
         activeTarget={
-          mobileChronicleScreen === "watchlist"
+          mobileChronicleScreen === "help"
+            ? "help"
+            : mobileChronicleScreen === "watchlist"
             ? "watchlist"
             : mobileChronicleScreen === "latest-updates"
               ? "latest-updates"

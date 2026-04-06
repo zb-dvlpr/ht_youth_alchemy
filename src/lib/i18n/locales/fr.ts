@@ -986,6 +986,8 @@ export const messagesFr: Messages = {
     mobileHomeLabel: "Accueil",
     mobileYouthMenuToggleLabel: "Ouvrir le menu jeunes",
     mobileSeniorMenuToggleLabel: "Ouvrir le menu senior",
+    mobilePreviousPanelLabel: "Panneau précédent",
+    mobileNextPanelLabel: "Panneau suivant",
     mobileYouthRootTitle: "Optimisation de l'effectif jeunes",
     mobileYouthRootPrompt:
       "Utilisez le menu flottant pour ouvrir les détails joueur, les matrices ou l'optimiseur de composition.",

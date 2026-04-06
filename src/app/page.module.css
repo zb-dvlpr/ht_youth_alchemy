@@ -520,6 +520,129 @@ html[data-mobile-shell="true"] .scaleContainer {
   transition: width 0.25s ease;
 }
 
+.mobileChronicleContent {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 0 88px;
+  overflow-x: hidden;
+}
+
+.mobileChroniclePanelStage {
+  position: relative;
+  min-height: 0;
+}
+
+.mobileChronicleDetailScreen {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.mobileChronicleEdgeButton {
+  position: fixed;
+  top: 50%;
+  z-index: 2147483640;
+  width: 30px;
+  height: 64px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(74, 84, 52, 0.15);
+  color: #4a5434;
+  font-size: 24px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  box-shadow: 0 10px 24px rgba(49, 38, 24, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.mobileChronicleEdgeButtonLeft {
+  left: 4px;
+}
+
+.mobileChronicleEdgeButtonRight {
+  right: 4px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanels {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanelDragWrap {
+  cursor: default;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanel {
+  min-height: 0;
+  max-height: none;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanelBody {
+  overflow: visible;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanelDragHandle,
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanelMove {
+  display: none;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleTableHeader {
+  display: none;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleTableRow {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 12px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleTableCell {
+  display: grid;
+  grid-template-columns: minmax(0, 112px) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleTableCell::before {
+  content: attr(data-label);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #8a806f;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleDetailsHeader,
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleUpdatesHeader {
+  display: none;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleDetailsRow,
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleUpdatesRow {
+  grid-template-columns: 1fr;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleUpdatesList {
+  grid-template-columns: 1fr;
+  max-height: none;
+  overflow: visible;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleDistributionGrid {
+  grid-template-columns: 1fr;
+}
+
 html[data-mobile-shell="true"] .mobileYouthContent .fieldPitch {
   padding: 22px 10px 18px;
   min-height: 0;

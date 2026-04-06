@@ -589,6 +589,8 @@ export const messagesNl: Messages = {
   mobileHomeLabel: "Home",
   mobileYouthMenuToggleLabel: "Open jeugdmenu",
   mobileSeniorMenuToggleLabel: "Open seniorenmenu",
+  mobilePreviousPanelLabel: "Vorig paneel",
+  mobileNextPanelLabel: "Volgend paneel",
   mobileYouthRootTitle: "Optimalisatie van de jeugdselectie",
   mobileYouthRootPrompt:
     "Gebruik het zwevende menu om spelerdetails, matrices of de opstellingsoptimalisatie te openen.",

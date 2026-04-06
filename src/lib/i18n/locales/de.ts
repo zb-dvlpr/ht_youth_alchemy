@@ -973,6 +973,8 @@ export const messagesDe: Messages = {
     mobileHomeLabel: "Start",
     mobileYouthMenuToggleLabel: "Jugendmenü öffnen",
     mobileSeniorMenuToggleLabel: "Seniorenmenü öffnen",
+    mobilePreviousPanelLabel: "Vorheriges Panel",
+    mobileNextPanelLabel: "Nächstes Panel",
     mobileYouthRootTitle: "Jugendkader-Optimierung",
     mobileYouthRootPrompt:
       "Über das schwebende Menü öffnest du Spielerdetails, Matrizen oder den Aufstellungsoptimierer.",

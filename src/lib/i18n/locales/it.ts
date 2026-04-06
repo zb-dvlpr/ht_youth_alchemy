@@ -988,6 +988,8 @@ export const messagesIt: Messages = {
     mobileHomeLabel: "Home",
     mobileYouthMenuToggleLabel: "Apri menu giovanile",
     mobileSeniorMenuToggleLabel: "Apri menu senior",
+    mobilePreviousPanelLabel: "Pannello precedente",
+    mobileNextPanelLabel: "Pannello successivo",
     mobileYouthRootTitle: "Ottimizzazione rosa giovanile",
     mobileYouthRootPrompt:
       "Usa il menu mobile per aprire dettagli giocatore, matrici o l'ottimizzatore della formazione.",

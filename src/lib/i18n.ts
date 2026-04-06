@@ -802,6 +802,8 @@ export type Messages = {
   mobileHomeLabel: string;
   mobileYouthMenuToggleLabel: string;
   mobileSeniorMenuToggleLabel: string;
+  mobilePreviousPanelLabel: string;
+  mobileNextPanelLabel: string;
   mobileYouthRootTitle: string;
   mobileYouthRootPrompt: string;
   mobileYouthBackLabel: string;

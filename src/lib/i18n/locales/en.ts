@@ -948,6 +948,8 @@ export const messagesEn: Messages = {
     mobileHomeLabel: "Home",
     mobileYouthMenuToggleLabel: "Open youth menu",
     mobileSeniorMenuToggleLabel: "Open senior menu",
+    mobilePreviousPanelLabel: "Previous panel",
+    mobileNextPanelLabel: "Next panel",
     mobileYouthRootTitle: "Youth squad optimization",
     mobileYouthRootPrompt:
       "Use the floating menu to open player details, matrices, or the lineup optimizer.",

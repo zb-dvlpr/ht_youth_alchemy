@@ -1,7 +1,7 @@
 # Mobile Roadmap
 
 Status: in progress
-Last updated: 2026-04-05
+Last updated: 2026-04-06
 
 ## Goals
 - Deliver a mobile UX that feels like a real app, not a compressed desktop website.
@@ -43,11 +43,11 @@ Last updated: 2026-04-05
 - [x] Verify desktop Senior layout and interactions after mobile Senior changes.
 
 ## Phase 4: Club Chronicle Mobile
-- [ ] Show one Chronicle panel at a time on mobile.
-- [ ] Add horizontal swipe or snap navigation between Chronicle panels.
-- [ ] Add explicit previous/next or picker controls so swipe is not the only navigation path.
-- [ ] Keep panel order, active tab, and current panel position persisted.
-- [ ] Move Latest Updates to a separate vertical mobile screen grouped by team.
+- [x] Show one Chronicle panel at a time on mobile.
+- [x] Add elegant previous/next edge navigation between Chronicle panels.
+- [x] Add direct panel jumping so users do not need to step through every panel.
+- [x] Keep panel order, active tab, and current panel position persisted.
+- [x] Move Latest Updates to a separate vertical mobile screen grouped by team.
 - [ ] Adapt Chronicle tables, dense panels, filters, and modal content as part of finishing Club Chronicle.
 - [ ] Verify desktop Chronicle layout and interactions after mobile Chronicle changes.
 

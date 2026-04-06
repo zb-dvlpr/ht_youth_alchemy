@@ -978,6 +978,8 @@ export const messagesSv: Messages = {
     mobileHomeLabel: "Hem",
     mobileYouthMenuToggleLabel: "Öppna ungdomsmeny",
     mobileSeniorMenuToggleLabel: "Öppna seniormeny",
+    mobilePreviousPanelLabel: "Föregående panel",
+    mobileNextPanelLabel: "Nästa panel",
     mobileYouthRootTitle: "Optimera ungdomstruppen",
     mobileYouthRootPrompt:
       "Använd den flytande menyn för att öppna spelardetaljer, matriser eller laguppställningsoptimeraren.",

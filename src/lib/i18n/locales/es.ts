@@ -987,6 +987,8 @@ export const messagesEs: Messages = {
     mobileHomeLabel: "Inicio",
     mobileYouthMenuToggleLabel: "Abrir menú juvenil",
     mobileSeniorMenuToggleLabel: "Abrir menú senior",
+    mobilePreviousPanelLabel: "Panel anterior",
+    mobileNextPanelLabel: "Panel siguiente",
     mobileYouthRootTitle: "Optimización del plantel juvenil",
     mobileYouthRootPrompt:
       "Usa el menú flotante para abrir detalles del jugador, matrices o el optimizador de alineación.",

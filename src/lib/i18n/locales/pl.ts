@@ -583,6 +583,8 @@ export const messagesPl: Messages = {
   mobileHomeLabel: "Start",
   mobileYouthMenuToggleLabel: "Otwórz menu juniorów",
   mobileSeniorMenuToggleLabel: "Otwórz menu seniorów",
+  mobilePreviousPanelLabel: "Poprzedni panel",
+  mobileNextPanelLabel: "Następny panel",
   mobileYouthRootTitle: "Optymalizacja składu juniorów",
   mobileYouthRootPrompt:
     "Użyj pływającego menu, aby otworzyć szczegóły zawodnika, macierze lub optymalizator składu.",

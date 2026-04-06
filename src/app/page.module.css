@@ -542,6 +542,10 @@ html[data-mobile-shell="true"] .scaleContainer {
   overflow-x: hidden;
 }
 
+.mobileChronicleContentPanelMode {
+  display: contents;
+}
+
 .mobileChroniclePanelStage {
   position: relative;
   min-height: 0;
@@ -606,17 +610,17 @@ html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanelMove {
   display: none;
 }
 
-html[data-mobile-shell="true"] .clubChronicleStack .chronicleTableHeader {
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanels .chronicleTableHeader {
   display: none;
 }
 
-html[data-mobile-shell="true"] .clubChronicleStack .chronicleTableRow {
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanels .chronicleTableRow {
   grid-template-columns: 1fr;
   gap: 10px;
   padding: 12px;
 }
 
-html[data-mobile-shell="true"] .clubChronicleStack .chronicleTableCell {
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanels .chronicleTableCell {
   display: grid;
   grid-template-columns: minmax(0, 112px) minmax(0, 1fr);
   gap: 10px;
@@ -626,13 +630,43 @@ html[data-mobile-shell="true"] .clubChronicleStack .chronicleTableCell {
   text-overflow: clip;
 }
 
-html[data-mobile-shell="true"] .clubChronicleStack .chronicleTableCell::before {
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanels .chronicleTableCell::before {
   content: attr(data-label);
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
   color: #8a806f;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleDetailScreen .chronicleTableHeader {
+  display: grid;
+  grid-template-columns: repeat(var(--cc-columns, 1), minmax(0, 1fr));
+  gap: 8px;
+  padding: 8px 10px 6px;
+  font-size: 10px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleDetailScreen .chronicleTableRow {
+  grid-template-columns: repeat(var(--cc-columns, 1), minmax(0, 1fr));
+  gap: 8px;
+  padding: 10px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleDetailScreen .chronicleTableCell {
+  display: block;
+  min-width: 0;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  font-size: 11px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleDetailScreen .chronicleTableCell::before {
+  content: none;
 }
 
 html[data-mobile-shell="true"] .clubChronicleStack .chronicleDetailsHeader,

@@ -11959,7 +11959,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const mobileChronicleContent = (
-    <div className={styles.mobileChronicleContent}>
+    <div
+      className={`${styles.mobileChronicleContent} ${
+        mobileChronicleScreen === "panel" ? styles.mobileChronicleContentPanelMode : ""
+      }`}
+    >
       {mobileChronicleRefreshFeedbackVisible ? (
         <div className={styles.mobileYouthRefreshStatus} aria-live="polite">
           <span className={styles.mobileYouthRefreshStatusText}>

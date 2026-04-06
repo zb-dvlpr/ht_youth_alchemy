@@ -12136,6 +12136,91 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       ) : null}
       {mobileChronicleScreen === "panel" ? (
         <div className={styles.mobileChroniclePanelStage}>
+          <div
+            className={`${styles.chronicleTabsBar} ${styles.mobileChronicleTabsBar}`}
+          >
+            <div
+              className={`${styles.chronicleTabsList} ${styles.mobileChronicleTabsList}`}
+            >
+              {chronicleTabs.map((tab, index) => {
+                const isActive = tab.id === activeChronicleTab.id;
+                const isRenaming = tab.id === renamingTabId;
+                return (
+                  <div
+                    key={tab.id}
+                    className={`${styles.chronicleTabChip}${isActive ? ` ${styles.chronicleTabChipActive}` : ""}`}
+                  >
+                    {isRenaming ? (
+                      <input
+                        type="text"
+                        className={styles.chronicleTabInput}
+                        value={renamingTabValue}
+                        placeholder={messages.clubChronicleTabRenamePlaceholder}
+                        autoFocus
+                        onChange={(event) => setRenamingTabValue(event.target.value)}
+                        onBlur={handleCommitRenamingTab}
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            handleCommitRenamingTab();
+                          }
+                          if (event.key === "Escape") {
+                            event.preventDefault();
+                            handleCancelRenamingTab();
+                          }
+                        }}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.chronicleTabLabel}
+                        onClick={() => setActiveChronicleTabId(tab.id)}
+                      >
+                        <span>{tab.name || buildChronicleTabName(messages, index + 1)}</span>
+                      </button>
+                    )}
+                    <Tooltip content={messages.clubChronicleTabRenameTooltip}>
+                      <button
+                        type="button"
+                        className={styles.chronicleTabRename}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleStartRenamingTab(tab);
+                        }}
+                        aria-label={messages.clubChronicleTabRenameTooltip}
+                      >
+                        ✎
+                      </button>
+                    </Tooltip>
+                    <Tooltip content={messages.clubChronicleTabDeleteTooltip}>
+                      <button
+                        type="button"
+                        className={styles.chronicleTabDelete}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleRequestDeleteTab(tab.id);
+                        }}
+                        aria-label={messages.clubChronicleTabDeleteTooltip}
+                      >
+                        ×
+                      </button>
+                    </Tooltip>
+                  </div>
+                );
+              })}
+              <Tooltip content={messages.clubChronicleTabAdd}>
+                <button
+                  type="button"
+                  className={styles.chronicleTabAddButton}
+                  onClick={handleCreateChronicleTab}
+                  aria-label={messages.clubChronicleTabAdd}
+                >
+                  +
+                </button>
+              </Tooltip>
+            </div>
+          </div>
           <button
             type="button"
             className={`${styles.mobileChronicleEdgeButton} ${styles.mobileChronicleEdgeButtonLeft}`}

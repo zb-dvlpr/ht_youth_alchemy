@@ -1046,9 +1046,6 @@ export default function AppShell({
         {mobileLayoutActive ? (
           mobileLauncherOpen ? (
             <div className={styles.mobileLauncher}>
-              <div className={styles.mobileLauncherHero}>
-                <span className={styles.mobileLauncherEyebrow}>{messages.brandTitle}</span>
-              </div>
               <div className={styles.mobileLauncherGrid}>
                 {tools.map((tool) => (
                   <button

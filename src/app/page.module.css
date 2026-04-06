@@ -564,6 +564,37 @@ html[data-mobile-shell="true"] .scaleContainer {
   min-height: 0;
 }
 
+.mobileChronicleTabsBar {
+  position: static;
+  top: auto;
+  z-index: auto;
+  margin-top: 0;
+  margin-bottom: 12px;
+  padding: 0;
+}
+
+.mobileChronicleTabsList {
+  gap: 8px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabsList {
+  align-items: flex-start;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabsList .chronicleTabChip {
+  min-height: 34px;
+  padding: 4px 6px 4px 10px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabsList .chronicleTabLabel {
+  font-size: 12px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabsList .chronicleTabInput {
+  min-width: 96px;
+  max-width: 148px;
+}
+
 .mobileChronicleDetailScreen {
   display: grid;
   gap: 12px;
@@ -620,6 +651,10 @@ html[data-mobile-shell="true"] .scaleContainer {
 html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanels {
   grid-template-columns: 1fr;
   gap: 0;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleTabShortcutHint {
+  display: none;
 }
 
 html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanelDragWrap {

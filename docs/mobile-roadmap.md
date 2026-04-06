@@ -44,6 +44,7 @@ Last updated: 2026-04-06
 
 ## Phase 4: Club Chronicle Mobile
 - [x] Show one Chronicle panel at a time on mobile.
+- [x] Preserve full Chronicle tab switching and tab management on mobile.
 - [x] Add elegant previous/next edge navigation between Chronicle panels.
 - [x] Add direct panel jumping so users do not need to step through every panel.
 - [x] Keep panel order, active tab, and current panel position persisted.

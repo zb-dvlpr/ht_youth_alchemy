@@ -99,6 +99,7 @@ export default function AppShell({
   const [mobileNavSegments, setMobileNavSegments] = useState<MobileNavSegment[]>([]);
   const [viewStateRestored, setViewStateRestored] = useState(false);
   const [topBarHeight, setTopBarHeight] = useState(56);
+  const [mobileNavHeaderHeight, setMobileNavHeaderHeight] = useState(56);
   const [youthRefreshing, setYouthRefreshing] = useState(false);
   const [youthRefreshStatus, setYouthRefreshStatus] = useState<string | null>(null);
   const [youthRefreshProgressPct, setYouthRefreshProgressPct] = useState(0);
@@ -115,6 +116,7 @@ export default function AppShell({
     useState<BuyCoffeePromptState | null>(null);
   const [buyCoffeeSessionReady, setBuyCoffeeSessionReady] = useState(false);
   const shellTopBarRef = useRef<HTMLDivElement | null>(null);
+  const mobileNavHeaderRef = useRef<HTMLDivElement | null>(null);
   const buyCoffeePromptShownThisSessionRef = useRef(false);
   const mobileLayoutInitializedRef = useRef(false);
 
@@ -620,6 +622,30 @@ export default function AppShell({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const node = mobileNavHeaderRef.current;
+    if (!node) return;
+    const measure = () => {
+      const next = Math.round(node.getBoundingClientRect().height);
+      if (next > 0) {
+        setMobileNavHeaderHeight(next);
+      }
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [mobileLayoutActive, mobileLauncherOpen, mobileNavSegments, activeTool]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     const handle = (event: Event) => {
       if (!(event instanceof CustomEvent)) return;
       const detail = event.detail as
@@ -781,7 +807,7 @@ export default function AppShell({
   };
 
   const mobileNavTrail = mobileLayoutActive && !mobileLauncherOpen ? (
-    <div className={styles.mobileNavHeader}>
+    <div className={styles.mobileNavHeader} ref={mobileNavHeaderRef}>
       <div className={styles.mobileNavAppMeta}>
         <span className={styles.mobileNavAppTitle}>{messages.brandTitle}</span>
         <span className={styles.version}>v{appVersion}</span>
@@ -853,6 +879,7 @@ export default function AppShell({
       style={
         {
           "--shell-topbar-height": `${topBarHeight}px`,
+          "--mobile-nav-header-height": `${mobileNavHeaderHeight}px`,
         } as CSSProperties
       }
     >
@@ -1014,6 +1041,7 @@ export default function AppShell({
           ) : null}
         </div>
       ) : null}
+      {mobileLayoutActive && !mobileLauncherOpen ? mobileNavTrail : null}
       <section className={styles.shellWorkspace} data-active-tool={activeTool}>
         {mobileLayoutActive ? (
           mobileLauncherOpen ? (
@@ -1045,7 +1073,6 @@ export default function AppShell({
             </div>
           ) : (
             <>
-              {mobileNavTrail}
               {activeTool === "youth" ? youthToolChildren : null}
               {activeTool === "senior" ? seniorToolChildren : null}
               {activeTool === "chronicle" ? <ClubChronicle messages={messages} /> : null}

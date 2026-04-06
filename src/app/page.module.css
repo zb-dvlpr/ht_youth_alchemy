@@ -175,6 +175,23 @@ html[data-mobile-shell="true"] .scaleContainer {
   display: grid;
   gap: 4px;
   min-width: 0;
+  position: sticky;
+  top: var(--shell-topbar-height, 56px);
+  z-index: 2147483644;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(151, 125, 84, 0.16);
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(251, 246, 236, 0.985),
+      rgba(245, 236, 221, 0.955)
+    );
+  box-shadow:
+    0 10px 24px rgba(66, 49, 24, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(10px);
 }
 
 .mobileNavAppMeta {
@@ -197,24 +214,17 @@ html[data-mobile-shell="true"] .scaleContainer {
 
 .mobileNavTrail {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 8px;
+  gap: 6px 8px;
   width: 100%;
   min-width: 0;
-  margin-bottom: 12px;
-  padding: 4px 0 2px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.mobileNavTrail::-webkit-scrollbar {
-  display: none;
+  padding: 2px 0 0;
+  overflow: visible;
 }
 
 .mobileNavTrailButton {
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   min-width: 0;
   border: 0;
   padding: 0;
@@ -223,7 +233,9 @@ html[data-mobile-shell="true"] .scaleContainer {
   font-size: 12px;
   font-weight: 700;
   line-height: 1.2;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: left;
+  overflow-wrap: anywhere;
   cursor: pointer;
 }
 
@@ -3847,8 +3859,34 @@ html[data-theme="dark"] .mobileYouthRefreshProgressTrack {
     display: none;
   }
 
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"] .mobileNavHeader {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    top: 0;
+    z-index: 2147483644;
+    margin: 0;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"] .shellWorkspace {
+    grid-row: 2 / 4;
+    padding-top: calc(var(--mobile-nav-header-height, 56px) + 18px);
+  }
+
   .shellFrame[data-mobile-layout="true"] .shellContextBar {
     top: 0;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"] {
+    row-gap: 0;
+  }
+
+  html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"] .clubChronicleStack {
+    gap: 8px;
+  }
+
+  html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"] .clubChronicleStack .chroniclePanels {
+    gap: 8px;
   }
 
   .shellFrame[data-mobile-layout="true"] .topBar {

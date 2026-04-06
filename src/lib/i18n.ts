@@ -809,6 +809,7 @@ export type Messages = {
   mobileYouthBackLabel: string;
   mobileYouthBackToPlayerList: string;
   mobileYouthLandscapeHint: string;
+  mobileChronicleLandscapeHint: string;
   mobileYouthLineupPickerTitle: string;
   mobileYouthLineupPickerEmpty: string;
   mobileYouthViewComingSoon: string;

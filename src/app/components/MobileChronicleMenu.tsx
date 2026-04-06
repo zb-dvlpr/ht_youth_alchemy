@@ -312,69 +312,73 @@ export default function MobileChronicleMenu({
           className={styles.mobileYouthMenuDropdown}
           style={{ left: `${menuPosition.left}px`, top: `${menuPosition.top}px` }}
         >
-          <button
-            type="button"
-            className={styles.mobileYouthMenuAction}
-            onClick={() => {
-              onHome();
-              setOpen(false);
-            }}
-          >
-            {messages.mobileHomeLabel}
-          </button>
-          <button
-            type="button"
-            className={`${styles.mobileYouthMenuAction} ${
-              activeTarget === "watchlist" ? styles.mobileYouthMenuActionActive : ""
-            }`}
-            onClick={() => {
-              onOpenWatchlist();
-              setOpen(false);
-            }}
-          >
-            {messages.watchlistTitle}
-          </button>
-          <div className={styles.mobileYouthMenuDivider} />
-          <button
-            type="button"
-            className={styles.mobileYouthMenuAction}
-            onClick={() => {
-              onRefresh();
-              setOpen(false);
-            }}
-          >
-            {messages.refresh}
-          </button>
-          <button
-            type="button"
-            className={`${styles.mobileYouthMenuAction} ${
-              activeTarget === "latest-updates"
-                ? styles.mobileYouthMenuActionActive
-                : ""
-            }`}
-            onClick={() => {
-              onOpenUpdates();
-              setOpen(false);
-            }}
-          >
-            {messages.clubChronicleUpdatesTitle}
-          </button>
-          <div className={styles.mobileYouthMenuDivider} />
-          {panelOptions.map((panel) => (
+          <div className={styles.mobileYouthMenuFixedSection}>
             <button
-              key={panel.id}
               type="button"
-              className={`${styles.mobileYouthMenuAction} ${
-                activeTarget === panel.id ? styles.mobileYouthMenuActionActive : ""
-              }`}
+              className={styles.mobileYouthMenuAction}
               onClick={() => {
-                onSelectPanel(panel.id);
+                onHome();
                 setOpen(false);
               }}
             >
-              {panel.label}
+              {messages.mobileHomeLabel}
             </button>
-          ))}
+            <button
+              type="button"
+              className={`${styles.mobileYouthMenuAction} ${
+                activeTarget === "watchlist" ? styles.mobileYouthMenuActionActive : ""
+              }`}
+              onClick={() => {
+                onOpenWatchlist();
+                setOpen(false);
+              }}
+            >
+              {messages.watchlistTitle}
+            </button>
+            <div className={styles.mobileYouthMenuDivider} />
+            <button
+              type="button"
+              className={styles.mobileYouthMenuAction}
+              onClick={() => {
+                onRefresh();
+                setOpen(false);
+              }}
+            >
+              {messages.refresh}
+            </button>
+            <button
+              type="button"
+              className={`${styles.mobileYouthMenuAction} ${
+                activeTarget === "latest-updates"
+                  ? styles.mobileYouthMenuActionActive
+                  : ""
+              }`}
+              onClick={() => {
+                onOpenUpdates();
+                setOpen(false);
+              }}
+            >
+              {messages.clubChronicleUpdatesTitle}
+            </button>
+            <div className={styles.mobileYouthMenuDivider} />
+          </div>
+          <div className={styles.mobileYouthMenuScrollSection}>
+            {panelOptions.map((panel) => (
+              <button
+                key={panel.id}
+                type="button"
+                className={`${styles.mobileYouthMenuAction} ${
+                  activeTarget === panel.id ? styles.mobileYouthMenuActionActive : ""
+                }`}
+                onClick={() => {
+                  onSelectPanel(panel.id);
+                  setOpen(false);
+                }}
+              >
+                {panel.label}
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
     </>

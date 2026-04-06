@@ -982,6 +982,8 @@ export const messagesDe: Messages = {
     mobileYouthBackToPlayerList: "Zurück zur Spielerliste",
     mobileYouthLandscapeHint:
       "Für die vollständige Matrix bitte ins Querformat drehen.",
+    mobileChronicleLandscapeHint:
+      "Für eine breitere Tabellenansicht bitte ins Querformat drehen.",
     mobileYouthLineupPickerTitle: "Spieler wählen",
     mobileYouthLineupPickerEmpty:
       "Für diesen Platz sind keine Spieler verfügbar.",

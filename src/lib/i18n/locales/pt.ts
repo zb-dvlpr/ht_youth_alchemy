@@ -996,6 +996,8 @@ export const messagesPt: Messages = {
     mobileYouthBackToPlayerList: "Voltar à lista de jogadores",
     mobileYouthLandscapeHint:
       "Rode para paisagem para ver a matriz completa.",
+    mobileChronicleLandscapeHint:
+      "Rode para paisagem para uma visão de tabela mais ampla.",
     mobileYouthLineupPickerTitle: "Escolher jogador",
     mobileYouthLineupPickerEmpty:
       "Nenhum jogador disponível para esta posição.",

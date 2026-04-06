@@ -592,6 +592,8 @@ export const messagesPl: Messages = {
   mobileYouthBackToPlayerList: "Powrót do listy zawodników",
   mobileYouthLandscapeHint:
     "Obróć ekran poziomo, aby zobaczyć pełną macierz.",
+  mobileChronicleLandscapeHint:
+    "Obróć ekran poziomo, aby zobaczyć szerszy widok tabeli.",
   mobileYouthLineupPickerTitle: "Wybierz zawodnika",
   mobileYouthLineupPickerEmpty:
     "Brak zawodników dostępnych dla tego miejsca.",

@@ -382,6 +382,19 @@ html[data-mobile-shell="true"] .scaleContainer {
   backdrop-filter: blur(12px);
 }
 
+.mobileYouthMenuFixedSection {
+  display: grid;
+  gap: 8px;
+}
+
+.mobileYouthMenuScrollSection {
+  display: grid;
+  gap: 8px;
+  max-height: min(42vh, 320px);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
 .mobileYouthMenuField {
   display: grid;
   gap: 6px;
@@ -559,6 +572,23 @@ html[data-mobile-shell="true"] .scaleContainer {
   overflow-x: hidden;
 }
 
+.mobileChronicleTableWrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobileChronicleTabularBlock {
+  display: grid;
+  gap: 8px;
+}
+
+.mobileChronicleTabularTable {
+  width: max-content;
+  min-width: 100%;
+}
+
 .mobileChronicleEdgeButton {
   position: fixed;
   top: 50%;
@@ -610,17 +640,29 @@ html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanelMove {
   display: none;
 }
 
-html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanels .chronicleTableHeader {
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .chronicleTable:not(.mobileChronicleTabularTable)
+  .chronicleTableHeader {
   display: none;
 }
 
-html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanels .chronicleTableRow {
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .chronicleTable:not(.mobileChronicleTabularTable)
+  .chronicleTableRow {
   grid-template-columns: 1fr;
   gap: 10px;
   padding: 12px;
 }
 
-html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanels .chronicleTableCell {
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .chronicleTable:not(.mobileChronicleTabularTable)
+  .chronicleTableCell {
   display: grid;
   grid-template-columns: minmax(0, 112px) minmax(0, 1fr);
   gap: 10px;
@@ -630,7 +672,11 @@ html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanels .chronicleTa
   text-overflow: clip;
 }
 
-html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanels .chronicleTableCell::before {
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .chronicleTable:not(.mobileChronicleTabularTable)
+  .chronicleTableCell::before {
   content: attr(data-label);
   font-size: 10px;
   font-weight: 700;
@@ -639,20 +685,35 @@ html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanels .chronicleTa
   color: #8a806f;
 }
 
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .mobileChronicleTabularTable
+  .chronicleTableHeader,
 html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleDetailScreen .chronicleTableHeader {
   display: grid;
-  grid-template-columns: repeat(var(--cc-columns, 1), minmax(0, 1fr));
+  grid-template-columns: var(--cc-template, repeat(var(--cc-columns, 1), minmax(96px, 1fr)));
   gap: 8px;
   padding: 8px 10px 6px;
   font-size: 10px;
 }
 
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .mobileChronicleTabularTable
+  .chronicleTableRow,
 html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleDetailScreen .chronicleTableRow {
-  grid-template-columns: repeat(var(--cc-columns, 1), minmax(0, 1fr));
+  grid-template-columns: var(--cc-template, repeat(var(--cc-columns, 1), minmax(96px, 1fr)));
   gap: 8px;
   padding: 10px;
 }
 
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .mobileChronicleTabularTable
+  .chronicleTableCell,
 html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleDetailScreen .chronicleTableCell {
   display: block;
   min-width: 0;
@@ -665,8 +726,26 @@ html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleDetailScreen 
   word-break: break-word;
 }
 
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .mobileChronicleTabularTable
+  .chronicleTableCell::before,
 html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleDetailScreen .chronicleTableCell::before {
   content: none;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabularBlock {
+  gap: 6px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabularBlock .mobileYouthLandscapeHint {
+  justify-self: start;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabularBlock .mobileChronicleTableWrap {
+  margin-inline: -10px;
+  width: calc(100% + 20px);
 }
 
 html[data-mobile-shell="true"] .clubChronicleStack .chronicleDetailsHeader,

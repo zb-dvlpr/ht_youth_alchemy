@@ -956,6 +956,7 @@ export const messagesEn: Messages = {
     mobileYouthBackLabel: "Back",
     mobileYouthBackToPlayerList: "Back to player list",
     mobileYouthLandscapeHint: "Rotate to landscape for the full matrix view.",
+    mobileChronicleLandscapeHint: "Rotate to landscape for a wider table view.",
     mobileYouthLineupPickerTitle: "Choose player",
     mobileYouthLineupPickerEmpty: "No players available for this slot.",
     mobileYouthViewComingSoon: "This Youth mobile view is not implemented yet.",

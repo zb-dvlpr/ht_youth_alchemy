@@ -11402,39 +11402,62 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
     switch (mobileChronicleDetailKind) {
       case "league-performance":
-        return selectedTeam?.leaguePerformance ? (
-          <div className={styles.chronicleDetailsGrid}>
-            <h3 className={styles.chronicleDetailsSectionTitle}>
-              {messages.clubChronicleLeagueSectionTitle}
-            </h3>
-            <div className={styles.chronicleDetailsHeader}>
-              <span />
-              <span>{messages.clubChronicleDetailsPreviousLabel}</span>
-              <span>{messages.clubChronicleDetailsCurrentLabel}</span>
-            </div>
-            {leagueTableColumns.map((column) => (
-              <div key={`details-${column.key}`} className={styles.chronicleDetailsRow}>
-                <span className={styles.chronicleDetailsLabel}>{column.label}</span>
-                <span>
-                  {formatValue(
-                    column.getValue(
-                      selectedTeam.leaguePerformance?.previous,
-                      selectedTeam
-                    ) as string | number | null | undefined
-                  )}
-                </span>
-                <span>
-                  {formatValue(
-                    column.getValue(
-                      selectedTeam.leaguePerformance?.current,
-                      selectedTeam
-                    ) as string | number | null | undefined
-                  )}
-                </span>
+        return selectedTeam?.leaguePerformance ? (() => {
+          const rows = leagueTableColumns.map((column) => ({
+            id: `details-${column.key}`,
+            label: column.label,
+            previous: column.getValue(selectedTeam.leaguePerformance?.previous, selectedTeam),
+            current: column.getValue(selectedTeam.leaguePerformance?.current, selectedTeam),
+          }));
+          return (
+            <div className={styles.chroniclePressContent}>
+              <h3 className={styles.chronicleDetailsSectionTitle}>
+                {messages.clubChronicleLeagueSectionTitle}
+              </h3>
+              <span className={styles.mobileYouthLandscapeHint}>
+                {messages.mobileChronicleLandscapeHint}
+              </span>
+              <div className={styles.mobileChronicleTableWrap}>
+                <ChronicleTable
+                  columns={[
+                    {
+                      key: "metric",
+                      label: messages.clubChronicleLeagueSectionTitle,
+                      getValue: (row: { label: string }) => row.label,
+                      sortable: false,
+                    },
+                    {
+                      key: "previous",
+                      label: messages.clubChronicleDetailsPreviousLabel,
+                      getValue: (row: { previous: string | number | null | undefined }) =>
+                        row.previous,
+                      sortable: false,
+                    },
+                    {
+                      key: "current",
+                      label: messages.clubChronicleDetailsCurrentLabel,
+                      getValue: (row: { current: string | number | null | undefined }) =>
+                        row.current,
+                      sortable: false,
+                    },
+                  ]}
+                  rows={rows}
+                  getRowKey={(row) => row.id}
+                  getSnapshot={(row) => row}
+                  formatValue={formatValue}
+                  className={styles.mobileChronicleTabularTable}
+                  style={
+                    {
+                      "--cc-columns": 3,
+                      "--cc-template":
+                        "minmax(160px, 1.3fr) minmax(110px, 0.85fr) minmax(110px, 0.85fr)",
+                    } as CSSProperties
+                  }
+                />
               </div>
-            ))}
-          </div>
-        ) : (
+            </div>
+          );
+        })() : (
           <p className={styles.chronicleEmpty}>{messages.clubChronicleLeaguePanelEmpty}</p>
         );
       case "press-announcements":
@@ -11538,34 +11561,59 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         );
       case "finance-estimate":
         return selectedFinanceTeam?.snapshot ? (
-          <div className={styles.chronicleDetailsGrid}>
+          <div className={styles.chroniclePressContent}>
             <h3 className={styles.chronicleDetailsSectionTitle}>
               {renderTeamNameLink(selectedFinanceTeam.teamId, selectedFinanceTeam.teamName)}
             </h3>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChronicleFinanceColumnBuys}
-              </span>
-              <span />
-              <span>
-                {formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.totalBuysSek)}
-              </span>
-            </div>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChronicleFinanceColumnSales}
-              </span>
-              <span />
-              <span>
-                {formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.totalSalesSek)}
-              </span>
-            </div>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChronicleFinanceColumnEstimate}
-              </span>
-              <span />
-              <span>{`${formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.estimatedSek)}*`}</span>
+            <span className={styles.mobileYouthLandscapeHint}>
+              {messages.mobileChronicleLandscapeHint}
+            </span>
+            <div className={styles.mobileChronicleTableWrap}>
+              <ChronicleTable
+                columns={[
+                  {
+                    key: "metric",
+                    label: messages.clubChronicleArenaDetailsMetric,
+                    getValue: (row: { metric: string }) => row.metric,
+                    sortable: false,
+                  },
+                  {
+                    key: "value",
+                    label: messages.clubChronicleDetailsCurrentLabel,
+                    getValue: (
+                      row: { value: string | number | null | undefined }
+                    ) => row.value,
+                    sortable: false,
+                  },
+                ]}
+                rows={[
+                  {
+                    id: "buys",
+                    metric: messages.clubChronicleFinanceColumnBuys,
+                    value: formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.totalBuysSek),
+                  },
+                  {
+                    id: "sales",
+                    metric: messages.clubChronicleFinanceColumnSales,
+                    value: formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.totalSalesSek),
+                  },
+                  {
+                    id: "estimate",
+                    metric: messages.clubChronicleFinanceColumnEstimate,
+                    value: `${formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.estimatedSek)}*`,
+                  },
+                ]}
+                getRowKey={(row) => row.id}
+                getSnapshot={(row) => row}
+                formatValue={formatValue}
+                className={styles.mobileChronicleTabularTable}
+                style={
+                  {
+                    "--cc-columns": 2,
+                    "--cc-template": "minmax(170px, 1.2fr) minmax(140px, 1fr)",
+                  } as CSSProperties
+                }
+              />
             </div>
           </div>
         ) : (
@@ -11573,40 +11621,67 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         );
       case "power-ratings":
         return selectedPowerRatingsTeam?.snapshot ? (
-          <div className={styles.chronicleDetailsGrid}>
+          <div className={styles.chroniclePressContent}>
             <h3 className={styles.chronicleDetailsSectionTitle}>
               {renderTeamNameLink(
                 selectedPowerRatingsTeam.teamId,
                 selectedPowerRatingsTeam.teamName
               )}
             </h3>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChroniclePowerRatingsColumnValue}
-              </span>
-              <span />
-              <span>{formatValue(selectedPowerRatingsTeam.snapshot.powerRating)}</span>
-            </div>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChroniclePowerRatingsColumnGlobalRanking}
-              </span>
-              <span />
-              <span>{formatValue(selectedPowerRatingsTeam.snapshot.globalRanking)}</span>
-            </div>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChroniclePowerRatingsColumnLeagueRanking}
-              </span>
-              <span />
-              <span>{formatValue(selectedPowerRatingsTeam.snapshot.leagueRanking)}</span>
-            </div>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChroniclePowerRatingsColumnRegionRanking}
-              </span>
-              <span />
-              <span>{formatValue(selectedPowerRatingsTeam.snapshot.regionRanking)}</span>
+            <span className={styles.mobileYouthLandscapeHint}>
+              {messages.mobileChronicleLandscapeHint}
+            </span>
+            <div className={styles.mobileChronicleTableWrap}>
+              <ChronicleTable
+                columns={[
+                  {
+                    key: "metric",
+                    label: messages.clubChronicleArenaDetailsMetric,
+                    getValue: (row: { metric: string }) => row.metric,
+                    sortable: false,
+                  },
+                  {
+                    key: "value",
+                    label: messages.clubChronicleDetailsCurrentLabel,
+                    getValue: (
+                      row: { value: string | number | null | undefined }
+                    ) => row.value,
+                    sortable: false,
+                  },
+                ]}
+                rows={[
+                  {
+                    id: "value",
+                    metric: messages.clubChroniclePowerRatingsColumnValue,
+                    value: selectedPowerRatingsTeam.snapshot.powerRating,
+                  },
+                  {
+                    id: "global",
+                    metric: messages.clubChroniclePowerRatingsColumnGlobalRanking,
+                    value: selectedPowerRatingsTeam.snapshot.globalRanking,
+                  },
+                  {
+                    id: "league",
+                    metric: messages.clubChroniclePowerRatingsColumnLeagueRanking,
+                    value: selectedPowerRatingsTeam.snapshot.leagueRanking,
+                  },
+                  {
+                    id: "region",
+                    metric: messages.clubChroniclePowerRatingsColumnRegionRanking,
+                    value: selectedPowerRatingsTeam.snapshot.regionRanking,
+                  },
+                ]}
+                getRowKey={(row) => row.id}
+                getSnapshot={(row) => row}
+                formatValue={formatValue}
+                className={styles.mobileChronicleTabularTable}
+                style={
+                  {
+                    "--cc-columns": 2,
+                    "--cc-template": "minmax(190px, 1.25fr) minmax(120px, 0.85fr)",
+                  } as CSSProperties
+                }
+              />
             </div>
           </div>
         ) : (
@@ -11614,69 +11689,90 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         );
       case "arena":
         return selectedArenaTeam?.snapshot ? (
-          <div className={styles.chronicleDetailsGrid}>
+          <div className={styles.chroniclePressContent}>
             <h3 className={styles.chronicleDetailsSectionTitle}>
               {renderTeamNameLink(selectedArenaTeam.teamId, selectedArenaTeam.teamName)}
             </h3>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChronicleArenaDetailsMetric}
-              </span>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChronicleDetailsCurrentLabel}
-              </span>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChronicleArenaDetailsExpandedColumn}
-              </span>
-            </div>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChronicleArenaSeatTerraces}
-              </span>
-              <span>{formatValue(selectedArenaTeam.snapshot.terraces)}</span>
-              <span>{formatValue(selectedArenaTeam.snapshot.expandedTerraces)}</span>
-            </div>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChronicleArenaSeatBasic}
-              </span>
-              <span>{formatValue(selectedArenaTeam.snapshot.basic)}</span>
-              <span>{formatValue(selectedArenaTeam.snapshot.expandedBasic)}</span>
-            </div>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChronicleArenaSeatRoof}
-              </span>
-              <span>{formatValue(selectedArenaTeam.snapshot.roof)}</span>
-              <span>{formatValue(selectedArenaTeam.snapshot.expandedRoof)}</span>
-            </div>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChronicleArenaSeatVip}
-              </span>
-              <span>{formatValue(selectedArenaTeam.snapshot.vip)}</span>
-              <span>{formatValue(selectedArenaTeam.snapshot.expandedVip)}</span>
-            </div>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChronicleArenaDetailsCurrentCapacity}
-              </span>
-              <span>{formatValue(selectedArenaTeam.snapshot.currentTotalCapacity)}</span>
-              <span>{formatValue(selectedArenaTeam.snapshot.expandedTotalCapacity)}</span>
-            </div>
-            <div className={styles.chronicleDetailsRow}>
-              <span className={styles.chronicleDetailsLabel}>
-                {messages.clubChronicleArenaDetailsExpectedFinish}
-              </span>
-              <span>{messages.unknownShort}</span>
-              <span>
-                {formatValue(
-                  selectedArenaTeam.snapshot.expansionDate
-                    ? formatChppDateTime(selectedArenaTeam.snapshot.expansionDate) ??
+            <span className={styles.mobileYouthLandscapeHint}>
+              {messages.mobileChronicleLandscapeHint}
+            </span>
+            <div className={styles.mobileChronicleTableWrap}>
+              <ChronicleTable
+                columns={[
+                  {
+                    key: "metric",
+                    label: messages.clubChronicleArenaDetailsMetric,
+                    getValue: (row: { metric: string }) => row.metric,
+                    sortable: false,
+                  },
+                  {
+                    key: "current",
+                    label: messages.clubChronicleDetailsCurrentLabel,
+                    getValue: (row: { current: string | number | null | undefined }) =>
+                      row.current,
+                    sortable: false,
+                  },
+                  {
+                    key: "expanded",
+                    label: messages.clubChronicleArenaDetailsExpandedColumn,
+                    getValue: (row: { expanded: string | number | null | undefined }) =>
+                      row.expanded,
+                    sortable: false,
+                  },
+                ]}
+                rows={[
+                  {
+                    id: "terraces",
+                    metric: messages.clubChronicleArenaSeatTerraces,
+                    current: selectedArenaTeam.snapshot.terraces,
+                    expanded: selectedArenaTeam.snapshot.expandedTerraces,
+                  },
+                  {
+                    id: "basic",
+                    metric: messages.clubChronicleArenaSeatBasic,
+                    current: selectedArenaTeam.snapshot.basic,
+                    expanded: selectedArenaTeam.snapshot.expandedBasic,
+                  },
+                  {
+                    id: "roof",
+                    metric: messages.clubChronicleArenaSeatRoof,
+                    current: selectedArenaTeam.snapshot.roof,
+                    expanded: selectedArenaTeam.snapshot.expandedRoof,
+                  },
+                  {
+                    id: "vip",
+                    metric: messages.clubChronicleArenaSeatVip,
+                    current: selectedArenaTeam.snapshot.vip,
+                    expanded: selectedArenaTeam.snapshot.expandedVip,
+                  },
+                  {
+                    id: "current-capacity",
+                    metric: messages.clubChronicleArenaDetailsCurrentCapacity,
+                    current: selectedArenaTeam.snapshot.currentTotalCapacity,
+                    expanded: selectedArenaTeam.snapshot.expandedTotalCapacity,
+                  },
+                  {
+                    id: "expected-finish",
+                    metric: messages.clubChronicleArenaDetailsExpectedFinish,
+                    current: messages.unknownShort,
+                    expanded: selectedArenaTeam.snapshot.expansionDate
+                      ? formatChppDateTime(selectedArenaTeam.snapshot.expansionDate) ??
                         selectedArenaTeam.snapshot.expansionDate
-                    : null
-                )}
-              </span>
+                      : null,
+                  },
+                ]}
+                getRowKey={(row) => row.id}
+                getSnapshot={(row) => row}
+                formatValue={formatValue}
+                className={styles.mobileChronicleTabularTable}
+                style={
+                  {
+                    "--cc-columns": 3,
+                    "--cc-template":
+                      "minmax(180px, 1.3fr) minmax(110px, 0.8fr) minmax(120px, 0.9fr)",
+                  } as CSSProperties
+                }
+              />
             </div>
           </div>
         ) : (
@@ -12335,25 +12431,33 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       {messages.clubChronicleLoading}
                     </p>
                   ) : (
-                    <ChronicleTable
-                      columns={leagueTableColumns}
-                      rows={sortedLeagueRows}
-                      getRowKey={(row) => row.teamId}
-                      getSnapshot={(row) => row.snapshot ?? undefined}
-                      getRowClassName={getTeamRowClassName}
-                      onRowClick={(row) => handleOpenDetails(row.teamId)}
-                      formatValue={formatValue}
-                      style={tableStyle}
-                      sortKey={leagueSortState.key}
-                      sortDirection={leagueSortState.direction}
-                      onSort={handleLeagueSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) =>
-                        handleNoDivulgoDismiss(row.teamId)
-                      }
-                    />
+                    <div className={styles.mobileChronicleTabularBlock}>
+                      <span className={styles.mobileYouthLandscapeHint}>
+                        {messages.mobileChronicleLandscapeHint}
+                      </span>
+                      <div className={styles.mobileChronicleTableWrap}>
+                        <ChronicleTable
+                          columns={leagueTableColumns}
+                          rows={sortedLeagueRows}
+                          getRowKey={(row) => row.teamId}
+                          getSnapshot={(row) => row.snapshot ?? undefined}
+                          getRowClassName={getTeamRowClassName}
+                          onRowClick={(row) => handleOpenDetails(row.teamId)}
+                          formatValue={formatValue}
+                          style={tableStyle}
+                          className={styles.mobileChronicleTabularTable}
+                          sortKey={leagueSortState.key}
+                          sortDirection={leagueSortState.direction}
+                          onSort={handleLeagueSort}
+                          maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                          maskText={messages.clubChronicleNoDivulgoMask}
+                          isMaskActive={noDivulgoActive}
+                          onMaskedRowClick={(row) =>
+                            handleNoDivulgoDismiss(row.teamId)
+                          }
+                        />
+                      </div>
+                    </div>
                   )}
                 </ChroniclePanel>
               </div>
@@ -12572,25 +12676,33 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       {messages.clubChronicleLoading}
                     </p>
                   ) : (
-                    <ChronicleTable
-                      columns={coachTableColumns}
-                      rows={sortedCoachRows}
-                      getRowKey={(row) => row.teamId}
-                      getSnapshot={(row) => row.snapshot ?? undefined}
-                      getRowClassName={getTeamRowClassName}
-                      onRowClick={(row) => handleOpenCoachDetails(row.teamId)}
-                      formatValue={formatValue}
-                      style={coachTableStyle}
-                      sortKey={coachSortState.key}
-                      sortDirection={coachSortState.direction}
-                      onSort={handleCoachSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) =>
-                        handleNoDivulgoDismiss(row.teamId)
-                      }
-                    />
+                    <div className={styles.mobileChronicleTabularBlock}>
+                      <span className={styles.mobileYouthLandscapeHint}>
+                        {messages.mobileChronicleLandscapeHint}
+                      </span>
+                      <div className={styles.mobileChronicleTableWrap}>
+                        <ChronicleTable
+                          columns={coachTableColumns}
+                          rows={sortedCoachRows}
+                          getRowKey={(row) => row.teamId}
+                          getSnapshot={(row) => row.snapshot ?? undefined}
+                          getRowClassName={getTeamRowClassName}
+                          onRowClick={(row) => handleOpenCoachDetails(row.teamId)}
+                          formatValue={formatValue}
+                          style={coachTableStyle}
+                          className={styles.mobileChronicleTabularTable}
+                          sortKey={coachSortState.key}
+                          sortDirection={coachSortState.direction}
+                          onSort={handleCoachSort}
+                          maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                          maskText={messages.clubChronicleNoDivulgoMask}
+                          isMaskActive={noDivulgoActive}
+                          onMaskedRowClick={(row) =>
+                            handleNoDivulgoDismiss(row.teamId)
+                          }
+                        />
+                      </div>
+                    </div>
                   )}
                 </ChroniclePanel>
               </div>
@@ -12804,24 +12916,32 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       {messages.clubChronicleLoading}
                     </p>
                   ) : (
-                    <ChronicleTable
-                      columns={transferTableColumns}
-                      rows={sortedTransferRows}
-                      getRowKey={(row) => row.teamId}
-                      getSnapshot={(row) => row.snapshot ?? undefined}
-                      getRowClassName={getTeamRowClassName}
-                      formatValue={formatValue}
-                      style={transferTableStyle}
-                      sortKey={transferSortState.key}
-                      sortDirection={transferSortState.direction}
-                      onSort={handleTransferSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) =>
-                        handleNoDivulgoDismiss(row.teamId)
-                      }
-                    />
+                    <div className={styles.mobileChronicleTabularBlock}>
+                      <span className={styles.mobileYouthLandscapeHint}>
+                        {messages.mobileChronicleLandscapeHint}
+                      </span>
+                      <div className={styles.mobileChronicleTableWrap}>
+                        <ChronicleTable
+                          columns={transferTableColumns}
+                          rows={sortedTransferRows}
+                          getRowKey={(row) => row.teamId}
+                          getSnapshot={(row) => row.snapshot ?? undefined}
+                          getRowClassName={getTeamRowClassName}
+                          formatValue={formatValue}
+                          style={transferTableStyle}
+                          className={styles.mobileChronicleTabularTable}
+                          sortKey={transferSortState.key}
+                          sortDirection={transferSortState.direction}
+                          onSort={handleTransferSort}
+                          maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                          maskText={messages.clubChronicleNoDivulgoMask}
+                          isMaskActive={noDivulgoActive}
+                          onMaskedRowClick={(row) =>
+                            handleNoDivulgoDismiss(row.teamId)
+                          }
+                        />
+                      </div>
+                    </div>
                   )}
                 </ChroniclePanel>
               </div>
@@ -13004,23 +13124,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       {messages.clubChronicleLoading}
                     </p>
                   ) : (
-                    <ChronicleTable
-                      columns={tsiTableColumns}
-                      rows={sortedTsiRows}
-                      getRowKey={(row) => row.teamId}
-                      getSnapshot={(row) => row.snapshot ?? undefined}
-                      getRowClassName={getTeamRowClassName}
-                      onRowClick={(row) => handleOpenTsiDetails(row.teamId)}
-                      formatValue={formatValue}
-                      style={tsiTableStyle}
-                      sortKey={tsiSortState.key}
-                      sortDirection={tsiSortState.direction}
-                      onSort={handleTsiSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
-                    />
+                    <div className={styles.mobileChronicleTabularBlock}>
+                      <span className={styles.mobileYouthLandscapeHint}>
+                        {messages.mobileChronicleLandscapeHint}
+                      </span>
+                      <div className={styles.mobileChronicleTableWrap}>
+                        <ChronicleTable
+                          columns={tsiTableColumns}
+                          rows={sortedTsiRows}
+                          getRowKey={(row) => row.teamId}
+                          getSnapshot={(row) => row.snapshot ?? undefined}
+                          getRowClassName={getTeamRowClassName}
+                          onRowClick={(row) => handleOpenTsiDetails(row.teamId)}
+                          formatValue={formatValue}
+                          style={tsiTableStyle}
+                          className={styles.mobileChronicleTabularTable}
+                          sortKey={tsiSortState.key}
+                          sortDirection={tsiSortState.direction}
+                          onSort={handleTsiSort}
+                          maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                          maskText={messages.clubChronicleNoDivulgoMask}
+                          isMaskActive={noDivulgoActive}
+                          onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
+                        />
+                      </div>
+                    </div>
                   )}
                 </ChroniclePanel>
               </div>
@@ -13060,23 +13188,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       {messages.clubChronicleLoading}
                     </p>
                   ) : (
-                    <ChronicleTable
-                      columns={wagesTableColumns}
-                      rows={sortedWagesRows}
-                      getRowKey={(row) => row.teamId}
-                      getSnapshot={(row) => row.snapshot ?? undefined}
-                      getRowClassName={getTeamRowClassName}
-                      onRowClick={(row) => handleOpenWagesDetails(row.teamId)}
-                      formatValue={formatValue}
-                      style={wagesTableStyle}
-                      sortKey={wagesSortState.key}
-                      sortDirection={wagesSortState.direction}
-                      onSort={handleWagesSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
-                    />
+                    <div className={styles.mobileChronicleTabularBlock}>
+                      <span className={styles.mobileYouthLandscapeHint}>
+                        {messages.mobileChronicleLandscapeHint}
+                      </span>
+                      <div className={styles.mobileChronicleTableWrap}>
+                        <ChronicleTable
+                          columns={wagesTableColumns}
+                          rows={sortedWagesRows}
+                          getRowKey={(row) => row.teamId}
+                          getSnapshot={(row) => row.snapshot ?? undefined}
+                          getRowClassName={getTeamRowClassName}
+                          onRowClick={(row) => handleOpenWagesDetails(row.teamId)}
+                          formatValue={formatValue}
+                          style={wagesTableStyle}
+                          className={styles.mobileChronicleTabularTable}
+                          sortKey={wagesSortState.key}
+                          sortDirection={wagesSortState.direction}
+                          onSort={handleWagesSort}
+                          maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                          maskText={messages.clubChronicleNoDivulgoMask}
+                          isMaskActive={noDivulgoActive}
+                          onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
+                        />
+                      </div>
+                    </div>
                   )}
                 </ChroniclePanel>
               </div>

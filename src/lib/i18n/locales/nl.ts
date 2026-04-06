@@ -598,6 +598,8 @@ export const messagesNl: Messages = {
   mobileYouthBackToPlayerList: "Terug naar spelerslijst",
   mobileYouthLandscapeHint:
     "Draai naar liggende stand voor de volledige matrix.",
+  mobileChronicleLandscapeHint:
+    "Draai naar liggende stand voor een bredere tabelweergave.",
   mobileYouthLineupPickerTitle: "Kies speler",
   mobileYouthLineupPickerEmpty:
     "Geen spelers beschikbaar voor deze positie.",

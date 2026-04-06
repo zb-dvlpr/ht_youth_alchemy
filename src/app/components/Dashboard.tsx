@@ -5648,6 +5648,13 @@ export default function Dashboard({
               </div>
             </div>
           </div>
+          <button
+            type="button"
+            className={styles.helpDismiss}
+            onClick={() => pushMobileYouthState("playerDetails", "root", "replace")}
+          >
+            {messages.closeLabel}
+          </button>
         </div>
       </div>
     ) : mobileYouthView === "skillsMatrix" ? (

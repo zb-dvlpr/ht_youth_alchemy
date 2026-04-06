@@ -11420,6 +11420,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             <li>{messages.clubChronicleHelpBulletWages}</li>
             <li>{messages.clubChronicleHelpBulletLatestUpdates}</li>
           </ul>
+          <button
+            type="button"
+            className={styles.helpDismiss}
+            onClick={() =>
+              updateMobileChronicleState(
+                {
+                  panelId: resolvedMobileChroniclePanelId,
+                  screen: "panel",
+                  detailKind: null,
+                  detailTeamId: null,
+                },
+                "replace"
+              )
+            }
+          >
+            {messages.closeLabel}
+          </button>
         </div>
       );
     }

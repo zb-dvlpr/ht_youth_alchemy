@@ -1851,6 +1851,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   border: none;
   background: #1f6f3f;
   color: #f7f1e3;
+  margin-top: 12px;
   padding: 8px 16px;
   border-radius: 999px;
   font-weight: 600;

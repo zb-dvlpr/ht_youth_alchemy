@@ -14621,6 +14621,13 @@ const refreshDetailsForPlayers = async (
               </div>
             </div>
           </div>
+          <button
+            type="button"
+            className={styles.helpDismiss}
+            onClick={() => pushMobileSeniorState("playerDetails", "root", "replace")}
+          >
+            {messages.closeLabel}
+          </button>
         </div>
       </div>
     ) : mobileSeniorView === "skillsMatrix" ? (

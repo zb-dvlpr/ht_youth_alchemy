@@ -11196,6 +11196,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     },
     [isValidating, loading, loadingOwnLeagueTeams, trackedTeams.length]
   );
+  const showMobileChronicleLandscapeHint = mobileChronicleActive;
 
   const watchlistBody = (
     <div className={styles.watchlistPanel}>
@@ -11531,9 +11532,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               <h3 className={styles.chronicleDetailsSectionTitle}>
                 {messages.clubChronicleLeagueSectionTitle}
               </h3>
-              <span className={styles.mobileYouthLandscapeHint}>
-                {messages.mobileChronicleLandscapeHint}
-              </span>
+              {showMobileChronicleLandscapeHint ? (
+                <span className={styles.mobileYouthLandscapeHint}>
+                  {messages.mobileChronicleLandscapeHint}
+                </span>
+              ) : null}
               <div className={styles.mobileChronicleTableWrap}>
                 <ChronicleTable
                   columns={[
@@ -11680,9 +11683,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             <h3 className={styles.chronicleDetailsSectionTitle}>
               {renderTeamNameLink(selectedFinanceTeam.teamId, selectedFinanceTeam.teamName)}
             </h3>
-            <span className={styles.mobileYouthLandscapeHint}>
-              {messages.mobileChronicleLandscapeHint}
-            </span>
+            {showMobileChronicleLandscapeHint ? (
+              <span className={styles.mobileYouthLandscapeHint}>
+                {messages.mobileChronicleLandscapeHint}
+              </span>
+            ) : null}
             <div className={styles.mobileChronicleTableWrap}>
               <ChronicleTable
                 columns={[
@@ -11741,9 +11746,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 selectedPowerRatingsTeam.teamName
               )}
             </h3>
-            <span className={styles.mobileYouthLandscapeHint}>
-              {messages.mobileChronicleLandscapeHint}
-            </span>
+            {showMobileChronicleLandscapeHint ? (
+              <span className={styles.mobileYouthLandscapeHint}>
+                {messages.mobileChronicleLandscapeHint}
+              </span>
+            ) : null}
             <div className={styles.mobileChronicleTableWrap}>
               <ChronicleTable
                 columns={[
@@ -11804,9 +11811,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             <h3 className={styles.chronicleDetailsSectionTitle}>
               {renderTeamNameLink(selectedArenaTeam.teamId, selectedArenaTeam.teamName)}
             </h3>
-            <span className={styles.mobileYouthLandscapeHint}>
-              {messages.mobileChronicleLandscapeHint}
-            </span>
+            {showMobileChronicleLandscapeHint ? (
+              <span className={styles.mobileYouthLandscapeHint}>
+                {messages.mobileChronicleLandscapeHint}
+              </span>
+            ) : null}
             <div className={styles.mobileChronicleTableWrap}>
               <ChronicleTable
                 columns={[
@@ -12644,9 +12653,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     </p>
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
-                      <span className={styles.mobileYouthLandscapeHint}>
-                        {messages.mobileChronicleLandscapeHint}
-                      </span>
+                      {showMobileChronicleLandscapeHint ? (
+                        <span className={styles.mobileYouthLandscapeHint}>
+                          {messages.mobileChronicleLandscapeHint}
+                        </span>
+                      ) : null}
                       <div className={styles.mobileChronicleTableWrap}>
                         <ChronicleTable
                           columns={leagueTableColumns}
@@ -12909,9 +12920,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     </p>
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
-                      <span className={styles.mobileYouthLandscapeHint}>
-                        {messages.mobileChronicleLandscapeHint}
-                      </span>
+                      {showMobileChronicleLandscapeHint ? (
+                        <span className={styles.mobileYouthLandscapeHint}>
+                          {messages.mobileChronicleLandscapeHint}
+                        </span>
+                      ) : null}
                       <div className={styles.mobileChronicleTableWrap}>
                         <ChronicleTable
                           columns={coachTableColumns}
@@ -13169,9 +13182,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     </p>
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
-                      <span className={styles.mobileYouthLandscapeHint}>
-                        {messages.mobileChronicleLandscapeHint}
-                      </span>
+                      {showMobileChronicleLandscapeHint ? (
+                        <span className={styles.mobileYouthLandscapeHint}>
+                          {messages.mobileChronicleLandscapeHint}
+                        </span>
+                      ) : null}
                       <div className={styles.mobileChronicleTableWrap}>
                         <ChronicleTable
                           columns={transferTableColumns}
@@ -13392,9 +13407,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     </p>
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
-                      <span className={styles.mobileYouthLandscapeHint}>
-                        {messages.mobileChronicleLandscapeHint}
-                      </span>
+                      {showMobileChronicleLandscapeHint ? (
+                        <span className={styles.mobileYouthLandscapeHint}>
+                          {messages.mobileChronicleLandscapeHint}
+                        </span>
+                      ) : null}
                       <div className={styles.mobileChronicleTableWrap}>
                         <ChronicleTable
                           columns={tsiTableColumns}
@@ -13461,9 +13478,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     </p>
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
-                      <span className={styles.mobileYouthLandscapeHint}>
-                        {messages.mobileChronicleLandscapeHint}
-                      </span>
+                      {showMobileChronicleLandscapeHint ? (
+                        <span className={styles.mobileYouthLandscapeHint}>
+                          {messages.mobileChronicleLandscapeHint}
+                        </span>
+                      ) : null}
                       <div className={styles.mobileChronicleTableWrap}>
                         <ChronicleTable
                           columns={wagesTableColumns}

@@ -2763,6 +2763,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => chronicleTabs.findIndex((tab) => tab.id === activeChronicleTab.id),
     [activeChronicleTab.id, chronicleTabs]
   );
+  const setMobileChroniclePanelAcrossTabs = useCallback(
+    (panelId: ChroniclePanelId) => {
+      setChronicleTabs((prev) =>
+        prev.map((tab) => ({
+          ...tab,
+          mobilePanelId: panelId,
+        }))
+      );
+    },
+    []
+  );
   const updateActiveChronicleTab = useCallback(
     (updater: StateUpdater<ChronicleTabState>) => {
       setChronicleTabs((prev) =>
@@ -2792,6 +2803,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     x: 16,
     y: 108,
   };
+  const handleSelectChronicleTabMobile = useCallback(
+    (tabId: string) => {
+      setMobileChroniclePanelAcrossTabs(mobileChroniclePanelId);
+      setActiveChronicleTabId(tabId);
+    },
+    [mobileChroniclePanelId, setMobileChroniclePanelAcrossTabs]
+  );
   const setSupportedSelections = useCallback(
     (updater: StateUpdater<Record<number, boolean>>) => {
       updateActiveChronicleTab((prev) => ({
@@ -4433,11 +4451,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           ownLeagueSelections: Object.fromEntries(
             ownLeagues.map((entry) => [entry.key, false])
           ) as Record<string, boolean>,
+          mobilePanelId: mobileChroniclePanelId,
         }),
       ];
     });
     setActiveChronicleTabId(nextTabId);
-  }, [messages, ownLeagues, supportedTeams]);
+  }, [messages, mobileChroniclePanelId, ownLeagues, supportedTeams]);
 
   const handleStartRenamingTab = useCallback((tab: ChronicleTabState) => {
     setRenamingTabId(tab.id);
@@ -4637,6 +4656,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         next.menuPosition === undefined
           ? mobileChronicleMenuPosition
           : next.menuPosition;
+      if (mobileChronicleActive) {
+        setMobileChroniclePanelAcrossTabs(nextPanelId);
+      }
       updateActiveChronicleTab((prev) => ({
         ...prev,
         mobilePanelId: nextPanelId,
@@ -4667,6 +4689,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       mobileChronicleMenuPosition,
       mobileChroniclePanelId,
       mobileChronicleScreen,
+      setMobileChroniclePanelAcrossTabs,
       updateActiveChronicleTab,
     ]
   );
@@ -11112,11 +11135,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const handlePopState = (event: PopStateEvent) => {
       const state = event.state as MobileChronicleHistoryState | null;
       if (state?.appShell !== "tool" || state.tool !== "chronicle") return;
+      const nextPanelId = PANEL_IDS.includes(state.chroniclePanelId as ChroniclePanelId)
+        ? (state.chroniclePanelId as ChroniclePanelId)
+        : PANEL_IDS[0];
+      setMobileChroniclePanelAcrossTabs(nextPanelId);
       updateActiveChronicleTab((prev) => ({
         ...prev,
-        mobilePanelId: PANEL_IDS.includes(state.chroniclePanelId as ChroniclePanelId)
-          ? (state.chroniclePanelId as ChroniclePanelId)
-          : PANEL_IDS[0],
+        mobilePanelId: nextPanelId,
         mobileScreen:
           state.chronicleScreen === "watchlist" ||
           state.chronicleScreen === "latest-updates" ||
@@ -11150,7 +11175,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
     window.addEventListener("popstate", handlePopState);
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [mobileChronicleActive, updateActiveChronicleTab]);
+  }, [mobileChronicleActive, setMobileChroniclePanelAcrossTabs, updateActiveChronicleTab]);
 
   const watchlistBody = (
     <div className={styles.watchlistPanel}>
@@ -12186,7 +12211,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       <button
                         type="button"
                         className={styles.chronicleTabLabel}
-                        onClick={() => setActiveChronicleTabId(tab.id)}
+                        onClick={() => handleSelectChronicleTabMobile(tab.id)}
                       >
                         <span>{tab.name || buildChronicleTabName(messages, index + 1)}</span>
                       </button>

@@ -2494,6 +2494,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
   const [ownLeagues, setOwnLeagues] = useState<OwnLeagueEntry[]>([]);
   const [ownLeagueTeams, setOwnLeagueTeams] = useState<SupportedTeam[]>([]);
+  const [loadingOwnLeagueTeams, setLoadingOwnLeagueTeams] = useState(false);
   const [primaryTeam, setPrimaryTeam] = useState<ChronicleTeamData | null>(null);
   const [chronicleCache, setChronicleCache] = useState<ChronicleCache>(() =>
     pruneChronicleCache(readChronicleCache())
@@ -3787,9 +3788,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         (entry) => ownLeagueSelections[entry.key]
       );
       if (selectedLeagues.length === 0) {
+        setLoadingOwnLeagueTeams(false);
         setOwnLeagueTeams([]);
         return;
       }
+      setLoadingOwnLeagueTeams(true);
       const selectedByLeagueUnit = new Map<number, OwnLeagueEntry[]>();
       selectedLeagues.forEach((entry) => {
         const leagueLevelUnitId = Number(entry.leagueLevelUnitId ?? 0);
@@ -3870,6 +3873,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         setError(getReadableErrorMessage(error, messages.watchlistError));
         if (watchlistOpen) {
           setErrorOpen(true);
+        }
+      } finally {
+        if (active) {
+          setLoadingOwnLeagueTeams(false);
         }
       }
     };
@@ -11177,6 +11184,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return () => window.removeEventListener("popstate", handlePopState);
   }, [mobileChronicleActive, setMobileChroniclePanelAcrossTabs, updateActiveChronicleTab]);
 
+  const getChroniclePanelDisplayState = useCallback(
+    (
+      isRefreshing: boolean,
+      hasResolvedSnapshots: boolean
+    ): "loading" | "empty" | "ready" => {
+      if (loading || isValidating || loadingOwnLeagueTeams) return "loading";
+      if (trackedTeams.length === 0) return "empty";
+      if (isRefreshing && !hasResolvedSnapshots) return "loading";
+      return "ready";
+    },
+    [isValidating, loading, loadingOwnLeagueTeams, trackedTeams.length]
+  );
+
   const watchlistBody = (
     <div className={styles.watchlistPanel}>
       {loading ? <p className={styles.muted}>{messages.watchlistLoading}</p> : null}
@@ -12608,14 +12628,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingLeague) &&
-                    leagueRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingLeague,
+                    leagueRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingLeague,
+                      leagueRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
@@ -12674,14 +12699,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingPress) &&
-                    pressRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingPress,
+                    pressRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingPress,
+                      pressRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
                   ) : (
                     <ChronicleTable
@@ -12732,14 +12762,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingFinance) &&
-                    financeRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingFinance,
+                    financeRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingFinance,
+                      financeRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
                   ) : (
                     <>
@@ -12795,14 +12830,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingLastLogin) &&
-                    lastLoginRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingLastLogin,
+                    lastLoginRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingLastLogin,
+                      lastLoginRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
                   ) : (
                     <ChronicleTable
@@ -12853,14 +12893,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingCoach) &&
-                    coachRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingCoach,
+                    coachRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingCoach,
+                      coachRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
@@ -12919,14 +12964,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingPowerRatings) &&
-                    powerRatingsRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingPowerRatings,
+                    powerRatingsRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingPowerRatings,
+                      powerRatingsRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
                   ) : (
                     <ChronicleTable
@@ -12977,14 +13027,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingFanclub) &&
-                    fanclubRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingFanclub,
+                    fanclubRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingFanclub,
+                      fanclubRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
                   ) : (
                     <ChronicleTable
@@ -13035,14 +13090,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingArena) &&
-                    arenaRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingArena,
+                    arenaRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingArena,
+                      arenaRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
                   ) : (
                     <ChronicleTable
@@ -13093,14 +13153,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingTransfer) &&
-                    transferRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingTransfer,
+                    transferRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingTransfer,
+                      transferRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
@@ -13183,14 +13248,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingFormationsTactics) &&
-                    formationsTacticsRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingFormationsTactics,
+                    formationsTacticsRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingFormationsTactics,
+                      formationsTacticsRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
                   ) : (
                     <ChronicleTable
@@ -13243,14 +13313,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingFormationsTactics) &&
-                    likelyTrainingRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingFormationsTactics,
+                    likelyTrainingRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingFormationsTactics,
+                      likelyTrainingRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
                   ) : (
                     <ChronicleTable
@@ -13301,14 +13376,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingTsi) &&
-                    tsiRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingTsi,
+                    tsiRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingTsi,
+                      tsiRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
@@ -13365,14 +13445,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingWages) &&
-                    wagesRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingWages,
+                    wagesRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingWages,
+                      wagesRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleNoTeams}
                     </p>
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>

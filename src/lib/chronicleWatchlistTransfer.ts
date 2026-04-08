@@ -6,6 +6,8 @@ export const CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT =
   "ya:club-chronicle-watchlists-imported";
 export const CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT =
   "ya:club-chronicle-watchlists-flush";
+export const CLUB_CHRONICLE_WATCHLISTS_SNAPSHOT_REQUEST_EVENT =
+  "ya:club-chronicle-watchlists-snapshot-request";
 export const CLUB_CHRONICLE_WATCHLISTS_IMPORT_QUERY_PARAM = "ccwi";
 
 type CompactManualTeam = {
@@ -46,10 +48,14 @@ type StoredChronicleTab = {
   }> | number[];
 };
 
-type StoredChronicleTabs = {
+export type StoredChronicleTabsSnapshot = {
   version?: number;
   activeTabId?: string;
   tabs?: StoredChronicleTab[];
+};
+
+type ChronicleWatchlistsSnapshotRequestDetail = {
+  snapshot: StoredChronicleTabsSnapshot | null;
 };
 
 type ImportChronicleTabs = {
@@ -116,7 +122,7 @@ const sanitizeOwnLeagueKeys = (input: unknown): string[] =>
         .filter(Boolean)
     : [];
 
-const sanitizeManualTeams = (input: unknown): CompactManualTeam[] =>
+const sanitizeStoredManualTeams = (input: unknown): CompactManualTeam[] =>
   Array.isArray(input)
     ? input
         .map((team): CompactManualTeam | null => {
@@ -160,23 +166,79 @@ const sanitizeManualTeams = (input: unknown): CompactManualTeam[] =>
         .filter((team): team is CompactManualTeam => team !== null)
     : [];
 
-const readStoredChronicleTabs = (): StoredChronicleTabs | null => {
+const sanitizeCompactManualTeams = (input: unknown): CompactManualTeam[] =>
+  Array.isArray(input)
+    ? input
+        .map((team): CompactManualTeam | null => {
+          if (!team || typeof team !== "object") return null;
+          const source = team as Record<string, unknown>;
+          const teamId = Number(source.i);
+          if (!Number.isFinite(teamId) || teamId <= 0) return null;
+          return {
+            i: teamId,
+            n: typeof source.n === "string" ? source.n : undefined,
+            l:
+              typeof source.l === "string"
+                ? source.l
+                : source.l === null
+                  ? null
+                  : undefined,
+            u:
+              typeof source.u === "string"
+                ? source.u
+                : source.u === null
+                  ? null
+                  : undefined,
+            g:
+              source.g === "m"
+                ? "m"
+                : source.g === "f"
+                  ? "f"
+                  : undefined,
+            x:
+              source.x === null || source.x === undefined
+                ? undefined
+                : Number(source.x),
+          };
+        })
+        .filter((team): team is CompactManualTeam => team !== null)
+    : [];
+
+const readStoredChronicleTabs = (): StoredChronicleTabsSnapshot | null => {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(TABS_STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as StoredChronicleTabs;
+    const parsed = JSON.parse(raw) as StoredChronicleTabsSnapshot;
     return parsed && Array.isArray(parsed.tabs) ? parsed : null;
   } catch {
     return null;
   }
 };
 
-export function exportChronicleWatchlistsToQrString(): string {
+export function requestChronicleWatchlistsSnapshot():
+  | StoredChronicleTabsSnapshot
+  | null {
+  if (typeof window === "undefined") return null;
+  const detail: ChronicleWatchlistsSnapshotRequestDetail = {
+    snapshot: null,
+  };
+  window.dispatchEvent(
+    new CustomEvent<ChronicleWatchlistsSnapshotRequestDetail>(
+      CLUB_CHRONICLE_WATCHLISTS_SNAPSHOT_REQUEST_EVENT,
+      { detail }
+    )
+  );
+  return detail.snapshot;
+}
+
+export function exportChronicleWatchlistsToQrString(
+  snapshotOverride?: StoredChronicleTabsSnapshot | null
+): string {
   if (typeof window === "undefined") {
     throw new Error("unavailable");
   }
-  const stored = readStoredChronicleTabs();
+  const stored = snapshotOverride ?? readStoredChronicleTabs();
   const tabs = Array.isArray(stored?.tabs) ? stored.tabs : [];
   const compactTabs: CompactChronicleTab[] = (tabs.length > 0 ? tabs : [{ id: "tab-1" }])
     .map((tab, index) => {
@@ -195,7 +257,7 @@ export function exportChronicleWatchlistsToQrString(): string {
         n: typeof tab.name === "string" && tab.name.trim() ? tab.name.trim() : undefined,
         s: supportedSelections,
         o: ownLeagueSelections,
-        m: sanitizeManualTeams(tab.manualTeams),
+        m: sanitizeStoredManualTeams(tab.manualTeams),
       };
     });
   const activeTabId =
@@ -252,7 +314,7 @@ export function importChronicleWatchlistsFromQrString(
         sanitizeOwnLeagueKeys(compact.o).map((key) => [key, true])
       ) as Record<string, boolean>;
       const manualTeams: ImportChronicleTabs["tabs"][number]["manualTeams"] =
-        sanitizeManualTeams(compact.m).map((team) => ({
+        sanitizeCompactManualTeams(compact.m).map((team) => ({
           teamId: team.i,
           teamName: team.n,
           leagueName: team.l ?? null,

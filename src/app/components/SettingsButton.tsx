@@ -45,14 +45,12 @@ import {
   writeYouthNewMarkersDebugEnabled,
 } from "@/lib/settings";
 import {
-  APP_SHELL_OPEN_TOOL_EVENT,
   applyImportedChronicleWatchlists,
   buildChronicleWatchlistsImportUrl,
-  CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
   CLUB_CHRONICLE_WATCHLISTS_IMPORT_QUERY_PARAM,
-  CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT,
   exportChronicleWatchlistsToQrString,
   importChronicleWatchlistsFromQrString,
+  requestChronicleWatchlistsSnapshot,
   summarizeImportedChronicleWatchlists,
 } from "@/lib/chronicleWatchlistTransfer";
 
@@ -107,6 +105,7 @@ export default function SettingsButton({
     useState(false);
   const [debugSeniorManagerUserId, setDebugSeniorManagerUserId] = useState("");
   const [debugYouthSeMatchId, setDebugYouthSeMatchId] = useState("");
+  const [chronicleQrEncoded, setChronicleQrEncoded] = useState<string | null>(null);
   const [chronicleQrImageUrl, setChronicleQrImageUrl] = useState<string | null>(
     null
   );
@@ -122,20 +121,15 @@ export default function SettingsButton({
     ? summarizeImportedChronicleWatchlists(pendingImportedChronicleWatchlists)
     : null;
   const chronicleExportSummary = useMemo(() => {
-    if (!chronicleQrExportOpen) return null;
+    if (!chronicleQrEncoded) return null;
     try {
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(
-          new CustomEvent(CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT)
-        );
-      }
       return summarizeImportedChronicleWatchlists(
-        importChronicleWatchlistsFromQrString(exportChronicleWatchlistsToQrString())
+        importChronicleWatchlistsFromQrString(chronicleQrEncoded)
       );
     } catch {
       return null;
     }
-  }, [chronicleQrExportOpen]);
+  }, [chronicleQrEncoded]);
 
   useEffect(() => {
     if (!open) return;
@@ -170,10 +164,11 @@ export default function SettingsButton({
     let active = true;
     const build = async () => {
       try {
-        window.dispatchEvent(
-          new CustomEvent(CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT)
-        );
-        const encoded = exportChronicleWatchlistsToQrString();
+        const encoded =
+          chronicleQrEncoded ??
+          exportChronicleWatchlistsToQrString(
+            requestChronicleWatchlistsSnapshot()
+          );
         const configuredBaseUrl = process.env.NEXT_PUBLIC_APP_BASE_URL?.trim();
         const importBaseUrl = configuredBaseUrl
           ? new URL(window.location.pathname, configuredBaseUrl).toString()
@@ -205,6 +200,7 @@ export default function SettingsButton({
     };
   }, [
     addNotification,
+    chronicleQrEncoded,
     chronicleQrExportOpen,
     messages.settingsChronicleQrExportFailed,
   ]);
@@ -274,9 +270,11 @@ export default function SettingsButton({
 
   const handleOpenChronicleQrExport = () => {
     try {
-      exportChronicleWatchlistsToQrString();
+      const snapshot = requestChronicleWatchlistsSnapshot();
+      setChronicleQrEncoded(exportChronicleWatchlistsToQrString(snapshot));
       setChronicleQrExportOpen(true);
     } catch {
+      setChronicleQrEncoded(null);
       addNotification(messages.settingsChronicleQrExportFailed);
     }
   };
@@ -298,17 +296,9 @@ export default function SettingsButton({
     try {
       clearChronicleImportUrl();
       applyImportedChronicleWatchlists(pendingImportedChronicleWatchlists);
-      window.dispatchEvent(
-        new CustomEvent(CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT)
-      );
-      window.dispatchEvent(
-        new CustomEvent(APP_SHELL_OPEN_TOOL_EVENT, {
-          detail: { tool: "chronicle" },
-        })
-      );
-      addNotification(messages.settingsChronicleQrImportSuccess);
-      setChronicleQrImportWarningOpen(false);
-      setGeneralSettingsOpen(false);
+      const reloadedUrl = new URL(window.location.href);
+      reloadedUrl.searchParams.delete(CLUB_CHRONICLE_WATCHLISTS_IMPORT_QUERY_PARAM);
+      window.location.replace(reloadedUrl.toString());
     } catch {
       addNotification(messages.settingsChronicleQrImportFailed);
     }

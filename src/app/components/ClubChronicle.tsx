@@ -58,6 +58,7 @@ import {
 import {
   CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
   CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT,
+  CLUB_CHRONICLE_WATCHLISTS_SNAPSHOT_REQUEST_EVENT,
 } from "@/lib/chronicleWatchlistTransfer";
 import MobileChronicleMenu from "./MobileChronicleMenu";
 
@@ -2809,6 +2810,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     x: 16,
     y: 108,
   };
+  chronicleTabsRef.current = chronicleTabs;
+  activeChronicleTabIdRef.current = activeChronicleTabId;
   const handleSelectChronicleTabMobile = useCallback(
     (tabId: string) => {
       setMobileChroniclePanelAcrossTabs(mobileChroniclePanelId);
@@ -2953,32 +2956,46 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [activeChronicleTabId]);
 
   useEffect(() => {
-    chronicleTabsRef.current = chronicleTabs;
-  }, [chronicleTabs]);
-
-  useEffect(() => {
-    activeChronicleTabIdRef.current = activeChronicleTabId;
-  }, [activeChronicleTabId]);
-
-  useEffect(() => {
     if (typeof window === "undefined") return;
     const flushChronicleTabsToStorage = () => {
-      if (!initializedRef.current) return;
       writeChronicleTabsStorage({
         version: 1,
         activeTabId: activeChronicleTabIdRef.current,
         tabs: chronicleTabsRef.current,
       });
     };
+    const handleChronicleWatchlistsSnapshotRequest = (
+      event: Event
+    ) => {
+      const customEvent = event as CustomEvent<{
+        snapshot: ChronicleTabsStorage | null;
+      }>;
+      if (!customEvent.detail) return;
+      customEvent.detail.snapshot = {
+        version: 1,
+        activeTabId: activeChronicleTabIdRef.current,
+        tabs: chronicleTabsRef.current,
+      };
+    };
     window.addEventListener(
       CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
       flushChronicleTabsToStorage
     );
+    window.addEventListener(
+      CLUB_CHRONICLE_WATCHLISTS_SNAPSHOT_REQUEST_EVENT,
+      handleChronicleWatchlistsSnapshotRequest as EventListener
+    );
     return () =>
-      window.removeEventListener(
-        CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
-        flushChronicleTabsToStorage
-      );
+      {
+        window.removeEventListener(
+          CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
+          flushChronicleTabsToStorage
+        );
+        window.removeEventListener(
+          CLUB_CHRONICLE_WATCHLISTS_SNAPSHOT_REQUEST_EVENT,
+          handleChronicleWatchlistsSnapshotRequest as EventListener
+        );
+      };
   }, []);
 
   useEffect(() => {
@@ -4037,7 +4054,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [watchlistReloadNonce]);
 
   useEffect(() => {
-    if (!initializedRef.current) return;
     writeChronicleTabsStorage({
       version: 1,
       activeTabId: activeChronicleTabId,

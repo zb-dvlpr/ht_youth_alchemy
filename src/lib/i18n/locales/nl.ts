@@ -117,7 +117,9 @@ export const messagesNl: Messages = {
     "Het importeren van deze QR-code vervangt de huidige Club Chronicle-volglijsten op dit apparaat. Doorgaan?",
   settingsChronicleQrImportConfirm: "Volglijsten vervangen",
   settingsChronicleQrImportTabsSummaryLabel: "Tabbladen",
-  settingsChronicleQrImportTeamsSummaryLabel: "Gevolgde teams",
+  settingsChronicleQrImportDirectTeamsSummaryLabel: "Directe teams",
+  settingsChronicleQrImportOwnLeaguesSummaryLabel: "Eigen competities",
+  settingsChronicleQrImportManualTeamsSummaryLabel: "Handmatige teams",
   settingsDebug: "Diagnostiek",
   settingsDebugTitle: "Diagnostische instellingen",
   optimizeMenuRevealPrimaryCurrentAndSecondaryMax:

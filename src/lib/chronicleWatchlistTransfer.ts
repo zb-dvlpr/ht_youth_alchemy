@@ -317,12 +317,17 @@ export function summarizeImportedChronicleWatchlists(
 ) {
   return {
     tabCount: payload.tabs.length,
-    trackedTeamCount: payload.tabs.reduce((count, tab) => {
-      const teamIds = new Set<number>([
-        ...Object.keys(tab.supportedSelections).map((value) => Number(value)),
-        ...tab.manualTeams.map((team) => team.teamId),
-      ]);
-      return count + teamIds.size;
-    }, 0),
+    directTeamCount: payload.tabs.reduce(
+      (count, tab) => count + Object.keys(tab.supportedSelections).length,
+      0
+    ),
+    ownLeagueCount: payload.tabs.reduce(
+      (count, tab) => count + Object.keys(tab.ownLeagueSelections).length,
+      0
+    ),
+    manualTeamCount: payload.tabs.reduce(
+      (count, tab) => count + tab.manualTeams.length,
+      0
+    ),
   };
 }

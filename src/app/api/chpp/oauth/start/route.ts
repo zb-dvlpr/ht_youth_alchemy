@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getChppEnv } from "@/lib/chpp/env";
+import { getChppEnv, resolveChppCallbackUrl } from "@/lib/chpp/env";
 import { CHPP_ENDPOINTS } from "@/lib/chpp/oauth";
 import { toChppScopeParam } from "@/lib/chpp/permissions";
 import { createNodeOAuthClient, getRequestToken } from "@/lib/chpp/node-oauth";
 
 export async function GET(request: Request) {
   try {
-    const { consumerKey, consumerSecret, callbackUrl } = getChppEnv();
+    const { consumerKey, consumerSecret } = getChppEnv();
+    const callbackUrl = resolveChppCallbackUrl({
+      requestUrl: request.url,
+      host: request.headers.get("host"),
+      forwardedProto: request.headers.get("x-forwarded-proto"),
+    });
     const client = createNodeOAuthClient(
       consumerKey,
       consumerSecret,
@@ -17,6 +22,8 @@ export async function GET(request: Request) {
     const { token, secret } = await getRequestToken(client);
 
     const cookieStore = await cookies();
+    cookieStore.delete("chpp_req_token");
+    cookieStore.delete("chpp_req_secret");
     cookieStore.set("chpp_req_token", token, {
       httpOnly: true,
       sameSite: "lax",
@@ -49,7 +56,11 @@ export async function GET(request: Request) {
                 requestTokenUrl: CHPP_ENDPOINTS.requestToken,
                 accessTokenUrl: CHPP_ENDPOINTS.accessToken,
                 authorizeUrl: CHPP_ENDPOINTS.authorize,
-                callbackUrl: getChppEnv().callbackUrl,
+                callbackUrl: resolveChppCallbackUrl({
+                  requestUrl: request.url,
+                  host: request.headers.get("host"),
+                  forwardedProto: request.headers.get("x-forwarded-proto"),
+                }),
                 method: "node-oauth",
               },
             }

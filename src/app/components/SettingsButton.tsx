@@ -117,6 +117,9 @@ export default function SettingsButton({
   const handledChronicleImportUrlRef = useRef(false);
   const { addNotification } = useNotifications();
   const isDev = process.env.NODE_ENV !== "production";
+  const pendingChronicleImportSummary = pendingImportedChronicleWatchlists
+    ? summarizeImportedChronicleWatchlists(pendingImportedChronicleWatchlists)
+    : null;
 
   useEffect(() => {
     if (!open) return;
@@ -995,23 +998,23 @@ export default function SettingsButton({
             <p className={styles.muted}>
               {messages.settingsChronicleQrImportWarningBody}
             </p>
-            {pendingImportedChronicleWatchlists ? (
+            {pendingChronicleImportSummary ? (
               <div className={styles.settingsImportWarningStats}>
                 <span>
                   {messages.settingsChronicleQrImportTabsSummaryLabel}:{" "}
-                  {
-                    summarizeImportedChronicleWatchlists(
-                      pendingImportedChronicleWatchlists
-                    ).tabCount
-                  }
+                  {pendingChronicleImportSummary.tabCount}
                 </span>
                 <span>
-                  {messages.settingsChronicleQrImportTeamsSummaryLabel}:{" "}
-                  {
-                    summarizeImportedChronicleWatchlists(
-                      pendingImportedChronicleWatchlists
-                    ).trackedTeamCount
-                  }
+                  {messages.settingsChronicleQrImportDirectTeamsSummaryLabel}:{" "}
+                  {pendingChronicleImportSummary.directTeamCount}
+                </span>
+                <span>
+                  {messages.settingsChronicleQrImportOwnLeaguesSummaryLabel}:{" "}
+                  {pendingChronicleImportSummary.ownLeagueCount}
+                </span>
+                <span>
+                  {messages.settingsChronicleQrImportManualTeamsSummaryLabel}:{" "}
+                  {pendingChronicleImportSummary.manualTeamCount}
                 </span>
               </div>
             ) : null}

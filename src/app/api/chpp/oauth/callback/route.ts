@@ -1,11 +1,16 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { getChppEnv } from "@/lib/chpp/env";
+import { getChppEnv, resolveChppCallbackUrl } from "@/lib/chpp/env";
 import { createNodeOAuthClient, getAccessToken } from "@/lib/chpp/node-oauth";
 
 export async function GET(request: Request) {
   try {
-    const { consumerKey, consumerSecret, callbackUrl } = getChppEnv();
+    const { consumerKey, consumerSecret } = getChppEnv();
+    const callbackUrl = resolveChppCallbackUrl({
+      requestUrl: request.url,
+      host: request.headers.get("host"),
+      forwardedProto: request.headers.get("x-forwarded-proto"),
+    });
     const client = createNodeOAuthClient(
       consumerKey,
       consumerSecret,
@@ -28,8 +33,26 @@ export async function GET(request: Request) {
     const requestSecret = cookieStore.get("chpp_req_secret")?.value;
 
     if (!requestToken || !requestSecret || requestToken !== oauthToken) {
+      cookieStore.delete("chpp_req_token");
+      cookieStore.delete("chpp_req_secret");
       return NextResponse.json(
-        { error: "Request token mismatch or expired" },
+        {
+          error: "Request token mismatch or expired",
+          ...(process.env.NODE_ENV === "production"
+            ? {}
+            : {
+              debug: {
+                requestUrl: request.url,
+                callbackUrl,
+                requestHost: request.headers.get("host"),
+                forwardedProto: request.headers.get("x-forwarded-proto"),
+                hasRequestTokenCookie: Boolean(requestToken),
+                hasRequestSecretCookie: Boolean(requestSecret),
+                requestTokenMatches: requestToken === oauthToken,
+                  oauthToken,
+                },
+              }),
+        },
         { status: 400 }
       );
     }
@@ -59,7 +82,7 @@ export async function GET(request: Request) {
     cookieStore.delete("chpp_req_token");
     cookieStore.delete("chpp_req_secret");
 
-    const redirectUrl = new URL(request.url);
+    const redirectUrl = new URL(callbackUrl);
     redirectUrl.pathname = "/";
     redirectUrl.search = "";
     return NextResponse.redirect(redirectUrl);
@@ -68,6 +91,20 @@ export async function GET(request: Request) {
       {
         error: "OAuth callback failed",
         details: error instanceof Error ? error.message : String(error),
+        ...(process.env.NODE_ENV === "production"
+          ? {}
+          : {
+              debug: {
+                requestUrl: request.url,
+                callbackUrl: resolveChppCallbackUrl({
+                  requestUrl: request.url,
+                  host: request.headers.get("host"),
+                  forwardedProto: request.headers.get("x-forwarded-proto"),
+                }),
+                requestHost: request.headers.get("host"),
+                forwardedProto: request.headers.get("x-forwarded-proto"),
+              },
+            }),
       },
       { status: 500 }
     );

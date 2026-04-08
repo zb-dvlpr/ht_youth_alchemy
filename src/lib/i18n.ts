@@ -214,7 +214,9 @@ export type Messages = {
   settingsChronicleQrImportWarningBody: string;
   settingsChronicleQrImportConfirm: string;
   settingsChronicleQrImportTabsSummaryLabel: string;
-  settingsChronicleQrImportTeamsSummaryLabel: string;
+  settingsChronicleQrImportDirectTeamsSummaryLabel: string;
+  settingsChronicleQrImportOwnLeaguesSummaryLabel: string;
+  settingsChronicleQrImportManualTeamsSummaryLabel: string;
   settingsDebug: string;
   settingsDebugTitle: string;
   settingsDebugDisableScalingLabel: string;

@@ -39,6 +39,8 @@ async function invalidateToken() {
 
   cookieStore.delete("chpp_access_token");
   cookieStore.delete("chpp_access_secret");
+  cookieStore.delete("chpp_req_token");
+  cookieStore.delete("chpp_req_secret");
 
   if (errorMessage) {
     return NextResponse.json({

@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
@@ -48,6 +48,7 @@ import {
   APP_SHELL_OPEN_TOOL_EVENT,
   applyImportedChronicleWatchlists,
   buildChronicleWatchlistsImportUrl,
+  CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
   CLUB_CHRONICLE_WATCHLISTS_IMPORT_QUERY_PARAM,
   CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT,
   exportChronicleWatchlistsToQrString,
@@ -120,6 +121,21 @@ export default function SettingsButton({
   const pendingChronicleImportSummary = pendingImportedChronicleWatchlists
     ? summarizeImportedChronicleWatchlists(pendingImportedChronicleWatchlists)
     : null;
+  const chronicleExportSummary = useMemo(() => {
+    if (!chronicleQrExportOpen) return null;
+    try {
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent(CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT)
+        );
+      }
+      return summarizeImportedChronicleWatchlists(
+        importChronicleWatchlistsFromQrString(exportChronicleWatchlistsToQrString())
+      );
+    } catch {
+      return null;
+    }
+  }, [chronicleQrExportOpen]);
 
   useEffect(() => {
     if (!open) return;
@@ -154,6 +170,9 @@ export default function SettingsButton({
     let active = true;
     const build = async () => {
       try {
+        window.dispatchEvent(
+          new CustomEvent(CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT)
+        );
         const encoded = exportChronicleWatchlistsToQrString();
         const configuredBaseUrl = process.env.NEXT_PUBLIC_APP_BASE_URL?.trim();
         const importBaseUrl = configuredBaseUrl
@@ -942,6 +961,29 @@ export default function SettingsButton({
         body={
           <div className={styles.settingsModalBody}>
             <p className={styles.muted}>{messages.settingsChronicleQrExportBody}</p>
+            {chronicleExportSummary ? (
+              <div className={styles.settingsImportWarningStats}>
+                <p className={styles.muted}>
+                  {messages.settingsChronicleQrExportSummaryTitle}
+                </p>
+                <span>
+                  {messages.settingsChronicleQrImportTabsSummaryLabel}:{" "}
+                  {chronicleExportSummary.tabCount}
+                </span>
+                <span>
+                  {messages.settingsChronicleQrImportDirectTeamsSummaryLabel}:{" "}
+                  {chronicleExportSummary.directTeamCount}
+                </span>
+                <span>
+                  {messages.settingsChronicleQrImportOwnLeaguesSummaryLabel}:{" "}
+                  {chronicleExportSummary.ownLeagueCount}
+                </span>
+                <span>
+                  {messages.settingsChronicleQrImportManualTeamsSummaryLabel}:{" "}
+                  {chronicleExportSummary.manualTeamCount}
+                </span>
+              </div>
+            ) : null}
             {chronicleQrImageUrl ? (
               <div className={styles.settingsQrCodeWrap}>
                 <Image

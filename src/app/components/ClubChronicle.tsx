@@ -55,7 +55,10 @@ import {
   parseExtendedPermissionsFromCheckToken,
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
-import { CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT } from "@/lib/chronicleWatchlistTransfer";
+import {
+  CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
+  CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT,
+} from "@/lib/chronicleWatchlistTransfer";
 import MobileChronicleMenu from "./MobileChronicleMenu";
 
 type SupportedTeam = {
@@ -2702,6 +2705,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const staleRefreshRef = useRef(false);
   const chronicleStopRequestedRef = useRef(false);
   const chronicleTabsRef = useRef<ChronicleTabState[]>(initialTabsState.tabs);
+  const activeChronicleTabIdRef = useRef<string>(initialTabsState.activeTabId);
   const previousAnyRefreshingRef = useRef(false);
   const previousLastGlobalRefreshAtRef = useRef<number | null>(null);
   const trackedTeamsRef = useRef<ChronicleTeamData[]>([]);
@@ -2951,6 +2955,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   useEffect(() => {
     chronicleTabsRef.current = chronicleTabs;
   }, [chronicleTabs]);
+
+  useEffect(() => {
+    activeChronicleTabIdRef.current = activeChronicleTabId;
+  }, [activeChronicleTabId]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const flushChronicleTabsToStorage = () => {
+      if (!initializedRef.current) return;
+      writeChronicleTabsStorage({
+        version: 1,
+        activeTabId: activeChronicleTabIdRef.current,
+        tabs: chronicleTabsRef.current,
+      });
+    };
+    window.addEventListener(
+      CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
+      flushChronicleTabsToStorage
+    );
+    return () =>
+      window.removeEventListener(
+        CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
+        flushChronicleTabsToStorage
+      );
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;

@@ -95,6 +95,7 @@ export const messagesPl: Messages = {
     "Eksport list obserwowanych Club Chronicle na telefon",
   settingsChronicleQrExportBody:
     "Zeskanuj ten kod QR natywnym aparatem telefonu, aby zaimportować wszystkie listy obserwowanych Club Chronicle na telefon.",
+  settingsChronicleQrExportSummaryTitle: "Ten kod QR eksportuje:",
   settingsChronicleQrExportFailed:
     "Nie udało się wygenerować kodu QR dla list obserwowanych Club Chronicle.",
   settingsChronicleQrImportTitle:

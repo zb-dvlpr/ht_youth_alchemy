@@ -96,6 +96,7 @@ export const messagesNl: Messages = {
     "Club Chronicle-volglijsten naar mobiel exporteren",
   settingsChronicleQrExportBody:
     "Scan deze QR-code met de native camera van je telefoon om alle Club Chronicle-volglijsten naar mobiel te importeren.",
+  settingsChronicleQrExportSummaryTitle: "Deze QR-code exporteert:",
   settingsChronicleQrExportFailed:
     "Het genereren van de QR-code voor Club Chronicle-volglijsten is mislukt.",
   settingsChronicleQrImportTitle:

@@ -4,6 +4,8 @@ const LEGACY_WATCHLIST_STORAGE_KEY = "ya_club_chronicle_watchlist_v1";
 export const APP_SHELL_OPEN_TOOL_EVENT = "ya:app-shell-open-tool";
 export const CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT =
   "ya:club-chronicle-watchlists-imported";
+export const CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT =
+  "ya:club-chronicle-watchlists-flush";
 export const CLUB_CHRONICLE_WATCHLISTS_IMPORT_QUERY_PARAM = "ccwi";
 
 type CompactManualTeam = {

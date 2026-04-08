@@ -252,6 +252,7 @@ export const messagesEs: Messages = {
       "Exportar watchlists de Crónica del club al móvil",
     settingsChronicleQrExportBody:
       "Escanea este código QR con la cámara nativa de tu teléfono para importar todas las watchlists de Crónica del club al móvil.",
+    settingsChronicleQrExportSummaryTitle: "Este código QR exporta:",
     settingsChronicleQrExportFailed:
       "No se pudo generar el código QR de las watchlists de Crónica del club.",
     settingsChronicleQrImportTitle:

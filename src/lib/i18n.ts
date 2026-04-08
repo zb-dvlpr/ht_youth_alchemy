@@ -202,6 +202,7 @@ export type Messages = {
   settingsGeneralChronicleWatchlistsImportHint: string;
   settingsChronicleQrExportTitle: string;
   settingsChronicleQrExportBody: string;
+  settingsChronicleQrExportSummaryTitle: string;
   settingsChronicleQrExportFailed: string;
   settingsChronicleQrImportTitle: string;
   settingsChronicleQrImportBody: string;

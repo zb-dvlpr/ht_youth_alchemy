@@ -233,6 +233,7 @@ export const messagesEn: Messages = {
     settingsChronicleQrExportTitle: "Export Club Chronicle watchlists to mobile",
     settingsChronicleQrExportBody:
       "Scan this QR code with your phone's native camera to import all Club Chronicle watchlists to mobile.",
+    settingsChronicleQrExportSummaryTitle: "This QR code exports:",
     settingsChronicleQrExportFailed:
       "Failed to generate the Club Chronicle watchlist QR code.",
     settingsChronicleQrImportTitle: "Import Club Chronicle watchlists",

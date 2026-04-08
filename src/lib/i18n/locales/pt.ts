@@ -252,6 +252,7 @@ export const messagesPt: Messages = {
       "Exportar watchlists do Club Chronicle para mobile",
     settingsChronicleQrExportBody:
       "Escaneie este QR code com a câmera nativa do seu telefone para importar todas as watchlists do Club Chronicle para o mobile.",
+    settingsChronicleQrExportSummaryTitle: "Este QR code exporta:",
     settingsChronicleQrExportFailed:
       "Falha ao gerar o QR code das watchlists do Club Chronicle.",
     settingsChronicleQrImportTitle:

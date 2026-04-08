@@ -250,6 +250,7 @@ export const messagesSv: Messages = {
       "Exportera Klubbkrönikan-bevakningslistor till mobilen",
     settingsChronicleQrExportBody:
       "Skanna den här QR-koden med telefonens inbyggda kamera för att importera alla Klubbkrönikan-bevakningslistor till mobilen.",
+    settingsChronicleQrExportSummaryTitle: "Den här QR-koden exporterar:",
     settingsChronicleQrExportFailed:
       "Det gick inte att skapa QR-koden för Klubbkrönikan-bevakningslistorna.",
     settingsChronicleQrImportTitle:

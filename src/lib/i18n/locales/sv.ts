@@ -72,6 +72,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_1_0:
+      "Klubbkrönikans bevakningslistor kan nu flyttas mellan enheter med QR-export på desktop/mobil och kameraimport på mobil.",
     changelog_4_0_0:
       "HT Alchemy har nu dedikerat mobilstöd i hela appen.",
     changelog_3_13_0:
@@ -226,10 +228,50 @@ export const messagesSv: Messages = {
       "Hur många ändrade globala uppdateringsdifferenser som sparas och visas i historiken för Senaste uppdateringar.",
     settingsGeneral: "Allmänt",
     settingsGeneralTitle: "Allmänna inställningar",
+    settingsGeneralExportAllLabel: "Exportera alla inställningar",
+    settingsGeneralExportAllHint:
+      "Exportera alla lokalt sparade appinställningar och cachetillstånd till en JSON-säkerhetskopia.",
+    settingsGeneralImportAllLabel: "Importera alla inställningar",
+    settingsGeneralImportAllHint:
+      "Importera en tidigare exporterad JSON-säkerhetskopia och ersätt appens nuvarande lokala inställningar och cachetillstånd.",
     settingsDebugBuyCoffeePromptButton: "Visa bjud mig på kaffe-modal",
     settingsGeneralEnableScalingLabel: "Aktivera appskalning",
     settingsGeneralEnableScalingTooltip:
       "När aktiverad skalas appen för att passa viewporten och minska scrollning. När avstängd används normal storlek och sidan kan scrollas.",
+    settingsGeneralChronicleWatchlistsExportLabel:
+      "Exportera Klubbkrönikan-bevakningslistor till mobilen",
+    settingsGeneralChronicleWatchlistsExportHint:
+      "Skapar en QR-kod med dina Klubbkrönikan-bevakningslistor så att de kan importeras på en annan enhet.",
+    settingsGeneralChronicleWatchlistsImportLabel:
+      "Importera KK-bevakningslistor",
+    settingsGeneralChronicleWatchlistsImportHint:
+      "Använd telefonens inbyggda kamera för att öppna en exporterad QR-kod med Klubbkrönikan-bevakningslistor.",
+    settingsChronicleQrExportTitle:
+      "Exportera Klubbkrönikan-bevakningslistor till mobilen",
+    settingsChronicleQrExportBody:
+      "Skanna den här QR-koden med telefonens inbyggda kamera för att importera alla Klubbkrönikan-bevakningslistor till mobilen.",
+    settingsChronicleQrExportFailed:
+      "Det gick inte att skapa QR-koden för Klubbkrönikan-bevakningslistorna.",
+    settingsChronicleQrImportTitle:
+      "Importera Klubbkrönikan-bevakningslistor",
+    settingsChronicleQrImportBody:
+      "Skanna en exporterad QR-kod med Klubbkrönikan-bevakningslistor med telefonens inbyggda kamera. När länken öppnas får du bekräfta om de nuvarande bevakningslistorna på den här enheten ska ersättas.",
+    settingsChronicleQrImportScanning: "Skannar QR-kod…",
+    settingsChronicleQrImportUnsupported:
+      "QR-skanning med kamera stöds inte i den här webbläsaren.",
+    settingsChronicleQrImportPermissionDenied:
+      "Kameraåtkomst nekades. Tillåt kameran för att skanna QR-koden.",
+    settingsChronicleQrImportFailed:
+      "Det gick inte att läsa en giltig QR-kod med Klubbkrönikan-bevakningslistor.",
+    settingsChronicleQrImportSuccess:
+      "Klubbkrönikan-bevakningslistor importerade.",
+    settingsChronicleQrImportWarningTitle:
+      "Ersätt Klubbkrönikan-bevakningslistor",
+    settingsChronicleQrImportWarningBody:
+      "Import av den här QR-koden ersätter de nuvarande Klubbkrönikan-bevakningslistorna på den här enheten. Fortsätta?",
+    settingsChronicleQrImportConfirm: "Ersätt bevakningslistor",
+    settingsChronicleQrImportTabsSummaryLabel: "Flikar",
+    settingsChronicleQrImportTeamsSummaryLabel: "Bevakade lag",
     settingsDebug: "Debug",
     settingsDebugTitle: "Debug-inställningar",
     settingsDebugDisableScalingLabel: "Visa fiktiva senaste uppdateringar",

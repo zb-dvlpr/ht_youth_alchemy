@@ -72,6 +72,8 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    changelog_4_1_0:
+      "As watchlists do Club Chronicle agora podem ser transferidas entre dispositivos com exportação QR no desktop/mobile e importação por câmera no mobile.",
     changelog_4_0_0:
       "O HT Alchemy agora inclui suporte mobile dedicado em toda a app.",
     changelog_3_13_0:
@@ -229,9 +231,49 @@ export const messagesPt: Messages = {
     settingsDebugBuyCoffeePromptButton: "Mostrar modal paga-me um café",
     settingsGeneral: "Geral",
     settingsGeneralTitle: "Configurações gerais",
+    settingsGeneralExportAllLabel: "Exportar todas as configurações",
+    settingsGeneralExportAllHint:
+      "Exporta todas as configurações locais e estados em cache do app para um arquivo JSON de backup.",
+    settingsGeneralImportAllLabel: "Importar todas as configurações",
+    settingsGeneralImportAllHint:
+      "Importa um backup JSON exportado anteriormente e substitui as configurações locais e os estados em cache atuais do app.",
     settingsGeneralEnableScalingLabel: "Ativar escala do app",
     settingsGeneralEnableScalingTooltip:
       "Quando ativado, o app é escalado para caber no viewport e reduzir rolagem. Quando desativado, o app usa tamanho normal e pode rolar.",
+    settingsGeneralChronicleWatchlistsExportLabel:
+      "Exportar watchlists do Club Chronicle para mobile",
+    settingsGeneralChronicleWatchlistsExportHint:
+      "Gera um QR code com suas watchlists do Club Chronicle para importar em outro dispositivo.",
+    settingsGeneralChronicleWatchlistsImportLabel:
+      "Importar watchlists CC",
+    settingsGeneralChronicleWatchlistsImportHint:
+      "Use a câmera nativa do seu telefone para abrir um QR exportado de watchlists do Club Chronicle.",
+    settingsChronicleQrExportTitle:
+      "Exportar watchlists do Club Chronicle para mobile",
+    settingsChronicleQrExportBody:
+      "Escaneie este QR code com a câmera nativa do seu telefone para importar todas as watchlists do Club Chronicle para o mobile.",
+    settingsChronicleQrExportFailed:
+      "Falha ao gerar o QR code das watchlists do Club Chronicle.",
+    settingsChronicleQrImportTitle:
+      "Importar watchlists do Club Chronicle",
+    settingsChronicleQrImportBody:
+      "Escaneie um QR exportado de watchlists do Club Chronicle com a câmera nativa do seu telefone. Ao abrir o link, você será perguntado se deseja substituir as watchlists atuais neste dispositivo.",
+    settingsChronicleQrImportScanning: "Escaneando QR code…",
+    settingsChronicleQrImportUnsupported:
+      "A leitura de QR pela câmera não é suportada neste navegador.",
+    settingsChronicleQrImportPermissionDenied:
+      "O acesso à câmera foi negado. Permita a câmera para escanear o QR code.",
+    settingsChronicleQrImportFailed:
+      "Não foi possível ler um QR code válido de watchlists do Club Chronicle.",
+    settingsChronicleQrImportSuccess:
+      "Watchlists do Club Chronicle importadas.",
+    settingsChronicleQrImportWarningTitle:
+      "Substituir watchlists do Club Chronicle",
+    settingsChronicleQrImportWarningBody:
+      "Importar este QR code substituirá as watchlists atuais do Club Chronicle neste dispositivo. Continuar?",
+    settingsChronicleQrImportConfirm: "Substituir watchlists",
+    settingsChronicleQrImportTabsSummaryLabel: "Abas",
+    settingsChronicleQrImportTeamsSummaryLabel: "Times acompanhados",
     settingsDebug: "Depuração",
     settingsDebugTitle: "Configurações de depuração",
     settingsDebugDisableScalingLabel: "Mostrar atualizações fictícias",

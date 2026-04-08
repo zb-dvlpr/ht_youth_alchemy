@@ -1320,6 +1320,64 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   gap: 12px;
 }
 
+.settingsActionButton {
+  justify-self: start;
+  border-radius: 999px;
+  border: 1px solid #244d2b;
+  background: #eef6ef;
+  color: #244d2b;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.settingsActionButton:hover {
+  background: #e2f0e4;
+}
+
+.settingsQrCodeWrap {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 18px;
+  border: 1px solid #d8cbb6;
+  background: #fff;
+}
+
+.settingsQrCodeImage {
+  width: min(100%, 320px);
+  height: auto;
+  display: block;
+}
+
+.settingsQrScannerWrap {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid #d8cbb6;
+  background: #120f0b;
+}
+
+.settingsQrScannerVideo {
+  width: 100%;
+  min-height: 240px;
+  max-height: 50vh;
+  display: block;
+  object-fit: cover;
+}
+
+.settingsImportWarningStats {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #d8cbb6;
+  background: #fff;
+  color: #3f362c;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .settingsField {
   display: grid;
   gap: 8px;

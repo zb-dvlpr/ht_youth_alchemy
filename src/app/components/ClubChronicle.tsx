@@ -55,6 +55,7 @@ import {
   parseExtendedPermissionsFromCheckToken,
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
+import { CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT } from "@/lib/chronicleWatchlistTransfer";
 import MobileChronicleMenu from "./MobileChronicleMenu";
 
 type SupportedTeam = {
@@ -2950,6 +2951,21 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   useEffect(() => {
     chronicleTabsRef.current = chronicleTabs;
   }, [chronicleTabs]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handle = () => {
+      const nextState = readChronicleTabsStorage(
+        messages,
+        messages.clubChronicleInjuryHealthy
+      );
+      setChronicleTabs(nextState.tabs);
+      setActiveChronicleTabId(nextState.activeTabId);
+    };
+    window.addEventListener(CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT, handle);
+    return () =>
+      window.removeEventListener(CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT, handle);
+  }, [messages, messages.clubChronicleInjuryHealthy]);
 
   const manualById = useMemo(
     () => new Set<number>(manualTeams.map((team) => Number(team.teamId))),

@@ -78,6 +78,46 @@ export const messagesNl: Messages = {
   settingsSeniorRatingsWipeWarningAcknowledge: "Ik begrijp het",
   settingsGeneral: "Algemeen",
   settingsGeneralTitle: "Algemene instellingen",
+  settingsGeneralExportAllLabel: "Alle instellingen exporteren",
+  settingsGeneralExportAllHint:
+    "Exporteer alle lokaal opgeslagen app-instellingen en cachetoestand naar een JSON-back-upbestand.",
+  settingsGeneralImportAllLabel: "Alle instellingen importeren",
+  settingsGeneralImportAllHint:
+    "Importeer een eerder geëxporteerde JSON-back-up en vervang de huidige lokale app-instellingen en cachetoestand.",
+  settingsGeneralChronicleWatchlistsExportLabel:
+    "Club Chronicle-volglijsten naar mobiel exporteren",
+  settingsGeneralChronicleWatchlistsExportHint:
+    "Genereert een QR-code met je Club Chronicle-volglijsten om op een ander apparaat te importeren.",
+  settingsGeneralChronicleWatchlistsImportLabel:
+    "CC-volglijsten importeren",
+  settingsGeneralChronicleWatchlistsImportHint:
+    "Gebruik de native camera van je telefoon om een geëxporteerde QR-code met Club Chronicle-volglijsten te openen.",
+  settingsChronicleQrExportTitle:
+    "Club Chronicle-volglijsten naar mobiel exporteren",
+  settingsChronicleQrExportBody:
+    "Scan deze QR-code met de native camera van je telefoon om alle Club Chronicle-volglijsten naar mobiel te importeren.",
+  settingsChronicleQrExportFailed:
+    "Het genereren van de QR-code voor Club Chronicle-volglijsten is mislukt.",
+  settingsChronicleQrImportTitle:
+    "Club Chronicle-volglijsten importeren",
+  settingsChronicleQrImportBody:
+    "Scan een geëxporteerde QR-code met Club Chronicle-volglijsten met de native camera van je telefoon. Bij het openen van de link wordt gevraagd of je de huidige volglijsten op dit apparaat wilt vervangen.",
+  settingsChronicleQrImportScanning: "QR-code scannen…",
+  settingsChronicleQrImportUnsupported:
+    "QR-scannen met de camera wordt niet ondersteund in deze browser.",
+  settingsChronicleQrImportPermissionDenied:
+    "Toegang tot de camera is geweigerd. Sta camera-toegang toe om de QR-code te scannen.",
+  settingsChronicleQrImportFailed:
+    "Er kon geen geldige QR-code met Club Chronicle-volglijsten worden gelezen.",
+  settingsChronicleQrImportSuccess:
+    "Club Chronicle-volglijsten geïmporteerd.",
+  settingsChronicleQrImportWarningTitle:
+    "Club Chronicle-volglijsten vervangen",
+  settingsChronicleQrImportWarningBody:
+    "Het importeren van deze QR-code vervangt de huidige Club Chronicle-volglijsten op dit apparaat. Doorgaan?",
+  settingsChronicleQrImportConfirm: "Volglijsten vervangen",
+  settingsChronicleQrImportTabsSummaryLabel: "Tabbladen",
+  settingsChronicleQrImportTeamsSummaryLabel: "Gevolgde teams",
   settingsDebug: "Diagnostiek",
   settingsDebugTitle: "Diagnostische instellingen",
   optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
@@ -89,6 +129,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_1_0:
+    "Club Chronicle-volglijsten kunnen nu tussen apparaten worden overgezet met QR-export op desktop/mobiel en camera-import op mobiel.",
   changelog_4_0_0:
     "HT Alchemy heeft nu speciale mobiele ondersteuning in de hele app.",
   changelog_3_13_0:

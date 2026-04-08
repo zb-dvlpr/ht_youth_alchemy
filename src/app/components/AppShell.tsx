@@ -5,6 +5,7 @@ import {
   Fragment,
   type CSSProperties,
   ReactNode,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -28,6 +29,7 @@ import {
   BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT,
   BUY_COFFEE_PROMPT_OPEN_EVENT,
 } from "@/lib/settings";
+import { APP_SHELL_OPEN_TOOL_EVENT } from "@/lib/chronicleWatchlistTransfer";
 
 type AppShellProps = {
   messages: Messages;
@@ -715,7 +717,7 @@ export default function AppShell({
     return () => window.removeEventListener("ya:changelog-open", handler);
   }, [activeTool]);
 
-  const handleSelectTool = (toolId: ToolId) => {
+  const handleSelectTool = useCallback((toolId: ToolId) => {
     setActiveTool(toolId);
     if (mobileLayoutActive) {
       setMobileLauncherOpen(false);
@@ -725,7 +727,25 @@ export default function AppShell({
         window.location.href
       );
     }
-  };
+  }, [mobileLayoutActive]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      const detail = event.detail as { tool?: ToolId } | undefined;
+      if (!detail?.tool) return;
+      handleSelectTool(
+        detail.tool === "chronicle"
+          ? "chronicle"
+          : detail.tool === "senior"
+            ? "senior"
+            : "youth"
+      );
+    };
+    window.addEventListener(APP_SHELL_OPEN_TOOL_EVENT, handler);
+    return () => window.removeEventListener(APP_SHELL_OPEN_TOOL_EVENT, handler);
+  }, [handleSelectTool]);
 
   const renderToolButton = (tool: (typeof tools)[number]) => {
     const button = (

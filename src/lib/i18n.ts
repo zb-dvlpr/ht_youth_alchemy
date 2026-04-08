@@ -226,6 +226,7 @@ export type Messages = {
   clubChronicleLeaguePanelTitle: string;
   clubChronicleLeaguePanelEmpty: string;
   clubChronicleNoTeams: string;
+  clubChronicleNoTeamsMobileHint: string;
   clubChronicleLoading: string;
   clubChronicleUpdatesTitle: string;
   clubChronicleUpdatesSinceGlobal: string;

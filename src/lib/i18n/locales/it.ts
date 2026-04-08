@@ -283,7 +283,10 @@ export const messagesIt: Messages = {
     settingsDebugRandomNewMarkersOffLabel: "Nascondi marker NEW casuali",
     clubChronicleLeaguePanelTitle: "Prestazione in lega",
     clubChronicleLeaguePanelEmpty: "Nessun dato di lega ancora.",
-    clubChronicleNoTeams: "Nessuna squadra seguita selezionata.",
+    clubChronicleNoTeams:
+      "Al momento non ci sono squadre monitorate per questa scheda. Aggiungi squadre da monitorare tramite la watchlist.",
+    clubChronicleNoTeamsMobileHint:
+      "Su mobile, la watchlist si trova nel menu flottante.",
     clubChronicleLoading: "Caricamento Cronaca del club…",
     clubChronicleUpdatesTitle: "Ultimi aggiornamenti",
     clubChronicleUpdatesSinceGlobal: "Modifiche dall ultimo aggiornamento globale",

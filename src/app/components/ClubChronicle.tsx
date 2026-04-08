@@ -12113,7 +12113,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             ) : null}
           </>
         ) : (
-          <p className={styles.chronicleEmpty}>{messages.clubChronicleNoTeams}</p>
+          renderChronicleNoTeamsEmpty()
         );
       case "tsi":
         return selectedTsiTeam ? (
@@ -12399,6 +12399,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     </div>
   );
 
+  const renderChronicleNoTeamsEmpty = () => (
+    <p className={styles.chronicleEmpty}>
+      <span>{messages.clubChronicleNoTeams}</span>
+      {mobileChronicleActive ? (
+        <>
+          <br />
+          <span>{messages.clubChronicleNoTeamsMobileHint}</span>
+        </>
+      ) : null}
+    </p>
+  );
+
   return (
     <div className={styles.clubChronicleStack} ref={chronicleRootRef}>
       {showHelp ? (
@@ -12664,9 +12676,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       refreshingGlobal || refreshingLeague,
                       leagueRows.some((row) => Boolean(row.snapshot))
                     ) === "empty" ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
                       {showMobileChronicleLandscapeHint ? (
@@ -12737,9 +12747,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       refreshingGlobal || refreshingPress,
                       pressRows.some((row) => Boolean(row.snapshot))
                     ) === "empty" ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={pressTableColumns}
@@ -12800,9 +12808,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       refreshingGlobal || refreshingFinance,
                       financeRows.some((row) => Boolean(row.snapshot))
                     ) === "empty" ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <>
                       <ChronicleTable
@@ -12868,9 +12874,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       refreshingGlobal || refreshingLastLogin,
                       lastLoginRows.some((row) => Boolean(row.snapshot))
                     ) === "empty" ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={lastLoginTableColumns}
@@ -12931,9 +12935,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       refreshingGlobal || refreshingCoach,
                       coachRows.some((row) => Boolean(row.snapshot))
                     ) === "empty" ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
                       {showMobileChronicleLandscapeHint ? (
@@ -13004,9 +13006,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       refreshingGlobal || refreshingPowerRatings,
                       powerRatingsRows.some((row) => Boolean(row.snapshot))
                     ) === "empty" ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={powerRatingsTableColumns}
@@ -13067,9 +13067,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       refreshingGlobal || refreshingFanclub,
                       fanclubRows.some((row) => Boolean(row.snapshot))
                     ) === "empty" ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={fanclubTableColumns}
@@ -13130,9 +13128,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       refreshingGlobal || refreshingArena,
                       arenaRows.some((row) => Boolean(row.snapshot))
                     ) === "empty" ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={arenaTableColumns}
@@ -13193,9 +13189,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       refreshingGlobal || refreshingTransfer,
                       transferRows.some((row) => Boolean(row.snapshot))
                     ) === "empty" ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
                       {showMobileChronicleLandscapeHint ? (
@@ -13290,9 +13284,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       refreshingGlobal || refreshingFormationsTactics,
                       formationsTacticsRows.some((row) => Boolean(row.snapshot))
                     ) === "empty" ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={formationsTacticsTableColumns}
@@ -13355,9 +13347,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       refreshingGlobal || refreshingFormationsTactics,
                       likelyTrainingRows.some((row) => Boolean(row.snapshot))
                     ) === "empty" ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={likelyTrainingTableColumns}
@@ -13418,9 +13408,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       refreshingGlobal || refreshingTsi,
                       tsiRows.some((row) => Boolean(row.snapshot))
                     ) === "empty" ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
                       {showMobileChronicleLandscapeHint ? (
@@ -13489,9 +13477,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       refreshingGlobal || refreshingWages,
                       wagesRows.some((row) => Boolean(row.snapshot))
                     ) === "empty" ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <div className={styles.mobileChronicleTabularBlock}>
                       {showMobileChronicleLandscapeHint ? (
@@ -14661,7 +14647,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               ) : null}
             </>
           ) : (
-            <p className={styles.chronicleEmpty}>{messages.clubChronicleNoTeams}</p>
+            renderChronicleNoTeamsEmpty()
           )
         }
         actions={

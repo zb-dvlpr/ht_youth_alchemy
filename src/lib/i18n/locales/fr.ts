@@ -283,7 +283,10 @@ export const messagesFr: Messages = {
     settingsDebugRandomNewMarkersOffLabel: "Masquer les marqueurs NEW aléatoires",
     clubChronicleLeaguePanelTitle: "Performance en ligue",
     clubChronicleLeaguePanelEmpty: "Pas encore de données de ligue.",
-    clubChronicleNoTeams: "Aucune équipe suivie sélectionnée.",
+    clubChronicleNoTeams:
+      "Aucune equipe n est actuellement suivie pour cet onglet. Ajoutez des equipes a suivre via la watchlist.",
+    clubChronicleNoTeamsMobileHint:
+      "Sur mobile, la watchlist se trouve dans le menu flottant.",
     clubChronicleLoading: "Chargement de la Chronique du club…",
     clubChronicleUpdatesTitle: "Dernières mises à jour",
     clubChronicleUpdatesSinceGlobal: "Changements depuis la dernière actualisation globale",

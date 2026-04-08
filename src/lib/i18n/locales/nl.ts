@@ -650,6 +650,10 @@ export const messagesNl: Messages = {
     "Draai naar liggende stand voor de volledige matrix.",
   mobileChronicleLandscapeHint:
     "Draai naar liggende stand voor een bredere tabelweergave.",
+  clubChronicleNoTeams:
+    "Er worden momenteel geen teams gevolgd voor deze tab. Voeg teams toe om te volgen via de watchlist.",
+  clubChronicleNoTeamsMobileHint:
+    "Op mobiel staat de watchlist in het zwevende menu.",
   mobileYouthLineupPickerTitle: "Kies speler",
   mobileYouthLineupPickerEmpty:
     "Geen spelers beschikbaar voor deze positie.",

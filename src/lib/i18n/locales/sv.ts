@@ -281,7 +281,10 @@ export const messagesSv: Messages = {
     settingsDebugRandomNewMarkersOffLabel: "Dolj slumpade NEW-markeringar",
     clubChronicleLeaguePanelTitle: "Ligaprestanda",
     clubChronicleLeaguePanelEmpty: "Inga ligadata ännu.",
-    clubChronicleNoTeams: "Inga bevakade lag valda.",
+    clubChronicleNoTeams:
+      "Inga lag spåras just nu för den här fliken. Lägg till lag för spårning via watchlisten.",
+    clubChronicleNoTeamsMobileHint:
+      "På mobil finns watchlisten i den flytande menyn.",
     clubChronicleLoading: "Laddar klubbkrönikan…",
     clubChronicleUpdatesTitle: "Senaste uppdateringar",
     clubChronicleUpdatesSinceGlobal: "Ändringar sedan senaste globala uppdatering",

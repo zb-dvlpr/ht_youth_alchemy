@@ -264,7 +264,10 @@ export const messagesEn: Messages = {
     settingsDebugBuyCoffeePromptButton: "Show buy me a coffee modal",
     clubChronicleLeaguePanelTitle: "League performance",
     clubChronicleLeaguePanelEmpty: "No league data yet.",
-    clubChronicleNoTeams: "No tracked teams selected.",
+    clubChronicleNoTeams:
+      "No teams are currently being tracked for this tab. Add teams for tracking via the watchlist.",
+    clubChronicleNoTeamsMobileHint:
+      "On mobile, the watchlist is in the floating dropdown.",
     clubChronicleLoading: "Loading club chronicle…",
     clubChronicleUpdatesTitle: "Latest updates",
     clubChronicleUpdatesSinceGlobal: "Changes since last global refresh",

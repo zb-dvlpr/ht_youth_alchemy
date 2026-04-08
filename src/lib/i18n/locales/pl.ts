@@ -643,6 +643,10 @@ export const messagesPl: Messages = {
     "Obróć ekran poziomo, aby zobaczyć pełną macierz.",
   mobileChronicleLandscapeHint:
     "Obróć ekran poziomo, aby zobaczyć szerszy widok tabeli.",
+  clubChronicleNoTeams:
+    "Obecnie dla tej karty nie sa sledzone zadne druzyny. Dodaj druzyny do sledzenia przez watchliste.",
+  clubChronicleNoTeamsMobileHint:
+    "Na mobile watchlista znajduje sie w plywajacym menu.",
   mobileYouthLineupPickerTitle: "Wybierz zawodnika",
   mobileYouthLineupPickerEmpty:
     "Brak zawodników dostępnych dla tego miejsca.",

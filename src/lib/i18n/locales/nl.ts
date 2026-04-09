@@ -24,6 +24,13 @@ export const messagesNl: Messages = {
   toolYouthOptimization: "Jeugdselectie-optimalisatie",
   toolSeniorOptimization: "Seniorselectie-optimalisatie",
   toolClubChronicle: "Clubkroniek",
+  mobileToolsLabel: "Tools",
+  mobileHelpLabel: "Help",
+  helpOptimizerLocationTitle: "Waar je de optimizer vindt",
+  helpOptimizerLocationYouth:
+    "Open Lineup optimizer via het zwevende menu en zoek daarna naar deze knop in de opstellingskop.",
+  seniorHelpOptimizerLocation:
+    "Open Lineup optimizer via het zwevende menu en zoek daarna naar deze knop op de juiste wedstrijdkaart.",
   watchlistOwnSeniorTeamsTitle: "Eigen seniorenteams",
   watchlistOwnSeniorTeamsEmpty: "Geen eigen seniorenteams gevonden.",
   watchlistOwnLeaguesTitle: "Eigen competities",
@@ -71,6 +78,49 @@ export const messagesNl: Messages = {
   settingsSeniorRatingsWipeWarningAcknowledge: "Ik begrijp het",
   settingsGeneral: "Algemeen",
   settingsGeneralTitle: "Algemene instellingen",
+  settingsGeneralExportAllLabel: "Alle instellingen exporteren",
+  settingsGeneralExportAllHint:
+    "Exporteer alle lokaal opgeslagen app-instellingen en cachetoestand naar een JSON-back-upbestand.",
+  settingsGeneralImportAllLabel: "Alle instellingen importeren",
+  settingsGeneralImportAllHint:
+    "Importeer een eerder geëxporteerde JSON-back-up en vervang de huidige lokale app-instellingen en cachetoestand.",
+  settingsGeneralChronicleWatchlistsExportLabel:
+    "Club Chronicle-volglijsten naar mobiel exporteren",
+  settingsGeneralChronicleWatchlistsExportHint:
+    "Genereert een QR-code met je Club Chronicle-volglijsten om op een ander apparaat te importeren.",
+  settingsGeneralChronicleWatchlistsImportLabel:
+    "CC-volglijsten importeren",
+  settingsGeneralChronicleWatchlistsImportHint:
+    "Gebruik de native camera van je telefoon om een geëxporteerde QR-code met Club Chronicle-volglijsten te openen.",
+  settingsChronicleQrExportTitle:
+    "Club Chronicle-volglijsten naar mobiel exporteren",
+  settingsChronicleQrExportBody:
+    "Scan deze QR-code met de native camera van je telefoon om alle Club Chronicle-volglijsten naar mobiel te importeren.",
+  settingsChronicleQrExportSummaryTitle: "Deze QR-code exporteert:",
+  settingsChronicleQrExportFailed:
+    "Het genereren van de QR-code voor Club Chronicle-volglijsten is mislukt.",
+  settingsChronicleQrImportTitle:
+    "Club Chronicle-volglijsten importeren",
+  settingsChronicleQrImportBody:
+    "Scan een geëxporteerde QR-code met Club Chronicle-volglijsten met de native camera van je telefoon. Bij het openen van de link wordt gevraagd of je de huidige volglijsten op dit apparaat wilt vervangen.",
+  settingsChronicleQrImportScanning: "QR-code scannen…",
+  settingsChronicleQrImportUnsupported:
+    "QR-scannen met de camera wordt niet ondersteund in deze browser.",
+  settingsChronicleQrImportPermissionDenied:
+    "Toegang tot de camera is geweigerd. Sta camera-toegang toe om de QR-code te scannen.",
+  settingsChronicleQrImportFailed:
+    "Er kon geen geldige QR-code met Club Chronicle-volglijsten worden gelezen.",
+  settingsChronicleQrImportSuccess:
+    "Club Chronicle-volglijsten geïmporteerd.",
+  settingsChronicleQrImportWarningTitle:
+    "Club Chronicle-volglijsten vervangen",
+  settingsChronicleQrImportWarningBody:
+    "Het importeren van deze QR-code vervangt de huidige Club Chronicle-volglijsten op dit apparaat. Doorgaan?",
+  settingsChronicleQrImportConfirm: "Volglijsten vervangen",
+  settingsChronicleQrImportTabsSummaryLabel: "Tabbladen",
+  settingsChronicleQrImportDirectTeamsSummaryLabel: "Directe teams",
+  settingsChronicleQrImportOwnLeaguesSummaryLabel: "Eigen competities",
+  settingsChronicleQrImportManualTeamsSummaryLabel: "Handmatige teams",
   settingsDebug: "Diagnostiek",
   settingsDebugTitle: "Diagnostische instellingen",
   optimizeMenuRevealPrimaryCurrentAndSecondaryMax:
@@ -82,6 +132,10 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_1_0:
+    "Club Chronicle-volglijsten kunnen nu tussen apparaten worden overgezet met QR-export op desktop/mobiel en camera-import op mobiel.",
+  changelog_4_0_0:
+    "HT Alchemy heeft nu speciale mobiele ondersteuning in de hele app.",
   changelog_3_13_0:
     "Senior-AI-opstellingen ondersteunen nu detectie, verzending en controle achteraf van mandekking.",
   changelog_3_12_0:
@@ -550,6 +604,7 @@ export const messagesNl: Messages = {
   awayLabel: "Uit",
   unknownDate: "Onbekende datum",
   connectLabel: "Koppel Hattrick",
+  mobileConnectLabel: "Koppel",
   connectedLabel: "Verbonden",
   connectHint: "Gebruik de knop Koppelen rechtsboven om opnieuw in te loggen.",
   disconnectLabel: "Ontkoppelen",
@@ -582,6 +637,31 @@ export const messagesNl: Messages = {
   notificationStaleRefresh: "Verversing gestart door verouderde gegevens.",
   notificationReauthRequired: "Verversing afgebroken: opnieuw autoriseren vereist",
   autoSelectTitle: "Kies automatisch sterspeler en trainingen",
+  mobileHomeLabel: "Home",
+  mobileYouthMenuToggleLabel: "Open jeugdmenu",
+  mobileSeniorMenuToggleLabel: "Open seniorenmenu",
+  mobilePreviousPanelLabel: "Vorig paneel",
+  mobileNextPanelLabel: "Volgend paneel",
+  mobileYouthRootTitle: "Optimalisatie van de jeugdselectie",
+  mobileYouthRootPrompt:
+    "Gebruik het zwevende menu om spelerdetails, matrices of de opstellingsoptimalisatie te openen.",
+  mobileYouthBackLabel: "Terug",
+  mobileYouthBackToPlayerList: "Terug naar spelerslijst",
+  mobileYouthLandscapeHint:
+    "Draai naar liggende stand voor de volledige matrix.",
+  mobileChronicleLandscapeHint:
+    "Draai naar liggende stand voor een bredere tabelweergave.",
+  clubChronicleNoTeams:
+    "Er worden momenteel geen teams gevolgd voor deze tab. Voeg teams toe om te volgen via de watchlist.",
+  clubChronicleNoTeamsMobileHint:
+    "Op mobiel staat de watchlist in het zwevende menu.",
+  mobileYouthLineupPickerTitle: "Kies speler",
+  mobileYouthLineupPickerEmpty:
+    "Geen spelers beschikbaar voor deze positie.",
+  mobileYouthViewComingSoon:
+    "Deze mobiele jeugdweergave is nog niet geïmplementeerd.",
+  mobileSeniorViewComingSoon:
+    "Deze mobiele seniorweergave is nog niet geïmplementeerd.",
   trainingTitle: "Gerichte vaardigheidstraining",
   trainingSectionFocused: "Gerichte vaardigheidstraining",
   trainingSectionExtended: "Uitgebreide vaardigheidstraining",

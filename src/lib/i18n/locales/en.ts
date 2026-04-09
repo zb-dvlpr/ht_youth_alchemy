@@ -24,6 +24,8 @@ export const messagesEn: Messages = {
     toolYouthBadge: "Y",
     toolSeniorBadge: "S",
     toolClubChronicle: "Club chronicle",
+    mobileToolsLabel: "Tools",
+    mobileHelpLabel: "Help",
     clubChronicleTitle: "Club Chronicle",
     clubChronicleBody:
       "Club Chronicle is coming soon. This space will track what other senior squads are up to.",
@@ -70,6 +72,10 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_4_1_0:
+      "Club Chronicle watchlists can now be transferred between devices with QR export on desktop/mobile and camera import on mobile.",
+    changelog_4_0_0:
+      "HT Alchemy now includes dedicated mobile support across the app.",
     changelog_3_13_0:
       "Senior AI lineups now support man-marking detection, submission, and post-submit review.",
     changelog_3_12_0:
@@ -208,9 +214,49 @@ export const messagesEn: Messages = {
       "How many changed global refresh diffs are stored and shown in Latest updates history.",
     settingsGeneral: "General",
     settingsGeneralTitle: "General settings",
+    settingsGeneralExportAllLabel: "Export all settings",
+    settingsGeneralExportAllHint:
+      "Export all locally stored app settings and cached state as a JSON backup file.",
+    settingsGeneralImportAllLabel: "Import all settings",
+    settingsGeneralImportAllHint:
+      "Import a previously exported JSON backup and replace the current local app settings and cached state.",
     settingsGeneralEnableScalingLabel: "Enable app scaling",
     settingsGeneralEnableScalingTooltip:
       "When enabled, the app scales to fit the viewport and reduce scrolling. When disabled, the app uses normal size and can scroll.",
+    settingsGeneralChronicleWatchlistsExportLabel:
+      "Export Club Chronicle watchlists to mobile",
+    settingsGeneralChronicleWatchlistsExportHint:
+      "Generate a QR code containing your Club Chronicle watchlists so they can be imported on another device.",
+    settingsGeneralChronicleWatchlistsImportLabel: "Import CC watchlists",
+    settingsGeneralChronicleWatchlistsImportHint:
+      "Use your phone's native camera to open an exported Club Chronicle watchlist QR code.",
+    settingsChronicleQrExportTitle: "Export Club Chronicle watchlists to mobile",
+    settingsChronicleQrExportBody:
+      "Scan this QR code with your phone's native camera to import all Club Chronicle watchlists to mobile.",
+    settingsChronicleQrExportSummaryTitle: "This QR code exports:",
+    settingsChronicleQrExportFailed:
+      "Failed to generate the Club Chronicle watchlist QR code.",
+    settingsChronicleQrImportTitle: "Import Club Chronicle watchlists",
+    settingsChronicleQrImportBody:
+      "Scan an exported Club Chronicle watchlist QR code with your phone's native camera. Opening the link will ask whether to replace the current watchlists on this device.",
+    settingsChronicleQrImportScanning: "Scanning QR code…",
+    settingsChronicleQrImportUnsupported:
+      "Camera QR scanning is not supported in this browser.",
+    settingsChronicleQrImportPermissionDenied:
+      "Camera access was denied. Allow camera access to scan the QR code.",
+    settingsChronicleQrImportFailed:
+      "Failed to read a valid Club Chronicle watchlist QR code.",
+    settingsChronicleQrImportSuccess:
+      "Club Chronicle watchlists imported.",
+    settingsChronicleQrImportWarningTitle:
+      "Replace Club Chronicle watchlists",
+    settingsChronicleQrImportWarningBody:
+      "Importing this QR code will replace the current Club Chronicle watchlists on this device. Continue?",
+    settingsChronicleQrImportConfirm: "Replace watchlists",
+    settingsChronicleQrImportTabsSummaryLabel: "Tabs",
+    settingsChronicleQrImportDirectTeamsSummaryLabel: "Direct teams",
+    settingsChronicleQrImportOwnLeaguesSummaryLabel: "Own leagues",
+    settingsChronicleQrImportManualTeamsSummaryLabel: "Manual teams",
     settingsDebug: "Debug",
     settingsDebugTitle: "Debug settings",
     settingsDebugDisableScalingLabel: "Show dummy latest updates",
@@ -219,7 +265,10 @@ export const messagesEn: Messages = {
     settingsDebugBuyCoffeePromptButton: "Show buy me a coffee modal",
     clubChronicleLeaguePanelTitle: "League performance",
     clubChronicleLeaguePanelEmpty: "No league data yet.",
-    clubChronicleNoTeams: "No tracked teams selected.",
+    clubChronicleNoTeams:
+      "No teams are currently being tracked for this tab. Add teams for tracking via the watchlist.",
+    clubChronicleNoTeamsMobileHint:
+      "On mobile, the watchlist is in the floating dropdown.",
     clubChronicleLoading: "Loading club chronicle…",
     clubChronicleUpdatesTitle: "Latest updates",
     clubChronicleUpdatesSinceGlobal: "Changes since last global refresh",
@@ -488,6 +537,9 @@ export const messagesEn: Messages = {
     helpBulletTraining:
       "Submit lineups directly to Hattrick, but training must be set manually (the API doesn’t allow it).",
     helpBulletDesktop: "Desktop-optimized.",
+    helpOptimizerLocationTitle: "Where to find the optimizer",
+    helpOptimizerLocationYouth:
+      "Open Lineup optimizer from the floating menu, then look for this button in the lineup header.",
     helpCalloutStar: "Select your star player.",
     helpCalloutTraining:
       "Set primary and secondary training before running optimization.",
@@ -519,6 +571,8 @@ export const messagesEn: Messages = {
       "You can change the senior training regimen directly from the lineup dropdown.",
     seniorHelpBulletAnalyzeOpponent:
       "Analyze opponent summarizes recent setup patterns to support AI lineup decisions.",
+    seniorHelpOptimizerLocation:
+      "Open Lineup optimizer from the floating menu, then look for this button on the relevant match card.",
     themeSwitchDark: "Switch to dark mode",
     themeSwitchLight: "Switch to light mode",
     helpDismissLabel: "I understand",
@@ -942,6 +996,22 @@ export const messagesEn: Messages = {
     permissionsNone: "None",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-select star player and trainings",
+    mobileHomeLabel: "Home",
+    mobileYouthMenuToggleLabel: "Open youth menu",
+    mobileSeniorMenuToggleLabel: "Open senior menu",
+    mobilePreviousPanelLabel: "Previous panel",
+    mobileNextPanelLabel: "Next panel",
+    mobileYouthRootTitle: "Youth squad optimization",
+    mobileYouthRootPrompt:
+      "Use the floating menu to open player details, matrices, or the lineup optimizer.",
+    mobileYouthBackLabel: "Back",
+    mobileYouthBackToPlayerList: "Back to player list",
+    mobileYouthLandscapeHint: "Rotate to landscape for the full matrix view.",
+    mobileChronicleLandscapeHint: "Rotate to landscape for a wider table view.",
+    mobileYouthLineupPickerTitle: "Choose player",
+    mobileYouthLineupPickerEmpty: "No players available for this slot.",
+    mobileYouthViewComingSoon: "This Youth mobile view is not implemented yet.",
+    mobileSeniorViewComingSoon: "This Senior mobile view is not implemented yet.",
     trainingTitle: "Focused skill training",
     trainingSectionFocused: "Focused skill training",
     trainingSectionExtended: "Extended skill training",
@@ -1147,6 +1217,7 @@ export const messagesEn: Messages = {
     posInnerMidfieldFull: "Inner midfield",
     posForwardFull: "Forward",
     connectLabel: "Connect Hattrick",
+    mobileConnectLabel: "Connect",
     connectedLabel: "Connected",
     connectHint: "Use the Connect button in the top right to sign in again.",
     disconnectLabel: "Disconnect",

@@ -24,6 +24,8 @@ export const messagesPt: Messages = {
     toolYouthBadge: "Y",
     toolSeniorBadge: "S",
     toolClubChronicle: "Crônica do clube",
+    mobileToolsLabel: "Ferramentas",
+    mobileHelpLabel: "Ajuda",
     clubChronicleTitle: "Crônica do clube",
     clubChronicleBody:
       "A Crônica do clube chega em breve. Este espaço acompanhará o que os times seniores fazem.",
@@ -70,6 +72,10 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    changelog_4_1_0:
+      "As watchlists do Club Chronicle agora podem ser transferidas entre dispositivos com exportação QR no desktop/mobile e importação por câmera no mobile.",
+    changelog_4_0_0:
+      "O HT Alchemy agora inclui suporte mobile dedicado em toda a app.",
     changelog_3_13_0:
       "As escalacoes IA senior agora suportam deteccao, envio e revisao apos o envio da marcacao individual.",
     changelog_3_12_0:
@@ -225,9 +231,52 @@ export const messagesPt: Messages = {
     settingsDebugBuyCoffeePromptButton: "Mostrar modal paga-me um café",
     settingsGeneral: "Geral",
     settingsGeneralTitle: "Configurações gerais",
+    settingsGeneralExportAllLabel: "Exportar todas as configurações",
+    settingsGeneralExportAllHint:
+      "Exporta todas as configurações locais e estados em cache do app para um arquivo JSON de backup.",
+    settingsGeneralImportAllLabel: "Importar todas as configurações",
+    settingsGeneralImportAllHint:
+      "Importa um backup JSON exportado anteriormente e substitui as configurações locais e os estados em cache atuais do app.",
     settingsGeneralEnableScalingLabel: "Ativar escala do app",
     settingsGeneralEnableScalingTooltip:
       "Quando ativado, o app é escalado para caber no viewport e reduzir rolagem. Quando desativado, o app usa tamanho normal e pode rolar.",
+    settingsGeneralChronicleWatchlistsExportLabel:
+      "Exportar watchlists do Club Chronicle para mobile",
+    settingsGeneralChronicleWatchlistsExportHint:
+      "Gera um QR code com suas watchlists do Club Chronicle para importar em outro dispositivo.",
+    settingsGeneralChronicleWatchlistsImportLabel:
+      "Importar watchlists CC",
+    settingsGeneralChronicleWatchlistsImportHint:
+      "Use a câmera nativa do seu telefone para abrir um QR exportado de watchlists do Club Chronicle.",
+    settingsChronicleQrExportTitle:
+      "Exportar watchlists do Club Chronicle para mobile",
+    settingsChronicleQrExportBody:
+      "Escaneie este QR code com a câmera nativa do seu telefone para importar todas as watchlists do Club Chronicle para o mobile.",
+    settingsChronicleQrExportSummaryTitle: "Este QR code exporta:",
+    settingsChronicleQrExportFailed:
+      "Falha ao gerar o QR code das watchlists do Club Chronicle.",
+    settingsChronicleQrImportTitle:
+      "Importar watchlists do Club Chronicle",
+    settingsChronicleQrImportBody:
+      "Escaneie um QR exportado de watchlists do Club Chronicle com a câmera nativa do seu telefone. Ao abrir o link, você será perguntado se deseja substituir as watchlists atuais neste dispositivo.",
+    settingsChronicleQrImportScanning: "Escaneando QR code…",
+    settingsChronicleQrImportUnsupported:
+      "A leitura de QR pela câmera não é suportada neste navegador.",
+    settingsChronicleQrImportPermissionDenied:
+      "O acesso à câmera foi negado. Permita a câmera para escanear o QR code.",
+    settingsChronicleQrImportFailed:
+      "Não foi possível ler um QR code válido de watchlists do Club Chronicle.",
+    settingsChronicleQrImportSuccess:
+      "Watchlists do Club Chronicle importadas.",
+    settingsChronicleQrImportWarningTitle:
+      "Substituir watchlists do Club Chronicle",
+    settingsChronicleQrImportWarningBody:
+      "Importar este QR code substituirá as watchlists atuais do Club Chronicle neste dispositivo. Continuar?",
+    settingsChronicleQrImportConfirm: "Substituir watchlists",
+    settingsChronicleQrImportTabsSummaryLabel: "Abas",
+    settingsChronicleQrImportDirectTeamsSummaryLabel: "Times diretos",
+    settingsChronicleQrImportOwnLeaguesSummaryLabel: "Ligas próprias",
+    settingsChronicleQrImportManualTeamsSummaryLabel: "Times manuais",
     settingsDebug: "Depuração",
     settingsDebugTitle: "Configurações de depuração",
     settingsDebugDisableScalingLabel: "Mostrar atualizações fictícias",
@@ -235,7 +284,10 @@ export const messagesPt: Messages = {
     settingsDebugRandomNewMarkersOffLabel: "Ocultar marcadores NEW aleatórios",
     clubChronicleLeaguePanelTitle: "Desempenho na liga",
     clubChronicleLeaguePanelEmpty: "Ainda não há dados de liga.",
-    clubChronicleNoTeams: "Nenhum time acompanhado selecionado.",
+    clubChronicleNoTeams:
+      "Nenhum time esta sendo acompanhado nesta aba no momento. Adicione times para acompanhamento pela watchlist.",
+    clubChronicleNoTeamsMobileHint:
+      "No mobile, a watchlist fica no menu flutuante.",
     clubChronicleLoading: "Carregando Crônica do clube…",
     clubChronicleUpdatesTitle: "Últimas atualizações",
     clubChronicleUpdatesSinceGlobal: "Alterações desde a última atualização global",
@@ -516,6 +568,9 @@ export const messagesPt: Messages = {
     helpBulletTraining:
       "Você pode enviar escalações ao Hattrick, mas o treino deve ser definido manualmente (a API não permite).",
     helpBulletDesktop: "Otimizado para desktop.",
+    helpOptimizerLocationTitle: "Onde encontrar o otimizador",
+    helpOptimizerLocationYouth:
+      "Abra o otimizador de escalação pelo menu flutuante e depois procure este botão no cabeçalho da escalação.",
     helpCalloutStar: "Escolha seu jogador estrela.",
     helpCalloutTraining:
       "Defina treino primário e secundário antes de otimizar.",
@@ -548,6 +603,8 @@ export const messagesPt: Messages = {
       "O regime de treino senior pode ser alterado diretamente no app pelo dropdown da escalacao.",
     seniorHelpBulletAnalyzeOpponent:
       "Analisar adversário resume padrões recentes para apoiar decisões da IA na escalação.",
+    seniorHelpOptimizerLocation:
+      "Abra o otimizador de escalação pelo menu flutuante e depois procure este botão no cartão da partida relevante.",
     themeSwitchDark: "Mudar para modo escuro",
     themeSwitchLight: "Mudar para modo claro",
     helpDismissLabel: "Entendi",
@@ -981,6 +1038,27 @@ export const messagesPt: Messages = {
     permissionsNone: "Nenhuma",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-selecionar jogador estrela e treinos",
+    mobileHomeLabel: "Início",
+    mobileYouthMenuToggleLabel: "Abrir menu juvenil",
+    mobileSeniorMenuToggleLabel: "Abrir menu sénior",
+    mobilePreviousPanelLabel: "Painel anterior",
+    mobileNextPanelLabel: "Próximo painel",
+    mobileYouthRootTitle: "Otimização do plantel juvenil",
+    mobileYouthRootPrompt:
+      "Use o menu flutuante para abrir detalhes do jogador, matrizes ou o otimizador da escalação.",
+    mobileYouthBackLabel: "Voltar",
+    mobileYouthBackToPlayerList: "Voltar à lista de jogadores",
+    mobileYouthLandscapeHint:
+      "Rode para paisagem para ver a matriz completa.",
+    mobileChronicleLandscapeHint:
+      "Rode para paisagem para uma visão de tabela mais ampla.",
+    mobileYouthLineupPickerTitle: "Escolher jogador",
+    mobileYouthLineupPickerEmpty:
+      "Nenhum jogador disponível para esta posição.",
+    mobileYouthViewComingSoon:
+      "Esta vista móvel juvenil ainda não está implementada.",
+    mobileSeniorViewComingSoon:
+      "Esta vista móvel sénior ainda não está implementada.",
     trainingTitle: "Treino focado",
     trainingSectionFocused: "Treino focado",
     trainingSectionExtended: "Treino estendido",
@@ -1188,6 +1266,7 @@ export const messagesPt: Messages = {
     posInnerMidfieldFull: "Meio-campista",
     posForwardFull: "Atacante",
     connectLabel: "Conectar Hattrick",
+    mobileConnectLabel: "Conectar",
     connectedLabel: "Conectado",
     connectHint:
       "Use o botão Conectar no canto superior direito para entrar novamente.",

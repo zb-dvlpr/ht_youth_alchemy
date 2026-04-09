@@ -2265,11 +2265,14 @@ export default function PlayerDetailsPanel({
         ) : (
           <div className={styles.detailsTabs} />
         )}
-        {resolvedActiveTab === "skillsMatrix" ? (
+        {resolvedActiveTab === "skillsMatrix" ||
+        resolvedActiveTab === "ratingsMatrix" ? (
           <div className={styles.detailsHeaderAux}>
             {skillsMatrixHeaderAux}
             {extraSkillsMatrixHeaderAux}
-            {playerKind === "senior" && skillMode === "single" ? (
+            {resolvedActiveTab === "skillsMatrix" &&
+            playerKind === "senior" &&
+            skillMode === "single" ? (
               <Tooltip content={messages.seniorSkillsMatrixBonusToggleTooltip}>
                 <label className={styles.matchesFilterToggle}>
                   <input

@@ -1,7 +1,16 @@
 "use client";
 
-import { type CSSProperties, ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { Children } from "react";
+import {
+  Children,
+  Fragment,
+  type CSSProperties,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import styles from "../page.module.css";
 import Tooltip from "./Tooltip";
 import ClubChronicle from "./ClubChronicle";
@@ -20,12 +29,15 @@ import {
   BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT,
   BUY_COFFEE_PROMPT_OPEN_EVENT,
 } from "@/lib/settings";
+import { APP_SHELL_OPEN_TOOL_EVENT } from "@/lib/chronicleWatchlistTransfer";
 
 type AppShellProps = {
   messages: Messages;
+  appVersion: string;
   globalHeader: ReactNode;
   children: ReactNode;
   seniorTool: ReactNode;
+  mobileLauncherUtility?: ReactNode;
 };
 
 type ToolId = "youth" | "senior" | "chronicle";
@@ -64,12 +76,32 @@ const SENIOR_REFRESH_REQUEST_EVENT = "ya:senior-refresh-request";
 const SENIOR_REFRESH_STOP_EVENT = "ya:senior-refresh-stop";
 const SENIOR_REFRESH_STATE_EVENT = "ya:senior-refresh-state";
 const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
+const MOBILE_LAUNCHER_REQUEST_EVENT = "ya:mobile-launcher-request";
+const MOBILE_NAV_TRAIL_STATE_EVENT = "ya:mobile-nav-trail-state";
+const MOBILE_NAV_TRAIL_JUMP_EVENT = "ya:mobile-nav-trail-jump";
+const MOBILE_LAYOUT_MEDIA_QUERY = "(max-width: 900px)";
 
-export default function AppShell({ messages, globalHeader, children, seniorTool }: AppShellProps) {
+type MobileNavSegment = {
+  id: string;
+  label: string;
+};
+
+export default function AppShell({
+  messages,
+  appVersion,
+  globalHeader,
+  children,
+  seniorTool,
+  mobileLauncherUtility,
+}: AppShellProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [activeTool, setActiveTool] = useState<ToolId>("youth");
+  const [mobileLayoutActive, setMobileLayoutActive] = useState(false);
+  const [mobileLauncherOpen, setMobileLauncherOpen] = useState(false);
+  const [mobileNavSegments, setMobileNavSegments] = useState<MobileNavSegment[]>([]);
   const [viewStateRestored, setViewStateRestored] = useState(false);
   const [topBarHeight, setTopBarHeight] = useState(56);
+  const [mobileNavHeaderHeight, setMobileNavHeaderHeight] = useState(56);
   const [youthRefreshing, setYouthRefreshing] = useState(false);
   const [youthRefreshStatus, setYouthRefreshStatus] = useState<string | null>(null);
   const [youthRefreshProgressPct, setYouthRefreshProgressPct] = useState(0);
@@ -86,7 +118,9 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
     useState<BuyCoffeePromptState | null>(null);
   const [buyCoffeeSessionReady, setBuyCoffeeSessionReady] = useState(false);
   const shellTopBarRef = useRef<HTMLDivElement | null>(null);
+  const mobileNavHeaderRef = useRef<HTMLDivElement | null>(null);
   const buyCoffeePromptShownThisSessionRef = useRef(false);
+  const mobileLayoutInitializedRef = useRef(false);
 
   const persistBuyCoffeePromptState = (nextState: BuyCoffeePromptState) => {
     setBuyCoffeePromptState(nextState);
@@ -269,6 +303,89 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const mediaQuery = window.matchMedia(MOBILE_LAYOUT_MEDIA_QUERY);
+    const apply = (matches: boolean) => {
+      setMobileLayoutActive(matches);
+      if (!matches) {
+        setMobileLauncherOpen(false);
+        return;
+      }
+      if (!mobileLayoutInitializedRef.current) {
+        mobileLayoutInitializedRef.current = true;
+        setMobileLauncherOpen(true);
+      }
+    };
+
+    apply(mediaQuery.matches);
+
+    const handleChange = (event: MediaQueryListEvent) => apply(event.matches);
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", handleChange);
+      return () => mediaQuery.removeEventListener("change", handleChange);
+    }
+    mediaQuery.addListener(handleChange);
+    return () => mediaQuery.removeListener(handleChange);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === "undefined") return;
+    const root = document.documentElement;
+    if (mobileLayoutActive) {
+      root.dataset.mobileShell = "true";
+    } else {
+      delete root.dataset.mobileShell;
+    }
+    return () => {
+      delete root.dataset.mobileShell;
+    };
+  }, [mobileLayoutActive]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!mobileLayoutActive) return;
+    if (mobileLauncherOpen) {
+      window.history.replaceState({ appShell: "launcher" }, "", window.location.href);
+    }
+  }, [mobileLayoutActive, mobileLauncherOpen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!mobileLayoutActive) return;
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state as
+        | { appShell?: "launcher" | "tool"; tool?: ToolId }
+        | null;
+      if (state?.appShell === "tool" && state.tool) {
+        setActiveTool(
+          state.tool === "chronicle"
+            ? "chronicle"
+            : state.tool === "senior"
+            ? "senior"
+            : "youth"
+        );
+        setMobileLauncherOpen(false);
+        return;
+      }
+      setMobileLauncherOpen(true);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [mobileLayoutActive]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handle = () => {
+      setMobileLauncherOpen(true);
+      if (mobileLayoutActive) {
+        window.history.pushState({ appShell: "launcher" }, "", window.location.href);
+      }
+    };
+    window.addEventListener(MOBILE_LAUNCHER_REQUEST_EVENT, handle);
+    return () => window.removeEventListener(MOBILE_LAUNCHER_REQUEST_EVENT, handle);
+  }, [mobileLayoutActive]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     if (!buyCoffeePromptState) return;
     if (!buyCoffeeSessionReady) return;
@@ -422,6 +539,34 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
   }, [activeTool]);
 
   useEffect(() => {
+    setMobileNavSegments([]);
+  }, [activeTool, mobileLauncherOpen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handle = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      const detail = event.detail as
+        | { tool?: ToolId; segments?: MobileNavSegment[] }
+        | undefined;
+      if (!detail || detail.tool !== activeTool) return;
+      const segments = Array.isArray(detail.segments)
+        ? detail.segments.filter(
+            (segment): segment is MobileNavSegment =>
+              Boolean(
+                segment &&
+                  typeof segment.id === "string" &&
+                  typeof segment.label === "string"
+              )
+          )
+        : [];
+      setMobileNavSegments(segments);
+    };
+    window.addEventListener(MOBILE_NAV_TRAIL_STATE_EVENT, handle);
+    return () => window.removeEventListener(MOBILE_NAV_TRAIL_STATE_EVENT, handle);
+  }, [activeTool]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     const captureViewState = () => {
       const main = document.querySelector("[data-app-main='true']") as HTMLElement | null;
@@ -476,6 +621,30 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
       window.removeEventListener("resize", measure);
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const node = mobileNavHeaderRef.current;
+    if (!node) return;
+    const measure = () => {
+      const next = Math.round(node.getBoundingClientRect().height);
+      if (next > 0) {
+        setMobileNavHeaderHeight(next);
+      }
+    };
+    measure();
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    window.addEventListener("resize", measure);
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, [mobileLayoutActive, mobileLauncherOpen, mobileNavSegments, activeTool]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -548,6 +717,36 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
     return () => window.removeEventListener("ya:changelog-open", handler);
   }, [activeTool]);
 
+  const handleSelectTool = useCallback((toolId: ToolId) => {
+    setActiveTool(toolId);
+    if (mobileLayoutActive) {
+      setMobileLauncherOpen(false);
+      window.history.pushState(
+        { appShell: "tool", tool: toolId },
+        "",
+        window.location.href
+      );
+    }
+  }, [mobileLayoutActive]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      const detail = event.detail as { tool?: ToolId } | undefined;
+      if (!detail?.tool) return;
+      handleSelectTool(
+        detail.tool === "chronicle"
+          ? "chronicle"
+          : detail.tool === "senior"
+            ? "senior"
+            : "youth"
+      );
+    };
+    window.addEventListener(APP_SHELL_OPEN_TOOL_EVENT, handler);
+    return () => window.removeEventListener(APP_SHELL_OPEN_TOOL_EVENT, handler);
+  }, [handleSelectTool]);
+
   const renderToolButton = (tool: (typeof tools)[number]) => {
     const button = (
       <button
@@ -555,7 +754,7 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
         className={`${styles.sidebarItem} ${
           activeTool === tool.id ? styles.sidebarItemActive : ""
         }`}
-        onClick={() => setActiveTool(tool.id)}
+        onClick={() => handleSelectTool(tool.id)}
         aria-label={tool.label}
       >
         <span className={styles.sidebarIcon} aria-hidden="true">
@@ -592,6 +791,7 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
 
   const activeOptimizationLastRefreshAt =
     activeTool === "youth" ? youthLastRefreshAt : seniorLastRefreshAt;
+  const activeToolMeta = tools.find((tool) => tool.id === activeTool) ?? tools[0];
   const headerChildren = useMemo(() => Children.toArray(globalHeader), [globalHeader]);
   const youthToolChildren = useMemo(() => Children.toArray(children), [children]);
   const seniorToolChildren = useMemo(() => Children.toArray(seniorTool), [seniorTool]);
@@ -626,63 +826,135 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
     setBuyCoffeePromptOpen(false);
   };
 
+  const mobileNavTrail = mobileLayoutActive && !mobileLauncherOpen ? (
+    <div className={styles.mobileNavHeader} ref={mobileNavHeaderRef}>
+      <div className={styles.mobileNavAppMeta}>
+        <span className={styles.mobileNavAppTitle}>{messages.brandTitle}</span>
+        <span className={styles.version}>v{appVersion}</span>
+      </div>
+      <div className={styles.mobileNavTrail} aria-label={messages.brandTitle}>
+        <button
+          type="button"
+          className={styles.mobileNavTrailButton}
+          onClick={() => {
+            window.dispatchEvent(new CustomEvent(MOBILE_LAUNCHER_REQUEST_EVENT));
+          }}
+        >
+          {messages.brandTitle}
+        </button>
+        <span className={styles.mobileNavTrailSeparator} aria-hidden="true">
+          ›
+        </span>
+        <button
+          type="button"
+          className={`${styles.mobileNavTrailButton} ${
+            mobileNavSegments.length === 0 ? styles.mobileNavTrailCurrent : ""
+          }`}
+          disabled={mobileNavSegments.length === 0}
+          onClick={() => {
+            window.dispatchEvent(
+              new CustomEvent(MOBILE_NAV_TRAIL_JUMP_EVENT, {
+                detail: { tool: activeTool, target: "tool-root" },
+              })
+            );
+          }}
+        >
+          {activeToolMeta.label}
+        </button>
+        {mobileNavSegments.map((segment, index) => {
+          const isCurrent = index === mobileNavSegments.length - 1;
+          return (
+            <Fragment key={segment.id}>
+              <span className={styles.mobileNavTrailSeparator} aria-hidden="true">
+                ›
+              </span>
+              <button
+                type="button"
+                className={`${styles.mobileNavTrailButton} ${
+                  isCurrent ? styles.mobileNavTrailCurrent : ""
+                }`}
+                disabled={isCurrent}
+                onClick={() =>
+                  window.dispatchEvent(
+                    new CustomEvent(MOBILE_NAV_TRAIL_JUMP_EVENT, {
+                      detail: { tool: activeTool, target: segment.id },
+                    })
+                  )
+                }
+              >
+                {segment.label}
+              </button>
+            </Fragment>
+          );
+        })}
+      </div>
+    </div>
+  ) : null;
+
   return (
     <div
       className={styles.shellFrame}
+      data-mobile-layout={mobileLayoutActive ? "true" : "false"}
+      data-mobile-launcher-open={mobileLauncherOpen ? "true" : "false"}
       style={
         {
           "--shell-topbar-height": `${topBarHeight}px`,
+          "--mobile-nav-header-height": `${mobileNavHeaderHeight}px`,
         } as CSSProperties
       }
     >
       <div className={styles.shellTopBar} ref={shellTopBarRef}>
         {headerChildren}
       </div>
-      <aside
-        className={`${styles.sidebar} ${
-          collapsed ? styles.sidebarCollapsed : ""
-        }`}
-      >
-        <div className={styles.sidebarHeader}>
-          <Tooltip
-            content={
-              collapsed
-                ? messages.sidebarExpandTooltip
-                : messages.sidebarCollapseTooltip
-            }
-          >
-            <button
-              type="button"
-              className={styles.sidebarToggle}
-              onClick={() => setCollapsed((prev) => !prev)}
-              aria-label={
+      {!mobileLayoutActive ? (
+        <aside
+          className={`${styles.sidebar} ${
+            collapsed ? styles.sidebarCollapsed : ""
+          }`}
+        >
+          <div className={styles.sidebarHeader}>
+            <Tooltip
+              content={
                 collapsed
                   ? messages.sidebarExpandTooltip
                   : messages.sidebarCollapseTooltip
               }
             >
-              {collapsed ? "»" : "«"}
-            </button>
-          </Tooltip>
-        </div>
-        <nav className={styles.sidebarNav}>
-          {tools.map((tool) => (
-            <div key={tool.id} className={styles.sidebarItemWrap}>
-              {renderToolButton(tool)}
-            </div>
-          ))}
-          <div className={styles.sidebarItemWrap}>
-            {collapsed ? (
-              <Tooltip content={messages.supportOnKofi} fullWidth>
-                {kofiButton}
-              </Tooltip>
-            ) : (
-              kofiButton
-            )}
+              <button
+                type="button"
+                className={styles.sidebarToggle}
+                onClick={() => setCollapsed((prev) => !prev)}
+                aria-label={
+                  collapsed
+                    ? messages.sidebarExpandTooltip
+                    : messages.sidebarCollapseTooltip
+                }
+              >
+                {collapsed ? "»" : "«"}
+              </button>
+            </Tooltip>
           </div>
-        </nav>
-      </aside>
-      {activeTool === "youth" || activeTool === "senior" ? (
+          <nav className={styles.sidebarNav}>
+            {tools.map((tool) => (
+              <div key={tool.id} className={styles.sidebarItemWrap}>
+                {renderToolButton(tool)}
+              </div>
+            ))}
+            <div className={styles.sidebarItemWrap}>
+              {collapsed ? (
+                <Tooltip content={messages.supportOnKofi} fullWidth>
+                  {kofiButton}
+                </Tooltip>
+              ) : (
+                kofiButton
+              )}
+            </div>
+          </nav>
+        </aside>
+      ) : null}
+      {!mobileLauncherOpen &&
+      !mobileLayoutActive &&
+      (activeTool === "youth" || activeTool === "senior") ? (
         <div className={styles.shellContextBar}>
           <div className={styles.youthActionBarActions}>
             <Tooltip content={messages.refreshAllYouthDataTooltip}>
@@ -789,10 +1061,47 @@ export default function AppShell({ messages, globalHeader, children, seniorTool 
           ) : null}
         </div>
       ) : null}
+      {mobileLayoutActive && !mobileLauncherOpen ? mobileNavTrail : null}
       <section className={styles.shellWorkspace} data-active-tool={activeTool}>
-        {activeTool === "youth" ? youthToolChildren : null}
-        {activeTool === "senior" ? seniorToolChildren : null}
-        {activeTool === "chronicle" ? <ClubChronicle messages={messages} /> : null}
+        {mobileLayoutActive ? (
+          mobileLauncherOpen ? (
+            <div className={styles.mobileLauncher}>
+              <div className={styles.mobileLauncherGrid}>
+                {tools.map((tool) => (
+                  <button
+                    key={tool.id}
+                    type="button"
+                    className={styles.mobileLauncherToolCard}
+                    onClick={() => handleSelectTool(tool.id)}
+                    aria-label={tool.label}
+                  >
+                    <span className={styles.mobileLauncherToolIcon} aria-hidden="true">
+                      {tool.badge ? `${tool.badge}${tool.icon}` : tool.icon}
+                    </span>
+                    <span className={styles.mobileLauncherToolLabel}>{tool.label}</span>
+                  </button>
+                ))}
+              </div>
+              {mobileLauncherUtility ? (
+                <div className={styles.mobileLauncherUtilityRow}>
+                  {mobileLauncherUtility}
+                </div>
+              ) : null}
+            </div>
+          ) : (
+            <>
+              {activeTool === "youth" ? youthToolChildren : null}
+              {activeTool === "senior" ? seniorToolChildren : null}
+              {activeTool === "chronicle" ? <ClubChronicle messages={messages} /> : null}
+            </>
+          )
+        ) : (
+          <>
+            {activeTool === "youth" ? youthToolChildren : null}
+            {activeTool === "senior" ? seniorToolChildren : null}
+            {activeTool === "chronicle" ? <ClubChronicle messages={messages} /> : null}
+          </>
+        )}
       </section>
       <Modal
         open={buyCoffeePromptOpen}

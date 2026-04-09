@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
   type CSSProperties,
+  type ReactNode,
 } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
@@ -54,6 +55,12 @@ import {
   parseExtendedPermissionsFromCheckToken,
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
+import {
+  CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
+  CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT,
+  CLUB_CHRONICLE_WATCHLISTS_SNAPSHOT_REQUEST_EVENT,
+} from "@/lib/chronicleWatchlistTransfer";
+import MobileChronicleMenu from "./MobileChronicleMenu";
 
 type SupportedTeam = {
   teamId: number;
@@ -94,6 +101,11 @@ type ChronicleTabState = {
   lastRefreshAt: number | null;
   lastComparedAt: number | null;
   lastHadChanges: boolean;
+  mobilePanelId?: ChroniclePanelId;
+  mobileScreen?: MobileChronicleScreen;
+  mobileDetailKind?: MobileChronicleDetailKind | null;
+  mobileDetailTeamId?: number | null;
+  mobileMenuPosition?: { x: number; y: number } | null;
 };
 
 type ChronicleTabsStorage = {
@@ -108,8 +120,48 @@ type ClubChronicleProps = {
   messages: Messages;
 };
 
+type MobileChronicleScreen =
+  | "panel"
+  | "watchlist"
+  | "latest-updates"
+  | "help"
+  | "detail"
+  | "formations-matches";
+
+type MobileChronicleDetailKind =
+  | "league-performance"
+  | "press-announcements"
+  | "finance-estimate"
+  | "last-login"
+  | "coach"
+  | "power-ratings"
+  | "fanclub"
+  | "arena"
+  | "transfer-listed"
+  | "transfer-history"
+  | "formations-tactics"
+  | "likely-training"
+  | "tsi"
+  | "wages";
+
+type MobileChronicleHistoryState = {
+  appShell?: "launcher" | "tool";
+  tool?: "chronicle";
+  chroniclePanelId?: ChroniclePanelId;
+  chronicleScreen?: MobileChronicleScreen;
+  chronicleDetailKind?: MobileChronicleDetailKind | null;
+  chronicleDetailTeamId?: number | null;
+};
+
+export type { ChroniclePanelId };
+
 const isChppAuthRequiredError = (error: unknown): error is ChppAuthRequiredError =>
   error instanceof ChppAuthRequiredError;
+
+const MOBILE_LAUNCHER_REQUEST_EVENT = "ya:mobile-launcher-request";
+const MOBILE_NAV_TRAIL_STATE_EVENT = "ya:mobile-nav-trail-state";
+const MOBILE_NAV_TRAIL_JUMP_EVENT = "ya:mobile-nav-trail-jump";
+const MOBILE_LAYOUT_MEDIA_QUERY = "(max-width: 900px)";
 
 const getReadableErrorMessage = (error: unknown, fallback: string): string => {
   if (error instanceof Error) {
@@ -672,11 +724,11 @@ const ChronicleTable = <Row, Snapshot>({
                 ? "descending"
                 : "ascending"
               : "none";
-          return (
-            <button
-              key={`header-${column.key}`}
-              type="button"
-              className={styles.chronicleTableHeaderButton}
+        return (
+          <button
+            key={`header-${column.key}`}
+            type="button"
+            className={styles.chronicleTableHeaderButton}
               onClick={() => onSort?.(column.key)}
               aria-sort={ariaSort}
             >
@@ -685,7 +737,11 @@ const ChronicleTable = <Row, Snapshot>({
             </button>
           );
         }
-        return <span key={`header-${column.key}`}>{column.label}</span>;
+        return (
+          <span key={`header-${column.key}`} data-label={column.label}>
+            {column.label}
+          </span>
+        );
       })}
     </div>
     {rows.map((row) => {
@@ -734,7 +790,11 @@ const ChronicleTable = <Row, Snapshot>({
             </span>
           ) : (
             columns.map((column) => (
-              <span key={`${rowKey}-${column.key}`} className={styles.chronicleTableCell}>
+              <span
+                key={`${rowKey}-${column.key}`}
+                className={styles.chronicleTableCell}
+                data-label={column.label}
+              >
                 {column.renderCell
                   ? column.renderCell(snapshot, row, formatValue)
                   : formatValue(column.getValue(snapshot, row))}
@@ -850,6 +910,7 @@ const PANEL_IDS = [
   "tsi",
   "wages",
 ] as const;
+type ChroniclePanelId = (typeof PANEL_IDS)[number];
 const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
 const CHPP_DAYS_PER_YEAR = 112;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -926,6 +987,11 @@ const buildChronicleTabState = (
   lastRefreshAt: overrides?.lastRefreshAt ?? null,
   lastComparedAt: overrides?.lastComparedAt ?? null,
   lastHadChanges: overrides?.lastHadChanges ?? true,
+  mobilePanelId: overrides?.mobilePanelId ?? PANEL_IDS[0],
+  mobileScreen: overrides?.mobileScreen ?? "panel",
+  mobileDetailKind: overrides?.mobileDetailKind ?? null,
+  mobileDetailTeamId: overrides?.mobileDetailTeamId ?? null,
+  mobileMenuPosition: overrides?.mobileMenuPosition ?? { x: 16, y: 108 },
 });
 
 const writeChronicleTabsStorage = (payload: ChronicleTabsStorage) => {
@@ -2000,6 +2066,48 @@ const readChronicleTabsStorage = (
                   typeof tab?.lastHadChanges === "boolean"
                     ? tab.lastHadChanges
                     : true,
+                mobilePanelId: PANEL_IDS.includes(tab?.mobilePanelId as ChroniclePanelId)
+                  ? (tab.mobilePanelId as ChroniclePanelId)
+                  : PANEL_IDS[0],
+                mobileScreen:
+                  tab?.mobileScreen === "watchlist" ||
+                  tab?.mobileScreen === "latest-updates" ||
+                  tab?.mobileScreen === "detail" ||
+                  tab?.mobileScreen === "formations-matches" ||
+                  tab?.mobileScreen === "panel"
+                    ? tab.mobileScreen
+                    : "panel",
+                mobileDetailKind:
+                  tab?.mobileDetailKind === "league-performance" ||
+                  tab?.mobileDetailKind === "press-announcements" ||
+                  tab?.mobileDetailKind === "finance-estimate" ||
+                  tab?.mobileDetailKind === "last-login" ||
+                  tab?.mobileDetailKind === "coach" ||
+                  tab?.mobileDetailKind === "power-ratings" ||
+                  tab?.mobileDetailKind === "fanclub" ||
+                  tab?.mobileDetailKind === "arena" ||
+                  tab?.mobileDetailKind === "transfer-listed" ||
+                  tab?.mobileDetailKind === "transfer-history" ||
+                  tab?.mobileDetailKind === "formations-tactics" ||
+                  tab?.mobileDetailKind === "likely-training" ||
+                  tab?.mobileDetailKind === "tsi" ||
+                  tab?.mobileDetailKind === "wages"
+                    ? tab.mobileDetailKind
+                    : null,
+                mobileDetailTeamId:
+                  typeof tab?.mobileDetailTeamId === "number"
+                    ? tab.mobileDetailTeamId
+                    : null,
+                mobileMenuPosition:
+                  tab?.mobileMenuPosition &&
+                  typeof tab.mobileMenuPosition === "object" &&
+                  Number.isFinite(Number(tab.mobileMenuPosition.x)) &&
+                  Number.isFinite(Number(tab.mobileMenuPosition.y))
+                    ? {
+                        x: Number(tab.mobileMenuPosition.x),
+                        y: Number(tab.mobileMenuPosition.y),
+                      }
+                    : { x: 16, y: 108 },
               })
             )
             .filter((tab) => tab.id)
@@ -2391,6 +2499,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
   const [ownLeagues, setOwnLeagues] = useState<OwnLeagueEntry[]>([]);
   const [ownLeagueTeams, setOwnLeagueTeams] = useState<SupportedTeam[]>([]);
+  const [loadingOwnLeagueTeams, setLoadingOwnLeagueTeams] = useState(false);
   const [primaryTeam, setPrimaryTeam] = useState<ChronicleTeamData | null>(null);
   const [chronicleCache, setChronicleCache] = useState<ChronicleCache>(() =>
     pruneChronicleCache(readChronicleCache())
@@ -2569,6 +2678,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [tokenChecked, setTokenChecked] = useState(false);
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [noDivulgoActive, setNoDivulgoActive] = useState(false);
+  const [mobileChronicleActive, setMobileChronicleActive] = useState(false);
+  const [mobileChronicleRefreshFeedbackVisible, setMobileChronicleRefreshFeedbackVisible] =
+    useState(false);
   const [pendingNoDivulgoFetchTeamId, setPendingNoDivulgoFetchTeamId] = useState<
     number | null
   >(null);
@@ -2594,6 +2706,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const staleRefreshRef = useRef(false);
   const chronicleStopRequestedRef = useRef(false);
   const chronicleTabsRef = useRef<ChronicleTabState[]>(initialTabsState.tabs);
+  const activeChronicleTabIdRef = useRef<string>(initialTabsState.activeTabId);
+  const previousAnyRefreshingRef = useRef(false);
+  const previousLastGlobalRefreshAtRef = useRef<number | null>(null);
   const trackedTeamsRef = useRef<ChronicleTeamData[]>([]);
   const refreshAllDataRef = useRef<((reason: "stale" | "manual") => Promise<void>) | null>(
     null
@@ -2655,6 +2770,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => chronicleTabs.findIndex((tab) => tab.id === activeChronicleTab.id),
     [activeChronicleTab.id, chronicleTabs]
   );
+  const setMobileChroniclePanelAcrossTabs = useCallback(
+    (panelId: ChroniclePanelId) => {
+      setChronicleTabs((prev) =>
+        prev.map((tab) => ({
+          ...tab,
+          mobilePanelId: panelId,
+        }))
+      );
+    },
+    []
+  );
   const updateActiveChronicleTab = useCallback(
     (updater: StateUpdater<ChronicleTabState>) => {
       setChronicleTabs((prev) =>
@@ -2676,6 +2802,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const lastGlobalRefreshAt = activeChronicleTab.lastRefreshAt;
   const lastGlobalComparedAt = activeChronicleTab.lastComparedAt;
   const lastGlobalHadChanges = activeChronicleTab.lastHadChanges;
+  const mobileChroniclePanelId = activeChronicleTab.mobilePanelId ?? PANEL_IDS[0];
+  const mobileChronicleScreen = activeChronicleTab.mobileScreen ?? "panel";
+  const mobileChronicleDetailKind = activeChronicleTab.mobileDetailKind ?? null;
+  const mobileChronicleDetailTeamId = activeChronicleTab.mobileDetailTeamId ?? null;
+  const mobileChronicleMenuPosition = activeChronicleTab.mobileMenuPosition ?? {
+    x: 16,
+    y: 108,
+  };
+  chronicleTabsRef.current = chronicleTabs;
+  activeChronicleTabIdRef.current = activeChronicleTabId;
+  const handleSelectChronicleTabMobile = useCallback(
+    (tabId: string) => {
+      setMobileChroniclePanelAcrossTabs(mobileChroniclePanelId);
+      setActiveChronicleTabId(tabId);
+    },
+    [mobileChroniclePanelId, setMobileChroniclePanelAcrossTabs]
+  );
   const setSupportedSelections = useCallback(
     (updater: StateUpdater<Record<number, boolean>>) => {
       updateActiveChronicleTab((prev) => ({
@@ -2712,6 +2855,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     },
     [updateActiveChronicleTab]
   );
+  const normalizedPanelOrder = useMemo<ChroniclePanelId[]>(
+    () => [
+      ...panelOrder.filter((id): id is ChroniclePanelId =>
+        PANEL_IDS.includes(id as ChroniclePanelId)
+      ),
+      ...PANEL_IDS.filter((id) => !panelOrder.includes(id)),
+    ],
+    [panelOrder]
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mediaQuery = window.matchMedia(MOBILE_LAYOUT_MEDIA_QUERY);
+    const update = () => setMobileChronicleActive(mediaQuery.matches);
+    update();
+    const listener = (event: MediaQueryListEvent) => {
+      setMobileChronicleActive(event.matches);
+    };
+    if (typeof mediaQuery.addEventListener === "function") {
+      mediaQuery.addEventListener("change", listener);
+      return () => mediaQuery.removeEventListener("change", listener);
+    }
+    mediaQuery.addListener(listener);
+    return () => mediaQuery.removeListener(listener);
+  }, []);
   const setGlobalUpdatesHistory = useCallback(
     (updater: StateUpdater<ChronicleGlobalUpdateEntry[]>) => {
       updateActiveChronicleTab((prev) => ({
@@ -2788,8 +2956,62 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [activeChronicleTabId]);
 
   useEffect(() => {
-    chronicleTabsRef.current = chronicleTabs;
-  }, [chronicleTabs]);
+    if (typeof window === "undefined") return;
+    const flushChronicleTabsToStorage = () => {
+      writeChronicleTabsStorage({
+        version: 1,
+        activeTabId: activeChronicleTabIdRef.current,
+        tabs: chronicleTabsRef.current,
+      });
+    };
+    const handleChronicleWatchlistsSnapshotRequest = (
+      event: Event
+    ) => {
+      const customEvent = event as CustomEvent<{
+        snapshot: ChronicleTabsStorage | null;
+      }>;
+      if (!customEvent.detail) return;
+      customEvent.detail.snapshot = {
+        version: 1,
+        activeTabId: activeChronicleTabIdRef.current,
+        tabs: chronicleTabsRef.current,
+      };
+    };
+    window.addEventListener(
+      CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
+      flushChronicleTabsToStorage
+    );
+    window.addEventListener(
+      CLUB_CHRONICLE_WATCHLISTS_SNAPSHOT_REQUEST_EVENT,
+      handleChronicleWatchlistsSnapshotRequest as EventListener
+    );
+    return () =>
+      {
+        window.removeEventListener(
+          CLUB_CHRONICLE_WATCHLISTS_FLUSH_EVENT,
+          flushChronicleTabsToStorage
+        );
+        window.removeEventListener(
+          CLUB_CHRONICLE_WATCHLISTS_SNAPSHOT_REQUEST_EVENT,
+          handleChronicleWatchlistsSnapshotRequest as EventListener
+        );
+      };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handle = () => {
+      const nextState = readChronicleTabsStorage(
+        messages,
+        messages.clubChronicleInjuryHealthy
+      );
+      setChronicleTabs(nextState.tabs);
+      setActiveChronicleTabId(nextState.activeTabId);
+    };
+    window.addEventListener(CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT, handle);
+    return () =>
+      window.removeEventListener(CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT, handle);
+  }, [messages, messages.clubChronicleInjuryHealthy]);
 
   const manualById = useMemo(
     () => new Set<number>(manualTeams.map((team) => Number(team.teamId))),
@@ -3220,6 +3442,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (mobileChronicleActive) {
+      setShowHelp(false);
+      return;
+    }
     const firstUseSeen = window.localStorage.getItem(FIRST_USE_KEY) === "1";
     if (!firstUseSeen) {
       setShowHelp(true);
@@ -3229,19 +3455,26 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (firstUseSeen && !dismissed) {
       setShowHelp(true);
     }
-    const handler = () => setShowHelp(true);
+    const handler = () => {
+      if (mobileChronicleActive) return;
+      setShowHelp(true);
+    };
     window.addEventListener("ya:help-open", handler);
     return () => window.removeEventListener("ya:help-open", handler);
-  }, []);
+  }, [mobileChronicleActive]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (mobileChronicleActive) {
+      setShowHelp(false);
+      return;
+    }
     if (!tokenChecked || !currentToken) return;
     const dismissedToken = window.localStorage.getItem(HELP_DISMISSED_TOKEN_KEY);
     if (dismissedToken !== currentToken) {
       setShowHelp(true);
     }
-  }, [tokenChecked, currentToken]);
+  }, [tokenChecked, currentToken, mobileChronicleActive]);
 
   const ensureRefreshScopes = useCallback(async () => {
     try {
@@ -3617,9 +3850,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         (entry) => ownLeagueSelections[entry.key]
       );
       if (selectedLeagues.length === 0) {
+        setLoadingOwnLeagueTeams(false);
         setOwnLeagueTeams([]);
         return;
       }
+      setLoadingOwnLeagueTeams(true);
       const selectedByLeagueUnit = new Map<number, OwnLeagueEntry[]>();
       selectedLeagues.forEach((entry) => {
         const leagueLevelUnitId = Number(entry.leagueLevelUnitId ?? 0);
@@ -3700,6 +3935,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         setError(getReadableErrorMessage(error, messages.watchlistError));
         if (watchlistOpen) {
           setErrorOpen(true);
+        }
+      } finally {
+        if (active) {
+          setLoadingOwnLeagueTeams(false);
         }
       }
     };
@@ -3815,7 +4054,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [watchlistReloadNonce]);
 
   useEffect(() => {
-    if (!initializedRef.current) return;
     writeChronicleTabsStorage({
       version: 1,
       activeTabId: activeChronicleTabId,
@@ -4071,6 +4309,40 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     writePanelOrder(panelOrder);
   }, [panelOrder]);
 
+  useEffect(() => {
+    if (!mobileChronicleActive) {
+      previousAnyRefreshingRef.current = anyRefreshing;
+      previousLastGlobalRefreshAtRef.current = lastGlobalRefreshAt;
+      setMobileChronicleRefreshFeedbackVisible(false);
+      return;
+    }
+
+    let timeoutId: number | null = null;
+    const refreshJustCompleted =
+      previousAnyRefreshingRef.current &&
+      !anyRefreshing &&
+      lastGlobalRefreshAt !== null &&
+      lastGlobalRefreshAt !== previousLastGlobalRefreshAtRef.current;
+
+    if (anyRefreshing || globalRefreshStatus) {
+      setMobileChronicleRefreshFeedbackVisible(true);
+    } else if (refreshJustCompleted) {
+      setMobileChronicleRefreshFeedbackVisible(true);
+      timeoutId = window.setTimeout(() => {
+        setMobileChronicleRefreshFeedbackVisible(false);
+      }, 5000);
+    }
+
+    previousAnyRefreshingRef.current = anyRefreshing;
+    previousLastGlobalRefreshAtRef.current = lastGlobalRefreshAt;
+
+    return () => {
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [anyRefreshing, globalRefreshStatus, lastGlobalRefreshAt, mobileChronicleActive]);
+
   const handleAddTeam = async () => {
     const trimmed = teamIdInput.trim();
     const parsed = Number(trimmed);
@@ -4247,11 +4519,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           ownLeagueSelections: Object.fromEntries(
             ownLeagues.map((entry) => [entry.key, false])
           ) as Record<string, boolean>,
+          mobilePanelId: mobileChroniclePanelId,
         }),
       ];
     });
     setActiveChronicleTabId(nextTabId);
-  }, [messages, ownLeagues, supportedTeams]);
+  }, [messages, mobileChroniclePanelId, ownLeagues, supportedTeams]);
 
   const handleStartRenamingTab = useCallback((tab: ChronicleTabState) => {
     setRenamingTabId(tab.id);
@@ -4426,69 +4699,236 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
   }, [pointerDraggingPanel, finishPanelDrag]);
 
+  const updateMobileChronicleState = useCallback(
+    (
+      next: {
+        panelId?: ChroniclePanelId;
+        screen?: MobileChronicleScreen;
+        detailKind?: MobileChronicleDetailKind | null;
+        detailTeamId?: number | null;
+        menuPosition?: { x: number; y: number } | null;
+      },
+      mode: "push" | "replace" = "push"
+    ) => {
+      const nextPanelId =
+        next.panelId ??
+        (PANEL_IDS.includes(mobileChroniclePanelId) ? mobileChroniclePanelId : PANEL_IDS[0]);
+      const nextScreen = next.screen ?? mobileChronicleScreen;
+      const nextDetailKind =
+        next.detailKind === undefined ? mobileChronicleDetailKind : next.detailKind;
+      const nextDetailTeamId =
+        next.detailTeamId === undefined
+          ? mobileChronicleDetailTeamId
+          : next.detailTeamId;
+      const nextMenuPosition =
+        next.menuPosition === undefined
+          ? mobileChronicleMenuPosition
+          : next.menuPosition;
+      if (mobileChronicleActive) {
+        setMobileChroniclePanelAcrossTabs(nextPanelId);
+      }
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        mobilePanelId: nextPanelId,
+        mobileScreen: nextScreen,
+        mobileDetailKind: nextDetailKind,
+        mobileDetailTeamId: nextDetailTeamId,
+        mobileMenuPosition: nextMenuPosition,
+      }));
+      if (typeof window === "undefined" || !mobileChronicleActive) return;
+      const nextState: MobileChronicleHistoryState = {
+        appShell: "tool",
+        tool: "chronicle",
+        chroniclePanelId: nextPanelId,
+        chronicleScreen: nextScreen,
+        chronicleDetailKind: nextDetailKind,
+        chronicleDetailTeamId: nextDetailTeamId,
+      };
+      if (mode === "replace") {
+        window.history.replaceState(nextState, "", window.location.href);
+      } else {
+        window.history.pushState(nextState, "", window.location.href);
+      }
+    },
+    [
+      mobileChronicleActive,
+      mobileChronicleDetailKind,
+      mobileChronicleDetailTeamId,
+      mobileChronicleMenuPosition,
+      mobileChroniclePanelId,
+      mobileChronicleScreen,
+      setMobileChroniclePanelAcrossTabs,
+      updateActiveChronicleTab,
+    ]
+  );
+
+  const openMobileChronicleHome = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(new CustomEvent(MOBILE_LAUNCHER_REQUEST_EVENT));
+  }, []);
+
+  const openMobileChronicleDetail = useCallback(
+    (
+      panelId: ChroniclePanelId,
+      detailKind: MobileChronicleDetailKind,
+      teamId: number
+    ) => {
+      updateMobileChronicleState(
+        {
+          panelId,
+          screen: "detail",
+          detailKind,
+          detailTeamId: teamId,
+        },
+        "push"
+      );
+    },
+    [updateMobileChronicleState]
+  );
+
   const handleOpenDetails = (teamId: number) => {
+    if (mobileChronicleActive) {
+      setSelectedTeamId(teamId);
+      openMobileChronicleDetail("league-performance", "league-performance", teamId);
+      return;
+    }
     setSelectedTeamId(teamId);
     setDetailsOpen(true);
   };
 
   const handleOpenPressDetails = (teamId: number) => {
+    if (mobileChronicleActive) {
+      setSelectedPressTeamId(teamId);
+      openMobileChronicleDetail(
+        "press-announcements",
+        "press-announcements",
+        teamId
+      );
+      return;
+    }
     setSelectedPressTeamId(teamId);
     setPressDetailsOpen(true);
   };
 
   const handleOpenFinanceDetails = (teamId: number) => {
+    if (mobileChronicleActive) {
+      setSelectedFinanceTeamId(teamId);
+      openMobileChronicleDetail("finance-estimate", "finance-estimate", teamId);
+      return;
+    }
     setSelectedFinanceTeamId(teamId);
     setFinanceDetailsOpen(true);
   };
 
   const handleOpenFanclubDetails = (teamId: number) => {
+    if (mobileChronicleActive) {
+      setSelectedFanclubTeamId(teamId);
+      openMobileChronicleDetail("fanclub", "fanclub", teamId);
+      return;
+    }
     setSelectedFanclubTeamId(teamId);
     setFanclubDetailsOpen(true);
   };
 
   const handleOpenArenaDetails = (teamId: number) => {
+    if (mobileChronicleActive) {
+      setSelectedArenaTeamId(teamId);
+      openMobileChronicleDetail("arena", "arena", teamId);
+      return;
+    }
     setSelectedArenaTeamId(teamId);
     setArenaDetailsOpen(true);
   };
 
   const handleOpenFormationsTacticsDetails = (teamId: number) => {
+    if (mobileChronicleActive) {
+      setSelectedFormationsTacticsTeamId(teamId);
+      openMobileChronicleDetail(
+        "formations-tactics",
+        "formations-tactics",
+        teamId
+      );
+      return;
+    }
     setSelectedFormationsTacticsTeamId(teamId);
     setFormationsTacticsDetailsOpen(true);
   };
 
   const handleOpenLikelyTrainingDetails = (teamId: number) => {
+    if (mobileChronicleActive) {
+      setSelectedLikelyTrainingTeamId(teamId);
+      openMobileChronicleDetail("likely-training", "likely-training", teamId);
+      return;
+    }
     setSelectedLikelyTrainingTeamId(teamId);
     setLikelyTrainingDetailsOpen(true);
   };
 
   const handleOpenWagesDetails = (teamId: number) => {
+    if (mobileChronicleActive) {
+      setSelectedWagesTeamId(teamId);
+      openMobileChronicleDetail("wages", "wages", teamId);
+      return;
+    }
     setSelectedWagesTeamId(teamId);
     setWagesDetailsOpen(true);
   };
 
   const handleOpenTsiDetails = (teamId: number) => {
+    if (mobileChronicleActive) {
+      setSelectedTsiTeamId(teamId);
+      openMobileChronicleDetail("tsi", "tsi", teamId);
+      return;
+    }
     setSelectedTsiTeamId(teamId);
     setTsiDetailsOpen(true);
   };
 
   const handleOpenLastLoginDetails = (teamId: number) => {
+    if (mobileChronicleActive) {
+      setSelectedLastLoginTeamId(teamId);
+      openMobileChronicleDetail("last-login", "last-login", teamId);
+      return;
+    }
     setSelectedLastLoginTeamId(teamId);
     setLastLoginDetailsOpen(true);
   };
 
   const handleOpenCoachDetails = (teamId: number) => {
+    if (mobileChronicleActive) {
+      setSelectedCoachTeamId(teamId);
+      openMobileChronicleDetail("coach", "coach", teamId);
+      return;
+    }
     setSelectedCoachTeamId(teamId);
     setCoachDetailsOpen(true);
   };
 
   const handleOpenPowerRatingsDetails = (teamId: number) => {
+    if (mobileChronicleActive) {
+      setSelectedPowerRatingsTeamId(teamId);
+      openMobileChronicleDetail("power-ratings", "power-ratings", teamId);
+      return;
+    }
     setSelectedPowerRatingsTeamId(teamId);
     setPowerRatingsDetailsOpen(true);
   };
 
   const handleOpenTransferListedDetails = useCallback((teamId: number) => {
     setSelectedTransferTeamId(teamId);
-    setTransferListedDetailsOpen(true);
+    if (mobileChronicleActive) {
+      updateMobileChronicleState(
+        {
+          panelId: "transfer-market",
+          screen: "detail",
+          detailKind: "transfer-listed",
+          detailTeamId: teamId,
+        },
+        "push"
+      );
+    } else {
+      setTransferListedDetailsOpen(true);
+    }
     void (async () => {
       setLoadingTransferListedModal(true);
       try {
@@ -4554,11 +4994,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         setLoadingTransferListedModal(false);
       }
     })();
-  }, [chronicleCache]);
+  }, [chronicleCache, mobileChronicleActive, updateMobileChronicleState]);
 
   const handleOpenTransferHistory = useCallback((teamId: number) => {
     setSelectedTransferTeamId(teamId);
-    setTransferHistoryOpen(true);
+    if (mobileChronicleActive) {
+      updateMobileChronicleState(
+        {
+          panelId: "transfer-market",
+          screen: "detail",
+          detailKind: "transfer-history",
+          detailTeamId: teamId,
+        },
+        "push"
+      );
+    } else {
+      setTransferHistoryOpen(true);
+    }
     void (async () => {
       setLoadingTransferHistoryModal(true);
       try {
@@ -4593,7 +5045,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         setLoadingTransferHistoryModal(false);
       }
     })();
-  }, [transferHistoryCount]);
+  }, [mobileChronicleActive, transferHistoryCount, updateMobileChronicleState]);
 
   const handleLeagueSort = (key: string) => {
     setLeagueSortState((prev) => ({
@@ -9432,6 +9884,57 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     ? powerRatingsRows.find((team) => team.teamId === selectedPowerRatingsTeamId) ??
       null
     : null;
+  const resolvedMobileChroniclePanelId = normalizedPanelOrder.includes(
+    mobileChroniclePanelId
+  )
+    ? mobileChroniclePanelId
+    : normalizedPanelOrder[0] ?? PANEL_IDS[0];
+  const panelTitleById = useMemo<Record<ChroniclePanelId, string>>(
+    () => ({
+      "league-performance": messages.clubChronicleLeaguePanelTitle,
+      "press-announcements": messages.clubChroniclePressPanelTitle,
+      "last-login": messages.clubChronicleLastLoginPanelTitle,
+      coach: messages.clubChronicleCoachPanelTitle,
+      "power-ratings": messages.clubChroniclePowerRatingsPanelTitle,
+      fanclub: messages.clubChronicleFanclubPanelTitle,
+      arena: messages.clubChronicleArenaPanelTitle,
+      "finance-estimate": messages.clubChronicleFinancePanelTitle,
+      "transfer-market": messages.clubChronicleTransferPanelTitle,
+      "formations-tactics": messages.clubChronicleFormationsPanelTitle,
+      "likely-training": messages.clubChronicleLikelyTrainingPanelTitle,
+      tsi: messages.clubChronicleTsiPanelTitle,
+      wages: messages.clubChronicleWagesPanelTitle,
+    }),
+    [
+      messages.clubChronicleArenaPanelTitle,
+      messages.clubChronicleCoachPanelTitle,
+      messages.clubChronicleFanclubPanelTitle,
+      messages.clubChronicleFinancePanelTitle,
+      messages.clubChronicleFormationsPanelTitle,
+      messages.clubChronicleLastLoginPanelTitle,
+      messages.clubChronicleLeaguePanelTitle,
+      messages.clubChronicleLikelyTrainingPanelTitle,
+      messages.clubChroniclePowerRatingsPanelTitle,
+      messages.clubChroniclePressPanelTitle,
+      messages.clubChronicleTransferPanelTitle,
+      messages.clubChronicleTsiPanelTitle,
+      messages.clubChronicleWagesPanelTitle,
+    ]
+  );
+  const resolvedMobileChroniclePanelTitle =
+    panelTitleById[resolvedMobileChroniclePanelId];
+  const mobileChroniclePanelIndex = normalizedPanelOrder.indexOf(
+    resolvedMobileChroniclePanelId
+  );
+  const previousMobileChroniclePanelId =
+    mobileChroniclePanelIndex <= 0
+      ? normalizedPanelOrder[normalizedPanelOrder.length - 1] ?? PANEL_IDS[0]
+      : normalizedPanelOrder[mobileChroniclePanelIndex - 1];
+  const nextMobileChroniclePanelId =
+    mobileChroniclePanelIndex === -1 ||
+    mobileChroniclePanelIndex === normalizedPanelOrder.length - 1
+      ? normalizedPanelOrder[0] ?? PANEL_IDS[0]
+      : normalizedPanelOrder[mobileChroniclePanelIndex + 1];
   const lastLoginDetailRows = useMemo(
     () => {
       const selectedTeamId = selectedLastLoginTeam?.teamId ?? 0;
@@ -10444,6 +10947,1524 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [primaryChronicleTeamId]
   );
 
+  const openChronicleUpdates = useCallback(() => {
+    refreshLatestUpdatesFromGlobalBaseline();
+    if (mobileChronicleActive) {
+      updateMobileChronicleState(
+        {
+          screen: "latest-updates",
+          detailKind: null,
+          detailTeamId: null,
+        },
+        "push"
+      );
+      return;
+    }
+    setUpdatesOpen(true);
+  }, [
+    mobileChronicleActive,
+    refreshLatestUpdatesFromGlobalBaseline,
+    updateMobileChronicleState,
+  ]);
+
+  const openChronicleWatchlist = useCallback(() => {
+    if (mobileChronicleActive) {
+      updateMobileChronicleState(
+        {
+          screen: "watchlist",
+          detailKind: null,
+          detailTeamId: null,
+        },
+        "push"
+      );
+      return;
+    }
+    setWatchlistOpen(true);
+  }, [mobileChronicleActive, updateMobileChronicleState]);
+
+  const openChronicleFormationsMatches = useCallback(() => {
+    if (mobileChronicleActive && selectedFormationsTacticsTeamId) {
+      updateMobileChronicleState(
+        {
+          panelId: "formations-tactics",
+          screen: "formations-matches",
+          detailKind: "formations-tactics",
+          detailTeamId: selectedFormationsTacticsTeamId,
+        },
+        "push"
+      );
+      return;
+    }
+    setFormationsTacticsMatchesOpen(true);
+  }, [
+    mobileChronicleActive,
+    selectedFormationsTacticsTeamId,
+    updateMobileChronicleState,
+  ]);
+
+  const mobileChronicleDetailLabel = useMemo(() => {
+    switch (mobileChronicleScreen) {
+      case "help":
+        return messages.mobileHelpLabel;
+      case "watchlist":
+        return messages.watchlistTitle;
+      case "latest-updates":
+        return messages.clubChronicleUpdatesTitle;
+      case "formations-matches":
+        return messages.clubChronicleFormationsMatchesListTitle;
+      case "detail":
+        switch (mobileChronicleDetailKind) {
+          case "press-announcements":
+            return messages.clubChroniclePressDetailsTitle;
+          case "fanclub":
+            return messages.clubChronicleFanclubDetailsTitle;
+          case "last-login":
+            return messages.clubChronicleLastLoginDetailsTitle;
+          case "coach":
+            return messages.clubChronicleCoachDetailsTitle;
+          case "finance-estimate":
+            return messages.clubChronicleFinancePanelTitle;
+          case "power-ratings":
+            return messages.clubChroniclePowerRatingsDetailsTitle;
+          case "arena":
+            return messages.clubChronicleArenaDetailsTitle;
+          case "transfer-listed":
+            return messages.clubChronicleTransferListedModalTitle;
+          case "transfer-history":
+            return messages.clubChronicleTransferHistoryModalTitle;
+          case "formations-tactics":
+            return messages.clubChronicleFormationsDetailsTitle;
+          case "likely-training":
+            return messages.clubChronicleLikelyTrainingDetailsTitle;
+          case "tsi":
+            return messages.clubChronicleTsiDetailsTitle;
+          case "wages":
+            return messages.clubChronicleWagesDetailsTitle;
+          case "league-performance":
+          default:
+            return messages.detailsTabLabel;
+        }
+      case "panel":
+      default:
+        return resolvedMobileChroniclePanelTitle;
+    }
+  }, [
+    messages.clubChronicleArenaDetailsTitle,
+    messages.clubChronicleCoachDetailsTitle,
+    messages.clubChronicleFanclubDetailsTitle,
+    messages.clubChronicleFinancePanelTitle,
+    messages.clubChronicleFormationsDetailsTitle,
+    messages.clubChronicleFormationsMatchesListTitle,
+    messages.clubChronicleLastLoginDetailsTitle,
+    messages.clubChronicleLikelyTrainingDetailsTitle,
+    messages.mobileHelpLabel,
+    messages.clubChroniclePowerRatingsDetailsTitle,
+    messages.clubChroniclePressDetailsTitle,
+    messages.clubChronicleTransferHistoryModalTitle,
+    messages.clubChronicleTransferListedModalTitle,
+    messages.clubChronicleTsiDetailsTitle,
+    messages.clubChronicleUpdatesTitle,
+    messages.clubChronicleWagesDetailsTitle,
+    messages.detailsTabLabel,
+    messages.watchlistTitle,
+    mobileChronicleDetailKind,
+    mobileChronicleScreen,
+    resolvedMobileChroniclePanelTitle,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!mobileChronicleActive) return;
+    const segments =
+      mobileChronicleScreen === "panel"
+        ? [
+            {
+              id: `panel:${resolvedMobileChroniclePanelId}`,
+              label: resolvedMobileChroniclePanelTitle,
+            },
+          ]
+        : mobileChronicleScreen === "help"
+          ? [{ id: "help", label: messages.mobileHelpLabel }]
+        : mobileChronicleScreen === "watchlist"
+          ? [{ id: "watchlist", label: messages.watchlistTitle }]
+          : mobileChronicleScreen === "latest-updates"
+            ? [{ id: "latest-updates", label: messages.clubChronicleUpdatesTitle }]
+            : mobileChronicleScreen === "formations-matches"
+              ? [
+                  {
+                    id: "panel:formations-tactics",
+                    label: panelTitleById["formations-tactics"],
+                  },
+                  {
+                    id: "formations-matches",
+                    label: messages.clubChronicleFormationsMatchesListTitle,
+                  },
+                ]
+              : [
+                  {
+                    id: `panel:${resolvedMobileChroniclePanelId}`,
+                    label: resolvedMobileChroniclePanelTitle,
+                  },
+                  { id: "detail", label: mobileChronicleDetailLabel },
+                ];
+    window.dispatchEvent(
+      new CustomEvent(MOBILE_NAV_TRAIL_STATE_EVENT, {
+        detail: {
+          tool: "chronicle",
+          segments,
+        },
+      })
+    );
+  }, [
+    messages.clubChronicleFormationsMatchesListTitle,
+    messages.clubChronicleUpdatesTitle,
+    messages.mobileHelpLabel,
+    messages.watchlistTitle,
+    mobileChronicleActive,
+    mobileChronicleDetailLabel,
+    mobileChronicleScreen,
+    panelTitleById,
+    resolvedMobileChroniclePanelId,
+    resolvedMobileChroniclePanelTitle,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handle = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      const detail = event.detail as { tool?: string; target?: string } | undefined;
+      if (!detail || detail.tool !== "chronicle") return;
+      if (detail.target === "tool-root") {
+        updateMobileChronicleState(
+          {
+            panelId: resolvedMobileChroniclePanelId,
+            screen: "panel",
+            detailKind: null,
+            detailTeamId: null,
+          },
+          "push"
+        );
+        return;
+      }
+      if (detail.target === "help") {
+        updateMobileChronicleState(
+          {
+            panelId: resolvedMobileChroniclePanelId,
+            screen: "help",
+            detailKind: null,
+            detailTeamId: null,
+          },
+          "push"
+        );
+        return;
+      }
+      if (detail.target === "watchlist") {
+        openChronicleWatchlist();
+        return;
+      }
+      if (detail.target === "latest-updates") {
+        openChronicleUpdates();
+        return;
+      }
+      if (detail.target === "formations-matches") {
+        openChronicleFormationsMatches();
+        return;
+      }
+      if (detail.target === "detail") {
+        return;
+      }
+      if (detail.target?.startsWith("panel:")) {
+        const panelId = detail.target.slice("panel:".length) as ChroniclePanelId;
+        if (!PANEL_IDS.includes(panelId)) return;
+        updateMobileChronicleState(
+          {
+            panelId,
+            screen: "panel",
+            detailKind: null,
+            detailTeamId: null,
+          },
+          "push"
+        );
+      }
+    };
+    window.addEventListener(MOBILE_NAV_TRAIL_JUMP_EVENT, handle);
+    return () => window.removeEventListener(MOBILE_NAV_TRAIL_JUMP_EVENT, handle);
+  }, [
+    openChronicleFormationsMatches,
+    openChronicleUpdates,
+    openChronicleWatchlist,
+    resolvedMobileChroniclePanelId,
+    updateMobileChronicleState,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!mobileChronicleActive) return;
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state as MobileChronicleHistoryState | null;
+      if (state?.appShell !== "tool" || state.tool !== "chronicle") return;
+      const nextPanelId = PANEL_IDS.includes(state.chroniclePanelId as ChroniclePanelId)
+        ? (state.chroniclePanelId as ChroniclePanelId)
+        : PANEL_IDS[0];
+      setMobileChroniclePanelAcrossTabs(nextPanelId);
+      updateActiveChronicleTab((prev) => ({
+        ...prev,
+        mobilePanelId: nextPanelId,
+        mobileScreen:
+          state.chronicleScreen === "watchlist" ||
+          state.chronicleScreen === "latest-updates" ||
+          state.chronicleScreen === "detail" ||
+          state.chronicleScreen === "formations-matches" ||
+          state.chronicleScreen === "panel"
+            ? state.chronicleScreen
+            : "panel",
+        mobileDetailKind:
+          state.chronicleDetailKind === "league-performance" ||
+          state.chronicleDetailKind === "press-announcements" ||
+          state.chronicleDetailKind === "finance-estimate" ||
+          state.chronicleDetailKind === "last-login" ||
+          state.chronicleDetailKind === "coach" ||
+          state.chronicleDetailKind === "power-ratings" ||
+          state.chronicleDetailKind === "fanclub" ||
+          state.chronicleDetailKind === "arena" ||
+          state.chronicleDetailKind === "transfer-listed" ||
+          state.chronicleDetailKind === "transfer-history" ||
+          state.chronicleDetailKind === "formations-tactics" ||
+          state.chronicleDetailKind === "likely-training" ||
+          state.chronicleDetailKind === "tsi" ||
+          state.chronicleDetailKind === "wages"
+            ? state.chronicleDetailKind
+            : null,
+        mobileDetailTeamId:
+          typeof state.chronicleDetailTeamId === "number"
+            ? state.chronicleDetailTeamId
+            : null,
+      }));
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [mobileChronicleActive, setMobileChroniclePanelAcrossTabs, updateActiveChronicleTab]);
+
+  const getChroniclePanelDisplayState = useCallback(
+    (
+      isRefreshing: boolean,
+      hasResolvedSnapshots: boolean
+    ): "loading" | "empty" | "ready" => {
+      if (loading || isValidating || loadingOwnLeagueTeams) return "loading";
+      if (trackedTeams.length === 0) return "empty";
+      if (isRefreshing && !hasResolvedSnapshots) return "loading";
+      return "ready";
+    },
+    [isValidating, loading, loadingOwnLeagueTeams, trackedTeams.length]
+  );
+  const showMobileChronicleLandscapeHint = mobileChronicleActive;
+
+  const watchlistBody = (
+    <div className={styles.watchlistPanel}>
+      {loading ? <p className={styles.muted}>{messages.watchlistLoading}</p> : null}
+      <label className={styles.watchlistMasterRow}>
+        <input
+          ref={watchlistMasterCheckboxRef}
+          type="checkbox"
+          checked={allWatchlistSelected}
+          onChange={handleToggleWholeWatchlist}
+          disabled={loading}
+        />
+        <span className={styles.watchlistMasterLabel}>{messages.watchlistAllItems}</span>
+      </label>
+      <div className={styles.watchlistSection}>
+        <h3 className={styles.watchlistHeading}>{messages.watchlistOwnSeniorTeamsTitle}</h3>
+        {ownSeniorTeams.length ? (
+          <ul className={styles.watchlistList}>
+            {ownSeniorTeams.map((team) => (
+              <li key={team.teamId} className={styles.watchlistRow}>
+                <label className={styles.watchlistTeam}>
+                  <input
+                    type="checkbox"
+                    checked={supportedSelections[team.teamId] ?? false}
+                    onChange={() => handleToggleSupported(team.teamId)}
+                  />
+                  <span className={styles.watchlistName}>{formatWatchlistTeamName(team)}</span>
+                </label>
+                <span className={styles.watchlistMeta}>
+                  {[team.leagueName, team.leagueLevelUnitName].filter(Boolean).join(" · ")}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className={styles.muted}>{messages.watchlistOwnSeniorTeamsEmpty}</p>
+        )}
+      </div>
+      <div className={styles.watchlistSection}>
+        <h3 className={styles.watchlistHeading}>{messages.watchlistOwnLeaguesTitle}</h3>
+        {ownLeagues.length ? (
+          <ul className={styles.watchlistList}>
+            {ownLeagues.map((entry) => (
+              <li key={entry.key} className={styles.watchlistRow}>
+                <label className={styles.watchlistTeam}>
+                  <input
+                    type="checkbox"
+                    checked={ownLeagueSelections[entry.key] ?? false}
+                    onChange={() => handleToggleOwnLeague(entry.key)}
+                  />
+                  <span className={styles.watchlistName}>{formatOwnLeagueName(entry)}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className={styles.muted}>{messages.watchlistOwnLeaguesEmpty}</p>
+        )}
+      </div>
+      <div className={styles.watchlistSection}>
+        <h3 className={styles.watchlistHeading}>{messages.watchlistSupportedTitle}</h3>
+        {supportedWatchlistTeams.length ? (
+          <ul className={styles.watchlistList}>
+            {supportedWatchlistTeams.map((team) => (
+              <li key={team.teamId} className={styles.watchlistRow}>
+                <label className={styles.watchlistTeam}>
+                  <input
+                    type="checkbox"
+                    checked={supportedSelections[team.teamId] ?? false}
+                    onChange={() => handleToggleSupported(team.teamId)}
+                  />
+                  <span className={styles.watchlistName}>{formatWatchlistTeamName(team)}</span>
+                </label>
+                {team.leagueName || team.leagueLevelUnitName ? (
+                  <span className={styles.watchlistMeta}>
+                    {[team.leagueName, team.leagueLevelUnitName].filter(Boolean).join(" · ")}
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className={styles.muted}>{messages.watchlistSupportedEmpty}</p>
+        )}
+      </div>
+      <div className={styles.watchlistSection}>
+        <h3 className={styles.watchlistHeading}>{messages.watchlistManualTitle}</h3>
+        {manualTeams.length ? (
+          <ul className={styles.watchlistList}>
+            {manualTeams.map((team) => (
+              <li key={team.teamId} className={styles.watchlistRow}>
+                <div className={styles.watchlistTeam}>
+                  <Tooltip content={messages.watchlistRemoveTooltip}>
+                    <button
+                      type="button"
+                      className={styles.watchlistRemove}
+                      onClick={() => handleRemoveManual(team.teamId)}
+                      aria-label={messages.watchlistRemoveTooltip}
+                    >
+                      🗑️
+                    </button>
+                  </Tooltip>
+                  <span className={styles.watchlistName}>{formatWatchlistTeamName(team)}</span>
+                </div>
+                {team.leagueName || team.leagueLevelUnitName ? (
+                  <span className={styles.watchlistMeta}>
+                    {[team.leagueName, team.leagueLevelUnitName].filter(Boolean).join(" · ")}
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className={styles.muted}>{messages.watchlistManualEmpty}</p>
+        )}
+      </div>
+      <div className={styles.watchlistSection}>
+        <h3 className={styles.watchlistHeading}>{messages.watchlistAddTitle}</h3>
+        <div className={styles.watchlistInputRow}>
+          <input
+            type="text"
+            className={styles.watchlistInput}
+            value={teamIdInput}
+            onChange={(event) => setTeamIdInput(event.target.value)}
+            placeholder={messages.watchlistAddPlaceholder}
+          />
+          <button
+            type="button"
+            className={styles.watchlistButton}
+            onClick={handleAddTeam}
+            disabled={isValidating}
+          >
+            {messages.watchlistAddButton}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const updatesBody = updates && trackedTeams.length ? (
+    <>
+      <div className={styles.chronicleUpdatesMetaBlock}>
+        <p className={styles.chroniclePressMeta}>
+          {messages.clubChronicleUpdatesSinceGlobal}
+        </p>
+        {lastGlobalComparedAt ? (
+          <p className={styles.chroniclePressMeta}>
+            {messages.clubChronicleUpdatesComparedAt}:{" "}
+            {formatDateTime(lastGlobalComparedAt)}
+          </p>
+        ) : null}
+        {!lastGlobalHadChanges ? (
+          <p className={styles.chroniclePressMeta}>
+            {messages.clubChronicleUpdatesNoChangesGlobal}
+          </p>
+        ) : null}
+        {showingPreviousSnapshot && latestHistoryWithChanges ? (
+          <p className={styles.chroniclePressMeta}>
+            {messages.clubChronicleUpdatesShowingFrom}:{" "}
+            {formatDateTime(latestHistoryWithChanges.comparedAt)}
+          </p>
+        ) : null}
+      </div>
+
+      {globalUpdatesHistory.length > 0 ? (
+        <div className={styles.chronicleUpdatesHistoryWrap}>
+          <div className={styles.chronicleUpdatesHistoryHeader}>
+            {messages.clubChronicleUpdatesHistoryTitle}
+          </div>
+          <div className={styles.chronicleUpdatesHistoryList}>
+            {globalUpdatesHistory.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                className={`${styles.chronicleUpdatesHistoryItem}${selectedHistoryComparedAt === entry.comparedAt ? ` ${styles.chronicleUpdatesHistoryItemActive}` : ""}`}
+                onClick={() => handleLoadHistoryEntry(entry)}
+                disabled={!entry.updates}
+                aria-pressed={selectedHistoryComparedAt === entry.comparedAt}
+              >
+                <span>{formatDateTime(entry.comparedAt)}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      {hasAnyTeamUpdates ? (
+        <div className={styles.chronicleUpdatesList}>
+          {trackedTeams.map((team) => {
+            const teamUpdates = updatesByTeam[team.teamId];
+            const changes = (teamUpdates?.changes ?? []).filter(
+              (change) => change.fieldKey !== "likelyTraining.confidence"
+            );
+            if (changes.length === 0) return null;
+            const teamLeagueLevelUnitId =
+              chronicleCache.teams[team.teamId]?.leagueLevelUnitId ?? null;
+            const isPrimaryTeam =
+              primaryChronicleTeamId !== null &&
+              team.teamId === primaryChronicleTeamId;
+            return (
+              <div
+                key={team.teamId}
+                className={`${styles.chronicleUpdatesTeam}${isPrimaryTeam ? ` ${styles.chronicleUpdatesTeamPrimary}` : ""}`}
+                    >
+                      <h3 className={styles.chronicleUpdatesTeamTitle}>
+                        {teamUpdates?.teamName ?? team.teamName ?? team.teamId}
+                      </h3>
+                      <div className={styles.mobileChronicleUpdatesGroup}>
+                        {changes.map((change) => (
+                          <div
+                            key={`${team.teamId}-${change.fieldKey}`}
+                            className={styles.mobileChronicleUpdatesChange}
+                          >
+                            <div className={styles.mobileChronicleUpdatesChangeLabel}>
+                              {getUpdateFieldLabel(change.fieldKey, change.label)}
+                            </div>
+                            <div className={styles.mobileChronicleUpdatesChangeValues}>
+                              <div className={styles.mobileChronicleUpdatesValueBlock}>
+                                <span className={styles.mobileChronicleUpdatesValueLabel}>
+                                  {messages.clubChronicleDetailsPreviousLabel}
+                                </span>
+                                <div className={styles.mobileChronicleUpdatesValueContent}>
+                                  {renderUpdateValue(
+                                    change.fieldKey,
+                                    change.previous,
+                                    team.teamId,
+                                    teamLeagueLevelUnitId
+                                  )}
+                                </div>
+                              </div>
+                              <div className={styles.mobileChronicleUpdatesValueBlock}>
+                                <span className={styles.mobileChronicleUpdatesValueLabel}>
+                                  {messages.clubChronicleDetailsCurrentLabel}
+                                </span>
+                                <div className={styles.mobileChronicleUpdatesValueContent}>
+                                  {renderUpdateValue(
+                                    change.fieldKey,
+                                    change.current,
+                                    team.teamId,
+                                    teamLeagueLevelUnitId
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+      ) : (
+        <p className={styles.chronicleEmpty}>{messages.clubChronicleUpdatesEmpty}</p>
+      )}
+    </>
+  ) : (
+    <p className={styles.chronicleEmpty}>{messages.clubChronicleUpdatesEmpty}</p>
+  );
+
+  const renderMobileChronicleDetailContent = (): ReactNode => {
+    if (mobileChronicleScreen === "help") {
+      return (
+        <div className={styles.helpCard}>
+          <h2 className={styles.helpTitle}>{messages.clubChronicleHelpTitle}</h2>
+          <p className={styles.helpIntro}>{messages.clubChronicleHelpIntro}</p>
+          <ul className={styles.helpList}>
+            <li>{messages.clubChronicleHelpBulletControls}</li>
+            <li>{messages.clubChronicleHelpBulletTabs}</li>
+            <li>{messages.clubChronicleHelpBulletLeague}</li>
+            <li>{messages.clubChronicleHelpBulletPress}</li>
+            <li>{messages.clubChronicleHelpBulletFinance}</li>
+            <li>{messages.clubChronicleHelpBulletFanclub}</li>
+            <li>{messages.clubChronicleHelpBulletArena}</li>
+            <li>{messages.clubChronicleHelpBulletTransfer}</li>
+            <li>{messages.clubChronicleHelpBulletFormations}</li>
+            <li>{messages.clubChronicleHelpBulletLikelyTraining}</li>
+            <li>{messages.clubChronicleHelpBulletTsi}</li>
+            <li>{messages.clubChronicleHelpBulletWages}</li>
+            <li>{messages.clubChronicleHelpBulletLatestUpdates}</li>
+          </ul>
+          <button
+            type="button"
+            className={styles.helpDismiss}
+            onClick={() =>
+              updateMobileChronicleState(
+                {
+                  panelId: resolvedMobileChroniclePanelId,
+                  screen: "panel",
+                  detailKind: null,
+                  detailTeamId: null,
+                },
+                "replace"
+              )
+            }
+          >
+            {messages.closeLabel}
+          </button>
+        </div>
+      );
+    }
+    if (mobileChronicleScreen === "watchlist") return watchlistBody;
+    if (mobileChronicleScreen === "latest-updates") return updatesBody;
+    if (mobileChronicleScreen === "formations-matches") {
+      return selectedFormationsTacticsTeam?.snapshot?.analyzedMatches?.length ? (
+        <ul className={styles.chronicleMatchList}>
+          {selectedFormationsTacticsTeam.snapshot.analyzedMatches.map((match) => (
+            <li
+              key={`${match.matchId}-${match.matchType ?? "na"}`}
+              className={styles.chronicleMatchListItem}
+            >
+              <a
+                className={styles.chroniclePressLink}
+                href={hattrickMatchUrl(match.matchId)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {match.matchId}
+              </a>
+              <span className={styles.chroniclePressMeta}>
+                {formatMatchTypeLabel(match.matchType)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className={styles.chronicleEmpty}>
+          {messages.clubChronicleFormationsMatchesListEmpty}
+        </p>
+      );
+    }
+    switch (mobileChronicleDetailKind) {
+      case "league-performance":
+        return selectedTeam?.leaguePerformance ? (() => {
+          const rows = leagueTableColumns.map((column) => ({
+            id: `details-${column.key}`,
+            label: column.label,
+            previous: column.getValue(selectedTeam.leaguePerformance?.previous, selectedTeam),
+            current: column.getValue(selectedTeam.leaguePerformance?.current, selectedTeam),
+          }));
+          return (
+            <div className={styles.chroniclePressContent}>
+              <h3 className={styles.chronicleDetailsSectionTitle}>
+                {messages.clubChronicleLeagueSectionTitle}
+              </h3>
+              {showMobileChronicleLandscapeHint ? (
+                <span className={styles.mobileYouthLandscapeHint}>
+                  {messages.mobileChronicleLandscapeHint}
+                </span>
+              ) : null}
+              <div className={styles.mobileChronicleTableWrap}>
+                <ChronicleTable
+                  columns={[
+                    {
+                      key: "metric",
+                      label: messages.clubChronicleLeagueSectionTitle,
+                      getValue: (_snapshot, row) => row?.label,
+                      sortable: false,
+                    },
+                    {
+                      key: "previous",
+                      label: messages.clubChronicleDetailsPreviousLabel,
+                      getValue: (_snapshot, row) => row?.previous,
+                      sortable: false,
+                    },
+                    {
+                      key: "current",
+                      label: messages.clubChronicleDetailsCurrentLabel,
+                      getValue: (_snapshot, row) => row?.current,
+                      sortable: false,
+                    },
+                  ]}
+                  rows={rows}
+                  getRowKey={(row) => row.id}
+                  getSnapshot={(row) => row}
+                  formatValue={formatValue}
+                  className={styles.mobileChronicleTabularTable}
+                  style={
+                    {
+                      "--cc-columns": 3,
+                      "--cc-template":
+                        "minmax(160px, 1.3fr) minmax(110px, 0.85fr) minmax(110px, 0.85fr)",
+                    } as CSSProperties
+                  }
+                />
+              </div>
+            </div>
+          );
+        })() : (
+          <p className={styles.chronicleEmpty}>{messages.clubChronicleLeaguePanelEmpty}</p>
+        );
+      case "press-announcements":
+        return selectedPressTeam?.snapshot ? (
+          <div className={styles.chroniclePressContent}>
+            <h3 className={styles.chroniclePressTitle}>
+              {selectedPressTeam.snapshot.subject
+                ? renderPressText(selectedPressTeam.snapshot.subject)
+                : messages.clubChroniclePressNone}
+            </h3>
+            <p className={styles.chroniclePressMeta}>
+              {messages.clubChronicleColumnTeam}:{" "}
+              {renderTeamNameLink(selectedPressTeam.teamId, selectedPressTeam.teamName)}
+            </p>
+            <p className={styles.chroniclePressMeta}>
+              {messages.clubChroniclePressColumnPublishedAt}:{" "}
+              {selectedPressTeam.snapshot.sendDate
+                ? formatChppDateTime(selectedPressTeam.snapshot.sendDate) ??
+                  selectedPressTeam.snapshot.sendDate
+                : "-"}
+            </p>
+            <div className={styles.chroniclePressBody}>
+              {selectedPressTeam.snapshot.body
+                ? renderPressText(selectedPressTeam.snapshot.body)
+                : messages.clubChroniclePressNone}
+            </div>
+          </div>
+        ) : (
+          <p className={styles.chronicleEmpty}>{messages.clubChroniclePressNone}</p>
+        );
+      case "fanclub":
+        return fanclubDetailsSnapshot ? (
+          <div className={styles.chronicleDetailsGrid}>
+            <h3 className={styles.chronicleDetailsSectionTitle}>
+              {renderTeamNameLink(
+                selectedFanclubTeam?.teamId,
+                selectedFanclubTeam?.teamName ?? null
+              )}
+            </h3>
+            <ChronicleTable
+              columns={fanclubDetailsColumns}
+              rows={[{ id: `${selectedFanclubTeam?.teamId ?? "fanclub"}-fanclub-details` }]}
+              getRowKey={(row) => row.id}
+              getSnapshot={() => fanclubDetailsSnapshot}
+              className={styles.chronicleFanclubDetailsTable}
+              formatValue={formatValue}
+              style={fanclubDetailsTableStyle}
+            />
+          </div>
+        ) : (
+          <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+        );
+      case "last-login":
+        return selectedLastLoginTeam ? (
+          <div className={styles.chroniclePressContent}>
+            <p className={styles.chroniclePressMeta}>
+              {messages.clubChronicleColumnTeam}:{" "}
+              {renderTeamNameLink(selectedLastLoginTeam.teamId, selectedLastLoginTeam.teamName)}
+            </p>
+            {lastLoginDetailRows.length ? (
+              <ChronicleTable
+                columns={lastLoginDetailsColumns}
+                rows={lastLoginDetailRows}
+                getRowKey={(row) => row.id}
+                getSnapshot={(row) => row}
+                className={styles.chronicleLastLoginDetailsTable}
+                formatValue={formatValue}
+                style={lastLoginDetailsTableStyle}
+              />
+            ) : (
+              <p className={styles.chronicleEmpty}>{messages.clubChronicleLastLoginNoData}</p>
+            )}
+          </div>
+        ) : (
+          <p className={styles.chronicleEmpty}>{messages.clubChronicleLastLoginNoData}</p>
+        );
+      case "coach":
+        return selectedCoachTeam ? (
+          <div className={styles.chroniclePressContent}>
+            <p className={styles.chroniclePressMeta}>
+              {messages.clubChronicleColumnTeam}:{" "}
+              {renderTeamNameLink(selectedCoachTeam.teamId, selectedCoachTeam.teamName)}
+            </p>
+            {coachDetailsRows.length > 0 ? (
+              <div className={styles.chronicleTransferHistoryTableWrap}>
+                <ChronicleTable
+                  columns={coachDetailsColumns}
+                  rows={coachDetailsRows}
+                  getRowKey={(row) => row.id}
+                  getSnapshot={(row) => row}
+                  formatValue={formatValue}
+                  style={coachDetailsTableStyle}
+                />
+              </div>
+            ) : (
+              <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+            )}
+          </div>
+        ) : (
+          <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+        );
+      case "finance-estimate":
+        return selectedFinanceTeam?.snapshot ? (
+          <div className={styles.chroniclePressContent}>
+            <h3 className={styles.chronicleDetailsSectionTitle}>
+              {renderTeamNameLink(selectedFinanceTeam.teamId, selectedFinanceTeam.teamName)}
+            </h3>
+            {showMobileChronicleLandscapeHint ? (
+              <span className={styles.mobileYouthLandscapeHint}>
+                {messages.mobileChronicleLandscapeHint}
+              </span>
+            ) : null}
+            <div className={styles.mobileChronicleTableWrap}>
+              <ChronicleTable
+                columns={[
+                  {
+                    key: "metric",
+                    label: messages.clubChronicleArenaDetailsMetric,
+                    getValue: (_snapshot, row) => row?.metric,
+                    sortable: false,
+                  },
+                  {
+                    key: "value",
+                    label: messages.clubChronicleDetailsCurrentLabel,
+                    getValue: (_snapshot, row) => row?.value,
+                    sortable: false,
+                  },
+                ]}
+                rows={[
+                  {
+                    id: "buys",
+                    metric: messages.clubChronicleFinanceColumnBuys,
+                    value: formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.totalBuysSek),
+                  },
+                  {
+                    id: "sales",
+                    metric: messages.clubChronicleFinanceColumnSales,
+                    value: formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.totalSalesSek),
+                  },
+                  {
+                    id: "estimate",
+                    metric: messages.clubChronicleFinanceColumnEstimate,
+                    value: `${formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.estimatedSek)}*`,
+                  },
+                ]}
+                getRowKey={(row) => row.id}
+                getSnapshot={(row) => row}
+                formatValue={formatValue}
+                className={styles.mobileChronicleTabularTable}
+                style={
+                  {
+                    "--cc-columns": 2,
+                    "--cc-template": "minmax(170px, 1.2fr) minmax(140px, 1fr)",
+                  } as CSSProperties
+                }
+              />
+            </div>
+          </div>
+        ) : (
+          <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+        );
+      case "power-ratings":
+        return selectedPowerRatingsTeam?.snapshot ? (
+          <div className={styles.chroniclePressContent}>
+            <h3 className={styles.chronicleDetailsSectionTitle}>
+              {renderTeamNameLink(
+                selectedPowerRatingsTeam.teamId,
+                selectedPowerRatingsTeam.teamName
+              )}
+            </h3>
+            {showMobileChronicleLandscapeHint ? (
+              <span className={styles.mobileYouthLandscapeHint}>
+                {messages.mobileChronicleLandscapeHint}
+              </span>
+            ) : null}
+            <div className={styles.mobileChronicleTableWrap}>
+              <ChronicleTable
+                columns={[
+                  {
+                    key: "metric",
+                    label: messages.clubChronicleArenaDetailsMetric,
+                    getValue: (_snapshot, row) => row?.metric,
+                    sortable: false,
+                  },
+                  {
+                    key: "value",
+                    label: messages.clubChronicleDetailsCurrentLabel,
+                    getValue: (_snapshot, row) => row?.value,
+                    sortable: false,
+                  },
+                ]}
+                rows={[
+                  {
+                    id: "value",
+                    metric: messages.clubChroniclePowerRatingsColumnValue,
+                    value: selectedPowerRatingsTeam.snapshot.powerRating,
+                  },
+                  {
+                    id: "global",
+                    metric: messages.clubChroniclePowerRatingsColumnGlobalRanking,
+                    value: selectedPowerRatingsTeam.snapshot.globalRanking,
+                  },
+                  {
+                    id: "league",
+                    metric: messages.clubChroniclePowerRatingsColumnLeagueRanking,
+                    value: selectedPowerRatingsTeam.snapshot.leagueRanking,
+                  },
+                  {
+                    id: "region",
+                    metric: messages.clubChroniclePowerRatingsColumnRegionRanking,
+                    value: selectedPowerRatingsTeam.snapshot.regionRanking,
+                  },
+                ]}
+                getRowKey={(row) => row.id}
+                getSnapshot={(row) => row}
+                formatValue={formatValue}
+                className={styles.mobileChronicleTabularTable}
+                style={
+                  {
+                    "--cc-columns": 2,
+                    "--cc-template": "minmax(190px, 1.25fr) minmax(120px, 0.85fr)",
+                  } as CSSProperties
+                }
+              />
+            </div>
+          </div>
+        ) : (
+          <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+        );
+      case "arena":
+        return selectedArenaTeam?.snapshot ? (
+          <div className={styles.chroniclePressContent}>
+            <h3 className={styles.chronicleDetailsSectionTitle}>
+              {renderTeamNameLink(selectedArenaTeam.teamId, selectedArenaTeam.teamName)}
+            </h3>
+            {showMobileChronicleLandscapeHint ? (
+              <span className={styles.mobileYouthLandscapeHint}>
+                {messages.mobileChronicleLandscapeHint}
+              </span>
+            ) : null}
+            <div className={styles.mobileChronicleTableWrap}>
+              <ChronicleTable
+                columns={[
+                  {
+                    key: "metric",
+                    label: messages.clubChronicleArenaDetailsMetric,
+                    getValue: (_snapshot, row) => row?.metric,
+                    sortable: false,
+                  },
+                  {
+                    key: "current",
+                    label: messages.clubChronicleDetailsCurrentLabel,
+                    getValue: (_snapshot, row) => row?.current,
+                    sortable: false,
+                  },
+                  {
+                    key: "expanded",
+                    label: messages.clubChronicleArenaDetailsExpandedColumn,
+                    getValue: (_snapshot, row) => row?.expanded,
+                    sortable: false,
+                  },
+                ]}
+                rows={[
+                  {
+                    id: "terraces",
+                    metric: messages.clubChronicleArenaSeatTerraces,
+                    current: selectedArenaTeam.snapshot.terraces,
+                    expanded: selectedArenaTeam.snapshot.expandedTerraces,
+                  },
+                  {
+                    id: "basic",
+                    metric: messages.clubChronicleArenaSeatBasic,
+                    current: selectedArenaTeam.snapshot.basic,
+                    expanded: selectedArenaTeam.snapshot.expandedBasic,
+                  },
+                  {
+                    id: "roof",
+                    metric: messages.clubChronicleArenaSeatRoof,
+                    current: selectedArenaTeam.snapshot.roof,
+                    expanded: selectedArenaTeam.snapshot.expandedRoof,
+                  },
+                  {
+                    id: "vip",
+                    metric: messages.clubChronicleArenaSeatVip,
+                    current: selectedArenaTeam.snapshot.vip,
+                    expanded: selectedArenaTeam.snapshot.expandedVip,
+                  },
+                  {
+                    id: "current-capacity",
+                    metric: messages.clubChronicleArenaDetailsCurrentCapacity,
+                    current: selectedArenaTeam.snapshot.currentTotalCapacity,
+                    expanded: selectedArenaTeam.snapshot.expandedTotalCapacity,
+                  },
+                  {
+                    id: "expected-finish",
+                    metric: messages.clubChronicleArenaDetailsExpectedFinish,
+                    current: messages.unknownShort,
+                    expanded: selectedArenaTeam.snapshot.expansionDate
+                      ? formatChppDateTime(selectedArenaTeam.snapshot.expansionDate) ??
+                        selectedArenaTeam.snapshot.expansionDate
+                      : null,
+                  },
+                ]}
+                getRowKey={(row) => row.id}
+                getSnapshot={(row) => row}
+                formatValue={formatValue}
+                className={styles.mobileChronicleTabularTable}
+                style={
+                  {
+                    "--cc-columns": 3,
+                    "--cc-template":
+                      "minmax(180px, 1.3fr) minmax(110px, 0.8fr) minmax(120px, 0.9fr)",
+                  } as CSSProperties
+                }
+              />
+            </div>
+          </div>
+        ) : (
+          <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+        );
+      case "transfer-listed":
+        return selectedTransferTeam ? (
+          <>
+            <p className={styles.chroniclePressMeta}>
+              {messages.clubChronicleColumnTeam}:{" "}
+              {renderTeamNameLink(selectedTransferTeam.teamId, selectedTransferTeam.teamName)}
+            </p>
+            {transferListedRows.length > 0 ? (
+              <div className={styles.chronicleTransferListedTableWrap}>
+                <ChronicleTable
+                  columns={transferListedColumns}
+                  rows={transferListedRows}
+                  getRowKey={(row) => row.playerId}
+                  getSnapshot={(row) => row}
+                  formatValue={formatValue}
+                  style={
+                    {
+                      "--cc-columns": transferListedColumns.length,
+                      "--cc-template":
+                        "minmax(150px, 1.6fr) minmax(100px, 0.8fr) minmax(86px, 0.7fr) minmax(120px, 0.9fr)",
+                    } as CSSProperties
+                  }
+                />
+              </div>
+            ) : (
+              <p className={styles.chronicleEmpty}>
+                {messages.clubChronicleTransferListedEmpty}
+              </p>
+            )}
+          </>
+        ) : (
+          <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+        );
+      case "transfer-history":
+        return selectedTransferTeam ? (
+          <>
+            <p className={styles.chroniclePressMeta}>
+              {messages.clubChronicleColumnTeam}:{" "}
+              {renderTeamNameLink(selectedTransferTeam.teamId, selectedTransferTeam.teamName)}
+            </p>
+            {loadingTransferHistoryModal ? (
+              <p className={styles.chronicleEmpty}>{messages.clubChronicleLoading}</p>
+            ) : transferHistoryRows.length > 0 ? (
+              <div className={styles.chronicleTransferHistoryTableWrap}>
+                <ChronicleTable
+                  columns={transferHistoryColumns}
+                  rows={transferHistoryRows}
+                  getRowKey={(row) =>
+                    `${row.transferId ?? "unknown"}-${row.playerId ?? "0"}-${row.deadline ?? "na"}`
+                  }
+                  getSnapshot={(row) => row}
+                  formatValue={formatValue}
+                  style={
+                    {
+                      "--cc-columns": transferHistoryColumns.length,
+                      "--cc-template":
+                        "minmax(138px, 1fr) minmax(84px, 0.7fr) minmax(220px, 1.7fr) minmax(96px, 0.8fr) minmax(96px, 0.8fr) minmax(122px, 0.9fr)",
+                    } as CSSProperties
+                  }
+                />
+              </div>
+            ) : (
+              <p className={styles.chronicleEmpty}>
+                {messages.clubChronicleTransferHistoryEmpty}
+              </p>
+            )}
+          </>
+        ) : (
+          <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+        );
+      case "formations-tactics":
+        return selectedFormationsTacticsTeam?.snapshot ? (
+          <>
+            <p className={styles.chroniclePressMeta}>
+              {messages.clubChronicleColumnTeam}:{" "}
+              <span className={styles.chronicleDistributionTeamName}>
+                {renderTeamNameLink(
+                  selectedFormationsTacticsTeam.teamId,
+                  selectedFormationsTacticsTeam.teamName
+                )}
+              </span>
+            </p>
+            <p className={styles.chroniclePressMeta}>
+              <button
+                type="button"
+                className={styles.chronicleInlineLinkButton}
+                onClick={openChronicleFormationsMatches}
+              >
+                {messages.clubChronicleFormationsSampleLabel}:{" "}
+                {formatValue(selectedFormationsTacticsTeam.snapshot.sampleSize)}
+              </button>
+            </p>
+            <div className={styles.chronicleDistributionGrid}>
+              <div className={styles.chronicleDistributionCard}>
+                <h3 className={styles.chronicleDetailsSectionTitle}>
+                  {messages.clubChronicleFormationsColumnFormation}
+                </h3>
+                <div className={styles.chroniclePieChartWrap}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart margin={{ top: 24, right: 64, left: 64, bottom: 24 }}>
+                      <Pie
+                        data={formationChartData}
+                        dataKey="count"
+                        nameKey="label"
+                        outerRadius={90}
+                        label={renderPieLabel}
+                        labelLine
+                      >
+                        {formationChartData.map((entry, index) => (
+                          <Cell
+                            key={`formation-cell-${entry.key}`}
+                            fill={colorForSlice(index)}
+                          />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div className={styles.chronicleDistributionCard}>
+                <h3 className={styles.chronicleDetailsSectionTitle}>
+                  {messages.clubChronicleFormationsColumnTactic}
+                </h3>
+                <div className={styles.chroniclePieChartWrap}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart margin={{ top: 24, right: 64, left: 64, bottom: 24 }}>
+                      <Pie
+                        data={tacticChartData}
+                        dataKey="count"
+                        nameKey="label"
+                        outerRadius={90}
+                        label={renderPieLabel}
+                        labelLine
+                      >
+                        {tacticChartData.map((entry, index) => (
+                          <Cell
+                            key={`tactic-cell-${entry.key}`}
+                            fill={colorForSlice(index)}
+                          />
+                        ))}
+                      </Pie>
+                      <RechartsTooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          </>
+        ) : (
+          <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+        );
+      case "likely-training":
+        return selectedLikelyTrainingTeam?.snapshot ? (
+          <>
+            <div className={styles.chronicleLikelyTrainingMeta}>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleColumnTeam}:{" "}
+                {renderTeamNameLink(
+                  selectedLikelyTrainingTeam.teamId,
+                  selectedLikelyTrainingTeam.teamName
+                )}
+              </p>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleLikelyTrainingColumnRegimen}:{" "}
+                {formatLikelyTrainingSummary(selectedLikelyTrainingTeam.snapshot)}
+              </p>
+              {selectedLikelyTrainingTeam.snapshot.likelyTrainingIsUnclear ? (
+                <p className={styles.chroniclePressMeta}>
+                  {messages.clubChronicleLikelyTrainingUnclearDisclaimer}
+                </p>
+              ) : null}
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleLikelyTrainingConfidenceLabel}:{" "}
+                {selectedLikelyTrainingTeam.snapshot.likelyTrainingConfidencePct !== null
+                  ? `${formatValue(
+                      selectedLikelyTrainingTeam.snapshot.likelyTrainingConfidencePct
+                    )}%`
+                  : messages.unknownShort}
+              </p>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleLikelyTrainingMatchesLabel}:{" "}
+                {formatValue(selectedLikelyTrainingTeam.snapshot.sampleSize)}
+              </p>
+            </div>
+            {likelyTrainingDetailRows.length > 0 ? (
+              <div className={styles.chronicleTransferHistoryTableWrap}>
+                <ChronicleTable
+                  columns={likelyTrainingDetailsColumns}
+                  rows={likelyTrainingDetailRows}
+                  getRowKey={(row) => row.key}
+                  getSnapshot={(row) => row}
+                  formatValue={formatValue}
+                  style={likelyTrainingDetailsTableStyle}
+                  sortKey="confidence"
+                  sortDirection="desc"
+                />
+              </div>
+            ) : null}
+          </>
+        ) : (
+          renderChronicleNoTeamsEmpty()
+        );
+      case "tsi":
+        return selectedTsiTeam ? (
+          <>
+            <p className={styles.chroniclePressMeta}>
+              {messages.clubChronicleColumnTeam}:{" "}
+              {renderTeamNameLink(selectedTsiTeam.teamId, selectedTsiTeam.teamName)}
+            </p>
+            {tsiPlayerRows.length > 0 ? (
+              <div className={styles.chronicleTransferHistoryTableWrap}>
+                <ChronicleTable
+                  columns={tsiPlayerColumns}
+                  rows={sortedTsiPlayerRows}
+                  getRowKey={(row) => row.playerId}
+                  getSnapshot={(row) => row}
+                  formatValue={formatValue}
+                  style={
+                    {
+                      "--cc-columns": tsiPlayerColumns.length,
+                      "--cc-template":
+                        "minmax(90px, 0.5fr) minmax(240px, 1.5fr) minmax(120px, 0.9fr) minmax(130px, 0.8fr)",
+                    } as CSSProperties
+                  }
+                  sortKey={tsiDetailsSortState.key}
+                  sortDirection={tsiDetailsSortState.direction}
+                  onSort={handleTsiDetailsSort}
+                />
+              </div>
+            ) : (
+              <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+            )}
+          </>
+        ) : (
+          <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+        );
+      case "wages":
+        return selectedWagesTeam ? (
+          <>
+            <p className={styles.chroniclePressMeta}>
+              {messages.clubChronicleColumnTeam}:{" "}
+              {renderTeamNameLink(selectedWagesTeam.teamId, selectedWagesTeam.teamName)}
+            </p>
+            {wagesPlayerRows.length > 0 ? (
+              <div className={styles.chronicleTransferHistoryTableWrap}>
+                <ChronicleTable
+                  columns={wagesPlayerColumns}
+                  rows={sortedWagesPlayerRows}
+                  getRowKey={(row) => row.playerId}
+                  getSnapshot={(row) => row}
+                  formatValue={formatValue}
+                  style={
+                    {
+                      "--cc-columns": wagesPlayerColumns.length,
+                      "--cc-template":
+                        "minmax(90px, 0.5fr) minmax(240px, 1.5fr) minmax(120px, 0.9fr) minmax(150px, 0.8fr)",
+                    } as CSSProperties
+                  }
+                  sortKey={wagesDetailsSortState.key}
+                  sortDirection={wagesDetailsSortState.direction}
+                  onSort={handleWagesDetailsSort}
+                />
+              </div>
+            ) : (
+              <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+            )}
+          </>
+        ) : (
+          <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
+        );
+      default:
+        return <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>;
+    }
+  };
+
+  const mobileChronicleContent = (
+    <div
+      className={`${styles.mobileChronicleContent} ${
+        mobileChronicleScreen === "panel" ? styles.mobileChronicleContentPanelMode : ""
+      }`}
+    >
+      {mobileChronicleRefreshFeedbackVisible ? (
+        <div className={styles.mobileYouthRefreshStatus} aria-live="polite">
+          <span className={styles.mobileYouthRefreshStatusText}>
+            {globalRefreshStatus
+              ? globalRefreshStatus
+              : lastGlobalRefreshAt
+                ? `${messages.clubChronicleLastGlobalRefresh}: ${formatDateTime(lastGlobalRefreshAt)}`
+                : messages.refreshingLabel}
+          </span>
+          {anyRefreshing ? (
+            <span className={styles.mobileYouthRefreshProgressTrack} aria-hidden="true">
+              <span
+                className={styles.mobileYouthRefreshProgressFill}
+                style={{
+                  width: `${Math.max(0, Math.min(100, globalRefreshProgressPct))}%`,
+                }}
+              />
+            </span>
+          ) : null}
+        </div>
+      ) : null}
+      {mobileChronicleScreen === "panel" ? (
+        <div className={styles.mobileChroniclePanelStage}>
+          <div
+            className={`${styles.chronicleTabsBar} ${styles.mobileChronicleTabsBar}`}
+          >
+            <div
+              className={`${styles.chronicleTabsList} ${styles.mobileChronicleTabsList}`}
+            >
+              {chronicleTabs.map((tab, index) => {
+                const isActive = tab.id === activeChronicleTab.id;
+                const isRenaming = tab.id === renamingTabId;
+                return (
+                  <div
+                    key={tab.id}
+                    className={`${styles.chronicleTabChip}${isActive ? ` ${styles.chronicleTabChipActive}` : ""}`}
+                  >
+                    {isRenaming ? (
+                      <input
+                        type="text"
+                        className={styles.chronicleTabInput}
+                        value={renamingTabValue}
+                        placeholder={messages.clubChronicleTabRenamePlaceholder}
+                        autoFocus
+                        onChange={(event) => setRenamingTabValue(event.target.value)}
+                        onBlur={handleCommitRenamingTab}
+                        onClick={(event) => event.stopPropagation()}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter") {
+                            event.preventDefault();
+                            handleCommitRenamingTab();
+                          }
+                          if (event.key === "Escape") {
+                            event.preventDefault();
+                            handleCancelRenamingTab();
+                          }
+                        }}
+                      />
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.chronicleTabLabel}
+                        onClick={() => handleSelectChronicleTabMobile(tab.id)}
+                      >
+                        <span>{tab.name || buildChronicleTabName(messages, index + 1)}</span>
+                      </button>
+                    )}
+                    <Tooltip content={messages.clubChronicleTabRenameTooltip}>
+                      <button
+                        type="button"
+                        className={styles.chronicleTabRename}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleStartRenamingTab(tab);
+                        }}
+                        aria-label={messages.clubChronicleTabRenameTooltip}
+                      >
+                        ✎
+                      </button>
+                    </Tooltip>
+                    <Tooltip content={messages.clubChronicleTabDeleteTooltip}>
+                      <button
+                        type="button"
+                        className={styles.chronicleTabDelete}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          handleRequestDeleteTab(tab.id);
+                        }}
+                        aria-label={messages.clubChronicleTabDeleteTooltip}
+                      >
+                        ×
+                      </button>
+                    </Tooltip>
+                  </div>
+                );
+              })}
+              <Tooltip content={messages.clubChronicleTabAdd}>
+                <button
+                  type="button"
+                  className={styles.chronicleTabAddButton}
+                  onClick={handleCreateChronicleTab}
+                  aria-label={messages.clubChronicleTabAdd}
+                >
+                  +
+                </button>
+              </Tooltip>
+            </div>
+          </div>
+          <button
+            type="button"
+            className={`${styles.mobileChronicleEdgeButton} ${styles.mobileChronicleEdgeButtonLeft}`}
+            aria-label={messages.mobilePreviousPanelLabel}
+            onClick={() =>
+              updateMobileChronicleState(
+                {
+                  panelId: previousMobileChroniclePanelId,
+                  screen: "panel",
+                  detailKind: null,
+                  detailTeamId: null,
+                },
+                "push"
+              )
+            }
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            className={`${styles.mobileChronicleEdgeButton} ${styles.mobileChronicleEdgeButtonRight}`}
+            aria-label={messages.mobileNextPanelLabel}
+            onClick={() =>
+              updateMobileChronicleState(
+                {
+                  panelId: nextMobileChroniclePanelId,
+                  screen: "panel",
+                  detailKind: null,
+                  detailTeamId: null,
+                },
+                "push"
+              )
+            }
+          >
+            ›
+          </button>
+        </div>
+      ) : (
+        <section className={styles.mobileChronicleDetailScreen}>
+          {renderMobileChronicleDetailContent()}
+        </section>
+      )}
+      <MobileChronicleMenu
+        messages={messages}
+        toggleLabel={messages.toolClubChronicle}
+        onHome={openMobileChronicleHome}
+        onOpenHelp={() =>
+          updateMobileChronicleState(
+            {
+              panelId: resolvedMobileChroniclePanelId,
+              screen: "help",
+              detailKind: null,
+              detailTeamId: null,
+            },
+            "push"
+          )
+        }
+        onOpenWatchlist={openChronicleWatchlist}
+        onRefresh={() => runRefreshGuarded(() => refreshAllData("manual"))}
+        onOpenUpdates={openChronicleUpdates}
+        panelOptions={normalizedPanelOrder.map((panelId) => ({
+          id: panelId,
+          label: panelTitleById[panelId],
+        }))}
+        activeTarget={
+          mobileChronicleScreen === "help"
+            ? "help"
+            : mobileChronicleScreen === "watchlist"
+            ? "watchlist"
+            : mobileChronicleScreen === "latest-updates"
+              ? "latest-updates"
+              : resolvedMobileChroniclePanelId
+        }
+        onSelectPanel={(panelId) =>
+          updateMobileChronicleState(
+            {
+              panelId,
+              screen: "panel",
+              detailKind: null,
+              detailTeamId: null,
+            },
+            "push"
+          )
+        }
+        position={mobileChronicleMenuPosition}
+        onPositionChange={(nextPosition) =>
+          updateMobileChronicleState(
+            {
+              menuPosition: nextPosition,
+            },
+            "replace"
+          )
+        }
+      />
+    </div>
+  );
+
+  const renderChronicleNoTeamsEmpty = () => (
+    <p className={styles.chronicleEmpty}>
+      <span>{messages.clubChronicleNoTeams}</span>
+      {mobileChronicleActive ? (
+        <>
+          <br />
+          <span>{messages.clubChronicleNoTeamsMobileHint}</span>
+        </>
+      ) : null}
+    </p>
+  );
+
   return (
     <div className={styles.clubChronicleStack} ref={chronicleRootRef}>
       {showHelp ? (
@@ -10498,6 +12519,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           </div>
         </div>
       ) : null}
+      {mobileChronicleActive ? mobileChronicleContent : null}
+      {!mobileChronicleActive ? (
+        <>
       <div className={styles.chronicleHeader}>
         <div className={styles.chronicleHeaderActions}>
           <Tooltip content={messages.clubChronicleRefreshAllTooltip}>
@@ -10659,8 +12683,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         </div>
       </div>
 
+      </>
+      ) : null}
+
       <div className={styles.chroniclePanels}>
-        {panelOrder.map((panelId) => {
+        {normalizedPanelOrder.map((panelId) => {
+          if (
+            mobileChronicleActive &&
+            (mobileChronicleScreen !== "panel" ||
+              panelId !== resolvedMobileChroniclePanelId)
+          ) {
+            return null;
+          }
           if (panelId === "league-performance") {
             return (
               <div
@@ -10685,35 +12719,48 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingLeague) &&
-                    leagueRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingLeague,
+                    leagueRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
                     </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingLeague,
+                      leagueRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
                   ) : (
-                    <ChronicleTable
-                      columns={leagueTableColumns}
-                      rows={sortedLeagueRows}
-                      getRowKey={(row) => row.teamId}
-                      getSnapshot={(row) => row.snapshot ?? undefined}
-                      getRowClassName={getTeamRowClassName}
-                      onRowClick={(row) => handleOpenDetails(row.teamId)}
-                      formatValue={formatValue}
-                      style={tableStyle}
-                      sortKey={leagueSortState.key}
-                      sortDirection={leagueSortState.direction}
-                      onSort={handleLeagueSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) =>
-                        handleNoDivulgoDismiss(row.teamId)
-                      }
-                    />
+                    <div className={styles.mobileChronicleTabularBlock}>
+                      {showMobileChronicleLandscapeHint ? (
+                        <span className={styles.mobileYouthLandscapeHint}>
+                          {messages.mobileChronicleLandscapeHint}
+                        </span>
+                      ) : null}
+                      <div className={styles.mobileChronicleTableWrap}>
+                        <ChronicleTable
+                          columns={leagueTableColumns}
+                          rows={sortedLeagueRows}
+                          getRowKey={(row) => row.teamId}
+                          getSnapshot={(row) => row.snapshot ?? undefined}
+                          getRowClassName={getTeamRowClassName}
+                          onRowClick={(row) => handleOpenDetails(row.teamId)}
+                          formatValue={formatValue}
+                          style={tableStyle}
+                          className={styles.mobileChronicleTabularTable}
+                          sortKey={leagueSortState.key}
+                          sortDirection={leagueSortState.direction}
+                          onSort={handleLeagueSort}
+                          maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                          maskText={messages.clubChronicleNoDivulgoMask}
+                          isMaskActive={noDivulgoActive}
+                          onMaskedRowClick={(row) =>
+                            handleNoDivulgoDismiss(row.teamId)
+                          }
+                        />
+                      </div>
+                    </div>
                   )}
                 </ChroniclePanel>
               </div>
@@ -10743,15 +12790,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingPress) &&
-                    pressRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingPress,
+                    pressRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
                     </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingPress,
+                      pressRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={pressTableColumns}
@@ -10801,15 +12851,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingFinance) &&
-                    financeRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingFinance,
+                    financeRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
                     </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingFinance,
+                      financeRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <>
                       <ChronicleTable
@@ -10864,15 +12917,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingLastLogin) &&
-                    lastLoginRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingLastLogin,
+                    lastLoginRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
                     </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingLastLogin,
+                      lastLoginRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={lastLoginTableColumns}
@@ -10922,35 +12978,48 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingCoach) &&
-                    coachRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingCoach,
+                    coachRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
                     </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingCoach,
+                      coachRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
                   ) : (
-                    <ChronicleTable
-                      columns={coachTableColumns}
-                      rows={sortedCoachRows}
-                      getRowKey={(row) => row.teamId}
-                      getSnapshot={(row) => row.snapshot ?? undefined}
-                      getRowClassName={getTeamRowClassName}
-                      onRowClick={(row) => handleOpenCoachDetails(row.teamId)}
-                      formatValue={formatValue}
-                      style={coachTableStyle}
-                      sortKey={coachSortState.key}
-                      sortDirection={coachSortState.direction}
-                      onSort={handleCoachSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) =>
-                        handleNoDivulgoDismiss(row.teamId)
-                      }
-                    />
+                    <div className={styles.mobileChronicleTabularBlock}>
+                      {showMobileChronicleLandscapeHint ? (
+                        <span className={styles.mobileYouthLandscapeHint}>
+                          {messages.mobileChronicleLandscapeHint}
+                        </span>
+                      ) : null}
+                      <div className={styles.mobileChronicleTableWrap}>
+                        <ChronicleTable
+                          columns={coachTableColumns}
+                          rows={sortedCoachRows}
+                          getRowKey={(row) => row.teamId}
+                          getSnapshot={(row) => row.snapshot ?? undefined}
+                          getRowClassName={getTeamRowClassName}
+                          onRowClick={(row) => handleOpenCoachDetails(row.teamId)}
+                          formatValue={formatValue}
+                          style={coachTableStyle}
+                          className={styles.mobileChronicleTabularTable}
+                          sortKey={coachSortState.key}
+                          sortDirection={coachSortState.direction}
+                          onSort={handleCoachSort}
+                          maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                          maskText={messages.clubChronicleNoDivulgoMask}
+                          isMaskActive={noDivulgoActive}
+                          onMaskedRowClick={(row) =>
+                            handleNoDivulgoDismiss(row.teamId)
+                          }
+                        />
+                      </div>
+                    </div>
                   )}
                 </ChroniclePanel>
               </div>
@@ -10980,15 +13049,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingPowerRatings) &&
-                    powerRatingsRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingPowerRatings,
+                    powerRatingsRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
                     </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingPowerRatings,
+                      powerRatingsRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={powerRatingsTableColumns}
@@ -11038,15 +13110,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingFanclub) &&
-                    fanclubRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingFanclub,
+                    fanclubRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
                     </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingFanclub,
+                      fanclubRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={fanclubTableColumns}
@@ -11096,15 +13171,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingArena) &&
-                    arenaRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingArena,
+                    arenaRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
                     </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingArena,
+                      arenaRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={arenaTableColumns}
@@ -11154,34 +13232,47 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingTransfer) &&
-                    transferRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingTransfer,
+                    transferRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
                     </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingTransfer,
+                      transferRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
                   ) : (
-                    <ChronicleTable
-                      columns={transferTableColumns}
-                      rows={sortedTransferRows}
-                      getRowKey={(row) => row.teamId}
-                      getSnapshot={(row) => row.snapshot ?? undefined}
-                      getRowClassName={getTeamRowClassName}
-                      formatValue={formatValue}
-                      style={transferTableStyle}
-                      sortKey={transferSortState.key}
-                      sortDirection={transferSortState.direction}
-                      onSort={handleTransferSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) =>
-                        handleNoDivulgoDismiss(row.teamId)
-                      }
-                    />
+                    <div className={styles.mobileChronicleTabularBlock}>
+                      {showMobileChronicleLandscapeHint ? (
+                        <span className={styles.mobileYouthLandscapeHint}>
+                          {messages.mobileChronicleLandscapeHint}
+                        </span>
+                      ) : null}
+                      <div className={styles.mobileChronicleTableWrap}>
+                        <ChronicleTable
+                          columns={transferTableColumns}
+                          rows={sortedTransferRows}
+                          getRowKey={(row) => row.teamId}
+                          getSnapshot={(row) => row.snapshot ?? undefined}
+                          getRowClassName={getTeamRowClassName}
+                          formatValue={formatValue}
+                          style={transferTableStyle}
+                          className={styles.mobileChronicleTabularTable}
+                          sortKey={transferSortState.key}
+                          sortDirection={transferSortState.direction}
+                          onSort={handleTransferSort}
+                          maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                          maskText={messages.clubChronicleNoDivulgoMask}
+                          isMaskActive={noDivulgoActive}
+                          onMaskedRowClick={(row) =>
+                            handleNoDivulgoDismiss(row.teamId)
+                          }
+                        />
+                      </div>
+                    </div>
                   )}
                 </ChroniclePanel>
               </div>
@@ -11236,15 +13327,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingFormationsTactics) &&
-                    formationsTacticsRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingFormationsTactics,
+                    formationsTacticsRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
                     </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingFormationsTactics,
+                      formationsTacticsRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={formationsTacticsTableColumns}
@@ -11296,15 +13390,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingFormationsTactics) &&
-                    likelyTrainingRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingFormationsTactics,
+                    likelyTrainingRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
                     </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingFormationsTactics,
+                      likelyTrainingRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
                   ) : (
                     <ChronicleTable
                       columns={likelyTrainingTableColumns}
@@ -11354,33 +13451,46 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingTsi) &&
-                    tsiRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingTsi,
+                    tsiRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
                     </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingTsi,
+                      tsiRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
                   ) : (
-                    <ChronicleTable
-                      columns={tsiTableColumns}
-                      rows={sortedTsiRows}
-                      getRowKey={(row) => row.teamId}
-                      getSnapshot={(row) => row.snapshot ?? undefined}
-                      getRowClassName={getTeamRowClassName}
-                      onRowClick={(row) => handleOpenTsiDetails(row.teamId)}
-                      formatValue={formatValue}
-                      style={tsiTableStyle}
-                      sortKey={tsiSortState.key}
-                      sortDirection={tsiSortState.direction}
-                      onSort={handleTsiSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
-                    />
+                    <div className={styles.mobileChronicleTabularBlock}>
+                      {showMobileChronicleLandscapeHint ? (
+                        <span className={styles.mobileYouthLandscapeHint}>
+                          {messages.mobileChronicleLandscapeHint}
+                        </span>
+                      ) : null}
+                      <div className={styles.mobileChronicleTableWrap}>
+                        <ChronicleTable
+                          columns={tsiTableColumns}
+                          rows={sortedTsiRows}
+                          getRowKey={(row) => row.teamId}
+                          getSnapshot={(row) => row.snapshot ?? undefined}
+                          getRowClassName={getTeamRowClassName}
+                          onRowClick={(row) => handleOpenTsiDetails(row.teamId)}
+                          formatValue={formatValue}
+                          style={tsiTableStyle}
+                          className={styles.mobileChronicleTabularTable}
+                          sortKey={tsiSortState.key}
+                          sortDirection={tsiSortState.direction}
+                          onSort={handleTsiSort}
+                          maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                          maskText={messages.clubChronicleNoDivulgoMask}
+                          isMaskActive={noDivulgoActive}
+                          onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
+                        />
+                      </div>
+                    </div>
                   )}
                 </ChroniclePanel>
               </div>
@@ -11410,33 +13520,46 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   onDragStart={handlePanelDragStart}
                   onDragEnd={handlePanelDragEnd}
                 >
-                  {trackedTeams.length === 0 ? (
-                    <p className={styles.chronicleEmpty}>
-                      {messages.clubChronicleNoTeams}
-                    </p>
-                  ) : (refreshingGlobal || refreshingWages) &&
-                    wagesRows.every((row) => !row.snapshot) ? (
+                  {getChroniclePanelDisplayState(
+                    refreshingGlobal || refreshingWages,
+                    wagesRows.some((row) => Boolean(row.snapshot))
+                  ) === "loading" ? (
                     <p className={styles.chronicleEmpty}>
                       {messages.clubChronicleLoading}
                     </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingWages,
+                      wagesRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
                   ) : (
-                    <ChronicleTable
-                      columns={wagesTableColumns}
-                      rows={sortedWagesRows}
-                      getRowKey={(row) => row.teamId}
-                      getSnapshot={(row) => row.snapshot ?? undefined}
-                      getRowClassName={getTeamRowClassName}
-                      onRowClick={(row) => handleOpenWagesDetails(row.teamId)}
-                      formatValue={formatValue}
-                      style={wagesTableStyle}
-                      sortKey={wagesSortState.key}
-                      sortDirection={wagesSortState.direction}
-                      onSort={handleWagesSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
-                    />
+                    <div className={styles.mobileChronicleTabularBlock}>
+                      {showMobileChronicleLandscapeHint ? (
+                        <span className={styles.mobileYouthLandscapeHint}>
+                          {messages.mobileChronicleLandscapeHint}
+                        </span>
+                      ) : null}
+                      <div className={styles.mobileChronicleTableWrap}>
+                        <ChronicleTable
+                          columns={wagesTableColumns}
+                          rows={sortedWagesRows}
+                          getRowKey={(row) => row.teamId}
+                          getSnapshot={(row) => row.snapshot ?? undefined}
+                          getRowClassName={getTeamRowClassName}
+                          onRowClick={(row) => handleOpenWagesDetails(row.teamId)}
+                          formatValue={formatValue}
+                          style={wagesTableStyle}
+                          className={styles.mobileChronicleTabularTable}
+                          sortKey={wagesSortState.key}
+                          sortDirection={wagesSortState.direction}
+                          onSort={handleWagesSort}
+                          maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                          maskText={messages.clubChronicleNoDivulgoMask}
+                          isMaskActive={noDivulgoActive}
+                          onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
+                        />
+                      </div>
+                    </div>
                   )}
                 </ChroniclePanel>
               </div>
@@ -12578,7 +14701,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               ) : null}
             </>
           ) : (
-            <p className={styles.chronicleEmpty}>{messages.clubChronicleNoTeams}</p>
+            renderChronicleNoTeamsEmpty()
           )
         }
         actions={

@@ -14,13 +14,7 @@ export default async function Loading() {
         <StartupLoadingExperience
           title={messages.startupLoadingTitle}
           subtitle={messages.startupLoadingSubtitle}
-          statuses={[
-            messages.startupLoadingTeamContext,
-            messages.startupLoadingPlayers,
-            messages.startupLoadingMatches,
-            messages.startupLoadingRatings,
-            messages.startupLoadingFinalize,
-          ]}
+          showProgress={false}
         />
       </div>
     </main>

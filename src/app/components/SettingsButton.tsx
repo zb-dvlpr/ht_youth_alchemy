@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
+import { useEffect, useMemo, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import Modal from "./Modal";
+import QRCode from "qrcode";
 import {
   type ChppDebugOauthErrorMode,
   readChppDebugOauthErrorMode,
@@ -42,9 +44,19 @@ import {
   readYouthNewMarkersDebugEnabled,
   writeYouthNewMarkersDebugEnabled,
 } from "@/lib/settings";
+import {
+  applyImportedChronicleWatchlists,
+  buildChronicleWatchlistsImportUrl,
+  CLUB_CHRONICLE_WATCHLISTS_IMPORT_QUERY_PARAM,
+  exportChronicleWatchlistsToQrString,
+  importChronicleWatchlistsFromQrString,
+  requestChronicleWatchlistsSnapshot,
+  summarizeImportedChronicleWatchlists,
+} from "@/lib/chronicleWatchlistTransfer";
 
 type SettingsButtonProps = {
   messages: Messages;
+  variant?: "icon" | "launcher";
 };
 
 type ExportPayload = {
@@ -57,13 +69,25 @@ const STORAGE_PREFIX = "ya_";
 const SENIOR_DASHBOARD_DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
 const SENIOR_DASHBOARD_STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 
-export default function SettingsButton({ messages }: SettingsButtonProps) {
+type ImportedChronicleWatchlists = ReturnType<
+  typeof importChronicleWatchlistsFromQrString
+>;
+
+export default function SettingsButton({
+  messages,
+  variant = "icon",
+}: SettingsButtonProps) {
+  const isMobileLauncherVariant = variant === "launcher";
   const [open, setOpen] = useState(false);
   const [youthSettingsOpen, setYouthSettingsOpen] = useState(false);
   const [seniorSettingsOpen, setSeniorSettingsOpen] = useState(false);
   const [seniorRatingsWipeWarningOpen, setSeniorRatingsWipeWarningOpen] = useState(false);
   const [chronicleSettingsOpen, setChronicleSettingsOpen] = useState(false);
   const [generalSettingsOpen, setGeneralSettingsOpen] = useState(false);
+  const [chronicleQrExportOpen, setChronicleQrExportOpen] = useState(false);
+  const [chronicleQrImportOpen, setChronicleQrImportOpen] = useState(false);
+  const [chronicleQrImportWarningOpen, setChronicleQrImportWarningOpen] =
+    useState(false);
   const [debugSettingsOpen, setDebugSettingsOpen] = useState(false);
   const [allowTrainingUntilMaxedOut, setAllowTrainingUntilMaxedOut] =
     useState(true);
@@ -81,11 +105,31 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
     useState(false);
   const [debugSeniorManagerUserId, setDebugSeniorManagerUserId] = useState("");
   const [debugYouthSeMatchId, setDebugYouthSeMatchId] = useState("");
+  const [chronicleQrEncoded, setChronicleQrEncoded] = useState<string | null>(null);
+  const [chronicleQrImageUrl, setChronicleQrImageUrl] = useState<string | null>(
+    null
+  );
+  const [pendingImportedChronicleWatchlists, setPendingImportedChronicleWatchlists] =
+    useState<ImportedChronicleWatchlists | null>(null);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const handledChronicleImportUrlRef = useRef(false);
   const { addNotification } = useNotifications();
   const isDev = process.env.NODE_ENV !== "production";
+  const pendingChronicleImportSummary = pendingImportedChronicleWatchlists
+    ? summarizeImportedChronicleWatchlists(pendingImportedChronicleWatchlists)
+    : null;
+  const chronicleExportSummary = useMemo(() => {
+    if (!chronicleQrEncoded) return null;
+    try {
+      return summarizeImportedChronicleWatchlists(
+        importChronicleWatchlistsFromQrString(chronicleQrEncoded)
+      );
+    } catch {
+      return null;
+    }
+  }, [chronicleQrEncoded]);
 
   useEffect(() => {
     if (!open) return;
@@ -114,6 +158,76 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
       setDebugSeniorManagerUserId(readSeniorDebugManagerUserId());
     }
   }, []);
+
+  useEffect(() => {
+    if (!chronicleQrExportOpen) return;
+    let active = true;
+    const build = async () => {
+      try {
+        const encoded =
+          chronicleQrEncoded ??
+          exportChronicleWatchlistsToQrString(
+            requestChronicleWatchlistsSnapshot()
+          );
+        const configuredBaseUrl = process.env.NEXT_PUBLIC_APP_BASE_URL?.trim();
+        const importBaseUrl = configuredBaseUrl
+          ? new URL(window.location.pathname, configuredBaseUrl).toString()
+          : `${window.location.origin}${window.location.pathname}`;
+        const importUrl = buildChronicleWatchlistsImportUrl(
+          encoded,
+          importBaseUrl
+        );
+        const dataUrl = await QRCode.toDataURL(importUrl, {
+          width: 320,
+          margin: 1,
+          errorCorrectionLevel: "M",
+        });
+        if (active) {
+          setChronicleQrImageUrl(dataUrl);
+        }
+      } catch {
+        if (active) {
+          setChronicleQrImageUrl(null);
+          addNotification(messages.settingsChronicleQrExportFailed);
+          setChronicleQrExportOpen(false);
+        }
+      }
+    };
+    setChronicleQrImageUrl(null);
+    void build();
+    return () => {
+      active = false;
+    };
+  }, [
+    addNotification,
+    chronicleQrEncoded,
+    chronicleQrExportOpen,
+    messages.settingsChronicleQrExportFailed,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (handledChronicleImportUrlRef.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const encoded = params.get(CLUB_CHRONICLE_WATCHLISTS_IMPORT_QUERY_PARAM);
+    if (!encoded) return;
+    handledChronicleImportUrlRef.current = true;
+    try {
+      const imported = importChronicleWatchlistsFromQrString(encoded);
+      setPendingImportedChronicleWatchlists(imported);
+      setChronicleQrImportOpen(false);
+      setChronicleQrImportWarningOpen(true);
+    } catch {
+      addNotification(messages.settingsChronicleQrImportFailed);
+      params.delete(CLUB_CHRONICLE_WATCHLISTS_IMPORT_QUERY_PARAM);
+      const cleanedUrl = new URL(window.location.href);
+      cleanedUrl.search = params.toString();
+      window.history.replaceState({}, "", cleanedUrl.toString());
+    }
+  }, [
+    addNotification,
+    messages.settingsChronicleQrImportFailed,
+  ]);
 
   const handleExport = () => {
     if (typeof window === "undefined") return;
@@ -152,6 +266,42 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
 
   const handleImport = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleOpenChronicleQrExport = () => {
+    try {
+      const snapshot = requestChronicleWatchlistsSnapshot();
+      setChronicleQrEncoded(exportChronicleWatchlistsToQrString(snapshot));
+      setChronicleQrExportOpen(true);
+    } catch {
+      setChronicleQrEncoded(null);
+      addNotification(messages.settingsChronicleQrExportFailed);
+    }
+  };
+
+  const handleOpenChronicleQrImport = () => {
+    setPendingImportedChronicleWatchlists(null);
+    setChronicleQrImportOpen(true);
+  };
+
+  const clearChronicleImportUrl = () => {
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    url.searchParams.delete(CLUB_CHRONICLE_WATCHLISTS_IMPORT_QUERY_PARAM);
+    window.history.replaceState({}, "", url.toString());
+  };
+
+  const handleConfirmChronicleQrImport = () => {
+    if (!pendingImportedChronicleWatchlists || typeof window === "undefined") return;
+    try {
+      clearChronicleImportUrl();
+      applyImportedChronicleWatchlists(pendingImportedChronicleWatchlists);
+      const reloadedUrl = new URL(window.location.href);
+      reloadedUrl.searchParams.delete(CLUB_CHRONICLE_WATCHLISTS_IMPORT_QUERY_PARAM);
+      window.location.replace(reloadedUrl.toString());
+    } catch {
+      addNotification(messages.settingsChronicleQrImportFailed);
+    }
   };
 
   const applyImport = async (file: File) => {
@@ -410,17 +560,32 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
 
   return (
     <div className={styles.feedbackWrap}>
-      <Tooltip content={messages.settingsTooltip}>
+      {variant === "launcher" ? (
         <button
           type="button"
-          className={styles.feedbackButton}
+          className={styles.mobileLauncherUtilityButton}
           onClick={() => setOpen((prev) => !prev)}
           aria-label={messages.settingsTooltip}
           ref={buttonRef}
         >
-          ⚙️
+          <span className={styles.mobileLauncherUtilityIcon} aria-hidden="true">
+            ⚙️
+          </span>
+          <span>{messages.settingsTooltip}</span>
         </button>
-      </Tooltip>
+      ) : (
+        <Tooltip content={messages.settingsTooltip}>
+          <button
+            type="button"
+            className={styles.feedbackButton}
+            onClick={() => setOpen((prev) => !prev)}
+            aria-label={messages.settingsTooltip}
+            ref={buttonRef}
+          >
+            ⚙️
+          </button>
+        </Tooltip>
+      )}
       {open ? (
         <div className={styles.feedbackMenu} ref={menuRef}>
           <button
@@ -475,20 +640,6 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
               {messages.settingsDebug}
             </button>
           ) : null}
-          <button
-            type="button"
-            className={styles.feedbackLink}
-            onClick={handleExport}
-          >
-            {messages.settingsExport}
-          </button>
-          <button
-            type="button"
-            className={styles.feedbackLink}
-            onClick={handleImport}
-          >
-            {messages.settingsImport}
-          </button>
         </div>
       ) : null}
       <Modal
@@ -712,28 +863,74 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         title={messages.settingsGeneralTitle}
         body={
           <div className={styles.settingsModalBody}>
+            {!isMobileLauncherVariant ? (
+              <Tooltip
+                content={messages.settingsGeneralEnableScalingTooltip}
+                fullWidth
+              >
+                <label className={styles.algorithmsToggle}>
+                  <span className={styles.algorithmsToggleText}>
+                    {messages.settingsGeneralEnableScalingLabel}
+                  </span>
+                  <input
+                    type="checkbox"
+                    className={styles.algorithmsToggleInput}
+                    checked={enableAppScaling}
+                    onChange={(event) =>
+                      handleEnableScalingToggle(event.target.checked)
+                    }
+                  />
+                  <span
+                    className={styles.algorithmsToggleSwitch}
+                    aria-hidden="true"
+                  />
+                </label>
+              </Tooltip>
+            ) : null}
+            <Tooltip content={messages.settingsGeneralExportAllHint} fullWidth>
+              <button
+                type="button"
+                className={styles.settingsActionButton}
+                onClick={handleExport}
+              >
+                {messages.settingsGeneralExportAllLabel}
+              </button>
+            </Tooltip>
+            <Tooltip content={messages.settingsGeneralImportAllHint} fullWidth>
+              <button
+                type="button"
+                className={styles.settingsActionButton}
+                onClick={handleImport}
+              >
+                {messages.settingsGeneralImportAllLabel}
+              </button>
+            </Tooltip>
             <Tooltip
-              content={messages.settingsGeneralEnableScalingTooltip}
+              content={messages.settingsGeneralChronicleWatchlistsExportHint}
               fullWidth
             >
-              <label className={styles.algorithmsToggle}>
-                <span className={styles.algorithmsToggleText}>
-                  {messages.settingsGeneralEnableScalingLabel}
-                </span>
-                <input
-                  type="checkbox"
-                  className={styles.algorithmsToggleInput}
-                  checked={enableAppScaling}
-                  onChange={(event) =>
-                    handleEnableScalingToggle(event.target.checked)
-                  }
-                />
-                <span
-                  className={styles.algorithmsToggleSwitch}
-                  aria-hidden="true"
-                />
-              </label>
+              <button
+                type="button"
+                className={styles.settingsActionButton}
+                onClick={handleOpenChronicleQrExport}
+              >
+                {messages.settingsGeneralChronicleWatchlistsExportLabel}
+              </button>
             </Tooltip>
+            {isMobileLauncherVariant ? (
+              <Tooltip
+                content={messages.settingsGeneralChronicleWatchlistsImportHint}
+                fullWidth
+              >
+                <button
+                  type="button"
+                  className={styles.settingsActionButton}
+                  onClick={handleOpenChronicleQrImport}
+                >
+                  {messages.settingsGeneralChronicleWatchlistsImportLabel}
+                </button>
+              </Tooltip>
+            ) : null}
           </div>
         }
         actions={
@@ -747,6 +944,137 @@ export default function SettingsButton({ messages }: SettingsButtonProps) {
         }
         closeOnBackdrop
         onClose={() => setGeneralSettingsOpen(false)}
+      />
+      <Modal
+        open={chronicleQrExportOpen}
+        title={messages.settingsChronicleQrExportTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <p className={styles.muted}>{messages.settingsChronicleQrExportBody}</p>
+            {chronicleExportSummary ? (
+              <div className={styles.settingsImportWarningStats}>
+                <p className={styles.muted}>
+                  {messages.settingsChronicleQrExportSummaryTitle}
+                </p>
+                <span>
+                  {messages.settingsChronicleQrImportTabsSummaryLabel}:{" "}
+                  {chronicleExportSummary.tabCount}
+                </span>
+                <span>
+                  {messages.settingsChronicleQrImportDirectTeamsSummaryLabel}:{" "}
+                  {chronicleExportSummary.directTeamCount}
+                </span>
+                <span>
+                  {messages.settingsChronicleQrImportOwnLeaguesSummaryLabel}:{" "}
+                  {chronicleExportSummary.ownLeagueCount}
+                </span>
+                <span>
+                  {messages.settingsChronicleQrImportManualTeamsSummaryLabel}:{" "}
+                  {chronicleExportSummary.manualTeamCount}
+                </span>
+              </div>
+            ) : null}
+            {chronicleQrImageUrl ? (
+              <div className={styles.settingsQrCodeWrap}>
+                <Image
+                  src={chronicleQrImageUrl}
+                  alt={messages.settingsChronicleQrExportTitle}
+                  className={styles.settingsQrCodeImage}
+                  width={280}
+                  height={280}
+                  unoptimized
+                />
+              </div>
+            ) : (
+              <p className={styles.muted}>{messages.clubChronicleLoading}</p>
+            )}
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setChronicleQrExportOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setChronicleQrExportOpen(false)}
+      />
+      <Modal
+        open={chronicleQrImportOpen}
+        title={messages.settingsChronicleQrImportTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <p className={styles.muted}>{messages.settingsChronicleQrImportBody}</p>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setChronicleQrImportOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setChronicleQrImportOpen(false)}
+      />
+      <Modal
+        open={chronicleQrImportWarningOpen}
+        title={messages.settingsChronicleQrImportWarningTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <p className={styles.muted}>
+              {messages.settingsChronicleQrImportWarningBody}
+            </p>
+            {pendingChronicleImportSummary ? (
+              <div className={styles.settingsImportWarningStats}>
+                <span>
+                  {messages.settingsChronicleQrImportTabsSummaryLabel}:{" "}
+                  {pendingChronicleImportSummary.tabCount}
+                </span>
+                <span>
+                  {messages.settingsChronicleQrImportDirectTeamsSummaryLabel}:{" "}
+                  {pendingChronicleImportSummary.directTeamCount}
+                </span>
+                <span>
+                  {messages.settingsChronicleQrImportOwnLeaguesSummaryLabel}:{" "}
+                  {pendingChronicleImportSummary.ownLeagueCount}
+                </span>
+                <span>
+                  {messages.settingsChronicleQrImportManualTeamsSummaryLabel}:{" "}
+                  {pendingChronicleImportSummary.manualTeamCount}
+                </span>
+              </div>
+            ) : null}
+          </div>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={() => {
+                clearChronicleImportUrl();
+                setChronicleQrImportWarningOpen(false);
+              }}
+            >
+              {messages.closeLabel}
+            </button>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={handleConfirmChronicleQrImport}
+            >
+              {messages.settingsChronicleQrImportConfirm}
+            </button>
+          </>
+        }
+        closeOnBackdrop
+        onClose={() => setChronicleQrImportWarningOpen(false)}
       />
       <Modal
         open={debugSettingsOpen}

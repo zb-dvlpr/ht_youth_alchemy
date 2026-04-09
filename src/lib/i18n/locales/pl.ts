@@ -24,6 +24,13 @@ export const messagesPl: Messages = {
   toolYouthOptimization: "Optymalizacja juniorów",
   toolSeniorOptimization: "Optymalizacja seniorów",
   toolClubChronicle: "Kronika klubu",
+  mobileToolsLabel: "Narzędzia",
+  mobileHelpLabel: "Pomoc",
+  helpOptimizerLocationTitle: "Gdzie znaleźć optymalizator",
+  helpOptimizerLocationYouth:
+    "Otwórz Lineup optimizer z pływającego menu, a potem szukaj tego przycisku w nagłówku składu.",
+  seniorHelpOptimizerLocation:
+    "Otwórz Lineup optimizer z pływającego menu, a potem szukaj tego przycisku na odpowiedniej karcie meczu.",
   watchlistOwnSeniorTeamsTitle: "Własne drużyny seniorów",
   watchlistOwnSeniorTeamsEmpty: "Nie znaleziono własnych drużyn seniorów.",
   watchlistOwnLeaguesTitle: "Własne ligi",
@@ -71,11 +78,57 @@ export const messagesPl: Messages = {
   settingsSeniorRatingsWipeWarningAcknowledge: "Rozumiem",
   settingsGeneral: "Ogólne",
   settingsGeneralTitle: "Ustawienia ogólne",
+  settingsGeneralExportAllLabel: "Eksportuj wszystkie ustawienia",
+  settingsGeneralExportAllHint:
+    "Eksportuje wszystkie lokalnie zapisane ustawienia aplikacji i stan pamięci podręcznej do pliku kopii zapasowej JSON.",
+  settingsGeneralImportAllLabel: "Importuj wszystkie ustawienia",
+  settingsGeneralImportAllHint:
+    "Importuje wcześniej wyeksportowaną kopię zapasową JSON i zastępuje bieżące lokalne ustawienia aplikacji oraz stan pamięci podręcznej.",
+  settingsGeneralChronicleWatchlistsExportLabel:
+    "Eksportuj listy obserwowanych Club Chronicle na telefon",
+  settingsGeneralChronicleWatchlistsExportHint:
+    "Tworzy kod QR z listami obserwowanych Club Chronicle do importu na innym urządzeniu.",
+  settingsGeneralChronicleWatchlistsImportLabel: "Importuj listy CC",
+  settingsGeneralChronicleWatchlistsImportHint:
+    "Użyj natywnego aparatu telefonu, aby otworzyć wyeksportowany kod QR z listami obserwowanych Club Chronicle.",
+  settingsChronicleQrExportTitle:
+    "Eksport list obserwowanych Club Chronicle na telefon",
+  settingsChronicleQrExportBody:
+    "Zeskanuj ten kod QR natywnym aparatem telefonu, aby zaimportować wszystkie listy obserwowanych Club Chronicle na telefon.",
+  settingsChronicleQrExportSummaryTitle: "Ten kod QR eksportuje:",
+  settingsChronicleQrExportFailed:
+    "Nie udało się wygenerować kodu QR dla list obserwowanych Club Chronicle.",
+  settingsChronicleQrImportTitle:
+    "Import list obserwowanych Club Chronicle",
+  settingsChronicleQrImportBody:
+    "Zeskanuj wyeksportowany kod QR z listami obserwowanych Club Chronicle natywnym aparatem telefonu. Po otwarciu linku aplikacja zapyta, czy chcesz zastąpić bieżące listy na tym urządzeniu.",
+  settingsChronicleQrImportScanning: "Skanowanie kodu QR…",
+  settingsChronicleQrImportUnsupported:
+    "Skanowanie QR kamerą nie jest obsługiwane w tej przeglądarce.",
+  settingsChronicleQrImportPermissionDenied:
+    "Odmówiono dostępu do kamery. Zezwól na kamerę, aby zeskanować kod QR.",
+  settingsChronicleQrImportFailed:
+    "Nie udało się odczytać prawidłowego kodu QR z listami obserwowanych Club Chronicle.",
+  settingsChronicleQrImportSuccess:
+    "Listy obserwowanych Club Chronicle zostały zaimportowane.",
+  settingsChronicleQrImportWarningTitle:
+    "Zastąpić listy obserwowanych Club Chronicle",
+  settingsChronicleQrImportWarningBody:
+    "Import tego kodu QR zastąpi bieżące listy obserwowanych Club Chronicle na tym urządzeniu. Kontynuować?",
+  settingsChronicleQrImportConfirm: "Zastąp listy",
+  settingsChronicleQrImportTabsSummaryLabel: "Karty",
+  settingsChronicleQrImportDirectTeamsSummaryLabel: "Zespoły bezpośrednie",
+  settingsChronicleQrImportOwnLeaguesSummaryLabel: "Własne ligi",
+  settingsChronicleQrImportManualTeamsSummaryLabel: "Zespoły ręczne",
   settingsDebug: "Diagnostyka",
   settingsDebugTitle: "Ustawienia diagnostyki",
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_1_0:
+    "Listy obserwowanych w Club Chronicle można teraz przenosić między urządzeniami przez eksport QR na desktopie/mobilu i import kamerą na mobile.",
+  changelog_4_0_0:
+    "HT Alchemy ma teraz dedykowane wsparcie mobilne w całej aplikacji.",
   changelog_3_13_0:
     "Senior AI obsluguje teraz wykrywanie krycia indywidualnego, wysylke zlecenia i podsumowanie po wyslaniu.",
   changelog_3_12_0:
@@ -544,6 +597,7 @@ export const messagesPl: Messages = {
   awayLabel: "Gość",
   unknownDate: "Nieznana data",
   connectLabel: "Połącz Hattrick",
+  mobileConnectLabel: "Połącz",
   connectedLabel: "Połączono",
   connectHint: "Użyj przycisku Połącz w prawym górnym rogu, aby zalogować się ponownie.",
   disconnectLabel: "Rozłącz",
@@ -576,6 +630,31 @@ export const messagesPl: Messages = {
   notificationStaleRefresh: "Uruchomiono odświeżanie z powodu przestarzałych danych.",
   notificationReauthRequired: "Odświeżanie przerwane: wymagana ponowna autoryzacja",
   autoSelectTitle: "Automatycznie wybierz gwiazdę i trening",
+  mobileHomeLabel: "Start",
+  mobileYouthMenuToggleLabel: "Otwórz menu juniorów",
+  mobileSeniorMenuToggleLabel: "Otwórz menu seniorów",
+  mobilePreviousPanelLabel: "Poprzedni panel",
+  mobileNextPanelLabel: "Następny panel",
+  mobileYouthRootTitle: "Optymalizacja składu juniorów",
+  mobileYouthRootPrompt:
+    "Użyj pływającego menu, aby otworzyć szczegóły zawodnika, macierze lub optymalizator składu.",
+  mobileYouthBackLabel: "Wstecz",
+  mobileYouthBackToPlayerList: "Powrót do listy zawodników",
+  mobileYouthLandscapeHint:
+    "Obróć ekran poziomo, aby zobaczyć pełną macierz.",
+  mobileChronicleLandscapeHint:
+    "Obróć ekran poziomo, aby zobaczyć szerszy widok tabeli.",
+  clubChronicleNoTeams:
+    "Obecnie dla tej karty nie sa sledzone zadne druzyny. Dodaj druzyny do sledzenia przez watchliste.",
+  clubChronicleNoTeamsMobileHint:
+    "Na mobile watchlista znajduje sie w plywajacym menu.",
+  mobileYouthLineupPickerTitle: "Wybierz zawodnika",
+  mobileYouthLineupPickerEmpty:
+    "Brak zawodników dostępnych dla tego miejsca.",
+  mobileYouthViewComingSoon:
+    "Ten mobilny widok juniorów nie jest jeszcze gotowy.",
+  mobileSeniorViewComingSoon:
+    "Ten mobilny widok seniorów nie jest jeszcze gotowy.",
   trainingTitle: "Skoncentrowany trening umiejętności",
   trainingSectionFocused: "Skoncentrowany trening umiejętności",
   trainingSectionExtended: "Rozszerzony trening umiejętności",

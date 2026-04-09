@@ -53,6 +53,7 @@ import {
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
 } from "recharts";
+import MobileToolMenu, { type MobileToolView as SeniorMobileView } from "./MobileToolMenu";
 import PlayerDetailsPanel, { type PlayerDetailsPanelTab } from "./PlayerDetailsPanel";
 import LineupField, { LineupAssignments, LineupBehaviors } from "./LineupField";
 import UpcomingMatches, {
@@ -197,6 +198,15 @@ type SeniorDashboardProps = {
   initialSeniorTeamId?: number | null;
 };
 
+type MobileSeniorPlayerScreen = "root" | "list" | "detail";
+
+type MobileSeniorHistoryState = {
+  appShell?: "launcher" | "tool";
+  tool?: "youth" | "senior" | "chronicle";
+  seniorView?: SeniorMobileView;
+  seniorScreen?: MobileSeniorPlayerScreen;
+};
+
 type SeniorTeamOption = {
   teamId: number;
   teamName: string;
@@ -272,6 +282,10 @@ const SENIOR_REFRESH_REQUEST_EVENT = "ya:senior-refresh-request";
 const SENIOR_REFRESH_STOP_EVENT = "ya:senior-refresh-stop";
 const SENIOR_REFRESH_STATE_EVENT = "ya:senior-refresh-state";
 const SENIOR_LATEST_UPDATES_OPEN_EVENT = "ya:senior-latest-updates-open";
+const MOBILE_LAUNCHER_REQUEST_EVENT = "ya:mobile-launcher-request";
+const MOBILE_NAV_TRAIL_STATE_EVENT = "ya:mobile-nav-trail-state";
+const MOBILE_NAV_TRAIL_JUMP_EVENT = "ya:mobile-nav-trail-jump";
+const MOBILE_SENIOR_MEDIA_QUERY = "(max-width: 900px)";
 const SENIOR_HELP_ANCHOR_UPDATES = "[data-help-anchor='senior-latest-updates']";
 const SENIOR_HELP_ANCHOR_SET_LINEUP_AI = "[data-help-anchor='senior-set-lineup-ai']";
 const SENIOR_HELP_ANCHOR_TRAINING_REGIMEN = `.${styles.lineupTrainingTypeControl}`;
@@ -2971,6 +2985,21 @@ export default function SeniorDashboard({
   const [ratingsResponse, setRatingsResponse] = useState<RatingsMatrixResponse | null>(null);
   const [detailsCache, setDetailsCache] = useState<Record<number, PlayerDetailCacheEntry>>({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [mobileSeniorActive, setMobileSeniorActive] = useState(false);
+  const [mobileSeniorView, setMobileSeniorView] =
+    useState<SeniorMobileView>("playerDetails");
+  const [mobileSeniorPlayerScreen, setMobileSeniorPlayerScreen] =
+    useState<MobileSeniorPlayerScreen>("root");
+  const [mobileSeniorMenuPosition, setMobileSeniorMenuPosition] = useState({
+    x: 16,
+    y: 108,
+  });
+  const [mobileSeniorLandscapeActive, setMobileSeniorLandscapeActive] =
+    useState(false);
+  const [mobileSeniorLineupPickerSlotId, setMobileSeniorLineupPickerSlotId] =
+    useState<string | null>(null);
+  const [mobileSeniorRefreshFeedbackVisible, setMobileSeniorRefreshFeedbackVisible] =
+    useState(false);
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
@@ -3233,6 +3262,8 @@ export default function SeniorDashboard({
   const activeRefreshRunIdRef = useRef<number | null>(null);
   const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
   const staleRefreshAttemptedRef = useRef(false);
+  const previousRefreshingRef = useRef(refreshing);
+  const previousLastRefreshAtRef = useRef(lastRefreshAt);
   const seniorHasDataRef = useRef(false);
   const persistedMarkersBaselineRef = useRef<PersistedSeniorMarkersBaseline | null>(
     null
@@ -3310,6 +3341,55 @@ export default function SeniorDashboard({
         multiTeamEnabled
       ),
     [activeSeniorTeamId, multiTeamEnabled]
+  );
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mediaQuery = window.matchMedia(MOBILE_SENIOR_MEDIA_QUERY);
+    const sync = () => setMobileSeniorActive(mediaQuery.matches);
+    sync();
+    mediaQuery.addEventListener("change", sync);
+    return () => mediaQuery.removeEventListener("change", sync);
+  }, []);
+
+  const pushMobileSeniorState = useCallback(
+    (
+      view: SeniorMobileView,
+      screen: MobileSeniorPlayerScreen,
+      mode: "push" | "replace" = "push"
+    ) => {
+      setMobileSeniorView(view);
+      setMobileSeniorPlayerScreen(screen);
+      if (typeof window === "undefined" || !mobileSeniorActive) return;
+      const nextState: MobileSeniorHistoryState = {
+        appShell: "tool",
+        tool: "senior",
+        seniorView: view,
+        seniorScreen: screen,
+      };
+      if (mode === "replace") {
+        window.history.replaceState(nextState, "", window.location.href);
+      } else {
+        window.history.pushState(nextState, "", window.location.href);
+      }
+    },
+    [mobileSeniorActive]
+  );
+
+  const openMobileSeniorHome = useCallback(() => {
+    if (typeof window === "undefined") return;
+    window.dispatchEvent(new CustomEvent(MOBILE_LAUNCHER_REQUEST_EVENT));
+  }, []);
+
+  const handleMobileSeniorViewSelect = useCallback(
+    (view: SeniorMobileView) => {
+      if (view === "playerDetails") {
+        pushMobileSeniorState("playerDetails", "list");
+        return;
+      }
+      pushMobileSeniorState(view, "root");
+    },
+    [pushMobileSeniorState]
   );
   const effectiveExtraTimeBTeamEnabled =
     extraTimeBTeamEnabled &&
@@ -3543,6 +3623,18 @@ export default function SeniorDashboard({
     selectedSortedIndex >= 0 && selectedSortedIndex < playerNavigationIds.length - 1
       ? playerNavigationIds[selectedSortedIndex + 1] ?? null
       : null;
+
+  const handleSeniorListPlayerSelect = useCallback(
+    (playerId: number, playerName: string) => {
+      setActiveDetailsTab("details");
+      setSelectedId(playerId);
+      addNotification(`${messages.notificationPlayerSelected} ${playerName}`);
+      if (mobileSeniorActive) {
+        pushMobileSeniorState("playerDetails", "detail");
+      }
+    },
+    [addNotification, messages.notificationPlayerSelected, mobileSeniorActive, pushMobileSeniorState]
+  );
 
   const panelPlayers = useMemo(
     () =>
@@ -12162,6 +12254,9 @@ const refreshDetailsForPlayers = async (
             matrixNewMarkers?: SeniorMatrixNewMarkers;
             selectedUpdatesId?: string | null;
             activeDetailsTab?: PlayerDetailsPanelTab;
+            mobileSeniorView?: SeniorMobileView;
+            mobileSeniorPlayerScreen?: MobileSeniorPlayerScreen;
+            mobileSeniorMenuPosition?: { x?: number; y?: number } | null;
             showSeniorSkillBonusInMatrix?: boolean;
             extraTimeBTeamEnabled?: boolean;
             extraTimeBTeamMinutesThreshold?: number;
@@ -12251,6 +12346,29 @@ const refreshDetailsForPlayers = async (
             parsed.activeDetailsTab === "ratingsMatrix"
           ) {
             setActiveDetailsTab(parsed.activeDetailsTab);
+          }
+          if (
+            parsed.mobileSeniorView === "playerDetails" ||
+            parsed.mobileSeniorView === "skillsMatrix" ||
+            parsed.mobileSeniorView === "ratingsMatrix" ||
+            parsed.mobileSeniorView === "lineupOptimizer" ||
+            parsed.mobileSeniorView === "help"
+          ) {
+            setMobileSeniorView(parsed.mobileSeniorView);
+          }
+          if (
+            parsed.mobileSeniorPlayerScreen === "root" ||
+            parsed.mobileSeniorPlayerScreen === "list" ||
+            parsed.mobileSeniorPlayerScreen === "detail"
+          ) {
+            setMobileSeniorPlayerScreen(parsed.mobileSeniorPlayerScreen);
+          }
+          if (parsed.mobileSeniorMenuPosition) {
+            const nextX = Number(parsed.mobileSeniorMenuPosition.x);
+            const nextY = Number(parsed.mobileSeniorMenuPosition.y);
+            if (Number.isFinite(nextX) && Number.isFinite(nextY)) {
+              setMobileSeniorMenuPosition({ x: nextX, y: nextY });
+            }
           }
           if (typeof parsed.showSeniorSkillBonusInMatrix === "boolean") {
             setShowSeniorSkillBonusInMatrix(parsed.showSeniorSkillBonusInMatrix);
@@ -12595,6 +12713,9 @@ const refreshDetailsForPlayers = async (
       matrixNewMarkers,
       selectedUpdatesId,
       activeDetailsTab,
+      mobileSeniorView,
+      mobileSeniorPlayerScreen,
+      mobileSeniorMenuPosition,
       showSeniorSkillBonusInMatrix,
       extraTimeBTeamEnabled,
       extraTimeBTeamMinutesThreshold,
@@ -12643,6 +12764,9 @@ const refreshDetailsForPlayers = async (
     updatesHistory,
     matrixNewMarkers,
     activeDetailsTab,
+    mobileSeniorView,
+    mobileSeniorPlayerScreen,
+    mobileSeniorMenuPosition,
     showSeniorSkillBonusInMatrix,
     extraTimeBTeamEnabled,
     extraTimeBTeamMinutesThreshold,
@@ -12720,6 +12844,263 @@ const refreshDetailsForPlayers = async (
   }, [selectedId]);
 
   useEffect(() => {
+    if (!mobileSeniorActive) {
+      previousRefreshingRef.current = refreshing;
+      previousLastRefreshAtRef.current = lastRefreshAt;
+      setMobileSeniorRefreshFeedbackVisible(false);
+      return;
+    }
+
+    let timeoutId: number | null = null;
+    const refreshJustCompleted =
+      previousRefreshingRef.current &&
+      !refreshing &&
+      lastRefreshAt !== null &&
+      lastRefreshAt !== previousLastRefreshAtRef.current;
+
+    if (refreshing || refreshStatus) {
+      setMobileSeniorRefreshFeedbackVisible(true);
+    } else if (refreshJustCompleted) {
+      setMobileSeniorRefreshFeedbackVisible(true);
+      timeoutId = window.setTimeout(() => {
+        setMobileSeniorRefreshFeedbackVisible(false);
+      }, 5000);
+    }
+
+    previousRefreshingRef.current = refreshing;
+    previousLastRefreshAtRef.current = lastRefreshAt;
+
+    return () => {
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [lastRefreshAt, mobileSeniorActive, refreshStatus, refreshing]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!mobileSeniorActive) return;
+    const segments =
+      mobileSeniorView === "playerDetails"
+        ? mobileSeniorPlayerScreen === "detail"
+          ? [
+              { id: "player-list", label: messages.seniorPlayerListTitle },
+              { id: "player-details", label: messages.detailsTabLabel },
+            ]
+          : mobileSeniorPlayerScreen === "list"
+            ? [{ id: "player-list", label: messages.seniorPlayerListTitle }]
+            : []
+        : mobileSeniorView === "skillsMatrix"
+          ? [{ id: "skills-matrix", label: messages.skillsMatrixTabLabel }]
+        : mobileSeniorView === "ratingsMatrix"
+            ? [{ id: "ratings-matrix", label: messages.ratingsMatrixTabLabel }]
+            : mobileSeniorView === "lineupOptimizer"
+              ? [{ id: "lineup-optimizer", label: messages.lineupTitle }]
+              : mobileSeniorView === "help"
+                ? [{ id: "help", label: messages.mobileHelpLabel }]
+              : [];
+    window.dispatchEvent(
+      new CustomEvent(MOBILE_NAV_TRAIL_STATE_EVENT, {
+        detail: {
+          tool: "senior",
+          segments,
+        },
+      })
+    );
+  }, [
+    messages.detailsTabLabel,
+    messages.lineupTitle,
+    messages.mobileHelpLabel,
+    messages.ratingsMatrixTabLabel,
+    messages.seniorPlayerListTitle,
+    messages.skillsMatrixTabLabel,
+    mobileSeniorActive,
+    mobileSeniorPlayerScreen,
+    mobileSeniorView,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handle = (event: Event) => {
+      if (!(event instanceof CustomEvent)) return;
+      const detail = event.detail as { tool?: string; target?: string } | undefined;
+      if (!detail || detail.tool !== "senior") return;
+      switch (detail.target) {
+        case "tool-root":
+          pushMobileSeniorState("playerDetails", "root");
+          return;
+        case "player-list":
+          pushMobileSeniorState("playerDetails", "list");
+          return;
+        case "player-details":
+          pushMobileSeniorState("playerDetails", selectedPlayer ? "detail" : "list");
+          return;
+        case "help":
+          pushMobileSeniorState("help", "root");
+          return;
+        case "skills-matrix":
+          pushMobileSeniorState("skillsMatrix", "root");
+          return;
+        case "ratings-matrix":
+          pushMobileSeniorState("ratingsMatrix", "root");
+          return;
+        case "lineup-optimizer":
+          pushMobileSeniorState("lineupOptimizer", "root");
+          return;
+        default:
+          return;
+      }
+    };
+    window.addEventListener(MOBILE_NAV_TRAIL_JUMP_EVENT, handle);
+    return () => window.removeEventListener(MOBILE_NAV_TRAIL_JUMP_EVENT, handle);
+  }, [pushMobileSeniorState, selectedPlayer]);
+
+  useEffect(() => {
+    if (!mobileSeniorActive) return;
+    if (mobileSeniorPlayerScreen !== "detail") return;
+    if (selectedPlayer) return;
+    pushMobileSeniorState("playerDetails", "list", "replace");
+  }, [
+    mobileSeniorActive,
+    mobileSeniorPlayerScreen,
+    pushMobileSeniorState,
+    selectedPlayer,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!mobileSeniorActive) return;
+    const currentState = window.history.state as MobileSeniorHistoryState | null;
+    if (currentState?.appShell !== "tool" || currentState.tool !== "senior") {
+      return;
+    }
+    if (currentState.seniorView && currentState.seniorScreen) {
+      return;
+    }
+    if (mobileSeniorPlayerScreen === "detail") {
+      window.history.replaceState(
+        {
+          appShell: "tool",
+          tool: "senior",
+          seniorView: "playerDetails",
+          seniorScreen: "root",
+        } satisfies MobileSeniorHistoryState,
+        "",
+        window.location.href
+      );
+      window.history.pushState(
+        {
+          appShell: "tool",
+          tool: "senior",
+          seniorView: "playerDetails",
+          seniorScreen: "list",
+        } satisfies MobileSeniorHistoryState,
+        "",
+        window.location.href
+      );
+      window.history.pushState(
+        {
+          appShell: "tool",
+          tool: "senior",
+          seniorView: "playerDetails",
+          seniorScreen: "detail",
+        } satisfies MobileSeniorHistoryState,
+        "",
+        window.location.href
+      );
+      return;
+    }
+    if (mobileSeniorPlayerScreen === "list") {
+      window.history.replaceState(
+        {
+          appShell: "tool",
+          tool: "senior",
+          seniorView: "playerDetails",
+          seniorScreen: "root",
+        } satisfies MobileSeniorHistoryState,
+        "",
+        window.location.href
+      );
+      window.history.pushState(
+        {
+          appShell: "tool",
+          tool: "senior",
+          seniorView: "playerDetails",
+          seniorScreen: "list",
+        } satisfies MobileSeniorHistoryState,
+        "",
+        window.location.href
+      );
+      return;
+    }
+    window.history.replaceState(
+      {
+        appShell: "tool",
+        tool: "senior",
+        seniorView: mobileSeniorView,
+        seniorScreen: "root",
+      } satisfies MobileSeniorHistoryState,
+      "",
+      window.location.href
+    );
+  }, [mobileSeniorActive, mobileSeniorPlayerScreen, mobileSeniorView]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!mobileSeniorActive) return;
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state as MobileSeniorHistoryState | null;
+      if (state?.appShell !== "tool" || state.tool !== "senior") return;
+      const nextView =
+        state.seniorView === "skillsMatrix" ||
+        state.seniorView === "ratingsMatrix" ||
+        state.seniorView === "lineupOptimizer" ||
+        state.seniorView === "playerDetails"
+          ? state.seniorView
+          : "playerDetails";
+      const nextScreen =
+        state.seniorScreen === "detail" ||
+        state.seniorScreen === "list" ||
+        state.seniorScreen === "root"
+          ? state.seniorScreen
+          : "root";
+      setMobileSeniorView(nextView);
+      setMobileSeniorPlayerScreen(nextScreen);
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [mobileSeniorActive]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const shouldUseLandscapeMatrixMode =
+      mobileSeniorActive &&
+      (mobileSeniorView === "skillsMatrix" || mobileSeniorView === "ratingsMatrix");
+    if (!shouldUseLandscapeMatrixMode) {
+      setMobileSeniorLandscapeActive(false);
+      return;
+    }
+
+    const mediaQuery = window.matchMedia("(orientation: landscape)");
+    const syncLandscapeState = () => setMobileSeniorLandscapeActive(mediaQuery.matches);
+    syncLandscapeState();
+
+    const orientationApi = window.screen?.orientation as
+      | (ScreenOrientation & {
+          lock?: (orientation: "landscape") => Promise<void>;
+        })
+      | undefined;
+    if (orientationApi && typeof orientationApi.lock === "function") {
+      orientationApi.lock("landscape").catch(() => {
+        // Some mobile browsers require fullscreen or reject orientation locks.
+      });
+    }
+
+    mediaQuery.addEventListener("change", syncLandscapeState);
+    return () => mediaQuery.removeEventListener("change", syncLandscapeState);
+  }, [mobileSeniorActive, mobileSeniorView]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     const handleRefresh = () => {
       void refreshAllRef.current?.("manual");
@@ -12734,7 +13115,10 @@ const refreshDetailsForPlayers = async (
       addNotification(messages.notificationRefreshStoppedManual);
     };
     const handleUpdatesOpen = () => setUpdatesOpen(true);
-    const handleHelpOpen = () => setShowHelp(true);
+    const handleHelpOpen = () => {
+      if (mobileSeniorActive) return;
+      setShowHelp(true);
+    };
 
     window.addEventListener(SENIOR_REFRESH_REQUEST_EVENT, handleRefresh);
     window.addEventListener(SENIOR_REFRESH_STOP_EVENT, handleStop);
@@ -12746,7 +13130,7 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener(SENIOR_LATEST_UPDATES_OPEN_EVENT, handleUpdatesOpen);
       window.removeEventListener("ya:help-open", handleHelpOpen);
     };
-  }, [addNotification, messages.notificationRefreshStoppedManual]);
+  }, [addNotification, messages.notificationRefreshStoppedManual, mobileSeniorActive]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -12763,6 +13147,11 @@ const refreshDetailsForPlayers = async (
         setCurrentToken(token);
         if (!token) {
           setShowHelp(false);
+          return;
+        }
+        if (mobileSeniorActive) {
+          setShowHelp(false);
+          setDeferHelpUntilInitialRefresh(false);
           return;
         }
         const dismissedToken = window.localStorage.getItem(SENIOR_HELP_STORAGE_KEY);
@@ -12797,7 +13186,7 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("pageshow", handleFocus);
     };
-  }, []);
+  }, [mobileSeniorActive]);
 
   useEffect(() => {
     if (!resolvedSeniorTeamId) return;
@@ -12805,12 +13194,17 @@ const refreshDetailsForPlayers = async (
   }, [resolvedSeniorTeamId]);
 
   useEffect(() => {
+    if (mobileSeniorActive) {
+      setShowHelp(false);
+      setDeferHelpUntilInitialRefresh(false);
+      return;
+    }
     if (!deferHelpUntilInitialRefresh) return;
     if (refreshing) return;
     if (!hasSeniorData) return;
     setShowHelp(true);
     setDeferHelpUntilInitialRefresh(false);
-  }, [deferHelpUntilInitialRefresh, hasSeniorData, refreshing]);
+  }, [deferHelpUntilInitialRefresh, hasSeniorData, mobileSeniorActive, refreshing]);
 
   useEffect(() => {
     if (!showHelp) {
@@ -13559,6 +13953,12 @@ const refreshDetailsForPlayers = async (
           : startupLoadingPhase === "ratings"
             ? messages.startupLoadingRatings
             : messages.startupLoadingFinalize;
+  const startupOverlayStatus =
+    startupBootstrapActive && refreshStatus ? refreshStatus : startupLoadingStatus;
+  const startupOverlayProgressPct =
+    startupBootstrapActive && refreshProgressPct > 0
+      ? Math.max(startupLoadingProgressPct, refreshProgressPct)
+      : startupLoadingProgressPct;
   const startupOverlayShouldShow = !stateRestored || !dataRestored || startupBootstrapActive;
   const seniorAiSubmitTargetMatchId = seniorAiSubmitLockActive
     ? seniorAiSubmitEnabledMatchId ?? extraTimePreparedSubmission?.matchId ?? loadedMatchId
@@ -13580,14 +13980,1010 @@ const refreshDetailsForPlayers = async (
     return () => window.clearTimeout(timeoutId);
   }, [startupOverlayMounted, startupOverlayShouldShow]);
 
+  const mobileSeniorRefreshStatus = refreshing
+    ? refreshStatus ?? messages.refreshingLabel
+    : lastRefreshAt
+    ? `${messages.youthLastGlobalRefresh}: ${formatDateTime(lastRefreshAt)}`
+    : null;
+
+  const mobileSeniorViewLabel =
+    mobileSeniorView === "help"
+      ? messages.mobileHelpLabel
+      : mobileSeniorView === "skillsMatrix"
+      ? messages.skillsMatrixTabLabel
+      : mobileSeniorView === "ratingsMatrix"
+        ? messages.ratingsMatrixTabLabel
+        : mobileSeniorView === "lineupOptimizer"
+          ? messages.lineupTitle
+          : messages.detailsTabLabel;
+
+  const seniorDetailsHeaderActions =
+    selectedPlayer ? (
+      <Tooltip
+        content={messages.seniorTransferSearchFemaleTeamTooltip}
+        disabled={activeSeniorTeamOption?.teamGender !== "female"}
+      >
+        <button
+          type="button"
+          className={styles.confirmSubmit}
+          onClick={() => {
+            void openTransferSearchForPlayer(selectedPlayer);
+          }}
+          disabled={activeSeniorTeamOption?.teamGender === "female"}
+        >
+          {messages.seniorTransferSearchButtonLabel}
+        </button>
+      </Tooltip>
+    ) : null;
+
+  const mobileSeniorMatrixHint = !mobileSeniorLandscapeActive ? (
+    <span className={styles.mobileYouthLandscapeHint}>
+      {messages.mobileYouthLandscapeHint}
+    </span>
+  ) : null;
+
+  const mobileSeniorLineupPickerPlayers = useMemo(
+    () =>
+      [...players]
+        .map((player) => ({
+          id: player.PlayerID,
+          name: formatPlayerName(player) || String(player.PlayerID),
+          age: typeof player.Age === "number" ? player.Age : null,
+        }))
+        .sort((left, right) =>
+          left.name.localeCompare(right.name, undefined, { sensitivity: "base" })
+        ),
+    [players]
+  );
+
+  const seniorMobileDetailsPanel = (
+    <PlayerDetailsPanel
+      selectedPlayer={selectedPanelPlayer}
+      detailsData={selectedPanelDetails}
+      loading={false}
+      error={null}
+      lastUpdated={selectedId ? (detailsCache[selectedId]?.fetchedAt ?? null) : null}
+      unlockStatus={null}
+      onRefresh={() => {
+        if (refreshing || players.length === 0) return;
+        void refreshDetailsForPlayers(players);
+      }}
+      players={panelPlayers}
+      playerDetailsById={panelDetailsById}
+      skillsMatrixRows={skillsMatrixRows}
+      ratingsMatrixResponse={ratingsResponse}
+      ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
+      ratingsMatrixSpecialtyByName={specialtyByName}
+      ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
+      ratingsMatrixCardStatusByName={seniorCardStatusByName}
+      cardStatusByPlayerId={seniorCardStatusByPlayerId}
+      matrixNewPlayerIds={matrixNewMarkers.playerIds}
+      matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
+      matrixNewSkillsCurrentByPlayerId={matrixNewMarkers.skillsCurrentByPlayerId}
+      matrixNewSkillsMaxByPlayerId={matrixNewMarkers.skillsMaxByPlayerId}
+      onSelectRatingsPlayer={(playerName) => {
+        const player = players.find((item) => formatPlayerName(item) === playerName);
+        if (!player) return;
+        setSelectedId(player.PlayerID);
+      }}
+      onMatrixPlayerDragStart={handleSeniorPlayerDragStart}
+      orderedPlayerIds={orderedPlayerIds}
+      orderSource={orderSource}
+      onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}
+      onSkillsOrderChange={(ids) => applyPlayerOrder(ids, "skills")}
+      onRatingsSortStart={() => {
+        setOrderSource("ratings");
+        setOrderedPlayerIds(null);
+      }}
+      onSkillsSortStart={() => {
+        setOrderSource("skills");
+        setOrderedPlayerIds(null);
+      }}
+      hasPreviousPlayer={Boolean(previousPlayerId)}
+      hasNextPlayer={Boolean(nextPlayerId)}
+      onPreviousPlayer={() => {
+        if (!previousPlayerId) return;
+        setSelectedId(previousPlayerId);
+      }}
+      onNextPlayer={() => {
+        if (!nextPlayerId) return;
+        setSelectedId(nextPlayerId);
+      }}
+      playerKind="senior"
+      skillMode="single"
+      maxSkillLevel={20}
+      activeTab="details"
+      showTabs={false}
+      detailsHeaderActions={seniorDetailsHeaderActions}
+      messages={messages}
+    />
+  );
+
+  const mobileSeniorListCard = (
+    <div className={styles.card}>
+      <div className={styles.listHeader}>
+        <h2 className={`${styles.sectionTitle} ${styles.listHeaderTitle}`}>
+          {messages.seniorPlayerListTitle}
+        </h2>
+        <div className={styles.listHeaderControls}>
+          {seniorTeams.length > 1 ? (
+            <label className={styles.sortControl}>
+              <span className={styles.sortLabel}>{messages.seniorTeamLabel}</span>
+              <select
+                className={styles.sortSelect}
+                value={selectedSeniorTeamId ?? ""}
+                onChange={(event) => {
+                  const nextId = Number(event.target.value);
+                  if (Number.isNaN(nextId)) return;
+                  handleSeniorTeamChange(nextId);
+                }}
+              >
+                {seniorTeams.map((team) => (
+                  <option key={team.teamId} value={team.teamId}>
+                    {formatSeniorTeamOptionLabel(team)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : null}
+          <label className={styles.sortControl}>
+            <span className={styles.sortLabel}>{messages.sortLabel}</span>
+            <select
+              className={styles.sortSelect}
+              value={isMatrixSortActive ? "custom" : sortKey}
+              onChange={(event) => {
+                const nextKey = event.target.value as SeniorSortSelectKey;
+                if (nextKey === "custom") return;
+                setSortKey(nextKey);
+                setOrderSource("list");
+                setOrderedPlayerIds(null);
+                addNotification(`${messages.notificationSortBy} ${sortLabel(messages, nextKey)}`);
+              }}
+            >
+              {isMatrixSortActive ? (
+                <option value="custom" hidden>
+                  {messages.sortCustom}
+                </option>
+              ) : null}
+              <option value="name">{messages.sortName}</option>
+              <option value="age">{messages.sortAge}</option>
+              <option value="arrival">{messages.sortArrival}</option>
+              <option value="tsi">{messages.sortTsi}</option>
+              <option value="wage">{messages.sortWage}</option>
+              <option value="form">{messages.sortForm}</option>
+              <option value="stamina">{messages.sortStamina}</option>
+              <option value="experience">{messages.sortExperience}</option>
+              <option value="loyalty">{messages.sortLoyalty}</option>
+              <option value="injuries">{messages.sortInjuries}</option>
+              <option value="cards">{messages.sortCards}</option>
+              <option value="keeper">{messages.sortKeeper}</option>
+              <option value="defender">{messages.sortDefender}</option>
+              <option value="playmaker">{messages.sortPlaymaker}</option>
+              <option value="winger">{messages.sortWinger}</option>
+              <option value="passing">{messages.sortPassing}</option>
+              <option value="scorer">{messages.sortScorer}</option>
+              <option value="setpieces">{messages.sortSetPieces}</option>
+            </select>
+          </label>
+          <button
+            type="button"
+            className={styles.sortToggle}
+            aria-label={messages.sortToggleAria}
+            onClick={() => {
+              const next = sortDirection === "asc" ? "desc" : "asc";
+              setSortDirection(next);
+              setOrderSource("list");
+              setOrderedPlayerIds(null);
+              addNotification(
+                `${messages.notificationSortDirection} ${
+                  next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
+                }`
+              );
+            }}
+          >
+            ↕️
+          </button>
+        </div>
+      </div>
+      {orderedListPlayers.length === 0 ? (
+        <p className={styles.muted}>{messages.unableToLoadPlayers}</p>
+      ) : (
+        <ul className={styles.list}>
+          {orderedListPlayers.map((player) => {
+            const playerDetails = detailsById.get(player.PlayerID);
+            const playerName = formatPlayerName(player);
+            const hasMotherClubBonus = Boolean(playerDetails?.MotherClubBonus);
+            const isSelected = selectedId === player.PlayerID;
+            const specialty = player.Specialty ?? null;
+            const isNameSort = sortKey === "name";
+            const ageYears = typeof player.Age === "number" ? player.Age : null;
+            const ageDays = typeof player.AgeDays === "number" ? player.AgeDays : null;
+            const ageLabel =
+              ageYears !== null && ageDays !== null
+                ? `${ageYears}${messages.ageYearsShort} ${ageDays}${messages.ageDaysShort}`
+                : ageYears !== null
+                  ? `${ageYears}${messages.ageYearsShort}`
+                  : null;
+            const agePillClassName =
+              ageYears === null
+                ? null
+                : ageYears > 35
+                  ? styles.playerAgePillDarkRed
+                  : ageYears > 30
+                    ? styles.playerAgePillFadedRed
+                    : ageYears >= 20
+                      ? styles.playerAgePillYellow
+                      : styles.playerAgePillGreen;
+            const injuryLevel =
+              typeof playerDetails?.InjuryLevel === "number"
+                ? playerDetails.InjuryLevel
+                : typeof player.InjuryLevel === "number"
+                  ? player.InjuryLevel
+                  : null;
+            const isBruised = injuryLevel !== null && injuryLevel > 0 && injuryLevel < 1;
+            const injuryWeeks = injuryLevel !== null && injuryLevel >= 1 ? Math.ceil(injuryLevel) : null;
+            const injuryLabel = isBruised
+              ? messages.seniorListInjuryBruised
+              : injuryWeeks !== null
+                ? messages.seniorListInjuryWeeks.replace("{weeks}", String(injuryWeeks))
+                : null;
+            const formValue =
+              typeof playerDetails?.Form === "number"
+                ? playerDetails.Form
+                : typeof player.Form === "number"
+                  ? player.Form
+                  : null;
+            const staminaValue =
+              typeof playerDetails?.StaminaSkill === "number"
+                ? playerDetails.StaminaSkill
+                : typeof player.StaminaSkill === "number"
+                  ? player.StaminaSkill
+                  : null;
+            const experienceValue =
+              typeof playerDetails?.Experience === "number" ? playerDetails.Experience : null;
+            const loyaltyValue =
+              typeof playerDetails?.Loyalty === "number" ? playerDetails.Loyalty : null;
+            const cardsValue =
+              typeof playerDetails?.Cards === "number"
+                ? playerDetails.Cards
+                : typeof player.Cards === "number"
+                  ? player.Cards
+                  : null;
+            const playerCardStatus = buildSeniorCardStatus(cardsValue, messages);
+            const wageValue =
+              typeof playerDetails?.Salary === "number"
+                ? playerDetails.Salary
+                : typeof player.Salary === "number"
+                  ? player.Salary
+                  : null;
+            const arrivalMetric = player.ArrivalDate
+              ? formatDateTime(Date.parse(player.ArrivalDate.replace(" ", "T")))
+              : messages.unknownShort;
+            const cardsMetric = (() => {
+              if (typeof cardsValue !== "number") {
+                return (
+                  <span
+                    className={`${styles.playerMetricPill} ${styles.playerMetricPillNeutral}`}
+                  >
+                    {messages.seniorCardsMatchRunning}
+                  </span>
+                );
+              }
+              if (cardsValue >= 3) {
+                return (
+                  <span className={styles.playerMetricPill}>
+                    <span className={styles.playerCardIcon}>🟥</span>
+                  </span>
+                );
+              }
+              if (cardsValue === 2) {
+                return (
+                  <span className={styles.playerMetricPill}>
+                    <span className={styles.playerCardIcon}>🟨</span>
+                    <span className={styles.playerCardIcon}>🟨</span>
+                  </span>
+                );
+              }
+              if (cardsValue === 1) {
+                return (
+                  <span className={styles.playerMetricPill}>
+                    <span className={styles.playerCardIcon}>🟨</span>
+                  </span>
+                );
+              }
+              return null;
+            })();
+            const metricNode: ReactNode = (() => {
+              switch (sortKey) {
+                case "age":
+                  return ageLabel && agePillClassName ? (
+                    <span className={`${styles.playerAgePill} ${agePillClassName}`}>
+                      {ageLabel}
+                    </span>
+                  ) : (
+                    <span className={`${styles.playerMetricPill} ${styles.playerMetricPillNeutral}`}>
+                      {messages.unknownShort}
+                    </span>
+                  );
+                case "arrival":
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        player.ArrivalDate ? "" : styles.playerMetricPillNeutral
+                      }`}
+                    >
+                      {arrivalMetric}
+                    </span>
+                  );
+                case "tsi":
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        typeof player.TSI === "number" ? "" : styles.playerMetricPillNeutral
+                      }`}
+                      style={metricPillStyle(player.TSI ?? null, tsiRange.min, tsiRange.max)}
+                    >
+                      {player.TSI ?? messages.unknownShort}
+                    </span>
+                  );
+                case "wage":
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        typeof wageValue === "number" ? "" : styles.playerMetricPillNeutral
+                      }`}
+                      style={metricPillStyle(wageValue, wageRange.min, wageRange.max, true)}
+                    >
+                      {wageValue !== null ? formatEurFromSek(wageValue) : messages.unknownShort}
+                    </span>
+                  );
+                case "form":
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        typeof formValue === "number" ? "" : styles.playerMetricPillNeutral
+                      }`}
+                      style={metricPillStyle(formValue, 0, 8)}
+                    >
+                      {formValue ?? messages.unknownShort}
+                    </span>
+                  );
+                case "stamina":
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        typeof staminaValue === "number" ? "" : styles.playerMetricPillNeutral
+                      }`}
+                      style={metricPillStyle(staminaValue, 0, 9)}
+                    >
+                      {staminaValue ?? messages.unknownShort}
+                    </span>
+                  );
+                case "experience":
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        typeof experienceValue === "number" ? "" : styles.playerMetricPillNeutral
+                      }`}
+                      style={metricPillStyle(experienceValue, 0, 20)}
+                    >
+                      {experienceValue ?? messages.unknownShort}
+                    </span>
+                  );
+                case "loyalty":
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        typeof loyaltyValue === "number" ? "" : styles.playerMetricPillNeutral
+                      }`}
+                      style={metricPillStyle(loyaltyValue, 0, 20)}
+                    >
+                      {loyaltyValue ?? messages.unknownShort}
+                    </span>
+                  );
+                case "injuries":
+                  if (isBruised) {
+                    return (
+                      <span className={styles.playerMetricPill} title={messages.sortInjuries}>
+                        🩹
+                      </span>
+                    );
+                  }
+                  if (injuryWeeks !== null) {
+                    return (
+                      <span className={styles.playerMetricPill} title={messages.sortInjuries}>
+                        {`✚${toSubscript(injuryWeeks)}`}
+                      </span>
+                    );
+                  }
+                  return null;
+                case "cards":
+                  return cardsMetric;
+                case "keeper": {
+                  const value = skillValueForPlayer(player, "KeeperSkill");
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                      }`}
+                      style={metricPillStyle(value, 0, 20)}
+                    >
+                      {value ?? messages.unknownShort}
+                    </span>
+                  );
+                }
+                case "defender": {
+                  const value = skillValueForPlayer(player, "DefenderSkill");
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                      }`}
+                      style={metricPillStyle(value, 0, 20)}
+                    >
+                      {value ?? messages.unknownShort}
+                    </span>
+                  );
+                }
+                case "playmaker": {
+                  const value = skillValueForPlayer(player, "PlaymakerSkill");
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                      }`}
+                      style={metricPillStyle(value, 0, 20)}
+                    >
+                      {value ?? messages.unknownShort}
+                    </span>
+                  );
+                }
+                case "winger": {
+                  const value = skillValueForPlayer(player, "WingerSkill");
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                      }`}
+                      style={metricPillStyle(value, 0, 20)}
+                    >
+                      {value ?? messages.unknownShort}
+                    </span>
+                  );
+                }
+                case "passing": {
+                  const value = skillValueForPlayer(player, "PassingSkill");
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                      }`}
+                      style={metricPillStyle(value, 0, 20)}
+                    >
+                      {value ?? messages.unknownShort}
+                    </span>
+                  );
+                }
+                case "scorer": {
+                  const value = skillValueForPlayer(player, "ScorerSkill");
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                      }`}
+                      style={metricPillStyle(value, 0, 20)}
+                    >
+                      {value ?? messages.unknownShort}
+                    </span>
+                  );
+                }
+                case "setpieces": {
+                  const value = skillValueForPlayer(player, "SetPiecesSkill");
+                  return (
+                    <span
+                      className={`${styles.playerMetricPill} ${
+                        typeof value === "number" ? "" : styles.playerMetricPillNeutral
+                      }`}
+                      style={metricPillStyle(value, 0, 20)}
+                    >
+                      {value ?? messages.unknownShort}
+                    </span>
+                  );
+                }
+                default:
+                  return null;
+              }
+            })();
+
+            return (
+              <li key={player.PlayerID} className={styles.listItem}>
+                <div className={styles.playerRow}>
+                  <Tooltip content={messages.youthDragToLineupHint} fullWidth>
+                    <button
+                      type="button"
+                      className={styles.playerButton}
+                      aria-pressed={isSelected}
+                      onClick={() => handleSeniorListPlayerSelect(player.PlayerID, playerName)}
+                    >
+                      {!isNameSort ? (
+                        <span
+                          className={`${styles.playerSortMetric} ${
+                            sortKey === "age" ? styles.playerSortMetricPill : ""
+                          }`}
+                        >
+                          {metricNode}
+                        </span>
+                      ) : null}
+                      <span
+                        className={`${styles.playerNameRow} ${
+                          isNameSort ? styles.playerNameRowTruncate : ""
+                        }`}
+                      >
+                        <span className={styles.playerName}>{playerName}</span>
+                        {injuryLabel ? (
+                          <span
+                            className={styles.playerInjuryInline}
+                            title={injuryLabel}
+                            aria-label={injuryLabel}
+                          >
+                            {isBruised ? "🩹" : `✚${toSubscript(injuryWeeks ?? 0)}`}
+                          </span>
+                        ) : null}
+                        {playerCardStatus ? (
+                          <span
+                            className={styles.playerCardStatusInline}
+                            title={playerCardStatus.label}
+                            aria-label={playerCardStatus.label}
+                          >
+                            {playerCardStatus.display}
+                          </span>
+                        ) : null}
+                        {matrixNewPlayerIdSet.has(player.PlayerID) ? (
+                          <span className={styles.matrixNewPill}>
+                            {messages.matrixNewPillLabel}
+                          </span>
+                        ) : null}
+                        {hasMotherClubBonus ? (
+                          <Tooltip content={messages.motherClubBonusTooltip}>
+                            <span
+                              className={styles.seniorMotherClubHeart}
+                              aria-label={messages.motherClubBonusTooltip}
+                            >
+                              ❤
+                            </span>
+                          </Tooltip>
+                        ) : null}
+                        {specialty && SPECIALTY_EMOJI[specialty] ? (
+                          <span className={styles.playerSpecialty}>
+                            {SPECIALTY_EMOJI[specialty]}
+                          </span>
+                        ) : null}
+                      </span>
+                      {isNameSort ? (
+                        <span className={styles.playerIndicators}>
+                          {ageLabel && agePillClassName ? (
+                            <span className={`${styles.playerAgePill} ${agePillClassName}`}>
+                              {ageLabel}
+                            </span>
+                          ) : null}
+                        </span>
+                      ) : null}
+                    </button>
+                  </Tooltip>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </div>
+  );
+
+  const mobileSeniorContent =
+    mobileSeniorPlayerScreen === "detail" ? (
+      <div className={styles.mobileYouthContent}>{seniorMobileDetailsPanel}</div>
+    ) : mobileSeniorPlayerScreen === "list" ? (
+      <div className={styles.mobileYouthContent}>{mobileSeniorListCard}</div>
+    ) : mobileSeniorView === "help" ? (
+      <div className={styles.mobileYouthContent}>
+        <div className={styles.helpCard}>
+          <h2 className={styles.helpTitle}>{messages.seniorHelpTitle}</h2>
+          <p className={styles.helpIntro}>{messages.seniorHelpIntro}</p>
+          <ul className={styles.helpList}>
+            <li>{messages.seniorHelpBulletLatestUpdates}</li>
+            <li>{messages.seniorHelpBulletAiOverview}</li>
+            <li>{messages.seniorHelpBulletAiTrainingAware}</li>
+            <li>{messages.seniorHelpBulletAiIgnoreTraining}</li>
+            <li>{messages.seniorHelpBulletAiMatchTypes}</li>
+            <li>{messages.seniorHelpBulletTrainingRegimen}</li>
+            <li>{messages.seniorHelpBulletAnalyzeOpponent}</li>
+          </ul>
+          <div className={styles.helpOptimizerSection}>
+            <h3 className={styles.helpOptimizerTitle}>
+              {messages.helpOptimizerLocationTitle}
+            </h3>
+            <p className={styles.helpOptimizerLead}>
+              {messages.seniorHelpOptimizerLocation}
+            </p>
+            <div className={styles.helpOptimizerMatchCard}>
+              <div className={styles.helpOptimizerMatchCardHeader}>
+                <span className={styles.helpOptimizerMockLabel}>
+                  {messages.matchesTitle}
+                </span>
+                <button
+                  type="button"
+                  className={`${styles.optimizeButton} ${styles.matchBestLineupDazzleButton}`}
+                  aria-label={messages.setBestLineupTooltip}
+                  tabIndex={-1}
+                >
+                  ✨
+                </button>
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            className={styles.helpDismiss}
+            onClick={() => pushMobileSeniorState("playerDetails", "root", "replace")}
+          >
+            {messages.closeLabel}
+          </button>
+        </div>
+      </div>
+    ) : mobileSeniorView === "skillsMatrix" ? (
+      <div className={styles.mobileYouthContent}>
+        <PlayerDetailsPanel
+          selectedPlayer={selectedPanelPlayer}
+          detailsData={selectedPanelDetails}
+          loading={false}
+          error={null}
+          lastUpdated={selectedId ? (detailsCache[selectedId]?.fetchedAt ?? null) : null}
+          unlockStatus={null}
+          onRefresh={() => {
+            if (refreshing || players.length === 0) return;
+            void refreshDetailsForPlayers(players);
+          }}
+          players={panelPlayers}
+          playerDetailsById={panelDetailsById}
+          skillsMatrixRows={skillsMatrixRows}
+          ratingsMatrixResponse={ratingsResponse}
+          ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
+          ratingsMatrixSpecialtyByName={specialtyByName}
+          ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
+          ratingsMatrixCardStatusByName={seniorCardStatusByName}
+          cardStatusByPlayerId={seniorCardStatusByPlayerId}
+          matrixNewPlayerIds={matrixNewMarkers.playerIds}
+          matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
+          matrixNewSkillsCurrentByPlayerId={matrixNewMarkers.skillsCurrentByPlayerId}
+          matrixNewSkillsMaxByPlayerId={matrixNewMarkers.skillsMaxByPlayerId}
+          onSelectRatingsPlayer={(playerName) => {
+            const player = players.find((item) => formatPlayerName(item) === playerName);
+            if (!player) return;
+            setSelectedId(player.PlayerID);
+          }}
+          onMatrixPlayerDragStart={handleSeniorPlayerDragStart}
+          orderedPlayerIds={orderedPlayerIds}
+          orderSource={orderSource}
+          onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}
+          onSkillsOrderChange={(ids) => applyPlayerOrder(ids, "skills")}
+          onRatingsSortStart={() => {
+            setOrderSource("ratings");
+            setOrderedPlayerIds(null);
+          }}
+          onSkillsSortStart={() => {
+            setOrderSource("skills");
+            setOrderedPlayerIds(null);
+          }}
+          playerKind="senior"
+          skillMode="single"
+          maxSkillLevel={20}
+          activeTab="skillsMatrix"
+          showTabs={false}
+          extraSkillsMatrixHeaderAux={mobileSeniorMatrixHint}
+          showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
+          onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
+          messages={messages}
+        />
+      </div>
+    ) : mobileSeniorView === "ratingsMatrix" ? (
+      <div className={styles.mobileYouthContent}>
+        <PlayerDetailsPanel
+          selectedPlayer={selectedPanelPlayer}
+          detailsData={selectedPanelDetails}
+          loading={false}
+          error={null}
+          lastUpdated={selectedId ? (detailsCache[selectedId]?.fetchedAt ?? null) : null}
+          unlockStatus={null}
+          onRefresh={() => {
+            if (refreshing || players.length === 0) return;
+            void refreshDetailsForPlayers(players);
+          }}
+          players={panelPlayers}
+          playerDetailsById={panelDetailsById}
+          skillsMatrixRows={skillsMatrixRows}
+          ratingsMatrixResponse={ratingsResponse}
+          ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
+          ratingsMatrixSpecialtyByName={specialtyByName}
+          ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
+          ratingsMatrixCardStatusByName={seniorCardStatusByName}
+          cardStatusByPlayerId={seniorCardStatusByPlayerId}
+          matrixNewPlayerIds={matrixNewMarkers.playerIds}
+          matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
+          matrixNewSkillsCurrentByPlayerId={matrixNewMarkers.skillsCurrentByPlayerId}
+          matrixNewSkillsMaxByPlayerId={matrixNewMarkers.skillsMaxByPlayerId}
+          onSelectRatingsPlayer={(playerName) => {
+            const player = players.find((item) => formatPlayerName(item) === playerName);
+            if (!player) return;
+            setSelectedId(player.PlayerID);
+          }}
+          onMatrixPlayerDragStart={handleSeniorPlayerDragStart}
+          orderedPlayerIds={orderedPlayerIds}
+          orderSource={orderSource}
+          onRatingsOrderChange={(ids) => applyPlayerOrder(ids, "ratings")}
+          onSkillsOrderChange={(ids) => applyPlayerOrder(ids, "skills")}
+          onRatingsSortStart={() => {
+            setOrderSource("ratings");
+            setOrderedPlayerIds(null);
+          }}
+          onSkillsSortStart={() => {
+            setOrderSource("skills");
+            setOrderedPlayerIds(null);
+          }}
+          playerKind="senior"
+          skillMode="single"
+          maxSkillLevel={20}
+          activeTab="ratingsMatrix"
+          showTabs={false}
+          extraSkillsMatrixHeaderAux={mobileSeniorMatrixHint}
+          showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
+          onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
+          messages={messages}
+        />
+      </div>
+    ) : mobileSeniorView === "lineupOptimizer" ? (
+      <div className={styles.mobileYouthContent}>
+        <LineupField
+          assignments={assignments}
+          behaviors={behaviors}
+          playersById={playersByIdForLineup}
+          playerDetailsById={new Map(
+            Array.from(detailsById.entries()).map(([id, detail]) => [
+              id,
+              {
+                PlayerSkills: detail.PlayerSkills,
+                InjuryLevel: detail.InjuryLevel,
+                Cards: detail.Cards,
+                Form: detail.Form,
+                StaminaSkill: detail.StaminaSkill,
+              },
+            ])
+          )}
+          onAssign={(slotId, playerId) => {
+            const nextAssignments = { ...assignments };
+            Object.keys(nextAssignments).forEach((key) => {
+              if (nextAssignments[key] === playerId) {
+                nextAssignments[key] = null;
+              }
+            });
+            nextAssignments[slotId] = playerId;
+            setAssignments(nextAssignments);
+            preservePreparedSeniorAiContextAfterManualEdit(
+              nextAssignments,
+              behaviors,
+              tacticType
+            );
+          }}
+          onClear={(slotId) => {
+            const nextAssignments = { ...assignments, [slotId]: null };
+            setAssignments(nextAssignments);
+            preservePreparedSeniorAiContextAfterManualEdit(
+              nextAssignments,
+              behaviors,
+              tacticType
+            );
+          }}
+          onMove={(fromSlot, toSlot) => {
+            const nextAssignments = {
+              ...assignments,
+              [toSlot]: assignments[fromSlot] ?? null,
+              [fromSlot]: assignments[toSlot] ?? null,
+            };
+            setAssignments(nextAssignments);
+            preservePreparedSeniorAiContextAfterManualEdit(
+              nextAssignments,
+              behaviors,
+              tacticType
+            );
+          }}
+          onChangeBehavior={(slotId, behavior) => {
+            const nextBehaviors = { ...behaviors };
+            if (behavior) nextBehaviors[slotId] = behavior;
+            else delete nextBehaviors[slotId];
+            setBehaviors(nextBehaviors);
+            preservePreparedSeniorAiContextAfterManualEdit(
+              assignments,
+              nextBehaviors,
+              tacticType
+            );
+          }}
+          onReset={() => {
+            setAssignments({});
+            setBehaviors({});
+            setLoadedMatchId(null);
+            clearSeniorAiSubmitLock();
+            addNotification(messages.notificationLineupReset);
+          }}
+          tacticType={tacticType}
+          onTacticChange={(nextTacticType) => {
+            setTacticType(nextTacticType);
+            preservePreparedSeniorAiContextAfterManualEdit(
+              assignments,
+              behaviors,
+              nextTacticType
+            );
+          }}
+          tacticPlacement="headerRight"
+          trainingType={trainingType}
+          onTrainingTypeChange={setTrainingType}
+          onTrainingTypeSet={handleSetTrainingType}
+          trainingTypeSetPending={trainingTypeSetPending}
+          trainingTypeSetPendingValue={trainingTypeSetPendingValue}
+          trainingTypePlacement="fieldTopLeft"
+          trainingTypeOptions={[...NON_DEPRECATED_TRAINING_TYPES]}
+          trainingTypeLabelForValue={obtainedTrainingRegimenLabel}
+          trainingTypeSectionTitleForValue={trainingSectionTitleForValue}
+          trainingTypeAriaLabel={seniorTrainingLabel}
+          trainedSlots={seniorTrainedSlots}
+          onHoverPlayer={(playerId) => {
+            void ensureDetails(playerId);
+          }}
+          onSelectPlayer={(playerId) => {
+            setSelectedId(playerId);
+            void ensureDetails(playerId);
+          }}
+          onEmptySlotSelect={setMobileSeniorLineupPickerSlotId}
+          skillMode="single"
+          maxSkillLevel={20}
+          allowExternalPlayerDrop={false}
+          messages={messages}
+        />
+        <UpcomingMatches
+          response={matchesState}
+          messages={messages}
+          assignments={assignments}
+          behaviors={behaviors}
+          penaltyKickerIds={seniorPenaltyKickerIds}
+          setPiecesId={seniorSetPiecesPlayerId}
+          tacticType={tacticType}
+          sourceSystem="Hattrick"
+          includeTournamentMatches={includeTournamentMatches}
+          onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
+          setBestLineupHelpAnchor="senior-set-lineup-ai"
+          showExtraTimeSetBestLineupMode
+          keepBestLineupMenuTopmost
+          fixedFormationOptions={[...FIXED_FORMATION_OPTIONS]}
+          selectedFixedFormation={setBestLineupFixedFormation}
+          onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
+          setBestLineupCustomContent={setBestLineupBTeamMenuContent}
+          onRefresh={onRefreshMatchesOnly}
+          onSetBestLineupMode={async (matchId, mode, fixedFormation) => {
+            clearSeniorAiSubmitLock();
+            if (mode === "extraTime") {
+              setExtraTimeMatchId(matchId);
+              await syncExtraTimeModalTrainingType().catch(() => {
+                // Fall back to the last known senior training if the live fetch fails.
+              });
+              setExtraTimeInfoOpen(true);
+              return;
+            }
+            if (mode === "trainingAware") {
+              setTrainingAwareMatchId(matchId);
+              await syncTrainingAwareModalTrainingType().catch(() => {
+                // Fall back to the last known senior training if the live fetch fails.
+              });
+              setTrainingAwareInfoOpen(true);
+              return;
+            }
+            return runSetBestLineupPredictRatings(matchId, mode, fixedFormation);
+          }}
+          onAnalyzeOpponent={(matchId) => {
+            return handleAnalyzeOpponent(matchId);
+          }}
+          onSetBestLineup={(matchId) => {
+            void matchId;
+          }}
+          onLoadLineup={(nextAssignments, nextBehaviors, matchId, loadedTacticType) => {
+            clearSeniorAiSubmitLock();
+            setAssignments(nextAssignments);
+            setBehaviors(nextBehaviors);
+            if (typeof loadedTacticType === "number") {
+              setTacticType(loadedTacticType);
+            }
+            setLoadedMatchId(matchId);
+          }}
+          loadedMatchId={loadedMatchId}
+          onSubmitSuccess={(submittedMatchId, submittedLineupPayload) => {
+            if (extraTimePreparedSubmission) {
+              try {
+                setSubmitDisclaimerExtraTimeSummary(buildExtraTimeSubmitDisclaimerSummary());
+              } catch {
+                setSubmitDisclaimerExtraTimeSummary(null);
+              }
+              setSubmitDisclaimerManMarkingSummary(null);
+              setSubmitDisclaimerSeniorOrdersSummary(null);
+            } else {
+              setSubmitDisclaimerExtraTimeSummary(null);
+              setSubmitDisclaimerSeniorOrdersSummary(
+                seniorAiPreparedSubmissionMode === "trainingAware" ||
+                  seniorAiPreparedSubmissionMode === "ignoreTraining" ||
+                  seniorAiPreparedSubmissionMode === "fixedFormation"
+                  ? buildSeniorSubmitDisclaimerOrdersSummary(submittedLineupPayload)
+                  : null
+              );
+              setSubmitDisclaimerManMarkingSummary(
+                seniorAiManMarkingEnabled &&
+                  seniorAiManMarkingSelection &&
+                  seniorAiSubmitEnabledMatchId === submittedMatchId
+                  ? {
+                      marker: {
+                        id: seniorAiManMarkingSelection.marker.playerId,
+                        name: seniorAiManMarkingSelection.marker.name,
+                      },
+                      target: {
+                        id: seniorAiManMarkingSelection.target.playerId,
+                        name: seniorAiManMarkingSelection.target.name,
+                      },
+                    }
+                  : null
+              );
+            }
+            clearSeniorAiSubmitLock();
+            setSubmitDisclaimerOpen(true);
+            void onRefreshMatchesOnly();
+          }}
+          submitEnabledMatchId={seniorAiSubmitTargetMatchId}
+          submitRestrictedTooltipBuilder={(targetMatch) => {
+            if (!targetMatch) return messages.submitOrdersTooltip;
+            const home = targetMatch.HomeTeam?.HomeTeamName ?? messages.homeLabel;
+            const away = targetMatch.AwayTeam?.AwayTeamName ?? messages.awayLabel;
+            const parsedMatchDate = parseChppDate(targetMatch.MatchDate);
+            const datetime = parsedMatchDate
+              ? formatDateTime(parsedMatchDate)
+              : messages.unknownDate;
+            return messages.seniorSubmitOrdersOtherMatchTooltip
+              .replace("{{home}}", home)
+              .replace("{{away}}", away)
+              .replace("{{datetime}}", datetime);
+          }}
+          buildSubmitLineupPayload={(matchId, defaultPayload) =>
+            buildSeniorSubmitLineupPayload(matchId, defaultPayload)
+          }
+        />
+      </div>
+    ) : mobileSeniorView === "playerDetails" ? (
+      <div className={styles.mobileYouthContent}>
+        <div className={`${styles.card} ${styles.mobileYouthPlaceholderCard}`}>
+          <h2 className={styles.sectionTitle}>{messages.toolSeniorOptimization}</h2>
+          <p className={styles.muted}>{messages.mobileYouthRootPrompt}</p>
+        </div>
+      </div>
+    ) : (
+      <div className={styles.mobileYouthContent}>
+        <div className={`${styles.card} ${styles.mobileYouthPlaceholderCard}`}>
+          <h2 className={styles.sectionTitle}>{mobileSeniorViewLabel}</h2>
+          <p className={styles.muted}>{messages.mobileSeniorViewComingSoon}</p>
+        </div>
+      </div>
+    );
+
   return (
     <div className={styles.dashboardStack} ref={dashboardRef}>
       {startupOverlayMounted ? (
         <StartupLoadingExperience
           title={messages.startupLoadingTitle}
           subtitle={messages.startupLoadingSubtitle}
-          status={startupLoadingStatus}
-          progressPct={startupLoadingProgressPct}
+          status={startupOverlayStatus}
+          progressPct={startupOverlayProgressPct}
           overlay
           fading={startupOverlayFading}
         />
@@ -13838,6 +15234,39 @@ const refreshDetailsForPlayers = async (
                   {messages.seniorExtraTimeSubmitDisclaimerTrainingTitle}
                 </p>
                 <p>{messages.seniorExtraTimeModalTrainingLimit}</p>
+                <div className={styles.seniorDisclaimerTrainingCards}>
+                  {submitDisclaimerExtraTimeSummary.trainingRows.map((row) => (
+                    <article key={`mobile-training-${row.id}`} className={styles.seniorDisclaimerTrainingCard}>
+                      <div className={styles.seniorDisclaimerTrainingCardHeader}>
+                        <span className={styles.seniorDisclaimerTrainingCardIndex}>
+                          {row.number}
+                        </span>
+                        <a
+                          className={styles.chroniclePressLink}
+                          href={hattrickPlayerUrl(row.id)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {row.name}
+                        </a>
+                      </div>
+                      <div className={styles.seniorDisclaimerTrainingCardGrid}>
+                        <div className={styles.seniorDisclaimerTrainingCardMetric}>
+                          <span className={styles.seniorDisclaimerTrainingCardLabel}>
+                            {messages.seniorExtraTimeSubmitDisclaimerTrainingScenario90Header}
+                          </span>
+                          <span>{formatEffectiveTrainingMinutes(row.scenario90)}</span>
+                        </div>
+                        <div className={styles.seniorDisclaimerTrainingCardMetric}>
+                          <span className={styles.seniorDisclaimerTrainingCardLabel}>
+                            {messages.seniorExtraTimeSubmitDisclaimerTrainingScenario120Header}
+                          </span>
+                          <span>{formatEffectiveTrainingMinutes(row.scenario120)}</span>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
                 <div className={styles.opponentFormationsTableWrap}>
                   <table className={styles.opponentFormationsTable}>
                     <thead>
@@ -15575,7 +17004,107 @@ const refreshDetailsForPlayers = async (
         onClose={() => setOpponentFormationsModal(null)}
       />
 
-      {showHelp ? (
+      <Modal
+        open={Boolean(mobileSeniorLineupPickerSlotId)}
+        title={messages.mobileYouthLineupPickerTitle}
+        movable={false}
+        body={
+          mobileSeniorLineupPickerPlayers.length > 0 ? (
+            <div className={styles.mobileYouthLineupPickerList}>
+              {mobileSeniorLineupPickerPlayers.map((player) => (
+                <button
+                  key={player.id}
+                  type="button"
+                  className={styles.mobileYouthLineupPickerOption}
+                  onClick={() => {
+                    if (!mobileSeniorLineupPickerSlotId) return;
+                    const nextAssignments = { ...assignments };
+                    Object.keys(nextAssignments).forEach((key) => {
+                      if (nextAssignments[key] === player.id) {
+                        nextAssignments[key] = null;
+                      }
+                    });
+                    nextAssignments[mobileSeniorLineupPickerSlotId] = player.id;
+                    setAssignments(nextAssignments);
+                    preservePreparedSeniorAiContextAfterManualEdit(
+                      nextAssignments,
+                      behaviors,
+                      tacticType
+                    );
+                    setMobileSeniorLineupPickerSlotId(null);
+                  }}
+                >
+                  <span className={styles.mobileYouthLineupPickerName}>
+                    {player.name}
+                  </span>
+                  <span className={styles.mobileYouthLineupPickerMeta}>
+                    {player.age !== null
+                      ? `${player.age}${messages.ageYearsShort}`
+                      : messages.unknownShort}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className={styles.muted}>{messages.mobileYouthLineupPickerEmpty}</p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmCancel}
+            onClick={() => setMobileSeniorLineupPickerSlotId(null)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setMobileSeniorLineupPickerSlotId(null)}
+      />
+
+      {mobileSeniorActive ? (
+        <>
+          <MobileToolMenu
+            messages={messages}
+            toggleLabel={messages.mobileSeniorMenuToggleLabel}
+            teamLabel={messages.seniorTeamLabel}
+            teamOptions={seniorTeams.map((team) => ({
+              id: team.teamId,
+              label: formatSeniorTeamOptionLabel(team),
+            }))}
+            selectedTeamId={selectedSeniorTeamId}
+            onHome={openMobileSeniorHome}
+            onOpenHelp={() => pushMobileSeniorState("help", "root")}
+            onTeamChange={handleSeniorTeamChange}
+            onRefresh={() => {
+              void refreshAllRef.current?.("manual");
+            }}
+            onOpenUpdates={() => setUpdatesOpen(true)}
+            activeView={mobileSeniorView}
+            onSelectView={handleMobileSeniorViewSelect}
+            position={mobileSeniorMenuPosition}
+            onPositionChange={setMobileSeniorMenuPosition}
+          />
+          {mobileSeniorRefreshFeedbackVisible && mobileSeniorRefreshStatus ? (
+            <div className={styles.mobileYouthRefreshStatus} aria-live="polite">
+              <span className={styles.mobileYouthRefreshStatusText}>
+                {mobileSeniorRefreshStatus}
+              </span>
+              {refreshing ? (
+                <span className={styles.mobileYouthRefreshProgressTrack} aria-hidden="true">
+                  <span
+                    className={styles.mobileYouthRefreshProgressFill}
+                    style={{
+                      width: `${Math.max(0, Math.min(100, refreshProgressPct || 0))}%`,
+                    }}
+                  />
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+          {mobileSeniorContent}
+        </>
+      ) : showHelp ? (
         <div className={styles.helpOverlay} aria-hidden="true" style={{ position: "fixed" }}>
           <div className={styles.helpCallouts}>
             {helpCallouts.map((callout, index) => (
@@ -15595,7 +17124,7 @@ const refreshDetailsForPlayers = async (
           </div>
         </div>
       ) : null}
-      <div className={styles.dashboardGrid}>
+      {!mobileSeniorActive ? <div className={styles.dashboardGrid}>
         <div
           className={`${styles.card}${showHelp ? ` ${styles.helpDisabledColumn}` : ""}`}
           aria-hidden={showHelp ? "true" : undefined}
@@ -16021,20 +17550,18 @@ const refreshDetailsForPlayers = async (
                           type="button"
                           className={styles.playerButton}
                           aria-pressed={isSelected}
-                          onClick={() => {
-                            setActiveDetailsTab("details");
-                            setSelectedId(player.PlayerID);
-                            addNotification(
-                              `${messages.notificationPlayerSelected} ${playerName}`
-                            );
-                          }}
-                          draggable
+                          onClick={() =>
+                            handleSeniorListPlayerSelect(player.PlayerID, playerName)
+                          }
+                          draggable={!mobileSeniorActive}
                           onDragStart={(event) =>
-                            handleSeniorPlayerDragStart(
-                              event,
-                              player.PlayerID,
-                              playerName
-                            )
+                            !mobileSeniorActive
+                              ? handleSeniorPlayerDragStart(
+                                  event,
+                                  player.PlayerID,
+                                  playerName
+                                )
+                              : undefined
                           }
                         >
                         {!isNameSort ? (
@@ -16451,7 +17978,7 @@ const refreshDetailsForPlayers = async (
             }
           />
         </div>
-      </div>
+      </div> : null}
     </div>
   );
 }

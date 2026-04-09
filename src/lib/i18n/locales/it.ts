@@ -24,6 +24,8 @@ export const messagesIt: Messages = {
     toolYouthBadge: "Y",
     toolSeniorBadge: "S",
     toolClubChronicle: "Cronaca del club",
+    mobileToolsLabel: "Strumenti",
+    mobileHelpLabel: "Aiuto",
     clubChronicleTitle: "Cronaca del club",
     clubChronicleBody:
       "La Cronaca del club arriverà presto. Qui seguirai cosa fanno le squadre senior.",
@@ -70,6 +72,10 @@ export const messagesIt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Questa app è in beta. Funzioni, comportamento e dati locali in cache possono cambiare o essere azzerati senza preavviso.",
+    changelog_4_1_0:
+      "Le watchlist di Club Chronicle ora possono essere trasferite tra dispositivi con export QR su desktop/mobile e import da fotocamera su mobile.",
+    changelog_4_0_0:
+      "HT Alchemy ora include un supporto mobile dedicato in tutta l’app.",
     changelog_3_13_0:
       "Le formazioni IA senior ora supportano rilevamento, invio e verifica post-invio della marcatura a uomo.",
     changelog_3_12_0:
@@ -225,9 +231,52 @@ export const messagesIt: Messages = {
     settingsDebugBuyCoffeePromptButton: "Mostra il modal offrimi un caffè",
     settingsGeneral: "Generale",
     settingsGeneralTitle: "Impostazioni generali",
+    settingsGeneralExportAllLabel: "Esporta tutte le impostazioni",
+    settingsGeneralExportAllHint:
+      "Esporta tutte le impostazioni locali dell’app e gli stati in cache in un file JSON di backup.",
+    settingsGeneralImportAllLabel: "Importa tutte le impostazioni",
+    settingsGeneralImportAllHint:
+      "Importa un backup JSON esportato in precedenza e sostituisce le impostazioni locali e gli stati in cache attuali dell’app.",
     settingsGeneralEnableScalingLabel: "Abilita scalatura app",
     settingsGeneralEnableScalingTooltip:
       "Quando attiva, l app si scala per adattarsi al viewport e ridurre lo scorrimento. Quando disattiva, l app usa dimensione normale e può scorrere.",
+    settingsGeneralChronicleWatchlistsExportLabel:
+      "Esporta watchlist di Club Chronicle su mobile",
+    settingsGeneralChronicleWatchlistsExportHint:
+      "Genera un codice QR con le tue watchlist di Club Chronicle da importare su un altro dispositivo.",
+    settingsGeneralChronicleWatchlistsImportLabel:
+      "Importa watchlist CC",
+    settingsGeneralChronicleWatchlistsImportHint:
+      "Usa la fotocamera nativa del tuo telefono per aprire un QR esportato con le watchlist di Club Chronicle.",
+    settingsChronicleQrExportTitle:
+      "Esporta watchlist di Club Chronicle su mobile",
+    settingsChronicleQrExportBody:
+      "Scansiona questo QR con la fotocamera nativa del tuo telefono per importare tutte le watchlist di Club Chronicle sul mobile.",
+    settingsChronicleQrExportSummaryTitle: "Questo QR esporta:",
+    settingsChronicleQrExportFailed:
+      "Impossibile generare il codice QR delle watchlist di Club Chronicle.",
+    settingsChronicleQrImportTitle:
+      "Importa watchlist di Club Chronicle",
+    settingsChronicleQrImportBody:
+      "Scansiona un QR esportato con le watchlist di Club Chronicle usando la fotocamera nativa del tuo telefono. Quando apri il link ti verrà chiesto se vuoi sostituire le watchlist attuali su questo dispositivo.",
+    settingsChronicleQrImportScanning: "Scansione del QR…",
+    settingsChronicleQrImportUnsupported:
+      "La scansione QR con fotocamera non è supportata in questo browser.",
+    settingsChronicleQrImportPermissionDenied:
+      "Accesso alla fotocamera negato. Consentilo per scansionare il QR.",
+    settingsChronicleQrImportFailed:
+      "Impossibile leggere un QR valido delle watchlist di Club Chronicle.",
+    settingsChronicleQrImportSuccess:
+      "Watchlist di Club Chronicle importate.",
+    settingsChronicleQrImportWarningTitle:
+      "Sostituire le watchlist di Club Chronicle",
+    settingsChronicleQrImportWarningBody:
+      "Importando questo QR verranno sostituite le watchlist attuali di Club Chronicle su questo dispositivo. Continuare?",
+    settingsChronicleQrImportConfirm: "Sostituisci watchlist",
+    settingsChronicleQrImportTabsSummaryLabel: "Schede",
+    settingsChronicleQrImportDirectTeamsSummaryLabel: "Squadre dirette",
+    settingsChronicleQrImportOwnLeaguesSummaryLabel: "Leghe proprie",
+    settingsChronicleQrImportManualTeamsSummaryLabel: "Squadre manuali",
     settingsDebug: "Debug",
     settingsDebugTitle: "Impostazioni debug",
     settingsDebugDisableScalingLabel: "Mostra aggiornamenti fittizi",
@@ -235,7 +284,10 @@ export const messagesIt: Messages = {
     settingsDebugRandomNewMarkersOffLabel: "Nascondi marker NEW casuali",
     clubChronicleLeaguePanelTitle: "Prestazione in lega",
     clubChronicleLeaguePanelEmpty: "Nessun dato di lega ancora.",
-    clubChronicleNoTeams: "Nessuna squadra seguita selezionata.",
+    clubChronicleNoTeams:
+      "Al momento non ci sono squadre monitorate per questa scheda. Aggiungi squadre da monitorare tramite la watchlist.",
+    clubChronicleNoTeamsMobileHint:
+      "Su mobile, la watchlist si trova nel menu flottante.",
     clubChronicleLoading: "Caricamento Cronaca del club…",
     clubChronicleUpdatesTitle: "Ultimi aggiornamenti",
     clubChronicleUpdatesSinceGlobal: "Modifiche dall ultimo aggiornamento globale",
@@ -517,6 +569,9 @@ export const messagesIt: Messages = {
     helpBulletTraining:
       "Puoi inviare le formazioni a Hattrick, ma l’allenamento va impostato manualmente (l’API non lo consente).",
     helpBulletDesktop: "Ottimizzato per desktop.",
+    helpOptimizerLocationTitle: "Dove trovare l'ottimizzatore",
+    helpOptimizerLocationYouth:
+      "Apri l'ottimizzatore della formazione dal menu flottante, poi cerca questo pulsante nell'intestazione della formazione.",
     helpCalloutStar: "Scegli il tuo giocatore stella.",
     helpCalloutTraining:
       "Imposta allenamento primario e secondario prima di ottimizzare.",
@@ -549,6 +604,8 @@ export const messagesIt: Messages = {
       "Il regime di allenamento senior puo essere cambiato direttamente dall app tramite il menu a discesa della formazione.",
     seniorHelpBulletAnalyzeOpponent:
       "Analizza avversario riassume i pattern recenti per supportare le decisioni IA sulla formazione.",
+    seniorHelpOptimizerLocation:
+      "Apri l'ottimizzatore della formazione dal menu flottante, poi cerca questo pulsante sulla scheda della partita interessata.",
     themeSwitchDark: "Passa alla modalità scura",
     themeSwitchLight: "Passa alla modalità chiara",
     helpDismissLabel: "Ho capito",
@@ -982,6 +1039,27 @@ export const messagesIt: Messages = {
     permissionsNone: "Nessuno",
     autoSelectLabel: "✨",
     autoSelectTitle: "Auto-seleziona giocatore stella e allenamenti",
+    mobileHomeLabel: "Home",
+    mobileYouthMenuToggleLabel: "Apri menu giovanile",
+    mobileSeniorMenuToggleLabel: "Apri menu senior",
+    mobilePreviousPanelLabel: "Pannello precedente",
+    mobileNextPanelLabel: "Pannello successivo",
+    mobileYouthRootTitle: "Ottimizzazione rosa giovanile",
+    mobileYouthRootPrompt:
+      "Usa il menu mobile per aprire dettagli giocatore, matrici o l'ottimizzatore della formazione.",
+    mobileYouthBackLabel: "Indietro",
+    mobileYouthBackToPlayerList: "Torna alla lista giocatori",
+    mobileYouthLandscapeHint:
+      "Ruota in orizzontale per vedere la matrice completa.",
+    mobileChronicleLandscapeHint:
+      "Ruota in orizzontale per una vista tabellare più ampia.",
+    mobileYouthLineupPickerTitle: "Scegli giocatore",
+    mobileYouthLineupPickerEmpty:
+      "Nessun giocatore disponibile per questo slot.",
+    mobileYouthViewComingSoon:
+      "Questa vista mobile giovanile non è ancora implementata.",
+    mobileSeniorViewComingSoon:
+      "Questa vista mobile senior non è ancora implementata.",
     trainingTitle: "Allenamento mirato",
     trainingSectionFocused: "Allenamento mirato",
     trainingSectionExtended: "Allenamento esteso",
@@ -1190,6 +1268,7 @@ export const messagesIt: Messages = {
     posInnerMidfieldFull: "Centrocampista",
     posForwardFull: "Punta",
     connectLabel: "Connetti Hattrick",
+    mobileConnectLabel: "Connetti",
     connectedLabel: "Connesso",
     connectHint:
       "Usa il pulsante Connetti in alto a destra per accedere di nuovo.",

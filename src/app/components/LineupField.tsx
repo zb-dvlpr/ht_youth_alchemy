@@ -60,6 +60,7 @@ type LineupFieldProps = {
   onClear: (slotId: string) => void;
   onMove?: (fromSlot: string, toSlot: string) => void;
   onSelectPlayer?: (playerId: number) => void | Promise<void>;
+  onEmptySlotSelect?: (slotId: string) => void;
   onChangeBehavior?: (slotId: string, behavior: number) => void;
   onRandomize?: () => void;
   onReset?: () => void;
@@ -105,6 +106,7 @@ type LineupFieldProps = {
   skillMode?: "currentMax" | "single";
   maxSkillLevel?: number;
   messages: Messages;
+  allowExternalPlayerDrop?: boolean;
 };
 
 type PositionRow = {
@@ -422,7 +424,9 @@ export default function LineupField({
   skillMode = "currentMax",
   maxSkillLevel = MAX_SKILL_LEVEL,
   onSelectPlayer,
+  onEmptySlotSelect,
   messages,
+  allowExternalPlayerDrop = true,
 }: LineupFieldProps) {
   const [optimizeOpen, setOptimizeOpen] = useState(false);
   const [trainingMenuOpen, setTrainingMenuOpen] = useState(false);
@@ -431,6 +435,24 @@ export default function LineupField({
   const trainingButtonRef = useRef<HTMLButtonElement | null>(null);
   const trainingMenuRef = useRef<HTMLDivElement | null>(null);
   const isDragActive = useRef(false);
+  const suppressClickRef = useRef(false);
+  const touchDragRef = useRef<{
+    pointerId: number;
+    fromSlot: string;
+    playerId: number;
+    playerName: string;
+    startX: number;
+    startY: number;
+    x: number;
+    y: number;
+    active: boolean;
+  } | null>(null);
+  const [touchDragGhost, setTouchDragGhost] = useState<{
+    label: string;
+    x: number;
+    y: number;
+    visible: boolean;
+  } | null>(null);
 
   useEffect(() => {
     if (!optimizeOpen && !trainingMenuOpen) return;
@@ -450,6 +472,62 @@ export default function LineupField({
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
   }, [optimizeOpen, trainingMenuOpen, forceOptimizeOpen]);
+
+  useEffect(() => {
+    const handlePointerMove = (event: PointerEvent) => {
+      const drag = touchDragRef.current;
+      if (!drag || event.pointerId !== drag.pointerId) return;
+      const nextX = event.clientX;
+      const nextY = event.clientY;
+      const movedEnough =
+        Math.hypot(nextX - drag.startX, nextY - drag.startY) > 10;
+      drag.x = nextX;
+      drag.y = nextY;
+      if (movedEnough) {
+        drag.active = true;
+        suppressClickRef.current = true;
+      }
+      if (!drag.active) return;
+      event.preventDefault();
+      setTouchDragGhost({
+        label: drag.playerName,
+        x: nextX,
+        y: nextY,
+        visible: true,
+      });
+    };
+
+    const clearTouchDrag = () => {
+      touchDragRef.current = null;
+      setTouchDragGhost(null);
+      window.setTimeout(() => {
+        suppressClickRef.current = false;
+      }, 0);
+    };
+
+    const handlePointerEnd = (event: PointerEvent) => {
+      const drag = touchDragRef.current;
+      if (!drag || event.pointerId !== drag.pointerId) return;
+      if (drag.active && onMove) {
+        const dropTarget = document.elementFromPoint(event.clientX, event.clientY);
+        const slotElement = dropTarget?.closest?.("[data-lineup-slot-id]") as HTMLElement | null;
+        const targetSlotId = slotElement?.dataset.lineupSlotId;
+        if (targetSlotId && targetSlotId !== drag.fromSlot) {
+          onMove(drag.fromSlot, targetSlotId);
+        }
+      }
+      clearTouchDrag();
+    };
+
+    window.addEventListener("pointermove", handlePointerMove, { passive: false });
+    window.addEventListener("pointerup", handlePointerEnd);
+    window.addEventListener("pointercancel", handlePointerEnd);
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerEnd);
+      window.removeEventListener("pointercancel", handlePointerEnd);
+    };
+  }, [onMove]);
 
   const menuOpen = forceOptimizeOpen || optimizeOpen;
   const revealPlayerLabel = optimizeStarPlayerName ?? messages.unknownShort;
@@ -580,6 +658,28 @@ export default function LineupField({
       </div>
     </div>
   );
+
+  const handleTouchSlotPointerDown = (
+    event: React.PointerEvent<HTMLDivElement>,
+    slotId: string,
+    playerId: number,
+    playerName: string
+  ) => {
+    if (event.pointerType === "mouse") return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    touchDragRef.current = {
+      pointerId: event.pointerId,
+      fromSlot: slotId,
+      playerId,
+      playerName,
+      startX: event.clientX,
+      startY: event.clientY,
+      x: event.clientX,
+      y: event.clientY,
+      active: false,
+    };
+  };
 
   const renderSingleValueMetric = (
     key: string,
@@ -749,7 +849,7 @@ export default function LineupField({
           onMove(payload.fromSlot, slotId);
           return;
         }
-        if (payload.type === "player" && payload.playerId) {
+        if (allowExternalPlayerDrop && payload.type === "player" && payload.playerId) {
           onAssign(slotId, payload.playerId);
           return;
         }
@@ -759,6 +859,7 @@ export default function LineupField({
     }
 
     const fallback = event.dataTransfer.getData("text/plain");
+    if (!allowExternalPlayerDrop) return;
     const playerId = Number(fallback);
     if (Number.isNaN(playerId)) return;
     onAssign(slotId, playerId);
@@ -769,6 +870,7 @@ export default function LineupField({
   };
 
   return (
+    <>
     <div className={styles.fieldCard}>
       <div className={styles.fieldHeader}>
         <span>{messages.lineupTitle}</span>
@@ -961,8 +1063,13 @@ export default function LineupField({
                   } ${
                     isHalfOnly ? styles.trainedHalf : ""
                   } ${behaviorValue ? styles.fieldSlotHasBehavior : ""}`}
+                  data-lineup-slot-id={position.id}
                   onDrop={(event) => handleDrop(position.id, event)}
                   onDragOver={handleDragOver}
+                  onClick={() => {
+                    if (assignedPlayer) return;
+                    onEmptySlotSelect?.(position.id);
+                  }}
                 >
                   {assignedPlayer && behaviorOptions.length ? (
                     <>
@@ -1024,6 +1131,15 @@ export default function LineupField({
                       <div
                         className={styles.slotContent}
                         draggable
+                        onContextMenu={(event) => event.preventDefault()}
+                        onPointerDown={(event) =>
+                          handleTouchSlotPointerDown(
+                            event,
+                            position.id,
+                            assignedPlayer.YouthPlayerID,
+                            formatName(assignedPlayer)
+                          )
+                        }
                         onMouseEnter={() => {
                           if (!assignedPlayer) return;
                           onHoverPlayer?.(assignedPlayer.YouthPlayerID);
@@ -1031,6 +1147,7 @@ export default function LineupField({
                         onClick={() => {
                           if (!assignedPlayer) return;
                           if (isDragActive.current) return;
+                          if (suppressClickRef.current) return;
                           void onSelectPlayer?.(assignedPlayer.YouthPlayerID);
                         }}
                         onDragStart={(event) => {
@@ -1199,8 +1316,13 @@ export default function LineupField({
             <div key={slot.id} className={styles.benchSlotWrapper}>
               <div
                 className={styles.fieldSlot}
+                data-lineup-slot-id={slot.id}
                 onDrop={(event) => handleDrop(slot.id, event)}
                 onDragOver={handleDragOver}
+                onClick={() => {
+                  if (assignedPlayer) return;
+                  onEmptySlotSelect?.(slot.id);
+                }}
               >
                 {assignedPlayer ? (
                   <Tooltip
@@ -1228,6 +1350,15 @@ export default function LineupField({
                     <div
                       className={styles.slotContent}
                       draggable
+                      onContextMenu={(event) => event.preventDefault()}
+                      onPointerDown={(event) =>
+                        handleTouchSlotPointerDown(
+                          event,
+                          slot.id,
+                          assignedPlayer.YouthPlayerID,
+                          formatName(assignedPlayer)
+                        )
+                      }
                       onMouseEnter={() => {
                         if (!assignedPlayer) return;
                         onHoverPlayer?.(assignedPlayer.YouthPlayerID);
@@ -1235,6 +1366,7 @@ export default function LineupField({
                       onClick={() => {
                         if (!assignedPlayer) return;
                         if (isDragActive.current) return;
+                        if (suppressClickRef.current) return;
                         void onSelectPlayer?.(assignedPlayer.YouthPlayerID);
                       }}
                       onDragStart={(event) => {
@@ -1352,5 +1484,18 @@ export default function LineupField({
         })}
       </div>
     </div>
+    {touchDragGhost?.visible ? (
+      <div
+        className={`${styles.dragGhost} ${styles.touchDragGhost}`}
+        style={{
+          left: `${touchDragGhost.x}px`,
+          top: `${touchDragGhost.y}px`,
+        }}
+        aria-hidden="true"
+      >
+        {touchDragGhost.label}
+      </div>
+    ) : null}
+    </>
   );
 }

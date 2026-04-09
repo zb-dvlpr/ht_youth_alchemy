@@ -24,6 +24,8 @@ export const messagesDe: Messages = {
     toolYouthBadge: "Y",
     toolSeniorBadge: "S",
     toolClubChronicle: "Club-Chronik",
+    mobileToolsLabel: "Werkzeuge",
+    mobileHelpLabel: "Hilfe",
     clubChronicleTitle: "Club-Chronik",
     clubChronicleBody:
       "Die Club-Chronik kommt bald. Hier siehst du, was andere Seniorenteams planen.",
@@ -70,6 +72,10 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_4_1_0:
+      "Club-Chronik-Watchlists lassen sich jetzt per QR-Export auf Desktop/Mobile und Kamera-Import auf Mobile zwischen Geräten übertragen.",
+    changelog_4_0_0:
+      "HT Alchemy bietet jetzt eine eigene mobile Unterstützung in der gesamten App.",
     changelog_3_13_0:
       "Senior-KI-Aufstellungen unterstützen jetzt die Erkennung, Übermittlung und Nachprüfung von Manndeckung.",
     changelog_3_12_0:
@@ -221,10 +227,51 @@ export const messagesDe: Messages = {
       "Wie viele geänderte globale Aktualisierungs-Diffs in der Verlaufsliste von Neueste Updates gespeichert und angezeigt werden.",
     settingsGeneral: "Allgemein",
     settingsGeneralTitle: "Allgemeine Einstellungen",
+    settingsGeneralExportAllLabel: "Alle Einstellungen exportieren",
+    settingsGeneralExportAllHint:
+      "Exportiert alle lokal gespeicherten App-Einstellungen und Cache-Zustände als JSON-Sicherungsdatei.",
+    settingsGeneralImportAllLabel: "Alle Einstellungen importieren",
+    settingsGeneralImportAllHint:
+      "Importiert eine zuvor exportierte JSON-Sicherung und ersetzt die aktuellen lokalen App-Einstellungen und Cache-Zustände.",
     settingsGeneralEnableScalingLabel: "App-Skalierung aktivieren",
     settingsDebugBuyCoffeePromptButton: "Kauf-mir-einen-Kaffee-Modal zeigen",
     settingsGeneralEnableScalingTooltip:
       "Wenn aktiviert, skaliert die App, um in den Viewport zu passen und Scrollen zu reduzieren. Wenn deaktiviert, nutzt die App normale Größe und kann scrollen.",
+    settingsGeneralChronicleWatchlistsExportLabel:
+      "Club-Chronik-Watchlists für Mobilgeräte exportieren",
+    settingsGeneralChronicleWatchlistsExportHint:
+      "Erstellt einen QR-Code mit deinen Club-Chronik-Watchlists zum Import auf einem anderen Gerät.",
+    settingsGeneralChronicleWatchlistsImportLabel: "CC-Watchlists importieren",
+    settingsGeneralChronicleWatchlistsImportHint:
+      "Nutze die native Kamera deines Telefons, um einen exportierten Club-Chronik-Watchlist-QR-Code zu öffnen.",
+    settingsChronicleQrExportTitle:
+      "Club-Chronik-Watchlists für Mobilgeräte exportieren",
+    settingsChronicleQrExportBody:
+      "Scanne diesen QR-Code mit der nativen Kamera deines Telefons, um alle Club-Chronik-Watchlists auf Mobilgeräte zu importieren.",
+    settingsChronicleQrExportSummaryTitle: "Dieser QR-Code exportiert:",
+    settingsChronicleQrExportFailed:
+      "Der QR-Code für die Club-Chronik-Watchlists konnte nicht erzeugt werden.",
+    settingsChronicleQrImportTitle: "Club-Chronik-Watchlists importieren",
+    settingsChronicleQrImportBody:
+      "Scanne einen exportierten Club-Chronik-Watchlist-QR-Code mit der nativen Kamera deines Telefons. Beim Öffnen des Links wirst du gefragt, ob die aktuellen Watchlists auf diesem Gerät ersetzt werden sollen.",
+    settingsChronicleQrImportScanning: "QR-Code wird gescannt…",
+    settingsChronicleQrImportUnsupported:
+      "QR-Scannen mit der Kamera wird in diesem Browser nicht unterstützt.",
+    settingsChronicleQrImportPermissionDenied:
+      "Kamerazugriff wurde verweigert. Erlaube den Kamerazugriff, um den QR-Code zu scannen.",
+    settingsChronicleQrImportFailed:
+      "Es konnte kein gültiger Club-Chronik-Watchlist-QR-Code gelesen werden.",
+    settingsChronicleQrImportSuccess:
+      "Club-Chronik-Watchlists importiert.",
+    settingsChronicleQrImportWarningTitle:
+      "Club-Chronik-Watchlists ersetzen",
+    settingsChronicleQrImportWarningBody:
+      "Durch diesen Import werden die aktuellen Club-Chronik-Watchlists auf diesem Gerät ersetzt. Fortfahren?",
+    settingsChronicleQrImportConfirm: "Watchlists ersetzen",
+    settingsChronicleQrImportTabsSummaryLabel: "Tabs",
+    settingsChronicleQrImportDirectTeamsSummaryLabel: "Direkte Teams",
+    settingsChronicleQrImportOwnLeaguesSummaryLabel: "Eigene Ligen",
+    settingsChronicleQrImportManualTeamsSummaryLabel: "Manuelle Teams",
     settingsDebug: "Debug",
     settingsDebugTitle: "Debug-Einstellungen",
     settingsDebugDisableScalingLabel: "Dummy-Updates anzeigen",
@@ -232,7 +279,10 @@ export const messagesDe: Messages = {
     settingsDebugRandomNewMarkersOffLabel: "Zufaellige NEW-Marker ausblenden",
     clubChronicleLeaguePanelTitle: "Ligaleistung",
     clubChronicleLeaguePanelEmpty: "Noch keine Ligadaten.",
-    clubChronicleNoTeams: "Keine verfolgten Teams ausgewählt.",
+    clubChronicleNoTeams:
+      "Fuer diesen Tab werden derzeit keine Teams verfolgt. Fuege Teams ueber die Watchlist zum Tracking hinzu.",
+    clubChronicleNoTeamsMobileHint:
+      "Auf Mobilgeraeten befindet sich die Watchlist im schwebenden Dropdown.",
     clubChronicleLoading: "Club-Chronik wird geladen…",
     clubChronicleUpdatesTitle: "Neueste Updates",
     clubChronicleUpdatesSinceGlobal: "Änderungen seit der letzten globalen Aktualisierung",
@@ -508,6 +558,9 @@ export const messagesDe: Messages = {
     helpBulletTraining:
       "Aufstellungen kannst du direkt an Hattrick senden, Training musst du manuell setzen (die API erlaubt das nicht).",
     helpBulletDesktop: "Für Desktop optimiert.",
+    helpOptimizerLocationTitle: "Wo du den Optimierer findest",
+    helpOptimizerLocationYouth:
+      "Öffne die Aufstellungsoptimierung über das schwebende Menü und suche dann nach dieser Schaltfläche in der Aufstellungsleiste.",
     helpCalloutStar: "Wähle deinen Starspieler.",
     helpCalloutTraining:
       "Lege Primär- und Sekundärtraining fest, bevor du optimierst.",
@@ -540,6 +593,8 @@ export const messagesDe: Messages = {
       "Das Trainingsregime der Senioren kann direkt in der App über das Aufstellungs-Dropdown geändert werden.",
     seniorHelpBulletAnalyzeOpponent:
       "Gegner analysieren fasst aktuelle Muster zusammen und unterstützt die KI-Aufstellungsentscheidung.",
+    seniorHelpOptimizerLocation:
+      "Öffne die Aufstellungsoptimierung über das schwebende Menü und suche dann nach dieser Schaltfläche auf der passenden Spielkarte.",
     themeSwitchDark: "In den Dunkelmodus wechseln",
     themeSwitchLight: "In den Hellmodus wechseln",
     helpDismissLabel: "Verstanden",
@@ -967,6 +1022,27 @@ export const messagesDe: Messages = {
     permissionsNone: "Keine",
     autoSelectLabel: "✨",
     autoSelectTitle: "Starspieler und Training automatisch wählen",
+    mobileHomeLabel: "Start",
+    mobileYouthMenuToggleLabel: "Jugendmenü öffnen",
+    mobileSeniorMenuToggleLabel: "Seniorenmenü öffnen",
+    mobilePreviousPanelLabel: "Vorheriges Panel",
+    mobileNextPanelLabel: "Nächstes Panel",
+    mobileYouthRootTitle: "Jugendkader-Optimierung",
+    mobileYouthRootPrompt:
+      "Über das schwebende Menü öffnest du Spielerdetails, Matrizen oder den Aufstellungsoptimierer.",
+    mobileYouthBackLabel: "Zurück",
+    mobileYouthBackToPlayerList: "Zurück zur Spielerliste",
+    mobileYouthLandscapeHint:
+      "Für die vollständige Matrix bitte ins Querformat drehen.",
+    mobileChronicleLandscapeHint:
+      "Für eine breitere Tabellenansicht bitte ins Querformat drehen.",
+    mobileYouthLineupPickerTitle: "Spieler wählen",
+    mobileYouthLineupPickerEmpty:
+      "Für diesen Platz sind keine Spieler verfügbar.",
+    mobileYouthViewComingSoon:
+      "Diese mobile Jugendansicht ist noch nicht implementiert.",
+    mobileSeniorViewComingSoon:
+      "Diese mobile Seniorenansicht ist noch nicht implementiert.",
     trainingTitle: "Fokussiertes Fähigkeitstraining",
     trainingSectionFocused: "Fokussiertes Fähigkeitstraining",
     trainingSectionExtended: "Erweitertes Fähigkeitstraining",
@@ -1175,6 +1251,7 @@ export const messagesDe: Messages = {
     posInnerMidfieldFull: "Zentrales Mittelfeld",
     posForwardFull: "Stürmer",
     connectLabel: "Hattrick verbinden",
+    mobileConnectLabel: "Verbinden",
     connectedLabel: "Verbunden",
     connectHint: "Nutze den Verbinden-Button oben rechts, um dich erneut anzumelden.",
     disconnectLabel: "Trennen",

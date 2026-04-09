@@ -12,6 +12,12 @@ html[data-app-scaling="off"] .main {
   padding-top: 0;
 }
 
+html[data-mobile-shell="true"] .main {
+  height: auto;
+  min-height: 100dvh;
+  overflow: auto;
+}
+
 html[data-app-scaling="off"] .scaleContainer {
   padding-top: 16px;
 }
@@ -21,6 +27,12 @@ html[data-app-scaling="off"] .scaleContainer {
   transform-origin: top left;
   width: calc(100% * var(--ui-scale-inv));
   min-height: calc(100% * var(--ui-scale-inv));
+}
+
+html[data-mobile-shell="true"] .scaleContainer {
+  transform: none;
+  width: 100%;
+  min-height: 100%;
 }
 
 .brandRow {
@@ -42,6 +54,910 @@ html[data-app-scaling="off"] .scaleContainer {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.mobileLauncher {
+  display: grid;
+  gap: 18px;
+  padding: 8px 0 24px;
+}
+
+.mobileLauncherHero {
+  display: grid;
+  gap: 6px;
+}
+
+.mobileLauncherTitleRow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
+.mobileLauncherEyebrow {
+  font-family: var(--font-brand), "Space Grotesk", sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #7a6447;
+}
+
+.mobileLauncherGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.mobileLauncherToolCard {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid rgba(151, 125, 84, 0.22);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 251, 244, 0.96), rgba(245, 235, 221, 0.92));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 12px 28px rgba(77, 57, 26, 0.08);
+  color: #2e261e;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.mobileLauncherToolCard:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 16px 34px rgba(77, 57, 26, 0.12);
+  border-color: rgba(151, 125, 84, 0.35);
+}
+
+.mobileLauncherToolIcon {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.76);
+  font-size: 22px;
+  box-shadow: inset 0 0 0 1px rgba(121, 94, 59, 0.1);
+}
+
+.mobileLauncherToolLabel {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.mobileLauncherUtilityRow {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.mobileLauncherUtilityButton {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid rgba(151, 125, 84, 0.2);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.84);
+  color: #443628;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.mobileLauncherUtilityIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.mobileToolBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.mobileNavHeader {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  position: sticky;
+  top: var(--shell-topbar-height, 56px);
+  z-index: 2147483644;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(151, 125, 84, 0.16);
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(251, 246, 236, 0.985),
+      rgba(245, 236, 221, 0.955)
+    );
+  box-shadow:
+    0 10px 24px rgba(66, 49, 24, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(10px);
+}
+
+.mobileNavAppMeta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
+.mobileNavAppTitle {
+  min-width: 0;
+  font-family: var(--font-brand), "Space Grotesk", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6c5840;
+  white-space: nowrap;
+}
+
+.mobileNavTrail {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+  width: 100%;
+  min-width: 0;
+  padding: 2px 0 0;
+  overflow: visible;
+}
+
+.mobileNavTrailButton {
+  flex: 0 1 auto;
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: #6c5840;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: normal;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.mobileNavTrailButton:hover {
+  color: #443628;
+}
+
+.mobileNavTrailButton:disabled {
+  cursor: default;
+}
+
+.mobileNavTrailCurrent {
+  color: #443628;
+}
+
+.mobileNavTrailSeparator {
+  flex: 0 0 auto;
+  color: rgba(108, 88, 64, 0.55);
+  font-size: 11px;
+  font-weight: 700;
+  user-select: none;
+}
+
+.mobileToolsHomeButton {
+  border: 1px solid rgba(151, 125, 84, 0.22);
+  background: rgba(255, 255, 255, 0.84);
+  color: #443628;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.mobileToolBarTitle {
+  min-width: 0;
+  font-family: var(--font-brand), "Space Grotesk", sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6c5840;
+  text-align: right;
+}
+
+.mobileConnectButton {
+  border: 1px solid rgba(31, 111, 63, 0.24);
+  background: #1f6f3f;
+  color: #f7f1e3;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.mobileConnectButton:hover {
+  background: #2f9f5b;
+  transform: translateY(-1px);
+}
+
+.mobileDisconnectButton {
+  border: 1px solid rgba(162, 52, 52, 0.4);
+  background: rgba(162, 52, 52, 0.12);
+  color: #a61f1f;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.mobileDisconnectButton:hover:not(:disabled) {
+  background: rgba(162, 52, 52, 0.18);
+  transform: translateY(-1px);
+}
+
+.mobileDisconnectButton:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.mobileYouthMenuButton {
+  position: fixed;
+  z-index: 2147483646;
+  width: 44px;
+  height: 44px;
+  border: 1px solid rgba(74, 84, 52, 0.36);
+  background:
+    linear-gradient(180deg, rgba(74, 84, 52, 0.96), rgba(48, 55, 35, 0.98));
+  color: #f7f1e3;
+  border-radius: 999px;
+  box-shadow:
+    0 18px 34px rgba(29, 31, 20, 0.28),
+    0 0 0 1px rgba(255, 244, 219, 0.08) inset;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  touch-action: none;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.mobileYouthMenuButton:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 22px 38px rgba(29, 31, 20, 0.32),
+    0 0 0 1px rgba(255, 244, 219, 0.1) inset;
+}
+
+.mobileYouthMenuButton[aria-expanded="true"] {
+  background:
+    linear-gradient(180deg, rgba(90, 101, 64, 0.98), rgba(58, 67, 41, 1));
+  box-shadow:
+    0 24px 40px rgba(29, 31, 20, 0.34),
+    0 0 0 1px rgba(255, 244, 219, 0.12) inset;
+}
+
+.mobileYouthMenuDropdown {
+  position: fixed;
+  z-index: 2147483645;
+  width: min(248px, calc(100vw - 24px));
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 18px;
+  border: 1px solid rgba(110, 92, 60, 0.22);
+  background:
+    linear-gradient(180deg, rgba(255, 251, 244, 0.98), rgba(246, 237, 222, 0.98));
+  box-shadow:
+    0 26px 46px rgba(41, 31, 18, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.34) inset;
+  backdrop-filter: blur(12px);
+}
+
+.mobileYouthMenuFixedSection {
+  display: grid;
+  gap: 8px;
+}
+
+.mobileYouthMenuScrollSection {
+  display: grid;
+  gap: 8px;
+  max-height: min(42vh, 320px);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.mobileYouthMenuField {
+  display: grid;
+  gap: 6px;
+}
+
+.mobileYouthMenuLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7a6447;
+}
+
+.mobileYouthMenuSelect {
+  border: 1px solid #d4c4ad;
+  background: #fff;
+  border-radius: 12px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: #352c24;
+}
+
+.mobileYouthMenuDivider {
+  height: 1px;
+  background: rgba(151, 125, 84, 0.18);
+}
+
+.mobileYouthMenuAction {
+  border: 0;
+  background: transparent;
+  color: #352c24;
+  border-radius: 12px;
+  padding: 10px 12px;
+  text-align: left;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mobileYouthMenuActionActive {
+  background: rgba(191, 160, 112, 0.18);
+  color: #2d241b;
+}
+
+.mobileYouthContent {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 0 88px;
+  overflow-x: hidden;
+}
+
+.mobileYouthContent > * {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.mobileYouthShell {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+.mobileYouthPlaceholderCard {
+  min-height: 180px;
+}
+
+.mobileYouthLandscapeHint {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(74, 84, 52, 0.12);
+  color: #4a5434;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.mobileYouthLineupPickerList {
+  display: grid;
+  gap: 10px;
+  max-height: min(60vh, 440px);
+  overflow: auto;
+}
+
+.mobileYouthLineupPickerOption {
+  width: 100%;
+  border: 1px solid rgba(151, 125, 84, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  color: #352c24;
+}
+
+.mobileYouthLineupPickerName {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mobileYouthLineupPickerMeta {
+  font-size: 12px;
+  color: #7a6447;
+}
+
+.mobileYouthRefreshStatus {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(151, 125, 84, 0.18);
+  box-shadow: 0 10px 22px rgba(77, 57, 26, 0.08);
+}
+
+.mobileYouthRefreshStatusText {
+  font-size: 12px;
+  line-height: 1.3;
+  color: #5b4a37;
+  overflow-wrap: anywhere;
+}
+
+.mobileYouthRefreshProgressTrack {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #e7dcc9;
+  overflow: hidden;
+}
+
+.mobileYouthRefreshProgressFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #2c5e35;
+  transition: width 0.25s ease;
+}
+
+.mobileChronicleContent {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 0 88px;
+  overflow-x: hidden;
+}
+
+.mobileChronicleContentPanelMode {
+  display: contents;
+}
+
+.mobileChroniclePanelStage {
+  position: relative;
+  min-height: 0;
+}
+
+.mobileChronicleTabsBar {
+  position: static;
+  top: auto;
+  z-index: auto;
+  margin-top: 0;
+  margin-bottom: 12px;
+  padding: 0;
+}
+
+.mobileChronicleTabsList {
+  gap: 8px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabsList {
+  align-items: flex-start;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabsList .chronicleTabChip {
+  min-height: 34px;
+  padding: 4px 6px 4px 10px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabsList .chronicleTabLabel {
+  font-size: 12px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabsList .chronicleTabInput {
+  min-width: 96px;
+  max-width: 148px;
+}
+
+.mobileChronicleDetailScreen {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+}
+
+.mobileChronicleTableWrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.mobileChronicleTabularBlock {
+  display: grid;
+  gap: 8px;
+}
+
+.mobileChronicleTabularTable {
+  width: max-content;
+  min-width: 100%;
+}
+
+.mobileChronicleEdgeButton {
+  position: fixed;
+  top: 50%;
+  z-index: 2147483640;
+  width: 30px;
+  height: 64px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(74, 84, 52, 0.15);
+  color: #4a5434;
+  font-size: 24px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  box-shadow: 0 10px 24px rgba(49, 38, 24, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.mobileChronicleEdgeButtonLeft {
+  left: 4px;
+}
+
+.mobileChronicleEdgeButtonRight {
+  right: 4px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanels {
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleTabShortcutHint {
+  display: none;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanelDragWrap {
+  cursor: default;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanel {
+  min-height: 0;
+  max-height: none;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanelBody {
+  overflow: visible;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanelDragHandle,
+html[data-mobile-shell="true"] .clubChronicleStack .chroniclePanelMove {
+  display: none;
+}
+
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .chronicleTable:not(.mobileChronicleTabularTable)
+  .chronicleTableHeader {
+  display: none;
+}
+
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .chronicleTable:not(.mobileChronicleTabularTable)
+  .chronicleTableRow {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  padding: 12px;
+}
+
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .chronicleTable:not(.mobileChronicleTabularTable)
+  .chronicleTableCell {
+  display: grid;
+  grid-template-columns: minmax(0, 112px) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .chronicleTable:not(.mobileChronicleTabularTable)
+  .chronicleTableCell::before {
+  content: attr(data-label);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #8a806f;
+}
+
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .mobileChronicleTabularTable
+  .chronicleTableHeader,
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleDetailScreen .chronicleTableHeader {
+  display: grid;
+  grid-template-columns: var(--cc-template, repeat(var(--cc-columns, 1), minmax(96px, 1fr)));
+  gap: 8px;
+  padding: 8px 10px 6px;
+  font-size: 10px;
+}
+
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .mobileChronicleTabularTable
+  .chronicleTableRow,
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleDetailScreen .chronicleTableRow {
+  grid-template-columns: var(--cc-template, repeat(var(--cc-columns, 1), minmax(96px, 1fr)));
+  gap: 8px;
+  padding: 10px;
+}
+
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .mobileChronicleTabularTable
+  .chronicleTableCell,
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleDetailScreen .chronicleTableCell {
+  display: block;
+  min-width: 0;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  font-size: 11px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .chroniclePanels
+  .mobileChronicleTabularTable
+  .chronicleTableCell::before,
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleDetailScreen .chronicleTableCell::before {
+  content: none;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabularBlock {
+  gap: 6px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabularBlock .mobileYouthLandscapeHint {
+  justify-self: start;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleTabularBlock .mobileChronicleTableWrap {
+  margin-inline: -10px;
+  width: calc(100% + 20px);
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleDetailsHeader,
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleUpdatesHeader {
+  display: none;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleDetailsRow,
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleUpdatesRow {
+  grid-template-columns: 1fr;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleUpdatesList {
+  grid-template-columns: 1fr;
+  max-height: none;
+  overflow: visible;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleUpdatesTeam {
+  padding: 12px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesGroup {
+  display: grid;
+  gap: 10px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesChange {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(63, 54, 44, 0.12);
+}
+
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .mobileChronicleUpdatesChange:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesChangeLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #3f362c;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesChangeValues {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesValueBlock {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 252, 245, 0.72);
+  border: 1px solid rgba(63, 54, 44, 0.08);
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesValueLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: #8a806f;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesValueContent {
+  min-width: 0;
+  font-size: 12px;
+  color: #5b5145;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleDistributionGrid {
+  grid-template-columns: 1fr;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .fieldPitch {
+  padding: 22px 10px 18px;
+  min-height: 0;
+  gap: 14px;
+  --row-gap: 8px;
+  --slot-height: clamp(68px, 14vw, 92px);
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .lineupActions {
+  left: 10px;
+  right: 10px;
+  bottom: 8px;
+  gap: 8px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .benchArea {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 0 4px;
+  --slot-height: 58px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .slotContent {
+  padding: 6px 12px 6px;
+  gap: 4px;
+  touch-action: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .slotName {
+  font-size: 10px;
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  text-align: center;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .benchArea .slotName {
+  font-size: 9px;
+  -webkit-line-clamp: 3;
+}
+
+html[data-mobile-shell="true"] .matchMeta {
+  gap: 8px 12px;
+}
+
+html[data-mobile-shell="true"] .matchActions {
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 10px;
+}
+
+html[data-mobile-shell="true"] .matchActions > * {
+  flex: 0 0 auto;
+}
+
+html[data-mobile-shell="true"] .matchAnalyzeOpponentWrap {
+  margin-left: 0;
+}
+
+html[data-mobile-shell="true"] .matchActions .matchSuccess,
+html[data-mobile-shell="true"] .matchActions .matchError,
+html[data-mobile-shell="true"] .matchActions .matchUpdated {
+  flex: 1 1 100%;
+  min-width: 0;
+}
+
+html[data-mobile-shell="true"] .matchActions .matchLoaded {
+  flex: 0 0 auto;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .slotEmoji {
+  left: 5px;
+  bottom: 5px;
+  font-size: 12px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .slotCardStatus {
+  right: 5px;
+  bottom: 5px;
+  font-size: 10px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
+  top: 4px;
+  right: 4px;
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
 }
 
 .topBarActions {
@@ -126,6 +1042,18 @@ html[data-app-scaling="off"] .scaleContainer {
   background: #f1e9dc;
   border-radius: 14px;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+}
+
+.desktopTopBarActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.mobileLauncherHeader,
+.mobileTopBarControls {
+  display: none;
 }
 
 .shellWorkspace {
@@ -451,6 +1379,64 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .settingsModalBody {
   display: grid;
   gap: 12px;
+}
+
+.settingsActionButton {
+  justify-self: start;
+  border-radius: 999px;
+  border: 1px solid #244d2b;
+  background: #eef6ef;
+  color: #244d2b;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 8px 14px;
+  cursor: pointer;
+}
+
+.settingsActionButton:hover {
+  background: #e2f0e4;
+}
+
+.settingsQrCodeWrap {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  border-radius: 18px;
+  border: 1px solid #d8cbb6;
+  background: #fff;
+}
+
+.settingsQrCodeImage {
+  width: min(100%, 320px);
+  height: auto;
+  display: block;
+}
+
+.settingsQrScannerWrap {
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid #d8cbb6;
+  background: #120f0b;
+}
+
+.settingsQrScannerVideo {
+  width: 100%;
+  min-height: 240px;
+  max-height: 50vh;
+  display: block;
+  object-fit: cover;
+}
+
+.settingsImportWarningStats {
+  display: grid;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #d8cbb6;
+  background: #fff;
+  color: #3f362c;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .settingsField {
@@ -929,10 +1915,62 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   background: transparent;
 }
 
+.helpOptimizerSection {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid #e7dcc9;
+  display: grid;
+  gap: 10px;
+}
+
+.helpOptimizerTitle {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2f261c;
+}
+
+.helpOptimizerLead {
+  margin: 0;
+  color: #4d4236;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.helpOptimizerMockSurface {
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, #4f8f4d 0%, #427f40 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+
+.helpOptimizerMockHeader,
+.helpOptimizerMatchCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.helpOptimizerMockLabel {
+  color: #f7f1e3;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.helpOptimizerMatchCard {
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: #f4ecde;
+  border: 1px solid #eadcc3;
+  box-shadow: 0 6px 16px rgba(42, 29, 14, 0.08);
+}
+
 .helpDismiss {
   border: none;
   background: #1f6f3f;
   color: #f7f1e3;
+  margin-top: 12px;
   padding: 8px 16px;
   border-radius: 999px;
   font-weight: 600;
@@ -2989,6 +4027,305 @@ html[data-theme="dark"] .brandClock {
   box-shadow: none;
 }
 
+html[data-theme="dark"] .mobileLauncherEyebrow,
+html[data-theme="dark"] .mobileToolBarTitle,
+html[data-theme="dark"] .mobileNavTrailButton,
+html[data-theme="dark"] .mobileNavAppTitle {
+  color: #cfb692;
+}
+
+html[data-theme="dark"] .mobileNavTrailButton:hover,
+html[data-theme="dark"] .mobileNavTrailCurrent {
+  color: #efe4d8;
+}
+
+html[data-theme="dark"] .mobileNavTrailSeparator {
+  color: rgba(207, 182, 146, 0.55);
+}
+
+html[data-theme="dark"] .mobileLauncherToolCard {
+  border-color: rgba(230, 199, 146, 0.12);
+  background:
+    linear-gradient(180deg, rgba(42, 36, 29, 0.98), rgba(27, 23, 19, 0.96));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 16px 36px rgba(0, 0, 0, 0.24);
+  color: #efe4d8;
+}
+
+html[data-theme="dark"] .mobileLauncherToolIcon,
+html[data-theme="dark"] .mobileLauncherUtilityButton,
+html[data-theme="dark"] .mobileToolsHomeButton {
+  background: rgba(38, 31, 24, 0.92);
+  color: #efe4d8;
+  border-color: rgba(230, 199, 146, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme="dark"] .mobileConnectButton {
+  background: #1f6f3f;
+  color: #f7f1e3;
+  border-color: rgba(95, 194, 134, 0.3);
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .mobileConnectButton:hover {
+  background: #2f9f5b;
+}
+
+html[data-theme="dark"] .mobileDisconnectButton {
+  background: rgba(143, 42, 42, 0.22);
+  color: #ffb3b3;
+  border-color: rgba(255, 149, 149, 0.24);
+}
+
+html[data-theme="dark"] .mobileDisconnectButton:hover:not(:disabled) {
+  background: rgba(143, 42, 42, 0.32);
+}
+
+html[data-theme="dark"] .mobileYouthMenuButton {
+  background: rgba(26, 22, 18, 0.94);
+  color: #efe4d8;
+  border-color: rgba(230, 199, 146, 0.16);
+  box-shadow: 0 20px 32px rgba(0, 0, 0, 0.34);
+}
+
+html[data-theme="dark"] .mobileYouthMenuDropdown {
+  border-color: rgba(230, 199, 146, 0.12);
+  background:
+    linear-gradient(180deg, rgba(39, 33, 26, 0.98), rgba(24, 21, 18, 0.98));
+  box-shadow: 0 24px 44px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .mobileYouthMenuLabel {
+  color: #cfb692;
+}
+
+html[data-theme="dark"] .mobileYouthMenuSelect {
+  border-color: rgba(230, 199, 146, 0.14);
+  background: rgba(30, 26, 22, 0.98);
+  color: #efe4d8;
+}
+
+html[data-theme="dark"] .mobileYouthMenuDivider {
+  background: rgba(230, 199, 146, 0.14);
+}
+
+html[data-theme="dark"] .mobileYouthMenuAction {
+  color: #efe4d8;
+}
+
+html[data-theme="dark"] .mobileYouthMenuActionActive {
+  background: rgba(230, 199, 146, 0.16);
+  color: #fff2de;
+}
+
+html[data-theme="dark"] .mobileYouthLineupPickerOption {
+  background: rgba(39, 33, 26, 0.98);
+  border-color: rgba(230, 199, 146, 0.14);
+  color: #efe4d8;
+}
+
+html[data-theme="dark"] .mobileYouthLineupPickerMeta {
+  color: #cfb692;
+}
+
+html[data-theme="dark"] .mobileYouthRefreshStatus {
+  background: rgba(39, 33, 26, 0.96);
+  border-color: rgba(230, 199, 146, 0.14);
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.28);
+}
+
+html[data-theme="dark"] .mobileYouthRefreshStatusText {
+  color: #efe4d8;
+}
+
+html[data-theme="dark"] .mobileYouthRefreshProgressTrack {
+  background: rgba(230, 199, 146, 0.16);
+}
+
+@media (max-width: 900px) {
+  html[data-mobile-shell="true"] .main {
+    padding: 16px 16px 32px;
+  }
+
+  html[data-mobile-shell="true"] .scaleContainer {
+    padding-top: 0;
+  }
+
+  .shellFrame[data-mobile-layout="true"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    column-gap: 0;
+  }
+
+  html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] {
+    min-height: 0;
+  }
+
+  .shellFrame[data-mobile-layout="true"] .shellTopBar,
+  .shellFrame[data-mobile-layout="true"] .shellContextBar,
+  .shellFrame[data-mobile-layout="true"] .shellWorkspace {
+    grid-column: 1;
+  }
+
+  html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .shellWorkspace,
+  html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"] .shellTopBar {
+    overflow: visible;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"] .shellTopBar {
+    display: none;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"] .mobileNavHeader {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    top: 0;
+    z-index: 2147483644;
+    margin: 0;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"] .shellWorkspace {
+    grid-row: 2 / 4;
+    padding-top: calc(var(--mobile-nav-header-height, 56px) + 18px);
+  }
+
+  .shellFrame[data-mobile-layout="true"] .shellContextBar {
+    top: 0;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"] {
+    row-gap: 0;
+  }
+
+  html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"] .clubChronicleStack {
+    gap: 8px;
+  }
+
+  html[data-mobile-shell="true"] .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="false"] .clubChronicleStack .chroniclePanels {
+    gap: 8px;
+  }
+
+  .shellFrame[data-mobile-layout="true"] .topBar {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .shellFrame[data-mobile-layout="true"] .desktopHeaderBrand,
+  .shellFrame[data-mobile-layout="true"] .desktopHeaderNotifications,
+  .shellFrame[data-mobile-layout="true"] .desktopTopBarActions {
+    display: none;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileLauncherHeader {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileLauncherHeader > * {
+    min-width: 0;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarControls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 8px 10px;
+    min-width: 0;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarControls > * {
+    min-width: 0;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarUtilityCluster,
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarStatusCluster {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarUtilityCluster {
+    justify-content: flex-start;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarStatusCluster {
+    justify-content: flex-end;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarControls .langLabel {
+    display: none;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarControls .langSwitcher {
+    min-width: 0;
+    padding: 3px 7px;
+    gap: 6px;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarControls .langSelect {
+    max-width: 96px;
+    font-size: 11px;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarControls .connectedInfo {
+    gap: 4px;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarControls .connectedBadge {
+    padding: 2px 6px;
+    font-size: 9px;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarControls .disconnectButton,
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarControls .themeToggle,
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarControls .connectButton {
+    min-height: 30px;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarControls .connectButton {
+    padding: 5px 8px;
+    font-size: 10px;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarStatusCluster .brandClock {
+    min-width: 0;
+    gap: 4px;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarStatusCluster .brandClockZone,
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileTopBarStatusCluster .brandClockTime {
+    font-size: 10px;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileLauncherHeader .mobileDisconnectButton,
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileLauncherHeader .mobileConnectButton {
+    min-height: 30px;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileLauncherTitleRow .brandTitle {
+    font-size: 18px;
+    line-height: 1.05;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .mobileLauncherTitleRow .version {
+    font-size: 11px;
+    line-height: 1;
+  }
+
+  .shellFrame[data-mobile-layout="true"][data-mobile-launcher-open="true"] .topBar {
+    gap: 12px;
+  }
+}
+
 html[data-theme="dark"] .betaPill {
   border-color: rgba(231, 194, 122, 0.24);
   background:
@@ -3499,6 +4836,29 @@ html[data-theme="dark"] .helpIntro {
 
 html[data-theme="dark"] .helpList {
   color: #e2d8cc;
+}
+
+html[data-theme="dark"] .helpOptimizerSection {
+  border-top-color: rgba(255, 255, 255, 0.14);
+}
+
+html[data-theme="dark"] .helpOptimizerTitle {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .helpOptimizerLead {
+  color: #cfc6bb;
+}
+
+html[data-theme="dark"] .helpOptimizerMockSurface {
+  background: linear-gradient(180deg, #406d3c 0%, #335c30 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .helpOptimizerMatchCard {
+  background: #2a241e;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
 }
 
 html[data-theme="dark"] .helpCallout {
@@ -4931,6 +6291,41 @@ html[data-theme="dark"] .spinner {
   gap: 6px;
 }
 
+html[data-mobile-shell="true"] .mobileYouthContent .profileCard {
+  padding-top: 16px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .detailsRefreshCorner {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .detailsHeaderAux {
+  margin-left: 0;
+  width: 100%;
+  justify-content: flex-start;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .profileHeader {
+  display: grid;
+  gap: 10px;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .profileHeaderMain {
+  width: 100%;
+  min-width: 0;
+  flex: none;
+}
+
+html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
+  align-self: flex-start;
+}
+
 .profileMeta {
   margin: 6px 0 0;
   color: #4d4d4d;
@@ -5757,7 +7152,7 @@ html[data-theme="dark"] .spinner {
 }
 
 .confirmOverlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: rgba(24, 24, 24, 0.35);
   display: flex;
@@ -6106,6 +7501,59 @@ html[data-theme="dark"] .spinner {
   color: #8a6e40;
 }
 
+.seniorDisclaimerTrainingCards {
+  display: none;
+}
+
+.seniorDisclaimerTrainingCard {
+  border: 1px solid #dfd2c0;
+  border-radius: 12px;
+  background: #fff;
+  padding: 10px 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.seniorDisclaimerTrainingCardHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.seniorDisclaimerTrainingCardIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: rgba(138, 110, 64, 0.12);
+  color: #6a5637;
+  font-size: 11px;
+  font-weight: 700;
+  flex: 0 0 auto;
+}
+
+.seniorDisclaimerTrainingCardGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.seniorDisclaimerTrainingCardMetric {
+  display: grid;
+  gap: 2px;
+}
+
+.seniorDisclaimerTrainingCardLabel {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #7a6a56;
+}
+
 .seniorExtraTimeModalBody {
   display: grid;
   gap: 8px;
@@ -6317,6 +7765,55 @@ html[data-theme="dark"] .spinner {
 }
 
 @media (max-width: 900px) {
+  .trainingOverlay,
+  .confirmOverlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: max(12px, env(safe-area-inset-top)) 12px
+      max(12px, env(safe-area-inset-bottom));
+  }
+
+  .confirmCard {
+    width: min(96vw, 760px);
+    max-height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    margin: auto 0;
+  }
+
+  .confirmBody {
+    margin-bottom: 0;
+    overflow: auto;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-bottom: 6px;
+  }
+
+  .confirmActions {
+    flex: 0 0 auto;
+  }
+
+  .seniorDisclaimerBody {
+    overflow-x: hidden;
+  }
+
+  .seniorDisclaimerBody p,
+  .seniorDisclaimerBody li,
+  .seniorDisclaimerBody a {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+
+  .seniorDisclaimerTrainingCards {
+    display: grid;
+    gap: 10px;
+  }
+
+  .seniorDisclaimerBody .opponentFormationsTableWrap {
+    display: none;
+  }
+
   .confirmCard.seniorUpdatesModal {
     width: min(96vw, 760px);
     max-height: 92vh;
@@ -7202,6 +8699,16 @@ html[data-theme="dark"] .spinner {
   text-align: center;
   padding: 6px 10px;
   box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
+}
+
+.touchDragGhost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 2147483647;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  max-width: min(160px, 40vw);
 }
 
 .fieldLabel {

@@ -81,6 +81,7 @@ type YouthPlayerListProps = {
   orderSource?: "list" | "ratings" | "skills" | null;
   youthTeams?: { youthTeamId: number; youthTeamName: string }[];
   selectedYouthTeamId?: number | null;
+  showTeamSelector?: boolean;
   onTeamChange?: (teamId: number) => void;
   assignedIds?: Set<number>;
   selectedId?: number | null;
@@ -312,6 +313,7 @@ export default function YouthPlayerList({
   orderSource,
   youthTeams = [],
   selectedYouthTeamId,
+  showTeamSelector = true,
   onTeamChange,
   assignedIds,
   selectedId,
@@ -720,7 +722,7 @@ export default function YouthPlayerList({
         <h2 className={`${styles.sectionTitle} ${styles.listHeaderTitle}`}>
           {messages.youthPlayerList}
         </h2>
-        {youthTeams.length > 1 ? (
+        {showTeamSelector && youthTeams.length > 1 ? (
           <label className={styles.teamSelectControl}>
             <span className={styles.sortLabel}>{messages.youthTeamLabel}</span>
             <select

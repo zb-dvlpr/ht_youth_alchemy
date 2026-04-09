@@ -50,6 +50,7 @@ Last updated: 2026-04-06
 - [x] Keep panel order, active tab, and current panel position persisted.
 - [x] Move Latest Updates to a separate vertical mobile screen grouped by team.
 - [ ] Adapt Chronicle tables, dense panels, filters, and modal content as part of finishing Club Chronicle.
+  - [x] Reworked Latest Updates into a readable mobile comparison layout with per-attribute Previous/Current blocks.
 - [ ] Verify desktop Chronicle layout and interactions after mobile Chronicle changes.
 
 ## Phase 5: Polish and Verification

@@ -11461,45 +11461,54 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               <div
                 key={team.teamId}
                 className={`${styles.chronicleUpdatesTeam}${isPrimaryTeam ? ` ${styles.chronicleUpdatesTeamPrimary}` : ""}`}
-              >
-                <h3 className={styles.chronicleUpdatesTeamTitle}>
-                  {teamUpdates?.teamName ?? team.teamName ?? team.teamId}
-                </h3>
-                <div className={styles.chronicleUpdatesHeader}>
-                  <span />
-                  <span>{messages.clubChronicleDetailsPreviousLabel}</span>
-                  <span>{messages.clubChronicleDetailsCurrentLabel}</span>
-                </div>
-                {changes.map((change) => (
-                  <div
-                    key={`${team.teamId}-${change.fieldKey}`}
-                    className={styles.chronicleUpdatesRow}
-                  >
-                    <span className={styles.chronicleUpdatesLabel}>
-                      {getUpdateFieldLabel(change.fieldKey, change.label)}
-                    </span>
-                    <span>
-                      {renderUpdateValue(
-                        change.fieldKey,
-                        change.previous,
-                        team.teamId,
-                        teamLeagueLevelUnitId
-                      )}
-                    </span>
-                    <span>
-                      {renderUpdateValue(
-                        change.fieldKey,
-                        change.current,
-                        team.teamId,
-                        teamLeagueLevelUnitId
-                      )}
-                    </span>
-                  </div>
-                ))}
+                    >
+                      <h3 className={styles.chronicleUpdatesTeamTitle}>
+                        {teamUpdates?.teamName ?? team.teamName ?? team.teamId}
+                      </h3>
+                      <div className={styles.mobileChronicleUpdatesGroup}>
+                        {changes.map((change) => (
+                          <div
+                            key={`${team.teamId}-${change.fieldKey}`}
+                            className={styles.mobileChronicleUpdatesChange}
+                          >
+                            <div className={styles.mobileChronicleUpdatesChangeLabel}>
+                              {getUpdateFieldLabel(change.fieldKey, change.label)}
+                            </div>
+                            <div className={styles.mobileChronicleUpdatesChangeValues}>
+                              <div className={styles.mobileChronicleUpdatesValueBlock}>
+                                <span className={styles.mobileChronicleUpdatesValueLabel}>
+                                  {messages.clubChronicleDetailsPreviousLabel}
+                                </span>
+                                <div className={styles.mobileChronicleUpdatesValueContent}>
+                                  {renderUpdateValue(
+                                    change.fieldKey,
+                                    change.previous,
+                                    team.teamId,
+                                    teamLeagueLevelUnitId
+                                  )}
+                                </div>
+                              </div>
+                              <div className={styles.mobileChronicleUpdatesValueBlock}>
+                                <span className={styles.mobileChronicleUpdatesValueLabel}>
+                                  {messages.clubChronicleDetailsCurrentLabel}
+                                </span>
+                                <div className={styles.mobileChronicleUpdatesValueContent}>
+                                  {renderUpdateValue(
+                                    change.fieldKey,
+                                    change.current,
+                                    team.teamId,
+                                    teamLeagueLevelUnitId
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            );
-          })}
-        </div>
       ) : (
         <p className={styles.chronicleEmpty}>{messages.clubChronicleUpdatesEmpty}</p>
       )}

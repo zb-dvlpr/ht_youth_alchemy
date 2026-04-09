@@ -799,6 +799,67 @@ html[data-mobile-shell="true"] .clubChronicleStack .chronicleUpdatesList {
   overflow: visible;
 }
 
+html[data-mobile-shell="true"] .clubChronicleStack .chronicleUpdatesTeam {
+  padding: 12px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesGroup {
+  display: grid;
+  gap: 10px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesChange {
+  display: grid;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(63, 54, 44, 0.12);
+}
+
+html[data-mobile-shell="true"]
+  .clubChronicleStack
+  .mobileChronicleUpdatesChange:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesChangeLabel {
+  font-size: 12px;
+  font-weight: 700;
+  color: #3f362c;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesChangeValues {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesValueBlock {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 252, 245, 0.72);
+  border: 1px solid rgba(63, 54, 44, 0.08);
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesValueLabel {
+  font-size: 10px;
+  font-weight: 700;
+  color: #8a806f;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+html[data-mobile-shell="true"] .clubChronicleStack .mobileChronicleUpdatesValueContent {
+  min-width: 0;
+  font-size: 12px;
+  color: #5b5145;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 html[data-mobile-shell="true"] .clubChronicleStack .chronicleDistributionGrid {
   grid-template-columns: 1fr;
 }

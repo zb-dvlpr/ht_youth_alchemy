@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 
 import styles from "../page.module.css";
 
@@ -74,11 +75,11 @@ export default function Modal({
     };
   }, [isDragging, open]);
 
-  if (!open) return null;
+  if (!open || typeof document === "undefined") return null;
   const overlayClass =
     variant === "local" ? styles.confirmOverlay : styles.trainingOverlay;
 
-  return (
+  return createPortal(
     <div
       className={overlayClass}
       onMouseDown={(event) => {
@@ -125,6 +126,7 @@ export default function Modal({
           <div className={styles.confirmActions}>{actions}</div>
         ) : null}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

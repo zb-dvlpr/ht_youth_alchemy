@@ -7091,7 +7091,7 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 }
 
 .confirmOverlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: rgba(24, 24, 24, 0.35);
   display: flex;

@@ -3087,6 +3087,8 @@ export default function SeniorDashboard({
   const [trainingAwareSelectedPlayerIds, setTrainingAwareSelectedPlayerIds] = useState<
     number[]
   >([]);
+  const [trainingAwarePreparedTraineeIds, setTrainingAwarePreparedTraineeIds] =
+    useState<number[]>([]);
   const [trainingAwareMatrixTrainingType, setTrainingAwareMatrixTrainingType] =
     useState<number | null>(null);
   const [trainingAwareMatrixTrainingTypeManual, setTrainingAwareMatrixTrainingTypeManual] =
@@ -3168,6 +3170,7 @@ export default function SeniorDashboard({
     setSeniorAiSubmitEnabledMatchId(null);
     setSeniorAiPreparedSubmissionMode(null);
     setSeniorAiManMarkingReadyContext(null);
+    setTrainingAwarePreparedTraineeIds([]);
     setExtraTimePreparedSubmission(null);
   };
 
@@ -5188,9 +5191,22 @@ function buildSeniorAiManMarkingReadySignature(params: {
       return [] as MatchOrderSubstitution[];
     }
 
+    const protectedTrainingAwareFieldTraineeIds =
+      seniorAiPreparedSubmissionMode === "trainingAware"
+        ? new Set(
+            FIELD_SLOT_ORDER.map((slot) => assignments[slot]).filter(
+              (playerId): playerId is number =>
+                typeof playerId === "number" &&
+                playerId > 0 &&
+                trainingAwarePreparedTraineeIds.includes(playerId)
+            )
+          )
+        : new Set<number>();
+
     const eligibleEntries = FIELD_SLOT_ORDER.map((slot) => {
       const playerId = assignments[slot];
       if (typeof playerId !== "number" || playerId <= 0) return null;
+      if (protectedTrainingAwareFieldTraineeIds.has(playerId)) return null;
       const player = playersById.get(playerId);
       if (!player) return null;
 
@@ -5287,7 +5303,12 @@ function buildSeniorAiManMarkingReadySignature(params: {
           standing: -1,
         } satisfies MatchOrderSubstitution;
       })
-      .filter((entry): entry is MatchOrderSubstitution => Boolean(entry));
+      .filter(
+        (entry): entry is MatchOrderSubstitution =>
+          Boolean(entry) &&
+          !protectedTrainingAwareFieldTraineeIds.has(entry.playerin) &&
+          !protectedTrainingAwareFieldTraineeIds.has(entry.playerout)
+      );
   };
 
   const skillComboValueForAssignmentSlot = (
@@ -6046,6 +6067,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       trainingAwareSelectablePlayerIds.includes(playerId)
     );
     setTrainingAwareInfoOpen(false);
+    setTrainingAwarePreparedTraineeIds(selectedTraineeIds);
     setExtraTimePreparedSubmission(null);
     await runSetBestLineupPredictRatings(trainingAwareMatchId, "trainingAware", null, {
       trainingAwareTraineeIds: selectedTraineeIds,
@@ -12246,6 +12268,7 @@ const refreshDetailsForPlayers = async (
     setExtraTimeMatrixTrainingType(null);
     setExtraTimeMatrixTrainingTypeManual(false);
     setTrainingAwareSelectedPlayerIds([]);
+    setTrainingAwarePreparedTraineeIds([]);
     setTrainingAwareMatrixTrainingType(null);
     setTrainingAwareMatrixTrainingTypeManual(false);
     setOrderedPlayerIds(null);
@@ -12329,6 +12352,7 @@ const refreshDetailsForPlayers = async (
             extraTimeMatrixTrainingType?: number | null;
             extraTimeMatrixTrainingTypeManual?: boolean;
             trainingAwareSelectedPlayerIds?: number[];
+            trainingAwarePreparedTraineeIds?: number[];
             trainingAwareMatrixTrainingType?: number | null;
             trainingAwareMatrixTrainingTypeManual?: boolean;
             orderedPlayerIds?: number[] | null;
@@ -12522,6 +12546,13 @@ const refreshDetailsForPlayers = async (
           if (Array.isArray(parsed.trainingAwareSelectedPlayerIds)) {
             setTrainingAwareSelectedPlayerIds(
               parsed.trainingAwareSelectedPlayerIds.filter(
+                (id): id is number => Number.isFinite(id)
+              )
+            );
+          }
+          if (Array.isArray(parsed.trainingAwarePreparedTraineeIds)) {
+            setTrainingAwarePreparedTraineeIds(
+              parsed.trainingAwarePreparedTraineeIds.filter(
                 (id): id is number => Number.isFinite(id)
               )
             );
@@ -12788,6 +12819,7 @@ const refreshDetailsForPlayers = async (
       extraTimeMatrixTrainingType,
       extraTimeMatrixTrainingTypeManual,
       trainingAwareSelectedPlayerIds,
+      trainingAwarePreparedTraineeIds,
       trainingAwareMatrixTrainingType,
       trainingAwareMatrixTrainingTypeManual,
       orderedPlayerIds,
@@ -12839,6 +12871,7 @@ const refreshDetailsForPlayers = async (
     extraTimeMatrixTrainingType,
     extraTimeMatrixTrainingTypeManual,
     trainingAwareSelectedPlayerIds,
+    trainingAwarePreparedTraineeIds,
     trainingAwareMatrixTrainingType,
     trainingAwareMatrixTrainingTypeManual,
     orderedPlayerIds,

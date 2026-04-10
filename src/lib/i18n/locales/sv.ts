@@ -889,6 +889,8 @@ export const messagesSv: Messages = {
       "Veckogräns för att bortse från spelare utifrån senaste matchdatum",
     seniorAiLastMatchDisregardedTooltip:
       "Spelaren ignoreras eftersom han senast spelade för {{weeks}} veckor sedan.",
+    seniorAiRedCardedDisregardedTooltip:
+      "Spelaren ignoreras eftersom han är avstängd efter rött kort.",
     seniorAiManMarkingToggleLabel: "Manmarkering",
     seniorAiManMarkingToggleTooltip:
       "Skicka manmarkeringsorder om en lamplig markerare och ett lampligt manmarkeringsmal identifieras.",

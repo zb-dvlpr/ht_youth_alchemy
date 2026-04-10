@@ -899,6 +899,8 @@ export const messagesIt: Messages = {
       "Soglia in settimane per escludere i giocatori in base alla data dell'ultima partita",
     seniorAiLastMatchDisregardedTooltip:
       "Questo giocatore viene ignorato perché ha giocato l'ultima partita {{weeks}} settimane fa.",
+    seniorAiRedCardedDisregardedTooltip:
+      "Questo giocatore viene ignorato perché è squalificato per cartellino rosso.",
     seniorAiManMarkingToggleLabel: "Marcatura a uomo",
     seniorAiManMarkingToggleTooltip:
       "Invia gli ordini di marcatura a uomo se vengono identificati un marcatore adatto e un bersaglio adatto.",

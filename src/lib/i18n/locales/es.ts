@@ -898,6 +898,8 @@ export const messagesEs: Messages = {
       "Umbral en semanas para descartar jugadores según la fecha de su último partido",
     seniorAiLastMatchDisregardedTooltip:
       "Este jugador se descarta porque jugó por última vez hace {{weeks}} semanas.",
+    seniorAiRedCardedDisregardedTooltip:
+      "Este jugador se descarta porque está expulsado por tarjeta roja.",
     seniorAiManMarkingToggleLabel: "Marcaje individual",
     seniorAiManMarkingToggleTooltip:
       "Enviar ordenes de marcaje individual si se identifican un marcador adecuado y un objetivo de marcaje adecuado.",

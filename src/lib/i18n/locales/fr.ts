@@ -897,6 +897,8 @@ export const messagesFr: Messages = {
       "Seuil en semaines pour écarter des joueurs selon la date de leur dernier match",
     seniorAiLastMatchDisregardedTooltip:
       "Le joueur est écarté car son dernier match remonte à {{weeks}} semaines.",
+    seniorAiRedCardedDisregardedTooltip:
+      "Le joueur est écarté car il est suspendu après un carton rouge.",
     seniorAiManMarkingToggleLabel: "Marquage individuel",
     seniorAiManMarkingToggleTooltip:
       "Soumettre les ordres de marquage individuel si un marqueur approprie et une cible de marquage appropriee sont identifies.",

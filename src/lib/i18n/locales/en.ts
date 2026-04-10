@@ -858,6 +858,8 @@ export const messagesEn: Messages = {
       "Weeks threshold for disregarding players by last match date",
     seniorAiLastMatchDisregardedTooltip:
       "Player is disregarded because they last played {{weeks}} weeks ago.",
+    seniorAiRedCardedDisregardedTooltip:
+      "Player is disregarded because they are red-carded.",
     seniorAiManMarkingToggleLabel: "Man marking",
     seniorAiManMarkingToggleTooltip:
       "Submit man-marking orders if a suitable man marker and man-marking target are identified.",

@@ -341,6 +341,8 @@ export const messagesNl: Messages = {
     "Wekengrens om spelers uit te sluiten op basis van hun laatste wedstrijd",
   seniorAiLastMatchDisregardedTooltip:
     "Deze speler wordt genegeerd omdat hij {{weeks}} weken geleden voor het laatst speelde.",
+  seniorAiRedCardedDisregardedTooltip:
+    "Deze speler wordt genegeerd omdat hij geschorst is na een rode kaart.",
   seniorAiManMarkingToggleLabel: "Mandekking",
   seniorAiManMarkingToggleTooltip:
     "Dien mandekkingsorders in als een geschikte mandekker en een geschikt mandekkingsdoel zijn geidentificeerd.",

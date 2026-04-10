@@ -15640,7 +15640,6 @@ const refreshDetailsForPlayers = async (
               onSelectRatingsPlayer={() => {
                 void 0;
               }}
-              onMatrixPlayerDragStart={handleSeniorPlayerDragStart}
               playerKind="senior"
               skillMode="single"
               maxSkillLevel={20}
@@ -15965,7 +15964,6 @@ const refreshDetailsForPlayers = async (
               onSelectRatingsPlayer={() => {
                 void 0;
               }}
-              onMatrixPlayerDragStart={handleSeniorPlayerDragStart}
               playerKind="senior"
               skillMode="single"
               maxSkillLevel={20}

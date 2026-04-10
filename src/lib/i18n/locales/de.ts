@@ -882,6 +882,8 @@ export const messagesDe: Messages = {
       "Wochen-Grenzwert zum Ignorieren von Spielern anhand des letzten Spiels",
     seniorAiLastMatchDisregardedTooltip:
       "Dieser Spieler wird ignoriert, weil sein letztes Spiel {{weeks}} Wochen zurückliegt.",
+    seniorAiRedCardedDisregardedTooltip:
+      "Dieser Spieler wird ignoriert, weil er rotgesperrt ist.",
     seniorAiManMarkingToggleLabel: "Manndeckung",
     seniorAiManMarkingToggleTooltip:
       "Manndeckungsanweisungen beim Absenden ubermitteln, wenn ein geeigneter Manndecker und ein geeignetes Manndeckungsziel identifiziert wurden.",

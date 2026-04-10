@@ -898,6 +898,8 @@ export const messagesPt: Messages = {
       "Limite em semanas para desconsiderar jogadores pela data da última partida",
     seniorAiLastMatchDisregardedTooltip:
       "Este jogador é desconsiderado porque jogou pela última vez há {{weeks}} semanas.",
+    seniorAiRedCardedDisregardedTooltip:
+      "Este jogador é desconsiderado porque está suspenso por cartão vermelho.",
     seniorAiManMarkingToggleLabel: "Marcacao individual",
     seniorAiManMarkingToggleTooltip:
       "Enviar ordens de marcacao individual se um marcador adequado e um alvo de marcacao adequado forem identificados.",

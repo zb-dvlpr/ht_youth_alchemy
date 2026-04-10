@@ -3963,6 +3963,60 @@ export default function SeniorDashboard({
       ? Number(selectedMatch.MatchType)
       : null;
   }, [matchesState, trainingAwareMatchId]);
+  const extraTimeSelectedMatchType = useMemo(() => {
+    if (extraTimeMatchId === null) return null;
+    const rawMatches =
+      matchesState.data?.HattrickData?.MatchList?.Match ??
+      matchesState.data?.HattrickData?.Team?.MatchList?.Match;
+    const matchList = rawMatches
+      ? Array.isArray(rawMatches)
+        ? rawMatches
+        : [rawMatches]
+      : [];
+    const selectedMatch = matchList.find((match) => match.MatchID === extraTimeMatchId);
+    if (!selectedMatch) return null;
+    return Number.isFinite(Number(selectedMatch.MatchType))
+      ? Number(selectedMatch.MatchType)
+      : null;
+  }, [extraTimeMatchId, matchesState]);
+  const getSeniorAiCardsValueForPlayer = useCallback(
+    (player: SeniorPlayer) => {
+      const details = detailsById.get(player.PlayerID);
+      return typeof details?.Cards === "number"
+        ? details.Cards
+        : typeof player.Cards === "number"
+          ? player.Cards
+          : null;
+    },
+    [detailsById]
+  );
+  const getSeniorAiRedCardedPlayerIdsForMatch = useCallback(
+    (selectedMatchType: number | null) => {
+      if (
+        selectedMatchType === null ||
+        !LEAGUE_CUP_QUALI_MATCH_TYPES.has(selectedMatchType)
+      ) {
+        return new Set<number>();
+      }
+      return new Set(
+        players
+          .filter((player) => {
+            const cardsValue = getSeniorAiCardsValueForPlayer(player);
+            return typeof cardsValue === "number" && cardsValue >= 3;
+          })
+          .map((player) => player.PlayerID)
+      );
+    },
+    [getSeniorAiCardsValueForPlayer, players]
+  );
+  const trainingAwareRedCardedPlayerIds = useMemo(
+    () => getSeniorAiRedCardedPlayerIdsForMatch(trainingAwareSelectedMatchType),
+    [getSeniorAiRedCardedPlayerIdsForMatch, trainingAwareSelectedMatchType]
+  );
+  const extraTimeRedCardedPlayerIds = useMemo(
+    () => getSeniorAiRedCardedPlayerIdsForMatch(extraTimeSelectedMatchType),
+    [extraTimeSelectedMatchType, getSeniorAiRedCardedPlayerIdsForMatch]
+  );
   const getSeniorAiLastMatchAgeDays = useCallback(
     (playerId: number) => {
       const lastMatchDate = detailsById.get(playerId)?.LastMatch?.Date;
@@ -4028,10 +4082,16 @@ export default function SeniorDashboard({
             (id): id is number =>
               typeof id === "number" &&
               !extraTimeInjuredPlayerIdSet.has(id) &&
+              !extraTimeRedCardedPlayerIds.has(id) &&
               !seniorAiLastMatchIneligiblePlayerIds.has(id)
           )
       ),
-    [extraTimeInjuredPlayerIdSet, seniorAiLastMatchIneligiblePlayerIds, skillsMatrixRows]
+    [
+      extraTimeInjuredPlayerIdSet,
+      extraTimeRedCardedPlayerIds,
+      seniorAiLastMatchIneligiblePlayerIds,
+      skillsMatrixRows,
+    ]
   );
   const extraTimeBTeamExcludedPlayerIds = useMemo(() => {
     if (!effectiveExtraTimeBTeamEnabled) return new Set<number>();
@@ -4130,6 +4190,7 @@ export default function SeniorDashboard({
     () =>
       new Set(
         [
+          ...Array.from(extraTimeRedCardedPlayerIds),
           ...Array.from(seniorAiLastMatchIneligiblePlayerIds),
           ...Array.from(extraTimeBTeamExcludedPlayerIds).filter(
             (playerId) => !extraTimeFallbackBTeamPlayerIds.has(playerId)
@@ -4139,11 +4200,15 @@ export default function SeniorDashboard({
     [
       extraTimeBTeamExcludedPlayerIds,
       extraTimeFallbackBTeamPlayerIds,
+      extraTimeRedCardedPlayerIds,
       seniorAiLastMatchIneligiblePlayerIds,
     ]
   );
   const getExtraTimeDisregardedTooltip = useCallback(
     (playerId: number) => {
+      if (extraTimeRedCardedPlayerIds.has(playerId)) {
+        return messages.seniorAiRedCardedDisregardedTooltip;
+      }
       if (seniorAiLastMatchIneligiblePlayerIds.has(playerId)) {
         return getSeniorAiLastMatchIneligibleTooltip(playerId);
       }
@@ -4153,8 +4218,10 @@ export default function SeniorDashboard({
       );
     },
     [
+      extraTimeRedCardedPlayerIds,
       extraTimeBTeamRecentMatchState.playerMinutesById,
       getSeniorAiLastMatchIneligibleTooltip,
+      messages.seniorAiRedCardedDisregardedTooltip,
       messages.seniorExtraTimeModalBTeamDisregardedTooltip,
       seniorAiLastMatchIneligiblePlayerIds,
     ]
@@ -6019,13 +6086,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
       selectedMatchType !== null &&
       LEAGUE_CUP_QUALI_MATCH_TYPES.has(selectedMatchType);
     if (!isLeagueCupTarget) return true;
-    const details = detailsById.get(player.PlayerID);
-    const cardsValue =
-      typeof details?.Cards === "number"
-        ? details.Cards
-        : typeof player.Cards === "number"
-          ? player.Cards
-          : null;
+    const cardsValue = getSeniorAiCardsValueForPlayer(player);
     return typeof cardsValue !== "number" || cardsValue < 3;
   };
 
@@ -15709,8 +15770,12 @@ const refreshDetailsForPlayers = async (
                   trainingAwareSelectedPlayerIds.includes(rowId);
                 const isInjured =
                   typeof rowId === "number" && extraTimeInjuredPlayerIdSet.has(rowId);
+                const isRedCarded =
+                  typeof rowId === "number" &&
+                  trainingAwareRedCardedPlayerIds.has(rowId);
                 const isDisregarded =
-                  typeof rowId === "number" && extraTimeDisregardedPlayerIds.has(rowId);
+                  typeof rowId === "number" &&
+                  (isRedCarded || extraTimeDisregardedPlayerIds.has(rowId));
                 const isUnavailable =
                   typeof rowId !== "number" ||
                   !trainingAwareSelectablePlayerIds.includes(rowId);
@@ -15743,6 +15808,15 @@ const refreshDetailsForPlayers = async (
                     <span className={styles.seniorMatrixCheckboxBox} aria-hidden="true" />
                   </label>
                 );
+                if (isRedCarded) {
+                  return (
+                    <Tooltip content={messages.seniorAiRedCardedDisregardedTooltip}>
+                      <span className={styles.seniorExtraTimeDisabledCheckboxWrap}>
+                        {checkbox}
+                      </span>
+                    </Tooltip>
+                  );
+                }
                 if (isInjured) {
                   return (
                     <Tooltip content={messages.seniorExtraTimeModalInjuredCheckboxTooltip}>
@@ -15785,6 +15859,9 @@ const refreshDetailsForPlayers = async (
                   trainingAwareSelectablePlayerIds.includes(row.id)
                 ) {
                   return null;
+                }
+                if (trainingAwareRedCardedPlayerIds.has(row.id)) {
+                  return messages.seniorAiRedCardedDisregardedTooltip;
                 }
                 return extraTimeDisregardedPlayerIds.has(row.id)
                   ? getExtraTimeDisregardedTooltip(row.id)
@@ -16013,6 +16090,8 @@ const refreshDetailsForPlayers = async (
                   extraTimeSelectedPlayerIds.includes(rowId);
                 const isInjured =
                   typeof rowId === "number" && extraTimeInjuredPlayerIdSet.has(rowId);
+                const isRedCarded =
+                  typeof rowId === "number" && extraTimeRedCardedPlayerIds.has(rowId);
                 const isDisregarded =
                   typeof rowId === "number" && extraTimeDisregardedPlayerIds.has(rowId);
                 const checkbox = (
@@ -16042,6 +16121,15 @@ const refreshDetailsForPlayers = async (
                     />
                   </label>
                 );
+                if (isRedCarded) {
+                  return (
+                    <Tooltip content={messages.seniorAiRedCardedDisregardedTooltip}>
+                      <span className={styles.seniorExtraTimeDisabledCheckboxWrap}>
+                        {checkbox}
+                      </span>
+                    </Tooltip>
+                  );
+                }
                 if (isInjured) {
                   return (
                     <Tooltip content={messages.seniorExtraTimeModalInjuredCheckboxTooltip}>

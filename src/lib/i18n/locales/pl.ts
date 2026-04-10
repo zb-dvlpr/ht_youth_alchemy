@@ -334,6 +334,8 @@ export const messagesPl: Messages = {
     "Próg tygodni do pomijania zawodników według daty ostatniego meczu",
   seniorAiLastMatchDisregardedTooltip:
     "Ten zawodnik jest pomijany, ponieważ ostatni raz grał {{weeks}} tygodni temu.",
+  seniorAiRedCardedDisregardedTooltip:
+    "Ten zawodnik jest pomijany, ponieważ pauzuje po czerwonej kartce.",
   seniorAiManMarkingToggleLabel: "Krycie indywidualne",
   seniorAiManMarkingToggleTooltip:
     "Wyslij polecenia krycia indywidualnego, jesli zostana zidentyfikowani odpowiedni kryjacy i odpowiedni cel krycia.",

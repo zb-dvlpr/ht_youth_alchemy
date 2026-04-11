@@ -132,6 +132,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_3_0:
+    "Seniorspelerdetails tonen nu herkomstvlaggen uit gecachte wereldgegevens.",
   changelog_4_2_0:
     "Tegenstander analyseren toont nu gemiddelde sectorratings voor elke bekeken wedstrijd.",
   changelog_4_1_0:

@@ -72,6 +72,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_4_3_0:
+      "Senior player details now show origin flags from cached world details.",
     changelog_4_2_0:
       "Analyze opponent now includes averaged sector ratings for each reviewed match.",
     changelog_4_1_0:

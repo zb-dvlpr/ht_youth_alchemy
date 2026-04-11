@@ -72,6 +72,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_4_3_0:
+      "Senior-Spielerdetails zeigen jetzt Herkunftsflaggen aus zwischengespeicherten Weltdetails.",
     changelog_4_2_0:
       "Gegneranalyse zeigt jetzt durchschnittliche Sektorwerte fur jedes geprufte Spiel.",
     changelog_4_1_0:

@@ -99,6 +99,7 @@ type SeniorPlayerDetails = {
   AgeDays?: number;
   ArrivalDate?: string;
   NativeCountryName?: string;
+  NativeLeagueID?: number;
   Specialty?: number;
   Form?: number;
   StaminaSkill?: number;
@@ -141,6 +142,18 @@ type SkillValue = {
 type PlayerDetailCacheEntry = {
   data: SeniorPlayerDetails;
   fetchedAt: number;
+};
+
+type SeniorLeagueOrigin = {
+  leagueId: number;
+  leagueName: string;
+  countryCode?: string;
+  flagEmoji?: string;
+};
+
+type SeniorLeagueOriginsCache = {
+  fetchedAt: number;
+  originsByLeagueId: Record<number, SeniorLeagueOrigin>;
 };
 
 type SeniorUpdatesGroupedEntry = {
@@ -293,11 +306,13 @@ const SENIOR_HELP_ANCHOR_ANALYZE_OPPONENT = `.${styles.matchAnalyzeOpponentWrap}
 
 const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
+const LEAGUE_ORIGINS_STORAGE_KEY = "ya_senior_worlddetails_league_origins_v1";
 const LAST_REFRESH_STORAGE_KEY = "ya_senior_last_refresh_ts_v1";
 const LIST_SORT_STORAGE_KEY = "ya_senior_player_list_sort_v1";
 const SENIOR_HELP_STORAGE_KEY = "ya_senior_help_dismissed_v1";
 const SENIOR_UPDATES_SCHEMA_VERSION = 3;
 const DETAILS_TTL_MS = 60 * 60 * 1000;
+const WORLDDETAILS_TTL_MS = 16 * 7 * 24 * 60 * 60 * 1000;
 const SENIOR_DETAILS_CONCURRENCY = 6;
 const CHPP_SEK_PER_EUR = 10;
 const I18N_TEMPLATE_TOKEN_PATTERN = /(\{\{[a-zA-Z0-9]+\}\})/g;
@@ -1026,6 +1041,90 @@ const parseSkill = (value: unknown): number | null => {
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
+};
+
+const countryCodeToFlagEmoji = (input: unknown): string | undefined => {
+  if (typeof input !== "string") return undefined;
+  const code = input.trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) return undefined;
+  return Array.from(code)
+    .map((char) => String.fromCodePoint(char.charCodeAt(0) - 65 + 0x1f1e6))
+    .join("");
+};
+
+const normalizeWorlddetailsLeagues = (input: unknown): SeniorLeagueOrigin[] => {
+  if (!input || typeof input !== "object") return [];
+  const root = input as Record<string, unknown>;
+  const leagueList = root.LeagueList;
+  if (!leagueList || typeof leagueList !== "object") return [];
+  const rawLeagues = (leagueList as Record<string, unknown>).League;
+  const leagues = Array.isArray(rawLeagues) ? rawLeagues : rawLeagues ? [rawLeagues] : [];
+  const origins: SeniorLeagueOrigin[] = [];
+  leagues.forEach((item) => {
+    if (!item || typeof item !== "object") return;
+    const league = item as Record<string, unknown>;
+    const leagueId = parseNumber(league.LeagueID);
+    const leagueName = typeof league.LeagueName === "string" ? league.LeagueName.trim() : "";
+    if (!leagueId || !leagueName) return;
+    const country =
+      league.Country && typeof league.Country === "object"
+        ? (league.Country as Record<string, unknown>)
+        : null;
+    const countryCode =
+      typeof country?.CountryCode === "string" ? country.CountryCode.trim() : undefined;
+    const flagEmoji = countryCodeToFlagEmoji(countryCode);
+    origins.push({
+      leagueId,
+      leagueName,
+      ...(countryCode ? { countryCode } : {}),
+      ...(flagEmoji ? { flagEmoji } : {}),
+    });
+  });
+  return origins;
+};
+
+const readSeniorLeagueOriginsCache = (): SeniorLeagueOriginsCache | null => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(LEAGUE_ORIGINS_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as SeniorLeagueOriginsCache;
+    if (!parsed || typeof parsed !== "object") return null;
+    if (!Number.isFinite(parsed.fetchedAt)) return null;
+    if (!parsed.originsByLeagueId || typeof parsed.originsByLeagueId !== "object") {
+      return null;
+    }
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const writeSeniorLeagueOriginsCache = (
+  originsByLeagueId: Record<number, SeniorLeagueOrigin>
+) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      LEAGUE_ORIGINS_STORAGE_KEY,
+      JSON.stringify({
+        fetchedAt: Date.now(),
+        originsByLeagueId,
+      } satisfies SeniorLeagueOriginsCache)
+    );
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const buildSeniorLeagueOriginsById = (
+  origins: SeniorLeagueOrigin[]
+): Record<number, SeniorLeagueOrigin> => {
+  const next: Record<number, SeniorLeagueOrigin> = {};
+  origins.forEach((origin) => {
+    next[origin.leagueId] = origin;
+  });
+  return next;
 };
 
 const SeniorAiManMarkingFuzzinessSlider = memo(function SeniorAiManMarkingFuzzinessSlider({
@@ -2042,6 +2141,7 @@ const normalizeSeniorPlayerDetails = (
     ArrivalDate: typeof node.ArrivalDate === "string" ? node.ArrivalDate : undefined,
     NativeCountryName:
       typeof node.NativeCountryName === "string" ? node.NativeCountryName : undefined,
+    NativeLeagueID: parseNumber(node.NativeLeagueID) ?? undefined,
     Specialty: parseNumber(node.Specialty) ?? undefined,
     Form: parseSkill(node.PlayerForm ?? node.Form) ?? undefined,
     StaminaSkill:
@@ -2996,6 +3096,9 @@ export default function SeniorDashboard({
   const [matchesState, setMatchesState] = useState<MatchesResponse>({});
   const [ratingsResponse, setRatingsResponse] = useState<RatingsMatrixResponse | null>(null);
   const [detailsCache, setDetailsCache] = useState<Record<number, PlayerDetailCacheEntry>>({});
+  const [leagueOriginsById, setLeagueOriginsById] = useState<
+    Record<number, SeniorLeagueOrigin>
+  >({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [mobileSeniorActive, setMobileSeniorActive] = useState(false);
   const [mobileSeniorView, setMobileSeniorView] =
@@ -3360,6 +3463,42 @@ export default function SeniorDashboard({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    let active = true;
+    const cached = readSeniorLeagueOriginsCache();
+    if (cached) {
+      setLeagueOriginsById(cached.originsByLeagueId);
+    }
+    const isFresh =
+      cached !== null && Date.now() - cached.fetchedAt < WORLDDETAILS_TTL_MS;
+    if (isFresh) return;
+
+    const loadLeagueOrigins = async () => {
+      try {
+        const { payload } = await fetchChppJson<{
+          data?: { HattrickData?: unknown };
+        }>("/api/chpp/worlddetails", { cache: "no-store" });
+        const origins = normalizeWorlddetailsLeagues(payload?.data?.HattrickData);
+        const originsByLeagueId = buildSeniorLeagueOriginsById(origins);
+        if (Object.keys(originsByLeagueId).length === 0) return;
+        writeSeniorLeagueOriginsCache(originsByLeagueId);
+        if (active) {
+          setLeagueOriginsById(originsByLeagueId);
+        }
+      } catch {
+        if (active && cached) {
+          setLeagueOriginsById(cached.originsByLeagueId);
+        }
+      }
+    };
+
+    void loadLeagueOrigins();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
     const mediaQuery = window.matchMedia(MOBILE_SENIOR_MEDIA_QUERY);
     const sync = () => setMobileSeniorActive(mediaQuery.matches);
     sync();
@@ -3682,6 +3821,9 @@ export default function SeniorDashboard({
         AgeDays?: number;
         TSI?: number;
         ArrivalDate?: string;
+        NativeLeagueID?: number;
+        OriginName?: string;
+        OriginFlagEmoji?: string;
         Specialty?: number;
         InjuryLevel?: number;
         Form?: number;
@@ -3713,6 +3855,10 @@ export default function SeniorDashboard({
     >();
     detailsById.forEach((detail, playerId) => {
       const fallback = players.find((player) => player.PlayerID === playerId);
+      const origin =
+        typeof detail.NativeLeagueID === "number"
+          ? leagueOriginsById[detail.NativeLeagueID]
+          : undefined;
       map.set(playerId, {
         YouthPlayerID: playerId,
         FirstName: detail.FirstName ?? fallback?.FirstName ?? "",
@@ -3722,6 +3868,9 @@ export default function SeniorDashboard({
         AgeDays: detail.AgeDays ?? fallback?.AgeDays,
         TSI: detail.TSI ?? fallback?.TSI,
         ArrivalDate: detail.ArrivalDate ?? fallback?.ArrivalDate,
+        NativeLeagueID: detail.NativeLeagueID,
+        OriginName: origin?.leagueName,
+        OriginFlagEmoji: origin?.flagEmoji,
         Specialty: detail.Specialty ?? fallback?.Specialty,
         InjuryLevel: detail.InjuryLevel ?? fallback?.InjuryLevel,
         Form: detail.Form ?? fallback?.Form,
@@ -3748,7 +3897,7 @@ export default function SeniorDashboard({
       });
     });
     return map;
-  }, [detailsById, players]);
+  }, [detailsById, leagueOriginsById, players]);
 
   const selectedPanelPlayer = useMemo(() => {
     if (!selectedPlayer) return null;

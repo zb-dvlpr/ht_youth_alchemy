@@ -72,6 +72,8 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_4_3_0:
+      "Les détails des joueurs seniors affichent maintenant les drapeaux d'origine depuis les détails du monde mis en cache.",
     changelog_4_2_0:
       "Analyser l'adversaire inclut maintenant les moyennes par secteur pour chaque match consulte.",
     changelog_4_1_0:

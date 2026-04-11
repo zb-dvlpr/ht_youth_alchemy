@@ -125,6 +125,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_3_0:
+    "Szczegóły seniorów pokazują teraz flagi pochodzenia z zapisanych danych świata.",
   changelog_4_2_0:
     "Analiza rywala pokazuje teraz srednie oceny sektorow dla kazdego sprawdzanego meczu.",
   changelog_4_1_0:

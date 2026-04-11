@@ -72,6 +72,8 @@ export const messagesIt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Questa app è in beta. Funzioni, comportamento e dati locali in cache possono cambiare o essere azzerati senza preavviso.",
+    changelog_4_3_0:
+      "I dettagli dei giocatori senior ora mostrano le bandiere di origine dai dettagli del mondo in cache.",
     changelog_4_2_0:
       "Analizza avversario ora include le medie per settore per ogni partita esaminata.",
     changelog_4_1_0:

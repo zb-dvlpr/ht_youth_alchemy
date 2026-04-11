@@ -72,6 +72,8 @@ export const messagesEs: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Esta aplicación está en beta. Las funciones, el comportamiento y los datos locales en caché pueden cambiar o reiniciarse sin previo aviso.",
+    changelog_4_3_0:
+      "Los detalles de jugadores senior ahora muestran banderas de origen desde datos mundiales en caché.",
     changelog_4_2_0:
       "Analizar rival ahora incluye medias por sector en cada partido revisado.",
     changelog_4_1_0:

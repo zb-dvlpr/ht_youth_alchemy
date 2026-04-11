@@ -42,6 +42,9 @@ export type YouthPlayerDetails = {
   ArrivalDate?: string;
   CanBePromotedIn?: number;
   NativeCountryName?: string;
+  NativeLeagueID?: number;
+  OriginName?: string;
+  OriginFlagEmoji?: string;
   Specialty?: number;
   InjuryLevel?: number;
   Form?: number;
@@ -1051,6 +1054,16 @@ export default function PlayerDetailsPanel({
                   {detailsData.FirstName} {detailsData.LastName}
                 </h4>
               )}
+              {playerKind === "senior" && detailsData.OriginName ? (
+                <Tooltip content={detailsData.OriginName}>
+                  <span
+                    className={styles.playerOriginFlag}
+                    aria-label={detailsData.OriginName}
+                  >
+                    {detailsData.OriginFlagEmoji ?? detailsData.OriginName}
+                  </span>
+                </Tooltip>
+              ) : null}
               {playerKind === "senior" && detailsData.MotherClubBonus ? (
                 <Tooltip content={messages.motherClubBonusTooltip}>
                   <span

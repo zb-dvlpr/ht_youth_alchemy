@@ -72,6 +72,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_3_0:
+      "Seniorspelardetaljer visar nu ursprungsflaggor från cachade världsdetaljer.",
     changelog_4_2_0:
       "Analysera motståndare visar nu snittbetyg per sektor for varje granskat match.",
     changelog_4_1_0:

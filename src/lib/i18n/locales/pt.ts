@@ -72,6 +72,8 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    changelog_4_2_0:
+      "Analisar adversario agora inclui medias por setor para cada jogo revisto.",
     changelog_4_1_0:
       "As watchlists do Club Chronicle agora podem ser transferidas entre dispositivos com exportação QR no desktop/mobile e importação por câmera no mobile.",
     changelog_4_0_0:
@@ -992,6 +994,10 @@ export const messagesPt: Messages = {
     analyzeOpponentMatchType: "Tipo de partida",
     analyzeOpponentFormationColumn: "Formação",
     analyzeOpponentTacticColumn: "Tática",
+    analyzeOpponentAverageRatingsColumn: "Medias",
+    analyzeOpponentAvgDefense: "Media Def",
+    analyzeOpponentAvgMidfield: "Media Meio",
+    analyzeOpponentAvgAttack: "Media Ata",
     analyzeOpponentAgainstYouMark: "* indica partidas contra você.",
     analyzeOpponentNeverPlayedUs: "Eles nunca jogaram contra nós.",
     analyzeOpponentSummaryPreferredFormation:

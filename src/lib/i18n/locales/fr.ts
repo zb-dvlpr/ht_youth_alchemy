@@ -72,6 +72,8 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_4_2_0:
+      "Analyser l'adversaire inclut maintenant les moyennes par secteur pour chaque match consulte.",
     changelog_4_1_0:
       "Les watchlists de la Chronique du club peuvent maintenant être transférées entre appareils via QR sur desktop/mobile et import caméra sur mobile.",
     changelog_4_0_0:
@@ -991,6 +993,10 @@ export const messagesFr: Messages = {
     analyzeOpponentMatchType: "Type de match",
     analyzeOpponentFormationColumn: "Formation",
     analyzeOpponentTacticColumn: "Tactique",
+    analyzeOpponentAverageRatingsColumn: "Moyennes",
+    analyzeOpponentAvgDefense: "Moy. Def",
+    analyzeOpponentAvgMidfield: "Moy. Mil",
+    analyzeOpponentAvgAttack: "Moy. Att",
     analyzeOpponentAgainstYouMark: "* indique les matchs contre vous.",
     analyzeOpponentNeverPlayedUs: "Ils n'ont jamais joué contre nous.",
     analyzeOpponentSummaryPreferredFormation:

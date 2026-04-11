@@ -2877,6 +2877,18 @@ const computeAverageRating = (values: Array<number | null>): number | null => {
   return valid.reduce((sum, value) => sum + value, 0) / valid.length;
 };
 
+const normalizeOpponentMatchRating = (value: number | null) =>
+  typeof value === "number" ? value / 4 + 0.75 : null;
+
+const computeOpponentSectorAverage = (
+  values: Array<number | null>
+): number | null => {
+  if (values.some((value) => typeof value !== "number")) return null;
+  const normalized = values.map((value) => normalizeOpponentMatchRating(value));
+  if (normalized.some((value) => typeof value !== "number")) return null;
+  return computeAverageRating(normalized);
+};
+
 const computeChosenFormationAverages = (
   rows: OpponentFormationRow[],
   chosenFormation: string | null
@@ -10658,6 +10670,21 @@ const refreshDetailsForPlayers = async (
         return `${messages.tacticLabel} ${tacticType}`;
     }
   };
+  const opponentSectorRatings = (row: OpponentFormationRow) => ({
+    defense: computeOpponentSectorAverage([
+      row.ratingRightDef,
+      row.ratingMidDef,
+      row.ratingLeftDef,
+    ]),
+    midfield: normalizeOpponentMatchRating(row.ratingMidfield),
+    attack: computeOpponentSectorAverage([
+      row.ratingRightAtt,
+      row.ratingMidAtt,
+      row.ratingLeftAtt,
+    ]),
+  });
+  const formatOpponentSectorRating = (value: number | null) =>
+    typeof value === "number" ? value.toFixed(2) : messages.unknownShort;
 
   const pickMostCommonTactic = (rows: OpponentFormationRow[]): number | null => {
     const rowsWithTactic = rows.filter(
@@ -16253,38 +16280,59 @@ const refreshDetailsForPlayers = async (
                         <th>{messages.analyzeOpponentMatchType}</th>
                         <th>{messages.analyzeOpponentFormationColumn}</th>
                         <th>{messages.analyzeOpponentTacticColumn}</th>
+                        <th>{messages.analyzeOpponentAverageRatingsColumn}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {opponentAnalysisModal.opponentRows.map((row) => (
-                        <tr key={row.matchId}>
-                          <td className={styles.opponentFormationsMatchIdCell}>
-                            <a
-                              className={styles.chroniclePressLink}
-                              href={hattrickMatchUrlWithSourceSystem(
-                                row.matchId,
-                                row.sourceSystem
-                              )}
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              {row.matchId}
-                              {row.againstMyTeam ? "*" : ""}
-                            </a>
-                          </td>
-                          <td>
-                            {(() => {
-                              const parsedDate = parseChppDate(row.matchDate);
-                              return parsedDate
-                                ? formatDateTime(parsedDate)
-                                : messages.unknownDate;
-                            })()}
-                          </td>
-                          <td>{matchTypeLabel(row.matchType)}</td>
-                          <td>{row.formation ?? messages.unknownShort}</td>
-                          <td>{tacticTypeLabel(row.tacticType)}</td>
-                        </tr>
-                      ))}
+                      {opponentAnalysisModal.opponentRows.map((row) => {
+                        const sectorRatings = opponentSectorRatings(row);
+                        return (
+                          <tr key={row.matchId}>
+                            <td className={styles.opponentFormationsMatchIdCell}>
+                              <a
+                                className={styles.chroniclePressLink}
+                                href={hattrickMatchUrlWithSourceSystem(
+                                  row.matchId,
+                                  row.sourceSystem
+                                )}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {row.matchId}
+                                {row.againstMyTeam ? "*" : ""}
+                              </a>
+                            </td>
+                            <td>
+                              {(() => {
+                                const parsedDate = parseChppDate(row.matchDate);
+                                return parsedDate
+                                  ? formatDateTime(parsedDate)
+                                  : messages.unknownDate;
+                              })()}
+                            </td>
+                            <td>{matchTypeLabel(row.matchType)}</td>
+                            <td>{row.formation ?? messages.unknownShort}</td>
+                            <td>{tacticTypeLabel(row.tacticType)}</td>
+                            <td>
+                              <div>
+                                {`${messages.analyzeOpponentAvgDefense}: ${formatOpponentSectorRating(
+                                  sectorRatings.defense
+                                )}`}
+                              </div>
+                              <div>
+                                {`${messages.analyzeOpponentAvgMidfield}: ${formatOpponentSectorRating(
+                                  sectorRatings.midfield
+                                )}`}
+                              </div>
+                              <div>
+                                {`${messages.analyzeOpponentAvgAttack}: ${formatOpponentSectorRating(
+                                  sectorRatings.attack
+                                )}`}
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>

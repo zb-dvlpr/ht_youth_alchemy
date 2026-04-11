@@ -72,6 +72,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_4_2_0:
+      "Analyze opponent now includes averaged sector ratings for each reviewed match.",
     changelog_4_1_0:
       "Club Chronicle watchlists can now be transferred between devices with QR export on desktop/mobile and camera import on mobile.",
     changelog_4_0_0:
@@ -952,6 +954,10 @@ export const messagesEn: Messages = {
     analyzeOpponentMatchType: "Match type",
     analyzeOpponentFormationColumn: "Formation",
     analyzeOpponentTacticColumn: "Tactic",
+    analyzeOpponentAverageRatingsColumn: "Avg. ratings",
+    analyzeOpponentAvgDefense: "Avg. Def",
+    analyzeOpponentAvgMidfield: "Avg. Mid",
+    analyzeOpponentAvgAttack: "Avg. Off",
     analyzeOpponentAgainstYouMark: "* indicates matches against you.",
     analyzeOpponentNeverPlayedUs: "They have never played against us.",
     analyzeOpponentSummaryPreferredFormation:

@@ -72,6 +72,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_2_0:
+      "Analysera motståndare visar nu snittbetyg per sektor for varje granskat match.",
     changelog_4_1_0:
       "Klubbkrönikans bevakningslistor kan nu flyttas mellan enheter med QR-export på desktop/mobil och kameraimport på mobil.",
     changelog_4_0_0:
@@ -983,6 +985,10 @@ export const messagesSv: Messages = {
     analyzeOpponentMatchType: "Matchtyp",
     analyzeOpponentFormationColumn: "Formation",
     analyzeOpponentTacticColumn: "Taktik",
+    analyzeOpponentAverageRatingsColumn: "Snitt",
+    analyzeOpponentAvgDefense: "Snitt Fors",
+    analyzeOpponentAvgMidfield: "Snitt Mitt",
+    analyzeOpponentAvgAttack: "Snitt Anf",
     analyzeOpponentAgainstYouMark: "* markerar matcher mot dig.",
     analyzeOpponentNeverPlayedUs: "De har aldrig spelat mot oss.",
     analyzeOpponentSummaryPreferredFormation:

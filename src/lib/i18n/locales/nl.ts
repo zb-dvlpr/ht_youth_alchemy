@@ -132,6 +132,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_2_0:
+    "Tegenstander analyseren toont nu gemiddelde sectorratings voor elke bekeken wedstrijd.",
   changelog_4_1_0:
     "Club Chronicle-volglijsten kunnen nu tussen apparaten worden overgezet met QR-export op desktop/mobiel en camera-import op mobiel.",
   changelog_4_0_0:
@@ -433,6 +435,10 @@ export const messagesNl: Messages = {
   analyzeOpponentMatchType: "Wedstrijdtype",
   analyzeOpponentFormationColumn: "Formatie",
   analyzeOpponentTacticColumn: "Tactiek",
+  analyzeOpponentAverageRatingsColumn: "Gemiddelden",
+  analyzeOpponentAvgDefense: "Gem. Ver",
+  analyzeOpponentAvgMidfield: "Gem. Mid",
+  analyzeOpponentAvgAttack: "Gem. Aan",
   analyzeOpponentAgainstYouMark: "* markeert wedstrijden tegen jou.",
   analyzeOpponentNeverPlayedUs: "Ze hebben nog nooit tegen ons gespeeld.",
   analyzeOpponentSummaryPreferredFormation:

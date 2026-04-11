@@ -125,6 +125,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_2_0:
+    "Analiza rywala pokazuje teraz srednie oceny sektorow dla kazdego sprawdzanego meczu.",
   changelog_4_1_0:
     "Listy obserwowanych w Club Chronicle można teraz przenosić między urządzeniami przez eksport QR na desktopie/mobilu i import kamerą na mobile.",
   changelog_4_0_0:
@@ -426,6 +428,10 @@ export const messagesPl: Messages = {
   analyzeOpponentMatchType: "Typ meczu",
   analyzeOpponentFormationColumn: "Formacja",
   analyzeOpponentTacticColumn: "Taktyka",
+  analyzeOpponentAverageRatingsColumn: "Srednie",
+  analyzeOpponentAvgDefense: "Sr. Obr",
+  analyzeOpponentAvgMidfield: "Sr. Pom",
+  analyzeOpponentAvgAttack: "Sr. Atak",
   analyzeOpponentAgainstYouMark: "* oznacza mecze przeciwko tobie.",
   analyzeOpponentNeverPlayedUs: "Nigdy nie grali przeciwko nam.",
   analyzeOpponentSummaryPreferredFormation:

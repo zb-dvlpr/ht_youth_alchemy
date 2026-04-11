@@ -78,6 +78,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_4_2_0: string;
   changelog_4_1_0: string;
   changelog_4_0_0: string;
   changelog_3_13_0: string;
@@ -790,6 +791,10 @@ export type Messages = {
   analyzeOpponentMatchType: string;
   analyzeOpponentFormationColumn: string;
   analyzeOpponentTacticColumn: string;
+  analyzeOpponentAverageRatingsColumn: string;
+  analyzeOpponentAvgDefense: string;
+  analyzeOpponentAvgMidfield: string;
+  analyzeOpponentAvgAttack: string;
   analyzeOpponentAgainstYouMark: string;
   analyzeOpponentNeverPlayedUs: string;
   analyzeOpponentSummaryPreferredFormation: string;

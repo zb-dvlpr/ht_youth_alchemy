@@ -11,6 +11,8 @@ export const BUY_COFFEE_PROMPT_DEBUG_OPEN_EVENT = "ya:buy-coffee-prompt-debug-op
 export const DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS = 3;
 export const DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT = 5;
 export const DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT = 10;
+export const DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_ENABLED = false;
+export const DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_TOURNAMENT_ENABLED = false;
 export const YOUTH_SETTINGS_STORAGE_KEY = "ya_youth_staleness_days_v1";
 export const YOUTH_SETTINGS_STORAGE_KEY_LEGACY = "ya_youth_staleness_hours_v1";
 export const YOUTH_SETTINGS_EVENT = "ya:youth-settings";
@@ -85,6 +87,8 @@ export function writeClubChronicleStalenessDays(value: number) {
       ? (JSON.parse(existing) as {
           transferHistoryCount?: number;
           updatesHistoryCount?: number;
+          ongoingMatchesEnabled?: boolean;
+          ongoingMatchesTournamentEnabled?: boolean;
         } | null)
       : null;
     const transferHistoryCount = Number(parsed?.transferHistoryCount);
@@ -101,6 +105,12 @@ export function writeClubChronicleStalenessDays(value: number) {
         stalenessDays: clamped,
         transferHistoryCount: nextTransferHistoryCount,
         updatesHistoryCount: nextUpdatesHistoryCount,
+        ongoingMatchesEnabled:
+          parsed?.ongoingMatchesEnabled ??
+          DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_ENABLED,
+        ongoingMatchesTournamentEnabled:
+          parsed?.ongoingMatchesTournamentEnabled ??
+          DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_TOURNAMENT_ENABLED,
       })
     );
   } catch {
@@ -135,6 +145,8 @@ export function writeClubChronicleTransferHistoryCount(value: number) {
       ? (JSON.parse(existing) as {
           stalenessDays?: number;
           updatesHistoryCount?: number;
+          ongoingMatchesEnabled?: boolean;
+          ongoingMatchesTournamentEnabled?: boolean;
         } | null)
       : null;
     const stalenessDays = Number(parsed?.stalenessDays);
@@ -151,6 +163,12 @@ export function writeClubChronicleTransferHistoryCount(value: number) {
         stalenessDays: nextStalenessDays,
         transferHistoryCount: clamped,
         updatesHistoryCount: nextUpdatesHistoryCount,
+        ongoingMatchesEnabled:
+          parsed?.ongoingMatchesEnabled ??
+          DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_ENABLED,
+        ongoingMatchesTournamentEnabled:
+          parsed?.ongoingMatchesTournamentEnabled ??
+          DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_TOURNAMENT_ENABLED,
       })
     );
   } catch {
@@ -185,6 +203,8 @@ export function writeClubChronicleUpdatesHistoryCount(value: number) {
       ? (JSON.parse(existing) as {
           stalenessDays?: number;
           transferHistoryCount?: number;
+          ongoingMatchesEnabled?: boolean;
+          ongoingMatchesTournamentEnabled?: boolean;
         } | null)
       : null;
     const stalenessDays = Number(parsed?.stalenessDays);
@@ -201,6 +221,91 @@ export function writeClubChronicleUpdatesHistoryCount(value: number) {
         stalenessDays: nextStalenessDays,
         transferHistoryCount: nextTransferHistoryCount,
         updatesHistoryCount: clamped,
+        ongoingMatchesEnabled:
+          parsed?.ongoingMatchesEnabled ??
+          DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_ENABLED,
+        ongoingMatchesTournamentEnabled:
+          parsed?.ongoingMatchesTournamentEnabled ??
+          DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_TOURNAMENT_ENABLED,
+      })
+    );
+  } catch {
+    // ignore storage errors
+  }
+}
+
+export function readClubChronicleOngoingMatchesEnabled(): boolean {
+  if (typeof window === "undefined") {
+    return DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_ENABLED;
+  }
+  try {
+    const stored = window.localStorage.getItem(CLUB_CHRONICLE_SETTINGS_STORAGE_KEY);
+    if (!stored) return DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_ENABLED;
+    const parsed = JSON.parse(stored) as { ongoingMatchesEnabled?: boolean };
+    return parsed?.ongoingMatchesEnabled ?? DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_ENABLED;
+  } catch {
+    return DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_ENABLED;
+  }
+}
+
+export function readClubChronicleOngoingMatchesTournamentEnabled(): boolean {
+  if (typeof window === "undefined") {
+    return DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_TOURNAMENT_ENABLED;
+  }
+  try {
+    const stored = window.localStorage.getItem(CLUB_CHRONICLE_SETTINGS_STORAGE_KEY);
+    if (!stored) return DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_TOURNAMENT_ENABLED;
+    const parsed = JSON.parse(stored) as {
+      ongoingMatchesTournamentEnabled?: boolean;
+    };
+    return (
+      parsed?.ongoingMatchesTournamentEnabled ??
+      DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_TOURNAMENT_ENABLED
+    );
+  } catch {
+    return DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_TOURNAMENT_ENABLED;
+  }
+}
+
+export function writeClubChronicleOngoingMatchesSettings(settings: {
+  enabled?: boolean;
+  tournamentEnabled?: boolean;
+}) {
+  if (typeof window === "undefined") return;
+  try {
+    const existing = window.localStorage.getItem(CLUB_CHRONICLE_SETTINGS_STORAGE_KEY);
+    const parsed = existing
+      ? (JSON.parse(existing) as {
+          stalenessDays?: number;
+          transferHistoryCount?: number;
+          updatesHistoryCount?: number;
+          ongoingMatchesEnabled?: boolean;
+          ongoingMatchesTournamentEnabled?: boolean;
+        } | null)
+      : null;
+    const stalenessDays = Number(parsed?.stalenessDays);
+    const transferHistoryCount = Number(parsed?.transferHistoryCount);
+    const updatesHistoryCount = Number(parsed?.updatesHistoryCount);
+    window.localStorage.setItem(
+      CLUB_CHRONICLE_SETTINGS_STORAGE_KEY,
+      JSON.stringify({
+        stalenessDays: Number.isFinite(stalenessDays)
+          ? Math.min(7, Math.max(1, Math.round(stalenessDays)))
+          : DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS,
+        transferHistoryCount: Number.isFinite(transferHistoryCount)
+          ? Math.min(50, Math.max(1, Math.round(transferHistoryCount)))
+          : DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT,
+        updatesHistoryCount: Number.isFinite(updatesHistoryCount)
+          ? Math.min(50, Math.max(1, Math.round(updatesHistoryCount)))
+          : DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT,
+        ongoingMatchesEnabled:
+          settings.enabled ??
+          parsed?.ongoingMatchesEnabled ??
+          DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_ENABLED,
+        ongoingMatchesTournamentEnabled:
+          settings.tournamentEnabled ??
+          parsed?.ongoingMatchesTournamentEnabled ??
+          DEFAULT_CLUB_CHRONICLE_ONGOING_MATCHES_TOURNAMENT_ENABLED,
       })
     );
   } catch {

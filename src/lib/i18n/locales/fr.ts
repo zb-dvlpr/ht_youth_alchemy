@@ -72,6 +72,8 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_4_4_0:
+      "Club Chronicle peut maintenant suivre les matchs en cours avec prise en charge optionnelle des tournois.",
     changelog_4_3_0:
       "Les détails des joueurs seniors affichent maintenant les drapeaux d'origine depuis les détails du monde mis en cache.",
     changelog_4_2_0:
@@ -319,6 +321,8 @@ export const messagesFr: Messages = {
     clubChronicleRefreshLastLoginTooltip: "Actualiser les données des dernières connexions.",
     clubChronicleRefreshCoachTooltip: "Actualiser les donnees du coach.",
     clubChronicleRefreshPowerRatingsTooltip: "Actualiser les donnees des power ratings.",
+    clubChronicleRefreshOngoingMatchesTooltip:
+      "Actualiser les matchs en cours et les scores.",
     clubChronicleRefreshStatusTeamDetails:
       "Récupération des informations d équipe…",
     clubChronicleRefreshStatusLeague:
@@ -330,6 +334,8 @@ export const messagesFr: Messages = {
       "Récupération des données transferts, finances, TSI et salaires…",
     clubChronicleRefreshStatusFormations:
       "Récupération des données de formations et tactiques…",
+    clubChronicleRefreshStatusOngoingMatches:
+      "Récupération des matchs en cours…",
     clubChronicleRefreshStatusFinalizing:
       "Finalisation des mises à jour…",
     clubChronicleRefreshStatusMatchesArchiveProgress:
@@ -423,7 +429,17 @@ export const messagesFr: Messages = {
       "Amical international (règles normales)",
     clubChronicleMatchTypeInternationalFriendlyCup:
       "Amical international (règles coupe)",
+    clubChronicleMatchTypeTournament: "Match de tournoi",
     clubChronicleMatchTypeUnknown: "Type de match inconnu",
+    clubChronicleOngoingMatchesPanelTitle: "Matchs en cours",
+    clubChronicleOngoingMatchesEnableLabel: "Activer",
+    clubChronicleOngoingMatchesIncludeTournamentsLabel: "Matchs de tournoi",
+    clubChronicleOngoingMatchesColumnMatch: "Match",
+    clubChronicleOngoingMatchesNone: "Aucun match en cours.",
+    clubChronicleOngoingMatchesDisabled:
+      "Le suivi des matchs en cours est desactive. Aucun match ne sera recupere ni affiche.",
+    clubChronicleOngoingMatchesDisclaimer:
+      "Par defaut, seuls les matchs hors tournoi sont verifies. Si cette fonction est activee, tout match en cours accepte pour les equipes suivies sera ajoute a Hattrick Live. Les scores ne se mettent pas a jour automatiquement ; utilisez le bouton d actualisation de ce panneau.",
     clubChronicleLikelyTrainingPanelTitle: "Régime d entraînement probable",
     clubChronicleLikelyTrainingColumnRegimen: "Régime probable",
     clubChronicleLikelyTrainingDetailsTitle: "Régime d entraînement probable",

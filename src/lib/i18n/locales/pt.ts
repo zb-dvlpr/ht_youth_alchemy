@@ -72,6 +72,8 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    changelog_4_4_0:
+      "Club Chronicle agora pode acompanhar partidas em andamento com suporte opcional a torneios.",
     changelog_4_3_0:
       "Os detalhes de jogadores seniores agora mostram bandeiras de origem a partir de detalhes mundiais em cache.",
     changelog_4_2_0:
@@ -320,6 +322,8 @@ export const messagesPt: Messages = {
       "Atualizar dados dos últimos logins.",
     clubChronicleRefreshCoachTooltip: "Atualizar dados do treinador.",
     clubChronicleRefreshPowerRatingsTooltip: "Atualizar dados de power ratings.",
+    clubChronicleRefreshOngoingMatchesTooltip:
+      "Atualizar partidas em andamento e placares.",
     clubChronicleRefreshStatusTeamDetails:
       "Buscando detalhes do time…",
     clubChronicleRefreshStatusLeague:
@@ -331,6 +335,8 @@ export const messagesPt: Messages = {
       "Buscando dados de transferências, finanças, TSI e salários…",
     clubChronicleRefreshStatusFormations:
       "Buscando dados de formações e táticas…",
+    clubChronicleRefreshStatusOngoingMatches:
+      "Buscando partidas em andamento…",
     clubChronicleRefreshStatusFinalizing:
       "Finalizando atualizações…",
     clubChronicleRefreshStatusMatchesArchiveProgress:
@@ -424,7 +430,17 @@ export const messagesPt: Messages = {
       "Amistoso internacional (regras normais)",
     clubChronicleMatchTypeInternationalFriendlyCup:
       "Amistoso internacional (regras de copa)",
+    clubChronicleMatchTypeTournament: "Partida de torneio",
     clubChronicleMatchTypeUnknown: "Tipo de partida desconhecido",
+    clubChronicleOngoingMatchesPanelTitle: "Partidas em andamento",
+    clubChronicleOngoingMatchesEnableLabel: "Ativar",
+    clubChronicleOngoingMatchesIncludeTournamentsLabel: "Partidas de torneio",
+    clubChronicleOngoingMatchesColumnMatch: "Partida",
+    clubChronicleOngoingMatchesNone: "Nenhuma partida em andamento.",
+    clubChronicleOngoingMatchesDisabled:
+      "O acompanhamento de partidas em andamento esta desativado. Nenhuma partida sera buscada ou exibida.",
+    clubChronicleOngoingMatchesDisclaimer:
+      "Por padrao, apenas partidas que nao sao de torneio sao verificadas. Se este recurso estiver ativado, qualquer partida em andamento aceita de times acompanhados sera adicionada ao Hattrick Live. Os placares nao atualizam automaticamente; use o botao de atualizar deste painel.",
     clubChronicleLikelyTrainingPanelTitle: "Regime de treino provável",
     clubChronicleLikelyTrainingColumnRegimen: "Regime provável",
     clubChronicleLikelyTrainingDetailsTitle: "Regime de treino provável",

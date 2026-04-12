@@ -125,6 +125,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_4_0:
+    "Club Chronicle może teraz śledzić trwające mecze z opcjonalną obsługą turniejów.",
   changelog_4_3_0:
     "Szczegóły seniorów pokazują teraz flagi pochodzenia z zapisanych danych świata.",
   changelog_4_2_0:
@@ -714,6 +716,19 @@ export const messagesPl: Messages = {
   clubChroniclePowerRatingsColumnGlobalRanking: "Ranking globalny",
   clubChroniclePowerRatingsColumnLeagueRanking: "Ranking ligi",
   clubChroniclePowerRatingsColumnRegionRanking: "Ranking regionu",
+  clubChronicleRefreshOngoingMatchesTooltip:
+    "Odśwież trwające mecze i wyniki.",
+  clubChronicleRefreshStatusOngoingMatches: "Pobieranie trwających meczów…",
+  clubChronicleMatchTypeTournament: "Mecz turniejowy",
+  clubChronicleOngoingMatchesPanelTitle: "Trwające mecze",
+  clubChronicleOngoingMatchesEnableLabel: "Włącz",
+  clubChronicleOngoingMatchesIncludeTournamentsLabel: "Mecze turniejowe",
+  clubChronicleOngoingMatchesColumnMatch: "Mecz",
+  clubChronicleOngoingMatchesNone: "Brak trwającego meczu.",
+  clubChronicleOngoingMatchesDisabled:
+    "Śledzenie trwających meczów jest wyłączone. Mecze nie będą pobierane ani wyświetlane.",
+  clubChronicleOngoingMatchesDisclaimer:
+    "Domyślnie sprawdzane są tylko mecze nieturniejowe. Po włączeniu tej funkcji zaakceptowane trwające mecze śledzonych drużyn zostaną dodane do Hattrick Live. Wyniki nie aktualizują się automatycznie; użyj przycisku odświeżania w tym panelu.",
   themeSwitchDark: "Przełącz na tryb ciemny",
   optimizeLineupTitle: "Optymalizuj skład",
   optimizeMenuStar: "Optymalizuj wokół {{player}}",

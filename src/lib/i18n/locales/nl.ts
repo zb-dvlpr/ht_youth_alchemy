@@ -132,6 +132,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_4_0:
+    "Club Chronicle kan nu lopende wedstrijden volgen met optionele toernooiondersteuning.",
   changelog_4_3_0:
     "Seniorspelerdetails tonen nu herkomstvlaggen uit gecachte wereldgegevens.",
   changelog_4_2_0:
@@ -721,6 +723,19 @@ export const messagesNl: Messages = {
   clubChroniclePowerRatingsColumnGlobalRanking: "Wereldranglijst",
   clubChroniclePowerRatingsColumnLeagueRanking: "Ligaranglijst",
   clubChroniclePowerRatingsColumnRegionRanking: "Regioranglijst",
+  clubChronicleRefreshOngoingMatchesTooltip:
+    "Lopende wedstrijden en scores vernieuwen.",
+  clubChronicleRefreshStatusOngoingMatches: "Lopende wedstrijden ophalen…",
+  clubChronicleMatchTypeTournament: "Toernooiwedstrijd",
+  clubChronicleOngoingMatchesPanelTitle: "Lopende wedstrijden",
+  clubChronicleOngoingMatchesEnableLabel: "Inschakelen",
+  clubChronicleOngoingMatchesIncludeTournamentsLabel: "Toernooiwedstrijden",
+  clubChronicleOngoingMatchesColumnMatch: "Wedstrijd",
+  clubChronicleOngoingMatchesNone: "Geen lopende wedstrijd.",
+  clubChronicleOngoingMatchesDisabled:
+    "Volgen van lopende wedstrijden is uit. Er worden geen wedstrijden opgehaald of getoond.",
+  clubChronicleOngoingMatchesDisclaimer:
+    "Standaard worden alleen niet-toernooiwedstrijden gecontroleerd. Als deze functie aan staat, worden geaccepteerde lopende wedstrijden voor gevolgde teams toegevoegd aan Hattrick Live. Scores worden niet automatisch bijgewerkt; gebruik de vernieuwknop van dit paneel.",
   themeSwitchDark: "Naar donkere modus schakelen",
   optimizeLineupTitle: "Opstelling optimaliseren",
   optimizeMenuStar: "Optimaliseer rond {{player}}",

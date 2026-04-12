@@ -72,6 +72,8 @@ export const messagesEs: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Esta aplicación está en beta. Las funciones, el comportamiento y los datos locales en caché pueden cambiar o reiniciarse sin previo aviso.",
+    changelog_4_4_0:
+      "Club Chronicle ahora puede seguir partidos en curso con soporte opcional para torneos.",
     changelog_4_3_0:
       "Los detalles de jugadores senior ahora muestran banderas de origen desde datos mundiales en caché.",
     changelog_4_2_0:
@@ -320,6 +322,8 @@ export const messagesEs: Messages = {
       "Actualizar datos de los últimos inicios de sesión.",
     clubChronicleRefreshCoachTooltip: "Actualizar datos del entrenador.",
     clubChronicleRefreshPowerRatingsTooltip: "Actualizar datos de power ratings.",
+    clubChronicleRefreshOngoingMatchesTooltip:
+      "Actualizar partidos en curso y marcadores.",
     clubChronicleRefreshStatusTeamDetails:
       "Obteniendo detalles del equipo…",
     clubChronicleRefreshStatusLeague:
@@ -331,6 +335,8 @@ export const messagesEs: Messages = {
       "Obteniendo datos de transferencias, finanzas, TSI y salarios…",
     clubChronicleRefreshStatusFormations:
       "Obteniendo datos de formaciones y tácticas…",
+    clubChronicleRefreshStatusOngoingMatches:
+      "Obteniendo partidos en curso…",
     clubChronicleRefreshStatusFinalizing:
       "Finalizando actualizaciones…",
     clubChronicleRefreshStatusMatchesArchiveProgress:
@@ -424,7 +430,17 @@ export const messagesEs: Messages = {
       "Amistoso internacional (reglas normales)",
     clubChronicleMatchTypeInternationalFriendlyCup:
       "Amistoso internacional (reglas de copa)",
+    clubChronicleMatchTypeTournament: "Partido de torneo",
     clubChronicleMatchTypeUnknown: "Tipo de partido desconocido",
+    clubChronicleOngoingMatchesPanelTitle: "Partidos en curso",
+    clubChronicleOngoingMatchesEnableLabel: "Activar",
+    clubChronicleOngoingMatchesIncludeTournamentsLabel: "Partidos de torneo",
+    clubChronicleOngoingMatchesColumnMatch: "Partido",
+    clubChronicleOngoingMatchesNone: "Sin partido en curso.",
+    clubChronicleOngoingMatchesDisabled:
+      "El seguimiento de partidos en curso esta desactivado. No se recuperaran ni mostraran partidos.",
+    clubChronicleOngoingMatchesDisclaimer:
+      "Por defecto solo se revisan partidos que no son de torneo. Si esta funcion esta activada, cualquier partido en curso aceptado de equipos seguidos se anadira a Hattrick Live. Los marcadores no se actualizan automaticamente; usa el boton de actualizar de este panel.",
     clubChronicleLikelyTrainingPanelTitle: "Régimen de entrenamiento probable",
     clubChronicleLikelyTrainingColumnRegimen: "Régimen probable",
     clubChronicleLikelyTrainingDetailsTitle: "Régimen de entrenamiento probable",

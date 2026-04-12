@@ -78,6 +78,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_4_4_0: string;
   changelog_4_3_0: string;
   changelog_4_2_0: string;
   changelog_4_1_0: string;
@@ -255,12 +256,14 @@ export type Messages = {
   clubChronicleRefreshLastLoginTooltip: string;
   clubChronicleRefreshCoachTooltip: string;
   clubChronicleRefreshPowerRatingsTooltip: string;
+  clubChronicleRefreshOngoingMatchesTooltip: string;
   clubChronicleRefreshStatusTeamDetails: string;
   clubChronicleRefreshStatusLeague: string;
   clubChronicleRefreshStatusLastLogin: string;
   clubChronicleRefreshStatusArena: string;
   clubChronicleRefreshStatusTransferFinance: string;
   clubChronicleRefreshStatusFormations: string;
+  clubChronicleRefreshStatusOngoingMatches: string;
   clubChronicleRefreshStatusFinalizing: string;
   clubChronicleRefreshStatusMatchesArchiveProgress: string;
   clubChronicleRefreshStatusMatchDetailsProgress: string;
@@ -331,7 +334,15 @@ export type Messages = {
   clubChronicleMatchTypeMasters: string;
   clubChronicleMatchTypeInternationalFriendlyNormal: string;
   clubChronicleMatchTypeInternationalFriendlyCup: string;
+  clubChronicleMatchTypeTournament: string;
   clubChronicleMatchTypeUnknown: string;
+  clubChronicleOngoingMatchesPanelTitle: string;
+  clubChronicleOngoingMatchesEnableLabel: string;
+  clubChronicleOngoingMatchesIncludeTournamentsLabel: string;
+  clubChronicleOngoingMatchesColumnMatch: string;
+  clubChronicleOngoingMatchesNone: string;
+  clubChronicleOngoingMatchesDisabled: string;
+  clubChronicleOngoingMatchesDisclaimer: string;
   clubChronicleLikelyTrainingPanelTitle: string;
   clubChronicleLikelyTrainingColumnRegimen: string;
   clubChronicleLikelyTrainingDetailsTitle: string;

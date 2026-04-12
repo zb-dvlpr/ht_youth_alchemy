@@ -72,6 +72,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_4_4_0:
+      "Club Chronicle can now track ongoing matches with optional tournament support.",
     changelog_4_3_0:
       "Senior player details now show origin flags from cached world details.",
     changelog_4_2_0:
@@ -298,12 +300,14 @@ export const messagesEn: Messages = {
     clubChronicleRefreshLastLoginTooltip: "Refresh latest login data.",
     clubChronicleRefreshCoachTooltip: "Refresh coach data.",
     clubChronicleRefreshPowerRatingsTooltip: "Refresh power ratings data.",
+    clubChronicleRefreshOngoingMatchesTooltip: "Refresh ongoing match scores.",
     clubChronicleRefreshStatusTeamDetails: "Fetching team details…",
     clubChronicleRefreshStatusLeague: "Fetching league performance…",
     clubChronicleRefreshStatusLastLogin: "Fetching latest logins…",
     clubChronicleRefreshStatusArena: "Fetching arena data…",
     clubChronicleRefreshStatusTransferFinance: "Fetching transfer, finance, TSI, and wages data…",
     clubChronicleRefreshStatusFormations: "Fetching formations and tactics data…",
+    clubChronicleRefreshStatusOngoingMatches: "Fetching ongoing matches…",
     clubChronicleRefreshStatusFinalizing: "Finalizing updates…",
     clubChronicleRefreshStatusMatchesArchiveProgress:
       "Match archives {completed}/{total} (team: {team})",
@@ -393,7 +397,17 @@ export const messagesEn: Messages = {
       "International friendly (normal rules)",
     clubChronicleMatchTypeInternationalFriendlyCup:
       "International friendly (cup rules)",
+    clubChronicleMatchTypeTournament: "Tournament match",
     clubChronicleMatchTypeUnknown: "Unknown match type",
+    clubChronicleOngoingMatchesPanelTitle: "Ongoing matches",
+    clubChronicleOngoingMatchesEnableLabel: "Enable",
+    clubChronicleOngoingMatchesIncludeTournamentsLabel: "Tournament matches",
+    clubChronicleOngoingMatchesColumnMatch: "Match",
+    clubChronicleOngoingMatchesNone: "No ongoing match.",
+    clubChronicleOngoingMatchesDisabled:
+      "Ongoing match tracking is off. No matches will be retrieved or displayed.",
+    clubChronicleOngoingMatchesDisclaimer:
+      "By default this only checks non-tournament matches. If this feature is on, any accepted ongoing matches for tracked teams will be added to Hattrick Live. Scores do not update automatically; use this panel's refresh button to refresh them.",
     clubChronicleLikelyTrainingPanelTitle: "Likely training regimen",
     clubChronicleLikelyTrainingColumnRegimen: "Likely regimen",
     clubChronicleLikelyTrainingDetailsTitle: "Likely training regimen",

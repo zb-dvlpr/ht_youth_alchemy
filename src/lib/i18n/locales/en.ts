@@ -403,11 +403,14 @@ export const messagesEn: Messages = {
     clubChronicleOngoingMatchesEnableLabel: "Enable",
     clubChronicleOngoingMatchesIncludeTournamentsLabel: "Tournament matches",
     clubChronicleOngoingMatchesColumnMatch: "Match",
+    clubChronicleOngoingMatchesColumnScore: "Score",
     clubChronicleOngoingMatchesNone: "No ongoing match.",
+    clubChronicleOngoingMatchesEventsTitle: "Match events",
+    clubChronicleOngoingMatchesEventsEmpty: "No match events available.",
     clubChronicleOngoingMatchesDisabled:
       "Ongoing match tracking is off. No matches will be retrieved or displayed.",
     clubChronicleOngoingMatchesDisclaimer:
-      "By default this only checks non-tournament matches. If this feature is on, any accepted ongoing matches for tracked teams will be added to Hattrick Live. Scores do not update automatically; use this panel's refresh button to refresh them.",
+      "If this feature is on, any accepted ongoing matches for tracked teams will be added to Hattrick Live. Scores do not update automatically; use this panel's refresh button to refresh them. Click a score to see match events.",
     clubChronicleLikelyTrainingPanelTitle: "Likely training regimen",
     clubChronicleLikelyTrainingColumnRegimen: "Likely regimen",
     clubChronicleLikelyTrainingDetailsTitle: "Likely training regimen",

@@ -340,7 +340,10 @@ export type Messages = {
   clubChronicleOngoingMatchesEnableLabel: string;
   clubChronicleOngoingMatchesIncludeTournamentsLabel: string;
   clubChronicleOngoingMatchesColumnMatch: string;
+  clubChronicleOngoingMatchesColumnScore: string;
   clubChronicleOngoingMatchesNone: string;
+  clubChronicleOngoingMatchesEventsTitle: string;
+  clubChronicleOngoingMatchesEventsEmpty: string;
   clubChronicleOngoingMatchesDisabled: string;
   clubChronicleOngoingMatchesDisclaimer: string;
   clubChronicleLikelyTrainingPanelTitle: string;

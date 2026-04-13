@@ -436,11 +436,14 @@ export const messagesEs: Messages = {
     clubChronicleOngoingMatchesEnableLabel: "Activar",
     clubChronicleOngoingMatchesIncludeTournamentsLabel: "Partidos de torneo",
     clubChronicleOngoingMatchesColumnMatch: "Partido",
+    clubChronicleOngoingMatchesColumnScore: "Marcador",
     clubChronicleOngoingMatchesNone: "Sin partido en curso.",
+    clubChronicleOngoingMatchesEventsTitle: "Eventos del partido",
+    clubChronicleOngoingMatchesEventsEmpty: "No hay eventos del partido disponibles.",
     clubChronicleOngoingMatchesDisabled:
       "El seguimiento de partidos en curso esta desactivado. No se recuperaran ni mostraran partidos.",
     clubChronicleOngoingMatchesDisclaimer:
-      "Por defecto solo se revisan partidos que no son de torneo. Si esta funcion esta activada, cualquier partido en curso aceptado de equipos seguidos se anadira a Hattrick Live. Los marcadores no se actualizan automaticamente; usa el boton de actualizar de este panel.",
+      "Si esta funcion esta activada, cualquier partido en curso aceptado de equipos seguidos se anadira a Hattrick Live. Los marcadores no se actualizan automaticamente; usa el boton de actualizar de este panel. Haz clic en un marcador para ver los eventos del partido.",
     clubChronicleLikelyTrainingPanelTitle: "Régimen de entrenamiento probable",
     clubChronicleLikelyTrainingColumnRegimen: "Régimen probable",
     clubChronicleLikelyTrainingDetailsTitle: "Régimen de entrenamiento probable",

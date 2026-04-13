@@ -430,11 +430,14 @@ export const messagesSv: Messages = {
     clubChronicleOngoingMatchesEnableLabel: "Aktivera",
     clubChronicleOngoingMatchesIncludeTournamentsLabel: "Turneringsmatcher",
     clubChronicleOngoingMatchesColumnMatch: "Match",
+    clubChronicleOngoingMatchesColumnScore: "Resultat",
     clubChronicleOngoingMatchesNone: "Ingen pågående match.",
+    clubChronicleOngoingMatchesEventsTitle: "Matchhändelser",
+    clubChronicleOngoingMatchesEventsEmpty: "Inga matchhändelser tillgängliga.",
     clubChronicleOngoingMatchesDisabled:
       "Spårning av pågående matcher är av. Inga matcher hämtas eller visas.",
     clubChronicleOngoingMatchesDisclaimer:
-      "Som standard kontrolleras bara matcher som inte är turneringsmatcher. När funktionen är på läggs accepterade pågående matcher för följda lag till i Hattrick Live. Resultat uppdateras inte automatiskt; använd panelens uppdateringsknapp.",
+      "När funktionen är på läggs accepterade pågående matcher för följda lag till i Hattrick Live. Resultat uppdateras inte automatiskt; använd panelens uppdateringsknapp. Klicka på ett resultat för att se matchhändelser.",
     clubChronicleLikelyTrainingPanelTitle: "Trolig träningsinriktning",
     clubChronicleLikelyTrainingColumnRegimen: "Trolig inriktning",
     clubChronicleLikelyTrainingDetailsTitle: "Trolig träningsinriktning",

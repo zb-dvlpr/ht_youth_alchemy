@@ -435,11 +435,14 @@ export const messagesFr: Messages = {
     clubChronicleOngoingMatchesEnableLabel: "Activer",
     clubChronicleOngoingMatchesIncludeTournamentsLabel: "Matchs de tournoi",
     clubChronicleOngoingMatchesColumnMatch: "Match",
+    clubChronicleOngoingMatchesColumnScore: "Score",
     clubChronicleOngoingMatchesNone: "Aucun match en cours.",
+    clubChronicleOngoingMatchesEventsTitle: "Evenements du match",
+    clubChronicleOngoingMatchesEventsEmpty: "Aucun evenement de match disponible.",
     clubChronicleOngoingMatchesDisabled:
       "Le suivi des matchs en cours est desactive. Aucun match ne sera recupere ni affiche.",
     clubChronicleOngoingMatchesDisclaimer:
-      "Par defaut, seuls les matchs hors tournoi sont verifies. Si cette fonction est activee, tout match en cours accepte pour les equipes suivies sera ajoute a Hattrick Live. Les scores ne se mettent pas a jour automatiquement ; utilisez le bouton d actualisation de ce panneau.",
+      "Si cette fonction est activee, tout match en cours accepte pour les equipes suivies sera ajoute a Hattrick Live. Les scores ne se mettent pas a jour automatiquement ; utilisez le bouton d actualisation de ce panneau. Cliquez sur un score pour voir les evenements du match.",
     clubChronicleLikelyTrainingPanelTitle: "Régime d entraînement probable",
     clubChronicleLikelyTrainingColumnRegimen: "Régime probable",
     clubChronicleLikelyTrainingDetailsTitle: "Régime d entraînement probable",

@@ -3352,6 +3352,51 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   margin: 0;
 }
 
+.chronicleOngoingMatchesTable .chronicleTableHeader > :nth-child(3),
+.chronicleOngoingMatchesTable .chronicleTableHeader > :nth-child(4),
+.chronicleOngoingMatchesTable .chronicleTableRow .chronicleTableCell:nth-child(3),
+.chronicleOngoingMatchesTable .chronicleTableRow .chronicleTableCell:nth-child(4) {
+  white-space: nowrap;
+  word-break: normal;
+}
+
+.chronicleOngoingMatchesTable .chronicleTableHeader > :nth-child(3) {
+  min-width: max-content;
+}
+
+.chronicleOngoingMatchEventList {
+  display: grid;
+  gap: 10px;
+  max-height: min(62vh, 620px);
+  margin: 12px 0 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+
+.chronicleOngoingMatchEventItem {
+  display: grid;
+  grid-template-columns: minmax(42px, auto) 1fr;
+  gap: 8px;
+  align-items: start;
+  padding: 8px 10px;
+  border: 1px solid #ddd1c0;
+  border-radius: 8px;
+  background: #f8f2e8;
+  color: #4b4339;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.chronicleOngoingMatchEventMinute {
+  font-weight: 700;
+  color: #244d2b;
+}
+
+.chronicleOngoingMatchEventText {
+  min-width: 0;
+}
+
 .chronicleUpdatesList {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -3517,6 +3562,11 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .chronicleTransferListedModal {
   max-width: min(760px, 96vw);
   width: min(760px, 96vw);
+}
+
+.chronicleOngoingMatchEventsModal {
+  max-width: min(1120px, 98vw);
+  width: min(1120px, 98vw);
 }
 
 .chronicleModalTableWrap {
@@ -4721,6 +4771,16 @@ html[data-theme="dark"] .chronicleOngoingMatchesDisabledMessage {
 html[data-theme="dark"] .chronicleOngoingMatchesDisclaimer {
   border-top-color: rgba(255, 255, 255, 0.14);
   color: #a99d8d;
+}
+
+html[data-theme="dark"] .chronicleOngoingMatchEventItem {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: #221f1b;
+  color: #ddd3c6;
+}
+
+html[data-theme="dark"] .chronicleOngoingMatchEventMinute {
+  color: #9abe8e;
 }
 
 html[data-theme="dark"] .chronicleUpdatesTeam {
@@ -7256,6 +7316,10 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 
 .confirmCard.chronicleTransferListedModal {
   width: min(760px, 96vw);
+}
+
+.confirmCard.chronicleOngoingMatchEventsModal {
+  width: min(1120px, 98vw);
 }
 
 .confirmCard.chronicleFanclubDetailsModal {

@@ -724,11 +724,14 @@ export const messagesPl: Messages = {
   clubChronicleOngoingMatchesEnableLabel: "Włącz",
   clubChronicleOngoingMatchesIncludeTournamentsLabel: "Mecze turniejowe",
   clubChronicleOngoingMatchesColumnMatch: "Mecz",
+  clubChronicleOngoingMatchesColumnScore: "Wynik",
   clubChronicleOngoingMatchesNone: "Brak trwającego meczu.",
+  clubChronicleOngoingMatchesEventsTitle: "Wydarzenia meczu",
+  clubChronicleOngoingMatchesEventsEmpty: "Brak dostępnych wydarzeń meczu.",
   clubChronicleOngoingMatchesDisabled:
     "Śledzenie trwających meczów jest wyłączone. Mecze nie będą pobierane ani wyświetlane.",
   clubChronicleOngoingMatchesDisclaimer:
-    "Domyślnie sprawdzane są tylko mecze nieturniejowe. Po włączeniu tej funkcji zaakceptowane trwające mecze śledzonych drużyn zostaną dodane do Hattrick Live. Wyniki nie aktualizują się automatycznie; użyj przycisku odświeżania w tym panelu.",
+    "Po włączeniu tej funkcji zaakceptowane trwające mecze śledzonych drużyn zostaną dodane do Hattrick Live. Wyniki nie aktualizują się automatycznie; użyj przycisku odświeżania w tym panelu. Kliknij wynik, aby zobaczyć wydarzenia meczu.",
   themeSwitchDark: "Przełącz na tryb ciemny",
   optimizeLineupTitle: "Optymalizuj skład",
   optimizeMenuStar: "Optymalizuj wokół {{player}}",

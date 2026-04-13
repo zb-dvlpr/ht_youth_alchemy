@@ -731,11 +731,14 @@ export const messagesNl: Messages = {
   clubChronicleOngoingMatchesEnableLabel: "Inschakelen",
   clubChronicleOngoingMatchesIncludeTournamentsLabel: "Toernooiwedstrijden",
   clubChronicleOngoingMatchesColumnMatch: "Wedstrijd",
+  clubChronicleOngoingMatchesColumnScore: "Score",
   clubChronicleOngoingMatchesNone: "Geen lopende wedstrijd.",
+  clubChronicleOngoingMatchesEventsTitle: "Wedstrijdgebeurtenissen",
+  clubChronicleOngoingMatchesEventsEmpty: "Geen wedstrijdgebeurtenissen beschikbaar.",
   clubChronicleOngoingMatchesDisabled:
     "Volgen van lopende wedstrijden is uit. Er worden geen wedstrijden opgehaald of getoond.",
   clubChronicleOngoingMatchesDisclaimer:
-    "Standaard worden alleen niet-toernooiwedstrijden gecontroleerd. Als deze functie aan staat, worden geaccepteerde lopende wedstrijden voor gevolgde teams toegevoegd aan Hattrick Live. Scores worden niet automatisch bijgewerkt; gebruik de vernieuwknop van dit paneel.",
+    "Als deze functie aan staat, worden geaccepteerde lopende wedstrijden voor gevolgde teams toegevoegd aan Hattrick Live. Scores worden niet automatisch bijgewerkt; gebruik de vernieuwknop van dit paneel. Klik op een score om wedstrijdgebeurtenissen te zien.",
   themeSwitchDark: "Naar donkere modus schakelen",
   optimizeLineupTitle: "Opstelling optimaliseren",
   optimizeMenuStar: "Optimaliseer rond {{player}}",

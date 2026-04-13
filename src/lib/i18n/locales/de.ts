@@ -425,11 +425,14 @@ export const messagesDe: Messages = {
     clubChronicleOngoingMatchesEnableLabel: "Aktivieren",
     clubChronicleOngoingMatchesIncludeTournamentsLabel: "Turnierspiele",
     clubChronicleOngoingMatchesColumnMatch: "Spiel",
+    clubChronicleOngoingMatchesColumnScore: "Ergebnis",
     clubChronicleOngoingMatchesNone: "Kein laufendes Spiel.",
+    clubChronicleOngoingMatchesEventsTitle: "Spielereignisse",
+    clubChronicleOngoingMatchesEventsEmpty: "Keine Spielereignisse verfügbar.",
     clubChronicleOngoingMatchesDisabled:
       "Tracking laufender Spiele ist aus. Es werden keine Spiele abgerufen oder angezeigt.",
     clubChronicleOngoingMatchesDisclaimer:
-      "Standardmaessig werden nur Nicht-Turnierspiele geprueft. Wenn diese Funktion aktiv ist, werden akzeptierte laufende Spiele verfolgter Teams zu Hattrick Live hinzugefuegt. Ergebnisse aktualisieren sich nicht automatisch; nutze den Aktualisieren-Button dieses Panels.",
+      "Wenn diese Funktion aktiv ist, werden akzeptierte laufende Spiele verfolgter Teams zu Hattrick Live hinzugefuegt. Ergebnisse aktualisieren sich nicht automatisch; nutze den Aktualisieren-Button dieses Panels. Klicke auf ein Ergebnis, um Spielereignisse zu sehen.",
     clubChronicleLikelyTrainingPanelTitle: "Wahrscheinliches Trainingsschema",
     clubChronicleLikelyTrainingColumnRegimen: "Wahrscheinliches Schema",
     clubChronicleLikelyTrainingDetailsTitle: "Wahrscheinliches Trainingsschema",

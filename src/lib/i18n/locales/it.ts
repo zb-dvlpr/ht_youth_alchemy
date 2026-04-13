@@ -1008,6 +1008,7 @@ export const messagesIt: Messages = {
     setBestLineupDevPotentialTargetsLabel: "Potenziali bersagli per la marcatura a uomo",
     setBestLineupDevPotentialTargetsNone: "Nessuno identificato",
     setBestLineupDevFinalTargetLabel: "Bersaglio selezionato per la marcatura a uomo",
+    setBestLineupDevFinalMarkerLabel: "Marcatore a uomo selezionato",
     setBestLineupDevPotentialTargetBadge: "bersaglio potenziale",
     setBestLineupDevSelectedTargetBadge: "bersaglio selezionato",
     analyzeOpponent: "Analizza avversario",

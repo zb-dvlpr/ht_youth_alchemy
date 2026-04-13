@@ -965,6 +965,7 @@ export const messagesEn: Messages = {
     setBestLineupDevPotentialTargetsLabel: "Potential man-marking targets",
     setBestLineupDevPotentialTargetsNone: "None identified",
     setBestLineupDevFinalTargetLabel: "Selected man-marking target",
+    setBestLineupDevFinalMarkerLabel: "Selected man marker",
     setBestLineupDevPotentialTargetBadge: "potential target",
     setBestLineupDevSelectedTargetBadge: "selected target",
     analyzeOpponent: "Analyze opponent",

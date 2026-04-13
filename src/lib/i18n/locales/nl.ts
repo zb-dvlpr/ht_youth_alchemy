@@ -431,6 +431,7 @@ export const messagesNl: Messages = {
   setBestLineupDevPotentialTargetsLabel: "Potentiele mandekkingsdoelen",
   setBestLineupDevPotentialTargetsNone: "Geen geidentificeerd",
   setBestLineupDevFinalTargetLabel: "Geselecteerd mandekkingsdoel",
+  setBestLineupDevFinalMarkerLabel: "Geselecteerde mandekker",
   setBestLineupDevPotentialTargetBadge: "potentieel doel",
   setBestLineupDevSelectedTargetBadge: "geselecteerd doel",
   analyzeOpponent: "Tegenstander analyseren",

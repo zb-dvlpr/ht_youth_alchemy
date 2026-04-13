@@ -3259,6 +3259,7 @@ export default function SeniorDashboard({
     opponentRows: OpponentFormationRow[];
     potentialManMarkingTargets: OpponentPotentialTargetPlayer[];
     manMarkingTarget: OpponentTargetPlayer | null;
+    manMarkingMarker: SeniorAiManMarkingMarker | null;
     chosenFormation: string | null;
     chosenFormationAverages: OpponentFormationAverages | null;
     generatedRows: GeneratedFormationRow[];
@@ -4721,6 +4722,7 @@ export default function SeniorDashboard({
               ...prev,
               potentialManMarkingTargets: [],
               manMarkingTarget: null,
+              manMarkingMarker: null,
             }
           : null
       );
@@ -11375,6 +11377,7 @@ const refreshDetailsForPlayers = async (
           opponentRows: [],
           potentialManMarkingTargets: [],
           manMarkingTarget: null,
+          manMarkingMarker: null,
           chosenFormation: null,
           chosenFormationAverages: null,
           generatedRows: [],
@@ -11929,6 +11932,43 @@ const refreshDetailsForPlayers = async (
           }
         | null = null;
       let fixedFormationTacticRows: FixedFormationTacticRow[] = [];
+      let selectedManMarkingMarker: SeniorAiManMarkingMarker | null = null;
+      const selectManMarkingMarkerForAssignments = (
+        chosenAssignments: LineupAssignments,
+        target: OpponentTargetPlayer | null
+      ) => {
+        if (!seniorAiManMarkingSupported || !seniorAiManMarkingEnabled || !target) {
+          return null;
+        }
+        const requiredRole: SeniorAiManMarkingRole =
+          target.role === "F" ? "CD" : target.role === "IM" ? "IM" : "WB";
+        let bestMarker: SeniorAiManMarkingMarker | null = null;
+        const assignmentEntries = Object.entries(chosenAssignments) as Array<
+          [keyof LineupAssignments, number | null | undefined]
+        >;
+        for (const [slot, playerId] of assignmentEntries) {
+          if (typeof playerId !== "number" || playerId <= 0) continue;
+          const role = manMarkingRoleForSlot(slot);
+          if (role !== requiredRole) continue;
+          const player = playersById.get(playerId);
+          if (!player || specialtyValueForPlayer(player) !== 3) continue;
+          const tsi = tsiValueForPlayer(player);
+          const marker = {
+            playerId,
+            role,
+            name: formatPlayerName(player) || String(playerId),
+            tsi,
+          } satisfies SeniorAiManMarkingMarker;
+          if (
+            !bestMarker ||
+            marker.tsi > bestMarker.tsi ||
+            (marker.tsi === bestMarker.tsi && marker.playerId < bestMarker.playerId)
+          ) {
+            bestMarker = marker;
+          }
+        }
+        return bestMarker && bestMarker.tsi > target.tsi ? bestMarker : null;
+      };
 
       const applyChosenAssignments = (
         chosenAssignmentsBase: LineupAssignments,
@@ -12087,6 +12127,10 @@ const refreshDetailsForPlayers = async (
         }
 
         setAssignments(chosenAssignments);
+        selectedManMarkingMarker = selectManMarkingMarkerForAssignments(
+          chosenAssignments,
+          opponentContext.manMarkingTarget
+        );
         setBehaviors({});
         setTacticType(chosenTactic);
         setLoadedMatchId(matchId);
@@ -12282,6 +12326,7 @@ const refreshDetailsForPlayers = async (
                 opponentRows,
                 potentialManMarkingTargets: opponentContext.potentialManMarkingTargets,
                 manMarkingTarget: opponentContext.manMarkingTarget,
+                manMarkingMarker: selectedManMarkingMarker,
                 chosenFormation,
                 chosenFormationAverages,
                 generatedRows: rows,
@@ -12313,6 +12358,7 @@ const refreshDetailsForPlayers = async (
                 opponentRows: [],
                 potentialManMarkingTargets: [],
                 manMarkingTarget: null,
+                manMarkingMarker: null,
                 chosenFormation: null,
                 chosenFormationAverages: null,
                 generatedRows: [],
@@ -16802,6 +16848,14 @@ const refreshDetailsForPlayers = async (
                           ? `${opponentFormationsModal.manMarkingTarget.name} (${opponentTrackedRoleLabel(
                               opponentFormationsModal.manMarkingTarget.role
                             )})`
+                          : messages.setBestLineupDevPotentialTargetsNone}
+                      </strong>
+                    </p>
+                    <p className={styles.chroniclePressMeta}>
+                      {messages.setBestLineupDevFinalMarkerLabel}:{" "}
+                      <strong>
+                        {opponentFormationsModal.manMarkingMarker
+                          ? `${opponentFormationsModal.manMarkingMarker.name} (${opponentFormationsModal.manMarkingMarker.role})`
                           : messages.setBestLineupDevPotentialTargetsNone}
                       </strong>
                     </p>

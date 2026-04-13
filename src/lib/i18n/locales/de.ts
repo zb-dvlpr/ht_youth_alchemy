@@ -990,6 +990,7 @@ export const messagesDe: Messages = {
     setBestLineupDevPotentialTargetsLabel: "Moegliche Manndeckungsziele",
     setBestLineupDevPotentialTargetsNone: "Keine identifiziert",
     setBestLineupDevFinalTargetLabel: "Gewaehltes Manndeckungsziel",
+    setBestLineupDevFinalMarkerLabel: "Gewaehlter Manndecker",
     setBestLineupDevPotentialTargetBadge: "moegliches Ziel",
     setBestLineupDevSelectedTargetBadge: "gewaehltes Ziel",
     analyzeOpponent: "Gegner analysieren",

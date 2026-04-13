@@ -998,6 +998,7 @@ export const messagesSv: Messages = {
     setBestLineupDevPotentialTargetsLabel: "Potentiella manmarkeringsmal",
     setBestLineupDevPotentialTargetsNone: "Inga identifierade",
     setBestLineupDevFinalTargetLabel: "Valt manmarkeringsmal",
+    setBestLineupDevFinalMarkerLabel: "Vald manmarkerare",
     setBestLineupDevPotentialTargetBadge: "potentiellt mal",
     setBestLineupDevSelectedTargetBadge: "valt mal",
     analyzeOpponent: "Analysera motståndare",

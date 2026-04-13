@@ -424,6 +424,7 @@ export const messagesPl: Messages = {
   setBestLineupDevPotentialTargetsLabel: "Potencjalne cele krycia indywidualnego",
   setBestLineupDevPotentialTargetsNone: "Nie zidentyfikowano",
   setBestLineupDevFinalTargetLabel: "Wybrany cel krycia indywidualnego",
+  setBestLineupDevFinalMarkerLabel: "Wybrany kryjacy",
   setBestLineupDevPotentialTargetBadge: "potencjalny cel",
   setBestLineupDevSelectedTargetBadge: "wybrany cel",
   analyzeOpponent: "Analizuj przeciwnika",

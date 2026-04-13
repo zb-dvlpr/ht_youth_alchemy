@@ -1007,6 +1007,7 @@ export const messagesEs: Messages = {
     setBestLineupDevPotentialTargetsLabel: "Posibles objetivos de marcaje individual",
     setBestLineupDevPotentialTargetsNone: "Ninguno identificado",
     setBestLineupDevFinalTargetLabel: "Objetivo de marcaje individual seleccionado",
+    setBestLineupDevFinalMarkerLabel: "Marcador individual seleccionado",
     setBestLineupDevPotentialTargetBadge: "objetivo potencial",
     setBestLineupDevSelectedTargetBadge: "objetivo seleccionado",
     analyzeOpponent: "Analizar rival",

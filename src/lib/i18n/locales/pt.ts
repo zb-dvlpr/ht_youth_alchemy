@@ -1007,6 +1007,7 @@ export const messagesPt: Messages = {
     setBestLineupDevPotentialTargetsLabel: "Possiveis alvos de marcacao individual",
     setBestLineupDevPotentialTargetsNone: "Nenhum identificado",
     setBestLineupDevFinalTargetLabel: "Alvo de marcacao individual selecionado",
+    setBestLineupDevFinalMarkerLabel: "Marcador individual selecionado",
     setBestLineupDevPotentialTargetBadge: "alvo potencial",
     setBestLineupDevSelectedTargetBadge: "alvo selecionado",
     analyzeOpponent: "Analisar adversário",

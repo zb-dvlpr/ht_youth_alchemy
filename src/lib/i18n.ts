@@ -798,6 +798,7 @@ export type Messages = {
   setBestLineupDevPotentialTargetsLabel: string;
   setBestLineupDevPotentialTargetsNone: string;
   setBestLineupDevFinalTargetLabel: string;
+  setBestLineupDevFinalMarkerLabel: string;
   setBestLineupDevPotentialTargetBadge: string;
   setBestLineupDevSelectedTargetBadge: string;
   analyzeOpponent: string;

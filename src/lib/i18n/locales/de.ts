@@ -72,6 +72,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_4_4_0:
+      "Club-Chronik kann jetzt laufende Spiele mit optionaler Turnierunterstuetzung verfolgen.",
     changelog_4_3_0:
       "Senior-Spielerdetails zeigen jetzt Herkunftsflaggen aus zwischengespeicherten Weltdetails.",
     changelog_4_2_0:
@@ -314,6 +316,7 @@ export const messagesDe: Messages = {
     clubChronicleRefreshLastLoginTooltip: "Daten der letzten Anmeldung aktualisieren.",
     clubChronicleRefreshCoachTooltip: "Trainerdaten aktualisieren.",
     clubChronicleRefreshPowerRatingsTooltip: "Power-Rating-Daten aktualisieren.",
+    clubChronicleRefreshOngoingMatchesTooltip: "Laufende Spiele und Ergebnisse aktualisieren.",
     clubChronicleRefreshStatusTeamDetails: "Teamdetails werden geladen…",
     clubChronicleRefreshStatusLeague: "Ligaleistungsdaten werden geladen…",
     clubChronicleRefreshStatusLastLogin: "Letzte Anmeldungen werden geladen…",
@@ -322,6 +325,8 @@ export const messagesDe: Messages = {
       "Transfer-, Finanz-, TSI- und Gehaltsdaten werden geladen…",
     clubChronicleRefreshStatusFormations:
       "Daten zu Formationen und Taktiken werden geladen…",
+    clubChronicleRefreshStatusOngoingMatches:
+      "Laufende Spiele werden geladen…",
     clubChronicleRefreshStatusFinalizing: "Updates werden abgeschlossen…",
     clubChronicleRefreshStatusMatchesArchiveProgress:
       "Matcharchive {completed}/{total} (Team: {team})",
@@ -414,7 +419,20 @@ export const messagesDe: Messages = {
       "Internationales Freundschaftsspiel (Normalregeln)",
     clubChronicleMatchTypeInternationalFriendlyCup:
       "Internationales Freundschaftsspiel (Pokalregeln)",
+    clubChronicleMatchTypeTournament: "Turnierspiel",
     clubChronicleMatchTypeUnknown: "Unbekannter Spieltyp",
+    clubChronicleOngoingMatchesPanelTitle: "Laufende Spiele",
+    clubChronicleOngoingMatchesEnableLabel: "Aktivieren",
+    clubChronicleOngoingMatchesIncludeTournamentsLabel: "Turnierspiele",
+    clubChronicleOngoingMatchesColumnMatch: "Spiel",
+    clubChronicleOngoingMatchesColumnScore: "Ergebnis",
+    clubChronicleOngoingMatchesNone: "Kein laufendes Spiel.",
+    clubChronicleOngoingMatchesEventsTitle: "Spielereignisse",
+    clubChronicleOngoingMatchesEventsEmpty: "Keine Spielereignisse verfügbar.",
+    clubChronicleOngoingMatchesDisabled:
+      "Tracking laufender Spiele ist aus. Es werden keine Spiele abgerufen oder angezeigt.",
+    clubChronicleOngoingMatchesDisclaimer:
+      "Wenn diese Funktion aktiv ist, werden akzeptierte laufende Spiele verfolgter Teams zu Hattrick Live hinzugefuegt. Ergebnisse aktualisieren sich nicht automatisch; nutze den Aktualisieren-Button dieses Panels. Klicke auf ein Ergebnis, um Spielereignisse zu sehen.",
     clubChronicleLikelyTrainingPanelTitle: "Wahrscheinliches Trainingsschema",
     clubChronicleLikelyTrainingColumnRegimen: "Wahrscheinliches Schema",
     clubChronicleLikelyTrainingDetailsTitle: "Wahrscheinliches Trainingsschema",
@@ -706,6 +724,14 @@ export const messagesDe: Messages = {
     seniorSubmitDisclaimerIntro: "Bitte beachte Folgendes:",
     seniorSubmitDisclaimerManMarkingSummary:
       "Manndeckung von {{target}} durch {{marker}} wird mitgesendet.",
+    seniorSubmitDisclaimerManMarkingTargetChosen:
+      "{{target}} als Manndeckungsziel gewaehlt",
+    seniorSubmitDisclaimerManMarkingMarkerChosen:
+      "{{marker}} als Manndecker gewaehlt",
+    seniorSubmitDisclaimerManMarkingTargetMissing:
+      "kein geeignetes Manndeckungsziel identifiziert",
+    seniorSubmitDisclaimerManMarkingMarkerMissing:
+      "kein geeigneter Manndecker identifiziert",
     seniorSubmitDisclaimerOrdersTitle: "Geplante Auswechslungen und Wechsel",
     seniorSubmitDisclaimerOrdersNone: "Keine geplanten Auswechslungen oder Wechsel.",
     seniorSubmitDisclaimerPenaltyOrderTitle: "Reihenfolge der Elfmeterschützen",
@@ -972,6 +998,7 @@ export const messagesDe: Messages = {
     setBestLineupDevPotentialTargetsLabel: "Moegliche Manndeckungsziele",
     setBestLineupDevPotentialTargetsNone: "Keine identifiziert",
     setBestLineupDevFinalTargetLabel: "Gewaehltes Manndeckungsziel",
+    setBestLineupDevFinalMarkerLabel: "Gewaehlter Manndecker",
     setBestLineupDevPotentialTargetBadge: "moegliches Ziel",
     setBestLineupDevSelectedTargetBadge: "gewaehltes Ziel",
     analyzeOpponent: "Gegner analysieren",

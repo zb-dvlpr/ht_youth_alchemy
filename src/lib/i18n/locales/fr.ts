@@ -72,6 +72,8 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_4_4_0:
+      "Club Chronicle peut maintenant suivre les matchs en cours avec prise en charge optionnelle des tournois.",
     changelog_4_3_0:
       "Les détails des joueurs seniors affichent maintenant les drapeaux d'origine depuis les détails du monde mis en cache.",
     changelog_4_2_0:
@@ -319,6 +321,8 @@ export const messagesFr: Messages = {
     clubChronicleRefreshLastLoginTooltip: "Actualiser les données des dernières connexions.",
     clubChronicleRefreshCoachTooltip: "Actualiser les donnees du coach.",
     clubChronicleRefreshPowerRatingsTooltip: "Actualiser les donnees des power ratings.",
+    clubChronicleRefreshOngoingMatchesTooltip:
+      "Actualiser les matchs en cours et les scores.",
     clubChronicleRefreshStatusTeamDetails:
       "Récupération des informations d équipe…",
     clubChronicleRefreshStatusLeague:
@@ -330,6 +334,8 @@ export const messagesFr: Messages = {
       "Récupération des données transferts, finances, TSI et salaires…",
     clubChronicleRefreshStatusFormations:
       "Récupération des données de formations et tactiques…",
+    clubChronicleRefreshStatusOngoingMatches:
+      "Récupération des matchs en cours…",
     clubChronicleRefreshStatusFinalizing:
       "Finalisation des mises à jour…",
     clubChronicleRefreshStatusMatchesArchiveProgress:
@@ -423,7 +429,20 @@ export const messagesFr: Messages = {
       "Amical international (règles normales)",
     clubChronicleMatchTypeInternationalFriendlyCup:
       "Amical international (règles coupe)",
+    clubChronicleMatchTypeTournament: "Match de tournoi",
     clubChronicleMatchTypeUnknown: "Type de match inconnu",
+    clubChronicleOngoingMatchesPanelTitle: "Matchs en cours",
+    clubChronicleOngoingMatchesEnableLabel: "Activer",
+    clubChronicleOngoingMatchesIncludeTournamentsLabel: "Matchs de tournoi",
+    clubChronicleOngoingMatchesColumnMatch: "Match",
+    clubChronicleOngoingMatchesColumnScore: "Score",
+    clubChronicleOngoingMatchesNone: "Aucun match en cours.",
+    clubChronicleOngoingMatchesEventsTitle: "Evenements du match",
+    clubChronicleOngoingMatchesEventsEmpty: "Aucun evenement de match disponible.",
+    clubChronicleOngoingMatchesDisabled:
+      "Le suivi des matchs en cours est desactive. Aucun match ne sera recupere ni affiche.",
+    clubChronicleOngoingMatchesDisclaimer:
+      "Si cette fonction est activee, tout match en cours accepte pour les equipes suivies sera ajoute a Hattrick Live. Les scores ne se mettent pas a jour automatiquement ; utilisez le bouton d actualisation de ce panneau. Cliquez sur un score pour voir les evenements du match.",
     clubChronicleLikelyTrainingPanelTitle: "Régime d entraînement probable",
     clubChronicleLikelyTrainingColumnRegimen: "Régime probable",
     clubChronicleLikelyTrainingDetailsTitle: "Régime d entraînement probable",
@@ -718,6 +737,14 @@ export const messagesFr: Messages = {
     seniorSubmitDisclaimerIntro: "Merci de vérifier les points suivants :",
     seniorSubmitDisclaimerManMarkingSummary:
       "Le marquage individuel de {{target}} par {{marker}} sera envoyé.",
+    seniorSubmitDisclaimerManMarkingTargetChosen:
+      "{{target}} choisi comme cible de marquage individuel",
+    seniorSubmitDisclaimerManMarkingMarkerChosen:
+      "{{marker}} choisi comme marqueur individuel",
+    seniorSubmitDisclaimerManMarkingTargetMissing:
+      "aucune cible de marquage individuel adequate identifiee",
+    seniorSubmitDisclaimerManMarkingMarkerMissing:
+      "aucun marqueur individuel adequat identifie",
     seniorSubmitDisclaimerOrdersTitle: "Remplacements et permutations prévus",
     seniorSubmitDisclaimerOrdersNone: "Aucun remplacement ou permutation prévu.",
     seniorSubmitDisclaimerPenaltyOrderTitle: "Ordre des tireurs de penalty",
@@ -987,6 +1014,7 @@ export const messagesFr: Messages = {
     setBestLineupDevPotentialTargetsLabel: "Cibles potentielles de marquage individuel",
     setBestLineupDevPotentialTargetsNone: "Aucune identifiee",
     setBestLineupDevFinalTargetLabel: "Cible de marquage individuel selectionnee",
+    setBestLineupDevFinalMarkerLabel: "Marqueur individuel selectionne",
     setBestLineupDevPotentialTargetBadge: "cible potentielle",
     setBestLineupDevSelectedTargetBadge: "cible selectionnee",
     analyzeOpponent: "Analyser l'adversaire",

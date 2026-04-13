@@ -72,6 +72,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_4_0:
+      "Club Chronicle kan nu följa pågående matcher med valfritt turneringsstöd.",
     changelog_4_3_0:
       "Seniorspelardetaljer visar nu ursprungsflaggor från cachade världsdetaljer.",
     changelog_4_2_0:
@@ -318,6 +320,8 @@ export const messagesSv: Messages = {
       "Uppdatera data för senaste inloggning.",
     clubChronicleRefreshCoachTooltip: "Uppdatera tranardata.",
     clubChronicleRefreshPowerRatingsTooltip: "Uppdatera data för power ratings.",
+    clubChronicleRefreshOngoingMatchesTooltip:
+      "Uppdatera pågående matcher och resultat.",
     clubChronicleRefreshStatusTeamDetails: "Hämtar lagdetaljer…",
     clubChronicleRefreshStatusLeague: "Hämtar ligaprestanda…",
     clubChronicleRefreshStatusLastLogin: "Hämtar senaste inloggningar…",
@@ -326,6 +330,8 @@ export const messagesSv: Messages = {
       "Hämtar transfer-, finans-, TSI- och lönedata…",
     clubChronicleRefreshStatusFormations:
       "Hämtar data för formationer och taktik…",
+    clubChronicleRefreshStatusOngoingMatches:
+      "Hämtar pågående matcher…",
     clubChronicleRefreshStatusFinalizing: "Slutför uppdateringar…",
     clubChronicleRefreshStatusMatchesArchiveProgress:
       "Matcharkiv {completed}/{total} (lag: {team})",
@@ -418,7 +424,20 @@ export const messagesSv: Messages = {
       "Internationell träningsmatch (normala regler)",
     clubChronicleMatchTypeInternationalFriendlyCup:
       "Internationell träningsmatch (cupregler)",
+    clubChronicleMatchTypeTournament: "Turneringsmatch",
     clubChronicleMatchTypeUnknown: "Okänd matchtyp",
+    clubChronicleOngoingMatchesPanelTitle: "Pågående matcher",
+    clubChronicleOngoingMatchesEnableLabel: "Aktivera",
+    clubChronicleOngoingMatchesIncludeTournamentsLabel: "Turneringsmatcher",
+    clubChronicleOngoingMatchesColumnMatch: "Match",
+    clubChronicleOngoingMatchesColumnScore: "Resultat",
+    clubChronicleOngoingMatchesNone: "Ingen pågående match.",
+    clubChronicleOngoingMatchesEventsTitle: "Matchhändelser",
+    clubChronicleOngoingMatchesEventsEmpty: "Inga matchhändelser tillgängliga.",
+    clubChronicleOngoingMatchesDisabled:
+      "Spårning av pågående matcher är av. Inga matcher hämtas eller visas.",
+    clubChronicleOngoingMatchesDisclaimer:
+      "När funktionen är på läggs accepterade pågående matcher för följda lag till i Hattrick Live. Resultat uppdateras inte automatiskt; använd panelens uppdateringsknapp. Klicka på ett resultat för att se matchhändelser.",
     clubChronicleLikelyTrainingPanelTitle: "Trolig träningsinriktning",
     clubChronicleLikelyTrainingColumnRegimen: "Trolig inriktning",
     clubChronicleLikelyTrainingDetailsTitle: "Trolig träningsinriktning",
@@ -711,6 +730,14 @@ export const messagesSv: Messages = {
     seniorSubmitDisclaimerIntro: "Gå igenom följande:",
     seniorSubmitDisclaimerManMarkingSummary:
       "Manmarkering av {{target}} med {{marker}} kommer att skickas.",
+    seniorSubmitDisclaimerManMarkingTargetChosen:
+      "{{target}} vald som manmarkeringsmal",
+    seniorSubmitDisclaimerManMarkingMarkerChosen:
+      "{{marker}} vald som manmarkerare",
+    seniorSubmitDisclaimerManMarkingTargetMissing:
+      "inget laempligt manmarkeringsmal identifierat",
+    seniorSubmitDisclaimerManMarkingMarkerMissing:
+      "ingen laemplig manmarkerare identifierad",
     seniorSubmitDisclaimerOrdersTitle: "Planerade byten och positionsbyten",
     seniorSubmitDisclaimerOrdersNone: "Inga planerade byten eller positionsbyten.",
     seniorSubmitDisclaimerPenaltyOrderTitle: "Straffskyttarnas ordning",
@@ -979,6 +1006,7 @@ export const messagesSv: Messages = {
     setBestLineupDevPotentialTargetsLabel: "Potentiella manmarkeringsmal",
     setBestLineupDevPotentialTargetsNone: "Inga identifierade",
     setBestLineupDevFinalTargetLabel: "Valt manmarkeringsmal",
+    setBestLineupDevFinalMarkerLabel: "Vald manmarkerare",
     setBestLineupDevPotentialTargetBadge: "potentiellt mal",
     setBestLineupDevSelectedTargetBadge: "valt mal",
     analyzeOpponent: "Analysera motståndare",

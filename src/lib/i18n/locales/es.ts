@@ -72,6 +72,8 @@ export const messagesEs: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Esta aplicación está en beta. Las funciones, el comportamiento y los datos locales en caché pueden cambiar o reiniciarse sin previo aviso.",
+    changelog_4_4_0:
+      "Club Chronicle ahora puede seguir partidos en curso con soporte opcional para torneos.",
     changelog_4_3_0:
       "Los detalles de jugadores senior ahora muestran banderas de origen desde datos mundiales en caché.",
     changelog_4_2_0:
@@ -320,6 +322,8 @@ export const messagesEs: Messages = {
       "Actualizar datos de los últimos inicios de sesión.",
     clubChronicleRefreshCoachTooltip: "Actualizar datos del entrenador.",
     clubChronicleRefreshPowerRatingsTooltip: "Actualizar datos de power ratings.",
+    clubChronicleRefreshOngoingMatchesTooltip:
+      "Actualizar partidos en curso y marcadores.",
     clubChronicleRefreshStatusTeamDetails:
       "Obteniendo detalles del equipo…",
     clubChronicleRefreshStatusLeague:
@@ -331,6 +335,8 @@ export const messagesEs: Messages = {
       "Obteniendo datos de transferencias, finanzas, TSI y salarios…",
     clubChronicleRefreshStatusFormations:
       "Obteniendo datos de formaciones y tácticas…",
+    clubChronicleRefreshStatusOngoingMatches:
+      "Obteniendo partidos en curso…",
     clubChronicleRefreshStatusFinalizing:
       "Finalizando actualizaciones…",
     clubChronicleRefreshStatusMatchesArchiveProgress:
@@ -424,7 +430,20 @@ export const messagesEs: Messages = {
       "Amistoso internacional (reglas normales)",
     clubChronicleMatchTypeInternationalFriendlyCup:
       "Amistoso internacional (reglas de copa)",
+    clubChronicleMatchTypeTournament: "Partido de torneo",
     clubChronicleMatchTypeUnknown: "Tipo de partido desconocido",
+    clubChronicleOngoingMatchesPanelTitle: "Partidos en curso",
+    clubChronicleOngoingMatchesEnableLabel: "Activar",
+    clubChronicleOngoingMatchesIncludeTournamentsLabel: "Partidos de torneo",
+    clubChronicleOngoingMatchesColumnMatch: "Partido",
+    clubChronicleOngoingMatchesColumnScore: "Marcador",
+    clubChronicleOngoingMatchesNone: "Sin partido en curso.",
+    clubChronicleOngoingMatchesEventsTitle: "Eventos del partido",
+    clubChronicleOngoingMatchesEventsEmpty: "No hay eventos del partido disponibles.",
+    clubChronicleOngoingMatchesDisabled:
+      "El seguimiento de partidos en curso esta desactivado. No se recuperaran ni mostraran partidos.",
+    clubChronicleOngoingMatchesDisclaimer:
+      "Si esta funcion esta activada, cualquier partido en curso aceptado de equipos seguidos se anadira a Hattrick Live. Los marcadores no se actualizan automaticamente; usa el boton de actualizar de este panel. Haz clic en un marcador para ver los eventos del partido.",
     clubChronicleLikelyTrainingPanelTitle: "Régimen de entrenamiento probable",
     clubChronicleLikelyTrainingColumnRegimen: "Régimen probable",
     clubChronicleLikelyTrainingDetailsTitle: "Régimen de entrenamiento probable",
@@ -719,6 +738,14 @@ export const messagesEs: Messages = {
     seniorSubmitDisclaimerIntro: "Revisa lo siguiente:",
     seniorSubmitDisclaimerManMarkingSummary:
       "Se enviará el marcaje individual de {{target}} por {{marker}}.",
+    seniorSubmitDisclaimerManMarkingTargetChosen:
+      "{{target}} elegido como objetivo de marcaje individual",
+    seniorSubmitDisclaimerManMarkingMarkerChosen:
+      "{{marker}} elegido como marcador individual",
+    seniorSubmitDisclaimerManMarkingTargetMissing:
+      "no se identifico un objetivo adecuado de marcaje individual",
+    seniorSubmitDisclaimerManMarkingMarkerMissing:
+      "no se identifico un marcador individual adecuado",
     seniorSubmitDisclaimerOrdersTitle: "Sustituciones e intercambios previstos",
     seniorSubmitDisclaimerOrdersNone: "No hay sustituciones ni intercambios previstos.",
     seniorSubmitDisclaimerPenaltyOrderTitle: "Orden de lanzadores de penalti",
@@ -988,6 +1015,7 @@ export const messagesEs: Messages = {
     setBestLineupDevPotentialTargetsLabel: "Posibles objetivos de marcaje individual",
     setBestLineupDevPotentialTargetsNone: "Ninguno identificado",
     setBestLineupDevFinalTargetLabel: "Objetivo de marcaje individual seleccionado",
+    setBestLineupDevFinalMarkerLabel: "Marcador individual seleccionado",
     setBestLineupDevPotentialTargetBadge: "objetivo potencial",
     setBestLineupDevSelectedTargetBadge: "objetivo seleccionado",
     analyzeOpponent: "Analizar rival",

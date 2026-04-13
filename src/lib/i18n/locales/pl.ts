@@ -125,6 +125,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_4_0:
+    "Club Chronicle może teraz śledzić trwające mecze z opcjonalną obsługą turniejów.",
   changelog_4_3_0:
     "Szczegóły seniorów pokazują teraz flagi pochodzenia z zapisanych danych świata.",
   changelog_4_2_0:
@@ -422,6 +424,7 @@ export const messagesPl: Messages = {
   setBestLineupDevPotentialTargetsLabel: "Potencjalne cele krycia indywidualnego",
   setBestLineupDevPotentialTargetsNone: "Nie zidentyfikowano",
   setBestLineupDevFinalTargetLabel: "Wybrany cel krycia indywidualnego",
+  setBestLineupDevFinalMarkerLabel: "Wybrany kryjacy",
   setBestLineupDevPotentialTargetBadge: "potencjalny cel",
   setBestLineupDevSelectedTargetBadge: "wybrany cel",
   analyzeOpponent: "Analizuj przeciwnika",
@@ -497,6 +500,14 @@ export const messagesPl: Messages = {
   seniorSubmitDisclaimerIntro: "Sprawdź proszę poniższe punkty:",
   seniorSubmitDisclaimerManMarkingSummary:
     "Krycie indywidualne {{target}} przez {{marker}} zostanie wysłane.",
+  seniorSubmitDisclaimerManMarkingTargetChosen:
+    "{{target}} wybrany jako cel krycia indywidualnego",
+  seniorSubmitDisclaimerManMarkingMarkerChosen:
+    "{{marker}} wybrany jako kryjacy",
+  seniorSubmitDisclaimerManMarkingTargetMissing:
+    "nie zidentyfikowano odpowiedniego celu krycia indywidualnego",
+  seniorSubmitDisclaimerManMarkingMarkerMissing:
+    "nie zidentyfikowano odpowiedniego kryjacego",
   seniorSubmitDisclaimerOrdersTitle: "Planowane zmiany i zamiany pozycji",
   seniorSubmitDisclaimerOrdersNone: "Brak planowanych zmian lub zamian pozycji.",
   seniorSubmitDisclaimerPenaltyOrderTitle: "Kolejność wykonawców rzutów karnych",
@@ -714,6 +725,22 @@ export const messagesPl: Messages = {
   clubChroniclePowerRatingsColumnGlobalRanking: "Ranking globalny",
   clubChroniclePowerRatingsColumnLeagueRanking: "Ranking ligi",
   clubChroniclePowerRatingsColumnRegionRanking: "Ranking regionu",
+  clubChronicleRefreshOngoingMatchesTooltip:
+    "Odśwież trwające mecze i wyniki.",
+  clubChronicleRefreshStatusOngoingMatches: "Pobieranie trwających meczów…",
+  clubChronicleMatchTypeTournament: "Mecz turniejowy",
+  clubChronicleOngoingMatchesPanelTitle: "Trwające mecze",
+  clubChronicleOngoingMatchesEnableLabel: "Włącz",
+  clubChronicleOngoingMatchesIncludeTournamentsLabel: "Mecze turniejowe",
+  clubChronicleOngoingMatchesColumnMatch: "Mecz",
+  clubChronicleOngoingMatchesColumnScore: "Wynik",
+  clubChronicleOngoingMatchesNone: "Brak trwającego meczu.",
+  clubChronicleOngoingMatchesEventsTitle: "Wydarzenia meczu",
+  clubChronicleOngoingMatchesEventsEmpty: "Brak dostępnych wydarzeń meczu.",
+  clubChronicleOngoingMatchesDisabled:
+    "Śledzenie trwających meczów jest wyłączone. Mecze nie będą pobierane ani wyświetlane.",
+  clubChronicleOngoingMatchesDisclaimer:
+    "Po włączeniu tej funkcji zaakceptowane trwające mecze śledzonych drużyn zostaną dodane do Hattrick Live. Wyniki nie aktualizują się automatycznie; użyj przycisku odświeżania w tym panelu. Kliknij wynik, aby zobaczyć wydarzenia meczu.",
   themeSwitchDark: "Przełącz na tryb ciemny",
   optimizeLineupTitle: "Optymalizuj skład",
   optimizeMenuStar: "Optymalizuj wokół {{player}}",

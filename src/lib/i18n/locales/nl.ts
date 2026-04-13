@@ -132,6 +132,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_4_0:
+    "Club Chronicle kan nu lopende wedstrijden volgen met optionele toernooiondersteuning.",
   changelog_4_3_0:
     "Seniorspelerdetails tonen nu herkomstvlaggen uit gecachte wereldgegevens.",
   changelog_4_2_0:
@@ -429,6 +431,7 @@ export const messagesNl: Messages = {
   setBestLineupDevPotentialTargetsLabel: "Potentiele mandekkingsdoelen",
   setBestLineupDevPotentialTargetsNone: "Geen geidentificeerd",
   setBestLineupDevFinalTargetLabel: "Geselecteerd mandekkingsdoel",
+  setBestLineupDevFinalMarkerLabel: "Geselecteerde mandekker",
   setBestLineupDevPotentialTargetBadge: "potentieel doel",
   setBestLineupDevSelectedTargetBadge: "geselecteerd doel",
   analyzeOpponent: "Tegenstander analyseren",
@@ -504,6 +507,14 @@ export const messagesNl: Messages = {
   seniorSubmitDisclaimerIntro: "Controleer het volgende:",
   seniorSubmitDisclaimerManMarkingSummary:
     "Mandekking van {{target}} door {{marker}} wordt meegestuurd.",
+  seniorSubmitDisclaimerManMarkingTargetChosen:
+    "{{target}} gekozen als mandekkingsdoel",
+  seniorSubmitDisclaimerManMarkingMarkerChosen:
+    "{{marker}} gekozen als mandekker",
+  seniorSubmitDisclaimerManMarkingTargetMissing:
+    "geen geschikt mandekkingsdoel geidentificeerd",
+  seniorSubmitDisclaimerManMarkingMarkerMissing:
+    "geen geschikte mandekker geidentificeerd",
   seniorSubmitDisclaimerOrdersTitle: "Geplande wissels en positiewissels",
   seniorSubmitDisclaimerOrdersNone: "Geen geplande wissels of positiewissels.",
   seniorSubmitDisclaimerPenaltyOrderTitle: "Volgorde van penaltynemers",
@@ -721,6 +732,22 @@ export const messagesNl: Messages = {
   clubChroniclePowerRatingsColumnGlobalRanking: "Wereldranglijst",
   clubChroniclePowerRatingsColumnLeagueRanking: "Ligaranglijst",
   clubChroniclePowerRatingsColumnRegionRanking: "Regioranglijst",
+  clubChronicleRefreshOngoingMatchesTooltip:
+    "Lopende wedstrijden en scores vernieuwen.",
+  clubChronicleRefreshStatusOngoingMatches: "Lopende wedstrijden ophalen…",
+  clubChronicleMatchTypeTournament: "Toernooiwedstrijd",
+  clubChronicleOngoingMatchesPanelTitle: "Lopende wedstrijden",
+  clubChronicleOngoingMatchesEnableLabel: "Inschakelen",
+  clubChronicleOngoingMatchesIncludeTournamentsLabel: "Toernooiwedstrijden",
+  clubChronicleOngoingMatchesColumnMatch: "Wedstrijd",
+  clubChronicleOngoingMatchesColumnScore: "Score",
+  clubChronicleOngoingMatchesNone: "Geen lopende wedstrijd.",
+  clubChronicleOngoingMatchesEventsTitle: "Wedstrijdgebeurtenissen",
+  clubChronicleOngoingMatchesEventsEmpty: "Geen wedstrijdgebeurtenissen beschikbaar.",
+  clubChronicleOngoingMatchesDisabled:
+    "Volgen van lopende wedstrijden is uit. Er worden geen wedstrijden opgehaald of getoond.",
+  clubChronicleOngoingMatchesDisclaimer:
+    "Als deze functie aan staat, worden geaccepteerde lopende wedstrijden voor gevolgde teams toegevoegd aan Hattrick Live. Scores worden niet automatisch bijgewerkt; gebruik de vernieuwknop van dit paneel. Klik op een score om wedstrijdgebeurtenissen te zien.",
   themeSwitchDark: "Naar donkere modus schakelen",
   optimizeLineupTitle: "Opstelling optimaliseren",
   optimizeMenuStar: "Optimaliseer rond {{player}}",

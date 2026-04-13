@@ -31,13 +31,17 @@ import {
   DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT,
   DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS,
   DEFAULT_CLUB_CHRONICLE_TRANSFER_HISTORY_COUNT,
+  readClubChronicleOngoingMatchesEnabled,
+  readClubChronicleOngoingMatchesTournamentEnabled,
   readClubChronicleStalenessDays,
   readClubChronicleTransferHistoryCount,
   readClubChronicleUpdatesHistoryCount,
+  writeClubChronicleOngoingMatchesSettings,
 } from "@/lib/settings";
 import {
   hattrickArticleUrl,
   hattrickMatchUrl,
+  hattrickMatchUrlWithSourceSystem,
   hattrickPlayerUrl,
   hattrickSeriesUrl,
   hattrickTeamUrl,
@@ -135,6 +139,7 @@ type MobileChronicleDetailKind =
   | "last-login"
   | "coach"
   | "power-ratings"
+  | "ongoing-matches"
   | "fanclub"
   | "arena"
   | "transfer-listed"
@@ -490,6 +495,39 @@ type PowerRatingsRow = {
   snapshot?: PowerRatingsSnapshot | null;
 };
 
+type OngoingMatchSnapshot = {
+  matchId: number | null;
+  matchType: number | null;
+  sourceSystem: string;
+  matchDate: string | null;
+  homeTeamId: number | null;
+  homeTeamName: string | null;
+  awayTeamId: number | null;
+  awayTeamName: string | null;
+  homeGoals: number | null;
+  awayGoals: number | null;
+  events: OngoingMatchEvent[];
+  status: "ongoing" | "none";
+  fetchedAt: number;
+};
+
+type OngoingMatchEvent = {
+  index: number | null;
+  minute: number | null;
+  eventText: string;
+};
+
+type OngoingMatchData = {
+  current: OngoingMatchSnapshot;
+  previous?: OngoingMatchSnapshot;
+};
+
+type OngoingMatchRow = {
+  teamId: number;
+  teamName: string;
+  snapshot?: OngoingMatchSnapshot | null;
+};
+
 type WagesPlayerRow = {
   teamId: number;
   playerId: number;
@@ -586,6 +624,7 @@ type ChronicleTeamData = {
   lastLogin?: LastLoginData;
   coach?: CoachData;
   powerRatings?: PowerRatingsData;
+  ongoingMatch?: OngoingMatchData;
 };
 
 type ChronicleCache = {
@@ -632,7 +671,8 @@ type UpdatePanel =
   | "likelyTraining"
   | "lastLogin"
   | "coach"
-  | "powerRatings";
+  | "powerRatings"
+  | "ongoingMatches";
 
 type ChronicleTableColumn<Row, Snapshot> = {
   key: string;
@@ -901,6 +941,7 @@ const PANEL_IDS = [
   "last-login",
   "coach",
   "power-ratings",
+  "ongoing-matches",
   "fanclub",
   "arena",
   "finance-estimate",
@@ -922,6 +963,8 @@ const MATCH_DETAILS_FETCH_CONCURRENCY = 6;
 const INCOMPLETE_TEAM_REFETCH_COOLDOWN_MS = 60 * 1000;
 const COMPETITIVE_MATCH_TYPES = new Set([1, 2, 3, 7]);
 const FRIENDLY_MATCH_TYPES = new Set([4, 5, 8, 9]);
+const ONGOING_MATCH_TYPES = new Set([1, 2, 3, 4, 5, 8, 9]);
+const ONGOING_TOURNAMENT_MATCH_TYPES = new Set([50, 51, 62]);
 const POSSIBLE_FORMATIONS = new Set([
   "2-5-3",
   "3-5-2",
@@ -2559,6 +2602,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [selectedPowerRatingsTeamId, setSelectedPowerRatingsTeamId] = useState<
     number | null
   >(null);
+  const [ongoingMatchEventsOpen, setOngoingMatchEventsOpen] = useState(false);
+  const [selectedOngoingMatchTeamId, setSelectedOngoingMatchTeamId] = useState<
+    number | null
+  >(null);
   const [tsiDetailsSortState, setTsiDetailsSortState] = useState<{
     key: string;
     direction: "asc" | "desc";
@@ -2583,6 +2630,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [updatesHistoryCount, setUpdatesHistoryCount] = useState(
     DEFAULT_CLUB_CHRONICLE_UPDATES_HISTORY_COUNT
   );
+  const [ongoingMatchesEnabled, setOngoingMatchesEnabled] = useState(() =>
+    readClubChronicleOngoingMatchesEnabled()
+  );
+  const [ongoingMatchesTournamentEnabled, setOngoingMatchesTournamentEnabled] =
+    useState(() => readClubChronicleOngoingMatchesTournamentEnabled());
   const [formationsIncludeFriendlies, setFormationsIncludeFriendlies] =
     useState(() => readFormationsIncludeFriendlies());
   const [leagueSortState, setLeagueSortState] = useState<{
@@ -2637,6 +2689,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     key: string;
     direction: "asc" | "desc";
   }>({ key: "team", direction: "asc" });
+  const [ongoingMatchesSortState, setOngoingMatchesSortState] = useState<{
+    key: string;
+    direction: "asc" | "desc";
+  }>({ key: "team", direction: "asc" });
   const [refreshingGlobal, setRefreshingGlobal] = useState(false);
   const [refreshingLeague, setRefreshingLeague] = useState(false);
   const [refreshingPress, setRefreshingPress] = useState(false);
@@ -2651,6 +2707,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [refreshingLastLogin, setRefreshingLastLogin] = useState(false);
   const [refreshingCoach, setRefreshingCoach] = useState(false);
   const [refreshingPowerRatings, setRefreshingPowerRatings] = useState(false);
+  const [refreshingOngoingMatches, setRefreshingOngoingMatches] = useState(false);
   const [globalRefreshProgressPct, setGlobalRefreshProgressPct] = useState(0);
   const [globalRefreshStatus, setGlobalRefreshStatus] = useState<string | null>(null);
   const [panelRefreshProgressPct, setPanelRefreshProgressPct] = useState<
@@ -2736,7 +2793,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     refreshingWages ||
     refreshingLastLogin ||
     refreshingCoach ||
-    refreshingPowerRatings;
+    refreshingPowerRatings ||
+    refreshingOngoingMatches;
   const getPanelRefreshProgress = useCallback(
     (panelId: string) => panelRefreshProgressPct[panelId] ?? 0,
     [panelRefreshProgressPct]
@@ -4103,6 +4161,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setStalenessDays(readClubChronicleStalenessDays());
     setTransferHistoryCount(readClubChronicleTransferHistoryCount());
     setUpdatesHistoryCount(readClubChronicleUpdatesHistoryCount());
+    setOngoingMatchesEnabled(readClubChronicleOngoingMatchesEnabled());
+    setOngoingMatchesTournamentEnabled(
+      readClubChronicleOngoingMatchesTournamentEnabled()
+    );
     const handle = (event: Event) => {
       if (event instanceof StorageEvent) {
         if (
@@ -4118,6 +4180,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               stalenessDays?: number;
               transferHistoryCount?: number;
               updatesHistoryCount?: number;
+              ongoingMatchesEnabled?: boolean;
+              ongoingMatchesTournamentEnabled?: boolean;
             }
           | undefined;
         if (typeof detail?.stalenessDays === "number") {
@@ -4129,10 +4193,20 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         if (typeof detail?.updatesHistoryCount === "number") {
           setUpdatesHistoryCount(detail.updatesHistoryCount);
         }
+        if (typeof detail?.ongoingMatchesEnabled === "boolean") {
+          setOngoingMatchesEnabled(detail.ongoingMatchesEnabled);
+        }
+        if (typeof detail?.ongoingMatchesTournamentEnabled === "boolean") {
+          setOngoingMatchesTournamentEnabled(
+            detail.ongoingMatchesTournamentEnabled
+          );
+        }
         if (
           typeof detail?.stalenessDays === "number" ||
           typeof detail?.transferHistoryCount === "number" ||
-          typeof detail?.updatesHistoryCount === "number"
+          typeof detail?.updatesHistoryCount === "number" ||
+          typeof detail?.ongoingMatchesEnabled === "boolean" ||
+          typeof detail?.ongoingMatchesTournamentEnabled === "boolean"
         ) {
           return;
         }
@@ -4140,6 +4214,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       setStalenessDays(readClubChronicleStalenessDays());
       setTransferHistoryCount(readClubChronicleTransferHistoryCount());
       setUpdatesHistoryCount(readClubChronicleUpdatesHistoryCount());
+      setOngoingMatchesEnabled(readClubChronicleOngoingMatchesEnabled());
+      setOngoingMatchesTournamentEnabled(
+        readClubChronicleOngoingMatchesTournamentEnabled()
+      );
     };
     window.addEventListener("storage", handle);
     window.addEventListener(CLUB_CHRONICLE_SETTINGS_EVENT, handle);
@@ -5151,6 +5229,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }));
   };
 
+  const handleOngoingMatchesSort = (key: string) => {
+    setOngoingMatchesSortState((prev) => ({
+      key,
+      direction:
+        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
+    }));
+  };
+
   const handleWagesDetailsSort = (key: string) => {
     setWagesDetailsSortState((prev) => ({
       key,
@@ -6068,6 +6154,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           return messages.clubChronicleMatchTypeInternationalFriendlyNormal;
         case 9:
           return messages.clubChronicleMatchTypeInternationalFriendlyCup;
+        case 50:
+        case 51:
+        case 62:
+          return messages.clubChronicleMatchTypeTournament;
         default:
           return messages.clubChronicleMatchTypeUnknown;
       }
@@ -6081,9 +6171,351 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleMatchTypeLeague,
       messages.clubChronicleMatchTypeMasters,
       messages.clubChronicleMatchTypeQualification,
+      messages.clubChronicleMatchTypeTournament,
       messages.clubChronicleMatchTypeUnknown,
     ]
   );
+
+  const formatOngoingMatchScore = useCallback(
+    (snapshot: OngoingMatchSnapshot | null | undefined) => {
+      if (!snapshot || snapshot.status !== "ongoing") {
+        return messages.clubChronicleOngoingMatchesNone;
+      }
+      return snapshot.homeGoals !== null && snapshot.awayGoals !== null
+        ? `${snapshot.homeGoals}-${snapshot.awayGoals}`
+        : messages.unknownShort;
+    },
+    [messages.clubChronicleOngoingMatchesNone, messages.unknownShort]
+  );
+
+  const formatOngoingMatchSummary = useCallback(
+    (snapshot: OngoingMatchSnapshot | null | undefined) => {
+      if (!snapshot || snapshot.status !== "ongoing") {
+        return messages.clubChronicleOngoingMatchesNone;
+      }
+      const home = snapshot.homeTeamName ?? messages.unknownShort;
+      const away = snapshot.awayTeamName ?? messages.unknownShort;
+      return `${home} - ${away}`;
+    },
+    [messages.clubChronicleOngoingMatchesNone, messages.unknownShort]
+  );
+
+  const renderOngoingMatchTeamName = (
+    teamId: number | null,
+    teamName: string | null
+  ) => {
+    const label = teamName ?? messages.unknownShort;
+    if (!teamId) return label;
+    return (
+      <a
+        className={styles.chroniclePressLink}
+        href={hattrickTeamUrl(teamId)}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {label}
+      </a>
+    );
+  };
+
+  const renderOngoingMatchSummary = (
+    snapshot: OngoingMatchSnapshot | null | undefined
+  ) => {
+    if (!snapshot || snapshot.status !== "ongoing") {
+      return messages.clubChronicleOngoingMatchesNone;
+    }
+    return (
+      <>
+        {renderOngoingMatchTeamName(snapshot.homeTeamId, snapshot.homeTeamName)}
+        {" - "}
+        {renderOngoingMatchTeamName(snapshot.awayTeamId, snapshot.awayTeamName)}
+      </>
+    );
+  };
+
+  const ongoingMatchesTableColumns = useMemo<
+    ChronicleTableColumn<OngoingMatchRow, OngoingMatchSnapshot>[]
+  >(
+    () => [
+      {
+        key: "team",
+        label: messages.clubChronicleColumnTeam,
+        getValue: (_snapshot, row) => row?.teamName ?? null,
+      },
+      {
+        key: "match",
+        label: messages.clubChronicleOngoingMatchesColumnMatch,
+        getValue: (snapshot: OngoingMatchSnapshot | undefined) =>
+          formatOngoingMatchSummary(snapshot),
+        getSortValue: (snapshot: OngoingMatchSnapshot | undefined) =>
+          snapshot?.status === "ongoing"
+            ? [
+                parseMatchDateValue(snapshot.matchDate),
+                snapshot.matchId ?? 0,
+              ]
+            : null,
+        renderCell: (snapshot: OngoingMatchSnapshot | undefined) => {
+          if (!snapshot || snapshot.status !== "ongoing" || !snapshot.matchId) {
+            return messages.clubChronicleOngoingMatchesNone;
+          }
+          return (
+            <a
+              className={styles.chroniclePressLink}
+              href={hattrickMatchUrlWithSourceSystem(
+                snapshot.matchId,
+                snapshot.sourceSystem
+              )}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {formatOngoingMatchSummary(snapshot)}
+            </a>
+          );
+        },
+      },
+      {
+        key: "score",
+        label: messages.clubChronicleOngoingMatchesColumnScore,
+        getValue: (snapshot: OngoingMatchSnapshot | undefined) =>
+          formatOngoingMatchScore(snapshot),
+        getSortValue: (snapshot: OngoingMatchSnapshot | undefined) =>
+          snapshot?.status === "ongoing" &&
+          snapshot.homeGoals !== null &&
+          snapshot.awayGoals !== null
+            ? [snapshot.homeGoals, snapshot.awayGoals]
+            : null,
+        renderCell: (snapshot: OngoingMatchSnapshot | undefined, row) => {
+          if (!snapshot || snapshot.status !== "ongoing") {
+            return messages.clubChronicleOngoingMatchesNone;
+          }
+          return (
+            <button
+              type="button"
+              className={styles.chronicleInlineLinkButton}
+              onClick={() => {
+                setSelectedOngoingMatchTeamId(row.teamId);
+                setOngoingMatchEventsOpen(true);
+              }}
+            >
+              {formatOngoingMatchScore(snapshot)}
+            </button>
+          );
+        },
+      },
+      {
+        key: "type",
+        label: messages.analyzeOpponentMatchType,
+        getValue: (snapshot: OngoingMatchSnapshot | undefined) =>
+          snapshot?.status === "ongoing"
+            ? formatMatchTypeLabel(snapshot.matchType)
+            : "-",
+        getSortValue: (snapshot: OngoingMatchSnapshot | undefined) =>
+          snapshot?.matchType ?? null,
+      },
+    ],
+    [
+      formatMatchTypeLabel,
+      formatOngoingMatchScore,
+      formatOngoingMatchSummary,
+      messages.analyzeOpponentMatchType,
+      messages.clubChronicleColumnTeam,
+      messages.clubChronicleOngoingMatchesColumnScore,
+      messages.clubChronicleOngoingMatchesColumnMatch,
+      messages.clubChronicleOngoingMatchesNone,
+    ]
+  );
+
+  const normalizeLiveSourceSystem = (sourceSystem: string | null | undefined) => {
+    const normalized = (sourceSystem ?? "").trim().toLowerCase();
+    if (normalized === "htointegrated") return "htointegrated";
+    if (normalized === "youth") return "youth";
+    return "hattrick";
+  };
+
+  const sourceSystemForOngoingMatch = (
+    matchType: number | null,
+    sourceSystem: string | null | undefined
+  ) => {
+    if (
+      matchType !== null &&
+      ONGOING_TOURNAMENT_MATCH_TYPES.has(matchType)
+    ) {
+      return "htointegrated";
+    }
+    return normalizeLiveSourceSystem(sourceSystem);
+  };
+
+  const isAcceptedOngoingMatchType = (
+    matchType: number | null,
+    includeTournamentMatches: boolean
+  ) => {
+    if (matchType === null) return false;
+    if (ONGOING_MATCH_TYPES.has(matchType)) return true;
+    return (
+      includeTournamentMatches && ONGOING_TOURNAMENT_MATCH_TYPES.has(matchType)
+    );
+  };
+
+  const selectPreferredOngoingMatch = (
+    matches: RawNode[],
+    includeTournamentMatches: boolean
+  ) => {
+    const accepted = matches.filter((match) => {
+      const status = parseStringNode(match.Status)?.toUpperCase();
+      const matchType = parseNumberNode(match.MatchType);
+      return (
+        status === "ONGOING" &&
+        isAcceptedOngoingMatchType(matchType, includeTournamentMatches)
+      );
+    });
+    accepted.sort((left, right) => {
+      const leftType = parseNumberNode(left.MatchType);
+      const rightType = parseNumberNode(right.MatchType);
+      const leftTournament =
+        leftType !== null && ONGOING_TOURNAMENT_MATCH_TYPES.has(leftType);
+      const rightTournament =
+        rightType !== null && ONGOING_TOURNAMENT_MATCH_TYPES.has(rightType);
+      if (leftTournament !== rightTournament) {
+        return leftTournament ? 1 : -1;
+      }
+      const dateDiff =
+        parseMatchDateValue(parseStringNode(left.MatchDate)) -
+        parseMatchDateValue(parseStringNode(right.MatchDate));
+      if (dateDiff !== 0) return dateDiff;
+      return (parseNumberNode(left.MatchID) ?? 0) - (parseNumberNode(right.MatchID) ?? 0);
+    });
+    return accepted[0] ?? null;
+  };
+
+  const buildNoOngoingMatchSnapshot = (): OngoingMatchSnapshot => ({
+    matchId: null,
+    matchType: null,
+    sourceSystem: "hattrick",
+    matchDate: null,
+    homeTeamId: null,
+    homeTeamName: null,
+    awayTeamId: null,
+    awayTeamName: null,
+    homeGoals: null,
+    awayGoals: null,
+    events: [],
+    status: "none",
+    fetchedAt: Date.now(),
+  });
+
+  const parseOngoingMatchEvents = (
+    eventList: unknown
+  ): OngoingMatchEvent[] => {
+    const eventNode = (eventList as RawNode | null | undefined)?.Event;
+    return toArray(eventNode as RawNode | RawNode[] | null | undefined)
+      .map((event) => ({
+        index: parseNumberNode(event["@_Index"]),
+        minute: parseNumberNode(event.Minute),
+        eventText: parseStringNode(event.EventText) ?? "",
+      }))
+      .filter((event) => event.eventText.trim().length > 0)
+      .sort((left, right) => {
+        const leftIndex = left.index ?? 0;
+        const rightIndex = right.index ?? 0;
+        if (leftIndex !== rightIndex) return leftIndex - rightIndex;
+        return (left.minute ?? 0) - (right.minute ?? 0);
+      });
+  };
+
+  const buildOngoingMatchSnapshot = (
+    match: RawNode,
+    liveMatch?: RawNode | null
+  ): OngoingMatchSnapshot => {
+    const matchType = parseNumberNode(match.MatchType);
+    const sourceSystem = sourceSystemForOngoingMatch(
+      matchType,
+      parseStringNode(match.SourceSystem)
+    );
+    const matchHome = (match.HomeTeam ?? {}) as RawNode;
+    const matchAway = (match.AwayTeam ?? {}) as RawNode;
+    const liveHome = (liveMatch?.HomeTeam ?? {}) as RawNode;
+    const liveAway = (liveMatch?.AwayTeam ?? {}) as RawNode;
+    return {
+      matchId: parseNumberNode(match.MatchID),
+      matchType,
+      sourceSystem,
+      matchDate: parseStringNode(match.MatchDate),
+      homeTeamId:
+        parseNumberNode(liveHome.HomeTeamID) ??
+        parseNumberNode(matchHome.HomeTeamID),
+      homeTeamName:
+        parseStringNode(liveHome.HomeTeamName) ??
+        parseStringNode(matchHome.HomeTeamName),
+      awayTeamId:
+        parseNumberNode(liveAway.AwayTeamID) ??
+        parseNumberNode(matchAway.AwayTeamID),
+      awayTeamName:
+        parseStringNode(liveAway.AwayTeamName) ??
+        parseStringNode(matchAway.AwayTeamName),
+      homeGoals: parseNumberNode(liveMatch?.HomeGoals),
+      awayGoals: parseNumberNode(liveMatch?.AwayGoals),
+      events: parseOngoingMatchEvents(liveMatch?.EventList),
+      status: "ongoing",
+      fetchedAt: Date.now(),
+    };
+  };
+
+  const ongoingMatchLiveKey = (matchId: number, sourceSystem: string) =>
+    `${matchId}:${normalizeLiveSourceSystem(sourceSystem)}`;
+
+  const findLiveMatch = (
+    matches: RawNode[],
+    matchId: number,
+    sourceSystem: string
+  ) =>
+    matches.find(
+      (match) =>
+        parseNumberNode(match.MatchID) === matchId &&
+        normalizeLiveSourceSystem(parseStringNode(match.SourceSystem)) ===
+          normalizeLiveSourceSystem(sourceSystem)
+    ) ?? null;
+
+  const addLiveMatch = async (
+    matchId: number,
+    sourceSystem: string
+  ): Promise<RawNode | null> => {
+    const { response, payload } = await fetchChppJson<{
+      data?: { HattrickData?: { MatchList?: { Match?: RawNode | RawNode[] } } };
+      error?: string;
+    }>(
+      `/api/chpp/live?actionType=addMatch&matchID=${matchId}&sourceSystem=${encodeURIComponent(sourceSystem)}`,
+      { cache: "no-store" }
+    );
+    if (!response.ok || payload?.error) return null;
+    const matches = toArray(payload?.data?.HattrickData?.MatchList?.Match);
+    return findLiveMatch(matches, matchId, sourceSystem);
+  };
+
+  const fetchLiveViewMatches = async (): Promise<RawNode[]> => {
+    const { response, payload } = await fetchChppJson<{
+      data?: { HattrickData?: { MatchList?: { Match?: RawNode | RawNode[] } } };
+      error?: string;
+    }>(`/api/chpp/live?actionType=view`, { cache: "no-store" });
+    if (!response.ok || payload?.error) return [];
+    return toArray(payload?.data?.HattrickData?.MatchList?.Match);
+  };
+
+  const fetchOngoingMatchForTeam = async (
+    team: ChronicleTeamData,
+    includeTournamentMatches: boolean
+  ): Promise<RawNode | null> => {
+    const { response, payload } = await fetchChppJson<{
+      data?: { HattrickData?: { Team?: { MatchList?: { Match?: RawNode | RawNode[] } } } };
+      error?: string;
+    }>(`/api/chpp/matches?teamID=${team.teamId}&isYouth=false`, {
+      cache: "no-store",
+    });
+    if (!response.ok || payload?.error) {
+      return null;
+    }
+    const matches = toArray(payload?.data?.HattrickData?.Team?.MatchList?.Match);
+    return selectPreferredOngoingMatch(matches, includeTournamentMatches);
+  };
 
   const getUpdateFieldLabel = (fieldKey: string, fallbackLabel: string) => {
     switch (fieldKey) {
@@ -6138,6 +6570,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         return messages.clubChroniclePowerRatingsColumnLeagueRanking;
       case "powerRatings.regionRanking":
         return messages.clubChroniclePowerRatingsColumnRegionRanking;
+      case "ongoingMatches.match":
+        return messages.clubChronicleOngoingMatchesColumnMatch;
       case "tsi.total":
         return messages.clubChronicleTsiColumnTotal;
       case "tsi.top11":
@@ -7061,6 +7495,33 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             });
           }
           appendTeamChanges(updatesMap, teamId, teamName, powerRatingsChanges);
+        }
+      }
+
+      if (panels.includes("ongoingMatches")) {
+        const previous = baselineCache
+          ? baselineTeam?.ongoingMatch?.current
+          : cached.ongoingMatch?.previous;
+        const current = cached.ongoingMatch?.current;
+        if (current && previous) {
+          const previousSummary =
+            previous.status === "ongoing"
+              ? `${previous.homeTeamName ?? messages.unknownShort} ${formatValue(previous.homeGoals)}-${formatValue(previous.awayGoals)} ${previous.awayTeamName ?? messages.unknownShort}`
+              : messages.clubChronicleOngoingMatchesNone;
+          const currentSummary =
+            current.status === "ongoing"
+              ? `${current.homeTeamName ?? messages.unknownShort} ${formatValue(current.homeGoals)}-${formatValue(current.awayGoals)} ${current.awayTeamName ?? messages.unknownShort}`
+              : messages.clubChronicleOngoingMatchesNone;
+          if (previousSummary !== currentSummary) {
+            appendTeamChanges(updatesMap, teamId, teamName, [
+              {
+                fieldKey: "ongoingMatches.match",
+                label: messages.clubChronicleOngoingMatchesColumnMatch,
+                previous: previousSummary,
+                current: currentSummary,
+              },
+            ]);
+          }
         }
       }
 
@@ -8586,6 +9047,96 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     );
   };
 
+  const refreshOngoingMatchSnapshots = async (
+    nextCache: ChronicleCache,
+    teams: ChronicleTeamData[] = trackedTeams,
+    includeTournamentMatches = ongoingMatchesTournamentEnabled,
+    enabled = ongoingMatchesEnabled
+  ) => {
+    if (!enabled) return;
+    const selectedMatches = await mapWithConcurrency(
+      teams,
+      TEAM_REFRESH_CONCURRENCY,
+      async (team) => {
+        try {
+          return {
+            team,
+            match: await fetchOngoingMatchForTeam(team, includeTournamentMatches),
+          };
+        } catch (error) {
+          if (isChppAuthRequiredError(error)) throw error;
+          return { team, match: null };
+        }
+      }
+    );
+
+    const liveTargets = selectedMatches
+      .map(({ team, match }) => {
+        if (!match) return null;
+        const matchId = parseNumberNode(match.MatchID);
+        const matchType = parseNumberNode(match.MatchType);
+        if (!matchId) return null;
+        return {
+          team,
+          match,
+          matchId,
+          sourceSystem: sourceSystemForOngoingMatch(
+            matchType,
+            parseStringNode(match.SourceSystem)
+          ),
+        };
+      })
+      .filter(
+        (entry): entry is {
+          team: ChronicleTeamData;
+          match: RawNode;
+          matchId: number;
+          sourceSystem: string;
+        } => Boolean(entry)
+      );
+
+    await mapWithConcurrency(liveTargets, TEAM_REFRESH_CONCURRENCY, async (entry) => {
+      try {
+        await addLiveMatch(entry.matchId, entry.sourceSystem);
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
+        // ignore individual live registration failures; view may still have data
+      }
+    });
+
+    const liveMatches = liveTargets.length > 0 ? await fetchLiveViewMatches() : [];
+    const liveMatchesByKey = new Map<string, RawNode>();
+    liveMatches.forEach((match) => {
+      const matchId = parseNumberNode(match.MatchID);
+      if (!matchId) return;
+      const sourceSystem = normalizeLiveSourceSystem(parseStringNode(match.SourceSystem));
+      liveMatchesByKey.set(ongoingMatchLiveKey(matchId, sourceSystem), match);
+    });
+
+    selectedMatches.forEach(({ team, match }) => {
+      const previous = nextCache.teams[team.teamId]?.ongoingMatch?.current;
+      const matchId = match ? parseNumberNode(match.MatchID) : null;
+      const matchType = match ? parseNumberNode(match.MatchType) : null;
+      const sourceSystem = sourceSystemForOngoingMatch(
+        matchType,
+        match ? parseStringNode(match.SourceSystem) : null
+      );
+      const liveMatch =
+        match && matchId
+          ? liveMatchesByKey.get(ongoingMatchLiveKey(matchId, sourceSystem)) ?? null
+          : null;
+      nextCache.teams[team.teamId] = {
+        ...nextCache.teams[team.teamId],
+        teamId: team.teamId,
+        teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+        ongoingMatch: {
+          current: match ? buildOngoingMatchSnapshot(match, liveMatch) : buildNoOngoingMatchSnapshot(),
+          previous,
+        },
+      };
+    });
+  };
+
   const setPanelProgress = useCallback((panelIds: string[], value: number) => {
     const normalized = Math.max(0, Math.min(100, value));
     setPanelRefreshProgressPct((prev) => {
@@ -8617,6 +9168,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     setRefreshingLastLogin(false);
     setRefreshingCoach(false);
     setRefreshingPowerRatings(false);
+    setRefreshingOngoingMatches(false);
   }, []);
 
   const requestStopRefresh = useCallback(() => {
@@ -8646,7 +9198,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     try {
       const nextCache = pruneChronicleCache(readChronicleCache());
       const nextManualTeams = [...manualTeams];
-      const stageCount = 7;
+      const stageCount = ongoingMatchesEnabled ? 8 : 7;
       const setStage = (
         stageIndex: number,
         status: string,
@@ -8746,7 +9298,25 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       });
       if (chronicleStopRequestedRef.current) return;
 
-      setStage(6, messages.clubChronicleRefreshStatusFinalizing, [...PANEL_IDS]);
+      if (ongoingMatchesEnabled) {
+        setStage(
+          6,
+          messages.clubChronicleRefreshStatusOngoingMatches,
+          ["ongoing-matches"]
+        );
+        await refreshOngoingMatchSnapshots(
+          nextCache,
+          teamsToRefresh,
+          ongoingMatchesTournamentEnabled
+        );
+        if (chronicleStopRequestedRef.current) return;
+      }
+
+      setStage(
+        ongoingMatchesEnabled ? 7 : 6,
+        messages.clubChronicleRefreshStatusFinalizing,
+        [...PANEL_IDS]
+      );
       const baselineForDiff =
         globalBaselineCache ?? pruneChronicleCache(readChronicleCache());
       const nextUpdates = collectTeamChanges(
@@ -8765,6 +9335,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           "coach",
           "tsi",
           "wages",
+          "ongoingMatches",
         ],
         {
           baselineCache: baselineForDiff,
@@ -9277,6 +9848,67 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
   };
 
+  const refreshOngoingMatchesOnly = async (
+    tournamentEnabledOverride?: boolean,
+    enabledOverride?: boolean
+  ) => {
+    if (anyRefreshing) return;
+    if (!(enabledOverride ?? ongoingMatchesEnabled)) return;
+    if (trackedTeams.length === 0) return;
+    chronicleStopRequestedRef.current = false;
+    setRefreshingOngoingMatches(true);
+    try {
+      setGlobalRefreshStatus(messages.clubChronicleRefreshStatusOngoingMatches);
+      setGlobalRefreshProgressPct(20);
+      setPanelProgress(["ongoing-matches"], 20);
+      const nextCache = pruneChronicleCache(readChronicleCache());
+      await refreshOngoingMatchSnapshots(
+        nextCache,
+        trackedTeams,
+        tournamentEnabledOverride ?? ongoingMatchesTournamentEnabled,
+        enabledOverride ?? ongoingMatchesEnabled
+      );
+      if (chronicleStopRequestedRef.current) return;
+      setChronicleCache(nextCache);
+      setGlobalRefreshProgressPct(100);
+      setPanelProgress(["ongoing-matches"], 100);
+      addNotification(messages.notificationChronicleRefreshComplete);
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
+    } finally {
+      setRefreshingOngoingMatches(false);
+      clearProgressIndicators();
+    }
+  };
+
+  const handleOngoingMatchesEnabledChange = (nextValue: boolean) => {
+    setOngoingMatchesEnabled(nextValue);
+    writeClubChronicleOngoingMatchesSettings({ enabled: nextValue });
+    window.dispatchEvent(
+      new CustomEvent(CLUB_CHRONICLE_SETTINGS_EVENT, {
+        detail: { ongoingMatchesEnabled: nextValue },
+      })
+    );
+    if (nextValue) {
+      void refreshOngoingMatchesOnly(undefined, true);
+    }
+  };
+
+  const handleOngoingMatchesTournamentChange = (nextValue: boolean) => {
+    setOngoingMatchesTournamentEnabled(nextValue);
+    writeClubChronicleOngoingMatchesSettings({ tournamentEnabled: nextValue });
+    window.dispatchEvent(
+      new CustomEvent(CLUB_CHRONICLE_SETTINGS_EVENT, {
+        detail: { ongoingMatchesTournamentEnabled: nextValue },
+      })
+    );
+    if (ongoingMatchesEnabled) {
+      void refreshOngoingMatchesOnly(nextValue);
+    }
+  };
+
   const refreshLatestUpdatesFromGlobalBaseline = useCallback(() => {
     if (!globalBaselineCache) {
       setUpdates(null);
@@ -9301,6 +9933,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         "coach",
         "tsi",
         "wages",
+        "ongoingMatches",
       ],
       { baselineCache: globalBaselineCache }
     );
@@ -9364,6 +9997,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     lastLoginRows,
     coachRows,
     powerRatingsRows,
+    ongoingMatchRows,
   } = useMemo(() => {
     const leagueRowsValue: LeagueTableRow[] = trackedTeams.map((team) => {
       const cached = chronicleCache.teams[team.teamId];
@@ -9506,6 +10140,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       };
     });
 
+    const ongoingMatchRowsValue: OngoingMatchRow[] = trackedTeams.map((team) => {
+      const cached = chronicleCache.teams[team.teamId];
+      return {
+        teamId: team.teamId,
+        teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
+        snapshot: cached?.ongoingMatch?.current,
+      };
+    });
+
     return {
       leagueRows: leagueRowsValue,
       pressRows: pressRowsValue,
@@ -9520,6 +10163,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       lastLoginRows: lastLoginRowsValue,
       coachRows: coachRowsValue,
       powerRatingsRows: powerRatingsRowsValue,
+      ongoingMatchRows: ongoingMatchRowsValue,
     };
   }, [trackedTeams, chronicleCache]);
 
@@ -9841,6 +10485,35 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       .map((item) => item.row);
   }, [powerRatingsRows, powerRatingsSortState, powerRatingsTableColumns]);
 
+  const sortedOngoingMatchRows = useMemo(() => {
+    if (!ongoingMatchesSortState.key) return ongoingMatchRows;
+    const column = ongoingMatchesTableColumns.find(
+      (item) => item.key === ongoingMatchesSortState.key
+    );
+    if (!column) return ongoingMatchRows;
+    const direction = ongoingMatchesSortState.direction === "desc" ? -1 : 1;
+    return [...ongoingMatchRows]
+      .map((row, index) => ({ row, index }))
+      .sort((left, right) => {
+        const leftValue = normalizeSortValue(
+          column.getSortValue?.(left.row.snapshot ?? undefined, left.row) ??
+            column.getValue(left.row.snapshot ?? undefined, left.row)
+        );
+        const rightValue = normalizeSortValue(
+          column.getSortValue?.(right.row.snapshot ?? undefined, right.row) ??
+            column.getValue(right.row.snapshot ?? undefined, right.row)
+        );
+        const result = compareSortValues(leftValue, rightValue);
+        if (result !== 0) return result * direction;
+        return left.index - right.index;
+      })
+      .map((item) => item.row);
+  }, [
+    ongoingMatchRows,
+    ongoingMatchesSortState,
+    ongoingMatchesTableColumns,
+  ]);
+
   const selectedTeam = selectedTeamId
     ? leagueRows.find((team) => team.teamId === selectedTeamId) ?? null
     : null;
@@ -9884,6 +10557,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     ? powerRatingsRows.find((team) => team.teamId === selectedPowerRatingsTeamId) ??
       null
     : null;
+  const selectedOngoingMatchTeam = selectedOngoingMatchTeamId
+    ? ongoingMatchRows.find((team) => team.teamId === selectedOngoingMatchTeamId) ??
+      null
+    : null;
   const resolvedMobileChroniclePanelId = normalizedPanelOrder.includes(
     mobileChroniclePanelId
   )
@@ -9896,6 +10573,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       "last-login": messages.clubChronicleLastLoginPanelTitle,
       coach: messages.clubChronicleCoachPanelTitle,
       "power-ratings": messages.clubChroniclePowerRatingsPanelTitle,
+      "ongoing-matches": messages.clubChronicleOngoingMatchesPanelTitle,
       fanclub: messages.clubChronicleFanclubPanelTitle,
       arena: messages.clubChronicleArenaPanelTitle,
       "finance-estimate": messages.clubChronicleFinancePanelTitle,
@@ -9914,6 +10592,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleLastLoginPanelTitle,
       messages.clubChronicleLeaguePanelTitle,
       messages.clubChronicleLikelyTrainingPanelTitle,
+      messages.clubChronicleOngoingMatchesPanelTitle,
       messages.clubChroniclePowerRatingsPanelTitle,
       messages.clubChroniclePressPanelTitle,
       messages.clubChronicleTransferPanelTitle,
@@ -10786,6 +11465,112 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       );
     });
   };
+
+  const decodeBasicHtmlEntities = (value: string) =>
+    value
+      .replace(/&amp;/g, "&")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&#(\d+);/g, (_match, code: string) =>
+        String.fromCharCode(Number(code))
+      )
+      .replace(/&#x([0-9a-f]+);/gi, (_match, code: string) =>
+        String.fromCharCode(Number.parseInt(code, 16))
+      );
+
+  const stripOngoingMatchEventMarkup = (value: string) =>
+    decodeBasicHtmlEntities(value)
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/?span\b[^>]*>/gi, "")
+      .replace(/<[^>]+>/g, "");
+
+  const resolveOngoingMatchEventHref = (href: string | null) => {
+    if (!href) return null;
+    const decodedHref = decodeBasicHtmlEntities(href).trim();
+    let url: URL;
+    try {
+      url = new URL(decodedHref, "https://www.hattrick.org");
+    } catch {
+      return null;
+    }
+    if (!["www.hattrick.org", "hattrick.org"].includes(url.hostname.toLowerCase())) {
+      return null;
+    }
+    const getParam = (name: string) => {
+      const lowerName = name.toLowerCase();
+      for (const [key, value] of url.searchParams.entries()) {
+        if (key.toLowerCase() === lowerName) return value;
+      }
+      return null;
+    };
+    const playerId = getParam("playerId");
+    if (url.pathname.toLowerCase().endsWith("/club/players/player.aspx") && playerId) {
+      return hattrickPlayerUrl(playerId);
+    }
+    const teamId = getParam("teamId");
+    if (url.pathname.toLowerCase() === "/club/" && teamId) {
+      return hattrickTeamUrl(teamId);
+    }
+    const matchId = getParam("matchId");
+    if (url.pathname.toLowerCase().endsWith("/club/matches/match.aspx") && matchId) {
+      const sourceSystem = getParam("sourceSystem");
+      return sourceSystem
+        ? hattrickMatchUrlWithSourceSystem(matchId, sourceSystem)
+        : hattrickMatchUrl(matchId);
+    }
+    return `${url.origin}${url.pathname}${url.search}`;
+  };
+
+  const renderOngoingMatchEventText = (text: string, eventKey: string) => {
+    const decodedText = decodeBasicHtmlEntities(text);
+    const anchorRegex = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi;
+    const nodes: ReactNode[] = [];
+    let lastIndex = 0;
+    let match: RegExpExecArray | null = anchorRegex.exec(decodedText);
+    while (match) {
+      if (match.index > lastIndex) {
+        nodes.push(
+          <span key={`${eventKey}-text-${lastIndex}`}>
+            {stripOngoingMatchEventMarkup(decodedText.slice(lastIndex, match.index))}
+          </span>
+        );
+      }
+      const attrs = match[1] ?? "";
+      const hrefMatch = /\bhref=(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i.exec(attrs);
+      const href = resolveOngoingMatchEventHref(
+        hrefMatch?.[1] ?? hrefMatch?.[2] ?? hrefMatch?.[3] ?? null
+      );
+      const label = stripOngoingMatchEventMarkup(match[2] ?? "");
+      nodes.push(
+        href ? (
+          <a
+            key={`${eventKey}-link-${match.index}`}
+            className={styles.chroniclePressLink}
+            href={href}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {label}
+          </a>
+        ) : (
+          <span key={`${eventKey}-link-${match.index}`}>{label}</span>
+        )
+      );
+      lastIndex = match.index + match[0].length;
+      match = anchorRegex.exec(decodedText);
+    }
+    if (lastIndex < decodedText.length) {
+      nodes.push(
+        <span key={`${eventKey}-text-${lastIndex}`}>
+          {stripOngoingMatchEventMarkup(decodedText.slice(lastIndex))}
+        </span>
+      );
+    }
+    return nodes;
+  };
+
   const tableStyle = useMemo(() => {
     const remainingColumns = Math.max(leagueTableColumns.length - 1, 1);
     return {
@@ -10837,6 +11622,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         "--cc-template": "minmax(180px, 1.4fr) minmax(120px, 0.8fr)",
       }) as CSSProperties,
     [powerRatingsTableColumns.length]
+  );
+
+  const ongoingMatchesTableStyle = useMemo(
+    () =>
+      ({
+        "--cc-columns": ongoingMatchesTableColumns.length,
+        "--cc-template":
+          "minmax(76px, 0.75fr) minmax(150px, 1.05fr) minmax(70px, 0.45fr) minmax(112px, 0.8fr)",
+      }) as CSSProperties,
+    [ongoingMatchesTableColumns.length]
   );
 
   const arenaTableStyle = useMemo(
@@ -13086,6 +13881,129 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               </div>
             );
           }
+          if (panelId === "ongoing-matches") {
+            return (
+              <div
+                key={panelId}
+                className={`${styles.chroniclePanelDragWrap}${dropTargetPanelId === panelId ? ` ${styles.chroniclePanelDragOver}` : ""}`}
+                onDragOver={(event) => handlePanelDragOver(event, panelId)}
+                onDragEnter={(event) => handlePanelDragEnter(event, panelId)}
+                onDragLeave={(event) => handlePanelDragLeave(event, panelId)}
+                onDrop={(event) => handlePanelDrop(event, panelId)}
+                onPointerEnter={() => handlePanelPointerEnter(panelId)}
+                onPointerUp={() => handlePanelPointerUp(panelId)}
+                onDragEnd={handlePanelDragEnd}
+              >
+                <ChroniclePanel
+                  title={messages.clubChronicleOngoingMatchesPanelTitle}
+                  headerAccessory={
+                    <div
+                      className={styles.chroniclePanelHeaderToggleGroup}
+                      onPointerDown={(event) => event.stopPropagation()}
+                    >
+                      <label className={styles.chroniclePanelHeaderToggle}>
+                        <span className={styles.chroniclePanelHeaderToggleText}>
+                          {messages.clubChronicleOngoingMatchesEnableLabel}
+                        </span>
+                        <input
+                          type="checkbox"
+                          className={styles.chroniclePanelHeaderToggleInput}
+                          checked={ongoingMatchesEnabled}
+                          onChange={(event) =>
+                            handleOngoingMatchesEnabledChange(event.target.checked)
+                          }
+                        />
+                        <span
+                          className={styles.chroniclePanelHeaderToggleSwitch}
+                          aria-hidden="true"
+                        />
+                      </label>
+                      <label className={styles.chroniclePanelHeaderToggle}>
+                        <span className={styles.chroniclePanelHeaderToggleText}>
+                          {messages.clubChronicleOngoingMatchesIncludeTournamentsLabel}
+                        </span>
+                        <input
+                          type="checkbox"
+                          className={styles.chroniclePanelHeaderToggleInput}
+                          checked={ongoingMatchesTournamentEnabled}
+                          disabled={!ongoingMatchesEnabled}
+                          onChange={(event) =>
+                            handleOngoingMatchesTournamentChange(event.target.checked)
+                          }
+                        />
+                        <span
+                          className={styles.chroniclePanelHeaderToggleSwitch}
+                          aria-hidden="true"
+                        />
+                      </label>
+                    </div>
+                  }
+                  refreshing={refreshingGlobal || refreshingOngoingMatches}
+                  progressPct={getPanelRefreshProgress(panelId)}
+                  refreshLabel={messages.clubChronicleRefreshOngoingMatchesTooltip}
+                  panelId={panelId}
+                  onRefresh={() =>
+                    runRefreshGuarded(() => refreshOngoingMatchesOnly())
+                  }
+                  onPointerDown={handlePanelPointerDown}
+                  onDragStart={handlePanelDragStart}
+                  onDragEnd={handlePanelDragEnd}
+                >
+                  {!ongoingMatchesEnabled ? (
+                    <div className={styles.chronicleOngoingMatchesDisabledState}>
+                      <p
+                        className={
+                          styles.chronicleOngoingMatchesDisabledMessage
+                        }
+                      >
+                        {messages.clubChronicleOngoingMatchesDisabled}
+                      </p>
+                      <p className={styles.chronicleOngoingMatchesDisclaimer}>
+                        {messages.clubChronicleOngoingMatchesDisclaimer}
+                      </p>
+                    </div>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingOngoingMatches,
+                      ongoingMatchRows.some((row) => Boolean(row.snapshot))
+                    ) === "loading" ? (
+                    <p className={styles.chronicleEmpty}>
+                      {messages.clubChronicleLoading}
+                    </p>
+                  ) : getChroniclePanelDisplayState(
+                      refreshingGlobal || refreshingOngoingMatches,
+                      ongoingMatchRows.some((row) => Boolean(row.snapshot))
+                    ) === "empty" ? (
+                    renderChronicleNoTeamsEmpty()
+                  ) : (
+                    <>
+                      <ChronicleTable
+                        columns={ongoingMatchesTableColumns}
+                        rows={sortedOngoingMatchRows}
+                        getRowKey={(row) => row.teamId}
+                        getSnapshot={(row) => row.snapshot ?? undefined}
+                        getRowClassName={getTeamRowClassName}
+                        formatValue={formatValue}
+                        className={styles.chronicleOngoingMatchesTable}
+                        style={ongoingMatchesTableStyle}
+                        sortKey={ongoingMatchesSortState.key}
+                        sortDirection={ongoingMatchesSortState.direction}
+                        onSort={handleOngoingMatchesSort}
+                        maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                        maskText={messages.clubChronicleNoDivulgoMask}
+                        isMaskActive={noDivulgoActive}
+                        onMaskedRowClick={(row) =>
+                          handleNoDivulgoDismiss(row.teamId)
+                        }
+                      />
+                      <p className={styles.chronicleOngoingMatchesDisclaimer}>
+                        {messages.clubChronicleOngoingMatchesDisclaimer}
+                      </p>
+                    </>
+                  )}
+                </ChroniclePanel>
+              </div>
+            );
+          }
           if (panelId === "fanclub") {
             return (
               <div
@@ -14288,6 +15206,64 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
         closeOnBackdrop
         onClose={() => setPowerRatingsDetailsOpen(false)}
+      />
+
+      <Modal
+        open={ongoingMatchEventsOpen}
+        title={messages.clubChronicleOngoingMatchesEventsTitle}
+        className={styles.chronicleOngoingMatchEventsModal}
+        body={
+          selectedOngoingMatchTeam?.snapshot?.status === "ongoing" ? (
+            <div className={styles.chroniclePressContent}>
+              <h3 className={styles.chronicleDetailsSectionTitle}>
+                {renderOngoingMatchSummary(selectedOngoingMatchTeam.snapshot)}
+              </h3>
+              <p className={styles.chroniclePressMeta}>
+                {messages.clubChronicleOngoingMatchesColumnScore}:{" "}
+                {formatOngoingMatchScore(selectedOngoingMatchTeam.snapshot)}
+              </p>
+              {selectedOngoingMatchTeam.snapshot.events.length > 0 ? (
+                <ol className={styles.chronicleOngoingMatchEventList}>
+                  {selectedOngoingMatchTeam.snapshot.events.map((event, index) => (
+                    <li
+                      key={`${selectedOngoingMatchTeam.snapshot?.matchId ?? "match"}-${event.index ?? index}`}
+                      className={styles.chronicleOngoingMatchEventItem}
+                    >
+                      <span className={styles.chronicleOngoingMatchEventMinute}>
+                        {event.minute !== null ? event.minute : "-"}:
+                      </span>
+                      <span className={styles.chronicleOngoingMatchEventText}>
+                        {renderOngoingMatchEventText(
+                          event.eventText,
+                          `ongoing-event-${event.index ?? index}`
+                        )}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className={styles.chronicleEmpty}>
+                  {messages.clubChronicleOngoingMatchesEventsEmpty}
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className={styles.chronicleEmpty}>
+              {messages.clubChronicleOngoingMatchesEventsEmpty}
+            </p>
+          )
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setOngoingMatchEventsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setOngoingMatchEventsOpen(false)}
       />
 
       <Modal

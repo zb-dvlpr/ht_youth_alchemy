@@ -500,6 +500,14 @@ export const messagesPl: Messages = {
   seniorSubmitDisclaimerIntro: "Sprawdź proszę poniższe punkty:",
   seniorSubmitDisclaimerManMarkingSummary:
     "Krycie indywidualne {{target}} przez {{marker}} zostanie wysłane.",
+  seniorSubmitDisclaimerManMarkingTargetChosen:
+    "{{target}} wybrany jako cel krycia indywidualnego",
+  seniorSubmitDisclaimerManMarkingMarkerChosen:
+    "{{marker}} wybrany jako kryjacy",
+  seniorSubmitDisclaimerManMarkingTargetMissing:
+    "nie zidentyfikowano odpowiedniego celu krycia indywidualnego",
+  seniorSubmitDisclaimerManMarkingMarkerMissing:
+    "nie zidentyfikowano odpowiedniego kryjacego",
   seniorSubmitDisclaimerOrdersTitle: "Planowane zmiany i zamiany pozycji",
   seniorSubmitDisclaimerOrdersNone: "Brak planowanych zmian lub zamian pozycji.",
   seniorSubmitDisclaimerPenaltyOrderTitle: "Kolejność wykonawców rzutów karnych",

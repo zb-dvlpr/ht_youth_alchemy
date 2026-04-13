@@ -701,6 +701,13 @@ export const messagesEn: Messages = {
     seniorSubmitDisclaimerIntro: "Please review before finalizing:",
     seniorSubmitDisclaimerManMarkingSummary:
       "Man marking of {{target}} by {{marker}} will be submitted.",
+    seniorSubmitDisclaimerManMarkingTargetChosen:
+      "{{target}} chosen as man-marking target",
+    seniorSubmitDisclaimerManMarkingMarkerChosen: "{{marker}} chosen as man marker",
+    seniorSubmitDisclaimerManMarkingTargetMissing:
+      "no suitable man-marking target identified",
+    seniorSubmitDisclaimerManMarkingMarkerMissing:
+      "no suitable man marker identified",
     seniorSubmitDisclaimerOrdersTitle: "Planned substitutions and swaps",
     seniorSubmitDisclaimerOrdersNone: "No planned substitutions or swaps.",
     seniorSubmitDisclaimerPenaltyOrderTitle: "Penalty taker order",

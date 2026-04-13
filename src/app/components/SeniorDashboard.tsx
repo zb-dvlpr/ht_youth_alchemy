@@ -725,8 +725,10 @@ type SeniorAiManMarkingSelection = {
 };
 
 type SeniorSubmitDisclaimerManMarkingSummary = {
-  marker: { id: number; name: string };
-  target: { id: number; name: string };
+  marker: { id: number; name: string } | null;
+  target: { id: number; name: string } | null;
+  missingMarker: boolean;
+  missingTarget: boolean;
 };
 
 type SeniorSubmitDisclaimerOrdersSummary = {
@@ -8888,6 +8890,38 @@ function buildSeniorAiManMarkingReadySignature(params: {
     };
   };
 
+  const buildSeniorSubmitDisclaimerManMarkingSummary = (
+    submittedMatchId: number
+  ): SeniorSubmitDisclaimerManMarkingSummary | null => {
+    if (
+      !seniorAiManMarkingEnabled ||
+      !seniorAiManMarkingSupported ||
+      seniorAiSubmitEnabledMatchId !== submittedMatchId
+    ) {
+      return null;
+    }
+    const submittedSelection = seniorAiManMarkingReady ? seniorAiManMarkingSelection : null;
+    const target = submittedSelection?.target ?? seniorAiManMarkingTarget;
+    const marker = submittedSelection?.marker ?? null;
+    const hasAnyMarkerCandidate = Object.values(seniorAiManMarkingCandidates).some(Boolean);
+    return {
+      marker: marker
+        ? {
+            id: marker.playerId,
+            name: marker.name,
+          }
+        : null,
+      target: target
+        ? {
+            id: target.playerId,
+            name: target.name,
+          }
+        : null,
+      missingMarker: !marker && (Boolean(target) || !hasAnyMarkerCandidate),
+      missingTarget: !target,
+    };
+  };
+
   const buildSeniorSubmitLineupPayload = (
     matchId: number,
     defaultPayload: ReturnType<typeof buildLineupPayload>
@@ -15237,20 +15271,7 @@ const refreshDetailsForPlayers = async (
                   : null
               );
               setSubmitDisclaimerManMarkingSummary(
-                seniorAiManMarkingEnabled &&
-                  seniorAiManMarkingSelection &&
-                  seniorAiSubmitEnabledMatchId === submittedMatchId
-                  ? {
-                      marker: {
-                        id: seniorAiManMarkingSelection.marker.playerId,
-                        name: seniorAiManMarkingSelection.marker.name,
-                      },
-                      target: {
-                        id: seniorAiManMarkingSelection.target.playerId,
-                        name: seniorAiManMarkingSelection.target.name,
-                      },
-                    }
-                  : null
+                buildSeniorSubmitDisclaimerManMarkingSummary(submittedMatchId)
               );
             }
             clearSeniorAiSubmitLock();
@@ -15685,30 +15706,53 @@ const refreshDetailsForPlayers = async (
                 </p>
               </div>
               {submitDisclaimerManMarkingSummary ? (
-                <p className={styles.seniorDisclaimerIntro}>
-                  {renderTemplateTokens(messages.seniorSubmitDisclaimerManMarkingSummary, {
-                    target: (
-                      <a
-                        className={styles.chroniclePressLink}
-                        href={hattrickPlayerUrl(submitDisclaimerManMarkingSummary.target.id)}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {submitDisclaimerManMarkingSummary.target.name}
-                      </a>
-                    ),
-                    marker: (
-                      <a
-                        className={styles.chroniclePressLink}
-                        href={hattrickPlayerUrl(submitDisclaimerManMarkingSummary.marker.id)}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {submitDisclaimerManMarkingSummary.marker.name}
-                      </a>
-                    ),
-                  })}
-                </p>
+                <div>
+                  <p className={styles.seniorDisclaimerIntro}>
+                    {messages.seniorAiManMarkingToggleLabel}
+                  </p>
+                  <p>
+                    {submitDisclaimerManMarkingSummary.target
+                      ? renderTemplateTokens(
+                          messages.seniorSubmitDisclaimerManMarkingTargetChosen,
+                          {
+                            target: (
+                              <a
+                                className={styles.chroniclePressLink}
+                                href={hattrickPlayerUrl(
+                                  submitDisclaimerManMarkingSummary.target.id
+                                )}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {submitDisclaimerManMarkingSummary.target.name}
+                              </a>
+                            ),
+                          }
+                        )
+                      : messages.seniorSubmitDisclaimerManMarkingTargetMissing}
+                    {", "}
+                    {submitDisclaimerManMarkingSummary.marker
+                      ? renderTemplateTokens(
+                          messages.seniorSubmitDisclaimerManMarkingMarkerChosen,
+                          {
+                            marker: (
+                              <a
+                                className={styles.chroniclePressLink}
+                                href={hattrickPlayerUrl(
+                                  submitDisclaimerManMarkingSummary.marker.id
+                                )}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {submitDisclaimerManMarkingSummary.marker.name}
+                              </a>
+                            ),
+                          }
+                        )
+                      : messages.seniorSubmitDisclaimerManMarkingMarkerMissing}
+                    {"."}
+                  </p>
+                </div>
               ) : null}
               {submitDisclaimerSeniorOrdersSummary ? (
                 <>
@@ -18309,20 +18353,7 @@ const refreshDetailsForPlayers = async (
                     : null
                 );
                 setSubmitDisclaimerManMarkingSummary(
-                  seniorAiManMarkingEnabled &&
-                    seniorAiManMarkingSelection &&
-                    seniorAiSubmitEnabledMatchId === submittedMatchId
-                    ? {
-                        marker: {
-                          id: seniorAiManMarkingSelection.marker.playerId,
-                          name: seniorAiManMarkingSelection.marker.name,
-                        },
-                        target: {
-                          id: seniorAiManMarkingSelection.target.playerId,
-                          name: seniorAiManMarkingSelection.target.name,
-                        },
-                      }
-                    : null
+                  buildSeniorSubmitDisclaimerManMarkingSummary(submittedMatchId)
                 );
               }
               clearSeniorAiSubmitLock();

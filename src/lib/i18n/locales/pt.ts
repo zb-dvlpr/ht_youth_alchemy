@@ -738,6 +738,14 @@ export const messagesPt: Messages = {
     seniorSubmitDisclaimerIntro: "Revise os pontos abaixo:",
     seniorSubmitDisclaimerManMarkingSummary:
       "A marcacao individual de {{target}} por {{marker}} sera enviada.",
+    seniorSubmitDisclaimerManMarkingTargetChosen:
+      "{{target}} escolhido como alvo de marcacao individual",
+    seniorSubmitDisclaimerManMarkingMarkerChosen:
+      "{{marker}} escolhido como marcador individual",
+    seniorSubmitDisclaimerManMarkingTargetMissing:
+      "nenhum alvo adequado de marcacao individual identificado",
+    seniorSubmitDisclaimerManMarkingMarkerMissing:
+      "nenhum marcador individual adequado identificado",
     seniorSubmitDisclaimerOrdersTitle: "Substituicoes e trocas planejadas",
     seniorSubmitDisclaimerOrdersNone: "Nenhuma substituicao ou troca planejada.",
     seniorSubmitDisclaimerPenaltyOrderTitle: "Ordem dos cobradores de penalti",

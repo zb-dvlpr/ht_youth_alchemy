@@ -730,6 +730,14 @@ export const messagesSv: Messages = {
     seniorSubmitDisclaimerIntro: "Gå igenom följande:",
     seniorSubmitDisclaimerManMarkingSummary:
       "Manmarkering av {{target}} med {{marker}} kommer att skickas.",
+    seniorSubmitDisclaimerManMarkingTargetChosen:
+      "{{target}} vald som manmarkeringsmal",
+    seniorSubmitDisclaimerManMarkingMarkerChosen:
+      "{{marker}} vald som manmarkerare",
+    seniorSubmitDisclaimerManMarkingTargetMissing:
+      "inget laempligt manmarkeringsmal identifierat",
+    seniorSubmitDisclaimerManMarkingMarkerMissing:
+      "ingen laemplig manmarkerare identifierad",
     seniorSubmitDisclaimerOrdersTitle: "Planerade byten och positionsbyten",
     seniorSubmitDisclaimerOrdersNone: "Inga planerade byten eller positionsbyten.",
     seniorSubmitDisclaimerPenaltyOrderTitle: "Straffskyttarnas ordning",

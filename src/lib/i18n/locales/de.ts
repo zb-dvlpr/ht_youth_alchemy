@@ -724,6 +724,14 @@ export const messagesDe: Messages = {
     seniorSubmitDisclaimerIntro: "Bitte beachte Folgendes:",
     seniorSubmitDisclaimerManMarkingSummary:
       "Manndeckung von {{target}} durch {{marker}} wird mitgesendet.",
+    seniorSubmitDisclaimerManMarkingTargetChosen:
+      "{{target}} als Manndeckungsziel gewaehlt",
+    seniorSubmitDisclaimerManMarkingMarkerChosen:
+      "{{marker}} als Manndecker gewaehlt",
+    seniorSubmitDisclaimerManMarkingTargetMissing:
+      "kein geeignetes Manndeckungsziel identifiziert",
+    seniorSubmitDisclaimerManMarkingMarkerMissing:
+      "kein geeigneter Manndecker identifiziert",
     seniorSubmitDisclaimerOrdersTitle: "Geplante Auswechslungen und Wechsel",
     seniorSubmitDisclaimerOrdersNone: "Keine geplanten Auswechslungen oder Wechsel.",
     seniorSubmitDisclaimerPenaltyOrderTitle: "Reihenfolge der Elfmeterschützen",

@@ -739,6 +739,14 @@ export const messagesIt: Messages = {
     seniorSubmitDisclaimerIntro: "Controlla i seguenti punti:",
     seniorSubmitDisclaimerManMarkingSummary:
       "Sarà inviato il marcamento a uomo di {{target}} da parte di {{marker}}.",
+    seniorSubmitDisclaimerManMarkingTargetChosen:
+      "{{target}} scelto come bersaglio della marcatura a uomo",
+    seniorSubmitDisclaimerManMarkingMarkerChosen:
+      "{{marker}} scelto come marcatore a uomo",
+    seniorSubmitDisclaimerManMarkingTargetMissing:
+      "nessun bersaglio adatto per la marcatura a uomo identificato",
+    seniorSubmitDisclaimerManMarkingMarkerMissing:
+      "nessun marcatore a uomo adatto identificato",
     seniorSubmitDisclaimerOrdersTitle: "Sostituzioni e scambi pianificati",
     seniorSubmitDisclaimerOrdersNone: "Nessuna sostituzione o scambio pianificato.",
     seniorSubmitDisclaimerPenaltyOrderTitle: "Ordine dei rigoristi",

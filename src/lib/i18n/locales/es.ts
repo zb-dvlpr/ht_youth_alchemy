@@ -738,6 +738,14 @@ export const messagesEs: Messages = {
     seniorSubmitDisclaimerIntro: "Revisa lo siguiente:",
     seniorSubmitDisclaimerManMarkingSummary:
       "Se enviará el marcaje individual de {{target}} por {{marker}}.",
+    seniorSubmitDisclaimerManMarkingTargetChosen:
+      "{{target}} elegido como objetivo de marcaje individual",
+    seniorSubmitDisclaimerManMarkingMarkerChosen:
+      "{{marker}} elegido como marcador individual",
+    seniorSubmitDisclaimerManMarkingTargetMissing:
+      "no se identifico un objetivo adecuado de marcaje individual",
+    seniorSubmitDisclaimerManMarkingMarkerMissing:
+      "no se identifico un marcador individual adecuado",
     seniorSubmitDisclaimerOrdersTitle: "Sustituciones e intercambios previstos",
     seniorSubmitDisclaimerOrdersNone: "No hay sustituciones ni intercambios previstos.",
     seniorSubmitDisclaimerPenaltyOrderTitle: "Orden de lanzadores de penalti",

@@ -737,6 +737,14 @@ export const messagesFr: Messages = {
     seniorSubmitDisclaimerIntro: "Merci de vérifier les points suivants :",
     seniorSubmitDisclaimerManMarkingSummary:
       "Le marquage individuel de {{target}} par {{marker}} sera envoyé.",
+    seniorSubmitDisclaimerManMarkingTargetChosen:
+      "{{target}} choisi comme cible de marquage individuel",
+    seniorSubmitDisclaimerManMarkingMarkerChosen:
+      "{{marker}} choisi comme marqueur individuel",
+    seniorSubmitDisclaimerManMarkingTargetMissing:
+      "aucune cible de marquage individuel adequate identifiee",
+    seniorSubmitDisclaimerManMarkingMarkerMissing:
+      "aucun marqueur individuel adequat identifie",
     seniorSubmitDisclaimerOrdersTitle: "Remplacements et permutations prévus",
     seniorSubmitDisclaimerOrdersNone: "Aucun remplacement ou permutation prévu.",
     seniorSubmitDisclaimerPenaltyOrderTitle: "Ordre des tireurs de penalty",

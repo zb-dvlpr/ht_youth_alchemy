@@ -507,6 +507,14 @@ export const messagesNl: Messages = {
   seniorSubmitDisclaimerIntro: "Controleer het volgende:",
   seniorSubmitDisclaimerManMarkingSummary:
     "Mandekking van {{target}} door {{marker}} wordt meegestuurd.",
+  seniorSubmitDisclaimerManMarkingTargetChosen:
+    "{{target}} gekozen als mandekkingsdoel",
+  seniorSubmitDisclaimerManMarkingMarkerChosen:
+    "{{marker}} gekozen als mandekker",
+  seniorSubmitDisclaimerManMarkingTargetMissing:
+    "geen geschikt mandekkingsdoel geidentificeerd",
+  seniorSubmitDisclaimerManMarkingMarkerMissing:
+    "geen geschikte mandekker geidentificeerd",
   seniorSubmitDisclaimerOrdersTitle: "Geplande wissels en positiewissels",
   seniorSubmitDisclaimerOrdersNone: "Geen geplande wissels of positiewissels.",
   seniorSubmitDisclaimerPenaltyOrderTitle: "Volgorde van penaltynemers",

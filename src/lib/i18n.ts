@@ -604,6 +604,10 @@ export type Messages = {
   seniorSubmitDisclaimerTitle: string;
   seniorSubmitDisclaimerIntro: string;
   seniorSubmitDisclaimerManMarkingSummary: string;
+  seniorSubmitDisclaimerManMarkingTargetChosen: string;
+  seniorSubmitDisclaimerManMarkingMarkerChosen: string;
+  seniorSubmitDisclaimerManMarkingTargetMissing: string;
+  seniorSubmitDisclaimerManMarkingMarkerMissing: string;
   seniorSubmitDisclaimerOrdersTitle: string;
   seniorSubmitDisclaimerOrdersNone: string;
   seniorSubmitDisclaimerPenaltyOrderTitle: string;

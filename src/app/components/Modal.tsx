@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 
 import styles from "../page.module.css";
@@ -16,6 +16,10 @@ type ModalProps = {
   closeOnBackdrop?: boolean;
   onClose?: () => void;
 };
+
+const subscribeMountedSnapshot = () => () => {};
+const getClientMountedSnapshot = () => true;
+const getServerMountedSnapshot = () => false;
 
 export default function Modal({
   open,
@@ -39,6 +43,11 @@ export default function Modal({
   } | null>(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const mounted = useSyncExternalStore(
+    subscribeMountedSnapshot,
+    getClientMountedSnapshot,
+    getServerMountedSnapshot
+  );
 
   useEffect(() => {
     if (!open || !isDragging) return;
@@ -75,7 +84,7 @@ export default function Modal({
     };
   }, [isDragging, open]);
 
-  if (!open || typeof document === "undefined") return null;
+  if (!open || !mounted || typeof document === "undefined") return null;
   const overlayClass =
     variant === "local" ? styles.confirmOverlay : styles.trainingOverlay;
 

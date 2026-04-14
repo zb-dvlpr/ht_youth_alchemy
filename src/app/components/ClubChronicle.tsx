@@ -512,7 +512,6 @@ type OngoingMatchSnapshot = {
 };
 
 type OngoingMatchEvent = {
-  index: number | null;
   minute: number | null;
   eventText: string;
 };
@@ -6408,18 +6407,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   ): OngoingMatchEvent[] => {
     const eventNode = (eventList as RawNode | null | undefined)?.Event;
     return toArray(eventNode as RawNode | RawNode[] | null | undefined)
-      .map((event) => ({
-        index: parseNumberNode(event["@_Index"]),
+      .map((event, returnedOrder) => ({
         minute: parseNumberNode(event.Minute),
         eventText: parseStringNode(event.EventText) ?? "",
+        returnedOrder,
       }))
       .filter((event) => event.eventText.trim().length > 0)
       .sort((left, right) => {
-        const leftIndex = left.index ?? 0;
-        const rightIndex = right.index ?? 0;
-        if (leftIndex !== rightIndex) return leftIndex - rightIndex;
-        return (left.minute ?? 0) - (right.minute ?? 0);
-      });
+        const minuteDiff = (left.minute ?? 0) - (right.minute ?? 0);
+        return minuteDiff !== 0 ? minuteDiff : left.returnedOrder - right.returnedOrder;
+      })
+      .map(({ minute, eventText }) => ({ minute, eventText }));
   };
 
   const buildOngoingMatchSnapshot = (
@@ -6495,7 +6493,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const { response, payload } = await fetchChppJson<{
       data?: { HattrickData?: { MatchList?: { Match?: RawNode | RawNode[] } } };
       error?: string;
-    }>(`/api/chpp/live?actionType=view`, { cache: "no-store" });
+    }>(`/api/chpp/live?actionType=viewAll`, { cache: "no-store" });
     if (!response.ok || payload?.error) return [];
     return toArray(payload?.data?.HattrickData?.MatchList?.Match);
   };
@@ -15226,7 +15224,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 <ol className={styles.chronicleOngoingMatchEventList}>
                   {selectedOngoingMatchTeam.snapshot.events.map((event, index) => (
                     <li
-                      key={`${selectedOngoingMatchTeam.snapshot?.matchId ?? "match"}-${event.index ?? index}`}
+                      key={`${selectedOngoingMatchTeam.snapshot?.matchId ?? "match"}-${event.minute ?? "minute"}-${index}`}
                       className={styles.chronicleOngoingMatchEventItem}
                     >
                       <span className={styles.chronicleOngoingMatchEventMinute}>
@@ -15235,7 +15233,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       <span className={styles.chronicleOngoingMatchEventText}>
                         {renderOngoingMatchEventText(
                           event.eventText,
-                          `ongoing-event-${event.index ?? index}`
+                          `ongoing-event-${event.minute ?? "minute"}-${index}`
                         )}
                       </span>
                     </li>

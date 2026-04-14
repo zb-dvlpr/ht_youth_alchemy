@@ -6,6 +6,7 @@ Hattrick Alchemy is a CHPP-approved web app for Hattrick optimization workflows.
 - CHPP OAuth connection to Hattrick
 - Multi-team youth and senior support for managers with multiple clubs/academies
 - Youth player list, player details, ratings/skills matrices, and lineup optimization
+- Youth transfer value estimates from revealed maximum potential
 - Senior player list, player details, ratings/skills matrices, and lineup workflow
 - Senior AI lineup support for role-based man marking suggestions and match-order submission
 - NEW markers in youth matrices for latest detected player/skill/rating changes
@@ -13,7 +14,7 @@ Hattrick Alchemy is a CHPP-approved web app for Hattrick optimization workflows.
 - Match list with load/submit match orders
 - Club Chronicle panels for league, press, fan club, arena, formations/tactics, likely training, last logins, coach details, transfers, TSI, and wages
 - Shared workflows with platform-aware UX evolution for distinct desktop and mobile ergonomics
-- Localization (`en`, `de`, `fr`, `es`, `sv`, `it`, `pt`)
+- Localization (`en`, `de`, `fr`, `es`, `sv`, `it`, `pt`, `pl`, `nl`)
 - Local settings export/import and persisted UI state
 
 ## Tech stack

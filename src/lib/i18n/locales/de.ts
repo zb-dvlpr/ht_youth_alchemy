@@ -72,6 +72,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_4_5_0:
+      "Jugendspielerdetails koennen jetzt den Transferwert aus aufgedecktem Maximalpotenzial schaetzen.",
     changelog_4_4_0:
       "Club-Chronik kann jetzt laufende Spiele mit optionaler Turnierunterstuetzung verfolgen.",
     changelog_4_3_0:
@@ -1139,6 +1141,13 @@ export const messagesDe: Messages = {
     seniorTransferSearchBidMissingAmount: "Bitte zuerst einen Gebotsbetrag eingeben.",
     seniorTransferSearchBidPlaced: "Gebot fuer {{player}} abgegeben.",
     seniorTransferSearchBidFailed: "Gebot fehlgeschlagen: {{details}}",
+    youthEstimateValueButton: "Wert schaetzen",
+    youthEstimateValueTooltip:
+      "Durchsuche den Transfermarkt nach dem maximalen Potenzial dieses Spielers.",
+    youthEstimateValueDisabledTooltip:
+      "Decke mindestens ein maximales Potenzial auf, bevor du den Wert schaetzt.",
+    youthEstimateValueAgeMissingTooltip:
+      "Aktualisiere die Spielerdetails, bevor du den Wert schaetzt.",
     sortLabel: "Sortieren nach",
     sortName: "Name",
     sortAge: "Alter",

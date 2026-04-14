@@ -72,6 +72,8 @@ export const messagesEs: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Esta aplicación está en beta. Las funciones, el comportamiento y los datos locales en caché pueden cambiar o reiniciarse sin previo aviso.",
+    changelog_4_5_0:
+      "Los detalles de juveniles ahora pueden estimar el valor de transferencia desde el potencial maximo revelado.",
     changelog_4_4_0:
       "Club Chronicle ahora puede seguir partidos en curso con soporte opcional para torneos.",
     changelog_4_3_0:
@@ -1156,6 +1158,13 @@ export const messagesEs: Messages = {
     seniorTransferSearchBidMissingAmount: "Primero introduce un importe de puja.",
     seniorTransferSearchBidPlaced: "Puja realizada por {{player}}.",
     seniorTransferSearchBidFailed: "La puja fallo: {{details}}",
+    youthEstimateValueButton: "Estimar valor",
+    youthEstimateValueTooltip:
+      "Buscar en el mercado de transferencias segun el potencial maximo de este jugador.",
+    youthEstimateValueDisabledTooltip:
+      "Revela al menos una habilidad de potencial maximo antes de estimar el valor.",
+    youthEstimateValueAgeMissingTooltip:
+      "Actualiza los detalles del jugador antes de estimar el valor.",
     sortLabel: "Ordenar por",
     sortName: "Nombre",
     sortAge: "Edad",

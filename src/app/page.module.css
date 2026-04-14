@@ -6333,6 +6333,10 @@ html[data-theme="dark"] .spinner {
   position: relative;
 }
 
+.profileCardWithHeaderActions {
+  padding-top: 14px;
+}
+
 .profileHeader {
   display: flex;
   flex-wrap: wrap;
@@ -6411,6 +6415,22 @@ html[data-theme="dark"] .spinner {
   right: 14px;
   display: inline-flex;
   gap: 6px;
+}
+
+.profileCardWithHeaderActions .detailsRefreshCorner {
+  position: static;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.youthEstimateValueButton {
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 html[data-mobile-shell="true"] .mobileYouthContent .profileCard {

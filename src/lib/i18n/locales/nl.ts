@@ -132,6 +132,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_5_0:
+    "Jeugdspelerdetails kunnen nu transferwaarde schatten op basis van onthuld maximaal potentieel.",
   changelog_4_4_0:
     "Club Chronicle kan nu lopende wedstrijden volgen met optionele toernooiondersteuning.",
   changelog_4_3_0:
@@ -280,6 +282,13 @@ export const messagesNl: Messages = {
   seniorTransferSearchBidMissingAmount: "Voer eerst een bodbedrag in.",
   seniorTransferSearchBidPlaced: "Bod geplaatst op {{player}}.",
   seniorTransferSearchBidFailed: "Bod mislukt: {{details}}",
+  youthEstimateValueButton: "Waarde schatten",
+  youthEstimateValueTooltip:
+    "Zoek op de transfermarkt op basis van het maximale potentieel van deze speler.",
+  youthEstimateValueDisabledTooltip:
+    "Onthul minstens een maximaal potentieel voordat je de waarde schat.",
+  youthEstimateValueAgeMissingTooltip:
+    "Ververs de spelersdetails voordat je de waarde schat.",
   seniorListInjuryBruised: "Gekneusd",
   seniorListInjuryWeeks: "Geblesseerd ({weeks}w)",
   seniorCardsMatchRunning: "wedstrijd bezig",

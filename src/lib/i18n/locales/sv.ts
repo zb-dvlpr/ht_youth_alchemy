@@ -72,6 +72,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_5_0:
+      "Ungdomsspelares detaljer kan nu uppskatta transfervarde fran avslojad maxpotential.",
     changelog_4_4_0:
       "Club Chronicle kan nu följa pågående matcher med valfritt turneringsstöd.",
     changelog_4_3_0:
@@ -1147,6 +1149,13 @@ export const messagesSv: Messages = {
     seniorTransferSearchBidMissingAmount: "Ange ett budbelopp forst.",
     seniorTransferSearchBidPlaced: "Bud lagt pa {{player}}.",
     seniorTransferSearchBidFailed: "Bud misslyckades: {{details}}",
+    youthEstimateValueButton: "Uppskatta varde",
+    youthEstimateValueTooltip:
+      "Sok pa transfermarknaden utifran spelarens maximala potential.",
+    youthEstimateValueDisabledTooltip:
+      "Avsloja minst en maxpotential innan vardet uppskattas.",
+    youthEstimateValueAgeMissingTooltip:
+      "Uppdatera spelardetaljerna innan vardet uppskattas.",
     sortLabel: "Sortera efter",
     sortName: "Namn",
     sortAge: "Ålder",

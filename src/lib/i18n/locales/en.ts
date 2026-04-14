@@ -72,6 +72,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_4_5_0:
+      "Youth player details can now estimate transfer value from revealed maximum potential.",
     changelog_4_4_0:
       "Club Chronicle can now track ongoing matches with optional tournament support.",
     changelog_4_3_0:
@@ -1104,6 +1106,13 @@ export const messagesEn: Messages = {
     seniorTransferSearchBidMissingAmount: "Enter a bid amount first.",
     seniorTransferSearchBidPlaced: "Bid placed for {{player}}.",
     seniorTransferSearchBidFailed: "Bid failed: {{details}}",
+    youthEstimateValueButton: "Estimate value",
+    youthEstimateValueTooltip:
+      "Search the transfer market based on this player's maximum potential.",
+    youthEstimateValueDisabledTooltip:
+      "Reveal at least one max potential skill before estimating value.",
+    youthEstimateValueAgeMissingTooltip:
+      "Refresh player details before estimating value.",
     sortLabel: "Sort by",
     sortName: "Name",
     sortAge: "Age",

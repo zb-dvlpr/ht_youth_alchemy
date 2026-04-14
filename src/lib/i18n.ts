@@ -78,6 +78,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_4_5_0: string;
   changelog_4_4_0: string;
   changelog_4_3_0: string;
   changelog_4_2_0: string;
@@ -927,6 +928,10 @@ export type Messages = {
   seniorTransferSearchBidMissingAmount: string;
   seniorTransferSearchBidPlaced: string;
   seniorTransferSearchBidFailed: string;
+  youthEstimateValueButton: string;
+  youthEstimateValueTooltip: string;
+  youthEstimateValueDisabledTooltip: string;
+  youthEstimateValueAgeMissingTooltip: string;
   sortLabel: string;
   sortName: string;
   sortAge: string;

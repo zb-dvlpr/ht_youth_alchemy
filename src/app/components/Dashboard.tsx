@@ -29,6 +29,26 @@ import { getChangelogEntries } from "@/lib/changelog";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
+import TransferSearchModal, {
+  ageToTotalDays,
+  buildTransferSearchMinimumBidEur,
+  buildTransferSearchParams,
+  CHPP_SEK_PER_EUR,
+  clampTransferSkillValue,
+  eurToSek,
+  formatTransferSearchBidDraftEur,
+  formatTransferSearchPlayerName,
+  normalizeTransferSearchFilters,
+  normalizeTransferSearchResults,
+  totalDaysToAge,
+  TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS,
+  TRANSFER_SEARCH_SKILLS,
+  type TransferSearchBidDraft,
+  type TransferSearchFilters,
+  type TransferSearchResult,
+  type TransferSearchSkillFilter,
+  type TransferSearchSkillKey,
+} from "./TransferSearchModal";
 import {
   POSITION_COLUMNS,
   normalizeMatchRoleId,
@@ -76,7 +96,11 @@ import {
   writeChppDebugOauthErrorMode,
 } from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
-import { hattrickYouthMatchUrl } from "@/lib/hattrick/urls";
+import {
+  hattrickPlayerUrl,
+  hattrickTeamUrl,
+  hattrickYouthMatchUrl,
+} from "@/lib/hattrick/urls";
 import { setDragGhost } from "@/lib/drag";
 import {
   getMissingChppPermissions,
@@ -597,6 +621,24 @@ const normalizeMatrixNewMarkers = (value: unknown): MatrixNewMarkers => {
   };
 };
 
+const normalizeTransferSearchBidDrafts = (
+  value: unknown
+): Record<number, TransferSearchBidDraft> => {
+  if (!value || typeof value !== "object") return {};
+  const next: Record<number, TransferSearchBidDraft> = {};
+  Object.entries(value as Record<string, unknown>).forEach(([playerId, draft]) => {
+    const parsedPlayerId = Number(playerId);
+    if (!Number.isFinite(parsedPlayerId) || parsedPlayerId <= 0) return;
+    if (!draft || typeof draft !== "object") return;
+    const node = draft as Record<string, unknown>;
+    next[parsedPlayerId] = {
+      bidEur: typeof node.bidEur === "string" ? node.bidEur : "",
+      maxBidEur: typeof node.maxBidEur === "string" ? node.maxBidEur : "",
+    };
+  });
+  return next;
+};
+
 const hasNonEmptyMarkerRecord = <T extends number | string>(
   value: Record<number, T[]>
 ) => Object.values(value).some((entries) => entries.length > 0);
@@ -881,6 +923,28 @@ export default function Dashboard({
     null
   );
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
+  const [transferSearchModalOpen, setTransferSearchModalOpen] = useState(false);
+  const [transferSearchSourcePlayerId, setTransferSearchSourcePlayerId] =
+    useState<number | null>(null);
+  const [transferSearchFilters, setTransferSearchFilters] =
+    useState<TransferSearchFilters | null>(null);
+  const [transferSearchResults, setTransferSearchResults] = useState<
+    TransferSearchResult[]
+  >([]);
+  const [transferSearchItemCount, setTransferSearchItemCount] =
+    useState<number | null>(null);
+  const [transferSearchLoading, setTransferSearchLoading] = useState(false);
+  const [transferSearchError, setTransferSearchError] = useState<string | null>(null);
+  const [transferSearchExactEmpty, setTransferSearchExactEmpty] = useState(false);
+  const [transferSearchDetailsById, setTransferSearchDetailsById] = useState<
+    Record<number, YouthPlayerDetails>
+  >({});
+  const [transferSearchBidDrafts, setTransferSearchBidDrafts] = useState<
+    Record<number, TransferSearchBidDraft>
+  >({});
+  const [transferSearchBidPendingPlayerId, setTransferSearchBidPendingPlayerId] =
+    useState<number | null>(null);
+  const transferSearchRequestIdRef = useRef(0);
   const [loadError, setLoadError] = useState<string | null>(initialLoadError);
   const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(
     initialLoadDetails
@@ -1493,6 +1557,163 @@ export default function Dashboard({
     [playerList, selectedId]
   );
 
+  const transferSearchSourcePlayer = useMemo(
+    () =>
+      transferSearchSourcePlayerId
+        ? playerList.find(
+            (player) => player.YouthPlayerID === transferSearchSourcePlayerId
+          ) ?? null
+        : null,
+    [playerList, transferSearchSourcePlayerId]
+  );
+
+  const selectedTransferSearchPlayerName =
+    transferSearchSourcePlayer
+      ? formatPlayerName(transferSearchSourcePlayer)
+      : selectedPlayer
+        ? formatPlayerName(selectedPlayer)
+        : null;
+
+  const formatEurFromSek = (valueSek: number) =>
+    new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency: "EUR",
+      maximumFractionDigits: 0,
+    }).format(valueSek / CHPP_SEK_PER_EUR);
+
+  const transferSearchBarGradient = (
+    value: number | null,
+    minSkillLevel: number,
+    maxSkillLevel: number
+  ) => {
+    if (value === null || value === undefined) return undefined;
+    if (maxSkillLevel <= minSkillLevel) return undefined;
+    const t = Math.min(
+      1,
+      Math.max((value - minSkillLevel) / (maxSkillLevel - minSkillLevel), 0)
+    );
+    if (t >= 1) return "linear-gradient(90deg, #2f9f5b, #1f6f3f)";
+    if (t <= 0) return "linear-gradient(90deg, #cf3f3a, #8b241f)";
+    const startHue = 6 + (136 - 6) * t;
+    const startSat = 72 - 8 * t;
+    const startLight = 49 - 9 * t;
+    const endHue = 2 + (145 - 2) * t;
+    const endSat = 66 - 10 * t;
+    const endLight = 33 - 5 * t;
+    return `linear-gradient(90deg, hsl(${Math.round(startHue)} ${Math.round(startSat)}% ${Math.round(startLight)}%), hsl(${Math.round(endHue)} ${Math.round(endSat)}% ${Math.round(endLight)}%))`;
+  };
+
+  const youthPromotionAgeTotalDays = (
+    player: YouthPlayer | null,
+    details: YouthPlayerDetails | null
+  ) => {
+    const years = details?.Age ?? player?.Age ?? null;
+    const days = details?.AgeDays ?? player?.AgeDays ?? null;
+    const canBePromotedIn = details?.CanBePromotedIn ?? player?.CanBePromotedIn ?? null;
+    if (years === null || days === null || canBePromotedIn === null) return null;
+    return ageToTotalDays(years, days) + Math.max(0, canBePromotedIn);
+  };
+
+  const buildYouthEstimateValueSkillFilters = (
+    player: YouthPlayer,
+    details: YouthPlayerDetails | null
+  ): TransferSearchSkillFilter[] => {
+    const skills = mergedSkills(details?.PlayerSkills, player.PlayerSkills);
+    if (!skills) return [];
+    const skillDefinitions: Array<{
+      skillKey: TransferSearchSkillKey;
+      maxKey: string;
+      skillType: number;
+    }> = [
+      { skillKey: "KeeperSkill", maxKey: "KeeperSkillMax", skillType: 1 },
+      { skillKey: "SetPiecesSkill", maxKey: "SetPiecesSkillMax", skillType: 3 },
+      { skillKey: "DefenderSkill", maxKey: "DefenderSkillMax", skillType: 4 },
+      { skillKey: "ScorerSkill", maxKey: "ScorerSkillMax", skillType: 5 },
+      { skillKey: "WingerSkill", maxKey: "WingerSkillMax", skillType: 6 },
+      { skillKey: "PassingSkill", maxKey: "PassingSkillMax", skillType: 7 },
+      { skillKey: "PlaymakerSkill", maxKey: "PlaymakerSkillMax", skillType: 8 },
+    ];
+    return skillDefinitions
+      .map((definition) => {
+        const value = getKnownSkillValue(skills[definition.maxKey]);
+        if (value === null) return null;
+        const clamped = clampTransferSkillValue(definition.skillKey, value);
+        return {
+          skillKey: definition.skillKey,
+          min: clamped,
+          max: clamped,
+          skillType: definition.skillType,
+        };
+      })
+      .filter(
+        (
+          entry
+        ): entry is TransferSearchSkillFilter & { skillType: number } => entry !== null
+      )
+      .sort((left, right) => right.max - left.max || left.skillType - right.skillType)
+      .slice(0, 4)
+      .map(({ skillKey, min, max }) => ({ skillKey, min, max }));
+  };
+
+  const buildYouthEstimateValueFilters = (
+    player: YouthPlayer,
+    details: YouthPlayerDetails | null,
+    fallback: boolean
+  ): TransferSearchFilters | null => {
+    const skillFilters = buildYouthEstimateValueSkillFilters(player, details);
+    if (skillFilters.length === 0) return null;
+    const promotionAge = youthPromotionAgeTotalDays(player, details);
+    if (promotionAge === null) return null;
+    const ageWindow = fallback ? 50 : 20;
+    const ageMin = totalDaysToAge(
+      Math.max(TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS, promotionAge - ageWindow)
+    );
+    const ageMax = totalDaysToAge(
+      Math.max(TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS, promotionAge + ageWindow)
+    );
+    const visibleSpecialty = Number(details?.Specialty ?? player.Specialty ?? 0);
+    const discoveredSpecialty = Number(
+      hiddenSpecialtyByPlayerId[player.YouthPlayerID] ?? 0
+    );
+    const specialty =
+      !fallback && visibleSpecialty > 0
+        ? visibleSpecialty
+        : !fallback && discoveredSpecialty > 0
+          ? discoveredSpecialty
+          : null;
+    return normalizeTransferSearchFilters({
+      skillFilters,
+      specialty,
+      ageMinYears: ageMin.years,
+      ageMinDays: ageMin.days,
+      ageMaxYears: ageMax.years,
+      ageMaxDays: ageMax.days,
+      tsiMin: "",
+      tsiMax: "",
+      priceMinEur: "",
+      priceMaxEur: "",
+    });
+  };
+
+  const selectedYouthEstimateValueDetails = selectedPlayer
+    ? playerDetailsById.get(selectedPlayer.YouthPlayerID) ?? null
+    : null;
+  const selectedYouthEstimateValueSkillCount =
+    selectedPlayer
+      ? buildYouthEstimateValueSkillFilters(
+          selectedPlayer,
+          selectedYouthEstimateValueDetails
+        ).length
+      : 0;
+  const selectedYouthEstimateValueAgeReady =
+    selectedPlayer
+      ? youthPromotionAgeTotalDays(selectedPlayer, selectedYouthEstimateValueDetails) !== null
+      : false;
+  const youthEstimateValueDisabled =
+    !selectedPlayer ||
+    selectedYouthEstimateValueSkillCount === 0 ||
+    !selectedYouthEstimateValueAgeReady;
+
   const pushMobileYouthState = useCallback(
     (
       view: YouthMobileView,
@@ -1798,6 +2019,13 @@ export default function Dashboard({
         mobileYouthView?: YouthMobileView;
         mobileYouthPlayerScreen?: MobileYouthPlayerScreen;
         mobileYouthMenuPosition?: { x?: number; y?: number } | null;
+        transferSearchModalOpen?: boolean;
+        transferSearchSourcePlayerId?: number | null;
+        transferSearchFilters?: TransferSearchFilters | null;
+        transferSearchResults?: TransferSearchResult[];
+        transferSearchItemCount?: number | null;
+        transferSearchExactEmpty?: boolean;
+        transferSearchBidDrafts?: Record<number, TransferSearchBidDraft>;
       };
       const forceWipeLegacyUpdatesState =
         typeof parsed.updatesSchemaVersion !== "number" ||
@@ -1859,6 +2087,31 @@ export default function Dashboard({
       }
       if (parsed.loadedMatchId !== undefined)
         setLoadedMatchId(parsed.loadedMatchId);
+      if (typeof parsed.transferSearchModalOpen === "boolean") {
+        setTransferSearchModalOpen(parsed.transferSearchModalOpen);
+      }
+      setTransferSearchSourcePlayerId(
+        typeof parsed.transferSearchSourcePlayerId === "number"
+          ? parsed.transferSearchSourcePlayerId
+          : null
+      );
+      setTransferSearchFilters(
+        parsed.transferSearchFilters
+          ? normalizeTransferSearchFilters(parsed.transferSearchFilters)
+          : null
+      );
+      setTransferSearchResults(
+        Array.isArray(parsed.transferSearchResults) ? parsed.transferSearchResults : []
+      );
+      setTransferSearchItemCount(
+        typeof parsed.transferSearchItemCount === "number"
+          ? parsed.transferSearchItemCount
+          : null
+      );
+      setTransferSearchExactEmpty(Boolean(parsed.transferSearchExactEmpty));
+      setTransferSearchBidDrafts(
+        normalizeTransferSearchBidDrafts(parsed.transferSearchBidDrafts)
+      );
       if (parsed.cache) {
         setCache(parsed.cache);
         if (parsed.selectedId && parsed.cache[parsed.selectedId]) {
@@ -2124,6 +2377,13 @@ export default function Dashboard({
       analyzedRatingsMatchIds,
       matrixNewMarkers,
       youthUpdatesHistory: youthUpdatesHistoryWithChanges,
+      transferSearchModalOpen,
+      transferSearchSourcePlayerId,
+      transferSearchFilters,
+      transferSearchResults,
+      transferSearchItemCount,
+      transferSearchExactEmpty,
+      transferSearchBidDrafts,
     };
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(payload));
@@ -2154,6 +2414,13 @@ export default function Dashboard({
     analyzedRatingsMatchIds,
     matrixNewMarkers,
     youthUpdatesHistoryWithChanges,
+    transferSearchModalOpen,
+    transferSearchSourcePlayerId,
+    transferSearchFilters,
+    transferSearchResults,
+    transferSearchItemCount,
+    transferSearchExactEmpty,
+    transferSearchBidDrafts,
     storageKey,
     restoredStorageKey,
   ]);
@@ -3077,6 +3344,567 @@ export default function Dashboard({
       return null;
     }
   };
+
+  const fetchTransferSearchPlayerDetails = async (playerId: number) => {
+    const { response, payload } = await fetchChppJson<{
+      data?: { HattrickData?: { Player?: YouthPlayerDetails } };
+      error?: string;
+    }>(`/api/chpp/playerdetails?playerId=${playerId}&includeMatchInfo=true`, {
+      cache: "no-store",
+    });
+    if (!response.ok || payload?.error || !payload?.data?.HattrickData?.Player) {
+      return null;
+    }
+    return payload.data.HattrickData.Player;
+  };
+
+  const hydrateTransferSearchDetails = async (results: TransferSearchResult[]) => {
+    void mapWithConcurrency(results, 4, async (result) => {
+      const detail = await fetchTransferSearchPlayerDetails(result.playerId);
+      if (detail) {
+        setTransferSearchDetailsById((prev) => ({
+          ...prev,
+          [result.playerId]: detail,
+        }));
+      }
+      return null;
+    });
+  };
+
+  const runTransferSearch = async (
+    filters: TransferSearchFilters,
+    options?: {
+      allowAutoFallback?: boolean;
+      sourcePlayer?: YouthPlayer | null;
+      sourceDetails?: YouthPlayerDetails | null;
+    }
+  ) => {
+    const requestId = transferSearchRequestIdRef.current + 1;
+    transferSearchRequestIdRef.current = requestId;
+    const isCurrentSearch = () => transferSearchRequestIdRef.current === requestId;
+    const normalizedFilters = normalizeTransferSearchFilters(filters);
+    setTransferSearchFilters(normalizedFilters);
+    setTransferSearchLoading(true);
+    setTransferSearchError(null);
+    setTransferSearchExactEmpty(false);
+    setTransferSearchResults([]);
+    setTransferSearchItemCount(null);
+
+    const execute = async (filtersToRun: TransferSearchFilters) => {
+      const params = buildTransferSearchParams(filtersToRun);
+      const { response, payload } = await fetchChppJson<{
+        data?: {
+          HattrickData?: {
+            TransferSearch?: {
+              ItemCount?: unknown;
+              TransferResults?: {
+                TransferResult?: unknown;
+              };
+            };
+          };
+        };
+        error?: string;
+        details?: string;
+      }>(`/api/chpp/transfersearch?${params.toString()}`, {
+        cache: "no-store",
+      });
+      if (!response.ok || payload?.error) {
+        throw new Error(payload?.details ?? payload?.error ?? "Failed to search transfers");
+      }
+      const transferSearch = payload?.data?.HattrickData?.TransferSearch;
+      return {
+        itemCount:
+          transferSearch?.ItemCount === undefined || transferSearch.ItemCount === null
+            ? null
+            : Number(transferSearch.ItemCount),
+        results: normalizeTransferSearchResults(
+          transferSearch?.TransferResults?.TransferResult
+        ),
+      };
+    };
+
+    try {
+      const exact = await execute(normalizedFilters);
+      if (!isCurrentSearch()) return;
+      const fallbackSourcePlayer = options?.sourcePlayer ?? selectedPlayer;
+      const fallbackSourceDetails =
+        options?.sourceDetails ??
+        (fallbackSourcePlayer
+          ? playerDetailsById.get(fallbackSourcePlayer.YouthPlayerID) ?? null
+          : null);
+      if (
+        options?.allowAutoFallback &&
+        exact.results.length === 0 &&
+        fallbackSourcePlayer
+      ) {
+        const fallbackFilters = buildYouthEstimateValueFilters(
+          fallbackSourcePlayer,
+          fallbackSourceDetails,
+          true
+        );
+        if (fallbackFilters) {
+          const fallback = await execute(fallbackFilters);
+          if (!isCurrentSearch()) return;
+          setTransferSearchFilters(fallbackFilters);
+          setTransferSearchResults(fallback.results);
+          setTransferSearchItemCount(fallback.itemCount);
+          setTransferSearchExactEmpty(true);
+          await hydrateTransferSearchDetails(fallback.results);
+          return;
+        }
+      }
+      setTransferSearchResults(exact.results);
+      setTransferSearchItemCount(exact.itemCount);
+      await hydrateTransferSearchDetails(exact.results);
+    } catch (error) {
+      if (!isCurrentSearch()) return;
+      setTransferSearchResults([]);
+      setTransferSearchItemCount(null);
+      setTransferSearchError(
+        error instanceof Error ? error.message : String(error)
+      );
+    } finally {
+      if (isCurrentSearch()) {
+        setTransferSearchLoading(false);
+      }
+    }
+  };
+
+  const openYouthEstimateValueSearch = async () => {
+    if (!selectedPlayer) return;
+    const ensuredDetails = playerDetailsById.has(selectedPlayer.YouthPlayerID)
+      ? null
+      : await ensureDetails(selectedPlayer.YouthPlayerID);
+    const detail =
+      playerDetailsById.get(selectedPlayer.YouthPlayerID) ??
+      resolveDetails(ensuredDetails);
+    const initialFilters = buildYouthEstimateValueFilters(
+      selectedPlayer,
+      detail,
+      false
+    );
+    if (!initialFilters) return;
+    setTransferSearchSourcePlayerId(selectedPlayer.YouthPlayerID);
+    setTransferSearchModalOpen(true);
+    void runTransferSearch(initialFilters, {
+      allowAutoFallback: true,
+      sourcePlayer: selectedPlayer,
+      sourceDetails: detail,
+    });
+  };
+
+  const updateTransferSearchSkillFilter = useCallback((
+    index: number,
+    patch: Partial<TransferSearchSkillFilter>
+  ) => {
+    setTransferSearchFilters((prev) => {
+      if (!prev) return prev;
+      const nextSkillFilters = prev.skillFilters.map((filter, filterIndex) =>
+        filterIndex === index ? { ...filter, ...patch } : filter
+      );
+      return normalizeTransferSearchFilters({
+        ...prev,
+        skillFilters: nextSkillFilters,
+      });
+    });
+  }, []);
+
+  const updateTransferSearchFilterField = useCallback(<
+    K extends Exclude<keyof TransferSearchFilters, "skillFilters">
+  >(
+    key: K,
+    value: TransferSearchFilters[K]
+  ) => {
+    setTransferSearchFilters((prev) =>
+      prev ? normalizeTransferSearchFilters({ ...prev, [key]: value }) : prev
+    );
+  }, []);
+
+  const updateTransferSearchBidDraft = useCallback((
+    playerId: number,
+    key: keyof TransferSearchBidDraft,
+    value: string
+  ) => {
+    setTransferSearchBidDrafts((prev) => ({
+      ...prev,
+      [playerId]: {
+        bidEur: prev[playerId]?.bidEur ?? "",
+        maxBidEur: prev[playerId]?.maxBidEur ?? "",
+        [key]: value,
+      },
+    }));
+  }, []);
+
+  const submitTransferBid = useCallback(async (
+    result: TransferSearchResult,
+    bidKind: keyof TransferSearchBidDraft
+  ) => {
+    const draft = transferSearchBidDrafts[result.playerId] ?? {
+      bidEur: "",
+      maxBidEur: "",
+    };
+    const amountSek = eurToSek(draft[bidKind]);
+    if (!amountSek) {
+      addNotification(messages.seniorTransferSearchBidMissingAmount);
+      return;
+    }
+
+    setTransferSearchBidPendingPlayerId(result.playerId);
+    try {
+      const requestBody =
+        bidKind === "bidEur"
+          ? { playerId: result.playerId, bidAmount: amountSek }
+          : { playerId: result.playerId, maxBidAmount: amountSek };
+      const { response, payload } = await fetchChppJson<{
+        error?: string;
+        details?: string;
+      }>("/api/chpp/playerdetails", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestBody),
+      });
+      if (!response.ok || payload?.error) {
+        throw new Error(payload?.details ?? payload?.error ?? "Failed to place bid");
+      }
+      addNotification(
+        messages.seniorTransferSearchBidPlaced.replace(
+          "{{player}}",
+          formatTransferSearchPlayerName(result)
+        )
+      );
+    } catch (error) {
+      addNotification(
+        messages.seniorTransferSearchBidFailed.replace(
+          "{{details}}",
+          error instanceof Error ? error.message : String(error)
+        )
+      );
+    } finally {
+      setTransferSearchBidPendingPlayerId(null);
+    }
+  }, [
+    addNotification,
+    messages.seniorTransferSearchBidFailed,
+    messages.seniorTransferSearchBidMissingAmount,
+    messages.seniorTransferSearchBidPlaced,
+    transferSearchBidDrafts,
+  ]);
+
+  const transferSearchResultCountLabel =
+    transferSearchItemCount === null || Number.isNaN(transferSearchItemCount)
+      ? null
+      : transferSearchItemCount === -1
+        ? messages.seniorTransferSearchResultsMany
+        : messages.seniorTransferSearchResultsCount.replace(
+            "{{count}}",
+            String(transferSearchItemCount)
+          );
+
+  useEffect(() => {
+    setTransferSearchBidDrafts((prev) => {
+      const next = { ...prev };
+      transferSearchResults.forEach((result) => {
+        const existing = next[result.playerId] ?? { bidEur: "", maxBidEur: "" };
+        next[result.playerId] = {
+          bidEur: formatTransferSearchBidDraftEur(
+            buildTransferSearchMinimumBidEur(result)
+          ),
+          maxBidEur: existing.maxBidEur,
+        };
+      });
+      return next;
+    });
+  }, [transferSearchResults]);
+
+  const specialtyName = useCallback((value?: number | null) => {
+    switch (value) {
+      case 0:
+        return messages.specialtyNone;
+      case 1:
+        return messages.specialtyTechnical;
+      case 2:
+        return messages.specialtyQuick;
+      case 3:
+        return messages.specialtyPowerful;
+      case 4:
+        return messages.specialtyUnpredictable;
+      case 5:
+        return messages.specialtyHeadSpecialist;
+      case 6:
+        return messages.specialtyResilient;
+      case 8:
+        return messages.specialtySupport;
+      default:
+        return null;
+    }
+  }, [
+    messages.specialtyHeadSpecialist,
+    messages.specialtyNone,
+    messages.specialtyPowerful,
+    messages.specialtyQuick,
+    messages.specialtyResilient,
+    messages.specialtySupport,
+    messages.specialtyTechnical,
+    messages.specialtyUnpredictable,
+  ]);
+
+  const renderTransferSearchResultCard = useCallback((result: TransferSearchResult) => {
+    const resultDetails = transferSearchDetailsById[result.playerId] ?? null;
+    const draft = transferSearchBidDrafts[result.playerId] ?? { bidEur: "", maxBidEur: "" };
+    const pending = transferSearchBidPendingPlayerId === result.playerId;
+    const transferSearchCanBid = false;
+    const playerName = formatTransferSearchPlayerName(result);
+    const displayPriceSek =
+      typeof result.highestBidSek === "number" && result.highestBidSek > 0
+        ? result.highestBidSek
+        : result.askingPriceSek;
+    const displayPriceLabel =
+      typeof result.highestBidSek === "number" && result.highestBidSek > 0
+        ? messages.seniorTransferSearchHighestBidLabel
+        : messages.clubChronicleTransferListedAskingPriceColumn;
+    const deadlineDate = parseChppDate(result.deadline ?? undefined);
+    const resultSpecialty = resultDetails?.Specialty ?? result.specialty;
+    const resultSpecialtyName =
+      resultSpecialty !== null && resultSpecialty !== undefined
+        ? resultSpecialty === 0
+          ? messages.specialtyNone
+          : specialtyName(resultSpecialty)
+        : null;
+    const resolvedForm = resultDetails?.Form ?? result.form;
+    const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
+    return (
+      <article key={result.playerId} className={styles.transferSearchResultCard}>
+        <div className={styles.transferSearchResultHeader}>
+          <div>
+            <h4 className={styles.profileName}>{playerName}</h4>
+            <p className={styles.profileMeta}>
+              {result.age !== null ? (
+                <span className={styles.metaItem}>
+                  {result.age} {messages.yearsLabel} {result.ageDays ?? 0} {messages.daysLabel}
+                </span>
+              ) : null}
+              {result.tsi !== null ? (
+                <span className={styles.metaItem}>
+                  {messages.sortTsi}: {result.tsi}
+                </span>
+              ) : null}
+            </p>
+          </div>
+          <div className={styles.transferSearchPriceBlock}>
+            <div className={styles.infoLabel}>{displayPriceLabel}</div>
+            <div className={`${styles.infoValue} ${styles.transferSearchPriceValue}`}>
+              {displayPriceSek !== null
+                ? formatEurFromSek(displayPriceSek)
+                : messages.unknownShort}
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.profileInfoRow}>
+          <div>
+            <div className={styles.infoLabel}>{messages.playerIdLabel}</div>
+            <div className={styles.infoValue}>
+              {result.playerId}
+              <a
+                className={styles.infoLinkIcon}
+                href={hattrickPlayerUrl(result.playerId)}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={messages.playerLinkLabel}
+              >
+                ↗
+              </a>
+            </div>
+          </div>
+          {resultSpecialtyName ? (
+            <div>
+              <div className={styles.infoLabel}>{messages.specialtyLabel}</div>
+              <div className={styles.infoValue}>{resultSpecialtyName}</div>
+            </div>
+          ) : null}
+          <div>
+            <div className={styles.infoLabel}>{messages.seniorTransferSearchDeadlineLabel}</div>
+            <div className={styles.infoValue}>
+              {deadlineDate ? formatDateTime(deadlineDate) : messages.unknownShort}
+            </div>
+          </div>
+          {result.sellerTeamName ? (
+            <div>
+              <div className={styles.infoLabel}>{messages.seniorTransferSearchSellerLabel}</div>
+              <div className={styles.infoValue}>
+                {result.sellerTeamId ? (
+                  <a
+                    className={styles.chroniclePressLink}
+                    href={hattrickTeamUrl(result.sellerTeamId)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {result.sellerTeamName}
+                  </a>
+                ) : (
+                  result.sellerTeamName
+                )}
+              </div>
+            </div>
+          ) : null}
+        </div>
+
+        <div className={styles.sectionDivider} />
+
+        <div className={styles.skillsGrid}>
+          {[
+            [messages.sortForm, resolvedForm, 1, 8],
+            [messages.sortStamina, resolvedStamina, 1, 9],
+          ].map(([label, value, min, max]) => {
+            const normalizedValue = typeof value === "number" ? value : null;
+            return (
+              <div key={`${result.playerId}-${label}`} className={styles.skillRow}>
+                <div className={styles.skillLabel}>{label}</div>
+                <div className={styles.skillBar}>
+                  {normalizedValue !== null ? (
+                    <div
+                      className={styles.skillFillCurrent}
+                      style={{
+                        width: `${Math.min(100, (normalizedValue / Number(max)) * 100)}%`,
+                        background: transferSearchBarGradient(
+                          normalizedValue,
+                          Number(min),
+                          Number(max)
+                        ),
+                      }}
+                    />
+                  ) : null}
+                </div>
+                <div className={styles.skillValue}>
+                  <span className={styles.skillValuePartWithFlag}>
+                    <span>{normalizedValue ?? messages.unknownShort}</span>
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className={styles.sectionDivider} />
+
+        <div>
+          <div className={styles.sectionHeadingRow}>
+            <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
+          </div>
+          <div className={styles.skillsGrid}>
+            {[
+              ["KeeperSkill", result.keeperSkill],
+              ["DefenderSkill", result.defenderSkill],
+              ["WingerSkill", result.wingerSkill],
+              ["PlaymakerSkill", result.playmakerSkill],
+              ["ScorerSkill", result.scorerSkill],
+              ["PassingSkill", result.passingSkill],
+              ["SetPiecesSkill", result.setPiecesSkill],
+            ].map(([skillKey, value]) => {
+              const definition = TRANSFER_SEARCH_SKILLS.find((entry) => entry.key === skillKey);
+              if (!definition) return null;
+              const normalizedValue = typeof value === "number" ? value : null;
+              const currentPct =
+                normalizedValue !== null ? Math.min(100, (normalizedValue / 20) * 100) : null;
+              return (
+                <div key={`${result.playerId}-${skillKey}`} className={styles.skillRow}>
+                  <div className={styles.skillLabel}>
+                    {messages[definition.labelKey as keyof Messages]}
+                  </div>
+                  <div className={styles.skillBar}>
+                    {currentPct !== null ? (
+                      <div
+                        className={styles.skillFillCurrent}
+                        style={{
+                          width: `${currentPct}%`,
+                          background: transferSearchBarGradient(normalizedValue, 0, 20),
+                        }}
+                      />
+                    ) : null}
+                  </div>
+                  <div className={styles.skillValue}>
+                    <span className={styles.skillValuePartWithFlag}>
+                      <span>{normalizedValue ?? messages.unknownShort}</span>
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className={styles.transferSearchBidGrid}>
+          <div className={styles.transferSearchBidField}>
+            <label className={styles.infoLabel} htmlFor={`youth-bid-${result.playerId}`}>
+              {messages.seniorTransferSearchBidAmountLabel}
+            </label>
+            <input
+              id={`youth-bid-${result.playerId}`}
+              className={styles.transferSearchInput}
+              type="number"
+              min="0"
+              step="1"
+              value={draft.bidEur}
+              onChange={(event) =>
+                updateTransferSearchBidDraft(result.playerId, "bidEur", event.target.value)
+              }
+              disabled={!transferSearchCanBid || pending}
+            />
+          </div>
+          <Tooltip content={messages.seniorTransferSearchSupporterOnlyTooltip}>
+            <button
+              type="button"
+              className={`${styles.confirmSubmit} ${styles.transferSearchBidAction}`}
+              onClick={() => {
+                void submitTransferBid(result, "bidEur");
+              }}
+              disabled={!transferSearchCanBid || pending}
+            >
+              {messages.seniorTransferSearchPlaceBidButton}
+            </button>
+          </Tooltip>
+          <div className={styles.transferSearchBidField}>
+            <label className={styles.infoLabel} htmlFor={`youth-max-bid-${result.playerId}`}>
+              {messages.seniorTransferSearchMaxBidAmountLabel}
+            </label>
+            <input
+              id={`youth-max-bid-${result.playerId}`}
+              className={styles.transferSearchInput}
+              type="number"
+              min="0"
+              step="1"
+              value={draft.maxBidEur}
+              onChange={(event) =>
+                updateTransferSearchBidDraft(result.playerId, "maxBidEur", event.target.value)
+              }
+              disabled={!transferSearchCanBid || pending}
+            />
+          </div>
+          <Tooltip content={messages.seniorTransferSearchSupporterOnlyTooltip}>
+            <button
+              type="button"
+              className={`${styles.confirmSubmit} ${styles.transferSearchBidAction}`}
+              onClick={() => {
+                void submitTransferBid(result, "maxBidEur");
+              }}
+              disabled={!transferSearchCanBid || pending}
+            >
+              {messages.seniorTransferSearchPlaceMaxBidButton}
+            </button>
+          </Tooltip>
+        </div>
+      </article>
+    );
+  }, [
+    formatEurFromSek,
+    messages,
+    specialtyName,
+    submitTransferBid,
+    transferSearchBidDrafts,
+    transferSearchBidPendingPlayerId,
+    transferSearchDetailsById,
+    updateTransferSearchBidDraft,
+  ]);
 
   const handleSelect = async (playerId: number) => {
     setActiveDetailsTab("details");
@@ -4635,6 +5463,17 @@ export default function Dashboard({
     setPrimaryTraining(DEFAULT_PRIMARY_TRAINING);
     setSecondaryTraining(DEFAULT_SECONDARY_TRAINING);
     setAutoSelectionApplied(false);
+    setTransferSearchModalOpen(false);
+    setTransferSearchSourcePlayerId(null);
+    setTransferSearchFilters(null);
+    setTransferSearchResults([]);
+    setTransferSearchItemCount(null);
+    setTransferSearchLoading(false);
+    setTransferSearchError(null);
+    setTransferSearchExactEmpty(false);
+    setTransferSearchDetailsById({});
+    setTransferSearchBidDrafts({});
+    setTransferSearchBidPendingPlayerId(null);
     setHiddenSpecialtyByPlayerId({});
     setHiddenSpecialtyDiscoveredMatchByPlayerId({});
     setAnalyzedRatingsMatchIds([]);
@@ -5453,6 +6292,28 @@ export default function Dashboard({
     ? `${messages.youthLastGlobalRefresh}: ${formatDateTime(lastGlobalRefreshAt)}`
     : null;
 
+  const youthEstimateValueTooltip = youthEstimateValueDisabled
+    ? selectedYouthEstimateValueSkillCount === 0
+      ? messages.youthEstimateValueDisabledTooltip
+      : messages.youthEstimateValueAgeMissingTooltip
+    : messages.youthEstimateValueTooltip;
+  const youthDetailsHeaderActions = selectedPlayer ? (
+    <Tooltip content={youthEstimateValueTooltip}>
+      <span>
+        <button
+          type="button"
+          className={`${styles.confirmSubmit} ${styles.youthEstimateValueButton}`}
+          onClick={() => {
+            void openYouthEstimateValueSearch();
+          }}
+          disabled={youthEstimateValueDisabled}
+        >
+          {messages.youthEstimateValueButton}
+        </button>
+      </span>
+    </Tooltip>
+  ) : null;
+
   const mobileYouthContent =
     mobileYouthPlayerScreen === "detail" ? (
       <div className={styles.mobileYouthContent}>
@@ -5531,6 +6392,7 @@ export default function Dashboard({
             if (!nextPlayerId) return;
             handleMobilePlayerSelect(nextPlayerId);
           }}
+          detailsHeaderActions={youthDetailsHeaderActions}
           activeTab="details"
           showTabs={false}
           messages={messages}
@@ -5904,6 +6766,24 @@ export default function Dashboard({
             {messages.scopeReconnectAction}
           </button>
         }
+      />
+      <TransferSearchModal
+        open={transferSearchModalOpen}
+        messages={messages}
+        selectedPlayerName={selectedTransferSearchPlayerName}
+        filters={transferSearchFilters}
+        loading={transferSearchLoading}
+        onUpdateSkillFilter={updateTransferSearchSkillFilter}
+        onUpdateFilterField={updateTransferSearchFilterField}
+        onSearch={(filters) => {
+          void runTransferSearch(filters);
+        }}
+        resultCountLabel={transferSearchResultCountLabel}
+        exactEmpty={transferSearchExactEmpty}
+        error={transferSearchError}
+        results={transferSearchResults}
+        renderResultCard={renderTransferSearchResultCard}
+        onClose={() => setTransferSearchModalOpen(false)}
       />
       <Modal
         open={authError}
@@ -6533,6 +7413,7 @@ export default function Dashboard({
                 if (!nextPlayerId) return;
                 void handleSelect(nextPlayerId);
               }}
+              detailsHeaderActions={youthDetailsHeaderActions}
               activeTab={activeDetailsTab}
               onActiveTabChange={setActiveDetailsTab}
               messages={messages}

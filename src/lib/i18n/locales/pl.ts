@@ -125,6 +125,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_5_0:
+    "Szczegoly juniorow moga teraz szacowac wartosc transferowa z odkrytego maksymalnego potencjalu.",
   changelog_4_4_0:
     "Club Chronicle może teraz śledzić trwające mecze z opcjonalną obsługą turniejów.",
   changelog_4_3_0:
@@ -273,6 +275,13 @@ export const messagesPl: Messages = {
   seniorTransferSearchBidMissingAmount: "Najpierw wpisz kwote oferty.",
   seniorTransferSearchBidPlaced: "Zlozono oferte na {{player}}.",
   seniorTransferSearchBidFailed: "Oferta nie powiodla sie: {{details}}",
+  youthEstimateValueButton: "Oszacuj wartosc",
+  youthEstimateValueTooltip:
+    "Przeszukaj rynek transferowy na podstawie maksymalnego potencjalu tego zawodnika.",
+  youthEstimateValueDisabledTooltip:
+    "Odkryj co najmniej jeden maksymalny potencjal umiejetnosci przed oszacowaniem wartosci.",
+  youthEstimateValueAgeMissingTooltip:
+    "Odswiez szczegoly zawodnika przed oszacowaniem wartosci.",
   seniorListInjuryBruised: "Stłuczony",
   seniorListInjuryWeeks: "Kontuzjowany ({weeks} tyg.)",
   seniorCardsMatchRunning: "mecz w toku",

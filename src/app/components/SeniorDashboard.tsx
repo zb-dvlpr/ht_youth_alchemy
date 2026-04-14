@@ -3237,6 +3237,7 @@ export default function SeniorDashboard({
   const [transferSearchBidPendingPlayerId, setTransferSearchBidPendingPlayerId] = useState<
     number | null
   >(null);
+  const transferSearchRequestIdRef = useRef(0);
   const [helpCallouts, setHelpCallouts] = useState<
     {
       id: string;
@@ -9798,12 +9799,17 @@ function buildSeniorAiManMarkingReadySignature(params: {
       sourceDetails?: SeniorPlayerDetails | null;
     }
   ) => {
+    const requestId = transferSearchRequestIdRef.current + 1;
+    transferSearchRequestIdRef.current = requestId;
+    const isCurrentSearch = () => transferSearchRequestIdRef.current === requestId;
     const normalizedFilters = normalizeTransferSearchFilters(filters);
     setTransferSearchFilters(normalizedFilters);
     setTransferSearchLoading(true);
     setTransferSearchError(null);
     setTransferSearchUsedFallback(false);
     setTransferSearchExactEmpty(false);
+    setTransferSearchResults([]);
+    setTransferSearchItemCount(null);
 
     const execute = async (filtersToRun: TransferSearchFilters) => {
       const params = buildTransferSearchParams(filtersToRun);
@@ -9835,6 +9841,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
 
     try {
       const exact = await execute(normalizedFilters);
+      if (!isCurrentSearch()) return;
       const fallbackSourcePlayer = options?.sourcePlayer ?? transferSearchSourcePlayer;
       const fallbackSourceDetails = options?.sourceDetails ?? transferSearchSourceDetails;
       if (options?.allowAutoFallback && exact.results.length === 0 && fallbackSourcePlayer) {
@@ -9844,6 +9851,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
         );
         const normalizedFallback = normalizeTransferSearchFilters(fallbackFilters);
         const fallback = await execute(normalizedFallback);
+        if (!isCurrentSearch()) return;
         setTransferSearchFilters(normalizedFallback);
         setTransferSearchResults(fallback.results);
         setTransferSearchItemCount(fallback.itemCount);
@@ -9856,13 +9864,16 @@ function buildSeniorAiManMarkingReadySignature(params: {
         await hydrateTransferSearchDetails(exact.results);
       }
     } catch (error) {
+      if (!isCurrentSearch()) return;
       setTransferSearchResults([]);
       setTransferSearchItemCount(null);
       setTransferSearchError(
         error instanceof Error ? error.message : String(error)
       );
     } finally {
-      setTransferSearchLoading(false);
+      if (isCurrentSearch()) {
+        setTransferSearchLoading(false);
+      }
     }
   };
 

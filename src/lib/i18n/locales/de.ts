@@ -72,6 +72,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_4_6_0:
+      "Transfermarktsuchen zeigen jetzt kompakte Marktuebersichten und Preisverteilung.",
     changelog_4_5_0:
       "Jugendspielerdetails koennen jetzt den Transferwert aus aufgedecktem Maximalpotenzial schaetzen.",
     changelog_4_4_0:
@@ -1148,6 +1150,17 @@ export const messagesDe: Messages = {
       "Decke mindestens ein maximales Potenzial auf, bevor du den Wert schaetzt.",
     youthEstimateValueAgeMissingTooltip:
       "Aktualisiere die Spielerdetails, bevor du den Wert schaetzt.",
+    transferSearchMarketSummaryTitle: "Marktuebersicht",
+    transferSearchMarketSummaryBasis: "{{count}} bepreiste Ergebnisse",
+    transferSearchMarketSummarySparse:
+      "Nur {{count}} bepreiste Ergebnisse; als groben Hinweis verwenden.",
+    transferSearchMarketSummaryNoPrices:
+      "Keine bepreisten Ergebnisse fuer eine Zusammenfassung.",
+    transferSearchMarketRangeLabel: "Spanne",
+    transferSearchMarketMedianLabel: "Median",
+    transferSearchMarketMeanLabel: "Durchschnitt",
+    transferSearchMarketMiddleLabel: "Mittlere 50%",
+    transferSearchMarketDistributionLabel: "Preisverteilung",
     sortLabel: "Sortieren nach",
     sortName: "Name",
     sortAge: "Alter",

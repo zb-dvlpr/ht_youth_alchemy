@@ -132,6 +132,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_6_0:
+    "Transfermarktzoekopdrachten tonen nu compacte marktsamenvattingen en prijsverdeling.",
   changelog_4_5_0:
     "Jeugdspelerdetails kunnen nu transferwaarde schatten op basis van onthuld maximaal potentieel.",
   changelog_4_4_0:
@@ -289,6 +291,17 @@ export const messagesNl: Messages = {
     "Onthul minstens een maximaal potentieel voordat je de waarde schat.",
   youthEstimateValueAgeMissingTooltip:
     "Ververs de spelersdetails voordat je de waarde schat.",
+  transferSearchMarketSummaryTitle: "Marktsamenvatting",
+  transferSearchMarketSummaryBasis: "{{count}} resultaten met prijs",
+  transferSearchMarketSummarySparse:
+    "Slechts {{count}} resultaten met prijs; behandel dit als een grove indicatie.",
+  transferSearchMarketSummaryNoPrices:
+    "Geen resultaten met prijs om samen te vatten.",
+  transferSearchMarketRangeLabel: "Bereik",
+  transferSearchMarketMedianLabel: "Mediaan",
+  transferSearchMarketMeanLabel: "Gemiddelde",
+  transferSearchMarketMiddleLabel: "Middelste 50%",
+  transferSearchMarketDistributionLabel: "Prijsverdeling",
   seniorListInjuryBruised: "Gekneusd",
   seniorListInjuryWeeks: "Geblesseerd ({weeks}w)",
   seniorCardsMatchRunning: "wedstrijd bezig",

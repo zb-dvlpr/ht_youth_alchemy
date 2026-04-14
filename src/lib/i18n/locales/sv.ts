@@ -72,6 +72,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_6_0:
+      "Transfersokningar visar nu kompakta marknadssammanfattningar och prisfordelning.",
     changelog_4_5_0:
       "Ungdomsspelares detaljer kan nu uppskatta transfervarde fran avslojad maxpotential.",
     changelog_4_4_0:
@@ -1156,6 +1158,17 @@ export const messagesSv: Messages = {
       "Avsloja minst en maxpotential innan vardet uppskattas.",
     youthEstimateValueAgeMissingTooltip:
       "Uppdatera spelardetaljerna innan vardet uppskattas.",
+    transferSearchMarketSummaryTitle: "Marknadssammanfattning",
+    transferSearchMarketSummaryBasis: "{{count}} prissatta resultat",
+    transferSearchMarketSummarySparse:
+      "Bara {{count}} prissatta resultat; tolka detta som en grov signal.",
+    transferSearchMarketSummaryNoPrices:
+      "Inga prissatta resultat att sammanfatta.",
+    transferSearchMarketRangeLabel: "Intervall",
+    transferSearchMarketMedianLabel: "Median",
+    transferSearchMarketMeanLabel: "Medel",
+    transferSearchMarketMiddleLabel: "Mitten 50%",
+    transferSearchMarketDistributionLabel: "Prisfordelning",
     sortLabel: "Sortera efter",
     sortName: "Namn",
     sortAge: "Ålder",

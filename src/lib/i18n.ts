@@ -78,6 +78,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_4_6_0: string;
   changelog_4_5_0: string;
   changelog_4_4_0: string;
   changelog_4_3_0: string;
@@ -932,6 +933,15 @@ export type Messages = {
   youthEstimateValueTooltip: string;
   youthEstimateValueDisabledTooltip: string;
   youthEstimateValueAgeMissingTooltip: string;
+  transferSearchMarketSummaryTitle: string;
+  transferSearchMarketSummaryBasis: string;
+  transferSearchMarketSummarySparse: string;
+  transferSearchMarketSummaryNoPrices: string;
+  transferSearchMarketRangeLabel: string;
+  transferSearchMarketMedianLabel: string;
+  transferSearchMarketMeanLabel: string;
+  transferSearchMarketMiddleLabel: string;
+  transferSearchMarketDistributionLabel: string;
   sortLabel: string;
   sortName: string;
   sortAge: string;

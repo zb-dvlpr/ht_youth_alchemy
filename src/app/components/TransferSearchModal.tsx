@@ -4,6 +4,7 @@ import {
   memo,
   startTransition,
   useCallback,
+  useMemo,
   useState,
   type ChangeEvent,
   type ReactNode,
@@ -125,6 +126,23 @@ type TransferSearchModalProps = {
   results: TransferSearchResult[];
   renderResultCard: (result: TransferSearchResult) => ReactNode;
   onClose: () => void;
+};
+
+type TransferSearchMarketBucket = {
+  min: number;
+  max: number;
+  count: number;
+};
+
+type TransferSearchMarketSummary = {
+  count: number;
+  min: number;
+  max: number;
+  median: number;
+  mean: number;
+  q1: number;
+  q3: number;
+  buckets: TransferSearchMarketBucket[];
 };
 
 export const ageToTotalDays = (years: number, days: number) =>
@@ -324,6 +342,77 @@ export const formatTransferSearchBidDraftEur = (valueEur: number | string) =>
   valueEur === "" ? "" : String(valueEur);
 
 const TRANSFER_SEARCH_MAX_SKILL_SPAN = 4;
+const TRANSFER_SEARCH_MARKET_MIN_RICH_STATS_COUNT = 3;
+
+const formatTransferSearchMarketEur = (value: number) =>
+  new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+    notation: value >= 100000 ? "compact" : "standard",
+  }).format(Math.round(value));
+
+const resolveTransferSearchMarketPriceEur = (result: TransferSearchResult) => {
+  const priceSek =
+    typeof result.highestBidSek === "number" && result.highestBidSek > 0
+      ? result.highestBidSek
+      : typeof result.askingPriceSek === "number" && result.askingPriceSek > 0
+        ? result.askingPriceSek
+        : null;
+  return priceSek === null ? null : priceSek / CHPP_SEK_PER_EUR;
+};
+
+const percentile = (sortedValues: number[], ratio: number) => {
+  if (sortedValues.length === 0) return 0;
+  if (sortedValues.length === 1) return sortedValues[0];
+  const index = (sortedValues.length - 1) * ratio;
+  const lowerIndex = Math.floor(index);
+  const upperIndex = Math.ceil(index);
+  if (lowerIndex === upperIndex) return sortedValues[lowerIndex];
+  const lower = sortedValues[lowerIndex];
+  const upper = sortedValues[upperIndex];
+  return lower + (upper - lower) * (index - lowerIndex);
+};
+
+const buildTransferSearchMarketSummary = (
+  results: TransferSearchResult[]
+): TransferSearchMarketSummary | null => {
+  const prices = results
+    .map(resolveTransferSearchMarketPriceEur)
+    .filter((price): price is number => price !== null && Number.isFinite(price))
+    .sort((left, right) => left - right);
+  if (prices.length === 0) return null;
+
+  const min = prices[0];
+  const max = prices[prices.length - 1];
+  const mean = prices.reduce((sum, price) => sum + price, 0) / prices.length;
+  const bucketCount =
+    min === max ? 1 : Math.min(8, Math.max(3, Math.ceil(Math.sqrt(prices.length))));
+  const bucketWidth = min === max ? 1 : (max - min) / bucketCount;
+  const buckets = Array.from({ length: bucketCount }, (_, index) => ({
+    min: min + bucketWidth * index,
+    max: index === bucketCount - 1 ? max : min + bucketWidth * (index + 1),
+    count: 0,
+  }));
+  prices.forEach((price) => {
+    const bucketIndex =
+      min === max
+        ? 0
+        : Math.min(bucketCount - 1, Math.floor((price - min) / bucketWidth));
+    buckets[bucketIndex].count += 1;
+  });
+
+  return {
+    count: prices.length,
+    min,
+    max,
+    median: percentile(prices, 0.5),
+    mean,
+    q1: percentile(prices, 0.25),
+    q3: percentile(prices, 0.75),
+    buckets,
+  };
+};
 
 const resolveTransferSearchSkillRange = (
   skillKey: TransferSearchSkillKey,
@@ -533,6 +622,115 @@ const TransferSearchModal = memo(function TransferSearchModal({
   renderResultCard,
   onClose,
 }: TransferSearchModalProps) {
+  const marketSummary = useMemo(
+    () => buildTransferSearchMarketSummary(results),
+    [results]
+  );
+  const maxBucketCount = marketSummary
+    ? Math.max(...marketSummary.buckets.map((bucket) => bucket.count), 1)
+    : 1;
+  const marketSummaryRich =
+    marketSummary &&
+    marketSummary.count >= TRANSFER_SEARCH_MARKET_MIN_RICH_STATS_COUNT;
+  const marketSummaryCard = (
+    <div className={styles.transferSearchMarketSummary}>
+      <div className={styles.transferSearchMarketSummaryHeader}>
+        <h4 className={styles.sectionHeading}>
+          {messages.transferSearchMarketSummaryTitle}
+        </h4>
+        {marketSummary ? (
+          <span className={styles.profileUpdated}>
+            {messages.transferSearchMarketSummaryBasis.replace(
+              "{{count}}",
+              String(marketSummary.count)
+            )}
+          </span>
+        ) : null}
+      </div>
+      {loading ? (
+        <p className={styles.muted}>{messages.seniorTransferSearchLoading}</p>
+      ) : marketSummary ? (
+        <>
+          {marketSummary.count < TRANSFER_SEARCH_MARKET_MIN_RICH_STATS_COUNT ? (
+            <p className={styles.muted}>
+              {messages.transferSearchMarketSummarySparse.replace(
+                "{{count}}",
+                String(marketSummary.count)
+              )}
+            </p>
+          ) : null}
+          <div className={styles.transferSearchMarketStatsGrid}>
+            <div className={styles.transferSearchMarketStat}>
+              <span className={styles.infoLabel}>
+                {messages.transferSearchMarketRangeLabel}
+              </span>
+              <strong>
+                {formatTransferSearchMarketEur(marketSummary.min)}
+                {" - "}
+                {formatTransferSearchMarketEur(marketSummary.max)}
+              </strong>
+            </div>
+            {marketSummaryRich ? (
+              <>
+                <div className={styles.transferSearchMarketStat}>
+                  <span className={styles.infoLabel}>
+                    {messages.transferSearchMarketMedianLabel}
+                  </span>
+                  <strong>
+                    {formatTransferSearchMarketEur(marketSummary.median)}
+                  </strong>
+                </div>
+                <div className={styles.transferSearchMarketStat}>
+                  <span className={styles.infoLabel}>
+                    {messages.transferSearchMarketMeanLabel}
+                  </span>
+                  <strong>{formatTransferSearchMarketEur(marketSummary.mean)}</strong>
+                </div>
+                <div className={styles.transferSearchMarketStat}>
+                  <span className={styles.infoLabel}>
+                    {messages.transferSearchMarketMiddleLabel}
+                  </span>
+                  <strong>
+                    {formatTransferSearchMarketEur(marketSummary.q1)}
+                    {" - "}
+                    {formatTransferSearchMarketEur(marketSummary.q3)}
+                  </strong>
+                </div>
+              </>
+            ) : null}
+          </div>
+          {marketSummaryRich ? (
+            <div
+              className={styles.transferSearchMarketHistogram}
+              aria-label={messages.transferSearchMarketDistributionLabel}
+            >
+              {marketSummary.buckets.map((bucket, index) => (
+                <Tooltip
+                  key={`${bucket.min}-${bucket.max}-${index}`}
+                  content={`${formatTransferSearchMarketEur(bucket.min)} - ${formatTransferSearchMarketEur(bucket.max)}: ${bucket.count}`}
+                >
+                  <span
+                    className={styles.transferSearchMarketBucket}
+                    style={{
+                      height: `${Math.max(
+                        10,
+                        Math.round((bucket.count / maxBucketCount) * 44)
+                      )}px`,
+                    }}
+                  />
+                </Tooltip>
+              ))}
+            </div>
+          ) : null}
+        </>
+      ) : (
+        <p className={styles.muted}>
+          {messages.transferSearchMarketSummaryNoPrices}
+        </p>
+      )}
+    </div>
+  );
+
   return (
     <Modal
       open={open}
@@ -541,42 +739,43 @@ const TransferSearchModal = memo(function TransferSearchModal({
       movable
       body={
         <div className={styles.transferSearchModalShell}>
-          <aside className={styles.transferSearchModalSidebar}>
-            <div className={styles.transferSearchSidebarHeader}>
-              <h3 className={styles.sectionHeading}>
-                {messages.seniorTransferSearchCriteriaTitle}
-              </h3>
-              {selectedPlayerName ? (
-                <p className={styles.seniorPersonaLine}>
-                  {messages.seniorTransferSearchSourcePlayerLabel.replace(
-                    "{{player}}",
-                    selectedPlayerName
-                  )}
-                </p>
-              ) : null}
-            </div>
-            {filters ? (
-              <>
-                <div className={`${styles.transferSearchSection} ${styles.transferSearchCriteriaGrid}`}>
-                  {filters.skillFilters.map((filter, index) => {
-                    const selectedOtherSkillKeys = filters.skillFilters
-                      .filter((_, filterIndex) => filterIndex !== index)
-                      .map((entry) => entry.skillKey)
-                      .sort()
-                      .join("|");
-                    return (
-                      <TransferSearchSkillRow
-                        key={`${filter.skillKey}-${filter.min}-${filter.max}-${index}`}
-                        filter={filter}
-                        index={index}
-                        selectedOtherSkillKeys={selectedOtherSkillKeys}
-                        disabled={loading}
-                        messages={messages}
-                        onUpdateFilter={onUpdateSkillFilter}
-                      />
-                    );
-                  })}
-                </div>
+          <div className={styles.transferSearchModalContent}>
+            <aside className={styles.transferSearchModalSidebar}>
+              <div className={styles.transferSearchSidebarHeader}>
+                <h3 className={styles.sectionHeading}>
+                  {messages.seniorTransferSearchCriteriaTitle}
+                </h3>
+                {selectedPlayerName ? (
+                  <p className={styles.seniorPersonaLine}>
+                    {messages.seniorTransferSearchSourcePlayerLabel.replace(
+                      "{{player}}",
+                      selectedPlayerName
+                    )}
+                  </p>
+                ) : null}
+              </div>
+              {filters ? (
+                <>
+                  <div className={`${styles.transferSearchSection} ${styles.transferSearchCriteriaGrid}`}>
+                    {filters.skillFilters.map((filter, index) => {
+                      const selectedOtherSkillKeys = filters.skillFilters
+                        .filter((_, filterIndex) => filterIndex !== index)
+                        .map((entry) => entry.skillKey)
+                        .sort()
+                        .join("|");
+                      return (
+                        <TransferSearchSkillRow
+                          key={`${filter.skillKey}-${filter.min}-${filter.max}-${index}`}
+                          filter={filter}
+                          index={index}
+                          selectedOtherSkillKeys={selectedOtherSkillKeys}
+                          disabled={loading}
+                          messages={messages}
+                          onUpdateFilter={onUpdateSkillFilter}
+                        />
+                      );
+                    })}
+                  </div>
 
                 <div className={styles.transferSearchSection}>
                   <div className={styles.infoLabel}>{messages.specialtyLabel}</div>
@@ -742,35 +941,37 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     {messages.seniorTransferSearchSearchButton}
                   </button>
                 </div>
-              </>
-            ) : null}
-          </aside>
-
-          <section className={styles.transferSearchModalResults}>
-            <div className={styles.transferSearchResultsHeader}>
-              <h3 className={styles.sectionHeading}>{messages.seniorTransferSearchResultsTitle}</h3>
-              {resultCountLabel ? (
-                <span className={styles.profileUpdated}>{resultCountLabel}</span>
+                </>
               ) : null}
-            </div>
-            {exactEmpty ? (
-              <p className={styles.transferSearchFallbackNotice}>
-                {messages.seniorTransferSearchFallbackNotice}
-              </p>
-            ) : null}
-            {loading ? (
-              <div className={styles.miniMutedCard}>
-                <span className={styles.muted}>{messages.seniorTransferSearchLoading}</span>
+            </aside>
+
+            <section className={styles.transferSearchModalResults}>
+              <div className={styles.transferSearchResultsHeader}>
+                <h3 className={styles.sectionHeading}>{messages.seniorTransferSearchResultsTitle}</h3>
+                {resultCountLabel ? (
+                  <span className={styles.profileUpdated}>{resultCountLabel}</span>
+                ) : null}
               </div>
-            ) : null}
-            {error ? <p className={styles.errorText}>{error}</p> : null}
-            {!loading && !error && results.length === 0 ? (
-              <p className={styles.muted}>{messages.seniorTransferSearchNoResults}</p>
-            ) : null}
-            <div className={styles.transferSearchResultsList}>
-              {results.map((result) => renderResultCard(result))}
-            </div>
-          </section>
+              {exactEmpty ? (
+                <p className={styles.transferSearchFallbackNotice}>
+                  {messages.seniorTransferSearchFallbackNotice}
+                </p>
+              ) : null}
+              {loading ? (
+                <div className={styles.miniMutedCard}>
+                  <span className={styles.muted}>{messages.seniorTransferSearchLoading}</span>
+                </div>
+              ) : null}
+              {error ? <p className={styles.errorText}>{error}</p> : null}
+              {!loading && !error && results.length === 0 ? (
+                <p className={styles.muted}>{messages.seniorTransferSearchNoResults}</p>
+              ) : null}
+              <div className={styles.transferSearchResultsList}>
+                {results.map((result) => renderResultCard(result))}
+              </div>
+            </section>
+          </div>
+          {marketSummaryCard}
         </div>
       }
       actions={

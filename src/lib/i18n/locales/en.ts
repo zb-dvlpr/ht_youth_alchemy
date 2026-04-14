@@ -72,6 +72,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_4_6_0:
+      "Transfer market searches now include compact market summaries and price distribution.",
     changelog_4_5_0:
       "Youth player details can now estimate transfer value from revealed maximum potential.",
     changelog_4_4_0:
@@ -1113,6 +1115,16 @@ export const messagesEn: Messages = {
       "Reveal at least one max potential skill before estimating value.",
     youthEstimateValueAgeMissingTooltip:
       "Refresh player details before estimating value.",
+    transferSearchMarketSummaryTitle: "Market summary",
+    transferSearchMarketSummaryBasis: "{{count}} priced results",
+    transferSearchMarketSummarySparse:
+      "Only {{count}} priced results; treat this as a rough signal.",
+    transferSearchMarketSummaryNoPrices: "No priced results to summarize.",
+    transferSearchMarketRangeLabel: "Range",
+    transferSearchMarketMedianLabel: "Median",
+    transferSearchMarketMeanLabel: "Mean",
+    transferSearchMarketMiddleLabel: "Middle 50%",
+    transferSearchMarketDistributionLabel: "Price distribution",
     sortLabel: "Sort by",
     sortName: "Name",
     sortAge: "Age",

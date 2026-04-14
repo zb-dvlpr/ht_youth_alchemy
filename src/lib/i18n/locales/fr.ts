@@ -72,6 +72,8 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_4_6_0:
+      "Les recherches sur le marche des transferts incluent maintenant un resume compact du marche et une distribution des prix.",
     changelog_4_5_0:
       "Les details des joueurs jeunes peuvent maintenant estimer la valeur de transfert depuis le potentiel maximum revele.",
     changelog_4_4_0:
@@ -1163,6 +1165,17 @@ export const messagesFr: Messages = {
       "Revelez au moins un potentiel maximum avant d estimer la valeur.",
     youthEstimateValueAgeMissingTooltip:
       "Actualisez les details du joueur avant d estimer la valeur.",
+    transferSearchMarketSummaryTitle: "Resume du marche",
+    transferSearchMarketSummaryBasis: "{{count}} resultats avec prix",
+    transferSearchMarketSummarySparse:
+      "Seulement {{count}} resultats avec prix; a traiter comme un signal approximatif.",
+    transferSearchMarketSummaryNoPrices:
+      "Aucun resultat avec prix a resumer.",
+    transferSearchMarketRangeLabel: "Plage",
+    transferSearchMarketMedianLabel: "Mediane",
+    transferSearchMarketMeanLabel: "Moyenne",
+    transferSearchMarketMiddleLabel: "50% centraux",
+    transferSearchMarketDistributionLabel: "Distribution des prix",
     sortLabel: "Trier par",
     sortName: "Nom",
     sortAge: "Âge",

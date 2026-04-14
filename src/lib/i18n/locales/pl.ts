@@ -125,6 +125,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_6_0:
+    "Wyszukiwania na rynku transferowym maja teraz kompaktowe podsumowanie i rozklad cen.",
   changelog_4_5_0:
     "Szczegoly juniorow moga teraz szacowac wartosc transferowa z odkrytego maksymalnego potencjalu.",
   changelog_4_4_0:
@@ -282,6 +284,17 @@ export const messagesPl: Messages = {
     "Odkryj co najmniej jeden maksymalny potencjal umiejetnosci przed oszacowaniem wartosci.",
   youthEstimateValueAgeMissingTooltip:
     "Odswiez szczegoly zawodnika przed oszacowaniem wartosci.",
+  transferSearchMarketSummaryTitle: "Podsumowanie rynku",
+  transferSearchMarketSummaryBasis: "{{count}} wynikow z cena",
+  transferSearchMarketSummarySparse:
+    "Tylko {{count}} wynikow z cena; traktuj to jako przyblizony sygnal.",
+  transferSearchMarketSummaryNoPrices:
+    "Brak wynikow z cena do podsumowania.",
+  transferSearchMarketRangeLabel: "Zakres",
+  transferSearchMarketMedianLabel: "Mediana",
+  transferSearchMarketMeanLabel: "Srednia",
+  transferSearchMarketMiddleLabel: "Srodkowe 50%",
+  transferSearchMarketDistributionLabel: "Rozklad cen",
   seniorListInjuryBruised: "Stłuczony",
   seniorListInjuryWeeks: "Kontuzjowany ({weeks} tyg.)",
   seniorCardsMatchRunning: "mecz w toku",

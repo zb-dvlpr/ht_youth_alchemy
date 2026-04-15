@@ -775,24 +775,34 @@ const TransferSearchModal = memo(function TransferSearchModal({
           </div>
           {marketSummaryRich ? (
             <div
-              className={styles.transferSearchMarketHistogram}
+              className={styles.transferSearchMarketDistribution}
               aria-label={messages.transferSearchMarketDistributionLabel}
             >
               {marketSummary.buckets.map((bucket, index) => (
-                <Tooltip
+                <div
                   key={`${bucket.min}-${bucket.max}-${index}`}
-                  content={`${formatTransferSearchMarketEur(bucket.min)} - ${formatTransferSearchMarketEur(bucket.max)}: ${bucket.count}`}
+                  className={styles.transferSearchMarketBucketRow}
                 >
-                  <span
-                    className={styles.transferSearchMarketBucket}
-                    style={{
-                      height: `${Math.max(
-                        10,
-                        Math.round((bucket.count / maxBucketCount) * 44)
-                      )}px`,
-                    }}
-                  />
-                </Tooltip>
+                  <span className={styles.transferSearchMarketBucketLabel}>
+                    {formatTransferSearchMarketEur(bucket.min)}
+                    {" - "}
+                    {formatTransferSearchMarketEur(bucket.max)}
+                  </span>
+                  <span className={styles.transferSearchMarketBucketTrack}>
+                    <span
+                      className={styles.transferSearchMarketBucketBar}
+                      style={{
+                        width: `${Math.max(
+                          8,
+                          Math.round((bucket.count / maxBucketCount) * 100)
+                        )}%`,
+                      }}
+                    />
+                  </span>
+                  <span className={styles.transferSearchMarketBucketCount}>
+                    {bucket.count}
+                  </span>
+                </div>
               ))}
             </div>
           ) : null}

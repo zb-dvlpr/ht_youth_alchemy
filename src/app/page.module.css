@@ -5289,6 +5289,15 @@ html[data-theme="dark"] .transferSearchSkillStepperButton {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .transferSearchMarketBucketLabel,
+html[data-theme="dark"] .transferSearchMarketBucketCount {
+  color: #d8cbb9;
+}
+
+html[data-theme="dark"] .transferSearchMarketBucketTrack {
+  background: #332d28;
+}
+
 html[data-theme="dark"] .transferSearchSpecialtyButtonActive {
   background: #3d7f4b;
   border-color: #3d7f4b;
@@ -6792,18 +6801,16 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 }
 
 .transferSearchMarketStatsGrid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
 }
 
 .transferSearchMarketStat {
-  display: grid;
-  gap: 3px;
+  display: inline-flex;
+  gap: 6px;
   min-width: 0;
-  padding: 8px;
-  border-radius: 8px;
-  background: #f6efe5;
+  align-items: baseline;
 }
 
 .transferSearchMarketStat strong {
@@ -6812,22 +6819,50 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   overflow-wrap: anywhere;
 }
 
-.transferSearchMarketHistogram {
+.transferSearchMarketDistribution {
   display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(16px, 1fr);
-  align-items: end;
-  gap: 5px;
-  height: 52px;
-  padding-top: 8px;
+  gap: 8px;
+  min-width: 0;
 }
 
-.transferSearchMarketBucket {
+.transferSearchMarketBucketRow {
+  display: grid;
+  grid-template-columns: minmax(104px, 0.85fr) minmax(120px, 1.4fr) minmax(24px, auto);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.transferSearchMarketBucketLabel,
+.transferSearchMarketBucketCount {
+  color: #5c4821;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.transferSearchMarketBucketLabel {
+  overflow-wrap: anywhere;
+}
+
+.transferSearchMarketBucketCount {
+  font-weight: 700;
+  text-align: right;
+}
+
+.transferSearchMarketBucketTrack {
   display: block;
   width: 100%;
-  min-height: 10px;
-  border-radius: 4px 4px 2px 2px;
-  background: linear-gradient(180deg, #2f8d4d, #244d2b);
+  height: 12px;
+  border-radius: 999px;
+  background: #eadcc6;
+  overflow: hidden;
+}
+
+.transferSearchMarketBucketBar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2f8d4d, #244d2b);
 }
 
 .transferSearchResultCard {
@@ -9367,9 +9402,17 @@ html[data-theme="dark"] .slotCardStatus {
 
   .transferSearchRangeGrid,
   .transferSearchSimpleRange,
-  .transferSearchBidGrid,
-  .transferSearchMarketStatsGrid {
+  .transferSearchBidGrid {
     grid-template-columns: 1fr;
+  }
+
+  .transferSearchMarketBucketRow {
+    grid-template-columns: 1fr auto;
+  }
+
+  .transferSearchMarketBucketTrack {
+    grid-column: 1 / -1;
+    grid-row: 2;
   }
 
   .transferSearchMarketSummaryHeader {

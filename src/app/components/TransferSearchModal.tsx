@@ -792,10 +792,13 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     <span
                       className={styles.transferSearchMarketBucketBar}
                       style={{
-                        width: `${Math.max(
-                          8,
-                          Math.round((bucket.count / maxBucketCount) * 100)
-                        )}%`,
+                        width:
+                          bucket.count === 0
+                            ? "0%"
+                            : `${Math.max(
+                                8,
+                                Math.round((bucket.count / maxBucketCount) * 100)
+                              )}%`,
                       }}
                     />
                   </span>

@@ -125,6 +125,12 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_7_0:
+    "Panele Club Chronicle na desktopie mozna teraz ukrywac i przywracac z menu widocznosci.",
+  changelog_4_6_0:
+    "Wyszukiwania na rynku transferowym maja teraz kompaktowe podsumowanie i rozklad cen.",
+  changelog_4_5_0:
+    "Szczegoly juniorow moga teraz szacowac wartosc transferowa z odkrytego maksymalnego potencjalu.",
   changelog_4_4_0:
     "Club Chronicle może teraz śledzić trwające mecze z opcjonalną obsługą turniejów.",
   changelog_4_3_0:
@@ -260,6 +266,8 @@ export const messagesPl: Messages = {
     "Brak zawodnikow na liscie transferowej spelniajacych te kryteria.",
   seniorTransferSearchFallbackNotice:
     "Dokladne wyszukiwanie umiejetnosci nic nie zwrocilo. Automatycznie uruchomiono szersze wyszukiwanie z obnizonymi minimami o 1, wiekiem rozszerzonym do ±50 dni i bez filtra specjalnosci.",
+  youthEstimateValueFallbackNotice:
+    "Dokladne wyszukiwanie wyceny nic nie zwrocilo. Uruchomiono szersze wyszukiwanie z oknem wieku awansu rozszerzonym do ±50 dni i bez filtra specjalnosci.",
   seniorTransferSearchResultsCount: "{{count}} wynikow",
   seniorTransferSearchResultsMany: "Wiele wynikow",
   seniorTransferSearchHighestBidLabel: "Najwyzsza oferta",
@@ -273,6 +281,24 @@ export const messagesPl: Messages = {
   seniorTransferSearchBidMissingAmount: "Najpierw wpisz kwote oferty.",
   seniorTransferSearchBidPlaced: "Zlozono oferte na {{player}}.",
   seniorTransferSearchBidFailed: "Oferta nie powiodla sie: {{details}}",
+  youthEstimateValueButton: "Oszacuj wartosc",
+  youthEstimateValueTooltip:
+    "Przeszukaj rynek transferowy na podstawie maksymalnego potencjalu tego zawodnika.",
+  youthEstimateValueDisabledTooltip:
+    "Odkryj co najmniej jeden maksymalny potencjal umiejetnosci przed oszacowaniem wartosci.",
+  youthEstimateValueAgeMissingTooltip:
+    "Odswiez szczegoly zawodnika przed oszacowaniem wartosci.",
+  transferSearchMarketSummaryTitle: "Podsumowanie rynku",
+  transferSearchMarketSummaryBasis: "{{count}} wynikow z cena",
+  transferSearchMarketSummarySparse:
+    "Tylko {{count}} wynikow z cena; traktuj to jako przyblizony sygnal.",
+  transferSearchMarketSummaryNoPrices:
+    "Brak wynikow z cena do podsumowania.",
+  transferSearchMarketRangeLabel: "Zakres",
+  transferSearchMarketMedianLabel: "Mediana",
+  transferSearchMarketMeanLabel: "Srednia",
+  transferSearchMarketMiddleLabel: "Srodkowe 50%",
+  transferSearchMarketDistributionLabel: "Rozklad cen",
   seniorListInjuryBruised: "Stłuczony",
   seniorListInjuryWeeks: "Kontuzjowany ({weeks} tyg.)",
   seniorCardsMatchRunning: "mecz w toku",
@@ -717,6 +743,14 @@ export const messagesPl: Messages = {
   debugYouthSeFetchHint:
     "Loguje w konsoli obserwowane wydarzenia specjalne: identyfikator wydarzenia, nazwy obiektu/podmiotu i adres URL meczu.",
   clubChronicleUpdatesButton: "Najnowsze aktualizacje",
+  clubChroniclePanelVisibilityTooltip: "Zarzadzaj widocznymi panelami",
+  clubChroniclePanelVisibilityTitle: "Widoczne panele",
+  clubChroniclePanelVisibilityHint:
+    "Wybierz, ktore panele Club Chronicle sa pokazywane na desktopie.",
+  clubChroniclePanelVisibilityShowAll: "Pokaz wszystkie panele",
+  clubChroniclePanelHideTooltip: "Ukryj panel",
+  clubChroniclePanelVisibilityAllHidden:
+    "Wszystkie panele sa ukryte. Uzyj przycisku widocznosci paneli, aby pokazac je ponownie.",
   clubChronicleRefreshButton: "Odśwież",
   clubChronicleRefreshPowerRatingsTooltip: "Odśwież dane power ratings.",
   clubChroniclePowerRatingsPanelTitle: "Power ratings",

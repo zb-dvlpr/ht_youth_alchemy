@@ -72,6 +72,12 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_4_7_0:
+      "Club-Chronik-Desktop-Panels koennen jetzt ueber ein Sichtbarkeitsmenue ausgeblendet und wiederhergestellt werden.",
+    changelog_4_6_0:
+      "Transfermarktsuchen zeigen jetzt kompakte Marktuebersichten und Preisverteilung.",
+    changelog_4_5_0:
+      "Jugendspielerdetails koennen jetzt den Transferwert aus aufgedecktem Maximalpotenzial schaetzen.",
     changelog_4_4_0:
       "Club-Chronik kann jetzt laufende Spiele mit optionaler Turnierunterstuetzung verfolgen.",
     changelog_4_3_0:
@@ -300,6 +306,14 @@ export const messagesDe: Messages = {
     clubChronicleUpdatesHistoryNoChanges: "Keine Änderungen",
     clubChronicleNoDivulgoMask: "NO DIVULGO: CLICK HERE",
     clubChronicleUpdatesButton: "Neueste Updates",
+    clubChroniclePanelVisibilityTooltip: "Sichtbare Panels verwalten",
+    clubChroniclePanelVisibilityTitle: "Sichtbare Panels",
+    clubChroniclePanelVisibilityHint:
+      "Waehle, welche Club-Chronicle-Panels auf dem Desktop angezeigt werden.",
+    clubChroniclePanelVisibilityShowAll: "Alle Panels anzeigen",
+    clubChroniclePanelHideTooltip: "Panel ausblenden",
+    clubChroniclePanelVisibilityAllHidden:
+      "Alle Panels sind ausgeblendet. Nutze die Panel-Sichtbarkeit, um sie wieder anzuzeigen.",
     clubChronicleRefreshButton: "Aktualisieren",
     clubChronicleRefreshAllTooltip: "Alle Club-Chronik-Daten aktualisieren.",
     clubChronicleRefreshTooltip: "Ligaleistungsdaten aktualisieren.",
@@ -1126,6 +1140,8 @@ export const messagesDe: Messages = {
     seniorTransferSearchNoResults: "Keine gelisteten Spieler passen zu diesen Kriterien.",
     seniorTransferSearchFallbackNotice:
       "Die exakte Skillsuche ergab nichts. Es wurde automatisch eine breitere Suche mit um 1 reduzierten Mindestskills, erweitertem Alter von ±50 Tagen und ohne Spezialitaetsfilter ausgefuehrt.",
+    youthEstimateValueFallbackNotice:
+      "Die exakte Wertschaetzungssuche ergab nichts. Es wurde automatisch eine breitere Suche mit auf ±50 Tage erweitertem Befoerderungsalter und ohne Spezialitaetsfilter ausgefuehrt.",
     seniorTransferSearchResultsCount: "{{count}} Ergebnisse",
     seniorTransferSearchResultsMany: "Viele Ergebnisse",
     seniorTransferSearchHighestBidLabel: "Hoechstgebot",
@@ -1139,6 +1155,24 @@ export const messagesDe: Messages = {
     seniorTransferSearchBidMissingAmount: "Bitte zuerst einen Gebotsbetrag eingeben.",
     seniorTransferSearchBidPlaced: "Gebot fuer {{player}} abgegeben.",
     seniorTransferSearchBidFailed: "Gebot fehlgeschlagen: {{details}}",
+    youthEstimateValueButton: "Wert schaetzen",
+    youthEstimateValueTooltip:
+      "Durchsuche den Transfermarkt nach dem maximalen Potenzial dieses Spielers.",
+    youthEstimateValueDisabledTooltip:
+      "Decke mindestens ein maximales Potenzial auf, bevor du den Wert schaetzt.",
+    youthEstimateValueAgeMissingTooltip:
+      "Aktualisiere die Spielerdetails, bevor du den Wert schaetzt.",
+    transferSearchMarketSummaryTitle: "Marktuebersicht",
+    transferSearchMarketSummaryBasis: "{{count}} bepreiste Ergebnisse",
+    transferSearchMarketSummarySparse:
+      "Nur {{count}} bepreiste Ergebnisse; als groben Hinweis verwenden.",
+    transferSearchMarketSummaryNoPrices:
+      "Keine bepreisten Ergebnisse fuer eine Zusammenfassung.",
+    transferSearchMarketRangeLabel: "Spanne",
+    transferSearchMarketMedianLabel: "Median",
+    transferSearchMarketMeanLabel: "Durchschnitt",
+    transferSearchMarketMiddleLabel: "Mittlere 50%",
+    transferSearchMarketDistributionLabel: "Preisverteilung",
     sortLabel: "Sortieren nach",
     sortName: "Name",
     sortAge: "Alter",

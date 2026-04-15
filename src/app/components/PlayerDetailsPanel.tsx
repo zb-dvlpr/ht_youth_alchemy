@@ -986,7 +986,11 @@ export default function PlayerDetailsPanel({
     }
 
     return (
-      <div className={styles.profileCard}>
+      <div
+        className={`${styles.profileCard}${
+          detailsHeaderActions ? ` ${styles.profileCardWithHeaderActions}` : ""
+        }`}
+      >
         <div className={styles.detailsRefreshCorner}>
           {detailsHeaderActions}
           <Tooltip content={messages.playerDetailsPreviousPlayer}>

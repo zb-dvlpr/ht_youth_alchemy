@@ -132,6 +132,12 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_7_0:
+    "Club Chronicle-panelen op desktop kunnen nu worden verborgen en hersteld via een zichtbaarheidsmenu.",
+  changelog_4_6_0:
+    "Transfermarktzoekopdrachten tonen nu compacte marktsamenvattingen en prijsverdeling.",
+  changelog_4_5_0:
+    "Jeugdspelerdetails kunnen nu transferwaarde schatten op basis van onthuld maximaal potentieel.",
   changelog_4_4_0:
     "Club Chronicle kan nu lopende wedstrijden volgen met optionele toernooiondersteuning.",
   changelog_4_3_0:
@@ -267,6 +273,8 @@ export const messagesNl: Messages = {
     "Geen spelers op de transferlijst voldoen aan deze criteria.",
   seniorTransferSearchFallbackNotice:
     "De exacte vaardigheidzoekopdracht leverde niets op. Automatisch is een bredere zoekopdracht uitgevoerd met minimumskills 1 lager, leeftijd verbreed naar ±50 dagen en zonder specialiteitsfilter.",
+  youthEstimateValueFallbackNotice:
+    "De exacte waardeschatting leverde niets op. Er is een bredere zoekopdracht uitgevoerd met het promotieleeftijdvenster verbreed naar ±50 dagen en zonder specialiteitsfilter.",
   seniorTransferSearchResultsCount: "{{count}} resultaten",
   seniorTransferSearchResultsMany: "Veel resultaten",
   seniorTransferSearchHighestBidLabel: "Hoogste bod",
@@ -280,6 +288,24 @@ export const messagesNl: Messages = {
   seniorTransferSearchBidMissingAmount: "Voer eerst een bodbedrag in.",
   seniorTransferSearchBidPlaced: "Bod geplaatst op {{player}}.",
   seniorTransferSearchBidFailed: "Bod mislukt: {{details}}",
+  youthEstimateValueButton: "Waarde schatten",
+  youthEstimateValueTooltip:
+    "Zoek op de transfermarkt op basis van het maximale potentieel van deze speler.",
+  youthEstimateValueDisabledTooltip:
+    "Onthul minstens een maximaal potentieel voordat je de waarde schat.",
+  youthEstimateValueAgeMissingTooltip:
+    "Ververs de spelersdetails voordat je de waarde schat.",
+  transferSearchMarketSummaryTitle: "Marktsamenvatting",
+  transferSearchMarketSummaryBasis: "{{count}} resultaten met prijs",
+  transferSearchMarketSummarySparse:
+    "Slechts {{count}} resultaten met prijs; behandel dit als een grove indicatie.",
+  transferSearchMarketSummaryNoPrices:
+    "Geen resultaten met prijs om samen te vatten.",
+  transferSearchMarketRangeLabel: "Bereik",
+  transferSearchMarketMedianLabel: "Mediaan",
+  transferSearchMarketMeanLabel: "Gemiddelde",
+  transferSearchMarketMiddleLabel: "Middelste 50%",
+  transferSearchMarketDistributionLabel: "Prijsverdeling",
   seniorListInjuryBruised: "Gekneusd",
   seniorListInjuryWeeks: "Geblesseerd ({weeks}w)",
   seniorCardsMatchRunning: "wedstrijd bezig",
@@ -724,6 +750,14 @@ export const messagesNl: Messages = {
   debugYouthSeFetchHint:
     "Logt gevolgde speciale gebeurtenissen in de console: gebeurtenis-id, object-/onderwerpnamen en wedstrijd-URL.",
   clubChronicleUpdatesButton: "Laatste updates",
+  clubChroniclePanelVisibilityTooltip: "Zichtbare panelen beheren",
+  clubChroniclePanelVisibilityTitle: "Zichtbare panelen",
+  clubChroniclePanelVisibilityHint:
+    "Kies welke Club Chronicle-panelen op desktop worden getoond.",
+  clubChroniclePanelVisibilityShowAll: "Alle panelen tonen",
+  clubChroniclePanelHideTooltip: "Paneel verbergen",
+  clubChroniclePanelVisibilityAllHidden:
+    "Alle panelen zijn verborgen. Gebruik de knop voor paneelzichtbaarheid om ze weer te tonen.",
   clubChronicleRefreshButton: "Vernieuwen",
   clubChronicleRefreshPowerRatingsTooltip: "Power-ratingsgegevens vernieuwen.",
   clubChroniclePowerRatingsPanelTitle: "Power ratings",

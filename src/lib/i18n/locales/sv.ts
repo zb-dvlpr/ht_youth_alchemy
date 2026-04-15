@@ -72,6 +72,12 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_7_0:
+      "Club Chronicle-paneler pa desktop kan nu doljas och aterstallas fran en synlighetsmeny.",
+    changelog_4_6_0:
+      "Transfersokningar visar nu kompakta marknadssammanfattningar och prisfordelning.",
+    changelog_4_5_0:
+      "Ungdomsspelares detaljer kan nu uppskatta transfervarde fran avslojad maxpotential.",
     changelog_4_4_0:
       "Club Chronicle kan nu följa pågående matcher med valfritt turneringsstöd.",
     changelog_4_3_0:
@@ -303,6 +309,14 @@ export const messagesSv: Messages = {
     clubChronicleUpdatesHistoryNoChanges: "Inga ändringar",
     clubChronicleNoDivulgoMask: "NO DIVULGO: CLICK HERE",
     clubChronicleUpdatesButton: "Senaste uppdateringar",
+    clubChroniclePanelVisibilityTooltip: "Hantera synliga paneler",
+    clubChroniclePanelVisibilityTitle: "Synliga paneler",
+    clubChroniclePanelVisibilityHint:
+      "Valj vilka Club Chronicle-paneler som visas pa desktop.",
+    clubChroniclePanelVisibilityShowAll: "Visa alla paneler",
+    clubChroniclePanelHideTooltip: "Dolj panel",
+    clubChroniclePanelVisibilityAllHidden:
+      "Alla paneler ar dolda. Anvand panelknappen for synlighet for att visa dem igen.",
     clubChronicleRefreshButton: "Uppdatera",
     clubChronicleRefreshAllTooltip: "Uppdatera all data i Klubbkrönikan.",
     clubChronicleRefreshTooltip: "Uppdatera ligaprestanda-data.",
@@ -1134,6 +1148,8 @@ export const messagesSv: Messages = {
     seniorTransferSearchNoResults: "Inga spelare pa transferlistan matchar dessa kriterier.",
     seniorTransferSearchFallbackNotice:
       "Den exakta sokningen gav inga traffar. En bredare reservsokning koerdes automatiskt med skill-minimum sankt med 1, alder utokad till ±50 dagar och utan specialitetsfilter.",
+    youthEstimateValueFallbackNotice:
+      "Den exakta varderingssokningen gav inga traffar. En bredare reservsokning koerdes med befordringsalderns fonster utokat till ±50 dagar och utan specialitetsfilter.",
     seniorTransferSearchResultsCount: "{{count}} resultat",
     seniorTransferSearchResultsMany: "Manga resultat",
     seniorTransferSearchHighestBidLabel: "Hogsta bud",
@@ -1147,6 +1163,24 @@ export const messagesSv: Messages = {
     seniorTransferSearchBidMissingAmount: "Ange ett budbelopp forst.",
     seniorTransferSearchBidPlaced: "Bud lagt pa {{player}}.",
     seniorTransferSearchBidFailed: "Bud misslyckades: {{details}}",
+    youthEstimateValueButton: "Uppskatta varde",
+    youthEstimateValueTooltip:
+      "Sok pa transfermarknaden utifran spelarens maximala potential.",
+    youthEstimateValueDisabledTooltip:
+      "Avsloja minst en maxpotential innan vardet uppskattas.",
+    youthEstimateValueAgeMissingTooltip:
+      "Uppdatera spelardetaljerna innan vardet uppskattas.",
+    transferSearchMarketSummaryTitle: "Marknadssammanfattning",
+    transferSearchMarketSummaryBasis: "{{count}} prissatta resultat",
+    transferSearchMarketSummarySparse:
+      "Bara {{count}} prissatta resultat; tolka detta som en grov signal.",
+    transferSearchMarketSummaryNoPrices:
+      "Inga prissatta resultat att sammanfatta.",
+    transferSearchMarketRangeLabel: "Intervall",
+    transferSearchMarketMedianLabel: "Median",
+    transferSearchMarketMeanLabel: "Medel",
+    transferSearchMarketMiddleLabel: "Mitten 50%",
+    transferSearchMarketDistributionLabel: "Prisfordelning",
     sortLabel: "Sortera efter",
     sortName: "Namn",
     sortAge: "Ålder",

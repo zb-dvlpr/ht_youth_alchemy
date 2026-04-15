@@ -72,6 +72,12 @@ export const messagesIt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Questa app è in beta. Funzioni, comportamento e dati locali in cache possono cambiare o essere azzerati senza preavviso.",
+    changelog_4_7_0:
+      "I pannelli desktop di Club Chronicle ora possono essere nascosti e ripristinati da un menu di visibilita.",
+    changelog_4_6_0:
+      "Le ricerche del mercato trasferimenti ora includono riepiloghi compatti e distribuzione dei prezzi.",
+    changelog_4_5_0:
+      "I dettagli dei giovani ora possono stimare il valore di mercato dal potenziale massimo rivelato.",
     changelog_4_4_0:
       "Club Chronicle ora puo seguire le partite in corso con supporto opzionale ai tornei.",
     changelog_4_3_0:
@@ -305,6 +311,14 @@ export const messagesIt: Messages = {
     clubChronicleUpdatesHistoryNoChanges: "Nessuna modifica",
     clubChronicleNoDivulgoMask: "NO DIVULGO: CLICK HERE",
     clubChronicleUpdatesButton: "Ultimi aggiornamenti",
+    clubChroniclePanelVisibilityTooltip: "Gestisci pannelli visibili",
+    clubChroniclePanelVisibilityTitle: "Pannelli visibili",
+    clubChroniclePanelVisibilityHint:
+      "Scegli quali pannelli di Club Chronicle mostrare su desktop.",
+    clubChroniclePanelVisibilityShowAll: "Mostra tutti i pannelli",
+    clubChroniclePanelHideTooltip: "Nascondi pannello",
+    clubChroniclePanelVisibilityAllHidden:
+      "Tutti i pannelli sono nascosti. Usa il pulsante di visibilita pannelli per mostrarli di nuovo.",
     clubChronicleRefreshButton: "Aggiorna",
     clubChronicleRefreshAllTooltip: "Aggiorna tutti i dati della Cronaca del club.",
     clubChronicleRefreshTooltip: "Aggiorna i dati di prestazione in lega.",
@@ -1144,6 +1158,8 @@ export const messagesIt: Messages = {
     seniorTransferSearchNoResults: "Nessun giocatore sul mercato corrisponde a questi criteri.",
     seniorTransferSearchFallbackNotice:
       "La ricerca esatta per skill non ha trovato nulla. E stata eseguita automaticamente una ricerca piu ampia con minimi skill ridotti di 1, eta ampliata a ±50 giorni e senza filtro specialita.",
+    youthEstimateValueFallbackNotice:
+      "La ricerca esatta di stima non ha trovato nulla. E stata eseguita una ricerca piu ampia con la finestra dell eta di promozione ampliata a ±50 giorni e senza filtro specialita.",
     seniorTransferSearchResultsCount: "{{count}} risultati",
     seniorTransferSearchResultsMany: "Molti risultati",
     seniorTransferSearchHighestBidLabel: "Offerta piu alta",
@@ -1157,6 +1173,24 @@ export const messagesIt: Messages = {
     seniorTransferSearchBidMissingAmount: "Inserisci prima un importo.",
     seniorTransferSearchBidPlaced: "Offerta inserita per {{player}}.",
     seniorTransferSearchBidFailed: "Offerta fallita: {{details}}",
+    youthEstimateValueButton: "Stima valore",
+    youthEstimateValueTooltip:
+      "Cerca sul mercato trasferimenti in base al potenziale massimo di questo giocatore.",
+    youthEstimateValueDisabledTooltip:
+      "Rivela almeno un potenziale massimo prima di stimare il valore.",
+    youthEstimateValueAgeMissingTooltip:
+      "Aggiorna i dettagli del giocatore prima di stimare il valore.",
+    transferSearchMarketSummaryTitle: "Riepilogo mercato",
+    transferSearchMarketSummaryBasis: "{{count}} risultati con prezzo",
+    transferSearchMarketSummarySparse:
+      "Solo {{count}} risultati con prezzo; consideralo un segnale approssimativo.",
+    transferSearchMarketSummaryNoPrices:
+      "Nessun risultato con prezzo da riepilogare.",
+    transferSearchMarketRangeLabel: "Intervallo",
+    transferSearchMarketMedianLabel: "Mediana",
+    transferSearchMarketMeanLabel: "Media",
+    transferSearchMarketMiddleLabel: "50% centrale",
+    transferSearchMarketDistributionLabel: "Distribuzione prezzi",
     sortLabel: "Ordina per",
     sortName: "Nome",
     sortAge: "Età",

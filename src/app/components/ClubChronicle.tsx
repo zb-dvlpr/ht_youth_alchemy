@@ -2,7 +2,9 @@
 /* eslint-disable react-hooks/exhaustive-deps, @typescript-eslint/no-unused-vars, jsx-a11y/role-supports-aria-props */
 
 import {
+  createContext,
   useCallback,
+  useContext,
   useEffect,
   useMemo,
   useRef,
@@ -512,7 +514,6 @@ type OngoingMatchSnapshot = {
 };
 
 type OngoingMatchEvent = {
-  index: number | null;
   minute: number | null;
   eventText: string;
 };
@@ -726,6 +727,11 @@ type ChroniclePanelProps = {
   children: React.ReactNode;
 };
 
+const ChroniclePanelVisibilityContext = createContext<{
+  closeLabel: string;
+  onClose: (panelId: string) => void;
+} | null>(null);
+
 const ChronicleTable = <Row, Snapshot>({
   columns,
   rows,
@@ -859,66 +865,90 @@ const ChroniclePanel = ({
   onDragEnd,
   onPointerDown,
   children,
-}: ChroniclePanelProps) => (
-  <div className={styles.chroniclePanel}>
-    <div
-      className={styles.chroniclePanelHeader}
-      draggable
-      onPointerDown={() => onPointerDown?.(panelId)}
-      onDragStart={(event) => onDragStart?.(event, panelId)}
-      onDragEnd={onDragEnd}
-    >
-      <h3 className={styles.chroniclePanelTitle}>
-        <span className={styles.chroniclePanelTitleRow}>
-          <span className={styles.chroniclePanelTitleMain}>
-            <span
-              className={styles.chroniclePanelDragHandle}
-              aria-label={title}
-            >
-              ⋮⋮
+}: ChroniclePanelProps) => {
+  const panelVisibility = useContext(ChroniclePanelVisibilityContext);
+  return (
+    <div className={styles.chroniclePanel}>
+      <div
+        className={styles.chroniclePanelHeader}
+        draggable
+        onPointerDown={() => onPointerDown?.(panelId)}
+        onDragStart={(event) => onDragStart?.(event, panelId)}
+        onDragEnd={onDragEnd}
+      >
+        <h3 className={styles.chroniclePanelTitle}>
+          <span className={styles.chroniclePanelTitleRow}>
+            <span className={styles.chroniclePanelTitleMain}>
+              <span
+                className={styles.chroniclePanelDragHandle}
+                aria-label={title}
+              >
+                ⋮⋮
+              </span>
+              {title}
+              {onRefresh ? (
+                <Tooltip content={refreshLabel}>
+                  <button
+                    type="button"
+                    className={styles.chroniclePanelRefresh}
+                    draggable={false}
+                    onPointerDown={(event) => event.stopPropagation()}
+                    onDragStart={(event) => {
+                      event.preventDefault();
+                      event.stopPropagation();
+                    }}
+                    onClick={onRefresh}
+                    disabled={Boolean(refreshing)}
+                    aria-label={refreshLabel}
+                  >
+                    ↻
+                  </button>
+                </Tooltip>
+              ) : null}
+              {(refreshing || progressPct > 0) && progressPct < 100 ? (
+                <span className={styles.chroniclePanelMiniProgress} aria-hidden="true">
+                  <span
+                    className={styles.chroniclePanelMiniProgressFill}
+                    style={{ width: `${Math.max(0, Math.min(100, progressPct))}%` }}
+                  />
+                </span>
+              ) : null}
             </span>
-            {title}
-            {onRefresh ? (
-              <Tooltip content={refreshLabel}>
+            {headerAccessory ? (
+              <span className={styles.chroniclePanelTitleAccessory}>
+                {headerAccessory}
+              </span>
+            ) : null}
+            {panelVisibility ? (
+              <Tooltip content={panelVisibility.closeLabel}>
                 <button
                   type="button"
-                  className={styles.chroniclePanelRefresh}
+                  className={styles.chroniclePanelClose}
                   draggable={false}
                   onPointerDown={(event) => event.stopPropagation()}
                   onDragStart={(event) => {
                     event.preventDefault();
                     event.stopPropagation();
                   }}
-                  onClick={onRefresh}
-                  disabled={Boolean(refreshing)}
-                  aria-label={refreshLabel}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    panelVisibility.onClose(panelId);
+                  }}
+                  aria-label={`${panelVisibility.closeLabel}: ${title}`}
                 >
-                  ↻
+                  ×
                 </button>
               </Tooltip>
             ) : null}
-            {(refreshing || progressPct > 0) && progressPct < 100 ? (
-              <span className={styles.chroniclePanelMiniProgress} aria-hidden="true">
-                <span
-                  className={styles.chroniclePanelMiniProgressFill}
-                  style={{ width: `${Math.max(0, Math.min(100, progressPct))}%` }}
-                />
-              </span>
-            ) : null}
           </span>
-          {headerAccessory ? (
-            <span className={styles.chroniclePanelTitleAccessory}>
-              {headerAccessory}
-            </span>
-          ) : null}
-        </span>
-      </h3>
+        </h3>
+      </div>
+      <div className={styles.chroniclePanelBody} data-cc-scroll-key={panelId}>
+        {children}
+      </div>
     </div>
-    <div className={styles.chroniclePanelBody} data-cc-scroll-key={panelId}>
-      {children}
-    </div>
-  </div>
-);
+  );
+};
 
 const STORAGE_KEY = "ya_club_chronicle_watchlist_v1";
 const TABS_STORAGE_KEY = "ya_cc_tabs_v1";
@@ -927,6 +957,7 @@ const UPDATES_KEY = "ya_cc_updates_v1";
 const GLOBAL_BASELINE_KEY = "ya_cc_global_baseline_v1";
 const GLOBAL_UPDATES_HISTORY_KEY = "ya_cc_global_updates_history_v1";
 const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
+const PANEL_VISIBILITY_KEY = "ya_cc_panel_visibility_v1";
 const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
 const FORMATIONS_INCLUDE_FRIENDLIES_KEY =
   "ya_cc_formations_include_friendlies_v1";
@@ -2218,6 +2249,38 @@ const writePanelOrder = (order: string[]) => {
   }
 };
 
+const normalizePanelVisibility = (value: unknown): Record<string, boolean> => {
+  if (!value || typeof value !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(value as Record<string, unknown>)
+      .filter(([id]) => PANEL_IDS.includes(id as ChroniclePanelId))
+      .map(([id, visible]) => [id, visible !== false])
+  );
+};
+
+const readPanelVisibility = (): Record<string, boolean> => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(PANEL_VISIBILITY_KEY);
+    if (!raw) return {};
+    return normalizePanelVisibility(JSON.parse(raw));
+  } catch {
+    return {};
+  }
+};
+
+const writePanelVisibility = (visibility: Record<string, boolean>) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      PANEL_VISIBILITY_KEY,
+      JSON.stringify(normalizePanelVisibility(visibility))
+    );
+  } catch {
+    // ignore storage errors
+  }
+};
+
 const readLastRefresh = (): number | null => {
   if (typeof window === "undefined") return null;
   try {
@@ -2550,6 +2613,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [panelOrder, setPanelOrder] = useState<string[]>(() =>
     readPanelOrder()
   );
+  const [panelVisibility, setPanelVisibility] = useState<Record<string, boolean>>(
+    () => readPanelVisibility()
+  );
   const [updatesOpen, setUpdatesOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
@@ -2730,6 +2796,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [isValidating, setIsValidating] = useState(false);
   const [errorOpen, setErrorOpen] = useState(false);
   const [watchlistOpen, setWatchlistOpen] = useState(false);
+  const [panelVisibilityOpen, setPanelVisibilityOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [tokenChecked, setTokenChecked] = useState(false);
@@ -2921,6 +2988,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       ...PANEL_IDS.filter((id) => !panelOrder.includes(id)),
     ],
     [panelOrder]
+  );
+  const desktopVisiblePanelOrder = useMemo(
+    () => normalizedPanelOrder.filter((panelId) => panelVisibility[panelId] !== false),
+    [normalizedPanelOrder, panelVisibility]
   );
 
   useEffect(() => {
@@ -4388,6 +4459,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [panelOrder]);
 
   useEffect(() => {
+    writePanelVisibility(panelVisibility);
+  }, [panelVisibility]);
+
+  useEffect(() => {
     if (!mobileChronicleActive) {
       previousAnyRefreshingRef.current = anyRefreshing;
       previousLastGlobalRefreshAtRef.current = lastGlobalRefreshAt;
@@ -4684,6 +4759,20 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       next.splice(adjustedTarget, 0, moved);
       return next;
     });
+  }, []);
+
+  const setPanelVisible = useCallback((panelId: string, visible: boolean) => {
+    if (!PANEL_IDS.includes(panelId as ChroniclePanelId)) return;
+    setPanelVisibility((prev) => ({
+      ...prev,
+      [panelId]: visible,
+    }));
+  }, []);
+
+  const showAllPanels = useCallback(() => {
+    setPanelVisibility(
+      Object.fromEntries(PANEL_IDS.map((panelId) => [panelId, true]))
+    );
   }, []);
 
   const finishPanelDrag = useCallback(() => {
@@ -6408,18 +6497,17 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   ): OngoingMatchEvent[] => {
     const eventNode = (eventList as RawNode | null | undefined)?.Event;
     return toArray(eventNode as RawNode | RawNode[] | null | undefined)
-      .map((event) => ({
-        index: parseNumberNode(event["@_Index"]),
+      .map((event, returnedOrder) => ({
         minute: parseNumberNode(event.Minute),
         eventText: parseStringNode(event.EventText) ?? "",
+        returnedOrder,
       }))
       .filter((event) => event.eventText.trim().length > 0)
       .sort((left, right) => {
-        const leftIndex = left.index ?? 0;
-        const rightIndex = right.index ?? 0;
-        if (leftIndex !== rightIndex) return leftIndex - rightIndex;
-        return (left.minute ?? 0) - (right.minute ?? 0);
-      });
+        const minuteDiff = (left.minute ?? 0) - (right.minute ?? 0);
+        return minuteDiff !== 0 ? minuteDiff : left.returnedOrder - right.returnedOrder;
+      })
+      .map(({ minute, eventText }) => ({ minute, eventText }));
   };
 
   const buildOngoingMatchSnapshot = (
@@ -6495,7 +6583,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const { response, payload } = await fetchChppJson<{
       data?: { HattrickData?: { MatchList?: { Match?: RawNode | RawNode[] } } };
       error?: string;
-    }>(`/api/chpp/live?actionType=view`, { cache: "no-store" });
+    }>(`/api/chpp/live?actionType=viewAll`, { cache: "no-store" });
     if (!response.ok || payload?.error) return [];
     return toArray(payload?.data?.HattrickData?.MatchList?.Match);
   };
@@ -12192,6 +12280,39 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     </div>
   );
 
+  const panelVisibilityBody = (
+    <div className={styles.watchlistPanel}>
+      <p className={styles.muted}>{messages.clubChroniclePanelVisibilityHint}</p>
+      <button
+        type="button"
+        className={styles.watchlistButton}
+        onClick={showAllPanels}
+      >
+        {messages.clubChroniclePanelVisibilityShowAll}
+      </button>
+      <div className={styles.watchlistSection}>
+        <ul className={styles.watchlistList}>
+          {normalizedPanelOrder.map((panelId) => (
+            <li key={panelId} className={styles.watchlistRow}>
+              <label className={styles.watchlistTeam}>
+                <input
+                  type="checkbox"
+                  checked={panelVisibility[panelId] !== false}
+                  onChange={(event) =>
+                    setPanelVisible(panelId, event.target.checked)
+                  }
+                />
+                <span className={styles.watchlistName}>
+                  {panelTitleById[panelId]}
+                </span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+
   const updatesBody = updates && trackedTeams.length ? (
     <>
       <div className={styles.chronicleUpdatesMetaBlock}>
@@ -13379,6 +13500,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           </span>
         ) : null}
         <div className={styles.watchlistFabWrap}>
+          <Tooltip content={messages.clubChroniclePanelVisibilityTooltip}>
+            <button
+              type="button"
+              className={styles.watchlistFab}
+              onClick={() => setPanelVisibilityOpen(true)}
+              aria-label={messages.clubChroniclePanelVisibilityTooltip}
+            >
+              ▦
+            </button>
+          </Tooltip>
           <Tooltip content={messages.watchlistTitle}>
             <button
               type="button"
@@ -13481,8 +13612,21 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       </>
       ) : null}
 
-      <div className={styles.chroniclePanels}>
-        {normalizedPanelOrder.map((panelId) => {
+      <ChroniclePanelVisibilityContext.Provider
+        value={
+          mobileChronicleActive
+            ? null
+            : {
+                closeLabel: messages.clubChroniclePanelHideTooltip,
+                onClose: (panelId) => setPanelVisible(panelId, false),
+              }
+        }
+      >
+        <div className={styles.chroniclePanels}>
+          {(mobileChronicleActive
+            ? normalizedPanelOrder
+            : desktopVisiblePanelOrder
+          ).map((panelId) => {
           if (
             mobileChronicleActive &&
             (mobileChronicleScreen !== "panel" ||
@@ -14485,7 +14629,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           }
           return null;
         })}
-      </div>
+          {!mobileChronicleActive && desktopVisiblePanelOrder.length === 0 ? (
+            <div className={styles.chronicleEmpty}>
+              {messages.clubChroniclePanelVisibilityAllHidden}
+            </div>
+          ) : null}
+          </div>
+      </ChroniclePanelVisibilityContext.Provider>
 
       <Modal
         open={scopeReconnectModalOpen}
@@ -14721,6 +14871,24 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
         closeOnBackdrop
         onClose={() => setWatchlistOpen(false)}
+      />
+
+      <Modal
+        open={panelVisibilityOpen}
+        title={messages.clubChroniclePanelVisibilityTitle}
+        className={styles.watchlistModal}
+        body={panelVisibilityBody}
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setPanelVisibilityOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setPanelVisibilityOpen(false)}
       />
 
       <Modal
@@ -15226,7 +15394,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 <ol className={styles.chronicleOngoingMatchEventList}>
                   {selectedOngoingMatchTeam.snapshot.events.map((event, index) => (
                     <li
-                      key={`${selectedOngoingMatchTeam.snapshot?.matchId ?? "match"}-${event.index ?? index}`}
+                      key={`${selectedOngoingMatchTeam.snapshot?.matchId ?? "match"}-${event.minute ?? "minute"}-${index}`}
                       className={styles.chronicleOngoingMatchEventItem}
                     >
                       <span className={styles.chronicleOngoingMatchEventMinute}>
@@ -15235,7 +15403,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       <span className={styles.chronicleOngoingMatchEventText}>
                         {renderOngoingMatchEventText(
                           event.eventText,
-                          `ongoing-event-${event.index ?? index}`
+                          `ongoing-event-${event.minute ?? "minute"}-${index}`
                         )}
                       </span>
                     </li>

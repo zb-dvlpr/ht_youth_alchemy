@@ -72,6 +72,12 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_4_7_0:
+      "Club Chronicle desktop panels can now be hidden and restored from a panel visibility menu.",
+    changelog_4_6_0:
+      "Transfer market searches now include compact market summaries and price distribution.",
+    changelog_4_5_0:
+      "Youth player details can now estimate transfer value from revealed maximum potential.",
     changelog_4_4_0:
       "Club Chronicle can now track ongoing matches with optional tournament support.",
     changelog_4_3_0:
@@ -286,6 +292,14 @@ export const messagesEn: Messages = {
     clubChronicleUpdatesHistoryNoChanges: "No changes",
     clubChronicleNoDivulgoMask: "NO DIVULGO: CLICK HERE",
     clubChronicleUpdatesButton: "Latest updates",
+    clubChroniclePanelVisibilityTooltip: "Manage visible panels",
+    clubChroniclePanelVisibilityTitle: "Visible panels",
+    clubChroniclePanelVisibilityHint:
+      "Choose which Club Chronicle panels are shown on desktop.",
+    clubChroniclePanelVisibilityShowAll: "Show all panels",
+    clubChroniclePanelHideTooltip: "Hide panel",
+    clubChroniclePanelVisibilityAllHidden:
+      "All panels are hidden. Use the panel visibility button to show them again.",
     clubChronicleRefreshButton: "Refresh",
     clubChronicleRefreshAllTooltip: "Refresh all Club Chronicle data.",
     clubChronicleRefreshTooltip: "Refresh league performance data.",
@@ -1091,6 +1105,8 @@ export const messagesEn: Messages = {
     seniorTransferSearchNoResults: "No transfer-listed players match these criteria.",
     seniorTransferSearchFallbackNotice:
       "Exact skill search returned nothing. A broader fallback search was run with skill minimums reduced by 1, age widened to ±50 days, and no specialty filter.",
+    youthEstimateValueFallbackNotice:
+      "Exact estimate search returned nothing. A broader fallback search was run with the promotion-age window widened to ±50 days and no specialty filter.",
     seniorTransferSearchResultsCount: "{{count}} results",
     seniorTransferSearchResultsMany: "Many results",
     seniorTransferSearchHighestBidLabel: "Highest bid",
@@ -1104,6 +1120,23 @@ export const messagesEn: Messages = {
     seniorTransferSearchBidMissingAmount: "Enter a bid amount first.",
     seniorTransferSearchBidPlaced: "Bid placed for {{player}}.",
     seniorTransferSearchBidFailed: "Bid failed: {{details}}",
+    youthEstimateValueButton: "Estimate value",
+    youthEstimateValueTooltip:
+      "Search the transfer market based on this player's maximum potential.",
+    youthEstimateValueDisabledTooltip:
+      "Reveal at least one max potential skill before estimating value.",
+    youthEstimateValueAgeMissingTooltip:
+      "Refresh player details before estimating value.",
+    transferSearchMarketSummaryTitle: "Market summary",
+    transferSearchMarketSummaryBasis: "{{count}} priced results",
+    transferSearchMarketSummarySparse:
+      "Only {{count}} priced results; treat this as a rough signal.",
+    transferSearchMarketSummaryNoPrices: "No priced results to summarize.",
+    transferSearchMarketRangeLabel: "Range",
+    transferSearchMarketMedianLabel: "Median",
+    transferSearchMarketMeanLabel: "Mean",
+    transferSearchMarketMiddleLabel: "Middle 50%",
+    transferSearchMarketDistributionLabel: "Price distribution",
     sortLabel: "Sort by",
     sortName: "Name",
     sortAge: "Age",

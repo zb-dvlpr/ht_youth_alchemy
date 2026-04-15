@@ -2953,6 +2953,27 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   flex: 1;
 }
 
+.chroniclePanelClose {
+  border: 1px solid #d8cbb8;
+  background: #fffaf2;
+  color: #6f5e48;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.chroniclePanelClose:hover {
+  background: #f3eadc;
+  color: #3f362c;
+}
+
 .chroniclePanelTitleRow:active {
   cursor: grabbing;
 }
@@ -3892,6 +3913,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   margin-left: auto;
   display: inline-flex;
   align-items: center;
+  gap: 8px;
 }
 
 .watchlistFab {
@@ -4687,6 +4709,17 @@ html[data-theme="dark"] .chroniclePanelRefresh:not(:disabled):hover {
   background: #3a332b;
 }
 
+html[data-theme="dark"] .chroniclePanelClose {
+  border-color: rgba(227, 214, 194, 0.3);
+  background: #26211c;
+  color: #e3d6c2;
+}
+
+html[data-theme="dark"] .chroniclePanelClose:hover {
+  background: #3a332b;
+  color: #f3ede4;
+}
+
 html[data-theme="dark"] .chronicleRefreshSpinner {
   border-color: rgba(227, 214, 194, 0.35);
   border-top-color: #e3d6c2;
@@ -5264,6 +5297,7 @@ html[data-theme="dark"] .infoLinkIcon:hover {
 html[data-theme="dark"] .transferSearchModalSidebar,
 html[data-theme="dark"] .transferSearchModalResults,
 html[data-theme="dark"] .transferSearchResultCard,
+html[data-theme="dark"] .transferSearchMarketSummary,
 html[data-theme="dark"] .transferSearchSkillRow {
   background: #1f1c19;
   border-color: rgba(255, 255, 255, 0.08);
@@ -5286,6 +5320,15 @@ html[data-theme="dark"] .transferSearchSkillStepperButton {
   background: #2a2521;
   border-color: rgba(255, 255, 255, 0.14);
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .transferSearchMarketBucketLabel,
+html[data-theme="dark"] .transferSearchMarketBucketCount {
+  color: #d8cbb9;
+}
+
+html[data-theme="dark"] .transferSearchMarketBucketTrack {
+  background: #332d28;
 }
 
 html[data-theme="dark"] .transferSearchSpecialtyButtonActive {
@@ -6333,6 +6376,10 @@ html[data-theme="dark"] .spinner {
   position: relative;
 }
 
+.profileCardWithHeaderActions {
+  padding-top: 14px;
+}
+
 .profileHeader {
   display: flex;
   flex-wrap: wrap;
@@ -6411,6 +6458,22 @@ html[data-theme="dark"] .spinner {
   right: 14px;
   display: inline-flex;
   gap: 6px;
+}
+
+.profileCardWithHeaderActions .detailsRefreshCorner {
+  position: static;
+  justify-content: flex-end;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.youthEstimateValueButton {
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
 }
 
 html[data-mobile-shell="true"] .mobileYouthContent .profileCard {
@@ -6528,13 +6591,30 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 }
 
 .transferSearchModalShell {
-  display: grid;
-  grid-template-columns: minmax(440px, 500px) minmax(0, 1fr);
-  gap: 18px;
+  display: flex;
+  flex-direction: column;
   align-items: stretch;
   flex: 1 1 auto;
   height: 100%;
   max-height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.transferSearchModalContent {
+  display: grid;
+  grid-template-columns: minmax(440px, 500px) minmax(0, 1fr);
+  gap: 18px;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.transferSearchResultsStack {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
   min-height: 0;
   min-width: 0;
 }
@@ -6743,6 +6823,88 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   padding-right: 2px;
   min-width: 0;
   width: 100%;
+}
+
+.transferSearchMarketSummary {
+  border: 1px solid #e6d7c1;
+  background: #fffdf9;
+  border-radius: 8px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.transferSearchMarketSummaryHeader {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.transferSearchMarketStatsGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+}
+
+.transferSearchMarketStat {
+  display: inline-flex;
+  gap: 6px;
+  min-width: 0;
+  align-items: baseline;
+}
+
+.transferSearchMarketStat strong {
+  font-size: 13px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.transferSearchMarketDistribution {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.transferSearchMarketBucketRow {
+  display: grid;
+  grid-template-columns: minmax(104px, 0.85fr) minmax(120px, 1.4fr) minmax(24px, auto);
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+}
+
+.transferSearchMarketBucketLabel,
+.transferSearchMarketBucketCount {
+  color: #5c4821;
+  font-size: 12px;
+  line-height: 1.2;
+}
+
+.transferSearchMarketBucketLabel {
+  overflow-wrap: anywhere;
+}
+
+.transferSearchMarketBucketCount {
+  font-weight: 700;
+  text-align: right;
+}
+
+.transferSearchMarketBucketTrack {
+  display: block;
+  width: 100%;
+  height: 12px;
+  border-radius: 999px;
+  background: #eadcc6;
+  overflow: hidden;
+}
+
+.transferSearchMarketBucketBar {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2f8d4d, #244d2b);
 }
 
 .transferSearchResultCard {
@@ -9232,8 +9394,9 @@ html[data-theme="dark"] .slotCardStatus {
     grid-template-columns: 1fr;
   }
 
-  .transferSearchModalShell {
+  .transferSearchModalContent {
     grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .transferSearchCriteriaGrid {
@@ -9284,6 +9447,20 @@ html[data-theme="dark"] .slotCardStatus {
   .transferSearchSimpleRange,
   .transferSearchBidGrid {
     grid-template-columns: 1fr;
+  }
+
+  .transferSearchMarketBucketRow {
+    grid-template-columns: 1fr auto;
+  }
+
+  .transferSearchMarketBucketTrack {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .transferSearchMarketSummaryHeader {
+    display: grid;
+    gap: 4px;
   }
 
   .transferSearchSkillRow {

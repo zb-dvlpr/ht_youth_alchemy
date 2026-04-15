@@ -314,6 +314,8 @@ type ManagerTeam = {
   };
 };
 
+type SupporterStatus = "unknown" | "supporter" | "nonSupporter";
+
 const normalizeTeams = (input?: ManagerTeam | ManagerTeam[]) => {
   if (!input) return [];
   return Array.isArray(input) ? input : [input];
@@ -335,6 +337,21 @@ const extractYouthTeams = (response: ManagerCompendiumResponse): YouthTeamOption
     });
     return acc;
   }, []);
+};
+
+const isSupporterTierValue = (value: unknown) => {
+  if (typeof value === "number") return Number.isFinite(value) && value > 0;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    return Boolean(
+      normalized &&
+        normalized !== "0" &&
+        normalized !== "none" &&
+        normalized !== "false" &&
+        normalized !== "no"
+    );
+  }
+  return false;
 };
 
 type CachedDetails = {
@@ -944,6 +961,8 @@ export default function Dashboard({
   >({});
   const [transferSearchBidPendingPlayerId, setTransferSearchBidPendingPlayerId] =
     useState<number | null>(null);
+  const [supporterStatus, setSupporterStatus] =
+    useState<SupporterStatus>("unknown");
   const transferSearchRequestIdRef = useRef(0);
   const [loadError, setLoadError] = useState<string | null>(initialLoadError);
   const [loadErrorDetails, setLoadErrorDetails] = useState<string | null>(
@@ -1349,12 +1368,54 @@ export default function Dashboard({
     () => activeYouthTeamId ?? activeYouthTeamOption?.youthTeamId ?? null,
     [activeYouthTeamId, activeYouthTeamOption]
   );
+  const resolvedSeniorTeamId = activeYouthTeamOption?.teamId ?? null;
   const ratingsMatrixMatchHrefBuilder = useMemo(() => {
     const teamId = activeYouthTeamOption?.teamId;
     const youthTeamId = activeYouthTeamOption?.youthTeamId;
     if (!teamId || !youthTeamId) return undefined;
     return (matchId: number) => hattrickYouthMatchUrl(matchId, teamId, youthTeamId);
   }, [activeYouthTeamOption?.teamId, activeYouthTeamOption?.youthTeamId]);
+  useEffect(() => {
+    if (!isConnected || !resolvedSeniorTeamId) {
+      setSupporterStatus("unknown");
+      return;
+    }
+    let cancelled = false;
+    setSupporterStatus("unknown");
+    const fetchSupporterStatus = async () => {
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              UserSupporterTier?: unknown;
+            };
+          };
+          error?: string;
+        }>(
+          `/api/chpp/training?actionType=view&teamId=${resolvedSeniorTeamId}`,
+          { cache: "no-store" }
+        );
+        if (cancelled) return;
+        if (!response.ok || payload?.error) {
+          setSupporterStatus("unknown");
+          return;
+        }
+        setSupporterStatus(
+          isSupporterTierValue(payload?.data?.HattrickData?.UserSupporterTier)
+            ? "supporter"
+            : "nonSupporter"
+        );
+      } catch (error) {
+        if (!cancelled && !(error instanceof ChppAuthRequiredError)) {
+          setSupporterStatus("unknown");
+        }
+      }
+    };
+    void fetchSupporterStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, [isConnected, resolvedSeniorTeamId]);
   const hiddenSpecialtyMatchHrefByPlayerId = useMemo(() => {
     if (!ratingsMatrixMatchHrefBuilder) return {} as Record<number, string>;
     return Object.fromEntries(
@@ -2026,6 +2087,7 @@ export default function Dashboard({
         transferSearchItemCount?: number | null;
         transferSearchExactEmpty?: boolean;
         transferSearchBidDrafts?: Record<number, TransferSearchBidDraft>;
+        supporterStatus?: SupporterStatus;
       };
       const forceWipeLegacyUpdatesState =
         typeof parsed.updatesSchemaVersion !== "number" ||
@@ -2112,6 +2174,13 @@ export default function Dashboard({
       setTransferSearchBidDrafts(
         normalizeTransferSearchBidDrafts(parsed.transferSearchBidDrafts)
       );
+      if (
+        parsed.supporterStatus === "unknown" ||
+        parsed.supporterStatus === "supporter" ||
+        parsed.supporterStatus === "nonSupporter"
+      ) {
+        setSupporterStatus(parsed.supporterStatus);
+      }
       if (parsed.cache) {
         setCache(parsed.cache);
         if (parsed.selectedId && parsed.cache[parsed.selectedId]) {
@@ -2384,6 +2453,7 @@ export default function Dashboard({
       transferSearchItemCount,
       transferSearchExactEmpty,
       transferSearchBidDrafts,
+      supporterStatus,
     };
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(payload));
@@ -2421,6 +2491,7 @@ export default function Dashboard({
     transferSearchItemCount,
     transferSearchExactEmpty,
     transferSearchBidDrafts,
+    supporterStatus,
     storageKey,
     restoredStorageKey,
   ]);
@@ -3565,6 +3636,7 @@ export default function Dashboard({
     result: TransferSearchResult,
     bidKind: keyof TransferSearchBidDraft
   ) => {
+    if (!resolvedSeniorTeamId) return;
     const draft = transferSearchBidDrafts[result.playerId] ?? {
       bidEur: "",
       maxBidEur: "",
@@ -3579,8 +3651,16 @@ export default function Dashboard({
     try {
       const requestBody =
         bidKind === "bidEur"
-          ? { playerId: result.playerId, bidAmount: amountSek }
-          : { playerId: result.playerId, maxBidAmount: amountSek };
+          ? {
+              playerId: result.playerId,
+              teamId: resolvedSeniorTeamId,
+              bidAmount: amountSek,
+            }
+          : {
+              playerId: result.playerId,
+              teamId: resolvedSeniorTeamId,
+              maxBidAmount: amountSek,
+            };
       const { response, payload } = await fetchChppJson<{
         error?: string;
         details?: string;
@@ -3613,6 +3693,7 @@ export default function Dashboard({
     messages.seniorTransferSearchBidFailed,
     messages.seniorTransferSearchBidMissingAmount,
     messages.seniorTransferSearchBidPlaced,
+    resolvedSeniorTeamId,
     transferSearchBidDrafts,
   ]);
 
@@ -3673,12 +3754,13 @@ export default function Dashboard({
     messages.specialtyTechnical,
     messages.specialtyUnpredictable,
   ]);
+  const transferSearchCanBid =
+    supporterStatus === "supporter" && Boolean(resolvedSeniorTeamId);
 
   const renderTransferSearchResultCard = useCallback((result: TransferSearchResult) => {
     const resultDetails = transferSearchDetailsById[result.playerId] ?? null;
     const draft = transferSearchBidDrafts[result.playerId] ?? { bidEur: "", maxBidEur: "" };
     const pending = transferSearchBidPendingPlayerId === result.playerId;
-    const transferSearchCanBid = false;
     const playerName = formatTransferSearchPlayerName(result);
     const displayPriceSek =
       typeof result.highestBidSek === "number" && result.highestBidSek > 0
@@ -3877,7 +3959,10 @@ export default function Dashboard({
               disabled={!transferSearchCanBid || pending}
             />
           </div>
-          <Tooltip content={messages.seniorTransferSearchSupporterOnlyTooltip}>
+          <Tooltip
+            content={messages.seniorTransferSearchSupporterOnlyTooltip}
+            disabled={transferSearchCanBid}
+          >
             <button
               type="button"
               className={`${styles.confirmSubmit} ${styles.transferSearchBidAction}`}
@@ -3906,7 +3991,10 @@ export default function Dashboard({
               disabled={!transferSearchCanBid || pending}
             />
           </div>
-          <Tooltip content={messages.seniorTransferSearchSupporterOnlyTooltip}>
+          <Tooltip
+            content={messages.seniorTransferSearchSupporterOnlyTooltip}
+            disabled={transferSearchCanBid}
+          >
             <button
               type="button"
               className={`${styles.confirmSubmit} ${styles.transferSearchBidAction}`}
@@ -3927,6 +4015,7 @@ export default function Dashboard({
     specialtyName,
     submitTransferBid,
     transferSearchBidDrafts,
+    transferSearchCanBid,
     transferSearchBidPendingPlayerId,
     transferSearchDetailsById,
     updateTransferSearchBidDraft,

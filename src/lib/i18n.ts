@@ -78,6 +78,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_4_7_0: string;
   changelog_4_6_0: string;
   changelog_4_5_0: string;
   changelog_4_4_0: string;
@@ -244,6 +245,12 @@ export type Messages = {
   clubChronicleUpdatesHistoryNoChanges: string;
   clubChronicleNoDivulgoMask: string;
   clubChronicleUpdatesButton: string;
+  clubChroniclePanelVisibilityTooltip: string;
+  clubChroniclePanelVisibilityTitle: string;
+  clubChroniclePanelVisibilityHint: string;
+  clubChroniclePanelVisibilityShowAll: string;
+  clubChroniclePanelHideTooltip: string;
+  clubChroniclePanelVisibilityAllHidden: string;
   clubChronicleRefreshButton: string;
   clubChronicleRefreshAllTooltip: string;
   clubChronicleRefreshTooltip: string;

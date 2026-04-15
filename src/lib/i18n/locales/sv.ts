@@ -72,6 +72,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_7_0:
+      "Club Chronicle-paneler pa desktop kan nu doljas och aterstallas fran en synlighetsmeny.",
     changelog_4_6_0:
       "Transfersokningar visar nu kompakta marknadssammanfattningar och prisfordelning.",
     changelog_4_5_0:
@@ -307,6 +309,14 @@ export const messagesSv: Messages = {
     clubChronicleUpdatesHistoryNoChanges: "Inga ändringar",
     clubChronicleNoDivulgoMask: "NO DIVULGO: CLICK HERE",
     clubChronicleUpdatesButton: "Senaste uppdateringar",
+    clubChroniclePanelVisibilityTooltip: "Hantera synliga paneler",
+    clubChroniclePanelVisibilityTitle: "Synliga paneler",
+    clubChroniclePanelVisibilityHint:
+      "Valj vilka Club Chronicle-paneler som visas pa desktop.",
+    clubChroniclePanelVisibilityShowAll: "Visa alla paneler",
+    clubChroniclePanelHideTooltip: "Dolj panel",
+    clubChroniclePanelVisibilityAllHidden:
+      "Alla paneler ar dolda. Anvand panelknappen for synlighet for att visa dem igen.",
     clubChronicleRefreshButton: "Uppdatera",
     clubChronicleRefreshAllTooltip: "Uppdatera all data i Klubbkrönikan.",
     clubChronicleRefreshTooltip: "Uppdatera ligaprestanda-data.",

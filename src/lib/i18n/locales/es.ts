@@ -72,6 +72,8 @@ export const messagesEs: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Esta aplicación está en beta. Las funciones, el comportamiento y los datos locales en caché pueden cambiar o reiniciarse sin previo aviso.",
+    changelog_4_7_0:
+      "Los paneles de escritorio de Club Chronicle ahora se pueden ocultar y restaurar desde un menu de visibilidad.",
     changelog_4_6_0:
       "Las busquedas del mercado de transferencias ahora incluyen resumen compacto y distribucion de precios.",
     changelog_4_5_0:
@@ -309,6 +311,14 @@ export const messagesEs: Messages = {
     clubChronicleUpdatesHistoryNoChanges: "Sin cambios",
     clubChronicleNoDivulgoMask: "NO DIVULGO: CLICK HERE",
     clubChronicleUpdatesButton: "Últimas actualizaciones",
+    clubChroniclePanelVisibilityTooltip: "Gestionar paneles visibles",
+    clubChroniclePanelVisibilityTitle: "Paneles visibles",
+    clubChroniclePanelVisibilityHint:
+      "Elige que paneles de Club Chronicle se muestran en escritorio.",
+    clubChroniclePanelVisibilityShowAll: "Mostrar todos los paneles",
+    clubChroniclePanelHideTooltip: "Ocultar panel",
+    clubChroniclePanelVisibilityAllHidden:
+      "Todos los paneles estan ocultos. Usa el boton de visibilidad de paneles para volver a mostrarlos.",
     clubChronicleRefreshButton: "Actualizar",
     clubChronicleRefreshAllTooltip: "Actualizar todos los datos de Crónica del club.",
     clubChronicleRefreshTooltip: "Actualizar los datos de rendimiento en liga.",

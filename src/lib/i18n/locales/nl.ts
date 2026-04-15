@@ -132,6 +132,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_7_0:
+    "Club Chronicle-panelen op desktop kunnen nu worden verborgen en hersteld via een zichtbaarheidsmenu.",
   changelog_4_6_0:
     "Transfermarktzoekopdrachten tonen nu compacte marktsamenvattingen en prijsverdeling.",
   changelog_4_5_0:
@@ -748,6 +750,14 @@ export const messagesNl: Messages = {
   debugYouthSeFetchHint:
     "Logt gevolgde speciale gebeurtenissen in de console: gebeurtenis-id, object-/onderwerpnamen en wedstrijd-URL.",
   clubChronicleUpdatesButton: "Laatste updates",
+  clubChroniclePanelVisibilityTooltip: "Zichtbare panelen beheren",
+  clubChroniclePanelVisibilityTitle: "Zichtbare panelen",
+  clubChroniclePanelVisibilityHint:
+    "Kies welke Club Chronicle-panelen op desktop worden getoond.",
+  clubChroniclePanelVisibilityShowAll: "Alle panelen tonen",
+  clubChroniclePanelHideTooltip: "Paneel verbergen",
+  clubChroniclePanelVisibilityAllHidden:
+    "Alle panelen zijn verborgen. Gebruik de knop voor paneelzichtbaarheid om ze weer te tonen.",
   clubChronicleRefreshButton: "Vernieuwen",
   clubChronicleRefreshPowerRatingsTooltip: "Power-ratingsgegevens vernieuwen.",
   clubChroniclePowerRatingsPanelTitle: "Power ratings",

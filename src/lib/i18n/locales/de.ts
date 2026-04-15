@@ -72,6 +72,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_4_7_0:
+      "Club-Chronik-Desktop-Panels koennen jetzt ueber ein Sichtbarkeitsmenue ausgeblendet und wiederhergestellt werden.",
     changelog_4_6_0:
       "Transfermarktsuchen zeigen jetzt kompakte Marktuebersichten und Preisverteilung.",
     changelog_4_5_0:
@@ -304,6 +306,14 @@ export const messagesDe: Messages = {
     clubChronicleUpdatesHistoryNoChanges: "Keine Änderungen",
     clubChronicleNoDivulgoMask: "NO DIVULGO: CLICK HERE",
     clubChronicleUpdatesButton: "Neueste Updates",
+    clubChroniclePanelVisibilityTooltip: "Sichtbare Panels verwalten",
+    clubChroniclePanelVisibilityTitle: "Sichtbare Panels",
+    clubChroniclePanelVisibilityHint:
+      "Waehle, welche Club-Chronicle-Panels auf dem Desktop angezeigt werden.",
+    clubChroniclePanelVisibilityShowAll: "Alle Panels anzeigen",
+    clubChroniclePanelHideTooltip: "Panel ausblenden",
+    clubChroniclePanelVisibilityAllHidden:
+      "Alle Panels sind ausgeblendet. Nutze die Panel-Sichtbarkeit, um sie wieder anzuzeigen.",
     clubChronicleRefreshButton: "Aktualisieren",
     clubChronicleRefreshAllTooltip: "Alle Club-Chronik-Daten aktualisieren.",
     clubChronicleRefreshTooltip: "Ligaleistungsdaten aktualisieren.",

@@ -125,6 +125,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_7_0:
+    "Panele Club Chronicle na desktopie mozna teraz ukrywac i przywracac z menu widocznosci.",
   changelog_4_6_0:
     "Wyszukiwania na rynku transferowym maja teraz kompaktowe podsumowanie i rozklad cen.",
   changelog_4_5_0:
@@ -741,6 +743,14 @@ export const messagesPl: Messages = {
   debugYouthSeFetchHint:
     "Loguje w konsoli obserwowane wydarzenia specjalne: identyfikator wydarzenia, nazwy obiektu/podmiotu i adres URL meczu.",
   clubChronicleUpdatesButton: "Najnowsze aktualizacje",
+  clubChroniclePanelVisibilityTooltip: "Zarzadzaj widocznymi panelami",
+  clubChroniclePanelVisibilityTitle: "Widoczne panele",
+  clubChroniclePanelVisibilityHint:
+    "Wybierz, ktore panele Club Chronicle sa pokazywane na desktopie.",
+  clubChroniclePanelVisibilityShowAll: "Pokaz wszystkie panele",
+  clubChroniclePanelHideTooltip: "Ukryj panel",
+  clubChroniclePanelVisibilityAllHidden:
+    "Wszystkie panele sa ukryte. Uzyj przycisku widocznosci paneli, aby pokazac je ponownie.",
   clubChronicleRefreshButton: "Odśwież",
   clubChronicleRefreshPowerRatingsTooltip: "Odśwież dane power ratings.",
   clubChroniclePowerRatingsPanelTitle: "Power ratings",

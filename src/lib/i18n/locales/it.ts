@@ -72,6 +72,8 @@ export const messagesIt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Questa app è in beta. Funzioni, comportamento e dati locali in cache possono cambiare o essere azzerati senza preavviso.",
+    changelog_4_7_0:
+      "I pannelli desktop di Club Chronicle ora possono essere nascosti e ripristinati da un menu di visibilita.",
     changelog_4_6_0:
       "Le ricerche del mercato trasferimenti ora includono riepiloghi compatti e distribuzione dei prezzi.",
     changelog_4_5_0:
@@ -309,6 +311,14 @@ export const messagesIt: Messages = {
     clubChronicleUpdatesHistoryNoChanges: "Nessuna modifica",
     clubChronicleNoDivulgoMask: "NO DIVULGO: CLICK HERE",
     clubChronicleUpdatesButton: "Ultimi aggiornamenti",
+    clubChroniclePanelVisibilityTooltip: "Gestisci pannelli visibili",
+    clubChroniclePanelVisibilityTitle: "Pannelli visibili",
+    clubChroniclePanelVisibilityHint:
+      "Scegli quali pannelli di Club Chronicle mostrare su desktop.",
+    clubChroniclePanelVisibilityShowAll: "Mostra tutti i pannelli",
+    clubChroniclePanelHideTooltip: "Nascondi pannello",
+    clubChroniclePanelVisibilityAllHidden:
+      "Tutti i pannelli sono nascosti. Usa il pulsante di visibilita pannelli per mostrarli di nuovo.",
     clubChronicleRefreshButton: "Aggiorna",
     clubChronicleRefreshAllTooltip: "Aggiorna tutti i dati della Cronaca del club.",
     clubChronicleRefreshTooltip: "Aggiorna i dati di prestazione in lega.",

@@ -72,6 +72,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_4_7_0:
+      "Club Chronicle desktop panels can now be hidden and restored from a panel visibility menu.",
     changelog_4_6_0:
       "Transfer market searches now include compact market summaries and price distribution.",
     changelog_4_5_0:
@@ -290,6 +292,14 @@ export const messagesEn: Messages = {
     clubChronicleUpdatesHistoryNoChanges: "No changes",
     clubChronicleNoDivulgoMask: "NO DIVULGO: CLICK HERE",
     clubChronicleUpdatesButton: "Latest updates",
+    clubChroniclePanelVisibilityTooltip: "Manage visible panels",
+    clubChroniclePanelVisibilityTitle: "Visible panels",
+    clubChroniclePanelVisibilityHint:
+      "Choose which Club Chronicle panels are shown on desktop.",
+    clubChroniclePanelVisibilityShowAll: "Show all panels",
+    clubChroniclePanelHideTooltip: "Hide panel",
+    clubChroniclePanelVisibilityAllHidden:
+      "All panels are hidden. Use the panel visibility button to show them again.",
     clubChronicleRefreshButton: "Refresh",
     clubChronicleRefreshAllTooltip: "Refresh all Club Chronicle data.",
     clubChronicleRefreshTooltip: "Refresh league performance data.",

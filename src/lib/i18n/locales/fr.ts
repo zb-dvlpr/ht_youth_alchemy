@@ -72,6 +72,8 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_4_7_0:
+      "Les panneaux desktop de Club Chronicle peuvent maintenant etre masques et retablis depuis un menu de visibilite.",
     changelog_4_6_0:
       "Les recherches sur le marche des transferts incluent maintenant un resume compact du marche et une distribution des prix.",
     changelog_4_5_0:
@@ -309,6 +311,14 @@ export const messagesFr: Messages = {
     clubChronicleUpdatesHistoryNoChanges: "Aucun changement",
     clubChronicleNoDivulgoMask: "NO DIVULGO: CLICK HERE",
     clubChronicleUpdatesButton: "Dernières mises à jour",
+    clubChroniclePanelVisibilityTooltip: "Gerer les panneaux visibles",
+    clubChroniclePanelVisibilityTitle: "Panneaux visibles",
+    clubChroniclePanelVisibilityHint:
+      "Choisissez les panneaux Club Chronicle affiches sur desktop.",
+    clubChroniclePanelVisibilityShowAll: "Afficher tous les panneaux",
+    clubChroniclePanelHideTooltip: "Masquer le panneau",
+    clubChroniclePanelVisibilityAllHidden:
+      "Tous les panneaux sont masques. Utilisez le bouton de visibilite des panneaux pour les afficher a nouveau.",
     clubChronicleRefreshButton: "Actualiser",
     clubChronicleRefreshAllTooltip: "Actualiser toutes les données de la Chronique du club.",
     clubChronicleRefreshTooltip: "Actualiser les données de performance en ligue.",

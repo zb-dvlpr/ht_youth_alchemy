@@ -1056,33 +1056,35 @@ const TransferSearchModal = memo(function TransferSearchModal({
               ) : null}
             </aside>
 
-            <section className={styles.transferSearchModalResults}>
-              <div className={styles.transferSearchResultsHeader}>
-                <h3 className={styles.sectionHeading}>{messages.seniorTransferSearchResultsTitle}</h3>
-                {resultCountLabel ? (
-                  <span className={styles.profileUpdated}>{resultCountLabel}</span>
-                ) : null}
-              </div>
-              {exactEmpty ? (
-                <p className={styles.transferSearchFallbackNotice}>
-                  {fallbackNotice ?? messages.seniorTransferSearchFallbackNotice}
-                </p>
-              ) : null}
-              {loading ? (
-                <div className={styles.miniMutedCard}>
-                  <span className={styles.muted}>{messages.seniorTransferSearchLoading}</span>
+            <div className={styles.transferSearchResultsStack}>
+              <section className={styles.transferSearchModalResults}>
+                <div className={styles.transferSearchResultsHeader}>
+                  <h3 className={styles.sectionHeading}>{messages.seniorTransferSearchResultsTitle}</h3>
+                  {resultCountLabel ? (
+                    <span className={styles.profileUpdated}>{resultCountLabel}</span>
+                  ) : null}
                 </div>
-              ) : null}
-              {error ? <p className={styles.errorText}>{error}</p> : null}
-              {!loading && !error && results.length === 0 ? (
-                <p className={styles.muted}>{messages.seniorTransferSearchNoResults}</p>
-              ) : null}
-              <div className={styles.transferSearchResultsList}>
-                {results.map((result) => renderResultCard(result))}
-              </div>
-            </section>
+                {exactEmpty ? (
+                  <p className={styles.transferSearchFallbackNotice}>
+                    {fallbackNotice ?? messages.seniorTransferSearchFallbackNotice}
+                  </p>
+                ) : null}
+                {loading ? (
+                  <div className={styles.miniMutedCard}>
+                    <span className={styles.muted}>{messages.seniorTransferSearchLoading}</span>
+                  </div>
+                ) : null}
+                {error ? <p className={styles.errorText}>{error}</p> : null}
+                {!loading && !error && results.length === 0 ? (
+                  <p className={styles.muted}>{messages.seniorTransferSearchNoResults}</p>
+                ) : null}
+                <div className={styles.transferSearchResultsList}>
+                  {results.map((result) => renderResultCard(result))}
+                </div>
+              </section>
+              {marketSummaryCard}
+            </div>
           </div>
-          {marketSummaryCard}
         </div>
       }
       actions={

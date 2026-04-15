@@ -6558,9 +6558,8 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 }
 
 .transferSearchModalShell {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
   align-items: stretch;
   flex: 1 1 auto;
   height: 100%;
@@ -6573,6 +6572,16 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   display: grid;
   grid-template-columns: minmax(440px, 500px) minmax(0, 1fr);
   gap: 18px;
+  flex: 1 1 auto;
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+}
+
+.transferSearchResultsStack {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: 12px;
   min-height: 0;
   min-width: 0;
 }
@@ -9354,6 +9363,7 @@ html[data-theme="dark"] .slotCardStatus {
 
   .transferSearchModalContent {
     grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
   }
 
   .transferSearchCriteriaGrid {

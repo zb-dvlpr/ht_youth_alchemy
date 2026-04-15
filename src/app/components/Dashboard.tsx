@@ -6897,6 +6897,7 @@ export default function Dashboard({
         }}
         resultCountLabel={transferSearchResultCountLabel}
         exactEmpty={transferSearchExactEmpty}
+        fallbackNotice={messages.youthEstimateValueFallbackNotice}
         error={transferSearchError}
         results={transferSearchResults}
         renderResultCard={renderTransferSearchResultCard}

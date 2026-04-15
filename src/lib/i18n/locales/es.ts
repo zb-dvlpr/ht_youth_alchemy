@@ -1147,6 +1147,8 @@ export const messagesEs: Messages = {
     seniorTransferSearchNoResults: "Ningun jugador en venta coincide con estos criterios.",
     seniorTransferSearchFallbackNotice:
       "La busqueda exacta por habilidades no devolvio resultados. Se ejecuto automaticamente una busqueda mas amplia con minimos reducidos en 1, edad ampliada a ±50 dias y sin filtro de especialidad.",
+    youthEstimateValueFallbackNotice:
+      "La busqueda exacta de estimacion no devolvio resultados. Se ejecuto una busqueda mas amplia con la ventana de edad de promocion ampliada a ±50 dias y sin filtro de especialidad.",
     seniorTransferSearchResultsCount: "{{count}} resultados",
     seniorTransferSearchResultsMany: "Muchos resultados",
     seniorTransferSearchHighestBidLabel: "Puja mas alta",

@@ -124,6 +124,7 @@ type TransferSearchModalProps = {
   onSearch: (filters: TransferSearchFilters) => void;
   resultCountLabel: string | null;
   exactEmpty: boolean;
+  fallbackNotice?: string;
   error: string | null;
   results: TransferSearchResult[];
   renderResultCard: (result: TransferSearchResult) => ReactNode;
@@ -688,6 +689,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
   onSearch,
   resultCountLabel,
   exactEmpty,
+  fallbackNotice,
   error,
   results,
   renderResultCard,
@@ -1063,7 +1065,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
               </div>
               {exactEmpty ? (
                 <p className={styles.transferSearchFallbackNotice}>
-                  {messages.seniorTransferSearchFallbackNotice}
+                  {fallbackNotice ?? messages.seniorTransferSearchFallbackNotice}
                 </p>
               ) : null}
               {loading ? (

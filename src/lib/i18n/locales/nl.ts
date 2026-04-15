@@ -271,6 +271,8 @@ export const messagesNl: Messages = {
     "Geen spelers op de transferlijst voldoen aan deze criteria.",
   seniorTransferSearchFallbackNotice:
     "De exacte vaardigheidzoekopdracht leverde niets op. Automatisch is een bredere zoekopdracht uitgevoerd met minimumskills 1 lager, leeftijd verbreed naar ±50 dagen en zonder specialiteitsfilter.",
+  youthEstimateValueFallbackNotice:
+    "De exacte waardeschatting leverde niets op. Er is een bredere zoekopdracht uitgevoerd met het promotieleeftijdvenster verbreed naar ±50 dagen en zonder specialiteitsfilter.",
   seniorTransferSearchResultsCount: "{{count}} resultaten",
   seniorTransferSearchResultsMany: "Veel resultaten",
   seniorTransferSearchHighestBidLabel: "Hoogste bod",

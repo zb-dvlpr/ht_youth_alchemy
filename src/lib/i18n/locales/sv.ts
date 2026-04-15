@@ -1138,6 +1138,8 @@ export const messagesSv: Messages = {
     seniorTransferSearchNoResults: "Inga spelare pa transferlistan matchar dessa kriterier.",
     seniorTransferSearchFallbackNotice:
       "Den exakta sokningen gav inga traffar. En bredare reservsokning koerdes automatiskt med skill-minimum sankt med 1, alder utokad till ±50 dagar och utan specialitetsfilter.",
+    youthEstimateValueFallbackNotice:
+      "Den exakta varderingssokningen gav inga traffar. En bredare reservsokning koerdes med befordringsalderns fonster utokat till ±50 dagar och utan specialitetsfilter.",
     seniorTransferSearchResultsCount: "{{count}} resultat",
     seniorTransferSearchResultsMany: "Manga resultat",
     seniorTransferSearchHighestBidLabel: "Hogsta bud",

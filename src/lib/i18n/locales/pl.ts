@@ -264,6 +264,8 @@ export const messagesPl: Messages = {
     "Brak zawodnikow na liscie transferowej spelniajacych te kryteria.",
   seniorTransferSearchFallbackNotice:
     "Dokladne wyszukiwanie umiejetnosci nic nie zwrocilo. Automatycznie uruchomiono szersze wyszukiwanie z obnizonymi minimami o 1, wiekiem rozszerzonym do ±50 dni i bez filtra specjalnosci.",
+  youthEstimateValueFallbackNotice:
+    "Dokladne wyszukiwanie wyceny nic nie zwrocilo. Uruchomiono szersze wyszukiwanie z oknem wieku awansu rozszerzonym do ±50 dni i bez filtra specjalnosci.",
   seniorTransferSearchResultsCount: "{{count}} wynikow",
   seniorTransferSearchResultsMany: "Wiele wynikow",
   seniorTransferSearchHighestBidLabel: "Najwyzsza oferta",

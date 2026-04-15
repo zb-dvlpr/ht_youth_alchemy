@@ -1148,6 +1148,8 @@ export const messagesIt: Messages = {
     seniorTransferSearchNoResults: "Nessun giocatore sul mercato corrisponde a questi criteri.",
     seniorTransferSearchFallbackNotice:
       "La ricerca esatta per skill non ha trovato nulla. E stata eseguita automaticamente una ricerca piu ampia con minimi skill ridotti di 1, eta ampliata a ±50 giorni e senza filtro specialita.",
+    youthEstimateValueFallbackNotice:
+      "La ricerca esatta di stima non ha trovato nulla. E stata eseguita una ricerca piu ampia con la finestra dell eta di promozione ampliata a ±50 giorni e senza filtro specialita.",
     seniorTransferSearchResultsCount: "{{count}} risultati",
     seniorTransferSearchResultsMany: "Molti risultati",
     seniorTransferSearchHighestBidLabel: "Offerta piu alta",

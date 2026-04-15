@@ -1130,6 +1130,8 @@ export const messagesDe: Messages = {
     seniorTransferSearchNoResults: "Keine gelisteten Spieler passen zu diesen Kriterien.",
     seniorTransferSearchFallbackNotice:
       "Die exakte Skillsuche ergab nichts. Es wurde automatisch eine breitere Suche mit um 1 reduzierten Mindestskills, erweitertem Alter von ±50 Tagen und ohne Spezialitaetsfilter ausgefuehrt.",
+    youthEstimateValueFallbackNotice:
+      "Die exakte Wertschaetzungssuche ergab nichts. Es wurde automatisch eine breitere Suche mit auf ±50 Tage erweitertem Befoerderungsalter und ohne Spezialitaetsfilter ausgefuehrt.",
     seniorTransferSearchResultsCount: "{{count}} Ergebnisse",
     seniorTransferSearchResultsMany: "Viele Ergebnisse",
     seniorTransferSearchHighestBidLabel: "Hoechstgebot",

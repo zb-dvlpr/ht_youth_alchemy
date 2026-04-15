@@ -1145,6 +1145,8 @@ export const messagesFr: Messages = {
     seniorTransferSearchNoResults: "Aucun joueur liste ne correspond a ces criteres.",
     seniorTransferSearchFallbackNotice:
       "La recherche exacte n a rien trouve. Une recherche plus large a ete lancee automatiquement avec les minimums de competences reduits de 1, un age elargi a ±50 jours et sans filtre de specialite.",
+    youthEstimateValueFallbackNotice:
+      "La recherche d estimation exacte n a rien trouve. Une recherche plus large a ete lancee avec la fenetre d age de promotion elargie a ±50 jours et sans filtre de specialite.",
     seniorTransferSearchResultsCount: "{{count}} resultats",
     seniorTransferSearchResultsMany: "Beaucoup de resultats",
     seniorTransferSearchHighestBidLabel: "Meilleure enchere",

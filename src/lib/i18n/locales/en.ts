@@ -1095,6 +1095,8 @@ export const messagesEn: Messages = {
     seniorTransferSearchNoResults: "No transfer-listed players match these criteria.",
     seniorTransferSearchFallbackNotice:
       "Exact skill search returned nothing. A broader fallback search was run with skill minimums reduced by 1, age widened to ±50 days, and no specialty filter.",
+    youthEstimateValueFallbackNotice:
+      "Exact estimate search returned nothing. A broader fallback search was run with the promotion-age window widened to ±50 days and no specialty filter.",
     seniorTransferSearchResultsCount: "{{count}} results",
     seniorTransferSearchResultsMany: "Many results",
     seniorTransferSearchHighestBidLabel: "Highest bid",

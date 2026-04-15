@@ -916,6 +916,7 @@ export type Messages = {
   seniorTransferSearchLoading: string;
   seniorTransferSearchNoResults: string;
   seniorTransferSearchFallbackNotice: string;
+  youthEstimateValueFallbackNotice: string;
   seniorTransferSearchResultsCount: string;
   seniorTransferSearchResultsMany: string;
   seniorTransferSearchHighestBidLabel: string;

@@ -3509,6 +3509,32 @@ export default function Dashboard({
     });
   }, []);
 
+  const addTransferSearchSkillFilter = useCallback((
+    skillKey: TransferSearchSkillKey
+  ) => {
+    setTransferSearchFilters((prev) => {
+      if (!prev || prev.skillFilters.length >= 4) return prev;
+      if (prev.skillFilters.some((filter) => filter.skillKey === skillKey)) {
+        return prev;
+      }
+      const definition = TRANSFER_SEARCH_SKILLS.find(
+        (entry) => entry.key === skillKey
+      );
+      if (!definition) return prev;
+      return normalizeTransferSearchFilters({
+        ...prev,
+        skillFilters: [
+          ...prev.skillFilters,
+          {
+            skillKey,
+            min: definition.min,
+            max: Math.min(definition.max, definition.min + 4),
+          },
+        ],
+      });
+    });
+  }, []);
+
   const updateTransferSearchFilterField = useCallback(<
     K extends Exclude<keyof TransferSearchFilters, "skillFilters">
   >(
@@ -6772,8 +6798,10 @@ export default function Dashboard({
         messages={messages}
         selectedPlayerName={selectedTransferSearchPlayerName}
         filters={transferSearchFilters}
+        skillSlotCount={4}
         loading={transferSearchLoading}
         onUpdateSkillFilter={updateTransferSearchSkillFilter}
+        onAddSkillFilter={addTransferSearchSkillFilter}
         onUpdateFilterField={updateTransferSearchFilterField}
         onSearch={(filters) => {
           void runTransferSearch(filters);

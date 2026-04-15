@@ -110,11 +110,13 @@ type TransferSearchModalProps = {
   messages: Messages;
   selectedPlayerName: string | null;
   filters: TransferSearchFilters | null;
+  skillSlotCount?: number;
   loading: boolean;
   onUpdateSkillFilter: (
     index: number,
     patch: Partial<TransferSearchSkillFilter>
   ) => void;
+  onAddSkillFilter?: (skillKey: TransferSearchSkillKey) => void;
   onUpdateFilterField: <K extends Exclude<keyof TransferSearchFilters, "skillFilters">>(
     key: K,
     value: TransferSearchFilters[K]
@@ -606,13 +608,82 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
   );
 });
 
+type TransferSearchEmptySkillRowProps = {
+  selectedSkillKeys: string;
+  disabled: boolean;
+  messages: Messages;
+  onAddSkillFilter: (skillKey: TransferSearchSkillKey) => void;
+};
+
+const TransferSearchEmptySkillRow = memo(function TransferSearchEmptySkillRow({
+  selectedSkillKeys,
+  disabled,
+  messages,
+  onAddSkillFilter,
+}: TransferSearchEmptySkillRowProps) {
+  const availableOptions = TRANSFER_SEARCH_SKILLS.filter(
+    (entry) => !selectedSkillKeys.includes(entry.key)
+  );
+
+  return (
+    <div className={styles.transferSearchSkillRow}>
+      <div className={styles.transferSearchValueGroup}>
+        <span className={styles.transferSearchValueLabel}>
+          {messages.seniorTransferSearchMinLabel}
+        </span>
+        <input
+          className={styles.transferSearchSkillNumberInput}
+          type="text"
+          value="-"
+          disabled
+          aria-label={messages.seniorTransferSearchMinLabel}
+          readOnly
+        />
+      </div>
+      <select
+        className={styles.transferSearchSelect}
+        value=""
+        onChange={(event) => {
+          const nextSkillKey = event.target.value as TransferSearchSkillKey;
+          if (nextSkillKey) {
+            onAddSkillFilter(nextSkillKey);
+          }
+        }}
+        disabled={disabled}
+      >
+        <option value="">-</option>
+        {availableOptions.map((entry) => (
+          <option key={entry.key} value={entry.key}>
+            {messages[entry.labelKey as keyof Messages]}
+          </option>
+        ))}
+      </select>
+      <div className={styles.transferSearchValueGroup}>
+        <span className={styles.transferSearchValueLabel}>
+          {messages.seniorTransferSearchMaxLabel}
+        </span>
+        <input
+          className={styles.transferSearchSkillNumberInput}
+          type="text"
+          value="-"
+          disabled
+          aria-label={messages.seniorTransferSearchMaxLabel}
+          readOnly
+        />
+      </div>
+    </div>
+  );
+});
+
 const TransferSearchModal = memo(function TransferSearchModal({
   open,
   messages,
   selectedPlayerName,
   filters,
+  skillSlotCount,
   loading,
   onUpdateSkillFilter,
+  onAddSkillFilter,
   onUpdateFilterField,
   onSearch,
   resultCountLabel,
@@ -626,6 +697,9 @@ const TransferSearchModal = memo(function TransferSearchModal({
     () => buildTransferSearchMarketSummary(results),
     [results]
   );
+  const renderedSkillSlotCount = filters
+    ? Math.max(filters.skillFilters.length, skillSlotCount ?? filters.skillFilters.length)
+    : 0;
   const maxBucketCount = marketSummary
     ? Math.max(...marketSummary.buckets.map((bucket) => bucket.count), 1)
     : 1;
@@ -775,6 +849,28 @@ const TransferSearchModal = memo(function TransferSearchModal({
                         />
                       );
                     })}
+                    {onAddSkillFilter
+                      ? Array.from({
+                          length: Math.max(
+                            0,
+                            renderedSkillSlotCount - filters.skillFilters.length
+                          ),
+                        }).map((_, index) => {
+                          const selectedSkillKeys = filters.skillFilters
+                            .map((entry) => entry.skillKey)
+                            .sort()
+                            .join("|");
+                          return (
+                            <TransferSearchEmptySkillRow
+                              key={`empty-skill-${filters.skillFilters.length + index}`}
+                              selectedSkillKeys={selectedSkillKeys}
+                              disabled={loading}
+                              messages={messages}
+                              onAddSkillFilter={onAddSkillFilter}
+                            />
+                          );
+                        })
+                      : null}
                   </div>
 
                 <div className={styles.transferSearchSection}>

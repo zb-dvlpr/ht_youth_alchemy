@@ -2773,6 +2773,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [refreshingCoach, setRefreshingCoach] = useState(false);
   const [refreshingPowerRatings, setRefreshingPowerRatings] = useState(false);
   const [refreshingOngoingMatches, setRefreshingOngoingMatches] = useState(false);
+  const [cleaningFinishedLiveMatches, setCleaningFinishedLiveMatches] =
+    useState(false);
   const [globalRefreshProgressPct, setGlobalRefreshProgressPct] = useState(0);
   const [globalRefreshStatus, setGlobalRefreshStatus] = useState<string | null>(null);
   const [panelRefreshProgressPct, setPanelRefreshProgressPct] = useState<
@@ -2854,7 +2856,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     refreshingLastLogin ||
     refreshingCoach ||
     refreshingPowerRatings ||
-    refreshingOngoingMatches;
+    refreshingOngoingMatches ||
+    cleaningFinishedLiveMatches;
   const chronicleAutoHelpReady =
     !mobileChronicleActive && !loading && !isValidating && !anyRefreshing;
   const getPanelRefreshProgress = useCallback(
@@ -6555,9 +6558,37 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     const { response, payload } = await fetchChppJson<{
       data?: { HattrickData?: { MatchList?: { Match?: RawNode | RawNode[] } } };
       error?: string;
-    }>(`/api/chpp/live?actionType=viewAll`, { cache: "no-store" });
+    }>(`/api/chpp/live?actionType=view`, { cache: "no-store" });
     if (!response.ok || payload?.error) return [];
     return toArray(payload?.data?.HattrickData?.MatchList?.Match);
+  };
+
+  const isLiveMatchFinished = async (
+    matchId: number,
+    sourceSystem: string
+  ): Promise<boolean> => {
+    const { response, payload } = await fetchChppJson<{
+      data?: { HattrickData?: { Match?: RawNode } };
+      error?: string;
+    }>(
+      `/api/chpp/matchdetails?matchEvents=false&matchID=${matchId}&sourceSystem=${encodeURIComponent(sourceSystem)}`,
+      { cache: "no-store" }
+    );
+    if (!response.ok || payload?.error) return false;
+    const match = payload?.data?.HattrickData?.Match;
+    return Boolean(parseStringNode(match?.FinishedDate));
+  };
+
+  const deleteLiveMatch = async (matchId: number, sourceSystem: string) => {
+    const { response, payload } = await fetchChppJson<{
+      error?: string;
+    }>(
+      `/api/chpp/live?actionType=deleteMatch&matchID=${matchId}&sourceSystem=${encodeURIComponent(sourceSystem)}`,
+      { cache: "no-store" }
+    );
+    if (!response.ok || payload?.error) {
+      throw new Error(payload?.error ?? "Failed to remove match from Hattrick Live");
+    }
   };
 
   const fetchOngoingMatchForTeam = async (
@@ -9925,6 +9956,77 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
     } finally {
       setRefreshingOngoingMatches(false);
+      clearProgressIndicators();
+    }
+  };
+
+  const removeFinishedHattrickLiveMatches = async () => {
+    if (anyRefreshing) return;
+    chronicleStopRequestedRef.current = false;
+    setCleaningFinishedLiveMatches(true);
+    setRefreshingOngoingMatches(true);
+    try {
+      setGlobalRefreshStatus(messages.clubChronicleRefreshStatusOngoingMatches);
+      setGlobalRefreshProgressPct(10);
+      setPanelProgress(["ongoing-matches"], 10);
+      const liveMatches = await fetchLiveViewMatches();
+      const liveTargets = liveMatches
+        .map((match) => {
+          const matchId = parseNumberNode(match.MatchID);
+          if (!matchId) return null;
+          return {
+            matchId,
+            sourceSystem: normalizeLiveSourceSystem(parseStringNode(match.SourceSystem)),
+          };
+        })
+        .filter(
+          (entry): entry is { matchId: number; sourceSystem: string } =>
+            Boolean(entry)
+        );
+      setGlobalRefreshProgressPct(30);
+      setPanelProgress(["ongoing-matches"], 30);
+      const finishedTargets = await mapWithConcurrency(
+        liveTargets,
+        TEAM_REFRESH_CONCURRENCY,
+        async (entry) => {
+          const finished = await isLiveMatchFinished(entry.matchId, entry.sourceSystem);
+          return finished ? entry : null;
+        }
+      );
+      const matchesToDelete = finishedTargets.filter(
+        (entry): entry is { matchId: number; sourceSystem: string } =>
+          Boolean(entry)
+      );
+      setGlobalRefreshProgressPct(65);
+      setPanelProgress(["ongoing-matches"], 65);
+      await mapWithConcurrency(matchesToDelete, TEAM_REFRESH_CONCURRENCY, async (entry) => {
+        await deleteLiveMatch(entry.matchId, entry.sourceSystem);
+      });
+      if (ongoingMatchesEnabled && trackedTeams.length > 0) {
+        const nextCache = pruneChronicleCache(readChronicleCache());
+        await refreshOngoingMatchSnapshots(
+          nextCache,
+          trackedTeams,
+          ongoingMatchesTournamentEnabled,
+          ongoingMatchesEnabled
+        );
+        setChronicleCache(nextCache);
+      }
+      setGlobalRefreshProgressPct(100);
+      setPanelProgress(["ongoing-matches"], 100);
+      addNotification(
+        messages.clubChronicleFinishedLiveMatchesRemoved.replace(
+          "{{count}}",
+          String(matchesToDelete.length)
+        )
+      );
+    } catch (error) {
+      if (!isChppAuthRequiredError(error)) {
+        throw error;
+      }
+    } finally {
+      setRefreshingOngoingMatches(false);
+      setCleaningFinishedLiveMatches(false);
       clearProgressIndicators();
     }
   };
@@ -14038,6 +14140,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                           aria-hidden="true"
                         />
                       </label>
+                      <Tooltip
+                        content={messages.clubChronicleRemoveFinishedLiveMatchesTooltip}
+                      >
+                        <button
+                          type="button"
+                          className={styles.chroniclePanelRefresh}
+                          onClick={() =>
+                            runRefreshGuarded(removeFinishedHattrickLiveMatches)
+                          }
+                          disabled={refreshingGlobal || refreshingOngoingMatches}
+                          aria-label={
+                            messages.clubChronicleRemoveFinishedLiveMatchesTooltip
+                          }
+                        >
+                          🗑️
+                        </button>
+                      </Tooltip>
                     </div>
                   }
                   refreshing={refreshingGlobal || refreshingOngoingMatches}

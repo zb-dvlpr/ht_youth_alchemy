@@ -12,7 +12,7 @@ const MATCHDETAILS_VERSION = "3.1";
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const matchId = searchParams.get("matchId");
+    const matchId = searchParams.get("matchId") ?? searchParams.get("matchID");
     const sourceSystem = searchParams.get("sourceSystem") ?? "Hattrick";
     const matchEvents = searchParams.get("matchEvents");
     if (!matchId) {

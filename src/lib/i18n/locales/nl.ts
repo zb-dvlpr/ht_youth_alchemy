@@ -132,6 +132,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_8_0:
+    "Club Chronicle kan nu afgelopen wedstrijden uit Hattrick Live verwijderen in het paneel lopende wedstrijden.",
   changelog_4_7_0:
     "Club Chronicle-panelen op desktop kunnen nu worden verborgen en hersteld via een zichtbaarheidsmenu.",
   changelog_4_6_0:
@@ -789,7 +791,11 @@ export const messagesNl: Messages = {
   clubChronicleOngoingMatchesDisabled:
     "Volgen van lopende wedstrijden is uit. Er worden geen wedstrijden opgehaald of getoond.",
   clubChronicleOngoingMatchesDisclaimer:
-    "Als deze functie aan staat, worden geaccepteerde lopende wedstrijden voor gevolgde teams toegevoegd aan Hattrick Live. Scores worden niet automatisch bijgewerkt; gebruik de vernieuwknop van dit paneel. Klik op een score om wedstrijdgebeurtenissen te zien.",
+    "Als deze functie aan staat, worden geaccepteerde lopende wedstrijden voor gevolgde teams toegevoegd aan Hattrick Live. Scores worden niet automatisch bijgewerkt; gebruik de vernieuwknop van dit paneel. Klik op een score om wedstrijdgebeurtenissen te zien. Als er te veel wedstrijden in Hattrick Live worden gevolgd, kan deze functie grillig werken; houd het aantal gevolgde wedstrijden beperkt en verwijder afgelopen wedstrijden met de knop hierboven.",
+  clubChronicleRemoveFinishedLiveMatchesTooltip:
+    "Alle afgelopen wedstrijden uit Hattrick Live verwijderen.",
+  clubChronicleFinishedLiveMatchesRemoved:
+    "{{count}} afgelopen wedstrijden verwijderd uit Hattrick Live",
   themeSwitchDark: "Naar donkere modus schakelen",
   optimizeLineupTitle: "Opstelling optimaliseren",
   optimizeMenuStar: "Optimaliseer rond {{player}}",

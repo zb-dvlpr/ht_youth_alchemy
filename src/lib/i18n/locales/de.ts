@@ -899,6 +899,14 @@ export const messagesDe: Messages = {
     setBestLineupOptimizeByFormationUnavailable:
       "Mit den verfügbaren Spielern konnte für diese Formation keine vollständige Aufstellung erstellt werden.",
     setBestLineupOptimizeByFormationApply: "Formationsoptimierung anwenden",
+    seniorLineupAiEligibilityNeed18Tooltip:
+      "18 spielberechtigte Spieler sind erforderlich, um die Aufstellungs-KI zu verwenden.",
+    seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip:
+      "Lockere die Schonung nach gespielten Minuten, um den Pool auf 18 Spieler zu erhöhen.",
+    seniorLineupAiEligibilityRelaxLastMatchTooltip:
+      "Lockere die Einstellung zum letzten Spiel, um den Pool auf 18 Spieler zu erhöhen.",
+    seniorLineupAiEligibilityRelaxBothTooltip:
+      "Lockere die Einstellungen zu gespielten Minuten und letztem Spiel, um den Pool auf 18 Spieler zu erhöhen.",
     seniorFixedFormationTotalRatingsLabel: "Gesamtbewertungen",
     seniorFixedFormationWeightedSumLabel: "Gewichtete Summe",
     seniorExtraTimeModalTitle: "Warum auf Verlängerung spielen?",

@@ -731,6 +731,10 @@ export type Messages = {
   setBestLineupOptimizeByFormationDisabledTooltip: string;
   setBestLineupOptimizeByFormationUnavailable: string;
   setBestLineupOptimizeByFormationApply: string;
+  seniorLineupAiEligibilityNeed18Tooltip: string;
+  seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip: string;
+  seniorLineupAiEligibilityRelaxLastMatchTooltip: string;
+  seniorLineupAiEligibilityRelaxBothTooltip: string;
   seniorFixedFormationTotalRatingsLabel: string;
   seniorFixedFormationWeightedSumLabel: string;
   seniorExtraTimeModalTitle: string;

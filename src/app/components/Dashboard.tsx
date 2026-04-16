@@ -1034,6 +1034,7 @@ export default function Dashboard({
   const helpStorageKey = "ya_help_dismissed_v1";
   const dashboardRef = useRef<HTMLDivElement | null>(null);
   const [showHelp, setShowHelp] = useState(false);
+  const [pendingAutoHelpOpen, setPendingAutoHelpOpen] = useState(false);
   const [showChangelog, setShowChangelog] = useState(false);
   const [changelogPage, setChangelogPage] = useState(0);
   const [helpCallouts, setHelpCallouts] = useState<
@@ -1052,6 +1053,8 @@ export default function Dashboard({
   >([]);
   const [helpCardTopOffset, setHelpCardTopOffset] = useState(0);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
+  const youthAutoHelpReady =
+    !mobileYouthActive && !playersLoading && !playerRefreshStatus;
   const [ratingsCache, setRatingsCache] = useState<
     Record<number, Record<string, number>>
   >({});
@@ -2834,6 +2837,7 @@ export default function Dashboard({
     if (!isConnected) {
       setCurrentToken(null);
       setShowHelp(false);
+      setPendingAutoHelpOpen(false);
       return;
     }
     const fetchToken = async () => {
@@ -2852,7 +2856,15 @@ export default function Dashboard({
         if (mobileYouthActive) return;
         const storedToken = window.localStorage.getItem(helpStorageKey);
         if (storedToken !== token) {
-          setShowHelp(true);
+          if (youthAutoHelpReady) {
+            setShowHelp(true);
+            setPendingAutoHelpOpen(false);
+          } else {
+            setShowHelp(false);
+            setPendingAutoHelpOpen(true);
+          }
+        } else {
+          setPendingAutoHelpOpen(false);
         }
       } catch (error) {
         if (error instanceof ChppAuthRequiredError) return;
@@ -2860,7 +2872,14 @@ export default function Dashboard({
       }
     };
     fetchToken();
-  }, [isConnected, mobileYouthActive]);
+  }, [isConnected, mobileYouthActive, youthAutoHelpReady]);
+
+  useEffect(() => {
+    if (!pendingAutoHelpOpen) return;
+    if (!youthAutoHelpReady) return;
+    setShowHelp(true);
+    setPendingAutoHelpOpen(false);
+  }, [pendingAutoHelpOpen, youthAutoHelpReady]);
 
   useEffect(() => {
     if (!isDev) return;
@@ -2880,6 +2899,7 @@ export default function Dashboard({
   useEffect(() => {
     if (!mobileYouthActive) return;
     setShowHelp(false);
+    setPendingAutoHelpOpen(false);
   }, [mobileYouthActive]);
 
   useEffect(() => {

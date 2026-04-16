@@ -916,6 +916,14 @@ export const messagesPt: Messages = {
     setBestLineupOptimizeByFormationUnavailable:
       "Não foi possível montar uma equipe completa para essa formação com os jogadores disponíveis.",
     setBestLineupOptimizeByFormationApply: "Aplicar otimização de formação",
+    seniorLineupAiEligibilityNeed18Tooltip:
+      "São necessários 18 jogadores elegíveis para usar as ferramentas de IA da escalação.",
+    seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip:
+      "Relaxe o limite de minutos já jogados para aumentar o grupo elegível para 18 jogadores.",
+    seniorLineupAiEligibilityRelaxLastMatchTooltip:
+      "Relaxe a configuração da última partida para aumentar o grupo elegível para 18 jogadores.",
+    seniorLineupAiEligibilityRelaxBothTooltip:
+      "Relaxe as configurações de minutos já jogados e última partida para aumentar o grupo elegível para 18 jogadores.",
     seniorFixedFormationTotalRatingsLabel: "Ratings totais",
     seniorFixedFormationWeightedSumLabel: "Soma ponderada",
     seniorExtraTimeModalTitle: "Por que mirar a prorrogação?",

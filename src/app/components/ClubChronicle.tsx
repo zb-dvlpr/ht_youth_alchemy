@@ -991,7 +991,6 @@ const CHPP_SEK_PER_EUR = 10;
 const ARCHIVE_MATCH_LIMIT = 30;
 const TEAM_REFRESH_CONCURRENCY = 4;
 const MATCH_DETAILS_FETCH_CONCURRENCY = 6;
-const INCOMPLETE_TEAM_REFETCH_COOLDOWN_MS = 60 * 1000;
 const COMPETITIVE_MATCH_TYPES = new Set([1, 2, 3, 7]);
 const FRIENDLY_MATCH_TYPES = new Set([4, 5, 8, 9]);
 const ONGOING_MATCH_TYPES = new Set([1, 2, 3, 4, 5, 8, 9]);
@@ -2798,6 +2797,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [watchlistOpen, setWatchlistOpen] = useState(false);
   const [panelVisibilityOpen, setPanelVisibilityOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [pendingAutoHelpOpen, setPendingAutoHelpOpen] = useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [tokenChecked, setTokenChecked] = useState(false);
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
@@ -2808,9 +2808,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [pendingNoDivulgoFetchTeamId, setPendingNoDivulgoFetchTeamId] = useState<
     number | null
   >(null);
-  const [pendingWatchlistFetchTeamIds, setPendingWatchlistFetchTeamIds] = useState<
-    number[]
-  >([]);
   const [helpCallouts, setHelpCallouts] = useState<
     {
       id: string;
@@ -2840,10 +2837,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshNoDivulgoTeamRef = useRef<((teamId: number) => Promise<void>) | null>(
     null
   );
-  const refreshTeamsRef = useRef<((teams: ChronicleTeamData[]) => Promise<void>) | null>(
-    null
-  );
-  const incompleteTeamRefetchAtRef = useRef<Record<number, number>>({});
   const coachCountryNameCacheRef = useRef<Map<number, string>>(new Map());
   const coachCountryNamePendingRef = useRef<Map<number, Promise<string | null>>>(new Map());
   const { addNotification } = useNotifications();
@@ -2862,6 +2855,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     refreshingCoach ||
     refreshingPowerRatings ||
     refreshingOngoingMatches;
+  const chronicleAutoHelpReady =
+    !mobileChronicleActive && !loading && !isValidating && !anyRefreshing;
   const getPanelRefreshProgress = useCallback(
     (panelId: string) => panelRefreshProgressPct[panelId] ?? 0,
     [panelRefreshProgressPct]
@@ -3371,29 +3366,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => trackedTeams.map((team) => team.teamId).sort((a, b) => a - b).join(","),
     [trackedTeams]
   );
-  const incompleteTrackedTeamIds = useMemo(() => {
-    return trackedTeams
-      .filter((team) => {
-        const cached = chronicleCache.teams[team.teamId];
-        if (!cached) return true;
-        return !(
-          cached.leaguePerformance?.current &&
-          cached.pressAnnouncement?.current &&
-          cached.fanclub?.current &&
-          cached.arena?.current &&
-          cached.financeEstimate?.current &&
-          cached.transferActivity?.current &&
-          cached.tsi?.current &&
-          cached.wages?.current &&
-          cached.formationsTactics?.current &&
-          cached.lastLogin?.current &&
-          cached.coach?.current &&
-          cached.powerRatings?.current
-        );
-      })
-      .map((team) => team.teamId);
-  }, [chronicleCache.teams, trackedTeams]);
-
   useEffect(() => {
     trackedTeamsRef.current = trackedTeams;
   }, [trackedTeams]);
@@ -3573,16 +3545,29 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (typeof window === "undefined") return;
     if (mobileChronicleActive) {
       setShowHelp(false);
+      setPendingAutoHelpOpen(false);
       return;
     }
     const firstUseSeen = window.localStorage.getItem(FIRST_USE_KEY) === "1";
     if (!firstUseSeen) {
-      setShowHelp(true);
-      window.localStorage.setItem(FIRST_USE_KEY, "1");
+      if (chronicleAutoHelpReady) {
+        setShowHelp(true);
+        setPendingAutoHelpOpen(false);
+        window.localStorage.setItem(FIRST_USE_KEY, "1");
+      } else {
+        setShowHelp(false);
+        setPendingAutoHelpOpen(true);
+      }
     }
     const dismissed = window.localStorage.getItem(HELP_STORAGE_KEY);
     if (firstUseSeen && !dismissed) {
-      setShowHelp(true);
+      if (chronicleAutoHelpReady) {
+        setShowHelp(true);
+        setPendingAutoHelpOpen(false);
+      } else {
+        setShowHelp(false);
+        setPendingAutoHelpOpen(true);
+      }
     }
     const handler = () => {
       if (mobileChronicleActive) return;
@@ -3590,20 +3575,44 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
     window.addEventListener("ya:help-open", handler);
     return () => window.removeEventListener("ya:help-open", handler);
-  }, [mobileChronicleActive]);
+  }, [chronicleAutoHelpReady, mobileChronicleActive]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (mobileChronicleActive) {
       setShowHelp(false);
+      setPendingAutoHelpOpen(false);
       return;
     }
     if (!tokenChecked || !currentToken) return;
     const dismissedToken = window.localStorage.getItem(HELP_DISMISSED_TOKEN_KEY);
     if (dismissedToken !== currentToken) {
-      setShowHelp(true);
+      if (chronicleAutoHelpReady) {
+        setShowHelp(true);
+        setPendingAutoHelpOpen(false);
+      } else {
+        setShowHelp(false);
+        setPendingAutoHelpOpen(true);
+      }
+    } else {
+      setPendingAutoHelpOpen(false);
     }
-  }, [tokenChecked, currentToken, mobileChronicleActive]);
+  }, [chronicleAutoHelpReady, tokenChecked, currentToken, mobileChronicleActive]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (mobileChronicleActive) {
+      setPendingAutoHelpOpen(false);
+      return;
+    }
+    if (!pendingAutoHelpOpen) return;
+    if (!chronicleAutoHelpReady) return;
+    setShowHelp(true);
+    setPendingAutoHelpOpen(false);
+    if (window.localStorage.getItem(FIRST_USE_KEY) !== "1") {
+      window.localStorage.setItem(FIRST_USE_KEY, "1");
+    }
+  }, [chronicleAutoHelpReady, mobileChronicleActive, pendingAutoHelpOpen]);
 
   const ensureRefreshScopes = useCallback(async () => {
     try {
@@ -4336,27 +4345,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [trackedTeams, chronicleCache, anyRefreshing]);
 
   useEffect(() => {
-    if (loading || isValidating) return;
-    if (incompleteTrackedTeamIds.length === 0) return;
-    const now = Date.now();
-    const eligibleTeamIds = incompleteTrackedTeamIds.filter((teamId) => {
-      const lastAttempt = incompleteTeamRefetchAtRef.current[teamId] ?? 0;
-      return now - lastAttempt >= INCOMPLETE_TEAM_REFETCH_COOLDOWN_MS;
-    });
-    if (eligibleTeamIds.length === 0) return;
-    eligibleTeamIds.forEach((teamId) => {
-      incompleteTeamRefetchAtRef.current[teamId] = now;
-    });
-    setPendingWatchlistFetchTeamIds((prev) => {
-      const pending = new Set(prev);
-      eligibleTeamIds.forEach((teamId) => {
-        pending.add(teamId);
-      });
-      return Array.from(pending);
-    });
-  }, [loading, isValidating, incompleteTrackedTeamIds]);
-
-  useEffect(() => {
     if (!initializedRef.current) return;
     if (loading || isValidating) return;
     if (trackedTeams.length === 0) return;
@@ -4587,16 +4575,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleToggleSupported = (teamId: number) => {
-    const nextEnabled = !(supportedSelections[teamId] ?? false);
     setSupportedSelections((prev) => ({
       ...prev,
       [teamId]: !prev[teamId],
     }));
-    if (nextEnabled) {
-      setPendingWatchlistFetchTeamIds((prev) =>
-        prev.includes(teamId) ? prev : [...prev, teamId]
-      );
-    }
   };
 
   const handleToggleOwnLeague = (key: string) => {
@@ -4611,9 +4593,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleSelectAllWatchlist = useCallback(() => {
-    const newlyEnabledTeamIds = supportedTeams
-      .map((team) => team.teamId)
-      .filter((teamId) => !(supportedSelections[teamId] ?? false));
     setSupportedSelections(
       Object.fromEntries(supportedTeams.map((team) => [team.teamId, true])) as Record<
         number,
@@ -4626,14 +4605,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         boolean
       >
     );
-    if (newlyEnabledTeamIds.length > 0) {
-      setPendingWatchlistFetchTeamIds((prev) => {
-        const next = new Set(prev);
-        newlyEnabledTeamIds.forEach((teamId) => next.add(teamId));
-        return Array.from(next);
-      });
-    }
-  }, [ownLeagues, setOwnLeagueSelections, setSupportedSelections, supportedSelections, supportedTeams]);
+  }, [ownLeagues, setOwnLeagueSelections, setSupportedSelections, supportedTeams]);
 
   const handleDeselectAllWatchlist = useCallback(() => {
     setSupportedSelections(
@@ -9483,9 +9455,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
   refreshAllDataRef.current = refreshAllData;
   refreshNoDivulgoTeamRef.current = refreshNoDivulgoTeam;
-  refreshTeamsRef.current = async (teams: ChronicleTeamData[]) => {
-    await refreshDataForTeams("manual", teams, { isGlobalRefresh: false });
-  };
 
   useEffect(() => {
     if (pendingNoDivulgoFetchTeamId === null) return;
@@ -9498,17 +9467,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (!shouldRefresh || teamId === null) return;
     void refreshNoDivulgoTeamRef.current?.(teamId);
   }, [anyRefreshing, pendingNoDivulgoFetchTeamId, trackedTeams]);
-
-  useEffect(() => {
-    if (pendingWatchlistFetchTeamIds.length === 0) return;
-    if (anyRefreshing) return;
-    const teamsToRefresh = pendingWatchlistFetchTeamIds
-      .map((teamId) => trackedTeams.find((team) => team.teamId === teamId))
-      .filter((team): team is ChronicleTeamData => Boolean(team));
-    setPendingWatchlistFetchTeamIds([]);
-    if (teamsToRefresh.length === 0) return;
-    void refreshTeamsRef.current?.(teamsToRefresh);
-  }, [anyRefreshing, pendingWatchlistFetchTeamIds, trackedTeams]);
 
   const refreshLeagueOnly = async () => {
     if (anyRefreshing) return;

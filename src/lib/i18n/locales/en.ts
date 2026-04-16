@@ -874,6 +874,14 @@ export const messagesEn: Messages = {
     setBestLineupOptimizeByFormationUnavailable:
       "Unable to build a full lineup for that formation with the available players.",
     setBestLineupOptimizeByFormationApply: "Apply formation optimization",
+    seniorLineupAiEligibilityNeed18Tooltip:
+      "18 eligible players are required to use the lineup AI tools.",
+    seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip:
+      "Relax the already-played minutes setting to increase the eligibility pool to 18 players.",
+    seniorLineupAiEligibilityRelaxLastMatchTooltip:
+      "Relax the last-match setting to increase the eligibility pool to 18 players.",
+    seniorLineupAiEligibilityRelaxBothTooltip:
+      "Relax the already-played minutes and last-match settings to increase the eligibility pool to 18 players.",
     seniorFixedFormationTotalRatingsLabel: "Total ratings",
     seniorFixedFormationWeightedSumLabel: "Weighted sum",
     seniorExtraTimeModalTitle: "Why aim for extra time?",

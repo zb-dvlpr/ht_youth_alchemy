@@ -907,6 +907,14 @@ export const messagesSv: Messages = {
     setBestLineupOptimizeByFormationUnavailable:
       "Det gick inte att bygga en komplett laguppställning för den formationen med tillgängliga spelare.",
     setBestLineupOptimizeByFormationApply: "Tillämpa formationsoptimering",
+    seniorLineupAiEligibilityNeed18Tooltip:
+      "18 valbara spelare krävs för att använda uppställnings-AI.",
+    seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip:
+      "Lätta på gränsen för redan spelade minuter för att öka poolen till 18 valbara spelare.",
+    seniorLineupAiEligibilityRelaxLastMatchTooltip:
+      "Lätta på inställningen för senaste match för att öka poolen till 18 valbara spelare.",
+    seniorLineupAiEligibilityRelaxBothTooltip:
+      "Lätta på inställningarna för redan spelade minuter och senaste match för att öka poolen till 18 valbara spelare.",
     seniorFixedFormationTotalRatingsLabel: "Totala betyg",
     seniorFixedFormationWeightedSumLabel: "Viktad summa",
     seniorExtraTimeModalTitle: "Varför sikta på förlängning?",

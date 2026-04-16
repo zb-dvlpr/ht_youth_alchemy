@@ -9288,7 +9288,13 @@ function buildSeniorAiManMarkingReadySignature(params: {
     if (!forceRefresh && cached && Date.now() - cached.fetchedAt < DETAILS_TTL_MS) {
       return cached.data;
     }
-    const resolved = await fetchPlayerDetailsById(playerId);
+    let resolved: SeniorPlayerDetails | null;
+    try {
+      resolved = await fetchPlayerDetailsById(playerId);
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return null;
+      throw error;
+    }
     if (!resolved) {
       return null;
     }
@@ -9504,6 +9510,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
         await runTransferSearch(transferSearchFilters);
       }
     } catch (error) {
+      if (error instanceof ChppAuthRequiredError) return;
       addNotification(
         messages.seniorTransferSearchBidFailed.replace(
           "{{details}}",

@@ -3776,48 +3776,6 @@ export default function SeniorDashboard({
     extraTimeBTeamMinutesThreshold,
     extraTimeBTeamRecentMatchState,
   ]);
-  const extraTimeFallbackBTeamPlayerIds = useMemo(() => {
-    if (!effectiveExtraTimeBTeamEnabled) return new Set<number>();
-    if (
-      extraTimeBTeamRecentMatchState.status !== "ready" ||
-      !extraTimeBTeamRecentMatchState.recentMatch
-    ) {
-      return new Set<number>();
-    }
-    const initialEligibleIds = Array.from(extraTimeHealthyPlayerIdSet).filter(
-      (playerId) => !extraTimeBTeamExcludedPlayerIds.has(playerId)
-    );
-    if (initialEligibleIds.length >= EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE) {
-      return new Set<number>();
-    }
-    const needed =
-      EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE - initialEligibleIds.length;
-    const fallbackIds = players
-      .filter(
-        (player) =>
-          extraTimeHealthyPlayerIdSet.has(player.PlayerID) &&
-          extraTimeBTeamExcludedPlayerIds.has(player.PlayerID)
-      )
-      .sort((left, right) => {
-        const leftMinutes =
-          extraTimeBTeamRecentMatchState.playerMinutesById[left.PlayerID] ?? Number.MAX_SAFE_INTEGER;
-        const rightMinutes =
-          extraTimeBTeamRecentMatchState.playerMinutesById[right.PlayerID] ?? Number.MAX_SAFE_INTEGER;
-        if (leftMinutes !== rightMinutes) return leftMinutes - rightMinutes;
-        return (formatPlayerName(left) || String(left.PlayerID)).localeCompare(
-          formatPlayerName(right) || String(right.PlayerID)
-        );
-      })
-      .slice(0, needed)
-      .map((player) => player.PlayerID);
-    return new Set(fallbackIds);
-  }, [
-    effectiveExtraTimeBTeamEnabled,
-    extraTimeBTeamExcludedPlayerIds,
-    extraTimeBTeamRecentMatchState,
-    extraTimeHealthyPlayerIdSet,
-    players,
-  ]);
   const extraTimeAvailablePlayerIdSet = useMemo(() => {
     if (
       !effectiveExtraTimeBTeamEnabled ||
@@ -3828,16 +3786,13 @@ export default function SeniorDashboard({
     }
     return new Set(
       Array.from(extraTimeHealthyPlayerIdSet).filter(
-        (playerId) =>
-          !extraTimeBTeamExcludedPlayerIds.has(playerId) ||
-          extraTimeFallbackBTeamPlayerIds.has(playerId)
+        (playerId) => !extraTimeBTeamExcludedPlayerIds.has(playerId)
       )
     );
   }, [
     effectiveExtraTimeBTeamEnabled,
     extraTimeBTeamExcludedPlayerIds,
     extraTimeBTeamRecentMatchState,
-    extraTimeFallbackBTeamPlayerIds,
     extraTimeHealthyPlayerIdSet,
   ]);
   const extraTimeSelectablePlayerIds = useMemo(
@@ -3856,14 +3811,11 @@ export default function SeniorDashboard({
         [
           ...Array.from(extraTimeRedCardedPlayerIds),
           ...Array.from(seniorAiLastMatchIneligiblePlayerIds),
-          ...Array.from(extraTimeBTeamExcludedPlayerIds).filter(
-            (playerId) => !extraTimeFallbackBTeamPlayerIds.has(playerId)
-          ),
+          ...Array.from(extraTimeBTeamExcludedPlayerIds),
         ]
       ),
     [
       extraTimeBTeamExcludedPlayerIds,
-      extraTimeFallbackBTeamPlayerIds,
       extraTimeRedCardedPlayerIds,
       seniorAiLastMatchIneligiblePlayerIds,
     ]
@@ -5747,6 +5699,20 @@ function buildSeniorAiManMarkingReadySignature(params: {
         : null;
   };
 
+  const isSeniorAiBaselineEligibleForMatch = (
+    player: SeniorPlayer,
+    selectedMatchType: number | null
+  ) => {
+    const injuryLevel = seniorAiInjuryLevelForPlayer(player);
+    if (typeof injuryLevel === "number" && injuryLevel >= 1) return false;
+    const isLeagueCupTarget =
+      selectedMatchType !== null &&
+      LEAGUE_CUP_QUALI_MATCH_TYPES.has(selectedMatchType);
+    if (!isLeagueCupTarget) return true;
+    const cardsValue = getSeniorAiCardsValueForPlayer(player);
+    return typeof cardsValue !== "number" || cardsValue < 3;
+  };
+
   const isSeniorAiEligiblePlayer = (player: SeniorPlayer) => {
     const injuryLevel = seniorAiInjuryLevelForPlayer(player);
     return (
@@ -5773,6 +5739,63 @@ function buildSeniorAiManMarkingReadySignature(params: {
     const cardsValue = getSeniorAiCardsValueForPlayer(player);
     return typeof cardsValue !== "number" || cardsValue < 3;
   };
+
+  const getSetBestLineupDisabledTooltip = useCallback(
+    (match: Match) => {
+      const matchTypeRaw = Number(match.MatchType);
+      const selectedMatchType = Number.isFinite(matchTypeRaw) ? matchTypeRaw : null;
+      const baselineEligiblePlayers = players.filter((player) =>
+        isSeniorAiBaselineEligibleForMatch(player, selectedMatchType)
+      );
+      if (baselineEligiblePlayers.length < EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE) {
+        return messages.seniorLineupAiEligibilityNeed18Tooltip;
+      }
+      const lastMatchExcludedCount = baselineEligiblePlayers.filter((player) =>
+        seniorAiLastMatchIneligiblePlayerIds.has(player.PlayerID)
+      ).length;
+      const alreadyPlayedExcludedCount =
+        effectiveExtraTimeBTeamEnabled &&
+        extraTimeBTeamRecentMatchState.status === "ready" &&
+        Boolean(extraTimeBTeamRecentMatchState.recentMatch)
+          ? baselineEligiblePlayers.filter((player) =>
+              extraTimeBTeamExcludedPlayerIds.has(player.PlayerID)
+            ).length
+          : 0;
+      const filteredEligibleCount = baselineEligiblePlayers.filter(
+        (player) =>
+          !seniorAiLastMatchIneligiblePlayerIds.has(player.PlayerID) &&
+          !(
+            alreadyPlayedExcludedCount > 0 &&
+            extraTimeBTeamExcludedPlayerIds.has(player.PlayerID)
+          )
+      ).length;
+      if (filteredEligibleCount >= EXTRA_TIME_B_TEAM_MINIMUM_POOL_SIZE) {
+        return null;
+      }
+      if (alreadyPlayedExcludedCount > 0 && lastMatchExcludedCount > 0) {
+        return messages.seniorLineupAiEligibilityRelaxBothTooltip;
+      }
+      if (alreadyPlayedExcludedCount > 0) {
+        return messages.seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip;
+      }
+      if (lastMatchExcludedCount > 0) {
+        return messages.seniorLineupAiEligibilityRelaxLastMatchTooltip;
+      }
+      return messages.seniorLineupAiEligibilityNeed18Tooltip;
+    },
+    [
+      effectiveExtraTimeBTeamEnabled,
+      extraTimeBTeamExcludedPlayerIds,
+      extraTimeBTeamRecentMatchState,
+      getSeniorAiCardsValueForPlayer,
+      messages.seniorLineupAiEligibilityNeed18Tooltip,
+      messages.seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip,
+      messages.seniorLineupAiEligibilityRelaxBothTooltip,
+      messages.seniorLineupAiEligibilityRelaxLastMatchTooltip,
+      players,
+      seniorAiLastMatchIneligiblePlayerIds,
+    ]
+  );
 
   const isSeniorExtraTimePoolEligiblePlayer = (player: SeniorPlayer) =>
     isSeniorAiEligiblePlayer(player) &&
@@ -14722,6 +14745,7 @@ const refreshDetailsForPlayers = async (
           selectedFixedFormation={setBestLineupFixedFormation}
           onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
           setBestLineupCustomContent={setBestLineupBTeamMenuContent}
+          setBestLineupDisabledTooltipBuilder={getSetBestLineupDisabledTooltip}
           onRefresh={onRefreshMatchesOnly}
           onSetBestLineupMode={async (matchId, mode, fixedFormation) => {
             clearSeniorAiSubmitLock();
@@ -17799,6 +17823,7 @@ const refreshDetailsForPlayers = async (
             selectedFixedFormation={setBestLineupFixedFormation}
             onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
             setBestLineupCustomContent={setBestLineupBTeamMenuContent}
+            setBestLineupDisabledTooltipBuilder={getSetBestLineupDisabledTooltip}
             onRefresh={onRefreshMatchesOnly}
             onSetBestLineupMode={async (matchId, mode, fixedFormation) => {
               clearSeniorAiSubmitLock();

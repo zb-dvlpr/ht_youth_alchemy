@@ -917,6 +917,14 @@ export const messagesIt: Messages = {
     setBestLineupOptimizeByFormationUnavailable:
       "Impossibile costruire una formazione completa per questo modulo con i giocatori disponibili.",
     setBestLineupOptimizeByFormationApply: "Applica ottimizzazione modulo",
+    seniorLineupAiEligibilityNeed18Tooltip:
+      "Servono 18 giocatori idonei per usare gli strumenti IA della formazione.",
+    seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip:
+      "Allenta il limite dei minuti già giocati per aumentare il gruppo idoneo a 18 giocatori.",
+    seniorLineupAiEligibilityRelaxLastMatchTooltip:
+      "Allenta l'impostazione dell'ultima partita per aumentare il gruppo idoneo a 18 giocatori.",
+    seniorLineupAiEligibilityRelaxBothTooltip:
+      "Allenta le impostazioni dei minuti già giocati e dell'ultima partita per aumentare il gruppo idoneo a 18 giocatori.",
     seniorFixedFormationTotalRatingsLabel: "Valutazioni totali",
     seniorFixedFormationWeightedSumLabel: "Somma pesata",
     seniorExtraTimeModalTitle: "Perché puntare ai supplementari?",

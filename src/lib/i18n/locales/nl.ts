@@ -346,6 +346,14 @@ export const messagesNl: Messages = {
   setBestLineupOptimizeByFormationUnavailable:
     "Met de beschikbare spelers kon voor die formatie geen volledige opstelling worden gemaakt.",
   setBestLineupOptimizeByFormationApply: "Formatie-optimalisatie toepassen",
+  seniorLineupAiEligibilityNeed18Tooltip:
+    "Er zijn 18 speelgerechtigde spelers nodig om de opstelling-AI te gebruiken.",
+  seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip:
+    "Versoepel de grens voor al gespeelde minuten om de speelgerechtigde groep tot 18 spelers te vergroten.",
+  seniorLineupAiEligibilityRelaxLastMatchTooltip:
+    "Versoepel de instelling voor laatste wedstrijd om de speelgerechtigde groep tot 18 spelers te vergroten.",
+  seniorLineupAiEligibilityRelaxBothTooltip:
+    "Versoepel de instellingen voor al gespeelde minuten en laatste wedstrijd om de speelgerechtigde groep tot 18 spelers te vergroten.",
   seniorFixedFormationTotalRatingsLabel: "Totale ratings",
   seniorFixedFormationWeightedSumLabel: "Gewogen som",
   seniorExtraTimeModalTitle: "Waarom richten op verlenging?",

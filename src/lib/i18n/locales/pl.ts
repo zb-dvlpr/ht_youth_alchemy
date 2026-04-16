@@ -339,6 +339,14 @@ export const messagesPl: Messages = {
   setBestLineupOptimizeByFormationUnavailable:
     "Nie udało się zbudować pełnego składu dla tej formacji z dostępnych zawodników.",
   setBestLineupOptimizeByFormationApply: "Zastosuj optymalizację formacji",
+  seniorLineupAiEligibilityNeed18Tooltip:
+    "Do użycia narzędzi AI składu potrzeba 18 uprawnionych zawodników.",
+  seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip:
+    "Poluzuj limit rozegranych minut, aby zwiększyć pulę do 18 uprawnionych zawodników.",
+  seniorLineupAiEligibilityRelaxLastMatchTooltip:
+    "Poluzuj ustawienie ostatniego meczu, aby zwiększyć pulę do 18 uprawnionych zawodników.",
+  seniorLineupAiEligibilityRelaxBothTooltip:
+    "Poluzuj ustawienia rozegranych minut i ostatniego meczu, aby zwiększyć pulę do 18 uprawnionych zawodników.",
   seniorFixedFormationTotalRatingsLabel: "Suma ocen",
   seniorFixedFormationWeightedSumLabel: "Suma ważona",
   seniorExtraTimeModalTitle: "Dlaczego warto grać pod dogrywkę?",

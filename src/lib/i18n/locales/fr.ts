@@ -915,6 +915,14 @@ export const messagesFr: Messages = {
     setBestLineupOptimizeByFormationUnavailable:
       "Impossible de construire une composition complète pour cette formation avec les joueurs disponibles.",
     setBestLineupOptimizeByFormationApply: "Appliquer l'optimisation de formation",
+    seniorLineupAiEligibilityNeed18Tooltip:
+      "18 joueurs éligibles sont requis pour utiliser les outils d'IA de composition.",
+    seniorLineupAiEligibilityRelaxAlreadyPlayedTooltip:
+      "Assouplissez le seuil de minutes déjà jouées pour porter le vivier éligible à 18 joueurs.",
+    seniorLineupAiEligibilityRelaxLastMatchTooltip:
+      "Assouplissez le réglage du dernier match pour porter le vivier éligible à 18 joueurs.",
+    seniorLineupAiEligibilityRelaxBothTooltip:
+      "Assouplissez les réglages des minutes déjà jouées et du dernier match pour porter le vivier éligible à 18 joueurs.",
     seniorFixedFormationTotalRatingsLabel: "Notes totales",
     seniorFixedFormationWeightedSumLabel: "Somme pondérée",
     seniorExtraTimeModalTitle: "Pourquoi viser la prolongation ?",

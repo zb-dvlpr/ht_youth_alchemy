@@ -2797,6 +2797,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [watchlistOpen, setWatchlistOpen] = useState(false);
   const [panelVisibilityOpen, setPanelVisibilityOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [pendingAutoHelpOpen, setPendingAutoHelpOpen] = useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [tokenChecked, setTokenChecked] = useState(false);
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
@@ -2854,6 +2855,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     refreshingCoach ||
     refreshingPowerRatings ||
     refreshingOngoingMatches;
+  const chronicleAutoHelpReady =
+    !mobileChronicleActive && !loading && !isValidating && !anyRefreshing;
   const getPanelRefreshProgress = useCallback(
     (panelId: string) => panelRefreshProgressPct[panelId] ?? 0,
     [panelRefreshProgressPct]
@@ -3542,16 +3545,29 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     if (typeof window === "undefined") return;
     if (mobileChronicleActive) {
       setShowHelp(false);
+      setPendingAutoHelpOpen(false);
       return;
     }
     const firstUseSeen = window.localStorage.getItem(FIRST_USE_KEY) === "1";
     if (!firstUseSeen) {
-      setShowHelp(true);
-      window.localStorage.setItem(FIRST_USE_KEY, "1");
+      if (chronicleAutoHelpReady) {
+        setShowHelp(true);
+        setPendingAutoHelpOpen(false);
+        window.localStorage.setItem(FIRST_USE_KEY, "1");
+      } else {
+        setShowHelp(false);
+        setPendingAutoHelpOpen(true);
+      }
     }
     const dismissed = window.localStorage.getItem(HELP_STORAGE_KEY);
     if (firstUseSeen && !dismissed) {
-      setShowHelp(true);
+      if (chronicleAutoHelpReady) {
+        setShowHelp(true);
+        setPendingAutoHelpOpen(false);
+      } else {
+        setShowHelp(false);
+        setPendingAutoHelpOpen(true);
+      }
     }
     const handler = () => {
       if (mobileChronicleActive) return;
@@ -3559,20 +3575,44 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
     window.addEventListener("ya:help-open", handler);
     return () => window.removeEventListener("ya:help-open", handler);
-  }, [mobileChronicleActive]);
+  }, [chronicleAutoHelpReady, mobileChronicleActive]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (mobileChronicleActive) {
       setShowHelp(false);
+      setPendingAutoHelpOpen(false);
       return;
     }
     if (!tokenChecked || !currentToken) return;
     const dismissedToken = window.localStorage.getItem(HELP_DISMISSED_TOKEN_KEY);
     if (dismissedToken !== currentToken) {
-      setShowHelp(true);
+      if (chronicleAutoHelpReady) {
+        setShowHelp(true);
+        setPendingAutoHelpOpen(false);
+      } else {
+        setShowHelp(false);
+        setPendingAutoHelpOpen(true);
+      }
+    } else {
+      setPendingAutoHelpOpen(false);
     }
-  }, [tokenChecked, currentToken, mobileChronicleActive]);
+  }, [chronicleAutoHelpReady, tokenChecked, currentToken, mobileChronicleActive]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (mobileChronicleActive) {
+      setPendingAutoHelpOpen(false);
+      return;
+    }
+    if (!pendingAutoHelpOpen) return;
+    if (!chronicleAutoHelpReady) return;
+    setShowHelp(true);
+    setPendingAutoHelpOpen(false);
+    if (window.localStorage.getItem(FIRST_USE_KEY) !== "1") {
+      window.localStorage.setItem(FIRST_USE_KEY, "1");
+    }
+  }, [chronicleAutoHelpReady, mobileChronicleActive, pendingAutoHelpOpen]);
 
   const ensureRefreshScopes = useCallback(async () => {
     try {

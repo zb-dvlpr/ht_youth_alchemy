@@ -2709,8 +2709,7 @@ export default function SeniorDashboard({
   const [trainingAwareMatchId, setTrainingAwareMatchId] = useState<number | null>(null);
   const [trainingAwareTrainingMenuOpen, setTrainingAwareTrainingMenuOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
-  const [deferHelpUntilInitialRefresh, setDeferHelpUntilInitialRefresh] =
-    useState(false);
+  const [pendingAutoHelpOpen, setPendingAutoHelpOpen] = useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [supporterStatus, setSupporterStatus] = useState<SupporterStatus>("unknown");
@@ -2882,7 +2881,6 @@ export default function SeniorDashboard({
   const staleRefreshAttemptedRef = useRef(false);
   const previousRefreshingRef = useRef(refreshing);
   const previousLastRefreshAtRef = useRef(lastRefreshAt);
-  const seniorHasDataRef = useRef(false);
   const persistedMarkersBaselineRef = useRef<PersistedSeniorMarkersBaseline | null>(
     null
   );
@@ -3254,9 +3252,14 @@ export default function SeniorDashboard({
     return Boolean(list);
   }, [matchesState, players.length]);
 
-  useEffect(() => {
-    seniorHasDataRef.current = hasSeniorData;
-  }, [hasSeniorData]);
+  const seniorAutoHelpReady =
+    !mobileSeniorActive &&
+    hasSeniorData &&
+    stateRestored &&
+    dataRestored &&
+    !startupBootstrapActive &&
+    !refreshing &&
+    !refreshStatus;
 
   const playerNavigationIds = useMemo(() => {
     if (orderedPlayerIds && orderedPlayerIds.length) {
@@ -13027,30 +13030,32 @@ const refreshDetailsForPlayers = async (
         setCurrentToken(token);
         if (!token) {
           setShowHelp(false);
+          setPendingAutoHelpOpen(false);
           return;
         }
         if (mobileSeniorActive) {
           setShowHelp(false);
-          setDeferHelpUntilInitialRefresh(false);
+          setPendingAutoHelpOpen(false);
           return;
         }
         const dismissedToken = window.localStorage.getItem(SENIOR_HELP_STORAGE_KEY);
         if (dismissedToken !== token) {
-          if (!seniorHasDataRef.current) {
-            setShowHelp(false);
-            setDeferHelpUntilInitialRefresh(true);
-          } else {
+          if (seniorAutoHelpReady) {
             setShowHelp(true);
-            setDeferHelpUntilInitialRefresh(false);
+            setPendingAutoHelpOpen(false);
+          } else {
+            setShowHelp(false);
+            setPendingAutoHelpOpen(true);
           }
         } else {
-          setDeferHelpUntilInitialRefresh(false);
+          setPendingAutoHelpOpen(false);
         }
       } catch (error) {
         if (cancelled) return;
         if (error instanceof ChppAuthRequiredError) {
           setCurrentToken(null);
           setShowHelp(false);
+          setPendingAutoHelpOpen(false);
         }
       }
     };
@@ -13066,7 +13071,7 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("pageshow", handleFocus);
     };
-  }, [mobileSeniorActive]);
+  }, [mobileSeniorActive, seniorAutoHelpReady]);
 
   useEffect(() => {
     if (!resolvedSeniorTeamId) return;
@@ -13076,15 +13081,14 @@ const refreshDetailsForPlayers = async (
   useEffect(() => {
     if (mobileSeniorActive) {
       setShowHelp(false);
-      setDeferHelpUntilInitialRefresh(false);
+      setPendingAutoHelpOpen(false);
       return;
     }
-    if (!deferHelpUntilInitialRefresh) return;
-    if (refreshing) return;
-    if (!hasSeniorData) return;
+    if (!pendingAutoHelpOpen) return;
+    if (!seniorAutoHelpReady) return;
     setShowHelp(true);
-    setDeferHelpUntilInitialRefresh(false);
-  }, [deferHelpUntilInitialRefresh, hasSeniorData, mobileSeniorActive, refreshing]);
+    setPendingAutoHelpOpen(false);
+  }, [mobileSeniorActive, pendingAutoHelpOpen, seniorAutoHelpReady]);
 
   useEffect(() => {
     if (!showHelp) {

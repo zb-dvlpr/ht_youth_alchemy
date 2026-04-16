@@ -72,6 +72,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_4_8_0:
+      "Club-Chronik kann jetzt beendete Spiele im Panel laufende Spiele aus Hattrick Live entfernen.",
     changelog_4_7_0:
       "Club-Chronik-Desktop-Panels koennen jetzt ueber ein Sichtbarkeitsmenue ausgeblendet und wiederhergestellt werden.",
     changelog_4_6_0:
@@ -446,7 +448,11 @@ export const messagesDe: Messages = {
     clubChronicleOngoingMatchesDisabled:
       "Tracking laufender Spiele ist aus. Es werden keine Spiele abgerufen oder angezeigt.",
     clubChronicleOngoingMatchesDisclaimer:
-      "Wenn diese Funktion aktiv ist, werden akzeptierte laufende Spiele verfolgter Teams zu Hattrick Live hinzugefuegt. Ergebnisse aktualisieren sich nicht automatisch; nutze den Aktualisieren-Button dieses Panels. Klicke auf ein Ergebnis, um Spielereignisse zu sehen.",
+      "Wenn diese Funktion aktiv ist, werden akzeptierte laufende Spiele verfolgter Teams zu Hattrick Live hinzugefuegt. Ergebnisse aktualisieren sich nicht automatisch; nutze den Aktualisieren-Button dieses Panels. Klicke auf ein Ergebnis, um Spielereignisse zu sehen. Wenn zu viele Spiele in Hattrick Live verfolgt werden, kann diese Funktion unzuverlaessig reagieren; halte die Anzahl verfolgter Spiele im Blick und entferne beendete Spiele mit dem Button oben.",
+    clubChronicleRemoveFinishedLiveMatchesTooltip:
+      "Alle beendeten Spiele aus Hattrick Live entfernen.",
+    clubChronicleFinishedLiveMatchesRemoved:
+      "{{count}} beendete Spiele aus Hattrick Live entfernt",
     clubChronicleLikelyTrainingPanelTitle: "Wahrscheinliches Trainingsschema",
     clubChronicleLikelyTrainingColumnRegimen: "Wahrscheinliches Schema",
     clubChronicleLikelyTrainingDetailsTitle: "Wahrscheinliches Trainingsschema",

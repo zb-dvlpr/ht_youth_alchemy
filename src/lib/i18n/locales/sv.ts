@@ -72,6 +72,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_8_0:
+      "Club Chronicle kan nu ta bort färdiga matcher från Hattrick Live i panelen för pågående matcher.",
     changelog_4_7_0:
       "Club Chronicle-paneler pa desktop kan nu doljas och aterstallas fran en synlighetsmeny.",
     changelog_4_6_0:
@@ -451,7 +453,11 @@ export const messagesSv: Messages = {
     clubChronicleOngoingMatchesDisabled:
       "Spårning av pågående matcher är av. Inga matcher hämtas eller visas.",
     clubChronicleOngoingMatchesDisclaimer:
-      "När funktionen är på läggs accepterade pågående matcher för följda lag till i Hattrick Live. Resultat uppdateras inte automatiskt; använd panelens uppdateringsknapp. Klicka på ett resultat för att se matchhändelser.",
+      "När funktionen är på läggs accepterade pågående matcher för följda lag till i Hattrick Live. Resultat uppdateras inte automatiskt; använd panelens uppdateringsknapp. Klicka på ett resultat för att se matchhändelser. Om för många matcher följs i Hattrick Live kan funktionen bete sig oberäkneligt; håll antalet följda matcher under kontroll och ta bort färdiga matcher med knappen ovan.",
+    clubChronicleRemoveFinishedLiveMatchesTooltip:
+      "Ta bort alla färdiga matcher från Hattrick Live.",
+    clubChronicleFinishedLiveMatchesRemoved:
+      "{{count}} färdiga matcher borttagna från Hattrick Live",
     clubChronicleLikelyTrainingPanelTitle: "Trolig träningsinriktning",
     clubChronicleLikelyTrainingColumnRegimen: "Trolig inriktning",
     clubChronicleLikelyTrainingDetailsTitle: "Trolig träningsinriktning",

@@ -72,6 +72,8 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_4_8_0:
+      "Club Chronicle peut maintenant supprimer les matchs termines de Hattrick Live depuis le panneau des matchs en cours.",
     changelog_4_7_0:
       "Les panneaux desktop de Club Chronicle peuvent maintenant etre masques et retablis depuis un menu de visibilite.",
     changelog_4_6_0:
@@ -456,7 +458,11 @@ export const messagesFr: Messages = {
     clubChronicleOngoingMatchesDisabled:
       "Le suivi des matchs en cours est desactive. Aucun match ne sera recupere ni affiche.",
     clubChronicleOngoingMatchesDisclaimer:
-      "Si cette fonction est activee, tout match en cours accepte pour les equipes suivies sera ajoute a Hattrick Live. Les scores ne se mettent pas a jour automatiquement ; utilisez le bouton d actualisation de ce panneau. Cliquez sur un score pour voir les evenements du match.",
+      "Si cette fonction est activee, tout match en cours accepte pour les equipes suivies sera ajoute a Hattrick Live. Les scores ne se mettent pas a jour automatiquement ; utilisez le bouton d actualisation de ce panneau. Cliquez sur un score pour voir les evenements du match. Si trop de matchs sont suivis dans Hattrick Live, cette fonction peut se comporter de facon erratique ; gardez le nombre de matchs suivis sous controle et supprimez les matchs termines avec le bouton ci-dessus.",
+    clubChronicleRemoveFinishedLiveMatchesTooltip:
+      "Supprimer tous les matchs termines de Hattrick Live.",
+    clubChronicleFinishedLiveMatchesRemoved:
+      "{{count}} matchs termines supprimes de Hattrick Live",
     clubChronicleLikelyTrainingPanelTitle: "Régime d entraînement probable",
     clubChronicleLikelyTrainingColumnRegimen: "Régime probable",
     clubChronicleLikelyTrainingDetailsTitle: "Régime d entraînement probable",

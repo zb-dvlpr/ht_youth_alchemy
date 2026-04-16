@@ -78,6 +78,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_4_8_0: string;
   changelog_4_7_0: string;
   changelog_4_6_0: string;
   changelog_4_5_0: string;
@@ -355,6 +356,8 @@ export type Messages = {
   clubChronicleOngoingMatchesEventsEmpty: string;
   clubChronicleOngoingMatchesDisabled: string;
   clubChronicleOngoingMatchesDisclaimer: string;
+  clubChronicleRemoveFinishedLiveMatchesTooltip: string;
+  clubChronicleFinishedLiveMatchesRemoved: string;
   clubChronicleLikelyTrainingPanelTitle: string;
   clubChronicleLikelyTrainingColumnRegimen: string;
   clubChronicleLikelyTrainingDetailsTitle: string;

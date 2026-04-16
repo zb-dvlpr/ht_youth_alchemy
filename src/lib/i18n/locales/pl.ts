@@ -125,6 +125,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_8_0:
+    "Club Chronicle moze teraz usuwac zakonczone mecze z Hattrick Live w panelu trwajacych meczow.",
   changelog_4_7_0:
     "Panele Club Chronicle na desktopie mozna teraz ukrywac i przywracac z menu widocznosci.",
   changelog_4_6_0:
@@ -782,7 +784,11 @@ export const messagesPl: Messages = {
   clubChronicleOngoingMatchesDisabled:
     "Śledzenie trwających meczów jest wyłączone. Mecze nie będą pobierane ani wyświetlane.",
   clubChronicleOngoingMatchesDisclaimer:
-    "Po włączeniu tej funkcji zaakceptowane trwające mecze śledzonych drużyn zostaną dodane do Hattrick Live. Wyniki nie aktualizują się automatycznie; użyj przycisku odświeżania w tym panelu. Kliknij wynik, aby zobaczyć wydarzenia meczu.",
+    "Po włączeniu tej funkcji zaakceptowane trwające mecze śledzonych drużyn zostaną dodane do Hattrick Live. Wyniki nie aktualizują się automatycznie; użyj przycisku odświeżania w tym panelu. Kliknij wynik, aby zobaczyć wydarzenia meczu. Jeśli w Hattrick Live śledzonych jest zbyt wiele meczów, ta funkcja może działać niestabilnie; kontroluj liczbę śledzonych meczów i usuwaj zakończone mecze przyciskiem powyżej.",
+  clubChronicleRemoveFinishedLiveMatchesTooltip:
+    "Usuń wszystkie zakończone mecze z Hattrick Live.",
+  clubChronicleFinishedLiveMatchesRemoved:
+    "{{count}} zakończone mecze usunięte z Hattrick Live",
   themeSwitchDark: "Przełącz na tryb ciemny",
   optimizeLineupTitle: "Optymalizuj skład",
   optimizeMenuStar: "Optymalizuj wokół {{player}}",

@@ -72,6 +72,8 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    changelog_4_8_0:
+      "Club Chronicle agora pode remover partidas concluidas do Hattrick Live no painel de partidas em andamento.",
     changelog_4_7_0:
       "Os paineis de desktop do Club Chronicle agora podem ser ocultados e restaurados a partir de um menu de visibilidade.",
     changelog_4_6_0:
@@ -457,7 +459,11 @@ export const messagesPt: Messages = {
     clubChronicleOngoingMatchesDisabled:
       "O acompanhamento de partidas em andamento esta desativado. Nenhuma partida sera buscada ou exibida.",
     clubChronicleOngoingMatchesDisclaimer:
-      "Se este recurso estiver ativado, qualquer partida em andamento aceita de times acompanhados sera adicionada ao Hattrick Live. Os placares nao atualizam automaticamente; use o botao de atualizar deste painel. Clique em um placar para ver os eventos da partida.",
+      "Se este recurso estiver ativado, qualquer partida em andamento aceita de times acompanhados sera adicionada ao Hattrick Live. Os placares nao atualizam automaticamente; use o botao de atualizar deste painel. Clique em um placar para ver os eventos da partida. Se muitas partidas forem acompanhadas no Hattrick Live, este recurso pode se comportar de forma instavel; mantenha a quantidade de partidas acompanhadas sob controle e remova as partidas concluidas com o botao acima.",
+    clubChronicleRemoveFinishedLiveMatchesTooltip:
+      "Remover todas as partidas concluidas do Hattrick Live.",
+    clubChronicleFinishedLiveMatchesRemoved:
+      "{{count}} partidas concluidas removidas do Hattrick Live",
     clubChronicleLikelyTrainingPanelTitle: "Regime de treino provável",
     clubChronicleLikelyTrainingColumnRegimen: "Regime provável",
     clubChronicleLikelyTrainingDetailsTitle: "Regime de treino provável",

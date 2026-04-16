@@ -72,6 +72,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_4_8_0:
+      "Club Chronicle can now remove finished matches from Hattrick Live in the ongoing matches panel.",
     changelog_4_7_0:
       "Club Chronicle desktop panels can now be hidden and restored from a panel visibility menu.",
     changelog_4_6_0:
@@ -424,7 +426,11 @@ export const messagesEn: Messages = {
     clubChronicleOngoingMatchesDisabled:
       "Ongoing match tracking is off. No matches will be retrieved or displayed.",
     clubChronicleOngoingMatchesDisclaimer:
-      "If this feature is on, any accepted ongoing matches for tracked teams will be added to Hattrick Live. Scores do not update automatically; use this panel's refresh button to refresh them. Click a score to see match events.",
+      "If this feature is on, any accepted ongoing matches for tracked teams will be added to Hattrick Live. Scores do not update automatically; use this panel's refresh button to refresh them. Click a score to see match events. If too many matches are tracked in Hattrick Live, this feature may behave erratically; keep the tracked-match count in check and remove finished matches with the button above.",
+    clubChronicleRemoveFinishedLiveMatchesTooltip:
+      "Remove all finished matches from Hattrick Live.",
+    clubChronicleFinishedLiveMatchesRemoved:
+      "{{count}} finished matches removed from Hattrick Live",
     clubChronicleLikelyTrainingPanelTitle: "Likely training regimen",
     clubChronicleLikelyTrainingColumnRegimen: "Likely regimen",
     clubChronicleLikelyTrainingDetailsTitle: "Likely training regimen",

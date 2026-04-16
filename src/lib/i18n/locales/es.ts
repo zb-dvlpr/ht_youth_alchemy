@@ -72,6 +72,8 @@ export const messagesEs: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Esta aplicación está en beta. Las funciones, el comportamiento y los datos locales en caché pueden cambiar o reiniciarse sin previo aviso.",
+    changelog_4_8_0:
+      "Club Chronicle ahora puede eliminar partidos finalizados de Hattrick Live en el panel de partidos en curso.",
     changelog_4_7_0:
       "Los paneles de escritorio de Club Chronicle ahora se pueden ocultar y restaurar desde un menu de visibilidad.",
     changelog_4_6_0:
@@ -457,7 +459,11 @@ export const messagesEs: Messages = {
     clubChronicleOngoingMatchesDisabled:
       "El seguimiento de partidos en curso esta desactivado. No se recuperaran ni mostraran partidos.",
     clubChronicleOngoingMatchesDisclaimer:
-      "Si esta funcion esta activada, cualquier partido en curso aceptado de equipos seguidos se anadira a Hattrick Live. Los marcadores no se actualizan automaticamente; usa el boton de actualizar de este panel. Haz clic en un marcador para ver los eventos del partido.",
+      "Si esta funcion esta activada, cualquier partido en curso aceptado de equipos seguidos se anadira a Hattrick Live. Los marcadores no se actualizan automaticamente; usa el boton de actualizar de este panel. Haz clic en un marcador para ver los eventos del partido. Si se siguen demasiados partidos en Hattrick Live, esta funcion puede comportarse de forma erratica; manten controlado el numero de partidos seguidos y elimina los partidos finalizados con el boton de arriba.",
+    clubChronicleRemoveFinishedLiveMatchesTooltip:
+      "Eliminar todos los partidos finalizados de Hattrick Live.",
+    clubChronicleFinishedLiveMatchesRemoved:
+      "{{count}} partidos finalizados eliminados de Hattrick Live",
     clubChronicleLikelyTrainingPanelTitle: "Régimen de entrenamiento probable",
     clubChronicleLikelyTrainingColumnRegimen: "Régimen probable",
     clubChronicleLikelyTrainingDetailsTitle: "Régimen de entrenamiento probable",

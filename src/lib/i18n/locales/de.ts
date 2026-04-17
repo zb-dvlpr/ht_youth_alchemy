@@ -1064,6 +1064,8 @@ export const messagesDe: Messages = {
     notificationSecondaryTrainingSet: "Sekundärtraining:",
     notificationTrainingCleared: "Training gelöscht",
     notificationPlayersRefreshed: "Jugendspieler aktualisiert",
+    notificationYouthPlayerDetailsPartialRefresh:
+      "Einige Jugendspieler-Details konnten nicht aktualisiert werden ({{count}}/{{total}}).",
     notificationRefreshStoppedManual:
       "Aktualisierung gestoppt. Bisher geladene Aenderungen wurden verworfen.",
     notificationDebugNewMarkers: "Debug: Zufaellige NEW-Marker gesetzt",

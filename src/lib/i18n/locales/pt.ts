@@ -1081,6 +1081,8 @@ export const messagesPt: Messages = {
     notificationSecondaryTrainingSet: "Treino secundário:",
     notificationTrainingCleared: "Treino limpo",
     notificationPlayersRefreshed: "Jogadores juvenis atualizados",
+    notificationYouthPlayerDetailsPartialRefresh:
+      "Alguns detalhes dos juvenis não puderam ser atualizados ({{count}}/{{total}}).",
     notificationRefreshStoppedManual:
       "Atualizacao interrompida. As mudancas recuperadas foram descartadas.",
     notificationDebugNewMarkers: "Debug: marcadores NEW aleatórios aplicados",

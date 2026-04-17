@@ -1072,6 +1072,8 @@ export const messagesSv: Messages = {
     notificationSecondaryTrainingSet: "Sekundärträning:",
     notificationTrainingCleared: "Träning rensad",
     notificationPlayersRefreshed: "Juniorer uppdaterade",
+    notificationYouthPlayerDetailsPartialRefresh:
+      "Vissa juniordetaljer kunde inte uppdateras ({{count}}/{{total}}).",
     notificationRefreshStoppedManual:
       "Uppdatering stoppad. Hamtade andringar har ignorerats.",
     notificationDebugNewMarkers: "Debug: slumpade NEW-markeringar tillagda",

@@ -1038,6 +1038,8 @@ export const messagesEn: Messages = {
     notificationSecondaryTrainingSet: "Secondary training:",
     notificationTrainingCleared: "Training cleared",
     notificationPlayersRefreshed: "Youth players refreshed",
+    notificationYouthPlayerDetailsPartialRefresh:
+      "Some youth player details could not be refreshed ({{count}}/{{total}}).",
     notificationRefreshStoppedManual: "Refresh stopped. Retrieved changes were discarded.",
     notificationDebugNewMarkers: "Debug: random NEW markers applied",
     notificationSortBy: "Sort by:",

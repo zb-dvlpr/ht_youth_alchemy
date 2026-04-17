@@ -854,6 +854,7 @@ export type Messages = {
   notificationSecondaryTrainingSet: string;
   notificationTrainingCleared: string;
   notificationPlayersRefreshed: string;
+  notificationYouthPlayerDetailsPartialRefresh: string;
   notificationRefreshStoppedManual: string;
   notificationDebugNewMarkers: string;
   notificationSortBy: string;

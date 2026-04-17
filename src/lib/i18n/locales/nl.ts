@@ -680,6 +680,8 @@ export const messagesNl: Messages = {
   oauthErrorUnknownExplanation: "Hattrick OAuth/CHPP gaf een onverwachte fout tijdens het vernieuwen van gegevens.",
   oauthErrorRecoveryHint: "Probeer toegang te ontkoppelen en opnieuw te koppelen. Als het blijft misgaan, neem contact op met de Hattrick-ondersteuning.",
   notificationPlayersRefreshed: "Spelers vernieuwd",
+  notificationYouthPlayerDetailsPartialRefresh:
+    "Sommige jeugddetails konden niet worden vernieuwd ({{count}}/{{total}}).",
   notificationMatchesRefreshed: "Wedstrijden vernieuwd",
   notificationMatchesRefreshFailed: "Vernieuwen van wedstrijden mislukt",
   notificationSeniorTrainingRegimenChanged:

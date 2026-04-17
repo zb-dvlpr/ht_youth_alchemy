@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import { createPortal } from "react-dom";
 
 import styles from "../page.module.css";
@@ -41,8 +48,17 @@ export default function Modal({
     originX: number;
     originY: number;
   } | null>(null);
+  const resizeStateRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startY: number;
+    startWidth: number;
+    startHeight: number;
+  } | null>(null);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
+  const [size, setSize] = useState<{ width: number; height: number } | null>(null);
+  const [isResizing, setIsResizing] = useState(false);
   const mounted = useSyncExternalStore(
     subscribeMountedSnapshot,
     getClientMountedSnapshot,
@@ -84,9 +100,45 @@ export default function Modal({
     };
   }, [isDragging, open]);
 
+  useEffect(() => {
+    if (!open || !isResizing) return;
+    const onPointerMove = (event: PointerEvent) => {
+      const resizeState = resizeStateRef.current;
+      if (!resizeState || event.pointerId !== resizeState.pointerId) return;
+      const minWidth = 280;
+      const minHeight = 160;
+      const maxWidth = Math.max(minWidth, window.innerWidth - 32);
+      const maxHeight = Math.max(minHeight, window.innerHeight - 32);
+      const nextWidth = resizeState.startWidth + (event.clientX - resizeState.startX);
+      const nextHeight = resizeState.startHeight + (event.clientY - resizeState.startY);
+      setSize({
+        width: Math.max(minWidth, Math.min(maxWidth, nextWidth)),
+        height: Math.max(minHeight, Math.min(maxHeight, nextHeight)),
+      });
+    };
+    const stopResizing = (event: PointerEvent) => {
+      const resizeState = resizeStateRef.current;
+      if (!resizeState || event.pointerId !== resizeState.pointerId) return;
+      resizeStateRef.current = null;
+      setIsResizing(false);
+    };
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", stopResizing);
+    window.addEventListener("pointercancel", stopResizing);
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerup", stopResizing);
+      window.removeEventListener("pointercancel", stopResizing);
+    };
+  }, [isResizing, open]);
+
   if (!open || !mounted || typeof document === "undefined") return null;
   const overlayClass =
     variant === "local" ? styles.confirmOverlay : styles.trainingOverlay;
+  const cardStyle: CSSProperties = {
+    transform: `translate(${offset.x}px, ${offset.y}px)`,
+    ...(size ? { width: `${size.width}px`, height: `${size.height}px` } : {}),
+  };
 
   return createPortal(
     <div
@@ -105,10 +157,10 @@ export default function Modal({
     >
       <div
         ref={cardRef}
-        className={`${styles.confirmCard}${className ? ` ${className}` : ""}`}
+        className={`${styles.confirmCard}${isResizing ? ` ${styles.confirmCardResizing}` : ""}${className ? ` ${className}` : ""}`}
         role="dialog"
         aria-modal="true"
-        style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
+        style={cardStyle}
       >
         {title ? (
           <div
@@ -134,6 +186,26 @@ export default function Modal({
         {actions ? (
           <div className={styles.confirmActions}>{actions}</div>
         ) : null}
+        <div
+          className={styles.modalResizeHandle}
+          aria-hidden="true"
+          onPointerDown={(event) => {
+            if (event.button !== 0) return;
+            if (window.matchMedia("(max-width: 900px)").matches) return;
+            const card = cardRef.current;
+            if (!card) return;
+            event.preventDefault();
+            event.stopPropagation();
+            resizeStateRef.current = {
+              pointerId: event.pointerId,
+              startX: event.clientX,
+              startY: event.clientY,
+              startWidth: card.offsetWidth,
+              startHeight: card.offsetHeight,
+            };
+            setIsResizing(true);
+          }}
+        />
       </div>
     </div>,
     document.body

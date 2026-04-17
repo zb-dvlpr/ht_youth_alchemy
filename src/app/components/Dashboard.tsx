@@ -272,6 +272,14 @@ type PlayerDetailsResponse = {
   code?: string;
 };
 
+type YouthPlayerDetailRefreshResult = {
+  id: number;
+  detailRaw: Record<string, unknown> | null;
+  resolved: YouthPlayerDetails | null;
+  ok: boolean;
+  error: string | null;
+};
+
 type DashboardProps = {
   players: YouthPlayer[];
   matchesResponse: MatchesResponse;
@@ -679,8 +687,8 @@ const mergedSkills = (
 ) => {
   if (!detailsSkills && !playerSkills) return null;
   return {
-    ...(detailsSkills ?? {}),
     ...(playerSkills ?? {}),
+    ...(detailsSkills ?? {}),
   };
 };
 
@@ -3436,6 +3444,58 @@ export default function Dashboard({
     }
   };
 
+  const refreshYouthPlayerDetailsForGlobalRefresh = async (
+    playerId: number
+  ): Promise<YouthPlayerDetailRefreshResult> => {
+    try {
+      const { response, payload } = await fetchChppJson<PlayerDetailsResponse>(
+        `/api/chpp/youth/player-details?youthPlayerID=${playerId}&showLastMatch=true&showScoutCall=true&unlockSkills=1`,
+        { cache: "no-store" }
+      );
+      if (!response.ok || payload?.error) {
+        return {
+          id: playerId,
+          detailRaw: null,
+          resolved: null,
+          ok: false,
+          error: payload?.details ?? payload?.error ?? "Failed to fetch player details",
+        };
+      }
+      const detailRaw = payload?.data ?? null;
+      const resolved = resolveDetails(detailRaw);
+      if (!detailRaw || !resolved) {
+        return {
+          id: playerId,
+          detailRaw: null,
+          resolved: null,
+          ok: false,
+          error: "Player details response did not include usable player data",
+        };
+      }
+      if (payload?.unlockStatus) {
+        setUnlockStatus(payload.unlockStatus);
+      }
+      return {
+        id: playerId,
+        detailRaw,
+        resolved,
+        ok: true,
+        error: null,
+      };
+    } catch (error) {
+      if (error instanceof ChppAuthRequiredError) {
+        throw error;
+      }
+      return {
+        id: playerId,
+        detailRaw: null,
+        resolved: null,
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+      };
+    }
+  };
+
   const fetchTransferSearchPlayerDetails = async (playerId: number) => {
     const { response, payload } = await fetchChppJson<{
       data?: { HattrickData?: { Player?: YouthPlayerDetails } };
@@ -5141,6 +5201,8 @@ export default function Dashboard({
     let nextSelectedId = selectedId;
     let nextSelectedDetails: Record<string, unknown> | null = null;
     let nextPlayersSnapshot: YouthPlayer[] = playerList;
+    let detailRefreshFailureCount = 0;
+    let detailRefreshTotal = 0;
     const nextDetailsByPlayerId = new Map<number, YouthPlayerDetails>(
       previousDetailsByIdSnapshot
     );
@@ -5200,16 +5262,18 @@ export default function Dashboard({
       if (refreshAll) {
         setYouthRefreshStatus(messages.refreshStatusFetchingPlayerDetails, 42);
         const ids = list.map((player) => player.YouthPlayerID);
-        const detailResponses = await Promise.all(
-          ids.map(async (id) => {
-            const detailRaw = await ensureDetails(id, true);
-            return { id, detailRaw };
-          })
+        detailRefreshTotal = ids.length;
+        const detailResponses = await mapWithConcurrency(
+          ids,
+          4,
+          async (id) => refreshYouthPlayerDetailsForGlobalRefresh(id)
         );
+        detailRefreshFailureCount = detailResponses.filter(
+          (entry) => !entry.ok
+        ).length;
         const resolvedDetailsEntries: Array<[number, CachedDetails]> = [];
-        detailResponses.forEach(({ id, detailRaw }) => {
-          const resolved = resolveDetails(detailRaw);
-          if (resolved) {
+        detailResponses.forEach(({ id, detailRaw, resolved }) => {
+          if (detailRaw && resolved) {
             nextDetailsByPlayerId.set(id, resolved);
             resolvedDetailsEntries.push([
               id,
@@ -5499,6 +5563,13 @@ export default function Dashboard({
           addNotification(messages.notificationStaleRefresh);
         }
         addNotification(messages.notificationPlayersRefreshed);
+        if (refreshAll && detailRefreshFailureCount > 0) {
+          addNotification(
+            messages.notificationYouthPlayerDetailsPartialRefresh
+              .replace("{{count}}", String(detailRefreshFailureCount))
+              .replace("{{total}}", String(detailRefreshTotal))
+          );
+        }
       }
       if (usePersistedMarkersBaseline && playersUpdated) {
         persistedMarkersBaselineRef.current = null;

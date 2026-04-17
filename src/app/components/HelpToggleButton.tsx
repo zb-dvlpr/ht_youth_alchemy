@@ -57,6 +57,17 @@ export default function HelpToggleButton({ messages }: HelpToggleButtonProps) {
             className={styles.feedbackLink}
             onClick={() => {
               if (typeof window === "undefined") return;
+              window.dispatchEvent(new CustomEvent("ya:manual-open"));
+              setOpen(false);
+            }}
+          >
+            {messages.helpMenuManual}
+          </button>
+          <button
+            type="button"
+            className={styles.feedbackLink}
+            onClick={() => {
+              if (typeof window === "undefined") return;
               window.dispatchEvent(new CustomEvent("ya:changelog-open"));
               setOpen(false);
             }}

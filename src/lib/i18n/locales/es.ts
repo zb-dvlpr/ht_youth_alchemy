@@ -6,8 +6,11 @@ export const messagesEs: Messages = {
     helpIcon: "ⓘ",
     helpOpenTooltip: "Ayuda y changelog",
     helpMenuOpen: "Abrir ayuda",
+    helpMenuManual: "Manual",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    manualTitle: "Manual de HT Alchemy",
+    manualTocTitle: "Índice",
     sidebarCollapseTooltip: "Contraer barra lateral",
     sidebarExpandTooltip: "Expandir barra lateral",
     supportOnKofi: "Invítame a un café",
@@ -1078,6 +1081,8 @@ export const messagesEs: Messages = {
     notificationSecondaryTrainingSet: "Entrenamiento secundario:",
     notificationTrainingCleared: "Entrenamiento borrado",
     notificationPlayersRefreshed: "Juveniles actualizados",
+    notificationYouthPlayerDetailsPartialRefresh:
+      "No se pudieron actualizar algunos detalles de juveniles ({{count}}/{{total}}).",
     notificationRefreshStoppedManual:
       "Actualizacion detenida. Los cambios recuperados se descartaron.",
     notificationDebugNewMarkers: "Debug: marcadores NEW aleatorios aplicados",

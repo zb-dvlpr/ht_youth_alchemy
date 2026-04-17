@@ -7,8 +7,11 @@ export const messagesPl: Messages = {
   languageSwitching: "Zmiana języka…",
   helpOpenTooltip: "Pomoc i dziennik zmian",
   helpMenuOpen: "Otwórz pomoc",
+  helpMenuManual: "Instrukcja",
   helpMenuChangelog: "Dziennik zmian",
   changelogTitle: "Dziennik zmian",
+  manualTitle: "Instrukcja HT Alchemy",
+  manualTocTitle: "Spis treści",
   sidebarCollapseTooltip: "Zwiń pasek boczny",
   sidebarExpandTooltip: "Rozwiń pasek boczny",
   supportOnKofi: "Postaw mi kawę",
@@ -670,6 +673,8 @@ export const messagesPl: Messages = {
   oauthErrorUnknownExplanation: "Hattrick OAuth/CHPP zwrócił nieoczekiwany błąd podczas odświeżania danych.",
   oauthErrorRecoveryHint: "Spróbuj rozłączyć dostęp i połączyć ponownie. Jeśli to nie pomoże, skontaktuj się ze wsparciem Hattrick.",
   notificationPlayersRefreshed: "Zawodnicy odświeżeni",
+  notificationYouthPlayerDetailsPartialRefresh:
+    "Nie udało się odświeżyć części szczegółów juniorów ({{count}}/{{total}}).",
   notificationMatchesRefreshed: "Mecze odświeżone",
   notificationMatchesRefreshFailed: "Nie udało się odświeżyć meczów",
   notificationSeniorTrainingRegimenChanged:

@@ -6,8 +6,11 @@ export const messagesPt: Messages = {
     helpIcon: "ⓘ",
     helpOpenTooltip: "Ajuda e changelog",
     helpMenuOpen: "Abrir ajuda",
+    helpMenuManual: "Manual",
     helpMenuChangelog: "Changelog",
     changelogTitle: "Changelog",
+    manualTitle: "Manual do HT Alchemy",
+    manualTocTitle: "Índice",
     sidebarCollapseTooltip: "Recolher barra lateral",
     sidebarExpandTooltip: "Expandir barra lateral",
     supportOnKofi: "Paga-me um café",
@@ -1078,6 +1081,8 @@ export const messagesPt: Messages = {
     notificationSecondaryTrainingSet: "Treino secundário:",
     notificationTrainingCleared: "Treino limpo",
     notificationPlayersRefreshed: "Jogadores juvenis atualizados",
+    notificationYouthPlayerDetailsPartialRefresh:
+      "Alguns detalhes dos juvenis não puderam ser atualizados ({{count}}/{{total}}).",
     notificationRefreshStoppedManual:
       "Atualizacao interrompida. As mudancas recuperadas foram descartadas.",
     notificationDebugNewMarkers: "Debug: marcadores NEW aleatórios aplicados",

@@ -7,8 +7,11 @@ export const messagesNl: Messages = {
   languageSwitching: "Taal wisselen…",
   helpOpenTooltip: "Hulp en wijzigingslogboek",
   helpMenuOpen: "Hulp openen",
+  helpMenuManual: "Handleiding",
   helpMenuChangelog: "Wijzigingslogboek",
   changelogTitle: "Wijzigingslogboek",
+  manualTitle: "HT Alchemy-handleiding",
+  manualTocTitle: "Inhoudsopgave",
   sidebarCollapseTooltip: "Zijbalk inklappen",
   sidebarExpandTooltip: "Zijbalk uitklappen",
   supportOnKofi: "Koop een koffie voor me",
@@ -677,6 +680,8 @@ export const messagesNl: Messages = {
   oauthErrorUnknownExplanation: "Hattrick OAuth/CHPP gaf een onverwachte fout tijdens het vernieuwen van gegevens.",
   oauthErrorRecoveryHint: "Probeer toegang te ontkoppelen en opnieuw te koppelen. Als het blijft misgaan, neem contact op met de Hattrick-ondersteuning.",
   notificationPlayersRefreshed: "Spelers vernieuwd",
+  notificationYouthPlayerDetailsPartialRefresh:
+    "Sommige jeugddetails konden niet worden vernieuwd ({{count}}/{{total}}).",
   notificationMatchesRefreshed: "Wedstrijden vernieuwd",
   notificationMatchesRefreshFailed: "Vernieuwen van wedstrijden mislukt",
   notificationSeniorTrainingRegimenChanged:

@@ -9,6 +9,12 @@
 - Update `README.md` only when the MAJOR/MINOR version is bumped. In the case of MINOR, decide whether it would make sense adding it to `README.md` or whether it reads as a git commit message. If it is the latter, do not add to `README.md`.
 - Use git history/commits for detailed change-by-change tracking instead of expanding README with incremental release notes.
 
+## Manual
+- Treat the in-app manual as user-facing product documentation that must stay in sync with the app without requiring a separate reminder.
+- Whenever anything user-facing is added, removed, moved, renamed, redesigned, or behaviorally changed, update the manual in the same change.
+- This includes tools, panels, workflows, settings, menu items, buttons, modals, warnings, disclaimers, tooltips, platform scope, feature locations, and meaningful behavior changes.
+- If a change affects where users find something or how they should use it, the manual must reflect the new location or behavior before the task is considered complete.
+
 ## Localization
 - Any new visible user-facing text must be added in a multi-language ready way (i.e., sourced from the i18n messages table rather than hardcoded).
 - Localization messages are split per locale file; keep locale content in the correct locale file and never bulk copy translated blocks between locales.

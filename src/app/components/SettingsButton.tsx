@@ -844,6 +844,32 @@ export default function SettingsButton({
                 />
               </label>
             </Tooltip>
+            <Tooltip
+              content={messages.settingsGeneralChronicleWatchlistsExportHint}
+              fullWidth
+            >
+              <button
+                type="button"
+                className={styles.settingsActionButton}
+                onClick={handleOpenChronicleQrExport}
+              >
+                {messages.settingsGeneralChronicleWatchlistsExportLabel}
+              </button>
+            </Tooltip>
+            {isMobileLauncherVariant ? (
+              <Tooltip
+                content={messages.settingsGeneralChronicleWatchlistsImportHint}
+                fullWidth
+              >
+                <button
+                  type="button"
+                  className={styles.settingsActionButton}
+                  onClick={handleOpenChronicleQrImport}
+                >
+                  {messages.settingsGeneralChronicleWatchlistsImportLabel}
+                </button>
+              </Tooltip>
+            ) : null}
           </div>
         }
         actions={
@@ -905,32 +931,6 @@ export default function SettingsButton({
                 {messages.settingsGeneralImportAllLabel}
               </button>
             </Tooltip>
-            <Tooltip
-              content={messages.settingsGeneralChronicleWatchlistsExportHint}
-              fullWidth
-            >
-              <button
-                type="button"
-                className={styles.settingsActionButton}
-                onClick={handleOpenChronicleQrExport}
-              >
-                {messages.settingsGeneralChronicleWatchlistsExportLabel}
-              </button>
-            </Tooltip>
-            {isMobileLauncherVariant ? (
-              <Tooltip
-                content={messages.settingsGeneralChronicleWatchlistsImportHint}
-                fullWidth
-              >
-                <button
-                  type="button"
-                  className={styles.settingsActionButton}
-                  onClick={handleOpenChronicleQrImport}
-                >
-                  {messages.settingsGeneralChronicleWatchlistsImportLabel}
-                </button>
-              </Tooltip>
-            ) : null}
           </div>
         }
         actions={

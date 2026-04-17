@@ -2044,6 +2044,152 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   gap: 8px;
 }
 
+.confirmCard.manualModal {
+  width: min(1120px, 94vw);
+  max-height: min(88vh, 920px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.manualModal .confirmBody {
+  min-height: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.manualBody {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) minmax(0, 1fr);
+  gap: 24px;
+  height: min(76vh, 780px);
+  overflow: hidden;
+  color: #3f362c;
+  line-height: 1.6;
+}
+
+.manualToc {
+  align-self: start;
+  max-height: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px solid #eadfcf;
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.manualToc h2 {
+  margin: 0 0 10px;
+  color: #2f261c;
+  font-size: 15px;
+}
+
+.manualToc ol {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.manualToc li {
+  margin: 0;
+}
+
+.manualToc button {
+  appearance: none;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #315f3a;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.35;
+  text-align: left;
+  text-decoration: none;
+}
+
+.manualToc button:hover {
+  text-decoration: underline;
+}
+
+.manualTocLevel1 {
+  padding-left: 0;
+}
+
+.manualTocLevel2 {
+  padding-left: 10px;
+}
+
+.manualTocLevel3,
+.manualTocLevel4,
+.manualTocLevel5,
+.manualTocLevel6 {
+  padding-left: 20px;
+}
+
+.manualMarkdown {
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  padding-right: 10px;
+  scroll-behavior: smooth;
+}
+
+.manualMarkdown h1,
+.manualMarkdown h2,
+.manualMarkdown h3,
+.manualMarkdown h4,
+.manualMarkdown h5,
+.manualMarkdown h6 {
+  margin: 0 0 10px;
+  color: #2f261c;
+  line-height: 1.2;
+  scroll-margin-top: 16px;
+}
+
+.manualMarkdown h1 {
+  font-size: 28px;
+}
+
+.manualMarkdown h2 {
+  margin-top: 28px;
+  font-size: 22px;
+}
+
+.manualMarkdown h3 {
+  margin-top: 22px;
+  font-size: 17px;
+}
+
+.manualMarkdown h4,
+.manualMarkdown h5,
+.manualMarkdown h6 {
+  margin-top: 18px;
+  font-size: 15px;
+}
+
+.manualMarkdown p {
+  margin: 0 0 14px;
+}
+
+.manualMarkdown ul {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 16px 20px;
+  padding: 0;
+}
+
+.manualMarkdown hr {
+  height: 1px;
+  margin: 22px 0;
+  border: 0;
+  background: #eadfcf;
+}
+
 .helpDisabledColumn {
   opacity: 0.35;
   pointer-events: none;
@@ -4972,6 +5118,30 @@ html[data-theme="dark"] .changelogPageLabel {
 html[data-theme="dark"] .changelogVersion,
 html[data-theme="dark"] .changelogText {
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .manualBody,
+html[data-theme="dark"] .manualMarkdown h1,
+html[data-theme="dark"] .manualMarkdown h2,
+html[data-theme="dark"] .manualMarkdown h3,
+html[data-theme="dark"] .manualMarkdown h4,
+html[data-theme="dark"] .manualMarkdown h5,
+html[data-theme="dark"] .manualMarkdown h6,
+html[data-theme="dark"] .manualToc h2 {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .manualToc {
+  background: #1b1917;
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .manualToc button {
+  color: #9ac486;
+}
+
+html[data-theme="dark"] .manualMarkdown hr {
+  background: rgba(255, 255, 255, 0.08);
 }
 
 html[data-theme="dark"] .helpTitle {
@@ -8076,6 +8246,27 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
     flex: 1 1 auto;
     min-height: 0;
     padding-bottom: 6px;
+  }
+
+  .confirmCard.manualModal {
+    width: min(96vw, 760px);
+  }
+
+  .manualBody {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .manualToc {
+    max-height: none;
+  }
+
+  .manualMarkdown {
+    overflow: visible;
+    padding-right: 0;
   }
 
   .confirmActions {

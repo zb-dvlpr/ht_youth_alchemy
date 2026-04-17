@@ -18,8 +18,11 @@ export type Messages = {
   helpIcon: string;
   helpOpenTooltip: string;
   helpMenuOpen: string;
+  helpMenuManual: string;
   helpMenuChangelog: string;
   changelogTitle: string;
+  manualTitle: string;
+  manualTocTitle: string;
   sidebarCollapseTooltip: string;
   sidebarExpandTooltip: string;
   supportOnKofi: string;

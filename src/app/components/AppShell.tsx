@@ -15,6 +15,7 @@ import styles from "../page.module.css";
 import Tooltip from "./Tooltip";
 import ClubChronicle from "./ClubChronicle";
 import Modal from "./Modal";
+import ManualModal from "./ManualModal";
 import BuyCoffeeButton from "./BuyCoffeeButton";
 import { Messages } from "@/lib/i18n";
 import { getChangelogEntries } from "@/lib/changelog";
@@ -111,6 +112,7 @@ export default function AppShell({
   const [seniorRefreshProgressPct, setSeniorRefreshProgressPct] = useState(0);
   const [seniorLastRefreshAt, setSeniorLastRefreshAt] = useState<number | null>(null);
   const [showChangelog, setShowChangelog] = useState(false);
+  const [showManual, setShowManual] = useState(false);
   const [changelogPage, setChangelogPage] = useState(0);
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [buyCoffeePromptOpen, setBuyCoffeePromptOpen] = useState(false);
@@ -717,6 +719,13 @@ export default function AppShell({
     return () => window.removeEventListener("ya:changelog-open", handler);
   }, [activeTool]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handler = () => setShowManual(true);
+    window.addEventListener("ya:manual-open", handler);
+    return () => window.removeEventListener("ya:manual-open", handler);
+  }, []);
+
   const handleSelectTool = useCallback((toolId: ToolId) => {
     setActiveTool(toolId);
     if (mobileLayoutActive) {
@@ -1149,6 +1158,12 @@ export default function AppShell({
             {messages.scopeReconnectAction}
           </button>
         }
+      />
+      <ManualModal
+        open={showManual}
+        title={messages.manualTitle}
+        tocTitle={messages.manualTocTitle}
+        onClose={() => setShowManual(false)}
       />
       <Modal
         open={showChangelog}

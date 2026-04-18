@@ -1700,12 +1700,12 @@ export default function Dashboard({
       skillType: number;
     }> = [
       { skillKey: "KeeperSkill", maxKey: "KeeperSkillMax", skillType: 1 },
-      { skillKey: "SetPiecesSkill", maxKey: "SetPiecesSkillMax", skillType: 3 },
       { skillKey: "DefenderSkill", maxKey: "DefenderSkillMax", skillType: 4 },
-      { skillKey: "ScorerSkill", maxKey: "ScorerSkillMax", skillType: 5 },
+      { skillKey: "PlaymakerSkill", maxKey: "PlaymakerSkillMax", skillType: 8 },
       { skillKey: "WingerSkill", maxKey: "WingerSkillMax", skillType: 6 },
       { skillKey: "PassingSkill", maxKey: "PassingSkillMax", skillType: 7 },
-      { skillKey: "PlaymakerSkill", maxKey: "PlaymakerSkillMax", skillType: 8 },
+      { skillKey: "ScorerSkill", maxKey: "ScorerSkillMax", skillType: 5 },
+      { skillKey: "SetPiecesSkill", maxKey: "SetPiecesSkillMax", skillType: 3 },
     ];
     return skillDefinitions
       .map((definition) => {
@@ -1726,7 +1726,12 @@ export default function Dashboard({
       )
       .sort((left, right) => right.max - left.max || left.skillType - right.skillType)
       .slice(0, 4)
-      .map(({ skillKey, min, max }) => ({ skillKey, min, max }));
+      .map(({ skillKey, min, max }) => ({ skillKey, min, max }))
+      .sort(
+        (left, right) =>
+          TRANSFER_SEARCH_SKILLS.findIndex((entry) => entry.key === left.skillKey) -
+          TRANSFER_SEARCH_SKILLS.findIndex((entry) => entry.key === right.skillKey)
+      );
   };
 
   const buildYouthEstimateValueFilters = (
@@ -3985,10 +3990,10 @@ export default function Dashboard({
             {[
               ["KeeperSkill", result.keeperSkill],
               ["DefenderSkill", result.defenderSkill],
-              ["WingerSkill", result.wingerSkill],
               ["PlaymakerSkill", result.playmakerSkill],
-              ["ScorerSkill", result.scorerSkill],
+              ["WingerSkill", result.wingerSkill],
               ["PassingSkill", result.passingSkill],
+              ["ScorerSkill", result.scorerSkill],
               ["SetPiecesSkill", result.setPiecesSkill],
             ].map(([skillKey, value]) => {
               const definition = TRANSFER_SEARCH_SKILLS.find((entry) => entry.key === skillKey);

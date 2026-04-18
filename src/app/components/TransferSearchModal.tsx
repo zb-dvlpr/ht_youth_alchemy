@@ -25,12 +25,12 @@ export const CHPP_SEK_PER_EUR = 10;
 
 export const TRANSFER_SEARCH_SKILLS = [
   { key: "KeeperSkill", skillType: 1, labelKey: "skillKeeper", min: 0, max: 20 },
-  { key: "SetPiecesSkill", skillType: 3, labelKey: "skillSetPieces", min: 0, max: 20 },
   { key: "DefenderSkill", skillType: 4, labelKey: "skillDefending", min: 0, max: 20 },
-  { key: "ScorerSkill", skillType: 5, labelKey: "skillScoring", min: 0, max: 20 },
+  { key: "PlaymakerSkill", skillType: 8, labelKey: "skillPlaymaking", min: 0, max: 20 },
   { key: "WingerSkill", skillType: 6, labelKey: "skillWinger", min: 0, max: 20 },
   { key: "PassingSkill", skillType: 7, labelKey: "skillPassing", min: 0, max: 20 },
-  { key: "PlaymakerSkill", skillType: 8, labelKey: "skillPlaymaking", min: 0, max: 20 },
+  { key: "ScorerSkill", skillType: 5, labelKey: "skillScoring", min: 0, max: 20 },
+  { key: "SetPiecesSkill", skillType: 3, labelKey: "skillSetPieces", min: 0, max: 20 },
   { key: "StaminaSkill", skillType: 9, labelKey: "sortStamina", min: 0, max: 9 },
   { key: "Leadership", skillType: 10, labelKey: "clubChronicleCoachColumnLeadership", min: 0, max: 7 },
   { key: "Experience", skillType: 11, labelKey: "sortExperience", min: 0, max: 20 },

@@ -111,6 +111,7 @@ const ALL_SLOTS = [
 ] as const;
 
 const MAX_LINEUP_PLAYERS = 11;
+const AUTO_STAR_MAX_AGE_DAYS = 17 * 112;
 
 function assignedLineupCount(lineup: LineupAssignments) {
   return Object.values(lineup).filter((playerId) => playerId !== null).length;
@@ -623,6 +624,11 @@ function chooseStarAndTraining(
   ];
 
   players.forEach((player) => {
+    const playerAgeDays = totalAgeDays(player);
+    if (playerAgeDays === null || playerAgeDays >= AUTO_STAR_MAX_AGE_DAYS) {
+      return;
+    }
+
     skillKeys.forEach((skill) => {
       const { current, max } = skillValues(player, skill);
       if (current === null) return;
@@ -651,7 +657,7 @@ function chooseStarAndTraining(
           score,
           nextSkillScore,
           hasSpecialty,
-          ageDays: totalAgeDays(player),
+          ageDays: playerAgeDays,
           promoAgeDays: promotionAgeDays(player),
           canBePromotedIn: player.canBePromotedIn ?? null,
         };
@@ -665,7 +671,7 @@ function chooseStarAndTraining(
             score,
             nextSkillScore,
             hasSpecialty,
-            ageDays: totalAgeDays(player),
+            ageDays: playerAgeDays,
             promoAgeDays: promotionAgeDays(player),
             canBePromotedIn: player.canBePromotedIn ?? null,
           };
@@ -682,7 +688,7 @@ function chooseStarAndTraining(
             score,
             nextSkillScore,
             hasSpecialty,
-            ageDays: totalAgeDays(player),
+            ageDays: playerAgeDays,
             promoAgeDays: promotionAgeDays(player),
             canBePromotedIn: player.canBePromotedIn ?? null,
           };
@@ -703,7 +709,7 @@ function chooseStarAndTraining(
             score,
             nextSkillScore,
             hasSpecialty,
-            ageDays: totalAgeDays(player),
+            ageDays: playerAgeDays,
             promoAgeDays: currentPromoAgeDays,
             canBePromotedIn: player.canBePromotedIn ?? null,
           };
@@ -724,7 +730,7 @@ function chooseStarAndTraining(
                 score,
                 nextSkillScore,
                 hasSpecialty,
-                ageDays: totalAgeDays(player),
+                ageDays: playerAgeDays,
                 promoAgeDays: currentPromoAgeDays,
                 canBePromotedIn: currentPromoIn,
               };

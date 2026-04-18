@@ -120,6 +120,8 @@ type SeniorPlayerDetails = {
   LeagueGoals?: number;
   CupGoals?: number;
   FriendliesGoals?: number;
+  Caps?: number;
+  CapsU20?: number;
   GoalsCurrentTeam?: number;
   AssistsCurrentTeam?: number;
   CareerAssists?: number;
@@ -389,12 +391,12 @@ const EXTRA_TIME_SORT_SKILL_BY_TRAINING_TYPE: Partial<
 };
 const TRANSFER_SEARCH_SKILLS = [
   { key: "KeeperSkill", skillType: 1, labelKey: "skillKeeper", min: 0, max: 20 },
-  { key: "SetPiecesSkill", skillType: 3, labelKey: "skillSetPieces", min: 0, max: 20 },
   { key: "DefenderSkill", skillType: 4, labelKey: "skillDefending", min: 0, max: 20 },
-  { key: "ScorerSkill", skillType: 5, labelKey: "skillScoring", min: 0, max: 20 },
+  { key: "PlaymakerSkill", skillType: 8, labelKey: "skillPlaymaking", min: 0, max: 20 },
   { key: "WingerSkill", skillType: 6, labelKey: "skillWinger", min: 0, max: 20 },
   { key: "PassingSkill", skillType: 7, labelKey: "skillPassing", min: 0, max: 20 },
-  { key: "PlaymakerSkill", skillType: 8, labelKey: "skillPlaymaking", min: 0, max: 20 },
+  { key: "ScorerSkill", skillType: 5, labelKey: "skillScoring", min: 0, max: 20 },
+  { key: "SetPiecesSkill", skillType: 3, labelKey: "skillSetPieces", min: 0, max: 20 },
   { key: "StaminaSkill", skillType: 9, labelKey: "sortStamina", min: 0, max: 9 },
   { key: "Leadership", skillType: 10, labelKey: "clubChronicleCoachColumnLeadership", min: 0, max: 7 },
   { key: "Experience", skillType: 11, labelKey: "sortExperience", min: 0, max: 20 },
@@ -1239,7 +1241,12 @@ const buildInitialTransferSearchFilters = (
         min: value,
         max: value,
       };
-    });
+    })
+    .sort(
+      (left, right) =>
+        TRANSFER_SEARCH_SKILLS.findIndex((entry) => entry.key === left.skillKey) -
+        TRANSFER_SEARCH_SKILLS.findIndex((entry) => entry.key === right.skillKey)
+    );
 
   const totalAgeDays = ageToTotalDays(player.Age ?? details?.Age ?? 0, player.AgeDays ?? details?.AgeDays ?? 0);
   const ageMin = totalDaysToAge(Math.max(0, totalAgeDays - 20));
@@ -1660,6 +1667,8 @@ const normalizeSeniorPlayerDetails = (
     LeagueGoals: parseNumber(node.LeagueGoals) ?? undefined,
     CupGoals: parseNumber(node.CupGoals) ?? undefined,
     FriendliesGoals: parseNumber(node.FriendliesGoals) ?? undefined,
+    Caps: parseNumber(node.Caps) ?? undefined,
+    CapsU20: parseNumber(node.CapsU20) ?? undefined,
     GoalsCurrentTeam: parseNumber(node.GoalsCurrentTeam) ?? undefined,
     AssistsCurrentTeam: parseNumber(node.AssistsCurrentTeam) ?? undefined,
     CareerAssists: parseNumber(node.CareerAssists) ?? undefined,
@@ -3344,6 +3353,8 @@ export default function SeniorDashboard({
         LeagueGoals?: number;
         CupGoals?: number;
         FriendliesGoals?: number;
+        Caps?: number;
+        CapsU20?: number;
         GoalsCurrentTeam?: number;
         AssistsCurrentTeam?: number;
         CareerAssists?: number;
@@ -3391,6 +3402,8 @@ export default function SeniorDashboard({
         LeagueGoals: detail.LeagueGoals,
         CupGoals: detail.CupGoals,
         FriendliesGoals: detail.FriendliesGoals,
+        Caps: detail.Caps,
+        CapsU20: detail.CapsU20,
         GoalsCurrentTeam: detail.GoalsCurrentTeam,
         AssistsCurrentTeam: detail.AssistsCurrentTeam,
         CareerAssists: detail.CareerAssists,
@@ -13432,6 +13445,37 @@ const refreshDetailsForPlayers = async (
   const transferSearchSelectedPlayerName = transferSearchSourcePlayer
     ? formatPlayerName(transferSearchSourcePlayer)
     : null;
+  const transferSearchSelectedPlayerDetailPills = useMemo(() => {
+    if (!transferSearchSourcePlayer) return [];
+    const ageYears =
+      typeof transferSearchSourceDetails?.Age === "number"
+        ? transferSearchSourceDetails.Age
+        : typeof transferSearchSourcePlayer.Age === "number"
+          ? transferSearchSourcePlayer.Age
+          : null;
+    const ageDays =
+      typeof transferSearchSourceDetails?.AgeDays === "number"
+        ? transferSearchSourceDetails.AgeDays
+        : typeof transferSearchSourcePlayer.AgeDays === "number"
+          ? transferSearchSourcePlayer.AgeDays
+          : null;
+    const tsi =
+      typeof transferSearchSourceDetails?.TSI === "number"
+        ? transferSearchSourceDetails.TSI
+        : typeof transferSearchSourcePlayer.TSI === "number"
+          ? transferSearchSourcePlayer.TSI
+          : null;
+    const pills: string[] = [];
+    if (ageYears !== null && ageDays !== null) {
+      pills.push(
+        `${ageYears}${messages.ageYearsShort} ${ageDays}${messages.ageDaysShort}`
+      );
+    }
+    if (tsi !== null) {
+      pills.push(`${messages.sortTsi}: ${tsi.toLocaleString()}`);
+    }
+    return pills;
+  }, [messages, transferSearchSourceDetails, transferSearchSourcePlayer]);
   useEffect(() => {
     setTransferSearchBidDrafts((prev) => {
       const next = { ...prev };
@@ -13705,10 +13749,10 @@ const refreshDetailsForPlayers = async (
           {[
             ["KeeperSkill", result.keeperSkill],
             ["DefenderSkill", result.defenderSkill],
-            ["WingerSkill", result.wingerSkill],
             ["PlaymakerSkill", result.playmakerSkill],
-            ["ScorerSkill", result.scorerSkill],
+            ["WingerSkill", result.wingerSkill],
             ["PassingSkill", result.passingSkill],
+            ["ScorerSkill", result.scorerSkill],
             ["SetPiecesSkill", result.setPiecesSkill],
           ].map(([skillKey, value]) => {
             const definition = TRANSFER_SEARCH_SKILLS.find((entry) => entry.key === skillKey);
@@ -14898,6 +14942,7 @@ const refreshDetailsForPlayers = async (
         open={transferSearchModalOpen}
         messages={messages}
         selectedPlayerName={transferSearchSelectedPlayerName}
+        selectedPlayerDetailPills={transferSearchSelectedPlayerDetailPills}
         filters={transferSearchFilters}
         loading={transferSearchLoading}
         onUpdateSkillFilter={updateTransferSearchSkillFilter}

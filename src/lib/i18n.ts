@@ -986,6 +986,8 @@ export type Messages = {
   seniorLeagueGoalsLabel: string;
   seniorCupGoalsLabel: string;
   seniorFriendliesGoalsLabel: string;
+  seniorCapsLabel: string;
+  seniorCapsU20Label: string;
   seniorGoalsCurrentTeamLabel: string;
   seniorAssistsCurrentTeamLabel: string;
   seniorCareerAssistsLabel: string;

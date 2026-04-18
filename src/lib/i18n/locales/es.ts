@@ -1234,6 +1234,8 @@ export const messagesEs: Messages = {
     seniorLeagueGoalsLabel: "Goles de liga (esta temporada)",
     seniorCupGoalsLabel: "Goles de copa (esta temporada)",
     seniorFriendliesGoalsLabel: "Goles en amistosos (temporada)",
+    seniorCapsLabel: "Internacionalidades absolutas",
+    seniorCapsU20Label: "Internacionalidades sub-20",
     seniorGoalsCurrentTeamLabel: "Goles con el equipo actual",
     seniorAssistsCurrentTeamLabel: "Asistencias con el equipo actual",
     seniorCareerAssistsLabel: "Asistencias en la carrera",

@@ -86,6 +86,7 @@ type YouthPlayerListProps = {
   assignedIds?: Set<number>;
   selectedId?: number | null;
   starPlayerId?: number | null;
+  highlightStarSelection?: boolean;
   dataHelpAnchor?: string;
   onToggleStar?: (playerId: number) => void;
   onSelect?: (playerId: number) => void;
@@ -318,6 +319,7 @@ export default function YouthPlayerList({
   assignedIds,
   selectedId,
   starPlayerId,
+  highlightStarSelection = false,
   dataHelpAnchor,
   onToggleStar,
   onSelect,
@@ -803,7 +805,9 @@ export default function YouthPlayerList({
           >
             <button
               type="button"
-              className={styles.autoSelectButton}
+              className={`${styles.autoSelectButton} ${
+                highlightStarSelection ? styles.starSelectionFlash : ""
+              }`}
               onClick={onAutoSelect}
               aria-label={messages.autoSelectTitle}
               data-help-anchor="auto-select"
@@ -965,6 +969,8 @@ export default function YouthPlayerList({
                       type="button"
                       className={`${styles.starButton} ${
                         isStar ? styles.starButtonActive : ""
+                      } ${
+                        highlightStarSelection ? styles.starSelectionFlash : ""
                       }`}
                       data-help-anchor={index === 0 ? "star-first" : undefined}
                       onClick={() => {

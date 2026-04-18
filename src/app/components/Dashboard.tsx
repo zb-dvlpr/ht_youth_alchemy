@@ -1033,6 +1033,8 @@ export default function Dashboard({
   } | null>(null);
   const optimizerModalRef = useRef<HTMLDivElement | null>(null);
   const [autoSelectionApplied, setAutoSelectionApplied] = useState(false);
+  const [highlightMissingStarControls, setHighlightMissingStarControls] =
+    useState(false);
   const [showTrainingReminder, setShowTrainingReminder] = useState(false);
   const [optimizeErrorMessage, setOptimizeErrorMessage] = useState<string | null>(
     null
@@ -1698,12 +1700,12 @@ export default function Dashboard({
       skillType: number;
     }> = [
       { skillKey: "KeeperSkill", maxKey: "KeeperSkillMax", skillType: 1 },
-      { skillKey: "SetPiecesSkill", maxKey: "SetPiecesSkillMax", skillType: 3 },
       { skillKey: "DefenderSkill", maxKey: "DefenderSkillMax", skillType: 4 },
-      { skillKey: "ScorerSkill", maxKey: "ScorerSkillMax", skillType: 5 },
+      { skillKey: "PlaymakerSkill", maxKey: "PlaymakerSkillMax", skillType: 8 },
       { skillKey: "WingerSkill", maxKey: "WingerSkillMax", skillType: 6 },
       { skillKey: "PassingSkill", maxKey: "PassingSkillMax", skillType: 7 },
-      { skillKey: "PlaymakerSkill", maxKey: "PlaymakerSkillMax", skillType: 8 },
+      { skillKey: "ScorerSkill", maxKey: "ScorerSkillMax", skillType: 5 },
+      { skillKey: "SetPiecesSkill", maxKey: "SetPiecesSkillMax", skillType: 3 },
     ];
     return skillDefinitions
       .map((definition) => {
@@ -1724,7 +1726,12 @@ export default function Dashboard({
       )
       .sort((left, right) => right.max - left.max || left.skillType - right.skillType)
       .slice(0, 4)
-      .map(({ skillKey, min, max }) => ({ skillKey, min, max }));
+      .map(({ skillKey, min, max }) => ({ skillKey, min, max }))
+      .sort(
+        (left, right) =>
+          TRANSFER_SEARCH_SKILLS.findIndex((entry) => entry.key === left.skillKey) -
+          TRANSFER_SEARCH_SKILLS.findIndex((entry) => entry.key === right.skillKey)
+      );
   };
 
   const buildYouthEstimateValueFilters = (
@@ -1781,6 +1788,25 @@ export default function Dashboard({
     selectedPlayer
       ? youthPromotionAgeTotalDays(selectedPlayer, selectedYouthEstimateValueDetails) !== null
       : false;
+  const selectedTransferSearchPlayerDetailPills = useMemo(() => {
+    const sourcePlayer = transferSearchSourcePlayer ?? selectedPlayer;
+    if (!sourcePlayer) return [];
+    const sourceDetails = playerDetailsById.get(sourcePlayer.YouthPlayerID) ?? null;
+    const promotionAgeTotalDays = youthPromotionAgeTotalDays(
+      sourcePlayer,
+      sourceDetails
+    );
+    if (promotionAgeTotalDays === null) return [];
+    const promotionAge = totalDaysToAge(promotionAgeTotalDays);
+    return [
+      `${messages.ageAtPromotionLabel}: ${promotionAge.years}${messages.ageYearsShort} ${promotionAge.days}${messages.ageDaysShort}`,
+    ];
+  }, [
+    messages,
+    playerDetailsById,
+    selectedPlayer,
+    transferSearchSourcePlayer,
+  ]);
   const youthEstimateValueDisabled =
     !selectedPlayer ||
     selectedYouthEstimateValueSkillCount === 0 ||
@@ -3983,10 +4009,10 @@ export default function Dashboard({
             {[
               ["KeeperSkill", result.keeperSkill],
               ["DefenderSkill", result.defenderSkill],
-              ["WingerSkill", result.wingerSkill],
               ["PlaymakerSkill", result.playmakerSkill],
-              ["ScorerSkill", result.scorerSkill],
+              ["WingerSkill", result.wingerSkill],
               ["PassingSkill", result.passingSkill],
+              ["ScorerSkill", result.scorerSkill],
               ["SetPiecesSkill", result.setPiecesSkill],
             ].map(([skillKey, value]) => {
               const definition = TRANSFER_SEARCH_SKILLS.find((entry) => entry.key === skillKey);
@@ -5869,6 +5895,9 @@ export default function Dashboard({
     : !primaryTraining || !secondaryTraining
     ? messages.optimizeLineupNeedsTraining
     : messages.optimizeLineupTitle;
+  const optimizeDisabledForMissingStar = !starPlayerId;
+  const highlightMissingStarSelection =
+    highlightMissingStarControls && optimizeDisabledForMissingStar;
 
   const optimizerCategoryLabel = (category: OptimizerDebug["primary"]["list"][number]["category"]) => {
     switch (category) {
@@ -6977,6 +7006,8 @@ export default function Dashboard({
         open={transferSearchModalOpen}
         messages={messages}
         selectedPlayerName={selectedTransferSearchPlayerName}
+        selectedPlayerDetailPills={selectedTransferSearchPlayerDetailPills}
+        selectedPlayerDetailPillsInline
         filters={transferSearchFilters}
         skillSlotCount={4}
         loading={transferSearchLoading}
@@ -7440,6 +7471,7 @@ export default function Dashboard({
           assignedIds={assignedIds}
           selectedId={selectedId}
           starPlayerId={starPlayerId}
+          highlightStarSelection={highlightMissingStarSelection}
           onSortStart={() => {
             setOrderSource("list");
             setOrderedPlayerIds(null);
@@ -7659,6 +7691,11 @@ export default function Dashboard({
           optimizeSecondaryTrainingName={optimizeSecondaryTrainingName}
           optimizeModeDisabledReasons={optimizeModeDisabledReasons}
           optimizeCustomMenuContent={optimizeCustomMenuContent}
+          onOptimizeDisabledHoverChange={(hovering) => {
+            setHighlightMissingStarControls(
+              hovering && optimizeDisabledForMissingStar
+            );
+          }}
           trainedSlots={trainingSlots}
           hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
           hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}

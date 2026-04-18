@@ -240,6 +240,8 @@ export const messagesPl: Messages = {
   seniorLeagueGoalsLabel: "Bramki ligowe (w tym sezonie)",
   seniorCupGoalsLabel: "Bramki pucharowe (w tym sezonie)",
   seniorFriendliesGoalsLabel: "Bramki w sparingach (sezon)",
+  seniorCapsLabel: "Występy w reprezentacji",
+  seniorCapsU20Label: "Występy w U-20",
   seniorGoalsCurrentTeamLabel: "Bramki dla obecnej drużyny",
   seniorAssistsCurrentTeamLabel: "Asysty dla obecnej drużyny",
   seniorCareerAssistsLabel: "Asysty w karierze",

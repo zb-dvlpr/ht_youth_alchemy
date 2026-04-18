@@ -110,6 +110,17 @@ const ALL_SLOTS = [
   "F_R",
 ] as const;
 
+const MAX_LINEUP_PLAYERS = 11;
+const AUTO_STAR_MAX_AGE_DAYS = 17 * 112;
+
+function assignedLineupCount(lineup: LineupAssignments) {
+  return Object.values(lineup).filter((playerId) => playerId !== null).length;
+}
+
+function hasLineupCapacity(lineup: LineupAssignments) {
+  return assignedLineupCount(lineup) < MAX_LINEUP_PLAYERS;
+}
+
 const IM_SLOTS = new Set<(typeof ALL_SLOTS)[number]>([
   "IM_L",
   "IM_C",
@@ -613,6 +624,11 @@ function chooseStarAndTraining(
   ];
 
   players.forEach((player) => {
+    const playerAgeDays = totalAgeDays(player);
+    if (playerAgeDays === null || playerAgeDays >= AUTO_STAR_MAX_AGE_DAYS) {
+      return;
+    }
+
     skillKeys.forEach((skill) => {
       const { current, max } = skillValues(player, skill);
       if (current === null) return;
@@ -641,7 +657,7 @@ function chooseStarAndTraining(
           score,
           nextSkillScore,
           hasSpecialty,
-          ageDays: totalAgeDays(player),
+          ageDays: playerAgeDays,
           promoAgeDays: promotionAgeDays(player),
           canBePromotedIn: player.canBePromotedIn ?? null,
         };
@@ -655,7 +671,7 @@ function chooseStarAndTraining(
             score,
             nextSkillScore,
             hasSpecialty,
-            ageDays: totalAgeDays(player),
+            ageDays: playerAgeDays,
             promoAgeDays: promotionAgeDays(player),
             canBePromotedIn: player.canBePromotedIn ?? null,
           };
@@ -672,7 +688,7 @@ function chooseStarAndTraining(
             score,
             nextSkillScore,
             hasSpecialty,
-            ageDays: totalAgeDays(player),
+            ageDays: playerAgeDays,
             promoAgeDays: promotionAgeDays(player),
             canBePromotedIn: player.canBePromotedIn ?? null,
           };
@@ -693,7 +709,7 @@ function chooseStarAndTraining(
             score,
             nextSkillScore,
             hasSpecialty,
-            ageDays: totalAgeDays(player),
+            ageDays: playerAgeDays,
             promoAgeDays: currentPromoAgeDays,
             canBePromotedIn: player.canBePromotedIn ?? null,
           };
@@ -714,7 +730,7 @@ function chooseStarAndTraining(
                 score,
                 nextSkillScore,
                 hasSpecialty,
-                ageDays: totalAgeDays(player),
+                ageDays: playerAgeDays,
                 promoAgeDays: currentPromoAgeDays,
                 canBePromotedIn: currentPromoIn,
               };
@@ -1321,7 +1337,7 @@ export function optimizeLineupForStar(
 
   primarySlotGroups.forEach((slots) => {
     const remainingPrimarySlots = [...slots];
-    while (remainingPrimarySlots.length) {
+    while (remainingPrimarySlots.length && hasLineupCapacity(lineup)) {
       while (
         primaryIndex < primaryRanking.ordered.length &&
         usedPlayers.has(primaryRanking.ordered[primaryIndex].playerId)
@@ -1338,11 +1354,21 @@ export function optimizeLineupForStar(
     }
   });
 
+  if (!lineup.KP && hasLineupCapacity(lineup)) {
+    const nextKeeper =
+      primaryRanking.ordered.find((entry) => !usedPlayers.has(entry.playerId)) ??
+      secondaryRanking?.ordered.find((entry) => !usedPlayers.has(entry.playerId));
+    if (nextKeeper) {
+      lineup.KP = nextKeeper.playerId;
+      usedPlayers.add(nextKeeper.playerId);
+    }
+  }
+
   if (secondarySkill) {
     const secondaryOrder = [...secondarySlots].filter((slot) => !(slot in lineup));
     let secondaryIndex = 0;
     const remainingSecondarySlots = [...secondaryOrder];
-    while (remainingSecondarySlots.length) {
+    while (remainingSecondarySlots.length && hasLineupCapacity(lineup)) {
       while (
         secondaryIndex < (secondaryRanking?.ordered.length ?? 0) &&
         usedPlayers.has(secondaryRanking?.ordered[secondaryIndex].playerId ?? 0)
@@ -1356,16 +1382,6 @@ export function optimizeLineupForStar(
       lineup[slot] = entry.playerId;
       usedPlayers.add(entry.playerId);
       secondaryIndex += 1;
-    }
-  }
-
-  if (!lineup.KP) {
-    const nextKeeper =
-      primaryRanking.ordered.find((entry) => !usedPlayers.has(entry.playerId)) ??
-      secondaryRanking?.ordered.find((entry) => !usedPlayers.has(entry.playerId));
-    if (nextKeeper) {
-      lineup.KP = nextKeeper.playerId;
-      usedPlayers.add(nextKeeper.playerId);
     }
   }
 
@@ -1388,12 +1404,12 @@ export function optimizeLineupForStar(
   );
   const fillPlayers = [...carePlayers, ...cappedPlayers, ...nonCappedPlayers];
 
-  const totalSlotsNeeded = 11;
+  const totalSlotsNeeded = MAX_LINEUP_PLAYERS;
   const remainingSlots = ALL_SLOTS.filter((slot) => !(slot in lineup));
   const orderedRemainingSlots = buildRemainingSlotOrder(remainingSlots);
   const slotsToFill = shuffleSlots(orderedRemainingSlots).slice(
     0,
-    Math.max(0, totalSlotsNeeded - Object.keys(lineup).length)
+    Math.max(0, totalSlotsNeeded - assignedLineupCount(lineup))
   );
 
   slotsToFill.forEach((slot, index) => {

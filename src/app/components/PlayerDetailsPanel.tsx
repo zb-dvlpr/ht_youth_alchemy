@@ -62,6 +62,8 @@ export type YouthPlayerDetails = {
   LeagueGoals?: number;
   CupGoals?: number;
   FriendliesGoals?: number;
+  Caps?: number;
+  CapsU20?: number;
   GoalsCurrentTeam?: number;
   AssistsCurrentTeam?: number;
   CareerAssists?: number;
@@ -952,6 +954,9 @@ export default function PlayerDetailsPanel({
           { label: messages.seniorCareerHattricksLabel, value: detailsData.CareerHattricks },
           { label: messages.seniorLeagueGoalsLabel, value: detailsData.LeagueGoals },
           { label: messages.seniorCupGoalsLabel, value: detailsData.CupGoals },
+          { label: messages.seniorFriendliesGoalsLabel, value: detailsData.FriendliesGoals },
+          { label: messages.seniorCapsLabel, value: detailsData.Caps },
+          { label: messages.seniorCapsU20Label, value: detailsData.CapsU20 },
           {
             label: messages.seniorGoalsCurrentTeamLabel,
             value: detailsData.GoalsCurrentTeam,

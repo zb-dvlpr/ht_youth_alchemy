@@ -1788,6 +1788,25 @@ export default function Dashboard({
     selectedPlayer
       ? youthPromotionAgeTotalDays(selectedPlayer, selectedYouthEstimateValueDetails) !== null
       : false;
+  const selectedTransferSearchPlayerDetailPills = useMemo(() => {
+    const sourcePlayer = transferSearchSourcePlayer ?? selectedPlayer;
+    if (!sourcePlayer) return [];
+    const sourceDetails = playerDetailsById.get(sourcePlayer.YouthPlayerID) ?? null;
+    const promotionAgeTotalDays = youthPromotionAgeTotalDays(
+      sourcePlayer,
+      sourceDetails
+    );
+    if (promotionAgeTotalDays === null) return [];
+    const promotionAge = totalDaysToAge(promotionAgeTotalDays);
+    return [
+      `${messages.ageAtPromotionLabel}: ${promotionAge.years}${messages.ageYearsShort} ${promotionAge.days}${messages.ageDaysShort}`,
+    ];
+  }, [
+    messages,
+    playerDetailsById,
+    selectedPlayer,
+    transferSearchSourcePlayer,
+  ]);
   const youthEstimateValueDisabled =
     !selectedPlayer ||
     selectedYouthEstimateValueSkillCount === 0 ||
@@ -6987,6 +7006,8 @@ export default function Dashboard({
         open={transferSearchModalOpen}
         messages={messages}
         selectedPlayerName={selectedTransferSearchPlayerName}
+        selectedPlayerDetailPills={selectedTransferSearchPlayerDetailPills}
+        selectedPlayerDetailPillsInline
         filters={transferSearchFilters}
         skillSlotCount={4}
         loading={transferSearchLoading}

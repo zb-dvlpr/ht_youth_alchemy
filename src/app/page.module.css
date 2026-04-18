@@ -6687,6 +6687,19 @@ html[data-theme="dark"] .spinner {
   margin-top: 8px;
 }
 
+.transferSearchSourceInline {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.transferSearchSourceInline .seniorPersonaLine,
+.transferSearchSourceInline .transferSearchSourcePills {
+  margin-top: 0;
+}
+
 .transferSearchSourcePill {
   display: inline-flex;
   align-items: center;

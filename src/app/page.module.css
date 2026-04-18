@@ -5436,6 +5436,12 @@ html[data-theme="dark"] .seniorPersonaLine {
   color: #c7b9a5;
 }
 
+html[data-theme="dark"] .transferSearchSourcePill {
+  border-color: #6f604f;
+  background: #342d24;
+  color: #f1e4d1;
+}
+
 html[data-theme="dark"] .seniorMotherClubHeart,
 html[data-theme="dark"] .seniorMotherClubHeartLarge {
   color: #ff756b;
@@ -6659,6 +6665,27 @@ html[data-theme="dark"] .spinner {
   color: #7a6e60;
   font-style: italic;
   letter-spacing: 0.01em;
+}
+
+.transferSearchSourcePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.transferSearchSourcePill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #bfae98;
+  border-radius: 8px;
+  background: #efe3d3;
+  color: #4b3f32;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.2;
+  padding: 3px 8px;
+  white-space: nowrap;
 }
 
 .seniorMotherClubHeart {

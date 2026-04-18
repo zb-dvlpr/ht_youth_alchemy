@@ -109,6 +109,7 @@ type TransferSearchModalProps = {
   open: boolean;
   messages: Messages;
   selectedPlayerName: string | null;
+  selectedPlayerDetailsLine?: string | null;
   filters: TransferSearchFilters | null;
   skillSlotCount?: number;
   loading: boolean;
@@ -680,6 +681,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
   open,
   messages,
   selectedPlayerName,
+  selectedPlayerDetailsLine,
   filters,
   skillSlotCount,
   loading,
@@ -835,12 +837,19 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   {messages.seniorTransferSearchCriteriaTitle}
                 </h3>
                 {selectedPlayerName ? (
-                  <p className={styles.seniorPersonaLine}>
-                    {messages.seniorTransferSearchSourcePlayerLabel.replace(
-                      "{{player}}",
-                      selectedPlayerName
-                    )}
-                  </p>
+                  <>
+                    <p className={styles.seniorPersonaLine}>
+                      {messages.seniorTransferSearchSourcePlayerLabel.replace(
+                        "{{player}}",
+                        selectedPlayerName
+                      )}
+                    </p>
+                    {selectedPlayerDetailsLine ? (
+                      <p className={styles.seniorPersonaLine}>
+                        {selectedPlayerDetailsLine}
+                      </p>
+                    ) : null}
+                  </>
                 ) : null}
               </div>
               {filters ? (

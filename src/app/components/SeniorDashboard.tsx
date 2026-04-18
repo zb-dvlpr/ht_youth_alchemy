@@ -13432,6 +13432,37 @@ const refreshDetailsForPlayers = async (
   const transferSearchSelectedPlayerName = transferSearchSourcePlayer
     ? formatPlayerName(transferSearchSourcePlayer)
     : null;
+  const transferSearchSelectedPlayerDetailsLine = useMemo(() => {
+    if (!transferSearchSourcePlayer) return null;
+    const ageYears =
+      typeof transferSearchSourceDetails?.Age === "number"
+        ? transferSearchSourceDetails.Age
+        : typeof transferSearchSourcePlayer.Age === "number"
+          ? transferSearchSourcePlayer.Age
+          : null;
+    const ageDays =
+      typeof transferSearchSourceDetails?.AgeDays === "number"
+        ? transferSearchSourceDetails.AgeDays
+        : typeof transferSearchSourcePlayer.AgeDays === "number"
+          ? transferSearchSourcePlayer.AgeDays
+          : null;
+    const tsi =
+      typeof transferSearchSourceDetails?.TSI === "number"
+        ? transferSearchSourceDetails.TSI
+        : typeof transferSearchSourcePlayer.TSI === "number"
+          ? transferSearchSourcePlayer.TSI
+          : null;
+    const details: string[] = [];
+    if (ageYears !== null && ageDays !== null) {
+      details.push(
+        `${ageYears}${messages.ageYearsShort} ${ageDays}${messages.ageDaysShort}`
+      );
+    }
+    if (tsi !== null) {
+      details.push(`${messages.sortTsi}: ${tsi.toLocaleString()}`);
+    }
+    return details.length > 0 ? details.join(" | ") : null;
+  }, [messages, transferSearchSourceDetails, transferSearchSourcePlayer]);
   useEffect(() => {
     setTransferSearchBidDrafts((prev) => {
       const next = { ...prev };
@@ -14898,6 +14929,7 @@ const refreshDetailsForPlayers = async (
         open={transferSearchModalOpen}
         messages={messages}
         selectedPlayerName={transferSearchSelectedPlayerName}
+        selectedPlayerDetailsLine={transferSearchSelectedPlayerDetailsLine}
         filters={transferSearchFilters}
         loading={transferSearchLoading}
         onUpdateSkillFilter={updateTransferSearchSkillFilter}

@@ -1033,6 +1033,8 @@ export default function Dashboard({
   } | null>(null);
   const optimizerModalRef = useRef<HTMLDivElement | null>(null);
   const [autoSelectionApplied, setAutoSelectionApplied] = useState(false);
+  const [highlightMissingStarControls, setHighlightMissingStarControls] =
+    useState(false);
   const [showTrainingReminder, setShowTrainingReminder] = useState(false);
   const [optimizeErrorMessage, setOptimizeErrorMessage] = useState<string | null>(
     null
@@ -5869,6 +5871,9 @@ export default function Dashboard({
     : !primaryTraining || !secondaryTraining
     ? messages.optimizeLineupNeedsTraining
     : messages.optimizeLineupTitle;
+  const optimizeDisabledForMissingStar = !starPlayerId;
+  const highlightMissingStarSelection =
+    highlightMissingStarControls && optimizeDisabledForMissingStar;
 
   const optimizerCategoryLabel = (category: OptimizerDebug["primary"]["list"][number]["category"]) => {
     switch (category) {
@@ -7440,6 +7445,7 @@ export default function Dashboard({
           assignedIds={assignedIds}
           selectedId={selectedId}
           starPlayerId={starPlayerId}
+          highlightStarSelection={highlightMissingStarSelection}
           onSortStart={() => {
             setOrderSource("list");
             setOrderedPlayerIds(null);
@@ -7659,6 +7665,11 @@ export default function Dashboard({
           optimizeSecondaryTrainingName={optimizeSecondaryTrainingName}
           optimizeModeDisabledReasons={optimizeModeDisabledReasons}
           optimizeCustomMenuContent={optimizeCustomMenuContent}
+          onOptimizeDisabledHoverChange={(hovering) => {
+            setHighlightMissingStarControls(
+              hovering && optimizeDisabledForMissingStar
+            );
+          }}
           trainedSlots={trainingSlots}
           hiddenSpecialtyByPlayerId={hiddenSpecialtyByPlayerId}
           hiddenSpecialtyMatchHrefByPlayerId={hiddenSpecialtyMatchHrefByPlayerId}

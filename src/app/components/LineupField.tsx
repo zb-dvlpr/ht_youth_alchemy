@@ -91,6 +91,7 @@ type LineupFieldProps = {
     revealPrimaryCurrentAndSecondaryMax?: string;
   };
   optimizeCustomMenuContent?: ReactNode;
+  onOptimizeDisabledHoverChange?: (hovering: boolean) => void;
   trainedSlots?: {
     primary: Set<string>;
     secondary: Set<string>;
@@ -417,6 +418,7 @@ export default function LineupField({
   optimizeSecondaryTrainingName,
   optimizeModeDisabledReasons,
   optimizeCustomMenuContent,
+  onOptimizeDisabledHoverChange,
   trainedSlots,
   hiddenSpecialtyByPlayerId = {},
   hiddenSpecialtyMatchHrefByPlayerId = {},
@@ -879,7 +881,15 @@ export default function LineupField({
             ? renderTacticControl()
             : null}
           {onOptimizeSelect ? (
-            <div className={styles.feedbackWrap}>
+            <div
+              className={styles.feedbackWrap}
+              onMouseEnter={() => {
+                if (optimizeDisabled) onOptimizeDisabledHoverChange?.(true);
+              }}
+              onMouseLeave={() => {
+                if (optimizeDisabled) onOptimizeDisabledHoverChange?.(false);
+              }}
+            >
               <Tooltip
                 content={
                   optimizeDisabled

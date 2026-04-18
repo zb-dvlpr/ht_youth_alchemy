@@ -3287,6 +3287,19 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   isolation: isolate;
 }
 
+@media (min-width: 761px) {
+  .clubChronicleStack .chroniclePanel {
+    grid-template-rows: auto auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .clubChronicleStack .chroniclePanelBody {
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+}
+
 .chronicleTable {
   display: grid;
   gap: 2px;

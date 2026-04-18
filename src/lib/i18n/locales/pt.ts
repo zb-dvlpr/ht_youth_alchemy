@@ -1233,6 +1233,8 @@ export const messagesPt: Messages = {
     seniorLeagueGoalsLabel: "Gols da liga (nesta temporada)",
     seniorCupGoalsLabel: "Gols da copa (nesta temporada)",
     seniorFriendliesGoalsLabel: "Gols em amistosos (temporada)",
+    seniorCapsLabel: "Jogos pela seleção",
+    seniorCapsU20Label: "Jogos pela seleção sub-20",
     seniorGoalsCurrentTeamLabel: "Gols pelo time atual",
     seniorAssistsCurrentTeamLabel: "Assistências pelo time atual",
     seniorCareerAssistsLabel: "Assistências na carreira",

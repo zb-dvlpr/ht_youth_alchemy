@@ -247,6 +247,8 @@ export const messagesNl: Messages = {
   seniorLeagueGoalsLabel: "Doelpunten in de competitie (dit seizoen)",
   seniorCupGoalsLabel: "Doelpunten in de beker (dit seizoen)",
   seniorFriendliesGoalsLabel: "Doelpunten in vriendschappelijke wedstrijden (seizoen)",
+  seniorCapsLabel: "Interlands",
+  seniorCapsU20Label: "U20-interlands",
   seniorGoalsCurrentTeamLabel: "Doelpunten voor huidige team",
   seniorAssistsCurrentTeamLabel: "Assists voor huidige team",
   seniorCareerAssistsLabel: "Carrière-assists",

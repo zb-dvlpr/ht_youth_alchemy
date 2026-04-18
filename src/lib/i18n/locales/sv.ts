@@ -1225,6 +1225,8 @@ export const messagesSv: Messages = {
     seniorLeagueGoalsLabel: "Ligamål (den här säsongen)",
     seniorCupGoalsLabel: "Cupmål (den här säsongen)",
     seniorFriendliesGoalsLabel: "Mål i vänskapsmatcher (säsong)",
+    seniorCapsLabel: "A-landskamper",
+    seniorCapsU20Label: "U20-landskamper",
     seniorGoalsCurrentTeamLabel: "Mål för nuvarande lag",
     seniorAssistsCurrentTeamLabel: "Assister för nuvarande lag",
     seniorCareerAssistsLabel: "Karriärassister",

@@ -120,6 +120,8 @@ type SeniorPlayerDetails = {
   LeagueGoals?: number;
   CupGoals?: number;
   FriendliesGoals?: number;
+  Caps?: number;
+  CapsU20?: number;
   GoalsCurrentTeam?: number;
   AssistsCurrentTeam?: number;
   CareerAssists?: number;
@@ -1665,6 +1667,8 @@ const normalizeSeniorPlayerDetails = (
     LeagueGoals: parseNumber(node.LeagueGoals) ?? undefined,
     CupGoals: parseNumber(node.CupGoals) ?? undefined,
     FriendliesGoals: parseNumber(node.FriendliesGoals) ?? undefined,
+    Caps: parseNumber(node.Caps) ?? undefined,
+    CapsU20: parseNumber(node.CapsU20) ?? undefined,
     GoalsCurrentTeam: parseNumber(node.GoalsCurrentTeam) ?? undefined,
     AssistsCurrentTeam: parseNumber(node.AssistsCurrentTeam) ?? undefined,
     CareerAssists: parseNumber(node.CareerAssists) ?? undefined,
@@ -3349,6 +3353,8 @@ export default function SeniorDashboard({
         LeagueGoals?: number;
         CupGoals?: number;
         FriendliesGoals?: number;
+        Caps?: number;
+        CapsU20?: number;
         GoalsCurrentTeam?: number;
         AssistsCurrentTeam?: number;
         CareerAssists?: number;
@@ -3396,6 +3402,8 @@ export default function SeniorDashboard({
         LeagueGoals: detail.LeagueGoals,
         CupGoals: detail.CupGoals,
         FriendliesGoals: detail.FriendliesGoals,
+        Caps: detail.Caps,
+        CapsU20: detail.CapsU20,
         GoalsCurrentTeam: detail.GoalsCurrentTeam,
         AssistsCurrentTeam: detail.AssistsCurrentTeam,
         CareerAssists: detail.CareerAssists,

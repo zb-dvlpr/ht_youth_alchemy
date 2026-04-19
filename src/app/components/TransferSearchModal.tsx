@@ -150,6 +150,8 @@ type TransferSearchMarketSummary = {
   buckets: TransferSearchMarketBucket[];
 };
 
+type TransferSearchMobilePanel = "criteria" | "results" | "summary";
+
 export const ageToTotalDays = (years: number, days: number) =>
   Math.max(0, years) * HATTRICK_AGE_DAYS_PER_YEAR + Math.max(0, days);
 
@@ -699,6 +701,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
   renderResultCard,
   onClose,
 }: TransferSearchModalProps) {
+  const [mobilePanel, setMobilePanel] = useState<TransferSearchMobilePanel>("results");
   const marketSummary = useMemo(
     () => buildTransferSearchMarketSummary(results),
     [results]
@@ -712,8 +715,49 @@ const TransferSearchModal = memo(function TransferSearchModal({
   const marketSummaryRich =
     marketSummary &&
     marketSummary.count >= TRANSFER_SEARCH_MARKET_MIN_RICH_STATS_COUNT;
+  const renderMobilePanelNav = (currentPanel: TransferSearchMobilePanel) => {
+    const panelOptions: Array<{
+      panel: TransferSearchMobilePanel;
+      label: string;
+    }> = [
+      {
+        panel: "results",
+        label: messages.seniorTransferSearchResultsTitle,
+      },
+      {
+        panel: "criteria",
+        label: messages.seniorTransferSearchCriteriaTitle,
+      },
+      {
+        panel: "summary",
+        label: messages.transferSearchMarketSummaryTitle,
+      },
+    ];
+
+    return (
+      <div className={styles.transferSearchMobilePanelNav}>
+        {panelOptions
+          .filter((option) => option.panel !== currentPanel)
+          .map((option) => (
+            <button
+              key={option.panel}
+              type="button"
+              className={styles.transferSearchMobilePanelButton}
+              onClick={() => setMobilePanel(option.panel)}
+            >
+              {option.label}
+            </button>
+          ))}
+      </div>
+    );
+  };
   const marketSummaryCard = (
-    <div className={styles.transferSearchMarketSummary}>
+    <div
+      className={styles.transferSearchMarketSummary}
+      data-transfer-search-mobile-panel="summary"
+      data-transfer-search-mobile-active={mobilePanel === "summary" ? "true" : "false"}
+    >
+      {renderMobilePanelNav("summary")}
       <div className={styles.transferSearchMarketSummaryHeader}>
         <h4 className={styles.sectionHeading}>
           {messages.transferSearchMarketSummaryTitle}
@@ -833,7 +877,12 @@ const TransferSearchModal = memo(function TransferSearchModal({
       body={
         <div className={styles.transferSearchModalShell}>
           <div className={styles.transferSearchModalContent}>
-            <aside className={styles.transferSearchModalSidebar}>
+            <aside
+              className={styles.transferSearchModalSidebar}
+              data-transfer-search-mobile-panel="criteria"
+              data-transfer-search-mobile-active={mobilePanel === "criteria" ? "true" : "false"}
+            >
+              {renderMobilePanelNav("criteria")}
               <div className={styles.transferSearchSidebarHeader}>
                 <h3 className={styles.sectionHeading}>
                   {messages.seniorTransferSearchCriteriaTitle}
@@ -1081,7 +1130,12 @@ const TransferSearchModal = memo(function TransferSearchModal({
             </aside>
 
             <div className={styles.transferSearchResultsStack}>
-              <section className={styles.transferSearchModalResults}>
+              <section
+                className={styles.transferSearchModalResults}
+                data-transfer-search-mobile-panel="results"
+                data-transfer-search-mobile-active={mobilePanel === "results" ? "true" : "false"}
+              >
+                {renderMobilePanelNav("results")}
                 <div className={styles.transferSearchResultsHeader}>
                   <h3 className={styles.sectionHeading}>{messages.seniorTransferSearchResultsTitle}</h3>
                   {resultCountLabel ? (

@@ -55,6 +55,8 @@ Last updated: 2026-04-06
 
 ## Phase 5: Polish and Verification
 - [ ] Tune spacing, touch targets, and motion for mobile ergonomics.
+  - [x] Reworked transfer search modals so mobile shows only Results, Search criteria, or Market summary at a time.
+  - [x] Stacked transfer search bid and max-bid controls on mobile to prevent cramped action rows.
 - [ ] Audit persistence and state restoration on mobile navigation flows.
 - [ ] Clean up any remaining truly cross-cutting mobile component issues left after Youth, Senior, and Chronicle are complete.
 - [ ] Run a desktop regression pass across Youth, Senior, and Club Chronicle.

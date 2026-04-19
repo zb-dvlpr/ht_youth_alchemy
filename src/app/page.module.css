@@ -5505,7 +5505,8 @@ html[data-theme="dark"] .transferSearchSelect,
 html[data-theme="dark"] .transferSearchInput,
 html[data-theme="dark"] .transferSearchSpecialtyButton,
 html[data-theme="dark"] .transferSearchSkillNumberInput,
-html[data-theme="dark"] .transferSearchSkillStepperButton {
+html[data-theme="dark"] .transferSearchSkillStepperButton,
+html[data-theme="dark"] .transferSearchMobilePanelButton {
   background: #2a2521;
   border-color: rgba(255, 255, 255, 0.14);
   color: #f3ede4;
@@ -6905,6 +6906,27 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   min-width: 0;
 }
 
+.transferSearchMobilePanelNav {
+  display: none;
+}
+
+.transferSearchMobilePanelButton {
+  border: 1px solid #ccb9a0;
+  background: #fffdf9;
+  color: #2d261f;
+  border-radius: 8px;
+  min-height: 36px;
+  padding: 7px 10px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.transferSearchMobilePanelButton:hover {
+  border-color: #244d2b;
+  color: #244d2b;
+}
+
 .transferSearchModalSidebar,
 .transferSearchModalResults {
   border-radius: 16px;
@@ -7310,6 +7332,15 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 
 .transferSearchBidGrid > :nth-child(4) {
   grid-area: maxBidAction;
+}
+
+html[data-mobile-shell="true"] .transferSearchBidGrid {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "bidField"
+    "bidAction"
+    "maxBidField"
+    "maxBidAction";
 }
 
 .injuryStatusSymbol {
@@ -9805,6 +9836,37 @@ html[data-theme="dark"] .slotCardStatus {
   .transferSearchSimpleRange,
   .transferSearchBidGrid {
     grid-template-columns: 1fr;
+  }
+
+  .transferSearchModalContent {
+    display: block;
+    height: 100%;
+  }
+
+  .transferSearchResultsStack {
+    display: block;
+    height: 100%;
+  }
+
+  .transferSearchMobilePanelNav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .transferSearchModalSidebar,
+  .transferSearchModalResults,
+  .transferSearchMarketSummary {
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: auto;
+  }
+
+  .transferSearchModalContent
+    [data-transfer-search-mobile-panel][data-transfer-search-mobile-active="false"] {
+    display: none;
   }
 
   .transferSearchMarketBucketRow {

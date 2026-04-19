@@ -1270,6 +1270,8 @@ export const messagesEn: Messages = {
     playerIdLabel: "Player ID",
     cardStatusLabel: "Card status",
     playerLinkLabel: "View on Hattrick",
+    copyPlayerIdLabel: "Copy player ID",
+    notificationPlayerIdCopied: "Player ID copied",
     dragPlayerHint: "Drag to move",
     youthDragToLineupHint: "Drag to lineup",
     homeLabel: "Home",

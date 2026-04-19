@@ -1307,6 +1307,8 @@ export const messagesDe: Messages = {
     playerIdLabel: "Spieler-ID",
     cardStatusLabel: "Kartenstatus",
     playerLinkLabel: "Bei Hattrick ansehen",
+    copyPlayerIdLabel: "Spieler-ID kopieren",
+    notificationPlayerIdCopied: "Spieler-ID kopiert",
     dragPlayerHint: "Zum Verschieben ziehen",
     youthDragToLineupHint: "In die Aufstellung ziehen",
     homeLabel: "Heim",

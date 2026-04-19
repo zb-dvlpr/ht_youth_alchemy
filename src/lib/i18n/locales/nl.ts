@@ -660,6 +660,8 @@ export const messagesNl: Messages = {
   playerIdLabel: "Speler-ID",
   cardStatusLabel: "Kaartstatus",
   playerLinkLabel: "Bekijken op Hattrick",
+  copyPlayerIdLabel: "Speler-ID kopiëren",
+  notificationPlayerIdCopied: "Speler-ID gekopieerd",
   dragPlayerHint: "Sleep om te verplaatsen",
   youthDragToLineupHint: "Sleep naar de opstelling",
   homeLabel: "Thuis",

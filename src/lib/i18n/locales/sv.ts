@@ -1315,6 +1315,8 @@ export const messagesSv: Messages = {
     playerIdLabel: "Spelar-ID",
     cardStatusLabel: "Kortstatus",
     playerLinkLabel: "Visa på Hattrick",
+    copyPlayerIdLabel: "Kopiera spelar-ID",
+    notificationPlayerIdCopied: "Spelar-ID kopierat",
     dragPlayerHint: "Dra för att flytta",
     youthDragToLineupHint: "Dra till laguppställningen",
     homeLabel: "Hemma",

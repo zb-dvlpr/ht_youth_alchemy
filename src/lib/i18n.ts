@@ -1066,6 +1066,8 @@ export type Messages = {
   playerIdLabel: string;
   cardStatusLabel: string;
   playerLinkLabel: string;
+  copyPlayerIdLabel: string;
+  notificationPlayerIdCopied: string;
   dragPlayerHint: string;
   youthDragToLineupHint: string;
   homeLabel: string;

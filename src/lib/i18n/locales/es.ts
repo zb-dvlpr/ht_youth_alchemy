@@ -1325,6 +1325,8 @@ export const messagesEs: Messages = {
     playerIdLabel: "ID del jugador",
     cardStatusLabel: "Estado de tarjetas",
     playerLinkLabel: "Ver en Hattrick",
+    copyPlayerIdLabel: "Copiar ID del jugador",
+    notificationPlayerIdCopied: "ID del jugador copiado",
     dragPlayerHint: "Arrastra para mover",
     youthDragToLineupHint: "Arrastra a la alineación",
     homeLabel: "Local",

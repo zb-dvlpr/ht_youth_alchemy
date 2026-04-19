@@ -39,6 +39,7 @@ export type Messages = {
   toolClubChronicle: string;
   mobileToolsLabel: string;
   mobileHelpLabel: string;
+  mobilePlayerListLabel: string;
   clubChronicleTitle: string;
   clubChronicleBody: string;
   watchlistTitle: string;

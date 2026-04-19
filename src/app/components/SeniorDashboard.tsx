@@ -3045,12 +3045,12 @@ export default function SeniorDashboard({
   const handleMobileSeniorViewSelect = useCallback(
     (view: SeniorMobileView) => {
       if (view === "playerDetails") {
-        pushMobileSeniorState("playerDetails", "list");
+        pushMobileSeniorState("playerDetails", selectedPlayer ? "detail" : "list");
         return;
       }
       pushMobileSeniorState(view, "root");
     },
-    [pushMobileSeniorState]
+    [pushMobileSeniorState, selectedPlayer]
   );
   const effectiveExtraTimeBTeamEnabled =
     extraTimeBTeamEnabled &&
@@ -17076,12 +17076,16 @@ const refreshDetailsForPlayers = async (
             selectedTeamId={selectedSeniorTeamId}
             onHome={openMobileSeniorHome}
             onOpenHelp={() => pushMobileSeniorState("help", "root")}
+            onOpenPlayerList={() => pushMobileSeniorState("playerDetails", "list")}
             onTeamChange={handleSeniorTeamChange}
             onRefresh={() => {
               void refreshAllRef.current?.("manual");
             }}
             onOpenUpdates={() => setUpdatesOpen(true)}
             activeView={mobileSeniorView}
+            playerListActive={
+              mobileSeniorView === "playerDetails" && mobileSeniorPlayerScreen === "list"
+            }
             onSelectView={handleMobileSeniorViewSelect}
             position={mobileSeniorMenuPosition}
             onPositionChange={setMobileSeniorMenuPosition}

@@ -29,6 +29,7 @@ export const messagesPl: Messages = {
   toolClubChronicle: "Kronika klubu",
   mobileToolsLabel: "Narzędzia",
   mobileHelpLabel: "Pomoc",
+  mobilePlayerListLabel: "Lista zawodników",
   helpOptimizerLocationTitle: "Gdzie znaleźć optymalizator",
   helpOptimizerLocationYouth:
     "Otwórz Lineup optimizer z pływającego menu, a potem szukaj tego przycisku w nagłówku składu.",

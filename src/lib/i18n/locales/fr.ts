@@ -29,6 +29,7 @@ export const messagesFr: Messages = {
     toolClubChronicle: "Chronique du club",
     mobileToolsLabel: "Outils",
     mobileHelpLabel: "Aide",
+    mobilePlayerListLabel: "Liste des joueurs",
     clubChronicleTitle: "Chronique du club",
     clubChronicleBody:
       "La Chronique du club arrive bientôt. Cet espace suivra les activités des équipes seniors.",

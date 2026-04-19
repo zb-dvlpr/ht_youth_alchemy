@@ -19,10 +19,12 @@ type MobileToolMenuProps = {
   selectedTeamId: number | null;
   onHome: () => void;
   onOpenHelp: () => void;
+  onOpenPlayerList: () => void;
   onTeamChange: (teamId: number) => void;
   onRefresh: () => void;
   onOpenUpdates: () => void;
   activeView: MobileToolView;
+  playerListActive?: boolean;
   onSelectView: (view: MobileToolView) => void;
   position: { x: number; y: number };
   onPositionChange: (position: { x: number; y: number }) => void;
@@ -65,10 +67,12 @@ export default function MobileToolMenu({
   selectedTeamId,
   onHome,
   onOpenHelp,
+  onOpenPlayerList,
   onTeamChange,
   onRefresh,
   onOpenUpdates,
   activeView,
+  playerListActive = false,
   onSelectView,
   position,
   onPositionChange,
@@ -396,7 +400,21 @@ export default function MobileToolMenu({
           <button
             type="button"
             className={`${styles.mobileYouthMenuAction} ${
-              activeView === "playerDetails" ? styles.mobileYouthMenuActionActive : ""
+              playerListActive ? styles.mobileYouthMenuActionActive : ""
+            }`}
+            onClick={() => {
+              onOpenPlayerList();
+              setOpen(false);
+            }}
+          >
+            {messages.mobilePlayerListLabel}
+          </button>
+          <button
+            type="button"
+            className={`${styles.mobileYouthMenuAction} ${
+              activeView === "playerDetails" && !playerListActive
+                ? styles.mobileYouthMenuActionActive
+                : ""
             }`}
             onClick={() => handleViewSelect("playerDetails")}
           >

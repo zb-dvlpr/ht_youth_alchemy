@@ -29,6 +29,7 @@ export const messagesSv: Messages = {
     toolClubChronicle: "Klubbkrönika",
     mobileToolsLabel: "Verktyg",
     mobileHelpLabel: "Hjälp",
+    mobilePlayerListLabel: "Spelarlista",
     clubChronicleTitle: "Klubbkrönika",
     clubChronicleBody:
       "Klubbkrönikan kommer snart. Här följer du vad andra seniorlag gör.",

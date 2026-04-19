@@ -1844,12 +1844,12 @@ export default function Dashboard({
   const handleMobileYouthViewSelect = useCallback(
     (view: YouthMobileView) => {
       if (view === "playerDetails") {
-        pushMobileYouthState("playerDetails", "list");
+        pushMobileYouthState("playerDetails", selectedPlayer ? "detail" : "list");
         return;
       }
       pushMobileYouthState(view, "root");
     },
-    [pushMobileYouthState]
+    [pushMobileYouthState, selectedPlayer]
   );
 
   useEffect(() => {
@@ -7401,12 +7401,16 @@ export default function Dashboard({
             selectedTeamId={selectedYouthTeamId}
             onHome={openMobileYouthHome}
             onOpenHelp={() => pushMobileYouthState("help", "root")}
+            onOpenPlayerList={() => pushMobileYouthState("playerDetails", "list")}
             onTeamChange={handleTeamChange}
             onRefresh={() => {
               void refreshPlayers(undefined, { refreshAll: true, reason: "manual" });
             }}
             onOpenUpdates={() => setYouthUpdatesOpen(true)}
             activeView={mobileYouthView}
+            playerListActive={
+              mobileYouthView === "playerDetails" && mobileYouthPlayerScreen === "list"
+            }
             onSelectView={handleMobileYouthViewSelect}
             position={mobileYouthMenuPosition}
             onPositionChange={setMobileYouthMenuPosition}

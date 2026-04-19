@@ -136,7 +136,7 @@ html[data-mobile-shell="true"] .scaleContainer {
 
 .mobileLauncherUtilityRow {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -2066,6 +2066,10 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   overflow: hidden;
   color: #3f362c;
   line-height: 1.6;
+}
+
+.manualTocToggle {
+  display: none;
 }
 
 .manualToc {
@@ -5153,6 +5157,13 @@ html[data-theme="dark"] .manualToc button {
   color: #9ac486;
 }
 
+html[data-theme="dark"] .manualTocToggle {
+  background: #2a2521;
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #9ac486;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.24);
+}
+
 html[data-theme="dark"] .manualMarkdown hr {
   background: rgba(255, 255, 255, 0.08);
 }
@@ -6668,6 +6679,17 @@ html[data-theme="dark"] .spinner {
   overflow-wrap: anywhere;
 }
 
+.profileNameLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.profileNameLink:hover {
+  color: #2f7d4b;
+}
+
 .profileUpdated {
   font-size: 12px;
   color: #8a8074;
@@ -7373,10 +7395,17 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   font-size: 12px;
   text-decoration: none;
   line-height: 1;
+  font-family: inherit;
+  cursor: pointer;
 }
 
 .infoLinkIcon:hover {
   background: #efe5d6;
+}
+
+.copyPlayerIdButton {
+  width: auto;
+  padding: 0 8px;
 }
 
 .sectionDivider {
@@ -8398,23 +8427,79 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 
   .confirmCard.manualModal {
     width: min(96vw, 760px);
+    height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+  }
+
+  .manualModal .confirmBody {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
   }
 
   .manualBody {
-    grid-template-columns: 1fr;
-    gap: 18px;
-    height: auto;
-    max-height: none;
-    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    gap: 12px;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .manualTocToggle {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 42px;
+    padding: 10px 12px;
+    border: 1px solid #d8c9b4;
+    border-radius: 8px;
+    background: #fbf7ef;
+    color: #315f3a;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(64, 48, 30, 0.08);
   }
 
   .manualToc {
-    max-height: none;
+    display: none;
+    max-height: min(48dvh, 360px);
+  }
+
+  .manualTocOpen {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    box-sizing: border-box;
+    height: 100%;
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    padding-top: 58px;
+    background: #fbf7ef;
+    box-shadow: 0 10px 24px rgba(64, 48, 30, 0.18);
+  }
+
+  .manualTocOpen ol {
+    min-height: 0;
+    overflow: auto;
+    padding-bottom: 12px;
+    -webkit-overflow-scrolling: touch;
   }
 
   .manualMarkdown {
-    overflow: visible;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
     padding-right: 0;
+    -webkit-overflow-scrolling: touch;
   }
 
   .confirmActions {

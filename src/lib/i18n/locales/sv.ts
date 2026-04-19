@@ -29,6 +29,7 @@ export const messagesSv: Messages = {
     toolClubChronicle: "Klubbkrönika",
     mobileToolsLabel: "Verktyg",
     mobileHelpLabel: "Hjälp",
+    mobilePlayerListLabel: "Spelarlista",
     clubChronicleTitle: "Klubbkrönika",
     clubChronicleBody:
       "Klubbkrönikan kommer snart. Här följer du vad andra seniorlag gör.",
@@ -1315,6 +1316,8 @@ export const messagesSv: Messages = {
     playerIdLabel: "Spelar-ID",
     cardStatusLabel: "Kortstatus",
     playerLinkLabel: "Visa på Hattrick",
+    copyPlayerIdLabel: "Kopiera spelar-ID",
+    notificationPlayerIdCopied: "Spelar-ID kopierat",
     dragPlayerHint: "Dra för att flytta",
     youthDragToLineupHint: "Dra till laguppställningen",
     homeLabel: "Hemma",

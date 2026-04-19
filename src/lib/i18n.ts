@@ -39,6 +39,7 @@ export type Messages = {
   toolClubChronicle: string;
   mobileToolsLabel: string;
   mobileHelpLabel: string;
+  mobilePlayerListLabel: string;
   clubChronicleTitle: string;
   clubChronicleBody: string;
   watchlistTitle: string;
@@ -1066,6 +1067,8 @@ export type Messages = {
   playerIdLabel: string;
   cardStatusLabel: string;
   playerLinkLabel: string;
+  copyPlayerIdLabel: string;
+  notificationPlayerIdCopied: string;
   dragPlayerHint: string;
   youthDragToLineupHint: string;
   homeLabel: string;

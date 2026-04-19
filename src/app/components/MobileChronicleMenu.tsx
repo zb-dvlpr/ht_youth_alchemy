@@ -210,6 +210,11 @@ export default function MobileChronicleMenu({
     momentumFrameRef.current = window.requestAnimationFrame(step);
   };
 
+  const openManual = () => {
+    window.dispatchEvent(new CustomEvent("ya:manual-open"));
+    setOpen(false);
+  };
+
   const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
     stopMomentum();
     setPositionAnimating(true);
@@ -396,6 +401,14 @@ export default function MobileChronicleMenu({
               </button>
             ))}
           </div>
+          <div className={styles.mobileYouthMenuDivider} />
+          <button
+            type="button"
+            className={styles.mobileYouthMenuAction}
+            onClick={openManual}
+          >
+            {messages.helpMenuManual}
+          </button>
         </div>
       ) : null}
     </>

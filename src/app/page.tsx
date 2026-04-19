@@ -14,6 +14,7 @@ import SeasonBootstrap from "./components/SeasonBootstrap";
 import AppShell from "./components/AppShell";
 import SeniorDashboard from "./components/SeniorDashboard";
 import BuyCoffeeButton from "./components/BuyCoffeeButton";
+import MobileManualButton from "./components/MobileManualButton";
 import BrandClock from "./components/BrandClock";
 import Tooltip from "./components/Tooltip";
 import pkg from "../../package.json";
@@ -369,6 +370,7 @@ export default async function Home() {
             mobileLauncherUtility={
               <>
                 <SettingsButton messages={messages} variant="launcher" />
+                <MobileManualButton messages={messages} />
                 <BuyCoffeeButton
                   className={styles.mobileLauncherUtilityButton}
                   aria-label={messages.supportOnKofi}

@@ -29,6 +29,7 @@ export const messagesPl: Messages = {
   toolClubChronicle: "Kronika klubu",
   mobileToolsLabel: "Narzędzia",
   mobileHelpLabel: "Pomoc",
+  mobilePlayerListLabel: "Lista zawodników",
   helpOptimizerLocationTitle: "Gdzie znaleźć optymalizator",
   helpOptimizerLocationYouth:
     "Otwórz Lineup optimizer z pływającego menu, a potem szukaj tego przycisku w nagłówku składu.",
@@ -653,6 +654,8 @@ export const messagesPl: Messages = {
   playerIdLabel: "Identyfikator zawodnika",
   cardStatusLabel: "Status kartek",
   playerLinkLabel: "Zobacz w Hattrick",
+  copyPlayerIdLabel: "Kopiuj identyfikator zawodnika",
+  notificationPlayerIdCopied: "Identyfikator zawodnika skopiowany",
   dragPlayerHint: "Przeciągnij, aby przenieść",
   youthDragToLineupHint: "Przeciągnij do składu",
   homeLabel: "Gospodarz",

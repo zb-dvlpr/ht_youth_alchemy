@@ -29,6 +29,7 @@ export const messagesNl: Messages = {
   toolClubChronicle: "Clubkroniek",
   mobileToolsLabel: "Tools",
   mobileHelpLabel: "Help",
+  mobilePlayerListLabel: "Spelerslijst",
   helpOptimizerLocationTitle: "Waar je de optimizer vindt",
   helpOptimizerLocationYouth:
     "Open Lineup optimizer via het zwevende menu en zoek daarna naar deze knop in de opstellingskop.",
@@ -660,6 +661,8 @@ export const messagesNl: Messages = {
   playerIdLabel: "Speler-ID",
   cardStatusLabel: "Kaartstatus",
   playerLinkLabel: "Bekijken op Hattrick",
+  copyPlayerIdLabel: "Speler-ID kopiëren",
+  notificationPlayerIdCopied: "Speler-ID gekopieerd",
   dragPlayerHint: "Sleep om te verplaatsen",
   youthDragToLineupHint: "Sleep naar de opstelling",
   homeLabel: "Thuis",

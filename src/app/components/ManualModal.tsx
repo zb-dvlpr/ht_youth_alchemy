@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 
 import styles from "../page.module.css";
 import { MANUAL_MARKDOWN } from "./manualMarkdown";
@@ -133,11 +133,13 @@ export default function ManualModal({
   onClose,
 }: ManualModalProps) {
   const manualContentRef = useRef<HTMLDivElement | null>(null);
+  const [tocOpen, setTocOpen] = useState(false);
 
   const scrollToSection = (id: string) => {
     const container = manualContentRef.current;
     const target = document.getElementById(id);
     if (!container || !target) return;
+    setTocOpen(false);
     const containerRect = container.getBoundingClientRect();
     const targetRect = target.getBoundingClientRect();
     container.scrollTo({
@@ -154,7 +156,20 @@ export default function ManualModal({
       movable={false}
       body={
         <article className={styles.manualBody}>
-          <nav className={styles.manualToc} aria-label={tocTitle}>
+          <button
+            type="button"
+            className={styles.manualTocToggle}
+            onClick={() => setTocOpen((prev) => !prev)}
+            aria-expanded={tocOpen}
+          >
+            {tocTitle}
+          </button>
+          <nav
+            className={`${styles.manualToc} ${
+              tocOpen ? styles.manualTocOpen : ""
+            }`}
+            aria-label={tocTitle}
+          >
             <h2>{tocTitle}</h2>
             <ol>
               {manualToc.map((item) => (

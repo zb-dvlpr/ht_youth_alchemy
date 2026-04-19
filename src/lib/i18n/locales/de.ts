@@ -29,6 +29,7 @@ export const messagesDe: Messages = {
     toolClubChronicle: "Club-Chronik",
     mobileToolsLabel: "Werkzeuge",
     mobileHelpLabel: "Hilfe",
+    mobilePlayerListLabel: "Spielerliste",
     clubChronicleTitle: "Club-Chronik",
     clubChronicleBody:
       "Die Club-Chronik kommt bald. Hier siehst du, was andere Seniorenteams planen.",
@@ -1307,6 +1308,8 @@ export const messagesDe: Messages = {
     playerIdLabel: "Spieler-ID",
     cardStatusLabel: "Kartenstatus",
     playerLinkLabel: "Bei Hattrick ansehen",
+    copyPlayerIdLabel: "Spieler-ID kopieren",
+    notificationPlayerIdCopied: "Spieler-ID kopiert",
     dragPlayerHint: "Zum Verschieben ziehen",
     youthDragToLineupHint: "In die Aufstellung ziehen",
     homeLabel: "Heim",

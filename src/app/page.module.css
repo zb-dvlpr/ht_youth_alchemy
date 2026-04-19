@@ -7334,6 +7334,15 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   grid-area: maxBidAction;
 }
 
+html[data-mobile-shell="true"] .transferSearchBidGrid {
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    "bidField"
+    "bidAction"
+    "maxBidField"
+    "maxBidAction";
+}
+
 .injuryStatusSymbol {
   color: #b32320;
   font-size: 24px;

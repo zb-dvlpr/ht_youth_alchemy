@@ -310,6 +310,11 @@ export default function MobileToolMenu({
     setOpen(false);
   };
 
+  const openManual = () => {
+    window.dispatchEvent(new CustomEvent("ya:manual-open"));
+    setOpen(false);
+  };
+
   return (
     <>
       <button
@@ -448,6 +453,14 @@ export default function MobileToolMenu({
             onClick={() => handleViewSelect("lineupOptimizer")}
           >
             {messages.lineupTitle}
+          </button>
+          <div className={styles.mobileYouthMenuDivider} />
+          <button
+            type="button"
+            className={styles.mobileYouthMenuAction}
+            onClick={openManual}
+          >
+            {messages.helpMenuManual}
           </button>
         </div>
       ) : null}

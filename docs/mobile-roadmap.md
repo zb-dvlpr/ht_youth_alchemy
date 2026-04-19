@@ -59,6 +59,7 @@ Last updated: 2026-04-06
   - [x] Stacked transfer search bid and max-bid controls on mobile to prevent cramped action rows.
   - [x] Added direct Player list shortcuts to the Youth and Senior floating mobile dropdowns.
   - [x] Added mobile launcher Help access with an on-demand manual table of contents.
+  - [x] Added bottom Manual entries to all mobile floating dropdowns.
 - [ ] Audit persistence and state restoration on mobile navigation flows.
 - [ ] Clean up any remaining truly cross-cutting mobile component issues left after Youth, Senior, and Chronicle are complete.
 - [ ] Run a desktop regression pass across Youth, Senior, and Club Chronicle.

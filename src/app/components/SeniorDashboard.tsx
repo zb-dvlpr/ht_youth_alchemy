@@ -63,6 +63,7 @@ import UpcomingMatches, {
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import TransferSearchModal from "./TransferSearchModal";
+import SeniorFoxtrickMetrics from "./SeniorFoxtrickMetrics";
 import { setDragGhost } from "@/lib/drag";
 import { matchRoleIdToPositionKey, positionLabel } from "@/lib/positions";
 import {
@@ -83,6 +84,7 @@ type SeniorPlayer = {
   Specialty?: number;
   TSI?: number;
   Salary?: number;
+  IsAbroad?: boolean;
   Form?: number;
   StaminaSkill?: number;
   InjuryLevel?: number;
@@ -107,6 +109,10 @@ type SeniorPlayerDetails = {
   Cards?: number;
   TSI?: number;
   Salary?: number;
+  IsAbroad?: boolean;
+  OwningTeam?: {
+    LeagueID?: number;
+  };
   PersonalityStatement?: string;
   Agreeability?: number;
   Aggressiveness?: number;
@@ -441,6 +447,7 @@ type TransferSearchResult = {
   age: number | null;
   ageDays: number | null;
   salarySek: number | null;
+  isAbroad: boolean | null;
   tsi: number | null;
   form: number | null;
   experience: number | null;
@@ -1409,6 +1416,7 @@ const normalizeTransferSearchResults = (input: unknown): TransferSearchResult[] 
         age: parseNumber(details?.Age),
         ageDays: parseNumber(details?.AgeDays),
         salarySek: parseNumber(details?.Salary),
+        isAbroad: parseBoolean(details?.IsAbroad),
         tsi: parseNumber(details?.TSI),
         form: parseNumber(details?.PlayerForm),
         experience: parseNumber(details?.Experience),
@@ -1590,6 +1598,7 @@ const normalizeSeniorPlayers = (input: unknown): SeniorPlayer[] => {
         Specialty: parseNumber(node.Specialty) ?? undefined,
         TSI: parseNumber(node.TSI) ?? undefined,
         Salary: parseNumber(node.Salary) ?? undefined,
+        IsAbroad: parseBoolean(node.IsAbroad) ?? undefined,
         Form: parseSkill(node.PlayerForm ?? node.Form) ?? undefined,
         StaminaSkill:
           parseSkill(node.StaminaSkill) ??
@@ -1636,6 +1645,10 @@ const normalizeSeniorPlayerDetails = (
   const motherClubBonus = parseBoolean(
     trainerData?.MotherClubBonus ?? node.MotherClubBonus
   );
+  const owningTeam =
+    node.OwningTeam && typeof node.OwningTeam === "object"
+      ? (node.OwningTeam as Record<string, unknown>)
+      : null;
   return {
     PlayerID: playerId,
     FirstName: node.FirstName ? String(node.FirstName) : undefined,
@@ -1655,6 +1668,12 @@ const normalizeSeniorPlayerDetails = (
     Cards: parseNumber(node.Cards) ?? undefined,
     TSI: parseNumber(node.TSI) ?? undefined,
     Salary: parseNumber(node.Salary) ?? undefined,
+    IsAbroad: parseBoolean(node.IsAbroad) ?? undefined,
+    OwningTeam: owningTeam
+      ? {
+          LeagueID: parseNumber(owningTeam.LeagueID) ?? undefined,
+        }
+      : undefined,
     Agreeability: agreeability ?? undefined,
     Aggressiveness: aggressiveness ?? undefined,
     Honesty: honesty ?? undefined,
@@ -2137,6 +2156,28 @@ const formatEurFromSek = (valueSek: number) =>
     currency: "EUR",
     maximumFractionDigits: 0,
   }).format(valueSek / CHPP_SEK_PER_EUR);
+
+const formatSeniorWage = (
+  valueSek: number | null,
+  isAbroad: boolean | null | undefined,
+  messages: Messages
+) => {
+  if (valueSek === null || valueSek === undefined) return messages.unknownShort;
+  const base = formatEurFromSek(valueSek);
+  return isAbroad ? `${base} (${messages.seniorWageForeignExtraNote})` : base;
+};
+
+const resolveSeniorIsAbroad = (details: SeniorPlayerDetails | null | undefined) => {
+  if (!details) return undefined;
+  if (typeof details.IsAbroad === "boolean") return details.IsAbroad;
+  if (
+    typeof details.NativeLeagueID === "number" &&
+    typeof details.OwningTeam?.LeagueID === "number"
+  ) {
+    return details.NativeLeagueID !== details.OwningTeam.LeagueID;
+  }
+  return undefined;
+};
 
 const generateFormationShapes = () => {
   const shapes: Array<{ defenders: number; midfielders: number; attackers: number }> = [];
@@ -3312,6 +3353,8 @@ export default function SeniorDashboard({
         Age: player.Age,
         AgeDays: player.AgeDays,
         TSI: player.TSI,
+        Salary: player.Salary,
+        IsAbroad: player.IsAbroad,
         Specialty: player.Specialty,
         InjuryLevel: player.InjuryLevel,
         Form: player.Form,
@@ -3332,6 +3375,11 @@ export default function SeniorDashboard({
         Age?: number;
         AgeDays?: number;
         TSI?: number;
+        Salary?: number;
+        IsAbroad?: boolean;
+        OwningTeam?: {
+          LeagueID?: number;
+        };
         ArrivalDate?: string;
         NativeLeagueID?: number;
         OriginName?: string;
@@ -3381,6 +3429,9 @@ export default function SeniorDashboard({
         Age: detail.Age ?? fallback?.Age,
         AgeDays: detail.AgeDays ?? fallback?.AgeDays,
         TSI: detail.TSI ?? fallback?.TSI,
+        Salary: detail.Salary ?? fallback?.Salary,
+        IsAbroad: detail.IsAbroad ?? fallback?.IsAbroad,
+        OwningTeam: detail.OwningTeam,
         ArrivalDate: detail.ArrivalDate ?? fallback?.ArrivalDate,
         NativeLeagueID: detail.NativeLeagueID,
         OriginName: origin?.leagueName,
@@ -3425,6 +3476,8 @@ export default function SeniorDashboard({
       Age: selectedDetails?.Age ?? selectedPlayer.Age,
       AgeDays: selectedDetails?.AgeDays ?? selectedPlayer.AgeDays,
       TSI: selectedDetails?.TSI ?? selectedPlayer.TSI,
+      Salary: selectedDetails?.Salary ?? selectedPlayer.Salary,
+      IsAbroad: selectedDetails?.IsAbroad ?? selectedPlayer.IsAbroad,
       Specialty: selectedPlayer.Specialty,
       InjuryLevel: selectedDetails?.InjuryLevel ?? selectedPlayer.InjuryLevel,
       Form: selectedDetails?.Form ?? selectedPlayer.Form,
@@ -3451,6 +3504,8 @@ export default function SeniorDashboard({
         Age: selectedPlayer.Age,
         AgeDays: selectedPlayer.AgeDays,
         TSI: selectedPlayer.TSI,
+        Salary: selectedPlayer.Salary,
+        IsAbroad: selectedPlayer.IsAbroad,
         ArrivalDate: selectedPlayer.ArrivalDate,
         Specialty: selectedPlayer.Specialty,
         InjuryLevel: selectedPlayer.InjuryLevel,
@@ -13597,6 +13652,30 @@ const refreshDetailsForPlayers = async (
         : null;
     const resolvedForm = resultDetails?.Form ?? result.form;
     const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
+    const resolvedSalary =
+      typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek;
+    const resolvedIsAbroad =
+      resolveSeniorIsAbroad(resultDetails) ?? result.isAbroad;
+    const seniorMetricInput = {
+      ageYears:
+        typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
+      ageDays:
+        typeof resultDetails?.AgeDays === "number" ? resultDetails.AgeDays : result.ageDays,
+      tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
+      salarySek: resolvedSalary,
+      isAbroad: resolvedIsAbroad ?? undefined,
+      form: resolvedForm,
+      stamina: resolvedStamina,
+      keeper: parseSkill(resultDetails?.PlayerSkills?.KeeperSkill) ?? result.keeperSkill,
+      defending: parseSkill(resultDetails?.PlayerSkills?.DefenderSkill) ?? result.defenderSkill,
+      playmaking:
+        parseSkill(resultDetails?.PlayerSkills?.PlaymakerSkill) ?? result.playmakerSkill,
+      winger: parseSkill(resultDetails?.PlayerSkills?.WingerSkill) ?? result.wingerSkill,
+      passing: parseSkill(resultDetails?.PlayerSkills?.PassingSkill) ?? result.passingSkill,
+      scoring: parseSkill(resultDetails?.PlayerSkills?.ScorerSkill) ?? result.scorerSkill,
+      setPieces:
+        parseSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ?? result.setPiecesSkill,
+    };
     return (
       <article key={result.playerId} className={styles.transferSearchResultCard}>
         <div className={styles.transferSearchResultHeader}>
@@ -13614,12 +13693,18 @@ const refreshDetailsForPlayers = async (
                   {result.age} {messages.yearsLabel} {result.ageDays ?? 0} {messages.daysLabel}
                 </span>
               ) : null}
-              {result.tsi !== null ? (
-                <span className={styles.metaItem}>
-                  {messages.sortTsi}: {result.tsi}
-                </span>
-              ) : null}
-            </p>
+          {result.tsi !== null ? (
+            <span className={styles.metaItem}>
+              {messages.sortTsi}: {result.tsi}
+            </span>
+          ) : null}
+          {resolvedSalary !== null ? (
+            <span className={styles.metaItem}>
+              {messages.seniorWageLabel}:{" "}
+              {formatSeniorWage(resolvedSalary, resolvedIsAbroad, messages)}
+            </span>
+          ) : null}
+        </p>
           </div>
           <div className={styles.transferSearchPriceBlock}>
             <div className={styles.infoLabel}>{displayPriceLabel}</div>
@@ -13789,6 +13874,10 @@ const refreshDetailsForPlayers = async (
           })}
         </div>
         </div>
+
+        <div className={styles.sectionDivider} />
+
+        <SeniorFoxtrickMetrics input={seniorMetricInput} messages={messages} />
 
         <div className={styles.transferSearchBidGrid}>
           <div className={styles.transferSearchBidField}>

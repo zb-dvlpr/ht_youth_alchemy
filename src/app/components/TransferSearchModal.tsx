@@ -67,6 +67,7 @@ export type TransferSearchResult = {
   age: number | null;
   ageDays: number | null;
   salarySek: number | null;
+  isAbroad: boolean | null;
   tsi: number | null;
   form: number | null;
   experience: number | null;
@@ -273,6 +274,17 @@ const parseTransferSearchNumber = (value: unknown): number | null => {
   return Number.isFinite(numeric) ? numeric : null;
 };
 
+const parseTransferSearchBoolean = (value: unknown): boolean | null => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true" || normalized === "1") return true;
+    if (normalized === "false" || normalized === "0") return false;
+  }
+  return null;
+};
+
 export const normalizeTransferSearchResults = (input: unknown): TransferSearchResult[] => {
   const list = Array.isArray(input) ? input : input ? [input] : [];
   return list
@@ -299,6 +311,7 @@ export const normalizeTransferSearchResults = (input: unknown): TransferSearchRe
         age: parseTransferSearchNumber(details?.Age),
         ageDays: parseTransferSearchNumber(details?.AgeDays),
         salarySek: parseTransferSearchNumber(details?.Salary),
+        isAbroad: parseTransferSearchBoolean(details?.IsAbroad),
         tsi: parseTransferSearchNumber(details?.TSI),
         form: parseTransferSearchNumber(details?.PlayerForm),
         experience: parseTransferSearchNumber(details?.Experience),

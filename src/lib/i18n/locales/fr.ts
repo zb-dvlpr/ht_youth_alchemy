@@ -76,6 +76,8 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_4_9_0:
+      "Les details des joueurs seniors et les resultats de recherche de transferts affichent maintenant les valeurs HTMS et PsicoTSI.",
     changelog_4_8_0:
       "Club Chronicle peut maintenant supprimer les matchs termines de Hattrick Live depuis le panneau des matchs en cours.",
     changelog_4_7_0:
@@ -1310,6 +1312,28 @@ export const messagesFr: Messages = {
       "A une expérience {{experienceLevel}} ({{experienceValue}}) et un leadership {{leadershipLevel}} ({{leadershipValue}}).",
     seniorTraitsSentenceLoyalty:
       "A une loyauté {{loyaltyLevel}} ({{loyaltyValue}}).",
+    seniorWageLabel: "Salaire",
+    seniorWageForeignExtraNote: "inclut 20 % de supplément joueur étranger",
+    seniorFoxtrickMetricsTitle: "Valeurs FoxTrick",
+    seniorHtmsAbilityLabel: "Capacite HTMS",
+    seniorHtmsPotentialLabel: "Potentiel HTMS",
+    seniorPsicoTsiMainSkillLabel: "Competence principale",
+    seniorPsicoTsiTsiPredictionLabel: "Prediction basee sur le TSI",
+    seniorPsicoTsiWagePredictionLabel: "Prediction basee sur le salaire",
+    seniorPsicoTsiFormSublevelsLabel: "Sous-niveaux de forme",
+    seniorPsicoTsiSecondariesSublevelsLabel: "Sous-niveaux des competences secondaires",
+    seniorPsicoTsiPredictionLabel: "Prediction",
+    seniorPsicoTsiHighLabel: "Haut",
+    seniorPsicoTsiAverageLabel: "Moyen",
+    seniorPsicoTsiLowLabel: "Bas",
+    seniorPsicoTsiUndefinedMainSkillWarning:
+      "Deux competences principales sont a egalite; la prediction peut etre moins fiable.",
+    seniorPsicoTsiWageUnavailableWarning:
+      "La prediction par salaire n'est pas disponible pour ce joueur.",
+    seniorPsicoTsiLowSublevelsWarning:
+      "Proche d'un skill-up ou sous-niveaux de forme/secondaires tres bas.",
+    seniorPsicoTsiHighSublevelsWarning:
+      "Proche d'un skill-up ou sous-niveaux de forme/secondaires tres hauts.",
     hiddenSpecialtyTooltip: "Specialite cachee detectee via evenements de match",
     hiddenSpecialtyTooltipLinkHint:
       "Cliquer pour ouvrir le match ou elle a ete decouverte",

@@ -76,6 +76,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_9_0:
+      "Seniorspelardetaljer och transfersokresultat visar nu HTMS- och PsicoTSI-varden.",
     changelog_4_8_0:
       "Club Chronicle kan nu ta bort färdiga matcher från Hattrick Live i panelen för pågående matcher.",
     changelog_4_7_0:
@@ -1303,6 +1305,28 @@ export const messagesSv: Messages = {
       "Har {{experienceLevel}} ({{experienceValue}}) erfarenhet och {{leadershipLevel}} ({{leadershipValue}}) ledarskap.",
     seniorTraitsSentenceLoyalty:
       "Har {{loyaltyLevel}} ({{loyaltyValue}}) lojalitet.",
+    seniorWageLabel: "Lön",
+    seniorWageForeignExtraNote: "inkluderar 20% extra för utländsk spelare",
+    seniorFoxtrickMetricsTitle: "FoxTrick-varden",
+    seniorHtmsAbilityLabel: "HTMS-formaga",
+    seniorHtmsPotentialLabel: "HTMS-potential",
+    seniorPsicoTsiMainSkillLabel: "Huvudfardighet",
+    seniorPsicoTsiTsiPredictionLabel: "TSI-baserad prognos",
+    seniorPsicoTsiWagePredictionLabel: "Lonbaserad prognos",
+    seniorPsicoTsiFormSublevelsLabel: "Formsubnivaer",
+    seniorPsicoTsiSecondariesSublevelsLabel: "Sekundara fardigheters subnivaer",
+    seniorPsicoTsiPredictionLabel: "Prognos",
+    seniorPsicoTsiHighLabel: "Hog",
+    seniorPsicoTsiAverageLabel: "Medel",
+    seniorPsicoTsiLowLabel: "Lag",
+    seniorPsicoTsiUndefinedMainSkillWarning:
+      "Tva huvudfardigheter ar lika; prognosen kan vara mindre tillforlitlig.",
+    seniorPsicoTsiWageUnavailableWarning:
+      "Lonprognos ar inte tillganglig for den har spelaren.",
+    seniorPsicoTsiLowSublevelsWarning:
+      "Nara skill-up eller mycket laga form-/sekundara subnivaer.",
+    seniorPsicoTsiHighSublevelsWarning:
+      "Nara skill-up eller mycket hoga form-/sekundara subnivaer.",
     hiddenSpecialtyTooltip: "Dold specialitet hittad via matchhandelser",
     hiddenSpecialtyTooltipLinkHint:
       "Klicka for att oppna matchen dar den upptacktes",

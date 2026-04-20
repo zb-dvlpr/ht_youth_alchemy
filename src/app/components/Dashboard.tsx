@@ -49,6 +49,7 @@ import TransferSearchModal, {
   type TransferSearchSkillFilter,
   type TransferSearchSkillKey,
 } from "./TransferSearchModal";
+import SeniorFoxtrickMetrics from "./SeniorFoxtrickMetrics";
 import {
   POSITION_COLUMNS,
   normalizeMatchRoleId,
@@ -142,6 +143,21 @@ const VALID_LINEUP_SLOT_IDS = new Set([
   "B_W",
   "B_X",
 ]);
+
+const parseSeniorMetricSkill = (value: unknown): number | null => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const parsed = Number(record["#text"]);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
 const BASE_TRAINING_SKILLS: SkillKey[] = [
   "keeper",
   "defending",
@@ -3886,6 +3902,38 @@ export default function Dashboard({
         : null;
     const resolvedForm = resultDetails?.Form ?? result.form;
     const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
+    const seniorMetricInput = {
+      ageYears:
+        typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
+      ageDays:
+        typeof resultDetails?.AgeDays === "number" ? resultDetails.AgeDays : result.ageDays,
+      tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
+      salarySek:
+        typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek,
+      form: resolvedForm,
+      stamina: resolvedStamina,
+      keeper:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.KeeperSkill) ??
+        result.keeperSkill,
+      defending:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.DefenderSkill) ??
+        result.defenderSkill,
+      playmaking:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.PlaymakerSkill) ??
+        result.playmakerSkill,
+      winger:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.WingerSkill) ??
+        result.wingerSkill,
+      passing:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.PassingSkill) ??
+        result.passingSkill,
+      scoring:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.ScorerSkill) ??
+        result.scorerSkill,
+      setPieces:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ??
+        result.setPiecesSkill,
+    };
     return (
       <article key={result.playerId} className={styles.transferSearchResultCard}>
         <div className={styles.transferSearchResultHeader}>
@@ -4046,6 +4094,10 @@ export default function Dashboard({
             })}
           </div>
         </div>
+
+        <div className={styles.sectionDivider} />
+
+        <SeniorFoxtrickMetrics input={seniorMetricInput} messages={messages} />
 
         <div className={styles.transferSearchBidGrid}>
           <div className={styles.transferSearchBidField}>

@@ -76,6 +76,8 @@ export const messagesIt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Questa app è in beta. Funzioni, comportamento e dati locali in cache possono cambiare o essere azzerati senza preavviso.",
+    changelog_4_9_0:
+      "I dettagli dei senior e i risultati di ricerca trasferimenti ora mostrano valori HTMS e PsicoTSI.",
     changelog_4_8_0:
       "Club Chronicle ora puo rimuovere da Hattrick Live le partite concluse nel pannello partite in corso.",
     changelog_4_7_0:
@@ -1313,6 +1315,28 @@ export const messagesIt: Messages = {
       "Ha esperienza {{experienceLevel}} ({{experienceValue}}) e leadership {{leadershipLevel}} ({{leadershipValue}}).",
     seniorTraitsSentenceLoyalty:
       "Ha lealtà {{loyaltyLevel}} ({{loyaltyValue}}).",
+    seniorWageLabel: "Stipendio",
+    seniorWageForeignExtraNote: "include 20% extra per giocatore straniero",
+    seniorFoxtrickMetricsTitle: "Valori FoxTrick",
+    seniorHtmsAbilityLabel: "Abilita HTMS",
+    seniorHtmsPotentialLabel: "Potenziale HTMS",
+    seniorPsicoTsiMainSkillLabel: "Abilita principale",
+    seniorPsicoTsiTsiPredictionLabel: "Previsione basata su TSI",
+    seniorPsicoTsiWagePredictionLabel: "Previsione basata sullo stipendio",
+    seniorPsicoTsiFormSublevelsLabel: "Sottolivelli di forma",
+    seniorPsicoTsiSecondariesSublevelsLabel: "Sottolivelli delle secondarie",
+    seniorPsicoTsiPredictionLabel: "Previsione",
+    seniorPsicoTsiHighLabel: "Alto",
+    seniorPsicoTsiAverageLabel: "Medio",
+    seniorPsicoTsiLowLabel: "Basso",
+    seniorPsicoTsiUndefinedMainSkillWarning:
+      "Due abilita principali sono pari; la previsione puo essere meno affidabile.",
+    seniorPsicoTsiWageUnavailableWarning:
+      "La previsione tramite stipendio non e disponibile per questo giocatore.",
+    seniorPsicoTsiLowSublevelsWarning:
+      "Vicino allo skill-up o sottolivelli di forma/secondarie molto bassi.",
+    seniorPsicoTsiHighSublevelsWarning:
+      "Vicino allo skill-up o sottolivelli di forma/secondarie molto alti.",
     hiddenSpecialtyTooltip: "Specialita nascosta scoperta dagli eventi partita",
     hiddenSpecialtyTooltipLinkHint:
       "Clicca per aprire la partita in cui e stata scoperta",

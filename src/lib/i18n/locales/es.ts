@@ -76,6 +76,8 @@ export const messagesEs: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Esta aplicación está en beta. Las funciones, el comportamiento y los datos locales en caché pueden cambiar o reiniciarse sin previo aviso.",
+    changelog_4_9_0:
+      "Los detalles de jugadores senior y resultados de busqueda de transferencias ahora muestran valores HTMS y PsicoTSI.",
     changelog_4_8_0:
       "Club Chronicle ahora puede eliminar partidos finalizados de Hattrick Live en el panel de partidos en curso.",
     changelog_4_7_0:
@@ -1312,6 +1314,28 @@ export const messagesEs: Messages = {
       "Tiene experiencia {{experienceLevel}} ({{experienceValue}}) y liderazgo {{leadershipLevel}} ({{leadershipValue}}).",
     seniorTraitsSentenceLoyalty:
       "Tiene lealtad {{loyaltyLevel}} ({{loyaltyValue}}).",
+    seniorWageLabel: "Salario",
+    seniorWageForeignExtraNote: "incluye 20% extra por jugador extranjero",
+    seniorFoxtrickMetricsTitle: "Valores FoxTrick",
+    seniorHtmsAbilityLabel: "Habilidad HTMS",
+    seniorHtmsPotentialLabel: "Potencial HTMS",
+    seniorPsicoTsiMainSkillLabel: "Habilidad principal",
+    seniorPsicoTsiTsiPredictionLabel: "Prediccion basada en TSI",
+    seniorPsicoTsiWagePredictionLabel: "Prediccion basada en salario",
+    seniorPsicoTsiFormSublevelsLabel: "Subniveles de forma",
+    seniorPsicoTsiSecondariesSublevelsLabel: "Subniveles de habilidades secundarias",
+    seniorPsicoTsiPredictionLabel: "Prediccion",
+    seniorPsicoTsiHighLabel: "Alto",
+    seniorPsicoTsiAverageLabel: "Medio",
+    seniorPsicoTsiLowLabel: "Bajo",
+    seniorPsicoTsiUndefinedMainSkillWarning:
+      "Dos habilidades principales estan empatadas; la prediccion puede ser menos fiable.",
+    seniorPsicoTsiWageUnavailableWarning:
+      "La prediccion por salario no esta disponible para este jugador.",
+    seniorPsicoTsiLowSublevelsWarning:
+      "Cerca de subir habilidad o subniveles de forma/secundarias muy bajos.",
+    seniorPsicoTsiHighSublevelsWarning:
+      "Cerca de subir habilidad o subniveles de forma/secundarias muy altos.",
     hiddenSpecialtyTooltip:
       "Especialidad oculta descubierta desde eventos del partido",
     hiddenSpecialtyTooltipLinkHint:

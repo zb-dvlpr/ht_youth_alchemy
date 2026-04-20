@@ -9,6 +9,7 @@ import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { getSkillMaxReached } from "@/lib/skills";
 import { hattrickPlayerUrl, hattrickYouthPlayerUrl } from "@/lib/hattrick/urls";
 import { useNotifications } from "./notifications/NotificationsProvider";
+import SeniorFoxtrickMetrics from "./SeniorFoxtrickMetrics";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -50,6 +51,11 @@ export type YouthPlayerDetails = {
   InjuryLevel?: number;
   Form?: number;
   StaminaSkill?: number;
+  Salary?: number;
+  IsAbroad?: boolean;
+  OwningTeam?: {
+    LeagueID?: number;
+  };
   PersonalityStatement?: string;
   Agreeability?: number;
   Aggressiveness?: number;
@@ -212,6 +218,7 @@ const SKILL_ROWS = [
 const FORM_MAX_LEVEL = 8;
 const STAMINA_MAX_LEVEL = 9;
 const HATTRICK_AGE_DAYS_PER_YEAR = 112;
+const CHPP_SEK_PER_EUR = 10;
 const SUBSCRIPT_DIGITS: Record<string, string> = {
   "0": "₀",
   "1": "₁",
@@ -353,6 +360,35 @@ const metricPillStyle = (
   };
 };
 
+const formatEurFromSek = (valueSek: number) =>
+  new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(valueSek / CHPP_SEK_PER_EUR);
+
+const formatSeniorWage = (
+  valueSek: number | null,
+  isAbroad: boolean | undefined,
+  messages: Messages
+) => {
+  if (valueSek === null || valueSek === undefined) return messages.unknownShort;
+  const base = formatEurFromSek(valueSek);
+  return isAbroad ? `${base} (${messages.seniorWageForeignExtraNote})` : base;
+};
+
+const resolveSeniorIsAbroad = (details: YouthPlayerDetails | null | undefined) => {
+  if (!details) return undefined;
+  if (typeof details.IsAbroad === "boolean") return details.IsAbroad;
+  if (
+    typeof details.NativeLeagueID === "number" &&
+    typeof details.OwningTeam?.LeagueID === "number"
+  ) {
+    return details.NativeLeagueID !== details.OwningTeam.LeagueID;
+  }
+  return undefined;
+};
+
 const seniorBarGradient = (
   value: number | null,
   minSkillLevel: number,
@@ -475,6 +511,23 @@ const resolveSeniorAgePillClassName = (
   if (years >= 20) return stylesModule.playerAgePillYellow;
   return stylesModule.playerAgePillGreen;
 };
+
+const buildSeniorMetricInputFromDetails = (details: YouthPlayerDetails) => ({
+  ageYears: typeof details.Age === "number" ? details.Age : null,
+  ageDays: typeof details.AgeDays === "number" ? details.AgeDays : null,
+  tsi: typeof details.TSI === "number" ? details.TSI : null,
+  salarySek: typeof details.Salary === "number" ? details.Salary : null,
+  isAbroad: resolveSeniorIsAbroad(details),
+  form: typeof details.Form === "number" ? details.Form : null,
+  stamina: typeof details.StaminaSkill === "number" ? details.StaminaSkill : null,
+  keeper: getSkillLevel(details.PlayerSkills?.KeeperSkill),
+  defending: getSkillLevel(details.PlayerSkills?.DefenderSkill),
+  playmaking: getSkillLevel(details.PlayerSkills?.PlaymakerSkill),
+  winger: getSkillLevel(details.PlayerSkills?.WingerSkill),
+  passing: getSkillLevel(details.PlayerSkills?.PassingSkill),
+  scoring: getSkillLevel(details.PlayerSkills?.ScorerSkill),
+  setPieces: getSkillLevel(details.PlayerSkills?.SetPiecesSkill),
+});
 
 export default function PlayerDetailsPanel({
   selectedPlayer,
@@ -863,6 +916,12 @@ export default function PlayerDetailsPanel({
           : typeof selectedPlayer?.TSI === "number"
             ? selectedPlayer.TSI
             : null)
+      : null;
+  const seniorWageValue =
+    playerKind === "senior"
+      ? typeof detailsData?.Salary === "number"
+        ? detailsData.Salary
+        : null
       : null;
   const seniorAgeLabel =
     playerKind === "senior" && typeof detailsData?.Age === "number"
@@ -1381,6 +1440,18 @@ export default function PlayerDetailsPanel({
               </div>
             </div>
           ) : null}
+          {playerKind === "senior" ? (
+            <div>
+              <div className={styles.infoLabel}>{messages.seniorWageLabel}</div>
+              <div className={styles.infoValue}>
+                {formatSeniorWage(
+                  seniorWageValue,
+                  resolveSeniorIsAbroad(detailsData),
+                  messages
+                )}
+              </div>
+            </div>
+          ) : null}
           {detailsData.LastMatch ? (
             <div>
               <div className={styles.infoLabel}>
@@ -1650,6 +1721,11 @@ export default function PlayerDetailsPanel({
         </div>
         {playerKind === "senior" ? (
           <>
+            <div className={styles.sectionDivider} />
+            <SeniorFoxtrickMetrics
+              input={buildSeniorMetricInputFromDetails(detailsData)}
+              messages={messages}
+            />
             <div className={styles.sectionDivider} />
             <div>
               <h5 className={styles.sectionHeading}>{messages.seniorCareerStatsTitle}</h5>

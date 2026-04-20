@@ -5498,7 +5498,8 @@ html[data-theme="dark"] .transferSearchModalSidebar,
 html[data-theme="dark"] .transferSearchModalResults,
 html[data-theme="dark"] .transferSearchResultCard,
 html[data-theme="dark"] .transferSearchMarketSummary,
-html[data-theme="dark"] .transferSearchSkillRow {
+html[data-theme="dark"] .transferSearchSkillRow,
+html[data-theme="dark"] .seniorPsicoTable {
   background: #1f1c19;
   border-color: rgba(255, 255, 255, 0.08);
 }
@@ -5548,6 +5549,26 @@ html[data-theme="dark"] .transferSearchFallbackNotice {
 
 html[data-theme="dark"] .infoValueTiny {
   color: #c6bdaf;
+}
+
+html[data-theme="dark"] .seniorPsicoTable th,
+html[data-theme="dark"] .seniorPsicoTable td {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme="dark"] .seniorPsicoTable th {
+  background: #2a2521;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .seniorPsicoTable td {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .seniorPsicoWarnings span {
+  border-color: rgba(241, 212, 142, 0.32);
+  background: rgba(79, 63, 29, 0.82);
+  color: #f1dfb8;
 }
 
 html[data-theme="dark"] .playerId,
@@ -7315,6 +7336,67 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 .transferSearchResultCard .skillValue {
   min-width: 24px;
   font-size: 13px;
+}
+
+.seniorFoxtrickMetrics {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.seniorFoxtrickMetrics .profileInfoRow {
+  margin-top: 0;
+}
+
+.seniorPsicoTableWrap {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.seniorPsicoTable {
+  width: 100%;
+  min-width: 420px;
+  border-collapse: collapse;
+  border: 1px solid #e1d3be;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fffdf9;
+  font-size: 13px;
+}
+
+.seniorPsicoTable th,
+.seniorPsicoTable td {
+  border: 1px solid #e1d3be;
+  padding: 7px 9px;
+  text-align: left;
+}
+
+.seniorPsicoTable th {
+  background: #efe7dc;
+  color: #2d261f;
+  font-weight: 800;
+}
+
+.seniorPsicoTable td {
+  color: #2d261f;
+}
+
+.seniorPsicoWarnings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.seniorPsicoWarnings span {
+  border: 1px solid #d8c395;
+  border-radius: 8px;
+  background: #fff7dc;
+  color: #5b4312;
+  padding: 4px 7px;
+  font-size: 12px;
+  line-height: 1.25;
 }
 
 .transferSearchBidGrid {

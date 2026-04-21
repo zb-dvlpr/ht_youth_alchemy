@@ -35,6 +35,13 @@ type SimulatedValues = {
   setPieces: number;
 };
 
+type SimulationControlDraft = {
+  ageYears: string;
+  ageDays: string;
+  wageEur: string;
+  tsi: string;
+};
+
 type SimulationSkillKey = Exclude<
   keyof SimulatedValues,
   "ageYears" | "ageDays" | "wageEur" | "tsi"
@@ -175,6 +182,17 @@ const buildInitialValues = (input: SeniorPlayerMetricInput): SimulatedValues => 
   };
 };
 
+const buildControlDraft = (values: SimulatedValues): SimulationControlDraft => ({
+  ageYears: String(values.ageYears),
+  ageDays: String(values.ageDays),
+  wageEur: String(values.wageEur),
+  tsi: String(values.tsi),
+});
+
+const numericDraftValue = (value: string) => value.replace(/\D/g, "");
+
+const parseDraftNumber = (value: string) => (value === "" ? null : Number(value));
+
 export default function SeniorFoxtrickSimulator({
   input,
   messages,
@@ -185,6 +203,9 @@ export default function SeniorFoxtrickSimulator({
   const [editing, setEditing] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [values, setValues] = useState<SimulatedValues>(() => buildInitialValues(input));
+  const [controlDraft, setControlDraft] = useState<SimulationControlDraft>(() =>
+    buildControlDraft(buildInitialValues(input))
+  );
 
   const metricInput = useMemo<SeniorPlayerMetricInput>(() => {
     if (!editing) return input;
@@ -228,10 +249,90 @@ export default function SeniorFoxtrickSimulator({
     });
   };
 
+  const updateAgeDraft = (key: "ageYears" | "ageDays", rawValue: string) => {
+    const nextDraftValue = numericDraftValue(rawValue);
+    setControlDraft((prev) => ({
+      ...prev,
+      [key]: nextDraftValue,
+    }));
+
+    const parsed = parseDraftNumber(nextDraftValue);
+    if (parsed === null) return;
+
+    if (key === "ageYears") {
+      if (parsed < 17 || parsed > 28) return;
+      const totalDays = clampAgeTotalDays(parsed, values.ageDays);
+      const age = agePartsFromTotalDays(totalDays);
+      setDirty(true);
+      setValues((prev) => ({
+        ...prev,
+        ...age,
+      }));
+      if (age.ageDays !== values.ageDays) {
+        setControlDraft((prev) => ({
+          ...prev,
+          ageDays: String(age.ageDays),
+        }));
+      }
+      return;
+    }
+
+    const maxDays = values.ageYears >= 28 ? 0 : HATTRICK_AGE_DAYS_PER_YEAR - 1;
+    if (parsed < 0 || parsed > maxDays) return;
+    updateAge({ ageDays: parsed });
+  };
+
+  const commitAgeDraft = (key: "ageYears" | "ageDays") => {
+    const parsed = parseDraftNumber(controlDraft[key]);
+    const totalDays =
+      key === "ageYears"
+        ? clampAgeTotalDays(parsed, values.ageDays)
+        : clampAgeTotalDays(values.ageYears, parsed);
+    const age = agePartsFromTotalDays(totalDays);
+    setValues((prev) => ({
+      ...prev,
+      ...age,
+    }));
+    setControlDraft((prev) => ({
+      ...prev,
+      ageYears: String(age.ageYears),
+      ageDays: String(age.ageDays),
+    }));
+  };
+
+  const updateBoundedDraft = (
+    key: "wageEur" | "tsi",
+    rawValue: string,
+    min: number,
+    max: number
+  ) => {
+    const nextDraftValue = numericDraftValue(rawValue);
+    setControlDraft((prev) => ({
+      ...prev,
+      [key]: nextDraftValue,
+    }));
+
+    const parsed = parseDraftNumber(nextDraftValue);
+    if (parsed === null) return;
+    updateValue(key, clamp(parsed, min, max));
+  };
+
+  const commitBoundedDraft = (key: "wageEur" | "tsi", min: number, max: number) => {
+    const parsed = parseDraftNumber(controlDraft[key]);
+    const nextValue = clamp(parsed ?? values[key], min, max);
+    updateValue(key, nextValue);
+    setControlDraft((prev) => ({
+      ...prev,
+      [key]: String(nextValue),
+    }));
+  };
+
   const toggleEditing = (enabled: boolean) => {
+    const nextValues = buildInitialValues(input);
     setEditing(enabled);
     setDirty(false);
-    setValues(buildInitialValues(input));
+    setValues(nextValues);
+    setControlDraft(buildControlDraft(nextValues));
   };
 
   const valueFromPointer = (
@@ -423,58 +524,57 @@ export default function SeniorFoxtrickSimulator({
                 <span>{messages.seniorFoxtrickSimulationAgeYearsLabel}</span>
                 <input
                   className={styles.transferSearchInput}
-                  type="number"
-                  min={17}
-                  max={28}
-                  step={1}
-                  value={values.ageYears}
-                  onChange={(event) => updateAge({ ageYears: Number(event.currentTarget.value) })}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={controlDraft.ageYears}
+                  onChange={(event) => updateAgeDraft("ageYears", event.currentTarget.value)}
+                  onBlur={() => commitAgeDraft("ageYears")}
                 />
               </label>
               <label className={styles.simulationControlLabel}>
                 <span>{messages.seniorFoxtrickSimulationAgeDaysLabel}</span>
                 <input
                   className={styles.transferSearchInput}
-                  type="number"
-                  min={0}
-                  max={values.ageYears >= 28 ? 0 : HATTRICK_AGE_DAYS_PER_YEAR - 1}
-                  step={1}
-                  value={values.ageDays}
-                  onChange={(event) => updateAge({ ageDays: Number(event.currentTarget.value) })}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={controlDraft.ageDays}
+                  onChange={(event) => updateAgeDraft("ageDays", event.currentTarget.value)}
+                  onBlur={() => commitAgeDraft("ageDays")}
                 />
               </label>
               <label className={styles.simulationControlLabel}>
                 <span>{messages.seniorFoxtrickSimulationWageLabel}</span>
                 <input
                   className={styles.transferSearchInput}
-                  type="number"
-                  min={0}
-                  max={SIMULATION_MAX_WAGE_EUR}
-                  step={1000}
-                  value={values.wageEur}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={controlDraft.wageEur}
                   onChange={(event) =>
-                    updateValue(
+                    updateBoundedDraft(
                       "wageEur",
-                      clamp(Number(event.currentTarget.value), 0, SIMULATION_MAX_WAGE_EUR)
+                      event.currentTarget.value,
+                      0,
+                      SIMULATION_MAX_WAGE_EUR
                     )
                   }
+                  onBlur={() => commitBoundedDraft("wageEur", 0, SIMULATION_MAX_WAGE_EUR)}
                 />
               </label>
               <label className={styles.simulationControlLabel}>
                 <span>{messages.sortTsi}</span>
                 <input
                   className={styles.transferSearchInput}
-                  type="number"
-                  min={0}
-                  max={SIMULATION_MAX_TSI}
-                  step={1}
-                  value={values.tsi}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={controlDraft.tsi}
                   onChange={(event) =>
-                    updateValue(
-                      "tsi",
-                      clamp(Number(event.currentTarget.value), 0, SIMULATION_MAX_TSI)
-                    )
+                    updateBoundedDraft("tsi", event.currentTarget.value, 0, SIMULATION_MAX_TSI)
                   }
+                  onBlur={() => commitBoundedDraft("tsi", 0, SIMULATION_MAX_TSI)}
                 />
               </label>
             </div>

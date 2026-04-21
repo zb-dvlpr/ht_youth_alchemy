@@ -76,6 +76,10 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_4_10_0:
+      "Les valeurs FoxTrick peuvent maintenant etre simulees en modifiant les skills senior, l age et le salaire dans les details joueur et les resultats de recherche transfert.",
+    changelog_4_9_0:
+      "Les details des joueurs seniors et les resultats de recherche de transferts affichent maintenant les valeurs HTMS et PsicoTSI.",
     changelog_4_8_0:
       "Club Chronicle peut maintenant supprimer les matchs termines de Hattrick Live depuis le panneau des matchs en cours.",
     changelog_4_7_0:
@@ -1310,6 +1314,36 @@ export const messagesFr: Messages = {
       "A une expérience {{experienceLevel}} ({{experienceValue}}) et un leadership {{leadershipLevel}} ({{leadershipValue}}).",
     seniorTraitsSentenceLoyalty:
       "A une loyauté {{loyaltyLevel}} ({{loyaltyValue}}).",
+    seniorWageLabel: "Salaire",
+    seniorWageForeignExtraNote: "inclut 20 % de supplément joueur étranger",
+    seniorFoxtrickMetricsTitle: "Valeurs FoxTrick",
+    seniorFoxtrickEditSkillsLabel: "Modifier skills, age, salaire, TSI",
+    seniorFoxtrickSimulationTooltip:
+      "Activez pour modifier les skills, l age, le salaire et le TSI afin de simuler les valeurs FoxTrick. Desactivez pour revenir aux valeurs reelles.",
+    seniorFoxtrickSimulationWarning:
+      "Les valeurs de skills, d age, de salaire ou de TSI ont ete modifiees manuellement et ne refletent plus le joueur reel.",
+    seniorFoxtrickSimulationAgeYearsLabel: "Age annees",
+    seniorFoxtrickSimulationAgeDaysLabel: "Age jours",
+    seniorFoxtrickSimulationWageLabel: "Salaire (EUR)",
+    seniorHtmsAbilityLabel: "Capacite HTMS",
+    seniorHtmsPotentialLabel: "Potentiel HTMS",
+    seniorPsicoTsiMainSkillLabel: "Competence principale",
+    seniorPsicoTsiTsiPredictionLabel: "Prediction basee sur le TSI",
+    seniorPsicoTsiWagePredictionLabel: "Prediction basee sur le salaire",
+    seniorPsicoTsiFormSublevelsLabel: "Sous-niveaux de forme",
+    seniorPsicoTsiSecondariesSublevelsLabel: "Sous-niveaux des competences secondaires",
+    seniorPsicoTsiPredictionLabel: "Prediction",
+    seniorPsicoTsiHighLabel: "Haut",
+    seniorPsicoTsiAverageLabel: "Moyen",
+    seniorPsicoTsiLowLabel: "Bas",
+    seniorPsicoTsiUndefinedMainSkillWarning:
+      "Deux competences principales sont a egalite; la prediction peut etre moins fiable.",
+    seniorPsicoTsiWageUnavailableWarning:
+      "La prediction par salaire n'est pas disponible pour ce joueur.",
+    seniorPsicoTsiLowSublevelsWarning:
+      "Proche d'un skill-up ou sous-niveaux de forme/secondaires tres bas.",
+    seniorPsicoTsiHighSublevelsWarning:
+      "Proche d'un skill-up ou sous-niveaux de forme/secondaires tres hauts.",
     hiddenSpecialtyTooltip: "Specialite cachee detectee via evenements de match",
     hiddenSpecialtyTooltipLinkHint:
       "Cliquer pour ouvrir le match ou elle a ete decouverte",

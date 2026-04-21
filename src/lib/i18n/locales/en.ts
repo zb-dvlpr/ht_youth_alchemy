@@ -76,6 +76,10 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_4_10_0:
+      "FoxTrick metrics can now be simulated by editing senior skills, age, and wage in player details and transfer search results.",
+    changelog_4_9_0:
+      "Senior player details and transfer search results now show HTMS and PsicoTSI metrics.",
     changelog_4_8_0:
       "Club Chronicle can now remove finished matches from Hattrick Live in the ongoing matches panel.",
     changelog_4_7_0:
@@ -1259,6 +1263,36 @@ export const messagesEn: Messages = {
       "Has {{experienceLevel}} ({{experienceValue}}) experience and {{leadershipLevel}} ({{leadershipValue}}) leadership.",
     seniorTraitsSentenceLoyalty:
       "Has {{loyaltyLevel}} ({{loyaltyValue}}) loyalty.",
+    seniorWageLabel: "Wage",
+    seniorWageForeignExtraNote: "includes 20% foreign-player extra",
+    seniorFoxtrickMetricsTitle: "FoxTrick metrics",
+    seniorFoxtrickEditSkillsLabel: "Edit skills, age, wage, TSI",
+    seniorFoxtrickSimulationTooltip:
+      "Enable to edit skills, age, wage, and TSI to simulate FoxTrick metrics. Disable to reset to actual values.",
+    seniorFoxtrickSimulationWarning:
+      "Skill, age, wage, or TSI values have been manually changed and no longer reflect the actual player.",
+    seniorFoxtrickSimulationAgeYearsLabel: "Age years",
+    seniorFoxtrickSimulationAgeDaysLabel: "Age days",
+    seniorFoxtrickSimulationWageLabel: "Wage (EUR)",
+    seniorHtmsAbilityLabel: "HTMS ability",
+    seniorHtmsPotentialLabel: "HTMS potential",
+    seniorPsicoTsiMainSkillLabel: "Main skill",
+    seniorPsicoTsiTsiPredictionLabel: "TSI-based prediction",
+    seniorPsicoTsiWagePredictionLabel: "Wage-based prediction",
+    seniorPsicoTsiFormSublevelsLabel: "Form sublevels",
+    seniorPsicoTsiSecondariesSublevelsLabel: "Secondary skills sublevels",
+    seniorPsicoTsiPredictionLabel: "Prediction",
+    seniorPsicoTsiHighLabel: "High",
+    seniorPsicoTsiAverageLabel: "Average",
+    seniorPsicoTsiLowLabel: "Low",
+    seniorPsicoTsiUndefinedMainSkillWarning:
+      "Two main skills are tied; prediction may be less reliable.",
+    seniorPsicoTsiWageUnavailableWarning:
+      "Wage prediction is not available for this player.",
+    seniorPsicoTsiLowSublevelsWarning:
+      "Close to skill-up or very low form/secondary sublevels.",
+    seniorPsicoTsiHighSublevelsWarning:
+      "Close to skill-up or very high form/secondary sublevels.",
     hiddenSpecialtyTooltip: "Hidden specialty uncovered from match events",
     hiddenSpecialtyTooltipLinkHint: "Click to open the match where it was discovered",
     skillsLabel: "Skills",

@@ -5460,6 +5460,12 @@ html[data-theme="dark"] .seniorPersonaLine {
   color: #c7b9a5;
 }
 
+html[data-theme="dark"] .playerStatementQuote {
+  color: #f1e4d1;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 202, 112, 0.42);
+}
+
 html[data-theme="dark"] .transferSearchSourcePill {
   border-color: #6f604f;
   background: #342d24;
@@ -5474,6 +5480,88 @@ html[data-theme="dark"] .seniorMotherClubHeartLarge {
 html[data-theme="dark"] .infoValue,
 html[data-theme="dark"] .skillLabel {
   color: #f3ede4;
+}
+
+html[data-theme="dark"] .htmsPotentialLow {
+  color: #ffe5e5;
+  background: rgba(255, 107, 92, 0.2);
+  border-color: rgba(255, 107, 92, 0.48);
+}
+
+html[data-theme="dark"] .htmsPotentialMedium {
+  color: #ffe1a8;
+  background: rgba(255, 202, 112, 0.18);
+  border-color: rgba(255, 202, 112, 0.5);
+}
+
+html[data-theme="dark"] .htmsPotentialHigh {
+  color: #8fe5ae;
+  background: rgba(143, 229, 174, 0.14);
+  border-color: rgba(143, 229, 174, 0.42);
+}
+
+html[data-theme="dark"] .htmsPotentialElite {
+  color: #253300;
+  background: #c6ff00;
+  border-color: #72a900;
+}
+
+html[data-theme="dark"] .simulationToggle {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .simulationToggleTrack {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+html[data-theme="dark"] .simulationToggleThumb {
+  background: #f3ede4;
+}
+
+html[data-theme="dark"] .simulationToggleInput:checked + .simulationToggleTrack {
+  background: #c6ff00;
+  border-color: #72a900;
+}
+
+html[data-theme="dark"] .simulationToggleInput:checked + .simulationToggleTrack .simulationToggleThumb {
+  background: #253300;
+}
+
+html[data-theme="dark"] .simulationControlLabel {
+  color: #d8cbb9;
+}
+
+html[data-theme="dark"] .simulationEditableSkillBar:focus-visible {
+  outline-color: #c6ff00;
+}
+
+html[data-theme="dark"] .simulationEditableSkillBar {
+  box-shadow: inset 0 0 0 1px rgba(198, 255, 0, 0.24);
+}
+
+html[data-theme="dark"] .simulationSkillHandle {
+  border-color: #c6ff00;
+  background: #253300;
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.42),
+    0 0 0 3px rgba(37, 51, 0, 0.86);
+}
+
+html[data-theme="dark"] .simulationEditableSkillBar:hover .simulationSkillHandle,
+html[data-theme="dark"] .simulationEditableSkillBar:focus-visible .simulationSkillHandle {
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.46),
+    0 0 0 4px rgba(198, 255, 0, 0.2);
+}
+
+html[data-theme="dark"] .simulationWarning {
+  background: rgba(255, 202, 112, 0.22);
+  border-color: rgba(255, 202, 112, 0.72);
+  color: #ffe7ba;
+  box-shadow: 0 0 0 3px rgba(255, 202, 112, 0.12);
 }
 
 html[data-theme="dark"] .injuryStatusSymbol {
@@ -5498,7 +5586,8 @@ html[data-theme="dark"] .transferSearchModalSidebar,
 html[data-theme="dark"] .transferSearchModalResults,
 html[data-theme="dark"] .transferSearchResultCard,
 html[data-theme="dark"] .transferSearchMarketSummary,
-html[data-theme="dark"] .transferSearchSkillRow {
+html[data-theme="dark"] .transferSearchSkillRow,
+html[data-theme="dark"] .seniorPsicoTable {
   background: #1f1c19;
   border-color: rgba(255, 255, 255, 0.08);
 }
@@ -5548,6 +5637,26 @@ html[data-theme="dark"] .transferSearchFallbackNotice {
 
 html[data-theme="dark"] .infoValueTiny {
   color: #c6bdaf;
+}
+
+html[data-theme="dark"] .seniorPsicoTable th,
+html[data-theme="dark"] .seniorPsicoTable td {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+html[data-theme="dark"] .seniorPsicoTable th {
+  background: #2a2521;
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .seniorPsicoTable td {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .seniorPsicoWarnings span {
+  border-color: rgba(241, 212, 142, 0.32);
+  background: rgba(79, 63, 29, 0.82);
+  color: #f1dfb8;
 }
 
 html[data-theme="dark"] .playerId,
@@ -6517,7 +6626,8 @@ html[data-theme="dark"] .spinner {
   inset: 0;
   min-height: auto;
   padding: 24px;
-  z-index: 6;
+  z-index: 2147483002;
+  pointer-events: auto;
   background:
     linear-gradient(180deg, rgba(247, 241, 227, 0.94), rgba(247, 241, 227, 0.9)),
     radial-gradient(circle at top, rgba(255, 255, 255, 0.9), rgba(247, 241, 227, 0.75));
@@ -6701,6 +6811,29 @@ html[data-theme="dark"] .spinner {
   color: #7a6e60;
   font-style: italic;
   letter-spacing: 0.01em;
+}
+
+.playerStatementQuote {
+  position: relative;
+  margin: 8px 0 0;
+  padding: 8px 12px 8px 14px;
+  border-left: 3px solid rgba(183, 120, 21, 0.48);
+  border-radius: 0 8px 8px 0;
+  background: rgba(255, 248, 239, 0.86);
+  color: #5b4a37;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 650;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.playerStatementQuote::before {
+  content: open-quote;
+}
+
+.playerStatementQuote::after {
+  content: close-quote;
 }
 
 .transferSearchSourcePills {
@@ -7317,6 +7450,114 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   font-size: 13px;
 }
 
+.seniorFoxtrickMetrics {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.seniorFoxtrickMetrics .profileInfoRow {
+  margin-top: 0;
+}
+
+.htmsPotentialPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 2px 9px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.htmsPotentialLow {
+  color: #8f1f1f;
+  background: rgba(197, 48, 48, 0.2);
+  border-color: rgba(143, 31, 31, 0.45);
+}
+
+.htmsPotentialMedium {
+  color: #7a5d12;
+  background: rgba(192, 154, 47, 0.24);
+  border-color: rgba(122, 93, 18, 0.45);
+}
+
+.htmsPotentialHigh {
+  color: #0f6e2d;
+  background: rgba(31, 159, 73, 0.22);
+  border-color: rgba(15, 110, 45, 0.45);
+}
+
+.htmsPotentialElite {
+  color: #244d2b;
+  background: rgba(198, 255, 0, 0.38);
+  border-color: rgba(114, 169, 0, 0.7);
+}
+
+.seniorFoxtrickMetricsLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.seniorFoxtrickMetricsLink:hover {
+  color: #244d2b;
+}
+
+.seniorPsicoTableWrap {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.seniorPsicoTable {
+  width: 100%;
+  min-width: 420px;
+  border-collapse: collapse;
+  border: 1px solid #e1d3be;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fffdf9;
+  font-size: 13px;
+}
+
+.seniorPsicoTable th,
+.seniorPsicoTable td {
+  border: 1px solid #e1d3be;
+  padding: 7px 9px;
+  text-align: left;
+}
+
+.seniorPsicoTable th {
+  background: #efe7dc;
+  color: #2d261f;
+  font-weight: 800;
+}
+
+.seniorPsicoTable td {
+  color: #2d261f;
+}
+
+.seniorPsicoWarnings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.seniorPsicoWarnings span {
+  border: 1px solid #d8c395;
+  border-radius: 8px;
+  background: #fff7dc;
+  color: #5b4312;
+  padding: 4px 7px;
+  font-size: 12px;
+  line-height: 1.25;
+}
+
 .transferSearchBidGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -7472,6 +7713,146 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   height: 100%;
   background: linear-gradient(90deg, #2f9f5b, #1f6f3f);
   border-radius: 999px;
+}
+
+.simulationToggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid #c9b9a3;
+  border-radius: 999px;
+  background: #fff8ef;
+  color: #3f362c;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.simulationToggleInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.simulationToggleTrack {
+  position: relative;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 18px;
+  border: 1px solid #b7a891;
+  border-radius: 999px;
+  background: #d9cbb8;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.simulationToggleThumb {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #fffaf3;
+  box-shadow: 0 1px 3px rgba(48, 37, 24, 0.28);
+  transition: transform 0.16s ease;
+}
+
+.simulationToggleInput:checked + .simulationToggleTrack {
+  background: #244d2b;
+  border-color: #244d2b;
+}
+
+.simulationToggleInput:checked + .simulationToggleTrack .simulationToggleThumb {
+  transform: translateX(16px);
+}
+
+.simulationToggleInput:focus-visible + .simulationToggleTrack {
+  outline: 2px solid #244d2b;
+  outline-offset: 2px;
+}
+
+.simulationControls {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.simulationControlGroup {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.simulationControlLabel {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #5b4a37;
+}
+
+.simulationWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 11px 13px;
+  border: 2px solid rgba(183, 120, 21, 0.72);
+  border-radius: 8px;
+  background: #fff0c2;
+  color: #5c3300;
+  box-shadow: 0 0 0 3px rgba(183, 120, 21, 0.1);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.simulationWarningIcon {
+  flex: 0 0 auto;
+  line-height: 1.25;
+}
+
+.simulationEditableSkillBar {
+  min-height: 16px;
+  cursor: ew-resize;
+  touch-action: none;
+  overflow: visible;
+  box-shadow: inset 0 0 0 1px rgba(36, 77, 43, 0.18);
+}
+
+.simulationEditableSkillBar:focus-visible {
+  outline: 2px solid #244d2b;
+  outline-offset: 3px;
+}
+
+.simulationSkillHandle {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  z-index: 2;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #244d2b;
+  border-radius: 999px;
+  background: #fffaf3;
+  box-shadow:
+    0 1px 4px rgba(48, 37, 24, 0.3),
+    0 0 0 3px rgba(255, 250, 243, 0.78);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.simulationEditableSkillBar:hover .simulationSkillHandle,
+.simulationEditableSkillBar:focus-visible .simulationSkillHandle {
+  box-shadow:
+    0 1px 4px rgba(48, 37, 24, 0.34),
+    0 0 0 4px rgba(36, 77, 43, 0.18);
 }
 
 .skillFillBonusHatched {
@@ -9888,6 +10269,10 @@ html[data-theme="dark"] .slotCardStatus {
     grid-template-columns: 1fr;
   }
 
+  .simulationControlGroup {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .transferSearchResultHeader {
     grid-template-columns: 1fr;
   }
@@ -9902,6 +10287,10 @@ html[data-theme="dark"] .slotCardStatus {
 @media (max-width: 640px) {
   .main {
     padding: 20px 16px 40px;
+  }
+
+  .simulationControlGroup {
+    grid-template-columns: 1fr;
   }
 
   .card,
@@ -9926,11 +10315,15 @@ html[data-theme="dark"] .slotCardStatus {
   .transferSearchModalContent {
     display: block;
     height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .transferSearchResultsStack {
     display: block;
     height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .transferSearchMobilePanelNav {
@@ -9944,9 +10337,11 @@ html[data-theme="dark"] .slotCardStatus {
   .transferSearchModalResults,
   .transferSearchMarketSummary {
     height: 100%;
-    max-height: 100%;
+    max-height: none;
     min-height: 0;
     overflow: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .transferSearchModalContent
@@ -10004,7 +10399,16 @@ html[data-theme="dark"] .slotCardStatus {
 
   .confirmCard.transferSearchModal {
     width: 96vw;
-    max-height: 94vh;
+    height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    max-height: none;
     padding: 12px;
+  }
+
+  .transferSearchModal .confirmBody {
+    flex: 1 1 auto;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: hidden;
   }
 }

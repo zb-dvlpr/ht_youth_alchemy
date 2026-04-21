@@ -76,6 +76,10 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    changelog_4_10_0:
+      "Valores FoxTrick agora podem ser simulados editando habilidades senior, idade e salario nos detalhes do jogador e resultados de busca de transferencias.",
+    changelog_4_9_0:
+      "Detalhes de jogadores seniores e resultados de busca de transferencias agora mostram valores HTMS e PsicoTSI.",
     changelog_4_8_0:
       "Club Chronicle agora pode remover partidas concluidas do Hattrick Live no painel de partidas em andamento.",
     changelog_4_7_0:
@@ -1311,6 +1315,36 @@ export const messagesPt: Messages = {
       "Tem experiência {{experienceLevel}} ({{experienceValue}}) e liderança {{leadershipLevel}} ({{leadershipValue}}).",
     seniorTraitsSentenceLoyalty:
       "Tem lealdade {{loyaltyLevel}} ({{loyaltyValue}}).",
+    seniorWageLabel: "Salário",
+    seniorWageForeignExtraNote: "inclui 20% extra por jogador estrangeiro",
+    seniorFoxtrickMetricsTitle: "Valores FoxTrick",
+    seniorFoxtrickEditSkillsLabel: "Editar habilidades, idade, salario, TSI",
+    seniorFoxtrickSimulationTooltip:
+      "Ative para editar habilidades, idade, salario e TSI e simular valores FoxTrick. Desative para voltar aos valores reais.",
+    seniorFoxtrickSimulationWarning:
+      "Valores de habilidades, idade, salario ou TSI foram alterados manualmente e ja nao refletem o jogador real.",
+    seniorFoxtrickSimulationAgeYearsLabel: "Idade anos",
+    seniorFoxtrickSimulationAgeDaysLabel: "Idade dias",
+    seniorFoxtrickSimulationWageLabel: "Salario (EUR)",
+    seniorHtmsAbilityLabel: "Habilidade HTMS",
+    seniorHtmsPotentialLabel: "Potencial HTMS",
+    seniorPsicoTsiMainSkillLabel: "Habilidade principal",
+    seniorPsicoTsiTsiPredictionLabel: "Previsao baseada em TSI",
+    seniorPsicoTsiWagePredictionLabel: "Previsao baseada no salario",
+    seniorPsicoTsiFormSublevelsLabel: "Subniveis de forma",
+    seniorPsicoTsiSecondariesSublevelsLabel: "Subniveis das habilidades secundarias",
+    seniorPsicoTsiPredictionLabel: "Previsao",
+    seniorPsicoTsiHighLabel: "Alto",
+    seniorPsicoTsiAverageLabel: "Medio",
+    seniorPsicoTsiLowLabel: "Baixo",
+    seniorPsicoTsiUndefinedMainSkillWarning:
+      "Duas habilidades principais estao empatadas; a previsao pode ser menos confiavel.",
+    seniorPsicoTsiWageUnavailableWarning:
+      "A previsao por salario nao esta disponivel para este jogador.",
+    seniorPsicoTsiLowSublevelsWarning:
+      "Perto de subir habilidade ou subniveis de forma/secundarias muito baixos.",
+    seniorPsicoTsiHighSublevelsWarning:
+      "Perto de subir habilidade ou subniveis de forma/secundarias muito altos.",
     hiddenSpecialtyTooltip: "Especialidade oculta descoberta por eventos da partida",
     hiddenSpecialtyTooltipLinkHint:
       "Clique para abrir a partida em que foi descoberta",

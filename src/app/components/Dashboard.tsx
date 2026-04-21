@@ -86,6 +86,8 @@ import {
   YOUTH_DEBUG_SE_FETCH_EVENT,
 } from "@/lib/settings";
 import { useNotifications } from "./notifications/NotificationsProvider";
+import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
+import PlayerStatementQuote from "./PlayerStatementQuote";
 import {
   CHPP_AUTH_REQUIRED_EVENT,
   type ChppDebugOauthErrorMode,
@@ -96,6 +98,7 @@ import {
   writeChppDebugOauthErrorMode,
 } from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
+import { copyTextToClipboard } from "@/lib/clipboard";
 import {
   hattrickPlayerUrl,
   hattrickTeamUrl,
@@ -142,6 +145,21 @@ const VALID_LINEUP_SLOT_IDS = new Set([
   "B_W",
   "B_X",
 ]);
+
+const parseSeniorMetricSkill = (value: unknown): number | null => {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  if (typeof value === "object") {
+    const record = value as Record<string, unknown>;
+    const parsed = Number(record["#text"]);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
 const BASE_TRAINING_SKILLS: SkillKey[] = [
   "keeper",
   "defending",
@@ -3886,11 +3904,60 @@ export default function Dashboard({
         : null;
     const resolvedForm = resultDetails?.Form ?? result.form;
     const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
+    const seniorMetricInput = {
+      ageYears:
+        typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
+      ageDays:
+        typeof resultDetails?.AgeDays === "number" ? resultDetails.AgeDays : result.ageDays,
+      tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
+      salarySek:
+        typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek,
+      isAbroad:
+        typeof resultDetails?.IsAbroad === "boolean"
+          ? resultDetails.IsAbroad
+          : typeof result.isAbroad === "boolean"
+            ? result.isAbroad
+            : undefined,
+      form: resolvedForm,
+      stamina: resolvedStamina,
+      keeper:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.KeeperSkill) ??
+        result.keeperSkill,
+      defending:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.DefenderSkill) ??
+        result.defenderSkill,
+      playmaking:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.PlaymakerSkill) ??
+        result.playmakerSkill,
+      winger:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.WingerSkill) ??
+        result.wingerSkill,
+      passing:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.PassingSkill) ??
+        result.passingSkill,
+      scoring:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.ScorerSkill) ??
+        result.scorerSkill,
+      setPieces:
+        parseSeniorMetricSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ??
+        result.setPiecesSkill,
+    };
     return (
       <article key={result.playerId} className={styles.transferSearchResultCard}>
         <div className={styles.transferSearchResultHeader}>
           <div>
-            <h4 className={styles.profileName}>{playerName}</h4>
+            <h4 className={styles.profileName}>
+              <a
+                className={styles.profileNameLink}
+                href={hattrickPlayerUrl(result.playerId)}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={messages.playerLinkLabel}
+              >
+                {playerName}
+              </a>
+            </h4>
+            <PlayerStatementQuote statement={resultDetails?.Statement} />
             <p className={styles.profileMeta}>
               {result.age !== null ? (
                 <span className={styles.metaItem}>
@@ -3919,15 +3986,20 @@ export default function Dashboard({
             <div className={styles.infoLabel}>{messages.playerIdLabel}</div>
             <div className={styles.infoValue}>
               {result.playerId}
-              <a
-                className={styles.infoLinkIcon}
-                href={hattrickPlayerUrl(result.playerId)}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={messages.playerLinkLabel}
-              >
-                ↗
-              </a>
+              <Tooltip content={messages.copyPlayerIdLabel}>
+                <button
+                  type="button"
+                  className={`${styles.infoLinkIcon} ${styles.copyPlayerIdButton}`}
+                  onClick={() => {
+                    void copyTextToClipboard(String(result.playerId)).then((copied) => {
+                      if (copied) addNotification(messages.notificationPlayerIdCopied);
+                    });
+                  }}
+                  aria-label={messages.copyPlayerIdLabel}
+                >
+                  ⧉
+                </button>
+              </Tooltip>
             </div>
           </div>
           {resultSpecialtyName ? (
@@ -3965,87 +4037,12 @@ export default function Dashboard({
 
         <div className={styles.sectionDivider} />
 
-        <div className={styles.skillsGrid}>
-          {[
-            [messages.sortForm, resolvedForm, 1, 8],
-            [messages.sortStamina, resolvedStamina, 1, 9],
-          ].map(([label, value, min, max]) => {
-            const normalizedValue = typeof value === "number" ? value : null;
-            return (
-              <div key={`${result.playerId}-${label}`} className={styles.skillRow}>
-                <div className={styles.skillLabel}>{label}</div>
-                <div className={styles.skillBar}>
-                  {normalizedValue !== null ? (
-                    <div
-                      className={styles.skillFillCurrent}
-                      style={{
-                        width: `${Math.min(100, (normalizedValue / Number(max)) * 100)}%`,
-                        background: transferSearchBarGradient(
-                          normalizedValue,
-                          Number(min),
-                          Number(max)
-                        ),
-                      }}
-                    />
-                  ) : null}
-                </div>
-                <div className={styles.skillValue}>
-                  <span className={styles.skillValuePartWithFlag}>
-                    <span>{normalizedValue ?? messages.unknownShort}</span>
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className={styles.sectionDivider} />
-
-        <div>
-          <div className={styles.sectionHeadingRow}>
-            <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
-          </div>
-          <div className={styles.skillsGrid}>
-            {[
-              ["KeeperSkill", result.keeperSkill],
-              ["DefenderSkill", result.defenderSkill],
-              ["PlaymakerSkill", result.playmakerSkill],
-              ["WingerSkill", result.wingerSkill],
-              ["PassingSkill", result.passingSkill],
-              ["ScorerSkill", result.scorerSkill],
-              ["SetPiecesSkill", result.setPiecesSkill],
-            ].map(([skillKey, value]) => {
-              const definition = TRANSFER_SEARCH_SKILLS.find((entry) => entry.key === skillKey);
-              if (!definition) return null;
-              const normalizedValue = typeof value === "number" ? value : null;
-              const currentPct =
-                normalizedValue !== null ? Math.min(100, (normalizedValue / 20) * 100) : null;
-              return (
-                <div key={`${result.playerId}-${skillKey}`} className={styles.skillRow}>
-                  <div className={styles.skillLabel}>
-                    {messages[definition.labelKey as keyof Messages]}
-                  </div>
-                  <div className={styles.skillBar}>
-                    {currentPct !== null ? (
-                      <div
-                        className={styles.skillFillCurrent}
-                        style={{
-                          width: `${currentPct}%`,
-                          background: transferSearchBarGradient(normalizedValue, 0, 20),
-                        }}
-                      />
-                    ) : null}
-                  </div>
-                  <div className={styles.skillValue}>
-                    <span className={styles.skillValuePartWithFlag}>
-                      <span>{normalizedValue ?? messages.unknownShort}</span>
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <SeniorFoxtrickSimulator
+          key={`${result.playerId}-${Boolean(resultDetails)}`}
+          input={seniorMetricInput}
+          messages={messages}
+          barGradient={transferSearchBarGradient}
+        />
 
         <div className={styles.transferSearchBidGrid}>
           <div className={styles.transferSearchBidField}>

@@ -22,6 +22,7 @@ import {
   reconnectChppWithTokenReset,
 } from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
+import { copyTextToClipboard } from "@/lib/clipboard";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { formatDateTime } from "@/lib/datetime";
@@ -63,6 +64,8 @@ import UpcomingMatches, {
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import TransferSearchModal from "./TransferSearchModal";
+import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
+import PlayerStatementQuote from "./PlayerStatementQuote";
 import { setDragGhost } from "@/lib/drag";
 import { matchRoleIdToPositionKey, positionLabel } from "@/lib/positions";
 import {
@@ -83,6 +86,7 @@ type SeniorPlayer = {
   Specialty?: number;
   TSI?: number;
   Salary?: number;
+  IsAbroad?: boolean;
   Form?: number;
   StaminaSkill?: number;
   InjuryLevel?: number;
@@ -107,7 +111,12 @@ type SeniorPlayerDetails = {
   Cards?: number;
   TSI?: number;
   Salary?: number;
+  IsAbroad?: boolean;
+  OwningTeam?: {
+    LeagueID?: number;
+  };
   PersonalityStatement?: string;
+  Statement?: string;
   Agreeability?: number;
   Aggressiveness?: number;
   Honesty?: number;
@@ -318,8 +327,6 @@ const WORLDDETAILS_TTL_MS = 16 * 7 * 24 * 60 * 60 * 1000;
 const SENIOR_DETAILS_CONCURRENCY = 6;
 const CHPP_SEK_PER_EUR = 10;
 const I18N_TEMPLATE_TOKEN_PATTERN = /(\{\{[a-zA-Z0-9]+\}\})/g;
-const FORM_MAX_LEVEL = 8;
-const STAMINA_MAX_LEVEL = 9;
 const SKILL_KEYS = [
   "KeeperSkill",
   "DefenderSkill",
@@ -441,6 +448,7 @@ type TransferSearchResult = {
   age: number | null;
   ageDays: number | null;
   salarySek: number | null;
+  isAbroad: boolean | null;
   tsi: number | null;
   form: number | null;
   experience: number | null;
@@ -1409,6 +1417,7 @@ const normalizeTransferSearchResults = (input: unknown): TransferSearchResult[] 
         age: parseNumber(details?.Age),
         ageDays: parseNumber(details?.AgeDays),
         salarySek: parseNumber(details?.Salary),
+        isAbroad: parseBoolean(details?.IsAbroad),
         tsi: parseNumber(details?.TSI),
         form: parseNumber(details?.PlayerForm),
         experience: parseNumber(details?.Experience),
@@ -1590,6 +1599,7 @@ const normalizeSeniorPlayers = (input: unknown): SeniorPlayer[] => {
         Specialty: parseNumber(node.Specialty) ?? undefined,
         TSI: parseNumber(node.TSI) ?? undefined,
         Salary: parseNumber(node.Salary) ?? undefined,
+        IsAbroad: parseBoolean(node.IsAbroad) ?? undefined,
         Form: parseSkill(node.PlayerForm ?? node.Form) ?? undefined,
         StaminaSkill:
           parseSkill(node.StaminaSkill) ??
@@ -1636,6 +1646,10 @@ const normalizeSeniorPlayerDetails = (
   const motherClubBonus = parseBoolean(
     trainerData?.MotherClubBonus ?? node.MotherClubBonus
   );
+  const owningTeam =
+    node.OwningTeam && typeof node.OwningTeam === "object"
+      ? (node.OwningTeam as Record<string, unknown>)
+      : null;
   return {
     PlayerID: playerId,
     FirstName: node.FirstName ? String(node.FirstName) : undefined,
@@ -1655,6 +1669,16 @@ const normalizeSeniorPlayerDetails = (
     Cards: parseNumber(node.Cards) ?? undefined,
     TSI: parseNumber(node.TSI) ?? undefined,
     Salary: parseNumber(node.Salary) ?? undefined,
+    IsAbroad: parseBoolean(node.IsAbroad) ?? undefined,
+    OwningTeam: owningTeam
+      ? {
+          LeagueID: parseNumber(owningTeam.LeagueID) ?? undefined,
+        }
+      : undefined,
+    Statement:
+      typeof node.Statement === "string" && node.Statement.trim()
+        ? node.Statement
+        : undefined,
     Agreeability: agreeability ?? undefined,
     Aggressiveness: aggressiveness ?? undefined,
     Honesty: honesty ?? undefined,
@@ -2137,6 +2161,28 @@ const formatEurFromSek = (valueSek: number) =>
     currency: "EUR",
     maximumFractionDigits: 0,
   }).format(valueSek / CHPP_SEK_PER_EUR);
+
+const formatSeniorWage = (
+  valueSek: number | null,
+  isAbroad: boolean | null | undefined,
+  messages: Messages
+) => {
+  if (valueSek === null || valueSek === undefined) return messages.unknownShort;
+  const base = formatEurFromSek(valueSek);
+  return isAbroad ? `${base} (${messages.seniorWageForeignExtraNote})` : base;
+};
+
+const resolveSeniorIsAbroad = (details: SeniorPlayerDetails | null | undefined) => {
+  if (!details) return undefined;
+  if (typeof details.IsAbroad === "boolean") return details.IsAbroad;
+  if (
+    typeof details.NativeLeagueID === "number" &&
+    typeof details.OwningTeam?.LeagueID === "number"
+  ) {
+    return details.NativeLeagueID !== details.OwningTeam.LeagueID;
+  }
+  return undefined;
+};
 
 const generateFormationShapes = () => {
   const shapes: Array<{ defenders: number; midfielders: number; attackers: number }> = [];
@@ -3312,6 +3358,8 @@ export default function SeniorDashboard({
         Age: player.Age,
         AgeDays: player.AgeDays,
         TSI: player.TSI,
+        Salary: player.Salary,
+        IsAbroad: player.IsAbroad,
         Specialty: player.Specialty,
         InjuryLevel: player.InjuryLevel,
         Form: player.Form,
@@ -3332,6 +3380,11 @@ export default function SeniorDashboard({
         Age?: number;
         AgeDays?: number;
         TSI?: number;
+        Salary?: number;
+        IsAbroad?: boolean;
+        OwningTeam?: {
+          LeagueID?: number;
+        };
         ArrivalDate?: string;
         NativeLeagueID?: number;
         OriginName?: string;
@@ -3341,6 +3394,7 @@ export default function SeniorDashboard({
         Form?: number;
         StaminaSkill?: number;
         PersonalityStatement?: string;
+        Statement?: string;
         Agreeability?: number;
         Aggressiveness?: number;
         Honesty?: number;
@@ -3381,6 +3435,9 @@ export default function SeniorDashboard({
         Age: detail.Age ?? fallback?.Age,
         AgeDays: detail.AgeDays ?? fallback?.AgeDays,
         TSI: detail.TSI ?? fallback?.TSI,
+        Salary: detail.Salary ?? fallback?.Salary,
+        IsAbroad: detail.IsAbroad ?? fallback?.IsAbroad,
+        OwningTeam: detail.OwningTeam,
         ArrivalDate: detail.ArrivalDate ?? fallback?.ArrivalDate,
         NativeLeagueID: detail.NativeLeagueID,
         OriginName: origin?.leagueName,
@@ -3390,6 +3447,7 @@ export default function SeniorDashboard({
         Form: detail.Form ?? fallback?.Form,
         StaminaSkill: detail.StaminaSkill ?? fallback?.StaminaSkill,
         PersonalityStatement: detail.PersonalityStatement,
+        Statement: detail.Statement,
         Agreeability: detail.Agreeability,
         Aggressiveness: detail.Aggressiveness,
         Honesty: detail.Honesty,
@@ -3425,6 +3483,8 @@ export default function SeniorDashboard({
       Age: selectedDetails?.Age ?? selectedPlayer.Age,
       AgeDays: selectedDetails?.AgeDays ?? selectedPlayer.AgeDays,
       TSI: selectedDetails?.TSI ?? selectedPlayer.TSI,
+      Salary: selectedDetails?.Salary ?? selectedPlayer.Salary,
+      IsAbroad: selectedDetails?.IsAbroad ?? selectedPlayer.IsAbroad,
       Specialty: selectedPlayer.Specialty,
       InjuryLevel: selectedDetails?.InjuryLevel ?? selectedPlayer.InjuryLevel,
       Form: selectedDetails?.Form ?? selectedPlayer.Form,
@@ -3451,6 +3511,8 @@ export default function SeniorDashboard({
         Age: selectedPlayer.Age,
         AgeDays: selectedPlayer.AgeDays,
         TSI: selectedPlayer.TSI,
+        Salary: selectedPlayer.Salary,
+        IsAbroad: selectedPlayer.IsAbroad,
         ArrivalDate: selectedPlayer.ArrivalDate,
         Specialty: selectedPlayer.Specialty,
         InjuryLevel: selectedPlayer.InjuryLevel,
@@ -13597,11 +13659,46 @@ const refreshDetailsForPlayers = async (
         : null;
     const resolvedForm = resultDetails?.Form ?? result.form;
     const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
+    const resolvedSalary =
+      typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek;
+    const resolvedIsAbroad =
+      resolveSeniorIsAbroad(resultDetails) ?? result.isAbroad;
+    const seniorMetricInput = {
+      ageYears:
+        typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
+      ageDays:
+        typeof resultDetails?.AgeDays === "number" ? resultDetails.AgeDays : result.ageDays,
+      tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
+      salarySek: resolvedSalary,
+      isAbroad: resolvedIsAbroad ?? undefined,
+      form: resolvedForm,
+      stamina: resolvedStamina,
+      keeper: parseSkill(resultDetails?.PlayerSkills?.KeeperSkill) ?? result.keeperSkill,
+      defending: parseSkill(resultDetails?.PlayerSkills?.DefenderSkill) ?? result.defenderSkill,
+      playmaking:
+        parseSkill(resultDetails?.PlayerSkills?.PlaymakerSkill) ?? result.playmakerSkill,
+      winger: parseSkill(resultDetails?.PlayerSkills?.WingerSkill) ?? result.wingerSkill,
+      passing: parseSkill(resultDetails?.PlayerSkills?.PassingSkill) ?? result.passingSkill,
+      scoring: parseSkill(resultDetails?.PlayerSkills?.ScorerSkill) ?? result.scorerSkill,
+      setPieces:
+        parseSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ?? result.setPiecesSkill,
+    };
     return (
       <article key={result.playerId} className={styles.transferSearchResultCard}>
         <div className={styles.transferSearchResultHeader}>
           <div>
-            <h4 className={styles.profileName}>{playerName}</h4>
+            <h4 className={styles.profileName}>
+              <a
+                className={styles.profileNameLink}
+                href={hattrickPlayerUrl(result.playerId)}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={messages.playerLinkLabel}
+              >
+                {playerName}
+              </a>
+            </h4>
+            <PlayerStatementQuote statement={resultDetails?.Statement} />
             {seniorPersonalitySentence ? (
               <p className={styles.seniorPersonaLine}>{seniorPersonalitySentence}</p>
             ) : null}
@@ -13614,12 +13711,18 @@ const refreshDetailsForPlayers = async (
                   {result.age} {messages.yearsLabel} {result.ageDays ?? 0} {messages.daysLabel}
                 </span>
               ) : null}
-              {result.tsi !== null ? (
-                <span className={styles.metaItem}>
-                  {messages.sortTsi}: {result.tsi}
-                </span>
-              ) : null}
-            </p>
+          {result.tsi !== null ? (
+            <span className={styles.metaItem}>
+              {messages.sortTsi}: {result.tsi}
+            </span>
+          ) : null}
+          {resolvedSalary !== null ? (
+            <span className={styles.metaItem}>
+              {messages.seniorWageLabel}:{" "}
+              {formatSeniorWage(resolvedSalary, resolvedIsAbroad, messages)}
+            </span>
+          ) : null}
+        </p>
           </div>
           <div className={styles.transferSearchPriceBlock}>
             <div className={styles.infoLabel}>{displayPriceLabel}</div>
@@ -13636,15 +13739,20 @@ const refreshDetailsForPlayers = async (
             <div className={styles.infoLabel}>{messages.playerIdLabel}</div>
             <div className={styles.infoValue}>
               {result.playerId}
-              <a
-                className={styles.infoLinkIcon}
-                href={hattrickPlayerUrl(result.playerId)}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={messages.playerLinkLabel}
-              >
-                ↗
-              </a>
+              <Tooltip content={messages.copyPlayerIdLabel}>
+                <button
+                  type="button"
+                  className={`${styles.infoLinkIcon} ${styles.copyPlayerIdButton}`}
+                  onClick={() => {
+                    void copyTextToClipboard(String(result.playerId)).then((copied) => {
+                      if (copied) addNotification(messages.notificationPlayerIdCopied);
+                    });
+                  }}
+                  aria-label={messages.copyPlayerIdLabel}
+                >
+                  ⧉
+                </button>
+              </Tooltip>
             </div>
           </div>
           {resultSpecialtyName ? (
@@ -13690,105 +13798,12 @@ const refreshDetailsForPlayers = async (
 
         <div className={styles.sectionDivider} />
 
-        <div className={styles.skillsGrid}>
-          <div className={styles.skillRow}>
-            <div className={styles.skillLabel}>{messages.sortForm}</div>
-            <div className={styles.skillBar}>
-              {typeof resolvedForm === "number" ? (
-                <div
-                  className={styles.skillFillCurrent}
-                  style={{
-                    width: `${Math.min(100, (resolvedForm / FORM_MAX_LEVEL) * 100)}%`,
-                    background: seniorBarGradient(resolvedForm, 1, FORM_MAX_LEVEL),
-                  }}
-                />
-              ) : null}
-            </div>
-            <div className={styles.skillValue}>
-              <span className={styles.skillValuePartWithFlag}>
-                <span>
-                  {typeof resolvedForm === "number"
-                    ? String(resolvedForm)
-                    : messages.unknownShort}
-                </span>
-              </span>
-            </div>
-          </div>
-          <div className={styles.skillRow}>
-            <div className={styles.skillLabel}>{messages.sortStamina}</div>
-            <div className={styles.skillBar}>
-              {typeof resolvedStamina === "number" ? (
-                <div
-                  className={styles.skillFillCurrent}
-                  style={{
-                    width: `${Math.min(100, (resolvedStamina / STAMINA_MAX_LEVEL) * 100)}%`,
-                    background: seniorBarGradient(resolvedStamina, 1, STAMINA_MAX_LEVEL),
-                  }}
-                />
-              ) : null}
-            </div>
-            <div className={styles.skillValue}>
-              <span className={styles.skillValuePartWithFlag}>
-                <span>
-                  {typeof resolvedStamina === "number"
-                    ? String(resolvedStamina)
-                    : messages.unknownShort}
-                </span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.sectionDivider} />
-
-        <div>
-          <div className={styles.sectionHeadingRow}>
-            <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
-          </div>
-          <div className={styles.skillsGrid}>
-          {[
-            ["KeeperSkill", result.keeperSkill],
-            ["DefenderSkill", result.defenderSkill],
-            ["PlaymakerSkill", result.playmakerSkill],
-            ["WingerSkill", result.wingerSkill],
-            ["PassingSkill", result.passingSkill],
-            ["ScorerSkill", result.scorerSkill],
-            ["SetPiecesSkill", result.setPiecesSkill],
-          ].map(([skillKey, value]) => {
-            const definition = TRANSFER_SEARCH_SKILLS.find((entry) => entry.key === skillKey);
-            if (!definition) return null;
-            const normalizedValue = typeof value === "number" ? value : null;
-            const maxLevel = definition.key === "Leadership" ? 7 : 20;
-            const currentPct =
-              normalizedValue !== null
-                ? Math.min(100, (normalizedValue / maxLevel) * 100)
-                : null;
-            return (
-              <div key={`${result.playerId}-${skillKey}`} className={styles.skillRow}>
-                <div className={styles.skillLabel}>
-                  {messages[definition.labelKey as keyof Messages]}
-                </div>
-                <div className={styles.skillBar}>
-                  {currentPct !== null ? (
-                    <div
-                      className={styles.skillFillCurrent}
-                      style={{
-                        width: `${currentPct}%`,
-                        background: seniorBarGradient(normalizedValue, 0, maxLevel),
-                      }}
-                    />
-                  ) : null}
-                </div>
-                <div className={styles.skillValue}>
-                  <span className={styles.skillValuePartWithFlag}>
-                    <span>{value ?? messages.unknownShort}</span>
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        </div>
+        <SeniorFoxtrickSimulator
+          key={`${result.playerId}-${Boolean(resultDetails)}`}
+          input={seniorMetricInput}
+          messages={messages}
+          barGradient={seniorBarGradient}
+        />
 
         <div className={styles.transferSearchBidGrid}>
           <div className={styles.transferSearchBidField}>

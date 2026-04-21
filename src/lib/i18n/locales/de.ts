@@ -76,6 +76,10 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_4_10_0:
+      "FoxTrick-Werte koennen jetzt durch Bearbeiten von Senior-Skills, Alter und Gehalt in Spielerdetails und Transfersuchergebnissen simuliert werden.",
+    changelog_4_9_0:
+      "Senior-Spielerdetails und Transfersuchergebnisse zeigen jetzt HTMS- und PsicoTSI-Werte.",
     changelog_4_8_0:
       "Club-Chronik kann jetzt beendete Spiele im Panel laufende Spiele aus Hattrick Live entfernen.",
     changelog_4_7_0:
@@ -1295,6 +1299,36 @@ export const messagesDe: Messages = {
       "Hat {{experienceLevel}}e ({{experienceValue}}) Erfahrung und {{leadershipLevel}}e ({{leadershipValue}}) Führungsstärke.",
     seniorTraitsSentenceLoyalty:
       "Hat {{loyaltyLevel}}e ({{loyaltyValue}}) Loyalität.",
+    seniorWageLabel: "Gehalt",
+    seniorWageForeignExtraNote: "enthält 20% Ausländerzuschlag",
+    seniorFoxtrickMetricsTitle: "FoxTrick-Werte",
+    seniorFoxtrickEditSkillsLabel: "Skills, Alter, Gehalt, TSI bearbeiten",
+    seniorFoxtrickSimulationTooltip:
+      "Aktivieren, um Skills, Alter, Gehalt und TSI für FoxTrick-Werte zu simulieren. Deaktivieren setzt echte Werte zurück.",
+    seniorFoxtrickSimulationWarning:
+      "Skill-, Alters-, Gehalts- oder TSI-Werte wurden manuell geändert und entsprechen nicht mehr dem echten Spieler.",
+    seniorFoxtrickSimulationAgeYearsLabel: "Alter Jahre",
+    seniorFoxtrickSimulationAgeDaysLabel: "Alter Tage",
+    seniorFoxtrickSimulationWageLabel: "Gehalt (EUR)",
+    seniorHtmsAbilityLabel: "HTMS-Fähigkeit",
+    seniorHtmsPotentialLabel: "HTMS-Potenzial",
+    seniorPsicoTsiMainSkillLabel: "Hauptfähigkeit",
+    seniorPsicoTsiTsiPredictionLabel: "TSI-basierte Prognose",
+    seniorPsicoTsiWagePredictionLabel: "Gehaltsbasierte Prognose",
+    seniorPsicoTsiFormSublevelsLabel: "Form-Sublevel",
+    seniorPsicoTsiSecondariesSublevelsLabel: "Nebenfähigkeiten-Sublevel",
+    seniorPsicoTsiPredictionLabel: "Prognose",
+    seniorPsicoTsiHighLabel: "Hoch",
+    seniorPsicoTsiAverageLabel: "Durchschnitt",
+    seniorPsicoTsiLowLabel: "Niedrig",
+    seniorPsicoTsiUndefinedMainSkillWarning:
+      "Zwei Hauptfähigkeiten sind gleich hoch; die Prognose kann ungenauer sein.",
+    seniorPsicoTsiWageUnavailableWarning:
+      "Gehaltsprognose ist für diesen Spieler nicht verfügbar.",
+    seniorPsicoTsiLowSublevelsWarning:
+      "Nahe am Skill-up oder sehr niedrige Form-/Nebenfähigkeiten-Sublevel.",
+    seniorPsicoTsiHighSublevelsWarning:
+      "Nahe am Skill-up oder sehr hohe Form-/Nebenfähigkeiten-Sublevel.",
     hiddenSpecialtyTooltip: "Versteckte Spezialitat aus Match-Events erkannt",
     hiddenSpecialtyTooltipLinkHint:
       "Klicken, um das Match zu öffnen, in dem sie entdeckt wurde",

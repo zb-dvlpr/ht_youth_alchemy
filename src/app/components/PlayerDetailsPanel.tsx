@@ -8,7 +8,10 @@ import { positionLabelShortByRoleId } from "@/lib/positions";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { getSkillMaxReached } from "@/lib/skills";
 import { hattrickPlayerUrl, hattrickYouthPlayerUrl } from "@/lib/hattrick/urls";
+import { copyTextToClipboard } from "@/lib/clipboard";
 import { useNotifications } from "./notifications/NotificationsProvider";
+import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
+import PlayerStatementQuote from "./PlayerStatementQuote";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -50,7 +53,13 @@ export type YouthPlayerDetails = {
   InjuryLevel?: number;
   Form?: number;
   StaminaSkill?: number;
+  Salary?: number;
+  IsAbroad?: boolean;
+  OwningTeam?: {
+    LeagueID?: number;
+  };
   PersonalityStatement?: string;
+  Statement?: string;
   Agreeability?: number;
   Aggressiveness?: number;
   Honesty?: number;
@@ -209,9 +218,8 @@ const SKILL_ROWS = [
     shortLabelKey: "skillSetPiecesShort",
   },
 ];
-const FORM_MAX_LEVEL = 8;
-const STAMINA_MAX_LEVEL = 9;
 const HATTRICK_AGE_DAYS_PER_YEAR = 112;
+const CHPP_SEK_PER_EUR = 10;
 const SUBSCRIPT_DIGITS: Record<string, string> = {
   "0": "₀",
   "1": "₁",
@@ -230,24 +238,6 @@ const toSubscript = (value: number) =>
     .split("")
     .map((digit) => SUBSCRIPT_DIGITS[digit] ?? digit)
     .join("");
-
-const copyTextToClipboard = async (value: string) => {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(value);
-    return true;
-  }
-
-  const textarea = document.createElement("textarea");
-  textarea.value = value;
-  textarea.setAttribute("readonly", "");
-  textarea.style.position = "fixed";
-  textarea.style.opacity = "0";
-  document.body.appendChild(textarea);
-  textarea.select();
-  const copied = document.execCommand("copy");
-  document.body.removeChild(textarea);
-  return copied;
-};
 
 const buildInjuryStatus = (injuryLevelRaw: number | null, messages: Messages) => {
   if (injuryLevelRaw === null) return null;
@@ -353,6 +343,35 @@ const metricPillStyle = (
   };
 };
 
+const formatEurFromSek = (valueSek: number) =>
+  new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(valueSek / CHPP_SEK_PER_EUR);
+
+const formatSeniorWage = (
+  valueSek: number | null,
+  isAbroad: boolean | undefined,
+  messages: Messages
+) => {
+  if (valueSek === null || valueSek === undefined) return messages.unknownShort;
+  const base = formatEurFromSek(valueSek);
+  return isAbroad ? `${base} (${messages.seniorWageForeignExtraNote})` : base;
+};
+
+const resolveSeniorIsAbroad = (details: YouthPlayerDetails | null | undefined) => {
+  if (!details) return undefined;
+  if (typeof details.IsAbroad === "boolean") return details.IsAbroad;
+  if (
+    typeof details.NativeLeagueID === "number" &&
+    typeof details.OwningTeam?.LeagueID === "number"
+  ) {
+    return details.NativeLeagueID !== details.OwningTeam.LeagueID;
+  }
+  return undefined;
+};
+
 const seniorBarGradient = (
   value: number | null,
   minSkillLevel: number,
@@ -389,12 +408,6 @@ const formatSkillMatrixFloat = (value: number) => {
   const rounded = Math.round((value + Number.EPSILON) * 10) / 10;
   if (Number.isInteger(rounded)) return String(rounded);
   return rounded.toFixed(1);
-};
-
-const formatSkillBonusDelta = (value: number) => {
-  if (!Number.isFinite(value)) return "+0";
-  const trimmed = value.toFixed(2).replace(/\.?0+$/, "");
-  return `+${trimmed}`;
 };
 
 const computeSeniorSkillBonus = (
@@ -475,6 +488,23 @@ const resolveSeniorAgePillClassName = (
   if (years >= 20) return stylesModule.playerAgePillYellow;
   return stylesModule.playerAgePillGreen;
 };
+
+const buildSeniorMetricInputFromDetails = (details: YouthPlayerDetails) => ({
+  ageYears: typeof details.Age === "number" ? details.Age : null,
+  ageDays: typeof details.AgeDays === "number" ? details.AgeDays : null,
+  tsi: typeof details.TSI === "number" ? details.TSI : null,
+  salarySek: typeof details.Salary === "number" ? details.Salary : null,
+  isAbroad: resolveSeniorIsAbroad(details),
+  form: typeof details.Form === "number" ? details.Form : null,
+  stamina: typeof details.StaminaSkill === "number" ? details.StaminaSkill : null,
+  keeper: getSkillLevel(details.PlayerSkills?.KeeperSkill),
+  defending: getSkillLevel(details.PlayerSkills?.DefenderSkill),
+  playmaking: getSkillLevel(details.PlayerSkills?.PlaymakerSkill),
+  winger: getSkillLevel(details.PlayerSkills?.WingerSkill),
+  passing: getSkillLevel(details.PlayerSkills?.PassingSkill),
+  scoring: getSkillLevel(details.PlayerSkills?.ScorerSkill),
+  setPieces: getSkillLevel(details.PlayerSkills?.SetPiecesSkill),
+});
 
 export default function PlayerDetailsPanel({
   selectedPlayer,
@@ -864,6 +894,12 @@ export default function PlayerDetailsPanel({
             ? selectedPlayer.TSI
             : null)
       : null;
+  const seniorWageValue =
+    playerKind === "senior"
+      ? typeof detailsData?.Salary === "number"
+        ? detailsData.Salary
+        : null
+      : null;
   const seniorAgeLabel =
     playerKind === "senior" && typeof detailsData?.Age === "number"
       ? `${detailsData.Age}${messages.ageYearsShort}${
@@ -1170,6 +1206,7 @@ export default function PlayerDetailsPanel({
                 </span>
               </div>
             ) : null}
+            <PlayerStatementQuote statement={detailsData.Statement} />
             {playerKind === "senior" && seniorPersonalitySentence ? (
               <p className={styles.seniorPersonaLine}>
                 {seniorPersonalitySentence}
@@ -1381,6 +1418,18 @@ export default function PlayerDetailsPanel({
               </div>
             </div>
           ) : null}
+          {playerKind === "senior" ? (
+            <div>
+              <div className={styles.infoLabel}>{messages.seniorWageLabel}</div>
+              <div className={styles.infoValue}>
+                {formatSeniorWage(
+                  seniorWageValue,
+                  resolveSeniorIsAbroad(detailsData),
+                  messages
+                )}
+              </div>
+            </div>
+          ) : null}
           {detailsData.LastMatch ? (
             <div>
               <div className={styles.infoLabel}>
@@ -1397,78 +1446,33 @@ export default function PlayerDetailsPanel({
         {playerKind === "senior" ? (
           <>
             <div className={styles.sectionDivider} />
-            <div className={styles.skillsGrid}>
-              <div className={styles.skillRow}>
-                <div className={styles.skillLabel}>{messages.sortForm}</div>
-                <div className={styles.skillBar}>
-                  {typeof detailsData.Form === "number" ? (
-                    <div
-                      className={styles.skillFillCurrent}
-                      style={{
-                        width: `${Math.min(100, (detailsData.Form / FORM_MAX_LEVEL) * 100)}%`,
-                        background: seniorBarGradient(detailsData.Form, 1, FORM_MAX_LEVEL),
-                      }}
-                    />
-                  ) : null}
-                </div>
-                <div className={styles.skillValue}>
-                  <span className={styles.skillValuePartWithFlag}>
-                    <span>
-                      {typeof detailsData.Form === "number"
-                        ? String(detailsData.Form)
-                        : messages.unknownShort}
-                    </span>
-                  </span>
-                </div>
-              </div>
-              <div className={styles.skillRow}>
-                <div className={styles.skillLabel}>{messages.sortStamina}</div>
-                <div className={styles.skillBar}>
-                  {typeof detailsData.StaminaSkill === "number" ? (
-                    <div
-                      className={styles.skillFillCurrent}
-                      style={{
-                        width: `${Math.min(
-                          100,
-                          (detailsData.StaminaSkill / STAMINA_MAX_LEVEL) * 100
-                        )}%`,
-                        background: seniorBarGradient(
-                          detailsData.StaminaSkill,
-                          1,
-                          STAMINA_MAX_LEVEL
-                        ),
-                      }}
-                    />
-                  ) : null}
-                </div>
-                <div className={styles.skillValue}>
-                  <span className={styles.skillValuePartWithFlag}>
-                    <span>
-                      {typeof detailsData.StaminaSkill === "number"
-                        ? String(detailsData.StaminaSkill)
-                        : messages.unknownShort}
-                    </span>
-                  </span>
-                </div>
-              </div>
-            </div>
+            <SeniorFoxtrickSimulator
+              key={detailsData.YouthPlayerID}
+              input={buildSeniorMetricInputFromDetails(detailsData)}
+              messages={messages}
+              loyalty={detailsData.Loyalty ?? null}
+              motherClubBonus={detailsData.MotherClubBonus}
+              barGradient={seniorBarGradient}
+            />
           </>
         ) : null}
 
-        <div className={styles.sectionDivider} />
+        {playerKind !== "senior" ? (
+          <>
+            <div className={styles.sectionDivider} />
 
-        <div>
-          <div className={styles.sectionHeadingRow}>
-            <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
-            {unlockStatus === "success" ? (
-              <span
-                className={`${styles.detailsBadge} ${styles.detailsBadgeSuccess}`}
-              >
-                {messages.unlockedLabel}
-              </span>
-            ) : null}
-          </div>
-          <div className={styles.skillsGrid}>
+            <div>
+              <div className={styles.sectionHeadingRow}>
+                <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
+                {unlockStatus === "success" ? (
+                  <span
+                    className={`${styles.detailsBadge} ${styles.detailsBadgeSuccess}`}
+                  >
+                    {messages.unlockedLabel}
+                  </span>
+                ) : null}
+              </div>
+              <div className={styles.skillsGrid}>
             {SKILL_ROWS.map((row) => {
               const skillNode = detailsData.PlayerSkills?.[row.key];
               const current = getSkillLevel(skillNode);
@@ -1493,45 +1497,11 @@ export default function PlayerDetailsPanel({
               const currentPct = hasCurrent
                 ? Math.min(100, (current / maxSkillLevel) * 100)
                 : null;
-              const seniorEffectiveCurrent =
-                playerKind === "senior" && skillMode === "single"
-                  ? computeSeniorEffectiveSkill(current, detailsData)
-                  : current;
-              const seniorBonusRaw =
-                playerKind === "senior" && skillMode === "single"
-                  ? computeSeniorSkillBonus(current, detailsData)
-                  : null;
-              const seniorEffectiveCurrentPct =
-                seniorEffectiveCurrent !== null
-                  ? Math.min(100, (seniorEffectiveCurrent / maxSkillLevel) * 100)
-                  : null;
-              const seniorBonusPct =
-                currentPct !== null &&
-                seniorEffectiveCurrentPct !== null &&
-                seniorEffectiveCurrentPct > currentPct
-                  ? seniorEffectiveCurrentPct - currentPct
-                  : 0;
-              const seniorBonusTooltip =
-                playerKind === "senior"
-                  ? detailsData.MotherClubBonus
-                    ? messages.skillBonusMotherClubTooltip
-                    : messages.skillBonusLoyaltyTooltip
-                  : null;
-              const seniorBonusTooltipWithValue =
-                seniorBonusTooltip && seniorBonusRaw !== null && seniorBonusRaw > 0
-                  ? `${seniorBonusTooltip} (${formatSkillBonusDelta(seniorBonusRaw)})`
-                  : seniorBonusTooltip;
               const maxPct = hasMax
                 ? Math.min(100, (max / maxSkillLevel) * 100)
                 : null;
-              const currentBarColor =
-                playerKind === "senior" && hasCurrent
-                  ? seniorBarGradient(current, 1, maxSkillLevel)
-                  : undefined;
-              const maxBarColor =
-                playerKind === "senior" && hasMax
-                  ? seniorBarGradient(max, 1, maxSkillLevel)
-                  : undefined;
+              const currentBarColor = undefined;
+              const maxBarColor = undefined;
 
               return (
                 <div key={row.key} className={styles.skillRow}>
@@ -1548,22 +1518,6 @@ export default function PlayerDetailsPanel({
                             background: currentBarColor,
                           }}
                         />
-                      ) : null}
-                      {playerKind === "senior" &&
-                      seniorBonusPct > 0 &&
-                      currentPct !== null &&
-                      seniorBonusTooltipWithValue ? (
-                        <Tooltip content={seniorBonusTooltipWithValue} followCursor offset={8}>
-                          <span
-                            className={styles.skillFillBonusTrigger}
-                            style={{
-                              left: `${currentPct}%`,
-                              width: `${seniorBonusPct}%`,
-                            }}
-                          >
-                            <span className={styles.skillFillBonusHatched} />
-                          </span>
-                        </Tooltip>
                       ) : null}
                     </div>
                   ) : isMaxed ? (
@@ -1646,8 +1600,10 @@ export default function PlayerDetailsPanel({
                 </div>
               );
             })}
-          </div>
-        </div>
+              </div>
+            </div>
+          </>
+        ) : null}
         {playerKind === "senior" ? (
           <>
             <div className={styles.sectionDivider} />

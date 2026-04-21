@@ -136,6 +136,10 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_10_0:
+  "FoxTrick-waarden kunnen nu worden gesimuleerd door seniorvaardigheden, leeftijd en loon te bewerken in spelerdetails en transferzoekresultaten.",
+  changelog_4_9_0:
+    "Senior-spelerdetails en transferzoekresultaten tonen nu HTMS- en PsicoTSI-waarden.",
   changelog_4_8_0:
     "Club Chronicle kan nu afgelopen wedstrijden uit Hattrick Live verwijderen in het paneel lopende wedstrijden.",
   changelog_4_7_0:
@@ -649,6 +653,36 @@ export const messagesNl: Messages = {
     "Heeft {{experienceLevel}} ({{experienceValue}}) ervaring en {{leadershipLevel}} ({{leadershipValue}}) leiderschap.",
   seniorTraitsSentenceLoyalty:
     "Heeft {{loyaltyLevel}} ({{loyaltyValue}}) loyaliteit.",
+  seniorWageLabel: "Loon",
+  seniorWageForeignExtraNote: "inclusief 20% extra voor buitenlandse speler",
+  seniorFoxtrickMetricsTitle: "FoxTrick-waarden",
+  seniorFoxtrickEditSkillsLabel: "Vaardigheden, leeftijd, loon, TSI bewerken",
+  seniorFoxtrickSimulationTooltip:
+    "Schakel in om vaardigheden, leeftijd, loon en TSI te bewerken en FoxTrick-waarden te simuleren. Schakel uit om echte waarden te herstellen.",
+  seniorFoxtrickSimulationWarning:
+    "Vaardigheids-, leeftijds-, loon- of TSI-waarden zijn handmatig gewijzigd en weerspiegelen niet meer de echte speler.",
+  seniorFoxtrickSimulationAgeYearsLabel: "Leeftijd jaren",
+  seniorFoxtrickSimulationAgeDaysLabel: "Leeftijd dagen",
+  seniorFoxtrickSimulationWageLabel: "Loon (EUR)",
+  seniorHtmsAbilityLabel: "HTMS-vaardigheid",
+  seniorHtmsPotentialLabel: "HTMS-potentieel",
+  seniorPsicoTsiMainSkillLabel: "Hoofdvaardigheid",
+  seniorPsicoTsiTsiPredictionLabel: "TSI-gebaseerde voorspelling",
+  seniorPsicoTsiWagePredictionLabel: "Loongebaseerde voorspelling",
+  seniorPsicoTsiFormSublevelsLabel: "Vorm-subniveaus",
+  seniorPsicoTsiSecondariesSublevelsLabel: "Subniveaus secundaire vaardigheden",
+  seniorPsicoTsiPredictionLabel: "Voorspelling",
+  seniorPsicoTsiHighLabel: "Hoog",
+  seniorPsicoTsiAverageLabel: "Gemiddeld",
+  seniorPsicoTsiLowLabel: "Laag",
+  seniorPsicoTsiUndefinedMainSkillWarning:
+    "Twee hoofdvaardigheden zijn gelijk; de voorspelling kan minder betrouwbaar zijn.",
+  seniorPsicoTsiWageUnavailableWarning:
+    "Loonvoorspelling is niet beschikbaar voor deze speler.",
+  seniorPsicoTsiLowSublevelsWarning:
+    "Dicht bij skill-up of zeer lage vorm-/secundaire subniveaus.",
+  seniorPsicoTsiHighSublevelsWarning:
+    "Dicht bij skill-up of zeer hoge vorm-/secundaire subniveaus.",
   hiddenSpecialtyTooltip: "Verborgen specialiteit ontdekt via wedstrijdgebeurtenissen",
   hiddenSpecialtyTooltipLinkHint: "Klik om de wedstrijd te openen waarin dit ontdekt werd",
   skillsLabel: "Vaardigheden",

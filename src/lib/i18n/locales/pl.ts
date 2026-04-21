@@ -129,6 +129,10 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_10_0:
+    "Wartosci FoxTrick mozna teraz symulowac przez edycje umiejetnosci seniora, wieku i pensji w szczegolach zawodnika oraz wynikach wyszukiwania transferow.",
+  changelog_4_9_0:
+    "Szczegoly seniorow i wyniki wyszukiwania transferow pokazuja teraz wartosci HTMS i PsicoTSI.",
   changelog_4_8_0:
     "Club Chronicle moze teraz usuwac zakonczone mecze z Hattrick Live w panelu trwajacych meczow.",
   changelog_4_7_0:
@@ -642,6 +646,36 @@ export const messagesPl: Messages = {
     "Ma {{experienceLevel}} ({{experienceValue}}) doświadczenia i {{leadershipLevel}} ({{leadershipValue}}) przywództwa.",
   seniorTraitsSentenceLoyalty:
     "Ma {{loyaltyLevel}} ({{loyaltyValue}}) lojalności.",
+  seniorWageLabel: "Pensja",
+  seniorWageForeignExtraNote: "zawiera 20% dodatku za gracza zagranicznego",
+  seniorFoxtrickMetricsTitle: "Wartosci FoxTrick",
+  seniorFoxtrickEditSkillsLabel: "Edytuj umiejetnosci, wiek, pensje, TSI",
+  seniorFoxtrickSimulationTooltip:
+    "Wlacz, aby edytowac umiejetnosci, wiek, pensje i TSI oraz symulowac wartosci FoxTrick. Wylacz, aby wrocic do prawdziwych wartosci.",
+  seniorFoxtrickSimulationWarning:
+    "Wartosci umiejetnosci, wieku, pensji lub TSI zostaly zmienione recznie i nie odzwierciedlaja juz prawdziwego zawodnika.",
+  seniorFoxtrickSimulationAgeYearsLabel: "Wiek lata",
+  seniorFoxtrickSimulationAgeDaysLabel: "Wiek dni",
+  seniorFoxtrickSimulationWageLabel: "Pensja (EUR)",
+  seniorHtmsAbilityLabel: "Umiejetnosc HTMS",
+  seniorHtmsPotentialLabel: "Potencjal HTMS",
+  seniorPsicoTsiMainSkillLabel: "Glowna umiejetnosc",
+  seniorPsicoTsiTsiPredictionLabel: "Prognoza na podstawie TSI",
+  seniorPsicoTsiWagePredictionLabel: "Prognoza na podstawie pensji",
+  seniorPsicoTsiFormSublevelsLabel: "Podpoziomy formy",
+  seniorPsicoTsiSecondariesSublevelsLabel: "Podpoziomy umiejetnosci pobocznych",
+  seniorPsicoTsiPredictionLabel: "Prognoza",
+  seniorPsicoTsiHighLabel: "Wysokie",
+  seniorPsicoTsiAverageLabel: "Srednie",
+  seniorPsicoTsiLowLabel: "Niskie",
+  seniorPsicoTsiUndefinedMainSkillWarning:
+    "Dwie glowne umiejetnosci sa rowne; prognoza moze byc mniej wiarygodna.",
+  seniorPsicoTsiWageUnavailableWarning:
+    "Prognoza z pensji nie jest dostepna dla tego zawodnika.",
+  seniorPsicoTsiLowSublevelsWarning:
+    "Blisko awansu umiejetnosci lub bardzo niskie podpoziomy formy/pobocznych.",
+  seniorPsicoTsiHighSublevelsWarning:
+    "Blisko awansu umiejetnosci lub bardzo wysokie podpoziomy formy/pobocznych.",
   hiddenSpecialtyTooltip: "Ukryta specjalność wykryta z wydarzeń meczowych",
   hiddenSpecialtyTooltipLinkHint: "Kliknij, aby otworzyć mecz, w którym ją odkryto",
   skillsLabel: "Umiejętności",

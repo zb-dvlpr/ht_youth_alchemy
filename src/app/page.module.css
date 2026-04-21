@@ -10008,11 +10008,15 @@ html[data-theme="dark"] .slotCardStatus {
   .transferSearchModalContent {
     display: block;
     height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .transferSearchResultsStack {
     display: block;
     height: 100%;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .transferSearchMobilePanelNav {
@@ -10026,9 +10030,11 @@ html[data-theme="dark"] .slotCardStatus {
   .transferSearchModalResults,
   .transferSearchMarketSummary {
     height: 100%;
-    max-height: 100%;
+    max-height: none;
     min-height: 0;
     overflow: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
   }
 
   .transferSearchModalContent
@@ -10086,7 +10092,16 @@ html[data-theme="dark"] .slotCardStatus {
 
   .confirmCard.transferSearchModal {
     width: 96vw;
-    max-height: 94vh;
+    height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    max-height: none;
     padding: 12px;
+  }
+
+  .transferSearchModal .confirmBody {
+    flex: 1 1 auto;
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    overflow: hidden;
   }
 }

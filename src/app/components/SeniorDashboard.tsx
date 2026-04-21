@@ -22,6 +22,7 @@ import {
   reconnectChppWithTokenReset,
 } from "@/lib/chpp/client";
 import { mapWithConcurrency } from "@/lib/async";
+import { copyTextToClipboard } from "@/lib/clipboard";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { formatDateTime } from "@/lib/datetime";
@@ -13680,7 +13681,17 @@ const refreshDetailsForPlayers = async (
       <article key={result.playerId} className={styles.transferSearchResultCard}>
         <div className={styles.transferSearchResultHeader}>
           <div>
-            <h4 className={styles.profileName}>{playerName}</h4>
+            <h4 className={styles.profileName}>
+              <a
+                className={styles.profileNameLink}
+                href={hattrickPlayerUrl(result.playerId)}
+                target="_blank"
+                rel="noreferrer"
+                aria-label={messages.playerLinkLabel}
+              >
+                {playerName}
+              </a>
+            </h4>
             {seniorPersonalitySentence ? (
               <p className={styles.seniorPersonaLine}>{seniorPersonalitySentence}</p>
             ) : null}
@@ -13721,15 +13732,20 @@ const refreshDetailsForPlayers = async (
             <div className={styles.infoLabel}>{messages.playerIdLabel}</div>
             <div className={styles.infoValue}>
               {result.playerId}
-              <a
-                className={styles.infoLinkIcon}
-                href={hattrickPlayerUrl(result.playerId)}
-                target="_blank"
-                rel="noreferrer"
-                aria-label={messages.playerLinkLabel}
-              >
-                ↗
-              </a>
+              <Tooltip content={messages.copyPlayerIdLabel}>
+                <button
+                  type="button"
+                  className={`${styles.infoLinkIcon} ${styles.copyPlayerIdButton}`}
+                  onClick={() => {
+                    void copyTextToClipboard(String(result.playerId)).then((copied) => {
+                      if (copied) addNotification(messages.notificationPlayerIdCopied);
+                    });
+                  }}
+                  aria-label={messages.copyPlayerIdLabel}
+                >
+                  ⧉
+                </button>
+              </Tooltip>
             </div>
           </div>
           {resultSpecialtyName ? (

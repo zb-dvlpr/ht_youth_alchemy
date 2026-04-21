@@ -7348,6 +7348,17 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   margin-top: 0;
 }
 
+.seniorFoxtrickMetricsLink {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.seniorFoxtrickMetricsLink:hover {
+  color: #244d2b;
+}
+
 .seniorPsicoTableWrap {
   display: grid;
   gap: 8px;

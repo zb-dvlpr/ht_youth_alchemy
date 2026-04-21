@@ -39,7 +39,16 @@ export default function SeniorFoxtrickMetrics({
   return (
     <section className={styles.seniorFoxtrickMetrics}>
       <div className={styles.sectionHeadingRow}>
-        <h5 className={styles.sectionHeading}>{messages.seniorFoxtrickMetricsTitle}</h5>
+        <h5 className={styles.sectionHeading}>
+          <a
+            className={styles.seniorFoxtrickMetricsLink}
+            href="https://foxtrick-ng.github.io/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {messages.seniorFoxtrickMetricsTitle}
+          </a>
+        </h5>
       </div>
       {metrics.htms ? (
         <div className={styles.profileInfoRow}>

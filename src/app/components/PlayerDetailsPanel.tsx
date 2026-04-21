@@ -8,6 +8,7 @@ import { positionLabelShortByRoleId } from "@/lib/positions";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { getSkillMaxReached } from "@/lib/skills";
 import { hattrickPlayerUrl, hattrickYouthPlayerUrl } from "@/lib/hattrick/urls";
+import { copyTextToClipboard } from "@/lib/clipboard";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import SeniorFoxtrickMetrics from "./SeniorFoxtrickMetrics";
 
@@ -237,24 +238,6 @@ const toSubscript = (value: number) =>
     .split("")
     .map((digit) => SUBSCRIPT_DIGITS[digit] ?? digit)
     .join("");
-
-const copyTextToClipboard = async (value: string) => {
-  if (navigator.clipboard?.writeText) {
-    await navigator.clipboard.writeText(value);
-    return true;
-  }
-
-  const textarea = document.createElement("textarea");
-  textarea.value = value;
-  textarea.setAttribute("readonly", "");
-  textarea.style.position = "fixed";
-  textarea.style.opacity = "0";
-  document.body.appendChild(textarea);
-  textarea.select();
-  const copied = document.execCommand("copy");
-  document.body.removeChild(textarea);
-  return copied;
-};
 
 const buildInjuryStatus = (injuryLevelRaw: number | null, messages: Messages) => {
   if (injuryLevelRaw === null) return null;

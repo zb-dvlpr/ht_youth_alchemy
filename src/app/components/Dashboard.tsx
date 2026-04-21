@@ -3911,7 +3911,11 @@ export default function Dashboard({
       salarySek:
         typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek,
       isAbroad:
-        typeof resultDetails?.IsAbroad === "boolean" ? resultDetails.IsAbroad : result.isAbroad,
+        typeof resultDetails?.IsAbroad === "boolean"
+          ? resultDetails.IsAbroad
+          : typeof result.isAbroad === "boolean"
+            ? result.isAbroad
+            : undefined,
       form: resolvedForm,
       stamina: resolvedStamina,
       keeper:

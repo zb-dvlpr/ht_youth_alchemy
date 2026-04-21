@@ -76,6 +76,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_10_0:
+      "FoxTrick-varden kan nu simuleras genom att redigera seniorfardigheter, alder och lon i spelardetaljer och transfersokresultat.",
     changelog_4_9_0:
       "Seniorspelardetaljer och transfersokresultat visar nu HTMS- och PsicoTSI-varden.",
     changelog_4_8_0:
@@ -1308,6 +1310,14 @@ export const messagesSv: Messages = {
     seniorWageLabel: "Lön",
     seniorWageForeignExtraNote: "inkluderar 20% extra för utländsk spelare",
     seniorFoxtrickMetricsTitle: "FoxTrick-varden",
+    seniorFoxtrickEditSkillsLabel: "Redigera fardigheter, alder, lon, TSI",
+    seniorFoxtrickSimulationTooltip:
+      "Aktivera for att redigera fardigheter, alder, lon och TSI och simulera FoxTrick-varden. Inaktivera for att aterstalla riktiga varden.",
+    seniorFoxtrickSimulationWarning:
+      "Fardighets-, alder-, lone- eller TSI-varden har andrats manuellt och speglar inte langre den riktiga spelaren.",
+    seniorFoxtrickSimulationAgeYearsLabel: "Alder ar",
+    seniorFoxtrickSimulationAgeDaysLabel: "Alder dagar",
+    seniorFoxtrickSimulationWageLabel: "Lon (EUR)",
     seniorHtmsAbilityLabel: "HTMS-formaga",
     seniorHtmsPotentialLabel: "HTMS-potential",
     seniorPsicoTsiMainSkillLabel: "Huvudfardighet",

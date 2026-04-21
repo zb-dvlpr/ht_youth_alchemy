@@ -49,7 +49,6 @@ import TransferSearchModal, {
   type TransferSearchSkillFilter,
   type TransferSearchSkillKey,
 } from "./TransferSearchModal";
-import SeniorFoxtrickMetrics from "./SeniorFoxtrickMetrics";
 import {
   POSITION_COLUMNS,
   normalizeMatchRoleId,
@@ -87,6 +86,7 @@ import {
   YOUTH_DEBUG_SE_FETCH_EVENT,
 } from "@/lib/settings";
 import { useNotifications } from "./notifications/NotificationsProvider";
+import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import {
   CHPP_AUTH_REQUIRED_EVENT,
   type ChppDebugOauthErrorMode,
@@ -4035,91 +4035,12 @@ export default function Dashboard({
 
         <div className={styles.sectionDivider} />
 
-        <div className={styles.skillsGrid}>
-          {[
-            [messages.sortForm, resolvedForm, 1, 8],
-            [messages.sortStamina, resolvedStamina, 1, 9],
-          ].map(([label, value, min, max]) => {
-            const normalizedValue = typeof value === "number" ? value : null;
-            return (
-              <div key={`${result.playerId}-${label}`} className={styles.skillRow}>
-                <div className={styles.skillLabel}>{label}</div>
-                <div className={styles.skillBar}>
-                  {normalizedValue !== null ? (
-                    <div
-                      className={styles.skillFillCurrent}
-                      style={{
-                        width: `${Math.min(100, (normalizedValue / Number(max)) * 100)}%`,
-                        background: transferSearchBarGradient(
-                          normalizedValue,
-                          Number(min),
-                          Number(max)
-                        ),
-                      }}
-                    />
-                  ) : null}
-                </div>
-                <div className={styles.skillValue}>
-                  <span className={styles.skillValuePartWithFlag}>
-                    <span>{normalizedValue ?? messages.unknownShort}</span>
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className={styles.sectionDivider} />
-
-        <div>
-          <div className={styles.sectionHeadingRow}>
-            <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
-          </div>
-          <div className={styles.skillsGrid}>
-            {[
-              ["KeeperSkill", result.keeperSkill],
-              ["DefenderSkill", result.defenderSkill],
-              ["PlaymakerSkill", result.playmakerSkill],
-              ["WingerSkill", result.wingerSkill],
-              ["PassingSkill", result.passingSkill],
-              ["ScorerSkill", result.scorerSkill],
-              ["SetPiecesSkill", result.setPiecesSkill],
-            ].map(([skillKey, value]) => {
-              const definition = TRANSFER_SEARCH_SKILLS.find((entry) => entry.key === skillKey);
-              if (!definition) return null;
-              const normalizedValue = typeof value === "number" ? value : null;
-              const currentPct =
-                normalizedValue !== null ? Math.min(100, (normalizedValue / 20) * 100) : null;
-              return (
-                <div key={`${result.playerId}-${skillKey}`} className={styles.skillRow}>
-                  <div className={styles.skillLabel}>
-                    {messages[definition.labelKey as keyof Messages]}
-                  </div>
-                  <div className={styles.skillBar}>
-                    {currentPct !== null ? (
-                      <div
-                        className={styles.skillFillCurrent}
-                        style={{
-                          width: `${currentPct}%`,
-                          background: transferSearchBarGradient(normalizedValue, 0, 20),
-                        }}
-                      />
-                    ) : null}
-                  </div>
-                  <div className={styles.skillValue}>
-                    <span className={styles.skillValuePartWithFlag}>
-                      <span>{normalizedValue ?? messages.unknownShort}</span>
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className={styles.sectionDivider} />
-
-        <SeniorFoxtrickMetrics input={seniorMetricInput} messages={messages} />
+        <SeniorFoxtrickSimulator
+          key={`${result.playerId}-${Boolean(resultDetails)}`}
+          input={seniorMetricInput}
+          messages={messages}
+          barGradient={transferSearchBarGradient}
+        />
 
         <div className={styles.transferSearchBidGrid}>
           <div className={styles.transferSearchBidField}>

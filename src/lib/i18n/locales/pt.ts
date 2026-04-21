@@ -76,6 +76,8 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    changelog_4_10_0:
+      "Valores FoxTrick agora podem ser simulados editando habilidades senior, idade e salario nos detalhes do jogador e resultados de busca de transferencias.",
     changelog_4_9_0:
       "Detalhes de jogadores seniores e resultados de busca de transferencias agora mostram valores HTMS e PsicoTSI.",
     changelog_4_8_0:
@@ -1316,6 +1318,14 @@ export const messagesPt: Messages = {
     seniorWageLabel: "Salário",
     seniorWageForeignExtraNote: "inclui 20% extra por jogador estrangeiro",
     seniorFoxtrickMetricsTitle: "Valores FoxTrick",
+    seniorFoxtrickEditSkillsLabel: "Editar habilidades, idade, salario, TSI",
+    seniorFoxtrickSimulationTooltip:
+      "Ative para editar habilidades, idade, salario e TSI e simular valores FoxTrick. Desative para voltar aos valores reais.",
+    seniorFoxtrickSimulationWarning:
+      "Valores de habilidades, idade, salario ou TSI foram alterados manualmente e ja nao refletem o jogador real.",
+    seniorFoxtrickSimulationAgeYearsLabel: "Idade anos",
+    seniorFoxtrickSimulationAgeDaysLabel: "Idade dias",
+    seniorFoxtrickSimulationWageLabel: "Salario (EUR)",
     seniorHtmsAbilityLabel: "Habilidade HTMS",
     seniorHtmsPotentialLabel: "Potencial HTMS",
     seniorPsicoTsiMainSkillLabel: "Habilidade principal",

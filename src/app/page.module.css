@@ -5500,6 +5500,64 @@ html[data-theme="dark"] .htmsPotentialElite {
   border-color: #72a900;
 }
 
+html[data-theme="dark"] .simulationToggle {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .simulationToggleTrack {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+html[data-theme="dark"] .simulationToggleThumb {
+  background: #f3ede4;
+}
+
+html[data-theme="dark"] .simulationToggleInput:checked + .simulationToggleTrack {
+  background: #c6ff00;
+  border-color: #72a900;
+}
+
+html[data-theme="dark"] .simulationToggleInput:checked + .simulationToggleTrack .simulationToggleThumb {
+  background: #253300;
+}
+
+html[data-theme="dark"] .simulationControlLabel {
+  color: #d8cbb9;
+}
+
+html[data-theme="dark"] .simulationEditableSkillBar:focus-visible {
+  outline-color: #c6ff00;
+}
+
+html[data-theme="dark"] .simulationEditableSkillBar {
+  box-shadow: inset 0 0 0 1px rgba(198, 255, 0, 0.24);
+}
+
+html[data-theme="dark"] .simulationSkillHandle {
+  border-color: #c6ff00;
+  background: #253300;
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.42),
+    0 0 0 3px rgba(37, 51, 0, 0.86);
+}
+
+html[data-theme="dark"] .simulationEditableSkillBar:hover .simulationSkillHandle,
+html[data-theme="dark"] .simulationEditableSkillBar:focus-visible .simulationSkillHandle {
+  box-shadow:
+    0 1px 4px rgba(0, 0, 0, 0.46),
+    0 0 0 4px rgba(198, 255, 0, 0.2);
+}
+
+html[data-theme="dark"] .simulationWarning {
+  background: rgba(255, 202, 112, 0.22);
+  border-color: rgba(255, 202, 112, 0.72);
+  color: #ffe7ba;
+  box-shadow: 0 0 0 3px rgba(255, 202, 112, 0.12);
+}
+
 html[data-theme="dark"] .injuryStatusSymbol {
   color: #ff7b74;
 }
@@ -7625,6 +7683,146 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   height: 100%;
   background: linear-gradient(90deg, #2f9f5b, #1f6f3f);
   border-radius: 999px;
+}
+
+.simulationToggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid #c9b9a3;
+  border-radius: 999px;
+  background: #fff8ef;
+  color: #3f362c;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.simulationToggleInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.simulationToggleTrack {
+  position: relative;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 18px;
+  border: 1px solid #b7a891;
+  border-radius: 999px;
+  background: #d9cbb8;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease;
+}
+
+.simulationToggleThumb {
+  position: absolute;
+  left: 2px;
+  top: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+  background: #fffaf3;
+  box-shadow: 0 1px 3px rgba(48, 37, 24, 0.28);
+  transition: transform 0.16s ease;
+}
+
+.simulationToggleInput:checked + .simulationToggleTrack {
+  background: #244d2b;
+  border-color: #244d2b;
+}
+
+.simulationToggleInput:checked + .simulationToggleTrack .simulationToggleThumb {
+  transform: translateX(16px);
+}
+
+.simulationToggleInput:focus-visible + .simulationToggleTrack {
+  outline: 2px solid #244d2b;
+  outline-offset: 2px;
+}
+
+.simulationControls {
+  display: grid;
+  gap: 10px;
+  margin: 0 0 12px;
+}
+
+.simulationControlGroup {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.simulationControlLabel {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: #5b4a37;
+}
+
+.simulationWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 12px 0 0;
+  padding: 11px 13px;
+  border: 2px solid rgba(183, 120, 21, 0.72);
+  border-radius: 8px;
+  background: #fff0c2;
+  color: #5c3300;
+  box-shadow: 0 0 0 3px rgba(183, 120, 21, 0.1);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.simulationWarningIcon {
+  flex: 0 0 auto;
+  line-height: 1.25;
+}
+
+.simulationEditableSkillBar {
+  min-height: 16px;
+  cursor: ew-resize;
+  touch-action: none;
+  overflow: visible;
+  box-shadow: inset 0 0 0 1px rgba(36, 77, 43, 0.18);
+}
+
+.simulationEditableSkillBar:focus-visible {
+  outline: 2px solid #244d2b;
+  outline-offset: 3px;
+}
+
+.simulationSkillHandle {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  z-index: 2;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #244d2b;
+  border-radius: 999px;
+  background: #fffaf3;
+  box-shadow:
+    0 1px 4px rgba(48, 37, 24, 0.3),
+    0 0 0 3px rgba(255, 250, 243, 0.78);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.simulationEditableSkillBar:hover .simulationSkillHandle,
+.simulationEditableSkillBar:focus-visible .simulationSkillHandle {
+  box-shadow:
+    0 1px 4px rgba(48, 37, 24, 0.34),
+    0 0 0 4px rgba(36, 77, 43, 0.18);
 }
 
 .skillFillBonusHatched {
@@ -10041,6 +10239,10 @@ html[data-theme="dark"] .slotCardStatus {
     grid-template-columns: 1fr;
   }
 
+  .simulationControlGroup {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .transferSearchResultHeader {
     grid-template-columns: 1fr;
   }
@@ -10055,6 +10257,10 @@ html[data-theme="dark"] .slotCardStatus {
 @media (max-width: 640px) {
   .main {
     padding: 20px 16px 40px;
+  }
+
+  .simulationControlGroup {
+    grid-template-columns: 1fr;
   }
 
   .card,

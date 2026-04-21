@@ -129,6 +129,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_10_0:
+    "Wartosci FoxTrick mozna teraz symulowac przez edycje umiejetnosci seniora, wieku i pensji w szczegolach zawodnika oraz wynikach wyszukiwania transferow.",
   changelog_4_9_0:
     "Szczegoly seniorow i wyniki wyszukiwania transferow pokazuja teraz wartosci HTMS i PsicoTSI.",
   changelog_4_8_0:
@@ -647,6 +649,14 @@ export const messagesPl: Messages = {
   seniorWageLabel: "Pensja",
   seniorWageForeignExtraNote: "zawiera 20% dodatku za gracza zagranicznego",
   seniorFoxtrickMetricsTitle: "Wartosci FoxTrick",
+  seniorFoxtrickEditSkillsLabel: "Edytuj umiejetnosci, wiek, pensje, TSI",
+  seniorFoxtrickSimulationTooltip:
+    "Wlacz, aby edytowac umiejetnosci, wiek, pensje i TSI oraz symulowac wartosci FoxTrick. Wylacz, aby wrocic do prawdziwych wartosci.",
+  seniorFoxtrickSimulationWarning:
+    "Wartosci umiejetnosci, wieku, pensji lub TSI zostaly zmienione recznie i nie odzwierciedlaja juz prawdziwego zawodnika.",
+  seniorFoxtrickSimulationAgeYearsLabel: "Wiek lata",
+  seniorFoxtrickSimulationAgeDaysLabel: "Wiek dni",
+  seniorFoxtrickSimulationWageLabel: "Pensja (EUR)",
   seniorHtmsAbilityLabel: "Umiejetnosc HTMS",
   seniorHtmsPotentialLabel: "Potencjal HTMS",
   seniorPsicoTsiMainSkillLabel: "Glowna umiejetnosc",

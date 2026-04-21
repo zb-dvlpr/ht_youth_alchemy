@@ -64,7 +64,7 @@ import UpcomingMatches, {
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import TransferSearchModal from "./TransferSearchModal";
-import SeniorFoxtrickMetrics from "./SeniorFoxtrickMetrics";
+import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import { setDragGhost } from "@/lib/drag";
 import { matchRoleIdToPositionKey, positionLabel } from "@/lib/positions";
 import {
@@ -325,8 +325,6 @@ const WORLDDETAILS_TTL_MS = 16 * 7 * 24 * 60 * 60 * 1000;
 const SENIOR_DETAILS_CONCURRENCY = 6;
 const CHPP_SEK_PER_EUR = 10;
 const I18N_TEMPLATE_TOKEN_PATTERN = /(\{\{[a-zA-Z0-9]+\}\})/g;
-const FORM_MAX_LEVEL = 8;
-const STAMINA_MAX_LEVEL = 9;
 const SKILL_KEYS = [
   "KeeperSkill",
   "DefenderSkill",
@@ -13791,109 +13789,12 @@ const refreshDetailsForPlayers = async (
 
         <div className={styles.sectionDivider} />
 
-        <div className={styles.skillsGrid}>
-          <div className={styles.skillRow}>
-            <div className={styles.skillLabel}>{messages.sortForm}</div>
-            <div className={styles.skillBar}>
-              {typeof resolvedForm === "number" ? (
-                <div
-                  className={styles.skillFillCurrent}
-                  style={{
-                    width: `${Math.min(100, (resolvedForm / FORM_MAX_LEVEL) * 100)}%`,
-                    background: seniorBarGradient(resolvedForm, 1, FORM_MAX_LEVEL),
-                  }}
-                />
-              ) : null}
-            </div>
-            <div className={styles.skillValue}>
-              <span className={styles.skillValuePartWithFlag}>
-                <span>
-                  {typeof resolvedForm === "number"
-                    ? String(resolvedForm)
-                    : messages.unknownShort}
-                </span>
-              </span>
-            </div>
-          </div>
-          <div className={styles.skillRow}>
-            <div className={styles.skillLabel}>{messages.sortStamina}</div>
-            <div className={styles.skillBar}>
-              {typeof resolvedStamina === "number" ? (
-                <div
-                  className={styles.skillFillCurrent}
-                  style={{
-                    width: `${Math.min(100, (resolvedStamina / STAMINA_MAX_LEVEL) * 100)}%`,
-                    background: seniorBarGradient(resolvedStamina, 1, STAMINA_MAX_LEVEL),
-                  }}
-                />
-              ) : null}
-            </div>
-            <div className={styles.skillValue}>
-              <span className={styles.skillValuePartWithFlag}>
-                <span>
-                  {typeof resolvedStamina === "number"
-                    ? String(resolvedStamina)
-                    : messages.unknownShort}
-                </span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.sectionDivider} />
-
-        <div>
-          <div className={styles.sectionHeadingRow}>
-            <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
-          </div>
-          <div className={styles.skillsGrid}>
-          {[
-            ["KeeperSkill", result.keeperSkill],
-            ["DefenderSkill", result.defenderSkill],
-            ["PlaymakerSkill", result.playmakerSkill],
-            ["WingerSkill", result.wingerSkill],
-            ["PassingSkill", result.passingSkill],
-            ["ScorerSkill", result.scorerSkill],
-            ["SetPiecesSkill", result.setPiecesSkill],
-          ].map(([skillKey, value]) => {
-            const definition = TRANSFER_SEARCH_SKILLS.find((entry) => entry.key === skillKey);
-            if (!definition) return null;
-            const normalizedValue = typeof value === "number" ? value : null;
-            const maxLevel = definition.key === "Leadership" ? 7 : 20;
-            const currentPct =
-              normalizedValue !== null
-                ? Math.min(100, (normalizedValue / maxLevel) * 100)
-                : null;
-            return (
-              <div key={`${result.playerId}-${skillKey}`} className={styles.skillRow}>
-                <div className={styles.skillLabel}>
-                  {messages[definition.labelKey as keyof Messages]}
-                </div>
-                <div className={styles.skillBar}>
-                  {currentPct !== null ? (
-                    <div
-                      className={styles.skillFillCurrent}
-                      style={{
-                        width: `${currentPct}%`,
-                        background: seniorBarGradient(normalizedValue, 0, maxLevel),
-                      }}
-                    />
-                  ) : null}
-                </div>
-                <div className={styles.skillValue}>
-                  <span className={styles.skillValuePartWithFlag}>
-                    <span>{value ?? messages.unknownShort}</span>
-                  </span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        </div>
-
-        <div className={styles.sectionDivider} />
-
-        <SeniorFoxtrickMetrics input={seniorMetricInput} messages={messages} />
+        <SeniorFoxtrickSimulator
+          key={`${result.playerId}-${Boolean(resultDetails)}`}
+          input={seniorMetricInput}
+          messages={messages}
+          barGradient={seniorBarGradient}
+        />
 
         <div className={styles.transferSearchBidGrid}>
           <div className={styles.transferSearchBidField}>

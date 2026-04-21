@@ -82,6 +82,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_4_10_0: string;
   changelog_4_9_0: string;
   changelog_4_8_0: string;
   changelog_4_7_0: string;
@@ -1059,6 +1060,12 @@ export type Messages = {
   seniorWageLabel: string;
   seniorWageForeignExtraNote: string;
   seniorFoxtrickMetricsTitle: string;
+  seniorFoxtrickEditSkillsLabel: string;
+  seniorFoxtrickSimulationTooltip: string;
+  seniorFoxtrickSimulationWarning: string;
+  seniorFoxtrickSimulationAgeYearsLabel: string;
+  seniorFoxtrickSimulationAgeDaysLabel: string;
+  seniorFoxtrickSimulationWageLabel: string;
   seniorHtmsAbilityLabel: string;
   seniorHtmsPotentialLabel: string;
   seniorPsicoTsiMainSkillLabel: string;

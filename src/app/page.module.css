@@ -6620,7 +6620,8 @@ html[data-theme="dark"] .spinner {
   inset: 0;
   min-height: auto;
   padding: 24px;
-  z-index: 6;
+  z-index: 2147483002;
+  pointer-events: auto;
   background:
     linear-gradient(180deg, rgba(247, 241, 227, 0.94), rgba(247, 241, 227, 0.9)),
     radial-gradient(circle at top, rgba(255, 255, 255, 0.9), rgba(247, 241, 227, 0.75));

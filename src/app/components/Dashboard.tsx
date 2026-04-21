@@ -87,6 +87,7 @@ import {
 } from "@/lib/settings";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
+import PlayerStatementQuote from "./PlayerStatementQuote";
 import {
   CHPP_AUTH_REQUIRED_EVENT,
   type ChppDebugOauthErrorMode,
@@ -3956,6 +3957,7 @@ export default function Dashboard({
                 {playerName}
               </a>
             </h4>
+            <PlayerStatementQuote statement={resultDetails?.Statement} />
             <p className={styles.profileMeta}>
               {result.age !== null ? (
                 <span className={styles.metaItem}>

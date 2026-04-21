@@ -11,6 +11,7 @@ import { hattrickPlayerUrl, hattrickYouthPlayerUrl } from "@/lib/hattrick/urls";
 import { copyTextToClipboard } from "@/lib/clipboard";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
+import PlayerStatementQuote from "./PlayerStatementQuote";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -58,6 +59,7 @@ export type YouthPlayerDetails = {
     LeagueID?: number;
   };
   PersonalityStatement?: string;
+  Statement?: string;
   Agreeability?: number;
   Aggressiveness?: number;
   Honesty?: number;
@@ -1204,6 +1206,7 @@ export default function PlayerDetailsPanel({
                 </span>
               </div>
             ) : null}
+            <PlayerStatementQuote statement={detailsData.Statement} />
             {playerKind === "senior" && seniorPersonalitySentence ? (
               <p className={styles.seniorPersonaLine}>
                 {seniorPersonalitySentence}

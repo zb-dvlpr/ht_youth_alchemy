@@ -5460,6 +5460,12 @@ html[data-theme="dark"] .seniorPersonaLine {
   color: #c7b9a5;
 }
 
+html[data-theme="dark"] .playerStatementQuote {
+  color: #f1e4d1;
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 202, 112, 0.42);
+}
+
 html[data-theme="dark"] .transferSearchSourcePill {
   border-color: #6f604f;
   background: #342d24;
@@ -6805,6 +6811,29 @@ html[data-theme="dark"] .spinner {
   color: #7a6e60;
   font-style: italic;
   letter-spacing: 0.01em;
+}
+
+.playerStatementQuote {
+  position: relative;
+  margin: 8px 0 0;
+  padding: 8px 12px 8px 14px;
+  border-left: 3px solid rgba(183, 120, 21, 0.48);
+  border-radius: 0 8px 8px 0;
+  background: rgba(255, 248, 239, 0.86);
+  color: #5b4a37;
+  font-size: 13px;
+  font-style: italic;
+  font-weight: 650;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.playerStatementQuote::before {
+  content: open-quote;
+}
+
+.playerStatementQuote::after {
+  content: close-quote;
 }
 
 .transferSearchSourcePills {

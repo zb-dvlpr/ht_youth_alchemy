@@ -65,6 +65,7 @@ import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import TransferSearchModal from "./TransferSearchModal";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
+import PlayerStatementQuote from "./PlayerStatementQuote";
 import { setDragGhost } from "@/lib/drag";
 import { matchRoleIdToPositionKey, positionLabel } from "@/lib/positions";
 import {
@@ -115,6 +116,7 @@ type SeniorPlayerDetails = {
     LeagueID?: number;
   };
   PersonalityStatement?: string;
+  Statement?: string;
   Agreeability?: number;
   Aggressiveness?: number;
   Honesty?: number;
@@ -1673,6 +1675,10 @@ const normalizeSeniorPlayerDetails = (
           LeagueID: parseNumber(owningTeam.LeagueID) ?? undefined,
         }
       : undefined,
+    Statement:
+      typeof node.Statement === "string" && node.Statement.trim()
+        ? node.Statement
+        : undefined,
     Agreeability: agreeability ?? undefined,
     Aggressiveness: aggressiveness ?? undefined,
     Honesty: honesty ?? undefined,
@@ -3388,6 +3394,7 @@ export default function SeniorDashboard({
         Form?: number;
         StaminaSkill?: number;
         PersonalityStatement?: string;
+        Statement?: string;
         Agreeability?: number;
         Aggressiveness?: number;
         Honesty?: number;
@@ -3440,6 +3447,7 @@ export default function SeniorDashboard({
         Form: detail.Form ?? fallback?.Form,
         StaminaSkill: detail.StaminaSkill ?? fallback?.StaminaSkill,
         PersonalityStatement: detail.PersonalityStatement,
+        Statement: detail.Statement,
         Agreeability: detail.Agreeability,
         Aggressiveness: detail.Aggressiveness,
         Honesty: detail.Honesty,
@@ -13690,6 +13698,7 @@ const refreshDetailsForPlayers = async (
                 {playerName}
               </a>
             </h4>
+            <PlayerStatementQuote statement={resultDetails?.Statement} />
             {seniorPersonalitySentence ? (
               <p className={styles.seniorPersonaLine}>{seniorPersonalitySentence}</p>
             ) : null}

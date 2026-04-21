@@ -5476,6 +5476,30 @@ html[data-theme="dark"] .skillLabel {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .htmsPotentialLow {
+  color: #ffe5e5;
+  background: rgba(255, 107, 92, 0.2);
+  border-color: rgba(255, 107, 92, 0.48);
+}
+
+html[data-theme="dark"] .htmsPotentialMedium {
+  color: #ffe1a8;
+  background: rgba(255, 202, 112, 0.18);
+  border-color: rgba(255, 202, 112, 0.5);
+}
+
+html[data-theme="dark"] .htmsPotentialHigh {
+  color: #8fe5ae;
+  background: rgba(143, 229, 174, 0.14);
+  border-color: rgba(143, 229, 174, 0.42);
+}
+
+html[data-theme="dark"] .htmsPotentialElite {
+  color: #253300;
+  background: #c6ff00;
+  border-color: #72a900;
+}
+
 html[data-theme="dark"] .injuryStatusSymbol {
   color: #ff7b74;
 }
@@ -7346,6 +7370,42 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 
 .seniorFoxtrickMetrics .profileInfoRow {
   margin-top: 0;
+}
+
+.htmsPotentialPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 2px 9px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.htmsPotentialLow {
+  color: #8f1f1f;
+  background: rgba(197, 48, 48, 0.2);
+  border-color: rgba(143, 31, 31, 0.45);
+}
+
+.htmsPotentialMedium {
+  color: #7a5d12;
+  background: rgba(192, 154, 47, 0.24);
+  border-color: rgba(122, 93, 18, 0.45);
+}
+
+.htmsPotentialHigh {
+  color: #0f6e2d;
+  background: rgba(31, 159, 73, 0.22);
+  border-color: rgba(15, 110, 45, 0.45);
+}
+
+.htmsPotentialElite {
+  color: #244d2b;
+  background: rgba(198, 255, 0, 0.38);
+  border-color: rgba(114, 169, 0, 0.7);
 }
 
 .seniorFoxtrickMetricsLink {

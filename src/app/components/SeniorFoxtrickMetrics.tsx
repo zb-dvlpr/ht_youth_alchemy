@@ -29,6 +29,13 @@ const hasWagePrediction = (psicoTsi: PsicoTsiMetrics) =>
   psicoTsi.wageAvg !== "N/A" &&
   psicoTsi.wageHigh !== "N/A";
 
+const htmsPotentialPillClassName = (potential: number) => {
+  if (potential < 1900) return styles.htmsPotentialLow;
+  if (potential < 2000) return styles.htmsPotentialMedium;
+  if (potential <= 2100) return styles.htmsPotentialHigh;
+  return styles.htmsPotentialElite;
+};
+
 export default function SeniorFoxtrickMetrics({
   input,
   messages,
@@ -58,7 +65,15 @@ export default function SeniorFoxtrickMetrics({
           </div>
           <div>
             <div className={styles.infoLabel}>{messages.seniorHtmsPotentialLabel}</div>
-            <div className={styles.infoValue}>{metrics.htms.potential}</div>
+            <div className={styles.infoValue}>
+              <span
+                className={`${styles.htmsPotentialPill} ${htmsPotentialPillClassName(
+                  metrics.htms.potential
+                )}`}
+              >
+                {metrics.htms.potential}
+              </span>
+            </div>
           </div>
         </div>
       ) : null}

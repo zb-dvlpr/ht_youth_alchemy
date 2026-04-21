@@ -514,9 +514,28 @@ Foxtrick.psico = {
 	},
 
 	// seems rather useless, leaving for now
-	simWageKeeper: function () {
+	/* eslint-disable @typescript-eslint/no-unused-vars */
+	simWageKeeper: function (skill) {
+		var coefficients = [ // lgtm[js/unused-local-variable]
+			-3.71589339794053e-56,
+			1.04009125232652e-50,
+			-1.23925532612466e-45,
+			8.28233101957159e-41,
+			-3.44786999276044e-36,
+			9.40005209607577e-32,
+			-1.72062171158208e-27,
+			2.13678090366430e-23,
+			-1.80197689313736e-19,
+			1.02533307654267e-15,
+			-3.88645216393083e-12,
+			9.63752335367394e-09,
+			-1.53667425395314e-05,
+			0.0162490281050522,
+			-0.918881884002134
+		];
 		return 0;
 	},
+	/* eslint-enable @typescript-eslint/no-unused-vars */
 
 	/**
 	 * @typedef PsicoTSIPrediction

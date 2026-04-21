@@ -3910,6 +3910,8 @@ export default function Dashboard({
       tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
       salarySek:
         typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek,
+      isAbroad:
+        typeof resultDetails?.IsAbroad === "boolean" ? resultDetails.IsAbroad : result.isAbroad,
       form: resolvedForm,
       stamina: resolvedStamina,
       keeper:

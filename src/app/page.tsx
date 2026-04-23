@@ -378,7 +378,11 @@ export default async function Home() {
             mobileLauncherUtility={
               <>
                 <SettingsButton messages={messages} variant="launcher" />
-                <MobileManualButton messages={messages} />
+                <MobileManualButton
+                  messages={messages}
+                  locale={locale}
+                  appVersion={pkg.version}
+                />
                 <BuyCoffeeButton
                   className={styles.mobileLauncherUtilityButton}
                   aria-label={messages.supportOnKofi}

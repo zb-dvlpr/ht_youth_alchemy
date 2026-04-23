@@ -78,6 +78,7 @@ import {
   captureSeniorEncounteredPlayer,
   type SeniorEncounterSource,
 } from "@/lib/seniorEncounteredPlayerModel";
+import type { SeniorPlayerMetricInput } from "@/lib/seniorPlayerMetrics";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -1281,6 +1282,102 @@ const buildInitialTransferSearchFilters = (
     priceMinEur: "",
     priceMaxEur: "",
   };
+};
+
+const buildEditedTransferSearchSourceDetails = (
+  details: SeniorPlayerDetails | null,
+  metricInput: SeniorPlayerMetricInput
+): SeniorPlayerDetails | null => {
+  if (!details) return null;
+  const skillValue = (value: number | null | undefined, fallback?: SkillValue) =>
+    typeof value === "number" ? ({ "#text": value } as SkillValue) : fallback;
+  const editedPlayerSkills: Record<string, SkillValue> = {
+    ...(details.PlayerSkills ?? {}),
+    ...(skillValue(metricInput.keeper, details.PlayerSkills?.KeeperSkill)
+      ? { KeeperSkill: skillValue(metricInput.keeper, details.PlayerSkills?.KeeperSkill)! }
+      : {}),
+    ...(skillValue(metricInput.defending, details.PlayerSkills?.DefenderSkill)
+      ? {
+          DefenderSkill: skillValue(
+            metricInput.defending,
+            details.PlayerSkills?.DefenderSkill
+          )!,
+        }
+      : {}),
+    ...(skillValue(metricInput.playmaking, details.PlayerSkills?.PlaymakerSkill)
+      ? {
+          PlaymakerSkill: skillValue(
+            metricInput.playmaking,
+            details.PlayerSkills?.PlaymakerSkill
+          )!,
+        }
+      : {}),
+    ...(skillValue(metricInput.winger, details.PlayerSkills?.WingerSkill)
+      ? {
+          WingerSkill: skillValue(metricInput.winger, details.PlayerSkills?.WingerSkill)!,
+        }
+      : {}),
+    ...(skillValue(metricInput.passing, details.PlayerSkills?.PassingSkill)
+      ? {
+          PassingSkill: skillValue(metricInput.passing, details.PlayerSkills?.PassingSkill)!,
+        }
+      : {}),
+    ...(skillValue(metricInput.scoring, details.PlayerSkills?.ScorerSkill)
+      ? {
+          ScorerSkill: skillValue(metricInput.scoring, details.PlayerSkills?.ScorerSkill)!,
+        }
+      : {}),
+    ...(skillValue(metricInput.setPieces, details.PlayerSkills?.SetPiecesSkill)
+      ? {
+          SetPiecesSkill: skillValue(
+            metricInput.setPieces,
+            details.PlayerSkills?.SetPiecesSkill
+          )!,
+        }
+      : {}),
+  };
+  return {
+    ...details,
+    Age:
+      typeof metricInput.ageYears === "number" ? metricInput.ageYears : details.Age,
+    AgeDays:
+      typeof metricInput.ageDays === "number" ? metricInput.ageDays : details.AgeDays,
+    TSI: typeof metricInput.tsi === "number" ? metricInput.tsi : details.TSI,
+    Salary:
+      typeof metricInput.salarySek === "number"
+        ? metricInput.salarySek
+        : details.Salary,
+    Form: typeof metricInput.form === "number" ? metricInput.form : details.Form,
+    StaminaSkill:
+      typeof metricInput.stamina === "number"
+        ? metricInput.stamina
+        : details.StaminaSkill,
+    PlayerSkills: editedPlayerSkills,
+  };
+};
+
+const seniorMetricInputMatches = (
+  left: SeniorPlayerMetricInput | null,
+  right: SeniorPlayerMetricInput | null
+) => {
+  if (left === right) return true;
+  if (!left || !right) return false;
+  return (
+    left.ageYears === right.ageYears &&
+    left.ageDays === right.ageDays &&
+    left.tsi === right.tsi &&
+    left.salarySek === right.salarySek &&
+    left.isAbroad === right.isAbroad &&
+    left.form === right.form &&
+    left.stamina === right.stamina &&
+    left.keeper === right.keeper &&
+    left.defending === right.defending &&
+    left.playmaking === right.playmaking &&
+    left.winger === right.winger &&
+    left.passing === right.passing &&
+    left.scoring === right.scoring &&
+    left.setPieces === right.setPieces
+  );
 };
 
 const buildFallbackTransferSearchFilters = (
@@ -2657,6 +2754,13 @@ export default function SeniorDashboard({
     Record<number, SeniorLeagueOrigin>
   >({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedPlayerSimulationState, setSelectedPlayerSimulationState] = useState<{
+    dirty: boolean;
+    metricInput: SeniorPlayerMetricInput | null;
+  }>({
+    dirty: false,
+    metricInput: null,
+  });
   const [mobileSeniorActive, setMobileSeniorActive] = useState(false);
   const [mobileSeniorView, setMobileSeniorView] =
     useState<SeniorMobileView>("playerDetails");
@@ -9584,13 +9688,23 @@ function buildSeniorAiManMarkingReadySignature(params: {
     const hasRequiredScopes = await ensureRequiredScopes();
     if (!hasRequiredScopes) return;
     const detail = await ensureDetails(player.PlayerID);
-    const initialFilters = buildInitialTransferSearchFilters(player, detail);
+    const editedSourceDetails =
+      selectedPlayerSimulationState.dirty &&
+      selectedId === player.PlayerID &&
+      selectedPlayerSimulationState.metricInput
+        ? buildEditedTransferSearchSourceDetails(
+            detail,
+            selectedPlayerSimulationState.metricInput
+          )
+        : null;
+    const sourceDetails = editedSourceDetails ?? detail;
+    const initialFilters = buildInitialTransferSearchFilters(player, sourceDetails);
     setTransferSearchSourcePlayerId(player.PlayerID);
     setTransferSearchModalOpen(true);
     void runTransferSearch(initialFilters, {
       allowAutoFallback: true,
       sourcePlayer: player,
-      sourceDetails: detail,
+      sourceDetails,
     });
   };
 
@@ -14048,7 +14162,37 @@ const refreshDetailsForPlayers = async (
         ? messages.ratingsMatrixTabLabel
         : mobileSeniorView === "lineupOptimizer"
           ? messages.lineupTitle
-          : messages.detailsTabLabel;
+        : messages.detailsTabLabel;
+
+  const handleSelectedPlayerSimulationStateChange = useCallback(
+    (state: {
+      editing: boolean;
+      dirty: boolean;
+      metricInput: SeniorPlayerMetricInput;
+    }) => {
+      const nextMetricInput = state.dirty ? state.metricInput : null;
+      setSelectedPlayerSimulationState((prev) => {
+        if (
+          prev.dirty === state.dirty &&
+          seniorMetricInputMatches(prev.metricInput, nextMetricInput)
+        ) {
+          return prev;
+        }
+        return {
+          dirty: state.dirty,
+          metricInput: nextMetricInput,
+        };
+      });
+    },
+    []
+  );
+
+  useEffect(() => {
+    setSelectedPlayerSimulationState({
+      dirty: false,
+      metricInput: null,
+    });
+  }, [selectedId]);
 
   const seniorDetailsHeaderActions =
     selectedPlayer ? (
@@ -14064,7 +14208,9 @@ const refreshDetailsForPlayers = async (
           }}
           disabled={activeSeniorTeamOption?.teamGender === "female"}
         >
-          {messages.seniorTransferSearchButtonLabel}
+          {selectedPlayerSimulationState.dirty
+            ? messages.seniorTransferSearchEditedButtonLabel
+            : messages.seniorTransferSearchButtonLabel}
         </button>
       </Tooltip>
     ) : null;
@@ -14148,6 +14294,7 @@ const refreshDetailsForPlayers = async (
       activeTab="details"
       showTabs={false}
       detailsHeaderActions={seniorDetailsHeaderActions}
+      onSeniorSimulationStateChange={handleSelectedPlayerSimulationStateChange}
       messages={messages}
     />
   );
@@ -17850,25 +17997,8 @@ const refreshDetailsForPlayers = async (
             onActiveTabChange={setActiveDetailsTab}
             showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
             onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
-            detailsHeaderActions={
-              selectedPlayer ? (
-                <Tooltip
-                  content={messages.seniorTransferSearchFemaleTeamTooltip}
-                  disabled={activeSeniorTeamOption?.teamGender !== "female"}
-                >
-                  <button
-                    type="button"
-                    className={styles.confirmSubmit}
-                    onClick={() => {
-                      void openTransferSearchForPlayer(selectedPlayer);
-                    }}
-                    disabled={activeSeniorTeamOption?.teamGender === "female"}
-                  >
-                    {messages.seniorTransferSearchButtonLabel}
-                  </button>
-                </Tooltip>
-              ) : null
-            }
+            detailsHeaderActions={seniorDetailsHeaderActions}
+            onSeniorSimulationStateChange={handleSelectedPlayerSimulationStateChange}
             messages={messages}
           />
           )}

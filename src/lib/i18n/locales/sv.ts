@@ -1220,6 +1220,8 @@ export const messagesSv: Messages = {
     starPlayerLabel: "Ange stjärnspelare",
     seniorPlayerListTitle: "Seniorspelare",
     seniorTransferSearchButtonLabel: "Hitta liknande spelare",
+    seniorTransferSearchEditedButtonLabel:
+      "Hitta liknande spelare med redigerade varden",
     seniorTransferSearchFemaleTeamTooltip:
       "Transfersokning ar inte tillganglig for femme-lag.",
     seniorTransferSearchModalTitle: "Transfersokning",

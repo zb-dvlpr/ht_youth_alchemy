@@ -9,6 +9,7 @@ import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { getSkillMaxReached } from "@/lib/skills";
 import { hattrickPlayerUrl, hattrickYouthPlayerUrl } from "@/lib/hattrick/urls";
 import { copyTextToClipboard } from "@/lib/clipboard";
+import type { SeniorPlayerMetricInput } from "@/lib/seniorPlayerMetrics";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import PlayerStatementQuote from "./PlayerStatementQuote";
@@ -165,6 +166,11 @@ type PlayerDetailsPanelProps = {
   onShowSeniorSkillBonusInMatrixChange?: (enabled: boolean) => void;
   showTabs?: boolean;
   detailsHeaderActions?: ReactNode;
+  onSeniorSimulationStateChange?: (state: {
+    editing: boolean;
+    dirty: boolean;
+    metricInput: SeniorPlayerMetricInput;
+  }) => void;
   skillsMatrixHeaderAux?: ReactNode;
   extraSkillsMatrixHeaderAux?: ReactNode;
   skillsMatrixLeadingHeader?: ReactNode;
@@ -555,6 +561,7 @@ export default function PlayerDetailsPanel({
   onShowSeniorSkillBonusInMatrixChange,
   showTabs = true,
   detailsHeaderActions,
+  onSeniorSimulationStateChange,
   skillsMatrixHeaderAux,
   extraSkillsMatrixHeaderAux,
   skillsMatrixLeadingHeader,
@@ -622,6 +629,13 @@ export default function PlayerDetailsPanel({
   const matrixNewPlayerIdSet = useMemo(
     () => new Set(matrixNewPlayerIds),
     [matrixNewPlayerIds]
+  );
+  const seniorMetricInput = useMemo(
+    () =>
+      playerKind === "senior" && detailsData
+        ? buildSeniorMetricInputFromDetails(detailsData)
+        : null,
+    [detailsData, playerKind]
   );
 
   const sortedSkillsRows = useMemo(() => {
@@ -1447,11 +1461,12 @@ export default function PlayerDetailsPanel({
           <>
             <div className={styles.sectionDivider} />
             <SeniorFoxtrickSimulator
-              key={detailsData.YouthPlayerID}
-              input={buildSeniorMetricInputFromDetails(detailsData)}
+              key={`${playerKind}-${detailsData.YouthPlayerID}`}
+              input={seniorMetricInput ?? buildSeniorMetricInputFromDetails(detailsData)}
               messages={messages}
               loyalty={detailsData.Loyalty ?? null}
               motherClubBonus={detailsData.MotherClubBonus}
+              onSimulationStateChange={onSeniorSimulationStateChange}
               barGradient={seniorBarGradient}
             />
           </>

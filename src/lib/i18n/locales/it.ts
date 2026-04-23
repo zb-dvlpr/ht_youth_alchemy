@@ -1231,6 +1231,8 @@ export const messagesIt: Messages = {
     starPlayerLabel: "Imposta giocatore stella",
     seniorPlayerListTitle: "Giocatori senior",
     seniorTransferSearchButtonLabel: "Trova giocatori simili",
+    seniorTransferSearchEditedButtonLabel:
+      "Trova un giocatore simile con valori modificati",
     seniorTransferSearchFemaleTeamTooltip:
       "La ricerca sul mercato trasferimenti non e disponibile per le squadre femme.",
     seniorTransferSearchModalTitle: "Ricerca mercato trasferimenti",

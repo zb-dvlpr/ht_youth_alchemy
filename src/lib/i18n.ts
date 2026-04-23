@@ -978,6 +978,7 @@ export type Messages = {
   starPlayerLabel: string;
   seniorPlayerListTitle: string;
   seniorTransferSearchButtonLabel: string;
+  seniorTransferSearchEditedButtonLabel: string;
   seniorTransferSearchFemaleTeamTooltip: string;
   seniorTransferSearchModalTitle: string;
   seniorTransferSearchCriteriaTitle: string;

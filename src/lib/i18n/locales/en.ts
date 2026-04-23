@@ -1177,6 +1177,8 @@ export const messagesEn: Messages = {
     starPlayerLabel: "Set star player",
     seniorPlayerListTitle: "Senior players",
     seniorTransferSearchButtonLabel: "Find similar players",
+    seniorTransferSearchEditedButtonLabel:
+      "Find similar player with edited values",
     seniorTransferSearchFemaleTeamTooltip: "Transfer market search is not available for femme teams.",
     seniorTransferSearchModalTitle: "Transfer market search",
     seniorTransferSearchCriteriaTitle: "Search criteria",

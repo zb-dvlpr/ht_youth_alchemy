@@ -336,7 +336,11 @@ export default async function Home() {
                     />
                     <HelpToggleButton messages={messages} />
                     <ThemeToggle messages={messages} />
-                    <FeedbackButton messages={messages} />
+                    <FeedbackButton
+                      messages={messages}
+                      locale={locale}
+                      appVersion={pkg.version}
+                    />
                     <SettingsButton messages={messages} />
                     <Tooltip content={messages.supportOnKofi}>
                       <BuyCoffeeButton

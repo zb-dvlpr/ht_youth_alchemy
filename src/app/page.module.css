@@ -1397,6 +1397,47 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   background: #e2f0e4;
 }
 
+.settingsActionButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.settingsSection {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e1d4be;
+  border-radius: 8px;
+  background: rgba(255, 252, 246, 0.7);
+}
+
+.settingsSectionHeader {
+  display: grid;
+  gap: 4px;
+}
+
+.settingsSectionHeader h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.settingsInfoGrid {
+  display: grid;
+  grid-template-columns: minmax(120px, max-content) minmax(0, 1fr);
+  gap: 8px 14px;
+  align-items: start;
+  font-size: 13px;
+}
+
+.settingsInfoGrid span {
+  color: #7a6f60;
+}
+
+.settingsInfoGrid strong {
+  color: #2d2d2b;
+  overflow-wrap: anywhere;
+}
+
 .settingsQrCodeWrap {
   display: flex;
   justify-content: center;
@@ -4714,6 +4755,19 @@ html[data-theme="dark"] .settingsDangerButton {
   border-color: #c65d57;
   background: rgba(198, 93, 87, 0.2);
   color: #ffb3af;
+}
+
+html[data-theme="dark"] .settingsSection {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme="dark"] .settingsInfoGrid span {
+  color: #c7b9a5;
+}
+
+html[data-theme="dark"] .settingsInfoGrid strong {
+  color: #f3ede4;
 }
 
 

@@ -260,6 +260,40 @@ export const messagesSv: Messages = {
     settingsGeneralEnableScalingLabel: "Aktivera appskalning",
     settingsGeneralEnableScalingTooltip:
       "När aktiverad skalas appen för att passa viewporten och minska scrollning. När avstängd används normal storlek och sidan kan scrollas.",
+    settingsMachineLearningTitle: "Maskininlärning",
+    settingsMachineLearningBody:
+      "Senior-spelarsnapshots lärs in automatiskt från senioruppdateringar och detaljer i transfermarknadsresultat.",
+    settingsMachineLearningInfoLabel: "Modellinfo",
+    settingsMachineLearningInfoHint:
+      "Visa hur många anonymiserade senior-spelarsnapshots som finns och vad den lokala modellen kan förutsäga.",
+    settingsMachineLearningTestLabel: "Testa seniormodell",
+    settingsMachineLearningTestingLabel: "Testar seniormodell…",
+    settingsMachineLearningTestHint:
+      "Utvärdera den lokala seniormodellen mot dina egna seniorspelare och uteslut identiska snapshots.",
+    seniorMlInfoTitle: "Seniormodellinfo",
+    seniorMlModelTypeLabel: "Modelltyp",
+    seniorMlModelTypeValue: "Lokal K-närmaste-grannar-regression",
+    seniorMlSampleCountLabel: "Träningssnapshots",
+    seniorMlDistinctPlayersLabel: "Unika spelare",
+    seniorMlSourcesLabel: "Källor",
+    seniorMlLastUpdatedLabel: "Senast uppdaterad",
+    seniorMlTargetsLabel: "Mål",
+    seniorMlTargetsValue: "TSI, lön, ålder",
+    seniorMlNoData:
+      "Inga seniorsnapshots har samlats än. Uppdatera seniorer eller kör transfersökningar.",
+    seniorMlSourceOwnSenior: "Egna seniorer",
+    seniorMlSourceSeniorMarket: "Seniormarknad",
+    seniorMlSourceYouthMarket: "Ungdomsvärderingsmarknad",
+    seniorMlEvaluationTitle: "Seniormodelltest",
+    seniorMlEvaluationEmpty: "Ingen utvärdering har körts än.",
+    seniorMlEvaluationNotReady:
+      "Det finns ännu inte tillräckligt med seniordata för att testa modellen mot dina egna spelare.",
+    seniorMlEvaluationTestedCount: "Testade spelare",
+    seniorMlEvaluationTsiMae: "Genomsnittligt TSI-fel",
+    seniorMlEvaluationWageMae: "Genomsnittligt lönefel",
+    seniorMlEvaluationAgeMae: "Genomsnittligt åldersfel",
+    seniorMlEvaluationAgeDays: "{{days}} dagar",
+    notificationSeniorMlEvaluationFailed: "Seniormodelltest misslyckades.",
     settingsGeneralChronicleWatchlistsExportLabel:
       "Exportera Klubbkrönikan-bevakningslistor till mobilen",
     settingsGeneralChronicleWatchlistsExportHint:
@@ -1077,11 +1111,16 @@ export const messagesSv: Messages = {
     notificationSecondaryTrainingSet: "Sekundärträning:",
     notificationTrainingCleared: "Träning rensad",
     notificationPlayersRefreshed: "Juniorer uppdaterade",
+    notificationSeniorPlayersRefreshed: "Seniorer uppdaterade",
     notificationYouthPlayerDetailsPartialRefresh:
       "Vissa juniordetaljer kunde inte uppdateras ({{count}}/{{total}}).",
     notificationRefreshStoppedManual:
       "Uppdatering stoppad. Hamtade andringar har ignorerats.",
     notificationDebugNewMarkers: "Debug: slumpade NEW-markeringar tillagda",
+    notificationDebugSeniorMlEncountered:
+      "Debug: senior-ML traffade {{count}} spelare fran transfermarknaden",
+    notificationDebugSeniorMlDedup:
+      "Debug: senior-ML tillagda {{added}}, deduplicerade {{deduped}}, misslyckade {{failed}}",
     notificationSortBy: "Sortera efter:",
     notificationSortDirection: "Sorteringsriktning:",
     notificationStarSet: "Stjärnspelare:",

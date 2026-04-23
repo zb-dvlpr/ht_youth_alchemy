@@ -262,6 +262,40 @@ export const messagesFr: Messages = {
     settingsGeneralEnableScalingLabel: "Activer la mise à l échelle de l app",
     settingsGeneralEnableScalingTooltip:
       "Si activé, l app est mise à l échelle pour s adapter au viewport et réduire le défilement. Si désactivé, l app reste à taille normale et peut défiler.",
+    settingsMachineLearningTitle: "Apprentissage automatique",
+    settingsMachineLearningBody:
+      "Les instantanés de joueurs seniors sont appris automatiquement depuis les actualisations seniors et les détails des résultats du marché.",
+    settingsMachineLearningInfoLabel: "Infos du modèle",
+    settingsMachineLearningInfoHint:
+      "Affiche le nombre d’instantanés seniors anonymisés disponibles et ce que le modèle local peut prédire.",
+    settingsMachineLearningTestLabel: "Tester le modèle senior",
+    settingsMachineLearningTestingLabel: "Test du modèle senior…",
+    settingsMachineLearningTestHint:
+      "Évalue le modèle senior local sur vos propres joueurs seniors en excluant les instantanés identiques.",
+    seniorMlInfoTitle: "Infos du modèle senior",
+    seniorMlModelTypeLabel: "Type de modèle",
+    seniorMlModelTypeValue: "Régression locale par K plus proches voisins",
+    seniorMlSampleCountLabel: "Instantanés d’entraînement",
+    seniorMlDistinctPlayersLabel: "Joueurs distincts",
+    seniorMlSourcesLabel: "Sources",
+    seniorMlLastUpdatedLabel: "Dernière mise à jour",
+    seniorMlTargetsLabel: "Cibles",
+    seniorMlTargetsValue: "TSI, salaire, âge",
+    seniorMlNoData:
+      "Aucun instantané senior collecté. Actualisez les seniors ou lancez des recherches de transferts.",
+    seniorMlSourceOwnSenior: "Vos seniors",
+    seniorMlSourceSeniorMarket: "Marché senior",
+    seniorMlSourceYouthMarket: "Marché estimation jeune",
+    seniorMlEvaluationTitle: "Test du modèle senior",
+    seniorMlEvaluationEmpty: "Aucune évaluation lancée.",
+    seniorMlEvaluationNotReady:
+      "Pas encore assez de données seniors pour tester le modèle sur vos propres joueurs.",
+    seniorMlEvaluationTestedCount: "Joueurs testés",
+    seniorMlEvaluationTsiMae: "Erreur TSI moyenne",
+    seniorMlEvaluationWageMae: "Erreur salaire moyenne",
+    seniorMlEvaluationAgeMae: "Erreur âge moyenne",
+    seniorMlEvaluationAgeDays: "{{days}} jours",
+    notificationSeniorMlEvaluationFailed: "Échec du test du modèle senior.",
     settingsGeneralChronicleWatchlistsExportLabel:
       "Exporter les watchlists de Chronique du club vers mobile",
     settingsGeneralChronicleWatchlistsExportHint:
@@ -1085,11 +1119,16 @@ export const messagesFr: Messages = {
     notificationSecondaryTrainingSet: "Entraînement secondaire :",
     notificationTrainingCleared: "Entraînement effacé",
     notificationPlayersRefreshed: "Jeunes joueurs actualisés",
+    notificationSeniorPlayersRefreshed: "Joueurs seniors actualisés",
     notificationYouthPlayerDetailsPartialRefresh:
       "Certains détails de jeunes joueurs n’ont pas pu être actualisés ({{count}}/{{total}}).",
     notificationRefreshStoppedManual:
       "Actualisation arretee. Les changements recuperes ont ete ignores.",
     notificationDebugNewMarkers: "Debug : marqueurs NEW aléatoires appliqués",
+    notificationDebugSeniorMlEncountered:
+      "Debug : le modele ML senior a rencontre {{count}} joueurs du marche des transferts",
+    notificationDebugSeniorMlDedup:
+      "Debug : ML senior ajoutes {{added}}, dedupliques {{deduped}}, echecs {{failed}}",
     notificationSortBy: "Trier par :",
     notificationSortDirection: "Sens de tri :",
     notificationStarSet: "Joueur star :",

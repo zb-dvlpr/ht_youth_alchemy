@@ -88,6 +88,40 @@ export const messagesNl: Messages = {
   settingsGeneralImportAllLabel: "Alle instellingen importeren",
   settingsGeneralImportAllHint:
     "Importeer een eerder geëxporteerde JSON-back-up en vervang de huidige lokale app-instellingen en cachetoestand.",
+  settingsMachineLearningTitle: "Machine learning",
+  settingsMachineLearningBody:
+    "Senior-spelerssnapshots worden automatisch geleerd uit seniorverversingen en details van transfermarktresultaten.",
+  settingsMachineLearningInfoLabel: "Modelinfo",
+  settingsMachineLearningInfoHint:
+    "Toont hoeveel geanonimiseerde senior-spelerssnapshots beschikbaar zijn en wat het lokale model kan voorspellen.",
+  settingsMachineLearningTestLabel: "Seniormodel testen",
+  settingsMachineLearningTestingLabel: "Seniormodel testen…",
+  settingsMachineLearningTestHint:
+    "Evalueert het lokale seniormodel tegen je eigen seniorspelers en sluit identieke snapshots uit.",
+  seniorMlInfoTitle: "Seniormodelinfo",
+  seniorMlModelTypeLabel: "Modeltype",
+  seniorMlModelTypeValue: "Lokale K-dichtstbijzijnde-buren-regressie",
+  seniorMlSampleCountLabel: "Trainingssnapshots",
+  seniorMlDistinctPlayersLabel: "Unieke spelers",
+  seniorMlSourcesLabel: "Bronnen",
+  seniorMlLastUpdatedLabel: "Laatst bijgewerkt",
+  seniorMlTargetsLabel: "Doelen",
+  seniorMlTargetsValue: "TSI, loon, leeftijd",
+  seniorMlNoData:
+    "Er zijn nog geen seniorsnapshots verzameld. Ververs seniors of voer transferzoekopdrachten uit.",
+  seniorMlSourceOwnSenior: "Eigen seniors",
+  seniorMlSourceSeniorMarket: "Seniormarkt",
+  seniorMlSourceYouthMarket: "Jeugdwaardemarkt",
+  seniorMlEvaluationTitle: "Seniormodeltest",
+  seniorMlEvaluationEmpty: "Er is nog geen evaluatie uitgevoerd.",
+  seniorMlEvaluationNotReady:
+    "Er is nog niet genoeg seniordata om het model tegen je eigen spelers te testen.",
+  seniorMlEvaluationTestedCount: "Geteste spelers",
+  seniorMlEvaluationTsiMae: "Gemiddelde TSI-fout",
+  seniorMlEvaluationWageMae: "Gemiddelde loonfout",
+  seniorMlEvaluationAgeMae: "Gemiddelde leeftijdsfout",
+  seniorMlEvaluationAgeDays: "{{days}} dagen",
+  notificationSeniorMlEvaluationFailed: "Seniormodeltest mislukt.",
   settingsGeneralChronicleWatchlistsExportLabel:
     "Club Chronicle-volglijsten naar mobiel exporteren",
   settingsGeneralChronicleWatchlistsExportHint:
@@ -719,8 +753,13 @@ export const messagesNl: Messages = {
   oauthErrorUnknownExplanation: "Hattrick OAuth/CHPP gaf een onverwachte fout tijdens het vernieuwen van gegevens.",
   oauthErrorRecoveryHint: "Probeer toegang te ontkoppelen en opnieuw te koppelen. Als het blijft misgaan, neem contact op met de Hattrick-ondersteuning.",
   notificationPlayersRefreshed: "Spelers vernieuwd",
+  notificationSeniorPlayersRefreshed: "Seniorspelers vernieuwd",
   notificationYouthPlayerDetailsPartialRefresh:
     "Sommige jeugddetails konden niet worden vernieuwd ({{count}}/{{total}}).",
+  notificationDebugSeniorMlEncountered:
+    "Debug: senior-ML trof {{count}} transfermarktspelers aan",
+  notificationDebugSeniorMlDedup:
+    "Debug: senior-ML toegevoegd {{added}}, gededupliceerd {{deduped}}, mislukt {{failed}}",
   notificationMatchesRefreshed: "Wedstrijden vernieuwd",
   notificationMatchesRefreshFailed: "Vernieuwen van wedstrijden mislukt",
   notificationSeniorTrainingRegimenChanged:

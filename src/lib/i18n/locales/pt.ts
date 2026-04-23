@@ -262,6 +262,40 @@ export const messagesPt: Messages = {
     settingsGeneralEnableScalingLabel: "Ativar escala do app",
     settingsGeneralEnableScalingTooltip:
       "Quando ativado, o app é escalado para caber no viewport e reduzir rolagem. Quando desativado, o app usa tamanho normal e pode rolar.",
+    settingsMachineLearningTitle: "Aprendizado de máquina",
+    settingsMachineLearningBody:
+      "Snapshots de jogadores senior são aprendidos automaticamente por atualizações senior e detalhes de resultados do mercado.",
+    settingsMachineLearningInfoLabel: "Info do modelo",
+    settingsMachineLearningInfoHint:
+      "Mostra quantos snapshots senior anonimizados estão disponíveis e o que o modelo local pode prever.",
+    settingsMachineLearningTestLabel: "Testar modelo senior",
+    settingsMachineLearningTestingLabel: "Testando modelo senior…",
+    settingsMachineLearningTestHint:
+      "Avalia o modelo senior local contra seus próprios jogadores senior, excluindo snapshots idênticos.",
+    seniorMlInfoTitle: "Info do modelo senior",
+    seniorMlModelTypeLabel: "Tipo de modelo",
+    seniorMlModelTypeValue: "Regressão local K-vizinhos mais próximos",
+    seniorMlSampleCountLabel: "Snapshots de treino",
+    seniorMlDistinctPlayersLabel: "Jogadores distintos",
+    seniorMlSourcesLabel: "Fontes",
+    seniorMlLastUpdatedLabel: "Última atualização",
+    seniorMlTargetsLabel: "Alvos",
+    seniorMlTargetsValue: "TSI, salário, idade",
+    seniorMlNoData:
+      "Nenhum snapshot senior coletado ainda. Atualize jogadores senior ou execute buscas de transferência.",
+    seniorMlSourceOwnSenior: "Senior próprios",
+    seniorMlSourceSeniorMarket: "Mercado senior",
+    seniorMlSourceYouthMarket: "Mercado de estimativa jovem",
+    seniorMlEvaluationTitle: "Teste do modelo senior",
+    seniorMlEvaluationEmpty: "Nenhuma avaliação executada ainda.",
+    seniorMlEvaluationNotReady:
+      "Ainda não há dados senior suficientes para testar o modelo contra seus jogadores.",
+    seniorMlEvaluationTestedCount: "Jogadores testados",
+    seniorMlEvaluationTsiMae: "Erro médio de TSI",
+    seniorMlEvaluationWageMae: "Erro médio de salário",
+    seniorMlEvaluationAgeMae: "Erro médio de idade",
+    seniorMlEvaluationAgeDays: "{{days}} dias",
+    notificationSeniorMlEvaluationFailed: "Falha no teste do modelo senior.",
     settingsGeneralChronicleWatchlistsExportLabel:
       "Exportar watchlists do Club Chronicle para mobile",
     settingsGeneralChronicleWatchlistsExportHint:
@@ -1086,11 +1120,16 @@ export const messagesPt: Messages = {
     notificationSecondaryTrainingSet: "Treino secundário:",
     notificationTrainingCleared: "Treino limpo",
     notificationPlayersRefreshed: "Jogadores juvenis atualizados",
+    notificationSeniorPlayersRefreshed: "Jogadores seniores atualizados",
     notificationYouthPlayerDetailsPartialRefresh:
       "Alguns detalhes dos juvenis não puderam ser atualizados ({{count}}/{{total}}).",
     notificationRefreshStoppedManual:
       "Atualizacao interrompida. As mudancas recuperadas foram descartadas.",
     notificationDebugNewMarkers: "Debug: marcadores NEW aleatórios aplicados",
+    notificationDebugSeniorMlEncountered:
+      "Debug: o ML senior encontrou {{count}} jogadores do mercado de transferencias",
+    notificationDebugSeniorMlDedup:
+      "Debug: ML senior adicionados {{added}}, deduplicados {{deduped}}, falhados {{failed}}",
     notificationSortBy: "Ordenar por:",
     notificationSortDirection: "Direção da ordenação:",
     notificationStarSet: "Jogador estrela:",

@@ -245,6 +245,40 @@ export const messagesEn: Messages = {
     settingsGeneralEnableScalingLabel: "Enable app scaling",
     settingsGeneralEnableScalingTooltip:
       "When enabled, the app scales to fit the viewport and reduce scrolling. When disabled, the app uses normal size and can scroll.",
+    settingsMachineLearningTitle: "Machine learning",
+    settingsMachineLearningBody:
+      "Senior player snapshots are learned automatically from own senior refreshes and transfer market result details.",
+    settingsMachineLearningInfoLabel: "Model info",
+    settingsMachineLearningInfoHint:
+      "Show how many anonymized senior player snapshots are available and what the local model can predict.",
+    settingsMachineLearningTestLabel: "Test senior model",
+    settingsMachineLearningTestingLabel: "Testing senior model…",
+    settingsMachineLearningTestHint:
+      "Evaluate the local senior model against your own senior players, excluding exact matching snapshots from each test.",
+    seniorMlInfoTitle: "Senior model info",
+    seniorMlModelTypeLabel: "Model type",
+    seniorMlModelTypeValue: "Local K-nearest-neighbor regression",
+    seniorMlSampleCountLabel: "Training snapshots",
+    seniorMlDistinctPlayersLabel: "Distinct players",
+    seniorMlSourcesLabel: "Sources",
+    seniorMlLastUpdatedLabel: "Last updated",
+    seniorMlTargetsLabel: "Targets",
+    seniorMlTargetsValue: "TSI, wage, age",
+    seniorMlNoData:
+      "No senior player snapshots have been collected yet. Refresh senior players or run transfer searches to collect data.",
+    seniorMlSourceOwnSenior: "Own senior",
+    seniorMlSourceSeniorMarket: "Senior market",
+    seniorMlSourceYouthMarket: "Youth estimate market",
+    seniorMlEvaluationTitle: "Senior model test",
+    seniorMlEvaluationEmpty: "No evaluation has been run yet.",
+    seniorMlEvaluationNotReady:
+      "There is not enough senior data to test the model against your own players yet.",
+    seniorMlEvaluationTestedCount: "Players tested",
+    seniorMlEvaluationTsiMae: "Average TSI error",
+    seniorMlEvaluationWageMae: "Average wage error",
+    seniorMlEvaluationAgeMae: "Average age error",
+    seniorMlEvaluationAgeDays: "{{days}} days",
+    notificationSeniorMlEvaluationFailed: "Senior model test failed.",
     settingsGeneralChronicleWatchlistsExportLabel:
       "Export Club Chronicle watchlists to mobile",
     settingsGeneralChronicleWatchlistsExportHint:
@@ -1043,10 +1077,15 @@ export const messagesEn: Messages = {
     notificationSecondaryTrainingSet: "Secondary training:",
     notificationTrainingCleared: "Training cleared",
     notificationPlayersRefreshed: "Youth players refreshed",
+    notificationSeniorPlayersRefreshed: "Senior players refreshed",
     notificationYouthPlayerDetailsPartialRefresh:
       "Some youth player details could not be refreshed ({{count}}/{{total}}).",
     notificationRefreshStoppedManual: "Refresh stopped. Retrieved changes were discarded.",
     notificationDebugNewMarkers: "Debug: random NEW markers applied",
+    notificationDebugSeniorMlEncountered:
+      "Debug: senior ML encountered {{count}} transfer-market players",
+    notificationDebugSeniorMlDedup:
+      "Debug: senior ML added {{added}}, deduped {{deduped}}, failed {{failed}}",
     notificationSortBy: "Sort by:",
     notificationSortDirection: "Sort direction:",
     notificationStarSet: "Star player:",

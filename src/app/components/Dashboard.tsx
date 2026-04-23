@@ -110,6 +110,7 @@ import {
   parseExtendedPermissionsFromCheckToken,
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
+import { captureSeniorEncounteredPlayer } from "@/lib/seniorEncounteredPlayerModel";
 
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
@@ -3548,22 +3549,55 @@ export default function Dashboard({
       cache: "no-store",
     });
     if (!response.ok || payload?.error || !payload?.data?.HattrickData?.Player) {
-      return null;
+      return { detail: null, added: false };
     }
-    return payload.data.HattrickData.Player;
+    const detail = payload.data.HattrickData.Player;
+    const captureStatus = await captureSeniorEncounteredPlayer(
+      detail,
+      "youthTransferMarket"
+    );
+    return { detail, captureStatus };
   };
 
   const hydrateTransferSearchDetails = async (results: TransferSearchResult[]) => {
-    void mapWithConcurrency(results, 4, async (result) => {
-      const detail = await fetchTransferSearchPlayerDetails(result.playerId);
-      if (detail) {
+    const encounterCount = results.length;
+    if (process.env.NODE_ENV !== "production") {
+      addNotification(
+        messages.notificationDebugSeniorMlEncountered.replace(
+          "{{count}}",
+          String(encounterCount)
+        )
+      );
+    }
+    const outcomes = await mapWithConcurrency(results, 4, async (result) => {
+      const outcome = await fetchTransferSearchPlayerDetails(result.playerId);
+      if (outcome.detail) {
         setTransferSearchDetailsById((prev) => ({
           ...prev,
-          [result.playerId]: detail,
+          [result.playerId]: outcome.detail,
         }));
       }
-      return null;
+      return {
+        resolved: Boolean(outcome.detail),
+        added: outcome.captureStatus === "added",
+        deduped: outcome.captureStatus === "deduped",
+        failed:
+          !outcome.detail || outcome.captureStatus === "failed",
+      };
     });
+    if (process.env.NODE_ENV !== "production") {
+      const addedCount = outcomes.filter((outcome) => outcome?.added).length;
+      const dedupedCount = outcomes.filter((outcome) => outcome?.deduped).length;
+      const failedCount = outcomes.filter((outcome) => outcome?.failed).length;
+      addNotification(
+        messages.notificationDebugSeniorMlDedup.replace(
+          "{{added}}",
+          String(addedCount)
+        )
+          .replace("{{deduped}}", String(dedupedCount))
+          .replace("{{failed}}", String(failedCount))
+      );
+    }
   };
 
   const runTransferSearch = async (

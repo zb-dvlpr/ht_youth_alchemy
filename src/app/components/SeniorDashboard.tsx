@@ -74,6 +74,10 @@ import {
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
 import { readGlobalSeason } from "@/lib/season";
+import {
+  captureSeniorEncounteredPlayer,
+  type SeniorEncounterSource,
+} from "@/lib/seniorEncounteredPlayerModel";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -9338,7 +9342,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
     }
   };
 
-  const fetchPlayerDetailsById = async (playerId: number) => {
+  const fetchPlayerDetailsById = async (
+    playerId: number,
+    encounterSource: SeniorEncounterSource = "ownSenior"
+  ) => {
     const { response, payload } = await fetchChppJson<{
       data?: { HattrickData?: { Player?: SeniorPlayerDetails } };
       error?: string;
@@ -9349,7 +9356,71 @@ function buildSeniorAiManMarkingReadySignature(params: {
     if (!response.ok || payload?.error || !payload?.data?.HattrickData?.Player) {
       return null;
     }
-    return normalizeSeniorPlayerDetails(payload.data.HattrickData.Player, playerId);
+    const rawPlayer = payload.data.HattrickData.Player;
+    const normalized = normalizeSeniorPlayerDetails(
+      rawPlayer,
+      playerId
+    );
+    await captureSeniorEncounteredPlayer(rawPlayer, encounterSource);
+    return normalized;
+  };
+
+  const ensureDetailsWithEncounterStatus = async (
+    playerId: number,
+    encounterSource: SeniorEncounterSource
+  ) => {
+    const cached = detailsCache[playerId];
+    if (!cached || Date.now() - cached.fetchedAt >= DETAILS_TTL_MS) {
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: { HattrickData?: { Player?: SeniorPlayerDetails } };
+          error?: string;
+          details?: string;
+        }>(`/api/chpp/playerdetails?playerId=${playerId}&includeMatchInfo=true`, {
+          cache: "no-store",
+        });
+        if (!response.ok || payload?.error || !payload?.data?.HattrickData?.Player) {
+          return { resolved: false, added: false };
+        }
+        const rawPlayer = payload.data.HattrickData.Player;
+        const normalized = normalizeSeniorPlayerDetails(rawPlayer, playerId);
+        if (!normalized) {
+          return { resolved: false, added: false };
+        }
+        const captureStatus = await captureSeniorEncounteredPlayer(
+          rawPlayer,
+          encounterSource
+        );
+        setDetailsCache((prev) => ({
+          ...prev,
+          [playerId]: {
+            data: normalized,
+            fetchedAt: Date.now(),
+          },
+        }));
+        return {
+          resolved: true,
+          added: captureStatus === "added",
+          deduped: captureStatus === "deduped",
+          failed: captureStatus === "failed",
+        };
+      } catch (error) {
+        if (error instanceof ChppAuthRequiredError) {
+          return { resolved: false, added: false, deduped: false, failed: true };
+        }
+        throw error;
+      }
+    }
+    const captureStatus = await captureSeniorEncounteredPlayer(
+      cached.data,
+      encounterSource
+    );
+    return {
+      resolved: true,
+      added: captureStatus === "added",
+      deduped: captureStatus === "deduped",
+      failed: captureStatus === "failed",
+    };
   };
 
   const bootstrapRatingsFromSeasons = async (teamId: number | null, season: number) => {
@@ -9358,14 +9429,19 @@ function buildSeniorAiManMarkingReadySignature(params: {
     return mergeRatingsMatrices(previousSeason, currentSeason);
   };
 
-  const ensureDetails = async (playerId: number, forceRefresh = false) => {
+  const ensureDetails = async (
+    playerId: number,
+    forceRefresh = false,
+    encounterSource: SeniorEncounterSource = "ownSenior"
+  ) => {
     const cached = detailsCache[playerId];
     if (!forceRefresh && cached && Date.now() - cached.fetchedAt < DETAILS_TTL_MS) {
+      await captureSeniorEncounteredPlayer(cached.data, encounterSource);
       return cached.data;
     }
     let resolved: SeniorPlayerDetails | null;
     try {
-      resolved = await fetchPlayerDetailsById(playerId);
+      resolved = await fetchPlayerDetailsById(playerId, encounterSource);
     } catch (error) {
       if (error instanceof ChppAuthRequiredError) return null;
       throw error;
@@ -9384,14 +9460,38 @@ function buildSeniorAiManMarkingReadySignature(params: {
   };
 
   const hydrateTransferSearchDetails = async (results: TransferSearchResult[]) => {
-    void mapWithConcurrency(
+    const encounterCount = results.length;
+    if (process.env.NODE_ENV !== "production") {
+      addNotification(
+        messages.notificationDebugSeniorMlEncountered.replace(
+          "{{count}}",
+          String(encounterCount)
+        )
+      );
+    }
+    const outcomes = await mapWithConcurrency(
       results,
       4,
       async (result) => {
-        await ensureDetails(result.playerId);
-        return null;
+        return ensureDetailsWithEncounterStatus(
+          result.playerId,
+          "seniorTransferMarket"
+        );
       }
     );
+    if (process.env.NODE_ENV !== "production") {
+      const addedCount = outcomes.filter((outcome) => outcome?.added).length;
+      const dedupedCount = outcomes.filter((outcome) => outcome?.deduped).length;
+      const failedCount = outcomes.filter((outcome) => outcome?.failed).length;
+      addNotification(
+        messages.notificationDebugSeniorMlDedup.replace(
+          "{{added}}",
+          String(addedCount)
+        )
+          .replace("{{deduped}}", String(dedupedCount))
+          .replace("{{failed}}", String(failedCount))
+      );
+    }
   };
 
   const runTransferSearch = async (
@@ -9571,7 +9671,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
           formatTransferSearchPlayerName(result)
         )
       );
-      const refreshedDetail = await fetchPlayerDetailsById(result.playerId);
+      const refreshedDetail = await fetchPlayerDetailsById(
+        result.playerId,
+        "seniorTransferMarket"
+      );
       if (refreshedDetail) {
         setDetailsCache((prev) => ({
           ...prev,
@@ -9620,7 +9723,7 @@ const refreshDetailsForPlayers = async (
       playersToRefresh,
       SENIOR_DETAILS_CONCURRENCY,
       async (player) => {
-        const detail = await fetchPlayerDetailsById(player.PlayerID);
+        const detail = await fetchPlayerDetailsById(player.PlayerID, "ownSenior");
         completed += 1;
         options?.onProgress?.(completed, total);
         return {
@@ -10247,7 +10350,7 @@ const refreshDetailsForPlayers = async (
       addNotification(
         reason === "stale"
           ? messages.notificationStaleRefresh
-          : messages.notificationPlayersRefreshed
+          : messages.notificationSeniorPlayersRefreshed
       );
       return true;
     } catch (error) {

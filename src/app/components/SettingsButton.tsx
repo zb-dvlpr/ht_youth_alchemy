@@ -53,6 +53,14 @@ import {
   requestChronicleWatchlistsSnapshot,
   summarizeImportedChronicleWatchlists,
 } from "@/lib/chronicleWatchlistTransfer";
+import {
+  backfillSeniorEncounteredPlayerModelFromLocalCache,
+  evaluateSeniorEncounteredPlayerModel,
+  getSeniorEncounteredPlayerModelSummary,
+  type SeniorEncounteredPlayerModelSummary,
+  type SeniorModelEvaluationResult,
+} from "@/lib/seniorEncounteredPlayerModel";
+import { formatDateTime } from "@/lib/datetime";
 
 type SettingsButtonProps = {
   messages: Messages;
@@ -86,6 +94,13 @@ export default function SettingsButton({
   const [generalSettingsOpen, setGeneralSettingsOpen] = useState(false);
   const [chronicleQrExportOpen, setChronicleQrExportOpen] = useState(false);
   const [chronicleQrImportOpen, setChronicleQrImportOpen] = useState(false);
+  const [seniorMlInfoOpen, setSeniorMlInfoOpen] = useState(false);
+  const [seniorMlEvaluationOpen, setSeniorMlEvaluationOpen] = useState(false);
+  const [seniorMlSummary, setSeniorMlSummary] =
+    useState<SeniorEncounteredPlayerModelSummary | null>(null);
+  const [seniorMlEvaluation, setSeniorMlEvaluation] =
+    useState<SeniorModelEvaluationResult | null>(null);
+  const [seniorMlEvaluating, setSeniorMlEvaluating] = useState(false);
   const [chronicleQrImportWarningOpen, setChronicleQrImportWarningOpen] =
     useState(false);
   const [debugSettingsOpen, setDebugSettingsOpen] = useState(false);
@@ -483,6 +498,26 @@ export default function SettingsButton({
           detail: { enableScaling: nextValue },
         })
       );
+    }
+  };
+
+  const handleOpenSeniorMlInfo = async () => {
+    await backfillSeniorEncounteredPlayerModelFromLocalCache();
+    setSeniorMlSummary(getSeniorEncounteredPlayerModelSummary());
+    setSeniorMlInfoOpen(true);
+  };
+
+  const handleEvaluateSeniorMlModel = async () => {
+    setSeniorMlEvaluationOpen(true);
+    setSeniorMlEvaluating(true);
+    setSeniorMlEvaluation(null);
+    try {
+      await backfillSeniorEncounteredPlayerModelFromLocalCache();
+      setSeniorMlEvaluation(await evaluateSeniorEncounteredPlayerModel());
+    } catch {
+      addNotification(messages.notificationSeniorMlEvaluationFailed);
+    } finally {
+      setSeniorMlEvaluating(false);
     }
   };
 
@@ -913,6 +948,35 @@ export default function SettingsButton({
                 </label>
               </Tooltip>
             ) : null}
+            {isDev ? (
+              <section className={styles.settingsSection}>
+                <div className={styles.settingsSectionHeader}>
+                  <h3>{messages.settingsMachineLearningTitle}</h3>
+                  <p className={styles.muted}>{messages.settingsMachineLearningBody}</p>
+                </div>
+                <Tooltip content={messages.settingsMachineLearningInfoHint} fullWidth>
+                  <button
+                    type="button"
+                    className={styles.settingsActionButton}
+                    onClick={handleOpenSeniorMlInfo}
+                  >
+                    {messages.settingsMachineLearningInfoLabel}
+                  </button>
+                </Tooltip>
+                <Tooltip content={messages.settingsMachineLearningTestHint} fullWidth>
+                  <button
+                    type="button"
+                    className={styles.settingsActionButton}
+                    onClick={handleEvaluateSeniorMlModel}
+                    disabled={seniorMlEvaluating}
+                  >
+                    {seniorMlEvaluating
+                      ? messages.settingsMachineLearningTestingLabel
+                      : messages.settingsMachineLearningTestLabel}
+                  </button>
+                </Tooltip>
+              </section>
+            ) : null}
             <Tooltip content={messages.settingsGeneralExportAllHint} fullWidth>
               <button
                 type="button"
@@ -945,6 +1009,122 @@ export default function SettingsButton({
         closeOnBackdrop
         onClose={() => setGeneralSettingsOpen(false)}
       />
+      {isDev ? (
+        <>
+          <Modal
+            open={seniorMlInfoOpen}
+            title={messages.seniorMlInfoTitle}
+            body={
+              <div className={styles.settingsModalBody}>
+                {seniorMlSummary && seniorMlSummary.sampleCount > 0 ? (
+                  <div className={styles.settingsInfoGrid}>
+                    <span>{messages.seniorMlModelTypeLabel}</span>
+                    <strong>{messages.seniorMlModelTypeValue}</strong>
+                    <span>{messages.seniorMlSampleCountLabel}</span>
+                    <strong>{seniorMlSummary.sampleCount}</strong>
+                    <span>{messages.seniorMlDistinctPlayersLabel}</span>
+                    <strong>{seniorMlSummary.distinctPlayerCount}</strong>
+                    <span>{messages.seniorMlTargetsLabel}</span>
+                    <strong>{messages.seniorMlTargetsValue}</strong>
+                    <span>{messages.seniorMlLastUpdatedLabel}</span>
+                    <strong>
+                      {seniorMlSummary.updatedAt
+                        ? formatDateTime(seniorMlSummary.updatedAt)
+                        : messages.unknownShort}
+                    </strong>
+                    <span>{messages.seniorMlSourcesLabel}</span>
+                    <strong>
+                      {messages.seniorMlSourceOwnSenior}:{" "}
+                      {seniorMlSummary.sourceCounts.ownSenior}
+                      {" · "}
+                      {messages.seniorMlSourceSeniorMarket}:{" "}
+                      {seniorMlSummary.sourceCounts.seniorTransferMarket}
+                      {" · "}
+                      {messages.seniorMlSourceYouthMarket}:{" "}
+                      {seniorMlSummary.sourceCounts.youthTransferMarket}
+                    </strong>
+                  </div>
+                ) : (
+                  <p className={styles.muted}>{messages.seniorMlNoData}</p>
+                )}
+              </div>
+            }
+            actions={
+              <button
+                type="button"
+                className={styles.confirmSubmit}
+                onClick={() => setSeniorMlInfoOpen(false)}
+              >
+                {messages.closeLabel}
+              </button>
+            }
+            closeOnBackdrop
+            onClose={() => setSeniorMlInfoOpen(false)}
+          />
+          <Modal
+            open={seniorMlEvaluationOpen}
+            title={messages.seniorMlEvaluationTitle}
+            body={
+              <div className={styles.settingsModalBody}>
+                {seniorMlEvaluating ? (
+                  <p className={styles.muted}>
+                    {messages.settingsMachineLearningTestingLabel}
+                  </p>
+                ) : seniorMlEvaluation && seniorMlEvaluation.testedCount > 0 ? (
+                  <div className={styles.settingsInfoGrid}>
+                    <span>{messages.seniorMlSampleCountLabel}</span>
+                    <strong>{seniorMlEvaluation.sampleCount}</strong>
+                    <span>{messages.seniorMlDistinctPlayersLabel}</span>
+                    <strong>{seniorMlEvaluation.distinctPlayerCount}</strong>
+                    <span>{messages.seniorMlEvaluationTestedCount}</span>
+                    <strong>{seniorMlEvaluation.testedCount}</strong>
+                    <span>{messages.seniorMlEvaluationTsiMae}</span>
+                    <strong>
+                      {seniorMlEvaluation.tsiMae !== null
+                        ? Math.round(seniorMlEvaluation.tsiMae).toLocaleString()
+                        : messages.unknownShort}
+                    </strong>
+                    <span>{messages.seniorMlEvaluationWageMae}</span>
+                    <strong>
+                      {seniorMlEvaluation.wageMaeSek !== null
+                        ? `€${Math.round(
+                            seniorMlEvaluation.wageMaeSek / 10
+                          ).toLocaleString()}`
+                        : messages.unknownShort}
+                    </strong>
+                    <span>{messages.seniorMlEvaluationAgeMae}</span>
+                    <strong>
+                      {seniorMlEvaluation.ageMaeDays !== null
+                        ? messages.seniorMlEvaluationAgeDays.replace(
+                            "{{days}}",
+                            String(Math.round(seniorMlEvaluation.ageMaeDays))
+                          )
+                        : messages.unknownShort}
+                    </strong>
+                  </div>
+                ) : seniorMlEvaluation ? (
+                  <p className={styles.muted}>
+                    {messages.seniorMlEvaluationNotReady}
+                  </p>
+                ) : (
+                  <p className={styles.muted}>{messages.seniorMlEvaluationEmpty}</p>
+                )}
+              </div>
+            }
+            actions={
+              <button
+                type="button"
+                className={styles.confirmSubmit}
+                onClick={() => setSeniorMlEvaluationOpen(false)}
+              >
+                {messages.closeLabel}
+              </button>
+            }
+            closeOnBackdrop
+            onClose={() => setSeniorMlEvaluationOpen(false)}
+          />
+        </>
+      ) : null}
       <Modal
         open={chronicleQrExportOpen}
         title={messages.settingsChronicleQrExportTitle}

@@ -1218,6 +1218,10 @@ export const messagesEn: Messages = {
       "Reveal at least one max potential skill before estimating value.",
     youthEstimateValueAgeMissingTooltip:
       "Refresh player details before estimating value.",
+    transferSearchSortDefault: "Search order",
+    transferSearchSortHtmsPotential: "HTMS potential",
+    transferSearchSortPsicoTsiAverage: "Average TSI-based Psico prediction",
+    transferSearchSortPsicoWageAverage: "Average wage-based Psico prediction",
     transferSearchMarketSummaryTitle: "Market summary",
     transferSearchMarketSummaryBasis: "{{count}} priced results",
     transferSearchMarketSummarySparse:

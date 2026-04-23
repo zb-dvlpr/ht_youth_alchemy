@@ -63,7 +63,9 @@ import UpcomingMatches, {
 } from "./UpcomingMatches";
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
-import TransferSearchModal from "./TransferSearchModal";
+import TransferSearchModal, {
+  type TransferSearchSortKey,
+} from "./TransferSearchModal";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import PlayerStatementQuote from "./PlayerStatementQuote";
 import { setDragGhost } from "@/lib/drag";
@@ -2885,6 +2887,8 @@ export default function SeniorDashboard({
   );
   const [transferSearchResults, setTransferSearchResults] = useState<TransferSearchResult[]>([]);
   const [transferSearchItemCount, setTransferSearchItemCount] = useState<number | null>(null);
+  const [transferSearchSortKey, setTransferSearchSortKey] =
+    useState<TransferSearchSortKey>("default");
   const [transferSearchLoading, setTransferSearchLoading] = useState(false);
   const [transferSearchError, setTransferSearchError] = useState<string | null>(null);
   const [transferSearchUsedFallback, setTransferSearchUsedFallback] = useState(false);
@@ -12451,6 +12455,7 @@ const refreshDetailsForPlayers = async (
             transferSearchFilters?: TransferSearchFilters | null;
             transferSearchResults?: TransferSearchResult[];
             transferSearchItemCount?: number | null;
+            transferSearchSortKey?: TransferSearchSortKey;
             transferSearchUsedFallback?: boolean;
             transferSearchExactEmpty?: boolean;
             transferSearchBidDrafts?: Record<number, TransferSearchBidDraft>;
@@ -12699,6 +12704,21 @@ const refreshDetailsForPlayers = async (
               ? null
               : null
           );
+          setTransferSearchSortKey(
+            parsed.transferSearchSortKey === "htmsPotential" ||
+              parsed.transferSearchSortKey === "psicoTsiAvg" ||
+              parsed.transferSearchSortKey === "psicoWageAvg" ||
+              parsed.transferSearchSortKey === "keeper" ||
+              parsed.transferSearchSortKey === "defending" ||
+              parsed.transferSearchSortKey === "playmaking" ||
+              parsed.transferSearchSortKey === "winger" ||
+              parsed.transferSearchSortKey === "passing" ||
+              parsed.transferSearchSortKey === "scoring" ||
+              parsed.transferSearchSortKey === "setPieces" ||
+              parsed.transferSearchSortKey === "default"
+              ? parsed.transferSearchSortKey
+              : "default"
+          );
           setTransferSearchUsedFallback(Boolean(parsed.transferSearchUsedFallback));
           setTransferSearchExactEmpty(Boolean(parsed.transferSearchExactEmpty));
           setTransferSearchBidDrafts(
@@ -12918,6 +12938,7 @@ const refreshDetailsForPlayers = async (
       transferSearchFilters,
       transferSearchResults,
       transferSearchItemCount,
+      transferSearchSortKey,
       transferSearchUsedFallback,
       transferSearchExactEmpty,
       transferSearchBidDrafts,
@@ -12970,6 +12991,7 @@ const refreshDetailsForPlayers = async (
     transferSearchFilters,
     transferSearchResults,
     transferSearchItemCount,
+    transferSearchSortKey,
     transferSearchUsedFallback,
     transferSearchExactEmpty,
     transferSearchBidDrafts,
@@ -15217,6 +15239,8 @@ const refreshDetailsForPlayers = async (
         exactEmpty={transferSearchExactEmpty}
         error={transferSearchError}
         results={transferSearchResults}
+        sortKey={transferSearchSortKey}
+        onSortKeyChange={setTransferSearchSortKey}
         renderResultCard={renderTransferSearchResultCard}
         onClose={handleTransferSearchClose}
       />

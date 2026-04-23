@@ -46,6 +46,7 @@ import TransferSearchModal, {
   type TransferSearchBidDraft,
   type TransferSearchFilters,
   type TransferSearchResult,
+  type TransferSearchSortKey,
   type TransferSearchSkillFilter,
   type TransferSearchSkillKey,
 } from "./TransferSearchModal";
@@ -977,6 +978,8 @@ export default function Dashboard({
   >([]);
   const [transferSearchItemCount, setTransferSearchItemCount] =
     useState<number | null>(null);
+  const [transferSearchSortKey, setTransferSearchSortKey] =
+    useState<TransferSearchSortKey>("default");
   const [transferSearchLoading, setTransferSearchLoading] = useState(false);
   const [transferSearchError, setTransferSearchError] = useState<string | null>(null);
   const [transferSearchExactEmpty, setTransferSearchExactEmpty] = useState(false);
@@ -2141,6 +2144,7 @@ export default function Dashboard({
         transferSearchFilters?: TransferSearchFilters | null;
         transferSearchResults?: TransferSearchResult[];
         transferSearchItemCount?: number | null;
+        transferSearchSortKey?: TransferSearchSortKey;
         transferSearchExactEmpty?: boolean;
         transferSearchBidDrafts?: Record<number, TransferSearchBidDraft>;
         supporterStatus?: SupporterStatus;
@@ -2225,6 +2229,21 @@ export default function Dashboard({
         typeof parsed.transferSearchItemCount === "number"
           ? parsed.transferSearchItemCount
           : null
+      );
+      setTransferSearchSortKey(
+        parsed.transferSearchSortKey === "htmsPotential" ||
+          parsed.transferSearchSortKey === "psicoTsiAvg" ||
+          parsed.transferSearchSortKey === "psicoWageAvg" ||
+          parsed.transferSearchSortKey === "keeper" ||
+          parsed.transferSearchSortKey === "defending" ||
+          parsed.transferSearchSortKey === "playmaking" ||
+          parsed.transferSearchSortKey === "winger" ||
+          parsed.transferSearchSortKey === "passing" ||
+          parsed.transferSearchSortKey === "scoring" ||
+          parsed.transferSearchSortKey === "setPieces" ||
+          parsed.transferSearchSortKey === "default"
+          ? parsed.transferSearchSortKey
+          : "default"
       );
       setTransferSearchExactEmpty(Boolean(parsed.transferSearchExactEmpty));
       setTransferSearchBidDrafts(
@@ -2507,6 +2526,7 @@ export default function Dashboard({
       transferSearchFilters,
       transferSearchResults,
       transferSearchItemCount,
+      transferSearchSortKey,
       transferSearchExactEmpty,
       transferSearchBidDrafts,
       supporterStatus,
@@ -2545,6 +2565,7 @@ export default function Dashboard({
     transferSearchFilters,
     transferSearchResults,
     transferSearchItemCount,
+    transferSearchSortKey,
     transferSearchExactEmpty,
     transferSearchBidDrafts,
     supporterStatus,
@@ -7071,6 +7092,8 @@ export default function Dashboard({
         fallbackNotice={messages.youthEstimateValueFallbackNotice}
         error={transferSearchError}
         results={transferSearchResults}
+        sortKey={transferSearchSortKey}
+        onSortKeyChange={setTransferSearchSortKey}
         renderResultCard={renderTransferSearchResultCard}
         onClose={() => setTransferSearchModalOpen(false)}
       />

@@ -1254,6 +1254,10 @@ export const messagesDe: Messages = {
       "Decke mindestens ein maximales Potenzial auf, bevor du den Wert schaetzt.",
     youthEstimateValueAgeMissingTooltip:
       "Aktualisiere die Spielerdetails, bevor du den Wert schaetzt.",
+    transferSearchSortDefault: "Suchreihenfolge",
+    transferSearchSortHtmsPotential: "HTMS-Potenzial",
+    transferSearchSortPsicoTsiAverage: "Durchschnittliche TSI-basierte Psico-Prognose",
+    transferSearchSortPsicoWageAverage: "Durchschnittliche lohnbasierte Psico-Prognose",
     transferSearchMarketSummaryTitle: "Marktuebersicht",
     transferSearchMarketSummaryBasis: "{{count}} bepreiste Ergebnisse",
     transferSearchMarketSummarySparse:

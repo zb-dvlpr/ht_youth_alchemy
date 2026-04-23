@@ -7205,8 +7205,14 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  align-items: baseline;
+  align-items: flex-start;
   margin-bottom: 12px;
+}
+
+.transferSearchResultsSortControl {
+  display: grid;
+  gap: 4px;
+  min-width: min(280px, 100%);
 }
 
 .transferSearchSection {

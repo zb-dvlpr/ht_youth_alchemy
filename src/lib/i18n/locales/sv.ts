@@ -1262,6 +1262,10 @@ export const messagesSv: Messages = {
       "Avsloja minst en maxpotential innan vardet uppskattas.",
     youthEstimateValueAgeMissingTooltip:
       "Uppdatera spelardetaljerna innan vardet uppskattas.",
+    transferSearchSortDefault: "Sokordning",
+    transferSearchSortHtmsPotential: "HTMS-potential",
+    transferSearchSortPsicoTsiAverage: "Genomsnittlig TSI-baserad Psico-prognos",
+    transferSearchSortPsicoWageAverage: "Genomsnittlig lonbaserad Psico-prognos",
     transferSearchMarketSummaryTitle: "Marknadssammanfattning",
     transferSearchMarketSummaryBasis: "{{count}} prissatta resultat",
     transferSearchMarketSummarySparse:

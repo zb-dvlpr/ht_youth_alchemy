@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  calculateHtmsMetrics,
+  calculatePsicoTsiMetrics,
+  type SeniorPlayerMetricInput,
+} from "@/lib/seniorPlayerMetrics";
+import {
   memo,
   startTransition,
   useCallback,
@@ -94,6 +99,21 @@ export type TransferSearchBidDraft = {
   maxBidEur: string;
 };
 
+export const TRANSFER_SEARCH_SORT_SEPARATOR = "__separator__";
+
+export type TransferSearchSortKey =
+  | "default"
+  | "htmsPotential"
+  | "psicoTsiAvg"
+  | "psicoWageAvg"
+  | "keeper"
+  | "defending"
+  | "playmaking"
+  | "winger"
+  | "passing"
+  | "scoring"
+  | "setPieces";
+
 type TransferSearchSkillRowProps = {
   filter: TransferSearchSkillFilter;
   index: number;
@@ -130,6 +150,8 @@ type TransferSearchModalProps = {
   fallbackNotice?: string;
   error: string | null;
   results: TransferSearchResult[];
+  sortKey: TransferSearchSortKey;
+  onSortKeyChange: (sortKey: TransferSearchSortKey) => void;
   renderResultCard: (result: TransferSearchResult) => ReactNode;
   onClose: () => void;
 };
@@ -152,6 +174,83 @@ type TransferSearchMarketSummary = {
 };
 
 type TransferSearchMobilePanel = "criteria" | "results" | "summary";
+
+const TRANSFER_SEARCH_SORT_KEYS: readonly TransferSearchSortKey[] = [
+  "default",
+  "htmsPotential",
+  "psicoTsiAvg",
+  "psicoWageAvg",
+  "keeper",
+  "defending",
+  "playmaking",
+  "winger",
+  "passing",
+  "scoring",
+  "setPieces",
+] as const;
+
+const buildTransferSearchMetricInput = (
+  result: TransferSearchResult
+): SeniorPlayerMetricInput => ({
+  ageYears: result.age,
+  ageDays: result.ageDays,
+  tsi: result.tsi,
+  salarySek: result.salarySek,
+  isAbroad: result.isAbroad ?? undefined,
+  form: result.form,
+  stamina: result.staminaSkill,
+  keeper: result.keeperSkill,
+  defending: result.defenderSkill,
+  playmaking: result.playmakerSkill,
+  winger: result.wingerSkill,
+  passing: result.passingSkill,
+  scoring: result.scorerSkill,
+  setPieces: result.setPiecesSkill,
+});
+
+const parsePsicoMetricValue = (value: string) => {
+  const parsed = Number.parseFloat(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const calculateAverage = (values: Array<number | null>) => {
+  const numeric = values.filter((value): value is number => typeof value === "number");
+  if (numeric.length === 0) return null;
+  return numeric.reduce((sum, value) => sum + value, 0) / numeric.length;
+};
+
+const getTransferSearchSortValue = (
+  result: TransferSearchResult,
+  sortKey: Exclude<TransferSearchSortKey, "default">
+) => {
+  if (sortKey === "keeper") return result.keeperSkill;
+  if (sortKey === "defending") return result.defenderSkill;
+  if (sortKey === "playmaking") return result.playmakerSkill;
+  if (sortKey === "winger") return result.wingerSkill;
+  if (sortKey === "passing") return result.passingSkill;
+  if (sortKey === "scoring") return result.scorerSkill;
+  if (sortKey === "setPieces") return result.setPiecesSkill;
+
+  const metricInput = buildTransferSearchMetricInput(result);
+  if (sortKey === "htmsPotential") {
+    return calculateHtmsMetrics(metricInput)?.potential ?? null;
+  }
+
+  const psico = calculatePsicoTsiMetrics(metricInput);
+  if (!psico) return null;
+  if (sortKey === "psicoTsiAvg") {
+    return calculateAverage([
+      parsePsicoMetricValue(psico.formHigh),
+      parsePsicoMetricValue(psico.formAvg),
+      parsePsicoMetricValue(psico.formLow),
+    ]);
+  }
+  return calculateAverage([
+    parsePsicoMetricValue(psico.wageHigh),
+    parsePsicoMetricValue(psico.wageAvg),
+    parsePsicoMetricValue(psico.wageLow),
+  ]);
+};
 
 export const ageToTotalDays = (years: number, days: number) =>
   Math.max(0, years) * HATTRICK_AGE_DAYS_PER_YEAR + Math.max(0, days);
@@ -711,6 +810,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
   fallbackNotice,
   error,
   results,
+  sortKey,
+  onSortKeyChange,
   renderResultCard,
   onClose,
 }: TransferSearchModalProps) {
@@ -718,6 +819,50 @@ const TransferSearchModal = memo(function TransferSearchModal({
   const marketSummary = useMemo(
     () => buildTransferSearchMarketSummary(results),
     [results]
+  );
+  const sortOptions = useMemo(
+    () => [
+      { value: "default", label: messages.transferSearchSortDefault },
+      { value: "htmsPotential", label: messages.transferSearchSortHtmsPotential },
+      { value: TRANSFER_SEARCH_SORT_SEPARATOR, label: "──────────" },
+      { value: "psicoTsiAvg", label: messages.transferSearchSortPsicoTsiAverage },
+      { value: TRANSFER_SEARCH_SORT_SEPARATOR, label: "──────────" },
+      { value: "psicoWageAvg", label: messages.transferSearchSortPsicoWageAverage },
+      { value: TRANSFER_SEARCH_SORT_SEPARATOR, label: "──────────" },
+      { value: "keeper", label: messages.skillKeeper },
+      { value: "defending", label: messages.skillDefending },
+      { value: "playmaking", label: messages.skillPlaymaking },
+      { value: "winger", label: messages.skillWinger },
+      { value: "passing", label: messages.skillPassing },
+      { value: "scoring", label: messages.skillScoring },
+      { value: "setPieces", label: messages.skillSetPieces },
+    ] as const,
+    [messages]
+  );
+  const sortedResults = useMemo(() => {
+    if (sortKey === "default") return results;
+    return [...results].sort((left, right) => {
+      const leftValue = getTransferSearchSortValue(left, sortKey);
+      const rightValue = getTransferSearchSortValue(right, sortKey);
+      if (leftValue === null && rightValue === null) return left.playerId - right.playerId;
+      if (leftValue === null) return 1;
+      if (rightValue === null) return -1;
+      if (rightValue !== leftValue) return rightValue - leftValue;
+      return left.playerId - right.playerId;
+    });
+  }, [results, sortKey]);
+  const handleSortChange = useCallback(
+    (event: ChangeEvent<HTMLSelectElement>) => {
+      const nextValue = event.target.value;
+      if (
+        nextValue === TRANSFER_SEARCH_SORT_SEPARATOR ||
+        !TRANSFER_SEARCH_SORT_KEYS.includes(nextValue as TransferSearchSortKey)
+      ) {
+        return;
+      }
+      onSortKeyChange(nextValue as TransferSearchSortKey);
+    },
+    [onSortKeyChange]
   );
   const renderedSkillSlotCount = filters
     ? Math.max(filters.skillFilters.length, skillSlotCount ?? filters.skillFilters.length)
@@ -1150,10 +1295,31 @@ const TransferSearchModal = memo(function TransferSearchModal({
               >
                 {renderMobilePanelNav("results")}
                 <div className={styles.transferSearchResultsHeader}>
-                  <h3 className={styles.sectionHeading}>{messages.seniorTransferSearchResultsTitle}</h3>
-                  {resultCountLabel ? (
-                    <span className={styles.profileUpdated}>{resultCountLabel}</span>
-                  ) : null}
+                  <div>
+                    <h3 className={styles.sectionHeading}>{messages.seniorTransferSearchResultsTitle}</h3>
+                    {resultCountLabel ? (
+                      <span className={styles.profileUpdated}>{resultCountLabel}</span>
+                    ) : null}
+                  </div>
+                  <label className={styles.transferSearchResultsSortControl}>
+                    <span className={styles.infoLabel}>{messages.sortLabel}</span>
+                    <select
+                      className={styles.transferSearchSelect}
+                      value={sortKey}
+                      onChange={handleSortChange}
+                      disabled={loading}
+                    >
+                      {sortOptions.map((option, index) => (
+                        <option
+                          key={`${option.value}-${index}`}
+                          value={option.value}
+                          disabled={option.value === TRANSFER_SEARCH_SORT_SEPARATOR}
+                        >
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                 </div>
                 {exactEmpty ? (
                   <p className={styles.transferSearchFallbackNotice}>
@@ -1170,7 +1336,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   <p className={styles.muted}>{messages.seniorTransferSearchNoResults}</p>
                 ) : null}
                 <div className={styles.transferSearchResultsList}>
-                  {results.map((result) => renderResultCard(result))}
+                  {sortedResults.map((result) => renderResultCard(result))}
                 </div>
               </section>
               {marketSummaryCard}

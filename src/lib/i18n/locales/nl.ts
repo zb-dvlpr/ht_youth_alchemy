@@ -370,6 +370,10 @@ export const messagesNl: Messages = {
     "Onthul minstens een maximaal potentieel voordat je de waarde schat.",
   youthEstimateValueAgeMissingTooltip:
     "Ververs de spelersdetails voordat je de waarde schat.",
+  transferSearchSortDefault: "Zoekvolgorde",
+  transferSearchSortHtmsPotential: "HTMS-potentieel",
+  transferSearchSortPsicoTsiAverage: "Gemiddelde TSI-gebaseerde Psico-voorspelling",
+  transferSearchSortPsicoWageAverage: "Gemiddelde loon-gebaseerde Psico-voorspelling",
   transferSearchMarketSummaryTitle: "Marktsamenvatting",
   transferSearchMarketSummaryBasis: "{{count}} resultaten met prijs",
   transferSearchMarketSummarySparse:

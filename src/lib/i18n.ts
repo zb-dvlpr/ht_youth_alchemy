@@ -1013,6 +1013,10 @@ export type Messages = {
   youthEstimateValueTooltip: string;
   youthEstimateValueDisabledTooltip: string;
   youthEstimateValueAgeMissingTooltip: string;
+  transferSearchSortDefault: string;
+  transferSearchSortHtmsPotential: string;
+  transferSearchSortPsicoTsiAverage: string;
+  transferSearchSortPsicoWageAverage: string;
   transferSearchMarketSummaryTitle: string;
   transferSearchMarketSummaryBasis: string;
   transferSearchMarketSummarySparse: string;

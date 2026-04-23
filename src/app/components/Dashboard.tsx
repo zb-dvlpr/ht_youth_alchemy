@@ -2792,6 +2792,7 @@ export default function Dashboard({
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!isConnected) return;
+    if (restoredStorageKey !== storageKey) return;
     const lastRefresh = readLastRefreshTimestamp();
     if (!lastRefresh) {
       if (playerList.length > 0) {
@@ -2811,11 +2812,20 @@ export default function Dashboard({
     if (staleRefreshAttemptedRef.current) return;
     staleRefreshAttemptedRef.current = true;
     void refreshPlayers(undefined, { refreshAll: true, reason: "stale" });
-  }, [playerList.length, stalenessDays, activeYouthTeamId, isConnected, playersLoading]);
+  }, [
+    playerList.length,
+    stalenessDays,
+    activeYouthTeamId,
+    isConnected,
+    playersLoading,
+    restoredStorageKey,
+    storageKey,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!isConnected) return;
+    if (restoredStorageKey !== storageKey) return;
 
     const maybeRunStaleRefresh = () => {
       if (document.visibilityState !== "visible") return;
@@ -2854,7 +2864,15 @@ export default function Dashboard({
       window.removeEventListener("pageshow", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [playerList.length, stalenessDays, activeYouthTeamId, isConnected, playersLoading]);
+  }, [
+    playerList.length,
+    stalenessDays,
+    activeYouthTeamId,
+    isConnected,
+    playersLoading,
+    restoredStorageKey,
+    storageKey,
+  ]);
 
   useEffect(() => {
     if (!initialAuthError) return;

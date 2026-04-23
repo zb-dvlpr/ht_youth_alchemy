@@ -1,3 +1,8 @@
+import {
+  readCompressedChronicleStorage,
+  writeCompressedChronicleStorage,
+} from "@/lib/chronicleStorageCodec";
+
 const TABS_STORAGE_KEY = "ya_cc_tabs_v1";
 const LEGACY_WATCHLIST_STORAGE_KEY = "ya_club_chronicle_watchlist_v1";
 
@@ -206,14 +211,11 @@ const sanitizeCompactManualTeams = (input: unknown): CompactManualTeam[] =>
 
 const readStoredChronicleTabs = (): StoredChronicleTabsSnapshot | null => {
   if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(TABS_STORAGE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as StoredChronicleTabsSnapshot;
-    return parsed && Array.isArray(parsed.tabs) ? parsed : null;
-  } catch {
-    return null;
-  }
+  const parsed =
+    readCompressedChronicleStorage<StoredChronicleTabsSnapshot>(
+      TABS_STORAGE_KEY
+    );
+  return parsed && Array.isArray(parsed.tabs) ? parsed : null;
 };
 
 export function requestChronicleWatchlistsSnapshot():
@@ -361,7 +363,7 @@ export function applyImportedChronicleWatchlists(
   payload: ImportChronicleTabs
 ) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(payload));
+  writeCompressedChronicleStorage(TABS_STORAGE_KEY, payload);
   const activeTab =
     payload.tabs.find((tab) => tab.id === payload.activeTabId) ?? payload.tabs[0];
   if (activeTab) {

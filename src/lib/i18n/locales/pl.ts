@@ -59,6 +59,33 @@ export const messagesPl: Messages = {
   feedbackTooltip: "Opinie",
   feedbackBug: "Zgłoś błąd",
   feedbackFeature: "Poproś o funkcję",
+  feedbackBugTitle: "Zgłoszenie błędu",
+  feedbackFeatureTitle: "Prośba o funkcję",
+  feedbackFieldTitle: "Tytuł",
+  feedbackFieldProblem: "Na czym polega problem?",
+  feedbackFieldReproduce: "Jak to odtworzyć",
+  feedbackFieldExpected: "Oczekiwane zachowanie",
+  feedbackFieldActual: "Rzeczywiste zachowanie",
+  feedbackFieldProposed: "Proponowane rozwiązanie",
+  feedbackFieldAlternatives: "Rozważane alternatywy",
+  feedbackFieldNotes: "Dodatkowe uwagi",
+  feedbackBugTitlePlaceholder: "Krótki opis błędu",
+  feedbackFeatureTitlePlaceholder: "Krótki opis funkcji",
+  feedbackFieldProblemPlaceholder: "Opisz problem lub kontekst",
+  feedbackFieldReproducePlaceholder:
+    "Wypisz kroki, które wywołują problem",
+  feedbackFieldExpectedPlaceholder: "Co powinno się wydarzyć?",
+  feedbackFieldActualPlaceholder: "Co wydarzyło się zamiast tego?",
+  feedbackFieldProposedPlaceholder: "Opisz zmianę, której chcesz",
+  feedbackFieldAlternativesPlaceholder:
+    "Wypisz inne rozważane podejścia",
+  feedbackFieldNotesPlaceholder: "Wszystko inne, co warto dodać",
+  feedbackTitleRequired: "Tytuł jest wymagany.",
+  feedbackSubmit: "Wyślij",
+  feedbackSubmitting: "Wysyłanie…",
+  feedbackBugSuccess: "Zgłoszenie błędu wysłane.",
+  feedbackFeatureSuccess: "Prośba o funkcję wysłana.",
+  feedbackSubmitError: "Wysłanie zgłoszenia nie powiodło się.",
   settingsTooltip: "Ustawienia",
   settingsExport: "Eksportuj dane",
   settingsImport: "Importuj dane",
@@ -88,6 +115,40 @@ export const messagesPl: Messages = {
   settingsGeneralImportAllLabel: "Importuj wszystkie ustawienia",
   settingsGeneralImportAllHint:
     "Importuje wcześniej wyeksportowaną kopię zapasową JSON i zastępuje bieżące lokalne ustawienia aplikacji oraz stan pamięci podręcznej.",
+  settingsMachineLearningTitle: "Uczenie maszynowe",
+  settingsMachineLearningBody:
+    "Migawki seniorów są uczone automatycznie z odświeżeń seniorów i szczegółów wyników rynku transferowego.",
+  settingsMachineLearningInfoLabel: "Informacje o modelu",
+  settingsMachineLearningInfoHint:
+    "Pokazuje liczbę zanonimizowanych migawek seniorów oraz to, co model lokalny może przewidywać.",
+  settingsMachineLearningTestLabel: "Testuj model seniorów",
+  settingsMachineLearningTestingLabel: "Testowanie modelu seniorów…",
+  settingsMachineLearningTestHint:
+    "Ocenia lokalny model seniorów na twoich własnych seniorach, pomijając identyczne migawki.",
+  seniorMlInfoTitle: "Informacje o modelu seniorów",
+  seniorMlModelTypeLabel: "Typ modelu",
+  seniorMlModelTypeValue: "Lokalna regresja K najbliższych sąsiadów",
+  seniorMlSampleCountLabel: "Migawki treningowe",
+  seniorMlDistinctPlayersLabel: "Unikalni zawodnicy",
+  seniorMlSourcesLabel: "Źródła",
+  seniorMlLastUpdatedLabel: "Ostatnia aktualizacja",
+  seniorMlTargetsLabel: "Cele",
+  seniorMlTargetsValue: "TSI, pensja, wiek",
+  seniorMlNoData:
+    "Nie zebrano jeszcze migawek seniorów. Odśwież seniorów albo uruchom wyszukiwania transferów.",
+  seniorMlSourceOwnSenior: "Własni seniorzy",
+  seniorMlSourceSeniorMarket: "Rynek seniorów",
+  seniorMlSourceYouthMarket: "Rynek wyceny juniorów",
+  seniorMlEvaluationTitle: "Test modelu seniorów",
+  seniorMlEvaluationEmpty: "Nie uruchomiono jeszcze oceny.",
+  seniorMlEvaluationNotReady:
+    "Nie ma jeszcze dość danych seniorów, aby przetestować model na twoich zawodnikach.",
+  seniorMlEvaluationTestedCount: "Testowani zawodnicy",
+  seniorMlEvaluationTsiMae: "Średni błąd TSI",
+  seniorMlEvaluationWageMae: "Średni błąd pensji",
+  seniorMlEvaluationAgeMae: "Średni błąd wieku",
+  seniorMlEvaluationAgeDays: "{{days}} dni",
+  notificationSeniorMlEvaluationFailed: "Test modelu seniorów nie powiódł się.",
   settingsGeneralChronicleWatchlistsExportLabel:
     "Eksportuj listy obserwowanych Club Chronicle na telefon",
   settingsGeneralChronicleWatchlistsExportHint:
@@ -712,8 +773,13 @@ export const messagesPl: Messages = {
   oauthErrorUnknownExplanation: "Hattrick OAuth/CHPP zwrócił nieoczekiwany błąd podczas odświeżania danych.",
   oauthErrorRecoveryHint: "Spróbuj rozłączyć dostęp i połączyć ponownie. Jeśli to nie pomoże, skontaktuj się ze wsparciem Hattrick.",
   notificationPlayersRefreshed: "Zawodnicy odświeżeni",
+  notificationSeniorPlayersRefreshed: "Seniorzy odświeżeni",
   notificationYouthPlayerDetailsPartialRefresh:
     "Nie udało się odświeżyć części szczegółów juniorów ({{count}}/{{total}}).",
+  notificationDebugSeniorMlEncountered:
+    "Debug: senior ML napotkal {{count}} zawodnikow z rynku transferowego",
+  notificationDebugSeniorMlDedup:
+    "Debug: senior ML dodane {{added}}, zduplikowane {{deduped}}, nieudane {{failed}}",
   notificationMatchesRefreshed: "Mecze odświeżone",
   notificationMatchesRefreshFailed: "Nie udało się odświeżyć meczów",
   notificationSeniorTrainingRegimenChanged:

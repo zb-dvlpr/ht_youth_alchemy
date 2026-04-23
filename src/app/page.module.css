@@ -1397,6 +1397,47 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   background: #e2f0e4;
 }
 
+.settingsActionButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.settingsSection {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #e1d4be;
+  border-radius: 8px;
+  background: rgba(255, 252, 246, 0.7);
+}
+
+.settingsSectionHeader {
+  display: grid;
+  gap: 4px;
+}
+
+.settingsSectionHeader h3 {
+  margin: 0;
+  font-size: 14px;
+}
+
+.settingsInfoGrid {
+  display: grid;
+  grid-template-columns: minmax(120px, max-content) minmax(0, 1fr);
+  gap: 8px 14px;
+  align-items: start;
+  font-size: 13px;
+}
+
+.settingsInfoGrid span {
+  color: #7a6f60;
+}
+
+.settingsInfoGrid strong {
+  color: #2d2d2b;
+  overflow-wrap: anywhere;
+}
+
 .settingsQrCodeWrap {
   display: flex;
   justify-content: center;
@@ -1462,6 +1503,43 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   font-size: 13px;
   background: #f8f3ea;
   color: #3f362c;
+}
+
+.confirmCard.feedbackModal {
+  width: min(760px, 94vw);
+}
+
+.feedbackModalBody {
+  display: grid;
+  gap: 12px;
+}
+
+.feedbackModalLead {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: #6d6254;
+}
+
+.feedbackTextArea {
+  min-height: 96px;
+  resize: vertical;
+  font: inherit;
+}
+
+.feedbackErrorText {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #cf6f67;
+  background: #fff1ef;
+  color: #8f241f;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.feedbackRequiredMark {
+  color: #8f241f;
 }
 
 .settingsDangerButton {
@@ -4710,10 +4788,33 @@ html[data-theme="dark"] .settingsFieldInput {
   color: #f3ede4;
 }
 
+html[data-theme="dark"] .feedbackModalLead {
+  color: #c9bfb2;
+}
+
+html[data-theme="dark"] .feedbackErrorText {
+  background: rgba(164, 55, 49, 0.18);
+  border-color: rgba(207, 111, 103, 0.65);
+  color: #ffd2cd;
+}
+
 html[data-theme="dark"] .settingsDangerButton {
   border-color: #c65d57;
   background: rgba(198, 93, 87, 0.2);
   color: #ffb3af;
+}
+
+html[data-theme="dark"] .settingsSection {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+html[data-theme="dark"] .settingsInfoGrid span {
+  color: #c7b9a5;
+}
+
+html[data-theme="dark"] .settingsInfoGrid strong {
+  color: #f3ede4;
 }
 
 

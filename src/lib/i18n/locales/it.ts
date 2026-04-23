@@ -185,6 +185,34 @@ export const messagesIt: Messages = {
     feedbackTooltip: "Feedback",
     feedbackBug: "Segnala un bug",
     feedbackFeature: "Richiedi una funzione",
+    feedbackBugTitle: "Segnalazione bug",
+    feedbackFeatureTitle: "Richiesta funzione",
+    feedbackFieldTitle: "Titolo",
+    feedbackFieldProblem: "Qual e il problema?",
+    feedbackFieldReproduce: "Come riprodurlo",
+    feedbackFieldExpected: "Comportamento atteso",
+    feedbackFieldActual: "Comportamento reale",
+    feedbackFieldProposed: "Soluzione proposta",
+    feedbackFieldAlternatives: "Alternative considerate",
+    feedbackFieldNotes: "Note aggiuntive",
+    feedbackBugTitlePlaceholder: "Breve riassunto del bug",
+    feedbackFeatureTitlePlaceholder: "Breve riassunto della funzione",
+    feedbackFieldProblemPlaceholder: "Descrivi il problema o il contesto",
+    feedbackFieldReproducePlaceholder:
+      "Elenca i passaggi che provocano il problema",
+    feedbackFieldExpectedPlaceholder: "Cosa sarebbe dovuto accadere?",
+    feedbackFieldActualPlaceholder: "Cosa e successo invece?",
+    feedbackFieldProposedPlaceholder:
+      "Descrivi il cambiamento che vuoi",
+    feedbackFieldAlternativesPlaceholder:
+      "Elenca altri approcci che hai considerato",
+    feedbackFieldNotesPlaceholder: "Qualsiasi altro dettaglio utile",
+    feedbackTitleRequired: "Il titolo e obbligatorio.",
+    feedbackSubmit: "Invia",
+    feedbackSubmitting: "Invio…",
+    feedbackBugSuccess: "Segnalazione bug inviata.",
+    feedbackFeatureSuccess: "Richiesta funzione inviata.",
+    feedbackSubmitError: "Invio dell issue non riuscito.",
     settingsTooltip: "Impostazioni",
     settingsExport: "Esporta dati",
     settingsImport: "Importa dati",
@@ -262,6 +290,40 @@ export const messagesIt: Messages = {
     settingsGeneralEnableScalingLabel: "Abilita scalatura app",
     settingsGeneralEnableScalingTooltip:
       "Quando attiva, l app si scala per adattarsi al viewport e ridurre lo scorrimento. Quando disattiva, l app usa dimensione normale e può scorrere.",
+    settingsMachineLearningTitle: "Apprendimento automatico",
+    settingsMachineLearningBody:
+      "Gli snapshot dei giocatori senior vengono appresi automaticamente dagli aggiornamenti senior e dai dettagli dei risultati di mercato.",
+    settingsMachineLearningInfoLabel: "Info modello",
+    settingsMachineLearningInfoHint:
+      "Mostra quanti snapshot senior anonimizzati sono disponibili e cosa può prevedere il modello locale.",
+    settingsMachineLearningTestLabel: "Testa modello senior",
+    settingsMachineLearningTestingLabel: "Test modello senior…",
+    settingsMachineLearningTestHint:
+      "Valuta il modello senior locale sui tuoi giocatori senior, escludendo snapshot identici.",
+    seniorMlInfoTitle: "Info modello senior",
+    seniorMlModelTypeLabel: "Tipo modello",
+    seniorMlModelTypeValue: "Regressione locale K-nearest-neighbor",
+    seniorMlSampleCountLabel: "Snapshot di allenamento",
+    seniorMlDistinctPlayersLabel: "Giocatori distinti",
+    seniorMlSourcesLabel: "Fonti",
+    seniorMlLastUpdatedLabel: "Ultimo aggiornamento",
+    seniorMlTargetsLabel: "Target",
+    seniorMlTargetsValue: "TSI, stipendio, età",
+    seniorMlNoData:
+      "Nessuno snapshot senior raccolto. Aggiorna i senior o esegui ricerche di trasferimento.",
+    seniorMlSourceOwnSenior: "Senior propri",
+    seniorMlSourceSeniorMarket: "Mercato senior",
+    seniorMlSourceYouthMarket: "Mercato stima giovani",
+    seniorMlEvaluationTitle: "Test modello senior",
+    seniorMlEvaluationEmpty: "Nessuna valutazione eseguita.",
+    seniorMlEvaluationNotReady:
+      "Non ci sono ancora abbastanza dati senior per testare il modello sui tuoi giocatori.",
+    seniorMlEvaluationTestedCount: "Giocatori testati",
+    seniorMlEvaluationTsiMae: "Errore TSI medio",
+    seniorMlEvaluationWageMae: "Errore stipendio medio",
+    seniorMlEvaluationAgeMae: "Errore età medio",
+    seniorMlEvaluationAgeDays: "{{days}} giorni",
+    notificationSeniorMlEvaluationFailed: "Test del modello senior non riuscito.",
     settingsGeneralChronicleWatchlistsExportLabel:
       "Esporta watchlist di Club Chronicle su mobile",
     settingsGeneralChronicleWatchlistsExportHint:
@@ -1087,11 +1149,16 @@ export const messagesIt: Messages = {
     notificationSecondaryTrainingSet: "Allenamento secondario:",
     notificationTrainingCleared: "Allenamento cancellato",
     notificationPlayersRefreshed: "Giocatori giovanili aggiornati",
+    notificationSeniorPlayersRefreshed: "Giocatori senior aggiornati",
     notificationYouthPlayerDetailsPartialRefresh:
       "Alcuni dettagli dei giovani non sono stati aggiornati ({{count}}/{{total}}).",
     notificationRefreshStoppedManual:
       "Aggiornamento interrotto. Le modifiche recuperate sono state scartate.",
     notificationDebugNewMarkers: "Debug: marker NEW casuali applicati",
+    notificationDebugSeniorMlEncountered:
+      "Debug: il modello ML senior ha incontrato {{count}} giocatori del mercato trasferimenti",
+    notificationDebugSeniorMlDedup:
+      "Debug: ML senior aggiunti {{added}}, deduplicati {{deduped}}, falliti {{failed}}",
     notificationSortBy: "Ordina per:",
     notificationSortDirection: "Direzione ordine:",
     notificationStarSet: "Giocatore stella:",

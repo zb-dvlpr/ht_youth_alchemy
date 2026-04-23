@@ -66,6 +66,10 @@ import {
   CLUB_CHRONICLE_WATCHLISTS_IMPORTED_EVENT,
   CLUB_CHRONICLE_WATCHLISTS_SNAPSHOT_REQUEST_EVENT,
 } from "@/lib/chronicleWatchlistTransfer";
+import {
+  readCompressedChronicleStorage,
+  writeCompressedChronicleStorage,
+} from "@/lib/chronicleStorageCodec";
 import MobileChronicleMenu from "./MobileChronicleMenu";
 
 type SupportedTeam = {
@@ -1069,11 +1073,7 @@ const buildChronicleTabState = (
 
 const writeChronicleTabsStorage = (payload: ChronicleTabsStorage) => {
   if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(TABS_STORAGE_KEY, JSON.stringify(payload));
-  } catch {
-    // ignore storage errors
-  }
+  void writeCompressedChronicleStorage(TABS_STORAGE_KEY, payload);
 };
 
 const resolveNextState = <T,>(current: T, updater: StateUpdater<T>): T =>
@@ -1820,23 +1820,13 @@ const readChronicleCache = (): ChronicleCache => {
   if (typeof window === "undefined") {
     return { version: 1, teams: {} };
   }
-  try {
-    const raw = window.localStorage.getItem(CACHE_KEY);
-    if (!raw) return { version: 1, teams: {} };
-    const parsed = JSON.parse(raw) as ChronicleCache;
-    return parsed && parsed.teams ? parsed : { version: 1, teams: {} };
-  } catch {
-    return { version: 1, teams: {} };
-  }
+  const parsed = readCompressedChronicleStorage<ChronicleCache>(CACHE_KEY);
+  return parsed && parsed.teams ? parsed : { version: 1, teams: {} };
 };
 
 const writeChronicleCache = (payload: ChronicleCache) => {
   if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(CACHE_KEY, JSON.stringify(payload));
-  } catch {
-    // ignore storage errors
-  }
+  void writeCompressedChronicleStorage(CACHE_KEY, payload);
 };
 
 const stripLikelyTrainingConfidenceFromUpdates = (
@@ -1912,14 +1902,9 @@ const writeChronicleUpdates = (payload: ChronicleUpdates | null) => {
 
 const readGlobalBaseline = (): ChronicleCache | null => {
   if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(GLOBAL_BASELINE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as ChronicleCache;
-    return parsed && parsed.teams ? parsed : null;
-  } catch {
-    return null;
-  }
+  const parsed =
+    readCompressedChronicleStorage<ChronicleCache>(GLOBAL_BASELINE_KEY);
+  return parsed && parsed.teams ? parsed : null;
 };
 
 const writeGlobalBaseline = (payload: ChronicleCache | null) => {
@@ -1929,7 +1914,7 @@ const writeGlobalBaseline = (payload: ChronicleCache | null) => {
       window.localStorage.removeItem(GLOBAL_BASELINE_KEY);
       return;
     }
-    window.localStorage.setItem(GLOBAL_BASELINE_KEY, JSON.stringify(payload));
+    writeCompressedChronicleStorage(GLOBAL_BASELINE_KEY, payload);
   } catch {
     // ignore storage errors
   }
@@ -2099,9 +2084,10 @@ const readChronicleTabsStorage = (
     return { version: 1, activeTabId: initialTab.id, tabs: [initialTab] };
   }
   try {
-    const rawTabs = window.localStorage.getItem(TABS_STORAGE_KEY);
-    if (rawTabs) {
-      const parsed = JSON.parse(rawTabs) as ChronicleTabsStorage;
+    const parsed = readCompressedChronicleStorage<ChronicleTabsStorage>(
+      TABS_STORAGE_KEY
+    );
+    if (parsed) {
       const tabs = Array.isArray(parsed?.tabs)
         ? parsed.tabs
             .map((tab, index) =>

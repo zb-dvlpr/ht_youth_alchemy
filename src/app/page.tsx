@@ -11,6 +11,7 @@ import ViewportScaler from "./components/ViewportScaler";
 import FeedbackButton from "./components/FeedbackButton";
 import SettingsButton from "./components/SettingsButton";
 import SeasonBootstrap from "./components/SeasonBootstrap";
+import SeniorMlBackfillBootstrap from "./components/SeniorMlBackfillBootstrap";
 import AppShell from "./components/AppShell";
 import SeniorDashboard from "./components/SeniorDashboard";
 import BuyCoffeeButton from "./components/BuyCoffeeButton";
@@ -288,6 +289,9 @@ export default async function Home() {
       <NotificationsProvider>
         <div className={styles.scaleContainer} data-scale-container="true">
           <SeasonBootstrap season={managerResponse.season ?? null} />
+          {process.env.NODE_ENV !== "production" ? (
+            <SeniorMlBackfillBootstrap />
+          ) : null}
           <AppShell
             messages={messages}
             appVersion={pkg.version}
@@ -332,7 +336,11 @@ export default async function Home() {
                     />
                     <HelpToggleButton messages={messages} />
                     <ThemeToggle messages={messages} />
-                    <FeedbackButton messages={messages} />
+                    <FeedbackButton
+                      messages={messages}
+                      locale={locale}
+                      appVersion={pkg.version}
+                    />
                     <SettingsButton messages={messages} />
                     <Tooltip content={messages.supportOnKofi}>
                       <BuyCoffeeButton

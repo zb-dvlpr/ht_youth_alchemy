@@ -9,6 +9,7 @@ import {
   memo,
   startTransition,
   useCallback,
+  useEffect,
   useMemo,
   useState,
   type ChangeEvent,
@@ -17,6 +18,9 @@ import {
 
 import { Messages } from "@/lib/i18n";
 import { SPECIALTY_EMOJI } from "@/lib/specialty";
+import { hattrickPlayerUrl } from "@/lib/hattrick/urls";
+import { parseChppDate } from "@/lib/chpp/utils";
+import { formatTimeRemaining } from "@/lib/datetime";
 import Modal from "./Modal";
 import Tooltip from "./Tooltip";
 import styles from "../page.module.css";
@@ -114,6 +118,46 @@ export type TransferSearchSortKey =
   | "scoring"
   | "setPieces";
 
+export type TransferSearchResultsViewMode = "cards" | "table";
+
+export type TransferSearchTableRowData = {
+  nationality: string;
+  nationalityFlag?: string | null;
+  nationalityTitle?: string;
+  name: string;
+  specialty: string;
+  specialtyEmoji?: string | null;
+  specialtyTitle?: string;
+  injury: string;
+  ageYears: number | null;
+  ageDays: number | null;
+  ageTotalDays?: number | null;
+  priceKind: "HB" | "AP" | null;
+  priceDisplay: string;
+  priceValueEur?: number | null;
+  tsi: number | null;
+  leadership: number | null;
+  experience: number | null;
+  form: number | null;
+  stamina: number | null;
+  keeper: number | null;
+  defending: number | null;
+  playmaking: number | null;
+  winger: number | null;
+  passing: number | null;
+  scoring: number | null;
+  setPieces: number | null;
+  htmsPotential: number | null;
+  avgPsicoTsi: number | null;
+  avgPsicoWage: number | null;
+  wageDisplay: string;
+  wageValueEur?: number | null;
+  wageIncludesForeignBonus?: boolean;
+  deadline: string | null;
+  deadlineTimestamp?: number | null;
+  minBidEur: number | null;
+};
+
 type TransferSearchSkillRowProps = {
   filter: TransferSearchSkillFilter;
   index: number;
@@ -152,7 +196,13 @@ type TransferSearchModalProps = {
   results: TransferSearchResult[];
   sortKey: TransferSearchSortKey;
   onSortKeyChange: (sortKey: TransferSearchSortKey) => void;
+  resultsViewMode: TransferSearchResultsViewMode;
+  onResultsViewModeChange: (mode: TransferSearchResultsViewMode) => void;
   getSortMetricInput?: (result: TransferSearchResult) => SeniorPlayerMetricInput;
+  getTableRowData?: (result: TransferSearchResult) => TransferSearchTableRowData;
+  canQuickBid?: boolean;
+  quickBidPendingPlayerId?: number | null;
+  onQuickBid?: (result: TransferSearchResult) => void;
   renderResultCard: (result: TransferSearchResult) => ReactNode;
   onClose: () => void;
 };
@@ -175,6 +225,11 @@ type TransferSearchMarketSummary = {
 };
 
 type TransferSearchMobilePanel = "criteria" | "results" | "summary";
+type TransferSearchTableSortDirection = "best" | "reverse";
+type TransferSearchCountryMeta = {
+  name: string;
+  flagEmoji: string | null;
+};
 
 const TRANSFER_SEARCH_SORT_KEYS: readonly TransferSearchSortKey[] = [
   "default",
@@ -249,6 +304,111 @@ const getTransferSearchSortValue = (
     parsePsicoMetricValue(psico.wageAvg),
     parsePsicoMetricValue(psico.wageLow),
   ]);
+};
+
+const formatTransferSearchTableMetric = (value: number | null, fractionDigits = 0) => {
+  if (typeof value !== "number" || Number.isNaN(value)) return null;
+  return fractionDigits > 0 ? value.toFixed(fractionDigits) : String(Math.round(value));
+};
+
+const countryCodeToFlagEmoji = (input: unknown): string | null => {
+  if (typeof input !== "string") return null;
+  const code = input.trim().toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) return null;
+  return Array.from(code)
+    .map((char) => String.fromCodePoint(char.charCodeAt(0) - 65 + 0x1f1e6))
+    .join("");
+};
+
+const formatTransferSearchCountryFallback = (countryName: string | null | undefined) => {
+  if (typeof countryName !== "string") return "—";
+  const trimmed = countryName.trim();
+  return trimmed || "—";
+};
+
+const formatTransferSearchInjuryCell = (
+  injuryLevel: number | null
+) => {
+  if (injuryLevel === null || injuryLevel === undefined) return "—";
+  if (injuryLevel <= 0) return "—";
+  return String(injuryLevel);
+};
+
+const formatTransferSearchInjuryTooltip = (
+  injuryLevel: number | null,
+  messages: Messages
+) => {
+  if (injuryLevel === null || injuryLevel === undefined) {
+    return messages.clubChronicleInjuryHealthy;
+  }
+  if (injuryLevel === 0 || (injuryLevel > 0 && injuryLevel < 1)) {
+    return messages.seniorListInjuryBruised;
+  }
+  if (injuryLevel >= 1) {
+    return messages.seniorListInjuryWeeks.replace(
+      "{weeks}",
+      String(Math.ceil(injuryLevel))
+    );
+  }
+  return messages.clubChronicleInjuryHealthy;
+};
+
+const formatTransferSearchDeadlineRemaining = (
+  deadline: string | null,
+  messages: Messages
+) => {
+  const parsed = parseChppDate(deadline ?? undefined);
+  if (!parsed) return messages.unknownShort;
+  return formatTimeRemaining(parsed, {
+    now: messages.transferSearchDeadlineNowShort,
+    day: messages.transferSearchDeadlineDayShort,
+    hour: messages.transferSearchDeadlineHourShort,
+    minute: messages.transferSearchDeadlineMinuteShort,
+  });
+};
+
+const interpolateChannel = (from: number, to: number, ratio: number) =>
+  Math.round(from + (to - from) * ratio);
+
+const buildTransferSearchPillStyle = (
+  value: number | null | undefined,
+  min: number | null,
+  max: number | null,
+  higherBetter = true
+) => {
+  if (value === null || value === undefined || min === null || max === null) {
+    return undefined;
+  }
+  const useLogScale = min > 0 && max > min && max / min >= 3;
+  const normalizedValue = useLogScale ? Math.log(value) : value;
+  const normalizedMin = useLogScale ? Math.log(min) : min;
+  const normalizedMax = useLogScale ? Math.log(max) : max;
+  const span = normalizedMax - normalizedMin;
+  const baseRatio =
+    span <= 0
+      ? 1
+      : Math.min(1, Math.max(0, (normalizedValue - normalizedMin) / span));
+  const ratio = higherBetter ? baseRatio : 1 - baseRatio;
+  const bg = `rgb(${interpolateChannel(248, 221, ratio)} ${interpolateChannel(
+    225,
+    243,
+    ratio
+  )} ${interpolateChannel(224, 226, ratio)})`;
+  const border = `rgb(${interpolateChannel(212, 61, ratio)} ${interpolateChannel(
+    115,
+    166,
+    ratio
+  )} ${interpolateChannel(106, 84, ratio)})`;
+  const color = `rgb(${interpolateChannel(121, 20, ratio)} ${interpolateChannel(
+    43,
+    95,
+    ratio
+  )} ${interpolateChannel(36, 45, ratio)})`;
+  return {
+    background: bg,
+    borderColor: border,
+    color,
+  };
 };
 
 export const ageToTotalDays = (years: number, days: number) =>
@@ -811,15 +971,102 @@ const TransferSearchModal = memo(function TransferSearchModal({
   results,
   sortKey,
   onSortKeyChange,
+  resultsViewMode,
+  onResultsViewModeChange,
   getSortMetricInput,
+  getTableRowData,
+  canQuickBid,
+  quickBidPendingPlayerId,
+  onQuickBid,
   renderResultCard,
   onClose,
 }: TransferSearchModalProps) {
   const [mobilePanel, setMobilePanel] = useState<TransferSearchMobilePanel>("results");
+  const [tableSortColumn, setTableSortColumn] = useState<string>("htms");
+  const [tableSortDirection, setTableSortDirection] =
+    useState<TransferSearchTableSortDirection>("best");
+  const [countryMetaById, setCountryMetaById] = useState<Record<number, TransferSearchCountryMeta>>(
+    {}
+  );
   const marketSummary = useMemo(
     () => buildTransferSearchMarketSummary(results),
     [results]
   );
+  useEffect(() => {
+    const countryIds = Array.from(
+      new Set(
+        results
+          .map((result) => result.nativeCountryId)
+          .filter((countryId): countryId is number =>
+            typeof countryId === "number" && Number.isFinite(countryId) && countryId > 0
+          )
+      )
+    ).filter((countryId) => !countryMetaById[countryId]);
+    if (countryIds.length === 0) return;
+
+    let cancelled = false;
+    void Promise.all(
+      countryIds.map(async (countryId) => {
+        try {
+          const response = await fetch(`/api/chpp/worlddetails?countryId=${countryId}`, {
+            cache: "no-store",
+          });
+          const payload = (await response.json()) as {
+            data?: {
+              HattrickData?: {
+                LeagueList?: {
+                  League?: Record<string, unknown> | Array<Record<string, unknown>>;
+                };
+              };
+            };
+            error?: string;
+          };
+          if (!response.ok || payload?.error) return null;
+          const rawLeague = payload?.data?.HattrickData?.LeagueList?.League;
+          const leagues = Array.isArray(rawLeague) ? rawLeague : rawLeague ? [rawLeague] : [];
+          for (const league of leagues) {
+            const country =
+              league && typeof league === "object" && league.Country && typeof league.Country === "object"
+                ? (league.Country as Record<string, unknown>)
+                : null;
+            const resolvedId = Number(country?.CountryID);
+            const name =
+              typeof country?.CountryName === "string" ? country.CountryName.trim() : "";
+            const flagEmoji = countryCodeToFlagEmoji(country?.CountryCode);
+            if (resolvedId === countryId && name) {
+              return {
+                countryId,
+                meta: {
+                  name,
+                  flagEmoji,
+                },
+              };
+            }
+          }
+          return null;
+        } catch {
+          return null;
+        }
+      })
+    ).then((entries) => {
+      if (cancelled) return;
+      const updates = entries.filter(
+        (entry): entry is { countryId: number; meta: TransferSearchCountryMeta } => Boolean(entry)
+      );
+      if (updates.length === 0) return;
+      setCountryMetaById((prev) => {
+        const next = { ...prev };
+        updates.forEach(({ countryId, meta }) => {
+          next[countryId] = meta;
+        });
+        return next;
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [countryMetaById, results]);
   const sortOptions = useMemo(
     () => [
       { value: "default", label: messages.transferSearchSortDefault },
@@ -869,6 +1116,101 @@ const TransferSearchModal = memo(function TransferSearchModal({
       onSortKeyChange(nextValue as TransferSearchSortKey);
     },
     [onSortKeyChange]
+  );
+  const tableRows = useMemo(
+    (): Array<{ result: TransferSearchResult; data: TransferSearchTableRowData }> =>
+      sortedResults.map((result) => {
+        const fallbackMinimumBid = buildTransferSearchMinimumBidEur(result);
+        const fallbackMetricInput = getSortMetricInput
+          ? getSortMetricInput(result)
+          : buildTransferSearchMetricInput(result);
+        const fallbackPriceSek =
+          typeof result.highestBidSek === "number" && result.highestBidSek > 0
+            ? result.highestBidSek
+            : result.askingPriceSek;
+        const fallbackDeadline = parseChppDate(result.deadline ?? undefined);
+        return {
+          result,
+          data:
+            getTableRowData?.(result) ?? {
+              nationality: "—",
+              nationalityFlag: null,
+              nationalityTitle: undefined,
+              name: formatTransferSearchPlayerName(result),
+              specialty:
+                result.specialty === null || result.specialty === undefined
+                  ? "—"
+                  : result.specialty === 0
+                    ? messages.specialtyNone
+                    : messages.unknownShort,
+              specialtyEmoji:
+                result.specialty !== null && result.specialty !== undefined
+                  ? (SPECIALTY_EMOJI[result.specialty] ?? null)
+                  : null,
+              specialtyTitle:
+                result.specialty === null || result.specialty === undefined
+                  ? undefined
+                  : result.specialty === 0
+                    ? messages.specialtyNone
+                    : messages.unknownShort,
+              injury: formatTransferSearchInjuryCell(result.injuryLevel),
+              ageYears: result.age,
+              ageDays: result.ageDays,
+              ageTotalDays:
+                result.age !== null && result.ageDays !== null
+                  ? ageToTotalDays(result.age, result.ageDays)
+                  : null,
+              priceKind:
+                typeof result.highestBidSek === "number" && result.highestBidSek > 0
+                  ? "HB"
+                  : typeof result.askingPriceSek === "number" && result.askingPriceSek > 0
+                    ? "AP"
+                    : null,
+              priceDisplay:
+                typeof fallbackPriceSek === "number" && fallbackPriceSek > 0
+                  ? new Intl.NumberFormat(undefined, {
+                      style: "currency",
+                      currency: "EUR",
+                      maximumFractionDigits: 0,
+                    }).format(fallbackPriceSek / CHPP_SEK_PER_EUR)
+                  : "—",
+              priceValueEur:
+                typeof fallbackPriceSek === "number" && fallbackPriceSek > 0
+                  ? fallbackPriceSek / CHPP_SEK_PER_EUR
+                  : null,
+              tsi: fallbackMetricInput.tsi ?? null,
+              leadership: result.leadership,
+              experience: result.experience,
+              form: fallbackMetricInput.form ?? null,
+              stamina: fallbackMetricInput.stamina ?? null,
+              keeper: fallbackMetricInput.keeper ?? null,
+              defending: fallbackMetricInput.defending ?? null,
+              playmaking: fallbackMetricInput.playmaking ?? null,
+              winger: fallbackMetricInput.winger ?? null,
+              passing: fallbackMetricInput.passing ?? null,
+              scoring: fallbackMetricInput.scoring ?? null,
+              setPieces: fallbackMetricInput.setPieces ?? null,
+              htmsPotential: getTransferSearchSortValue(fallbackMetricInput, "htmsPotential"),
+              avgPsicoTsi: getTransferSearchSortValue(fallbackMetricInput, "psicoTsiAvg"),
+              avgPsicoWage: getTransferSearchSortValue(fallbackMetricInput, "psicoWageAvg"),
+              wageDisplay:
+                typeof result.salarySek === "number"
+                  ? new Intl.NumberFormat(undefined, {
+                      style: "currency",
+                      currency: "EUR",
+                      maximumFractionDigits: 0,
+                    }).format(result.salarySek / CHPP_SEK_PER_EUR)
+                  : messages.unknownShort,
+              wageValueEur:
+                typeof result.salarySek === "number" ? result.salarySek / CHPP_SEK_PER_EUR : null,
+              wageIncludesForeignBonus: Boolean(result.isAbroad),
+              deadline: result.deadline,
+              deadlineTimestamp: fallbackDeadline?.getTime() ?? null,
+              minBidEur: typeof fallbackMinimumBid === "number" ? fallbackMinimumBid : null,
+            },
+        };
+      }),
+    [getSortMetricInput, getTableRowData, messages, sortedResults]
   );
   const renderedSkillSlotCount = filters
     ? Math.max(filters.skillFilters.length, skillSlotCount ?? filters.skillFilters.length)
@@ -1032,17 +1374,179 @@ const TransferSearchModal = memo(function TransferSearchModal({
     </div>
   );
 
+  const tableHeaderColumns: Array<{ key: string; label: string; higherBetter?: boolean | null }> = [
+    { key: "nat", label: messages.transferSearchTableNationalityColumn, higherBetter: null },
+    { key: "name", label: messages.transferSearchTableNameColumn, higherBetter: null },
+    { key: "spec", label: messages.transferSearchTableSpecialtyColumn },
+    { key: "inj", label: messages.transferSearchTableInjuryColumn, higherBetter: null },
+    { key: "age", label: messages.transferSearchTableAgeColumn, higherBetter: false },
+    { key: "price", label: messages.transferSearchTablePriceColumn, higherBetter: false },
+    { key: "tsi", label: "TSI", higherBetter: true },
+    { key: "lead", label: messages.transferSearchTableLeadershipColumn, higherBetter: true },
+    { key: "xp", label: messages.transferSearchTableExperienceColumn, higherBetter: true },
+    { key: "form", label: messages.transferSearchTableFormColumn, higherBetter: true },
+    { key: "stam", label: messages.transferSearchTableStaminaColumn, higherBetter: true },
+    { key: "kp", label: messages.transferSearchTableKeeperColumn, higherBetter: true },
+    { key: "def", label: messages.transferSearchTableDefendingColumn, higherBetter: true },
+    { key: "pm", label: messages.transferSearchTablePlaymakingColumn, higherBetter: true },
+    { key: "wg", label: messages.transferSearchTableWingerColumn, higherBetter: true },
+    { key: "ps", label: messages.transferSearchTablePassingColumn, higherBetter: true },
+    { key: "sc", label: messages.transferSearchTableScoringColumn, higherBetter: true },
+    { key: "sp", label: messages.transferSearchTableSetPiecesColumn, higherBetter: true },
+    { key: "htms", label: messages.transferSearchTableHtmsColumn, higherBetter: true },
+    { key: "ptsi", label: messages.transferSearchTablePsicoTsiColumn, higherBetter: true },
+    { key: "pwage", label: messages.transferSearchTablePsicoWageColumn, higherBetter: true },
+    { key: "wage", label: messages.transferSearchTableWageColumn, higherBetter: false },
+    { key: "deadline", label: messages.transferSearchTableDeadlineColumn, higherBetter: null },
+    { key: "bid", label: messages.transferSearchTableBidColumn, higherBetter: false },
+  ] as const;
+
+  const tableColumnStats = useMemo(() => {
+    const collect = (selector: (row: TransferSearchTableRowData) => number | null | undefined) => {
+      const values = tableRows
+        .map(({ data }) => selector(data))
+        .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+      if (values.length === 0) return { min: null, max: null };
+      return { min: Math.min(...values), max: Math.max(...values) };
+    };
+    return {
+      age: collect((row) => row.ageTotalDays),
+      price: collect((row) => row.priceValueEur),
+      tsi: collect((row) => row.tsi),
+      lead: collect((row) => row.leadership),
+      xp: collect((row) => row.experience),
+      form: collect((row) => row.form),
+      stam: collect((row) => row.stamina),
+      kp: collect((row) => row.keeper),
+      def: collect((row) => row.defending),
+      pm: collect((row) => row.playmaking),
+      wg: collect((row) => row.winger),
+      ps: collect((row) => row.passing),
+      sc: collect((row) => row.scoring),
+      sp: collect((row) => row.setPieces),
+      htms: collect((row) => row.htmsPotential),
+      ptsi: collect((row) => row.avgPsicoTsi),
+      pwage: collect((row) => row.avgPsicoWage),
+      wage: collect((row) => row.wageValueEur),
+      bid: collect((row) => row.minBidEur),
+    };
+  }, [tableRows]);
+
+  const sortedTableRows = useMemo(() => {
+    const compareText = (left: string, right: string) => left.localeCompare(right, undefined, { sensitivity: "base" });
+    const columnComparator = (left: TransferSearchTableRowData, right: TransferSearchTableRowData) => {
+      switch (tableSortColumn) {
+        case "nat":
+          return compareText(left.nationalityTitle ?? left.nationality, right.nationalityTitle ?? right.nationality);
+        case "name":
+          return compareText(left.name, right.name);
+        case "spec":
+          return compareText(left.specialtyTitle ?? left.specialty, right.specialtyTitle ?? right.specialty);
+        case "inj":
+          return compareText(left.injury, right.injury);
+        case "age":
+          return (left.ageTotalDays ?? Number.POSITIVE_INFINITY) - (right.ageTotalDays ?? Number.POSITIVE_INFINITY);
+        case "price":
+          return (left.priceValueEur ?? Number.POSITIVE_INFINITY) - (right.priceValueEur ?? Number.POSITIVE_INFINITY);
+        case "tsi":
+          return (right.tsi ?? Number.NEGATIVE_INFINITY) - (left.tsi ?? Number.NEGATIVE_INFINITY);
+        case "lead":
+          return (right.leadership ?? Number.NEGATIVE_INFINITY) - (left.leadership ?? Number.NEGATIVE_INFINITY);
+        case "xp":
+          return (right.experience ?? Number.NEGATIVE_INFINITY) - (left.experience ?? Number.NEGATIVE_INFINITY);
+        case "form":
+          return (right.form ?? Number.NEGATIVE_INFINITY) - (left.form ?? Number.NEGATIVE_INFINITY);
+        case "stam":
+          return (right.stamina ?? Number.NEGATIVE_INFINITY) - (left.stamina ?? Number.NEGATIVE_INFINITY);
+        case "kp":
+          return (right.keeper ?? Number.NEGATIVE_INFINITY) - (left.keeper ?? Number.NEGATIVE_INFINITY);
+        case "def":
+          return (right.defending ?? Number.NEGATIVE_INFINITY) - (left.defending ?? Number.NEGATIVE_INFINITY);
+        case "pm":
+          return (right.playmaking ?? Number.NEGATIVE_INFINITY) - (left.playmaking ?? Number.NEGATIVE_INFINITY);
+        case "wg":
+          return (right.winger ?? Number.NEGATIVE_INFINITY) - (left.winger ?? Number.NEGATIVE_INFINITY);
+        case "ps":
+          return (right.passing ?? Number.NEGATIVE_INFINITY) - (left.passing ?? Number.NEGATIVE_INFINITY);
+        case "sc":
+          return (right.scoring ?? Number.NEGATIVE_INFINITY) - (left.scoring ?? Number.NEGATIVE_INFINITY);
+        case "sp":
+          return (right.setPieces ?? Number.NEGATIVE_INFINITY) - (left.setPieces ?? Number.NEGATIVE_INFINITY);
+        case "htms":
+          return (right.htmsPotential ?? Number.NEGATIVE_INFINITY) - (left.htmsPotential ?? Number.NEGATIVE_INFINITY);
+        case "ptsi":
+          return (right.avgPsicoTsi ?? Number.NEGATIVE_INFINITY) - (left.avgPsicoTsi ?? Number.NEGATIVE_INFINITY);
+        case "pwage":
+          return (right.avgPsicoWage ?? Number.NEGATIVE_INFINITY) - (left.avgPsicoWage ?? Number.NEGATIVE_INFINITY);
+        case "wage":
+          return (left.wageValueEur ?? Number.POSITIVE_INFINITY) - (right.wageValueEur ?? Number.POSITIVE_INFINITY);
+        case "deadline":
+          return (left.deadlineTimestamp ?? Number.POSITIVE_INFINITY) - (right.deadlineTimestamp ?? Number.POSITIVE_INFINITY);
+        case "bid":
+          return (left.minBidEur ?? Number.POSITIVE_INFINITY) - (right.minBidEur ?? Number.POSITIVE_INFINITY);
+        default:
+          return 0;
+      }
+    };
+    return [...tableRows].sort((left, right) => {
+      const cmp = columnComparator(left.data, right.data);
+      if (cmp !== 0) return tableSortDirection === "reverse" ? -cmp : cmp;
+      return left.result.playerId - right.result.playerId;
+    });
+  }, [tableRows, tableSortColumn, tableSortDirection]);
+
+  const renderTablePill = useCallback(
+    (
+      content: ReactNode,
+      options?: {
+        numericValue?: number | null;
+        stats?: { min: number | null; max: number | null };
+        higherBetter?: boolean;
+        neutral?: boolean;
+      }
+    ) => {
+      const style =
+        options?.neutral || !options?.stats
+          ? undefined
+          : buildTransferSearchPillStyle(
+              options.numericValue ?? null,
+              options.stats.min,
+              options.stats.max,
+              options.higherBetter ?? true
+            );
+      return (
+        <span
+          className={`${styles.transferSearchTablePill}${
+            options?.neutral ? ` ${styles.transferSearchTablePillNeutral}` : ""
+          }`}
+          style={style}
+        >
+          {content}
+        </span>
+      );
+    },
+    []
+  );
+
   return (
     <Modal
       open={open}
       title={messages.seniorTransferSearchModalTitle}
-      className={styles.transferSearchModal}
+      className={`${styles.transferSearchModal}${
+        resultsViewMode === "table" ? ` ${styles.transferSearchModalTableMode}` : ""
+      }`}
       movable
       body={
         <div className={styles.transferSearchModalShell}>
-          <div className={styles.transferSearchModalContent}>
+          <div
+            className={`${styles.transferSearchModalContent}${
+              resultsViewMode === "table" ? ` ${styles.transferSearchModalContentTableMode}` : ""
+            }`}
+          >
             <aside
-              className={styles.transferSearchModalSidebar}
+              className={`${styles.transferSearchModalSidebar}${
+                resultsViewMode === "table" ? ` ${styles.transferSearchModalSidebarHidden}` : ""
+              }`}
               data-transfer-search-mobile-panel="criteria"
               data-transfer-search-mobile-active={mobilePanel === "criteria" ? "true" : "false"}
             >
@@ -1295,7 +1799,11 @@ const TransferSearchModal = memo(function TransferSearchModal({
 
             <div className={styles.transferSearchResultsStack}>
               <section
-                className={styles.transferSearchModalResults}
+                className={`${styles.transferSearchModalResults}${
+                  resultsViewMode === "table"
+                    ? ` ${styles.transferSearchModalResultsTableMode}`
+                    : ""
+                }`}
                 data-transfer-search-mobile-panel="results"
                 data-transfer-search-mobile-active={mobilePanel === "results" ? "true" : "false"}
               >
@@ -1307,25 +1815,43 @@ const TransferSearchModal = memo(function TransferSearchModal({
                       <span className={styles.profileUpdated}>{resultCountLabel}</span>
                     ) : null}
                   </div>
-                  <label className={styles.transferSearchResultsSortControl}>
-                    <span className={styles.infoLabel}>{messages.sortLabel}</span>
-                    <select
-                      className={styles.transferSearchSelect}
-                      value={sortKey}
-                      onChange={handleSortChange}
+                  <div className={styles.transferSearchResultsHeaderControls}>
+                    <button
+                      type="button"
+                      className={styles.transferSearchViewToggle}
+                      onClick={() =>
+                        onResultsViewModeChange(
+                          resultsViewMode === "cards" ? "table" : "cards"
+                        )
+                      }
                       disabled={loading}
                     >
-                      {sortOptions.map((option, index) => (
-                        <option
-                          key={`${option.value}-${index}`}
-                          value={option.value}
-                          disabled={option.value === TRANSFER_SEARCH_SORT_SEPARATOR}
+                      {resultsViewMode === "cards"
+                        ? messages.transferSearchShowTableButton
+                        : messages.transferSearchShowCardsButton}
+                    </button>
+                    {resultsViewMode === "cards" ? (
+                      <label className={styles.transferSearchResultsSortControl}>
+                        <span className={styles.infoLabel}>{messages.sortLabel}</span>
+                        <select
+                          className={styles.transferSearchSelect}
+                          value={sortKey}
+                          onChange={handleSortChange}
+                          disabled={loading}
                         >
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
+                          {sortOptions.map((option, index) => (
+                            <option
+                              key={`${option.value}-${index}`}
+                              value={option.value}
+                              disabled={option.value === TRANSFER_SEARCH_SORT_SEPARATOR}
+                            >
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : null}
+                  </div>
                 </div>
                 {exactEmpty ? (
                   <p className={styles.transferSearchFallbackNotice}>
@@ -1341,11 +1867,198 @@ const TransferSearchModal = memo(function TransferSearchModal({
                 {!loading && !error && results.length === 0 ? (
                   <p className={styles.muted}>{messages.seniorTransferSearchNoResults}</p>
                 ) : null}
-                <div className={styles.transferSearchResultsList}>
-                  {sortedResults.map((result) => renderResultCard(result))}
-                </div>
+                {resultsViewMode === "table" ? (
+                  <div className={styles.transferSearchTableShell}>
+                    <div className={styles.transferSearchTableScroller}>
+                      <table className={styles.transferSearchResultsTable}>
+                        <thead>
+                          <tr>
+                            {tableHeaderColumns.map((column) => (
+                              <th key={column.key}>
+                                <button
+                                  type="button"
+                                  className={styles.transferSearchTableSortButton}
+                                  onClick={() => {
+                                    if (tableSortColumn === column.key) {
+                                      setTableSortDirection((prev) =>
+                                        prev === "best" ? "reverse" : "best"
+                                      );
+                                      return;
+                                    }
+                                    setTableSortColumn(column.key);
+                                    setTableSortDirection("best");
+                                  }}
+                                >
+                                  <span>
+                                    {column.label}
+                                    {column.key === "price" ? (
+                                      <sup className={styles.transferSearchTableFootnoteMarker}>
+                                        †
+                                      </sup>
+                                    ) : null}
+                                  </span>
+                                  <span className={styles.matrixSortIcon}>
+                                    {tableSortColumn === column.key
+                                      ? tableSortDirection === "best"
+                                        ? "▼"
+                                        : "▲"
+                                      : "⇅"}
+                                  </span>
+                                </button>
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sortedTableRows.map(({ result, data }) => (
+                            <tr key={result.playerId}>
+                              <td>
+                                {(() => {
+                                  const countryMeta =
+                                    typeof result.nativeCountryId === "number"
+                                      ? countryMetaById[result.nativeCountryId]
+                                      : undefined;
+                                  const nationalityTitle =
+                                    countryMeta?.name ??
+                                    data.nationalityTitle ??
+                                    formatTransferSearchCountryFallback(data.nationality);
+                                  const nationalityDisplay =
+                                    countryMeta?.flagEmoji ??
+                                    data.nationalityFlag ??
+                                    nationalityTitle;
+                                  return renderTablePill(
+                                    <span title={nationalityTitle}>{nationalityDisplay}</span>,
+                                    { neutral: true }
+                                  );
+                                })()}
+                              </td>
+                              <td>
+                                {renderTablePill(
+                                  <a
+                                    className={styles.profileNameLink}
+                                    href={hattrickPlayerUrl(result.playerId)}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                  >
+                                    {data.name}
+                                  </a>,
+                                  { neutral: true }
+                                )}
+                              </td>
+                              <td>
+                                <Tooltip content={data.specialtyTitle ?? data.specialty}>
+                                  {renderTablePill(
+                                    <>
+                                      {data.specialtyEmoji ? `${data.specialtyEmoji} ` : ""}
+                                      {data.specialtyEmoji ? "" : data.specialty}
+                                    </>,
+                                    { neutral: true }
+                                  )}
+                                </Tooltip>
+                              </td>
+                              <td>
+                                <Tooltip
+                                  content={formatTransferSearchInjuryTooltip(
+                                    result.injuryLevel,
+                                    messages
+                                  )}
+                                >
+                                  {renderTablePill(data.injury, { neutral: true })}
+                                </Tooltip>
+                              </td>
+                              <td>
+                                {renderTablePill(
+                                  data.ageYears === null
+                                    ? "—"
+                                    : `${data.ageYears}${messages.ageYearsShort} ${data.ageDays ?? 0}${messages.ageDaysShort}`,
+                                  {
+                                    numericValue: data.ageTotalDays ?? null,
+                                    stats: tableColumnStats.age,
+                                    higherBetter: false,
+                                  }
+                                )}
+                              </td>
+                              <td>
+                                {renderTablePill(
+                                  <>
+                                    {data.priceKind ? `${data.priceKind} ` : ""}
+                                    {data.priceDisplay}
+                                  </>,
+                                  {
+                                    numericValue: data.priceValueEur ?? null,
+                                    stats: tableColumnStats.price,
+                                    higherBetter: false,
+                                  }
+                                )}
+                              </td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.tsi) ?? "—", { numericValue: data.tsi, stats: tableColumnStats.tsi, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.leadership) ?? "—", { numericValue: data.leadership, stats: tableColumnStats.lead, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.experience) ?? "—", { numericValue: data.experience, stats: tableColumnStats.xp, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.form) ?? "—", { numericValue: data.form, stats: tableColumnStats.form, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.stamina) ?? "—", { numericValue: data.stamina, stats: tableColumnStats.stam, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.keeper) ?? "—", { numericValue: data.keeper, stats: tableColumnStats.kp, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.defending) ?? "—", { numericValue: data.defending, stats: tableColumnStats.def, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.playmaking) ?? "—", { numericValue: data.playmaking, stats: tableColumnStats.pm, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.winger) ?? "—", { numericValue: data.winger, stats: tableColumnStats.wg, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.passing) ?? "—", { numericValue: data.passing, stats: tableColumnStats.ps, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.scoring) ?? "—", { numericValue: data.scoring, stats: tableColumnStats.sc, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.setPieces) ?? "—", { numericValue: data.setPieces, stats: tableColumnStats.sp, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.htmsPotential) ?? "—", { numericValue: data.htmsPotential, stats: tableColumnStats.htms, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.avgPsicoTsi, 2) ?? "—", { numericValue: data.avgPsicoTsi, stats: tableColumnStats.ptsi, higherBetter: true })}</td>
+                              <td>{renderTablePill(formatTransferSearchTableMetric(data.avgPsicoWage, 2) ?? "—", { numericValue: data.avgPsicoWage, stats: tableColumnStats.pwage, higherBetter: true })}</td>
+                              <td>
+                                {renderTablePill(
+                                  `${data.wageDisplay}${data.wageIncludesForeignBonus ? "*" : ""}`,
+                                  {
+                                    numericValue: data.wageValueEur ?? null,
+                                    stats: tableColumnStats.wage,
+                                    higherBetter: false,
+                                  }
+                                )}
+                              </td>
+                              <td>{renderTablePill(formatTransferSearchDeadlineRemaining(data.deadline, messages), { neutral: true })}</td>
+                              <td>
+                                <Tooltip
+                                  content={messages.seniorTransferSearchSupporterOnlyTooltip}
+                                  disabled={Boolean(canQuickBid)}
+                                >
+                                  <button
+                                    type="button"
+                                    className={`${styles.confirmSubmit} ${styles.transferSearchTableBidButton}`}
+                                    onClick={() => onQuickBid?.(result)}
+                                    disabled={
+                                      !canQuickBid ||
+                                      !onQuickBid ||
+                                      quickBidPendingPlayerId === result.playerId ||
+                                      data.minBidEur === null
+                                    }
+                                  >
+                                    {data.minBidEur === null
+                                      ? messages.unknownShort
+                                      : `${messages.transferSearchTableBidAction} ${data.minBidEur.toLocaleString()}`}
+                                  </button>
+                                </Tooltip>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className={styles.transferSearchTableFooter}>
+                      <span>
+                        <span className={styles.transferSearchTableFootnoteMarker}>†</span>{" "}
+                        {messages.transferSearchTablePriceFootnote}
+                      </span>
+                      <span>{messages.transferSearchTableWageFootnote}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className={styles.transferSearchResultsList}>
+                    {sortedResults.map((result) => renderResultCard(result))}
+                  </div>
+                )}
               </section>
-              {marketSummaryCard}
+              {resultsViewMode === "cards" ? marketSummaryCard : null}
             </div>
           </div>
         </div>

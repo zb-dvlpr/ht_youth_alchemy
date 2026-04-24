@@ -26,6 +26,7 @@ import MobileToolMenu, { type MobileToolView as YouthMobileView } from "./Mobile
 import type { YouthTeamOption } from "../page";
 import { Messages } from "@/lib/i18n";
 import { getChangelogEntries } from "@/lib/changelog";
+import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
@@ -46,9 +47,11 @@ import TransferSearchModal, {
   type TransferSearchBidDraft,
   type TransferSearchFilters,
   type TransferSearchResult,
+  type TransferSearchResultsViewMode,
   type TransferSearchSortKey,
   type TransferSearchSkillFilter,
   type TransferSearchSkillKey,
+  type TransferSearchTableRowData,
 } from "./TransferSearchModal";
 import {
   POSITION_COLUMNS,
@@ -89,6 +92,10 @@ import {
 import { useNotifications } from "./notifications/NotificationsProvider";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import PlayerStatementQuote from "./PlayerStatementQuote";
+import {
+  calculateHtmsMetrics,
+  calculatePsicoTsiMetrics,
+} from "@/lib/seniorPlayerMetrics";
 import {
   CHPP_AUTH_REQUIRED_EVENT,
   type ChppDebugOauthErrorMode,
@@ -980,6 +987,8 @@ export default function Dashboard({
     useState<number | null>(null);
   const [transferSearchSortKey, setTransferSearchSortKey] =
     useState<TransferSearchSortKey>("default");
+  const [transferSearchResultsViewMode, setTransferSearchResultsViewMode] =
+    useState<TransferSearchResultsViewMode>("cards");
   const [transferSearchLoading, setTransferSearchLoading] = useState(false);
   const [transferSearchError, setTransferSearchError] = useState<string | null>(null);
   const [transferSearchExactEmpty, setTransferSearchExactEmpty] = useState(false);
@@ -2145,6 +2154,7 @@ export default function Dashboard({
         transferSearchResults?: TransferSearchResult[];
         transferSearchItemCount?: number | null;
         transferSearchSortKey?: TransferSearchSortKey;
+        transferSearchResultsViewMode?: TransferSearchResultsViewMode;
         transferSearchExactEmpty?: boolean;
         transferSearchBidDrafts?: Record<number, TransferSearchBidDraft>;
         supporterStatus?: SupporterStatus;
@@ -2244,6 +2254,9 @@ export default function Dashboard({
           parsed.transferSearchSortKey === "default"
           ? parsed.transferSearchSortKey
           : "default"
+      );
+      setTransferSearchResultsViewMode(
+        parsed.transferSearchResultsViewMode === "table" ? "table" : "cards"
       );
       setTransferSearchExactEmpty(Boolean(parsed.transferSearchExactEmpty));
       setTransferSearchBidDrafts(
@@ -2527,6 +2540,7 @@ export default function Dashboard({
       transferSearchResults,
       transferSearchItemCount,
       transferSearchSortKey,
+      transferSearchResultsViewMode,
       transferSearchExactEmpty,
       transferSearchBidDrafts,
       supporterStatus,
@@ -2566,6 +2580,7 @@ export default function Dashboard({
     transferSearchResults,
     transferSearchItemCount,
     transferSearchSortKey,
+    transferSearchResultsViewMode,
     transferSearchExactEmpty,
     transferSearchBidDrafts,
     supporterStatus,
@@ -3894,6 +3909,58 @@ export default function Dashboard({
     transferSearchBidDrafts,
   ]);
 
+  const placeTransferQuickBid = useCallback(
+    async (result: TransferSearchResult) => {
+      const minimumBidEur = buildTransferSearchMinimumBidEur(result);
+      if (typeof minimumBidEur !== "number") {
+        addNotification(messages.seniorTransferSearchBidMissingAmount);
+        return;
+      }
+      updateTransferSearchBidDraft(result.playerId, "bidEur", String(minimumBidEur));
+      setTransferSearchBidPendingPlayerId(result.playerId);
+      try {
+        const { response, payload } = await fetchChppJson<{
+          error?: string;
+          details?: string;
+        }>("/api/chpp/playerdetails", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            playerId: result.playerId,
+            teamId: resolvedSeniorTeamId,
+            bidAmount: minimumBidEur * CHPP_SEK_PER_EUR,
+          }),
+        });
+        if (!response.ok || payload?.error) {
+          throw new Error(payload?.details ?? payload?.error ?? "Failed to place bid");
+        }
+        addNotification(
+          messages.seniorTransferSearchBidPlaced.replace(
+            "{{player}}",
+            formatTransferSearchPlayerName(result)
+          )
+        );
+      } catch (error) {
+        addNotification(
+          messages.seniorTransferSearchBidFailed.replace(
+            "{{details}}",
+            error instanceof Error ? error.message : String(error)
+          )
+        );
+      } finally {
+        setTransferSearchBidPendingPlayerId(null);
+      }
+    },
+    [
+      addNotification,
+      messages.seniorTransferSearchBidFailed,
+      messages.seniorTransferSearchBidMissingAmount,
+      messages.seniorTransferSearchBidPlaced,
+      resolvedSeniorTeamId,
+      updateTransferSearchBidDraft,
+    ]
+  );
+
   const transferSearchResultCountLabel =
     transferSearchItemCount === null || Number.isNaN(transferSearchItemCount)
       ? null
@@ -3999,6 +4066,114 @@ export default function Dashboard({
       };
     },
     [transferSearchDetailsById]
+  );
+
+  const getTransferSearchTableRowData = useCallback(
+    (result: TransferSearchResult): TransferSearchTableRowData => {
+      const resultDetails = transferSearchDetailsById[result.playerId] ?? null;
+      const metricInput = getTransferSearchSortMetricInput(result);
+      const specialtyValue = resultDetails?.Specialty ?? result.specialty;
+      const specialty =
+        specialtyValue === null || specialtyValue === undefined
+          ? "—"
+          : specialtyValue === 0
+            ? messages.specialtyNone
+            : specialtyName(specialtyValue) ?? messages.unknownShort;
+      const minimumBidEur = buildTransferSearchMinimumBidEur(result);
+      const nationalityText =
+        typeof resultDetails?.NativeCountryName === "string" && resultDetails.NativeCountryName.trim()
+          ? resultDetails.NativeCountryName.trim()
+          : messages.unknownShort;
+      const priceSek =
+        typeof result.highestBidSek === "number" && result.highestBidSek > 0
+          ? result.highestBidSek
+          : result.askingPriceSek;
+      const psico = calculatePsicoTsiMetrics(metricInput);
+      return {
+        nationality: nationalityText,
+        nationalityFlag: null,
+        nationalityTitle: nationalityText,
+        name: formatTransferSearchPlayerName(result),
+        specialty,
+        specialtyEmoji:
+          specialtyValue !== null && specialtyValue !== undefined
+            ? (SPECIALTY_EMOJI[specialtyValue] ?? null)
+            : null,
+        specialtyTitle: specialty,
+        injury:
+          typeof result.injuryLevel === "number" && result.injuryLevel > 0
+            ? String(result.injuryLevel)
+            : "—",
+        ageYears: metricInput.ageYears ?? null,
+        ageDays: metricInput.ageDays ?? null,
+        ageTotalDays:
+          metricInput.ageYears !== null &&
+          metricInput.ageYears !== undefined &&
+          metricInput.ageDays !== null &&
+          metricInput.ageDays !== undefined
+            ? ageToTotalDays(metricInput.ageYears, metricInput.ageDays)
+            : null,
+        priceKind:
+          typeof result.highestBidSek === "number" && result.highestBidSek > 0
+            ? "HB"
+            : typeof result.askingPriceSek === "number" && result.askingPriceSek > 0
+              ? "AP"
+              : null,
+        priceDisplay:
+          typeof priceSek === "number" && priceSek > 0
+            ? formatEurFromSek(priceSek)
+            : messages.unknownShort,
+        priceValueEur:
+          typeof priceSek === "number" && priceSek > 0 ? priceSek / CHPP_SEK_PER_EUR : null,
+        tsi: metricInput.tsi ?? null,
+        leadership: result.leadership,
+        experience: result.experience,
+        form: metricInput.form ?? null,
+        stamina: metricInput.stamina ?? null,
+        keeper: metricInput.keeper ?? null,
+        defending: metricInput.defending ?? null,
+        playmaking: metricInput.playmaking ?? null,
+        winger: metricInput.winger ?? null,
+        passing: metricInput.passing ?? null,
+        scoring: metricInput.scoring ?? null,
+        setPieces: metricInput.setPieces ?? null,
+        htmsPotential: calculateHtmsMetrics(metricInput)?.potential ?? null,
+        avgPsicoTsi: psico
+          ? [
+              Number.parseFloat(psico.formHigh),
+              Number.parseFloat(psico.formAvg),
+              Number.parseFloat(psico.formLow),
+            ].reduce((sum, value) => sum + value, 0) / 3
+          : null,
+        avgPsicoWage: psico
+          ? [
+              Number.parseFloat(psico.wageHigh),
+              Number.parseFloat(psico.wageAvg),
+              Number.parseFloat(psico.wageLow),
+            ].reduce((sum, value) => sum + value, 0) / 3
+          : null,
+        wageDisplay:
+          typeof metricInput.salarySek === "number"
+            ? formatEurFromSek(metricInput.salarySek)
+            : messages.unknownShort,
+        wageValueEur:
+          typeof metricInput.salarySek === "number"
+            ? metricInput.salarySek / CHPP_SEK_PER_EUR
+            : null,
+        wageIncludesForeignBonus: Boolean(metricInput.isAbroad),
+        deadline: result.deadline,
+        deadlineTimestamp: parseChppDate(result.deadline ?? undefined)?.getTime() ?? null,
+        minBidEur: typeof minimumBidEur === "number" ? minimumBidEur : null,
+      };
+    },
+    [
+      formatEurFromSek,
+      getTransferSearchSortMetricInput,
+      messages.specialtyNone,
+      messages.unknownShort,
+      specialtyName,
+      transferSearchDetailsById,
+    ]
   );
 
   const renderTransferSearchResultCard = useCallback((result: TransferSearchResult) => {
@@ -7141,7 +7316,15 @@ export default function Dashboard({
         results={transferSearchResults}
         sortKey={transferSearchSortKey}
         onSortKeyChange={setTransferSearchSortKey}
+        resultsViewMode={transferSearchResultsViewMode}
+        onResultsViewModeChange={setTransferSearchResultsViewMode}
         getSortMetricInput={getTransferSearchSortMetricInput}
+        getTableRowData={getTransferSearchTableRowData}
+        canQuickBid={transferSearchCanBid && Boolean(resolvedSeniorTeamId)}
+        quickBidPendingPlayerId={transferSearchBidPendingPlayerId}
+        onQuickBid={(result) => {
+          void placeTransferQuickBid(result);
+        }}
         renderResultCard={renderTransferSearchResultCard}
         onClose={() => setTransferSearchModalOpen(false)}
       />

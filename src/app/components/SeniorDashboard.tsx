@@ -65,6 +65,8 @@ import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import TransferSearchModal, {
   type TransferSearchSortKey,
+  type TransferSearchResultsViewMode,
+  type TransferSearchTableRowData,
 } from "./TransferSearchModal";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import PlayerStatementQuote from "./PlayerStatementQuote";
@@ -80,7 +82,11 @@ import {
   captureSeniorEncounteredPlayer,
   type SeniorEncounterSource,
 } from "@/lib/seniorEncounteredPlayerModel";
-import type { SeniorPlayerMetricInput } from "@/lib/seniorPlayerMetrics";
+import {
+  calculateHtmsMetrics,
+  calculatePsicoTsiMetrics,
+  type SeniorPlayerMetricInput,
+} from "@/lib/seniorPlayerMetrics";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -2891,6 +2897,8 @@ export default function SeniorDashboard({
   const [transferSearchItemCount, setTransferSearchItemCount] = useState<number | null>(null);
   const [transferSearchSortKey, setTransferSearchSortKey] =
     useState<TransferSearchSortKey>("default");
+  const [transferSearchResultsViewMode, setTransferSearchResultsViewMode] =
+    useState<TransferSearchResultsViewMode>("cards");
   const [transferSearchLoading, setTransferSearchLoading] = useState(false);
   const [transferSearchError, setTransferSearchError] = useState<string | null>(null);
   const [transferSearchUsedFallback, setTransferSearchUsedFallback] = useState(false);
@@ -9830,6 +9838,79 @@ function buildSeniorAiManMarkingReadySignature(params: {
     runTransferSearch,
   ]);
 
+  const placeTransferQuickBid = useCallback(
+    async (result: TransferSearchResult) => {
+      if (!resolvedSeniorTeamId) return;
+      const minimumBidEur = buildTransferSearchMinimumBidEur(result);
+      if (typeof minimumBidEur !== "number") {
+        addNotification(messages.seniorTransferSearchBidMissingAmount);
+        return;
+      }
+      updateTransferSearchBidDraft(result.playerId, "bidEur", String(minimumBidEur));
+      setTransferSearchBidPendingPlayerId(result.playerId);
+      try {
+        const { response, payload } = await fetchChppJson<{
+          error?: string;
+          details?: string;
+        }>("/api/chpp/playerdetails", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            playerId: result.playerId,
+            teamId: resolvedSeniorTeamId,
+            bidAmount: minimumBidEur * CHPP_SEK_PER_EUR,
+          }),
+        });
+        if (!response.ok || payload?.error) {
+          throw new Error(payload?.details ?? payload?.error ?? "Failed to place bid");
+        }
+        addNotification(
+          messages.seniorTransferSearchBidPlaced.replace(
+            "{{player}}",
+            formatTransferSearchPlayerName(result)
+          )
+        );
+        const refreshedDetail = await fetchPlayerDetailsById(
+          result.playerId,
+          "seniorTransferMarket"
+        );
+        if (refreshedDetail) {
+          setDetailsCache((prev) => ({
+            ...prev,
+            [result.playerId]: {
+              data: refreshedDetail,
+              fetchedAt: Date.now(),
+            },
+          }));
+        }
+        if (transferSearchFilters) {
+          await runTransferSearch(transferSearchFilters);
+        }
+      } catch (error) {
+        if (error instanceof ChppAuthRequiredError) return;
+        addNotification(
+          messages.seniorTransferSearchBidFailed.replace(
+            "{{details}}",
+            error instanceof Error ? error.message : String(error)
+          )
+        );
+      } finally {
+        setTransferSearchBidPendingPlayerId(null);
+      }
+    },
+    [
+      addNotification,
+      fetchPlayerDetailsById,
+      messages.seniorTransferSearchBidFailed,
+      messages.seniorTransferSearchBidMissingAmount,
+      messages.seniorTransferSearchBidPlaced,
+      resolvedSeniorTeamId,
+      runTransferSearch,
+      transferSearchFilters,
+      updateTransferSearchBidDraft,
+    ]
+  );
+
 const refreshDetailsForPlayers = async (
     playersToRefresh: SeniorPlayer[],
     options?: {
@@ -12464,6 +12545,7 @@ const refreshDetailsForPlayers = async (
             transferSearchResults?: TransferSearchResult[];
             transferSearchItemCount?: number | null;
             transferSearchSortKey?: TransferSearchSortKey;
+            transferSearchResultsViewMode?: TransferSearchResultsViewMode;
             transferSearchUsedFallback?: boolean;
             transferSearchExactEmpty?: boolean;
             transferSearchBidDrafts?: Record<number, TransferSearchBidDraft>;
@@ -12727,6 +12809,9 @@ const refreshDetailsForPlayers = async (
               ? parsed.transferSearchSortKey
               : "default"
           );
+          setTransferSearchResultsViewMode(
+            parsed.transferSearchResultsViewMode === "table" ? "table" : "cards"
+          );
           setTransferSearchUsedFallback(Boolean(parsed.transferSearchUsedFallback));
           setTransferSearchExactEmpty(Boolean(parsed.transferSearchExactEmpty));
           setTransferSearchBidDrafts(
@@ -12947,6 +13032,7 @@ const refreshDetailsForPlayers = async (
       transferSearchResults,
       transferSearchItemCount,
       transferSearchSortKey,
+      transferSearchResultsViewMode,
       transferSearchUsedFallback,
       transferSearchExactEmpty,
       transferSearchBidDrafts,
@@ -13000,6 +13086,7 @@ const refreshDetailsForPlayers = async (
     transferSearchResults,
     transferSearchItemCount,
     transferSearchSortKey,
+    transferSearchResultsViewMode,
     transferSearchUsedFallback,
     transferSearchExactEmpty,
     transferSearchBidDrafts,
@@ -13817,6 +13904,115 @@ const refreshDetailsForPlayers = async (
       };
     },
     [detailsById]
+  );
+
+  const getTransferSearchTableRowData = useCallback(
+    (result: TransferSearchResult): TransferSearchTableRowData => {
+      const resultDetails = detailsById.get(result.playerId) ?? null;
+      const metricInput = getTransferSearchSortMetricInput(result);
+      const specialtyValue = resultDetails?.Specialty ?? result.specialty;
+      const specialty =
+        specialtyValue === null || specialtyValue === undefined
+          ? "—"
+          : specialtyValue === 0
+            ? messages.specialtyNone
+            : specialtyName(specialtyValue) ?? messages.unknownShort;
+      const minimumBidEur = buildTransferSearchMinimumBidEur(result);
+      const nationalityText =
+        typeof resultDetails?.NativeCountryName === "string" && resultDetails.NativeCountryName.trim()
+          ? resultDetails.NativeCountryName.trim()
+          : messages.unknownShort;
+      const resolvedSalary =
+        typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek;
+      const resolvedIsAbroad = resolveSeniorIsAbroad(resultDetails) ?? result.isAbroad;
+      const priceSek =
+        typeof result.highestBidSek === "number" && result.highestBidSek > 0
+          ? result.highestBidSek
+          : result.askingPriceSek;
+      const psico = calculatePsicoTsiMetrics(metricInput);
+      return {
+        nationality: nationalityText,
+        nationalityFlag: null,
+        nationalityTitle: nationalityText,
+        name: formatTransferSearchPlayerName(result),
+        specialty,
+        specialtyEmoji:
+          specialtyValue !== null && specialtyValue !== undefined
+            ? (SPECIALTY_EMOJI[specialtyValue] ?? null)
+            : null,
+        specialtyTitle: specialty,
+        injury:
+          typeof result.injuryLevel === "number" && result.injuryLevel > 0
+            ? String(result.injuryLevel)
+            : "—",
+        ageYears: metricInput.ageYears ?? null,
+        ageDays: metricInput.ageDays ?? null,
+        ageTotalDays:
+          metricInput.ageYears !== null &&
+          metricInput.ageYears !== undefined &&
+          metricInput.ageDays !== null &&
+          metricInput.ageDays !== undefined
+            ? ageToTotalDays(metricInput.ageYears, metricInput.ageDays)
+            : null,
+        priceKind:
+          typeof result.highestBidSek === "number" && result.highestBidSek > 0
+            ? "HB"
+            : typeof result.askingPriceSek === "number" && result.askingPriceSek > 0
+              ? "AP"
+              : null,
+        priceDisplay:
+          typeof priceSek === "number" && priceSek > 0
+            ? formatEurFromSek(priceSek)
+            : messages.unknownShort,
+        priceValueEur:
+          typeof priceSek === "number" && priceSek > 0 ? priceSek / CHPP_SEK_PER_EUR : null,
+        tsi: metricInput.tsi ?? null,
+        leadership: result.leadership,
+        experience: result.experience,
+        form: metricInput.form ?? null,
+        stamina: metricInput.stamina ?? null,
+        keeper: metricInput.keeper ?? null,
+        defending: metricInput.defending ?? null,
+        playmaking: metricInput.playmaking ?? null,
+        winger: metricInput.winger ?? null,
+        passing: metricInput.passing ?? null,
+        scoring: metricInput.scoring ?? null,
+        setPieces: metricInput.setPieces ?? null,
+        htmsPotential: calculateHtmsMetrics(metricInput)?.potential ?? null,
+        avgPsicoTsi: psico
+          ? [
+              Number.parseFloat(psico.formHigh),
+              Number.parseFloat(psico.formAvg),
+              Number.parseFloat(psico.formLow),
+            ].reduce((sum, value) => sum + value, 0) / 3
+          : null,
+        avgPsicoWage: psico
+          ? [
+              Number.parseFloat(psico.wageHigh),
+              Number.parseFloat(psico.wageAvg),
+              Number.parseFloat(psico.wageLow),
+            ].reduce((sum, value) => sum + value, 0) / 3
+          : null,
+        wageDisplay:
+          resolvedSalary === null || resolvedSalary === undefined
+            ? messages.unknownShort
+            : formatEurFromSek(resolvedSalary),
+        wageValueEur:
+          resolvedSalary === null || resolvedSalary === undefined
+            ? null
+            : resolvedSalary / CHPP_SEK_PER_EUR,
+        wageIncludesForeignBonus: Boolean(resolvedIsAbroad),
+        deadline: result.deadline,
+        deadlineTimestamp: parseChppDate(result.deadline ?? undefined)?.getTime() ?? null,
+        minBidEur: typeof minimumBidEur === "number" ? minimumBidEur : null,
+      };
+    },
+    [
+      detailsById,
+      getTransferSearchSortMetricInput,
+      messages,
+      specialtyName,
+    ]
   );
 
   useEffect(() => {
@@ -15283,7 +15479,15 @@ const refreshDetailsForPlayers = async (
         results={transferSearchResults}
         sortKey={transferSearchSortKey}
         onSortKeyChange={setTransferSearchSortKey}
+        resultsViewMode={transferSearchResultsViewMode}
+        onResultsViewModeChange={setTransferSearchResultsViewMode}
         getSortMetricInput={getTransferSearchSortMetricInput}
+        getTableRowData={getTransferSearchTableRowData}
+        canQuickBid={transferSearchCanBid}
+        quickBidPendingPlayerId={transferSearchBidPendingPlayerId}
+        onQuickBid={(result) => {
+          void placeTransferQuickBid(result);
+        }}
         renderResultCard={renderTransferSearchResultCard}
         onClose={handleTransferSearchClose}
       />

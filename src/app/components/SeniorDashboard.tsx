@@ -346,6 +346,8 @@ const SKILL_KEYS = [
 const SENIOR_SKILL_EFFECT_CAP = 20;
 const UPDATES_HISTORY_LIMIT = 20;
 const FRIENDLY_MATCH_TYPES = new Set<number>([4, 5, 8, 9]);
+const LEAGUE_QUALI_MATCH_TYPES = new Set<number>([1, 2]);
+const CUP_MATCH_TYPES = new Set<number>([3]);
 const LEAGUE_CUP_QUALI_MATCH_TYPES = new Set<number>([1, 2, 3, 6]);
 const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
 const OPPONENT_ARCHIVE_LIMIT = 20;
@@ -10664,10 +10666,16 @@ const refreshDetailsForPlayers = async (
     if (selectedMatchType !== null && FRIENDLY_MATCH_TYPES.has(selectedMatchType)) {
       return FRIENDLY_MATCH_TYPES;
     }
+    if (selectedMatchType !== null && LEAGUE_QUALI_MATCH_TYPES.has(selectedMatchType)) {
+      return LEAGUE_QUALI_MATCH_TYPES;
+    }
+    if (selectedMatchType !== null && CUP_MATCH_TYPES.has(selectedMatchType)) {
+      return CUP_MATCH_TYPES;
+    }
     if (selectedMatchType !== null && TOURNAMENT_MATCH_TYPES.has(selectedMatchType)) {
       return TOURNAMENT_MATCH_TYPES;
     }
-    return LEAGUE_CUP_QUALI_MATCH_TYPES;
+    return LEAGUE_QUALI_MATCH_TYPES;
   };
 
   const tacticTypeLabel = (tacticType: number | null) => {

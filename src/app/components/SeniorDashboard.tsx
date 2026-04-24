@@ -64,6 +64,7 @@ import UpcomingMatches, {
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
 import TransferSearchModal, {
+  type TransferSearchResolvedCountryMeta,
   type TransferSearchSortKey,
   type TransferSearchResultsViewMode,
   type TransferSearchTableRowData,
@@ -230,6 +231,7 @@ type SeniorDashboardProps = {
   initialSeniorTeams?: Array<{
     teamId: number;
     teamName: string;
+    leagueId?: number | null;
     teamGender: "male" | "female" | null;
   }>;
   initialSeniorTeamId?: number | null;
@@ -247,6 +249,7 @@ type MobileSeniorHistoryState = {
 type SeniorTeamOption = {
   teamId: number;
   teamName: string;
+  leagueId?: number | null;
   teamGender: "male" | "female" | null;
 };
 
@@ -272,7 +275,10 @@ type ManagerCompendiumTeam = {
   TeamId?: unknown;
   TeamName?: unknown;
   GenderID?: unknown;
+  LeagueID?: unknown;
   League?: {
+    LeagueID?: unknown;
+    LeagueId?: unknown;
     Season?: unknown;
   };
 };
@@ -865,6 +871,9 @@ const extractSeniorTeams = (
     teams.push({
       teamId,
       teamName,
+      leagueId:
+        parseNumber(team?.LeagueID ?? team?.League?.LeagueID ?? team?.League?.LeagueId) ??
+        null,
       teamGender: genderId === 2 ? "female" : genderId === 1 ? "male" : null,
     });
     return teams;
@@ -2273,14 +2282,64 @@ const formatEurFromSek = (valueSek: number) =>
     maximumFractionDigits: 0,
   }).format(valueSek / CHPP_SEK_PER_EUR);
 
-const formatSeniorWage = (
-  valueSek: number | null,
-  isAbroad: boolean | null | undefined,
-  messages: Messages
+const resolveTransferSearchSalaryForSelectedTeam = (
+  salarySek: number | null | undefined,
+  currentForeign: boolean | null | undefined,
+  foreignForSelectedTeam: boolean | null | undefined
 ) => {
-  if (valueSek === null || valueSek === undefined) return messages.unknownShort;
-  const base = formatEurFromSek(valueSek);
-  return isAbroad ? `${base} (${messages.seniorWageForeignExtraNote})` : base;
+  if (typeof salarySek !== "number" || !Number.isFinite(salarySek) || salarySek <= 0) {
+    return null;
+  }
+  const baseSalary =
+    currentForeign === true ? Math.round(salarySek / 1.2) : Math.round(salarySek);
+  return foreignForSelectedTeam === true
+    ? Math.round(baseSalary * 1.2)
+    : baseSalary;
+};
+
+const isForeignForSelectedLeague = (
+  nativeLeagueId: number | null | undefined,
+  selectedLeagueId: number | null | undefined
+) => {
+  if (
+    typeof nativeLeagueId !== "number" ||
+    !Number.isFinite(nativeLeagueId) ||
+    nativeLeagueId <= 0 ||
+    typeof selectedLeagueId !== "number" ||
+    !Number.isFinite(selectedLeagueId) ||
+    selectedLeagueId <= 0
+  ) {
+    return null;
+  }
+  return nativeLeagueId !== selectedLeagueId;
+};
+
+const formatDebugTransferWageValue = (value: number | null | undefined) =>
+  typeof value === "number" && Number.isFinite(value) ? String(value) : "null";
+
+const parseTeamdetailsLeagueId = (payload: unknown): number | null => {
+  if (!payload || typeof payload !== "object") return null;
+  const data = payload as {
+    data?: {
+      HattrickData?: {
+        Team?: {
+          LeagueID?: unknown;
+          LeagueId?: unknown;
+          League?: {
+            LeagueID?: unknown;
+            LeagueId?: unknown;
+          };
+        };
+      };
+    };
+  };
+  return (
+    parseNumber(data.data?.HattrickData?.Team?.LeagueID) ??
+    parseNumber(data.data?.HattrickData?.Team?.LeagueId) ??
+    parseNumber(data.data?.HattrickData?.Team?.League?.LeagueID) ??
+    parseNumber(data.data?.HattrickData?.Team?.League?.LeagueId) ??
+    null
+  );
 };
 
 const resolveSeniorIsAbroad = (details: SeniorPlayerDetails | null | undefined) => {
@@ -3109,6 +3168,11 @@ export default function SeniorDashboard({
     () => activeSeniorTeamId ?? activeSeniorTeamOption?.teamId ?? null,
     [activeSeniorTeamId, activeSeniorTeamOption]
   );
+  const [selectedSeniorLeagueIdFallback, setSelectedSeniorLeagueIdFallback] = useState<
+    number | null
+  >(null);
+  const selectedSeniorLeagueId =
+    activeSeniorTeamOption?.leagueId ?? selectedSeniorLeagueIdFallback;
   const stateStorageKey = useMemo(
     () => resolveScopedStorageKey(STATE_STORAGE_KEY, activeSeniorTeamId, multiTeamEnabled),
     [activeSeniorTeamId, multiTeamEnabled]
@@ -3171,6 +3235,51 @@ export default function SeniorDashboard({
       active = false;
     };
   }, []);
+
+  useEffect(() => {
+    const directLeagueId = activeSeniorTeamOption?.leagueId ?? null;
+    if (directLeagueId !== null) {
+      setSelectedSeniorLeagueIdFallback(directLeagueId);
+      return;
+    }
+    if (!resolvedSeniorTeamId) {
+      setSelectedSeniorLeagueIdFallback(null);
+      return;
+    }
+    let cancelled = false;
+    const loadSelectedTeamLeague = async () => {
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Team?: {
+                LeagueID?: unknown;
+                League?: {
+                  LeagueID?: unknown;
+                };
+              };
+            };
+          };
+          error?: string;
+        }>(`/api/chpp/teamdetails?teamId=${resolvedSeniorTeamId}`, {
+          cache: "no-store",
+        });
+        if (!response.ok || payload?.error) return;
+        const leagueId = parseTeamdetailsLeagueId(payload);
+        if (!cancelled) {
+          setSelectedSeniorLeagueIdFallback(leagueId);
+        }
+      } catch {
+        if (!cancelled) {
+          setSelectedSeniorLeagueIdFallback(null);
+        }
+      }
+    };
+    void loadSelectedTeamLeague();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeSeniorTeamOption?.leagueId, resolvedSeniorTeamId]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -9518,6 +9627,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
         }));
         return {
           resolved: true,
+          detail: normalized,
           added: captureStatus === "added",
           deduped: captureStatus === "deduped",
           failed: captureStatus === "failed",
@@ -9535,6 +9645,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     );
     return {
       resolved: true,
+      detail: cached.data,
       added: captureStatus === "added",
       deduped: captureStatus === "deduped",
       failed: captureStatus === "failed",
@@ -9609,6 +9720,45 @@ function buildSeniorAiManMarkingReadySignature(params: {
           .replace("{{deduped}}", String(dedupedCount))
           .replace("{{failed}}", String(failedCount))
       );
+      const firstResult = results[0];
+      const firstDetails =
+        outcomes[0]?.detail ?? (firstResult ? detailsCache[firstResult.playerId]?.data : null);
+      if (firstResult) {
+        const resolvedSalary =
+          typeof firstDetails?.Salary === "number" ? firstDetails.Salary : firstResult.salarySek;
+        const resolvedIsAbroad =
+          resolveSeniorIsAbroad(firstDetails) ?? firstResult.isAbroad ?? null;
+        const foreignForSelectedTeam = isForeignForSelectedLeague(
+          firstDetails?.NativeLeagueID,
+          selectedSeniorLeagueId
+        );
+        const adjustedSalary = resolveTransferSearchSalaryForSelectedTeam(
+          resolvedSalary,
+          resolvedIsAbroad,
+          foreignForSelectedTeam
+        );
+        addNotification(
+          messages.notificationDebugTransferWageContext.replace(
+            "{{selectedLeagueId}}",
+            formatDebugTransferWageValue(selectedSeniorLeagueId)
+          )
+        );
+        addNotification(
+          messages.notificationDebugTransferWagePlayer
+            .replace("{{name}}", formatTransferSearchPlayerName(firstResult))
+            .replace(
+              "{{nativeLeagueId}}",
+              formatDebugTransferWageValue(firstDetails?.NativeLeagueID)
+            )
+            .replace("{{isAbroad}}", String(resolvedIsAbroad))
+            .replace("{{foreign}}", String(foreignForSelectedTeam))
+            .replace("{{salarySek}}", formatDebugTransferWageValue(resolvedSalary))
+            .replace(
+              "{{adjustedSalarySek}}",
+              formatDebugTransferWageValue(adjustedSalary)
+            )
+        );
+      }
     }
   };
 
@@ -13925,6 +14075,15 @@ const refreshDetailsForPlayers = async (
       const resolvedSalary =
         typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek;
       const resolvedIsAbroad = resolveSeniorIsAbroad(resultDetails) ?? result.isAbroad;
+      const foreignForSelectedTeam = isForeignForSelectedLeague(
+        resultDetails?.NativeLeagueID,
+        selectedSeniorLeagueId
+      );
+      const adjustedSalary = resolveTransferSearchSalaryForSelectedTeam(
+        resolvedSalary,
+        resolvedIsAbroad,
+        foreignForSelectedTeam
+      );
       const priceSek =
         typeof result.highestBidSek === "number" && result.highestBidSek > 0
           ? result.highestBidSek
@@ -13994,14 +14153,14 @@ const refreshDetailsForPlayers = async (
             ].reduce((sum, value) => sum + value, 0) / 3
           : null,
         wageDisplay:
-          resolvedSalary === null || resolvedSalary === undefined
+          adjustedSalary === null || adjustedSalary === undefined
             ? messages.unknownShort
-            : formatEurFromSek(resolvedSalary),
+            : formatEurFromSek(adjustedSalary),
         wageValueEur:
-          resolvedSalary === null || resolvedSalary === undefined
+          adjustedSalary === null || adjustedSalary === undefined
             ? null
-            : resolvedSalary / CHPP_SEK_PER_EUR,
-        wageIncludesForeignBonus: Boolean(resolvedIsAbroad),
+            : adjustedSalary / CHPP_SEK_PER_EUR,
+        wageIncludesForeignBonus: foreignForSelectedTeam === true,
         deadline: result.deadline,
         deadlineTimestamp: parseChppDate(result.deadline ?? undefined)?.getTime() ?? null,
         minBidEur: typeof minimumBidEur === "number" ? minimumBidEur : null,
@@ -14011,6 +14170,7 @@ const refreshDetailsForPlayers = async (
       detailsById,
       getTransferSearchSortMetricInput,
       messages,
+      selectedSeniorLeagueId,
       specialtyName,
     ]
   );
@@ -14028,7 +14188,10 @@ const refreshDetailsForPlayers = async (
       return next;
     });
   }, [transferSearchResults]);
-  const renderTransferSearchResultCard = useCallback((result: TransferSearchResult) => {
+  const renderTransferSearchResultCard = useCallback((
+    result: TransferSearchResult,
+    countryMeta: TransferSearchResolvedCountryMeta | null
+  ) => {
     const resultDetails = detailsById.get(result.playerId) ?? null;
     const draft = transferSearchBidDrafts[result.playerId] ?? { bidEur: "", maxBidEur: "" };
     const pending = transferSearchBidPendingPlayerId === result.playerId;
@@ -14140,6 +14303,15 @@ const refreshDetailsForPlayers = async (
       typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek;
     const resolvedIsAbroad =
       resolveSeniorIsAbroad(resultDetails) ?? result.isAbroad;
+    const foreignForSelectedTeam = isForeignForSelectedLeague(
+      resultDetails?.NativeLeagueID,
+      selectedSeniorLeagueId
+    );
+    const adjustedSalary = resolveTransferSearchSalaryForSelectedTeam(
+      resolvedSalary,
+      resolvedIsAbroad,
+      foreignForSelectedTeam
+    );
     const seniorMetricInput = {
       ageYears:
         typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
@@ -14174,6 +14346,11 @@ const refreshDetailsForPlayers = async (
               >
                 {playerName}
               </a>
+              {countryMeta ? (
+                <span className={styles.transferSearchCardNationality} title={countryMeta.name}>
+                  {countryMeta.display}
+                </span>
+              ) : null}
             </h4>
             <PlayerStatementQuote statement={resultDetails?.Statement} />
             {seniorPersonalitySentence ? (
@@ -14193,13 +14370,20 @@ const refreshDetailsForPlayers = async (
               {messages.sortTsi}: {result.tsi}
             </span>
           ) : null}
-          {resolvedSalary !== null ? (
+          {adjustedSalary !== null ? (
             <span className={styles.metaItem}>
               {messages.seniorWageLabel}:{" "}
-              {formatSeniorWage(resolvedSalary, resolvedIsAbroad, messages)}
+              {`${formatEurFromSek(adjustedSalary)}${
+                foreignForSelectedTeam === true ? "*" : ""
+              }`}
             </span>
           ) : null}
         </p>
+            {adjustedSalary !== null && foreignForSelectedTeam === true ? (
+              <p className={styles.seniorPersonaLine}>
+                {messages.transferSearchTableWageFootnote}
+              </p>
+            ) : null}
           </div>
           <div className={styles.transferSearchPriceBlock}>
             <div className={styles.infoLabel}>{displayPriceLabel}</div>
@@ -14354,6 +14538,7 @@ const refreshDetailsForPlayers = async (
     detailsById,
     formatEurFromSek,
     messages,
+    selectedSeniorLeagueId,
     specialtyName,
     transferSearchBidDrafts,
     transferSearchBidPendingPlayerId,

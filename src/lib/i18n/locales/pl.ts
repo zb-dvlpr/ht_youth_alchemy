@@ -396,7 +396,11 @@ export const messagesPl: Messages = {
     transferSearchTableBidColumn: "Bid",
     transferSearchTableBidAction: "Bid",
     transferSearchTablePriceFootnote: "HB = najwyzsza oferta. AP = cena wywolawcza.",
-    transferSearchTableWageFootnote: "* oznacza dodatek obcokrajowca wzgledem twojej druzyny.",
+    transferSearchTableWageFootnote: "* zawiera dodatek obcokrajowca wzgledem twojej druzyny.",
+    notificationDebugTransferWageContext:
+      "Debug: liga wybranej druzyny {{selectedLeagueId}}",
+    notificationDebugTransferWagePlayer:
+      "Debug: {{name}} rodzima liga {{nativeLeagueId}}, za granica {{isAbroad}}, obcy wzgledem druzyny {{foreign}}, placa {{salarySek}}, skorygowana {{adjustedSalarySek}}",
     transferSearchDeadlineNowShort: "now",
     transferSearchDeadlineDayShort: "d",
     transferSearchDeadlineHourShort: "h",

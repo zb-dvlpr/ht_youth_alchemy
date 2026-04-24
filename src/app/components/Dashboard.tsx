@@ -47,6 +47,7 @@ import TransferSearchModal, {
   type TransferSearchBidDraft,
   type TransferSearchFilters,
   type TransferSearchResult,
+  type TransferSearchResolvedCountryMeta,
   type TransferSearchResultsViewMode,
   type TransferSearchSortKey,
   type TransferSearchSkillFilter,
@@ -340,6 +341,11 @@ type ManagerCompendiumResponse = {
 type ManagerTeam = {
   TeamId?: number | string;
   TeamName?: string;
+  LeagueID?: number | string;
+  League?: {
+    LeagueID?: number | string;
+    LeagueId?: number | string;
+  };
   YouthTeam?: {
     YouthTeamId?: number | string;
     YouthTeamName?: string;
@@ -366,6 +372,9 @@ const extractYouthTeams = (response: ManagerCompendiumResponse): YouthTeamOption
     acc.push({
       teamId: Number(team.TeamId ?? 0),
       teamName: team.TeamName ?? "",
+      teamLeagueId:
+        Number(team.LeagueID ?? team.League?.LeagueID ?? team.League?.LeagueId ?? 0) ||
+        null,
       youthTeamId,
       youthTeamName: team.YouthTeam?.YouthTeamName ?? "",
       youthLeagueName: team.YouthTeam?.YouthLeague?.YouthLeagueName ?? null,
@@ -387,6 +396,68 @@ const isSupporterTierValue = (value: unknown) => {
     );
   }
   return false;
+};
+
+const resolveTransferSearchSalaryForSelectedTeam = (
+  salarySek: number | null | undefined,
+  currentForeign: boolean | null | undefined,
+  foreignForSelectedTeam: boolean | null | undefined
+) => {
+  if (typeof salarySek !== "number" || !Number.isFinite(salarySek) || salarySek <= 0) {
+    return null;
+  }
+  const baseSalary =
+    currentForeign === true ? Math.round(salarySek / 1.2) : Math.round(salarySek);
+  return foreignForSelectedTeam === true
+    ? Math.round(baseSalary * 1.2)
+    : baseSalary;
+};
+
+const isForeignForSelectedLeague = (
+  nativeLeagueId: number | null | undefined,
+  selectedLeagueId: number | null | undefined
+) => {
+  if (
+    typeof nativeLeagueId !== "number" ||
+    !Number.isFinite(nativeLeagueId) ||
+    nativeLeagueId <= 0 ||
+    typeof selectedLeagueId !== "number" ||
+    !Number.isFinite(selectedLeagueId) ||
+    selectedLeagueId <= 0
+  ) {
+    return null;
+  }
+  return nativeLeagueId !== selectedLeagueId;
+};
+
+const parseTeamdetailsLeagueId = (payload: unknown): number | null => {
+  if (!payload || typeof payload !== "object") return null;
+  const data = payload as {
+    data?: {
+      HattrickData?: {
+        Team?: {
+          LeagueID?: unknown;
+          LeagueId?: unknown;
+          League?: {
+            LeagueID?: unknown;
+            LeagueId?: unknown;
+          };
+        };
+      };
+    };
+  };
+  const direct = Number(
+    data.data?.HattrickData?.Team?.LeagueID ??
+      data.data?.HattrickData?.Team?.LeagueId ??
+      0
+  );
+  if (Number.isFinite(direct) && direct > 0) return direct;
+  const nested = Number(
+    data.data?.HattrickData?.Team?.League?.LeagueID ??
+      data.data?.HattrickData?.Team?.League?.LeagueId ??
+      0
+  );
+  return Number.isFinite(nested) && nested > 0 ? nested : null;
 };
 
 type CachedDetails = {
@@ -1413,6 +1484,11 @@ export default function Dashboard({
     [activeYouthTeamId, activeYouthTeamOption]
   );
   const resolvedSeniorTeamId = activeYouthTeamOption?.teamId ?? null;
+  const [selectedSeniorLeagueIdFallback, setSelectedSeniorLeagueIdFallback] = useState<
+    number | null
+  >(null);
+  const selectedSeniorLeagueId =
+    activeYouthTeamOption?.teamLeagueId ?? selectedSeniorLeagueIdFallback;
   const ratingsMatrixMatchHrefBuilder = useMemo(() => {
     const teamId = activeYouthTeamOption?.teamId;
     const youthTeamId = activeYouthTeamOption?.youthTeamId;
@@ -1460,6 +1536,51 @@ export default function Dashboard({
       cancelled = true;
     };
   }, [isConnected, resolvedSeniorTeamId]);
+
+  useEffect(() => {
+    const directLeagueId = activeYouthTeamOption?.teamLeagueId ?? null;
+    if (directLeagueId !== null) {
+      setSelectedSeniorLeagueIdFallback(directLeagueId);
+      return;
+    }
+    if (!resolvedSeniorTeamId) {
+      setSelectedSeniorLeagueIdFallback(null);
+      return;
+    }
+    let cancelled = false;
+    const loadSelectedTeamLeague = async () => {
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Team?: {
+                LeagueID?: unknown;
+                League?: {
+                  LeagueID?: unknown;
+                };
+              };
+            };
+          };
+          error?: string;
+        }>(`/api/chpp/teamdetails?teamId=${resolvedSeniorTeamId}`, {
+          cache: "no-store",
+        });
+        if (!response.ok || payload?.error) return;
+        const leagueId = parseTeamdetailsLeagueId(payload);
+        if (!cancelled) {
+          setSelectedSeniorLeagueIdFallback(leagueId);
+        }
+      } catch {
+        if (!cancelled) {
+          setSelectedSeniorLeagueIdFallback(null);
+        }
+      }
+    };
+    void loadSelectedTeamLeague();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeYouthTeamOption?.teamLeagueId, resolvedSeniorTeamId]);
   const hiddenSpecialtyMatchHrefByPlayerId = useMemo(() => {
     if (!ratingsMatrixMatchHrefBuilder) return {} as Record<number, string>;
     return Object.fromEntries(
@@ -4084,6 +4205,21 @@ export default function Dashboard({
         typeof resultDetails?.NativeCountryName === "string" && resultDetails.NativeCountryName.trim()
           ? resultDetails.NativeCountryName.trim()
           : messages.unknownShort;
+      const currentForeign =
+        typeof resultDetails?.IsAbroad === "boolean"
+          ? resultDetails.IsAbroad
+          : typeof result.isAbroad === "boolean"
+            ? result.isAbroad
+            : null;
+      const foreignForSelectedTeam = isForeignForSelectedLeague(
+        resultDetails?.NativeLeagueID,
+        selectedSeniorLeagueId
+      );
+      const adjustedSalary = resolveTransferSearchSalaryForSelectedTeam(
+        metricInput.salarySek,
+        currentForeign,
+        foreignForSelectedTeam
+      );
       const priceSek =
         typeof result.highestBidSek === "number" && result.highestBidSek > 0
           ? result.highestBidSek
@@ -4153,14 +4289,14 @@ export default function Dashboard({
             ].reduce((sum, value) => sum + value, 0) / 3
           : null,
         wageDisplay:
-          typeof metricInput.salarySek === "number"
-            ? formatEurFromSek(metricInput.salarySek)
+          typeof adjustedSalary === "number"
+            ? formatEurFromSek(adjustedSalary)
             : messages.unknownShort,
         wageValueEur:
-          typeof metricInput.salarySek === "number"
-            ? metricInput.salarySek / CHPP_SEK_PER_EUR
+          typeof adjustedSalary === "number"
+            ? adjustedSalary / CHPP_SEK_PER_EUR
             : null,
-        wageIncludesForeignBonus: Boolean(metricInput.isAbroad),
+        wageIncludesForeignBonus: foreignForSelectedTeam === true,
         deadline: result.deadline,
         deadlineTimestamp: parseChppDate(result.deadline ?? undefined)?.getTime() ?? null,
         minBidEur: typeof minimumBidEur === "number" ? minimumBidEur : null,
@@ -4171,12 +4307,16 @@ export default function Dashboard({
       getTransferSearchSortMetricInput,
       messages.specialtyNone,
       messages.unknownShort,
+      selectedSeniorLeagueId,
       specialtyName,
       transferSearchDetailsById,
     ]
   );
 
-  const renderTransferSearchResultCard = useCallback((result: TransferSearchResult) => {
+  const renderTransferSearchResultCard = useCallback((
+    result: TransferSearchResult,
+    countryMeta: TransferSearchResolvedCountryMeta | null
+  ) => {
     const resultDetails = transferSearchDetailsById[result.playerId] ?? null;
     const draft = transferSearchBidDrafts[result.playerId] ?? { bidEur: "", maxBidEur: "" };
     const pending = transferSearchBidPendingPlayerId === result.playerId;
@@ -4199,6 +4339,21 @@ export default function Dashboard({
         : null;
     const resolvedForm = resultDetails?.Form ?? result.form;
     const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
+    const currentForeign =
+      typeof resultDetails?.IsAbroad === "boolean"
+        ? resultDetails.IsAbroad
+        : typeof result.isAbroad === "boolean"
+          ? result.isAbroad
+          : null;
+    const foreignForSelectedTeam = isForeignForSelectedLeague(
+      resultDetails?.NativeLeagueID,
+      selectedSeniorLeagueId
+    );
+    const adjustedSalary = resolveTransferSearchSalaryForSelectedTeam(
+      typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek,
+      currentForeign,
+      foreignForSelectedTeam
+    );
     const seniorMetricInput = {
       ageYears:
         typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
@@ -4251,6 +4406,11 @@ export default function Dashboard({
               >
                 {playerName}
               </a>
+              {countryMeta ? (
+                <span className={styles.transferSearchCardNationality} title={countryMeta.name}>
+                  {countryMeta.display}
+                </span>
+              ) : null}
             </h4>
             <PlayerStatementQuote statement={resultDetails?.Statement} />
             <p className={styles.profileMeta}>
@@ -4264,7 +4424,18 @@ export default function Dashboard({
                   {messages.sortTsi}: {result.tsi}
                 </span>
               ) : null}
+              {adjustedSalary !== null ? (
+                <span className={styles.metaItem}>
+                  {messages.seniorWageLabel}: {formatEurFromSek(adjustedSalary)}
+                  {foreignForSelectedTeam === true ? "*" : ""}
+                </span>
+              ) : null}
             </p>
+            {adjustedSalary !== null && foreignForSelectedTeam === true ? (
+              <p className={styles.seniorPersonaLine}>
+                {messages.transferSearchTableWageFootnote}
+              </p>
+            ) : null}
           </div>
           <div className={styles.transferSearchPriceBlock}>
             <div className={styles.infoLabel}>{displayPriceLabel}</div>
@@ -4410,6 +4581,7 @@ export default function Dashboard({
   }, [
     formatEurFromSek,
     messages,
+    selectedSeniorLeagueId,
     specialtyName,
     submitTransferBid,
     transferSearchBidDrafts,

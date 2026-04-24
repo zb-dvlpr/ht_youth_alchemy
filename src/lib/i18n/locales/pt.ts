@@ -1303,7 +1303,11 @@ export const messagesPt: Messages = {
     transferSearchTableBidColumn: "Bid",
     transferSearchTableBidAction: "Bid",
     transferSearchTablePriceFootnote: "HB = lance mais alto. AP = preco pedido.",
-    transferSearchTableWageFootnote: "* indica o extra de estrangeiro relativo a tua equipa.",
+    transferSearchTableWageFootnote: "* inclui o extra de estrangeiro relativo a tua equipa.",
+    notificationDebugTransferWageContext:
+      "Debug: liga da equipa selecionada {{selectedLeagueId}}",
+    notificationDebugTransferWagePlayer:
+      "Debug: {{name}} liga nativa {{nativeLeagueId}}, no estrangeiro {{isAbroad}}, estrangeiro relativo {{foreign}}, salario {{salarySek}}, ajustado {{adjustedSalarySek}}",
     transferSearchDeadlineNowShort: "now",
     transferSearchDeadlineDayShort: "d",
     transferSearchDeadlineHourShort: "h",

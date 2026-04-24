@@ -7429,6 +7429,13 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   font-size: 13px;
 }
 
+.transferSearchFallbackNoticeTable {
+  margin: 0;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
 .transferSearchResultsList {
   display: grid;
   gap: 14px;
@@ -7531,6 +7538,16 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   font-size: 10px;
   font-weight: 700;
   vertical-align: super;
+}
+
+.transferSearchCardNationality {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.45rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--muted);
+  vertical-align: middle;
 }
 
 .transferSearchTableFooter {
@@ -10669,6 +10686,12 @@ html[data-theme="dark"] .slotCardStatus {
   .transferSearchResultsHeaderControls {
     width: 100%;
     justify-content: stretch;
+  }
+
+  .transferSearchFallbackNoticeTable {
+    padding: 7px 9px;
+    font-size: 11px;
+    line-height: 1.3;
   }
 
   .transferSearchResultsSortControl,

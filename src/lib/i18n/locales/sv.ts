@@ -1295,7 +1295,11 @@ export const messagesSv: Messages = {
     transferSearchTableBidColumn: "Bid",
     transferSearchTableBidAction: "Bid",
     transferSearchTablePriceFootnote: "HB = hogsta bud. AP = utropspris.",
-    transferSearchTableWageFootnote: "* markerar utlanningstillaegget relativt ditt lag.",
+    transferSearchTableWageFootnote: "* inkluderar utlanningstillaegget relativt ditt lag.",
+    notificationDebugTransferWageContext:
+      "Debug: valt lag liga {{selectedLeagueId}}",
+    notificationDebugTransferWagePlayer:
+      "Debug: {{name}} hemliga {{nativeLeagueId}}, utlandsstatus {{isAbroad}}, frammande {{foreign}}, lon {{salarySek}}, justerad {{adjustedSalarySek}}",
     transferSearchDeadlineNowShort: "now",
     transferSearchDeadlineDayShort: "d",
     transferSearchDeadlineHourShort: "h",

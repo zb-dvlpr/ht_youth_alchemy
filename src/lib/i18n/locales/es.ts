@@ -1304,7 +1304,11 @@ export const messagesEs: Messages = {
     transferSearchTableBidColumn: "Bid",
     transferSearchTableBidAction: "Bid",
     transferSearchTablePriceFootnote: "HB = puja mas alta. AP = precio pedido.",
-    transferSearchTableWageFootnote: "* indica el recargo de extranjero relativo a tu equipo.",
+    transferSearchTableWageFootnote: "* incluye el recargo de extranjero relativo a tu equipo.",
+    notificationDebugTransferWageContext:
+      "Debug: liga del equipo seleccionado {{selectedLeagueId}}",
+    notificationDebugTransferWagePlayer:
+      "Debug: {{name}} liga nativa {{nativeLeagueId}}, en el extranjero {{isAbroad}}, extranjero relativo {{foreign}}, salario {{salarySek}}, ajustado {{adjustedSalarySek}}",
     transferSearchDeadlineNowShort: "now",
     transferSearchDeadlineDayShort: "d",
     transferSearchDeadlineHourShort: "h",

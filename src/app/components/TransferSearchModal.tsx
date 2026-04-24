@@ -203,7 +203,10 @@ type TransferSearchModalProps = {
   canQuickBid?: boolean;
   quickBidPendingPlayerId?: number | null;
   onQuickBid?: (result: TransferSearchResult) => void;
-  renderResultCard: (result: TransferSearchResult) => ReactNode;
+  renderResultCard: (
+    result: TransferSearchResult,
+    countryMeta: TransferSearchResolvedCountryMeta | null
+  ) => ReactNode;
   onClose: () => void;
 };
 
@@ -229,6 +232,11 @@ type TransferSearchTableSortDirection = "best" | "reverse";
 type TransferSearchCountryMeta = {
   name: string;
   flagEmoji: string | null;
+};
+
+export type TransferSearchResolvedCountryMeta = {
+  name: string;
+  display: string;
 };
 
 const TRANSFER_SEARCH_SORT_KEYS: readonly TransferSearchSortKey[] = [
@@ -1067,6 +1075,8 @@ const TransferSearchModal = memo(function TransferSearchModal({
       cancelled = true;
     };
   }, [countryMetaById, results]);
+  const activeMobilePanel: TransferSearchMobilePanel =
+    resultsViewMode === "table" ? "results" : mobilePanel;
   const sortOptions = useMemo(
     () => [
       { value: "default", label: messages.transferSearchSortDefault },
@@ -1222,6 +1232,9 @@ const TransferSearchModal = memo(function TransferSearchModal({
     marketSummary &&
     marketSummary.count >= TRANSFER_SEARCH_MARKET_MIN_RICH_STATS_COUNT;
   const renderMobilePanelNav = (currentPanel: TransferSearchMobilePanel) => {
+    if (resultsViewMode === "table") {
+      return null;
+    }
     const panelOptions: Array<{
       panel: TransferSearchMobilePanel;
       label: string;
@@ -1258,10 +1271,10 @@ const TransferSearchModal = memo(function TransferSearchModal({
     );
   };
   const marketSummaryCard = (
-    <div
+      <div
       className={styles.transferSearchMarketSummary}
       data-transfer-search-mobile-panel="summary"
-      data-transfer-search-mobile-active={mobilePanel === "summary" ? "true" : "false"}
+      data-transfer-search-mobile-active={activeMobilePanel === "summary" ? "true" : "false"}
     >
       {renderMobilePanelNav("summary")}
       <div className={styles.transferSearchMarketSummaryHeader}>
@@ -1548,7 +1561,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                 resultsViewMode === "table" ? ` ${styles.transferSearchModalSidebarHidden}` : ""
               }`}
               data-transfer-search-mobile-panel="criteria"
-              data-transfer-search-mobile-active={mobilePanel === "criteria" ? "true" : "false"}
+              data-transfer-search-mobile-active={activeMobilePanel === "criteria" ? "true" : "false"}
             >
               {renderMobilePanelNav("criteria")}
               <div className={styles.transferSearchSidebarHeader}>
@@ -1805,7 +1818,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     : ""
                 }`}
                 data-transfer-search-mobile-panel="results"
-                data-transfer-search-mobile-active={mobilePanel === "results" ? "true" : "false"}
+                data-transfer-search-mobile-active={activeMobilePanel === "results" ? "true" : "false"}
               >
                 {renderMobilePanelNav("results")}
                 <div className={styles.transferSearchResultsHeader}>
@@ -1853,7 +1866,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     ) : null}
                   </div>
                 </div>
-                {exactEmpty ? (
+                {exactEmpty && resultsViewMode !== "table" ? (
                   <p className={styles.transferSearchFallbackNotice}>
                     {fallbackNotice ?? messages.seniorTransferSearchFallbackNotice}
                   </p>
@@ -1869,6 +1882,13 @@ const TransferSearchModal = memo(function TransferSearchModal({
                 ) : null}
                 {resultsViewMode === "table" ? (
                   <div className={styles.transferSearchTableShell}>
+                    {exactEmpty ? (
+                      <p
+                        className={`${styles.transferSearchFallbackNotice} ${styles.transferSearchFallbackNoticeTable}`}
+                      >
+                        {fallbackNotice ?? messages.seniorTransferSearchFallbackNotice}
+                      </p>
+                    ) : null}
                     <div className={styles.transferSearchTableScroller}>
                       <table className={styles.transferSearchResultsTable}>
                         <thead>
@@ -2054,7 +2074,21 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   </div>
                 ) : (
                   <div className={styles.transferSearchResultsList}>
-                    {sortedResults.map((result) => renderResultCard(result))}
+                    {sortedResults.map((result) => {
+                      const countryMeta =
+                        typeof result.nativeCountryId === "number"
+                          ? countryMetaById[result.nativeCountryId]
+                          : undefined;
+                      return renderResultCard(
+                        result,
+                        countryMeta
+                          ? {
+                              name: countryMeta.name,
+                              display: countryMeta.flagEmoji ?? countryMeta.name,
+                            }
+                          : null
+                      );
+                    })}
                   </div>
                 )}
               </section>

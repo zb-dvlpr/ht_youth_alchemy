@@ -1046,6 +1046,8 @@ export type Messages = {
   transferSearchTableBidAction: string;
   transferSearchTablePriceFootnote: string;
   transferSearchTableWageFootnote: string;
+  notificationDebugTransferWageContext: string;
+  notificationDebugTransferWagePlayer: string;
   transferSearchDeadlineNowShort: string;
   transferSearchDeadlineDayShort: string;
   transferSearchDeadlineHourShort: string;

@@ -403,7 +403,11 @@ export const messagesNl: Messages = {
     transferSearchTableBidColumn: "Bid",
     transferSearchTableBidAction: "Bid",
     transferSearchTablePriceFootnote: "HB = hoogste bod. AP = vraagprijs.",
-    transferSearchTableWageFootnote: "* geeft de buitenlandtoeslag aan ten opzichte van je eigen team.",
+    transferSearchTableWageFootnote: "* bevat de buitenlandtoeslag ten opzichte van je eigen team.",
+    notificationDebugTransferWageContext:
+      "Debug: geselecteerde teamliga {{selectedLeagueId}}",
+    notificationDebugTransferWagePlayer:
+      "Debug: {{name}} geboorteliga {{nativeLeagueId}}, in het buitenland {{isAbroad}}, buitenlands relatief {{foreign}}, loon {{salarySek}}, aangepast {{adjustedSalarySek}}",
     transferSearchDeadlineNowShort: "now",
     transferSearchDeadlineDayShort: "d",
     transferSearchDeadlineHourShort: "h",

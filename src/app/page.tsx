@@ -77,6 +77,11 @@ type ManagerTeam = {
   TeamId?: number | string;
   TeamName?: string;
   GenderID?: number | string;
+  LeagueID?: number | string;
+  League?: {
+    LeagueID?: number | string;
+    LeagueId?: number | string;
+  };
   YouthTeam?: {
     YouthTeamId?: number | string;
     YouthTeamName?: string;
@@ -90,6 +95,7 @@ type ManagerTeam = {
 export type YouthTeamOption = {
   teamId: number;
   teamName: string;
+  teamLeagueId?: number | null;
   youthTeamId: number;
   youthTeamName: string;
   youthLeagueName?: string | null;
@@ -98,6 +104,7 @@ export type YouthTeamOption = {
 export type SeniorTeamOption = {
   teamId: number;
   teamName: string;
+  leagueId?: number | null;
   teamGender: "male" | "female" | null;
 };
 
@@ -226,6 +233,9 @@ function extractYouthTeams(response: ManagerCompendiumResponse): YouthTeamOption
     acc.push({
       teamId: Number(team.TeamId ?? 0),
       teamName: team.TeamName ?? "",
+      teamLeagueId:
+        Number(team.LeagueID ?? team.League?.LeagueID ?? team.League?.LeagueId ?? 0) ||
+        null,
       youthTeamId,
       youthTeamName: team.YouthTeam?.YouthTeamName ?? "",
       youthLeagueName: team.YouthTeam?.YouthLeague?.YouthLeagueName ?? null,
@@ -245,6 +255,9 @@ function extractSeniorTeams(response: ManagerCompendiumResponse): SeniorTeamOpti
     acc.push({
       teamId,
       teamName: team.TeamName ?? "",
+      leagueId:
+        Number(team.LeagueID ?? team.League?.LeagueID ?? team.League?.LeagueId ?? 0) ||
+        null,
       teamGender: genderId === 2 ? "female" : genderId === 1 ? "male" : null,
     });
     return acc;

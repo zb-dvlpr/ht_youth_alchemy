@@ -39,6 +39,30 @@ export function formatDateTime(input: Date | number) {
   return `${formatDate(date)}, ${formatTime(date)}`;
 }
 
+export function formatTimeRemaining(
+  input: Date | number,
+  labels: {
+    now: string;
+    day: string;
+    hour: string;
+    minute: string;
+  }
+) {
+  const date = input instanceof Date ? input : new Date(input);
+  if (!isValidDate(date)) return "";
+  const diffMs = date.getTime() - Date.now();
+  if (diffMs <= 0) return labels.now;
+  const totalMinutes = Math.max(1, Math.ceil(diffMs / 60000));
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = totalMinutes % 60;
+  const parts: string[] = [];
+  if (days > 0) parts.push(`${days}${labels.day}`);
+  if (hours > 0) parts.push(`${hours}${labels.hour}`);
+  if (days === 0 && minutes > 0) parts.push(`${minutes}${labels.minute}`);
+  return parts.slice(0, 2).join(" ");
+}
+
 export function formatCentralEuropeTime(input: Date | number) {
   const date = input instanceof Date ? input : new Date(input);
   if (!isValidDate(date)) {

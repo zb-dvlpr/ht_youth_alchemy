@@ -7205,8 +7205,14 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   display: flex;
   justify-content: space-between;
   gap: 12px;
-  align-items: baseline;
+  align-items: flex-start;
   margin-bottom: 12px;
+}
+
+.transferSearchResultsSortControl {
+  display: grid;
+  gap: 4px;
+  min-width: min(280px, 100%);
 }
 
 .transferSearchSection {
@@ -7885,9 +7891,9 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 
 .simulationControlGroup {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 10px;
-  align-items: end;
+  align-items: start;
 }
 
 .simulationControlLabel {
@@ -7897,6 +7903,11 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   font-size: 12px;
   font-weight: 700;
   color: #5b4a37;
+}
+
+.simulationControlInput {
+  width: 100%;
+  min-width: 0;
 }
 
 .simulationWarning {

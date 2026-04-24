@@ -46,6 +46,7 @@ import TransferSearchModal, {
   type TransferSearchBidDraft,
   type TransferSearchFilters,
   type TransferSearchResult,
+  type TransferSearchSortKey,
   type TransferSearchSkillFilter,
   type TransferSearchSkillKey,
 } from "./TransferSearchModal";
@@ -977,6 +978,8 @@ export default function Dashboard({
   >([]);
   const [transferSearchItemCount, setTransferSearchItemCount] =
     useState<number | null>(null);
+  const [transferSearchSortKey, setTransferSearchSortKey] =
+    useState<TransferSearchSortKey>("default");
   const [transferSearchLoading, setTransferSearchLoading] = useState(false);
   const [transferSearchError, setTransferSearchError] = useState<string | null>(null);
   const [transferSearchExactEmpty, setTransferSearchExactEmpty] = useState(false);
@@ -2141,6 +2144,7 @@ export default function Dashboard({
         transferSearchFilters?: TransferSearchFilters | null;
         transferSearchResults?: TransferSearchResult[];
         transferSearchItemCount?: number | null;
+        transferSearchSortKey?: TransferSearchSortKey;
         transferSearchExactEmpty?: boolean;
         transferSearchBidDrafts?: Record<number, TransferSearchBidDraft>;
         supporterStatus?: SupporterStatus;
@@ -2225,6 +2229,21 @@ export default function Dashboard({
         typeof parsed.transferSearchItemCount === "number"
           ? parsed.transferSearchItemCount
           : null
+      );
+      setTransferSearchSortKey(
+        parsed.transferSearchSortKey === "htmsPotential" ||
+          parsed.transferSearchSortKey === "psicoTsiAvg" ||
+          parsed.transferSearchSortKey === "psicoWageAvg" ||
+          parsed.transferSearchSortKey === "keeper" ||
+          parsed.transferSearchSortKey === "defending" ||
+          parsed.transferSearchSortKey === "playmaking" ||
+          parsed.transferSearchSortKey === "winger" ||
+          parsed.transferSearchSortKey === "passing" ||
+          parsed.transferSearchSortKey === "scoring" ||
+          parsed.transferSearchSortKey === "setPieces" ||
+          parsed.transferSearchSortKey === "default"
+          ? parsed.transferSearchSortKey
+          : "default"
       );
       setTransferSearchExactEmpty(Boolean(parsed.transferSearchExactEmpty));
       setTransferSearchBidDrafts(
@@ -2507,6 +2526,7 @@ export default function Dashboard({
       transferSearchFilters,
       transferSearchResults,
       transferSearchItemCount,
+      transferSearchSortKey,
       transferSearchExactEmpty,
       transferSearchBidDrafts,
       supporterStatus,
@@ -2545,6 +2565,7 @@ export default function Dashboard({
     transferSearchFilters,
     transferSearchResults,
     transferSearchItemCount,
+    transferSearchSortKey,
     transferSearchExactEmpty,
     transferSearchBidDrafts,
     supporterStatus,
@@ -2792,6 +2813,7 @@ export default function Dashboard({
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!isConnected) return;
+    if (restoredStorageKey !== storageKey) return;
     const lastRefresh = readLastRefreshTimestamp();
     if (!lastRefresh) {
       if (playerList.length > 0) {
@@ -2811,11 +2833,20 @@ export default function Dashboard({
     if (staleRefreshAttemptedRef.current) return;
     staleRefreshAttemptedRef.current = true;
     void refreshPlayers(undefined, { refreshAll: true, reason: "stale" });
-  }, [playerList.length, stalenessDays, activeYouthTeamId, isConnected, playersLoading]);
+  }, [
+    playerList.length,
+    stalenessDays,
+    activeYouthTeamId,
+    isConnected,
+    playersLoading,
+    restoredStorageKey,
+    storageKey,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!isConnected) return;
+    if (restoredStorageKey !== storageKey) return;
 
     const maybeRunStaleRefresh = () => {
       if (document.visibilityState !== "visible") return;
@@ -2854,7 +2885,15 @@ export default function Dashboard({
       window.removeEventListener("pageshow", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibility);
     };
-  }, [playerList.length, stalenessDays, activeYouthTeamId, isConnected, playersLoading]);
+  }, [
+    playerList.length,
+    stalenessDays,
+    activeYouthTeamId,
+    isConnected,
+    playersLoading,
+    restoredStorageKey,
+    storageKey,
+  ]);
 
   useEffect(() => {
     if (!initialAuthError) return;
@@ -3914,6 +3953,53 @@ export default function Dashboard({
   ]);
   const transferSearchCanBid =
     supporterStatus === "supporter" && Boolean(resolvedSeniorTeamId);
+
+  const getTransferSearchSortMetricInput = useCallback(
+    (result: TransferSearchResult) => {
+      const resultDetails = transferSearchDetailsById[result.playerId] ?? null;
+      const resolvedForm = resultDetails?.Form ?? result.form;
+      const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
+      return {
+        ageYears:
+          typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
+        ageDays:
+          typeof resultDetails?.AgeDays === "number" ? resultDetails.AgeDays : result.ageDays,
+        tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
+        salarySek:
+          typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek,
+        isAbroad:
+          typeof resultDetails?.IsAbroad === "boolean"
+            ? resultDetails.IsAbroad
+            : typeof result.isAbroad === "boolean"
+              ? result.isAbroad
+              : undefined,
+        form: resolvedForm,
+        stamina: resolvedStamina,
+        keeper:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.KeeperSkill) ??
+          result.keeperSkill,
+        defending:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.DefenderSkill) ??
+          result.defenderSkill,
+        playmaking:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.PlaymakerSkill) ??
+          result.playmakerSkill,
+        winger:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.WingerSkill) ??
+          result.wingerSkill,
+        passing:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.PassingSkill) ??
+          result.passingSkill,
+        scoring:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.ScorerSkill) ??
+          result.scorerSkill,
+        setPieces:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ??
+          result.setPiecesSkill,
+      };
+    },
+    [transferSearchDetailsById]
+  );
 
   const renderTransferSearchResultCard = useCallback((result: TransferSearchResult) => {
     const resultDetails = transferSearchDetailsById[result.playerId] ?? null;
@@ -7053,6 +7139,9 @@ export default function Dashboard({
         fallbackNotice={messages.youthEstimateValueFallbackNotice}
         error={transferSearchError}
         results={transferSearchResults}
+        sortKey={transferSearchSortKey}
+        onSortKeyChange={setTransferSearchSortKey}
+        getSortMetricInput={getTransferSearchSortMetricInput}
         renderResultCard={renderTransferSearchResultCard}
         onClose={() => setTransferSearchModalOpen(false)}
       />

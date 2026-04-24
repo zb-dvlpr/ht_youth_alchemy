@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 
 import type { Messages } from "@/lib/i18n";
@@ -123,6 +123,11 @@ type SeniorFoxtrickSimulatorProps = {
   messages: Messages;
   loyalty?: number | null;
   motherClubBonus?: boolean;
+  onSimulationStateChange?: (state: {
+    editing: boolean;
+    dirty: boolean;
+    metricInput: SeniorPlayerMetricInput;
+  }) => void;
   barGradient: (
     value: number | null,
     minSkillLevel: number,
@@ -198,6 +203,7 @@ export default function SeniorFoxtrickSimulator({
   messages,
   loyalty = null,
   motherClubBonus = false,
+  onSimulationStateChange,
   barGradient,
 }: SeniorFoxtrickSimulatorProps) {
   const [editing, setEditing] = useState(false);
@@ -226,6 +232,14 @@ export default function SeniorFoxtrickSimulator({
       setPieces: values.setPieces,
     };
   }, [editing, input, values]);
+
+  useEffect(() => {
+    onSimulationStateChange?.({
+      editing,
+      dirty,
+      metricInput,
+    });
+  }, [dirty, editing, metricInput, onSimulationStateChange]);
 
   const updateValue = (key: keyof SimulatedValues, value: number) => {
     setDirty(true);
@@ -523,7 +537,7 @@ export default function SeniorFoxtrickSimulator({
               <label className={styles.simulationControlLabel}>
                 <span>{messages.seniorFoxtrickSimulationAgeYearsLabel}</span>
                 <input
-                  className={styles.transferSearchInput}
+                  className={`${styles.transferSearchInput} ${styles.simulationControlInput}`}
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
@@ -535,7 +549,7 @@ export default function SeniorFoxtrickSimulator({
               <label className={styles.simulationControlLabel}>
                 <span>{messages.seniorFoxtrickSimulationAgeDaysLabel}</span>
                 <input
-                  className={styles.transferSearchInput}
+                  className={`${styles.transferSearchInput} ${styles.simulationControlInput}`}
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
@@ -547,7 +561,7 @@ export default function SeniorFoxtrickSimulator({
               <label className={styles.simulationControlLabel}>
                 <span>{messages.seniorFoxtrickSimulationWageLabel}</span>
                 <input
-                  className={styles.transferSearchInput}
+                  className={`${styles.transferSearchInput} ${styles.simulationControlInput}`}
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
@@ -566,7 +580,7 @@ export default function SeniorFoxtrickSimulator({
               <label className={styles.simulationControlLabel}>
                 <span>{messages.sortTsi}</span>
                 <input
-                  className={styles.transferSearchInput}
+                  className={`${styles.transferSearchInput} ${styles.simulationControlInput}`}
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"

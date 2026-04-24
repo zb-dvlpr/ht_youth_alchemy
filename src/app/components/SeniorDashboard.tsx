@@ -63,7 +63,9 @@ import UpcomingMatches, {
 } from "./UpcomingMatches";
 import type { SetBestLineupMode } from "./UpcomingMatches";
 import Tooltip from "./Tooltip";
-import TransferSearchModal from "./TransferSearchModal";
+import TransferSearchModal, {
+  type TransferSearchSortKey,
+} from "./TransferSearchModal";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import PlayerStatementQuote from "./PlayerStatementQuote";
 import { setDragGhost } from "@/lib/drag";
@@ -78,6 +80,7 @@ import {
   captureSeniorEncounteredPlayer,
   type SeniorEncounterSource,
 } from "@/lib/seniorEncounteredPlayerModel";
+import type { SeniorPlayerMetricInput } from "@/lib/seniorPlayerMetrics";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -343,6 +346,8 @@ const SKILL_KEYS = [
 const SENIOR_SKILL_EFFECT_CAP = 20;
 const UPDATES_HISTORY_LIMIT = 20;
 const FRIENDLY_MATCH_TYPES = new Set<number>([4, 5, 8, 9]);
+const LEAGUE_QUALI_MATCH_TYPES = new Set<number>([1, 2]);
+const CUP_MATCH_TYPES = new Set<number>([3]);
 const LEAGUE_CUP_QUALI_MATCH_TYPES = new Set<number>([1, 2, 3, 6]);
 const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
 const OPPONENT_ARCHIVE_LIMIT = 20;
@@ -1281,6 +1286,102 @@ const buildInitialTransferSearchFilters = (
     priceMinEur: "",
     priceMaxEur: "",
   };
+};
+
+const buildEditedTransferSearchSourceDetails = (
+  details: SeniorPlayerDetails | null,
+  metricInput: SeniorPlayerMetricInput
+): SeniorPlayerDetails | null => {
+  if (!details) return null;
+  const skillValue = (value: number | null | undefined, fallback?: SkillValue) =>
+    typeof value === "number" ? ({ "#text": value } as SkillValue) : fallback;
+  const editedPlayerSkills: Record<string, SkillValue> = {
+    ...(details.PlayerSkills ?? {}),
+    ...(skillValue(metricInput.keeper, details.PlayerSkills?.KeeperSkill)
+      ? { KeeperSkill: skillValue(metricInput.keeper, details.PlayerSkills?.KeeperSkill)! }
+      : {}),
+    ...(skillValue(metricInput.defending, details.PlayerSkills?.DefenderSkill)
+      ? {
+          DefenderSkill: skillValue(
+            metricInput.defending,
+            details.PlayerSkills?.DefenderSkill
+          )!,
+        }
+      : {}),
+    ...(skillValue(metricInput.playmaking, details.PlayerSkills?.PlaymakerSkill)
+      ? {
+          PlaymakerSkill: skillValue(
+            metricInput.playmaking,
+            details.PlayerSkills?.PlaymakerSkill
+          )!,
+        }
+      : {}),
+    ...(skillValue(metricInput.winger, details.PlayerSkills?.WingerSkill)
+      ? {
+          WingerSkill: skillValue(metricInput.winger, details.PlayerSkills?.WingerSkill)!,
+        }
+      : {}),
+    ...(skillValue(metricInput.passing, details.PlayerSkills?.PassingSkill)
+      ? {
+          PassingSkill: skillValue(metricInput.passing, details.PlayerSkills?.PassingSkill)!,
+        }
+      : {}),
+    ...(skillValue(metricInput.scoring, details.PlayerSkills?.ScorerSkill)
+      ? {
+          ScorerSkill: skillValue(metricInput.scoring, details.PlayerSkills?.ScorerSkill)!,
+        }
+      : {}),
+    ...(skillValue(metricInput.setPieces, details.PlayerSkills?.SetPiecesSkill)
+      ? {
+          SetPiecesSkill: skillValue(
+            metricInput.setPieces,
+            details.PlayerSkills?.SetPiecesSkill
+          )!,
+        }
+      : {}),
+  };
+  return {
+    ...details,
+    Age:
+      typeof metricInput.ageYears === "number" ? metricInput.ageYears : details.Age,
+    AgeDays:
+      typeof metricInput.ageDays === "number" ? metricInput.ageDays : details.AgeDays,
+    TSI: typeof metricInput.tsi === "number" ? metricInput.tsi : details.TSI,
+    Salary:
+      typeof metricInput.salarySek === "number"
+        ? metricInput.salarySek
+        : details.Salary,
+    Form: typeof metricInput.form === "number" ? metricInput.form : details.Form,
+    StaminaSkill:
+      typeof metricInput.stamina === "number"
+        ? metricInput.stamina
+        : details.StaminaSkill,
+    PlayerSkills: editedPlayerSkills,
+  };
+};
+
+const seniorMetricInputMatches = (
+  left: SeniorPlayerMetricInput | null,
+  right: SeniorPlayerMetricInput | null
+) => {
+  if (left === right) return true;
+  if (!left || !right) return false;
+  return (
+    left.ageYears === right.ageYears &&
+    left.ageDays === right.ageDays &&
+    left.tsi === right.tsi &&
+    left.salarySek === right.salarySek &&
+    left.isAbroad === right.isAbroad &&
+    left.form === right.form &&
+    left.stamina === right.stamina &&
+    left.keeper === right.keeper &&
+    left.defending === right.defending &&
+    left.playmaking === right.playmaking &&
+    left.winger === right.winger &&
+    left.passing === right.passing &&
+    left.scoring === right.scoring &&
+    left.setPieces === right.setPieces
+  );
 };
 
 const buildFallbackTransferSearchFilters = (
@@ -2657,6 +2758,13 @@ export default function SeniorDashboard({
     Record<number, SeniorLeagueOrigin>
   >({});
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedPlayerSimulationState, setSelectedPlayerSimulationState] = useState<{
+    dirty: boolean;
+    metricInput: SeniorPlayerMetricInput | null;
+  }>({
+    dirty: false,
+    metricInput: null,
+  });
   const [mobileSeniorActive, setMobileSeniorActive] = useState(false);
   const [mobileSeniorView, setMobileSeniorView] =
     useState<SeniorMobileView>("playerDetails");
@@ -2781,6 +2889,8 @@ export default function SeniorDashboard({
   );
   const [transferSearchResults, setTransferSearchResults] = useState<TransferSearchResult[]>([]);
   const [transferSearchItemCount, setTransferSearchItemCount] = useState<number | null>(null);
+  const [transferSearchSortKey, setTransferSearchSortKey] =
+    useState<TransferSearchSortKey>("default");
   const [transferSearchLoading, setTransferSearchLoading] = useState(false);
   const [transferSearchError, setTransferSearchError] = useState<string | null>(null);
   const [transferSearchUsedFallback, setTransferSearchUsedFallback] = useState(false);
@@ -9584,13 +9694,23 @@ function buildSeniorAiManMarkingReadySignature(params: {
     const hasRequiredScopes = await ensureRequiredScopes();
     if (!hasRequiredScopes) return;
     const detail = await ensureDetails(player.PlayerID);
-    const initialFilters = buildInitialTransferSearchFilters(player, detail);
+    const editedSourceDetails =
+      selectedPlayerSimulationState.dirty &&
+      selectedId === player.PlayerID &&
+      selectedPlayerSimulationState.metricInput
+        ? buildEditedTransferSearchSourceDetails(
+            detail,
+            selectedPlayerSimulationState.metricInput
+          )
+        : null;
+    const sourceDetails = editedSourceDetails ?? detail;
+    const initialFilters = buildInitialTransferSearchFilters(player, sourceDetails);
     setTransferSearchSourcePlayerId(player.PlayerID);
     setTransferSearchModalOpen(true);
     void runTransferSearch(initialFilters, {
       allowAutoFallback: true,
       sourcePlayer: player,
-      sourceDetails: detail,
+      sourceDetails,
     });
   };
 
@@ -10546,10 +10666,16 @@ const refreshDetailsForPlayers = async (
     if (selectedMatchType !== null && FRIENDLY_MATCH_TYPES.has(selectedMatchType)) {
       return FRIENDLY_MATCH_TYPES;
     }
+    if (selectedMatchType !== null && LEAGUE_QUALI_MATCH_TYPES.has(selectedMatchType)) {
+      return LEAGUE_QUALI_MATCH_TYPES;
+    }
+    if (selectedMatchType !== null && CUP_MATCH_TYPES.has(selectedMatchType)) {
+      return CUP_MATCH_TYPES;
+    }
     if (selectedMatchType !== null && TOURNAMENT_MATCH_TYPES.has(selectedMatchType)) {
       return TOURNAMENT_MATCH_TYPES;
     }
-    return LEAGUE_CUP_QUALI_MATCH_TYPES;
+    return LEAGUE_QUALI_MATCH_TYPES;
   };
 
   const tacticTypeLabel = (tacticType: number | null) => {
@@ -12337,6 +12463,7 @@ const refreshDetailsForPlayers = async (
             transferSearchFilters?: TransferSearchFilters | null;
             transferSearchResults?: TransferSearchResult[];
             transferSearchItemCount?: number | null;
+            transferSearchSortKey?: TransferSearchSortKey;
             transferSearchUsedFallback?: boolean;
             transferSearchExactEmpty?: boolean;
             transferSearchBidDrafts?: Record<number, TransferSearchBidDraft>;
@@ -12585,6 +12712,21 @@ const refreshDetailsForPlayers = async (
               ? null
               : null
           );
+          setTransferSearchSortKey(
+            parsed.transferSearchSortKey === "htmsPotential" ||
+              parsed.transferSearchSortKey === "psicoTsiAvg" ||
+              parsed.transferSearchSortKey === "psicoWageAvg" ||
+              parsed.transferSearchSortKey === "keeper" ||
+              parsed.transferSearchSortKey === "defending" ||
+              parsed.transferSearchSortKey === "playmaking" ||
+              parsed.transferSearchSortKey === "winger" ||
+              parsed.transferSearchSortKey === "passing" ||
+              parsed.transferSearchSortKey === "scoring" ||
+              parsed.transferSearchSortKey === "setPieces" ||
+              parsed.transferSearchSortKey === "default"
+              ? parsed.transferSearchSortKey
+              : "default"
+          );
           setTransferSearchUsedFallback(Boolean(parsed.transferSearchUsedFallback));
           setTransferSearchExactEmpty(Boolean(parsed.transferSearchExactEmpty));
           setTransferSearchBidDrafts(
@@ -12804,6 +12946,7 @@ const refreshDetailsForPlayers = async (
       transferSearchFilters,
       transferSearchResults,
       transferSearchItemCount,
+      transferSearchSortKey,
       transferSearchUsedFallback,
       transferSearchExactEmpty,
       transferSearchBidDrafts,
@@ -12856,6 +12999,7 @@ const refreshDetailsForPlayers = async (
     transferSearchFilters,
     transferSearchResults,
     transferSearchItemCount,
+    transferSearchSortKey,
     transferSearchUsedFallback,
     transferSearchExactEmpty,
     transferSearchBidDrafts,
@@ -13641,6 +13785,40 @@ const refreshDetailsForPlayers = async (
     }
     return pills;
   }, [messages, transferSearchSourceDetails, transferSearchSourcePlayer]);
+
+  const getTransferSearchSortMetricInput = useCallback(
+    (result: TransferSearchResult) => {
+      const resultDetails = detailsById.get(result.playerId) ?? null;
+      const resolvedForm = resultDetails?.Form ?? result.form;
+      const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
+      const resolvedSalary =
+        typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek;
+      const resolvedIsAbroad = resolveSeniorIsAbroad(resultDetails) ?? result.isAbroad;
+      return {
+        ageYears:
+          typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
+        ageDays:
+          typeof resultDetails?.AgeDays === "number" ? resultDetails.AgeDays : result.ageDays,
+        tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
+        salarySek: resolvedSalary,
+        isAbroad: resolvedIsAbroad ?? undefined,
+        form: resolvedForm,
+        stamina: resolvedStamina,
+        keeper: parseSkill(resultDetails?.PlayerSkills?.KeeperSkill) ?? result.keeperSkill,
+        defending:
+          parseSkill(resultDetails?.PlayerSkills?.DefenderSkill) ?? result.defenderSkill,
+        playmaking:
+          parseSkill(resultDetails?.PlayerSkills?.PlaymakerSkill) ?? result.playmakerSkill,
+        winger: parseSkill(resultDetails?.PlayerSkills?.WingerSkill) ?? result.wingerSkill,
+        passing: parseSkill(resultDetails?.PlayerSkills?.PassingSkill) ?? result.passingSkill,
+        scoring: parseSkill(resultDetails?.PlayerSkills?.ScorerSkill) ?? result.scorerSkill,
+        setPieces:
+          parseSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ?? result.setPiecesSkill,
+      };
+    },
+    [detailsById]
+  );
+
   useEffect(() => {
     setTransferSearchBidDrafts((prev) => {
       const next = { ...prev };
@@ -14048,7 +14226,37 @@ const refreshDetailsForPlayers = async (
         ? messages.ratingsMatrixTabLabel
         : mobileSeniorView === "lineupOptimizer"
           ? messages.lineupTitle
-          : messages.detailsTabLabel;
+        : messages.detailsTabLabel;
+
+  const handleSelectedPlayerSimulationStateChange = useCallback(
+    (state: {
+      editing: boolean;
+      dirty: boolean;
+      metricInput: SeniorPlayerMetricInput;
+    }) => {
+      const nextMetricInput = state.dirty ? state.metricInput : null;
+      setSelectedPlayerSimulationState((prev) => {
+        if (
+          prev.dirty === state.dirty &&
+          seniorMetricInputMatches(prev.metricInput, nextMetricInput)
+        ) {
+          return prev;
+        }
+        return {
+          dirty: state.dirty,
+          metricInput: nextMetricInput,
+        };
+      });
+    },
+    []
+  );
+
+  useEffect(() => {
+    setSelectedPlayerSimulationState({
+      dirty: false,
+      metricInput: null,
+    });
+  }, [selectedId]);
 
   const seniorDetailsHeaderActions =
     selectedPlayer ? (
@@ -14064,7 +14272,9 @@ const refreshDetailsForPlayers = async (
           }}
           disabled={activeSeniorTeamOption?.teamGender === "female"}
         >
-          {messages.seniorTransferSearchButtonLabel}
+          {selectedPlayerSimulationState.dirty
+            ? messages.seniorTransferSearchEditedButtonLabel
+            : messages.seniorTransferSearchButtonLabel}
         </button>
       </Tooltip>
     ) : null;
@@ -14148,6 +14358,7 @@ const refreshDetailsForPlayers = async (
       activeTab="details"
       showTabs={false}
       detailsHeaderActions={seniorDetailsHeaderActions}
+      onSeniorSimulationStateChange={handleSelectedPlayerSimulationStateChange}
       messages={messages}
     />
   );
@@ -15070,6 +15281,9 @@ const refreshDetailsForPlayers = async (
         exactEmpty={transferSearchExactEmpty}
         error={transferSearchError}
         results={transferSearchResults}
+        sortKey={transferSearchSortKey}
+        onSortKeyChange={setTransferSearchSortKey}
+        getSortMetricInput={getTransferSearchSortMetricInput}
         renderResultCard={renderTransferSearchResultCard}
         onClose={handleTransferSearchClose}
       />
@@ -17850,25 +18064,8 @@ const refreshDetailsForPlayers = async (
             onActiveTabChange={setActiveDetailsTab}
             showSeniorSkillBonusInMatrix={showSeniorSkillBonusInMatrix}
             onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
-            detailsHeaderActions={
-              selectedPlayer ? (
-                <Tooltip
-                  content={messages.seniorTransferSearchFemaleTeamTooltip}
-                  disabled={activeSeniorTeamOption?.teamGender !== "female"}
-                >
-                  <button
-                    type="button"
-                    className={styles.confirmSubmit}
-                    onClick={() => {
-                      void openTransferSearchForPlayer(selectedPlayer);
-                    }}
-                    disabled={activeSeniorTeamOption?.teamGender === "female"}
-                  >
-                    {messages.seniorTransferSearchButtonLabel}
-                  </button>
-                </Tooltip>
-              ) : null
-            }
+            detailsHeaderActions={seniorDetailsHeaderActions}
+            onSeniorSimulationStateChange={handleSelectedPlayerSimulationStateChange}
             messages={messages}
           />
           )}

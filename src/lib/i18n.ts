@@ -978,6 +978,7 @@ export type Messages = {
   starPlayerLabel: string;
   seniorPlayerListTitle: string;
   seniorTransferSearchButtonLabel: string;
+  seniorTransferSearchEditedButtonLabel: string;
   seniorTransferSearchFemaleTeamTooltip: string;
   seniorTransferSearchModalTitle: string;
   seniorTransferSearchCriteriaTitle: string;
@@ -1012,6 +1013,10 @@ export type Messages = {
   youthEstimateValueTooltip: string;
   youthEstimateValueDisabledTooltip: string;
   youthEstimateValueAgeMissingTooltip: string;
+  transferSearchSortDefault: string;
+  transferSearchSortHtmsPotential: string;
+  transferSearchSortPsicoTsiAverage: string;
+  transferSearchSortPsicoWageAverage: string;
   transferSearchMarketSummaryTitle: string;
   transferSearchMarketSummaryBasis: string;
   transferSearchMarketSummarySparse: string;

@@ -1220,6 +1220,8 @@ export const messagesSv: Messages = {
     starPlayerLabel: "Ange stjärnspelare",
     seniorPlayerListTitle: "Seniorspelare",
     seniorTransferSearchButtonLabel: "Hitta liknande spelare",
+    seniorTransferSearchEditedButtonLabel:
+      "Hitta liknande spelare med redigerade varden",
     seniorTransferSearchFemaleTeamTooltip:
       "Transfersokning ar inte tillganglig for femme-lag.",
     seniorTransferSearchModalTitle: "Transfersokning",
@@ -1260,6 +1262,10 @@ export const messagesSv: Messages = {
       "Avsloja minst en maxpotential innan vardet uppskattas.",
     youthEstimateValueAgeMissingTooltip:
       "Uppdatera spelardetaljerna innan vardet uppskattas.",
+    transferSearchSortDefault: "Ursprunglig ordning",
+    transferSearchSortHtmsPotential: "HTMS-potential",
+    transferSearchSortPsicoTsiAverage: "Genomsnittlig TSI-baserad Psico-prognos",
+    transferSearchSortPsicoWageAverage: "Genomsnittlig lonbaserad Psico-prognos",
     transferSearchMarketSummaryTitle: "Marknadssammanfattning",
     transferSearchMarketSummaryBasis: "{{count}} prissatta resultat",
     transferSearchMarketSummarySparse:

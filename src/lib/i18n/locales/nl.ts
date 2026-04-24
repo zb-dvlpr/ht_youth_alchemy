@@ -327,6 +327,8 @@ export const messagesNl: Messages = {
   sortDescLabel: "Aflopend",
   seniorPlayerListTitle: "Seniorspelers",
   seniorTransferSearchButtonLabel: "Vergelijkbare spelers vinden",
+  seniorTransferSearchEditedButtonLabel:
+    "Vergelijkbare speler met bewerkte waarden vinden",
   seniorTransferSearchFemaleTeamTooltip:
     "Transfermarkt zoeken is niet beschikbaar voor femme-teams.",
   seniorTransferSearchModalTitle: "Transfermarkt zoeken",
@@ -368,6 +370,10 @@ export const messagesNl: Messages = {
     "Onthul minstens een maximaal potentieel voordat je de waarde schat.",
   youthEstimateValueAgeMissingTooltip:
     "Ververs de spelersdetails voordat je de waarde schat.",
+  transferSearchSortDefault: "Oorspronkelijke volgorde",
+  transferSearchSortHtmsPotential: "HTMS-potentieel",
+  transferSearchSortPsicoTsiAverage: "Gemiddelde TSI-gebaseerde Psico-voorspelling",
+  transferSearchSortPsicoWageAverage: "Gemiddelde loon-gebaseerde Psico-voorspelling",
   transferSearchMarketSummaryTitle: "Marktsamenvatting",
   transferSearchMarketSummaryBasis: "{{count}} resultaten met prijs",
   transferSearchMarketSummarySparse:

@@ -1212,6 +1212,8 @@ export const messagesDe: Messages = {
     starPlayerLabel: "Starspieler festlegen",
     seniorPlayerListTitle: "Senior-Spieler",
     seniorTransferSearchButtonLabel: "Ahnliche Spieler finden",
+    seniorTransferSearchEditedButtonLabel:
+      "Ahnlichen Spieler mit bearbeiteten Werten finden",
     seniorTransferSearchFemaleTeamTooltip:
       "Die Transfersuche ist für Femme-Teams nicht verfügbar.",
     seniorTransferSearchModalTitle: "Transfermarktsuche",
@@ -1252,6 +1254,10 @@ export const messagesDe: Messages = {
       "Decke mindestens ein maximales Potenzial auf, bevor du den Wert schaetzt.",
     youthEstimateValueAgeMissingTooltip:
       "Aktualisiere die Spielerdetails, bevor du den Wert schaetzt.",
+    transferSearchSortDefault: "Urspruengliche Reihenfolge",
+    transferSearchSortHtmsPotential: "HTMS-Potenzial",
+    transferSearchSortPsicoTsiAverage: "Durchschnittliche TSI-basierte Psico-Prognose",
+    transferSearchSortPsicoWageAverage: "Durchschnittliche lohnbasierte Psico-Prognose",
     transferSearchMarketSummaryTitle: "Marktuebersicht",
     transferSearchMarketSummaryBasis: "{{count}} bepreiste Ergebnisse",
     transferSearchMarketSummarySparse:

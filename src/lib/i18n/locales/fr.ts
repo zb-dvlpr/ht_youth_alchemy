@@ -1270,7 +1270,7 @@ export const messagesFr: Messages = {
       "Revelez au moins un potentiel maximum avant d estimer la valeur.",
     youthEstimateValueAgeMissingTooltip:
       "Actualisez les details du joueur avant d estimer la valeur.",
-    transferSearchSortDefault: "Ordre de recherche",
+    transferSearchSortDefault: "Ordre d origine",
     transferSearchSortHtmsPotential: "Potentiel HTMS",
     transferSearchSortPsicoTsiAverage: "Moyenne des previsions Psico basees sur le TSI",
     transferSearchSortPsicoWageAverage: "Moyenne des previsions Psico basees sur le salaire",

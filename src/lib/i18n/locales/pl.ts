@@ -363,7 +363,7 @@ export const messagesPl: Messages = {
     "Odkryj co najmniej jeden maksymalny potencjal umiejetnosci przed oszacowaniem wartosci.",
   youthEstimateValueAgeMissingTooltip:
     "Odswiez szczegoly zawodnika przed oszacowaniem wartosci.",
-  transferSearchSortDefault: "Kolejnosc wyszukiwania",
+  transferSearchSortDefault: "Kolejnosc oryginalna",
   transferSearchSortHtmsPotential: "Potencjal HTMS",
   transferSearchSortPsicoTsiAverage: "Srednia prognoza Psico oparta na TSI",
   transferSearchSortPsicoWageAverage: "Srednia prognoza Psico oparta na placy",

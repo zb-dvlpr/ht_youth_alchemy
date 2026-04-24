@@ -152,6 +152,7 @@ type TransferSearchModalProps = {
   results: TransferSearchResult[];
   sortKey: TransferSearchSortKey;
   onSortKeyChange: (sortKey: TransferSearchSortKey) => void;
+  getSortMetricInput?: (result: TransferSearchResult) => SeniorPlayerMetricInput;
   renderResultCard: (result: TransferSearchResult) => ReactNode;
   onClose: () => void;
 };
@@ -220,18 +221,16 @@ const calculateAverage = (values: Array<number | null>) => {
 };
 
 const getTransferSearchSortValue = (
-  result: TransferSearchResult,
+  metricInput: SeniorPlayerMetricInput,
   sortKey: Exclude<TransferSearchSortKey, "default">
 ) => {
-  if (sortKey === "keeper") return result.keeperSkill;
-  if (sortKey === "defending") return result.defenderSkill;
-  if (sortKey === "playmaking") return result.playmakerSkill;
-  if (sortKey === "winger") return result.wingerSkill;
-  if (sortKey === "passing") return result.passingSkill;
-  if (sortKey === "scoring") return result.scorerSkill;
-  if (sortKey === "setPieces") return result.setPiecesSkill;
-
-  const metricInput = buildTransferSearchMetricInput(result);
+  if (sortKey === "keeper") return metricInput.keeper;
+  if (sortKey === "defending") return metricInput.defending;
+  if (sortKey === "playmaking") return metricInput.playmaking;
+  if (sortKey === "winger") return metricInput.winger;
+  if (sortKey === "passing") return metricInput.passing;
+  if (sortKey === "scoring") return metricInput.scoring;
+  if (sortKey === "setPieces") return metricInput.setPieces;
   if (sortKey === "htmsPotential") {
     return calculateHtmsMetrics(metricInput)?.potential ?? null;
   }
@@ -812,6 +811,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
   results,
   sortKey,
   onSortKeyChange,
+  getSortMetricInput,
   renderResultCard,
   onClose,
 }: TransferSearchModalProps) {
@@ -842,15 +842,21 @@ const TransferSearchModal = memo(function TransferSearchModal({
   const sortedResults = useMemo(() => {
     if (sortKey === "default") return results;
     return [...results].sort((left, right) => {
-      const leftValue = getTransferSearchSortValue(left, sortKey);
-      const rightValue = getTransferSearchSortValue(right, sortKey);
+      const leftValue = getTransferSearchSortValue(
+        getSortMetricInput ? getSortMetricInput(left) : buildTransferSearchMetricInput(left),
+        sortKey
+      );
+      const rightValue = getTransferSearchSortValue(
+        getSortMetricInput ? getSortMetricInput(right) : buildTransferSearchMetricInput(right),
+        sortKey
+      );
       if (leftValue === null && rightValue === null) return left.playerId - right.playerId;
       if (leftValue === null) return 1;
       if (rightValue === null) return -1;
       if (rightValue !== leftValue) return rightValue - leftValue;
       return left.playerId - right.playerId;
     });
-  }, [results, sortKey]);
+  }, [getSortMetricInput, results, sortKey]);
   const handleSortChange = useCallback(
     (event: ChangeEvent<HTMLSelectElement>) => {
       const nextValue = event.target.value;

@@ -13777,6 +13777,40 @@ const refreshDetailsForPlayers = async (
     }
     return pills;
   }, [messages, transferSearchSourceDetails, transferSearchSourcePlayer]);
+
+  const getTransferSearchSortMetricInput = useCallback(
+    (result: TransferSearchResult) => {
+      const resultDetails = detailsById.get(result.playerId) ?? null;
+      const resolvedForm = resultDetails?.Form ?? result.form;
+      const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
+      const resolvedSalary =
+        typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek;
+      const resolvedIsAbroad = resolveSeniorIsAbroad(resultDetails) ?? result.isAbroad;
+      return {
+        ageYears:
+          typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
+        ageDays:
+          typeof resultDetails?.AgeDays === "number" ? resultDetails.AgeDays : result.ageDays,
+        tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
+        salarySek: resolvedSalary,
+        isAbroad: resolvedIsAbroad ?? undefined,
+        form: resolvedForm,
+        stamina: resolvedStamina,
+        keeper: parseSkill(resultDetails?.PlayerSkills?.KeeperSkill) ?? result.keeperSkill,
+        defending:
+          parseSkill(resultDetails?.PlayerSkills?.DefenderSkill) ?? result.defenderSkill,
+        playmaking:
+          parseSkill(resultDetails?.PlayerSkills?.PlaymakerSkill) ?? result.playmakerSkill,
+        winger: parseSkill(resultDetails?.PlayerSkills?.WingerSkill) ?? result.wingerSkill,
+        passing: parseSkill(resultDetails?.PlayerSkills?.PassingSkill) ?? result.passingSkill,
+        scoring: parseSkill(resultDetails?.PlayerSkills?.ScorerSkill) ?? result.scorerSkill,
+        setPieces:
+          parseSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ?? result.setPiecesSkill,
+      };
+    },
+    [detailsById]
+  );
+
   useEffect(() => {
     setTransferSearchBidDrafts((prev) => {
       const next = { ...prev };
@@ -15241,6 +15275,7 @@ const refreshDetailsForPlayers = async (
         results={transferSearchResults}
         sortKey={transferSearchSortKey}
         onSortKeyChange={setTransferSearchSortKey}
+        getSortMetricInput={getTransferSearchSortMetricInput}
         renderResultCard={renderTransferSearchResultCard}
         onClose={handleTransferSearchClose}
       />

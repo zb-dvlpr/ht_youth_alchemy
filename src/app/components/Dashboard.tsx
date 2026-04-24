@@ -3954,6 +3954,53 @@ export default function Dashboard({
   const transferSearchCanBid =
     supporterStatus === "supporter" && Boolean(resolvedSeniorTeamId);
 
+  const getTransferSearchSortMetricInput = useCallback(
+    (result: TransferSearchResult) => {
+      const resultDetails = transferSearchDetailsById[result.playerId] ?? null;
+      const resolvedForm = resultDetails?.Form ?? result.form;
+      const resolvedStamina = resultDetails?.StaminaSkill ?? result.staminaSkill;
+      return {
+        ageYears:
+          typeof resultDetails?.Age === "number" ? resultDetails.Age : result.age,
+        ageDays:
+          typeof resultDetails?.AgeDays === "number" ? resultDetails.AgeDays : result.ageDays,
+        tsi: typeof resultDetails?.TSI === "number" ? resultDetails.TSI : result.tsi,
+        salarySek:
+          typeof resultDetails?.Salary === "number" ? resultDetails.Salary : result.salarySek,
+        isAbroad:
+          typeof resultDetails?.IsAbroad === "boolean"
+            ? resultDetails.IsAbroad
+            : typeof result.isAbroad === "boolean"
+              ? result.isAbroad
+              : undefined,
+        form: resolvedForm,
+        stamina: resolvedStamina,
+        keeper:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.KeeperSkill) ??
+          result.keeperSkill,
+        defending:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.DefenderSkill) ??
+          result.defenderSkill,
+        playmaking:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.PlaymakerSkill) ??
+          result.playmakerSkill,
+        winger:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.WingerSkill) ??
+          result.wingerSkill,
+        passing:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.PassingSkill) ??
+          result.passingSkill,
+        scoring:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.ScorerSkill) ??
+          result.scorerSkill,
+        setPieces:
+          parseSeniorMetricSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ??
+          result.setPiecesSkill,
+      };
+    },
+    [transferSearchDetailsById]
+  );
+
   const renderTransferSearchResultCard = useCallback((result: TransferSearchResult) => {
     const resultDetails = transferSearchDetailsById[result.playerId] ?? null;
     const draft = transferSearchBidDrafts[result.playerId] ?? { bidEur: "", maxBidEur: "" };
@@ -7094,6 +7141,7 @@ export default function Dashboard({
         results={transferSearchResults}
         sortKey={transferSearchSortKey}
         onSortKeyChange={setTransferSearchSortKey}
+        getSortMetricInput={getTransferSearchSortMetricInput}
         renderResultCard={renderTransferSearchResultCard}
         onClose={() => setTransferSearchModalOpen(false)}
       />

@@ -1273,7 +1273,7 @@ export const messagesIt: Messages = {
       "Rivela almeno un potenziale massimo prima di stimare il valore.",
     youthEstimateValueAgeMissingTooltip:
       "Aggiorna i dettagli del giocatore prima di stimare il valore.",
-    transferSearchSortDefault: "Ordine di ricerca",
+    transferSearchSortDefault: "Ordine originale",
     transferSearchSortHtmsPotential: "Potenziale HTMS",
     transferSearchSortPsicoTsiAverage: "Media delle previsioni Psico basate sul TSI",
     transferSearchSortPsicoWageAverage: "Media delle previsioni Psico basate sul salario",

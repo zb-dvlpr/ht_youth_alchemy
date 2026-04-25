@@ -2314,9 +2314,6 @@ const isForeignForSelectedLeague = (
   return nativeLeagueId !== selectedLeagueId;
 };
 
-const formatDebugTransferWageValue = (value: number | null | undefined) =>
-  typeof value === "number" && Number.isFinite(value) ? String(value) : "null";
-
 const parseTeamdetailsLeagueId = (payload: unknown): number | null => {
   if (!payload || typeof payload !== "object") return null;
   const data = payload as {
@@ -9732,31 +9729,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
           firstDetails?.NativeLeagueID,
           selectedSeniorLeagueId
         );
-        const adjustedSalary = resolveTransferSearchSalaryForSelectedTeam(
+        resolveTransferSearchSalaryForSelectedTeam(
           resolvedSalary,
           resolvedIsAbroad,
           foreignForSelectedTeam
-        );
-        addNotification(
-          messages.notificationDebugTransferWageContext.replace(
-            "{{selectedLeagueId}}",
-            formatDebugTransferWageValue(selectedSeniorLeagueId)
-          )
-        );
-        addNotification(
-          messages.notificationDebugTransferWagePlayer
-            .replace("{{name}}", formatTransferSearchPlayerName(firstResult))
-            .replace(
-              "{{nativeLeagueId}}",
-              formatDebugTransferWageValue(firstDetails?.NativeLeagueID)
-            )
-            .replace("{{isAbroad}}", String(resolvedIsAbroad))
-            .replace("{{foreign}}", String(foreignForSelectedTeam))
-            .replace("{{salarySek}}", formatDebugTransferWageValue(resolvedSalary))
-            .replace(
-              "{{adjustedSalarySek}}",
-              formatDebugTransferWageValue(adjustedSalary)
-            )
         );
       }
     }

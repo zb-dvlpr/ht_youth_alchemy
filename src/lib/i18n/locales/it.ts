@@ -1429,6 +1429,8 @@ export const messagesIt: Messages = {
     seniorTraitsSentenceLoyalty:
       "Ha lealtà {{loyaltyLevel}} ({{loyaltyValue}}).",
     seniorWageLabel: "Stipendio",
+    seniorMlPredictedWageLabel: "Previsione ML",
+    seniorMlPredictionDiffLabel: "diff.",
     seniorWageForeignExtraNote: "include 20% extra per giocatore straniero",
     seniorFoxtrickMetricsTitle: "Valori FoxTrick",
     seniorFoxtrickEditSkillsLabel: "Modifica skill, eta, stipendio, TSI",

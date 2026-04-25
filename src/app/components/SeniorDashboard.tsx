@@ -81,6 +81,7 @@ import {
 import { readGlobalSeason } from "@/lib/season";
 import {
   captureSeniorEncounteredPlayer,
+  predictSeniorEncounteredPlayerWage,
   type SeniorEncounterSource,
 } from "@/lib/seniorEncounteredPlayerModel";
 import {
@@ -2281,6 +2282,22 @@ const formatEurFromSek = (valueSek: number) =>
     currency: "EUR",
     maximumFractionDigits: 0,
   }).format(valueSek / CHPP_SEK_PER_EUR);
+
+const formatPredictionDiffPercent = (actualSek: number | null, predictedSek: number | null) => {
+  if (
+    typeof actualSek !== "number" ||
+    !Number.isFinite(actualSek) ||
+    actualSek <= 0 ||
+    typeof predictedSek !== "number" ||
+    !Number.isFinite(predictedSek)
+  ) {
+    return null;
+  }
+  const diffPercent = ((predictedSek - actualSek) / actualSek) * 100;
+  const rounded = Math.round((diffPercent + Number.EPSILON) * 10) / 10;
+  const sign = rounded > 0 ? "+" : "";
+  return `${sign}${rounded.toFixed(1)}%`;
+};
 
 const resolveTransferSearchSalaryForSelectedTeam = (
   salarySek: number | null | undefined,
@@ -14308,6 +14325,42 @@ const refreshDetailsForPlayers = async (
       setPieces:
         parseSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ?? result.setPiecesSkill,
     };
+    const predictedBaseWageSek =
+      process.env.NODE_ENV !== "production"
+        ? predictSeniorEncounteredPlayerWage({
+            playerId: result.playerId,
+            ageYears: seniorMetricInput.ageYears,
+            ageDays: seniorMetricInput.ageDays,
+            keeper: seniorMetricInput.keeper,
+            defending: seniorMetricInput.defending,
+            playmaking: seniorMetricInput.playmaking,
+            winger: seniorMetricInput.winger,
+            passing: seniorMetricInput.passing,
+            scoring: seniorMetricInput.scoring,
+            setPieces: seniorMetricInput.setPieces,
+            form: seniorMetricInput.form ?? null,
+            stamina: seniorMetricInput.stamina ?? null,
+            tsi: seniorMetricInput.tsi ?? null,
+            salarySek: seniorMetricInput.salarySek ?? null,
+            isAbroad: seniorMetricInput.isAbroad,
+            injuryLevel:
+              typeof resultDetails?.InjuryLevel === "number"
+                ? resultDetails.InjuryLevel
+                : null,
+          })
+        : null;
+    const adjustedPredictedSalary =
+      predictedBaseWageSek !== null
+        ? resolveTransferSearchSalaryForSelectedTeam(
+            predictedBaseWageSek,
+            false,
+            foreignForSelectedTeam
+          )
+        : null;
+    const predictedSalaryDiffPercent = formatPredictionDiffPercent(
+      adjustedSalary,
+      adjustedPredictedSalary
+    );
     return (
       <article key={result.playerId} className={styles.transferSearchResultCard}>
         <div className={styles.transferSearchResultHeader}>
@@ -14355,6 +14408,17 @@ const refreshDetailsForPlayers = async (
             </span>
           ) : null}
         </p>
+            {adjustedPredictedSalary !== null ? (
+              <p className={styles.infoValueTiny}>
+                {messages.seniorMlPredictedWageLabel}:{" "}
+                {`${formatEurFromSek(adjustedPredictedSalary)}${
+                  foreignForSelectedTeam === true ? "*" : ""
+                }`}
+                {predictedSalaryDiffPercent
+                  ? ` (${messages.seniorMlPredictionDiffLabel} ${predictedSalaryDiffPercent})`
+                  : ""}
+              </p>
+            ) : null}
             {adjustedSalary !== null && foreignForSelectedTeam === true ? (
               <p className={styles.seniorPersonaLine}>
                 {messages.transferSearchTableWageFootnote}

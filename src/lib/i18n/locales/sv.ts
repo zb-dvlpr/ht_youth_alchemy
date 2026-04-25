@@ -1418,6 +1418,8 @@ export const messagesSv: Messages = {
     seniorTraitsSentenceLoyalty:
       "Har {{loyaltyLevel}} ({{loyaltyValue}}) lojalitet.",
     seniorWageLabel: "Lön",
+    seniorMlPredictedWageLabel: "ML-prognos",
+    seniorMlPredictionDiffLabel: "diff.",
     seniorWageForeignExtraNote: "inkluderar 20% extra för utländsk spelare",
     seniorFoxtrickMetricsTitle: "FoxTrick-varden",
     seniorFoxtrickEditSkillsLabel: "Redigera fardigheter, alder, lon, TSI",

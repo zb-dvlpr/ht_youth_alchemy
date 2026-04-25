@@ -759,6 +759,8 @@ export const messagesNl: Messages = {
   seniorTraitsSentenceLoyalty:
     "Heeft {{loyaltyLevel}} ({{loyaltyValue}}) loyaliteit.",
   seniorWageLabel: "Loon",
+  seniorMlPredictedWageLabel: "ML-voorspelling",
+  seniorMlPredictionDiffLabel: "versch.",
   seniorWageForeignExtraNote: "inclusief 20% extra voor buitenlandse speler",
   seniorFoxtrickMetricsTitle: "FoxTrick-waarden",
   seniorFoxtrickEditSkillsLabel: "Vaardigheden, leeftijd, loon, TSI bewerken",

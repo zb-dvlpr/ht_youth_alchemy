@@ -13,6 +13,7 @@ import type { SeniorPlayerMetricInput } from "@/lib/seniorPlayerMetrics";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import PlayerStatementQuote from "./PlayerStatementQuote";
+import { predictSeniorEncounteredPlayerWage } from "@/lib/seniorEncounteredPlayerModel";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -366,6 +367,29 @@ const formatSeniorWage = (
   return isAbroad ? `${base} (${messages.seniorWageForeignExtraNote})` : base;
 };
 
+const applyForeignWageBonus = (valueSek: number | null, isForeign: boolean | undefined) => {
+  if (typeof valueSek !== "number" || !Number.isFinite(valueSek) || valueSek <= 0) {
+    return null;
+  }
+  return isForeign ? Math.round(valueSek * 1.2) : Math.round(valueSek);
+};
+
+const formatPredictionDiffPercent = (actualSek: number | null, predictedSek: number | null) => {
+  if (
+    typeof actualSek !== "number" ||
+    !Number.isFinite(actualSek) ||
+    actualSek <= 0 ||
+    typeof predictedSek !== "number" ||
+    !Number.isFinite(predictedSek)
+  ) {
+    return null;
+  }
+  const diffPercent = ((predictedSek - actualSek) / actualSek) * 100;
+  const rounded = Math.round((diffPercent + Number.EPSILON) * 10) / 10;
+  const sign = rounded > 0 ? "+" : "";
+  return `${sign}${rounded.toFixed(1)}%`;
+};
+
 const resolveSeniorIsAbroad = (details: YouthPlayerDetails | null | undefined) => {
   if (!details) return undefined;
   if (typeof details.IsAbroad === "boolean") return details.IsAbroad;
@@ -637,6 +661,46 @@ export default function PlayerDetailsPanel({
         : null,
     [detailsData, playerKind]
   );
+  const seniorIsAbroad = useMemo(
+    () =>
+      playerKind === "senior" && detailsData
+        ? resolveSeniorIsAbroad(detailsData)
+        : undefined,
+    [detailsData, playerKind]
+  );
+  const seniorPredictedWageDisplay = useMemo(() => {
+    if (process.env.NODE_ENV === "production") return null;
+    if (playerKind !== "senior" || !detailsData || !seniorMetricInput) return null;
+    const actualWageSek =
+      typeof detailsData.Salary === "number" ? detailsData.Salary : null;
+    const predictedBaseWageSek = predictSeniorEncounteredPlayerWage({
+      playerId:
+        typeof detailsData.YouthPlayerID === "number" ? detailsData.YouthPlayerID : null,
+      ageYears: seniorMetricInput.ageYears,
+      ageDays: seniorMetricInput.ageDays,
+      keeper: seniorMetricInput.keeper,
+      defending: seniorMetricInput.defending,
+      playmaking: seniorMetricInput.playmaking,
+      winger: seniorMetricInput.winger,
+      passing: seniorMetricInput.passing,
+      scoring: seniorMetricInput.scoring,
+      setPieces: seniorMetricInput.setPieces,
+      form: seniorMetricInput.form ?? null,
+      stamina: seniorMetricInput.stamina ?? null,
+      tsi: seniorMetricInput.tsi ?? null,
+      salarySek: seniorMetricInput.salarySek ?? null,
+      isAbroad: seniorMetricInput.isAbroad,
+      injuryLevel:
+        typeof detailsData.InjuryLevel === "number" ? detailsData.InjuryLevel : null,
+    });
+    if (predictedBaseWageSek === null) return null;
+    const displayedPrediction = applyForeignWageBonus(predictedBaseWageSek, seniorIsAbroad);
+    if (displayedPrediction === null) return null;
+    return {
+      valueSek: displayedPrediction,
+      diffPercent: formatPredictionDiffPercent(actualWageSek, displayedPrediction),
+    };
+  }, [detailsData, playerKind, seniorIsAbroad, seniorMetricInput]);
 
   const sortedSkillsRows = useMemo(() => {
     if (!skillsSortKey) return skillsMatrixRows;
@@ -1438,10 +1502,19 @@ export default function PlayerDetailsPanel({
               <div className={styles.infoValue}>
                 {formatSeniorWage(
                   seniorWageValue,
-                  resolveSeniorIsAbroad(detailsData),
+                  seniorIsAbroad,
                   messages
                 )}
               </div>
+              {seniorPredictedWageDisplay ? (
+                <div className={styles.infoValueTiny}>
+                  {messages.seniorMlPredictedWageLabel}:{" "}
+                  {formatEurFromSek(seniorPredictedWageDisplay.valueSek)}
+                  {seniorPredictedWageDisplay.diffPercent
+                    ? ` (${messages.seniorMlPredictionDiffLabel} ${seniorPredictedWageDisplay.diffPercent})`
+                    : ""}
+                </div>
+              ) : null}
             </div>
           ) : null}
           {detailsData.LastMatch ? (

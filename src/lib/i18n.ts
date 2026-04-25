@@ -1155,6 +1155,8 @@ export type Messages = {
   seniorTraitsSentenceExperienceLeadership: string;
   seniorTraitsSentenceLoyalty: string;
   seniorWageLabel: string;
+  seniorMlPredictedWageLabel: string;
+  seniorMlPredictionDiffLabel: string;
   seniorWageForeignExtraNote: string;
   seniorFoxtrickMetricsTitle: string;
   seniorFoxtrickEditSkillsLabel: string;

@@ -62,6 +62,7 @@ Last updated: 2026-04-06
   - [x] Compacted the mobile transfer search modal in portrait and landscape so table view prioritizes visible rows over roomy spacing.
   - [x] Fixed the mobile table fallback notice wrapping and tightened column density further so portrait uses more of the available width.
   - [x] Fixed transfer search table wrapper sizing so horizontal scrolling works again on mobile and desktop while fallback notices wrap inside the results width.
+  - [x] Reduced mobile landscape transfer search table mode to the essentials so only the table and the Back to cards and Close actions stay visible.
   - [x] Added direct Player list shortcuts to the Youth and Senior floating mobile dropdowns.
   - [x] Added a mobile launcher Help submenu for Manual, Bug report, and Feature request, with on-demand manual table of contents access.
   - [x] Added bottom Manual entries to all mobile floating dropdowns.

@@ -10888,3 +10888,48 @@ html[data-mobile-shell="true"] .transferSearchResultsTable {
     line-height: 1.2;
   }
 }
+
+@media (max-width: 900px) and (orientation: landscape) {
+  html[data-mobile-shell="true"] .confirmCard.transferSearchModal.transferSearchModalTableMode {
+    width: 99vw;
+    max-height: calc(100dvh - max(10px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    padding: 8px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .confirmTitle {
+    display: none;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .confirmActions {
+    margin-top: 6px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .confirmActions .confirmSubmit {
+    min-height: 30px;
+    padding: 5px 10px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchModalResults {
+    padding: 8px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchResultsHeader {
+    margin-bottom: 4px;
+    align-items: center;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchResultsHeader > div:first-child,
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchFallbackNoticeTable,
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchTableFooter {
+    display: none;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchResultsHeaderControls {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchTableShell {
+    gap: 0;
+  }
+}

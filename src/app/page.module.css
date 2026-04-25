@@ -7434,6 +7434,12 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   padding: 8px 10px;
   font-size: 12px;
   line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .transferSearchResultsList {
@@ -7445,10 +7451,13 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 }
 
 .transferSearchTableShell {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   height: 100%;
 }
 
@@ -7456,6 +7465,9 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   overflow: auto;
   flex: 1 1 auto;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   border: 1px solid #e8dece;
   border-radius: 14px;
   background: #fffdf9;
@@ -10532,6 +10544,10 @@ html[data-theme="dark"] .slotCardStatus {
     grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
   }
 
+  .transferSearchModalContentTableMode {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
   .transferSearchCriteriaGrid {
     grid-template-columns: 1fr;
   }
@@ -10543,6 +10559,112 @@ html[data-theme="dark"] .slotCardStatus {
 
   .confirmCard.transferSearchModal.transferSearchModalTableMode {
     width: min(98vw, 980px);
+  }
+
+  html[data-mobile-shell="true"] .confirmCard.transferSearchModal {
+    width: min(99vw, 760px);
+    max-height: calc(100dvh - max(16px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    padding: 10px;
+  }
+
+  html[data-mobile-shell="true"] .confirmCard.transferSearchModal.transferSearchModalTableMode {
+    width: min(99vw, 980px);
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal .confirmTitle {
+    font-size: 13px;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal .confirmBody {
+    padding-bottom: 0;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal .confirmActions {
+    margin-top: 8px;
+    padding-top: 0;
+    gap: 8px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal .confirmActions .confirmSubmit {
+    min-height: 32px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchResultsStack {
+    gap: 8px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModalSidebar,
+  html[data-mobile-shell="true"] .transferSearchModalResults,
+  html[data-mobile-shell="true"] .transferSearchMarketSummary {
+    border-radius: 12px;
+    padding: 10px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchResultsHeader {
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchResultsHeader .sectionHeading {
+    font-size: 14px;
+    line-height: 1.15;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchResultsHeaderControls {
+    gap: 8px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchViewToggle {
+    min-height: 34px;
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchTableShell {
+    gap: 6px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchTableScroller {
+    border-radius: 10px;
+  }
+
+html[data-mobile-shell="true"] .transferSearchResultsTable {
+    min-width: 1120px;
+    font-size: 11px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchResultsTable th,
+  html[data-mobile-shell="true"] .transferSearchResultsTable td {
+    padding: 6px 7px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchResultsTable th {
+    font-size: 10px;
+    letter-spacing: 0.3px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchTablePill {
+    min-height: 20px;
+    padding: 1px 6px;
+    font-size: 11px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchTableBidButton {
+    min-height: 24px;
+    padding: 3px 6px;
+    font-size: 11px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchTableFooter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 12px;
+    font-size: 11px;
+    line-height: 1.25;
   }
 }
 
@@ -10716,5 +10838,98 @@ html[data-theme="dark"] .slotCardStatus {
 
   .transferSearchResultsTable {
     min-width: 1320px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModalResultsTableMode .transferSearchResultsHeader {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModalResultsTableMode .transferSearchResultsHeaderControls {
+    width: auto;
+    justify-content: flex-end;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModalResultsTableMode .transferSearchViewToggle {
+    width: auto;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchMobilePanelNav {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchMobilePanelButton {
+    min-height: 32px;
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  html[data-mobile-shell="true"] .confirmCard.transferSearchModal {
+    width: 99vw;
+    padding: 10px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModalSidebar,
+  html[data-mobile-shell="true"] .transferSearchModalResults,
+  html[data-mobile-shell="true"] .transferSearchMarketSummary {
+    padding: 8px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchResultsTable {
+    min-width: 1040px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchFallbackNoticeTable {
+    padding: 5px 7px;
+    font-size: 10px;
+    line-height: 1.2;
+  }
+}
+
+@media (max-width: 900px) and (orientation: landscape) {
+  html[data-mobile-shell="true"] .confirmCard.transferSearchModal.transferSearchModalTableMode {
+    width: 99vw;
+    max-height: calc(100dvh - max(10px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+    padding: 8px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .confirmTitle {
+    display: none;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .confirmActions {
+    margin-top: 6px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .confirmActions .confirmSubmit {
+    min-height: 30px;
+    padding: 5px 10px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchModalResults {
+    padding: 8px;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchResultsHeader {
+    margin-bottom: 4px;
+    align-items: center;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchResultsHeader > div:first-child,
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchFallbackNoticeTable,
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchTableFooter {
+    display: none;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchResultsHeaderControls {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  html[data-mobile-shell="true"] .transferSearchModal.transferSearchModalTableMode .transferSearchTableShell {
+    gap: 0;
   }
 }

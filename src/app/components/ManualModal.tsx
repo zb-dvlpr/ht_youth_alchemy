@@ -107,7 +107,14 @@ const parseManualMarkdown = (markdown: string) => {
   return { blocks, toc };
 };
 
-const { blocks: manualBlocks, toc: manualToc } = parseManualMarkdown(MANUAL_MARKDOWN);
+const MANUAL_MARKDOWN_WITH_TRANSFER_SEARCH_MOBILE_NOTE = MANUAL_MARKDOWN.replace(
+  "Bid amounts are handled in EUR in the UI. On mobile, the bid amount and max bid controls are stacked so each action has its own row.",
+  "Bid amounts are handled in EUR in the UI. On mobile, the bid amount and max bid controls are stacked so each action has its own row, and the transfer search modal uses a tighter layout so table results keep as much visible space as possible in both portrait and landscape."
+);
+
+const { blocks: manualBlocks, toc: manualToc } = parseManualMarkdown(
+  MANUAL_MARKDOWN_WITH_TRANSFER_SEARCH_MOBILE_NOTE
+);
 
 const renderHeading = (block: Extract<ManualBlock, { type: "heading" }>) => {
   switch (block.level) {

@@ -58,6 +58,8 @@ Last updated: 2026-04-06
   - [x] Reworked transfer search modals so mobile shows only Results, Search criteria, or Market summary at a time.
   - [x] Made transfer search mobile panels scroll inside the viewport without hiding criteria behind the footer.
   - [x] Stacked transfer search bid and max-bid controls on mobile to prevent cramped action rows.
+  - [x] Fixed transfer search table view on landscape phones so the results pane keeps full usable height while horizontal scrolling remains available.
+  - [x] Compacted the mobile transfer search modal in portrait and landscape so table view prioritizes visible rows over roomy spacing.
   - [x] Added direct Player list shortcuts to the Youth and Senior floating mobile dropdowns.
   - [x] Added a mobile launcher Help submenu for Manual, Bug report, and Feature request, with on-demand manual table of contents access.
   - [x] Added bottom Manual entries to all mobile floating dropdowns.

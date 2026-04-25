@@ -202,6 +202,7 @@ const normalizeSeniorSnapshot = (
   const ageYears = parseNumber(node.Age);
   const ageDays = parseNumber(node.AgeDays);
   const salary = parseNumber(node.Salary);
+  const injuryLevel = parseNumber(node.InjuryLevel);
   const isAbroad = parseBoolean(node.IsAbroad) ?? false;
   const form = parseSkill(node.PlayerForm ?? node.Form);
   const readSkill = (...keys: string[]) => {
@@ -248,6 +249,10 @@ const normalizeSeniorSnapshot = (
     snapshot.tsi === null ||
     snapshot.baseWageSek === null
   ) {
+    return null;
+  }
+  // Keep healthy (-1), bruised (0), and unknown injury status. Exclude known injuries.
+  if (typeof injuryLevel === "number" && injuryLevel >= 1) {
     return null;
   }
   return snapshot as NormalizedSeniorPlayerSnapshot;

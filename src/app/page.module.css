@@ -7434,6 +7434,12 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   padding: 8px 10px;
   font-size: 12px;
   line-height: 1.35;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .transferSearchResultsList {
@@ -7445,10 +7451,13 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
 }
 
 .transferSearchTableShell {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
+  display: flex;
+  flex-direction: column;
   gap: 10px;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   height: 100%;
 }
 
@@ -7456,6 +7465,9 @@ html[data-mobile-shell="true"] .mobileYouthContent .mobileYouthLandscapeHint {
   overflow: auto;
   flex: 1 1 auto;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   border: 1px solid #e8dece;
   border-radius: 14px;
   background: #fffdf9;
@@ -10620,31 +10632,31 @@ html[data-theme="dark"] .slotCardStatus {
     border-radius: 10px;
   }
 
-  html[data-mobile-shell="true"] .transferSearchResultsTable {
-    min-width: 1240px;
-    font-size: 12px;
+html[data-mobile-shell="true"] .transferSearchResultsTable {
+    min-width: 1120px;
+    font-size: 11px;
   }
 
   html[data-mobile-shell="true"] .transferSearchResultsTable th,
   html[data-mobile-shell="true"] .transferSearchResultsTable td {
-    padding: 7px 9px;
+    padding: 6px 7px;
   }
 
   html[data-mobile-shell="true"] .transferSearchResultsTable th {
-    font-size: 11px;
-    letter-spacing: 0.4px;
+    font-size: 10px;
+    letter-spacing: 0.3px;
   }
 
   html[data-mobile-shell="true"] .transferSearchTablePill {
-    min-height: 22px;
-    padding: 2px 8px;
-    font-size: 12px;
+    min-height: 20px;
+    padding: 1px 6px;
+    font-size: 11px;
   }
 
   html[data-mobile-shell="true"] .transferSearchTableBidButton {
-    min-height: 28px;
-    padding: 4px 8px;
-    font-size: 12px;
+    min-height: 24px;
+    padding: 3px 6px;
+    font-size: 11px;
   }
 
   html[data-mobile-shell="true"] .transferSearchTableFooter {
@@ -10867,11 +10879,12 @@ html[data-theme="dark"] .slotCardStatus {
   }
 
   html[data-mobile-shell="true"] .transferSearchResultsTable {
-    min-width: 1180px;
+    min-width: 1040px;
   }
 
   html[data-mobile-shell="true"] .transferSearchFallbackNoticeTable {
     padding: 5px 7px;
     font-size: 10px;
+    line-height: 1.2;
   }
 }

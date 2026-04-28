@@ -89,6 +89,9 @@ export const messagesPl: Messages = {
   feedbackBugSuccess: "Zgłoszenie błędu wysłane.",
   feedbackFeatureSuccess: "Prośba o funkcję wysłana.",
   feedbackSubmitError: "Wysłanie zgłoszenia nie powiodło się.",
+  feedbackMetadataHattrickUser: "Uzytkownik Hattrick",
+  feedbackManagerIdentityRequiredError:
+    "Nie udalo sie ustalic nazwy uzytkownika i ID uzytkownika Hattrick do metadanych zgloszenia.",
   settingsTooltip: "Ustawienia",
   settingsExport: "Eksportuj dane",
   settingsImport: "Importuj dane",

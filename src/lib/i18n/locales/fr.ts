@@ -217,6 +217,9 @@ export const messagesFr: Messages = {
     feedbackBugSuccess: "Signalement de bug envoyé.",
     feedbackFeatureSuccess: "Demande de fonctionnalité envoyée.",
     feedbackSubmitError: "L’envoi de l’issue a échoué.",
+    feedbackMetadataHattrickUser: "Utilisateur Hattrick",
+    feedbackManagerIdentityRequiredError:
+      "Impossible de résoudre votre nom d utilisateur et votre ID utilisateur Hattrick pour les métadonnées du signalement.",
     settingsTooltip: "Paramètres",
     settingsExport: "Exporter les données",
     settingsImport: "Importer des données",

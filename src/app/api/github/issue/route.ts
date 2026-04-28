@@ -3,8 +3,20 @@ import {
   createGitHubIssue,
   type GitHubIssueKind,
 } from "@/lib/github/app";
+import {
+  extractManagerIdentityFromManagerCompendium,
+  extractManagerIdentityFromTeamDetails,
+  isFeedbackManagerIdentity,
+  type FeedbackManagerIdentity,
+} from "@/lib/hattrick/managerIdentity";
+import { hattrickComposeMailUrl } from "@/lib/hattrick/urls";
+import { fetchChppXml, getChppAuth } from "@/lib/chpp/server";
+import { getMessages, type Locale } from "@/lib/i18n";
 
 export const runtime = "nodejs";
+
+const MANAGERCOMPENDIUM_VERSION = "1.7";
+const TEAMDETAILS_VERSION = "3.9";
 
 type FeedbackIssueRequest = {
   kind?: GitHubIssueKind;
@@ -18,6 +30,8 @@ type FeedbackIssueRequest = {
   notes?: string;
   locale?: string;
   appVersion?: string;
+  managerUserId?: string;
+  managerLoginname?: string;
 };
 
 const MAX_TITLE_LENGTH = 140;
@@ -36,6 +50,26 @@ const sanitizeText = (
 const renderMarkdownSection = (label: string, value: string | null) =>
   value ? `## ${label}\n\n${value}` : null;
 
+const normalizeLocale = (value: unknown): Locale | undefined => {
+  if (
+    value === "en" ||
+    value === "de" ||
+    value === "fr" ||
+    value === "es" ||
+    value === "sv" ||
+    value === "it" ||
+    value === "pt" ||
+    value === "pl" ||
+    value === "nl"
+  ) {
+    return value;
+  }
+  return undefined;
+};
+
+const escapeMarkdownLinkText = (value: string) =>
+  value.replace(/([\\[\]])/g, "\\$1");
+
 const buildIssueTitle = (kind: GitHubIssueKind, title: string) =>
   kind === "bug"
     ? `[BUG REPORT] ${title}`
@@ -50,9 +84,13 @@ const buildIssueBody = (
   payload: Required<
     Pick<FeedbackIssueRequest, "kind" | "title">
   > &
-    Omit<FeedbackIssueRequest, "kind" | "title">,
-  request: Request
+    Omit<FeedbackIssueRequest, "kind" | "title"> & {
+      managerIdentity: FeedbackManagerIdentity;
+    },
+  request: Request,
+  locale: Locale | undefined
 ) => {
+  const messages = getMessages(locale);
   const sections =
     payload.kind === "bug"
       ? [
@@ -73,6 +111,9 @@ const buildIssueBody = (
         ];
 
   const metadata = [
+    `- ${messages.feedbackMetadataHattrickUser}: [${escapeMarkdownLinkText(
+      payload.managerIdentity.loginname
+    )}](${hattrickComposeMailUrl(payload.managerIdentity.userId)}) (${payload.managerIdentity.userId})`,
     `- App version: ${payload.appVersion ?? "unknown"}`,
     `- Locale: ${payload.locale ?? "unknown"}`,
     `- Submitted at: ${new Date().toISOString()}`,
@@ -82,11 +123,46 @@ const buildIssueBody = (
   return [...sections.filter(Boolean), "## Metadata\n\n" + metadata].join("\n\n");
 };
 
+const getRequestManagerIdentity = (
+  body: FeedbackIssueRequest | null
+): FeedbackManagerIdentity | null => {
+  const userId = sanitizeText(body?.managerUserId, 64);
+  const loginname = sanitizeText(body?.managerLoginname, 128);
+  if (!userId || !loginname) return null;
+  return { userId, loginname };
+};
+
+const fetchManagerIdentityFromChpp = async () => {
+  const auth = await getChppAuth();
+  const managerCompendium = await fetchChppXml(
+    auth,
+    new URLSearchParams({
+      file: "managercompendium",
+      version: MANAGERCOMPENDIUM_VERSION,
+    })
+  );
+  const cachedManagerIdentity = extractManagerIdentityFromManagerCompendium(
+    managerCompendium.parsed
+  );
+  if (cachedManagerIdentity) return cachedManagerIdentity;
+
+  const teamDetails = await fetchChppXml(
+    auth,
+    new URLSearchParams({
+      file: "teamdetails",
+      version: TEAMDETAILS_VERSION,
+    })
+  );
+  return extractManagerIdentityFromTeamDetails(teamDetails.parsed);
+};
+
 export async function POST(request: Request) {
   try {
     const body = (await request.json().catch(() => null)) as
       | FeedbackIssueRequest
       | null;
+    const locale = normalizeLocale(body?.locale);
+    const messages = getMessages(locale);
     const kind = body?.kind === "feature" ? "feature" : body?.kind === "bug" ? "bug" : null;
     const title = sanitizeText(body?.title, MAX_TITLE_LENGTH);
 
@@ -95,6 +171,15 @@ export async function POST(request: Request) {
     }
     if (!title) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
+    }
+
+    const managerIdentity =
+      getRequestManagerIdentity(body) ?? (await fetchManagerIdentityFromChpp());
+    if (!isFeedbackManagerIdentity(managerIdentity)) {
+      return NextResponse.json(
+        { error: messages.feedbackManagerIdentityRequiredError },
+        { status: 500 }
+      );
     }
 
     const issue = await createGitHubIssue({
@@ -113,8 +198,10 @@ export async function POST(request: Request) {
           notes: sanitizeText(body?.notes) ?? undefined,
           locale: sanitizeText(body?.locale, 32) ?? undefined,
           appVersion: sanitizeText(body?.appVersion, 32) ?? undefined,
+          managerIdentity,
         },
-        request
+        request,
+        locale
       ),
       labels: buildIssueLabels(kind),
     });

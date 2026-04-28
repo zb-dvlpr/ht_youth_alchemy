@@ -89,6 +89,9 @@ export const messagesNl: Messages = {
   feedbackBugSuccess: "Bugmelding verstuurd.",
   feedbackFeatureSuccess: "Functieaanvraag verstuurd.",
   feedbackSubmitError: "Versturen van het issue mislukt.",
+  feedbackMetadataHattrickUser: "Hattrick-gebruiker",
+  feedbackManagerIdentityRequiredError:
+    "Je Hattrick-gebruikersnaam en gebruikers-ID konden niet worden opgehaald voor de meldingsmetadata.",
   settingsTooltip: "Instellingen",
   settingsExport: "Gegevens exporteren",
   settingsImport: "Gegevens importeren",

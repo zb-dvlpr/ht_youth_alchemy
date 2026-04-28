@@ -201,6 +201,9 @@ export const messagesEn: Messages = {
     feedbackBugSuccess: "Bug report submitted.",
     feedbackFeatureSuccess: "Feature request submitted.",
     feedbackSubmitError: "Issue submission failed.",
+    feedbackMetadataHattrickUser: "Hattrick user",
+    feedbackManagerIdentityRequiredError:
+      "Unable to resolve your Hattrick username and user ID for the report metadata.",
     settingsTooltip: "Settings",
     settingsExport: "Export data",
     settingsImport: "Import data",

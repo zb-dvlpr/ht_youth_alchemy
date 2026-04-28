@@ -214,6 +214,9 @@ export const messagesDe: Messages = {
     feedbackBugSuccess: "Fehlerbericht gesendet.",
     feedbackFeatureSuccess: "Feature-Anfrage gesendet.",
     feedbackSubmitError: "Senden des Issues fehlgeschlagen.",
+    feedbackMetadataHattrickUser: "Hattrick-Benutzer",
+    feedbackManagerIdentityRequiredError:
+      "Hattrick-Benutzername und Benutzer-ID konnten fuer die Report-Metadaten nicht ermittelt werden.",
     settingsTooltip: "Einstellungen",
     settingsExport: "Daten exportieren",
     settingsImport: "Daten importieren",

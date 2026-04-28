@@ -64,3 +64,6 @@ export const hattrickForumThreadUrl = (threadId: number | string, n?: number | s
 
 export const hattrickManagerUrl = (userId: number | string) =>
   buildGotoUrl(`/Club/Manager/?userId=${userId}`);
+
+export const hattrickComposeMailUrl = (userId: number | string) =>
+  buildGotoUrl(`/MyHattrick/Inbox/?actionType=newMail&userId=${userId}`);

@@ -169,6 +169,8 @@ export type Messages = {
   feedbackBugSuccess: string;
   feedbackFeatureSuccess: string;
   feedbackSubmitError: string;
+  feedbackMetadataHattrickUser: string;
+  feedbackManagerIdentityRequiredError: string;
   settingsTooltip: string;
   settingsExport: string;
   settingsImport: string;

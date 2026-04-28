@@ -214,6 +214,9 @@ export const messagesSv: Messages = {
     feedbackBugSuccess: "Buggrapport skickad.",
     feedbackFeatureSuccess: "Funktionsförslag skickat.",
     feedbackSubmitError: "Skickandet av ärendet misslyckades.",
+    feedbackMetadataHattrickUser: "Hattrick-anvandare",
+    feedbackManagerIdentityRequiredError:
+      "Det gick inte att hamta ditt Hattrick-anvandarnamn och anvandar-ID for rapportens metadata.",
     settingsTooltip: "Inställningar",
     settingsExport: "Exportera data",
     settingsImport: "Importera data",

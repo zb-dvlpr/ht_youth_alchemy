@@ -668,6 +668,8 @@ export const messagesPl: Messages = {
     "Reżim treningowy seniorów można zmienić bezpośrednio w aplikacji z poziomu rozwijanego menu składu.",
   seniorHelpBulletAnalyzeOpponent:
     "Analizuj przeciwnika podsumowuje ostatnie wzorce, aby wspierać decyzje AI o składzie.",
+  analyzeOpponentStillInCup: "nadal w pucharze",
+  analyzeOpponentNotInCup: "poza pucharem",
   loadLineupUnavailable: "Brak zapisanego składu",
   loadLineupActive: "Wczytany skład",
   loadLineupError: "Błąd wczytywania składu",

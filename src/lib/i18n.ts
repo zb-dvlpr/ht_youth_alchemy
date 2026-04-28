@@ -930,6 +930,8 @@ export type Messages = {
   analyzeOpponentSummaryPreferredTactic: string;
   analyzeOpponentSummaryVsYou: string;
   analyzeOpponentSummaryWith: string;
+  analyzeOpponentStillInCup: string;
+  analyzeOpponentNotInCup: string;
   loadLineupUnavailable: string;
   loadLineupActive: string;
   loadLineupError: string;

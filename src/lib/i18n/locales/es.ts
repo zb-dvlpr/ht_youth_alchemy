@@ -1170,6 +1170,8 @@ export const messagesEs: Messages = {
       "Para esa formación, su táctica más usada es",
     analyzeOpponentSummaryVsYou: "Cuando juegan contra ti, prefieren",
     analyzeOpponentSummaryWith: "con",
+    analyzeOpponentStillInCup: "sigue en copa",
+    analyzeOpponentNotInCup: "fuera de copa",
     loadLineupUnavailable: "Sin alineación guardada",
     loadLineupActive: "Cargada",
     loadLineupError: "Error al cargar",

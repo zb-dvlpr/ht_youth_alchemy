@@ -2356,6 +2356,71 @@ const parseTeamdetailsLeagueId = (payload: unknown): number | null => {
   );
 };
 
+const extractTeamdetailsTeamNode = (
+  payload: unknown,
+  requestedTeamId?: number | null
+): Record<string, unknown> | null => {
+  if (!payload || typeof payload !== "object") return null;
+  const data = payload as {
+    data?: {
+      HattrickData?: {
+        Team?: unknown;
+        Teams?: {
+          Team?: unknown;
+        };
+      };
+    };
+  };
+  const directTeam = data.data?.HattrickData?.Team;
+  if (directTeam && typeof directTeam === "object") {
+    return directTeam as Record<string, unknown>;
+  }
+  const rawTeams = data.data?.HattrickData?.Teams?.Team;
+  const teams = Array.isArray(rawTeams) ? rawTeams : rawTeams ? [rawTeams] : [];
+  if (typeof requestedTeamId === "number" && Number.isFinite(requestedTeamId) && requestedTeamId > 0) {
+    const matched = teams.find((entry) => {
+      if (!entry || typeof entry !== "object") return false;
+      const team = entry as Record<string, unknown>;
+      return parseNumber(team.TeamID ?? team.TeamId) === requestedTeamId;
+    });
+    if (matched && typeof matched === "object") {
+      return matched as Record<string, unknown>;
+    }
+  }
+  const primary = teams.find((entry) => {
+    if (!entry || typeof entry !== "object") return false;
+    return String((entry as Record<string, unknown>).IsPrimaryClub ?? "").toLowerCase() === "true";
+  });
+  if (primary && typeof primary === "object") {
+    return primary as Record<string, unknown>;
+  }
+  return teams[0] && typeof teams[0] === "object"
+    ? (teams[0] as Record<string, unknown>)
+    : null;
+};
+
+const parseTeamdetailsStillInCup = (
+  payload: unknown,
+  requestedTeamId?: number | null
+): boolean | null => {
+  const team = extractTeamdetailsTeamNode(payload, requestedTeamId);
+  if (!team) return null;
+  const cup =
+    team.Cup && typeof team.Cup === "object"
+      ? (team.Cup as Record<string, unknown>)
+      : null;
+  if (!cup) return false;
+  const raw = cup.StillInCup;
+  if (typeof raw === "boolean") return raw;
+  if (typeof raw === "number") return raw !== 0;
+  if (typeof raw === "string") {
+    const normalized = raw.trim().toLowerCase();
+    if (normalized === "true" || normalized === "1") return true;
+    if (normalized === "false" || normalized === "0" || normalized === "") return false;
+  }
+  return null;
+};
+
 const resolveSeniorIsAbroad = (details: SeniorPlayerDetails | null | undefined) => {
   if (!details) return undefined;
   if (typeof details.IsAbroad === "boolean") return details.IsAbroad;
@@ -3137,6 +3202,7 @@ export default function SeniorDashboard({
   const opponentFormationContextCacheRef = useRef<Map<number, OpponentFormationContext>>(
     new Map()
   );
+  const opponentCupStatusCacheRef = useRef<Map<number, boolean>>(new Map());
   const opponentTargetPlayerCacheRef = useRef<
     Map<
       number,
@@ -11451,6 +11517,38 @@ const refreshDetailsForPlayers = async (
     return context;
   };
 
+  const fetchOpponentCupStatus = useCallback(
+    async (teamId: number): Promise<boolean | null> => {
+      const cached = opponentCupStatusCacheRef.current.get(teamId);
+      if (typeof cached === "boolean") return cached;
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Team?: unknown;
+              Teams?: {
+                Team?: unknown;
+              };
+            };
+          };
+          error?: string;
+          details?: string;
+        }>(`/api/chpp/teamdetails?teamId=${teamId}`, {
+          cache: "no-store",
+        });
+        if (!response.ok || payload?.error) return null;
+        const stillInCup = parseTeamdetailsStillInCup(payload, teamId);
+        if (typeof stillInCup === "boolean") {
+          opponentCupStatusCacheRef.current.set(teamId, stillInCup);
+        }
+        return stillInCup;
+      } catch {
+        return null;
+      }
+    },
+    []
+  );
+
   const runSetBestLineupPredictRatings = async (
     matchId: number,
     mode: SetBestLineupMode,
@@ -12488,8 +12586,13 @@ const refreshDetailsForPlayers = async (
       const opponentContext = await fetchOpponentFormationRowsForMatch(matchId);
       if (!opponentContext) return;
       const { opponentTeamId, opponentName } = opponentContext;
+      const stillInCup = await fetchOpponentCupStatus(opponentTeamId);
+      const cupSuffix =
+        typeof stillInCup === "boolean"
+          ? ` (${stillInCup ? messages.analyzeOpponentStillInCup : messages.analyzeOpponentNotInCup})`
+          : "";
       setOpponentAnalysisModal({
-        title: `${messages.analyzeOpponent} · ${opponentName}`,
+        title: `${messages.analyzeOpponent} · ${opponentName}${cupSuffix}`,
         opponentTeamId,
         opponentName,
         opponentRows: [],

@@ -1126,6 +1126,8 @@ export const messagesEn: Messages = {
       "For this formation, their most preferred tactic is",
     analyzeOpponentSummaryVsYou: "When they play against you, they prefer",
     analyzeOpponentSummaryWith: "with",
+    analyzeOpponentStillInCup: "still in cup",
+    analyzeOpponentNotInCup: "not in cup",
     loadLineupUnavailable: "No saved lineup",
     loadLineupActive: "Loaded",
     loadLineupError: "Load failed",

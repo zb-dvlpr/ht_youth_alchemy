@@ -1170,6 +1170,8 @@ export const messagesFr: Messages = {
       "Pour cette formation, la tactique la plus utilisée est",
     analyzeOpponentSummaryVsYou: "Quand ils jouent contre vous, ils préfèrent",
     analyzeOpponentSummaryWith: "avec",
+    analyzeOpponentStillInCup: "encore en coupe",
+    analyzeOpponentNotInCup: "plus en coupe",
     loadLineupUnavailable: "Aucune composition enregistrée",
     loadLineupActive: "Chargé",
     loadLineupError: "Chargement échoué",

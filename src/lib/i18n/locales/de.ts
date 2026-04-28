@@ -1153,6 +1153,8 @@ export const messagesDe: Messages = {
       "Für diese Formation ist die bevorzugte Taktik",
     analyzeOpponentSummaryVsYou: "Gegen dich bevorzugen sie",
     analyzeOpponentSummaryWith: "mit",
+    analyzeOpponentStillInCup: "noch im Pokal",
+    analyzeOpponentNotInCup: "nicht im Pokal",
     loadLineupUnavailable: "Keine gespeicherte Aufstellung",
     loadLineupActive: "Geladen",
     loadLineupError: "Laden fehlgeschlagen",

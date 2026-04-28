@@ -1170,6 +1170,8 @@ export const messagesPt: Messages = {
       "Para essa formação, a tática mais usada é",
     analyzeOpponentSummaryVsYou: "Quando jogam contra você, preferem",
     analyzeOpponentSummaryWith: "com",
+    analyzeOpponentStillInCup: "ainda na copa",
+    analyzeOpponentNotInCup: "fora da copa",
     loadLineupUnavailable: "Sem escalação salva",
     loadLineupActive: "Carregada",
     loadLineupError: "Falha ao carregar",

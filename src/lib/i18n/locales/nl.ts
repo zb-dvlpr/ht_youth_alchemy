@@ -675,6 +675,8 @@ export const messagesNl: Messages = {
     "Het trainingsregime van senioren kan direct in de app worden aangepast via de opstellingsdropdown.",
   seniorHelpBulletAnalyzeOpponent:
     "Tegenstander analyseren vat recente patronen samen om AI-opstellingskeuzes te ondersteunen.",
+  analyzeOpponentStillInCup: "nog in de beker",
+  analyzeOpponentNotInCup: "niet meer in de beker",
   loadLineupUnavailable: "Geen opgeslagen opstelling",
   loadLineupActive: "Opstelling geladen",
   loadLineupError: "Fout bij laden opstelling",

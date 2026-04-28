@@ -1161,6 +1161,8 @@ export const messagesSv: Messages = {
       "För den formationen är deras vanligaste taktik",
     analyzeOpponentSummaryVsYou: "När de möter dig föredrar de",
     analyzeOpponentSummaryWith: "med",
+    analyzeOpponentStillInCup: "fortfarande kvar i cupen",
+    analyzeOpponentNotInCup: "ute ur cupen",
     loadLineupUnavailable: "Ingen sparad uppställning",
     loadLineupActive: "Laddad",
     loadLineupError: "Misslyckades att ladda",

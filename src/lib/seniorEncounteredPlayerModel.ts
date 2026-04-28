@@ -58,6 +58,23 @@ export type SeniorModelEvaluationResult = {
 
 export type SeniorEncounterCaptureStatus = "added" | "deduped" | "failed";
 
+type SeniorEncounteredPlayerSnapshotValues = Pick<
+  SeniorEncounteredPlayerSample,
+  | "ageYears"
+  | "ageDays"
+  | "keeper"
+  | "defending"
+  | "playmaking"
+  | "winger"
+  | "passing"
+  | "scoring"
+  | "setPieces"
+  | "form"
+  | "stamina"
+  | "tsi"
+  | "baseWageSek"
+>;
+
 type NormalizedSeniorPlayerSnapshot = Omit<
   SeniorEncounteredPlayerSample,
   "sampleHash" | "playerHash" | "source" | "firstSeenAt" | "lastSeenAt"
@@ -384,38 +401,8 @@ const toStoredSnapshot = (snapshot: NormalizedSeniorPlayerSnapshot) => ({
 });
 
 const hasSameStoredSnapshotValues = (
-  left: Pick<
-    SeniorEncounteredPlayerSample,
-    | "ageYears"
-    | "ageDays"
-    | "keeper"
-    | "defending"
-    | "playmaking"
-    | "winger"
-    | "passing"
-    | "scoring"
-    | "setPieces"
-    | "form"
-    | "stamina"
-    | "tsi"
-    | "baseWageSek"
-  >,
-  right: Pick<
-    SeniorEncounteredPlayerSample,
-    | "ageYears"
-    | "ageDays"
-    | "keeper"
-    | "defending"
-    | "playmaking"
-    | "winger"
-    | "passing"
-    | "scoring"
-    | "setPieces"
-    | "form"
-    | "stamina"
-    | "tsi"
-    | "baseWageSek"
-  >
+  left: SeniorEncounteredPlayerSnapshotValues,
+  right: SeniorEncounteredPlayerSnapshotValues
 ) =>
   left.ageYears === right.ageYears &&
   left.ageDays === right.ageDays &&
@@ -566,7 +553,7 @@ export const getSeniorEncounteredPlayerModelSummary =
     };
   };
 
-const ageTotalDays = (sample: Pick<SeniorEncounteredPlayerSample, "ageYears" | "ageDays">) =>
+const ageTotalDays = (sample: Pick<SeniorEncounteredPlayerSnapshotValues, "ageYears" | "ageDays">) =>
   sample.ageYears * DAYS_PER_HT_YEAR + sample.ageDays;
 
 const targetValue = (sample: SeniorEncounteredPlayerSample, target: ModelTarget) => {
@@ -575,7 +562,10 @@ const targetValue = (sample: SeniorEncounteredPlayerSample, target: ModelTarget)
   return ageTotalDays(sample);
 };
 
-const featureVector = (sample: SeniorEncounteredPlayerSample, target: ModelTarget) => {
+const featureVector = (
+  sample: SeniorEncounteredPlayerSnapshotValues,
+  target: ModelTarget
+) => {
   const values = [
     sample.keeper / 20,
     sample.defending / 20,
@@ -601,7 +591,7 @@ const featureVector = (sample: SeniorEncounteredPlayerSample, target: ModelTarge
 
 const predict = (
   trainingSamples: SeniorEncounteredPlayerSample[],
-  sample: SeniorEncounteredPlayerSample,
+  sample: SeniorEncounteredPlayerSnapshotValues,
   target: ModelTarget
 ) => {
   if (trainingSamples.length === 0) return null;

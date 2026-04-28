@@ -1411,19 +1411,15 @@ const resolveTeamDetailsMeta = (
   return { leagueName, leagueLevelUnitName, leagueLevelUnitId, arenaId, arenaName };
 };
 
-const resolveCupName = (
-  team:
-    | {
-        Cup?: {
-          StillInCup?: unknown;
-          CupName?: unknown;
-        };
-      }
-    | undefined
-) => {
-  const stillInCup = String(team?.Cup?.StillInCup ?? "").toLowerCase() === "true";
+const resolveCupName = (team: unknown) => {
+  const cup =
+    team && typeof team === "object" && "Cup" in team
+      ? ((team as { Cup?: unknown }).Cup ?? null)
+      : null;
+  const cupRecord = cup && typeof cup === "object" ? (cup as Record<string, unknown>) : null;
+  const stillInCup = String(cupRecord?.StillInCup ?? "").toLowerCase() === "true";
   if (!stillInCup) return null;
-  const cupName = team?.Cup?.CupName;
+  const cupName = cupRecord?.CupName;
   if (typeof cupName === "string") {
     const trimmed = cupName.trim();
     return trimmed ? trimmed : null;
@@ -7762,11 +7758,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             previous.lastDetectedMatchDate !== current.lastDetectedMatchDate
           ) {
             const previousDate =
-              formatChppDateTime(previous.lastDetectedMatchDate) ??
+              formatChppDateTime(previous.lastDetectedMatchDate ?? undefined) ??
               previous.lastDetectedMatchDate ??
               null;
             const currentDate =
-              formatChppDateTime(current.lastDetectedMatchDate) ??
+              formatChppDateTime(current.lastDetectedMatchDate ?? undefined) ??
               current.lastDetectedMatchDate ??
               null;
             appendTeamChanges(updatesMap, teamId, teamName, [
@@ -8233,19 +8229,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           };
         }
         } catch (error) {
-          logCupDebug("teamdetailsException", {
-            requestedTeamId: team.teamId,
-            selectedTeamId: null,
-            teamName: team.teamName ?? null,
-            error:
-              error instanceof Error
-                ? {
-                    name: error.name,
-                    message: error.message,
-                    stack: error.stack ?? null,
-                  }
-                : error,
-          });
           if (isChppAuthRequiredError(error)) throw error;
           // ignore teamdetails failure for now
         }

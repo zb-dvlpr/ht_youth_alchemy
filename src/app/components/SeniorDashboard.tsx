@@ -2926,6 +2926,9 @@ export default function SeniorDashboard({
     useState(false);
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
+  const [opponentCupStatusByTeamId, setOpponentCupStatusByTeamId] = useState<
+    Record<number, boolean>
+  >({});
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [seniorAiSubmitLockActive, setSeniorAiSubmitLockActive] = useState(false);
   const [seniorAiSubmitEnabledMatchId, setSeniorAiSubmitEnabledMatchId] = useState<
@@ -11540,6 +11543,9 @@ const refreshDetailsForPlayers = async (
         const stillInCup = parseTeamdetailsStillInCup(payload, teamId);
         if (typeof stillInCup === "boolean") {
           opponentCupStatusCacheRef.current.set(teamId, stillInCup);
+          setOpponentCupStatusByTeamId((current) =>
+            current[teamId] === stillInCup ? current : { ...current, [teamId]: stillInCup }
+          );
         }
         return stillInCup;
       } catch {
@@ -11547,6 +11553,16 @@ const refreshDetailsForPlayers = async (
       }
     },
     []
+  );
+
+  const getOpponentCupStatus = useCallback(
+    (teamId: number): boolean | null => {
+      const stateValue = opponentCupStatusByTeamId[teamId];
+      if (typeof stateValue === "boolean") return stateValue;
+      const cached = opponentCupStatusCacheRef.current.get(teamId);
+      return typeof cached === "boolean" ? cached : null;
+    },
+    [opponentCupStatusByTeamId]
   );
 
   const runSetBestLineupPredictRatings = async (
@@ -15646,6 +15662,8 @@ const refreshDetailsForPlayers = async (
           sourceSystem="Hattrick"
           includeTournamentMatches={includeTournamentMatches}
           onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
+          getOpponentCupStatus={getOpponentCupStatus}
+          ensureOpponentCupStatus={fetchOpponentCupStatus}
           setBestLineupHelpAnchor="senior-set-lineup-ai"
           showExtraTimeSetBestLineupMode
           keepBestLineupMenuTopmost
@@ -18723,6 +18741,8 @@ const refreshDetailsForPlayers = async (
             sourceSystem="Hattrick"
             includeTournamentMatches={includeTournamentMatches}
             onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
+            getOpponentCupStatus={getOpponentCupStatus}
+            ensureOpponentCupStatus={fetchOpponentCupStatus}
             setBestLineupHelpAnchor="senior-set-lineup-ai"
             showExtraTimeSetBestLineupMode
             keepBestLineupMenuTopmost

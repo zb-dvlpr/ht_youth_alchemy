@@ -97,6 +97,8 @@ type UpcomingMatchesProps = {
     fixedFormation?: string | null
   ) => void | Promise<void>;
   onAnalyzeOpponent?: (matchId: number) => void | Promise<void>;
+  getOpponentCupStatus?: (opponentTeamId: number) => boolean | null;
+  ensureOpponentCupStatus?: (opponentTeamId: number) => void | Promise<boolean | null>;
   loadedMatchId?: number | null;
   submitEnabledMatchId?: number | null;
   submitRestrictedTooltipBuilder?: (targetMatch: Match | undefined) => ReactNode;
@@ -159,6 +161,32 @@ function resolveMatchSourceSystem(
     return "htointegrated";
   }
   return fallbackSourceSystem;
+}
+
+function resolveOpponentTeam(
+  match: Match | undefined,
+  teamId: number | null
+): { teamId: number; teamName: string } | null {
+  if (!match || typeof teamId !== "number" || !Number.isFinite(teamId) || teamId <= 0) {
+    return null;
+  }
+  const homeTeamId = Number(match.HomeTeam?.HomeTeamID);
+  const awayTeamId = Number(match.AwayTeam?.AwayTeamID);
+  if (Number.isFinite(homeTeamId) && homeTeamId === teamId) {
+    if (!Number.isFinite(awayTeamId) || awayTeamId <= 0) return null;
+    return {
+      teamId: awayTeamId,
+      teamName: match.AwayTeam?.AwayTeamName ?? "",
+    };
+  }
+  if (Number.isFinite(awayTeamId) && awayTeamId === teamId) {
+    if (!Number.isFinite(homeTeamId) || homeTeamId <= 0) return null;
+    return {
+      teamId: homeTeamId,
+      teamName: match.HomeTeam?.HomeTeamName ?? "",
+    };
+  }
+  return null;
 }
 
 type MatchState = {
@@ -563,6 +591,7 @@ function renderMatch(
     fixedFormation?: string | null
   ) => void,
   onAnalyzeOpponent?: (matchId: number) => void,
+  opponentCupStatus?: boolean | null,
   bestLineupPending?: boolean,
   analyzePending?: boolean,
   isLoaded?: boolean,
@@ -712,6 +741,14 @@ function renderMatch(
         <span>
           {messages.ordersLabel}: {ordersSet ? messages.ordersSet : messages.ordersNotSet}
         </span>
+        {typeof opponentCupStatus === "boolean" ? (
+          <span>
+            {messages.clubChronicleFieldCup}:{" "}
+            {opponentCupStatus
+              ? messages.analyzeOpponentStillInCup
+              : messages.analyzeOpponentNotInCup}
+          </span>
+        ) : null}
       </div>
       {showActionRow ? (
         <div className={styles.matchActions}>
@@ -818,6 +855,8 @@ export default function UpcomingMatches({
   onSetBestLineup,
   onSetBestLineupMode,
   onAnalyzeOpponent,
+  getOpponentCupStatus,
+  ensureOpponentCupStatus,
   loadedMatchId,
   submitEnabledMatchId = null,
   submitRestrictedTooltipBuilder,
@@ -877,6 +916,26 @@ export default function UpcomingMatches({
     const matchType = Number(match.MatchType);
     return Number.isFinite(matchType) && DEFAULT_ALLOWED_MATCH_TYPES.has(matchType);
   });
+
+  useEffect(() => {
+    if (
+      sourceSystem !== "Hattrick" ||
+      !ensureOpponentCupStatus ||
+      typeof teamId !== "number" ||
+      !Number.isFinite(teamId) ||
+      teamId <= 0
+    ) {
+      return;
+    }
+    const uniqueOpponentIds = new Set<number>();
+    visibleMatches.forEach((match) => {
+      const opponent = resolveOpponentTeam(match, teamId);
+      if (opponent) uniqueOpponentIds.add(opponent.teamId);
+    });
+    uniqueOpponentIds.forEach((opponentTeamId) => {
+      void ensureOpponentCupStatus(opponentTeamId);
+    });
+  }, [ensureOpponentCupStatus, sourceSystem, teamId, visibleMatches]);
 
   const matchById = useMemo(() => {
     const map = new Map<number, Match>();
@@ -1288,6 +1347,9 @@ export default function UpcomingMatches({
             const updatedLabel = state.updatedAt
               ? `${messages.submitOrdersUpdated}: ${formatDateTime(state.updatedAt)}`
               : null;
+            const opponent = resolveOpponentTeam(match, teamId);
+            const opponentCupStatus =
+              opponent && getOpponentCupStatus ? getOpponentCupStatus(opponent.teamId) : null;
             return renderMatch(
               matchId,
               match,
@@ -1302,6 +1364,7 @@ export default function UpcomingMatches({
               handleLoadLineup,
               handleSetBestLineupMode,
               handleAnalyzeOpponent,
+              opponentCupStatus,
               bestLineupPendingMatchId === matchId,
               analyzePendingMatchId === matchId,
               loadedMatchId === matchId,
@@ -1329,6 +1392,9 @@ export default function UpcomingMatches({
               const updatedLabel = state.updatedAt
                 ? `${messages.submitOrdersUpdated}: ${formatDateTime(state.updatedAt)}`
                 : null;
+              const opponent = resolveOpponentTeam(match, teamId);
+              const opponentCupStatus =
+                opponent && getOpponentCupStatus ? getOpponentCupStatus(opponent.teamId) : null;
               return renderMatch(
                 matchId,
                 match,
@@ -1343,6 +1409,7 @@ export default function UpcomingMatches({
                 handleLoadLineup,
                 handleSetBestLineupMode,
                 handleAnalyzeOpponent,
+                opponentCupStatus,
                 bestLineupPendingMatchId === matchId,
                 analyzePendingMatchId === matchId,
                 loadedMatchId === matchId,

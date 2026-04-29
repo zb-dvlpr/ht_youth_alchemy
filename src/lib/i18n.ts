@@ -411,10 +411,12 @@ export type Messages = {
   clubChronicleTeamAttitudeMatchDateColumn: string;
   clubChronicleTeamAttitudeMatchTypeColumn: string;
   clubChronicleTeamAttitudeMatchAttitudeColumn: string;
+  clubChronicleTeamAttitudeMatchTacticColumn: string;
   clubChronicleTeamAttitudeMidfieldColumn: string;
   clubChronicleTeamAttitudeLineupColumn: string;
   clubChronicleTeamAttitudeBaselineUnionColumn: string;
   clubChronicleTeamAttitudeOverlapColumn: string;
+  clubChronicleTeamAttitudeDebugChosenFormationLabel: string;
   clubChronicleTeamAttitudeDebugBaselineValuesLabel: string;
   clubChronicleTeamAttitudeDebugInitialBaselineLabel: string;
   clubChronicleTeamAttitudeDebugInitialThresholdLabel: string;
@@ -428,6 +430,9 @@ export type Messages = {
   clubChronicleTeamAttitudeNormal: string;
   clubChronicleTeamAttitudePotentialPic: string;
   clubChronicleTeamAttitudePotentialMots: string;
+  clubChronicleDetailModeUser: string;
+  clubChronicleDetailModeDev: string;
+  clubChronicleTeamAttitudeDisclaimer: string;
   clubChronicleMatchTypeLeague: string;
   clubChronicleMatchTypeQualification: string;
   clubChronicleMatchTypeCup: string;

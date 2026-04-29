@@ -432,6 +432,7 @@ type TeamAttitudeAnalyzedMatch = {
   matchDate: string | null;
   sourceSystem: string;
   midfieldRating: number | null;
+  tacticType: number | null;
   inferredAttitude: TeamAttitudeKind;
   potential: boolean;
   lineupOverlapPct: number | null;
@@ -2787,6 +2788,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [selectedTeamAttitudeTeamId, setSelectedTeamAttitudeTeamId] = useState<
     number | null
   >(null);
+  const [teamAttitudeDetailMode, setTeamAttitudeDetailMode] = useState<
+    "user" | "dev"
+  >("dev");
   const [likelyTrainingDetailsOpen, setLikelyTrainingDetailsOpen] =
     useState(false);
   const [selectedLikelyTrainingTeamId, setSelectedLikelyTrainingTeamId] =
@@ -9016,6 +9020,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   type TeamAttitudeMidfieldPassMatch = {
     match: TeamMatchArchiveEntry;
     midfieldRating: number | null;
+    tacticType: number | null;
     inferredAttitude: TeamAttitudeKind;
   };
 
@@ -9262,6 +9267,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       .map((entry) => ({
         match: entry.match,
         midfieldRating: entry.midfieldRating,
+        tacticType: entry.tacticType,
         inferredAttitude: "normal" as TeamAttitudeKind,
       }));
     const midfieldValues = analyzedMatches
@@ -9424,6 +9430,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       let potential = false;
       if (match.inferredAttitude !== "normal") {
         potential = !(lineupOverlapPct !== null && lineupOverlapPct >= 70);
+        if (match.inferredAttitude === "pic" && match.tacticType === 2) {
+          potential = true;
+        }
       }
       analyzedMatches.push({
         matchId: match.match.matchId,
@@ -9431,6 +9440,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         matchDate: match.match.matchDate,
         sourceSystem: match.match.sourceSystem,
         midfieldRating: match.midfieldRating,
+        tacticType: match.tacticType,
         inferredAttitude: match.inferredAttitude,
         potential,
         lineupOverlapPct,
@@ -11456,6 +11466,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const selectedTeamAttitudeTeam = selectedTeamAttitudeTeamId
     ? teamAttitudeRows.find((team) => team.teamId === selectedTeamAttitudeTeamId) ?? null
     : null;
+  const teamAttitudeDetailShowsDevInfo =
+    IS_DEV_BUILD && teamAttitudeDetailMode === "dev";
   const selectedTsiTeam = selectedTsiTeamId
     ? tsiRows.find((team) => team.teamId === selectedTsiTeamId) ?? null
     : null;
@@ -11682,6 +11694,37 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       values && values.length > 0 ? values.join(", ") : messages.unknownShort,
     [messages.unknownShort]
   );
+  const selectedTeamAttitudeUnionBaselineMatchKeys = useMemo(() => {
+    const snapshot = selectedTeamAttitudeTeam?.snapshot;
+    const baselineMidfieldValue = snapshot?.baselineMidfield;
+    if (
+      !snapshot ||
+      baselineMidfieldValue === null ||
+      baselineMidfieldValue === undefined ||
+      !Number.isFinite(baselineMidfieldValue)
+    ) {
+      return new Set<string>();
+    }
+    const baselineMidfield = baselineMidfieldValue;
+    const leagueMatches = snapshot.analyzedMatches.filter(
+      (entry) =>
+        entry.matchType === 1 &&
+        entry.midfieldRating !== null &&
+        Number.isFinite(entry.midfieldRating)
+    );
+    const withinOne = leagueMatches.filter(
+      (entry) => Math.abs((entry.midfieldRating ?? 0) - baselineMidfield) <= 1
+    );
+    const selectedMatches =
+      withinOne.length >= 3
+        ? withinOne
+        : leagueMatches.filter(
+            (entry) => Math.abs((entry.midfieldRating ?? 0) - baselineMidfield) <= 2
+          );
+    return new Set(
+      selectedMatches.map((entry) => `${entry.matchId}:${entry.sourceSystem}`)
+    );
+  }, [selectedTeamAttitudeTeam]);
   const teamAttitudeDetailRows = useMemo(
     () =>
       (selectedTeamAttitudeTeam?.snapshot?.analyzedMatches ?? []).map((entry) => ({
@@ -11693,9 +11736,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           ? formatChppDateTime(entry.matchDate) ?? entry.matchDate
           : messages.unknownShort,
         matchTypeLabel: formatMatchTypeLabel(entry.matchType),
+        tacticLabel: formatTacticLabel(entry.tacticType) ?? messages.unknownShort,
         attitudeLabel: formatTeamAttitudeLabel(entry.inferredAttitude, entry.potential),
         midfieldRatingLabel:
           entry.midfieldRating !== null ? String(entry.midfieldRating) : messages.unknownShort,
+        midfieldUsedForUnion: selectedTeamAttitudeUnionBaselineMatchKeys.has(
+          `${entry.matchId}:${entry.sourceSystem}`
+        ),
         lineupLabel: formatTeamAttitudeDebugNumberList(entry.lineupPlayerIds),
         baselineUnionLabel: formatTeamAttitudeDebugNumberList(
           selectedTeamAttitudeTeam?.snapshot?.baselineUnionPlayerIds
@@ -11709,7 +11756,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       formatTeamAttitudeDebugNumberList,
       formatMatchTypeLabel,
       formatTeamAttitudeLabel,
+      formatTacticLabel,
       messages.unknownShort,
+      selectedTeamAttitudeUnionBaselineMatchKeys,
       selectedTeamAttitudeTeam,
     ]
   );
@@ -11722,8 +11771,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         sourceSystem: string;
         matchDateLabel: string;
         matchTypeLabel: string;
+        tacticLabel: string;
         attitudeLabel: string;
         midfieldRatingLabel: string;
+        midfieldUsedForUnion: boolean;
         lineupLabel: string;
         baselineUnionLabel: string;
         overlapLabel: string;
@@ -11735,8 +11786,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         sourceSystem: string;
         matchDateLabel: string;
         matchTypeLabel: string;
+        tacticLabel: string;
         attitudeLabel: string;
         midfieldRatingLabel: string;
+        midfieldUsedForUnion: boolean;
         lineupLabel: string;
         baselineUnionLabel: string;
         overlapLabel: string;
@@ -11752,8 +11805,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           sourceSystem: string;
           matchDateLabel: string;
           matchTypeLabel: string;
+          tacticLabel: string;
           attitudeLabel: string;
           midfieldRatingLabel: string;
+          midfieldUsedForUnion: boolean;
           lineupLabel: string;
           baselineUnionLabel: string;
           overlapLabel: string;
@@ -11765,8 +11820,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           sourceSystem: string;
           matchDateLabel: string;
           matchTypeLabel: string;
+          tacticLabel: string;
           attitudeLabel: string;
           midfieldRatingLabel: string;
+          midfieldUsedForUnion: boolean;
           lineupLabel: string;
           baselineUnionLabel: string;
           overlapLabel: string;
@@ -11804,13 +11861,32 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           label: messages.clubChronicleTeamAttitudeMatchAttitudeColumn,
           getValue: (snapshot) => snapshot?.attitudeLabel ?? null,
         },
+        {
+          key: "tactic",
+          label: messages.clubChronicleTeamAttitudeMatchTacticColumn,
+          getValue: (snapshot) => snapshot?.tacticLabel ?? null,
+        },
       ];
-      if (IS_DEV_BUILD) {
+      if (teamAttitudeDetailShowsDevInfo) {
         columns.push(
           {
             key: "midfield",
             label: messages.clubChronicleTeamAttitudeMidfieldColumn,
             getValue: (snapshot) => snapshot?.midfieldRatingLabel ?? null,
+            renderCell: (snapshot) =>
+              snapshot ? (
+                <span
+                  style={
+                    snapshot.midfieldUsedForUnion
+                      ? { textDecoration: "underline" }
+                      : undefined
+                  }
+                >
+                  {snapshot.midfieldRatingLabel}
+                </span>
+              ) : (
+                messages.unknownShort
+              ),
           },
           {
             key: "overlap",
@@ -11836,17 +11912,25 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleTeamAttitudeLineupColumn,
       messages.clubChronicleTeamAttitudeMatchAttitudeColumn,
       messages.clubChronicleTeamAttitudeMatchDateColumn,
+      messages.clubChronicleTeamAttitudeMatchTacticColumn,
       messages.clubChronicleTeamAttitudeMatchTypeColumn,
       messages.clubChronicleTeamAttitudeMidfieldColumn,
       messages.clubChronicleTeamAttitudeOverlapColumn,
       messages.unknownShort,
+      teamAttitudeDetailShowsDevInfo,
     ]
   );
   const teamAttitudeDebugSummaryRows = useMemo(
     () =>
-      !IS_DEV_BUILD || !selectedTeamAttitudeTeam?.snapshot
+      !teamAttitudeDetailShowsDevInfo || !selectedTeamAttitudeTeam?.snapshot
         ? []
         : [
+            {
+              id: "chosen-formation",
+              label: messages.clubChronicleTeamAttitudeDebugChosenFormationLabel,
+              value:
+                selectedTeamAttitudeTeam.snapshot.topFormation ?? messages.unknownShort,
+            },
             {
               id: "all-midfield-values",
               label: messages.clubChronicleTeamAttitudeDebugBaselineValuesLabel,
@@ -11902,6 +11986,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             },
           ],
     [
+      messages.clubChronicleTeamAttitudeDebugChosenFormationLabel,
       formatTeamAttitudeDebugNumberList,
       messages.clubChronicleTeamAttitudeDebugBaselineValuesLabel,
       messages.clubChronicleTeamAttitudeDebugFinalBaselineLabel,
@@ -11911,6 +11996,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleTeamAttitudeDebugInitialNormalValuesLabel,
       messages.clubChronicleTeamAttitudeDebugInitialThresholdLabel,
       messages.unknownShort,
+      teamAttitudeDetailShowsDevInfo,
       selectedTeamAttitudeTeam,
     ]
   );
@@ -14136,6 +14222,26 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 selectedTeamAttitudeTeam.teamName
               )}
             </p>
+            {IS_DEV_BUILD ? (
+              <div className={styles.chronicleDetailModeToggle} role="group">
+                <button
+                  type="button"
+                  className={`${styles.chronicleDetailModeButton}${teamAttitudeDetailMode === "user" ? ` ${styles.chronicleDetailModeButtonActive}` : ""}`}
+                  aria-pressed={teamAttitudeDetailMode === "user"}
+                  onClick={() => setTeamAttitudeDetailMode("user")}
+                >
+                  {messages.clubChronicleDetailModeUser}
+                </button>
+                <button
+                  type="button"
+                  className={`${styles.chronicleDetailModeButton}${teamAttitudeDetailMode === "dev" ? ` ${styles.chronicleDetailModeButtonActive}` : ""}`}
+                  aria-pressed={teamAttitudeDetailMode === "dev"}
+                  onClick={() => setTeamAttitudeDetailMode("dev")}
+                >
+                  {messages.clubChronicleDetailModeDev}
+                </button>
+              </div>
+            ) : null}
             {teamAttitudeDebugSummaryRows.length > 0 ? (
               <div className={styles.chronicleDetailsGrid}>
                 {teamAttitudeDebugSummaryRows.map((row) => (
@@ -15602,9 +15708,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   panelId={panelId}
                   onRefresh={() => runRefreshGuarded(() => refreshFormationsTacticsOnly())}
                   onPointerDown={handlePanelPointerDown}
-                  onDragStart={handlePanelDragStart}
-                  onDragEnd={handlePanelDragEnd}
-                >
+                onDragStart={handlePanelDragStart}
+                onDragEnd={handlePanelDragEnd}
+              >
                   {getChroniclePanelDisplayState(
                     refreshingGlobal || refreshingFormationsTactics,
                     teamAttitudeRows.some((row) => Boolean(row.snapshot))
@@ -15638,6 +15744,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       }
                     />
                   )}
+                  <p className={styles.chroniclePressMeta}>
+                    {messages.clubChronicleTeamAttitudeDisclaimer}
+                  </p>
                 </ChroniclePanel>
               </div>
             );
@@ -17021,6 +17130,26 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   selectedTeamAttitudeTeam.teamName
                 )}
               </p>
+              {IS_DEV_BUILD ? (
+                <div className={styles.chronicleDetailModeToggle} role="group">
+                  <button
+                    type="button"
+                    className={`${styles.chronicleDetailModeButton}${teamAttitudeDetailMode === "user" ? ` ${styles.chronicleDetailModeButtonActive}` : ""}`}
+                    aria-pressed={teamAttitudeDetailMode === "user"}
+                    onClick={() => setTeamAttitudeDetailMode("user")}
+                  >
+                    {messages.clubChronicleDetailModeUser}
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.chronicleDetailModeButton}${teamAttitudeDetailMode === "dev" ? ` ${styles.chronicleDetailModeButtonActive}` : ""}`}
+                    aria-pressed={teamAttitudeDetailMode === "dev"}
+                    onClick={() => setTeamAttitudeDetailMode("dev")}
+                  >
+                    {messages.clubChronicleDetailModeDev}
+                  </button>
+                </div>
+              ) : null}
               {teamAttitudeDebugSummaryRows.length > 0 ? (
                 <div className={styles.chronicleDetailsGrid}>
                   {teamAttitudeDebugSummaryRows.map((row) => (
@@ -17048,6 +17177,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   {messages.clubChronicleTeamAttitudeDetailsEmpty}
                 </p>
               )}
+              {!teamAttitudeDetailShowsDevInfo ? (
+                <p className={styles.chroniclePressMeta}>
+                  {messages.clubChronicleTeamAttitudeDisclaimer}
+                </p>
+              ) : null}
             </>
           ) : (
             <p className={styles.chronicleEmpty}>

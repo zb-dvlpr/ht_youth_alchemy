@@ -3821,6 +3821,11 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   width: min(1120px, 98vw);
 }
 
+.chronicleTeamAttitudeUserModal {
+  max-width: min(940px, 96vw);
+  width: min(940px, 96vw);
+}
+
 .chronicleTransferListedModal {
   max-width: min(760px, 96vw);
   width: min(760px, 96vw);

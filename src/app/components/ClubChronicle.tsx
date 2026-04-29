@@ -2831,6 +2831,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [resolvedMatches, setResolvedMatches] = useState<Record<number, string>>(
     {}
   );
+  const [resolvedMatchScores, setResolvedMatchScores] = useState<Record<number, string>>(
+    {}
+  );
   const [resolvedTeams, setResolvedTeams] = useState<Record<number, string>>({});
   const [stalenessDays, setStalenessDays] = useState(
     DEFAULT_CLUB_CHRONICLE_STALENESS_DAYS
@@ -11733,6 +11736,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         matchDate: entry.matchDate,
         sourceSystem: entry.sourceSystem,
         matchTitle: resolvedMatches[entry.matchId] ?? `${messages.matchesTitle} ${entry.matchId}`,
+        matchScore: resolvedMatchScores[entry.matchId] ?? messages.unknownShort,
         matchDateLabel: entry.matchDate
           ? formatChppDateTime(entry.matchDate) ?? entry.matchDate
           : messages.unknownShort,
@@ -11760,6 +11764,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       formatTacticLabel,
       messages.matchesTitle,
       messages.unknownShort,
+      resolvedMatchScores,
       resolvedMatches,
       selectedTeamAttitudeUnionBaselineMatchKeys,
       selectedTeamAttitudeTeam,
@@ -11773,6 +11778,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         matchDate: string | null;
         sourceSystem: string;
         matchTitle: string;
+        matchScore: string;
         matchDateLabel: string;
         matchTypeLabel: string;
         tacticLabel: string;
@@ -11789,6 +11795,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         matchDate: string | null;
         sourceSystem: string;
         matchTitle: string;
+        matchScore: string;
         matchDateLabel: string;
         matchTypeLabel: string;
         tacticLabel: string;
@@ -11809,6 +11816,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           matchDate: string | null;
           sourceSystem: string;
           matchTitle: string;
+          matchScore: string;
           matchDateLabel: string;
           matchTypeLabel: string;
           tacticLabel: string;
@@ -11825,6 +11833,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           matchDate: string | null;
           sourceSystem: string;
           matchTitle: string;
+          matchScore: string;
           matchDateLabel: string;
           matchTypeLabel: string;
           tacticLabel: string;
@@ -11865,6 +11874,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           key: "type",
           label: messages.clubChronicleTeamAttitudeMatchTypeColumn,
           getValue: (snapshot) => snapshot?.matchTypeLabel ?? null,
+        },
+        {
+          key: "score",
+          label: messages.clubChronicleOngoingMatchesColumnScore,
+          getValue: (snapshot) => snapshot?.matchScore ?? null,
         },
         {
           key: "attitude",
@@ -11918,6 +11932,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       return columns;
     },
     [
+      messages.clubChronicleOngoingMatchesColumnScore,
       messages.clubChronicleTeamAttitudeBaselineUnionColumn,
       messages.clubChronicleTeamAttitudeLineupColumn,
       messages.clubChronicleTeamAttitudeMatchAttitudeColumn,
@@ -12628,13 +12643,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
     void Promise.all(
       matches
-        .filter((entry) => !resolvedMatches[entry.matchId])
+        .filter(
+          (entry) =>
+            !resolvedMatches[entry.matchId] || !resolvedMatchScores[entry.matchId]
+        )
         .map(async (entry) => {
           try {
             const { payload } = await fetchChppJson<{
               data?: {
                 HattrickData?: {
                   Match?: {
+                    HomeGoals?: unknown;
+                    AwayGoals?: unknown;
                     HomeTeam?: { HomeTeamName?: string };
                     AwayTeam?: { AwayTeamName?: string };
                   };
@@ -12649,17 +12669,29 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             const match = payload?.data?.HattrickData?.Match;
             const home = match?.HomeTeam?.HomeTeamName?.trim();
             const away = match?.AwayTeam?.AwayTeamName?.trim();
-            if (!home || !away) return;
-            setResolvedMatches((prev) =>
-              prev[entry.matchId] ? prev : { ...prev, [entry.matchId]: `${home} vs ${away}` }
-            );
+            const homeGoals = parseNumberNode(match?.HomeGoals);
+            const awayGoals = parseNumberNode(match?.AwayGoals);
+            if (home && away) {
+              setResolvedMatches((prev) =>
+                prev[entry.matchId]
+                  ? prev
+                  : { ...prev, [entry.matchId]: `${home} vs ${away}` }
+              );
+            }
+            if (homeGoals !== null && awayGoals !== null) {
+              setResolvedMatchScores((prev) =>
+                prev[entry.matchId]
+                  ? prev
+                  : { ...prev, [entry.matchId]: `${homeGoals}-${awayGoals}` }
+              );
+            }
           } catch (error) {
             if (isChppAuthRequiredError(error)) return;
             // ignore resolve failures
           }
         })
     );
-  }, [resolvedMatches, selectedTeamAttitudeTeam]);
+  }, [resolvedMatchScores, resolvedMatches, selectedTeamAttitudeTeam]);
 
   const renderPressText = (text: string) => {
     const lines = text.split("\n");
@@ -17168,7 +17200,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       <Modal
         open={teamAttitudeDetailsOpen}
         title={messages.clubChronicleTeamAttitudeDetailsTitle}
-        className={styles.chronicleTransferHistoryModal}
+        className={
+          teamAttitudeDetailShowsDevInfo
+            ? styles.chronicleTransferHistoryModal
+            : styles.chronicleTeamAttitudeUserModal
+        }
         body={
           selectedTeamAttitudeTeam ? (
             <>

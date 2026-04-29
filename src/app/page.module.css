@@ -3822,8 +3822,8 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 }
 
 .chronicleTeamAttitudeUserModal {
-  max-width: min(1080px, 96vw);
-  width: min(1080px, 96vw);
+  max-width: min(1360px, calc(100vw - 24px));
+  width: min(1360px, calc(100vw - 24px));
 }
 
 .chronicleTransferListedModal {
@@ -8580,6 +8580,10 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 
 .confirmCard.chronicleUpdatesModal {
   width: min(1200px, 98vw);
+}
+
+.confirmCard.chronicleTeamAttitudeUserModal {
+  width: min(1360px, calc(100vw - 24px));
 }
 
 .confirmCard.nonTraineeAssignmentDebugModal {

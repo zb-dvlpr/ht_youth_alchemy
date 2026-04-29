@@ -274,7 +274,7 @@ export const messagesDe: Messages = {
     settingsClubChronicle: "Club-Chronik",
     settingsClubChronicleTitle: "Einstellungen der Club-Chronik",
     settingsClubChronicleStalenessLabel: "Aktualisieren nach (Tagen)",
-    settingsClubChronicleStalenessHint: "Wenn Daten älter sind, löst das Öffnen der Club-Chronik eine Aktualisierung basierend auf der letzten Aktualisierung aus.",
+    settingsClubChronicleStalenessHint: "Wenn Daten älter sind, wartet das Öffnen der Club-Chronik auf den aktuellen Beobachtungslisten-Umfang und startet dann denselben vollständigen Aktualisierungslauf wie die manuelle Aktualisierung.",
     settingsClubChronicleTransferHistoryLabel: "Anzahl letzter Transfers",
     settingsClubChronicleTransferHistoryHint:
       "Wie viele letzte Transfers pro Team zwischengespeichert und in den Transferdetails angezeigt werden.",

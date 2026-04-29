@@ -276,7 +276,7 @@ export const messagesEs: Messages = {
     settingsClubChronicle: "Crónica del club",
     settingsClubChronicleTitle: "Ajustes de Crónica del club",
     settingsClubChronicleStalenessLabel: "Actualizar después de (días)",
-    settingsClubChronicleStalenessHint: "Cuando los datos son antiguos, entrar en Crónica del club desencadena una actualización basada en la última actualización.",
+    settingsClubChronicleStalenessHint: "Cuando los datos son antiguos, al entrar en Crónica del club se espera a que el alcance actual de la lista de seguimiento esté listo y luego se ejecuta el mismo refresco global completo que con el refresco manual.",
     settingsClubChronicleTransferHistoryLabel: "Últimos traspasos a guardar",
     settingsClubChronicleTransferHistoryHint:
       "Cuántos traspasos recientes por equipo se guardan en caché y se muestran en detalles.",

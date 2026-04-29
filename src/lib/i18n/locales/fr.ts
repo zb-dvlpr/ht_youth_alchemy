@@ -277,7 +277,7 @@ export const messagesFr: Messages = {
     settingsClubChronicle: "Chronique du club",
     settingsClubChronicleTitle: "Paramètres de la Chronique du club",
     settingsClubChronicleStalenessLabel: "Rafraîchir après (jours)",
-    settingsClubChronicleStalenessHint: "Quand les données sont trop anciennes, l’ouverture de la Chronique du club déclenche une actualisation basée sur la dernière actualisation.",
+    settingsClubChronicleStalenessHint: "Quand les données sont trop anciennes, l’ouverture de la Chronique du club attend que la portée actuelle de la liste de suivi soit prête puis lance la même actualisation globale complète que l’actualisation manuelle.",
     settingsClubChronicleTransferHistoryLabel: "Derniers transferts à garder",
     settingsClubChronicleTransferHistoryHint:
       "Nombre de transferts récents par équipe à mettre en cache et afficher dans les détails.",

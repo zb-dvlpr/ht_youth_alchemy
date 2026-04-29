@@ -11,6 +11,10 @@ import { formatChppDateTime, formatDateTime } from "@/lib/datetime";
 import { parseChppDate } from "@/lib/chpp/utils";
 import Modal from "./Modal";
 import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
+import {
+  hattrickMatchUrlWithSourceSystem,
+  hattrickYouthMatchUrl,
+} from "@/lib/hattrick/urls";
 
 export type MatchTeam = {
   HomeTeamName?: string;
@@ -701,6 +705,11 @@ function renderMatch(
     (Number.isFinite(matchTypeId) && EXTRA_TIME_ALLOWED_MATCH_TYPES.has(matchTypeId));
   const canAnalyzeOpponent = sourceSystem === "Hattrick" && Boolean(onAnalyzeOpponent);
   const showActionRow = isUpcoming || canAnalyzeOpponent;
+  const resolvedMatchSourceSystem = resolveMatchSourceSystem(match, sourceSystem);
+  const matchHref =
+    sourceSystem === "Youth" && typeof teamId === "number" && Number.isFinite(teamId) && teamId > 0
+      ? hattrickYouthMatchUrl(matchId, teamId, teamId)
+      : hattrickMatchUrlWithSourceSystem(matchId, resolvedMatchSourceSystem);
 
   return (
     <li
@@ -727,12 +736,19 @@ function renderMatch(
           />
         </div>
       ) : null}
+      <a
+        className={styles.matchTeamsLink}
+        href={matchHref}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
       <div className={styles.matchTeams}>
         <span>{match.HomeTeam?.HomeTeamName ?? messages.homeLabel}</span>
         <span className={styles.vs}>vs</span>
         <span>{match.AwayTeam?.AwayTeamName ?? messages.awayLabel}</span>
         <span className={styles.matchType}>({matchTypeLabel})</span>
       </div>
+      </a>
       <div className={styles.matchMeta}>
         <span>{formatMatchDate(match.MatchDate, messages.unknownDate)}</span>
         <span>

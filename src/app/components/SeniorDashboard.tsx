@@ -15024,7 +15024,8 @@ const refreshDetailsForPlayers = async (
                 : typeof player.InjuryLevel === "number"
                   ? player.InjuryLevel
                   : null;
-            const isBruised = injuryLevel !== null && injuryLevel > 0 && injuryLevel < 1;
+            const isBruised =
+              injuryLevel !== null && (injuryLevel === 0 || (injuryLevel > 0 && injuryLevel < 1));
             const injuryWeeks = injuryLevel !== null && injuryLevel >= 1 ? Math.ceil(injuryLevel) : null;
             const injuryLabel = isBruised
               ? messages.seniorListInjuryBruised
@@ -18135,7 +18136,9 @@ const refreshDetailsForPlayers = async (
                     : typeof player.InjuryLevel === "number"
                     ? player.InjuryLevel
                     : null;
-                const isBruised = injuryLevel !== null && injuryLevel > 0 && injuryLevel < 1;
+                const isBruised =
+                  injuryLevel !== null &&
+                  (injuryLevel === 0 || (injuryLevel > 0 && injuryLevel < 1));
                 const injuryWeeks = injuryLevel !== null && injuryLevel >= 1 ? Math.ceil(injuryLevel) : null;
                 const injuryLabel = isBruised
                   ? messages.seniorListInjuryBruised

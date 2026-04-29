@@ -8367,6 +8367,17 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   padding-right: 44px;
 }
 
+.matchTeamsLink {
+  color: inherit;
+  text-decoration: none;
+}
+
+.matchTeamsLink:hover .matchTeams,
+.matchTeamsLink:focus-visible .matchTeams {
+  text-decoration: underline;
+  text-underline-offset: 0.14em;
+}
+
 .matchTeams {
   display: flex;
   flex-wrap: wrap;

@@ -1041,6 +1041,23 @@ const PANEL_IDS = [
   "wages",
 ] as const;
 type ChroniclePanelId = (typeof PANEL_IDS)[number];
+const UPDATE_PANEL_BY_CHRONICLE_PANEL_ID: Record<ChroniclePanelId, UpdatePanel> = {
+  "league-performance": "league",
+  "press-announcements": "press",
+  "last-login": "lastLogin",
+  coach: "coach",
+  "power-ratings": "powerRatings",
+  "ongoing-matches": "ongoingMatches",
+  fanclub: "fanclub",
+  arena: "arena",
+  "finance-estimate": "finance",
+  "transfer-market": "transfer",
+  "formations-tactics": "formationsTactics",
+  "team-attitude": "teamAttitude",
+  "likely-training": "likelyTraining",
+  tsi: "tsi",
+  wages: "wages",
+};
 const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
 const CHPP_DAYS_PER_YEAR = 112;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -2022,6 +2039,50 @@ const stripLikelyTrainingConfidenceFromUpdates = (
   };
 };
 
+const getUpdatePanelFromFieldKey = (fieldKey: string): UpdatePanel | null => {
+  if (fieldKey.startsWith("league.")) return "league";
+  if (fieldKey.startsWith("press.")) return "press";
+  if (fieldKey.startsWith("fanclub.")) return "fanclub";
+  if (fieldKey.startsWith("arena.")) return "arena";
+  if (fieldKey.startsWith("finance.")) return "finance";
+  if (fieldKey.startsWith("transfer.")) return "transfer";
+  if (fieldKey.startsWith("formationsTactics.")) return "formationsTactics";
+  if (fieldKey.startsWith("teamAttitude.")) return "teamAttitude";
+  if (fieldKey.startsWith("likelyTraining.")) return "likelyTraining";
+  if (fieldKey.startsWith("lastLogin.")) return "lastLogin";
+  if (fieldKey.startsWith("coach.")) return "coach";
+  if (fieldKey.startsWith("powerRatings.")) return "powerRatings";
+  if (fieldKey.startsWith("ongoingMatches.")) return "ongoingMatches";
+  if (fieldKey.startsWith("tsi.") || fieldKey === "team.playerCount") return "tsi";
+  if (fieldKey.startsWith("wages.")) return "wages";
+  return null;
+};
+
+const filterUpdatesByVisiblePanels = (
+  updates: ChronicleUpdates,
+  visiblePanels: ReadonlySet<UpdatePanel>
+): ChronicleUpdates => {
+  const { updates: strippedUpdates } =
+    stripLikelyTrainingConfidenceFromUpdates(updates);
+  const nextTeams = Object.fromEntries(
+    Object.entries(strippedUpdates.teams).flatMap(([teamId, teamUpdate]) => {
+      const visibleChanges = teamUpdate.changes.filter((change) => {
+        const updatePanel = getUpdatePanelFromFieldKey(change.fieldKey);
+        return updatePanel ? visiblePanels.has(updatePanel) : true;
+      });
+      if (visibleChanges.length === 0) {
+        return [];
+      }
+      return [[teamId, { ...teamUpdate, changes: visibleChanges }]];
+    })
+  ) as ChronicleUpdates["teams"];
+
+  return {
+    ...strippedUpdates,
+    teams: nextTeams,
+  };
+};
+
 const readChronicleUpdates = (): ChronicleUpdates | null => {
   if (typeof window === "undefined") return null;
   try {
@@ -2744,6 +2805,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [ownLeagues, setOwnLeagues] = useState<OwnLeagueEntry[]>([]);
   const [ownLeagueTeams, setOwnLeagueTeams] = useState<SupportedTeam[]>([]);
   const [loadingOwnLeagueTeams, setLoadingOwnLeagueTeams] = useState(false);
+  const [ownLeagueTeamsReady, setOwnLeagueTeamsReady] = useState(false);
   const [primaryTeam, setPrimaryTeam] = useState<ChronicleTeamData | null>(null);
   const [chronicleCache, setChronicleCache] = useState<ChronicleCache>(() =>
     pruneChronicleCache(readChronicleCache())
@@ -2986,9 +3048,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const previousAnyRefreshingRef = useRef(false);
   const previousLastGlobalRefreshAtRef = useRef<number | null>(null);
   const trackedTeamsRef = useRef<ChronicleTeamData[]>([]);
-  const refreshAllDataRef = useRef<((reason: "stale" | "manual") => Promise<void>) | null>(
-    null
-  );
+  const refreshDataForTeamsRef = useRef<
+    ((
+      reason: "stale" | "manual",
+      teamsToRefresh: ChronicleTeamData[],
+      options?: { isGlobalRefresh?: boolean; expectedTeamIdsKey?: string }
+    ) => Promise<void>) | null
+  >(null);
   const refreshNoDivulgoTeamRef = useRef<((teamId: number) => Promise<void>) | null>(
     null
   );
@@ -3143,6 +3209,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const desktopVisiblePanelOrder = useMemo(
     () => normalizedPanelOrder.filter((panelId) => panelVisibility[panelId] !== false),
     [normalizedPanelOrder, panelVisibility]
+  );
+  const visibleUpdatePanels = useMemo(
+    () =>
+      new Set(
+        PANEL_IDS.filter((panelId) => panelVisibility[panelId] !== false).map(
+          (panelId) => UPDATE_PANEL_BY_CHRONICLE_PANEL_ID[panelId]
+        )
+      ),
+    [panelVisibility]
   );
 
   useEffect(() => {
@@ -3522,6 +3597,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => trackedTeams.map((team) => team.teamId).sort((a, b) => a - b).join(","),
     [trackedTeams]
   );
+  const getCurrentGlobalRefreshPayload = useCallback(() => {
+    if (!initializedRef.current) return null;
+    if (loading || isValidating || loadingOwnLeagueTeams || !ownLeagueTeamsReady) {
+      return null;
+    }
+    const teams = trackedTeamsRef.current;
+    if (teams.length === 0) return null;
+    return {
+      teams,
+      teamIdsKey: teams.map((team) => team.teamId).sort((a, b) => a - b).join(","),
+    };
+  }, [isValidating, loading, loadingOwnLeagueTeams, ownLeagueTeamsReady]);
   useEffect(() => {
     trackedTeamsRef.current = trackedTeams;
   }, [trackedTeams]);
@@ -3818,6 +3905,38 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       })();
     },
     [ensureRefreshScopes]
+  );
+  const triggerGlobalRefresh = useCallback(
+    (reason: "stale" | "manual") => {
+      void (async () => {
+        const initialPayload = getCurrentGlobalRefreshPayload();
+        if (!initialPayload) {
+          if (reason === "stale") {
+            staleRefreshRef.current = false;
+          }
+          return;
+        }
+        const hasRequiredScopes = await ensureRefreshScopes();
+        if (!hasRequiredScopes) {
+          if (reason === "stale") {
+            staleRefreshRef.current = false;
+          }
+          return;
+        }
+        const payload = getCurrentGlobalRefreshPayload();
+        if (!payload) {
+          if (reason === "stale") {
+            staleRefreshRef.current = false;
+          }
+          return;
+        }
+        await refreshDataForTeamsRef.current?.(reason, payload.teams, {
+          isGlobalRefresh: true,
+          expectedTeamIdsKey: payload.teamIdsKey,
+        });
+      })();
+    },
+    [ensureRefreshScopes, getCurrentGlobalRefreshPayload]
   );
 
   useEffect(() => {
@@ -4140,11 +4259,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   useEffect(() => {
     let active = true;
     const loadOwnLeagueTeams = async () => {
+      setOwnLeagueTeamsReady(false);
       const selectedLeagues = ownLeagues.filter(
         (entry) => ownLeagueSelections[entry.key]
       );
       if (selectedLeagues.length === 0) {
         setLoadingOwnLeagueTeams(false);
+        setOwnLeagueTeamsReady(true);
         setOwnLeagueTeams([]);
         return;
       }
@@ -4233,6 +4354,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       } finally {
         if (active) {
           setLoadingOwnLeagueTeams(false);
+          setOwnLeagueTeamsReady(true);
         }
       }
     };
@@ -4498,13 +4620,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     );
     if (hasSnapshot) return;
     if (anyRefreshing || initialFetchRef.current) return;
+    if (loading || isValidating || loadingOwnLeagueTeams || !ownLeagueTeamsReady) return;
     initialFetchRef.current = true;
-    void refreshAllData("manual");
-  }, [trackedTeams, chronicleCache, anyRefreshing]);
+    triggerGlobalRefresh("manual");
+  }, [
+    trackedTeams,
+    chronicleCache,
+    anyRefreshing,
+    isValidating,
+    loading,
+    loadingOwnLeagueTeams,
+    ownLeagueTeamsReady,
+    triggerGlobalRefresh,
+  ]);
 
   useEffect(() => {
     if (!initializedRef.current) return;
-    if (loading || isValidating) return;
+    if (loading || isValidating || loadingOwnLeagueTeams || !ownLeagueTeamsReady) return;
     if (trackedTeams.length === 0) return;
     const trackedTeamIds = trackedTeams.map((team) => team.teamId);
     let lastRefresh = lastGlobalRefreshAt;
@@ -4523,7 +4655,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
     if (staleRefreshRef.current || anyRefreshing) return;
     staleRefreshRef.current = true;
-    void refreshAllData("stale");
+    triggerGlobalRefresh("stale");
   }, [
     trackedTeams.length,
     trackedTeams,
@@ -4533,12 +4665,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     lastGlobalRefreshAt,
     loading,
     isValidating,
+    loadingOwnLeagueTeams,
+    ownLeagueTeamsReady,
+    triggerGlobalRefresh,
   ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!initializedRef.current) return;
-    if (loading || isValidating) return;
+    if (loading || isValidating || loadingOwnLeagueTeams || !ownLeagueTeamsReady) return;
     if (trackedTeams.length === 0) return;
 
     const maybeRunStaleRefresh = () => {
@@ -4560,7 +4695,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
       if (staleRefreshRef.current || anyRefreshing) return;
       staleRefreshRef.current = true;
-      void refreshAllData("stale");
+      triggerGlobalRefresh("stale");
     };
 
     const handleFocus = () => maybeRunStaleRefresh();
@@ -4586,6 +4721,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     lastGlobalRefreshAt,
     loading,
     isValidating,
+    loadingOwnLeagueTeams,
+    ownLeagueTeamsReady,
+    triggerGlobalRefresh,
   ]);
 
   useEffect(() => {
@@ -9355,7 +9493,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   ) => {
     const cacheKey = `${matchId}:${teamId}:${sourceSystem}`;
     if (cache.has(cacheKey)) {
-      onLineupProcessed?.();
       return cache.get(cacheKey) ?? new Set<number>();
     }
     try {
@@ -9964,7 +10101,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshDataForTeams = async (
     reason: "stale" | "manual",
     teamsToRefresh: ChronicleTeamData[],
-    options?: { isGlobalRefresh?: boolean }
+    options?: { isGlobalRefresh?: boolean; expectedTeamIdsKey?: string }
   ) => {
     if (anyRefreshing) return;
     if (teamsToRefresh.length === 0) return;
@@ -10146,6 +10283,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
       );
       const hasUpdates = hasAnyChanges(nextUpdates);
+      const hasVisibleUpdates = hasAnyChanges(
+        filterUpdatesByVisiblePanels(nextUpdates, visibleUpdatePanels)
+      );
       if (chronicleStopRequestedRef.current) return;
       const comparedAt = Date.now();
       if (hasUpdates) {
@@ -10159,6 +10299,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         setLastGlobalComparedAt(comparedAt);
         setLastGlobalHadChanges(false);
       }
+      if (hasUpdates) {
+        setLastGlobalHadChanges(hasVisibleUpdates);
+      }
 
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);
@@ -10166,11 +10309,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       if (hasUpdates) {
         setUpdates(nextUpdates);
       }
-      setUpdatesOpen(hasUpdates);
+      setUpdatesOpen(hasVisibleUpdates);
       if (isGlobalRefresh) {
-        const refreshCompletedAt = Date.now();
-        writeLastRefresh(refreshCompletedAt);
-        setLastGlobalRefreshAt(refreshCompletedAt);
+        const expectedTeamIdsKey = options?.expectedTeamIdsKey ?? null;
+        const currentTeamIdsKey = trackedTeamsRef.current
+          .map((team) => team.teamId)
+          .sort((a, b) => a - b)
+          .join(",");
+        if (!expectedTeamIdsKey || expectedTeamIdsKey === currentTeamIdsKey) {
+          const refreshCompletedAt = Date.now();
+          writeLastRefresh(refreshCompletedAt);
+          setLastGlobalRefreshAt(refreshCompletedAt);
+        }
       }
       if (chronicleStopRequestedRef.current) return;
       if (reason === "stale") {
@@ -10188,15 +10338,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       clearProgressIndicators();
     }
   };
-  const refreshAllData = async (reason: "stale" | "manual") => {
-    await refreshDataForTeams(reason, trackedTeamsRef.current);
-  };
   const refreshNoDivulgoTeam = async (teamId: number) => {
     const targetTeam = trackedTeams.find((team) => team.teamId === teamId);
     if (!targetTeam) return;
     await refreshDataForTeams("manual", [targetTeam], { isGlobalRefresh: false });
   };
-  refreshAllDataRef.current = refreshAllData;
+  refreshDataForTeamsRef.current = refreshDataForTeams;
   refreshNoDivulgoTeamRef.current = refreshNoDivulgoTeam;
 
   useEffect(() => {
@@ -10824,40 +10971,62 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       ],
       { baselineCache: globalBaselineCache }
     );
-    const hasUpdates = hasAnyChanges(nextUpdates);
+    const visibleNextUpdates = filterUpdatesByVisiblePanels(
+      nextUpdates,
+      visibleUpdatePanels
+    );
+    const hasUpdates = hasAnyChanges(visibleNextUpdates);
     setLastGlobalComparedAt(comparedAt);
     setLastGlobalHadChanges(hasUpdates);
     if (hasUpdates) {
-      setUpdates(stripLikelyTrainingConfidenceFromUpdates(nextUpdates).updates);
+      setUpdates(nextUpdates);
       return;
     }
 
-    const latestWithChanges = globalUpdatesHistory.find((entry) => entry.updates);
+    const latestWithChanges = globalUpdatesHistory.find(
+      (entry) =>
+        entry.updates &&
+        hasAnyChanges(filterUpdatesByVisiblePanels(entry.updates, visibleUpdatePanels))
+    );
     if (latestWithChanges?.updates) {
-      setUpdates(
-        stripLikelyTrainingConfidenceFromUpdates(latestWithChanges.updates).updates
-      );
+      setUpdates(latestWithChanges.updates);
       return;
     }
 
-    setUpdates(stripLikelyTrainingConfidenceFromUpdates(nextUpdates).updates);
-  }, [chronicleCache, globalBaselineCache, globalUpdatesHistory]);
+    setUpdates(nextUpdates);
+  }, [
+    chronicleCache,
+    globalBaselineCache,
+    globalUpdatesHistory,
+    visibleUpdatePanels,
+  ]);
 
   const handleLoadHistoryEntry = (entry: ChronicleGlobalUpdateEntry) => {
     if (!entry.updates) return;
     setLastGlobalComparedAt(entry.comparedAt);
     setLastGlobalHadChanges(entry.hasChanges);
-    setUpdates(stripLikelyTrainingConfidenceFromUpdates(entry.updates).updates);
+    setUpdates(entry.updates);
   };
 
-  const updatesByTeam = updates?.teams ?? {};
+  const visibleUpdates = useMemo(
+    () =>
+      updates ? filterUpdatesByVisiblePanels(updates, visibleUpdatePanels) : null,
+    [updates, visibleUpdatePanels]
+  );
+  const updatesByTeam = visibleUpdates?.teams ?? {};
   const hasAnyTeamUpdates = trackedTeams.some((team) => {
-    const changes = (updatesByTeam[team.teamId]?.changes ?? []).filter(
-      (change) => change.fieldKey !== "likelyTraining.confidence"
-    );
-    return changes.length > 0;
+    return (updatesByTeam[team.teamId]?.changes ?? []).length > 0;
   });
-  const latestHistoryWithChanges = globalUpdatesHistory.find((entry) => entry.updates);
+  const latestHistoryWithChanges = useMemo(
+    () =>
+      globalUpdatesHistory.find(
+        (entry) =>
+          entry.updates &&
+          hasAnyChanges(filterUpdatesByVisiblePanels(entry.updates, visibleUpdatePanels))
+      ),
+    [globalUpdatesHistory, visibleUpdatePanels]
+  );
+  const displayedLastGlobalHadChanges = hasAnyTeamUpdates;
   const showingPreviousSnapshot =
     !lastGlobalHadChanges && hasAnyTeamUpdates && !!latestHistoryWithChanges;
   const selectedHistoryComparedAt = useMemo(() => {
@@ -13590,7 +13759,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     </div>
   );
 
-  const updatesBody = updates && trackedTeams.length ? (
+  const updatesBody = visibleUpdates && trackedTeams.length ? (
     <>
       <div className={styles.chronicleUpdatesMetaBlock}>
         <p className={styles.chroniclePressMeta}>
@@ -13602,7 +13771,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             {formatDateTime(lastGlobalComparedAt)}
           </p>
         ) : null}
-        {!lastGlobalHadChanges ? (
+        {!displayedLastGlobalHadChanges ? (
           <p className={styles.chroniclePressMeta}>
             {messages.clubChronicleUpdatesNoChangesGlobal}
           </p>
@@ -13641,9 +13810,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         <div className={styles.chronicleUpdatesList}>
           {trackedTeams.map((team) => {
             const teamUpdates = updatesByTeam[team.teamId];
-            const changes = (teamUpdates?.changes ?? []).filter(
-              (change) => change.fieldKey !== "likelyTraining.confidence"
-            );
+            const changes = teamUpdates?.changes ?? [];
             if (changes.length === 0) return null;
             const teamLeagueLevelUnitId =
               chronicleCache.teams[team.teamId]?.leagueLevelUnitId ?? null;
@@ -14671,7 +14838,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           )
         }
         onOpenWatchlist={openChronicleWatchlist}
-        onRefresh={() => runRefreshGuarded(() => refreshAllData("manual"))}
+        onRefresh={() => triggerGlobalRefresh("manual")}
         onOpenUpdates={openChronicleUpdates}
         panelOptions={normalizedPanelOrder.map((panelId) => ({
           id: panelId,
@@ -14787,7 +14954,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               type="button"
               className={styles.chronicleUpdatesButton}
               data-help-anchor="cc-refresh-all"
-              onClick={() => runRefreshGuarded(() => refreshAllData("manual"))}
+              onClick={() => triggerGlobalRefresh("manual")}
               disabled={anyRefreshing}
               aria-label={messages.clubChronicleRefreshAllTooltip}
             >
@@ -16319,7 +16486,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         title={messages.clubChronicleUpdatesTitle}
         className={styles.chronicleUpdatesModal}
         body={
-          updates && trackedTeams.length ? (
+          visibleUpdates && trackedTeams.length ? (
             <>
               <div className={styles.chronicleUpdatesMetaBlock}>
                 <p className={styles.chroniclePressMeta}>
@@ -16331,7 +16498,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     {formatDateTime(lastGlobalComparedAt)}
                   </p>
                 ) : null}
-                {!lastGlobalHadChanges ? (
+                {!displayedLastGlobalHadChanges ? (
                   <p className={styles.chroniclePressMeta}>
                     {messages.clubChronicleUpdatesNoChangesGlobal}
                   </p>
@@ -16370,9 +16537,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 <div className={styles.chronicleUpdatesList}>
                   {trackedTeams.map((team) => {
                     const teamUpdates = updatesByTeam[team.teamId];
-                    const changes = (teamUpdates?.changes ?? []).filter(
-                      (change) => change.fieldKey !== "likelyTraining.confidence"
-                    );
+                    const changes = teamUpdates?.changes ?? [];
                     if (changes.length === 0) return null;
                     const teamLeagueLevelUnitId =
                       chronicleCache.teams[team.teamId]?.leagueLevelUnitId ?? null;

@@ -71,10 +71,12 @@ import {
   optimizeRevealSecondaryMax,
   optimizeRevealPrimaryCurrentAndSecondaryMax,
   buildSkillRanking,
+  rankPlayersForYouthLineupSlot,
   type OptimizerPlayer,
   type OptimizerDebug,
   type SkillKey,
   type TrainingSkillKey,
+  type YouthLineupSlotId,
 } from "@/lib/optimizer";
 import {
   ALGORITHM_SETTINGS_EVENT,
@@ -1027,8 +1029,6 @@ export default function Dashboard({
   });
   const [mobileYouthLandscapeActive, setMobileYouthLandscapeActive] =
     useState(false);
-  const [mobileYouthLineupPickerSlotId, setMobileYouthLineupPickerSlotId] =
-    useState<string | null>(null);
   const [mobileYouthRefreshFeedbackVisible, setMobileYouthRefreshFeedbackVisible] =
     useState(false);
   const [activeDetailsTab, setActiveDetailsTab] =
@@ -2857,11 +2857,6 @@ export default function Dashboard({
       }
     };
   }, [mobileYouthActive, mobileYouthView]);
-
-  useEffect(() => {
-    if (mobileYouthView === "lineupOptimizer") return;
-    setMobileYouthLineupPickerSlotId(null);
-  }, [mobileYouthView]);
 
   useEffect(() => {
     if (!ratingsResponseState) return;
@@ -6977,12 +6972,41 @@ export default function Dashboard({
     </span>
   ) : null;
 
-  const mobileYouthLineupPickerPlayers = useMemo(
-    () =>
-      [...optimizerPlayers].sort((a, b) =>
-        (a.name ?? "").localeCompare(b.name ?? "", undefined, { sensitivity: "base" })
-      ),
-    [optimizerPlayers]
+  const youthEmptySlotPickerOptions = useCallback(
+    (slotId: string) => {
+      if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
+        return [];
+      }
+      const excludedPlayerIds = Object.entries(assignments)
+        .filter(([, playerId]) => playerId !== null)
+        .map(([, playerId]) => Number(playerId));
+      return rankPlayersForYouthLineupSlot(
+        optimizerPlayers,
+        slotId as YouthLineupSlotId,
+        ratingsCache,
+        toBaseTrainingSkill(primaryTraining),
+        toBaseTrainingSkill(secondaryTraining),
+        trainingPreferences,
+        excludedPlayerIds
+      ).map((player) => ({
+        playerId: player.id,
+        label: player.name ?? String(player.id),
+        meta:
+          player.age !== null && player.age !== undefined
+            ? `${player.age}${messages.ageYearsShort}`
+            : messages.unknownShort,
+      }));
+    },
+    [
+      assignments,
+      messages.ageYearsShort,
+      messages.unknownShort,
+      optimizerPlayers,
+      primaryTraining,
+      ratingsCache,
+      secondaryTraining,
+      trainingPreferences,
+    ]
   );
 
   const mobileYouthRefreshStatus = playersLoading
@@ -7396,7 +7420,7 @@ export default function Dashboard({
             setSelectedId(playerId);
             void ensureDetails(playerId);
           }}
-          onEmptySlotSelect={setMobileYouthLineupPickerSlotId}
+          emptySlotPickerOptions={youthEmptySlotPickerOptions}
           allowExternalPlayerDrop={false}
           messages={messages}
         />
@@ -7818,51 +7842,6 @@ export default function Dashboard({
         closeOnBackdrop
         onClose={() => setYouthUpdatesOpen(false)}
       />
-      <Modal
-        open={Boolean(mobileYouthLineupPickerSlotId)}
-        title={messages.mobileYouthLineupPickerTitle}
-        movable={false}
-        body={
-          mobileYouthLineupPickerPlayers.length > 0 ? (
-            <div className={styles.mobileYouthLineupPickerList}>
-              {mobileYouthLineupPickerPlayers.map((player) => (
-                <button
-                  key={player.id}
-                  type="button"
-                  className={styles.mobileYouthLineupPickerOption}
-                  onClick={() => {
-                    if (!mobileYouthLineupPickerSlotId) return;
-                    assignPlayer(mobileYouthLineupPickerSlotId, player.id);
-                    setMobileYouthLineupPickerSlotId(null);
-                  }}
-                >
-                  <span className={styles.mobileYouthLineupPickerName}>
-                    {player.name}
-                  </span>
-                  <span className={styles.mobileYouthLineupPickerMeta}>
-                    {player.age !== null
-                      ? `${player.age}${messages.ageYearsShort}`
-                      : messages.unknownShort}
-                  </span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className={styles.muted}>{messages.mobileYouthLineupPickerEmpty}</p>
-          )
-        }
-        actions={
-          <button
-            type="button"
-            className={styles.confirmCancel}
-            onClick={() => setMobileYouthLineupPickerSlotId(null)}
-          >
-            {messages.closeLabel}
-          </button>
-        }
-        closeOnBackdrop
-        onClose={() => setMobileYouthLineupPickerSlotId(null)}
-      />
       {mobileYouthActive ? (
         <>
           <MobileToolMenu
@@ -8187,6 +8166,7 @@ export default function Dashboard({
             setSelectedId(playerId);
             void ensureDetails(playerId);
           }}
+          emptySlotPickerOptions={youthEmptySlotPickerOptions}
           messages={messages}
         />
         {isDev ? (

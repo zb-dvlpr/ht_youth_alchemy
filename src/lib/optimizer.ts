@@ -110,6 +110,26 @@ const ALL_SLOTS = [
   "F_R",
 ] as const;
 
+export type FieldSlotId = (typeof ALL_SLOTS)[number];
+export type BenchSlotId =
+  | "B_GK"
+  | "B_CD"
+  | "B_WB"
+  | "B_IM"
+  | "B_F"
+  | "B_W"
+  | "B_X";
+export type YouthLineupSlotId = FieldSlotId | BenchSlotId;
+
+const BENCH_ROLE_BY_SLOT: Partial<Record<BenchSlotId, RoleGroup>> = {
+  B_GK: "GK",
+  B_CD: "DEF",
+  B_WB: "WB",
+  B_IM: "IM",
+  B_F: "F",
+  B_W: "W",
+};
+
 const MAX_LINEUP_PLAYERS = 11;
 const AUTO_STAR_MAX_AGE_DAYS = 17 * 112;
 
@@ -428,6 +448,32 @@ function ratingForSlot(
   return typeof value === "number" ? value : null;
 }
 
+function ratingForRole(
+  ratingsByPlayer: RatingsByPlayer | null | undefined,
+  playerId: number,
+  role: RoleGroup
+) {
+  if (!ratingsByPlayer) return null;
+  const code = ROLE_RATING_CODE[role];
+  const value = ratingsByPlayer[playerId]?.[String(code)];
+  return typeof value === "number" ? value : null;
+}
+
+function bestPlayerRoleRating(
+  ratingsByPlayer: RatingsByPlayer | null | undefined,
+  playerId: number
+) {
+  let best: number | null = null;
+  (Object.keys(ROLE_RATING_CODE) as RoleGroup[]).forEach((role) => {
+    const value = ratingForRole(ratingsByPlayer, playerId, role);
+    if (value === null) return;
+    if (best === null || value > best) {
+      best = value;
+    }
+  });
+  return best;
+}
+
 function slotTrainsSkill(slot: (typeof ALL_SLOTS)[number], skill: SkillKey) {
   const role = ROLE_BY_SLOT[slot];
   return (ROLE_EFFECTS[skill][role] ?? 0) > 0;
@@ -444,6 +490,96 @@ function slotTrainingSkills(
     skills.push(secondary);
   }
   return skills;
+}
+
+function benchTrainingSkills(
+  slot: BenchSlotId,
+  primary: SkillKey | null,
+  secondary: SkillKey | null
+) {
+  if (slot === "B_X") {
+    return [primary, secondary].filter(Boolean) as SkillKey[];
+  }
+  const role = BENCH_ROLE_BY_SLOT[slot];
+  if (!role) return [];
+  const skills: SkillKey[] = [];
+  if (primary && (ROLE_EFFECTS[primary][role] ?? 0) > 0) skills.push(primary);
+  if (
+    secondary &&
+    secondary !== primary &&
+    (ROLE_EFFECTS[secondary][role] ?? 0) > 0
+  ) {
+    skills.push(secondary);
+  }
+  if (skills.length) return skills;
+  if (slot === "B_GK") return ["keeper"];
+  if (slot === "B_CD") return ["defending"];
+  if (slot === "B_WB") return ["defending", "winger"];
+  if (slot === "B_IM") return ["playmaking"];
+  if (slot === "B_F") return ["scoring"];
+  if (slot === "B_W") return ["winger"];
+  return [];
+}
+
+export function rankPlayersForYouthLineupSlot(
+  players: OptimizerPlayer[],
+  slotId: YouthLineupSlotId,
+  ratingsByPlayer: RatingsByPlayer | null | undefined,
+  primary: SkillKey | null,
+  secondary: SkillKey | null,
+  preferences?: Partial<TrainingPreferences>,
+  excludedPlayerIds?: Iterable<number>
+) {
+  const { allowTrainingUntilMaxedOut } = resolveTrainingPreferences(preferences);
+  const excluded = excludedPlayerIds ? new Set<number>(excludedPlayerIds) : null;
+  const isFieldSlot = (ALL_SLOTS as readonly string[]).includes(slotId);
+  const candidates = players.filter((player) => !excluded?.has(player.id));
+  candidates.sort((left, right) => {
+    const skills = isFieldSlot
+      ? slotTrainingSkills(slotId as FieldSlotId, primary ?? "keeper", secondary)
+      : benchTrainingSkills(slotId as BenchSlotId, primary, secondary);
+    const leftTier = trainingPriorityTier(
+      left,
+      skills,
+      allowTrainingUntilMaxedOut
+    );
+    const rightTier = trainingPriorityTier(
+      right,
+      skills,
+      allowTrainingUntilMaxedOut
+    );
+    if (leftTier !== rightTier) return leftTier - rightTier;
+    const leftRating = isFieldSlot
+      ? ratingForSlot(ratingsByPlayer, left.id, slotId as FieldSlotId)
+      : slotId === "B_X"
+      ? bestPlayerRoleRating(ratingsByPlayer, left.id)
+      : ratingForRole(
+          ratingsByPlayer,
+          left.id,
+          BENCH_ROLE_BY_SLOT[slotId as BenchSlotId] as RoleGroup
+        );
+    const rightRating = isFieldSlot
+      ? ratingForSlot(ratingsByPlayer, right.id, slotId as FieldSlotId)
+      : slotId === "B_X"
+      ? bestPlayerRoleRating(ratingsByPlayer, right.id)
+      : ratingForRole(
+          ratingsByPlayer,
+          right.id,
+          BENCH_ROLE_BY_SLOT[slotId as BenchSlotId] as RoleGroup
+        );
+    if (leftRating === null && rightRating === null) {
+      return (left.name ?? "").localeCompare(right.name ?? "", undefined, {
+        sensitivity: "base",
+      });
+    }
+    if (leftRating === null) return 1;
+    if (rightRating === null) return -1;
+    if (rightRating !== leftRating) return rightRating - leftRating;
+    return (left.name ?? "").localeCompare(right.name ?? "", undefined, {
+      sensitivity: "base",
+    });
+  });
+  return candidates;
 }
 
 function capSecondarySlots(

@@ -1049,7 +1049,7 @@ const ARCHIVE_MATCH_LIMIT = 30;
 const TEAM_REFRESH_CONCURRENCY = 4;
 const MATCH_DETAILS_FETCH_CONCURRENCY = 6;
 const COMPETITIVE_MATCH_TYPES = new Set([1, 2, 3, 7]);
-const TEAM_ATTITUDE_MATCH_TYPES = new Set([1, 2, 3]);
+const TEAM_ATTITUDE_MATCH_TYPES = new Set([1]);
 const FRIENDLY_MATCH_TYPES = new Set([4, 5, 8, 9]);
 const ONGOING_MATCH_TYPES = new Set([1, 2, 3, 4, 5, 8, 9]);
 const ONGOING_TOURNAMENT_MATCH_TYPES = new Set([50, 51, 62]);
@@ -9034,6 +9034,26 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     finalBaselineMidfieldValues: number[];
   };
 
+  const selectTeamAttitudeBaselineLeagueMatches = (
+    matches: TeamAttitudeMidfieldPassMatch[],
+    baselineMidfield: number | null
+  ) => {
+    if (baselineMidfield === null || !Number.isFinite(baselineMidfield)) return [];
+    const leagueMatches = matches.filter(
+      (entry) =>
+        entry.match.matchType === 1 &&
+        entry.midfieldRating !== null &&
+        Number.isFinite(entry.midfieldRating)
+    );
+    const withinOne = leagueMatches.filter(
+      (entry) => Math.abs((entry.midfieldRating ?? 0) - baselineMidfield) <= 1
+    );
+    if (withinOne.length >= 3) return withinOne;
+    return leagueMatches.filter(
+      (entry) => Math.abs((entry.midfieldRating ?? 0) - baselineMidfield) <= 2
+    );
+  };
+
   const fetchTeamRecentRelevantMatches = async (
     teamId: number,
     includeFriendlies: boolean
@@ -9372,7 +9392,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     onLineupProcessed?: () => void
   ): Promise<TeamAttitudeSnapshot> => {
     const baselineUnion = new Set<number>();
-    for (const match of plan.normalMatches) {
+    const baselineMatches = selectTeamAttitudeBaselineLeagueMatches(
+      plan.analyzedMatches,
+      plan.baselineMidfield
+    );
+    for (const match of baselineMatches) {
       const playerIds = await fetchTeamAttitudeLineupPlayers(
         match.match.matchId,
         teamId,

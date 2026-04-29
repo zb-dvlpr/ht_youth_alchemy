@@ -9493,7 +9493,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   ) => {
     const cacheKey = `${matchId}:${teamId}:${sourceSystem}`;
     if (cache.has(cacheKey)) {
-      onLineupProcessed?.();
       return cache.get(cacheKey) ?? new Set<number>();
     }
     try {

@@ -3954,6 +3954,14 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   text-underline-offset: 2px;
 }
 
+.chronicleMatchSubtleDate {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: #8a806f;
+  text-decoration: none;
+}
+
 .opponentFormationsTableWrap {
   width: 100%;
   max-width: 100%;
@@ -5190,6 +5198,10 @@ html[data-theme="dark"] .chronicleDistributionTeamName {
 
 html[data-theme="dark"] .chroniclePressLink {
   color: #8cb8e6;
+}
+
+html[data-theme="dark"] .chronicleMatchSubtleDate {
+  color: #a99d8d;
 }
 
 html[data-theme="dark"] .opponentFormationsTableWrap {

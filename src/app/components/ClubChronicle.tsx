@@ -11732,6 +11732,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         matchId: entry.matchId,
         matchDate: entry.matchDate,
         sourceSystem: entry.sourceSystem,
+        matchTitle: resolvedMatches[entry.matchId] ?? `${messages.matchesTitle} ${entry.matchId}`,
         matchDateLabel: entry.matchDate
           ? formatChppDateTime(entry.matchDate) ?? entry.matchDate
           : messages.unknownShort,
@@ -11757,7 +11758,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       formatMatchTypeLabel,
       formatTeamAttitudeLabel,
       formatTacticLabel,
+      messages.matchesTitle,
       messages.unknownShort,
+      resolvedMatches,
       selectedTeamAttitudeUnionBaselineMatchKeys,
       selectedTeamAttitudeTeam,
     ]
@@ -11769,6 +11772,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         matchId: number;
         matchDate: string | null;
         sourceSystem: string;
+        matchTitle: string;
         matchDateLabel: string;
         matchTypeLabel: string;
         tacticLabel: string;
@@ -11784,6 +11788,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         matchId: number;
         matchDate: string | null;
         sourceSystem: string;
+        matchTitle: string;
         matchDateLabel: string;
         matchTypeLabel: string;
         tacticLabel: string;
@@ -11803,6 +11808,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           matchId: number;
           matchDate: string | null;
           sourceSystem: string;
+          matchTitle: string;
           matchDateLabel: string;
           matchTypeLabel: string;
           tacticLabel: string;
@@ -11818,6 +11824,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           matchId: number;
           matchDate: string | null;
           sourceSystem: string;
+          matchTitle: string;
           matchDateLabel: string;
           matchTypeLabel: string;
           tacticLabel: string;
@@ -11830,9 +11837,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
       >[] = [
         {
-          key: "date",
+          key: "match",
           label: messages.clubChronicleTeamAttitudeMatchDateColumn,
-          getValue: (snapshot) => snapshot?.matchDateLabel ?? null,
+          getValue: (snapshot) => snapshot?.matchTitle ?? null,
           getSortValue: (snapshot) => snapshot?.matchDate ?? null,
           renderCell: (snapshot) =>
             snapshot ? (
@@ -11845,7 +11852,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 target="_blank"
                 rel="noreferrer"
               >
-                {snapshot.matchDateLabel}
+                <span>{snapshot.matchTitle}</span>
+                <span className={styles.chronicleMatchSubtleDate}>
+                  {snapshot.matchDateLabel}
+                </span>
               </a>
             ) : (
               messages.unknownShort
@@ -12611,6 +12621,45 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     resolvedMatches,
     resolvedTeams,
   ]);
+
+  useEffect(() => {
+    const matches = selectedTeamAttitudeTeam?.snapshot?.analyzedMatches ?? [];
+    if (matches.length === 0) return;
+
+    void Promise.all(
+      matches
+        .filter((entry) => !resolvedMatches[entry.matchId])
+        .map(async (entry) => {
+          try {
+            const { payload } = await fetchChppJson<{
+              data?: {
+                HattrickData?: {
+                  Match?: {
+                    HomeTeam?: { HomeTeamName?: string };
+                    AwayTeam?: { AwayTeamName?: string };
+                  };
+                };
+              };
+            }>(
+              `/api/chpp/matchdetails?matchId=${entry.matchId}&sourceSystem=${encodeURIComponent(
+                entry.sourceSystem
+              )}`,
+              { cache: "no-store" }
+            );
+            const match = payload?.data?.HattrickData?.Match;
+            const home = match?.HomeTeam?.HomeTeamName?.trim();
+            const away = match?.AwayTeam?.AwayTeamName?.trim();
+            if (!home || !away) return;
+            setResolvedMatches((prev) =>
+              prev[entry.matchId] ? prev : { ...prev, [entry.matchId]: `${home} vs ${away}` }
+            );
+          } catch (error) {
+            if (isChppAuthRequiredError(error)) return;
+            // ignore resolve failures
+          }
+        })
+    );
+  }, [resolvedMatches, selectedTeamAttitudeTeam]);
 
   const renderPressText = (text: string) => {
     const lines = text.split("\n");

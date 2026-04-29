@@ -522,7 +522,7 @@ export const messagesPt: Messages = {
     clubChronicleTeamAttitudeColumnDate: "Date",
     clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
     clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
-    clubChronicleTeamAttitudeMatchDateColumn: "Date",
+    clubChronicleTeamAttitudeMatchDateColumn: "Partida",
     clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
     clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
     clubChronicleTeamAttitudeMatchTacticColumn: "Tática",

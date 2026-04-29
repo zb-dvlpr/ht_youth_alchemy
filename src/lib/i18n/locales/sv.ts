@@ -516,7 +516,7 @@ export const messagesSv: Messages = {
     clubChronicleTeamAttitudeColumnDate: "Date",
     clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
     clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
-    clubChronicleTeamAttitudeMatchDateColumn: "Date",
+    clubChronicleTeamAttitudeMatchDateColumn: "Match",
     clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
     clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
     clubChronicleTeamAttitudeMatchTacticColumn: "Taktik",

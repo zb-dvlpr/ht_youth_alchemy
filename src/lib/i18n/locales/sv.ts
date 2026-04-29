@@ -76,6 +76,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_12_0:
+      "Club Chronicle now includes a Team Attitude panel that flags likely PIC and MOTS matches.",
     changelog_4_11_0:
       "Transfer market search now has a table view with dense desktop/mobile scanning and quick bidding.",
     changelog_4_10_0:
@@ -212,6 +214,9 @@ export const messagesSv: Messages = {
     feedbackBugSuccess: "Buggrapport skickad.",
     feedbackFeatureSuccess: "Funktionsförslag skickat.",
     feedbackSubmitError: "Skickandet av ärendet misslyckades.",
+    feedbackMetadataHattrickUser: "Hattrick-anvandare",
+    feedbackManagerIdentityRequiredError:
+      "Det gick inte att hamta ditt Hattrick-anvandarnamn och anvandar-ID for rapportens metadata.",
     settingsTooltip: "Inställningar",
     settingsExport: "Exportera data",
     settingsImport: "Importera data",
@@ -365,7 +370,7 @@ export const messagesSv: Messages = {
     settingsDebugDisableScalingLabel: "Visa fiktiva senaste uppdateringar",
     settingsDebugRandomNewMarkersLabel: "Visa slumpade NEW-markeringar",
     settingsDebugRandomNewMarkersOffLabel: "Dolj slumpade NEW-markeringar",
-    clubChronicleLeaguePanelTitle: "Ligaprestanda",
+    clubChronicleLeaguePanelTitle: "Ligaprestanda och cup",
     clubChronicleLeaguePanelEmpty: "Inga ligadata ännu.",
     clubChronicleNoTeams:
       "Inga lag spåras just nu för den här fliken. Lägg till lag för spårning via watchlisten.",
@@ -403,6 +408,7 @@ export const messagesSv: Messages = {
     clubChronicleRefreshWagesTooltip: "Uppdatera lönedata.",
     clubChronicleRefreshLikelyTrainingTooltip:
       "Uppdatera data för trolig träningsinriktning.",
+    clubChronicleRefreshTeamAttitudeTooltip: "Refresh team attitude data.",
     clubChronicleRefreshLastLoginTooltip:
       "Uppdatera data för senaste inloggning.",
     clubChronicleRefreshCoachTooltip: "Uppdatera tranardata.",
@@ -424,6 +430,8 @@ export const messagesSv: Messages = {
       "Matcharkiv {completed}/{total} (lag: {team})",
     clubChronicleRefreshStatusMatchDetailsProgress:
       "Matchdetaljer {completed}/{total} (lag: {team})",
+    clubChronicleRefreshStatusMatchLineupsProgress:
+      "Match lineups {completed}/{total} (team: {team})",
     clubChronicleHelpTitle: "Guide for Club Chronicle",
     clubChronicleHelpIntro:
       "Club Chronicle foljer dina valda seniorlag panel for panel och markerar vad som andrats sedan senaste globala baslinje.",
@@ -438,7 +446,7 @@ export const messagesSv: Messages = {
     clubChronicleHelpBulletTabs:
       "Flikar hjalper dig att organisera olika Chronicle-ytor. Varje flik behaller sin egen watchlist och sina egna senaste uppdateringar.",
     clubChronicleHelpBulletLeague:
-      "Ligaprestanda: tabell med placering, poang, serie, placeringsforandring och malskillnad. Klicka pa en rad for jamforelse mellan tidigare/nuvarande per attribut.",
+      "Ligaprestanda: tabell med placering, poang, serie, cup, placeringsforandring och malskillnad. Cupvarden kommer fran teamdetails och visar Ingen nar laget inte langre ar kvar i cupen. Klicka pa en rad for jamforelse mellan tidigare/nuvarande per attribut.",
     clubChronicleHelpBulletPress:
       "Pressmeddelanden: senaste meddelande och publiceringstid per lag. Klicka pa en rad for att oppna full text med tolkade djuplankar.",
     clubChronicleHelpBulletFinance:
@@ -451,6 +459,8 @@ export const messagesSv: Messages = {
       "Transfermarknad: spelare pa marknaden och totalt sald/kopt. Klicka pa Pa marknaden for listor (alder i ar+dagar, TSI, utropspris) och pa Sald/Kopt for senaste overgangar (typ, alder vid overgangen, TSI, pris). Lagnamn i detaljmodala fonster ar klickbara.",
     clubChronicleHelpBulletFormations:
       "Formationer och taktik: mest anvand formation och taktik fran de senaste 20 relevanta matcherna. Klicka pa en rad for fordelningsdiagram.",
+    clubChronicleHelpBulletTeamAttitude:
+      "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings only, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
     clubChronicleHelpBulletTsi:
       "TSI: lagets totala TSI och top-11 TSI. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar) och TSI.",
     clubChronicleHelpBulletLikelyTraining:
@@ -501,6 +511,37 @@ export const messagesSv: Messages = {
     clubChronicleFormationsSampleLabel: "Analyserade matcher",
     clubChronicleFormationsMatchesListTitle: "Analyserade matcher",
     clubChronicleFormationsMatchesListEmpty: "Inga analyserade matcher tillgängliga.",
+    clubChronicleTeamAttitudePanelTitle: "Team attitude",
+    clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
+    clubChronicleTeamAttitudeColumnDate: "Date",
+    clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
+    clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
+    clubChronicleTeamAttitudeMatchDateColumn: "Match",
+    clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
+    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+    clubChronicleTeamAttitudeMatchTacticColumn: "Taktik",
+    clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
+    clubChronicleTeamAttitudeLineupColumn: "Lineup set",
+    clubChronicleTeamAttitudeBaselineUnionColumn: "Baseline union",
+    clubChronicleTeamAttitudeOverlapColumn: "Overlap",
+    clubChronicleTeamAttitudeDebugChosenFormationLabel: "Chosen formation",
+    clubChronicleTeamAttitudeDebugBaselineValuesLabel: "All midfield values",
+    clubChronicleTeamAttitudeDebugInitialBaselineLabel: "Initial baseline",
+    clubChronicleTeamAttitudeDebugInitialThresholdLabel: "Initial threshold",
+    clubChronicleTeamAttitudeDebugInitialNormalValuesLabel: "Initial normal values",
+    clubChronicleTeamAttitudeDebugFinalBaselineValuesLabel: "Final baseline values",
+    clubChronicleTeamAttitudeDebugFinalBaselineLabel: "Final baseline",
+    clubChronicleTeamAttitudeDebugFinalThresholdLabel: "Final threshold",
+    clubChronicleTeamAttitudeNoDetection: "No PIC/MOTS detected",
+    clubChronicleTeamAttitudePic: "PIC",
+    clubChronicleTeamAttitudeMots: "MOTS",
+    clubChronicleTeamAttitudeNormal: "Normal",
+    clubChronicleTeamAttitudePotentialPic: "Potentially PIC",
+    clubChronicleTeamAttitudePotentialMots: "Potentially MOTS",
+    clubChronicleDetailModeUser: "Anvandarlage",
+    clubChronicleDetailModeDev: "Utvecklarlage",
+    clubChronicleTeamAttitudeDisclaimer:
+      "Dessa värden är uppskattade och är inte alltid helt exakta.",
     clubChronicleMatchTypeLeague: "Ligamatch",
     clubChronicleMatchTypeQualification: "Kvalmatch",
     clubChronicleMatchTypeCup: "Cupmatch",
@@ -579,6 +620,8 @@ export const messagesSv: Messages = {
     clubChronicleColumnPosition: "Pos",
     clubChronicleColumnPoints: "P",
     clubChronicleColumnSeries: "Serie",
+    clubChronicleColumnCup: "Cup",
+    clubChronicleCupNone: "Ingen",
     clubChronicleColumnPositionChange: "Pos ändr",
     clubChronicleColumnGoalsDelta: "GF-GA",
     clubChronicleColumnRecord: "V-O-F",
@@ -627,7 +670,7 @@ export const messagesSv: Messages = {
     clubChronicleUpdatesNoChanges: "Inga ändringar.",
     clubChronicleUpdatesNoChangesGlobal: "Inga uppdateringar sedan senaste uppdateringen.",
     clubChronicleTeamDetailsTitle: "Lagdetaljer",
-    clubChronicleLeagueSectionTitle: "Ligaprestanda",
+    clubChronicleLeagueSectionTitle: "Ligaprestanda och cup",
     clubChronicleSummaryPosShort: "Pos",
     clubChronicleSummaryPointsShort: "P",
     clubChronicleSummaryMatchesShort: "SP",
@@ -651,6 +694,7 @@ export const messagesSv: Messages = {
     clubChronicleFieldPosition: "Placering",
     clubChronicleFieldPositionChange: "Placeringsändring",
     clubChronicleFieldTeamName: "Lag",
+    clubChronicleFieldCup: "Cup",
     clubChronicleFieldMatches: "Matcher",
     clubChronicleFieldGoalsFor: "Mål för",
     clubChronicleFieldGoalsAgainst: "Mål mot",
@@ -1126,6 +1170,8 @@ export const messagesSv: Messages = {
       "För den formationen är deras vanligaste taktik",
     analyzeOpponentSummaryVsYou: "När de möter dig föredrar de",
     analyzeOpponentSummaryWith: "med",
+    analyzeOpponentStillInCup: "fortfarande kvar i cupen",
+    analyzeOpponentNotInCup: "ute ur cupen",
     loadLineupUnavailable: "Ingen sparad uppställning",
     loadLineupActive: "Laddad",
     loadLineupError: "Misslyckades att ladda",
@@ -1418,6 +1464,8 @@ export const messagesSv: Messages = {
     seniorTraitsSentenceLoyalty:
       "Har {{loyaltyLevel}} ({{loyaltyValue}}) lojalitet.",
     seniorWageLabel: "Lön",
+    seniorMlPredictedWageLabel: "ML-prognos",
+    seniorMlPredictionDiffLabel: "diff.",
     seniorWageForeignExtraNote: "inkluderar 20% extra för utländsk spelare",
     seniorFoxtrickMetricsTitle: "FoxTrick-varden",
     seniorFoxtrickEditSkillsLabel: "Redigera fardigheter, alder, lon, TSI",

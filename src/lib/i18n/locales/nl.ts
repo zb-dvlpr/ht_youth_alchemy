@@ -56,6 +56,9 @@ export const messagesNl: Messages = {
   clubChronicleTabDeleteConfirm: "Tab verwijderen",
   clubChronicleHelpBulletTabs:
     "Tabs helpen je verschillende Chronicle-werkruimtes te organiseren. Elke tab houdt zijn eigen watchlist en laatste updates bij.",
+  clubChronicleHelpBulletLeague:
+    "Competitieprestaties: tabel met positie, punten, reeks, beker, positiewijziging en doelsaldo. De bekerwaarde komt uit teamdetails en toont Geen wanneer het team niet meer in de beker zit. Klik op een rij voor een vergelijking van vorig/huidig per attribuut.",
+  clubChronicleLeaguePanelTitle: "Competitieprestaties en beker",
   feedbackTooltip: "Terugkoppeling",
   feedbackBug: "Bug melden",
   feedbackFeature: "Functie aanvragen",
@@ -86,6 +89,9 @@ export const messagesNl: Messages = {
   feedbackBugSuccess: "Bugmelding verstuurd.",
   feedbackFeatureSuccess: "Functieaanvraag verstuurd.",
   feedbackSubmitError: "Versturen van het issue mislukt.",
+  feedbackMetadataHattrickUser: "Hattrick-gebruiker",
+  feedbackManagerIdentityRequiredError:
+    "Je Hattrick-gebruikersnaam en gebruikers-ID konden niet worden opgehaald voor de meldingsmetadata.",
   settingsTooltip: "Instellingen",
   settingsExport: "Gegevens exporteren",
   settingsImport: "Gegevens importeren",
@@ -197,6 +203,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_12_0:
+      "Club Chronicle now includes a Team Attitude panel that flags likely PIC and MOTS matches.",
   changelog_4_11_0:
       "Transfer market search now has a table view with dense desktop/mobile scanning and quick bidding.",
     changelog_4_10_0:
@@ -615,6 +623,42 @@ export const messagesNl: Messages = {
     "Senioroptimalisatie ondersteunt nu meerdere seniorenteams met een teamselector met geslachtslabel en per team opgeslagen status.",
   changelog_3_6_0:
     "Jeugdoptimalisatie voegt nu een gecombineerde onthulmodus toe voor de huidige primaire waarde van de sterspeler en de secundaire maximumwaarde van een andere speler.",
+  clubChronicleRefreshTeamAttitudeTooltip: "Refresh team attitude data.",
+  clubChronicleRefreshStatusMatchLineupsProgress:
+    "Match lineups {completed}/{total} (team: {team})",
+  clubChronicleHelpBulletTeamAttitude:
+    "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings only, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+  clubChronicleTeamAttitudePanelTitle: "Team attitude",
+  clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
+  clubChronicleTeamAttitudeColumnDate: "Date",
+  clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
+  clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
+  clubChronicleTeamAttitudeMatchDateColumn: "Wedstrijd",
+  clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
+  clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+  clubChronicleTeamAttitudeMatchTacticColumn: "Tactiek",
+  clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
+  clubChronicleTeamAttitudeLineupColumn: "Lineup set",
+  clubChronicleTeamAttitudeBaselineUnionColumn: "Baseline union",
+  clubChronicleTeamAttitudeOverlapColumn: "Overlap",
+  clubChronicleTeamAttitudeDebugChosenFormationLabel: "Chosen formation",
+  clubChronicleTeamAttitudeDebugBaselineValuesLabel: "All midfield values",
+    clubChronicleTeamAttitudeDebugInitialBaselineLabel: "Initial baseline",
+    clubChronicleTeamAttitudeDebugInitialThresholdLabel: "Initial threshold",
+    clubChronicleTeamAttitudeDebugInitialNormalValuesLabel: "Initial normal values",
+    clubChronicleTeamAttitudeDebugFinalBaselineValuesLabel: "Final baseline values",
+    clubChronicleTeamAttitudeDebugFinalBaselineLabel: "Final baseline",
+    clubChronicleTeamAttitudeDebugFinalThresholdLabel: "Final threshold",
+  clubChronicleTeamAttitudeNoDetection: "No PIC/MOTS detected",
+  clubChronicleTeamAttitudePic: "PIC",
+  clubChronicleTeamAttitudeMots: "MOTS",
+  clubChronicleTeamAttitudeNormal: "Normal",
+  clubChronicleTeamAttitudePotentialPic: "Potentially PIC",
+  clubChronicleTeamAttitudePotentialMots: "Potentially MOTS",
+  clubChronicleDetailModeUser: "Gebruikersmodus",
+  clubChronicleDetailModeDev: "Dev-modus",
+  clubChronicleTeamAttitudeDisclaimer:
+    "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig.",
   seniorHelpTitle: "Handleiding senioroptimalisatie",
   seniorHelpIntro:
     "Deze weergave helpt je relevante wijzigingen in de seniorselectie te volgen en sneller wedstrijdopstellingen te zetten.",
@@ -640,6 +684,8 @@ export const messagesNl: Messages = {
     "Het trainingsregime van senioren kan direct in de app worden aangepast via de opstellingsdropdown.",
   seniorHelpBulletAnalyzeOpponent:
     "Tegenstander analyseren vat recente patronen samen om AI-opstellingskeuzes te ondersteunen.",
+  analyzeOpponentStillInCup: "nog in de beker",
+  analyzeOpponentNotInCup: "niet meer in de beker",
   loadLineupUnavailable: "Geen opgeslagen opstelling",
   loadLineupActive: "Opstelling geladen",
   loadLineupError: "Fout bij laden opstelling",
@@ -759,6 +805,8 @@ export const messagesNl: Messages = {
   seniorTraitsSentenceLoyalty:
     "Heeft {{loyaltyLevel}} ({{loyaltyValue}}) loyaliteit.",
   seniorWageLabel: "Loon",
+  seniorMlPredictedWageLabel: "ML-voorspelling",
+  seniorMlPredictionDiffLabel: "versch.",
   seniorWageForeignExtraNote: "inclusief 20% extra voor buitenlandse speler",
   seniorFoxtrickMetricsTitle: "FoxTrick-waarden",
   seniorFoxtrickEditSkillsLabel: "Vaardigheden, leeftijd, loon, TSI bewerken",
@@ -914,6 +962,10 @@ export const messagesNl: Messages = {
   debugYouthSeFetchHint:
     "Logt gevolgde speciale gebeurtenissen in de console: gebeurtenis-id, object-/onderwerpnamen en wedstrijd-URL.",
   clubChronicleUpdatesButton: "Laatste updates",
+  clubChronicleColumnCup: "Beker",
+  clubChronicleCupNone: "Geen",
+  clubChronicleLeagueSectionTitle: "Competitieprestaties en beker",
+  clubChronicleFieldCup: "Beker",
   clubChroniclePanelVisibilityTooltip: "Zichtbare panelen beheren",
   clubChroniclePanelVisibilityTitle: "Zichtbare panelen",
   clubChroniclePanelVisibilityHint:

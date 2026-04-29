@@ -81,6 +81,7 @@ import {
 import { readGlobalSeason } from "@/lib/season";
 import {
   captureSeniorEncounteredPlayer,
+  predictSeniorEncounteredPlayerWage,
   type SeniorEncounterSource,
 } from "@/lib/seniorEncounteredPlayerModel";
 import {
@@ -2282,6 +2283,22 @@ const formatEurFromSek = (valueSek: number) =>
     maximumFractionDigits: 0,
   }).format(valueSek / CHPP_SEK_PER_EUR);
 
+const formatPredictionDiffPercent = (actualSek: number | null, predictedSek: number | null) => {
+  if (
+    typeof actualSek !== "number" ||
+    !Number.isFinite(actualSek) ||
+    actualSek <= 0 ||
+    typeof predictedSek !== "number" ||
+    !Number.isFinite(predictedSek)
+  ) {
+    return null;
+  }
+  const diffPercent = ((predictedSek - actualSek) / actualSek) * 100;
+  const rounded = Math.round((diffPercent + Number.EPSILON) * 10) / 10;
+  const sign = rounded > 0 ? "+" : "";
+  return `${sign}${rounded.toFixed(1)}%`;
+};
+
 const resolveTransferSearchSalaryForSelectedTeam = (
   salarySek: number | null | undefined,
   currentForeign: boolean | null | undefined,
@@ -2314,9 +2331,6 @@ const isForeignForSelectedLeague = (
   return nativeLeagueId !== selectedLeagueId;
 };
 
-const formatDebugTransferWageValue = (value: number | null | undefined) =>
-  typeof value === "number" && Number.isFinite(value) ? String(value) : "null";
-
 const parseTeamdetailsLeagueId = (payload: unknown): number | null => {
   if (!payload || typeof payload !== "object") return null;
   const data = payload as {
@@ -2340,6 +2354,71 @@ const parseTeamdetailsLeagueId = (payload: unknown): number | null => {
     parseNumber(data.data?.HattrickData?.Team?.League?.LeagueId) ??
     null
   );
+};
+
+const extractTeamdetailsTeamNode = (
+  payload: unknown,
+  requestedTeamId?: number | null
+): Record<string, unknown> | null => {
+  if (!payload || typeof payload !== "object") return null;
+  const data = payload as {
+    data?: {
+      HattrickData?: {
+        Team?: unknown;
+        Teams?: {
+          Team?: unknown;
+        };
+      };
+    };
+  };
+  const directTeam = data.data?.HattrickData?.Team;
+  if (directTeam && typeof directTeam === "object") {
+    return directTeam as Record<string, unknown>;
+  }
+  const rawTeams = data.data?.HattrickData?.Teams?.Team;
+  const teams = Array.isArray(rawTeams) ? rawTeams : rawTeams ? [rawTeams] : [];
+  if (typeof requestedTeamId === "number" && Number.isFinite(requestedTeamId) && requestedTeamId > 0) {
+    const matched = teams.find((entry) => {
+      if (!entry || typeof entry !== "object") return false;
+      const team = entry as Record<string, unknown>;
+      return parseNumber(team.TeamID ?? team.TeamId) === requestedTeamId;
+    });
+    if (matched && typeof matched === "object") {
+      return matched as Record<string, unknown>;
+    }
+  }
+  const primary = teams.find((entry) => {
+    if (!entry || typeof entry !== "object") return false;
+    return String((entry as Record<string, unknown>).IsPrimaryClub ?? "").toLowerCase() === "true";
+  });
+  if (primary && typeof primary === "object") {
+    return primary as Record<string, unknown>;
+  }
+  return teams[0] && typeof teams[0] === "object"
+    ? (teams[0] as Record<string, unknown>)
+    : null;
+};
+
+const parseTeamdetailsStillInCup = (
+  payload: unknown,
+  requestedTeamId?: number | null
+): boolean | null => {
+  const team = extractTeamdetailsTeamNode(payload, requestedTeamId);
+  if (!team) return null;
+  const cup =
+    team.Cup && typeof team.Cup === "object"
+      ? (team.Cup as Record<string, unknown>)
+      : null;
+  if (!cup) return false;
+  const raw = cup.StillInCup;
+  if (typeof raw === "boolean") return raw;
+  if (typeof raw === "number") return raw !== 0;
+  if (typeof raw === "string") {
+    const normalized = raw.trim().toLowerCase();
+    if (normalized === "true" || normalized === "1") return true;
+    if (normalized === "false" || normalized === "0" || normalized === "") return false;
+  }
+  return null;
 };
 
 const resolveSeniorIsAbroad = (details: SeniorPlayerDetails | null | undefined) => {
@@ -2847,6 +2926,9 @@ export default function SeniorDashboard({
     useState(false);
   const [assignments, setAssignments] = useState<LineupAssignments>({});
   const [behaviors, setBehaviors] = useState<LineupBehaviors>({});
+  const [opponentCupStatusByTeamId, setOpponentCupStatusByTeamId] = useState<
+    Record<number, boolean>
+  >({});
   const [loadedMatchId, setLoadedMatchId] = useState<number | null>(null);
   const [seniorAiSubmitLockActive, setSeniorAiSubmitLockActive] = useState(false);
   const [seniorAiSubmitEnabledMatchId, setSeniorAiSubmitEnabledMatchId] = useState<
@@ -3123,6 +3205,7 @@ export default function SeniorDashboard({
   const opponentFormationContextCacheRef = useRef<Map<number, OpponentFormationContext>>(
     new Map()
   );
+  const opponentCupStatusCacheRef = useRef<Map<number, boolean>>(new Map());
   const opponentTargetPlayerCacheRef = useRef<
     Map<
       number,
@@ -9732,31 +9815,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
           firstDetails?.NativeLeagueID,
           selectedSeniorLeagueId
         );
-        const adjustedSalary = resolveTransferSearchSalaryForSelectedTeam(
+        resolveTransferSearchSalaryForSelectedTeam(
           resolvedSalary,
           resolvedIsAbroad,
           foreignForSelectedTeam
-        );
-        addNotification(
-          messages.notificationDebugTransferWageContext.replace(
-            "{{selectedLeagueId}}",
-            formatDebugTransferWageValue(selectedSeniorLeagueId)
-          )
-        );
-        addNotification(
-          messages.notificationDebugTransferWagePlayer
-            .replace("{{name}}", formatTransferSearchPlayerName(firstResult))
-            .replace(
-              "{{nativeLeagueId}}",
-              formatDebugTransferWageValue(firstDetails?.NativeLeagueID)
-            )
-            .replace("{{isAbroad}}", String(resolvedIsAbroad))
-            .replace("{{foreign}}", String(foreignForSelectedTeam))
-            .replace("{{salarySek}}", formatDebugTransferWageValue(resolvedSalary))
-            .replace(
-              "{{adjustedSalarySek}}",
-              formatDebugTransferWageValue(adjustedSalary)
-            )
         );
       }
     }
@@ -11458,6 +11520,51 @@ const refreshDetailsForPlayers = async (
     return context;
   };
 
+  const fetchOpponentCupStatus = useCallback(
+    async (teamId: number): Promise<boolean | null> => {
+      const cached = opponentCupStatusCacheRef.current.get(teamId);
+      if (typeof cached === "boolean") return cached;
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Team?: unknown;
+              Teams?: {
+                Team?: unknown;
+              };
+            };
+          };
+          error?: string;
+          details?: string;
+        }>(`/api/chpp/teamdetails?teamId=${teamId}`, {
+          cache: "no-store",
+        });
+        if (!response.ok || payload?.error) return null;
+        const stillInCup = parseTeamdetailsStillInCup(payload, teamId);
+        if (typeof stillInCup === "boolean") {
+          opponentCupStatusCacheRef.current.set(teamId, stillInCup);
+          setOpponentCupStatusByTeamId((current) =>
+            current[teamId] === stillInCup ? current : { ...current, [teamId]: stillInCup }
+          );
+        }
+        return stillInCup;
+      } catch {
+        return null;
+      }
+    },
+    []
+  );
+
+  const getOpponentCupStatus = useCallback(
+    (teamId: number): boolean | null => {
+      const stateValue = opponentCupStatusByTeamId[teamId];
+      if (typeof stateValue === "boolean") return stateValue;
+      const cached = opponentCupStatusCacheRef.current.get(teamId);
+      return typeof cached === "boolean" ? cached : null;
+    },
+    [opponentCupStatusByTeamId]
+  );
+
   const runSetBestLineupPredictRatings = async (
     matchId: number,
     mode: SetBestLineupMode,
@@ -12495,8 +12602,13 @@ const refreshDetailsForPlayers = async (
       const opponentContext = await fetchOpponentFormationRowsForMatch(matchId);
       if (!opponentContext) return;
       const { opponentTeamId, opponentName } = opponentContext;
+      const stillInCup = await fetchOpponentCupStatus(opponentTeamId);
+      const cupSuffix =
+        typeof stillInCup === "boolean"
+          ? ` (${stillInCup ? messages.analyzeOpponentStillInCup : messages.analyzeOpponentNotInCup})`
+          : "";
       setOpponentAnalysisModal({
-        title: `${messages.analyzeOpponent} · ${opponentName}`,
+        title: `${messages.analyzeOpponent} · ${opponentName}${cupSuffix}`,
         opponentTeamId,
         opponentName,
         opponentRows: [],
@@ -14332,6 +14444,42 @@ const refreshDetailsForPlayers = async (
       setPieces:
         parseSkill(resultDetails?.PlayerSkills?.SetPiecesSkill) ?? result.setPiecesSkill,
     };
+    const predictedBaseWageSek =
+      process.env.NODE_ENV !== "production"
+        ? predictSeniorEncounteredPlayerWage({
+            playerId: result.playerId,
+            ageYears: seniorMetricInput.ageYears,
+            ageDays: seniorMetricInput.ageDays,
+            keeper: seniorMetricInput.keeper,
+            defending: seniorMetricInput.defending,
+            playmaking: seniorMetricInput.playmaking,
+            winger: seniorMetricInput.winger,
+            passing: seniorMetricInput.passing,
+            scoring: seniorMetricInput.scoring,
+            setPieces: seniorMetricInput.setPieces,
+            form: seniorMetricInput.form ?? null,
+            stamina: seniorMetricInput.stamina ?? null,
+            tsi: seniorMetricInput.tsi ?? null,
+            salarySek: seniorMetricInput.salarySek ?? null,
+            isAbroad: seniorMetricInput.isAbroad,
+            injuryLevel:
+              typeof resultDetails?.InjuryLevel === "number"
+                ? resultDetails.InjuryLevel
+                : null,
+          })
+        : null;
+    const adjustedPredictedSalary =
+      predictedBaseWageSek !== null
+        ? resolveTransferSearchSalaryForSelectedTeam(
+            predictedBaseWageSek,
+            false,
+            foreignForSelectedTeam
+          )
+        : null;
+    const predictedSalaryDiffPercent = formatPredictionDiffPercent(
+      adjustedSalary,
+      adjustedPredictedSalary
+    );
     return (
       <article key={result.playerId} className={styles.transferSearchResultCard}>
         <div className={styles.transferSearchResultHeader}>
@@ -14379,6 +14527,17 @@ const refreshDetailsForPlayers = async (
             </span>
           ) : null}
         </p>
+            {adjustedPredictedSalary !== null ? (
+              <p className={styles.infoValueTiny}>
+                {messages.seniorMlPredictedWageLabel}:{" "}
+                {`${formatEurFromSek(adjustedPredictedSalary)}${
+                  foreignForSelectedTeam === true ? "*" : ""
+                }`}
+                {predictedSalaryDiffPercent
+                  ? ` (${messages.seniorMlPredictionDiffLabel} ${predictedSalaryDiffPercent})`
+                  : ""}
+              </p>
+            ) : null}
             {adjustedSalary !== null && foreignForSelectedTeam === true ? (
               <p className={styles.seniorPersonaLine}>
                 {messages.transferSearchTableWageFootnote}
@@ -15503,6 +15662,8 @@ const refreshDetailsForPlayers = async (
           sourceSystem="Hattrick"
           includeTournamentMatches={includeTournamentMatches}
           onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
+          getOpponentCupStatus={getOpponentCupStatus}
+          ensureOpponentCupStatus={fetchOpponentCupStatus}
           setBestLineupHelpAnchor="senior-set-lineup-ai"
           showExtraTimeSetBestLineupMode
           keepBestLineupMenuTopmost
@@ -18580,6 +18741,8 @@ const refreshDetailsForPlayers = async (
             sourceSystem="Hattrick"
             includeTournamentMatches={includeTournamentMatches}
             onIncludeTournamentMatchesChange={setIncludeTournamentMatches}
+            getOpponentCupStatus={getOpponentCupStatus}
+            ensureOpponentCupStatus={fetchOpponentCupStatus}
             setBestLineupHelpAnchor="senior-set-lineup-ai"
             showExtraTimeSetBestLineupMode
             keepBestLineupMenuTopmost

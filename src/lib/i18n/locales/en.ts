@@ -76,6 +76,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_4_12_0:
+      "Club Chronicle now includes a Team Attitude panel that flags likely PIC and MOTS matches.",
     changelog_4_11_0:
       "Transfer market search now has a table view with dense desktop/mobile scanning and quick bidding.",
     changelog_4_10_0:
@@ -199,6 +201,9 @@ export const messagesEn: Messages = {
     feedbackBugSuccess: "Bug report submitted.",
     feedbackFeatureSuccess: "Feature request submitted.",
     feedbackSubmitError: "Issue submission failed.",
+    feedbackMetadataHattrickUser: "Hattrick user",
+    feedbackManagerIdentityRequiredError:
+      "Unable to resolve your Hattrick username and user ID for the report metadata.",
     settingsTooltip: "Settings",
     settingsExport: "Export data",
     settingsImport: "Import data",
@@ -347,7 +352,7 @@ export const messagesEn: Messages = {
     settingsDebugRandomNewMarkersLabel: "Show random NEW markers",
     settingsDebugRandomNewMarkersOffLabel: "Hide random NEW markers",
     settingsDebugBuyCoffeePromptButton: "Show buy me a coffee modal",
-    clubChronicleLeaguePanelTitle: "League performance",
+    clubChronicleLeaguePanelTitle: "League performance and Cup",
     clubChronicleLeaguePanelEmpty: "No league data yet.",
     clubChronicleNoTeams:
       "No teams are currently being tracked for this tab. Add teams for tracking via the watchlist.",
@@ -383,6 +388,7 @@ export const messagesEn: Messages = {
     clubChronicleRefreshTsiTooltip: "Refresh TSI data.",
     clubChronicleRefreshWagesTooltip: "Refresh wages data.",
     clubChronicleRefreshLikelyTrainingTooltip: "Refresh likely training regimen data.",
+    clubChronicleRefreshTeamAttitudeTooltip: "Refresh team attitude data.",
     clubChronicleRefreshLastLoginTooltip: "Refresh latest login data.",
     clubChronicleRefreshCoachTooltip: "Refresh coach data.",
     clubChronicleRefreshPowerRatingsTooltip: "Refresh power ratings data.",
@@ -399,6 +405,8 @@ export const messagesEn: Messages = {
       "Match archives {completed}/{total} (team: {team})",
     clubChronicleRefreshStatusMatchDetailsProgress:
       "Match details {completed}/{total} (team: {team})",
+    clubChronicleRefreshStatusMatchLineupsProgress:
+      "Match lineups {completed}/{total} (team: {team})",
     clubChronicleHelpTitle: "Club Chronicle guide",
     clubChronicleHelpIntro:
       "Club Chronicle tracks your selected senior teams panel by panel and highlights what changed since the last global baseline.",
@@ -410,7 +418,7 @@ export const messagesEn: Messages = {
     clubChronicleHelpBulletTabs:
       "Tabs help you organize different Chronicle workspaces. Each tab keeps its own watchlist and latest updates.",
     clubChronicleHelpBulletLeague:
-      "League performance: table of position, points, series, position change, and goal delta. Click a row for previous/current attribute-level comparison.",
+      "League performance: table of position, points, series, cup, position change, and goal delta. Cup comes from team details and shows None when the team is out of the cup. Click a row for previous/current attribute-level comparison.",
     clubChronicleHelpBulletPress:
       "Press announcements: latest statement and publish time per team. Click a row to open the full article text with parsed deep links.",
     clubChronicleHelpBulletFinance:
@@ -423,6 +431,8 @@ export const messagesEn: Messages = {
       "Transfer market: players currently on market and sold/bought totals. Click On market for listings (age in years+days, TSI, asking price) and Sold/Bought for latest transfers (type, age at transfer, TSI, price). Team names in detail modals are clickable.",
     clubChronicleHelpBulletFormations:
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
+    clubChronicleHelpBulletTeamAttitude:
+      "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings only, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
     clubChronicleHelpBulletTsi:
       "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), and TSI.",
     clubChronicleHelpBulletLikelyTraining:
@@ -473,6 +483,37 @@ export const messagesEn: Messages = {
     clubChronicleFormationsSampleLabel: "Matches analyzed",
     clubChronicleFormationsMatchesListTitle: "Analyzed matches",
     clubChronicleFormationsMatchesListEmpty: "No analyzed matches available.",
+    clubChronicleTeamAttitudePanelTitle: "Team attitude",
+    clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
+    clubChronicleTeamAttitudeColumnDate: "Date",
+    clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
+    clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
+    clubChronicleTeamAttitudeMatchDateColumn: "Match",
+    clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
+    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+    clubChronicleTeamAttitudeMatchTacticColumn: "Tactic",
+    clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
+    clubChronicleTeamAttitudeLineupColumn: "Lineup set",
+    clubChronicleTeamAttitudeBaselineUnionColumn: "Baseline union",
+    clubChronicleTeamAttitudeOverlapColumn: "Overlap",
+    clubChronicleTeamAttitudeDebugChosenFormationLabel: "Chosen formation",
+    clubChronicleTeamAttitudeDebugBaselineValuesLabel: "All midfield values",
+    clubChronicleTeamAttitudeDebugInitialBaselineLabel: "Initial baseline",
+    clubChronicleTeamAttitudeDebugInitialThresholdLabel: "Initial threshold",
+    clubChronicleTeamAttitudeDebugInitialNormalValuesLabel: "Initial normal values",
+    clubChronicleTeamAttitudeDebugFinalBaselineValuesLabel: "Final baseline values",
+    clubChronicleTeamAttitudeDebugFinalBaselineLabel: "Final baseline",
+    clubChronicleTeamAttitudeDebugFinalThresholdLabel: "Final threshold",
+    clubChronicleTeamAttitudeNoDetection: "No PIC/MOTS detected",
+    clubChronicleTeamAttitudePic: "PIC",
+    clubChronicleTeamAttitudeMots: "MOTS",
+    clubChronicleTeamAttitudeNormal: "Normal",
+    clubChronicleTeamAttitudePotentialPic: "Potentially PIC",
+    clubChronicleTeamAttitudePotentialMots: "Potentially MOTS",
+    clubChronicleDetailModeUser: "User-facing mode",
+    clubChronicleDetailModeDev: "Dev mode",
+    clubChronicleTeamAttitudeDisclaimer:
+      "These values are inferred and may not always be accurate.",
     clubChronicleMatchTypeLeague: "League match",
     clubChronicleMatchTypeQualification: "Qualification match",
     clubChronicleMatchTypeCup: "Cup match",
@@ -551,6 +592,8 @@ export const messagesEn: Messages = {
     clubChronicleColumnPosition: "Pos",
     clubChronicleColumnPoints: "Pts",
     clubChronicleColumnSeries: "Series",
+    clubChronicleColumnCup: "Cup",
+    clubChronicleCupNone: "None",
     clubChronicleColumnPositionChange: "Pos chg",
     clubChronicleColumnGoalsDelta: "GF-GA",
     clubChronicleColumnRecord: "W-D-L",
@@ -599,7 +642,7 @@ export const messagesEn: Messages = {
     clubChronicleUpdatesNoChanges: "No changes.",
     clubChronicleUpdatesNoChangesGlobal: "No updates since the last refresh.",
     clubChronicleTeamDetailsTitle: "Team details",
-    clubChronicleLeagueSectionTitle: "League performance",
+    clubChronicleLeagueSectionTitle: "League performance and Cup",
     clubChronicleSummaryPosShort: "Pos",
     clubChronicleSummaryPointsShort: "Pts",
     clubChronicleSummaryMatchesShort: "MP",
@@ -623,6 +666,7 @@ export const messagesEn: Messages = {
     clubChronicleFieldPosition: "Position",
     clubChronicleFieldPositionChange: "Position change",
     clubChronicleFieldTeamName: "Team",
+    clubChronicleFieldCup: "Cup",
     clubChronicleFieldMatches: "Matches",
     clubChronicleFieldGoalsFor: "Goals for",
     clubChronicleFieldGoalsAgainst: "Goals against",
@@ -1091,6 +1135,8 @@ export const messagesEn: Messages = {
       "For this formation, their most preferred tactic is",
     analyzeOpponentSummaryVsYou: "When they play against you, they prefer",
     analyzeOpponentSummaryWith: "with",
+    analyzeOpponentStillInCup: "still in cup",
+    analyzeOpponentNotInCup: "not in cup",
     loadLineupUnavailable: "No saved lineup",
     loadLineupActive: "Loaded",
     loadLineupError: "Load failed",
@@ -1373,6 +1419,8 @@ export const messagesEn: Messages = {
     seniorTraitsSentenceLoyalty:
       "Has {{loyaltyLevel}} ({{loyaltyValue}}) loyalty.",
     seniorWageLabel: "Wage",
+    seniorMlPredictedWageLabel: "ML predicted",
+    seniorMlPredictionDiffLabel: "diff",
     seniorWageForeignExtraNote: "includes 20% foreign-player extra",
     seniorFoxtrickMetricsTitle: "FoxTrick metrics",
     seniorFoxtrickEditSkillsLabel: "Edit skills, age, wage, TSI",

@@ -20,6 +20,7 @@ import BrandClock from "./components/BrandClock";
 import Tooltip from "./components/Tooltip";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
+import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
 import type { MatchesResponse } from "./components/UpcomingMatches";
 import type { RatingsMatrixResponse } from "./components/RatingsMatrix";
 
@@ -271,6 +272,9 @@ export default async function Home() {
   const isConnected = Boolean(cookieStore.get("chpp_access_token")?.value);
 
   const managerResponse = await getManagerCompendium();
+  const managerIdentity = extractManagerIdentityFromManagerCompendium(
+    managerResponse.data
+  );
   const youthTeams = extractYouthTeams(managerResponse);
   const seniorTeams = extractSeniorTeams(managerResponse);
   const defaultYouthTeamId = youthTeams.length > 1 ? youthTeams[0]?.youthTeamId : null;
@@ -353,6 +357,7 @@ export default async function Home() {
                       messages={messages}
                       locale={locale}
                       appVersion={pkg.version}
+                      initialManagerIdentity={managerIdentity}
                     />
                     <SettingsButton messages={messages} />
                     <Tooltip content={messages.supportOnKofi}>
@@ -395,6 +400,7 @@ export default async function Home() {
                   messages={messages}
                   locale={locale}
                   appVersion={pkg.version}
+                  initialManagerIdentity={managerIdentity}
                 />
                 <BuyCoffeeButton
                   className={styles.mobileLauncherUtilityButton}

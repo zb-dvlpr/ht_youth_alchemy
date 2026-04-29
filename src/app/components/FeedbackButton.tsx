@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import styles from "../page.module.css";
 import { Locale, Messages } from "@/lib/i18n";
+import type { FeedbackManagerIdentity } from "@/lib/hattrick/managerIdentity";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
 import { useNotifications } from "./notifications/NotificationsProvider";
@@ -11,6 +12,7 @@ type FeedbackButtonProps = {
   messages: Messages;
   locale: Locale;
   appVersion: string;
+  initialManagerIdentity?: FeedbackManagerIdentity | null;
 };
 
 type FeedbackKind = "bug" | "feature";
@@ -41,6 +43,7 @@ export default function FeedbackButton({
   messages,
   locale,
   appVersion,
+  initialManagerIdentity,
 }: FeedbackButtonProps) {
   const { addNotification } = useNotifications();
   const [open, setOpen] = useState(false);
@@ -118,6 +121,8 @@ export default function FeedbackButton({
           notes: activeDraft.notes,
           locale,
           appVersion,
+          managerUserId: initialManagerIdentity?.userId,
+          managerLoginname: initialManagerIdentity?.loginname,
         }),
       });
       const payload = (await response.json().catch(() => null)) as

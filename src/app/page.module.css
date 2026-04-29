@@ -3821,6 +3821,11 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   width: min(1120px, 98vw);
 }
 
+.chronicleTeamAttitudeUserModal {
+  max-width: min(1360px, calc(100vw - 24px));
+  width: min(1360px, calc(100vw - 24px));
+}
+
 .chronicleTransferListedModal {
   max-width: min(760px, 96vw);
   width: min(760px, 96vw);
@@ -3954,6 +3959,14 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   text-underline-offset: 2px;
 }
 
+.chronicleMatchSubtleDate {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: #8a806f;
+  text-decoration: none;
+}
+
 .opponentFormationsTableWrap {
   width: 100%;
   max-width: 100%;
@@ -4077,6 +4090,39 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   text-decoration: underline;
   text-underline-offset: 2px;
   cursor: pointer;
+}
+
+.chronicleDetailModeToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 4px;
+  border-radius: 999px;
+  background: #efe6d8;
+  border: 1px solid #dccdb7;
+}
+
+.chronicleDetailModeButton {
+  border: none;
+  background: transparent;
+  color: #6b6256;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.chronicleDetailModeButton:hover {
+  color: #3f362c;
+}
+
+.chronicleDetailModeButtonActive {
+  background: #244d2b;
+  color: #fff;
 }
 
 .chronicleMatchList {
@@ -5159,6 +5205,10 @@ html[data-theme="dark"] .chroniclePressLink {
   color: #8cb8e6;
 }
 
+html[data-theme="dark"] .chronicleMatchSubtleDate {
+  color: #a99d8d;
+}
+
 html[data-theme="dark"] .opponentFormationsTableWrap {
   border-color: rgba(255, 255, 255, 0.14);
   background: #221f1b;
@@ -5211,6 +5261,24 @@ html[data-theme="dark"] .generatedLineupSlotEmpty {
 
 html[data-theme="dark"] .chronicleInlineLinkButton {
   color: inherit;
+}
+
+html[data-theme="dark"] .chronicleDetailModeToggle {
+  background: #221f1b;
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+html[data-theme="dark"] .chronicleDetailModeButton {
+  color: #b9b0a5;
+}
+
+html[data-theme="dark"] .chronicleDetailModeButton:hover {
+  color: #f3ede4;
+}
+
+html[data-theme="dark"] .chronicleDetailModeButtonActive {
+  background: #355f3d;
+  color: #fff;
 }
 
 html[data-theme="dark"] .chronicleInjuryCross,
@@ -8512,6 +8580,10 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 
 .confirmCard.chronicleUpdatesModal {
   width: min(1200px, 98vw);
+}
+
+.confirmCard.chronicleTeamAttitudeUserModal {
+  width: min(1360px, calc(100vw - 24px));
 }
 
 .confirmCard.nonTraineeAssignmentDebugModal {

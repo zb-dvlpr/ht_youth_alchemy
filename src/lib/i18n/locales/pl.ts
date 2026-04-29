@@ -56,6 +56,9 @@ export const messagesPl: Messages = {
   clubChronicleTabDeleteConfirm: "Usuń kartę",
   clubChronicleHelpBulletTabs:
     "Karty pomagają organizować różne przestrzenie Chronicle. Każda karta zachowuje własną listę obserwowanych i własne najnowsze aktualizacje.",
+  clubChronicleHelpBulletLeague:
+    "Forma ligowa: tabela z pozycja, punktami, seria, pucharem, zmiana pozycji i bilansem bramek. Wartosc pucharu pochodzi z teamdetails i pokazuje Brak, gdy druzyna odpadla z pucharu. Kliknij wiersz, aby zobaczyc porownanie poprzedni/obecny dla kazdego atrybutu.",
+  clubChronicleLeaguePanelTitle: "Forma ligowa i puchar",
   feedbackTooltip: "Opinie",
   feedbackBug: "Zgłoś błąd",
   feedbackFeature: "Poproś o funkcję",
@@ -86,6 +89,9 @@ export const messagesPl: Messages = {
   feedbackBugSuccess: "Zgłoszenie błędu wysłane.",
   feedbackFeatureSuccess: "Prośba o funkcję wysłana.",
   feedbackSubmitError: "Wysłanie zgłoszenia nie powiodło się.",
+  feedbackMetadataHattrickUser: "Uzytkownik Hattrick",
+  feedbackManagerIdentityRequiredError:
+    "Nie udalo sie ustalic nazwy uzytkownika i ID uzytkownika Hattrick do metadanych zgloszenia.",
   settingsTooltip: "Ustawienia",
   settingsExport: "Eksportuj dane",
   settingsImport: "Importuj dane",
@@ -190,6 +196,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_12_0:
+      "Club Chronicle now includes a Team Attitude panel that flags likely PIC and MOTS matches.",
   changelog_4_11_0:
       "Transfer market search now has a table view with dense desktop/mobile scanning and quick bidding.",
     changelog_4_10_0:
@@ -608,6 +616,42 @@ export const messagesPl: Messages = {
     "Optymalizacja seniorów obsługuje teraz wiele drużyn seniorów z selektorem drużyny z oznaczeniem płci i stanem zapisywanym osobno dla każdej drużyny.",
   changelog_3_6_0:
     "Optymalizacja juniorów dodaje teraz łączony tryb odkrywania bieżącej wartości głównej gwiazdy i maksymalnej wartości drugorzędnej innego zawodnika.",
+  clubChronicleRefreshTeamAttitudeTooltip: "Refresh team attitude data.",
+  clubChronicleRefreshStatusMatchLineupsProgress:
+    "Match lineups {completed}/{total} (team: {team})",
+  clubChronicleHelpBulletTeamAttitude:
+    "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings only, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+  clubChronicleTeamAttitudePanelTitle: "Team attitude",
+  clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
+  clubChronicleTeamAttitudeColumnDate: "Date",
+  clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
+  clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
+  clubChronicleTeamAttitudeMatchDateColumn: "Mecz",
+  clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
+  clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+  clubChronicleTeamAttitudeMatchTacticColumn: "Taktyka",
+  clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
+  clubChronicleTeamAttitudeLineupColumn: "Lineup set",
+  clubChronicleTeamAttitudeBaselineUnionColumn: "Baseline union",
+  clubChronicleTeamAttitudeOverlapColumn: "Overlap",
+  clubChronicleTeamAttitudeDebugChosenFormationLabel: "Chosen formation",
+  clubChronicleTeamAttitudeDebugBaselineValuesLabel: "All midfield values",
+    clubChronicleTeamAttitudeDebugInitialBaselineLabel: "Initial baseline",
+    clubChronicleTeamAttitudeDebugInitialThresholdLabel: "Initial threshold",
+    clubChronicleTeamAttitudeDebugInitialNormalValuesLabel: "Initial normal values",
+    clubChronicleTeamAttitudeDebugFinalBaselineValuesLabel: "Final baseline values",
+    clubChronicleTeamAttitudeDebugFinalBaselineLabel: "Final baseline",
+    clubChronicleTeamAttitudeDebugFinalThresholdLabel: "Final threshold",
+  clubChronicleTeamAttitudeNoDetection: "No PIC/MOTS detected",
+  clubChronicleTeamAttitudePic: "PIC",
+  clubChronicleTeamAttitudeMots: "MOTS",
+  clubChronicleTeamAttitudeNormal: "Normal",
+  clubChronicleTeamAttitudePotentialPic: "Potentially PIC",
+  clubChronicleTeamAttitudePotentialMots: "Potentially MOTS",
+  clubChronicleDetailModeUser: "Tryb uzytkownika",
+  clubChronicleDetailModeDev: "Tryb deweloperski",
+  clubChronicleTeamAttitudeDisclaimer:
+    "Te wartosci sa wywnioskowane i nie zawsze musza byc dokladne.",
   seniorHelpTitle: "Przewodnik optymalizacji seniorów",
   seniorHelpIntro:
     "Ten widok pomaga śledzić istotne zmiany w kadrze seniorów i szybciej ustawiać składy meczowe.",
@@ -633,6 +677,8 @@ export const messagesPl: Messages = {
     "Reżim treningowy seniorów można zmienić bezpośrednio w aplikacji z poziomu rozwijanego menu składu.",
   seniorHelpBulletAnalyzeOpponent:
     "Analizuj przeciwnika podsumowuje ostatnie wzorce, aby wspierać decyzje AI o składzie.",
+  analyzeOpponentStillInCup: "nadal w pucharze",
+  analyzeOpponentNotInCup: "poza pucharem",
   loadLineupUnavailable: "Brak zapisanego składu",
   loadLineupActive: "Wczytany skład",
   loadLineupError: "Błąd wczytywania składu",
@@ -752,6 +798,8 @@ export const messagesPl: Messages = {
   seniorTraitsSentenceLoyalty:
     "Ma {{loyaltyLevel}} ({{loyaltyValue}}) lojalności.",
   seniorWageLabel: "Pensja",
+  seniorMlPredictedWageLabel: "Prognoza ML",
+  seniorMlPredictionDiffLabel: "rozn.",
   seniorWageForeignExtraNote: "zawiera 20% dodatku za gracza zagranicznego",
   seniorFoxtrickMetricsTitle: "Wartosci FoxTrick",
   seniorFoxtrickEditSkillsLabel: "Edytuj umiejetnosci, wiek, pensje, TSI",
@@ -907,6 +955,10 @@ export const messagesPl: Messages = {
   debugYouthSeFetchHint:
     "Loguje w konsoli obserwowane wydarzenia specjalne: identyfikator wydarzenia, nazwy obiektu/podmiotu i adres URL meczu.",
   clubChronicleUpdatesButton: "Najnowsze aktualizacje",
+  clubChronicleColumnCup: "Puchar",
+  clubChronicleCupNone: "Brak",
+  clubChronicleLeagueSectionTitle: "Forma ligowa i puchar",
+  clubChronicleFieldCup: "Puchar",
   clubChroniclePanelVisibilityTooltip: "Zarzadzaj widocznymi panelami",
   clubChroniclePanelVisibilityTitle: "Widoczne panele",
   clubChroniclePanelVisibilityHint:

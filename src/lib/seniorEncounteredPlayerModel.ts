@@ -58,6 +58,23 @@ export type SeniorModelEvaluationResult = {
 
 export type SeniorEncounterCaptureStatus = "added" | "deduped" | "failed";
 
+type SeniorEncounteredPlayerSnapshotValues = Pick<
+  SeniorEncounteredPlayerSample,
+  | "ageYears"
+  | "ageDays"
+  | "keeper"
+  | "defending"
+  | "playmaking"
+  | "winger"
+  | "passing"
+  | "scoring"
+  | "setPieces"
+  | "form"
+  | "stamina"
+  | "tsi"
+  | "baseWageSek"
+>;
+
 type NormalizedSeniorPlayerSnapshot = Omit<
   SeniorEncounteredPlayerSample,
   "sampleHash" | "playerHash" | "source" | "firstSeenAt" | "lastSeenAt"
@@ -65,7 +82,29 @@ type NormalizedSeniorPlayerSnapshot = Omit<
   playerId: number;
 };
 
+export type SeniorEncounteredPlayerPredictionInput = {
+  playerId: number | null;
+  ageYears: number | null;
+  ageDays: number | null;
+  keeper: number | null;
+  defending: number | null;
+  playmaking: number | null;
+  winger: number | null;
+  passing: number | null;
+  scoring: number | null;
+  setPieces: number | null;
+  form: number | null;
+  stamina: number | null;
+  tsi: number | null;
+  salarySek: number | null;
+  isAbroad?: boolean | null;
+  injuryLevel?: number | null;
+};
+
 type ModelTarget = "tsi" | "wage" | "age";
+type NormalizeSeniorSnapshotOptions = {
+  excludeKnownInjury?: boolean;
+};
 
 const emptySourceCounts = (): Record<SeniorEncounterSource, number> => ({
   ownSenior: 0,
@@ -190,7 +229,8 @@ const hashText = async (value: string) => {
 };
 
 const normalizeSeniorSnapshot = (
-  player: unknown
+  player: unknown,
+  options: NormalizeSeniorSnapshotOptions = {}
 ): NormalizedSeniorPlayerSnapshot | null => {
   if (!player || typeof player !== "object") return null;
   const node = player as Record<string, unknown>;
@@ -202,6 +242,7 @@ const normalizeSeniorSnapshot = (
   const ageYears = parseNumber(node.Age);
   const ageDays = parseNumber(node.AgeDays);
   const salary = parseNumber(node.Salary);
+  const injuryLevel = parseNumber(node.InjuryLevel);
   const isAbroad = parseBoolean(node.IsAbroad) ?? false;
   const form = parseSkill(node.PlayerForm ?? node.Form);
   const readSkill = (...keys: string[]) => {
@@ -250,7 +291,80 @@ const normalizeSeniorSnapshot = (
   ) {
     return null;
   }
+  // Keep healthy (-1), bruised (0), and unknown injury status. Exclude known injuries.
+  if (
+    options.excludeKnownInjury !== false &&
+    typeof injuryLevel === "number" &&
+    injuryLevel >= 1
+  ) {
+    return null;
+  }
   return snapshot as NormalizedSeniorPlayerSnapshot;
+};
+
+const normalizeSeniorPredictionInput = (
+  input: SeniorEncounteredPlayerPredictionInput,
+  options: NormalizeSeniorSnapshotOptions = {}
+): NormalizedSeniorPlayerSnapshot | null => {
+  const {
+    playerId,
+    ageYears,
+    ageDays,
+    keeper,
+    defending,
+    playmaking,
+    winger,
+    passing,
+    scoring,
+    setPieces,
+    form,
+    stamina,
+    tsi,
+    salarySek,
+    isAbroad,
+    injuryLevel,
+  } = input;
+  if (
+    playerId === null ||
+    ageYears === null ||
+    ageDays === null ||
+    keeper === null ||
+    defending === null ||
+    playmaking === null ||
+    winger === null ||
+    passing === null ||
+    scoring === null ||
+    setPieces === null ||
+    form === null ||
+    stamina === null ||
+    tsi === null ||
+    salarySek === null
+  ) {
+    return null;
+  }
+  if (
+    options.excludeKnownInjury !== false &&
+    typeof injuryLevel === "number" &&
+    injuryLevel >= 1
+  ) {
+    return null;
+  }
+  return {
+    playerId,
+    ageYears,
+    ageDays,
+    keeper,
+    defending,
+    playmaking,
+    winger,
+    passing,
+    scoring,
+    setPieces,
+    form,
+    stamina,
+    tsi,
+    baseWageSek: Math.round(isAbroad === true ? salarySek / 1.2 : salarySek),
+  };
 };
 
 const buildSnapshotValueKey = (snapshot: NormalizedSeniorPlayerSnapshot) =>
@@ -285,6 +399,24 @@ const toStoredSnapshot = (snapshot: NormalizedSeniorPlayerSnapshot) => ({
   tsi: snapshot.tsi,
   baseWageSek: snapshot.baseWageSek,
 });
+
+const hasSameStoredSnapshotValues = (
+  left: SeniorEncounteredPlayerSnapshotValues,
+  right: SeniorEncounteredPlayerSnapshotValues
+) =>
+  left.ageYears === right.ageYears &&
+  left.ageDays === right.ageDays &&
+  left.keeper === right.keeper &&
+  left.defending === right.defending &&
+  left.playmaking === right.playmaking &&
+  left.winger === right.winger &&
+  left.passing === right.passing &&
+  left.scoring === right.scoring &&
+  left.setPieces === right.setPieces &&
+  left.form === right.form &&
+  left.stamina === right.stamina &&
+  left.tsi === right.tsi &&
+  left.baseWageSek === right.baseWageSek;
 
 const readSeniorDashboardDataStorageKeys = () => {
   if (typeof window === "undefined") return [];
@@ -421,7 +553,7 @@ export const getSeniorEncounteredPlayerModelSummary =
     };
   };
 
-const ageTotalDays = (sample: Pick<SeniorEncounteredPlayerSample, "ageYears" | "ageDays">) =>
+const ageTotalDays = (sample: Pick<SeniorEncounteredPlayerSnapshotValues, "ageYears" | "ageDays">) =>
   sample.ageYears * DAYS_PER_HT_YEAR + sample.ageDays;
 
 const targetValue = (sample: SeniorEncounteredPlayerSample, target: ModelTarget) => {
@@ -430,7 +562,10 @@ const targetValue = (sample: SeniorEncounteredPlayerSample, target: ModelTarget)
   return ageTotalDays(sample);
 };
 
-const featureVector = (sample: SeniorEncounteredPlayerSample, target: ModelTarget) => {
+const featureVector = (
+  sample: SeniorEncounteredPlayerSnapshotValues,
+  target: ModelTarget
+) => {
   const values = [
     sample.keeper / 20,
     sample.defending / 20,
@@ -456,7 +591,7 @@ const featureVector = (sample: SeniorEncounteredPlayerSample, target: ModelTarge
 
 const predict = (
   trainingSamples: SeniorEncounteredPlayerSample[],
-  sample: SeniorEncounteredPlayerSample,
+  sample: SeniorEncounteredPlayerSnapshotValues,
   target: ModelTarget
 ) => {
   if (trainingSamples.length === 0) return null;
@@ -488,6 +623,22 @@ const predict = (
     { total: 0, weight: 0 }
   );
   return weighted.weight > 0 ? weighted.total / weighted.weight : null;
+};
+
+export const predictSeniorEncounteredPlayerWage = (
+  input: SeniorEncounteredPlayerPredictionInput
+) => {
+  if (!SENIOR_ENCOUNTERED_PLAYER_MODEL_ENABLED) return null;
+  const snapshot = normalizeSeniorPredictionInput(input, {
+    excludeKnownInjury: false,
+  });
+  if (!snapshot) return null;
+  const store = readStore();
+  const storedSnapshot = toStoredSnapshot(snapshot);
+  const trainingSamples = store.samples.filter(
+    (candidate) => !hasSameStoredSnapshotValues(candidate, storedSnapshot)
+  );
+  return predict(trainingSamples, storedSnapshot, "wage");
 };
 
 const readOwnSeniorSamples = async (): Promise<SeniorEncounteredPlayerSample[]> => {

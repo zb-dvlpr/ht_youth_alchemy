@@ -1041,6 +1041,23 @@ const PANEL_IDS = [
   "wages",
 ] as const;
 type ChroniclePanelId = (typeof PANEL_IDS)[number];
+const UPDATE_PANEL_BY_CHRONICLE_PANEL_ID: Record<ChroniclePanelId, UpdatePanel> = {
+  "league-performance": "league",
+  "press-announcements": "press",
+  "last-login": "lastLogin",
+  coach: "coach",
+  "power-ratings": "powerRatings",
+  "ongoing-matches": "ongoingMatches",
+  fanclub: "fanclub",
+  arena: "arena",
+  "finance-estimate": "finance",
+  "transfer-market": "transfer",
+  "formations-tactics": "formationsTactics",
+  "team-attitude": "teamAttitude",
+  "likely-training": "likelyTraining",
+  tsi: "tsi",
+  wages: "wages",
+};
 const SEASON_LENGTH_MS = 112 * 24 * 60 * 60 * 1000;
 const CHPP_DAYS_PER_YEAR = 112;
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -2019,6 +2036,50 @@ const stripLikelyTrainingConfidenceFromUpdates = (
       teams: nextTeams,
     },
     didChange: true,
+  };
+};
+
+const getUpdatePanelFromFieldKey = (fieldKey: string): UpdatePanel | null => {
+  if (fieldKey.startsWith("league.")) return "league";
+  if (fieldKey.startsWith("press.")) return "press";
+  if (fieldKey.startsWith("fanclub.")) return "fanclub";
+  if (fieldKey.startsWith("arena.")) return "arena";
+  if (fieldKey.startsWith("finance.")) return "finance";
+  if (fieldKey.startsWith("transfer.")) return "transfer";
+  if (fieldKey.startsWith("formationsTactics.")) return "formationsTactics";
+  if (fieldKey.startsWith("teamAttitude.")) return "teamAttitude";
+  if (fieldKey.startsWith("likelyTraining.")) return "likelyTraining";
+  if (fieldKey.startsWith("lastLogin.")) return "lastLogin";
+  if (fieldKey.startsWith("coach.")) return "coach";
+  if (fieldKey.startsWith("powerRatings.")) return "powerRatings";
+  if (fieldKey.startsWith("ongoingMatches.")) return "ongoingMatches";
+  if (fieldKey.startsWith("tsi.") || fieldKey === "team.playerCount") return "tsi";
+  if (fieldKey.startsWith("wages.")) return "wages";
+  return null;
+};
+
+const filterUpdatesByVisiblePanels = (
+  updates: ChronicleUpdates,
+  visiblePanels: ReadonlySet<UpdatePanel>
+): ChronicleUpdates => {
+  const { updates: strippedUpdates } =
+    stripLikelyTrainingConfidenceFromUpdates(updates);
+  const nextTeams = Object.fromEntries(
+    Object.entries(strippedUpdates.teams).flatMap(([teamId, teamUpdate]) => {
+      const visibleChanges = teamUpdate.changes.filter((change) => {
+        const updatePanel = getUpdatePanelFromFieldKey(change.fieldKey);
+        return updatePanel ? visiblePanels.has(updatePanel) : true;
+      });
+      if (visibleChanges.length === 0) {
+        return [];
+      }
+      return [[teamId, { ...teamUpdate, changes: visibleChanges }]];
+    })
+  ) as ChronicleUpdates["teams"];
+
+  return {
+    ...strippedUpdates,
+    teams: nextTeams,
   };
 };
 
@@ -3143,6 +3204,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const desktopVisiblePanelOrder = useMemo(
     () => normalizedPanelOrder.filter((panelId) => panelVisibility[panelId] !== false),
     [normalizedPanelOrder, panelVisibility]
+  );
+  const visibleUpdatePanels = useMemo(
+    () =>
+      new Set(
+        PANEL_IDS.filter((panelId) => panelVisibility[panelId] !== false).map(
+          (panelId) => UPDATE_PANEL_BY_CHRONICLE_PANEL_ID[panelId]
+        )
+      ),
+    [panelVisibility]
   );
 
   useEffect(() => {
@@ -10146,6 +10216,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         }
       );
       const hasUpdates = hasAnyChanges(nextUpdates);
+      const hasVisibleUpdates = hasAnyChanges(
+        filterUpdatesByVisiblePanels(nextUpdates, visibleUpdatePanels)
+      );
       if (chronicleStopRequestedRef.current) return;
       const comparedAt = Date.now();
       if (hasUpdates) {
@@ -10159,6 +10232,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         setLastGlobalComparedAt(comparedAt);
         setLastGlobalHadChanges(false);
       }
+      if (hasUpdates) {
+        setLastGlobalHadChanges(hasVisibleUpdates);
+      }
 
       setManualTeams(nextManualTeams);
       setChronicleCache(nextCache);
@@ -10166,7 +10242,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       if (hasUpdates) {
         setUpdates(nextUpdates);
       }
-      setUpdatesOpen(hasUpdates);
+      setUpdatesOpen(hasVisibleUpdates);
       if (isGlobalRefresh) {
         const refreshCompletedAt = Date.now();
         writeLastRefresh(refreshCompletedAt);
@@ -10824,40 +10900,62 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       ],
       { baselineCache: globalBaselineCache }
     );
-    const hasUpdates = hasAnyChanges(nextUpdates);
+    const visibleNextUpdates = filterUpdatesByVisiblePanels(
+      nextUpdates,
+      visibleUpdatePanels
+    );
+    const hasUpdates = hasAnyChanges(visibleNextUpdates);
     setLastGlobalComparedAt(comparedAt);
     setLastGlobalHadChanges(hasUpdates);
     if (hasUpdates) {
-      setUpdates(stripLikelyTrainingConfidenceFromUpdates(nextUpdates).updates);
+      setUpdates(nextUpdates);
       return;
     }
 
-    const latestWithChanges = globalUpdatesHistory.find((entry) => entry.updates);
+    const latestWithChanges = globalUpdatesHistory.find(
+      (entry) =>
+        entry.updates &&
+        hasAnyChanges(filterUpdatesByVisiblePanels(entry.updates, visibleUpdatePanels))
+    );
     if (latestWithChanges?.updates) {
-      setUpdates(
-        stripLikelyTrainingConfidenceFromUpdates(latestWithChanges.updates).updates
-      );
+      setUpdates(latestWithChanges.updates);
       return;
     }
 
-    setUpdates(stripLikelyTrainingConfidenceFromUpdates(nextUpdates).updates);
-  }, [chronicleCache, globalBaselineCache, globalUpdatesHistory]);
+    setUpdates(nextUpdates);
+  }, [
+    chronicleCache,
+    globalBaselineCache,
+    globalUpdatesHistory,
+    visibleUpdatePanels,
+  ]);
 
   const handleLoadHistoryEntry = (entry: ChronicleGlobalUpdateEntry) => {
     if (!entry.updates) return;
     setLastGlobalComparedAt(entry.comparedAt);
     setLastGlobalHadChanges(entry.hasChanges);
-    setUpdates(stripLikelyTrainingConfidenceFromUpdates(entry.updates).updates);
+    setUpdates(entry.updates);
   };
 
-  const updatesByTeam = updates?.teams ?? {};
+  const visibleUpdates = useMemo(
+    () =>
+      updates ? filterUpdatesByVisiblePanels(updates, visibleUpdatePanels) : null,
+    [updates, visibleUpdatePanels]
+  );
+  const updatesByTeam = visibleUpdates?.teams ?? {};
   const hasAnyTeamUpdates = trackedTeams.some((team) => {
-    const changes = (updatesByTeam[team.teamId]?.changes ?? []).filter(
-      (change) => change.fieldKey !== "likelyTraining.confidence"
-    );
-    return changes.length > 0;
+    return (updatesByTeam[team.teamId]?.changes ?? []).length > 0;
   });
-  const latestHistoryWithChanges = globalUpdatesHistory.find((entry) => entry.updates);
+  const latestHistoryWithChanges = useMemo(
+    () =>
+      globalUpdatesHistory.find(
+        (entry) =>
+          entry.updates &&
+          hasAnyChanges(filterUpdatesByVisiblePanels(entry.updates, visibleUpdatePanels))
+      ),
+    [globalUpdatesHistory, visibleUpdatePanels]
+  );
+  const displayedLastGlobalHadChanges = hasAnyTeamUpdates;
   const showingPreviousSnapshot =
     !lastGlobalHadChanges && hasAnyTeamUpdates && !!latestHistoryWithChanges;
   const selectedHistoryComparedAt = useMemo(() => {
@@ -13590,7 +13688,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     </div>
   );
 
-  const updatesBody = updates && trackedTeams.length ? (
+  const updatesBody = visibleUpdates && trackedTeams.length ? (
     <>
       <div className={styles.chronicleUpdatesMetaBlock}>
         <p className={styles.chroniclePressMeta}>
@@ -13602,7 +13700,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             {formatDateTime(lastGlobalComparedAt)}
           </p>
         ) : null}
-        {!lastGlobalHadChanges ? (
+        {!displayedLastGlobalHadChanges ? (
           <p className={styles.chroniclePressMeta}>
             {messages.clubChronicleUpdatesNoChangesGlobal}
           </p>
@@ -13641,9 +13739,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         <div className={styles.chronicleUpdatesList}>
           {trackedTeams.map((team) => {
             const teamUpdates = updatesByTeam[team.teamId];
-            const changes = (teamUpdates?.changes ?? []).filter(
-              (change) => change.fieldKey !== "likelyTraining.confidence"
-            );
+            const changes = teamUpdates?.changes ?? [];
             if (changes.length === 0) return null;
             const teamLeagueLevelUnitId =
               chronicleCache.teams[team.teamId]?.leagueLevelUnitId ?? null;
@@ -16319,7 +16415,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         title={messages.clubChronicleUpdatesTitle}
         className={styles.chronicleUpdatesModal}
         body={
-          updates && trackedTeams.length ? (
+          visibleUpdates && trackedTeams.length ? (
             <>
               <div className={styles.chronicleUpdatesMetaBlock}>
                 <p className={styles.chroniclePressMeta}>
@@ -16331,7 +16427,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     {formatDateTime(lastGlobalComparedAt)}
                   </p>
                 ) : null}
-                {!lastGlobalHadChanges ? (
+                {!displayedLastGlobalHadChanges ? (
                   <p className={styles.chroniclePressMeta}>
                     {messages.clubChronicleUpdatesNoChangesGlobal}
                   </p>
@@ -16370,9 +16466,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 <div className={styles.chronicleUpdatesList}>
                   {trackedTeams.map((team) => {
                     const teamUpdates = updatesByTeam[team.teamId];
-                    const changes = (teamUpdates?.changes ?? []).filter(
-                      (change) => change.fieldKey !== "likelyTraining.confidence"
-                    );
+                    const changes = teamUpdates?.changes ?? [];
                     if (changes.length === 0) return null;
                     const teamLeagueLevelUnitId =
                       chronicleCache.teams[team.teamId]?.leagueLevelUnitId ?? null;

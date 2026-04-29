@@ -260,7 +260,7 @@ export const messagesEn: Messages = {
     settingsClubChronicle: "Club Chronicle",
     settingsClubChronicleTitle: "Club Chronicle settings",
     settingsClubChronicleStalenessLabel: "Refresh after (days)",
-    settingsClubChronicleStalenessHint: "When data is older than this, entering Club Chronicle triggers a refresh based on the last refresh time.",
+    settingsClubChronicleStalenessHint: "When data is older than this, entering Club Chronicle waits for the current watchlist scope and then runs the same full refresh flow as manual refresh.",
     settingsClubChronicleTransferHistoryLabel: "Latest transfers to keep",
     settingsClubChronicleTransferHistoryHint:
       "How many recent transfers per team are cached and shown in transfer history details.",

@@ -2805,6 +2805,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [ownLeagues, setOwnLeagues] = useState<OwnLeagueEntry[]>([]);
   const [ownLeagueTeams, setOwnLeagueTeams] = useState<SupportedTeam[]>([]);
   const [loadingOwnLeagueTeams, setLoadingOwnLeagueTeams] = useState(false);
+  const [ownLeagueTeamsReady, setOwnLeagueTeamsReady] = useState(false);
   const [primaryTeam, setPrimaryTeam] = useState<ChronicleTeamData | null>(null);
   const [chronicleCache, setChronicleCache] = useState<ChronicleCache>(() =>
     pruneChronicleCache(readChronicleCache())
@@ -3047,9 +3048,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const previousAnyRefreshingRef = useRef(false);
   const previousLastGlobalRefreshAtRef = useRef<number | null>(null);
   const trackedTeamsRef = useRef<ChronicleTeamData[]>([]);
-  const refreshAllDataRef = useRef<((reason: "stale" | "manual") => Promise<void>) | null>(
-    null
-  );
+  const refreshDataForTeamsRef = useRef<
+    ((
+      reason: "stale" | "manual",
+      teamsToRefresh: ChronicleTeamData[],
+      options?: { isGlobalRefresh?: boolean; expectedTeamIdsKey?: string }
+    ) => Promise<void>) | null
+  >(null);
   const refreshNoDivulgoTeamRef = useRef<((teamId: number) => Promise<void>) | null>(
     null
   );
@@ -3592,6 +3597,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => trackedTeams.map((team) => team.teamId).sort((a, b) => a - b).join(","),
     [trackedTeams]
   );
+  const getCurrentGlobalRefreshPayload = useCallback(() => {
+    if (!initializedRef.current) return null;
+    if (loading || isValidating || loadingOwnLeagueTeams || !ownLeagueTeamsReady) {
+      return null;
+    }
+    const teams = trackedTeamsRef.current;
+    if (teams.length === 0) return null;
+    return {
+      teams,
+      teamIdsKey: teams.map((team) => team.teamId).sort((a, b) => a - b).join(","),
+    };
+  }, [isValidating, loading, loadingOwnLeagueTeams, ownLeagueTeamsReady]);
   useEffect(() => {
     trackedTeamsRef.current = trackedTeams;
   }, [trackedTeams]);
@@ -3888,6 +3905,38 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       })();
     },
     [ensureRefreshScopes]
+  );
+  const triggerGlobalRefresh = useCallback(
+    (reason: "stale" | "manual") => {
+      void (async () => {
+        const initialPayload = getCurrentGlobalRefreshPayload();
+        if (!initialPayload) {
+          if (reason === "stale") {
+            staleRefreshRef.current = false;
+          }
+          return;
+        }
+        const hasRequiredScopes = await ensureRefreshScopes();
+        if (!hasRequiredScopes) {
+          if (reason === "stale") {
+            staleRefreshRef.current = false;
+          }
+          return;
+        }
+        const payload = getCurrentGlobalRefreshPayload();
+        if (!payload) {
+          if (reason === "stale") {
+            staleRefreshRef.current = false;
+          }
+          return;
+        }
+        await refreshDataForTeamsRef.current?.(reason, payload.teams, {
+          isGlobalRefresh: true,
+          expectedTeamIdsKey: payload.teamIdsKey,
+        });
+      })();
+    },
+    [ensureRefreshScopes, getCurrentGlobalRefreshPayload]
   );
 
   useEffect(() => {
@@ -4210,11 +4259,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   useEffect(() => {
     let active = true;
     const loadOwnLeagueTeams = async () => {
+      setOwnLeagueTeamsReady(false);
       const selectedLeagues = ownLeagues.filter(
         (entry) => ownLeagueSelections[entry.key]
       );
       if (selectedLeagues.length === 0) {
         setLoadingOwnLeagueTeams(false);
+        setOwnLeagueTeamsReady(true);
         setOwnLeagueTeams([]);
         return;
       }
@@ -4303,6 +4354,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       } finally {
         if (active) {
           setLoadingOwnLeagueTeams(false);
+          setOwnLeagueTeamsReady(true);
         }
       }
     };
@@ -4568,13 +4620,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     );
     if (hasSnapshot) return;
     if (anyRefreshing || initialFetchRef.current) return;
+    if (loading || isValidating || loadingOwnLeagueTeams || !ownLeagueTeamsReady) return;
     initialFetchRef.current = true;
-    void refreshAllData("manual");
-  }, [trackedTeams, chronicleCache, anyRefreshing]);
+    triggerGlobalRefresh("manual");
+  }, [
+    trackedTeams,
+    chronicleCache,
+    anyRefreshing,
+    isValidating,
+    loading,
+    loadingOwnLeagueTeams,
+    ownLeagueTeamsReady,
+    triggerGlobalRefresh,
+  ]);
 
   useEffect(() => {
     if (!initializedRef.current) return;
-    if (loading || isValidating) return;
+    if (loading || isValidating || loadingOwnLeagueTeams || !ownLeagueTeamsReady) return;
     if (trackedTeams.length === 0) return;
     const trackedTeamIds = trackedTeams.map((team) => team.teamId);
     let lastRefresh = lastGlobalRefreshAt;
@@ -4593,7 +4655,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
     if (staleRefreshRef.current || anyRefreshing) return;
     staleRefreshRef.current = true;
-    void refreshAllData("stale");
+    triggerGlobalRefresh("stale");
   }, [
     trackedTeams.length,
     trackedTeams,
@@ -4603,12 +4665,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     lastGlobalRefreshAt,
     loading,
     isValidating,
+    loadingOwnLeagueTeams,
+    ownLeagueTeamsReady,
+    triggerGlobalRefresh,
   ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!initializedRef.current) return;
-    if (loading || isValidating) return;
+    if (loading || isValidating || loadingOwnLeagueTeams || !ownLeagueTeamsReady) return;
     if (trackedTeams.length === 0) return;
 
     const maybeRunStaleRefresh = () => {
@@ -4630,7 +4695,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
       if (staleRefreshRef.current || anyRefreshing) return;
       staleRefreshRef.current = true;
-      void refreshAllData("stale");
+      triggerGlobalRefresh("stale");
     };
 
     const handleFocus = () => maybeRunStaleRefresh();
@@ -4656,6 +4721,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     lastGlobalRefreshAt,
     loading,
     isValidating,
+    loadingOwnLeagueTeams,
+    ownLeagueTeamsReady,
+    triggerGlobalRefresh,
   ]);
 
   useEffect(() => {
@@ -10034,7 +10102,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const refreshDataForTeams = async (
     reason: "stale" | "manual",
     teamsToRefresh: ChronicleTeamData[],
-    options?: { isGlobalRefresh?: boolean }
+    options?: { isGlobalRefresh?: boolean; expectedTeamIdsKey?: string }
   ) => {
     if (anyRefreshing) return;
     if (teamsToRefresh.length === 0) return;
@@ -10244,9 +10312,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       }
       setUpdatesOpen(hasVisibleUpdates);
       if (isGlobalRefresh) {
-        const refreshCompletedAt = Date.now();
-        writeLastRefresh(refreshCompletedAt);
-        setLastGlobalRefreshAt(refreshCompletedAt);
+        const expectedTeamIdsKey = options?.expectedTeamIdsKey ?? null;
+        const currentTeamIdsKey = trackedTeamsRef.current
+          .map((team) => team.teamId)
+          .sort((a, b) => a - b)
+          .join(",");
+        if (!expectedTeamIdsKey || expectedTeamIdsKey === currentTeamIdsKey) {
+          const refreshCompletedAt = Date.now();
+          writeLastRefresh(refreshCompletedAt);
+          setLastGlobalRefreshAt(refreshCompletedAt);
+        }
       }
       if (chronicleStopRequestedRef.current) return;
       if (reason === "stale") {
@@ -10264,15 +10339,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       clearProgressIndicators();
     }
   };
-  const refreshAllData = async (reason: "stale" | "manual") => {
-    await refreshDataForTeams(reason, trackedTeamsRef.current);
-  };
   const refreshNoDivulgoTeam = async (teamId: number) => {
     const targetTeam = trackedTeams.find((team) => team.teamId === teamId);
     if (!targetTeam) return;
     await refreshDataForTeams("manual", [targetTeam], { isGlobalRefresh: false });
   };
-  refreshAllDataRef.current = refreshAllData;
+  refreshDataForTeamsRef.current = refreshDataForTeams;
   refreshNoDivulgoTeamRef.current = refreshNoDivulgoTeam;
 
   useEffect(() => {
@@ -14767,7 +14839,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           )
         }
         onOpenWatchlist={openChronicleWatchlist}
-        onRefresh={() => runRefreshGuarded(() => refreshAllData("manual"))}
+        onRefresh={() => triggerGlobalRefresh("manual")}
         onOpenUpdates={openChronicleUpdates}
         panelOptions={normalizedPanelOrder.map((panelId) => ({
           id: panelId,
@@ -14883,7 +14955,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               type="button"
               className={styles.chronicleUpdatesButton}
               data-help-anchor="cc-refresh-all"
-              onClick={() => runRefreshGuarded(() => refreshAllData("manual"))}
+              onClick={() => triggerGlobalRefresh("manual")}
               disabled={anyRefreshing}
               aria-label={messages.clubChronicleRefreshAllTooltip}
             >

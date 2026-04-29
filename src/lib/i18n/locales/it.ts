@@ -277,7 +277,7 @@ export const messagesIt: Messages = {
     settingsClubChronicle: "Cronaca del club",
     settingsClubChronicleTitle: "Impostazioni Cronaca del club",
     settingsClubChronicleStalenessLabel: "Aggiorna dopo (giorni)",
-    settingsClubChronicleStalenessHint: "Quando i dati sono vecchi, aprire la Cronaca del club attiva un aggiornamento basato sull’ultima aggiornata.",
+    settingsClubChronicleStalenessHint: "Quando i dati sono vecchi, aprire la Cronaca del club aspetta che l’ambito attuale della watchlist sia pronto e poi esegue lo stesso refresh globale completo del refresh manuale.",
     settingsClubChronicleTransferHistoryLabel: "Ultimi trasferimenti da mantenere",
     settingsClubChronicleTransferHistoryHint:
       "Quanti trasferimenti recenti per squadra mantenere in cache e mostrare nei dettagli.",

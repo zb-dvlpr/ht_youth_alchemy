@@ -276,7 +276,7 @@ export const messagesPt: Messages = {
     settingsClubChronicle: "Crônica do clube",
     settingsClubChronicleTitle: "Configurações da Crônica do clube",
     settingsClubChronicleStalenessLabel: "Atualizar após (dias)",
-    settingsClubChronicleStalenessHint: "Quando os dados estão antigos, ao abrir a Crônica do clube é disparada uma atualização com base na última atualização.",
+    settingsClubChronicleStalenessHint: "Quando os dados estão antigos, ao abrir a Crônica do clube o app espera o escopo atual da lista de acompanhamento ficar pronto e depois executa o mesmo refresh global completo do refresh manual.",
     settingsClubChronicleTransferHistoryLabel: "Últimas transferências para manter",
     settingsClubChronicleTransferHistoryHint:
       "Quantas transferências recentes por time devem ser armazenadas e mostradas nos detalhes.",

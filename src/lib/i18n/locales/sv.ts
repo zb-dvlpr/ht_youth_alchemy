@@ -274,7 +274,7 @@ export const messagesSv: Messages = {
     settingsClubChronicle: "Klubbkrönika",
     settingsClubChronicleTitle: "Inställningar för Klubbkrönikan",
     settingsClubChronicleStalenessLabel: "Uppdatera efter (dagar)",
-    settingsClubChronicleStalenessHint: "När data är gammal utlöser öppning av Klubbkrönikan en uppdatering baserad på senaste uppdatering.",
+    settingsClubChronicleStalenessHint: "När data är gammal väntar öppning av Klubbkrönikan tills det aktuella bevakningsomfånget är klart och kör sedan samma fullständiga globala uppdatering som manuell uppdatering.",
     settingsClubChronicleTransferHistoryLabel: "Antal senaste övergångar",
     settingsClubChronicleTransferHistoryHint:
       "Hur många senaste övergångar per lag som cachas och visas i detaljer.",

@@ -3822,8 +3822,8 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 }
 
 .chronicleTeamAttitudeUserModal {
-  max-width: min(940px, 96vw);
-  width: min(940px, 96vw);
+  max-width: min(1080px, 96vw);
+  width: min(1080px, 96vw);
 }
 
 .chronicleTransferListedModal {

@@ -12655,8 +12655,20 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   Match?: {
                     HomeGoals?: unknown;
                     AwayGoals?: unknown;
-                    HomeTeam?: { HomeTeamName?: string };
-                    AwayTeam?: { AwayTeamName?: string };
+                    Result?: {
+                      HomeGoals?: unknown;
+                      AwayGoals?: unknown;
+                    };
+                    HomeTeam?: {
+                      HomeTeamName?: string;
+                      HomeGoals?: unknown;
+                      Goals?: unknown;
+                    };
+                    AwayTeam?: {
+                      AwayTeamName?: string;
+                      AwayGoals?: unknown;
+                      Goals?: unknown;
+                    };
                   };
                 };
               };
@@ -12669,8 +12681,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             const match = payload?.data?.HattrickData?.Match;
             const home = match?.HomeTeam?.HomeTeamName?.trim();
             const away = match?.AwayTeam?.AwayTeamName?.trim();
-            const homeGoals = parseNumberNode(match?.HomeGoals);
-            const awayGoals = parseNumberNode(match?.AwayGoals);
+            const homeGoals =
+              parseNumberNode(match?.HomeGoals) ??
+              parseNumberNode(match?.Result?.HomeGoals) ??
+              parseNumberNode(match?.HomeTeam?.HomeGoals) ??
+              parseNumberNode(match?.HomeTeam?.Goals);
+            const awayGoals =
+              parseNumberNode(match?.AwayGoals) ??
+              parseNumberNode(match?.Result?.AwayGoals) ??
+              parseNumberNode(match?.AwayTeam?.AwayGoals) ??
+              parseNumberNode(match?.AwayTeam?.Goals);
             if (home && away) {
               setResolvedMatches((prev) =>
                 prev[entry.matchId]
@@ -13014,12 +13034,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () =>
       ({
         "--cc-columns": teamAttitudeDetailsColumns.length,
-        "--cc-template":
-          teamAttitudeDetailsColumns.length > 3
-            ? "minmax(150px, 0.9fr) minmax(130px, 0.8fr) minmax(150px, 0.9fr) minmax(100px, 0.7fr) minmax(110px, 0.7fr) minmax(260px, 1.5fr) minmax(320px, 1.8fr)"
-            : "minmax(160px, 1.1fr) minmax(150px, 1fr) minmax(160px, 1fr)",
+        "--cc-template": teamAttitudeDetailShowsDevInfo
+          ? "minmax(220px, 1.6fr) minmax(120px, 0.9fr) minmax(90px, 0.65fr) minmax(130px, 0.9fr) minmax(140px, 1fr) minmax(100px, 0.7fr) minmax(110px, 0.75fr) minmax(260px, 1.45fr) minmax(320px, 1.7fr)"
+          : "minmax(250px, 1.9fr) minmax(120px, 0.9fr) minmax(80px, 0.55fr) minmax(125px, 0.85fr) minmax(140px, 1fr)",
       }) as CSSProperties,
-    [teamAttitudeDetailsColumns.length]
+    [teamAttitudeDetailsColumns.length, teamAttitudeDetailShowsDevInfo]
   );
 
   const tsiTableStyle = useMemo(

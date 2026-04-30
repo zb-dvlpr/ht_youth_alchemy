@@ -1929,10 +1929,10 @@ export default function Dashboard({
     return normalizeTransferSearchFilters({
       skillFilters,
       specialty,
-      ageMinYears: ageMin.years,
-      ageMinDays: ageMin.days,
-      ageMaxYears: ageMax.years,
-      ageMaxDays: ageMax.days,
+      ageMinYears: String(ageMin.years),
+      ageMinDays: String(ageMin.days),
+      ageMaxYears: String(ageMax.years),
+      ageMaxDays: String(ageMax.days),
       tsiMin: "",
       tsiMax: "",
       priceMinEur: "",
@@ -3950,9 +3950,7 @@ export default function Dashboard({
     key: K,
     value: TransferSearchFilters[K]
   ) => {
-    setTransferSearchFilters((prev) =>
-      prev ? normalizeTransferSearchFilters({ ...prev, [key]: value }) : prev
-    );
+    setTransferSearchFilters((prev) => (prev ? { ...prev, [key]: value } : prev));
   }, []);
 
   const updateTransferSearchBidDraft = useCallback((

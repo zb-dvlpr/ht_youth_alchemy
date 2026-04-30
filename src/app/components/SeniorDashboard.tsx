@@ -450,10 +450,10 @@ type TransferSearchSkillFilter = {
 type TransferSearchFilters = {
   skillFilters: TransferSearchSkillFilter[];
   specialty: number | null;
-  ageMinYears: number;
-  ageMinDays: number;
-  ageMaxYears: number;
-  ageMaxDays: number;
+  ageMinYears: string;
+  ageMinDays: string;
+  ageMaxYears: string;
+  ageMaxDays: string;
   tsiMin: string;
   tsiMax: string;
   priceMinEur: string;
@@ -1293,10 +1293,10 @@ const buildInitialTransferSearchFilters = (
         : typeof player.Specialty === "number"
         ? player.Specialty
         : 0,
-    ageMinYears: ageMin.years,
-    ageMinDays: ageMin.days,
-    ageMaxYears: ageMax.years,
-    ageMaxDays: ageMax.days,
+    ageMinYears: String(ageMin.years),
+    ageMinDays: String(ageMin.days),
+    ageMaxYears: String(ageMax.years),
+    ageMaxDays: String(ageMax.days),
     tsiMin: "",
     tsiMax: "",
     priceMinEur: "",
@@ -1415,23 +1415,33 @@ const buildFallbackTransferSearchFilters = (
       min: clampTransferSkillValue(filter.skillKey, Math.max(0, filter.min - 1)),
     })),
     specialty: null,
-    ageMinYears: ageMin.years,
-    ageMinDays: ageMin.days,
-    ageMaxYears: ageMax.years,
-    ageMaxDays: ageMax.days,
+    ageMinYears: String(ageMin.years),
+    ageMinDays: String(ageMin.days),
+    ageMaxYears: String(ageMax.years),
+    ageMaxDays: String(ageMax.days),
   };
 };
 
 const normalizeTransferSearchFilters = (filters: TransferSearchFilters): TransferSearchFilters => {
-  const ageMinYears = Math.max(0, Math.round(filters.ageMinYears));
+  const parseAgeInteger = (value: unknown, fallback: number) => {
+    const parsed = Number.parseInt(String(value ?? "").trim(), 10);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+  const ageMinYears = Math.max(
+    0,
+    Math.round(parseAgeInteger(filters.ageMinYears, TRANSFER_SEARCH_MIN_AGE_YEARS))
+  );
   const ageMinDays = Math.min(
     HATTRICK_AGE_DAYS_PER_YEAR - 1,
-    Math.max(0, Math.round(filters.ageMinDays))
+    Math.max(0, Math.round(parseAgeInteger(filters.ageMinDays, 0)))
   );
-  const ageMaxYears = Math.max(0, Math.round(filters.ageMaxYears));
+  const ageMaxYears = Math.max(
+    0,
+    Math.round(parseAgeInteger(filters.ageMaxYears, TRANSFER_SEARCH_MIN_AGE_YEARS))
+  );
   const ageMaxDays = Math.min(
     HATTRICK_AGE_DAYS_PER_YEAR - 1,
-    Math.max(0, Math.round(filters.ageMaxDays))
+    Math.max(0, Math.round(parseAgeInteger(filters.ageMaxDays, 0)))
   );
   const minAgeTotal = Math.max(
     TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS,
@@ -1456,24 +1466,24 @@ const normalizeTransferSearchFilters = (filters: TransferSearchFilters): Transfe
         max: Math.min(normalizedMax, normalizedMin + 4),
       };
     }),
-    ageMinYears: normalizedMinAge.years,
-    ageMinDays: normalizedMinAge.days,
-    ageMaxYears: normalizedMaxAge.years,
-    ageMaxDays: normalizedMaxAge.days,
-    tsiMin: filters.tsiMin.trim(),
-    tsiMax: filters.tsiMax.trim(),
-    priceMinEur: filters.priceMinEur.trim(),
-    priceMaxEur: filters.priceMaxEur.trim(),
+    ageMinYears: String(normalizedMinAge.years),
+    ageMinDays: String(normalizedMinAge.days),
+    ageMaxYears: String(normalizedMaxAge.years),
+    ageMaxDays: String(normalizedMaxAge.days),
+    tsiMin: String(filters.tsiMin ?? "").trim(),
+    tsiMax: String(filters.tsiMax ?? "").trim(),
+    priceMinEur: String(filters.priceMinEur ?? "").trim(),
+    priceMaxEur: String(filters.priceMaxEur ?? "").trim(),
   };
 };
 
 const buildTransferSearchParams = (filters: TransferSearchFilters) => {
   const normalized = normalizeTransferSearchFilters(filters);
   const params = new URLSearchParams({
-    ageMin: String(normalized.ageMinYears),
-    ageDaysMin: String(normalized.ageMinDays),
-    ageMax: String(normalized.ageMaxYears),
-    ageDaysMax: String(normalized.ageMaxDays),
+    ageMin: normalized.ageMinYears,
+    ageDaysMin: normalized.ageMinDays,
+    ageMax: normalized.ageMaxYears,
+    ageDaysMax: normalized.ageMaxDays,
     pageSize: String(TRANSFER_SEARCH_PAGE_SIZE),
     pageIndex: "0",
   });
@@ -9954,9 +9964,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     key: K,
     value: TransferSearchFilters[K]
   ) => {
-    setTransferSearchFilters((prev) =>
-      prev ? normalizeTransferSearchFilters({ ...prev, [key]: value }) : prev
-    );
+    setTransferSearchFilters((prev) => (prev ? { ...prev, [key]: value } : prev));
   }, []);
 
   const updateTransferSearchBidDraft = useCallback((

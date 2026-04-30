@@ -71,10 +71,12 @@ import {
   optimizeRevealSecondaryMax,
   optimizeRevealPrimaryCurrentAndSecondaryMax,
   buildSkillRanking,
+  rankPlayersForYouthLineupSlot,
   type OptimizerPlayer,
   type OptimizerDebug,
   type SkillKey,
   type TrainingSkillKey,
+  type YouthLineupSlotId,
 } from "@/lib/optimizer";
 import {
   ALGORITHM_SETTINGS_EVENT,
@@ -1027,8 +1029,6 @@ export default function Dashboard({
   });
   const [mobileYouthLandscapeActive, setMobileYouthLandscapeActive] =
     useState(false);
-  const [mobileYouthLineupPickerSlotId, setMobileYouthLineupPickerSlotId] =
-    useState<string | null>(null);
   const [mobileYouthRefreshFeedbackVisible, setMobileYouthRefreshFeedbackVisible] =
     useState(false);
   const [activeDetailsTab, setActiveDetailsTab] =
@@ -1626,6 +1626,20 @@ export default function Dashboard({
     }
     return "ya_dashboard_state_v2";
   }, [activeYouthTeamId, multiTeamEnabled]);
+  const lastRefreshStorageKey = useMemo(() => {
+    if (multiTeamEnabled && activeYouthTeamId) {
+      return `${LAST_REFRESH_STORAGE_KEY}_${activeYouthTeamId}`;
+    }
+    return LAST_REFRESH_STORAGE_KEY;
+  }, [activeYouthTeamId, multiTeamEnabled]);
+  const readScopedLastRefreshTimestamp = useCallback(
+    () => readLastRefreshTimestamp(lastRefreshStorageKey),
+    [lastRefreshStorageKey]
+  );
+  const writeScopedLastRefreshTimestamp = useCallback(
+    (value: number) => writeLastRefreshTimestamp(value, lastRefreshStorageKey),
+    [lastRefreshStorageKey]
+  );
 
 
   const playerDetailsById = useMemo(() => {
@@ -1915,10 +1929,10 @@ export default function Dashboard({
     return normalizeTransferSearchFilters({
       skillFilters,
       specialty,
-      ageMinYears: ageMin.years,
-      ageMinDays: ageMin.days,
-      ageMaxYears: ageMax.years,
-      ageMaxDays: ageMax.days,
+      ageMinYears: String(ageMin.years),
+      ageMinDays: String(ageMin.days),
+      ageMaxYears: String(ageMax.years),
+      ageMaxDays: String(ageMax.days),
       tsiMin: "",
       tsiMax: "",
       priceMinEur: "",
@@ -2859,11 +2873,6 @@ export default function Dashboard({
   }, [mobileYouthActive, mobileYouthView]);
 
   useEffect(() => {
-    if (mobileYouthView === "lineupOptimizer") return;
-    setMobileYouthLineupPickerSlotId(null);
-  }, [mobileYouthView]);
-
-  useEffect(() => {
     if (!ratingsResponseState) return;
     setRatingsPositions(ratingsResponseState.positions ?? []);
     setRatingsCache((prev) => {
@@ -2910,14 +2919,14 @@ export default function Dashboard({
     if (typeof window === "undefined") return;
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
     setStalenessDays(readYouthStalenessDays());
-    setLastGlobalRefreshAt(readLastRefreshTimestamp());
+    setLastGlobalRefreshAt(readScopedLastRefreshTimestamp());
     const handle = (event: Event) => {
       if (event instanceof StorageEvent) {
         if (
           event.key &&
           event.key !== ALGORITHM_SETTINGS_STORAGE_KEY &&
           event.key !== YOUTH_SETTINGS_STORAGE_KEY &&
-          event.key !== LAST_REFRESH_STORAGE_KEY
+          event.key !== lastRefreshStorageKey
         ) {
           return;
         }
@@ -2934,7 +2943,7 @@ export default function Dashboard({
       }
       setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
       setStalenessDays(readYouthStalenessDays());
-      setLastGlobalRefreshAt(readLastRefreshTimestamp());
+      setLastGlobalRefreshAt(readScopedLastRefreshTimestamp());
     };
     window.addEventListener("storage", handle);
     window.addEventListener(ALGORITHM_SETTINGS_EVENT, handle);
@@ -2944,19 +2953,19 @@ export default function Dashboard({
       window.removeEventListener(ALGORITHM_SETTINGS_EVENT, handle);
       window.removeEventListener(YOUTH_SETTINGS_EVENT, handle);
     };
-  }, []);
+  }, [lastRefreshStorageKey, readScopedLastRefreshTimestamp]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setLastGlobalRefreshAt(readScopedLastRefreshTimestamp());
+  }, [readScopedLastRefreshTimestamp]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!isConnected) return;
     if (restoredStorageKey !== storageKey) return;
-    const lastRefresh = readLastRefreshTimestamp();
+    const lastRefresh = readScopedLastRefreshTimestamp();
     if (!lastRefresh) {
-      if (playerList.length > 0) {
-        const fallback = Date.now();
-        writeLastRefreshTimestamp(fallback);
-        setLastGlobalRefreshAt(fallback);
-      }
       return;
     }
     const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
@@ -2986,13 +2995,8 @@ export default function Dashboard({
 
     const maybeRunStaleRefresh = () => {
       if (document.visibilityState !== "visible") return;
-      const lastRefresh = readLastRefreshTimestamp();
+      const lastRefresh = readScopedLastRefreshTimestamp();
       if (!lastRefresh) {
-        if (playerList.length > 0) {
-          const fallback = Date.now();
-          writeLastRefreshTimestamp(fallback);
-          setLastGlobalRefreshAt(fallback);
-        }
         return;
       }
       const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
@@ -3027,6 +3031,7 @@ export default function Dashboard({
     activeYouthTeamId,
     isConnected,
     playersLoading,
+    readScopedLastRefreshTimestamp,
     restoredStorageKey,
     storageKey,
   ]);
@@ -3945,9 +3950,7 @@ export default function Dashboard({
     key: K,
     value: TransferSearchFilters[K]
   ) => {
-    setTransferSearchFilters((prev) =>
-      prev ? normalizeTransferSearchFilters({ ...prev, [key]: value }) : prev
-    );
+    setTransferSearchFilters((prev) => (prev ? { ...prev, [key]: value } : prev));
   }, []);
 
   const updateTransferSearchBidDraft = useCallback((
@@ -6045,7 +6048,7 @@ export default function Dashboard({
         (refreshAll ? matchesOk && ratingsOk : options?.recordRefresh)
       ) {
         const refreshedAt = Date.now();
-        writeLastRefreshTimestamp(refreshedAt);
+        writeScopedLastRefreshTimestamp(refreshedAt);
         setLastGlobalRefreshAt(refreshedAt);
       }
       if (playersUpdated) {
@@ -6174,7 +6177,7 @@ export default function Dashboard({
     setHiddenSpecialtyDiscoveredMatchByPlayerId({});
     setAnalyzedRatingsMatchIds([]);
     if (nextTeamId) {
-      refreshPlayers(nextTeamId, { recordRefresh: true });
+      refreshPlayers(nextTeamId);
       refreshMatches(nextTeamId);
       const teamName =
         youthTeams.find((team) => team.youthTeamId === nextTeamId)
@@ -6977,12 +6980,41 @@ export default function Dashboard({
     </span>
   ) : null;
 
-  const mobileYouthLineupPickerPlayers = useMemo(
-    () =>
-      [...optimizerPlayers].sort((a, b) =>
-        (a.name ?? "").localeCompare(b.name ?? "", undefined, { sensitivity: "base" })
-      ),
-    [optimizerPlayers]
+  const youthEmptySlotPickerOptions = useCallback(
+    (slotId: string) => {
+      if (!isTrainingSkill(primaryTraining) || !isTrainingSkill(secondaryTraining)) {
+        return [];
+      }
+      const excludedPlayerIds = Object.entries(assignments)
+        .filter(([, playerId]) => playerId !== null)
+        .map(([, playerId]) => Number(playerId));
+      return rankPlayersForYouthLineupSlot(
+        optimizerPlayers,
+        slotId as YouthLineupSlotId,
+        ratingsCache,
+        toBaseTrainingSkill(primaryTraining),
+        toBaseTrainingSkill(secondaryTraining),
+        trainingPreferences,
+        excludedPlayerIds
+      ).map((player) => ({
+        playerId: player.id,
+        label: player.name ?? String(player.id),
+        meta:
+          player.age !== null && player.age !== undefined
+            ? `${player.age}${messages.ageYearsShort}`
+            : messages.unknownShort,
+      }));
+    },
+    [
+      assignments,
+      messages.ageYearsShort,
+      messages.unknownShort,
+      optimizerPlayers,
+      primaryTraining,
+      ratingsCache,
+      secondaryTraining,
+      trainingPreferences,
+    ]
   );
 
   const mobileYouthRefreshStatus = playersLoading
@@ -7396,7 +7428,7 @@ export default function Dashboard({
             setSelectedId(playerId);
             void ensureDetails(playerId);
           }}
-          onEmptySlotSelect={setMobileYouthLineupPickerSlotId}
+          emptySlotPickerOptions={youthEmptySlotPickerOptions}
           allowExternalPlayerDrop={false}
           messages={messages}
         />
@@ -7818,51 +7850,6 @@ export default function Dashboard({
         closeOnBackdrop
         onClose={() => setYouthUpdatesOpen(false)}
       />
-      <Modal
-        open={Boolean(mobileYouthLineupPickerSlotId)}
-        title={messages.mobileYouthLineupPickerTitle}
-        movable={false}
-        body={
-          mobileYouthLineupPickerPlayers.length > 0 ? (
-            <div className={styles.mobileYouthLineupPickerList}>
-              {mobileYouthLineupPickerPlayers.map((player) => (
-                <button
-                  key={player.id}
-                  type="button"
-                  className={styles.mobileYouthLineupPickerOption}
-                  onClick={() => {
-                    if (!mobileYouthLineupPickerSlotId) return;
-                    assignPlayer(mobileYouthLineupPickerSlotId, player.id);
-                    setMobileYouthLineupPickerSlotId(null);
-                  }}
-                >
-                  <span className={styles.mobileYouthLineupPickerName}>
-                    {player.name}
-                  </span>
-                  <span className={styles.mobileYouthLineupPickerMeta}>
-                    {player.age !== null
-                      ? `${player.age}${messages.ageYearsShort}`
-                      : messages.unknownShort}
-                  </span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className={styles.muted}>{messages.mobileYouthLineupPickerEmpty}</p>
-          )
-        }
-        actions={
-          <button
-            type="button"
-            className={styles.confirmCancel}
-            onClick={() => setMobileYouthLineupPickerSlotId(null)}
-          >
-            {messages.closeLabel}
-          </button>
-        }
-        closeOnBackdrop
-        onClose={() => setMobileYouthLineupPickerSlotId(null)}
-      />
       {mobileYouthActive ? (
         <>
           <MobileToolMenu
@@ -8187,6 +8174,8 @@ export default function Dashboard({
             setSelectedId(playerId);
             void ensureDetails(playerId);
           }}
+          emptySlotPickerOptions={youthEmptySlotPickerOptions}
+          titleNote={messages.lineupEmptySlotRecommendationsHint}
           messages={messages}
         />
         {isDev ? (

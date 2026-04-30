@@ -56,10 +56,10 @@ export type TransferSearchSkillFilter = {
 export type TransferSearchFilters = {
   skillFilters: TransferSearchSkillFilter[];
   specialty: number | null;
-  ageMinYears: number;
-  ageMinDays: number;
-  ageMaxYears: number;
-  ageMaxDays: number;
+  ageMinYears: string;
+  ageMinDays: string;
+  ageMaxYears: string;
+  ageMaxDays: string;
   tsiMin: string;
   tsiMax: string;
   priceMinEur: string;
@@ -209,6 +209,18 @@ type TransferSearchModalProps = {
   ) => ReactNode;
   onClose: () => void;
 };
+
+type TransferSearchDraftFields = Pick<
+  TransferSearchFilters,
+  | "ageMinYears"
+  | "ageMinDays"
+  | "ageMaxYears"
+  | "ageMaxDays"
+  | "tsiMin"
+  | "tsiMax"
+  | "priceMinEur"
+  | "priceMaxEur"
+>;
 
 type TransferSearchMarketBucket = {
   min: number;
@@ -419,6 +431,125 @@ const buildTransferSearchPillStyle = (
   };
 };
 
+const isTransferSearchDigitsInput = (
+  value: string,
+  options?: { maxValue?: number }
+) => {
+  if (!/^\d*$/.test(value)) return false;
+  if (value === "") return true;
+  if (typeof options?.maxValue !== "number") return true;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed <= options.maxValue;
+};
+
+const parseTransferSearchDraftInteger = (value: string): number | null => {
+  if (!/^\d+$/.test(value)) return null;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const isTransferSearchRangeDraftValid = (
+  minValue: string,
+  maxValue: string
+) => {
+  if (minValue !== "" && !/^\d+$/.test(minValue)) return false;
+  if (maxValue !== "" && !/^\d+$/.test(maxValue)) return false;
+  if (minValue === "" || maxValue === "") return true;
+  return Number.parseInt(minValue, 10) <= Number.parseInt(maxValue, 10);
+};
+
+const isTransferSearchAgeDraftValid = (
+  filters: TransferSearchFilters,
+  patch: Partial<
+    Pick<
+      TransferSearchFilters,
+      "ageMinYears" | "ageMinDays" | "ageMaxYears" | "ageMaxDays"
+    >
+  >
+) => {
+  const next = { ...filters, ...patch };
+  const ageFields = [
+    next.ageMinYears,
+    next.ageMinDays,
+    next.ageMaxYears,
+    next.ageMaxDays,
+  ];
+  if (!ageFields.every((value) => /^\d*$/.test(value))) return false;
+  const minDays = parseTransferSearchDraftInteger(next.ageMinDays);
+  const maxDays = parseTransferSearchDraftInteger(next.ageMaxDays);
+  if (
+    (minDays !== null && minDays >= HATTRICK_AGE_DAYS_PER_YEAR) ||
+    (maxDays !== null && maxDays >= HATTRICK_AGE_DAYS_PER_YEAR)
+  ) {
+    return false;
+  }
+
+  const minYears = parseTransferSearchDraftInteger(next.ageMinYears);
+  const maxYears = parseTransferSearchDraftInteger(next.ageMaxYears);
+  const resolvedMinYears =
+    minYears ?? TRANSFER_SEARCH_MIN_AGE_YEARS;
+  const resolvedMinDays = minDays ?? 0;
+  const resolvedMaxYears =
+    maxYears ?? TRANSFER_SEARCH_MIN_AGE_YEARS;
+  const resolvedMaxDays = maxDays ?? 0;
+  const minTotalDays = ageToTotalDays(resolvedMinYears, resolvedMinDays);
+  const maxTotalDays = ageToTotalDays(resolvedMaxYears, resolvedMaxDays);
+  if (
+    minTotalDays < TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS ||
+    maxTotalDays < TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS
+  ) {
+    return false;
+  }
+  return minTotalDays <= maxTotalDays;
+};
+
+const buildTransferSearchDraftFields = (
+  filters: TransferSearchFilters
+): TransferSearchDraftFields => ({
+  ageMinYears: filters.ageMinYears,
+  ageMinDays: filters.ageMinDays,
+  ageMaxYears: filters.ageMaxYears,
+  ageMaxDays: filters.ageMaxDays,
+  tsiMin: filters.tsiMin,
+  tsiMax: filters.tsiMax,
+  priceMinEur: filters.priceMinEur,
+  priceMaxEur: filters.priceMaxEur,
+});
+
+const resolveValidatedTransferSearchDraftFilters = (
+  filters: TransferSearchFilters,
+  drafts: TransferSearchDraftFields
+): TransferSearchFilters | null => {
+  const nextFilters = { ...filters, ...drafts };
+  const ageValues = [
+    nextFilters.ageMinYears,
+    nextFilters.ageMinDays,
+    nextFilters.ageMaxYears,
+    nextFilters.ageMaxDays,
+  ];
+  if (!ageValues.every((value) => /^\d+$/.test(value))) return null;
+  if (
+    !isTransferSearchAgeDraftValid(filters, {
+      ageMinYears: nextFilters.ageMinYears,
+      ageMinDays: nextFilters.ageMinDays,
+      ageMaxYears: nextFilters.ageMaxYears,
+      ageMaxDays: nextFilters.ageMaxDays,
+    })
+  ) {
+    return null;
+  }
+  if (
+    !isTransferSearchRangeDraftValid(nextFilters.tsiMin, nextFilters.tsiMax) ||
+    !isTransferSearchRangeDraftValid(
+      nextFilters.priceMinEur,
+      nextFilters.priceMaxEur
+    )
+  ) {
+    return null;
+  }
+  return nextFilters;
+};
+
 export const ageToTotalDays = (years: number, days: number) =>
   Math.max(0, years) * HATTRICK_AGE_DAYS_PER_YEAR + Math.max(0, days);
 
@@ -443,15 +574,25 @@ export const clampTransferSkillValue = (
 export const normalizeTransferSearchFilters = (
   filters: TransferSearchFilters
 ): TransferSearchFilters => {
-  const ageMinYears = Math.max(0, Math.round(filters.ageMinYears));
+  const parseAgeInteger = (value: unknown, fallback: number) => {
+    const parsed = Number.parseInt(String(value ?? "").trim(), 10);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+  const ageMinYears = Math.max(
+    0,
+    Math.round(parseAgeInteger(filters.ageMinYears, TRANSFER_SEARCH_MIN_AGE_YEARS))
+  );
   const ageMinDays = Math.min(
     HATTRICK_AGE_DAYS_PER_YEAR - 1,
-    Math.max(0, Math.round(filters.ageMinDays))
+    Math.max(0, Math.round(parseAgeInteger(filters.ageMinDays, 0)))
   );
-  const ageMaxYears = Math.max(0, Math.round(filters.ageMaxYears));
+  const ageMaxYears = Math.max(
+    0,
+    Math.round(parseAgeInteger(filters.ageMaxYears, TRANSFER_SEARCH_MIN_AGE_YEARS))
+  );
   const ageMaxDays = Math.min(
     HATTRICK_AGE_DAYS_PER_YEAR - 1,
-    Math.max(0, Math.round(filters.ageMaxDays))
+    Math.max(0, Math.round(parseAgeInteger(filters.ageMaxDays, 0)))
   );
   const minAgeTotal = Math.max(
     TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS,
@@ -476,24 +617,24 @@ export const normalizeTransferSearchFilters = (
         max: Math.min(normalizedMax, normalizedMin + TRANSFER_SEARCH_MAX_SKILL_SPAN),
       };
     }),
-    ageMinYears: normalizedMinAge.years,
-    ageMinDays: normalizedMinAge.days,
-    ageMaxYears: normalizedMaxAge.years,
-    ageMaxDays: normalizedMaxAge.days,
-    tsiMin: filters.tsiMin.trim(),
-    tsiMax: filters.tsiMax.trim(),
-    priceMinEur: filters.priceMinEur.trim(),
-    priceMaxEur: filters.priceMaxEur.trim(),
+    ageMinYears: String(normalizedMinAge.years),
+    ageMinDays: String(normalizedMinAge.days),
+    ageMaxYears: String(normalizedMaxAge.years),
+    ageMaxDays: String(normalizedMaxAge.days),
+    tsiMin: String(filters.tsiMin ?? "").trim(),
+    tsiMax: String(filters.tsiMax ?? "").trim(),
+    priceMinEur: String(filters.priceMinEur ?? "").trim(),
+    priceMaxEur: String(filters.priceMaxEur ?? "").trim(),
   };
 };
 
 export const buildTransferSearchParams = (filters: TransferSearchFilters) => {
   const normalized = normalizeTransferSearchFilters(filters);
   const params = new URLSearchParams({
-    ageMin: String(normalized.ageMinYears),
-    ageDaysMin: String(normalized.ageMinDays),
-    ageMax: String(normalized.ageMaxYears),
-    ageDaysMax: String(normalized.ageMaxDays),
+    ageMin: normalized.ageMinYears,
+    ageDaysMin: normalized.ageMinDays,
+    ageMax: normalized.ageMaxYears,
+    ageDaysMax: normalized.ageMaxDays,
     pageSize: String(TRANSFER_SEARCH_PAGE_SIZE),
     pageIndex: "0",
   });
@@ -989,10 +1130,26 @@ const TransferSearchModal = memo(function TransferSearchModal({
   renderResultCard,
   onClose,
 }: TransferSearchModalProps) {
+  const filtersDraftKey = filters
+    ? JSON.stringify(buildTransferSearchDraftFields(filters))
+    : "null";
   const [mobilePanel, setMobilePanel] = useState<TransferSearchMobilePanel>("results");
   const [tableSortColumn, setTableSortColumn] = useState<string>("htms");
   const [tableSortDirection, setTableSortDirection] =
     useState<TransferSearchTableSortDirection>("best");
+  const [draftState, setDraftState] = useState<{
+    baseKey: string;
+    fields: TransferSearchDraftFields | null;
+  }>({
+    baseKey: filtersDraftKey,
+    fields: filters ? buildTransferSearchDraftFields(filters) : null,
+  });
+  const draftFields =
+    draftState.baseKey === filtersDraftKey
+      ? draftState.fields
+      : filters
+        ? buildTransferSearchDraftFields(filters)
+        : null;
   const [countryMetaById, setCountryMetaById] = useState<Record<number, TransferSearchCountryMeta>>(
     {}
   );
@@ -1000,6 +1157,51 @@ const TransferSearchModal = memo(function TransferSearchModal({
     () => buildTransferSearchMarketSummary(results),
     [results]
   );
+
+  const updateDraftField = useCallback(
+    <K extends keyof TransferSearchDraftFields>(key: K, value: TransferSearchDraftFields[K]) => {
+      setDraftState((prev) => {
+        const baseFields =
+          prev.baseKey === filtersDraftKey
+            ? prev.fields
+            : filters
+              ? buildTransferSearchDraftFields(filters)
+              : null;
+        return baseFields
+          ? {
+              baseKey: filtersDraftKey,
+              fields: {
+                ...baseFields,
+                [key]: value,
+              },
+            }
+          : prev;
+      });
+    },
+    [filters, filtersDraftKey]
+  );
+
+  const commitDraftFields = useCallback(() => {
+    if (!filters || !draftFields) return null;
+    const validated = resolveValidatedTransferSearchDraftFilters(filters, draftFields);
+    if (!validated) {
+      setDraftState({
+        baseKey: filtersDraftKey,
+        fields: buildTransferSearchDraftFields(filters),
+      });
+      return null;
+    }
+    (Object.keys(draftFields) as Array<keyof TransferSearchDraftFields>).forEach((key) => {
+      if (validated[key] !== filters[key]) {
+        onUpdateFilterField(key, validated[key]);
+      }
+    });
+    setDraftState({
+      baseKey: JSON.stringify(buildTransferSearchDraftFields(validated)),
+      fields: buildTransferSearchDraftFields(validated),
+    });
+    return validated;
+  }, [draftFields, filters, filtersDraftKey, onUpdateFilterField]);
   useEffect(() => {
     const countryIds = Array.from(
       new Set(
@@ -1684,60 +1886,82 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     <span className={styles.infoLabel}>{messages.seniorTransferSearchMinLabel}</span>
                     <input
                       className={styles.transferSearchInput}
-                      type="number"
-                      min={TRANSFER_SEARCH_MIN_AGE_YEARS}
-                      value={filters.ageMinYears}
-                      onChange={(event) =>
-                        onUpdateFilterField(
-                          "ageMinYears",
-                          Number.parseInt(event.target.value, 10) || TRANSFER_SEARCH_MIN_AGE_YEARS
-                        )
-                      }
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={draftFields?.ageMinYears ?? ""}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        if (!isTransferSearchDigitsInput(nextValue)) return;
+                        updateDraftField("ageMinYears", nextValue);
+                      }}
+                      onBlur={() => {
+                        void commitDraftFields();
+                      }}
                       disabled={loading}
                     />
                     <span className={styles.muted}>{messages.yearsLabel}</span>
                     <input
                       className={styles.transferSearchInput}
-                      type="number"
-                      min={0}
-                      max={HATTRICK_AGE_DAYS_PER_YEAR - 1}
-                      value={filters.ageMinDays}
-                      onChange={(event) =>
-                        onUpdateFilterField(
-                          "ageMinDays",
-                          Number.parseInt(event.target.value, 10) || 0
-                        )
-                      }
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={draftFields?.ageMinDays ?? ""}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        if (
+                          !isTransferSearchDigitsInput(nextValue, {
+                            maxValue: HATTRICK_AGE_DAYS_PER_YEAR - 1,
+                          })
+                        ) {
+                          return;
+                        }
+                        updateDraftField("ageMinDays", nextValue);
+                      }}
+                      onBlur={() => {
+                        void commitDraftFields();
+                      }}
                       disabled={loading}
                     />
                     <span className={styles.muted}>{messages.daysLabel}</span>
                     <span className={styles.infoLabel}>{messages.seniorTransferSearchMaxLabel}</span>
                     <input
                       className={styles.transferSearchInput}
-                      type="number"
-                      min={TRANSFER_SEARCH_MIN_AGE_YEARS}
-                      value={filters.ageMaxYears}
-                      onChange={(event) =>
-                        onUpdateFilterField(
-                          "ageMaxYears",
-                          Number.parseInt(event.target.value, 10) || TRANSFER_SEARCH_MIN_AGE_YEARS
-                        )
-                      }
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={draftFields?.ageMaxYears ?? ""}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        if (!isTransferSearchDigitsInput(nextValue)) return;
+                        updateDraftField("ageMaxYears", nextValue);
+                      }}
+                      onBlur={() => {
+                        void commitDraftFields();
+                      }}
                       disabled={loading}
                     />
                     <span className={styles.muted}>{messages.yearsLabel}</span>
                     <input
                       className={styles.transferSearchInput}
-                      type="number"
-                      min={0}
-                      max={HATTRICK_AGE_DAYS_PER_YEAR - 1}
-                      value={filters.ageMaxDays}
-                      onChange={(event) =>
-                        onUpdateFilterField(
-                          "ageMaxDays",
-                          Number.parseInt(event.target.value, 10) || 0
-                        )
-                      }
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={draftFields?.ageMaxDays ?? ""}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        if (
+                          !isTransferSearchDigitsInput(nextValue, {
+                            maxValue: HATTRICK_AGE_DAYS_PER_YEAR - 1,
+                          })
+                        ) {
+                          return;
+                        }
+                        updateDraftField("ageMaxDays", nextValue);
+                      }}
+                      onBlur={() => {
+                        void commitDraftFields();
+                      }}
                       disabled={loading}
                     />
                     <span className={styles.muted}>{messages.daysLabel}</span>
@@ -1749,20 +1973,36 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   <div className={styles.transferSearchSimpleRange}>
                     <input
                       className={styles.transferSearchInput}
-                      type="number"
-                      min="0"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       placeholder={messages.seniorTransferSearchMinLabel}
-                      value={filters.tsiMin}
-                      onChange={(event) => onUpdateFilterField("tsiMin", event.target.value)}
+                      value={draftFields?.tsiMin ?? ""}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        if (!isTransferSearchDigitsInput(nextValue)) return;
+                        updateDraftField("tsiMin", nextValue);
+                      }}
+                      onBlur={() => {
+                        void commitDraftFields();
+                      }}
                       disabled={loading}
                     />
                     <input
                       className={styles.transferSearchInput}
-                      type="number"
-                      min="0"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       placeholder={messages.seniorTransferSearchMaxLabel}
-                      value={filters.tsiMax}
-                      onChange={(event) => onUpdateFilterField("tsiMax", event.target.value)}
+                      value={draftFields?.tsiMax ?? ""}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        if (!isTransferSearchDigitsInput(nextValue)) return;
+                        updateDraftField("tsiMax", nextValue);
+                      }}
+                      onBlur={() => {
+                        void commitDraftFields();
+                      }}
                       disabled={loading}
                     />
                   </div>
@@ -1773,24 +2013,36 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   <div className={styles.transferSearchSimpleRange}>
                     <input
                       className={styles.transferSearchInput}
-                      type="number"
-                      min="0"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       placeholder={`${messages.seniorTransferSearchMinLabel} (EUR)`}
-                      value={filters.priceMinEur}
-                      onChange={(event) =>
-                        onUpdateFilterField("priceMinEur", event.target.value)
-                      }
+                      value={draftFields?.priceMinEur ?? ""}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        if (!isTransferSearchDigitsInput(nextValue)) return;
+                        updateDraftField("priceMinEur", nextValue);
+                      }}
+                      onBlur={() => {
+                        void commitDraftFields();
+                      }}
                       disabled={loading}
                     />
                     <input
                       className={styles.transferSearchInput}
-                      type="number"
-                      min="0"
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
                       placeholder={`${messages.seniorTransferSearchMaxLabel} (EUR)`}
-                      value={filters.priceMaxEur}
-                      onChange={(event) =>
-                        onUpdateFilterField("priceMaxEur", event.target.value)
-                      }
+                      value={draftFields?.priceMaxEur ?? ""}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        if (!isTransferSearchDigitsInput(nextValue)) return;
+                        updateDraftField("priceMaxEur", nextValue);
+                      }}
+                      onBlur={() => {
+                        void commitDraftFields();
+                      }}
                       disabled={loading}
                     />
                   </div>
@@ -1800,7 +2052,11 @@ const TransferSearchModal = memo(function TransferSearchModal({
                   <button
                     type="button"
                     className={styles.confirmSubmit}
-                    onClick={() => onSearch(filters)}
+                    onClick={() => {
+                      const committedFilters = commitDraftFields();
+                      if (!committedFilters) return;
+                      onSearch(committedFilters);
+                    }}
                     disabled={loading}
                   >
                     {messages.seniorTransferSearchSearchButton}

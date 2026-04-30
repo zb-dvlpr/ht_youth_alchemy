@@ -61,6 +61,11 @@ type LineupFieldProps = {
   onMove?: (fromSlot: string, toSlot: string) => void;
   onSelectPlayer?: (playerId: number) => void | Promise<void>;
   onEmptySlotSelect?: (slotId: string) => void;
+  emptySlotPickerOptions?: (slotId: string) => Array<{
+    playerId: number;
+    label: string;
+    meta?: string | null;
+  }>;
   onChangeBehavior?: (slotId: string, behavior: number) => void;
   onRandomize?: () => void;
   onReset?: () => void;
@@ -75,6 +80,7 @@ type LineupFieldProps = {
   trainingTypeSetPending?: boolean;
   trainingTypeSetPendingValue?: number | null;
   trainingTypePlacement?: "headerRight" | "fieldTopLeft";
+  titleNote?: string;
   trainingTypeOptions?: number[];
   trainingTypeLabelForValue?: (value: number) => string;
   trainingTypeSectionTitleForValue?: (value: number) => string | null;
@@ -384,6 +390,30 @@ function specialtyName(value: number | undefined, messages: Messages) {
   }
 }
 
+const EMPTY_SLOT_PICKER_TITLE_BY_SLOT: Record<string, keyof Messages> = {
+  KP: "posKeeperFull",
+  WB_L: "lineupSlotLeftWingBack",
+  CD_L: "lineupSlotLeftCentralDefender",
+  CD_C: "lineupSlotCentralDefender",
+  CD_R: "lineupSlotRightCentralDefender",
+  WB_R: "lineupSlotRightWingBack",
+  W_L: "lineupSlotLeftWinger",
+  IM_L: "lineupSlotLeftInnerMidfield",
+  IM_C: "lineupSlotCentralInnerMidfield",
+  IM_R: "lineupSlotRightInnerMidfield",
+  W_R: "lineupSlotRightWinger",
+  F_L: "lineupSlotLeftForward",
+  F_C: "lineupSlotCentralForward",
+  F_R: "lineupSlotRightForward",
+  B_GK: "lineupSlotBenchKeeper",
+  B_CD: "lineupSlotBenchCentralDefender",
+  B_WB: "lineupSlotBenchWingBack",
+  B_IM: "lineupSlotBenchInnerMidfield",
+  B_F: "lineupSlotBenchForward",
+  B_W: "lineupSlotBenchWinger",
+  B_X: "lineupSlotBenchExtra",
+};
+
 export default function LineupField({
   assignments,
   behaviors,
@@ -406,6 +436,7 @@ export default function LineupField({
   trainingTypeSetPending = false,
   trainingTypeSetPendingValue = null,
   trainingTypePlacement = "headerRight",
+  titleNote,
   trainingTypeOptions = [],
   trainingTypeLabelForValue,
   trainingTypeSectionTitleForValue,
@@ -427,15 +458,25 @@ export default function LineupField({
   maxSkillLevel = MAX_SKILL_LEVEL,
   onSelectPlayer,
   onEmptySlotSelect,
+  emptySlotPickerOptions,
   messages,
   allowExternalPlayerDrop = true,
 }: LineupFieldProps) {
   const [optimizeOpen, setOptimizeOpen] = useState(false);
   const [trainingMenuOpen, setTrainingMenuOpen] = useState(false);
+  const [emptySlotPickerSlotId, setEmptySlotPickerSlotId] = useState<string | null>(
+    null
+  );
+  const [emptySlotPickerPosition, setEmptySlotPickerPosition] = useState<{
+    left: number;
+    top: number;
+  } | null>(null);
   const optimizeButtonRef = useRef<HTMLButtonElement | null>(null);
   const optimizeMenuRef = useRef<HTMLDivElement | null>(null);
   const trainingButtonRef = useRef<HTMLButtonElement | null>(null);
   const trainingMenuRef = useRef<HTMLDivElement | null>(null);
+  const emptySlotPickerMenuRef = useRef<HTMLDivElement | null>(null);
+  const slotRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const isDragActive = useRef(false);
   const suppressClickRef = useRef(false);
   const touchDragRef = useRef<{
@@ -457,7 +498,7 @@ export default function LineupField({
   } | null>(null);
 
   useEffect(() => {
-    if (!optimizeOpen && !trainingMenuOpen) return;
+    if (!optimizeOpen && !trainingMenuOpen && !emptySlotPickerSlotId) return;
     const handleClick = (event: MouseEvent) => {
       const target = event.target as Node | null;
       if (optimizeOpen) {
@@ -468,12 +509,18 @@ export default function LineupField({
         if (trainingButtonRef.current?.contains(target ?? null)) return;
         if (trainingMenuRef.current?.contains(target ?? null)) return;
       }
+      if (emptySlotPickerSlotId) {
+        if (emptySlotPickerMenuRef.current?.contains(target ?? null)) return;
+        const pickerSlot = slotRefs.current[emptySlotPickerSlotId];
+        if (pickerSlot?.contains(target ?? null)) return;
+      }
       if (optimizeOpen && !forceOptimizeOpen) setOptimizeOpen(false);
       if (trainingMenuOpen) setTrainingMenuOpen(false);
+      if (emptySlotPickerSlotId) setEmptySlotPickerSlotId(null);
     };
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
-  }, [optimizeOpen, trainingMenuOpen, forceOptimizeOpen]);
+  }, [optimizeOpen, trainingMenuOpen, emptySlotPickerSlotId, forceOptimizeOpen]);
 
   useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
@@ -531,6 +578,29 @@ export default function LineupField({
     };
   }, [onMove]);
 
+  useEffect(() => {
+    if (!emptySlotPickerSlotId) return;
+    const anchor = slotRefs.current[emptySlotPickerSlotId];
+    if (!anchor) return;
+    const updatePosition = () => {
+      const rect = anchor.getBoundingClientRect();
+      setEmptySlotPickerPosition({
+        left: Math.min(
+          Math.max(12, rect.left),
+          Math.max(12, window.innerWidth - 332)
+        ),
+        top: Math.min(rect.bottom + 8, Math.max(12, window.innerHeight - 24)),
+      });
+    };
+    updatePosition();
+    window.addEventListener("resize", updatePosition);
+    window.addEventListener("scroll", updatePosition, true);
+    return () => {
+      window.removeEventListener("resize", updatePosition);
+      window.removeEventListener("scroll", updatePosition, true);
+    };
+  }, [emptySlotPickerSlotId]);
+
   const menuOpen = forceOptimizeOpen || optimizeOpen;
   const revealPlayerLabel = optimizeStarPlayerName ?? messages.unknownShort;
   const revealPrimaryLabel = optimizePrimaryTrainingName ?? messages.trainingUnset;
@@ -568,6 +638,13 @@ export default function LineupField({
   const showHeaderTrainingType = Boolean(
     showTrainingTypeControl && !showFieldTopLeftTrainingType
   );
+  const emptySlotPickerItems = emptySlotPickerSlotId
+    ? emptySlotPickerOptions?.(emptySlotPickerSlotId) ?? []
+    : [];
+  const emptySlotPickerTitle =
+    emptySlotPickerSlotId && EMPTY_SLOT_PICKER_TITLE_BY_SLOT[emptySlotPickerSlotId]
+      ? messages[EMPTY_SLOT_PICKER_TITLE_BY_SLOT[emptySlotPickerSlotId]]
+      : messages.mobileYouthLineupPickerTitle;
 
   const renderTacticControl = (className?: string) => (
     <label className={`${styles.tacticOverlay}${className ? ` ${className}` : ""}`}>
@@ -871,11 +948,35 @@ export default function LineupField({
     event.preventDefault();
   };
 
+  const openEmptySlotPicker = (
+    slotId: string,
+    event: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>
+  ) => {
+    if (!emptySlotPickerOptions) {
+      onEmptySlotSelect?.(slotId);
+      return;
+    }
+    const target = event.currentTarget as HTMLDivElement;
+    slotRefs.current[slotId] = target;
+    const rect = target.getBoundingClientRect();
+    setEmptySlotPickerPosition({
+      left: Math.min(
+        Math.max(12, rect.left),
+        Math.max(12, window.innerWidth - 332)
+      ),
+      top: Math.min(rect.bottom + 8, Math.max(12, window.innerHeight - 24)),
+    });
+    setEmptySlotPickerSlotId(slotId);
+  };
+
   return (
     <>
     <div className={styles.fieldCard}>
       <div className={styles.fieldHeader}>
-        <span>{messages.lineupTitle}</span>
+        <div className={styles.fieldHeaderTitleGroup}>
+          <span>{messages.lineupTitle}</span>
+          {titleNote ? <span className={styles.fieldHeaderNote}>{titleNote}</span> : null}
+        </div>
         <div className={styles.fieldHeaderControls}>
           {onTacticChange && !showBottomRightTactic && !showFieldTopLeftTactic
             ? renderTacticControl()
@@ -1074,11 +1175,14 @@ export default function LineupField({
                     isHalfOnly ? styles.trainedHalf : ""
                   } ${behaviorValue ? styles.fieldSlotHasBehavior : ""}`}
                   data-lineup-slot-id={position.id}
+                  ref={(node) => {
+                    slotRefs.current[position.id] = node;
+                  }}
                   onDrop={(event) => handleDrop(position.id, event)}
                   onDragOver={handleDragOver}
-                  onClick={() => {
+                  onClick={(event) => {
                     if (assignedPlayer) return;
-                    onEmptySlotSelect?.(position.id);
+                    openEmptySlotPicker(position.id, event);
                   }}
                 >
                   {assignedPlayer && behaviorOptions.length ? (
@@ -1327,11 +1431,14 @@ export default function LineupField({
               <div
                 className={styles.fieldSlot}
                 data-lineup-slot-id={slot.id}
+                ref={(node) => {
+                  slotRefs.current[slot.id] = node;
+                }}
                 onDrop={(event) => handleDrop(slot.id, event)}
                 onDragOver={handleDragOver}
-                onClick={() => {
+                onClick={(event) => {
                   if (assignedPlayer) return;
-                  onEmptySlotSelect?.(slot.id);
+                  openEmptySlotPicker(slot.id, event);
                 }}
               >
                 {assignedPlayer ? (
@@ -1494,6 +1601,49 @@ export default function LineupField({
         })}
       </div>
     </div>
+    {emptySlotPickerSlotId && emptySlotPickerPosition ? (
+      <div
+        ref={emptySlotPickerMenuRef}
+        className={styles.lineupSlotPickerDropdown}
+        style={{
+          left: `${emptySlotPickerPosition.left}px`,
+          top: `${emptySlotPickerPosition.top}px`,
+        }}
+        role="menu"
+      >
+        <div className={styles.lineupSlotPickerTitle}>{emptySlotPickerTitle}</div>
+        {emptySlotPickerItems.length ? (
+          <div className={styles.lineupSlotPickerList}>
+            {emptySlotPickerItems.map((option) => (
+              <button
+                key={option.playerId}
+                type="button"
+                className={styles.lineupSlotPickerOption}
+                role="menuitem"
+                onClick={() => {
+                  if (!emptySlotPickerSlotId) return;
+                  onAssign(emptySlotPickerSlotId, option.playerId);
+                  setEmptySlotPickerSlotId(null);
+                }}
+              >
+                <span className={styles.lineupSlotPickerOptionLabel}>
+                  {option.label}
+                </span>
+                {option.meta ? (
+                  <span className={styles.lineupSlotPickerOptionMeta}>
+                    {option.meta}
+                  </span>
+                ) : null}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className={styles.lineupSlotPickerEmpty}>
+            {messages.mobileYouthLineupPickerEmpty}
+          </p>
+        )}
+      </div>
+    ) : null}
     {touchDragGhost?.visible ? (
       <div
         className={`${styles.dragGhost} ${styles.touchDragGhost}`}

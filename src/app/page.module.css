@@ -511,6 +511,74 @@ html[data-mobile-shell="true"] .scaleContainer {
   color: #7a6447;
 }
 
+.lineupSlotPickerDropdown {
+  position: fixed;
+  z-index: 1200;
+  width: min(320px, calc(100vw - 24px));
+  max-height: min(52vh, 420px);
+  overflow: hidden;
+  border: 1px solid rgba(151, 125, 84, 0.22);
+  border-radius: 16px;
+  background: rgba(255, 251, 245, 0.98);
+  box-shadow: 0 18px 36px rgba(47, 34, 18, 0.24);
+  backdrop-filter: blur(12px);
+}
+
+.lineupSlotPickerTitle {
+  padding: 12px 14px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #6b5138;
+  border-bottom: 1px solid rgba(151, 125, 84, 0.14);
+}
+
+.lineupSlotPickerList {
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  max-height: min(44vh, 350px);
+  overflow: auto;
+}
+
+.lineupSlotPickerOption {
+  width: 100%;
+  border: 1px solid rgba(151, 125, 84, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  text-align: left;
+  color: #352c24;
+}
+
+.lineupSlotPickerOption:hover {
+  border-color: rgba(83, 114, 60, 0.36);
+  background: rgba(247, 250, 239, 0.98);
+}
+
+.lineupSlotPickerOptionLabel {
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.lineupSlotPickerOptionMeta {
+  font-size: 12px;
+  color: #7a6447;
+  white-space: nowrap;
+}
+
+.lineupSlotPickerEmpty {
+  margin: 0;
+  padding: 14px;
+  font-size: 13px;
+  color: #6b6256;
+}
+
 .mobileYouthRefreshStatus {
   display: grid;
   gap: 6px;
@@ -4529,6 +4597,33 @@ html[data-theme="dark"] .mobileYouthLineupPickerOption {
 }
 
 html[data-theme="dark"] .mobileYouthLineupPickerMeta {
+  color: #cfb692;
+}
+
+html[data-theme="dark"] .lineupSlotPickerDropdown {
+  background: rgba(39, 33, 26, 0.98);
+  border-color: rgba(230, 199, 146, 0.14);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.34);
+}
+
+html[data-theme="dark"] .lineupSlotPickerTitle {
+  color: #d8b98b;
+  border-bottom-color: rgba(230, 199, 146, 0.12);
+}
+
+html[data-theme="dark"] .lineupSlotPickerOption {
+  background: rgba(53, 45, 35, 0.98);
+  border-color: rgba(230, 199, 146, 0.14);
+  color: #efe4d8;
+}
+
+html[data-theme="dark"] .lineupSlotPickerOption:hover {
+  background: rgba(67, 58, 46, 0.98);
+  border-color: rgba(214, 196, 128, 0.3);
+}
+
+html[data-theme="dark"] .lineupSlotPickerOptionMeta,
+html[data-theme="dark"] .lineupSlotPickerEmpty {
   color: #cfb692;
 }
 
@@ -9458,6 +9553,20 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.fieldHeaderTitleGroup {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.fieldHeaderNote {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(247, 241, 227, 0.8);
+  letter-spacing: 0.02em;
 }
 
 .fieldHeaderControls {

@@ -76,6 +76,8 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    changelog_4_13_0:
+      "As escalacoes juvenil e senior agora recomendam jogadores ordenados por adequacao ao clicar em espacos vazios.",
     changelog_4_12_0:
       "Club Chronicle now includes a Team Attitude panel that flags likely PIC and MOTS matches.",
     changelog_4_11_0:

@@ -203,6 +203,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_13_0:
+    "Jeugd- en senioropstellingen bevelen nu gerangschikte spelers aan wanneer je op lege posities klikt.",
   changelog_4_12_0:
       "Club Chronicle now includes a Team Attitude panel that flags likely PIC and MOTS matches.",
   changelog_4_11_0:

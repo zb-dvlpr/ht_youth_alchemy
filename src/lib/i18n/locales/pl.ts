@@ -196,6 +196,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_13_0:
+    "W skladach juniorow i seniorow klikniecie pustego pola pokazuje teraz zawodnikow uszeregowanych wedlug przydatnosci.",
   changelog_4_12_0:
       "Club Chronicle now includes a Team Attitude panel that flags likely PIC and MOTS matches.",
   changelog_4_11_0:

@@ -76,6 +76,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_13_0:
+      "Ungdoms- och senioruppstallningar rekommenderar nu rangordnade spelare nar du klickar pa tomma platser.",
     changelog_4_12_0:
       "Club Chronicle now includes a Team Attitude panel that flags likely PIC and MOTS matches.",
     changelog_4_11_0:

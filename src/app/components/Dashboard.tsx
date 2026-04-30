@@ -1626,6 +1626,20 @@ export default function Dashboard({
     }
     return "ya_dashboard_state_v2";
   }, [activeYouthTeamId, multiTeamEnabled]);
+  const lastRefreshStorageKey = useMemo(() => {
+    if (multiTeamEnabled && activeYouthTeamId) {
+      return `${LAST_REFRESH_STORAGE_KEY}_${activeYouthTeamId}`;
+    }
+    return LAST_REFRESH_STORAGE_KEY;
+  }, [activeYouthTeamId, multiTeamEnabled]);
+  const readScopedLastRefreshTimestamp = useCallback(
+    () => readLastRefreshTimestamp(lastRefreshStorageKey),
+    [lastRefreshStorageKey]
+  );
+  const writeScopedLastRefreshTimestamp = useCallback(
+    (value: number) => writeLastRefreshTimestamp(value, lastRefreshStorageKey),
+    [lastRefreshStorageKey]
+  );
 
 
   const playerDetailsById = useMemo(() => {
@@ -2905,14 +2919,14 @@ export default function Dashboard({
     if (typeof window === "undefined") return;
     setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
     setStalenessDays(readYouthStalenessDays());
-    setLastGlobalRefreshAt(readLastRefreshTimestamp());
+    setLastGlobalRefreshAt(readScopedLastRefreshTimestamp());
     const handle = (event: Event) => {
       if (event instanceof StorageEvent) {
         if (
           event.key &&
           event.key !== ALGORITHM_SETTINGS_STORAGE_KEY &&
           event.key !== YOUTH_SETTINGS_STORAGE_KEY &&
-          event.key !== LAST_REFRESH_STORAGE_KEY
+          event.key !== lastRefreshStorageKey
         ) {
           return;
         }
@@ -2929,7 +2943,7 @@ export default function Dashboard({
       }
       setAllowTrainingUntilMaxedOut(readAllowTrainingUntilMaxedOut());
       setStalenessDays(readYouthStalenessDays());
-      setLastGlobalRefreshAt(readLastRefreshTimestamp());
+      setLastGlobalRefreshAt(readScopedLastRefreshTimestamp());
     };
     window.addEventListener("storage", handle);
     window.addEventListener(ALGORITHM_SETTINGS_EVENT, handle);
@@ -2939,19 +2953,19 @@ export default function Dashboard({
       window.removeEventListener(ALGORITHM_SETTINGS_EVENT, handle);
       window.removeEventListener(YOUTH_SETTINGS_EVENT, handle);
     };
-  }, []);
+  }, [lastRefreshStorageKey, readScopedLastRefreshTimestamp]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setLastGlobalRefreshAt(readScopedLastRefreshTimestamp());
+  }, [readScopedLastRefreshTimestamp]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!isConnected) return;
     if (restoredStorageKey !== storageKey) return;
-    const lastRefresh = readLastRefreshTimestamp();
+    const lastRefresh = readScopedLastRefreshTimestamp();
     if (!lastRefresh) {
-      if (playerList.length > 0) {
-        const fallback = Date.now();
-        writeLastRefreshTimestamp(fallback);
-        setLastGlobalRefreshAt(fallback);
-      }
       return;
     }
     const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
@@ -2981,13 +2995,8 @@ export default function Dashboard({
 
     const maybeRunStaleRefresh = () => {
       if (document.visibilityState !== "visible") return;
-      const lastRefresh = readLastRefreshTimestamp();
+      const lastRefresh = readScopedLastRefreshTimestamp();
       if (!lastRefresh) {
-        if (playerList.length > 0) {
-          const fallback = Date.now();
-          writeLastRefreshTimestamp(fallback);
-          setLastGlobalRefreshAt(fallback);
-        }
         return;
       }
       const maxAgeMs = stalenessDays * 24 * 60 * 60 * 1000;
@@ -3022,6 +3031,7 @@ export default function Dashboard({
     activeYouthTeamId,
     isConnected,
     playersLoading,
+    readScopedLastRefreshTimestamp,
     restoredStorageKey,
     storageKey,
   ]);
@@ -6040,7 +6050,7 @@ export default function Dashboard({
         (refreshAll ? matchesOk && ratingsOk : options?.recordRefresh)
       ) {
         const refreshedAt = Date.now();
-        writeLastRefreshTimestamp(refreshedAt);
+        writeScopedLastRefreshTimestamp(refreshedAt);
         setLastGlobalRefreshAt(refreshedAt);
       }
       if (playersUpdated) {
@@ -6169,7 +6179,7 @@ export default function Dashboard({
     setHiddenSpecialtyDiscoveredMatchByPlayerId({});
     setAnalyzedRatingsMatchIds([]);
     if (nextTeamId) {
-      refreshPlayers(nextTeamId, { recordRefresh: true });
+      refreshPlayers(nextTeamId);
       refreshMatches(nextTeamId);
       const teamName =
         youthTeams.find((team) => team.youthTeamId === nextTeamId)

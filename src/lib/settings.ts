@@ -412,10 +412,12 @@ export function writeSeniorDebugManagerUserId(value: string) {
   }
 }
 
-export function readLastRefreshTimestamp(): number | null {
+export function readLastRefreshTimestamp(
+  storageKey = LAST_REFRESH_STORAGE_KEY
+): number | null {
   if (typeof window === "undefined") return null;
   try {
-    const stored = window.localStorage.getItem(LAST_REFRESH_STORAGE_KEY);
+    const stored = window.localStorage.getItem(storageKey);
     if (!stored) return null;
     const value = Number(stored);
     return Number.isFinite(value) ? value : null;
@@ -424,10 +426,13 @@ export function readLastRefreshTimestamp(): number | null {
   }
 }
 
-export function writeLastRefreshTimestamp(value: number) {
+export function writeLastRefreshTimestamp(
+  value: number,
+  storageKey = LAST_REFRESH_STORAGE_KEY
+) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(LAST_REFRESH_STORAGE_KEY, String(value));
+    window.localStorage.setItem(storageKey, String(value));
   } catch {
     // ignore storage errors
   }

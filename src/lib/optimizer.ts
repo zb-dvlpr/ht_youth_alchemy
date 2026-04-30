@@ -496,7 +496,7 @@ function benchTrainingSkills(
   slot: BenchSlotId,
   primary: SkillKey | null,
   secondary: SkillKey | null
-) {
+): SkillKey[] {
   if (slot === "B_X") {
     return [primary, secondary].filter(Boolean) as SkillKey[];
   }

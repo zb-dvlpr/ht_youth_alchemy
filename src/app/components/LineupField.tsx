@@ -60,6 +60,7 @@ type LineupFieldProps = {
   onClear: (slotId: string) => void;
   onMove?: (fromSlot: string, toSlot: string) => void;
   onSelectPlayer?: (playerId: number) => void | Promise<void>;
+  onEmptySlotSelect?: (slotId: string) => void;
   emptySlotPickerOptions?: (slotId: string) => Array<{
     playerId: number;
     label: string;
@@ -454,6 +455,7 @@ export default function LineupField({
   skillMode = "currentMax",
   maxSkillLevel = MAX_SKILL_LEVEL,
   onSelectPlayer,
+  onEmptySlotSelect,
   emptySlotPickerOptions,
   messages,
   allowExternalPlayerDrop = true,
@@ -948,7 +950,10 @@ export default function LineupField({
     slotId: string,
     event: React.MouseEvent<HTMLDivElement> | React.KeyboardEvent<HTMLDivElement>
   ) => {
-    if (!emptySlotPickerOptions) return;
+    if (!emptySlotPickerOptions) {
+      onEmptySlotSelect?.(slotId);
+      return;
+    }
     const target = event.currentTarget as HTMLDivElement;
     slotRefs.current[slotId] = target;
     const rect = target.getBoundingClientRect();

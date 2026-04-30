@@ -1162,6 +1162,7 @@ export type Messages = {
   matchStatusFinished: string;
   matchStatusOngoing: string;
   lineupTitle: string;
+  lineupEmptySlotRecommendationsHint: string;
   clearSlot: string;
   lastUpdated: string;
   yearsLabel: string;

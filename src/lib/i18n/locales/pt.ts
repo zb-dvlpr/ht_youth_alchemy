@@ -1431,6 +1431,8 @@ export const messagesPt: Messages = {
     matchStatusFinished: "Finalizado",
     matchStatusOngoing: "Em andamento",
     lineupTitle: "Escalação",
+    lineupEmptySlotRecommendationsHint:
+      "Clique nos espaços vazios para recomendações de jogadores",
     clearSlot: "Limpar",
     lastUpdated: "Última atualização",
     yearsLabel: "anos",

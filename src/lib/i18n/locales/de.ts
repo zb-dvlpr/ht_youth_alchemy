@@ -1415,6 +1415,8 @@ export const messagesDe: Messages = {
     matchStatusFinished: "Beendet",
     matchStatusOngoing: "Läuft",
     lineupTitle: "Aufstellung",
+    lineupEmptySlotRecommendationsHint:
+      "Klicke auf leere Positionen für Spielerempfehlungen",
     clearSlot: "Leeren",
     lastUpdated: "Zuletzt aktualisiert",
     yearsLabel: "Jahre",

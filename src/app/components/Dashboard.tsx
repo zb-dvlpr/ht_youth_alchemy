@@ -8167,6 +8167,7 @@ export default function Dashboard({
             void ensureDetails(playerId);
           }}
           emptySlotPickerOptions={youthEmptySlotPickerOptions}
+          titleNote={messages.lineupEmptySlotRecommendationsHint}
           messages={messages}
         />
         {isDev ? (

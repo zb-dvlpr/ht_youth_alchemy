@@ -1434,6 +1434,8 @@ export const messagesIt: Messages = {
     matchStatusFinished: "Finita",
     matchStatusOngoing: "In corso",
     lineupTitle: "Formazione",
+    lineupEmptySlotRecommendationsHint:
+      "Fai clic sugli slot vuoti per i consigli sui giocatori",
     clearSlot: "Svuota",
     lastUpdated: "Ultimo aggiornamento",
     yearsLabel: "anni",

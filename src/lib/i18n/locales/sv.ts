@@ -1423,6 +1423,8 @@ export const messagesSv: Messages = {
     matchStatusFinished: "Avslutad",
     matchStatusOngoing: "Pågående",
     lineupTitle: "Laguppställning",
+    lineupEmptySlotRecommendationsHint:
+      "Klicka på tomma platser för spelarrekommendationer",
     clearSlot: "Rensa",
     lastUpdated: "Senast uppdaterad",
     yearsLabel: "år",

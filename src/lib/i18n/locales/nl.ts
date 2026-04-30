@@ -764,6 +764,8 @@ export const messagesNl: Messages = {
   confirmCancel: "Annuleren",
   confirmSubmit: "Bevestigen",
   lineupTitle: "Opstelling",
+  lineupEmptySlotRecommendationsHint:
+    "Klik op lege posities voor spelersaanbevelingen",
   clearSlot: "Wissen",
   lastUpdated: "Laatst bijgewerkt",
   yearsLabel: "jaar",

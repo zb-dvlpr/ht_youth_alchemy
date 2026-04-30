@@ -2920,8 +2920,6 @@ export default function SeniorDashboard({
   });
   const [mobileSeniorLandscapeActive, setMobileSeniorLandscapeActive] =
     useState(false);
-  const [mobileSeniorLineupPickerSlotId, setMobileSeniorLineupPickerSlotId] =
-    useState<string | null>(null);
   const [mobileSeniorRefreshFeedbackVisible, setMobileSeniorRefreshFeedbackVisible] =
     useState(false);
   const [assignments, setAssignments] = useState<LineupAssignments>({});
@@ -10178,6 +10176,41 @@ const refreshDetailsForPlayers = async (
     });
     return map;
   }, [players]);
+  const seniorEmptySlotPickerOptions = useCallback(
+    (slotId: string) => {
+      const lineupSlot = slotId as keyof LineupAssignments;
+      const assignedPlayerIds = new Set(
+        Object.values(assignments).filter(
+          (playerId): playerId is number => typeof playerId === "number" && playerId > 0
+        )
+      );
+      const eligiblePlayers = players
+        .filter((player) => {
+          if (assignedPlayerIds.has(player.PlayerID)) return false;
+          const injuryLevel = seniorAiInjuryLevelForPlayer(player);
+          return typeof injuryLevel !== "number" || injuryLevel < 1;
+        })
+      return buildOrderedCandidatesForReusableAssignment(
+        eligiblePlayers,
+        lineupSlot,
+        ratingsByPlayerId
+      ).map((player) => ({
+          playerId: player.PlayerID,
+          label: formatPlayerName(player) || String(player.PlayerID),
+          meta:
+            typeof player.Age === "number"
+              ? `${player.Age}${messages.ageYearsShort}`
+              : messages.unknownShort,
+        }));
+    },
+    [
+      assignments,
+      messages.ageYearsShort,
+      messages.unknownShort,
+      players,
+      ratingsByPlayerId,
+    ]
+  );
   const formatDebugPlayerNames = (playerIds: number[]) =>
     playerIds.map((playerId) => playerNameById.get(playerId) ?? String(playerId)).join(", ");
   const opponentTrackedRoleLabel = (role: OpponentTrackedRole) =>
@@ -14825,20 +14858,6 @@ const refreshDetailsForPlayers = async (
     </span>
   ) : null;
 
-  const mobileSeniorLineupPickerPlayers = useMemo(
-    () =>
-      [...players]
-        .map((player) => ({
-          id: player.PlayerID,
-          name: formatPlayerName(player) || String(player.PlayerID),
-          age: typeof player.Age === "number" ? player.Age : null,
-        }))
-        .sort((left, right) =>
-          left.name.localeCompare(right.name, undefined, { sensitivity: "base" })
-        ),
-    [players]
-  );
-
   const seniorMobileDetailsPanel = (
     <PlayerDetailsPanel
       selectedPlayer={selectedPanelPlayer}
@@ -15646,7 +15665,7 @@ const refreshDetailsForPlayers = async (
             setSelectedId(playerId);
             void ensureDetails(playerId);
           }}
-          onEmptySlotSelect={setMobileSeniorLineupPickerSlotId}
+          emptySlotPickerOptions={seniorEmptySlotPickerOptions}
           skillMode="single"
           maxSkillLevel={20}
           allowExternalPlayerDrop={false}
@@ -17888,64 +17907,6 @@ const refreshDetailsForPlayers = async (
         onClose={() => setOpponentFormationsModal(null)}
       />
 
-      <Modal
-        open={Boolean(mobileSeniorLineupPickerSlotId)}
-        title={messages.mobileYouthLineupPickerTitle}
-        movable={false}
-        body={
-          mobileSeniorLineupPickerPlayers.length > 0 ? (
-            <div className={styles.mobileYouthLineupPickerList}>
-              {mobileSeniorLineupPickerPlayers.map((player) => (
-                <button
-                  key={player.id}
-                  type="button"
-                  className={styles.mobileYouthLineupPickerOption}
-                  onClick={() => {
-                    if (!mobileSeniorLineupPickerSlotId) return;
-                    const nextAssignments = { ...assignments };
-                    Object.keys(nextAssignments).forEach((key) => {
-                      if (nextAssignments[key] === player.id) {
-                        nextAssignments[key] = null;
-                      }
-                    });
-                    nextAssignments[mobileSeniorLineupPickerSlotId] = player.id;
-                    setAssignments(nextAssignments);
-                    preservePreparedSeniorAiContextAfterManualEdit(
-                      nextAssignments,
-                      behaviors,
-                      tacticType
-                    );
-                    setMobileSeniorLineupPickerSlotId(null);
-                  }}
-                >
-                  <span className={styles.mobileYouthLineupPickerName}>
-                    {player.name}
-                  </span>
-                  <span className={styles.mobileYouthLineupPickerMeta}>
-                    {player.age !== null
-                      ? `${player.age}${messages.ageYearsShort}`
-                      : messages.unknownShort}
-                  </span>
-                </button>
-              ))}
-            </div>
-          ) : (
-            <p className={styles.muted}>{messages.mobileYouthLineupPickerEmpty}</p>
-          )
-        }
-        actions={
-          <button
-            type="button"
-            className={styles.confirmCancel}
-            onClick={() => setMobileSeniorLineupPickerSlotId(null)}
-          >
-            {messages.closeLabel}
-          </button>
-        }
-        closeOnBackdrop
-        onClose={() => setMobileSeniorLineupPickerSlotId(null)}
-      />
-
       {mobileSeniorActive ? (
         <>
           <MobileToolMenu
@@ -18728,6 +18689,8 @@ const refreshDetailsForPlayers = async (
                 setSelectedId(playerId);
                 void ensureDetails(playerId);
               }}
+              emptySlotPickerOptions={seniorEmptySlotPickerOptions}
+              titleNote={messages.lineupEmptySlotRecommendationsHint}
               skillMode="single"
               maxSkillLevel={20}
               messages={messages}

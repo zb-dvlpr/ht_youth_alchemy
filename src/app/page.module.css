@@ -9555,6 +9555,20 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   gap: 8px;
 }
 
+.fieldHeaderTitleGroup {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+
+.fieldHeaderNote {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(247, 241, 227, 0.8);
+  letter-spacing: 0.02em;
+}
+
 .fieldHeaderControls {
   display: flex;
   align-items: center;

@@ -80,6 +80,7 @@ type LineupFieldProps = {
   trainingTypeSetPending?: boolean;
   trainingTypeSetPendingValue?: number | null;
   trainingTypePlacement?: "headerRight" | "fieldTopLeft";
+  titleNote?: string;
   trainingTypeOptions?: number[];
   trainingTypeLabelForValue?: (value: number) => string;
   trainingTypeSectionTitleForValue?: (value: number) => string | null;
@@ -435,6 +436,7 @@ export default function LineupField({
   trainingTypeSetPending = false,
   trainingTypeSetPendingValue = null,
   trainingTypePlacement = "headerRight",
+  titleNote,
   trainingTypeOptions = [],
   trainingTypeLabelForValue,
   trainingTypeSectionTitleForValue,
@@ -971,7 +973,10 @@ export default function LineupField({
     <>
     <div className={styles.fieldCard}>
       <div className={styles.fieldHeader}>
-        <span>{messages.lineupTitle}</span>
+        <div className={styles.fieldHeaderTitleGroup}>
+          <span>{messages.lineupTitle}</span>
+          {titleNote ? <span className={styles.fieldHeaderNote}>{titleNote}</span> : null}
+        </div>
         <div className={styles.fieldHeaderControls}>
           {onTacticChange && !showBottomRightTactic && !showFieldTopLeftTactic
             ? renderTacticControl()

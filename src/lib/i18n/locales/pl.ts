@@ -757,6 +757,8 @@ export const messagesPl: Messages = {
   confirmCancel: "Anuluj",
   confirmSubmit: "Potwierdź",
   lineupTitle: "Skład",
+  lineupEmptySlotRecommendationsHint:
+    "Kliknij puste miejsca, aby zobaczyć rekomendacje zawodników",
   clearSlot: "Wyczyść",
   lastUpdated: "Ostatnia aktualizacja",
   yearsLabel: "lat",

@@ -479,8 +479,8 @@ function mergedSkills(
 ) {
   if (!detailsSkills && !playerSkills) return null;
   return {
-    ...(detailsSkills ?? {}),
     ...(playerSkills ?? {}),
+    ...(detailsSkills ?? {}),
   };
 }
 

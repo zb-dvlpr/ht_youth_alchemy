@@ -2230,6 +2230,33 @@ const sortLabel = (messages: Messages, key: SortKey) => {
   }
 };
 
+const defaultSortDirectionForKey = (key: SortKey): SortDirection => {
+  switch (key) {
+    case "age":
+    case "name":
+      return "asc";
+    case "arrival":
+    case "tsi":
+    case "wage":
+    case "form":
+    case "stamina":
+    case "experience":
+    case "loyalty":
+    case "injuries":
+    case "cards":
+    case "keeper":
+    case "defender":
+    case "playmaker":
+    case "winger":
+    case "passing":
+    case "scorer":
+    case "setpieces":
+      return "desc";
+    default:
+      return "asc";
+  }
+};
+
 const compareNullable = (left: number | string | null, right: number | string | null) => {
   if (left === null && right === null) return 0;
   if (left === null) return 1;
@@ -2976,7 +3003,9 @@ export default function SeniorDashboard({
   const [selectedUpdatesId, setSelectedUpdatesId] = useState<string | null>(null);
   const [updatesOpen, setUpdatesOpen] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("name");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    defaultSortDirectionForKey("name")
+  );
   const [orderedPlayerIds, setOrderedPlayerIds] = useState<number[] | null>(null);
   const [orderSource, setOrderSource] = useState<"list" | "ratings" | "skills" | null>(null);
   const [activeDetailsTab, setActiveDetailsTab] =
@@ -12787,9 +12816,13 @@ const refreshDetailsForPlayers = async (
             sortKey?: SortKey;
             sortDirection?: SortDirection;
           };
-          if (parsed.sortKey) setSortKey(parsed.sortKey);
-          if (parsed.sortDirection === "asc" || parsed.sortDirection === "desc") {
-            setSortDirection(parsed.sortDirection);
+          if (parsed.sortKey) {
+            setSortKey(parsed.sortKey);
+            if (parsed.sortDirection === "asc" || parsed.sortDirection === "desc") {
+              setSortDirection(parsed.sortDirection);
+            } else {
+              setSortDirection(defaultSortDirectionForKey(parsed.sortKey));
+            }
           }
         } catch {
           // ignore parse errors
@@ -14966,6 +14999,7 @@ const refreshDetailsForPlayers = async (
                 const nextKey = event.target.value as SeniorSortSelectKey;
                 if (nextKey === "custom") return;
                 setSortKey(nextKey);
+                setSortDirection(defaultSortDirectionForKey(nextKey));
                 setOrderSource("list");
                 setOrderedPlayerIds(null);
                 addNotification(`${messages.notificationSortBy} ${sortLabel(messages, nextKey)}`);
@@ -14987,33 +15021,37 @@ const refreshDetailsForPlayers = async (
               <option value="loyalty">{messages.sortLoyalty}</option>
               <option value="injuries">{messages.sortInjuries}</option>
               <option value="cards">{messages.sortCards}</option>
-              <option value="keeper">{messages.sortKeeper}</option>
-              <option value="defender">{messages.sortDefender}</option>
-              <option value="playmaker">{messages.sortPlaymaker}</option>
-              <option value="winger">{messages.sortWinger}</option>
-              <option value="passing">{messages.sortPassing}</option>
-              <option value="scorer">{messages.sortScorer}</option>
-              <option value="setpieces">{messages.sortSetPieces}</option>
+              <optgroup label={messages.skillsLabel}>
+                <option value="keeper">{messages.sortKeeper}</option>
+                <option value="defender">{messages.sortDefender}</option>
+                <option value="playmaker">{messages.sortPlaymaker}</option>
+                <option value="winger">{messages.sortWinger}</option>
+                <option value="passing">{messages.sortPassing}</option>
+                <option value="scorer">{messages.sortScorer}</option>
+                <option value="setpieces">{messages.sortSetPieces}</option>
+              </optgroup>
             </select>
           </label>
-          <button
-            type="button"
-            className={styles.sortToggle}
-            aria-label={messages.sortToggleAria}
-            onClick={() => {
-              const next = sortDirection === "asc" ? "desc" : "asc";
-              setSortDirection(next);
-              setOrderSource("list");
-              setOrderedPlayerIds(null);
-              addNotification(
-                `${messages.notificationSortDirection} ${
-                  next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
-                }`
-              );
-            }}
-          >
-            ↕️
-          </button>
+          <Tooltip content={messages.sortToggleAria}>
+            <button
+              type="button"
+              className={styles.sortToggle}
+              aria-label={messages.sortToggleAria}
+              onClick={() => {
+                const next = sortDirection === "asc" ? "desc" : "asc";
+                setSortDirection(next);
+                setOrderSource("list");
+                setOrderedPlayerIds(null);
+                addNotification(
+                  `${messages.notificationSortDirection} ${
+                    next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
+                  }`
+                );
+              }}
+            >
+              ↕️
+            </button>
+          </Tooltip>
         </div>
       </div>
       {orderedListPlayers.length === 0 ? (
@@ -18020,6 +18058,7 @@ const refreshDetailsForPlayers = async (
                     const nextKey = event.target.value as SeniorSortSelectKey;
                     if (nextKey === "custom") return;
                     setSortKey(nextKey);
+                    setSortDirection(defaultSortDirectionForKey(nextKey));
                     setOrderSource("list");
                     setOrderedPlayerIds(null);
                     addNotification(`${messages.notificationSortBy} ${sortLabel(messages, nextKey)}`);
@@ -18041,33 +18080,37 @@ const refreshDetailsForPlayers = async (
                   <option value="loyalty">{messages.sortLoyalty}</option>
                   <option value="injuries">{messages.sortInjuries}</option>
                   <option value="cards">{messages.sortCards}</option>
-                  <option value="keeper">{messages.sortKeeper}</option>
-                  <option value="defender">{messages.sortDefender}</option>
-                  <option value="playmaker">{messages.sortPlaymaker}</option>
-                  <option value="winger">{messages.sortWinger}</option>
-                  <option value="passing">{messages.sortPassing}</option>
-                  <option value="scorer">{messages.sortScorer}</option>
-                  <option value="setpieces">{messages.sortSetPieces}</option>
+                  <optgroup label={messages.skillsLabel}>
+                    <option value="keeper">{messages.sortKeeper}</option>
+                    <option value="defender">{messages.sortDefender}</option>
+                    <option value="playmaker">{messages.sortPlaymaker}</option>
+                    <option value="winger">{messages.sortWinger}</option>
+                    <option value="passing">{messages.sortPassing}</option>
+                    <option value="scorer">{messages.sortScorer}</option>
+                    <option value="setpieces">{messages.sortSetPieces}</option>
+                  </optgroup>
                 </select>
               </label>
-              <button
-                type="button"
-                className={styles.sortToggle}
-                aria-label={messages.sortToggleAria}
-                onClick={() => {
-                  const next = sortDirection === "asc" ? "desc" : "asc";
-                  setSortDirection(next);
-                  setOrderSource("list");
-                  setOrderedPlayerIds(null);
-                  addNotification(
-                    `${messages.notificationSortDirection} ${
-                      next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
-                    }`
-                  );
-                }}
-              >
-                ↕️
-              </button>
+              <Tooltip content={messages.sortToggleAria}>
+                <button
+                  type="button"
+                  className={styles.sortToggle}
+                  aria-label={messages.sortToggleAria}
+                  onClick={() => {
+                    const next = sortDirection === "asc" ? "desc" : "asc";
+                    setSortDirection(next);
+                    setOrderSource("list");
+                    setOrderedPlayerIds(null);
+                    addNotification(
+                      `${messages.notificationSortDirection} ${
+                        next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
+                      }`
+                    );
+                  }}
+                >
+                  ↕️
+                </button>
+              </Tooltip>
             </div>
           </div>
           {orderedListPlayers.length === 0 ? (

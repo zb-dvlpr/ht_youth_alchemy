@@ -15032,24 +15032,26 @@ const refreshDetailsForPlayers = async (
               </optgroup>
             </select>
           </label>
-          <button
-            type="button"
-            className={styles.sortToggle}
-            aria-label={messages.sortToggleAria}
-            onClick={() => {
-              const next = sortDirection === "asc" ? "desc" : "asc";
-              setSortDirection(next);
-              setOrderSource("list");
-              setOrderedPlayerIds(null);
-              addNotification(
-                `${messages.notificationSortDirection} ${
-                  next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
-                }`
-              );
-            }}
-          >
-            ↕️
-          </button>
+          <Tooltip content={messages.sortToggleAria}>
+            <button
+              type="button"
+              className={styles.sortToggle}
+              aria-label={messages.sortToggleAria}
+              onClick={() => {
+                const next = sortDirection === "asc" ? "desc" : "asc";
+                setSortDirection(next);
+                setOrderSource("list");
+                setOrderedPlayerIds(null);
+                addNotification(
+                  `${messages.notificationSortDirection} ${
+                    next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
+                  }`
+                );
+              }}
+            >
+              ↕️
+            </button>
+          </Tooltip>
         </div>
       </div>
       {orderedListPlayers.length === 0 ? (
@@ -18089,24 +18091,26 @@ const refreshDetailsForPlayers = async (
                   </optgroup>
                 </select>
               </label>
-              <button
-                type="button"
-                className={styles.sortToggle}
-                aria-label={messages.sortToggleAria}
-                onClick={() => {
-                  const next = sortDirection === "asc" ? "desc" : "asc";
-                  setSortDirection(next);
-                  setOrderSource("list");
-                  setOrderedPlayerIds(null);
-                  addNotification(
-                    `${messages.notificationSortDirection} ${
-                      next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
-                    }`
-                  );
-                }}
-              >
-                ↕️
-              </button>
+              <Tooltip content={messages.sortToggleAria}>
+                <button
+                  type="button"
+                  className={styles.sortToggle}
+                  aria-label={messages.sortToggleAria}
+                  onClick={() => {
+                    const next = sortDirection === "asc" ? "desc" : "asc";
+                    setSortDirection(next);
+                    setOrderSource("list");
+                    setOrderedPlayerIds(null);
+                    addNotification(
+                      `${messages.notificationSortDirection} ${
+                        next === "asc" ? messages.sortAscLabel : messages.sortDescLabel
+                      }`
+                    );
+                  }}
+                >
+                  ↕️
+                </button>
+              </Tooltip>
             </div>
           </div>
           {orderedListPlayers.length === 0 ? (

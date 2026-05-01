@@ -15021,13 +15021,15 @@ const refreshDetailsForPlayers = async (
               <option value="loyalty">{messages.sortLoyalty}</option>
               <option value="injuries">{messages.sortInjuries}</option>
               <option value="cards">{messages.sortCards}</option>
-              <option value="keeper">{messages.sortKeeper}</option>
-              <option value="defender">{messages.sortDefender}</option>
-              <option value="playmaker">{messages.sortPlaymaker}</option>
-              <option value="winger">{messages.sortWinger}</option>
-              <option value="passing">{messages.sortPassing}</option>
-              <option value="scorer">{messages.sortScorer}</option>
-              <option value="setpieces">{messages.sortSetPieces}</option>
+              <optgroup label={messages.skillsLabel}>
+                <option value="keeper">{messages.sortKeeper}</option>
+                <option value="defender">{messages.sortDefender}</option>
+                <option value="playmaker">{messages.sortPlaymaker}</option>
+                <option value="winger">{messages.sortWinger}</option>
+                <option value="passing">{messages.sortPassing}</option>
+                <option value="scorer">{messages.sortScorer}</option>
+                <option value="setpieces">{messages.sortSetPieces}</option>
+              </optgroup>
             </select>
           </label>
           <button
@@ -18076,13 +18078,15 @@ const refreshDetailsForPlayers = async (
                   <option value="loyalty">{messages.sortLoyalty}</option>
                   <option value="injuries">{messages.sortInjuries}</option>
                   <option value="cards">{messages.sortCards}</option>
-                  <option value="keeper">{messages.sortKeeper}</option>
-                  <option value="defender">{messages.sortDefender}</option>
-                  <option value="playmaker">{messages.sortPlaymaker}</option>
-                  <option value="winger">{messages.sortWinger}</option>
-                  <option value="passing">{messages.sortPassing}</option>
-                  <option value="scorer">{messages.sortScorer}</option>
-                  <option value="setpieces">{messages.sortSetPieces}</option>
+                  <optgroup label={messages.skillsLabel}>
+                    <option value="keeper">{messages.sortKeeper}</option>
+                    <option value="defender">{messages.sortDefender}</option>
+                    <option value="playmaker">{messages.sortPlaymaker}</option>
+                    <option value="winger">{messages.sortWinger}</option>
+                    <option value="passing">{messages.sortPassing}</option>
+                    <option value="scorer">{messages.sortScorer}</option>
+                    <option value="setpieces">{messages.sortSetPieces}</option>
+                  </optgroup>
                 </select>
               </label>
               <button

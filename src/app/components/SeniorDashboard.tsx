@@ -2244,7 +2244,6 @@ const defaultSortDirectionForKey = (key: SortKey): SortDirection => {
     case "loyalty":
     case "injuries":
     case "cards":
-      return "desc";
     case "keeper":
     case "defender":
     case "playmaker":
@@ -2252,6 +2251,7 @@ const defaultSortDirectionForKey = (key: SortKey): SortDirection => {
     case "passing":
     case "scorer":
     case "setpieces":
+      return "desc";
     default:
       return "asc";
   }

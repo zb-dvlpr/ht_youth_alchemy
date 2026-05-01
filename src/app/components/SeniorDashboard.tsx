@@ -2230,6 +2230,33 @@ const sortLabel = (messages: Messages, key: SortKey) => {
   }
 };
 
+const defaultSortDirectionForKey = (key: SortKey): SortDirection => {
+  switch (key) {
+    case "age":
+    case "name":
+      return "asc";
+    case "arrival":
+    case "tsi":
+    case "wage":
+    case "form":
+    case "stamina":
+    case "experience":
+    case "loyalty":
+    case "injuries":
+    case "cards":
+      return "desc";
+    case "keeper":
+    case "defender":
+    case "playmaker":
+    case "winger":
+    case "passing":
+    case "scorer":
+    case "setpieces":
+    default:
+      return "asc";
+  }
+};
+
 const compareNullable = (left: number | string | null, right: number | string | null) => {
   if (left === null && right === null) return 0;
   if (left === null) return 1;
@@ -2976,7 +3003,9 @@ export default function SeniorDashboard({
   const [selectedUpdatesId, setSelectedUpdatesId] = useState<string | null>(null);
   const [updatesOpen, setUpdatesOpen] = useState(false);
   const [sortKey, setSortKey] = useState<SortKey>("name");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [sortDirection, setSortDirection] = useState<SortDirection>(
+    defaultSortDirectionForKey("name")
+  );
   const [orderedPlayerIds, setOrderedPlayerIds] = useState<number[] | null>(null);
   const [orderSource, setOrderSource] = useState<"list" | "ratings" | "skills" | null>(null);
   const [activeDetailsTab, setActiveDetailsTab] =
@@ -12787,9 +12816,13 @@ const refreshDetailsForPlayers = async (
             sortKey?: SortKey;
             sortDirection?: SortDirection;
           };
-          if (parsed.sortKey) setSortKey(parsed.sortKey);
-          if (parsed.sortDirection === "asc" || parsed.sortDirection === "desc") {
-            setSortDirection(parsed.sortDirection);
+          if (parsed.sortKey) {
+            setSortKey(parsed.sortKey);
+            if (parsed.sortDirection === "asc" || parsed.sortDirection === "desc") {
+              setSortDirection(parsed.sortDirection);
+            } else {
+              setSortDirection(defaultSortDirectionForKey(parsed.sortKey));
+            }
           }
         } catch {
           // ignore parse errors
@@ -14966,6 +14999,7 @@ const refreshDetailsForPlayers = async (
                 const nextKey = event.target.value as SeniorSortSelectKey;
                 if (nextKey === "custom") return;
                 setSortKey(nextKey);
+                setSortDirection(defaultSortDirectionForKey(nextKey));
                 setOrderSource("list");
                 setOrderedPlayerIds(null);
                 addNotification(`${messages.notificationSortBy} ${sortLabel(messages, nextKey)}`);
@@ -18020,6 +18054,7 @@ const refreshDetailsForPlayers = async (
                     const nextKey = event.target.value as SeniorSortSelectKey;
                     if (nextKey === "custom") return;
                     setSortKey(nextKey);
+                    setSortDirection(defaultSortDirectionForKey(nextKey));
                     setOrderSource("list");
                     setOrderedPlayerIds(null);
                     addNotification(`${messages.notificationSortBy} ${sortLabel(messages, nextKey)}`);

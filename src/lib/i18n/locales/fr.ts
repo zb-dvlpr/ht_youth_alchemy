@@ -549,7 +549,7 @@ export const messagesFr: Messages = {
     clubChronicleDetailModeUser: "Mode utilisateur",
     clubChronicleDetailModeDev: "Mode dev",
     clubChronicleTeamAttitudeDisclaimer:
-      "Ces valeurs sont déduites et peuvent ne pas toujours être exactes.",
+      "Ces valeurs sont déduites et peuvent ne pas toujours être exactes. Les equipes qui jouent regulierement PIC puis passent en normal peuvent ressembler a un MOTS, et les equipes qui jouent regulierement MOTS puis passent en normal peuvent ressembler a un PIC.",
     clubChronicleMatchTypeLeague: "Match de ligue",
     clubChronicleMatchTypeQualification: "Match de qualification",
     clubChronicleMatchTypeCup: "Match de coupe",

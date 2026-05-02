@@ -543,7 +543,7 @@ export const messagesSv: Messages = {
     clubChronicleDetailModeUser: "Anvandarlage",
     clubChronicleDetailModeDev: "Utvecklarlage",
     clubChronicleTeamAttitudeDisclaimer:
-      "Dessa värden är uppskattade och är inte alltid helt exakta.",
+      "Dessa värden är uppskattade och är inte alltid helt exakta. Lag som konsekvent spelar PIC och sedan spelar normalt kan se ut som MOTS, och lag som konsekvent spelar MOTS och sedan spelar normalt kan se ut som PIC.",
     clubChronicleMatchTypeLeague: "Ligamatch",
     clubChronicleMatchTypeQualification: "Kvalmatch",
     clubChronicleMatchTypeCup: "Cupmatch",

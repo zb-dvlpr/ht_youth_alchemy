@@ -653,7 +653,7 @@ export const messagesPl: Messages = {
   clubChronicleDetailModeUser: "Tryb uzytkownika",
   clubChronicleDetailModeDev: "Tryb deweloperski",
   clubChronicleTeamAttitudeDisclaimer:
-    "Te wartosci sa wywnioskowane i nie zawsze musza byc dokladne.",
+    "Te wartosci sa wywnioskowane i nie zawsze musza byc dokladne. Druzyny, ktore regularnie graja PIC, a potem zagraja normalnie, moga wygladac jak MOTS, a druzyny, ktore regularnie graja MOTS, a potem zagraja normalnie, moga wygladac jak PIC.",
   seniorHelpTitle: "Przewodnik optymalizacji seniorów",
   seniorHelpIntro:
     "Ten widok pomaga śledzić istotne zmiany w kadrze seniorów i szybciej ustawiać składy meczowe.",

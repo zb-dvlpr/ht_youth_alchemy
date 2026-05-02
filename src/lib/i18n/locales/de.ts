@@ -538,7 +538,7 @@ export const messagesDe: Messages = {
     clubChronicleDetailModeUser: "Nutzermodus",
     clubChronicleDetailModeDev: "Entwicklermodus",
     clubChronicleTeamAttitudeDisclaimer:
-      "Diese Werte sind abgeleitet und nicht immer exakt.",
+      "Diese Werte sind abgeleitet und nicht immer exakt. Teams, die konsequent PIC spielen und dann normal antreten, koennen wie MOTS wirken, und Teams, die konsequent MOTS spielen und dann normal antreten, koennen wie PIC wirken.",
     clubChronicleMatchTypeLeague: "Ligaspiel",
     clubChronicleMatchTypeQualification: "Qualifikationsspiel",
     clubChronicleMatchTypeCup: "Pokalspiel",

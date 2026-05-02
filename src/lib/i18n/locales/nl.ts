@@ -660,7 +660,7 @@ export const messagesNl: Messages = {
   clubChronicleDetailModeUser: "Gebruikersmodus",
   clubChronicleDetailModeDev: "Dev-modus",
   clubChronicleTeamAttitudeDisclaimer:
-    "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig.",
+    "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig. Teams die consequent PIC spelen en daarna normaal spelen, kunnen op MOTS lijken, en teams die consequent MOTS spelen en daarna normaal spelen, kunnen op PIC lijken.",
   seniorHelpTitle: "Handleiding senioroptimalisatie",
   seniorHelpIntro:
     "Deze weergave helpt je relevante wijzigingen in de seniorselectie te volgen en sneller wedstrijdopstellingen te zetten.",

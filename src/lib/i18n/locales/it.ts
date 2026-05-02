@@ -550,7 +550,7 @@ export const messagesIt: Messages = {
     clubChronicleDetailModeUser: "Modalita utente",
     clubChronicleDetailModeDev: "Modalita dev",
     clubChronicleTeamAttitudeDisclaimer:
-      "Questi valori sono dedotti e potrebbero non essere sempre accurati.",
+      "Questi valori sono dedotti e potrebbero non essere sempre accurati. Le squadre che giocano costantemente PIC e poi giocano normale possono sembrare MOTS, e le squadre che giocano costantemente MOTS e poi giocano normale possono sembrare PIC.",
     clubChronicleMatchTypeLeague: "Partita di campionato",
     clubChronicleMatchTypeQualification: "Partita di qualificazione",
     clubChronicleMatchTypeCup: "Partita di coppa",

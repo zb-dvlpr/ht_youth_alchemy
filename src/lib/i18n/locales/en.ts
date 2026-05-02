@@ -515,7 +515,7 @@ export const messagesEn: Messages = {
     clubChronicleDetailModeUser: "User-facing mode",
     clubChronicleDetailModeDev: "Dev mode",
     clubChronicleTeamAttitudeDisclaimer:
-      "These values are inferred and may not always be accurate.",
+      "These values are inferred and may not always be accurate. Teams that consistently PIC and then play normal can look like MOTS, and teams that consistently MOTS and then play normal can look like PIC.",
     clubChronicleMatchTypeLeague: "League match",
     clubChronicleMatchTypeQualification: "Qualification match",
     clubChronicleMatchTypeCup: "Cup match",

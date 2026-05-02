@@ -9510,13 +9510,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           entry.match.matchType !== null &&
           TEAM_ATTITUDE_MATCH_TYPES.has(entry.match.matchType)
       )
-      .map((entry) => ({
-        match: entry.match,
-        venue: entry.isHome ? "home" : "away",
-        midfieldRating: entry.midfieldRating,
-        tacticType: entry.tacticType,
-        inferredAttitude: "normal" as TeamAttitudeKind,
-      }));
+      .map(
+        (entry) =>
+          ({
+            match: entry.match,
+            venue: entry.isHome ? "home" : "away",
+            midfieldRating: entry.midfieldRating,
+            tacticType: entry.tacticType,
+            inferredAttitude: "normal" as TeamAttitudeKind,
+          }) satisfies TeamAttitudeMidfieldPassMatch
+      );
     if (!topFormation || analyzedMatches.length === 0) {
       return {
         topFormation,

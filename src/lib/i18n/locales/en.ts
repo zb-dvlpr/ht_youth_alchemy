@@ -434,7 +434,7 @@ export const messagesEn: Messages = {
     clubChronicleHelpBulletFormations:
       "Formations & tactics: most-used formation and tactic from the latest 20 relevant matches. Click a row for distribution charts.",
     clubChronicleHelpBulletTeamAttitude:
-      "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings only, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+      "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
     clubChronicleHelpBulletTsi:
       "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), and TSI.",
     clubChronicleHelpBulletLikelyTraining:

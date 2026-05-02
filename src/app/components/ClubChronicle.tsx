@@ -425,12 +425,14 @@ type FormationTacticsData = {
 };
 
 type TeamAttitudeKind = "pic" | "mots" | "normal";
+type TeamAttitudeVenue = "home" | "away";
 
 type TeamAttitudeAnalyzedMatch = {
   matchId: number;
   matchType: number | null;
   matchDate: string | null;
   sourceSystem: string;
+  venue: TeamAttitudeVenue;
   midfieldRating: number | null;
   tacticType: number | null;
   inferredAttitude: TeamAttitudeKind;
@@ -439,18 +441,23 @@ type TeamAttitudeAnalyzedMatch = {
   lineupPlayerIds: number[];
 };
 
-type TeamAttitudeSnapshot = {
-  topFormation: string | null;
+type TeamAttitudeVenueSnapshot = {
   baselineMidfield: number | null;
   initialBaselineMidfield: number | null;
   initialThreshold: number | null;
   finalThreshold: number | null;
-  sampleSize: number;
   normalSampleSize: number;
   allMidfieldValues: number[];
   initialNormalMidfieldValues: number[];
   finalBaselineMidfieldValues: number[];
   baselineUnionPlayerIds: number[];
+};
+
+type TeamAttitudeSnapshot = {
+  topFormation: string | null;
+  sampleSize: number;
+  home: TeamAttitudeVenueSnapshot;
+  away: TeamAttitudeVenueSnapshot;
   lastDetectedAttitude: Exclude<TeamAttitudeKind, "normal"> | null;
   lastDetectedPotential: boolean;
   lastDetectedMatchId: number | null;
@@ -1009,7 +1016,7 @@ const ChroniclePanel = ({
 
 const STORAGE_KEY = "ya_club_chronicle_watchlist_v1";
 const TABS_STORAGE_KEY = "ya_cc_tabs_v1";
-const CACHE_KEY = "ya_cc_cache_v1";
+const CACHE_KEY = "ya_cc_cache_v2";
 const UPDATES_KEY = "ya_cc_updates_v1";
 const GLOBAL_BASELINE_KEY = "ya_cc_global_baseline_v1";
 const GLOBAL_UPDATES_HISTORY_KEY = "ya_cc_global_updates_history_v1";
@@ -1491,6 +1498,28 @@ const medianOfNumbers = (values: number[]) => {
   return sorted.length % 2 === 0
     ? (sorted[middle - 1] + sorted[middle]) / 2
     : sorted[middle] ?? null;
+};
+
+const EMPTY_TEAM_ATTITUDE_VENUE_SNAPSHOT: TeamAttitudeVenueSnapshot = {
+  baselineMidfield: null,
+  initialBaselineMidfield: null,
+  initialThreshold: null,
+  finalThreshold: null,
+  normalSampleSize: 0,
+  allMidfieldValues: [],
+  initialNormalMidfieldValues: [],
+  finalBaselineMidfieldValues: [],
+  baselineUnionPlayerIds: [],
+};
+
+const resolveTeamAttitudeVenueSnapshot = (
+  snapshot: TeamAttitudeSnapshot | null | undefined,
+  venue: TeamAttitudeVenue
+): TeamAttitudeVenueSnapshot => {
+  if (!snapshot) return EMPTY_TEAM_ATTITUDE_VENUE_SNAPSHOT;
+  const venueSnapshot = venue === "home" ? snapshot.home : snapshot.away;
+  if (venueSnapshot) return venueSnapshot;
+  return EMPTY_TEAM_ATTITUDE_VENUE_SNAPSHOT;
 };
 
 const teamAttitudeThreshold = (values: number[]) => {
@@ -9160,24 +9189,100 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   type TeamAttitudeMidfieldPassMatch = {
     match: TeamMatchArchiveEntry;
+    venue: TeamAttitudeVenue;
     midfieldRating: number | null;
     tacticType: number | null;
     inferredAttitude: TeamAttitudeKind;
   };
 
-  type TeamAttitudePlan = {
-    topFormation: string | null;
+  type TeamAttitudeVenuePlan = {
     baselineMidfield: number | null;
     initialBaselineMidfield: number | null;
     initialThreshold: number | null;
     finalThreshold: number | null;
-    sampleSize: number;
     normalMatches: TeamAttitudeMidfieldPassMatch[];
     analyzedMatches: TeamAttitudeMidfieldPassMatch[];
-    lineupTargets: TeamMatchArchiveEntry[];
     allMidfieldValues: number[];
     initialNormalMidfieldValues: number[];
     finalBaselineMidfieldValues: number[];
+  };
+
+  type TeamAttitudePlan = {
+    topFormation: string | null;
+    sampleSize: number;
+    analyzedMatches: TeamAttitudeMidfieldPassMatch[];
+    lineupTargets: TeamMatchArchiveEntry[];
+    home: TeamAttitudeVenuePlan;
+    away: TeamAttitudeVenuePlan;
+  };
+
+  const buildEmptyTeamAttitudeVenuePlan = (
+    analyzedMatches: TeamAttitudeMidfieldPassMatch[] = []
+  ): TeamAttitudeVenuePlan => ({
+    baselineMidfield: null,
+    initialBaselineMidfield: null,
+    initialThreshold: null,
+    finalThreshold: null,
+    normalMatches: analyzedMatches,
+    analyzedMatches,
+    allMidfieldValues: [],
+    initialNormalMidfieldValues: [],
+    finalBaselineMidfieldValues: [],
+  });
+
+  const buildTeamAttitudeVenuePlan = (
+    venueMatches: TeamAttitudeMidfieldPassMatch[]
+  ): TeamAttitudeVenuePlan => {
+    const midfieldValues = venueMatches
+      .map((entry) => entry.midfieldRating)
+      .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+    if (midfieldValues.length === 0) {
+      return {
+        ...buildEmptyTeamAttitudeVenuePlan(venueMatches),
+        allMidfieldValues: midfieldValues,
+        finalBaselineMidfieldValues: midfieldValues,
+      };
+    }
+    const initialBaseline = medianOfNumbers(midfieldValues);
+    const initialThreshold = teamAttitudeThreshold(midfieldValues);
+    const initialClassified = venueMatches.map((entry) => ({
+      ...entry,
+      inferredAttitude: classifyTeamAttitude(
+        entry.midfieldRating,
+        initialBaseline,
+        initialThreshold
+      ),
+    }));
+    const normalMidfieldValues = initialClassified
+      .filter((entry) => entry.inferredAttitude === "normal")
+      .map((entry) => entry.midfieldRating)
+      .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
+    const baselineRatings =
+      normalMidfieldValues.length >= 2 ? normalMidfieldValues : midfieldValues;
+    const finalBaseline = medianOfNumbers(baselineRatings);
+    const finalThreshold = teamAttitudeThreshold(baselineRatings);
+    const finalMatches = venueMatches.map((entry) => ({
+      ...entry,
+      inferredAttitude: classifyTeamAttitude(
+        entry.midfieldRating,
+        finalBaseline,
+        finalThreshold
+      ),
+    }));
+    const normalMatches = finalMatches.filter(
+      (entry) => entry.inferredAttitude === "normal"
+    );
+    return {
+      baselineMidfield: finalBaseline,
+      initialBaselineMidfield: initialBaseline,
+      initialThreshold,
+      finalThreshold,
+      normalMatches,
+      analyzedMatches: finalMatches,
+      allMidfieldValues: midfieldValues,
+      initialNormalMidfieldValues: normalMidfieldValues,
+      finalBaselineMidfieldValues: baselineRatings,
+    };
   };
 
   const selectTeamAttitudeBaselineLeagueMatches = (
@@ -9407,60 +9512,45 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       )
       .map((entry) => ({
         match: entry.match,
+        venue: entry.isHome ? "home" : "away",
         midfieldRating: entry.midfieldRating,
         tacticType: entry.tacticType,
         inferredAttitude: "normal" as TeamAttitudeKind,
       }));
-    const midfieldValues = analyzedMatches
-      .map((entry) => entry.midfieldRating)
-      .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
-    if (!topFormation || midfieldValues.length === 0) {
+    if (!topFormation || analyzedMatches.length === 0) {
       return {
         topFormation,
-        baselineMidfield: null,
-        initialBaselineMidfield: null,
-        initialThreshold: null,
-        finalThreshold: null,
         sampleSize: analyzedMatches.length,
-        normalMatches: analyzedMatches,
         analyzedMatches,
         lineupTargets: [],
-        allMidfieldValues: midfieldValues,
-        initialNormalMidfieldValues: [],
-        finalBaselineMidfieldValues: midfieldValues,
+        home: buildEmptyTeamAttitudeVenuePlan(
+          analyzedMatches.filter((entry) => entry.venue === "home")
+        ),
+        away: buildEmptyTeamAttitudeVenuePlan(
+          analyzedMatches.filter((entry) => entry.venue === "away")
+        ),
       };
     }
-    const initialBaseline = medianOfNumbers(midfieldValues);
-    const initialThreshold = teamAttitudeThreshold(midfieldValues);
-    const initialClassified = analyzedMatches.map((entry) => ({
-      ...entry,
-      inferredAttitude: classifyTeamAttitude(
-        entry.midfieldRating,
-        initialBaseline,
-        initialThreshold
-      ),
-    }));
-    const normalMidfieldValues = initialClassified
-      .filter((entry) => entry.inferredAttitude === "normal")
-      .map((entry) => entry.midfieldRating)
-      .filter((value): value is number => typeof value === "number" && Number.isFinite(value));
-    const baselineRatings =
-      normalMidfieldValues.length >= 2 ? normalMidfieldValues : midfieldValues;
-    const finalBaseline = medianOfNumbers(baselineRatings);
-    const finalThreshold = teamAttitudeThreshold(baselineRatings);
-    const finalMatches = analyzedMatches.map((entry) => ({
-      ...entry,
-      inferredAttitude: classifyTeamAttitude(
-        entry.midfieldRating,
-        finalBaseline,
-        finalThreshold
-      ),
-    }));
-    const normalMatches = finalMatches.filter(
-      (entry) => entry.inferredAttitude === "normal"
+    const homePlan = buildTeamAttitudeVenuePlan(
+      analyzedMatches.filter((entry) => entry.venue === "home")
+    );
+    const awayPlan = buildTeamAttitudeVenuePlan(
+      analyzedMatches.filter((entry) => entry.venue === "away")
+    );
+    const finalMatchesByKey = new Map<string, TeamAttitudeMidfieldPassMatch>();
+    [...homePlan.analyzedMatches, ...awayPlan.analyzedMatches].forEach((entry) => {
+      finalMatchesByKey.set(
+        `${entry.match.matchId}:${entry.match.sourceSystem}`,
+        entry
+      );
+    });
+    const finalMatches = analyzedMatches.map(
+      (entry) =>
+        finalMatchesByKey.get(`${entry.match.matchId}:${entry.match.sourceSystem}`) ??
+        entry
     );
     const lineupTargetsByKey = new Map<string, TeamMatchArchiveEntry>();
-    [...normalMatches, ...finalMatches.filter((entry) => entry.inferredAttitude !== "normal")].forEach(
+    [...homePlan.normalMatches, ...awayPlan.normalMatches, ...finalMatches.filter((entry) => entry.inferredAttitude !== "normal")].forEach(
       (entry) => {
         lineupTargetsByKey.set(
           `${entry.match.matchId}:${entry.match.sourceSystem}`,
@@ -9470,17 +9560,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     );
     return {
       topFormation,
-      baselineMidfield: finalBaseline,
-      initialBaselineMidfield: initialBaseline,
-      initialThreshold,
-      finalThreshold,
       sampleSize: finalMatches.length,
-      normalMatches,
       analyzedMatches: finalMatches,
       lineupTargets: Array.from(lineupTargetsByKey.values()),
-      allMidfieldValues: midfieldValues,
-      initialNormalMidfieldValues: normalMidfieldValues,
-      finalBaselineMidfieldValues: baselineRatings,
+      home: homePlan,
+      away: awayPlan,
     };
   };
 
@@ -9537,20 +9621,36 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     lineupCache: Map<string, Set<number>>,
     onLineupProcessed?: () => void
   ): Promise<TeamAttitudeSnapshot> => {
-    const baselineUnion = new Set<number>();
-    const baselineMatches = selectTeamAttitudeBaselineLeagueMatches(
-      plan.analyzedMatches,
-      plan.baselineMidfield
-    );
-    for (const match of baselineMatches) {
-      const playerIds = await fetchTeamAttitudeLineupPlayers(
-        match.match.matchId,
-        teamId,
-        match.match.sourceSystem,
-        lineupCache,
-        onLineupProcessed
-      );
-      playerIds.forEach((playerId) => baselineUnion.add(playerId));
+    const homeBaselineUnion = new Set<number>();
+    const awayBaselineUnion = new Set<number>();
+    const baselineMatchesByVenue: Array<[TeamAttitudeVenue, TeamAttitudeMidfieldPassMatch[]]> = [
+      [
+        "home",
+        selectTeamAttitudeBaselineLeagueMatches(
+          plan.home.analyzedMatches,
+          plan.home.baselineMidfield
+        ),
+      ],
+      [
+        "away",
+        selectTeamAttitudeBaselineLeagueMatches(
+          plan.away.analyzedMatches,
+          plan.away.baselineMidfield
+        ),
+      ],
+    ];
+    for (const [venue, matches] of baselineMatchesByVenue) {
+      const baselineUnion = venue === "home" ? homeBaselineUnion : awayBaselineUnion;
+      for (const match of matches) {
+        const playerIds = await fetchTeamAttitudeLineupPlayers(
+          match.match.matchId,
+          teamId,
+          match.match.sourceSystem,
+          lineupCache,
+          onLineupProcessed
+        );
+        playerIds.forEach((playerId) => baselineUnion.add(playerId));
+      }
     }
     const analyzedMatches: TeamAttitudeAnalyzedMatch[] = [];
     for (const match of plan.analyzedMatches) {
@@ -9561,6 +9661,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         lineupCache,
         onLineupProcessed
       );
+      const baselineUnion = match.venue === "home" ? homeBaselineUnion : awayBaselineUnion;
       const denominator = playerIds.size;
       const overlapCount = Array.from(playerIds).filter((playerId) =>
         baselineUnion.has(playerId)
@@ -9579,6 +9680,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         matchType: match.match.matchType,
         matchDate: match.match.matchDate,
         sourceSystem: match.match.sourceSystem,
+        venue: match.venue,
         midfieldRating: match.midfieldRating,
         tacticType: match.tacticType,
         inferredAttitude: match.inferredAttitude,
@@ -9592,16 +9694,29 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     );
     return {
       topFormation: plan.topFormation,
-      baselineMidfield: plan.baselineMidfield,
-      initialBaselineMidfield: plan.initialBaselineMidfield,
-      initialThreshold: plan.initialThreshold,
-      finalThreshold: plan.finalThreshold,
       sampleSize: plan.sampleSize,
-      normalSampleSize: plan.normalMatches.length,
-      allMidfieldValues: [...plan.allMidfieldValues],
-      initialNormalMidfieldValues: [...plan.initialNormalMidfieldValues],
-      finalBaselineMidfieldValues: [...plan.finalBaselineMidfieldValues],
-      baselineUnionPlayerIds: Array.from(baselineUnion).sort((left, right) => left - right),
+      home: {
+        baselineMidfield: plan.home.baselineMidfield,
+        initialBaselineMidfield: plan.home.initialBaselineMidfield,
+        initialThreshold: plan.home.initialThreshold,
+        finalThreshold: plan.home.finalThreshold,
+        normalSampleSize: plan.home.normalMatches.length,
+        allMidfieldValues: [...plan.home.allMidfieldValues],
+        initialNormalMidfieldValues: [...plan.home.initialNormalMidfieldValues],
+        finalBaselineMidfieldValues: [...plan.home.finalBaselineMidfieldValues],
+        baselineUnionPlayerIds: Array.from(homeBaselineUnion).sort((left, right) => left - right),
+      },
+      away: {
+        baselineMidfield: plan.away.baselineMidfield,
+        initialBaselineMidfield: plan.away.initialBaselineMidfield,
+        initialThreshold: plan.away.initialThreshold,
+        finalThreshold: plan.away.finalThreshold,
+        normalSampleSize: plan.away.normalMatches.length,
+        allMidfieldValues: [...plan.away.allMidfieldValues],
+        initialNormalMidfieldValues: [...plan.away.initialNormalMidfieldValues],
+        finalBaselineMidfieldValues: [...plan.away.finalBaselineMidfieldValues],
+        baselineUnionPlayerIds: Array.from(awayBaselineUnion).sort((left, right) => left - right),
+      },
       lastDetectedAttitude:
         lastDetected?.inferredAttitude === "pic" || lastDetected?.inferredAttitude === "mots"
           ? lastDetected.inferredAttitude
@@ -11868,34 +11983,36 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
   const selectedTeamAttitudeUnionBaselineMatchKeys = useMemo(() => {
     const snapshot = selectedTeamAttitudeTeam?.snapshot;
-    const baselineMidfieldValue = snapshot?.baselineMidfield;
-    if (
-      !snapshot ||
-      baselineMidfieldValue === null ||
-      baselineMidfieldValue === undefined ||
-      !Number.isFinite(baselineMidfieldValue)
-    ) {
+    if (!snapshot) {
       return new Set<string>();
     }
-    const baselineMidfield = baselineMidfieldValue;
-    const leagueMatches = snapshot.analyzedMatches.filter(
-      (entry) =>
-        entry.matchType === 1 &&
-        entry.midfieldRating !== null &&
-        Number.isFinite(entry.midfieldRating)
-    );
-    const withinOne = leagueMatches.filter(
-      (entry) => Math.abs((entry.midfieldRating ?? 0) - baselineMidfield) <= 1
-    );
-    const selectedMatches =
-      withinOne.length >= 3
+    const selectedMatches = (["home", "away"] as TeamAttitudeVenue[]).flatMap((venue) => {
+      const venueSnapshot = resolveTeamAttitudeVenueSnapshot(snapshot, venue);
+      const baselineMidfield = venueSnapshot.baselineMidfield;
+      if (
+        baselineMidfield === null ||
+        baselineMidfield === undefined ||
+        !Number.isFinite(baselineMidfield)
+      ) {
+        return [];
+      }
+      const leagueMatches = snapshot.analyzedMatches.filter(
+        (entry) =>
+          entry.venue === venue &&
+          entry.matchType === 1 &&
+          entry.midfieldRating !== null &&
+          Number.isFinite(entry.midfieldRating)
+      );
+      const withinOne = leagueMatches.filter(
+        (entry) => Math.abs((entry.midfieldRating ?? 0) - baselineMidfield) <= 1
+      );
+      return withinOne.length >= 3
         ? withinOne
         : leagueMatches.filter(
             (entry) => Math.abs((entry.midfieldRating ?? 0) - baselineMidfield) <= 2
           );
-    return new Set(
-      selectedMatches.map((entry) => `${entry.matchId}:${entry.sourceSystem}`)
-    );
+    });
+    return new Set(selectedMatches.map((entry) => `${entry.matchId}:${entry.sourceSystem}`));
   }, [selectedTeamAttitudeTeam]);
   const teamAttitudeDetailRows = useMemo(
     () =>
@@ -11904,6 +12021,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         matchId: entry.matchId,
         matchDate: entry.matchDate,
         sourceSystem: entry.sourceSystem,
+        venueLabel:
+          entry.venue === "away" ? messages.awayLabel : messages.homeLabel,
         matchTitle: resolvedMatches[entry.matchId] ?? `${messages.matchesTitle} ${entry.matchId}`,
         matchScore: resolvedMatchScores[entry.matchId] ?? messages.unknownShort,
         matchDateLabel: entry.matchDate
@@ -11919,7 +12038,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         ),
         lineupLabel: formatTeamAttitudeDebugNumberList(entry.lineupPlayerIds),
         baselineUnionLabel: formatTeamAttitudeDebugNumberList(
-          selectedTeamAttitudeTeam?.snapshot?.baselineUnionPlayerIds
+          resolveTeamAttitudeVenueSnapshot(
+            selectedTeamAttitudeTeam?.snapshot,
+            entry.venue ?? "home"
+          ).baselineUnionPlayerIds
         ),
         overlapLabel:
           entry.lineupOverlapPct !== null
@@ -11931,6 +12053,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       formatMatchTypeLabel,
       formatTeamAttitudeLabel,
       formatTacticLabel,
+      messages.awayLabel,
+      messages.homeLabel,
       messages.matchesTitle,
       messages.unknownShort,
       resolvedMatchScores,
@@ -11946,6 +12070,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         matchId: number;
         matchDate: string | null;
         sourceSystem: string;
+        venueLabel: string;
         matchTitle: string;
         matchScore: string;
         matchDateLabel: string;
@@ -11963,6 +12088,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         matchId: number;
         matchDate: string | null;
         sourceSystem: string;
+        venueLabel: string;
         matchTitle: string;
         matchScore: string;
         matchDateLabel: string;
@@ -11984,6 +12110,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           matchId: number;
           matchDate: string | null;
           sourceSystem: string;
+          venueLabel: string;
           matchTitle: string;
           matchScore: string;
           matchDateLabel: string;
@@ -12001,6 +12128,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           matchId: number;
           matchDate: string | null;
           sourceSystem: string;
+          venueLabel: string;
           matchTitle: string;
           matchScore: string;
           matchDateLabel: string;
@@ -12063,6 +12191,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       if (teamAttitudeDetailShowsDevInfo) {
         columns.push(
           {
+            key: "venue",
+            label: `${messages.homeLabel}/${messages.awayLabel}`,
+            getValue: (snapshot) => snapshot?.venueLabel ?? null,
+          },
+          {
             key: "midfield",
             label: messages.clubChronicleTeamAttitudeMidfieldColumn,
             getValue: (snapshot) => snapshot?.midfieldRatingLabel ?? null,
@@ -12101,6 +12234,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       return columns;
     },
     [
+      messages.awayLabel,
       messages.clubChronicleOngoingMatchesColumnScore,
       messages.clubChronicleTeamAttitudeBaselineUnionColumn,
       messages.clubChronicleTeamAttitudeLineupColumn,
@@ -12110,90 +12244,105 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleTeamAttitudeMatchTypeColumn,
       messages.clubChronicleTeamAttitudeMidfieldColumn,
       messages.clubChronicleTeamAttitudeOverlapColumn,
+      messages.homeLabel,
       messages.unknownShort,
       teamAttitudeDetailShowsDevInfo,
     ]
   );
-  const teamAttitudeDebugSummaryRows = useMemo(
-    () =>
-      !teamAttitudeDetailShowsDevInfo || !selectedTeamAttitudeTeam?.snapshot
-        ? []
-        : [
-            {
-              id: "chosen-formation",
-              label: messages.clubChronicleTeamAttitudeDebugChosenFormationLabel,
-              value:
-                selectedTeamAttitudeTeam.snapshot.topFormation ?? messages.unknownShort,
-            },
-            {
-              id: "all-midfield-values",
-              label: messages.clubChronicleTeamAttitudeDebugBaselineValuesLabel,
-              value: formatTeamAttitudeDebugNumberList(
-                selectedTeamAttitudeTeam.snapshot.allMidfieldValues
-              ),
-            },
-            {
-              id: "initial-baseline",
-              label: messages.clubChronicleTeamAttitudeDebugInitialBaselineLabel,
-              value:
-                selectedTeamAttitudeTeam.snapshot.initialBaselineMidfield !== null
-                  ? String(selectedTeamAttitudeTeam.snapshot.initialBaselineMidfield)
-                  : messages.unknownShort,
-            },
-            {
-              id: "initial-threshold",
-              label: messages.clubChronicleTeamAttitudeDebugInitialThresholdLabel,
-              value:
-                selectedTeamAttitudeTeam.snapshot.initialThreshold !== null
-                  ? String(selectedTeamAttitudeTeam.snapshot.initialThreshold)
-                  : messages.unknownShort,
-            },
-            {
-              id: "initial-normal-values",
-              label: messages.clubChronicleTeamAttitudeDebugInitialNormalValuesLabel,
-              value: formatTeamAttitudeDebugNumberList(
-                selectedTeamAttitudeTeam.snapshot.initialNormalMidfieldValues
-              ),
-            },
-            {
-              id: "final-baseline-values",
-              label: messages.clubChronicleTeamAttitudeDebugFinalBaselineValuesLabel,
-              value: formatTeamAttitudeDebugNumberList(
-                selectedTeamAttitudeTeam.snapshot.finalBaselineMidfieldValues
-              ),
-            },
-            {
-              id: "final-baseline",
-              label: messages.clubChronicleTeamAttitudeDebugFinalBaselineLabel,
-              value:
-                selectedTeamAttitudeTeam.snapshot.baselineMidfield !== null
-                  ? String(selectedTeamAttitudeTeam.snapshot.baselineMidfield)
-                  : messages.unknownShort,
-            },
-            {
-              id: "final-threshold",
-              label: messages.clubChronicleTeamAttitudeDebugFinalThresholdLabel,
-              value:
-                selectedTeamAttitudeTeam.snapshot.finalThreshold !== null
-                  ? String(selectedTeamAttitudeTeam.snapshot.finalThreshold)
-                  : messages.unknownShort,
-            },
-          ],
-    [
-      messages.clubChronicleTeamAttitudeDebugChosenFormationLabel,
-      formatTeamAttitudeDebugNumberList,
-      messages.clubChronicleTeamAttitudeDebugBaselineValuesLabel,
-      messages.clubChronicleTeamAttitudeDebugFinalBaselineLabel,
-      messages.clubChronicleTeamAttitudeDebugFinalBaselineValuesLabel,
-      messages.clubChronicleTeamAttitudeDebugFinalThresholdLabel,
-      messages.clubChronicleTeamAttitudeDebugInitialBaselineLabel,
-      messages.clubChronicleTeamAttitudeDebugInitialNormalValuesLabel,
-      messages.clubChronicleTeamAttitudeDebugInitialThresholdLabel,
-      messages.unknownShort,
-      teamAttitudeDetailShowsDevInfo,
-      selectedTeamAttitudeTeam,
-    ]
-  );
+  const teamAttitudeDebugSummaryRows = useMemo(() => {
+    if (!teamAttitudeDetailShowsDevInfo || !selectedTeamAttitudeTeam?.snapshot) {
+      return [];
+    }
+    const buildVenueRows = (
+      venue: TeamAttitudeVenue,
+      venueLabel: string,
+      venueSnapshot: TeamAttitudeVenueSnapshot
+    ) => [
+      {
+        id: `${venue}-all-midfield-values`,
+        label: `${venueLabel} ${messages.clubChronicleTeamAttitudeDebugBaselineValuesLabel}`,
+        value: formatTeamAttitudeDebugNumberList(venueSnapshot.allMidfieldValues),
+      },
+      {
+        id: `${venue}-initial-baseline`,
+        label: `${venueLabel} ${messages.clubChronicleTeamAttitudeDebugInitialBaselineLabel}`,
+        value:
+          venueSnapshot.initialBaselineMidfield !== null
+            ? String(venueSnapshot.initialBaselineMidfield)
+            : messages.unknownShort,
+      },
+      {
+        id: `${venue}-initial-threshold`,
+        label: `${venueLabel} ${messages.clubChronicleTeamAttitudeDebugInitialThresholdLabel}`,
+        value:
+          venueSnapshot.initialThreshold !== null
+            ? String(venueSnapshot.initialThreshold)
+            : messages.unknownShort,
+      },
+      {
+        id: `${venue}-initial-normal-values`,
+        label: `${venueLabel} ${messages.clubChronicleTeamAttitudeDebugInitialNormalValuesLabel}`,
+        value: formatTeamAttitudeDebugNumberList(
+          venueSnapshot.initialNormalMidfieldValues
+        ),
+      },
+      {
+        id: `${venue}-final-baseline-values`,
+        label: `${venueLabel} ${messages.clubChronicleTeamAttitudeDebugFinalBaselineValuesLabel}`,
+        value: formatTeamAttitudeDebugNumberList(
+          venueSnapshot.finalBaselineMidfieldValues
+        ),
+      },
+      {
+        id: `${venue}-final-baseline`,
+        label: `${venueLabel} ${messages.clubChronicleTeamAttitudeDebugFinalBaselineLabel}`,
+        value:
+          venueSnapshot.baselineMidfield !== null
+            ? String(venueSnapshot.baselineMidfield)
+            : messages.unknownShort,
+      },
+      {
+        id: `${venue}-final-threshold`,
+        label: `${venueLabel} ${messages.clubChronicleTeamAttitudeDebugFinalThresholdLabel}`,
+        value:
+          venueSnapshot.finalThreshold !== null
+            ? String(venueSnapshot.finalThreshold)
+            : messages.unknownShort,
+      },
+    ];
+    const homeSnapshot = resolveTeamAttitudeVenueSnapshot(
+      selectedTeamAttitudeTeam.snapshot,
+      "home"
+    );
+    const awaySnapshot = resolveTeamAttitudeVenueSnapshot(
+      selectedTeamAttitudeTeam.snapshot,
+      "away"
+    );
+    return [
+      {
+        id: "chosen-formation",
+        label: messages.clubChronicleTeamAttitudeDebugChosenFormationLabel,
+        value: selectedTeamAttitudeTeam.snapshot.topFormation ?? messages.unknownShort,
+      },
+      ...buildVenueRows("home", messages.homeLabel, homeSnapshot),
+      ...buildVenueRows("away", messages.awayLabel, awaySnapshot),
+    ];
+  }, [
+    messages.clubChronicleTeamAttitudeDebugChosenFormationLabel,
+    formatTeamAttitudeDebugNumberList,
+    messages.awayLabel,
+    messages.clubChronicleTeamAttitudeDebugBaselineValuesLabel,
+    messages.clubChronicleTeamAttitudeDebugFinalBaselineLabel,
+    messages.clubChronicleTeamAttitudeDebugFinalBaselineValuesLabel,
+    messages.clubChronicleTeamAttitudeDebugFinalThresholdLabel,
+    messages.homeLabel,
+    messages.clubChronicleTeamAttitudeDebugInitialBaselineLabel,
+    messages.clubChronicleTeamAttitudeDebugInitialNormalValuesLabel,
+    messages.clubChronicleTeamAttitudeDebugInitialThresholdLabel,
+    messages.unknownShort,
+    teamAttitudeDetailShowsDevInfo,
+    selectedTeamAttitudeTeam,
+  ]);
   const fanclubDetailsPreviousHeader = useMemo(() => {
     if (!fanclubDetailsSnapshot?.previousDate) {
       return messages.clubChronicleDetailsPreviousLabel;

@@ -468,7 +468,7 @@ export const messagesEs: Messages = {
     clubChronicleHelpBulletFormations:
       "Formaciones y tacticas: formacion y tactica mas usadas en los ultimos 20 partidos relevantes. Haz clic en una fila para ver graficos de distribucion.",
     clubChronicleHelpBulletTeamAttitude:
-      "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings only, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+      "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
     clubChronicleHelpBulletTsi:
       "TSI: TSI total del equipo y TSI del top 11. Haz clic en una fila para ver detalles de jugadores ordenables con indice, edad (anos+dias) y TSI.",
     clubChronicleHelpBulletLikelyTraining:
@@ -549,7 +549,7 @@ export const messagesEs: Messages = {
     clubChronicleDetailModeUser: "Modo de usuario",
     clubChronicleDetailModeDev: "Modo de desarrollo",
     clubChronicleTeamAttitudeDisclaimer:
-      "Estos valores son inferidos y pueden no ser siempre exactos.",
+      "Estos valores son inferidos y puede que no siempre sean exactos. Los equipos que hacen PIC de forma constante y luego juegan normal pueden parecer MOTS, y los equipos que hacen MOTS de forma constante y luego juegan normal pueden parecer PIC.",
     clubChronicleMatchTypeLeague: "Partido de liga",
     clubChronicleMatchTypeQualification: "Partido de clasificación",
     clubChronicleMatchTypeCup: "Partido de copa",

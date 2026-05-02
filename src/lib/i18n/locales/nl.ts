@@ -629,7 +629,7 @@ export const messagesNl: Messages = {
   clubChronicleRefreshStatusMatchLineupsProgress:
     "Match lineups {completed}/{total} (team: {team})",
   clubChronicleHelpBulletTeamAttitude:
-    "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings only, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+    "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
   clubChronicleTeamAttitudePanelTitle: "Team attitude",
   clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
   clubChronicleTeamAttitudeColumnDate: "Date",
@@ -660,7 +660,7 @@ export const messagesNl: Messages = {
   clubChronicleDetailModeUser: "Gebruikersmodus",
   clubChronicleDetailModeDev: "Dev-modus",
   clubChronicleTeamAttitudeDisclaimer:
-    "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig.",
+    "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig. Teams die consequent PIC spelen en daarna normaal spelen, kunnen op MOTS lijken, en teams die consequent MOTS spelen en daarna normaal spelen, kunnen op PIC lijken.",
   seniorHelpTitle: "Handleiding senioroptimalisatie",
   seniorHelpIntro:
     "Deze weergave helpt je relevante wijzigingen in de seniorselectie te volgen en sneller wedstrijdopstellingen te zetten.",

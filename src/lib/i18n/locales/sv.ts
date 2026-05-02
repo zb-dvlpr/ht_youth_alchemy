@@ -462,7 +462,7 @@ export const messagesSv: Messages = {
     clubChronicleHelpBulletFormations:
       "Formationer och taktik: mest anvand formation och taktik fran de senaste 20 relevanta matcherna. Klicka pa en rad for fordelningsdiagram.",
     clubChronicleHelpBulletTeamAttitude:
-      "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings only, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+      "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
     clubChronicleHelpBulletTsi:
       "TSI: lagets totala TSI och top-11 TSI. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar) och TSI.",
     clubChronicleHelpBulletLikelyTraining:
@@ -543,7 +543,7 @@ export const messagesSv: Messages = {
     clubChronicleDetailModeUser: "Anvandarlage",
     clubChronicleDetailModeDev: "Utvecklarlage",
     clubChronicleTeamAttitudeDisclaimer:
-      "Dessa värden är uppskattade och är inte alltid helt exakta.",
+      "Dessa värden är uppskattade och är inte alltid helt exakta. Lag som konsekvent spelar PIC och sedan spelar normalt kan se ut som MOTS, och lag som konsekvent spelar MOTS och sedan spelar normalt kan se ut som PIC.",
     clubChronicleMatchTypeLeague: "Ligamatch",
     clubChronicleMatchTypeQualification: "Kvalmatch",
     clubChronicleMatchTypeCup: "Cupmatch",

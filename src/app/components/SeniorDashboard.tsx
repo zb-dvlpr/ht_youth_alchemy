@@ -10026,6 +10026,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     const sourceDetails = editedSourceDetails ?? detail;
     const initialFilters = buildInitialTransferSearchFilters(player, sourceDetails);
     setTransferSearchSourcePlayerId(player.PlayerID);
+    setTransferSearchResultsViewMode("cards");
     setTransferSearchModalOpen(true);
     void runTransferSearch(initialFilters, {
       allowAutoFallback: true,
@@ -13242,9 +13243,7 @@ const refreshDetailsForPlayers = async (
               ? parsed.transferSearchSortKey
               : "default"
           );
-          setTransferSearchResultsViewMode(
-            parsed.transferSearchResultsViewMode === "table" ? "table" : "cards"
-          );
+          setTransferSearchResultsViewMode("cards");
           setTransferSearchUsedFallback(Boolean(parsed.transferSearchUsedFallback));
           setTransferSearchExactEmpty(Boolean(parsed.transferSearchExactEmpty));
           setTransferSearchBidDrafts(

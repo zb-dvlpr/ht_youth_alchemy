@@ -827,6 +827,8 @@ export type Messages = {
   setBestLineupTrainingAwareTooltip: string;
   setBestLineupIgnoreTraining: string;
   setBestLineupIgnoreTrainingTooltip: string;
+  setBestLineupIgnoreTrainingAllowAllFormations: string;
+  setBestLineupIgnoreTrainingAllowOnlyTrainedFormations: string;
   setBestLineupAimForExtraTime: string;
   setBestLineupAimForExtraTimeTooltip: string;
   setBestLineupAimForExtraTimeDisabledTooltip: string;
@@ -969,6 +971,7 @@ export type Messages = {
   notificationTeamSwitched: string;
   notificationTeamsLoaded: string;
   notificationTeamsLoadFailed: string;
+  notificationSeniorIgnoreTrainingNoTrainedFormations: string;
   notificationDebugOauthMode: string;
   notificationMatchesRefreshed: string;
   notificationMatchesRefreshFailed: string;

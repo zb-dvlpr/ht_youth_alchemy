@@ -750,7 +750,7 @@ export const messagesSv: Messages = {
     seniorHelpBulletAiTrainingAware:
       "Traningsmedvetet lage foljer aktuell traning och prioriterar uppstallningar som fyller relevanta traningsplatser.",
     seniorHelpBulletAiIgnoreTraining:
-      "Ignorera traning optimerar bara matcheffektivitet utan krav pa traningsplatser.",
+      "Ignorera traning optimerar matcheffektivitet utan krav pa traningsplatser, antingen over alla formationer eller bara over formationer med traningserfarenhet over 3.",
     seniorHelpBulletAiMatchTypes:
       "Anvand Sikta pa forlangning om du vill ha en uppstallning inriktad pa extra traningsminuter i forlangning, och Optimera efter formation om du vill lasa en formation och lata Alchemy valja basta uppstallning.",
     seniorHelpBulletTrainingRegimen:
@@ -1016,7 +1016,10 @@ export const messagesSv: Messages = {
       "Sätt uppställningen med hänsyn till träningsupplägget. Endast formationer som fyller alla träningsplatser beaktas.",
     setBestLineupIgnoreTraining: "Ignorera träning",
     setBestLineupIgnoreTrainingTooltip:
-      "Sätt uppställningen utan hänsyn till träningsupplägget. Alla formationer beaktas.",
+      "Sätt uppställningen utan hänsyn till träningsupplägget. Välj mellan att tillåta alla formationer och att bara tillåta tränade formationer.",
+    setBestLineupIgnoreTrainingAllowAllFormations: "Tillåt alla formationer",
+    setBestLineupIgnoreTrainingAllowOnlyTrainedFormations:
+      "Tillåt endast tränade formationer",
     setBestLineupAimForExtraTime: "Sikta på förlängning",
     setBestLineupAimForExtraTimeTooltip:
       "Spela för oavgjort för att få extra träning.",
@@ -1207,6 +1210,8 @@ export const messagesSv: Messages = {
     notificationTeamSwitched: "Bytt till:",
     notificationTeamsLoaded: "Lag laddade",
     notificationTeamsLoadFailed: "Kunde inte ladda lag",
+    notificationSeniorIgnoreTrainingNoTrainedFormations:
+      "Inga formationer med träningserfarenhet över 3 hittades. Återgår till alla formationer.",
     notificationDebugOauthMode: "OAuth-debugläge:",
     notificationMatchesRefreshed: "Matcher uppdaterade",
     notificationMatchesRefreshFailed: "Misslyckades att uppdatera matcher",

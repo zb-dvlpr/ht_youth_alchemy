@@ -758,7 +758,7 @@ export const messagesIt: Messages = {
     seniorHelpBulletAiTrainingAware:
       "Modalita con allenamento: rispetta il regime di allenamento corrente e privilegia formazioni che coprono gli slot di allenamento rilevanti.",
     seniorHelpBulletAiIgnoreTraining:
-      "Modalita ignora allenamento: ottimizza solo l efficacia partita senza vincoli sugli slot di allenamento.",
+      "Modalita ignora allenamento: ottimizza l efficacia della partita senza vincoli sugli slot di allenamento, sia tra tutte le formazioni sia solo tra quelle con esperienza di allenamento superiore a 3.",
     seniorHelpBulletAiMatchTypes:
       "Usa Punta ai supplementari se vuoi una configurazione orientata a minuti extra di allenamento nei supplementari, e Ottimizza per formazione se vuoi bloccare un modulo e lasciare ad Alchemy la scelta della formazione migliore.",
     seniorHelpBulletTrainingRegimen:
@@ -1027,7 +1027,10 @@ export const messagesIt: Messages = {
       "Imposta la formazione considerando il regime di allenamento. Vengono considerate solo formazioni che mantengono pieni tutti gli slot di allenamento.",
     setBestLineupIgnoreTraining: "Ignora allenamento",
     setBestLineupIgnoreTrainingTooltip:
-      "Imposta la formazione senza considerare il regime di allenamento. Vengono considerate tutte le formazioni.",
+      "Imposta la formazione senza considerare il regime di allenamento. Scegli se consentire tutte le formazioni o solo quelle allenate.",
+    setBestLineupIgnoreTrainingAllowAllFormations: "Consenti tutte le formazioni",
+    setBestLineupIgnoreTrainingAllowOnlyTrainedFormations:
+      "Consenti solo le formazioni allenate",
     setBestLineupAimForExtraTime: "Punta ai supplementari",
     setBestLineupAimForExtraTimeTooltip:
       "Gioca per il pareggio per ottenere allenamento extra.",
@@ -1218,6 +1221,8 @@ export const messagesIt: Messages = {
     notificationTeamSwitched: "Passato a:",
     notificationTeamsLoaded: "Squadre caricate",
     notificationTeamsLoadFailed: "Impossibile caricare le squadre",
+    notificationSeniorIgnoreTrainingNoTrainedFormations:
+      "Non sono state trovate formazioni con esperienza di allenamento superiore a 3. Si torna a tutte le formazioni.",
     notificationDebugOauthMode: "Modalità debug OAuth:",
     notificationMatchesRefreshed: "Partite aggiornate",
     notificationMatchesRefreshFailed: "Aggiornamento partite fallito",

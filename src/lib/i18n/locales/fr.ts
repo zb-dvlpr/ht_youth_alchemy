@@ -757,7 +757,7 @@ export const messagesFr: Messages = {
     seniorHelpBulletAiTrainingAware:
       "Mode avec entrainement: respecte le regime d entrainement actuel et privilegie les compositions qui couvrent les postes d entrainement concernes.",
     seniorHelpBulletAiIgnoreTraining:
-      "Mode sans entrainement: optimise uniquement l efficacite du match sans contrainte des postes d entrainement.",
+      "Mode sans entrainement: optimise l efficacite du match sans contrainte des postes d entrainement, soit sur toutes les formations, soit uniquement sur les formations avec une experience d entrainement superieure a 3.",
     seniorHelpBulletAiMatchTypes:
       "Utilisez Viser la prolongation si vous voulez une configuration orientee vers des minutes d entrainement supplementaires en prolongation, et Optimiser par formation si vous voulez verrouiller une structure et laisser Alchemy choisir la meilleure composition.",
     seniorHelpBulletTrainingRegimen:
@@ -1025,7 +1025,10 @@ export const messagesFr: Messages = {
       "Définit la composition en tenant compte du programme d'entraînement. Seules les formations qui remplissent tous les postes d'entraînement sont prises en compte.",
     setBestLineupIgnoreTraining: "Ignorer l'entraînement",
     setBestLineupIgnoreTrainingTooltip:
-      "Définit la composition sans tenir compte du programme d'entraînement. Toutes les formations sont prises en compte.",
+      "Définit la composition sans tenir compte du programme d'entraînement. Choisissez entre autoriser toutes les formations et n'autoriser que les formations entraînées.",
+    setBestLineupIgnoreTrainingAllowAllFormations: "Autoriser toutes les formations",
+    setBestLineupIgnoreTrainingAllowOnlyTrainedFormations:
+      "Autoriser seulement les formations entraînées",
     setBestLineupAimForExtraTime: "Viser la prolongation",
     setBestLineupAimForExtraTimeTooltip:
       "Joue le nul pour obtenir un entraînement supplémentaire.",
@@ -1216,6 +1219,8 @@ export const messagesFr: Messages = {
     notificationTeamSwitched: "Changé vers :",
     notificationTeamsLoaded: "Équipes chargées",
     notificationTeamsLoadFailed: "Impossible de charger les équipes",
+    notificationSeniorIgnoreTrainingNoTrainedFormations:
+      "Aucune formation avec une expérience d'entraînement supérieure à 3 n'a été trouvée. Retour à toutes les formations.",
     notificationDebugOauthMode: "Mode debug OAuth :",
     notificationMatchesRefreshed: "Matchs actualisés",
     notificationMatchesRefreshFailed: "Échec de l’actualisation des matchs",

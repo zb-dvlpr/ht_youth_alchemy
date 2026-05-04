@@ -57,6 +57,7 @@ import MobileToolMenu, { type MobileToolView as SeniorMobileView } from "./Mobil
 import PlayerDetailsPanel, { type PlayerDetailsPanelTab } from "./PlayerDetailsPanel";
 import LineupField, { LineupAssignments, LineupBehaviors } from "./LineupField";
 import UpcomingMatches, {
+  type IgnoreTrainingFormationPolicy,
   Match,
   MatchOrdersLineupPayload,
   MatchesResponse,
@@ -754,6 +755,19 @@ const FIXED_FORMATION_OPTIONS = [
 ] as const;
 
 const AI_TACTIC_OPTIONS = [0, 1, 2, 3, 4, 7, 8] as const;
+const TRAINED_IGNORE_TRAINING_MIN_EXPERIENCE = 3;
+const TRAINING_EXPERIENCE_FIELDS = [
+  { formation: "4-4-2", field: "Experience442" },
+  { formation: "4-3-3", field: "Experience433" },
+  { formation: "4-5-1", field: "Experience451" },
+  { formation: "3-5-2", field: "Experience352" },
+  { formation: "5-3-2", field: "Experience532" },
+  { formation: "3-4-3", field: "Experience343" },
+  { formation: "5-4-1", field: "Experience541" },
+  { formation: "5-2-3", field: "Experience523" },
+  { formation: "5-5-0", field: "Experience550" },
+  { formation: "2-5-3", field: "Experience253" },
+] as const;
 
 type FormationTacticsDistribution = {
   key: string;
@@ -2979,6 +2993,8 @@ export default function SeniorDashboard({
   const [setBestLineupFixedFormation, setSetBestLineupFixedFormation] = useState<
     string | null
   >(null);
+  const [ignoreTrainingFormationPolicy, setIgnoreTrainingFormationPolicy] =
+    useState<IgnoreTrainingFormationPolicy>("allFormations");
   const [trainingTypeSetPending, setTrainingTypeSetPending] = useState(false);
   const [trainingTypeSetPendingValue, setTrainingTypeSetPendingValue] = useState<number | null>(
     null
@@ -3231,6 +3247,7 @@ export default function SeniorDashboard({
   const trainingAwareAutoSelectionOpenRef = useRef(false);
   const trainingAwareAutoSelectionTrainingTypeRef = useRef<number | null>(null);
   const trainingAwareLastAutoSelectedPlayerIdsRef = useRef<number[] | null>(null);
+  const trainedIgnoreTrainingFormationsCacheRef = useRef<Map<number, string[]>>(new Map());
   const activeRefreshRunIdRef = useRef<number | null>(null);
   const stoppedRefreshRunIdsRef = useRef<Set<number>>(new Set());
   const staleRefreshAttemptedRef = useRef(false);
@@ -9598,6 +9615,52 @@ function buildSeniorAiManMarkingReadySignature(params: {
     return snapshot.trainingType;
   };
 
+  const fetchTrainedIgnoreTrainingFormations = async (teamId?: number | null) => {
+    const cachedTeamId =
+      typeof teamId === "number" && Number.isFinite(teamId) && teamId > 0 ? teamId : null;
+    if (cachedTeamId !== null) {
+      const cached = trainedIgnoreTrainingFormationsCacheRef.current.get(cachedTeamId);
+      if (cached) {
+        return {
+          teamId: cachedTeamId,
+          formations: [...cached],
+        };
+      }
+    }
+    const { response, payload } = await fetchChppJson<{
+      data?: {
+        HattrickData?: {
+          Team?: {
+            TeamID?: unknown;
+          } & Partial<Record<(typeof TRAINING_EXPERIENCE_FIELDS)[number]["field"], unknown>>;
+        };
+      };
+      error?: string;
+      details?: string;
+    }>(
+      `/api/chpp/training?actionType=view${
+        cachedTeamId ? `&teamId=${cachedTeamId}` : ""
+      }`,
+      { cache: "no-store" }
+    );
+    if (!response.ok || payload?.error) {
+      throw new Error(payload?.details ?? payload?.error ?? "Failed to fetch training");
+    }
+    const team = payload?.data?.HattrickData?.Team;
+    const resolvedTeamId = parseNumber(team?.TeamID);
+    const formations = TRAINING_EXPERIENCE_FIELDS.filter(
+      ({ field }) =>
+        (parseNumber(team?.[field]) ?? 0) > TRAINED_IGNORE_TRAINING_MIN_EXPERIENCE
+    ).map(({ formation }) => formation);
+    if (resolvedTeamId !== null) {
+      trainedIgnoreTrainingFormationsCacheRef.current.set(resolvedTeamId, formations);
+    }
+    return {
+      teamId: resolvedTeamId,
+      formations,
+    };
+  };
+
   const setSeniorTrainingRegimen = async (teamId: number, nextTrainingType: number) => {
     const { response, payload } = await fetchChppJson<{
       error?: string;
@@ -11642,6 +11705,7 @@ const refreshDetailsForPlayers = async (
     options?: {
       trainingAwareTraineeIds?: number[];
       trainingAwareTrainingType?: number | null;
+      ignoreTrainingFormationPolicy?: IgnoreTrainingFormationPolicy;
     }
   ) => {
     let fixedFormationFailureSlotDiagnostics: FixedFormationSlotDiagnostic[] = [];
@@ -11682,6 +11746,7 @@ const refreshDetailsForPlayers = async (
       }
 
       let activeTrainingType = trainingType;
+      let allowedIgnoreTrainingFormations: Set<string> | null = null;
       if (
         mode === "trainingAware" &&
         typeof options?.trainingAwareTrainingType === "number"
@@ -11693,6 +11758,24 @@ const refreshDetailsForPlayers = async (
           setTrainingType(activeTrainingType);
         } catch {
           // Keep best-lineup flow intact even if training endpoint fails.
+        }
+      }
+      if (
+        mode === "ignoreTraining" &&
+        options?.ignoreTrainingFormationPolicy === "trainedFormations"
+      ) {
+        try {
+          const trainedFormationsSnapshot =
+            await fetchTrainedIgnoreTrainingFormations(teamIdValue);
+          if (trainedFormationsSnapshot.formations.length > 0) {
+            allowedIgnoreTrainingFormations = new Set(trainedFormationsSnapshot.formations);
+          } else {
+            addNotification(messages.notificationSeniorIgnoreTrainingNoTrainedFormations);
+          }
+        } catch (error) {
+          const details =
+            error instanceof Error ? error.message : messages.unableToLoadMatches;
+          addNotification(details);
         }
       }
 
@@ -12011,6 +12094,14 @@ const refreshDetailsForPlayers = async (
         midfielders: number;
         attackers: number;
       }) => {
+        const formation = `${shape.defenders}-${shape.midfielders}-${shape.attackers}`;
+        if (
+          mode === "ignoreTraining" &&
+          allowedIgnoreTrainingFormations &&
+          !allowedIgnoreTrainingFormations.has(formation)
+        ) {
+          return null;
+        }
         if (
           mode === "trainingAware" &&
           !trainingAwareShapeAllowed(shape, activeTrainingType)
@@ -12058,7 +12149,7 @@ const refreshDetailsForPlayers = async (
         }
         return {
           row: {
-            formation: `${shape.defenders}-${shape.midfielders}-${shape.attackers}`,
+            formation,
             assignments: resolvedPass?.assignments ?? {},
             slotRatings: resolvedPass?.slotRatings ?? {},
             rejectedPlayerIds: [],
@@ -12850,6 +12941,7 @@ const refreshDetailsForPlayers = async (
             tacticType?: number;
             trainingType?: number | null;
             setBestLineupFixedFormation?: string | null;
+            ignoreTrainingFormationPolicy?: IgnoreTrainingFormationPolicy;
             includeTournamentMatches?: boolean;
             updatesHistory?: SeniorUpdatesGroupedEntry[];
             matrixNewMarkers?: SeniorMatrixNewMarkers;
@@ -12929,6 +13021,11 @@ const refreshDetailsForPlayers = async (
               )
               ? parsed.setBestLineupFixedFormation
               : null
+          );
+          setIgnoreTrainingFormationPolicy(
+            parsed.ignoreTrainingFormationPolicy === "trainedFormations"
+              ? "trainedFormations"
+              : "allFormations"
           );
           setIncludeTournamentMatches(Boolean(parsed.includeTournamentMatches));
           if (forceWipeLegacyUpdatesState) {
@@ -13337,6 +13434,7 @@ const refreshDetailsForPlayers = async (
       tacticType,
       trainingType,
       setBestLineupFixedFormation,
+      ignoreTrainingFormationPolicy,
       includeTournamentMatches,
       updatesHistory,
       matrixNewMarkers,
@@ -13393,6 +13491,7 @@ const refreshDetailsForPlayers = async (
     tacticType,
     trainingType,
     setBestLineupFixedFormation,
+    ignoreTrainingFormationPolicy,
     updatesHistory,
     matrixNewMarkers,
     activeDetailsTab,
@@ -15736,10 +15835,14 @@ const refreshDetailsForPlayers = async (
           fixedFormationOptions={[...FIXED_FORMATION_OPTIONS]}
           selectedFixedFormation={setBestLineupFixedFormation}
           onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
+          selectedIgnoreTrainingFormationPolicy={ignoreTrainingFormationPolicy}
+          onSelectedIgnoreTrainingFormationPolicyChange={
+            setIgnoreTrainingFormationPolicy
+          }
           setBestLineupCustomContent={setBestLineupBTeamMenuContent}
           setBestLineupDisabledTooltipBuilder={getSetBestLineupDisabledTooltip}
           onRefresh={onRefreshMatchesOnly}
-          onSetBestLineupMode={async (matchId, mode, fixedFormation) => {
+          onSetBestLineupMode={async (matchId, mode, fixedFormation, options) => {
             clearSeniorAiSubmitLock();
             if (mode === "extraTime") {
               setExtraTimeMatchId(matchId);
@@ -15757,7 +15860,12 @@ const refreshDetailsForPlayers = async (
               setTrainingAwareInfoOpen(true);
               return;
             }
-            return runSetBestLineupPredictRatings(matchId, mode, fixedFormation);
+            return runSetBestLineupPredictRatings(
+              matchId,
+              mode,
+              fixedFormation,
+              options
+            );
           }}
           onAnalyzeOpponent={(matchId) => {
             return handleAnalyzeOpponent(matchId);
@@ -18766,10 +18874,14 @@ const refreshDetailsForPlayers = async (
             fixedFormationOptions={[...FIXED_FORMATION_OPTIONS]}
             selectedFixedFormation={setBestLineupFixedFormation}
             onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
+            selectedIgnoreTrainingFormationPolicy={ignoreTrainingFormationPolicy}
+            onSelectedIgnoreTrainingFormationPolicyChange={
+              setIgnoreTrainingFormationPolicy
+            }
             setBestLineupCustomContent={setBestLineupBTeamMenuContent}
             setBestLineupDisabledTooltipBuilder={getSetBestLineupDisabledTooltip}
             onRefresh={onRefreshMatchesOnly}
-            onSetBestLineupMode={async (matchId, mode, fixedFormation) => {
+            onSetBestLineupMode={async (matchId, mode, fixedFormation, options) => {
               clearSeniorAiSubmitLock();
               if (mode === "extraTime") {
                 setExtraTimeMatchId(matchId);
@@ -18787,7 +18899,12 @@ const refreshDetailsForPlayers = async (
                 setTrainingAwareInfoOpen(true);
                 return;
               }
-              return runSetBestLineupPredictRatings(matchId, mode, fixedFormation);
+              return runSetBestLineupPredictRatings(
+                matchId,
+                mode,
+                fixedFormation,
+                options
+              );
             }}
             onAnalyzeOpponent={(matchId) => {
               return handleAnalyzeOpponent(matchId);

@@ -721,7 +721,7 @@ export const messagesEn: Messages = {
     seniorHelpBulletAiTrainingAware:
       "Training-aware mode respects the current training regimen and prioritizes lineups that cover the relevant training slots.",
     seniorHelpBulletAiIgnoreTraining:
-      "Ignore-training mode optimizes for match effectiveness without training-slot constraints.",
+      "Ignore-training mode optimizes for match effectiveness without training-slot constraints, either across all formations or only formations with training experience above 3.",
     seniorHelpBulletAiMatchTypes:
       "Use Aim for extra time when you want a setup geared toward added training minutes in extra time, and use Optimize by formation when you want to lock a shape and let Alchemy choose the best lineup for it.",
     seniorHelpBulletTrainingRegimen:
@@ -982,7 +982,10 @@ export const messagesEn: Messages = {
       "Set lineup considering the training regimen. Only formations that keep all training slots filled are considered.",
     setBestLineupIgnoreTraining: "Ignore training",
     setBestLineupIgnoreTrainingTooltip:
-      "Set lineup without considering the training regimen. All formations are considered.",
+      "Set lineup without considering the training regimen. Choose between allowing all formations to allowing only trained formations.",
+    setBestLineupIgnoreTrainingAllowAllFormations: "Allow all formations",
+    setBestLineupIgnoreTrainingAllowOnlyTrainedFormations:
+      "Allow only trained formations",
     setBestLineupAimForExtraTime: "Aim for extra time",
     setBestLineupAimForExtraTimeTooltip:
       "Play for a draw to gain extra training.",
@@ -1171,6 +1174,8 @@ export const messagesEn: Messages = {
     notificationTeamSwitched: "Switched to:",
     notificationTeamsLoaded: "Teams loaded",
     notificationTeamsLoadFailed: "Failed to load teams",
+    notificationSeniorIgnoreTrainingNoTrainedFormations:
+      "No formations with training experience above 3 were found. Falling back to all formations.",
     notificationDebugOauthMode: "OAuth debug mode:",
     notificationMatchesRefreshed: "Matches refreshed",
     notificationMatchesRefreshFailed: "Matches refresh failed",

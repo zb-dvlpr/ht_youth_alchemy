@@ -2390,9 +2390,7 @@ export default function Dashboard({
           ? parsed.transferSearchSortKey
           : "default"
       );
-      setTransferSearchResultsViewMode(
-        parsed.transferSearchResultsViewMode === "table" ? "table" : "cards"
-      );
+      setTransferSearchResultsViewMode("cards");
       setTransferSearchExactEmpty(Boolean(parsed.transferSearchExactEmpty));
       setTransferSearchBidDrafts(
         normalizeTransferSearchBidDrafts(parsed.transferSearchBidDrafts)
@@ -3894,6 +3892,7 @@ export default function Dashboard({
     );
     if (!initialFilters) return;
     setTransferSearchSourcePlayerId(selectedPlayer.YouthPlayerID);
+    setTransferSearchResultsViewMode("cards");
     setTransferSearchModalOpen(true);
     void runTransferSearch(initialFilters, {
       allowAutoFallback: true,

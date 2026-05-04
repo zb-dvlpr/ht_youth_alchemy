@@ -1535,7 +1535,7 @@ export const messagesFr: Messages = {
     ratingsTitle: "Matrice des notes",
     ratingsMatchesAnalyzed: "Données récupérées à partir de {count} matchs.",
     ratingsLastAppliedMatchLabel:
-      "Dernières notes de fin de match appliquées (>= 90 minutes jouées) depuis le match {matchId} à {dateTime}.",
+      "Dernières notes de fin de match appliquées (85-96 minutes jouées) depuis le match {matchId} à {dateTime}.",
     ratingsIndexLabel: "N°",
     ratingsMissingNote:
       "Certains joueurs n’ont pas de données récentes et sont affichés avec —.",

@@ -276,7 +276,7 @@ export const messagesPl: Messages = {
   ratingsTitle: "Macierz ocen",
   ratingsMatchesAnalyzed: "Dane pobrane z {count} meczów.",
   ratingsLastAppliedMatchLabel:
-    "Ostatnio zastosowane oceny z końca meczu (>= 90 rozegranych minut) z meczu {matchId} o {dateTime}.",
+    "Ostatnio zastosowane oceny z końca meczu (85-96 rozegranych minut) z meczu {matchId} o {dateTime}.",
   ratingsIndexLabel: "#",
   ratingsSortBy: "Sortuj wg",
   ratingsPlayerLabel: "Zawodnik",

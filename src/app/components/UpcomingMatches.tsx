@@ -98,7 +98,10 @@ type UpcomingMatchesProps = {
   onSetBestLineupMode?: (
     matchId: number,
     mode: SetBestLineupMode,
-    fixedFormation?: string | null
+    fixedFormation?: string | null,
+    options?: {
+      ignoreTrainingFormationPolicy?: IgnoreTrainingFormationPolicy;
+    }
   ) => void | Promise<void>;
   onAnalyzeOpponent?: (matchId: number) => void | Promise<void>;
   getOpponentCupStatus?: (opponentTeamId: number) => boolean | null;

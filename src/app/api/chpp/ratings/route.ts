@@ -15,7 +15,9 @@ const MATCHLINEUP_VERSION = "2.1";
 const MATCHDETAILS_VERSION = "3.1";
 const PLAYERS_VERSION = "2.8";
 const MATCH_FETCH_CONCURRENCY = 6;
-const SENIOR_RATINGS_ALGORITHM_VERSION = 5;
+const SENIOR_RATINGS_ALGORITHM_VERSION = 6;
+const SENIOR_RATINGS_MIN_PLAYED_MINUTES = 85;
+const SENIOR_RATINGS_MAX_PLAYED_MINUTES = 96;
 
 type MatchSummary = {
   Status?: string;
@@ -321,7 +323,13 @@ export async function GET(request: Request) {
         const playerId = Number(player.PlayerID);
         if (!Number.isFinite(playerId) || playerId <= 0) return;
         if (!seniorPlayerIdSet.has(playerId)) return;
-        if ((result.playedMinutesById.get(playerId) ?? 0) < 90) return;
+        const playedMinutes = result.playedMinutesById.get(playerId) ?? 0;
+        if (
+          playedMinutes < SENIOR_RATINGS_MIN_PLAYED_MINUTES ||
+          playedMinutes > SENIOR_RATINGS_MAX_PLAYED_MINUTES
+        ) {
+          return;
+        }
         const fullName = [player.FirstName, player.NickName, player.LastName]
           .filter(Boolean)
           .join(" ");

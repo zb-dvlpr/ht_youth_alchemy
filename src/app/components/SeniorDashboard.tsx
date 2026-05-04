@@ -370,7 +370,7 @@ const FORMATION_PREDICT_CONCURRENCY = 4;
 const SENIOR_AI_MAN_MARKING_SUPPORTED_MODES = new Set<
   Exclude<SetBestLineupMode, "extraTime">
 >(["trainingAware", "ignoreTraining", "fixedFormation"]);
-const SENIOR_RATINGS_ALGO_VERSION = 5;
+const SENIOR_RATINGS_ALGO_VERSION = 6;
 const NON_DEPRECATED_TRAINING_TYPES = [9, 3, 8, 5, 7, 4, 2, 11, 12, 10, 6] as const;
 const EXTRA_TIME_B_TEAM_MATCH_TYPES = new Set<number>([1, 2, 4, 5, 8, 9]);
 const EXTRA_TIME_B_TEAM_PLAYED_MATCH_TYPES = new Set<number>([4, 5, 8, 9]);

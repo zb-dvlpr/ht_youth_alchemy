@@ -756,7 +756,7 @@ export const messagesPt: Messages = {
     seniorHelpBulletAiTrainingAware:
       "Modo com treino: respeita o regime de treino atual e prioriza escalacoes que cobrem os slots de treino relevantes.",
     seniorHelpBulletAiIgnoreTraining:
-      "Modo ignorar treino: otimiza apenas a eficacia da partida sem restricoes de slots de treino.",
+      "Modo ignorar treino: otimiza a eficacia da partida sem restricoes de slots de treino, seja entre todas as formacoes, seja apenas entre as formacoes com experiencia de treino superior a 3.",
     seniorHelpBulletAiMatchTypes:
       "Use Buscar prorrogacao quando quiser uma configuracao voltada para minutos extras de treino na prorrogacao, e Otimizar por formacao quando quiser fixar um desenho e deixar o Alchemy escolher a melhor escalacao.",
     seniorHelpBulletTrainingRegimen:
@@ -1025,7 +1025,10 @@ export const messagesPt: Messages = {
       "Define a escalação considerando o regime de treino. Só serão consideradas formações que mantenham todos os slots de treino preenchidos.",
     setBestLineupIgnoreTraining: "Ignorar treino",
     setBestLineupIgnoreTrainingTooltip:
-      "Define a escalação sem considerar o regime de treino. Todas as formações serão consideradas.",
+      "Define a escalação sem considerar o regime de treino. Escolha entre permitir todas as formações e permitir apenas as formações treinadas.",
+    setBestLineupIgnoreTrainingAllowAllFormations: "Permitir todas as formações",
+    setBestLineupIgnoreTrainingAllowOnlyTrainedFormations:
+      "Permitir apenas as formações treinadas",
     setBestLineupAimForExtraTime: "Mirar a prorrogação",
     setBestLineupAimForExtraTimeTooltip:
       "Jogue pelo empate para ganhar treino extra.",
@@ -1216,6 +1219,8 @@ export const messagesPt: Messages = {
     notificationTeamSwitched: "Mudou para:",
     notificationTeamsLoaded: "Times carregados",
     notificationTeamsLoadFailed: "Falha ao carregar times",
+    notificationSeniorIgnoreTrainingNoTrainedFormations:
+      "Não foram encontradas formações com experiência de treino superior a 3. Voltando para todas as formações.",
     notificationDebugOauthMode: "Modo de debug OAuth:",
     notificationMatchesRefreshed: "Partidas atualizadas",
     notificationMatchesRefreshFailed: "Falha ao atualizar partidas",

@@ -452,7 +452,10 @@ export const messagesPl: Messages = {
     "Ustaw skład z uwzględnieniem reżimu treningowego. Brane są pod uwagę tylko formacje, które wypełniają wszystkie sloty treningowe.",
   setBestLineupIgnoreTraining: "Ignoruj trening",
   setBestLineupIgnoreTrainingTooltip:
-    "Ustaw skład bez uwzględniania reżimu treningowego. Brane są pod uwagę wszystkie formacje.",
+    "Ustaw skład bez uwzględniania reżimu treningowego. Wybierz między dopuszczeniem wszystkich formacji a tylko trenowanych formacji.",
+  setBestLineupIgnoreTrainingAllowAllFormations: "Zezwól na wszystkie formacje",
+  setBestLineupIgnoreTrainingAllowOnlyTrainedFormations:
+    "Zezwól tylko na trenowane formacje",
   setBestLineupAimForExtraTime: "Graj pod dogrywkę",
   setBestLineupAimForExtraTimeTooltip:
     "Gra na remis, aby zyskać dodatkowy trening.",
@@ -672,7 +675,7 @@ export const messagesPl: Messages = {
   seniorHelpBulletAiTrainingAware:
     "Tryb uwzględniający trening respektuje aktualny reżim treningowy i priorytetyzuje składy pokrywające odpowiednie sloty treningowe.",
   seniorHelpBulletAiIgnoreTraining:
-    "Tryb ignorujący trening optymalizuje wyłącznie skuteczność meczową bez ograniczeń slotów treningowych.",
+    "Tryb ignorujący trening optymalizuje skuteczność meczową bez ograniczeń slotów treningowych, zarówno dla wszystkich formacji, jak i tylko dla formacji z doświadczeniem treningowym powyżej 3.",
   seniorHelpBulletAiMatchTypes:
     "Użyj opcji Celuj w dogrywkę, jeśli chcesz ustawienia pod dodatkowe minuty treningowe w dogrywce, a Optymalizuj według formacji, jeśli chcesz zablokować kształt i pozwolić Alchemy wybrać najlepszy skład.",
   seniorHelpBulletTrainingRegimen:
@@ -878,6 +881,8 @@ export const messagesPl: Messages = {
     "Debug: senior ML dodane {{added}}, zduplikowane {{deduped}}, nieudane {{failed}}",
   notificationMatchesRefreshed: "Mecze odświeżone",
   notificationMatchesRefreshFailed: "Nie udało się odświeżyć meczów",
+  notificationSeniorIgnoreTrainingNoTrainedFormations:
+    "Nie znaleziono formacji z doświadczeniem treningowym powyżej 3. Następuje powrót do wszystkich formacji.",
   notificationSeniorTrainingRegimenChanged:
     "Reżim treningowy drużyny seniorów zmieniono na {{training}}",
   notificationSeniorRatingsMatrixWiped: "Wyczyszczono macierz ocen seniorów.",

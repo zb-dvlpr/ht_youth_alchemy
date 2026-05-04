@@ -120,6 +120,10 @@ type UpcomingMatchesProps = {
   fixedFormationOptions?: string[];
   selectedFixedFormation?: string | null;
   onSelectedFixedFormationChange?: (formation: string | null) => void;
+  selectedIgnoreTrainingFormationPolicy?: IgnoreTrainingFormationPolicy;
+  onSelectedIgnoreTrainingFormationPolicyChange?: (
+    policy: IgnoreTrainingFormationPolicy
+  ) => void;
   setBestLineupCustomContent?: ReactNode;
   setBestLineupDisabledTooltipBuilder?: (match: Match) => ReactNode;
 };
@@ -129,6 +133,10 @@ export type SetBestLineupMode =
   | "ignoreTraining"
   | "extraTime"
   | "fixedFormation";
+
+export type IgnoreTrainingFormationPolicy =
+  | "allFormations"
+  | "trainedFormations";
 
 const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
 const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
@@ -343,7 +351,10 @@ type SetBestLineupMenuButtonProps = {
   onSelectMode: (
     matchId: number,
     mode: SetBestLineupMode,
-    fixedFormation?: string | null
+    fixedFormation?: string | null,
+    options?: {
+      ignoreTrainingFormationPolicy?: IgnoreTrainingFormationPolicy;
+    }
   ) => void;
   helpAnchor?: string;
   showExtraTimeMode?: boolean;
@@ -351,6 +362,10 @@ type SetBestLineupMenuButtonProps = {
   fixedFormationOptions?: string[];
   selectedFixedFormation?: string | null;
   onSelectedFixedFormationChange?: (formation: string | null) => void;
+  selectedIgnoreTrainingFormationPolicy?: IgnoreTrainingFormationPolicy;
+  onSelectedIgnoreTrainingFormationPolicyChange?: (
+    policy: IgnoreTrainingFormationPolicy
+  ) => void;
   customContent?: ReactNode;
   disabledTooltip?: ReactNode;
 };
@@ -366,15 +381,20 @@ function SetBestLineupMenuButton({
   fixedFormationOptions = [],
   selectedFixedFormation = null,
   onSelectedFixedFormationChange,
+  selectedIgnoreTrainingFormationPolicy = "allFormations",
+  onSelectedIgnoreTrainingFormationPolicyChange,
   customContent,
   disabledTooltip,
 }: SetBestLineupMenuButtonProps) {
   const [open, setOpen] = useState(false);
   const [fixedFormationMenuOpen, setFixedFormationMenuOpen] = useState(false);
+  const [ignoreTrainingMenuOpen, setIgnoreTrainingMenuOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
   const fixedFormationButtonRef = useRef<HTMLButtonElement | null>(null);
   const fixedFormationMenuRef = useRef<HTMLDivElement | null>(null);
+  const ignoreTrainingButtonRef = useRef<HTMLButtonElement | null>(null);
+  const ignoreTrainingMenuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -384,8 +404,11 @@ function SetBestLineupMenuButton({
       if (menuRef.current?.contains(target ?? null)) return;
       if (fixedFormationButtonRef.current?.contains(target ?? null)) return;
       if (fixedFormationMenuRef.current?.contains(target ?? null)) return;
+      if (ignoreTrainingButtonRef.current?.contains(target ?? null)) return;
+      if (ignoreTrainingMenuRef.current?.contains(target ?? null)) return;
       setOpen(false);
       setFixedFormationMenuOpen(false);
+      setIgnoreTrainingMenuOpen(false);
     };
     window.addEventListener("click", handleClick);
     return () => window.removeEventListener("click", handleClick);
@@ -437,31 +460,88 @@ function SetBestLineupMenuButton({
               onClick={() => {
                 if (lineupAiDisabled) return;
                 setOpen(false);
+                setIgnoreTrainingMenuOpen(false);
                 onSelectMode(matchId, "trainingAware");
               }}
             >
               {messages.setBestLineupTrainingAware}
             </button>
           </Tooltip>
-          <Tooltip
-            content={disabledTooltip || messages.setBestLineupIgnoreTrainingTooltip}
-            fullWidth
-          >
-            <button
-              type="button"
-              className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
-                lineupAiDisabled ? styles.optimizeMenuItemDisabled : ""
-              }`}
-              disabled={lineupAiDisabled}
-              onClick={() => {
-                if (lineupAiDisabled) return;
-                setOpen(false);
-                onSelectMode(matchId, "ignoreTraining");
-              }}
-            >
-              {messages.setBestLineupIgnoreTraining}
-            </button>
-          </Tooltip>
+            <span className={styles.optimizeMenuItemWrap}>
+              <Tooltip
+                content={disabledTooltip || messages.setBestLineupIgnoreTrainingTooltip}
+                fullWidth
+                disabled={ignoreTrainingMenuOpen}
+              >
+              <button
+                ref={ignoreTrainingButtonRef}
+                type="button"
+                className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                  lineupAiDisabled ? styles.optimizeMenuItemDisabled : ""
+                }`}
+                disabled={lineupAiDisabled}
+                onClick={(event) => {
+                  if (lineupAiDisabled) return;
+                  event.stopPropagation();
+                  setIgnoreTrainingMenuOpen((current) => !current);
+                }}
+                aria-haspopup="menu"
+                aria-expanded={ignoreTrainingMenuOpen}
+              >
+                {messages.setBestLineupIgnoreTraining}
+              </button>
+              </Tooltip>
+              {ignoreTrainingMenuOpen ? (
+                <div
+                  ref={ignoreTrainingMenuRef}
+                  className={`${styles.feedbackMenu} ${styles.optimizeMenuSubmenu}`}
+                  role="menu"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                      selectedIgnoreTrainingFormationPolicy === "allFormations"
+                        ? styles.optimizeMenuInlinePickerOptionActive
+                        : ""
+                    }`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onSelectedIgnoreTrainingFormationPolicyChange?.("allFormations");
+                      setOpen(false);
+                      setIgnoreTrainingMenuOpen(false);
+                      onSelectMode(matchId, "ignoreTraining", null, {
+                        ignoreTrainingFormationPolicy: "allFormations",
+                      });
+                    }}
+                  >
+                    {messages.setBestLineupIgnoreTrainingAllowAllFormations}
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className={`${styles.feedbackLink} ${styles.optimizeMenuItem} ${
+                      selectedIgnoreTrainingFormationPolicy === "trainedFormations"
+                        ? styles.optimizeMenuInlinePickerOptionActive
+                        : ""
+                    }`}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onSelectedIgnoreTrainingFormationPolicyChange?.(
+                        "trainedFormations"
+                      );
+                      setOpen(false);
+                      setIgnoreTrainingMenuOpen(false);
+                      onSelectMode(matchId, "ignoreTraining", null, {
+                        ignoreTrainingFormationPolicy: "trainedFormations",
+                      });
+                    }}
+                  >
+                    {messages.setBestLineupIgnoreTrainingAllowOnlyTrainedFormations}
+                  </button>
+                </div>
+              ) : null}
+            </span>
           {showExtraTimeMode ? (
             <Tooltip
               content={
@@ -483,6 +563,7 @@ function SetBestLineupMenuButton({
                 onClick={() => {
                   if (!extraTimeModeEnabled || lineupAiDisabled) return;
                   setOpen(false);
+                  setIgnoreTrainingMenuOpen(false);
                   onSelectMode(matchId, "extraTime");
                 }}
               >
@@ -562,6 +643,7 @@ function SetBestLineupMenuButton({
                     if (!selectedFixedFormation || lineupAiDisabled) return;
                     setOpen(false);
                     setFixedFormationMenuOpen(false);
+                    setIgnoreTrainingMenuOpen(false);
                     onSelectMode(matchId, "fixedFormation", selectedFixedFormation);
                   }}
                   disabled={fixedFormationDisabled}
@@ -592,7 +674,10 @@ function renderMatch(
   onSetBestLineupMode?: (
     matchId: number,
     mode: SetBestLineupMode,
-    fixedFormation?: string | null
+    fixedFormation?: string | null,
+    options?: {
+      ignoreTrainingFormationPolicy?: IgnoreTrainingFormationPolicy;
+    }
   ) => void,
   onAnalyzeOpponent?: (matchId: number) => void,
   opponentCupStatus?: boolean | null,
@@ -607,6 +692,10 @@ function renderMatch(
   fixedFormationOptions?: string[],
   selectedFixedFormation?: string | null,
   onSelectedFixedFormationChange?: (formation: string | null) => void,
+  selectedIgnoreTrainingFormationPolicy?: IgnoreTrainingFormationPolicy,
+  onSelectedIgnoreTrainingFormationPolicyChange?: (
+    policy: IgnoreTrainingFormationPolicy
+  ) => void,
   setBestLineupCustomContent?: ReactNode,
   setBestLineupDisabledTooltip?: ReactNode
 ) {
@@ -731,6 +820,10 @@ function renderMatch(
             fixedFormationOptions={fixedFormationOptions}
             selectedFixedFormation={selectedFixedFormation}
             onSelectedFixedFormationChange={onSelectedFixedFormationChange}
+            selectedIgnoreTrainingFormationPolicy={selectedIgnoreTrainingFormationPolicy}
+            onSelectedIgnoreTrainingFormationPolicyChange={
+              onSelectedIgnoreTrainingFormationPolicyChange
+            }
             customContent={setBestLineupCustomContent}
             disabledTooltip={setBestLineupDisabledTooltip}
           />
@@ -887,6 +980,8 @@ export default function UpcomingMatches({
   fixedFormationOptions = [],
   selectedFixedFormation = null,
   onSelectedFixedFormationChange,
+  selectedIgnoreTrainingFormationPolicy = "allFormations",
+  onSelectedIgnoreTrainingFormationPolicyChange,
   setBestLineupCustomContent,
   setBestLineupDisabledTooltipBuilder,
 }: UpcomingMatchesProps) {
@@ -1145,14 +1240,17 @@ export default function UpcomingMatches({
   const handleSetBestLineupMode = async (
     matchId: number,
     mode: SetBestLineupMode,
-    fixedFormation?: string | null
+    fixedFormation?: string | null,
+    options?: {
+      ignoreTrainingFormationPolicy?: IgnoreTrainingFormationPolicy;
+    }
   ) => {
     if (bestLineupPendingMatchId !== null) return;
     if (!onSetBestLineupMode && !onSetBestLineup) return;
     setBestLineupPendingMatchId(matchId);
     try {
       if (onSetBestLineupMode) {
-        await onSetBestLineupMode(matchId, mode, fixedFormation);
+        await onSetBestLineupMode(matchId, mode, fixedFormation, options);
       } else if (onSetBestLineup) {
         await onSetBestLineup(matchId);
       }
@@ -1392,6 +1490,8 @@ export default function UpcomingMatches({
               fixedFormationOptions,
               selectedFixedFormation,
               onSelectedFixedFormationChange,
+              selectedIgnoreTrainingFormationPolicy,
+              onSelectedIgnoreTrainingFormationPolicyChange,
               setBestLineupCustomContent,
               setBestLineupDisabledTooltipBuilder?.(match)
             );
@@ -1437,6 +1537,8 @@ export default function UpcomingMatches({
                 fixedFormationOptions,
                 selectedFixedFormation,
                 onSelectedFixedFormationChange,
+                selectedIgnoreTrainingFormationPolicy,
+                onSelectedIgnoreTrainingFormationPolicyChange,
                 setBestLineupCustomContent,
                 setBestLineupDisabledTooltipBuilder?.(match)
               );

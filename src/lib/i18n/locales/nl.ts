@@ -459,7 +459,10 @@ export const messagesNl: Messages = {
     "Zet de opstelling met inachtneming van het trainingsregime. Alleen formaties waarbij alle trainingsslots gevuld zijn worden meegenomen.",
   setBestLineupIgnoreTraining: "Training negeren",
   setBestLineupIgnoreTrainingTooltip:
-    "Zet de opstelling zonder rekening te houden met het trainingsregime. Alle formaties worden meegenomen.",
+    "Zet de opstelling zonder rekening te houden met het trainingsregime. Kies tussen alle formaties toestaan en alleen getrainde formaties toestaan.",
+  setBestLineupIgnoreTrainingAllowAllFormations: "Alle formaties toestaan",
+  setBestLineupIgnoreTrainingAllowOnlyTrainedFormations:
+    "Alleen getrainde formaties toestaan",
   setBestLineupAimForExtraTime: "Richten op verlenging",
   setBestLineupAimForExtraTimeTooltip:
     "Speel voor een gelijkspel om extra training te krijgen.",
@@ -679,7 +682,7 @@ export const messagesNl: Messages = {
   seniorHelpBulletAiTrainingAware:
     "Trainingsbewuste modus houdt rekening met het huidige trainingsregime en prioriteert opstellingen die de relevante trainingsslots vullen.",
   seniorHelpBulletAiIgnoreTraining:
-    "Training negeren optimaliseert alleen voor wedstrijdeffectiviteit zonder trainingsslotbeperkingen.",
+    "Training negeren optimaliseert voor wedstrijdeffectiviteit zonder trainingsslotbeperkingen, over alle formaties of alleen over formaties met trainingservaring boven 3.",
   seniorHelpBulletAiMatchTypes:
     "Gebruik Mik op verlenging als je een opstelling wilt die gericht is op extra trainingsminuten in de verlenging, en Optimaliseer op formatie als je een formatie wilt vastzetten en Alchemy de beste opstelling wilt laten kiezen.",
   seniorHelpBulletTrainingRegimen:
@@ -885,6 +888,8 @@ export const messagesNl: Messages = {
     "Debug: senior-ML toegevoegd {{added}}, gededupliceerd {{deduped}}, mislukt {{failed}}",
   notificationMatchesRefreshed: "Wedstrijden vernieuwd",
   notificationMatchesRefreshFailed: "Vernieuwen van wedstrijden mislukt",
+  notificationSeniorIgnoreTrainingNoTrainedFormations:
+    "Er zijn geen formaties met trainingservaring boven 3 gevonden. Er wordt teruggevallen op alle formaties.",
   notificationSeniorTrainingRegimenChanged:
     "Trainingsregime van het seniorenteam gewijzigd naar {{training}}",
   notificationSeniorRatingsMatrixWiped: "Senior beoordelingsmatrix gewist.",

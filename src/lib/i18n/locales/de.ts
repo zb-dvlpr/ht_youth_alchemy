@@ -745,7 +745,7 @@ export const messagesDe: Messages = {
     seniorHelpBulletAiTrainingAware:
       "Modus Trainingsbezogen berücksichtigt das aktuelle Trainingsschema und priorisiert Aufstellungen mit den relevanten Trainingsslots.",
     seniorHelpBulletAiIgnoreTraining:
-      "Modus Training ignorieren optimiert rein auf Match-Effektivität ohne Trainingsslot-Beschränkung.",
+      "Modus Training ignorieren optimiert rein auf Match-Effektivität ohne Trainingsslot-Beschränkung, entweder über alle Formationen oder nur über Formationen mit Trainingserfahrung über 3.",
     seniorHelpBulletAiMatchTypes:
       "Nutze Auf Verlängerung spielen, wenn du auf zusätzliche Trainingsminuten in der Verlängerung abzielst, und Optimieren nach Formation, wenn du eine Formation fest vorgeben und die beste Aufstellung dafür wählen lassen willst.",
     seniorHelpBulletTrainingRegimen:
@@ -1008,7 +1008,10 @@ export const messagesDe: Messages = {
       "Setzt die Aufstellung unter Berücksichtigung des Trainingsplans. Es werden nur Formationen berücksichtigt, bei denen alle Trainingsplätze besetzt sind.",
     setBestLineupIgnoreTraining: "Training ignorieren",
     setBestLineupIgnoreTrainingTooltip:
-      "Setzt die Aufstellung ohne Berücksichtigung des Trainingsplans. Alle Formationen werden berücksichtigt.",
+      "Setzt die Aufstellung ohne Berücksichtigung des Trainingsplans. Wähle zwischen allen Formationen und nur trainierten Formationen.",
+    setBestLineupIgnoreTrainingAllowAllFormations: "Alle Formationen zulassen",
+    setBestLineupIgnoreTrainingAllowOnlyTrainedFormations:
+      "Nur trainierte Formationen zulassen",
     setBestLineupAimForExtraTime: "Auf Verlängerung spielen",
     setBestLineupAimForExtraTimeTooltip:
       "Spiele auf ein Unentschieden, um zusätzliches Training zu erhalten.",
@@ -1199,6 +1202,8 @@ export const messagesDe: Messages = {
     notificationTeamSwitched: "Gewechselt zu:",
     notificationTeamsLoaded: "Teams geladen",
     notificationTeamsLoadFailed: "Teams konnten nicht geladen werden",
+    notificationSeniorIgnoreTrainingNoTrainedFormations:
+      "Keine Formationen mit Trainingserfahrung über 3 gefunden. Es wird auf alle Formationen zurückgegriffen.",
     notificationDebugOauthMode: "OAuth-Debugmodus:",
     notificationMatchesRefreshed: "Spiele aktualisiert",
     notificationMatchesRefreshFailed: "Aktualisierung der Spiele fehlgeschlagen",

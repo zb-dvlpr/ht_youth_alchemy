@@ -66,6 +66,20 @@ export type Messages = {
   watchlistDeselectAll: string;
   watchlistGenderMale: string;
   watchlistGenderFemale: string;
+  clubChroniclePremiumTooltip: string;
+  clubChroniclePremiumBanner: string;
+  clubChroniclePremiumBuyButton: string;
+  clubChroniclePremiumLicenseTitle: string;
+  clubChroniclePremiumLicenseBody: string;
+  clubChroniclePremiumLicenseFieldLabel: string;
+  clubChroniclePremiumLicensePlaceholder: string;
+  clubChroniclePremiumLicenseSubmit: string;
+  clubChroniclePremiumLicenseKeyRequired: string;
+  clubChroniclePremiumLicenseUnlocked: string;
+  clubChroniclePremiumLicensePendingValidation: string;
+  clubChroniclePremiumTeamLimitReached: string;
+  clubChroniclePremiumTabLimitReached: string;
+  clubChroniclePremiumHiddenTeamsNotice: string;
   clubChronicleTabDefaultName: string;
   clubChronicleTabAdd: string;
   clubChronicleTabRenamePlaceholder: string;
@@ -82,6 +96,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_5_0_0: string;
   changelog_4_14_0: string;
   changelog_4_13_0: string;
   changelog_4_12_0: string;

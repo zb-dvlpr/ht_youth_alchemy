@@ -44,6 +44,27 @@ export const messagesPl: Messages = {
   watchlistDeselectAll: "Odznacz wszystko",
   watchlistGenderMale: "Męska",
   watchlistGenderFemale: "Żeńska",
+  clubChroniclePremiumTooltip:
+    "Kup licencję premium HT Alchemy, aby śledzić nieograniczoną liczbę drużyn w nieograniczonej liczbie kart i uzyskać dostęp do wszystkich innych funkcji premium.",
+  clubChroniclePremiumBanner:
+    "Aby odblokować nieograniczone śledzenie drużyn w nieograniczonej liczbie kart, kup licencję premium HT Alchemy.",
+  clubChroniclePremiumBuyButton: "Kup licencję premium",
+  clubChroniclePremiumLicenseTitle: "Licencja premium HT Alchemy",
+  clubChroniclePremiumLicenseBody:
+    "Wpisz tutaj swój klucz licencyjny premium HT Alchemy, aby odblokować funkcje premium Club Chronicle.",
+  clubChroniclePremiumLicenseFieldLabel: "Klucz licencyjny",
+  clubChroniclePremiumLicensePlaceholder: "Wpisz klucz licencyjny",
+  clubChroniclePremiumLicenseSubmit: "Odblokuj premium",
+  clubChroniclePremiumLicenseKeyRequired: "Wpisz klucz licencyjny.",
+  clubChroniclePremiumLicenseUnlocked: "Premium odblokowane.",
+  clubChroniclePremiumLicensePendingValidation:
+    "Twój klucz licencyjny został zapisany lokalnie. Walidacja online nie jest jeszcze dostępna.",
+  clubChroniclePremiumTeamLimitReached:
+    "Darmowa wersja Club Chronicle jest ograniczona do 4 śledzonych drużyn na kartę.",
+  clubChroniclePremiumTabLimitReached:
+    "Darmowa wersja Club Chronicle jest ograniczona do 2 kart.",
+  clubChroniclePremiumHiddenTeamsNotice:
+    "{{count}} zapisanych w pamięci śledzonych drużyn pozostaje ukrytych do czasu odblokowania premium.",
   clubChronicleTabDefaultName: "Karta {{number}}",
   clubChronicleTabAdd: "Dodaj kartę",
   clubChronicleTabRenamePlaceholder: "Nazwa karty",
@@ -196,6 +217,7 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_5_0_0: "Funkcje premium.",
   changelog_4_14_0:
     "Macierz ocen seniorów obsługuje teraz ręczne nadpisywanie ocen z bezpiecznym przywracaniem po odświeżeniu.",
   changelog_4_13_0:

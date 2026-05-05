@@ -44,6 +44,27 @@ export const messagesNl: Messages = {
   watchlistDeselectAll: "Alles deselecteren",
   watchlistGenderMale: "Mannelijk",
   watchlistGenderFemale: "Vrouwelijk",
+  clubChroniclePremiumTooltip:
+    "Koop een HT Alchemy-premiumlicentie om een onbeperkt aantal teams in een onbeperkt aantal tabbladen te volgen en toegang te krijgen tot alle andere premiumfuncties.",
+  clubChroniclePremiumBanner:
+    "Koop de HT Alchemy-premiumlicentie om onbeperkt teams in onbeperkt veel tabbladen te volgen.",
+  clubChroniclePremiumBuyButton: "Premiumlicentie kopen",
+  clubChroniclePremiumLicenseTitle: "HT Alchemy-premiumlicentie",
+  clubChroniclePremiumLicenseBody:
+    "Voer hier je HT Alchemy-premiumlicentiesleutel in om de premiumfuncties van Club Chronicle te ontgrendelen.",
+  clubChroniclePremiumLicenseFieldLabel: "Licentiesleutel",
+  clubChroniclePremiumLicensePlaceholder: "Licentiesleutel invoeren",
+  clubChroniclePremiumLicenseSubmit: "Premium ontgrendelen",
+  clubChroniclePremiumLicenseKeyRequired: "Voer een licentiesleutel in.",
+  clubChroniclePremiumLicenseUnlocked: "Premium ontgrendeld.",
+  clubChroniclePremiumLicensePendingValidation:
+    "Je licentiesleutel is lokaal opgeslagen. Online validatie is nog niet beschikbaar.",
+  clubChroniclePremiumTeamLimitReached:
+    "De gratis versie van Club Chronicle is beperkt tot 4 gevolgde teams per tabblad.",
+  clubChroniclePremiumTabLimitReached:
+    "De gratis versie van Club Chronicle is beperkt tot 2 tabbladen.",
+  clubChroniclePremiumHiddenTeamsNotice:
+    "{{count}} gecachte gevolgde teams blijven verborgen totdat premium is ontgrendeld.",
   clubChronicleTabDefaultName: "Tab {{number}}",
   clubChronicleTabAdd: "Tab toevoegen",
   clubChronicleTabRenamePlaceholder: "Tabnaam",
@@ -203,6 +224,7 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_5_0_0: "Premiumfuncties.",
   changelog_4_14_0:
     "De senior beoordelingsmatrix ondersteunt nu handmatige rating-overschrijvingen met veilige herstelactie na verversen.",
   changelog_4_13_0:

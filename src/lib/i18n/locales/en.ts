@@ -58,6 +58,27 @@ export const messagesEn: Messages = {
     watchlistDeselectAll: "Deselect all",
     watchlistGenderMale: "Male",
     watchlistGenderFemale: "Female",
+    clubChroniclePremiumTooltip:
+      "Purchase a HT Alchemy premium license to track an unlimited number of teams in an unlimited number of tabs and to access all other premium features.",
+    clubChroniclePremiumBanner:
+      "To unlock unlimited team tracking in unlimited tabs, buy the premium HT Alchemy license.",
+    clubChroniclePremiumBuyButton: "Buy premium license",
+    clubChroniclePremiumLicenseTitle: "HT Alchemy premium license",
+    clubChroniclePremiumLicenseBody:
+      "Enter your HT Alchemy premium license key here to unlock Club Chronicle premium features.",
+    clubChroniclePremiumLicenseFieldLabel: "License key",
+    clubChroniclePremiumLicensePlaceholder: "Enter license key",
+    clubChroniclePremiumLicenseSubmit: "Unlock premium",
+    clubChroniclePremiumLicenseKeyRequired: "Enter a license key.",
+    clubChroniclePremiumLicenseUnlocked: "Premium unlocked.",
+    clubChroniclePremiumLicensePendingValidation:
+      "Your license key has been saved locally. Online validation is not available yet.",
+    clubChroniclePremiumTeamLimitReached:
+      "Free Club Chronicle is limited to 4 tracked teams per tab.",
+    clubChroniclePremiumTabLimitReached:
+      "Free Club Chronicle is limited to 2 tabs.",
+    clubChroniclePremiumHiddenTeamsNotice:
+      "{{count}} cached tracked team(s) are hidden until premium is unlocked.",
     clubChronicleTabDefaultName: "Tab {{number}}",
     clubChronicleTabAdd: "Add tab",
     clubChronicleTabRenamePlaceholder: "Tab name",
@@ -76,6 +97,7 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_5_0_0: "Premium features.",
     changelog_4_14_0:
       "Senior ratings matrix now supports manual rating overrides with refresh-safe restore behavior.",
     changelog_4_13_0:

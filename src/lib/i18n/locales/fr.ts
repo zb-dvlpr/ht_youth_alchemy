@@ -58,6 +58,27 @@ export const messagesFr: Messages = {
     watchlistDeselectAll: "Tout désélectionner",
     watchlistGenderMale: "Masculin",
     watchlistGenderFemale: "Féminin",
+    clubChroniclePremiumTooltip:
+      "Achetez une licence premium HT Alchemy pour suivre un nombre illimité d'équipes dans un nombre illimité d'onglets et accéder à toutes les autres fonctionnalités premium.",
+    clubChroniclePremiumBanner:
+      "Pour débloquer un suivi illimité des équipes dans un nombre illimité d'onglets, achetez la licence premium HT Alchemy.",
+    clubChroniclePremiumBuyButton: "Acheter la licence premium",
+    clubChroniclePremiumLicenseTitle: "Licence premium HT Alchemy",
+    clubChroniclePremiumLicenseBody:
+      "Saisissez ici votre clé de licence premium HT Alchemy pour débloquer les fonctionnalités premium de Club Chronicle.",
+    clubChroniclePremiumLicenseFieldLabel: "Clé de licence",
+    clubChroniclePremiumLicensePlaceholder: "Saisir la clé de licence",
+    clubChroniclePremiumLicenseSubmit: "Débloquer premium",
+    clubChroniclePremiumLicenseKeyRequired: "Saisissez une clé de licence.",
+    clubChroniclePremiumLicenseUnlocked: "Premium débloqué.",
+    clubChroniclePremiumLicensePendingValidation:
+      "Votre clé de licence a été enregistrée localement. La validation en ligne n'est pas encore disponible.",
+    clubChroniclePremiumTeamLimitReached:
+      "La version gratuite de Club Chronicle est limitée à 4 équipes suivies par onglet.",
+    clubChroniclePremiumTabLimitReached:
+      "La version gratuite de Club Chronicle est limitée à 2 onglets.",
+    clubChroniclePremiumHiddenTeamsNotice:
+      "{{count}} équipe(s) suivie(s) en cache restent masquées jusqu'au déblocage du premium.",
     clubChronicleTabDefaultName: "Onglet {{number}}",
     clubChronicleTabAdd: "Ajouter un onglet",
     clubChronicleTabRenamePlaceholder: "Nom de l’onglet",
@@ -76,6 +97,7 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_5_0_0: "Fonctionnalités premium.",
     changelog_4_14_0:
       "La matrice de notes senior prend désormais en charge les remplacements manuels avec restauration sûre après actualisation.",
     changelog_4_13_0:

@@ -58,6 +58,27 @@ export const messagesEs: Messages = {
     watchlistDeselectAll: "Deseleccionar todo",
     watchlistGenderMale: "Masculino",
     watchlistGenderFemale: "Femenino",
+    clubChroniclePremiumTooltip:
+      "Compra una licencia premium de HT Alchemy para seguir un número ilimitado de equipos en un número ilimitado de pestañas y acceder a todas las demás funciones premium.",
+    clubChroniclePremiumBanner:
+      "Para desbloquear el seguimiento ilimitado de equipos en pestañas ilimitadas, compra la licencia premium de HT Alchemy.",
+    clubChroniclePremiumBuyButton: "Comprar licencia premium",
+    clubChroniclePremiumLicenseTitle: "Licencia premium de HT Alchemy",
+    clubChroniclePremiumLicenseBody:
+      "Introduce aquí tu clave de licencia premium de HT Alchemy para desbloquear las funciones premium de Club Chronicle.",
+    clubChroniclePremiumLicenseFieldLabel: "Clave de licencia",
+    clubChroniclePremiumLicensePlaceholder: "Introducir clave de licencia",
+    clubChroniclePremiumLicenseSubmit: "Desbloquear premium",
+    clubChroniclePremiumLicenseKeyRequired: "Introduce una clave de licencia.",
+    clubChroniclePremiumLicenseUnlocked: "Premium desbloqueado.",
+    clubChroniclePremiumLicensePendingValidation:
+      "Tu clave de licencia se ha guardado localmente. La validación en línea aún no está disponible.",
+    clubChroniclePremiumTeamLimitReached:
+      "La versión gratuita de Club Chronicle está limitada a 4 equipos seguidos por pestaña.",
+    clubChroniclePremiumTabLimitReached:
+      "La versión gratuita de Club Chronicle está limitada a 2 pestañas.",
+    clubChroniclePremiumHiddenTeamsNotice:
+      "{{count}} equipo(s) seguidos en caché permanecen ocultos hasta desbloquear premium.",
     clubChronicleTabDefaultName: "Pestaña {{number}}",
     clubChronicleTabAdd: "Añadir pestaña",
     clubChronicleTabRenamePlaceholder: "Nombre de la pestaña",
@@ -76,6 +97,7 @@ export const messagesEs: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Esta aplicación está en beta. Las funciones, el comportamiento y los datos locales en caché pueden cambiar o reiniciarse sin previo aviso.",
+    changelog_5_0_0: "Funciones premium.",
     changelog_4_14_0:
       "La matriz de calificaciones senior ahora permite sobrescrituras manuales con restauración segura tras refrescar.",
     changelog_4_13_0:

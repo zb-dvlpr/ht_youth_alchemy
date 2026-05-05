@@ -58,6 +58,27 @@ export const messagesSv: Messages = {
     watchlistDeselectAll: "Avmarkera alla",
     watchlistGenderMale: "Manligt",
     watchlistGenderFemale: "Kvinnligt",
+    clubChroniclePremiumTooltip:
+      "Köp en HT Alchemy premiumlicens för att följa ett obegränsat antal lag i ett obegränsat antal flikar och få tillgång till alla andra premiumfunktioner.",
+    clubChroniclePremiumBanner:
+      "För att låsa upp obegränsad lagspårning i obegränsat många flikar, köp HT Alchemy premiumlicensen.",
+    clubChroniclePremiumBuyButton: "Köp premiumlicens",
+    clubChroniclePremiumLicenseTitle: "HT Alchemy premiumlicens",
+    clubChroniclePremiumLicenseBody:
+      "Ange din HT Alchemy premiumlicensnyckel här för att låsa upp Club Chronicles premiumfunktioner.",
+    clubChroniclePremiumLicenseFieldLabel: "Licensnyckel",
+    clubChroniclePremiumLicensePlaceholder: "Ange licensnyckel",
+    clubChroniclePremiumLicenseSubmit: "Lås upp premium",
+    clubChroniclePremiumLicenseKeyRequired: "Ange en licensnyckel.",
+    clubChroniclePremiumLicenseUnlocked: "Premium upplåst.",
+    clubChroniclePremiumLicensePendingValidation:
+      "Din licensnyckel har sparats lokalt. Onlinevalidering är inte tillgänglig ännu.",
+    clubChroniclePremiumTeamLimitReached:
+      "Gratisversionen av Club Chronicle är begränsad till 4 spårade lag per flik.",
+    clubChroniclePremiumTabLimitReached:
+      "Gratisversionen av Club Chronicle är begränsad till 2 flikar.",
+    clubChroniclePremiumHiddenTeamsNotice:
+      "{{count}} cachade spårade lag förblir dolda tills premium låses upp.",
     clubChronicleTabDefaultName: "Flik {{number}}",
     clubChronicleTabAdd: "Lägg till flik",
     clubChronicleTabRenamePlaceholder: "Fliknamn",
@@ -76,6 +97,7 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_5_0_0: "Premiumfunktioner.",
     changelog_4_14_0:
       "Seniorernas betygsmatris stöder nu manuella åsidosättningar av betyg med säker återställning efter uppdatering.",
     changelog_4_13_0:

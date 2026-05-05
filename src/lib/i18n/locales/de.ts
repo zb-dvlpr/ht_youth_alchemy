@@ -58,6 +58,27 @@ export const messagesDe: Messages = {
     watchlistDeselectAll: "Alle abwählen",
     watchlistGenderMale: "Männlich",
     watchlistGenderFemale: "Weiblich",
+    clubChroniclePremiumTooltip:
+      "Kaufe eine HT Alchemy Premium-Lizenz, um unbegrenzt viele Teams in unbegrenzt vielen Tabs zu verfolgen und alle anderen Premium-Funktionen zu nutzen.",
+    clubChroniclePremiumBanner:
+      "Um unbegrenztes Team-Tracking in unbegrenzt vielen Tabs freizuschalten, kaufe die HT Alchemy Premium-Lizenz.",
+    clubChroniclePremiumBuyButton: "Premium-Lizenz kaufen",
+    clubChroniclePremiumLicenseTitle: "HT Alchemy Premium-Lizenz",
+    clubChroniclePremiumLicenseBody:
+      "Gib hier deinen HT Alchemy Premium-Lizenzschlüssel ein, um die Premium-Funktionen von Club Chronicle freizuschalten.",
+    clubChroniclePremiumLicenseFieldLabel: "Lizenzschlüssel",
+    clubChroniclePremiumLicensePlaceholder: "Lizenzschlüssel eingeben",
+    clubChroniclePremiumLicenseSubmit: "Premium freischalten",
+    clubChroniclePremiumLicenseKeyRequired: "Gib einen Lizenzschlüssel ein.",
+    clubChroniclePremiumLicenseUnlocked: "Premium freigeschaltet.",
+    clubChroniclePremiumLicensePendingValidation:
+      "Dein Lizenzschlüssel wurde lokal gespeichert. Die Online-Validierung ist noch nicht verfügbar.",
+    clubChroniclePremiumTeamLimitReached:
+      "Die kostenlose Club Chronicle-Version ist auf 4 verfolgte Teams pro Tab begrenzt.",
+    clubChroniclePremiumTabLimitReached:
+      "Die kostenlose Club Chronicle-Version ist auf 2 Tabs begrenzt.",
+    clubChroniclePremiumHiddenTeamsNotice:
+      "{{count}} zwischengespeicherte verfolgte Teams bleiben verborgen, bis Premium freigeschaltet ist.",
     clubChronicleTabDefaultName: "Tab {{number}}",
     clubChronicleTabAdd: "Tab hinzufügen",
     clubChronicleTabRenamePlaceholder: "Tab-Name",
@@ -76,6 +97,7 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_5_0_0: "Premium-Funktionen.",
     changelog_4_14_0:
       "Die Senioren-Bewertungsmatrix unterstützt jetzt manuelle Bewertungsüberschreibungen mit refresh-sicherer Wiederherstellung.",
     changelog_4_13_0:

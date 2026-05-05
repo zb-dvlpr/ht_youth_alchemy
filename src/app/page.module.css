@@ -3265,6 +3265,28 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   white-space: nowrap;
 }
 
+.chroniclePremiumBanner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 10px 2px 0;
+  padding: 10px 14px;
+  border: 1px solid #d9c9b3;
+  border-radius: 14px;
+  background: #f7efe3;
+  box-shadow: 0 8px 18px rgba(49, 38, 24, 0.08);
+}
+
+.chroniclePremiumBannerText {
+  flex: 1;
+  min-width: 220px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #5b4a37;
+}
+
 .chroniclePanels {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -4464,6 +4486,10 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   align-items: center;
 }
 
+.watchlistPremiumBlocked {
+  opacity: 0.72;
+}
+
 .watchlistInput {
   flex: 1;
   min-width: 160px;
@@ -4492,6 +4518,12 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   transform: translateY(-1px);
 }
 
+.watchlistButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
 .watchlistRemove {
   border: 1px solid #c9b9a3;
   background: #fff;
@@ -4509,6 +4541,13 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .watchlistRemove:hover {
   background: #f1e9dc;
   transform: translateY(-1px);
+}
+
+.watchlistPremiumHint {
+  margin: 0;
+  font-size: 12px;
+  color: #6b6256;
+  line-height: 1.4;
 }
 
 .modalButtonRow {
@@ -5170,6 +5209,17 @@ html[data-theme="dark"] .chronicleTabAddButton:hover {
 
 html[data-theme="dark"] .chronicleTabShortcutHint {
   color: #b9b0a5;
+}
+
+html[data-theme="dark"] .chroniclePremiumBanner {
+  background: rgba(35, 30, 24, 0.92);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+}
+
+html[data-theme="dark"] .chroniclePremiumBannerText,
+html[data-theme="dark"] .watchlistPremiumHint {
+  color: #d6ccc0;
 }
 
 html[data-theme="dark"] .shellContextBar {

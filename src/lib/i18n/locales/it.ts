@@ -58,6 +58,27 @@ export const messagesIt: Messages = {
     watchlistDeselectAll: "Deseleziona tutto",
     watchlistGenderMale: "Maschile",
     watchlistGenderFemale: "Femminile",
+    clubChroniclePremiumTooltip:
+      "Acquista una licenza premium HT Alchemy per seguire un numero illimitato di squadre in un numero illimitato di schede e accedere a tutte le altre funzioni premium.",
+    clubChroniclePremiumBanner:
+      "Per sbloccare il monitoraggio illimitato delle squadre in schede illimitate, acquista la licenza premium HT Alchemy.",
+    clubChroniclePremiumBuyButton: "Acquista licenza premium",
+    clubChroniclePremiumLicenseTitle: "Licenza premium HT Alchemy",
+    clubChroniclePremiumLicenseBody:
+      "Inserisci qui la tua chiave di licenza premium HT Alchemy per sbloccare le funzioni premium di Club Chronicle.",
+    clubChroniclePremiumLicenseFieldLabel: "Chiave di licenza",
+    clubChroniclePremiumLicensePlaceholder: "Inserisci la chiave di licenza",
+    clubChroniclePremiumLicenseSubmit: "Sblocca premium",
+    clubChroniclePremiumLicenseKeyRequired: "Inserisci una chiave di licenza.",
+    clubChroniclePremiumLicenseUnlocked: "Premium sbloccato.",
+    clubChroniclePremiumLicensePendingValidation:
+      "La tua chiave di licenza è stata salvata localmente. La convalida online non è ancora disponibile.",
+    clubChroniclePremiumTeamLimitReached:
+      "La versione gratuita di Club Chronicle è limitata a 4 squadre tracciate per scheda.",
+    clubChroniclePremiumTabLimitReached:
+      "La versione gratuita di Club Chronicle è limitata a 2 schede.",
+    clubChroniclePremiumHiddenTeamsNotice:
+      "{{count}} squadra/e tracciata/e in cache restano nascoste finché il premium non viene sbloccato.",
     clubChronicleTabDefaultName: "Scheda {{number}}",
     clubChronicleTabAdd: "Aggiungi scheda",
     clubChronicleTabRenamePlaceholder: "Nome scheda",
@@ -76,6 +97,7 @@ export const messagesIt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Questa app è in beta. Funzioni, comportamento e dati locali in cache possono cambiare o essere azzerati senza preavviso.",
+    changelog_5_0_0: "Funzionalità premium.",
     changelog_4_14_0:
       "La matrice voti senior ora supporta override manuali dei voti con ripristino sicuro dopo il refresh.",
     changelog_4_13_0:

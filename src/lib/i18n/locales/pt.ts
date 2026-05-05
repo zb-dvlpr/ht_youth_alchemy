@@ -76,6 +76,8 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    changelog_4_14_0:
+      "A matriz de avaliações sénior agora suporta substituições manuais com restauro seguro após atualização.",
     changelog_4_13_0:
       "As escalacoes juvenil e senior agora recomendam jogadores ordenados por adequacao ao clicar em espacos vazios.",
     changelog_4_12_0:
@@ -1536,6 +1538,15 @@ export const messagesPt: Messages = {
     ratingsMatchesAnalyzed: "Dados obtidos de {count} partidas.",
     ratingsLastAppliedMatchLabel:
       "Últimas avaliações de fim de jogo aplicadas (85-96 minutos jogados) da partida {matchId} às {dateTime}.",
+    ratingsManualOverrideToggle: "Editar avaliações manualmente",
+    ratingsManualOverrideTooltip:
+      "As avaliações são usadas para posicionar jogadores em escalações de IA. Ative isto para alterar manualmente as avaliações. Útil se quiser forçar que um jogador seja escolhido ou não para uma posição específica independentemente da forma e do desempenho passado.",
+    ratingsOverwriteManualEditsToggle: "Substituir avaliações editadas manualmente",
+    ratingsOverwriteManualEditsTooltip:
+      "Quando ativado, novas avaliações obtidas substituirão quaisquer avaliações que você tenha editado manualmente na próxima atualização da matriz.",
+    ratingsDiscardManualEditsButton: "Descartar edições manuais",
+    ratingsManualEditCellLabel: "Definir avaliação para {player} em {position}",
+    ratingsManualEditedIndicator: "Avaliação editada manualmente",
     ratingsIndexLabel: "Nº",
     ratingsMissingNote:
       "Alguns jogadores não têm dados recentes e são mostrados com —.",

@@ -196,6 +196,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  changelog_4_14_0:
+    "Macierz ocen seniorów obsługuje teraz ręczne nadpisywanie ocen z bezpiecznym przywracaniem po odświeżeniu.",
   changelog_4_13_0:
     "W skladach juniorow i seniorow klikniecie pustego pola pokazuje teraz zawodnikow uszeregowanych wedlug przydatnosci.",
   changelog_4_12_0:
@@ -277,6 +279,15 @@ export const messagesPl: Messages = {
   ratingsMatchesAnalyzed: "Dane pobrane z {count} meczów.",
   ratingsLastAppliedMatchLabel:
     "Ostatnio zastosowane oceny z końca meczu (85-96 rozegranych minut) z meczu {matchId} o {dateTime}.",
+  ratingsManualOverrideToggle: "Ręcznie edytuj oceny",
+  ratingsManualOverrideTooltip:
+    "Oceny są używane do ustawiania zawodników w składach AI. Włącz to, aby ręcznie zmieniać oceny. Przydatne, jeśli chcesz wymusić, by zawodnik został wybrany albo nie wybrany na konkretną pozycję niezależnie od formy i wcześniejszych występów.",
+  ratingsOverwriteManualEditsToggle: "Nadpisuj ręcznie edytowane oceny",
+  ratingsOverwriteManualEditsTooltip:
+    "Po włączeniu nowo pobrane oceny zastąpią wszystkie oceny edytowane ręcznie przy następnym odświeżeniu macierzy.",
+  ratingsDiscardManualEditsButton: "Odrzuć ręczne edycje",
+  ratingsManualEditCellLabel: "Ustaw ocenę dla {player} na pozycji {position}",
+  ratingsManualEditedIndicator: "Ocena edytowana ręcznie",
   ratingsIndexLabel: "#",
   ratingsSortBy: "Sortuj wg",
   ratingsPlayerLabel: "Zawodnik",

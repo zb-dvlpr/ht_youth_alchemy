@@ -82,6 +82,7 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  changelog_4_14_0: string;
   changelog_4_13_0: string;
   changelog_4_12_0: string;
   changelog_4_11_0: string;
@@ -1248,6 +1249,13 @@ export type Messages = {
   ratingsTitle: string;
   ratingsMatchesAnalyzed: string;
   ratingsLastAppliedMatchLabel: string;
+  ratingsManualOverrideToggle: string;
+  ratingsManualOverrideTooltip: string;
+  ratingsOverwriteManualEditsToggle: string;
+  ratingsOverwriteManualEditsTooltip: string;
+  ratingsDiscardManualEditsButton: string;
+  ratingsManualEditCellLabel: string;
+  ratingsManualEditedIndicator: string;
   ratingsIndexLabel: string;
   ratingsMissingNote: string;
   ratingsSortBy: string;

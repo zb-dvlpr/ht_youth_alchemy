@@ -76,6 +76,8 @@ export const messagesEs: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Esta aplicación está en beta. Las funciones, el comportamiento y los datos locales en caché pueden cambiar o reiniciarse sin previo aviso.",
+    changelog_4_14_0:
+      "La matriz de calificaciones senior ahora permite sobrescrituras manuales con restauración segura tras refrescar.",
     changelog_4_13_0:
       "Las alineaciones juvenil y senior ahora recomiendan jugadores ordenados por idoneidad al hacer clic en huecos vacios.",
     changelog_4_12_0:
@@ -1538,6 +1540,15 @@ export const messagesEs: Messages = {
     ratingsMatchesAnalyzed: "Datos obtenidos de {count} partidos.",
     ratingsLastAppliedMatchLabel:
       "Últimas calificaciones de final de partido aplicadas (85-96 minutos jugados) desde el partido {matchId} a las {dateTime}.",
+    ratingsManualOverrideToggle: "Editar calificaciones manualmente",
+    ratingsManualOverrideTooltip:
+      "Las calificaciones se usan para colocar jugadores en alineaciones de IA. Actívalo para cambiar manualmente las calificaciones. Útil si quieres forzar que un jugador sea elegido o no para una posición concreta independientemente de su forma y rendimiento previo.",
+    ratingsOverwriteManualEditsToggle: "Sobrescribir calificaciones editadas manualmente",
+    ratingsOverwriteManualEditsTooltip:
+      "Si está activado, las nuevas calificaciones recuperadas sustituirán cualquier calificación que hayas editado manualmente la próxima vez que se actualice la matriz.",
+    ratingsDiscardManualEditsButton: "Descartar ediciones manuales",
+    ratingsManualEditCellLabel: "Establecer calificación para {player} en {position}",
+    ratingsManualEditedIndicator: "Calificación editada manualmente",
     ratingsIndexLabel: "N.º",
     ratingsMissingNote:
       "Algunos jugadores no tienen datos recientes y se muestran con —.",

@@ -402,6 +402,7 @@ export default function SettingsButton({
             JSON.stringify({
               ...parsed,
               ratingsResponse: null,
+              latestFetchedRatingsResponse: null,
             })
           );
         }
@@ -416,6 +417,9 @@ export default function SettingsButton({
             SENIOR_DASHBOARD_STATE_STORAGE_KEY,
             JSON.stringify({
               ...parsed,
+              ratingsManualOverrideEnabled: false,
+              ratingsManualEditsByPlayerId: {},
+              ratingsOverwriteManualEditsEnabled: false,
               updatesHistory: [],
               selectedUpdatesId: null,
               matrixNewMarkers: {

@@ -76,6 +76,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    changelog_4_14_0:
+      "Senior ratings matrix now supports manual rating overrides with refresh-safe restore behavior.",
     changelog_4_13_0:
       "Youth and Senior lineups now recommend ranked players when you click empty slots.",
     changelog_4_12_0:
@@ -1481,6 +1483,15 @@ export const messagesEn: Messages = {
     ratingsMatchesAnalyzed: "Data retrieved from {count} matches.",
     ratingsLastAppliedMatchLabel:
       "Latest applied end-of-match (85-96 minutes played) ratings from match {matchId} at {dateTime}.",
+    ratingsManualOverrideToggle: "Manually edit ratings",
+    ratingsManualOverrideTooltip:
+      "Ratings are used to place players in AI lineups. Toggle on to manually change the ratings. Useful if you want to force a player to be chosen or not chosen for a particular position regardless of form and past performance.",
+    ratingsOverwriteManualEditsToggle: "Overwrite manually edited ratings",
+    ratingsOverwriteManualEditsTooltip:
+      "When enabled, newly fetched ratings will replace any ratings you manually edited the next time the matrix refreshes.",
+    ratingsDiscardManualEditsButton: "Discard manual edits",
+    ratingsManualEditCellLabel: "Set rating for {player} at {position}",
+    ratingsManualEditedIndicator: "Manually edited rating",
     ratingsIndexLabel: "#",
     ratingsMissingNote:
       "Some players have no recent match data and are shown with —.",

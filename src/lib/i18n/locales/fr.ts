@@ -76,6 +76,8 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    changelog_4_14_0:
+      "La matrice de notes senior prend désormais en charge les remplacements manuels avec restauration sûre après actualisation.",
     changelog_4_13_0:
       "Les compositions Jeunes et Seniors recommandent maintenant des joueurs classes par pertinence lorsque vous cliquez sur des emplacements vides.",
     changelog_4_12_0:
@@ -1536,6 +1538,15 @@ export const messagesFr: Messages = {
     ratingsMatchesAnalyzed: "Données récupérées à partir de {count} matchs.",
     ratingsLastAppliedMatchLabel:
       "Dernières notes de fin de match appliquées (85-96 minutes jouées) depuis le match {matchId} à {dateTime}.",
+    ratingsManualOverrideToggle: "Modifier manuellement les notes",
+    ratingsManualOverrideTooltip:
+      "Les notes servent à placer les joueurs dans les compositions IA. Activez ceci pour modifier manuellement les notes. C’est utile si vous voulez forcer qu’un joueur soit choisi ou non pour un poste donné, indépendamment de sa forme et de ses performances passées.",
+    ratingsOverwriteManualEditsToggle: "Écraser les notes modifiées manuellement",
+    ratingsOverwriteManualEditsTooltip:
+      "Si cette option est activée, les nouvelles notes récupérées remplaceront toutes les notes que vous avez modifiées manuellement lors du prochain rafraîchissement de la matrice.",
+    ratingsDiscardManualEditsButton: "Annuler les modifications manuelles",
+    ratingsManualEditCellLabel: "Définir la note de {player} au poste {position}",
+    ratingsManualEditedIndicator: "Note modifiée manuellement",
     ratingsIndexLabel: "N°",
     ratingsMissingNote:
       "Certains joueurs n’ont pas de données récentes et sont affichés avec —.",

@@ -203,6 +203,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  changelog_4_14_0:
+    "De senior beoordelingsmatrix ondersteunt nu handmatige rating-overschrijvingen met veilige herstelactie na verversen.",
   changelog_4_13_0:
     "Jeugd- en senioropstellingen bevelen nu gerangschikte spelers aan wanneer je op lege posities klikt.",
   changelog_4_12_0:
@@ -284,6 +286,15 @@ export const messagesNl: Messages = {
   ratingsMatchesAnalyzed: "Gegevens opgehaald uit {count} wedstrijden.",
   ratingsLastAppliedMatchLabel:
     "Laatst toegepaste eindstand-beoordelingen (85-96 gespeelde minuten) uit wedstrijd {matchId} om {dateTime}.",
+  ratingsManualOverrideToggle: "Ratings handmatig bewerken",
+  ratingsManualOverrideTooltip:
+    "Ratings worden gebruikt om spelers in AI-opstellingen te plaatsen. Zet dit aan om de ratings handmatig te wijzigen. Handig als je wilt afdwingen dat een speler wel of niet voor een bepaalde positie wordt gekozen, ongeacht vorm en eerdere prestaties.",
+  ratingsOverwriteManualEditsToggle: "Handmatig bewerkte ratings overschrijven",
+  ratingsOverwriteManualEditsTooltip:
+    "Wanneer dit is ingeschakeld, vervangen nieuw opgehaalde ratings alle ratings die je handmatig hebt bewerkt bij de volgende verversing van de matrix.",
+  ratingsDiscardManualEditsButton: "Handmatige bewerkingen verwerpen",
+  ratingsManualEditCellLabel: "Rating instellen voor {player} op {position}",
+  ratingsManualEditedIndicator: "Handmatig bewerkte rating",
   ratingsIndexLabel: "#",
   ratingsSortBy: "Sorteren op",
   ratingsPlayerLabel: "Speler",

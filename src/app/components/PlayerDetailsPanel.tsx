@@ -165,6 +165,14 @@ type PlayerDetailsPanelProps = {
   onActiveTabChange?: (tab: PlayerDetailsPanelTab) => void;
   showSeniorSkillBonusInMatrix?: boolean;
   onShowSeniorSkillBonusInMatrixChange?: (enabled: boolean) => void;
+  ratingsManualOverrideEnabled?: boolean;
+  onRatingsManualOverrideEnabledChange?: (enabled: boolean) => void;
+  ratingsOverwriteManualEditsEnabled?: boolean;
+  onRatingsOverwriteManualEditsEnabledChange?: (enabled: boolean) => void;
+  onRatingsDiscardManualEdits?: () => void;
+  ratingsHasManualEdits?: boolean;
+  onRatingsManualCellChange?: (playerId: number, position: number, value: number | null) => void;
+  ratingsManualEditsByPlayerId?: Record<number, Record<string, number>>;
   showTabs?: boolean;
   detailsHeaderActions?: ReactNode;
   onSeniorSimulationStateChange?: (state: {
@@ -583,6 +591,14 @@ export default function PlayerDetailsPanel({
   onActiveTabChange,
   showSeniorSkillBonusInMatrix = true,
   onShowSeniorSkillBonusInMatrixChange,
+  ratingsManualOverrideEnabled = false,
+  onRatingsManualOverrideEnabledChange,
+  ratingsOverwriteManualEditsEnabled = false,
+  onRatingsOverwriteManualEditsEnabledChange,
+  onRatingsDiscardManualEdits,
+  ratingsHasManualEdits = false,
+  onRatingsManualCellChange,
+  ratingsManualEditsByPlayerId,
   showTabs = true,
   detailsHeaderActions,
   onSeniorSimulationStateChange,
@@ -2455,6 +2471,16 @@ export default function PlayerDetailsPanel({
           orderSource={orderSource}
           onOrderChange={onRatingsOrderChange}
           onSortStart={onRatingsSortStart}
+          manualEditingEnabled={ratingsManualOverrideEnabled}
+          onManualEditingEnabledChange={onRatingsManualOverrideEnabledChange}
+          overwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
+          onOverwriteManualEditsEnabledChange={
+            onRatingsOverwriteManualEditsEnabledChange
+          }
+          onDiscardManualEdits={onRatingsDiscardManualEdits}
+          hasManualEdits={ratingsHasManualEdits}
+          onManualRatingChange={onRatingsManualCellChange}
+          manualEditedRatingsByPlayerId={ratingsManualEditsByPlayerId}
         />
       )}
     </div>

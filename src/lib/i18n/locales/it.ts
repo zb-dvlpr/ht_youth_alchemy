@@ -76,6 +76,8 @@ export const messagesIt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Questa app è in beta. Funzioni, comportamento e dati locali in cache possono cambiare o essere azzerati senza preavviso.",
+    changelog_4_14_0:
+      "La matrice voti senior ora supporta override manuali dei voti con ripristino sicuro dopo il refresh.",
     changelog_4_13_0:
       "Le formazioni giovanili e senior ora consigliano giocatori ordinati per idoneita quando fai clic sugli slot vuoti.",
     changelog_4_12_0:
@@ -1539,6 +1541,15 @@ export const messagesIt: Messages = {
     ratingsMatchesAnalyzed: "Dati recuperati da {count} partite.",
     ratingsLastAppliedMatchLabel:
       "Ultime valutazioni di fine partita applicate (85-96 minuti giocati) dalla partita {matchId} alle {dateTime}.",
+    ratingsManualOverrideToggle: "Modifica manualmente i voti",
+    ratingsManualOverrideTooltip:
+      "I voti vengono usati per collocare i giocatori nelle formazioni IA. Attivalo per modificare manualmente i voti. Utile se vuoi forzare la scelta o l’esclusione di un giocatore per una posizione specifica indipendentemente da forma e rendimento passato.",
+    ratingsOverwriteManualEditsToggle: "Sovrascrivi i voti modificati manualmente",
+    ratingsOverwriteManualEditsTooltip:
+      "Se abilitato, i nuovi voti recuperati sostituiranno tutti i voti modificati manualmente al prossimo aggiornamento della matrice.",
+    ratingsDiscardManualEditsButton: "Scarta modifiche manuali",
+    ratingsManualEditCellLabel: "Imposta voto per {player} in {position}",
+    ratingsManualEditedIndicator: "Voto modificato manualmente",
     ratingsIndexLabel: "N.",
     ratingsMissingNote:
       "Alcuni giocatori non hanno dati recenti e vengono mostrati con —.",

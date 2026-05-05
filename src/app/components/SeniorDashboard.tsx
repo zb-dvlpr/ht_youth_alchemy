@@ -73,7 +73,11 @@ import TransferSearchModal, {
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import PlayerStatementQuote from "./PlayerStatementQuote";
 import { setDragGhost } from "@/lib/drag";
-import { matchRoleIdToPositionKey, positionLabel } from "@/lib/positions";
+import {
+  POSITION_COLUMNS,
+  matchRoleIdToPositionKey,
+  positionLabel,
+} from "@/lib/positions";
 import {
   getMissingChppPermissions,
   parseExtendedPermissionsFromCheckToken,
@@ -227,6 +231,8 @@ type PersistedSeniorMarkersBaseline = {
   players: SeniorPlayer[];
   ratingsByPlayerId: Record<number, Record<string, number>>;
 };
+
+type SeniorManualRatingsEdits = Record<number, Record<string, number>>;
 
 type SeniorDashboardProps = {
   messages: Messages;
@@ -1721,6 +1727,184 @@ const formatPlayerName = (player: {
   LastName?: string;
 }) => [player.FirstName, player.NickName ?? null, player.LastName].filter(Boolean).join(" ");
 
+const normalizeSeniorManualRatingsEdits = (input: unknown): SeniorManualRatingsEdits => {
+  if (!input || typeof input !== "object") return {};
+  const payload: SeniorManualRatingsEdits = {};
+  Object.entries(input as Record<string, unknown>).forEach(([playerIdKey, positionsValue]) => {
+    const playerId = Number(playerIdKey);
+    if (!Number.isFinite(playerId) || playerId <= 0) return;
+    if (!positionsValue || typeof positionsValue !== "object") return;
+    const nextPositions: Record<string, number> = {};
+    Object.entries(positionsValue as Record<string, unknown>).forEach(([positionKey, value]) => {
+      const parsed = typeof value === "number" ? value : Number(value);
+      if (!Number.isFinite(parsed)) return;
+      const clamped = Math.min(25, Math.max(0, Math.round(parsed * 10) / 10));
+      nextPositions[positionKey] = clamped;
+    });
+    if (Object.keys(nextPositions).length > 0) {
+      payload[playerId] = nextPositions;
+    }
+  });
+  return payload;
+};
+
+const hasSeniorManualRatingsEdits = (input: SeniorManualRatingsEdits) =>
+  Object.values(input).some((positions) => Object.keys(positions).length > 0);
+
+const dropOverwrittenSeniorManualRatingsEdits = (
+  manualEdits: SeniorManualRatingsEdits,
+  incomingRatings: RatingsMatrixResponse | null | undefined
+): SeniorManualRatingsEdits => {
+  if (!hasSeniorManualRatingsEdits(manualEdits) || !incomingRatings) {
+    return manualEdits;
+  }
+  const next: SeniorManualRatingsEdits = {};
+  Object.entries(manualEdits).forEach(([playerIdKey, positions]) => {
+    const row = incomingRatings.players.find((candidate) => candidate.id === Number(playerIdKey));
+    if (!row) {
+      next[Number(playerIdKey)] = { ...positions };
+      return;
+    }
+    const remaining: Record<string, number> = {};
+    Object.entries(positions).forEach(([positionKey, value]) => {
+      const incoming = row.ratings?.[positionKey];
+      if (typeof incoming === "number" && Number.isFinite(incoming)) {
+        return;
+      }
+      remaining[positionKey] = value;
+    });
+    if (Object.keys(remaining).length > 0) {
+      next[Number(playerIdKey)] = remaining;
+    }
+  });
+  return next;
+};
+
+const buildEffectiveSeniorRatingsResponse = (
+  fetchedRatings: RatingsMatrixResponse | null | undefined,
+  manualEdits: SeniorManualRatingsEdits,
+  players: SeniorPlayer[]
+): RatingsMatrixResponse | null => {
+  const hasManualEdits = hasSeniorManualRatingsEdits(manualEdits);
+  if (!fetchedRatings && players.length === 0 && !hasManualEdits) {
+    return null;
+  }
+  const rowsById = new Map<
+    number,
+    {
+      id: number;
+      name: string;
+      ratings: Record<string, number>;
+      ratingMatchIds: Record<string, number>;
+      ratingMatchSourceSystems: Record<string, string>;
+    }
+  >();
+  const displayOrder: number[] = [];
+  const pushOrder = (playerId: number) => {
+    if (!displayOrder.includes(playerId)) {
+      displayOrder.push(playerId);
+    }
+  };
+
+  (fetchedRatings?.players ?? []).forEach((row) => {
+    rowsById.set(row.id, {
+      id: row.id,
+      name: row.name,
+      ratings: { ...row.ratings },
+      ratingMatchIds: { ...(row.ratingMatchIds ?? {}) },
+      ratingMatchSourceSystems: { ...(row.ratingMatchSourceSystems ?? {}) },
+    });
+    pushOrder(row.id);
+  });
+
+  players.forEach((player) => {
+    const playerId = player.PlayerID;
+    const playerName = formatPlayerName(player) || String(playerId);
+    if (!rowsById.has(playerId)) {
+      rowsById.set(playerId, {
+        id: playerId,
+        name: playerName,
+        ratings: {},
+        ratingMatchIds: {},
+        ratingMatchSourceSystems: {},
+      });
+    } else if (!rowsById.get(playerId)?.name) {
+      rowsById.get(playerId)!.name = playerName;
+    }
+    pushOrder(playerId);
+  });
+
+  Object.entries(manualEdits).forEach(([playerIdKey, positions]) => {
+    const playerId = Number(playerIdKey);
+    if (!Number.isFinite(playerId) || playerId <= 0) return;
+    const existing =
+      rowsById.get(playerId) ??
+      ({
+        id: playerId,
+        name:
+          formatPlayerName(players.find((player) => player.PlayerID === playerId) ?? {}) ||
+          String(playerId),
+        ratings: {},
+        ratingMatchIds: {},
+        ratingMatchSourceSystems: {},
+      } as const);
+    const nextRow = {
+      id: existing.id,
+      name: existing.name,
+      ratings: { ...existing.ratings },
+      ratingMatchIds: { ...existing.ratingMatchIds },
+      ratingMatchSourceSystems: { ...existing.ratingMatchSourceSystems },
+    };
+    Object.entries(positions).forEach(([positionKey, value]) => {
+      nextRow.ratings[positionKey] = value;
+      delete nextRow.ratingMatchIds[positionKey];
+      delete nextRow.ratingMatchSourceSystems[positionKey];
+    });
+    rowsById.set(playerId, nextRow);
+    pushOrder(playerId);
+  });
+
+  const positions = Array.from(
+    new Set<number>([
+      ...(fetchedRatings?.positions ?? []),
+      ...POSITION_COLUMNS,
+      ...Object.values(manualEdits).flatMap((positionsMap) =>
+        Object.keys(positionsMap)
+          .map((key) => Number(key))
+          .filter((value): value is number => Number.isFinite(value))
+      ),
+    ])
+  );
+
+  return {
+    ratingsAlgorithmVersion:
+      fetchedRatings?.ratingsAlgorithmVersion ?? SENIOR_RATINGS_ALGO_VERSION,
+    positions,
+    players: displayOrder
+      .map((playerId) => rowsById.get(playerId))
+      .filter(
+        (
+          row
+        ): row is {
+          id: number;
+          name: string;
+          ratings: Record<string, number>;
+          ratingMatchIds: Record<string, number>;
+          ratingMatchSourceSystems: Record<string, string>;
+        } => Boolean(row)
+      )
+      .map((row) => ({
+        ...row,
+        ratingMatchIds: { ...row.ratingMatchIds },
+        ratingMatchSourceSystems: { ...row.ratingMatchSourceSystems },
+      })),
+    matchesAnalyzed: fetchedRatings?.matchesAnalyzed ?? 0,
+    lastAppliedMatchId: fetchedRatings?.lastAppliedMatchId ?? null,
+    lastAppliedMatchDateTime: fetchedRatings?.lastAppliedMatchDateTime ?? null,
+    lastAppliedMatchSourceSystem: fetchedRatings?.lastAppliedMatchSourceSystem ?? null,
+  };
+};
+
 const normalizeSeniorPlayers = (input: unknown): SeniorPlayer[] => {
   const list = Array.isArray(input) ? input : input ? [input] : [];
   return list
@@ -2947,7 +3131,14 @@ export default function SeniorDashboard({
     useState<string | null>(null);
   const [players, setPlayers] = useState<SeniorPlayer[]>([]);
   const [matchesState, setMatchesState] = useState<MatchesResponse>({});
+  const [latestFetchedRatingsResponse, setLatestFetchedRatingsResponse] =
+    useState<RatingsMatrixResponse | null>(null);
   const [ratingsResponse, setRatingsResponse] = useState<RatingsMatrixResponse | null>(null);
+  const [ratingsManualOverrideEnabled, setRatingsManualOverrideEnabled] = useState(false);
+  const [ratingsOverwriteManualEditsEnabled, setRatingsOverwriteManualEditsEnabled] =
+    useState(false);
+  const [ratingsManualEditsByPlayerId, setRatingsManualEditsByPlayerId] =
+    useState<SeniorManualRatingsEdits>({});
   const [detailsCache, setDetailsCache] = useState<Record<number, PlayerDetailCacheEntry>>({});
   const [leagueOriginsById, setLeagueOriginsById] = useState<
     Record<number, SeniorLeagueOrigin>
@@ -6354,12 +6545,12 @@ function buildSeniorAiManMarkingReadySignature(params: {
 
   const ensureExtraTimeRatingsById = async () => {
     let nextRatingsById = ratingsByPlayerId;
-    if (!hasUsableSeniorRatingsMatrix(ratingsResponse)) {
+    if (!hasUsableSeniorRatingsMatrix(latestFetchedRatingsResponse)) {
       const currentSeason = await fetchCurrentSeason();
       const refreshedRatings = stampSeniorRatingsAlgorithmVersion(
         await bootstrapRatingsFromSeasons(resolvedSeniorTeamId, currentSeason)
       );
-      setRatingsResponse(refreshedRatings);
+      setLatestFetchedRatingsResponse(refreshedRatings);
       nextRatingsById = {};
       (refreshedRatings.players ?? []).forEach((row) => {
         nextRatingsById[row.id] = { ...row.ratings };
@@ -10270,6 +10461,21 @@ const refreshDetailsForPlayers = async (
     return payload;
   }, [ratingsResponse]);
 
+  const hasManualRatingsEdits = useMemo(
+    () => hasSeniorManualRatingsEdits(ratingsManualEditsByPlayerId),
+    [ratingsManualEditsByPlayerId]
+  );
+
+  useEffect(() => {
+    setRatingsResponse(
+      buildEffectiveSeniorRatingsResponse(
+        latestFetchedRatingsResponse,
+        ratingsManualEditsByPlayerId,
+        players
+      )
+    );
+  }, [latestFetchedRatingsResponse, players, ratingsManualEditsByPlayerId]);
+
   const playerNameById = useMemo(() => {
     const map = new Map<number, string>();
     players.forEach((player) => {
@@ -10277,6 +10483,53 @@ const refreshDetailsForPlayers = async (
     });
     return map;
   }, [players]);
+  useEffect(() => {
+    if (hasManualRatingsEdits) return;
+    setRatingsOverwriteManualEditsEnabled(false);
+  }, [hasManualRatingsEdits]);
+  const handleRatingsManualOverrideEnabledChange = useCallback((enabled: boolean) => {
+    setRatingsManualOverrideEnabled(enabled);
+  }, []);
+  const handleRatingsOverwriteManualEditsEnabledChange = useCallback(
+    (enabled: boolean) => {
+      setRatingsOverwriteManualEditsEnabled(enabled);
+    },
+    []
+  );
+  const handleRatingsManualCellChange = useCallback(
+    (playerId: number, position: number, value: number | null) => {
+      const positionKey = String(position);
+      setRatingsManualEditsByPlayerId((prev) => {
+        const next: SeniorManualRatingsEdits = { ...prev };
+        const existingByPosition = { ...(next[playerId] ?? {}) };
+        const latestFetchedValue =
+          latestFetchedRatingsResponse?.players.find((row) => row.id === playerId)?.ratings?.[
+            positionKey
+          ] ?? null;
+        const normalizedLatestFetchedValue =
+          typeof latestFetchedValue === "number" && Number.isFinite(latestFetchedValue)
+            ? Math.round(latestFetchedValue * 10) / 10
+            : null;
+        if (value === null) {
+          delete existingByPosition[positionKey];
+        } else if (normalizedLatestFetchedValue !== null && value === normalizedLatestFetchedValue) {
+          delete existingByPosition[positionKey];
+        } else {
+          existingByPosition[positionKey] = value;
+        }
+        if (Object.keys(existingByPosition).length > 0) {
+          next[playerId] = existingByPosition;
+        } else {
+          delete next[playerId];
+        }
+        return next;
+      });
+    },
+    [latestFetchedRatingsResponse]
+  );
+  const handleDiscardRatingsManualEdits = useCallback(() => {
+    setRatingsManualEditsByPlayerId({});
+  }, []);
   const seniorEmptySlotPickerOptions = useCallback(
     (slotId: string) => {
       const lineupSlot = slotId as keyof LineupAssignments;
@@ -10653,8 +10906,10 @@ const refreshDetailsForPlayers = async (
       stoppedRefreshRunIdsRef.current.has(refreshRunId) ||
       activeRefreshRunIdRef.current !== refreshRunId;
     const forceResetRatingsAlgorithm =
-      !hasCurrentSeniorRatingsAlgorithmVersion(ratingsResponse);
-    const effectiveRatingsResponse = forceResetRatingsAlgorithm ? null : ratingsResponse;
+      !hasCurrentSeniorRatingsAlgorithmVersion(latestFetchedRatingsResponse);
+    const effectiveRatingsResponse = forceResetRatingsAlgorithm
+      ? null
+      : latestFetchedRatingsResponse;
 
     if (forceResetRatingsAlgorithm) {
       suppressNextUpdatesRecordingRef.current = true;
@@ -10662,6 +10917,7 @@ const refreshDetailsForPlayers = async (
         players,
         ratingsByPlayerId: {},
       };
+      setLatestFetchedRatingsResponse(null);
       setRatingsResponse(null);
       setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
       setUpdatesHistory([]);
@@ -10679,7 +10935,7 @@ const refreshDetailsForPlayers = async (
         ? {}
         : usePersistedMarkersBaseline && persistedMarkersBaseline
         ? persistedMarkersBaseline.ratingsByPlayerId
-        : ratingsByPlayerId;
+        : buildRatingsByPlayerIdFromResponse(latestFetchedRatingsResponse);
     const previousDetailsById = new Map(detailsById);
 
     setRefreshing(true);
@@ -10759,6 +11015,7 @@ const refreshDetailsForPlayers = async (
       setRefreshProgressPct(60);
       const shouldBootstrapRatings = !hasUsableSeniorRatingsMatrix(effectiveRatingsResponse);
       didBootstrapRatings = shouldBootstrapRatings;
+      let incomingRatingsForOverwrite: RatingsMatrixResponse | null = null;
       const nextRatings = shouldBootstrapRatings
         ? await (async () => {
             const currentSeason = await fetchCurrentSeason();
@@ -10785,9 +11042,11 @@ const refreshDetailsForPlayers = async (
             if (isStartup) {
               setStartupLoadingProgressPct(92);
             }
-            return stampSeniorRatingsAlgorithmVersion(
+            const mergedBootstrapRatings = stampSeniorRatingsAlgorithmVersion(
               mergeRatingsMatrices(previousSeasonRatings, currentSeasonRatings)
             );
+            incomingRatingsForOverwrite = mergedBootstrapRatings;
+            return mergedBootstrapRatings;
           })()
         : await (async () => {
             const fromTs =
@@ -10822,6 +11081,7 @@ const refreshDetailsForPlayers = async (
             if (isStartup) {
               setStartupLoadingProgressPct(92);
             }
+            incomingRatingsForOverwrite = incrementalRatings;
             return stampSeniorRatingsAlgorithmVersion(
               applyRatingsDelta(
                 effectiveRatingsResponse ?? {
@@ -10845,7 +11105,12 @@ const refreshDetailsForPlayers = async (
 
       setPlayers(nextPlayers);
       setMatchesState(nextMatches);
-      setRatingsResponse(nextRatings);
+      setLatestFetchedRatingsResponse(nextRatings);
+      if (ratingsOverwriteManualEditsEnabled) {
+        setRatingsManualEditsByPlayerId((prev) =>
+          dropOverwrittenSeniorManualRatingsEdits(prev, incomingRatingsForOverwrite)
+        );
+      }
       setLoadError(null);
       setLoadErrorDetails(null);
 
@@ -10946,7 +11211,11 @@ const refreshDetailsForPlayers = async (
     setLoadedMatchId(null);
     setPlayers([]);
     setMatchesState({});
+    setLatestFetchedRatingsResponse(null);
     setRatingsResponse(null);
+    setRatingsManualOverrideEnabled(false);
+    setRatingsOverwriteManualEditsEnabled(false);
+    setRatingsManualEditsByPlayerId({});
     setDetailsCache({});
     setUpdatesHistory([]);
     setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
@@ -11788,12 +12057,12 @@ const refreshDetailsForPlayers = async (
       );
 
       let ratingsById = ratingsByPlayerId;
-      if (!hasUsableSeniorRatingsMatrix(ratingsResponse)) {
+      if (!hasUsableSeniorRatingsMatrix(latestFetchedRatingsResponse)) {
         const currentSeason = await fetchCurrentSeason();
         const refreshedRatings = stampSeniorRatingsAlgorithmVersion(
           await bootstrapRatingsFromSeasons(resolvedSeniorTeamId, currentSeason)
         );
-        setRatingsResponse(refreshedRatings);
+        setLatestFetchedRatingsResponse(refreshedRatings);
         ratingsById = {};
         (refreshedRatings.players ?? []).forEach((row) => {
           ratingsById[row.id] = { ...row.ratings };
@@ -12892,7 +13161,11 @@ const refreshDetailsForPlayers = async (
     setTransferSearchBidPendingPlayerId(null);
     setPlayers([]);
     setMatchesState({});
+    setLatestFetchedRatingsResponse(null);
     setRatingsResponse(null);
+    setRatingsManualOverrideEnabled(false);
+    setRatingsOverwriteManualEditsEnabled(false);
+    setRatingsManualEditsByPlayerId({});
     setDetailsCache({});
     setLoadError(null);
     setLoadErrorDetails(null);
@@ -12967,6 +13240,9 @@ const refreshDetailsForPlayers = async (
             trainingAwareMatrixTrainingTypeManual?: boolean;
             orderedPlayerIds?: number[] | null;
             orderSource?: "list" | "ratings" | "skills" | null;
+            ratingsManualOverrideEnabled?: boolean;
+            ratingsOverwriteManualEditsEnabled?: boolean;
+            ratingsManualEditsByPlayerId?: SeniorManualRatingsEdits;
             supporterStatus?: SupporterStatus;
             transferSearchModalOpen?: boolean;
             transferSearchSourcePlayerId?: number | null;
@@ -13198,6 +13474,16 @@ const refreshDetailsForPlayers = async (
           ) {
             setOrderSource(parsed.orderSource);
           }
+          const parsedRatingsManualOverrideEnabled = Boolean(
+            parsed.ratingsManualOverrideEnabled
+          );
+          setRatingsManualOverrideEnabled(parsedRatingsManualOverrideEnabled);
+          setRatingsOverwriteManualEditsEnabled(
+            parsedRatingsManualOverrideEnabled && Boolean(parsed.ratingsOverwriteManualEditsEnabled)
+          );
+          setRatingsManualEditsByPlayerId(
+            normalizeSeniorManualRatingsEdits(parsed.ratingsManualEditsByPlayerId)
+          );
           if (
             parsed.supporterStatus === "unknown" ||
             parsed.supporterStatus === "supporter" ||
@@ -13262,6 +13548,7 @@ const refreshDetailsForPlayers = async (
             players?: unknown;
             matchesState?: MatchesResponse;
             ratingsResponse?: RatingsMatrixResponse | null;
+            latestFetchedRatingsResponse?: RatingsMatrixResponse | null;
             detailsCache?: Record<number, PlayerDetailCacheEntry>;
           };
           const restoredPlayers = normalizeSeniorPlayers(parsed.players);
@@ -13272,20 +13559,24 @@ const refreshDetailsForPlayers = async (
           if (parsed.matchesState && typeof parsed.matchesState === "object") {
             setMatchesState(parsed.matchesState);
           }
-          if (
-            parsed.ratingsResponse &&
-            typeof parsed.ratingsResponse === "object" &&
-            hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
-          ) {
-            setRatingsResponse(parsed.ratingsResponse);
+          const parsedLatestFetchedRatings =
+            parsed.latestFetchedRatingsResponse &&
+            typeof parsed.latestFetchedRatingsResponse === "object" &&
+            hasCurrentSeniorRatingsAlgorithmVersion(parsed.latestFetchedRatingsResponse)
+              ? parsed.latestFetchedRatingsResponse
+              : parsed.ratingsResponse &&
+                  typeof parsed.ratingsResponse === "object" &&
+                  hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
+                ? parsed.ratingsResponse
+                : null;
+          if (parsedLatestFetchedRatings) {
+            setLatestFetchedRatingsResponse(parsedLatestFetchedRatings);
           }
           if (parsed.detailsCache && typeof parsed.detailsCache === "object") {
             setDetailsCache(parsed.detailsCache);
           }
           const persistedRatingsByPlayerId = buildRatingsByPlayerIdFromResponse(
-            hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
-              ? parsed.ratingsResponse
-              : null
+            parsedLatestFetchedRatings
           );
           if (
             !forceWipeLegacyUpdatesState &&
@@ -13346,7 +13637,9 @@ const refreshDetailsForPlayers = async (
       setStalenessDays(readSeniorStalenessDays());
     };
     const handleWipeRatingsMatrix = () => {
+      setLatestFetchedRatingsResponse(null);
       setRatingsResponse(null);
+      setRatingsManualEditsByPlayerId({});
       setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
       setUpdatesHistory([]);
       setSelectedUpdatesId(null);
@@ -13458,6 +13751,9 @@ const refreshDetailsForPlayers = async (
       trainingAwareMatrixTrainingTypeManual,
       orderedPlayerIds,
       orderSource,
+      ratingsManualOverrideEnabled,
+      ratingsOverwriteManualEditsEnabled,
+      ratingsManualEditsByPlayerId,
       supporterStatus,
       transferSearchModalOpen,
       transferSearchSourcePlayerId,
@@ -13491,6 +13787,9 @@ const refreshDetailsForPlayers = async (
     trainingType,
     setBestLineupFixedFormation,
     ignoreTrainingFormationPolicy,
+    ratingsManualOverrideEnabled,
+    ratingsOverwriteManualEditsEnabled,
+    ratingsManualEditsByPlayerId,
     updatesHistory,
     matrixNewMarkers,
     activeDetailsTab,
@@ -13562,6 +13861,7 @@ const refreshDetailsForPlayers = async (
       players,
       matchesState,
       ratingsResponse,
+      latestFetchedRatingsResponse,
       detailsCache,
     };
     try {
@@ -13569,7 +13869,15 @@ const refreshDetailsForPlayers = async (
     } catch {
       // ignore persist errors
     }
-  }, [dataRestored, dataStorageKey, detailsCache, matchesState, players, ratingsResponse]);
+  }, [
+    dataRestored,
+    dataStorageKey,
+    detailsCache,
+    latestFetchedRatingsResponse,
+    matchesState,
+    players,
+    ratingsResponse,
+  ]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -15013,6 +15321,16 @@ const refreshDetailsForPlayers = async (
       playerDetailsById={panelDetailsById}
       skillsMatrixRows={skillsMatrixRows}
       ratingsMatrixResponse={ratingsResponse}
+      ratingsManualOverrideEnabled={ratingsManualOverrideEnabled}
+      onRatingsManualOverrideEnabledChange={handleRatingsManualOverrideEnabledChange}
+      ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
+      onRatingsOverwriteManualEditsEnabledChange={
+        handleRatingsOverwriteManualEditsEnabledChange
+      }
+      onRatingsDiscardManualEdits={handleDiscardRatingsManualEdits}
+      ratingsHasManualEdits={hasManualRatingsEdits}
+      onRatingsManualCellChange={handleRatingsManualCellChange}
+      ratingsManualEditsByPlayerId={ratingsManualEditsByPlayerId}
       ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
       ratingsMatrixSpecialtyByName={specialtyByName}
       ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
@@ -15615,6 +15933,16 @@ const refreshDetailsForPlayers = async (
           playerDetailsById={panelDetailsById}
           skillsMatrixRows={skillsMatrixRows}
           ratingsMatrixResponse={ratingsResponse}
+          ratingsManualOverrideEnabled={ratingsManualOverrideEnabled}
+          onRatingsManualOverrideEnabledChange={handleRatingsManualOverrideEnabledChange}
+          ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
+          onRatingsOverwriteManualEditsEnabledChange={
+            handleRatingsOverwriteManualEditsEnabledChange
+          }
+          onRatingsDiscardManualEdits={handleDiscardRatingsManualEdits}
+          ratingsHasManualEdits={hasManualRatingsEdits}
+          onRatingsManualCellChange={handleRatingsManualCellChange}
+          ratingsManualEditsByPlayerId={ratingsManualEditsByPlayerId}
           ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
           ratingsMatrixSpecialtyByName={specialtyByName}
           ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
@@ -15670,6 +15998,16 @@ const refreshDetailsForPlayers = async (
           playerDetailsById={panelDetailsById}
           skillsMatrixRows={skillsMatrixRows}
           ratingsMatrixResponse={ratingsResponse}
+          ratingsManualOverrideEnabled={ratingsManualOverrideEnabled}
+          onRatingsManualOverrideEnabledChange={handleRatingsManualOverrideEnabledChange}
+          ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
+          onRatingsOverwriteManualEditsEnabledChange={
+            handleRatingsOverwriteManualEditsEnabledChange
+          }
+          onRatingsDiscardManualEdits={handleDiscardRatingsManualEdits}
+          ratingsHasManualEdits={hasManualRatingsEdits}
+          onRatingsManualCellChange={handleRatingsManualCellChange}
+          ratingsManualEditsByPlayerId={ratingsManualEditsByPlayerId}
           ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
           ratingsMatrixSpecialtyByName={specialtyByName}
           ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
@@ -18689,6 +19027,16 @@ const refreshDetailsForPlayers = async (
             playerDetailsById={panelDetailsById}
             skillsMatrixRows={skillsMatrixRows}
             ratingsMatrixResponse={ratingsResponse}
+            ratingsManualOverrideEnabled={ratingsManualOverrideEnabled}
+            onRatingsManualOverrideEnabledChange={handleRatingsManualOverrideEnabledChange}
+            ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
+            onRatingsOverwriteManualEditsEnabledChange={
+              handleRatingsOverwriteManualEditsEnabledChange
+            }
+            onRatingsDiscardManualEdits={handleDiscardRatingsManualEdits}
+            ratingsHasManualEdits={hasManualRatingsEdits}
+            onRatingsManualCellChange={handleRatingsManualCellChange}
+            ratingsManualEditsByPlayerId={ratingsManualEditsByPlayerId}
             ratingsMatrixSelectedName={selectedPlayer ? formatPlayerName(selectedPlayer) : null}
             ratingsMatrixSpecialtyByName={specialtyByName}
             ratingsMatrixMotherClubBonusByName={motherClubBonusByName}

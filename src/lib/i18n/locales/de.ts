@@ -76,6 +76,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    changelog_4_14_0:
+      "Die Senioren-Bewertungsmatrix unterstützt jetzt manuelle Bewertungsüberschreibungen mit refresh-sicherer Wiederherstellung.",
     changelog_4_13_0:
       "Jugend- und Seniorenaufstellungen empfehlen jetzt passend sortierte Spieler, wenn du auf leere Slots klickst.",
     changelog_4_12_0:
@@ -1520,6 +1522,15 @@ export const messagesDe: Messages = {
     ratingsMatchesAnalyzed: "Daten aus {count} Spielen abgerufen.",
     ratingsLastAppliedMatchLabel:
       "Zuletzt angewendete Endstand-Bewertungen (85-96 gespielte Minuten) aus Spiel {matchId} um {dateTime}.",
+    ratingsManualOverrideToggle: "Bewertungen manuell bearbeiten",
+    ratingsManualOverrideTooltip:
+      "Bewertungen werden verwendet, um Spieler in KI-Aufstellungen zu platzieren. Aktiviere dies, um die Bewertungen manuell zu ändern. Nützlich, wenn du erzwingen möchtest, dass ein Spieler unabhängig von Form und bisherigen Leistungen für eine bestimmte Position gewählt oder nicht gewählt wird.",
+    ratingsOverwriteManualEditsToggle: "Manuell bearbeitete Bewertungen überschreiben",
+    ratingsOverwriteManualEditsTooltip:
+      "Wenn aktiviert, ersetzen neu abgerufene Bewertungen beim nächsten Aktualisieren der Matrix alle von dir manuell bearbeiteten Bewertungen.",
+    ratingsDiscardManualEditsButton: "Manuelle Bearbeitungen verwerfen",
+    ratingsManualEditCellLabel: "Bewertung für {player} auf {position} setzen",
+    ratingsManualEditedIndicator: "Manuell bearbeitete Bewertung",
     ratingsIndexLabel: "Nr.",
     ratingsMissingNote:
       "Einige Spieler haben keine aktuellen Matchdaten und werden mit — angezeigt.",

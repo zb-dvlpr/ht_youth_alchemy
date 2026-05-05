@@ -76,6 +76,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    changelog_4_14_0:
+      "Seniorernas betygsmatris stöder nu manuella åsidosättningar av betyg med säker återställning efter uppdatering.",
     changelog_4_13_0:
       "Ungdoms- och senioruppstallningar rekommenderar nu rangordnade spelare nar du klickar pa tomma platser.",
     changelog_4_12_0:
@@ -1528,6 +1530,15 @@ export const messagesSv: Messages = {
     ratingsMatchesAnalyzed: "Data hämtad från {count} matcher.",
     ratingsLastAppliedMatchLabel:
       "Senast tillämpade slutmatchbetyg (85-96 spelade minuter) från match {matchId} kl. {dateTime}.",
+    ratingsManualOverrideToggle: "Redigera betyg manuellt",
+    ratingsManualOverrideTooltip:
+      "Betyg används för att placera spelare i AI-elvor. Slå på detta för att ändra betygen manuellt. Användbart om du vill tvinga att en spelare väljs eller inte väljs för en viss position oavsett form och tidigare prestation.",
+    ratingsOverwriteManualEditsToggle: "Skriv över manuellt redigerade betyg",
+    ratingsOverwriteManualEditsTooltip:
+      "När detta är aktiverat kommer nyhämtade betyg att ersätta alla betyg som du har redigerat manuellt nästa gång matrisen uppdateras.",
+    ratingsDiscardManualEditsButton: "Kasta manuella redigeringar",
+    ratingsManualEditCellLabel: "Ange betyg för {player} på {position}",
+    ratingsManualEditedIndicator: "Manuellt redigerat betyg",
     ratingsIndexLabel: "Nr",
     ratingsMissingNote:
       "Vissa spelare saknar senaste matchdata och visas med —.",

@@ -2383,6 +2383,45 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   max-width: 100%;
 }
 
+.ratingsMatrixControls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
+  margin-bottom: 10px;
+}
+
+.ratingsMatrixManualInput {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #1b1a17;
+  font: inherit;
+  font-weight: 700;
+  text-align: center;
+  padding: 0;
+  appearance: none;
+  -moz-appearance: textfield;
+}
+
+.ratingsMatrixManualInput:focus-visible {
+  outline: 2px solid rgba(47, 159, 91, 0.35);
+  outline-offset: 1px;
+}
+
+.ratingsMatrixManualInput::-webkit-outer-spin-button,
+.ratingsMatrixManualInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.ratingsMatrixControls .settingsActionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .matrixTable {
   width: 100%;
   border-collapse: collapse;
@@ -2628,6 +2667,50 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .matrixCell {
   font-weight: 700;
   color: #1b1a17;
+  position: relative;
+}
+
+.matrixCellManualEditing {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  padding-right: 18px;
+}
+
+.matrixCellManualEdited {
+  padding-right: 18px;
+}
+
+.matrixCellManualEditingCaret {
+  position: absolute;
+  top: 50%;
+  right: 7px;
+  width: 1px;
+  height: 14px;
+  background: rgba(60, 50, 38, 0.8);
+  transform: translateY(-50%);
+  pointer-events: none;
+  animation: ratingsMatrixCaretBlink 1s steps(1, end) infinite;
+}
+
+.matrixCellManualEditedIcon {
+  position: absolute;
+  top: 3px;
+  right: 5px;
+  font-size: 10px;
+  line-height: 1;
+  color: #7c5d2b;
+  opacity: 0.9;
+}
+
+@keyframes ratingsMatrixCaretBlink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  46%,
+  100% {
+    opacity: 0;
+  }
 }
 
 .skillsMatrixSplit {

@@ -53,6 +53,14 @@ type RatingsMatrixProps = {
   orderSource?: "list" | "ratings" | "skills" | null;
   onOrderChange?: (orderedIds: number[]) => void;
   onSortStart?: () => void;
+  manualEditingEnabled?: boolean;
+  onManualEditingEnabledChange?: (enabled: boolean) => void;
+  overwriteManualEditsEnabled?: boolean;
+  onOverwriteManualEditsEnabledChange?: (enabled: boolean) => void;
+  onDiscardManualEdits?: () => void;
+  hasManualEdits?: boolean;
+  onManualRatingChange?: (playerId: number, position: number, value: number | null) => void;
+  manualEditedRatingsByPlayerId?: Record<number, Record<string, number>>;
 };
 
 function uniquePositions(positions: number[] | undefined) {
@@ -122,6 +130,14 @@ export default function RatingsMatrix({
   orderSource,
   onOrderChange,
   onSortStart,
+  manualEditingEnabled = false,
+  onManualEditingEnabledChange,
+  overwriteManualEditsEnabled = false,
+  onOverwriteManualEditsEnabledChange,
+  onDiscardManualEdits,
+  hasManualEdits = false,
+  onManualRatingChange,
+  manualEditedRatingsByPlayerId = {},
 }: RatingsMatrixProps) {
   const newPlayerIdSet = useMemo(() => new Set(newPlayerIds), [newPlayerIds]);
   const players = useMemo(() => response?.players ?? [], [response?.players]);
@@ -270,6 +286,23 @@ export default function RatingsMatrix({
     }
   };
 
+  const handleManualInputCommit = (
+    playerId: number,
+    position: number,
+    rawValue: string
+  ) => {
+    if (!onManualRatingChange) return;
+    const trimmed = rawValue.trim();
+    if (!trimmed) {
+      onManualRatingChange(playerId, position, null);
+      return;
+    }
+    const parsed = Number(trimmed.replace(",", "."));
+    if (!Number.isFinite(parsed)) return;
+    const clamped = Math.min(25, Math.max(0, Math.round(parsed * 10) / 10));
+    onManualRatingChange(playerId, position, clamped);
+  };
+
   useEffect(() => {
     if (orderSource && orderSource !== "ratings" && sortKey !== null) {
       if (pendingSortRef.current) {
@@ -299,6 +332,51 @@ export default function RatingsMatrix({
     <div className={showTitle ? styles.card : undefined}>
       {showTitle ? (
         <h2 className={styles.sectionTitle}>{messages.ratingsTitle}</h2>
+      ) : null}
+      {onManualEditingEnabledChange ? (
+        <div className={styles.ratingsMatrixControls}>
+          <Tooltip content={messages.ratingsManualOverrideTooltip}>
+            <label className={styles.matchesFilterToggle}>
+              <input
+                type="checkbox"
+                className={styles.matchesFilterToggleInput}
+                checked={manualEditingEnabled}
+                onChange={(event) =>
+                  onManualEditingEnabledChange(event.currentTarget.checked)
+                }
+              />
+              <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
+              <span className={styles.matchesFilterToggleLabel}>
+                {messages.ratingsManualOverrideToggle}
+              </span>
+            </label>
+          </Tooltip>
+          <Tooltip content={messages.ratingsOverwriteManualEditsTooltip}>
+            <label className={styles.matchesFilterToggle}>
+              <input
+                type="checkbox"
+                className={styles.matchesFilterToggleInput}
+                checked={overwriteManualEditsEnabled}
+                disabled={!hasManualEdits}
+                onChange={(event) =>
+                  onOverwriteManualEditsEnabledChange?.(event.currentTarget.checked)
+                }
+              />
+              <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
+              <span className={styles.matchesFilterToggleLabel}>
+                {messages.ratingsOverwriteManualEditsToggle}
+              </span>
+            </label>
+          </Tooltip>
+          <button
+            type="button"
+            className={styles.settingsActionButton}
+            onClick={() => onDiscardManualEdits?.()}
+            disabled={!hasManualEdits}
+          >
+            {messages.ratingsDiscardManualEditsButton}
+          </button>
+        </div>
       ) : null}
       <div className={styles.matrixWrapper}>
         <table className={styles.matrixTable}>
@@ -487,6 +565,9 @@ export default function RatingsMatrix({
                   const ratingMatchId = row.ratingMatchIds?.[String(position)];
                   const ratingMatchSourceSystem =
                     row.ratingMatchSourceSystems?.[String(position)];
+                  const isManuallyEdited =
+                    typeof manualEditedRatingsByPlayerId[row.id]?.[String(position)] ===
+                    "number";
                   const isNewRating =
                     newRatingsByPlayerId[row.id]?.includes(position) ?? false;
                   return (
@@ -494,6 +575,8 @@ export default function RatingsMatrix({
                       key={position}
                       className={`${styles.matrixCell} ${
                         isNewRating ? styles.matrixCellHasNew : ""
+                      } ${isManuallyEdited ? styles.matrixCellManualEdited : ""}${
+                        manualEditingEnabled ? ` ${styles.matrixCellManualEditing}` : ""
                       }`}
                       style={ratingStyle(rating)}
                     >
@@ -502,7 +585,46 @@ export default function RatingsMatrix({
                           <span className={styles.matrixCellNewTag}>N</span>
                         </Tooltip>
                       ) : null}
-                      {rating !== null && Number.isFinite(ratingMatchId) ? (
+                      {manualEditingEnabled ? (
+                        <span
+                          className={styles.matrixCellManualEditingCaret}
+                          aria-hidden="true"
+                        />
+                      ) : null}
+                      {isManuallyEdited ? (
+                        <span
+                          className={styles.matrixCellManualEditedIcon}
+                          aria-label={messages.ratingsManualEditedIndicator}
+                          title={messages.ratingsManualEditedIndicator}
+                        >
+                          ✎
+                        </span>
+                      ) : null}
+                      {manualEditingEnabled && onManualRatingChange ? (
+                        <input
+                          key={`${row.id}-${position}-${rating ?? "empty"}-edit`}
+                          type="text"
+                          inputMode="decimal"
+                          className={styles.ratingsMatrixManualInput}
+                          defaultValue={rating !== null ? String(Number(rating.toFixed(1))) : ""}
+                          aria-label={messages.ratingsManualEditCellLabel
+                            .replace("{player}", row.name)
+                            .replace("{position}", positionLabel(position, messages))}
+                          onBlur={(event) =>
+                            handleManualInputCommit(row.id, position, event.currentTarget.value)
+                          }
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter") {
+                              event.currentTarget.blur();
+                            }
+                            if (event.key === "Escape") {
+                              event.currentTarget.value =
+                                rating !== null ? String(Number(rating.toFixed(1))) : "";
+                              event.currentTarget.blur();
+                            }
+                          }}
+                        />
+                      ) : rating !== null && Number.isFinite(ratingMatchId) ? (
                         <a
                           className={styles.matrixRatingLink}
                           href={

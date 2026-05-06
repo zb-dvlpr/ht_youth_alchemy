@@ -316,6 +316,15 @@ export const messagesIt: Messages = {
     settingsDebugBuyCoffeePromptButton: "Mostra il modal offrimi un caffè",
     settingsGeneral: "Generale",
     settingsGeneralTitle: "Impostazioni generali",
+    settingsLicense: "Licenza",
+    settingsLicenseTitle: "Licenza",
+    settingsLicenseBody:
+      "Acquista una licenza premium di HT Alchemy o gestisci qui la tua licenza attuale.",
+    settingsLicenseBuyButton: "Acquista licenza",
+    settingsLicenseRevokeButton: "Revoca licenza",
+    settingsLicenseRevoked: "Licenza cancellata. Modalità gratuita ripristinata.",
+    settingsLicenseRevokePending:
+      "La revoca della licenza non è ancora disponibile.",
     settingsGeneralExportAllLabel: "Esporta tutte le impostazioni",
     settingsGeneralExportAllHint:
       "Esporta tutte le impostazioni locali dell’app e gli stati in cache in un file JSON di backup.",

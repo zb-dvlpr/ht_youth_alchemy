@@ -312,9 +312,18 @@ export const messagesPt: Messages = {
       "Diferenças de últimas atualizações para manter",
     settingsClubChronicleUpdatesHistoryHint:
       "Quantas diferenças com mudanças de refresh global são salvas e exibidas no histórico de Últimas atualizações.",
-    settingsDebugBuyCoffeePromptButton: "Mostrar modal paga-me um café",
     settingsGeneral: "Geral",
     settingsGeneralTitle: "Configurações gerais",
+    settingsLicense: "Licença",
+    settingsLicenseTitle: "Licença",
+    settingsLicenseBody:
+      "Compre uma licença premium do HT Alchemy ou gira aqui a sua licença atual.",
+    settingsLicenseBuyButton: "Comprar licença",
+    settingsLicenseRevokeButton: "Revogar licença",
+    settingsLicenseRevoked: "Licença removida. Modo gratuito restaurado.",
+    settingsLicenseRevokePending:
+      "A revogação de licenças ainda não está disponível.",
+    settingsDebugBuyCoffeePromptButton: "Mostrar modal paga-me um café",
     settingsGeneralExportAllLabel: "Exportar todas as configurações",
     settingsGeneralExportAllHint:
       "Exporta todas as configurações locais e estados em cache do app para um arquivo JSON de backup.",

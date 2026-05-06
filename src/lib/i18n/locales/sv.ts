@@ -312,6 +312,15 @@ export const messagesSv: Messages = {
       "Hur många ändrade globala uppdateringsdifferenser som sparas och visas i historiken för Senaste uppdateringar.",
     settingsGeneral: "Allmänt",
     settingsGeneralTitle: "Allmänna inställningar",
+    settingsLicense: "Licens",
+    settingsLicenseTitle: "Licens",
+    settingsLicenseBody:
+      "Köp en HT Alchemy premiumlicens eller hantera din nuvarande licens här.",
+    settingsLicenseBuyButton: "Köp licens",
+    settingsLicenseRevokeButton: "Återkalla licens",
+    settingsLicenseRevoked: "Licensen rensades. Gratisläget återställt.",
+    settingsLicenseRevokePending:
+      "Licensåterkallelse är inte tillgänglig ännu.",
     settingsGeneralExportAllLabel: "Exportera alla inställningar",
     settingsGeneralExportAllHint:
       "Exportera alla lokalt sparade appinställningar och cachetillstånd till en JSON-säkerhetskopia.",

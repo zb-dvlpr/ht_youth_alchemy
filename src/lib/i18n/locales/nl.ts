@@ -138,6 +138,15 @@ export const messagesNl: Messages = {
   settingsSeniorRatingsWipeWarningAcknowledge: "Ik begrijp het",
   settingsGeneral: "Algemeen",
   settingsGeneralTitle: "Algemene instellingen",
+  settingsLicense: "Licentie",
+  settingsLicenseTitle: "Licentie",
+  settingsLicenseBody:
+    "Koop een HT Alchemy-premiumlicentie of beheer hier je huidige licentie.",
+  settingsLicenseBuyButton: "Licentie kopen",
+  settingsLicenseRevokeButton: "Licentie intrekken",
+  settingsLicenseRevoked: "Licentie gewist. Gratis modus hersteld.",
+  settingsLicenseRevokePending:
+    "Licentie-intrekking is nog niet beschikbaar.",
   settingsGeneralExportAllLabel: "Alle instellingen exporteren",
   settingsGeneralExportAllHint:
     "Exporteer alle lokaal opgeslagen app-instellingen en cachetoestand naar een JSON-back-upbestand.",

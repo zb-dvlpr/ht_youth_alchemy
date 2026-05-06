@@ -311,6 +311,15 @@ export const messagesDe: Messages = {
       "Wie viele geänderte globale Aktualisierungs-Diffs in der Verlaufsliste von Neueste Updates gespeichert und angezeigt werden.",
     settingsGeneral: "Allgemein",
     settingsGeneralTitle: "Allgemeine Einstellungen",
+    settingsLicense: "Lizenz",
+    settingsLicenseTitle: "Lizenz",
+    settingsLicenseBody:
+      "Hier kannst du eine HT Alchemy Premium-Lizenz kaufen oder deine aktuelle Lizenz verwalten.",
+    settingsLicenseBuyButton: "Lizenz kaufen",
+    settingsLicenseRevokeButton: "Lizenz widerrufen",
+    settingsLicenseRevoked: "Lizenz gelöscht. Freier Modus wiederhergestellt.",
+    settingsLicenseRevokePending:
+      "Der Lizenzwiderruf ist noch nicht verfügbar.",
     settingsGeneralExportAllLabel: "Alle Einstellungen exportieren",
     settingsGeneralExportAllHint:
       "Exportiert alle lokal gespeicherten App-Einstellungen und Cache-Zustände als JSON-Sicherungsdatei.",

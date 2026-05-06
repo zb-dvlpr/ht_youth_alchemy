@@ -138,6 +138,15 @@ export const messagesPl: Messages = {
   settingsSeniorRatingsWipeWarningAcknowledge: "Rozumiem",
   settingsGeneral: "Ogólne",
   settingsGeneralTitle: "Ustawienia ogólne",
+  settingsLicense: "Licencja",
+  settingsLicenseTitle: "Licencja",
+  settingsLicenseBody:
+    "Kup licencję premium HT Alchemy lub zarządzaj tutaj swoją obecną licencją.",
+  settingsLicenseBuyButton: "Kup licencję",
+  settingsLicenseRevokeButton: "Unieważnij licencję",
+  settingsLicenseRevoked: "Licencja usunięta. Przywrócono tryb darmowy.",
+  settingsLicenseRevokePending:
+    "Unieważnianie licencji nie jest jeszcze dostępne.",
   settingsGeneralExportAllLabel: "Eksportuj wszystkie ustawienia",
   settingsGeneralExportAllHint:
     "Eksportuje wszystkie lokalnie zapisane ustawienia aplikacji i stan pamięci podręcznej do pliku kopii zapasowej JSON.",

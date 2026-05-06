@@ -316,6 +316,15 @@ export const messagesFr: Messages = {
     settingsDebugBuyCoffeePromptButton: "Afficher la modale offre-moi un café",
     settingsGeneral: "Général",
     settingsGeneralTitle: "Paramètres généraux",
+    settingsLicense: "Licence",
+    settingsLicenseTitle: "Licence",
+    settingsLicenseBody:
+      "Achetez une licence premium HT Alchemy ou gérez votre licence actuelle ici.",
+    settingsLicenseBuyButton: "Acheter une licence",
+    settingsLicenseRevokeButton: "Révoquer la licence",
+    settingsLicenseRevoked: "Licence effacée. Mode gratuit rétabli.",
+    settingsLicenseRevokePending:
+      "La révocation de licence n’est pas encore disponible.",
     settingsGeneralExportAllLabel: "Exporter tous les paramètres",
     settingsGeneralExportAllHint:
       "Exporte tous les paramètres locaux de l’application et les états en cache dans un fichier JSON de sauvegarde.",

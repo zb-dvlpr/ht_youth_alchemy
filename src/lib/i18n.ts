@@ -250,6 +250,13 @@ export type Messages = {
   settingsClubChronicleUpdatesHistoryHint: string;
   settingsGeneral: string;
   settingsGeneralTitle: string;
+  settingsLicense: string;
+  settingsLicenseTitle: string;
+  settingsLicenseBody: string;
+  settingsLicenseBuyButton: string;
+  settingsLicenseRevokeButton: string;
+  settingsLicenseRevoked: string;
+  settingsLicenseRevokePending: string;
   settingsGeneralExportAllLabel: string;
   settingsGeneralExportAllHint: string;
   settingsGeneralImportAllLabel: string;

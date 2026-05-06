@@ -297,6 +297,15 @@ export const messagesEn: Messages = {
       "How many changed global refresh diffs are stored and shown in Latest updates history.",
     settingsGeneral: "General",
     settingsGeneralTitle: "General settings",
+    settingsLicense: "License",
+    settingsLicenseTitle: "License",
+    settingsLicenseBody:
+      "Buy a HT Alchemy premium license or manage your current license here.",
+    settingsLicenseBuyButton: "Buy license",
+    settingsLicenseRevokeButton: "Revoke license",
+    settingsLicenseRevoked: "License cleared. Free mode restored.",
+    settingsLicenseRevokePending:
+      "License revocation is not available yet.",
     settingsGeneralExportAllLabel: "Export all settings",
     settingsGeneralExportAllHint:
       "Export all locally stored app settings and cached state as a JSON backup file.",

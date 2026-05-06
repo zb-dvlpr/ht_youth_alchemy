@@ -7,6 +7,7 @@ import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import Modal from "./Modal";
+import AppLicenseModal from "./AppLicenseModal";
 import QRCode from "qrcode";
 import {
   type ChppDebugOauthErrorMode,
@@ -61,6 +62,7 @@ import {
   type SeniorModelEvaluationResult,
 } from "@/lib/seniorEncounteredPlayerModel";
 import { formatDateTime } from "@/lib/datetime";
+import { clearAppLicenseState } from "@/lib/license";
 
 type SettingsButtonProps = {
   messages: Messages;
@@ -92,6 +94,9 @@ export default function SettingsButton({
   const [seniorRatingsWipeWarningOpen, setSeniorRatingsWipeWarningOpen] = useState(false);
   const [chronicleSettingsOpen, setChronicleSettingsOpen] = useState(false);
   const [generalSettingsOpen, setGeneralSettingsOpen] = useState(false);
+  const [licenseSettingsOpen, setLicenseSettingsOpen] = useState(false);
+  const [licenseEntryOpen, setLicenseEntryOpen] = useState(false);
+  const [licenseEntryNonce, setLicenseEntryNonce] = useState(0);
   const [chronicleQrExportOpen, setChronicleQrExportOpen] = useState(false);
   const [chronicleQrImportOpen, setChronicleQrImportOpen] = useState(false);
   const [seniorMlInfoOpen, setSeniorMlInfoOpen] = useState(false);
@@ -597,6 +602,22 @@ export default function SettingsButton({
     });
   };
 
+  const handleOpenLicenseEntry = () => {
+    setLicenseSettingsOpen(false);
+    setLicenseEntryNonce((prev) => prev + 1);
+    setLicenseEntryOpen(true);
+  };
+
+  const handleRevokeLicense = () => {
+    if (isDev) {
+      clearAppLicenseState();
+      addNotification(messages.settingsLicenseRevoked);
+      setLicenseSettingsOpen(false);
+      return;
+    }
+    addNotification(messages.settingsLicenseRevokePending);
+  };
+
   return (
     <div className={styles.feedbackWrap}>
       {variant === "launcher" ? (
@@ -666,6 +687,16 @@ export default function SettingsButton({
             }}
           >
             {messages.settingsGeneral}
+          </button>
+          <button
+            type="button"
+            className={styles.feedbackLink}
+            onClick={() => {
+              setLicenseSettingsOpen(true);
+              setOpen(false);
+            }}
+          >
+            {messages.settingsLicense}
           </button>
           {isDev ? (
             <button
@@ -922,6 +953,46 @@ export default function SettingsButton({
         }
         closeOnBackdrop
         onClose={() => setChronicleSettingsOpen(false)}
+      />
+      <Modal
+        open={licenseSettingsOpen}
+        title={messages.settingsLicenseTitle}
+        body={
+          <div className={styles.settingsModalBody}>
+            <p className={styles.muted}>{messages.settingsLicenseBody}</p>
+            <button
+              type="button"
+              className={styles.settingsActionButton}
+              onClick={handleOpenLicenseEntry}
+            >
+              {messages.settingsLicenseBuyButton}
+            </button>
+            <button
+              type="button"
+              className={styles.settingsDangerButton}
+              onClick={handleRevokeLicense}
+            >
+              {messages.settingsLicenseRevokeButton}
+            </button>
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setLicenseSettingsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setLicenseSettingsOpen(false)}
+      />
+      <AppLicenseModal
+        key={licenseEntryNonce}
+        open={licenseEntryOpen}
+        messages={messages}
+        onClose={() => setLicenseEntryOpen(false)}
       />
       <Modal
         open={generalSettingsOpen}

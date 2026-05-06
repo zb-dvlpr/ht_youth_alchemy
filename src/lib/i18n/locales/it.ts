@@ -65,7 +65,7 @@ export const messagesIt: Messages = {
     clubChroniclePremiumBuyButton: "Acquista licenza premium",
     clubChroniclePremiumLicenseTitle: "Licenza premium HT Alchemy",
     clubChroniclePremiumLicenseBody:
-      "Inserisci qui la tua chiave di licenza premium HT Alchemy per sbloccare le funzioni premium di Club Chronicle.",
+      "Inserisci qui la tua chiave di licenza premium HT Alchemy per sbloccare le funzioni premium.",
     clubChroniclePremiumLicenseFieldLabel: "Chiave di licenza",
     clubChroniclePremiumLicensePlaceholder: "Inserisci la chiave di licenza",
     clubChroniclePremiumLicenseSubmit: "Sblocca premium",
@@ -73,6 +73,10 @@ export const messagesIt: Messages = {
     clubChroniclePremiumLicenseUnlocked: "Premium sbloccato.",
     clubChroniclePremiumLicensePendingValidation:
       "La tua chiave di licenza è stata salvata localmente. La convalida online non è ancora disponibile.",
+    clubChroniclePremiumLicenseInvalid:
+      "Questa chiave di licenza non è valida.",
+    clubChroniclePremiumLicenseValidationUnavailable:
+      "La convalida della licenza non è disponibile al momento. Riprova più tardi.",
     clubChroniclePremiumTeamLimitReached:
       "La versione gratuita di Club Chronicle è limitata a 3 squadre tracciate per scheda.",
     clubChroniclePremiumTabLimitReached:
@@ -1361,6 +1365,8 @@ export const messagesIt: Messages = {
     youthEstimateValueButton: "Stima valore",
     youthEstimateValueTooltip:
       "Cerca sul mercato trasferimenti in base al potenziale massimo di questo giocatore.",
+    youthEstimateValuePremiumTooltip:
+      "Acquista una licenza premium HT Alchemy per usare Stima valore.",
     youthEstimateValueDisabledTooltip:
       "Rivela almeno un potenziale massimo prima di stimare il valore.",
     youthEstimateValueAgeMissingTooltip:
@@ -1579,6 +1585,8 @@ export const messagesIt: Messages = {
     ratingsManualOverrideToggle: "Modifica manualmente i voti",
     ratingsManualOverrideTooltip:
       "I voti vengono usati per collocare i giocatori nelle formazioni IA. Attivalo per modificare manualmente i voti. Utile se vuoi forzare la scelta o l’esclusione di un giocatore per una posizione specifica indipendentemente da forma e rendimento passato.",
+    ratingsManualOverridePremiumTooltip:
+      "Acquista una licenza premium HT Alchemy per modificare manualmente i voti usati dall'IA delle formazioni senior.",
     ratingsOverwriteManualEditsToggle: "Sovrascrivi i voti modificati manualmente",
     ratingsOverwriteManualEditsTooltip:
       "Se abilitato, i nuovi voti recuperati sostituiranno tutti i voti modificati manualmente al prossimo aggiornamento della matrice.",

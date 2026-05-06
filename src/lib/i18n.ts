@@ -77,6 +77,8 @@ export type Messages = {
   clubChroniclePremiumLicenseKeyRequired: string;
   clubChroniclePremiumLicenseUnlocked: string;
   clubChroniclePremiumLicensePendingValidation: string;
+  clubChroniclePremiumLicenseInvalid: string;
+  clubChroniclePremiumLicenseValidationUnavailable: string;
   clubChroniclePremiumTeamLimitReached: string;
   clubChroniclePremiumTabLimitReached: string;
   clubChroniclePremiumHiddenTeamsNotice: string;
@@ -1083,6 +1085,7 @@ export type Messages = {
   seniorTransferSearchBidFailed: string;
   youthEstimateValueButton: string;
   youthEstimateValueTooltip: string;
+  youthEstimateValuePremiumTooltip: string;
   youthEstimateValueDisabledTooltip: string;
   youthEstimateValueAgeMissingTooltip: string;
   transferSearchSortDefault: string;
@@ -1276,6 +1279,7 @@ export type Messages = {
   ratingsLastAppliedMatchLabel: string;
   ratingsManualOverrideToggle: string;
   ratingsManualOverrideTooltip: string;
+  ratingsManualOverridePremiumTooltip: string;
   ratingsOverwriteManualEditsToggle: string;
   ratingsOverwriteManualEditsTooltip: string;
   ratingsDiscardManualEditsButton: string;

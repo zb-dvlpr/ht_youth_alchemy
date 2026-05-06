@@ -6,6 +6,7 @@ import type { Messages } from "@/lib/i18n";
 import {
   type AppLicenseState,
   readAppLicenseState,
+  validateAppLicenseKey,
   writeAppLicenseState,
 } from "@/lib/license";
 
@@ -20,8 +21,6 @@ type AppLicenseModalProps = {
   onSaved?: (state: AppLicenseState) => void;
 };
 
-const IS_DEV_BUILD = process.env.NODE_ENV !== "production";
-
 export default function AppLicenseModal({
   open,
   messages,
@@ -32,40 +31,45 @@ export default function AppLicenseModal({
     readAppLicenseState().licenseKey
   );
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
   const { addNotification } = useNotifications();
 
-  const saveLicense = useCallback(() => {
+  const saveLicense = useCallback(async () => {
     const trimmed = licenseInput.trim();
     if (!trimmed) {
       setFeedback(messages.clubChroniclePremiumLicenseKeyRequired);
       return;
     }
-    const nextState: AppLicenseState = IS_DEV_BUILD
-      ? {
-          licenseKey: trimmed,
-          premiumUnlocked: true,
-          validatedAt: Date.now(),
-        }
-      : {
-          licenseKey: trimmed,
-          premiumUnlocked: false,
-          validatedAt: null,
-        };
-    writeAppLicenseState(nextState);
-    onSaved?.(nextState);
-    if (IS_DEV_BUILD) {
-      setFeedback(null);
-      onClose();
-      addNotification(messages.clubChroniclePremiumLicenseUnlocked);
+    setSubmitting(true);
+    const validation = await validateAppLicenseKey(trimmed);
+    if (validation.transientFailure) {
+      setSubmitting(false);
+      setFeedback(messages.clubChroniclePremiumLicenseValidationUnavailable);
       return;
     }
-    setFeedback(messages.clubChroniclePremiumLicensePendingValidation);
+    if (!validation.valid) {
+      setSubmitting(false);
+      setFeedback(messages.clubChroniclePremiumLicenseInvalid);
+      return;
+    }
+    const nextState: AppLicenseState = {
+      licenseKey: trimmed,
+      premiumUnlocked: true,
+      validatedAt: Date.now(),
+    };
+    writeAppLicenseState(nextState);
+    onSaved?.(nextState);
+    setSubmitting(false);
+    setFeedback(null);
+    onClose();
+    addNotification(messages.clubChroniclePremiumLicenseUnlocked);
   }, [
     addNotification,
     licenseInput,
+    messages.clubChroniclePremiumLicenseInvalid,
     messages.clubChroniclePremiumLicenseKeyRequired,
-    messages.clubChroniclePremiumLicensePendingValidation,
     messages.clubChroniclePremiumLicenseUnlocked,
+    messages.clubChroniclePremiumLicenseValidationUnavailable,
     onClose,
     onSaved,
   ]);
@@ -82,7 +86,8 @@ export default function AppLicenseModal({
             <button
               type="button"
               className={styles.watchlistButton}
-              onClick={() => {}}
+              onClick={() => undefined}
+              disabled={submitting}
             >
               {messages.clubChroniclePremiumBuyButton}
             </button>
@@ -102,6 +107,7 @@ export default function AppLicenseModal({
                 value={licenseInput}
                 onChange={(event) => setLicenseInput(event.target.value)}
                 placeholder={messages.clubChroniclePremiumLicensePlaceholder}
+                disabled={submitting}
               />
             </div>
             {feedback ? (
@@ -116,14 +122,15 @@ export default function AppLicenseModal({
             type="button"
             className={styles.confirmCancel}
             onClick={onClose}
+            disabled={submitting}
           >
             {messages.closeLabel}
           </button>
           <button
             type="button"
             className={styles.confirmSubmit}
-            onClick={saveLicense}
-            disabled={!licenseInput.trim()}
+            onClick={() => void saveLicense()}
+            disabled={!licenseInput.trim() || submitting}
           >
             {messages.clubChroniclePremiumLicenseSubmit}
           </button>

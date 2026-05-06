@@ -65,7 +65,7 @@ export const messagesEn: Messages = {
     clubChroniclePremiumBuyButton: "Buy premium license",
     clubChroniclePremiumLicenseTitle: "HT Alchemy premium license",
     clubChroniclePremiumLicenseBody:
-      "Enter your HT Alchemy premium license key here to unlock Club Chronicle premium features.",
+      "Enter your HT Alchemy premium license key here to unlock premium features.",
     clubChroniclePremiumLicenseFieldLabel: "License key",
     clubChroniclePremiumLicensePlaceholder: "Enter license key",
     clubChroniclePremiumLicenseSubmit: "Unlock premium",
@@ -73,6 +73,9 @@ export const messagesEn: Messages = {
     clubChroniclePremiumLicenseUnlocked: "Premium unlocked.",
     clubChroniclePremiumLicensePendingValidation:
       "Your license key has been saved locally. Online validation is not available yet.",
+    clubChroniclePremiumLicenseInvalid: "That license key is not valid.",
+    clubChroniclePremiumLicenseValidationUnavailable:
+      "License validation is unavailable right now. Please try again later.",
     clubChroniclePremiumTeamLimitReached:
       "Free Club Chronicle is limited to 3 tracked teams per tab.",
     clubChroniclePremiumTabLimitReached:
@@ -1306,6 +1309,8 @@ export const messagesEn: Messages = {
     youthEstimateValueButton: "Estimate value",
     youthEstimateValueTooltip:
       "Search the transfer market based on this player's maximum potential.",
+    youthEstimateValuePremiumTooltip:
+      "Buy a HT Alchemy premium license to use Estimate value.",
     youthEstimateValueDisabledTooltip:
       "Reveal at least one max potential skill before estimating value.",
     youthEstimateValueAgeMissingTooltip:
@@ -1521,6 +1526,8 @@ export const messagesEn: Messages = {
     ratingsManualOverrideToggle: "Manually edit ratings",
     ratingsManualOverrideTooltip:
       "Ratings are used to place players in AI lineups. Toggle on to manually change the ratings. Useful if you want to force a player to be chosen or not chosen for a particular position regardless of form and past performance.",
+    ratingsManualOverridePremiumTooltip:
+      "Buy a HT Alchemy premium license to manually edit ratings used by the senior lineup AI.",
     ratingsOverwriteManualEditsToggle: "Overwrite manually edited ratings",
     ratingsOverwriteManualEditsTooltip:
       "When enabled, newly fetched ratings will replace any ratings you manually edited the next time the matrix refreshes.",

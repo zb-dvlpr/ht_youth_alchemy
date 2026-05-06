@@ -167,6 +167,7 @@ type PlayerDetailsPanelProps = {
   onShowSeniorSkillBonusInMatrixChange?: (enabled: boolean) => void;
   ratingsManualOverrideEnabled?: boolean;
   onRatingsManualOverrideEnabledChange?: (enabled: boolean) => void;
+  ratingsManualOverrideTooltip?: string;
   ratingsOverwriteManualEditsEnabled?: boolean;
   onRatingsOverwriteManualEditsEnabledChange?: (enabled: boolean) => void;
   onRatingsDiscardManualEdits?: () => void;
@@ -593,6 +594,7 @@ export default function PlayerDetailsPanel({
   onShowSeniorSkillBonusInMatrixChange,
   ratingsManualOverrideEnabled = false,
   onRatingsManualOverrideEnabledChange,
+  ratingsManualOverrideTooltip,
   ratingsOverwriteManualEditsEnabled = false,
   onRatingsOverwriteManualEditsEnabledChange,
   onRatingsDiscardManualEdits,
@@ -2473,6 +2475,7 @@ export default function PlayerDetailsPanel({
           onSortStart={onRatingsSortStart}
           manualEditingEnabled={ratingsManualOverrideEnabled}
           onManualEditingEnabledChange={onRatingsManualOverrideEnabledChange}
+          manualEditingTooltip={ratingsManualOverrideTooltip}
           overwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
           onOverwriteManualEditsEnabledChange={
             onRatingsOverwriteManualEditsEnabledChange

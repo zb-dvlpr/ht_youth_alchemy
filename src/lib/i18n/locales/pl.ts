@@ -51,7 +51,7 @@ export const messagesPl: Messages = {
   clubChroniclePremiumBuyButton: "Kup licencję premium",
   clubChroniclePremiumLicenseTitle: "Licencja premium HT Alchemy",
   clubChroniclePremiumLicenseBody:
-    "Wpisz tutaj swój klucz licencyjny premium HT Alchemy, aby odblokować funkcje premium Club Chronicle.",
+    "Wpisz tutaj swój klucz licencyjny premium HT Alchemy, aby odblokować funkcje premium.",
   clubChroniclePremiumLicenseFieldLabel: "Klucz licencyjny",
   clubChroniclePremiumLicensePlaceholder: "Wpisz klucz licencyjny",
   clubChroniclePremiumLicenseSubmit: "Odblokuj premium",
@@ -59,6 +59,9 @@ export const messagesPl: Messages = {
   clubChroniclePremiumLicenseUnlocked: "Premium odblokowane.",
   clubChroniclePremiumLicensePendingValidation:
     "Twój klucz licencyjny został zapisany lokalnie. Walidacja online nie jest jeszcze dostępna.",
+  clubChroniclePremiumLicenseInvalid: "Ten klucz licencyjny jest nieprawidłowy.",
+  clubChroniclePremiumLicenseValidationUnavailable:
+    "Walidacja licencji jest teraz niedostępna. Spróbuj ponownie później.",
   clubChroniclePremiumTeamLimitReached:
     "Darmowa wersja Club Chronicle jest ograniczona do 3 śledzonych drużyn na kartę.",
   clubChroniclePremiumTabLimitReached:
@@ -317,6 +320,8 @@ export const messagesPl: Messages = {
   ratingsManualOverrideToggle: "Ręcznie edytuj oceny",
   ratingsManualOverrideTooltip:
     "Oceny są używane do ustawiania zawodników w składach AI. Włącz to, aby ręcznie zmieniać oceny. Przydatne, jeśli chcesz wymusić, by zawodnik został wybrany albo nie wybrany na konkretną pozycję niezależnie od formy i wcześniejszych występów.",
+  ratingsManualOverridePremiumTooltip:
+    "Kup licencję premium HT Alchemy, aby ręcznie edytować oceny używane przez AI od składów seniorów.",
   ratingsOverwriteManualEditsToggle: "Nadpisuj ręcznie edytowane oceny",
   ratingsOverwriteManualEditsTooltip:
     "Po włączeniu nowo pobrane oceny zastąpią wszystkie oceny edytowane ręcznie przy następnym odświeżeniu macierzy.",
@@ -417,6 +422,8 @@ export const messagesPl: Messages = {
   youthEstimateValueButton: "Oszacuj wartosc",
   youthEstimateValueTooltip:
     "Przeszukaj rynek transferowy na podstawie maksymalnego potencjalu tego zawodnika.",
+  youthEstimateValuePremiumTooltip:
+    "Kup licencję premium HT Alchemy, aby użyć funkcji oszacowania wartości.",
   youthEstimateValueDisabledTooltip:
     "Odkryj co najmniej jeden maksymalny potencjal umiejetnosci przed oszacowaniem wartosci.",
   youthEstimateValueAgeMissingTooltip:

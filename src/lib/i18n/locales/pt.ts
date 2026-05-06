@@ -65,7 +65,7 @@ export const messagesPt: Messages = {
     clubChroniclePremiumBuyButton: "Comprar licença premium",
     clubChroniclePremiumLicenseTitle: "Licença premium do HT Alchemy",
     clubChroniclePremiumLicenseBody:
-      "Insira aqui sua chave de licença premium do HT Alchemy para desbloquear os recursos premium do Club Chronicle.",
+      "Insira aqui sua chave de licença premium do HT Alchemy para desbloquear os recursos premium.",
     clubChroniclePremiumLicenseFieldLabel: "Chave de licença",
     clubChroniclePremiumLicensePlaceholder: "Inserir chave de licença",
     clubChroniclePremiumLicenseSubmit: "Desbloquear premium",
@@ -73,6 +73,10 @@ export const messagesPt: Messages = {
     clubChroniclePremiumLicenseUnlocked: "Premium desbloqueado.",
     clubChroniclePremiumLicensePendingValidation:
       "Sua chave de licença foi salva localmente. A validação online ainda não está disponível.",
+    clubChroniclePremiumLicenseInvalid:
+      "Essa chave de licença não é válida.",
+    clubChroniclePremiumLicenseValidationUnavailable:
+      "A validação da licença não está disponível no momento. Tente novamente mais tarde.",
     clubChroniclePremiumTeamLimitReached:
       "A versão gratuita do Club Chronicle está limitada a 3 equipes acompanhadas por aba.",
     clubChroniclePremiumTabLimitReached:
@@ -1358,6 +1362,8 @@ export const messagesPt: Messages = {
     youthEstimateValueButton: "Estimar valor",
     youthEstimateValueTooltip:
       "Pesquisar no mercado de transferencias com base no potencial maximo deste jogador.",
+    youthEstimateValuePremiumTooltip:
+      "Compre uma licença premium do HT Alchemy para usar Estimar valor.",
     youthEstimateValueDisabledTooltip:
       "Revele pelo menos uma habilidade de potencial maximo antes de estimar o valor.",
     youthEstimateValueAgeMissingTooltip:
@@ -1576,6 +1582,8 @@ export const messagesPt: Messages = {
     ratingsManualOverrideToggle: "Editar avaliações manualmente",
     ratingsManualOverrideTooltip:
       "As avaliações são usadas para posicionar jogadores em escalações de IA. Ative isto para alterar manualmente as avaliações. Útil se quiser forçar que um jogador seja escolhido ou não para uma posição específica independentemente da forma e do desempenho passado.",
+    ratingsManualOverridePremiumTooltip:
+      "Compre uma licença premium do HT Alchemy para editar manualmente as avaliações usadas pela IA de escalações seniores.",
     ratingsOverwriteManualEditsToggle: "Substituir avaliações editadas manualmente",
     ratingsOverwriteManualEditsTooltip:
       "Quando ativado, novas avaliações obtidas substituirão quaisquer avaliações que você tenha editado manualmente na próxima atualização da matriz.",

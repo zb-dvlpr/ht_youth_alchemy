@@ -4,17 +4,23 @@ export type AppLicenseState = {
   validatedAt: number | null;
 };
 
+type AppLicenseValidationResult = {
+  valid: boolean;
+  transientFailure: boolean;
+};
+
 export const APP_LICENSE_STORAGE_KEY = "ya_premium_license_v1";
 const LEGACY_CLUB_CHRONICLE_LICENSE_STORAGE_KEY = "ya_cc_premium_license_v1";
 export const APP_LICENSE_EVENT = "ya:app-license-state";
 
-const EMPTY_LICENSE_STATE: AppLicenseState = {
+export const EMPTY_LICENSE_STATE: AppLicenseState = {
   licenseKey: "",
   premiumUnlocked: false,
   validatedAt: null,
 };
 
 const isBrowser = () => typeof window !== "undefined";
+let revalidationPromise: Promise<AppLicenseState> | null = null;
 
 const parseLicenseState = (raw: string | null): AppLicenseState | null => {
   if (!raw) return null;
@@ -62,4 +68,80 @@ export const clearAppLicenseState = () => {
   window.localStorage.removeItem(APP_LICENSE_STORAGE_KEY);
   window.localStorage.removeItem(LEGACY_CLUB_CHRONICLE_LICENSE_STORAGE_KEY);
   dispatchAppLicenseEvent(EMPTY_LICENSE_STATE);
+};
+
+export const validateAppLicenseKey = async (
+  licenseKey: string
+): Promise<AppLicenseValidationResult> => {
+  const trimmed = licenseKey.trim();
+  if (!trimmed) {
+    return {
+      valid: false,
+      transientFailure: false,
+    };
+  }
+  try {
+    const response = await fetch("/api/license/validate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ licenseKey: trimmed }),
+    });
+    const payload = (await response.json().catch(() => null)) as
+      | {
+          valid?: boolean;
+        }
+      | null;
+    if (!response.ok) {
+      return {
+        valid: false,
+        transientFailure: response.status >= 500,
+      };
+    }
+    return {
+      valid: payload?.valid === true,
+      transientFailure: false,
+    };
+  } catch {
+    return {
+      valid: false,
+      transientFailure: true,
+    };
+  }
+};
+
+export const revalidateStoredAppLicenseState = async (): Promise<AppLicenseState> => {
+  if (!isBrowser()) return EMPTY_LICENSE_STATE;
+  if (revalidationPromise) return revalidationPromise;
+  revalidationPromise = (async () => {
+    const currentState = readAppLicenseState();
+    const trimmed = currentState.licenseKey.trim();
+    if (!trimmed) {
+      if (currentState.premiumUnlocked || currentState.validatedAt !== null) {
+        clearAppLicenseState();
+      }
+      return EMPTY_LICENSE_STATE;
+    }
+    const validation = await validateAppLicenseKey(trimmed);
+    if (validation.transientFailure) {
+      return readAppLicenseState();
+    }
+    if (!validation.valid) {
+      clearAppLicenseState();
+      return EMPTY_LICENSE_STATE;
+    }
+    const nextState: AppLicenseState = {
+      licenseKey: trimmed,
+      premiumUnlocked: true,
+      validatedAt: Date.now(),
+    };
+    writeAppLicenseState(nextState);
+    return nextState;
+  })();
+  try {
+    return await revalidationPromise;
+  } finally {
+    revalidationPromise = null;
+  }
 };

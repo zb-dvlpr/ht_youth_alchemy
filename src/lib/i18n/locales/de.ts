@@ -65,7 +65,7 @@ export const messagesDe: Messages = {
     clubChroniclePremiumBuyButton: "Premium-Lizenz kaufen",
     clubChroniclePremiumLicenseTitle: "HT Alchemy Premium-Lizenz",
     clubChroniclePremiumLicenseBody:
-      "Gib hier deinen HT Alchemy Premium-Lizenzschlüssel ein, um die Premium-Funktionen von Club Chronicle freizuschalten.",
+      "Gib hier deinen HT Alchemy Premium-Lizenzschlüssel ein, um Premium-Funktionen freizuschalten.",
     clubChroniclePremiumLicenseFieldLabel: "Lizenzschlüssel",
     clubChroniclePremiumLicensePlaceholder: "Lizenzschlüssel eingeben",
     clubChroniclePremiumLicenseSubmit: "Premium freischalten",
@@ -73,6 +73,10 @@ export const messagesDe: Messages = {
     clubChroniclePremiumLicenseUnlocked: "Premium freigeschaltet.",
     clubChroniclePremiumLicensePendingValidation:
       "Dein Lizenzschlüssel wurde lokal gespeichert. Die Online-Validierung ist noch nicht verfügbar.",
+    clubChroniclePremiumLicenseInvalid:
+      "Dieser Lizenzschlüssel ist nicht gültig.",
+    clubChroniclePremiumLicenseValidationUnavailable:
+      "Die Lizenzprüfung ist derzeit nicht verfügbar. Bitte versuche es später erneut.",
     clubChroniclePremiumTeamLimitReached:
       "Die kostenlose Club Chronicle-Version ist auf 3 verfolgte Teams pro Tab begrenzt.",
     clubChroniclePremiumTabLimitReached:
@@ -1342,6 +1346,8 @@ export const messagesDe: Messages = {
     youthEstimateValueButton: "Wert schaetzen",
     youthEstimateValueTooltip:
       "Durchsuche den Transfermarkt nach dem maximalen Potenzial dieses Spielers.",
+    youthEstimateValuePremiumTooltip:
+      "Kaufe eine HT Alchemy Premium-Lizenz, um Wert schaetzen zu nutzen.",
     youthEstimateValueDisabledTooltip:
       "Decke mindestens ein maximales Potenzial auf, bevor du den Wert schaetzt.",
     youthEstimateValueAgeMissingTooltip:
@@ -1560,6 +1566,8 @@ export const messagesDe: Messages = {
     ratingsManualOverrideToggle: "Bewertungen manuell bearbeiten",
     ratingsManualOverrideTooltip:
       "Bewertungen werden verwendet, um Spieler in KI-Aufstellungen zu platzieren. Aktiviere dies, um die Bewertungen manuell zu ändern. Nützlich, wenn du erzwingen möchtest, dass ein Spieler unabhängig von Form und bisherigen Leistungen für eine bestimmte Position gewählt oder nicht gewählt wird.",
+    ratingsManualOverridePremiumTooltip:
+      "Kaufe eine HT Alchemy Premium-Lizenz, um vom Senior-KI-Tool genutzte Bewertungen manuell zu bearbeiten.",
     ratingsOverwriteManualEditsToggle: "Manuell bearbeitete Bewertungen überschreiben",
     ratingsOverwriteManualEditsTooltip:
       "Wenn aktiviert, ersetzen neu abgerufene Bewertungen beim nächsten Aktualisieren der Matrix alle von dir manuell bearbeiteten Bewertungen.",

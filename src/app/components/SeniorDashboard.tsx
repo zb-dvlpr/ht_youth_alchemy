@@ -44,6 +44,7 @@ import {
   SENIOR_SETTINGS_STORAGE_KEY,
 } from "@/lib/settings";
 import Modal from "./Modal";
+import AppLicenseModal from "./AppLicenseModal";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import StartupLoadingExperience from "./StartupLoadingExperience";
 import {
@@ -94,6 +95,11 @@ import {
   calculatePsicoTsiMetrics,
   type SeniorPlayerMetricInput,
 } from "@/lib/seniorPlayerMetrics";
+import {
+  APP_LICENSE_EVENT,
+  APP_LICENSE_STORAGE_KEY,
+  readAppLicenseState,
+} from "@/lib/license";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -3139,6 +3145,9 @@ export default function SeniorDashboard({
     useState(false);
   const [ratingsManualEditsByPlayerId, setRatingsManualEditsByPlayerId] =
     useState<SeniorManualRatingsEdits>({});
+  const [premiumUnlocked, setPremiumUnlocked] = useState(false);
+  const [premiumLicenseModalOpen, setPremiumLicenseModalOpen] = useState(false);
+  const [premiumLicenseModalNonce, setPremiumLicenseModalNonce] = useState(0);
   const [detailsCache, setDetailsCache] = useState<Record<number, PlayerDetailCacheEntry>>({});
   const [leagueOriginsById, setLeagueOriginsById] = useState<
     Record<number, SeniorLeagueOrigin>
@@ -10465,6 +10474,8 @@ const refreshDetailsForPlayers = async (
     () => hasSeniorManualRatingsEdits(ratingsManualEditsByPlayerId),
     [ratingsManualEditsByPlayerId]
   );
+  const effectiveRatingsManualOverrideEnabled =
+    premiumUnlocked && ratingsManualOverrideEnabled;
 
   useEffect(() => {
     setRatingsResponse(
@@ -10484,12 +10495,37 @@ const refreshDetailsForPlayers = async (
     return map;
   }, [players]);
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncPremiumState = () => {
+      setPremiumUnlocked(readAppLicenseState().premiumUnlocked);
+    };
+    syncPremiumState();
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key && event.key !== APP_LICENSE_STORAGE_KEY) return;
+      syncPremiumState();
+    };
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener(APP_LICENSE_EVENT, syncPremiumState);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(APP_LICENSE_EVENT, syncPremiumState);
+    };
+  }, []);
+  const openPremiumLicenseModal = useCallback(() => {
+    setPremiumLicenseModalNonce((prev) => prev + 1);
+    setPremiumLicenseModalOpen(true);
+  }, []);
+  useEffect(() => {
     if (hasManualRatingsEdits) return;
     setRatingsOverwriteManualEditsEnabled(false);
   }, [hasManualRatingsEdits]);
   const handleRatingsManualOverrideEnabledChange = useCallback((enabled: boolean) => {
+    if (enabled && !premiumUnlocked) {
+      openPremiumLicenseModal();
+      return;
+    }
     setRatingsManualOverrideEnabled(enabled);
-  }, []);
+  }, [openPremiumLicenseModal, premiumUnlocked]);
   const handleRatingsOverwriteManualEditsEnabledChange = useCallback(
     (enabled: boolean) => {
       setRatingsOverwriteManualEditsEnabled(enabled);
@@ -15321,8 +15357,13 @@ const refreshDetailsForPlayers = async (
       playerDetailsById={panelDetailsById}
       skillsMatrixRows={skillsMatrixRows}
       ratingsMatrixResponse={ratingsResponse}
-      ratingsManualOverrideEnabled={ratingsManualOverrideEnabled}
+      ratingsManualOverrideEnabled={effectiveRatingsManualOverrideEnabled}
       onRatingsManualOverrideEnabledChange={handleRatingsManualOverrideEnabledChange}
+      ratingsManualOverrideTooltip={
+        premiumUnlocked
+          ? messages.ratingsManualOverrideTooltip
+          : messages.ratingsManualOverridePremiumTooltip
+      }
       ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
       onRatingsOverwriteManualEditsEnabledChange={
         handleRatingsOverwriteManualEditsEnabledChange
@@ -15933,8 +15974,13 @@ const refreshDetailsForPlayers = async (
           playerDetailsById={panelDetailsById}
           skillsMatrixRows={skillsMatrixRows}
           ratingsMatrixResponse={ratingsResponse}
-          ratingsManualOverrideEnabled={ratingsManualOverrideEnabled}
+          ratingsManualOverrideEnabled={effectiveRatingsManualOverrideEnabled}
           onRatingsManualOverrideEnabledChange={handleRatingsManualOverrideEnabledChange}
+          ratingsManualOverrideTooltip={
+            premiumUnlocked
+              ? messages.ratingsManualOverrideTooltip
+              : messages.ratingsManualOverridePremiumTooltip
+          }
           ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
           onRatingsOverwriteManualEditsEnabledChange={
             handleRatingsOverwriteManualEditsEnabledChange
@@ -15998,8 +16044,13 @@ const refreshDetailsForPlayers = async (
           playerDetailsById={panelDetailsById}
           skillsMatrixRows={skillsMatrixRows}
           ratingsMatrixResponse={ratingsResponse}
-          ratingsManualOverrideEnabled={ratingsManualOverrideEnabled}
+          ratingsManualOverrideEnabled={effectiveRatingsManualOverrideEnabled}
           onRatingsManualOverrideEnabledChange={handleRatingsManualOverrideEnabledChange}
+          ratingsManualOverrideTooltip={
+            premiumUnlocked
+              ? messages.ratingsManualOverrideTooltip
+              : messages.ratingsManualOverridePremiumTooltip
+          }
           ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
           onRatingsOverwriteManualEditsEnabledChange={
             handleRatingsOverwriteManualEditsEnabledChange
@@ -19027,8 +19078,13 @@ const refreshDetailsForPlayers = async (
             playerDetailsById={panelDetailsById}
             skillsMatrixRows={skillsMatrixRows}
             ratingsMatrixResponse={ratingsResponse}
-            ratingsManualOverrideEnabled={ratingsManualOverrideEnabled}
+            ratingsManualOverrideEnabled={effectiveRatingsManualOverrideEnabled}
             onRatingsManualOverrideEnabledChange={handleRatingsManualOverrideEnabledChange}
+            ratingsManualOverrideTooltip={
+              premiumUnlocked
+                ? messages.ratingsManualOverrideTooltip
+                : messages.ratingsManualOverridePremiumTooltip
+            }
             ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
             onRatingsOverwriteManualEditsEnabledChange={
               handleRatingsOverwriteManualEditsEnabledChange
@@ -19320,6 +19376,12 @@ const refreshDetailsForPlayers = async (
           />
         </div>
       </div> : null}
+      <AppLicenseModal
+        key={premiumLicenseModalNonce}
+        open={premiumLicenseModalOpen}
+        messages={messages}
+        onClose={() => setPremiumLicenseModalOpen(false)}
+      />
     </div>
   );
 }

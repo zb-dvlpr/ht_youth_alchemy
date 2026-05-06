@@ -65,7 +65,7 @@ export const messagesSv: Messages = {
     clubChroniclePremiumBuyButton: "Köp premiumlicens",
     clubChroniclePremiumLicenseTitle: "HT Alchemy premiumlicens",
     clubChroniclePremiumLicenseBody:
-      "Ange din HT Alchemy premiumlicensnyckel här för att låsa upp Club Chronicles premiumfunktioner.",
+      "Ange din HT Alchemy premiumlicensnyckel här för att låsa upp premiumfunktioner.",
     clubChroniclePremiumLicenseFieldLabel: "Licensnyckel",
     clubChroniclePremiumLicensePlaceholder: "Ange licensnyckel",
     clubChroniclePremiumLicenseSubmit: "Lås upp premium",
@@ -73,6 +73,9 @@ export const messagesSv: Messages = {
     clubChroniclePremiumLicenseUnlocked: "Premium upplåst.",
     clubChroniclePremiumLicensePendingValidation:
       "Din licensnyckel har sparats lokalt. Onlinevalidering är inte tillgänglig ännu.",
+    clubChroniclePremiumLicenseInvalid: "Den licensnyckeln är inte giltig.",
+    clubChroniclePremiumLicenseValidationUnavailable:
+      "Licensvalidering är inte tillgänglig just nu. Försök igen senare.",
     clubChroniclePremiumTeamLimitReached:
       "Gratisversionen av Club Chronicle är begränsad till 3 spårade lag per flik.",
     clubChroniclePremiumTabLimitReached:
@@ -1350,6 +1353,8 @@ export const messagesSv: Messages = {
     youthEstimateValueButton: "Uppskatta varde",
     youthEstimateValueTooltip:
       "Sok pa transfermarknaden utifran spelarens maximala potential.",
+    youthEstimateValuePremiumTooltip:
+      "Köp en HT Alchemy premiumlicens för att använda Uppskatta varde.",
     youthEstimateValueDisabledTooltip:
       "Avsloja minst en maxpotential innan vardet uppskattas.",
     youthEstimateValueAgeMissingTooltip:
@@ -1568,6 +1573,8 @@ export const messagesSv: Messages = {
     ratingsManualOverrideToggle: "Redigera betyg manuellt",
     ratingsManualOverrideTooltip:
       "Betyg används för att placera spelare i AI-elvor. Slå på detta för att ändra betygen manuellt. Användbart om du vill tvinga att en spelare väljs eller inte väljs för en viss position oavsett form och tidigare prestation.",
+    ratingsManualOverridePremiumTooltip:
+      "Köp en HT Alchemy premiumlicens för att manuellt redigera betyg som används av senioruppställnings-AI:n.",
     ratingsOverwriteManualEditsToggle: "Skriv över manuellt redigerade betyg",
     ratingsOverwriteManualEditsTooltip:
       "När detta är aktiverat kommer nyhämtade betyg att ersätta alla betyg som du har redigerat manuellt nästa gång matrisen uppdateras.",

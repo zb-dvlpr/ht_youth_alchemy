@@ -65,7 +65,7 @@ export const messagesFr: Messages = {
     clubChroniclePremiumBuyButton: "Acheter la licence premium",
     clubChroniclePremiumLicenseTitle: "Licence premium HT Alchemy",
     clubChroniclePremiumLicenseBody:
-      "Saisissez ici votre clé de licence premium HT Alchemy pour débloquer les fonctionnalités premium de Club Chronicle.",
+      "Saisissez ici votre clé de licence premium HT Alchemy pour débloquer les fonctionnalités premium.",
     clubChroniclePremiumLicenseFieldLabel: "Clé de licence",
     clubChroniclePremiumLicensePlaceholder: "Saisir la clé de licence",
     clubChroniclePremiumLicenseSubmit: "Débloquer premium",
@@ -73,6 +73,10 @@ export const messagesFr: Messages = {
     clubChroniclePremiumLicenseUnlocked: "Premium débloqué.",
     clubChroniclePremiumLicensePendingValidation:
       "Votre clé de licence a été enregistrée localement. La validation en ligne n'est pas encore disponible.",
+    clubChroniclePremiumLicenseInvalid:
+      "Cette clé de licence n'est pas valide.",
+    clubChroniclePremiumLicenseValidationUnavailable:
+      "La validation de la licence est indisponible pour le moment. Réessayez plus tard.",
     clubChroniclePremiumTeamLimitReached:
       "La version gratuite de Club Chronicle est limitée à 3 équipes suivies par onglet.",
     clubChroniclePremiumTabLimitReached:
@@ -1358,6 +1362,8 @@ export const messagesFr: Messages = {
     youthEstimateValueButton: "Estimer la valeur",
     youthEstimateValueTooltip:
       "Rechercher sur le marche des transferts selon le potentiel maximal de ce joueur.",
+    youthEstimateValuePremiumTooltip:
+      "Achetez une licence premium HT Alchemy pour utiliser Estimer la valeur.",
     youthEstimateValueDisabledTooltip:
       "Revelez au moins un potentiel maximum avant d estimer la valeur.",
     youthEstimateValueAgeMissingTooltip:
@@ -1576,6 +1582,8 @@ export const messagesFr: Messages = {
     ratingsManualOverrideToggle: "Modifier manuellement les notes",
     ratingsManualOverrideTooltip:
       "Les notes servent à placer les joueurs dans les compositions IA. Activez ceci pour modifier manuellement les notes. C’est utile si vous voulez forcer qu’un joueur soit choisi ou non pour un poste donné, indépendamment de sa forme et de ses performances passées.",
+    ratingsManualOverridePremiumTooltip:
+      "Achetez une licence premium HT Alchemy pour modifier manuellement les notes utilisées par l’IA des compositions senior.",
     ratingsOverwriteManualEditsToggle: "Écraser les notes modifiées manuellement",
     ratingsOverwriteManualEditsTooltip:
       "Si cette option est activée, les nouvelles notes récupérées remplaceront toutes les notes que vous avez modifiées manuellement lors du prochain rafraîchissement de la matrice.",

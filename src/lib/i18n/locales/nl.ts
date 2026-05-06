@@ -51,7 +51,7 @@ export const messagesNl: Messages = {
   clubChroniclePremiumBuyButton: "Premiumlicentie kopen",
   clubChroniclePremiumLicenseTitle: "HT Alchemy-premiumlicentie",
   clubChroniclePremiumLicenseBody:
-    "Voer hier je HT Alchemy-premiumlicentiesleutel in om de premiumfuncties van Club Chronicle te ontgrendelen.",
+    "Voer hier je HT Alchemy-premiumlicentiesleutel in om premiumfuncties te ontgrendelen.",
   clubChroniclePremiumLicenseFieldLabel: "Licentiesleutel",
   clubChroniclePremiumLicensePlaceholder: "Licentiesleutel invoeren",
   clubChroniclePremiumLicenseSubmit: "Premium ontgrendelen",
@@ -59,6 +59,9 @@ export const messagesNl: Messages = {
   clubChroniclePremiumLicenseUnlocked: "Premium ontgrendeld.",
   clubChroniclePremiumLicensePendingValidation:
     "Je licentiesleutel is lokaal opgeslagen. Online validatie is nog niet beschikbaar.",
+  clubChroniclePremiumLicenseInvalid: "Die licentiesleutel is niet geldig.",
+  clubChroniclePremiumLicenseValidationUnavailable:
+    "Licentievalidatie is momenteel niet beschikbaar. Probeer het later opnieuw.",
   clubChroniclePremiumTeamLimitReached:
     "De gratis versie van Club Chronicle is beperkt tot 3 gevolgde teams per tabblad.",
   clubChroniclePremiumTabLimitReached:
@@ -324,6 +327,8 @@ export const messagesNl: Messages = {
   ratingsManualOverrideToggle: "Ratings handmatig bewerken",
   ratingsManualOverrideTooltip:
     "Ratings worden gebruikt om spelers in AI-opstellingen te plaatsen. Zet dit aan om de ratings handmatig te wijzigen. Handig als je wilt afdwingen dat een speler wel of niet voor een bepaalde positie wordt gekozen, ongeacht vorm en eerdere prestaties.",
+  ratingsManualOverridePremiumTooltip:
+    "Koop een HT Alchemy-premiumlicentie om ratings die door de senior-opstellings-AI worden gebruikt handmatig te bewerken.",
   ratingsOverwriteManualEditsToggle: "Handmatig bewerkte ratings overschrijven",
   ratingsOverwriteManualEditsTooltip:
     "Wanneer dit is ingeschakeld, vervangen nieuw opgehaalde ratings alle ratings die je handmatig hebt bewerkt bij de volgende verversing van de matrix.",
@@ -424,6 +429,8 @@ export const messagesNl: Messages = {
   youthEstimateValueButton: "Waarde schatten",
   youthEstimateValueTooltip:
     "Zoek op de transfermarkt op basis van het maximale potentieel van deze speler.",
+  youthEstimateValuePremiumTooltip:
+    "Koop een HT Alchemy-premiumlicentie om Waarde schatten te gebruiken.",
   youthEstimateValueDisabledTooltip:
     "Onthul minstens een maximaal potentieel voordat je de waarde schat.",
   youthEstimateValueAgeMissingTooltip:

@@ -74,7 +74,7 @@ export const messagesDe: Messages = {
     clubChroniclePremiumLicensePendingValidation:
       "Dein Lizenzschlüssel wurde lokal gespeichert. Die Online-Validierung ist noch nicht verfügbar.",
     clubChroniclePremiumTeamLimitReached:
-      "Die kostenlose Club Chronicle-Version ist auf 4 verfolgte Teams pro Tab begrenzt.",
+      "Die kostenlose Club Chronicle-Version ist auf 3 verfolgte Teams pro Tab begrenzt.",
     clubChroniclePremiumTabLimitReached:
       "Die kostenlose Club Chronicle-Version ist auf 2 Tabs begrenzt.",
     clubChroniclePremiumHiddenTeamsNotice:
@@ -99,6 +99,8 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    premiumPillLabel: "Premium",
+    premiumPillTooltip: "Premium-Lizenz freigeschaltet.",
     changelog_5_0_0: "Premium-Funktionen.",
     changelog_4_14_0:
       "Die Senioren-Bewertungsmatrix unterstützt jetzt manuelle Bewertungsüberschreibungen mit refresh-sicherer Wiederherstellung.",

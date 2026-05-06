@@ -79,6 +79,15 @@ export default function AppLicenseModal({
         <div className={styles.watchlistPanel}>
           <p className={styles.muted}>{messages.clubChroniclePremiumLicenseBody}</p>
           <div className={styles.watchlistSection}>
+            <button
+              type="button"
+              className={styles.watchlistButton}
+              onClick={() => {}}
+            >
+              {messages.clubChroniclePremiumBuyButton}
+            </button>
+          </div>
+          <div className={styles.watchlistSection}>
             <label
               className={styles.watchlistHeading}
               htmlFor="app-premium-license-input"
@@ -114,6 +123,7 @@ export default function AppLicenseModal({
             type="button"
             className={styles.confirmSubmit}
             onClick={saveLicense}
+            disabled={!licenseInput.trim()}
           >
             {messages.clubChroniclePremiumLicenseSubmit}
           </button>

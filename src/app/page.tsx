@@ -18,6 +18,7 @@ import BuyCoffeeButton from "./components/BuyCoffeeButton";
 import MobileManualButton from "./components/MobileManualButton";
 import BrandClock from "./components/BrandClock";
 import Tooltip from "./components/Tooltip";
+import PremiumPill from "./components/PremiumPill";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
@@ -326,6 +327,7 @@ export default async function Home() {
                         {messages.betaPillLabel}
                       </span>
                     </Tooltip>
+                    <PremiumPill messages={messages} />
                   </div>
                 </div>
                 <div className={styles.mobileLauncherHeader}>

@@ -60,7 +60,7 @@ export const messagesNl: Messages = {
   clubChroniclePremiumLicensePendingValidation:
     "Je licentiesleutel is lokaal opgeslagen. Online validatie is nog niet beschikbaar.",
   clubChroniclePremiumTeamLimitReached:
-    "De gratis versie van Club Chronicle is beperkt tot 4 gevolgde teams per tabblad.",
+    "De gratis versie van Club Chronicle is beperkt tot 3 gevolgde teams per tabblad.",
   clubChroniclePremiumTabLimitReached:
     "De gratis versie van Club Chronicle is beperkt tot 2 tabbladen.",
   clubChroniclePremiumHiddenTeamsNotice:
@@ -235,6 +235,8 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  premiumPillLabel: "Premium",
+  premiumPillTooltip: "Premiumlicentie ontgrendeld.",
   changelog_5_0_0: "Premiumfuncties.",
   changelog_4_14_0:
     "De senior beoordelingsmatrix ondersteunt nu handmatige rating-overschrijvingen met veilige herstelactie na verversen.",

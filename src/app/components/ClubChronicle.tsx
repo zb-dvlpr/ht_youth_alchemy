@@ -783,6 +783,10 @@ type ChronicleTableProps<Row, Snapshot> = {
   maskText?: string;
   isMaskActive?: boolean;
   onMaskedRowClick?: (row: Row) => void;
+  renderMergedTrailingCells?: (
+    row: Row,
+    snapshot: Snapshot | undefined
+  ) => React.ReactNode | null;
 };
 
 type ChroniclePanelProps = {
@@ -821,6 +825,7 @@ const ChronicleTable = <Row, Snapshot>({
   maskText,
   isMaskActive = false,
   onMaskedRowClick,
+  renderMergedTrailingCells,
 }: ChronicleTableProps<Row, Snapshot>) => (
   <div
     className={`${styles.chronicleTable}${className ? ` ${className}` : ""}`}
@@ -906,6 +911,23 @@ const ChronicleTable = <Row, Snapshot>({
             >
               {maskText}
             </span>
+          ) : renderMergedTrailingCells?.(row, snapshot) ? (
+            <>
+              <span
+                key={`${rowKey}-${columns[0]?.key ?? "lead"}`}
+                className={styles.chronicleTableCell}
+                data-label={columns[0]?.label}
+              >
+                {columns[0]?.renderCell
+                  ? columns[0].renderCell(snapshot, row, formatValue)
+                  : formatValue(columns[0]?.getValue(snapshot, row))}
+              </span>
+              <span
+                className={`${styles.chronicleTableCell} ${styles.chronicleTableCellMerged}`}
+              >
+                {renderMergedTrailingCells(row, snapshot)}
+              </span>
+            </>
           ) : (
             columns.map((column) => (
               <span
@@ -1039,7 +1061,7 @@ const HELP_DISMISSED_TOKEN_KEY = "ya_cc_help_dismissed_token_v1";
 const NO_DIVULGO_DISMISSED_KEY = "ya_cc_no_divulgo_dismissed_v1";
 const NO_DIVULGO_TARGET_TEAM_ID = 524637;
 const FREE_CHRONICLE_TAB_LIMIT = 2;
-const FREE_CHRONICLE_TEAM_LIMIT = 4;
+const FREE_CHRONICLE_TEAM_LIMIT = 3;
 const PANEL_IDS = [
   "league-performance",
   "press-announcements",
@@ -6244,9 +6266,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         key: "formation",
         label: messages.clubChronicleFormationsColumnFormation,
         getValue: (snapshot: FormationTacticsSnapshot | undefined, row) =>
-          row?.premiumLocked
-            ? messages.clubChroniclePremiumOtherTeamsMessage
-            : snapshot?.topFormation ?? null,
+          row?.premiumLocked ? null : snapshot?.topFormation ?? null,
         renderCell: (snapshot, row, fallbackFormat) =>
           row?.premiumLocked ? (
             <span className={styles.chroniclePremiumLockedCell}>
@@ -6260,9 +6280,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         key: "tactic",
         label: messages.clubChronicleFormationsColumnTactic,
         getValue: (snapshot: FormationTacticsSnapshot | undefined, row) =>
-          row?.premiumLocked
-            ? messages.clubChroniclePremiumOtherTeamsMessage
-            : snapshot?.topTactic ?? null,
+          row?.premiumLocked ? null : snapshot?.topTactic ?? null,
         renderCell: (snapshot, row, fallbackFormat) =>
           row?.premiumLocked ? (
             <span className={styles.chroniclePremiumLockedCell}>
@@ -7343,9 +7361,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         key: "likelyTraining",
         label: messages.clubChronicleLikelyTrainingColumnRegimen,
         getValue: (snapshot: FormationTacticsSnapshot | undefined, row) =>
-          row?.premiumLocked
-            ? messages.clubChroniclePremiumOtherTeamsMessage
-            : formatLikelyTrainingSummary(snapshot),
+          row?.premiumLocked ? null : formatLikelyTrainingSummary(snapshot),
         renderCell: (snapshot, row, fallbackFormat) =>
           row?.premiumLocked ? (
             <span className={styles.chroniclePremiumLockedCell}>
@@ -14037,8 +14053,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       </div>
       <div className={styles.watchlistSection}>
         <h3 className={styles.watchlistHeading}>{messages.watchlistOwnLeaguesTitle}</h3>
-        {chroniclePremiumUnlocked ? (
-          ownLeagues.length ? (
+        {ownLeagues.length ? chroniclePremiumUnlocked ? (
+          <ul className={styles.watchlistList}>
+            {ownLeagues.map((entry) => (
+              <li key={entry.key} className={styles.watchlistRow}>
+                <label className={styles.watchlistTeam}>
+                  <input
+                    type="checkbox"
+                    checked={isOwnLeagueSelectionEffectivelyVisible(entry.key)}
+                    onChange={() => handleToggleOwnLeague(entry.key)}
+                  />
+                  <span className={styles.watchlistName}>{formatOwnLeagueName(entry)}</span>
+                </label>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <Tooltip content={clubChroniclePremiumTooltip}>
             <ul className={styles.watchlistList}>
               {ownLeagues.map((entry) => (
                 <li key={entry.key} className={styles.watchlistRow}>
@@ -14053,33 +14084,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 </li>
               ))}
             </ul>
-          ) : (
-            <p className={styles.muted}>{messages.watchlistOwnLeaguesEmpty}</p>
-          )
-        ) : (
-          <Tooltip content={clubChroniclePremiumTooltip}>
-            <div className={styles.watchlistPremiumBlocked}>
-              {ownLeagues.length ? (
-                <ul className={styles.watchlistList}>
-                  {ownLeagues.map((entry) => (
-                    <li key={entry.key} className={styles.watchlistRow}>
-                      <label className={styles.watchlistTeam}>
-                        <input
-                          type="checkbox"
-                          checked={isOwnLeagueSelectionEffectivelyVisible(entry.key)}
-                          onChange={() => handleToggleOwnLeague(entry.key)}
-                          disabled
-                        />
-                        <span className={styles.watchlistName}>{formatOwnLeagueName(entry)}</span>
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className={styles.muted}>{messages.watchlistOwnLeaguesEmpty}</p>
-              )}
-            </div>
           </Tooltip>
+        ) : (
+          <p className={styles.muted}>{messages.watchlistOwnLeaguesEmpty}</p>
         )}
       </div>
       <div className={styles.watchlistSection}>
@@ -16416,6 +16423,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
                       maskText={messages.clubChronicleNoDivulgoMask}
                       isMaskActive={noDivulgoActive}
+                      renderMergedTrailingCells={(row) =>
+                        row.premiumLocked ? (
+                          <span className={styles.chroniclePremiumLockedCell}>
+                            {messages.clubChroniclePremiumOtherTeamsMessage}
+                          </span>
+                        ) : null
+                      }
                       onMaskedRowClick={(row) =>
                         handleNoDivulgoDismiss(row.teamId)
                       }
@@ -16541,6 +16555,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
                       maskText={messages.clubChronicleNoDivulgoMask}
                       isMaskActive={noDivulgoActive}
+                      renderMergedTrailingCells={(row) =>
+                        row.premiumLocked ? (
+                          <span className={styles.chroniclePremiumLockedCell}>
+                            {messages.clubChroniclePremiumOtherTeamsMessage}
+                          </span>
+                        ) : null
+                      }
                       onMaskedRowClick={(row) =>
                         handleNoDivulgoDismiss(row.teamId)
                       }

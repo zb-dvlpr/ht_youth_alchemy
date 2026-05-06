@@ -60,7 +60,7 @@ export const messagesPl: Messages = {
   clubChroniclePremiumLicensePendingValidation:
     "Twój klucz licencyjny został zapisany lokalnie. Walidacja online nie jest jeszcze dostępna.",
   clubChroniclePremiumTeamLimitReached:
-    "Darmowa wersja Club Chronicle jest ograniczona do 4 śledzonych drużyn na kartę.",
+    "Darmowa wersja Club Chronicle jest ograniczona do 3 śledzonych drużyn na kartę.",
   clubChroniclePremiumTabLimitReached:
     "Darmowa wersja Club Chronicle jest ograniczona do 2 kart.",
   clubChroniclePremiumHiddenTeamsNotice:
@@ -228,6 +228,8 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  premiumPillLabel: "Premium",
+  premiumPillTooltip: "Licencja premium odblokowana.",
   changelog_5_0_0: "Funkcje premium.",
   changelog_4_14_0:
     "Macierz ocen seniorów obsługuje teraz ręczne nadpisywanie ocen z bezpiecznym przywracaniem po odświeżeniu.",

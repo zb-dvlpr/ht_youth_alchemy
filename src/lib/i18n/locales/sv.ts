@@ -74,7 +74,7 @@ export const messagesSv: Messages = {
     clubChroniclePremiumLicensePendingValidation:
       "Din licensnyckel har sparats lokalt. Onlinevalidering är inte tillgänglig ännu.",
     clubChroniclePremiumTeamLimitReached:
-      "Gratisversionen av Club Chronicle är begränsad till 4 spårade lag per flik.",
+      "Gratisversionen av Club Chronicle är begränsad till 3 spårade lag per flik.",
     clubChroniclePremiumTabLimitReached:
       "Gratisversionen av Club Chronicle är begränsad till 2 flikar.",
     clubChroniclePremiumHiddenTeamsNotice:
@@ -99,6 +99,8 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    premiumPillLabel: "Premium",
+    premiumPillTooltip: "Premiumlicens upplåst.",
     changelog_5_0_0: "Premiumfunktioner.",
     changelog_4_14_0:
       "Seniorernas betygsmatris stöder nu manuella åsidosättningar av betyg med säker återställning efter uppdatering.",

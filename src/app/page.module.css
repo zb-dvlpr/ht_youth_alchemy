@@ -1899,6 +1899,32 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   user-select: none;
 }
 
+.premiumPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  min-height: 20px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(34, 92, 51, 0.24);
+  background:
+    linear-gradient(135deg, rgba(76, 152, 97, 0.18), rgba(36, 77, 43, 0.26)),
+    rgba(244, 252, 244, 0.96);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 4px 12px rgba(37, 92, 52, 0.14);
+  color: #244d2b;
+  font-family: var(--font-brand), "Space Grotesk", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  cursor: help;
+  user-select: none;
+}
+
 .kofiIconLink {
   color: #7a4d14;
   font-size: 16px;
@@ -3713,6 +3739,13 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   text-overflow: ellipsis;
 }
 
+.chronicleTableCellMerged {
+  grid-column: 2 / -1;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
 .chronicleCellButton {
   border: none;
   background: transparent;
@@ -4991,6 +5024,17 @@ html[data-theme="dark"] .betaPill {
     inset 0 1px 0 rgba(255, 255, 255, 0.04),
     0 6px 16px rgba(0, 0, 0, 0.24);
   color: #f1d18f;
+}
+
+html[data-theme="dark"] .premiumPill {
+  border-color: rgba(114, 191, 128, 0.24);
+  background:
+    linear-gradient(135deg, rgba(62, 127, 75, 0.26), rgba(28, 67, 39, 0.34)),
+    rgba(24, 42, 28, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 6px 16px rgba(0, 0, 0, 0.24);
+  color: #bfe2c6;
 }
 
 html[data-theme="dark"] .kofiIconLink {

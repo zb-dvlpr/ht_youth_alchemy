@@ -74,7 +74,7 @@ export const messagesPt: Messages = {
     clubChroniclePremiumLicensePendingValidation:
       "Sua chave de licença foi salva localmente. A validação online ainda não está disponível.",
     clubChroniclePremiumTeamLimitReached:
-      "A versão gratuita do Club Chronicle está limitada a 4 equipes acompanhadas por aba.",
+      "A versão gratuita do Club Chronicle está limitada a 3 equipes acompanhadas por aba.",
     clubChroniclePremiumTabLimitReached:
       "A versão gratuita do Club Chronicle está limitada a 2 abas.",
     clubChroniclePremiumHiddenTeamsNotice:
@@ -99,6 +99,8 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    premiumPillLabel: "Premium",
+    premiumPillTooltip: "Licença premium desbloqueada.",
     changelog_5_0_0: "Recursos premium.",
     changelog_4_14_0:
       "A matriz de avaliações sénior agora suporta substituições manuais com restauro seguro após atualização.",

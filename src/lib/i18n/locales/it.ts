@@ -74,7 +74,7 @@ export const messagesIt: Messages = {
     clubChroniclePremiumLicensePendingValidation:
       "La tua chiave di licenza è stata salvata localmente. La convalida online non è ancora disponibile.",
     clubChroniclePremiumTeamLimitReached:
-      "La versione gratuita di Club Chronicle è limitata a 4 squadre tracciate per scheda.",
+      "La versione gratuita di Club Chronicle è limitata a 3 squadre tracciate per scheda.",
     clubChroniclePremiumTabLimitReached:
       "La versione gratuita di Club Chronicle è limitata a 2 schede.",
     clubChroniclePremiumHiddenTeamsNotice:
@@ -99,6 +99,8 @@ export const messagesIt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Questa app è in beta. Funzioni, comportamento e dati locali in cache possono cambiare o essere azzerati senza preavviso.",
+    premiumPillLabel: "Premium",
+    premiumPillTooltip: "Licenza premium sbloccata.",
     changelog_5_0_0: "Funzionalità premium.",
     changelog_4_14_0:
       "La matrice voti senior ora supporta override manuali dei voti con ripristino sicuro dopo il refresh.",

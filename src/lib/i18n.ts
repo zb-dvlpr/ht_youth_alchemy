@@ -97,6 +97,8 @@ export type Messages = {
   changelogPageLabel: string;
   betaPillLabel: string;
   betaPillTooltip: string;
+  premiumPillLabel: string;
+  premiumPillTooltip: string;
   changelog_5_0_0: string;
   changelog_4_14_0: string;
   changelog_4_13_0: string;

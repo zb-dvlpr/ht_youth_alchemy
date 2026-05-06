@@ -74,7 +74,7 @@ export const messagesEn: Messages = {
     clubChroniclePremiumLicensePendingValidation:
       "Your license key has been saved locally. Online validation is not available yet.",
     clubChroniclePremiumTeamLimitReached:
-      "Free Club Chronicle is limited to 4 tracked teams per tab.",
+      "Free Club Chronicle is limited to 3 tracked teams per tab.",
     clubChroniclePremiumTabLimitReached:
       "Free Club Chronicle is limited to 2 tabs.",
     clubChroniclePremiumHiddenTeamsNotice:
@@ -99,6 +99,8 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    premiumPillLabel: "Premium",
+    premiumPillTooltip: "Premium license unlocked.",
     changelog_5_0_0: "Premium features.",
     changelog_4_14_0:
       "Senior ratings matrix now supports manual rating overrides with refresh-safe restore behavior.",

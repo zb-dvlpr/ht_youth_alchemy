@@ -74,7 +74,7 @@ export const messagesFr: Messages = {
     clubChroniclePremiumLicensePendingValidation:
       "Votre clé de licence a été enregistrée localement. La validation en ligne n'est pas encore disponible.",
     clubChroniclePremiumTeamLimitReached:
-      "La version gratuite de Club Chronicle est limitée à 4 équipes suivies par onglet.",
+      "La version gratuite de Club Chronicle est limitée à 3 équipes suivies par onglet.",
     clubChroniclePremiumTabLimitReached:
       "La version gratuite de Club Chronicle est limitée à 2 onglets.",
     clubChroniclePremiumHiddenTeamsNotice:
@@ -99,6 +99,8 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    premiumPillLabel: "Premium",
+    premiumPillTooltip: "Licence premium débloquée.",
     changelog_5_0_0: "Fonctionnalités premium.",
     changelog_4_14_0:
       "La matrice de notes senior prend désormais en charge les remplacements manuels avec restauration sûre après actualisation.",

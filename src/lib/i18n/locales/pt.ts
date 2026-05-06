@@ -79,6 +79,8 @@ export const messagesPt: Messages = {
       "A versão gratuita do Club Chronicle está limitada a 2 abas.",
     clubChroniclePremiumHiddenTeamsNotice:
       "{{count}} equipe(s) acompanhada(s) em cache permanecem oculta(s) até o premium ser desbloqueado.",
+    clubChroniclePremiumOtherTeamsMessage:
+      "Compre a licença premium do HT Alchemy para ver esses dados de outras equipes acompanhadas.",
     clubChronicleTabDefaultName: "Aba {{number}}",
     clubChronicleTabAdd: "Adicionar aba",
     clubChronicleTabRenamePlaceholder: "Nome da aba",

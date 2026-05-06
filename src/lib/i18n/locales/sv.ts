@@ -79,6 +79,8 @@ export const messagesSv: Messages = {
       "Gratisversionen av Club Chronicle är begränsad till 2 flikar.",
     clubChroniclePremiumHiddenTeamsNotice:
       "{{count}} cachade spårade lag förblir dolda tills premium låses upp.",
+    clubChroniclePremiumOtherTeamsMessage:
+      "Köp HT Alchemy premiumlicensen för att se dessa data för andra spårade lag.",
     clubChronicleTabDefaultName: "Flik {{number}}",
     clubChronicleTabAdd: "Lägg till flik",
     clubChronicleTabRenamePlaceholder: "Fliknamn",

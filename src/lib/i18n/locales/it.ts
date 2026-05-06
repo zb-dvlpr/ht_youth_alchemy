@@ -79,6 +79,8 @@ export const messagesIt: Messages = {
       "La versione gratuita di Club Chronicle è limitata a 2 schede.",
     clubChroniclePremiumHiddenTeamsNotice:
       "{{count}} squadra/e tracciata/e in cache restano nascoste finché il premium non viene sbloccato.",
+    clubChroniclePremiumOtherTeamsMessage:
+      "Acquista la licenza premium HT Alchemy per vedere questi dati per le altre squadre tracciate.",
     clubChronicleTabDefaultName: "Scheda {{number}}",
     clubChronicleTabAdd: "Aggiungi scheda",
     clubChronicleTabRenamePlaceholder: "Nome scheda",

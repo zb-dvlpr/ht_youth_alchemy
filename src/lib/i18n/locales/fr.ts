@@ -79,6 +79,8 @@ export const messagesFr: Messages = {
       "La version gratuite de Club Chronicle est limitée à 2 onglets.",
     clubChroniclePremiumHiddenTeamsNotice:
       "{{count}} équipe(s) suivie(s) en cache restent masquées jusqu'au déblocage du premium.",
+    clubChroniclePremiumOtherTeamsMessage:
+      "Achetez la licence premium HT Alchemy pour voir ces données pour les autres équipes suivies.",
     clubChronicleTabDefaultName: "Onglet {{number}}",
     clubChronicleTabAdd: "Ajouter un onglet",
     clubChronicleTabRenamePlaceholder: "Nom de l’onglet",

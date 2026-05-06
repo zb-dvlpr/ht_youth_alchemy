@@ -80,6 +80,7 @@ export type Messages = {
   clubChroniclePremiumTeamLimitReached: string;
   clubChroniclePremiumTabLimitReached: string;
   clubChroniclePremiumHiddenTeamsNotice: string;
+  clubChroniclePremiumOtherTeamsMessage: string;
   clubChronicleTabDefaultName: string;
   clubChronicleTabAdd: string;
   clubChronicleTabRenamePlaceholder: string;

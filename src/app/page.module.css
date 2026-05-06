@@ -3287,6 +3287,19 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   color: #5b4a37;
 }
 
+.chroniclePremiumLockedCell {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.35;
+  color: #7a6f61;
+}
+
+.chroniclePremiumLockedMessage {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+}
+
 .chroniclePanels {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -5218,7 +5231,8 @@ html[data-theme="dark"] .chroniclePremiumBanner {
 }
 
 html[data-theme="dark"] .chroniclePremiumBannerText,
-html[data-theme="dark"] .watchlistPremiumHint {
+html[data-theme="dark"] .watchlistPremiumHint,
+html[data-theme="dark"] .chroniclePremiumLockedCell {
   color: #d6ccc0;
 }
 

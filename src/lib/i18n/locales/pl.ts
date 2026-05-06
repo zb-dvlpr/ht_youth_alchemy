@@ -65,6 +65,8 @@ export const messagesPl: Messages = {
     "Darmowa wersja Club Chronicle jest ograniczona do 2 kart.",
   clubChroniclePremiumHiddenTeamsNotice:
     "{{count}} zapisanych w pamięci śledzonych drużyn pozostaje ukrytych do czasu odblokowania premium.",
+  clubChroniclePremiumOtherTeamsMessage:
+    "Kup licencję premium HT Alchemy, aby zobaczyć te dane dla innych śledzonych drużyn.",
   clubChronicleTabDefaultName: "Karta {{number}}",
   clubChronicleTabAdd: "Dodaj kartę",
   clubChronicleTabRenamePlaceholder: "Nazwa karty",

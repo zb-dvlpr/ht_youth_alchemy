@@ -65,6 +65,8 @@ export const messagesNl: Messages = {
     "De gratis versie van Club Chronicle is beperkt tot 2 tabbladen.",
   clubChroniclePremiumHiddenTeamsNotice:
     "{{count}} gecachte gevolgde teams blijven verborgen totdat premium is ontgrendeld.",
+  clubChroniclePremiumOtherTeamsMessage:
+    "Koop de HT Alchemy-premiumlicentie om deze gegevens voor andere gevolgde teams te bekijken.",
   clubChronicleTabDefaultName: "Tab {{number}}",
   clubChronicleTabAdd: "Tab toevoegen",
   clubChronicleTabRenamePlaceholder: "Tabnaam",

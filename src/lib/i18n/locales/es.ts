@@ -79,6 +79,8 @@ export const messagesEs: Messages = {
       "La versión gratuita de Club Chronicle está limitada a 2 pestañas.",
     clubChroniclePremiumHiddenTeamsNotice:
       "{{count}} equipo(s) seguidos en caché permanecen ocultos hasta desbloquear premium.",
+    clubChroniclePremiumOtherTeamsMessage:
+      "Compra la licencia premium de HT Alchemy para ver estos datos de otros equipos seguidos.",
     clubChronicleTabDefaultName: "Pestaña {{number}}",
     clubChronicleTabAdd: "Añadir pestaña",
     clubChronicleTabRenamePlaceholder: "Nombre de la pestaña",

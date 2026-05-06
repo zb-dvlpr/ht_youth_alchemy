@@ -79,6 +79,8 @@ export const messagesEn: Messages = {
       "Free Club Chronicle is limited to 2 tabs.",
     clubChroniclePremiumHiddenTeamsNotice:
       "{{count}} cached tracked team(s) are hidden until premium is unlocked.",
+    clubChroniclePremiumOtherTeamsMessage:
+      "Buy the premium HT Alchemy license to view this data for other tracked teams.",
     clubChronicleTabDefaultName: "Tab {{number}}",
     clubChronicleTabAdd: "Add tab",
     clubChronicleTabRenamePlaceholder: "Tab name",

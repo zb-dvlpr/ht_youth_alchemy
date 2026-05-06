@@ -481,6 +481,7 @@ type FormationTacticsRow = {
   teamId: number;
   teamName: string;
   snapshot?: FormationTacticsSnapshot | null;
+  premiumLocked?: boolean;
 };
 
 type TeamAttitudeRow = {
@@ -493,6 +494,7 @@ type LikelyTrainingRow = {
   teamId: number;
   teamName: string;
   snapshot?: FormationTacticsSnapshot | null;
+  premiumLocked?: boolean;
 };
 
 type LastLoginEvent = {
@@ -3198,6 +3200,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [supportedTeams]
   );
   const chroniclePremiumUnlocked = premiumLicenseState.premiumUnlocked;
+  const isPremiumChronicleTeamUnlocked = useCallback(
+    (teamId: number) => chroniclePremiumUnlocked || ownSeniorTeamIds.has(teamId),
+    [chroniclePremiumUnlocked, ownSeniorTeamIds]
+  );
   const visibleChronicleTabs = useMemo(
     () =>
       chroniclePremiumUnlocked
@@ -4964,6 +4970,28 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     premiumLicenseInput,
   ]);
 
+  const renderChroniclePremiumLockedMessage = useCallback(
+    () => (
+      <div className={styles.chroniclePremiumLockedMessage}>
+        <p className={styles.chroniclePressMeta}>
+          {messages.clubChroniclePremiumOtherTeamsMessage}
+        </p>
+        <button
+          type="button"
+          className={styles.watchlistButton}
+          onClick={openPremiumLicenseModal}
+        >
+          {messages.clubChroniclePremiumBuyButton}
+        </button>
+      </div>
+    ),
+    [
+      messages.clubChroniclePremiumBuyButton,
+      messages.clubChroniclePremiumOtherTeamsMessage,
+      openPremiumLicenseModal,
+    ]
+  );
+
   const handleAddTeam = async () => {
     if (!chroniclePremiumUnlocked && fullTrackedTeams.length >= FREE_CHRONICLE_TEAM_LIMIT) {
       promptPremiumForLimit(messages.clubChroniclePremiumTeamLimitReached);
@@ -5505,6 +5533,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenFormationsTacticsDetails = (teamId: number) => {
+    const targetRow = formationsTacticsRows.find((row) => row.teamId === teamId);
+    if (targetRow?.premiumLocked) {
+      openPremiumLicenseModal();
+      return;
+    }
     if (mobileChronicleActive) {
       setSelectedFormationsTacticsTeamId(teamId);
       openMobileChronicleDetail(
@@ -5519,6 +5552,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenLikelyTrainingDetails = (teamId: number) => {
+    const targetRow = likelyTrainingRows.find((row) => row.teamId === teamId);
+    if (targetRow?.premiumLocked) {
+      openPremiumLicenseModal();
+      return;
+    }
     if (mobileChronicleActive) {
       setSelectedLikelyTrainingTeamId(teamId);
       openMobileChronicleDetail("likely-training", "likely-training", teamId);
@@ -6251,20 +6289,41 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       {
         key: "formation",
         label: messages.clubChronicleFormationsColumnFormation,
-        getValue: (snapshot: FormationTacticsSnapshot | undefined) =>
-          snapshot?.topFormation ?? null,
+        getValue: (snapshot: FormationTacticsSnapshot | undefined, row) =>
+          row?.premiumLocked
+            ? messages.clubChroniclePremiumOtherTeamsMessage
+            : snapshot?.topFormation ?? null,
+        renderCell: (snapshot, row, fallbackFormat) =>
+          row?.premiumLocked ? (
+            <span className={styles.chroniclePremiumLockedCell}>
+              {messages.clubChroniclePremiumOtherTeamsMessage}
+            </span>
+          ) : (
+            fallbackFormat(snapshot?.topFormation ?? null)
+          ),
       },
       {
         key: "tactic",
         label: messages.clubChronicleFormationsColumnTactic,
-        getValue: (snapshot: FormationTacticsSnapshot | undefined) =>
-          snapshot?.topTactic ?? null,
+        getValue: (snapshot: FormationTacticsSnapshot | undefined, row) =>
+          row?.premiumLocked
+            ? messages.clubChroniclePremiumOtherTeamsMessage
+            : snapshot?.topTactic ?? null,
+        renderCell: (snapshot, row, fallbackFormat) =>
+          row?.premiumLocked ? (
+            <span className={styles.chroniclePremiumLockedCell}>
+              {messages.clubChroniclePremiumOtherTeamsMessage}
+            </span>
+          ) : (
+            fallbackFormat(snapshot?.topTactic ?? null)
+          ),
       },
     ],
     [
       messages.clubChronicleColumnTeam,
       messages.clubChronicleFormationsColumnFormation,
       messages.clubChronicleFormationsColumnTactic,
+      messages.clubChroniclePremiumOtherTeamsMessage,
     ]
   );
 
@@ -7329,14 +7388,25 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       {
         key: "likelyTraining",
         label: messages.clubChronicleLikelyTrainingColumnRegimen,
-        getValue: (snapshot: FormationTacticsSnapshot | undefined) =>
-          formatLikelyTrainingSummary(snapshot),
+        getValue: (snapshot: FormationTacticsSnapshot | undefined, row) =>
+          row?.premiumLocked
+            ? messages.clubChroniclePremiumOtherTeamsMessage
+            : formatLikelyTrainingSummary(snapshot),
+        renderCell: (snapshot, row, fallbackFormat) =>
+          row?.premiumLocked ? (
+            <span className={styles.chroniclePremiumLockedCell}>
+              {messages.clubChroniclePremiumOtherTeamsMessage}
+            </span>
+          ) : (
+            fallbackFormat(formatLikelyTrainingSummary(snapshot))
+          ),
       },
     ],
     [
       formatLikelyTrainingSummary,
       messages.clubChronicleColumnTeam,
       messages.clubChronicleLikelyTrainingColumnRegimen,
+      messages.clubChroniclePremiumOtherTeamsMessage,
     ]
   );
 
@@ -11460,6 +11530,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         teamId: team.teamId,
         teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
         snapshot: cached?.formationsTactics?.current,
+        premiumLocked: !isPremiumChronicleTeamUnlocked(team.teamId),
       };
     });
 
@@ -11469,6 +11540,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         teamId: team.teamId,
         teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
         snapshot: cached?.formationsTactics?.current,
+        premiumLocked: !isPremiumChronicleTeamUnlocked(team.teamId),
       };
     });
 
@@ -11543,16 +11615,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       arenaRows: arenaRowsValue,
       transferRows: transferRowsValue,
       formationsTacticsRows: formationsTacticsRowsValue,
-    likelyTrainingRows: likelyTrainingRowsValue,
-    teamAttitudeRows: teamAttitudeRowsValue,
-    tsiRows: tsiRowsValue,
+      likelyTrainingRows: likelyTrainingRowsValue,
+      teamAttitudeRows: teamAttitudeRowsValue,
+      tsiRows: tsiRowsValue,
       wagesRows: wagesRowsValue,
       lastLoginRows: lastLoginRowsValue,
       coachRows: coachRowsValue,
       powerRatingsRows: powerRatingsRowsValue,
       ongoingMatchRows: ongoingMatchRowsValue,
     };
-  }, [trackedTeams, chronicleCache]);
+  }, [chronicleCache, isPremiumChronicleTeamUnlocked, trackedTeams]);
 
   const sortedLeagueRows = useMemo(() => {
     if (!leagueSortState.key) return leagueRows;
@@ -13660,6 +13732,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [mobileChronicleActive, updateMobileChronicleState]);
 
   const openChronicleFormationsMatches = useCallback(() => {
+    const targetRow = selectedFormationsTacticsTeamId
+      ? formationsTacticsRows.find(
+          (row) => row.teamId === selectedFormationsTacticsTeamId
+        )
+      : selectedFormationsTacticsTeam;
+    if (targetRow?.premiumLocked) {
+      openPremiumLicenseModal();
+      return;
+    }
     if (mobileChronicleActive && selectedFormationsTacticsTeamId) {
       updateMobileChronicleState(
         {
@@ -13674,7 +13755,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
     setFormationsTacticsMatchesOpen(true);
   }, [
+    formationsTacticsRows,
     mobileChronicleActive,
+    openPremiumLicenseModal,
+    selectedFormationsTacticsTeam,
     selectedFormationsTacticsTeamId,
     updateMobileChronicleState,
   ]);
@@ -14803,7 +14887,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
         );
       case "formations-tactics":
-        return selectedFormationsTacticsTeam?.snapshot ? (
+        return selectedFormationsTacticsTeam?.premiumLocked ? (
+          renderChroniclePremiumLockedMessage()
+        ) : selectedFormationsTacticsTeam?.snapshot ? (
           <>
             <p className={styles.chroniclePressMeta}>
               {messages.clubChronicleColumnTeam}:{" "}
@@ -14948,7 +15034,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           </p>
         );
       case "likely-training":
-        return selectedLikelyTrainingTeam?.snapshot ? (
+        return selectedLikelyTrainingTeam?.premiumLocked ? (
+          renderChroniclePremiumLockedMessage()
+        ) : selectedLikelyTrainingTeam?.snapshot ? (
           <>
             <div className={styles.chronicleLikelyTrainingMeta}>
               <p className={styles.chroniclePressMeta}>
@@ -14995,9 +15083,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               </div>
             ) : null}
           </>
-        ) : (
-          renderChronicleNoTeamsEmpty()
-        );
+        ) : renderChronicleNoTeamsEmpty();
       case "tsi":
         return selectedTsiTeam ? (
           <>
@@ -17522,7 +17608,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         title={messages.clubChronicleFormationsDetailsTitle}
         className={styles.chronicleTransferHistoryModal}
         body={
-          selectedFormationsTacticsTeam?.snapshot ? (
+          selectedFormationsTacticsTeam?.premiumLocked ? (
+            renderChroniclePremiumLockedMessage()
+          ) : selectedFormationsTacticsTeam?.snapshot ? (
             <>
               <p className={styles.chroniclePressMeta}>
                 {messages.clubChronicleColumnTeam}:{" "}
@@ -17636,7 +17724,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         title={messages.clubChronicleFormationsMatchesListTitle}
         className={styles.chronicleTransferHistoryModal}
         body={
-          selectedFormationsTacticsTeam?.snapshot?.analyzedMatches?.length ? (
+          selectedFormationsTacticsTeam?.premiumLocked ? (
+            renderChroniclePremiumLockedMessage()
+          ) : selectedFormationsTacticsTeam?.snapshot?.analyzedMatches?.length ? (
             <ul className={styles.chronicleMatchList}>
               {selectedFormationsTacticsTeam.snapshot.analyzedMatches.map((match) => (
                 <li
@@ -17770,7 +17860,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         open={likelyTrainingDetailsOpen}
         title={messages.clubChronicleLikelyTrainingDetailsTitle}
         body={
-          selectedLikelyTrainingTeam?.snapshot ? (
+          selectedLikelyTrainingTeam?.premiumLocked ? (
+            renderChroniclePremiumLockedMessage()
+          ) : selectedLikelyTrainingTeam?.snapshot ? (
             <>
               <div className={styles.chronicleLikelyTrainingMeta}>
                 <p className={styles.chroniclePressMeta}>

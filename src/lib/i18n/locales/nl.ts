@@ -569,11 +569,15 @@ export const messagesNl: Messages = {
   seniorAiManMarkingToggleLabel: "Mandekking",
   seniorAiManMarkingToggleTooltip:
     "Dien mandekkingsorders in als een geschikte mandekker en een geschikt mandekkingsdoel zijn geidentificeerd.",
+  seniorAiManMarkingPremiumTooltip:
+    "Koop een HT Alchemy-premiumlicentie om mandekking te gebruiken in senior-opstellingsoptimalisatie.",
   seniorAiManMarkingFuzzinessLabel: "MM-striktheid",
   seniorAiManMarkingFuzzinessTooltip:
     "Striktheid voor het identificeren van het mandekkingsdoel.",
   seniorAiManMarkingFuzzinessAriaLabel:
     "Striktheid voor het identificeren van het mandekkingsdoel",
+  seniorAiManMarkingFuzzinessPremiumTooltip:
+    "Koop een HT Alchemy-premiumlicentie om de mandekkings-striktheid in senior-opstellingsoptimalisatie aan te passen.",
   seniorAiManMarkingNeedsLineupTooltip:
     "Mandekking kan pas worden ingeschakeld nadat een opstelling is gezet en zowel een mandekker als een doelwit zijn geïdentificeerd.",
   seniorAiManMarkingEnabledTooltip:

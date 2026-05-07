@@ -1123,11 +1123,15 @@ export const messagesFr: Messages = {
     seniorAiManMarkingToggleLabel: "Marquage individuel",
     seniorAiManMarkingToggleTooltip:
       "Soumettre les ordres de marquage individuel si un marqueur approprie et une cible de marquage appropriee sont identifies.",
+    seniorAiManMarkingPremiumTooltip:
+      "Achetez une licence premium HT Alchemy pour utiliser le marquage individuel dans l’optimisation de composition senior.",
     seniorAiManMarkingFuzzinessLabel: "Rigueur MM",
     seniorAiManMarkingFuzzinessTooltip:
       "Niveau d'exigence pour identifier la cible de marquage individuel.",
     seniorAiManMarkingFuzzinessAriaLabel:
       "Niveau d'exigence pour identifier la cible de marquage individuel",
+    seniorAiManMarkingFuzzinessPremiumTooltip:
+      "Achetez une licence premium HT Alchemy pour ajuster la rigidité du marquage individuel dans l’optimisation de composition senior.",
     seniorAiManMarkingNeedsLineupTooltip:
       "Le marquage individuel ne peut être activé qu une fois la composition définie et si un marqueur et une cible ont été identifiés.",
     seniorAiManMarkingEnabledTooltip:

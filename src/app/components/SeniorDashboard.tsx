@@ -1162,12 +1162,16 @@ const SeniorAiManMarkingFuzzinessSlider = memo(function SeniorAiManMarkingFuzzin
   label,
   ariaLabel,
   disabled,
+  blocked,
+  onBlockedInteraction,
   onCommit,
 }: {
   value: number;
   label: string;
   ariaLabel: string;
   disabled?: boolean;
+  blocked?: boolean;
+  onBlockedInteraction?: () => void;
   onCommit: (value: number) => void;
 }) {
   const [draftValue, setDraftValue] = useState(value);
@@ -1199,12 +1203,33 @@ const SeniorAiManMarkingFuzzinessSlider = memo(function SeniorAiManMarkingFuzzin
           className={styles.seniorAiManMarkingFuzzinessSlider}
           aria-label={ariaLabel}
           disabled={disabled}
+          onPointerDown={(event) => {
+            if (!blocked) return;
+            event.preventDefault();
+            onBlockedInteraction?.();
+          }}
+          onMouseDown={(event) => {
+            if (!blocked) return;
+            event.preventDefault();
+            onBlockedInteraction?.();
+          }}
+          onTouchStart={(event) => {
+            if (!blocked) return;
+            event.preventDefault();
+            onBlockedInteraction?.();
+          }}
+          onFocus={() => {
+            if (!blocked) return;
+            onBlockedInteraction?.();
+          }}
           onChange={(event: ChangeEvent<HTMLInputElement>) => {
+            if (blocked) return;
             setDraftValue(clampSeniorAiManMarkingFuzziness(Number(event.target.value)));
           }}
           onPointerUp={commitDraftValue}
           onBlur={commitDraftValue}
           onKeyUp={(event) => {
+            if (blocked) return;
             if (
               event.key === "ArrowLeft" ||
               event.key === "ArrowRight" ||
@@ -3169,6 +3194,10 @@ export default function SeniorDashboard({
     x: 16,
     y: 108,
   });
+  const openPremiumLicenseModal = useCallback(() => {
+    setPremiumLicenseModalNonce((prev) => prev + 1);
+    setPremiumLicenseModalOpen(true);
+  }, []);
   const [mobileSeniorLandscapeActive, setMobileSeniorLandscapeActive] =
     useState(false);
   const [mobileSeniorRefreshFeedbackVisible, setMobileSeniorRefreshFeedbackVisible] =
@@ -4574,6 +4603,8 @@ export default function SeniorDashboard({
   const extraTimeBTeamToggleTooltip = extraTimeBTeamCanBeEnabled
     ? messages.seniorExtraTimeModalBTeamEnabledTooltip
     : extraTimeBTeamDisabledTooltip;
+  const effectiveSeniorAiManMarkingEnabled =
+    premiumUnlocked && seniorAiManMarkingEnabled;
   const seniorAiManMarkingSupported =
     seniorAiPreparedSubmissionMode !== null &&
     SENIOR_AI_MAN_MARKING_SUPPORTED_MODES.has(seniorAiPreparedSubmissionMode);
@@ -4596,7 +4627,7 @@ export default function SeniorDashboard({
       IM: null,
       CD: null,
     };
-    if (!seniorAiManMarkingSupported || !seniorAiManMarkingEnabled) {
+    if (!seniorAiManMarkingSupported || !effectiveSeniorAiManMarkingEnabled) {
       return bestByRole;
     }
     (Object.entries(assignments) as Array<[keyof LineupAssignments, number | null | undefined]>)
@@ -4624,9 +4655,19 @@ export default function SeniorDashboard({
         }
       });
     return bestByRole;
-  }, [assignments, playersById, seniorAiManMarkingSupported, detailsById]);
+  }, [
+    assignments,
+    playersById,
+    seniorAiManMarkingSupported,
+    detailsById,
+    effectiveSeniorAiManMarkingEnabled,
+  ]);
   const seniorAiManMarkingSelection = useMemo(() => {
-    if (!seniorAiManMarkingSupported || !seniorAiManMarkingEnabled || !seniorAiManMarkingTarget) {
+    if (
+      !seniorAiManMarkingSupported ||
+      !effectiveSeniorAiManMarkingEnabled ||
+      !seniorAiManMarkingTarget
+    ) {
       return null;
     }
     const requiredRole: SeniorAiManMarkingRole =
@@ -4645,11 +4686,16 @@ export default function SeniorDashboard({
     } satisfies SeniorAiManMarkingSelection;
   }, [
     seniorAiManMarkingCandidates,
+    effectiveSeniorAiManMarkingEnabled,
     seniorAiManMarkingSupported,
     seniorAiManMarkingTarget,
   ]);
-  const seniorAiManMarkingToggleTooltip: ReactNode =
-    messages.seniorAiManMarkingToggleTooltip;
+  const seniorAiManMarkingToggleTooltip: ReactNode = premiumUnlocked
+    ? messages.seniorAiManMarkingToggleTooltip
+    : messages.seniorAiManMarkingPremiumTooltip;
+  const seniorAiManMarkingFuzzinessTooltip: ReactNode = premiumUnlocked
+    ? messages.seniorAiManMarkingFuzzinessTooltip
+    : messages.seniorAiManMarkingFuzzinessPremiumTooltip;
   const setBestLineupBTeamMenuContent = (
     <div className={styles.seniorSetBestLineupBTeamMenuSection}>
       <div className={styles.seniorExtraTimeBTeamControls}>
@@ -4766,8 +4812,14 @@ export default function SeniorDashboard({
             <input
               type="checkbox"
               className={styles.matchesFilterToggleInput}
-              checked={seniorAiManMarkingEnabled}
-              onChange={(event) => setSeniorAiManMarkingEnabled(event.target.checked)}
+              checked={effectiveSeniorAiManMarkingEnabled}
+              onChange={(event) => {
+                if (!premiumUnlocked) {
+                  openPremiumLicenseModal();
+                  return;
+                }
+                setSeniorAiManMarkingEnabled(event.target.checked);
+              }}
             />
             <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
             <span className={styles.matchesFilterToggleLabel}>
@@ -4775,12 +4827,14 @@ export default function SeniorDashboard({
             </span>
           </label>
         </Tooltip>
-        <Tooltip content={messages.seniorAiManMarkingFuzzinessTooltip}>
+        <Tooltip content={seniorAiManMarkingFuzzinessTooltip}>
           <SeniorAiManMarkingFuzzinessSlider
             value={seniorAiManMarkingFuzziness}
             label={messages.seniorAiManMarkingFuzzinessLabel}
             ariaLabel={messages.seniorAiManMarkingFuzzinessAriaLabel}
-            disabled={!seniorAiManMarkingEnabled}
+            blocked={!premiumUnlocked}
+            onBlockedInteraction={openPremiumLicenseModal}
+            disabled={premiumUnlocked ? !effectiveSeniorAiManMarkingEnabled : false}
             onCommit={setSeniorAiManMarkingFuzziness}
           />
         </Tooltip>
@@ -4811,7 +4865,11 @@ export default function SeniorDashboard({
   }, [extraTimeAvailablePlayerIdSet, playersById]);
 
   useEffect(() => {
-    if (!seniorAiManMarkingEnabled || !seniorAiManMarkingSupported || loadedMatchId === null) {
+    if (
+      !effectiveSeniorAiManMarkingEnabled ||
+      !seniorAiManMarkingSupported ||
+      loadedMatchId === null
+    ) {
       setSeniorAiManMarkingTarget(null);
       setOpponentFormationsModal((prev) =>
         prev
@@ -4845,7 +4903,7 @@ export default function SeniorDashboard({
     };
   }, [
     loadedMatchId,
-    seniorAiManMarkingEnabled,
+    effectiveSeniorAiManMarkingEnabled,
     seniorAiManMarkingFuzziness,
     seniorAiManMarkingSupported,
   ]);
@@ -9060,7 +9118,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     submittedMatchId: number
   ): SeniorSubmitDisclaimerManMarkingSummary | null => {
     if (
-      !seniorAiManMarkingEnabled ||
+      !effectiveSeniorAiManMarkingEnabled ||
       !seniorAiManMarkingSupported ||
       seniorAiSubmitEnabledMatchId !== submittedMatchId
     ) {
@@ -9104,7 +9162,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
           }
         : basePayload;
     if (
-      !seniorAiManMarkingEnabled ||
+      !effectiveSeniorAiManMarkingEnabled ||
       !seniorAiManMarkingSelection ||
       !seniorAiManMarkingReady ||
       !seniorAiManMarkingSupported ||
@@ -10510,10 +10568,6 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener(APP_LICENSE_EVENT, syncPremiumState);
     };
-  }, []);
-  const openPremiumLicenseModal = useCallback(() => {
-    setPremiumLicenseModalNonce((prev) => prev + 1);
-    setPremiumLicenseModalOpen(true);
   }, []);
   useEffect(() => {
     if (hasManualRatingsEdits) return;
@@ -12620,7 +12674,11 @@ const refreshDetailsForPlayers = async (
         chosenAssignments: LineupAssignments,
         target: OpponentTargetPlayer | null
       ) => {
-        if (!seniorAiManMarkingSupported || !seniorAiManMarkingEnabled || !target) {
+        if (
+          !seniorAiManMarkingSupported ||
+          !effectiveSeniorAiManMarkingEnabled ||
+          !target
+        ) {
           return null;
         }
         const requiredRole: SeniorAiManMarkingRole =

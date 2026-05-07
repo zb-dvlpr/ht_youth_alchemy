@@ -1123,11 +1123,15 @@ export const messagesPt: Messages = {
     seniorAiManMarkingToggleLabel: "Marcacao individual",
     seniorAiManMarkingToggleTooltip:
       "Enviar ordens de marcacao individual se um marcador adequado e um alvo de marcacao adequado forem identificados.",
+    seniorAiManMarkingPremiumTooltip:
+      "Compre uma licença premium do HT Alchemy para usar marcacao individual na otimizacao de escalacoes seniores.",
     seniorAiManMarkingFuzzinessLabel: "Rigidez MM",
     seniorAiManMarkingFuzzinessTooltip:
       "Rigidez para identificar o alvo de marcacao individual.",
     seniorAiManMarkingFuzzinessAriaLabel:
       "Rigidez para identificar o alvo de marcacao individual",
+    seniorAiManMarkingFuzzinessPremiumTooltip:
+      "Compre uma licença premium do HT Alchemy para ajustar o rigor da marcacao individual na otimizacao de escalacoes seniores.",
     seniorAiManMarkingNeedsLineupTooltip:
       "A marcacao individual so pode ser ativada depois que uma escalação for definida e se um marcador e um alvo tiverem sido identificados.",
     seniorAiManMarkingEnabledTooltip:

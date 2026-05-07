@@ -1113,11 +1113,15 @@ export const messagesSv: Messages = {
     seniorAiManMarkingToggleLabel: "Manmarkering",
     seniorAiManMarkingToggleTooltip:
       "Skicka manmarkeringsorder om en lamplig markerare och ett lampligt manmarkeringsmal identifieras.",
+    seniorAiManMarkingPremiumTooltip:
+      "Köp en HT Alchemy premiumlicens för att använda manmarkering i senioruppställningsoptimeringen.",
     seniorAiManMarkingFuzzinessLabel: "MM-strikthet",
     seniorAiManMarkingFuzzinessTooltip:
       "Strikthet for identifiering av manmarkeringsmal.",
     seniorAiManMarkingFuzzinessAriaLabel:
       "Strikthet for identifiering av manmarkeringsmal",
+    seniorAiManMarkingFuzzinessPremiumTooltip:
+      "Köp en HT Alchemy premiumlicens för att justera manmarkerings-striktheten i senioruppställningsoptimeringen.",
     seniorAiManMarkingNeedsLineupTooltip:
       "Manmarkering kan bara aktiveras när en uppställning har satts och en markerare och ett mål har identifierats.",
     seniorAiManMarkingEnabledTooltip:

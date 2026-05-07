@@ -1125,11 +1125,15 @@ export const messagesIt: Messages = {
     seniorAiManMarkingToggleLabel: "Marcatura a uomo",
     seniorAiManMarkingToggleTooltip:
       "Invia gli ordini di marcatura a uomo se vengono identificati un marcatore adatto e un bersaglio adatto.",
+    seniorAiManMarkingPremiumTooltip:
+      "Acquista una licenza premium HT Alchemy per usare la marcatura a uomo nell’ottimizzazione della formazione senior.",
     seniorAiManMarkingFuzzinessLabel: "Rigidita MM",
     seniorAiManMarkingFuzzinessTooltip:
       "Rigidita per identificare il bersaglio della marcatura a uomo.",
     seniorAiManMarkingFuzzinessAriaLabel:
       "Rigidita per identificare il bersaglio della marcatura a uomo",
+    seniorAiManMarkingFuzzinessPremiumTooltip:
+      "Acquista una licenza premium HT Alchemy per regolare la rigidità della marcatura a uomo nell’ottimizzazione della formazione senior.",
     seniorAiManMarkingNeedsLineupTooltip:
       "La marcatura a uomo può essere attivata solo dopo aver impostato una formazione e aver identificato sia il marcatore sia il bersaglio.",
     seniorAiManMarkingEnabledTooltip:

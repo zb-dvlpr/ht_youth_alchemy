@@ -562,11 +562,15 @@ export const messagesPl: Messages = {
   seniorAiManMarkingToggleLabel: "Krycie indywidualne",
   seniorAiManMarkingToggleTooltip:
     "Wyslij polecenia krycia indywidualnego, jesli zostana zidentyfikowani odpowiedni kryjacy i odpowiedni cel krycia.",
+  seniorAiManMarkingPremiumTooltip:
+    "Kup licencję premium HT Alchemy, aby używać krycia indywidualnego w optymalizacji składu seniorów.",
   seniorAiManMarkingFuzzinessLabel: "Rygor MM",
   seniorAiManMarkingFuzzinessTooltip:
     "Surowosc identyfikacji celu krycia indywidualnego.",
   seniorAiManMarkingFuzzinessAriaLabel:
     "Surowosc identyfikacji celu krycia indywidualnego",
+  seniorAiManMarkingFuzzinessPremiumTooltip:
+    "Kup licencję premium HT Alchemy, aby regulować surowość krycia indywidualnego w optymalizacji składu seniorów.",
   seniorAiManMarkingNeedsLineupTooltip:
     "Krycie indywidualne można włączyć dopiero po ustawieniu składu oraz po zidentyfikowaniu kryjącego i celu krycia.",
   seniorAiManMarkingEnabledTooltip:

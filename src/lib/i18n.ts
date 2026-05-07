@@ -889,9 +889,11 @@ export type Messages = {
   seniorAiRedCardedDisregardedTooltip: string;
   seniorAiManMarkingToggleLabel: string;
   seniorAiManMarkingToggleTooltip: string;
+  seniorAiManMarkingPremiumTooltip: string;
   seniorAiManMarkingFuzzinessLabel: string;
   seniorAiManMarkingFuzzinessTooltip: string;
   seniorAiManMarkingFuzzinessAriaLabel: string;
+  seniorAiManMarkingFuzzinessPremiumTooltip: string;
   seniorAiManMarkingNeedsLineupTooltip: string;
   seniorAiManMarkingEnabledTooltip: string;
   seniorAiManMarkingMissingMarkerTooltip: string;

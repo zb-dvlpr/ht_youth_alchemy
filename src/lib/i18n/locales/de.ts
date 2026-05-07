@@ -1106,11 +1106,15 @@ export const messagesDe: Messages = {
     seniorAiManMarkingToggleLabel: "Manndeckung",
     seniorAiManMarkingToggleTooltip:
       "Manndeckungsanweisungen beim Absenden ubermitteln, wenn ein geeigneter Manndecker und ein geeignetes Manndeckungsziel identifiziert wurden.",
+    seniorAiManMarkingPremiumTooltip:
+      "Kaufe eine HT Alchemy Premium-Lizenz, um Manndeckung in der Senior-Aufstellungsoptimierung zu nutzen.",
     seniorAiManMarkingFuzzinessLabel: "MM-Strenge",
     seniorAiManMarkingFuzzinessTooltip:
       "Strenge fuer die Identifikation des Manndeckungsziels.",
     seniorAiManMarkingFuzzinessAriaLabel:
       "Strenge fuer die Identifikation des Manndeckungsziels",
+    seniorAiManMarkingFuzzinessPremiumTooltip:
+      "Kaufe eine HT Alchemy Premium-Lizenz, um die Manndeckungs-Strenge in der Senior-Aufstellungsoptimierung anzupassen.",
     seniorAiManMarkingNeedsLineupTooltip:
       "Manndeckung kann erst aktiviert werden, nachdem eine Aufstellung gesetzt wurde und sowohl ein Manndecker als auch ein Ziel identifiziert wurden.",
     seniorAiManMarkingEnabledTooltip:

@@ -1078,11 +1078,15 @@ export const messagesEn: Messages = {
     seniorAiManMarkingToggleLabel: "Man marking",
     seniorAiManMarkingToggleTooltip:
       "Submit man-marking orders if a suitable man marker and man-marking target are identified.",
+    seniorAiManMarkingPremiumTooltip:
+      "Buy a HT Alchemy premium license to use man marking in senior lineup optimization.",
     seniorAiManMarkingFuzzinessLabel: "MM strictness",
     seniorAiManMarkingFuzzinessTooltip:
       "Strictness for man-marking target identification.",
     seniorAiManMarkingFuzzinessAriaLabel:
       "Strictness for man-marking target identification",
+    seniorAiManMarkingFuzzinessPremiumTooltip:
+      "Buy a HT Alchemy premium license to adjust man-marking strictness in senior lineup optimization.",
     seniorAiManMarkingNeedsLineupTooltip:
       "Man marking can only be enabled once a lineup has been set and if a man marker and a man marking target have been identified.",
     seniorAiManMarkingEnabledTooltip:

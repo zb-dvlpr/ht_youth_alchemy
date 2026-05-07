@@ -251,6 +251,8 @@ export const messagesIt: Messages = {
     feedbackBugSuccess: "Segnalazione bug inviata.",
     feedbackFeatureSuccess: "Richiesta funzione inviata.",
     feedbackSubmitError: "Invio dell issue non riuscito.",
+    feedbackUsernameDisclaimer:
+      "Il tuo nome utente Hattrick verrà allegato a questa segnalazione così lo sviluppatore potrà contattarti per eventuali domande di follow-up.",
     feedbackMetadataHattrickUser: "Utente Hattrick",
     feedbackManagerIdentityRequiredError:
       "Impossibile risolvere il tuo nome utente e ID utente Hattrick per i metadati della segnalazione.",

@@ -234,6 +234,8 @@ export const messagesEn: Messages = {
     feedbackBugSuccess: "Bug report submitted.",
     feedbackFeatureSuccess: "Feature request submitted.",
     feedbackSubmitError: "Issue submission failed.",
+    feedbackUsernameDisclaimer:
+      "Your Hattrick username will be attached to this report so the developer can contact you with follow-up questions.",
     feedbackMetadataHattrickUser: "Hattrick user",
     feedbackManagerIdentityRequiredError:
       "Unable to resolve your Hattrick username and user ID for the report metadata.",

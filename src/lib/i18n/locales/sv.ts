@@ -247,6 +247,8 @@ export const messagesSv: Messages = {
     feedbackBugSuccess: "Buggrapport skickad.",
     feedbackFeatureSuccess: "Funktionsförslag skickat.",
     feedbackSubmitError: "Skickandet av ärendet misslyckades.",
+    feedbackUsernameDisclaimer:
+      "Ditt Hattrick-användarnamn bifogas den här rapporten så att utvecklaren kan kontakta dig med eventuella följdfrågor.",
     feedbackMetadataHattrickUser: "Hattrick-anvandare",
     feedbackManagerIdentityRequiredError:
       "Det gick inte att hamta ditt Hattrick-anvandarnamn och anvandar-ID for rapportens metadata.",

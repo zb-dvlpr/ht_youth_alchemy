@@ -251,6 +251,8 @@ export const messagesFr: Messages = {
     feedbackBugSuccess: "Signalement de bug envoyé.",
     feedbackFeatureSuccess: "Demande de fonctionnalité envoyée.",
     feedbackSubmitError: "L’envoi de l’issue a échoué.",
+    feedbackUsernameDisclaimer:
+      "Votre nom d utilisateur Hattrick sera joint a ce rapport afin que le developpeur puisse vous contacter pour d eventuelles questions de suivi.",
     feedbackMetadataHattrickUser: "Utilisateur Hattrick",
     feedbackManagerIdentityRequiredError:
       "Impossible de résoudre votre nom d utilisateur et votre ID utilisateur Hattrick pour les métadonnées du signalement.",

@@ -286,6 +286,9 @@ export default function FeedbackButton({
               messages.feedbackFieldNotesPlaceholder,
               true
             )}
+            <p className={styles.feedbackModalLead}>
+              {messages.feedbackUsernameDisclaimer}
+            </p>
             {errorMessage ? (
               <p className={styles.feedbackErrorText}>{errorMessage}</p>
             ) : null}

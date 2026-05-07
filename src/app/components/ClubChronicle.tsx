@@ -8391,40 +8391,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               current: formatChppCurrencyFromSek(current.top11WagesSek),
             });
           }
-          const previousInjuryByPlayerId = new Map<number, number | null>(
-            (previous?.players ?? []).map((player) => [
-              player.playerId,
-              normalizeInjuryLevel(player.injuryLevel),
-            ])
-          );
-          const currentInjuryByPlayerId = new Map<number, number | null>(
-            (current?.players ?? []).map((player) => [
-              player.playerId,
-              normalizeInjuryLevel(player.injuryLevel),
-            ])
-          );
-          const changedInjuryPlayerIds = new Set<number>();
-          const mergedInjuryPlayerIds = new Set<number>([
-            ...previousInjuryByPlayerId.keys(),
-            ...currentInjuryByPlayerId.keys(),
-          ]);
-          mergedInjuryPlayerIds.forEach((playerId) => {
-            if (
-              previousInjuryByPlayerId.get(playerId) !==
-              currentInjuryByPlayerId.get(playerId)
-            ) {
-              changedInjuryPlayerIds.add(playerId);
-            }
-          });
-          if (changedInjuryPlayerIds.size > 0) {
-            const previousInjury = buildInjurySummary(
-              previous,
-              changedInjuryPlayerIds
-            );
-            const currentInjury = buildInjurySummary(
-              current,
-              changedInjuryPlayerIds
-            );
+          const previousInjury = buildInjurySummary(previous);
+          const currentInjury = buildInjurySummary(current);
+          if (previousInjury !== currentInjury) {
             wageChanges.push({
               fieldKey: "wages.injury",
               label: messages.clubChronicleWagesInjuryColumn,

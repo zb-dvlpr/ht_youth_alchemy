@@ -123,6 +123,8 @@ type SeniorFoxtrickSimulatorProps = {
   messages: Messages;
   loyalty?: number | null;
   motherClubBonus?: boolean;
+  editingBlocked?: boolean;
+  onBlockedInteraction?: () => void;
   onSimulationStateChange?: (state: {
     editing: boolean;
     dirty: boolean;
@@ -203,6 +205,8 @@ export default function SeniorFoxtrickSimulator({
   messages,
   loyalty = null,
   motherClubBonus = false,
+  editingBlocked = false,
+  onBlockedInteraction,
   onSimulationStateChange,
   barGradient,
 }: SeniorFoxtrickSimulatorProps) {
@@ -212,9 +216,11 @@ export default function SeniorFoxtrickSimulator({
   const [controlDraft, setControlDraft] = useState<SimulationControlDraft>(() =>
     buildControlDraft(buildInitialValues(input))
   );
+  const editingEnabled = !editingBlocked && editing;
+  const effectiveDirty = editingEnabled && dirty;
 
   const metricInput = useMemo<SeniorPlayerMetricInput>(() => {
-    if (!editing) return input;
+    if (!editingEnabled) return input;
     return {
       ...input,
       ageYears: values.ageYears,
@@ -231,15 +237,15 @@ export default function SeniorFoxtrickSimulator({
       scoring: values.scoring,
       setPieces: values.setPieces,
     };
-  }, [editing, input, values]);
+  }, [editingEnabled, input, values]);
 
   useEffect(() => {
     onSimulationStateChange?.({
-      editing,
-      dirty,
+      editing: editingEnabled,
+      dirty: effectiveDirty,
       metricInput,
     });
-  }, [dirty, editing, metricInput, onSimulationStateChange]);
+  }, [editingEnabled, effectiveDirty, metricInput, onSimulationStateChange]);
 
   const updateValue = (key: keyof SimulatedValues, value: number) => {
     setDirty(true);
@@ -396,14 +402,14 @@ export default function SeniorFoxtrickSimulator({
   };
 
   const renderSkillRow = (definition: SimulationSkillDefinition) => {
-    const value = editing
+    const value = editingEnabled
       ? values[definition.key]
       : typeof input[definition.inputKey] === "number"
         ? (input[definition.inputKey] as number)
         : null;
     const pct = value !== null ? Math.min(100, (value / definition.max) * 100) : null;
     const bonus =
-      !editing && value !== null && definition.max === SENIOR_SKILL_MAX_LEVEL
+      !editingEnabled && value !== null && definition.max === SENIOR_SKILL_MAX_LEVEL
         ? motherClubBonus
           ? Math.min(1.5, SENIOR_SKILL_MAX_LEVEL - value)
           : Math.min(Math.max(0, loyalty ?? 0) / 20, SENIOR_SKILL_MAX_LEVEL - value)
@@ -424,15 +430,15 @@ export default function SeniorFoxtrickSimulator({
       <div key={definition.key} className={styles.skillRow}>
         <div className={styles.skillLabel}>{messages[definition.labelKey] as string}</div>
         <div
-          className={`${styles.skillBar} ${editing ? styles.simulationEditableSkillBar : ""}`}
-          role={editing ? "slider" : undefined}
-          tabIndex={editing ? 0 : undefined}
-          aria-label={editing ? (messages[definition.labelKey] as string) : undefined}
-          aria-valuemin={editing ? definition.min : undefined}
-          aria-valuemax={editing ? definition.max : undefined}
-          aria-valuenow={editing ? (value ?? definition.min) : undefined}
+          className={`${styles.skillBar} ${editingEnabled ? styles.simulationEditableSkillBar : ""}`}
+          role={editingEnabled ? "slider" : undefined}
+          tabIndex={editingEnabled ? 0 : undefined}
+          aria-label={editingEnabled ? (messages[definition.labelKey] as string) : undefined}
+          aria-valuemin={editingEnabled ? definition.min : undefined}
+          aria-valuemax={editingEnabled ? definition.max : undefined}
+          aria-valuenow={editingEnabled ? (value ?? definition.min) : undefined}
           onPointerDown={
-            editing
+            editingEnabled
               ? (event) => {
                   event.currentTarget.setPointerCapture(event.pointerId);
                   updateSkillFromPointer(event, definition);
@@ -440,7 +446,7 @@ export default function SeniorFoxtrickSimulator({
               : undefined
           }
           onPointerMove={
-            editing
+            editingEnabled
               ? (event) => {
                   if (event.buttons === 1) {
                     updateSkillFromPointer(event, definition);
@@ -449,13 +455,13 @@ export default function SeniorFoxtrickSimulator({
               : undefined
           }
           onKeyDown={
-            editing
+            editingEnabled
               ? (event) =>
                   handleSkillKeyDown(event, definition, value ?? definition.min)
               : undefined
           }
         >
-          {editing ? (
+          {editingEnabled ? (
             <>
               <div
                 className={styles.skillFillCurrent}
@@ -515,13 +521,26 @@ export default function SeniorFoxtrickSimulator({
       <div>
         <div className={styles.sectionHeadingRow}>
           <h5 className={styles.sectionHeading}>{messages.skillsLabel}</h5>
-          <Tooltip content={messages.seniorFoxtrickSimulationTooltip}>
+          <Tooltip
+            content={
+              editingBlocked
+                ? messages.seniorFoxtrickSimulationPremiumTooltip
+                : messages.seniorFoxtrickSimulationTooltip
+            }
+          >
             <label className={styles.simulationToggle}>
               <input
                 className={styles.simulationToggleInput}
                 type="checkbox"
-                checked={editing}
-                onChange={(event) => toggleEditing(event.currentTarget.checked)}
+                checked={editingEnabled}
+                onChange={(event) => {
+                  if (editingBlocked) {
+                    event.preventDefault();
+                    onBlockedInteraction?.();
+                    return;
+                  }
+                  toggleEditing(event.currentTarget.checked);
+                }}
               />
               <span className={styles.simulationToggleTrack} aria-hidden="true">
                 <span className={styles.simulationToggleThumb} />
@@ -531,7 +550,7 @@ export default function SeniorFoxtrickSimulator({
           </Tooltip>
         </div>
 
-        {editing ? (
+        {editingEnabled ? (
           <div className={styles.simulationControls}>
             <div className={styles.simulationControlGroup}>
               <label className={styles.simulationControlLabel}>
@@ -598,7 +617,7 @@ export default function SeniorFoxtrickSimulator({
         <div className={styles.skillsGrid}>
           {SKILL_ROWS.map((definition) => renderSkillRow(definition))}
         </div>
-        {editing && dirty ? (
+        {editingEnabled && effectiveDirty ? (
           <p className={styles.simulationWarning}>
             <span className={styles.simulationWarningIcon} aria-hidden="true">
               ⚠

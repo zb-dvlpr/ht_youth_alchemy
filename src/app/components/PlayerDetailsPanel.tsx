@@ -181,6 +181,8 @@ type PlayerDetailsPanelProps = {
     dirty: boolean;
     metricInput: SeniorPlayerMetricInput;
   }) => void;
+  seniorSimulationEditingBlocked?: boolean;
+  onSeniorSimulationBlockedInteraction?: () => void;
   skillsMatrixHeaderAux?: ReactNode;
   extraSkillsMatrixHeaderAux?: ReactNode;
   skillsMatrixLeadingHeader?: ReactNode;
@@ -604,6 +606,8 @@ export default function PlayerDetailsPanel({
   showTabs = true,
   detailsHeaderActions,
   onSeniorSimulationStateChange,
+  seniorSimulationEditingBlocked = false,
+  onSeniorSimulationBlockedInteraction,
   skillsMatrixHeaderAux,
   extraSkillsMatrixHeaderAux,
   skillsMatrixLeadingHeader,
@@ -1557,6 +1561,8 @@ export default function PlayerDetailsPanel({
               messages={messages}
               loyalty={detailsData.Loyalty ?? null}
               motherClubBonus={detailsData.MotherClubBonus}
+              editingBlocked={seniorSimulationEditingBlocked}
+              onBlockedInteraction={onSeniorSimulationBlockedInteraction}
               onSimulationStateChange={onSeniorSimulationStateChange}
               barGradient={seniorBarGradient}
             />

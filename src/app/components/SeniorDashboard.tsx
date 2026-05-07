@@ -3185,6 +3185,9 @@ export default function SeniorDashboard({
     dirty: false,
     metricInput: null,
   });
+  const effectiveSelectedPlayerSimulationState = premiumUnlocked
+    ? selectedPlayerSimulationState
+    : { dirty: false, metricInput: null };
   const [mobileSeniorActive, setMobileSeniorActive] = useState(false);
   const [mobileSeniorView, setMobileSeniorView] =
     useState<SeniorMobileView>("playerDetails");
@@ -10273,12 +10276,12 @@ function buildSeniorAiManMarkingReadySignature(params: {
     if (!hasRequiredScopes) return;
     const detail = await ensureDetails(player.PlayerID);
     const editedSourceDetails =
-      selectedPlayerSimulationState.dirty &&
+      effectiveSelectedPlayerSimulationState.dirty &&
       selectedId === player.PlayerID &&
-      selectedPlayerSimulationState.metricInput
+      effectiveSelectedPlayerSimulationState.metricInput
         ? buildEditedTransferSearchSourceDetails(
             detail,
-            selectedPlayerSimulationState.metricInput
+            effectiveSelectedPlayerSimulationState.metricInput
           )
         : null;
     const sourceDetails = editedSourceDetails ?? detail;
@@ -15386,7 +15389,7 @@ const refreshDetailsForPlayers = async (
           }}
           disabled={activeSeniorTeamOption?.teamGender === "female"}
         >
-          {selectedPlayerSimulationState.dirty
+          {effectiveSelectedPlayerSimulationState.dirty
             ? messages.seniorTransferSearchEditedButtonLabel
             : messages.seniorTransferSearchButtonLabel}
         </button>
@@ -15474,6 +15477,8 @@ const refreshDetailsForPlayers = async (
       showTabs={false}
       detailsHeaderActions={seniorDetailsHeaderActions}
       onSeniorSimulationStateChange={handleSelectedPlayerSimulationStateChange}
+      seniorSimulationEditingBlocked={!premiumUnlocked}
+      onSeniorSimulationBlockedInteraction={openPremiumLicenseModal}
       messages={messages}
     />
   );
@@ -19200,6 +19205,8 @@ const refreshDetailsForPlayers = async (
             onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
             detailsHeaderActions={seniorDetailsHeaderActions}
             onSeniorSimulationStateChange={handleSelectedPlayerSimulationStateChange}
+            seniorSimulationEditingBlocked={!premiumUnlocked}
+            onSeniorSimulationBlockedInteraction={openPremiumLicenseModal}
             messages={messages}
           />
           )}

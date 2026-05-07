@@ -876,6 +876,8 @@ export const messagesNl: Messages = {
   seniorFoxtrickEditSkillsLabel: "Vaardigheden, leeftijd, loon, TSI bewerken",
   seniorFoxtrickSimulationTooltip:
     "Schakel in om vaardigheden, leeftijd, loon en TSI te bewerken en FoxTrick-waarden te simuleren. Schakel uit om echte waarden te herstellen.",
+  seniorFoxtrickSimulationPremiumTooltip:
+    "Koop een HT Alchemy-premiumlicentie om vaardigheden, leeftijd, loon en TSI te bewerken in senior-spelerdetails.",
   seniorFoxtrickSimulationWarning:
     "Vaardigheids-, leeftijds-, loon- of TSI-waarden zijn handmatig gewijzigd en weerspiegelen niet meer de echte speler.",
   seniorFoxtrickSimulationAgeYearsLabel: "Leeftijd jaren",

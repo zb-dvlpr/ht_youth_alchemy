@@ -869,6 +869,8 @@ export const messagesPl: Messages = {
   seniorFoxtrickEditSkillsLabel: "Edytuj umiejetnosci, wiek, pensje, TSI",
   seniorFoxtrickSimulationTooltip:
     "Wlacz, aby edytowac umiejetnosci, wiek, pensje i TSI oraz symulowac wartosci FoxTrick. Wylacz, aby wrocic do prawdziwych wartosci.",
+  seniorFoxtrickSimulationPremiumTooltip:
+    "Kup licencje premium HT Alchemy, aby edytowac umiejetnosci, wiek, pensje i TSI w szczegolach seniora.",
   seniorFoxtrickSimulationWarning:
     "Wartosci umiejetnosci, wieku, pensji lub TSI zostaly zmienione recznie i nie odzwierciedlaja juz prawdziwego zawodnika.",
   seniorFoxtrickSimulationAgeYearsLabel: "Wiek lata",

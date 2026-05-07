@@ -1526,6 +1526,8 @@ export const messagesSv: Messages = {
     seniorFoxtrickEditSkillsLabel: "Redigera fardigheter, alder, lon, TSI",
     seniorFoxtrickSimulationTooltip:
       "Aktivera for att redigera fardigheter, alder, lon och TSI och simulera FoxTrick-varden. Inaktivera for att aterstalla riktiga varden.",
+    seniorFoxtrickSimulationPremiumTooltip:
+      "Kop en HT Alchemy Premium-licens for att redigera seniora spelares fardigheter, alder, lon och TSI i spelardetaljerna.",
     seniorFoxtrickSimulationWarning:
       "Fardighets-, alder-, lone- eller TSI-varden har andrats manuellt och speglar inte langre den riktiga spelaren.",
     seniorFoxtrickSimulationAgeYearsLabel: "Alder ar",

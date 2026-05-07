@@ -1535,6 +1535,8 @@ export const messagesEs: Messages = {
     seniorFoxtrickEditSkillsLabel: "Editar habilidades, edad, salario, TSI",
     seniorFoxtrickSimulationTooltip:
       "Activa para editar habilidades, edad, salario y TSI y simular valores FoxTrick. Desactiva para volver a los valores reales.",
+    seniorFoxtrickSimulationPremiumTooltip:
+      "Compra una licencia premium de HT Alchemy para editar habilidades, edad, salario y TSI en los detalles del jugador senior.",
     seniorFoxtrickSimulationWarning:
       "Los valores de habilidades, edad, salario o TSI se han cambiado manualmente y ya no reflejan al jugador real.",
     seniorFoxtrickSimulationAgeYearsLabel: "Edad anos",

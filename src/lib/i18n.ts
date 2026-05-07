@@ -1238,6 +1238,7 @@ export type Messages = {
   seniorFoxtrickMetricsTitle: string;
   seniorFoxtrickEditSkillsLabel: string;
   seniorFoxtrickSimulationTooltip: string;
+  seniorFoxtrickSimulationPremiumTooltip: string;
   seniorFoxtrickSimulationWarning: string;
   seniorFoxtrickSimulationAgeYearsLabel: string;
   seniorFoxtrickSimulationAgeDaysLabel: string;

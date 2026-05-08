@@ -312,7 +312,7 @@ export const messagesEn: Messages = {
     settingsLicenseRevokeButton: "Revoke license",
     settingsLicenseRevoked: "License cleared. Free mode restored.",
     settingsLicenseRevokePending:
-      "License revocation is not available yet.",
+      "License revocation failed. Try again later.",
     settingsGeneralExportAllLabel: "Export all settings",
     settingsGeneralExportAllHint:
       "Export all locally stored app settings and cached state as a JSON backup file.",

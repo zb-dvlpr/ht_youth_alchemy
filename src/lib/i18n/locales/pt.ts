@@ -330,7 +330,7 @@ export const messagesPt: Messages = {
     settingsLicenseRevokeButton: "Revogar licença",
     settingsLicenseRevoked: "Licença removida. Modo gratuito restaurado.",
     settingsLicenseRevokePending:
-      "A revogação de licenças ainda não está disponível.",
+      "A revogação da licença falhou. Tenta novamente mais tarde.",
     settingsDebugBuyCoffeePromptButton: "Mostrar modal paga-me um café",
     settingsGeneralExportAllLabel: "Exportar todas as configurações",
     settingsGeneralExportAllHint:

@@ -151,7 +151,7 @@ export const messagesNl: Messages = {
   settingsLicenseRevokeButton: "Licentie intrekken",
   settingsLicenseRevoked: "Licentie gewist. Gratis modus hersteld.",
   settingsLicenseRevokePending:
-    "Licentie-intrekking is nog niet beschikbaar.",
+    "Het intrekken van de licentie is mislukt. Probeer het later opnieuw.",
   settingsGeneralExportAllLabel: "Alle instellingen exporteren",
   settingsGeneralExportAllHint:
     "Exporteer alle lokaal opgeslagen app-instellingen en cachetoestand naar een JSON-back-upbestand.",

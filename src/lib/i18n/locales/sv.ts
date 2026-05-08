@@ -327,7 +327,7 @@ export const messagesSv: Messages = {
     settingsLicenseRevokeButton: "Återkalla licens",
     settingsLicenseRevoked: "Licensen rensades. Gratisläget återställt.",
     settingsLicenseRevokePending:
-      "Licensåterkallelse är inte tillgänglig ännu.",
+      "Licensåterkallelsen misslyckades. Försök igen senare.",
     settingsGeneralExportAllLabel: "Exportera alla inställningar",
     settingsGeneralExportAllHint:
       "Exportera alla lokalt sparade appinställningar och cachetillstånd till en JSON-säkerhetskopia.",

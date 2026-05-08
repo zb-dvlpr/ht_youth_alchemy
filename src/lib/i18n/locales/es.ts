@@ -329,7 +329,7 @@ export const messagesEs: Messages = {
     settingsLicenseRevokeButton: "Revocar licencia",
     settingsLicenseRevoked: "Licencia borrada. Modo gratuito restaurado.",
     settingsLicenseRevokePending:
-      "La revocación de licencias todavía no está disponible.",
+      "La revocación de la licencia falló. Inténtalo de nuevo más tarde.",
     settingsDebugBuyCoffeePromptButton: "Mostrar modal de invítame a un café",
     settingsGeneralExportAllLabel: "Exportar todos los ajustes",
     settingsGeneralExportAllHint:

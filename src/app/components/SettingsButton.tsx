@@ -62,7 +62,11 @@ import {
   type SeniorModelEvaluationResult,
 } from "@/lib/seniorEncounteredPlayerModel";
 import { formatDateTime } from "@/lib/datetime";
-import { clearAppLicenseState } from "@/lib/license";
+import {
+  clearAppLicenseState,
+  deactivateAppLicense,
+  readAppLicenseState,
+} from "@/lib/license";
 
 type SettingsButtonProps = {
   messages: Messages;
@@ -608,14 +612,24 @@ export default function SettingsButton({
     setLicenseEntryOpen(true);
   };
 
-  const handleRevokeLicense = () => {
-    if (isDev) {
+  const handleRevokeLicense = async () => {
+    const licenseState = readAppLicenseState();
+    const licenseKey = licenseState.licenseKey.trim();
+    const instanceId = licenseState.instanceId.trim();
+    if (!licenseKey || !instanceId) {
       clearAppLicenseState();
       addNotification(messages.settingsLicenseRevoked);
       setLicenseSettingsOpen(false);
       return;
     }
-    addNotification(messages.settingsLicenseRevokePending);
+    const result = await deactivateAppLicense(licenseKey, instanceId);
+    if (!result.deactivated) {
+      addNotification(messages.settingsLicenseRevokePending);
+      return;
+    }
+    clearAppLicenseState();
+    addNotification(messages.settingsLicenseRevoked);
+    setLicenseSettingsOpen(false);
   };
 
   return (
@@ -970,7 +984,9 @@ export default function SettingsButton({
             <button
               type="button"
               className={styles.settingsDangerButton}
-              onClick={handleRevokeLicense}
+              onClick={() => {
+                void handleRevokeLicense();
+              }}
             >
               {messages.settingsLicenseRevokeButton}
             </button>

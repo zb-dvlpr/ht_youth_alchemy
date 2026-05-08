@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import type { Messages } from "@/lib/i18n";
 import {
   type AppLicenseState,
+  buildAppLicenseInstanceName,
   readAppLicenseState,
   validateAppLicenseKey,
   writeAppLicenseState,
@@ -41,19 +42,23 @@ export default function AppLicenseModal({
       return;
     }
     setSubmitting(true);
-    const validation = await validateAppLicenseKey(trimmed);
+    const validation = await validateAppLicenseKey(trimmed, {
+      instanceName: buildAppLicenseInstanceName(),
+      activate: true,
+    });
     if (validation.transientFailure) {
       setSubmitting(false);
       setFeedback(messages.clubChroniclePremiumLicenseValidationUnavailable);
       return;
     }
-    if (!validation.valid) {
+    if (!validation.valid || !validation.instanceId) {
       setSubmitting(false);
       setFeedback(messages.clubChroniclePremiumLicenseInvalid);
       return;
     }
     const nextState: AppLicenseState = {
       licenseKey: trimmed,
+      instanceId: validation.instanceId,
       premiumUnlocked: true,
       validatedAt: Date.now(),
     };

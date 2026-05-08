@@ -327,7 +327,7 @@ export const messagesDe: Messages = {
     settingsLicenseRevokeButton: "Lizenz widerrufen",
     settingsLicenseRevoked: "Lizenz gelöscht. Freier Modus wiederhergestellt.",
     settingsLicenseRevokePending:
-      "Der Lizenzwiderruf ist noch nicht verfügbar.",
+      "Der Lizenzwiderruf ist fehlgeschlagen. Bitte später erneut versuchen.",
     settingsGeneralExportAllLabel: "Alle Einstellungen exportieren",
     settingsGeneralExportAllHint:
       "Exportiert alle lokal gespeicherten App-Einstellungen und Cache-Zustände als JSON-Sicherungsdatei.",

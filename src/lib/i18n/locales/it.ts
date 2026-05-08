@@ -332,7 +332,7 @@ export const messagesIt: Messages = {
     settingsLicenseRevokeButton: "Revoca licenza",
     settingsLicenseRevoked: "Licenza cancellata. Modalità gratuita ripristinata.",
     settingsLicenseRevokePending:
-      "La revoca della licenza non è ancora disponibile.",
+      "La revoca della licenza non è riuscita. Riprova più tardi.",
     settingsGeneralExportAllLabel: "Esporta tutte le impostazioni",
     settingsGeneralExportAllHint:
       "Esporta tutte le impostazioni locali dell’app e gli stati in cache in un file JSON di backup.",

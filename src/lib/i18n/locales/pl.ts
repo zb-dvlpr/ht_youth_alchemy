@@ -151,7 +151,7 @@ export const messagesPl: Messages = {
   settingsLicenseRevokeButton: "Unieważnij licencję",
   settingsLicenseRevoked: "Licencja usunięta. Przywrócono tryb darmowy.",
   settingsLicenseRevokePending:
-    "Unieważnianie licencji nie jest jeszcze dostępne.",
+    "Unieważnienie licencji nie powiodło się. Spróbuj ponownie później.",
   settingsGeneralExportAllLabel: "Eksportuj wszystkie ustawienia",
   settingsGeneralExportAllHint:
     "Eksportuje wszystkie lokalnie zapisane ustawienia aplikacji i stan pamięci podręcznej do pliku kopii zapasowej JSON.",

@@ -332,7 +332,7 @@ export const messagesFr: Messages = {
     settingsLicenseRevokeButton: "Révoquer la licence",
     settingsLicenseRevoked: "Licence effacée. Mode gratuit rétabli.",
     settingsLicenseRevokePending:
-      "La révocation de licence n’est pas encore disponible.",
+      "La révocation de la licence a échoué. Réessayez plus tard.",
     settingsGeneralExportAllLabel: "Exporter tous les paramètres",
     settingsGeneralExportAllHint:
       "Exporte tous les paramètres locaux de l’application et les états en cache dans un fichier JSON de sauvegarde.",

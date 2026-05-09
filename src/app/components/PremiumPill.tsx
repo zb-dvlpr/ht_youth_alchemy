@@ -14,9 +14,11 @@ import {
   clearAppLicenseState,
   consumeLicenseKeyFromUrl,
   fetchStoredAppLicenseDetails,
+  hasActiveAppLicenseState,
   openAppLicensePurchaseUrl,
   readAppLicenseState,
   readAppLicensePurchaseUrl,
+  reconcileStoredAppLicenseState,
   revalidateStoredAppLicenseState,
 } from "@/lib/license";
 
@@ -56,10 +58,7 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
     let active = true;
     void (async () => {
       const currentState = readAppLicenseState();
-      const hasActiveLicense =
-        currentState.premiumUnlocked &&
-        currentState.licenseKey.trim().length > 0 &&
-        currentState.instanceId.trim().length > 0;
+      const hasActiveLicense = hasActiveAppLicenseState(currentState);
       if (!active) return;
       if (!hasActiveLicense) {
         setLicenseDetails(null);
@@ -104,15 +103,11 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
 
   useEffect(() => {
     const sync = () => {
-      void readAppLicenseState().premiumUnlocked;
+      void hasActiveAppLicenseState(readAppLicenseState());
     };
     const revalidateIfActive = async () => {
-      const state = readAppLicenseState();
-      if (
-        !state.premiumUnlocked ||
-        !state.licenseKey.trim() ||
-        !state.instanceId.trim()
-      ) {
+      const state = reconcileStoredAppLicenseState();
+      if (!hasActiveAppLicenseState(state)) {
         sync();
         return;
       }
@@ -123,6 +118,7 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
     let intervalId = 0;
     frameId = window.requestAnimationFrame(() => {
       setHydrated(true);
+      reconcileStoredAppLicenseState();
       sync();
       void (async () => {
         const hadLicenseKeyInUrl = new URL(window.location.href).searchParams.has(

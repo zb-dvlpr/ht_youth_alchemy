@@ -6,6 +6,7 @@ import type { Messages } from "@/lib/i18n";
 import {
   APP_LICENSE_EVENT,
   APP_LICENSE_STORAGE_KEY,
+  hasActiveAppLicenseState,
   readAppLicenseState,
 } from "@/lib/license";
 
@@ -28,7 +29,7 @@ export default function PremiumStatusPill({
   useEffect(() => {
     if (typeof window === "undefined") return;
     const sync = () => {
-      setPremiumUnlocked(readAppLicenseState().premiumUnlocked);
+      setPremiumUnlocked(hasActiveAppLicenseState(readAppLicenseState()));
     };
     sync();
     const handleStorage = (event: StorageEvent) => {

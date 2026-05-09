@@ -121,6 +121,11 @@ export const readAppLicenseState = (): AppLicenseState => {
   return legacy ?? EMPTY_LICENSE_STATE;
 };
 
+export const hasActiveAppLicenseState = (state: AppLicenseState) =>
+  state.premiumUnlocked &&
+  state.licenseKey.trim().length > 0 &&
+  state.instanceId.trim().length > 0;
+
 const dispatchAppLicenseEvent = (state: AppLicenseState) => {
   if (!isBrowser()) return;
   window.dispatchEvent(new CustomEvent(APP_LICENSE_EVENT, { detail: state }));
@@ -195,6 +200,22 @@ export const clearAppLicenseState = () => {
   window.localStorage.removeItem(APP_LICENSE_STORAGE_KEY);
   window.localStorage.removeItem(LEGACY_CLUB_CHRONICLE_LICENSE_STORAGE_KEY);
   dispatchAppLicenseEvent(EMPTY_LICENSE_STATE);
+};
+
+export const reconcileStoredAppLicenseState = () => {
+  const state = readAppLicenseState();
+  if (hasActiveAppLicenseState(state)) {
+    return state;
+  }
+  if (
+    state.premiumUnlocked ||
+    state.licenseKey.trim().length > 0 ||
+    state.instanceId.trim().length > 0 ||
+    state.validatedAt !== null
+  ) {
+    clearAppLicenseState();
+  }
+  return EMPTY_LICENSE_STATE;
 };
 
 export const readAppLicensePurchaseUrl = () => {

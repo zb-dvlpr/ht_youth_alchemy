@@ -30,7 +30,7 @@ import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
-import AppLicenseModal from "./AppLicenseModal";
+import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
 import TransferSearchModal, {
   ageToTotalDays,
   buildTransferSearchMinimumBidEur,
@@ -1056,6 +1056,8 @@ export default function Dashboard({
   const [premiumUnlocked, setPremiumUnlocked] = useState(false);
   const [premiumLicenseModalOpen, setPremiumLicenseModalOpen] = useState(false);
   const [premiumLicenseModalNonce, setPremiumLicenseModalNonce] = useState(0);
+  const [premiumLicenseModalContext, setPremiumLicenseModalContext] =
+    useState<AppLicenseModalContext | null>(null);
   const [transferSearchSourcePlayerId, setTransferSearchSourcePlayerId] =
     useState<number | null>(null);
   const [transferSearchFilters, setTransferSearchFilters] =
@@ -1168,10 +1170,14 @@ export default function Dashboard({
       window.removeEventListener(APP_LICENSE_EVENT, syncPremiumState);
     };
   }, []);
-  const openPremiumLicenseModal = useCallback(() => {
-    setPremiumLicenseModalNonce((prev) => prev + 1);
-    setPremiumLicenseModalOpen(true);
-  }, []);
+  const openPremiumLicenseModal = useCallback(
+    (context?: AppLicenseModalContext | null) => {
+      setPremiumLicenseModalContext(context ?? null);
+      setPremiumLicenseModalNonce((prev) => prev + 1);
+      setPremiumLicenseModalOpen(true);
+    },
+    []
+  );
   const isDev = process.env.NODE_ENV !== "production";
   const helpStorageKey = "ya_help_dismissed_v1";
   const dashboardRef = useRef<HTMLDivElement | null>(null);
@@ -7052,6 +7058,16 @@ export default function Dashboard({
     ? `${messages.youthLastGlobalRefresh}: ${formatDateTime(lastGlobalRefreshAt)}`
     : null;
 
+  const youthEstimateValueLicenseContext = useMemo<AppLicenseModalContext>(() => {
+    return {
+      featureTitle: messages.appLicenseFeatureYouthEstimateValueTitle,
+      featureDescription: messages.appLicenseFeatureYouthEstimateValueDescription,
+    };
+  }, [
+    messages.appLicenseFeatureYouthEstimateValueDescription,
+    messages.appLicenseFeatureYouthEstimateValueTitle,
+  ]);
+
   const youthEstimateValueTooltip = youthEstimateValueDisabled
     ? selectedYouthEstimateValueSkillCount === 0
       ? messages.youthEstimateValueDisabledTooltip
@@ -7067,7 +7083,7 @@ export default function Dashboard({
           className={`${styles.confirmSubmit} ${styles.youthEstimateValueButton}`}
           onClick={() => {
             if (!premiumUnlocked) {
-              openPremiumLicenseModal();
+              openPremiumLicenseModal(youthEstimateValueLicenseContext);
               return;
             }
             void openYouthEstimateValueSearch();
@@ -8512,6 +8528,7 @@ export default function Dashboard({
         key={premiumLicenseModalNonce}
         open={premiumLicenseModalOpen}
         messages={messages}
+        context={premiumLicenseModalContext}
         onClose={() => setPremiumLicenseModalOpen(false)}
       />
     </div>

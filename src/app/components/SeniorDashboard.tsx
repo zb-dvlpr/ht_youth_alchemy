@@ -44,7 +44,7 @@ import {
   SENIOR_SETTINGS_STORAGE_KEY,
 } from "@/lib/settings";
 import Modal from "./Modal";
-import AppLicenseModal from "./AppLicenseModal";
+import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import StartupLoadingExperience from "./StartupLoadingExperience";
 import {
@@ -3173,6 +3173,8 @@ export default function SeniorDashboard({
   const [premiumUnlocked, setPremiumUnlocked] = useState(false);
   const [premiumLicenseModalOpen, setPremiumLicenseModalOpen] = useState(false);
   const [premiumLicenseModalNonce, setPremiumLicenseModalNonce] = useState(0);
+  const [premiumLicenseModalContext, setPremiumLicenseModalContext] =
+    useState<AppLicenseModalContext | null>(null);
   const [detailsCache, setDetailsCache] = useState<Record<number, PlayerDetailCacheEntry>>({});
   const [leagueOriginsById, setLeagueOriginsById] = useState<
     Record<number, SeniorLeagueOrigin>
@@ -3197,10 +3199,14 @@ export default function SeniorDashboard({
     x: 16,
     y: 108,
   });
-  const openPremiumLicenseModal = useCallback(() => {
-    setPremiumLicenseModalNonce((prev) => prev + 1);
-    setPremiumLicenseModalOpen(true);
-  }, []);
+  const openPremiumLicenseModal = useCallback(
+    (context?: AppLicenseModalContext | null) => {
+      setPremiumLicenseModalContext(context ?? null);
+      setPremiumLicenseModalNonce((prev) => prev + 1);
+      setPremiumLicenseModalOpen(true);
+    },
+    []
+  );
   const [mobileSeniorLandscapeActive, setMobileSeniorLandscapeActive] =
     useState(false);
   const [mobileSeniorRefreshFeedbackVisible, setMobileSeniorRefreshFeedbackVisible] =
@@ -4123,6 +4129,39 @@ export default function SeniorDashboard({
     );
   }, [panelDetailsById, selectedPlayer]);
 
+  const seniorSimulationLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureSeniorSimulationTitle,
+      featureDescription: messages.appLicenseFeatureSeniorSimulationDescription,
+    }),
+    [
+      messages.appLicenseFeatureSeniorSimulationDescription,
+      messages.appLicenseFeatureSeniorSimulationTitle,
+    ]
+  );
+
+  const seniorRatingsLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureSeniorRatingsTitle,
+      featureDescription: messages.appLicenseFeatureSeniorRatingsDescription,
+    }),
+    [
+      messages.appLicenseFeatureSeniorRatingsDescription,
+      messages.appLicenseFeatureSeniorRatingsTitle,
+    ]
+  );
+
+  const seniorManMarkingLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureSeniorManMarkingTitle,
+      featureDescription: messages.appLicenseFeatureSeniorManMarkingDescription,
+    }),
+    [
+      messages.appLicenseFeatureSeniorManMarkingDescription,
+      messages.appLicenseFeatureSeniorManMarkingTitle,
+    ]
+  );
+
   const transferSearchSourcePlayer = useMemo(() => {
     if (transferSearchSourcePlayerId === null) return null;
     return players.find((player) => player.PlayerID === transferSearchSourcePlayerId) ?? null;
@@ -4818,7 +4857,7 @@ export default function SeniorDashboard({
               checked={effectiveSeniorAiManMarkingEnabled}
               onChange={(event) => {
                 if (!premiumUnlocked) {
-                  openPremiumLicenseModal();
+                  openPremiumLicenseModal(seniorManMarkingLicenseContext);
                   return;
                 }
                 setSeniorAiManMarkingEnabled(event.target.checked);
@@ -4836,7 +4875,9 @@ export default function SeniorDashboard({
             label={messages.seniorAiManMarkingFuzzinessLabel}
             ariaLabel={messages.seniorAiManMarkingFuzzinessAriaLabel}
             blocked={!premiumUnlocked}
-            onBlockedInteraction={openPremiumLicenseModal}
+            onBlockedInteraction={() =>
+              openPremiumLicenseModal(seniorManMarkingLicenseContext)
+            }
             disabled={premiumUnlocked ? !effectiveSeniorAiManMarkingEnabled : false}
             onCommit={setSeniorAiManMarkingFuzziness}
           />
@@ -10578,11 +10619,11 @@ const refreshDetailsForPlayers = async (
   }, [hasManualRatingsEdits]);
   const handleRatingsManualOverrideEnabledChange = useCallback((enabled: boolean) => {
     if (enabled && !premiumUnlocked) {
-      openPremiumLicenseModal();
+      openPremiumLicenseModal(seniorRatingsLicenseContext);
       return;
     }
     setRatingsManualOverrideEnabled(enabled);
-  }, [openPremiumLicenseModal, premiumUnlocked]);
+  }, [openPremiumLicenseModal, premiumUnlocked, seniorRatingsLicenseContext]);
   const handleRatingsOverwriteManualEditsEnabledChange = useCallback(
     (enabled: boolean) => {
       setRatingsOverwriteManualEditsEnabled(enabled);
@@ -15478,7 +15519,9 @@ const refreshDetailsForPlayers = async (
       detailsHeaderActions={seniorDetailsHeaderActions}
       onSeniorSimulationStateChange={handleSelectedPlayerSimulationStateChange}
       seniorSimulationEditingBlocked={!premiumUnlocked}
-      onSeniorSimulationBlockedInteraction={openPremiumLicenseModal}
+      onSeniorSimulationBlockedInteraction={() =>
+        openPremiumLicenseModal(seniorSimulationLicenseContext)
+      }
       messages={messages}
     />
   );
@@ -19206,7 +19249,9 @@ const refreshDetailsForPlayers = async (
             detailsHeaderActions={seniorDetailsHeaderActions}
             onSeniorSimulationStateChange={handleSelectedPlayerSimulationStateChange}
             seniorSimulationEditingBlocked={!premiumUnlocked}
-            onSeniorSimulationBlockedInteraction={openPremiumLicenseModal}
+            onSeniorSimulationBlockedInteraction={() =>
+              openPremiumLicenseModal(seniorSimulationLicenseContext)
+            }
             messages={messages}
           />
           )}
@@ -19445,6 +19490,7 @@ const refreshDetailsForPlayers = async (
         key={premiumLicenseModalNonce}
         open={premiumLicenseModalOpen}
         messages={messages}
+        context={premiumLicenseModalContext}
         onClose={() => setPremiumLicenseModalOpen(false)}
       />
     </div>

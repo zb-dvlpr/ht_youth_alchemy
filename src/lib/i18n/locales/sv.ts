@@ -84,6 +84,27 @@ export const messagesSv: Messages = {
       "{{count}} cachade spårade lag förblir dolda tills premium låses upp.",
     clubChroniclePremiumOtherTeamsMessage:
       "Köp HT Alchemy premiumlicensen för att se dessa data för andra spårade lag.",
+    appLicenseFeatureSeniorSimulationTitle: "Redigera skills, ålder, lön, TSI",
+    appLicenseFeatureSeniorSimulationDescription:
+      "Redigera spelarattribut för att se hur Foxtrick-metrikerna ändras. Det förbättrar dina beslut vid spelarköp avsevärt.",
+    appLicenseFeatureSeniorRatingsTitle: "Redigera betyg manuellt",
+    appLicenseFeatureSeniorRatingsDescription:
+      "Spelare väljs utifrån betyg. Redigera betygsmatrisen manuellt för att tvinga fram eller förhindra spelarval och finjustera din uppställning.",
+    appLicenseFeatureSeniorManMarkingTitle: "Man-man-markering",
+    appLicenseFeatureSeniorManMarkingDescription:
+      "Väljer automatiskt ett man-markeringsmål om det finns och en lämplig markerare om det finns. Om målet ställs upp av motståndarlaget är risken för man-markeringsstraff noll tack vare AI:n. Reglaget för MM-strikthet hjälper till att finjustera måldetekteringen.",
+    appLicenseFeatureYouthEstimateValueTitle: "Uppskatta värde",
+    appLicenseFeatureYouthEstimateValueDescription:
+      "Kontrollera transfermarknaden för en spelare med dessa kända maxfärdigheter vid uppflyttningsålder. Det hjälper dig att förstå vad din ungdomsspelare kommer att säljas för.",
+    appLicenseFeatureChronicleFormationsTitle: "Formationer & taktik",
+    appLicenseFeatureChronicleFormationsDescription:
+      "Visar vilka formationer och taktiker det här laget har använt i tidigare matcher. Det hjälper dig att välja den mest optimala uppställningen utifrån motståndarens historik.",
+    appLicenseFeatureChronicleLikelyTrainingTitle: "Troligt träningsupplägg",
+    appLicenseFeatureChronicleLikelyTrainingDescription:
+      "Drar slutsatsen vad detta lag tränar utifrån formationer som används i träningsbara matcher.",
+    appLicenseFeatureChronicleTrackingTitle: "Obegränsad Club Chronicle-spårning",
+    appLicenseFeatureChronicleTrackingDescription:
+      "Lås upp fler Club Chronicle-flikar och följ fler lag per flik. Då kan du bevaka större rivalgrupper utan att trimma bevakningslistan.",
     clubChronicleTabDefaultName: "Flik {{number}}",
     clubChronicleTabAdd: "Lägg till flik",
     clubChronicleTabRenamePlaceholder: "Fliknamn",

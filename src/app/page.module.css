@@ -4657,6 +4657,32 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   line-height: 1.4;
 }
 
+.licenseFeaturePanel {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid #dbcdb4;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 254, 250, 0.96), rgba(248, 241, 228, 0.88));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+}
+
+.licenseFeatureTitle {
+  margin: 0;
+  color: #2d261f;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.licenseFeatureBody {
+  margin: 0;
+  color: #4b4033;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
 .modalButtonRow {
   display: inline-flex;
   align-items: center;
@@ -9581,6 +9607,14 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   }
 
   .licenseDetailsValue {
+    font-size: 13px;
+  }
+
+  .licenseFeatureTitle {
+    font-size: 16px;
+  }
+
+  .licenseFeatureBody {
     font-size: 13px;
   }
 

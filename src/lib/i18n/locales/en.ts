@@ -84,6 +84,27 @@ export const messagesEn: Messages = {
       "{{count}} cached tracked team(s) are hidden until premium is unlocked.",
     clubChroniclePremiumOtherTeamsMessage:
       "Buy the premium HT Alchemy license to view this data for other tracked teams.",
+    appLicenseFeatureSeniorSimulationTitle: "Edit skills, age, wage, TSI",
+    appLicenseFeatureSeniorSimulationDescription:
+      "Edit player attributes to see how Foxtrick metrics change. This significantly improves your player purchase decision making.",
+    appLicenseFeatureSeniorRatingsTitle: "Manually edit ratings",
+    appLicenseFeatureSeniorRatingsDescription:
+      "Players are selected based on ratings. Manually edit the ratings matrix to force player selection or non-selection and fine-tune your lineup.",
+    appLicenseFeatureSeniorManMarkingTitle: "Man marking",
+    appLicenseFeatureSeniorManMarkingDescription:
+      "Automatically select a man-marking target if one exists and an appropriate man marker if one exists. If the man-marking target is fielded by the opposing team, the chance of a man-marking penalty is zero thanks to the AI. The MM strictness slider helps fine-tune target detection.",
+    appLicenseFeatureYouthEstimateValueTitle: "Estimate value",
+    appLicenseFeatureYouthEstimateValueDescription:
+      "Check the transfer market for a player of these known max skills at the age of promotion. This helps you understand what your youth player will sell for.",
+    appLicenseFeatureChronicleFormationsTitle: "Formations & tactics",
+    appLicenseFeatureChronicleFormationsDescription:
+      "Shows the formations and tactics used by this team in past matches. This helps you select the most optimum lineup based on the opposing team’s lineup history.",
+    appLicenseFeatureChronicleLikelyTrainingTitle: "Likely training regimen",
+    appLicenseFeatureChronicleLikelyTrainingDescription:
+      "Infers what this team is training based on formations used in trainable matches.",
+    appLicenseFeatureChronicleTrackingTitle: "Unlimited Club Chronicle tracking",
+    appLicenseFeatureChronicleTrackingDescription:
+      "Unlock additional Club Chronicle tabs and track more teams per tab. This lets you follow larger rival groups without trimming your watchlist.",
     clubChronicleTabDefaultName: "Tab {{number}}",
     clubChronicleTabAdd: "Add tab",
     clubChronicleTabRenamePlaceholder: "Tab name",

@@ -16,11 +16,17 @@ import {
 import styles from "../page.module.css";
 import Modal from "./Modal";
 
+export type AppLicenseModalContext = {
+  featureTitle: string;
+  featureDescription: string;
+};
+
 type AppLicenseModalProps = {
   open: boolean;
   messages: Messages;
   onClose: () => void;
   onSaved?: (state: AppLicenseState) => void;
+  context?: AppLicenseModalContext | null;
 };
 
 export default function AppLicenseModal({
@@ -28,6 +34,7 @@ export default function AppLicenseModal({
   messages,
   onClose,
   onSaved,
+  context = null,
 }: AppLicenseModalProps) {
   const [licenseInput, setLicenseInput] = useState(() =>
     readAppLicenseState().licenseKey
@@ -89,9 +96,15 @@ export default function AppLicenseModal({
     <Modal
       open={open}
       title={messages.clubChroniclePremiumLicenseTitle}
-      className={styles.watchlistModal}
+      className={styles.licenseModal}
       body={
         <div className={styles.watchlistPanel}>
+          {context ? (
+            <section className={styles.licenseFeaturePanel}>
+              <h3 className={styles.licenseFeatureTitle}>{context.featureTitle}</h3>
+              <p className={styles.licenseFeatureBody}>{context.featureDescription}</p>
+            </section>
+          ) : null}
           <p className={styles.muted}>{messages.clubChroniclePremiumLicenseBody}</p>
           <div className={styles.watchlistSection}>
             <button

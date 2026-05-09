@@ -85,6 +85,27 @@ export const messagesIt: Messages = {
       "{{count}} squadra/e tracciata/e in cache restano nascoste finché il premium non viene sbloccato.",
     clubChroniclePremiumOtherTeamsMessage:
       "Acquista la licenza premium HT Alchemy per vedere questi dati per le altre squadre tracciate.",
+    appLicenseFeatureSeniorSimulationTitle: "Modifica skill, età, salario, TSI",
+    appLicenseFeatureSeniorSimulationDescription:
+      "Modifica gli attributi del giocatore per vedere come cambiano le metriche Foxtrick. Questo migliora in modo significativo le tue decisioni di acquisto.",
+    appLicenseFeatureSeniorRatingsTitle: "Modifica manualmente i rating",
+    appLicenseFeatureSeniorRatingsDescription:
+      "I giocatori vengono selezionati in base ai rating. Modifica manualmente la matrice dei rating per forzare o impedire una selezione e rifinire la tua formazione.",
+    appLicenseFeatureSeniorManMarkingTitle: "Marcatura a uomo",
+    appLicenseFeatureSeniorManMarkingDescription:
+      "Seleziona automaticamente un bersaglio di marcatura a uomo se esiste e un marcatore adatto se esiste. Se il bersaglio viene schierato dalla squadra avversaria, la probabilità di una penalità di marcatura a uomo è zero grazie all'IA. Il cursore di rigidità MM aiuta a perfezionare il rilevamento del bersaglio.",
+    appLicenseFeatureYouthEstimateValueTitle: "Stima valore",
+    appLicenseFeatureYouthEstimateValueDescription:
+      "Controlla il mercato dei trasferimenti per un giocatore con queste skill massime conosciute all’età di promozione. Questo aiuta a capire quanto varrà il tuo giovane sul mercato.",
+    appLicenseFeatureChronicleFormationsTitle: "Formazioni e tattiche",
+    appLicenseFeatureChronicleFormationsDescription:
+      "Mostra le formazioni e le tattiche usate da questa squadra nelle partite passate. Questo aiuta a scegliere la formazione più ottimale in base alla storia della squadra avversaria.",
+    appLicenseFeatureChronicleLikelyTrainingTitle: "Probabile regime di allenamento",
+    appLicenseFeatureChronicleLikelyTrainingDescription:
+      "Deduce cosa sta allenando questa squadra in base alle formazioni usate nelle partite allenabili.",
+    appLicenseFeatureChronicleTrackingTitle: "Tracciamento Club Chronicle illimitato",
+    appLicenseFeatureChronicleTrackingDescription:
+      "Sblocca schede aggiuntive di Club Chronicle e più squadre tracciate per scheda. Così puoi seguire gruppi più grandi di rivali senza ridurre la watchlist.",
     clubChronicleTabDefaultName: "Scheda {{number}}",
     clubChronicleTabAdd: "Aggiungi scheda",
     clubChronicleTabRenamePlaceholder: "Nome scheda",

@@ -70,6 +70,27 @@ export const messagesNl: Messages = {
     "{{count}} gecachte gevolgde teams blijven verborgen totdat premium is ontgrendeld.",
   clubChroniclePremiumOtherTeamsMessage:
     "Koop de HT Alchemy-premiumlicentie om deze gegevens voor andere gevolgde teams te bekijken.",
+  appLicenseFeatureSeniorSimulationTitle: "Skills, leeftijd, loon, TSI bewerken",
+  appLicenseFeatureSeniorSimulationDescription:
+    "Bewerk spelereigenschappen om te zien hoe de Foxtrick-metrieken veranderen. Dit verbetert je beslissingen bij speler aankopen aanzienlijk.",
+  appLicenseFeatureSeniorRatingsTitle: "Ratings handmatig bewerken",
+  appLicenseFeatureSeniorRatingsDescription:
+    "Spelers worden geselecteerd op basis van ratings. Bewerk de ratingsmatrix handmatig om spelers te forceren of juist uit te sluiten en je opstelling fijn af te stemmen.",
+  appLicenseFeatureSeniorManMarkingTitle: "Mandekking",
+  appLicenseFeatureSeniorManMarkingDescription:
+    "Selecteert automatisch een mandekkingsdoel als dat bestaat en een geschikte mandekker als die bestaat. Als het doel door de tegenstander wordt opgesteld, is de kans op een mandekkingsstraf nul dankzij de AI. De MM-striktheidsregelaar helpt de doeldetectie fijn af te stemmen.",
+  appLicenseFeatureYouthEstimateValueTitle: "Waarde schatten",
+  appLicenseFeatureYouthEstimateValueDescription:
+    "Controleer de transfermarkt voor een speler met deze bekende maximale skills op promotieleeftijd. Dit helpt je te begrijpen waarvoor je jeugdspeler zal verkopen.",
+  appLicenseFeatureChronicleFormationsTitle: "Formaties & tactieken",
+  appLicenseFeatureChronicleFormationsDescription:
+    "Toont de formaties en tactieken die dit team in eerdere wedstrijden heeft gebruikt. Dit helpt je de meest optimale opstelling te kiezen op basis van de opstellingsgeschiedenis van de tegenstander.",
+  appLicenseFeatureChronicleLikelyTrainingTitle: "Waarschijnlijk trainingsregime",
+  appLicenseFeatureChronicleLikelyTrainingDescription:
+    "Leidt af wat dit team traint op basis van formaties die in trainbare wedstrijden worden gebruikt.",
+  appLicenseFeatureChronicleTrackingTitle: "Onbeperkte Club Chronicle-tracking",
+  appLicenseFeatureChronicleTrackingDescription:
+    "Ontgrendel extra Club Chronicle-tabbladen en volg meer teams per tabblad. Zo kun je grotere rivalengroepen volgen zonder je watchlist te verkleinen.",
   clubChronicleTabDefaultName: "Tab {{number}}",
   clubChronicleTabAdd: "Tab toevoegen",
   clubChronicleTabRenamePlaceholder: "Tabnaam",

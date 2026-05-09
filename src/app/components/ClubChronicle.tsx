@@ -76,7 +76,7 @@ import {
   readAppLicenseState,
 } from "@/lib/license";
 import MobileChronicleMenu from "./MobileChronicleMenu";
-import AppLicenseModal from "./AppLicenseModal";
+import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
 
 type SupportedTeam = {
   teamId: number;
@@ -3078,6 +3078,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [watchlistOpen, setWatchlistOpen] = useState(false);
   const [premiumLicenseModalOpen, setPremiumLicenseModalOpen] = useState(false);
   const [premiumLicenseModalNonce, setPremiumLicenseModalNonce] = useState(0);
+  const [premiumLicenseModalContext, setPremiumLicenseModalContext] =
+    useState<AppLicenseModalContext | null>(null);
   const [panelVisibilityOpen, setPanelVisibilityOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [pendingAutoHelpOpen, setPendingAutoHelpOpen] = useState(false);
@@ -3127,10 +3129,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const coachCountryNameCacheRef = useRef<Map<number, string>>(new Map());
   const coachCountryNamePendingRef = useRef<Map<number, Promise<string | null>>>(new Map());
   const { addNotification } = useNotifications();
-  const openPremiumLicenseModal = useCallback(() => {
-    setPremiumLicenseModalNonce((prev) => prev + 1);
-    setPremiumLicenseModalOpen(true);
-  }, []);
+  const openPremiumLicenseModal = useCallback(
+    (context?: AppLicenseModalContext | null) => {
+      setPremiumLicenseModalContext(context ?? null);
+      setPremiumLicenseModalNonce((prev) => prev + 1);
+      setPremiumLicenseModalOpen(true);
+    },
+    []
+  );
   const anyRefreshing =
     refreshingGlobal ||
     refreshingLeague ||
@@ -4938,16 +4944,49 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
   }, [anyRefreshing, globalRefreshStatus, lastGlobalRefreshAt, mobileChronicleActive]);
 
+  const chronicleTrackingLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureChronicleTrackingTitle,
+      featureDescription: messages.appLicenseFeatureChronicleTrackingDescription,
+    }),
+    [
+      messages.appLicenseFeatureChronicleTrackingDescription,
+      messages.appLicenseFeatureChronicleTrackingTitle,
+    ]
+  );
+
+  const chronicleFormationsLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureChronicleFormationsTitle,
+      featureDescription: messages.appLicenseFeatureChronicleFormationsDescription,
+    }),
+    [
+      messages.appLicenseFeatureChronicleFormationsDescription,
+      messages.appLicenseFeatureChronicleFormationsTitle,
+    ]
+  );
+
+  const chronicleLikelyTrainingLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureChronicleLikelyTrainingTitle,
+      featureDescription: messages.appLicenseFeatureChronicleLikelyTrainingDescription,
+    }),
+    [
+      messages.appLicenseFeatureChronicleLikelyTrainingDescription,
+      messages.appLicenseFeatureChronicleLikelyTrainingTitle,
+    ]
+  );
+
   const promptPremiumForLimit = useCallback(
     (message: string) => {
       addNotification(message);
-      openPremiumLicenseModal();
+      openPremiumLicenseModal(chronicleTrackingLicenseContext);
     },
-    [addNotification, openPremiumLicenseModal]
+    [addNotification, chronicleTrackingLicenseContext, openPremiumLicenseModal]
   );
 
   const renderChroniclePremiumLockedMessage = useCallback(
-    () => (
+    (context: AppLicenseModalContext) => (
       <div className={styles.chroniclePremiumLockedMessage}>
         <p className={styles.chroniclePressMeta}>
           {messages.clubChroniclePremiumOtherTeamsMessage}
@@ -4955,7 +4994,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         <button
           type="button"
           className={styles.watchlistButton}
-          onClick={openPremiumLicenseModal}
+          onClick={() => openPremiumLicenseModal(context)}
         >
           {messages.clubChroniclePremiumBuyButton}
         </button>
@@ -5083,7 +5122,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
   const handleToggleOwnLeague = (key: string) => {
     if (!chroniclePremiumUnlocked) {
-      openPremiumLicenseModal();
+      openPremiumLicenseModal(chronicleTrackingLicenseContext);
       return;
     }
     setOwnLeagueSelections((prev) => ({
@@ -5511,7 +5550,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const handleOpenFormationsTacticsDetails = (teamId: number) => {
     const targetRow = formationsTacticsRows.find((row) => row.teamId === teamId);
     if (targetRow?.premiumLocked) {
-      openPremiumLicenseModal();
+      openPremiumLicenseModal(chronicleFormationsLicenseContext);
       return;
     }
     if (mobileChronicleActive) {
@@ -5530,7 +5569,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const handleOpenLikelyTrainingDetails = (teamId: number) => {
     const targetRow = likelyTrainingRows.find((row) => row.teamId === teamId);
     if (targetRow?.premiumLocked) {
-      openPremiumLicenseModal();
+      openPremiumLicenseModal(chronicleLikelyTrainingLicenseContext);
       return;
     }
     if (mobileChronicleActive) {
@@ -13677,7 +13716,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         )
       : selectedFormationsTacticsTeam;
     if (targetRow?.premiumLocked) {
-      openPremiumLicenseModal();
+      openPremiumLicenseModal(chronicleFormationsLicenseContext);
       return;
     }
     if (mobileChronicleActive && selectedFormationsTacticsTeamId) {
@@ -13694,6 +13733,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
     setFormationsTacticsMatchesOpen(true);
   }, [
+    chronicleFormationsLicenseContext,
     formationsTacticsRows,
     mobileChronicleActive,
     openPremiumLicenseModal,
@@ -13971,7 +14011,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       <button
         type="button"
         className={styles.watchlistButton}
-        onClick={openPremiumLicenseModal}
+        onClick={() => openPremiumLicenseModal(chronicleTrackingLicenseContext)}
       >
         {messages.clubChroniclePremiumBuyButton}
       </button>
@@ -14828,7 +14868,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         );
       case "formations-tactics":
         return selectedFormationsTacticsTeam?.premiumLocked ? (
-          renderChroniclePremiumLockedMessage()
+          renderChroniclePremiumLockedMessage(chronicleFormationsLicenseContext)
         ) : selectedFormationsTacticsTeam?.snapshot ? (
           <>
             <p className={styles.chroniclePressMeta}>
@@ -14975,7 +15015,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         );
       case "likely-training":
         return selectedLikelyTrainingTeam?.premiumLocked ? (
-          renderChroniclePremiumLockedMessage()
+          renderChroniclePremiumLockedMessage(chronicleLikelyTrainingLicenseContext)
         ) : selectedLikelyTrainingTeam?.snapshot ? (
           <>
             <div className={styles.chronicleLikelyTrainingMeta}>
@@ -16753,6 +16793,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         key={premiumLicenseModalNonce}
         open={premiumLicenseModalOpen}
         messages={messages}
+        context={premiumLicenseModalContext}
         onClose={() => setPremiumLicenseModalOpen(false)}
       />
 
@@ -17521,7 +17562,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         className={styles.chronicleTransferHistoryModal}
         body={
           selectedFormationsTacticsTeam?.premiumLocked ? (
-            renderChroniclePremiumLockedMessage()
+            renderChroniclePremiumLockedMessage(chronicleFormationsLicenseContext)
           ) : selectedFormationsTacticsTeam?.snapshot ? (
             <>
               <p className={styles.chroniclePressMeta}>
@@ -17637,7 +17678,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         className={styles.chronicleTransferHistoryModal}
         body={
           selectedFormationsTacticsTeam?.premiumLocked ? (
-            renderChroniclePremiumLockedMessage()
+            renderChroniclePremiumLockedMessage(chronicleFormationsLicenseContext)
           ) : selectedFormationsTacticsTeam?.snapshot?.analyzedMatches?.length ? (
             <ul className={styles.chronicleMatchList}>
               {selectedFormationsTacticsTeam.snapshot.analyzedMatches.map((match) => (
@@ -17773,7 +17814,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         title={messages.clubChronicleLikelyTrainingDetailsTitle}
         body={
           selectedLikelyTrainingTeam?.premiumLocked ? (
-            renderChroniclePremiumLockedMessage()
+            renderChroniclePremiumLockedMessage(chronicleLikelyTrainingLicenseContext)
           ) : selectedLikelyTrainingTeam?.snapshot ? (
             <>
               <div className={styles.chronicleLikelyTrainingMeta}>

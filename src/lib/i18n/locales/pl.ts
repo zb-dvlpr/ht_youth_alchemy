@@ -70,6 +70,27 @@ export const messagesPl: Messages = {
     "{{count}} zapisanych w pamięci śledzonych drużyn pozostaje ukrytych do czasu odblokowania premium.",
   clubChroniclePremiumOtherTeamsMessage:
     "Kup licencję premium HT Alchemy, aby zobaczyć te dane dla innych śledzonych drużyn.",
+  appLicenseFeatureSeniorSimulationTitle: "Edytuj skille, wiek, pensję, TSI",
+  appLicenseFeatureSeniorSimulationDescription:
+    "Edytuj atrybuty zawodnika, aby zobaczyć, jak zmieniają się metryki Foxtricka. To znacząco poprawia decyzje zakupowe dotyczące zawodników.",
+  appLicenseFeatureSeniorRatingsTitle: "Edytuj oceny ręcznie",
+  appLicenseFeatureSeniorRatingsDescription:
+    "Zawodnicy są wybierani na podstawie ocen. Edytuj ręcznie macierz ocen, aby wymuszać lub blokować wybór zawodników i precyzyjniej dostroić skład.",
+  appLicenseFeatureSeniorManMarkingTitle: "Krycie indywidualne",
+  appLicenseFeatureSeniorManMarkingDescription:
+    "Automatycznie wybiera cel krycia indywidualnego, jeśli taki istnieje, oraz odpowiedniego kryjącego, jeśli taki istnieje. Jeśli cel zostanie wystawiony przez drużynę przeciwną, ryzyko kary za krycie indywidualne jest zerowe dzięki AI. Suwak rygoru MM pomaga doprecyzować wykrywanie celu.",
+  appLicenseFeatureYouthEstimateValueTitle: "Oszacuj wartość",
+  appLicenseFeatureYouthEstimateValueDescription:
+    "Sprawdź rynek transferowy dla zawodnika z tymi znanymi maksymalnymi umiejętnościami w wieku promocji. To pomaga zrozumieć, za ile sprzeda się twój junior.",
+  appLicenseFeatureChronicleFormationsTitle: "Formacje i taktyki",
+  appLicenseFeatureChronicleFormationsDescription:
+    "Pokazuje formacje i taktyki używane przez tę drużynę w poprzednich meczach. To pomaga wybrać najbardziej optymalny skład na podstawie historii ustawień drużyny przeciwnej.",
+  appLicenseFeatureChronicleLikelyTrainingTitle: "Prawdopodobny reżim treningowy",
+  appLicenseFeatureChronicleLikelyTrainingDescription:
+    "Wnioskuje, co trenuje ta drużyna na podstawie formacji używanych w meczach treningowych.",
+  appLicenseFeatureChronicleTrackingTitle: "Nielimitowane śledzenie Club Chronicle",
+  appLicenseFeatureChronicleTrackingDescription:
+    "Odblokuj dodatkowe karty Club Chronicle i śledź więcej drużyn na kartę. Dzięki temu możesz obserwować większe grupy rywali bez przycinania watchlisty.",
   clubChronicleTabDefaultName: "Karta {{number}}",
   clubChronicleTabAdd: "Dodaj kartę",
   clubChronicleTabRenamePlaceholder: "Nazwa karty",

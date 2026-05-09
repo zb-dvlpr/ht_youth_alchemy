@@ -131,9 +131,9 @@ export const messagesSv: Messages = {
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
     freePillLabel: "Free",
     freePillTooltip:
-      "Friläge. Premiumfunktioner är låsta tills en giltig licens aktiveras.",
+      "Friläge. Premiumfunktioner är låsta tills en giltig licens aktiveras. Klicka för att köpa en premiumlicens.",
     premiumPillLabel: "Premium",
-    premiumPillTooltip: "Premiumlicens upplåst.",
+    premiumPillTooltip: "Premiumlicens upplåst. Klicka för licensdetaljer.",
     changelog_5_0_0: "Premiumfunktioner.",
     changelog_4_14_0:
       "Seniorernas betygsmatris stöder nu manuella åsidosättningar av betyg med säker återställning efter uppdatering.",

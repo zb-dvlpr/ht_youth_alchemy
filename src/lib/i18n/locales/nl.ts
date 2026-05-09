@@ -312,9 +312,9 @@ export const messagesNl: Messages = {
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
   freePillLabel: "Free",
   freePillTooltip:
-    "Gratis modus. Premiumfuncties blijven vergrendeld totdat een geldige licentie is geactiveerd.",
+    "Gratis modus. Premiumfuncties blijven vergrendeld totdat een geldige licentie is geactiveerd. Klik om een premiumlicentie te kopen.",
   premiumPillLabel: "Premium",
-  premiumPillTooltip: "Premiumlicentie ontgrendeld.",
+  premiumPillTooltip: "Premiumlicentie ontgrendeld. Klik om licentiegegevens te bekijken.",
   changelog_5_0_0: "Premiumfuncties.",
   changelog_4_14_0:
     "De senior beoordelingsmatrix ondersteunt nu handmatige rating-overschrijvingen met veilige herstelactie na verversen.",

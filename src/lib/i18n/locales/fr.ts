@@ -132,9 +132,9 @@ export const messagesFr: Messages = {
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
     freePillLabel: "Free",
     freePillTooltip:
-      "Mode gratuit. Les fonctionnalités premium restent verrouillées jusqu’à l’activation d’une licence valide.",
+      "Mode gratuit. Les fonctionnalités premium restent verrouillées jusqu’à l’activation d’une licence valide. Cliquez ici pour acheter une licence premium.",
     premiumPillLabel: "Premium",
-    premiumPillTooltip: "Licence premium débloquée.",
+    premiumPillTooltip: "Licence premium débloquée. Cliquez ici pour voir les détails de la licence.",
     changelog_5_0_0: "Fonctionnalités premium.",
     changelog_4_14_0:
       "La matrice de notes senior prend désormais en charge les remplacements manuels avec restauration sûre après actualisation.",

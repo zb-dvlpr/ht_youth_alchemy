@@ -11,7 +11,9 @@ import {
   APP_LICENSE_LIMIT_EXCEEDED_EVENT,
   APP_LICENSE_REVOKED_EVENT,
   APP_LICENSE_STORAGE_KEY,
+  clearAppLicenseState,
   consumeLicenseKeyFromUrl,
+  fetchStoredAppLicenseDetails,
   openAppLicensePurchaseUrl,
   readAppLicenseState,
   readAppLicensePurchaseUrl,
@@ -19,6 +21,7 @@ import {
 } from "@/lib/license";
 
 import styles from "../page.module.css";
+import AppLicenseModal from "./AppLicenseModal";
 import AppLicenseDetails from "./AppLicenseDetails";
 import Modal from "./Modal";
 import PremiumStatusPill from "./PremiumStatusPill";
@@ -33,6 +36,12 @@ const LICENSE_REVALIDATION_INTERVAL_MS = 60 * 60 * 1000;
 export default function PremiumPill({ messages }: PremiumPillProps) {
   const hasPurchaseUrl = Boolean(readAppLicensePurchaseUrl());
   const [hydrated, setHydrated] = useState(false);
+  const [licenseEntryOpen, setLicenseEntryOpen] = useState(false);
+  const [licenseDetailsOpen, setLicenseDetailsOpen] = useState(false);
+  const [licenseDetails, setLicenseDetails] =
+    useState<LemonSqueezyLicenseDetails | null>(null);
+  const [licenseDetailsLoading, setLicenseDetailsLoading] = useState(false);
+  const [licenseDetailsUnavailable, setLicenseDetailsUnavailable] = useState(false);
   const [activatedDetails, setActivatedDetails] =
     useState<LemonSqueezyLicenseDetails | null>(null);
   const [expiringDetails, setExpiringDetails] =
@@ -41,6 +50,57 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
   const [licenseRevoked, setLicenseRevoked] = useState(false);
   const [licenseLimitExceeded, setLicenseLimitExceeded] = useState(false);
   const { addNotification } = useNotifications();
+
+  useEffect(() => {
+    if (!licenseDetailsOpen) return;
+    let active = true;
+    void (async () => {
+      const currentState = readAppLicenseState();
+      const hasActiveLicense =
+        currentState.premiumUnlocked &&
+        currentState.licenseKey.trim().length > 0 &&
+        currentState.instanceId.trim().length > 0;
+      if (!active) return;
+      if (!hasActiveLicense) {
+        setLicenseDetails(null);
+        setLicenseDetailsLoading(false);
+        setLicenseDetailsUnavailable(false);
+        return;
+      }
+      setLicenseDetailsLoading(true);
+      setLicenseDetailsUnavailable(false);
+      const result = await fetchStoredAppLicenseDetails();
+      if (!active) return;
+      if (result.transientFailure) {
+        setLicenseDetails(null);
+        setLicenseDetailsUnavailable(true);
+        setLicenseDetailsLoading(false);
+        return;
+      }
+      if (result.exceededActivationLimit) {
+        clearAppLicenseState();
+        setLicenseDetails(null);
+        setLicenseDetailsUnavailable(false);
+        setLicenseDetailsLoading(false);
+        setLicenseDetailsOpen(false);
+        setLicenseLimitExceeded(true);
+        return;
+      }
+      if (!result.valid || !result.details) {
+        clearAppLicenseState();
+        setLicenseDetails(null);
+        setLicenseDetailsUnavailable(false);
+        setLicenseDetailsLoading(false);
+        return;
+      }
+      setLicenseDetails(result.details);
+      setLicenseDetailsUnavailable(false);
+      setLicenseDetailsLoading(false);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [licenseDetailsOpen]);
 
   useEffect(() => {
     const sync = () => {
@@ -143,7 +203,55 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
 
   return (
     <>
-      {hydrated ? <PremiumStatusPill messages={messages} /> : null}
+      {hydrated ? (
+        <PremiumStatusPill
+          messages={messages}
+          onClick={(premiumUnlocked) => {
+            if (premiumUnlocked) {
+              setLicenseDetailsOpen(true);
+              return;
+            }
+            setLicenseEntryOpen(true);
+          }}
+        />
+      ) : null}
+      <AppLicenseModal
+        open={licenseEntryOpen}
+        messages={messages}
+        onClose={() => setLicenseEntryOpen(false)}
+      />
+      <Modal
+        open={licenseDetailsOpen}
+        title={messages.settingsLicenseTitle}
+        className={styles.licenseModal}
+        body={
+          <div className={styles.settingsModalBody}>
+            <p className={styles.muted}>{messages.settingsLicenseBody}</p>
+            {licenseDetailsLoading ? (
+              <p className={styles.muted}>{messages.settingsLicenseLoading}</p>
+            ) : licenseDetails ? (
+              <AppLicenseDetails details={licenseDetails} messages={messages} />
+            ) : licenseDetailsUnavailable ? (
+              <p className={styles.watchlistPremiumHint}>
+                {messages.clubChroniclePremiumLicenseValidationUnavailable}
+              </p>
+            ) : (
+              <p className={styles.muted}>{messages.settingsLicenseNoActive}</p>
+            )}
+          </div>
+        }
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setLicenseDetailsOpen(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setLicenseDetailsOpen(false)}
+      />
       <Modal
         open={activatedDetails !== null}
         title={messages.settingsLicenseActivationSuccessTitle}

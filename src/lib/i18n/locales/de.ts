@@ -132,9 +132,9 @@ export const messagesDe: Messages = {
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
     freePillLabel: "Free",
     freePillTooltip:
-      "Freier Modus. Premium-Funktionen bleiben gesperrt, bis eine gültige Lizenz aktiviert wird.",
+      "Freier Modus. Premium-Funktionen bleiben gesperrt, bis eine gültige Lizenz aktiviert wird. Klicke hier, um eine Premium-Lizenz zu kaufen.",
     premiumPillLabel: "Premium",
-    premiumPillTooltip: "Premium-Lizenz freigeschaltet.",
+    premiumPillTooltip: "Premium-Lizenz freigeschaltet. Klicke hier für Lizenzdetails.",
     changelog_5_0_0: "Premium-Funktionen.",
     changelog_4_14_0:
       "Die Senioren-Bewertungsmatrix unterstützt jetzt manuelle Bewertungsüberschreibungen mit refresh-sicherer Wiederherstellung.",

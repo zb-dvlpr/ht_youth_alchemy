@@ -131,9 +131,9 @@ export const messagesEn: Messages = {
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
     freePillLabel: "Free",
     freePillTooltip:
-      "Free mode. Premium features are locked until a valid license is activated.",
+      "Free mode. Premium features are locked until a valid license is activated. Click to buy a premium license.",
     premiumPillLabel: "Premium",
-    premiumPillTooltip: "Premium license unlocked.",
+    premiumPillTooltip: "Premium license unlocked. Click for license details.",
     changelog_5_0_0: "Premium features.",
     changelog_4_14_0:
       "Senior ratings matrix now supports manual rating overrides with refresh-safe restore behavior.",

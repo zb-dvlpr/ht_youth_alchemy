@@ -15,11 +15,13 @@ import Tooltip from "./Tooltip";
 type PremiumStatusPillProps = {
   messages: Messages;
   className?: string;
+  onClick?: (premiumUnlocked: boolean) => void;
 };
 
 export default function PremiumStatusPill({
   messages,
   className,
+  onClick,
 }: PremiumStatusPillProps) {
   const [premiumUnlocked, setPremiumUnlocked] = useState(false);
 
@@ -48,13 +50,26 @@ export default function PremiumStatusPill({
     ? messages.premiumPillTooltip
     : messages.freePillTooltip;
   const pillClassName = premiumUnlocked ? styles.premiumPill : styles.freePill;
+  const combinedClassName = `${pillClassName}${className ? ` ${className}` : ""}`;
+
+  if (onClick) {
+    return (
+      <Tooltip content={tooltip}>
+        <button
+          type="button"
+          className={styles.premiumStatusPillButton}
+          aria-label={tooltip}
+          onClick={() => onClick(premiumUnlocked)}
+        >
+          <span className={combinedClassName}>{label}</span>
+        </button>
+      </Tooltip>
+    );
+  }
 
   return (
     <Tooltip content={tooltip}>
-      <span
-        className={`${pillClassName}${className ? ` ${className}` : ""}`}
-        aria-label={tooltip}
-      >
+      <span className={combinedClassName} aria-label={tooltip}>
         {label}
       </span>
     </Tooltip>

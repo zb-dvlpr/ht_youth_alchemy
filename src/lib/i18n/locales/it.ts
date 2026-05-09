@@ -132,9 +132,9 @@ export const messagesIt: Messages = {
       "Questa app è in beta. Funzioni, comportamento e dati locali in cache possono cambiare o essere azzerati senza preavviso.",
     freePillLabel: "Free",
     freePillTooltip:
-      "Modalità gratuita. Le funzioni premium restano bloccate finché non viene attivata una licenza valida.",
+      "Modalità gratuita. Le funzioni premium restano bloccate finché non viene attivata una licenza valida. Clicca per acquistare una licenza premium.",
     premiumPillLabel: "Premium",
-    premiumPillTooltip: "Licenza premium sbloccata.",
+    premiumPillTooltip: "Licenza premium sbloccata. Clicca per vedere i dettagli della licenza.",
     changelog_5_0_0: "Funzionalità premium.",
     changelog_4_14_0:
       "La matrice voti senior ora supporta override manuali dei voti con ripristino sicuro dopo il refresh.",

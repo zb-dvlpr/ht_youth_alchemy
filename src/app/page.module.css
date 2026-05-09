@@ -1986,6 +1986,26 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   user-select: none;
 }
 
+.premiumStatusPillButton {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  cursor: pointer;
+  border-radius: 999px;
+}
+
+.premiumStatusPillButton:focus-visible {
+  outline: 2px solid #244d2b;
+  outline-offset: 2px;
+}
+
 .kofiIconLink {
   color: #7a4d14;
   font-size: 16px;
@@ -5133,6 +5153,10 @@ html[data-theme="dark"] .freePill {
   background: rgba(54, 49, 42, 0.92);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
   color: #a9a094;
+}
+
+html[data-theme="dark"] .premiumStatusPillButton:focus-visible {
+  outline-color: #d9c27d;
 }
 
 html[data-theme="dark"] .kofiIconLink {

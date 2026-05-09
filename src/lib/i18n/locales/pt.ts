@@ -132,9 +132,9 @@ export const messagesPt: Messages = {
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
     freePillLabel: "Free",
     freePillTooltip:
-      "Modo gratuito. Os recursos premium permanecem bloqueados até que uma licença válida seja ativada.",
+      "Modo gratuito. Os recursos premium permanecem bloqueados até que uma licença válida seja ativada. Clica para comprar uma licença premium.",
     premiumPillLabel: "Premium",
-    premiumPillTooltip: "Licença premium desbloqueada.",
+    premiumPillTooltip: "Licença premium desbloqueada. Clica para ver os detalhes da licença.",
     changelog_5_0_0: "Recursos premium.",
     changelog_4_14_0:
       "A matriz de avaliações sénior agora suporta substituições manuais com restauro seguro após atualização.",

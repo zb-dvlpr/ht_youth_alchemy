@@ -305,9 +305,9 @@ export const messagesPl: Messages = {
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
   freePillLabel: "Free",
   freePillTooltip:
-    "Tryb darmowy. Funkcje premium pozostają zablokowane, dopóki nie zostanie aktywowana ważna licencja.",
+    "Tryb darmowy. Funkcje premium pozostają zablokowane, dopóki nie zostanie aktywowana ważna licencja. Kliknij, aby kupić licencję premium.",
   premiumPillLabel: "Premium",
-  premiumPillTooltip: "Licencja premium odblokowana.",
+  premiumPillTooltip: "Licencja premium odblokowana. Kliknij, aby zobaczyć szczegóły licencji.",
   changelog_5_0_0: "Funkcje premium.",
   changelog_4_14_0:
     "Macierz ocen seniorów obsługuje teraz ręczne nadpisywanie ocen z bezpiecznym przywracaniem po odświeżeniu.",

@@ -131,9 +131,9 @@ export const messagesEs: Messages = {
       "Esta aplicación está en beta. Las funciones, el comportamiento y los datos locales en caché pueden cambiar o reiniciarse sin previo aviso.",
     freePillLabel: "Free",
     freePillTooltip:
-      "Modo gratuito. Las funciones premium permanecen bloqueadas hasta que se active una licencia válida.",
+      "Modo gratuito. Las funciones premium permanecen bloqueadas hasta que se active una licencia válida. Haz clic para comprar una licencia premium.",
     premiumPillLabel: "Premium",
-    premiumPillTooltip: "Licencia premium desbloqueada.",
+    premiumPillTooltip: "Licencia premium desbloqueada. Haz clic para ver los detalles de la licencia.",
     changelog_5_0_0: "Funciones premium.",
     changelog_4_14_0:
       "La matriz de calificaciones senior ahora permite sobrescrituras manuales con restauración segura tras refrescar.",

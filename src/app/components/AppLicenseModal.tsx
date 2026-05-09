@@ -7,6 +7,7 @@ import {
   type AppLicenseState,
   buildAppLicenseInstanceName,
   dispatchAppLicenseActivatedEvent,
+  dispatchAppLicenseLimitExceededEvent,
   readAppLicenseState,
   validateAppLicenseKey,
   writeAppLicenseState,
@@ -48,6 +49,12 @@ export default function AppLicenseModal({
     if (validation.transientFailure) {
       setSubmitting(false);
       setFeedback(messages.clubChroniclePremiumLicenseValidationUnavailable);
+      return;
+    }
+    if (validation.exceededActivationLimit) {
+      setSubmitting(false);
+      setFeedback(null);
+      dispatchAppLicenseLimitExceededEvent(validation.details);
       return;
     }
     if (!validation.valid || !validation.instanceId) {

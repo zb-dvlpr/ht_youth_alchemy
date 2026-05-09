@@ -155,6 +155,9 @@ export const messagesPl: Messages = {
   settingsLicenseActivationSuccessTitle: "Licencja aktywowana",
   settingsLicenseActivationSuccessBody:
     "Twoja licencja premium HT Alchemy została aktywowana dla tej instancji aplikacji.",
+  settingsLicenseLimitExceededTitle: "Licencja obniżona",
+  settingsLicenseLimitExceededBody:
+    "Ta instancja aplikacji została obniżona do wersji darmowej, ponieważ przekroczono limit aktywacji licencji.",
   settingsLicenseRevocationSuccessTitle: "Licencja unieważniona",
   settingsLicenseRevocationSuccessBody:
     "Ta instancja aplikacji została odłączona od aktywnej licencji, a dostęp premium został usunięty.",

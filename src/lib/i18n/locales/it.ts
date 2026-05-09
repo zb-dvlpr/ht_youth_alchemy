@@ -339,6 +339,9 @@ export const messagesIt: Messages = {
     settingsLicenseActivationSuccessTitle: "Licenza attivata",
     settingsLicenseActivationSuccessBody:
       "La tua licenza premium HT Alchemy è stata attivata per questa istanza dell’app.",
+    settingsLicenseLimitExceededTitle: "Licenza declassata",
+    settingsLicenseLimitExceededBody:
+      "Questa istanza dell’app è stata riportata alla versione gratuita perché è stato superato il limite di attivazione della licenza.",
     settingsLicenseRevocationSuccessTitle: "Licenza revocata",
     settingsLicenseRevocationSuccessBody:
       "Questa istanza dell’app è stata revocata dalla licenza attiva e l’accesso premium è stato rimosso.",

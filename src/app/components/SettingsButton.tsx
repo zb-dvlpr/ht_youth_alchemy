@@ -66,6 +66,7 @@ import { formatDateTime } from "@/lib/datetime";
 import {
   clearAppLicenseState,
   deactivateAppLicense,
+  dispatchAppLicenseLimitExceededEvent,
   dispatchAppLicenseRevokedEvent,
   fetchStoredAppLicenseDetails,
   readAppLicenseState,
@@ -222,6 +223,15 @@ export default function SettingsButton({
         setLicenseDetails(null);
         setLicenseDetailsUnavailable(true);
         setLicenseDetailsLoading(false);
+        return;
+      }
+      if (result.exceededActivationLimit) {
+        clearAppLicenseState();
+        dispatchAppLicenseLimitExceededEvent(result.details);
+        setLicenseDetails(null);
+        setLicenseDetailsUnavailable(false);
+        setLicenseDetailsLoading(false);
+        setLicenseSettingsOpen(false);
         return;
       }
       if (!result.valid || !result.details) {

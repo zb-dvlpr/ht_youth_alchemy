@@ -334,6 +334,9 @@ export const messagesSv: Messages = {
     settingsLicenseActivationSuccessTitle: "Licens aktiverad",
     settingsLicenseActivationSuccessBody:
       "Din HT Alchemy Premium-licens har aktiverats för den här appinstansen.",
+    settingsLicenseLimitExceededTitle: "Licens nedgraderad",
+    settingsLicenseLimitExceededBody:
+      "Den här appinstansen har nedgraderats till gratisversionen eftersom licensens aktiveringsgräns har överskridits.",
     settingsLicenseRevocationSuccessTitle: "Licens återkallad",
     settingsLicenseRevocationSuccessBody:
       "Den här appinstansen har återkallats från den aktiva licensen och premiumåtkomsten har tagits bort.",

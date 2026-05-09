@@ -7,6 +7,7 @@ import type { LemonSqueezyLicenseDetails } from "@/lib/lemonsqueezyLicense";
 import {
   APP_LICENSE_EVENT,
   APP_LICENSE_ACTIVATED_EVENT,
+  APP_LICENSE_LIMIT_EXCEEDED_EVENT,
   APP_LICENSE_REVOKED_EVENT,
   APP_LICENSE_STORAGE_KEY,
   consumeLicenseKeyFromUrl,
@@ -31,6 +32,7 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
   const [activatedDetails, setActivatedDetails] =
     useState<LemonSqueezyLicenseDetails | null>(null);
   const [licenseRevoked, setLicenseRevoked] = useState(false);
+  const [licenseLimitExceeded, setLicenseLimitExceeded] = useState(false);
   const { addNotification } = useNotifications();
 
   useEffect(() => {
@@ -90,9 +92,14 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
       setLicenseRevoked(true);
       sync();
     };
+    const handleLimitExceeded = () => {
+      setLicenseLimitExceeded(true);
+      sync();
+    };
     window.addEventListener("storage", handleStorage);
     window.addEventListener(APP_LICENSE_EVENT, sync);
     window.addEventListener(APP_LICENSE_ACTIVATED_EVENT, handleActivated);
+    window.addEventListener(APP_LICENSE_LIMIT_EXCEEDED_EVENT, handleLimitExceeded);
     window.addEventListener(APP_LICENSE_REVOKED_EVENT, handleRevoked);
     return () => {
       window.cancelAnimationFrame(frameId);
@@ -102,6 +109,10 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener(APP_LICENSE_EVENT, sync);
       window.removeEventListener(APP_LICENSE_ACTIVATED_EVENT, handleActivated);
+      window.removeEventListener(
+        APP_LICENSE_LIMIT_EXCEEDED_EVENT,
+        handleLimitExceeded
+      );
       window.removeEventListener(APP_LICENSE_REVOKED_EVENT, handleRevoked);
     };
   }, [
@@ -137,6 +148,22 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
         }
         closeOnBackdrop
         onClose={() => setActivatedDetails(null)}
+      />
+      <Modal
+        open={licenseLimitExceeded}
+        title={messages.settingsLicenseLimitExceededTitle}
+        body={<p>{messages.settingsLicenseLimitExceededBody}</p>}
+        actions={
+          <button
+            type="button"
+            className={styles.confirmSubmit}
+            onClick={() => setLicenseLimitExceeded(false)}
+          >
+            {messages.closeLabel}
+          </button>
+        }
+        closeOnBackdrop
+        onClose={() => setLicenseLimitExceeded(false)}
       />
       <Modal
         open={licenseRevoked}

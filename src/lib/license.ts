@@ -12,12 +12,14 @@ export type AppLicenseValidationResult = {
   instanceId: string | null;
   details: LemonSqueezyLicenseDetails | null;
   transientFailure: boolean;
+  exceededActivationLimit: boolean;
 };
 
 export type AppLicenseDetailsResult = {
   valid: boolean;
   details: LemonSqueezyLicenseDetails | null;
   transientFailure: boolean;
+  exceededActivationLimit: boolean;
 };
 
 type AppLicenseDeactivationResult = {
@@ -31,6 +33,7 @@ const LEGACY_CLUB_CHRONICLE_LICENSE_STORAGE_KEY = "ya_cc_premium_license_v1";
 export const APP_LICENSE_EVENT = "ya:app-license-state";
 export const APP_LICENSE_ACTIVATED_EVENT = "ya:app-license-activated";
 export const APP_LICENSE_REVOKED_EVENT = "ya:app-license-revoked";
+export const APP_LICENSE_LIMIT_EXCEEDED_EVENT = "ya:app-license-limit-exceeded";
 const APP_LICENSE_QUERY_KEYS = [
   "license_key",
   "order_id",
@@ -108,6 +111,30 @@ export const dispatchAppLicenseRevokedEvent = (
   );
 };
 
+export const dispatchAppLicenseLimitExceededEvent = (
+  details: LemonSqueezyLicenseDetails | null
+) => {
+  if (!isBrowser()) return;
+  window.dispatchEvent(
+    new CustomEvent(APP_LICENSE_LIMIT_EXCEEDED_EVENT, {
+      detail: details,
+    })
+  );
+};
+
+export const hasExceededAppLicenseActivationLimit = (
+  details: LemonSqueezyLicenseDetails | null | undefined
+) => {
+  if (!details) return false;
+  if (
+    typeof details.activationLimit !== "number" ||
+    typeof details.activationUsage !== "number"
+  ) {
+    return false;
+  }
+  return details.activationUsage > details.activationLimit;
+};
+
 export const writeAppLicenseState = (state: AppLicenseState) => {
   if (!isBrowser()) return;
   window.localStorage.setItem(APP_LICENSE_STORAGE_KEY, JSON.stringify(state));
@@ -150,6 +177,7 @@ export const validateAppLicenseKey = async (
       instanceId: null,
       details: null,
       transientFailure: false,
+      exceededActivationLimit: false,
     };
   }
   try {
@@ -173,27 +201,33 @@ export const validateAppLicenseKey = async (
         }
       | null;
     if (!response.ok) {
+      const details =
+        payload?.details && typeof payload.details === "object"
+          ? payload.details
+          : null;
       return {
         valid: false,
         instanceId: null,
-        details:
-          payload?.details && typeof payload.details === "object"
-            ? payload.details
-            : null,
+        details,
         transientFailure: response.status >= 500,
+        exceededActivationLimit: hasExceededAppLicenseActivationLimit(details),
       };
     }
+    const details =
+      payload?.details && typeof payload.details === "object"
+        ? payload.details
+        : null;
+    const exceededActivationLimit =
+      hasExceededAppLicenseActivationLimit(details);
     return {
-      valid: payload?.valid === true,
+      valid: payload?.valid === true && !exceededActivationLimit,
       instanceId:
         typeof payload?.instanceId === "string" && payload.instanceId.trim()
           ? payload.instanceId.trim()
           : null,
-      details:
-        payload?.details && typeof payload.details === "object"
-          ? payload.details
-          : null,
+      details,
       transientFailure: false,
+      exceededActivationLimit,
     };
   } catch {
     return {
@@ -201,6 +235,7 @@ export const validateAppLicenseKey = async (
       instanceId: null,
       details: null,
       transientFailure: true,
+      exceededActivationLimit: false,
     };
   }
 };
@@ -214,6 +249,7 @@ export const fetchStoredAppLicenseDetails = async (): Promise<AppLicenseDetailsR
       valid: false,
       details: null,
       transientFailure: false,
+      exceededActivationLimit: false,
     };
   }
   const validation = await validateAppLicenseKey(licenseKey, {
@@ -224,6 +260,7 @@ export const fetchStoredAppLicenseDetails = async (): Promise<AppLicenseDetailsR
     valid: validation.valid,
     details: validation.details,
     transientFailure: validation.transientFailure,
+    exceededActivationLimit: validation.exceededActivationLimit,
   };
 };
 
@@ -295,6 +332,11 @@ export const consumeLicenseKeyFromUrl = async (): Promise<AppLicenseState | null
     instanceName: buildAppLicenseInstanceName(),
     activate: true,
   });
+  if (validation.exceededActivationLimit) {
+    clearAppLicenseState();
+    dispatchAppLicenseLimitExceededEvent(validation.details);
+    return null;
+  }
   if (!validation.valid || validation.transientFailure || !validation.instanceId) {
     return null;
   }
@@ -338,6 +380,9 @@ export const revalidateStoredAppLicenseState = async (): Promise<AppLicenseState
     }
     if (!validation.valid) {
       clearAppLicenseState();
+      if (validation.exceededActivationLimit) {
+        dispatchAppLicenseLimitExceededEvent(validation.details);
+      }
       return EMPTY_LICENSE_STATE;
     }
     const nextState: AppLicenseState = {

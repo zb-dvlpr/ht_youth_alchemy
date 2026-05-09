@@ -266,6 +266,8 @@ export type Messages = {
   settingsLicenseRevokePending: string;
   settingsLicenseActivationSuccessTitle: string;
   settingsLicenseActivationSuccessBody: string;
+  settingsLicenseLimitExceededTitle: string;
+  settingsLicenseLimitExceededBody: string;
   settingsLicenseRevocationSuccessTitle: string;
   settingsLicenseRevocationSuccessBody: string;
   settingsLicenseNoActive: string;

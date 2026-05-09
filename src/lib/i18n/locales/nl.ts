@@ -155,6 +155,9 @@ export const messagesNl: Messages = {
   settingsLicenseActivationSuccessTitle: "Licentie geactiveerd",
   settingsLicenseActivationSuccessBody:
     "Je HT Alchemy-premiumlicentie is geactiveerd voor deze app-instantie.",
+  settingsLicenseLimitExceededTitle: "Licentie teruggezet",
+  settingsLicenseLimitExceededBody:
+    "Deze app-instantie is teruggezet naar de gratis versie omdat de activatielimiet van de licentie is overschreden.",
   settingsLicenseRevocationSuccessTitle: "Licentie ingetrokken",
   settingsLicenseRevocationSuccessBody:
     "Deze app-instantie is ingetrokken van de actieve licentie en de premiumtoegang is verwijderd.",

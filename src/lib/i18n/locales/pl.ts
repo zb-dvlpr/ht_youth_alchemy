@@ -266,6 +266,9 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  freePillLabel: "Free",
+  freePillTooltip:
+    "Tryb darmowy. Funkcje premium pozostają zablokowane, dopóki nie zostanie aktywowana ważna licencja.",
   premiumPillLabel: "Premium",
   premiumPillTooltip: "Licencja premium odblokowana.",
   changelog_5_0_0: "Funkcje premium.",

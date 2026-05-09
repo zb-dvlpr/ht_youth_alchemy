@@ -273,6 +273,9 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  freePillLabel: "Free",
+  freePillTooltip:
+    "Gratis modus. Premiumfuncties blijven vergrendeld totdat een geldige licentie is geactiveerd.",
   premiumPillLabel: "Premium",
   premiumPillTooltip: "Premiumlicentie ontgrendeld.",
   changelog_5_0_0: "Premiumfuncties.",

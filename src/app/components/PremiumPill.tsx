@@ -17,7 +17,7 @@ import {
 import styles from "../page.module.css";
 import AppLicenseDetails from "./AppLicenseDetails";
 import Modal from "./Modal";
-import Tooltip from "./Tooltip";
+import PremiumStatusPill from "./PremiumStatusPill";
 import { useNotifications } from "./notifications/NotificationsProvider";
 
 type PremiumPillProps = {
@@ -28,7 +28,6 @@ const LICENSE_REVALIDATION_INTERVAL_MS = 60 * 60 * 1000;
 
 export default function PremiumPill({ messages }: PremiumPillProps) {
   const [hydrated, setHydrated] = useState(false);
-  const [premiumUnlocked, setPremiumUnlocked] = useState(false);
   const [activatedDetails, setActivatedDetails] =
     useState<LemonSqueezyLicenseDetails | null>(null);
   const [licenseRevoked, setLicenseRevoked] = useState(false);
@@ -36,7 +35,7 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
 
   useEffect(() => {
     const sync = () => {
-      setPremiumUnlocked(readAppLicenseState().premiumUnlocked);
+      void readAppLicenseState().premiumUnlocked;
     };
     const revalidateIfActive = async () => {
       const state = readAppLicenseState();
@@ -112,13 +111,7 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
 
   return (
     <>
-      {hydrated && premiumUnlocked ? (
-        <Tooltip content={messages.premiumPillTooltip}>
-          <span className={styles.premiumPill} aria-label={messages.premiumPillTooltip}>
-            {messages.premiumPillLabel}
-          </span>
-        </Tooltip>
-      ) : null}
+      {hydrated ? <PremiumStatusPill messages={messages} /> : null}
       <Modal
         open={activatedDetails !== null}
         title={messages.settingsLicenseActivationSuccessTitle}

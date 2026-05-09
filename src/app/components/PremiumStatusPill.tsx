@@ -41,15 +41,21 @@ export default function PremiumStatusPill({
     };
   }, []);
 
-  if (!premiumUnlocked) return null;
+  const label = premiumUnlocked
+    ? messages.premiumPillLabel
+    : messages.freePillLabel;
+  const tooltip = premiumUnlocked
+    ? messages.premiumPillTooltip
+    : messages.freePillTooltip;
+  const pillClassName = premiumUnlocked ? styles.premiumPill : styles.freePill;
 
   return (
-    <Tooltip content={messages.premiumPillTooltip}>
+    <Tooltip content={tooltip}>
       <span
-        className={`${styles.premiumPill}${className ? ` ${className}` : ""}`}
-        aria-label={messages.premiumPillTooltip}
+        className={`${pillClassName}${className ? ` ${className}` : ""}`}
+        aria-label={tooltip}
       >
-        {messages.premiumPillLabel}
+        {label}
       </span>
     </Tooltip>
   );

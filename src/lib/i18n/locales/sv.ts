@@ -102,6 +102,9 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    freePillLabel: "Free",
+    freePillTooltip:
+      "Friläge. Premiumfunktioner är låsta tills en giltig licens aktiveras.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Premiumlicens upplåst.",
     changelog_5_0_0: "Premiumfunktioner.",

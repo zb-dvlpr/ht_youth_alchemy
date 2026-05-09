@@ -1970,14 +1970,38 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   min-height: 20px;
   padding: 2px 9px;
   border-radius: 999px;
-  border: 1px solid rgba(34, 92, 51, 0.24);
+  border: 1px solid rgba(33, 96, 56, 0.34);
   background:
-    linear-gradient(135deg, rgba(76, 152, 97, 0.18), rgba(36, 77, 43, 0.26)),
-    rgba(244, 252, 244, 0.96);
+    linear-gradient(135deg, rgba(255, 245, 182, 0.95), rgba(111, 181, 114, 0.62)),
+    linear-gradient(180deg, rgba(248, 255, 240, 0.98), rgba(226, 248, 230, 0.96));
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.72),
-    0 4px 12px rgba(37, 92, 52, 0.14);
-  color: #244d2b;
+    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+    inset 0 -1px 0 rgba(84, 131, 66, 0.18),
+    0 5px 14px rgba(63, 117, 54, 0.18);
+  color: #1f4f2b;
+  font-family: var(--font-brand), "Space Grotesk", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  cursor: help;
+  user-select: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.44);
+}
+
+.freePill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  min-height: 20px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(125, 117, 103, 0.26);
+  background: rgba(236, 232, 224, 0.92);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  color: #7d7466;
   font-family: var(--font-brand), "Space Grotesk", sans-serif;
   font-size: 10px;
   font-weight: 700;
@@ -5103,14 +5127,23 @@ html[data-theme="dark"] .betaPill {
 }
 
 html[data-theme="dark"] .premiumPill {
-  border-color: rgba(114, 191, 128, 0.24);
+  border-color: rgba(168, 214, 123, 0.28);
   background:
-    linear-gradient(135deg, rgba(62, 127, 75, 0.26), rgba(28, 67, 39, 0.34)),
-    rgba(24, 42, 28, 0.92);
+    linear-gradient(135deg, rgba(164, 140, 62, 0.28), rgba(44, 109, 63, 0.54)),
+    rgba(19, 33, 23, 0.98);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.04),
-    0 6px 16px rgba(0, 0, 0, 0.24);
-  color: #bfe2c6;
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(196, 214, 122, 0.12),
+    0 4px 14px rgba(0, 0, 0, 0.34);
+  color: #e3f6d9;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .freePill {
+  border-color: rgba(136, 128, 113, 0.24);
+  background: rgba(54, 49, 42, 0.92);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: #a9a094;
 }
 
 html[data-theme="dark"] .kofiIconLink {

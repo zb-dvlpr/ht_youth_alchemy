@@ -79,9 +79,15 @@ export const messagesPl: Messages = {
   appLicenseFeatureSeniorManMarkingTitle: "Krycie indywidualne",
   appLicenseFeatureSeniorManMarkingDescription:
     "Automatycznie wybiera cel krycia indywidualnego, jeśli taki istnieje, oraz odpowiedniego kryjącego, jeśli taki istnieje. Jeśli cel zostanie wystawiony przez drużynę przeciwną, ryzyko kary za krycie indywidualne jest zerowe dzięki AI. Suwak rygoru MM pomaga doprecyzować wykrywanie celu.",
+  appLicenseFeatureSeniorFixedFormationTitle: "Optymalizuj według formacji",
+  appLicenseFeatureSeniorFixedFormationDescription:
+    "Wygeneruj najsilniejszy skład dla konkretnej formacji. To pomaga porównywać ustawienia zależne od formacji i wybrać najlepszy skład dla układu, który chcesz zagrać.",
   appLicenseFeatureYouthEstimateValueTitle: "Oszacuj wartość",
   appLicenseFeatureYouthEstimateValueDescription:
     "Sprawdź rynek transferowy dla zawodnika z tymi znanymi maksymalnymi umiejętnościami w wieku promocji. To pomaga zrozumieć, za ile sprzeda się twój junior.",
+  appLicenseFeatureYouthDoubleRevealTitle: "Optymalizacja podwójnego odkrycia",
+  appLicenseFeatureYouthDoubleRevealDescription:
+    "Optymalizuj skład tak, aby zmaksymalizować szansę odkrycia dwóch przydatnych umiejętności w tym samym meczu: jednej wartości bieżącej i jednej wartości maksymalnej, dla dwóch różnych zawodników lub tego samego zawodnika. To pomaga wyciągnąć więcej informacji z jednego składu juniorskiego i przyspiesza ocenę zawodników.",
   appLicenseFeatureChronicleFormationsTitle: "Formacje i taktyki",
   appLicenseFeatureChronicleFormationsDescription:
     "Pokazuje formacje i taktyki używane przez tę drużynę w poprzednich meczach. To pomaga wybrać najbardziej optymalny skład na podstawie historii ustawień drużyny przeciwnej.",

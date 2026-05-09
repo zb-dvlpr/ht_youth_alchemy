@@ -6737,7 +6737,13 @@ export default function Dashboard({
                   ? styles.optimizeMenuItemDisabled
                   : ""
               }`}
-              onClick={() => handleOptimizeSelect("revealPrimaryCurrentAndSecondaryMax")}
+              onClick={() => {
+                if (!premiumUnlocked) {
+                  openPremiumLicenseModal(youthDoubleRevealLicenseContext);
+                  return;
+                }
+                handleOptimizeSelect("revealPrimaryCurrentAndSecondaryMax");
+              }}
               disabled={Boolean(
                 optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
               )}
@@ -7067,6 +7073,16 @@ export default function Dashboard({
     messages.appLicenseFeatureYouthEstimateValueDescription,
     messages.appLicenseFeatureYouthEstimateValueTitle,
   ]);
+  const youthDoubleRevealLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureYouthDoubleRevealTitle,
+      featureDescription: messages.appLicenseFeatureYouthDoubleRevealDescription,
+    }),
+    [
+      messages.appLicenseFeatureYouthDoubleRevealDescription,
+      messages.appLicenseFeatureYouthDoubleRevealTitle,
+    ]
+  );
 
   const youthEstimateValueTooltip = youthEstimateValueDisabled
     ? selectedYouthEstimateValueSkillCount === 0

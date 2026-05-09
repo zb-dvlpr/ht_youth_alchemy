@@ -94,9 +94,15 @@ export const messagesFr: Messages = {
     appLicenseFeatureSeniorManMarkingTitle: "Marquage individuel",
     appLicenseFeatureSeniorManMarkingDescription:
       "Sélectionne automatiquement une cible de marquage individuel si elle existe et un marqueur approprié si lui aussi existe. Si la cible est alignée par l’équipe adverse, le risque de pénalité de marquage individuel est nul grâce à l’IA. Le curseur de rigueur MM aide à affiner la détection de la cible.",
+    appLicenseFeatureSeniorFixedFormationTitle: "Optimiser par formation",
+    appLicenseFeatureSeniorFixedFormationDescription:
+      "Génère la meilleure composition possible pour une formation précise. Cela aide à comparer des configurations par formation et à choisir la meilleure équipe pour le schéma que vous voulez jouer.",
     appLicenseFeatureYouthEstimateValueTitle: "Estimer la valeur",
     appLicenseFeatureYouthEstimateValueDescription:
       "Vérifie le marché des transferts pour un joueur avec ces compétences max connues à l’âge de promotion. Cela aide à comprendre combien ton joueur de jeunes pourra se vendre.",
+    appLicenseFeatureYouthDoubleRevealTitle: "Optimisation double révélation",
+    appLicenseFeatureYouthDoubleRevealDescription:
+      "Optimise la composition pour maximiser la chance de révéler deux compétences utiles dans le même match : une valeur actuelle et une valeur max, pour deux joueurs différents ou pour le même joueur. Cela permet d’extraire davantage d’informations d’une seule composition de jeunes et d’accélérer l’évaluation des joueurs.",
     appLicenseFeatureChronicleFormationsTitle: "Formations & tactiques",
     appLicenseFeatureChronicleFormationsDescription:
       "Affiche les formations et tactiques utilisées par cette équipe lors des matchs passés. Cela aide à choisir la composition la plus optimale selon l’historique de l’équipe adverse.",

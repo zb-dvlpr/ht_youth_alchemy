@@ -94,9 +94,15 @@ export const messagesIt: Messages = {
     appLicenseFeatureSeniorManMarkingTitle: "Marcatura a uomo",
     appLicenseFeatureSeniorManMarkingDescription:
       "Seleziona automaticamente un bersaglio di marcatura a uomo se esiste e un marcatore adatto se esiste. Se il bersaglio viene schierato dalla squadra avversaria, la probabilità di una penalità di marcatura a uomo è zero grazie all'IA. Il cursore di rigidità MM aiuta a perfezionare il rilevamento del bersaglio.",
+    appLicenseFeatureSeniorFixedFormationTitle: "Ottimizza per formazione",
+    appLicenseFeatureSeniorFixedFormationDescription:
+      "Genera la formazione più forte per uno schieramento specifico. Questo ti aiuta a confrontare assetti legati alla formazione e a scegliere la migliore squadra per il modulo che vuoi usare.",
     appLicenseFeatureYouthEstimateValueTitle: "Stima valore",
     appLicenseFeatureYouthEstimateValueDescription:
       "Controlla il mercato dei trasferimenti per un giocatore con queste skill massime conosciute all’età di promozione. Questo aiuta a capire quanto varrà il tuo giovane sul mercato.",
+    appLicenseFeatureYouthDoubleRevealTitle: "Ottimizzazione doppia rivelazione",
+    appLicenseFeatureYouthDoubleRevealDescription:
+      "Ottimizza la formazione per massimizzare la probabilità di rivelare due skill utili nella stessa partita: un valore attuale e un valore massimo, per due giocatori diversi oppure per lo stesso giocatore. Questo ti aiuta a ricavare più informazioni da una singola formazione giovanile e accelera la valutazione dei giocatori.",
     appLicenseFeatureChronicleFormationsTitle: "Formazioni e tattiche",
     appLicenseFeatureChronicleFormationsDescription:
       "Mostra le formazioni e le tattiche usate da questa squadra nelle partite passate. Questo aiuta a scegliere la formazione più ottimale in base alla storia della squadra avversaria.",

@@ -94,9 +94,15 @@ export const messagesPt: Messages = {
     appLicenseFeatureSeniorManMarkingTitle: "Marcação individual",
     appLicenseFeatureSeniorManMarkingDescription:
       "Seleciona automaticamente um alvo de marcação individual se ele existir e um marcador adequado se ele existir. Se o alvo for escalado pela equipe adversária, a chance de penalidade de marcação individual é zero graças à IA. O controle de rigidez MM ajuda a refinar a detecção do alvo.",
+    appLicenseFeatureSeniorFixedFormationTitle: "Otimizar por formação",
+    appLicenseFeatureSeniorFixedFormationDescription:
+      "Gere a escalação mais forte para uma formação específica. Isso ajuda você a comparar configurações por formação e escolher a melhor escalação para o esquema que quer usar.",
     appLicenseFeatureYouthEstimateValueTitle: "Estimar valor",
     appLicenseFeatureYouthEstimateValueDescription:
       "Verifique o mercado de transferências para um jogador com essas habilidades máximas conhecidas na idade de promoção. Isso ajuda a entender por quanto seu jogador da base será vendido.",
+    appLicenseFeatureYouthDoubleRevealTitle: "Otimização de dupla revelação",
+    appLicenseFeatureYouthDoubleRevealDescription:
+      "Otimize a escalação para maximizar a chance de revelar duas habilidades úteis na mesma partida: um valor atual e um valor máximo, para dois jogadores diferentes ou para o mesmo jogador. Isso ajuda a extrair mais informação de uma única escalação de base e acelera a avaliação dos jogadores.",
     appLicenseFeatureChronicleFormationsTitle: "Formações e táticas",
     appLicenseFeatureChronicleFormationsDescription:
       "Mostra as formações e táticas usadas por este time em partidas passadas. Isso ajuda a escolher a escalação mais adequada com base no histórico do time adversário.",

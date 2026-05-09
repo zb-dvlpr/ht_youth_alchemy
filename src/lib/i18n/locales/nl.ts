@@ -79,9 +79,15 @@ export const messagesNl: Messages = {
   appLicenseFeatureSeniorManMarkingTitle: "Mandekking",
   appLicenseFeatureSeniorManMarkingDescription:
     "Selecteert automatisch een mandekkingsdoel als dat bestaat en een geschikte mandekker als die bestaat. Als het doel door de tegenstander wordt opgesteld, is de kans op een mandekkingsstraf nul dankzij de AI. De MM-striktheidsregelaar helpt de doeldetectie fijn af te stemmen.",
+  appLicenseFeatureSeniorFixedFormationTitle: "Optimaliseren op formatie",
+  appLicenseFeatureSeniorFixedFormationDescription:
+    "Genereer de sterkste opstelling voor een specifieke formatie. Dit helpt je formatiespecifieke setups te vergelijken en de beste opstelling te kiezen voor het systeem dat je wilt spelen.",
   appLicenseFeatureYouthEstimateValueTitle: "Waarde schatten",
   appLicenseFeatureYouthEstimateValueDescription:
     "Controleer de transfermarkt voor een speler met deze bekende maximale skills op promotieleeftijd. Dit helpt je te begrijpen waarvoor je jeugdspeler zal verkopen.",
+  appLicenseFeatureYouthDoubleRevealTitle: "Dubbele-onthullingsoptimalisatie",
+  appLicenseFeatureYouthDoubleRevealDescription:
+    "Optimaliseer de opstelling om de kans te maximaliseren dat in dezelfde wedstrijd twee nuttige skills worden onthuld: één huidige waarde en één maximale waarde, voor twee verschillende spelers of dezelfde speler. Dit helpt je meer informatie uit één jeugdopstelling te halen en versnelt de spelersevaluatie.",
   appLicenseFeatureChronicleFormationsTitle: "Formaties & tactieken",
   appLicenseFeatureChronicleFormationsDescription:
     "Toont de formaties en tactieken die dit team in eerdere wedstrijden heeft gebruikt. Dit helpt je de meest optimale opstelling te kiezen op basis van de opstellingsgeschiedenis van de tegenstander.",

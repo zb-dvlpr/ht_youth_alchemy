@@ -123,6 +123,8 @@ type UpcomingMatchesProps = {
   fixedFormationOptions?: string[];
   selectedFixedFormation?: string | null;
   onSelectedFixedFormationChange?: (formation: string | null) => void;
+  fixedFormationBlocked?: boolean;
+  onBlockedFixedFormationInteraction?: () => void;
   selectedIgnoreTrainingFormationPolicy?: IgnoreTrainingFormationPolicy;
   onSelectedIgnoreTrainingFormationPolicyChange?: (
     policy: IgnoreTrainingFormationPolicy
@@ -365,6 +367,8 @@ type SetBestLineupMenuButtonProps = {
   fixedFormationOptions?: string[];
   selectedFixedFormation?: string | null;
   onSelectedFixedFormationChange?: (formation: string | null) => void;
+  fixedFormationBlocked?: boolean;
+  onBlockedFixedFormationInteraction?: () => void;
   selectedIgnoreTrainingFormationPolicy?: IgnoreTrainingFormationPolicy;
   onSelectedIgnoreTrainingFormationPolicyChange?: (
     policy: IgnoreTrainingFormationPolicy
@@ -384,6 +388,8 @@ function SetBestLineupMenuButton({
   fixedFormationOptions = [],
   selectedFixedFormation = null,
   onSelectedFixedFormationChange,
+  fixedFormationBlocked = false,
+  onBlockedFixedFormationInteraction,
   selectedIgnoreTrainingFormationPolicy = "allFormations",
   onSelectedIgnoreTrainingFormationPolicyChange,
   customContent,
@@ -595,6 +601,10 @@ function SetBestLineupMenuButton({
                     className={styles.optimizeMenuInlinePicker}
                     onClick={(event) => {
                       event.stopPropagation();
+                      if (fixedFormationBlocked) {
+                        onBlockedFixedFormationInteraction?.();
+                        return;
+                      }
                       setFixedFormationMenuOpen((current) => !current);
                     }}
                     aria-haspopup="menu"
@@ -643,6 +653,10 @@ function SetBestLineupMenuButton({
                     fixedFormationDisabled ? styles.optimizeMenuItemDisabled : ""
                   }`}
                   onClick={() => {
+                    if (fixedFormationBlocked) {
+                      onBlockedFixedFormationInteraction?.();
+                      return;
+                    }
                     if (!selectedFixedFormation || lineupAiDisabled) return;
                     setOpen(false);
                     setFixedFormationMenuOpen(false);
@@ -695,6 +709,8 @@ function renderMatch(
   fixedFormationOptions?: string[],
   selectedFixedFormation?: string | null,
   onSelectedFixedFormationChange?: (formation: string | null) => void,
+  fixedFormationBlocked?: boolean,
+  onBlockedFixedFormationInteraction?: () => void,
   selectedIgnoreTrainingFormationPolicy?: IgnoreTrainingFormationPolicy,
   onSelectedIgnoreTrainingFormationPolicyChange?: (
     policy: IgnoreTrainingFormationPolicy
@@ -823,6 +839,8 @@ function renderMatch(
             fixedFormationOptions={fixedFormationOptions}
             selectedFixedFormation={selectedFixedFormation}
             onSelectedFixedFormationChange={onSelectedFixedFormationChange}
+            fixedFormationBlocked={fixedFormationBlocked}
+            onBlockedFixedFormationInteraction={onBlockedFixedFormationInteraction}
             selectedIgnoreTrainingFormationPolicy={selectedIgnoreTrainingFormationPolicy}
             onSelectedIgnoreTrainingFormationPolicyChange={
               onSelectedIgnoreTrainingFormationPolicyChange
@@ -983,6 +1001,8 @@ export default function UpcomingMatches({
   fixedFormationOptions = [],
   selectedFixedFormation = null,
   onSelectedFixedFormationChange,
+  fixedFormationBlocked = false,
+  onBlockedFixedFormationInteraction,
   selectedIgnoreTrainingFormationPolicy = "allFormations",
   onSelectedIgnoreTrainingFormationPolicyChange,
   setBestLineupCustomContent,
@@ -1493,6 +1513,8 @@ export default function UpcomingMatches({
               fixedFormationOptions,
               selectedFixedFormation,
               onSelectedFixedFormationChange,
+              fixedFormationBlocked,
+              onBlockedFixedFormationInteraction,
               selectedIgnoreTrainingFormationPolicy,
               onSelectedIgnoreTrainingFormationPolicyChange,
               setBestLineupCustomContent,
@@ -1540,6 +1562,8 @@ export default function UpcomingMatches({
                 fixedFormationOptions,
                 selectedFixedFormation,
                 onSelectedFixedFormationChange,
+                fixedFormationBlocked,
+                onBlockedFixedFormationInteraction,
                 selectedIgnoreTrainingFormationPolicy,
                 onSelectedIgnoreTrainingFormationPolicyChange,
                 setBestLineupCustomContent,

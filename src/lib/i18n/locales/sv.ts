@@ -93,9 +93,15 @@ export const messagesSv: Messages = {
     appLicenseFeatureSeniorManMarkingTitle: "Man-man-markering",
     appLicenseFeatureSeniorManMarkingDescription:
       "Väljer automatiskt ett man-markeringsmål om det finns och en lämplig markerare om det finns. Om målet ställs upp av motståndarlaget är risken för man-markeringsstraff noll tack vare AI:n. Reglaget för MM-strikthet hjälper till att finjustera måldetekteringen.",
+    appLicenseFeatureSeniorFixedFormationTitle: "Optimera efter formation",
+    appLicenseFeatureSeniorFixedFormationDescription:
+      "Generera den starkaste uppställningen för en viss formation. Det hjälper dig att jämföra formationsspecifika upplägg och välja den bästa uppställningen för det spelsystem du vill använda.",
     appLicenseFeatureYouthEstimateValueTitle: "Uppskatta värde",
     appLicenseFeatureYouthEstimateValueDescription:
       "Kontrollera transfermarknaden för en spelare med dessa kända maxfärdigheter vid uppflyttningsålder. Det hjälper dig att förstå vad din ungdomsspelare kommer att säljas för.",
+    appLicenseFeatureYouthDoubleRevealTitle: "Dubbel-avslöjande-optimering",
+    appLicenseFeatureYouthDoubleRevealDescription:
+      "Optimera uppställningen för att maximera chansen att avslöja två användbara färdigheter i samma match: ett nuvärde och ett maxvärde, för två olika spelare eller samma spelare. Det hjälper dig att få ut mer information från en enda ungdomsuppställning och snabbar upp spelarevalueringen.",
     appLicenseFeatureChronicleFormationsTitle: "Formationer & taktik",
     appLicenseFeatureChronicleFormationsDescription:
       "Visar vilka formationer och taktiker det här laget har använt i tidigare matcher. Det hjälper dig att välja den mest optimala uppställningen utifrån motståndarens historik.",

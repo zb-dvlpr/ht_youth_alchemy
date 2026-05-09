@@ -89,8 +89,12 @@ export type Messages = {
   appLicenseFeatureSeniorRatingsDescription: string;
   appLicenseFeatureSeniorManMarkingTitle: string;
   appLicenseFeatureSeniorManMarkingDescription: string;
+  appLicenseFeatureSeniorFixedFormationTitle: string;
+  appLicenseFeatureSeniorFixedFormationDescription: string;
   appLicenseFeatureYouthEstimateValueTitle: string;
   appLicenseFeatureYouthEstimateValueDescription: string;
+  appLicenseFeatureYouthDoubleRevealTitle: string;
+  appLicenseFeatureYouthDoubleRevealDescription: string;
   appLicenseFeatureChronicleFormationsTitle: string;
   appLicenseFeatureChronicleFormationsDescription: string;
   appLicenseFeatureChronicleLikelyTrainingTitle: string;

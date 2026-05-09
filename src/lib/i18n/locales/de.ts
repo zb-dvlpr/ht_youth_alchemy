@@ -94,9 +94,15 @@ export const messagesDe: Messages = {
     appLicenseFeatureSeniorManMarkingTitle: "Manndeckung",
     appLicenseFeatureSeniorManMarkingDescription:
       "Wählt automatisch ein Manndeckungsziel, wenn eines vorhanden ist, und einen passenden Manndecker, wenn einer vorhanden ist. Wenn das Ziel vom Gegner aufgestellt wird, ist die Chance auf eine Manndeckungsstrafe dank der KI null. Der MM-Striktheitsregler hilft bei der Feinabstimmung der Zielerkennung.",
+    appLicenseFeatureSeniorFixedFormationTitle: "Nach Formation optimieren",
+    appLicenseFeatureSeniorFixedFormationDescription:
+      "Erzeuge die stärkste Aufstellung für eine bestimmte Formation. Das hilft dir, formationsspezifische Setups zu vergleichen und die beste Aufstellung für deine gewünschte Grundordnung zu wählen.",
     appLicenseFeatureYouthEstimateValueTitle: "Wert schätzen",
     appLicenseFeatureYouthEstimateValueDescription:
       "Prüfe den Transfermarkt für einen Spieler mit diesen bekannten Max-Skills im Förderalter. Das hilft dir zu verstehen, was dein Jugendspieler einbringen wird.",
+    appLicenseFeatureYouthDoubleRevealTitle: "Doppel-Enthüllungsoptimierung",
+    appLicenseFeatureYouthDoubleRevealDescription:
+      "Optimiere die Aufstellung, um die Chance zu maximieren, in demselben Spiel zwei nützliche Skills zu enthüllen: einen aktuellen Wert und einen Maximalwert, für zwei verschiedene Spieler oder denselben Spieler. Das hilft dir, aus einer einzelnen Jugendaufstellung mehr Informationen herauszuholen und die Spielereinschätzung zu beschleunigen.",
     appLicenseFeatureChronicleFormationsTitle: "Formationen & Taktiken",
     appLicenseFeatureChronicleFormationsDescription:
       "Zeigt die Formationen und Taktiken, die dieses Team in vergangenen Spielen verwendet hat. Das hilft dir, auf Basis der Aufstellungshistorie des Gegners die optimale Aufstellung zu wählen.",

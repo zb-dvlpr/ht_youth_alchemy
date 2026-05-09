@@ -4162,6 +4162,17 @@ export default function SeniorDashboard({
     ]
   );
 
+  const seniorFixedFormationLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureSeniorFixedFormationTitle,
+      featureDescription: messages.appLicenseFeatureSeniorFixedFormationDescription,
+    }),
+    [
+      messages.appLicenseFeatureSeniorFixedFormationDescription,
+      messages.appLicenseFeatureSeniorFixedFormationTitle,
+    ]
+  );
+
   const transferSearchSourcePlayer = useMemo(() => {
     if (transferSearchSourcePlayerId === null) return null;
     return players.find((player) => player.PlayerID === transferSearchSourcePlayerId) ?? null;
@@ -16329,6 +16340,10 @@ const refreshDetailsForPlayers = async (
           fixedFormationOptions={[...FIXED_FORMATION_OPTIONS]}
           selectedFixedFormation={setBestLineupFixedFormation}
           onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
+          fixedFormationBlocked={!premiumUnlocked}
+          onBlockedFixedFormationInteraction={() =>
+            openPremiumLicenseModal(seniorFixedFormationLicenseContext)
+          }
           selectedIgnoreTrainingFormationPolicy={ignoreTrainingFormationPolicy}
           onSelectedIgnoreTrainingFormationPolicyChange={
             setIgnoreTrainingFormationPolicy
@@ -19387,6 +19402,10 @@ const refreshDetailsForPlayers = async (
             fixedFormationOptions={[...FIXED_FORMATION_OPTIONS]}
             selectedFixedFormation={setBestLineupFixedFormation}
             onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
+            fixedFormationBlocked={!premiumUnlocked}
+            onBlockedFixedFormationInteraction={() =>
+              openPremiumLicenseModal(seniorFixedFormationLicenseContext)
+            }
             selectedIgnoreTrainingFormationPolicy={ignoreTrainingFormationPolicy}
             onSelectedIgnoreTrainingFormationPolicyChange={
               setIgnoreTrainingFormationPolicy

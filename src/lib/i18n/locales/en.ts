@@ -93,9 +93,15 @@ export const messagesEn: Messages = {
     appLicenseFeatureSeniorManMarkingTitle: "Man marking",
     appLicenseFeatureSeniorManMarkingDescription:
       "Automatically select a man-marking target if one exists and an appropriate man marker if one exists. If the man-marking target is fielded by the opposing team, the chance of a man-marking penalty is zero thanks to the AI. The MM strictness slider helps fine-tune target detection.",
+    appLicenseFeatureSeniorFixedFormationTitle: "Optimize by formation",
+    appLicenseFeatureSeniorFixedFormationDescription:
+      "Generate the strongest lineup for a specific formation. This helps you compare formation-specific setups and choose the best lineup for the shape you want to play.",
     appLicenseFeatureYouthEstimateValueTitle: "Estimate value",
     appLicenseFeatureYouthEstimateValueDescription:
       "Check the transfer market for a player of these known max skills at the age of promotion. This helps you understand what your youth player will sell for.",
+    appLicenseFeatureYouthDoubleRevealTitle: "Double reveal optimization",
+    appLicenseFeatureYouthDoubleRevealDescription:
+      "Optimize the lineup to maximize the chance of revealing two useful skills in the same match: one current value and one max value, for two different players or the same player. This helps you extract more information from a single youth lineup and speeds up player evaluation.",
     appLicenseFeatureChronicleFormationsTitle: "Formations & tactics",
     appLicenseFeatureChronicleFormationsDescription:
       "Shows the formations and tactics used by this team in past matches. This helps you select the most optimum lineup based on the opposing team’s lineup history.",

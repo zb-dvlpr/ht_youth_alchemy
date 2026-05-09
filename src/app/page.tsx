@@ -320,14 +320,6 @@ export default async function Home() {
                   <div className={styles.brandRow}>
                     <span className={styles.brandTitle}>{messages.brandTitle}</span>
                     <span className={styles.version}>v{pkg.version}</span>
-                    <Tooltip content={messages.betaPillTooltip}>
-                      <span
-                        className={styles.betaPill}
-                        aria-label={messages.betaPillTooltip}
-                      >
-                        {messages.betaPillLabel}
-                      </span>
-                    </Tooltip>
                     <PremiumPill messages={messages} />
                   </div>
                 </div>

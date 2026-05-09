@@ -7,6 +7,9 @@ type LemonSqueezyLicenseStatus = "inactive" | "active" | "expired" | "disabled";
 type LemonSqueezyLicensePayload = {
   status?: LemonSqueezyLicenseStatus | null;
   key?: string | null;
+  activation_limit?: number | null;
+  activation_usage?: number | null;
+  created_at?: string | null;
   expires_at?: string | null;
 };
 
@@ -27,6 +30,28 @@ type LemonSqueezyMetaPayload = {
   customer_id?: number | null;
   customer_name?: string | null;
   customer_email?: string | null;
+};
+
+export type LemonSqueezyLicenseDetails = {
+  status: LemonSqueezyLicenseStatus | null;
+  key: string | null;
+  activationLimit: number | null;
+  activationUsage: number | null;
+  createdAt: string | null;
+  expiresAt: string | null;
+  instanceId: string | null;
+  instanceName: string | null;
+  instanceCreatedAt: string | null;
+  storeId: number | null;
+  orderId: number | null;
+  orderItemId: number | null;
+  productId: number | null;
+  productName: string | null;
+  variantId: number | null;
+  variantName: string | null;
+  customerId: number | null;
+  customerName: string | null;
+  customerEmail: string | null;
 };
 
 type LemonSqueezyValidationResponse = {
@@ -146,4 +171,48 @@ export const readLemonSqueezyLicenseValidity = (
   if ("valid" in payload) return payload.valid === true;
   if ("activated" in payload) return payload.activated === true;
   return false;
+};
+
+export const readLemonSqueezyLicenseDetails = (
+  payload:
+    | LemonSqueezyValidationResponse
+    | LemonSqueezyActivationResponse
+    | LemonSqueezyDeactivationResponse
+    | null
+    | undefined
+): LemonSqueezyLicenseDetails | null => {
+  if (!payload) return null;
+  const licenseKey = payload.license_key ?? null;
+  const instance =
+    "instance" in payload && payload.instance ? payload.instance : null;
+  const meta = payload.meta ?? null;
+  return {
+    status: licenseKey?.status ?? null,
+    key: licenseKey?.key ?? null,
+    activationLimit:
+      typeof (licenseKey as { activation_limit?: unknown } | null)?.activation_limit ===
+      "number"
+        ? (licenseKey as { activation_limit: number }).activation_limit
+        : null,
+    activationUsage:
+      typeof (licenseKey as { activation_usage?: unknown } | null)?.activation_usage ===
+      "number"
+        ? (licenseKey as { activation_usage: number }).activation_usage
+        : null,
+    createdAt: licenseKey?.created_at ?? null,
+    expiresAt: licenseKey?.expires_at ?? null,
+    instanceId: instance?.id ?? null,
+    instanceName: instance?.name ?? null,
+    instanceCreatedAt: instance?.created_at ?? null,
+    storeId: typeof meta?.store_id === "number" ? meta.store_id : null,
+    orderId: typeof meta?.order_id === "number" ? meta.order_id : null,
+    orderItemId: typeof meta?.order_item_id === "number" ? meta.order_item_id : null,
+    productId: typeof meta?.product_id === "number" ? meta.product_id : null,
+    productName: meta?.product_name ?? null,
+    variantId: typeof meta?.variant_id === "number" ? meta.variant_id : null,
+    variantName: meta?.variant_name ?? null,
+    customerId: typeof meta?.customer_id === "number" ? meta.customer_id : null,
+    customerName: meta?.customer_name ?? null,
+    customerEmail: meta?.customer_email ?? null,
+  };
 };

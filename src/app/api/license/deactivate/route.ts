@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { deactivateLemonSqueezyLicense, readLemonSqueezyError } from "@/lib/lemonsqueezyLicense";
+import {
+  deactivateLemonSqueezyLicense,
+  readLemonSqueezyError,
+  readLemonSqueezyLicenseDetails,
+} from "@/lib/lemonsqueezyLicense";
 
 export async function POST(request: Request) {
   const payload = (await request.json().catch(() => null)) as
@@ -17,7 +21,11 @@ export async function POST(request: Request) {
 
   if (!licenseKey || !instanceId) {
     return NextResponse.json(
-      { deactivated: false, error: "License key and instance ID are required." },
+      {
+        deactivated: false,
+        error: "License key and instance ID are required.",
+        details: null,
+      },
       { status: 400 }
     );
   }
@@ -30,6 +38,7 @@ export async function POST(request: Request) {
       {
         deactivated,
         error: readLemonSqueezyError(result.payload),
+        details: readLemonSqueezyLicenseDetails(result.payload),
       },
       { status: result.response.ok ? 200 : result.response.status || 400 }
     );
@@ -38,6 +47,7 @@ export async function POST(request: Request) {
       {
         deactivated: false,
         error: error instanceof Error ? error.message : "License deactivation failed.",
+        details: null,
       },
       { status: 500 }
     );

@@ -1,3 +1,5 @@
+import type { LemonSqueezyLicenseDetails } from "./lemonsqueezyLicense";
+
 export type AppLicenseState = {
   licenseKey: string;
   instanceId: string;
@@ -5,20 +7,30 @@ export type AppLicenseState = {
   validatedAt: number | null;
 };
 
-type AppLicenseValidationResult = {
+export type AppLicenseValidationResult = {
   valid: boolean;
   instanceId: string | null;
+  details: LemonSqueezyLicenseDetails | null;
+  transientFailure: boolean;
+};
+
+export type AppLicenseDetailsResult = {
+  valid: boolean;
+  details: LemonSqueezyLicenseDetails | null;
   transientFailure: boolean;
 };
 
 type AppLicenseDeactivationResult = {
   deactivated: boolean;
+  details: LemonSqueezyLicenseDetails | null;
   transientFailure: boolean;
 };
 
 export const APP_LICENSE_STORAGE_KEY = "ya_premium_license_v1";
 const LEGACY_CLUB_CHRONICLE_LICENSE_STORAGE_KEY = "ya_cc_premium_license_v1";
 export const APP_LICENSE_EVENT = "ya:app-license-state";
+export const APP_LICENSE_ACTIVATED_EVENT = "ya:app-license-activated";
+export const APP_LICENSE_REVOKED_EVENT = "ya:app-license-revoked";
 const APP_LICENSE_QUERY_KEYS = [
   "license_key",
   "order_id",
@@ -74,6 +86,28 @@ const dispatchAppLicenseEvent = (state: AppLicenseState) => {
   window.dispatchEvent(new CustomEvent(APP_LICENSE_EVENT, { detail: state }));
 };
 
+export const dispatchAppLicenseActivatedEvent = (
+  details: LemonSqueezyLicenseDetails
+) => {
+  if (!isBrowser()) return;
+  window.dispatchEvent(
+    new CustomEvent(APP_LICENSE_ACTIVATED_EVENT, {
+      detail: details,
+    })
+  );
+};
+
+export const dispatchAppLicenseRevokedEvent = (
+  details: LemonSqueezyLicenseDetails | null
+) => {
+  if (!isBrowser()) return;
+  window.dispatchEvent(
+    new CustomEvent(APP_LICENSE_REVOKED_EVENT, {
+      detail: details,
+    })
+  );
+};
+
 export const writeAppLicenseState = (state: AppLicenseState) => {
   if (!isBrowser()) return;
   window.localStorage.setItem(APP_LICENSE_STORAGE_KEY, JSON.stringify(state));
@@ -114,6 +148,7 @@ export const validateAppLicenseKey = async (
     return {
       valid: false,
       instanceId: null,
+      details: null,
       transientFailure: false,
     };
   }
@@ -134,12 +169,17 @@ export const validateAppLicenseKey = async (
       | {
           valid?: boolean;
           instanceId?: string | null;
+          details?: LemonSqueezyLicenseDetails | null;
         }
       | null;
     if (!response.ok) {
       return {
         valid: false,
         instanceId: null,
+        details:
+          payload?.details && typeof payload.details === "object"
+            ? payload.details
+            : null,
         transientFailure: response.status >= 500,
       };
     }
@@ -149,15 +189,42 @@ export const validateAppLicenseKey = async (
         typeof payload?.instanceId === "string" && payload.instanceId.trim()
           ? payload.instanceId.trim()
           : null,
+      details:
+        payload?.details && typeof payload.details === "object"
+          ? payload.details
+          : null,
       transientFailure: false,
     };
   } catch {
     return {
       valid: false,
       instanceId: null,
+      details: null,
       transientFailure: true,
     };
   }
+};
+
+export const fetchStoredAppLicenseDetails = async (): Promise<AppLicenseDetailsResult> => {
+  const state = readAppLicenseState();
+  const licenseKey = state.licenseKey.trim();
+  const instanceId = state.instanceId.trim();
+  if (!licenseKey || !instanceId) {
+    return {
+      valid: false,
+      details: null,
+      transientFailure: false,
+    };
+  }
+  const validation = await validateAppLicenseKey(licenseKey, {
+    instanceId,
+    activate: false,
+  });
+  return {
+    valid: validation.valid,
+    details: validation.details,
+    transientFailure: validation.transientFailure,
+  };
 };
 
 export const deactivateAppLicense = async (
@@ -169,6 +236,7 @@ export const deactivateAppLicense = async (
   if (!trimmedLicenseKey || !trimmedInstanceId) {
     return {
       deactivated: false,
+      details: null,
       transientFailure: false,
     };
   }
@@ -186,21 +254,31 @@ export const deactivateAppLicense = async (
     const payload = (await response.json().catch(() => null)) as
       | {
           deactivated?: boolean;
+          details?: LemonSqueezyLicenseDetails | null;
         }
       | null;
     if (!response.ok) {
       return {
         deactivated: false,
+        details:
+          payload?.details && typeof payload.details === "object"
+            ? payload.details
+            : null,
         transientFailure: response.status >= 500,
       };
     }
     return {
       deactivated: payload?.deactivated === true,
+      details:
+        payload?.details && typeof payload.details === "object"
+          ? payload.details
+          : null,
       transientFailure: false,
     };
   } catch {
     return {
       deactivated: false,
+      details: null,
       transientFailure: true,
     };
   }
@@ -227,6 +305,9 @@ export const consumeLicenseKeyFromUrl = async (): Promise<AppLicenseState | null
     validatedAt: Date.now(),
   };
   writeAppLicenseState(nextState);
+  if (validation.details) {
+    dispatchAppLicenseActivatedEvent(validation.details);
+  }
   return nextState;
 };
 

@@ -1503,6 +1503,57 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   background: rgba(255, 252, 246, 0.7);
 }
 
+.licenseDetailsPanel {
+  display: grid;
+  gap: 0;
+  padding: 14px 16px;
+  border: 1px solid #dbcdb4;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 254, 250, 0.92), rgba(248, 241, 228, 0.92));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.licenseDetailsRow {
+  display: grid;
+  grid-template-columns: minmax(132px, 170px) minmax(0, 1fr);
+  gap: 8px 18px;
+  align-items: start;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(219, 205, 180, 0.72);
+}
+
+.licenseDetailsRow:last-child {
+  border-bottom: 0;
+}
+
+.licenseDetailsLabel {
+  color: #7a6f60;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.licenseDetailsValue {
+  color: #2d261f;
+  font-size: 14px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.licenseDetailsStatus {
+  justify-self: start;
+  border-radius: 999px;
+  border: 1px solid rgba(36, 77, 43, 0.25);
+  background: rgba(228, 242, 231, 0.95);
+  color: #244d2b;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 6px 10px;
+}
+
 .settingsSectionHeader {
   display: grid;
   gap: 4px;
@@ -8871,6 +8922,10 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   width: min(900px, 92vw);
 }
 
+.confirmCard.licenseModal {
+  width: min(760px, 94vw);
+}
+
 .confirmCard.chroniclePressModal {
   width: min(760px, 94vw);
 }
@@ -9492,6 +9547,20 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   .confirmCard.manualModal {
     width: min(96vw, 760px);
     height: calc(100dvh - max(24px, env(safe-area-inset-top) + env(safe-area-inset-bottom)));
+  }
+
+  .licenseDetailsRow {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 9px 0;
+  }
+
+  .licenseDetailsLabel {
+    font-size: 11px;
+  }
+
+  .licenseDetailsValue {
+    font-size: 13px;
   }
 
   .manualModal .confirmBody {

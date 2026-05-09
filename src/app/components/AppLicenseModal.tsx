@@ -6,6 +6,7 @@ import type { Messages } from "@/lib/i18n";
 import {
   type AppLicenseState,
   buildAppLicenseInstanceName,
+  dispatchAppLicenseActivatedEvent,
   readAppLicenseState,
   validateAppLicenseKey,
   writeAppLicenseState,
@@ -13,7 +14,6 @@ import {
 
 import styles from "../page.module.css";
 import Modal from "./Modal";
-import { useNotifications } from "./notifications/NotificationsProvider";
 
 type AppLicenseModalProps = {
   open: boolean;
@@ -33,7 +33,6 @@ export default function AppLicenseModal({
   );
   const [feedback, setFeedback] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const { addNotification } = useNotifications();
 
   const saveLicense = useCallback(async () => {
     const trimmed = licenseInput.trim();
@@ -67,13 +66,13 @@ export default function AppLicenseModal({
     setSubmitting(false);
     setFeedback(null);
     onClose();
-    addNotification(messages.clubChroniclePremiumLicenseUnlocked);
+    if (validation.details) {
+      dispatchAppLicenseActivatedEvent(validation.details);
+    }
   }, [
-    addNotification,
     licenseInput,
     messages.clubChroniclePremiumLicenseInvalid,
     messages.clubChroniclePremiumLicenseKeyRequired,
-    messages.clubChroniclePremiumLicenseUnlocked,
     messages.clubChroniclePremiumLicenseValidationUnavailable,
     onClose,
     onSaved,

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import {
   activateLemonSqueezyLicense,
+  readLemonSqueezyLicenseDetails,
   readLemonSqueezyError,
   readLemonSqueezyInstanceId,
   readLemonSqueezyLicenseValidity,
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
         valid: validation.response.ok && validationValid,
         error: readLemonSqueezyError(validation.payload),
         instanceId: validationValid ? instanceId : null,
+        details: readLemonSqueezyLicenseDetails(validation.payload),
       });
     }
 
@@ -53,6 +55,7 @@ export async function POST(request: Request) {
           valid: false,
           error: readLemonSqueezyError(validation.payload),
           instanceId: null,
+          details: readLemonSqueezyLicenseDetails(validation.payload),
         },
         { status: validation.response.status || 400 }
       );
@@ -63,6 +66,7 @@ export async function POST(request: Request) {
         valid: true,
         error: null,
         instanceId: null,
+        details: readLemonSqueezyLicenseDetails(validation.payload),
       });
     }
 
@@ -76,6 +80,7 @@ export async function POST(request: Request) {
         valid: activation.response.ok && activated,
         error: readLemonSqueezyError(activation.payload),
         instanceId: activated ? readLemonSqueezyInstanceId(activation.payload) : null,
+        details: readLemonSqueezyLicenseDetails(activation.payload),
       },
       { status: activation.response.ok ? 200 : activation.response.status || 400 }
     );
@@ -85,6 +90,7 @@ export async function POST(request: Request) {
         valid: false,
         error: error instanceof Error ? error.message : "License validation failed.",
         instanceId: null,
+        details: null,
       },
       { status: 500 }
     );

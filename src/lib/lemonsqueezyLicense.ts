@@ -1,7 +1,6 @@
 const LEMON_SQUEEZY_LICENSE_API_BASE = "https://api.lemonsqueezy.com/v1/licenses";
 
-const TEST_API_KEY_ENV = "HT_ALCHEMY_LS_TEST_API_KEY";
-const PRODUCTION_API_KEY_ENV = "HT_ALCHEMY_LS_PRODUCTION_API_KEY";
+const API_KEY_ENV = "HT_ALCHEMY_LS_API_KEY";
 
 type LemonSqueezyLicenseStatus = "inactive" | "active" | "expired" | "disabled";
 
@@ -54,11 +53,9 @@ type LemonSqueezyDeactivationResponse = {
 };
 
 const resolveLicenseApiKey = () => {
-  const envName =
-    process.env.NODE_ENV === "production" ? PRODUCTION_API_KEY_ENV : TEST_API_KEY_ENV;
-  const apiKey = process.env[envName]?.trim() ?? "";
+  const apiKey = process.env[API_KEY_ENV]?.trim() ?? "";
   if (!apiKey) {
-    throw new Error(`Missing Lemon Squeezy license API key: ${envName}`);
+    throw new Error(`Missing Lemon Squeezy license API key: ${API_KEY_ENV}`);
   }
   return apiKey;
 };

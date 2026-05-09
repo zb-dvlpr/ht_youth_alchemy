@@ -19,6 +19,7 @@ import MobileManualButton from "./components/MobileManualButton";
 import BrandClock from "./components/BrandClock";
 import Tooltip from "./components/Tooltip";
 import PremiumPill from "./components/PremiumPill";
+import PremiumStatusPill from "./components/PremiumStatusPill";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
@@ -334,6 +335,10 @@ export default async function Home() {
                   <div className={styles.mobileLauncherTitleRow}>
                     <span className={styles.brandTitle}>{messages.brandTitle}</span>
                     <span className={styles.version}>v{pkg.version}</span>
+                    <PremiumStatusPill
+                      messages={messages}
+                      className={styles.mobileLauncherPremiumPill}
+                    />
                   </div>
                   {isConnected ? (
                     <ConnectedStatus messages={messages} variant="buttonOnly" />

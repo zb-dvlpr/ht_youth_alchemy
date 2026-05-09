@@ -182,6 +182,13 @@ export const messagesNl: Messages = {
   settingsLicenseActivationSuccessTitle: "Licentie geactiveerd",
   settingsLicenseActivationSuccessBody:
     "Je HT Alchemy-premiumlicentie is geactiveerd voor deze app-instantie.",
+  settingsLicenseExpiringWeekTitle: "Licentie verloopt binnenkort",
+  settingsLicenseExpiringWeekBody:
+    "Je HT Alchemy-premiumlicentie verloopt over ongeveer 1 week. Koop nu een nieuw abonnement om premiumfuncties zonder onderbreking actief te houden.",
+  settingsLicenseExpiringDayTitle: "Licentie verloopt binnenkort",
+  settingsLicenseExpiringDayBody:
+    "Je HT Alchemy-premiumlicentie verloopt over ongeveer 1 dag. Koop nu een nieuw abonnement om premiumfuncties zonder onderbreking actief te houden.",
+  settingsLicenseRenewButton: "Nieuw abonnement kopen",
   settingsLicenseLimitExceededTitle: "Licentie teruggezet",
   settingsLicenseLimitExceededBody:
     "Deze app-instantie is teruggezet naar de gratis versie omdat de activatielimiet van de licentie is overschreden.",

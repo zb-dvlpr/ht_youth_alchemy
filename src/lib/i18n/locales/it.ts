@@ -366,6 +366,13 @@ export const messagesIt: Messages = {
     settingsLicenseActivationSuccessTitle: "Licenza attivata",
     settingsLicenseActivationSuccessBody:
       "La tua licenza premium HT Alchemy è stata attivata per questa istanza dell’app.",
+    settingsLicenseExpiringWeekTitle: "La licenza sta per scadere",
+    settingsLicenseExpiringWeekBody:
+      "La tua licenza premium HT Alchemy scadrà tra circa 1 settimana. Acquista ora un nuovo abbonamento per mantenere attive le funzioni premium senza interruzioni.",
+    settingsLicenseExpiringDayTitle: "La licenza sta per scadere",
+    settingsLicenseExpiringDayBody:
+      "La tua licenza premium HT Alchemy scadrà tra circa 1 giorno. Acquista ora un nuovo abbonamento per mantenere attive le funzioni premium senza interruzioni.",
+    settingsLicenseRenewButton: "Acquista un nuovo abbonamento",
     settingsLicenseLimitExceededTitle: "Licenza declassata",
     settingsLicenseLimitExceededBody:
       "Questa istanza dell’app è stata riportata alla versione gratuita perché è stato superato il limite di attivazione della licenza.",

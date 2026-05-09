@@ -182,6 +182,13 @@ export const messagesPl: Messages = {
   settingsLicenseActivationSuccessTitle: "Licencja aktywowana",
   settingsLicenseActivationSuccessBody:
     "Twoja licencja premium HT Alchemy została aktywowana dla tej instancji aplikacji.",
+  settingsLicenseExpiringWeekTitle: "Licencja wkrótce wygaśnie",
+  settingsLicenseExpiringWeekBody:
+    "Twoja licencja premium HT Alchemy wygaśnie za około 1 tydzień. Kup teraz nową subskrypcję, aby funkcje premium pozostały aktywne bez przerwy.",
+  settingsLicenseExpiringDayTitle: "Licencja wkrótce wygaśnie",
+  settingsLicenseExpiringDayBody:
+    "Twoja licencja premium HT Alchemy wygaśnie za około 1 dzień. Kup teraz nową subskrypcję, aby funkcje premium pozostały aktywne bez przerwy.",
+  settingsLicenseRenewButton: "Kup nową subskrypcję",
   settingsLicenseLimitExceededTitle: "Licencja obniżona",
   settingsLicenseLimitExceededBody:
     "Ta instancja aplikacji została obniżona do wersji darmowej, ponieważ przekroczono limit aktywacji licencji.",

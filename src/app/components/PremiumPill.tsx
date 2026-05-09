@@ -7,11 +7,14 @@ import type { LemonSqueezyLicenseDetails } from "@/lib/lemonsqueezyLicense";
 import {
   APP_LICENSE_EVENT,
   APP_LICENSE_ACTIVATED_EVENT,
+  APP_LICENSE_EXPIRING_EVENT,
   APP_LICENSE_LIMIT_EXCEEDED_EVENT,
   APP_LICENSE_REVOKED_EVENT,
   APP_LICENSE_STORAGE_KEY,
   consumeLicenseKeyFromUrl,
+  openAppLicensePurchaseUrl,
   readAppLicenseState,
+  readAppLicensePurchaseUrl,
   revalidateStoredAppLicenseState,
 } from "@/lib/license";
 
@@ -28,9 +31,13 @@ type PremiumPillProps = {
 const LICENSE_REVALIDATION_INTERVAL_MS = 60 * 60 * 1000;
 
 export default function PremiumPill({ messages }: PremiumPillProps) {
+  const hasPurchaseUrl = Boolean(readAppLicensePurchaseUrl());
   const [hydrated, setHydrated] = useState(false);
   const [activatedDetails, setActivatedDetails] =
     useState<LemonSqueezyLicenseDetails | null>(null);
+  const [expiringDetails, setExpiringDetails] =
+    useState<LemonSqueezyLicenseDetails | null>(null);
+  const [expiringThreshold, setExpiringThreshold] = useState<"week" | "day" | null>(null);
   const [licenseRevoked, setLicenseRevoked] = useState(false);
   const [licenseLimitExceeded, setLicenseLimitExceeded] = useState(false);
   const { addNotification } = useNotifications();
@@ -92,6 +99,18 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
       setLicenseRevoked(true);
       sync();
     };
+    const handleExpiring = (
+      event: Event
+    ) => {
+      const detail = (event as CustomEvent<{
+        details: LemonSqueezyLicenseDetails;
+        threshold: "week" | "day";
+      }>).detail;
+      if (!detail?.details || !detail?.threshold) return;
+      setExpiringDetails(detail.details);
+      setExpiringThreshold(detail.threshold);
+      sync();
+    };
     const handleLimitExceeded = () => {
       setLicenseLimitExceeded(true);
       sync();
@@ -99,6 +118,7 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
     window.addEventListener("storage", handleStorage);
     window.addEventListener(APP_LICENSE_EVENT, sync);
     window.addEventListener(APP_LICENSE_ACTIVATED_EVENT, handleActivated);
+    window.addEventListener(APP_LICENSE_EXPIRING_EVENT, handleExpiring);
     window.addEventListener(APP_LICENSE_LIMIT_EXCEEDED_EVENT, handleLimitExceeded);
     window.addEventListener(APP_LICENSE_REVOKED_EVENT, handleRevoked);
     return () => {
@@ -109,6 +129,7 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener(APP_LICENSE_EVENT, sync);
       window.removeEventListener(APP_LICENSE_ACTIVATED_EVENT, handleActivated);
+      window.removeEventListener(APP_LICENSE_EXPIRING_EVENT, handleExpiring);
       window.removeEventListener(
         APP_LICENSE_LIMIT_EXCEEDED_EVENT,
         handleLimitExceeded
@@ -148,6 +169,51 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
         }
         closeOnBackdrop
         onClose={() => setActivatedDetails(null)}
+      />
+      <Modal
+        open={expiringDetails !== null && expiringThreshold !== null}
+        title={
+          expiringThreshold === "day"
+            ? messages.settingsLicenseExpiringDayTitle
+            : messages.settingsLicenseExpiringWeekTitle
+        }
+        className={styles.licenseModal}
+        body={
+          <p>
+            {expiringThreshold === "day"
+              ? messages.settingsLicenseExpiringDayBody
+              : messages.settingsLicenseExpiringWeekBody}
+          </p>
+        }
+        actions={
+          <div className={styles.modalButtonRow}>
+            <button
+              type="button"
+              className={styles.confirmCancel}
+              onClick={() => {
+                openAppLicensePurchaseUrl();
+              }}
+              disabled={!hasPurchaseUrl}
+            >
+              {messages.settingsLicenseRenewButton}
+            </button>
+            <button
+              type="button"
+              className={styles.confirmSubmit}
+              onClick={() => {
+                setExpiringDetails(null);
+                setExpiringThreshold(null);
+              }}
+            >
+              {messages.closeLabel}
+            </button>
+          </div>
+        }
+        closeOnBackdrop
+        onClose={() => {
+          setExpiringDetails(null);
+          setExpiringThreshold(null);
+        }}
       />
       <Modal
         open={licenseLimitExceeded}

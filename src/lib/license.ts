@@ -15,6 +15,11 @@ export type AppLicenseValidationResult = {
   exceededActivationLimit: boolean;
 };
 
+export type AppLicenseExpiringEventDetail = {
+  details: LemonSqueezyLicenseDetails;
+  threshold: "week" | "day";
+};
+
 export type AppLicenseDetailsResult = {
   valid: boolean;
   details: LemonSqueezyLicenseDetails | null;
@@ -29,11 +34,14 @@ type AppLicenseDeactivationResult = {
 };
 
 export const APP_LICENSE_STORAGE_KEY = "ya_premium_license_v1";
+const APP_LICENSE_EXPIRY_NOTICES_STORAGE_KEY =
+  "ya_premium_license_expiry_notices_v1";
 const LEGACY_CLUB_CHRONICLE_LICENSE_STORAGE_KEY = "ya_cc_premium_license_v1";
 export const APP_LICENSE_EVENT = "ya:app-license-state";
 export const APP_LICENSE_ACTIVATED_EVENT = "ya:app-license-activated";
 export const APP_LICENSE_REVOKED_EVENT = "ya:app-license-revoked";
 export const APP_LICENSE_LIMIT_EXCEEDED_EVENT = "ya:app-license-limit-exceeded";
+export const APP_LICENSE_EXPIRING_EVENT = "ya:app-license-expiring";
 const APP_LICENSE_QUERY_KEYS = [
   "license_key",
   "order_id",
@@ -52,6 +60,15 @@ export const EMPTY_LICENSE_STATE: AppLicenseState = {
 
 const isBrowser = () => typeof window !== "undefined";
 let revalidationPromise: Promise<AppLicenseState> | null = null;
+const APP_LICENSE_EXPIRING_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+const APP_LICENSE_EXPIRING_DAY_MS = 24 * 60 * 60 * 1000;
+
+type AppLicenseExpiryNoticesState = {
+  licenseKey: string;
+  expiresAt: string;
+  weekShown: boolean;
+  dayShown: boolean;
+};
 
 const parseLicenseState = (raw: string | null): AppLicenseState | null => {
   if (!raw) return null;
@@ -66,6 +83,26 @@ const parseLicenseState = (raw: string | null): AppLicenseState | null => {
       premiumUnlocked: parsed.premiumUnlocked === true,
       validatedAt:
         typeof parsed.validatedAt === "number" ? parsed.validatedAt : null,
+    };
+  } catch {
+    return null;
+  }
+};
+
+const parseLicenseExpiryNoticesState = (
+  raw: string | null
+): AppLicenseExpiryNoticesState | null => {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as Partial<AppLicenseExpiryNoticesState> | null;
+    if (!parsed || typeof parsed !== "object") return null;
+    return {
+      licenseKey:
+        typeof parsed.licenseKey === "string" ? parsed.licenseKey : "",
+      expiresAt:
+        typeof parsed.expiresAt === "string" ? parsed.expiresAt : "",
+      weekShown: parsed.weekShown === true,
+      dayShown: parsed.dayShown === true,
     };
   } catch {
     return null;
@@ -122,6 +159,17 @@ export const dispatchAppLicenseLimitExceededEvent = (
   );
 };
 
+export const dispatchAppLicenseExpiringEvent = (
+  detail: AppLicenseExpiringEventDetail
+) => {
+  if (!isBrowser()) return;
+  window.dispatchEvent(
+    new CustomEvent(APP_LICENSE_EXPIRING_EVENT, {
+      detail,
+    })
+  );
+};
+
 export const hasExceededAppLicenseActivationLimit = (
   details: LemonSqueezyLicenseDetails | null | undefined
 ) => {
@@ -147,6 +195,87 @@ export const clearAppLicenseState = () => {
   window.localStorage.removeItem(APP_LICENSE_STORAGE_KEY);
   window.localStorage.removeItem(LEGACY_CLUB_CHRONICLE_LICENSE_STORAGE_KEY);
   dispatchAppLicenseEvent(EMPTY_LICENSE_STATE);
+};
+
+export const readAppLicensePurchaseUrl = () => {
+  const raw = process.env.NEXT_PUBLIC_HT_ALCHEMY_LICENSE_BUY_URL;
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim();
+  return trimmed.length > 0 ? trimmed : null;
+};
+
+export const openAppLicensePurchaseUrl = () => {
+  if (!isBrowser()) return false;
+  const url = readAppLicensePurchaseUrl();
+  if (!url) return false;
+  window.open(url, "_blank", "noopener,noreferrer");
+  return true;
+};
+
+const readAppLicenseExpiryNoticesState = (): AppLicenseExpiryNoticesState | null => {
+  if (!isBrowser()) return null;
+  return parseLicenseExpiryNoticesState(
+    window.localStorage.getItem(APP_LICENSE_EXPIRY_NOTICES_STORAGE_KEY)
+  );
+};
+
+const writeAppLicenseExpiryNoticesState = (
+  state: AppLicenseExpiryNoticesState
+) => {
+  if (!isBrowser()) return;
+  window.localStorage.setItem(
+    APP_LICENSE_EXPIRY_NOTICES_STORAGE_KEY,
+    JSON.stringify(state)
+  );
+};
+
+const getAppLicenseExpiryWarningThreshold = (
+  details: LemonSqueezyLicenseDetails
+): "week" | "day" | null => {
+  const expiresAt = details.expiresAt?.trim() ?? "";
+  if (!expiresAt) return null;
+  const expiresAtMs = new Date(expiresAt).getTime();
+  if (!Number.isFinite(expiresAtMs)) return null;
+  const remainingMs = expiresAtMs - Date.now();
+  if (remainingMs <= 0) return null;
+  if (remainingMs <= APP_LICENSE_EXPIRING_DAY_MS) return "day";
+  if (remainingMs <= APP_LICENSE_EXPIRING_WEEK_MS) return "week";
+  return null;
+};
+
+const maybeDispatchAppLicenseExpiringEvent = (
+  details: LemonSqueezyLicenseDetails | null
+) => {
+  if (!isBrowser() || !details) return;
+  const licenseKey = details.key?.trim() ?? "";
+  const expiresAt = details.expiresAt?.trim() ?? "";
+  if (!licenseKey || !expiresAt) return;
+  const threshold = getAppLicenseExpiryWarningThreshold(details);
+  if (!threshold) return;
+  const currentState = readAppLicenseExpiryNoticesState();
+  const nextState: AppLicenseExpiryNoticesState =
+    currentState &&
+    currentState.licenseKey === licenseKey &&
+    currentState.expiresAt === expiresAt
+      ? currentState
+      : {
+          licenseKey,
+          expiresAt,
+          weekShown: false,
+          dayShown: false,
+        };
+  if (threshold === "day" && nextState.dayShown) return;
+  if (threshold === "week" && nextState.weekShown) return;
+  if (threshold === "day") {
+    nextState.dayShown = true;
+  } else {
+    nextState.weekShown = true;
+  }
+  writeAppLicenseExpiryNoticesState(nextState);
+  dispatchAppLicenseExpiringEvent({
+    details,
+    threshold,
+  });
 };
 
 export const buildAppLicenseInstanceName = () => {
@@ -219,6 +348,9 @@ export const validateAppLicenseKey = async (
         : null;
     const exceededActivationLimit =
       hasExceededAppLicenseActivationLimit(details);
+    if (payload?.valid === true && details && !exceededActivationLimit) {
+      maybeDispatchAppLicenseExpiringEvent(details);
+    }
     return {
       valid: payload?.valid === true && !exceededActivationLimit,
       instanceId:

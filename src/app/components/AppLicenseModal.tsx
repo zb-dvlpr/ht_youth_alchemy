@@ -8,6 +8,8 @@ import {
   buildAppLicenseInstanceName,
   dispatchAppLicenseActivatedEvent,
   dispatchAppLicenseLimitExceededEvent,
+  openAppLicensePurchaseUrl,
+  readAppLicensePurchaseUrl,
   readAppLicenseState,
   validateAppLicenseKey,
   writeAppLicenseState,
@@ -36,6 +38,7 @@ export default function AppLicenseModal({
   onSaved,
   context = null,
 }: AppLicenseModalProps) {
+  const hasPurchaseUrl = Boolean(readAppLicensePurchaseUrl());
   const [licenseInput, setLicenseInput] = useState(() =>
     readAppLicenseState().licenseKey
   );
@@ -110,8 +113,10 @@ export default function AppLicenseModal({
             <button
               type="button"
               className={styles.watchlistButton}
-              onClick={() => undefined}
-              disabled={submitting}
+              onClick={() => {
+                openAppLicensePurchaseUrl();
+              }}
+              disabled={submitting || !hasPurchaseUrl}
             >
               {messages.clubChroniclePremiumBuyButton}
             </button>

@@ -284,6 +284,11 @@ export type Messages = {
   settingsLicenseRevokePending: string;
   settingsLicenseActivationSuccessTitle: string;
   settingsLicenseActivationSuccessBody: string;
+  settingsLicenseExpiringWeekTitle: string;
+  settingsLicenseExpiringWeekBody: string;
+  settingsLicenseExpiringDayTitle: string;
+  settingsLicenseExpiringDayBody: string;
+  settingsLicenseRenewButton: string;
   settingsLicenseLimitExceededTitle: string;
   settingsLicenseLimitExceededBody: string;
   settingsLicenseRevocationSuccessTitle: string;

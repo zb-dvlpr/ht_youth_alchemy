@@ -361,6 +361,13 @@ export const messagesSv: Messages = {
     settingsLicenseActivationSuccessTitle: "Licens aktiverad",
     settingsLicenseActivationSuccessBody:
       "Din HT Alchemy Premium-licens har aktiverats för den här appinstansen.",
+    settingsLicenseExpiringWeekTitle: "Licensen går snart ut",
+    settingsLicenseExpiringWeekBody:
+      "Din HT Alchemy-premiumlicens går ut om ungefär 1 vecka. Köp en ny prenumeration nu för att hålla premiumfunktionerna aktiva utan avbrott.",
+    settingsLicenseExpiringDayTitle: "Licensen går snart ut",
+    settingsLicenseExpiringDayBody:
+      "Din HT Alchemy-premiumlicens går ut om ungefär 1 dag. Köp en ny prenumeration nu för att hålla premiumfunktionerna aktiva utan avbrott.",
+    settingsLicenseRenewButton: "Köp ny prenumeration",
     settingsLicenseLimitExceededTitle: "Licens nedgraderad",
     settingsLicenseLimitExceededBody:
       "Den här appinstansen har nedgraderats till gratisversionen eftersom licensens aktiveringsgräns har överskridits.",

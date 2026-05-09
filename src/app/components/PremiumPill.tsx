@@ -24,6 +24,8 @@ type PremiumPillProps = {
   messages: Messages;
 };
 
+const LICENSE_REVALIDATION_INTERVAL_MS = 60 * 60 * 1000;
+
 export default function PremiumPill({ messages }: PremiumPillProps) {
   const [hydrated, setHydrated] = useState(false);
   const [premiumUnlocked, setPremiumUnlocked] = useState(false);
@@ -36,7 +38,21 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
     const sync = () => {
       setPremiumUnlocked(readAppLicenseState().premiumUnlocked);
     };
+    const revalidateIfActive = async () => {
+      const state = readAppLicenseState();
+      if (
+        !state.premiumUnlocked ||
+        !state.licenseKey.trim() ||
+        !state.instanceId.trim()
+      ) {
+        sync();
+        return;
+      }
+      await revalidateStoredAppLicenseState();
+      sync();
+    };
     let frameId = 0;
+    let intervalId = 0;
     frameId = window.requestAnimationFrame(() => {
       setHydrated(true);
       sync();
@@ -51,10 +67,13 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
           return;
         }
         if (!hadLicenseKeyInUrl) {
-          await revalidateStoredAppLicenseState();
+          await revalidateIfActive();
         }
         sync();
       })();
+      intervalId = window.setInterval(() => {
+        void revalidateIfActive();
+      }, LICENSE_REVALIDATION_INTERVAL_MS);
     });
     if (typeof window === "undefined") return;
     const handleStorage = (event: StorageEvent) => {
@@ -78,6 +97,9 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
     window.addEventListener(APP_LICENSE_REVOKED_EVENT, handleRevoked);
     return () => {
       window.cancelAnimationFrame(frameId);
+      if (intervalId) {
+        window.clearInterval(intervalId);
+      }
       window.removeEventListener("storage", handleStorage);
       window.removeEventListener(APP_LICENSE_EVENT, sync);
       window.removeEventListener(APP_LICENSE_ACTIVATED_EVENT, handleActivated);

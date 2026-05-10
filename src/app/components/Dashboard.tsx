@@ -589,7 +589,7 @@ const SPECIAL_EVENT_SPECIALTY_RULES: Record<number, SpecialEventRule> = {
   190: { specialty: 3, players: ["subject"] },
   205: { specialty: 4, players: ["object"] },
   206: { specialty: 4, players: ["subject"] },
-  208: { specialty: 4, players: ["subject"] },
+  208: { specialty: 4, players: ["object"] },
   209: { specialty: 4, players: ["object"] },
   215: { specialty: 2, players: ["subject"] },
   216: { specialty: 2, players: ["object"] },

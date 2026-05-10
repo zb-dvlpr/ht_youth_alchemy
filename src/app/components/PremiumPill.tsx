@@ -15,6 +15,7 @@ import {
   consumeLicenseKeyFromUrl,
   fetchStoredAppLicenseDetails,
   hasActiveAppLicenseState,
+  isPremiumLicensingEnabled,
   openAppLicensePurchaseUrl,
   readAppLicenseState,
   readAppLicensePurchaseUrl,
@@ -36,6 +37,7 @@ type PremiumPillProps = {
 const LICENSE_REVALIDATION_INTERVAL_MS = 60 * 60 * 1000;
 
 export default function PremiumPill({ messages }: PremiumPillProps) {
+  const premiumLicensingEnabled = isPremiumLicensingEnabled();
   const hasPurchaseUrl = Boolean(readAppLicensePurchaseUrl());
   const [hydrated, setHydrated] = useState(false);
   const [licenseEntryOpen, setLicenseEntryOpen] = useState(false);
@@ -54,6 +56,7 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
   const { addNotification } = useNotifications();
 
   useEffect(() => {
+    if (!premiumLicensingEnabled) return;
     if (!licenseDetailsOpen) return;
     let active = true;
     void (async () => {
@@ -99,9 +102,10 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
     return () => {
       active = false;
     };
-  }, [licenseDetailsOpen]);
+  }, [licenseDetailsOpen, premiumLicensingEnabled]);
 
   useEffect(() => {
+    if (!premiumLicensingEnabled) return;
     const sync = () => {
       void hasActiveAppLicenseState(readAppLicenseState());
     };
@@ -195,7 +199,12 @@ export default function PremiumPill({ messages }: PremiumPillProps) {
   }, [
     addNotification,
     messages.clubChroniclePremiumLicenseUnlocked,
+    premiumLicensingEnabled,
   ]);
+
+  if (!premiumLicensingEnabled) {
+    return null;
+  }
 
   return (
     <>

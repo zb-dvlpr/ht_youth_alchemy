@@ -7,6 +7,7 @@ import {
   APP_LICENSE_EVENT,
   APP_LICENSE_STORAGE_KEY,
   hasActiveAppLicenseState,
+  isPremiumLicensingEnabled,
   readAppLicenseState,
 } from "@/lib/license";
 
@@ -24,6 +25,7 @@ export default function PremiumStatusPill({
   className,
   onClick,
 }: PremiumStatusPillProps) {
+  const premiumLicensingEnabled = isPremiumLicensingEnabled();
   const [premiumUnlocked, setPremiumUnlocked] = useState(false);
 
   useEffect(() => {
@@ -44,16 +46,24 @@ export default function PremiumStatusPill({
     };
   }, []);
 
-  const label = premiumUnlocked
-    ? messages.premiumPillLabel
-    : messages.freePillLabel;
-  const tooltip = premiumUnlocked
-    ? messages.premiumPillTooltip
-    : messages.freePillTooltip;
-  const pillClassName = premiumUnlocked ? styles.premiumPill : styles.freePill;
+  const label = !premiumLicensingEnabled
+    ? messages.betaPillLabel
+    : premiumUnlocked
+      ? messages.premiumPillLabel
+      : messages.freePillLabel;
+  const tooltip = !premiumLicensingEnabled
+    ? messages.betaPillTooltip
+    : premiumUnlocked
+      ? messages.premiumPillTooltip
+      : messages.freePillTooltip;
+  const pillClassName = !premiumLicensingEnabled
+    ? styles.betaPill
+    : premiumUnlocked
+      ? styles.premiumPill
+      : styles.freePill;
   const combinedClassName = `${pillClassName}${className ? ` ${className}` : ""}`;
 
-  if (onClick) {
+  if (premiumLicensingEnabled && onClick) {
     return (
       <Tooltip content={tooltip}>
         <button

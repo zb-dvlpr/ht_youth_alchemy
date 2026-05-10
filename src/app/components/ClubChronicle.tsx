@@ -73,6 +73,8 @@ import {
 import {
   APP_LICENSE_EVENT,
   APP_LICENSE_STORAGE_KEY,
+  hasUnlockedPremiumAccess,
+  isPremiumLicensingEnabled,
   readAppLicenseState,
 } from "@/lib/license";
 import MobileChronicleMenu from "./MobileChronicleMenu";
@@ -2851,6 +2853,7 @@ const getLatestCacheTimestampForTeams = (
 };
 
 export default function ClubChronicle({ messages }: ClubChronicleProps) {
+  const premiumLicensingEnabled = isPremiumLicensingEnabled();
   const initialTabsState = useMemo(
     () => readChronicleTabsStorage(messages, messages.clubChronicleInjuryHealthy),
     [messages.clubChronicleInjuryHealthy]
@@ -3177,7 +3180,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => supportedTeams.filter((team) => !team.isOwnSeniorTeam),
     [supportedTeams]
   );
-  const chroniclePremiumUnlocked = premiumLicenseState.premiumUnlocked;
+  const chroniclePremiumUnlocked = hasUnlockedPremiumAccess(premiumLicenseState);
   const isPremiumChronicleTeamUnlocked = useCallback(
     (teamId: number) => chroniclePremiumUnlocked || ownSeniorTeamIds.has(teamId),
     [chroniclePremiumUnlocked, ownSeniorTeamIds]
@@ -14003,7 +14006,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
   const showMobileChronicleLandscapeHint = mobileChronicleActive;
   const clubChroniclePremiumTooltip = messages.clubChroniclePremiumTooltip;
-  const chroniclePremiumBanner = !chroniclePremiumUnlocked ? (
+  const chroniclePremiumBanner =
+    premiumLicensingEnabled && !chroniclePremiumUnlocked ? (
     <div className={styles.chroniclePremiumBanner}>
       <span className={styles.chroniclePremiumBannerText}>
         {messages.clubChroniclePremiumBanner}
@@ -14016,7 +14020,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         {messages.clubChroniclePremiumBuyButton}
       </button>
     </div>
-  ) : null;
+    ) : null;
 
   const watchlistBody = (
     <div className={styles.watchlistPanel}>
@@ -16789,13 +16793,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         onClose={() => setWatchlistOpen(false)}
       />
 
-      <AppLicenseModal
-        key={premiumLicenseModalNonce}
-        open={premiumLicenseModalOpen}
-        messages={messages}
-        context={premiumLicenseModalContext}
-        onClose={() => setPremiumLicenseModalOpen(false)}
-      />
+      {premiumLicensingEnabled ? (
+        <AppLicenseModal
+          key={premiumLicenseModalNonce}
+          open={premiumLicenseModalOpen}
+          messages={messages}
+          context={premiumLicenseModalContext}
+          onClose={() => setPremiumLicenseModalOpen(false)}
+        />
+      ) : null}
 
       <Modal
         open={panelVisibilityOpen}

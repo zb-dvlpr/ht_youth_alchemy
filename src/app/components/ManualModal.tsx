@@ -5,6 +5,7 @@ import { useRef, useState } from "react";
 import styles from "../page.module.css";
 import { MANUAL_MARKDOWN } from "./manualMarkdown";
 import Modal from "./Modal";
+import { isPremiumLicensingEnabled } from "@/lib/license";
 
 type ManualBlock =
   | { type: "heading"; level: number; text: string; id: string }
@@ -118,8 +119,16 @@ const MANUAL_MARKDOWN_WITH_CHRONICLE_TEAM_ATTITUDE_NOTE =
     "If a team always plays 3-5-2 with the same tactic, that is information.\n  If they suddenly switch, that is also information.\n  If they have no pattern, congratulations, you are scouting chaos.\n\n  ### Team Attitude\n\n  The Team Attitude panel builds on that same formation baseline. It keeps only league matches played in the team’s most common formation, compares the team’s midfield rating across those matches, and labels each analyzed match as PIC, MOTS, or normal. For matches that look like PIC or MOTS, it checks lineup similarity against a league-only baseline squad built from same-formation league matches close to the team’s normal midfield level, starting within plus or minus 1 and widening to plus or minus 2 only if fewer than three league matches qualify. Low-overlap cases are downgraded to potentially PIC or potentially MOTS.\n\n  In the main panel you see only the latest detected non-normal instance and its date for each team. Clicking a team opens the analyzed match list with the match title, a subtler match datetime, score, match type, tactic, and inferred attitude."
   );
 
+const MANUAL_MARKDOWN_WITH_OPTIONAL_LICENSE_SECTION =
+  isPremiumLicensingEnabled()
+    ? MANUAL_MARKDOWN_WITH_CHRONICLE_TEAM_ATTITUDE_NOTE
+    : MANUAL_MARKDOWN_WITH_CHRONICLE_TEAM_ATTITUDE_NOTE.replace(
+        /\n\n  ### License Settings[\s\S]*?(?=\n\n  ### Club Chronicle Watchlist Transfer)/,
+        ""
+      );
+
 const { blocks: manualBlocks, toc: manualToc } = parseManualMarkdown(
-  MANUAL_MARKDOWN_WITH_CHRONICLE_TEAM_ATTITUDE_NOTE
+  MANUAL_MARKDOWN_WITH_OPTIONAL_LICENSE_SECTION
 );
 
 const renderHeading = (block: Extract<ManualBlock, { type: "heading" }>) => {

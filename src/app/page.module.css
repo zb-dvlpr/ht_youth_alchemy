@@ -1936,6 +1936,31 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   color: #6b6256;
 }
 
+.betaPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  min-height: 20px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(164, 125, 54, 0.32);
+  background:
+    linear-gradient(180deg, rgba(255, 246, 224, 0.96), rgba(242, 226, 189, 0.92));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    0 4px 12px rgba(122, 92, 43, 0.1);
+  color: #7f5f1e;
+  font-family: var(--font-brand), "Space Grotesk", sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+  cursor: help;
+  user-select: none;
+}
+
 .premiumPill {
   display: inline-flex;
   align-items: center;
@@ -5146,6 +5171,16 @@ html[data-theme="dark"] .premiumPill {
     0 4px 14px rgba(0, 0, 0, 0.34);
   color: #e3f6d9;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .betaPill {
+  border-color: rgba(202, 170, 101, 0.28);
+  background:
+    linear-gradient(180deg, rgba(88, 67, 32, 0.84), rgba(61, 46, 23, 0.88));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 4px 14px rgba(0, 0, 0, 0.26);
+  color: #f0d79a;
 }
 
 html[data-theme="dark"] .freePill {

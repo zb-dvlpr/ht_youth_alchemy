@@ -58,6 +58,9 @@ export const EMPTY_LICENSE_STATE: AppLicenseState = {
   validatedAt: null,
 };
 
+export const isPremiumLicensingEnabled = () =>
+  process.env.NEXT_PUBLIC_HT_ALCHEMY_PREMIUM_ENABLED === "true";
+
 const isBrowser = () => typeof window !== "undefined";
 let revalidationPromise: Promise<AppLicenseState> | null = null;
 const APP_LICENSE_EXPIRING_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
@@ -125,6 +128,10 @@ export const hasActiveAppLicenseState = (state: AppLicenseState) =>
   state.premiumUnlocked &&
   state.licenseKey.trim().length > 0 &&
   state.instanceId.trim().length > 0;
+
+export const hasUnlockedPremiumAccess = (
+  state: AppLicenseState = readAppLicenseState()
+) => !isPremiumLicensingEnabled() || hasActiveAppLicenseState(state);
 
 const dispatchAppLicenseEvent = (state: AppLicenseState) => {
   if (!isBrowser()) return;

@@ -69,6 +69,8 @@ import {
   dispatchAppLicenseLimitExceededEvent,
   dispatchAppLicenseRevokedEvent,
   fetchStoredAppLicenseDetails,
+  hasActiveAppLicenseState,
+  isPremiumLicensingEnabled,
   readAppLicenseState,
 } from "@/lib/license";
 import type { LemonSqueezyLicenseDetails } from "@/lib/lemonsqueezyLicense";
@@ -96,6 +98,7 @@ export default function SettingsButton({
   messages,
   variant = "icon",
 }: SettingsButtonProps) {
+  const premiumLicensingEnabled = isPremiumLicensingEnabled();
   const isMobileLauncherVariant = variant === "launcher";
   const [open, setOpen] = useState(false);
   const [youthSettingsOpen, setYouthSettingsOpen] = useState(false);
@@ -163,14 +166,9 @@ export default function SettingsButton({
       return null;
     }
   }, [chronicleQrEncoded]);
-  const hasStoredActiveLicense = (() => {
-    const state = readAppLicenseState();
-    return (
-      state.premiumUnlocked &&
-      state.licenseKey.trim().length > 0 &&
-      state.instanceId.trim().length > 0
-    );
-  })();
+  const hasStoredActiveLicense = premiumLicensingEnabled
+    ? hasActiveAppLicenseState(readAppLicenseState())
+    : false;
 
   useEffect(() => {
     if (!open) return;
@@ -201,12 +199,10 @@ export default function SettingsButton({
   }, []);
 
   useEffect(() => {
+    if (!premiumLicensingEnabled) return;
     if (!licenseSettingsOpen) return;
     const currentState = readAppLicenseState();
-    const hasActiveLicense =
-      currentState.premiumUnlocked &&
-      currentState.licenseKey.trim().length > 0 &&
-      currentState.instanceId.trim().length > 0;
+    const hasActiveLicense = hasActiveAppLicenseState(currentState);
     if (!hasActiveLicense) {
       setLicenseDetails(null);
       setLicenseDetailsLoading(false);
@@ -248,7 +244,7 @@ export default function SettingsButton({
     return () => {
       active = false;
     };
-  }, [licenseSettingsOpen]);
+  }, [licenseSettingsOpen, premiumLicensingEnabled]);
 
   useEffect(() => {
     if (!chronicleQrExportOpen) return;
@@ -769,16 +765,18 @@ export default function SettingsButton({
           >
             {messages.settingsGeneral}
           </button>
-          <button
-            type="button"
-            className={styles.feedbackLink}
-            onClick={() => {
-              setLicenseSettingsOpen(true);
-              setOpen(false);
-            }}
-          >
-            {messages.settingsLicense}
-          </button>
+          {premiumLicensingEnabled ? (
+            <button
+              type="button"
+              className={styles.feedbackLink}
+              onClick={() => {
+                setLicenseSettingsOpen(true);
+                setOpen(false);
+              }}
+            >
+              {messages.settingsLicense}
+            </button>
+          ) : null}
           {isDev ? (
             <button
               type="button"
@@ -1035,64 +1033,68 @@ export default function SettingsButton({
         closeOnBackdrop
         onClose={() => setChronicleSettingsOpen(false)}
       />
-      <Modal
-        open={licenseSettingsOpen}
-        title={messages.settingsLicenseTitle}
-        className={styles.licenseModal}
-        body={
-          <div className={styles.settingsModalBody}>
-            <p className={styles.muted}>{messages.settingsLicenseBody}</p>
-            {licenseDetailsLoading ? (
-              <p className={styles.muted}>{messages.settingsLicenseLoading}</p>
-            ) : licenseDetails ? (
-              <AppLicenseDetails details={licenseDetails} messages={messages} />
-            ) : licenseDetailsUnavailable ? (
-              <p className={styles.watchlistPremiumHint}>
-                {messages.clubChroniclePremiumLicenseValidationUnavailable}
-              </p>
-            ) : (
-              <p className={styles.muted}>{messages.settingsLicenseNoActive}</p>
-            )}
-            <button
-              type="button"
-              className={styles.settingsActionButton}
-              onClick={handleOpenLicenseEntry}
-            >
-              {messages.settingsLicenseBuyButton}
-            </button>
-            <button
-              type="button"
-              className={styles.settingsDangerButton}
-              onClick={() => {
-                void handleRevokeLicense();
-              }}
-              disabled={
-                licenseDetailsLoading ||
-                (!hasStoredActiveLicense && !licenseDetailsUnavailable)
-              }
-            >
-              {messages.settingsLicenseRevokeButton}
-            </button>
-          </div>
-        }
-        actions={
-          <button
-            type="button"
-            className={styles.confirmSubmit}
-            onClick={() => setLicenseSettingsOpen(false)}
-          >
-            {messages.closeLabel}
-          </button>
-        }
-        closeOnBackdrop
-        onClose={() => setLicenseSettingsOpen(false)}
-      />
-      <AppLicenseModal
-        key={licenseEntryNonce}
-        open={licenseEntryOpen}
-        messages={messages}
-        onClose={() => setLicenseEntryOpen(false)}
-      />
+      {premiumLicensingEnabled ? (
+        <>
+          <Modal
+            open={licenseSettingsOpen}
+            title={messages.settingsLicenseTitle}
+            className={styles.licenseModal}
+            body={
+              <div className={styles.settingsModalBody}>
+                <p className={styles.muted}>{messages.settingsLicenseBody}</p>
+                {licenseDetailsLoading ? (
+                  <p className={styles.muted}>{messages.settingsLicenseLoading}</p>
+                ) : licenseDetails ? (
+                  <AppLicenseDetails details={licenseDetails} messages={messages} />
+                ) : licenseDetailsUnavailable ? (
+                  <p className={styles.watchlistPremiumHint}>
+                    {messages.clubChroniclePremiumLicenseValidationUnavailable}
+                  </p>
+                ) : (
+                  <p className={styles.muted}>{messages.settingsLicenseNoActive}</p>
+                )}
+                <button
+                  type="button"
+                  className={styles.settingsActionButton}
+                  onClick={handleOpenLicenseEntry}
+                >
+                  {messages.settingsLicenseBuyButton}
+                </button>
+                <button
+                  type="button"
+                  className={styles.settingsDangerButton}
+                  onClick={() => {
+                    void handleRevokeLicense();
+                  }}
+                  disabled={
+                    licenseDetailsLoading ||
+                    (!hasStoredActiveLicense && !licenseDetailsUnavailable)
+                  }
+                >
+                  {messages.settingsLicenseRevokeButton}
+                </button>
+              </div>
+            }
+            actions={
+              <button
+                type="button"
+                className={styles.confirmSubmit}
+                onClick={() => setLicenseSettingsOpen(false)}
+              >
+                {messages.closeLabel}
+              </button>
+            }
+            closeOnBackdrop
+            onClose={() => setLicenseSettingsOpen(false)}
+          />
+          <AppLicenseModal
+            key={licenseEntryNonce}
+            open={licenseEntryOpen}
+            messages={messages}
+            onClose={() => setLicenseEntryOpen(false)}
+          />
+        </>
+      ) : null}
       <Modal
         open={generalSettingsOpen}
         title={messages.settingsGeneralTitle}

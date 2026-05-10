@@ -125,6 +125,7 @@ import {
 import {
   APP_LICENSE_EVENT,
   APP_LICENSE_STORAGE_KEY,
+  hasUnlockedPremiumAccess,
   readAppLicenseState,
 } from "@/lib/license";
 import { captureSeniorEncounteredPlayer } from "@/lib/seniorEncounteredPlayerModel";
@@ -1053,7 +1054,9 @@ export default function Dashboard({
   );
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [transferSearchModalOpen, setTransferSearchModalOpen] = useState(false);
-  const [premiumUnlocked, setPremiumUnlocked] = useState(false);
+  const [premiumUnlocked, setPremiumUnlocked] = useState(() =>
+    hasUnlockedPremiumAccess(readAppLicenseState())
+  );
   const [premiumLicenseModalOpen, setPremiumLicenseModalOpen] = useState(false);
   const [premiumLicenseModalNonce, setPremiumLicenseModalNonce] = useState(0);
   const [premiumLicenseModalContext, setPremiumLicenseModalContext] =
@@ -1156,7 +1159,7 @@ export default function Dashboard({
   useEffect(() => {
     if (typeof window === "undefined") return;
     const syncPremiumState = () => {
-      setPremiumUnlocked(readAppLicenseState().premiumUnlocked);
+      setPremiumUnlocked(hasUnlockedPremiumAccess(readAppLicenseState()));
     };
     syncPremiumState();
     const handleStorage = (event: StorageEvent) => {
@@ -8540,13 +8543,15 @@ export default function Dashboard({
       </div>
       </>
       )}
-      <AppLicenseModal
-        key={premiumLicenseModalNonce}
-        open={premiumLicenseModalOpen}
-        messages={messages}
-        context={premiumLicenseModalContext}
-        onClose={() => setPremiumLicenseModalOpen(false)}
-      />
+      {process.env.NEXT_PUBLIC_HT_ALCHEMY_PREMIUM_ENABLED === "true" ? (
+        <AppLicenseModal
+          key={premiumLicenseModalNonce}
+          open={premiumLicenseModalOpen}
+          messages={messages}
+          context={premiumLicenseModalContext}
+          onClose={() => setPremiumLicenseModalOpen(false)}
+        />
+      ) : null}
     </div>
     </div>
   );

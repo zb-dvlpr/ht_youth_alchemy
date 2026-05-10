@@ -44,6 +44,60 @@ export const messagesNl: Messages = {
   watchlistDeselectAll: "Alles deselecteren",
   watchlistGenderMale: "Mannelijk",
   watchlistGenderFemale: "Vrouwelijk",
+  clubChroniclePremiumTooltip:
+    "Koop een HT Alchemy-premiumlicentie om een onbeperkt aantal teams in een onbeperkt aantal tabbladen te volgen en toegang te krijgen tot alle andere premiumfuncties.",
+  clubChroniclePremiumBanner:
+    "Koop de HT Alchemy-premiumlicentie om onbeperkt teams in onbeperkt veel tabbladen te volgen.",
+  clubChroniclePremiumBuyButton: "Premiumlicentie kopen",
+  clubChroniclePremiumLicenseTitle:
+    "Deze functie vereist de HT Alchemy-premiumlicentie.",
+  clubChroniclePremiumLicenseBody:
+    "Voer hier je HT Alchemy-premiumlicentiesleutel in om premiumfuncties te ontgrendelen.",
+  clubChroniclePremiumLicenseFieldLabel: "Licentiesleutel",
+  clubChroniclePremiumLicensePlaceholder: "Licentiesleutel invoeren",
+  clubChroniclePremiumLicenseSubmit: "Premium ontgrendelen",
+  clubChroniclePremiumLicenseKeyRequired: "Voer een licentiesleutel in.",
+  clubChroniclePremiumLicenseUnlocked: "Premium ontgrendeld.",
+  clubChroniclePremiumLicensePendingValidation:
+    "Je licentiesleutel is lokaal opgeslagen. Online validatie is nog niet beschikbaar.",
+  clubChroniclePremiumLicenseInvalid: "Die licentiesleutel is niet geldig.",
+  clubChroniclePremiumLicenseValidationUnavailable:
+    "Licentievalidatie is momenteel niet beschikbaar. Probeer het later opnieuw.",
+  clubChroniclePremiumTeamLimitReached:
+    "De gratis versie van Club Chronicle is beperkt tot 3 gevolgde teams per tabblad.",
+  clubChroniclePremiumTabLimitReached:
+    "De gratis versie van Club Chronicle is beperkt tot 2 tabbladen.",
+  clubChroniclePremiumHiddenTeamsNotice:
+    "{{count}} gecachte gevolgde teams blijven verborgen totdat premium is ontgrendeld.",
+  clubChroniclePremiumOtherTeamsMessage:
+    "Koop de HT Alchemy-premiumlicentie om deze gegevens voor andere gevolgde teams te bekijken.",
+  appLicenseFeatureSeniorSimulationTitle: "Skills, leeftijd, loon, TSI bewerken",
+  appLicenseFeatureSeniorSimulationDescription:
+    "Bewerk spelereigenschappen om te zien hoe de Foxtrick-metrieken veranderen. Dit verbetert je beslissingen bij speler aankopen aanzienlijk.",
+  appLicenseFeatureSeniorRatingsTitle: "Ratings handmatig bewerken",
+  appLicenseFeatureSeniorRatingsDescription:
+    "Spelers worden geselecteerd op basis van ratings. Bewerk de ratingsmatrix handmatig om spelers te forceren of juist uit te sluiten en je opstelling fijn af te stemmen.",
+  appLicenseFeatureSeniorManMarkingTitle: "Mandekking",
+  appLicenseFeatureSeniorManMarkingDescription:
+    "Selecteert automatisch een mandekkingsdoel als dat bestaat en een geschikte mandekker als die bestaat. Als het doel door de tegenstander wordt opgesteld, is de kans op een mandekkingsstraf nul dankzij de AI. De MM-striktheidsregelaar helpt de doeldetectie fijn af te stemmen.",
+  appLicenseFeatureSeniorFixedFormationTitle: "Optimaliseren op formatie",
+  appLicenseFeatureSeniorFixedFormationDescription:
+    "Genereer de sterkste opstelling voor een specifieke formatie. Dit helpt je formatiespecifieke setups te vergelijken en de beste opstelling te kiezen voor het systeem dat je wilt spelen.",
+  appLicenseFeatureYouthEstimateValueTitle: "Waarde schatten",
+  appLicenseFeatureYouthEstimateValueDescription:
+    "Controleer de transfermarkt voor een speler met deze bekende maximale skills op promotieleeftijd. Dit helpt je te begrijpen waarvoor je jeugdspeler zal verkopen.",
+  appLicenseFeatureYouthDoubleRevealTitle: "Dubbele-onthullingsoptimalisatie",
+  appLicenseFeatureYouthDoubleRevealDescription:
+    "Optimaliseer de opstelling om de kans te maximaliseren dat in dezelfde wedstrijd twee nuttige skills worden onthuld: één huidige waarde en één maximale waarde, voor twee verschillende spelers of dezelfde speler. Dit helpt je meer informatie uit één jeugdopstelling te halen en versnelt de spelersevaluatie.",
+  appLicenseFeatureChronicleFormationsTitle: "Formaties & tactieken",
+  appLicenseFeatureChronicleFormationsDescription:
+    "Toont de formaties en tactieken die dit team in eerdere wedstrijden heeft gebruikt. Dit helpt je de meest optimale opstelling te kiezen op basis van de opstellingsgeschiedenis van de tegenstander.",
+  appLicenseFeatureChronicleLikelyTrainingTitle: "Waarschijnlijk trainingsregime",
+  appLicenseFeatureChronicleLikelyTrainingDescription:
+    "Leidt af wat dit team traint op basis van formaties die in trainbare wedstrijden worden gebruikt.",
+  appLicenseFeatureChronicleTrackingTitle: "Onbeperkte Club Chronicle-tracking",
+  appLicenseFeatureChronicleTrackingDescription:
+    "Ontgrendel extra Club Chronicle-tabbladen en volg meer teams per tabblad. Zo kun je grotere rivalengroepen volgen zonder je watchlist te verkleinen.",
   clubChronicleTabDefaultName: "Tab {{number}}",
   clubChronicleTabAdd: "Tab toevoegen",
   clubChronicleTabRenamePlaceholder: "Tabnaam",
@@ -89,6 +143,8 @@ export const messagesNl: Messages = {
   feedbackBugSuccess: "Bugmelding verstuurd.",
   feedbackFeatureSuccess: "Functieaanvraag verstuurd.",
   feedbackSubmitError: "Versturen van het issue mislukt.",
+  feedbackUsernameDisclaimer:
+    "Je Hattrick-gebruikersnaam wordt aan dit rapport toegevoegd zodat de ontwikkelaar contact met je kan opnemen als er vervolgvragen zijn.",
   feedbackMetadataHattrickUser: "Hattrick-gebruiker",
   feedbackManagerIdentityRequiredError:
     "Je Hattrick-gebruikersnaam en gebruikers-ID konden niet worden opgehaald voor de meldingsmetadata.",
@@ -115,6 +171,58 @@ export const messagesNl: Messages = {
   settingsSeniorRatingsWipeWarningAcknowledge: "Ik begrijp het",
   settingsGeneral: "Algemeen",
   settingsGeneralTitle: "Algemene instellingen",
+  settingsLicense: "Licentie",
+  settingsLicenseTitle: "Licentie",
+  settingsLicenseBody:
+    "Koop een HT Alchemy-premiumlicentie of beheer hier je huidige licentie.",
+  settingsLicenseBuyButton: "Licentie kopen",
+  settingsLicenseRevokeButton: "Licentie intrekken",
+  settingsLicenseRevoked: "Licentie gewist. Gratis modus hersteld.",
+  settingsLicenseRevokePending:
+    "Het intrekken van de licentie is mislukt. Probeer het later opnieuw.",
+  settingsLicenseActivationSuccessTitle: "Licentie geactiveerd",
+  settingsLicenseActivationSuccessBody:
+    "Je HT Alchemy-premiumlicentie is geactiveerd voor deze app-instantie.",
+  settingsLicenseExpiringWeekTitle: "Licentie verloopt binnenkort",
+  settingsLicenseExpiringWeekBody:
+    "Je HT Alchemy-premiumlicentie verloopt over ongeveer 1 week. Koop nu een nieuw abonnement om premiumfuncties zonder onderbreking actief te houden.",
+  settingsLicenseExpiringDayTitle: "Licentie verloopt binnenkort",
+  settingsLicenseExpiringDayBody:
+    "Je HT Alchemy-premiumlicentie verloopt over ongeveer 1 dag. Koop nu een nieuw abonnement om premiumfuncties zonder onderbreking actief te houden.",
+  settingsLicenseRenewButton: "Nieuw abonnement kopen",
+  settingsLicenseLimitExceededTitle: "Licentie teruggezet",
+  settingsLicenseLimitExceededBody:
+    "Deze app-instantie is teruggezet naar de gratis versie omdat de activatielimiet van de licentie is overschreden.",
+  settingsLicenseRevocationSuccessTitle: "Licentie ingetrokken",
+  settingsLicenseRevocationSuccessBody:
+    "Deze app-instantie is ingetrokken van de actieve licentie en de premiumtoegang is verwijderd.",
+  settingsLicenseNoActive: "Geen actieve licentie.",
+  settingsLicenseLoading: "Licentiegegevens laden…",
+  settingsLicenseStatusLabel: "Huidige status",
+  settingsLicenseStatusActive: "Actief",
+  settingsLicenseStatusInactive: "Inactief",
+  settingsLicenseStatusExpired: "Verlopen",
+  settingsLicenseStatusDisabled: "Uitgeschakeld",
+  settingsLicenseDetailStatus: "Licentiestatus",
+  settingsLicenseDetailKey: "Licentiesleutel",
+  settingsLicenseDetailActivationLimit: "Activeringslimiet",
+  settingsLicenseDetailActivationUsage: "Activeringsgebruik",
+  settingsLicenseDetailCreatedAt: "Aangemaakt op",
+  settingsLicenseDetailExpiresAt: "Verloopt op",
+  settingsLicenseDetailInstanceId: "Instantie-ID",
+  settingsLicenseDetailInstanceName: "Instantienaam",
+  settingsLicenseDetailInstanceCreatedAt: "Instantie aangemaakt op",
+  settingsLicenseDetailStoreId: "Winkel-ID",
+  settingsLicenseDetailOrderItemId: "Bestelregel-ID",
+  settingsLicenseDetailProductId: "Product-ID",
+  settingsLicenseDetailProduct: "Product",
+  settingsLicenseDetailVariantId: "Variant-ID",
+  settingsLicenseDetailVariant: "Variant",
+  settingsLicenseDetailOrderId: "Bestel-ID",
+  settingsLicenseDetailCustomerId: "Klant-ID",
+  settingsLicenseDetailCustomerName: "Klantnaam",
+  settingsLicenseDetailCustomerEmail: "Klant-e-mail",
+  settingsLicenseNeverExpires: "Nooit",
   settingsGeneralExportAllLabel: "Alle instellingen exporteren",
   settingsGeneralExportAllHint:
     "Exporteer alle lokaal opgeslagen app-instellingen en cachetoestand naar een JSON-back-upbestand.",
@@ -203,6 +311,12 @@ export const messagesNl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Deze app is in bèta. Functies, gedrag en lokaal gecachte gegevens kunnen zonder voorafgaande melding veranderen of worden gereset.",
+  freePillLabel: "Free",
+  freePillTooltip:
+    "Gratis modus. Premiumfuncties blijven vergrendeld totdat een geldige licentie is geactiveerd. Klik om een premiumlicentie te kopen.",
+  premiumPillLabel: "Premium",
+  premiumPillTooltip: "Premiumlicentie ontgrendeld. Klik om licentiegegevens te bekijken.",
+  changelog_5_0_0: "Functieafscherming.",
   changelog_4_14_0:
     "De senior beoordelingsmatrix ondersteunt nu handmatige rating-overschrijvingen met veilige herstelactie na verversen.",
   changelog_4_13_0:
@@ -289,6 +403,8 @@ export const messagesNl: Messages = {
   ratingsManualOverrideToggle: "Ratings handmatig bewerken",
   ratingsManualOverrideTooltip:
     "Ratings worden gebruikt om spelers in AI-opstellingen te plaatsen. Zet dit aan om de ratings handmatig te wijzigen. Handig als je wilt afdwingen dat een speler wel of niet voor een bepaalde positie wordt gekozen, ongeacht vorm en eerdere prestaties.",
+  ratingsManualOverridePremiumTooltip:
+    "Koop een HT Alchemy-premiumlicentie om ratings die door de senior-opstellings-AI worden gebruikt handmatig te bewerken.",
   ratingsOverwriteManualEditsToggle: "Handmatig bewerkte ratings overschrijven",
   ratingsOverwriteManualEditsTooltip:
     "Wanneer dit is ingeschakeld, vervangen nieuw opgehaalde ratings alle ratings die je handmatig hebt bewerkt bij de volgende verversing van de matrix.",
@@ -389,6 +505,8 @@ export const messagesNl: Messages = {
   youthEstimateValueButton: "Waarde schatten",
   youthEstimateValueTooltip:
     "Zoek op de transfermarkt op basis van het maximale potentieel van deze speler.",
+  youthEstimateValuePremiumTooltip:
+    "Koop een HT Alchemy-premiumlicentie om Waarde schatten te gebruiken.",
   youthEstimateValueDisabledTooltip:
     "Onthul minstens een maximaal potentieel voordat je de waarde schat.",
   youthEstimateValueAgeMissingTooltip:
@@ -517,7 +635,7 @@ export const messagesNl: Messages = {
   seniorAiLastMatchThresholdText:
     "Negeer spelers van wie de laatste wedstrijd meer dan {{weeks}} weken geleden was.",
   seniorAiLastMatchThresholdDisabledText:
-    "Negeer spelers niet op basis van de datum van hun laatste wedstrijd. {{weeks}}",
+    "Negeer spelers van wie de laatste wedstrijd meer dan {{weeks}} weken geleden was.",
   seniorAiLastMatchThresholdAriaLabel:
     "Wekengrens om spelers uit te sluiten op basis van hun laatste wedstrijd",
   seniorAiLastMatchDisregardedTooltip:
@@ -527,11 +645,15 @@ export const messagesNl: Messages = {
   seniorAiManMarkingToggleLabel: "Mandekking",
   seniorAiManMarkingToggleTooltip:
     "Dien mandekkingsorders in als een geschikte mandekker en een geschikt mandekkingsdoel zijn geidentificeerd.",
+  seniorAiManMarkingPremiumTooltip:
+    "Koop een HT Alchemy-premiumlicentie om mandekking te gebruiken in senior-opstellingsoptimalisatie.",
   seniorAiManMarkingFuzzinessLabel: "MM-striktheid",
   seniorAiManMarkingFuzzinessTooltip:
     "Striktheid voor het identificeren van het mandekkingsdoel.",
   seniorAiManMarkingFuzzinessAriaLabel:
     "Striktheid voor het identificeren van het mandekkingsdoel",
+  seniorAiManMarkingFuzzinessPremiumTooltip:
+    "Koop een HT Alchemy-premiumlicentie om de mandekkings-striktheid in senior-opstellingsoptimalisatie aan te passen.",
   seniorAiManMarkingNeedsLineupTooltip:
     "Mandekking kan pas worden ingeschakeld nadat een opstelling is gezet en zowel een mandekker als een doelwit zijn geïdentificeerd.",
   seniorAiManMarkingEnabledTooltip:
@@ -830,6 +952,8 @@ export const messagesNl: Messages = {
   seniorFoxtrickEditSkillsLabel: "Vaardigheden, leeftijd, loon, TSI bewerken",
   seniorFoxtrickSimulationTooltip:
     "Schakel in om vaardigheden, leeftijd, loon en TSI te bewerken en FoxTrick-waarden te simuleren. Schakel uit om echte waarden te herstellen.",
+  seniorFoxtrickSimulationPremiumTooltip:
+    "Koop een HT Alchemy-premiumlicentie om vaardigheden, leeftijd, loon en TSI te bewerken in senior-spelerdetails.",
   seniorFoxtrickSimulationWarning:
     "Vaardigheids-, leeftijds-, loon- of TSI-waarden zijn handmatig gewijzigd en weerspiegelen niet meer de echte speler.",
   seniorFoxtrickSimulationAgeYearsLabel: "Leeftijd jaren",

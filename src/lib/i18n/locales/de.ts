@@ -58,6 +58,61 @@ export const messagesDe: Messages = {
     watchlistDeselectAll: "Alle abwählen",
     watchlistGenderMale: "Männlich",
     watchlistGenderFemale: "Weiblich",
+    clubChroniclePremiumTooltip:
+      "Kaufe eine HT Alchemy Premium-Lizenz, um unbegrenzt viele Teams in unbegrenzt vielen Tabs zu verfolgen und alle anderen Premium-Funktionen zu nutzen.",
+    clubChroniclePremiumBanner:
+      "Um unbegrenztes Team-Tracking in unbegrenzt vielen Tabs freizuschalten, kaufe die HT Alchemy Premium-Lizenz.",
+    clubChroniclePremiumBuyButton: "Premium-Lizenz kaufen",
+    clubChroniclePremiumLicenseTitle:
+      "Diese Funktion erfordert die HT Alchemy Premium-Lizenz.",
+    clubChroniclePremiumLicenseBody:
+      "Gib hier deinen HT Alchemy Premium-Lizenzschlüssel ein, um Premium-Funktionen freizuschalten.",
+    clubChroniclePremiumLicenseFieldLabel: "Lizenzschlüssel",
+    clubChroniclePremiumLicensePlaceholder: "Lizenzschlüssel eingeben",
+    clubChroniclePremiumLicenseSubmit: "Premium freischalten",
+    clubChroniclePremiumLicenseKeyRequired: "Gib einen Lizenzschlüssel ein.",
+    clubChroniclePremiumLicenseUnlocked: "Premium freigeschaltet.",
+    clubChroniclePremiumLicensePendingValidation:
+      "Dein Lizenzschlüssel wurde lokal gespeichert. Die Online-Validierung ist noch nicht verfügbar.",
+    clubChroniclePremiumLicenseInvalid:
+      "Dieser Lizenzschlüssel ist nicht gültig.",
+    clubChroniclePremiumLicenseValidationUnavailable:
+      "Die Lizenzprüfung ist derzeit nicht verfügbar. Bitte versuche es später erneut.",
+    clubChroniclePremiumTeamLimitReached:
+      "Die kostenlose Club Chronicle-Version ist auf 3 verfolgte Teams pro Tab begrenzt.",
+    clubChroniclePremiumTabLimitReached:
+      "Die kostenlose Club Chronicle-Version ist auf 2 Tabs begrenzt.",
+    clubChroniclePremiumHiddenTeamsNotice:
+      "{{count}} zwischengespeicherte verfolgte Teams bleiben verborgen, bis Premium freigeschaltet ist.",
+    clubChroniclePremiumOtherTeamsMessage:
+      "Kaufe die HT Alchemy Premium-Lizenz, um diese Daten für andere verfolgte Teams zu sehen.",
+    appLicenseFeatureSeniorSimulationTitle: "Skills, Alter, Gehalt, TSI bearbeiten",
+    appLicenseFeatureSeniorSimulationDescription:
+      "Bearbeite Spielerattribute, um zu sehen, wie sich die Foxtrick-Metriken ändern. Das verbessert deine Kaufentscheidungen für Spieler deutlich.",
+    appLicenseFeatureSeniorRatingsTitle: "Ratings manuell bearbeiten",
+    appLicenseFeatureSeniorRatingsDescription:
+      "Spieler werden anhand von Ratings ausgewählt. Bearbeite die Ratings-Matrix manuell, um Spieler gezielt zu erzwingen oder auszuschließen und deine Aufstellung feiner abzustimmen.",
+    appLicenseFeatureSeniorManMarkingTitle: "Manndeckung",
+    appLicenseFeatureSeniorManMarkingDescription:
+      "Wählt automatisch ein Manndeckungsziel, wenn eines vorhanden ist, und einen passenden Manndecker, wenn einer vorhanden ist. Wenn das Ziel vom Gegner aufgestellt wird, ist die Chance auf eine Manndeckungsstrafe dank der KI null. Der MM-Striktheitsregler hilft bei der Feinabstimmung der Zielerkennung.",
+    appLicenseFeatureSeniorFixedFormationTitle: "Nach Formation optimieren",
+    appLicenseFeatureSeniorFixedFormationDescription:
+      "Erzeuge die stärkste Aufstellung für eine bestimmte Formation. Das hilft dir, formationsspezifische Setups zu vergleichen und die beste Aufstellung für deine gewünschte Grundordnung zu wählen.",
+    appLicenseFeatureYouthEstimateValueTitle: "Wert schätzen",
+    appLicenseFeatureYouthEstimateValueDescription:
+      "Prüfe den Transfermarkt für einen Spieler mit diesen bekannten Max-Skills im Förderalter. Das hilft dir zu verstehen, was dein Jugendspieler einbringen wird.",
+    appLicenseFeatureYouthDoubleRevealTitle: "Doppel-Enthüllungsoptimierung",
+    appLicenseFeatureYouthDoubleRevealDescription:
+      "Optimiere die Aufstellung, um die Chance zu maximieren, in demselben Spiel zwei nützliche Skills zu enthüllen: einen aktuellen Wert und einen Maximalwert, für zwei verschiedene Spieler oder denselben Spieler. Das hilft dir, aus einer einzelnen Jugendaufstellung mehr Informationen herauszuholen und die Spielereinschätzung zu beschleunigen.",
+    appLicenseFeatureChronicleFormationsTitle: "Formationen & Taktiken",
+    appLicenseFeatureChronicleFormationsDescription:
+      "Zeigt die Formationen und Taktiken, die dieses Team in vergangenen Spielen verwendet hat. Das hilft dir, auf Basis der Aufstellungshistorie des Gegners die optimale Aufstellung zu wählen.",
+    appLicenseFeatureChronicleLikelyTrainingTitle: "Wahrscheinliches Trainingsregime",
+    appLicenseFeatureChronicleLikelyTrainingDescription:
+      "Leitet ab, was dieses Team trainiert, basierend auf den in trainierbaren Spielen genutzten Formationen.",
+    appLicenseFeatureChronicleTrackingTitle: "Unbegrenztes Club-Chronicle-Tracking",
+    appLicenseFeatureChronicleTrackingDescription:
+      "Schalte zusätzliche Club-Chronicle-Tabs frei und verfolge mehr Teams pro Tab. So kannst du größere Rivalengruppen verfolgen, ohne deine Watchlist kürzen zu müssen.",
     clubChronicleTabDefaultName: "Tab {{number}}",
     clubChronicleTabAdd: "Tab hinzufügen",
     clubChronicleTabRenamePlaceholder: "Tab-Name",
@@ -76,6 +131,12 @@ export const messagesDe: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Diese App ist im Beta-Status. Funktionen, Verhalten und lokal zwischengespeicherte Daten können sich ohne Vorankündigung ändern oder zurückgesetzt werden.",
+    freePillLabel: "Free",
+    freePillTooltip:
+      "Freier Modus. Premium-Funktionen bleiben gesperrt, bis eine gültige Lizenz aktiviert wird. Klicke hier, um eine Premium-Lizenz zu kaufen.",
+    premiumPillLabel: "Premium",
+    premiumPillTooltip: "Premium-Lizenz freigeschaltet. Klicke hier für Lizenzdetails.",
+    changelog_5_0_0: "Funktionssperren.",
     changelog_4_14_0:
       "Die Senioren-Bewertungsmatrix unterstützt jetzt manuelle Bewertungsüberschreibungen mit refresh-sicherer Wiederherstellung.",
     changelog_4_13_0:
@@ -218,6 +279,8 @@ export const messagesDe: Messages = {
     feedbackBugSuccess: "Fehlerbericht gesendet.",
     feedbackFeatureSuccess: "Feature-Anfrage gesendet.",
     feedbackSubmitError: "Senden des Issues fehlgeschlagen.",
+    feedbackUsernameDisclaimer:
+      "Dein Hattrick-Benutzername wird an diesen Bericht angehängt, damit der Entwickler dich bei Rückfragen kontaktieren kann.",
     feedbackMetadataHattrickUser: "Hattrick-Benutzer",
     feedbackManagerIdentityRequiredError:
       "Hattrick-Benutzername und Benutzer-ID konnten fuer die Report-Metadaten nicht ermittelt werden.",
@@ -287,6 +350,58 @@ export const messagesDe: Messages = {
       "Wie viele geänderte globale Aktualisierungs-Diffs in der Verlaufsliste von Neueste Updates gespeichert und angezeigt werden.",
     settingsGeneral: "Allgemein",
     settingsGeneralTitle: "Allgemeine Einstellungen",
+    settingsLicense: "Lizenz",
+    settingsLicenseTitle: "Lizenz",
+    settingsLicenseBody:
+      "Hier kannst du eine HT Alchemy Premium-Lizenz kaufen oder deine aktuelle Lizenz verwalten.",
+    settingsLicenseBuyButton: "Lizenz kaufen",
+    settingsLicenseRevokeButton: "Lizenz widerrufen",
+    settingsLicenseRevoked: "Lizenz gelöscht. Freier Modus wiederhergestellt.",
+    settingsLicenseRevokePending:
+      "Der Lizenzwiderruf ist fehlgeschlagen. Bitte später erneut versuchen.",
+    settingsLicenseActivationSuccessTitle: "Lizenz aktiviert",
+    settingsLicenseActivationSuccessBody:
+      "Deine HT Alchemy Premium-Lizenz wurde für diese App-Instanz aktiviert.",
+    settingsLicenseExpiringWeekTitle: "Lizenz läuft bald ab",
+    settingsLicenseExpiringWeekBody:
+      "Deine HT Alchemy Premium-Lizenz läuft in etwa 1 Woche ab. Kaufe jetzt ein neues Abonnement, damit die Premium-Funktionen ohne Unterbrechung aktiv bleiben.",
+    settingsLicenseExpiringDayTitle: "Lizenz läuft bald ab",
+    settingsLicenseExpiringDayBody:
+      "Deine HT Alchemy Premium-Lizenz läuft in etwa 1 Tag ab. Kaufe jetzt ein neues Abonnement, damit die Premium-Funktionen ohne Unterbrechung aktiv bleiben.",
+    settingsLicenseRenewButton: "Neues Abonnement kaufen",
+    settingsLicenseLimitExceededTitle: "Lizenz herabgestuft",
+    settingsLicenseLimitExceededBody:
+      "Diese App-Instanz wurde auf die Free-Version herabgestuft, weil das Aktivierungslimit der Lizenz überschritten wurde.",
+    settingsLicenseRevocationSuccessTitle: "Lizenz widerrufen",
+    settingsLicenseRevocationSuccessBody:
+      "Diese App-Instanz wurde von der aktiven Lizenz getrennt und der Premiumzugang wurde entfernt.",
+    settingsLicenseNoActive: "Keine aktive Lizenz.",
+    settingsLicenseLoading: "Lade Lizenzdetails…",
+    settingsLicenseStatusLabel: "Aktueller Status",
+    settingsLicenseStatusActive: "Aktiv",
+    settingsLicenseStatusInactive: "Inaktiv",
+    settingsLicenseStatusExpired: "Abgelaufen",
+    settingsLicenseStatusDisabled: "Deaktiviert",
+    settingsLicenseDetailStatus: "Lizenzstatus",
+    settingsLicenseDetailKey: "Lizenzschlüssel",
+    settingsLicenseDetailActivationLimit: "Aktivierungslimit",
+    settingsLicenseDetailActivationUsage: "Aktivierungsnutzung",
+    settingsLicenseDetailCreatedAt: "Erstellt am",
+    settingsLicenseDetailExpiresAt: "Läuft ab am",
+    settingsLicenseDetailInstanceId: "Instanz-ID",
+    settingsLicenseDetailInstanceName: "Instanzname",
+    settingsLicenseDetailInstanceCreatedAt: "Instanz erstellt am",
+    settingsLicenseDetailStoreId: "Store-ID",
+    settingsLicenseDetailOrderItemId: "Bestellpositions-ID",
+    settingsLicenseDetailProductId: "Produkt-ID",
+    settingsLicenseDetailProduct: "Produkt",
+    settingsLicenseDetailVariantId: "Varianten-ID",
+    settingsLicenseDetailVariant: "Variante",
+    settingsLicenseDetailOrderId: "Bestell-ID",
+    settingsLicenseDetailCustomerId: "Kunden-ID",
+    settingsLicenseDetailCustomerName: "Kundenname",
+    settingsLicenseDetailCustomerEmail: "Kunden-E-Mail",
+    settingsLicenseNeverExpires: "Nie",
     settingsGeneralExportAllLabel: "Alle Einstellungen exportieren",
     settingsGeneralExportAllHint:
       "Exportiert alle lokal gespeicherten App-Einstellungen und Cache-Zustände als JSON-Sicherungsdatei.",
@@ -1057,7 +1172,7 @@ export const messagesDe: Messages = {
     seniorAiLastMatchThresholdText:
       "Spieler ignorieren, deren letztes Spiel mehr als {{weeks}} Wochen zurückliegt.",
     seniorAiLastMatchThresholdDisabledText:
-      "Spieler nicht anhand des Datums ihres letzten Spiels ignorieren. {{weeks}}",
+      "Ignoriere Spieler, deren letztes Spiel mehr als {{weeks}} Wochen zurückliegt.",
     seniorAiLastMatchThresholdAriaLabel:
       "Wochen-Grenzwert zum Ignorieren von Spielern anhand des letzten Spiels",
     seniorAiLastMatchDisregardedTooltip:
@@ -1067,11 +1182,15 @@ export const messagesDe: Messages = {
     seniorAiManMarkingToggleLabel: "Manndeckung",
     seniorAiManMarkingToggleTooltip:
       "Manndeckungsanweisungen beim Absenden ubermitteln, wenn ein geeigneter Manndecker und ein geeignetes Manndeckungsziel identifiziert wurden.",
+    seniorAiManMarkingPremiumTooltip:
+      "Kaufe eine HT Alchemy Premium-Lizenz, um Manndeckung in der Senior-Aufstellungsoptimierung zu nutzen.",
     seniorAiManMarkingFuzzinessLabel: "MM-Strenge",
     seniorAiManMarkingFuzzinessTooltip:
       "Strenge fuer die Identifikation des Manndeckungsziels.",
     seniorAiManMarkingFuzzinessAriaLabel:
       "Strenge fuer die Identifikation des Manndeckungsziels",
+    seniorAiManMarkingFuzzinessPremiumTooltip:
+      "Kaufe eine HT Alchemy Premium-Lizenz, um die Manndeckungs-Strenge in der Senior-Aufstellungsoptimierung anzupassen.",
     seniorAiManMarkingNeedsLineupTooltip:
       "Manndeckung kann erst aktiviert werden, nachdem eine Aufstellung gesetzt wurde und sowohl ein Manndecker als auch ein Ziel identifiziert wurden.",
     seniorAiManMarkingEnabledTooltip:
@@ -1307,6 +1426,8 @@ export const messagesDe: Messages = {
     youthEstimateValueButton: "Wert schaetzen",
     youthEstimateValueTooltip:
       "Durchsuche den Transfermarkt nach dem maximalen Potenzial dieses Spielers.",
+    youthEstimateValuePremiumTooltip:
+      "Kaufe eine HT Alchemy Premium-Lizenz, um Wert schaetzen zu nutzen.",
     youthEstimateValueDisabledTooltip:
       "Decke mindestens ein maximales Potenzial auf, bevor du den Wert schaetzt.",
     youthEstimateValueAgeMissingTooltip:
@@ -1474,6 +1595,8 @@ export const messagesDe: Messages = {
     seniorFoxtrickEditSkillsLabel: "Skills, Alter, Gehalt, TSI bearbeiten",
     seniorFoxtrickSimulationTooltip:
       "Aktivieren, um Skills, Alter, Gehalt und TSI für FoxTrick-Werte zu simulieren. Deaktivieren setzt echte Werte zurück.",
+    seniorFoxtrickSimulationPremiumTooltip:
+      "Kaufe eine HT Alchemy Premium-Lizenz, um in den Senior-Spielerdetails Skills, Alter, Gehalt und TSI zu bearbeiten.",
     seniorFoxtrickSimulationWarning:
       "Skill-, Alters-, Gehalts- oder TSI-Werte wurden manuell geändert und entsprechen nicht mehr dem echten Spieler.",
     seniorFoxtrickSimulationAgeYearsLabel: "Alter Jahre",
@@ -1525,6 +1648,8 @@ export const messagesDe: Messages = {
     ratingsManualOverrideToggle: "Bewertungen manuell bearbeiten",
     ratingsManualOverrideTooltip:
       "Bewertungen werden verwendet, um Spieler in KI-Aufstellungen zu platzieren. Aktiviere dies, um die Bewertungen manuell zu ändern. Nützlich, wenn du erzwingen möchtest, dass ein Spieler unabhängig von Form und bisherigen Leistungen für eine bestimmte Position gewählt oder nicht gewählt wird.",
+    ratingsManualOverridePremiumTooltip:
+      "Kaufe eine HT Alchemy Premium-Lizenz, um vom Senior-KI-Tool genutzte Bewertungen manuell zu bearbeiten.",
     ratingsOverwriteManualEditsToggle: "Manuell bearbeitete Bewertungen überschreiben",
     ratingsOverwriteManualEditsTooltip:
       "Wenn aktiviert, ersetzen neu abgerufene Bewertungen beim nächsten Aktualisieren der Matrix alle von dir manuell bearbeiteten Bewertungen.",

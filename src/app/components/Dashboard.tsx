@@ -30,6 +30,7 @@ import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import Tooltip from "./Tooltip";
 import Modal from "./Modal";
+import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
 import TransferSearchModal, {
   ageToTotalDays,
   buildTransferSearchMinimumBidEur,
@@ -121,6 +122,12 @@ import {
   parseExtendedPermissionsFromCheckToken,
   REQUIRED_CHPP_EXTENDED_PERMISSIONS,
 } from "@/lib/chpp/permissions";
+import {
+  APP_LICENSE_EVENT,
+  APP_LICENSE_STORAGE_KEY,
+  hasUnlockedPremiumAccess,
+  readAppLicenseState,
+} from "@/lib/license";
 import { captureSeniorEncounteredPlayer } from "@/lib/seniorEncounteredPlayerModel";
 
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
@@ -582,7 +589,7 @@ const SPECIAL_EVENT_SPECIALTY_RULES: Record<number, SpecialEventRule> = {
   190: { specialty: 3, players: ["subject"] },
   205: { specialty: 4, players: ["object"] },
   206: { specialty: 4, players: ["subject"] },
-  208: { specialty: 4, players: ["subject"] },
+  208: { specialty: 4, players: ["object"] },
   209: { specialty: 4, players: ["object"] },
   215: { specialty: 2, players: ["subject"] },
   216: { specialty: 2, players: ["object"] },
@@ -1047,6 +1054,13 @@ export default function Dashboard({
   );
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [transferSearchModalOpen, setTransferSearchModalOpen] = useState(false);
+  const [premiumUnlocked, setPremiumUnlocked] = useState(() =>
+    hasUnlockedPremiumAccess(readAppLicenseState())
+  );
+  const [premiumLicenseModalOpen, setPremiumLicenseModalOpen] = useState(false);
+  const [premiumLicenseModalNonce, setPremiumLicenseModalNonce] = useState(0);
+  const [premiumLicenseModalContext, setPremiumLicenseModalContext] =
+    useState<AppLicenseModalContext | null>(null);
   const [transferSearchSourcePlayerId, setTransferSearchSourcePlayerId] =
     useState<number | null>(null);
   const [transferSearchFilters, setTransferSearchFilters] =
@@ -1142,6 +1156,31 @@ export default function Dashboard({
     null
   );
   const { addNotification } = useNotifications();
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncPremiumState = () => {
+      setPremiumUnlocked(hasUnlockedPremiumAccess(readAppLicenseState()));
+    };
+    syncPremiumState();
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key && event.key !== APP_LICENSE_STORAGE_KEY) return;
+      syncPremiumState();
+    };
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener(APP_LICENSE_EVENT, syncPremiumState);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(APP_LICENSE_EVENT, syncPremiumState);
+    };
+  }, []);
+  const openPremiumLicenseModal = useCallback(
+    (context?: AppLicenseModalContext | null) => {
+      setPremiumLicenseModalContext(context ?? null);
+      setPremiumLicenseModalNonce((prev) => prev + 1);
+      setPremiumLicenseModalOpen(true);
+    },
+    []
+  );
   const isDev = process.env.NODE_ENV !== "production";
   const helpStorageKey = "ya_help_dismissed_v1";
   const dashboardRef = useRef<HTMLDivElement | null>(null);
@@ -6701,7 +6740,13 @@ export default function Dashboard({
                   ? styles.optimizeMenuItemDisabled
                   : ""
               }`}
-              onClick={() => handleOptimizeSelect("revealPrimaryCurrentAndSecondaryMax")}
+              onClick={() => {
+                if (!premiumUnlocked) {
+                  openPremiumLicenseModal(youthDoubleRevealLicenseContext);
+                  return;
+                }
+                handleOptimizeSelect("revealPrimaryCurrentAndSecondaryMax");
+              }}
               disabled={Boolean(
                 optimizeModeDisabledReasons.revealPrimaryCurrentAndSecondaryMax
               )}
@@ -7022,11 +7067,33 @@ export default function Dashboard({
     ? `${messages.youthLastGlobalRefresh}: ${formatDateTime(lastGlobalRefreshAt)}`
     : null;
 
+  const youthEstimateValueLicenseContext = useMemo<AppLicenseModalContext>(() => {
+    return {
+      featureTitle: messages.appLicenseFeatureYouthEstimateValueTitle,
+      featureDescription: messages.appLicenseFeatureYouthEstimateValueDescription,
+    };
+  }, [
+    messages.appLicenseFeatureYouthEstimateValueDescription,
+    messages.appLicenseFeatureYouthEstimateValueTitle,
+  ]);
+  const youthDoubleRevealLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureYouthDoubleRevealTitle,
+      featureDescription: messages.appLicenseFeatureYouthDoubleRevealDescription,
+    }),
+    [
+      messages.appLicenseFeatureYouthDoubleRevealDescription,
+      messages.appLicenseFeatureYouthDoubleRevealTitle,
+    ]
+  );
+
   const youthEstimateValueTooltip = youthEstimateValueDisabled
     ? selectedYouthEstimateValueSkillCount === 0
       ? messages.youthEstimateValueDisabledTooltip
       : messages.youthEstimateValueAgeMissingTooltip
-    : messages.youthEstimateValueTooltip;
+    : premiumUnlocked
+      ? messages.youthEstimateValueTooltip
+      : messages.youthEstimateValuePremiumTooltip;
   const youthDetailsHeaderActions = selectedPlayer ? (
     <Tooltip content={youthEstimateValueTooltip}>
       <span>
@@ -7034,6 +7101,10 @@ export default function Dashboard({
           type="button"
           className={`${styles.confirmSubmit} ${styles.youthEstimateValueButton}`}
           onClick={() => {
+            if (!premiumUnlocked) {
+              openPremiumLicenseModal(youthEstimateValueLicenseContext);
+              return;
+            }
             void openYouthEstimateValueSearch();
           }}
           disabled={youthEstimateValueDisabled}
@@ -8472,6 +8543,15 @@ export default function Dashboard({
       </div>
       </>
       )}
+      {process.env.NEXT_PUBLIC_HT_ALCHEMY_PREMIUM_ENABLED === "true" ? (
+        <AppLicenseModal
+          key={premiumLicenseModalNonce}
+          open={premiumLicenseModalOpen}
+          messages={messages}
+          context={premiumLicenseModalContext}
+          onClose={() => setPremiumLicenseModalOpen(false)}
+        />
+      ) : null}
     </div>
     </div>
   );

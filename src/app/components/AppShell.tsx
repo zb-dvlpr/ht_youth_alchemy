@@ -17,6 +17,7 @@ import ClubChronicle from "./ClubChronicle";
 import Modal from "./Modal";
 import ManualModal from "./ManualModal";
 import BuyCoffeeButton from "./BuyCoffeeButton";
+import PremiumStatusPill from "./PremiumStatusPill";
 import { Messages } from "@/lib/i18n";
 import { getChangelogEntries } from "@/lib/changelog";
 import { formatDateTime } from "@/lib/datetime";
@@ -840,6 +841,10 @@ export default function AppShell({
       <div className={styles.mobileNavAppMeta}>
         <span className={styles.mobileNavAppTitle}>{messages.brandTitle}</span>
         <span className={styles.version}>v{appVersion}</span>
+        <PremiumStatusPill
+          messages={messages}
+          className={styles.mobileNavPremiumPill}
+        />
       </div>
       <div className={styles.mobileNavTrail} aria-label={messages.brandTitle}>
         <button

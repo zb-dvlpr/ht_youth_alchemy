@@ -44,6 +44,60 @@ export const messagesPl: Messages = {
   watchlistDeselectAll: "Odznacz wszystko",
   watchlistGenderMale: "Męska",
   watchlistGenderFemale: "Żeńska",
+  clubChroniclePremiumTooltip:
+    "Kup licencję premium HT Alchemy, aby śledzić nieograniczoną liczbę drużyn w nieograniczonej liczbie kart i uzyskać dostęp do wszystkich innych funkcji premium.",
+  clubChroniclePremiumBanner:
+    "Aby odblokować nieograniczone śledzenie drużyn w nieograniczonej liczbie kart, kup licencję premium HT Alchemy.",
+  clubChroniclePremiumBuyButton: "Kup licencję premium",
+  clubChroniclePremiumLicenseTitle:
+    "Ta funkcja wymaga licencji premium HT Alchemy.",
+  clubChroniclePremiumLicenseBody:
+    "Wpisz tutaj swój klucz licencyjny premium HT Alchemy, aby odblokować funkcje premium.",
+  clubChroniclePremiumLicenseFieldLabel: "Klucz licencyjny",
+  clubChroniclePremiumLicensePlaceholder: "Wpisz klucz licencyjny",
+  clubChroniclePremiumLicenseSubmit: "Odblokuj premium",
+  clubChroniclePremiumLicenseKeyRequired: "Wpisz klucz licencyjny.",
+  clubChroniclePremiumLicenseUnlocked: "Premium odblokowane.",
+  clubChroniclePremiumLicensePendingValidation:
+    "Twój klucz licencyjny został zapisany lokalnie. Walidacja online nie jest jeszcze dostępna.",
+  clubChroniclePremiumLicenseInvalid: "Ten klucz licencyjny jest nieprawidłowy.",
+  clubChroniclePremiumLicenseValidationUnavailable:
+    "Walidacja licencji jest teraz niedostępna. Spróbuj ponownie później.",
+  clubChroniclePremiumTeamLimitReached:
+    "Darmowa wersja Club Chronicle jest ograniczona do 3 śledzonych drużyn na kartę.",
+  clubChroniclePremiumTabLimitReached:
+    "Darmowa wersja Club Chronicle jest ograniczona do 2 kart.",
+  clubChroniclePremiumHiddenTeamsNotice:
+    "{{count}} zapisanych w pamięci śledzonych drużyn pozostaje ukrytych do czasu odblokowania premium.",
+  clubChroniclePremiumOtherTeamsMessage:
+    "Kup licencję premium HT Alchemy, aby zobaczyć te dane dla innych śledzonych drużyn.",
+  appLicenseFeatureSeniorSimulationTitle: "Edytuj skille, wiek, pensję, TSI",
+  appLicenseFeatureSeniorSimulationDescription:
+    "Edytuj atrybuty zawodnika, aby zobaczyć, jak zmieniają się metryki Foxtricka. To znacząco poprawia decyzje zakupowe dotyczące zawodników.",
+  appLicenseFeatureSeniorRatingsTitle: "Edytuj oceny ręcznie",
+  appLicenseFeatureSeniorRatingsDescription:
+    "Zawodnicy są wybierani na podstawie ocen. Edytuj ręcznie macierz ocen, aby wymuszać lub blokować wybór zawodników i precyzyjniej dostroić skład.",
+  appLicenseFeatureSeniorManMarkingTitle: "Krycie indywidualne",
+  appLicenseFeatureSeniorManMarkingDescription:
+    "Automatycznie wybiera cel krycia indywidualnego, jeśli taki istnieje, oraz odpowiedniego kryjącego, jeśli taki istnieje. Jeśli cel zostanie wystawiony przez drużynę przeciwną, ryzyko kary za krycie indywidualne jest zerowe dzięki AI. Suwak rygoru MM pomaga doprecyzować wykrywanie celu.",
+  appLicenseFeatureSeniorFixedFormationTitle: "Optymalizuj według formacji",
+  appLicenseFeatureSeniorFixedFormationDescription:
+    "Wygeneruj najsilniejszy skład dla konkretnej formacji. To pomaga porównywać ustawienia zależne od formacji i wybrać najlepszy skład dla układu, który chcesz zagrać.",
+  appLicenseFeatureYouthEstimateValueTitle: "Oszacuj wartość",
+  appLicenseFeatureYouthEstimateValueDescription:
+    "Sprawdź rynek transferowy dla zawodnika z tymi znanymi maksymalnymi umiejętnościami w wieku promocji. To pomaga zrozumieć, za ile sprzeda się twój junior.",
+  appLicenseFeatureYouthDoubleRevealTitle: "Optymalizacja podwójnego odkrycia",
+  appLicenseFeatureYouthDoubleRevealDescription:
+    "Optymalizuj skład tak, aby zmaksymalizować szansę odkrycia dwóch przydatnych umiejętności w tym samym meczu: jednej wartości bieżącej i jednej wartości maksymalnej, dla dwóch różnych zawodników lub tego samego zawodnika. To pomaga wyciągnąć więcej informacji z jednego składu juniorskiego i przyspiesza ocenę zawodników.",
+  appLicenseFeatureChronicleFormationsTitle: "Formacje i taktyki",
+  appLicenseFeatureChronicleFormationsDescription:
+    "Pokazuje formacje i taktyki używane przez tę drużynę w poprzednich meczach. To pomaga wybrać najbardziej optymalny skład na podstawie historii ustawień drużyny przeciwnej.",
+  appLicenseFeatureChronicleLikelyTrainingTitle: "Prawdopodobny reżim treningowy",
+  appLicenseFeatureChronicleLikelyTrainingDescription:
+    "Wnioskuje, co trenuje ta drużyna na podstawie formacji używanych w meczach treningowych.",
+  appLicenseFeatureChronicleTrackingTitle: "Nielimitowane śledzenie Club Chronicle",
+  appLicenseFeatureChronicleTrackingDescription:
+    "Odblokuj dodatkowe karty Club Chronicle i śledź więcej drużyn na kartę. Dzięki temu możesz obserwować większe grupy rywali bez przycinania watchlisty.",
   clubChronicleTabDefaultName: "Karta {{number}}",
   clubChronicleTabAdd: "Dodaj kartę",
   clubChronicleTabRenamePlaceholder: "Nazwa karty",
@@ -89,6 +143,8 @@ export const messagesPl: Messages = {
   feedbackBugSuccess: "Zgłoszenie błędu wysłane.",
   feedbackFeatureSuccess: "Prośba o funkcję wysłana.",
   feedbackSubmitError: "Wysłanie zgłoszenia nie powiodło się.",
+  feedbackUsernameDisclaimer:
+    "Twoja nazwa użytkownika Hattrick zostanie dołączona do tego zgłoszenia, aby deweloper mógł skontaktować się z Tobą w razie pytań uzupełniających.",
   feedbackMetadataHattrickUser: "Uzytkownik Hattrick",
   feedbackManagerIdentityRequiredError:
     "Nie udalo sie ustalic nazwy uzytkownika i ID uzytkownika Hattrick do metadanych zgloszenia.",
@@ -115,6 +171,58 @@ export const messagesPl: Messages = {
   settingsSeniorRatingsWipeWarningAcknowledge: "Rozumiem",
   settingsGeneral: "Ogólne",
   settingsGeneralTitle: "Ustawienia ogólne",
+  settingsLicense: "Licencja",
+  settingsLicenseTitle: "Licencja",
+  settingsLicenseBody:
+    "Kup licencję premium HT Alchemy lub zarządzaj tutaj swoją obecną licencją.",
+  settingsLicenseBuyButton: "Kup licencję",
+  settingsLicenseRevokeButton: "Unieważnij licencję",
+  settingsLicenseRevoked: "Licencja usunięta. Przywrócono tryb darmowy.",
+  settingsLicenseRevokePending:
+    "Unieważnienie licencji nie powiodło się. Spróbuj ponownie później.",
+  settingsLicenseActivationSuccessTitle: "Licencja aktywowana",
+  settingsLicenseActivationSuccessBody:
+    "Twoja licencja premium HT Alchemy została aktywowana dla tej instancji aplikacji.",
+  settingsLicenseExpiringWeekTitle: "Licencja wkrótce wygaśnie",
+  settingsLicenseExpiringWeekBody:
+    "Twoja licencja premium HT Alchemy wygaśnie za około 1 tydzień. Kup teraz nową subskrypcję, aby funkcje premium pozostały aktywne bez przerwy.",
+  settingsLicenseExpiringDayTitle: "Licencja wkrótce wygaśnie",
+  settingsLicenseExpiringDayBody:
+    "Twoja licencja premium HT Alchemy wygaśnie za około 1 dzień. Kup teraz nową subskrypcję, aby funkcje premium pozostały aktywne bez przerwy.",
+  settingsLicenseRenewButton: "Kup nową subskrypcję",
+  settingsLicenseLimitExceededTitle: "Licencja obniżona",
+  settingsLicenseLimitExceededBody:
+    "Ta instancja aplikacji została obniżona do wersji darmowej, ponieważ przekroczono limit aktywacji licencji.",
+  settingsLicenseRevocationSuccessTitle: "Licencja unieważniona",
+  settingsLicenseRevocationSuccessBody:
+    "Ta instancja aplikacji została odłączona od aktywnej licencji, a dostęp premium został usunięty.",
+  settingsLicenseNoActive: "Brak aktywnej licencji.",
+  settingsLicenseLoading: "Ładowanie szczegółów licencji…",
+  settingsLicenseStatusLabel: "Bieżący status",
+  settingsLicenseStatusActive: "Aktywna",
+  settingsLicenseStatusInactive: "Nieaktywna",
+  settingsLicenseStatusExpired: "Wygasła",
+  settingsLicenseStatusDisabled: "Wyłączona",
+  settingsLicenseDetailStatus: "Status licencji",
+  settingsLicenseDetailKey: "Klucz licencji",
+  settingsLicenseDetailActivationLimit: "Limit aktywacji",
+  settingsLicenseDetailActivationUsage: "Wykorzystanie aktywacji",
+  settingsLicenseDetailCreatedAt: "Utworzono",
+  settingsLicenseDetailExpiresAt: "Wygasa",
+  settingsLicenseDetailInstanceId: "ID instancji",
+  settingsLicenseDetailInstanceName: "Nazwa instancji",
+  settingsLicenseDetailInstanceCreatedAt: "Instancja utworzona",
+  settingsLicenseDetailStoreId: "ID sklepu",
+  settingsLicenseDetailOrderItemId: "ID pozycji zamówienia",
+  settingsLicenseDetailProductId: "ID produktu",
+  settingsLicenseDetailProduct: "Produkt",
+  settingsLicenseDetailVariantId: "ID wariantu",
+  settingsLicenseDetailVariant: "Wariant",
+  settingsLicenseDetailOrderId: "ID zamówienia",
+  settingsLicenseDetailCustomerId: "ID klienta",
+  settingsLicenseDetailCustomerName: "Nazwa klienta",
+  settingsLicenseDetailCustomerEmail: "E-mail klienta",
+  settingsLicenseNeverExpires: "Nigdy",
   settingsGeneralExportAllLabel: "Eksportuj wszystkie ustawienia",
   settingsGeneralExportAllHint:
     "Eksportuje wszystkie lokalnie zapisane ustawienia aplikacji i stan pamięci podręcznej do pliku kopii zapasowej JSON.",
@@ -196,6 +304,12 @@ export const messagesPl: Messages = {
   betaPillLabel: "Beta",
   betaPillTooltip:
     "Ta aplikacja jest w wersji beta. Funkcje, zachowanie i lokalnie zapisane dane podręczne mogą zmieniać się lub być resetowane bez wcześniejszej zapowiedzi.",
+  freePillLabel: "Free",
+  freePillTooltip:
+    "Tryb darmowy. Funkcje premium pozostają zablokowane, dopóki nie zostanie aktywowana ważna licencja. Kliknij, aby kupić licencję premium.",
+  premiumPillLabel: "Premium",
+  premiumPillTooltip: "Licencja premium odblokowana. Kliknij, aby zobaczyć szczegóły licencji.",
+  changelog_5_0_0: "Blokowanie funkcji.",
   changelog_4_14_0:
     "Macierz ocen seniorów obsługuje teraz ręczne nadpisywanie ocen z bezpiecznym przywracaniem po odświeżeniu.",
   changelog_4_13_0:
@@ -282,6 +396,8 @@ export const messagesPl: Messages = {
   ratingsManualOverrideToggle: "Ręcznie edytuj oceny",
   ratingsManualOverrideTooltip:
     "Oceny są używane do ustawiania zawodników w składach AI. Włącz to, aby ręcznie zmieniać oceny. Przydatne, jeśli chcesz wymusić, by zawodnik został wybrany albo nie wybrany na konkretną pozycję niezależnie od formy i wcześniejszych występów.",
+  ratingsManualOverridePremiumTooltip:
+    "Kup licencję premium HT Alchemy, aby ręcznie edytować oceny używane przez AI od składów seniorów.",
   ratingsOverwriteManualEditsToggle: "Nadpisuj ręcznie edytowane oceny",
   ratingsOverwriteManualEditsTooltip:
     "Po włączeniu nowo pobrane oceny zastąpią wszystkie oceny edytowane ręcznie przy następnym odświeżeniu macierzy.",
@@ -382,6 +498,8 @@ export const messagesPl: Messages = {
   youthEstimateValueButton: "Oszacuj wartosc",
   youthEstimateValueTooltip:
     "Przeszukaj rynek transferowy na podstawie maksymalnego potencjalu tego zawodnika.",
+  youthEstimateValuePremiumTooltip:
+    "Kup licencję premium HT Alchemy, aby użyć funkcji oszacowania wartości.",
   youthEstimateValueDisabledTooltip:
     "Odkryj co najmniej jeden maksymalny potencjal umiejetnosci przed oszacowaniem wartosci.",
   youthEstimateValueAgeMissingTooltip:
@@ -510,7 +628,7 @@ export const messagesPl: Messages = {
   seniorAiLastMatchThresholdText:
     "Pomijaj zawodników, których ostatni mecz był dawniej niż {{weeks}} tygodni temu.",
   seniorAiLastMatchThresholdDisabledText:
-    "Nie pomijaj zawodników na podstawie daty ich ostatniego meczu. {{weeks}}",
+    "Ignoruj zawodników, których ostatni mecz był ponad {{weeks}} tygodni temu.",
   seniorAiLastMatchThresholdAriaLabel:
     "Próg tygodni do pomijania zawodników według daty ostatniego meczu",
   seniorAiLastMatchDisregardedTooltip:
@@ -520,11 +638,15 @@ export const messagesPl: Messages = {
   seniorAiManMarkingToggleLabel: "Krycie indywidualne",
   seniorAiManMarkingToggleTooltip:
     "Wyslij polecenia krycia indywidualnego, jesli zostana zidentyfikowani odpowiedni kryjacy i odpowiedni cel krycia.",
+  seniorAiManMarkingPremiumTooltip:
+    "Kup licencję premium HT Alchemy, aby używać krycia indywidualnego w optymalizacji składu seniorów.",
   seniorAiManMarkingFuzzinessLabel: "Rygor MM",
   seniorAiManMarkingFuzzinessTooltip:
     "Surowosc identyfikacji celu krycia indywidualnego.",
   seniorAiManMarkingFuzzinessAriaLabel:
     "Surowosc identyfikacji celu krycia indywidualnego",
+  seniorAiManMarkingFuzzinessPremiumTooltip:
+    "Kup licencję premium HT Alchemy, aby regulować surowość krycia indywidualnego w optymalizacji składu seniorów.",
   seniorAiManMarkingNeedsLineupTooltip:
     "Krycie indywidualne można włączyć dopiero po ustawieniu składu oraz po zidentyfikowaniu kryjącego i celu krycia.",
   seniorAiManMarkingEnabledTooltip:
@@ -823,6 +945,8 @@ export const messagesPl: Messages = {
   seniorFoxtrickEditSkillsLabel: "Edytuj umiejetnosci, wiek, pensje, TSI",
   seniorFoxtrickSimulationTooltip:
     "Wlacz, aby edytowac umiejetnosci, wiek, pensje i TSI oraz symulowac wartosci FoxTrick. Wylacz, aby wrocic do prawdziwych wartosci.",
+  seniorFoxtrickSimulationPremiumTooltip:
+    "Kup licencje premium HT Alchemy, aby edytowac umiejetnosci, wiek, pensje i TSI w szczegolach seniora.",
   seniorFoxtrickSimulationWarning:
     "Wartosci umiejetnosci, wieku, pensji lub TSI zostaly zmienione recznie i nie odzwierciedlaja juz prawdziwego zawodnika.",
   seniorFoxtrickSimulationAgeYearsLabel: "Wiek lata",

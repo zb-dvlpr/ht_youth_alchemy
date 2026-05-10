@@ -58,6 +58,60 @@ export const messagesSv: Messages = {
     watchlistDeselectAll: "Avmarkera alla",
     watchlistGenderMale: "Manligt",
     watchlistGenderFemale: "Kvinnligt",
+    clubChroniclePremiumTooltip:
+      "Köp en HT Alchemy premiumlicens för att följa ett obegränsat antal lag i ett obegränsat antal flikar och få tillgång till alla andra premiumfunktioner.",
+    clubChroniclePremiumBanner:
+      "För att låsa upp obegränsad lagspårning i obegränsat många flikar, köp HT Alchemy premiumlicensen.",
+    clubChroniclePremiumBuyButton: "Köp premiumlicens",
+    clubChroniclePremiumLicenseTitle:
+      "Den här funktionen kräver HT Alchemys premiumlicens.",
+    clubChroniclePremiumLicenseBody:
+      "Ange din HT Alchemy premiumlicensnyckel här för att låsa upp premiumfunktioner.",
+    clubChroniclePremiumLicenseFieldLabel: "Licensnyckel",
+    clubChroniclePremiumLicensePlaceholder: "Ange licensnyckel",
+    clubChroniclePremiumLicenseSubmit: "Lås upp premium",
+    clubChroniclePremiumLicenseKeyRequired: "Ange en licensnyckel.",
+    clubChroniclePremiumLicenseUnlocked: "Premium upplåst.",
+    clubChroniclePremiumLicensePendingValidation:
+      "Din licensnyckel har sparats lokalt. Onlinevalidering är inte tillgänglig ännu.",
+    clubChroniclePremiumLicenseInvalid: "Den licensnyckeln är inte giltig.",
+    clubChroniclePremiumLicenseValidationUnavailable:
+      "Licensvalidering är inte tillgänglig just nu. Försök igen senare.",
+    clubChroniclePremiumTeamLimitReached:
+      "Gratisversionen av Club Chronicle är begränsad till 3 spårade lag per flik.",
+    clubChroniclePremiumTabLimitReached:
+      "Gratisversionen av Club Chronicle är begränsad till 2 flikar.",
+    clubChroniclePremiumHiddenTeamsNotice:
+      "{{count}} cachade spårade lag förblir dolda tills premium låses upp.",
+    clubChroniclePremiumOtherTeamsMessage:
+      "Köp HT Alchemy premiumlicensen för att se dessa data för andra spårade lag.",
+    appLicenseFeatureSeniorSimulationTitle: "Redigera skills, ålder, lön, TSI",
+    appLicenseFeatureSeniorSimulationDescription:
+      "Redigera spelarattribut för att se hur Foxtrick-metrikerna ändras. Det förbättrar dina beslut vid spelarköp avsevärt.",
+    appLicenseFeatureSeniorRatingsTitle: "Redigera betyg manuellt",
+    appLicenseFeatureSeniorRatingsDescription:
+      "Spelare väljs utifrån betyg. Redigera betygsmatrisen manuellt för att tvinga fram eller förhindra spelarval och finjustera din uppställning.",
+    appLicenseFeatureSeniorManMarkingTitle: "Man-man-markering",
+    appLicenseFeatureSeniorManMarkingDescription:
+      "Väljer automatiskt ett man-markeringsmål om det finns och en lämplig markerare om det finns. Om målet ställs upp av motståndarlaget är risken för man-markeringsstraff noll tack vare AI:n. Reglaget för MM-strikthet hjälper till att finjustera måldetekteringen.",
+    appLicenseFeatureSeniorFixedFormationTitle: "Optimera efter formation",
+    appLicenseFeatureSeniorFixedFormationDescription:
+      "Generera den starkaste uppställningen för en viss formation. Det hjälper dig att jämföra formationsspecifika upplägg och välja den bästa uppställningen för det spelsystem du vill använda.",
+    appLicenseFeatureYouthEstimateValueTitle: "Uppskatta värde",
+    appLicenseFeatureYouthEstimateValueDescription:
+      "Kontrollera transfermarknaden för en spelare med dessa kända maxfärdigheter vid uppflyttningsålder. Det hjälper dig att förstå vad din ungdomsspelare kommer att säljas för.",
+    appLicenseFeatureYouthDoubleRevealTitle: "Dubbel-avslöjande-optimering",
+    appLicenseFeatureYouthDoubleRevealDescription:
+      "Optimera uppställningen för att maximera chansen att avslöja två användbara färdigheter i samma match: ett nuvärde och ett maxvärde, för två olika spelare eller samma spelare. Det hjälper dig att få ut mer information från en enda ungdomsuppställning och snabbar upp spelarevalueringen.",
+    appLicenseFeatureChronicleFormationsTitle: "Formationer & taktik",
+    appLicenseFeatureChronicleFormationsDescription:
+      "Visar vilka formationer och taktiker det här laget har använt i tidigare matcher. Det hjälper dig att välja den mest optimala uppställningen utifrån motståndarens historik.",
+    appLicenseFeatureChronicleLikelyTrainingTitle: "Troligt träningsupplägg",
+    appLicenseFeatureChronicleLikelyTrainingDescription:
+      "Drar slutsatsen vad detta lag tränar utifrån formationer som används i träningsbara matcher.",
+    appLicenseFeatureChronicleTrackingTitle: "Obegränsad Club Chronicle-spårning",
+    appLicenseFeatureChronicleTrackingDescription:
+      "Lås upp fler Club Chronicle-flikar och följ fler lag per flik. Då kan du bevaka större rivalgrupper utan att trimma bevakningslistan.",
     clubChronicleTabDefaultName: "Flik {{number}}",
     clubChronicleTabAdd: "Lägg till flik",
     clubChronicleTabRenamePlaceholder: "Fliknamn",
@@ -76,6 +130,12 @@ export const messagesSv: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Den här appen är i beta. Funktioner, beteende och lokalt cachad data kan ändras eller återställas utan förvarning.",
+    freePillLabel: "Free",
+    freePillTooltip:
+      "Friläge. Premiumfunktioner är låsta tills en giltig licens aktiveras. Klicka för att köpa en premiumlicens.",
+    premiumPillLabel: "Premium",
+    premiumPillTooltip: "Premiumlicens upplåst. Klicka för licensdetaljer.",
+    changelog_5_0_0: "Funktionslåsning.",
     changelog_4_14_0:
       "Seniorernas betygsmatris stöder nu manuella åsidosättningar av betyg med säker återställning efter uppdatering.",
     changelog_4_13_0:
@@ -218,6 +278,8 @@ export const messagesSv: Messages = {
     feedbackBugSuccess: "Buggrapport skickad.",
     feedbackFeatureSuccess: "Funktionsförslag skickat.",
     feedbackSubmitError: "Skickandet av ärendet misslyckades.",
+    feedbackUsernameDisclaimer:
+      "Ditt Hattrick-användarnamn bifogas den här rapporten så att utvecklaren kan kontakta dig med eventuella följdfrågor.",
     feedbackMetadataHattrickUser: "Hattrick-anvandare",
     feedbackManagerIdentityRequiredError:
       "Det gick inte att hamta ditt Hattrick-anvandarnamn och anvandar-ID for rapportens metadata.",
@@ -288,6 +350,58 @@ export const messagesSv: Messages = {
       "Hur många ändrade globala uppdateringsdifferenser som sparas och visas i historiken för Senaste uppdateringar.",
     settingsGeneral: "Allmänt",
     settingsGeneralTitle: "Allmänna inställningar",
+    settingsLicense: "Licens",
+    settingsLicenseTitle: "Licens",
+    settingsLicenseBody:
+      "Köp en HT Alchemy premiumlicens eller hantera din nuvarande licens här.",
+    settingsLicenseBuyButton: "Köp licens",
+    settingsLicenseRevokeButton: "Återkalla licens",
+    settingsLicenseRevoked: "Licensen rensades. Gratisläget återställt.",
+    settingsLicenseRevokePending:
+      "Licensåterkallelsen misslyckades. Försök igen senare.",
+    settingsLicenseActivationSuccessTitle: "Licens aktiverad",
+    settingsLicenseActivationSuccessBody:
+      "Din HT Alchemy Premium-licens har aktiverats för den här appinstansen.",
+    settingsLicenseExpiringWeekTitle: "Licensen går snart ut",
+    settingsLicenseExpiringWeekBody:
+      "Din HT Alchemy-premiumlicens går ut om ungefär 1 vecka. Köp en ny prenumeration nu för att hålla premiumfunktionerna aktiva utan avbrott.",
+    settingsLicenseExpiringDayTitle: "Licensen går snart ut",
+    settingsLicenseExpiringDayBody:
+      "Din HT Alchemy-premiumlicens går ut om ungefär 1 dag. Köp en ny prenumeration nu för att hålla premiumfunktionerna aktiva utan avbrott.",
+    settingsLicenseRenewButton: "Köp ny prenumeration",
+    settingsLicenseLimitExceededTitle: "Licens nedgraderad",
+    settingsLicenseLimitExceededBody:
+      "Den här appinstansen har nedgraderats till gratisversionen eftersom licensens aktiveringsgräns har överskridits.",
+    settingsLicenseRevocationSuccessTitle: "Licens återkallad",
+    settingsLicenseRevocationSuccessBody:
+      "Den här appinstansen har återkallats från den aktiva licensen och premiumåtkomsten har tagits bort.",
+    settingsLicenseNoActive: "Ingen aktiv licens.",
+    settingsLicenseLoading: "Laddar licensdetaljer…",
+    settingsLicenseStatusLabel: "Nuvarande status",
+    settingsLicenseStatusActive: "Aktiv",
+    settingsLicenseStatusInactive: "Inaktiv",
+    settingsLicenseStatusExpired: "Utgången",
+    settingsLicenseStatusDisabled: "Avstängd",
+    settingsLicenseDetailStatus: "Licensstatus",
+    settingsLicenseDetailKey: "Licensnyckel",
+    settingsLicenseDetailActivationLimit: "Aktiveringsgräns",
+    settingsLicenseDetailActivationUsage: "Aktiveringsanvändning",
+    settingsLicenseDetailCreatedAt: "Skapad",
+    settingsLicenseDetailExpiresAt: "Går ut",
+    settingsLicenseDetailInstanceId: "Instans-ID",
+    settingsLicenseDetailInstanceName: "Instansnamn",
+    settingsLicenseDetailInstanceCreatedAt: "Instans skapad",
+    settingsLicenseDetailStoreId: "Butiks-ID",
+    settingsLicenseDetailOrderItemId: "Orderrads-ID",
+    settingsLicenseDetailProductId: "Produkt-ID",
+    settingsLicenseDetailProduct: "Produkt",
+    settingsLicenseDetailVariantId: "Variant-ID",
+    settingsLicenseDetailVariant: "Variant",
+    settingsLicenseDetailOrderId: "Order-ID",
+    settingsLicenseDetailCustomerId: "Kund-ID",
+    settingsLicenseDetailCustomerName: "Kundnamn",
+    settingsLicenseDetailCustomerEmail: "Kundens e-post",
+    settingsLicenseNeverExpires: "Aldrig",
     settingsGeneralExportAllLabel: "Exportera alla inställningar",
     settingsGeneralExportAllHint:
       "Exportera alla lokalt sparade appinställningar och cachetillstånd till en JSON-säkerhetskopia.",
@@ -1065,7 +1179,7 @@ export const messagesSv: Messages = {
     seniorAiLastMatchThresholdText:
       "Ignorera spelare vars senaste match spelades för mer än {{weeks}} veckor sedan.",
     seniorAiLastMatchThresholdDisabledText:
-      "Bortse inte från spelare utifrån datumet för deras senaste match. {{weeks}}",
+      "Ignorera spelare vars senaste match var för mer än {{weeks}} veckor sedan.",
     seniorAiLastMatchThresholdAriaLabel:
       "Veckogräns för att bortse från spelare utifrån senaste matchdatum",
     seniorAiLastMatchDisregardedTooltip:
@@ -1075,11 +1189,15 @@ export const messagesSv: Messages = {
     seniorAiManMarkingToggleLabel: "Manmarkering",
     seniorAiManMarkingToggleTooltip:
       "Skicka manmarkeringsorder om en lamplig markerare och ett lampligt manmarkeringsmal identifieras.",
+    seniorAiManMarkingPremiumTooltip:
+      "Köp en HT Alchemy premiumlicens för att använda manmarkering i senioruppställningsoptimeringen.",
     seniorAiManMarkingFuzzinessLabel: "MM-strikthet",
     seniorAiManMarkingFuzzinessTooltip:
       "Strikthet for identifiering av manmarkeringsmal.",
     seniorAiManMarkingFuzzinessAriaLabel:
       "Strikthet for identifiering av manmarkeringsmal",
+    seniorAiManMarkingFuzzinessPremiumTooltip:
+      "Köp en HT Alchemy premiumlicens för att justera manmarkerings-striktheten i senioruppställningsoptimeringen.",
     seniorAiManMarkingNeedsLineupTooltip:
       "Manmarkering kan bara aktiveras när en uppställning har satts och en markerare och ett mål har identifierats.",
     seniorAiManMarkingEnabledTooltip:
@@ -1315,6 +1433,8 @@ export const messagesSv: Messages = {
     youthEstimateValueButton: "Uppskatta varde",
     youthEstimateValueTooltip:
       "Sok pa transfermarknaden utifran spelarens maximala potential.",
+    youthEstimateValuePremiumTooltip:
+      "Köp en HT Alchemy premiumlicens för att använda Uppskatta varde.",
     youthEstimateValueDisabledTooltip:
       "Avsloja minst en maxpotential innan vardet uppskattas.",
     youthEstimateValueAgeMissingTooltip:
@@ -1482,6 +1602,8 @@ export const messagesSv: Messages = {
     seniorFoxtrickEditSkillsLabel: "Redigera fardigheter, alder, lon, TSI",
     seniorFoxtrickSimulationTooltip:
       "Aktivera for att redigera fardigheter, alder, lon och TSI och simulera FoxTrick-varden. Inaktivera for att aterstalla riktiga varden.",
+    seniorFoxtrickSimulationPremiumTooltip:
+      "Kop en HT Alchemy Premium-licens for att redigera seniora spelares fardigheter, alder, lon och TSI i spelardetaljerna.",
     seniorFoxtrickSimulationWarning:
       "Fardighets-, alder-, lone- eller TSI-varden har andrats manuellt och speglar inte langre den riktiga spelaren.",
     seniorFoxtrickSimulationAgeYearsLabel: "Alder ar",
@@ -1533,6 +1655,8 @@ export const messagesSv: Messages = {
     ratingsManualOverrideToggle: "Redigera betyg manuellt",
     ratingsManualOverrideTooltip:
       "Betyg används för att placera spelare i AI-elvor. Slå på detta för att ändra betygen manuellt. Användbart om du vill tvinga att en spelare väljs eller inte väljs för en viss position oavsett form och tidigare prestation.",
+    ratingsManualOverridePremiumTooltip:
+      "Köp en HT Alchemy premiumlicens för att manuellt redigera betyg som används av senioruppställnings-AI:n.",
     ratingsOverwriteManualEditsToggle: "Skriv över manuellt redigerade betyg",
     ratingsOverwriteManualEditsTooltip:
       "När detta är aktiverat kommer nyhämtade betyg att ersätta alla betyg som du har redigerat manuellt nästa gång matrisen uppdateras.",

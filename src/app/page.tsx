@@ -18,9 +18,12 @@ import BuyCoffeeButton from "./components/BuyCoffeeButton";
 import MobileManualButton from "./components/MobileManualButton";
 import BrandClock from "./components/BrandClock";
 import Tooltip from "./components/Tooltip";
+import PremiumPill from "./components/PremiumPill";
+import PremiumStatusPill from "./components/PremiumStatusPill";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
+import { isPremiumLicensingEnabled } from "@/lib/license";
 import type { MatchesResponse } from "./components/UpcomingMatches";
 import type { RatingsMatrixResponse } from "./components/RatingsMatrix";
 
@@ -275,6 +278,7 @@ export default async function Home() {
   const managerIdentity = extractManagerIdentityFromManagerCompendium(
     managerResponse.data
   );
+  const premiumLicensingEnabled = isPremiumLicensingEnabled();
   const youthTeams = extractYouthTeams(managerResponse);
   const seniorTeams = extractSeniorTeams(managerResponse);
   const defaultYouthTeamId = youthTeams.length > 1 ? youthTeams[0]?.youthTeamId : null;
@@ -318,20 +322,21 @@ export default async function Home() {
                   <div className={styles.brandRow}>
                     <span className={styles.brandTitle}>{messages.brandTitle}</span>
                     <span className={styles.version}>v{pkg.version}</span>
-                    <Tooltip content={messages.betaPillTooltip}>
-                      <span
-                        className={styles.betaPill}
-                        aria-label={messages.betaPillTooltip}
-                      >
-                        {messages.betaPillLabel}
-                      </span>
-                    </Tooltip>
+                    {premiumLicensingEnabled ? (
+                      <PremiumPill messages={messages} />
+                    ) : (
+                      <PremiumStatusPill messages={messages} />
+                    )}
                   </div>
                 </div>
                 <div className={styles.mobileLauncherHeader}>
                   <div className={styles.mobileLauncherTitleRow}>
                     <span className={styles.brandTitle}>{messages.brandTitle}</span>
                     <span className={styles.version}>v{pkg.version}</span>
+                    <PremiumStatusPill
+                      messages={messages}
+                      className={styles.mobileLauncherPremiumPill}
+                    />
                   </div>
                   {isConnected ? (
                     <ConnectedStatus messages={messages} variant="buttonOnly" />

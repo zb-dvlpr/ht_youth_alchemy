@@ -58,6 +58,61 @@ export const messagesPt: Messages = {
     watchlistDeselectAll: "Desmarcar tudo",
     watchlistGenderMale: "Masculino",
     watchlistGenderFemale: "Feminino",
+    clubChroniclePremiumTooltip:
+      "Compre uma licença premium do HT Alchemy para acompanhar um número ilimitado de equipes em um número ilimitado de abas e acessar todos os outros recursos premium.",
+    clubChroniclePremiumBanner:
+      "Para desbloquear o acompanhamento ilimitado de equipes em abas ilimitadas, compre a licença premium do HT Alchemy.",
+    clubChroniclePremiumBuyButton: "Comprar licença premium",
+    clubChroniclePremiumLicenseTitle:
+      "Este recurso requer a licença premium do HT Alchemy.",
+    clubChroniclePremiumLicenseBody:
+      "Insira aqui sua chave de licença premium do HT Alchemy para desbloquear os recursos premium.",
+    clubChroniclePremiumLicenseFieldLabel: "Chave de licença",
+    clubChroniclePremiumLicensePlaceholder: "Inserir chave de licença",
+    clubChroniclePremiumLicenseSubmit: "Desbloquear premium",
+    clubChroniclePremiumLicenseKeyRequired: "Insira uma chave de licença.",
+    clubChroniclePremiumLicenseUnlocked: "Premium desbloqueado.",
+    clubChroniclePremiumLicensePendingValidation:
+      "Sua chave de licença foi salva localmente. A validação online ainda não está disponível.",
+    clubChroniclePremiumLicenseInvalid:
+      "Essa chave de licença não é válida.",
+    clubChroniclePremiumLicenseValidationUnavailable:
+      "A validação da licença não está disponível no momento. Tente novamente mais tarde.",
+    clubChroniclePremiumTeamLimitReached:
+      "A versão gratuita do Club Chronicle está limitada a 3 equipes acompanhadas por aba.",
+    clubChroniclePremiumTabLimitReached:
+      "A versão gratuita do Club Chronicle está limitada a 2 abas.",
+    clubChroniclePremiumHiddenTeamsNotice:
+      "{{count}} equipe(s) acompanhada(s) em cache permanecem oculta(s) até o premium ser desbloqueado.",
+    clubChroniclePremiumOtherTeamsMessage:
+      "Compre a licença premium do HT Alchemy para ver esses dados de outras equipes acompanhadas.",
+    appLicenseFeatureSeniorSimulationTitle: "Editar skills, idade, salário, TSI",
+    appLicenseFeatureSeniorSimulationDescription:
+      "Edite atributos do jogador para ver como as métricas do Foxtrick mudam. Isso melhora significativamente suas decisões de compra de jogadores.",
+    appLicenseFeatureSeniorRatingsTitle: "Editar ratings manualmente",
+    appLicenseFeatureSeniorRatingsDescription:
+      "Os jogadores são selecionados com base nos ratings. Edite manualmente a matriz de ratings para forçar ou evitar seleções e ajustar melhor sua escalação.",
+    appLicenseFeatureSeniorManMarkingTitle: "Marcação individual",
+    appLicenseFeatureSeniorManMarkingDescription:
+      "Seleciona automaticamente um alvo de marcação individual se ele existir e um marcador adequado se ele existir. Se o alvo for escalado pela equipe adversária, a chance de penalidade de marcação individual é zero graças à IA. O controle de rigidez MM ajuda a refinar a detecção do alvo.",
+    appLicenseFeatureSeniorFixedFormationTitle: "Otimizar por formação",
+    appLicenseFeatureSeniorFixedFormationDescription:
+      "Gere a escalação mais forte para uma formação específica. Isso ajuda você a comparar configurações por formação e escolher a melhor escalação para o esquema que quer usar.",
+    appLicenseFeatureYouthEstimateValueTitle: "Estimar valor",
+    appLicenseFeatureYouthEstimateValueDescription:
+      "Verifique o mercado de transferências para um jogador com essas habilidades máximas conhecidas na idade de promoção. Isso ajuda a entender por quanto seu jogador da base será vendido.",
+    appLicenseFeatureYouthDoubleRevealTitle: "Otimização de dupla revelação",
+    appLicenseFeatureYouthDoubleRevealDescription:
+      "Otimize a escalação para maximizar a chance de revelar duas habilidades úteis na mesma partida: um valor atual e um valor máximo, para dois jogadores diferentes ou para o mesmo jogador. Isso ajuda a extrair mais informação de uma única escalação de base e acelera a avaliação dos jogadores.",
+    appLicenseFeatureChronicleFormationsTitle: "Formações e táticas",
+    appLicenseFeatureChronicleFormationsDescription:
+      "Mostra as formações e táticas usadas por este time em partidas passadas. Isso ajuda a escolher a escalação mais adequada com base no histórico do time adversário.",
+    appLicenseFeatureChronicleLikelyTrainingTitle: "Provável regime de treino",
+    appLicenseFeatureChronicleLikelyTrainingDescription:
+      "Infere o que este time está treinando com base nas formações usadas em partidas treináveis.",
+    appLicenseFeatureChronicleTrackingTitle: "Acompanhamento ilimitado do Club Chronicle",
+    appLicenseFeatureChronicleTrackingDescription:
+      "Desbloqueie abas adicionais do Club Chronicle e acompanhe mais equipes por aba. Assim você pode seguir grupos maiores de rivais sem cortar a watchlist.",
     clubChronicleTabDefaultName: "Aba {{number}}",
     clubChronicleTabAdd: "Adicionar aba",
     clubChronicleTabRenamePlaceholder: "Nome da aba",
@@ -76,6 +131,12 @@ export const messagesPt: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "Este app está em beta. Recursos, comportamento e dados locais em cache podem mudar ou ser redefinidos sem aviso prévio.",
+    freePillLabel: "Free",
+    freePillTooltip:
+      "Modo gratuito. Os recursos premium permanecem bloqueados até que uma licença válida seja ativada. Clica para comprar uma licença premium.",
+    premiumPillLabel: "Premium",
+    premiumPillTooltip: "Licença premium desbloqueada. Clica para ver os detalhes da licença.",
+    changelog_5_0_0: "Bloqueio de funcionalidades.",
     changelog_4_14_0:
       "A matriz de avaliações sénior agora suporta substituições manuais com restauro seguro após atualização.",
     changelog_4_13_0:
@@ -220,6 +281,8 @@ export const messagesPt: Messages = {
     feedbackBugSuccess: "Relato de bug enviado.",
     feedbackFeatureSuccess: "Solicitacao de recurso enviada.",
     feedbackSubmitError: "Falha ao enviar a issue.",
+    feedbackUsernameDisclaimer:
+      "O teu nome de utilizador do Hattrick sera anexado a este relatorio para que o programador te possa contactar com quaisquer perguntas de seguimento.",
     feedbackMetadataHattrickUser: "Usuario do Hattrick",
     feedbackManagerIdentityRequiredError:
       "Nao foi possivel resolver seu nome de usuario e ID de usuario do Hattrick para os metadados do relato.",
@@ -288,9 +351,61 @@ export const messagesPt: Messages = {
       "Diferenças de últimas atualizações para manter",
     settingsClubChronicleUpdatesHistoryHint:
       "Quantas diferenças com mudanças de refresh global são salvas e exibidas no histórico de Últimas atualizações.",
-    settingsDebugBuyCoffeePromptButton: "Mostrar modal paga-me um café",
     settingsGeneral: "Geral",
     settingsGeneralTitle: "Configurações gerais",
+    settingsLicense: "Licença",
+    settingsLicenseTitle: "Licença",
+    settingsLicenseBody:
+      "Compre uma licença premium do HT Alchemy ou gira aqui a sua licença atual.",
+    settingsLicenseBuyButton: "Comprar licença",
+    settingsLicenseRevokeButton: "Revogar licença",
+    settingsLicenseRevoked: "Licença removida. Modo gratuito restaurado.",
+    settingsLicenseRevokePending:
+      "A revogação da licença falhou. Tenta novamente mais tarde.",
+    settingsLicenseActivationSuccessTitle: "Licença ativada",
+    settingsLicenseActivationSuccessBody:
+      "A tua licença premium HT Alchemy foi ativada para esta instância da aplicação.",
+    settingsLicenseExpiringWeekTitle: "A licença expira em breve",
+    settingsLicenseExpiringWeekBody:
+      "A tua licença premium HT Alchemy expirará em cerca de 1 semana. Compra agora uma nova subscrição para manter as funcionalidades premium ativas sem interrupções.",
+    settingsLicenseExpiringDayTitle: "A licença expira em breve",
+    settingsLicenseExpiringDayBody:
+      "A tua licença premium HT Alchemy expirará em cerca de 1 dia. Compra agora uma nova subscrição para manter as funcionalidades premium ativas sem interrupções.",
+    settingsLicenseRenewButton: "Comprar nova subscrição",
+    settingsLicenseLimitExceededTitle: "Licença rebaixada",
+    settingsLicenseLimitExceededBody:
+      "Esta instância da aplicação foi rebaixada para a versão gratuita porque o limite de ativações da licença foi excedido.",
+    settingsLicenseRevocationSuccessTitle: "Licença revogada",
+    settingsLicenseRevocationSuccessBody:
+      "Esta instância da aplicação foi revogada da licença ativa e o acesso premium foi removido.",
+    settingsLicenseNoActive: "Nenhuma licença ativa.",
+    settingsLicenseLoading: "A carregar detalhes da licença…",
+    settingsLicenseStatusLabel: "Estado atual",
+    settingsLicenseStatusActive: "Ativa",
+    settingsLicenseStatusInactive: "Inativa",
+    settingsLicenseStatusExpired: "Expirada",
+    settingsLicenseStatusDisabled: "Desativada",
+    settingsLicenseDetailStatus: "Estado da licença",
+    settingsLicenseDetailKey: "Chave da licença",
+    settingsLicenseDetailActivationLimit: "Limite de ativação",
+    settingsLicenseDetailActivationUsage: "Uso de ativações",
+    settingsLicenseDetailCreatedAt: "Criada em",
+    settingsLicenseDetailExpiresAt: "Expira em",
+    settingsLicenseDetailInstanceId: "ID da instância",
+    settingsLicenseDetailInstanceName: "Nome da instância",
+    settingsLicenseDetailInstanceCreatedAt: "Instância criada em",
+    settingsLicenseDetailStoreId: "ID da loja",
+    settingsLicenseDetailOrderItemId: "ID do item da encomenda",
+    settingsLicenseDetailProductId: "ID do produto",
+    settingsLicenseDetailProduct: "Produto",
+    settingsLicenseDetailVariantId: "ID da variante",
+    settingsLicenseDetailVariant: "Variante",
+    settingsLicenseDetailOrderId: "ID da encomenda",
+    settingsLicenseDetailCustomerId: "ID do cliente",
+    settingsLicenseDetailCustomerName: "Nome do cliente",
+    settingsLicenseDetailCustomerEmail: "Email do cliente",
+    settingsLicenseNeverExpires: "Nunca",
+    settingsDebugBuyCoffeePromptButton: "Mostrar modal paga-me um café",
     settingsGeneralExportAllLabel: "Exportar todas as configurações",
     settingsGeneralExportAllHint:
       "Exporta todas as configurações locais e estados em cache do app para um arquivo JSON de backup.",
@@ -1074,7 +1189,7 @@ export const messagesPt: Messages = {
     seniorAiLastMatchThresholdText:
       "Ignorar jogadores cuja última partida foi há mais de {{weeks}} semanas.",
     seniorAiLastMatchThresholdDisabledText:
-      "Não desconsiderar jogadores pela data da última partida. {{weeks}}",
+      "Ignore jogadores cuja última partida foi há mais de {{weeks}} semanas.",
     seniorAiLastMatchThresholdAriaLabel:
       "Limite em semanas para desconsiderar jogadores pela data da última partida",
     seniorAiLastMatchDisregardedTooltip:
@@ -1084,11 +1199,15 @@ export const messagesPt: Messages = {
     seniorAiManMarkingToggleLabel: "Marcacao individual",
     seniorAiManMarkingToggleTooltip:
       "Enviar ordens de marcacao individual se um marcador adequado e um alvo de marcacao adequado forem identificados.",
+    seniorAiManMarkingPremiumTooltip:
+      "Compre uma licença premium do HT Alchemy para usar marcacao individual na otimizacao de escalacoes seniores.",
     seniorAiManMarkingFuzzinessLabel: "Rigidez MM",
     seniorAiManMarkingFuzzinessTooltip:
       "Rigidez para identificar o alvo de marcacao individual.",
     seniorAiManMarkingFuzzinessAriaLabel:
       "Rigidez para identificar o alvo de marcacao individual",
+    seniorAiManMarkingFuzzinessPremiumTooltip:
+      "Compre uma licença premium do HT Alchemy para ajustar o rigor da marcacao individual na otimizacao de escalacoes seniores.",
     seniorAiManMarkingNeedsLineupTooltip:
       "A marcacao individual so pode ser ativada depois que uma escalação for definida e se um marcador e um alvo tiverem sido identificados.",
     seniorAiManMarkingEnabledTooltip:
@@ -1323,6 +1442,8 @@ export const messagesPt: Messages = {
     youthEstimateValueButton: "Estimar valor",
     youthEstimateValueTooltip:
       "Pesquisar no mercado de transferencias com base no potencial maximo deste jogador.",
+    youthEstimateValuePremiumTooltip:
+      "Compre uma licença premium do HT Alchemy para usar Estimar valor.",
     youthEstimateValueDisabledTooltip:
       "Revele pelo menos uma habilidade de potencial maximo antes de estimar o valor.",
     youthEstimateValueAgeMissingTooltip:
@@ -1490,6 +1611,8 @@ export const messagesPt: Messages = {
     seniorFoxtrickEditSkillsLabel: "Editar habilidades, idade, salario, TSI",
     seniorFoxtrickSimulationTooltip:
       "Ative para editar habilidades, idade, salario e TSI e simular valores FoxTrick. Desative para voltar aos valores reais.",
+    seniorFoxtrickSimulationPremiumTooltip:
+      "Compre uma licenca premium do HT Alchemy para editar habilidades, idade, salario e TSI nos detalhes do jogador senior.",
     seniorFoxtrickSimulationWarning:
       "Valores de habilidades, idade, salario ou TSI foram alterados manualmente e ja nao refletem o jogador real.",
     seniorFoxtrickSimulationAgeYearsLabel: "Idade anos",
@@ -1541,6 +1664,8 @@ export const messagesPt: Messages = {
     ratingsManualOverrideToggle: "Editar avaliações manualmente",
     ratingsManualOverrideTooltip:
       "As avaliações são usadas para posicionar jogadores em escalações de IA. Ative isto para alterar manualmente as avaliações. Útil se quiser forçar que um jogador seja escolhido ou não para uma posição específica independentemente da forma e do desempenho passado.",
+    ratingsManualOverridePremiumTooltip:
+      "Compre uma licença premium do HT Alchemy para editar manualmente as avaliações usadas pela IA de escalações seniores.",
     ratingsOverwriteManualEditsToggle: "Substituir avaliações editadas manualmente",
     ratingsOverwriteManualEditsTooltip:
       "Quando ativado, novas avaliações obtidas substituirão quaisquer avaliações que você tenha editado manualmente na próxima atualização da matriz.",

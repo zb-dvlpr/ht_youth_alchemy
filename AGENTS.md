@@ -34,6 +34,9 @@
 ## Modals
 - All modal UI must use the shared modal framework/component.
 
+## Paywalls
+- Whenever a new paywalled feature is introduced, its license modal entry must explain that specific feature in localized copy instead of showing only generic premium messaging.
+
 ## Currency
 - Any time currency is displayed in the UI, convert and display it in EUR.
 

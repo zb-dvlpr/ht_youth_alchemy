@@ -55,6 +55,7 @@ type RatingsMatrixProps = {
   onSortStart?: () => void;
   manualEditingEnabled?: boolean;
   onManualEditingEnabledChange?: (enabled: boolean) => void;
+  manualEditingTooltip?: string;
   overwriteManualEditsEnabled?: boolean;
   onOverwriteManualEditsEnabledChange?: (enabled: boolean) => void;
   onDiscardManualEdits?: () => void;
@@ -132,6 +133,7 @@ export default function RatingsMatrix({
   onSortStart,
   manualEditingEnabled = false,
   onManualEditingEnabledChange,
+  manualEditingTooltip,
   overwriteManualEditsEnabled = false,
   onOverwriteManualEditsEnabledChange,
   onDiscardManualEdits,
@@ -335,7 +337,9 @@ export default function RatingsMatrix({
       ) : null}
       {onManualEditingEnabledChange ? (
         <div className={styles.ratingsMatrixControls}>
-          <Tooltip content={messages.ratingsManualOverrideTooltip}>
+          <Tooltip
+            content={manualEditingTooltip ?? messages.ratingsManualOverrideTooltip}
+          >
             <label className={styles.matchesFilterToggle}>
               <input
                 type="checkbox"

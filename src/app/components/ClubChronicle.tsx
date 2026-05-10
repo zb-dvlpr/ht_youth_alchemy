@@ -70,7 +70,15 @@ import {
   readCompressedChronicleStorage,
   writeCompressedChronicleStorage,
 } from "@/lib/chronicleStorageCodec";
+import {
+  APP_LICENSE_EVENT,
+  APP_LICENSE_STORAGE_KEY,
+  hasUnlockedPremiumAccess,
+  isPremiumLicensingEnabled,
+  readAppLicenseState,
+} from "@/lib/license";
 import MobileChronicleMenu from "./MobileChronicleMenu";
+import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
 
 type SupportedTeam = {
   teamId: number;
@@ -475,6 +483,7 @@ type FormationTacticsRow = {
   teamId: number;
   teamName: string;
   snapshot?: FormationTacticsSnapshot | null;
+  premiumLocked?: boolean;
 };
 
 type TeamAttitudeRow = {
@@ -487,6 +496,7 @@ type LikelyTrainingRow = {
   teamId: number;
   teamName: string;
   snapshot?: FormationTacticsSnapshot | null;
+  premiumLocked?: boolean;
 };
 
 type LastLoginEvent = {
@@ -775,6 +785,10 @@ type ChronicleTableProps<Row, Snapshot> = {
   maskText?: string;
   isMaskActive?: boolean;
   onMaskedRowClick?: (row: Row) => void;
+  renderMergedTrailingCells?: (
+    row: Row,
+    snapshot: Snapshot | undefined
+  ) => React.ReactNode | null;
 };
 
 type ChroniclePanelProps = {
@@ -813,6 +827,7 @@ const ChronicleTable = <Row, Snapshot>({
   maskText,
   isMaskActive = false,
   onMaskedRowClick,
+  renderMergedTrailingCells,
 }: ChronicleTableProps<Row, Snapshot>) => (
   <div
     className={`${styles.chronicleTable}${className ? ` ${className}` : ""}`}
@@ -898,6 +913,23 @@ const ChronicleTable = <Row, Snapshot>({
             >
               {maskText}
             </span>
+          ) : renderMergedTrailingCells?.(row, snapshot) ? (
+            <>
+              <span
+                key={`${rowKey}-${columns[0]?.key ?? "lead"}`}
+                className={styles.chronicleTableCell}
+                data-label={columns[0]?.label}
+              >
+                {columns[0]?.renderCell
+                  ? columns[0].renderCell(snapshot, row, formatValue)
+                  : formatValue(columns[0]?.getValue(snapshot, row))}
+              </span>
+              <span
+                className={`${styles.chronicleTableCell} ${styles.chronicleTableCellMerged}`}
+              >
+                {renderMergedTrailingCells(row, snapshot)}
+              </span>
+            </>
           ) : (
             columns.map((column) => (
               <span
@@ -1030,6 +1062,8 @@ const FIRST_USE_KEY = "ya_cc_first_use_seen_v1";
 const HELP_DISMISSED_TOKEN_KEY = "ya_cc_help_dismissed_token_v1";
 const NO_DIVULGO_DISMISSED_KEY = "ya_cc_no_divulgo_dismissed_v1";
 const NO_DIVULGO_TARGET_TEAM_ID = 524637;
+const FREE_CHRONICLE_TAB_LIMIT = 2;
+const FREE_CHRONICLE_TEAM_LIMIT = 3;
 const PANEL_IDS = [
   "league-performance",
   "press-announcements",
@@ -2819,6 +2853,7 @@ const getLatestCacheTimestampForTeams = (
 };
 
 export default function ClubChronicle({ messages }: ClubChronicleProps) {
+  const premiumLicensingEnabled = isPremiumLicensingEnabled();
   const initialTabsState = useMemo(
     () => readChronicleTabsStorage(messages, messages.clubChronicleInjuryHealthy),
     [messages.clubChronicleInjuryHealthy]
@@ -2830,6 +2865,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
   const [activeChronicleTabId, setActiveChronicleTabId] = useState<string>(
     () => initialTabsState.activeTabId
+  );
+  const [premiumLicenseState, setPremiumLicenseState] = useState(() =>
+    readAppLicenseState()
   );
   const [ownLeagues, setOwnLeagues] = useState<OwnLeagueEntry[]>([]);
   const [ownLeagueTeams, setOwnLeagueTeams] = useState<SupportedTeam[]>([]);
@@ -3041,6 +3079,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [isValidating, setIsValidating] = useState(false);
   const [errorOpen, setErrorOpen] = useState(false);
   const [watchlistOpen, setWatchlistOpen] = useState(false);
+  const [premiumLicenseModalOpen, setPremiumLicenseModalOpen] = useState(false);
+  const [premiumLicenseModalNonce, setPremiumLicenseModalNonce] = useState(0);
+  const [premiumLicenseModalContext, setPremiumLicenseModalContext] =
+    useState<AppLicenseModalContext | null>(null);
   const [panelVisibilityOpen, setPanelVisibilityOpen] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [pendingAutoHelpOpen, setPendingAutoHelpOpen] = useState(false);
@@ -3090,6 +3132,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const coachCountryNameCacheRef = useRef<Map<number, string>>(new Map());
   const coachCountryNamePendingRef = useRef<Map<number, Promise<string | null>>>(new Map());
   const { addNotification } = useNotifications();
+  const openPremiumLicenseModal = useCallback(
+    (context?: AppLicenseModalContext | null) => {
+      setPremiumLicenseModalContext(context ?? null);
+      setPremiumLicenseModalNonce((prev) => prev + 1);
+      setPremiumLicenseModalOpen(true);
+    },
+    []
+  );
   const anyRefreshing =
     refreshingGlobal ||
     refreshingLeague ||
@@ -3130,16 +3180,36 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => supportedTeams.filter((team) => !team.isOwnSeniorTeam),
     [supportedTeams]
   );
+  const chroniclePremiumUnlocked = hasUnlockedPremiumAccess(premiumLicenseState);
+  const isPremiumChronicleTeamUnlocked = useCallback(
+    (teamId: number) => chroniclePremiumUnlocked || ownSeniorTeamIds.has(teamId),
+    [chroniclePremiumUnlocked, ownSeniorTeamIds]
+  );
+  const visibleChronicleTabs = useMemo(
+    () =>
+      chroniclePremiumUnlocked
+        ? chronicleTabs
+        : chronicleTabs.slice(0, FREE_CHRONICLE_TAB_LIMIT),
+    [chroniclePremiumUnlocked, chronicleTabs]
+  );
+  const resolvedActiveChronicleTabId = useMemo(
+    () =>
+      visibleChronicleTabs.some((tab) => tab.id === activeChronicleTabId)
+        ? activeChronicleTabId
+        : visibleChronicleTabs[0]?.id ?? activeChronicleTabId,
+    [activeChronicleTabId, visibleChronicleTabs]
+  );
   const activeChronicleTab = useMemo(
     () =>
-      chronicleTabs.find((tab) => tab.id === activeChronicleTabId) ??
+      chronicleTabs.find((tab) => tab.id === resolvedActiveChronicleTabId) ??
+      visibleChronicleTabs[0] ??
       chronicleTabs[0] ??
       buildChronicleTabState(messages, 1, { id: "tab-1" }),
-    [activeChronicleTabId, chronicleTabs, messages]
+    [chronicleTabs, messages, resolvedActiveChronicleTabId, visibleChronicleTabs]
   );
   const activeChronicleTabIndex = useMemo(
-    () => chronicleTabs.findIndex((tab) => tab.id === activeChronicleTab.id),
-    [activeChronicleTab.id, chronicleTabs]
+    () => visibleChronicleTabs.findIndex((tab) => tab.id === activeChronicleTab.id),
+    [activeChronicleTab.id, visibleChronicleTabs]
   );
   const setMobileChroniclePanelAcrossTabs = useCallback(
     (panelId: ChroniclePanelId) => {
@@ -3182,7 +3252,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     y: 108,
   };
   chronicleTabsRef.current = chronicleTabs;
-  activeChronicleTabIdRef.current = activeChronicleTabId;
+  activeChronicleTabIdRef.current = resolvedActiveChronicleTabId;
   const handleSelectChronicleTabMobile = useCallback(
     (tabId: string) => {
       setMobileChroniclePanelAcrossTabs(mobileChroniclePanelId);
@@ -3311,15 +3381,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
   const switchChronicleTabByOffset = useCallback(
     (offset: -1 | 1) => {
-      if (chronicleTabs.length <= 1 || activeChronicleTabIndex < 0) return;
+      if (visibleChronicleTabs.length <= 1 || activeChronicleTabIndex < 0) return;
       const nextIndex =
-        (activeChronicleTabIndex + offset + chronicleTabs.length) %
-        chronicleTabs.length;
-      const nextTab = chronicleTabs[nextIndex];
+        (activeChronicleTabIndex + offset + visibleChronicleTabs.length) %
+        visibleChronicleTabs.length;
+      const nextTab = visibleChronicleTabs[nextIndex];
       if (!nextTab) return;
       setActiveChronicleTabId(nextTab.id);
     },
-    [activeChronicleTabIndex, chronicleTabs]
+    [activeChronicleTabIndex, visibleChronicleTabs]
   );
 
   useEffect(() => {
@@ -3405,25 +3475,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => supportedTeams.map((team) => team.teamId),
     [supportedTeams]
   );
-  const allWatchlistSelected = useMemo(
-    () =>
-      watchlistSelectableTeamIds.length > 0 &&
-      watchlistSelectableTeamIds.every((teamId) => supportedSelections[teamId] ?? false) &&
-      ownLeagues.every((entry) => ownLeagueSelections[entry.key] ?? false),
-    [ownLeagueSelections, ownLeagues, supportedSelections, watchlistSelectableTeamIds]
-  );
-  const hasAnyWatchlistSelection = useMemo(
-    () =>
-      watchlistSelectableTeamIds.some((teamId) => supportedSelections[teamId] ?? false) ||
-      ownLeagues.some((entry) => ownLeagueSelections[entry.key] ?? false),
-    [ownLeagueSelections, ownLeagues, supportedSelections, watchlistSelectableTeamIds]
-  );
-
-  useEffect(() => {
-    if (!watchlistMasterCheckboxRef.current) return;
-    watchlistMasterCheckboxRef.current.indeterminate =
-      hasAnyWatchlistSelection && !allWatchlistSelected;
-  }, [allWatchlistSelected, hasAnyWatchlistSelection]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -3552,10 +3603,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [formatWatchlistTeamName]
   );
 
-  const trackedTeams = useMemo(() => {
+  const buildTrackedTeams = useCallback(
+    (
+      nextSupportedSelections: Record<number, boolean>,
+      nextOwnLeagueSelections: Record<string, boolean>,
+      nextManualTeams: ManualTeam[]
+    ) => {
     const map = new Map<number, ChronicleTeamData>();
+    const hasSelectedOwnLeagues = Object.values(nextOwnLeagueSelections).some(Boolean);
     supportedTeams.forEach((team) => {
-      if (!supportedSelections[team.teamId]) return;
+      if (!nextSupportedSelections[team.teamId]) return;
       const cached = chronicleCache.teams[team.teamId];
       map.set(team.teamId, {
         teamId: team.teamId,
@@ -3569,7 +3626,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         leaguePerformance: cached?.leaguePerformance,
       });
     });
-    manualTeams.forEach((team) => {
+    nextManualTeams.forEach((team) => {
       const cached = chronicleCache.teams[team.teamId];
       map.set(team.teamId, {
         teamId: team.teamId,
@@ -3585,6 +3642,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       });
     });
     ownLeagueTeams.forEach((team) => {
+      if (!hasSelectedOwnLeagues) return;
       const cached = chronicleCache.teams[team.teamId];
       const existing = map.get(team.teamId);
       map.set(team.teamId, {
@@ -3610,13 +3668,76 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return Array.from(map.values()).sort((a, b) =>
       (a.teamName ?? "").localeCompare(b.teamName ?? "")
     );
-  }, [
-    supportedTeams,
-    supportedSelections,
-    manualTeams,
-    ownLeagueTeams,
-    chronicleCache,
-  ]);
+    },
+    [chronicleCache, ownLeagueTeams, supportedTeams]
+  );
+
+  const fullTrackedTeams = useMemo(
+    () => buildTrackedTeams(supportedSelections, ownLeagueSelections, manualTeams),
+    [buildTrackedTeams, manualTeams, ownLeagueSelections, supportedSelections]
+  );
+  const trackedTeams = useMemo(
+    () =>
+      chroniclePremiumUnlocked
+        ? fullTrackedTeams
+        : fullTrackedTeams.slice(0, FREE_CHRONICLE_TEAM_LIMIT),
+    [chroniclePremiumUnlocked, fullTrackedTeams]
+  );
+  const hasHiddenTrackedTeams = fullTrackedTeams.length > trackedTeams.length;
+  const visibleTrackedTeamIds = useMemo(
+    () => new Set<number>(trackedTeams.map((team) => team.teamId)),
+    [trackedTeams]
+  );
+  const isSupportedSelectionEffectivelyVisible = useCallback(
+    (teamId: number) =>
+      Boolean(supportedSelections[teamId]) &&
+      (chroniclePremiumUnlocked || visibleTrackedTeamIds.has(teamId)),
+    [chroniclePremiumUnlocked, supportedSelections, visibleTrackedTeamIds]
+  );
+  const isOwnLeagueSelectionEffectivelyVisible = useCallback(
+    (key: string) =>
+      chroniclePremiumUnlocked ? Boolean(ownLeagueSelections[key]) : false,
+    [chroniclePremiumUnlocked, ownLeagueSelections]
+  );
+  const visibleManualTeams = useMemo(
+    () =>
+      chroniclePremiumUnlocked
+        ? manualTeams
+        : manualTeams.filter((team) => visibleTrackedTeamIds.has(Number(team.teamId))),
+    [chroniclePremiumUnlocked, manualTeams, visibleTrackedTeamIds]
+  );
+  const allWatchlistSelected = useMemo(
+    () =>
+      watchlistSelectableTeamIds.length > 0 &&
+      watchlistSelectableTeamIds.every((teamId) =>
+        isSupportedSelectionEffectivelyVisible(teamId)
+      ) &&
+      ownLeagues.every((entry) => isOwnLeagueSelectionEffectivelyVisible(entry.key)),
+    [
+      isOwnLeagueSelectionEffectivelyVisible,
+      isSupportedSelectionEffectivelyVisible,
+      ownLeagues,
+      watchlistSelectableTeamIds,
+    ]
+  );
+  const hasAnyWatchlistSelection = useMemo(
+    () =>
+      watchlistSelectableTeamIds.some((teamId) =>
+        isSupportedSelectionEffectivelyVisible(teamId)
+      ) ||
+      ownLeagues.some((entry) => isOwnLeagueSelectionEffectivelyVisible(entry.key)),
+    [
+      isOwnLeagueSelectionEffectivelyVisible,
+      isSupportedSelectionEffectivelyVisible,
+      ownLeagues,
+      watchlistSelectableTeamIds,
+    ]
+  );
+  useEffect(() => {
+    if (!watchlistMasterCheckboxRef.current) return;
+    watchlistMasterCheckboxRef.current.indeterminate =
+      hasAnyWatchlistSelection && !allWatchlistSelected;
+  }, [allWatchlistSelected, hasAnyWatchlistSelection]);
 
   const isNoDivulgoTracked = useMemo(
     () => trackedTeams.some((team) => team.teamId === NO_DIVULGO_TARGET_TEAM_ID),
@@ -4617,6 +4738,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, []);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key && event.key !== APP_LICENSE_STORAGE_KEY) return;
+      setPremiumLicenseState(readAppLicenseState());
+    };
+    const handleLicenseChange = () => {
+      setPremiumLicenseState(readAppLicenseState());
+    };
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener(APP_LICENSE_EVENT, handleLicenseChange);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(APP_LICENSE_EVENT, handleLicenseChange);
+    };
+  }, []);
+
+  useEffect(() => {
     setGlobalUpdatesHistory((prev) => prev.slice(0, updatesHistoryCount));
   }, [setGlobalUpdatesHistory, updatesHistoryCount]);
 
@@ -4809,7 +4947,74 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
   }, [anyRefreshing, globalRefreshStatus, lastGlobalRefreshAt, mobileChronicleActive]);
 
+  const chronicleTrackingLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureChronicleTrackingTitle,
+      featureDescription: messages.appLicenseFeatureChronicleTrackingDescription,
+    }),
+    [
+      messages.appLicenseFeatureChronicleTrackingDescription,
+      messages.appLicenseFeatureChronicleTrackingTitle,
+    ]
+  );
+
+  const chronicleFormationsLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureChronicleFormationsTitle,
+      featureDescription: messages.appLicenseFeatureChronicleFormationsDescription,
+    }),
+    [
+      messages.appLicenseFeatureChronicleFormationsDescription,
+      messages.appLicenseFeatureChronicleFormationsTitle,
+    ]
+  );
+
+  const chronicleLikelyTrainingLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureChronicleLikelyTrainingTitle,
+      featureDescription: messages.appLicenseFeatureChronicleLikelyTrainingDescription,
+    }),
+    [
+      messages.appLicenseFeatureChronicleLikelyTrainingDescription,
+      messages.appLicenseFeatureChronicleLikelyTrainingTitle,
+    ]
+  );
+
+  const promptPremiumForLimit = useCallback(
+    (message: string) => {
+      addNotification(message);
+      openPremiumLicenseModal(chronicleTrackingLicenseContext);
+    },
+    [addNotification, chronicleTrackingLicenseContext, openPremiumLicenseModal]
+  );
+
+  const renderChroniclePremiumLockedMessage = useCallback(
+    (context: AppLicenseModalContext) => (
+      <div className={styles.chroniclePremiumLockedMessage}>
+        <p className={styles.chroniclePressMeta}>
+          {messages.clubChroniclePremiumOtherTeamsMessage}
+        </p>
+        <button
+          type="button"
+          className={styles.watchlistButton}
+          onClick={() => openPremiumLicenseModal(context)}
+        >
+          {messages.clubChroniclePremiumBuyButton}
+        </button>
+      </div>
+    ),
+    [
+      messages.clubChroniclePremiumBuyButton,
+      messages.clubChroniclePremiumOtherTeamsMessage,
+      openPremiumLicenseModal,
+    ]
+  );
+
   const handleAddTeam = async () => {
+    if (!chroniclePremiumUnlocked && fullTrackedTeams.length >= FREE_CHRONICLE_TEAM_LIMIT) {
+      promptPremiumForLimit(messages.clubChroniclePremiumTeamLimitReached);
+      return;
+    }
     const trimmed = teamIdInput.trim();
     const parsed = Number(trimmed);
     if (!trimmed || Number.isNaN(parsed) || parsed <= 0) {
@@ -4900,6 +5105,18 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleToggleSupported = (teamId: number) => {
+    if (
+      !chroniclePremiumUnlocked &&
+      !(supportedSelections[teamId] ?? false) &&
+      buildTrackedTeams(
+        { ...supportedSelections, [teamId]: true },
+        ownLeagueSelections,
+        manualTeams
+      ).length > FREE_CHRONICLE_TEAM_LIMIT
+    ) {
+      promptPremiumForLimit(messages.clubChroniclePremiumTeamLimitReached);
+      return;
+    }
     setSupportedSelections((prev) => ({
       ...prev,
       [teamId]: !prev[teamId],
@@ -4907,6 +5124,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleToggleOwnLeague = (key: string) => {
+    if (!chroniclePremiumUnlocked) {
+      openPremiumLicenseModal(chronicleTrackingLicenseContext);
+      return;
+    }
     setOwnLeagueSelections((prev) => ({
       ...prev,
       [key]: !prev[key],
@@ -4918,6 +5139,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleSelectAllWatchlist = useCallback(() => {
+    if (!chroniclePremiumUnlocked) {
+      promptPremiumForLimit(messages.clubChroniclePremiumTeamLimitReached);
+      return;
+    }
     setSupportedSelections(
       Object.fromEntries(supportedTeams.map((team) => [team.teamId, true])) as Record<
         number,
@@ -4930,7 +5155,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         boolean
       >
     );
-  }, [ownLeagues, setOwnLeagueSelections, setSupportedSelections, supportedTeams]);
+  }, [
+    chroniclePremiumUnlocked,
+    messages.clubChroniclePremiumTeamLimitReached,
+    ownLeagues,
+    promptPremiumForLimit,
+    setOwnLeagueSelections,
+    setSupportedSelections,
+    supportedTeams,
+  ]);
 
   const handleDeselectAllWatchlist = useCallback(() => {
     setSupportedSelections(
@@ -4956,6 +5189,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [allWatchlistSelected, handleDeselectAllWatchlist, handleSelectAllWatchlist]);
 
   const handleCreateChronicleTab = useCallback(() => {
+    if (!chroniclePremiumUnlocked && chronicleTabs.length >= FREE_CHRONICLE_TAB_LIMIT) {
+      promptPremiumForLimit(messages.clubChroniclePremiumTabLimitReached);
+      return;
+    }
     const nextTabId = `tab-${Date.now()}`;
     setChronicleTabs((prev) => {
       const nextIndex = prev.length + 1;
@@ -4974,7 +5211,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       ];
     });
     setActiveChronicleTabId(nextTabId);
-  }, [messages, mobileChroniclePanelId, ownLeagues, supportedTeams]);
+  }, [
+    chroniclePremiumUnlocked,
+    chronicleTabs.length,
+    messages,
+    messages.clubChroniclePremiumTabLimitReached,
+    mobileChroniclePanelId,
+    ownLeagues,
+    promptPremiumForLimit,
+    supportedTeams,
+  ]);
 
   const handleStartRenamingTab = useCallback((tab: ChronicleTabState) => {
     setRenamingTabId(tab.id);
@@ -5305,6 +5551,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenFormationsTacticsDetails = (teamId: number) => {
+    const targetRow = formationsTacticsRows.find((row) => row.teamId === teamId);
+    if (targetRow?.premiumLocked) {
+      openPremiumLicenseModal(chronicleFormationsLicenseContext);
+      return;
+    }
     if (mobileChronicleActive) {
       setSelectedFormationsTacticsTeamId(teamId);
       openMobileChronicleDetail(
@@ -5319,6 +5570,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenLikelyTrainingDetails = (teamId: number) => {
+    const targetRow = likelyTrainingRows.find((row) => row.teamId === teamId);
+    if (targetRow?.premiumLocked) {
+      openPremiumLicenseModal(chronicleLikelyTrainingLicenseContext);
+      return;
+    }
     if (mobileChronicleActive) {
       setSelectedLikelyTrainingTeamId(teamId);
       openMobileChronicleDetail("likely-training", "likely-training", teamId);
@@ -6051,20 +6307,37 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       {
         key: "formation",
         label: messages.clubChronicleFormationsColumnFormation,
-        getValue: (snapshot: FormationTacticsSnapshot | undefined) =>
-          snapshot?.topFormation ?? null,
+        getValue: (snapshot: FormationTacticsSnapshot | undefined, row) =>
+          row?.premiumLocked ? null : snapshot?.topFormation ?? null,
+        renderCell: (snapshot, row, fallbackFormat) =>
+          row?.premiumLocked ? (
+            <span className={styles.chroniclePremiumLockedCell}>
+              {messages.clubChroniclePremiumOtherTeamsMessage}
+            </span>
+          ) : (
+            fallbackFormat(snapshot?.topFormation ?? null)
+          ),
       },
       {
         key: "tactic",
         label: messages.clubChronicleFormationsColumnTactic,
-        getValue: (snapshot: FormationTacticsSnapshot | undefined) =>
-          snapshot?.topTactic ?? null,
+        getValue: (snapshot: FormationTacticsSnapshot | undefined, row) =>
+          row?.premiumLocked ? null : snapshot?.topTactic ?? null,
+        renderCell: (snapshot, row, fallbackFormat) =>
+          row?.premiumLocked ? (
+            <span className={styles.chroniclePremiumLockedCell}>
+              {messages.clubChroniclePremiumOtherTeamsMessage}
+            </span>
+          ) : (
+            fallbackFormat(snapshot?.topTactic ?? null)
+          ),
       },
     ],
     [
       messages.clubChronicleColumnTeam,
       messages.clubChronicleFormationsColumnFormation,
       messages.clubChronicleFormationsColumnTactic,
+      messages.clubChroniclePremiumOtherTeamsMessage,
     ]
   );
 
@@ -7129,14 +7402,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       {
         key: "likelyTraining",
         label: messages.clubChronicleLikelyTrainingColumnRegimen,
-        getValue: (snapshot: FormationTacticsSnapshot | undefined) =>
-          formatLikelyTrainingSummary(snapshot),
+        getValue: (snapshot: FormationTacticsSnapshot | undefined, row) =>
+          row?.premiumLocked ? null : formatLikelyTrainingSummary(snapshot),
+        renderCell: (snapshot, row, fallbackFormat) =>
+          row?.premiumLocked ? (
+            <span className={styles.chroniclePremiumLockedCell}>
+              {messages.clubChroniclePremiumOtherTeamsMessage}
+            </span>
+          ) : (
+            fallbackFormat(formatLikelyTrainingSummary(snapshot))
+          ),
       },
     ],
     [
       formatLikelyTrainingSummary,
       messages.clubChronicleColumnTeam,
       messages.clubChronicleLikelyTrainingColumnRegimen,
+      messages.clubChroniclePremiumOtherTeamsMessage,
     ]
   );
 
@@ -8151,40 +8433,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               current: formatChppCurrencyFromSek(current.top11WagesSek),
             });
           }
-          const previousInjuryByPlayerId = new Map<number, number | null>(
-            (previous?.players ?? []).map((player) => [
-              player.playerId,
-              normalizeInjuryLevel(player.injuryLevel),
-            ])
-          );
-          const currentInjuryByPlayerId = new Map<number, number | null>(
-            (current?.players ?? []).map((player) => [
-              player.playerId,
-              normalizeInjuryLevel(player.injuryLevel),
-            ])
-          );
-          const changedInjuryPlayerIds = new Set<number>();
-          const mergedInjuryPlayerIds = new Set<number>([
-            ...previousInjuryByPlayerId.keys(),
-            ...currentInjuryByPlayerId.keys(),
-          ]);
-          mergedInjuryPlayerIds.forEach((playerId) => {
-            if (
-              previousInjuryByPlayerId.get(playerId) !==
-              currentInjuryByPlayerId.get(playerId)
-            ) {
-              changedInjuryPlayerIds.add(playerId);
-            }
-          });
-          if (changedInjuryPlayerIds.size > 0) {
-            const previousInjury = buildInjurySummary(
-              previous,
-              changedInjuryPlayerIds
-            );
-            const currentInjury = buildInjurySummary(
-              current,
-              changedInjuryPlayerIds
-            );
+          const previousInjury = buildInjurySummary(previous);
+          const currentInjury = buildInjurySummary(current);
+          if (previousInjury !== currentInjury) {
             wageChanges.push({
               fieldKey: "wages.injury",
               label: messages.clubChronicleWagesInjuryColumn,
@@ -11260,6 +11511,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         teamId: team.teamId,
         teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
         snapshot: cached?.formationsTactics?.current,
+        premiumLocked: !isPremiumChronicleTeamUnlocked(team.teamId),
       };
     });
 
@@ -11269,6 +11521,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         teamId: team.teamId,
         teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
         snapshot: cached?.formationsTactics?.current,
+        premiumLocked: !isPremiumChronicleTeamUnlocked(team.teamId),
       };
     });
 
@@ -11343,16 +11596,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       arenaRows: arenaRowsValue,
       transferRows: transferRowsValue,
       formationsTacticsRows: formationsTacticsRowsValue,
-    likelyTrainingRows: likelyTrainingRowsValue,
-    teamAttitudeRows: teamAttitudeRowsValue,
-    tsiRows: tsiRowsValue,
+      likelyTrainingRows: likelyTrainingRowsValue,
+      teamAttitudeRows: teamAttitudeRowsValue,
+      tsiRows: tsiRowsValue,
       wagesRows: wagesRowsValue,
       lastLoginRows: lastLoginRowsValue,
       coachRows: coachRowsValue,
       powerRatingsRows: powerRatingsRowsValue,
       ongoingMatchRows: ongoingMatchRowsValue,
     };
-  }, [trackedTeams, chronicleCache]);
+  }, [chronicleCache, isPremiumChronicleTeamUnlocked, trackedTeams]);
 
   const sortedLeagueRows = useMemo(() => {
     if (!leagueSortState.key) return leagueRows;
@@ -13460,6 +13713,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [mobileChronicleActive, updateMobileChronicleState]);
 
   const openChronicleFormationsMatches = useCallback(() => {
+    const targetRow = selectedFormationsTacticsTeamId
+      ? formationsTacticsRows.find(
+          (row) => row.teamId === selectedFormationsTacticsTeamId
+        )
+      : selectedFormationsTacticsTeam;
+    if (targetRow?.premiumLocked) {
+      openPremiumLicenseModal(chronicleFormationsLicenseContext);
+      return;
+    }
     if (mobileChronicleActive && selectedFormationsTacticsTeamId) {
       updateMobileChronicleState(
         {
@@ -13474,7 +13736,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     }
     setFormationsTacticsMatchesOpen(true);
   }, [
+    chronicleFormationsLicenseContext,
+    formationsTacticsRows,
     mobileChronicleActive,
+    openPremiumLicenseModal,
+    selectedFormationsTacticsTeam,
     selectedFormationsTacticsTeamId,
     updateMobileChronicleState,
   ]);
@@ -13739,6 +14005,22 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [isValidating, loading, loadingOwnLeagueTeams, trackedTeams.length]
   );
   const showMobileChronicleLandscapeHint = mobileChronicleActive;
+  const clubChroniclePremiumTooltip = messages.clubChroniclePremiumTooltip;
+  const chroniclePremiumBanner =
+    premiumLicensingEnabled && !chroniclePremiumUnlocked ? (
+    <div className={styles.chroniclePremiumBanner}>
+      <span className={styles.chroniclePremiumBannerText}>
+        {messages.clubChroniclePremiumBanner}
+      </span>
+      <button
+        type="button"
+        className={styles.watchlistButton}
+        onClick={() => openPremiumLicenseModal(chronicleTrackingLicenseContext)}
+      >
+        {messages.clubChroniclePremiumBuyButton}
+      </button>
+    </div>
+    ) : null;
 
   const watchlistBody = (
     <div className={styles.watchlistPanel}>
@@ -13762,8 +14044,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 <label className={styles.watchlistTeam}>
                   <input
                     type="checkbox"
-                    checked={supportedSelections[team.teamId] ?? false}
+                    checked={isSupportedSelectionEffectivelyVisible(team.teamId)}
                     onChange={() => handleToggleSupported(team.teamId)}
+                    disabled={
+                      !chroniclePremiumUnlocked &&
+                      Boolean(supportedSelections[team.teamId]) &&
+                      !visibleTrackedTeamIds.has(team.teamId)
+                    }
                   />
                   <span className={styles.watchlistName}>{formatWatchlistTeamName(team)}</span>
                 </label>
@@ -13779,14 +14066,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       </div>
       <div className={styles.watchlistSection}>
         <h3 className={styles.watchlistHeading}>{messages.watchlistOwnLeaguesTitle}</h3>
-        {ownLeagues.length ? (
+        {ownLeagues.length ? chroniclePremiumUnlocked ? (
           <ul className={styles.watchlistList}>
             {ownLeagues.map((entry) => (
               <li key={entry.key} className={styles.watchlistRow}>
                 <label className={styles.watchlistTeam}>
                   <input
                     type="checkbox"
-                    checked={ownLeagueSelections[entry.key] ?? false}
+                    checked={isOwnLeagueSelectionEffectivelyVisible(entry.key)}
                     onChange={() => handleToggleOwnLeague(entry.key)}
                   />
                   <span className={styles.watchlistName}>{formatOwnLeagueName(entry)}</span>
@@ -13794,6 +14081,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               </li>
             ))}
           </ul>
+        ) : (
+          <Tooltip content={clubChroniclePremiumTooltip}>
+            <ul className={styles.watchlistList}>
+              {ownLeagues.map((entry) => (
+                <li key={entry.key} className={styles.watchlistRow}>
+                  <label className={styles.watchlistTeam}>
+                    <input
+                      type="checkbox"
+                      checked={isOwnLeagueSelectionEffectivelyVisible(entry.key)}
+                      onChange={() => handleToggleOwnLeague(entry.key)}
+                    />
+                    <span className={styles.watchlistName}>{formatOwnLeagueName(entry)}</span>
+                  </label>
+                </li>
+              ))}
+            </ul>
+          </Tooltip>
         ) : (
           <p className={styles.muted}>{messages.watchlistOwnLeaguesEmpty}</p>
         )}
@@ -13807,8 +14111,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                 <label className={styles.watchlistTeam}>
                   <input
                     type="checkbox"
-                    checked={supportedSelections[team.teamId] ?? false}
+                    checked={isSupportedSelectionEffectivelyVisible(team.teamId)}
                     onChange={() => handleToggleSupported(team.teamId)}
+                    disabled={
+                      !chroniclePremiumUnlocked &&
+                      Boolean(supportedSelections[team.teamId]) &&
+                      !visibleTrackedTeamIds.has(team.teamId)
+                    }
                   />
                   <span className={styles.watchlistName}>{formatWatchlistTeamName(team)}</span>
                 </label>
@@ -13826,9 +14135,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       </div>
       <div className={styles.watchlistSection}>
         <h3 className={styles.watchlistHeading}>{messages.watchlistManualTitle}</h3>
-        {manualTeams.length ? (
+        {visibleManualTeams.length ? (
           <ul className={styles.watchlistList}>
-            {manualTeams.map((team) => (
+            {visibleManualTeams.map((team) => (
               <li key={team.teamId} className={styles.watchlistRow}>
                 <div className={styles.watchlistTeam}>
                   <Tooltip content={messages.watchlistRemoveTooltip}>
@@ -13869,11 +14178,23 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             type="button"
             className={styles.watchlistButton}
             onClick={handleAddTeam}
-            disabled={isValidating}
+            disabled={
+              isValidating ||
+              (!chroniclePremiumUnlocked &&
+                fullTrackedTeams.length >= FREE_CHRONICLE_TEAM_LIMIT)
+            }
           >
             {messages.watchlistAddButton}
           </button>
         </div>
+        {!chroniclePremiumUnlocked && hasHiddenTrackedTeams ? (
+          <p className={styles.watchlistPremiumHint}>
+            {messages.clubChroniclePremiumHiddenTeamsNotice.replace(
+              "{{count}}",
+              String(fullTrackedTeams.length - trackedTeams.length)
+            )}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -14550,7 +14871,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
         );
       case "formations-tactics":
-        return selectedFormationsTacticsTeam?.snapshot ? (
+        return selectedFormationsTacticsTeam?.premiumLocked ? (
+          renderChroniclePremiumLockedMessage(chronicleFormationsLicenseContext)
+        ) : selectedFormationsTacticsTeam?.snapshot ? (
           <>
             <p className={styles.chroniclePressMeta}>
               {messages.clubChronicleColumnTeam}:{" "}
@@ -14695,7 +15018,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           </p>
         );
       case "likely-training":
-        return selectedLikelyTrainingTeam?.snapshot ? (
+        return selectedLikelyTrainingTeam?.premiumLocked ? (
+          renderChroniclePremiumLockedMessage(chronicleLikelyTrainingLicenseContext)
+        ) : selectedLikelyTrainingTeam?.snapshot ? (
           <>
             <div className={styles.chronicleLikelyTrainingMeta}>
               <p className={styles.chroniclePressMeta}>
@@ -14742,9 +15067,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               </div>
             ) : null}
           </>
-        ) : (
-          renderChronicleNoTeamsEmpty()
-        );
+        ) : renderChronicleNoTeamsEmpty();
       case "tsi":
         return selectedTsiTeam ? (
           <>
@@ -14853,7 +15176,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             <div
               className={`${styles.chronicleTabsList} ${styles.mobileChronicleTabsList}`}
             >
-              {chronicleTabs.map((tab, index) => {
+              {visibleChronicleTabs.map((tab, index) => {
                 const isActive = tab.id === activeChronicleTab.id;
                 const isRenaming = tab.id === renamingTabId;
                 return (
@@ -14920,7 +15243,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                   </div>
                 );
               })}
-              <Tooltip content={messages.clubChronicleTabAdd}>
+              <Tooltip
+                content={
+                  !chroniclePremiumUnlocked &&
+                  chronicleTabs.length >= FREE_CHRONICLE_TAB_LIMIT
+                    ? clubChroniclePremiumTooltip
+                    : messages.clubChronicleTabAdd
+                }
+              >
                 <button
                   type="button"
                   className={styles.chronicleTabAddButton}
@@ -14932,6 +15262,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               </Tooltip>
             </div>
           </div>
+          {chroniclePremiumBanner}
           <button
             type="button"
             className={`${styles.mobileChronicleEdgeButton} ${styles.mobileChronicleEdgeButtonLeft}`}
@@ -15187,7 +15518,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 
       <div className={styles.chronicleTabsBar}>
         <div className={styles.chronicleTabsList}>
-          {chronicleTabs.map((tab, index) => {
+          {visibleChronicleTabs.map((tab, index) => {
             const isActive = tab.id === activeChronicleTab.id;
             const isRenaming = tab.id === renamingTabId;
             return (
@@ -15254,7 +15585,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               </div>
             );
           })}
-          <Tooltip content={messages.clubChronicleTabAdd}>
+          <Tooltip
+            content={
+              !chroniclePremiumUnlocked &&
+              chronicleTabs.length >= FREE_CHRONICLE_TAB_LIMIT
+                ? clubChroniclePremiumTooltip
+                : messages.clubChronicleTabAdd
+            }
+          >
             <button
               type="button"
               className={styles.chronicleTabAddButton}
@@ -15269,6 +15607,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           </span>
         </div>
       </div>
+      {chroniclePremiumBanner}
 
       </>
       ) : null}
@@ -16097,6 +16436,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
                       maskText={messages.clubChronicleNoDivulgoMask}
                       isMaskActive={noDivulgoActive}
+                      renderMergedTrailingCells={(row) =>
+                        row.premiumLocked ? (
+                          <span className={styles.chroniclePremiumLockedCell}>
+                            {messages.clubChroniclePremiumOtherTeamsMessage}
+                          </span>
+                        ) : null
+                      }
                       onMaskedRowClick={(row) =>
                         handleNoDivulgoDismiss(row.teamId)
                       }
@@ -16222,6 +16568,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
                       maskText={messages.clubChronicleNoDivulgoMask}
                       isMaskActive={noDivulgoActive}
+                      renderMergedTrailingCells={(row) =>
+                        row.premiumLocked ? (
+                          <span className={styles.chroniclePremiumLockedCell}>
+                            {messages.clubChroniclePremiumOtherTeamsMessage}
+                          </span>
+                        ) : null
+                      }
                       onMaskedRowClick={(row) =>
                         handleNoDivulgoDismiss(row.teamId)
                       }
@@ -16426,182 +16779,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         open={watchlistOpen}
         title={messages.watchlistTitle}
         className={styles.watchlistModal}
-        body={
-          <div className={styles.watchlistPanel}>
-            {loading ? (
-              <p className={styles.muted}>{messages.watchlistLoading}</p>
-            ) : null}
-            <label className={styles.watchlistMasterRow}>
-              <input
-                ref={watchlistMasterCheckboxRef}
-                type="checkbox"
-                checked={allWatchlistSelected}
-                onChange={handleToggleWholeWatchlist}
-                disabled={loading}
-              />
-              <span className={styles.watchlistMasterLabel}>
-                {messages.watchlistAllItems}
-              </span>
-            </label>
-            <div className={styles.watchlistSection}>
-              <h3 className={styles.watchlistHeading}>
-                {messages.watchlistOwnSeniorTeamsTitle}
-              </h3>
-              {ownSeniorTeams.length ? (
-                <ul className={styles.watchlistList}>
-                  {ownSeniorTeams.map((team) => (
-                    <li key={team.teamId} className={styles.watchlistRow}>
-                      <label className={styles.watchlistTeam}>
-                        <input
-                          type="checkbox"
-                          checked={supportedSelections[team.teamId] ?? false}
-                          onChange={() => handleToggleSupported(team.teamId)}
-                        />
-                        <span className={styles.watchlistName}>
-                          {formatWatchlistTeamName(team)}
-                        </span>
-                      </label>
-                      <span className={styles.watchlistMeta}>
-                        {[
-                          team.leagueName,
-                          team.leagueLevelUnitName,
-                        ]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className={styles.muted}>
-                  {messages.watchlistOwnSeniorTeamsEmpty}
-                </p>
-              )}
-            </div>
-            <div className={styles.watchlistSection}>
-              <h3 className={styles.watchlistHeading}>
-                {messages.watchlistOwnLeaguesTitle}
-              </h3>
-              {ownLeagues.length ? (
-                <ul className={styles.watchlistList}>
-                  {ownLeagues.map((entry) => (
-                    <li key={entry.key} className={styles.watchlistRow}>
-                      <label className={styles.watchlistTeam}>
-                        <input
-                          type="checkbox"
-                          checked={ownLeagueSelections[entry.key] ?? false}
-                          onChange={() => handleToggleOwnLeague(entry.key)}
-                        />
-                        <span className={styles.watchlistName}>
-                          {formatOwnLeagueName(entry)}
-                        </span>
-                      </label>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className={styles.muted}>
-                  {messages.watchlistOwnLeaguesEmpty}
-                </p>
-              )}
-            </div>
-            <div className={styles.watchlistSection}>
-              <h3 className={styles.watchlistHeading}>
-                {messages.watchlistSupportedTitle}
-              </h3>
-              {supportedWatchlistTeams.length ? (
-                <ul className={styles.watchlistList}>
-                  {supportedWatchlistTeams.map((team) => (
-                    <li key={team.teamId} className={styles.watchlistRow}>
-                      <label className={styles.watchlistTeam}>
-                        <input
-                          type="checkbox"
-                          checked={supportedSelections[team.teamId] ?? false}
-                          onChange={() => handleToggleSupported(team.teamId)}
-                        />
-                        <span className={styles.watchlistName}>
-                          {formatWatchlistTeamName(team)}
-                        </span>
-                      </label>
-                      {team.leagueName || team.leagueLevelUnitName ? (
-                        <span className={styles.watchlistMeta}>
-                          {[team.leagueName, team.leagueLevelUnitName]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </span>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className={styles.muted}>
-                  {messages.watchlistSupportedEmpty}
-                </p>
-              )}
-            </div>
-
-            <div className={styles.watchlistSection}>
-              <h3 className={styles.watchlistHeading}>
-                {messages.watchlistManualTitle}
-              </h3>
-              {manualTeams.length ? (
-                <ul className={styles.watchlistList}>
-                  {manualTeams.map((team) => (
-                    <li key={team.teamId} className={styles.watchlistRow}>
-                      <div className={styles.watchlistTeam}>
-                        <Tooltip content={messages.watchlistRemoveTooltip}>
-                          <button
-                            type="button"
-                            className={styles.watchlistRemove}
-                            onClick={() => handleRemoveManual(team.teamId)}
-                            aria-label={messages.watchlistRemoveTooltip}
-                          >
-                            🗑️
-                          </button>
-                        </Tooltip>
-                        <span className={styles.watchlistName}>
-                          {formatWatchlistTeamName(team)}
-                        </span>
-                      </div>
-                      {team.leagueName || team.leagueLevelUnitName ? (
-                        <span className={styles.watchlistMeta}>
-                          {[team.leagueName, team.leagueLevelUnitName]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        </span>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className={styles.muted}>{messages.watchlistManualEmpty}</p>
-              )}
-            </div>
-
-            <div className={styles.watchlistSection}>
-              <h3 className={styles.watchlistHeading}>
-                {messages.watchlistAddTitle}
-              </h3>
-              <div className={styles.watchlistInputRow}>
-                <input
-                  type="text"
-                  className={styles.watchlistInput}
-                  value={teamIdInput}
-                  onChange={(event) => setTeamIdInput(event.target.value)}
-                  placeholder={messages.watchlistAddPlaceholder}
-                />
-                <button
-                  type="button"
-                  className={styles.watchlistButton}
-                  onClick={handleAddTeam}
-                  disabled={isValidating}
-                >
-                  {messages.watchlistAddButton}
-                </button>
-              </div>
-            </div>
-          </div>
-        }
+        body={watchlistBody}
         actions={
           <button
             type="button"
@@ -16614,6 +16792,16 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         closeOnBackdrop
         onClose={() => setWatchlistOpen(false)}
       />
+
+      {premiumLicensingEnabled ? (
+        <AppLicenseModal
+          key={premiumLicenseModalNonce}
+          open={premiumLicenseModalOpen}
+          messages={messages}
+          context={premiumLicenseModalContext}
+          onClose={() => setPremiumLicenseModalOpen(false)}
+        />
+      ) : null}
 
       <Modal
         open={panelVisibilityOpen}
@@ -17379,7 +17567,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         title={messages.clubChronicleFormationsDetailsTitle}
         className={styles.chronicleTransferHistoryModal}
         body={
-          selectedFormationsTacticsTeam?.snapshot ? (
+          selectedFormationsTacticsTeam?.premiumLocked ? (
+            renderChroniclePremiumLockedMessage(chronicleFormationsLicenseContext)
+          ) : selectedFormationsTacticsTeam?.snapshot ? (
             <>
               <p className={styles.chroniclePressMeta}>
                 {messages.clubChronicleColumnTeam}:{" "}
@@ -17493,7 +17683,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         title={messages.clubChronicleFormationsMatchesListTitle}
         className={styles.chronicleTransferHistoryModal}
         body={
-          selectedFormationsTacticsTeam?.snapshot?.analyzedMatches?.length ? (
+          selectedFormationsTacticsTeam?.premiumLocked ? (
+            renderChroniclePremiumLockedMessage(chronicleFormationsLicenseContext)
+          ) : selectedFormationsTacticsTeam?.snapshot?.analyzedMatches?.length ? (
             <ul className={styles.chronicleMatchList}>
               {selectedFormationsTacticsTeam.snapshot.analyzedMatches.map((match) => (
                 <li
@@ -17627,7 +17819,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         open={likelyTrainingDetailsOpen}
         title={messages.clubChronicleLikelyTrainingDetailsTitle}
         body={
-          selectedLikelyTrainingTeam?.snapshot ? (
+          selectedLikelyTrainingTeam?.premiumLocked ? (
+            renderChroniclePremiumLockedMessage(chronicleLikelyTrainingLicenseContext)
+          ) : selectedLikelyTrainingTeam?.snapshot ? (
             <>
               <div className={styles.chronicleLikelyTrainingMeta}>
                 <p className={styles.chroniclePressMeta}>

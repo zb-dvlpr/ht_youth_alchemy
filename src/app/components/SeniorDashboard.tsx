@@ -44,6 +44,7 @@ import {
   SENIOR_SETTINGS_STORAGE_KEY,
 } from "@/lib/settings";
 import Modal from "./Modal";
+import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import StartupLoadingExperience from "./StartupLoadingExperience";
 import {
@@ -94,6 +95,12 @@ import {
   calculatePsicoTsiMetrics,
   type SeniorPlayerMetricInput,
 } from "@/lib/seniorPlayerMetrics";
+import {
+  APP_LICENSE_EVENT,
+  APP_LICENSE_STORAGE_KEY,
+  hasUnlockedPremiumAccess,
+  readAppLicenseState,
+} from "@/lib/license";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -1156,12 +1163,16 @@ const SeniorAiManMarkingFuzzinessSlider = memo(function SeniorAiManMarkingFuzzin
   label,
   ariaLabel,
   disabled,
+  blocked,
+  onBlockedInteraction,
   onCommit,
 }: {
   value: number;
   label: string;
   ariaLabel: string;
   disabled?: boolean;
+  blocked?: boolean;
+  onBlockedInteraction?: () => void;
   onCommit: (value: number) => void;
 }) {
   const [draftValue, setDraftValue] = useState(value);
@@ -1193,12 +1204,33 @@ const SeniorAiManMarkingFuzzinessSlider = memo(function SeniorAiManMarkingFuzzin
           className={styles.seniorAiManMarkingFuzzinessSlider}
           aria-label={ariaLabel}
           disabled={disabled}
+          onPointerDown={(event) => {
+            if (!blocked) return;
+            event.preventDefault();
+            onBlockedInteraction?.();
+          }}
+          onMouseDown={(event) => {
+            if (!blocked) return;
+            event.preventDefault();
+            onBlockedInteraction?.();
+          }}
+          onTouchStart={(event) => {
+            if (!blocked) return;
+            event.preventDefault();
+            onBlockedInteraction?.();
+          }}
+          onFocus={() => {
+            if (!blocked) return;
+            onBlockedInteraction?.();
+          }}
           onChange={(event: ChangeEvent<HTMLInputElement>) => {
+            if (blocked) return;
             setDraftValue(clampSeniorAiManMarkingFuzziness(Number(event.target.value)));
           }}
           onPointerUp={commitDraftValue}
           onBlur={commitDraftValue}
           onKeyUp={(event) => {
+            if (blocked) return;
             if (
               event.key === "ArrowLeft" ||
               event.key === "ArrowRight" ||
@@ -3139,6 +3171,13 @@ export default function SeniorDashboard({
     useState(false);
   const [ratingsManualEditsByPlayerId, setRatingsManualEditsByPlayerId] =
     useState<SeniorManualRatingsEdits>({});
+  const [premiumUnlocked, setPremiumUnlocked] = useState(() =>
+    hasUnlockedPremiumAccess(readAppLicenseState())
+  );
+  const [premiumLicenseModalOpen, setPremiumLicenseModalOpen] = useState(false);
+  const [premiumLicenseModalNonce, setPremiumLicenseModalNonce] = useState(0);
+  const [premiumLicenseModalContext, setPremiumLicenseModalContext] =
+    useState<AppLicenseModalContext | null>(null);
   const [detailsCache, setDetailsCache] = useState<Record<number, PlayerDetailCacheEntry>>({});
   const [leagueOriginsById, setLeagueOriginsById] = useState<
     Record<number, SeniorLeagueOrigin>
@@ -3151,6 +3190,9 @@ export default function SeniorDashboard({
     dirty: false,
     metricInput: null,
   });
+  const effectiveSelectedPlayerSimulationState = premiumUnlocked
+    ? selectedPlayerSimulationState
+    : { dirty: false, metricInput: null };
   const [mobileSeniorActive, setMobileSeniorActive] = useState(false);
   const [mobileSeniorView, setMobileSeniorView] =
     useState<SeniorMobileView>("playerDetails");
@@ -3160,6 +3202,14 @@ export default function SeniorDashboard({
     x: 16,
     y: 108,
   });
+  const openPremiumLicenseModal = useCallback(
+    (context?: AppLicenseModalContext | null) => {
+      setPremiumLicenseModalContext(context ?? null);
+      setPremiumLicenseModalNonce((prev) => prev + 1);
+      setPremiumLicenseModalOpen(true);
+    },
+    []
+  );
   const [mobileSeniorLandscapeActive, setMobileSeniorLandscapeActive] =
     useState(false);
   const [mobileSeniorRefreshFeedbackVisible, setMobileSeniorRefreshFeedbackVisible] =
@@ -4082,6 +4132,50 @@ export default function SeniorDashboard({
     );
   }, [panelDetailsById, selectedPlayer]);
 
+  const seniorSimulationLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureSeniorSimulationTitle,
+      featureDescription: messages.appLicenseFeatureSeniorSimulationDescription,
+    }),
+    [
+      messages.appLicenseFeatureSeniorSimulationDescription,
+      messages.appLicenseFeatureSeniorSimulationTitle,
+    ]
+  );
+
+  const seniorRatingsLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureSeniorRatingsTitle,
+      featureDescription: messages.appLicenseFeatureSeniorRatingsDescription,
+    }),
+    [
+      messages.appLicenseFeatureSeniorRatingsDescription,
+      messages.appLicenseFeatureSeniorRatingsTitle,
+    ]
+  );
+
+  const seniorManMarkingLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureSeniorManMarkingTitle,
+      featureDescription: messages.appLicenseFeatureSeniorManMarkingDescription,
+    }),
+    [
+      messages.appLicenseFeatureSeniorManMarkingDescription,
+      messages.appLicenseFeatureSeniorManMarkingTitle,
+    ]
+  );
+
+  const seniorFixedFormationLicenseContext = useMemo<AppLicenseModalContext>(
+    () => ({
+      featureTitle: messages.appLicenseFeatureSeniorFixedFormationTitle,
+      featureDescription: messages.appLicenseFeatureSeniorFixedFormationDescription,
+    }),
+    [
+      messages.appLicenseFeatureSeniorFixedFormationDescription,
+      messages.appLicenseFeatureSeniorFixedFormationTitle,
+    ]
+  );
+
   const transferSearchSourcePlayer = useMemo(() => {
     if (transferSearchSourcePlayerId === null) return null;
     return players.find((player) => player.PlayerID === transferSearchSourcePlayerId) ?? null;
@@ -4565,6 +4659,8 @@ export default function SeniorDashboard({
   const extraTimeBTeamToggleTooltip = extraTimeBTeamCanBeEnabled
     ? messages.seniorExtraTimeModalBTeamEnabledTooltip
     : extraTimeBTeamDisabledTooltip;
+  const effectiveSeniorAiManMarkingEnabled =
+    premiumUnlocked && seniorAiManMarkingEnabled;
   const seniorAiManMarkingSupported =
     seniorAiPreparedSubmissionMode !== null &&
     SENIOR_AI_MAN_MARKING_SUPPORTED_MODES.has(seniorAiPreparedSubmissionMode);
@@ -4587,7 +4683,7 @@ export default function SeniorDashboard({
       IM: null,
       CD: null,
     };
-    if (!seniorAiManMarkingSupported || !seniorAiManMarkingEnabled) {
+    if (!seniorAiManMarkingSupported || !effectiveSeniorAiManMarkingEnabled) {
       return bestByRole;
     }
     (Object.entries(assignments) as Array<[keyof LineupAssignments, number | null | undefined]>)
@@ -4615,9 +4711,19 @@ export default function SeniorDashboard({
         }
       });
     return bestByRole;
-  }, [assignments, playersById, seniorAiManMarkingSupported, detailsById]);
+  }, [
+    assignments,
+    playersById,
+    seniorAiManMarkingSupported,
+    detailsById,
+    effectiveSeniorAiManMarkingEnabled,
+  ]);
   const seniorAiManMarkingSelection = useMemo(() => {
-    if (!seniorAiManMarkingSupported || !seniorAiManMarkingEnabled || !seniorAiManMarkingTarget) {
+    if (
+      !seniorAiManMarkingSupported ||
+      !effectiveSeniorAiManMarkingEnabled ||
+      !seniorAiManMarkingTarget
+    ) {
       return null;
     }
     const requiredRole: SeniorAiManMarkingRole =
@@ -4636,11 +4742,16 @@ export default function SeniorDashboard({
     } satisfies SeniorAiManMarkingSelection;
   }, [
     seniorAiManMarkingCandidates,
+    effectiveSeniorAiManMarkingEnabled,
     seniorAiManMarkingSupported,
     seniorAiManMarkingTarget,
   ]);
-  const seniorAiManMarkingToggleTooltip: ReactNode =
-    messages.seniorAiManMarkingToggleTooltip;
+  const seniorAiManMarkingToggleTooltip: ReactNode = premiumUnlocked
+    ? messages.seniorAiManMarkingToggleTooltip
+    : messages.seniorAiManMarkingPremiumTooltip;
+  const seniorAiManMarkingFuzzinessTooltip: ReactNode = premiumUnlocked
+    ? messages.seniorAiManMarkingFuzzinessTooltip
+    : messages.seniorAiManMarkingFuzzinessPremiumTooltip;
   const setBestLineupBTeamMenuContent = (
     <div className={styles.seniorSetBestLineupBTeamMenuSection}>
       <div className={styles.seniorExtraTimeBTeamControls}>
@@ -4757,8 +4868,14 @@ export default function SeniorDashboard({
             <input
               type="checkbox"
               className={styles.matchesFilterToggleInput}
-              checked={seniorAiManMarkingEnabled}
-              onChange={(event) => setSeniorAiManMarkingEnabled(event.target.checked)}
+              checked={effectiveSeniorAiManMarkingEnabled}
+              onChange={(event) => {
+                if (!premiumUnlocked) {
+                  openPremiumLicenseModal(seniorManMarkingLicenseContext);
+                  return;
+                }
+                setSeniorAiManMarkingEnabled(event.target.checked);
+              }}
             />
             <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
             <span className={styles.matchesFilterToggleLabel}>
@@ -4766,12 +4883,16 @@ export default function SeniorDashboard({
             </span>
           </label>
         </Tooltip>
-        <Tooltip content={messages.seniorAiManMarkingFuzzinessTooltip}>
+        <Tooltip content={seniorAiManMarkingFuzzinessTooltip}>
           <SeniorAiManMarkingFuzzinessSlider
             value={seniorAiManMarkingFuzziness}
             label={messages.seniorAiManMarkingFuzzinessLabel}
             ariaLabel={messages.seniorAiManMarkingFuzzinessAriaLabel}
-            disabled={!seniorAiManMarkingEnabled}
+            blocked={!premiumUnlocked}
+            onBlockedInteraction={() =>
+              openPremiumLicenseModal(seniorManMarkingLicenseContext)
+            }
+            disabled={premiumUnlocked ? !effectiveSeniorAiManMarkingEnabled : false}
             onCommit={setSeniorAiManMarkingFuzziness}
           />
         </Tooltip>
@@ -4802,7 +4923,11 @@ export default function SeniorDashboard({
   }, [extraTimeAvailablePlayerIdSet, playersById]);
 
   useEffect(() => {
-    if (!seniorAiManMarkingEnabled || !seniorAiManMarkingSupported || loadedMatchId === null) {
+    if (
+      !effectiveSeniorAiManMarkingEnabled ||
+      !seniorAiManMarkingSupported ||
+      loadedMatchId === null
+    ) {
       setSeniorAiManMarkingTarget(null);
       setOpponentFormationsModal((prev) =>
         prev
@@ -4836,7 +4961,7 @@ export default function SeniorDashboard({
     };
   }, [
     loadedMatchId,
-    seniorAiManMarkingEnabled,
+    effectiveSeniorAiManMarkingEnabled,
     seniorAiManMarkingFuzziness,
     seniorAiManMarkingSupported,
   ]);
@@ -9051,7 +9176,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
     submittedMatchId: number
   ): SeniorSubmitDisclaimerManMarkingSummary | null => {
     if (
-      !seniorAiManMarkingEnabled ||
+      !effectiveSeniorAiManMarkingEnabled ||
       !seniorAiManMarkingSupported ||
       seniorAiSubmitEnabledMatchId !== submittedMatchId
     ) {
@@ -9095,7 +9220,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
           }
         : basePayload;
     if (
-      !seniorAiManMarkingEnabled ||
+      !effectiveSeniorAiManMarkingEnabled ||
       !seniorAiManMarkingSelection ||
       !seniorAiManMarkingReady ||
       !seniorAiManMarkingSupported ||
@@ -10206,12 +10331,12 @@ function buildSeniorAiManMarkingReadySignature(params: {
     if (!hasRequiredScopes) return;
     const detail = await ensureDetails(player.PlayerID);
     const editedSourceDetails =
-      selectedPlayerSimulationState.dirty &&
+      effectiveSelectedPlayerSimulationState.dirty &&
       selectedId === player.PlayerID &&
-      selectedPlayerSimulationState.metricInput
+      effectiveSelectedPlayerSimulationState.metricInput
         ? buildEditedTransferSearchSourceDetails(
             detail,
-            selectedPlayerSimulationState.metricInput
+            effectiveSelectedPlayerSimulationState.metricInput
           )
         : null;
     const sourceDetails = editedSourceDetails ?? detail;
@@ -10465,6 +10590,8 @@ const refreshDetailsForPlayers = async (
     () => hasSeniorManualRatingsEdits(ratingsManualEditsByPlayerId),
     [ratingsManualEditsByPlayerId]
   );
+  const effectiveRatingsManualOverrideEnabled =
+    premiumUnlocked && ratingsManualOverrideEnabled;
 
   useEffect(() => {
     setRatingsResponse(
@@ -10484,12 +10611,33 @@ const refreshDetailsForPlayers = async (
     return map;
   }, [players]);
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const syncPremiumState = () => {
+      setPremiumUnlocked(hasUnlockedPremiumAccess(readAppLicenseState()));
+    };
+    syncPremiumState();
+    const handleStorage = (event: StorageEvent) => {
+      if (event.key && event.key !== APP_LICENSE_STORAGE_KEY) return;
+      syncPremiumState();
+    };
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener(APP_LICENSE_EVENT, syncPremiumState);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener(APP_LICENSE_EVENT, syncPremiumState);
+    };
+  }, []);
+  useEffect(() => {
     if (hasManualRatingsEdits) return;
     setRatingsOverwriteManualEditsEnabled(false);
   }, [hasManualRatingsEdits]);
   const handleRatingsManualOverrideEnabledChange = useCallback((enabled: boolean) => {
+    if (enabled && !premiumUnlocked) {
+      openPremiumLicenseModal(seniorRatingsLicenseContext);
+      return;
+    }
     setRatingsManualOverrideEnabled(enabled);
-  }, []);
+  }, [openPremiumLicenseModal, premiumUnlocked, seniorRatingsLicenseContext]);
   const handleRatingsOverwriteManualEditsEnabledChange = useCallback(
     (enabled: boolean) => {
       setRatingsOverwriteManualEditsEnabled(enabled);
@@ -12584,7 +12732,11 @@ const refreshDetailsForPlayers = async (
         chosenAssignments: LineupAssignments,
         target: OpponentTargetPlayer | null
       ) => {
-        if (!seniorAiManMarkingSupported || !seniorAiManMarkingEnabled || !target) {
+        if (
+          !seniorAiManMarkingSupported ||
+          !effectiveSeniorAiManMarkingEnabled ||
+          !target
+        ) {
           return null;
         }
         const requiredRole: SeniorAiManMarkingRole =
@@ -15292,7 +15444,7 @@ const refreshDetailsForPlayers = async (
           }}
           disabled={activeSeniorTeamOption?.teamGender === "female"}
         >
-          {selectedPlayerSimulationState.dirty
+          {effectiveSelectedPlayerSimulationState.dirty
             ? messages.seniorTransferSearchEditedButtonLabel
             : messages.seniorTransferSearchButtonLabel}
         </button>
@@ -15321,8 +15473,13 @@ const refreshDetailsForPlayers = async (
       playerDetailsById={panelDetailsById}
       skillsMatrixRows={skillsMatrixRows}
       ratingsMatrixResponse={ratingsResponse}
-      ratingsManualOverrideEnabled={ratingsManualOverrideEnabled}
+      ratingsManualOverrideEnabled={effectiveRatingsManualOverrideEnabled}
       onRatingsManualOverrideEnabledChange={handleRatingsManualOverrideEnabledChange}
+      ratingsManualOverrideTooltip={
+        premiumUnlocked
+          ? messages.ratingsManualOverrideTooltip
+          : messages.ratingsManualOverridePremiumTooltip
+      }
       ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
       onRatingsOverwriteManualEditsEnabledChange={
         handleRatingsOverwriteManualEditsEnabledChange
@@ -15375,6 +15532,10 @@ const refreshDetailsForPlayers = async (
       showTabs={false}
       detailsHeaderActions={seniorDetailsHeaderActions}
       onSeniorSimulationStateChange={handleSelectedPlayerSimulationStateChange}
+      seniorSimulationEditingBlocked={!premiumUnlocked}
+      onSeniorSimulationBlockedInteraction={() =>
+        openPremiumLicenseModal(seniorSimulationLicenseContext)
+      }
       messages={messages}
     />
   );
@@ -15933,8 +16094,13 @@ const refreshDetailsForPlayers = async (
           playerDetailsById={panelDetailsById}
           skillsMatrixRows={skillsMatrixRows}
           ratingsMatrixResponse={ratingsResponse}
-          ratingsManualOverrideEnabled={ratingsManualOverrideEnabled}
+          ratingsManualOverrideEnabled={effectiveRatingsManualOverrideEnabled}
           onRatingsManualOverrideEnabledChange={handleRatingsManualOverrideEnabledChange}
+          ratingsManualOverrideTooltip={
+            premiumUnlocked
+              ? messages.ratingsManualOverrideTooltip
+              : messages.ratingsManualOverridePremiumTooltip
+          }
           ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
           onRatingsOverwriteManualEditsEnabledChange={
             handleRatingsOverwriteManualEditsEnabledChange
@@ -15998,8 +16164,13 @@ const refreshDetailsForPlayers = async (
           playerDetailsById={panelDetailsById}
           skillsMatrixRows={skillsMatrixRows}
           ratingsMatrixResponse={ratingsResponse}
-          ratingsManualOverrideEnabled={ratingsManualOverrideEnabled}
+          ratingsManualOverrideEnabled={effectiveRatingsManualOverrideEnabled}
           onRatingsManualOverrideEnabledChange={handleRatingsManualOverrideEnabledChange}
+          ratingsManualOverrideTooltip={
+            premiumUnlocked
+              ? messages.ratingsManualOverrideTooltip
+              : messages.ratingsManualOverridePremiumTooltip
+          }
           ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
           onRatingsOverwriteManualEditsEnabledChange={
             handleRatingsOverwriteManualEditsEnabledChange
@@ -16172,6 +16343,10 @@ const refreshDetailsForPlayers = async (
           fixedFormationOptions={[...FIXED_FORMATION_OPTIONS]}
           selectedFixedFormation={setBestLineupFixedFormation}
           onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
+          fixedFormationBlocked={!premiumUnlocked}
+          onBlockedFixedFormationInteraction={() =>
+            openPremiumLicenseModal(seniorFixedFormationLicenseContext)
+          }
           selectedIgnoreTrainingFormationPolicy={ignoreTrainingFormationPolicy}
           onSelectedIgnoreTrainingFormationPolicyChange={
             setIgnoreTrainingFormationPolicy
@@ -19027,8 +19202,13 @@ const refreshDetailsForPlayers = async (
             playerDetailsById={panelDetailsById}
             skillsMatrixRows={skillsMatrixRows}
             ratingsMatrixResponse={ratingsResponse}
-            ratingsManualOverrideEnabled={ratingsManualOverrideEnabled}
+            ratingsManualOverrideEnabled={effectiveRatingsManualOverrideEnabled}
             onRatingsManualOverrideEnabledChange={handleRatingsManualOverrideEnabledChange}
+            ratingsManualOverrideTooltip={
+              premiumUnlocked
+                ? messages.ratingsManualOverrideTooltip
+                : messages.ratingsManualOverridePremiumTooltip
+            }
             ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
             onRatingsOverwriteManualEditsEnabledChange={
               handleRatingsOverwriteManualEditsEnabledChange
@@ -19086,6 +19266,10 @@ const refreshDetailsForPlayers = async (
             onShowSeniorSkillBonusInMatrixChange={setShowSeniorSkillBonusInMatrix}
             detailsHeaderActions={seniorDetailsHeaderActions}
             onSeniorSimulationStateChange={handleSelectedPlayerSimulationStateChange}
+            seniorSimulationEditingBlocked={!premiumUnlocked}
+            onSeniorSimulationBlockedInteraction={() =>
+              openPremiumLicenseModal(seniorSimulationLicenseContext)
+            }
             messages={messages}
           />
           )}
@@ -19221,6 +19405,10 @@ const refreshDetailsForPlayers = async (
             fixedFormationOptions={[...FIXED_FORMATION_OPTIONS]}
             selectedFixedFormation={setBestLineupFixedFormation}
             onSelectedFixedFormationChange={setSetBestLineupFixedFormation}
+            fixedFormationBlocked={!premiumUnlocked}
+            onBlockedFixedFormationInteraction={() =>
+              openPremiumLicenseModal(seniorFixedFormationLicenseContext)
+            }
             selectedIgnoreTrainingFormationPolicy={ignoreTrainingFormationPolicy}
             onSelectedIgnoreTrainingFormationPolicyChange={
               setIgnoreTrainingFormationPolicy
@@ -19320,6 +19508,15 @@ const refreshDetailsForPlayers = async (
           />
         </div>
       </div> : null}
+      {process.env.NEXT_PUBLIC_HT_ALCHEMY_PREMIUM_ENABLED === "true" ? (
+        <AppLicenseModal
+          key={premiumLicenseModalNonce}
+          open={premiumLicenseModalOpen}
+          messages={messages}
+          context={premiumLicenseModalContext}
+          onClose={() => setPremiumLicenseModalOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

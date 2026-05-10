@@ -39,14 +39,15 @@ export default function Modal({
   closeOnBackdrop = false,
   onClose,
 }: ModalProps) {
+  const DESKTOP_MODAL_MEDIA_QUERY = "(min-width: 901px)";
   const backdropPressStartedRef = useRef(false);
   const cardRef = useRef<HTMLDivElement | null>(null);
   const dragStateRef = useRef<{
     pointerId: number;
     startX: number;
     startY: number;
-    originX: number;
-    originY: number;
+    originLeft: number;
+    originTop: number;
   } | null>(null);
   const resizeStateRef = useRef<{
     pointerId: number;
@@ -54,8 +55,13 @@ export default function Modal({
     startY: number;
     startWidth: number;
     startHeight: number;
+    startLeft: number;
+    startTop: number;
   } | null>(null);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [desktopViewportActive, setDesktopViewportActive] = useState(false);
+  const [position, setPosition] = useState<{ left: number; top: number } | null>(
+    null
+  );
   const [isDragging, setIsDragging] = useState(false);
   const [size, setSize] = useState<{ width: number; height: number } | null>(null);
   const [isResizing, setIsResizing] = useState(false);
@@ -65,24 +71,69 @@ export default function Modal({
     getServerMountedSnapshot
   );
 
+  const clampPosition = (
+    left: number,
+    top: number,
+    width: number,
+    height: number
+  ) => {
+    const minLeft = 16;
+    const minTop = 16;
+    const maxLeft = Math.max(minLeft, window.innerWidth - width - 16);
+    const maxTop = Math.max(minTop, window.innerHeight - height - 16);
+    return {
+      left: Math.max(minLeft, Math.min(maxLeft, left)),
+      top: Math.max(minTop, Math.min(maxTop, top)),
+    };
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mediaQuery = window.matchMedia(DESKTOP_MODAL_MEDIA_QUERY);
+    const sync = () => {
+      setDesktopViewportActive(mediaQuery.matches);
+    };
+    sync();
+    mediaQuery.addEventListener("change", sync);
+    return () => mediaQuery.removeEventListener("change", sync);
+  }, [DESKTOP_MODAL_MEDIA_QUERY]);
+
+  useEffect(() => {
+    if (!open || !mounted || !desktopViewportActive) return;
+    const frameId = window.requestAnimationFrame(() => {
+      const card = cardRef.current;
+      if (!card) return;
+      const width = size?.width ?? card.offsetWidth;
+      const height = size?.height ?? card.offsetHeight;
+      setPosition((current) =>
+        current ?? clampPosition((window.innerWidth - width) / 2, (window.innerHeight - height) / 2, width, height)
+      );
+    });
+    return () => window.cancelAnimationFrame(frameId);
+  }, [desktopViewportActive, mounted, open, size]);
+
   useEffect(() => {
     if (!open || !isDragging) return;
     const onPointerMove = (event: PointerEvent) => {
       const dragState = dragStateRef.current;
       if (!dragState || event.pointerId !== dragState.pointerId) return;
-      const rawX = dragState.originX + (event.clientX - dragState.startX);
-      const rawY = dragState.originY + (event.clientY - dragState.startY);
+      const rawLeft = dragState.originLeft + (event.clientX - dragState.startX);
+      const rawTop = dragState.originTop + (event.clientY - dragState.startY);
       const card = cardRef.current;
       if (!card) {
-        setOffset({ x: rawX, y: rawY });
+        setPosition((current) =>
+          current
+            ? {
+                left: rawLeft,
+                top: rawTop,
+              }
+            : current
+        );
         return;
       }
-      const maxX = Math.max(0, (window.innerWidth - card.offsetWidth) / 2);
-      const maxY = Math.max(0, (window.innerHeight - card.offsetHeight) / 2);
-      setOffset({
-        x: Math.max(-maxX, Math.min(maxX, rawX)),
-        y: Math.max(-maxY, Math.min(maxY, rawY)),
-      });
+      setPosition(
+        clampPosition(rawLeft, rawTop, card.offsetWidth, card.offsetHeight)
+      );
     };
     const stopDragging = (event: PointerEvent) => {
       const dragState = dragStateRef.current;
@@ -107,14 +158,19 @@ export default function Modal({
       if (!resizeState || event.pointerId !== resizeState.pointerId) return;
       const minWidth = 280;
       const minHeight = 160;
-      const maxWidth = Math.max(minWidth, window.innerWidth - 32);
-      const maxHeight = Math.max(minHeight, window.innerHeight - 32);
+      const maxWidth = Math.max(
+        minWidth,
+        window.innerWidth - resizeState.startLeft - 16
+      );
+      const maxHeight = Math.max(
+        minHeight,
+        window.innerHeight - resizeState.startTop - 16
+      );
       const nextWidth = resizeState.startWidth + (event.clientX - resizeState.startX);
       const nextHeight = resizeState.startHeight + (event.clientY - resizeState.startY);
-      setSize({
-        width: Math.max(minWidth, Math.min(maxWidth, nextWidth)),
-        height: Math.max(minHeight, Math.min(maxHeight, nextHeight)),
-      });
+      const width = Math.max(minWidth, Math.min(maxWidth, nextWidth));
+      const height = Math.max(minHeight, Math.min(maxHeight, nextHeight));
+      setSize({ width, height });
     };
     const stopResizing = (event: PointerEvent) => {
       const resizeState = resizeStateRef.current;
@@ -132,11 +188,41 @@ export default function Modal({
     };
   }, [isResizing, open]);
 
+  useEffect(() => {
+    if (!open || !desktopViewportActive) return;
+    const onResize = () => {
+      const card = cardRef.current;
+      if (!card) return;
+      const width = size?.width ?? card.offsetWidth;
+      const height = size?.height ?? card.offsetHeight;
+      const maxWidth = Math.max(280, window.innerWidth - 32);
+      const maxHeight = Math.max(160, window.innerHeight - 32);
+      if (size && (size.width > maxWidth || size.height > maxHeight)) {
+        setSize({
+          width: Math.min(size.width, maxWidth),
+          height: Math.min(size.height, maxHeight),
+        });
+      }
+      setPosition((current) =>
+        current ? clampPosition(current.left, current.top, width, height) : current
+      );
+    };
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, [desktopViewportActive, open, size]);
+
   if (!open || !mounted || typeof document === "undefined") return null;
   const overlayClass =
     variant === "local" ? styles.confirmOverlay : styles.trainingOverlay;
   const cardStyle: CSSProperties = {
-    transform: `translate(${offset.x}px, ${offset.y}px)`,
+    ...(desktopViewportActive && position
+      ? {
+          position: "fixed",
+          left: `${position.left}px`,
+          top: `${position.top}px`,
+          margin: 0,
+        }
+      : {}),
     ...(size ? { width: `${size.width}px`, height: `${size.height}px` } : {}),
   };
 
@@ -167,14 +253,18 @@ export default function Modal({
             className={`${styles.confirmTitle}${movable ? ` ${styles.confirmTitleMovable}` : ""}${isDragging ? ` ${styles.confirmTitleDragging}` : ""}`}
             onPointerDown={(event) => {
               if (!movable) return;
+              if (!desktopViewportActive) return;
               if (event.button !== 0) return;
               event.preventDefault();
+              const card = cardRef.current;
+              if (!card) return;
+              const rect = card.getBoundingClientRect();
               dragStateRef.current = {
                 pointerId: event.pointerId,
                 startX: event.clientX,
                 startY: event.clientY,
-                originX: offset.x,
-                originY: offset.y,
+                originLeft: position?.left ?? rect.left,
+                originTop: position?.top ?? rect.top,
               };
               setIsDragging(true);
             }}
@@ -202,6 +292,8 @@ export default function Modal({
               startY: event.clientY,
               startWidth: card.offsetWidth,
               startHeight: card.offsetHeight,
+              startLeft: card.getBoundingClientRect().left,
+              startTop: card.getBoundingClientRect().top,
             };
             setIsResizing(true);
           }}

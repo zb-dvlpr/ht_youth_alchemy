@@ -58,6 +58,60 @@ export const messagesEn: Messages = {
     watchlistDeselectAll: "Deselect all",
     watchlistGenderMale: "Male",
     watchlistGenderFemale: "Female",
+    clubChroniclePremiumTooltip:
+      "Purchase a HT Alchemy premium license to track an unlimited number of teams in an unlimited number of tabs and to access all other premium features.",
+    clubChroniclePremiumBanner:
+      "To unlock unlimited team tracking in unlimited tabs, buy the premium HT Alchemy license.",
+    clubChroniclePremiumBuyButton: "Buy premium license",
+    clubChroniclePremiumLicenseTitle:
+      "This feature requires the HT Alchemy premium license.",
+    clubChroniclePremiumLicenseBody:
+      "Enter your HT Alchemy premium license key here to unlock premium features.",
+    clubChroniclePremiumLicenseFieldLabel: "License key",
+    clubChroniclePremiumLicensePlaceholder: "Enter license key",
+    clubChroniclePremiumLicenseSubmit: "Unlock premium",
+    clubChroniclePremiumLicenseKeyRequired: "Enter a license key.",
+    clubChroniclePremiumLicenseUnlocked: "Premium unlocked.",
+    clubChroniclePremiumLicensePendingValidation:
+      "Your license key has been saved locally. Online validation is not available yet.",
+    clubChroniclePremiumLicenseInvalid: "That license key is not valid.",
+    clubChroniclePremiumLicenseValidationUnavailable:
+      "License validation is unavailable right now. Please try again later.",
+    clubChroniclePremiumTeamLimitReached:
+      "Free Club Chronicle is limited to 3 tracked teams per tab.",
+    clubChroniclePremiumTabLimitReached:
+      "Free Club Chronicle is limited to 2 tabs.",
+    clubChroniclePremiumHiddenTeamsNotice:
+      "{{count}} cached tracked team(s) are hidden until premium is unlocked.",
+    clubChroniclePremiumOtherTeamsMessage:
+      "Buy the premium HT Alchemy license to view this data for other tracked teams.",
+    appLicenseFeatureSeniorSimulationTitle: "Edit skills, age, wage, TSI",
+    appLicenseFeatureSeniorSimulationDescription:
+      "Edit player attributes to see how Foxtrick metrics change. This significantly improves your player purchase decision making.",
+    appLicenseFeatureSeniorRatingsTitle: "Manually edit ratings",
+    appLicenseFeatureSeniorRatingsDescription:
+      "Players are selected based on ratings. Manually edit the ratings matrix to force player selection or non-selection and fine-tune your lineup.",
+    appLicenseFeatureSeniorManMarkingTitle: "Man marking",
+    appLicenseFeatureSeniorManMarkingDescription:
+      "Automatically select a man-marking target if one exists and an appropriate man marker if one exists. If the man-marking target is fielded by the opposing team, the chance of a man-marking penalty is zero thanks to the AI. The MM strictness slider helps fine-tune target detection.",
+    appLicenseFeatureSeniorFixedFormationTitle: "Optimize by formation",
+    appLicenseFeatureSeniorFixedFormationDescription:
+      "Generate the strongest lineup for a specific formation. This helps you compare formation-specific setups and choose the best lineup for the shape you want to play.",
+    appLicenseFeatureYouthEstimateValueTitle: "Estimate value",
+    appLicenseFeatureYouthEstimateValueDescription:
+      "Check the transfer market for a player of these known max skills at the age of promotion. This helps you understand what your youth player will sell for.",
+    appLicenseFeatureYouthDoubleRevealTitle: "Double reveal optimization",
+    appLicenseFeatureYouthDoubleRevealDescription:
+      "Optimize the lineup to maximize the chance of revealing two useful skills in the same match: one current value and one max value, for two different players or the same player. This helps you extract more information from a single youth lineup and speeds up player evaluation.",
+    appLicenseFeatureChronicleFormationsTitle: "Formations & tactics",
+    appLicenseFeatureChronicleFormationsDescription:
+      "Shows the formations and tactics used by this team in past matches. This helps you select the most optimum lineup based on the opposing team’s lineup history.",
+    appLicenseFeatureChronicleLikelyTrainingTitle: "Likely training regimen",
+    appLicenseFeatureChronicleLikelyTrainingDescription:
+      "Infers what this team is training based on formations used in trainable matches.",
+    appLicenseFeatureChronicleTrackingTitle: "Unlimited Club Chronicle tracking",
+    appLicenseFeatureChronicleTrackingDescription:
+      "Unlock additional Club Chronicle tabs and track more teams per tab. This lets you follow larger rival groups without trimming your watchlist.",
     clubChronicleTabDefaultName: "Tab {{number}}",
     clubChronicleTabAdd: "Add tab",
     clubChronicleTabRenamePlaceholder: "Tab name",
@@ -76,6 +130,12 @@ export const messagesEn: Messages = {
     betaPillLabel: "Beta",
     betaPillTooltip:
       "This app is in beta. Features, behavior, and cached local data may change or be reset without prior notice.",
+    freePillLabel: "Free",
+    freePillTooltip:
+      "Free mode. Premium features are locked until a valid license is activated. Click to buy a premium license.",
+    premiumPillLabel: "Premium",
+    premiumPillTooltip: "Premium license unlocked. Click for license details.",
+    changelog_5_0_0: "Feature gating.",
     changelog_4_14_0:
       "Senior ratings matrix now supports manual rating overrides with refresh-safe restore behavior.",
     changelog_4_13_0:
@@ -205,6 +265,8 @@ export const messagesEn: Messages = {
     feedbackBugSuccess: "Bug report submitted.",
     feedbackFeatureSuccess: "Feature request submitted.",
     feedbackSubmitError: "Issue submission failed.",
+    feedbackUsernameDisclaimer:
+      "Your Hattrick username will be attached to this report so the developer can contact you with follow-up questions.",
     feedbackMetadataHattrickUser: "Hattrick user",
     feedbackManagerIdentityRequiredError:
       "Unable to resolve your Hattrick username and user ID for the report metadata.",
@@ -273,6 +335,58 @@ export const messagesEn: Messages = {
       "How many changed global refresh diffs are stored and shown in Latest updates history.",
     settingsGeneral: "General",
     settingsGeneralTitle: "General settings",
+    settingsLicense: "License",
+    settingsLicenseTitle: "License",
+    settingsLicenseBody:
+      "Buy a HT Alchemy premium license or manage your current license here.",
+    settingsLicenseBuyButton: "Buy license",
+    settingsLicenseRevokeButton: "Revoke license",
+    settingsLicenseRevoked: "License cleared. Free mode restored.",
+    settingsLicenseRevokePending:
+      "License revocation failed. Try again later.",
+    settingsLicenseActivationSuccessTitle: "License activated",
+    settingsLicenseActivationSuccessBody:
+      "Your HT Alchemy premium license has been activated for this app instance.",
+    settingsLicenseExpiringWeekTitle: "License expiring soon",
+    settingsLicenseExpiringWeekBody:
+      "Your HT Alchemy premium license will expire in about 1 week. Buy a new subscription now to keep premium features active without interruption.",
+    settingsLicenseExpiringDayTitle: "License expiring soon",
+    settingsLicenseExpiringDayBody:
+      "Your HT Alchemy premium license will expire in about 1 day. Buy a new subscription now to keep premium features active without interruption.",
+    settingsLicenseRenewButton: "Buy new subscription",
+    settingsLicenseLimitExceededTitle: "License downgraded",
+    settingsLicenseLimitExceededBody:
+      "This app instance has been downgraded to the free version because the license activation limit has been exceeded.",
+    settingsLicenseRevocationSuccessTitle: "License revoked",
+    settingsLicenseRevocationSuccessBody:
+      "This app instance has been revoked from the active license and premium access has been removed.",
+    settingsLicenseNoActive: "No active license.",
+    settingsLicenseLoading: "Loading license details…",
+    settingsLicenseStatusLabel: "Current status",
+    settingsLicenseStatusActive: "Active",
+    settingsLicenseStatusInactive: "Inactive",
+    settingsLicenseStatusExpired: "Expired",
+    settingsLicenseStatusDisabled: "Disabled",
+    settingsLicenseDetailStatus: "License status",
+    settingsLicenseDetailKey: "License key",
+    settingsLicenseDetailActivationLimit: "Activation limit",
+    settingsLicenseDetailActivationUsage: "Activation usage",
+    settingsLicenseDetailCreatedAt: "Created at",
+    settingsLicenseDetailExpiresAt: "Expires at",
+    settingsLicenseDetailInstanceId: "Instance ID",
+    settingsLicenseDetailInstanceName: "Instance name",
+    settingsLicenseDetailInstanceCreatedAt: "Instance created at",
+    settingsLicenseDetailStoreId: "Store ID",
+    settingsLicenseDetailOrderItemId: "Order item ID",
+    settingsLicenseDetailProductId: "Product ID",
+    settingsLicenseDetailProduct: "Product",
+    settingsLicenseDetailVariantId: "Variant ID",
+    settingsLicenseDetailVariant: "Variant",
+    settingsLicenseDetailOrderId: "Order ID",
+    settingsLicenseDetailCustomerId: "Customer ID",
+    settingsLicenseDetailCustomerName: "Customer name",
+    settingsLicenseDetailCustomerEmail: "Customer email",
+    settingsLicenseNeverExpires: "Never",
     settingsGeneralExportAllLabel: "Export all settings",
     settingsGeneralExportAllHint:
       "Export all locally stored app settings and cached state as a JSON backup file.",
@@ -1030,7 +1144,7 @@ export const messagesEn: Messages = {
     seniorAiLastMatchThresholdText:
       "Ignore players whose last match was more than {{weeks}} weeks ago.",
     seniorAiLastMatchThresholdDisabledText:
-      "Do not disregard players by last match date. {{weeks}}",
+      "Ignore players whose last match was more than {{weeks}} weeks ago.",
     seniorAiLastMatchThresholdAriaLabel:
       "Weeks threshold for disregarding players by last match date",
     seniorAiLastMatchDisregardedTooltip:
@@ -1040,11 +1154,15 @@ export const messagesEn: Messages = {
     seniorAiManMarkingToggleLabel: "Man marking",
     seniorAiManMarkingToggleTooltip:
       "Submit man-marking orders if a suitable man marker and man-marking target are identified.",
+    seniorAiManMarkingPremiumTooltip:
+      "Buy a HT Alchemy premium license to use man marking in senior lineup optimization.",
     seniorAiManMarkingFuzzinessLabel: "MM strictness",
     seniorAiManMarkingFuzzinessTooltip:
       "Strictness for man-marking target identification.",
     seniorAiManMarkingFuzzinessAriaLabel:
       "Strictness for man-marking target identification",
+    seniorAiManMarkingFuzzinessPremiumTooltip:
+      "Buy a HT Alchemy premium license to adjust man-marking strictness in senior lineup optimization.",
     seniorAiManMarkingNeedsLineupTooltip:
       "Man marking can only be enabled once a lineup has been set and if a man marker and a man marking target have been identified.",
     seniorAiManMarkingEnabledTooltip:
@@ -1271,6 +1389,8 @@ export const messagesEn: Messages = {
     youthEstimateValueButton: "Estimate value",
     youthEstimateValueTooltip:
       "Search the transfer market based on this player's maximum potential.",
+    youthEstimateValuePremiumTooltip:
+      "Buy a HT Alchemy premium license to use Estimate value.",
     youthEstimateValueDisabledTooltip:
       "Reveal at least one max potential skill before estimating value.",
     youthEstimateValueAgeMissingTooltip:
@@ -1436,6 +1556,8 @@ export const messagesEn: Messages = {
     seniorFoxtrickEditSkillsLabel: "Edit skills, age, wage, TSI",
     seniorFoxtrickSimulationTooltip:
       "Enable to edit skills, age, wage, and TSI to simulate FoxTrick metrics. Disable to reset to actual values.",
+    seniorFoxtrickSimulationPremiumTooltip:
+      "Buy a HT Alchemy premium license to edit senior skills, age, wage, and TSI in player details.",
     seniorFoxtrickSimulationWarning:
       "Skill, age, wage, or TSI values have been manually changed and no longer reflect the actual player.",
     seniorFoxtrickSimulationAgeYearsLabel: "Age years",
@@ -1486,6 +1608,8 @@ export const messagesEn: Messages = {
     ratingsManualOverrideToggle: "Manually edit ratings",
     ratingsManualOverrideTooltip:
       "Ratings are used to place players in AI lineups. Toggle on to manually change the ratings. Useful if you want to force a player to be chosen or not chosen for a particular position regardless of form and past performance.",
+    ratingsManualOverridePremiumTooltip:
+      "Buy a HT Alchemy premium license to manually edit ratings used by the senior lineup AI.",
     ratingsOverwriteManualEditsToggle: "Overwrite manually edited ratings",
     ratingsOverwriteManualEditsTooltip:
       "When enabled, newly fetched ratings will replace any ratings you manually edited the next time the matrix refreshes.",

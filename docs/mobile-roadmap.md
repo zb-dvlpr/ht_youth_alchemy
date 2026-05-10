@@ -66,6 +66,7 @@ Last updated: 2026-04-06
   - [x] Added direct Player list shortcuts to the Youth and Senior floating mobile dropdowns.
   - [x] Added a mobile launcher Help submenu for Manual, Bug report, and Feature request, with on-demand manual table of contents access.
   - [x] Added bottom Manual entries to all mobile floating dropdowns.
+  - [x] Added a mobile Premium pill to the launcher header and mobile tool headers when a premium license is active.
 - [ ] Audit persistence and state restoration on mobile navigation flows.
 - [ ] Clean up any remaining truly cross-cutting mobile component issues left after Youth, Senior, and Chronicle are complete.
 - [ ] Run a desktop regression pass across Youth, Senior, and Club Chronicle.

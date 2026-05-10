@@ -58,6 +58,61 @@ export const messagesFr: Messages = {
     watchlistDeselectAll: "Tout désélectionner",
     watchlistGenderMale: "Masculin",
     watchlistGenderFemale: "Féminin",
+    clubChroniclePremiumTooltip:
+      "Achetez une licence premium HT Alchemy pour suivre un nombre illimité d'équipes dans un nombre illimité d'onglets et accéder à toutes les autres fonctionnalités premium.",
+    clubChroniclePremiumBanner:
+      "Pour débloquer un suivi illimité des équipes dans un nombre illimité d'onglets, achetez la licence premium HT Alchemy.",
+    clubChroniclePremiumBuyButton: "Acheter la licence premium",
+    clubChroniclePremiumLicenseTitle:
+      "Cette fonctionnalité nécessite la licence premium HT Alchemy.",
+    clubChroniclePremiumLicenseBody:
+      "Saisissez ici votre clé de licence premium HT Alchemy pour débloquer les fonctionnalités premium.",
+    clubChroniclePremiumLicenseFieldLabel: "Clé de licence",
+    clubChroniclePremiumLicensePlaceholder: "Saisir la clé de licence",
+    clubChroniclePremiumLicenseSubmit: "Débloquer premium",
+    clubChroniclePremiumLicenseKeyRequired: "Saisissez une clé de licence.",
+    clubChroniclePremiumLicenseUnlocked: "Premium débloqué.",
+    clubChroniclePremiumLicensePendingValidation:
+      "Votre clé de licence a été enregistrée localement. La validation en ligne n'est pas encore disponible.",
+    clubChroniclePremiumLicenseInvalid:
+      "Cette clé de licence n'est pas valide.",
+    clubChroniclePremiumLicenseValidationUnavailable:
+      "La validation de la licence est indisponible pour le moment. Réessayez plus tard.",
+    clubChroniclePremiumTeamLimitReached:
+      "La version gratuite de Club Chronicle est limitée à 3 équipes suivies par onglet.",
+    clubChroniclePremiumTabLimitReached:
+      "La version gratuite de Club Chronicle est limitée à 2 onglets.",
+    clubChroniclePremiumHiddenTeamsNotice:
+      "{{count}} équipe(s) suivie(s) en cache restent masquées jusqu'au déblocage du premium.",
+    clubChroniclePremiumOtherTeamsMessage:
+      "Achetez la licence premium HT Alchemy pour voir ces données pour les autres équipes suivies.",
+    appLicenseFeatureSeniorSimulationTitle: "Modifier skills, âge, salaire, TSI",
+    appLicenseFeatureSeniorSimulationDescription:
+      "Modifiez les attributs du joueur pour voir comment les métriques Foxtrick évoluent. Cela améliore fortement vos décisions d’achat de joueurs.",
+    appLicenseFeatureSeniorRatingsTitle: "Modifier manuellement les notes",
+    appLicenseFeatureSeniorRatingsDescription:
+      "Les joueurs sont sélectionnés en fonction des notes. Modifiez manuellement la matrice des notes pour forcer ou empêcher une sélection et affiner votre composition.",
+    appLicenseFeatureSeniorManMarkingTitle: "Marquage individuel",
+    appLicenseFeatureSeniorManMarkingDescription:
+      "Sélectionne automatiquement une cible de marquage individuel si elle existe et un marqueur approprié si lui aussi existe. Si la cible est alignée par l’équipe adverse, le risque de pénalité de marquage individuel est nul grâce à l’IA. Le curseur de rigueur MM aide à affiner la détection de la cible.",
+    appLicenseFeatureSeniorFixedFormationTitle: "Optimiser par formation",
+    appLicenseFeatureSeniorFixedFormationDescription:
+      "Génère la meilleure composition possible pour une formation précise. Cela aide à comparer des configurations par formation et à choisir la meilleure équipe pour le schéma que vous voulez jouer.",
+    appLicenseFeatureYouthEstimateValueTitle: "Estimer la valeur",
+    appLicenseFeatureYouthEstimateValueDescription:
+      "Vérifie le marché des transferts pour un joueur avec ces compétences max connues à l’âge de promotion. Cela aide à comprendre combien ton joueur de jeunes pourra se vendre.",
+    appLicenseFeatureYouthDoubleRevealTitle: "Optimisation double révélation",
+    appLicenseFeatureYouthDoubleRevealDescription:
+      "Optimise la composition pour maximiser la chance de révéler deux compétences utiles dans le même match : une valeur actuelle et une valeur max, pour deux joueurs différents ou pour le même joueur. Cela permet d’extraire davantage d’informations d’une seule composition de jeunes et d’accélérer l’évaluation des joueurs.",
+    appLicenseFeatureChronicleFormationsTitle: "Formations & tactiques",
+    appLicenseFeatureChronicleFormationsDescription:
+      "Affiche les formations et tactiques utilisées par cette équipe lors des matchs passés. Cela aide à choisir la composition la plus optimale selon l’historique de l’équipe adverse.",
+    appLicenseFeatureChronicleLikelyTrainingTitle: "Régime d’entraînement probable",
+    appLicenseFeatureChronicleLikelyTrainingDescription:
+      "Déduit ce que cette équipe entraîne d’après les formations utilisées dans les matchs entraînables.",
+    appLicenseFeatureChronicleTrackingTitle: "Suivi Club Chronicle illimité",
+    appLicenseFeatureChronicleTrackingDescription:
+      "Débloque des onglets Club Chronicle supplémentaires et plus d’équipes suivies par onglet. Cela permet de suivre de plus grands groupes de rivaux sans réduire la watchlist.",
     clubChronicleTabDefaultName: "Onglet {{number}}",
     clubChronicleTabAdd: "Ajouter un onglet",
     clubChronicleTabRenamePlaceholder: "Nom de l’onglet",
@@ -76,6 +131,12 @@ export const messagesFr: Messages = {
     betaPillLabel: "Bêta",
     betaPillTooltip:
       "Cette application est en bêta. Les fonctionnalités, le comportement et les données locales en cache peuvent changer ou être réinitialisés sans préavis.",
+    freePillLabel: "Free",
+    freePillTooltip:
+      "Mode gratuit. Les fonctionnalités premium restent verrouillées jusqu’à l’activation d’une licence valide. Cliquez ici pour acheter une licence premium.",
+    premiumPillLabel: "Premium",
+    premiumPillTooltip: "Licence premium débloquée. Cliquez ici pour voir les détails de la licence.",
+    changelog_5_0_0: "Verrouillage des fonctionnalités.",
     changelog_4_14_0:
       "La matrice de notes senior prend désormais en charge les remplacements manuels avec restauration sûre après actualisation.",
     changelog_4_13_0:
@@ -221,6 +282,8 @@ export const messagesFr: Messages = {
     feedbackBugSuccess: "Signalement de bug envoyé.",
     feedbackFeatureSuccess: "Demande de fonctionnalité envoyée.",
     feedbackSubmitError: "L’envoi de l’issue a échoué.",
+    feedbackUsernameDisclaimer:
+      "Votre nom d utilisateur Hattrick sera joint a ce rapport afin que le developpeur puisse vous contacter pour d eventuelles questions de suivi.",
     feedbackMetadataHattrickUser: "Utilisateur Hattrick",
     feedbackManagerIdentityRequiredError:
       "Impossible de résoudre votre nom d utilisateur et votre ID utilisateur Hattrick pour les métadonnées du signalement.",
@@ -292,6 +355,58 @@ export const messagesFr: Messages = {
     settingsDebugBuyCoffeePromptButton: "Afficher la modale offre-moi un café",
     settingsGeneral: "Général",
     settingsGeneralTitle: "Paramètres généraux",
+    settingsLicense: "Licence",
+    settingsLicenseTitle: "Licence",
+    settingsLicenseBody:
+      "Achetez une licence premium HT Alchemy ou gérez votre licence actuelle ici.",
+    settingsLicenseBuyButton: "Acheter une licence",
+    settingsLicenseRevokeButton: "Révoquer la licence",
+    settingsLicenseRevoked: "Licence effacée. Mode gratuit rétabli.",
+    settingsLicenseRevokePending:
+      "La révocation de la licence a échoué. Réessayez plus tard.",
+    settingsLicenseActivationSuccessTitle: "Licence activée",
+    settingsLicenseActivationSuccessBody:
+      "Votre licence premium HT Alchemy a été activée pour cette instance de l’application.",
+    settingsLicenseExpiringWeekTitle: "La licence expire bientôt",
+    settingsLicenseExpiringWeekBody:
+      "Votre licence premium HT Alchemy expirera dans environ 1 semaine. Achetez maintenant un nouvel abonnement pour garder les fonctionnalités premium actives sans interruption.",
+    settingsLicenseExpiringDayTitle: "La licence expire bientôt",
+    settingsLicenseExpiringDayBody:
+      "Votre licence premium HT Alchemy expirera dans environ 1 jour. Achetez maintenant un nouvel abonnement pour garder les fonctionnalités premium actives sans interruption.",
+    settingsLicenseRenewButton: "Acheter un nouvel abonnement",
+    settingsLicenseLimitExceededTitle: "Licence rétrogradée",
+    settingsLicenseLimitExceededBody:
+      "Cette instance de l’application a été rétrogradée vers la version gratuite, car la limite d’activation de la licence a été dépassée.",
+    settingsLicenseRevocationSuccessTitle: "Licence révoquée",
+    settingsLicenseRevocationSuccessBody:
+      "Cette instance de l’application a été révoquée de la licence active et l’accès premium a été supprimé.",
+    settingsLicenseNoActive: "Aucune licence active.",
+    settingsLicenseLoading: "Chargement des détails de la licence…",
+    settingsLicenseStatusLabel: "Statut actuel",
+    settingsLicenseStatusActive: "Active",
+    settingsLicenseStatusInactive: "Inactive",
+    settingsLicenseStatusExpired: "Expirée",
+    settingsLicenseStatusDisabled: "Désactivée",
+    settingsLicenseDetailStatus: "Statut de la licence",
+    settingsLicenseDetailKey: "Clé de licence",
+    settingsLicenseDetailActivationLimit: "Limite d’activation",
+    settingsLicenseDetailActivationUsage: "Utilisation des activations",
+    settingsLicenseDetailCreatedAt: "Créée le",
+    settingsLicenseDetailExpiresAt: "Expire le",
+    settingsLicenseDetailInstanceId: "ID d’instance",
+    settingsLicenseDetailInstanceName: "Nom de l’instance",
+    settingsLicenseDetailInstanceCreatedAt: "Instance créée le",
+    settingsLicenseDetailStoreId: "ID de boutique",
+    settingsLicenseDetailOrderItemId: "ID de ligne de commande",
+    settingsLicenseDetailProductId: "ID produit",
+    settingsLicenseDetailProduct: "Produit",
+    settingsLicenseDetailVariantId: "ID de variante",
+    settingsLicenseDetailVariant: "Variante",
+    settingsLicenseDetailOrderId: "ID de commande",
+    settingsLicenseDetailCustomerId: "ID client",
+    settingsLicenseDetailCustomerName: "Nom du client",
+    settingsLicenseDetailCustomerEmail: "E-mail du client",
+    settingsLicenseNeverExpires: "Jamais",
     settingsGeneralExportAllLabel: "Exporter tous les paramètres",
     settingsGeneralExportAllHint:
       "Exporte tous les paramètres locaux de l’application et les états en cache dans un fichier JSON de sauvegarde.",
@@ -1074,7 +1189,7 @@ export const messagesFr: Messages = {
     seniorAiLastMatchThresholdText:
       "Ignorer les joueurs dont le dernier match remonte à plus de {{weeks}} semaines.",
     seniorAiLastMatchThresholdDisabledText:
-      "Ne pas écarter les joueurs selon la date de leur dernier match. {{weeks}}",
+      "Ignorer les joueurs dont le dernier match remonte à plus de {{weeks}} semaines.",
     seniorAiLastMatchThresholdAriaLabel:
       "Seuil en semaines pour écarter des joueurs selon la date de leur dernier match",
     seniorAiLastMatchDisregardedTooltip:
@@ -1084,11 +1199,15 @@ export const messagesFr: Messages = {
     seniorAiManMarkingToggleLabel: "Marquage individuel",
     seniorAiManMarkingToggleTooltip:
       "Soumettre les ordres de marquage individuel si un marqueur approprie et une cible de marquage appropriee sont identifies.",
+    seniorAiManMarkingPremiumTooltip:
+      "Achetez une licence premium HT Alchemy pour utiliser le marquage individuel dans l’optimisation de composition senior.",
     seniorAiManMarkingFuzzinessLabel: "Rigueur MM",
     seniorAiManMarkingFuzzinessTooltip:
       "Niveau d'exigence pour identifier la cible de marquage individuel.",
     seniorAiManMarkingFuzzinessAriaLabel:
       "Niveau d'exigence pour identifier la cible de marquage individuel",
+    seniorAiManMarkingFuzzinessPremiumTooltip:
+      "Achetez une licence premium HT Alchemy pour ajuster la rigidité du marquage individuel dans l’optimisation de composition senior.",
     seniorAiManMarkingNeedsLineupTooltip:
       "Le marquage individuel ne peut être activé qu une fois la composition définie et si un marqueur et une cible ont été identifiés.",
     seniorAiManMarkingEnabledTooltip:
@@ -1323,6 +1442,8 @@ export const messagesFr: Messages = {
     youthEstimateValueButton: "Estimer la valeur",
     youthEstimateValueTooltip:
       "Rechercher sur le marche des transferts selon le potentiel maximal de ce joueur.",
+    youthEstimateValuePremiumTooltip:
+      "Achetez une licence premium HT Alchemy pour utiliser Estimer la valeur.",
     youthEstimateValueDisabledTooltip:
       "Revelez au moins un potentiel maximum avant d estimer la valeur.",
     youthEstimateValueAgeMissingTooltip:
@@ -1490,6 +1611,8 @@ export const messagesFr: Messages = {
     seniorFoxtrickEditSkillsLabel: "Modifier skills, age, salaire, TSI",
     seniorFoxtrickSimulationTooltip:
       "Activez pour modifier les skills, l age, le salaire et le TSI afin de simuler les valeurs FoxTrick. Desactivez pour revenir aux valeurs reelles.",
+    seniorFoxtrickSimulationPremiumTooltip:
+      "Achetez une licence premium HT Alchemy pour modifier les skills, l age, le salaire et le TSI dans les details des joueurs seniors.",
     seniorFoxtrickSimulationWarning:
       "Les valeurs de skills, d age, de salaire ou de TSI ont ete modifiees manuellement et ne refletent plus le joueur reel.",
     seniorFoxtrickSimulationAgeYearsLabel: "Age annees",
@@ -1541,6 +1664,8 @@ export const messagesFr: Messages = {
     ratingsManualOverrideToggle: "Modifier manuellement les notes",
     ratingsManualOverrideTooltip:
       "Les notes servent à placer les joueurs dans les compositions IA. Activez ceci pour modifier manuellement les notes. C’est utile si vous voulez forcer qu’un joueur soit choisi ou non pour un poste donné, indépendamment de sa forme et de ses performances passées.",
+    ratingsManualOverridePremiumTooltip:
+      "Achetez une licence premium HT Alchemy pour modifier manuellement les notes utilisées par l’IA des compositions senior.",
     ratingsOverwriteManualEditsToggle: "Écraser les notes modifiées manuellement",
     ratingsOverwriteManualEditsTooltip:
       "Si cette option est activée, les nouvelles notes récupérées remplaceront toutes les notes que vous avez modifiées manuellement lors du prochain rafraîchissement de la matrice.",

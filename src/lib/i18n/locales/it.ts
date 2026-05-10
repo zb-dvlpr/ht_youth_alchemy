@@ -135,7 +135,7 @@ export const messagesIt: Messages = {
       "Modalità gratuita. Le funzioni premium restano bloccate finché non viene attivata una licenza valida. Clicca per acquistare una licenza premium.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Licenza premium sbloccata. Clicca per vedere i dettagli della licenza.",
-    changelog_5_0_0: "Funzionalità premium.",
+    changelog_5_0_0: "Blocco delle funzionalità.",
     changelog_4_14_0:
       "La matrice voti senior ora supporta override manuali dei voti con ripristino sicuro dopo il refresh.",
     changelog_4_13_0:

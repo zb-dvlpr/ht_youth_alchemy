@@ -134,7 +134,7 @@ export const messagesEs: Messages = {
       "Modo gratuito. Las funciones premium permanecen bloqueadas hasta que se active una licencia válida. Haz clic para comprar una licencia premium.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Licencia premium desbloqueada. Haz clic para ver los detalles de la licencia.",
-    changelog_5_0_0: "Funciones premium.",
+    changelog_5_0_0: "Bloqueo de funciones.",
     changelog_4_14_0:
       "La matriz de calificaciones senior ahora permite sobrescrituras manuales con restauración segura tras refrescar.",
     changelog_4_13_0:

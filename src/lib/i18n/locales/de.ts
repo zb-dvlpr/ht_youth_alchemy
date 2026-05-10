@@ -135,7 +135,7 @@ export const messagesDe: Messages = {
       "Freier Modus. Premium-Funktionen bleiben gesperrt, bis eine gültige Lizenz aktiviert wird. Klicke hier, um eine Premium-Lizenz zu kaufen.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Premium-Lizenz freigeschaltet. Klicke hier für Lizenzdetails.",
-    changelog_5_0_0: "Premium-Funktionen.",
+    changelog_5_0_0: "Funktionssperren.",
     changelog_4_14_0:
       "Die Senioren-Bewertungsmatrix unterstützt jetzt manuelle Bewertungsüberschreibungen mit refresh-sicherer Wiederherstellung.",
     changelog_4_13_0:

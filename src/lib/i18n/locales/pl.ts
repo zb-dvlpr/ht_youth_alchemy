@@ -308,7 +308,7 @@ export const messagesPl: Messages = {
     "Tryb darmowy. Funkcje premium pozostają zablokowane, dopóki nie zostanie aktywowana ważna licencja. Kliknij, aby kupić licencję premium.",
   premiumPillLabel: "Premium",
   premiumPillTooltip: "Licencja premium odblokowana. Kliknij, aby zobaczyć szczegóły licencji.",
-  changelog_5_0_0: "Funkcje premium.",
+  changelog_5_0_0: "Blokowanie funkcji.",
   changelog_4_14_0:
     "Macierz ocen seniorów obsługuje teraz ręczne nadpisywanie ocen z bezpiecznym przywracaniem po odświeżeniu.",
   changelog_4_13_0:

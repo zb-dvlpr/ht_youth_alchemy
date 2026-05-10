@@ -134,7 +134,7 @@ export const messagesSv: Messages = {
       "Friläge. Premiumfunktioner är låsta tills en giltig licens aktiveras. Klicka för att köpa en premiumlicens.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Premiumlicens upplåst. Klicka för licensdetaljer.",
-    changelog_5_0_0: "Premiumfunktioner.",
+    changelog_5_0_0: "Funktionslåsning.",
     changelog_4_14_0:
       "Seniorernas betygsmatris stöder nu manuella åsidosättningar av betyg med säker återställning efter uppdatering.",
     changelog_4_13_0:

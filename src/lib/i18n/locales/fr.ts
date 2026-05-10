@@ -135,7 +135,7 @@ export const messagesFr: Messages = {
       "Mode gratuit. Les fonctionnalités premium restent verrouillées jusqu’à l’activation d’une licence valide. Cliquez ici pour acheter une licence premium.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Licence premium débloquée. Cliquez ici pour voir les détails de la licence.",
-    changelog_5_0_0: "Fonctionnalités premium.",
+    changelog_5_0_0: "Verrouillage des fonctionnalités.",
     changelog_4_14_0:
       "La matrice de notes senior prend désormais en charge les remplacements manuels avec restauration sûre après actualisation.",
     changelog_4_13_0:

@@ -108,7 +108,6 @@ export default function AppLicenseModal({
               <p className={styles.licenseFeatureBody}>{context.featureDescription}</p>
             </section>
           ) : null}
-          <p className={styles.muted}>{messages.clubChroniclePremiumLicenseBody}</p>
           <div className={styles.watchlistSection}>
             <button
               type="button"

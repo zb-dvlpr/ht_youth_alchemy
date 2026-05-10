@@ -63,7 +63,8 @@ export const messagesSv: Messages = {
     clubChroniclePremiumBanner:
       "För att låsa upp obegränsad lagspårning i obegränsat många flikar, köp HT Alchemy premiumlicensen.",
     clubChroniclePremiumBuyButton: "Köp premiumlicens",
-    clubChroniclePremiumLicenseTitle: "HT Alchemy premiumlicens",
+    clubChroniclePremiumLicenseTitle:
+      "Den här funktionen kräver HT Alchemys premiumlicens.",
     clubChroniclePremiumLicenseBody:
       "Ange din HT Alchemy premiumlicensnyckel här för att låsa upp premiumfunktioner.",
     clubChroniclePremiumLicenseFieldLabel: "Licensnyckel",

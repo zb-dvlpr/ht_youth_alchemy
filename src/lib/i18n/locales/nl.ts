@@ -49,7 +49,8 @@ export const messagesNl: Messages = {
   clubChroniclePremiumBanner:
     "Koop de HT Alchemy-premiumlicentie om onbeperkt teams in onbeperkt veel tabbladen te volgen.",
   clubChroniclePremiumBuyButton: "Premiumlicentie kopen",
-  clubChroniclePremiumLicenseTitle: "HT Alchemy-premiumlicentie",
+  clubChroniclePremiumLicenseTitle:
+    "Deze functie vereist de HT Alchemy-premiumlicentie.",
   clubChroniclePremiumLicenseBody:
     "Voer hier je HT Alchemy-premiumlicentiesleutel in om premiumfuncties te ontgrendelen.",
   clubChroniclePremiumLicenseFieldLabel: "Licentiesleutel",

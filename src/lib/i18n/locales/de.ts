@@ -63,7 +63,8 @@ export const messagesDe: Messages = {
     clubChroniclePremiumBanner:
       "Um unbegrenztes Team-Tracking in unbegrenzt vielen Tabs freizuschalten, kaufe die HT Alchemy Premium-Lizenz.",
     clubChroniclePremiumBuyButton: "Premium-Lizenz kaufen",
-    clubChroniclePremiumLicenseTitle: "HT Alchemy Premium-Lizenz",
+    clubChroniclePremiumLicenseTitle:
+      "Diese Funktion erfordert die HT Alchemy Premium-Lizenz.",
     clubChroniclePremiumLicenseBody:
       "Gib hier deinen HT Alchemy Premium-Lizenzschlüssel ein, um Premium-Funktionen freizuschalten.",
     clubChroniclePremiumLicenseFieldLabel: "Lizenzschlüssel",

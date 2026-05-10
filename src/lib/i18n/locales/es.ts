@@ -63,7 +63,8 @@ export const messagesEs: Messages = {
     clubChroniclePremiumBanner:
       "Para desbloquear el seguimiento ilimitado de equipos en pestañas ilimitadas, compra la licencia premium de HT Alchemy.",
     clubChroniclePremiumBuyButton: "Comprar licencia premium",
-    clubChroniclePremiumLicenseTitle: "Licencia premium de HT Alchemy",
+    clubChroniclePremiumLicenseTitle:
+      "Esta función requiere la licencia premium de HT Alchemy.",
     clubChroniclePremiumLicenseBody:
       "Introduce aquí tu clave de licencia premium de HT Alchemy para desbloquear las funciones premium.",
     clubChroniclePremiumLicenseFieldLabel: "Clave de licencia",

@@ -635,7 +635,7 @@ export const messagesNl: Messages = {
   seniorAiLastMatchThresholdText:
     "Negeer spelers van wie de laatste wedstrijd meer dan {{weeks}} weken geleden was.",
   seniorAiLastMatchThresholdDisabledText:
-    "Negeer spelers niet op basis van de datum van hun laatste wedstrijd. {{weeks}}",
+    "Negeer spelers van wie de laatste wedstrijd meer dan {{weeks}} weken geleden was.",
   seniorAiLastMatchThresholdAriaLabel:
     "Wekengrens om spelers uit te sluiten op basis van hun laatste wedstrijd",
   seniorAiLastMatchDisregardedTooltip:

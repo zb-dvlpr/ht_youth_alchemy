@@ -1189,7 +1189,7 @@ export const messagesFr: Messages = {
     seniorAiLastMatchThresholdText:
       "Ignorer les joueurs dont le dernier match remonte à plus de {{weeks}} semaines.",
     seniorAiLastMatchThresholdDisabledText:
-      "Ne pas écarter les joueurs selon la date de leur dernier match. {{weeks}}",
+      "Ignorer les joueurs dont le dernier match remonte à plus de {{weeks}} semaines.",
     seniorAiLastMatchThresholdAriaLabel:
       "Seuil en semaines pour écarter des joueurs selon la date de leur dernier match",
     seniorAiLastMatchDisregardedTooltip:

@@ -309,6 +309,8 @@ export const messagesPl: Messages = {
     "Tryb darmowy. Funkcje premium pozostają zablokowane, dopóki nie zostanie aktywowana ważna licencja. Kliknij, aby kupić licencję premium.",
   premiumPillLabel: "Premium",
   premiumPillTooltip: "Licencja premium odblokowana. Kliknij, aby zobaczyć szczegóły licencji.",
+  changelog_5_1_0:
+    "Seniorzy wystawieni na liste transferowa pokazuja teraz spójne oznaczenia i zapisane w pamięci szczegoly sprzedazy we wszystkich widokach seniorow.",
   changelog_5_0_0: "Blokowanie funkcji.",
   changelog_4_14_0:
     "Macierz ocen seniorów obsługuje teraz ręczne nadpisywanie ocen z bezpiecznym przywracaniem po odświeżeniu.",
@@ -486,6 +488,8 @@ export const messagesPl: Messages = {
   seniorTransferSearchResultsMany: "Wiele wynikow",
   seniorTransferSearchHighestBidLabel: "Najwyzsza oferta",
   seniorTransferSearchDeadlineLabel: "Koniec aukcji",
+  seniorTransferListedIndicatorLabel: "Wystawiony na liste transferowa",
+  seniorTransferListedNoBidsYet: "Brak ofert",
   seniorTransferSearchSellerLabel: "Sprzedajacy",
   seniorTransferSearchBidAmountLabel: "Kwota oferty (EUR)",
   seniorTransferSearchMaxBidAmountLabel: "Maks. oferta (EUR)",

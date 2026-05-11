@@ -135,6 +135,8 @@ export const messagesEn: Messages = {
       "Free mode. Premium features are locked until a valid license is activated. Click to buy a premium license.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Premium license unlocked. Click for license details.",
+    changelog_5_1_0:
+      "Senior transfer-listed players now show consistent indicators and cached sale details across senior views.",
     changelog_5_0_0: "Feature gating.",
     changelog_4_14_0:
       "Senior ratings matrix now supports manual rating overrides with refresh-safe restore behavior.",
@@ -1377,6 +1379,8 @@ export const messagesEn: Messages = {
     seniorTransferSearchResultsMany: "Many results",
     seniorTransferSearchHighestBidLabel: "Highest bid",
     seniorTransferSearchDeadlineLabel: "Deadline",
+    seniorTransferListedIndicatorLabel: "Transfer listed",
+    seniorTransferListedNoBidsYet: "No bids yet",
     seniorTransferSearchSellerLabel: "Seller",
     seniorTransferSearchBidAmountLabel: "Bid amount (EUR)",
     seniorTransferSearchMaxBidAmountLabel: "Max bid (EUR)",

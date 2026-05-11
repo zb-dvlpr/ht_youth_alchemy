@@ -14,6 +14,9 @@ import { useNotifications } from "./notifications/NotificationsProvider";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import PlayerStatementQuote from "./PlayerStatementQuote";
 import { predictSeniorEncounteredPlayerWage } from "@/lib/seniorEncounteredPlayerModel";
+import SeniorTransferListedIndicator, {
+  type SeniorTransferListing,
+} from "./SeniorTransferListedIndicator";
 
 type YouthPlayer = {
   YouthPlayerID: number;
@@ -107,6 +110,16 @@ export type YouthPlayerDetails = {
     PlayedMinutes?: number;
     Rating?: number;
   };
+  TransferListed?: boolean;
+  TransferDetails?: {
+    AskingPrice?: number;
+    Deadline?: string;
+    HighestBid?: number;
+    BidderTeam?: {
+      TeamID?: number;
+      TeamName?: string;
+    };
+  };
 };
 
 export type PlayerDetailsPanelTab = "details" | "skillsMatrix" | "ratingsMatrix";
@@ -133,6 +146,7 @@ type PlayerDetailsPanelProps = {
     string,
     { display: string; label: string }
   >;
+  ratingsMatrixTransferListingByName?: Record<string, SeniorTransferListing | null>;
   cardStatusByPlayerId?: Record<number, { display: string; label: string }>;
   matrixNewPlayerIds?: number[];
   matrixNewRatingsByPlayerId?: Record<number, number[]>;
@@ -566,6 +580,7 @@ export default function PlayerDetailsPanel({
   ratingsMatrixHiddenSpecialtyMatchHrefByName,
   ratingsMatrixMotherClubBonusByName,
   ratingsMatrixCardStatusByName = {},
+  ratingsMatrixTransferListingByName = {},
   cardStatusByPlayerId = {},
   matrixNewPlayerIds = [],
   matrixNewRatingsByPlayerId = {},
@@ -944,6 +959,16 @@ export default function PlayerDetailsPanel({
   const knownSpecialty = Number(detailsData?.Specialty ?? selectedPlayer?.Specialty ?? 0);
   const resolvedSpecialty = knownSpecialty > 0 ? knownSpecialty : hiddenSpecialty;
   const isHiddenResolvedSpecialty = knownSpecialty <= 0 && hiddenSpecialty !== null;
+  const seniorTransferListing =
+    playerKind === "senior" && detailsData?.TransferListed
+      ? {
+          askingPrice: detailsData.TransferDetails?.AskingPrice,
+          deadline: detailsData.TransferDetails?.Deadline,
+          highestBid: detailsData.TransferDetails?.HighestBid,
+          bidderTeamId: detailsData.TransferDetails?.BidderTeam?.TeamID,
+          bidderTeamName: detailsData.TransferDetails?.BidderTeam?.TeamName,
+        }
+      : null;
   const hiddenSpecialtyMatchHref =
     playerId !== null && isHiddenResolvedSpecialty
       ? hiddenSpecialtyMatchHrefByPlayerId[playerId]
@@ -1287,6 +1312,14 @@ export default function PlayerDetailsPanel({
                     ❤
                   </span>
                 </Tooltip>
+              ) : null}
+              {playerKind === "senior" && seniorTransferListing ? (
+                <SeniorTransferListedIndicator
+                  listing={seniorTransferListing}
+                  messages={messages}
+                  formatEurFromSek={formatEurFromSek}
+                  compact
+                />
               ) : null}
               {selectedPlayerHasNewMarker ? (
                 <span className={styles.matrixNewPill}>
@@ -1919,9 +1952,14 @@ export default function PlayerDetailsPanel({
                 playerKind === "senior" && typeof row.id === "number"
                   ? cardStatusByPlayerId[row.id] ?? null
                   : null;
+              const rowTransferListing =
+                playerKind === "senior"
+                  ? ratingsMatrixTransferListingByName[row.name] ?? null
+                  : null;
               const hasSeniorIndicatorRow =
                 playerKind === "senior" &&
                 (Boolean(details?.MotherClubBonus) ||
+                  Boolean(rowTransferListing) ||
                   Boolean(rowCardStatus) ||
                   Boolean(rowInjuryStatus && !rowInjuryStatus.isHealthy));
               const isSelected = ratingsMatrixSelectedName === row.name;
@@ -1994,6 +2032,14 @@ export default function PlayerDetailsPanel({
                           </span>
                         </Tooltip>
                       ) : null}
+                      {rowTransferListing ? (
+                        <SeniorTransferListedIndicator
+                          listing={rowTransferListing}
+                          messages={messages}
+                          formatEurFromSek={formatEurFromSek}
+                          compact
+                        />
+                      ) : null}
                       {rowInjuryStatus && !rowInjuryStatus.isHealthy ? (
                         <span
                           className={
@@ -2027,6 +2073,14 @@ export default function PlayerDetailsPanel({
                             ❤
                           </span>
                         </Tooltip>
+                      ) : null}
+                      {rowTransferListing ? (
+                        <SeniorTransferListedIndicator
+                          listing={rowTransferListing}
+                          messages={messages}
+                          formatEurFromSek={formatEurFromSek}
+                          compact
+                        />
                       ) : null}
                       {rowInjuryStatus &&
                       !rowInjuryStatus.isHealthy ? (
@@ -2466,6 +2520,7 @@ export default function PlayerDetailsPanel({
           motherClubBonusByName={ratingsMatrixMotherClubBonusByName}
           injuryStatusByName={ratingsMatrixInjuryStatusByName}
           cardStatusByName={ratingsMatrixCardStatusByName}
+          transferListingByName={ratingsMatrixTransferListingByName}
           newPlayerIds={matrixNewPlayerIds}
           newRatingsByPlayerId={matrixNewRatingsByPlayerId}
           overallSkillLevelByPlayerId={

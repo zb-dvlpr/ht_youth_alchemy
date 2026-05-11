@@ -316,6 +316,8 @@ export const messagesNl: Messages = {
     "Gratis modus. Premiumfuncties blijven vergrendeld totdat een geldige licentie is geactiveerd. Klik om een premiumlicentie te kopen.",
   premiumPillLabel: "Premium",
   premiumPillTooltip: "Premiumlicentie ontgrendeld. Klik om licentiegegevens te bekijken.",
+  changelog_5_1_0:
+    "Seniorspelers op de transferlijst tonen nu consistente indicatoren en gecachte verkoopdetails in alle seniorweergaven.",
   changelog_5_0_0: "Functieafscherming.",
   changelog_4_14_0:
     "De senior beoordelingsmatrix ondersteunt nu handmatige rating-overschrijvingen met veilige herstelactie na verversen.",
@@ -493,6 +495,8 @@ export const messagesNl: Messages = {
   seniorTransferSearchResultsMany: "Veel resultaten",
   seniorTransferSearchHighestBidLabel: "Hoogste bod",
   seniorTransferSearchDeadlineLabel: "Deadline",
+  seniorTransferListedIndicatorLabel: "Op de transferlijst",
+  seniorTransferListedNoBidsYet: "Nog geen biedingen",
   seniorTransferSearchSellerLabel: "Verkoper",
   seniorTransferSearchBidAmountLabel: "Bodbedrag (EUR)",
   seniorTransferSearchMaxBidAmountLabel: "Maxbod (EUR)",

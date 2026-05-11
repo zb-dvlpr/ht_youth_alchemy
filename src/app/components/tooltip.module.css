@@ -16,6 +16,10 @@
   max-width: min(360px, calc(100vw - 16px));
 }
 
+.tooltipInteractive {
+  pointer-events: auto;
+}
+
 .tooltipCard {
   background: #f7f1e3;
   border: 1px solid #d8cbb6;

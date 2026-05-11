@@ -73,6 +73,9 @@ import TransferSearchModal, {
 } from "./TransferSearchModal";
 import SeniorFoxtrickSimulator from "./SeniorFoxtrickSimulator";
 import PlayerStatementQuote from "./PlayerStatementQuote";
+import SeniorTransferListedIndicator, {
+  type SeniorTransferListing,
+} from "./SeniorTransferListedIndicator";
 import { setDragGhost } from "@/lib/drag";
 import {
   POSITION_COLUMNS,
@@ -167,6 +170,16 @@ type SeniorPlayerDetails = {
     Date?: string;
     PositionCode?: number;
     Rating?: number;
+  };
+  TransferListed?: boolean;
+  TransferDetails?: {
+    AskingPrice?: number;
+    Deadline?: string;
+    HighestBid?: number;
+    BidderTeam?: {
+      TeamID?: number;
+      TeamName?: string;
+    };
   };
 };
 
@@ -2076,6 +2089,53 @@ const normalizeSeniorPlayerDetails = (
               parseNumber((node.LastMatch as Record<string, unknown>).Rating) ?? undefined,
           }
         : undefined,
+    TransferListed: parseBoolean(node.TransferListed) ?? undefined,
+    TransferDetails:
+      node.TransferDetails && typeof node.TransferDetails === "object"
+        ? {
+            AskingPrice:
+              parseNumber((node.TransferDetails as Record<string, unknown>).AskingPrice) ??
+              undefined,
+            Deadline:
+              typeof (node.TransferDetails as Record<string, unknown>).Deadline === "string"
+                ? String((node.TransferDetails as Record<string, unknown>).Deadline)
+                : undefined,
+            HighestBid:
+              parseNumber((node.TransferDetails as Record<string, unknown>).HighestBid) ??
+              undefined,
+            BidderTeam:
+              (node.TransferDetails as Record<string, unknown>).BidderTeam &&
+              typeof (node.TransferDetails as Record<string, unknown>).BidderTeam === "object"
+                ? {
+                    TeamID:
+                      parseNumber(
+                        (
+                          (node.TransferDetails as Record<string, unknown>).BidderTeam as Record<
+                            string,
+                            unknown
+                          >
+                        ).TeamID
+                      ) ?? undefined,
+                    TeamName:
+                      typeof (
+                        (node.TransferDetails as Record<string, unknown>).BidderTeam as Record<
+                          string,
+                          unknown
+                        >
+                      ).TeamName === "string"
+                        ? String(
+                            (
+                              (node.TransferDetails as Record<string, unknown>).BidderTeam as Record<
+                                string,
+                                unknown
+                              >
+                            ).TeamName
+                          )
+                        : undefined,
+                  }
+                : undefined,
+          }
+        : undefined,
   };
 };
 
@@ -3747,6 +3807,20 @@ export default function SeniorDashboard({
     return typeof detailsSalary === "number" ? detailsSalary : player.Salary ?? null;
   };
 
+  const seniorTransferListingForDetails = useCallback(
+    (details: SeniorPlayerDetails | null | undefined): SeniorTransferListing | null => {
+      if (!details?.TransferListed) return null;
+      return {
+        askingPrice: details.TransferDetails?.AskingPrice,
+        deadline: details.TransferDetails?.Deadline,
+        highestBid: details.TransferDetails?.HighestBid,
+        bidderTeamId: details.TransferDetails?.BidderTeam?.TeamID,
+        bidderTeamName: details.TransferDetails?.BidderTeam?.TeamName,
+      };
+    },
+    []
+  );
+
   const obtainedTrainingRegimenLabel = (value: number | null) => {
     switch (value) {
       case 0:
@@ -4028,6 +4102,16 @@ export default function SeniorDashboard({
           PositionCode?: number;
           Rating?: number;
         };
+        TransferListed?: boolean;
+        TransferDetails?: {
+          AskingPrice?: number;
+          Deadline?: string;
+          HighestBid?: number;
+          BidderTeam?: {
+            TeamID?: number;
+            TeamName?: string;
+          };
+        };
       }
     >();
     detailsById.forEach((detail, playerId) => {
@@ -4077,6 +4161,8 @@ export default function SeniorDashboard({
         MatchesCurrentTeam: detail.MatchesCurrentTeam,
         PlayerSkills: detail.PlayerSkills ?? fallback?.PlayerSkills,
         LastMatch: detail.LastMatch,
+        TransferListed: detail.TransferListed,
+        TransferDetails: detail.TransferDetails,
       });
     });
     return map;
@@ -4099,6 +4185,8 @@ export default function SeniorDashboard({
       Form: selectedDetails?.Form ?? selectedPlayer.Form,
       StaminaSkill: selectedDetails?.StaminaSkill ?? selectedPlayer.StaminaSkill,
       PlayerSkills: selectedDetails?.PlayerSkills ?? selectedPlayer.PlayerSkills,
+      TransferListed: selectedDetails?.TransferListed,
+      TransferDetails: selectedDetails?.TransferDetails,
     };
   }, [
     selectedDetails?.Form,
@@ -4106,8 +4194,21 @@ export default function SeniorDashboard({
     selectedDetails?.PlayerSkills,
     selectedDetails?.StaminaSkill,
     selectedDetails?.TSI,
+    selectedDetails?.TransferDetails,
+    selectedDetails?.TransferListed,
     selectedPlayer,
   ]);
+
+  const transferListingByName = useMemo(
+    () =>
+      Object.fromEntries(
+        players.map((player) => [
+          formatPlayerName(player),
+          seniorTransferListingForDetails(detailsById.get(player.PlayerID)),
+        ])
+      ) as Record<string, SeniorTransferListing | null>,
+    [detailsById, players, seniorTransferListingForDetails]
+  );
 
   const selectedPanelDetails = useMemo(() => {
     if (!selectedPlayer) return null;
@@ -15492,6 +15593,7 @@ const refreshDetailsForPlayers = async (
       ratingsMatrixSpecialtyByName={specialtyByName}
       ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
       ratingsMatrixCardStatusByName={seniorCardStatusByName}
+      ratingsMatrixTransferListingByName={transferListingByName}
       cardStatusByPlayerId={seniorCardStatusByPlayerId}
       matrixNewPlayerIds={matrixNewMarkers.playerIds}
       matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
@@ -15639,6 +15741,7 @@ const refreshDetailsForPlayers = async (
             const playerDetails = detailsById.get(player.PlayerID);
             const playerName = formatPlayerName(player);
             const hasMotherClubBonus = Boolean(playerDetails?.MotherClubBonus);
+            const transferListing = seniorTransferListingForDetails(playerDetails);
             const isSelected = selectedId === player.PlayerID;
             const specialty = player.Specialty ?? null;
             const isNameSort = sortKey === "name";
@@ -16000,6 +16103,15 @@ const refreshDetailsForPlayers = async (
                             </span>
                           </Tooltip>
                         ) : null}
+                        {transferListing ? (
+                          <SeniorTransferListedIndicator
+                            listing={transferListing}
+                            messages={messages}
+                            formatEurFromSek={formatEurFromSek}
+                            compact
+                            nested
+                          />
+                        ) : null}
                         {specialty && SPECIALTY_EMOJI[specialty] ? (
                           <span className={styles.playerSpecialty}>
                             {SPECIALTY_EMOJI[specialty]}
@@ -16113,6 +16225,7 @@ const refreshDetailsForPlayers = async (
           ratingsMatrixSpecialtyByName={specialtyByName}
           ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
           ratingsMatrixCardStatusByName={seniorCardStatusByName}
+          ratingsMatrixTransferListingByName={transferListingByName}
           cardStatusByPlayerId={seniorCardStatusByPlayerId}
           matrixNewPlayerIds={matrixNewMarkers.playerIds}
           matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
@@ -16183,6 +16296,7 @@ const refreshDetailsForPlayers = async (
           ratingsMatrixSpecialtyByName={specialtyByName}
           ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
           ratingsMatrixCardStatusByName={seniorCardStatusByName}
+          ratingsMatrixTransferListingByName={transferListingByName}
           cardStatusByPlayerId={seniorCardStatusByPlayerId}
           matrixNewPlayerIds={matrixNewMarkers.playerIds}
           matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
@@ -17086,6 +17200,7 @@ const refreshDetailsForPlayers = async (
               ratingsMatrixSpecialtyByName={specialtyByName}
               ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
               ratingsMatrixCardStatusByName={seniorCardStatusByName}
+              ratingsMatrixTransferListingByName={transferListingByName}
               cardStatusByPlayerId={seniorCardStatusByPlayerId}
               matrixNewPlayerIds={matrixNewMarkers.playerIds}
               matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
@@ -17410,6 +17525,7 @@ const refreshDetailsForPlayers = async (
               ratingsMatrixSpecialtyByName={specialtyByName}
               ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
               ratingsMatrixCardStatusByName={seniorCardStatusByName}
+              ratingsMatrixTransferListingByName={transferListingByName}
               cardStatusByPlayerId={seniorCardStatusByPlayerId}
               matrixNewPlayerIds={matrixNewMarkers.playerIds}
               matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}
@@ -18741,6 +18857,7 @@ const refreshDetailsForPlayers = async (
                 const playerDetails = detailsById.get(player.PlayerID);
                 const playerName = formatPlayerName(player);
                 const hasMotherClubBonus = Boolean(playerDetails?.MotherClubBonus);
+                const transferListing = seniorTransferListingForDetails(playerDetails);
                 const isSelected = selectedId === player.PlayerID;
                 const specialty = player.Specialty ?? null;
                 const isNameSort = sortKey === "name";
@@ -19134,6 +19251,15 @@ const refreshDetailsForPlayers = async (
                               </span>
                             </Tooltip>
                           ) : null}
+                          {transferListing ? (
+                            <SeniorTransferListedIndicator
+                              listing={transferListing}
+                              messages={messages}
+                              formatEurFromSek={formatEurFromSek}
+                              compact
+                              nested
+                            />
+                          ) : null}
                           {specialty && SPECIALTY_EMOJI[specialty] ? (
                             <span className={styles.playerSpecialty}>
                               {SPECIALTY_EMOJI[specialty]}
@@ -19221,6 +19347,7 @@ const refreshDetailsForPlayers = async (
             ratingsMatrixSpecialtyByName={specialtyByName}
             ratingsMatrixMotherClubBonusByName={motherClubBonusByName}
             ratingsMatrixCardStatusByName={seniorCardStatusByName}
+            ratingsMatrixTransferListingByName={transferListingByName}
             cardStatusByPlayerId={seniorCardStatusByPlayerId}
             matrixNewPlayerIds={matrixNewMarkers.playerIds}
             matrixNewRatingsByPlayerId={matrixNewMarkers.ratingsByPlayerId}

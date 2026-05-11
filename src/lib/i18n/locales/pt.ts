@@ -136,6 +136,8 @@ export const messagesPt: Messages = {
       "Modo gratuito. Os recursos premium permanecem bloqueados até que uma licença válida seja ativada. Clica para comprar uma licença premium.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Licença premium desbloqueada. Clica para ver os detalhes da licença.",
+    changelog_5_1_0:
+      "Os jogadores seniores listados para transferencia agora mostram indicadores consistentes e detalhes de venda em cache em todas as vistas seniores.",
     changelog_5_0_0: "Bloqueio de funcionalidades.",
     changelog_4_14_0:
       "A matriz de avaliações sénior agora suporta substituições manuais com restauro seguro após atualização.",
@@ -1430,6 +1432,8 @@ export const messagesPt: Messages = {
     seniorTransferSearchResultsMany: "Muitos resultados",
     seniorTransferSearchHighestBidLabel: "Lance mais alto",
     seniorTransferSearchDeadlineLabel: "Prazo",
+    seniorTransferListedIndicatorLabel: "Listado para transferencia",
+    seniorTransferListedNoBidsYet: "Ainda sem lances",
     seniorTransferSearchSellerLabel: "Vendedor",
     seniorTransferSearchBidAmountLabel: "Valor do lance (EUR)",
     seniorTransferSearchMaxBidAmountLabel: "Lance maximo (EUR)",

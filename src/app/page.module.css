@@ -6725,11 +6725,12 @@ html[data-theme="dark"] .spinner {
 }
 
 .playerNameRowTruncate {
+  flex: 1 1 auto;
   max-width: calc(100% - 88px);
-  overflow: hidden;
 }
 
 .playerNameRowTruncate .playerName {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -7523,6 +7524,71 @@ html[data-theme="dark"] .spinner {
   align-items: center;
   justify-content: center;
   transform: translateY(1px);
+}
+
+.transferListedIndicatorButton {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  line-height: 1;
+}
+
+.transferListedIndicatorButtonCompact {
+  transform: translateY(1px);
+}
+
+.transferListedIndicatorButton:focus-visible {
+  outline: 2px solid rgba(93, 80, 66, 0.35);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.transferListedIndicatorEmoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+  filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.45));
+}
+
+.transferListedIndicatorEmojiCompact {
+  font-size: 14px;
+}
+
+.transferListedTooltipContent {
+  display: grid;
+  gap: 7px;
+  min-width: min(280px, 72vw);
+}
+
+.transferListedTooltipRow {
+  display: grid;
+  gap: 2px;
+}
+
+.transferListedTooltipLabel {
+  font-size: 11px;
+  line-height: 1.2;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #7a6a4c;
+}
+
+.transferListedTooltipValue {
+  font-size: 14px;
+  line-height: 1.35;
+  color: #3b3527;
+  word-break: break-word;
 }
 
 .detailsRefresh {

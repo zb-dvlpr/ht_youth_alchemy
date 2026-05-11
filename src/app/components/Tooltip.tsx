@@ -22,6 +22,8 @@ type TooltipProps = {
   variant?: "default" | "stacked";
   withCard?: boolean;
   followCursor?: boolean;
+  openOnClick?: boolean;
+  interactive?: boolean;
 };
 
 type Position = { top: number; left: number };
@@ -39,12 +41,26 @@ export default function Tooltip({
   variant = "default",
   withCard = true,
   followCursor = false,
+  openOnClick = false,
+  interactive = false,
 }: TooltipProps) {
   const triggerRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<CursorPoint | null>(null);
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<Position | null>(null);
+  const closeTooltip = useCallback(() => {
+    setOpen(false);
+    cursorRef.current = null;
+  }, []);
+
+  const isInsideTooltip = useCallback((target: EventTarget | null) => {
+    return Boolean(target instanceof Node && tooltipRef.current?.contains(target));
+  }, []);
+
+  const isInsideTrigger = useCallback((target: EventTarget | null) => {
+    return Boolean(target instanceof Node && triggerRef.current?.contains(target));
+  }, []);
 
   const updatePosition = useCallback((cursorPoint: CursorPoint | null = null) => {
     if (!triggerRef.current || !tooltipRef.current) return;
@@ -100,7 +116,6 @@ export default function Tooltip({
   }, [open, updatePosition]);
 
   useEffect(() => {
-    const closeTooltip = () => setOpen(false);
     const handleVisibilityChange = () => {
       if (document.visibilityState !== "visible") {
         closeTooltip();
@@ -112,7 +127,24 @@ export default function Tooltip({
       window.removeEventListener("blur", closeTooltip);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, []);
+  }, [closeTooltip]);
+
+  useEffect(() => {
+    if (!openOnClick || !open) return;
+    const handlePointerDown = (event: MouseEvent | TouchEvent) => {
+      const target = event.target;
+      if (isInsideTrigger(target) || isInsideTooltip(target)) {
+        return;
+      }
+      closeTooltip();
+    };
+    document.addEventListener("mousedown", handlePointerDown);
+    document.addEventListener("touchstart", handlePointerDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+      document.removeEventListener("touchstart", handlePointerDown);
+    };
+  }, [closeTooltip, isInsideTooltip, isInsideTrigger, open, openOnClick]);
 
   const handleFocus = (event: FocusEvent<HTMLSpanElement>) => {
     const target = event.target as HTMLElement | null;
@@ -135,9 +167,38 @@ export default function Tooltip({
     updatePosition(point);
   };
 
-  const handleMouseLeave = () => {
-    setOpen(false);
-    cursorRef.current = null;
+  const handleMouseLeave = (event: ReactMouseEvent<HTMLSpanElement>) => {
+    if (interactive && isInsideTooltip(event.relatedTarget)) {
+      return;
+    }
+    closeTooltip();
+  };
+
+  const handleClick = (event: ReactMouseEvent<HTMLSpanElement>) => {
+    if (!openOnClick) return;
+    event.stopPropagation();
+    setOpen((prev) => !prev);
+  };
+
+  const handleTriggerBlur = (event: FocusEvent<HTMLSpanElement>) => {
+    if (interactive && isInsideTooltip(event.relatedTarget)) {
+      return;
+    }
+    closeTooltip();
+  };
+
+  const handleTooltipMouseLeave = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (isInsideTrigger(event.relatedTarget)) {
+      return;
+    }
+    closeTooltip();
+  };
+
+  const handleTooltipBlur = (event: FocusEvent<HTMLDivElement>) => {
+    if (isInsideTrigger(event.relatedTarget)) {
+      return;
+    }
+    closeTooltip();
   };
 
   if (!content || disabled) {
@@ -167,14 +228,17 @@ export default function Tooltip({
       onMouseEnter={handleMouseEnter}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
+      onClick={handleClick}
       onFocus={handleFocus}
-      onBlur={() => setOpen(false)}
+      onBlur={handleTriggerBlur}
     >
       {children}
       {open
         ? createPortal(
             <div
-              className={styles.tooltip}
+              className={`${styles.tooltip} ${
+                interactive ? styles.tooltipInteractive : ""
+              }`}
               ref={tooltipRef}
               style={
                 position
@@ -182,6 +246,10 @@ export default function Tooltip({
                   : undefined
               }
               role="tooltip"
+              onMouseEnter={() => setOpen(true)}
+              onMouseLeave={handleTooltipMouseLeave}
+              onFocus={() => setOpen(true)}
+              onBlur={handleTooltipBlur}
             >
               {resolvedContent}
             </div>,

@@ -121,6 +121,7 @@ export type Messages = {
   freePillTooltip: string;
   premiumPillLabel: string;
   premiumPillTooltip: string;
+  changelog_5_1_0: string;
   changelog_5_0_0: string;
   changelog_4_14_0: string;
   changelog_4_13_0: string;
@@ -1135,6 +1136,8 @@ export type Messages = {
   seniorTransferSearchResultsMany: string;
   seniorTransferSearchHighestBidLabel: string;
   seniorTransferSearchDeadlineLabel: string;
+  seniorTransferListedIndicatorLabel: string;
+  seniorTransferListedNoBidsYet: string;
   seniorTransferSearchSellerLabel: string;
   seniorTransferSearchBidAmountLabel: string;
   seniorTransferSearchMaxBidAmountLabel: string;

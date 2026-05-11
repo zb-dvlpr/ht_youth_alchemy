@@ -135,6 +135,8 @@ export const messagesEs: Messages = {
       "Modo gratuito. Las funciones premium permanecen bloqueadas hasta que se active una licencia válida. Haz clic para comprar una licencia premium.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Licencia premium desbloqueada. Haz clic para ver los detalles de la licencia.",
+    changelog_5_1_0:
+      "Los jugadores senior en venta ahora muestran indicadores coherentes y detalles de venta en caché en todas las vistas senior.",
     changelog_5_0_0: "Bloqueo de funciones.",
     changelog_4_14_0:
       "La matriz de calificaciones senior ahora permite sobrescrituras manuales con restauración segura tras refrescar.",
@@ -1430,6 +1432,8 @@ export const messagesEs: Messages = {
     seniorTransferSearchResultsMany: "Muchos resultados",
     seniorTransferSearchHighestBidLabel: "Puja mas alta",
     seniorTransferSearchDeadlineLabel: "Cierre",
+    seniorTransferListedIndicatorLabel: "En venta",
+    seniorTransferListedNoBidsYet: "Aun sin pujas",
     seniorTransferSearchSellerLabel: "Vendedor",
     seniorTransferSearchBidAmountLabel: "Importe de puja (EUR)",
     seniorTransferSearchMaxBidAmountLabel: "Puja maxima (EUR)",

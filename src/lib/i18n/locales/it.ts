@@ -136,6 +136,8 @@ export const messagesIt: Messages = {
       "Modalità gratuita. Le funzioni premium restano bloccate finché non viene attivata una licenza valida. Clicca per acquistare una licenza premium.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Licenza premium sbloccata. Clicca per vedere i dettagli della licenza.",
+    changelog_5_1_0:
+      "I giocatori senior messi in vendita mostrano ora indicatori coerenti e dettagli di vendita memorizzati in cache in tutte le viste senior.",
     changelog_5_0_0: "Blocco delle funzionalità.",
     changelog_4_14_0:
       "La matrice voti senior ora supporta override manuali dei voti con ripristino sicuro dopo il refresh.",
@@ -1433,6 +1435,8 @@ export const messagesIt: Messages = {
     seniorTransferSearchResultsMany: "Molti risultati",
     seniorTransferSearchHighestBidLabel: "Offerta piu alta",
     seniorTransferSearchDeadlineLabel: "Scadenza",
+    seniorTransferListedIndicatorLabel: "In lista trasferimenti",
+    seniorTransferListedNoBidsYet: "Nessuna offerta ancora",
     seniorTransferSearchSellerLabel: "Venditore",
     seniorTransferSearchBidAmountLabel: "Offerta (EUR)",
     seniorTransferSearchMaxBidAmountLabel: "Offerta max (EUR)",

@@ -8,6 +8,11 @@ import { SPECIALTY_EMOJI } from "@/lib/specialty";
 import { hattrickMatchUrlWithSourceSystem } from "@/lib/hattrick/urls";
 import { formatDateTime } from "@/lib/datetime";
 import Tooltip from "./Tooltip";
+import SeniorTransferListedIndicator, {
+  type SeniorTransferListing,
+} from "./SeniorTransferListedIndicator";
+
+const CHPP_SEK_PER_EUR = 10;
 
 type RatingRow = {
   id: number;
@@ -38,6 +43,7 @@ type RatingsMatrixProps = {
   motherClubBonusByName?: Record<string, boolean>;
   injuryStatusByName?: Record<string, { display: string; label: string; isHealthy: boolean }>;
   cardStatusByName?: Record<string, { display: string; label: string }>;
+  transferListingByName?: Record<string, SeniorTransferListing | null>;
   newPlayerIds?: number[];
   newRatingsByPlayerId?: Record<number, number[]>;
   selectedName?: string | null;
@@ -86,6 +92,13 @@ function ratingStyle(value: number | null) {
   } as React.CSSProperties;
 }
 
+const formatEurFromSek = (valueSek: number) =>
+  new Intl.NumberFormat("de-DE", {
+    style: "currency",
+    currency: "EUR",
+    maximumFractionDigits: 0,
+  }).format(valueSek / CHPP_SEK_PER_EUR);
+
 const specialtyName = (value: number | undefined, messages: Messages) => {
   switch (value) {
     case 0:
@@ -120,6 +133,7 @@ export default function RatingsMatrix({
   motherClubBonusByName,
   injuryStatusByName,
   cardStatusByName,
+  transferListingByName = {},
   newPlayerIds = [],
   newRatingsByPlayerId = {},
   selectedName,
@@ -502,6 +516,14 @@ export default function RatingsMatrix({
                       >
                         {cardStatusByName[row.name].display}
                       </span>
+                    ) : null}
+                    {transferListingByName[row.name] ? (
+                      <SeniorTransferListedIndicator
+                        listing={transferListingByName[row.name] ?? null}
+                        messages={messages}
+                        formatEurFromSek={formatEurFromSek}
+                        compact
+                      />
                     ) : null}
                     {isNewPlayer ? (
                       <span className={styles.matrixNewPill}>

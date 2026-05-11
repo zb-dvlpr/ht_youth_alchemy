@@ -30,6 +30,7 @@ type Position = { top: number; left: number };
 type CursorPoint = { x: number; y: number };
 
 const VIEWPORT_PADDING = 8;
+const INTERACTIVE_CLOSE_DELAY_MS = 180;
 
 export default function Tooltip({
   content,
@@ -47,12 +48,20 @@ export default function Tooltip({
   const triggerRef = useRef<HTMLSpanElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<CursorPoint | null>(null);
+  const closeTimeoutRef = useRef<number | null>(null);
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<Position | null>(null);
+  const clearPendingClose = useCallback(() => {
+    if (closeTimeoutRef.current !== null) {
+      window.clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+  }, []);
   const closeTooltip = useCallback(() => {
+    clearPendingClose();
     setOpen(false);
     cursorRef.current = null;
-  }, []);
+  }, [clearPendingClose]);
 
   const isInsideTooltip = useCallback((target: EventTarget | null) => {
     return Boolean(target instanceof Node && tooltipRef.current?.contains(target));
@@ -146,7 +155,12 @@ export default function Tooltip({
     };
   }, [closeTooltip, isInsideTooltip, isInsideTrigger, open, openOnClick]);
 
+  useEffect(() => {
+    return () => clearPendingClose();
+  }, [clearPendingClose]);
+
   const handleFocus = (event: FocusEvent<HTMLSpanElement>) => {
+    clearPendingClose();
     const target = event.target as HTMLElement | null;
     if (target?.matches(":focus-visible")) {
       setOpen(true);
@@ -154,6 +168,7 @@ export default function Tooltip({
   };
 
   const handleMouseEnter = (event: ReactMouseEvent<HTMLSpanElement>) => {
+    clearPendingClose();
     if (followCursor) {
       cursorRef.current = { x: event.clientX, y: event.clientY };
     }
@@ -171,12 +186,21 @@ export default function Tooltip({
     if (interactive && isInsideTooltip(event.relatedTarget)) {
       return;
     }
+    if (interactive) {
+      clearPendingClose();
+      closeTimeoutRef.current = window.setTimeout(() => {
+        closeTimeoutRef.current = null;
+        closeTooltip();
+      }, INTERACTIVE_CLOSE_DELAY_MS);
+      return;
+    }
     closeTooltip();
   };
 
   const handleClick = (event: ReactMouseEvent<HTMLSpanElement>) => {
     if (!openOnClick) return;
     event.stopPropagation();
+    clearPendingClose();
     setOpen((prev) => !prev);
   };
 
@@ -189,6 +213,14 @@ export default function Tooltip({
 
   const handleTooltipMouseLeave = (event: ReactMouseEvent<HTMLDivElement>) => {
     if (isInsideTrigger(event.relatedTarget)) {
+      return;
+    }
+    if (interactive) {
+      clearPendingClose();
+      closeTimeoutRef.current = window.setTimeout(() => {
+        closeTimeoutRef.current = null;
+        closeTooltip();
+      }, INTERACTIVE_CLOSE_DELAY_MS);
       return;
     }
     closeTooltip();
@@ -246,9 +278,15 @@ export default function Tooltip({
                   : undefined
               }
               role="tooltip"
-              onMouseEnter={() => setOpen(true)}
+              onMouseEnter={() => {
+                clearPendingClose();
+                setOpen(true);
+              }}
               onMouseLeave={handleTooltipMouseLeave}
-              onFocus={() => setOpen(true)}
+              onFocus={() => {
+                clearPendingClose();
+                setOpen(true);
+              }}
               onBlur={handleTooltipBlur}
             >
               {resolvedContent}

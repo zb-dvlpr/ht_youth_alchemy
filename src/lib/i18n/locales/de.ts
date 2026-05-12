@@ -136,6 +136,8 @@ export const messagesDe: Messages = {
       "Freier Modus. Premium-Funktionen bleiben gesperrt, bis eine gültige Lizenz aktiviert wird. Klicke hier, um eine Premium-Lizenz zu kaufen.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Premium-Lizenz freigeschaltet. Klicke hier für Lizenzdetails.",
+    changelog_5_2_0:
+      "Transfervergleichskriterien lassen sich jetzt sowohl bei Jugend-Schaetzwert als auch bei Senior-Aehnlichkeitssuchen mit - deaktivieren.",
     changelog_5_1_0:
       "Transfergelistete Senior-Spieler zeigen jetzt durchgehend Indikatoren und zwischengespeicherte Verkaufsdetails in allen Senior-Ansichten.",
     changelog_5_0_0: "Funktionssperren.",

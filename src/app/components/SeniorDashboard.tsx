@@ -414,7 +414,7 @@ const HATTRICK_AGE_DAYS_PER_YEAR = 112;
 const TRANSFER_SEARCH_MIN_AGE_YEARS = 17;
 const TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS =
   TRANSFER_SEARCH_MIN_AGE_YEARS * HATTRICK_AGE_DAYS_PER_YEAR;
-const TRANSFER_SEARCH_PAGE_SIZE = 25;
+const TRANSFER_SEARCH_PAGE_SIZE = 100;
 const renderTemplateTokens = (
   template: string,
   replacements: Record<string, ReactNode>
@@ -469,7 +469,7 @@ const TRANSFER_SEARCH_AUTO_SKILL_KEYS = new Set<TransferSearchSkillKey>([
 type TransferSearchSkillKey = (typeof TRANSFER_SEARCH_SKILLS)[number]["key"];
 
 type TransferSearchSkillFilter = {
-  skillKey: TransferSearchSkillKey;
+  skillKey: TransferSearchSkillKey | null;
   min: number;
   max: number;
 };
@@ -1477,7 +1477,9 @@ const buildFallbackTransferSearchFilters = (
     ...exact,
     skillFilters: exact.skillFilters.map((filter) => ({
       ...filter,
-      min: clampTransferSkillValue(filter.skillKey, Math.max(0, filter.min - 1)),
+      min: filter.skillKey
+        ? clampTransferSkillValue(filter.skillKey, Math.max(0, filter.min - 1))
+        : filter.min,
     })),
     specialty: null,
     ageMinYears: String(ageMin.years),
@@ -1521,6 +1523,12 @@ const normalizeTransferSearchFilters = (filters: TransferSearchFilters): Transfe
   return {
     ...filters,
     skillFilters: filters.skillFilters.map((filter) => {
+      if (!filter.skillKey) {
+        return {
+          ...filter,
+          skillKey: null,
+        };
+      }
       const clampedMin = clampTransferSkillValue(filter.skillKey, filter.min);
       const clampedMax = clampTransferSkillValue(filter.skillKey, filter.max);
       const normalizedMin = Math.min(clampedMin, clampedMax);
@@ -1553,7 +1561,9 @@ const buildTransferSearchParams = (filters: TransferSearchFilters) => {
     pageIndex: "0",
   });
 
-  normalized.skillFilters.forEach((filter, index) => {
+  normalized.skillFilters
+    .filter((filter): filter is TransferSearchSkillFilter & { skillKey: TransferSearchSkillKey } => Boolean(filter.skillKey))
+    .forEach((filter, index) => {
     const slot = index + 1;
     const definition = TRANSFER_SEARCH_SKILLS.find((entry) => entry.key === filter.skillKey);
     if (!definition) return;
@@ -10404,13 +10414,13 @@ function buildSeniorAiManMarkingReadySignature(params: {
         if (!isCurrentSearch()) return;
         setTransferSearchFilters(normalizedFallback);
         setTransferSearchResults(fallback.results);
-        setTransferSearchItemCount(fallback.itemCount);
+        setTransferSearchItemCount(fallback.results.length);
         setTransferSearchUsedFallback(true);
         setTransferSearchExactEmpty(true);
         await hydrateTransferSearchDetails(fallback.results);
       } else {
         setTransferSearchResults(exact.results);
-        setTransferSearchItemCount(exact.itemCount);
+        setTransferSearchItemCount(exact.results.length);
         await hydrateTransferSearchDetails(exact.results);
       }
     } catch (error) {
@@ -10458,9 +10468,16 @@ function buildSeniorAiManMarkingReadySignature(params: {
   ) => {
     setTransferSearchFilters((prev) => {
       if (!prev) return prev;
-      const nextSkillFilters = prev.skillFilters.map((filter, filterIndex) =>
-        filterIndex === index ? { ...filter, ...patch } : filter
-      );
+      const nextSkillFilters = [...prev.skillFilters];
+      while (nextSkillFilters.length <= index) {
+        nextSkillFilters.push({ skillKey: null, min: 0, max: 0 });
+      }
+      const currentFilter = nextSkillFilters[index] ?? {
+        skillKey: null,
+        min: 0,
+        max: 0,
+      };
+      nextSkillFilters[index] = { ...currentFilter, ...patch };
       return normalizeTransferSearchFilters({
         ...prev,
         skillFilters: nextSkillFilters,
@@ -14827,11 +14844,9 @@ const refreshDetailsForPlayers = async (
   const transferSearchResultCountLabel =
     transferSearchItemCount === null
       ? null
-      : transferSearchItemCount === -1
-      ? messages.seniorTransferSearchResultsMany
       : messages.seniorTransferSearchResultsCount.replace(
           "{{count}}",
-          String(transferSearchItemCount)
+          String(transferSearchResults.length)
         );
   const transferSearchSelectedPlayerName = transferSearchSourcePlayer
     ? formatPlayerName(transferSearchSourcePlayer)
@@ -14961,15 +14976,17 @@ const refreshDetailsForPlayers = async (
         priceKind:
           typeof result.highestBidSek === "number" && result.highestBidSek > 0
             ? "HB"
-            : typeof result.askingPriceSek === "number" && result.askingPriceSek > 0
+            : typeof result.askingPriceSek === "number" && result.askingPriceSek >= 0
               ? "AP"
               : null,
         priceDisplay:
-          typeof priceSek === "number" && priceSek > 0
+          typeof priceSek === "number" && priceSek >= 0
             ? formatEurFromSek(priceSek)
             : messages.unknownShort,
         priceValueEur:
-          typeof priceSek === "number" && priceSek > 0 ? priceSek / CHPP_SEK_PER_EUR : null,
+          typeof priceSek === "number" && priceSek >= 0
+            ? priceSek / CHPP_SEK_PER_EUR
+            : null,
         tsi: metricInput.tsi ?? null,
         leadership: result.leadership,
         experience: result.experience,

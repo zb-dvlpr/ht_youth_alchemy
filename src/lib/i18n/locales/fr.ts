@@ -136,6 +136,8 @@ export const messagesFr: Messages = {
       "Mode gratuit. Les fonctionnalités premium restent verrouillées jusqu’à l’activation d’une licence valide. Cliquez ici pour acheter une licence premium.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Licence premium débloquée. Cliquez ici pour voir les détails de la licence.",
+    changelog_5_2_0:
+      "Les criteres de comparaison de transferts peuvent maintenant etre desactives avec - dans l estimation de valeur des jeunes et la recherche de joueurs similaires seniors.",
     changelog_5_1_0:
       "Les seniors listes sur le marche des transferts affichent maintenant des indicateurs coherents et des details de vente en cache dans toutes les vues seniors.",
     changelog_5_0_0: "Verrouillage des fonctionnalités.",

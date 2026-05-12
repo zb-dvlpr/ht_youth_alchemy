@@ -29,7 +29,7 @@ export const HATTRICK_AGE_DAYS_PER_YEAR = 112;
 export const TRANSFER_SEARCH_MIN_AGE_YEARS = 17;
 export const TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS =
   TRANSFER_SEARCH_MIN_AGE_YEARS * HATTRICK_AGE_DAYS_PER_YEAR;
-export const TRANSFER_SEARCH_PAGE_SIZE = 25;
+export const TRANSFER_SEARCH_PAGE_SIZE = 100;
 export const CHPP_SEK_PER_EUR = 10;
 
 export const TRANSFER_SEARCH_SKILLS = [
@@ -48,7 +48,7 @@ export const TRANSFER_SEARCH_SKILLS = [
 export type TransferSearchSkillKey = (typeof TRANSFER_SEARCH_SKILLS)[number]["key"];
 
 export type TransferSearchSkillFilter = {
-  skillKey: TransferSearchSkillKey;
+  skillKey: TransferSearchSkillKey | null;
   min: number;
   max: number;
 };
@@ -161,7 +161,7 @@ export type TransferSearchTableRowData = {
 type TransferSearchSkillRowProps = {
   filter: TransferSearchSkillFilter;
   index: number;
-  selectedOtherSkillKeys: string;
+  selectedOtherSkillKeys: TransferSearchSkillKey[];
   disabled: boolean;
   messages: Messages;
   onUpdateFilter: (
@@ -183,7 +183,6 @@ type TransferSearchModalProps = {
     index: number,
     patch: Partial<TransferSearchSkillFilter>
   ) => void;
-  onAddSkillFilter?: (skillKey: TransferSearchSkillKey) => void;
   onUpdateFilterField: <K extends Exclude<keyof TransferSearchFilters, "skillFilters">>(
     key: K,
     value: TransferSearchFilters[K]
@@ -571,6 +570,11 @@ export const clampTransferSkillValue = (
   return Math.min(definition.max, Math.max(definition.min, Math.round(value)));
 };
 
+const isActiveTransferSearchSkillFilter = (
+  filter: TransferSearchSkillFilter
+): filter is TransferSearchSkillFilter & { skillKey: TransferSearchSkillKey } =>
+  Boolean(filter.skillKey);
+
 export const normalizeTransferSearchFilters = (
   filters: TransferSearchFilters
 ): TransferSearchFilters => {
@@ -607,6 +611,12 @@ export const normalizeTransferSearchFilters = (
   return {
     ...filters,
     skillFilters: filters.skillFilters.map((filter) => {
+      if (!isActiveTransferSearchSkillFilter(filter)) {
+        return {
+          ...filter,
+          skillKey: null,
+        };
+      }
       const clampedMin = clampTransferSkillValue(filter.skillKey, filter.min);
       const clampedMax = clampTransferSkillValue(filter.skillKey, filter.max);
       const normalizedMin = Math.min(clampedMin, clampedMax);
@@ -639,7 +649,9 @@ export const buildTransferSearchParams = (filters: TransferSearchFilters) => {
     pageIndex: "0",
   });
 
-  normalized.skillFilters.forEach((filter, index) => {
+  normalized.skillFilters
+    .filter(isActiveTransferSearchSkillFilter)
+    .forEach((filter, index) => {
     const slot = index + 1;
     const definition = TRANSFER_SEARCH_SKILLS.find(
       (entry) => entry.key === filter.skillKey
@@ -783,7 +795,7 @@ const resolveTransferSearchMarketPriceEur = (result: TransferSearchResult) => {
   const priceSek =
     typeof result.highestBidSek === "number" && result.highestBidSek > 0
       ? result.highestBidSek
-      : typeof result.askingPriceSek === "number" && result.askingPriceSek > 0
+      : typeof result.askingPriceSek === "number" && result.askingPriceSek >= 0
         ? result.askingPriceSek
         : null;
   return priceSek === null ? null : priceSek / CHPP_SEK_PER_EUR;
@@ -879,15 +891,18 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
   const [draftMin, setDraftMin] = useState(String(filter.min));
   const [draftMax, setDraftMax] = useState(String(filter.max));
 
+  const filterIsInactive = filter.skillKey === null;
   const availableOptions = TRANSFER_SEARCH_SKILLS.filter(
     (entry) =>
       entry.key === filter.skillKey || !selectedOtherSkillKeys.includes(entry.key)
   );
   const skillDefinition =
-    TRANSFER_SEARCH_SKILLS.find((entry) => entry.key === filter.skillKey) ??
-    TRANSFER_SEARCH_SKILLS[0];
+    (filter.skillKey
+      ? TRANSFER_SEARCH_SKILLS.find((entry) => entry.key === filter.skillKey)
+      : null) ?? TRANSFER_SEARCH_SKILLS[0];
   const commitRange = useCallback(
     (edge: "min" | "max", nextValue: number) => {
+      if (!filter.skillKey) return;
       const next = resolveTransferSearchSkillRange(
         filter.skillKey,
         filter.min,
@@ -935,28 +950,32 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             type="button"
             className={styles.transferSearchSkillStepperButton}
             onClick={() => commitRange("min", filter.min - 1)}
-            disabled={disabled || filter.min <= skillDefinition.min}
+            disabled={disabled || filterIsInactive || filter.min <= skillDefinition.min}
             aria-label={`${messages.seniorTransferSearchMinLabel} -`}
           >
             -
           </button>
           <input
             className={styles.transferSearchSkillNumberInput}
-            type="number"
+            type={filterIsInactive ? "text" : "number"}
             min={skillDefinition.min}
             max={skillDefinition.max}
             step={1}
-            value={draftMin}
+            value={filterIsInactive ? "-" : draftMin}
             onChange={handleMinInputChange}
             onBlur={() => setDraftMin(String(filter.min))}
-            disabled={disabled}
+            disabled={disabled || filterIsInactive}
             aria-label={messages.seniorTransferSearchMinLabel}
           />
           <button
             type="button"
             className={styles.transferSearchSkillStepperButton}
             onClick={() => commitRange("min", filter.min + 1)}
-            disabled={disabled || filter.min >= Math.min(skillDefinition.max, filter.max)}
+            disabled={
+              disabled ||
+              filterIsInactive ||
+              filter.min >= Math.min(skillDefinition.max, filter.max)
+            }
             aria-label={`${messages.seniorTransferSearchMinLabel} +`}
           >
             +
@@ -965,9 +984,17 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
       </div>
       <select
         className={styles.transferSearchSelect}
-        value={filter.skillKey}
+        value={filter.skillKey ?? ""}
         onChange={(event) => {
-          const nextSkillKey = event.target.value as TransferSearchSkillKey;
+          const nextSkillKey = event.target.value
+            ? (event.target.value as TransferSearchSkillKey)
+            : null;
+          if (!nextSkillKey) {
+            startTransition(() => {
+              onUpdateFilter(index, { skillKey: null });
+            });
+            return;
+          }
           const next = {
             skillKey: nextSkillKey,
             ...resolveTransferSearchSkillRange(
@@ -986,6 +1013,7 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
         }}
         disabled={disabled}
       >
+        <option value="">-</option>
         {availableOptions.map((entry) => (
           <option key={entry.key} value={entry.key}>
             {messages[entry.labelKey as keyof Messages]}
@@ -1001,100 +1029,33 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             type="button"
             className={styles.transferSearchSkillStepperButton}
             onClick={() => commitRange("max", filter.max - 1)}
-            disabled={disabled || filter.max <= filter.min}
+            disabled={disabled || filterIsInactive || filter.max <= filter.min}
             aria-label={`${messages.seniorTransferSearchMaxLabel} -`}
           >
             -
           </button>
           <input
             className={styles.transferSearchSkillNumberInput}
-            type="number"
+            type={filterIsInactive ? "text" : "number"}
             min={skillDefinition.min}
             max={skillDefinition.max}
             step={1}
-            value={draftMax}
+            value={filterIsInactive ? "-" : draftMax}
             onChange={handleMaxInputChange}
             onBlur={() => setDraftMax(String(filter.max))}
-            disabled={disabled}
+            disabled={disabled || filterIsInactive}
             aria-label={messages.seniorTransferSearchMaxLabel}
           />
           <button
             type="button"
             className={styles.transferSearchSkillStepperButton}
             onClick={() => commitRange("max", filter.max + 1)}
-            disabled={disabled || filter.max >= skillDefinition.max}
+            disabled={disabled || filterIsInactive || filter.max >= skillDefinition.max}
             aria-label={`${messages.seniorTransferSearchMaxLabel} +`}
           >
             +
           </button>
         </div>
-      </div>
-    </div>
-  );
-});
-
-type TransferSearchEmptySkillRowProps = {
-  selectedSkillKeys: string;
-  disabled: boolean;
-  messages: Messages;
-  onAddSkillFilter: (skillKey: TransferSearchSkillKey) => void;
-};
-
-const TransferSearchEmptySkillRow = memo(function TransferSearchEmptySkillRow({
-  selectedSkillKeys,
-  disabled,
-  messages,
-  onAddSkillFilter,
-}: TransferSearchEmptySkillRowProps) {
-  const availableOptions = TRANSFER_SEARCH_SKILLS.filter(
-    (entry) => !selectedSkillKeys.includes(entry.key)
-  );
-
-  return (
-    <div className={styles.transferSearchSkillRow}>
-      <div className={styles.transferSearchValueGroup}>
-        <span className={styles.transferSearchValueLabel}>
-          {messages.seniorTransferSearchMinLabel}
-        </span>
-        <input
-          className={styles.transferSearchSkillNumberInput}
-          type="text"
-          value="-"
-          disabled
-          aria-label={messages.seniorTransferSearchMinLabel}
-          readOnly
-        />
-      </div>
-      <select
-        className={styles.transferSearchSelect}
-        value=""
-        onChange={(event) => {
-          const nextSkillKey = event.target.value as TransferSearchSkillKey;
-          if (nextSkillKey) {
-            onAddSkillFilter(nextSkillKey);
-          }
-        }}
-        disabled={disabled}
-      >
-        <option value="">-</option>
-        {availableOptions.map((entry) => (
-          <option key={entry.key} value={entry.key}>
-            {messages[entry.labelKey as keyof Messages]}
-          </option>
-        ))}
-      </select>
-      <div className={styles.transferSearchValueGroup}>
-        <span className={styles.transferSearchValueLabel}>
-          {messages.seniorTransferSearchMaxLabel}
-        </span>
-        <input
-          className={styles.transferSearchSkillNumberInput}
-          type="text"
-          value="-"
-          disabled
-          aria-label={messages.seniorTransferSearchMaxLabel}
-          readOnly
-        />
       </div>
     </div>
   );
@@ -1110,7 +1071,6 @@ const TransferSearchModal = memo(function TransferSearchModal({
   skillSlotCount,
   loading,
   onUpdateSkillFilter,
-  onAddSkillFilter,
   onUpdateFilterField,
   onSearch,
   resultCountLabel,
@@ -1375,11 +1335,11 @@ const TransferSearchModal = memo(function TransferSearchModal({
               priceKind:
                 typeof result.highestBidSek === "number" && result.highestBidSek > 0
                   ? "HB"
-                  : typeof result.askingPriceSek === "number" && result.askingPriceSek > 0
+                  : typeof result.askingPriceSek === "number" && result.askingPriceSek >= 0
                     ? "AP"
                     : null,
               priceDisplay:
-                typeof fallbackPriceSek === "number" && fallbackPriceSek > 0
+                typeof fallbackPriceSek === "number" && fallbackPriceSek >= 0
                   ? new Intl.NumberFormat(undefined, {
                       style: "currency",
                       currency: "EUR",
@@ -1387,7 +1347,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     }).format(fallbackPriceSek / CHPP_SEK_PER_EUR)
                   : "—",
               priceValueEur:
-                typeof fallbackPriceSek === "number" && fallbackPriceSek > 0
+                typeof fallbackPriceSek === "number" && fallbackPriceSek >= 0
                   ? fallbackPriceSek / CHPP_SEK_PER_EUR
                   : null,
               tsi: fallbackMetricInput.tsi ?? null,
@@ -1493,7 +1453,10 @@ const TransferSearchModal = memo(function TransferSearchModal({
         ) : null}
       </div>
       {loading ? (
-        <p className={styles.muted}>{messages.seniorTransferSearchLoading}</p>
+        <div className={styles.loadingRow}>
+          <span className={styles.spinner} aria-hidden="true" />
+          <span className={styles.muted}>{messages.seniorTransferSearchLoading}</span>
+        </div>
       ) : marketSummary ? (
         <>
           {marketSummary.count < TRANSFER_SEARCH_MARKET_MIN_RICH_STATS_COUNT ? (
@@ -1802,15 +1765,20 @@ const TransferSearchModal = memo(function TransferSearchModal({
               {filters ? (
                 <>
                   <div className={`${styles.transferSearchSection} ${styles.transferSearchCriteriaGrid}`}>
-                    {filters.skillFilters.map((filter, index) => {
+                    {Array.from({ length: renderedSkillSlotCount }).map((_, index) => {
+                      const filter = filters.skillFilters[index] ?? {
+                        skillKey: null,
+                        min: 0,
+                        max: 0,
+                      };
                       const selectedOtherSkillKeys = filters.skillFilters
                         .filter((_, filterIndex) => filterIndex !== index)
+                        .filter(isActiveTransferSearchSkillFilter)
                         .map((entry) => entry.skillKey)
-                        .sort()
-                        .join("|");
+                        .sort();
                       return (
                         <TransferSearchSkillRow
-                          key={`${filter.skillKey}-${filter.min}-${filter.max}-${index}`}
+                          key={`${filter.skillKey ?? "none"}-${filter.min}-${filter.max}-${index}`}
                           filter={filter}
                           index={index}
                           selectedOtherSkillKeys={selectedOtherSkillKeys}
@@ -1820,28 +1788,6 @@ const TransferSearchModal = memo(function TransferSearchModal({
                         />
                       );
                     })}
-                    {onAddSkillFilter
-                      ? Array.from({
-                          length: Math.max(
-                            0,
-                            renderedSkillSlotCount - filters.skillFilters.length
-                          ),
-                        }).map((_, index) => {
-                          const selectedSkillKeys = filters.skillFilters
-                            .map((entry) => entry.skillKey)
-                            .sort()
-                            .join("|");
-                          return (
-                            <TransferSearchEmptySkillRow
-                              key={`empty-skill-${filters.skillFilters.length + index}`}
-                              selectedSkillKeys={selectedSkillKeys}
-                              disabled={loading}
-                              messages={messages}
-                              onAddSkillFilter={onAddSkillFilter}
-                            />
-                          );
-                        })
-                      : null}
                   </div>
 
                 <div className={styles.transferSearchSection}>
@@ -2059,7 +2005,14 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     }}
                     disabled={loading}
                   >
-                    {messages.seniorTransferSearchSearchButton}
+                    {loading ? (
+                      <>
+                        <span className={styles.spinner} aria-hidden="true" />{" "}
+                        {messages.seniorTransferSearchLoading}
+                      </>
+                    ) : (
+                      messages.seniorTransferSearchSearchButton
+                    )}
                   </button>
                 </div>
                 </>
@@ -2129,7 +2082,10 @@ const TransferSearchModal = memo(function TransferSearchModal({
                 ) : null}
                 {loading ? (
                   <div className={styles.miniMutedCard}>
-                    <span className={styles.muted}>{messages.seniorTransferSearchLoading}</span>
+                    <div className={styles.loadingRow}>
+                      <span className={styles.spinner} aria-hidden="true" />
+                      <span className={styles.muted}>{messages.seniorTransferSearchLoading}</span>
+                    </div>
                   </div>
                 ) : null}
                 {error ? <p className={styles.errorText}>{error}</p> : null}

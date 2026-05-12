@@ -135,6 +135,8 @@ export const messagesEn: Messages = {
       "Free mode. Premium features are locked until a valid license is activated. Click to buy a premium license.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Premium license unlocked. Click for license details.",
+    changelog_5_2_0:
+      "Transfer compare criteria can now be disabled with - in both youth estimate value and senior similar-player searches.",
     changelog_5_1_0:
       "Senior transfer-listed players now show consistent indicators and cached sale details across senior views.",
     changelog_5_0_0: "Feature gating.",

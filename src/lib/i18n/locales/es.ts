@@ -135,6 +135,8 @@ export const messagesEs: Messages = {
       "Modo gratuito. Las funciones premium permanecen bloqueadas hasta que se active una licencia válida. Haz clic para comprar una licencia premium.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Licencia premium desbloqueada. Haz clic para ver los detalles de la licencia.",
+    changelog_5_2_0:
+      "Los criterios de comparacion de transferencias ahora se pueden desactivar con - tanto en estimar valor juvenil como en la busqueda senior de jugadores similares.",
     changelog_5_1_0:
       "Los jugadores senior en venta ahora muestran indicadores coherentes y detalles de venta en caché en todas las vistas senior.",
     changelog_5_0_0: "Bloqueo de funciones.",

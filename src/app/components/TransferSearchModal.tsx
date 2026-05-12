@@ -29,7 +29,7 @@ export const HATTRICK_AGE_DAYS_PER_YEAR = 112;
 export const TRANSFER_SEARCH_MIN_AGE_YEARS = 17;
 export const TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS =
   TRANSFER_SEARCH_MIN_AGE_YEARS * HATTRICK_AGE_DAYS_PER_YEAR;
-export const TRANSFER_SEARCH_PAGE_SIZE = 25;
+export const TRANSFER_SEARCH_PAGE_SIZE = 100;
 export const CHPP_SEK_PER_EUR = 10;
 
 export const TRANSFER_SEARCH_SKILLS = [
@@ -1453,7 +1453,10 @@ const TransferSearchModal = memo(function TransferSearchModal({
         ) : null}
       </div>
       {loading ? (
-        <p className={styles.muted}>{messages.seniorTransferSearchLoading}</p>
+        <div className={styles.loadingRow}>
+          <span className={styles.spinner} aria-hidden="true" />
+          <span className={styles.muted}>{messages.seniorTransferSearchLoading}</span>
+        </div>
       ) : marketSummary ? (
         <>
           {marketSummary.count < TRANSFER_SEARCH_MARKET_MIN_RICH_STATS_COUNT ? (
@@ -2002,7 +2005,14 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     }}
                     disabled={loading}
                   >
-                    {messages.seniorTransferSearchSearchButton}
+                    {loading ? (
+                      <>
+                        <span className={styles.spinner} aria-hidden="true" />{" "}
+                        {messages.seniorTransferSearchLoading}
+                      </>
+                    ) : (
+                      messages.seniorTransferSearchSearchButton
+                    )}
                   </button>
                 </div>
                 </>
@@ -2072,7 +2082,10 @@ const TransferSearchModal = memo(function TransferSearchModal({
                 ) : null}
                 {loading ? (
                   <div className={styles.miniMutedCard}>
-                    <span className={styles.muted}>{messages.seniorTransferSearchLoading}</span>
+                    <div className={styles.loadingRow}>
+                      <span className={styles.spinner} aria-hidden="true" />
+                      <span className={styles.muted}>{messages.seniorTransferSearchLoading}</span>
+                    </div>
                   </div>
                 ) : null}
                 {error ? <p className={styles.errorText}>{error}</p> : null}

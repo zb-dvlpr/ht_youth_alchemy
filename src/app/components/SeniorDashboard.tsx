@@ -414,7 +414,7 @@ const HATTRICK_AGE_DAYS_PER_YEAR = 112;
 const TRANSFER_SEARCH_MIN_AGE_YEARS = 17;
 const TRANSFER_SEARCH_MIN_AGE_TOTAL_DAYS =
   TRANSFER_SEARCH_MIN_AGE_YEARS * HATTRICK_AGE_DAYS_PER_YEAR;
-const TRANSFER_SEARCH_PAGE_SIZE = 25;
+const TRANSFER_SEARCH_PAGE_SIZE = 100;
 const renderTemplateTokens = (
   template: string,
   replacements: Record<string, ReactNode>
@@ -10414,13 +10414,13 @@ function buildSeniorAiManMarkingReadySignature(params: {
         if (!isCurrentSearch()) return;
         setTransferSearchFilters(normalizedFallback);
         setTransferSearchResults(fallback.results);
-        setTransferSearchItemCount(fallback.itemCount);
+        setTransferSearchItemCount(fallback.results.length);
         setTransferSearchUsedFallback(true);
         setTransferSearchExactEmpty(true);
         await hydrateTransferSearchDetails(fallback.results);
       } else {
         setTransferSearchResults(exact.results);
-        setTransferSearchItemCount(exact.itemCount);
+        setTransferSearchItemCount(exact.results.length);
         await hydrateTransferSearchDetails(exact.results);
       }
     } catch (error) {
@@ -14844,11 +14844,9 @@ const refreshDetailsForPlayers = async (
   const transferSearchResultCountLabel =
     transferSearchItemCount === null
       ? null
-      : transferSearchItemCount === -1
-      ? messages.seniorTransferSearchResultsMany
       : messages.seniorTransferSearchResultsCount.replace(
           "{{count}}",
-          String(transferSearchItemCount)
+          String(transferSearchResults.length)
         );
   const transferSearchSelectedPlayerName = transferSearchSourcePlayer
     ? formatPlayerName(transferSearchSourcePlayer)

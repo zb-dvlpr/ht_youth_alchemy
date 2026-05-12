@@ -3898,14 +3898,14 @@ export default function Dashboard({
           if (!isCurrentSearch()) return;
           setTransferSearchFilters(fallbackFilters);
           setTransferSearchResults(fallback.results);
-          setTransferSearchItemCount(fallback.itemCount);
+          setTransferSearchItemCount(fallback.results.length);
           setTransferSearchExactEmpty(true);
           await hydrateTransferSearchDetails(fallback.results);
           return;
         }
       }
       setTransferSearchResults(exact.results);
-      setTransferSearchItemCount(exact.itemCount);
+      setTransferSearchItemCount(exact.results.length);
       await hydrateTransferSearchDetails(exact.results);
     } catch (error) {
       if (!isCurrentSearch()) return;
@@ -4112,12 +4112,10 @@ export default function Dashboard({
   const transferSearchResultCountLabel =
     transferSearchItemCount === null || Number.isNaN(transferSearchItemCount)
       ? null
-      : transferSearchItemCount === -1
-        ? messages.seniorTransferSearchResultsMany
-        : messages.seniorTransferSearchResultsCount.replace(
-            "{{count}}",
-            String(transferSearchItemCount)
-          );
+      : messages.seniorTransferSearchResultsCount.replace(
+          "{{count}}",
+          String(transferSearchResults.length)
+        );
 
   useEffect(() => {
     setTransferSearchBidDrafts((prev) => {

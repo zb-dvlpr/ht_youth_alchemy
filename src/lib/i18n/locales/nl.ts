@@ -316,6 +316,8 @@ export const messagesNl: Messages = {
     "Gratis modus. Premiumfuncties blijven vergrendeld totdat een geldige licentie is geactiveerd. Klik om een premiumlicentie te kopen.",
   premiumPillLabel: "Premium",
   premiumPillTooltip: "Premiumlicentie ontgrendeld. Klik om licentiegegevens te bekijken.",
+  changelog_5_2_0:
+    "Transfervergelijkingscriteria kunnen nu met - worden uitgeschakeld in zowel jeugdwaarde-inschatting als senior zoeken naar vergelijkbare spelers.",
   changelog_5_1_0:
     "Seniorspelers op de transferlijst tonen nu consistente indicatoren en gecachte verkoopdetails in alle seniorweergaven.",
   changelog_5_0_0: "Functieafscherming.",

@@ -469,7 +469,7 @@ const TRANSFER_SEARCH_AUTO_SKILL_KEYS = new Set<TransferSearchSkillKey>([
 type TransferSearchSkillKey = (typeof TRANSFER_SEARCH_SKILLS)[number]["key"];
 
 type TransferSearchSkillFilter = {
-  skillKey: TransferSearchSkillKey;
+  skillKey: TransferSearchSkillKey | null;
   min: number;
   max: number;
 };
@@ -1477,7 +1477,9 @@ const buildFallbackTransferSearchFilters = (
     ...exact,
     skillFilters: exact.skillFilters.map((filter) => ({
       ...filter,
-      min: clampTransferSkillValue(filter.skillKey, Math.max(0, filter.min - 1)),
+      min: filter.skillKey
+        ? clampTransferSkillValue(filter.skillKey, Math.max(0, filter.min - 1))
+        : filter.min,
     })),
     specialty: null,
     ageMinYears: String(ageMin.years),
@@ -1521,6 +1523,12 @@ const normalizeTransferSearchFilters = (filters: TransferSearchFilters): Transfe
   return {
     ...filters,
     skillFilters: filters.skillFilters.map((filter) => {
+      if (!filter.skillKey) {
+        return {
+          ...filter,
+          skillKey: null,
+        };
+      }
       const clampedMin = clampTransferSkillValue(filter.skillKey, filter.min);
       const clampedMax = clampTransferSkillValue(filter.skillKey, filter.max);
       const normalizedMin = Math.min(clampedMin, clampedMax);
@@ -1553,7 +1561,9 @@ const buildTransferSearchParams = (filters: TransferSearchFilters) => {
     pageIndex: "0",
   });
 
-  normalized.skillFilters.forEach((filter, index) => {
+  normalized.skillFilters
+    .filter((filter): filter is TransferSearchSkillFilter & { skillKey: TransferSearchSkillKey } => Boolean(filter.skillKey))
+    .forEach((filter, index) => {
     const slot = index + 1;
     const definition = TRANSFER_SEARCH_SKILLS.find((entry) => entry.key === filter.skillKey);
     if (!definition) return;
@@ -10458,9 +10468,16 @@ function buildSeniorAiManMarkingReadySignature(params: {
   ) => {
     setTransferSearchFilters((prev) => {
       if (!prev) return prev;
-      const nextSkillFilters = prev.skillFilters.map((filter, filterIndex) =>
-        filterIndex === index ? { ...filter, ...patch } : filter
-      );
+      const nextSkillFilters = [...prev.skillFilters];
+      while (nextSkillFilters.length <= index) {
+        nextSkillFilters.push({ skillKey: null, min: 0, max: 0 });
+      }
+      const currentFilter = nextSkillFilters[index] ?? {
+        skillKey: null,
+        min: 0,
+        max: 0,
+      };
+      nextSkillFilters[index] = { ...currentFilter, ...patch };
       return normalizeTransferSearchFilters({
         ...prev,
         skillFilters: nextSkillFilters,

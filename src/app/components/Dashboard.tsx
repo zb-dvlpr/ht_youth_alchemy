@@ -1927,7 +1927,12 @@ export default function Dashboard({
       .filter(
         (
           entry
-        ): entry is TransferSearchSkillFilter & { skillType: number } => entry !== null
+        ): entry is {
+          skillKey: TransferSearchSkillKey;
+          min: number;
+          max: number;
+          skillType: number;
+        } => entry !== null
       )
       .sort((left, right) => right.max - left.max || left.skillType - right.skillType)
       .slice(0, 4)
@@ -3946,38 +3951,19 @@ export default function Dashboard({
   ) => {
     setTransferSearchFilters((prev) => {
       if (!prev) return prev;
-      const nextSkillFilters = prev.skillFilters.map((filter, filterIndex) =>
-        filterIndex === index ? { ...filter, ...patch } : filter
-      );
+      const nextSkillFilters = [...prev.skillFilters];
+      while (nextSkillFilters.length <= index) {
+        nextSkillFilters.push({ skillKey: null, min: 0, max: 0 });
+      }
+      const currentFilter = nextSkillFilters[index] ?? {
+        skillKey: null,
+        min: 0,
+        max: 0,
+      };
+      nextSkillFilters[index] = { ...currentFilter, ...patch };
       return normalizeTransferSearchFilters({
         ...prev,
         skillFilters: nextSkillFilters,
-      });
-    });
-  }, []);
-
-  const addTransferSearchSkillFilter = useCallback((
-    skillKey: TransferSearchSkillKey
-  ) => {
-    setTransferSearchFilters((prev) => {
-      if (!prev || prev.skillFilters.length >= 4) return prev;
-      if (prev.skillFilters.some((filter) => filter.skillKey === skillKey)) {
-        return prev;
-      }
-      const definition = TRANSFER_SEARCH_SKILLS.find(
-        (entry) => entry.key === skillKey
-      );
-      if (!definition) return prev;
-      return normalizeTransferSearchFilters({
-        ...prev,
-        skillFilters: [
-          ...prev.skillFilters,
-          {
-            skillKey,
-            min: definition.min,
-            max: Math.min(definition.max, definition.min + 4),
-          },
-        ],
       });
     });
   }, []);
@@ -7578,7 +7564,6 @@ export default function Dashboard({
         skillSlotCount={4}
         loading={transferSearchLoading}
         onUpdateSkillFilter={updateTransferSearchSkillFilter}
-        onAddSkillFilter={addTransferSearchSkillFilter}
         onUpdateFilterField={updateTransferSearchFilterField}
         onSearch={(filters) => {
           void runTransferSearch(filters);

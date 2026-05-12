@@ -309,6 +309,8 @@ export const messagesPl: Messages = {
     "Tryb darmowy. Funkcje premium pozostają zablokowane, dopóki nie zostanie aktywowana ważna licencja. Kliknij, aby kupić licencję premium.",
   premiumPillLabel: "Premium",
   premiumPillTooltip: "Licencja premium odblokowana. Kliknij, aby zobaczyć szczegóły licencji.",
+  changelog_5_2_0:
+    "Kryteria porownania transferowego mozna teraz wylaczyc za pomoca - zarowno przy wycenie juniorow, jak i w seniorskim wyszukiwaniu podobnych zawodnikow.",
   changelog_5_1_0:
     "Seniorzy wystawieni na liste transferowa pokazuja teraz spójne oznaczenia i zapisane w pamięci szczegoly sprzedazy we wszystkich widokach seniorow.",
   changelog_5_0_0: "Blokowanie funkcji.",

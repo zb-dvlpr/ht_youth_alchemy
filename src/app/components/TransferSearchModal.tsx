@@ -795,7 +795,7 @@ const resolveTransferSearchMarketPriceEur = (result: TransferSearchResult) => {
   const priceSek =
     typeof result.highestBidSek === "number" && result.highestBidSek > 0
       ? result.highestBidSek
-      : typeof result.askingPriceSek === "number" && result.askingPriceSek > 0
+      : typeof result.askingPriceSek === "number" && result.askingPriceSek >= 0
         ? result.askingPriceSek
         : null;
   return priceSek === null ? null : priceSek / CHPP_SEK_PER_EUR;
@@ -1335,11 +1335,11 @@ const TransferSearchModal = memo(function TransferSearchModal({
               priceKind:
                 typeof result.highestBidSek === "number" && result.highestBidSek > 0
                   ? "HB"
-                  : typeof result.askingPriceSek === "number" && result.askingPriceSek > 0
+                  : typeof result.askingPriceSek === "number" && result.askingPriceSek >= 0
                     ? "AP"
                     : null,
               priceDisplay:
-                typeof fallbackPriceSek === "number" && fallbackPriceSek > 0
+                typeof fallbackPriceSek === "number" && fallbackPriceSek >= 0
                   ? new Intl.NumberFormat(undefined, {
                       style: "currency",
                       currency: "EUR",
@@ -1347,7 +1347,7 @@ const TransferSearchModal = memo(function TransferSearchModal({
                     }).format(fallbackPriceSek / CHPP_SEK_PER_EUR)
                   : "—",
               priceValueEur:
-                typeof fallbackPriceSek === "number" && fallbackPriceSek > 0
+                typeof fallbackPriceSek === "number" && fallbackPriceSek >= 0
                   ? fallbackPriceSek / CHPP_SEK_PER_EUR
                   : null,
               tsi: fallbackMetricInput.tsi ?? null,

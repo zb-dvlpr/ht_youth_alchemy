@@ -4279,15 +4279,17 @@ export default function Dashboard({
         priceKind:
           typeof result.highestBidSek === "number" && result.highestBidSek > 0
             ? "HB"
-            : typeof result.askingPriceSek === "number" && result.askingPriceSek > 0
+            : typeof result.askingPriceSek === "number" && result.askingPriceSek >= 0
               ? "AP"
               : null,
         priceDisplay:
-          typeof priceSek === "number" && priceSek > 0
+          typeof priceSek === "number" && priceSek >= 0
             ? formatEurFromSek(priceSek)
             : messages.unknownShort,
         priceValueEur:
-          typeof priceSek === "number" && priceSek > 0 ? priceSek / CHPP_SEK_PER_EUR : null,
+          typeof priceSek === "number" && priceSek >= 0
+            ? priceSek / CHPP_SEK_PER_EUR
+            : null,
         tsi: metricInput.tsi ?? null,
         leadership: result.leadership,
         experience: result.experience,

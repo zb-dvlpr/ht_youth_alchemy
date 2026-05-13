@@ -1444,7 +1444,10 @@ export const messagesIt: Messages = {
     seniorTransferSearchMaxBidAmountLabel: "Offerta max (EUR)",
     seniorTransferSearchPlaceBidButton: "Fai offerta",
     seniorTransferSearchPlaceMaxBidButton: "Imposta offerta max",
-    seniorTransferSearchSupporterOnlyTooltip: "Questa e una funzione solo Supporter.",
+    seniorTransferSearchSupporterOnlyTooltip:
+      "Questa azione e disponibile solo per i Supporter di Hattrick.",
+    hattrickSupporterActionRequiredTooltip:
+      "Questa azione e disponibile solo per i Supporter di Hattrick.",
     seniorTransferSearchBidMissingAmount: "Inserisci prima un importo.",
     seniorTransferSearchBidPlaced: "Offerta inserita per {{player}}.",
     seniorTransferSearchBidFailed: "Offerta fallita: {{details}}",

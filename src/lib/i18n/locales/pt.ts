@@ -1441,7 +1441,10 @@ export const messagesPt: Messages = {
     seniorTransferSearchMaxBidAmountLabel: "Lance maximo (EUR)",
     seniorTransferSearchPlaceBidButton: "Licitar",
     seniorTransferSearchPlaceMaxBidButton: "Definir lance maximo",
-    seniorTransferSearchSupporterOnlyTooltip: "Esta funcionalidade e apenas para Supporters.",
+    seniorTransferSearchSupporterOnlyTooltip:
+      "Esta acao esta disponivel apenas para Supporters do Hattrick.",
+    hattrickSupporterActionRequiredTooltip:
+      "Esta acao esta disponivel apenas para Supporters do Hattrick.",
     seniorTransferSearchBidMissingAmount: "Introduz primeiro um valor de lance.",
     seniorTransferSearchBidPlaced: "Lance colocado em {{player}}.",
     seniorTransferSearchBidFailed: "O lance falhou: {{details}}",

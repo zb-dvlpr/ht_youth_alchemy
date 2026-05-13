@@ -20,6 +20,7 @@ import BrandClock from "./components/BrandClock";
 import Tooltip from "./components/Tooltip";
 import PremiumPill from "./components/PremiumPill";
 import PremiumStatusPill from "./components/PremiumStatusPill";
+import { SupporterStatusProvider } from "./components/SupporterStatusProvider";
 import pkg from "../../package.json";
 import { getMessages, Locale } from "@/lib/i18n";
 import { extractManagerIdentityFromManagerCompendium } from "@/lib/hattrick/managerIdentity";
@@ -313,135 +314,137 @@ export default async function Home() {
           {process.env.NODE_ENV !== "production" ? (
             <SeniorMlBackfillBootstrap />
           ) : null}
-          <AppShell
-            messages={messages}
-            appVersion={pkg.version}
-            globalHeader={
-              <header className={styles.topBar}>
-                <div className={styles.desktopHeaderBrand}>
-                  <div className={styles.brandRow}>
-                    <span className={styles.brandTitle}>{messages.brandTitle}</span>
-                    <span className={styles.version}>v{pkg.version}</span>
-                    {premiumLicensingEnabled ? (
-                      <PremiumPill messages={messages} />
-                    ) : (
-                      <PremiumStatusPill messages={messages} />
-                    )}
+          <SupporterStatusProvider isConnected={isConnected}>
+            <AppShell
+              messages={messages}
+              appVersion={pkg.version}
+              globalHeader={
+                <header className={styles.topBar}>
+                  <div className={styles.desktopHeaderBrand}>
+                    <div className={styles.brandRow}>
+                      <span className={styles.brandTitle}>{messages.brandTitle}</span>
+                      <span className={styles.version}>v{pkg.version}</span>
+                      {premiumLicensingEnabled ? (
+                        <PremiumPill messages={messages} />
+                      ) : (
+                        <PremiumStatusPill messages={messages} />
+                      )}
+                    </div>
                   </div>
-                </div>
-                <div className={styles.mobileLauncherHeader}>
-                  <div className={styles.mobileLauncherTitleRow}>
-                    <span className={styles.brandTitle}>{messages.brandTitle}</span>
-                    <span className={styles.version}>v{pkg.version}</span>
-                    <PremiumStatusPill
-                      messages={messages}
-                      className={styles.mobileLauncherPremiumPill}
-                    />
-                  </div>
-                  {isConnected ? (
-                    <ConnectedStatus messages={messages} variant="buttonOnly" />
-                  ) : (
-                    <a className={styles.mobileConnectButton} href="/api/chpp/oauth/start">
-                      {messages.mobileConnectLabel}
-                    </a>
-                  )}
-                </div>
-                <div className={styles.desktopHeaderNotifications}>
-                  <NotificationCenter locale={locale} messages={messages} />
-                </div>
-                <div className={styles.desktopTopBarActions}>
-                  <div className={styles.topBarControls}>
-                    <LanguageSwitcher
-                      locale={locale}
-                      label={messages.languageLabel}
-                      switchingLabel={messages.languageSwitching}
-                    />
-                    <HelpToggleButton messages={messages} />
-                    <ThemeToggle messages={messages} />
-                    <FeedbackButton
-                      messages={messages}
-                      locale={locale}
-                      appVersion={pkg.version}
-                      initialManagerIdentity={managerIdentity}
-                    />
-                    <SettingsButton messages={messages} />
-                    <Tooltip content={messages.supportOnKofi}>
-                      <BuyCoffeeButton
-                        className={`${styles.feedbackButton} ${styles.kofiIconLink}`}
-                        aria-label={messages.supportOnKofi}
-                      >
-                        ☕
-                      </BuyCoffeeButton>
-                    </Tooltip>
+                  <div className={styles.mobileLauncherHeader}>
+                    <div className={styles.mobileLauncherTitleRow}>
+                      <span className={styles.brandTitle}>{messages.brandTitle}</span>
+                      <span className={styles.version}>v{pkg.version}</span>
+                      <PremiumStatusPill
+                        messages={messages}
+                        className={styles.mobileLauncherPremiumPill}
+                      />
+                    </div>
                     {isConnected ? (
-                      <ConnectedStatus messages={messages} />
+                      <ConnectedStatus messages={messages} variant="buttonOnly" />
                     ) : (
-                      <a className={styles.connectButton} href="/api/chpp/oauth/start">
-                        {messages.connectLabel}
+                      <a className={styles.mobileConnectButton} href="/api/chpp/oauth/start">
+                        {messages.mobileConnectLabel}
                       </a>
                     )}
                   </div>
-                  <BrandClock />
-                </div>
-                <div className={styles.mobileTopBarControls}>
-                  <div className={styles.mobileTopBarUtilityCluster}>
-                    <LanguageSwitcher
-                      locale={locale}
-                      label={messages.languageLabel}
-                      switchingLabel={messages.languageSwitching}
-                    />
-                    <ThemeToggle messages={messages} />
+                  <div className={styles.desktopHeaderNotifications}>
+                    <NotificationCenter locale={locale} messages={messages} />
                   </div>
-                  <div className={styles.mobileTopBarStatusCluster}>
+                  <div className={styles.desktopTopBarActions}>
+                    <div className={styles.topBarControls}>
+                      <LanguageSwitcher
+                        locale={locale}
+                        label={messages.languageLabel}
+                        switchingLabel={messages.languageSwitching}
+                      />
+                      <HelpToggleButton messages={messages} />
+                      <ThemeToggle messages={messages} />
+                      <FeedbackButton
+                        messages={messages}
+                        locale={locale}
+                        appVersion={pkg.version}
+                        initialManagerIdentity={managerIdentity}
+                      />
+                      <SettingsButton messages={messages} />
+                      <Tooltip content={messages.supportOnKofi}>
+                        <BuyCoffeeButton
+                          className={`${styles.feedbackButton} ${styles.kofiIconLink}`}
+                          aria-label={messages.supportOnKofi}
+                        >
+                          ☕
+                        </BuyCoffeeButton>
+                      </Tooltip>
+                      {isConnected ? (
+                        <ConnectedStatus messages={messages} />
+                      ) : (
+                        <a className={styles.connectButton} href="/api/chpp/oauth/start">
+                          {messages.connectLabel}
+                        </a>
+                      )}
+                    </div>
                     <BrandClock />
                   </div>
-                </div>
-              </header>
-            }
-            mobileLauncherUtility={
-              <>
-                <SettingsButton messages={messages} variant="launcher" />
-                <MobileManualButton
-                  messages={messages}
-                  locale={locale}
-                  appVersion={pkg.version}
-                  initialManagerIdentity={managerIdentity}
-                />
-                <BuyCoffeeButton
-                  className={styles.mobileLauncherUtilityButton}
-                  aria-label={messages.supportOnKofi}
-                >
-                  <span className={styles.mobileLauncherUtilityIcon} aria-hidden="true">
-                    ☕
-                  </span>
-                  <span>{messages.supportOnKofi}</span>
-                </BuyCoffeeButton>
-              </>
-            }
-            seniorTool={
-              <SeniorDashboard
-                messages={messages}
-                initialSeniorTeams={seniorTeams}
-                initialSeniorTeamId={defaultSeniorTeamId}
-              />
-            }
-          >
-            <Dashboard
-              players={players}
-              matchesResponse={matchesResponse}
-              ratingsResponse={ratingsResponse}
-              initialYouthTeams={youthTeams}
-              initialYouthTeamId={defaultYouthTeamId}
-              appVersion={pkg.version}
-              messages={messages}
-              isConnected={isConnected}
-              initialLoadError={playersResponse.error ?? null}
-              initialLoadDetails={
-                tokenError ? messages.connectHint : playersResponse.details ?? null
+                  <div className={styles.mobileTopBarControls}>
+                    <div className={styles.mobileTopBarUtilityCluster}>
+                      <LanguageSwitcher
+                        locale={locale}
+                        label={messages.languageLabel}
+                        switchingLabel={messages.languageSwitching}
+                      />
+                      <ThemeToggle messages={messages} />
+                    </div>
+                    <div className={styles.mobileTopBarStatusCluster}>
+                      <BrandClock />
+                    </div>
+                  </div>
+                </header>
               }
-              initialAuthError={Boolean(tokenError)}
-            />
-          </AppShell>
+              mobileLauncherUtility={
+                <>
+                  <SettingsButton messages={messages} variant="launcher" />
+                  <MobileManualButton
+                    messages={messages}
+                    locale={locale}
+                    appVersion={pkg.version}
+                    initialManagerIdentity={managerIdentity}
+                  />
+                  <BuyCoffeeButton
+                    className={styles.mobileLauncherUtilityButton}
+                    aria-label={messages.supportOnKofi}
+                  >
+                    <span className={styles.mobileLauncherUtilityIcon} aria-hidden="true">
+                      ☕
+                    </span>
+                    <span>{messages.supportOnKofi}</span>
+                  </BuyCoffeeButton>
+                </>
+              }
+              seniorTool={
+                <SeniorDashboard
+                  messages={messages}
+                  initialSeniorTeams={seniorTeams}
+                  initialSeniorTeamId={defaultSeniorTeamId}
+                />
+              }
+            >
+              <Dashboard
+                players={players}
+                matchesResponse={matchesResponse}
+                ratingsResponse={ratingsResponse}
+                initialYouthTeams={youthTeams}
+                initialYouthTeamId={defaultYouthTeamId}
+                appVersion={pkg.version}
+                messages={messages}
+                isConnected={isConnected}
+                initialLoadError={playersResponse.error ?? null}
+                initialLoadDetails={
+                  tokenError ? messages.connectHint : playersResponse.details ?? null
+                }
+                initialAuthError={Boolean(tokenError)}
+              />
+            </AppShell>
+          </SupporterStatusProvider>
         </div>
       </NotificationsProvider>
     </main>

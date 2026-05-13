@@ -1432,7 +1432,10 @@ export const messagesSv: Messages = {
     seniorTransferSearchMaxBidAmountLabel: "Maxbud (EUR)",
     seniorTransferSearchPlaceBidButton: "Lag bud",
     seniorTransferSearchPlaceMaxBidButton: "Satt maxbud",
-    seniorTransferSearchSupporterOnlyTooltip: "Detta ar en Supporter-funktion.",
+    seniorTransferSearchSupporterOnlyTooltip:
+      "Den har atgarden ar bara tillganglig for Hattrick Supporters.",
+    hattrickSupporterActionRequiredTooltip:
+      "Den har atgarden ar bara tillganglig for Hattrick Supporters.",
     seniorTransferSearchBidMissingAmount: "Ange ett budbelopp forst.",
     seniorTransferSearchBidPlaced: "Bud lagt pa {{player}}.",
     seniorTransferSearchBidFailed: "Bud misslyckades: {{details}}",

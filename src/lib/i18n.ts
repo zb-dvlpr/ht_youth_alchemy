@@ -1145,6 +1145,7 @@ export type Messages = {
   seniorTransferSearchPlaceBidButton: string;
   seniorTransferSearchPlaceMaxBidButton: string;
   seniorTransferSearchSupporterOnlyTooltip: string;
+  hattrickSupporterActionRequiredTooltip: string;
   seniorTransferSearchBidMissingAmount: string;
   seniorTransferSearchBidPlaced: string;
   seniorTransferSearchBidFailed: string;

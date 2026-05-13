@@ -504,7 +504,10 @@ export const messagesNl: Messages = {
   seniorTransferSearchMaxBidAmountLabel: "Maxbod (EUR)",
   seniorTransferSearchPlaceBidButton: "Bieden",
   seniorTransferSearchPlaceMaxBidButton: "Maxbod instellen",
-  seniorTransferSearchSupporterOnlyTooltip: "Dit is alleen voor Supporters.",
+  seniorTransferSearchSupporterOnlyTooltip:
+    "Deze actie is alleen beschikbaar voor Hattrick Supporters.",
+  hattrickSupporterActionRequiredTooltip:
+    "Deze actie is alleen beschikbaar voor Hattrick Supporters.",
   seniorTransferSearchBidMissingAmount: "Voer eerst een bodbedrag in.",
   seniorTransferSearchBidPlaced: "Bod geplaatst op {{player}}.",
   seniorTransferSearchBidFailed: "Bod mislukt: {{details}}",

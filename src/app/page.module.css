@@ -9144,6 +9144,7 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 
 .confirmCard.seniorUpdatesModal {
   width: min(1120px, 96vw);
+  height: min(88vh, 920px);
   max-height: min(88vh, 920px);
   display: flex;
   flex-direction: column;
@@ -9174,7 +9175,9 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 
 .seniorUpdatesModal .confirmBody {
   margin-bottom: 0;
-  overflow: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
 }
@@ -9279,6 +9282,7 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   display: grid;
   gap: 6px;
   padding: 10px;
+  min-height: 0;
 }
 
 .seniorUpdatesHistoryItem {
@@ -9841,6 +9845,7 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 
   .confirmCard.seniorUpdatesModal {
     width: min(96vw, 760px);
+    height: 92vh;
     max-height: 92vh;
   }
 

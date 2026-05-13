@@ -1441,7 +1441,10 @@ export const messagesEs: Messages = {
     seniorTransferSearchMaxBidAmountLabel: "Puja maxima (EUR)",
     seniorTransferSearchPlaceBidButton: "Pujar",
     seniorTransferSearchPlaceMaxBidButton: "Definir puja maxima",
-    seniorTransferSearchSupporterOnlyTooltip: "Esta es una funcion solo para Supporters.",
+    seniorTransferSearchSupporterOnlyTooltip:
+      "Esta accion solo esta disponible para Supporters de Hattrick.",
+    hattrickSupporterActionRequiredTooltip:
+      "Esta accion solo esta disponible para Supporters de Hattrick.",
     seniorTransferSearchBidMissingAmount: "Primero introduce un importe de puja.",
     seniorTransferSearchBidPlaced: "Puja realizada por {{player}}.",
     seniorTransferSearchBidFailed: "La puja fallo: {{details}}",

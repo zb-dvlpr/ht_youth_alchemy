@@ -45,6 +45,7 @@ import {
 } from "@/lib/settings";
 import Modal from "./Modal";
 import AppLicenseModal, { type AppLicenseModalContext } from "./AppLicenseModal";
+import { useSupporterStatus } from "./SupporterStatusProvider";
 import { RatingsMatrixResponse } from "./RatingsMatrix";
 import StartupLoadingExperience from "./StartupLoadingExperience";
 import {
@@ -296,8 +297,6 @@ type ExtraTimeBTeamRecentMatchState = {
   } | null;
   playerMinutesById: Record<number, number>;
 };
-
-type SupporterStatus = "unknown" | "supporter" | "nonSupporter";
 
 type ManagerCompendiumTeam = {
   TeamId?: unknown;
@@ -1272,21 +1271,6 @@ const totalDaysToAge = (totalDays: number) => {
     years: Math.floor(clamped / HATTRICK_AGE_DAYS_PER_YEAR),
     days: clamped % HATTRICK_AGE_DAYS_PER_YEAR,
   };
-};
-
-const isSupporterTierValue = (value: unknown) => {
-  if (typeof value === "number") return Number.isFinite(value) && value > 0;
-  if (typeof value === "string") {
-    const normalized = value.trim().toLowerCase();
-    return Boolean(
-      normalized &&
-        normalized !== "0" &&
-        normalized !== "none" &&
-        normalized !== "false" &&
-        normalized !== "no"
-    );
-  }
-  return false;
 };
 
 const resolveTransferSearchSkillLevel = (
@@ -3390,7 +3374,7 @@ export default function SeniorDashboard({
   const [pendingAutoHelpOpen, setPendingAutoHelpOpen] = useState(false);
   const [currentToken, setCurrentToken] = useState<string | null>(null);
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
-  const [supporterStatus, setSupporterStatus] = useState<SupporterStatus>("unknown");
+  const { isSupporter } = useSupporterStatus();
   const [transferSearchModalOpen, setTransferSearchModalOpen] = useState(false);
   const [transferSearchSourcePlayerId, setTransferSearchSourcePlayerId] = useState<number | null>(
     null
@@ -10005,12 +9989,10 @@ function buildSeniorAiManMarkingReadySignature(params: {
   ): Promise<{
     trainingType: number | null;
     teamId: number | null;
-    supporterStatus: SupporterStatus;
   }> => {
     const { response, payload } = await fetchChppJson<{
       data?: {
         HattrickData?: {
-          UserSupporterTier?: unknown;
           Team?: {
             TrainingType?: unknown;
             TeamID?: unknown;
@@ -10031,9 +10013,6 @@ function buildSeniorAiManMarkingReadySignature(params: {
     return {
       trainingType: parseNumber(payload?.data?.HattrickData?.Team?.TrainingType),
       teamId: parseNumber(payload?.data?.HattrickData?.Team?.TeamID),
-      supporterStatus: isSupporterTierValue(payload?.data?.HattrickData?.UserSupporterTier)
-        ? "supporter"
-        : "nonSupporter",
     };
   };
 
@@ -11222,7 +11201,6 @@ const refreshDetailsForPlayers = async (
         if (isStopped()) return false;
         effectiveTeamId = trainingSnapshot.teamId ?? effectiveTeamId;
         setTrainingType(sanitizeTrainingType(trainingSnapshot.trainingType));
-        setSupporterStatus(trainingSnapshot.supporterStatus);
         if (isStartup) {
           setStartupLoadingProgressPct(16);
         }
@@ -11522,19 +11500,9 @@ const refreshDetailsForPlayers = async (
         ? parseExtendedPermissionsFromCheckToken(rawTokenCheck)
         : [];
       const missingDefaultScope = hasScopeTag && !scopeTokens.includes("default");
-      let resolvedSupporterStatus = supporterStatus;
-      if (resolvedSupporterStatus === "unknown") {
-        try {
-          const snapshot = await fetchTrainingSnapshot(resolvedSeniorTeamId);
-          resolvedSupporterStatus = snapshot.supporterStatus;
-          setSupporterStatus(snapshot.supporterStatus);
-        } catch {
-          resolvedSupporterStatus = "unknown";
-        }
-      }
       const requiredPermissions = [
         ...REQUIRED_CHPP_EXTENDED_PERMISSIONS,
-        ...(resolvedSupporterStatus === "supporter" ? (["place_bid"] as const) : []),
+        ...(isSupporter ? (["place_bid"] as const) : []),
       ];
       const missingPermissions = getMissingChppPermissions(
         grantedPermissions,
@@ -13417,7 +13385,6 @@ const refreshDetailsForPlayers = async (
     setTrainingAwareMatrixTrainingTypeManual(false);
     setOrderedPlayerIds(null);
     setOrderSource(null);
-    setSupporterStatus("unknown");
     setTransferSearchModalOpen(false);
     setTransferSearchSourcePlayerId(null);
     setTransferSearchFilters(null);
@@ -13513,7 +13480,6 @@ const refreshDetailsForPlayers = async (
             ratingsManualOverrideEnabled?: boolean;
             ratingsOverwriteManualEditsEnabled?: boolean;
             ratingsManualEditsByPlayerId?: SeniorManualRatingsEdits;
-            supporterStatus?: SupporterStatus;
             transferSearchModalOpen?: boolean;
             transferSearchSourcePlayerId?: number | null;
             transferSearchFilters?: TransferSearchFilters | null;
@@ -13754,13 +13720,6 @@ const refreshDetailsForPlayers = async (
           setRatingsManualEditsByPlayerId(
             normalizeSeniorManualRatingsEdits(parsed.ratingsManualEditsByPlayerId)
           );
-          if (
-            parsed.supporterStatus === "unknown" ||
-            parsed.supporterStatus === "supporter" ||
-            parsed.supporterStatus === "nonSupporter"
-          ) {
-            setSupporterStatus(parsed.supporterStatus);
-          }
           if (typeof parsed.transferSearchModalOpen === "boolean") {
             setTransferSearchModalOpen(parsed.transferSearchModalOpen);
           }
@@ -14024,7 +13983,6 @@ const refreshDetailsForPlayers = async (
       ratingsManualOverrideEnabled,
       ratingsOverwriteManualEditsEnabled,
       ratingsManualEditsByPlayerId,
-      supporterStatus,
       transferSearchModalOpen,
       transferSearchSourcePlayerId,
       transferSearchFilters,
@@ -14082,7 +14040,6 @@ const refreshDetailsForPlayers = async (
     trainingAwareMatrixTrainingTypeManual,
     orderedPlayerIds,
     orderSource,
-    supporterStatus,
     transferSearchModalOpen,
     transferSearchSourcePlayerId,
     transferSearchFilters,
@@ -14809,7 +14766,7 @@ const refreshDetailsForPlayers = async (
     }
     return String(value);
   };
-  const transferSearchCanBid = supporterStatus === "supporter";
+  const transferSearchCanBid = isSupporter;
   const specialtyName = useCallback((value?: number | null) => {
     switch (value) {
       case 0:
@@ -16553,6 +16510,8 @@ const refreshDetailsForPlayers = async (
             void onRefreshMatchesOnly();
           }}
           submitEnabledMatchId={seniorAiSubmitTargetMatchId}
+          canSubmitToHattrick={isSupporter}
+          submitUnavailableTooltip={messages.hattrickSupporterActionRequiredTooltip}
           submitRestrictedTooltipBuilder={(targetMatch) => {
             if (!targetMatch) return messages.submitOrdersTooltip;
             const home = targetMatch.HomeTeam?.HomeTeamName ?? messages.homeLabel;
@@ -19633,6 +19592,8 @@ const refreshDetailsForPlayers = async (
               void onRefreshMatchesOnly();
             }}
             submitEnabledMatchId={seniorAiSubmitTargetMatchId}
+            canSubmitToHattrick={isSupporter}
+            submitUnavailableTooltip={messages.hattrickSupporterActionRequiredTooltip}
             submitRestrictedTooltipBuilder={(targetMatch) => {
               if (!targetMatch) return messages.submitOrdersTooltip;
               const home = targetMatch.HomeTeam?.HomeTeamName ?? messages.homeLabel;

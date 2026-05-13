@@ -1425,7 +1425,10 @@ export const messagesDe: Messages = {
     seniorTransferSearchMaxBidAmountLabel: "Maximalgebot (EUR)",
     seniorTransferSearchPlaceBidButton: "Bieten",
     seniorTransferSearchPlaceMaxBidButton: "Maximalgebot setzen",
-    seniorTransferSearchSupporterOnlyTooltip: "Dies ist nur fuer Supporter verfuegbar.",
+    seniorTransferSearchSupporterOnlyTooltip:
+      "Diese Aktion ist nur fuer Hattrick-Supporter verfuegbar.",
+    hattrickSupporterActionRequiredTooltip:
+      "Diese Aktion ist nur fuer Hattrick-Supporter verfuegbar.",
     seniorTransferSearchBidMissingAmount: "Bitte zuerst einen Gebotsbetrag eingeben.",
     seniorTransferSearchBidPlaced: "Gebot fuer {{player}} abgegeben.",
     seniorTransferSearchBidFailed: "Gebot fehlgeschlagen: {{details}}",

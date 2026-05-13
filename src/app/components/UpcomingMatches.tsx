@@ -109,6 +109,8 @@ type UpcomingMatchesProps = {
   loadedMatchId?: number | null;
   submitEnabledMatchId?: number | null;
   submitRestrictedTooltipBuilder?: (targetMatch: Match | undefined) => ReactNode;
+  canSubmitToHattrick?: boolean;
+  submitUnavailableTooltip?: ReactNode;
   onSubmitSuccess?: (matchId: number, lineupPayload: MatchOrdersLineupPayload) => void;
   buildSubmitLineupPayload?: (
     matchId: number,
@@ -703,6 +705,8 @@ function renderMatch(
   isLoaded?: boolean,
   submitEnabledMatchId?: number | null,
   submitRestrictedTooltip?: ReactNode,
+  canSubmitToHattrick?: boolean,
+  submitUnavailableTooltip?: ReactNode,
   assignedCount?: number,
   setBestLineupHelpAnchor?: string,
   showExtraTimeSetBestLineupMode?: boolean,
@@ -725,9 +729,12 @@ function renderMatch(
     Boolean(teamId) &&
     isUpcoming &&
     hasLineup &&
+    canSubmitToHattrick !== false &&
     (!submitMatchRestrictionActive || submitEnabledMatchId === matchId);
   const submitRestrictedByOtherMatch =
     submitMatchRestrictionActive && submitEnabledMatchId !== matchId;
+  const submitRestrictedBySupporter =
+    isUpcoming && hasLineup && canSubmitToHattrick === false;
   const ordersSet =
     match.OrdersGiven === "true" ||
     match.OrdersGiven === "True" ||
@@ -899,7 +906,9 @@ function renderMatch(
           </Tooltip>
           <Tooltip
             content={
-              submitRestrictedByOtherMatch && submitRestrictedTooltip
+              submitRestrictedBySupporter && submitUnavailableTooltip
+                ? submitUnavailableTooltip
+                : submitRestrictedByOtherMatch && submitRestrictedTooltip
                 ? submitRestrictedTooltip
                 : messages.submitOrdersTooltip
             }
@@ -990,6 +999,8 @@ export default function UpcomingMatches({
   loadedMatchId,
   submitEnabledMatchId = null,
   submitRestrictedTooltipBuilder,
+  canSubmitToHattrick = true,
+  submitUnavailableTooltip,
   onSubmitSuccess,
   buildSubmitLineupPayload,
   sourceSystem = "Youth",
@@ -1096,7 +1107,8 @@ export default function UpcomingMatches({
       ? matchById.get(submitEnabledMatchId)
       : undefined;
   const canSubmitMatchId = (matchId: number) =>
-    !submitRestrictionActive || submitEnabledMatchId === matchId;
+    canSubmitToHattrick !== false &&
+    (!submitRestrictionActive || submitEnabledMatchId === matchId);
 
   const handleSubmit = async (matchId: number) => {
     if (!teamId) return;
@@ -1507,6 +1519,8 @@ export default function UpcomingMatches({
               loadedMatchId === matchId,
               submitEnabledMatchId,
               submitRestrictedTooltipBuilder?.(submitRestrictedMatch),
+              canSubmitToHattrick,
+              submitUnavailableTooltip,
               assignedCount,
               index === 0 ? setBestLineupHelpAnchor : undefined,
               showExtraTimeSetBestLineupMode,
@@ -1556,6 +1570,8 @@ export default function UpcomingMatches({
                 loadedMatchId === matchId,
                 submitEnabledMatchId,
                 submitRestrictedTooltipBuilder?.(submitRestrictedMatch),
+                canSubmitToHattrick,
+                submitUnavailableTooltip,
                 assignedCount,
                 index === 0 ? setBestLineupHelpAnchor : undefined,
                 showExtraTimeSetBestLineupMode,

@@ -1441,7 +1441,10 @@ export const messagesFr: Messages = {
     seniorTransferSearchMaxBidAmountLabel: "Enchere max (EUR)",
     seniorTransferSearchPlaceBidButton: "Encherir",
     seniorTransferSearchPlaceMaxBidButton: "Definir l enchere max",
-    seniorTransferSearchSupporterOnlyTooltip: "Fonction reservee aux Supporters.",
+    seniorTransferSearchSupporterOnlyTooltip:
+      "Cette action est reservee aux Supporters Hattrick.",
+    hattrickSupporterActionRequiredTooltip:
+      "Cette action est reservee aux Supporters Hattrick.",
     seniorTransferSearchBidMissingAmount: "Saisissez d abord un montant.",
     seniorTransferSearchBidPlaced: "Enchere placee pour {{player}}.",
     seniorTransferSearchBidFailed: "Echec de l enchere : {{details}}",

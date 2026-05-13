@@ -1054,6 +1054,7 @@ const GLOBAL_BASELINE_KEY = "ya_cc_global_baseline_v1";
 const GLOBAL_UPDATES_HISTORY_KEY = "ya_cc_global_updates_history_v1";
 const PANEL_ORDER_KEY = "ya_cc_panel_order_v1";
 const PANEL_VISIBILITY_KEY = "ya_cc_panel_visibility_v1";
+const TABLE_SORT_KEY = "ya_cc_table_sort_v1";
 const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
 const FORMATIONS_INCLUDE_FRIENDLIES_KEY =
   "ya_cc_formations_include_friendlies_v1";
@@ -1081,6 +1082,92 @@ const PANEL_IDS = [
   "tsi",
   "wages",
 ] as const;
+
+type ChronicleSortDirection = "asc" | "desc";
+type ChronicleSortState = {
+  key: string;
+  direction: ChronicleSortDirection;
+};
+type ChronicleSortStateMap = Record<string, ChronicleSortState>;
+
+const isChronicleSortDirection = (
+  value: unknown
+): value is ChronicleSortDirection => value === "asc" || value === "desc";
+
+const readChronicleTableSortStateMap = (): ChronicleSortStateMap => {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(TABLE_SORT_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object") return {};
+    return Object.fromEntries(
+      Object.entries(parsed as Record<string, unknown>)
+        .map(([tableKey, value]) => {
+          if (!value || typeof value !== "object") return null;
+          const maybeState = value as {
+            key?: unknown;
+            direction?: unknown;
+          };
+          if (
+            typeof maybeState.key !== "string" ||
+            !isChronicleSortDirection(maybeState.direction)
+          ) {
+            return null;
+          }
+          return [
+            tableKey,
+            {
+              key: maybeState.key,
+              direction: maybeState.direction,
+            },
+          ] as const;
+        })
+        .filter((entry): entry is readonly [string, ChronicleSortState] =>
+          Boolean(entry)
+        )
+    );
+  } catch {
+    return {};
+  }
+};
+
+const readChronicleTableSortState = (
+  tableKey: string,
+  fallback: ChronicleSortState
+): ChronicleSortState => readChronicleTableSortStateMap()[tableKey] ?? fallback;
+
+const writeChronicleTableSortState = (
+  tableKey: string,
+  state: ChronicleSortState
+) => {
+  if (typeof window === "undefined") return;
+  try {
+    const current = readChronicleTableSortStateMap();
+    window.localStorage.setItem(
+      TABLE_SORT_KEY,
+      JSON.stringify({
+        ...current,
+        [tableKey]: state,
+      })
+    );
+  } catch {
+    // ignore storage errors
+  }
+};
+
+const nextChronicleSortState = (
+  previous: ChronicleSortState,
+  key: string
+): ChronicleSortState => ({
+  key,
+  direction:
+    previous.key === key
+      ? previous.direction === "asc"
+        ? "desc"
+        : "asc"
+      : "asc",
+});
 type ChroniclePanelId = (typeof PANEL_IDS)[number];
 const UPDATE_PANEL_BY_CHRONICLE_PANEL_ID: Record<ChroniclePanelId, UpdatePanel> = {
   "league-performance": "league",
@@ -2946,14 +3033,20 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [selectedOngoingMatchTeamId, setSelectedOngoingMatchTeamId] = useState<
     number | null
   >(null);
-  const [tsiDetailsSortState, setTsiDetailsSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "playerNumber", direction: "asc" });
-  const [wagesDetailsSortState, setWagesDetailsSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "playerNumber", direction: "asc" });
+  const [tsiDetailsSortState, setTsiDetailsSortState] =
+    useState<ChronicleSortState>(() =>
+      readChronicleTableSortState("tsi-details", {
+        key: "playerNumber",
+        direction: "asc",
+      })
+    );
+  const [wagesDetailsSortState, setWagesDetailsSortState] =
+    useState<ChronicleSortState>(() =>
+      readChronicleTableSortState("wages-details", {
+        key: "playerNumber",
+        direction: "asc",
+      })
+    );
   const [resolvedPlayers, setResolvedPlayers] = useState<Record<number, string>>(
     {}
   );
@@ -2980,66 +3073,102 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     useState(() => readClubChronicleOngoingMatchesTournamentEnabled());
   const [formationsIncludeFriendlies, setFormationsIncludeFriendlies] =
     useState(() => readFormationsIncludeFriendlies());
-  const [leagueSortState, setLeagueSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [pressSortState, setPressSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [financeSortState, setFinanceSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [fanclubSortState, setFanclubSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [arenaSortState, setArenaSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [formationsTacticsSortState, setFormationsTacticsSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [likelyTrainingSortState, setLikelyTrainingSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [teamAttitudeSortState, setTeamAttitudeSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [transferSortState, setTransferSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [tsiSortState, setTsiSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [wagesSortState, setWagesSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [lastLoginSortState, setLastLoginSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [coachSortState, setCoachSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [powerRatingsSortState, setPowerRatingsSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
-  const [ongoingMatchesSortState, setOngoingMatchesSortState] = useState<{
-    key: string;
-    direction: "asc" | "desc";
-  }>({ key: "team", direction: "asc" });
+  const [leagueSortState, setLeagueSortState] = useState<ChronicleSortState>(() =>
+    readChronicleTableSortState("league-performance", {
+      key: "team",
+      direction: "asc",
+    })
+  );
+  const [pressSortState, setPressSortState] = useState<ChronicleSortState>(() =>
+    readChronicleTableSortState("press-announcements", {
+      key: "team",
+      direction: "asc",
+    })
+  );
+  const [financeSortState, setFinanceSortState] = useState<ChronicleSortState>(() =>
+    readChronicleTableSortState("finance", {
+      key: "team",
+      direction: "asc",
+    })
+  );
+  const [fanclubSortState, setFanclubSortState] = useState<ChronicleSortState>(() =>
+    readChronicleTableSortState("fanclub", {
+      key: "team",
+      direction: "asc",
+    })
+  );
+  const [arenaSortState, setArenaSortState] = useState<ChronicleSortState>(() =>
+    readChronicleTableSortState("arena", {
+      key: "team",
+      direction: "asc",
+    })
+  );
+  const [formationsTacticsSortState, setFormationsTacticsSortState] =
+    useState<ChronicleSortState>(() =>
+      readChronicleTableSortState("formations-tactics", {
+        key: "team",
+        direction: "asc",
+      })
+    );
+  const [likelyTrainingSortState, setLikelyTrainingSortState] =
+    useState<ChronicleSortState>(() =>
+      readChronicleTableSortState("likely-training", {
+        key: "team",
+        direction: "asc",
+      })
+    );
+  const [teamAttitudeSortState, setTeamAttitudeSortState] =
+    useState<ChronicleSortState>(() =>
+      readChronicleTableSortState("team-attitude", {
+        key: "team",
+        direction: "asc",
+      })
+    );
+  const [transferSortState, setTransferSortState] = useState<ChronicleSortState>(() =>
+    readChronicleTableSortState("transfers", {
+      key: "team",
+      direction: "asc",
+    })
+  );
+  const [tsiSortState, setTsiSortState] = useState<ChronicleSortState>(() =>
+    readChronicleTableSortState("tsi", {
+      key: "team",
+      direction: "asc",
+    })
+  );
+  const [wagesSortState, setWagesSortState] = useState<ChronicleSortState>(() =>
+    readChronicleTableSortState("wages", {
+      key: "team",
+      direction: "asc",
+    })
+  );
+  const [lastLoginSortState, setLastLoginSortState] =
+    useState<ChronicleSortState>(() =>
+      readChronicleTableSortState("last-login", {
+        key: "team",
+        direction: "asc",
+      })
+    );
+  const [coachSortState, setCoachSortState] = useState<ChronicleSortState>(() =>
+    readChronicleTableSortState("coach", {
+      key: "team",
+      direction: "asc",
+    })
+  );
+  const [powerRatingsSortState, setPowerRatingsSortState] =
+    useState<ChronicleSortState>(() =>
+      readChronicleTableSortState("power-ratings", {
+        key: "team",
+        direction: "asc",
+      })
+    );
+  const [ongoingMatchesSortState, setOngoingMatchesSortState] =
+    useState<ChronicleSortState>(() =>
+      readChronicleTableSortState("ongoing-matches", {
+        key: "team",
+        direction: "asc",
+      })
+    );
   const [refreshingGlobal, setRefreshingGlobal] = useState(false);
   const [refreshingLeague, setRefreshingLeague] = useState(false);
   const [refreshingPress, setRefreshingPress] = useState(false);
@@ -5777,140 +5906,88 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     })();
   }, [mobileChronicleActive, transferHistoryCount, updateMobileChronicleState]);
 
+  const updatePersistedSortState = (
+    tableKey: string,
+    setState: React.Dispatch<React.SetStateAction<ChronicleSortState>>,
+    key: string
+  ) => {
+    setState((prev) => {
+      const next = nextChronicleSortState(prev, key);
+      writeChronicleTableSortState(tableKey, next);
+      return next;
+    });
+  };
+
   const handleLeagueSort = (key: string) => {
-    setLeagueSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("league-performance", setLeagueSortState, key);
   };
 
   const handlePressSort = (key: string) => {
-    setPressSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("press-announcements", setPressSortState, key);
   };
 
   const handleFinanceSort = (key: string) => {
-    setFinanceSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("finance", setFinanceSortState, key);
   };
 
   const handleFanclubSort = (key: string) => {
-    setFanclubSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("fanclub", setFanclubSortState, key);
   };
 
   const handleArenaSort = (key: string) => {
-    setArenaSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("arena", setArenaSortState, key);
   };
 
   const handleFormationsTacticsSort = (key: string) => {
-    setFormationsTacticsSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState(
+      "formations-tactics",
+      setFormationsTacticsSortState,
+      key
+    );
   };
 
   const handleLikelyTrainingSort = (key: string) => {
-    setLikelyTrainingSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("likely-training", setLikelyTrainingSortState, key);
   };
 
   const handleTeamAttitudeSort = (key: string) => {
-    setTeamAttitudeSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("team-attitude", setTeamAttitudeSortState, key);
   };
 
   const handleTransferSort = (key: string) => {
-    setTransferSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("transfers", setTransferSortState, key);
   };
 
   const handleTsiSort = (key: string) => {
-    setTsiSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("tsi", setTsiSortState, key);
   };
 
   const handleWagesSort = (key: string) => {
-    setWagesSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("wages", setWagesSortState, key);
   };
 
   const handleLastLoginSort = (key: string) => {
-    setLastLoginSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("last-login", setLastLoginSortState, key);
   };
 
   const handleCoachSort = (key: string) => {
-    setCoachSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("coach", setCoachSortState, key);
   };
 
   const handlePowerRatingsSort = (key: string) => {
-    setPowerRatingsSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("power-ratings", setPowerRatingsSortState, key);
   };
 
   const handleOngoingMatchesSort = (key: string) => {
-    setOngoingMatchesSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("ongoing-matches", setOngoingMatchesSortState, key);
   };
 
   const handleWagesDetailsSort = (key: string) => {
-    setWagesDetailsSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("wages-details", setWagesDetailsSortState, key);
   };
 
   const handleTsiDetailsSort = (key: string) => {
-    setTsiDetailsSortState((prev) => ({
-      key,
-      direction:
-        prev.key === key ? (prev.direction === "asc" ? "desc" : "asc") : "asc",
-    }));
+    updatePersistedSortState("tsi-details", setTsiDetailsSortState, key);
   };
 
   const leagueFieldDefs = useMemo(

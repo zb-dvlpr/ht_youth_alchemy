@@ -86,6 +86,12 @@ export const messagesIt: Messages = {
       "{{count}} squadra/e tracciata/e in cache restano nascoste finché il premium non viene sbloccato.",
     clubChroniclePremiumOtherTeamsMessage:
       "Acquista la licenza premium HT Alchemy per vedere questi dati per le altre squadre tracciate.",
+    clubChronicleLimitTitle: "Limite Club Chronicle raggiunto",
+    clubChronicleLimitBody:
+      "Per limitare le risorse del server, Club Chronicle e limitato a {{tabs}} schede e {{teams}} squadre tracciate per scheda.",
+    clubChronicleLimitConfirm: "Ho capito",
+    clubChronicleLimitTooltip:
+      "Club Chronicle ha raggiunto il limite attuale di schede o squadre.",
     appLicenseFeatureSeniorSimulationTitle: "Modifica skill, età, salario, TSI",
     appLicenseFeatureSeniorSimulationDescription:
       "Modifica gli attributi del giocatore per vedere come cambiano le metriche Foxtrick. Questo migliora in modo significativo le tue decisioni di acquisto.",
@@ -136,6 +142,16 @@ export const messagesIt: Messages = {
       "Modalità gratuita. Le funzioni premium restano bloccate finché non viene attivata una licenza valida. Clicca per acquistare una licenza premium.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Licenza premium sbloccata. Clicca per vedere i dettagli della licenza.",
+    updateRequiredTitle: "Aggiornamento richiesto",
+    updateRequiredBody:
+      "E disponibile una nuova versione di HT Alchemy. Aggiorna ora per continuare a usare l app.",
+    updateRequiredAction: "Aggiorna",
+    changelog_5_5_0:
+      "Le proprie leghe in Club Chronicle ora si espandono in selezioni per squadra con interruttori di gruppo per lega.",
+    changelog_5_4_0:
+      "Club Chronicle ora applica limiti di risorse conservando schede e squadre salvate nascoste senza recuperare dati delle squadre nascoste.",
+    changelog_5_3_0:
+      "HT Alchemy ora rileva le versioni distribuite piu recenti e richiede un aggiornamento senza cache.",
     changelog_5_2_0:
       "I criteri di confronto trasferimenti ora si possono disattivare con - sia nella stima valore giovani sia nella ricerca senior di giocatori simili.",
     changelog_5_1_0:

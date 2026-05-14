@@ -86,6 +86,12 @@ export const messagesPt: Messages = {
       "{{count}} equipe(s) acompanhada(s) em cache permanecem oculta(s) até o premium ser desbloqueado.",
     clubChroniclePremiumOtherTeamsMessage:
       "Compre a licença premium do HT Alchemy para ver esses dados de outras equipes acompanhadas.",
+    clubChronicleLimitTitle: "Limite do Club Chronicle atingido",
+    clubChronicleLimitBody:
+      "Para limitar os recursos do servidor, o Club Chronicle esta limitado a {{tabs}} abas e {{teams}} equipes acompanhadas por aba.",
+    clubChronicleLimitConfirm: "Entendi",
+    clubChronicleLimitTooltip:
+      "O Club Chronicle atingiu o limite atual de abas ou equipes.",
     appLicenseFeatureSeniorSimulationTitle: "Editar skills, idade, salário, TSI",
     appLicenseFeatureSeniorSimulationDescription:
       "Edite atributos do jogador para ver como as métricas do Foxtrick mudam. Isso melhora significativamente suas decisões de compra de jogadores.",
@@ -136,6 +142,16 @@ export const messagesPt: Messages = {
       "Modo gratuito. Os recursos premium permanecem bloqueados até que uma licença válida seja ativada. Clica para comprar uma licença premium.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Licença premium desbloqueada. Clica para ver os detalhes da licença.",
+    updateRequiredTitle: "Atualizacao necessaria",
+    updateRequiredBody:
+      "Esta disponivel uma nova versao do HT Alchemy. Atualiza agora para continuares a usar a app.",
+    updateRequiredAction: "Atualizar",
+    changelog_5_5_0:
+      "As proprias ligas no Club Chronicle agora expandem para selecoes por equipe com alternadores de liga.",
+    changelog_5_4_0:
+      "O Club Chronicle agora aplica limites de recursos, preservando abas e equipes ocultas salvas sem buscar dados de equipes ocultas.",
+    changelog_5_3_0:
+      "O HT Alchemy agora deteta versoes publicadas mais recentes e exige uma atualizacao sem cache.",
     changelog_5_2_0:
       "Os criterios de comparacao de transferencias agora podem ser desativados com - tanto na estimativa de valor jovem como na pesquisa senior de jogadores semelhantes.",
     changelog_5_1_0:

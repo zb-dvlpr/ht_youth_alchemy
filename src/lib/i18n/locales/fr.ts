@@ -86,6 +86,12 @@ export const messagesFr: Messages = {
       "{{count}} équipe(s) suivie(s) en cache restent masquées jusqu'au déblocage du premium.",
     clubChroniclePremiumOtherTeamsMessage:
       "Achetez la licence premium HT Alchemy pour voir ces données pour les autres équipes suivies.",
+    clubChronicleLimitTitle: "Limite de Chronique du club atteinte",
+    clubChronicleLimitBody:
+      "Pour limiter les ressources serveur, la Chronique du club est limitee a {{tabs}} onglets et {{teams}} equipes suivies par onglet.",
+    clubChronicleLimitConfirm: "Je comprends",
+    clubChronicleLimitTooltip:
+      "La Chronique du club a atteint la limite actuelle d onglets ou d equipes.",
     appLicenseFeatureSeniorSimulationTitle: "Modifier skills, âge, salaire, TSI",
     appLicenseFeatureSeniorSimulationDescription:
       "Modifiez les attributs du joueur pour voir comment les métriques Foxtrick évoluent. Cela améliore fortement vos décisions d’achat de joueurs.",
@@ -136,6 +142,16 @@ export const messagesFr: Messages = {
       "Mode gratuit. Les fonctionnalités premium restent verrouillées jusqu’à l’activation d’une licence valide. Cliquez ici pour acheter une licence premium.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Licence premium débloquée. Cliquez ici pour voir les détails de la licence.",
+    updateRequiredTitle: "Mise a jour requise",
+    updateRequiredBody:
+      "Une nouvelle version de HT Alchemy est disponible. Actualisez maintenant pour continuer a utiliser l app.",
+    updateRequiredAction: "Actualiser",
+    changelog_5_5_0:
+      "Les ligues personnelles de la Chronique du club s ouvrent maintenant en selections par equipe avec des interrupteurs globaux par ligue.",
+    changelog_5_4_0:
+      "La Chronique du club applique maintenant des limites de ressources tout en conservant les onglets et equipes masques sans recuperer les donnees des equipes masquees.",
+    changelog_5_3_0:
+      "HT Alchemy detecte desormais les nouvelles versions deployees et impose une actualisation sans cache.",
     changelog_5_2_0:
       "Les criteres de comparaison de transferts peuvent maintenant etre desactives avec - dans l estimation de valeur des jeunes et la recherche de joueurs similaires seniors.",
     changelog_5_1_0:

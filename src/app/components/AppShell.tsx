@@ -18,6 +18,7 @@ import Modal from "./Modal";
 import ManualModal from "./ManualModal";
 import BuyCoffeeButton from "./BuyCoffeeButton";
 import PremiumStatusPill from "./PremiumStatusPill";
+import VersionUpdateGate from "./VersionUpdateGate";
 import { Messages } from "@/lib/i18n";
 import { getChangelogEntries } from "@/lib/changelog";
 import { formatDateTime } from "@/lib/datetime";
@@ -1236,6 +1237,7 @@ export default function AppShell({
         closeOnBackdrop
         onClose={() => setShowChangelog(false)}
       />
+      <VersionUpdateGate appVersion={appVersion} messages={messages} />
     </div>
   );
 }

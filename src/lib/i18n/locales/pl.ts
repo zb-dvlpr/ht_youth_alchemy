@@ -71,6 +71,12 @@ export const messagesPl: Messages = {
     "{{count}} zapisanych w pamięci śledzonych drużyn pozostaje ukrytych do czasu odblokowania premium.",
   clubChroniclePremiumOtherTeamsMessage:
     "Kup licencję premium HT Alchemy, aby zobaczyć te dane dla innych śledzonych drużyn.",
+  clubChronicleLimitTitle: "Osiagnieto limit Club Chronicle",
+  clubChronicleLimitBody:
+    "Aby ograniczyc zasoby serwera, Club Chronicle jest ograniczony do {{tabs}} kart i {{teams}} sledzonych zespolow na karte.",
+  clubChronicleLimitConfirm: "Rozumiem",
+  clubChronicleLimitTooltip:
+    "Club Chronicle osiagnal aktualny limit kart lub zespolow.",
   appLicenseFeatureSeniorSimulationTitle: "Edytuj skille, wiek, pensję, TSI",
   appLicenseFeatureSeniorSimulationDescription:
     "Edytuj atrybuty zawodnika, aby zobaczyć, jak zmieniają się metryki Foxtricka. To znacząco poprawia decyzje zakupowe dotyczące zawodników.",
@@ -309,6 +315,16 @@ export const messagesPl: Messages = {
     "Tryb darmowy. Funkcje premium pozostają zablokowane, dopóki nie zostanie aktywowana ważna licencja. Kliknij, aby kupić licencję premium.",
   premiumPillLabel: "Premium",
   premiumPillTooltip: "Licencja premium odblokowana. Kliknij, aby zobaczyć szczegóły licencji.",
+  updateRequiredTitle: "Wymagana aktualizacja",
+  updateRequiredBody:
+    "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
+  updateRequiredAction: "Odswiez",
+  changelog_5_5_0:
+    "Wlasne ligi w Club Chronicle rozwijaja sie teraz do wyboru zespolow z przelacznikami grupowymi dla ligi.",
+  changelog_5_4_0:
+    "Club Chronicle wymusza teraz limity zasobow, zachowujac ukryte zapisane karty i zespoly bez pobierania danych ukrytych zespolow.",
+  changelog_5_3_0:
+    "HT Alchemy wykrywa teraz nowsze wdrozone wersje i wymaga odswiezenia z pominieciem pamieci podrecznej.",
   changelog_5_2_0:
     "Kryteria porownania transferowego mozna teraz wylaczyc za pomoca - zarowno przy wycenie juniorow, jak i w seniorskim wyszukiwaniu podobnych zawodnikow.",
   changelog_5_1_0:

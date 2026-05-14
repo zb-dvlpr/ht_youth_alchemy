@@ -85,6 +85,12 @@ export const messagesSv: Messages = {
       "{{count}} cachade spårade lag förblir dolda tills premium låses upp.",
     clubChroniclePremiumOtherTeamsMessage:
       "Köp HT Alchemy premiumlicensen för att se dessa data för andra spårade lag.",
+    clubChronicleLimitTitle: "Club Chronicle-grans uppnadd",
+    clubChronicleLimitBody:
+      "For att begransa serverresurser ar Club Chronicle begransad till {{tabs}} flikar och {{teams}} sparade lag per flik.",
+    clubChronicleLimitConfirm: "Jag forstar",
+    clubChronicleLimitTooltip:
+      "Club Chronicle har natt den aktuella flik- eller laggransen.",
     appLicenseFeatureSeniorSimulationTitle: "Redigera skills, ålder, lön, TSI",
     appLicenseFeatureSeniorSimulationDescription:
       "Redigera spelarattribut för att se hur Foxtrick-metrikerna ändras. Det förbättrar dina beslut vid spelarköp avsevärt.",
@@ -135,6 +141,16 @@ export const messagesSv: Messages = {
       "Friläge. Premiumfunktioner är låsta tills en giltig licens aktiveras. Klicka för att köpa en premiumlicens.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Premiumlicens upplåst. Klicka för licensdetaljer.",
+    updateRequiredTitle: "Uppdatering kravs",
+    updateRequiredBody:
+      "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
+    updateRequiredAction: "Uppdatera",
+    changelog_5_5_0:
+      "Egna ligor i Club Chronicle expanderas nu till lagvisa val med ligaomfattande reglage.",
+    changelog_5_4_0:
+      "Club Chronicle tillampar nu resursgranser och bevarar dolda sparade flikar och lag utan att hamta data for dolda lag.",
+    changelog_5_3_0:
+      "HT Alchemy upptacker nu nyare publicerade versioner och kraver en cachefri uppdatering.",
     changelog_5_2_0:
       "Overforingsjamforelsekriterier kan nu stangas av med - i bade ungdomens uppskatta varde och seniorernas sokning efter liknande spelare.",
     changelog_5_1_0:

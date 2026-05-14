@@ -18,6 +18,7 @@ Hattrick Alchemy is a CHPP-approved web app for Hattrick optimization workflows.
 - Shared workflows with platform-aware UX evolution for distinct desktop and mobile ergonomics
 - Localization (`en`, `de`, `fr`, `es`, `sv`, `it`, `pt`, `pl`, `nl`)
 - Local settings export/import and persisted UI state
+- Automatic deployed-version detection with a required refresh prompt
 
 ## Tech stack
 - Next.js (App Router)

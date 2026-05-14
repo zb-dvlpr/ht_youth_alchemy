@@ -135,6 +135,12 @@ export const messagesEs: Messages = {
       "Modo gratuito. Las funciones premium permanecen bloqueadas hasta que se active una licencia válida. Haz clic para comprar una licencia premium.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Licencia premium desbloqueada. Haz clic para ver los detalles de la licencia.",
+    updateRequiredTitle: "Actualizacion necesaria",
+    updateRequiredBody:
+      "Hay una nueva version de HT Alchemy disponible. Actualiza ahora para seguir usando la app.",
+    updateRequiredAction: "Actualizar",
+    changelog_5_3_0:
+      "HT Alchemy ahora detecta versiones desplegadas mas recientes y exige una actualizacion sin cache.",
     changelog_5_2_0:
       "Los criterios de comparacion de transferencias ahora se pueden desactivar con - tanto en estimar valor juvenil como en la busqueda senior de jugadores similares.",
     changelog_5_1_0:

@@ -309,6 +309,12 @@ export const messagesPl: Messages = {
     "Tryb darmowy. Funkcje premium pozostają zablokowane, dopóki nie zostanie aktywowana ważna licencja. Kliknij, aby kupić licencję premium.",
   premiumPillLabel: "Premium",
   premiumPillTooltip: "Licencja premium odblokowana. Kliknij, aby zobaczyć szczegóły licencji.",
+  updateRequiredTitle: "Wymagana aktualizacja",
+  updateRequiredBody:
+    "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
+  updateRequiredAction: "Odswiez",
+  changelog_5_3_0:
+    "HT Alchemy wykrywa teraz nowsze wdrozone wersje i wymaga odswiezenia z pominieciem pamieci podrecznej.",
   changelog_5_2_0:
     "Kryteria porownania transferowego mozna teraz wylaczyc za pomoca - zarowno przy wycenie juniorow, jak i w seniorskim wyszukiwaniu podobnych zawodnikow.",
   changelog_5_1_0:

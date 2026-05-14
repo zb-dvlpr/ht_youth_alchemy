@@ -135,6 +135,12 @@ export const messagesEn: Messages = {
       "Free mode. Premium features are locked until a valid license is activated. Click to buy a premium license.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Premium license unlocked. Click for license details.",
+    updateRequiredTitle: "Update required",
+    updateRequiredBody:
+      "A new version of HT Alchemy is available. Refresh now to keep using the app.",
+    updateRequiredAction: "Refresh to update",
+    changelog_5_3_0:
+      "HT Alchemy now detects newer deployed versions and requires a cache-busting refresh.",
     changelog_5_2_0:
       "Transfer compare criteria can now be disabled with - in both youth estimate value and senior similar-player searches.",
     changelog_5_1_0:

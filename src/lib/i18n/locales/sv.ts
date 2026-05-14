@@ -135,6 +135,12 @@ export const messagesSv: Messages = {
       "Friläge. Premiumfunktioner är låsta tills en giltig licens aktiveras. Klicka för att köpa en premiumlicens.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Premiumlicens upplåst. Klicka för licensdetaljer.",
+    updateRequiredTitle: "Uppdatering kravs",
+    updateRequiredBody:
+      "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
+    updateRequiredAction: "Uppdatera",
+    changelog_5_3_0:
+      "HT Alchemy upptacker nu nyare publicerade versioner och kraver en cachefri uppdatering.",
     changelog_5_2_0:
       "Overforingsjamforelsekriterier kan nu stangas av med - i bade ungdomens uppskatta varde och seniorernas sokning efter liknande spelare.",
     changelog_5_1_0:

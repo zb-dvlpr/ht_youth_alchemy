@@ -121,6 +121,10 @@ export type Messages = {
   freePillTooltip: string;
   premiumPillLabel: string;
   premiumPillTooltip: string;
+  updateRequiredTitle: string;
+  updateRequiredBody: string;
+  updateRequiredAction: string;
+  changelog_5_3_0: string;
   changelog_5_2_0: string;
   changelog_5_1_0: string;
   changelog_5_0_0: string;

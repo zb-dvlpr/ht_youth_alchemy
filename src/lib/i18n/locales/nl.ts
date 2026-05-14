@@ -316,6 +316,12 @@ export const messagesNl: Messages = {
     "Gratis modus. Premiumfuncties blijven vergrendeld totdat een geldige licentie is geactiveerd. Klik om een premiumlicentie te kopen.",
   premiumPillLabel: "Premium",
   premiumPillTooltip: "Premiumlicentie ontgrendeld. Klik om licentiegegevens te bekijken.",
+  updateRequiredTitle: "Update vereist",
+  updateRequiredBody:
+    "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
+  updateRequiredAction: "Vernieuwen",
+  changelog_5_3_0:
+    "HT Alchemy detecteert nu nieuwere uitgerolde versies en vereist een cache-omzeilende refresh.",
   changelog_5_2_0:
     "Transfervergelijkingscriteria kunnen nu met - worden uitgeschakeld in zowel jeugdwaarde-inschatting als senior zoeken naar vergelijkbare spelers.",
   changelog_5_1_0:

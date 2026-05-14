@@ -136,6 +136,12 @@ export const messagesDe: Messages = {
       "Freier Modus. Premium-Funktionen bleiben gesperrt, bis eine gültige Lizenz aktiviert wird. Klicke hier, um eine Premium-Lizenz zu kaufen.",
     premiumPillLabel: "Premium",
     premiumPillTooltip: "Premium-Lizenz freigeschaltet. Klicke hier für Lizenzdetails.",
+    updateRequiredTitle: "Update erforderlich",
+    updateRequiredBody:
+      "Eine neue Version von HT Alchemy ist verfuegbar. Aktualisiere jetzt, um die App weiter zu nutzen.",
+    updateRequiredAction: "Aktualisieren",
+    changelog_5_3_0:
+      "HT Alchemy erkennt jetzt neuere bereitgestellte Versionen und erzwingt eine cache-umgehende Aktualisierung.",
     changelog_5_2_0:
       "Transfervergleichskriterien lassen sich jetzt sowohl bei Jugend-Schaetzwert als auch bei Senior-Aehnlichkeitssuchen mit - deaktivieren.",
     changelog_5_1_0:

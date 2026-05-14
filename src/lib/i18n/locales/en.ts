@@ -85,6 +85,12 @@ export const messagesEn: Messages = {
       "{{count}} cached tracked team(s) are hidden until premium is unlocked.",
     clubChroniclePremiumOtherTeamsMessage:
       "Buy the premium HT Alchemy license to view this data for other tracked teams.",
+    clubChronicleLimitTitle: "Club Chronicle limit reached",
+    clubChronicleLimitBody:
+      "To limit server resources, Club Chronicle is limited to {{tabs}} tabs and {{teams}} tracked teams per tab.",
+    clubChronicleLimitConfirm: "I understand",
+    clubChronicleLimitTooltip:
+      "Club Chronicle has reached the current tab or team limit.",
     appLicenseFeatureSeniorSimulationTitle: "Edit skills, age, wage, TSI",
     appLicenseFeatureSeniorSimulationDescription:
       "Edit player attributes to see how Foxtrick metrics change. This significantly improves your player purchase decision making.",
@@ -139,6 +145,10 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_5_5_0:
+      "Club Chronicle own leagues now expand into per-team watchlist selections with league-level bulk toggles.",
+    changelog_5_4_0:
+      "Club Chronicle now enforces resource limits while preserving hidden saved tabs and teams without fetching hidden team data.",
     changelog_5_3_0:
       "HT Alchemy now detects newer deployed versions and requires a cache-busting refresh.",
     changelog_5_2_0:

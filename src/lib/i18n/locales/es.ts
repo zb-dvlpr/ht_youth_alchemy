@@ -85,6 +85,12 @@ export const messagesEs: Messages = {
       "{{count}} equipo(s) seguidos en caché permanecen ocultos hasta desbloquear premium.",
     clubChroniclePremiumOtherTeamsMessage:
       "Compra la licencia premium de HT Alchemy para ver estos datos de otros equipos seguidos.",
+    clubChronicleLimitTitle: "Limite de Cronica del club alcanzado",
+    clubChronicleLimitBody:
+      "Para limitar los recursos del servidor, Cronica del club esta limitada a {{tabs}} pestanas y {{teams}} equipos seguidos por pestana.",
+    clubChronicleLimitConfirm: "Lo entiendo",
+    clubChronicleLimitTooltip:
+      "Cronica del club ha alcanzado el limite actual de pestanas o equipos.",
     appLicenseFeatureSeniorSimulationTitle: "Editar skills, edad, salario, TSI",
     appLicenseFeatureSeniorSimulationDescription:
       "Edita los atributos del jugador para ver cómo cambian las métricas de Foxtrick. Esto mejora significativamente tus decisiones de compra de jugadores.",
@@ -139,6 +145,10 @@ export const messagesEs: Messages = {
     updateRequiredBody:
       "Hay una nueva version de HT Alchemy disponible. Actualiza ahora para seguir usando la app.",
     updateRequiredAction: "Actualizar",
+    changelog_5_5_0:
+      "Las ligas propias de Cronica del club ahora se expanden en selecciones por equipo con interruptores globales por liga.",
+    changelog_5_4_0:
+      "Cronica del club ahora aplica limites de recursos mientras conserva pestanas y equipos ocultos sin obtener datos de equipos ocultos.",
     changelog_5_3_0:
       "HT Alchemy ahora detecta versiones desplegadas mas recientes y exige una actualizacion sin cache.",
     changelog_5_2_0:

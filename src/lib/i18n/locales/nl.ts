@@ -71,6 +71,12 @@ export const messagesNl: Messages = {
     "{{count}} gecachte gevolgde teams blijven verborgen totdat premium is ontgrendeld.",
   clubChroniclePremiumOtherTeamsMessage:
     "Koop de HT Alchemy-premiumlicentie om deze gegevens voor andere gevolgde teams te bekijken.",
+  clubChronicleLimitTitle: "Club Chronicle-limiet bereikt",
+  clubChronicleLimitBody:
+    "Om serverbronnen te beperken is Club Chronicle beperkt tot {{tabs}} tabs en {{teams}} gevolgde teams per tab.",
+  clubChronicleLimitConfirm: "Ik begrijp het",
+  clubChronicleLimitTooltip:
+    "Club Chronicle heeft de huidige tab- of teamlimiet bereikt.",
   appLicenseFeatureSeniorSimulationTitle: "Skills, leeftijd, loon, TSI bewerken",
   appLicenseFeatureSeniorSimulationDescription:
     "Bewerk spelereigenschappen om te zien hoe de Foxtrick-metrieken veranderen. Dit verbetert je beslissingen bij speler aankopen aanzienlijk.",
@@ -320,6 +326,10 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+  changelog_5_5_0:
+    "Eigen competities in Club Chronicle klappen nu uit naar teamselecties met bulkknoppen per competitie.",
+  changelog_5_4_0:
+    "Club Chronicle dwingt nu resourcelimieten af en bewaart verborgen opgeslagen tabs en teams zonder gegevens voor verborgen teams op te halen.",
   changelog_5_3_0:
     "HT Alchemy detecteert nu nieuwere uitgerolde versies en vereist een cache-omzeilende refresh.",
   changelog_5_2_0:

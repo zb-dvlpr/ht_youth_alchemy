@@ -83,6 +83,10 @@ export type Messages = {
   clubChroniclePremiumTabLimitReached: string;
   clubChroniclePremiumHiddenTeamsNotice: string;
   clubChroniclePremiumOtherTeamsMessage: string;
+  clubChronicleLimitTitle: string;
+  clubChronicleLimitBody: string;
+  clubChronicleLimitConfirm: string;
+  clubChronicleLimitTooltip: string;
   appLicenseFeatureSeniorSimulationTitle: string;
   appLicenseFeatureSeniorSimulationDescription: string;
   appLicenseFeatureSeniorRatingsTitle: string;
@@ -124,6 +128,8 @@ export type Messages = {
   updateRequiredTitle: string;
   updateRequiredBody: string;
   updateRequiredAction: string;
+  changelog_5_5_0: string;
+  changelog_5_4_0: string;
   changelog_5_3_0: string;
   changelog_5_2_0: string;
   changelog_5_1_0: string;

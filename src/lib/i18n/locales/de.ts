@@ -86,6 +86,12 @@ export const messagesDe: Messages = {
       "{{count}} zwischengespeicherte verfolgte Teams bleiben verborgen, bis Premium freigeschaltet ist.",
     clubChroniclePremiumOtherTeamsMessage:
       "Kaufe die HT Alchemy Premium-Lizenz, um diese Daten für andere verfolgte Teams zu sehen.",
+    clubChronicleLimitTitle: "Club-Chronik-Limit erreicht",
+    clubChronicleLimitBody:
+      "Um Serverressourcen zu begrenzen, ist die Club-Chronik auf {{tabs}} Tabs und {{teams}} verfolgte Teams pro Tab beschraenkt.",
+    clubChronicleLimitConfirm: "Verstanden",
+    clubChronicleLimitTooltip:
+      "Die Club-Chronik hat das aktuelle Tab- oder Teamlimit erreicht.",
     appLicenseFeatureSeniorSimulationTitle: "Skills, Alter, Gehalt, TSI bearbeiten",
     appLicenseFeatureSeniorSimulationDescription:
       "Bearbeite Spielerattribute, um zu sehen, wie sich die Foxtrick-Metriken ändern. Das verbessert deine Kaufentscheidungen für Spieler deutlich.",
@@ -140,6 +146,10 @@ export const messagesDe: Messages = {
     updateRequiredBody:
       "Eine neue Version von HT Alchemy ist verfuegbar. Aktualisiere jetzt, um die App weiter zu nutzen.",
     updateRequiredAction: "Aktualisieren",
+    changelog_5_5_0:
+      "Eigene Ligen in der Club-Chronik werden jetzt als Team-Auswahllisten mit Liga-Sammelschaltern angezeigt.",
+    changelog_5_4_0:
+      "Die Club-Chronik erzwingt jetzt Ressourcenlimits, bewahrt ausgeblendete gespeicherte Tabs und Teams und ruft keine Daten fuer ausgeblendete Teams ab.",
     changelog_5_3_0:
       "HT Alchemy erkennt jetzt neuere bereitgestellte Versionen und erzwingt eine cache-umgehende Aktualisierung.",
     changelog_5_2_0:

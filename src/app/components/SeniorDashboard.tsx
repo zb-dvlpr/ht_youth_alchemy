@@ -199,11 +199,13 @@ type PlayerDetailCacheEntry = {
 type SeniorLeagueOrigin = {
   leagueId: number;
   leagueName: string;
+  trainingDate: string;
   countryCode?: string;
   flagEmoji?: string;
 };
 
 type SeniorLeagueOriginsCache = {
+  schemaVersion: number;
   fetchedAt: number;
   originsByLeagueId: Record<number, SeniorLeagueOrigin>;
 };
@@ -364,6 +366,7 @@ const SENIOR_HELP_ANCHOR_ANALYZE_OPPONENT = `.${styles.matchAnalyzeOpponentWrap}
 const STATE_STORAGE_KEY = "ya_senior_dashboard_state_v1";
 const DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
 const LEAGUE_ORIGINS_STORAGE_KEY = "ya_senior_worlddetails_league_origins_v1";
+const LEAGUE_ORIGINS_CACHE_SCHEMA_VERSION = 2;
 const LAST_REFRESH_STORAGE_KEY = "ya_senior_last_refresh_ts_v1";
 const LIST_SORT_STORAGE_KEY = "ya_senior_player_list_sort_v1";
 const SENIOR_HELP_STORAGE_KEY = "ya_senior_help_dismissed_v1";
@@ -1095,6 +1098,21 @@ const countryCodeToFlagEmoji = (input: unknown): string | undefined => {
     .join("");
 };
 
+const parseWorlddetailsDateTime = (value: unknown): string | null => {
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+  }
+  if (value && typeof value === "object") {
+    const text = (value as Record<string, unknown>)["#text"];
+    if (typeof text === "string") {
+      const trimmed = text.trim();
+      return trimmed ? trimmed : null;
+    }
+  }
+  return null;
+};
+
 const normalizeWorlddetailsLeagues = (input: unknown): SeniorLeagueOrigin[] => {
   if (!input || typeof input !== "object") return [];
   const root = input as Record<string, unknown>;
@@ -1108,7 +1126,8 @@ const normalizeWorlddetailsLeagues = (input: unknown): SeniorLeagueOrigin[] => {
     const league = item as Record<string, unknown>;
     const leagueId = parseNumber(league.LeagueID);
     const leagueName = typeof league.LeagueName === "string" ? league.LeagueName.trim() : "";
-    if (!leagueId || !leagueName) return;
+    const trainingDate = parseWorlddetailsDateTime(league.TrainingDate);
+    if (!leagueId || !leagueName || !trainingDate) return;
     const country =
       league.Country && typeof league.Country === "object"
         ? (league.Country as Record<string, unknown>)
@@ -1119,11 +1138,25 @@ const normalizeWorlddetailsLeagues = (input: unknown): SeniorLeagueOrigin[] => {
     origins.push({
       leagueId,
       leagueName,
+      trainingDate,
       ...(countryCode ? { countryCode } : {}),
       ...(flagEmoji ? { flagEmoji } : {}),
     });
   });
   return origins;
+};
+
+const isSeniorLeagueOrigin = (value: unknown): value is SeniorLeagueOrigin => {
+  if (!value || typeof value !== "object") return false;
+  const origin = value as Record<string, unknown>;
+  return (
+    typeof origin.leagueId === "number" &&
+    Number.isFinite(origin.leagueId) &&
+    typeof origin.leagueName === "string" &&
+    origin.leagueName.trim().length > 0 &&
+    typeof origin.trainingDate === "string" &&
+    origin.trainingDate.trim().length > 0
+  );
 };
 
 const readSeniorLeagueOriginsCache = (): SeniorLeagueOriginsCache | null => {
@@ -1133,8 +1166,12 @@ const readSeniorLeagueOriginsCache = (): SeniorLeagueOriginsCache | null => {
     if (!raw) return null;
     const parsed = JSON.parse(raw) as SeniorLeagueOriginsCache;
     if (!parsed || typeof parsed !== "object") return null;
+    if (parsed.schemaVersion !== LEAGUE_ORIGINS_CACHE_SCHEMA_VERSION) return null;
     if (!Number.isFinite(parsed.fetchedAt)) return null;
     if (!parsed.originsByLeagueId || typeof parsed.originsByLeagueId !== "object") {
+      return null;
+    }
+    if (!Object.values(parsed.originsByLeagueId).every(isSeniorLeagueOrigin)) {
       return null;
     }
     return parsed;
@@ -1151,6 +1188,7 @@ const writeSeniorLeagueOriginsCache = (
     window.localStorage.setItem(
       LEAGUE_ORIGINS_STORAGE_KEY,
       JSON.stringify({
+        schemaVersion: LEAGUE_ORIGINS_CACHE_SCHEMA_VERSION,
         fetchedAt: Date.now(),
         originsByLeagueId,
       } satisfies SeniorLeagueOriginsCache)

@@ -70,6 +70,7 @@ import {
   readCompressedChronicleStorage,
   writeCompressedChronicleStorage,
 } from "@/lib/chronicleStorageCodec";
+import { getSpecialtyEmoji } from "@/lib/specialty";
 import {
   APP_LICENSE_EVENT,
   APP_LICENSE_STORAGE_KEY,
@@ -346,6 +347,7 @@ type TsiSnapshot = {
     age: number | null;
     ageDays: number | null;
     injuryLevel: number | null;
+    specialty: number | null;
     form: number | null;
     stamina: number | null;
     experience: number | null;
@@ -375,6 +377,7 @@ type TsiPlayerRow = {
   age: number | null;
   ageDays: number | null;
   injuryLevel: number | null;
+  specialty: number | null;
   form: number | null;
   stamina: number | null;
   experience: number | null;
@@ -393,6 +396,7 @@ type WagesSnapshot = {
     age: number | null;
     ageDays: number | null;
     injuryLevel: number | null;
+    specialty: number | null;
     form: number | null;
     stamina: number | null;
     experience: number | null;
@@ -629,6 +633,7 @@ type WagesPlayerRow = {
   age: number | null;
   ageDays: number | null;
   injuryLevel: number | null;
+  specialty: number | null;
   form: number | null;
   stamina: number | null;
   experience: number | null;
@@ -9426,6 +9431,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     ageDays: number | null;
     injuryLevel: number | null;
     transferListed: boolean;
+    specialty: number | null;
     form: number | null;
     stamina: number | null;
     experience: number | null;
@@ -9476,6 +9482,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           ageDays: parseNumberNode(player?.AgeDays),
           injuryLevel: parseNumberNode(player?.InjuryLevel),
           transferListed: parseBool(player?.TransferListed),
+          specialty: parseNumberNode(player?.Specialty),
           form: parseNumberNode(player?.PlayerForm ?? player?.Form),
           stamina: parseNumberNode(player?.StaminaSkill ?? playerSkills.StaminaSkill),
           experience: parseNumberNode(player?.Experience),
@@ -9553,6 +9560,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       age: player.age,
       ageDays: player.ageDays,
       injuryLevel: player.injuryLevel,
+      specialty: player.specialty,
       form: player.form,
       stamina: player.stamina,
       experience: player.experience,
@@ -9581,6 +9589,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       age: player.age,
       ageDays: player.ageDays,
       injuryLevel: player.injuryLevel,
+      specialty: player.specialty,
       form: player.form,
       stamina: player.stamina,
       experience: player.experience,
@@ -13289,6 +13298,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         renderCell: (snapshot, _row, fallbackFormat) => {
           const playerId = snapshot?.playerId ?? 0;
           const playerName = snapshot?.playerName ?? null;
+          const specialtyEmoji = getSpecialtyEmoji(snapshot?.specialty);
           const injuryIndicator = renderInjuryStatusInline(snapshot?.injuryLevel);
           if (!playerId) return fallbackFormat(playerName);
           return (
@@ -13299,6 +13309,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               rel="noreferrer"
             >
               {playerName ?? `${playerId}`}
+              {specialtyEmoji ? (
+                <span
+                  className={styles.chronicleInjuryInline}
+                  title={messages.specialtyLabel}
+                  aria-label={messages.specialtyLabel}
+                >
+                  {specialtyEmoji}
+                </span>
+              ) : null}
               {injuryIndicator}
             </a>
           );
@@ -13348,6 +13367,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [
       messages.clubChronicleTsiPlayerIndexColumn,
       messages.clubChronicleTsiPlayerColumn,
+      messages.specialtyLabel,
       messages.clubChronicleTransferListedAgeColumn,
       messages.clubChroniclePlayerFormColumn,
       messages.clubChroniclePlayerStaminaColumn,
@@ -13401,6 +13421,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         renderCell: (snapshot, _row, fallbackFormat) => {
           const playerId = snapshot?.playerId ?? 0;
           const playerName = snapshot?.playerName ?? null;
+          const specialtyEmoji = getSpecialtyEmoji(snapshot?.specialty);
           const injuryIndicator = renderInjuryStatusInline(snapshot?.injuryLevel);
           if (!playerId) return fallbackFormat(playerName);
           return (
@@ -13411,6 +13432,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               rel="noreferrer"
             >
               {playerName ?? `${playerId}`}
+              {specialtyEmoji ? (
+                <span
+                  className={styles.chronicleInjuryInline}
+                  title={messages.specialtyLabel}
+                  aria-label={messages.specialtyLabel}
+                >
+                  {specialtyEmoji}
+                </span>
+              ) : null}
               {injuryIndicator}
             </a>
           );
@@ -13461,6 +13491,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     [
       messages.clubChronicleWagesPlayerIndexColumn,
       messages.clubChronicleWagesPlayerColumn,
+      messages.specialtyLabel,
       messages.clubChronicleTransferListedAgeColumn,
       messages.clubChroniclePlayerFormColumn,
       messages.clubChroniclePlayerStaminaColumn,

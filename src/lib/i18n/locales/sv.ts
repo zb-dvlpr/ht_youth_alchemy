@@ -145,6 +145,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_5_6_0:
+      "Forbattrade spelardetaljer for TSI- och lonepanelerna i Club Chronicle.",
     changelog_5_5_0:
       "Egna ligor i Club Chronicle expanderas nu till lagvisa val med ligaomfattande reglage.",
     changelog_5_4_0:
@@ -790,6 +792,11 @@ export const messagesSv: Messages = {
     clubChronicleTsiPlayerIndexColumn: "Nr",
     clubChronicleTsiPlayerColumn: "Spelare",
     clubChronicleTsiValueColumn: "TSI",
+    clubChroniclePlayerFormColumn: "Form",
+    clubChroniclePlayerStaminaColumn: "Kondition",
+    clubChroniclePlayerExperienceColumn: "Erf.",
+    clubChroniclePlayerLeadershipColumn: "Ledarskap",
+    clubChroniclePlayerLoyaltyColumn: "Lojalitet",
     clubChronicleWagesPanelTitle: "Löner",
     clubChronicleWagesColumnTotal: "Totala löner",
     clubChronicleWagesColumnTop11: "Topp 11-löner",

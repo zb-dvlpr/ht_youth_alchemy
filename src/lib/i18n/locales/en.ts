@@ -145,6 +145,8 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_5_6_0:
+      "Enhanced player details for TSI and wages panels in Club Chronicle.",
     changelog_5_5_0:
       "Club Chronicle own leagues now expand into per-team watchlist selections with league-level bulk toggles.",
     changelog_5_4_0:
@@ -762,6 +764,11 @@ export const messagesEn: Messages = {
     clubChronicleTsiPlayerIndexColumn: "No.",
     clubChronicleTsiPlayerColumn: "Player",
     clubChronicleTsiValueColumn: "TSI",
+    clubChroniclePlayerFormColumn: "Form",
+    clubChroniclePlayerStaminaColumn: "Stamina",
+    clubChroniclePlayerExperienceColumn: "Exp",
+    clubChroniclePlayerLeadershipColumn: "Leadership",
+    clubChroniclePlayerLoyaltyColumn: "Loyalty",
     clubChronicleWagesPanelTitle: "Wages",
     clubChronicleWagesColumnTotal: "Total wages",
     clubChronicleWagesColumnTop11: "Top 11 wages",

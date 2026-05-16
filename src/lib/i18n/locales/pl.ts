@@ -319,6 +319,8 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+  changelog_5_6_0:
+    "Rozszerzone szczegoly zawodnikow w panelach TSI i plac w Club Chronicle.",
   changelog_5_5_0:
     "Wlasne ligi w Club Chronicle rozwijaja sie teraz do wyboru zespolow z przelacznikami grupowymi dla ligi.",
   changelog_5_4_0:
@@ -815,6 +817,11 @@ export const messagesPl: Messages = {
   clubChronicleDetailModeDev: "Tryb deweloperski",
   clubChronicleTeamAttitudeDisclaimer:
     "Te wartosci sa wywnioskowane i nie zawsze musza byc dokladne. Druzyny, ktore regularnie graja PIC, a potem zagraja normalnie, moga wygladac jak MOTS, a druzyny, ktore regularnie graja MOTS, a potem zagraja normalnie, moga wygladac jak PIC.",
+  clubChroniclePlayerFormColumn: "Forma",
+  clubChroniclePlayerStaminaColumn: "Kondycja",
+  clubChroniclePlayerExperienceColumn: "Dosw.",
+  clubChroniclePlayerLeadershipColumn: "Przywodztwo",
+  clubChroniclePlayerLoyaltyColumn: "Lojalnosc",
   seniorHelpTitle: "Przewodnik optymalizacji seniorów",
   seniorHelpIntro:
     "Ten widok pomaga śledzić istotne zmiany w kadrze seniorów i szybciej ustawiać składy meczowe.",

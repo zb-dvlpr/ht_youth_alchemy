@@ -346,6 +346,11 @@ type TsiSnapshot = {
     age: number | null;
     ageDays: number | null;
     injuryLevel: number | null;
+    form: number | null;
+    stamina: number | null;
+    experience: number | null;
+    leadership: number | null;
+    loyalty: number | null;
     tsi: number;
   }[];
   fetchedAt: number;
@@ -370,6 +375,11 @@ type TsiPlayerRow = {
   age: number | null;
   ageDays: number | null;
   injuryLevel: number | null;
+  form: number | null;
+  stamina: number | null;
+  experience: number | null;
+  leadership: number | null;
+  loyalty: number | null;
   tsi: number;
 };
 
@@ -383,6 +393,11 @@ type WagesSnapshot = {
     age: number | null;
     ageDays: number | null;
     injuryLevel: number | null;
+    form: number | null;
+    stamina: number | null;
+    experience: number | null;
+    leadership: number | null;
+    loyalty: number | null;
     salarySek: number;
   }[];
   fetchedAt: number;
@@ -614,6 +629,11 @@ type WagesPlayerRow = {
   age: number | null;
   ageDays: number | null;
   injuryLevel: number | null;
+  form: number | null;
+  stamina: number | null;
+  experience: number | null;
+  leadership: number | null;
+  loyalty: number | null;
   salarySek: number;
 };
 
@@ -9406,6 +9426,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     ageDays: number | null;
     injuryLevel: number | null;
     transferListed: boolean;
+    form: number | null;
+    stamina: number | null;
+    experience: number | null;
+    leadership: number | null;
+    loyalty: number | null;
     tsi: number;
     salarySek: number;
   };
@@ -9438,6 +9463,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       .map((player) => {
         const playerId = parseNumber(player?.PlayerID) ?? 0;
         if (playerId <= 0) return null;
+        const playerSkills = (player?.PlayerSkills ?? {}) as RawNode;
         const playerName = [player?.FirstName, player?.NickName, player?.LastName]
           .filter(Boolean)
           .join(" ")
@@ -9450,6 +9476,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           ageDays: parseNumberNode(player?.AgeDays),
           injuryLevel: parseNumberNode(player?.InjuryLevel),
           transferListed: parseBool(player?.TransferListed),
+          form: parseNumberNode(player?.PlayerForm ?? player?.Form),
+          stamina: parseNumberNode(player?.StaminaSkill ?? playerSkills.StaminaSkill),
+          experience: parseNumberNode(player?.Experience),
+          leadership: parseNumberNode(player?.Leadership),
+          loyalty: parseNumberNode(player?.Loyalty),
           tsi: parseNumber(player?.TSI) ?? 0,
           salarySek: parseMoneySek(player?.Salary) ?? 0,
         };
@@ -9522,6 +9553,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       age: player.age,
       ageDays: player.ageDays,
       injuryLevel: player.injuryLevel,
+      form: player.form,
+      stamina: player.stamina,
+      experience: player.experience,
+      leadership: player.leadership,
+      loyalty: player.loyalty,
       tsi: Number.isFinite(player.tsi) ? player.tsi : 0,
     }));
     const tsiValues = normalizedPlayers
@@ -9545,6 +9581,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       age: player.age,
       ageDays: player.ageDays,
       injuryLevel: player.injuryLevel,
+      form: player.form,
+      stamina: player.stamina,
+      experience: player.experience,
+      leadership: player.leadership,
+      loyalty: player.loyalty,
       salarySek: Number.isFinite(player.salarySek) ? player.salarySek : 0,
     }));
     const wages = normalizedPlayers
@@ -13274,6 +13315,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         },
       },
       {
+        key: "form",
+        label: messages.clubChroniclePlayerFormColumn,
+        getValue: (snapshot) => snapshot?.form ?? null,
+      },
+      {
+        key: "stamina",
+        label: messages.clubChroniclePlayerStaminaColumn,
+        getValue: (snapshot) => snapshot?.stamina ?? null,
+      },
+      {
+        key: "experience",
+        label: messages.clubChroniclePlayerExperienceColumn,
+        getValue: (snapshot) => snapshot?.experience ?? null,
+      },
+      {
+        key: "leadership",
+        label: messages.clubChroniclePlayerLeadershipColumn,
+        getValue: (snapshot) => snapshot?.leadership ?? null,
+      },
+      {
+        key: "loyalty",
+        label: messages.clubChroniclePlayerLoyaltyColumn,
+        getValue: (snapshot) => snapshot?.loyalty ?? null,
+      },
+      {
         key: "tsi",
         label: messages.clubChronicleTsiValueColumn,
         getValue: (snapshot) => snapshot?.tsi ?? null,
@@ -13283,6 +13349,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleTsiPlayerIndexColumn,
       messages.clubChronicleTsiPlayerColumn,
       messages.clubChronicleTransferListedAgeColumn,
+      messages.clubChroniclePlayerFormColumn,
+      messages.clubChroniclePlayerStaminaColumn,
+      messages.clubChroniclePlayerExperienceColumn,
+      messages.clubChroniclePlayerLeadershipColumn,
+      messages.clubChroniclePlayerLoyaltyColumn,
       messages.clubChronicleTsiValueColumn,
       formatAgeWithDays,
       renderInjuryStatusInline,
@@ -13356,6 +13427,31 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         },
       },
       {
+        key: "form",
+        label: messages.clubChroniclePlayerFormColumn,
+        getValue: (snapshot) => snapshot?.form ?? null,
+      },
+      {
+        key: "stamina",
+        label: messages.clubChroniclePlayerStaminaColumn,
+        getValue: (snapshot) => snapshot?.stamina ?? null,
+      },
+      {
+        key: "experience",
+        label: messages.clubChroniclePlayerExperienceColumn,
+        getValue: (snapshot) => snapshot?.experience ?? null,
+      },
+      {
+        key: "leadership",
+        label: messages.clubChroniclePlayerLeadershipColumn,
+        getValue: (snapshot) => snapshot?.leadership ?? null,
+      },
+      {
+        key: "loyalty",
+        label: messages.clubChroniclePlayerLoyaltyColumn,
+        getValue: (snapshot) => snapshot?.loyalty ?? null,
+      },
+      {
         key: "wage",
         label: messages.clubChronicleWagesValueColumn,
         getValue: (snapshot) => formatChppCurrencyFromSek(snapshot?.salarySek ?? null),
@@ -13366,6 +13462,11 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChronicleWagesPlayerIndexColumn,
       messages.clubChronicleWagesPlayerColumn,
       messages.clubChronicleTransferListedAgeColumn,
+      messages.clubChroniclePlayerFormColumn,
+      messages.clubChroniclePlayerStaminaColumn,
+      messages.clubChroniclePlayerExperienceColumn,
+      messages.clubChroniclePlayerLeadershipColumn,
+      messages.clubChroniclePlayerLoyaltyColumn,
       messages.clubChronicleWagesValueColumn,
       formatAgeWithDays,
       renderInjuryStatusInline,
@@ -15522,7 +15623,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     {
                       "--cc-columns": tsiPlayerColumns.length,
                       "--cc-template":
-                        "minmax(90px, 0.5fr) minmax(240px, 1.5fr) minmax(120px, 0.9fr) minmax(130px, 0.8fr)",
+                        "minmax(70px, 0.45fr) minmax(220px, 1.35fr) minmax(110px, 0.75fr) minmax(90px, 0.6fr) minmax(100px, 0.65fr) minmax(80px, 0.55fr) minmax(110px, 0.75fr) minmax(100px, 0.65fr) minmax(120px, 0.75fr)",
                     } as CSSProperties
                   }
                   sortKey={tsiDetailsSortState.key}
@@ -15556,7 +15657,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     {
                       "--cc-columns": wagesPlayerColumns.length,
                       "--cc-template":
-                        "minmax(90px, 0.5fr) minmax(240px, 1.5fr) minmax(120px, 0.9fr) minmax(150px, 0.8fr)",
+                        "minmax(70px, 0.45fr) minmax(220px, 1.35fr) minmax(110px, 0.75fr) minmax(90px, 0.6fr) minmax(100px, 0.65fr) minmax(80px, 0.55fr) minmax(110px, 0.75fr) minmax(100px, 0.65fr) minmax(140px, 0.85fr)",
                     } as CSSProperties
                   }
                   sortKey={wagesDetailsSortState.key}
@@ -18363,7 +18464,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       {
                         "--cc-columns": tsiPlayerColumns.length,
                         "--cc-template":
-                          "minmax(90px, 0.5fr) minmax(240px, 1.5fr) minmax(120px, 0.9fr) minmax(130px, 0.8fr)",
+                          "minmax(70px, 0.45fr) minmax(220px, 1.35fr) minmax(110px, 0.75fr) minmax(90px, 0.6fr) minmax(100px, 0.65fr) minmax(80px, 0.55fr) minmax(110px, 0.75fr) minmax(100px, 0.65fr) minmax(120px, 0.75fr)",
                       } as CSSProperties
                     }
                     sortKey={tsiDetailsSortState.key}
@@ -18419,7 +18520,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                       {
                         "--cc-columns": wagesPlayerColumns.length,
                         "--cc-template":
-                          "minmax(90px, 0.5fr) minmax(240px, 1.5fr) minmax(120px, 0.9fr) minmax(150px, 0.8fr)",
+                          "minmax(70px, 0.45fr) minmax(220px, 1.35fr) minmax(110px, 0.75fr) minmax(90px, 0.6fr) minmax(100px, 0.65fr) minmax(80px, 0.55fr) minmax(110px, 0.75fr) minmax(100px, 0.65fr) minmax(140px, 0.85fr)",
                       } as CSSProperties
                     }
                     sortKey={wagesDetailsSortState.key}

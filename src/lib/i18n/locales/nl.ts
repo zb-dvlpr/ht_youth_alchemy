@@ -326,6 +326,8 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+  changelog_5_6_0:
+    "Uitgebreide spelerdetails voor TSI- en loonpanelen in Club Chronicle.",
   changelog_5_5_0:
     "Eigen competities in Club Chronicle klappen nu uit naar teamselecties met bulkknoppen per competitie.",
   changelog_5_4_0:
@@ -822,6 +824,11 @@ export const messagesNl: Messages = {
   clubChronicleDetailModeDev: "Dev-modus",
   clubChronicleTeamAttitudeDisclaimer:
     "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig. Teams die consequent PIC spelen en daarna normaal spelen, kunnen op MOTS lijken, en teams die consequent MOTS spelen en daarna normaal spelen, kunnen op PIC lijken.",
+  clubChroniclePlayerFormColumn: "Vorm",
+  clubChroniclePlayerStaminaColumn: "Conditie",
+  clubChroniclePlayerExperienceColumn: "Erv.",
+  clubChroniclePlayerLeadershipColumn: "Leiderschap",
+  clubChroniclePlayerLoyaltyColumn: "Loyaliteit",
   seniorHelpTitle: "Handleiding senioroptimalisatie",
   seniorHelpIntro:
     "Deze weergave helpt je relevante wijzigingen in de seniorselectie te volgen en sneller wedstrijdopstellingen te zetten.",

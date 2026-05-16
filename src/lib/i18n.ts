@@ -128,6 +128,7 @@ export type Messages = {
   updateRequiredTitle: string;
   updateRequiredBody: string;
   updateRequiredAction: string;
+  changelog_5_6_0: string;
   changelog_5_5_0: string;
   changelog_5_4_0: string;
   changelog_5_3_0: string;
@@ -676,6 +677,11 @@ export type Messages = {
   clubChronicleTsiPlayerIndexColumn: string;
   clubChronicleTsiPlayerColumn: string;
   clubChronicleTsiValueColumn: string;
+  clubChroniclePlayerFormColumn: string;
+  clubChroniclePlayerStaminaColumn: string;
+  clubChroniclePlayerExperienceColumn: string;
+  clubChroniclePlayerLeadershipColumn: string;
+  clubChroniclePlayerLoyaltyColumn: string;
   clubChronicleWagesPanelTitle: string;
   clubChronicleWagesColumnTotal: string;
   clubChronicleWagesColumnTop11: string;

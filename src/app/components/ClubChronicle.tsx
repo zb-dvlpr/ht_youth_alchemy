@@ -358,6 +358,15 @@ type TsiSnapshot = {
   fetchedAt: number;
 };
 
+type Form7RatingEntry = {
+  matchId: number;
+  sourceSystem: string;
+  matchDate: string | null;
+  ratingStarsEndOfMatch: number;
+  weatherId: number;
+  recordedAt: number;
+};
+
 type TsiData = {
   current: TsiSnapshot;
   previous?: TsiSnapshot;
@@ -367,6 +376,7 @@ type TsiRow = {
   teamId: number;
   teamName: string;
   snapshot?: TsiSnapshot | null;
+  form7RatingsByPlayerId?: Record<number, Form7RatingEntry[]>;
 };
 
 type TsiPlayerRow = {
@@ -384,6 +394,7 @@ type TsiPlayerRow = {
   leadership: number | null;
   loyalty: number | null;
   tsi: number;
+  form7Ratings: Form7RatingEntry[];
 };
 
 type WagesSnapshot = {
@@ -416,6 +427,7 @@ type WagesRow = {
   teamId: number;
   teamName: string;
   snapshot?: WagesSnapshot | null;
+  form7RatingsByPlayerId?: Record<number, Form7RatingEntry[]>;
 };
 
 type FormationTacticsDistribution = {
@@ -640,6 +652,7 @@ type WagesPlayerRow = {
   leadership: number | null;
   loyalty: number | null;
   salarySek: number;
+  form7Ratings: Form7RatingEntry[];
 };
 
 type FanclubSnapshot = {
@@ -709,6 +722,7 @@ type PressToken =
 type ChronicleTeamData = {
   teamId: number;
   teamName?: string;
+  leagueId?: number | null;
   leagueName?: string | null;
   leagueLevelUnitName?: string | null;
   leagueLevelUnitId?: number | null;
@@ -724,6 +738,7 @@ type ChronicleTeamData = {
   transferActivity?: TransferActivityData;
   tsi?: TsiData;
   wages?: WagesData;
+  form7RatingsByPlayerId?: Record<number, Form7RatingEntry[]>;
   formationsTactics?: FormationTacticsData;
   teamAttitude?: TeamAttitudeData;
   lastLogin?: LastLoginData;
@@ -783,6 +798,7 @@ type UpdatePanel =
 type ChronicleTableColumn<Row, Snapshot> = {
   key: string;
   label: string;
+  headerAccessory?: ReactNode;
   sortable?: boolean;
   getValue: (
     snapshot: Snapshot | undefined,
@@ -868,6 +884,7 @@ const ChronicleTable = <Row, Snapshot>({
       {columns.map((column) => {
         const isSortable = Boolean(onSort) && column.sortable !== false;
         const isActive = sortKey === column.key;
+        const headerKey = `header-${column.key}`;
         if (isSortable) {
           const icon = isActive
             ? sortDirection === "desc"
@@ -880,22 +897,41 @@ const ChronicleTable = <Row, Snapshot>({
                 ? "descending"
                 : "ascending"
               : "none";
-        return (
-          <button
-            key={`header-${column.key}`}
-            type="button"
-            className={styles.chronicleTableHeaderButton}
-              onClick={() => onSort?.(column.key)}
-              aria-sort={ariaSort}
+          return (
+            <span
+              key={headerKey}
+              className={styles.chronicleTableHeaderItem}
+              data-label={column.label}
             >
-              {column.label}
-              <span className={styles.chronicleTableSortIcon}>{icon}</span>
-            </button>
+              <button
+                type="button"
+                className={styles.chronicleTableHeaderButton}
+                onClick={() => onSort?.(column.key)}
+                aria-sort={ariaSort}
+              >
+                {column.label}
+                <span className={styles.chronicleTableSortIcon}>{icon}</span>
+              </button>
+              {column.headerAccessory ? (
+                <span className={styles.chronicleTableHeaderAccessory}>
+                  {column.headerAccessory}
+                </span>
+              ) : null}
+            </span>
           );
         }
         return (
-          <span key={`header-${column.key}`} data-label={column.label}>
-            {column.label}
+          <span
+            key={headerKey}
+            className={styles.chronicleTableHeaderItem}
+            data-label={column.label}
+          >
+            <span>{column.label}</span>
+            {column.headerAccessory ? (
+              <span className={styles.chronicleTableHeaderAccessory}>
+                {column.headerAccessory}
+              </span>
+            ) : null}
           </span>
         );
       })}
@@ -3921,6 +3957,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       map.set(team.teamId, {
         teamId: team.teamId,
         teamName: team.teamName,
+        leagueId: cached?.leagueId ?? null,
         leagueName: team.leagueName ?? cached?.leagueName ?? null,
         leagueLevelUnitName:
           team.leagueLevelUnitName ?? cached?.leagueLevelUnitName ?? null,
@@ -3928,6 +3965,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         arenaId: cached?.arenaId ?? null,
         arenaName: cached?.arenaName ?? null,
         leaguePerformance: cached?.leaguePerformance,
+        form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
       });
     });
     nextManualTeams.forEach((team) => {
@@ -3935,6 +3973,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       map.set(team.teamId, {
         teamId: team.teamId,
         teamName: team.teamName ?? cached?.teamName ?? "",
+        leagueId: cached?.leagueId ?? null,
         leagueName: team.leagueName ?? cached?.leagueName ?? null,
         leagueLevelUnitName:
           team.leagueLevelUnitName ?? cached?.leagueLevelUnitName ?? null,
@@ -3943,6 +3982,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         arenaId: cached?.arenaId ?? null,
         arenaName: cached?.arenaName ?? null,
         leaguePerformance: cached?.leaguePerformance,
+        form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
       });
     });
     ownLeagueTeams.forEach((team) => {
@@ -3958,6 +3998,12 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       map.set(team.teamId, {
         teamId: team.teamId,
         teamName: existing?.teamName ?? team.teamName ?? cached?.teamName ?? "",
+        leagueId:
+          existing?.leagueId ??
+          existing?.leaguePerformance?.current?.leagueId ??
+          cached?.leagueId ??
+          cached?.leaguePerformance?.current?.leagueId ??
+          null,
         leagueName:
           existing?.leagueName ?? team.leagueName ?? cached?.leagueName ?? null,
         leagueLevelUnitName:
@@ -3973,6 +4019,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         arenaId: existing?.arenaId ?? cached?.arenaId ?? null,
         arenaName: existing?.arenaName ?? cached?.arenaName ?? null,
         leaguePerformance: existing?.leaguePerformance ?? cached?.leaguePerformance,
+        form7RatingsByPlayerId:
+          existing?.form7RatingsByPlayerId ?? cached?.form7RatingsByPlayerId,
       });
     });
     return Array.from(map.values()).sort((a, b) =>
@@ -4867,7 +4915,6 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   }, [
     messages.watchlistError,
     chroniclePremiumUnlocked,
-    ownLeagueSelections,
     ownLeagues,
     watchlistOpen,
   ]);
@@ -9068,6 +9115,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         ...nextCache.teams[team.teamId],
         teamId: team.teamId,
         teamName: team.teamName ?? snapshot.teamName ?? "",
+        leagueId: snapshot.leagueId,
         leagueName: team.leagueName ?? snapshot.leagueName ?? null,
         leagueLevelUnitName:
           team.leagueLevelUnitName ?? snapshot.leagueLevelUnitName ?? null,
@@ -9423,7 +9471,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     };
   };
 
-  type TeamPlayerSnapshot = {
+type TeamPlayerSnapshot = {
     playerId: number;
     playerName: string | null;
     playerNumber: number | null;
@@ -9438,8 +9486,26 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     leadership: number | null;
     loyalty: number | null;
     tsi: number;
-    salarySek: number;
-  };
+  salarySek: number;
+};
+
+type MatchWeatherSnapshot = {
+  weatherId: number | null;
+  addedMinutes: number | null;
+  matchDate: string | null;
+  finishedDate: string | null;
+};
+
+type Form7LineupSnapshot = {
+  matchId: number;
+  teamId: number;
+  sourceSystem: string;
+  matchDate: string | null;
+  starters: Set<number>;
+  substitutionsOffMinuteByPlayerId: Map<number, number>;
+  substitutionsOnMinuteByPlayerId: Map<number, number>;
+  ratingByPlayerId: Map<number, number>;
+};
 
   const fetchTeamPlayers = async (teamId: number): Promise<TeamPlayerSnapshot[]> => {
     const { response: playersResponse, payload: playersPayload } = await fetchChppJson<{
@@ -9493,6 +9559,526 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         };
       })
       .filter((player): player is TeamPlayerSnapshot => Boolean(player));
+  };
+
+  const parseWorlddetailsTrainingDate = (value: unknown): string | null => {
+    if (typeof value === "string") {
+      const trimmed = value.trim();
+      return trimmed ? trimmed : null;
+    }
+    if (value && typeof value === "object") {
+      const text = (value as Record<string, unknown>)["#text"];
+      if (typeof text === "string") {
+        const trimmed = text.trim();
+        return trimmed ? trimmed : null;
+      }
+    }
+    return null;
+  };
+
+  const collectWorlddetailsTrainingDates = (value: unknown) => {
+    const trainingDatesByLeagueId = new Map<number, string>();
+    const registerLeague = (input: unknown) => {
+      if (!input || typeof input !== "object") return;
+      const leagueNode = input as RawNode;
+      const leagueId = parseNumberNode(leagueNode.LeagueID);
+      const trainingDate = parseWorlddetailsTrainingDate(leagueNode.TrainingDate);
+      if (!leagueId || !trainingDate) return;
+      trainingDatesByLeagueId.set(leagueId, trainingDate);
+    };
+    if (!value || typeof value !== "object") return trainingDatesByLeagueId;
+    const root = value as RawNode;
+    registerLeague(root);
+    registerLeague(root.League);
+    const leagueList = root.LeagueList as RawNode | null | undefined;
+    toArray(leagueList?.League as RawNode | RawNode[] | null).forEach(registerLeague);
+    return trainingDatesByLeagueId;
+  };
+
+  const parseLeagueIdFromTeamdetailsPayload = (
+    payload: {
+      data?: {
+        HattrickData?: {
+          Team?: {
+            LeagueID?: unknown;
+            League?: {
+              LeagueID?: unknown;
+            };
+          };
+        };
+      };
+    } | null | undefined
+  ) => {
+    const teamNode = payload?.data?.HattrickData?.Team;
+    return (
+      parseNumberNode(teamNode?.LeagueID) ?? parseNumberNode(teamNode?.League?.LeagueID)
+    );
+  };
+
+  const normalizeForm7Lineup = (
+    payload: {
+      data?: {
+        HattrickData?: {
+          MatchID?: unknown;
+          MatchDate?: unknown;
+          Team?: {
+            TeamID?: unknown;
+            StartingLineup?: { Player?: unknown };
+            Substitutions?: { Substitution?: unknown };
+            Lineup?: { Player?: unknown };
+          };
+        };
+      };
+    } | null | undefined,
+    sourceSystem: string
+  ): Form7LineupSnapshot | null => {
+    const data = payload?.data?.HattrickData;
+    const teamNode = data?.Team;
+    const matchId = parseNumberNode(data?.MatchID);
+    const teamId = parseNumberNode(teamNode?.TeamID);
+    if (!matchId || !teamId) return null;
+    const starters = new Set<number>();
+    const substitutionsOffMinuteByPlayerId = new Map<number, number>();
+    const substitutionsOnMinuteByPlayerId = new Map<number, number>();
+    const ratingByPlayerId = new Map<number, number>();
+    const startingLineup = toArray(
+      teamNode?.StartingLineup?.Player as RawNode | RawNode[] | null
+    );
+    startingLineup.forEach((player) => {
+      const playerId = parseOptionalNumber(player?.PlayerID);
+      if (playerId && playerId > 0) {
+        starters.add(playerId);
+      }
+    });
+    const substitutions = toArray(
+      teamNode?.Substitutions?.Substitution as RawNode | RawNode[] | null
+    );
+    substitutions.forEach((entry) => {
+      const minute = parseOptionalNumber(entry?.MatchMinute);
+      if (minute === null || minute === undefined) return;
+      const subjectPlayerId = parseOptionalNumber(entry?.SubjectPlayerID);
+      const objectPlayerId = parseOptionalNumber(entry?.ObjectPlayerID);
+      if (subjectPlayerId && subjectPlayerId > 0) {
+        const previous = substitutionsOffMinuteByPlayerId.get(subjectPlayerId);
+        if (previous === undefined || minute < previous) {
+          substitutionsOffMinuteByPlayerId.set(subjectPlayerId, minute);
+        }
+      }
+      if (objectPlayerId && objectPlayerId > 0) {
+        const previous = substitutionsOnMinuteByPlayerId.get(objectPlayerId);
+        if (previous === undefined || minute < previous) {
+          substitutionsOnMinuteByPlayerId.set(objectPlayerId, minute);
+        }
+      }
+    });
+    const lineupPlayers = toArray(teamNode?.Lineup?.Player as RawNode | RawNode[] | null);
+    lineupPlayers.forEach((player) => {
+      const playerId = parseOptionalNumber(player?.PlayerID);
+      const rating = parseNumberNode(player?.RatingStarsEndOfMatch);
+      if (playerId && playerId > 0 && rating !== null && Number.isFinite(rating)) {
+        ratingByPlayerId.set(playerId, rating);
+      }
+    });
+    return {
+      matchId,
+      teamId,
+      sourceSystem,
+      matchDate: parseStringNode(data?.MatchDate),
+      starters,
+      substitutionsOffMinuteByPlayerId,
+      substitutionsOnMinuteByPlayerId,
+      ratingByPlayerId,
+    };
+  };
+
+  const resolveForm7PlayedMinutes = (
+    lineup: Form7LineupSnapshot,
+    playerId: number,
+    matchDurationMinutes: number
+  ) => {
+    const normalizedDuration = Math.max(0, Math.min(96, matchDurationMinutes));
+    if (lineup.starters.has(playerId)) {
+      const subOffMinute = lineup.substitutionsOffMinuteByPlayerId.get(playerId);
+      const exitMinute =
+        subOffMinute !== undefined
+          ? Math.max(0, Math.min(normalizedDuration, subOffMinute))
+          : normalizedDuration;
+      return exitMinute;
+    }
+    const subOnMinute = lineup.substitutionsOnMinuteByPlayerId.get(playerId);
+    if (subOnMinute !== undefined) {
+      const entryMinute = Math.max(0, Math.min(normalizedDuration, subOnMinute));
+      return Math.max(0, normalizedDuration - entryMinute);
+    }
+    return 0;
+  };
+
+  const resolveForm7EntryWeatherLabel = (weatherId: number | null | undefined) => {
+    switch (weatherId) {
+      case 0:
+        return messages.clubChronicleWeatherRain;
+      case 1:
+        return messages.clubChronicleWeatherOvercast;
+      case 2:
+        return messages.clubChronicleWeatherPartiallyCloudy;
+      case 3:
+        return messages.clubChronicleWeatherSunny;
+      default:
+        return messages.unknownShort;
+    }
+  };
+
+  const resolveForm7WeatherEmoji = (weatherId: number | null | undefined) => {
+    switch (weatherId) {
+      case 0:
+        return "🌧️";
+      case 1:
+        return "☁️";
+      case 2:
+        return "⛅";
+      case 3:
+        return "☀️";
+      default:
+        return "❔";
+    }
+  };
+
+  const mergeForm7RatingEntries = (
+    existingEntries: Form7RatingEntry[] | null | undefined,
+    newEntries: Form7RatingEntry[]
+  ) => {
+    const merged = [...newEntries, ...(existingEntries ?? [])];
+    merged.sort((left, right) => {
+      const leftTime =
+        parseChppDate(left.matchDate ?? "")?.getTime() ?? left.recordedAt ?? 0;
+      const rightTime =
+        parseChppDate(right.matchDate ?? "")?.getTime() ?? right.recordedAt ?? 0;
+      if (rightTime !== leftTime) return rightTime - leftTime;
+      return (right.recordedAt ?? 0) - (left.recordedAt ?? 0);
+    });
+    const deduped: Form7RatingEntry[] = [];
+    const seenCombos = new Set<string>();
+    merged.forEach((entry) => {
+      const comboKey = `${entry.ratingStarsEndOfMatch}:${entry.weatherId}`;
+      if (seenCombos.has(comboKey)) return;
+      seenCombos.add(comboKey);
+      deduped.push(entry);
+    });
+    return deduped.slice(0, 20);
+  };
+
+  const collectForm7RatingsForTeam = async (
+    nextCache: ChronicleCache,
+    team: ChronicleTeamData,
+    teamPlayers: TeamPlayerSnapshot[],
+    leagueTrainingDateCache: Map<number, string | null>,
+    teamLeagueIdCache: Map<number, number | null>,
+    matchWeatherCache: Map<string, MatchWeatherSnapshot>,
+    lineupCache: Map<string, Form7LineupSnapshot | null>
+  ) => {
+    const currentForm7Players = teamPlayers.filter((player) => player.form === 7);
+    if (currentForm7Players.length === 0) return;
+
+    const resolveTeamLeagueId = async () => {
+      const cachedLeagueId =
+        nextCache.teams[team.teamId]?.leagueId ??
+        nextCache.teams[team.teamId]?.leaguePerformance?.current?.leagueId ??
+        team.leagueId ??
+        team.leaguePerformance?.current?.leagueId ??
+        null;
+      if (cachedLeagueId && Number.isFinite(cachedLeagueId)) {
+        teamLeagueIdCache.set(team.teamId, cachedLeagueId);
+        return cachedLeagueId;
+      }
+      if (teamLeagueIdCache.has(team.teamId)) {
+        return teamLeagueIdCache.get(team.teamId) ?? null;
+      }
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Team?: {
+                LeagueID?: unknown;
+                League?: {
+                  LeagueID?: unknown;
+                };
+              };
+            };
+          };
+          error?: string;
+        }>(`/api/chpp/teamdetails?teamId=${team.teamId}`, {
+          cache: "no-store",
+        });
+        if (!response.ok || payload?.error) {
+          teamLeagueIdCache.set(team.teamId, null);
+          return null;
+        }
+        const leagueId = parseLeagueIdFromTeamdetailsPayload(payload);
+        teamLeagueIdCache.set(team.teamId, leagueId);
+        if (leagueId && Number.isFinite(leagueId)) {
+          nextCache.teams[team.teamId] = {
+            ...nextCache.teams[team.teamId],
+            teamId: team.teamId,
+            teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+            leagueId,
+          };
+        }
+        return leagueId;
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
+        teamLeagueIdCache.set(team.teamId, null);
+        return null;
+      }
+    };
+
+    const leagueId = await resolveTeamLeagueId();
+    if (!leagueId) return;
+
+    const resolveLeagueTrainingDate = async () => {
+      if (leagueTrainingDateCache.has(leagueId)) {
+        return leagueTrainingDateCache.get(leagueId) ?? null;
+      }
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: unknown;
+          };
+          error?: string;
+        }>("/api/chpp/worlddetails", { cache: "no-store" });
+        if (response.ok && !payload?.error) {
+          const trainingDates = collectWorlddetailsTrainingDates(
+            payload?.data?.HattrickData
+          );
+          trainingDates.forEach((value, key) => {
+            leagueTrainingDateCache.set(key, value);
+          });
+          if (leagueTrainingDateCache.has(leagueId)) {
+            return leagueTrainingDateCache.get(leagueId) ?? null;
+          }
+        }
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
+      }
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: unknown;
+          };
+          error?: string;
+        }>(`/api/chpp/worlddetails?leagueId=${leagueId}`, { cache: "no-store" });
+        if (!response.ok || payload?.error) {
+          leagueTrainingDateCache.set(leagueId, null);
+          return null;
+        }
+        const trainingDates = collectWorlddetailsTrainingDates(
+          payload?.data?.HattrickData
+        );
+        trainingDates.forEach((value, key) => {
+          leagueTrainingDateCache.set(key, value);
+        });
+        const trainingDate = leagueTrainingDateCache.get(leagueId) ?? null;
+        leagueTrainingDateCache.set(leagueId, trainingDate);
+        return trainingDate;
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
+        leagueTrainingDateCache.set(leagueId, null);
+        return null;
+      }
+    };
+
+    const trainingDate = await resolveLeagueTrainingDate();
+    const nextTrainingDate = trainingDate ? parseChppDate(trainingDate) : null;
+    if (!nextTrainingDate) return;
+
+    const lastCompletedTrainingDate = new Date(nextTrainingDate.getTime() - 7 * DAY_MS);
+    const { response, payload } = await fetchChppJson<{
+      data?: {
+        HattrickData?: {
+          Team?: {
+            MatchList?: {
+              Match?: unknown;
+            };
+          };
+        };
+      };
+      error?: string;
+    }>(`/api/chpp/matches?teamID=${team.teamId}&isYouth=false`, {
+      cache: "no-store",
+    });
+    if (!response.ok || payload?.error) return;
+
+    const matches = toArray(
+      payload?.data?.HattrickData?.Team?.MatchList?.Match as RawNode | RawNode[] | null
+    )
+      .map((match) => ({
+        matchId: parseNumberNode(match?.MatchID) ?? 0,
+        sourceSystem: parseStringNode(match?.SourceSystem) ?? "Hattrick",
+        matchDate: parseStringNode(match?.MatchDate),
+      }))
+      .filter((match) => match.matchId > 0 && Boolean(match.matchDate))
+      .filter((match) => {
+        const parsedMatchDate = match.matchDate ? parseChppDate(match.matchDate) : null;
+        if (!parsedMatchDate) return false;
+        return (
+          parsedMatchDate.getTime() > lastCompletedTrainingDate.getTime() &&
+          parsedMatchDate.getTime() <= Date.now()
+        );
+      })
+      .sort((left, right) => {
+        const leftTime = parseChppDate(left.matchDate ?? "")?.getTime() ?? 0;
+        const rightTime = parseChppDate(right.matchDate ?? "")?.getTime() ?? 0;
+        return rightTime - leftTime;
+      });
+    if (matches.length === 0) return;
+
+    const resolveMatchWeather = async (matchId: number, sourceSystem: string) => {
+      const cacheKey = `${matchId}:${sourceSystem}`;
+      if (matchWeatherCache.has(cacheKey)) {
+        return matchWeatherCache.get(cacheKey) ?? {
+          weatherId: null,
+          addedMinutes: null,
+          matchDate: null,
+          finishedDate: null,
+        };
+      }
+      try {
+        const { response: detailsResponse, payload: detailsPayload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              Match?: {
+                MatchDate?: unknown;
+                FinishedDate?: unknown;
+                AddedMinutes?: unknown;
+                Arena?: {
+                  WeatherID?: unknown;
+                };
+              };
+            };
+          };
+          error?: string;
+        }>(
+          `/api/chpp/matchdetails?matchId=${matchId}&sourceSystem=${encodeURIComponent(
+            sourceSystem
+          )}`,
+          { cache: "no-store" }
+        );
+        if (!detailsResponse.ok || detailsPayload?.error) {
+          const fallback = {
+            weatherId: null,
+            addedMinutes: null,
+            matchDate: null,
+            finishedDate: null,
+          };
+          matchWeatherCache.set(cacheKey, fallback);
+          return fallback;
+        }
+        const matchNode = detailsPayload?.data?.HattrickData?.Match;
+        const snapshot = {
+          weatherId: parseNumberNode(matchNode?.Arena?.WeatherID),
+          addedMinutes: parseNumberNode(matchNode?.AddedMinutes),
+          matchDate: parseStringNode(matchNode?.MatchDate),
+          finishedDate: parseStringNode(matchNode?.FinishedDate),
+        };
+        matchWeatherCache.set(cacheKey, snapshot);
+        return snapshot;
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
+        const fallback = {
+          weatherId: null,
+          addedMinutes: null,
+          matchDate: null,
+          finishedDate: null,
+        };
+        matchWeatherCache.set(cacheKey, fallback);
+        return fallback;
+      }
+    };
+
+    const resolveLineup = async (matchId: number, sourceSystem: string) => {
+      const cacheKey = `${matchId}:${team.teamId}:${sourceSystem}`;
+      if (lineupCache.has(cacheKey)) {
+        return lineupCache.get(cacheKey) ?? null;
+      }
+      try {
+        const { response: lineupResponse, payload: lineupPayload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              MatchID?: unknown;
+              MatchDate?: unknown;
+              Team?: {
+                TeamID?: unknown;
+                StartingLineup?: { Player?: unknown };
+                Substitutions?: { Substitution?: unknown };
+                Lineup?: { Player?: unknown };
+              };
+            };
+          };
+          error?: string;
+        }>(
+          `/api/chpp/match-lineup?matchId=${matchId}&teamId=${team.teamId}&sourceSystem=${encodeURIComponent(
+            sourceSystem
+          )}`,
+          { cache: "no-store" }
+        );
+        if (!lineupResponse.ok || lineupPayload?.error) {
+          lineupCache.set(cacheKey, null);
+          return null;
+        }
+        const normalized = normalizeForm7Lineup(lineupPayload, sourceSystem);
+        lineupCache.set(cacheKey, normalized);
+        return normalized;
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
+        lineupCache.set(cacheKey, null);
+        return null;
+      }
+    };
+
+    const nextHistoryByPlayerId = {
+      ...(nextCache.teams[team.teamId]?.form7RatingsByPlayerId ?? {}),
+    };
+
+    for (const match of matches) {
+      const weatherSnapshot = await resolveMatchWeather(match.matchId, match.sourceSystem);
+      const weatherId = weatherSnapshot.weatherId;
+      if (!weatherSnapshot.finishedDate || weatherId === null) continue;
+      const lineup = await resolveLineup(match.matchId, match.sourceSystem);
+      if (!lineup) continue;
+      const matchDurationMinutes = Math.min(
+        96,
+        Math.max(90, 90 + Math.max(0, weatherSnapshot.addedMinutes ?? 0))
+      );
+      currentForm7Players.forEach((player) => {
+        const playedMinutes = resolveForm7PlayedMinutes(
+          lineup,
+          player.playerId,
+          matchDurationMinutes
+        );
+        if (playedMinutes < 80 || playedMinutes > 96) return;
+        const ratingStarsEndOfMatch = lineup.ratingByPlayerId.get(player.playerId);
+        if (ratingStarsEndOfMatch === undefined || ratingStarsEndOfMatch === null) return;
+        nextHistoryByPlayerId[player.playerId] = mergeForm7RatingEntries(
+          nextHistoryByPlayerId[player.playerId],
+          [
+            {
+              matchId: match.matchId,
+              sourceSystem: match.sourceSystem,
+              matchDate: weatherSnapshot.matchDate ?? match.matchDate,
+              ratingStarsEndOfMatch,
+              weatherId,
+              recordedAt: Date.now(),
+            },
+          ]
+        );
+      });
+    }
+
+    nextCache.teams[team.teamId] = {
+      ...nextCache.teams[team.teamId],
+      teamId: team.teamId,
+      teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+      form7RatingsByPlayerId: nextHistoryByPlayerId,
+    };
   };
 
   const buildTransferListedPlayers = (
@@ -10543,12 +11129,25 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     nextCache: ChronicleCache,
     teams: ChronicleTeamData[] = trackedTeams
   ) => {
+    const leagueTrainingDateCache = new Map<number, string | null>();
+    const teamLeagueIdCache = new Map<number, number | null>();
+    const matchWeatherCache = new Map<string, MatchWeatherSnapshot>();
+    const lineupCache = new Map<string, Form7LineupSnapshot | null>();
     await mapWithConcurrency(
       teams,
       TEAM_REFRESH_CONCURRENCY,
       async (team) => {
         try {
           const teamPlayers = await fetchTeamPlayers(team.teamId);
+          await collectForm7RatingsForTeam(
+            nextCache,
+            team,
+            teamPlayers,
+            leagueTrainingDateCache,
+            teamLeagueIdCache,
+            matchWeatherCache,
+            lineupCache
+          );
           const snapshot = buildTsiSnapshot(teamPlayers);
           const previous = nextCache.teams[team.teamId]?.tsi?.current;
           nextCache.teams[team.teamId] = {
@@ -10573,12 +11172,25 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     nextCache: ChronicleCache,
     teams: ChronicleTeamData[] = trackedTeams
   ) => {
+    const leagueTrainingDateCache = new Map<number, string | null>();
+    const teamLeagueIdCache = new Map<number, number | null>();
+    const matchWeatherCache = new Map<string, MatchWeatherSnapshot>();
+    const lineupCache = new Map<string, Form7LineupSnapshot | null>();
     await mapWithConcurrency(
       teams,
       TEAM_REFRESH_CONCURRENCY,
       async (team) => {
         try {
           const teamPlayers = await fetchTeamPlayers(team.teamId);
+          await collectForm7RatingsForTeam(
+            nextCache,
+            team,
+            teamPlayers,
+            leagueTrainingDateCache,
+            teamLeagueIdCache,
+            matchWeatherCache,
+            lineupCache
+          );
           const snapshot = buildWagesSnapshot(teamPlayers);
           const previous = nextCache.teams[team.teamId]?.wages?.current;
           nextCache.teams[team.teamId] = {
@@ -10604,6 +11216,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     historyCount: number,
     teams: ChronicleTeamData[] = trackedTeams
   ) => {
+    const leagueTrainingDateCache = new Map<number, string | null>();
+    const teamLeagueIdCache = new Map<number, number | null>();
+    const matchWeatherCache = new Map<string, MatchWeatherSnapshot>();
+    const lineupCache = new Map<string, Form7LineupSnapshot | null>();
     await mapWithConcurrency(
       teams,
       TEAM_REFRESH_CONCURRENCY,
@@ -10613,6 +11229,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
             fetchTeamPlayers(team.teamId),
             fetchLatestTransfers(team.teamId, historyCount),
           ]);
+          await collectForm7RatingsForTeam(
+            nextCache,
+            team,
+            teamPlayers,
+            leagueTrainingDateCache,
+            teamLeagueIdCache,
+            matchWeatherCache,
+            lineupCache
+          );
           const transferListedPlayers = buildTransferListedPlayers(teamPlayers);
           const estimatedSek =
             latestTransfers.totalSalesSek !== null &&
@@ -11882,6 +12507,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         teamId: team.teamId,
         teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
         snapshot: cached?.tsi?.current,
+        form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
       };
     });
 
@@ -11891,6 +12517,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         teamId: team.teamId,
         teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
         snapshot: cached?.wages?.current,
+        form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
       };
     });
 
@@ -13132,6 +13759,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         teamId: selectedWagesTeam?.teamId ?? 0,
         ...row,
         playerNumber: index + 1,
+        form7Ratings:
+          selectedWagesTeam?.form7RatingsByPlayerId?.[row.playerId] ?? [],
       })),
     [selectedWagesTeam]
   );
@@ -13141,6 +13770,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         teamId: selectedTsiTeam?.teamId ?? 0,
         ...row,
         playerNumber: index + 1,
+        form7Ratings:
+          selectedTsiTeam?.form7RatingsByPlayerId?.[row.playerId] ?? [],
       })),
     [selectedTsiTeam]
   );
@@ -13359,6 +13990,62 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         getValue: (snapshot) => snapshot?.loyalty ?? null,
       },
       {
+        key: "form7Rating",
+        label: messages.clubChronicleForm7RatingColumn,
+        headerAccessory: (
+          <Tooltip content={messages.clubChronicleForm7RatingInfoTooltip} openOnClick>
+            <button
+              type="button"
+              className={styles.chronicleTableHeaderInfoButton}
+              aria-label={messages.clubChronicleForm7RatingInfoLabel}
+              onClick={(event) => event.stopPropagation()}
+            >
+              i
+            </button>
+          </Tooltip>
+        ),
+        getValue: (snapshot) =>
+          snapshot?.form7Ratings?.map((entry) => entry.ratingStarsEndOfMatch).join(", ") ??
+          null,
+        getSortValue: (snapshot) => snapshot?.form7Ratings?.[0]?.ratingStarsEndOfMatch ?? null,
+        renderCell: (snapshot) =>
+          snapshot?.form7Ratings && snapshot.form7Ratings.length > 0 ? (
+            <span className={styles.chronicleForm7RatingList}>
+              {snapshot.form7Ratings.map((entry) => {
+                const weatherLabel = resolveForm7EntryWeatherLabel(entry.weatherId);
+                return (
+                  <span
+                    key={`${entry.matchId}:${entry.sourceSystem}:${entry.ratingStarsEndOfMatch}:${entry.weatherId}`}
+                    className={styles.chronicleForm7RatingItem}
+                  >
+                    <a
+                      className={styles.chroniclePressLink}
+                      href={hattrickMatchUrlWithSourceSystem(
+                        entry.matchId,
+                        entry.sourceSystem
+                      )}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {entry.ratingStarsEndOfMatch}
+                    </a>
+                    <Tooltip content={weatherLabel}>
+                      <span
+                        className={styles.chronicleForm7WeatherEmoji}
+                        aria-label={weatherLabel}
+                      >
+                        {resolveForm7WeatherEmoji(entry.weatherId)}
+                      </span>
+                    </Tooltip>
+                  </span>
+                );
+              })}
+            </span>
+          ) : (
+            messages.unknownShort
+          ),
+      },
+      {
         key: "tsi",
         label: messages.clubChronicleTsiValueColumn,
         getValue: (snapshot) => snapshot?.tsi ?? null,
@@ -13374,9 +14061,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChroniclePlayerExperienceColumn,
       messages.clubChroniclePlayerLeadershipColumn,
       messages.clubChroniclePlayerLoyaltyColumn,
+      messages.clubChronicleForm7RatingColumn,
+      messages.clubChronicleForm7RatingInfoLabel,
+      messages.clubChronicleForm7RatingInfoTooltip,
       messages.clubChronicleTsiValueColumn,
       formatAgeWithDays,
+      messages.unknownShort,
       renderInjuryStatusInline,
+      resolveForm7EntryWeatherLabel,
     ]
   );
 
@@ -13482,6 +14174,62 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         getValue: (snapshot) => snapshot?.loyalty ?? null,
       },
       {
+        key: "form7Rating",
+        label: messages.clubChronicleForm7RatingColumn,
+        headerAccessory: (
+          <Tooltip content={messages.clubChronicleForm7RatingInfoTooltip} openOnClick>
+            <button
+              type="button"
+              className={styles.chronicleTableHeaderInfoButton}
+              aria-label={messages.clubChronicleForm7RatingInfoLabel}
+              onClick={(event) => event.stopPropagation()}
+            >
+              i
+            </button>
+          </Tooltip>
+        ),
+        getValue: (snapshot) =>
+          snapshot?.form7Ratings?.map((entry) => entry.ratingStarsEndOfMatch).join(", ") ??
+          null,
+        getSortValue: (snapshot) => snapshot?.form7Ratings?.[0]?.ratingStarsEndOfMatch ?? null,
+        renderCell: (snapshot) =>
+          snapshot?.form7Ratings && snapshot.form7Ratings.length > 0 ? (
+            <span className={styles.chronicleForm7RatingList}>
+              {snapshot.form7Ratings.map((entry) => {
+                const weatherLabel = resolveForm7EntryWeatherLabel(entry.weatherId);
+                return (
+                  <span
+                    key={`${entry.matchId}:${entry.sourceSystem}:${entry.ratingStarsEndOfMatch}:${entry.weatherId}`}
+                    className={styles.chronicleForm7RatingItem}
+                  >
+                    <a
+                      className={styles.chroniclePressLink}
+                      href={hattrickMatchUrlWithSourceSystem(
+                        entry.matchId,
+                        entry.sourceSystem
+                      )}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {entry.ratingStarsEndOfMatch}
+                    </a>
+                    <Tooltip content={weatherLabel}>
+                      <span
+                        className={styles.chronicleForm7WeatherEmoji}
+                        aria-label={weatherLabel}
+                      >
+                        {resolveForm7WeatherEmoji(entry.weatherId)}
+                      </span>
+                    </Tooltip>
+                  </span>
+                );
+              })}
+            </span>
+          ) : (
+            messages.unknownShort
+          ),
+      },
+      {
         key: "wage",
         label: messages.clubChronicleWagesValueColumn,
         getValue: (snapshot) => formatChppCurrencyFromSek(snapshot?.salarySek ?? null),
@@ -13498,9 +14246,14 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       messages.clubChroniclePlayerExperienceColumn,
       messages.clubChroniclePlayerLeadershipColumn,
       messages.clubChroniclePlayerLoyaltyColumn,
+      messages.clubChronicleForm7RatingColumn,
+      messages.clubChronicleForm7RatingInfoLabel,
+      messages.clubChronicleForm7RatingInfoTooltip,
       messages.clubChronicleWagesValueColumn,
       formatAgeWithDays,
+      messages.unknownShort,
       renderInjuryStatusInline,
+      resolveForm7EntryWeatherLabel,
     ]
   );
 
@@ -15654,7 +16407,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     {
                       "--cc-columns": tsiPlayerColumns.length,
                       "--cc-template":
-                        "minmax(70px, 0.45fr) minmax(220px, 1.35fr) minmax(110px, 0.75fr) minmax(90px, 0.6fr) minmax(100px, 0.65fr) minmax(80px, 0.55fr) minmax(110px, 0.75fr) minmax(100px, 0.65fr) minmax(120px, 0.75fr)",
+                        "88px 220px 110px 90px 100px 80px 110px 100px 190px 132px",
                     } as CSSProperties
                   }
                   sortKey={tsiDetailsSortState.key}
@@ -15688,7 +16441,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
                     {
                       "--cc-columns": wagesPlayerColumns.length,
                       "--cc-template":
-                        "minmax(70px, 0.45fr) minmax(220px, 1.35fr) minmax(110px, 0.75fr) minmax(90px, 0.6fr) minmax(100px, 0.65fr) minmax(80px, 0.55fr) minmax(110px, 0.75fr) minmax(100px, 0.65fr) minmax(140px, 0.85fr)",
+                        "88px 220px 110px 90px 100px 80px 110px 100px 190px 150px",
                     } as CSSProperties
                   }
                   sortKey={wagesDetailsSortState.key}

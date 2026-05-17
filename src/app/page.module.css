@@ -3756,6 +3756,16 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   padding: 0 6px 0 0;
 }
 
+.chronicleTableHeaderItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 0;
+  white-space: nowrap;
+  width: 100%;
+}
+
 .chronicleTableHeaderButton {
   border: none;
   background: transparent;
@@ -3769,6 +3779,9 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .chronicleTableHeaderButton:hover {
@@ -3784,6 +3797,38 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .chronicleTableSortIcon {
   font-size: 10px;
   opacity: 0.6;
+}
+
+.chronicleTableHeaderAccessory {
+  display: inline-flex;
+  align-items: center;
+}
+
+.chronicleTableHeaderInfoButton {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #cdbca7;
+  border-radius: 999px;
+  background: #f7f2ea;
+  color: #6a5f50;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.chronicleTableHeaderInfoButton:hover {
+  border-color: #b79f84;
+  color: #2f2923;
+}
+
+.chronicleTableHeaderInfoButton:focus-visible {
+  outline: 2px solid rgba(93, 80, 66, 0.35);
+  outline-offset: 2px;
 }
 
 .chronicleTableRow {
@@ -4306,6 +4351,25 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   color: #2f5f8f;
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+.chronicleForm7RatingList {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+.chronicleForm7RatingItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chronicleForm7WeatherEmoji {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
 }
 
 .chronicleMatchSubtleDate {

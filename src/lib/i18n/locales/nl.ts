@@ -793,6 +793,10 @@ export const messagesNl: Messages = {
     "Match lineups {completed}/{total} (team: {team})",
   clubChronicleHelpBulletTeamAttitude:
     "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+  clubChronicleHelpBulletTsi:
+    "TSI: totale team-TSI en top-11-TSI. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), TSI en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
+  clubChronicleHelpBulletWages:
+    "Lonen: totale teamlonen en top-11-lonen in EUR. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), loon en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
   clubChronicleTeamAttitudePanelTitle: "Team attitude",
   clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
   clubChronicleTeamAttitudeColumnDate: "Date",
@@ -824,6 +828,14 @@ export const messagesNl: Messages = {
   clubChronicleDetailModeDev: "Dev-modus",
   clubChronicleTeamAttitudeDisclaimer:
     "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig. Teams die consequent PIC spelen en daarna normaal spelen, kunnen op MOTS lijken, en teams die consequent MOTS spelen en daarna normaal spelen, kunnen op PIC lijken.",
+  clubChronicleForm7RatingColumn: "Vorm-7-rating",
+  clubChronicleForm7RatingInfoLabel: "Over vorm-7-rating",
+  clubChronicleForm7RatingInfoTooltip:
+    "Toont een eindwedstrijd-rating uit wedstrijden waarin de speler momenteel vorm 7 heeft.",
+  clubChronicleWeatherRain: "Regen",
+  clubChronicleWeatherOvercast: "Bewolkt",
+  clubChronicleWeatherPartiallyCloudy: "Gedeeltelijk bewolkt",
+  clubChronicleWeatherSunny: "Zonnig",
   clubChroniclePlayerFormColumn: "Vorm",
   clubChroniclePlayerStaminaColumn: "Conditie",
   clubChroniclePlayerExperienceColumn: "Erv.",

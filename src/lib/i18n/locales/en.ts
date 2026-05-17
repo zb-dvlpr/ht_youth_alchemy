@@ -574,11 +574,11 @@ export const messagesEn: Messages = {
     clubChronicleHelpBulletTeamAttitude:
       "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
     clubChronicleHelpBulletTsi:
-      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), and TSI.",
+      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), TSI, and saved form-7 match ratings with weather emojis.",
     clubChronicleHelpBulletLikelyTraining:
       "Likely training regimen: inferred from recent formations; ties at top confidence are shown together and marked as unclear. Click a row for full confidence ranking and sample size.",
     clubChronicleHelpBulletWages:
-      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), and wage.",
+      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), wage, and saved form-7 match ratings with weather emojis.",
     clubChronicleHelpBulletLatestUpdates:
       "Latest updates keeps per-attribute change groups by team, retains the latest non-empty global-refresh diff for review, and lets you switch between saved changed refreshes.",
     clubChroniclePressPanelTitle: "Press announcements",
@@ -764,6 +764,14 @@ export const messagesEn: Messages = {
     clubChronicleTsiPlayerIndexColumn: "No.",
     clubChronicleTsiPlayerColumn: "Player",
     clubChronicleTsiValueColumn: "TSI",
+    clubChronicleForm7RatingColumn: "Form-7 rating",
+    clubChronicleForm7RatingInfoLabel: "About form-7 rating",
+    clubChronicleForm7RatingInfoTooltip:
+      "Shows an end-of-match rating from matches where the player currently has form 7.",
+    clubChronicleWeatherRain: "Rain",
+    clubChronicleWeatherOvercast: "Overcast",
+    clubChronicleWeatherPartiallyCloudy: "Partially cloudy",
+    clubChronicleWeatherSunny: "Sunny",
     clubChroniclePlayerFormColumn: "Form",
     clubChroniclePlayerStaminaColumn: "Stamina",
     clubChroniclePlayerExperienceColumn: "Exp",

@@ -602,11 +602,11 @@ export const messagesSv: Messages = {
     clubChronicleHelpBulletTeamAttitude:
       "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
     clubChronicleHelpBulletTsi:
-      "TSI: lagets totala TSI och top-11 TSI. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar) och TSI.",
+      "TSI: lagets totala TSI och top-11 TSI. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar), TSI och sparade form-7-matchbetyg med vaderemoji.",
     clubChronicleHelpBulletLikelyTraining:
       "Trolig traningsinriktning: infererad fran senaste formationer; lika hogsta konfidens visas tillsammans och markeras som oklar. Klicka pa en rad for full konfidensrangordning och urvalsstorlek.",
     clubChronicleHelpBulletWages:
-      "Loner: lagets total och top-11 loner i EUR. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar) och lon.",
+      "Loner: lagets total och top-11 loner i EUR. Klicka pa en rad for sorterbara spelardetaljer med index, alder (ar+dagar), lon och sparade form-7-matchbetyg med vaderemoji.",
     clubChronicleHelpBulletLatestUpdates:
       "Senaste uppdateringar behaller andringsgrupper per attribut och lag, sparar senaste icke-tomma globala diff for granskning och later dig byta mellan sparade uppdateringar med andringar.",
     clubChroniclePressPanelTitle: "Pressmeddelanden",
@@ -792,6 +792,14 @@ export const messagesSv: Messages = {
     clubChronicleTsiPlayerIndexColumn: "Nr",
     clubChronicleTsiPlayerColumn: "Spelare",
     clubChronicleTsiValueColumn: "TSI",
+    clubChronicleForm7RatingColumn: "Form-7-betyg",
+    clubChronicleForm7RatingInfoLabel: "Om form-7-betyg",
+    clubChronicleForm7RatingInfoTooltip:
+      "Visar ett slutbetyg fran matcher dar spelaren for narvarande har form 7.",
+    clubChronicleWeatherRain: "Regn",
+    clubChronicleWeatherOvercast: "Mulet",
+    clubChronicleWeatherPartiallyCloudy: "Vaxlande molnighet",
+    clubChronicleWeatherSunny: "Soligt",
     clubChroniclePlayerFormColumn: "Form",
     clubChroniclePlayerStaminaColumn: "Kondition",
     clubChroniclePlayerExperienceColumn: "Erf.",

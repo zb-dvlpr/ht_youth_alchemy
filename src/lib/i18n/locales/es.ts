@@ -608,11 +608,11 @@ export const messagesEs: Messages = {
     clubChronicleHelpBulletTeamAttitude:
       "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
     clubChronicleHelpBulletTsi:
-      "TSI: TSI total del equipo y TSI del top 11. Haz clic en una fila para ver detalles de jugadores ordenables con indice, edad (anos+dias) y TSI.",
+      "TSI: TSI total del equipo y TSI del top 11. Haz clic en una fila para ver detalles de jugadores ordenables con indice, edad (anos+dias), TSI y valoraciones guardadas de forma 7 con emoji del clima.",
     clubChronicleHelpBulletLikelyTraining:
       "Regimen de entrenamiento probable: inferido de formaciones recientes; los empates en confianza maxima se muestran juntos y marcados como inciertos. Haz clic en una fila para ver ranking completo de confianza y tamano de muestra.",
     clubChronicleHelpBulletWages:
-      "Salarios: salario total del equipo y top 11 en EUR. Haz clic en una fila para ver detalles de jugadores ordenables con indice, edad (anos+dias) y salario.",
+      "Salarios: salario total del equipo y top 11 en EUR. Haz clic en una fila para ver detalles de jugadores ordenables con indice, edad (anos+dias), salario y valoraciones guardadas de forma 7 con emoji del clima.",
     clubChronicleHelpBulletLatestUpdates:
       "Ultimas actualizaciones conserva cambios por atributo agrupados por equipo, mantiene el ultimo diff global no vacio para consulta y permite cambiar entre refrescos guardados con cambios.",
     clubChroniclePressPanelTitle: "Comunicados de prensa",
@@ -798,6 +798,14 @@ export const messagesEs: Messages = {
     clubChronicleTsiPlayerIndexColumn: "N.º",
     clubChronicleTsiPlayerColumn: "Jugador",
     clubChronicleTsiValueColumn: "TSI",
+    clubChronicleForm7RatingColumn: "Valoracion forma 7",
+    clubChronicleForm7RatingInfoLabel: "Acerca de valoracion forma 7",
+    clubChronicleForm7RatingInfoTooltip:
+      "Muestra una valoracion al final del partido de encuentros en los que el jugador tiene forma 7 actualmente.",
+    clubChronicleWeatherRain: "Lluvia",
+    clubChronicleWeatherOvercast: "Nublado",
+    clubChronicleWeatherPartiallyCloudy: "Parcialmente nublado",
+    clubChronicleWeatherSunny: "Soleado",
     clubChroniclePlayerFormColumn: "Forma",
     clubChroniclePlayerStaminaColumn: "Resistencia",
     clubChroniclePlayerExperienceColumn: "Exp.",

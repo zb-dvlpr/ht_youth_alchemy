@@ -3591,6 +3591,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     () => normalizedPanelOrder.filter((panelId) => panelVisibility[panelId] !== false),
     [normalizedPanelOrder, panelVisibility]
   );
+  const defaultMobileChroniclePanelId =
+    desktopVisiblePanelOrder[0] ?? normalizedPanelOrder[0] ?? PANEL_IDS[0];
   const visibleUpdatePanels = useMemo(
     () =>
       new Set(
@@ -13069,7 +13071,7 @@ type Form7LineupSnapshot = {
     mobileChroniclePanelId
   )
     ? mobileChroniclePanelId
-    : normalizedPanelOrder[0] ?? PANEL_IDS[0];
+    : defaultMobileChroniclePanelId;
   const panelTitleById = useMemo<Record<ChroniclePanelId, string>>(
     () => ({
       "league-performance": messages.clubChronicleLeaguePanelTitle,
@@ -15143,9 +15145,42 @@ type Form7LineupSnapshot = {
     const shouldNormalizePanel =
       mobileChronicleScreen === "panel" &&
       mobileChroniclePanelId !== resolvedMobileChroniclePanelId;
+    const hasValidDetailTarget =
+      mobileChronicleDetailKind === "league-performance"
+        ? Boolean(selectedTeam)
+        : mobileChronicleDetailKind === "press-announcements"
+          ? Boolean(selectedPressTeam)
+        : mobileChronicleDetailKind === "fanclub"
+          ? Boolean(selectedFanclubTeam)
+        : mobileChronicleDetailKind === "last-login"
+          ? Boolean(selectedLastLoginTeam)
+        : mobileChronicleDetailKind === "coach"
+          ? Boolean(selectedCoachTeam)
+        : mobileChronicleDetailKind === "finance-estimate"
+          ? Boolean(selectedFinanceTeam)
+        : mobileChronicleDetailKind === "power-ratings"
+          ? Boolean(selectedPowerRatingsTeam)
+        : mobileChronicleDetailKind === "arena"
+          ? Boolean(selectedArenaTeam)
+        : mobileChronicleDetailKind === "transfer-listed" ||
+            mobileChronicleDetailKind === "transfer-history"
+          ? Boolean(selectedTransferTeam)
+        : mobileChronicleDetailKind === "formations-tactics"
+          ? Boolean(selectedFormationsTacticsTeam)
+        : mobileChronicleDetailKind === "team-attitude"
+          ? Boolean(selectedTeamAttitudeTeam)
+        : mobileChronicleDetailKind === "likely-training"
+          ? Boolean(selectedLikelyTrainingTeam)
+        : mobileChronicleDetailKind === "tsi"
+          ? Boolean(selectedTsiTeam)
+        : mobileChronicleDetailKind === "wages"
+          ? Boolean(selectedWagesTeam)
+        : false;
     const shouldResetDetail =
       mobileChronicleScreen === "detail" &&
-      (!mobileChronicleDetailKind || !mobileChronicleDetailTeamId);
+      (!mobileChronicleDetailKind ||
+        !mobileChronicleDetailTeamId ||
+        !hasValidDetailTarget);
     const shouldResetFormationsMatches =
       mobileChronicleScreen === "formations-matches" &&
       !selectedFormationsTacticsTeamId;
@@ -15158,7 +15193,7 @@ type Form7LineupSnapshot = {
     }
     updateMobileChronicleState(
       {
-        panelId: resolvedMobileChroniclePanelId,
+        panelId: defaultMobileChroniclePanelId,
         screen: "panel",
         detailKind: null,
         detailTeamId: null,
@@ -15171,8 +15206,23 @@ type Form7LineupSnapshot = {
     mobileChronicleDetailTeamId,
     mobileChroniclePanelId,
     mobileChronicleScreen,
+    defaultMobileChroniclePanelId,
     resolvedMobileChroniclePanelId,
+    selectedArenaTeam,
+    selectedCoachTeam,
+    selectedFanclubTeam,
+    selectedFinanceTeam,
+    selectedFormationsTacticsTeam,
     selectedFormationsTacticsTeamId,
+    selectedLastLoginTeam,
+    selectedLikelyTrainingTeam,
+    selectedPressTeam,
+    selectedPowerRatingsTeam,
+    selectedTeam,
+    selectedTeamAttitudeTeam,
+    selectedTransferTeam,
+    selectedTsiTeam,
+    selectedWagesTeam,
     updateMobileChronicleState,
   ]);
 

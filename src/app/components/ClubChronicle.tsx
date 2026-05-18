@@ -70,6 +70,7 @@ import {
   readCompressedChronicleStorage,
   writeCompressedChronicleStorage,
 } from "@/lib/chronicleStorageCodec";
+import { positionLabelShortByRoleId } from "@/lib/positions";
 import { getSpecialtyEmoji } from "@/lib/specialty";
 import {
   APP_LICENSE_EVENT,
@@ -365,6 +366,7 @@ type Form7RatingEntry = {
   matchDate: string | null;
   ratingStarsEndOfMatch: number;
   weatherId: number;
+  roleId?: number | null;
   recordedAt: number;
 };
 
@@ -9529,6 +9531,7 @@ type Form7LineupSnapshot = {
   substitutionsOffMinuteByPlayerId: Map<number, number>;
   substitutionsOnMinuteByPlayerId: Map<number, number>;
   ratingByPlayerId: Map<number, number>;
+  roleIdByPlayerId: Map<number, number>;
 };
 
   const fetchTeamPlayers = async (teamId: number): Promise<TeamPlayerSnapshot[]> => {
@@ -9669,6 +9672,7 @@ type Form7LineupSnapshot = {
     const substitutionsOffMinuteByPlayerId = new Map<number, number>();
     const substitutionsOnMinuteByPlayerId = new Map<number, number>();
     const ratingByPlayerId = new Map<number, number>();
+    const roleIdByPlayerId = new Map<number, number>();
     const startingLineup = toArray(
       teamNode?.StartingLineup?.Player as RawNode | RawNode[] | null
     );
@@ -9702,7 +9706,19 @@ type Form7LineupSnapshot = {
     const lineupPlayers = toArray(teamNode?.Lineup?.Player as RawNode | RawNode[] | null);
     lineupPlayers.forEach((player) => {
       const playerId = parseOptionalNumber(player?.PlayerID);
+      const roleId = parseOptionalNumber(player?.RoleID);
       const rating = parseNumberNode(player?.RatingStarsEndOfMatch);
+      if (
+        playerId &&
+        playerId > 0 &&
+        roleId !== null &&
+        roleId !== undefined &&
+        roleId >= 100 &&
+        roleId <= 113 &&
+        !roleIdByPlayerId.has(playerId)
+      ) {
+        roleIdByPlayerId.set(playerId, roleId);
+      }
       if (playerId && playerId > 0 && rating !== null && Number.isFinite(rating)) {
         ratingByPlayerId.set(playerId, rating);
       }
@@ -9716,6 +9732,7 @@ type Form7LineupSnapshot = {
       substitutionsOffMinuteByPlayerId,
       substitutionsOnMinuteByPlayerId,
       ratingByPlayerId,
+      roleIdByPlayerId,
     };
   };
 
@@ -9770,6 +9787,9 @@ type Form7LineupSnapshot = {
         return "❔";
     }
   };
+
+  const resolveForm7PositionShortLabel = (roleId: number | null | undefined) =>
+    positionLabelShortByRoleId(roleId, messages);
 
   const resolveChronicleSpecialtyLabel = (value?: number | null) => {
     switch (value) {
@@ -10122,6 +10142,7 @@ type Form7LineupSnapshot = {
         if (playedMinutes < 80 || playedMinutes > 96) return;
         const ratingStarsEndOfMatch = lineup.ratingByPlayerId.get(player.playerId);
         if (ratingStarsEndOfMatch === undefined || ratingStarsEndOfMatch === null) return;
+        const roleId = lineup.roleIdByPlayerId.get(player.playerId) ?? null;
         nextHistoryByPlayerId[player.playerId] = mergeForm7RatingEntries(
           nextHistoryByPlayerId[player.playerId],
           [
@@ -10131,6 +10152,7 @@ type Form7LineupSnapshot = {
               matchDate: weatherSnapshot.matchDate ?? match.matchDate,
               ratingStarsEndOfMatch,
               weatherId,
+              roleId,
               recordedAt: Date.now(),
             },
           ]
@@ -14080,14 +14102,22 @@ type Form7LineupSnapshot = {
         label: messages.clubChronicleForm7RatingColumn,
         headerTooltipContent: messages.clubChronicleForm7RatingInfoTooltip,
         getValue: (snapshot) =>
-          snapshot?.form7Ratings?.map((entry) => entry.ratingStarsEndOfMatch).join(", ") ??
-          null,
+          snapshot?.form7Ratings
+            ?.map((entry) => {
+              const positionLabel = resolveForm7PositionShortLabel(entry.roleId);
+              const weatherEmoji = resolveForm7WeatherEmoji(entry.weatherId);
+              return positionLabel
+                ? `${entry.ratingStarsEndOfMatch} (${positionLabel}) ${weatherEmoji}`
+                : `${entry.ratingStarsEndOfMatch} ${weatherEmoji}`;
+            })
+            .join(", ") ?? null,
         getSortValue: (snapshot) => snapshot?.form7Ratings?.[0]?.ratingStarsEndOfMatch ?? null,
         renderCell: (snapshot) =>
           snapshot?.form7Ratings && snapshot.form7Ratings.length > 0 ? (
             <span className={styles.chronicleForm7RatingList}>
-              {snapshot.form7Ratings.map((entry) => {
+              {snapshot.form7Ratings.map((entry, index) => {
                 const weatherLabel = resolveForm7EntryWeatherLabel(entry.weatherId);
+                const positionLabel = resolveForm7PositionShortLabel(entry.roleId);
                 return (
                   <span
                     key={`${entry.matchId}:${entry.sourceSystem}:${entry.ratingStarsEndOfMatch}:${entry.weatherId}`}
@@ -14104,6 +14134,7 @@ type Form7LineupSnapshot = {
                     >
                       {entry.ratingStarsEndOfMatch}
                     </a>
+                    {positionLabel ? ` (${positionLabel}) ` : " "}
                     <Tooltip content={weatherLabel}>
                       <span
                         className={styles.chronicleForm7WeatherEmoji}
@@ -14112,6 +14143,7 @@ type Form7LineupSnapshot = {
                         {resolveForm7WeatherEmoji(entry.weatherId)}
                       </span>
                     </Tooltip>
+                    {index < snapshot.form7Ratings.length - 1 ? ", " : null}
                   </span>
                 );
               })}
@@ -14146,6 +14178,7 @@ type Form7LineupSnapshot = {
       messages.specialtySupport,
       renderInjuryStatusInline,
       resolveForm7EntryWeatherLabel,
+      resolveForm7PositionShortLabel,
       buildChronicleCardStatus,
     ]
   );
@@ -14276,14 +14309,22 @@ type Form7LineupSnapshot = {
         label: messages.clubChronicleForm7RatingColumn,
         headerTooltipContent: messages.clubChronicleForm7RatingInfoTooltip,
         getValue: (snapshot) =>
-          snapshot?.form7Ratings?.map((entry) => entry.ratingStarsEndOfMatch).join(", ") ??
-          null,
+          snapshot?.form7Ratings
+            ?.map((entry) => {
+              const positionLabel = resolveForm7PositionShortLabel(entry.roleId);
+              const weatherEmoji = resolveForm7WeatherEmoji(entry.weatherId);
+              return positionLabel
+                ? `${entry.ratingStarsEndOfMatch} (${positionLabel}) ${weatherEmoji}`
+                : `${entry.ratingStarsEndOfMatch} ${weatherEmoji}`;
+            })
+            .join(", ") ?? null,
         getSortValue: (snapshot) => snapshot?.form7Ratings?.[0]?.ratingStarsEndOfMatch ?? null,
         renderCell: (snapshot) =>
           snapshot?.form7Ratings && snapshot.form7Ratings.length > 0 ? (
             <span className={styles.chronicleForm7RatingList}>
-              {snapshot.form7Ratings.map((entry) => {
+              {snapshot.form7Ratings.map((entry, index) => {
                 const weatherLabel = resolveForm7EntryWeatherLabel(entry.weatherId);
+                const positionLabel = resolveForm7PositionShortLabel(entry.roleId);
                 return (
                   <span
                     key={`${entry.matchId}:${entry.sourceSystem}:${entry.ratingStarsEndOfMatch}:${entry.weatherId}`}
@@ -14300,6 +14341,7 @@ type Form7LineupSnapshot = {
                     >
                       {entry.ratingStarsEndOfMatch}
                     </a>
+                    {positionLabel ? ` (${positionLabel}) ` : " "}
                     <Tooltip content={weatherLabel}>
                       <span
                         className={styles.chronicleForm7WeatherEmoji}
@@ -14308,6 +14350,7 @@ type Form7LineupSnapshot = {
                         {resolveForm7WeatherEmoji(entry.weatherId)}
                       </span>
                     </Tooltip>
+                    {index < snapshot.form7Ratings.length - 1 ? ", " : null}
                   </span>
                 );
               })}
@@ -14342,6 +14385,7 @@ type Form7LineupSnapshot = {
       messages.specialtySupport,
       renderInjuryStatusInline,
       resolveForm7EntryWeatherLabel,
+      resolveForm7PositionShortLabel,
       buildChronicleCardStatus,
     ]
   );

@@ -2260,22 +2260,31 @@ const stripLikelyTrainingConfidenceFromUpdates = (
   let didChange = false;
   const nextTeams = Object.fromEntries(
     Object.entries(updates.teams).flatMap(([teamId, teamUpdate]) => {
-      const nextChanges = teamUpdate.changes.filter(
-        (change) => change.fieldKey !== "likelyTraining.confidence"
-      );
-      if (nextChanges.length === 0) {
-        if (teamUpdate.changes.length > 0) {
+      const currentChanges = Array.isArray(teamUpdate?.changes)
+        ? teamUpdate.changes
+        : [];
+      if (currentChanges.length === 0) {
+        if (teamUpdate && !Array.isArray(teamUpdate.changes)) {
           didChange = true;
         }
         return [];
       }
-      if (nextChanges.length !== teamUpdate.changes.length) {
+      const nextChanges = currentChanges.filter(
+        (change) => change.fieldKey !== "likelyTraining.confidence"
+      );
+      if (nextChanges.length === 0) {
+        if (currentChanges.length > 0) {
+          didChange = true;
+        }
+        return [];
+      }
+      if (nextChanges.length !== currentChanges.length) {
         didChange = true;
       }
       return [
         [
           teamId,
-          nextChanges.length === teamUpdate.changes.length
+          nextChanges.length === currentChanges.length
             ? teamUpdate
             : { ...teamUpdate, changes: nextChanges },
         ],

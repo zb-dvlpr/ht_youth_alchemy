@@ -1,6 +1,7 @@
-const COMPACT_PREFIX = "ya-ccz1:";
+const LEGACY_COMPACT_PREFIX = "ya-ccz1:";
+const CURRENT_COMPACT_PREFIX = "ya-ccz2:";
 
-const COMPACT_KEY_SOURCE = [
+const LEGACY_COMPACT_KEY_SOURCE = [
   "version",
   "activeTabId",
   "tabs",
@@ -109,11 +110,8 @@ const COMPACT_KEY_SOURCE = [
   "top11WagesSek",
   "salarySek",
   "form7RatingsByPlayerId",
-  "playingPositionByPlayerId",
   "ratingStarsEndOfMatch",
   "weatherId",
-  "roleId",
-  "minutes",
   "recordedAt",
   "key",
   "label",
@@ -168,6 +166,29 @@ const COMPACT_KEY_SOURCE = [
   "hasChanges",
 ] as const;
 
+const INTERIM_COMPACT_KEY_SOURCE = [
+  ...LEGACY_COMPACT_KEY_SOURCE.slice(
+    0,
+    LEGACY_COMPACT_KEY_SOURCE.indexOf("ratingStarsEndOfMatch")
+  ),
+  "playingPositionByPlayerId",
+  "ratingStarsEndOfMatch",
+  "weatherId",
+  "roleId",
+  "minutes",
+  "recordedAt",
+  ...LEGACY_COMPACT_KEY_SOURCE.slice(
+    LEGACY_COMPACT_KEY_SOURCE.indexOf("key")
+  ),
+] as const;
+
+const CURRENT_COMPACT_KEY_SOURCE = [
+  ...LEGACY_COMPACT_KEY_SOURCE,
+  "playingPositionByPlayerId",
+  "roleId",
+  "minutes",
+] as const;
+
 const TOKEN_ALPHABET =
   "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -181,50 +202,186 @@ const encodeToken = (index: number) => {
   return `~${token}`;
 };
 
-const KEY_TO_ALIAS = new Map<string, string>(
-  COMPACT_KEY_SOURCE.map((key, index) => [key, encodeToken(index)])
-);
-const ALIAS_TO_KEY = new Map<string, string>(
-  COMPACT_KEY_SOURCE.map((key, index) => [encodeToken(index), key])
-);
+const buildAliasMaps = (source: readonly string[]) => {
+  const keyToAlias = new Map<string, string>(
+    source.map((key, index) => [key, encodeToken(index)])
+  );
+  const aliasToKey = new Map<string, string>(
+    source.map((key, index) => [encodeToken(index), key])
+  );
+  return { keyToAlias, aliasToKey };
+};
 
-const encodeCompactValue = (value: unknown): unknown => {
+const LEGACY_ALIAS_MAPS = buildAliasMaps(LEGACY_COMPACT_KEY_SOURCE);
+const INTERIM_ALIAS_MAPS = buildAliasMaps(INTERIM_COMPACT_KEY_SOURCE);
+const CURRENT_ALIAS_MAPS = buildAliasMaps(CURRENT_COMPACT_KEY_SOURCE);
+
+const encodeCompactValue = (
+  value: unknown,
+  keyToAlias: Map<string, string>
+): unknown => {
   if (Array.isArray(value)) {
-    return value.map((entry) => encodeCompactValue(entry));
+    return value.map((entry) => encodeCompactValue(entry, keyToAlias));
   }
   if (!value || typeof value !== "object") {
     return value;
   }
   return Object.fromEntries(
     Object.entries(value as Record<string, unknown>).map(([key, entryValue]) => [
-      KEY_TO_ALIAS.get(key) ?? key,
-      encodeCompactValue(entryValue),
+      keyToAlias.get(key) ?? key,
+      encodeCompactValue(entryValue, keyToAlias),
     ])
   );
 };
 
-const decodeCompactValue = (value: unknown): unknown => {
+const decodeCompactValue = (
+  value: unknown,
+  aliasToKey: Map<string, string>
+): unknown => {
   if (Array.isArray(value)) {
-    return value.map((entry) => decodeCompactValue(entry));
+    return value.map((entry) => decodeCompactValue(entry, aliasToKey));
   }
   if (!value || typeof value !== "object") {
     return value;
   }
   return Object.fromEntries(
     Object.entries(value as Record<string, unknown>).map(([key, entryValue]) => [
-      ALIAS_TO_KEY.get(key) ?? key,
-      decodeCompactValue(entryValue),
+      aliasToKey.get(key) ?? key,
+      decodeCompactValue(entryValue, aliasToKey),
     ])
   );
 };
 
-const parseCompactStoragePayload = <T>(raw: string): T | null => {
+const isFinitePositiveNumber = (value: unknown) =>
+  typeof value === "number" && Number.isFinite(value) && value > 0;
+
+const isFiniteNonNegativeNumber = (value: unknown) =>
+  typeof value === "number" && Number.isFinite(value) && value >= 0;
+
+const isOptionalRoleId = (value: unknown) =>
+  value === null ||
+  value === undefined ||
+  (typeof value === "number" && Number.isFinite(value) && value >= 100 && value <= 113);
+
+const scoreChronicleCandidate = (value: unknown) => {
+  let validForm7Entries = 0;
+  let invalidForm7Entries = 0;
+  let validPlayingPositionEntries = 0;
+  let invalidPlayingPositionEntries = 0;
+
+  const visit = (node: unknown) => {
+    if (Array.isArray(node)) {
+      node.forEach(visit);
+      return;
+    }
+    if (!node || typeof node !== "object") {
+      return;
+    }
+    const record = node as Record<string, unknown>;
+    if (
+      record.form7RatingsByPlayerId &&
+      typeof record.form7RatingsByPlayerId === "object" &&
+      !Array.isArray(record.form7RatingsByPlayerId)
+    ) {
+      Object.values(record.form7RatingsByPlayerId as Record<string, unknown>).forEach(
+        (entryList) => {
+          if (!Array.isArray(entryList)) {
+            invalidForm7Entries += 1;
+            return;
+          }
+          entryList.forEach((entry) => {
+            if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+              invalidForm7Entries += 1;
+              return;
+            }
+            const item = entry as Record<string, unknown>;
+            const isValid =
+              isFinitePositiveNumber(item.matchId) &&
+              typeof item.sourceSystem === "string" &&
+              item.sourceSystem.trim().length > 0 &&
+              isFiniteNonNegativeNumber(item.ratingStarsEndOfMatch) &&
+              typeof item.weatherId === "number" &&
+              Number.isInteger(item.weatherId) &&
+              item.weatherId >= 0 &&
+              item.weatherId <= 3 &&
+              isOptionalRoleId(item.roleId);
+            if (isValid) {
+              validForm7Entries += 1;
+            } else {
+              invalidForm7Entries += 1;
+            }
+          });
+        }
+      );
+    }
+    if (
+      record.playingPositionByPlayerId &&
+      typeof record.playingPositionByPlayerId === "object" &&
+      !Array.isArray(record.playingPositionByPlayerId)
+    ) {
+      Object.values(
+        record.playingPositionByPlayerId as Record<string, unknown>
+      ).forEach((entryList) => {
+        if (!Array.isArray(entryList)) {
+          invalidPlayingPositionEntries += 1;
+          return;
+        }
+        entryList.forEach((entry) => {
+          if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+            invalidPlayingPositionEntries += 1;
+            return;
+          }
+          const item = entry as Record<string, unknown>;
+          const isValid =
+            typeof item.roleId === "number" &&
+            Number.isFinite(item.roleId) &&
+            item.roleId >= 100 &&
+            item.roleId <= 113 &&
+            isFiniteNonNegativeNumber(item.minutes);
+          if (isValid) {
+            validPlayingPositionEntries += 1;
+          } else {
+            invalidPlayingPositionEntries += 1;
+          }
+        });
+      });
+    }
+    Object.values(record).forEach(visit);
+  };
+
+  visit(value);
+
+  return (
+    validForm7Entries * 10 -
+    invalidForm7Entries * 20 +
+    validPlayingPositionEntries * 5 -
+    invalidPlayingPositionEntries * 10
+  );
+};
+
+const parseCompactStoragePayload = <T>(raw: string): { payload: T | null; needsRewrite: boolean } => {
   try {
-    if (!raw.startsWith(COMPACT_PREFIX)) return null;
-    const parsed = JSON.parse(raw.slice(COMPACT_PREFIX.length)) as unknown;
-    return decodeCompactValue(parsed) as T;
+    if (raw.startsWith(CURRENT_COMPACT_PREFIX)) {
+      const parsed = JSON.parse(raw.slice(CURRENT_COMPACT_PREFIX.length)) as unknown;
+      return {
+        payload: decodeCompactValue(parsed, CURRENT_ALIAS_MAPS.aliasToKey) as T,
+        needsRewrite: false,
+      };
+    }
+    if (!raw.startsWith(LEGACY_COMPACT_PREFIX)) {
+      return { payload: null, needsRewrite: false };
+    }
+    const parsed = JSON.parse(raw.slice(LEGACY_COMPACT_PREFIX.length)) as unknown;
+    const legacyDecoded = decodeCompactValue(parsed, LEGACY_ALIAS_MAPS.aliasToKey);
+    const interimDecoded = decodeCompactValue(parsed, INTERIM_ALIAS_MAPS.aliasToKey);
+    const legacyScore = scoreChronicleCandidate(legacyDecoded);
+    const interimScore = scoreChronicleCandidate(interimDecoded);
+    return {
+      payload: (interimScore > legacyScore ? interimDecoded : legacyDecoded) as T,
+      needsRewrite: true,
+    };
   } catch {
-    return null;
+    return { payload: null, needsRewrite: false };
   }
 };
 
@@ -234,8 +391,11 @@ export const readCompressedChronicleStorage = <T>(key: string): T | null => {
     const raw = window.localStorage.getItem(key);
     if (!raw) return null;
     const compact = parseCompactStoragePayload<T>(raw);
-    if (compact !== null) {
-      return compact;
+    if (compact.payload !== null) {
+      if (compact.needsRewrite) {
+        void writeCompressedChronicleStorage(key, compact.payload);
+      }
+      return compact.payload;
     }
     const parsed = JSON.parse(raw) as T;
     void writeCompressedChronicleStorage(key, parsed);
@@ -253,7 +413,9 @@ export const writeCompressedChronicleStorage = (
   try {
     window.localStorage.setItem(
       key,
-      `${COMPACT_PREFIX}${JSON.stringify(encodeCompactValue(payload))}`
+      `${CURRENT_COMPACT_PREFIX}${JSON.stringify(
+        encodeCompactValue(payload, CURRENT_ALIAS_MAPS.keyToAlias)
+      )}`
     );
     return true;
   } catch {

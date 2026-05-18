@@ -2231,12 +2231,220 @@ const writeStorage = (payload: WatchlistStorage) => {
   }
 };
 
+const sanitizeForm7RatingEntries = (
+  entries: unknown
+): { entries: Form7RatingEntry[]; didChange: boolean } => {
+  if (!Array.isArray(entries)) {
+    return { entries: [], didChange: entries !== undefined };
+  }
+  let didChange = false;
+  const nextEntries = entries.flatMap((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      didChange = true;
+      return [];
+    }
+    const candidate = entry as Partial<Form7RatingEntry>;
+    const hasValidMatchId =
+      typeof candidate.matchId === "number" &&
+      Number.isFinite(candidate.matchId) &&
+      candidate.matchId > 0;
+    const hasValidSourceSystem =
+      typeof candidate.sourceSystem === "string" &&
+      candidate.sourceSystem.trim().length > 0;
+    const hasValidRating =
+      typeof candidate.ratingStarsEndOfMatch === "number" &&
+      Number.isFinite(candidate.ratingStarsEndOfMatch) &&
+      candidate.ratingStarsEndOfMatch >= 0;
+    const hasValidWeather =
+      typeof candidate.weatherId === "number" &&
+      Number.isInteger(candidate.weatherId) &&
+      candidate.weatherId >= 0 &&
+      candidate.weatherId <= 3;
+    const hasValidRoleId =
+      candidate.roleId === undefined ||
+      candidate.roleId === null ||
+      (typeof candidate.roleId === "number" &&
+        Number.isFinite(candidate.roleId) &&
+        candidate.roleId >= 100 &&
+        candidate.roleId <= 113);
+    if (
+      !hasValidMatchId ||
+      !hasValidSourceSystem ||
+      !hasValidRating ||
+      !hasValidWeather ||
+      !hasValidRoleId
+    ) {
+      didChange = true;
+      return [];
+    }
+    const matchId = candidate.matchId as number;
+    const sourceSystem = (candidate.sourceSystem as string).trim();
+    const ratingStarsEndOfMatch = candidate.ratingStarsEndOfMatch as number;
+    const weatherId = candidate.weatherId as number;
+    return [
+      {
+        matchId,
+        sourceSystem,
+        matchDate: typeof candidate.matchDate === "string" ? candidate.matchDate : null,
+        ratingStarsEndOfMatch,
+        weatherId,
+        roleId:
+          typeof candidate.roleId === "number" && Number.isFinite(candidate.roleId)
+            ? candidate.roleId
+            : null,
+        recordedAt:
+          typeof candidate.recordedAt === "number" && Number.isFinite(candidate.recordedAt)
+            ? candidate.recordedAt
+            : 0,
+      },
+    ];
+  });
+  if (nextEntries.length !== entries.length) {
+    didChange = true;
+  }
+  return { entries: nextEntries, didChange };
+};
+
+const sanitizePlayingPositionEntries = (
+  entries: unknown
+): { entries: PlayingPositionEntry[]; didChange: boolean } => {
+  if (!Array.isArray(entries)) {
+    return { entries: [], didChange: entries !== undefined };
+  }
+  let didChange = false;
+  const nextEntries = entries.flatMap((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) {
+      didChange = true;
+      return [];
+    }
+    const candidate = entry as Partial<PlayingPositionEntry>;
+    const hasValidRoleId =
+      typeof candidate.roleId === "number" &&
+      Number.isFinite(candidate.roleId) &&
+      candidate.roleId >= 100 &&
+      candidate.roleId <= 113;
+    const hasValidMinutes =
+      typeof candidate.minutes === "number" &&
+      Number.isFinite(candidate.minutes) &&
+      candidate.minutes > 0;
+    if (!hasValidRoleId || !hasValidMinutes) {
+      didChange = true;
+      return [];
+    }
+    return [{ roleId: candidate.roleId as number, minutes: candidate.minutes as number }];
+  });
+  if (nextEntries.length !== entries.length) {
+    didChange = true;
+  }
+  return { entries: nextEntries, didChange };
+};
+
+const sanitizeChronicleTeamData = (
+  team: ChronicleTeamData
+): { team: ChronicleTeamData; didChange: boolean } => {
+  let didChange = false;
+  let nextTeam: ChronicleTeamData = team;
+
+  if (team.form7RatingsByPlayerId && typeof team.form7RatingsByPlayerId === "object") {
+    const nextRatings = Object.fromEntries(
+      Object.entries(team.form7RatingsByPlayerId).flatMap(([playerId, entries]) => {
+        const sanitized = sanitizeForm7RatingEntries(entries);
+        if (sanitized.didChange) {
+          didChange = true;
+        }
+        if (sanitized.entries.length === 0) {
+          return [];
+        }
+        return [[playerId, sanitized.entries]];
+      })
+    ) as Record<number, Form7RatingEntry[]>;
+    if (
+      Object.keys(nextRatings).length !==
+      Object.keys(team.form7RatingsByPlayerId).length
+    ) {
+      didChange = true;
+    }
+    nextTeam = {
+      ...nextTeam,
+      form7RatingsByPlayerId: nextRatings,
+    };
+  }
+
+  if (
+    team.playingPositionByPlayerId &&
+    typeof team.playingPositionByPlayerId === "object"
+  ) {
+    const nextPositions = Object.fromEntries(
+      Object.entries(team.playingPositionByPlayerId).flatMap(([playerId, entries]) => {
+        const sanitized = sanitizePlayingPositionEntries(entries);
+        if (sanitized.didChange) {
+          didChange = true;
+        }
+        if (sanitized.entries.length === 0) {
+          return [];
+        }
+        return [[playerId, sanitized.entries]];
+      })
+    ) as Record<number, PlayingPositionEntry[]>;
+    if (
+      Object.keys(nextPositions).length !==
+      Object.keys(team.playingPositionByPlayerId).length
+    ) {
+      didChange = true;
+    }
+    nextTeam = {
+      ...nextTeam,
+      playingPositionByPlayerId: nextPositions,
+    };
+  }
+
+  return { team: nextTeam, didChange };
+};
+
+const sanitizeChronicleCachePayload = (
+  cache: ChronicleCache | null
+): { cache: ChronicleCache | null; didChange: boolean } => {
+  if (!cache || !cache.teams || typeof cache.teams !== "object") {
+    return { cache, didChange: false };
+  }
+  let didChange = false;
+  const nextTeams = Object.fromEntries(
+    Object.entries(cache.teams).map(([teamId, team]) => {
+      if (!team || typeof team !== "object") {
+        didChange = true;
+        return [teamId, { teamId: Number(teamId) } as ChronicleTeamData];
+      }
+      const sanitized = sanitizeChronicleTeamData(team as ChronicleTeamData);
+      if (sanitized.didChange) {
+        didChange = true;
+      }
+      return [teamId, sanitized.team];
+    })
+  ) as Record<number, ChronicleTeamData>;
+  if (!didChange) {
+    return { cache, didChange: false };
+  }
+  return {
+    cache: {
+      ...cache,
+      teams: nextTeams,
+    },
+    didChange: true,
+  };
+};
+
 const readChronicleCache = (): ChronicleCache => {
   if (typeof window === "undefined") {
     return { version: 1, teams: {} };
   }
   const parsed = readCompressedChronicleStorage<ChronicleCache>(CACHE_KEY);
-  return parsed && parsed.teams ? parsed : { version: 1, teams: {} };
+  const sanitized = sanitizeChronicleCachePayload(parsed && parsed.teams ? parsed : null);
+  if (sanitized.didChange && sanitized.cache) {
+    writeChronicleCache(sanitized.cache);
+  }
+  return sanitized.cache && sanitized.cache.teams
+    ? sanitized.cache
+    : { version: 1, teams: {} };
 };
 
 const writeChronicleCache = (payload: ChronicleCache) => {
@@ -2372,7 +2580,11 @@ const readGlobalBaseline = (): ChronicleCache | null => {
   if (typeof window === "undefined") return null;
   const parsed =
     readCompressedChronicleStorage<ChronicleCache>(GLOBAL_BASELINE_KEY);
-  return parsed && parsed.teams ? parsed : null;
+  const sanitized = sanitizeChronicleCachePayload(parsed && parsed.teams ? parsed : null);
+  if (sanitized.didChange && sanitized.cache) {
+    writeGlobalBaseline(sanitized.cache);
+  }
+  return sanitized.cache && sanitized.cache.teams ? sanitized.cache : null;
 };
 
 const writeGlobalBaseline = (payload: ChronicleCache | null) => {
@@ -2556,91 +2768,99 @@ const readChronicleTabsStorage = (
       TABS_STORAGE_KEY
     );
     if (parsed) {
+      let didChange = false;
       const tabs = Array.isArray(parsed?.tabs)
         ? parsed.tabs
             .map((tab, index) =>
-              buildChronicleTabState(messages, index + 1, {
-                id:
-                  typeof tab?.id === "string" && tab.id.trim()
-                    ? tab.id
-                    : `tab-${index + 1}`,
-                name: typeof tab?.name === "string" ? tab.name : undefined,
-                supportedSelections:
-                  tab?.supportedSelections &&
-                  typeof tab.supportedSelections === "object"
-                    ? tab.supportedSelections
-                    : {},
-                ownLeagueSelections:
-                  tab?.ownLeagueSelections &&
-                  typeof tab.ownLeagueSelections === "object"
-                    ? tab.ownLeagueSelections
-                    : {},
-                ownLeagueTeamSelections:
-                  tab?.ownLeagueTeamSelections &&
-                  typeof tab.ownLeagueTeamSelections === "object"
-                    ? tab.ownLeagueTeamSelections
-                    : {},
-                manualTeams: normalizeStoredManualTeams(tab?.manualTeams),
-                updates: tab?.updates ?? null,
-                globalUpdatesHistory: Array.isArray(tab?.globalUpdatesHistory)
-                  ? tab.globalUpdatesHistory
-                  : [],
-                globalBaselineCache:
+              {
+                const sanitizedBaseline = sanitizeChronicleCachePayload(
                   tab?.globalBaselineCache &&
-                  typeof tab.globalBaselineCache === "object"
+                    typeof tab.globalBaselineCache === "object"
                     ? pruneChronicleCache(tab.globalBaselineCache)
-                    : null,
-                lastRefreshAt:
-                  typeof tab?.lastRefreshAt === "number" ? tab.lastRefreshAt : null,
-                lastComparedAt:
-                  typeof tab?.lastComparedAt === "number" ? tab.lastComparedAt : null,
-                lastHadChanges:
-                  typeof tab?.lastHadChanges === "boolean"
-                    ? tab.lastHadChanges
-                    : true,
-                mobilePanelId: PANEL_IDS.includes(tab?.mobilePanelId as ChroniclePanelId)
-                  ? (tab.mobilePanelId as ChroniclePanelId)
-                  : PANEL_IDS[0],
-                mobileScreen:
-                  tab?.mobileScreen === "watchlist" ||
-                  tab?.mobileScreen === "latest-updates" ||
-                  tab?.mobileScreen === "detail" ||
-                  tab?.mobileScreen === "formations-matches" ||
-                  tab?.mobileScreen === "panel"
-                    ? tab.mobileScreen
-                    : "panel",
-                mobileDetailKind:
-                  tab?.mobileDetailKind === "league-performance" ||
-                  tab?.mobileDetailKind === "press-announcements" ||
-                  tab?.mobileDetailKind === "finance-estimate" ||
-                  tab?.mobileDetailKind === "last-login" ||
-                  tab?.mobileDetailKind === "coach" ||
-                  tab?.mobileDetailKind === "power-ratings" ||
-                  tab?.mobileDetailKind === "fanclub" ||
-                  tab?.mobileDetailKind === "arena" ||
-                  tab?.mobileDetailKind === "transfer-listed" ||
-                  tab?.mobileDetailKind === "transfer-history" ||
-                  tab?.mobileDetailKind === "formations-tactics" ||
-                  tab?.mobileDetailKind === "likely-training" ||
-                  tab?.mobileDetailKind === "tsi" ||
-                  tab?.mobileDetailKind === "wages"
-                    ? tab.mobileDetailKind
-                    : null,
-                mobileDetailTeamId:
-                  typeof tab?.mobileDetailTeamId === "number"
-                    ? tab.mobileDetailTeamId
-                    : null,
-                mobileMenuPosition:
-                  tab?.mobileMenuPosition &&
-                  typeof tab.mobileMenuPosition === "object" &&
-                  Number.isFinite(Number(tab.mobileMenuPosition.x)) &&
-                  Number.isFinite(Number(tab.mobileMenuPosition.y))
-                    ? {
-                        x: Number(tab.mobileMenuPosition.x),
-                        y: Number(tab.mobileMenuPosition.y),
-                      }
-                    : { x: 16, y: 108 },
-              })
+                    : null
+                );
+                if (sanitizedBaseline.didChange) {
+                  didChange = true;
+                }
+                return buildChronicleTabState(messages, index + 1, {
+                  id:
+                    typeof tab?.id === "string" && tab.id.trim()
+                      ? tab.id
+                      : `tab-${index + 1}`,
+                  name: typeof tab?.name === "string" ? tab.name : undefined,
+                  supportedSelections:
+                    tab?.supportedSelections &&
+                    typeof tab.supportedSelections === "object"
+                      ? tab.supportedSelections
+                      : {},
+                  ownLeagueSelections:
+                    tab?.ownLeagueSelections &&
+                    typeof tab.ownLeagueSelections === "object"
+                      ? tab.ownLeagueSelections
+                      : {},
+                  ownLeagueTeamSelections:
+                    tab?.ownLeagueTeamSelections &&
+                    typeof tab.ownLeagueTeamSelections === "object"
+                      ? tab.ownLeagueTeamSelections
+                      : {},
+                  manualTeams: normalizeStoredManualTeams(tab?.manualTeams),
+                  updates: tab?.updates ?? null,
+                  globalUpdatesHistory: Array.isArray(tab?.globalUpdatesHistory)
+                    ? tab.globalUpdatesHistory
+                    : [],
+                  globalBaselineCache: sanitizedBaseline.cache,
+                  lastRefreshAt:
+                    typeof tab?.lastRefreshAt === "number" ? tab.lastRefreshAt : null,
+                  lastComparedAt:
+                    typeof tab?.lastComparedAt === "number" ? tab.lastComparedAt : null,
+                  lastHadChanges:
+                    typeof tab?.lastHadChanges === "boolean"
+                      ? tab.lastHadChanges
+                      : true,
+                  mobilePanelId: PANEL_IDS.includes(tab?.mobilePanelId as ChroniclePanelId)
+                    ? (tab.mobilePanelId as ChroniclePanelId)
+                    : PANEL_IDS[0],
+                  mobileScreen:
+                    tab?.mobileScreen === "watchlist" ||
+                    tab?.mobileScreen === "latest-updates" ||
+                    tab?.mobileScreen === "detail" ||
+                    tab?.mobileScreen === "formations-matches" ||
+                    tab?.mobileScreen === "panel"
+                      ? tab.mobileScreen
+                      : "panel",
+                  mobileDetailKind:
+                    tab?.mobileDetailKind === "league-performance" ||
+                    tab?.mobileDetailKind === "press-announcements" ||
+                    tab?.mobileDetailKind === "finance-estimate" ||
+                    tab?.mobileDetailKind === "last-login" ||
+                    tab?.mobileDetailKind === "coach" ||
+                    tab?.mobileDetailKind === "power-ratings" ||
+                    tab?.mobileDetailKind === "fanclub" ||
+                    tab?.mobileDetailKind === "arena" ||
+                    tab?.mobileDetailKind === "transfer-listed" ||
+                    tab?.mobileDetailKind === "transfer-history" ||
+                    tab?.mobileDetailKind === "formations-tactics" ||
+                    tab?.mobileDetailKind === "likely-training" ||
+                    tab?.mobileDetailKind === "tsi" ||
+                    tab?.mobileDetailKind === "wages"
+                      ? tab.mobileDetailKind
+                      : null,
+                  mobileDetailTeamId:
+                    typeof tab?.mobileDetailTeamId === "number"
+                      ? tab.mobileDetailTeamId
+                      : null,
+                  mobileMenuPosition:
+                    tab?.mobileMenuPosition &&
+                    typeof tab.mobileMenuPosition === "object" &&
+                    Number.isFinite(Number(tab.mobileMenuPosition.x)) &&
+                    Number.isFinite(Number(tab.mobileMenuPosition.y))
+                      ? {
+                          x: Number(tab.mobileMenuPosition.x),
+                          y: Number(tab.mobileMenuPosition.y),
+                        }
+                      : { x: 16, y: 108 },
+                });
+              }
             )
             .filter((tab) => tab.id)
         : [];
@@ -2650,7 +2870,11 @@ const readChronicleTabsStorage = (
           tabs.some((tab) => tab.id === parsed.activeTabId)
             ? parsed.activeTabId
             : tabs[0].id;
-        return { version: 1, activeTabId, tabs };
+        const nextState = { version: 1, activeTabId, tabs };
+        if (didChange) {
+          writeChronicleTabsStorage(nextState);
+        }
+        return nextState;
       }
     }
   } catch {

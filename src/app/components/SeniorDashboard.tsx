@@ -14274,6 +14274,18 @@ const refreshDetailsForPlayers = async (
   ]);
 
   useEffect(() => {
+    if (!mobileSeniorActive) return;
+    if (mobileSeniorView !== "playerDetails") return;
+    if (mobileSeniorPlayerScreen !== "root") return;
+    pushMobileSeniorState("playerDetails", "list", "replace");
+  }, [
+    mobileSeniorActive,
+    mobileSeniorPlayerScreen,
+    mobileSeniorView,
+    pushMobileSeniorState,
+  ]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     if (!mobileSeniorActive) return;
     const currentState = window.history.state as MobileSeniorHistoryState | null;

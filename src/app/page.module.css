@@ -4915,6 +4915,15 @@ html[data-theme="dark"] .mobileNavAppTitle {
   color: #cfb692;
 }
 
+html[data-theme="dark"] .mobileNavHeader {
+  border-color: rgba(230, 199, 146, 0.14);
+  background:
+    linear-gradient(180deg, rgba(39, 33, 26, 0.98), rgba(27, 23, 19, 0.96));
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
 html[data-theme="dark"] .mobileNavTrailButton:hover,
 html[data-theme="dark"] .mobileNavTrailCurrent {
   color: #efe4d8;

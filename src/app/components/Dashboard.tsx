@@ -2014,6 +2014,18 @@ export default function Dashboard({
     pushMobileYouthState,
     selectedPlayer,
   ]);
+
+  useEffect(() => {
+    if (!mobileYouthActive) return;
+    if (mobileYouthView !== "playerDetails") return;
+    if (mobileYouthPlayerScreen !== "root") return;
+    pushMobileYouthState("playerDetails", "list", "replace");
+  }, [
+    mobileYouthActive,
+    mobileYouthPlayerScreen,
+    mobileYouthView,
+    pushMobileYouthState,
+  ]);
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!mobileYouthActive) return;

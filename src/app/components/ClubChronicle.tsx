@@ -15139,6 +15139,44 @@ type Form7LineupSnapshot = {
   ]);
 
   useEffect(() => {
+    if (!mobileChronicleActive) return;
+    const shouldNormalizePanel =
+      mobileChronicleScreen === "panel" &&
+      mobileChroniclePanelId !== resolvedMobileChroniclePanelId;
+    const shouldResetDetail =
+      mobileChronicleScreen === "detail" &&
+      (!mobileChronicleDetailKind || !mobileChronicleDetailTeamId);
+    const shouldResetFormationsMatches =
+      mobileChronicleScreen === "formations-matches" &&
+      !selectedFormationsTacticsTeamId;
+    if (
+      !shouldNormalizePanel &&
+      !shouldResetDetail &&
+      !shouldResetFormationsMatches
+    ) {
+      return;
+    }
+    updateMobileChronicleState(
+      {
+        panelId: resolvedMobileChroniclePanelId,
+        screen: "panel",
+        detailKind: null,
+        detailTeamId: null,
+      },
+      "replace"
+    );
+  }, [
+    mobileChronicleActive,
+    mobileChronicleDetailKind,
+    mobileChronicleDetailTeamId,
+    mobileChroniclePanelId,
+    mobileChronicleScreen,
+    resolvedMobileChroniclePanelId,
+    selectedFormationsTacticsTeamId,
+    updateMobileChronicleState,
+  ]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     const handle = (event: Event) => {
       if (!(event instanceof CustomEvent)) return;

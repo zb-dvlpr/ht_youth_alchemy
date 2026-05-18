@@ -348,6 +348,7 @@ type TsiSnapshot = {
     ageDays: number | null;
     injuryLevel: number | null;
     specialty: number | null;
+    cards: number | null;
     form: number | null;
     stamina: number | null;
     experience: number | null;
@@ -388,6 +389,7 @@ type TsiPlayerRow = {
   ageDays: number | null;
   injuryLevel: number | null;
   specialty: number | null;
+  cards: number | null;
   form: number | null;
   stamina: number | null;
   experience: number | null;
@@ -408,6 +410,7 @@ type WagesSnapshot = {
     ageDays: number | null;
     injuryLevel: number | null;
     specialty: number | null;
+    cards: number | null;
     form: number | null;
     stamina: number | null;
     experience: number | null;
@@ -646,6 +649,7 @@ type WagesPlayerRow = {
   ageDays: number | null;
   injuryLevel: number | null;
   specialty: number | null;
+  cards: number | null;
   form: number | null;
   stamina: number | null;
   experience: number | null;
@@ -9489,6 +9493,7 @@ type TeamPlayerSnapshot = {
     injuryLevel: number | null;
     transferListed: boolean;
     specialty: number | null;
+    cards: number | null;
     form: number | null;
     stamina: number | null;
     experience: number | null;
@@ -9558,6 +9563,10 @@ type Form7LineupSnapshot = {
           injuryLevel: parseNumberNode(player?.InjuryLevel),
           transferListed: parseBool(player?.TransferListed),
           specialty: parseNumberNode(player?.Specialty),
+          cards:
+            parseNumberNode(player?.Cards) ??
+            parseNumberNode(player?.Bookings) ??
+            parseNumberNode(player?.YellowCard),
           form: parseNumberNode(player?.PlayerForm ?? player?.Form),
           stamina: parseNumberNode(player?.StaminaSkill ?? playerSkills.StaminaSkill),
           experience: parseNumberNode(player?.Experience),
@@ -9750,6 +9759,20 @@ type Form7LineupSnapshot = {
       default:
         return "❔";
     }
+  };
+
+  const buildChronicleCardStatus = (cards: number | null) => {
+    if (typeof cards !== "number") return null;
+    if (cards >= 3) {
+      return { display: "🟥", label: messages.sortCards };
+    }
+    if (cards === 2) {
+      return { display: "🟨🟨", label: messages.sortCards };
+    }
+    if (cards === 1) {
+      return { display: "🟨", label: messages.sortCards };
+    }
+    return null;
   };
 
   const mergeForm7RatingEntries = (
@@ -10156,6 +10179,7 @@ type Form7LineupSnapshot = {
       ageDays: player.ageDays,
       injuryLevel: player.injuryLevel,
       specialty: player.specialty,
+      cards: player.cards,
       form: player.form,
       stamina: player.stamina,
       experience: player.experience,
@@ -10185,6 +10209,7 @@ type Form7LineupSnapshot = {
       ageDays: player.ageDays,
       injuryLevel: player.injuryLevel,
       specialty: player.specialty,
+      cards: player.cards,
       form: player.form,
       stamina: player.stamina,
       experience: player.experience,
@@ -13939,6 +13964,7 @@ type Form7LineupSnapshot = {
           const playerId = snapshot?.playerId ?? 0;
           const playerName = snapshot?.playerName ?? null;
           const specialtyEmoji = getSpecialtyEmoji(snapshot?.specialty);
+          const cardStatus = buildChronicleCardStatus(snapshot?.cards ?? null);
           const injuryIndicator = renderInjuryStatusInline(snapshot?.injuryLevel);
           if (!playerId) return fallbackFormat(playerName);
           return (
@@ -13958,10 +13984,24 @@ type Form7LineupSnapshot = {
                   {specialtyEmoji}
                 </span>
               ) : null}
+              {cardStatus ? (
+                <span
+                  className={styles.playerCardStatusInline}
+                  title={cardStatus.label}
+                  aria-label={cardStatus.label}
+                >
+                  {cardStatus.display}
+                </span>
+              ) : null}
               {injuryIndicator}
             </a>
           );
         },
+      },
+      {
+        key: "tsi",
+        label: messages.clubChronicleTsiValueColumn,
+        getValue: (snapshot) => snapshot?.tsi ?? null,
       },
       {
         key: "age",
@@ -14054,11 +14094,6 @@ type Form7LineupSnapshot = {
             messages.unknownShort
           ),
       },
-      {
-        key: "tsi",
-        label: messages.clubChronicleTsiValueColumn,
-        getValue: (snapshot) => snapshot?.tsi ?? null,
-      },
     ],
     [
       messages.clubChronicleTsiPlayerIndexColumn,
@@ -14078,6 +14113,7 @@ type Form7LineupSnapshot = {
       messages.unknownShort,
       renderInjuryStatusInline,
       resolveForm7EntryWeatherLabel,
+      buildChronicleCardStatus,
     ]
   );
 
@@ -14123,6 +14159,7 @@ type Form7LineupSnapshot = {
           const playerId = snapshot?.playerId ?? 0;
           const playerName = snapshot?.playerName ?? null;
           const specialtyEmoji = getSpecialtyEmoji(snapshot?.specialty);
+          const cardStatus = buildChronicleCardStatus(snapshot?.cards ?? null);
           const injuryIndicator = renderInjuryStatusInline(snapshot?.injuryLevel);
           if (!playerId) return fallbackFormat(playerName);
           return (
@@ -14142,10 +14179,25 @@ type Form7LineupSnapshot = {
                   {specialtyEmoji}
                 </span>
               ) : null}
+              {cardStatus ? (
+                <span
+                  className={styles.playerCardStatusInline}
+                  title={cardStatus.label}
+                  aria-label={cardStatus.label}
+                >
+                  {cardStatus.display}
+                </span>
+              ) : null}
               {injuryIndicator}
             </a>
           );
         },
+      },
+      {
+        key: "wage",
+        label: messages.clubChronicleWagesValueColumn,
+        getValue: (snapshot) => formatChppCurrencyFromSek(snapshot?.salarySek ?? null),
+        getSortValue: (snapshot) => snapshot?.salarySek ?? null,
       },
       {
         key: "age",
@@ -14238,12 +14290,6 @@ type Form7LineupSnapshot = {
             messages.unknownShort
           ),
       },
-      {
-        key: "wage",
-        label: messages.clubChronicleWagesValueColumn,
-        getValue: (snapshot) => formatChppCurrencyFromSek(snapshot?.salarySek ?? null),
-        getSortValue: (snapshot) => snapshot?.salarySek ?? null,
-      },
     ],
     [
       messages.clubChronicleWagesPlayerIndexColumn,
@@ -14263,6 +14309,7 @@ type Form7LineupSnapshot = {
       messages.unknownShort,
       renderInjuryStatusInline,
       resolveForm7EntryWeatherLabel,
+      buildChronicleCardStatus,
     ]
   );
 
@@ -16416,7 +16463,7 @@ type Form7LineupSnapshot = {
                     {
                       "--cc-columns": tsiPlayerColumns.length,
                       "--cc-template":
-                        "88px 220px 110px 90px 100px 80px 110px 100px 190px 132px",
+                          "88px 132px 220px 110px 90px 100px 80px 110px 100px 190px",
                     } as CSSProperties
                   }
                   sortKey={tsiDetailsSortState.key}
@@ -16450,7 +16497,7 @@ type Form7LineupSnapshot = {
                     {
                       "--cc-columns": wagesPlayerColumns.length,
                       "--cc-template":
-                        "88px 220px 110px 90px 100px 80px 110px 100px 190px 150px",
+                          "88px 150px 220px 110px 90px 100px 80px 110px 100px 190px",
                     } as CSSProperties
                   }
                   sortKey={wagesDetailsSortState.key}

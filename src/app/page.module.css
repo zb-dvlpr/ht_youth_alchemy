@@ -3758,13 +3758,12 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 }
 
 .chronicleTableHeaderItem {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 6px;
+  justify-content: flex-start;
+  gap: 3px;
   min-width: 0;
   white-space: nowrap;
-  width: 100%;
 }
 
 .chronicleTableHeaderButton {
@@ -3803,6 +3802,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .chronicleTableHeaderAccessory {
   display: inline-flex;
   align-items: center;
+  margin-left: -1px;
 }
 
 .chronicleTableHeaderInfoButton {

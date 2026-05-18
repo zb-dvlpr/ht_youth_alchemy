@@ -788,6 +788,7 @@ export const messagesDe: Messages = {
     clubChronicleTsiPlayerIndexColumn: "Nr.",
     clubChronicleTsiPlayerColumn: "Spieler",
     clubChronicleTsiValueColumn: "TSI",
+    clubChroniclePlayingPositionColumn: "Spielpos.",
     clubChronicleForm7RatingColumn: "Form-7-Bewertung",
     clubChronicleForm7RatingInfoLabel: "Info zur Form-7-Bewertung",
     clubChronicleForm7RatingInfoTooltip:

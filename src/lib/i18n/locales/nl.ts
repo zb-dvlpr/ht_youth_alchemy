@@ -828,6 +828,7 @@ export const messagesNl: Messages = {
   clubChronicleDetailModeDev: "Dev-modus",
   clubChronicleTeamAttitudeDisclaimer:
     "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig. Teams die consequent PIC spelen en daarna normaal spelen, kunnen op MOTS lijken, en teams die consequent MOTS spelen en daarna normaal spelen, kunnen op PIC lijken.",
+  clubChroniclePlayingPositionColumn: "Speelpos.",
   clubChronicleForm7RatingColumn: "Vorm-7-rating",
   clubChronicleForm7RatingInfoLabel: "Over vorm-7-rating",
   clubChronicleForm7RatingInfoTooltip:

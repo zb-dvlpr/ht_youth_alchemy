@@ -800,6 +800,7 @@ export const messagesFr: Messages = {
     clubChronicleTsiPlayerIndexColumn: "No",
     clubChronicleTsiPlayerColumn: "Joueur",
     clubChronicleTsiValueColumn: "TSI",
+    clubChroniclePlayingPositionColumn: "Poste joue",
     clubChronicleForm7RatingColumn: "Note forme 7",
     clubChronicleForm7RatingInfoLabel: "A propos de la note forme 7",
     clubChronicleForm7RatingInfoTooltip:

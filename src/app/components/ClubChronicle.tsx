@@ -70,7 +70,7 @@ import {
   readCompressedChronicleStorage,
   writeCompressedChronicleStorage,
 } from "@/lib/chronicleStorageCodec";
-import { positionLabelShortByRoleId } from "@/lib/positions";
+import { normalizeMatchRoleId, positionLabelShortByRoleId } from "@/lib/positions";
 import { getSpecialtyEmoji } from "@/lib/specialty";
 import {
   APP_LICENSE_EVENT,
@@ -370,6 +370,11 @@ type Form7RatingEntry = {
   recordedAt: number;
 };
 
+type PlayingPositionEntry = {
+  roleId: number;
+  minutes: number;
+};
+
 type TsiData = {
   current: TsiSnapshot;
   previous?: TsiSnapshot;
@@ -380,6 +385,7 @@ type TsiRow = {
   teamName: string;
   snapshot?: TsiSnapshot | null;
   form7RatingsByPlayerId?: Record<number, Form7RatingEntry[]>;
+  playingPositionByPlayerId?: Record<number, PlayingPositionEntry[]>;
 };
 
 type TsiPlayerRow = {
@@ -399,6 +405,7 @@ type TsiPlayerRow = {
   loyalty: number | null;
   tsi: number;
   form7Ratings: Form7RatingEntry[];
+  playingPositions: PlayingPositionEntry[];
 };
 
 type WagesSnapshot = {
@@ -433,6 +440,7 @@ type WagesRow = {
   teamName: string;
   snapshot?: WagesSnapshot | null;
   form7RatingsByPlayerId?: Record<number, Form7RatingEntry[]>;
+  playingPositionByPlayerId?: Record<number, PlayingPositionEntry[]>;
 };
 
 type FormationTacticsDistribution = {
@@ -444,6 +452,9 @@ type FormationTacticsDistribution = {
 type FormationTacticsAnalyzedMatch = {
   matchId: number;
   matchType: number | null;
+  matchDate: string | null;
+  sourceSystem: string;
+  matchDurationMinutes: number;
 };
 
 type LikelyTrainingKey =
@@ -659,6 +670,7 @@ type WagesPlayerRow = {
   loyalty: number | null;
   salarySek: number;
   form7Ratings: Form7RatingEntry[];
+  playingPositions: PlayingPositionEntry[];
 };
 
 type FanclubSnapshot = {
@@ -745,6 +757,7 @@ type ChronicleTeamData = {
   tsi?: TsiData;
   wages?: WagesData;
   form7RatingsByPlayerId?: Record<number, Form7RatingEntry[]>;
+  playingPositionByPlayerId?: Record<number, PlayingPositionEntry[]>;
   formationsTactics?: FormationTacticsData;
   teamAttitude?: TeamAttitudeData;
   lastLogin?: LastLoginData;
@@ -1769,43 +1782,6 @@ const classifyTeamAttitude = (
   if (delta >= threshold) return "mots";
   if (delta <= -threshold) return "pic";
   return "normal";
-};
-
-const normalizeTeamAttitudeLineupPlayers = (
-  payload: {
-    data?: {
-      HattrickData?: {
-        Team?: {
-          StartingLineup?: { Player?: unknown };
-          Substitutions?: { Substitution?: unknown };
-        };
-      };
-    };
-  } | null | undefined
-) => {
-  const teamNode = payload?.data?.HattrickData?.Team;
-  const playerIds = new Set<number>();
-  const startingLineup = toArray(teamNode?.StartingLineup?.Player as RawNode | RawNode[] | null);
-  startingLineup.forEach((player) => {
-    const playerId = parseOptionalNumber(player?.PlayerID);
-    if (playerId && playerId > 0) {
-      playerIds.add(playerId);
-    }
-  });
-  const substitutions = toArray(
-    teamNode?.Substitutions?.Substitution as RawNode | RawNode[] | null
-  );
-  substitutions.forEach((entry) => {
-    const subjectPlayerId = parseOptionalNumber(entry?.SubjectPlayerID);
-    const objectPlayerId = parseOptionalNumber(entry?.ObjectPlayerID);
-    if (subjectPlayerId && subjectPlayerId > 0) {
-      playerIds.add(subjectPlayerId);
-    }
-    if (objectPlayerId && objectPlayerId > 0) {
-      playerIds.add(objectPlayerId);
-    }
-  });
-  return playerIds;
 };
 
 type FormationSlots = {
@@ -3991,6 +3967,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         arenaName: cached?.arenaName ?? null,
         leaguePerformance: cached?.leaguePerformance,
         form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
+        playingPositionByPlayerId: cached?.playingPositionByPlayerId,
       });
     });
     nextManualTeams.forEach((team) => {
@@ -4008,6 +3985,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         arenaName: cached?.arenaName ?? null,
         leaguePerformance: cached?.leaguePerformance,
         form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
+        playingPositionByPlayerId: cached?.playingPositionByPlayerId,
       });
     });
     ownLeagueTeams.forEach((team) => {
@@ -4046,6 +4024,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         leaguePerformance: existing?.leaguePerformance ?? cached?.leaguePerformance,
         form7RatingsByPlayerId:
           existing?.form7RatingsByPlayerId ?? cached?.form7RatingsByPlayerId,
+        playingPositionByPlayerId:
+          existing?.playingPositionByPlayerId ?? cached?.playingPositionByPlayerId,
       });
     });
     return Array.from(map.values()).sort((a, b) =>
@@ -9532,6 +9512,7 @@ type Form7LineupSnapshot = {
   substitutionsOnMinuteByPlayerId: Map<number, number>;
   ratingByPlayerId: Map<number, number>;
   roleIdByPlayerId: Map<number, number>;
+  activeIntervalsByPlayerId: Map<number, Array<{ roleId: number; startMinute: number; endMinute: number }>>;
 };
 
   const fetchTeamPlayers = async (teamId: number): Promise<TeamPlayerSnapshot[]> => {
@@ -9673,13 +9654,22 @@ type Form7LineupSnapshot = {
     const substitutionsOnMinuteByPlayerId = new Map<number, number>();
     const ratingByPlayerId = new Map<number, number>();
     const roleIdByPlayerId = new Map<number, number>();
+    const activeIntervalsByPlayerId = new Map<
+      number,
+      Array<{ roleId: number; startMinute: number; endMinute: number }>
+    >();
+    const activeAssignments = new Map<number, { roleId: number; startMinute: number }>();
     const startingLineup = toArray(
       teamNode?.StartingLineup?.Player as RawNode | RawNode[] | null
     );
     startingLineup.forEach((player) => {
       const playerId = parseOptionalNumber(player?.PlayerID);
+      const roleId = parseOptionalNumber(player?.RoleID);
       if (playerId && playerId > 0) {
         starters.add(playerId);
+        if (roleId !== null && roleId !== undefined && roleId >= 100 && roleId <= 113) {
+          activeAssignments.set(playerId, { roleId, startMinute: 0 });
+        }
       }
     });
     const substitutions = toArray(
@@ -9703,6 +9693,63 @@ type Form7LineupSnapshot = {
         }
       }
     });
+    substitutions
+      .map((entry, index) => ({
+        index,
+        minute: parseOptionalNumber(entry?.MatchMinute),
+        subjectPlayerId: parseOptionalNumber(entry?.SubjectPlayerID),
+        objectPlayerId: parseOptionalNumber(entry?.ObjectPlayerID),
+        newPositionId: parseOptionalNumber(entry?.NewPositionId),
+      }))
+      .filter((entry) => entry.minute !== null && entry.minute !== undefined)
+      .sort(
+        (left, right) =>
+          (left.minute ?? Number.MAX_SAFE_INTEGER) -
+            (right.minute ?? Number.MAX_SAFE_INTEGER) || left.index - right.index
+      )
+      .forEach((entry) => {
+        const minute = Math.max(0, Math.min(96, entry.minute ?? 96));
+        const nextRoleId =
+          entry.newPositionId !== null &&
+          entry.newPositionId !== undefined &&
+          entry.newPositionId >= 100 &&
+          entry.newPositionId <= 113
+            ? entry.newPositionId
+            : null;
+        const closeAssignment = (playerId: number) => {
+          const assignment = activeAssignments.get(playerId);
+          if (!assignment) return;
+          const intervals = activeIntervalsByPlayerId.get(playerId) ?? [];
+          intervals.push({
+            roleId: assignment.roleId,
+            startMinute: assignment.startMinute,
+            endMinute: minute,
+          });
+          activeIntervalsByPlayerId.set(playerId, intervals);
+          activeAssignments.delete(playerId);
+        };
+        if (
+          entry.subjectPlayerId &&
+          entry.subjectPlayerId > 0 &&
+          activeAssignments.has(entry.subjectPlayerId)
+        ) {
+          closeAssignment(entry.subjectPlayerId);
+        }
+        if (
+          entry.objectPlayerId &&
+          entry.objectPlayerId > 0 &&
+          entry.objectPlayerId !== entry.subjectPlayerId &&
+          activeAssignments.has(entry.objectPlayerId)
+        ) {
+          closeAssignment(entry.objectPlayerId);
+        }
+        if (entry.objectPlayerId && entry.objectPlayerId > 0 && nextRoleId !== null) {
+          activeAssignments.set(entry.objectPlayerId, {
+            roleId: nextRoleId,
+            startMinute: minute,
+          });
+        }
+      });
     const lineupPlayers = toArray(teamNode?.Lineup?.Player as RawNode | RawNode[] | null);
     lineupPlayers.forEach((player) => {
       const playerId = parseOptionalNumber(player?.PlayerID);
@@ -9723,6 +9770,15 @@ type Form7LineupSnapshot = {
         ratingByPlayerId.set(playerId, rating);
       }
     });
+    activeAssignments.forEach((assignment, playerId) => {
+      const intervals = activeIntervalsByPlayerId.get(playerId) ?? [];
+      intervals.push({
+        roleId: assignment.roleId,
+        startMinute: assignment.startMinute,
+        endMinute: 96,
+      });
+      activeIntervalsByPlayerId.set(playerId, intervals);
+    });
     return {
       matchId,
       teamId,
@@ -9733,6 +9789,7 @@ type Form7LineupSnapshot = {
       substitutionsOnMinuteByPlayerId,
       ratingByPlayerId,
       roleIdByPlayerId,
+      activeIntervalsByPlayerId,
     };
   };
 
@@ -9790,6 +9847,26 @@ type Form7LineupSnapshot = {
 
   const resolveForm7PositionShortLabel = (roleId: number | null | undefined) =>
     positionLabelShortByRoleId(roleId, messages);
+
+  const formatPlayingPositionEntries = (
+    entries: PlayingPositionEntry[] | null | undefined
+  ) => {
+    if (!entries || entries.length === 0) return null;
+    const totalMinutes = entries.reduce(
+      (sum, entry) => sum + Math.max(0, entry.minutes ?? 0),
+      0
+    );
+    if (totalMinutes <= 0) return null;
+    return entries
+      .map((entry) => {
+        const label = positionLabelShortByRoleId(entry.roleId, messages);
+        if (!label) return null;
+        const pct = Math.round((Math.max(0, entry.minutes) / totalMinutes) * 100);
+        return `${label} ${pct}%`;
+      })
+      .filter((entry): entry is string => Boolean(entry))
+      .join(", ");
+  };
 
   const resolveChronicleSpecialtyLabel = (value?: number | null) => {
     switch (value) {
@@ -9850,6 +9927,117 @@ type Form7LineupSnapshot = {
       deduped.push(entry);
     });
     return deduped.slice(0, 20);
+  };
+
+  const collectPlayingPositionsForTeam = async (
+    nextCache: ChronicleCache,
+    team: ChronicleTeamData,
+    teamPlayers: TeamPlayerSnapshot[],
+    lineupCache: Map<string, Form7LineupSnapshot | null>,
+    analyzedMatchesOverride?: FormationTacticsAnalyzedMatch[],
+    onLineupProcessed?: () => void
+  ) => {
+    const analyzedMatches =
+      analyzedMatchesOverride ??
+      nextCache.teams[team.teamId]?.formationsTactics?.current?.analyzedMatches ??
+      team.formationsTactics?.current?.analyzedMatches ??
+      [];
+    if (analyzedMatches.length === 0) return;
+
+    const resolveLineup = async (
+      matchId: number,
+      sourceSystem: string
+    ): Promise<Form7LineupSnapshot | null> => {
+      const cacheKey = `${matchId}:${team.teamId}:${sourceSystem}`;
+      if (lineupCache.has(cacheKey)) {
+        return lineupCache.get(cacheKey) ?? null;
+      }
+      try {
+        const { response: lineupResponse, payload: lineupPayload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              MatchID?: unknown;
+              MatchDate?: unknown;
+              Team?: {
+                TeamID?: unknown;
+                StartingLineup?: { Player?: unknown };
+                Substitutions?: { Substitution?: unknown };
+                Lineup?: { Player?: unknown };
+              };
+            };
+          };
+          error?: string;
+        }>(
+          `/api/chpp/match-lineup?matchId=${matchId}&teamId=${team.teamId}&sourceSystem=${encodeURIComponent(
+            sourceSystem
+          )}`,
+          { cache: "no-store" }
+        );
+        if (!lineupResponse.ok || lineupPayload?.error) {
+          lineupCache.set(cacheKey, null);
+          onLineupProcessed?.();
+          return null;
+        }
+        const normalized = normalizeForm7Lineup(lineupPayload, sourceSystem);
+        lineupCache.set(cacheKey, normalized);
+        onLineupProcessed?.();
+        return normalized;
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
+        lineupCache.set(cacheKey, null);
+        onLineupProcessed?.();
+        return null;
+      }
+    };
+
+    const minutesByPlayerId = new Map<number, Map<number, number>>();
+    for (const match of analyzedMatches) {
+      const sourceSystem = match.sourceSystem || "Hattrick";
+      const lineup = await resolveLineup(match.matchId, sourceSystem);
+      if (!lineup) continue;
+      const matchDurationMinutes = Math.max(
+        0,
+        Math.min(96, match.matchDurationMinutes ?? 96)
+      );
+      lineup.activeIntervalsByPlayerId.forEach((intervals, playerId) => {
+        const roleMinutes = minutesByPlayerId.get(playerId) ?? new Map<number, number>();
+        intervals.forEach((interval) => {
+          const roleId = normalizeMatchRoleId(interval.roleId);
+          if (roleId === null) return;
+          const minutes = Math.max(
+            0,
+            Math.min(matchDurationMinutes, interval.endMinute) -
+              Math.max(0, Math.min(matchDurationMinutes, interval.startMinute))
+          );
+          if (minutes <= 0) return;
+          roleMinutes.set(roleId, (roleMinutes.get(roleId) ?? 0) + minutes);
+        });
+        if (roleMinutes.size > 0) {
+          minutesByPlayerId.set(playerId, roleMinutes);
+        }
+      });
+    }
+
+    const nextPlayingPositionByPlayerId: Record<number, PlayingPositionEntry[]> = {};
+    teamPlayers.forEach((player) => {
+      const roleMinutes = minutesByPlayerId.get(player.playerId);
+      if (!roleMinutes || roleMinutes.size === 0) return;
+      nextPlayingPositionByPlayerId[player.playerId] = Array.from(roleMinutes.entries())
+        .map(([roleId, minutes]) => ({ roleId, minutes }))
+        .sort((left, right) => {
+          if (right.minutes !== left.minutes) return right.minutes - left.minutes;
+          const leftLabel = positionLabelShortByRoleId(left.roleId, messages) ?? "";
+          const rightLabel = positionLabelShortByRoleId(right.roleId, messages) ?? "";
+          return leftLabel.localeCompare(rightLabel);
+        });
+    });
+
+    nextCache.teams[team.teamId] = {
+      ...nextCache.teams[team.teamId],
+      teamId: team.teamId,
+      teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
+      playingPositionByPlayerId: nextPlayingPositionByPlayerId,
+    };
   };
 
   const collectForm7RatingsForTeam = async (
@@ -10444,6 +10632,7 @@ type Form7LineupSnapshot = {
     awayTacticType: number | null;
     homeMidfieldRating: number | null;
     awayMidfieldRating: number | null;
+    addedMinutes: number | null;
   };
 
   type ResolvedFormationTacticMatch = {
@@ -10453,6 +10642,7 @@ type Form7LineupSnapshot = {
     formation: string | null;
     tacticType: number | null;
     midfieldRating: number | null;
+    matchDurationMinutes: number;
   };
 
   type TeamAttitudeMidfieldPassMatch = {
@@ -10636,6 +10826,7 @@ type Form7LineupSnapshot = {
         data?: {
           HattrickData?: {
             Match?: {
+              AddedMinutes?: unknown;
               HomeTeam?: RawNode;
               AwayTeam?: RawNode;
             };
@@ -10662,6 +10853,7 @@ type Form7LineupSnapshot = {
         awayTacticType: parseNumber(away?.TacticType),
         homeMidfieldRating: parseNumber(home?.RatingMidfield),
         awayMidfieldRating: parseNumber(away?.RatingMidfield),
+        addedMinutes: parseNumber(match?.AddedMinutes),
       };
       cache.set(matchId, details);
       return details;
@@ -10681,7 +10873,7 @@ type Form7LineupSnapshot = {
     const formationCounts = new Map<string, number>();
     const tacticCounts = new Map<string, number>();
     let sampleSize = 0;
-    const analyzedMatches: { matchId: number; matchType: number | null }[] = [];
+    const analyzedMatches: FormationTacticsAnalyzedMatch[] = [];
 
     for (const resolved of resolvedMatches) {
       const { match } = resolved;
@@ -10689,6 +10881,9 @@ type Form7LineupSnapshot = {
       analyzedMatches.push({
         matchId: match.matchId,
         matchType: match.matchType,
+        matchDate: match.matchDate,
+        sourceSystem: match.sourceSystem,
+        matchDurationMinutes: resolved.matchDurationMinutes,
       });
       const tacticLabel = formatTacticLabel(resolved.tacticType);
       const formation = resolved.formation;
@@ -10758,6 +10953,10 @@ type Form7LineupSnapshot = {
           midfieldRating: isHome
             ? details.homeMidfieldRating
             : details.awayMidfieldRating,
+          matchDurationMinutes: Math.min(
+            96,
+            Math.max(90, 90 + Math.max(0, details.addedMinutes ?? 0))
+          ),
         } satisfies ResolvedFormationTacticMatch;
       }
     );
@@ -10843,12 +11042,13 @@ type Form7LineupSnapshot = {
     matchId: number,
     teamId: number,
     sourceSystem: string,
-    cache: Map<string, Set<number>>,
+    cache: Map<string, Form7LineupSnapshot | null>,
     onLineupProcessed?: () => void
   ) => {
     const cacheKey = `${matchId}:${teamId}:${sourceSystem}`;
     if (cache.has(cacheKey)) {
-      return cache.get(cacheKey) ?? new Set<number>();
+      const cached = cache.get(cacheKey);
+      return new Set(cached?.activeIntervalsByPlayerId.keys() ?? []);
     }
     try {
       const { response, payload } = await fetchChppJson<{
@@ -10868,28 +11068,26 @@ type Form7LineupSnapshot = {
         { cache: "no-store" }
       );
       if (!response.ok || payload?.error) {
-        const fallback = new Set<number>();
-        cache.set(cacheKey, fallback);
+        cache.set(cacheKey, null);
         onLineupProcessed?.();
-        return fallback;
+        return new Set<number>();
       }
-      const playerIds = normalizeTeamAttitudeLineupPlayers(payload);
-      cache.set(cacheKey, playerIds);
+      const lineup = normalizeForm7Lineup(payload, sourceSystem);
+      cache.set(cacheKey, lineup);
       onLineupProcessed?.();
-      return playerIds;
+      return new Set(lineup?.activeIntervalsByPlayerId.keys() ?? []);
     } catch (error) {
       if (isChppAuthRequiredError(error)) throw error;
-      const fallback = new Set<number>();
-      cache.set(cacheKey, fallback);
+      cache.set(cacheKey, null);
       onLineupProcessed?.();
-      return fallback;
+      return new Set<number>();
     }
   };
 
   const buildTeamAttitudeSnapshot = async (
     teamId: number,
     plan: TeamAttitudePlan,
-    lineupCache: Map<string, Set<number>>,
+    lineupCache: Map<string, Form7LineupSnapshot | null>,
     onLineupProcessed?: () => void
   ): Promise<TeamAttitudeSnapshot> => {
     const homeBaselineUnion = new Set<number>();
@@ -11025,7 +11223,7 @@ type Form7LineupSnapshot = {
     const teams = options?.teams ?? trackedTeams;
     const includeFriendlies = options?.includeFriendlies ?? formationsIncludeFriendlies;
     const detailCache = new Map<number, MatchFormationTacticDetails>();
-    const lineupCache = new Map<string, Set<number>>();
+    const lineupCache = new Map<string, Form7LineupSnapshot | null>();
     const teamEntries: Array<{
       teamId: number;
       teamName: string;
@@ -11130,7 +11328,7 @@ type Form7LineupSnapshot = {
     }
 
     const totalLineups = preparedTeams.reduce(
-      (sum, teamEntry) => sum + teamEntry.teamAttitudePlan.lineupTargets.length,
+      (sum, teamEntry) => sum + teamEntry.formationSnapshot.analyzedMatches.length,
       0
     );
     let completedLineups = 0;
@@ -11144,11 +11342,41 @@ type Form7LineupSnapshot = {
         );
       };
       try {
+        const teamPlayers =
+          (nextCache.teams[preparedTeam.teamId]?.tsi?.current?.players ??
+            nextCache.teams[preparedTeam.teamId]?.wages?.current?.players ??
+            []).map((player) => ({
+            playerId: player.playerId,
+            playerName: player.playerName,
+            playerNumber: player.playerNumber ?? null,
+            age: player.age,
+            ageDays: player.ageDays,
+            injuryLevel: player.injuryLevel,
+            transferListed: false,
+            specialty: player.specialty,
+            cards: player.cards,
+            form: player.form,
+            stamina: player.stamina,
+            experience: player.experience,
+            leadership: player.leadership,
+            loyalty: player.loyalty,
+            tsi: "tsi" in player ? player.tsi : 0,
+            salarySek: "salarySek" in player ? player.salarySek : 0,
+          })) as TeamPlayerSnapshot[];
+        const resolvedTeamPlayers =
+          teamPlayers.length > 0 ? teamPlayers : await fetchTeamPlayers(preparedTeam.teamId);
+        await collectPlayingPositionsForTeam(
+          nextCache,
+          { teamId: preparedTeam.teamId, teamName: preparedTeam.teamName },
+          resolvedTeamPlayers,
+          lineupCache,
+          preparedTeam.formationSnapshot.analyzedMatches,
+          onTeamLineupProcessed
+        );
         const snapshot = await buildTeamAttitudeSnapshot(
           preparedTeam.teamId,
           preparedTeam.teamAttitudePlan,
-          lineupCache,
-          onTeamLineupProcessed
+          lineupCache
         );
         const previous = nextCache.teams[preparedTeam.teamId]?.teamAttitude?.current;
         nextCache.teams[preparedTeam.teamId] = {
@@ -11164,7 +11392,7 @@ type Form7LineupSnapshot = {
         if (isChppAuthRequiredError(error)) throw error;
         for (
           let index = 0;
-          index < preparedTeam.teamAttitudePlan.lineupTargets.length;
+          index < preparedTeam.formationSnapshot.analyzedMatches.length;
           index += 1
         ) {
           onTeamLineupProcessed();
@@ -11237,6 +11465,12 @@ type Form7LineupSnapshot = {
             matchWeatherCache,
             lineupCache
           );
+          await collectPlayingPositionsForTeam(
+            nextCache,
+            team,
+            teamPlayers,
+            lineupCache
+          );
           const snapshot = buildTsiSnapshot(teamPlayers);
           const previous = nextCache.teams[team.teamId]?.tsi?.current;
           nextCache.teams[team.teamId] = {
@@ -11278,6 +11512,12 @@ type Form7LineupSnapshot = {
             leagueTrainingDateCache,
             teamLeagueIdCache,
             matchWeatherCache,
+            lineupCache
+          );
+          await collectPlayingPositionsForTeam(
+            nextCache,
+            team,
+            teamPlayers,
             lineupCache
           );
           const snapshot = buildWagesSnapshot(teamPlayers);
@@ -11325,6 +11565,12 @@ type Form7LineupSnapshot = {
             leagueTrainingDateCache,
             teamLeagueIdCache,
             matchWeatherCache,
+            lineupCache
+          );
+          await collectPlayingPositionsForTeam(
+            nextCache,
+            team,
+            teamPlayers,
             lineupCache
           );
           const transferListedPlayers = buildTransferListedPlayers(teamPlayers);
@@ -12597,6 +12843,7 @@ type Form7LineupSnapshot = {
         teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
         snapshot: cached?.tsi?.current,
         form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
+        playingPositionByPlayerId: cached?.playingPositionByPlayerId,
       };
     });
 
@@ -12607,6 +12854,7 @@ type Form7LineupSnapshot = {
         teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
         snapshot: cached?.wages?.current,
         form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
+        playingPositionByPlayerId: cached?.playingPositionByPlayerId,
       };
     });
 
@@ -13850,6 +14098,8 @@ type Form7LineupSnapshot = {
         playerNumber: index + 1,
         form7Ratings:
           selectedWagesTeam?.form7RatingsByPlayerId?.[row.playerId] ?? [],
+        playingPositions:
+          selectedWagesTeam?.playingPositionByPlayerId?.[row.playerId] ?? [],
       })),
     [selectedWagesTeam]
   );
@@ -13861,6 +14111,8 @@ type Form7LineupSnapshot = {
         playerNumber: index + 1,
         form7Ratings:
           selectedTsiTeam?.form7RatingsByPlayerId?.[row.playerId] ?? [],
+        playingPositions:
+          selectedTsiTeam?.playingPositionByPlayerId?.[row.playerId] ?? [],
       })),
     [selectedTsiTeam]
   );
@@ -14063,6 +14315,13 @@ type Form7LineupSnapshot = {
         getValue: (snapshot) => snapshot?.tsi ?? null,
       },
       {
+        key: "playingPosition",
+        label: messages.clubChroniclePlayingPositionColumn,
+        getValue: (snapshot) => formatPlayingPositionEntries(snapshot?.playingPositions),
+        renderCell: (snapshot) =>
+          formatPlayingPositionEntries(snapshot?.playingPositions) ?? messages.unknownShort,
+      },
+      {
         key: "age",
         label: messages.clubChronicleTransferListedAgeColumn,
         getValue: (snapshot) => formatAgeWithDays(snapshot?.age, snapshot?.ageDays),
@@ -14156,6 +14415,7 @@ type Form7LineupSnapshot = {
     [
       messages.clubChronicleTsiPlayerIndexColumn,
       messages.clubChronicleTsiPlayerColumn,
+      messages.clubChroniclePlayingPositionColumn,
       messages.specialtyLabel,
       messages.clubChronicleTransferListedAgeColumn,
       messages.clubChroniclePlayerFormColumn,
@@ -14166,6 +14426,7 @@ type Form7LineupSnapshot = {
       messages.clubChronicleForm7RatingColumn,
       messages.clubChronicleForm7RatingInfoTooltip,
       messages.clubChronicleTsiValueColumn,
+      formatPlayingPositionEntries,
       formatAgeWithDays,
       messages.unknownShort,
       messages.specialtyNone,
@@ -14270,6 +14531,13 @@ type Form7LineupSnapshot = {
         getSortValue: (snapshot) => snapshot?.salarySek ?? null,
       },
       {
+        key: "playingPosition",
+        label: messages.clubChroniclePlayingPositionColumn,
+        getValue: (snapshot) => formatPlayingPositionEntries(snapshot?.playingPositions),
+        renderCell: (snapshot) =>
+          formatPlayingPositionEntries(snapshot?.playingPositions) ?? messages.unknownShort,
+      },
+      {
         key: "age",
         label: messages.clubChronicleTransferListedAgeColumn,
         getValue: (snapshot) => formatAgeWithDays(snapshot?.age, snapshot?.ageDays),
@@ -14363,6 +14631,7 @@ type Form7LineupSnapshot = {
     [
       messages.clubChronicleWagesPlayerIndexColumn,
       messages.clubChronicleWagesPlayerColumn,
+      messages.clubChroniclePlayingPositionColumn,
       messages.specialtyLabel,
       messages.clubChronicleTransferListedAgeColumn,
       messages.clubChroniclePlayerFormColumn,
@@ -14373,6 +14642,7 @@ type Form7LineupSnapshot = {
       messages.clubChronicleForm7RatingColumn,
       messages.clubChronicleForm7RatingInfoTooltip,
       messages.clubChronicleWagesValueColumn,
+      formatPlayingPositionEntries,
       formatAgeWithDays,
       messages.unknownShort,
       messages.specialtyNone,
@@ -16626,7 +16896,7 @@ type Form7LineupSnapshot = {
                     {
                       "--cc-columns": tsiPlayerColumns.length,
                       "--cc-template":
-                          "88px 132px 220px 110px 90px 100px 80px 110px 100px 190px",
+                          "88px 132px 220px 220px 110px 90px 100px 80px 110px 100px 190px",
                     } as CSSProperties
                   }
                   sortKey={tsiDetailsSortState.key}
@@ -16660,7 +16930,7 @@ type Form7LineupSnapshot = {
                     {
                       "--cc-columns": wagesPlayerColumns.length,
                       "--cc-template":
-                          "88px 150px 220px 110px 90px 100px 80px 110px 100px 190px",
+                          "88px 150px 220px 220px 110px 90px 100px 80px 110px 100px 190px",
                     } as CSSProperties
                   }
                   sortKey={wagesDetailsSortState.key}
@@ -19467,7 +19737,7 @@ type Form7LineupSnapshot = {
                       {
                         "--cc-columns": tsiPlayerColumns.length,
                         "--cc-template":
-                          "88px 220px 110px 90px 100px 80px 110px 100px 190px 132px",
+                          "88px 220px 110px 220px 90px 100px 80px 110px 100px 190px 132px",
                       } as CSSProperties
                     }
                     sortKey={tsiDetailsSortState.key}
@@ -19525,7 +19795,7 @@ type Form7LineupSnapshot = {
                       {
                         "--cc-columns": wagesPlayerColumns.length,
                         "--cc-template":
-                          "88px 220px 110px 90px 100px 80px 110px 100px 190px 150px",
+                          "88px 220px 110px 220px 90px 100px 80px 110px 100px 190px 150px",
                       } as CSSProperties
                     }
                     sortKey={wagesDetailsSortState.key}

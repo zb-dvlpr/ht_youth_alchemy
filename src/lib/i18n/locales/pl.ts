@@ -821,6 +821,7 @@ export const messagesPl: Messages = {
   clubChronicleDetailModeDev: "Tryb deweloperski",
   clubChronicleTeamAttitudeDisclaimer:
     "Te wartosci sa wywnioskowane i nie zawsze musza byc dokladne. Druzyny, ktore regularnie graja PIC, a potem zagraja normalnie, moga wygladac jak MOTS, a druzyny, ktore regularnie graja MOTS, a potem zagraja normalnie, moga wygladac jak PIC.",
+  clubChroniclePlayingPositionColumn: "Poz. gry",
   clubChronicleForm7RatingColumn: "Ocena forma 7",
   clubChronicleForm7RatingInfoLabel: "O ocenie forma 7",
   clubChronicleForm7RatingInfoTooltip:

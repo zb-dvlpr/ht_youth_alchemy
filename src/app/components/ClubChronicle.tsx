@@ -803,6 +803,7 @@ type ChronicleTableColumn<Row, Snapshot> = {
   key: string;
   label: string;
   headerAccessory?: ReactNode;
+  headerTooltipContent?: ReactNode;
   sortable?: boolean;
   getValue: (
     snapshot: Snapshot | undefined,
@@ -889,6 +890,13 @@ const ChronicleTable = <Row, Snapshot>({
         const isSortable = Boolean(onSort) && column.sortable !== false;
         const isActive = sortKey === column.key;
         const headerKey = `header-${column.key}`;
+        const headerLabel = column.headerTooltipContent ? (
+          <Tooltip content={column.headerTooltipContent}>
+            <span>{column.label}</span>
+          </Tooltip>
+        ) : (
+          column.label
+        );
         if (isSortable) {
           const icon = isActive
             ? sortDirection === "desc"
@@ -913,7 +921,7 @@ const ChronicleTable = <Row, Snapshot>({
                 onClick={() => onSort?.(column.key)}
                 aria-sort={ariaSort}
               >
-                {column.label}
+                {headerLabel}
                 <span className={styles.chronicleTableSortIcon}>{icon}</span>
               </button>
               {column.headerAccessory ? (
@@ -930,7 +938,7 @@ const ChronicleTable = <Row, Snapshot>({
             className={styles.chronicleTableHeaderItem}
             data-label={column.label}
           >
-            <span>{column.label}</span>
+            <span>{headerLabel}</span>
             {column.headerAccessory ? (
               <span className={styles.chronicleTableHeaderAccessory}>
                 {column.headerAccessory}
@@ -14041,18 +14049,7 @@ type Form7LineupSnapshot = {
       {
         key: "form7Rating",
         label: messages.clubChronicleForm7RatingColumn,
-        headerAccessory: (
-          <Tooltip content={messages.clubChronicleForm7RatingInfoTooltip} openOnClick>
-            <button
-              type="button"
-              className={styles.chronicleTableHeaderInfoButton}
-              aria-label={messages.clubChronicleForm7RatingInfoLabel}
-              onClick={(event) => event.stopPropagation()}
-            >
-              i
-            </button>
-          </Tooltip>
-        ),
+        headerTooltipContent: messages.clubChronicleForm7RatingInfoTooltip,
         getValue: (snapshot) =>
           snapshot?.form7Ratings?.map((entry) => entry.ratingStarsEndOfMatch).join(", ") ??
           null,
@@ -14106,7 +14103,6 @@ type Form7LineupSnapshot = {
       messages.clubChroniclePlayerLeadershipColumn,
       messages.clubChroniclePlayerLoyaltyColumn,
       messages.clubChronicleForm7RatingColumn,
-      messages.clubChronicleForm7RatingInfoLabel,
       messages.clubChronicleForm7RatingInfoTooltip,
       messages.clubChronicleTsiValueColumn,
       formatAgeWithDays,
@@ -14237,18 +14233,7 @@ type Form7LineupSnapshot = {
       {
         key: "form7Rating",
         label: messages.clubChronicleForm7RatingColumn,
-        headerAccessory: (
-          <Tooltip content={messages.clubChronicleForm7RatingInfoTooltip} openOnClick>
-            <button
-              type="button"
-              className={styles.chronicleTableHeaderInfoButton}
-              aria-label={messages.clubChronicleForm7RatingInfoLabel}
-              onClick={(event) => event.stopPropagation()}
-            >
-              i
-            </button>
-          </Tooltip>
-        ),
+        headerTooltipContent: messages.clubChronicleForm7RatingInfoTooltip,
         getValue: (snapshot) =>
           snapshot?.form7Ratings?.map((entry) => entry.ratingStarsEndOfMatch).join(", ") ??
           null,
@@ -14302,7 +14287,6 @@ type Form7LineupSnapshot = {
       messages.clubChroniclePlayerLeadershipColumn,
       messages.clubChroniclePlayerLoyaltyColumn,
       messages.clubChronicleForm7RatingColumn,
-      messages.clubChronicleForm7RatingInfoLabel,
       messages.clubChronicleForm7RatingInfoTooltip,
       messages.clubChronicleWagesValueColumn,
       formatAgeWithDays,

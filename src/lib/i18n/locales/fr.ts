@@ -146,6 +146,8 @@ export const messagesFr: Messages = {
     updateRequiredBody:
       "Une nouvelle version de HT Alchemy est disponible. Actualisez maintenant pour continuer a utiliser l app.",
     updateRequiredAction: "Actualiser",
+    changelog_5_6_0:
+      "Details joueurs enrichis pour les panneaux TSI et salaires de la Chronique du club.",
     changelog_5_5_0:
       "Les ligues personnelles de la Chronique du club s ouvrent maintenant en selections par equipe avec des interrupteurs globaux par ligue.",
     changelog_5_4_0:
@@ -607,11 +609,11 @@ export const messagesFr: Messages = {
     clubChronicleHelpBulletTeamAttitude:
       "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
     clubChronicleHelpBulletTsi:
-      "TSI : total TSI de l equipe et TSI du top 11. Cliquez une ligne pour des details joueurs triables avec index, age (annees+jours) et TSI.",
+      "TSI : total TSI de l equipe et TSI du top 11. Cliquez une ligne pour des details joueurs triables avec index, age (annees+jours), TSI et notes forme 7 enregistrees avec emoji meteo.",
     clubChronicleHelpBulletLikelyTraining:
       "Regime d entrainement probable : deduit des formations recentes ; les egalites au meilleur niveau de confiance sont affichees ensemble et marquees incertaines. Cliquez une ligne pour le classement complet de confiance et la taille d echantillon.",
     clubChronicleHelpBulletWages:
-      "Salaires : salaire total equipe et top 11 en EUR. Cliquez une ligne pour des details joueurs triables avec index, age (annees+jours) et salaire.",
+      "Salaires : salaire total equipe et top 11 en EUR. Cliquez une ligne pour des details joueurs triables avec index, age (annees+jours), salaire et notes forme 7 enregistrees avec emoji meteo.",
     clubChronicleHelpBulletLatestUpdates:
       "Dernieres mises a jour conserve les changements par attribut, groupes par equipe, garde le dernier diff global non vide pour consultation et permet de basculer entre les refreshs modifies sauvegardes.",
     clubChroniclePressPanelTitle: "Communiqués de presse",
@@ -798,6 +800,19 @@ export const messagesFr: Messages = {
     clubChronicleTsiPlayerIndexColumn: "No",
     clubChronicleTsiPlayerColumn: "Joueur",
     clubChronicleTsiValueColumn: "TSI",
+    clubChronicleForm7RatingColumn: "Note forme 7",
+    clubChronicleForm7RatingInfoLabel: "A propos de la note forme 7",
+    clubChronicleForm7RatingInfoTooltip:
+      "Affiche les notes en etoiles de fin de match des matchs ou le joueur a eu ou a actuellement une forme de 7. Cela aide a estimer une performance standardisee en etoiles des joueurs.",
+    clubChronicleWeatherRain: "Pluie",
+    clubChronicleWeatherOvercast: "Couvert",
+    clubChronicleWeatherPartiallyCloudy: "Partiellement nuageux",
+    clubChronicleWeatherSunny: "Ensoleille",
+    clubChroniclePlayerFormColumn: "Forme",
+    clubChroniclePlayerStaminaColumn: "Endurance",
+    clubChroniclePlayerExperienceColumn: "Exp.",
+    clubChroniclePlayerLeadershipColumn: "Leadership",
+    clubChroniclePlayerLoyaltyColumn: "Loyaute",
     clubChronicleWagesPanelTitle: "Salaires",
     clubChronicleWagesColumnTotal: "Salaires totaux",
     clubChronicleWagesColumnTop11: "Salaires top 11",

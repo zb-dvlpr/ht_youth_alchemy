@@ -3728,6 +3728,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   display: grid;
   gap: 2px;
   position: relative;
+  min-width: max-content;
 }
 
 .chronicleTableHeader {
@@ -3756,6 +3757,15 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   padding: 0 6px 0 0;
 }
 
+.chronicleTableHeaderItem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 3px;
+  min-width: 0;
+  white-space: nowrap;
+}
+
 .chronicleTableHeaderButton {
   border: none;
   background: transparent;
@@ -3769,6 +3779,9 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .chronicleTableHeaderButton:hover {
@@ -3784,6 +3797,39 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .chronicleTableSortIcon {
   font-size: 10px;
   opacity: 0.6;
+}
+
+.chronicleTableHeaderAccessory {
+  display: inline-flex;
+  align-items: center;
+  margin-left: -1px;
+}
+
+.chronicleTableHeaderInfoButton {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #cdbca7;
+  border-radius: 999px;
+  background: #f7f2ea;
+  color: #6a5f50;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.chronicleTableHeaderInfoButton:hover {
+  border-color: #b79f84;
+  color: #2f2923;
+}
+
+.chronicleTableHeaderInfoButton:focus-visible {
+  outline: 2px solid rgba(93, 80, 66, 0.35);
+  outline-offset: 2px;
 }
 
 .chronicleTableRow {
@@ -4170,6 +4216,11 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   width: min(1120px, 98vw);
 }
 
+.chronicleTsiWagesDetailsModal {
+  max-width: min(1280px, calc(100vw - 24px));
+  width: min(1280px, calc(100vw - 24px));
+}
+
 .chronicleTeamAttitudeUserModal {
   max-width: min(1360px, calc(100vw - 24px));
   width: min(1360px, calc(100vw - 24px));
@@ -4306,6 +4357,25 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   color: #2f5f8f;
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+.chronicleForm7RatingList {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  align-items: center;
+}
+
+.chronicleForm7RatingItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chronicleForm7WeatherEmoji {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
 }
 
 .chronicleMatchSubtleDate {
@@ -4843,6 +4913,15 @@ html[data-theme="dark"] .mobileToolBarTitle,
 html[data-theme="dark"] .mobileNavTrailButton,
 html[data-theme="dark"] .mobileNavAppTitle {
   color: #cfb692;
+}
+
+html[data-theme="dark"] .mobileNavHeader {
+  border-color: rgba(230, 199, 146, 0.14);
+  background:
+    linear-gradient(180deg, rgba(39, 33, 26, 0.98), rgba(27, 23, 19, 0.96));
+  box-shadow:
+    0 14px 28px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 html[data-theme="dark"] .mobileNavTrailButton:hover,
@@ -9121,6 +9200,10 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 
 .confirmCard.chronicleTransferHistoryModal {
   width: min(1120px, 98vw);
+}
+
+.confirmCard.chronicleTsiWagesDetailsModal {
+  width: min(1280px, calc(100vw - 24px));
 }
 
 .confirmCard.chronicleTransferListedModal {

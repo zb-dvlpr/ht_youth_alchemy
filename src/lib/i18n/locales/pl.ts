@@ -319,6 +319,8 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+  changelog_5_6_0:
+    "Rozszerzone szczegoly zawodnikow w panelach TSI i plac w Club Chronicle.",
   changelog_5_5_0:
     "Wlasne ligi w Club Chronicle rozwijaja sie teraz do wyboru zespolow z przelacznikami grupowymi dla ligi.",
   changelog_5_4_0:
@@ -784,6 +786,10 @@ export const messagesPl: Messages = {
     "Match lineups {completed}/{total} (team: {team})",
   clubChronicleHelpBulletTeamAttitude:
     "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+  clubChronicleHelpBulletTsi:
+    "TSI: laczne TSI zespolu i TSI top 11. Kliknij wiersz, aby zobaczyc sortowalne szczegoly zawodnikow z indeksem, wiekiem (lata+dni), TSI oraz zapisana historia ocen forma 7 z emoji pogody.",
+  clubChronicleHelpBulletWages:
+    "Place: laczne place zespolu i place top 11 w EUR. Kliknij wiersz, aby zobaczyc sortowalne szczegoly zawodnikow z indeksem, wiekiem (lata+dni), placa oraz zapisana historia ocen forma 7 z emoji pogody.",
   clubChronicleTeamAttitudePanelTitle: "Team attitude",
   clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
   clubChronicleTeamAttitudeColumnDate: "Date",
@@ -815,6 +821,19 @@ export const messagesPl: Messages = {
   clubChronicleDetailModeDev: "Tryb deweloperski",
   clubChronicleTeamAttitudeDisclaimer:
     "Te wartosci sa wywnioskowane i nie zawsze musza byc dokladne. Druzyny, ktore regularnie graja PIC, a potem zagraja normalnie, moga wygladac jak MOTS, a druzyny, ktore regularnie graja MOTS, a potem zagraja normalnie, moga wygladac jak PIC.",
+  clubChronicleForm7RatingColumn: "Ocena forma 7",
+  clubChronicleForm7RatingInfoLabel: "O ocenie forma 7",
+  clubChronicleForm7RatingInfoTooltip:
+    "Pokazuje koncowe oceny w gwiazdkach z meczow, w ktorych zawodnik mial lub ma obecnie forme 7. Pomaga to oszacowac ustandaryzowana gwiazdkowa wydajnosc zawodnikow.",
+  clubChronicleWeatherRain: "Deszcz",
+  clubChronicleWeatherOvercast: "Pochmurno",
+  clubChronicleWeatherPartiallyCloudy: "Czesciowe zachmurzenie",
+  clubChronicleWeatherSunny: "Slonecznie",
+  clubChroniclePlayerFormColumn: "Forma",
+  clubChroniclePlayerStaminaColumn: "Kondycja",
+  clubChroniclePlayerExperienceColumn: "Dosw.",
+  clubChroniclePlayerLeadershipColumn: "Przywodztwo",
+  clubChroniclePlayerLoyaltyColumn: "Lojalnosc",
   seniorHelpTitle: "Przewodnik optymalizacji seniorów",
   seniorHelpIntro:
     "Ten widok pomaga śledzić istotne zmiany w kadrze seniorów i szybciej ustawiać składy meczowe.",

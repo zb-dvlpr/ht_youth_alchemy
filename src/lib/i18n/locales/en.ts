@@ -145,6 +145,8 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_5_6_0:
+      "Enhanced player details for TSI and wages panels in Club Chronicle.",
     changelog_5_5_0:
       "Club Chronicle own leagues now expand into per-team watchlist selections with league-level bulk toggles.",
     changelog_5_4_0:
@@ -572,11 +574,11 @@ export const messagesEn: Messages = {
     clubChronicleHelpBulletTeamAttitude:
       "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
     clubChronicleHelpBulletTsi:
-      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), and TSI.",
+      "TSI: team total TSI and top-11 TSI. Click a row for sortable player-level details with index, age (years+days), TSI, and saved form-7 match ratings with weather emojis.",
     clubChronicleHelpBulletLikelyTraining:
       "Likely training regimen: inferred from recent formations; ties at top confidence are shown together and marked as unclear. Click a row for full confidence ranking and sample size.",
     clubChronicleHelpBulletWages:
-      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), and wage.",
+      "Wages: team total wages and top-11 wages in EUR. Click a row for sortable player details with index, age (years+days), wage, and saved form-7 match ratings with weather emojis.",
     clubChronicleHelpBulletLatestUpdates:
       "Latest updates keeps per-attribute change groups by team, retains the latest non-empty global-refresh diff for review, and lets you switch between saved changed refreshes.",
     clubChroniclePressPanelTitle: "Press announcements",
@@ -762,6 +764,19 @@ export const messagesEn: Messages = {
     clubChronicleTsiPlayerIndexColumn: "No.",
     clubChronicleTsiPlayerColumn: "Player",
     clubChronicleTsiValueColumn: "TSI",
+    clubChronicleForm7RatingColumn: "Form-7 rating",
+    clubChronicleForm7RatingInfoLabel: "About form-7 rating",
+    clubChronicleForm7RatingInfoTooltip:
+      "Shows end-of-match star ratings from matches where the player has had or currently has form 7. This helps estimate a standardized star performance of players.",
+    clubChronicleWeatherRain: "Rain",
+    clubChronicleWeatherOvercast: "Overcast",
+    clubChronicleWeatherPartiallyCloudy: "Partially cloudy",
+    clubChronicleWeatherSunny: "Sunny",
+    clubChroniclePlayerFormColumn: "Form",
+    clubChroniclePlayerStaminaColumn: "Stamina",
+    clubChroniclePlayerExperienceColumn: "Exp",
+    clubChroniclePlayerLeadershipColumn: "Leadership",
+    clubChroniclePlayerLoyaltyColumn: "Loyalty",
     clubChronicleWagesPanelTitle: "Wages",
     clubChronicleWagesColumnTotal: "Total wages",
     clubChronicleWagesColumnTop11: "Top 11 wages",

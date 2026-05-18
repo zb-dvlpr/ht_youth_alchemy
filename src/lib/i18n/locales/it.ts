@@ -146,6 +146,8 @@ export const messagesIt: Messages = {
     updateRequiredBody:
       "E disponibile una nuova versione di HT Alchemy. Aggiorna ora per continuare a usare l app.",
     updateRequiredAction: "Aggiorna",
+    changelog_5_6_0:
+      "Dettagli giocatore migliorati per i pannelli TSI e stipendi in Club Chronicle.",
     changelog_5_5_0:
       "Le proprie leghe in Club Chronicle ora si espandono in selezioni per squadra con interruttori di gruppo per lega.",
     changelog_5_4_0:
@@ -608,11 +610,11 @@ export const messagesIt: Messages = {
     clubChronicleHelpBulletTeamAttitude:
       "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
     clubChronicleHelpBulletTsi:
-      "TSI: TSI totale squadra e TSI top-11. Clicca una riga per dettagli giocatore ordinabili con indice, eta (anni+giorni) e TSI.",
+      "TSI: TSI totale squadra e TSI top-11. Clicca una riga per dettagli giocatore ordinabili con indice, eta (anni+giorni), TSI e valutazioni partita forma 7 salvate con emoji meteo.",
     clubChronicleHelpBulletLikelyTraining:
       "Regime di allenamento probabile: dedotto dalle formazioni recenti; i pareggi alla confidenza massima vengono mostrati insieme e marcati come incerti. Clicca una riga per ranking completo di confidenza e dimensione campione.",
     clubChronicleHelpBulletWages:
-      "Salari: salari totali squadra e top-11 in EUR. Clicca una riga per dettagli giocatore ordinabili con indice, eta (anni+giorni) e salario.",
+      "Salari: salari totali squadra e top-11 in EUR. Clicca una riga per dettagli giocatore ordinabili con indice, eta (anni+giorni), salario e valutazioni partita forma 7 salvate con emoji meteo.",
     clubChronicleHelpBulletLatestUpdates:
       "Ultimi aggiornamenti mantiene i cambi per attributo raggruppati per squadra, conserva l ultimo diff globale non vuoto e permette di passare tra i refresh salvati con modifiche.",
     clubChroniclePressPanelTitle: "Comunicati stampa",
@@ -799,6 +801,19 @@ export const messagesIt: Messages = {
     clubChronicleTsiPlayerIndexColumn: "N.",
     clubChronicleTsiPlayerColumn: "Giocatore",
     clubChronicleTsiValueColumn: "TSI",
+    clubChronicleForm7RatingColumn: "Valutazione forma 7",
+    clubChronicleForm7RatingInfoLabel: "Informazioni valutazione forma 7",
+    clubChronicleForm7RatingInfoTooltip:
+      "Mostra le valutazioni in stelle di fine partita dalle gare in cui il giocatore ha avuto o ha attualmente forma 7. Questo aiuta a stimare una prestazione standardizzata in stelle dei giocatori.",
+    clubChronicleWeatherRain: "Pioggia",
+    clubChronicleWeatherOvercast: "Coperto",
+    clubChronicleWeatherPartiallyCloudy: "Parzialmente nuvoloso",
+    clubChronicleWeatherSunny: "Soleggiato",
+    clubChroniclePlayerFormColumn: "Forma",
+    clubChroniclePlayerStaminaColumn: "Resistenza",
+    clubChroniclePlayerExperienceColumn: "Esp.",
+    clubChroniclePlayerLeadershipColumn: "Leadership",
+    clubChroniclePlayerLoyaltyColumn: "Fedelta",
     clubChronicleWagesPanelTitle: "Stipendi",
     clubChronicleWagesColumnTotal: "Stipendi totali",
     clubChronicleWagesColumnTop11: "Stipendi top 11",

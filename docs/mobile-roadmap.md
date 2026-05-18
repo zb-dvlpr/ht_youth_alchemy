@@ -1,7 +1,7 @@
 # Mobile Roadmap
 
 Status: in progress
-Last updated: 2026-04-06
+Last updated: 2026-05-18
 
 ## Goals
 - Deliver a mobile UX that feels like a real app, not a compressed desktop website.
@@ -68,6 +68,8 @@ Last updated: 2026-04-06
   - [x] Added bottom Manual entries to all mobile floating dropdowns.
   - [x] Added a mobile Premium pill to the launcher header and mobile tool headers when a premium license is active.
 - [ ] Audit persistence and state restoration on mobile navigation flows.
+  - [x] Added default mobile fallbacks so Youth and Senior reopen on Player list and Club Chronicle reopens on a valid panel instead of blank states.
+  - [x] Hardened Club Chronicle mobile restore so legacy blank detail states automatically recover to an enabled panel on refresh.
 - [ ] Clean up any remaining truly cross-cutting mobile component issues left after Youth, Senior, and Chronicle are complete.
 - [ ] Run a desktop regression pass across Youth, Senior, and Club Chronicle.
 - [ ] Run a mobile usability pass across launcher, navigation, and core workflows.

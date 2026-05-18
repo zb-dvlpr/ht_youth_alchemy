@@ -146,6 +146,8 @@ export const messagesDe: Messages = {
     updateRequiredBody:
       "Eine neue Version von HT Alchemy ist verfuegbar. Aktualisiere jetzt, um die App weiter zu nutzen.",
     updateRequiredAction: "Aktualisieren",
+    changelog_5_6_0:
+      "Erweiterte Spielerdetails fuer TSI- und Gehaltspanels in der Club-Chronik.",
     changelog_5_5_0:
       "Eigene Ligen in der Club-Chronik werden jetzt als Team-Auswahllisten mit Liga-Sammelschaltern angezeigt.",
     changelog_5_4_0:
@@ -596,11 +598,11 @@ export const messagesDe: Messages = {
     clubChronicleHelpBulletTeamAttitude:
       "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
     clubChronicleHelpBulletTsi:
-      "TSI: Team-Gesamt-TSI und Top-11-TSI. Klick auf eine Zeile zeigt sortierbare Spielerdetails mit Index, Alter (Jahre+Tage) und TSI.",
+      "TSI: Team-Gesamt-TSI und Top-11-TSI. Klick auf eine Zeile zeigt sortierbare Spielerdetails mit Index, Alter (Jahre+Tage), TSI und gespeicherten Form-7-Spielbewertungen mit Wetter-Emoji.",
     clubChronicleHelpBulletLikelyTraining:
       "Wahrscheinliches Trainingsschema: aus juengsten Formationen abgeleitet; Gleichstand bei hoechster Sicherheit wird gemeinsam gezeigt und als unklar markiert. Klick auf eine Zeile zeigt vollstaendiges Sicherheitsranking und Stichprobengroesse.",
     clubChronicleHelpBulletWages:
-      "Gehaelter: Team-Gesamtgehalt und Top-11-Gehaelter in EUR. Klick auf eine Zeile zeigt sortierbare Spielerdetails mit Index, Alter (Jahre+Tage) und Gehalt.",
+      "Gehaelter: Team-Gesamtgehalt und Top-11-Gehaelter in EUR. Klick auf eine Zeile zeigt sortierbare Spielerdetails mit Index, Alter (Jahre+Tage), Gehalt und gespeicherten Form-7-Spielbewertungen mit Wetter-Emoji.",
     clubChronicleHelpBulletLatestUpdates:
       "Neueste Updates haelt Aenderungen pro Attribut, nach Team gruppiert, behaelt den letzten nicht-leeren globalen Diff zur Einsicht und erlaubt den Wechsel zwischen gespeicherten geaenderten Refreshes.",
     clubChroniclePressPanelTitle: "Pressemitteilungen",
@@ -786,6 +788,19 @@ export const messagesDe: Messages = {
     clubChronicleTsiPlayerIndexColumn: "Nr.",
     clubChronicleTsiPlayerColumn: "Spieler",
     clubChronicleTsiValueColumn: "TSI",
+    clubChronicleForm7RatingColumn: "Form-7-Bewertung",
+    clubChronicleForm7RatingInfoLabel: "Info zur Form-7-Bewertung",
+    clubChronicleForm7RatingInfoTooltip:
+      "Zeigt Endspiel-Sternbewertungen aus Spielen, in denen der Spieler Form 7 hatte oder aktuell hat. Das hilft, eine standardisierte Sternleistung von Spielern einzuschaetzen.",
+    clubChronicleWeatherRain: "Regen",
+    clubChronicleWeatherOvercast: "Bewoelkt",
+    clubChronicleWeatherPartiallyCloudy: "Teilweise bewoelkt",
+    clubChronicleWeatherSunny: "Sonnig",
+    clubChroniclePlayerFormColumn: "Form",
+    clubChroniclePlayerStaminaColumn: "Kondition",
+    clubChroniclePlayerExperienceColumn: "Erf.",
+    clubChroniclePlayerLeadershipColumn: "Fuehrung",
+    clubChroniclePlayerLoyaltyColumn: "Loyalitaet",
     clubChronicleWagesPanelTitle: "Gehälter",
     clubChronicleWagesColumnTotal: "Gesamtgehälter",
     clubChronicleWagesColumnTop11: "Top-11-Gehälter",

@@ -326,6 +326,8 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+  changelog_5_6_0:
+    "Uitgebreide spelerdetails voor TSI- en loonpanelen in Club Chronicle.",
   changelog_5_5_0:
     "Eigen competities in Club Chronicle klappen nu uit naar teamselecties met bulkknoppen per competitie.",
   changelog_5_4_0:
@@ -791,6 +793,10 @@ export const messagesNl: Messages = {
     "Match lineups {completed}/{total} (team: {team})",
   clubChronicleHelpBulletTeamAttitude:
     "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
+  clubChronicleHelpBulletTsi:
+    "TSI: totale team-TSI en top-11-TSI. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), TSI en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
+  clubChronicleHelpBulletWages:
+    "Lonen: totale teamlonen en top-11-lonen in EUR. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), loon en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
   clubChronicleTeamAttitudePanelTitle: "Team attitude",
   clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
   clubChronicleTeamAttitudeColumnDate: "Date",
@@ -822,6 +828,19 @@ export const messagesNl: Messages = {
   clubChronicleDetailModeDev: "Dev-modus",
   clubChronicleTeamAttitudeDisclaimer:
     "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig. Teams die consequent PIC spelen en daarna normaal spelen, kunnen op MOTS lijken, en teams die consequent MOTS spelen en daarna normaal spelen, kunnen op PIC lijken.",
+  clubChronicleForm7RatingColumn: "Vorm-7-rating",
+  clubChronicleForm7RatingInfoLabel: "Over vorm-7-rating",
+  clubChronicleForm7RatingInfoTooltip:
+    "Toont eindwedstrijd-sterrenbeoordelingen uit wedstrijden waarin de speler vorm 7 heeft gehad of momenteel heeft. Dit helpt om een gestandaardiseerde sterrenprestatie van spelers in te schatten.",
+  clubChronicleWeatherRain: "Regen",
+  clubChronicleWeatherOvercast: "Bewolkt",
+  clubChronicleWeatherPartiallyCloudy: "Gedeeltelijk bewolkt",
+  clubChronicleWeatherSunny: "Zonnig",
+  clubChroniclePlayerFormColumn: "Vorm",
+  clubChroniclePlayerStaminaColumn: "Conditie",
+  clubChroniclePlayerExperienceColumn: "Erv.",
+  clubChroniclePlayerLeadershipColumn: "Leiderschap",
+  clubChroniclePlayerLoyaltyColumn: "Loyaliteit",
   seniorHelpTitle: "Handleiding senioroptimalisatie",
   seniorHelpIntro:
     "Deze weergave helpt je relevante wijzigingen in de seniorselectie te volgen en sneller wedstrijdopstellingen te zetten.",

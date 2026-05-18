@@ -19228,7 +19228,7 @@ type Form7LineupSnapshot = {
       <Modal
         open={tsiDetailsOpen}
         title={messages.clubChronicleTsiDetailsTitle}
-        className={styles.chronicleTransferHistoryModal}
+        className={styles.chronicleTsiWagesDetailsModal}
         body={
           selectedTsiTeam ? (
             <>
@@ -19248,16 +19248,18 @@ type Form7LineupSnapshot = {
                       {
                         "--cc-columns": tsiPlayerColumns.length,
                         "--cc-template":
-                          "minmax(70px, 0.45fr) minmax(220px, 1.35fr) minmax(110px, 0.75fr) minmax(90px, 0.6fr) minmax(100px, 0.65fr) minmax(80px, 0.55fr) minmax(110px, 0.75fr) minmax(100px, 0.65fr) minmax(120px, 0.75fr)",
+                          "88px 220px 110px 90px 100px 80px 110px 100px 190px 132px",
                       } as CSSProperties
                     }
                     sortKey={tsiDetailsSortState.key}
                     sortDirection={tsiDetailsSortState.direction}
                     onSort={handleTsiDetailsSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
+                    maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                    maskText={messages.clubChronicleNoDivulgoMask}
+                    isMaskActive={noDivulgoActive}
+                    onMaskedRowClick={(row) =>
+                      handleNoDivulgoDismiss((row as { teamId: number }).teamId)
+                    }
                   />
                 </div>
               ) : (
@@ -19284,7 +19286,7 @@ type Form7LineupSnapshot = {
       <Modal
         open={wagesDetailsOpen}
         title={messages.clubChronicleWagesDetailsTitle}
-        className={styles.chronicleTransferHistoryModal}
+        className={styles.chronicleTsiWagesDetailsModal}
         body={
           selectedWagesTeam ? (
             <>
@@ -19304,15 +19306,15 @@ type Form7LineupSnapshot = {
                       {
                         "--cc-columns": wagesPlayerColumns.length,
                         "--cc-template":
-                          "minmax(70px, 0.45fr) minmax(220px, 1.35fr) minmax(110px, 0.75fr) minmax(90px, 0.6fr) minmax(100px, 0.65fr) minmax(80px, 0.55fr) minmax(110px, 0.75fr) minmax(100px, 0.65fr) minmax(140px, 0.85fr)",
+                          "88px 220px 110px 90px 100px 80px 110px 100px 190px 150px",
                       } as CSSProperties
                     }
                     sortKey={wagesDetailsSortState.key}
                     sortDirection={wagesDetailsSortState.direction}
                     onSort={handleWagesDetailsSort}
-                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                      maskText={messages.clubChronicleNoDivulgoMask}
-                      isMaskActive={noDivulgoActive}
+                    maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                    maskText={messages.clubChronicleNoDivulgoMask}
+                    isMaskActive={noDivulgoActive}
                       onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
                   />
                 </div>

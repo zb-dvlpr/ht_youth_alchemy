@@ -3728,6 +3728,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   display: grid;
   gap: 2px;
   position: relative;
+  min-width: max-content;
 }
 
 .chronicleTableHeader {
@@ -4213,6 +4214,11 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .chronicleTransferHistoryModal {
   max-width: min(1120px, 98vw);
   width: min(1120px, 98vw);
+}
+
+.chronicleTsiWagesDetailsModal {
+  max-width: min(1280px, calc(100vw - 24px));
+  width: min(1280px, calc(100vw - 24px));
 }
 
 .chronicleTeamAttitudeUserModal {
@@ -9185,6 +9191,10 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
 
 .confirmCard.chronicleTransferHistoryModal {
   width: min(1120px, 98vw);
+}
+
+.confirmCard.chronicleTsiWagesDetailsModal {
+  width: min(1280px, calc(100vw - 24px));
 }
 
 .confirmCard.chronicleTransferListedModal {

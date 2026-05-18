@@ -767,7 +767,7 @@ export const messagesEn: Messages = {
     clubChronicleForm7RatingColumn: "Form-7 rating",
     clubChronicleForm7RatingInfoLabel: "About form-7 rating",
     clubChronicleForm7RatingInfoTooltip:
-      "Shows an end-of-match rating from matches where the player currently has form 7.",
+      "Shows end-of-match star ratings from matches where the player has had or currently has form 7. This helps estimate a standardized star performance of players.",
     clubChronicleWeatherRain: "Rain",
     clubChronicleWeatherOvercast: "Overcast",
     clubChronicleWeatherPartiallyCloudy: "Partially cloudy",

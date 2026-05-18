@@ -831,7 +831,7 @@ export const messagesNl: Messages = {
   clubChronicleForm7RatingColumn: "Vorm-7-rating",
   clubChronicleForm7RatingInfoLabel: "Over vorm-7-rating",
   clubChronicleForm7RatingInfoTooltip:
-    "Toont een eindwedstrijd-rating uit wedstrijden waarin de speler momenteel vorm 7 heeft.",
+    "Toont eindwedstrijd-sterrenbeoordelingen uit wedstrijden waarin de speler vorm 7 heeft gehad of momenteel heeft. Dit helpt om een gestandaardiseerde sterrenprestatie van spelers in te schatten.",
   clubChronicleWeatherRain: "Regen",
   clubChronicleWeatherOvercast: "Bewolkt",
   clubChronicleWeatherPartiallyCloudy: "Gedeeltelijk bewolkt",

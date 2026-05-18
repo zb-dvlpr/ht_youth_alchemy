@@ -801,7 +801,7 @@ export const messagesEs: Messages = {
     clubChronicleForm7RatingColumn: "Valoracion forma 7",
     clubChronicleForm7RatingInfoLabel: "Acerca de valoracion forma 7",
     clubChronicleForm7RatingInfoTooltip:
-      "Muestra una valoracion al final del partido de encuentros en los que el jugador tiene forma 7 actualmente.",
+      "Muestra valoraciones en estrellas al final del partido de encuentros en los que el jugador ha tenido o tiene actualmente forma 7. Esto ayuda a estimar un rendimiento estandarizado en estrellas de los jugadores.",
     clubChronicleWeatherRain: "Lluvia",
     clubChronicleWeatherOvercast: "Nublado",
     clubChronicleWeatherPartiallyCloudy: "Parcialmente nublado",

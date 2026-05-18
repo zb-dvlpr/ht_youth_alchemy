@@ -791,7 +791,7 @@ export const messagesDe: Messages = {
     clubChronicleForm7RatingColumn: "Form-7-Bewertung",
     clubChronicleForm7RatingInfoLabel: "Info zur Form-7-Bewertung",
     clubChronicleForm7RatingInfoTooltip:
-      "Zeigt eine Endspielbewertung aus Spielen, in denen der Spieler aktuell Form 7 hat.",
+      "Zeigt Endspiel-Sternbewertungen aus Spielen, in denen der Spieler Form 7 hatte oder aktuell hat. Das hilft, eine standardisierte Sternleistung von Spielern einzuschaetzen.",
     clubChronicleWeatherRain: "Regen",
     clubChronicleWeatherOvercast: "Bewoelkt",
     clubChronicleWeatherPartiallyCloudy: "Teilweise bewoelkt",

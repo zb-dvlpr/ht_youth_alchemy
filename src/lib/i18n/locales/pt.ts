@@ -802,7 +802,7 @@ export const messagesPt: Messages = {
     clubChronicleForm7RatingColumn: "Classificacao forma 7",
     clubChronicleForm7RatingInfoLabel: "Sobre a classificacao forma 7",
     clubChronicleForm7RatingInfoTooltip:
-      "Mostra uma classificacao de fim de jogo de partidas em que o jogador atualmente tem forma 7.",
+      "Mostra classificacoes em estrelas de fim de jogo de partidas em que o jogador teve ou tem atualmente forma 7. Isto ajuda a estimar um desempenho padronizado em estrelas dos jogadores.",
     clubChronicleWeatherRain: "Chuva",
     clubChronicleWeatherOvercast: "Encoberto",
     clubChronicleWeatherPartiallyCloudy: "Parcialmente nublado",

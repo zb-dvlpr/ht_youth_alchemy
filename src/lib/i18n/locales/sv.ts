@@ -795,7 +795,7 @@ export const messagesSv: Messages = {
     clubChronicleForm7RatingColumn: "Form-7-betyg",
     clubChronicleForm7RatingInfoLabel: "Om form-7-betyg",
     clubChronicleForm7RatingInfoTooltip:
-      "Visar ett slutbetyg fran matcher dar spelaren for narvarande har form 7.",
+      "Visar stjarnbetyg efter match fran matcher dar spelaren har haft eller for narvarande har form 7. Detta hjalper till att uppskatta en standardiserad stjarnprestation for spelare.",
     clubChronicleWeatherRain: "Regn",
     clubChronicleWeatherOvercast: "Mulet",
     clubChronicleWeatherPartiallyCloudy: "Vaxlande molnighet",

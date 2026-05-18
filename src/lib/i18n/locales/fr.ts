@@ -803,7 +803,7 @@ export const messagesFr: Messages = {
     clubChronicleForm7RatingColumn: "Note forme 7",
     clubChronicleForm7RatingInfoLabel: "A propos de la note forme 7",
     clubChronicleForm7RatingInfoTooltip:
-      "Affiche une note de fin de match issue de matchs ou le joueur a actuellement une forme de 7.",
+      "Affiche les notes en etoiles de fin de match des matchs ou le joueur a eu ou a actuellement une forme de 7. Cela aide a estimer une performance standardisee en etoiles des joueurs.",
     clubChronicleWeatherRain: "Pluie",
     clubChronicleWeatherOvercast: "Couvert",
     clubChronicleWeatherPartiallyCloudy: "Partiellement nuageux",

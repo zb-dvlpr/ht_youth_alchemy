@@ -824,7 +824,7 @@ export const messagesPl: Messages = {
   clubChronicleForm7RatingColumn: "Ocena forma 7",
   clubChronicleForm7RatingInfoLabel: "O ocenie forma 7",
   clubChronicleForm7RatingInfoTooltip:
-    "Pokazuje ocene koncowa z meczow, w ktorych zawodnik ma obecnie forme 7.",
+    "Pokazuje koncowe oceny w gwiazdkach z meczow, w ktorych zawodnik mial lub ma obecnie forme 7. Pomaga to oszacowac ustandaryzowana gwiazdkowa wydajnosc zawodnikow.",
   clubChronicleWeatherRain: "Deszcz",
   clubChronicleWeatherOvercast: "Pochmurno",
   clubChronicleWeatherPartiallyCloudy: "Czesciowe zachmurzenie",

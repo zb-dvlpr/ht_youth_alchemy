@@ -9769,6 +9769,29 @@ type Form7LineupSnapshot = {
     }
   };
 
+  const resolveChronicleSpecialtyLabel = (value?: number | null) => {
+    switch (value) {
+      case 0:
+        return messages.specialtyNone;
+      case 1:
+        return messages.specialtyTechnical;
+      case 2:
+        return messages.specialtyQuick;
+      case 3:
+        return messages.specialtyPowerful;
+      case 4:
+        return messages.specialtyUnpredictable;
+      case 5:
+        return messages.specialtyHeadSpecialist;
+      case 6:
+        return messages.specialtyResilient;
+      case 8:
+        return messages.specialtySupport;
+      default:
+        return messages.specialtyLabel;
+    }
+  };
+
   const buildChronicleCardStatus = (cards: number | null) => {
     if (typeof cards !== "number") return null;
     if (cards >= 3) {
@@ -13972,25 +13995,29 @@ type Form7LineupSnapshot = {
           const playerId = snapshot?.playerId ?? 0;
           const playerName = snapshot?.playerName ?? null;
           const specialtyEmoji = getSpecialtyEmoji(snapshot?.specialty);
+          const specialtyLabel = resolveChronicleSpecialtyLabel(snapshot?.specialty);
           const cardStatus = buildChronicleCardStatus(snapshot?.cards ?? null);
           const injuryIndicator = renderInjuryStatusInline(snapshot?.injuryLevel);
           if (!playerId) return fallbackFormat(playerName);
           return (
-            <a
-              className={styles.chroniclePressLink}
-              href={hattrickPlayerUrl(playerId)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {playerName ?? `${playerId}`}
+            <>
+              <a
+                className={styles.chroniclePressLink}
+                href={hattrickPlayerUrl(playerId)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {playerName ?? `${playerId}`}
+              </a>
               {specialtyEmoji ? (
-                <span
-                  className={styles.chronicleInjuryInline}
-                  title={messages.specialtyLabel}
-                  aria-label={messages.specialtyLabel}
-                >
-                  {specialtyEmoji}
-                </span>
+                <Tooltip content={specialtyLabel}>
+                  <span
+                    className={styles.chronicleInjuryInline}
+                    aria-label={specialtyLabel}
+                  >
+                    {specialtyEmoji}
+                  </span>
+                </Tooltip>
               ) : null}
               {cardStatus ? (
                 <span
@@ -14002,7 +14029,7 @@ type Form7LineupSnapshot = {
                 </span>
               ) : null}
               {injuryIndicator}
-            </a>
+            </>
           );
         },
       },
@@ -14107,6 +14134,14 @@ type Form7LineupSnapshot = {
       messages.clubChronicleTsiValueColumn,
       formatAgeWithDays,
       messages.unknownShort,
+      messages.specialtyNone,
+      messages.specialtyTechnical,
+      messages.specialtyQuick,
+      messages.specialtyPowerful,
+      messages.specialtyUnpredictable,
+      messages.specialtyHeadSpecialist,
+      messages.specialtyResilient,
+      messages.specialtySupport,
       renderInjuryStatusInline,
       resolveForm7EntryWeatherLabel,
       buildChronicleCardStatus,
@@ -14155,25 +14190,29 @@ type Form7LineupSnapshot = {
           const playerId = snapshot?.playerId ?? 0;
           const playerName = snapshot?.playerName ?? null;
           const specialtyEmoji = getSpecialtyEmoji(snapshot?.specialty);
+          const specialtyLabel = resolveChronicleSpecialtyLabel(snapshot?.specialty);
           const cardStatus = buildChronicleCardStatus(snapshot?.cards ?? null);
           const injuryIndicator = renderInjuryStatusInline(snapshot?.injuryLevel);
           if (!playerId) return fallbackFormat(playerName);
           return (
-            <a
-              className={styles.chroniclePressLink}
-              href={hattrickPlayerUrl(playerId)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {playerName ?? `${playerId}`}
+            <>
+              <a
+                className={styles.chroniclePressLink}
+                href={hattrickPlayerUrl(playerId)}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {playerName ?? `${playerId}`}
+              </a>
               {specialtyEmoji ? (
-                <span
-                  className={styles.chronicleInjuryInline}
-                  title={messages.specialtyLabel}
-                  aria-label={messages.specialtyLabel}
-                >
-                  {specialtyEmoji}
-                </span>
+                <Tooltip content={specialtyLabel}>
+                  <span
+                    className={styles.chronicleInjuryInline}
+                    aria-label={specialtyLabel}
+                  >
+                    {specialtyEmoji}
+                  </span>
+                </Tooltip>
               ) : null}
               {cardStatus ? (
                 <span
@@ -14185,7 +14224,7 @@ type Form7LineupSnapshot = {
                 </span>
               ) : null}
               {injuryIndicator}
-            </a>
+            </>
           );
         },
       },
@@ -14291,6 +14330,14 @@ type Form7LineupSnapshot = {
       messages.clubChronicleWagesValueColumn,
       formatAgeWithDays,
       messages.unknownShort,
+      messages.specialtyNone,
+      messages.specialtyTechnical,
+      messages.specialtyQuick,
+      messages.specialtyPowerful,
+      messages.specialtyUnpredictable,
+      messages.specialtyHeadSpecialist,
+      messages.specialtyResilient,
+      messages.specialtySupport,
       renderInjuryStatusInline,
       resolveForm7EntryWeatherLabel,
       buildChronicleCardStatus,

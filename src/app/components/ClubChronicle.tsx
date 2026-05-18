@@ -14310,18 +14310,6 @@ type Form7LineupSnapshot = {
         },
       },
       {
-        key: "tsi",
-        label: messages.clubChronicleTsiValueColumn,
-        getValue: (snapshot) => snapshot?.tsi ?? null,
-      },
-      {
-        key: "playingPosition",
-        label: messages.clubChroniclePlayingPositionColumn,
-        getValue: (snapshot) => formatPlayingPositionEntries(snapshot?.playingPositions),
-        renderCell: (snapshot) =>
-          formatPlayingPositionEntries(snapshot?.playingPositions) ?? messages.unknownShort,
-      },
-      {
         key: "age",
         label: messages.clubChronicleTransferListedAgeColumn,
         getValue: (snapshot) => formatAgeWithDays(snapshot?.age, snapshot?.ageDays),
@@ -14332,29 +14320,16 @@ type Form7LineupSnapshot = {
         },
       },
       {
-        key: "form",
-        label: messages.clubChroniclePlayerFormColumn,
-        getValue: (snapshot) => snapshot?.form ?? null,
+        key: "tsi",
+        label: messages.clubChronicleTsiValueColumn,
+        getValue: (snapshot) => snapshot?.tsi ?? null,
       },
       {
-        key: "stamina",
-        label: messages.clubChroniclePlayerStaminaColumn,
-        getValue: (snapshot) => snapshot?.stamina ?? null,
-      },
-      {
-        key: "experience",
-        label: messages.clubChroniclePlayerExperienceColumn,
-        getValue: (snapshot) => snapshot?.experience ?? null,
-      },
-      {
-        key: "leadership",
-        label: messages.clubChroniclePlayerLeadershipColumn,
-        getValue: (snapshot) => snapshot?.leadership ?? null,
-      },
-      {
-        key: "loyalty",
-        label: messages.clubChroniclePlayerLoyaltyColumn,
-        getValue: (snapshot) => snapshot?.loyalty ?? null,
+        key: "playingPosition",
+        label: messages.clubChroniclePlayingPositionColumn,
+        getValue: (snapshot) => formatPlayingPositionEntries(snapshot?.playingPositions),
+        renderCell: (snapshot) =>
+          formatPlayingPositionEntries(snapshot?.playingPositions) ?? messages.unknownShort,
       },
       {
         key: "form7Rating",
@@ -14411,24 +14386,49 @@ type Form7LineupSnapshot = {
             messages.unknownShort
           ),
       },
+      {
+        key: "form",
+        label: messages.clubChroniclePlayerFormColumn,
+        getValue: (snapshot) => snapshot?.form ?? null,
+      },
+      {
+        key: "stamina",
+        label: messages.clubChroniclePlayerStaminaColumn,
+        getValue: (snapshot) => snapshot?.stamina ?? null,
+      },
+      {
+        key: "experience",
+        label: messages.clubChroniclePlayerExperienceColumn,
+        getValue: (snapshot) => snapshot?.experience ?? null,
+      },
+      {
+        key: "leadership",
+        label: messages.clubChroniclePlayerLeadershipColumn,
+        getValue: (snapshot) => snapshot?.leadership ?? null,
+      },
+      {
+        key: "loyalty",
+        label: messages.clubChroniclePlayerLoyaltyColumn,
+        getValue: (snapshot) => snapshot?.loyalty ?? null,
+      },
     ],
     [
       messages.clubChronicleTsiPlayerIndexColumn,
       messages.clubChronicleTsiPlayerColumn,
-      messages.clubChroniclePlayingPositionColumn,
-      messages.specialtyLabel,
       messages.clubChronicleTransferListedAgeColumn,
+      messages.clubChronicleTsiValueColumn,
+      messages.clubChroniclePlayingPositionColumn,
+      messages.clubChronicleForm7RatingColumn,
+      messages.clubChronicleForm7RatingInfoTooltip,
       messages.clubChroniclePlayerFormColumn,
       messages.clubChroniclePlayerStaminaColumn,
       messages.clubChroniclePlayerExperienceColumn,
       messages.clubChroniclePlayerLeadershipColumn,
       messages.clubChroniclePlayerLoyaltyColumn,
-      messages.clubChronicleForm7RatingColumn,
-      messages.clubChronicleForm7RatingInfoTooltip,
-      messages.clubChronicleTsiValueColumn,
       formatPlayingPositionEntries,
       formatAgeWithDays,
       messages.unknownShort,
+      messages.specialtyLabel,
       messages.specialtyNone,
       messages.specialtyTechnical,
       messages.specialtyQuick,
@@ -14525,6 +14525,16 @@ type Form7LineupSnapshot = {
         },
       },
       {
+        key: "age",
+        label: messages.clubChronicleTransferListedAgeColumn,
+        getValue: (snapshot) => formatAgeWithDays(snapshot?.age, snapshot?.ageDays),
+        getSortValue: (snapshot) => {
+          const age = snapshot?.age;
+          if (age === null || age === undefined) return null;
+          return age * CHPP_DAYS_PER_YEAR + (snapshot?.ageDays ?? 0);
+        },
+      },
+      {
         key: "wage",
         label: messages.clubChronicleWagesValueColumn,
         getValue: (snapshot) => formatChppCurrencyFromSek(snapshot?.salarySek ?? null),
@@ -14536,41 +14546,6 @@ type Form7LineupSnapshot = {
         getValue: (snapshot) => formatPlayingPositionEntries(snapshot?.playingPositions),
         renderCell: (snapshot) =>
           formatPlayingPositionEntries(snapshot?.playingPositions) ?? messages.unknownShort,
-      },
-      {
-        key: "age",
-        label: messages.clubChronicleTransferListedAgeColumn,
-        getValue: (snapshot) => formatAgeWithDays(snapshot?.age, snapshot?.ageDays),
-        getSortValue: (snapshot) => {
-          const age = snapshot?.age;
-          if (age === null || age === undefined) return null;
-          return age * CHPP_DAYS_PER_YEAR + (snapshot?.ageDays ?? 0);
-        },
-      },
-      {
-        key: "form",
-        label: messages.clubChroniclePlayerFormColumn,
-        getValue: (snapshot) => snapshot?.form ?? null,
-      },
-      {
-        key: "stamina",
-        label: messages.clubChroniclePlayerStaminaColumn,
-        getValue: (snapshot) => snapshot?.stamina ?? null,
-      },
-      {
-        key: "experience",
-        label: messages.clubChroniclePlayerExperienceColumn,
-        getValue: (snapshot) => snapshot?.experience ?? null,
-      },
-      {
-        key: "leadership",
-        label: messages.clubChroniclePlayerLeadershipColumn,
-        getValue: (snapshot) => snapshot?.leadership ?? null,
-      },
-      {
-        key: "loyalty",
-        label: messages.clubChroniclePlayerLoyaltyColumn,
-        getValue: (snapshot) => snapshot?.loyalty ?? null,
       },
       {
         key: "form7Rating",
@@ -14627,24 +14602,49 @@ type Form7LineupSnapshot = {
             messages.unknownShort
           ),
       },
+      {
+        key: "form",
+        label: messages.clubChroniclePlayerFormColumn,
+        getValue: (snapshot) => snapshot?.form ?? null,
+      },
+      {
+        key: "stamina",
+        label: messages.clubChroniclePlayerStaminaColumn,
+        getValue: (snapshot) => snapshot?.stamina ?? null,
+      },
+      {
+        key: "experience",
+        label: messages.clubChroniclePlayerExperienceColumn,
+        getValue: (snapshot) => snapshot?.experience ?? null,
+      },
+      {
+        key: "leadership",
+        label: messages.clubChroniclePlayerLeadershipColumn,
+        getValue: (snapshot) => snapshot?.leadership ?? null,
+      },
+      {
+        key: "loyalty",
+        label: messages.clubChroniclePlayerLoyaltyColumn,
+        getValue: (snapshot) => snapshot?.loyalty ?? null,
+      },
     ],
     [
       messages.clubChronicleWagesPlayerIndexColumn,
       messages.clubChronicleWagesPlayerColumn,
-      messages.clubChroniclePlayingPositionColumn,
-      messages.specialtyLabel,
       messages.clubChronicleTransferListedAgeColumn,
+      messages.clubChronicleWagesValueColumn,
+      messages.clubChroniclePlayingPositionColumn,
+      messages.clubChronicleForm7RatingColumn,
+      messages.clubChronicleForm7RatingInfoTooltip,
       messages.clubChroniclePlayerFormColumn,
       messages.clubChroniclePlayerStaminaColumn,
       messages.clubChroniclePlayerExperienceColumn,
       messages.clubChroniclePlayerLeadershipColumn,
       messages.clubChroniclePlayerLoyaltyColumn,
-      messages.clubChronicleForm7RatingColumn,
-      messages.clubChronicleForm7RatingInfoTooltip,
-      messages.clubChronicleWagesValueColumn,
       formatPlayingPositionEntries,
       formatAgeWithDays,
       messages.unknownShort,
+      messages.specialtyLabel,
       messages.specialtyNone,
       messages.specialtyTechnical,
       messages.specialtyQuick,
@@ -16896,7 +16896,7 @@ type Form7LineupSnapshot = {
                     {
                       "--cc-columns": tsiPlayerColumns.length,
                       "--cc-template":
-                          "88px 132px 220px 220px 110px 90px 100px 80px 110px 100px 190px",
+                          "88px 220px 110px 132px 220px 190px 90px 100px 80px 110px 100px",
                     } as CSSProperties
                   }
                   sortKey={tsiDetailsSortState.key}
@@ -16930,7 +16930,7 @@ type Form7LineupSnapshot = {
                     {
                       "--cc-columns": wagesPlayerColumns.length,
                       "--cc-template":
-                          "88px 150px 220px 220px 110px 90px 100px 80px 110px 100px 190px",
+                          "88px 220px 110px 150px 220px 190px 90px 100px 80px 110px 100px",
                     } as CSSProperties
                   }
                   sortKey={wagesDetailsSortState.key}
@@ -19737,7 +19737,7 @@ type Form7LineupSnapshot = {
                       {
                         "--cc-columns": tsiPlayerColumns.length,
                         "--cc-template":
-                          "88px 220px 110px 220px 90px 100px 80px 110px 100px 190px 132px",
+                          "88px 220px 110px 132px 220px 190px 90px 100px 80px 110px 100px",
                       } as CSSProperties
                     }
                     sortKey={tsiDetailsSortState.key}
@@ -19795,7 +19795,7 @@ type Form7LineupSnapshot = {
                       {
                         "--cc-columns": wagesPlayerColumns.length,
                         "--cc-template":
-                          "88px 220px 110px 220px 90px 100px 80px 110px 100px 190px 150px",
+                          "88px 220px 110px 150px 220px 190px 90px 100px 80px 110px 100px",
                       } as CSSProperties
                     }
                     sortKey={wagesDetailsSortState.key}

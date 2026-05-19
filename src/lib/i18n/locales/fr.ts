@@ -802,6 +802,9 @@ export const messagesFr: Messages = {
     clubChronicleTsiValueColumn: "TSI",
     clubChroniclePlayingPositionColumn: "Poste joue",
     clubChronicleForm7RatingColumn: "Note forme 7",
+    clubChronicleManMarkerColumn: "MM?",
+    clubChronicleManMarkerTooltip:
+      "Indique si le joueur a ete utilise comme marqueur individuel.",
     clubChronicleForm7RatingInfoLabel: "A propos de la note forme 7",
     clubChronicleForm7RatingInfoTooltip:
       "Affiche les notes en etoiles de fin de match des matchs ou le joueur a eu ou a actuellement une forme de 7. Cela aide a estimer une performance standardisee en etoiles des joueurs.",

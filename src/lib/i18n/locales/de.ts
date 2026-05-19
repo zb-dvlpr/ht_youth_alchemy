@@ -790,6 +790,9 @@ export const messagesDe: Messages = {
     clubChronicleTsiValueColumn: "TSI",
     clubChroniclePlayingPositionColumn: "Spielpos.",
     clubChronicleForm7RatingColumn: "Form-7-Bewertung",
+    clubChronicleManMarkerColumn: "MM?",
+    clubChronicleManMarkerTooltip:
+      "Zeigt an, ob der Spieler als Manndecker eingesetzt wurde.",
     clubChronicleForm7RatingInfoLabel: "Info zur Form-7-Bewertung",
     clubChronicleForm7RatingInfoTooltip:
       "Zeigt Endspiel-Sternbewertungen aus Spielen, in denen der Spieler Form 7 hatte oder aktuell hat. Das hilft, eine standardisierte Sternleistung von Spielern einzuschaetzen.",

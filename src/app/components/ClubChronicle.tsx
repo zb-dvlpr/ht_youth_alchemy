@@ -344,6 +344,7 @@ type TsiSnapshot = {
   players: {
     playerId: number;
     playerName: string | null;
+    originFlagEmoji?: string | null;
     playerNumber: number | null;
     age: number | null;
     ageDays: number | null;
@@ -380,18 +381,22 @@ type TsiData = {
   previous?: TsiSnapshot;
 };
 
+type ManMarkerByPlayerId = Record<number, boolean>;
+
 type TsiRow = {
   teamId: number;
   teamName: string;
   snapshot?: TsiSnapshot | null;
   form7RatingsByPlayerId?: Record<number, Form7RatingEntry[]>;
   playingPositionByPlayerId?: Record<number, PlayingPositionEntry[]>;
+  manMarkerByPlayerId?: ManMarkerByPlayerId;
 };
 
 type TsiPlayerRow = {
   teamId: number;
   playerId: number;
   playerName: string | null;
+  originFlagEmoji?: string | null;
   playerNumber: number | null;
   age: number | null;
   ageDays: number | null;
@@ -406,6 +411,7 @@ type TsiPlayerRow = {
   tsi: number;
   form7Ratings: Form7RatingEntry[];
   playingPositions: PlayingPositionEntry[];
+  usedAsManMarker: boolean;
 };
 
 type WagesSnapshot = {
@@ -414,6 +420,7 @@ type WagesSnapshot = {
   players: {
     playerId: number;
     playerName: string | null;
+    originFlagEmoji?: string | null;
     playerNumber: number | null;
     age: number | null;
     ageDays: number | null;
@@ -441,6 +448,7 @@ type WagesRow = {
   snapshot?: WagesSnapshot | null;
   form7RatingsByPlayerId?: Record<number, Form7RatingEntry[]>;
   playingPositionByPlayerId?: Record<number, PlayingPositionEntry[]>;
+  manMarkerByPlayerId?: ManMarkerByPlayerId;
 };
 
 type FormationTacticsDistribution = {
@@ -657,6 +665,7 @@ type WagesPlayerRow = {
   teamId: number;
   playerId: number;
   playerName: string | null;
+  originFlagEmoji?: string | null;
   playerNumber: number | null;
   age: number | null;
   ageDays: number | null;
@@ -671,6 +680,7 @@ type WagesPlayerRow = {
   salarySek: number;
   form7Ratings: Form7RatingEntry[];
   playingPositions: PlayingPositionEntry[];
+  usedAsManMarker: boolean;
 };
 
 type FanclubSnapshot = {
@@ -758,6 +768,7 @@ type ChronicleTeamData = {
   wages?: WagesData;
   form7RatingsByPlayerId?: Record<number, Form7RatingEntry[]>;
   playingPositionByPlayerId?: Record<number, PlayingPositionEntry[]>;
+  manMarkerByPlayerId?: ManMarkerByPlayerId;
   formationsTactics?: FormationTacticsData;
   teamAttitude?: TeamAttitudeData;
   lastLogin?: LastLoginData;
@@ -2339,6 +2350,32 @@ const sanitizePlayingPositionEntries = (
   return { entries: nextEntries, didChange };
 };
 
+const sanitizeManMarkerByPlayerId = (
+  input: unknown
+): { value: ManMarkerByPlayerId; didChange: boolean } => {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    return { value: {}, didChange: input !== undefined };
+  }
+  let didChange = false;
+  const nextValue = Object.fromEntries(
+    Object.entries(input as Record<string, unknown>).flatMap(([playerId, value]) => {
+      if (value !== true && value !== false) {
+        didChange = true;
+        return [];
+      }
+      if (value !== true) {
+        didChange = true;
+        return [];
+      }
+      return [[playerId, true]];
+    })
+  ) as ManMarkerByPlayerId;
+  if (Object.keys(nextValue).length !== Object.keys(input as Record<string, unknown>).length) {
+    didChange = true;
+  }
+  return { value: nextValue, didChange };
+};
+
 const sanitizeChronicleTeamData = (
   team: ChronicleTeamData
 ): { team: ChronicleTeamData; didChange: boolean } => {
@@ -2395,6 +2432,17 @@ const sanitizeChronicleTeamData = (
     nextTeam = {
       ...nextTeam,
       playingPositionByPlayerId: nextPositions,
+    };
+  }
+
+  if (team.manMarkerByPlayerId && typeof team.manMarkerByPlayerId === "object") {
+    const sanitized = sanitizeManMarkerByPlayerId(team.manMarkerByPlayerId);
+    if (sanitized.didChange) {
+      didChange = true;
+    }
+    nextTeam = {
+      ...nextTeam,
+      manMarkerByPlayerId: sanitized.value,
     };
   }
 
@@ -3595,6 +3643,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
   const coachCountryNameCacheRef = useRef<Map<number, string>>(new Map());
   const coachCountryNamePendingRef = useRef<Map<number, Promise<string | null>>>(new Map());
+  const leagueOriginFlagCacheRef = useRef<Map<number, string | null>>(new Map());
+  const leagueOriginFlagPendingRef = useRef<Promise<Map<number, string | null>> | null>(
+    null
+  );
   const { addNotification } = useNotifications();
   const openPremiumLicenseModal = useCallback(
     (context?: AppLicenseModalContext | null) => {
@@ -4192,6 +4244,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         leaguePerformance: cached?.leaguePerformance,
         form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
         playingPositionByPlayerId: cached?.playingPositionByPlayerId,
+        manMarkerByPlayerId: cached?.manMarkerByPlayerId,
       });
     });
     nextManualTeams.forEach((team) => {
@@ -4210,6 +4263,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         leaguePerformance: cached?.leaguePerformance,
         form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
         playingPositionByPlayerId: cached?.playingPositionByPlayerId,
+        manMarkerByPlayerId: cached?.manMarkerByPlayerId,
       });
     });
     ownLeagueTeams.forEach((team) => {
@@ -4250,6 +4304,8 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           existing?.form7RatingsByPlayerId ?? cached?.form7RatingsByPlayerId,
         playingPositionByPlayerId:
           existing?.playingPositionByPlayerId ?? cached?.playingPositionByPlayerId,
+        manMarkerByPlayerId:
+          existing?.manMarkerByPlayerId ?? cached?.manMarkerByPlayerId,
       });
     });
     return Array.from(map.values()).sort((a, b) =>
@@ -8238,6 +8294,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return null;
   };
 
+  const countryCodeToFlagEmoji = (value: unknown): string | null => {
+    if (typeof value !== "string") return null;
+    const code = value.trim().toUpperCase();
+    if (!/^[A-Z]{2}$/.test(code)) return null;
+    return Array.from(code)
+      .map((char) => String.fromCodePoint(char.charCodeAt(0) - 65 + 0x1f1e6))
+      .join("");
+  };
+
   const parsePositionChangeNode = (value: unknown): string | null => {
     const numericValue = parseNumberNode(value);
     if (numericValue === 0) return "-";
@@ -8313,6 +8378,55 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     },
     []
   );
+
+  const resolveLeagueOriginFlags = useCallback(async () => {
+    if (leagueOriginFlagCacheRef.current.size > 0) {
+      return leagueOriginFlagCacheRef.current;
+    }
+    if (leagueOriginFlagPendingRef.current) {
+      return leagueOriginFlagPendingRef.current;
+    }
+    const request = (async () => {
+      try {
+        const { response, payload } = await fetchChppJson<{
+          data?: {
+            HattrickData?: {
+              LeagueList?: {
+                League?: RawNode | RawNode[];
+              };
+            };
+          };
+          error?: string;
+        }>("/api/chpp/worlddetails", { cache: "no-store" });
+        if (!response.ok || payload?.error) {
+          return leagueOriginFlagCacheRef.current;
+        }
+        const leagues = toArray(
+          payload?.data?.HattrickData?.LeagueList?.League as
+            | RawNode
+            | RawNode[]
+            | undefined
+        );
+        leagues.forEach((league) => {
+          const leagueId = parseNumberNode(league?.LeagueID);
+          const country = league?.Country as RawNode | undefined;
+          if (!leagueId || !Number.isFinite(leagueId) || leagueId <= 0) return;
+          leagueOriginFlagCacheRef.current.set(
+            leagueId,
+            countryCodeToFlagEmoji(country?.CountryCode)
+          );
+        });
+        return leagueOriginFlagCacheRef.current;
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) throw error;
+        return leagueOriginFlagCacheRef.current;
+      } finally {
+        leagueOriginFlagPendingRef.current = null;
+      }
+    })();
+    leagueOriginFlagPendingRef.current = request;
+    return request;
+  }, []);
 
   const parseBooleanNode = (value: unknown): boolean | null => {
     if (value === null || value === undefined || value === "") return null;
@@ -9703,6 +9817,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
 type TeamPlayerSnapshot = {
     playerId: number;
     playerName: string | null;
+    originFlagEmoji?: string | null;
     playerNumber: number | null;
     age: number | null;
     ageDays: number | null;
@@ -9740,6 +9855,7 @@ type Form7LineupSnapshot = {
 };
 
   const fetchTeamPlayers = async (teamId: number): Promise<TeamPlayerSnapshot[]> => {
+    const leagueOriginFlags = await resolveLeagueOriginFlags();
     const { response: playersResponse, payload: playersPayload } = await fetchChppJson<{
       data?: {
         HattrickData?: {
@@ -9763,38 +9879,43 @@ type Form7LineupSnapshot = {
       : rawPlayers
         ? [rawPlayers]
         : []) as RawNode[];
-    return playerList
-      .map((player) => {
-        const playerId = parseNumber(player?.PlayerID) ?? 0;
-        if (playerId <= 0) return null;
-        const playerSkills = (player?.PlayerSkills ?? {}) as RawNode;
-        const playerName = [player?.FirstName, player?.NickName, player?.LastName]
-          .filter(Boolean)
-          .join(" ")
-          .trim();
-        return {
-          playerId,
-          playerName: playerName || null,
-          playerNumber: parseNumberNode(player?.PlayerNumber),
-          age: parseNumberNode(player?.Age),
-          ageDays: parseNumberNode(player?.AgeDays),
-          injuryLevel: parseNumberNode(player?.InjuryLevel),
-          transferListed: parseBool(player?.TransferListed),
-          specialty: parseNumberNode(player?.Specialty),
-          cards:
-            parseNumberNode(player?.Cards) ??
-            parseNumberNode(player?.Bookings) ??
-            parseNumberNode(player?.YellowCard),
-          form: parseNumberNode(player?.PlayerForm ?? player?.Form),
-          stamina: parseNumberNode(player?.StaminaSkill ?? playerSkills.StaminaSkill),
-          experience: parseNumberNode(player?.Experience),
-          leadership: parseNumberNode(player?.Leadership),
-          loyalty: parseNumberNode(player?.Loyalty),
-          tsi: parseNumber(player?.TSI) ?? 0,
-          salarySek: parseMoneySek(player?.Salary) ?? 0,
-        };
-      })
-      .filter((player): player is TeamPlayerSnapshot => Boolean(player));
+    const players: TeamPlayerSnapshot[] = [];
+    playerList.forEach((player) => {
+      const playerId = parseNumber(player?.PlayerID) ?? 0;
+      if (playerId <= 0) return;
+      const playerSkills = (player?.PlayerSkills ?? {}) as RawNode;
+      const playerName = [player?.FirstName, player?.NickName, player?.LastName]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      const nativeLeagueId =
+        parseNumberNode(player?.NativeLeagueID) ??
+        parseNumberNode((player?.NativeLeague as RawNode | undefined)?.LeagueID);
+      players.push({
+        playerId,
+        playerName: playerName || null,
+        originFlagEmoji:
+          (nativeLeagueId ? leagueOriginFlags.get(nativeLeagueId) ?? null : null) ?? null,
+        playerNumber: parseNumberNode(player?.PlayerNumber),
+        age: parseNumberNode(player?.Age),
+        ageDays: parseNumberNode(player?.AgeDays),
+        injuryLevel: parseNumberNode(player?.InjuryLevel),
+        transferListed: parseBool(player?.TransferListed),
+        specialty: parseNumberNode(player?.Specialty),
+        cards:
+          parseNumberNode(player?.Cards) ??
+          parseNumberNode(player?.Bookings) ??
+          parseNumberNode(player?.YellowCard),
+        form: parseNumberNode(player?.PlayerForm ?? player?.Form),
+        stamina: parseNumberNode(player?.StaminaSkill ?? playerSkills.StaminaSkill),
+        experience: parseNumberNode(player?.Experience),
+        leadership: parseNumberNode(player?.Leadership),
+        loyalty: parseNumberNode(player?.Loyalty),
+        tsi: parseNumber(player?.TSI) ?? 0,
+        salarySek: parseMoneySek(player?.Salary) ?? 0,
+      });
+    });
+    return players;
   };
 
   const parseWorlddetailsTrainingDate = (value: unknown): string | null => {
@@ -10159,7 +10280,8 @@ type Form7LineupSnapshot = {
     teamPlayers: TeamPlayerSnapshot[],
     lineupCache: Map<string, Form7LineupSnapshot | null>,
     analyzedMatchesOverride?: FormationTacticsAnalyzedMatch[],
-    onLineupProcessed?: () => void
+    onLineupProcessed?: () => void,
+    detailCache?: Map<number, MatchFormationTacticDetails>
   ) => {
     const analyzedMatches =
       analyzedMatchesOverride ??
@@ -10215,8 +10337,20 @@ type Form7LineupSnapshot = {
     };
 
     const minutesByPlayerId = new Map<number, Map<number, number>>();
+    const manMarkerPlayerIds = new Set<number>();
+    const matchDetailsCache = detailCache ?? new Map<number, MatchFormationTacticDetails>();
     for (const match of analyzedMatches) {
       const sourceSystem = match.sourceSystem || "Hattrick";
+      const details = await fetchMatchFormationTacticDetails(
+        match.matchId,
+        sourceSystem,
+        matchDetailsCache
+      );
+      details?.manMarkerSubjectPlayerIds.forEach((playerId) => {
+        if (teamPlayers.some((player) => player.playerId === playerId)) {
+          manMarkerPlayerIds.add(playerId);
+        }
+      });
       const lineup = await resolveLineup(match.matchId, sourceSystem);
       if (!lineup) continue;
       const matchDurationMinutes = Math.max(
@@ -10256,11 +10390,16 @@ type Form7LineupSnapshot = {
         });
     });
 
+    const nextManMarkerByPlayerId = Object.fromEntries(
+      Array.from(manMarkerPlayerIds.values()).map((playerId) => [playerId, true])
+    ) as ManMarkerByPlayerId;
+
     nextCache.teams[team.teamId] = {
       ...nextCache.teams[team.teamId],
       teamId: team.teamId,
       teamName: team.teamName ?? nextCache.teams[team.teamId]?.teamName ?? "",
       playingPositionByPlayerId: nextPlayingPositionByPlayerId,
+      manMarkerByPlayerId: nextManMarkerByPlayerId,
     };
   };
 
@@ -10641,6 +10780,7 @@ type Form7LineupSnapshot = {
     const normalizedPlayers = players.map((player) => ({
       playerId: player.playerId,
       playerName: player.playerName,
+      originFlagEmoji: player.originFlagEmoji ?? null,
       playerNumber: player.playerNumber,
       age: player.age,
       ageDays: player.ageDays,
@@ -10671,6 +10811,7 @@ type Form7LineupSnapshot = {
     const normalizedPlayers = players.map((player) => ({
       playerId: player.playerId,
       playerName: player.playerName,
+      originFlagEmoji: player.originFlagEmoji ?? null,
       playerNumber: player.playerNumber,
       age: player.age,
       ageDays: player.ageDays,
@@ -10852,12 +10993,13 @@ type Form7LineupSnapshot = {
     awayTeamId: number | null;
     homeFormation: string | null;
     awayFormation: string | null;
-    homeTacticType: number | null;
-    awayTacticType: number | null;
-    homeMidfieldRating: number | null;
-    awayMidfieldRating: number | null;
-    addedMinutes: number | null;
-  };
+  homeTacticType: number | null;
+  awayTacticType: number | null;
+  homeMidfieldRating: number | null;
+  awayMidfieldRating: number | null;
+  addedMinutes: number | null;
+  manMarkerSubjectPlayerIds: number[];
+};
 
   type ResolvedFormationTacticMatch = {
     match: TeamMatchArchiveEntry;
@@ -11051,6 +11193,9 @@ type Form7LineupSnapshot = {
           HattrickData?: {
             Match?: {
               AddedMinutes?: unknown;
+              EventList?: {
+                Event?: RawNode | RawNode[];
+              };
               HomeTeam?: RawNode;
               AwayTeam?: RawNode;
             };
@@ -11059,13 +11204,14 @@ type Form7LineupSnapshot = {
       }>(
         `/api/chpp/matchdetails?matchId=${matchId}&sourceSystem=${encodeURIComponent(
           sourceSystem
-        )}`,
+        )}&matchEvents=true`,
         { cache: "no-store" }
       );
       if (!response.ok) return null;
       const match = payload?.data?.HattrickData?.Match;
       const home = (match?.HomeTeam ?? {}) as RawNode;
       const away = (match?.AwayTeam ?? {}) as RawNode;
+      const eventList = toArray(match?.EventList?.Event as RawNode | RawNode[] | undefined);
       const details: MatchFormationTacticDetails = {
         homeTeamId: parseNumber(home?.HomeTeamID),
         awayTeamId: parseNumber(away?.AwayTeamID),
@@ -11078,6 +11224,17 @@ type Form7LineupSnapshot = {
         homeMidfieldRating: parseNumber(home?.RatingMidfield),
         awayMidfieldRating: parseNumber(away?.RatingMidfield),
         addedMinutes: parseNumber(match?.AddedMinutes),
+        manMarkerSubjectPlayerIds: Array.from(
+          new Set(
+            eventList
+              .filter((entry) => {
+                const eventTypeId = parseNumberNode(entry?.EventTypeID);
+                return eventTypeId !== null && eventTypeId >= 380 && eventTypeId <= 389;
+              })
+              .map((entry) => parseNumberNode(entry?.SubjectPlayerID))
+              .filter((playerId): playerId is number => Boolean(playerId && playerId > 0))
+          )
+        ),
       };
       cache.set(matchId, details);
       return details;
@@ -11572,6 +11729,7 @@ type Form7LineupSnapshot = {
             []).map((player) => ({
             playerId: player.playerId,
             playerName: player.playerName,
+            originFlagEmoji: player.originFlagEmoji ?? null,
             playerNumber: player.playerNumber ?? null,
             age: player.age,
             ageDays: player.ageDays,
@@ -11595,7 +11753,8 @@ type Form7LineupSnapshot = {
           resolvedTeamPlayers,
           lineupCache,
           preparedTeam.formationSnapshot.analyzedMatches,
-          onTeamLineupProcessed
+          onTeamLineupProcessed,
+          detailCache
         );
         const snapshot = await buildTeamAttitudeSnapshot(
           preparedTeam.teamId,
@@ -13068,6 +13227,7 @@ type Form7LineupSnapshot = {
         snapshot: cached?.tsi?.current,
         form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
         playingPositionByPlayerId: cached?.playingPositionByPlayerId,
+        manMarkerByPlayerId: cached?.manMarkerByPlayerId,
       };
     });
 
@@ -13079,6 +13239,7 @@ type Form7LineupSnapshot = {
         snapshot: cached?.wages?.current,
         form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
         playingPositionByPlayerId: cached?.playingPositionByPlayerId,
+        manMarkerByPlayerId: cached?.manMarkerByPlayerId,
       };
     });
 
@@ -14324,6 +14485,8 @@ type Form7LineupSnapshot = {
           selectedWagesTeam?.form7RatingsByPlayerId?.[row.playerId] ?? [],
         playingPositions:
           selectedWagesTeam?.playingPositionByPlayerId?.[row.playerId] ?? [],
+        usedAsManMarker:
+          selectedWagesTeam?.manMarkerByPlayerId?.[row.playerId] === true,
       })),
     [selectedWagesTeam]
   );
@@ -14337,6 +14500,8 @@ type Form7LineupSnapshot = {
           selectedTsiTeam?.form7RatingsByPlayerId?.[row.playerId] ?? [],
         playingPositions:
           selectedTsiTeam?.playingPositionByPlayerId?.[row.playerId] ?? [],
+        usedAsManMarker:
+          selectedTsiTeam?.manMarkerByPlayerId?.[row.playerId] === true,
       })),
     [selectedTsiTeam]
   );
@@ -14509,6 +14674,11 @@ type Form7LineupSnapshot = {
               >
                 {playerName ?? `${playerId}`}
               </a>
+              {snapshot?.originFlagEmoji ? (
+                <span aria-hidden="true" className={styles.chronicleInjuryInline}>
+                  {snapshot.originFlagEmoji}
+                </span>
+              ) : null}
               {specialtyEmoji ? (
                 <Tooltip content={specialtyLabel}>
                   <span
@@ -14611,6 +14781,14 @@ type Form7LineupSnapshot = {
           ),
       },
       {
+        key: "manMarker",
+        label: messages.clubChronicleManMarkerColumn,
+        headerTooltipContent: messages.clubChronicleManMarkerTooltip,
+        getValue: (snapshot) => (snapshot?.usedAsManMarker ? "✓" : null),
+        getSortValue: (snapshot) => (snapshot?.usedAsManMarker ? 1 : 0),
+        renderCell: (snapshot) => (snapshot?.usedAsManMarker ? "✓" : ""),
+      },
+      {
         key: "form",
         label: messages.clubChroniclePlayerFormColumn,
         getValue: (snapshot) => snapshot?.form ?? null,
@@ -14644,6 +14822,8 @@ type Form7LineupSnapshot = {
       messages.clubChroniclePlayingPositionColumn,
       messages.clubChronicleForm7RatingColumn,
       messages.clubChronicleForm7RatingInfoTooltip,
+      messages.clubChronicleManMarkerColumn,
+      messages.clubChronicleManMarkerTooltip,
       messages.clubChroniclePlayerFormColumn,
       messages.clubChroniclePlayerStaminaColumn,
       messages.clubChroniclePlayerExperienceColumn,
@@ -14724,6 +14904,11 @@ type Form7LineupSnapshot = {
               >
                 {playerName ?? `${playerId}`}
               </a>
+              {snapshot?.originFlagEmoji ? (
+                <span aria-hidden="true" className={styles.chronicleInjuryInline}>
+                  {snapshot.originFlagEmoji}
+                </span>
+              ) : null}
               {specialtyEmoji ? (
                 <Tooltip content={specialtyLabel}>
                   <span
@@ -14827,6 +15012,14 @@ type Form7LineupSnapshot = {
           ),
       },
       {
+        key: "manMarker",
+        label: messages.clubChronicleManMarkerColumn,
+        headerTooltipContent: messages.clubChronicleManMarkerTooltip,
+        getValue: (snapshot) => (snapshot?.usedAsManMarker ? "✓" : null),
+        getSortValue: (snapshot) => (snapshot?.usedAsManMarker ? 1 : 0),
+        renderCell: (snapshot) => (snapshot?.usedAsManMarker ? "✓" : ""),
+      },
+      {
         key: "form",
         label: messages.clubChroniclePlayerFormColumn,
         getValue: (snapshot) => snapshot?.form ?? null,
@@ -14860,6 +15053,8 @@ type Form7LineupSnapshot = {
       messages.clubChroniclePlayingPositionColumn,
       messages.clubChronicleForm7RatingColumn,
       messages.clubChronicleForm7RatingInfoTooltip,
+      messages.clubChronicleManMarkerColumn,
+      messages.clubChronicleManMarkerTooltip,
       messages.clubChroniclePlayerFormColumn,
       messages.clubChroniclePlayerStaminaColumn,
       messages.clubChroniclePlayerExperienceColumn,
@@ -17120,7 +17315,7 @@ type Form7LineupSnapshot = {
                     {
                       "--cc-columns": tsiPlayerColumns.length,
                       "--cc-template":
-                          "88px 220px 110px 132px 220px 190px 90px 100px 80px 110px 100px",
+                          "88px 220px 110px 132px 220px 190px 72px 90px 100px 80px 110px 100px",
                     } as CSSProperties
                   }
                   sortKey={tsiDetailsSortState.key}
@@ -17154,7 +17349,7 @@ type Form7LineupSnapshot = {
                     {
                       "--cc-columns": wagesPlayerColumns.length,
                       "--cc-template":
-                          "88px 220px 110px 150px 220px 190px 90px 100px 80px 110px 100px",
+                          "88px 220px 110px 150px 220px 190px 72px 90px 100px 80px 110px 100px",
                     } as CSSProperties
                   }
                   sortKey={wagesDetailsSortState.key}
@@ -19961,7 +20156,7 @@ type Form7LineupSnapshot = {
                       {
                         "--cc-columns": tsiPlayerColumns.length,
                         "--cc-template":
-                          "88px 220px 110px 132px 220px 190px 90px 100px 80px 110px 100px",
+                          "88px 220px 110px 132px 220px 190px 72px 90px 100px 80px 110px 100px",
                       } as CSSProperties
                     }
                     sortKey={tsiDetailsSortState.key}
@@ -20019,7 +20214,7 @@ type Form7LineupSnapshot = {
                       {
                         "--cc-columns": wagesPlayerColumns.length,
                         "--cc-template":
-                          "88px 220px 110px 150px 220px 190px 90px 100px 80px 110px 100px",
+                          "88px 220px 110px 150px 220px 190px 72px 90px 100px 80px 110px 100px",
                       } as CSSProperties
                     }
                     sortKey={wagesDetailsSortState.key}

@@ -766,6 +766,9 @@ export const messagesEn: Messages = {
     clubChronicleTsiValueColumn: "TSI",
     clubChroniclePlayingPositionColumn: "Playing pos",
     clubChronicleForm7RatingColumn: "Form-7 rating",
+    clubChronicleManMarkerColumn: "MM?",
+    clubChronicleManMarkerTooltip:
+      "Indicates whether the player was used as a man marker.",
     clubChronicleForm7RatingInfoLabel: "About form-7 rating",
     clubChronicleForm7RatingInfoTooltip:
       "Shows end-of-match star ratings from matches where the player has had or currently has form 7. This helps estimate a standardized star performance of players.",

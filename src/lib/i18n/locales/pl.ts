@@ -823,6 +823,9 @@ export const messagesPl: Messages = {
     "Te wartosci sa wywnioskowane i nie zawsze musza byc dokladne. Druzyny, ktore regularnie graja PIC, a potem zagraja normalnie, moga wygladac jak MOTS, a druzyny, ktore regularnie graja MOTS, a potem zagraja normalnie, moga wygladac jak PIC.",
   clubChroniclePlayingPositionColumn: "Poz. gry",
   clubChronicleForm7RatingColumn: "Ocena forma 7",
+  clubChronicleManMarkerColumn: "MM?",
+  clubChronicleManMarkerTooltip:
+    "Wskazuje, czy zawodnik byl uzywany do krycia indywidualnego.",
   clubChronicleForm7RatingInfoLabel: "O ocenie forma 7",
   clubChronicleForm7RatingInfoTooltip:
     "Pokazuje koncowe oceny w gwiazdkach z meczow, w ktorych zawodnik mial lub ma obecnie forme 7. Pomaga to oszacowac ustandaryzowana gwiazdkowa wydajnosc zawodnikow.",

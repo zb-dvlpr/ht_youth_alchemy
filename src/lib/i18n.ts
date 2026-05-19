@@ -679,6 +679,8 @@ export type Messages = {
   clubChronicleTsiValueColumn: string;
   clubChroniclePlayingPositionColumn: string;
   clubChronicleForm7RatingColumn: string;
+  clubChronicleManMarkerColumn: string;
+  clubChronicleManMarkerTooltip: string;
   clubChronicleForm7RatingInfoLabel: string;
   clubChronicleForm7RatingInfoTooltip: string;
   clubChronicleWeatherRain: string;

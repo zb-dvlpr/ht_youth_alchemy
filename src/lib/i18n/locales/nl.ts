@@ -830,6 +830,9 @@ export const messagesNl: Messages = {
     "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig. Teams die consequent PIC spelen en daarna normaal spelen, kunnen op MOTS lijken, en teams die consequent MOTS spelen en daarna normaal spelen, kunnen op PIC lijken.",
   clubChroniclePlayingPositionColumn: "Speelpos.",
   clubChronicleForm7RatingColumn: "Vorm-7-rating",
+  clubChronicleManMarkerColumn: "MM?",
+  clubChronicleManMarkerTooltip:
+    "Geeft aan of de speler als mandekker werd gebruikt.",
   clubChronicleForm7RatingInfoLabel: "Over vorm-7-rating",
   clubChronicleForm7RatingInfoTooltip:
     "Toont eindwedstrijd-sterrenbeoordelingen uit wedstrijden waarin de speler vorm 7 heeft gehad of momenteel heeft. Dit helpt om een gestandaardiseerde sterrenprestatie van spelers in te schatten.",

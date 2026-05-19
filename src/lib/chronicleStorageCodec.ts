@@ -188,6 +188,7 @@ const CURRENT_COMPACT_KEY_SOURCE = [
   "roleId",
   "minutes",
   "manMarkerByPlayerId",
+  "nativeLeagueIdByPlayerId",
 ] as const;
 
 const TOKEN_ALPHABET =

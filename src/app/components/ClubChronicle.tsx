@@ -766,6 +766,7 @@ type ChronicleTeamData = {
   transferActivity?: TransferActivityData;
   tsi?: TsiData;
   wages?: WagesData;
+  nativeLeagueIdByPlayerId?: Record<number, number>;
   form7RatingsByPlayerId?: Record<number, Form7RatingEntry[]>;
   playingPositionByPlayerId?: Record<number, PlayingPositionEntry[]>;
   manMarkerByPlayerId?: ManMarkerByPlayerId;
@@ -1163,6 +1164,7 @@ const TABLE_SORT_KEY = "ya_cc_table_sort_v1";
 const LAST_REFRESH_KEY = "ya_cc_last_refresh_ts_v1";
 const FORMATIONS_INCLUDE_FRIENDLIES_KEY =
   "ya_cc_formations_include_friendlies_v1";
+const SENIOR_DASHBOARD_DATA_STORAGE_KEY = "ya_senior_dashboard_data_v1";
 const HELP_STORAGE_KEY = "ya_cc_help_dismissed_v1";
 const FIRST_USE_KEY = "ya_cc_first_use_seen_v1";
 const HELP_DISMISSED_TOKEN_KEY = "ya_cc_help_dismissed_token_v1";
@@ -2376,6 +2378,41 @@ const sanitizeManMarkerByPlayerId = (
   return { value: nextValue, didChange };
 };
 
+const sanitizeNativeLeagueIdByPlayerId = (
+  input: unknown
+): { value: Record<number, number>; didChange: boolean } => {
+  if (!input || typeof input !== "object") {
+    return { value: {}, didChange: Boolean(input) };
+  }
+  let didChange = false;
+  const nextValue = Object.fromEntries(
+    Object.entries(input as Record<string, unknown>).flatMap(([playerId, value]) => {
+      const parsedPlayerId = Number(playerId);
+      const parsedLeagueId =
+        typeof value === "number"
+          ? value
+          : typeof value === "string" && value.trim() !== ""
+            ? Number(value)
+            : null;
+      if (
+        !Number.isFinite(parsedPlayerId) ||
+        parsedPlayerId <= 0 ||
+        !parsedLeagueId ||
+        !Number.isFinite(parsedLeagueId) ||
+        parsedLeagueId <= 0
+      ) {
+        didChange = true;
+        return [];
+      }
+      return [[playerId, parsedLeagueId]];
+    })
+  ) as Record<number, number>;
+  if (Object.keys(nextValue).length !== Object.keys(input as Record<string, unknown>).length) {
+    didChange = true;
+  }
+  return { value: nextValue, didChange };
+};
+
 const sanitizeChronicleTeamData = (
   team: ChronicleTeamData
 ): { team: ChronicleTeamData; didChange: boolean } => {
@@ -2443,6 +2480,20 @@ const sanitizeChronicleTeamData = (
     nextTeam = {
       ...nextTeam,
       manMarkerByPlayerId: sanitized.value,
+    };
+  }
+
+  if (
+    team.nativeLeagueIdByPlayerId &&
+    typeof team.nativeLeagueIdByPlayerId === "object"
+  ) {
+    const sanitized = sanitizeNativeLeagueIdByPlayerId(team.nativeLeagueIdByPlayerId);
+    if (sanitized.didChange) {
+      didChange = true;
+    }
+    nextTeam = {
+      ...nextTeam,
+      nativeLeagueIdByPlayerId: sanitized.value,
     };
   }
 
@@ -8428,6 +8479,49 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return request;
   }, []);
 
+  const resolveSeniorNativeLeagueIds = useCallback(() => {
+    if (typeof window === "undefined") return new Map<number, number | null>();
+    const nextMap = new Map<number, number | null>();
+    try {
+      for (let index = 0; index < window.localStorage.length; index += 1) {
+        const key = window.localStorage.key(index);
+        if (
+          !key ||
+          (key !== SENIOR_DASHBOARD_DATA_STORAGE_KEY &&
+            !key.startsWith(`${SENIOR_DASHBOARD_DATA_STORAGE_KEY}_`))
+        ) {
+          continue;
+        }
+        const raw = window.localStorage.getItem(key);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw) as {
+          detailsCache?: Record<
+            string,
+            {
+              data?: {
+                NativeLeagueID?: unknown;
+              };
+            }
+          >;
+        };
+        const detailsCache =
+          parsed.detailsCache && typeof parsed.detailsCache === "object"
+            ? parsed.detailsCache
+            : null;
+        if (!detailsCache) continue;
+        Object.entries(detailsCache).forEach(([playerIdKey, entry]) => {
+          const playerId = Number(playerIdKey);
+          if (!Number.isFinite(playerId) || playerId <= 0) return;
+          const nativeLeagueId = parseNumberNode(entry?.data?.NativeLeagueID);
+          nextMap.set(playerId, nativeLeagueId);
+        });
+      }
+    } catch {
+      // ignore storage parse errors
+    }
+    return nextMap;
+  }, []);
+
   const parseBooleanNode = (value: unknown): boolean | null => {
     if (value === null || value === undefined || value === "") return null;
     if (typeof value === "boolean") return value;
@@ -9815,22 +9909,22 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
 type TeamPlayerSnapshot = {
-    playerId: number;
-    playerName: string | null;
-    originFlagEmoji?: string | null;
-    playerNumber: number | null;
-    age: number | null;
-    ageDays: number | null;
-    injuryLevel: number | null;
-    transferListed: boolean;
-    specialty: number | null;
-    cards: number | null;
-    form: number | null;
-    stamina: number | null;
-    experience: number | null;
-    leadership: number | null;
-    loyalty: number | null;
-    tsi: number;
+  playerId: number;
+  playerName: string | null;
+  originFlagEmoji?: string | null;
+  playerNumber: number | null;
+  age: number | null;
+  ageDays: number | null;
+  injuryLevel: number | null;
+  transferListed: boolean;
+  specialty: number | null;
+  cards: number | null;
+  form: number | null;
+  stamina: number | null;
+  experience: number | null;
+  leadership: number | null;
+  loyalty: number | null;
+  tsi: number;
   salarySek: number;
 };
 
@@ -9854,8 +9948,35 @@ type Form7LineupSnapshot = {
   activeIntervalsByPlayerId: Map<number, Array<{ roleId: number; startMinute: number; endMinute: number }>>;
 };
 
-  const fetchTeamPlayers = async (teamId: number): Promise<TeamPlayerSnapshot[]> => {
+  const fetchPlayerNativeLeagueId = async (playerId: number): Promise<number | null> => {
+    try {
+      const { response, payload } = await fetchChppJson<{
+        data?: {
+          HattrickData?: {
+            Player?: RawNode;
+          };
+        };
+        error?: string;
+      }>(`/api/chpp/playerdetails?playerId=${playerId}`, {
+        cache: "no-store",
+      });
+      if (!response.ok || payload?.error) return null;
+      return parseNumberNode(payload?.data?.HattrickData?.Player?.NativeLeagueID);
+    } catch (error) {
+      if (isChppAuthRequiredError(error)) throw error;
+      return null;
+    }
+  };
+
+  const fetchTeamPlayers = async (
+    teamId: number,
+    options?: {
+      nextCache?: ChronicleCache;
+      ensureNativeLeagueIds?: boolean;
+    }
+  ): Promise<TeamPlayerSnapshot[]> => {
     const leagueOriginFlags = await resolveLeagueOriginFlags();
+    const seniorNativeLeagueByPlayerId = resolveSeniorNativeLeagueIds();
     const { response: playersResponse, payload: playersPayload } = await fetchChppJson<{
       data?: {
         HattrickData?: {
@@ -9879,6 +10000,65 @@ type Form7LineupSnapshot = {
       : rawPlayers
         ? [rawPlayers]
         : []) as RawNode[];
+    const existingNativeLeagueIds =
+      options?.nextCache?.teams[teamId]?.nativeLeagueIdByPlayerId ?? {};
+    const nativeLeagueIdByPlayerId = new Map<number, number>();
+    Object.entries(existingNativeLeagueIds).forEach(([playerIdKey, leagueId]) => {
+      const playerId = Number(playerIdKey);
+      if (
+        Number.isFinite(playerId) &&
+        playerId > 0 &&
+        typeof leagueId === "number" &&
+        Number.isFinite(leagueId) &&
+        leagueId > 0
+      ) {
+        nativeLeagueIdByPlayerId.set(playerId, leagueId);
+      }
+    });
+    playerList.forEach((player) => {
+      const playerId = parseNumber(player?.PlayerID) ?? 0;
+      if (playerId <= 0 || nativeLeagueIdByPlayerId.has(playerId)) return;
+      const seniorNativeLeagueId = seniorNativeLeagueByPlayerId.get(playerId);
+      if (
+        typeof seniorNativeLeagueId === "number" &&
+        Number.isFinite(seniorNativeLeagueId) &&
+        seniorNativeLeagueId > 0
+      ) {
+        nativeLeagueIdByPlayerId.set(playerId, seniorNativeLeagueId);
+      }
+    });
+    if (options?.ensureNativeLeagueIds) {
+      const missingPlayerIds = playerList
+        .map((player) => parseNumber(player?.PlayerID) ?? 0)
+        .filter((playerId) => playerId > 0 && !nativeLeagueIdByPlayerId.has(playerId));
+      if (missingPlayerIds.length > 0) {
+        const fetchedNativeLeagueIds = await mapWithConcurrency(
+          missingPlayerIds,
+          6,
+          async (playerId) => ({
+            playerId,
+            nativeLeagueId: await fetchPlayerNativeLeagueId(playerId),
+          })
+        );
+        fetchedNativeLeagueIds.forEach(({ playerId, nativeLeagueId }) => {
+          if (
+            typeof nativeLeagueId === "number" &&
+            Number.isFinite(nativeLeagueId) &&
+            nativeLeagueId > 0
+          ) {
+            nativeLeagueIdByPlayerId.set(playerId, nativeLeagueId);
+          }
+        });
+      }
+      if (options.nextCache) {
+        options.nextCache.teams[teamId] = {
+          ...options.nextCache.teams[teamId],
+          teamId,
+          teamName: options.nextCache.teams[teamId]?.teamName ?? "",
+          nativeLeagueIdByPlayerId: Object.fromEntries(nativeLeagueIdByPlayerId),
+        };
+      }
+    }
     const players: TeamPlayerSnapshot[] = [];
     playerList.forEach((player) => {
       const playerId = parseNumber(player?.PlayerID) ?? 0;
@@ -9888,9 +10068,7 @@ type Form7LineupSnapshot = {
         .filter(Boolean)
         .join(" ")
         .trim();
-      const nativeLeagueId =
-        parseNumberNode(player?.NativeLeagueID) ??
-        parseNumberNode((player?.NativeLeague as RawNode | undefined)?.LeagueID);
+      const nativeLeagueId = nativeLeagueIdByPlayerId.get(playerId) ?? null;
       players.push({
         playerId,
         playerName: playerName || null,
@@ -11838,7 +12016,10 @@ type Form7LineupSnapshot = {
       TEAM_REFRESH_CONCURRENCY,
       async (team) => {
         try {
-          const teamPlayers = await fetchTeamPlayers(team.teamId);
+          const teamPlayers = await fetchTeamPlayers(team.teamId, {
+            nextCache,
+            ensureNativeLeagueIds: true,
+          });
           await collectForm7RatingsForTeam(
             nextCache,
             team,
@@ -11887,7 +12068,10 @@ type Form7LineupSnapshot = {
       TEAM_REFRESH_CONCURRENCY,
       async (team) => {
         try {
-          const teamPlayers = await fetchTeamPlayers(team.teamId);
+          const teamPlayers = await fetchTeamPlayers(team.teamId, {
+            nextCache,
+            ensureNativeLeagueIds: true,
+          });
           await collectForm7RatingsForTeam(
             nextCache,
             team,

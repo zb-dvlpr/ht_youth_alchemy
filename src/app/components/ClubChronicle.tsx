@@ -345,6 +345,7 @@ type TsiSnapshot = {
     playerId: number;
     playerName: string | null;
     originFlagEmoji?: string | null;
+    originCountryName?: string | null;
     playerNumber: number | null;
     age: number | null;
     ageDays: number | null;
@@ -387,6 +388,7 @@ type TsiRow = {
   teamId: number;
   teamName: string;
   snapshot?: TsiSnapshot | null;
+  nativeLeagueIdByPlayerId?: Record<number, number>;
   form7RatingsByPlayerId?: Record<number, Form7RatingEntry[]>;
   playingPositionByPlayerId?: Record<number, PlayingPositionEntry[]>;
   manMarkerByPlayerId?: ManMarkerByPlayerId;
@@ -397,6 +399,7 @@ type TsiPlayerRow = {
   playerId: number;
   playerName: string | null;
   originFlagEmoji?: string | null;
+  originCountryName?: string | null;
   playerNumber: number | null;
   age: number | null;
   ageDays: number | null;
@@ -421,6 +424,7 @@ type WagesSnapshot = {
     playerId: number;
     playerName: string | null;
     originFlagEmoji?: string | null;
+    originCountryName?: string | null;
     playerNumber: number | null;
     age: number | null;
     ageDays: number | null;
@@ -446,6 +450,7 @@ type WagesRow = {
   teamId: number;
   teamName: string;
   snapshot?: WagesSnapshot | null;
+  nativeLeagueIdByPlayerId?: Record<number, number>;
   form7RatingsByPlayerId?: Record<number, Form7RatingEntry[]>;
   playingPositionByPlayerId?: Record<number, PlayingPositionEntry[]>;
   manMarkerByPlayerId?: ManMarkerByPlayerId;
@@ -666,6 +671,7 @@ type WagesPlayerRow = {
   playerId: number;
   playerName: string | null;
   originFlagEmoji?: string | null;
+  originCountryName?: string | null;
   playerNumber: number | null;
   age: number | null;
   ageDays: number | null;
@@ -3694,10 +3700,15 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
   const coachCountryNameCacheRef = useRef<Map<number, string>>(new Map());
   const coachCountryNamePendingRef = useRef<Map<number, Promise<string | null>>>(new Map());
-  const leagueOriginFlagCacheRef = useRef<Map<number, string | null>>(new Map());
-  const leagueOriginFlagPendingRef = useRef<Promise<Map<number, string | null>> | null>(
+  const leagueOriginFlagCacheRef = useRef<
+    Map<number, { flagEmoji: string | null; countryName: string | null }>
+  >(new Map());
+  const leagueOriginFlagPendingRef = useRef<
+    Promise<Map<number, { flagEmoji: string | null; countryName: string | null }>> | null
+  >(
     null
   );
+  const detailFlagBackfillPendingRef = useRef<Set<string>>(new Set());
   const { addNotification } = useNotifications();
   const openPremiumLicenseModal = useCallback(
     (context?: AppLicenseModalContext | null) => {
@@ -8464,7 +8475,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
           if (!leagueId || !Number.isFinite(leagueId) || leagueId <= 0) return;
           leagueOriginFlagCacheRef.current.set(
             leagueId,
-            countryCodeToFlagEmoji(country?.CountryCode)
+            {
+              flagEmoji: countryCodeToFlagEmoji(country?.CountryCode),
+              countryName: parseStringNode(country?.CountryName),
+            }
           );
         });
         return leagueOriginFlagCacheRef.current;
@@ -9912,6 +9926,7 @@ type TeamPlayerSnapshot = {
   playerId: number;
   playerName: string | null;
   originFlagEmoji?: string | null;
+  originCountryName?: string | null;
   playerNumber: number | null;
   age: number | null;
   ageDays: number | null;
@@ -10069,11 +10084,13 @@ type Form7LineupSnapshot = {
         .join(" ")
         .trim();
       const nativeLeagueId = nativeLeagueIdByPlayerId.get(playerId) ?? null;
+      const originInfo =
+        nativeLeagueId ? leagueOriginFlags.get(nativeLeagueId) ?? null : null;
       players.push({
         playerId,
         playerName: playerName || null,
-        originFlagEmoji:
-          (nativeLeagueId ? leagueOriginFlags.get(nativeLeagueId) ?? null : null) ?? null,
+        originFlagEmoji: originInfo?.flagEmoji ?? null,
+        originCountryName: originInfo?.countryName ?? null,
         playerNumber: parseNumberNode(player?.PlayerNumber),
         age: parseNumberNode(player?.Age),
         ageDays: parseNumberNode(player?.AgeDays),
@@ -10959,6 +10976,7 @@ type Form7LineupSnapshot = {
       playerId: player.playerId,
       playerName: player.playerName,
       originFlagEmoji: player.originFlagEmoji ?? null,
+      originCountryName: player.originCountryName ?? null,
       playerNumber: player.playerNumber,
       age: player.age,
       ageDays: player.ageDays,
@@ -10990,6 +11008,7 @@ type Form7LineupSnapshot = {
       playerId: player.playerId,
       playerName: player.playerName,
       originFlagEmoji: player.originFlagEmoji ?? null,
+      originCountryName: player.originCountryName ?? null,
       playerNumber: player.playerNumber,
       age: player.age,
       ageDays: player.ageDays,
@@ -11015,6 +11034,66 @@ type Form7LineupSnapshot = {
       fetchedAt: Date.now(),
     };
   };
+
+  const teamSnapshotNeedsOriginBackfill = useCallback(
+    (team: TsiRow | WagesRow | null | undefined) => {
+      if (!team?.snapshot?.players || team.snapshot.players.length === 0) return false;
+      const coveredPlayerIds = new Set(
+        Object.keys(team.nativeLeagueIdByPlayerId ?? {}).map((value) => Number(value))
+      );
+      if (coveredPlayerIds.size < team.snapshot.players.length) return true;
+      return team.snapshot.players.some(
+        (player) => !player.originFlagEmoji || !player.originCountryName
+      );
+    },
+    []
+  );
+
+  const backfillChronicleDetailOriginCoverage = useCallback(
+    async (teamId: number) => {
+      const pendingKey = `${teamId}`;
+      if (detailFlagBackfillPendingRef.current.has(pendingKey)) return;
+      detailFlagBackfillPendingRef.current.add(pendingKey);
+      try {
+        const nextCache = pruneChronicleCache(readChronicleCache());
+        const teamEntry = nextCache.teams[teamId];
+        if (!teamEntry) return;
+        const teamPlayers = await fetchTeamPlayers(teamId, {
+          nextCache,
+          ensureNativeLeagueIds: true,
+        });
+        if (teamPlayers.length === 0) return;
+        const nextTsiSnapshot = buildTsiSnapshot(teamPlayers);
+        const nextWagesSnapshot = buildWagesSnapshot(teamPlayers);
+        nextCache.teams[teamId] = {
+          ...nextCache.teams[teamId],
+          teamId,
+          teamName:
+            nextCache.teams[teamId]?.teamName ??
+            chronicleCache.teams[teamId]?.teamName ??
+            "",
+          tsi: nextCache.teams[teamId]?.tsi
+            ? {
+                current: nextTsiSnapshot,
+                previous: nextCache.teams[teamId]?.tsi?.previous,
+              }
+            : nextCache.teams[teamId]?.tsi,
+          wages: nextCache.teams[teamId]?.wages
+            ? {
+                current: nextWagesSnapshot,
+                previous: nextCache.teams[teamId]?.wages?.previous,
+              }
+            : nextCache.teams[teamId]?.wages,
+        };
+        setChronicleCache(nextCache);
+      } catch (error) {
+        if (isChppAuthRequiredError(error)) return;
+      } finally {
+        detailFlagBackfillPendingRef.current.delete(pendingKey);
+      }
+    },
+    [chronicleCache.teams]
+  );
 
   const fetchLatestTransfers = async (
     teamId: number,
@@ -11908,6 +11987,7 @@ type Form7LineupSnapshot = {
             playerId: player.playerId,
             playerName: player.playerName,
             originFlagEmoji: player.originFlagEmoji ?? null,
+            originCountryName: player.originCountryName ?? null,
             playerNumber: player.playerNumber ?? null,
             age: player.age,
             ageDays: player.ageDays,
@@ -13409,6 +13489,7 @@ type Form7LineupSnapshot = {
         teamId: team.teamId,
         teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
         snapshot: cached?.tsi?.current,
+        nativeLeagueIdByPlayerId: cached?.nativeLeagueIdByPlayerId,
         form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
         playingPositionByPlayerId: cached?.playingPositionByPlayerId,
         manMarkerByPlayerId: cached?.manMarkerByPlayerId,
@@ -13421,6 +13502,7 @@ type Form7LineupSnapshot = {
         teamId: team.teamId,
         teamName: team.teamName ?? cached?.teamName ?? `${team.teamId}`,
         snapshot: cached?.wages?.current,
+        nativeLeagueIdByPlayerId: cached?.nativeLeagueIdByPlayerId,
         form7RatingsByPlayerId: cached?.form7RatingsByPlayerId,
         playingPositionByPlayerId: cached?.playingPositionByPlayerId,
         manMarkerByPlayerId: cached?.manMarkerByPlayerId,
@@ -13892,6 +13974,26 @@ type Form7LineupSnapshot = {
   const selectedWagesTeam = selectedWagesTeamId
     ? wagesRows.find((team) => team.teamId === selectedWagesTeamId) ?? null
     : null;
+  useEffect(() => {
+    if (!tsiDetailsOpen || !selectedTsiTeam) return;
+    if (!teamSnapshotNeedsOriginBackfill(selectedTsiTeam)) return;
+    void backfillChronicleDetailOriginCoverage(selectedTsiTeam.teamId);
+  }, [
+    backfillChronicleDetailOriginCoverage,
+    selectedTsiTeam,
+    teamSnapshotNeedsOriginBackfill,
+    tsiDetailsOpen,
+  ]);
+  useEffect(() => {
+    if (!wagesDetailsOpen || !selectedWagesTeam) return;
+    if (!teamSnapshotNeedsOriginBackfill(selectedWagesTeam)) return;
+    void backfillChronicleDetailOriginCoverage(selectedWagesTeam.teamId);
+  }, [
+    backfillChronicleDetailOriginCoverage,
+    selectedWagesTeam,
+    teamSnapshotNeedsOriginBackfill,
+    wagesDetailsOpen,
+  ]);
   const selectedLastLoginTeam = selectedLastLoginTeamId
     ? lastLoginRows.find((team) => team.teamId === selectedLastLoginTeamId) ?? null
     : null;
@@ -14859,9 +14961,11 @@ type Form7LineupSnapshot = {
                 {playerName ?? `${playerId}`}
               </a>
               {snapshot?.originFlagEmoji ? (
-                <span aria-hidden="true" className={styles.chronicleInjuryInline}>
-                  {snapshot.originFlagEmoji}
-                </span>
+                <Tooltip content={snapshot.originCountryName ?? messages.unknownShort}>
+                  <span aria-hidden="true" className={styles.chronicleInjuryInline}>
+                    {snapshot.originFlagEmoji}
+                  </span>
+                </Tooltip>
               ) : null}
               {specialtyEmoji ? (
                 <Tooltip content={specialtyLabel}>
@@ -15089,9 +15193,11 @@ type Form7LineupSnapshot = {
                 {playerName ?? `${playerId}`}
               </a>
               {snapshot?.originFlagEmoji ? (
-                <span aria-hidden="true" className={styles.chronicleInjuryInline}>
-                  {snapshot.originFlagEmoji}
-                </span>
+                <Tooltip content={snapshot.originCountryName ?? messages.unknownShort}>
+                  <span aria-hidden="true" className={styles.chronicleInjuryInline}>
+                    {snapshot.originFlagEmoji}
+                  </span>
+                </Tooltip>
               ) : null}
               {specialtyEmoji ? (
                 <Tooltip content={specialtyLabel}>

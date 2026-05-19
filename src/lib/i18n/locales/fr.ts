@@ -732,6 +732,10 @@ export const messagesFr: Messages = {
     clubChronicleLikelyTrainingUnclearTag: "incertain",
     clubChronicleLikelyTrainingUnclearDisclaimer:
       "Plusieurs régimes ont la même confiance ; l’inférence d’entraînement est incertaine.",
+    clubChronicleLikelyTraineeLegendLabel:
+      "Les lignes en vert indiquent des stagiaires probables.",
+    clubChronicleLikelyTraineeLegendRegimen:
+      "Régime d entraînement probable : {{regimen}}",
     clubChronicleLastLoginPanelTitle: "Dernière connexion",
     clubChronicleLastLoginColumnLatest: "Dernière connexion",
     clubChronicleLastLoginColumnIpAddress: "Adresse IP",

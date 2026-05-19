@@ -724,6 +724,10 @@ export const messagesSv: Messages = {
     clubChronicleLikelyTrainingUnclearTag: "oklart",
     clubChronicleLikelyTrainingUnclearDisclaimer:
       "Flera upplägg har samma säkerhetsnivå; träningsslutsatsen är oklar.",
+    clubChronicleLikelyTraineeLegendLabel:
+      "Gröna rader markerar troliga traineer.",
+    clubChronicleLikelyTraineeLegendRegimen:
+      "Trolig träningsinriktning: {{regimen}}",
     clubChronicleLastLoginPanelTitle: "Senaste inloggning",
     clubChronicleLastLoginColumnLatest: "Senaste inloggning",
     clubChronicleLastLoginColumnIpAddress: "IP-adress",

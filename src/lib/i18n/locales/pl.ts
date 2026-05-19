@@ -101,6 +101,10 @@ export const messagesPl: Messages = {
   appLicenseFeatureChronicleLikelyTrainingTitle: "Prawdopodobny reżim treningowy",
   appLicenseFeatureChronicleLikelyTrainingDescription:
     "Wnioskuje, co trenuje ta drużyna na podstawie formacji używanych w meczach treningowych.",
+  clubChronicleLikelyTraineeLegendLabel:
+    "Zielone wiersze oznaczają prawdopodobnych trenowanych zawodników.",
+  clubChronicleLikelyTraineeLegendRegimen:
+    "Prawdopodobny typ treningu: {{regimen}}",
   appLicenseFeatureChronicleTrackingTitle: "Nielimitowane śledzenie Club Chronicle",
   appLicenseFeatureChronicleTrackingDescription:
     "Odblokuj dodatkowe karty Club Chronicle i śledź więcej drużyn na kartę. Dzięki temu możesz obserwować większe grupy rywali bez przycinania watchlisty.",

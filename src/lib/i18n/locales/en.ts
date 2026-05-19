@@ -696,6 +696,9 @@ export const messagesEn: Messages = {
     clubChronicleLikelyTrainingUnclearTag: "unclear",
     clubChronicleLikelyTrainingUnclearDisclaimer:
       "Multiple regimens share the same confidence; training inference is unclear.",
+    clubChronicleLikelyTraineeLegendLabel: "Green rows indicate likely trainees.",
+    clubChronicleLikelyTraineeLegendRegimen:
+      "Likely training regimen: {{regimen}}",
     clubChronicleLastLoginPanelTitle: "Latest login",
     clubChronicleLastLoginColumnLatest: "Latest login",
     clubChronicleLastLoginColumnIpAddress: "IP address",

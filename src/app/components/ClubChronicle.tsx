@@ -70,7 +70,12 @@ import {
   readCompressedChronicleStorage,
   writeCompressedChronicleStorage,
 } from "@/lib/chronicleStorageCodec";
-import { normalizeMatchRoleId, positionLabelShortByRoleId } from "@/lib/positions";
+import {
+  matchRoleIdToPositionKey,
+  normalizeMatchRoleId,
+  positionLabelShortByRoleId,
+  type PositionKey,
+} from "@/lib/positions";
 import { getSpecialtyEmoji } from "@/lib/specialty";
 import {
   APP_LICENSE_EVENT,
@@ -415,6 +420,7 @@ type TsiPlayerRow = {
   form7Ratings: Form7RatingEntry[];
   playingPositions: PlayingPositionEntry[];
   usedAsManMarker: boolean;
+  isLikelyTrainee: boolean;
 };
 
 type WagesSnapshot = {
@@ -687,6 +693,7 @@ type WagesPlayerRow = {
   form7Ratings: Form7RatingEntry[];
   playingPositions: PlayingPositionEntry[];
   usedAsManMarker: boolean;
+  isLikelyTrainee: boolean;
 };
 
 type FanclubSnapshot = {
@@ -10408,6 +10415,40 @@ type Form7LineupSnapshot = {
       .join(", ");
   };
 
+  const allowedPositionKeysByLikelyTrainingKey: Record<
+    LikelyTrainingKey,
+    PositionKey[]
+  > = {
+    keepingOrSetPieces: ["KP"],
+    defending: ["CD", "WB"],
+    playmaking: ["IM", "W"],
+    winger: ["W", "WB"],
+    passing: ["IM", "W", "F"],
+    scoring: ["F"],
+  };
+
+  const isLikelyTraineeForChronicleDetail = (
+    age: number | null | undefined,
+    entries: PlayingPositionEntry[] | null | undefined,
+    likelyTrainingKey: LikelyTrainingKey | null | undefined
+  ) => {
+    if (typeof age !== "number" || !Number.isFinite(age) || age >= 26) return false;
+    if (!entries || entries.length === 0 || !likelyTrainingKey) return false;
+    const allowedPositions = new Set(
+      allowedPositionKeysByLikelyTrainingKey[likelyTrainingKey] ?? []
+    );
+    if (allowedPositions.size === 0) return false;
+    const totalMinutes = entries.reduce(
+      (sum, entry) => sum + Math.max(0, entry.minutes ?? 0),
+      0
+    );
+    if (totalMinutes <= 0) return false;
+    return entries.every((entry) => {
+      const positionKey = matchRoleIdToPositionKey(entry.roleId);
+      return Boolean(positionKey && allowedPositions.has(positionKey));
+    });
+  };
+
   const resolveChronicleSpecialtyLabel = (value?: number | null) => {
     switch (value) {
       case 0:
@@ -13974,6 +14015,12 @@ type Form7LineupSnapshot = {
   const selectedWagesTeam = selectedWagesTeamId
     ? wagesRows.find((team) => team.teamId === selectedWagesTeamId) ?? null
     : null;
+  const selectedTsiLikelyTrainingSnapshot = selectedTsiTeam
+    ? chronicleCache.teams[selectedTsiTeam.teamId]?.formationsTactics?.current ?? null
+    : null;
+  const selectedWagesLikelyTrainingSnapshot = selectedWagesTeam
+    ? chronicleCache.teams[selectedWagesTeam.teamId]?.formationsTactics?.current ?? null
+    : null;
   useEffect(() => {
     if (!tsiDetailsOpen || !selectedTsiTeam) return;
     if (!teamSnapshotNeedsOriginBackfill(selectedTsiTeam)) return;
@@ -14773,8 +14820,13 @@ type Form7LineupSnapshot = {
           selectedWagesTeam?.playingPositionByPlayerId?.[row.playerId] ?? [],
         usedAsManMarker:
           selectedWagesTeam?.manMarkerByPlayerId?.[row.playerId] === true,
+        isLikelyTrainee: isLikelyTraineeForChronicleDetail(
+          row.age,
+          selectedWagesTeam?.playingPositionByPlayerId?.[row.playerId] ?? [],
+          selectedWagesLikelyTrainingSnapshot?.likelyTrainingKey
+        ),
       })),
-    [selectedWagesTeam]
+    [selectedWagesLikelyTrainingSnapshot?.likelyTrainingKey, selectedWagesTeam]
   );
   const tsiPlayerRows = useMemo<TsiPlayerRow[]>(
     () =>
@@ -14788,8 +14840,13 @@ type Form7LineupSnapshot = {
           selectedTsiTeam?.playingPositionByPlayerId?.[row.playerId] ?? [],
         usedAsManMarker:
           selectedTsiTeam?.manMarkerByPlayerId?.[row.playerId] === true,
+        isLikelyTrainee: isLikelyTraineeForChronicleDetail(
+          row.age,
+          selectedTsiTeam?.playingPositionByPlayerId?.[row.playerId] ?? [],
+          selectedTsiLikelyTrainingSnapshot?.likelyTrainingKey
+        ),
       })),
-    [selectedTsiTeam]
+    [selectedTsiLikelyTrainingSnapshot?.likelyTrainingKey, selectedTsiTeam]
   );
 
   const transferListedColumns = useMemo<
@@ -15393,6 +15450,36 @@ type Form7LineupSnapshot = {
       })
       .map((item) => item.row);
   }, [wagesPlayerRows, wagesPlayerColumns, wagesDetailsSortState]);
+
+  const getChronicleLikelyTraineeRowClassName = useCallback(
+    (row: TsiPlayerRow | WagesPlayerRow) =>
+      row.isLikelyTrainee ? styles.chronicleLikelyTraineeRow : undefined,
+    []
+  );
+  const renderChronicleLikelyTraineeLegend = useCallback(
+    (snapshot: FormationTacticsSnapshot | null | undefined) => (
+      <div className={styles.chronicleLegend}>
+        <span className={styles.chronicleLegendItem}>
+          <span
+            className={`${styles.chronicleLegendSwatch} ${styles.chronicleLikelyTraineeSwatch}`}
+            aria-hidden="true"
+          />
+          <span>{messages.clubChronicleLikelyTraineeLegendLabel}</span>
+        </span>
+        <span className={styles.chronicleLegendText}>
+          {formatStatusTemplate(messages.clubChronicleLikelyTraineeLegendRegimen, {
+            regimen: formatLikelyTrainingSummary(snapshot),
+          })}
+        </span>
+      </div>
+    ),
+    [
+      formatLikelyTrainingSummary,
+      formatStatusTemplate,
+      messages.clubChronicleLikelyTraineeLegendLabel,
+      messages.clubChronicleLikelyTraineeLegendRegimen,
+    ]
+  );
 
   useEffect(() => {
     if (!pressDetailsOpen || !selectedPressTeam?.snapshot) return;
@@ -17594,25 +17681,29 @@ type Form7LineupSnapshot = {
               {renderTeamNameLink(selectedTsiTeam.teamId, selectedTsiTeam.teamName)}
             </p>
             {tsiPlayerRows.length > 0 ? (
-              <div className={styles.chronicleTransferHistoryTableWrap}>
-                <ChronicleTable
-                  columns={tsiPlayerColumns}
-                  rows={sortedTsiPlayerRows}
-                  getRowKey={(row) => row.playerId}
-                  getSnapshot={(row) => row}
-                  formatValue={formatValue}
-                  style={
-                    {
-                      "--cc-columns": tsiPlayerColumns.length,
-                      "--cc-template":
+              <>
+                <div className={styles.chronicleTransferHistoryTableWrap}>
+                  <ChronicleTable
+                    columns={tsiPlayerColumns}
+                    rows={sortedTsiPlayerRows}
+                    getRowKey={(row) => row.playerId}
+                    getSnapshot={(row) => row}
+                    getRowClassName={getChronicleLikelyTraineeRowClassName}
+                    formatValue={formatValue}
+                    style={
+                      {
+                        "--cc-columns": tsiPlayerColumns.length,
+                        "--cc-template":
                           "88px 220px 110px 132px 220px 190px 72px 90px 100px 80px 110px 100px",
-                    } as CSSProperties
-                  }
-                  sortKey={tsiDetailsSortState.key}
-                  sortDirection={tsiDetailsSortState.direction}
-                  onSort={handleTsiDetailsSort}
-                />
-              </div>
+                      } as CSSProperties
+                    }
+                    sortKey={tsiDetailsSortState.key}
+                    sortDirection={tsiDetailsSortState.direction}
+                    onSort={handleTsiDetailsSort}
+                  />
+                </div>
+                {renderChronicleLikelyTraineeLegend(selectedTsiLikelyTrainingSnapshot)}
+              </>
             ) : (
               <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
             )}
@@ -17628,25 +17719,29 @@ type Form7LineupSnapshot = {
               {renderTeamNameLink(selectedWagesTeam.teamId, selectedWagesTeam.teamName)}
             </p>
             {wagesPlayerRows.length > 0 ? (
-              <div className={styles.chronicleTransferHistoryTableWrap}>
-                <ChronicleTable
-                  columns={wagesPlayerColumns}
-                  rows={sortedWagesPlayerRows}
-                  getRowKey={(row) => row.playerId}
-                  getSnapshot={(row) => row}
-                  formatValue={formatValue}
-                  style={
-                    {
-                      "--cc-columns": wagesPlayerColumns.length,
-                      "--cc-template":
+              <>
+                <div className={styles.chronicleTransferHistoryTableWrap}>
+                  <ChronicleTable
+                    columns={wagesPlayerColumns}
+                    rows={sortedWagesPlayerRows}
+                    getRowKey={(row) => row.playerId}
+                    getSnapshot={(row) => row}
+                    getRowClassName={getChronicleLikelyTraineeRowClassName}
+                    formatValue={formatValue}
+                    style={
+                      {
+                        "--cc-columns": wagesPlayerColumns.length,
+                        "--cc-template":
                           "88px 220px 110px 150px 220px 190px 72px 90px 100px 80px 110px 100px",
-                    } as CSSProperties
-                  }
-                  sortKey={wagesDetailsSortState.key}
-                  sortDirection={wagesDetailsSortState.direction}
-                  onSort={handleWagesDetailsSort}
-                />
-              </div>
+                      } as CSSProperties
+                    }
+                    sortKey={wagesDetailsSortState.key}
+                    sortDirection={wagesDetailsSortState.direction}
+                    onSort={handleWagesDetailsSort}
+                  />
+                </div>
+                {renderChronicleLikelyTraineeLegend(selectedWagesLikelyTrainingSnapshot)}
+              </>
             ) : (
               <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
             )}
@@ -20435,31 +20530,35 @@ type Form7LineupSnapshot = {
                 {renderTeamNameLink(selectedTsiTeam.teamId, selectedTsiTeam.teamName)}
               </p>
               {tsiPlayerRows.length > 0 ? (
-                <div className={styles.chronicleTransferHistoryTableWrap}>
-                  <ChronicleTable
-                    columns={tsiPlayerColumns}
-                    rows={sortedTsiPlayerRows}
-                    getRowKey={(row) => row.playerId}
-                    getSnapshot={(row) => row}
-                    formatValue={formatValue}
-                    style={
-                      {
-                        "--cc-columns": tsiPlayerColumns.length,
-                        "--cc-template":
-                          "88px 220px 110px 132px 220px 190px 72px 90px 100px 80px 110px 100px",
-                      } as CSSProperties
-                    }
-                    sortKey={tsiDetailsSortState.key}
-                    sortDirection={tsiDetailsSortState.direction}
-                    onSort={handleTsiDetailsSort}
-                    maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                    maskText={messages.clubChronicleNoDivulgoMask}
-                    isMaskActive={noDivulgoActive}
-                    onMaskedRowClick={(row) =>
-                      handleNoDivulgoDismiss((row as { teamId: number }).teamId)
-                    }
-                  />
-                </div>
+                <>
+                  <div className={styles.chronicleTransferHistoryTableWrap}>
+                    <ChronicleTable
+                      columns={tsiPlayerColumns}
+                      rows={sortedTsiPlayerRows}
+                      getRowKey={(row) => row.playerId}
+                      getSnapshot={(row) => row}
+                      getRowClassName={getChronicleLikelyTraineeRowClassName}
+                      formatValue={formatValue}
+                      style={
+                        {
+                          "--cc-columns": tsiPlayerColumns.length,
+                          "--cc-template":
+                            "88px 220px 110px 132px 220px 190px 72px 90px 100px 80px 110px 100px",
+                        } as CSSProperties
+                      }
+                      sortKey={tsiDetailsSortState.key}
+                      sortDirection={tsiDetailsSortState.direction}
+                      onSort={handleTsiDetailsSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) =>
+                        handleNoDivulgoDismiss((row as { teamId: number }).teamId)
+                      }
+                    />
+                  </div>
+                  {renderChronicleLikelyTraineeLegend(selectedTsiLikelyTrainingSnapshot)}
+                </>
               ) : (
                 <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
               )}
@@ -20493,29 +20592,35 @@ type Form7LineupSnapshot = {
                 {renderTeamNameLink(selectedWagesTeam.teamId, selectedWagesTeam.teamName)}
               </p>
               {wagesPlayerRows.length > 0 ? (
-                <div className={styles.chronicleTransferHistoryTableWrap}>
-                  <ChronicleTable
-                    columns={wagesPlayerColumns}
-                    rows={sortedWagesPlayerRows}
-                    getRowKey={(row) => row.playerId}
-                    getSnapshot={(row) => row}
-                    formatValue={formatValue}
-                    style={
-                      {
-                        "--cc-columns": wagesPlayerColumns.length,
-                        "--cc-template":
-                          "88px 220px 110px 150px 220px 190px 72px 90px 100px 80px 110px 100px",
-                      } as CSSProperties
-                    }
-                    sortKey={wagesDetailsSortState.key}
-                    sortDirection={wagesDetailsSortState.direction}
-                    onSort={handleWagesDetailsSort}
-                    maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
-                    maskText={messages.clubChronicleNoDivulgoMask}
-                    isMaskActive={noDivulgoActive}
-                      onMaskedRowClick={(row) => handleNoDivulgoDismiss((row as { teamId: number }).teamId)}
-                  />
-                </div>
+                <>
+                  <div className={styles.chronicleTransferHistoryTableWrap}>
+                    <ChronicleTable
+                      columns={wagesPlayerColumns}
+                      rows={sortedWagesPlayerRows}
+                      getRowKey={(row) => row.playerId}
+                      getSnapshot={(row) => row}
+                      getRowClassName={getChronicleLikelyTraineeRowClassName}
+                      formatValue={formatValue}
+                      style={
+                        {
+                          "--cc-columns": wagesPlayerColumns.length,
+                          "--cc-template":
+                            "88px 220px 110px 150px 220px 190px 72px 90px 100px 80px 110px 100px",
+                        } as CSSProperties
+                      }
+                      sortKey={wagesDetailsSortState.key}
+                      sortDirection={wagesDetailsSortState.direction}
+                      onSort={handleWagesDetailsSort}
+                      maskedTeamId={NO_DIVULGO_TARGET_TEAM_ID}
+                      maskText={messages.clubChronicleNoDivulgoMask}
+                      isMaskActive={noDivulgoActive}
+                      onMaskedRowClick={(row) =>
+                        handleNoDivulgoDismiss((row as { teamId: number }).teamId)
+                      }
+                    />
+                  </div>
+                  {renderChronicleLikelyTraineeLegend(selectedWagesLikelyTrainingSnapshot)}
+                </>
               ) : (
                 <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>
               )}

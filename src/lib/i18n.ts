@@ -569,6 +569,8 @@ export type Messages = {
   clubChronicleLikelyTrainingKeepingOrSetPieces: string;
   clubChronicleLikelyTrainingUnclearTag: string;
   clubChronicleLikelyTrainingUnclearDisclaimer: string;
+  clubChronicleLikelyTraineeLegendLabel: string;
+  clubChronicleLikelyTraineeLegendRegimen: string;
   clubChronicleLastLoginPanelTitle: string;
   clubChronicleLastLoginColumnLatest: string;
   clubChronicleLastLoginColumnIpAddress: string;

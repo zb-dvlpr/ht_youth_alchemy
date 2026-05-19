@@ -720,6 +720,10 @@ export const messagesDe: Messages = {
     clubChronicleLikelyTrainingUnclearTag: "unklar",
     clubChronicleLikelyTrainingUnclearDisclaimer:
       "Mehrere Trainingsarten haben die gleiche Konfidenz; die Einschätzung ist unklar.",
+    clubChronicleLikelyTraineeLegendLabel:
+      "Grün markierte Zeilen zeigen wahrscheinliche Trainees.",
+    clubChronicleLikelyTraineeLegendRegimen:
+      "Wahrscheinliches Trainingsschema: {{regimen}}",
     clubChronicleLastLoginPanelTitle: "Letzte Anmeldung",
     clubChronicleLastLoginColumnLatest: "Letzte Anmeldung",
     clubChronicleLastLoginColumnIpAddress: "IP-Adresse",

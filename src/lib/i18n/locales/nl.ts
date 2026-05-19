@@ -101,6 +101,10 @@ export const messagesNl: Messages = {
   appLicenseFeatureChronicleLikelyTrainingTitle: "Waarschijnlijk trainingsregime",
   appLicenseFeatureChronicleLikelyTrainingDescription:
     "Leidt af wat dit team traint op basis van formaties die in trainbare wedstrijden worden gebruikt.",
+  clubChronicleLikelyTraineeLegendLabel:
+    "Groene rijen geven waarschijnlijke trainees aan.",
+  clubChronicleLikelyTraineeLegendRegimen:
+    "Waarschijnlijk trainingsregime: {{regimen}}",
   appLicenseFeatureChronicleTrackingTitle: "Onbeperkte Club Chronicle-tracking",
   appLicenseFeatureChronicleTrackingDescription:
     "Ontgrendel extra Club Chronicle-tabbladen en volg meer teams per tabblad. Zo kun je grotere rivalengroepen volgen zonder je watchlist te verkleinen.",

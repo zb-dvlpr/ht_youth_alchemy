@@ -15763,6 +15763,8 @@ const refreshDetailsForPlayers = async (
         <ul className={styles.list}>
           {orderedListPlayers.map((player) => {
             const playerDetails = detailsById.get(player.PlayerID);
+            const originFlagEmoji =
+              panelDetailsById.get(player.PlayerID)?.OriginFlagEmoji ?? null;
             const playerName = formatPlayerName(player);
             const hasMotherClubBonus = Boolean(playerDetails?.MotherClubBonus);
             const transferListing = seniorTransferListingForDetails(playerDetails);
@@ -16094,6 +16096,14 @@ const refreshDetailsForPlayers = async (
                         }`}
                       >
                         <span className={styles.playerName}>{playerName}</span>
+                        {originFlagEmoji ? (
+                          <span
+                            className={styles.transferSearchCardNationality}
+                            aria-hidden="true"
+                          >
+                            {originFlagEmoji}
+                          </span>
+                        ) : null}
                         {injuryLabel ? (
                           <span
                             className={styles.playerInjuryInline}
@@ -18881,6 +18891,8 @@ const refreshDetailsForPlayers = async (
             <ul className={styles.list}>
               {orderedListPlayers.map((player) => {
                 const playerDetails = detailsById.get(player.PlayerID);
+                const originFlagEmoji =
+                  panelDetailsById.get(player.PlayerID)?.OriginFlagEmoji ?? null;
                 const playerName = formatPlayerName(player);
                 const hasMotherClubBonus = Boolean(playerDetails?.MotherClubBonus);
                 const transferListing = seniorTransferListingForDetails(playerDetails);
@@ -19244,6 +19256,14 @@ const refreshDetailsForPlayers = async (
                           }`}
                         >
                           <span className={styles.playerName}>{playerName}</span>
+                          {originFlagEmoji ? (
+                            <span
+                              className={styles.transferSearchCardNationality}
+                              aria-hidden="true"
+                            >
+                              {originFlagEmoji}
+                            </span>
+                          ) : null}
                           {injuryLabel ? (
                             <span
                               className={styles.playerInjuryInline}

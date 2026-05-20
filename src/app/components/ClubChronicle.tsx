@@ -10432,7 +10432,6 @@ type Form7LineupSnapshot = {
     entries: PlayingPositionEntry[] | null | undefined,
     likelyTrainingKey: LikelyTrainingKey | null | undefined
   ) => {
-    if (typeof age !== "number" || !Number.isFinite(age) || age >= 26) return false;
     if (!entries || entries.length === 0 || !likelyTrainingKey) return false;
     const allowedPositions = new Set(
       allowedPositionKeysByLikelyTrainingKey[likelyTrainingKey] ?? []

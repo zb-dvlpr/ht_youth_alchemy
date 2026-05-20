@@ -18565,9 +18565,6 @@ type Form7LineupSnapshot = {
                         handleNoDivulgoDismiss(row.teamId)
                       }
                       />
-                      <p className={styles.chronicleFinanceDisclaimer}>
-                        {messages.clubChronicleFinanceDisclaimer}
-                      </p>
                     </>
                   )}
                 </ChroniclePanel>
@@ -19990,7 +19987,7 @@ type Form7LineupSnapshot = {
                   {messages.clubChronicleFinanceColumnEstimate}
                 </span>
                 <span />
-                <span>{`${formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.estimatedSek)}*`}</span>
+                <span>{formatChppCurrencyFromSek(selectedFinanceTeam.snapshot.estimatedSek)}</span>
               </div>
             </div>
           ) : (

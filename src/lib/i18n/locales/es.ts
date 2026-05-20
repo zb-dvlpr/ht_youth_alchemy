@@ -596,7 +596,7 @@ export const messagesEs: Messages = {
     clubChronicleHelpBulletPress:
       "Comunicados de prensa: ultimo comunicado y fecha de publicacion por equipo. Haz clic en una fila para abrir el texto completo con enlaces detectados.",
     clubChronicleHelpBulletFinance:
-      "Finanzas estimadas: numero de compras, numero de ventas y estimacion aproximada en EUR. Haz clic en una fila para ver el desglose detallado.",
+      "Balance de transferencias: numero de compras, numero de ventas y saldo en EUR. Haz clic en una fila para ver el desglose detallado.",
     clubChronicleHelpBulletFanclub:
       "Club de fans: nombre y tamano. Haz clic en una fila para ver anterior/actual y la diferencia de tamano desde el ultimo valor cambiado.",
     clubChronicleHelpBulletArena:
@@ -621,10 +621,10 @@ export const messagesEs: Messages = {
     clubChroniclePressColumnPublishedAt: "Publicado",
     clubChroniclePressArticleLabel: "Artículo",
     clubChroniclePressNone: "Sin comunicado de prensa.",
-    clubChronicleFinancePanelTitle: "Finanzas estimadas",
+    clubChronicleFinancePanelTitle: "Balance de transferencias",
     clubChronicleFinanceColumnBuys: "Compras",
     clubChronicleFinanceColumnSales: "Ventas",
-    clubChronicleFinanceColumnEstimate: "Estimación*",
+    clubChronicleFinanceColumnEstimate: "Saldo",
     clubChronicleFinanceDisclaimer: "* Solo una estimación aproximada.",
     clubChronicleFanclubPanelTitle: "Club de fans",
     clubChronicleFanclubColumnName: "Nombre del club de fans",

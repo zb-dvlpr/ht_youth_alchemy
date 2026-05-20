@@ -590,7 +590,7 @@ export const messagesSv: Messages = {
     clubChronicleHelpBulletPress:
       "Pressmeddelanden: senaste meddelande och publiceringstid per lag. Klicka pa en rad for att oppna full text med tolkade djuplankar.",
     clubChronicleHelpBulletFinance:
-      "Beraknade finanser: antal kop, antal forsaljningar och grov uppskattning i EUR. Klicka pa en rad for detaljerad uppdelning.",
+      "Transferbalans: antal kop, antal forsaljningar och saldo i EUR. Klicka pa en rad for detaljerad uppdelning.",
     clubChronicleHelpBulletFanclub:
       "Fanklubb: namn och storlek. Klicka pa en rad for tidigare/nuvarande storlek och differens sedan senaste andrade varde.",
     clubChronicleHelpBulletArena:
@@ -615,10 +615,10 @@ export const messagesSv: Messages = {
     clubChroniclePressColumnPublishedAt: "Publicerad",
     clubChroniclePressArticleLabel: "Artikel",
     clubChroniclePressNone: "Inget pressmeddelande.",
-    clubChronicleFinancePanelTitle: "Uppskattad ekonomi",
+    clubChronicleFinancePanelTitle: "Transferbalans",
     clubChronicleFinanceColumnBuys: "Köp",
     clubChronicleFinanceColumnSales: "Försäljning",
-    clubChronicleFinanceColumnEstimate: "Estimat*",
+    clubChronicleFinanceColumnEstimate: "Saldo",
     clubChronicleFinanceDisclaimer: "* Endast en grov uppskattning.",
     clubChronicleFanclubPanelTitle: "Fanklubb",
     clubChronicleFanclubColumnName: "Fanklubbsnamn",

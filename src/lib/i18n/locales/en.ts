@@ -562,7 +562,7 @@ export const messagesEn: Messages = {
     clubChronicleHelpBulletPress:
       "Press announcements: latest statement and publish time per team. Click a row to open the full article text with parsed deep links.",
     clubChronicleHelpBulletFinance:
-      "Estimated finances: buy count, sale count, and rough estimate in EUR. Click a row for detailed value breakdowns.",
+      "Transfer balance: buy count, sale count, and balance in EUR. Click a row for detailed value breakdowns.",
     clubChronicleHelpBulletFanclub:
       "Fan club: fan club name and size. Click a row for previous/current size and the size difference since the last changed value.",
     clubChronicleHelpBulletArena:
@@ -587,10 +587,10 @@ export const messagesEn: Messages = {
     clubChroniclePressColumnPublishedAt: "Published",
     clubChroniclePressArticleLabel: "Article",
     clubChroniclePressNone: "No press announcement.",
-    clubChronicleFinancePanelTitle: "Estimated finances",
+    clubChronicleFinancePanelTitle: "Transfer balance",
     clubChronicleFinanceColumnBuys: "Buys",
     clubChronicleFinanceColumnSales: "Sales",
-    clubChronicleFinanceColumnEstimate: "Estimate*",
+    clubChronicleFinanceColumnEstimate: "Balance",
     clubChronicleFinanceDisclaimer: "* Rough estimate only.",
     clubChronicleFanclubPanelTitle: "Fan club",
     clubChronicleFanclubColumnName: "Fan club name",

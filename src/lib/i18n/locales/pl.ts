@@ -122,6 +122,10 @@ export const messagesPl: Messages = {
     "Karty pomagają organizować różne przestrzenie Chronicle. Każda karta zachowuje własną listę obserwowanych i własne najnowsze aktualizacje.",
   clubChronicleHelpBulletLeague:
     "Forma ligowa: tabela z pozycja, punktami, seria, pucharem, zmiana pozycji i bilansem bramek. Wartosc pucharu pochodzi z teamdetails i pokazuje Brak, gdy druzyna odpadla z pucharu. Kliknij wiersz, aby zobaczyc porownanie poprzedni/obecny dla kazdego atrybutu.",
+  clubChronicleHelpBulletFinance:
+    "Bilans transferowy: liczba zakupow, liczba sprzedazy i saldo w EUR. Kliknij wiersz, aby zobaczyc szczegolowy rozklad wartosci.",
+  clubChronicleFinancePanelTitle: "Bilans transferowy",
+  clubChronicleFinanceColumnEstimate: "Saldo",
   clubChronicleLeaguePanelTitle: "Forma ligowa i puchar",
   feedbackTooltip: "Opinie",
   feedbackBug: "Zgłoś błąd",

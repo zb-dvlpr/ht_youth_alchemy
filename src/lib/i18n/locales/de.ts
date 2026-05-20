@@ -586,7 +586,7 @@ export const messagesDe: Messages = {
     clubChronicleHelpBulletPress:
       "Pressemitteilungen: neueste Mitteilung und Veroeffentlichungszeit pro Team. Klick auf eine Zeile oeffnet den vollen Artikeltext mit erkannten Deep-Links.",
     clubChronicleHelpBulletFinance:
-      "Geschaetzte Finanzen: Anzahl Kaeufe, Anzahl Verkaeufe und grobe EUR-Schaetzung. Klick auf eine Zeile zeigt die detaillierte Aufschluesselung.",
+      "Transfersaldo: Anzahl Kaeufe, Anzahl Verkaeufe und Saldo in EUR. Klick auf eine Zeile zeigt die detaillierte Aufschluesselung.",
     clubChronicleHelpBulletFanclub:
       "Fanclub: Fanclub-Name und -Groesse. Klick auf eine Zeile zeigt Vorher/Nachher und die Groessendifferenz seit dem letzten geaenderten Wert.",
     clubChronicleHelpBulletArena:
@@ -611,10 +611,10 @@ export const messagesDe: Messages = {
     clubChroniclePressColumnPublishedAt: "Veröffentlicht",
     clubChroniclePressArticleLabel: "Artikel",
     clubChroniclePressNone: "Keine Pressemitteilung.",
-    clubChronicleFinancePanelTitle: "Geschätzte Finanzen",
+    clubChronicleFinancePanelTitle: "Transfersaldo",
     clubChronicleFinanceColumnBuys: "Käufe",
     clubChronicleFinanceColumnSales: "Verkäufe",
-    clubChronicleFinanceColumnEstimate: "Schätzung*",
+    clubChronicleFinanceColumnEstimate: "Saldo",
     clubChronicleFinanceDisclaimer: "* Nur eine grobe Schätzung.",
     clubChronicleFanclubPanelTitle: "Fanclub",
     clubChronicleFanclubColumnName: "Fanclubname",

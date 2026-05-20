@@ -122,6 +122,10 @@ export const messagesNl: Messages = {
     "Tabs helpen je verschillende Chronicle-werkruimtes te organiseren. Elke tab houdt zijn eigen watchlist en laatste updates bij.",
   clubChronicleHelpBulletLeague:
     "Competitieprestaties: tabel met positie, punten, reeks, beker, positiewijziging en doelsaldo. De bekerwaarde komt uit teamdetails en toont Geen wanneer het team niet meer in de beker zit. Klik op een rij voor een vergelijking van vorig/huidig per attribuut.",
+  clubChronicleHelpBulletFinance:
+    "Transferbalans: aantal aankopen, aantal verkopen en saldo in EUR. Klik op een rij voor een gedetailleerde uitsplitsing van de waarden.",
+  clubChronicleFinancePanelTitle: "Transferbalans",
+  clubChronicleFinanceColumnEstimate: "Saldo",
   clubChronicleLeaguePanelTitle: "Competitieprestaties en beker",
   feedbackTooltip: "Terugkoppeling",
   feedbackBug: "Bug melden",

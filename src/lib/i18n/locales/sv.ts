@@ -590,7 +590,7 @@ export const messagesSv: Messages = {
     clubChronicleHelpBulletPress:
       "Pressmeddelanden: senaste meddelande och publiceringstid per lag. Klicka pa en rad for att oppna full text med tolkade djuplankar.",
     clubChronicleHelpBulletFinance:
-      "Beraknade finanser: antal kop, antal forsaljningar och grov uppskattning i EUR. Klicka pa en rad for detaljerad uppdelning.",
+      "Transferbalans: antal kop, antal forsaljningar och saldo i EUR. Klicka pa en rad for detaljerad uppdelning.",
     clubChronicleHelpBulletFanclub:
       "Fanklubb: namn och storlek. Klicka pa en rad for tidigare/nuvarande storlek och differens sedan senaste andrade varde.",
     clubChronicleHelpBulletArena:
@@ -615,10 +615,10 @@ export const messagesSv: Messages = {
     clubChroniclePressColumnPublishedAt: "Publicerad",
     clubChroniclePressArticleLabel: "Artikel",
     clubChroniclePressNone: "Inget pressmeddelande.",
-    clubChronicleFinancePanelTitle: "Uppskattad ekonomi",
+    clubChronicleFinancePanelTitle: "Transferbalans",
     clubChronicleFinanceColumnBuys: "Köp",
     clubChronicleFinanceColumnSales: "Försäljning",
-    clubChronicleFinanceColumnEstimate: "Estimat*",
+    clubChronicleFinanceColumnEstimate: "Saldo",
     clubChronicleFinanceDisclaimer: "* Endast en grov uppskattning.",
     clubChronicleFanclubPanelTitle: "Fanklubb",
     clubChronicleFanclubColumnName: "Fanklubbsnamn",
@@ -724,6 +724,10 @@ export const messagesSv: Messages = {
     clubChronicleLikelyTrainingUnclearTag: "oklart",
     clubChronicleLikelyTrainingUnclearDisclaimer:
       "Flera upplägg har samma säkerhetsnivå; träningsslutsatsen är oklar.",
+    clubChronicleLikelyTraineeLegendLabel:
+      "Gröna rader markerar troliga traineer.",
+    clubChronicleLikelyTraineeLegendRegimen:
+      "Trolig träningsinriktning: {{regimen}}",
     clubChronicleLastLoginPanelTitle: "Senaste inloggning",
     clubChronicleLastLoginColumnLatest: "Senaste inloggning",
     clubChronicleLastLoginColumnIpAddress: "IP-adress",
@@ -792,7 +796,11 @@ export const messagesSv: Messages = {
     clubChronicleTsiPlayerIndexColumn: "Nr",
     clubChronicleTsiPlayerColumn: "Spelare",
     clubChronicleTsiValueColumn: "TSI",
+    clubChroniclePlayingPositionColumn: "Spelpos.",
     clubChronicleForm7RatingColumn: "Form-7-betyg",
+    clubChronicleManMarkerColumn: "MM?",
+    clubChronicleManMarkerTooltip:
+      "Visar om spelaren användes som man-markör.",
     clubChronicleForm7RatingInfoLabel: "Om form-7-betyg",
     clubChronicleForm7RatingInfoTooltip:
       "Visar stjarnbetyg efter match fran matcher dar spelaren har haft eller for narvarande har form 7. Detta hjalper till att uppskatta en standardiserad stjarnprestation for spelare.",

@@ -101,6 +101,10 @@ export const messagesPl: Messages = {
   appLicenseFeatureChronicleLikelyTrainingTitle: "Prawdopodobny reżim treningowy",
   appLicenseFeatureChronicleLikelyTrainingDescription:
     "Wnioskuje, co trenuje ta drużyna na podstawie formacji używanych w meczach treningowych.",
+  clubChronicleLikelyTraineeLegendLabel:
+    "Zielone wiersze oznaczają prawdopodobnych trenowanych zawodników.",
+  clubChronicleLikelyTraineeLegendRegimen:
+    "Prawdopodobny typ treningu: {{regimen}}",
   appLicenseFeatureChronicleTrackingTitle: "Nielimitowane śledzenie Club Chronicle",
   appLicenseFeatureChronicleTrackingDescription:
     "Odblokuj dodatkowe karty Club Chronicle i śledź więcej drużyn na kartę. Dzięki temu możesz obserwować większe grupy rywali bez przycinania watchlisty.",
@@ -118,6 +122,10 @@ export const messagesPl: Messages = {
     "Karty pomagają organizować różne przestrzenie Chronicle. Każda karta zachowuje własną listę obserwowanych i własne najnowsze aktualizacje.",
   clubChronicleHelpBulletLeague:
     "Forma ligowa: tabela z pozycja, punktami, seria, pucharem, zmiana pozycji i bilansem bramek. Wartosc pucharu pochodzi z teamdetails i pokazuje Brak, gdy druzyna odpadla z pucharu. Kliknij wiersz, aby zobaczyc porownanie poprzedni/obecny dla kazdego atrybutu.",
+  clubChronicleHelpBulletFinance:
+    "Bilans transferowy: liczba zakupow, liczba sprzedazy i saldo w EUR. Kliknij wiersz, aby zobaczyc szczegolowy rozklad wartosci.",
+  clubChronicleFinancePanelTitle: "Bilans transferowy",
+  clubChronicleFinanceColumnEstimate: "Saldo",
   clubChronicleLeaguePanelTitle: "Forma ligowa i puchar",
   feedbackTooltip: "Opinie",
   feedbackBug: "Zgłoś błąd",
@@ -821,7 +829,11 @@ export const messagesPl: Messages = {
   clubChronicleDetailModeDev: "Tryb deweloperski",
   clubChronicleTeamAttitudeDisclaimer:
     "Te wartosci sa wywnioskowane i nie zawsze musza byc dokladne. Druzyny, ktore regularnie graja PIC, a potem zagraja normalnie, moga wygladac jak MOTS, a druzyny, ktore regularnie graja MOTS, a potem zagraja normalnie, moga wygladac jak PIC.",
+  clubChroniclePlayingPositionColumn: "Poz. gry",
   clubChronicleForm7RatingColumn: "Ocena forma 7",
+  clubChronicleManMarkerColumn: "MM?",
+  clubChronicleManMarkerTooltip:
+    "Wskazuje, czy zawodnik byl uzywany do krycia indywidualnego.",
   clubChronicleForm7RatingInfoLabel: "O ocenie forma 7",
   clubChronicleForm7RatingInfoTooltip:
     "Pokazuje koncowe oceny w gwiazdkach z meczow, w ktorych zawodnik mial lub ma obecnie forme 7. Pomaga to oszacowac ustandaryzowana gwiazdkowa wydajnosc zawodnikow.",

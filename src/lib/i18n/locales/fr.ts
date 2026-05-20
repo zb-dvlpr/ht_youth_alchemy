@@ -597,7 +597,7 @@ export const messagesFr: Messages = {
     clubChronicleHelpBulletPress:
       "Communiques de presse : dernier message et date de publication par equipe. Cliquez une ligne pour ouvrir le texte complet avec liens profonds detectes.",
     clubChronicleHelpBulletFinance:
-      "Finances estimees : nombre d achats, nombre de ventes et estimation EUR approximative. Cliquez une ligne pour le detail des valeurs.",
+      "Balance des transferts : nombre d achats, nombre de ventes et solde en EUR. Cliquez une ligne pour le detail des valeurs.",
     clubChronicleHelpBulletFanclub:
       "Fan club : nom et taille. Cliquez une ligne pour voir precedent/courant et la difference de taille depuis la derniere valeur modifiee.",
     clubChronicleHelpBulletArena:
@@ -622,10 +622,10 @@ export const messagesFr: Messages = {
     clubChroniclePressColumnPublishedAt: "Publié",
     clubChroniclePressArticleLabel: "Article",
     clubChroniclePressNone: "Aucun communiqué de presse.",
-    clubChronicleFinancePanelTitle: "Finances estimées",
+    clubChronicleFinancePanelTitle: "Balance des transferts",
     clubChronicleFinanceColumnBuys: "Achats",
     clubChronicleFinanceColumnSales: "Ventes",
-    clubChronicleFinanceColumnEstimate: "Estimation*",
+    clubChronicleFinanceColumnEstimate: "Solde",
     clubChronicleFinanceDisclaimer: "* Estimation approximative uniquement.",
     clubChronicleFanclubPanelTitle: "Fan club",
     clubChronicleFanclubColumnName: "Nom du fan club",
@@ -732,6 +732,10 @@ export const messagesFr: Messages = {
     clubChronicleLikelyTrainingUnclearTag: "incertain",
     clubChronicleLikelyTrainingUnclearDisclaimer:
       "Plusieurs régimes ont la même confiance ; l’inférence d’entraînement est incertaine.",
+    clubChronicleLikelyTraineeLegendLabel:
+      "Les lignes en vert indiquent des stagiaires probables.",
+    clubChronicleLikelyTraineeLegendRegimen:
+      "Régime d entraînement probable : {{regimen}}",
     clubChronicleLastLoginPanelTitle: "Dernière connexion",
     clubChronicleLastLoginColumnLatest: "Dernière connexion",
     clubChronicleLastLoginColumnIpAddress: "Adresse IP",
@@ -800,7 +804,11 @@ export const messagesFr: Messages = {
     clubChronicleTsiPlayerIndexColumn: "No",
     clubChronicleTsiPlayerColumn: "Joueur",
     clubChronicleTsiValueColumn: "TSI",
+    clubChroniclePlayingPositionColumn: "Poste joue",
     clubChronicleForm7RatingColumn: "Note forme 7",
+    clubChronicleManMarkerColumn: "MM?",
+    clubChronicleManMarkerTooltip:
+      "Indique si le joueur a ete utilise comme marqueur individuel.",
     clubChronicleForm7RatingInfoLabel: "A propos de la note forme 7",
     clubChronicleForm7RatingInfoTooltip:
       "Affiche les notes en etoiles de fin de match des matchs ou le joueur a eu ou a actuellement une forme de 7. Cela aide a estimer une performance standardisee en etoiles des joueurs.",

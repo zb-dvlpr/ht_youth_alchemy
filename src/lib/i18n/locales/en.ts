@@ -562,7 +562,7 @@ export const messagesEn: Messages = {
     clubChronicleHelpBulletPress:
       "Press announcements: latest statement and publish time per team. Click a row to open the full article text with parsed deep links.",
     clubChronicleHelpBulletFinance:
-      "Estimated finances: buy count, sale count, and rough estimate in EUR. Click a row for detailed value breakdowns.",
+      "Transfer balance: buy count, sale count, and balance in EUR. Click a row for detailed value breakdowns.",
     clubChronicleHelpBulletFanclub:
       "Fan club: fan club name and size. Click a row for previous/current size and the size difference since the last changed value.",
     clubChronicleHelpBulletArena:
@@ -587,10 +587,10 @@ export const messagesEn: Messages = {
     clubChroniclePressColumnPublishedAt: "Published",
     clubChroniclePressArticleLabel: "Article",
     clubChroniclePressNone: "No press announcement.",
-    clubChronicleFinancePanelTitle: "Estimated finances",
+    clubChronicleFinancePanelTitle: "Transfer balance",
     clubChronicleFinanceColumnBuys: "Buys",
     clubChronicleFinanceColumnSales: "Sales",
-    clubChronicleFinanceColumnEstimate: "Estimate*",
+    clubChronicleFinanceColumnEstimate: "Balance",
     clubChronicleFinanceDisclaimer: "* Rough estimate only.",
     clubChronicleFanclubPanelTitle: "Fan club",
     clubChronicleFanclubColumnName: "Fan club name",
@@ -696,6 +696,9 @@ export const messagesEn: Messages = {
     clubChronicleLikelyTrainingUnclearTag: "unclear",
     clubChronicleLikelyTrainingUnclearDisclaimer:
       "Multiple regimens share the same confidence; training inference is unclear.",
+    clubChronicleLikelyTraineeLegendLabel: "Green rows indicate likely trainees.",
+    clubChronicleLikelyTraineeLegendRegimen:
+      "Likely training regimen: {{regimen}}",
     clubChronicleLastLoginPanelTitle: "Latest login",
     clubChronicleLastLoginColumnLatest: "Latest login",
     clubChronicleLastLoginColumnIpAddress: "IP address",
@@ -764,7 +767,11 @@ export const messagesEn: Messages = {
     clubChronicleTsiPlayerIndexColumn: "No.",
     clubChronicleTsiPlayerColumn: "Player",
     clubChronicleTsiValueColumn: "TSI",
+    clubChroniclePlayingPositionColumn: "Playing pos",
     clubChronicleForm7RatingColumn: "Form-7 rating",
+    clubChronicleManMarkerColumn: "MM?",
+    clubChronicleManMarkerTooltip:
+      "Indicates whether the player was used as a man marker.",
     clubChronicleForm7RatingInfoLabel: "About form-7 rating",
     clubChronicleForm7RatingInfoTooltip:
       "Shows end-of-match star ratings from matches where the player has had or currently has form 7. This helps estimate a standardized star performance of players.",

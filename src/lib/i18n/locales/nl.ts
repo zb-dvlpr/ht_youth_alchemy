@@ -101,6 +101,10 @@ export const messagesNl: Messages = {
   appLicenseFeatureChronicleLikelyTrainingTitle: "Waarschijnlijk trainingsregime",
   appLicenseFeatureChronicleLikelyTrainingDescription:
     "Leidt af wat dit team traint op basis van formaties die in trainbare wedstrijden worden gebruikt.",
+  clubChronicleLikelyTraineeLegendLabel:
+    "Groene rijen geven waarschijnlijke trainees aan.",
+  clubChronicleLikelyTraineeLegendRegimen:
+    "Waarschijnlijk trainingsregime: {{regimen}}",
   appLicenseFeatureChronicleTrackingTitle: "Onbeperkte Club Chronicle-tracking",
   appLicenseFeatureChronicleTrackingDescription:
     "Ontgrendel extra Club Chronicle-tabbladen en volg meer teams per tabblad. Zo kun je grotere rivalengroepen volgen zonder je watchlist te verkleinen.",
@@ -118,6 +122,10 @@ export const messagesNl: Messages = {
     "Tabs helpen je verschillende Chronicle-werkruimtes te organiseren. Elke tab houdt zijn eigen watchlist en laatste updates bij.",
   clubChronicleHelpBulletLeague:
     "Competitieprestaties: tabel met positie, punten, reeks, beker, positiewijziging en doelsaldo. De bekerwaarde komt uit teamdetails en toont Geen wanneer het team niet meer in de beker zit. Klik op een rij voor een vergelijking van vorig/huidig per attribuut.",
+  clubChronicleHelpBulletFinance:
+    "Transferbalans: aantal aankopen, aantal verkopen en saldo in EUR. Klik op een rij voor een gedetailleerde uitsplitsing van de waarden.",
+  clubChronicleFinancePanelTitle: "Transferbalans",
+  clubChronicleFinanceColumnEstimate: "Saldo",
   clubChronicleLeaguePanelTitle: "Competitieprestaties en beker",
   feedbackTooltip: "Terugkoppeling",
   feedbackBug: "Bug melden",
@@ -828,7 +836,11 @@ export const messagesNl: Messages = {
   clubChronicleDetailModeDev: "Dev-modus",
   clubChronicleTeamAttitudeDisclaimer:
     "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig. Teams die consequent PIC spelen en daarna normaal spelen, kunnen op MOTS lijken, en teams die consequent MOTS spelen en daarna normaal spelen, kunnen op PIC lijken.",
+  clubChroniclePlayingPositionColumn: "Speelpos.",
   clubChronicleForm7RatingColumn: "Vorm-7-rating",
+  clubChronicleManMarkerColumn: "MM?",
+  clubChronicleManMarkerTooltip:
+    "Geeft aan of de speler als mandekker werd gebruikt.",
   clubChronicleForm7RatingInfoLabel: "Over vorm-7-rating",
   clubChronicleForm7RatingInfoTooltip:
     "Toont eindwedstrijd-sterrenbeoordelingen uit wedstrijden waarin de speler vorm 7 heeft gehad of momenteel heeft. Dit helpt om een gestandaardiseerde sterrenprestatie van spelers in te schatten.",

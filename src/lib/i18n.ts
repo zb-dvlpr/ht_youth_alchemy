@@ -569,6 +569,8 @@ export type Messages = {
   clubChronicleLikelyTrainingKeepingOrSetPieces: string;
   clubChronicleLikelyTrainingUnclearTag: string;
   clubChronicleLikelyTrainingUnclearDisclaimer: string;
+  clubChronicleLikelyTraineeLegendLabel: string;
+  clubChronicleLikelyTraineeLegendRegimen: string;
   clubChronicleLastLoginPanelTitle: string;
   clubChronicleLastLoginColumnLatest: string;
   clubChronicleLastLoginColumnIpAddress: string;
@@ -677,7 +679,10 @@ export type Messages = {
   clubChronicleTsiPlayerIndexColumn: string;
   clubChronicleTsiPlayerColumn: string;
   clubChronicleTsiValueColumn: string;
+  clubChroniclePlayingPositionColumn: string;
   clubChronicleForm7RatingColumn: string;
+  clubChronicleManMarkerColumn: string;
+  clubChronicleManMarkerTooltip: string;
   clubChronicleForm7RatingInfoLabel: string;
   clubChronicleForm7RatingInfoTooltip: string;
   clubChronicleWeatherRain: string;

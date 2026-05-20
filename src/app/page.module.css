@@ -3757,6 +3757,14 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   padding: 0 6px 0 0;
 }
 
+.chronicleTableFreezeFirstColumn .chronicleTableHeader > span:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 12;
+  background: inherit;
+  box-shadow: 8px 0 10px -10px rgba(63, 53, 44, 0.3);
+}
+
 .chronicleTableHeaderItem {
   display: inline-flex;
   align-items: center;
@@ -3942,6 +3950,14 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .chronicleTableRow .chronicleTableCell:first-child {
   font-weight: 600;
   color: #3f362c;
+}
+
+.chronicleTableFreezeFirstColumn .chronicleTableRow .chronicleTableCell:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background: inherit;
+  box-shadow: 8px 0 10px -10px rgba(63, 53, 44, 0.3);
 }
 
 .chronicleTableRowMasked .chronicleTableCell:first-child {
@@ -5703,6 +5719,17 @@ html[data-theme="dark"] .chronicleCellButton {
 
 html[data-theme="dark"] .chronicleTableRow .chronicleTableCell:first-child {
   color: #f3ede4;
+}
+
+html[data-theme="dark"]
+  .chronicleTableFreezeFirstColumn
+  .chronicleTableHeader
+  > span:first-child,
+html[data-theme="dark"]
+  .chronicleTableFreezeFirstColumn
+  .chronicleTableRow
+  .chronicleTableCell:first-child {
+  box-shadow: 8px 0 10px -10px rgba(0, 0, 0, 0.7);
 }
 
 html[data-theme="dark"] .chronicleEmpty {

@@ -867,6 +867,7 @@ type ChronicleTableProps<Row, Snapshot> = {
   rows: Row[];
   getRowKey: (row: Row) => string | number;
   getSnapshot: (row: Row) => Snapshot | undefined;
+  freezeFirstColumn?: boolean;
   className?: string;
   getRowClassName?: (row: Row) => string | undefined;
   onRowClick?: (row: Row) => void;
@@ -909,6 +910,7 @@ const ChronicleTable = <Row, Snapshot>({
   rows,
   getRowKey,
   getSnapshot,
+  freezeFirstColumn = false,
   className,
   getRowClassName,
   onRowClick,
@@ -924,7 +926,7 @@ const ChronicleTable = <Row, Snapshot>({
   renderMergedTrailingCells,
 }: ChronicleTableProps<Row, Snapshot>) => (
   <div
-    className={`${styles.chronicleTable}${className ? ` ${className}` : ""}`}
+    className={`${styles.chronicleTable}${freezeFirstColumn ? ` ${styles.chronicleTableFreezeFirstColumn}` : ""}${className ? ` ${className}` : ""}`}
     style={style}
   >
     <div className={styles.chronicleTableHeader}>
@@ -18425,6 +18427,7 @@ type Form7LineupSnapshot = {
                           rows={sortedLeagueRows}
                           getRowKey={(row) => row.teamId}
                           getSnapshot={(row) => row.snapshot ?? undefined}
+                          freezeFirstColumn
                           getRowClassName={getTeamRowClassName}
                           onRowClick={(row) => handleOpenDetails(row.teamId)}
                           formatValue={formatValue}
@@ -18489,6 +18492,7 @@ type Form7LineupSnapshot = {
                       rows={sortedPressRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenPressDetails(row.teamId)}
                       formatValue={formatValue}
@@ -18551,6 +18555,7 @@ type Form7LineupSnapshot = {
                         rows={sortedFinanceRows}
                         getRowKey={(row) => row.teamId}
                         getSnapshot={(row) => row.snapshot ?? undefined}
+                        freezeFirstColumn
                         getRowClassName={getTeamRowClassName}
                         onRowClick={(row) => handleOpenFinanceDetails(row.teamId)}
                         formatValue={formatValue}
@@ -18613,6 +18618,7 @@ type Form7LineupSnapshot = {
                       rows={sortedLastLoginRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenLastLoginDetails(row.teamId)}
                       formatValue={formatValue}
@@ -18681,6 +18687,7 @@ type Form7LineupSnapshot = {
                           rows={sortedCoachRows}
                           getRowKey={(row) => row.teamId}
                           getSnapshot={(row) => row.snapshot ?? undefined}
+                          freezeFirstColumn
                           getRowClassName={getTeamRowClassName}
                           onRowClick={(row) => handleOpenCoachDetails(row.teamId)}
                           formatValue={formatValue}
@@ -18745,6 +18752,7 @@ type Form7LineupSnapshot = {
                       rows={sortedPowerRatingsRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenPowerRatingsDetails(row.teamId)}
                       formatValue={formatValue}
@@ -18881,6 +18889,7 @@ type Form7LineupSnapshot = {
                         rows={sortedOngoingMatchRows}
                         getRowKey={(row) => row.teamId}
                         getSnapshot={(row) => row.snapshot ?? undefined}
+                        freezeFirstColumn
                         getRowClassName={getTeamRowClassName}
                         formatValue={formatValue}
                         className={styles.chronicleOngoingMatchesTable}
@@ -18946,6 +18955,7 @@ type Form7LineupSnapshot = {
                       rows={sortedFanclubRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenFanclubDetails(row.teamId)}
                       formatValue={formatValue}
@@ -19007,6 +19017,7 @@ type Form7LineupSnapshot = {
                       rows={sortedArenaRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenArenaDetails(row.teamId)}
                       formatValue={formatValue}
@@ -19075,6 +19086,7 @@ type Form7LineupSnapshot = {
                           rows={sortedTransferRows}
                           getRowKey={(row) => row.teamId}
                           getSnapshot={(row) => row.snapshot ?? undefined}
+                          freezeFirstColumn
                           getRowClassName={getTeamRowClassName}
                           formatValue={formatValue}
                           style={transferTableStyle}
@@ -19163,6 +19175,7 @@ type Form7LineupSnapshot = {
                       rows={sortedFormationsTacticsRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) =>
                         handleOpenFormationsTacticsDetails(row.teamId)
@@ -19233,6 +19246,7 @@ type Form7LineupSnapshot = {
                       rows={sortedTeamAttitudeRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenTeamAttitudeDetails(row.teamId)}
                       formatValue={formatValue}
@@ -19297,6 +19311,7 @@ type Form7LineupSnapshot = {
                       rows={sortedLikelyTrainingRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenLikelyTrainingDetails(row.teamId)}
                       formatValue={formatValue}
@@ -19372,6 +19387,7 @@ type Form7LineupSnapshot = {
                           rows={sortedTsiRows}
                           getRowKey={(row) => row.teamId}
                           getSnapshot={(row) => row.snapshot ?? undefined}
+                          freezeFirstColumn
                           getRowClassName={getTeamRowClassName}
                           onRowClick={(row) => handleOpenTsiDetails(row.teamId)}
                           formatValue={formatValue}
@@ -19441,6 +19457,7 @@ type Form7LineupSnapshot = {
                           rows={sortedWagesRows}
                           getRowKey={(row) => row.teamId}
                           getSnapshot={(row) => row.snapshot ?? undefined}
+                          freezeFirstColumn
                           getRowClassName={getTeamRowClassName}
                           onRowClick={(row) => handleOpenWagesDetails(row.teamId)}
                           formatValue={formatValue}

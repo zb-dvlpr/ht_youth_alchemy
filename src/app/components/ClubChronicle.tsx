@@ -868,6 +868,7 @@ type ChronicleTableProps<Row, Snapshot> = {
   getRowKey: (row: Row) => string | number;
   getSnapshot: (row: Row) => Snapshot | undefined;
   freezeFirstColumn?: boolean;
+  freezeFirstColumnsCount?: number;
   className?: string;
   getRowClassName?: (row: Row) => string | undefined;
   onRowClick?: (row: Row) => void;
@@ -911,6 +912,7 @@ const ChronicleTable = <Row, Snapshot>({
   getRowKey,
   getSnapshot,
   freezeFirstColumn = false,
+  freezeFirstColumnsCount,
   className,
   getRowClassName,
   onRowClick,
@@ -926,7 +928,7 @@ const ChronicleTable = <Row, Snapshot>({
   renderMergedTrailingCells,
 }: ChronicleTableProps<Row, Snapshot>) => (
   <div
-    className={`${styles.chronicleTable}${freezeFirstColumn ? ` ${styles.chronicleTableFreezeFirstColumn}` : ""}${className ? ` ${className}` : ""}`}
+    className={`${styles.chronicleTable}${freezeFirstColumn || (freezeFirstColumnsCount ?? 0) > 0 ? ` ${styles.chronicleTableFreezeFirstColumn}` : ""}${(freezeFirstColumnsCount ?? 0) > 1 ? ` ${styles.chronicleTableFreezeFirstTwoColumns}` : ""}${className ? ` ${className}` : ""}`}
     style={style}
   >
     <div className={styles.chronicleTableHeader}>
@@ -17821,11 +17823,13 @@ type Form7LineupSnapshot = {
                     rows={sortedTsiPlayerRows}
                     getRowKey={(row) => row.playerId}
                     getSnapshot={(row) => row}
+                    freezeFirstColumnsCount={2}
                     getRowClassName={getChronicleLikelyTraineeRowClassName}
                     formatValue={formatValue}
                     style={
                       {
                         "--cc-columns": tsiPlayerColumns.length,
+                        "--cc-freeze-second-left": "88px",
                         "--cc-template":
                           "88px 220px 110px 132px 220px 190px 72px 90px 100px 80px 110px 100px",
                       } as CSSProperties
@@ -17859,11 +17863,13 @@ type Form7LineupSnapshot = {
                     rows={sortedWagesPlayerRows}
                     getRowKey={(row) => row.playerId}
                     getSnapshot={(row) => row}
+                    freezeFirstColumnsCount={2}
                     getRowClassName={getChronicleLikelyTraineeRowClassName}
                     formatValue={formatValue}
                     style={
                       {
                         "--cc-columns": wagesPlayerColumns.length,
+                        "--cc-freeze-second-left": "88px",
                         "--cc-template":
                           "88px 220px 110px 150px 220px 190px 72px 90px 100px 80px 110px 100px",
                       } as CSSProperties
@@ -20682,6 +20688,7 @@ type Form7LineupSnapshot = {
                       rows={sortedTsiPlayerRows}
                       getRowKey={(row) => row.playerId}
                       getSnapshot={(row) => row}
+                      freezeFirstColumnsCount={2}
                       getRowClassName={getChronicleLikelyTraineeRowClassName}
                       formatValue={formatValue}
                       style={
@@ -20689,6 +20696,7 @@ type Form7LineupSnapshot = {
                           "--cc-columns": tsiPlayerColumns.length,
                           "--cc-template":
                             "88px 220px 110px 132px 220px 190px 72px 90px 100px 80px 110px 100px",
+                          "--cc-freeze-second-left": "88px",
                         } as CSSProperties
                       }
                       sortKey={tsiDetailsSortState.key}
@@ -20744,6 +20752,7 @@ type Form7LineupSnapshot = {
                       rows={sortedWagesPlayerRows}
                       getRowKey={(row) => row.playerId}
                       getSnapshot={(row) => row}
+                      freezeFirstColumnsCount={2}
                       getRowClassName={getChronicleLikelyTraineeRowClassName}
                       formatValue={formatValue}
                       style={
@@ -20751,6 +20760,7 @@ type Form7LineupSnapshot = {
                           "--cc-columns": wagesPlayerColumns.length,
                           "--cc-template":
                             "88px 220px 110px 150px 220px 190px 72px 90px 100px 80px 110px 100px",
+                          "--cc-freeze-second-left": "88px",
                         } as CSSProperties
                       }
                       sortKey={wagesDetailsSortState.key}

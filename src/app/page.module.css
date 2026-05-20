@@ -3765,6 +3765,14 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   box-shadow: 8px 0 10px -10px rgba(63, 53, 44, 0.3);
 }
 
+.chronicleTableFreezeFirstTwoColumns .chronicleTableHeader > span:nth-child(2) {
+  position: sticky;
+  left: var(--cc-freeze-second-left, 88px);
+  z-index: 12;
+  background: inherit;
+  box-shadow: 8px 0 10px -10px rgba(63, 53, 44, 0.3);
+}
+
 .chronicleTableHeaderItem {
   display: inline-flex;
   align-items: center;
@@ -3955,6 +3963,16 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .chronicleTableFreezeFirstColumn .chronicleTableRow .chronicleTableCell:first-child {
   position: sticky;
   left: 0;
+  z-index: 2;
+  background: inherit;
+  box-shadow: 8px 0 10px -10px rgba(63, 53, 44, 0.3);
+}
+
+.chronicleTableFreezeFirstTwoColumns
+  .chronicleTableRow
+  .chronicleTableCell:nth-child(2) {
+  position: sticky;
+  left: var(--cc-freeze-second-left, 88px);
   z-index: 2;
   background: inherit;
   box-shadow: 8px 0 10px -10px rgba(63, 53, 44, 0.3);
@@ -5726,9 +5744,17 @@ html[data-theme="dark"]
   .chronicleTableHeader
   > span:first-child,
 html[data-theme="dark"]
+  .chronicleTableFreezeFirstTwoColumns
+  .chronicleTableHeader
+  > span:nth-child(2),
+html[data-theme="dark"]
   .chronicleTableFreezeFirstColumn
   .chronicleTableRow
-  .chronicleTableCell:first-child {
+  .chronicleTableCell:first-child,
+html[data-theme="dark"]
+  .chronicleTableFreezeFirstTwoColumns
+  .chronicleTableRow
+  .chronicleTableCell:nth-child(2) {
   box-shadow: 8px 0 10px -10px rgba(0, 0, 0, 0.7);
 }
 

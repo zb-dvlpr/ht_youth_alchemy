@@ -431,6 +431,7 @@ type WagesSnapshot = {
     playerName: string | null;
     originFlagEmoji?: string | null;
     originCountryName?: string | null;
+    wageIncludesForeignBonus?: boolean;
     playerNumber: number | null;
     age: number | null;
     ageDays: number | null;
@@ -678,6 +679,7 @@ type WagesPlayerRow = {
   playerName: string | null;
   originFlagEmoji?: string | null;
   originCountryName?: string | null;
+  wageIncludesForeignBonus?: boolean;
   playerNumber: number | null;
   age: number | null;
   ageDays: number | null;
@@ -8543,6 +8545,68 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     return nextMap;
   }, []);
 
+  const resolveSeniorForeignWageBonusByPlayerId = useCallback(() => {
+    if (typeof window === "undefined") return new Map<number, boolean | null>();
+    const nextMap = new Map<number, boolean | null>();
+    try {
+      for (let index = 0; index < window.localStorage.length; index += 1) {
+        const key = window.localStorage.key(index);
+        if (
+          !key ||
+          (key !== SENIOR_DASHBOARD_DATA_STORAGE_KEY &&
+            !key.startsWith(`${SENIOR_DASHBOARD_DATA_STORAGE_KEY}_`))
+        ) {
+          continue;
+        }
+        const raw = window.localStorage.getItem(key);
+        if (!raw) continue;
+        const parsed = JSON.parse(raw) as {
+          detailsCache?: Record<
+            string,
+            {
+              data?: {
+                IsAbroad?: unknown;
+                NativeLeagueID?: unknown;
+                OwningTeam?: {
+                  LeagueID?: unknown;
+                };
+              };
+            }
+          >;
+        };
+        const detailsCache =
+          parsed.detailsCache && typeof parsed.detailsCache === "object"
+            ? parsed.detailsCache
+            : null;
+        if (!detailsCache) continue;
+        Object.entries(detailsCache).forEach(([playerIdKey, entry]) => {
+          const playerId = Number(playerIdKey);
+          if (!Number.isFinite(playerId) || playerId <= 0) return;
+          const explicitIsAbroad = parseBooleanNode(entry?.data?.IsAbroad);
+          if (explicitIsAbroad !== null) {
+            nextMap.set(playerId, explicitIsAbroad);
+            return;
+          }
+          const nativeLeagueId = parseNumberNode(entry?.data?.NativeLeagueID);
+          const owningLeagueId = parseNumberNode(entry?.data?.OwningTeam?.LeagueID);
+          if (
+            typeof nativeLeagueId === "number" &&
+            Number.isFinite(nativeLeagueId) &&
+            nativeLeagueId > 0 &&
+            typeof owningLeagueId === "number" &&
+            Number.isFinite(owningLeagueId) &&
+            owningLeagueId > 0
+          ) {
+            nextMap.set(playerId, nativeLeagueId !== owningLeagueId);
+          }
+        });
+      }
+    } catch {
+      // ignore storage parse errors
+    }
+    return nextMap;
+  }, []);
+
   const parseBooleanNode = (value: unknown): boolean | null => {
     if (value === null || value === undefined || value === "") return null;
     if (typeof value === "boolean") return value;
@@ -9934,6 +9998,7 @@ type TeamPlayerSnapshot = {
   playerName: string | null;
   originFlagEmoji?: string | null;
   originCountryName?: string | null;
+  wageIncludesForeignBonus?: boolean;
   playerNumber: number | null;
   age: number | null;
   ageDays: number | null;
@@ -9970,7 +10035,9 @@ type Form7LineupSnapshot = {
   activeIntervalsByPlayerId: Map<number, Array<{ roleId: number; startMinute: number; endMinute: number }>>;
 };
 
-  const fetchPlayerNativeLeagueId = async (playerId: number): Promise<number | null> => {
+  const fetchPlayerOriginDetails = async (
+    playerId: number
+  ): Promise<{ nativeLeagueId: number | null; wageIncludesForeignBonus: boolean | null }> => {
     try {
       const { response, payload } = await fetchChppJson<{
         data?: {
@@ -9982,11 +10049,28 @@ type Form7LineupSnapshot = {
       }>(`/api/chpp/playerdetails?playerId=${playerId}`, {
         cache: "no-store",
       });
-      if (!response.ok || payload?.error) return null;
-      return parseNumberNode(payload?.data?.HattrickData?.Player?.NativeLeagueID);
+      if (!response.ok || payload?.error) {
+        return { nativeLeagueId: null, wageIncludesForeignBonus: null };
+      }
+      const player = payload?.data?.HattrickData?.Player;
+      const nativeLeagueId = parseNumberNode(player?.NativeLeagueID);
+      const explicitIsAbroad = parseBooleanNode(player?.IsAbroad);
+      const owningLeagueId = parseNumberNode((player?.OwningTeam as RawNode | undefined)?.LeagueID);
+      const wageIncludesForeignBonus =
+        explicitIsAbroad !== null
+          ? explicitIsAbroad
+          : typeof nativeLeagueId === "number" &&
+              Number.isFinite(nativeLeagueId) &&
+              nativeLeagueId > 0 &&
+              typeof owningLeagueId === "number" &&
+              Number.isFinite(owningLeagueId) &&
+              owningLeagueId > 0
+            ? nativeLeagueId !== owningLeagueId
+            : null;
+      return { nativeLeagueId, wageIncludesForeignBonus };
     } catch (error) {
       if (isChppAuthRequiredError(error)) throw error;
-      return null;
+      return { nativeLeagueId: null, wageIncludesForeignBonus: null };
     }
   };
 
@@ -9999,6 +10083,7 @@ type Form7LineupSnapshot = {
   ): Promise<TeamPlayerSnapshot[]> => {
     const leagueOriginFlags = await resolveLeagueOriginFlags();
     const seniorNativeLeagueByPlayerId = resolveSeniorNativeLeagueIds();
+    const seniorForeignWageBonusByPlayerId = resolveSeniorForeignWageBonusByPlayerId();
     const { response: playersResponse, payload: playersPayload } = await fetchChppJson<{
       data?: {
         HattrickData?: {
@@ -10025,6 +10110,7 @@ type Form7LineupSnapshot = {
     const existingNativeLeagueIds =
       options?.nextCache?.teams[teamId]?.nativeLeagueIdByPlayerId ?? {};
     const nativeLeagueIdByPlayerId = new Map<number, number>();
+    const wageIncludesForeignBonusByPlayerId = new Map<number, boolean>();
     Object.entries(existingNativeLeagueIds).forEach(([playerIdKey, leagueId]) => {
       const playerId = Number(playerIdKey);
       if (
@@ -10039,30 +10125,42 @@ type Form7LineupSnapshot = {
     });
     playerList.forEach((player) => {
       const playerId = parseNumber(player?.PlayerID) ?? 0;
-      if (playerId <= 0 || nativeLeagueIdByPlayerId.has(playerId)) return;
-      const seniorNativeLeagueId = seniorNativeLeagueByPlayerId.get(playerId);
-      if (
-        typeof seniorNativeLeagueId === "number" &&
-        Number.isFinite(seniorNativeLeagueId) &&
-        seniorNativeLeagueId > 0
-      ) {
-        nativeLeagueIdByPlayerId.set(playerId, seniorNativeLeagueId);
+      if (playerId <= 0) return;
+      if (!nativeLeagueIdByPlayerId.has(playerId)) {
+        const seniorNativeLeagueId = seniorNativeLeagueByPlayerId.get(playerId);
+        if (
+          typeof seniorNativeLeagueId === "number" &&
+          Number.isFinite(seniorNativeLeagueId) &&
+          seniorNativeLeagueId > 0
+        ) {
+          nativeLeagueIdByPlayerId.set(playerId, seniorNativeLeagueId);
+        }
+      }
+      const seniorForeignWageBonus = seniorForeignWageBonusByPlayerId.get(playerId);
+      if (typeof seniorForeignWageBonus === "boolean") {
+        wageIncludesForeignBonusByPlayerId.set(playerId, seniorForeignWageBonus);
       }
     });
     if (options?.ensureNativeLeagueIds) {
       const missingPlayerIds = playerList
         .map((player) => parseNumber(player?.PlayerID) ?? 0)
-        .filter((playerId) => playerId > 0 && !nativeLeagueIdByPlayerId.has(playerId));
+        .filter(
+          (playerId) =>
+            playerId > 0 &&
+            (!nativeLeagueIdByPlayerId.has(playerId) ||
+              !wageIncludesForeignBonusByPlayerId.has(playerId))
+        );
       if (missingPlayerIds.length > 0) {
-        const fetchedNativeLeagueIds = await mapWithConcurrency(
+        const fetchedOriginDetails = await mapWithConcurrency(
           missingPlayerIds,
           6,
           async (playerId) => ({
             playerId,
-            nativeLeagueId: await fetchPlayerNativeLeagueId(playerId),
+            ...(await fetchPlayerOriginDetails(playerId)),
           })
         );
-        fetchedNativeLeagueIds.forEach(({ playerId, nativeLeagueId }) => {
+        fetchedOriginDetails.forEach(
+          ({ playerId, nativeLeagueId, wageIncludesForeignBonus }) => {
           if (
             typeof nativeLeagueId === "number" &&
             Number.isFinite(nativeLeagueId) &&
@@ -10070,7 +10168,11 @@ type Form7LineupSnapshot = {
           ) {
             nativeLeagueIdByPlayerId.set(playerId, nativeLeagueId);
           }
-        });
+            if (typeof wageIncludesForeignBonus === "boolean") {
+              wageIncludesForeignBonusByPlayerId.set(playerId, wageIncludesForeignBonus);
+            }
+          }
+        );
       }
       if (options.nextCache) {
         options.nextCache.teams[teamId] = {
@@ -10098,6 +10200,8 @@ type Form7LineupSnapshot = {
         playerName: playerName || null,
         originFlagEmoji: originInfo?.flagEmoji ?? null,
         originCountryName: originInfo?.countryName ?? null,
+        wageIncludesForeignBonus:
+          wageIncludesForeignBonusByPlayerId.get(playerId) ?? false,
         playerNumber: parseNumberNode(player?.PlayerNumber),
         age: parseNumberNode(player?.Age),
         ageDays: parseNumberNode(player?.AgeDays),
@@ -10442,10 +10546,12 @@ type Form7LineupSnapshot = {
       0
     );
     if (totalMinutes <= 0) return false;
-    return entries.every((entry) => {
+    const allowedMinutes = entries.reduce((sum, entry) => {
       const positionKey = matchRoleIdToPositionKey(entry.roleId);
-      return Boolean(positionKey && allowedPositions.has(positionKey));
-    });
+      if (!positionKey || !allowedPositions.has(positionKey)) return sum;
+      return sum + Math.max(0, entry.minutes ?? 0);
+    }, 0);
+    return allowedMinutes / totalMinutes >= 0.9;
   };
 
   const resolveChronicleSpecialtyLabel = (value?: number | null) => {
@@ -11049,6 +11155,7 @@ type Form7LineupSnapshot = {
       playerName: player.playerName,
       originFlagEmoji: player.originFlagEmoji ?? null,
       originCountryName: player.originCountryName ?? null,
+      wageIncludesForeignBonus: player.wageIncludesForeignBonus ?? false,
       playerNumber: player.playerNumber,
       age: player.age,
       ageDays: player.ageDays,
@@ -11084,6 +11191,16 @@ type Form7LineupSnapshot = {
       if (coveredPlayerIds.size < team.snapshot.players.length) return true;
       return team.snapshot.players.some(
         (player) => !player.originFlagEmoji || !player.originCountryName
+      );
+    },
+    []
+  );
+
+  const wagesSnapshotNeedsForeignWageBackfill = useCallback(
+    (team: WagesRow | null | undefined) => {
+      if (!team?.snapshot?.players || team.snapshot.players.length === 0) return false;
+      return team.snapshot.players.some(
+        (player) => typeof player.wageIncludesForeignBonus !== "boolean"
       );
     },
     []
@@ -14032,12 +14149,18 @@ type Form7LineupSnapshot = {
   ]);
   useEffect(() => {
     if (!wagesDetailsOpen || !selectedWagesTeam) return;
-    if (!teamSnapshotNeedsOriginBackfill(selectedWagesTeam)) return;
+    if (
+      !teamSnapshotNeedsOriginBackfill(selectedWagesTeam) &&
+      !wagesSnapshotNeedsForeignWageBackfill(selectedWagesTeam)
+    ) {
+      return;
+    }
     void backfillChronicleDetailOriginCoverage(selectedWagesTeam.teamId);
   }, [
     backfillChronicleDetailOriginCoverage,
     selectedWagesTeam,
     teamSnapshotNeedsOriginBackfill,
+    wagesSnapshotNeedsForeignWageBackfill,
     wagesDetailsOpen,
   ]);
   const selectedLastLoginTeam = selectedLastLoginTeamId
@@ -15292,8 +15415,17 @@ type Form7LineupSnapshot = {
       {
         key: "wage",
         label: messages.clubChronicleWagesValueColumn,
-        getValue: (snapshot) => formatChppCurrencyFromSek(snapshot?.salarySek ?? null),
+        getValue: (snapshot) =>
+          snapshot
+            ? `${formatChppCurrencyFromSek(snapshot.salarySek) ?? messages.unknownShort}${
+                snapshot.wageIncludesForeignBonus ? "*" : ""
+              }`
+            : null,
         getSortValue: (snapshot) => snapshot?.salarySek ?? null,
+        renderCell: (snapshot) =>
+          `${formatChppCurrencyFromSek(snapshot?.salarySek ?? null) ?? messages.unknownShort}${
+            snapshot?.wageIncludesForeignBonus ? "*" : ""
+          }`,
       },
       {
         key: "playingPosition",
@@ -20619,6 +20751,11 @@ type Form7LineupSnapshot = {
                     />
                   </div>
                   {renderChronicleLikelyTraineeLegend(selectedWagesLikelyTrainingSnapshot)}
+                  <div className={styles.chronicleLegend}>
+                    <span className={styles.chronicleLegendText}>
+                      * {messages.seniorWageForeignExtraNote}
+                    </span>
+                  </div>
                 </>
               ) : (
                 <p className={styles.chronicleEmpty}>{messages.unknownShort}</p>

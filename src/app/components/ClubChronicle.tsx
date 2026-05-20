@@ -867,6 +867,8 @@ type ChronicleTableProps<Row, Snapshot> = {
   rows: Row[];
   getRowKey: (row: Row) => string | number;
   getSnapshot: (row: Row) => Snapshot | undefined;
+  freezeFirstColumn?: boolean;
+  freezeFirstColumnsCount?: number;
   className?: string;
   getRowClassName?: (row: Row) => string | undefined;
   onRowClick?: (row: Row) => void;
@@ -909,6 +911,8 @@ const ChronicleTable = <Row, Snapshot>({
   rows,
   getRowKey,
   getSnapshot,
+  freezeFirstColumn = false,
+  freezeFirstColumnsCount,
   className,
   getRowClassName,
   onRowClick,
@@ -924,7 +928,7 @@ const ChronicleTable = <Row, Snapshot>({
   renderMergedTrailingCells,
 }: ChronicleTableProps<Row, Snapshot>) => (
   <div
-    className={`${styles.chronicleTable}${className ? ` ${className}` : ""}`}
+    className={`${styles.chronicleTable}${freezeFirstColumn || (freezeFirstColumnsCount ?? 0) > 0 ? ` ${styles.chronicleTableFreezeFirstColumn}` : ""}${(freezeFirstColumnsCount ?? 0) > 1 ? ` ${styles.chronicleTableFreezeFirstTwoColumns}` : ""}${className ? ` ${className}` : ""}`}
     style={style}
   >
     <div className={styles.chronicleTableHeader}>
@@ -17819,11 +17823,13 @@ type Form7LineupSnapshot = {
                     rows={sortedTsiPlayerRows}
                     getRowKey={(row) => row.playerId}
                     getSnapshot={(row) => row}
+                    freezeFirstColumnsCount={2}
                     getRowClassName={getChronicleLikelyTraineeRowClassName}
                     formatValue={formatValue}
                     style={
                       {
                         "--cc-columns": tsiPlayerColumns.length,
+                        "--cc-freeze-second-left": "88px",
                         "--cc-template":
                           "88px 220px 110px 132px 220px 190px 72px 90px 100px 80px 110px 100px",
                       } as CSSProperties
@@ -17857,11 +17863,13 @@ type Form7LineupSnapshot = {
                     rows={sortedWagesPlayerRows}
                     getRowKey={(row) => row.playerId}
                     getSnapshot={(row) => row}
+                    freezeFirstColumnsCount={2}
                     getRowClassName={getChronicleLikelyTraineeRowClassName}
                     formatValue={formatValue}
                     style={
                       {
                         "--cc-columns": wagesPlayerColumns.length,
+                        "--cc-freeze-second-left": "88px",
                         "--cc-template":
                           "88px 220px 110px 150px 220px 190px 72px 90px 100px 80px 110px 100px",
                       } as CSSProperties
@@ -18425,6 +18433,7 @@ type Form7LineupSnapshot = {
                           rows={sortedLeagueRows}
                           getRowKey={(row) => row.teamId}
                           getSnapshot={(row) => row.snapshot ?? undefined}
+                          freezeFirstColumn
                           getRowClassName={getTeamRowClassName}
                           onRowClick={(row) => handleOpenDetails(row.teamId)}
                           formatValue={formatValue}
@@ -18489,6 +18498,7 @@ type Form7LineupSnapshot = {
                       rows={sortedPressRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenPressDetails(row.teamId)}
                       formatValue={formatValue}
@@ -18551,6 +18561,7 @@ type Form7LineupSnapshot = {
                         rows={sortedFinanceRows}
                         getRowKey={(row) => row.teamId}
                         getSnapshot={(row) => row.snapshot ?? undefined}
+                        freezeFirstColumn
                         getRowClassName={getTeamRowClassName}
                         onRowClick={(row) => handleOpenFinanceDetails(row.teamId)}
                         formatValue={formatValue}
@@ -18613,6 +18624,7 @@ type Form7LineupSnapshot = {
                       rows={sortedLastLoginRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenLastLoginDetails(row.teamId)}
                       formatValue={formatValue}
@@ -18681,6 +18693,7 @@ type Form7LineupSnapshot = {
                           rows={sortedCoachRows}
                           getRowKey={(row) => row.teamId}
                           getSnapshot={(row) => row.snapshot ?? undefined}
+                          freezeFirstColumn
                           getRowClassName={getTeamRowClassName}
                           onRowClick={(row) => handleOpenCoachDetails(row.teamId)}
                           formatValue={formatValue}
@@ -18745,6 +18758,7 @@ type Form7LineupSnapshot = {
                       rows={sortedPowerRatingsRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenPowerRatingsDetails(row.teamId)}
                       formatValue={formatValue}
@@ -18881,6 +18895,7 @@ type Form7LineupSnapshot = {
                         rows={sortedOngoingMatchRows}
                         getRowKey={(row) => row.teamId}
                         getSnapshot={(row) => row.snapshot ?? undefined}
+                        freezeFirstColumn
                         getRowClassName={getTeamRowClassName}
                         formatValue={formatValue}
                         className={styles.chronicleOngoingMatchesTable}
@@ -18946,6 +18961,7 @@ type Form7LineupSnapshot = {
                       rows={sortedFanclubRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenFanclubDetails(row.teamId)}
                       formatValue={formatValue}
@@ -19007,6 +19023,7 @@ type Form7LineupSnapshot = {
                       rows={sortedArenaRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenArenaDetails(row.teamId)}
                       formatValue={formatValue}
@@ -19075,6 +19092,7 @@ type Form7LineupSnapshot = {
                           rows={sortedTransferRows}
                           getRowKey={(row) => row.teamId}
                           getSnapshot={(row) => row.snapshot ?? undefined}
+                          freezeFirstColumn
                           getRowClassName={getTeamRowClassName}
                           formatValue={formatValue}
                           style={transferTableStyle}
@@ -19163,6 +19181,7 @@ type Form7LineupSnapshot = {
                       rows={sortedFormationsTacticsRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) =>
                         handleOpenFormationsTacticsDetails(row.teamId)
@@ -19233,6 +19252,7 @@ type Form7LineupSnapshot = {
                       rows={sortedTeamAttitudeRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenTeamAttitudeDetails(row.teamId)}
                       formatValue={formatValue}
@@ -19297,6 +19317,7 @@ type Form7LineupSnapshot = {
                       rows={sortedLikelyTrainingRows}
                       getRowKey={(row) => row.teamId}
                       getSnapshot={(row) => row.snapshot ?? undefined}
+                      freezeFirstColumn
                       getRowClassName={getTeamRowClassName}
                       onRowClick={(row) => handleOpenLikelyTrainingDetails(row.teamId)}
                       formatValue={formatValue}
@@ -19372,6 +19393,7 @@ type Form7LineupSnapshot = {
                           rows={sortedTsiRows}
                           getRowKey={(row) => row.teamId}
                           getSnapshot={(row) => row.snapshot ?? undefined}
+                          freezeFirstColumn
                           getRowClassName={getTeamRowClassName}
                           onRowClick={(row) => handleOpenTsiDetails(row.teamId)}
                           formatValue={formatValue}
@@ -19441,6 +19463,7 @@ type Form7LineupSnapshot = {
                           rows={sortedWagesRows}
                           getRowKey={(row) => row.teamId}
                           getSnapshot={(row) => row.snapshot ?? undefined}
+                          freezeFirstColumn
                           getRowClassName={getTeamRowClassName}
                           onRowClick={(row) => handleOpenWagesDetails(row.teamId)}
                           formatValue={formatValue}
@@ -20665,6 +20688,7 @@ type Form7LineupSnapshot = {
                       rows={sortedTsiPlayerRows}
                       getRowKey={(row) => row.playerId}
                       getSnapshot={(row) => row}
+                      freezeFirstColumnsCount={2}
                       getRowClassName={getChronicleLikelyTraineeRowClassName}
                       formatValue={formatValue}
                       style={
@@ -20672,6 +20696,7 @@ type Form7LineupSnapshot = {
                           "--cc-columns": tsiPlayerColumns.length,
                           "--cc-template":
                             "88px 220px 110px 132px 220px 190px 72px 90px 100px 80px 110px 100px",
+                          "--cc-freeze-second-left": "88px",
                         } as CSSProperties
                       }
                       sortKey={tsiDetailsSortState.key}
@@ -20727,6 +20752,7 @@ type Form7LineupSnapshot = {
                       rows={sortedWagesPlayerRows}
                       getRowKey={(row) => row.playerId}
                       getSnapshot={(row) => row}
+                      freezeFirstColumnsCount={2}
                       getRowClassName={getChronicleLikelyTraineeRowClassName}
                       formatValue={formatValue}
                       style={
@@ -20734,6 +20760,7 @@ type Form7LineupSnapshot = {
                           "--cc-columns": wagesPlayerColumns.length,
                           "--cc-template":
                             "88px 220px 110px 150px 220px 190px 72px 90px 100px 80px 110px 100px",
+                          "--cc-freeze-second-left": "88px",
                         } as CSSProperties
                       }
                       sortKey={wagesDetailsSortState.key}

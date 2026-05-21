@@ -772,6 +772,7 @@ export const messagesPl: Messages = {
   analyzeOpponentAvgMidfield: "Sr. Pom",
   analyzeOpponentAvgAttack: "Sr. Atak",
   analyzeOpponentHatstats: "HatStats",
+  analyzeOpponentHatstatsBreakdown: "HatStats obr/pom/atak/suma",
   analyzeOpponentAgainstYouMark: "* oznacza mecze przeciwko tobie.",
   analyzeOpponentNeverPlayedUs: "Nigdy nie grali przeciwko nam.",
   analyzeOpponentSummaryPreferredFormation:

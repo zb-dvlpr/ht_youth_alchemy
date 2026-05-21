@@ -1055,6 +1055,7 @@ export type Messages = {
   analyzeOpponentAvgMidfield: string;
   analyzeOpponentAvgAttack: string;
   analyzeOpponentHatstats: string;
+  analyzeOpponentHatstatsBreakdown: string;
   analyzeOpponentAgainstYouMark: string;
   analyzeOpponentNeverPlayedUs: string;
   analyzeOpponentSummaryPreferredFormation: string;

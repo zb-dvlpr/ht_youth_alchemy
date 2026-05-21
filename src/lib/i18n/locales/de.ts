@@ -1326,6 +1326,7 @@ export const messagesDe: Messages = {
     analyzeOpponentAvgMidfield: "Ø Mitt.",
     analyzeOpponentAvgAttack: "Ø Ang.",
     analyzeOpponentHatstats: "HatStats",
+    analyzeOpponentHatstatsBreakdown: "HatStats Abw./Mitt./Ang./Gesamt",
     analyzeOpponentAgainstYouMark: "* kennzeichnet Spiele gegen dich.",
     analyzeOpponentNeverPlayedUs: "Sie haben nie gegen uns gespielt.",
     analyzeOpponentSummaryPreferredFormation:

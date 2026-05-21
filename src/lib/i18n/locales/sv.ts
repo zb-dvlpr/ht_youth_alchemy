@@ -1333,6 +1333,7 @@ export const messagesSv: Messages = {
     analyzeOpponentAvgMidfield: "Snitt Mitt",
     analyzeOpponentAvgAttack: "Snitt Anf",
     analyzeOpponentHatstats: "HatStats",
+    analyzeOpponentHatstatsBreakdown: "HatStats fors/mitt/anf/total",
     analyzeOpponentAgainstYouMark: "* markerar matcher mot dig.",
     analyzeOpponentNeverPlayedUs: "De har aldrig spelat mot oss.",
     analyzeOpponentSummaryPreferredFormation:

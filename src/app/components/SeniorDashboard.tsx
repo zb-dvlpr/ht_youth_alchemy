@@ -3152,7 +3152,14 @@ const computeFoxtrickHatstatsForOpponentRow = (
     | "ratingMidAtt"
     | "ratingLeftAtt"
   >
-): number | null => {
+):
+  | {
+      defense: number;
+      midfield: number;
+      attack: number;
+      total: number;
+    }
+  | null => {
   const ratings = [
     row.ratingMidfield,
     row.ratingRightDef,
@@ -3163,15 +3170,21 @@ const computeFoxtrickHatstatsForOpponentRow = (
     row.ratingLeftAtt,
   ];
   if (ratings.some((value) => typeof value !== "number")) return null;
-  return (
-    (row.ratingMidfield as number) * 3 +
+  const defense =
     (row.ratingRightDef as number) +
     (row.ratingMidDef as number) +
-    (row.ratingLeftDef as number) +
+    (row.ratingLeftDef as number);
+  const midfield = (row.ratingMidfield as number) * 3;
+  const attack =
     (row.ratingRightAtt as number) +
     (row.ratingMidAtt as number) +
-    (row.ratingLeftAtt as number)
-  );
+    (row.ratingLeftAtt as number);
+  return {
+    defense,
+    midfield,
+    attack,
+    total: defense + midfield + attack,
+  };
 };
 
 const computeOpponentSectorAverage = (
@@ -17910,9 +17923,9 @@ const refreshDetailsForPlayers = async (
                                 )}`}
                               </div>
                               <div>
-                                {`${messages.analyzeOpponentHatstats}: ${
-                                  typeof foxtrickHatstats === "number"
-                                    ? foxtrickHatstats
+                                {`${messages.analyzeOpponentHatstatsBreakdown}: ${
+                                  foxtrickHatstats
+                                    ? `${foxtrickHatstats.defense}/${foxtrickHatstats.midfield}/${foxtrickHatstats.attack}/${foxtrickHatstats.total}`
                                     : messages.unknownShort
                                 }`}
                               </div>

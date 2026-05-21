@@ -17817,6 +17817,11 @@ type Form7LineupSnapshot = {
             </p>
             {tsiPlayerRows.length > 0 ? (
               <>
+                {showMobileChronicleLandscapeHint ? (
+                  <span className={styles.mobileYouthLandscapeHint}>
+                    {messages.mobileChronicleLandscapeHint}
+                  </span>
+                ) : null}
                 <div className={styles.chronicleTransferHistoryTableWrap}>
                   <ChronicleTable
                     columns={tsiPlayerColumns}
@@ -17857,6 +17862,11 @@ type Form7LineupSnapshot = {
             </p>
             {wagesPlayerRows.length > 0 ? (
               <>
+                {showMobileChronicleLandscapeHint ? (
+                  <span className={styles.mobileYouthLandscapeHint}>
+                    {messages.mobileChronicleLandscapeHint}
+                  </span>
+                ) : null}
                 <div className={styles.chronicleTransferHistoryTableWrap}>
                   <ChronicleTable
                     columns={wagesPlayerColumns}
@@ -20682,6 +20692,11 @@ type Form7LineupSnapshot = {
               </p>
               {tsiPlayerRows.length > 0 ? (
                 <>
+                  {showMobileChronicleLandscapeHint ? (
+                    <span className={styles.mobileYouthLandscapeHint}>
+                      {messages.mobileChronicleLandscapeHint}
+                    </span>
+                  ) : null}
                   <div className={styles.chronicleTransferHistoryTableWrap}>
                     <ChronicleTable
                       columns={tsiPlayerColumns}
@@ -20750,6 +20765,11 @@ type Form7LineupSnapshot = {
               </p>
               {wagesPlayerRows.length > 0 ? (
                 <>
+                  {showMobileChronicleLandscapeHint ? (
+                    <span className={styles.mobileYouthLandscapeHint}>
+                      {messages.mobileChronicleLandscapeHint}
+                    </span>
+                  ) : null}
                   <div className={styles.chronicleTransferHistoryTableWrap}>
                     <ChronicleTable
                       columns={wagesPlayerColumns}

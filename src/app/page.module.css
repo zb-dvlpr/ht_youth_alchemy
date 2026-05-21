@@ -3892,6 +3892,22 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   gap: 3px;
 }
 
+.chronicleTsiWagesDetailTable.chronicleTableFreezeFirstColumn
+  .chronicleTableHeader
+  > span:first-child,
+.chronicleTsiWagesDetailTable.chronicleTableFreezeFirstTwoColumns
+  .chronicleTableHeader
+  > span:nth-child(2),
+.chronicleTsiWagesDetailTable.chronicleTableFreezeFirstColumn
+  .chronicleTableRow
+  .chronicleTableCell:first-child,
+.chronicleTsiWagesDetailTable.chronicleTableFreezeFirstTwoColumns
+  .chronicleTableRow
+  .chronicleTableCell:nth-child(2) {
+  box-shadow: none;
+  background: inherit;
+}
+
 .chronicleTableRow:hover {
   transform: translateY(-1px);
   border-color: #d7c7b2;

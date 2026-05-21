@@ -20695,9 +20695,12 @@ type Form7LineupSnapshot = {
                       style={
                         {
                           "--cc-columns": tsiPlayerColumns.length,
-                          "--cc-template":
-                            "72px 176px 94px 102px 182px 162px 60px 74px 82px 72px 90px 82px",
-                          "--cc-freeze-second-left": "72px",
+                          "--cc-template-desktop":
+                            "60px 164px 82px 94px 168px 150px 56px 68px 74px 66px 82px 78px",
+                          "--cc-template-mobile":
+                            "52px 136px 72px 84px 146px 132px 50px 62px 68px 60px 72px 68px",
+                          "--cc-freeze-second-left-desktop": "60px",
+                          "--cc-freeze-second-left-mobile": "52px",
                         } as CSSProperties
                       }
                       sortKey={tsiDetailsSortState.key}
@@ -20760,9 +20763,12 @@ type Form7LineupSnapshot = {
                       style={
                         {
                           "--cc-columns": wagesPlayerColumns.length,
-                          "--cc-template":
-                            "72px 176px 94px 114px 182px 162px 60px 74px 82px 72px 90px 82px",
-                          "--cc-freeze-second-left": "72px",
+                          "--cc-template-desktop":
+                            "60px 164px 82px 102px 168px 150px 56px 68px 74px 66px 82px 78px",
+                          "--cc-template-mobile":
+                            "52px 136px 72px 92px 146px 132px 50px 62px 68px 60px 72px 68px",
+                          "--cc-freeze-second-left-desktop": "60px",
+                          "--cc-freeze-second-left-mobile": "52px",
                         } as CSSProperties
                       }
                       sortKey={wagesDetailsSortState.key}

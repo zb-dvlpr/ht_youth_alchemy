@@ -4040,7 +4040,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
       )
     );
     gap: 0;
-    padding: 7px 2px 5px;
+    padding: 7px 0 5px;
   }
 
   .chronicleTsiWagesDetailTable .chronicleTableHeader > span {
@@ -4048,8 +4048,8 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   }
 
   .chronicleTsiWagesDetailTable .chronicleTableHeaderButton {
-    padding: 0 2px 0 0;
-    gap: 2px;
+    padding: 0 1px 0 0;
+    gap: 1px;
   }
 
   .chronicleTsiWagesDetailTable .chronicleTableRow {
@@ -4061,7 +4061,7 @@ html[data-app-scaling="off"] .dashboardGrid > * {
       )
     );
     gap: 0;
-    padding: 5px 2px;
+    padding: 5px 0;
   }
 
   .chronicleTsiWagesDetailTable.chronicleTableFreezeFirstTwoColumns

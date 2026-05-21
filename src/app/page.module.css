@@ -3757,6 +3757,15 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   padding: 0 6px 0 0;
 }
 
+.chronicleTsiWagesDetailTable .chronicleTableHeader {
+  gap: 1px;
+  padding: 8px 6px 6px;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableHeader > span {
+  padding: 0 2px 0 0;
+}
+
 .chronicleTableFreezeFirstColumn .chronicleTableHeader > span:first-child {
   position: sticky;
   left: 0;
@@ -3860,6 +3869,11 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   transition: transform 0.2s ease, border-color 0.2s ease;
   position: relative;
   z-index: 1;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableRow {
+  gap: 1px;
+  padding: 6px 4px;
 }
 
 .chronicleTableRow:hover {

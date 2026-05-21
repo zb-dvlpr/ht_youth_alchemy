@@ -20689,14 +20689,15 @@ type Form7LineupSnapshot = {
                       getRowKey={(row) => row.playerId}
                       getSnapshot={(row) => row}
                       freezeFirstColumnsCount={2}
+                      className={styles.chronicleTsiWagesDetailTable}
                       getRowClassName={getChronicleLikelyTraineeRowClassName}
                       formatValue={formatValue}
                       style={
                         {
                           "--cc-columns": tsiPlayerColumns.length,
                           "--cc-template":
-                            "88px 220px 110px 132px 220px 190px 72px 90px 100px 80px 110px 100px",
-                          "--cc-freeze-second-left": "88px",
+                            "72px 176px 94px 102px 182px 162px 60px 74px 82px 72px 90px 82px",
+                          "--cc-freeze-second-left": "72px",
                         } as CSSProperties
                       }
                       sortKey={tsiDetailsSortState.key}
@@ -20753,14 +20754,15 @@ type Form7LineupSnapshot = {
                       getRowKey={(row) => row.playerId}
                       getSnapshot={(row) => row}
                       freezeFirstColumnsCount={2}
+                      className={styles.chronicleTsiWagesDetailTable}
                       getRowClassName={getChronicleLikelyTraineeRowClassName}
                       formatValue={formatValue}
                       style={
                         {
                           "--cc-columns": wagesPlayerColumns.length,
                           "--cc-template":
-                            "88px 220px 110px 150px 220px 190px 72px 90px 100px 80px 110px 100px",
-                          "--cc-freeze-second-left": "88px",
+                            "72px 176px 94px 114px 182px 162px 60px 74px 82px 72px 90px 82px",
+                          "--cc-freeze-second-left": "72px",
                         } as CSSProperties
                       }
                       sortKey={wagesDetailsSortState.key}

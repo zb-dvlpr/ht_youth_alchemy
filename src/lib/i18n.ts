@@ -128,6 +128,7 @@ export type Messages = {
   updateRequiredTitle: string;
   updateRequiredBody: string;
   updateRequiredAction: string;
+  changelog_5_7_0: string;
   changelog_5_6_0: string;
   changelog_5_5_0: string;
   changelog_5_4_0: string;
@@ -1053,6 +1054,7 @@ export type Messages = {
   analyzeOpponentAvgDefense: string;
   analyzeOpponentAvgMidfield: string;
   analyzeOpponentAvgAttack: string;
+  analyzeOpponentHatstats: string;
   analyzeOpponentAgainstYouMark: string;
   analyzeOpponentNeverPlayedUs: string;
   analyzeOpponentSummaryPreferredFormation: string;

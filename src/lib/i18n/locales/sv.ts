@@ -145,6 +145,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_5_7_0:
+      "HatStats (ursprung: Foxtrick) ingar nu i motstandaranalysen.",
     changelog_5_6_0:
       "Forbattrade spelardetaljer for TSI- och lonepanelerna i Club Chronicle.",
     changelog_5_5_0:
@@ -1330,6 +1332,7 @@ export const messagesSv: Messages = {
     analyzeOpponentAvgDefense: "Snitt Fors",
     analyzeOpponentAvgMidfield: "Snitt Mitt",
     analyzeOpponentAvgAttack: "Snitt Anf",
+    analyzeOpponentHatstats: "HatStats",
     analyzeOpponentAgainstYouMark: "* markerar matcher mot dig.",
     analyzeOpponentNeverPlayedUs: "De har aldrig spelat mot oss.",
     analyzeOpponentSummaryPreferredFormation:

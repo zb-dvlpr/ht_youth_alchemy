@@ -3141,6 +3141,39 @@ const computeAverageRating = (values: Array<number | null>): number | null => {
 const normalizeOpponentMatchRating = (value: number | null) =>
   typeof value === "number" ? value / 4 + 0.75 : null;
 
+const computeFoxtrickHatstatsForOpponentRow = (
+  row: Pick<
+    OpponentFormationRow,
+    | "ratingMidfield"
+    | "ratingRightDef"
+    | "ratingMidDef"
+    | "ratingLeftDef"
+    | "ratingRightAtt"
+    | "ratingMidAtt"
+    | "ratingLeftAtt"
+  >
+): number | null => {
+  const ratings = [
+    row.ratingMidfield,
+    row.ratingRightDef,
+    row.ratingMidDef,
+    row.ratingLeftDef,
+    row.ratingRightAtt,
+    row.ratingMidAtt,
+    row.ratingLeftAtt,
+  ];
+  if (ratings.some((value) => typeof value !== "number")) return null;
+  return (
+    (row.ratingMidfield as number) * 3 +
+    (row.ratingRightDef as number) +
+    (row.ratingMidDef as number) +
+    (row.ratingLeftDef as number) +
+    (row.ratingRightAtt as number) +
+    (row.ratingMidAtt as number) +
+    (row.ratingLeftAtt as number)
+  );
+};
+
 const computeOpponentSectorAverage = (
   values: Array<number | null>
 ): number | null => {
@@ -17832,6 +17865,7 @@ const refreshDetailsForPlayers = async (
                     <tbody>
                       {opponentAnalysisModal.opponentRows.map((row) => {
                         const sectorRatings = opponentSectorRatings(row);
+                        const foxtrickHatstats = computeFoxtrickHatstatsForOpponentRow(row);
                         return (
                           <tr key={row.matchId}>
                             <td className={styles.opponentFormationsMatchIdCell}>
@@ -17874,6 +17908,13 @@ const refreshDetailsForPlayers = async (
                                 {`${messages.analyzeOpponentAvgAttack}: ${formatOpponentSectorRating(
                                   sectorRatings.attack
                                 )}`}
+                              </div>
+                              <div>
+                                {`${messages.analyzeOpponentHatstats}: ${
+                                  typeof foxtrickHatstats === "number"
+                                    ? foxtrickHatstats
+                                    : messages.unknownShort
+                                }`}
                               </div>
                             </td>
                           </tr>

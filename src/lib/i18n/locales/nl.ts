@@ -334,6 +334,8 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+  changelog_5_7_0:
+    "HatStats (bron: Foxtrick) zijn nu opgenomen in de tegenstanderanalyse.",
   changelog_5_6_0:
     "Uitgebreide spelerdetails voor TSI- en loonpanelen in Club Chronicle.",
   changelog_5_5_0:
@@ -776,6 +778,7 @@ export const messagesNl: Messages = {
   analyzeOpponentAvgDefense: "Gem. Ver",
   analyzeOpponentAvgMidfield: "Gem. Mid",
   analyzeOpponentAvgAttack: "Gem. Aan",
+  analyzeOpponentHatstats: "HatStats",
   analyzeOpponentAgainstYouMark: "* markeert wedstrijden tegen jou.",
   analyzeOpponentNeverPlayedUs: "Ze hebben nog nooit tegen ons gespeeld.",
   analyzeOpponentSummaryPreferredFormation:

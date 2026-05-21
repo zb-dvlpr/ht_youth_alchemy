@@ -146,6 +146,8 @@ export const messagesDe: Messages = {
     updateRequiredBody:
       "Eine neue Version von HT Alchemy ist verfuegbar. Aktualisiere jetzt, um die App weiter zu nutzen.",
     updateRequiredAction: "Aktualisieren",
+    changelog_5_7_0:
+      "HatStats (Quelle: Foxtrick) sind jetzt in der Gegneranalyse enthalten.",
     changelog_5_6_0:
       "Erweiterte Spielerdetails fuer TSI- und Gehaltspanels in der Club-Chronik.",
     changelog_5_5_0:
@@ -1323,6 +1325,7 @@ export const messagesDe: Messages = {
     analyzeOpponentAvgDefense: "Ø Abw.",
     analyzeOpponentAvgMidfield: "Ø Mitt.",
     analyzeOpponentAvgAttack: "Ø Ang.",
+    analyzeOpponentHatstats: "HatStats",
     analyzeOpponentAgainstYouMark: "* kennzeichnet Spiele gegen dich.",
     analyzeOpponentNeverPlayedUs: "Sie haben nie gegen uns gespielt.",
     analyzeOpponentSummaryPreferredFormation:

@@ -17817,6 +17817,11 @@ type Form7LineupSnapshot = {
             </p>
             {tsiPlayerRows.length > 0 ? (
               <>
+                {showMobileChronicleLandscapeHint ? (
+                  <span className={styles.mobileYouthLandscapeHint}>
+                    {messages.mobileChronicleLandscapeHint}
+                  </span>
+                ) : null}
                 <div className={styles.chronicleTransferHistoryTableWrap}>
                   <ChronicleTable
                     columns={tsiPlayerColumns}
@@ -17857,6 +17862,11 @@ type Form7LineupSnapshot = {
             </p>
             {wagesPlayerRows.length > 0 ? (
               <>
+                {showMobileChronicleLandscapeHint ? (
+                  <span className={styles.mobileYouthLandscapeHint}>
+                    {messages.mobileChronicleLandscapeHint}
+                  </span>
+                ) : null}
                 <div className={styles.chronicleTransferHistoryTableWrap}>
                   <ChronicleTable
                     columns={wagesPlayerColumns}
@@ -20682,6 +20692,11 @@ type Form7LineupSnapshot = {
               </p>
               {tsiPlayerRows.length > 0 ? (
                 <>
+                  {showMobileChronicleLandscapeHint ? (
+                    <span className={styles.mobileYouthLandscapeHint}>
+                      {messages.mobileChronicleLandscapeHint}
+                    </span>
+                  ) : null}
                   <div className={styles.chronicleTransferHistoryTableWrap}>
                     <ChronicleTable
                       columns={tsiPlayerColumns}
@@ -20689,14 +20704,18 @@ type Form7LineupSnapshot = {
                       getRowKey={(row) => row.playerId}
                       getSnapshot={(row) => row}
                       freezeFirstColumnsCount={2}
+                      className={styles.chronicleTsiWagesDetailTable}
                       getRowClassName={getChronicleLikelyTraineeRowClassName}
                       formatValue={formatValue}
                       style={
                         {
                           "--cc-columns": tsiPlayerColumns.length,
-                          "--cc-template":
-                            "88px 220px 110px 132px 220px 190px 72px 90px 100px 80px 110px 100px",
-                          "--cc-freeze-second-left": "88px",
+                          "--cc-template-desktop":
+                            "60px 164px 82px 94px 168px 150px 56px 68px 74px 66px 82px 78px",
+                          "--cc-template-mobile":
+                            "44px 118px 64px 76px 134px 122px 46px 56px 62px 54px 66px 62px",
+                          "--cc-freeze-second-left-desktop": "60px",
+                          "--cc-freeze-second-left-mobile": "44px",
                         } as CSSProperties
                       }
                       sortKey={tsiDetailsSortState.key}
@@ -20746,6 +20765,11 @@ type Form7LineupSnapshot = {
               </p>
               {wagesPlayerRows.length > 0 ? (
                 <>
+                  {showMobileChronicleLandscapeHint ? (
+                    <span className={styles.mobileYouthLandscapeHint}>
+                      {messages.mobileChronicleLandscapeHint}
+                    </span>
+                  ) : null}
                   <div className={styles.chronicleTransferHistoryTableWrap}>
                     <ChronicleTable
                       columns={wagesPlayerColumns}
@@ -20753,14 +20777,18 @@ type Form7LineupSnapshot = {
                       getRowKey={(row) => row.playerId}
                       getSnapshot={(row) => row}
                       freezeFirstColumnsCount={2}
+                      className={styles.chronicleTsiWagesDetailTable}
                       getRowClassName={getChronicleLikelyTraineeRowClassName}
                       formatValue={formatValue}
                       style={
                         {
                           "--cc-columns": wagesPlayerColumns.length,
-                          "--cc-template":
-                            "88px 220px 110px 150px 220px 190px 72px 90px 100px 80px 110px 100px",
-                          "--cc-freeze-second-left": "88px",
+                          "--cc-template-desktop":
+                            "60px 164px 82px 102px 168px 150px 56px 68px 74px 66px 82px 78px",
+                          "--cc-template-mobile":
+                            "44px 118px 64px 84px 134px 122px 46px 56px 62px 54px 66px 62px",
+                          "--cc-freeze-second-left-desktop": "60px",
+                          "--cc-freeze-second-left-mobile": "44px",
                         } as CSSProperties
                       }
                       sortKey={wagesDetailsSortState.key}

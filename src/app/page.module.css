@@ -3757,6 +3757,19 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   padding: 0 6px 0 0;
 }
 
+.chronicleTsiWagesDetailTable .chronicleTableHeader {
+  grid-template-columns: var(
+    --cc-template-desktop,
+    var(--cc-template, repeat(var(--cc-columns, 6), minmax(90px, 1fr)))
+  );
+  gap: 1px;
+  padding: 8px 4px 6px;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableHeader > span {
+  padding: 0 1px 0 0;
+}
+
 .chronicleTableFreezeFirstColumn .chronicleTableHeader > span:first-child {
   position: sticky;
   left: 0;
@@ -3767,7 +3780,10 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 
 .chronicleTableFreezeFirstTwoColumns .chronicleTableHeader > span:nth-child(2) {
   position: sticky;
-  left: var(--cc-freeze-second-left, 88px);
+  left: var(
+    --cc-freeze-second-left,
+    var(--cc-freeze-second-left-desktop, 88px)
+  );
   z-index: 12;
   background: inherit;
   box-shadow: 8px 0 10px -10px rgba(63, 53, 44, 0.3);
@@ -3860,6 +3876,36 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   transition: transform 0.2s ease, border-color 0.2s ease;
   position: relative;
   z-index: 1;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableRow {
+  grid-template-columns: var(
+    --cc-template-desktop,
+    var(--cc-template, repeat(var(--cc-columns, 6), minmax(90px, 1fr)))
+  );
+  gap: 1px;
+  padding: 6px 3px;
+}
+
+.chronicleTsiWagesDetailTable .chronicleTableHeaderButton {
+  padding: 0 3px 0 0;
+  gap: 3px;
+}
+
+.chronicleTsiWagesDetailTable.chronicleTableFreezeFirstColumn
+  .chronicleTableHeader
+  > span:first-child,
+.chronicleTsiWagesDetailTable.chronicleTableFreezeFirstTwoColumns
+  .chronicleTableHeader
+  > span:nth-child(2),
+.chronicleTsiWagesDetailTable.chronicleTableFreezeFirstColumn
+  .chronicleTableRow
+  .chronicleTableCell:first-child,
+.chronicleTsiWagesDetailTable.chronicleTableFreezeFirstTwoColumns
+  .chronicleTableRow
+  .chronicleTableCell:nth-child(2) {
+  box-shadow: none;
+  background: inherit;
 }
 
 .chronicleTableRow:hover {
@@ -3972,7 +4018,10 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   .chronicleTableRow
   .chronicleTableCell:nth-child(2) {
   position: sticky;
-  left: var(--cc-freeze-second-left, 88px);
+  left: var(
+    --cc-freeze-second-left,
+    var(--cc-freeze-second-left-desktop, 88px)
+  );
   z-index: 2;
   background: inherit;
   box-shadow: 8px 0 10px -10px rgba(63, 53, 44, 0.3);
@@ -3995,6 +4044,59 @@ html[data-app-scaling="off"] .dashboardGrid > * {
 .chronicleFanclubDetailsTable .chronicleTableRow .chronicleTableCell:first-child {
   font-weight: 400;
   color: inherit;
+}
+
+@media (max-width: 900px) {
+  .chronicleTsiWagesDetailTable .chronicleTableHeader {
+    grid-template-columns: var(
+      --cc-template-mobile,
+      var(
+        --cc-template-desktop,
+        var(--cc-template, repeat(var(--cc-columns, 6), minmax(90px, 1fr)))
+      )
+    );
+    gap: 0;
+    padding: 7px 0 5px;
+  }
+
+  .chronicleTsiWagesDetailTable .chronicleTableHeader > span {
+    padding: 0;
+  }
+
+  .chronicleTsiWagesDetailTable .chronicleTableHeaderButton {
+    padding: 0 1px 0 0;
+    gap: 1px;
+  }
+
+  .chronicleTsiWagesDetailTable .chronicleTableRow {
+    grid-template-columns: var(
+      --cc-template-mobile,
+      var(
+        --cc-template-desktop,
+        var(--cc-template, repeat(var(--cc-columns, 6), minmax(90px, 1fr)))
+      )
+    );
+    gap: 0;
+    padding: 5px 0;
+  }
+
+  .chronicleTsiWagesDetailTable.chronicleTableFreezeFirstTwoColumns
+    .chronicleTableHeader
+    > span:nth-child(2) {
+    left: var(
+      --cc-freeze-second-left-mobile,
+      var(--cc-freeze-second-left-desktop, 88px)
+    );
+  }
+
+  .chronicleTsiWagesDetailTable.chronicleTableFreezeFirstTwoColumns
+    .chronicleTableRow
+    .chronicleTableCell:nth-child(2) {
+    left: var(
+      --cc-freeze-second-left-mobile,
+      var(--cc-freeze-second-left-desktop, 88px)
+    );
+  }
 }
 
 .chronicleLastLoginDetailsTable .chronicleTableCell:first-child {

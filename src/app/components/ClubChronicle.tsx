@@ -10720,7 +10720,7 @@ type Form7LineupSnapshot = {
       if (!positionKey || !allowedPositions.has(positionKey)) return sum;
       return sum + Math.max(0, entry.minutes ?? 0);
     }, 0);
-    return allowedMinutes / totalMinutes >= 0.9;
+    return allowedMinutes / totalMinutes >= 0.8;
   };
 
   const resolveChronicleSpecialtyLabel = (value?: number | null) => {

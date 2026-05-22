@@ -738,6 +738,11 @@ export const messagesFr: Messages = {
       "Les lignes en vert indiquent des stagiaires probables.",
     clubChronicleLikelyTraineeLegendRegimen:
       "Régime d entraînement probable : {{regimen}}",
+    clubChronicleDetailModalMatchesUsedLabel:
+      "Données tirées de {{count}} matchs.",
+    clubChronicleDetailModalMatchesDebugTitle: "Matchs pris en compte",
+    clubChronicleDetailModalMatchesDebugMatchLabel: "Match {{matchId}}",
+    clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",
     clubChronicleLastLoginPanelTitle: "Dernière connexion",
     clubChronicleLastLoginColumnLatest: "Dernière connexion",
     clubChronicleLastLoginColumnIpAddress: "Adresse IP",

@@ -105,6 +105,11 @@ export const messagesPl: Messages = {
     "Zielone wiersze oznaczają prawdopodobnych trenowanych zawodników.",
   clubChronicleLikelyTraineeLegendRegimen:
     "Prawdopodobny typ treningu: {{regimen}}",
+  clubChronicleDetailModalMatchesUsedLabel:
+    "Dane pobrano z {{count}} meczów.",
+  clubChronicleDetailModalMatchesDebugTitle: "Uwzględnione mecze",
+  clubChronicleDetailModalMatchesDebugMatchLabel: "Mecz {{matchId}}",
+  clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",
   appLicenseFeatureChronicleTrackingTitle: "Nielimitowane śledzenie Club Chronicle",
   appLicenseFeatureChronicleTrackingDescription:
     "Odblokuj dodatkowe karty Club Chronicle i śledź więcej drużyn na kartę. Dzięki temu możesz obserwować większe grupy rywali bez przycinania watchlisty.",

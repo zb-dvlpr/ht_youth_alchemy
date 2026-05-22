@@ -105,6 +105,11 @@ export const messagesNl: Messages = {
     "Groene rijen geven waarschijnlijke trainees aan.",
   clubChronicleLikelyTraineeLegendRegimen:
     "Waarschijnlijk trainingsregime: {{regimen}}",
+  clubChronicleDetailModalMatchesUsedLabel:
+    "Gegevens opgehaald uit {{count}} wedstrijden.",
+  clubChronicleDetailModalMatchesDebugTitle: "Meegetelde wedstrijden",
+  clubChronicleDetailModalMatchesDebugMatchLabel: "Wedstrijd {{matchId}}",
+  clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",
   appLicenseFeatureChronicleTrackingTitle: "Onbeperkte Club Chronicle-tracking",
   appLicenseFeatureChronicleTrackingDescription:
     "Ontgrendel extra Club Chronicle-tabbladen en volg meer teams per tabblad. Zo kun je grotere rivalengroepen volgen zonder je watchlist te verkleinen.",

@@ -736,6 +736,11 @@ export const messagesEs: Messages = {
       "Las filas en verde indican probables entrenados.",
     clubChronicleLikelyTraineeLegendRegimen:
       "Régimen de entrenamiento probable: {{regimen}}",
+    clubChronicleDetailModalMatchesUsedLabel:
+      "Datos obtenidos de {{count}} partidos.",
+    clubChronicleDetailModalMatchesDebugTitle: "Partidos considerados",
+    clubChronicleDetailModalMatchesDebugMatchLabel: "Partido {{matchId}}",
+    clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",
     clubChronicleLastLoginPanelTitle: "Último inicio de sesión",
     clubChronicleLastLoginColumnLatest: "Último inicio de sesión",
     clubChronicleLastLoginColumnIpAddress: "Dirección IP",

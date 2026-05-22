@@ -572,6 +572,10 @@ export type Messages = {
   clubChronicleLikelyTrainingUnclearDisclaimer: string;
   clubChronicleLikelyTraineeLegendLabel: string;
   clubChronicleLikelyTraineeLegendRegimen: string;
+  clubChronicleDetailModalMatchesUsedLabel: string;
+  clubChronicleDetailModalMatchesDebugTitle: string;
+  clubChronicleDetailModalMatchesDebugMatchLabel: string;
+  clubChronicleDetailModalMatchesDebugMeta: string;
   clubChronicleLastLoginPanelTitle: string;
   clubChronicleLastLoginColumnLatest: string;
   clubChronicleLastLoginColumnIpAddress: string;

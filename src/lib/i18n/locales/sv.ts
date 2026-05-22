@@ -730,6 +730,11 @@ export const messagesSv: Messages = {
       "Gröna rader markerar troliga traineer.",
     clubChronicleLikelyTraineeLegendRegimen:
       "Trolig träningsinriktning: {{regimen}}",
+    clubChronicleDetailModalMatchesUsedLabel:
+      "Data hämtad från {{count}} matcher.",
+    clubChronicleDetailModalMatchesDebugTitle: "Matcher som ingår",
+    clubChronicleDetailModalMatchesDebugMatchLabel: "Match {{matchId}}",
+    clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",
     clubChronicleLastLoginPanelTitle: "Senaste inloggning",
     clubChronicleLastLoginColumnLatest: "Senaste inloggning",
     clubChronicleLastLoginColumnIpAddress: "IP-adress",

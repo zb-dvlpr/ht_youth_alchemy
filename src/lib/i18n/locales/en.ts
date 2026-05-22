@@ -701,6 +701,11 @@ export const messagesEn: Messages = {
     clubChronicleLikelyTraineeLegendLabel: "Green rows indicate likely trainees.",
     clubChronicleLikelyTraineeLegendRegimen:
       "Likely training regimen: {{regimen}}",
+    clubChronicleDetailModalMatchesUsedLabel:
+      "Data retrieved from {{count}} matches.",
+    clubChronicleDetailModalMatchesDebugTitle: "Matches considered",
+    clubChronicleDetailModalMatchesDebugMatchLabel: "Match {{matchId}}",
+    clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",
     clubChronicleLastLoginPanelTitle: "Latest login",
     clubChronicleLastLoginColumnLatest: "Latest login",
     clubChronicleLastLoginColumnIpAddress: "IP address",

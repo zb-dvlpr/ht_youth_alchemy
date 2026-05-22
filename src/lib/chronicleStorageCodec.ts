@@ -189,6 +189,9 @@ const CURRENT_COMPACT_KEY_SOURCE = [
   "minutes",
   "manMarkerByPlayerId",
   "nativeLeagueIdByPlayerId",
+  "detailModalMatchSampleSize",
+  "detailModalAnalyzedMatches",
+  "detailModalDerivedDataVersion",
 ] as const;
 
 const TOKEN_ALPHABET =

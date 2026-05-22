@@ -4377,6 +4377,29 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   color: #6b6256;
 }
 
+.chronicleLegendButton {
+  appearance: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: #2f5f8f;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.chronicleLegendButton:hover {
+  color: #1f4162;
+}
+
+.chronicleLegendButton:focus-visible {
+  outline: 2px solid rgba(47, 95, 143, 0.35);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .chroniclePressModal {
   max-width: min(760px, 94vw);
   width: min(760px, 94vw);
@@ -5953,6 +5976,14 @@ html[data-theme="dark"] .chronicleLikelyTraineeSwatch {
 
 html[data-theme="dark"] .chronicleLegendText {
   color: #b9b0a5;
+}
+
+html[data-theme="dark"] .chronicleLegendButton {
+  color: #8eb7df;
+}
+
+html[data-theme="dark"] .chronicleLegendButton:hover {
+  color: #b9d2ed;
 }
 
 html[data-theme="dark"] .chronicleUpdatesRow,

@@ -726,6 +726,11 @@ export const messagesDe: Messages = {
       "Grün markierte Zeilen zeigen wahrscheinliche Trainees.",
     clubChronicleLikelyTraineeLegendRegimen:
       "Wahrscheinliches Trainingsschema: {{regimen}}",
+    clubChronicleDetailModalMatchesUsedLabel:
+      "Daten aus {{count}} Spielen ermittelt.",
+    clubChronicleDetailModalMatchesDebugTitle: "Berücksichtigte Spiele",
+    clubChronicleDetailModalMatchesDebugMatchLabel: "Spiel {{matchId}}",
+    clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",
     clubChronicleLastLoginPanelTitle: "Letzte Anmeldung",
     clubChronicleLastLoginColumnLatest: "Letzte Anmeldung",
     clubChronicleLastLoginColumnIpAddress: "IP-Adresse",

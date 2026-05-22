@@ -737,6 +737,11 @@ export const messagesPt: Messages = {
       "As linhas verdes indicam prováveis treinandos.",
     clubChronicleLikelyTraineeLegendRegimen:
       "Regime de treino provável: {{regimen}}",
+    clubChronicleDetailModalMatchesUsedLabel:
+      "Dados obtidos de {{count}} jogos.",
+    clubChronicleDetailModalMatchesDebugTitle: "Jogos considerados",
+    clubChronicleDetailModalMatchesDebugMatchLabel: "Jogo {{matchId}}",
+    clubChronicleDetailModalMatchesDebugMeta: "{{type}} · {{dateTime}}",
     clubChronicleLastLoginPanelTitle: "Último login",
     clubChronicleLastLoginColumnLatest: "Último login",
     clubChronicleLastLoginColumnIpAddress: "Endereço IP",

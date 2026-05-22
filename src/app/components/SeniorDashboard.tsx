@@ -2336,6 +2336,46 @@ const hasUsableSeniorRatingsMatrix = (
   ratings: RatingsMatrixResponse | null | undefined
 ) => hasCurrentSeniorRatingsAlgorithmVersion(ratings) && !isRatingsMatrixEmpty(ratings);
 
+const readStoredSeniorDataSnapshot = (dataStorageKey: string) => {
+  if (typeof window === "undefined") return null;
+  const rawData = window.localStorage.getItem(dataStorageKey);
+  if (!rawData) return null;
+  try {
+    const parsed = JSON.parse(rawData) as {
+      players?: unknown;
+      matchesState?: MatchesResponse;
+      ratingsResponse?: RatingsMatrixResponse | null;
+      latestFetchedRatingsResponse?: RatingsMatrixResponse | null;
+      detailsCache?: Record<number, PlayerDetailCacheEntry>;
+    };
+    const restoredPlayers = normalizeSeniorPlayers(parsed.players);
+    const parsedLatestFetchedRatings =
+      parsed.latestFetchedRatingsResponse &&
+      typeof parsed.latestFetchedRatingsResponse === "object" &&
+      hasCurrentSeniorRatingsAlgorithmVersion(parsed.latestFetchedRatingsResponse)
+        ? parsed.latestFetchedRatingsResponse
+        : parsed.ratingsResponse &&
+            typeof parsed.ratingsResponse === "object" &&
+            hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
+          ? parsed.ratingsResponse
+          : null;
+    return {
+      players: restoredPlayers,
+      matchesState:
+        parsed.matchesState && typeof parsed.matchesState === "object"
+          ? parsed.matchesState
+          : {},
+      latestFetchedRatingsResponse: parsedLatestFetchedRatings,
+      detailsCache:
+        parsed.detailsCache && typeof parsed.detailsCache === "object"
+          ? parsed.detailsCache
+          : {},
+    };
+  } catch {
+    return null;
+  }
+};
+
 const stampSeniorRatingsAlgorithmVersion = (
   ratings: RatingsMatrixResponse
 ): RatingsMatrixResponse => ({
@@ -11532,19 +11572,25 @@ const refreshDetailsForPlayers = async (
 
   const handleSeniorTeamChange = (nextTeamId: number | null) => {
     if (nextTeamId === selectedSeniorTeamId) return;
+    const nextDataStorageKey = resolveScopedStorageKey(
+      DATA_STORAGE_KEY,
+      nextTeamId,
+      multiTeamEnabled
+    );
+    const nextSnapshot = readStoredSeniorDataSnapshot(nextDataStorageKey);
     staleRefreshAttemptedRef.current = false;
     setSelectedId(null);
     setAssignments({});
     setBehaviors({});
     setLoadedMatchId(null);
-    setPlayers([]);
-    setMatchesState({});
-    setLatestFetchedRatingsResponse(null);
+    setPlayers(nextSnapshot?.players ?? []);
+    setMatchesState(nextSnapshot?.matchesState ?? {});
+    setLatestFetchedRatingsResponse(nextSnapshot?.latestFetchedRatingsResponse ?? null);
     setRatingsResponse(null);
     setRatingsManualOverrideEnabled(false);
     setRatingsOverwriteManualEditsEnabled(false);
     setRatingsManualEditsByPlayerId({});
-    setDetailsCache({});
+    setDetailsCache(nextSnapshot?.detailsCache ?? {});
     setUpdatesHistory([]);
     setMatrixNewMarkers(buildEmptySeniorMatrixNewMarkers());
     setSelectedUpdatesId(null);

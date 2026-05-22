@@ -545,6 +545,7 @@ type MatchDetailsEventsResponse = {
 
 type RefreshRatingsResult = {
   ok: boolean;
+  ratingsResponseState: RatingsMatrixResponse | null;
   ratingsByPlayerId: Record<number, Record<string, number>> | null;
   positions: number[] | null;
   hiddenSpecialtyScanOk: boolean;
@@ -840,6 +841,196 @@ const cloneRatingsRecord = (
       ([, value]) => typeof value === "number" && Number.isFinite(value)
     )
   );
+};
+
+const normalizeYouthRatingsResponseState = (
+  input: unknown
+): RatingsMatrixResponse | null => {
+  if (!input || typeof input !== "object") return null;
+  const parsed = input as Partial<RatingsMatrixResponse>;
+  const positions = Array.isArray(parsed.positions)
+    ? parsed.positions
+        .map((value) => Number(value))
+        .filter((value) => Number.isFinite(value))
+    : [];
+  const players = Array.isArray(parsed.players)
+    ? parsed.players
+        .map((row): RatingsMatrixResponse["players"][number] | null => {
+          if (!row || typeof row !== "object") return null;
+          const parsedRow = row as {
+            id?: unknown;
+            name?: unknown;
+            ratings?: unknown;
+            ratingMatchIds?: unknown;
+            ratingMatchSourceSystems?: unknown;
+          };
+          const id = Number(parsedRow.id);
+          if (!Number.isFinite(id) || id <= 0) return null;
+          const ratings =
+            parsedRow.ratings && typeof parsedRow.ratings === "object"
+              ? cloneRatingsRecord(parsedRow.ratings as Record<string, number>)
+              : {};
+          const ratingMatchIds =
+            parsedRow.ratingMatchIds && typeof parsedRow.ratingMatchIds === "object"
+              ? Object.fromEntries(
+                  Object.entries(parsedRow.ratingMatchIds as Record<string, unknown>)
+                    .map(([key, value]) => {
+                      const numericValue = Number(value);
+                      return [key, numericValue] as const;
+                    })
+                    .filter(
+                      ([, value]) => Number.isFinite(value) && Number(value) > 0
+                    )
+                )
+              : {};
+          const ratingMatchSourceSystems =
+            parsedRow.ratingMatchSourceSystems &&
+            typeof parsedRow.ratingMatchSourceSystems === "object"
+              ? Object.fromEntries(
+                  Object.entries(
+                    parsedRow.ratingMatchSourceSystems as Record<string, unknown>
+                  ).filter(([, value]) => typeof value === "string" && value.length > 0)
+                ) as Record<string, string>
+              : {};
+          return {
+            id,
+            name: typeof parsedRow.name === "string" ? parsedRow.name : String(id),
+            ratings,
+            ratingMatchIds,
+            ratingMatchSourceSystems,
+          };
+        })
+        .filter(
+          (
+            row
+          ): row is RatingsMatrixResponse["players"][number] => row !== null
+        )
+    : [];
+  const matchesAnalyzed =
+    typeof parsed.matchesAnalyzed === "number" && Number.isFinite(parsed.matchesAnalyzed)
+      ? parsed.matchesAnalyzed
+      : undefined;
+  if (positions.length === 0 && players.length === 0 && matchesAnalyzed === undefined) {
+    return null;
+  }
+  return {
+    positions: positions.length > 0 ? positions : POSITION_COLUMNS,
+    players,
+    matchesAnalyzed,
+  };
+};
+
+const readStoredYouthDashboardSnapshot = (storageKey: string) => {
+  if (typeof window === "undefined") return null;
+  const raw = window.localStorage.getItem(storageKey);
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as {
+      cache?: Record<number, CachedDetails>;
+      ratingsCache?: Record<number, Record<string, number>>;
+      ratingsPositions?: number[];
+      ratingsResponseState?: RatingsMatrixResponse | null;
+      playerList?: YouthPlayer[];
+      matchesState?: MatchesResponse;
+      hiddenSpecialtyByPlayerId?: Record<number, number>;
+      hiddenSpecialtyDiscoveredMatchByPlayerId?: Record<number, number>;
+      analyzedRatingsMatchIds?: number[];
+    };
+    return {
+      cache:
+        parsed.cache && typeof parsed.cache === "object" ? parsed.cache : {},
+      ratingsCache:
+        parsed.ratingsCache && typeof parsed.ratingsCache === "object"
+          ? parsed.ratingsCache
+          : {},
+      ratingsPositions: Array.isArray(parsed.ratingsPositions)
+        ? parsed.ratingsPositions
+            .map((value) => Number(value))
+            .filter((value) => Number.isFinite(value))
+        : [],
+      ratingsResponseState: normalizeYouthRatingsResponseState(
+        parsed.ratingsResponseState
+      ),
+      playerList: Array.isArray(parsed.playerList) ? parsed.playerList : [],
+      matchesState:
+        parsed.matchesState && typeof parsed.matchesState === "object"
+          ? parsed.matchesState
+          : {},
+      hiddenSpecialtyByPlayerId:
+        parsed.hiddenSpecialtyByPlayerId &&
+        typeof parsed.hiddenSpecialtyByPlayerId === "object"
+          ? parsed.hiddenSpecialtyByPlayerId
+          : {},
+      hiddenSpecialtyDiscoveredMatchByPlayerId:
+        parsed.hiddenSpecialtyDiscoveredMatchByPlayerId &&
+        typeof parsed.hiddenSpecialtyDiscoveredMatchByPlayerId === "object"
+          ? parsed.hiddenSpecialtyDiscoveredMatchByPlayerId
+          : {},
+      analyzedRatingsMatchIds: Array.isArray(parsed.analyzedRatingsMatchIds)
+        ? parsed.analyzedRatingsMatchIds
+            .map((value) => Number(value))
+            .filter((value) => Number.isFinite(value))
+        : [],
+    };
+  } catch {
+    return null;
+  }
+};
+
+const writeStoredYouthDashboardSnapshot = (
+  storageKey: string,
+  patch: Record<string, unknown>
+) => {
+  if (typeof window === "undefined") return;
+  let existing: Record<string, unknown> = {};
+  const raw = window.localStorage.getItem(storageKey);
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw) as Record<string, unknown>;
+      if (parsed && typeof parsed === "object") {
+        existing = parsed;
+      }
+    } catch {
+      existing = {};
+    }
+  }
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify({ ...existing, ...patch }));
+  } catch {
+    // ignore persist errors
+  }
+};
+
+const countNonEmptyRatingsEntries = (
+  ratingsByPlayerId: Record<number, Record<string, number>> | null | undefined
+) =>
+  Object.values(ratingsByPlayerId ?? {}).filter(
+    (ratings) => ratings && typeof ratings === "object" && Object.keys(ratings).length > 0
+  ).length;
+
+const hasPersistableYouthRatingsData = ({
+  ratingsResponseState,
+  ratingsCache,
+}: {
+  ratingsResponseState: RatingsMatrixResponse | null;
+  ratingsCache: Record<number, Record<string, number>>;
+}) =>
+  Boolean(ratingsResponseState?.players.length) || countNonEmptyRatingsEntries(ratingsCache) > 0;
+
+type PersistedYouthRatingsSnapshot = {
+  ratingsResponseState: RatingsMatrixResponse | null;
+  ratingsCache: Record<number, Record<string, number>>;
+  ratingsPositions: number[];
+};
+
+const resolveYouthDashboardStorageKey = (
+  youthTeamId: number | null,
+  multiTeamEnabled: boolean
+) => {
+  if (multiTeamEnabled && youthTeamId) {
+    return `ya_dashboard_state_v2_${youthTeamId}`;
+  }
+  return "ya_dashboard_state_v2";
 };
 
 const buildRatingsBaselineByPlayerId = ({
@@ -1235,6 +1426,9 @@ export default function Dashboard({
   const persistedMarkersBaselineRef = useRef<PersistedYouthMarkersBaseline | null>(
     null
   );
+  const persistedRatingsSnapshotByStorageKeyRef = useRef<
+    Record<string, PersistedYouthRatingsSnapshot>
+  >({});
   const suppressNextUpdatesRecordingRef = useRef(false);
   const refreshRunSeqRef = useRef(0);
   const activeRefreshRunIdRef = useRef<number | null>(null);
@@ -1601,10 +1795,7 @@ export default function Dashboard({
     ratingsMatrixMatchHrefBuilder,
   ]);
   const storageKey = useMemo(() => {
-    if (multiTeamEnabled && activeYouthTeamId) {
-      return `ya_dashboard_state_v2_${activeYouthTeamId}`;
-    }
-    return "ya_dashboard_state_v2";
+    return resolveYouthDashboardStorageKey(activeYouthTeamId, multiTeamEnabled);
   }, [activeYouthTeamId, multiTeamEnabled]);
   const lastRefreshStorageKey = useMemo(() => {
     if (multiTeamEnabled && activeYouthTeamId) {
@@ -2266,6 +2457,7 @@ export default function Dashboard({
         tacticType?: number;
         loadedMatchId?: number | null;
         cache?: Record<number, CachedDetails>;
+        ratingsResponseState?: RatingsMatrixResponse | null;
         ratingsCache?: Record<number, Record<string, number>>;
         ratingsPositions?: number[];
         playerList?: YouthPlayer[];
@@ -2397,8 +2589,38 @@ export default function Dashboard({
           setDetails(parsed.cache[parsed.selectedId].data);
         }
       }
-      if (parsed.ratingsCache) setRatingsCache(parsed.ratingsCache);
-      if (parsed.ratingsPositions) setRatingsPositions(parsed.ratingsPositions);
+      const restoredRatingsResponseState = normalizeYouthRatingsResponseState(
+        parsed.ratingsResponseState
+      );
+      const restoredRatingsCache =
+        parsed.ratingsCache && typeof parsed.ratingsCache === "object"
+          ? parsed.ratingsCache
+          : {};
+      const restoredRatingsPositions = Array.isArray(parsed.ratingsPositions)
+        ? parsed.ratingsPositions
+        : [];
+      const restoredRatingsSnapshot: PersistedYouthRatingsSnapshot = {
+        ratingsResponseState: restoredRatingsResponseState,
+        ratingsCache: restoredRatingsCache,
+        ratingsPositions: restoredRatingsPositions,
+      };
+      const existingPersistedRatingsSnapshot =
+        persistedRatingsSnapshotByStorageKeyRef.current[storageKey] ?? null;
+      const resolvedPersistedRatingsSnapshot =
+        hasPersistableYouthRatingsData(restoredRatingsSnapshot) ||
+        !existingPersistedRatingsSnapshot ||
+        !hasPersistableYouthRatingsData(existingPersistedRatingsSnapshot)
+          ? restoredRatingsSnapshot
+          : existingPersistedRatingsSnapshot;
+      persistedRatingsSnapshotByStorageKeyRef.current[storageKey] =
+        resolvedPersistedRatingsSnapshot;
+      if (resolvedPersistedRatingsSnapshot.ratingsResponseState) {
+        setRatingsResponseState(resolvedPersistedRatingsSnapshot.ratingsResponseState);
+      } else {
+        setRatingsResponseState(null);
+      }
+      setRatingsCache(resolvedPersistedRatingsSnapshot.ratingsCache);
+      setRatingsPositions(resolvedPersistedRatingsSnapshot.ratingsPositions);
       if (parsed.playerList && (players.length === 0 || initialAuthError)) {
         setPlayerList(parsed.playerList);
       }
@@ -2631,6 +2853,22 @@ export default function Dashboard({
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (restoredStorageKey !== storageKey) return;
+    const persistedRatingsSnapshot =
+      persistedRatingsSnapshotByStorageKeyRef.current[storageKey] ?? null;
+    const currentRatingsSnapshot: PersistedYouthRatingsSnapshot = {
+      ratingsResponseState,
+      ratingsCache,
+      ratingsPositions,
+    };
+    const shouldPreservePersistedRatings =
+      !hasPersistableYouthRatingsData(currentRatingsSnapshot) &&
+      Boolean(
+        persistedRatingsSnapshot &&
+          hasPersistableYouthRatingsData(persistedRatingsSnapshot)
+      );
+    const nextRatingsSnapshot = shouldPreservePersistedRatings
+      ? persistedRatingsSnapshot
+      : currentRatingsSnapshot;
     const payload = {
       updatesSchemaVersion: YOUTH_UPDATES_SCHEMA_VERSION,
       assignments,
@@ -2647,8 +2885,9 @@ export default function Dashboard({
       tacticType,
       loadedMatchId,
       cache,
-      ratingsCache,
-      ratingsPositions,
+      ratingsResponseState: nextRatingsSnapshot.ratingsResponseState,
+      ratingsCache: nextRatingsSnapshot.ratingsCache,
+      ratingsPositions: nextRatingsSnapshot.ratingsPositions,
       playerList,
       matchesState,
       hiddenSpecialtyByPlayerId,
@@ -2668,6 +2907,7 @@ export default function Dashboard({
     };
     try {
       window.localStorage.setItem(storageKey, JSON.stringify(payload));
+      persistedRatingsSnapshotByStorageKeyRef.current[storageKey] = nextRatingsSnapshot;
     } catch {
       // ignore persist errors
     }
@@ -2676,6 +2916,7 @@ export default function Dashboard({
     cache,
     loadedMatchId,
     primaryTraining,
+    ratingsResponseState,
     ratingsCache,
     ratingsPositions,
     secondaryTraining,
@@ -2899,6 +3140,35 @@ export default function Dashboard({
       return changed ? next : prev;
     });
   }, [playerList]);
+
+  useEffect(() => {
+    if (restoredStorageKey !== storageKey) return;
+    const persistedRatingsSnapshot =
+      persistedRatingsSnapshotByStorageKeyRef.current[storageKey] ?? null;
+    if (
+      !persistedRatingsSnapshot ||
+      !hasPersistableYouthRatingsData(persistedRatingsSnapshot)
+    ) {
+      return;
+    }
+    const currentRatingsSnapshot: PersistedYouthRatingsSnapshot = {
+      ratingsResponseState,
+      ratingsCache,
+      ratingsPositions,
+    };
+    if (hasPersistableYouthRatingsData(currentRatingsSnapshot)) {
+      return;
+    }
+    setRatingsResponseState(persistedRatingsSnapshot.ratingsResponseState);
+    setRatingsCache(persistedRatingsSnapshot.ratingsCache);
+    setRatingsPositions(persistedRatingsSnapshot.ratingsPositions);
+  }, [
+    ratingsCache,
+    ratingsPositions,
+    ratingsResponseState,
+    restoredStorageKey,
+    storageKey,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -5211,7 +5481,27 @@ export default function Dashboard({
     const youthTeamId =
       typeof teamIdOverride === "number" ? teamIdOverride : resolvedYouthTeamId;
     const teamId = youthTeamId;
-      const nextPlayers = options?.playersOverride ?? playerList;
+    const nextPlayers = options?.playersOverride ?? playerList;
+    const persistRatingsSnapshotForTeam = (
+      ratingsSnapshot: PersistedYouthRatingsSnapshot
+    ) => {
+      const teamStorageKey = resolveYouthDashboardStorageKey(
+        youthTeamId,
+        multiTeamEnabled
+      );
+      const normalizedSnapshot: PersistedYouthRatingsSnapshot = {
+        ratingsResponseState: ratingsSnapshot.ratingsResponseState,
+        ratingsCache: ratingsSnapshot.ratingsCache,
+        ratingsPositions: ratingsSnapshot.ratingsPositions,
+      };
+      persistedRatingsSnapshotByStorageKeyRef.current[teamStorageKey] =
+        normalizedSnapshot;
+      writeStoredYouthDashboardSnapshot(teamStorageKey, {
+        ratingsResponseState: normalizedSnapshot.ratingsResponseState,
+        ratingsCache: normalizedSnapshot.ratingsCache,
+        ratingsPositions: normalizedSnapshot.ratingsPositions,
+      });
+    };
     try {
       setYouthRefreshStatus(messages.refreshStatusFetchingMatches, 70);
       const formatArchiveDate = (date: Date) => date.toISOString().slice(0, 10);
@@ -5236,6 +5526,7 @@ export default function Dashboard({
         setRatingsResponseState(null);
         return {
           ok: false,
+          ratingsResponseState: null,
           ratingsByPlayerId: null,
           positions: null,
           hiddenSpecialtyScanOk: false,
@@ -5280,6 +5571,7 @@ export default function Dashboard({
         setRatingsResponseState(null);
         return {
           ok: false,
+          ratingsResponseState: null,
           ratingsByPlayerId: null,
           positions: null,
           hiddenSpecialtyScanOk: false,
@@ -5294,14 +5586,15 @@ export default function Dashboard({
       const ratingsPlayers = Array.isArray(ratingsPayload?.players)
         ? ratingsPayload.players
         : [];
-      setRatingsResponseState({
+      const nextRatingsResponseState = {
         positions: ratingsPositions,
         players: ratingsPlayers,
         matchesAnalyzed:
           typeof ratingsPayload?.matchesAnalyzed === "number"
             ? ratingsPayload.matchesAnalyzed
             : undefined,
-      });
+      };
+      setRatingsResponseState(nextRatingsResponseState);
       const ratingsById = new Map<number, Record<string, number>>(
         ratingsPlayers.map((entry) => [entry.id, entry.ratings ?? {}])
       );
@@ -5319,6 +5612,11 @@ export default function Dashboard({
       // Immediately hydrate matrix source state from latest fetched ratings.
       setRatingsPositions(ratingsPositions);
       setRatingsCache(ratingsByPlayerId);
+      persistRatingsSnapshotForTeam({
+        ratingsResponseState: nextRatingsResponseState,
+        ratingsCache: ratingsByPlayerId,
+        ratingsPositions,
+      });
       const analyzedRatingsMatchIdsSet = new Set(analyzedRatingsMatchIds);
       const matchesNeedingRatingsTraversal = finishedMatches.filter(
         (match) => !analyzedRatingsMatchIdsSet.has(match._matchId)
@@ -5332,6 +5630,7 @@ export default function Dashboard({
         // Keep the freshly fetched ratings payload; skip only traversal-dependent steps.
         return {
           ok: true,
+          ratingsResponseState: nextRatingsResponseState,
           ratingsByPlayerId,
           positions: ratingsPositions,
           hiddenSpecialtyScanOk: true,
@@ -5343,6 +5642,7 @@ export default function Dashboard({
       if (!shouldTraverseRatings) {
         return {
           ok: true,
+          ratingsResponseState: nextRatingsResponseState,
           ratingsByPlayerId,
           positions: ratingsPositions,
           hiddenSpecialtyScanOk: true,
@@ -5544,6 +5844,7 @@ export default function Dashboard({
         );
         return {
           ok: true,
+          ratingsResponseState: nextRatingsResponseState,
           ratingsByPlayerId,
           positions: ratingsPositions,
           hiddenSpecialtyScanOk,
@@ -5556,6 +5857,7 @@ export default function Dashboard({
         hiddenSpecialtyScanOk = false;
         return {
           ok: true,
+          ratingsResponseState: nextRatingsResponseState,
           ratingsByPlayerId,
           positions: ratingsPositions,
           hiddenSpecialtyScanOk,
@@ -5567,6 +5869,7 @@ export default function Dashboard({
       if (error instanceof ChppAuthRequiredError) {
         return {
           ok: false,
+          ratingsResponseState: null,
           ratingsByPlayerId: null,
           positions: null,
           hiddenSpecialtyScanOk: false,
@@ -5577,6 +5880,7 @@ export default function Dashboard({
       setRatingsResponseState(null);
       return {
         ok: false,
+        ratingsResponseState: null,
         ratingsByPlayerId: null,
         positions: null,
         hiddenSpecialtyScanOk: false,
@@ -5628,6 +5932,11 @@ export default function Dashboard({
       typeof teamIdOverride === "number" || teamIdOverride === null
         ? teamIdOverride ?? resolvedYouthTeamId
         : resolvedYouthTeamId;
+    const teamStorageKey = resolveYouthDashboardStorageKey(
+      youthTeamId,
+      multiTeamEnabled
+    );
+    const storedTeamSnapshot = readStoredYouthDashboardSnapshot(teamStorageKey);
     const persistedMarkersBaseline = persistedMarkersBaselineRef.current;
     const usePersistedMarkersBaseline =
       Boolean(persistedMarkersBaseline) && refreshAll;
@@ -5668,6 +5977,7 @@ export default function Dashboard({
     );
     let ratingsResult: RefreshRatingsResult = {
       ok: true,
+      ratingsResponseState: null,
       ratingsByPlayerId: null,
       positions: null,
       hiddenSpecialtyScanOk: true,
@@ -6019,6 +6329,24 @@ export default function Dashboard({
         setLastGlobalRefreshAt(refreshedAt);
       }
       if (playersUpdated) {
+        const nextHiddenSpecialtyByPlayerId = refreshAll
+          ? ratingsResult.discoveredHiddenSpecialtyByPlayerId
+          : storedTeamSnapshot?.hiddenSpecialtyByPlayerId ?? {};
+        const nextHiddenSpecialtyDiscoveredMatchByPlayerId = refreshAll
+          ? ratingsResult.hiddenSpecialtyDiscoveredMatchByPlayerId
+          : storedTeamSnapshot?.hiddenSpecialtyDiscoveredMatchByPlayerId ?? {};
+        const nextAnalyzedRatingsMatchIds =
+          storedTeamSnapshot?.analyzedRatingsMatchIds ?? [];
+        writeStoredYouthDashboardSnapshot(teamStorageKey, {
+          playerList: nextPlayersSnapshot,
+          matchesState: refreshAll ? nextMatchesState : storedTeamSnapshot?.matchesState ?? {},
+          hiddenSpecialtyByPlayerId: nextHiddenSpecialtyByPlayerId,
+          hiddenSpecialtyDiscoveredMatchByPlayerId:
+            nextHiddenSpecialtyDiscoveredMatchByPlayerId,
+          analyzedRatingsMatchIds: nextAnalyzedRatingsMatchIds,
+        });
+      }
+      if (playersUpdated) {
         if (options?.reason === "stale") {
           addNotification(messages.notificationStaleRefresh);
         }
@@ -6108,6 +6436,20 @@ export default function Dashboard({
 
   const handleTeamChange = (nextTeamId: number | null) => {
     if (nextTeamId === selectedYouthTeamId) return;
+    const nextStorageKey = resolveYouthDashboardStorageKey(
+      nextTeamId,
+      multiTeamEnabled
+    );
+    const nextSnapshot = readStoredYouthDashboardSnapshot(nextStorageKey);
+    const nextPersistedRatingsSnapshot =
+      persistedRatingsSnapshotByStorageKeyRef.current[nextStorageKey] ?? null;
+    const nextSnapshotHasPersistableRatings = Boolean(
+      nextSnapshot && hasPersistableYouthRatingsData(nextSnapshot)
+    );
+    const preferredRatingsSnapshot =
+      nextSnapshotHasPersistableRatings || !nextPersistedRatingsSnapshot
+        ? nextSnapshot
+        : nextPersistedRatingsSnapshot;
     setSelectedYouthTeamId(nextTeamId);
     setAssignments({});
     setBehaviors({});
@@ -6120,8 +6462,8 @@ export default function Dashboard({
       mobileYouthView === "playerDetails" ? "list" : "root",
       "replace"
     );
-    setPlayerList([]);
-    setCache({});
+    setPlayerList(nextSnapshot?.playerList ?? []);
+    setCache(nextSnapshot?.cache ?? {});
     setDetails(null);
     setOrderSource(null);
     setOrderedPlayerIds(null);
@@ -6140,9 +6482,15 @@ export default function Dashboard({
     setTransferSearchDetailsById({});
     setTransferSearchBidDrafts({});
     setTransferSearchBidPendingPlayerId(null);
-    setHiddenSpecialtyByPlayerId({});
-    setHiddenSpecialtyDiscoveredMatchByPlayerId({});
-    setAnalyzedRatingsMatchIds([]);
+    setHiddenSpecialtyByPlayerId(nextSnapshot?.hiddenSpecialtyByPlayerId ?? {});
+    setHiddenSpecialtyDiscoveredMatchByPlayerId(
+      nextSnapshot?.hiddenSpecialtyDiscoveredMatchByPlayerId ?? {}
+    );
+    setRatingsResponseState(preferredRatingsSnapshot?.ratingsResponseState ?? null);
+    setRatingsCache(preferredRatingsSnapshot?.ratingsCache ?? {});
+    setRatingsPositions(preferredRatingsSnapshot?.ratingsPositions ?? []);
+    setMatchesState(nextSnapshot?.matchesState ?? {});
+    setAnalyzedRatingsMatchIds(nextSnapshot?.analyzedRatingsMatchIds ?? []);
     if (nextTeamId) {
       refreshPlayers(nextTeamId);
       refreshMatches(nextTeamId);

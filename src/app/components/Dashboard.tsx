@@ -2859,6 +2859,7 @@ export default function Dashboard({
 
   useEffect(() => {
     if (!ratingsResponseState) return;
+    if (playerList.length === 0) return;
     setRatingsPositions(ratingsResponseState.positions ?? []);
     setRatingsCache((prev) => {
       const next: Record<number, Record<string, number>> = { ...prev };
@@ -2884,6 +2885,7 @@ export default function Dashboard({
   }, [playerList, ratingsResponseState]);
 
   useEffect(() => {
+    if (playerList.length === 0) return;
     setRatingsCache((prev) => {
       const validIds = new Set(playerList.map((player) => player.YouthPlayerID));
       const next: Record<number, Record<string, number>> = {};

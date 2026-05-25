@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import AnalyticsConsentModal from "./components/AnalyticsConsentModal";
+import AnalyticsAppLoadedTracker from "./components/AnalyticsAppLoadedTracker";
 import ConsentGatedVercelAnalytics from "./components/ConsentGatedVercelAnalytics";
 import GoogleAnalytics from "./components/GoogleAnalytics";
 
@@ -30,6 +31,7 @@ export default function RootLayout({
         {children}
         <AnalyticsConsentModal />
         <GoogleAnalytics />
+        <AnalyticsAppLoadedTracker />
         <ConsentGatedVercelAnalytics />
       </body>
     </html>

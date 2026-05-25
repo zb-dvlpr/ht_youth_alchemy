@@ -146,6 +146,8 @@ export const messagesPt: Messages = {
     updateRequiredBody:
       "Esta disponivel uma nova versao do HT Alchemy. Atualiza agora para continuares a usar a app.",
     updateRequiredAction: "Atualizar",
+    changelog_5_8_0:
+      "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
       "Os HatStats (origem: Foxtrick) agora estao incluidos na analise do adversario.",
     changelog_5_6_0:
@@ -481,6 +483,19 @@ export const messagesPt: Messages = {
       "Importar watchlists CC",
     settingsGeneralChronicleWatchlistsImportHint:
       "Use a câmera nativa do seu telefone para abrir um QR exportado de watchlists do Club Chronicle.",
+    analyticsConsentModalTitle: "Analytics consent",
+    analyticsConsentModalBody:
+      "We use Google Analytics and Vercel Analytics only if you consent. This helps us understand app and feature usage so we can improve Hattrick Alchemy and prioritize useful features. We do not send names, email addresses, Hattrick tokens, player names, team names, or other directly identifying information to analytics services. Analytics data is used in aggregated form for product-improvement purposes.",
+    analyticsConsentDeniedAction: "Do not consent",
+    analyticsConsentGrantedAction: "Consent",
+    settingsAnalyticsConsentTitle: "Google Analytics consent",
+    settingsAnalyticsConsentDescription:
+      "Control whether Hattrick Alchemy may use Google Analytics and Vercel Analytics to understand app and feature usage.",
+    settingsAnalyticsConsentStatusGranted: "Current choice: Consent granted",
+    settingsAnalyticsConsentStatusDenied: "Current choice: Consent denied",
+    settingsAnalyticsConsentStatusUnset: "No choice saved",
+    settingsAnalyticsConsentGrantButton: "Consent",
+    settingsAnalyticsConsentDenyButton: "Do not consent",
     settingsChronicleQrExportTitle:
       "Exportar watchlists do Club Chronicle para mobile",
     settingsChronicleQrExportBody:

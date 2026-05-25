@@ -290,6 +290,19 @@ export const messagesNl: Messages = {
     "CC-volglijsten importeren",
   settingsGeneralChronicleWatchlistsImportHint:
     "Gebruik de native camera van je telefoon om een geëxporteerde QR-code met Club Chronicle-volglijsten te openen.",
+  analyticsConsentModalTitle: "Analytics consent",
+  analyticsConsentModalBody:
+    "We use Google Analytics and Vercel Analytics only if you consent. This helps us understand app and feature usage so we can improve Hattrick Alchemy and prioritize useful features. We do not send names, email addresses, Hattrick tokens, player names, team names, or other directly identifying information to analytics services. Analytics data is used in aggregated form for product-improvement purposes.",
+  analyticsConsentDeniedAction: "Do not consent",
+  analyticsConsentGrantedAction: "Consent",
+  settingsAnalyticsConsentTitle: "Google Analytics consent",
+  settingsAnalyticsConsentDescription:
+    "Control whether Hattrick Alchemy may use Google Analytics and Vercel Analytics to understand app and feature usage.",
+  settingsAnalyticsConsentStatusGranted: "Current choice: Consent granted",
+  settingsAnalyticsConsentStatusDenied: "Current choice: Consent denied",
+  settingsAnalyticsConsentStatusUnset: "No choice saved",
+  settingsAnalyticsConsentGrantButton: "Consent",
+  settingsAnalyticsConsentDenyButton: "Do not consent",
   settingsChronicleQrExportTitle:
     "Club Chronicle-volglijsten naar mobiel exporteren",
   settingsChronicleQrExportBody:
@@ -339,6 +352,8 @@ export const messagesNl: Messages = {
   updateRequiredBody:
     "Er is een nieuwe versie van HT Alchemy beschikbaar. Vernieuw nu om de app te blijven gebruiken.",
   updateRequiredAction: "Vernieuwen",
+  changelog_5_8_0:
+    "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
   changelog_5_7_0:
     "HatStats (bron: Foxtrick) zijn nu opgenomen in de tegenstanderanalyse.",
   changelog_5_6_0:

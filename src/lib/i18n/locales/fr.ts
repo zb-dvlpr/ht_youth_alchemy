@@ -146,6 +146,8 @@ export const messagesFr: Messages = {
     updateRequiredBody:
       "Une nouvelle version de HT Alchemy est disponible. Actualisez maintenant pour continuer a utiliser l app.",
     updateRequiredAction: "Actualiser",
+    changelog_5_8_0:
+      "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
       "Les HatStats (origine : Foxtrick) sont maintenant incluses dans l analyse de l adversaire.",
     changelog_5_6_0:
@@ -482,6 +484,19 @@ export const messagesFr: Messages = {
       "Importer les watchlists CC",
     settingsGeneralChronicleWatchlistsImportHint:
       "Utilisez l’appareil photo natif de votre téléphone pour ouvrir un QR code exporté des watchlists de Chronique du club.",
+    analyticsConsentModalTitle: "Analytics consent",
+    analyticsConsentModalBody:
+      "We use Google Analytics and Vercel Analytics only if you consent. This helps us understand app and feature usage so we can improve Hattrick Alchemy and prioritize useful features. We do not send names, email addresses, Hattrick tokens, player names, team names, or other directly identifying information to analytics services. Analytics data is used in aggregated form for product-improvement purposes.",
+    analyticsConsentDeniedAction: "Do not consent",
+    analyticsConsentGrantedAction: "Consent",
+    settingsAnalyticsConsentTitle: "Google Analytics consent",
+    settingsAnalyticsConsentDescription:
+      "Control whether Hattrick Alchemy may use Google Analytics and Vercel Analytics to understand app and feature usage.",
+    settingsAnalyticsConsentStatusGranted: "Current choice: Consent granted",
+    settingsAnalyticsConsentStatusDenied: "Current choice: Consent denied",
+    settingsAnalyticsConsentStatusUnset: "No choice saved",
+    settingsAnalyticsConsentGrantButton: "Consent",
+    settingsAnalyticsConsentDenyButton: "Do not consent",
     settingsChronicleQrExportTitle:
       "Exporter les watchlists de Chronique du club vers mobile",
     settingsChronicleQrExportBody:

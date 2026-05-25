@@ -257,6 +257,51 @@ type PersistedSeniorMarkersBaseline = {
 
 type SeniorManualRatingsEdits = Record<number, Record<string, number>>;
 
+const seniorMatchesStateHasMatches = (
+  state: MatchesResponse | null | undefined
+) => {
+  const list =
+    state?.data?.HattrickData?.MatchList?.Match ??
+    state?.data?.HattrickData?.Team?.MatchList?.Match;
+
+  if (Array.isArray(list)) return list.length > 0;
+  return Boolean(list);
+};
+
+const seniorRatingsHasCells = (
+  ratings: RatingsMatrixResponse | null | undefined
+) =>
+  Boolean(
+    ratings &&
+      Array.isArray(ratings.players) &&
+      ratings.players.some((row) => Object.keys(row.ratings ?? {}).length > 0)
+  );
+
+const seniorDataSnapshotHasUsefulData = (snapshot: {
+  players?: SeniorPlayer[];
+  matchesState?: MatchesResponse;
+  ratingsResponse?: RatingsMatrixResponse | null;
+  latestFetchedRatingsResponse?: RatingsMatrixResponse | null;
+  fetchedRatingsResponse?: RatingsMatrixResponse | null;
+  detailsCache?: Record<number, PlayerDetailCacheEntry>;
+}) => {
+  const playersCount = Array.isArray(snapshot.players) ? snapshot.players.length : 0;
+
+  const detailsCacheCount =
+    snapshot.detailsCache && typeof snapshot.detailsCache === "object"
+      ? Object.keys(snapshot.detailsCache).length
+      : 0;
+
+  return (
+    playersCount > 0 ||
+    seniorMatchesStateHasMatches(snapshot.matchesState) ||
+    seniorRatingsHasCells(snapshot.ratingsResponse) ||
+    seniorRatingsHasCells(snapshot.latestFetchedRatingsResponse) ||
+    seniorRatingsHasCells(snapshot.fetchedRatingsResponse) ||
+    detailsCacheCount > 0
+  );
+};
+
 type SeniorDashboardProps = {
   messages: Messages;
   initialSeniorTeams?: Array<{
@@ -3662,6 +3707,9 @@ export default function SeniorDashboard({
   >(null);
   const restoredStateStorageKeyRef = useRef<string | null>(null);
   const restoredDataStorageKeyRef = useRef<string | null>(null);
+  const seniorTeamHydratingRef = useRef(false);
+  const seniorTeamHydrationKeyRef = useRef<string | null>(null);
+  const seniorTeamHydrationReleaseTimeoutRef = useRef<number | null>(null);
 
   const selectedPlayer =
     selectedId !== null
@@ -3714,6 +3762,99 @@ export default function SeniorDashboard({
         multiTeamEnabled
       ),
     [activeSeniorTeamId, multiTeamEnabled]
+  );
+
+  const buildSeniorStatePersistPayload = () => ({
+    updatesSchemaVersion: SENIOR_UPDATES_SCHEMA_VERSION,
+    selectedId,
+    assignments,
+    behaviors,
+    loadedMatchId,
+    seniorAiSubmitLockActive,
+    seniorAiSubmitEnabledMatchId,
+    seniorAiPreparedSubmissionMode,
+    seniorAiManMarkingReadyContext,
+    tacticType,
+    trainingType,
+    setBestLineupFixedFormation,
+    ignoreTrainingFormationPolicy,
+    includeTournamentMatches,
+    updatesHistory,
+    matrixNewMarkers,
+    selectedUpdatesId,
+    activeDetailsTab,
+    mobileSeniorView,
+    mobileSeniorPlayerScreen,
+    mobileSeniorMenuPosition,
+    showSeniorSkillBonusInMatrix,
+    extraTimeBTeamEnabled,
+    extraTimeBTeamMinutesThreshold,
+    seniorAiLastMatchWeeksThreshold,
+    seniorAiManMarkingFuzziness,
+    seniorAiManMarkingEnabled,
+    seniorAiManMarkingTarget,
+    extraTimeSelectedPlayerIds,
+    extraTimeMatrixTrainingType,
+    extraTimeMatrixTrainingTypeManual,
+    trainingAwareSelectedPlayerIds,
+    trainingAwarePreparedTraineeIds,
+    trainingAwareMatrixTrainingType,
+    trainingAwareMatrixTrainingTypeManual,
+    orderedPlayerIds,
+    orderSource,
+    ratingsManualOverrideEnabled,
+    ratingsOverwriteManualEditsEnabled,
+    ratingsManualEditsByPlayerId,
+    transferSearchModalOpen,
+    transferSearchSourcePlayerId,
+    transferSearchFilters,
+    transferSearchResults,
+    transferSearchItemCount,
+    transferSearchSortKey,
+    transferSearchResultsViewMode,
+    transferSearchUsedFallback,
+    transferSearchExactEmpty,
+    transferSearchBidDrafts,
+  });
+
+  const buildSeniorDataPersistencePayload = useCallback(
+    () => ({
+      players,
+      matchesState,
+      ratingsResponse,
+      latestFetchedRatingsResponse,
+      detailsCache,
+    }),
+    [players, matchesState, ratingsResponse, latestFetchedRatingsResponse, detailsCache]
+  );
+
+  const persistSeniorDataSnapshot = useCallback(
+    (
+      reason: string,
+      options?: {
+        allowEmpty?: boolean;
+        keyOverride?: string;
+        payloadOverride?: ReturnType<typeof buildSeniorDataPersistencePayload>;
+      }
+    ) => {
+      if (typeof window === "undefined") return false;
+
+      const targetKey = options?.keyOverride ?? dataStorageKey;
+      const payload =
+        options?.payloadOverride ?? buildSeniorDataPersistencePayload();
+
+      if (!options?.allowEmpty && !seniorDataSnapshotHasUsefulData(payload)) {
+        return false;
+      }
+
+      try {
+        window.localStorage.setItem(targetKey, JSON.stringify(payload));
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [dataStorageKey, buildSeniorDataPersistencePayload]
   );
 
   useEffect(() => {
@@ -10775,13 +10916,12 @@ const refreshDetailsForPlayers = async (
     premiumUnlocked && ratingsManualOverrideEnabled;
 
   useEffect(() => {
-    setRatingsResponse(
-      buildEffectiveSeniorRatingsResponse(
-        latestFetchedRatingsResponse,
-        ratingsManualEditsByPlayerId,
-        players
-      )
+    const nextRatingsResponse = buildEffectiveSeniorRatingsResponse(
+      latestFetchedRatingsResponse,
+      ratingsManualEditsByPlayerId,
+      players
     );
+    setRatingsResponse(nextRatingsResponse);
   }, [latestFetchedRatingsResponse, players, ratingsManualEditsByPlayerId]);
 
   const playerNameById = useMemo(() => {
@@ -11325,6 +11465,17 @@ const refreshDetailsForPlayers = async (
         if (!Number.isFinite(parsedId)) return;
         nextDetailsById.set(parsedId, detail);
       });
+      const nextDetailsCache: Record<number, PlayerDetailCacheEntry> = {
+        ...detailsCache,
+      };
+      Object.entries(detailsRefreshed).forEach(([id, detail]) => {
+        const parsedId = Number(id);
+        if (!Number.isFinite(parsedId)) return;
+        nextDetailsCache[parsedId] = {
+          data: detail,
+          fetchedAt: Date.now(),
+        };
+      });
 
       if (isStartup) {
         setStartupLoadingPhase("matches");
@@ -11475,6 +11626,22 @@ const refreshDetailsForPlayers = async (
         persistedMarkersBaselineRef.current = null;
       }
 
+      const refreshedRatingsResponse = buildEffectiveSeniorRatingsResponse(
+        nextRatings,
+        ratingsManualEditsByPlayerId,
+        nextPlayers
+      );
+      const refreshedDataPayload = {
+        players: nextPlayers,
+        matchesState: nextMatches,
+        ratingsResponse: refreshedRatingsResponse,
+        latestFetchedRatingsResponse: nextRatings,
+        detailsCache: nextDetailsCache,
+      };
+      persistSeniorDataSnapshot("refresh-success", {
+        payloadOverride: refreshedDataPayload,
+      });
+
       const refreshedAt = Date.now();
       writeStoredLastRefresh(refreshedAt, lastRefreshStorageKey);
       setLastRefreshAt(refreshedAt);
@@ -11532,6 +11699,7 @@ const refreshDetailsForPlayers = async (
 
   const handleSeniorTeamChange = (nextTeamId: number | null) => {
     if (nextTeamId === selectedSeniorTeamId) return;
+    persistSeniorDataSnapshot("before-team-switch");
     staleRefreshAttemptedRef.current = false;
     setSelectedId(null);
     setAssignments({});
@@ -13428,6 +13596,12 @@ const refreshDetailsForPlayers = async (
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    seniorTeamHydratingRef.current = true;
+    seniorTeamHydrationKeyRef.current = dataStorageKey;
+    if (seniorTeamHydrationReleaseTimeoutRef.current !== null) {
+      window.clearTimeout(seniorTeamHydrationReleaseTimeoutRef.current);
+      seniorTeamHydrationReleaseTimeoutRef.current = null;
+    }
     restoredStateStorageKeyRef.current = null;
     restoredDataStorageKeyRef.current = null;
     setStateRestored(false);
@@ -13855,11 +14029,13 @@ const refreshDetailsForPlayers = async (
 
       const rawData = window.localStorage.getItem(dataStorageKey);
       let restoredPlayersCount = 0;
+      let restoredRatings: RatingsMatrixResponse | null = null;
       if (rawData) {
         try {
           const parsed = JSON.parse(rawData) as {
             players?: unknown;
             matchesState?: MatchesResponse;
+            fetchedRatingsResponse?: RatingsMatrixResponse | null;
             ratingsResponse?: RatingsMatrixResponse | null;
             latestFetchedRatingsResponse?: RatingsMatrixResponse | null;
             detailsCache?: Record<number, PlayerDetailCacheEntry>;
@@ -13873,15 +14049,20 @@ const refreshDetailsForPlayers = async (
             setMatchesState(parsed.matchesState);
           }
           const parsedLatestFetchedRatings =
-            parsed.latestFetchedRatingsResponse &&
-            typeof parsed.latestFetchedRatingsResponse === "object" &&
-            hasCurrentSeniorRatingsAlgorithmVersion(parsed.latestFetchedRatingsResponse)
-              ? parsed.latestFetchedRatingsResponse
-              : parsed.ratingsResponse &&
-                  typeof parsed.ratingsResponse === "object" &&
-                  hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
-                ? parsed.ratingsResponse
-                : null;
+            parsed.fetchedRatingsResponse &&
+            typeof parsed.fetchedRatingsResponse === "object" &&
+            hasCurrentSeniorRatingsAlgorithmVersion(parsed.fetchedRatingsResponse)
+              ? parsed.fetchedRatingsResponse
+              : parsed.latestFetchedRatingsResponse &&
+                  typeof parsed.latestFetchedRatingsResponse === "object" &&
+                  hasCurrentSeniorRatingsAlgorithmVersion(parsed.latestFetchedRatingsResponse)
+                ? parsed.latestFetchedRatingsResponse
+                : parsed.ratingsResponse &&
+                    typeof parsed.ratingsResponse === "object" &&
+                    hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
+                  ? parsed.ratingsResponse
+                  : null;
+          restoredRatings = parsedLatestFetchedRatings;
           if (parsedLatestFetchedRatings) {
             setLatestFetchedRatingsResponse(parsedLatestFetchedRatings);
           }
@@ -13909,9 +14090,12 @@ const refreshDetailsForPlayers = async (
       setLastRefreshAt(readStoredLastRefresh(lastRefreshStorageKey));
       setStalenessDays(readSeniorStalenessDays());
       const lastRefresh = readStoredLastRefresh(lastRefreshStorageKey);
+      const restoredRatingsUsable = seniorRatingsHasCells(restoredRatings);
       const shouldRefresh =
-        !lastRefresh || Date.now() - lastRefresh >= readSeniorStalenessDays() * 24 * 60 * 60 * 1000;
-      const shouldBootstrap = restoredPlayersCount === 0;
+        !restoredRatingsUsable ||
+        !lastRefresh ||
+        Date.now() - lastRefresh >= readSeniorStalenessDays() * 24 * 60 * 60 * 1000;
+      const shouldBootstrap = restoredPlayersCount === 0 || !restoredRatingsUsable;
       if (shouldBootstrap) {
         suppressNextUpdatesRecordingRef.current = true;
       }
@@ -13927,6 +14111,39 @@ const refreshDetailsForPlayers = async (
       setDataRestored(true);
     }
   }, [dataStorageKey, lastRefreshStorageKey, listSortStorageKey, stateStorageKey]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!seniorTeamHydratingRef.current) return;
+    if (seniorTeamHydrationKeyRef.current !== dataStorageKey) return;
+    if (!dataRestored || !stateRestored) return;
+
+    if (seniorTeamHydrationReleaseTimeoutRef.current !== null) {
+      window.clearTimeout(seniorTeamHydrationReleaseTimeoutRef.current);
+    }
+
+    seniorTeamHydrationReleaseTimeoutRef.current = window.setTimeout(() => {
+      seniorTeamHydratingRef.current = false;
+      seniorTeamHydrationKeyRef.current = null;
+      seniorTeamHydrationReleaseTimeoutRef.current = null;
+    }, 0);
+
+    return () => {
+      if (seniorTeamHydrationReleaseTimeoutRef.current !== null) {
+        window.clearTimeout(seniorTeamHydrationReleaseTimeoutRef.current);
+        seniorTeamHydrationReleaseTimeoutRef.current = null;
+      }
+    };
+  }, [
+    dataStorageKey,
+    dataRestored,
+    stateRestored,
+    players,
+    matchesState,
+    ratingsResponse,
+    latestFetchedRatingsResponse,
+    detailsCache,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -13970,7 +14187,16 @@ const refreshDetailsForPlayers = async (
       window.removeEventListener(SENIOR_SETTINGS_EVENT, handle);
       window.removeEventListener(SENIOR_RATINGS_WIPE_EVENT, handleWipeRatingsMatrix);
     };
-  }, [lastRefreshStorageKey, players]);
+  }, [
+    activeSeniorTeamId,
+    dataStorageKey,
+    lastRefreshStorageKey,
+    latestFetchedRatingsResponse,
+    players,
+    ratingsManualEditsByPlayerId,
+    ratingsResponse,
+    stateStorageKey,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -14026,58 +14252,7 @@ const refreshDetailsForPlayers = async (
     if (typeof window === "undefined") return;
     if (!stateRestored) return;
     if (restoredStateStorageKeyRef.current !== stateStorageKey) return;
-    const payload = {
-      updatesSchemaVersion: SENIOR_UPDATES_SCHEMA_VERSION,
-      selectedId,
-      assignments,
-      behaviors,
-      loadedMatchId,
-      seniorAiSubmitLockActive,
-      seniorAiSubmitEnabledMatchId,
-      seniorAiPreparedSubmissionMode,
-      seniorAiManMarkingReadyContext,
-      tacticType,
-      trainingType,
-      setBestLineupFixedFormation,
-      ignoreTrainingFormationPolicy,
-      includeTournamentMatches,
-      updatesHistory,
-      matrixNewMarkers,
-      selectedUpdatesId,
-      activeDetailsTab,
-      mobileSeniorView,
-      mobileSeniorPlayerScreen,
-      mobileSeniorMenuPosition,
-      showSeniorSkillBonusInMatrix,
-      extraTimeBTeamEnabled,
-      extraTimeBTeamMinutesThreshold,
-      seniorAiLastMatchWeeksThreshold,
-      seniorAiManMarkingFuzziness,
-      seniorAiManMarkingEnabled,
-      seniorAiManMarkingTarget,
-      extraTimeSelectedPlayerIds,
-      extraTimeMatrixTrainingType,
-      extraTimeMatrixTrainingTypeManual,
-      trainingAwareSelectedPlayerIds,
-      trainingAwarePreparedTraineeIds,
-      trainingAwareMatrixTrainingType,
-      trainingAwareMatrixTrainingTypeManual,
-      orderedPlayerIds,
-      orderSource,
-      ratingsManualOverrideEnabled,
-      ratingsOverwriteManualEditsEnabled,
-      ratingsManualEditsByPlayerId,
-      transferSearchModalOpen,
-      transferSearchSourcePlayerId,
-      transferSearchFilters,
-      transferSearchResults,
-      transferSearchItemCount,
-      transferSearchSortKey,
-      transferSearchResultsViewMode,
-      transferSearchUsedFallback,
-      transferSearchExactEmpty,
-      transferSearchBidDrafts,
-    };
+    const payload = buildSeniorStatePersistPayload();
     try {
       window.localStorage.setItem(stateStorageKey, JSON.stringify(payload));
     } catch {
@@ -14168,18 +14343,12 @@ const refreshDetailsForPlayers = async (
     if (typeof window === "undefined") return;
     if (!dataRestored) return;
     if (restoredDataStorageKeyRef.current !== dataStorageKey) return;
-    const payload = {
-      players,
-      matchesState,
-      ratingsResponse,
-      latestFetchedRatingsResponse,
-      detailsCache,
-    };
-    try {
-      window.localStorage.setItem(dataStorageKey, JSON.stringify(payload));
-    } catch {
-      // ignore persist errors
-    }
+    if (seniorTeamHydratingRef.current) return;
+    if (seniorTeamHydrationKeyRef.current === dataStorageKey) return;
+    const payload = buildSeniorDataPersistencePayload();
+    persistSeniorDataSnapshot("data-persistence-effect", {
+      payloadOverride: payload,
+    });
   }, [
     dataRestored,
     dataStorageKey,
@@ -14188,6 +14357,8 @@ const refreshDetailsForPlayers = async (
     matchesState,
     players,
     ratingsResponse,
+    persistSeniorDataSnapshot,
+    buildSeniorDataPersistencePayload,
   ]);
 
   useEffect(() => {

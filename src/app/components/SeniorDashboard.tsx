@@ -403,6 +403,51 @@ const readAndParseLocalStorageItem = (key: string) => {
   }
 };
 
+const seniorMatchesStateHasMatches = (
+  state: MatchesResponse | null | undefined
+) => {
+  const list =
+    state?.data?.HattrickData?.MatchList?.Match ??
+    state?.data?.HattrickData?.Team?.MatchList?.Match;
+
+  if (Array.isArray(list)) return list.length > 0;
+  return Boolean(list);
+};
+
+const seniorRatingsHasCells = (
+  ratings: RatingsMatrixResponse | null | undefined
+) =>
+  Boolean(
+    ratings &&
+      Array.isArray(ratings.players) &&
+      ratings.players.some((row) => Object.keys(row.ratings ?? {}).length > 0)
+  );
+
+const seniorDataSnapshotHasUsefulData = (snapshot: {
+  players?: SeniorPlayer[];
+  matchesState?: MatchesResponse;
+  ratingsResponse?: RatingsMatrixResponse | null;
+  latestFetchedRatingsResponse?: RatingsMatrixResponse | null;
+  fetchedRatingsResponse?: RatingsMatrixResponse | null;
+  detailsCache?: Record<number, PlayerDetailCacheEntry>;
+}) => {
+  const playersCount = Array.isArray(snapshot.players) ? snapshot.players.length : 0;
+
+  const detailsCacheCount =
+    snapshot.detailsCache && typeof snapshot.detailsCache === "object"
+      ? Object.keys(snapshot.detailsCache).length
+      : 0;
+
+  return (
+    playersCount > 0 ||
+    seniorMatchesStateHasMatches(snapshot.matchesState) ||
+    seniorRatingsHasCells(snapshot.ratingsResponse) ||
+    seniorRatingsHasCells(snapshot.latestFetchedRatingsResponse) ||
+    seniorRatingsHasCells(snapshot.fetchedRatingsResponse) ||
+    detailsCacheCount > 0
+  );
+};
+
 const safeJsonStringifyForSeniorDebug = (value: unknown): string => {
   const seen = new WeakSet<object>();
 
@@ -3851,6 +3896,9 @@ export default function SeniorDashboard({
   const seniorTeamSwitchDebugTransactionSeqRef = useRef(0);
   const seniorTeamSwitchPostRestoreLoggedTxRef = useRef<number | null>(null);
   const seniorRefreshDebugLoggedRunIdsRef = useRef<Set<number>>(new Set());
+  const seniorTeamHydratingRef = useRef(false);
+  const seniorTeamHydrationKeyRef = useRef<string | null>(null);
+  const seniorTeamHydrationReleaseTimeoutRef = useRef<number | null>(null);
 
   const selectedPlayer =
     selectedId !== null
@@ -4016,13 +4064,54 @@ export default function SeniorDashboard({
     transferSearchBidDrafts,
   });
 
-  const buildSeniorDataPersistPayload = () => ({
-    players,
-    matchesState,
-    ratingsResponse,
-    latestFetchedRatingsResponse,
-    detailsCache,
-  });
+  const buildSeniorDataPersistencePayload = useCallback(
+    () => ({
+      players,
+      matchesState,
+      ratingsResponse,
+      latestFetchedRatingsResponse,
+      detailsCache,
+    }),
+    [players, matchesState, ratingsResponse, latestFetchedRatingsResponse, detailsCache]
+  );
+
+  const persistSeniorDataSnapshot = useCallback(
+    (
+      reason: string,
+      options?: {
+        allowEmpty?: boolean;
+        keyOverride?: string;
+        payloadOverride?: ReturnType<typeof buildSeniorDataPersistencePayload>;
+      }
+    ) => {
+      if (typeof window === "undefined") return false;
+
+      const targetKey = options?.keyOverride ?? dataStorageKey;
+      const payload =
+        options?.payloadOverride ?? buildSeniorDataPersistencePayload();
+
+      if (!options?.allowEmpty && !seniorDataSnapshotHasUsefulData(payload)) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn(
+            `[SeniorDataPersistence] Skipped empty senior data snapshot write (${reason})`,
+            {
+              targetKey,
+              payload,
+            }
+          );
+        }
+        return false;
+      }
+
+      try {
+        window.localStorage.setItem(targetKey, JSON.stringify(payload));
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [dataStorageKey, buildSeniorDataPersistencePayload]
+  );
 
   const buildSeniorInMemorySnapshot = () => ({
     playersCount: players.length,
@@ -4038,7 +4127,7 @@ export default function SeniorDashboard({
     if (!transaction) return;
     if (typeof window === "undefined") return;
 
-    const dataPayload = buildSeniorDataPersistPayload();
+    const dataPayload = buildSeniorDataPersistencePayload();
     const statePayload = buildSeniorStatePersistPayload();
     seniorTeamSwitchDebugFlatLog(
       `EXPLICIT PERSIST CURRENT TEAM BEFORE WRITE ${
@@ -4055,12 +4144,9 @@ export default function SeniorDashboard({
         localStorageStateBeforeWrite: readAndSummarizeLocalStorageItem(stateStorageKey),
       }
     );
-    try {
-      window.localStorage.setItem(dataStorageKey, JSON.stringify(dataPayload));
-      window.localStorage.setItem(stateStorageKey, JSON.stringify(statePayload));
-    } catch {
-      // ignore debug snapshot persist errors
-    }
+    const didPersistData = persistSeniorDataSnapshot("before-team-switch", {
+      payloadOverride: dataPayload,
+    });
     seniorTeamSwitchDebugFlatLog(
       `EXPLICIT PERSIST CURRENT TEAM AFTER WRITE ${
         activeSeniorTeamId ?? selectedSeniorTeamId ?? "null"
@@ -4069,6 +4155,7 @@ export default function SeniorDashboard({
         teamId: activeSeniorTeamId ?? selectedSeniorTeamId ?? null,
         dataKey: dataStorageKey,
         stateKey: stateStorageKey,
+        didPersistData,
         dataPayload,
         dataPayloadSummary: summarizeSeniorDataSnapshot(dataPayload),
         statePayload,
@@ -11850,6 +11937,17 @@ const refreshDetailsForPlayers = async (
         if (!Number.isFinite(parsedId)) return;
         nextDetailsById.set(parsedId, detail);
       });
+      const nextDetailsCache: Record<number, PlayerDetailCacheEntry> = {
+        ...detailsCache,
+      };
+      Object.entries(detailsRefreshed).forEach(([id, detail]) => {
+        const parsedId = Number(id);
+        if (!Number.isFinite(parsedId)) return;
+        nextDetailsCache[parsedId] = {
+          data: detail,
+          fetchedAt: Date.now(),
+        };
+      });
 
       if (isStartup) {
         setStartupLoadingPhase("matches");
@@ -12047,6 +12145,22 @@ const refreshDetailsForPlayers = async (
         persistedMarkersBaselineRef.current = null;
       }
 
+      const refreshedRatingsResponse = buildEffectiveSeniorRatingsResponse(
+        nextRatings,
+        ratingsManualEditsByPlayerId,
+        nextPlayers
+      );
+      const refreshedDataPayload = {
+        players: nextPlayers,
+        matchesState: nextMatches,
+        ratingsResponse: refreshedRatingsResponse,
+        latestFetchedRatingsResponse: nextRatings,
+        detailsCache: nextDetailsCache,
+      };
+      persistSeniorDataSnapshot("refresh-success", {
+        payloadOverride: refreshedDataPayload,
+      });
+
       const refreshedAt = Date.now();
       writeStoredLastRefresh(refreshedAt, lastRefreshStorageKey);
       setLastRefreshAt(refreshedAt);
@@ -12066,26 +12180,10 @@ const refreshDetailsForPlayers = async (
       );
       refreshCompletionSnapshot = {
         playersCount: nextPlayers.length,
-        displayedEffectiveRatingsSummary: summarizeRatingsMatrix(
-          buildEffectiveSeniorRatingsResponse(
-            nextRatings,
-            ratingsManualEditsByPlayerId,
-            nextPlayers
-          )
-        ),
+        displayedEffectiveRatingsSummary: summarizeRatingsMatrix(refreshedRatingsResponse),
         fetchedCanonicalRatingsSummary: summarizeRatingsMatrix(nextRatings),
-        detailsCacheCount: Object.keys(detailsCache).length,
-        expectedDataPayload: summarizeSeniorDataSnapshot({
-          players: nextPlayers,
-          matchesState: nextMatches,
-          ratingsResponse: buildEffectiveSeniorRatingsResponse(
-            nextRatings,
-            ratingsManualEditsByPlayerId,
-            nextPlayers
-          ),
-          latestFetchedRatingsResponse: nextRatings,
-          detailsCache,
-        }),
+        detailsCacheCount: Object.keys(nextDetailsCache).length,
+        expectedDataPayload: summarizeSeniorDataSnapshot(refreshedDataPayload),
       };
       refreshSucceeded = true;
       return true;
@@ -12223,6 +12321,7 @@ const refreshDetailsForPlayers = async (
     } else {
       seniorTeamSwitchDebugTransactionRef.current = null;
     }
+    persistSeniorDataSnapshot("before-team-switch");
     staleRefreshAttemptedRef.current = false;
     setSelectedId(null);
     setAssignments({});
@@ -14155,6 +14254,12 @@ const refreshDetailsForPlayers = async (
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    seniorTeamHydratingRef.current = true;
+    seniorTeamHydrationKeyRef.current = dataStorageKey;
+    if (seniorTeamHydrationReleaseTimeoutRef.current !== null) {
+      window.clearTimeout(seniorTeamHydrationReleaseTimeoutRef.current);
+      seniorTeamHydrationReleaseTimeoutRef.current = null;
+    }
     restoredStateStorageKeyRef.current = null;
     restoredDataStorageKeyRef.current = null;
     setStateRestored(false);
@@ -14652,11 +14757,13 @@ const refreshDetailsForPlayers = async (
 
       const rawData = window.localStorage.getItem(dataStorageKey);
       let restoredPlayersCount = 0;
+      let restoredRatings: RatingsMatrixResponse | null = null;
       if (rawData) {
         try {
           const parsed = JSON.parse(rawData) as {
             players?: unknown;
             matchesState?: MatchesResponse;
+            fetchedRatingsResponse?: RatingsMatrixResponse | null;
             ratingsResponse?: RatingsMatrixResponse | null;
             latestFetchedRatingsResponse?: RatingsMatrixResponse | null;
             detailsCache?: Record<number, PlayerDetailCacheEntry>;
@@ -14670,15 +14777,20 @@ const refreshDetailsForPlayers = async (
             setMatchesState(parsed.matchesState);
           }
           const parsedLatestFetchedRatings =
-            parsed.latestFetchedRatingsResponse &&
-            typeof parsed.latestFetchedRatingsResponse === "object" &&
-            hasCurrentSeniorRatingsAlgorithmVersion(parsed.latestFetchedRatingsResponse)
-              ? parsed.latestFetchedRatingsResponse
-              : parsed.ratingsResponse &&
-                  typeof parsed.ratingsResponse === "object" &&
-                  hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
-                ? parsed.ratingsResponse
-                : null;
+            parsed.fetchedRatingsResponse &&
+            typeof parsed.fetchedRatingsResponse === "object" &&
+            hasCurrentSeniorRatingsAlgorithmVersion(parsed.fetchedRatingsResponse)
+              ? parsed.fetchedRatingsResponse
+              : parsed.latestFetchedRatingsResponse &&
+                  typeof parsed.latestFetchedRatingsResponse === "object" &&
+                  hasCurrentSeniorRatingsAlgorithmVersion(parsed.latestFetchedRatingsResponse)
+                ? parsed.latestFetchedRatingsResponse
+                : parsed.ratingsResponse &&
+                    typeof parsed.ratingsResponse === "object" &&
+                    hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
+                  ? parsed.ratingsResponse
+                  : null;
+          restoredRatings = parsedLatestFetchedRatings;
           if (shouldLogThisRestore) {
             seniorTeamSwitchDebugFlatLog(`RESTORE RAW DATA team=${activeSeniorTeamId ?? "null"}`, {
               dataStorageKey,
@@ -14687,16 +14799,20 @@ const refreshDetailsForPlayers = async (
               parsedData: parsed,
               parsedDataSummary: summarizeSeniorDataSnapshot(parsed),
               selectedRatingsFieldForRestoration:
-                parsed.latestFetchedRatingsResponse &&
-                typeof parsed.latestFetchedRatingsResponse === "object" &&
-                hasCurrentSeniorRatingsAlgorithmVersion(parsed.latestFetchedRatingsResponse)
-                  ? "latestFetchedRatingsResponse"
-                  : parsed.ratingsResponse &&
-                      typeof parsed.ratingsResponse === "object" &&
-                      hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
-                    ? "ratingsResponse"
-                    : "none",
-              candidateFetchedRatingsResponse: null,
+                parsed.fetchedRatingsResponse &&
+                typeof parsed.fetchedRatingsResponse === "object" &&
+                hasCurrentSeniorRatingsAlgorithmVersion(parsed.fetchedRatingsResponse)
+                  ? "fetchedRatingsResponse"
+                  : parsed.latestFetchedRatingsResponse &&
+                      typeof parsed.latestFetchedRatingsResponse === "object" &&
+                      hasCurrentSeniorRatingsAlgorithmVersion(parsed.latestFetchedRatingsResponse)
+                    ? "latestFetchedRatingsResponse"
+                    : parsed.ratingsResponse &&
+                        typeof parsed.ratingsResponse === "object" &&
+                        hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
+                      ? "ratingsResponse"
+                      : "none",
+              candidateFetchedRatingsResponse: parsed.fetchedRatingsResponse ?? null,
               candidateLatestFetchedRatingsResponse:
                 parsed.latestFetchedRatingsResponse ?? null,
               candidateRatingsResponse: parsed.ratingsResponse ?? null,
@@ -14774,9 +14890,12 @@ const refreshDetailsForPlayers = async (
       setLastRefreshAt(readStoredLastRefresh(lastRefreshStorageKey));
       setStalenessDays(readSeniorStalenessDays());
       const lastRefresh = readStoredLastRefresh(lastRefreshStorageKey);
+      const restoredRatingsUsable = seniorRatingsHasCells(restoredRatings);
       const shouldRefresh =
-        !lastRefresh || Date.now() - lastRefresh >= readSeniorStalenessDays() * 24 * 60 * 60 * 1000;
-      const shouldBootstrap = restoredPlayersCount === 0;
+        !restoredRatingsUsable ||
+        !lastRefresh ||
+        Date.now() - lastRefresh >= readSeniorStalenessDays() * 24 * 60 * 60 * 1000;
+      const shouldBootstrap = restoredPlayersCount === 0 || !restoredRatingsUsable;
       if (shouldBootstrap) {
         suppressNextUpdatesRecordingRef.current = true;
       }
@@ -14803,6 +14922,39 @@ const refreshDetailsForPlayers = async (
       setDataRestored(true);
     }
   }, [dataStorageKey, lastRefreshStorageKey, listSortStorageKey, stateStorageKey]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!seniorTeamHydratingRef.current) return;
+    if (seniorTeamHydrationKeyRef.current !== dataStorageKey) return;
+    if (!dataRestored || !stateRestored) return;
+
+    if (seniorTeamHydrationReleaseTimeoutRef.current !== null) {
+      window.clearTimeout(seniorTeamHydrationReleaseTimeoutRef.current);
+    }
+
+    seniorTeamHydrationReleaseTimeoutRef.current = window.setTimeout(() => {
+      seniorTeamHydratingRef.current = false;
+      seniorTeamHydrationKeyRef.current = null;
+      seniorTeamHydrationReleaseTimeoutRef.current = null;
+    }, 0);
+
+    return () => {
+      if (seniorTeamHydrationReleaseTimeoutRef.current !== null) {
+        window.clearTimeout(seniorTeamHydrationReleaseTimeoutRef.current);
+        seniorTeamHydrationReleaseTimeoutRef.current = null;
+      }
+    };
+  }, [
+    dataStorageKey,
+    dataRestored,
+    stateRestored,
+    players,
+    matchesState,
+    ratingsResponse,
+    latestFetchedRatingsResponse,
+    detailsCache,
+  ]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -15120,7 +15272,39 @@ const refreshDetailsForPlayers = async (
       }
       return;
     }
-    const payload = buildSeniorDataPersistPayload();
+    if (seniorTeamHydratingRef.current) {
+      if (shouldLogDataPersist) {
+        seniorTeamSwitchDebugFlatLog(
+          `DATA PERSIST EFFECT EARLY RETURN team=${activeSeniorTeamId ?? "null"}`,
+          {
+            reason: "seniorTeamHydratingRef active",
+            activeSeniorTeamId,
+            selectedSeniorTeamId,
+            dataStorageKey,
+            restoredDataStorageKeyRefCurrent: restoredDataStorageKeyRef.current,
+            dataRestored,
+          }
+        );
+      }
+      return;
+    }
+    if (seniorTeamHydrationKeyRef.current === dataStorageKey) {
+      if (shouldLogDataPersist) {
+        seniorTeamSwitchDebugFlatLog(
+          `DATA PERSIST EFFECT EARLY RETURN team=${activeSeniorTeamId ?? "null"}`,
+          {
+            reason: "seniorTeamHydrationKeyRef matches dataStorageKey",
+            activeSeniorTeamId,
+            selectedSeniorTeamId,
+            dataStorageKey,
+            restoredDataStorageKeyRefCurrent: restoredDataStorageKeyRef.current,
+            dataRestored,
+          }
+        );
+      }
+      return;
+    }
+    const payload = buildSeniorDataPersistencePayload();
     try {
       if (shouldLogDataPersist) {
         seniorTeamSwitchDebugFlatLog(
@@ -15131,14 +15315,16 @@ const refreshDetailsForPlayers = async (
             dataStorageKey,
             dataRestored,
             restoredDataStorageKeyRefCurrent: restoredDataStorageKeyRef.current,
-            hydrationGuardActive: false,
+            hydrationGuardActive: seniorTeamHydratingRef.current,
             payload,
             payloadSummary: summarizeSeniorDataSnapshot(payload),
             localStorageDataBeforeWrite: readAndSummarizeLocalStorageItem(dataStorageKey),
           }
         );
       }
-      window.localStorage.setItem(dataStorageKey, JSON.stringify(payload));
+      persistSeniorDataSnapshot("data-persistence-effect", {
+        payloadOverride: payload,
+      });
       if (shouldLogDataPersist) {
         seniorTeamSwitchDebugFlatLog(
           `DATA PERSIST EFFECT AFTER WRITE team=${activeSeniorTeamId ?? "null"}`,
@@ -15158,6 +15344,8 @@ const refreshDetailsForPlayers = async (
     matchesState,
     players,
     ratingsResponse,
+    persistSeniorDataSnapshot,
+    buildSeniorDataPersistencePayload,
   ]);
 
   useEffect(() => {

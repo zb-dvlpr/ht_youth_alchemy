@@ -257,152 +257,6 @@ type PersistedSeniorMarkersBaseline = {
 
 type SeniorManualRatingsEdits = Record<number, Record<string, number>>;
 
-const SENIOR_TEAM_SWITCH_DEBUG = process.env.NODE_ENV !== "production";
-
-type SeniorTeamSwitchDebugTransaction = {
-  id: number;
-  fromTeamId: number | null;
-  toTeamId: number | null;
-  startedAt: number;
-  fromDataStorageKey: string;
-  fromStateStorageKey: string;
-  toDataStorageKey: string;
-  toStateStorageKey: string;
-  active: boolean;
-};
-
-const summarizeRatingsMatrix = (
-  ratings: RatingsMatrixResponse | null | undefined
-) => ({
-  exists: Boolean(ratings),
-  ratingsAlgorithmVersion: ratings?.ratingsAlgorithmVersion ?? null,
-  positionsCount: ratings?.positions?.length ?? 0,
-  playersCount: ratings?.players?.length ?? 0,
-  matchesAnalyzed: ratings?.matchesAnalyzed ?? null,
-  lastAppliedMatchId: ratings?.lastAppliedMatchId ?? null,
-  lastAppliedMatchDateTime: ratings?.lastAppliedMatchDateTime ?? null,
-  nonEmptyPlayerRows:
-    ratings?.players?.filter((row) => Object.keys(row.ratings ?? {}).length > 0).length ?? 0,
-  totalRatingCells:
-    ratings?.players?.reduce(
-      (sum, row) => sum + Object.keys(row.ratings ?? {}).length,
-      0
-    ) ?? 0,
-  samplePlayers:
-    ratings?.players?.slice(0, 5).map((row) => ({
-      id: row.id,
-      name: row.name,
-      ratingKeys: Object.keys(row.ratings ?? {}),
-      ratingCount: Object.keys(row.ratings ?? {}).length,
-      ratings: row.ratings,
-    })) ?? [],
-});
-
-const summarizeManualRatingsEdits = (
-  edits: SeniorManualRatingsEdits | null | undefined
-) => ({
-  playerCount: edits ? Object.keys(edits).length : 0,
-  totalCells: edits
-    ? Object.values(edits).reduce(
-        (sum, positions) => sum + Object.keys(positions ?? {}).length,
-        0
-      )
-    : 0,
-  sample: edits
-    ? Object.entries(edits).slice(0, 5).map(([playerId, positions]) => ({
-        playerId,
-        positions,
-      }))
-    : [],
-});
-
-const summarizeSeniorDataSnapshot = (
-  snapshot:
-    | {
-        players?: unknown;
-        matchesState?: unknown;
-        ratingsResponse?: RatingsMatrixResponse | null;
-        latestFetchedRatingsResponse?: RatingsMatrixResponse | null;
-        fetchedRatingsResponse?: RatingsMatrixResponse | null;
-        detailsCache?: unknown;
-      }
-    | null
-    | undefined
-) => ({
-  exists: Boolean(snapshot),
-  playersCount: Array.isArray(snapshot?.players) ? snapshot.players.length : 0,
-  hasMatchesState: Boolean(snapshot?.matchesState),
-  detailsCacheCount:
-    snapshot?.detailsCache && typeof snapshot.detailsCache === "object"
-      ? Object.keys(snapshot.detailsCache as Record<string, unknown>).length
-      : 0,
-  ratingsResponse: summarizeRatingsMatrix(snapshot?.ratingsResponse),
-  latestFetchedRatingsResponse: summarizeRatingsMatrix(
-    snapshot?.latestFetchedRatingsResponse
-  ),
-  fetchedRatingsResponse: summarizeRatingsMatrix(snapshot?.fetchedRatingsResponse),
-});
-
-const readAndSummarizeLocalStorageItem = (key: string) => {
-  if (typeof window === "undefined") {
-    return { key, exists: false, rawLength: 0 };
-  }
-
-  const raw = window.localStorage.getItem(key);
-
-  if (!raw) {
-    return { key, exists: false, rawLength: 0 };
-  }
-
-  try {
-    const parsed = JSON.parse(raw);
-    return {
-      key,
-      exists: true,
-      rawLength: raw.length,
-      parsed,
-      summary: summarizeSeniorDataSnapshot(parsed),
-    };
-  } catch (error) {
-    return {
-      key,
-      exists: true,
-      rawLength: raw.length,
-      parseError: error instanceof Error ? error.message : String(error),
-      rawPreview: raw.slice(0, 1000),
-    };
-  }
-};
-
-const readAndParseLocalStorageItem = (key: string) => {
-  if (typeof window === "undefined") {
-    return { key, exists: false, rawLength: 0 };
-  }
-
-  const raw = window.localStorage.getItem(key);
-
-  if (!raw) {
-    return { key, exists: false, rawLength: 0 };
-  }
-
-  try {
-    return {
-      key,
-      exists: true,
-      rawLength: raw.length,
-      parsed: JSON.parse(raw) as unknown,
-    };
-  } catch (error) {
-    return {
-      key,
-      exists: true,
-      rawLength: raw.length,
-      parseError: error instanceof Error ? error.message : String(error),
-      rawPreview: raw.slice(0, 1000),
-    };
-  }
-};
-
 const seniorMatchesStateHasMatches = (
   state: MatchesResponse | null | undefined
 ) => {
@@ -446,44 +300,6 @@ const seniorDataSnapshotHasUsefulData = (snapshot: {
     seniorRatingsHasCells(snapshot.fetchedRatingsResponse) ||
     detailsCacheCount > 0
   );
-};
-
-const safeJsonStringifyForSeniorDebug = (value: unknown): string => {
-  const seen = new WeakSet<object>();
-
-  try {
-    return JSON.stringify(
-      value,
-      (_key, item) => {
-        if (typeof item === "bigint") return item.toString();
-
-        if (item instanceof Error) {
-          return {
-            name: item.name,
-            message: item.message,
-            stack: item.stack,
-          };
-        }
-
-        if (item && typeof item === "object") {
-          if (seen.has(item)) return "[Circular]";
-          seen.add(item);
-        }
-
-        return item;
-      },
-      2
-    );
-  } catch (error) {
-    return JSON.stringify(
-      {
-        serializationError:
-          error instanceof Error ? error.message : String(error),
-      },
-      null,
-      2
-    );
-  }
 };
 
 type SeniorDashboardProps = {
@@ -3891,11 +3707,6 @@ export default function SeniorDashboard({
   >(null);
   const restoredStateStorageKeyRef = useRef<string | null>(null);
   const restoredDataStorageKeyRef = useRef<string | null>(null);
-  const seniorTeamSwitchDebugTransactionRef =
-    useRef<SeniorTeamSwitchDebugTransaction | null>(null);
-  const seniorTeamSwitchDebugTransactionSeqRef = useRef(0);
-  const seniorTeamSwitchPostRestoreLoggedTxRef = useRef<number | null>(null);
-  const seniorRefreshDebugLoggedRunIdsRef = useRef<Set<number>>(new Set());
   const seniorTeamHydratingRef = useRef(false);
   const seniorTeamHydrationKeyRef = useRef<string | null>(null);
   const seniorTeamHydrationReleaseTimeoutRef = useRef<number | null>(null);
@@ -3952,64 +3763,6 @@ export default function SeniorDashboard({
       ),
     [activeSeniorTeamId, multiTeamEnabled]
   );
-
-  const isSeniorTeamSwitchDebugEnabled = () =>
-    process.env.NODE_ENV !== "production" &&
-    (SENIOR_TEAM_SWITCH_DEBUG ||
-      (typeof window !== "undefined" &&
-        window.localStorage.getItem("ya_debug_senior_team_switch") === "1"));
-
-  const getActiveSeniorTeamSwitchDebugTransaction = () => {
-    if (!isSeniorTeamSwitchDebugEnabled()) return null;
-
-    const transaction = seniorTeamSwitchDebugTransactionRef.current;
-    if (!transaction?.active) return null;
-
-    // Hard safety stop: never let a transaction log indefinitely.
-    // A switch should finish quickly; 30 seconds is enough for diagnostics.
-    if (Date.now() - transaction.startedAt > 30_000) {
-      transaction.active = false;
-      seniorTeamSwitchDebugTransactionRef.current = null;
-      return null;
-    }
-
-    return transaction;
-  };
-
-  const seniorTeamSwitchDebugFlatLog = (
-    label: string,
-    payload: unknown,
-    options?: {
-      requireActiveTransaction?: boolean;
-      transactionOverride?: SeniorTeamSwitchDebugTransaction | null;
-    }
-  ) => {
-    if (!isSeniorTeamSwitchDebugEnabled()) return;
-
-    const transaction =
-      options?.transactionOverride ??
-      seniorTeamSwitchDebugTransactionRef.current ??
-      null;
-
-    if (options?.requireActiveTransaction !== false) {
-      if (!transaction?.active) return;
-
-      if (Date.now() - transaction.startedAt > 30_000) {
-        transaction.active = false;
-        seniorTeamSwitchDebugTransactionRef.current = null;
-        return;
-      }
-    }
-
-    const timestamp = new Date().toISOString();
-    const txId = transaction?.id ?? "none";
-    const json = safeJsonStringifyForSeniorDebug({
-      transaction,
-      payload,
-    }).replace(/\n\s*/g, " ");
-
-    console.log(`[SeniorTeamSwitchDebug tx=${txId} ${timestamp}] ${label} ${json}`);
-  };
 
   const buildSeniorStatePersistPayload = () => ({
     updatesSchemaVersion: SENIOR_UPDATES_SCHEMA_VERSION,
@@ -4091,15 +3844,6 @@ export default function SeniorDashboard({
         options?.payloadOverride ?? buildSeniorDataPersistencePayload();
 
       if (!options?.allowEmpty && !seniorDataSnapshotHasUsefulData(payload)) {
-        if (process.env.NODE_ENV !== "production") {
-          console.warn(
-            `[SeniorDataPersistence] Skipped empty senior data snapshot write (${reason})`,
-            {
-              targetKey,
-              payload,
-            }
-          );
-        }
         return false;
       }
 
@@ -4112,148 +3856,6 @@ export default function SeniorDashboard({
     },
     [dataStorageKey, buildSeniorDataPersistencePayload]
   );
-
-  const buildSeniorInMemorySnapshot = () => ({
-    playersCount: players.length,
-    hasMatchesState: Object.keys(matchesState ?? {}).length > 0,
-    detailsCacheCount: Object.keys(detailsCache).length,
-    displayedRatings: summarizeRatingsMatrix(ratingsResponse),
-    canonicalRatings: summarizeRatingsMatrix(latestFetchedRatingsResponse),
-    manualEdits: summarizeManualRatingsEdits(ratingsManualEditsByPlayerId),
-  });
-
-  const persistCurrentSeniorTeamSnapshotForDebug = () => {
-    const transaction = getActiveSeniorTeamSwitchDebugTransaction();
-    if (!transaction) return;
-    if (typeof window === "undefined") return;
-
-    const dataPayload = buildSeniorDataPersistencePayload();
-    const statePayload = buildSeniorStatePersistPayload();
-    seniorTeamSwitchDebugFlatLog(
-      `EXPLICIT PERSIST CURRENT TEAM BEFORE WRITE ${
-        activeSeniorTeamId ?? selectedSeniorTeamId ?? "null"
-      }`,
-      {
-        teamId: activeSeniorTeamId ?? selectedSeniorTeamId ?? null,
-        dataKey: dataStorageKey,
-        stateKey: stateStorageKey,
-        dataPayload,
-        dataPayloadSummary: summarizeSeniorDataSnapshot(dataPayload),
-        statePayload,
-        localStorageDataBeforeWrite: readAndSummarizeLocalStorageItem(dataStorageKey),
-        localStorageStateBeforeWrite: readAndSummarizeLocalStorageItem(stateStorageKey),
-      }
-    );
-    const didPersistData = persistSeniorDataSnapshot("before-team-switch", {
-      payloadOverride: dataPayload,
-    });
-    seniorTeamSwitchDebugFlatLog(
-      `EXPLICIT PERSIST CURRENT TEAM AFTER WRITE ${
-        activeSeniorTeamId ?? selectedSeniorTeamId ?? "null"
-      }`,
-      {
-        teamId: activeSeniorTeamId ?? selectedSeniorTeamId ?? null,
-        dataKey: dataStorageKey,
-        stateKey: stateStorageKey,
-        didPersistData,
-        dataPayload,
-        dataPayloadSummary: summarizeSeniorDataSnapshot(dataPayload),
-        statePayload,
-        localStorageDataAfterWrite: readAndSummarizeLocalStorageItem(dataStorageKey),
-        localStorageStateAfterWrite: readAndSummarizeLocalStorageItem(stateStorageKey),
-      }
-    );
-  };
-
-  const shouldLogSeniorTeamSwitchRatingsForTeam = (teamId: number | null) => {
-    const debugTransaction = getActiveSeniorTeamSwitchDebugTransaction();
-    return (
-      debugTransaction !== null &&
-      (teamId === debugTransaction.fromTeamId ||
-        teamId === debugTransaction.toTeamId ||
-        resolvedSeniorTeamId === debugTransaction.fromTeamId ||
-        resolvedSeniorTeamId === debugTransaction.toTeamId)
-    );
-  };
-
-  const logSeniorTeamSwitchRatingsFetchStart = (teamId: number | null) => {
-    if (!shouldLogSeniorTeamSwitchRatingsForTeam(teamId)) return;
-    seniorTeamSwitchDebugFlatLog(
-      `RATINGS FETCH START team=${teamId ?? resolvedSeniorTeamId ?? "null"}`,
-      {
-        teamId,
-        resolvedSeniorTeamId,
-      }
-    );
-  };
-
-  const logSeniorTeamSwitchRatingsFetchComplete = ({
-    teamId,
-    returnedRatings,
-    willReplaceCanonicalFetchedRatings,
-    previousCanonicalRatings,
-    previousDisplayedRatings,
-  }: {
-    teamId: number | null;
-    returnedRatings: RatingsMatrixResponse | null | undefined;
-    willReplaceCanonicalFetchedRatings: boolean;
-    previousCanonicalRatings: RatingsMatrixResponse | null | undefined;
-    previousDisplayedRatings: RatingsMatrixResponse | null | undefined;
-  }) => {
-    if (!shouldLogSeniorTeamSwitchRatingsForTeam(teamId)) return;
-    seniorTeamSwitchDebugFlatLog(
-      `RATINGS FETCH COMPLETE team=${teamId ?? resolvedSeniorTeamId ?? "null"}`,
-      {
-        teamId,
-        resolvedSeniorTeamId,
-        returnedRatingsSummary: summarizeRatingsMatrix(returnedRatings),
-        returnedRatings: returnedRatings ?? null,
-        willReplaceCanonicalFetchedRatings,
-        previousCanonicalFetchedRatingsSummary: summarizeRatingsMatrix(
-          previousCanonicalRatings
-        ),
-        previousDisplayedEffectiveRatingsSummary: summarizeRatingsMatrix(
-          previousDisplayedRatings
-        ),
-      }
-    );
-  };
-
-  const logSeniorTeamSwitchRatingsAssign = ({
-    teamId,
-    returnedRatings,
-    willReplaceCanonicalFetchedRatings,
-    previousCanonicalRatings,
-    previousDisplayedRatings,
-    assignmentTarget,
-  }: {
-    teamId: number | null;
-    returnedRatings: RatingsMatrixResponse | null | undefined;
-    willReplaceCanonicalFetchedRatings: boolean;
-    previousCanonicalRatings: RatingsMatrixResponse | null | undefined;
-    previousDisplayedRatings: RatingsMatrixResponse | null | undefined;
-    assignmentTarget: "latestFetchedRatingsResponse" | "ratingsResponse";
-  }) => {
-    if (!shouldLogSeniorTeamSwitchRatingsForTeam(teamId)) return;
-
-    seniorTeamSwitchDebugFlatLog(
-      `RATINGS ASSIGN team=${teamId ?? resolvedSeniorTeamId ?? "null"}`,
-      {
-        teamId,
-        resolvedSeniorTeamId,
-        assignmentTarget,
-        returnedRatingsSummary: summarizeRatingsMatrix(returnedRatings),
-        returnedRatings: returnedRatings ?? null,
-        willReplaceCanonicalFetchedRatings,
-        previousCanonicalFetchedRatingsSummary: summarizeRatingsMatrix(
-          previousCanonicalRatings
-        ),
-        previousDisplayedEffectiveRatingsSummary: summarizeRatingsMatrix(
-          previousDisplayedRatings
-        ),
-      }
-    );
-  };
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -7393,14 +6995,6 @@ function buildSeniorAiManMarkingReadySignature(params: {
       const refreshedRatings = stampSeniorRatingsAlgorithmVersion(
         await bootstrapRatingsFromSeasons(resolvedSeniorTeamId, currentSeason)
       );
-      logSeniorTeamSwitchRatingsAssign({
-        teamId: resolvedSeniorTeamId,
-        returnedRatings: refreshedRatings,
-        willReplaceCanonicalFetchedRatings: true,
-        previousCanonicalRatings: latestFetchedRatingsResponse,
-        previousDisplayedRatings: ratingsResponse,
-        assignmentTarget: "latestFetchedRatingsResponse",
-      });
       setLatestFetchedRatingsResponse(refreshedRatings);
       nextRatingsById = {};
       (refreshedRatings.players ?? []).forEach((row) => {
@@ -10873,19 +10467,9 @@ function buildSeniorAiManMarkingReadySignature(params: {
   };
 
   const bootstrapRatingsFromSeasons = async (teamId: number | null, season: number) => {
-    logSeniorTeamSwitchRatingsFetchStart(teamId);
     const previousSeason = await fetchRatings(teamId, Math.max(1, season - 1));
-    logSeniorTeamSwitchRatingsFetchStart(teamId);
     const currentSeason = await fetchRatings(teamId, season);
-    const mergedRatings = mergeRatingsMatrices(previousSeason, currentSeason);
-    logSeniorTeamSwitchRatingsFetchComplete({
-      teamId,
-      returnedRatings: mergedRatings,
-      willReplaceCanonicalFetchedRatings: true,
-      previousCanonicalRatings: latestFetchedRatingsResponse,
-      previousDisplayedRatings: ratingsResponse,
-    });
-    return mergedRatings;
+    return mergeRatingsMatrices(previousSeason, currentSeason);
   };
 
   const ensureDetails = async (
@@ -11337,14 +10921,6 @@ const refreshDetailsForPlayers = async (
       ratingsManualEditsByPlayerId,
       players
     );
-    logSeniorTeamSwitchRatingsAssign({
-      teamId: resolvedSeniorTeamId,
-      returnedRatings: nextRatingsResponse,
-      willReplaceCanonicalFetchedRatings: false,
-      previousCanonicalRatings: latestFetchedRatingsResponse,
-      previousDisplayedRatings: ratingsResponse,
-      assignmentTarget: "ratingsResponse",
-    });
     setRatingsResponse(nextRatingsResponse);
   }, [latestFetchedRatingsResponse, players, ratingsManualEditsByPlayerId]);
 
@@ -11793,27 +11369,11 @@ const refreshDetailsForPlayers = async (
     if (refreshing) return false;
     const isStartup = options?.startup ?? false;
     const refreshRunId = ++refreshRunSeqRef.current;
-    let refreshSucceeded = false;
-    let refreshCancelled = false;
-    let refreshError: unknown = null;
-    let refreshCompletionSnapshot:
-      | {
-          playersCount: number;
-          displayedEffectiveRatingsSummary: ReturnType<typeof summarizeRatingsMatrix>;
-          fetchedCanonicalRatingsSummary: ReturnType<typeof summarizeRatingsMatrix>;
-          detailsCacheCount: number;
-          expectedDataPayload: ReturnType<typeof summarizeSeniorDataSnapshot>;
-        }
-      | null = null;
     activeRefreshRunIdRef.current = refreshRunId;
     stoppedRefreshRunIdsRef.current.delete(refreshRunId);
     const isStopped = () =>
       stoppedRefreshRunIdsRef.current.has(refreshRunId) ||
       activeRefreshRunIdRef.current !== refreshRunId;
-    const debugTransactionAtRefreshStart = getActiveSeniorTeamSwitchDebugTransaction();
-    const shouldLogRefresh =
-      isSeniorTeamSwitchDebugEnabled() &&
-      (debugTransactionAtRefreshStart !== null || (reason === "manual" && !isStartup));
     const forceResetRatingsAlgorithm =
       !hasCurrentSeniorRatingsAlgorithmVersion(latestFetchedRatingsResponse);
     const effectiveRatingsResponse = forceResetRatingsAlgorithm
@@ -11859,36 +11419,10 @@ const refreshDetailsForPlayers = async (
     let didBootstrapRatings = false;
     let effectiveTeamId = resolvedSeniorTeamId;
 
-    if (shouldLogRefresh) {
-      seniorTeamSwitchDebugFlatLog(
-        `REFRESH START team=${resolvedSeniorTeamId ?? "null"}`,
-        {
-          refreshRunId,
-          reason,
-          startup: isStartup,
-          activeSeniorTeamId,
-          selectedSeniorTeamId,
-          resolvedSeniorTeamId,
-          dataStorageKey,
-          stateStorageKey,
-          currentMemory: buildSeniorInMemorySnapshot(),
-          currentLocalStorageData: readAndSummarizeLocalStorageItem(dataStorageKey),
-          currentLocalStorageState: readAndSummarizeLocalStorageItem(stateStorageKey),
-        },
-        {
-          requireActiveTransaction: false,
-          transactionOverride: debugTransactionAtRefreshStart,
-        }
-      );
-    }
-
     try {
       try {
         const trainingSnapshot = await fetchTrainingSnapshot(resolvedSeniorTeamId);
-        if (isStopped()) {
-          refreshCancelled = true;
-          return false;
-        }
+        if (isStopped()) return false;
         effectiveTeamId = trainingSnapshot.teamId ?? effectiveTeamId;
         setTrainingType(sanitizeTrainingType(trainingSnapshot.trainingType));
         if (isStartup) {
@@ -11905,10 +11439,7 @@ const refreshDetailsForPlayers = async (
       setRefreshStatus(messages.refreshStatusFetchingPlayers);
       setRefreshProgressPct(10);
       const nextPlayers = await fetchPlayers(effectiveTeamId);
-      if (isStopped()) {
-        refreshCancelled = true;
-        return false;
-      }
+      if (isStopped()) return false;
 
       setRefreshStatus(messages.refreshStatusFetchingPlayerDetails);
       setRefreshProgressPct(30);
@@ -11927,10 +11458,7 @@ const refreshDetailsForPlayers = async (
           },
         }
       );
-      if (!detailsRefreshed || isStopped()) {
-        refreshCancelled = isStopped();
-        return false;
-      }
+      if (!detailsRefreshed || isStopped()) return false;
       const nextDetailsById = new Map(detailsById);
       Object.entries(detailsRefreshed).forEach(([id, detail]) => {
         const parsedId = Number(id);
@@ -11956,10 +11484,7 @@ const refreshDetailsForPlayers = async (
       setRefreshStatus(messages.refreshStatusFetchingMatches);
       setRefreshProgressPct(45);
       const nextMatches = await fetchMatches(effectiveTeamId);
-      if (isStopped()) {
-        refreshCancelled = true;
-        return false;
-      }
+      if (isStopped()) return false;
 
       if (isStartup) {
         setStartupLoadingPhase("ratings");
@@ -11973,36 +11498,25 @@ const refreshDetailsForPlayers = async (
       const nextRatings = shouldBootstrapRatings
         ? await (async () => {
             const currentSeason = await fetchCurrentSeason();
-            if (isStopped()) {
-              refreshCancelled = true;
-              return null;
-            }
+            if (isStopped()) return null;
             setRefreshProgressPct(72);
             if (isStartup) {
               setStartupLoadingProgressPct(76);
             }
-            logSeniorTeamSwitchRatingsFetchStart(effectiveTeamId);
             const previousSeasonRatings = await fetchRatings(
               effectiveTeamId,
               Math.max(1, currentSeason - 1)
             );
-            if (isStopped()) {
-              refreshCancelled = true;
-              return null;
-            }
+            if (isStopped()) return null;
             setRefreshProgressPct(84);
             if (isStartup) {
               setStartupLoadingProgressPct(84);
             }
-            logSeniorTeamSwitchRatingsFetchStart(effectiveTeamId);
             const currentSeasonRatings = await fetchRatings(
               effectiveTeamId,
               currentSeason
             );
-            if (isStopped()) {
-              refreshCancelled = true;
-              return null;
-            }
+            if (isStopped()) return null;
             setRefreshProgressPct(90);
             if (isStartup) {
               setStartupLoadingProgressPct(92);
@@ -12010,13 +11524,6 @@ const refreshDetailsForPlayers = async (
             const mergedBootstrapRatings = stampSeniorRatingsAlgorithmVersion(
               mergeRatingsMatrices(previousSeasonRatings, currentSeasonRatings)
             );
-            logSeniorTeamSwitchRatingsFetchComplete({
-              teamId: effectiveTeamId,
-              returnedRatings: mergedBootstrapRatings,
-              willReplaceCanonicalFetchedRatings: true,
-              previousCanonicalRatings: latestFetchedRatingsResponse,
-              previousDisplayedRatings: ratingsResponse,
-            });
             incomingRatingsForOverwrite = mergedBootstrapRatings;
             return mergedBootstrapRatings;
           })()
@@ -12040,7 +11547,6 @@ const refreshDetailsForPlayers = async (
             if (isStartup) {
               setStartupLoadingProgressPct(76);
             }
-            logSeniorTeamSwitchRatingsFetchStart(effectiveTeamId);
             const incrementalRatings = await fetchRatings(
               effectiveTeamId,
               undefined,
@@ -12049,16 +11555,13 @@ const refreshDetailsForPlayers = async (
               firstMatchDate,
               lastMatchDate
             );
-            if (isStopped()) {
-              refreshCancelled = true;
-              return null;
-            }
+            if (isStopped()) return null;
             setRefreshProgressPct(90);
             if (isStartup) {
               setStartupLoadingProgressPct(92);
             }
             incomingRatingsForOverwrite = incrementalRatings;
-            const resolvedRatings = stampSeniorRatingsAlgorithmVersion(
+            return stampSeniorRatingsAlgorithmVersion(
               applyRatingsDelta(
                 effectiveRatingsResponse ?? {
                   ratingsAlgorithmVersion: SENIOR_RATINGS_ALGO_VERSION,
@@ -12071,23 +11574,9 @@ const refreshDetailsForPlayers = async (
                 incrementalRatings
               )
             );
-            logSeniorTeamSwitchRatingsFetchComplete({
-              teamId: effectiveTeamId,
-              returnedRatings: resolvedRatings,
-              willReplaceCanonicalFetchedRatings: true,
-              previousCanonicalRatings: latestFetchedRatingsResponse,
-              previousDisplayedRatings: ratingsResponse,
-            });
-            return resolvedRatings;
           })();
-      if (!nextRatings) {
-        refreshCancelled = refreshCancelled || isStopped();
-        return false;
-      }
-      if (isStopped()) {
-        refreshCancelled = true;
-        return false;
-      }
+      if (!nextRatings) return false;
+      if (isStopped()) return false;
       if (isStartup) {
         setStartupLoadingPhase("finalize");
         setStartupLoadingProgressPct(96);
@@ -12095,14 +11584,6 @@ const refreshDetailsForPlayers = async (
 
       setPlayers(nextPlayers);
       setMatchesState(nextMatches);
-      logSeniorTeamSwitchRatingsAssign({
-        teamId: effectiveTeamId,
-        returnedRatings: nextRatings,
-        willReplaceCanonicalFetchedRatings: true,
-        previousCanonicalRatings: latestFetchedRatingsResponse,
-        previousDisplayedRatings: ratingsResponse,
-        assignmentTarget: "latestFetchedRatingsResponse",
-      });
       setLatestFetchedRatingsResponse(nextRatings);
       if (ratingsOverwriteManualEditsEnabled) {
         setRatingsManualEditsByPlayerId((prev) =>
@@ -12178,17 +11659,8 @@ const refreshDetailsForPlayers = async (
           ? messages.notificationStaleRefresh
           : messages.notificationSeniorPlayersRefreshed
       );
-      refreshCompletionSnapshot = {
-        playersCount: nextPlayers.length,
-        displayedEffectiveRatingsSummary: summarizeRatingsMatrix(refreshedRatingsResponse),
-        fetchedCanonicalRatingsSummary: summarizeRatingsMatrix(nextRatings),
-        detailsCacheCount: Object.keys(nextDetailsCache).length,
-        expectedDataPayload: summarizeSeniorDataSnapshot(refreshedDataPayload),
-      };
-      refreshSucceeded = true;
       return true;
     } catch (error) {
-      refreshError = error;
       if (error instanceof ChppAuthRequiredError) {
         return false;
       }
@@ -12199,42 +11671,6 @@ const refreshDetailsForPlayers = async (
       addNotification(messages.unableToLoadPlayers);
       return false;
     } finally {
-      if (shouldLogRefresh && !seniorRefreshDebugLoggedRunIdsRef.current.has(refreshRunId)) {
-        seniorRefreshDebugLoggedRunIdsRef.current.add(refreshRunId);
-        seniorTeamSwitchDebugFlatLog(
-          `REFRESH COMPLETE team=${resolvedSeniorTeamId ?? "null"}`,
-          {
-            refreshRunId,
-            reason,
-            success: refreshSucceeded,
-            cancelled: refreshCancelled || undefined,
-            error: refreshError,
-            activeSeniorTeamId,
-            selectedSeniorTeamId,
-            resolvedSeniorTeamId,
-            playersCount: refreshCompletionSnapshot?.playersCount ?? players.length,
-            displayedEffectiveRatingsSummary:
-              refreshCompletionSnapshot?.displayedEffectiveRatingsSummary ??
-              summarizeRatingsMatrix(ratingsResponse),
-            fetchedCanonicalRatingsSummary:
-              refreshCompletionSnapshot?.fetchedCanonicalRatingsSummary ??
-              summarizeRatingsMatrix(latestFetchedRatingsResponse),
-            detailsCacheCount:
-              refreshCompletionSnapshot?.detailsCacheCount ?? Object.keys(detailsCache).length,
-            localStorageData: readAndSummarizeLocalStorageItem(dataStorageKey),
-            localStorageState: readAndSummarizeLocalStorageItem(stateStorageKey),
-            lastRefreshAt,
-            lastRefreshStorageKey,
-            storedLastRefreshValue: readStoredLastRefresh(lastRefreshStorageKey),
-            currentMemory: buildSeniorInMemorySnapshot(),
-            expectedDataPayload: refreshCompletionSnapshot?.expectedDataPayload ?? null,
-          },
-          {
-            requireActiveTransaction: false,
-            transactionOverride: debugTransactionAtRefreshStart,
-          }
-        );
-      }
       if (activeRefreshRunIdRef.current === refreshRunId) {
         activeRefreshRunIdRef.current = null;
       }
@@ -12263,64 +11699,6 @@ const refreshDetailsForPlayers = async (
 
   const handleSeniorTeamChange = (nextTeamId: number | null) => {
     if (nextTeamId === selectedSeniorTeamId) return;
-    if (isSeniorTeamSwitchDebugEnabled()) {
-      const fromTeamId = selectedSeniorTeamId ?? activeSeniorTeamId ?? null;
-      const toTeamId = nextTeamId;
-      const transaction: SeniorTeamSwitchDebugTransaction = {
-        id: seniorTeamSwitchDebugTransactionSeqRef.current + 1,
-        fromTeamId,
-        toTeamId,
-        startedAt: Date.now(),
-        fromDataStorageKey: dataStorageKey,
-        fromStateStorageKey: stateStorageKey,
-        toDataStorageKey: resolveScopedStorageKey(DATA_STORAGE_KEY, toTeamId, multiTeamEnabled),
-        toStateStorageKey: resolveScopedStorageKey(
-          STATE_STORAGE_KEY,
-          toTeamId,
-          multiTeamEnabled
-        ),
-        active: true,
-      };
-
-      seniorTeamSwitchDebugTransactionSeqRef.current = transaction.id;
-      seniorTeamSwitchDebugTransactionRef.current = transaction;
-      seniorTeamSwitchPostRestoreLoggedTxRef.current = null;
-      seniorTeamSwitchDebugFlatLog(
-        `SWITCH REQUEST ${fromTeamId ?? "null"} -> ${toTeamId}`,
-        {
-          selectedSeniorTeamId,
-          nextTeamId,
-          activeSeniorTeamId,
-          resolvedSeniorTeamId,
-          dataStorageKey,
-          stateStorageKey,
-          nextDataStorageKey: transaction.toDataStorageKey,
-          nextStateStorageKey: transaction.toStateStorageKey,
-          currentMemory: {
-            playersCount: players.length,
-            displayedRatingsSummary: summarizeRatingsMatrix(ratingsResponse),
-            fetchedRatingsSummary: summarizeRatingsMatrix(latestFetchedRatingsResponse),
-            manualEditsSummary: summarizeManualRatingsEdits(ratingsManualEditsByPlayerId),
-            detailsCacheCount: Object.keys(detailsCache).length,
-          },
-          currentTeamStorage: {
-            data: readAndSummarizeLocalStorageItem(dataStorageKey),
-            state: readAndSummarizeLocalStorageItem(stateStorageKey),
-          },
-          nextTeamStorage: {
-            data: readAndSummarizeLocalStorageItem(transaction.toDataStorageKey),
-            state: readAndSummarizeLocalStorageItem(transaction.toStateStorageKey),
-          },
-        },
-        {
-          requireActiveTransaction: false,
-          transactionOverride: transaction,
-        }
-      );
-      persistCurrentSeniorTeamSnapshotForDebug();
-    } else {
-      seniorTeamSwitchDebugTransactionRef.current = null;
-    }
     persistSeniorDataSnapshot("before-team-switch");
     staleRefreshAttemptedRef.current = false;
     setSelectedId(null);
@@ -13170,14 +12548,6 @@ const refreshDetailsForPlayers = async (
         const refreshedRatings = stampSeniorRatingsAlgorithmVersion(
           await bootstrapRatingsFromSeasons(resolvedSeniorTeamId, currentSeason)
         );
-        logSeniorTeamSwitchRatingsAssign({
-          teamId: resolvedSeniorTeamId,
-          returnedRatings: refreshedRatings,
-          willReplaceCanonicalFetchedRatings: true,
-          previousCanonicalRatings: latestFetchedRatingsResponse,
-          previousDisplayedRatings: ratingsResponse,
-          assignmentTarget: "latestFetchedRatingsResponse",
-        });
         setLatestFetchedRatingsResponse(refreshedRatings);
         ratingsById = {};
         (refreshedRatings.players ?? []).forEach((row) => {
@@ -14225,34 +13595,6 @@ const refreshDetailsForPlayers = async (
   };
 
   useEffect(() => {
-    if (!isSeniorTeamSwitchDebugEnabled()) return;
-
-    const intervalId = window.setInterval(() => {
-      const transaction = seniorTeamSwitchDebugTransactionRef.current;
-      if (!transaction?.active) return;
-      if (Date.now() - transaction.startedAt <= 30_000) return;
-
-      seniorTeamSwitchDebugFlatLog(
-        `SWITCH TRANSACTION TIMEOUT ${transaction.fromTeamId ?? "null"} -> ${
-          transaction.toTeamId ?? "null"
-        }`,
-        {
-          timedOutAfterMs: Date.now() - transaction.startedAt,
-        },
-        {
-          requireActiveTransaction: false,
-          transactionOverride: transaction,
-        }
-      );
-
-      transaction.active = false;
-      seniorTeamSwitchDebugTransactionRef.current = null;
-    }, 5_000);
-
-    return () => window.clearInterval(intervalId);
-  }, []);
-
-  useEffect(() => {
     if (typeof window === "undefined") return;
     seniorTeamHydratingRef.current = true;
     seniorTeamHydrationKeyRef.current = dataStorageKey;
@@ -14264,53 +13606,6 @@ const refreshDetailsForPlayers = async (
     restoredDataStorageKeyRef.current = null;
     setStateRestored(false);
     setDataRestored(false);
-    const debugTransaction = getActiveSeniorTeamSwitchDebugTransaction();
-    const shouldLogThisRestore =
-      debugTransaction !== null &&
-      dataStorageKey === debugTransaction.toDataStorageKey &&
-      stateStorageKey === debugTransaction.toStateStorageKey;
-    if (shouldLogThisRestore) {
-      seniorTeamSwitchDebugFlatLog(`RESTORE EFFECT START team=${activeSeniorTeamId ?? "null"}`, {
-        activeSeniorTeamId,
-        selectedSeniorTeamId,
-        resolvedSeniorTeamId,
-        activeSeniorTeamOption,
-        dataStorageKey,
-        stateStorageKey,
-        lastRefreshStorageKey,
-        listSortStorageKey,
-        currentInMemorySnapshotBeforeReset: buildSeniorInMemorySnapshot(),
-        localStorageData: readAndSummarizeLocalStorageItem(dataStorageKey),
-        localStorageState: readAndSummarizeLocalStorageItem(stateStorageKey),
-      });
-      seniorTeamSwitchDebugFlatLog(
-        `SENIOR STATE RESET BEFORE RESTORE team=${activeSeniorTeamId ?? "null"}`,
-        {
-          resetFields: [
-            "players",
-            "matchesState",
-            "latestFetchedRatingsResponse",
-            "ratingsResponse",
-            "ratingsManualOverrideEnabled",
-            "ratingsOverwriteManualEditsEnabled",
-            "ratingsManualEditsByPlayerId",
-            "detailsCache",
-            "loadError",
-            "loadErrorDetails",
-            "lastRefreshAt",
-          ],
-          activeSeniorTeamId,
-          dataStorageKey,
-          stateStorageKey,
-          currentDisplayedRatingsSummary: summarizeRatingsMatrix(ratingsResponse),
-          currentCanonicalRatingsSummary: summarizeRatingsMatrix(
-            latestFetchedRatingsResponse
-          ),
-          currentStorageData: readAndSummarizeLocalStorageItem(dataStorageKey),
-          currentStorageState: readAndSummarizeLocalStorageItem(stateStorageKey),
-        }
-      );
-    }
     setSelectedId(null);
     setAssignments({});
     setBehaviors({});
@@ -14373,18 +13668,6 @@ const refreshDetailsForPlayers = async (
     persistedMarkersBaselineRef.current = null;
     opponentFormationContextCacheRef.current = new Map();
     opponentTargetPlayerCacheRef.current = new Map();
-    if (shouldLogThisRestore) {
-      seniorTeamSwitchDebugFlatLog(
-        `RESTORE RESET SCHEDULED team=${activeSeniorTeamId ?? "null"}`,
-        {
-          activeSeniorTeamId,
-          selectedSeniorTeamId,
-          dataStorageKey,
-          stateStorageKey,
-          note: "React state updates are asynchronous",
-        }
-      );
-    }
     try {
       const rawSort = window.localStorage.getItem(listSortStorageKey);
       if (rawSort) {
@@ -14407,17 +13690,6 @@ const refreshDetailsForPlayers = async (
       }
 
       const rawState = window.localStorage.getItem(stateStorageKey);
-      const parsedStateDebug = readAndParseLocalStorageItem(stateStorageKey);
-      if (shouldLogThisRestore) {
-        seniorTeamSwitchDebugFlatLog(`RESTORE RAW STATE team=${activeSeniorTeamId ?? "null"}`, {
-          stateStorageKey,
-          rawStateExists: Boolean(rawState),
-          rawStateLength: rawState?.length ?? 0,
-          parsedState: "parsed" in parsedStateDebug ? parsedStateDebug.parsed : null,
-          parseError:
-            "parseError" in parsedStateDebug ? parsedStateDebug.parseError : null,
-        });
-      }
       let forceWipeLegacyUpdatesState = false;
       const forceResetRatingsAlgorithm = false;
       if (forceResetRatingsAlgorithm) {
@@ -14791,48 +14063,7 @@ const refreshDetailsForPlayers = async (
                   ? parsed.ratingsResponse
                   : null;
           restoredRatings = parsedLatestFetchedRatings;
-          if (shouldLogThisRestore) {
-            seniorTeamSwitchDebugFlatLog(`RESTORE RAW DATA team=${activeSeniorTeamId ?? "null"}`, {
-              dataStorageKey,
-              rawDataExists: true,
-              rawDataLength: rawData.length,
-              parsedData: parsed,
-              parsedDataSummary: summarizeSeniorDataSnapshot(parsed),
-              selectedRatingsFieldForRestoration:
-                parsed.fetchedRatingsResponse &&
-                typeof parsed.fetchedRatingsResponse === "object" &&
-                hasCurrentSeniorRatingsAlgorithmVersion(parsed.fetchedRatingsResponse)
-                  ? "fetchedRatingsResponse"
-                  : parsed.latestFetchedRatingsResponse &&
-                      typeof parsed.latestFetchedRatingsResponse === "object" &&
-                      hasCurrentSeniorRatingsAlgorithmVersion(parsed.latestFetchedRatingsResponse)
-                    ? "latestFetchedRatingsResponse"
-                    : parsed.ratingsResponse &&
-                        typeof parsed.ratingsResponse === "object" &&
-                        hasCurrentSeniorRatingsAlgorithmVersion(parsed.ratingsResponse)
-                      ? "ratingsResponse"
-                      : "none",
-              candidateFetchedRatingsResponse: parsed.fetchedRatingsResponse ?? null,
-              candidateLatestFetchedRatingsResponse:
-                parsed.latestFetchedRatingsResponse ?? null,
-              candidateRatingsResponse: parsed.ratingsResponse ?? null,
-              selectedRatingsSummary: summarizeRatingsMatrix(parsedLatestFetchedRatings),
-              restoredPlayersCount: restoredPlayers.length,
-              restoredDetailsCacheCount:
-                parsed.detailsCache && typeof parsed.detailsCache === "object"
-                  ? Object.keys(parsed.detailsCache).length
-                  : 0,
-            });
-          }
           if (parsedLatestFetchedRatings) {
-            logSeniorTeamSwitchRatingsAssign({
-              teamId: activeSeniorTeamId ?? resolvedSeniorTeamId,
-              returnedRatings: parsedLatestFetchedRatings,
-              willReplaceCanonicalFetchedRatings: true,
-              previousCanonicalRatings: latestFetchedRatingsResponse,
-              previousDisplayedRatings: ratingsResponse,
-              assignmentTarget: "latestFetchedRatingsResponse",
-            });
             setLatestFetchedRatingsResponse(parsedLatestFetchedRatings);
           }
           if (parsed.detailsCache && typeof parsed.detailsCache === "object") {
@@ -14853,39 +14084,8 @@ const refreshDetailsForPlayers = async (
             };
           }
         } catch {
-          if (shouldLogThisRestore) {
-            seniorTeamSwitchDebugFlatLog(`RESTORE RAW DATA team=${activeSeniorTeamId ?? "null"}`, {
-              dataStorageKey,
-              rawDataExists: true,
-              rawDataLength: rawData.length,
-              parsedData: null,
-              parsedDataSummary: null,
-              selectedRatingsFieldForRestoration: "none",
-              candidateFetchedRatingsResponse: null,
-              candidateLatestFetchedRatingsResponse: null,
-              candidateRatingsResponse: null,
-              selectedRatingsSummary: summarizeRatingsMatrix(null),
-              restoredPlayersCount: 0,
-              restoredDetailsCacheCount: 0,
-            });
-          }
           // ignore parse errors
         }
-      } else if (shouldLogThisRestore) {
-        seniorTeamSwitchDebugFlatLog(`RESTORE RAW DATA team=${activeSeniorTeamId ?? "null"}`, {
-          dataStorageKey,
-          rawDataExists: false,
-          rawDataLength: 0,
-          parsedData: null,
-          parsedDataSummary: null,
-          selectedRatingsFieldForRestoration: "none",
-          candidateFetchedRatingsResponse: null,
-          candidateLatestFetchedRatingsResponse: null,
-          candidateRatingsResponse: null,
-          selectedRatingsSummary: summarizeRatingsMatrix(null),
-          restoredPlayersCount: 0,
-          restoredDetailsCacheCount: 0,
-        });
       }
       setLastRefreshAt(readStoredLastRefresh(lastRefreshStorageKey));
       setStalenessDays(readSeniorStalenessDays());
@@ -14907,17 +14107,6 @@ const refreshDetailsForPlayers = async (
     } finally {
       restoredStateStorageKeyRef.current = stateStorageKey;
       restoredDataStorageKeyRef.current = dataStorageKey;
-      if (shouldLogThisRestore) {
-        seniorTeamSwitchDebugFlatLog(`RESTORE EFFECT FINALLY team=${activeSeniorTeamId ?? "null"}`, {
-          restoredStateStorageKeyRefCurrent: stateStorageKey,
-          restoredDataStorageKeyRefCurrent: dataStorageKey,
-          stateRestoredWillBeSet: true,
-          dataRestoredWillBeSet: true,
-          currentLocalStorageData: readAndSummarizeLocalStorageItem(dataStorageKey),
-          currentLocalStorageState: readAndSummarizeLocalStorageItem(stateStorageKey),
-          note: "React state updates are asynchronous",
-        });
-      }
       setStateRestored(true);
       setDataRestored(true);
     }
@@ -14978,32 +14167,6 @@ const refreshDetailsForPlayers = async (
       setStalenessDays(readSeniorStalenessDays());
     };
     const handleWipeRatingsMatrix = () => {
-      if (isSeniorTeamSwitchDebugEnabled()) {
-        seniorTeamSwitchDebugFlatLog(
-          `RATINGS WIPE team=${activeSeniorTeamId ?? "null"}`,
-          {
-            activeSeniorTeamId,
-            dataStorageKey,
-            stateStorageKey,
-            displayedEffectiveRatingsSummaryBeforeWipe: summarizeRatingsMatrix(
-              ratingsResponse
-            ),
-            fetchedCanonicalRatingsSummaryBeforeWipe: summarizeRatingsMatrix(
-              latestFetchedRatingsResponse
-            ),
-            manualEditsBeforeWipe: summarizeManualRatingsEdits(
-              ratingsManualEditsByPlayerId
-            ),
-            localStorageDataBeforeWipe: readAndSummarizeLocalStorageItem(dataStorageKey),
-            localStorageStateBeforeWipe: readAndSummarizeLocalStorageItem(stateStorageKey),
-            wipeScheduled: true,
-          },
-          {
-            requireActiveTransaction: false,
-            transactionOverride: null,
-          }
-        );
-      }
       setLatestFetchedRatingsResponse(null);
       setRatingsResponse(null);
       setRatingsManualEditsByPlayerId({});
@@ -15087,68 +14250,11 @@ const refreshDetailsForPlayers = async (
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const debugTransaction = getActiveSeniorTeamSwitchDebugTransaction();
-    const shouldLogStatePersist =
-      debugTransaction !== null &&
-      (stateStorageKey === debugTransaction.fromStateStorageKey ||
-        stateStorageKey === debugTransaction.toStateStorageKey);
-    if (!stateRestored) {
-      if (shouldLogStatePersist) {
-        seniorTeamSwitchDebugFlatLog(
-          `STATE PERSIST EFFECT EARLY RETURN team=${activeSeniorTeamId ?? "null"}`,
-          {
-            reason: "stateRestored false",
-            activeSeniorTeamId,
-            selectedSeniorTeamId,
-            stateStorageKey,
-            restoredStateStorageKeyRefCurrent: restoredStateStorageKeyRef.current,
-            stateRestored,
-          }
-        );
-      }
-      return;
-    }
-    if (restoredStateStorageKeyRef.current !== stateStorageKey) {
-      if (shouldLogStatePersist) {
-        seniorTeamSwitchDebugFlatLog(
-          `STATE PERSIST EFFECT EARLY RETURN team=${activeSeniorTeamId ?? "null"}`,
-          {
-            reason: "restoredStateStorageKeyRef mismatch",
-            activeSeniorTeamId,
-            selectedSeniorTeamId,
-            stateStorageKey,
-            restoredStateStorageKeyRefCurrent: restoredStateStorageKeyRef.current,
-            stateRestored,
-          }
-        );
-      }
-      return;
-    }
+    if (!stateRestored) return;
+    if (restoredStateStorageKeyRef.current !== stateStorageKey) return;
     const payload = buildSeniorStatePersistPayload();
     try {
-      if (shouldLogStatePersist) {
-        seniorTeamSwitchDebugFlatLog(
-          `STATE PERSIST EFFECT BEFORE WRITE team=${activeSeniorTeamId ?? "null"}`,
-          {
-            activeSeniorTeamId,
-            selectedSeniorTeamId,
-            stateStorageKey,
-            stateRestored,
-            restoredStateStorageKeyRefCurrent: restoredStateStorageKeyRef.current,
-            payload,
-            localStorageStateBeforeWrite: readAndSummarizeLocalStorageItem(stateStorageKey),
-          }
-        );
-      }
       window.localStorage.setItem(stateStorageKey, JSON.stringify(payload));
-      if (shouldLogStatePersist) {
-        seniorTeamSwitchDebugFlatLog(
-          `STATE PERSIST EFFECT AFTER WRITE team=${activeSeniorTeamId ?? "null"}`,
-          {
-            localStorageStateAfterWrite: readAndSummarizeLocalStorageItem(stateStorageKey),
-          }
-        );
-      }
     } catch {
       // ignore persist errors
     }
@@ -15235,107 +14341,14 @@ const refreshDetailsForPlayers = async (
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const debugTransaction = getActiveSeniorTeamSwitchDebugTransaction();
-    const shouldLogDataPersist =
-      debugTransaction !== null &&
-      (dataStorageKey === debugTransaction.fromDataStorageKey ||
-        dataStorageKey === debugTransaction.toDataStorageKey);
-    if (!dataRestored) {
-      if (shouldLogDataPersist) {
-        seniorTeamSwitchDebugFlatLog(
-          `DATA PERSIST EFFECT EARLY RETURN team=${activeSeniorTeamId ?? "null"}`,
-          {
-            reason: "dataRestored false",
-            activeSeniorTeamId,
-            selectedSeniorTeamId,
-            dataStorageKey,
-            restoredDataStorageKeyRefCurrent: restoredDataStorageKeyRef.current,
-            dataRestored,
-          }
-        );
-      }
-      return;
-    }
-    if (restoredDataStorageKeyRef.current !== dataStorageKey) {
-      if (shouldLogDataPersist) {
-        seniorTeamSwitchDebugFlatLog(
-          `DATA PERSIST EFFECT EARLY RETURN team=${activeSeniorTeamId ?? "null"}`,
-          {
-            reason: "restoredDataStorageKeyRef mismatch",
-            activeSeniorTeamId,
-            selectedSeniorTeamId,
-            dataStorageKey,
-            restoredDataStorageKeyRefCurrent: restoredDataStorageKeyRef.current,
-            dataRestored,
-          }
-        );
-      }
-      return;
-    }
-    if (seniorTeamHydratingRef.current) {
-      if (shouldLogDataPersist) {
-        seniorTeamSwitchDebugFlatLog(
-          `DATA PERSIST EFFECT EARLY RETURN team=${activeSeniorTeamId ?? "null"}`,
-          {
-            reason: "seniorTeamHydratingRef active",
-            activeSeniorTeamId,
-            selectedSeniorTeamId,
-            dataStorageKey,
-            restoredDataStorageKeyRefCurrent: restoredDataStorageKeyRef.current,
-            dataRestored,
-          }
-        );
-      }
-      return;
-    }
-    if (seniorTeamHydrationKeyRef.current === dataStorageKey) {
-      if (shouldLogDataPersist) {
-        seniorTeamSwitchDebugFlatLog(
-          `DATA PERSIST EFFECT EARLY RETURN team=${activeSeniorTeamId ?? "null"}`,
-          {
-            reason: "seniorTeamHydrationKeyRef matches dataStorageKey",
-            activeSeniorTeamId,
-            selectedSeniorTeamId,
-            dataStorageKey,
-            restoredDataStorageKeyRefCurrent: restoredDataStorageKeyRef.current,
-            dataRestored,
-          }
-        );
-      }
-      return;
-    }
+    if (!dataRestored) return;
+    if (restoredDataStorageKeyRef.current !== dataStorageKey) return;
+    if (seniorTeamHydratingRef.current) return;
+    if (seniorTeamHydrationKeyRef.current === dataStorageKey) return;
     const payload = buildSeniorDataPersistencePayload();
-    try {
-      if (shouldLogDataPersist) {
-        seniorTeamSwitchDebugFlatLog(
-          `DATA PERSIST EFFECT BEFORE WRITE team=${activeSeniorTeamId ?? "null"}`,
-          {
-            activeSeniorTeamId,
-            selectedSeniorTeamId,
-            dataStorageKey,
-            dataRestored,
-            restoredDataStorageKeyRefCurrent: restoredDataStorageKeyRef.current,
-            hydrationGuardActive: seniorTeamHydratingRef.current,
-            payload,
-            payloadSummary: summarizeSeniorDataSnapshot(payload),
-            localStorageDataBeforeWrite: readAndSummarizeLocalStorageItem(dataStorageKey),
-          }
-        );
-      }
-      persistSeniorDataSnapshot("data-persistence-effect", {
-        payloadOverride: payload,
-      });
-      if (shouldLogDataPersist) {
-        seniorTeamSwitchDebugFlatLog(
-          `DATA PERSIST EFFECT AFTER WRITE team=${activeSeniorTeamId ?? "null"}`,
-          {
-            localStorageDataAfterWrite: readAndSummarizeLocalStorageItem(dataStorageKey),
-          }
-        );
-      }
-    } catch {
-      // ignore persist errors
-    }
+    persistSeniorDataSnapshot("data-persistence-effect", {
+      payloadOverride: payload,
+    });
   }, [
     dataRestored,
     dataStorageKey,
@@ -15346,64 +14359,6 @@ const refreshDetailsForPlayers = async (
     ratingsResponse,
     persistSeniorDataSnapshot,
     buildSeniorDataPersistencePayload,
-  ]);
-
-  useEffect(() => {
-    const transaction = getActiveSeniorTeamSwitchDebugTransaction();
-    if (!transaction) return;
-    if (!stateRestored || !dataRestored) return;
-    if (activeSeniorTeamId !== transaction.toTeamId) return;
-    if (dataStorageKey !== transaction.toDataStorageKey) return;
-    if (stateStorageKey !== transaction.toStateStorageKey) return;
-    if (seniorTeamSwitchPostRestoreLoggedTxRef.current === transaction.id) return;
-
-    seniorTeamSwitchPostRestoreLoggedTxRef.current = transaction.id;
-    seniorTeamSwitchDebugFlatLog(
-      `POST-RESTORE STATE SETTLED team=${activeSeniorTeamId ?? "null"}`,
-      {
-        activeSeniorTeamId,
-        selectedSeniorTeamId,
-        dataStorageKey,
-        stateStorageKey,
-        playersCount: players.length,
-        matchesStateExists: Object.keys(matchesState ?? {}).length > 0,
-        displayedEffectiveRatingsSummary: summarizeRatingsMatrix(ratingsResponse),
-        fetchedCanonicalRatingsSummary: summarizeRatingsMatrix(
-          latestFetchedRatingsResponse
-        ),
-        detailsCacheCount: Object.keys(detailsCache).length,
-        manualEditsSummary: summarizeManualRatingsEdits(ratingsManualEditsByPlayerId),
-        currentLocalStorageData: readAndSummarizeLocalStorageItem(dataStorageKey),
-        currentLocalStorageState: readAndSummarizeLocalStorageItem(stateStorageKey),
-      }
-    );
-
-    seniorTeamSwitchDebugFlatLog(
-      `SWITCH TRANSACTION COMPLETE ${transaction.fromTeamId ?? "null"} -> ${
-        transaction.toTeamId ?? "null"
-      }`,
-      {
-        completedAt: new Date().toISOString(),
-        finalLocalStorageData: readAndSummarizeLocalStorageItem(dataStorageKey),
-        finalLocalStorageState: readAndSummarizeLocalStorageItem(stateStorageKey),
-      }
-    );
-
-    transaction.active = false;
-    seniorTeamSwitchDebugTransactionRef.current = null;
-  }, [
-    activeSeniorTeamId,
-    dataRestored,
-    dataStorageKey,
-    detailsCache,
-    latestFetchedRatingsResponse,
-    matchesState,
-    players,
-    ratingsManualEditsByPlayerId,
-    ratingsResponse,
-    selectedSeniorTeamId,
-    stateRestored,
-    stateStorageKey,
   ]);
 
   useEffect(() => {

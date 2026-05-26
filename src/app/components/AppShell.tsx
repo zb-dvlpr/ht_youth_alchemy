@@ -16,11 +16,12 @@ import Tooltip from "./Tooltip";
 import ClubChronicle from "./ClubChronicle";
 import Modal from "./Modal";
 import ManualModal from "./ManualModal";
-import BuyCoffeeButton from "./BuyCoffeeButton";
+import BuyCoffeeButton, { type BuyCoffeePromptSource } from "./BuyCoffeeButton";
 import PremiumStatusPill from "./PremiumStatusPill";
 import VersionUpdateGate from "./VersionUpdateGate";
 import { Messages } from "@/lib/i18n";
 import { getChangelogEntries } from "@/lib/changelog";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 import { formatDateTime } from "@/lib/datetime";
 import {
   getMissingChppPermissions,
@@ -89,6 +90,17 @@ type MobileNavSegment = {
   label: string;
 };
 
+const parseBuyCoffeePromptSource = (
+  value: unknown
+): BuyCoffeePromptSource => {
+  return value === "top_bar" ||
+    value === "sidebar" ||
+    value === "mobile_launcher" ||
+    value === "auto"
+    ? value
+    : "unknown";
+};
+
 export default function AppShell({
   messages,
   appVersion,
@@ -118,6 +130,8 @@ export default function AppShell({
   const [changelogPage, setChangelogPage] = useState(0);
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [buyCoffeePromptOpen, setBuyCoffeePromptOpen] = useState(false);
+  const [buyCoffeePromptSource, setBuyCoffeePromptSource] =
+    useState<BuyCoffeePromptSource>("unknown");
   const [buyCoffeePromptState, setBuyCoffeePromptState] =
     useState<BuyCoffeePromptState | null>(null);
   const [buyCoffeeSessionReady, setBuyCoffeeSessionReady] = useState(false);
@@ -408,6 +422,7 @@ export default function AppShell({
           buyCoffeePromptState.cadenceDays * 24 * 60 * 60 * 1000;
     if (Date.now() < nextPromptAt) return;
     buyCoffeePromptShownThisSessionRef.current = true;
+    setBuyCoffeePromptSource("auto");
     setBuyCoffeePromptOpen(true);
   }, [
     buyCoffeePromptOpen,
@@ -421,8 +436,15 @@ export default function AppShell({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const handler = () => {
+    const handler = (event: Event) => {
+      const source =
+        event instanceof CustomEvent
+          ? parseBuyCoffeePromptSource(
+              (event.detail as { source?: unknown } | undefined)?.source
+            )
+          : "unknown";
       buyCoffeePromptShownThisSessionRef.current = true;
+      setBuyCoffeePromptSource(source);
       setBuyCoffeePromptOpen(true);
     };
     window.addEventListener(BUY_COFFEE_PROMPT_OPEN_EVENT, handler);
@@ -792,6 +814,7 @@ export default function AppShell({
     <BuyCoffeeButton
       className={styles.sidebarItem}
       aria-label={messages.supportOnKofi}
+      source="sidebar"
     >
       <span className={styles.sidebarIcon} aria-hidden="true">
         <span className={styles.sidebarIconGlyph}>☕</span>
@@ -808,6 +831,10 @@ export default function AppShell({
   const seniorToolChildren = useMemo(() => Children.toArray(seniorTool), [seniorTool]);
 
   const handleBuyCoffeeLater = () => {
+    trackAnalyticsEvent("coffee_flow", {
+      action: "not_now_clicked",
+      source: buyCoffeePromptSource,
+    });
     const baseState = buyCoffeePromptState ?? {
       firstSeenAt: Date.now(),
       lastPromptAt: null,
@@ -818,9 +845,17 @@ export default function AppShell({
       lastPromptAt: Date.now(),
     });
     setBuyCoffeePromptOpen(false);
+    setBuyCoffeePromptSource("unknown");
   };
 
   const handleBuyCoffeeAction = () => {
+    trackAnalyticsEvent("coffee_flow", {
+      action: "buy_clicked",
+      source: buyCoffeePromptSource,
+    });
+    trackAnalyticsEvent("coffee_buy_clicked", {
+      source: buyCoffeePromptSource,
+    });
     if (typeof window !== "undefined") {
       window.open("https://ko-fi.com/zbdvlpr", "_blank", "noopener,noreferrer");
     }
@@ -835,6 +870,7 @@ export default function AppShell({
       cadenceDays: BUY_COFFEE_SUPPORTED_CADENCE_DAYS,
     });
     setBuyCoffeePromptOpen(false);
+    setBuyCoffeePromptSource("unknown");
   };
 
   const mobileNavTrail = mobileLayoutActive && !mobileLauncherOpen ? (

@@ -371,6 +371,7 @@ export default async function Home() {
                         <BuyCoffeeButton
                           className={`${styles.feedbackButton} ${styles.kofiIconLink}`}
                           aria-label={messages.supportOnKofi}
+                          source="top_bar"
                         >
                           ☕
                         </BuyCoffeeButton>
@@ -412,6 +413,7 @@ export default async function Home() {
                   <BuyCoffeeButton
                     className={styles.mobileLauncherUtilityButton}
                     aria-label={messages.supportOnKofi}
+                    source="mobile_launcher"
                   >
                     <span className={styles.mobileLauncherUtilityIcon} aria-hidden="true">
                       ☕

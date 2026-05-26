@@ -181,6 +181,7 @@ type PlayerDetailsPanelProps = {
   onShowSeniorSkillBonusInMatrixChange?: (enabled: boolean) => void;
   ratingsManualOverrideEnabled?: boolean;
   onRatingsManualOverrideEnabledChange?: (enabled: boolean) => void;
+  onRatingsManualEditingToggleInteraction?: () => void;
   ratingsManualOverrideTooltip?: string;
   ratingsOverwriteManualEditsEnabled?: boolean;
   onRatingsOverwriteManualEditsEnabledChange?: (enabled: boolean) => void;
@@ -197,6 +198,7 @@ type PlayerDetailsPanelProps = {
   }) => void;
   seniorSimulationEditingBlocked?: boolean;
   onSeniorSimulationBlockedInteraction?: () => void;
+  onSeniorSimulationEditingToggleInteraction?: () => void;
   skillsMatrixHeaderAux?: ReactNode;
   extraSkillsMatrixHeaderAux?: ReactNode;
   skillsMatrixLeadingHeader?: ReactNode;
@@ -611,6 +613,7 @@ export default function PlayerDetailsPanel({
   onShowSeniorSkillBonusInMatrixChange,
   ratingsManualOverrideEnabled = false,
   onRatingsManualOverrideEnabledChange,
+  onRatingsManualEditingToggleInteraction,
   ratingsManualOverrideTooltip,
   ratingsOverwriteManualEditsEnabled = false,
   onRatingsOverwriteManualEditsEnabledChange,
@@ -623,6 +626,7 @@ export default function PlayerDetailsPanel({
   onSeniorSimulationStateChange,
   seniorSimulationEditingBlocked = false,
   onSeniorSimulationBlockedInteraction,
+  onSeniorSimulationEditingToggleInteraction,
   skillsMatrixHeaderAux,
   extraSkillsMatrixHeaderAux,
   skillsMatrixLeadingHeader,
@@ -1596,6 +1600,7 @@ export default function PlayerDetailsPanel({
               motherClubBonus={detailsData.MotherClubBonus}
               editingBlocked={seniorSimulationEditingBlocked}
               onBlockedInteraction={onSeniorSimulationBlockedInteraction}
+              onEditingToggleInteraction={onSeniorSimulationEditingToggleInteraction}
               onSimulationStateChange={onSeniorSimulationStateChange}
               barGradient={seniorBarGradient}
             />
@@ -2536,6 +2541,7 @@ export default function PlayerDetailsPanel({
           onSortStart={onRatingsSortStart}
           manualEditingEnabled={ratingsManualOverrideEnabled}
           onManualEditingEnabledChange={onRatingsManualOverrideEnabledChange}
+          onManualEditingToggleInteraction={onRatingsManualEditingToggleInteraction}
           manualEditingTooltip={ratingsManualOverrideTooltip}
           overwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
           onOverwriteManualEditsEnabledChange={

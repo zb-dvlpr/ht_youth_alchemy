@@ -11,6 +11,7 @@ import { formatChppDateTime, formatDateTime } from "@/lib/datetime";
 import { parseChppDate } from "@/lib/chpp/utils";
 import Modal from "./Modal";
 import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 import {
   hattrickMatchUrlWithSourceSystem,
   hattrickYouthMatchUrl,
@@ -133,6 +134,7 @@ type UpcomingMatchesProps = {
   ) => void;
   setBestLineupCustomContent?: ReactNode;
   setBestLineupDisabledTooltipBuilder?: (match: Match) => ReactNode;
+  analyticsSource?: "desktop" | "mobile";
 };
 
 export type SetBestLineupMode =
@@ -1018,6 +1020,7 @@ export default function UpcomingMatches({
   onSelectedIgnoreTrainingFormationPolicyChange,
   setBestLineupCustomContent,
   setBestLineupDisabledTooltipBuilder,
+  analyticsSource,
 }: UpcomingMatchesProps) {
   const { addNotification } = useNotifications();
   const [matchStates, setMatchStates] = useState<Record<number, MatchState>>({});
@@ -1147,8 +1150,19 @@ export default function UpcomingMatches({
     }
   };
 
+  const trackYouthMatchFeature = (
+    feature: "match_load_lineup_clicked" | "match_submit_lineup_confirmed"
+  ) => {
+    if (!analyticsSource) return;
+    trackAnalyticsEvent("youth_feature_used", {
+      feature,
+      source: analyticsSource,
+    });
+  };
+
   const handleLoadLineup = async (matchId: number) => {
     if (!teamId) return;
+    trackYouthMatchFeature("match_load_lineup_clicked");
     const matchSourceSystem = resolveMatchSourceSystem(
       matchById.get(matchId),
       sourceSystem
@@ -1313,6 +1327,7 @@ export default function UpcomingMatches({
     const matchId = confirmMatchId;
     setConfirmMatchId(null);
     if (!canSubmitMatchId(matchId)) return;
+    trackYouthMatchFeature("match_submit_lineup_confirmed");
     const matchSourceSystem = resolveMatchSourceSystem(
       matchById.get(matchId),
       sourceSystem

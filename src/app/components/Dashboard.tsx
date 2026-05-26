@@ -130,6 +130,7 @@ import {
   readAppLicenseState,
 } from "@/lib/license";
 import { captureSeniorEncounteredPlayer } from "@/lib/seniorEncounteredPlayerModel";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 
 const YOUTH_REFRESH_REQUEST_EVENT = "ya:youth-refresh-request";
 const YOUTH_REFRESH_STOP_EVENT = "ya:youth-refresh-stop";
@@ -514,6 +515,21 @@ type MatchesArchiveResponse = {
   statusCode?: number;
   code?: string;
 };
+
+type YouthFeatureAnalyticsName =
+  | "player_selected"
+  | "skills_matrix_opened"
+  | "ratings_matrix_opened"
+  | "estimate_value_clicked"
+  | "optimize_star_clicked"
+  | "optimize_ratings_clicked"
+  | "reveal_primary_current_clicked"
+  | "reveal_secondary_max_clicked"
+  | "double_reveal_clicked"
+  | "match_load_lineup_clicked"
+  | "match_submit_lineup_confirmed";
+
+type YouthFeatureAnalyticsSource = "desktop" | "mobile";
 
 type MatchDetailsEvent = {
   EventTypeID?: number | string;
@@ -995,6 +1011,15 @@ export default function Dashboard({
   initialLoadDetails = null,
   initialAuthError = false,
 }: DashboardProps) {
+  const trackYouthFeatureUsed = useCallback(
+    (feature: YouthFeatureAnalyticsName, source: YouthFeatureAnalyticsSource) => {
+      trackAnalyticsEvent("youth_feature_used", {
+        feature,
+        source,
+      });
+    },
+    []
+  );
   const [playerList, setPlayerList] = useState<YouthPlayer[]>(players);
   const [playersLoading, setPlayersLoading] = useState(false);
   const [playerRefreshStatus, setPlayerRefreshStatus] = useState<string | null>(
@@ -1994,13 +2019,18 @@ export default function Dashboard({
 
   const handleMobileYouthViewSelect = useCallback(
     (view: YouthMobileView) => {
+      if (view === "skillsMatrix") {
+        trackYouthFeatureUsed("skills_matrix_opened", "mobile");
+      } else if (view === "ratingsMatrix") {
+        trackYouthFeatureUsed("ratings_matrix_opened", "mobile");
+      }
       if (view === "playerDetails") {
         pushMobileYouthState("playerDetails", selectedPlayer ? "detail" : "list");
         return;
       }
       pushMobileYouthState(view, "root");
     },
-    [pushMobileYouthState, selectedPlayer]
+    [pushMobileYouthState, selectedPlayer, trackYouthFeatureUsed]
   );
 
   useEffect(() => {
@@ -4796,6 +4826,25 @@ export default function Dashboard({
   };
 
   const handleOptimizeSelect = (mode: OptimizeMode) => {
+    const source: YouthFeatureAnalyticsSource = mobileYouthActive
+      ? "mobile"
+      : "desktop";
+    switch (mode) {
+      case "star":
+        trackYouthFeatureUsed("optimize_star_clicked", source);
+        break;
+      case "ratings":
+        trackYouthFeatureUsed("optimize_ratings_clicked", source);
+        break;
+      case "revealPrimaryCurrent":
+        trackYouthFeatureUsed("reveal_primary_current_clicked", source);
+        break;
+      case "revealSecondaryMax":
+        trackYouthFeatureUsed("reveal_secondary_max_clicked", source);
+        break;
+      case "revealPrimaryCurrentAndSecondaryMax":
+        break;
+    }
     if (mode === "star") {
       handleOptimize();
       return;
@@ -6672,6 +6721,10 @@ export default function Dashboard({
                   : ""
               }`}
               onClick={() => {
+                trackYouthFeatureUsed(
+                  "double_reveal_clicked",
+                  mobileYouthActive ? "mobile" : "desktop"
+                );
                 if (!premiumUnlocked) {
                   openPremiumLicenseModal(youthDoubleRevealLicenseContext);
                   return;
@@ -7032,6 +7085,10 @@ export default function Dashboard({
           type="button"
           className={`${styles.confirmSubmit} ${styles.youthEstimateValueButton}`}
           onClick={() => {
+            trackYouthFeatureUsed(
+              "estimate_value_clicked",
+              mobileYouthActive ? "mobile" : "desktop"
+            );
             if (!premiumUnlocked) {
               openPremiumLicenseModal(youthEstimateValueLicenseContext);
               return;
@@ -7180,7 +7237,10 @@ export default function Dashboard({
               `${messages.notificationStarSet} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
             );
           }}
-          onSelect={handleMobilePlayerSelect}
+          onSelect={(playerId) => {
+            trackYouthFeatureUsed("player_selected", "mobile");
+            handleMobilePlayerSelect(playerId);
+          }}
           onAutoSelect={() => {
             if (!autoSelection) return;
             setStarPlayerId(autoSelection.starPlayerId);
@@ -7455,6 +7515,7 @@ export default function Dashboard({
           canSubmitToHattrick={isSupporter}
           submitUnavailableTooltip={messages.hattrickSupporterActionRequiredTooltip}
           onSubmitSuccess={() => setShowTrainingReminder(true)}
+          analyticsSource="mobile"
         />
       </div>
     ) : mobileYouthView === "playerDetails" ? (
@@ -7976,7 +8037,10 @@ export default function Dashboard({
               `${messages.notificationStarSet} ${playerName} · ${primaryLabel} / ${secondaryLabel}`
             );
           }}
-          onSelect={handleSelect}
+          onSelect={(playerId) => {
+            trackYouthFeatureUsed("player_selected", "desktop");
+            void handleSelect(playerId);
+          }}
           onAutoSelect={() => {
             if (!autoSelection) return;
             setStarPlayerId(autoSelection.starPlayerId);
@@ -8124,7 +8188,16 @@ export default function Dashboard({
               }}
               detailsHeaderActions={youthDetailsHeaderActions}
               activeTab={activeDetailsTab}
-              onActiveTabChange={setActiveDetailsTab}
+              onActiveTabChange={(tab) => {
+                if (tab !== activeDetailsTab) {
+                  if (tab === "skillsMatrix") {
+                    trackYouthFeatureUsed("skills_matrix_opened", "desktop");
+                  } else if (tab === "ratingsMatrix") {
+                    trackYouthFeatureUsed("ratings_matrix_opened", "desktop");
+                  }
+                }
+                setActiveDetailsTab(tab);
+              }}
               messages={messages}
             />
           </>
@@ -8473,6 +8546,7 @@ export default function Dashboard({
           canSubmitToHattrick={isSupporter}
           submitUnavailableTooltip={messages.hattrickSupporterActionRequiredTooltip}
           onSubmitSuccess={() => setShowTrainingReminder(true)}
+          analyticsSource="desktop"
         />
       </div>
       </>

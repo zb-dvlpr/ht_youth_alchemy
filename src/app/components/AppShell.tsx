@@ -45,6 +45,7 @@ type AppShellProps = {
 };
 
 type ToolId = "youth" | "senior" | "chronicle";
+type ToolSelectionSource = "desktop_sidebar" | "mobile_launcher";
 
 type ViewStateSnapshot = {
   activeTool: ToolId;
@@ -750,7 +751,7 @@ export default function AppShell({
     return () => window.removeEventListener("ya:manual-open", handler);
   }, []);
 
-  const handleSelectTool = useCallback((toolId: ToolId) => {
+  const selectTool = useCallback((toolId: ToolId) => {
     setActiveTool(toolId);
     if (mobileLayoutActive) {
       setMobileLauncherOpen(false);
@@ -762,13 +763,21 @@ export default function AppShell({
     }
   }, [mobileLayoutActive]);
 
+  const handleSelectTool = useCallback((toolId: ToolId, source: ToolSelectionSource) => {
+    trackAnalyticsEvent("main_tool_selected", {
+      tool: toolId,
+      source,
+    });
+    selectTool(toolId);
+  }, [selectTool]);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handler = (event: Event) => {
       if (!(event instanceof CustomEvent)) return;
       const detail = event.detail as { tool?: ToolId } | undefined;
       if (!detail?.tool) return;
-      handleSelectTool(
+      selectTool(
         detail.tool === "chronicle"
           ? "chronicle"
           : detail.tool === "senior"
@@ -778,7 +787,7 @@ export default function AppShell({
     };
     window.addEventListener(APP_SHELL_OPEN_TOOL_EVENT, handler);
     return () => window.removeEventListener(APP_SHELL_OPEN_TOOL_EVENT, handler);
-  }, [handleSelectTool]);
+  }, [selectTool]);
 
   const renderToolButton = (tool: (typeof tools)[number]) => {
     const button = (
@@ -787,7 +796,7 @@ export default function AppShell({
         className={`${styles.sidebarItem} ${
           activeTool === tool.id ? styles.sidebarItemActive : ""
         }`}
-        onClick={() => handleSelectTool(tool.id)}
+        onClick={() => handleSelectTool(tool.id, "desktop_sidebar")}
         aria-label={tool.label}
       >
         <span className={styles.sidebarIcon} aria-hidden="true">
@@ -1123,7 +1132,7 @@ export default function AppShell({
                     key={tool.id}
                     type="button"
                     className={styles.mobileLauncherToolCard}
-                    onClick={() => handleSelectTool(tool.id)}
+                    onClick={() => handleSelectTool(tool.id, "mobile_launcher")}
                     aria-label={tool.label}
                   >
                     <span className={styles.mobileLauncherToolIcon} aria-hidden="true">

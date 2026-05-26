@@ -521,11 +521,11 @@ type YouthFeatureAnalyticsName =
   | "skills_matrix_opened"
   | "ratings_matrix_opened"
   | "estimate_value_clicked"
-  | "optimize_star_clicked"
-  | "optimize_ratings_clicked"
-  | "reveal_primary_current_clicked"
-  | "reveal_secondary_max_clicked"
-  | "double_reveal_clicked"
+  | "lineup_optimize_around_star_clicked"
+  | "lineup_optimize_by_ratings_clicked"
+  | "lineup_reveal_primary_current_clicked"
+  | "lineup_reveal_secondary_max_clicked"
+  | "lineup_double_reveal_clicked"
   | "match_load_lineup_clicked"
   | "match_submit_lineup_confirmed";
 
@@ -4831,16 +4831,16 @@ export default function Dashboard({
       : "desktop";
     switch (mode) {
       case "star":
-        trackYouthFeatureUsed("optimize_star_clicked", source);
+        trackYouthFeatureUsed("lineup_optimize_around_star_clicked", source);
         break;
       case "ratings":
-        trackYouthFeatureUsed("optimize_ratings_clicked", source);
+        trackYouthFeatureUsed("lineup_optimize_by_ratings_clicked", source);
         break;
       case "revealPrimaryCurrent":
-        trackYouthFeatureUsed("reveal_primary_current_clicked", source);
+        trackYouthFeatureUsed("lineup_reveal_primary_current_clicked", source);
         break;
       case "revealSecondaryMax":
-        trackYouthFeatureUsed("reveal_secondary_max_clicked", source);
+        trackYouthFeatureUsed("lineup_reveal_secondary_max_clicked", source);
         break;
       case "revealPrimaryCurrentAndSecondaryMax":
         break;
@@ -6722,7 +6722,7 @@ export default function Dashboard({
               }`}
               onClick={() => {
                 trackYouthFeatureUsed(
-                  "double_reveal_clicked",
+                  "lineup_double_reveal_clicked",
                   mobileYouthActive ? "mobile" : "desktop"
                 );
                 if (!premiumUnlocked) {

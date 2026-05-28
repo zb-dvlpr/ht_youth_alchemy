@@ -145,6 +145,8 @@ export const messagesSv: Messages = {
     updateRequiredBody:
       "En ny version av HT Alchemy finns tillganglig. Uppdatera nu for att fortsatta anvanda appen.",
     updateRequiredAction: "Uppdatera",
+    changelog_5_8_0:
+      "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
       "HatStats (ursprung: Foxtrick) ingar nu i motstandaranalysen.",
     changelog_5_6_0:
@@ -478,6 +480,19 @@ export const messagesSv: Messages = {
       "Importera KK-bevakningslistor",
     settingsGeneralChronicleWatchlistsImportHint:
       "Använd telefonens inbyggda kamera för att öppna en exporterad QR-kod med Klubbkrönikan-bevakningslistor.",
+    analyticsConsentModalTitle: "Analytics consent",
+    analyticsConsentModalBody:
+      "We want to improve this app by analyzing how it is being used. This helps us understand app and feature usage, make better product decisions, and prioritize useful future changes.\n\nWe do not send names, email addresses, Hattrick tokens, player names, team names, or other directly identifying information. Analytics data is used only in aggregated form for product-improvement purposes.",
+    analyticsConsentDeniedAction: "Do not consent",
+    analyticsConsentGrantedAction: "Consent",
+    settingsAnalyticsConsentTitle: "Analytics consent",
+    settingsAnalyticsConsentDescription:
+      "Control whether this app may analyze app and feature usage to support product-improvement decisions.",
+    settingsAnalyticsConsentStatusGranted: "Current choice: Consent granted",
+    settingsAnalyticsConsentStatusDenied: "Current choice: Consent denied",
+    settingsAnalyticsConsentStatusUnset: "No choice saved",
+    settingsAnalyticsConsentGrantButton: "Consent",
+    settingsAnalyticsConsentDenyButton: "Do not consent",
     settingsChronicleQrExportTitle:
       "Exportera Klubbkrönikan-bevakningslistor till mobilen",
     settingsChronicleQrExportBody:

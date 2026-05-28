@@ -289,6 +289,19 @@ export const messagesPl: Messages = {
   settingsGeneralChronicleWatchlistsImportLabel: "Importuj listy CC",
   settingsGeneralChronicleWatchlistsImportHint:
     "Użyj natywnego aparatu telefonu, aby otworzyć wyeksportowany kod QR z listami obserwowanych Club Chronicle.",
+  analyticsConsentModalTitle: "Analytics consent",
+  analyticsConsentModalBody:
+    "We want to improve this app by analyzing how it is being used. This helps us understand app and feature usage, make better product decisions, and prioritize useful future changes.\n\nWe do not send names, email addresses, Hattrick tokens, player names, team names, or other directly identifying information. Analytics data is used only in aggregated form for product-improvement purposes.",
+  analyticsConsentDeniedAction: "Do not consent",
+  analyticsConsentGrantedAction: "Consent",
+  settingsAnalyticsConsentTitle: "Analytics consent",
+  settingsAnalyticsConsentDescription:
+    "Control whether this app may analyze app and feature usage to support product-improvement decisions.",
+  settingsAnalyticsConsentStatusGranted: "Current choice: Consent granted",
+  settingsAnalyticsConsentStatusDenied: "Current choice: Consent denied",
+  settingsAnalyticsConsentStatusUnset: "No choice saved",
+  settingsAnalyticsConsentGrantButton: "Consent",
+  settingsAnalyticsConsentDenyButton: "Do not consent",
   settingsChronicleQrExportTitle:
     "Eksport list obserwowanych Club Chronicle na telefon",
   settingsChronicleQrExportBody:
@@ -332,6 +345,8 @@ export const messagesPl: Messages = {
   updateRequiredBody:
     "Dostepna jest nowa wersja HT Alchemy. Odswiez teraz, aby dalej korzystac z aplikacji.",
   updateRequiredAction: "Odswiez",
+  changelog_5_8_0:
+    "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
   changelog_5_7_0:
     "HatStats (zrodlo: Foxtrick) sa teraz uwzglednione w analizie przeciwnika.",
   changelog_5_6_0:

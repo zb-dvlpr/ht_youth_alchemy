@@ -1515,6 +1515,12 @@ html[data-app-scaling="off"] .dashboardGrid > * {
   background: rgba(255, 252, 246, 0.7);
 }
 
+.settingsChoiceRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .licenseDetailsPanel {
   display: grid;
   gap: 0;

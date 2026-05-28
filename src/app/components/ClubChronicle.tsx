@@ -13,6 +13,7 @@ import {
   type ReactNode,
 } from "react";
 import styles from "../page.module.css";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 import { Messages } from "@/lib/i18n";
 import { formatChppDateTime, formatDateTime } from "@/lib/datetime";
 import { parseChppDate } from "@/lib/chpp/utils";
@@ -1306,6 +1307,17 @@ const nextChronicleSortState = (
       : "asc",
 });
 type ChroniclePanelId = (typeof PANEL_IDS)[number];
+type ClubChronicleFeatureAnalyticsName =
+  | "panel_deselected"
+  | "watchlist_opened"
+  | "watchlist_own_team_clicked"
+  | "watchlist_own_league_clicked"
+  | "watchlist_supported_team_clicked"
+  | "watchlist_add_team_clicked"
+  | "tab_add_clicked"
+  | "limit_reached_shown"
+  | "panel_row_clicked";
+type ClubChronicleAnalyticsSource = "desktop" | "mobile";
 const UPDATE_PANEL_BY_CHRONICLE_PANEL_ID: Record<ChroniclePanelId, UpdatePanel> = {
   "league-performance": "league",
   "press-announcements": "press",
@@ -3811,6 +3823,24 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   const [scopeReconnectModalOpen, setScopeReconnectModalOpen] = useState(false);
   const [noDivulgoActive, setNoDivulgoActive] = useState(false);
   const [mobileChronicleActive, setMobileChronicleActive] = useState(false);
+  const clubChronicleAnalyticsSource: ClubChronicleAnalyticsSource =
+    mobileChronicleActive ? "mobile" : "desktop";
+  const trackClubChronicleFeatureUsed = useCallback(
+    (
+      feature: ClubChronicleFeatureAnalyticsName,
+      params?: {
+        source?: ClubChronicleAnalyticsSource;
+        panel?: ChroniclePanelId;
+      }
+    ) => {
+      trackAnalyticsEvent("club_chronicle_feature_used", {
+        feature,
+        ...(params?.source ? { source: params.source } : {}),
+        ...(params?.panel ? { panel: params.panel } : {}),
+      });
+    },
+    []
+  );
   const [mobileChronicleRefreshFeedbackVisible, setMobileChronicleRefreshFeedbackVisible] =
     useState(false);
   const [pendingNoDivulgoFetchTeamId, setPendingNoDivulgoFetchTeamId] = useState<
@@ -5884,8 +5914,9 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
 
   const openChronicleLimitModal = useCallback(() => {
+    trackClubChronicleFeatureUsed("limit_reached_shown");
     setChronicleLimitModalOpen(true);
-  }, []);
+  }, [trackClubChronicleFeatureUsed]);
 
   const renderChroniclePremiumLockedMessage = useCallback(
     (context: AppLicenseModalContext) => (
@@ -6411,6 +6442,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   );
 
   const handleOpenDetails = (teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "league-performance",
+    });
     if (mobileChronicleActive) {
       setSelectedTeamId(teamId);
       openMobileChronicleDetail("league-performance", "league-performance", teamId);
@@ -6421,6 +6456,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenPressDetails = (teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "press-announcements",
+    });
     if (mobileChronicleActive) {
       setSelectedPressTeamId(teamId);
       openMobileChronicleDetail(
@@ -6435,6 +6474,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenFinanceDetails = (teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "finance-estimate",
+    });
     if (mobileChronicleActive) {
       setSelectedFinanceTeamId(teamId);
       openMobileChronicleDetail("finance-estimate", "finance-estimate", teamId);
@@ -6445,6 +6488,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenFanclubDetails = (teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "fanclub",
+    });
     if (mobileChronicleActive) {
       setSelectedFanclubTeamId(teamId);
       openMobileChronicleDetail("fanclub", "fanclub", teamId);
@@ -6455,6 +6502,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenArenaDetails = (teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "arena",
+    });
     if (mobileChronicleActive) {
       setSelectedArenaTeamId(teamId);
       openMobileChronicleDetail("arena", "arena", teamId);
@@ -6465,6 +6516,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenFormationsTacticsDetails = (teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "formations-tactics",
+    });
     const targetRow = formationsTacticsRows.find((row) => row.teamId === teamId);
     if (targetRow?.premiumLocked) {
       openPremiumLicenseModal(chronicleFormationsLicenseContext);
@@ -6484,6 +6539,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenLikelyTrainingDetails = (teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "likely-training",
+    });
     const targetRow = likelyTrainingRows.find((row) => row.teamId === teamId);
     if (targetRow?.premiumLocked) {
       openPremiumLicenseModal(chronicleLikelyTrainingLicenseContext);
@@ -6499,6 +6558,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenTeamAttitudeDetails = (teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "team-attitude",
+    });
     if (mobileChronicleActive) {
       setSelectedTeamAttitudeTeamId(teamId);
       openMobileChronicleDetail("team-attitude", "team-attitude", teamId);
@@ -6509,6 +6572,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenWagesDetails = (teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "wages",
+    });
     if (mobileChronicleActive) {
       setSelectedWagesTeamId(teamId);
       openMobileChronicleDetail("wages", "wages", teamId);
@@ -6519,6 +6586,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenTsiDetails = (teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "tsi",
+    });
     if (mobileChronicleActive) {
       setSelectedTsiTeamId(teamId);
       openMobileChronicleDetail("tsi", "tsi", teamId);
@@ -6529,6 +6600,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenLastLoginDetails = (teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "last-login",
+    });
     if (mobileChronicleActive) {
       setSelectedLastLoginTeamId(teamId);
       openMobileChronicleDetail("last-login", "last-login", teamId);
@@ -6539,6 +6614,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenCoachDetails = (teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "coach",
+    });
     if (mobileChronicleActive) {
       setSelectedCoachTeamId(teamId);
       openMobileChronicleDetail("coach", "coach", teamId);
@@ -6549,6 +6628,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenPowerRatingsDetails = (teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "power-ratings",
+    });
     if (mobileChronicleActive) {
       setSelectedPowerRatingsTeamId(teamId);
       openMobileChronicleDetail("power-ratings", "power-ratings", teamId);
@@ -6559,6 +6642,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
   };
 
   const handleOpenTransferListedDetails = useCallback((teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "transfer-market",
+    });
     setSelectedTransferTeamId(teamId);
     if (mobileChronicleActive) {
       updateMobileChronicleState(
@@ -6638,9 +6725,19 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         setLoadingTransferListedModal(false);
       }
     })();
-  }, [chronicleCache, mobileChronicleActive, updateMobileChronicleState]);
+  }, [
+    chronicleCache,
+    clubChronicleAnalyticsSource,
+    mobileChronicleActive,
+    trackClubChronicleFeatureUsed,
+    updateMobileChronicleState,
+  ]);
 
   const handleOpenTransferHistory = useCallback((teamId: number) => {
+    trackClubChronicleFeatureUsed("panel_row_clicked", {
+      source: clubChronicleAnalyticsSource,
+      panel: "transfer-market",
+    });
     setSelectedTransferTeamId(teamId);
     if (mobileChronicleActive) {
       updateMobileChronicleState(
@@ -6689,7 +6786,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
         setLoadingTransferHistoryModal(false);
       }
     })();
-  }, [mobileChronicleActive, transferHistoryCount, updateMobileChronicleState]);
+  }, [
+    clubChronicleAnalyticsSource,
+    mobileChronicleActive,
+    trackClubChronicleFeatureUsed,
+    transferHistoryCount,
+    updateMobileChronicleState,
+  ]);
 
   const updatePersistedSortState = (
     tableKey: string,
@@ -7927,6 +8030,10 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
               type="button"
               className={styles.chronicleInlineLinkButton}
               onClick={() => {
+                trackClubChronicleFeatureUsed("panel_row_clicked", {
+                  source: clubChronicleAnalyticsSource,
+                  panel: "ongoing-matches",
+                });
                 setSelectedOngoingMatchTeamId(row.teamId);
                 setOngoingMatchEventsOpen(true);
               }}
@@ -7951,11 +8058,13 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
       formatMatchTypeLabel,
       formatOngoingMatchScore,
       formatOngoingMatchSummary,
+      clubChronicleAnalyticsSource,
       messages.analyzeOpponentMatchType,
       messages.clubChronicleColumnTeam,
       messages.clubChronicleOngoingMatchesColumnScore,
       messages.clubChronicleOngoingMatchesColumnMatch,
       messages.clubChronicleOngoingMatchesNone,
+      trackClubChronicleFeatureUsed,
     ]
   );
 
@@ -16881,7 +16990,12 @@ type Form7LineupSnapshot = {
                   <input
                     type="checkbox"
                     checked={isSupportedSelectionEffectivelyVisible(team.teamId)}
-                    onChange={() => handleToggleSupported(team.teamId)}
+                    onChange={() => {
+                      trackClubChronicleFeatureUsed("watchlist_own_team_clicked", {
+                        source: clubChronicleAnalyticsSource,
+                      });
+                      handleToggleSupported(team.teamId);
+                    }}
                   />
                   <span className={styles.watchlistName}>{formatWatchlistTeamName(team)}</span>
                 </label>
@@ -16919,7 +17033,15 @@ type Form7LineupSnapshot = {
                           }}
                           type="checkbox"
                           checked={leagueState.checked}
-                          onChange={() => handleToggleOwnLeagueGroup(entry.key)}
+                          onChange={() => {
+                            trackClubChronicleFeatureUsed(
+                              "watchlist_own_league_clicked",
+                              {
+                                source: clubChronicleAnalyticsSource,
+                              }
+                            );
+                            handleToggleOwnLeagueGroup(entry.key);
+                          }}
                         />
                         <span className={styles.watchlistName}>
                           {formatOwnLeagueName(entry)}
@@ -16992,7 +17114,15 @@ type Form7LineupSnapshot = {
                   <input
                     type="checkbox"
                     checked={isSupportedSelectionEffectivelyVisible(team.teamId)}
-                    onChange={() => handleToggleSupported(team.teamId)}
+                    onChange={() => {
+                      trackClubChronicleFeatureUsed(
+                        "watchlist_supported_team_clicked",
+                        {
+                          source: clubChronicleAnalyticsSource,
+                        }
+                      );
+                      handleToggleSupported(team.teamId);
+                    }}
                   />
                   <span className={styles.watchlistName}>{formatWatchlistTeamName(team)}</span>
                 </label>
@@ -17052,7 +17182,12 @@ type Form7LineupSnapshot = {
           <button
             type="button"
             className={styles.watchlistButton}
-            onClick={handleAddTeam}
+            onClick={() => {
+              trackClubChronicleFeatureUsed("watchlist_add_team_clicked", {
+                source: clubChronicleAnalyticsSource,
+              });
+              void handleAddTeam();
+            }}
             disabled={isValidating || fullTrackedTeams.length >= chronicleTeamLimit}
           >
             {messages.watchlistAddButton}
@@ -17080,9 +17215,15 @@ type Form7LineupSnapshot = {
                 <input
                   type="checkbox"
                   checked={panelVisibility[panelId] !== false}
-                  onChange={(event) =>
-                    setPanelVisible(panelId, event.target.checked)
-                  }
+                  onChange={(event) => {
+                    const nextVisible = event.target.checked;
+                    if (!nextVisible) {
+                      trackClubChronicleFeatureUsed("panel_deselected", {
+                        panel: panelId,
+                      });
+                    }
+                    setPanelVisible(panelId, nextVisible);
+                  }}
                 />
                 <span className={styles.watchlistName}>
                   {panelTitleById[panelId]}
@@ -18153,7 +18294,12 @@ type Form7LineupSnapshot = {
                 <button
                   type="button"
                   className={styles.chronicleTabAddButton}
-                  onClick={handleCreateChronicleTab}
+                  onClick={() => {
+                    trackClubChronicleFeatureUsed("tab_add_clicked", {
+                      source: "mobile",
+                    });
+                    handleCreateChronicleTab();
+                  }}
                   aria-label={messages.clubChronicleTabAdd}
                 >
                   +
@@ -18219,7 +18365,12 @@ type Form7LineupSnapshot = {
             "push"
           )
         }
-        onOpenWatchlist={openChronicleWatchlist}
+        onOpenWatchlist={() => {
+          trackClubChronicleFeatureUsed("watchlist_opened", {
+            source: "mobile",
+          });
+          openChronicleWatchlist();
+        }}
         onRefresh={() => triggerGlobalRefresh("manual")}
         onOpenUpdates={openChronicleUpdates}
         panelOptions={normalizedPanelOrder.map((panelId) => ({
@@ -18406,7 +18557,12 @@ type Form7LineupSnapshot = {
               type="button"
               className={styles.watchlistFab}
               data-help-anchor="cc-watchlist"
-              onClick={() => setWatchlistOpen(true)}
+              onClick={() => {
+                trackClubChronicleFeatureUsed("watchlist_opened", {
+                  source: "desktop",
+                });
+                setWatchlistOpen(true);
+              }}
               aria-label={messages.watchlistTitle}
             >
               ☰
@@ -18494,7 +18650,12 @@ type Form7LineupSnapshot = {
             <button
               type="button"
               className={styles.chronicleTabAddButton}
-              onClick={handleCreateChronicleTab}
+              onClick={() => {
+                trackClubChronicleFeatureUsed("tab_add_clicked", {
+                  source: "desktop",
+                });
+                handleCreateChronicleTab();
+              }}
               aria-label={messages.clubChronicleTabAdd}
             >
               +

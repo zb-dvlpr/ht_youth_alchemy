@@ -61,6 +61,7 @@ type RatingsMatrixProps = {
   onSortStart?: () => void;
   manualEditingEnabled?: boolean;
   onManualEditingEnabledChange?: (enabled: boolean) => void;
+  onManualEditingToggleInteraction?: () => void;
   manualEditingTooltip?: string;
   overwriteManualEditsEnabled?: boolean;
   onOverwriteManualEditsEnabledChange?: (enabled: boolean) => void;
@@ -147,6 +148,7 @@ export default function RatingsMatrix({
   onSortStart,
   manualEditingEnabled = false,
   onManualEditingEnabledChange,
+  onManualEditingToggleInteraction,
   manualEditingTooltip,
   overwriteManualEditsEnabled = false,
   onOverwriteManualEditsEnabledChange,
@@ -359,9 +361,10 @@ export default function RatingsMatrix({
                 type="checkbox"
                 className={styles.matchesFilterToggleInput}
                 checked={manualEditingEnabled}
-                onChange={(event) =>
-                  onManualEditingEnabledChange(event.currentTarget.checked)
-                }
+                onChange={(event) => {
+                  onManualEditingToggleInteraction?.();
+                  onManualEditingEnabledChange(event.currentTarget.checked);
+                }}
               />
               <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
               <span className={styles.matchesFilterToggleLabel}>

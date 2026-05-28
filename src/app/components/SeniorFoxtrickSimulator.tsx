@@ -125,6 +125,7 @@ type SeniorFoxtrickSimulatorProps = {
   motherClubBonus?: boolean;
   editingBlocked?: boolean;
   onBlockedInteraction?: () => void;
+  onEditingToggleInteraction?: () => void;
   onSimulationStateChange?: (state: {
     editing: boolean;
     dirty: boolean;
@@ -207,6 +208,7 @@ export default function SeniorFoxtrickSimulator({
   motherClubBonus = false,
   editingBlocked = false,
   onBlockedInteraction,
+  onEditingToggleInteraction,
   onSimulationStateChange,
   barGradient,
 }: SeniorFoxtrickSimulatorProps) {
@@ -534,6 +536,7 @@ export default function SeniorFoxtrickSimulator({
                 type="checkbox"
                 checked={editingEnabled}
                 onChange={(event) => {
+                  onEditingToggleInteraction?.();
                   if (editingBlocked) {
                     event.preventDefault();
                     onBlockedInteraction?.();

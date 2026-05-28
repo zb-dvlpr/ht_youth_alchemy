@@ -145,6 +145,8 @@ export const messagesEn: Messages = {
     updateRequiredBody:
       "A new version of HT Alchemy is available. Refresh now to keep using the app.",
     updateRequiredAction: "Refresh to update",
+    changelog_5_8_0:
+      "Introduced Google Analytics and Vercel Analytics loading behind explicit user consent.",
     changelog_5_7_0:
       "HatStats (origin: Foxtrick) are now included in opponent analysis.",
     changelog_5_6_0:
@@ -461,6 +463,19 @@ export const messagesEn: Messages = {
     settingsGeneralChronicleWatchlistsImportLabel: "Import CC watchlists",
     settingsGeneralChronicleWatchlistsImportHint:
       "Use your phone's native camera to open an exported Club Chronicle watchlist QR code.",
+    analyticsConsentModalTitle: "Analytics consent",
+    analyticsConsentModalBody:
+      "We want to improve this app by analyzing how it is being used. This helps us understand app and feature usage, make better product decisions, and prioritize useful future changes.\n\nWe do not send names, email addresses, Hattrick tokens, player names, team names, or other directly identifying information. Analytics data is used only in aggregated form for product-improvement purposes.",
+    analyticsConsentDeniedAction: "Do not consent",
+    analyticsConsentGrantedAction: "Consent",
+    settingsAnalyticsConsentTitle: "Analytics consent",
+    settingsAnalyticsConsentDescription:
+      "Control whether this app may analyze app and feature usage to support product-improvement decisions.",
+    settingsAnalyticsConsentStatusGranted: "Current choice: Consent granted",
+    settingsAnalyticsConsentStatusDenied: "Current choice: Consent denied",
+    settingsAnalyticsConsentStatusUnset: "No choice saved",
+    settingsAnalyticsConsentGrantButton: "Consent",
+    settingsAnalyticsConsentDenyButton: "Do not consent",
     settingsChronicleQrExportTitle: "Export Club Chronicle watchlists to mobile",
     settingsChronicleQrExportBody:
       "Scan this QR code with your phone's native camera to import all Club Chronicle watchlists to mobile.",

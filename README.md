@@ -18,6 +18,7 @@ Hattrick Alchemy is a CHPP-approved web app for Hattrick optimization workflows.
 - Club Chronicle own-league watchlists with per-team selection inside each league
 - Shared workflows with platform-aware UX evolution for distinct desktop and mobile ergonomics
 - Localization (`en`, `de`, `fr`, `es`, `sv`, `it`, `pt`, `pl`, `nl`)
+- Consent-gated Google Analytics and Vercel Analytics
 - Local settings export/import and persisted UI state
 - Automatic deployed-version detection with a required refresh prompt
 

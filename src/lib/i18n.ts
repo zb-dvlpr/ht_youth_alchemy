@@ -128,6 +128,7 @@ export type Messages = {
   updateRequiredTitle: string;
   updateRequiredBody: string;
   updateRequiredAction: string;
+  changelog_5_8_0: string;
   changelog_5_7_0: string;
   changelog_5_6_0: string;
   changelog_5_5_0: string;
@@ -373,6 +374,17 @@ export type Messages = {
   settingsGeneralChronicleWatchlistsExportHint: string;
   settingsGeneralChronicleWatchlistsImportLabel: string;
   settingsGeneralChronicleWatchlistsImportHint: string;
+  analyticsConsentModalTitle: string;
+  analyticsConsentModalBody: string;
+  analyticsConsentDeniedAction: string;
+  analyticsConsentGrantedAction: string;
+  settingsAnalyticsConsentTitle: string;
+  settingsAnalyticsConsentDescription: string;
+  settingsAnalyticsConsentStatusGranted: string;
+  settingsAnalyticsConsentStatusDenied: string;
+  settingsAnalyticsConsentStatusUnset: string;
+  settingsAnalyticsConsentGrantButton: string;
+  settingsAnalyticsConsentDenyButton: string;
   settingsChronicleQrExportTitle: string;
   settingsChronicleQrExportBody: string;
   settingsChronicleQrExportSummaryTitle: string;

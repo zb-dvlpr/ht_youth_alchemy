@@ -11,6 +11,13 @@ import AppLicenseModal from "./AppLicenseModal";
 import AppLicenseDetails from "./AppLicenseDetails";
 import QRCode from "qrcode";
 import {
+  dispatchAnalyticsConsentChange,
+  readAnalyticsConsent,
+  subscribeAnalyticsConsentChange,
+  writeAnalyticsConsent,
+  type AnalyticsConsent,
+} from "@/lib/analyticsConsent";
+import {
   type ChppDebugOauthErrorMode,
   readChppDebugOauthErrorMode,
   writeChppDebugOauthErrorMode,
@@ -135,6 +142,8 @@ export default function SettingsButton({
   const [chronicleUpdatesHistoryCount, setChronicleUpdatesHistoryCount] =
     useState(10);
   const [enableAppScaling, setEnableAppScaling] = useState(false);
+  const [analyticsConsent, setAnalyticsConsent] =
+    useState<AnalyticsConsent | null>(null);
   const [debugOauthErrorMode, setDebugOauthErrorMode] =
     useState<ChppDebugOauthErrorMode>("off");
   const [debugRandomNewMarkersEnabled, setDebugRandomNewMarkersEnabled] =
@@ -191,11 +200,20 @@ export default function SettingsButton({
     setChronicleTransferHistoryCount(readClubChronicleTransferHistoryCount());
     setChronicleUpdatesHistoryCount(readClubChronicleUpdatesHistoryCount());
     setEnableAppScaling(readGeneralEnableScaling());
+    setAnalyticsConsent(readAnalyticsConsent());
     if (process.env.NODE_ENV !== "production") {
       setDebugOauthErrorMode(readChppDebugOauthErrorMode());
       setDebugRandomNewMarkersEnabled(readYouthNewMarkersDebugEnabled());
       setDebugSeniorManagerUserId(readSeniorDebugManagerUserId());
     }
+  }, []);
+
+  useEffect(() => {
+    const syncAnalyticsConsent = () => {
+      setAnalyticsConsent(readAnalyticsConsent());
+    };
+    syncAnalyticsConsent();
+    return subscribeAnalyticsConsentChange(syncAnalyticsConsent);
   }, []);
 
   useEffect(() => {
@@ -575,6 +593,12 @@ export default function SettingsButton({
         })
       );
     }
+  };
+
+  const handleAnalyticsConsentChange = (nextConsent: AnalyticsConsent) => {
+    setAnalyticsConsent(nextConsent);
+    writeAnalyticsConsent(nextConsent);
+    dispatchAnalyticsConsentChange();
   };
 
   const handleOpenSeniorMlInfo = async () => {
@@ -1124,6 +1148,39 @@ export default function SettingsButton({
                 </label>
               </Tooltip>
             ) : null}
+            <section className={styles.settingsSection}>
+              <div className={styles.settingsSectionHeader}>
+                <h3>{messages.settingsAnalyticsConsentTitle}</h3>
+                <p className={styles.muted}>
+                  {messages.settingsAnalyticsConsentDescription}
+                </p>
+              </div>
+              <p className={styles.muted}>
+                {analyticsConsent === "granted"
+                  ? messages.settingsAnalyticsConsentStatusGranted
+                  : analyticsConsent === "denied"
+                    ? messages.settingsAnalyticsConsentStatusDenied
+                    : messages.settingsAnalyticsConsentStatusUnset}
+              </p>
+              <div className={styles.settingsChoiceRow}>
+                <button
+                  type="button"
+                  className={styles.settingsActionButton}
+                  onClick={() => handleAnalyticsConsentChange("denied")}
+                  disabled={analyticsConsent === "denied"}
+                >
+                  {messages.settingsAnalyticsConsentDenyButton}
+                </button>
+                <button
+                  type="button"
+                  className={styles.settingsActionButton}
+                  onClick={() => handleAnalyticsConsentChange("granted")}
+                  disabled={analyticsConsent === "granted"}
+                >
+                  {messages.settingsAnalyticsConsentGrantButton}
+                </button>
+              </div>
+            </section>
             {isDev ? (
               <section className={styles.settingsSection}>
                 <div className={styles.settingsSectionHeader}>

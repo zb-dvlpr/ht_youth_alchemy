@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import styles from "../page.module.css";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 import { Messages } from "@/lib/i18n";
 import Tooltip from "./Tooltip";
 import { ChppAuthRequiredError, fetchChppJson } from "@/lib/chpp/client";
@@ -18,6 +19,8 @@ export default function ConnectedStatus({
 }: ConnectedStatusProps) {
   const [permissions, setPermissions] = useState<string[] | null>(null);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const analyticsSource: "desktop_header" | "mobile_header" =
+    variant === "buttonOnly" ? "mobile_header" : "desktop_header";
 
   useEffect(() => {
     let isActive = true;
@@ -59,6 +62,10 @@ export default function ConnectedStatus({
 
   const handleDisconnect = async () => {
     if (isDisconnecting) return;
+    trackAnalyticsEvent("app_connection_used", {
+      feature: "disconnect_token_clicked",
+      source: analyticsSource,
+    });
     setIsDisconnecting(true);
     try {
       await fetch("/api/chpp/oauth/invalidate-token", { method: "POST" });

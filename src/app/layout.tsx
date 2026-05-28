@@ -1,6 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
+import AnalyticsConsentModal from "./components/AnalyticsConsentModal";
+import AnalyticsAppLoadedTracker from "./components/AnalyticsAppLoadedTracker";
+import ConsentGatedVercelAnalytics from "./components/ConsentGatedVercelAnalytics";
+import GoogleAnalytics from "./components/GoogleAnalytics";
 
 export const metadata: Metadata = {
   title: "Hattrick Alchemy",
@@ -26,7 +29,10 @@ export default function RootLayout({
       </head>
       <body>
         {children}
-        <Analytics />
+        <AnalyticsConsentModal />
+        <GoogleAnalytics />
+        <AnalyticsAppLoadedTracker />
+        <ConsentGatedVercelAnalytics />
       </body>
     </html>
   );

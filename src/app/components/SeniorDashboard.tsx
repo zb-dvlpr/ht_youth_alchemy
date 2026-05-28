@@ -105,6 +105,7 @@ import {
   hasUnlockedPremiumAccess,
   readAppLicenseState,
 } from "@/lib/license";
+import { trackAnalyticsEvent } from "@/lib/analytics";
 
 type SeniorPlayer = {
   PlayerID: number;
@@ -256,6 +257,24 @@ type PersistedSeniorMarkersBaseline = {
 };
 
 type SeniorManualRatingsEdits = Record<number, Record<string, number>>;
+
+type SeniorFeatureAnalyticsName =
+  | "player_selected"
+  | "find_similar_players_clicked"
+  | "lineup_b_team_toggled"
+  | "lineup_man_marking_toggled"
+  | "lineup_training_aware_clicked"
+  | "lineup_ignore_training_all_formations_clicked"
+  | "lineup_ignore_training_trained_formations_clicked"
+  | "lineup_aim_for_extra_time_clicked"
+  | "lineup_apply_formation_optimization_clicked"
+  | "lineup_load_lineup_clicked"
+  | "lineup_submit_lineup_confirmed"
+  | "edit_skills_age_wage_tsi_toggled"
+  | "ratings_manual_edit_toggled"
+  | "ratings_manual_value_edited";
+
+type SeniorFeatureAnalyticsSource = "desktop" | "mobile";
 
 const seniorMatchesStateHasMatches = (
   state: MatchesResponse | null | undefined
@@ -3377,6 +3396,18 @@ export default function SeniorDashboard({
     ? selectedPlayerSimulationState
     : { dirty: false, metricInput: null };
   const [mobileSeniorActive, setMobileSeniorActive] = useState(false);
+  const seniorAnalyticsSource: SeniorFeatureAnalyticsSource = mobileSeniorActive
+    ? "mobile"
+    : "desktop";
+  const trackSeniorFeatureUsed = useCallback(
+    (feature: SeniorFeatureAnalyticsName, source?: SeniorFeatureAnalyticsSource) => {
+      trackAnalyticsEvent("senior_feature_used", {
+        feature,
+        source: source ?? (mobileSeniorActive ? "mobile" : "desktop"),
+      });
+    },
+    [mobileSeniorActive]
+  );
   const [mobileSeniorView, setMobileSeniorView] =
     useState<SeniorMobileView>("playerDetails");
   const [mobileSeniorPlayerScreen, setMobileSeniorPlayerScreen] =
@@ -4240,6 +4271,7 @@ export default function SeniorDashboard({
 
   const handleSeniorListPlayerSelect = useCallback(
     (playerId: number, playerName: string) => {
+      trackSeniorFeatureUsed("player_selected", seniorAnalyticsSource);
       setActiveDetailsTab("details");
       setSelectedId(playerId);
       addNotification(`${messages.notificationPlayerSelected} ${playerName}`);
@@ -4247,7 +4279,14 @@ export default function SeniorDashboard({
         pushMobileSeniorState("playerDetails", "detail");
       }
     },
-    [addNotification, messages.notificationPlayerSelected, mobileSeniorActive, pushMobileSeniorState]
+    [
+      addNotification,
+      messages.notificationPlayerSelected,
+      mobileSeniorActive,
+      pushMobileSeniorState,
+      seniorAnalyticsSource,
+      trackSeniorFeatureUsed,
+    ]
   );
 
   const panelPlayers = useMemo(
@@ -5072,7 +5111,9 @@ export default function SeniorDashboard({
   const seniorAiManMarkingFuzzinessTooltip: ReactNode = premiumUnlocked
     ? messages.seniorAiManMarkingFuzzinessTooltip
     : messages.seniorAiManMarkingFuzzinessPremiumTooltip;
-  const setBestLineupBTeamMenuContent = (
+  const buildSetBestLineupBTeamMenuContent = (
+    source: SeniorFeatureAnalyticsSource
+  ) => (
     <div className={styles.seniorSetBestLineupBTeamMenuSection}>
       <div className={styles.seniorExtraTimeBTeamControls}>
         <Tooltip content={extraTimeBTeamToggleTooltip}>
@@ -5082,7 +5123,10 @@ export default function SeniorDashboard({
               className={styles.matchesFilterToggleInput}
               checked={effectiveExtraTimeBTeamEnabled}
               disabled={!extraTimeBTeamCanBeEnabled}
-              onChange={(event) => setExtraTimeBTeamEnabled(event.target.checked)}
+              onChange={(event) => {
+                trackSeniorFeatureUsed("lineup_b_team_toggled", source);
+                setExtraTimeBTeamEnabled(event.target.checked);
+              }}
             />
             <span className={styles.matchesFilterToggleTrack} aria-hidden="true" />
             <span className={styles.matchesFilterToggleLabel}>
@@ -5190,6 +5234,7 @@ export default function SeniorDashboard({
               className={styles.matchesFilterToggleInput}
               checked={effectiveSeniorAiManMarkingEnabled}
               onChange={(event) => {
+                trackSeniorFeatureUsed("lineup_man_marking_toggled", source);
                 if (!premiumUnlocked) {
                   openPremiumLicenseModal(seniorManMarkingLicenseContext);
                   return;
@@ -10642,6 +10687,7 @@ function buildSeniorAiManMarkingReadySignature(params: {
   };
 
   const openTransferSearchForPlayer = async (player: SeniorPlayer) => {
+    trackSeniorFeatureUsed("find_similar_players_clicked", seniorAnalyticsSource);
     const hasRequiredScopes = await ensureRequiredScopes();
     if (!hasRequiredScopes) return;
     const detail = await ensureDetails(player.PlayerID);
@@ -10967,6 +11013,7 @@ const refreshDetailsForPlayers = async (
   );
   const handleRatingsManualCellChange = useCallback(
     (playerId: number, position: number, value: number | null) => {
+      trackSeniorFeatureUsed("ratings_manual_value_edited", seniorAnalyticsSource);
       const positionKey = String(position);
       setRatingsManualEditsByPlayerId((prev) => {
         const next: SeniorManualRatingsEdits = { ...prev };
@@ -10994,7 +11041,7 @@ const refreshDetailsForPlayers = async (
         return next;
       });
     },
-    [latestFetchedRatingsResponse]
+    [latestFetchedRatingsResponse, seniorAnalyticsSource, trackSeniorFeatureUsed]
   );
   const handleDiscardRatingsManualEdits = useCallback(() => {
     setRatingsManualEditsByPlayerId({});
@@ -15822,6 +15869,9 @@ const refreshDetailsForPlayers = async (
           ? messages.ratingsManualOverrideTooltip
           : messages.ratingsManualOverridePremiumTooltip
       }
+      onRatingsManualEditingToggleInteraction={() =>
+        trackSeniorFeatureUsed("ratings_manual_edit_toggled")
+      }
       ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
       onRatingsOverwriteManualEditsEnabledChange={
         handleRatingsOverwriteManualEditsEnabledChange
@@ -15878,6 +15928,9 @@ const refreshDetailsForPlayers = async (
       seniorSimulationEditingBlocked={!premiumUnlocked}
       onSeniorSimulationBlockedInteraction={() =>
         openPremiumLicenseModal(seniorSimulationLicenseContext)
+      }
+      onSeniorSimulationEditingToggleInteraction={() =>
+        trackSeniorFeatureUsed("edit_skills_age_wage_tsi_toggled")
       }
       messages={messages}
     />
@@ -16464,6 +16517,9 @@ const refreshDetailsForPlayers = async (
               ? messages.ratingsManualOverrideTooltip
               : messages.ratingsManualOverridePremiumTooltip
           }
+          onRatingsManualEditingToggleInteraction={() =>
+            trackSeniorFeatureUsed("ratings_manual_edit_toggled")
+          }
           ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
           onRatingsOverwriteManualEditsEnabledChange={
             handleRatingsOverwriteManualEditsEnabledChange
@@ -16534,6 +16590,9 @@ const refreshDetailsForPlayers = async (
             premiumUnlocked
               ? messages.ratingsManualOverrideTooltip
               : messages.ratingsManualOverridePremiumTooltip
+          }
+          onRatingsManualEditingToggleInteraction={() =>
+            trackSeniorFeatureUsed("ratings_manual_edit_toggled")
           }
           ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
           onRatingsOverwriteManualEditsEnabledChange={
@@ -16712,12 +16771,14 @@ const refreshDetailsForPlayers = async (
           onBlockedFixedFormationInteraction={() =>
             openPremiumLicenseModal(seniorFixedFormationLicenseContext)
           }
-          selectedIgnoreTrainingFormationPolicy={ignoreTrainingFormationPolicy}
-          onSelectedIgnoreTrainingFormationPolicyChange={
-            setIgnoreTrainingFormationPolicy
-          }
-          setBestLineupCustomContent={setBestLineupBTeamMenuContent}
-          setBestLineupDisabledTooltipBuilder={getSetBestLineupDisabledTooltip}
+            selectedIgnoreTrainingFormationPolicy={ignoreTrainingFormationPolicy}
+            onSelectedIgnoreTrainingFormationPolicyChange={
+              setIgnoreTrainingFormationPolicy
+            }
+            analyticsSource="desktop"
+            onAnalyticsFeature={(feature, source) => trackSeniorFeatureUsed(feature, source)}
+            setBestLineupCustomContent={buildSetBestLineupBTeamMenuContent("desktop")}
+            setBestLineupDisabledTooltipBuilder={getSetBestLineupDisabledTooltip}
           onRefresh={onRefreshMatchesOnly}
           onSetBestLineupMode={async (matchId, mode, fixedFormation, options) => {
             clearSeniorAiSubmitLock();
@@ -17706,6 +17767,7 @@ const refreshDetailsForPlayers = async (
                 className={styles.confirmSubmit}
                 disabled={trainingAwareSetLineupDisabled}
                 onClick={() => {
+                  trackSeniorFeatureUsed("lineup_training_aware_clicked");
                   void handleTrainingAwareSetLineup();
                 }}
               >
@@ -18007,6 +18069,7 @@ const refreshDetailsForPlayers = async (
                 className={styles.confirmSubmit}
                 disabled={extraTimeSetLineupDisabled}
                 onClick={() => {
+                  trackSeniorFeatureUsed("lineup_aim_for_extra_time_clicked");
                   void handleExtraTimeSetLineup();
                 }}
               >
@@ -19606,6 +19669,9 @@ const refreshDetailsForPlayers = async (
                 ? messages.ratingsManualOverrideTooltip
                 : messages.ratingsManualOverridePremiumTooltip
             }
+            onRatingsManualEditingToggleInteraction={() =>
+              trackSeniorFeatureUsed("ratings_manual_edit_toggled")
+            }
             ratingsOverwriteManualEditsEnabled={ratingsOverwriteManualEditsEnabled}
             onRatingsOverwriteManualEditsEnabledChange={
               handleRatingsOverwriteManualEditsEnabledChange
@@ -19667,6 +19733,9 @@ const refreshDetailsForPlayers = async (
             seniorSimulationEditingBlocked={!premiumUnlocked}
             onSeniorSimulationBlockedInteraction={() =>
               openPremiumLicenseModal(seniorSimulationLicenseContext)
+            }
+            onSeniorSimulationEditingToggleInteraction={() =>
+              trackSeniorFeatureUsed("edit_skills_age_wage_tsi_toggled")
             }
             messages={messages}
           />
@@ -19811,7 +19880,9 @@ const refreshDetailsForPlayers = async (
             onSelectedIgnoreTrainingFormationPolicyChange={
               setIgnoreTrainingFormationPolicy
             }
-            setBestLineupCustomContent={setBestLineupBTeamMenuContent}
+            analyticsSource="mobile"
+            onAnalyticsFeature={(feature, source) => trackSeniorFeatureUsed(feature, source)}
+            setBestLineupCustomContent={buildSetBestLineupBTeamMenuContent("mobile")}
             setBestLineupDisabledTooltipBuilder={getSetBestLineupDisabledTooltip}
             onRefresh={onRefreshMatchesOnly}
             onSetBestLineupMode={async (matchId, mode, fixedFormation, options) => {

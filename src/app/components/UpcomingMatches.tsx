@@ -136,15 +136,7 @@ type UpcomingMatchesProps = {
   setBestLineupDisabledTooltipBuilder?: (match: Match) => ReactNode;
   analyticsSource?: "desktop" | "mobile";
   onAnalyticsFeature?: (
-    feature:
-      | "lineup_b_team_toggled"
-      | "lineup_man_marking_toggled"
-      | "lineup_training_aware_clicked"
-      | "lineup_ignore_training_clicked"
-      | "lineup_aim_for_extra_time_clicked"
-      | "lineup_apply_formation_optimization_clicked"
-      | "lineup_load_lineup_clicked"
-      | "lineup_submit_lineup_confirmed",
+    feature: UpcomingMatchesAnalyticsFeature,
     source: "desktop" | "mobile"
   ) => void;
 };
@@ -158,6 +150,26 @@ export type SetBestLineupMode =
 export type IgnoreTrainingFormationPolicy =
   | "allFormations"
   | "trainedFormations";
+
+type UpcomingMatchesAnalyticsFeature =
+  | "lineup_b_team_toggled"
+  | "lineup_man_marking_toggled"
+  | "lineup_training_aware_clicked"
+  | "lineup_ignore_training_all_formations_clicked"
+  | "lineup_ignore_training_trained_formations_clicked"
+  | "lineup_aim_for_extra_time_clicked"
+  | "lineup_apply_formation_optimization_clicked"
+  | "lineup_load_lineup_clicked"
+  | "lineup_submit_lineup_confirmed";
+
+type SetBestLineupMenuAnalyticsFeature = Extract<
+  UpcomingMatchesAnalyticsFeature,
+  | "lineup_training_aware_clicked"
+  | "lineup_ignore_training_all_formations_clicked"
+  | "lineup_ignore_training_trained_formations_clicked"
+  | "lineup_aim_for_extra_time_clicked"
+  | "lineup_apply_formation_optimization_clicked"
+>;
 
 const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
 const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
@@ -391,13 +403,7 @@ type SetBestLineupMenuButtonProps = {
   ) => void;
   customContent?: ReactNode;
   disabledTooltip?: ReactNode;
-  onAnalyticsFeature?: (
-    feature:
-      | "lineup_training_aware_clicked"
-      | "lineup_ignore_training_clicked"
-      | "lineup_aim_for_extra_time_clicked"
-      | "lineup_apply_formation_optimization_clicked"
-  ) => void;
+  onAnalyticsFeature?: (feature: SetBestLineupMenuAnalyticsFeature) => void;
 };
 
 function SetBestLineupMenuButton({
@@ -492,7 +498,6 @@ function SetBestLineupMenuButton({
               disabled={lineupAiDisabled}
               onClick={() => {
                 if (lineupAiDisabled) return;
-                onAnalyticsFeature?.("lineup_training_aware_clicked");
                 setOpen(false);
                 setIgnoreTrainingMenuOpen(false);
                 onSelectMode(matchId, "trainingAware");
@@ -541,7 +546,9 @@ function SetBestLineupMenuButton({
                     }`}
                     onClick={(event) => {
                       event.stopPropagation();
-                      onAnalyticsFeature?.("lineup_ignore_training_clicked");
+                      onAnalyticsFeature?.(
+                        "lineup_ignore_training_all_formations_clicked"
+                      );
                       onSelectedIgnoreTrainingFormationPolicyChange?.("allFormations");
                       setOpen(false);
                       setIgnoreTrainingMenuOpen(false);
@@ -562,7 +569,9 @@ function SetBestLineupMenuButton({
                     }`}
                     onClick={(event) => {
                       event.stopPropagation();
-                      onAnalyticsFeature?.("lineup_ignore_training_clicked");
+                      onAnalyticsFeature?.(
+                        "lineup_ignore_training_trained_formations_clicked"
+                      );
                       onSelectedIgnoreTrainingFormationPolicyChange?.(
                         "trainedFormations"
                       );
@@ -598,7 +607,6 @@ function SetBestLineupMenuButton({
                 disabled={!extraTimeModeEnabled || lineupAiDisabled}
                 onClick={() => {
                   if (!extraTimeModeEnabled || lineupAiDisabled) return;
-                  onAnalyticsFeature?.("lineup_aim_for_extra_time_clicked");
                   setOpen(false);
                   setIgnoreTrainingMenuOpen(false);
                   onSelectMode(matchId, "extraTime");
@@ -749,11 +757,7 @@ function renderMatch(
   setBestLineupCustomContent?: ReactNode,
   setBestLineupDisabledTooltip?: ReactNode,
   onAnalyticsFeature?: (
-    feature:
-      | "lineup_training_aware_clicked"
-      | "lineup_ignore_training_clicked"
-      | "lineup_aim_for_extra_time_clicked"
-      | "lineup_apply_formation_optimization_clicked",
+    feature: SetBestLineupMenuAnalyticsFeature,
     source: "desktop" | "mobile"
   ) => void,
   analyticsSource?: "desktop" | "mobile"
@@ -1201,15 +1205,7 @@ export default function UpcomingMatches({
   };
 
   const trackSeniorLineupFeature = (
-    feature:
-      | "lineup_b_team_toggled"
-      | "lineup_man_marking_toggled"
-      | "lineup_training_aware_clicked"
-      | "lineup_ignore_training_clicked"
-      | "lineup_aim_for_extra_time_clicked"
-      | "lineup_apply_formation_optimization_clicked"
-      | "lineup_load_lineup_clicked"
-      | "lineup_submit_lineup_confirmed"
+    feature: UpcomingMatchesAnalyticsFeature
   ) => {
     if (!analyticsSource || sourceSystem !== "Hattrick") return;
     onAnalyticsFeature?.(feature, analyticsSource);

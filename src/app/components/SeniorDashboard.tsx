@@ -264,7 +264,8 @@ type SeniorFeatureAnalyticsName =
   | "lineup_b_team_toggled"
   | "lineup_man_marking_toggled"
   | "lineup_training_aware_clicked"
-  | "lineup_ignore_training_clicked"
+  | "lineup_ignore_training_all_formations_clicked"
+  | "lineup_ignore_training_trained_formations_clicked"
   | "lineup_aim_for_extra_time_clicked"
   | "lineup_apply_formation_optimization_clicked"
   | "lineup_load_lineup_clicked"
@@ -17766,6 +17767,7 @@ const refreshDetailsForPlayers = async (
                 className={styles.confirmSubmit}
                 disabled={trainingAwareSetLineupDisabled}
                 onClick={() => {
+                  trackSeniorFeatureUsed("lineup_training_aware_clicked");
                   void handleTrainingAwareSetLineup();
                 }}
               >
@@ -18067,6 +18069,7 @@ const refreshDetailsForPlayers = async (
                 className={styles.confirmSubmit}
                 disabled={extraTimeSetLineupDisabled}
                 onClick={() => {
+                  trackSeniorFeatureUsed("lineup_aim_for_extra_time_clicked");
                   void handleExtraTimeSetLineup();
                 }}
               >

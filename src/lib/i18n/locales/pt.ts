@@ -485,12 +485,12 @@ export const messagesPt: Messages = {
       "Use a câmera nativa do seu telefone para abrir um QR exportado de watchlists do Club Chronicle.",
     analyticsConsentModalTitle: "Analytics consent",
     analyticsConsentModalBody:
-      "We use Google Analytics and Vercel Analytics only if you consent. This helps us understand app and feature usage so we can improve Hattrick Alchemy and prioritize useful features. We do not send names, email addresses, Hattrick tokens, player names, team names, or other directly identifying information to analytics services. Analytics data is used in aggregated form for product-improvement purposes.",
+      "We want to improve this app by analyzing how it is being used. This helps us understand app and feature usage, make better product decisions, and prioritize useful future changes.\n\nWe do not send names, email addresses, Hattrick tokens, player names, team names, or other directly identifying information. Analytics data is used only in aggregated form for product-improvement purposes.",
     analyticsConsentDeniedAction: "Do not consent",
     analyticsConsentGrantedAction: "Consent",
-    settingsAnalyticsConsentTitle: "Google Analytics consent",
+    settingsAnalyticsConsentTitle: "Analytics consent",
     settingsAnalyticsConsentDescription:
-      "Control whether Hattrick Alchemy may use Google Analytics and Vercel Analytics to understand app and feature usage.",
+      "Control whether this app may analyze app and feature usage to support product-improvement decisions.",
     settingsAnalyticsConsentStatusGranted: "Current choice: Consent granted",
     settingsAnalyticsConsentStatusDenied: "Current choice: Consent denied",
     settingsAnalyticsConsentStatusUnset: "No choice saved",

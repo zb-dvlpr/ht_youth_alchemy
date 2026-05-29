@@ -135,6 +135,8 @@ type UpcomingMatchesProps = {
   setBestLineupCustomContent?: ReactNode;
   setBestLineupDisabledTooltipBuilder?: (match: Match) => ReactNode;
   analyticsSource?: "desktop" | "mobile";
+  youthSubmittedLineupFeature?: UpcomingMatchesYouthSubmittedLineupFeature | null;
+  seniorSubmittedLineupVariantFeature?: UpcomingMatchesSubmittedLineupVariantFeature | null;
   onAnalyticsFeature?: (
     feature: UpcomingMatchesAnalyticsFeature,
     source: "desktop" | "mobile"
@@ -154,22 +156,33 @@ export type IgnoreTrainingFormationPolicy =
 type UpcomingMatchesAnalyticsFeature =
   | "lineup_b_team_toggled"
   | "lineup_man_marking_toggled"
-  | "lineup_training_aware_clicked"
-  | "lineup_ignore_training_all_formations_clicked"
-  | "lineup_ignore_training_trained_formations_clicked"
-  | "lineup_aim_for_extra_time_clicked"
-  | "lineup_apply_formation_optimization_clicked"
-  | "lineup_load_lineup_clicked"
-  | "lineup_submit_lineup_confirmed";
+  | "lineup_training_aware_submitted"
+  | "lineup_ignore_training_all_formations_submitted"
+  | "lineup_ignore_training_trained_formations_submitted"
+  | "lineup_aim_for_extra_time_submitted"
+  | "lineup_apply_formation_optimization_submitted"
+  | "lineup_load_lineup_clicked";
 
-type SetBestLineupMenuAnalyticsFeature = Extract<
+type UpcomingMatchesSubmittedLineupVariantFeature = Extract<
   UpcomingMatchesAnalyticsFeature,
-  | "lineup_training_aware_clicked"
-  | "lineup_ignore_training_all_formations_clicked"
-  | "lineup_ignore_training_trained_formations_clicked"
-  | "lineup_aim_for_extra_time_clicked"
-  | "lineup_apply_formation_optimization_clicked"
+  | "lineup_training_aware_submitted"
+  | "lineup_ignore_training_all_formations_submitted"
+  | "lineup_ignore_training_trained_formations_submitted"
+  | "lineup_aim_for_extra_time_submitted"
+  | "lineup_apply_formation_optimization_submitted"
 >;
+
+type UpcomingMatchesYouthSubmittedLineupFeature =
+  | "lineup_optimize_around_star_submitted"
+  | "lineup_optimize_by_ratings_submitted"
+  | "lineup_reveal_primary_current_submitted"
+  | "lineup_reveal_secondary_max_submitted"
+  | "lineup_double_reveal_submitted";
+
+type UpcomingMatchesYouthAnalyticsFeature =
+  | "match_load_lineup_clicked"
+  | UpcomingMatchesYouthSubmittedLineupFeature
+  | "lineup_manual_submitted";
 
 const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
 const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
@@ -403,7 +416,6 @@ type SetBestLineupMenuButtonProps = {
   ) => void;
   customContent?: ReactNode;
   disabledTooltip?: ReactNode;
-  onAnalyticsFeature?: (feature: SetBestLineupMenuAnalyticsFeature) => void;
 };
 
 function SetBestLineupMenuButton({
@@ -423,7 +435,6 @@ function SetBestLineupMenuButton({
   onSelectedIgnoreTrainingFormationPolicyChange,
   customContent,
   disabledTooltip,
-  onAnalyticsFeature,
 }: SetBestLineupMenuButtonProps) {
   const [open, setOpen] = useState(false);
   const [fixedFormationMenuOpen, setFixedFormationMenuOpen] = useState(false);
@@ -546,9 +557,6 @@ function SetBestLineupMenuButton({
                     }`}
                     onClick={(event) => {
                       event.stopPropagation();
-                      onAnalyticsFeature?.(
-                        "lineup_ignore_training_all_formations_clicked"
-                      );
                       onSelectedIgnoreTrainingFormationPolicyChange?.("allFormations");
                       setOpen(false);
                       setIgnoreTrainingMenuOpen(false);
@@ -569,9 +577,6 @@ function SetBestLineupMenuButton({
                     }`}
                     onClick={(event) => {
                       event.stopPropagation();
-                      onAnalyticsFeature?.(
-                        "lineup_ignore_training_trained_formations_clicked"
-                      );
                       onSelectedIgnoreTrainingFormationPolicyChange?.(
                         "trainedFormations"
                       );
@@ -689,7 +694,6 @@ function SetBestLineupMenuButton({
                     fixedFormationDisabled ? styles.optimizeMenuItemDisabled : ""
                   }`}
                   onClick={() => {
-                    onAnalyticsFeature?.("lineup_apply_formation_optimization_clicked");
                     if (fixedFormationBlocked) {
                       onBlockedFixedFormationInteraction?.();
                       return;
@@ -755,12 +759,7 @@ function renderMatch(
     policy: IgnoreTrainingFormationPolicy
   ) => void,
   setBestLineupCustomContent?: ReactNode,
-  setBestLineupDisabledTooltip?: ReactNode,
-  onAnalyticsFeature?: (
-    feature: SetBestLineupMenuAnalyticsFeature,
-    source: "desktop" | "mobile"
-  ) => void,
-  analyticsSource?: "desktop" | "mobile"
+  setBestLineupDisabledTooltip?: ReactNode
 ) {
   const isUpcoming = match.Status === "UPCOMING";
   const submitMatchRestrictionActive =
@@ -894,11 +893,6 @@ function renderMatch(
             }
             customContent={setBestLineupCustomContent}
             disabledTooltip={setBestLineupDisabledTooltip}
-            onAnalyticsFeature={
-              analyticsSource && onAnalyticsFeature
-                ? (feature) => onAnalyticsFeature(feature, analyticsSource)
-                : undefined
-            }
           />
         </div>
       ) : null}
@@ -1064,6 +1058,8 @@ export default function UpcomingMatches({
   setBestLineupCustomContent,
   setBestLineupDisabledTooltipBuilder,
   analyticsSource,
+  youthSubmittedLineupFeature = null,
+  seniorSubmittedLineupVariantFeature = null,
   onAnalyticsFeature,
 }: UpcomingMatchesProps) {
   const { addNotification } = useNotifications();
@@ -1194,9 +1190,7 @@ export default function UpcomingMatches({
     }
   };
 
-  const trackYouthMatchFeature = (
-    feature: "match_load_lineup_clicked" | "match_submit_lineup_confirmed"
-  ) => {
+  const trackYouthMatchFeature = (feature: UpcomingMatchesYouthAnalyticsFeature) => {
     if (!analyticsSource || sourceSystem !== "Youth") return;
     trackAnalyticsEvent("youth_feature_used", {
       feature,
@@ -1379,8 +1373,10 @@ export default function UpcomingMatches({
     const matchId = confirmMatchId;
     setConfirmMatchId(null);
     if (!canSubmitMatchId(matchId)) return;
-    trackYouthMatchFeature("match_submit_lineup_confirmed");
-    trackSeniorLineupFeature("lineup_submit_lineup_confirmed");
+    trackYouthMatchFeature(youthSubmittedLineupFeature ?? "lineup_manual_submitted");
+    if (seniorSubmittedLineupVariantFeature) {
+      trackSeniorLineupFeature(seniorSubmittedLineupVariantFeature);
+    }
     const matchSourceSystem = resolveMatchSourceSystem(
       matchById.get(matchId),
       sourceSystem
@@ -1600,9 +1596,7 @@ export default function UpcomingMatches({
               selectedIgnoreTrainingFormationPolicy,
               onSelectedIgnoreTrainingFormationPolicyChange,
               setBestLineupCustomContent,
-              setBestLineupDisabledTooltipBuilder?.(match),
-              onAnalyticsFeature,
-              analyticsSource
+              setBestLineupDisabledTooltipBuilder?.(match)
             );
           })}
         </ul>
@@ -1653,9 +1647,7 @@ export default function UpcomingMatches({
                 selectedIgnoreTrainingFormationPolicy,
                 onSelectedIgnoreTrainingFormationPolicyChange,
                 setBestLineupCustomContent,
-                setBestLineupDisabledTooltipBuilder?.(match),
-                onAnalyticsFeature,
-                analyticsSource
+                setBestLineupDisabledTooltipBuilder?.(match)
               );
             })}
           </ul>

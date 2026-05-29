@@ -263,16 +263,24 @@ type SeniorFeatureAnalyticsName =
   | "find_similar_players_clicked"
   | "lineup_b_team_toggled"
   | "lineup_man_marking_toggled"
-  | "lineup_training_aware_clicked"
-  | "lineup_ignore_training_all_formations_clicked"
-  | "lineup_ignore_training_trained_formations_clicked"
-  | "lineup_aim_for_extra_time_clicked"
-  | "lineup_apply_formation_optimization_clicked"
+  | "lineup_training_aware_submitted"
+  | "lineup_ignore_training_all_formations_submitted"
+  | "lineup_ignore_training_trained_formations_submitted"
+  | "lineup_aim_for_extra_time_submitted"
+  | "lineup_apply_formation_optimization_submitted"
   | "lineup_load_lineup_clicked"
-  | "lineup_submit_lineup_confirmed"
   | "edit_skills_age_wage_tsi_toggled"
   | "ratings_manual_edit_toggled"
   | "ratings_manual_value_edited";
+
+type SeniorSubmittedLineupVariantFeature = Extract<
+  SeniorFeatureAnalyticsName,
+  | "lineup_training_aware_submitted"
+  | "lineup_ignore_training_all_formations_submitted"
+  | "lineup_ignore_training_trained_formations_submitted"
+  | "lineup_aim_for_extra_time_submitted"
+  | "lineup_apply_formation_optimization_submitted"
+>;
 
 type SeniorFeatureAnalyticsSource = "desktop" | "mobile";
 
@@ -3630,6 +3638,39 @@ export default function SeniorDashboard({
       seniorAiPreparedSubmissionMode === "trainingAware" ||
       seniorAiPreparedSubmissionMode === "ignoreTraining" ||
       seniorAiPreparedSubmissionMode === "fixedFormation");
+
+  const pendingSeniorSubmittedLineupVariantFeature =
+    useMemo<SeniorSubmittedLineupVariantFeature | null>(() => {
+      if (!seniorAiSubmitLockActive || seniorAiSubmitEnabledMatchId === null) {
+        return null;
+      }
+
+      if (extraTimePreparedSubmission !== null) {
+        return "lineup_aim_for_extra_time_submitted";
+      }
+
+      if (seniorAiPreparedSubmissionMode === "trainingAware") {
+        return "lineup_training_aware_submitted";
+      }
+
+      if (seniorAiPreparedSubmissionMode === "ignoreTraining") {
+        return ignoreTrainingFormationPolicy === "trainedFormations"
+          ? "lineup_ignore_training_trained_formations_submitted"
+          : "lineup_ignore_training_all_formations_submitted";
+      }
+
+      if (seniorAiPreparedSubmissionMode === "fixedFormation") {
+        return "lineup_apply_formation_optimization_submitted";
+      }
+
+      return null;
+    }, [
+      seniorAiSubmitLockActive,
+      seniorAiSubmitEnabledMatchId,
+      seniorAiPreparedSubmissionMode,
+      extraTimePreparedSubmission,
+      ignoreTrainingFormationPolicy,
+    ]);
 
   const preservePreparedSeniorAiContextAfterManualEdit = (
     nextAssignments: LineupAssignments,
@@ -16776,6 +16817,9 @@ const refreshDetailsForPlayers = async (
               setIgnoreTrainingFormationPolicy
             }
             analyticsSource="desktop"
+            seniorSubmittedLineupVariantFeature={
+              pendingSeniorSubmittedLineupVariantFeature
+            }
             onAnalyticsFeature={(feature, source) => trackSeniorFeatureUsed(feature, source)}
             setBestLineupCustomContent={buildSetBestLineupBTeamMenuContent("desktop")}
             setBestLineupDisabledTooltipBuilder={getSetBestLineupDisabledTooltip}
@@ -17767,7 +17811,6 @@ const refreshDetailsForPlayers = async (
                 className={styles.confirmSubmit}
                 disabled={trainingAwareSetLineupDisabled}
                 onClick={() => {
-                  trackSeniorFeatureUsed("lineup_training_aware_clicked");
                   void handleTrainingAwareSetLineup();
                 }}
               >
@@ -18069,7 +18112,6 @@ const refreshDetailsForPlayers = async (
                 className={styles.confirmSubmit}
                 disabled={extraTimeSetLineupDisabled}
                 onClick={() => {
-                  trackSeniorFeatureUsed("lineup_aim_for_extra_time_clicked");
                   void handleExtraTimeSetLineup();
                 }}
               >
@@ -19881,6 +19923,9 @@ const refreshDetailsForPlayers = async (
               setIgnoreTrainingFormationPolicy
             }
             analyticsSource="mobile"
+            seniorSubmittedLineupVariantFeature={
+              pendingSeniorSubmittedLineupVariantFeature
+            }
             onAnalyticsFeature={(feature, source) => trackSeniorFeatureUsed(feature, source)}
             setBestLineupCustomContent={buildSetBestLineupBTeamMenuContent("mobile")}
             setBestLineupDisabledTooltipBuilder={getSetBestLineupDisabledTooltip}

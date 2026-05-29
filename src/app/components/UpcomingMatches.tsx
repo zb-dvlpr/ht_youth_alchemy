@@ -135,6 +135,7 @@ type UpcomingMatchesProps = {
   setBestLineupCustomContent?: ReactNode;
   setBestLineupDisabledTooltipBuilder?: (match: Match) => ReactNode;
   analyticsSource?: "desktop" | "mobile";
+  youthSubmittedLineupFeature?: UpcomingMatchesYouthSubmittedLineupFeature | null;
   seniorSubmittedLineupVariantFeature?: UpcomingMatchesSubmittedLineupVariantFeature | null;
   onAnalyticsFeature?: (
     feature: UpcomingMatchesAnalyticsFeature,
@@ -170,6 +171,18 @@ type UpcomingMatchesSubmittedLineupVariantFeature = Extract<
   | "lineup_aim_for_extra_time_submitted"
   | "lineup_apply_formation_optimization_submitted"
 >;
+
+type UpcomingMatchesYouthSubmittedLineupFeature =
+  | "lineup_optimize_around_star_submitted"
+  | "lineup_optimize_by_ratings_submitted"
+  | "lineup_reveal_primary_current_submitted"
+  | "lineup_reveal_secondary_max_submitted"
+  | "lineup_double_reveal_submitted";
+
+type UpcomingMatchesYouthAnalyticsFeature =
+  | "match_load_lineup_clicked"
+  | UpcomingMatchesYouthSubmittedLineupFeature
+  | "lineup_manual_submitted";
 
 const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
 const TOURNAMENT_MATCH_TYPES = new Set<number>([50, 51]);
@@ -1045,6 +1058,7 @@ export default function UpcomingMatches({
   setBestLineupCustomContent,
   setBestLineupDisabledTooltipBuilder,
   analyticsSource,
+  youthSubmittedLineupFeature = null,
   seniorSubmittedLineupVariantFeature = null,
   onAnalyticsFeature,
 }: UpcomingMatchesProps) {
@@ -1176,9 +1190,7 @@ export default function UpcomingMatches({
     }
   };
 
-  const trackYouthMatchFeature = (
-    feature: "match_load_lineup_clicked" | "match_submit_lineup_confirmed"
-  ) => {
+  const trackYouthMatchFeature = (feature: UpcomingMatchesYouthAnalyticsFeature) => {
     if (!analyticsSource || sourceSystem !== "Youth") return;
     trackAnalyticsEvent("youth_feature_used", {
       feature,
@@ -1361,7 +1373,7 @@ export default function UpcomingMatches({
     const matchId = confirmMatchId;
     setConfirmMatchId(null);
     if (!canSubmitMatchId(matchId)) return;
-    trackYouthMatchFeature("match_submit_lineup_confirmed");
+    trackYouthMatchFeature(youthSubmittedLineupFeature ?? "lineup_manual_submitted");
     if (seniorSubmittedLineupVariantFeature) {
       trackSeniorLineupFeature(seniorSubmittedLineupVariantFeature);
     }

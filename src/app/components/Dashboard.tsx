@@ -521,13 +521,20 @@ type YouthFeatureAnalyticsName =
   | "skills_matrix_opened"
   | "ratings_matrix_opened"
   | "estimate_value_clicked"
-  | "lineup_optimize_around_star_clicked"
-  | "lineup_optimize_by_ratings_clicked"
-  | "lineup_reveal_primary_current_clicked"
-  | "lineup_reveal_secondary_max_clicked"
-  | "lineup_double_reveal_clicked"
-  | "match_load_lineup_clicked"
-  | "match_submit_lineup_confirmed";
+  | "lineup_optimize_around_star_submitted"
+  | "lineup_optimize_by_ratings_submitted"
+  | "lineup_reveal_primary_current_submitted"
+  | "lineup_reveal_secondary_max_submitted"
+  | "lineup_double_reveal_submitted"
+  | "lineup_manual_submitted"
+  | "match_load_lineup_clicked";
+
+type YouthSubmittedLineupFeature =
+  | "lineup_optimize_around_star_submitted"
+  | "lineup_optimize_by_ratings_submitted"
+  | "lineup_reveal_primary_current_submitted"
+  | "lineup_reveal_secondary_max_submitted"
+  | "lineup_double_reveal_submitted";
 
 type YouthFeatureAnalyticsSource = "desktop" | "mobile";
 
@@ -1252,6 +1259,11 @@ export default function Dashboard({
   const previousPlayersLoadingRef = useRef(playersLoading);
   const previousLastGlobalRefreshAtRef = useRef(lastGlobalRefreshAt);
   const [tacticType, setTacticType] = useState(7);
+  const [pendingYouthSubmittedLineupFeature, setPendingYouthSubmittedLineupFeature] =
+    useState<YouthSubmittedLineupFeature | null>(null);
+  const clearPendingYouthSubmittedLineupFeature = useCallback(() => {
+    setPendingYouthSubmittedLineupFeature(null);
+  }, []);
   const [restoredStorageKey, setRestoredStorageKey] = useState<string | null>(
     null
   );
@@ -4638,6 +4650,7 @@ export default function Dashboard({
   };
 
   const assignPlayer = (slotId: string, playerId: number) => {
+    clearPendingYouthSubmittedLineupFeature();
     const clearedSlots = Object.entries(assignments)
       .filter(([, value]) => value === playerId)
       .map(([key]) => key);
@@ -4663,6 +4676,7 @@ export default function Dashboard({
   };
 
   const clearSlot = (slotId: string) => {
+    clearPendingYouthSubmittedLineupFeature();
     setAssignments((prev) => ({ ...prev, [slotId]: null }));
     setBehaviors((prev) => {
       const next = { ...prev };
@@ -4674,6 +4688,7 @@ export default function Dashboard({
 
   const moveSlot = (fromSlot: string, toSlot: string) => {
     if (fromSlot === toSlot) return;
+    clearPendingYouthSubmittedLineupFeature();
     setAssignments((prev) => {
       const next = { ...prev };
       const movingPlayer = next[fromSlot];
@@ -4694,6 +4709,7 @@ export default function Dashboard({
 
   const randomizeLineup = () => {
     if (!playerList.length) return;
+    clearPendingYouthSubmittedLineupFeature();
     const outfieldSlots = [
       "WB_R",
       "CD_R",
@@ -4728,6 +4744,7 @@ export default function Dashboard({
   };
 
   const resetLineup = () => {
+    clearPendingYouthSubmittedLineupFeature();
     setAssignments({});
     setBehaviors({});
     setLoadedMatchId(null);
@@ -4820,31 +4837,13 @@ export default function Dashboard({
     setBehaviors({});
     setOptimizerDebug(result.debug ?? null);
     setLoadedMatchId(null);
+    setPendingYouthSubmittedLineupFeature("lineup_optimize_around_star_submitted");
     if (Object.keys(result.lineup).length) {
       addNotification(messages.notificationOptimizeApplied);
     }
   };
 
   const handleOptimizeSelect = (mode: OptimizeMode) => {
-    const source: YouthFeatureAnalyticsSource = mobileYouthActive
-      ? "mobile"
-      : "desktop";
-    switch (mode) {
-      case "star":
-        trackYouthFeatureUsed("lineup_optimize_around_star_clicked", source);
-        break;
-      case "ratings":
-        trackYouthFeatureUsed("lineup_optimize_by_ratings_clicked", source);
-        break;
-      case "revealPrimaryCurrent":
-        trackYouthFeatureUsed("lineup_reveal_primary_current_clicked", source);
-        break;
-      case "revealSecondaryMax":
-        trackYouthFeatureUsed("lineup_reveal_secondary_max_clicked", source);
-        break;
-      case "revealPrimaryCurrentAndSecondaryMax":
-        break;
-    }
     if (mode === "star") {
       handleOptimize();
       return;
@@ -4969,6 +4968,7 @@ export default function Dashboard({
       setBehaviors({});
       setOptimizerDebug(result.debug ?? null);
       setLoadedMatchId(null);
+      setPendingYouthSubmittedLineupFeature("lineup_optimize_by_ratings_submitted");
       if (Object.keys(result.lineup).length) {
         addNotification(messages.notificationOptimizeApplied);
       }
@@ -5116,6 +5116,13 @@ export default function Dashboard({
     setBehaviors({});
     setOptimizerDebug(result.debug ?? null);
     setLoadedMatchId(null);
+    setPendingYouthSubmittedLineupFeature(
+      mode === "revealSecondaryMax"
+        ? "lineup_reveal_secondary_max_submitted"
+        : mode === "revealPrimaryCurrentAndSecondaryMax"
+          ? "lineup_double_reveal_submitted"
+          : "lineup_reveal_primary_current_submitted"
+    );
     if (Object.keys(result.lineup).length) {
       addNotification(messages.notificationOptimizeApplied);
     }
@@ -6160,6 +6167,7 @@ export default function Dashboard({
   const handleTeamChange = (nextTeamId: number | null) => {
     if (nextTeamId === selectedYouthTeamId) return;
     setSelectedYouthTeamId(nextTeamId);
+    clearPendingYouthSubmittedLineupFeature();
     setAssignments({});
     setBehaviors({});
     setLoadedMatchId(null);
@@ -6243,12 +6251,14 @@ export default function Dashboard({
     nextBehaviors: LineupBehaviors,
     matchId: number
   ) => {
+    clearPendingYouthSubmittedLineupFeature();
     setAssignments(nextAssignments);
     setBehaviors(nextBehaviors);
     setLoadedMatchId(matchId);
   };
 
   const handleBehaviorChange = (slotId: string, behavior: number) => {
+    clearPendingYouthSubmittedLineupFeature();
     setBehaviors((prev) => {
       const next = { ...prev };
       if (behavior) {
@@ -6721,10 +6731,6 @@ export default function Dashboard({
                   : ""
               }`}
               onClick={() => {
-                trackYouthFeatureUsed(
-                  "lineup_double_reveal_clicked",
-                  mobileYouthActive ? "mobile" : "desktop"
-                );
                 if (!premiumUnlocked) {
                   openPremiumLicenseModal(youthDoubleRevealLicenseContext);
                   return;
@@ -7472,7 +7478,10 @@ export default function Dashboard({
           onReset={resetLineup}
           onOptimizeSelect={handleOptimizeSelect}
           tacticType={tacticType}
-          onTacticChange={setTacticType}
+          onTacticChange={(value) => {
+            clearPendingYouthSubmittedLineupFeature();
+            setTacticType(value);
+          }}
           topLeftOverlayContent={youthTrainingControls}
           optimizeDisabled={!manualReady}
           optimizeDisabledReason={optimizeDisabledReason}
@@ -7511,6 +7520,7 @@ export default function Dashboard({
             }
           }}
           onLoadLineup={loadLineup}
+          youthSubmittedLineupFeature={pendingYouthSubmittedLineupFeature}
           loadedMatchId={loadedMatchId}
           canSubmitToHattrick={isSupporter}
           submitUnavailableTooltip={messages.hattrickSupporterActionRequiredTooltip}
@@ -8222,7 +8232,10 @@ export default function Dashboard({
           onReset={resetLineup}
           onOptimizeSelect={handleOptimizeSelect}
           tacticType={tacticType}
-          onTacticChange={setTacticType}
+          onTacticChange={(value) => {
+            clearPendingYouthSubmittedLineupFeature();
+            setTacticType(value);
+          }}
           topLeftOverlayContent={youthTrainingControls}
           optimizeDisabled={!manualReady}
           optimizeDisabledReason={optimizeDisabledReason}
@@ -8542,6 +8555,7 @@ export default function Dashboard({
           tacticType={tacticType}
           onRefresh={refreshMatchesWithScopeGuard}
           onLoadLineup={loadLineup}
+          youthSubmittedLineupFeature={pendingYouthSubmittedLineupFeature}
           loadedMatchId={loadedMatchId}
           canSubmitToHattrick={isSupporter}
           submitUnavailableTooltip={messages.hattrickSupporterActionRequiredTooltip}

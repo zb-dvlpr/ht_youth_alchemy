@@ -1194,7 +1194,7 @@ export default function UpcomingMatches({
     if (!analyticsSource || sourceSystem !== "Youth") return;
     trackAnalyticsEvent("youth_feature_used", {
       feature,
-      source: analyticsSource,
+      app_source: analyticsSource,
     });
   };
 

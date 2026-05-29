@@ -64,7 +64,7 @@ export default function ConnectedStatus({
     if (isDisconnecting) return;
     trackAnalyticsEvent("app_connection_used", {
       feature: "disconnect_token_clicked",
-      source: analyticsSource,
+      app_source: analyticsSource,
     });
     setIsDisconnecting(true);
     try {

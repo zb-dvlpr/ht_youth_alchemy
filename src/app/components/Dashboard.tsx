@@ -1022,7 +1022,7 @@ export default function Dashboard({
     (feature: YouthFeatureAnalyticsName, source: YouthFeatureAnalyticsSource) => {
       trackAnalyticsEvent("youth_feature_used", {
         feature,
-        source,
+        app_source: source,
       });
     },
     []

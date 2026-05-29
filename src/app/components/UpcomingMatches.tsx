@@ -155,21 +155,20 @@ export type IgnoreTrainingFormationPolicy =
 type UpcomingMatchesAnalyticsFeature =
   | "lineup_b_team_toggled"
   | "lineup_man_marking_toggled"
-  | "lineup_training_aware_clicked"
-  | "lineup_ignore_training_all_formations_clicked"
-  | "lineup_ignore_training_trained_formations_clicked"
-  | "lineup_aim_for_extra_time_clicked"
-  | "lineup_apply_formation_optimization_clicked"
-  | "lineup_load_lineup_clicked"
-  | "lineup_submit_lineup_confirmed";
+  | "lineup_training_aware_submitted"
+  | "lineup_ignore_training_all_formations_submitted"
+  | "lineup_ignore_training_trained_formations_submitted"
+  | "lineup_aim_for_extra_time_submitted"
+  | "lineup_apply_formation_optimization_submitted"
+  | "lineup_load_lineup_clicked";
 
 type UpcomingMatchesSubmittedLineupVariantFeature = Extract<
   UpcomingMatchesAnalyticsFeature,
-  | "lineup_training_aware_clicked"
-  | "lineup_ignore_training_all_formations_clicked"
-  | "lineup_ignore_training_trained_formations_clicked"
-  | "lineup_aim_for_extra_time_clicked"
-  | "lineup_apply_formation_optimization_clicked"
+  | "lineup_training_aware_submitted"
+  | "lineup_ignore_training_all_formations_submitted"
+  | "lineup_ignore_training_trained_formations_submitted"
+  | "lineup_aim_for_extra_time_submitted"
+  | "lineup_apply_formation_optimization_submitted"
 >;
 
 const DEFAULT_ALLOWED_MATCH_TYPES = new Set<number>([1, 2, 3, 4, 5, 8, 9]);
@@ -1363,7 +1362,6 @@ export default function UpcomingMatches({
     setConfirmMatchId(null);
     if (!canSubmitMatchId(matchId)) return;
     trackYouthMatchFeature("match_submit_lineup_confirmed");
-    trackSeniorLineupFeature("lineup_submit_lineup_confirmed");
     if (seniorSubmittedLineupVariantFeature) {
       trackSeniorLineupFeature(seniorSubmittedLineupVariantFeature);
     }

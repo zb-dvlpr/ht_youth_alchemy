@@ -274,6 +274,15 @@ type SeniorFeatureAnalyticsName =
   | "ratings_manual_edit_toggled"
   | "ratings_manual_value_edited";
 
+type SeniorSubmittedLineupVariantFeature = Extract<
+  SeniorFeatureAnalyticsName,
+  | "lineup_training_aware_clicked"
+  | "lineup_ignore_training_all_formations_clicked"
+  | "lineup_ignore_training_trained_formations_clicked"
+  | "lineup_aim_for_extra_time_clicked"
+  | "lineup_apply_formation_optimization_clicked"
+>;
+
 type SeniorFeatureAnalyticsSource = "desktop" | "mobile";
 
 const seniorMatchesStateHasMatches = (
@@ -3630,6 +3639,39 @@ export default function SeniorDashboard({
       seniorAiPreparedSubmissionMode === "trainingAware" ||
       seniorAiPreparedSubmissionMode === "ignoreTraining" ||
       seniorAiPreparedSubmissionMode === "fixedFormation");
+
+  const pendingSeniorSubmittedLineupVariantFeature =
+    useMemo<SeniorSubmittedLineupVariantFeature | null>(() => {
+      if (!seniorAiSubmitLockActive || seniorAiSubmitEnabledMatchId === null) {
+        return null;
+      }
+
+      if (extraTimePreparedSubmission !== null) {
+        return "lineup_aim_for_extra_time_clicked";
+      }
+
+      if (seniorAiPreparedSubmissionMode === "trainingAware") {
+        return "lineup_training_aware_clicked";
+      }
+
+      if (seniorAiPreparedSubmissionMode === "ignoreTraining") {
+        return ignoreTrainingFormationPolicy === "trainedFormations"
+          ? "lineup_ignore_training_trained_formations_clicked"
+          : "lineup_ignore_training_all_formations_clicked";
+      }
+
+      if (seniorAiPreparedSubmissionMode === "fixedFormation") {
+        return "lineup_apply_formation_optimization_clicked";
+      }
+
+      return null;
+    }, [
+      seniorAiSubmitLockActive,
+      seniorAiSubmitEnabledMatchId,
+      seniorAiPreparedSubmissionMode,
+      extraTimePreparedSubmission,
+      ignoreTrainingFormationPolicy,
+    ]);
 
   const preservePreparedSeniorAiContextAfterManualEdit = (
     nextAssignments: LineupAssignments,
@@ -16776,6 +16818,9 @@ const refreshDetailsForPlayers = async (
               setIgnoreTrainingFormationPolicy
             }
             analyticsSource="desktop"
+            seniorSubmittedLineupVariantFeature={
+              pendingSeniorSubmittedLineupVariantFeature
+            }
             onAnalyticsFeature={(feature, source) => trackSeniorFeatureUsed(feature, source)}
             setBestLineupCustomContent={buildSetBestLineupBTeamMenuContent("desktop")}
             setBestLineupDisabledTooltipBuilder={getSetBestLineupDisabledTooltip}
@@ -17767,7 +17812,6 @@ const refreshDetailsForPlayers = async (
                 className={styles.confirmSubmit}
                 disabled={trainingAwareSetLineupDisabled}
                 onClick={() => {
-                  trackSeniorFeatureUsed("lineup_training_aware_clicked");
                   void handleTrainingAwareSetLineup();
                 }}
               >
@@ -18069,7 +18113,6 @@ const refreshDetailsForPlayers = async (
                 className={styles.confirmSubmit}
                 disabled={extraTimeSetLineupDisabled}
                 onClick={() => {
-                  trackSeniorFeatureUsed("lineup_aim_for_extra_time_clicked");
                   void handleExtraTimeSetLineup();
                 }}
               >
@@ -19881,6 +19924,9 @@ const refreshDetailsForPlayers = async (
               setIgnoreTrainingFormationPolicy
             }
             analyticsSource="mobile"
+            seniorSubmittedLineupVariantFeature={
+              pendingSeniorSubmittedLineupVariantFeature
+            }
             onAnalyticsFeature={(feature, source) => trackSeniorFeatureUsed(feature, source)}
             setBestLineupCustomContent={buildSetBestLineupBTeamMenuContent("mobile")}
             setBestLineupDisabledTooltipBuilder={getSetBestLineupDisabledTooltip}

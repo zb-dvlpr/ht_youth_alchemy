@@ -766,7 +766,7 @@ export default function AppShell({
   const handleSelectTool = useCallback((toolId: ToolId, source: ToolSelectionSource) => {
     trackAnalyticsEvent("main_tool_selected", {
       tool: toolId,
-      source,
+      app_source: source,
     });
     selectTool(toolId);
   }, [selectTool]);
@@ -842,7 +842,7 @@ export default function AppShell({
   const handleBuyCoffeeLater = () => {
     trackAnalyticsEvent("coffee_flow", {
       action: "not_now_clicked",
-      source: buyCoffeePromptSource,
+      app_source: buyCoffeePromptSource,
     });
     const baseState = buyCoffeePromptState ?? {
       firstSeenAt: Date.now(),
@@ -860,10 +860,10 @@ export default function AppShell({
   const handleBuyCoffeeAction = () => {
     trackAnalyticsEvent("coffee_flow", {
       action: "buy_clicked",
-      source: buyCoffeePromptSource,
+      app_source: buyCoffeePromptSource,
     });
     trackAnalyticsEvent("coffee_buy_clicked", {
-      source: buyCoffeePromptSource,
+      app_source: buyCoffeePromptSource,
     });
     if (typeof window !== "undefined") {
       window.open("https://ko-fi.com/zbdvlpr", "_blank", "noopener,noreferrer");

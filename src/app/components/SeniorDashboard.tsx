@@ -3411,7 +3411,7 @@ export default function SeniorDashboard({
     (feature: SeniorFeatureAnalyticsName, source?: SeniorFeatureAnalyticsSource) => {
       trackAnalyticsEvent("senior_feature_used", {
         feature,
-        source: source ?? (mobileSeniorActive ? "mobile" : "desktop"),
+        app_source: source ?? (mobileSeniorActive ? "mobile" : "desktop"),
       });
     },
     [mobileSeniorActive]

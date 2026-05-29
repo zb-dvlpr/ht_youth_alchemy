@@ -35,7 +35,7 @@ export default function BuyCoffeeButton({
       onClick={() => {
         trackAnalyticsEvent("coffee_flow", {
           action: "opened",
-          source,
+          app_source: source,
         });
         window.dispatchEvent(
           new CustomEvent(BUY_COFFEE_PROMPT_OPEN_EVENT, {

@@ -3835,7 +3835,7 @@ export default function ClubChronicle({ messages }: ClubChronicleProps) {
     ) => {
       trackAnalyticsEvent("club_chronicle_feature_used", {
         feature,
-        ...(params?.source ? { source: params.source } : {}),
+        ...(params?.source ? { app_source: params.source } : {}),
         ...(params?.panel ? { panel: params.panel } : {}),
       });
     },

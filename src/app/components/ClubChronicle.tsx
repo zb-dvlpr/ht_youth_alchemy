@@ -14669,13 +14669,13 @@ type Form7LineupSnapshot = {
     () => [
       {
         key: "date",
-        label: messages.clubChronicleTeamAttitudeMatchDateColumn,
+        label: messages.clubChronicleFormationsAnalyzedDateTimeColumn,
         getValue: (snapshot) => snapshot?.matchDateLabel ?? null,
         getSortValue: (snapshot) => snapshot?.matchDate ?? null,
       },
       {
         key: "match",
-        label: messages.matchesTitle,
+        label: messages.clubChronicleFormationsAnalyzedMatchIdColumn,
         getValue: (snapshot) => String(snapshot?.matchId ?? ""),
         renderCell: (snapshot) =>
           snapshot ? (
@@ -14696,26 +14696,26 @@ type Form7LineupSnapshot = {
       },
       {
         key: "type",
-        label: messages.clubChronicleTeamAttitudeMatchTypeColumn,
+        label: messages.clubChronicleFormationsAnalyzedMatchTypeColumn,
         getValue: (snapshot) => snapshot?.matchTypeLabel ?? null,
       },
       {
         key: "formation",
-        label: messages.clubChronicleFormationsColumnFormation,
+        label: messages.clubChronicleFormationsAnalyzedFormationColumn,
         getValue: (snapshot) => snapshot?.formationLabel ?? null,
       },
       {
         key: "tactic",
-        label: messages.clubChronicleFormationsColumnTactic,
+        label: messages.clubChronicleFormationsAnalyzedTacticColumn,
         getValue: (snapshot) => snapshot?.tacticLabel ?? null,
       },
     ],
     [
-      messages.clubChronicleFormationsColumnFormation,
-      messages.clubChronicleFormationsColumnTactic,
-      messages.clubChronicleTeamAttitudeMatchDateColumn,
-      messages.clubChronicleTeamAttitudeMatchTypeColumn,
-      messages.matchesTitle,
+      messages.clubChronicleFormationsAnalyzedDateTimeColumn,
+      messages.clubChronicleFormationsAnalyzedFormationColumn,
+      messages.clubChronicleFormationsAnalyzedMatchIdColumn,
+      messages.clubChronicleFormationsAnalyzedMatchTypeColumn,
+      messages.clubChronicleFormationsAnalyzedTacticColumn,
       messages.unknownShort,
     ]
   );

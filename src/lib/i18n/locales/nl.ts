@@ -823,6 +823,11 @@ export const messagesNl: Messages = {
   clubChronicleRefreshTeamAttitudeTooltip: "Refresh team attitude data.",
   clubChronicleRefreshStatusMatchLineupsProgress:
     "Match lineups {completed}/{total} (team: {team})",
+  clubChronicleFormationsAnalyzedDateTimeColumn: "Datum/tijd",
+  clubChronicleFormationsAnalyzedMatchIdColumn: "Wedstrijd-ID",
+  clubChronicleFormationsAnalyzedMatchTypeColumn: "Wedstrijdtype",
+  clubChronicleFormationsAnalyzedFormationColumn: "Formatie",
+  clubChronicleFormationsAnalyzedTacticColumn: "Tactiek",
   clubChronicleHelpBulletTeamAttitude:
     "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
   clubChronicleHelpBulletTsi:

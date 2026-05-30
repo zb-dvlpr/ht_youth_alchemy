@@ -517,6 +517,11 @@ export type Messages = {
   clubChronicleFormationsSampleLabel: string;
   clubChronicleFormationsMatchesListTitle: string;
   clubChronicleFormationsMatchesListEmpty: string;
+  clubChronicleFormationsAnalyzedDateTimeColumn: string;
+  clubChronicleFormationsAnalyzedMatchIdColumn: string;
+  clubChronicleFormationsAnalyzedMatchTypeColumn: string;
+  clubChronicleFormationsAnalyzedFormationColumn: string;
+  clubChronicleFormationsAnalyzedTacticColumn: string;
   clubChronicleTeamAttitudePanelTitle: string;
   clubChronicleTeamAttitudeColumnAttitude: string;
   clubChronicleTeamAttitudeColumnDate: string;

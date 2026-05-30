@@ -540,6 +540,19 @@ type FormationTacticsAnalyzedMatch = {
   matchDate: string | null;
   sourceSystem: string;
   matchDurationMinutes: number;
+  formation: string | null;
+  tacticType: number | null;
+};
+
+type FormationsTacticsAnalyzedMatchRow = {
+  id: string;
+  matchId: number;
+  matchDate: string | null;
+  sourceSystem: string;
+  matchDateLabel: string;
+  matchTypeLabel: string;
+  formationLabel: string;
+  tacticLabel: string;
 };
 
 type LikelyTrainingKey =
@@ -2568,6 +2581,29 @@ const sanitizeChronicleDetailModalAnalyzedMatches = (
       candidate.matchDurationMinutes >= 0
         ? Math.round(candidate.matchDurationMinutes)
         : null;
+    const formation =
+      typeof candidate.formation === "string" && candidate.formation
+        ? candidate.formation
+        : null;
+    if (
+      candidate.formation !== undefined &&
+      candidate.formation !== null &&
+      typeof candidate.formation !== "string"
+    ) {
+      didChange = true;
+    }
+    const tacticType =
+      typeof candidate.tacticType === "number" && Number.isFinite(candidate.tacticType)
+        ? Math.round(candidate.tacticType)
+        : null;
+    if (
+      candidate.tacticType !== undefined &&
+      candidate.tacticType !== null &&
+      (typeof candidate.tacticType !== "number" ||
+        !Number.isFinite(candidate.tacticType))
+    ) {
+      didChange = true;
+    }
     if (
       !matchId ||
       matchId <= 0 ||
@@ -2589,6 +2625,8 @@ const sanitizeChronicleDetailModalAnalyzedMatches = (
             ? candidate.sourceSystem
             : "Hattrick",
         matchDurationMinutes,
+        formation,
+        tacticType,
       } satisfies FormationTacticsAnalyzedMatch,
     ];
   });
@@ -11210,6 +11248,8 @@ type Form7LineupSnapshot = {
             matchDate: resolved.match.matchDate,
             sourceSystem: resolved.match.sourceSystem,
             matchDurationMinutes: resolved.matchDurationMinutes,
+            formation: resolved.formation,
+            tacticType: resolved.tacticType,
           }) satisfies FormationTacticsAnalyzedMatch
       )
     );
@@ -11945,6 +11985,8 @@ type Form7LineupSnapshot = {
         matchDate: match.matchDate,
         sourceSystem: match.sourceSystem,
         matchDurationMinutes: resolved.matchDurationMinutes,
+        formation: resolved.formation,
+        tacticType: resolved.tacticType,
       });
       const tacticLabel = formatTacticLabel(resolved.tacticType);
       const formation = resolved.formation;
@@ -14590,6 +14632,93 @@ type Form7LineupSnapshot = {
     () => selectedFormationsTacticsTeam?.snapshot?.tacticDistribution ?? [],
     [selectedFormationsTacticsTeam]
   );
+  const formationsTacticsAnalyzedMatchRows = useMemo(
+    () =>
+      (selectedFormationsTacticsTeam?.snapshot?.analyzedMatches ?? [])
+        .map((match) => ({
+          id: `${match.matchId}:${match.sourceSystem}`,
+          matchId: match.matchId,
+          matchDate: match.matchDate,
+          sourceSystem: match.sourceSystem,
+          matchDateLabel:
+            formatChppDateTime(match.matchDate ?? undefined) ??
+            match.matchDate ??
+            messages.unknownShort,
+          matchTypeLabel: formatMatchTypeLabel(match.matchType),
+          formationLabel: match.formation ?? messages.unknownShort,
+          tacticLabel: formatTacticLabel(match.tacticType) ?? messages.unknownShort,
+        }))
+        .sort(
+          (left, right) =>
+            parseMatchDateValue(right.matchDate) -
+            parseMatchDateValue(left.matchDate)
+        ),
+    [
+      formatMatchTypeLabel,
+      formatTacticLabel,
+      messages.unknownShort,
+      selectedFormationsTacticsTeam,
+    ]
+  );
+  const formationsTacticsAnalyzedMatchesColumns = useMemo<
+    ChronicleTableColumn<
+      FormationsTacticsAnalyzedMatchRow,
+      FormationsTacticsAnalyzedMatchRow
+    >[]
+  >(
+    () => [
+      {
+        key: "date",
+        label: messages.clubChronicleTeamAttitudeMatchDateColumn,
+        getValue: (snapshot) => snapshot?.matchDateLabel ?? null,
+        getSortValue: (snapshot) => snapshot?.matchDate ?? null,
+      },
+      {
+        key: "match",
+        label: messages.matchesTitle,
+        getValue: (snapshot) => String(snapshot?.matchId ?? ""),
+        renderCell: (snapshot) =>
+          snapshot ? (
+            <a
+              className={styles.chroniclePressLink}
+              href={hattrickMatchUrlWithSourceSystem(
+                snapshot.matchId,
+                snapshot.sourceSystem
+              )}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {snapshot.matchId}
+            </a>
+          ) : (
+            messages.unknownShort
+          ),
+      },
+      {
+        key: "type",
+        label: messages.clubChronicleTeamAttitudeMatchTypeColumn,
+        getValue: (snapshot) => snapshot?.matchTypeLabel ?? null,
+      },
+      {
+        key: "formation",
+        label: messages.clubChronicleFormationsColumnFormation,
+        getValue: (snapshot) => snapshot?.formationLabel ?? null,
+      },
+      {
+        key: "tactic",
+        label: messages.clubChronicleFormationsColumnTactic,
+        getValue: (snapshot) => snapshot?.tacticLabel ?? null,
+      },
+    ],
+    [
+      messages.clubChronicleFormationsColumnFormation,
+      messages.clubChronicleFormationsColumnTactic,
+      messages.clubChronicleTeamAttitudeMatchDateColumn,
+      messages.clubChronicleTeamAttitudeMatchTypeColumn,
+      messages.matchesTitle,
+      messages.unknownShort,
+    ]
+  );
   const likelyTrainingDetailRows = useMemo(
     () =>
       (selectedLikelyTrainingTeam?.snapshot?.likelyTrainingScores ?? []).map(
@@ -16382,6 +16511,16 @@ type Form7LineupSnapshot = {
     [formationsTacticsTableColumns.length]
   );
 
+  const formationsTacticsAnalyzedMatchesTableStyle = useMemo(
+    () =>
+      ({
+        "--cc-columns": formationsTacticsAnalyzedMatchesColumns.length,
+        "--cc-template":
+          "minmax(150px, 1fr) minmax(100px, 0.7fr) minmax(130px, 0.9fr) minmax(120px, 0.8fr) minmax(170px, 1fr)",
+      }) as CSSProperties,
+    [formationsTacticsAnalyzedMatchesColumns.length]
+  );
+
   const likelyTrainingTableStyle = useMemo(
     () =>
       ({
@@ -17461,27 +17600,19 @@ type Form7LineupSnapshot = {
     if (mobileChronicleScreen === "watchlist") return watchlistBody;
     if (mobileChronicleScreen === "latest-updates") return updatesBody;
     if (mobileChronicleScreen === "formations-matches") {
-      return selectedFormationsTacticsTeam?.snapshot?.analyzedMatches?.length ? (
-        <ul className={styles.chronicleMatchList}>
-          {selectedFormationsTacticsTeam.snapshot.analyzedMatches.map((match) => (
-            <li
-              key={`${match.matchId}-${match.matchType ?? "na"}`}
-              className={styles.chronicleMatchListItem}
-            >
-              <a
-                className={styles.chroniclePressLink}
-                href={hattrickMatchUrl(match.matchId)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {match.matchId}
-              </a>
-              <span className={styles.chroniclePressMeta}>
-                {formatMatchTypeLabel(match.matchType)}
-              </span>
-            </li>
-          ))}
-        </ul>
+      return formationsTacticsAnalyzedMatchRows.length > 0 ? (
+        <div className={styles.mobileChronicleTableWrap}>
+          <ChronicleTable
+            columns={formationsTacticsAnalyzedMatchesColumns}
+            rows={formationsTacticsAnalyzedMatchRows}
+            getRowKey={(row) => row.id}
+            getSnapshot={(row) => row}
+            formatValue={formatValue}
+            style={formationsTacticsAnalyzedMatchesTableStyle}
+            sortKey="date"
+            sortDirection="desc"
+          />
+        </div>
       ) : (
         <p className={styles.chronicleEmpty}>
           {messages.clubChronicleFormationsMatchesListEmpty}
@@ -20840,27 +20971,19 @@ type Form7LineupSnapshot = {
         body={
           selectedFormationsTacticsTeam?.premiumLocked ? (
             renderChroniclePremiumLockedMessage(chronicleFormationsLicenseContext)
-          ) : selectedFormationsTacticsTeam?.snapshot?.analyzedMatches?.length ? (
-            <ul className={styles.chronicleMatchList}>
-              {selectedFormationsTacticsTeam.snapshot.analyzedMatches.map((match) => (
-                <li
-                  key={`${match.matchId}-${match.matchType ?? "na"}`}
-                  className={styles.chronicleMatchListItem}
-                >
-                  <a
-                    className={styles.chroniclePressLink}
-                    href={hattrickMatchUrl(match.matchId)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {match.matchId}
-                  </a>
-                  <span className={styles.chroniclePressMeta}>
-                    {formatMatchTypeLabel(match.matchType)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+          ) : formationsTacticsAnalyzedMatchRows.length > 0 ? (
+            <div className={styles.chronicleTransferHistoryTableWrap}>
+              <ChronicleTable
+                columns={formationsTacticsAnalyzedMatchesColumns}
+                rows={formationsTacticsAnalyzedMatchRows}
+                getRowKey={(row) => row.id}
+                getSnapshot={(row) => row}
+                formatValue={formatValue}
+                style={formationsTacticsAnalyzedMatchesTableStyle}
+                sortKey="date"
+                sortDirection="desc"
+              />
+            </div>
           ) : (
             <p className={styles.chronicleEmpty}>
               {messages.clubChronicleFormationsMatchesListEmpty}

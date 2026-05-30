@@ -40,7 +40,7 @@ export const TRANSFER_SEARCH_SKILLS = [
   { key: "PassingSkill", skillType: 7, labelKey: "skillPassing", min: 0, max: 20 },
   { key: "ScorerSkill", skillType: 5, labelKey: "skillScoring", min: 0, max: 20 },
   { key: "SetPiecesSkill", skillType: 3, labelKey: "skillSetPieces", min: 0, max: 20 },
-  { key: "StaminaSkill", skillType: 9, labelKey: "sortStamina", min: 0, max: 9 },
+  { key: "StaminaSkill", skillType: 2, labelKey: "sortStamina", min: 0, max: 9 },
   { key: "Leadership", skillType: 10, labelKey: "clubChronicleCoachColumnLeadership", min: 0, max: 7 },
   { key: "Experience", skillType: 11, labelKey: "sortExperience", min: 0, max: 20 },
 ] as const;
@@ -447,6 +447,16 @@ const parseTransferSearchDraftInteger = (value: string): number | null => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const parseOptionalTransferSearchNonNegativeInteger = (
+  value: string | null | undefined
+): number | null => {
+  const trimmed = String(value ?? "").trim();
+  if (trimmed === "") return null;
+  if (!/^\d+$/.test(trimmed)) return null;
+  const parsed = Number.parseInt(trimmed, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
+};
+
 const isTransferSearchRangeDraftValid = (
   minValue: string,
   maxValue: string
@@ -624,7 +634,7 @@ export const normalizeTransferSearchFilters = (
       return {
         ...filter,
         min: normalizedMin,
-        max: Math.min(normalizedMax, normalizedMin + TRANSFER_SEARCH_MAX_SKILL_SPAN),
+        max: Math.min(normalizedMax, normalizedMin + TRANSFER_SEARCH_MAX_SKILL_DELTA),
       };
     }),
     ageMinYears: String(normalizedMinAge.years),
@@ -666,22 +676,26 @@ export const buildTransferSearchParams = (filters: TransferSearchFilters) => {
     params.set("specialty", String(normalized.specialty));
   }
 
-  const tsiMin = Number(normalized.tsiMin);
-  const tsiMax = Number(normalized.tsiMax);
-  if (Number.isFinite(tsiMin) && tsiMin >= 0) {
-    params.set("tsiMin", String(Math.round(tsiMin)));
+  const tsiMin = parseOptionalTransferSearchNonNegativeInteger(normalized.tsiMin);
+  const tsiMax = parseOptionalTransferSearchNonNegativeInteger(normalized.tsiMax);
+  if (tsiMin !== null) {
+    params.set("tsiMin", String(tsiMin));
   }
-  if (Number.isFinite(tsiMax) && tsiMax >= 0) {
-    params.set("tsiMax", String(Math.round(tsiMax)));
+  if (tsiMax !== null) {
+    params.set("tsiMax", String(tsiMax));
   }
 
-  const priceMinEur = Number(normalized.priceMinEur);
-  const priceMaxEur = Number(normalized.priceMaxEur);
-  if (Number.isFinite(priceMinEur) && priceMinEur >= 0) {
-    params.set("priceMin", String(Math.round(priceMinEur * CHPP_SEK_PER_EUR)));
+  const priceMinEur = parseOptionalTransferSearchNonNegativeInteger(
+    normalized.priceMinEur
+  );
+  const priceMaxEur = parseOptionalTransferSearchNonNegativeInteger(
+    normalized.priceMaxEur
+  );
+  if (priceMinEur !== null) {
+    params.set("priceMin", String(priceMinEur * CHPP_SEK_PER_EUR));
   }
-  if (Number.isFinite(priceMaxEur) && priceMaxEur >= 0) {
-    params.set("priceMax", String(Math.round(priceMaxEur * CHPP_SEK_PER_EUR)));
+  if (priceMaxEur !== null) {
+    params.set("priceMax", String(priceMaxEur * CHPP_SEK_PER_EUR));
   }
 
   return params;
@@ -780,7 +794,9 @@ export const buildTransferSearchMinimumBidEur = (result: TransferSearchResult) =
 export const formatTransferSearchBidDraftEur = (valueEur: number | string) =>
   valueEur === "" ? "" : String(valueEur);
 
-const TRANSFER_SEARCH_MAX_SKILL_SPAN = 4;
+const TRANSFER_SEARCH_MAX_SKILL_LEVEL_COUNT = 4;
+const TRANSFER_SEARCH_MAX_SKILL_DELTA =
+  TRANSFER_SEARCH_MAX_SKILL_LEVEL_COUNT - 1;
 const TRANSFER_SEARCH_MARKET_MIN_RICH_STATS_COUNT = 3;
 
 const formatTransferSearchMarketEur = (value: number) =>
@@ -867,16 +883,16 @@ const resolveTransferSearchSkillRange = (
       Math.max(currentMax, nextMin)
     );
     return {
-      min: nextMin,
-      max: Math.min(nextMax, nextMin + TRANSFER_SEARCH_MAX_SKILL_SPAN),
+      min: Math.max(nextMin, nextMax - TRANSFER_SEARCH_MAX_SKILL_DELTA),
+      max: nextMax,
     };
   }
 
   const nextMax = clampTransferSkillValue(skillKey, nextValue);
   const nextMin = clampTransferSkillValue(skillKey, Math.min(currentMin, nextMax));
   return {
-    min: Math.max(nextMin, nextMax - TRANSFER_SEARCH_MAX_SKILL_SPAN),
-    max: nextMax,
+    min: nextMin,
+    max: Math.min(nextMax, nextMin + TRANSFER_SEARCH_MAX_SKILL_DELTA),
   };
 };
 
@@ -950,7 +966,12 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             type="button"
             className={styles.transferSearchSkillStepperButton}
             onClick={() => commitRange("min", filter.min - 1)}
-            disabled={disabled || filterIsInactive || filter.min <= skillDefinition.min}
+            disabled={
+              disabled ||
+              filterIsInactive ||
+              filter.min <= skillDefinition.min ||
+              filter.max - (filter.min - 1) > TRANSFER_SEARCH_MAX_SKILL_DELTA
+            }
             aria-label={`${messages.seniorTransferSearchMinLabel} -`}
           >
             -
@@ -1050,7 +1071,12 @@ const TransferSearchSkillRow = memo(function TransferSearchSkillRow({
             type="button"
             className={styles.transferSearchSkillStepperButton}
             onClick={() => commitRange("max", filter.max + 1)}
-            disabled={disabled || filterIsInactive || filter.max >= skillDefinition.max}
+            disabled={
+              disabled ||
+              filterIsInactive ||
+              filter.max >= skillDefinition.max ||
+              filter.max + 1 - filter.min > TRANSFER_SEARCH_MAX_SKILL_DELTA
+            }
             aria-label={`${messages.seniorTransferSearchMaxLabel} +`}
           >
             +

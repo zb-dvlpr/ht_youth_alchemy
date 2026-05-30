@@ -383,6 +383,64 @@ type PlayingPositionEntry = {
   minutes: number;
 };
 
+const PLAYING_POSITION_SORT_BUCKET_NO_VALUE = 4;
+
+const resolvePlayingPositionRoleSortBucket = (
+  roleId: number | null | undefined
+) => {
+  const positionKey = matchRoleIdToPositionKey(roleId);
+  switch (positionKey) {
+    case "KP":
+      return 0;
+    case "WB":
+    case "CD":
+      return 1;
+    case "W":
+    case "IM":
+      return 2;
+    case "F":
+      return 3;
+    default:
+      return PLAYING_POSITION_SORT_BUCKET_NO_VALUE;
+  }
+};
+
+const resolvePlayingPositionSortBucket = (
+  entries: PlayingPositionEntry[] | null | undefined
+): number => {
+  if (!entries || entries.length === 0) {
+    return PLAYING_POSITION_SORT_BUCKET_NO_VALUE;
+  }
+
+  return entries.reduce<{
+    bucket: number;
+    minutes: number;
+    roleId: number;
+  }>(
+    (best, entry) => {
+      const minutes = entry.minutes;
+      const roleId = normalizeMatchRoleId(entry.roleId);
+      if (!roleId || !Number.isFinite(minutes) || minutes <= 0) return best;
+      const bucket = resolvePlayingPositionRoleSortBucket(roleId);
+      if (bucket === PLAYING_POSITION_SORT_BUCKET_NO_VALUE) return best;
+      if (
+        minutes > best.minutes ||
+        (minutes === best.minutes &&
+          (bucket < best.bucket ||
+            (bucket === best.bucket && roleId < best.roleId)))
+      ) {
+        return { bucket, minutes, roleId };
+      }
+      return best;
+    },
+    {
+      bucket: PLAYING_POSITION_SORT_BUCKET_NO_VALUE,
+      minutes: -1,
+      roleId: Number.POSITIVE_INFINITY,
+    }
+  ).bucket;
+};
+
 type TsiData = {
   current: TsiSnapshot;
   previous?: TsiSnapshot;
@@ -15392,6 +15450,8 @@ type Form7LineupSnapshot = {
         key: "playingPosition",
         label: messages.clubChroniclePlayingPositionColumn,
         getValue: (snapshot) => formatPlayingPositionEntries(snapshot?.playingPositions),
+        getSortValue: (snapshot) =>
+          resolvePlayingPositionSortBucket(snapshot?.playingPositions),
         renderCell: (snapshot) =>
           formatPlayingPositionEntries(snapshot?.playingPositions) ?? messages.unknownShort,
       },
@@ -15634,6 +15694,8 @@ type Form7LineupSnapshot = {
         key: "playingPosition",
         label: messages.clubChroniclePlayingPositionColumn,
         getValue: (snapshot) => formatPlayingPositionEntries(snapshot?.playingPositions),
+        getSortValue: (snapshot) =>
+          resolvePlayingPositionSortBucket(snapshot?.playingPositions),
         renderCell: (snapshot) =>
           formatPlayingPositionEntries(snapshot?.playingPositions) ?? messages.unknownShort,
       },

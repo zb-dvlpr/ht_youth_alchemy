@@ -827,8 +827,8 @@ export const messagesPl: Messages = {
     "TSI: laczne TSI zespolu i TSI top 11. Kliknij wiersz, aby zobaczyc sortowalne szczegoly zawodnikow z indeksem, wiekiem (lata+dni), TSI oraz zapisana historia ocen forma 7 z emoji pogody.",
   clubChronicleHelpBulletWages:
     "Place: laczne place zespolu i place top 11 w EUR. Kliknij wiersz, aby zobaczyc sortowalne szczegoly zawodnikow z indeksem, wiekiem (lata+dni), placa oraz zapisana historia ocen forma 7 z emoji pogody.",
-  clubChronicleTeamAttitudePanelTitle: "Team attitude",
-  clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
+  clubChronicleTeamAttitudePanelTitle: "Team attitude (inferred)",
+  clubChronicleTeamAttitudeColumnAttitude: "Inferred attitude",
   clubChronicleTeamAttitudeColumnDate: "Date",
   clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
   clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",

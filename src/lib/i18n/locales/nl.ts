@@ -834,8 +834,8 @@ export const messagesNl: Messages = {
     "TSI: totale team-TSI en top-11-TSI. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), TSI en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
   clubChronicleHelpBulletWages:
     "Lonen: totale teamlonen en top-11-lonen in EUR. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), loon en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
-  clubChronicleTeamAttitudePanelTitle: "Team attitude",
-  clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
+  clubChronicleTeamAttitudePanelTitle: "Team attitude (inferred)",
+  clubChronicleTeamAttitudeColumnAttitude: "Inferred attitude",
   clubChronicleTeamAttitudeColumnDate: "Date",
   clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
   clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",

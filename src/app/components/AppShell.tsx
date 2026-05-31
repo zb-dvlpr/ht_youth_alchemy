@@ -18,6 +18,7 @@ import Modal from "./Modal";
 import ManualModal from "./ManualModal";
 import ReminderBell from "./reminders/ReminderBell";
 import ReminderBatchModal from "./reminders/ReminderBatchModal";
+import { ReminderBellSlotProvider } from "./reminders/ReminderBellSlot";
 import { useNotifications } from "./notifications/NotificationsProvider";
 import BuyCoffeeButton, { type BuyCoffeePromptSource } from "./BuyCoffeeButton";
 import PremiumStatusPill from "./PremiumStatusPill";
@@ -358,6 +359,24 @@ export default function AppShell({
     setRemindersEnabled(false);
     setReminderBatchItems([]);
   }, []);
+
+  const reminderBell = useMemo(
+    () => (
+      <ReminderBell
+        messages={messages}
+        enabled={reminderStorageState.preferences.enabled}
+        due={reminderEvaluation.due}
+        snoozed={reminderEvaluation.snoozed}
+        onOpenBatch={() => setReminderBatchItems(reminderEvaluation.due)}
+      />
+    ),
+    [
+      messages,
+      reminderEvaluation.due,
+      reminderEvaluation.snoozed,
+      reminderStorageState.preferences.enabled,
+    ]
+  );
 
   const changelogEntries = useMemo(() => getChangelogEntries(messages), [messages]);
   const changelogRows = useMemo(
@@ -1089,26 +1108,20 @@ export default function AppShell({
   ) : null;
 
   return (
-    <div
-      className={styles.shellFrame}
-      data-mobile-layout={mobileLayoutActive ? "true" : "false"}
-      data-mobile-launcher-open={mobileLauncherOpen ? "true" : "false"}
-      style={
-        {
-          "--shell-topbar-height": `${topBarHeight}px`,
-          "--mobile-nav-header-height": `${mobileNavHeaderHeight}px`,
-        } as CSSProperties
-      }
-    >
+    <ReminderBellSlotProvider bell={reminderBell}>
+      <div
+        className={styles.shellFrame}
+        data-mobile-layout={mobileLayoutActive ? "true" : "false"}
+        data-mobile-launcher-open={mobileLauncherOpen ? "true" : "false"}
+        style={
+          {
+            "--shell-topbar-height": `${topBarHeight}px`,
+            "--mobile-nav-header-height": `${mobileNavHeaderHeight}px`,
+          } as CSSProperties
+        }
+      >
       <div className={styles.shellTopBar} ref={shellTopBarRef}>
         {headerChildren}
-        <ReminderBell
-          messages={messages}
-          enabled={reminderStorageState.preferences.enabled}
-          due={reminderEvaluation.due}
-          snoozed={reminderEvaluation.snoozed}
-          onOpenBatch={() => setReminderBatchItems(reminderEvaluation.due)}
-        />
       </div>
       {!mobileLayoutActive ? (
         <aside
@@ -1437,6 +1450,7 @@ export default function AppShell({
         onClose={() => setShowChangelog(false)}
       />
       <VersionUpdateGate appVersion={appVersion} messages={messages} />
-    </div>
+      </div>
+    </ReminderBellSlotProvider>
   );
 }

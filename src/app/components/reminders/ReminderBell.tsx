@@ -11,6 +11,7 @@ type ReminderBellProps = {
   due: ReminderDisplayItem[];
   snoozed: ReminderDisplayItem[];
   onOpenBatch: () => void;
+  buttonClassName?: string;
 };
 
 export default function ReminderBell({
@@ -19,6 +20,7 @@ export default function ReminderBell({
   due,
   snoozed,
   onOpenBatch,
+  buttonClassName,
 }: ReminderBellProps) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -39,9 +41,11 @@ export default function ReminderBell({
       <Tooltip content={messages.reminderBellLabel}>
         <button
           type="button"
-          className={styles.feedbackButton}
+          className={buttonClassName ?? styles.feedbackButton}
           onClick={() => setOpen((prev) => !prev)}
           aria-label={messages.reminderBellLabel}
+          aria-haspopup="menu"
+          aria-expanded={open}
         >
           <span aria-hidden="true">🔔</span>
           {dueCount > 0 ? (

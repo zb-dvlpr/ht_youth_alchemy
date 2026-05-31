@@ -148,8 +148,20 @@ html[data-mobile-shell="true"] .scaleContainer {
 
 .mobileLauncherUtilityRow {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
+}
+
+.mobileLauncherUtilityRow .reminderBellWrap {
+  display: flex;
+  min-width: 0;
+}
+
+.mobileLauncherUtilityRow .reminderBellWrap .feedbackButton {
+  width: 100%;
+  height: auto;
+  min-height: 48px;
+  border-radius: 16px;
 }
 
 .mobileLauncherUtilityButton {
@@ -1095,19 +1107,6 @@ html[data-mobile-shell="true"] .mobileYouthContent .slotClear {
   position: sticky;
   top: 0;
   z-index: 2147483646;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-.shellTopBar > .topBar {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.shellTopBar > .reminderBellWrap {
-  flex: 0 0 auto;
-  margin-top: 8px;
 }
 
 .shellContextBar {

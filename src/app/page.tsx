@@ -15,6 +15,7 @@ import SeniorMlBackfillBootstrap from "./components/SeniorMlBackfillBootstrap";
 import AppShell from "./components/AppShell";
 import SeniorDashboard from "./components/SeniorDashboard";
 import BuyCoffeeButton from "./components/BuyCoffeeButton";
+import ReminderBellSlot from "./components/reminders/ReminderBellSlot";
 import MobileManualButton from "./components/MobileManualButton";
 import BrandClock from "./components/BrandClock";
 import Tooltip from "./components/Tooltip";
@@ -376,6 +377,7 @@ export default async function Home() {
                           ☕
                         </BuyCoffeeButton>
                       </Tooltip>
+                      <ReminderBellSlot />
                       {isConnected ? (
                         <ConnectedStatus messages={messages} />
                       ) : (
@@ -420,6 +422,7 @@ export default async function Home() {
                     </span>
                     <span>{messages.supportOnKofi}</span>
                   </BuyCoffeeButton>
+                  <ReminderBellSlot />
                 </>
               }
               seniorTool={

@@ -676,7 +676,8 @@ export const messagesDe: Messages = {
     clubChronicleTeamAttitudeDetailsEmpty: "Keine analysierten Spiele verfügbar.",
     clubChronicleTeamAttitudeMatchDateColumn: "Match",
     clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+    clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+    clubChronicleTeamAttitudeMatchAttitudeColumn: "Abgeleitete Einstellung",
     clubChronicleTeamAttitudeMatchTacticColumn: "Taktik",
     clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
     clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -700,6 +701,8 @@ export const messagesDe: Messages = {
     clubChronicleDetailModeDev: "Entwicklermodus",
     clubChronicleTeamAttitudeDisclaimer:
       "Diese Werte sind abgeleitet und nicht immer exakt. Teams, die konsequent PIC spielen und dann normal antreten, koennen wie MOTS wirken, und Teams, die konsequent MOTS spielen und dann normal antreten, koennen wie PIC wirken.",
+    clubChronicleTeamAttitudeDetailsDisclaimer:
+      "Die abgeleitete Einstellung ist eine heuristische Schaetzung auf Basis von Abweichungen im Mittelfeldrating. Diese Tabelle zeigt die fuer die Ableitung genutzten Spiele: Spiele mit der dominantesten Formation ({formation}) und einer Spielerkonstellation, die fuer eine Ligaspiel-Aufstellung repraesentativ ist.",
     clubChronicleMatchTypeLeague: "Ligaspiel",
     clubChronicleMatchTypeQualification: "Qualifikationsspiel",
     clubChronicleMatchTypeCup: "Pokalspiel",

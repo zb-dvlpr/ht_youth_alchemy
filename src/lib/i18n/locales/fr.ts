@@ -687,7 +687,8 @@ export const messagesFr: Messages = {
     clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
     clubChronicleTeamAttitudeMatchDateColumn: "Match",
     clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+    clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude deduite",
     clubChronicleTeamAttitudeMatchTacticColumn: "Tactique",
     clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
     clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -711,6 +712,8 @@ export const messagesFr: Messages = {
     clubChronicleDetailModeDev: "Mode dev",
     clubChronicleTeamAttitudeDisclaimer:
       "Ces valeurs sont déduites et peuvent ne pas toujours être exactes. Les equipes qui jouent regulierement PIC puis passent en normal peuvent ressembler a un MOTS, et les equipes qui jouent regulierement MOTS puis passent en normal peuvent ressembler a un PIC.",
+    clubChronicleTeamAttitudeDetailsDisclaimer:
+      "L'attitude deduite est une estimation heuristique basee sur les ecarts de note du milieu. Ce tableau montre les matches utilises pour l'inference : matches joues avec la formation la plus dominante ({formation}) et une constellation de joueurs representative d'une composition de match de ligue.",
     clubChronicleMatchTypeLeague: "Match de ligue",
     clubChronicleMatchTypeQualification: "Match de qualification",
     clubChronicleMatchTypeCup: "Match de coupe",

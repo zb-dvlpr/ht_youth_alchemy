@@ -834,7 +834,8 @@ export const messagesPl: Messages = {
   clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
   clubChronicleTeamAttitudeMatchDateColumn: "Mecz",
   clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-  clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+  clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+  clubChronicleTeamAttitudeMatchAttitudeColumn: "Wywnioskowane nastawienie",
   clubChronicleTeamAttitudeMatchTacticColumn: "Taktyka",
   clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
   clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -858,6 +859,8 @@ export const messagesPl: Messages = {
   clubChronicleDetailModeDev: "Tryb deweloperski",
   clubChronicleTeamAttitudeDisclaimer:
     "Te wartosci sa wywnioskowane i nie zawsze musza byc dokladne. Druzyny, ktore regularnie graja PIC, a potem zagraja normalnie, moga wygladac jak MOTS, a druzyny, ktore regularnie graja MOTS, a potem zagraja normalnie, moga wygladac jak PIC.",
+  clubChronicleTeamAttitudeDetailsDisclaimer:
+    "Wywnioskowane nastawienie to heurystyczna ocena oparta na odchyleniach ratingu pomocy. Ta tabela pokazuje mecze uzyte do wnioskowania: mecze rozegrane najdominujaca formacja ({formation}) oraz ukladem zawodnikow reprezentatywnym dla skladu ligowego.",
   clubChroniclePlayingPositionColumn: "Poz. gry",
   clubChronicleForm7RatingColumn: "Ocena forma 7",
   clubChronicleManMarkerColumn: "MM?",

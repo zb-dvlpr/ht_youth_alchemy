@@ -652,7 +652,8 @@ export const messagesEn: Messages = {
     clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
     clubChronicleTeamAttitudeMatchDateColumn: "Match",
     clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+    clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+    clubChronicleTeamAttitudeMatchAttitudeColumn: "Inferred attitude",
     clubChronicleTeamAttitudeMatchTacticColumn: "Tactic",
     clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
     clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -676,6 +677,8 @@ export const messagesEn: Messages = {
     clubChronicleDetailModeDev: "Dev mode",
     clubChronicleTeamAttitudeDisclaimer:
       "These values are inferred and may not always be accurate. Teams that consistently PIC and then play normal can look like MOTS, and teams that consistently MOTS and then play normal can look like PIC.",
+    clubChronicleTeamAttitudeDetailsDisclaimer:
+      "Inferred attitude is a heuristic estimate based on midfield-rating deviations. This table shows the matches used for the inference: matches played with the most dominant formation ({formation}) and a player constellation representative of a league-match lineup.",
     clubChronicleMatchTypeLeague: "League match",
     clubChronicleMatchTypeQualification: "Qualification match",
     clubChronicleMatchTypeCup: "Cup match",

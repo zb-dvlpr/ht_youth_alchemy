@@ -686,7 +686,8 @@ export const messagesEs: Messages = {
     clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
     clubChronicleTeamAttitudeMatchDateColumn: "Partido",
     clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+    clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+    clubChronicleTeamAttitudeMatchAttitudeColumn: "Actitud inferida",
     clubChronicleTeamAttitudeMatchTacticColumn: "Táctica",
     clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
     clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -710,6 +711,8 @@ export const messagesEs: Messages = {
     clubChronicleDetailModeDev: "Modo de desarrollo",
     clubChronicleTeamAttitudeDisclaimer:
       "Estos valores son inferidos y puede que no siempre sean exactos. Los equipos que hacen PIC de forma constante y luego juegan normal pueden parecer MOTS, y los equipos que hacen MOTS de forma constante y luego juegan normal pueden parecer PIC.",
+    clubChronicleTeamAttitudeDetailsDisclaimer:
+      "La actitud inferida es una estimacion heuristica basada en desviaciones de la calificacion de medio campo. Esta tabla muestra los partidos usados para la inferencia: partidos jugados con la formacion mas dominante ({formation}) y una constelacion de jugadores representativa de una alineacion de liga.",
     clubChronicleMatchTypeLeague: "Partido de liga",
     clubChronicleMatchTypeQualification: "Partido de clasificación",
     clubChronicleMatchTypeCup: "Partido de copa",

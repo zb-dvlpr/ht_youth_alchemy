@@ -680,7 +680,8 @@ export const messagesSv: Messages = {
     clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
     clubChronicleTeamAttitudeMatchDateColumn: "Match",
     clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+    clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+    clubChronicleTeamAttitudeMatchAttitudeColumn: "Harledd installning",
     clubChronicleTeamAttitudeMatchTacticColumn: "Taktik",
     clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
     clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -704,6 +705,8 @@ export const messagesSv: Messages = {
     clubChronicleDetailModeDev: "Utvecklarlage",
     clubChronicleTeamAttitudeDisclaimer:
       "Dessa värden är uppskattade och är inte alltid helt exakta. Lag som konsekvent spelar PIC och sedan spelar normalt kan se ut som MOTS, och lag som konsekvent spelar MOTS och sedan spelar normalt kan se ut som PIC.",
+    clubChronicleTeamAttitudeDetailsDisclaimer:
+      "Harledd installning ar en heuristisk uppskattning baserad pa avvikelser i mittfaltsbetyg. Tabellen visar matcherna som anvands for slutsatsen: matcher med den mest dominerande formationen ({formation}) och en spelarkonstellation som ar representativ for en ligamatchuppstallning.",
     clubChronicleMatchTypeLeague: "Ligamatch",
     clubChronicleMatchTypeQualification: "Kvalmatch",
     clubChronicleMatchTypeCup: "Cupmatch",

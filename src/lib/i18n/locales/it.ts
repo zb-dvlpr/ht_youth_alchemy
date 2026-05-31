@@ -688,7 +688,8 @@ export const messagesIt: Messages = {
     clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
     clubChronicleTeamAttitudeMatchDateColumn: "Partita",
     clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+    clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+    clubChronicleTeamAttitudeMatchAttitudeColumn: "Atteggiamento dedotto",
     clubChronicleTeamAttitudeMatchTacticColumn: "Tattica",
     clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
     clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -712,6 +713,8 @@ export const messagesIt: Messages = {
     clubChronicleDetailModeDev: "Modalita dev",
     clubChronicleTeamAttitudeDisclaimer:
       "Questi valori sono dedotti e potrebbero non essere sempre accurati. Le squadre che giocano costantemente PIC e poi giocano normale possono sembrare MOTS, e le squadre che giocano costantemente MOTS e poi giocano normale possono sembrare PIC.",
+    clubChronicleTeamAttitudeDetailsDisclaimer:
+      "L'atteggiamento dedotto e una stima euristica basata sugli scostamenti del rating di centrocampo. Questa tabella mostra le partite usate per l'inferenza: partite giocate con la formazione piu dominante ({formation}) e una costellazione di giocatori rappresentativa di una formazione da campionato.",
     clubChronicleMatchTypeLeague: "Partita di campionato",
     clubChronicleMatchTypeQualification: "Partita di qualificazione",
     clubChronicleMatchTypeCup: "Partita di coppa",

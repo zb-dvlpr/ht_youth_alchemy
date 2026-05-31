@@ -841,7 +841,8 @@ export const messagesNl: Messages = {
   clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
   clubChronicleTeamAttitudeMatchDateColumn: "Wedstrijd",
   clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-  clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+  clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+  clubChronicleTeamAttitudeMatchAttitudeColumn: "Afgeleide instelling",
   clubChronicleTeamAttitudeMatchTacticColumn: "Tactiek",
   clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
   clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -865,6 +866,8 @@ export const messagesNl: Messages = {
   clubChronicleDetailModeDev: "Dev-modus",
   clubChronicleTeamAttitudeDisclaimer:
     "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig. Teams die consequent PIC spelen en daarna normaal spelen, kunnen op MOTS lijken, en teams die consequent MOTS spelen en daarna normaal spelen, kunnen op PIC lijken.",
+  clubChronicleTeamAttitudeDetailsDisclaimer:
+    "Afgeleide instelling is een heuristische schatting op basis van afwijkingen in middenveldrating. Deze tabel toont de wedstrijden die voor de afleiding zijn gebruikt: wedstrijden met de meest dominante formatie ({formation}) en een spelersconstellatie die representatief is voor een competitiewedstrijdopstelling.",
   clubChroniclePlayingPositionColumn: "Speelpos.",
   clubChronicleForm7RatingColumn: "Vorm-7-rating",
   clubChronicleManMarkerColumn: "MM?",

@@ -529,6 +529,7 @@ export type Messages = {
   clubChronicleTeamAttitudeDetailsEmpty: string;
   clubChronicleTeamAttitudeMatchDateColumn: string;
   clubChronicleTeamAttitudeMatchTypeColumn: string;
+  clubChronicleTeamAttitudeHatStatsColumn: string;
   clubChronicleTeamAttitudeMatchAttitudeColumn: string;
   clubChronicleTeamAttitudeMatchTacticColumn: string;
   clubChronicleTeamAttitudeMidfieldColumn: string;
@@ -552,6 +553,7 @@ export type Messages = {
   clubChronicleDetailModeUser: string;
   clubChronicleDetailModeDev: string;
   clubChronicleTeamAttitudeDisclaimer: string;
+  clubChronicleTeamAttitudeDetailsDisclaimer: string;
   clubChronicleMatchTypeLeague: string;
   clubChronicleMatchTypeQualification: string;
   clubChronicleMatchTypeCup: string;

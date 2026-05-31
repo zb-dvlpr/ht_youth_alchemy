@@ -34,6 +34,7 @@ import {
   hattrickPlayerUrl,
   hattrickTeamUrl,
 } from "@/lib/hattrick/urls";
+import { computeFoxtrickHatstats } from "@/lib/hattrick/hatstats";
 import {
   readSeniorDebugManagerUserId,
   SENIOR_DEBUG_MANAGER_USER_ID_EVENT,
@@ -3226,52 +3227,6 @@ const computeAverageRating = (values: Array<number | null>): number | null => {
 
 const normalizeOpponentMatchRating = (value: number | null) =>
   typeof value === "number" ? value / 4 + 0.75 : null;
-
-const computeFoxtrickHatstatsForOpponentRow = (
-  row: Pick<
-    OpponentFormationRow,
-    | "ratingMidfield"
-    | "ratingRightDef"
-    | "ratingMidDef"
-    | "ratingLeftDef"
-    | "ratingRightAtt"
-    | "ratingMidAtt"
-    | "ratingLeftAtt"
-  >
-):
-  | {
-      defense: number;
-      midfield: number;
-      attack: number;
-      total: number;
-    }
-  | null => {
-  const ratings = [
-    row.ratingMidfield,
-    row.ratingRightDef,
-    row.ratingMidDef,
-    row.ratingLeftDef,
-    row.ratingRightAtt,
-    row.ratingMidAtt,
-    row.ratingLeftAtt,
-  ];
-  if (ratings.some((value) => typeof value !== "number")) return null;
-  const defense =
-    (row.ratingRightDef as number) +
-    (row.ratingMidDef as number) +
-    (row.ratingLeftDef as number);
-  const midfield = (row.ratingMidfield as number) * 3;
-  const attack =
-    (row.ratingRightAtt as number) +
-    (row.ratingMidAtt as number) +
-    (row.ratingLeftAtt as number);
-  return {
-    defense,
-    midfield,
-    attack,
-    total: defense + midfield + attack,
-  };
-};
 
 const computeOpponentSectorAverage = (
   values: Array<number | null>
@@ -18168,7 +18123,7 @@ const refreshDetailsForPlayers = async (
                     <tbody>
                       {opponentAnalysisModal.opponentRows.map((row) => {
                         const sectorRatings = opponentSectorRatings(row);
-                        const foxtrickHatstats = computeFoxtrickHatstatsForOpponentRow(row);
+                        const foxtrickHatstats = computeFoxtrickHatstats(row);
                         return (
                           <tr key={row.matchId}>
                             <td className={styles.opponentFormationsMatchIdCell}>

@@ -823,20 +823,26 @@ export const messagesNl: Messages = {
   clubChronicleRefreshTeamAttitudeTooltip: "Refresh team attitude data.",
   clubChronicleRefreshStatusMatchLineupsProgress:
     "Match lineups {completed}/{total} (team: {team})",
+  clubChronicleFormationsAnalyzedDateTimeColumn: "Datum/tijd",
+  clubChronicleFormationsAnalyzedMatchIdColumn: "Wedstrijd-ID",
+  clubChronicleFormationsAnalyzedMatchTypeColumn: "Wedstrijdtype",
+  clubChronicleFormationsAnalyzedFormationColumn: "Formatie",
+  clubChronicleFormationsAnalyzedTacticColumn: "Tactiek",
   clubChronicleHelpBulletTeamAttitude:
     "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
   clubChronicleHelpBulletTsi:
     "TSI: totale team-TSI en top-11-TSI. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), TSI en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
   clubChronicleHelpBulletWages:
     "Lonen: totale teamlonen en top-11-lonen in EUR. Klik op een rij voor sorteerbare spelerdetails met index, leeftijd (jaren+dagen), loon en opgeslagen vorm-7-wedstrijdbeoordelingen met weeremoji.",
-  clubChronicleTeamAttitudePanelTitle: "Team attitude",
-  clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
+  clubChronicleTeamAttitudePanelTitle: "Team attitude (inferred)",
+  clubChronicleTeamAttitudeColumnAttitude: "Inferred attitude",
   clubChronicleTeamAttitudeColumnDate: "Date",
   clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
   clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
   clubChronicleTeamAttitudeMatchDateColumn: "Wedstrijd",
   clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-  clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+  clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+  clubChronicleTeamAttitudeMatchAttitudeColumn: "Afgeleide instelling",
   clubChronicleTeamAttitudeMatchTacticColumn: "Tactiek",
   clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
   clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -860,6 +866,8 @@ export const messagesNl: Messages = {
   clubChronicleDetailModeDev: "Dev-modus",
   clubChronicleTeamAttitudeDisclaimer:
     "Deze waarden zijn afgeleid en niet altijd volledig nauwkeurig. Teams die consequent PIC spelen en daarna normaal spelen, kunnen op MOTS lijken, en teams die consequent MOTS spelen en daarna normaal spelen, kunnen op PIC lijken.",
+  clubChronicleTeamAttitudeDetailsDisclaimer:
+    "Afgeleide instelling is een heuristische schatting op basis van afwijkingen in middenveldrating. Deze tabel toont de wedstrijden die voor de afleiding zijn gebruikt: wedstrijden met de meest dominante formatie ({formation}) en een spelersconstellatie die representatief is voor een competitiewedstrijdopstelling.",
   clubChroniclePlayingPositionColumn: "Speelpos.",
   clubChronicleForm7RatingColumn: "Vorm-7-rating",
   clubChronicleManMarkerColumn: "MM?",
@@ -911,7 +919,15 @@ export const messagesNl: Messages = {
   submitOrders: "Opstelling verzenden",
   submitOrdersPending: "Verzenden…",
   submitOrdersSuccess: "Verzonden",
+  submitOrdersSuccessOverwritten:
+    "Verzonden. Vorige opstelling overschreven.",
+  submitOrdersPreviousLineupOverwritten:
+    "Vorige opstelling overschreven.",
   submitOrdersError: "Verzendfout",
+  submitOrdersOverwriteWarningTitle:
+    "Bestaande opstelling wordt overschreven",
+  submitOrdersOverwriteWarningBody:
+    "Voor deze wedstrijd is al een opstelling verzonden. Als je doorgaat, wordt de vorige opstelling voor deze wedstrijd overschreven.",
   submitOrdersResponse: "Antwoord",
   submitOrdersUpdated: "Bijgewerkt",
   submitOrdersMinPlayers: "Opstelling moet minimaal 9 spelers hebben",
@@ -1112,6 +1128,8 @@ export const messagesNl: Messages = {
     "Bootstrap van senior beoordelingsmatrix voltooid.",
   notificationLineupLoaded: "Opstelling geladen:",
   notificationLineupSubmitted: "Opstelling verzonden:",
+  notificationLineupSubmittedOverwritten:
+    "Verzonden. Vorige opstelling overschreven voor",
   notificationSortBy: "Sortering:",
   notificationSortDirection: "Sorteerrichting:",
   notificationPlayerSelected: "Speler geselecteerd:",

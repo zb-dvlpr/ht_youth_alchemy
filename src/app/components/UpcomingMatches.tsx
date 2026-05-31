@@ -221,6 +221,14 @@ function resolveMatchSourceSystem(
   return fallbackSourceSystem;
 }
 
+function hasExistingOrders(match: Match | undefined): boolean {
+  return (
+    match?.OrdersGiven === "true" ||
+    match?.OrdersGiven === "True" ||
+    match?.OrdersGiven === true
+  );
+}
+
 function resolveOpponentTeam(
   match: Match | undefined,
   teamId: number | null
@@ -252,6 +260,7 @@ type MatchState = {
   error?: string | null;
   raw?: string | null;
   updatedAt?: number | null;
+  overwroteExistingOrders?: boolean;
 };
 
 type LoadState = {
@@ -774,10 +783,7 @@ function renderMatch(
     submitMatchRestrictionActive && submitEnabledMatchId !== matchId;
   const submitRestrictedBySupporter =
     isUpcoming && hasLineup && canSubmitToHattrick === false;
-  const ordersSet =
-    match.OrdersGiven === "true" ||
-    match.OrdersGiven === "True" ||
-    match.OrdersGiven === true;
+  const ordersSet = hasExistingOrders(match);
   const canLoad = Boolean(teamId) && isUpcoming && ordersSet;
   const statusText =
     match.Status === "UPCOMING"
@@ -966,7 +972,17 @@ function renderMatch(
           </Tooltip>
           {state.status === "success" ? (
             <span className={styles.matchSuccess}>
-              {messages.submitOrdersSuccess}
+              {state.overwroteExistingOrders ? (
+                <>
+                  {messages.submitOrdersSuccess}
+                  {" "}
+                  <span className={styles.matchSuccessOverwriteWarning}>
+                    {messages.submitOrdersPreviousLineupOverwritten}
+                  </span>
+                </>
+              ) : (
+                messages.submitOrdersSuccess
+              )}
             </span>
           ) : null}
           {loadState?.status === "error" ? (
@@ -1152,6 +1168,9 @@ export default function UpcomingMatches({
   const canSubmitMatchId = (matchId: number) =>
     canSubmitToHattrick !== false &&
     (!submitRestrictionActive || submitEnabledMatchId === matchId);
+  const confirmMatch = confirmMatchId ? matchById.get(confirmMatchId) : undefined;
+  const confirmMatchWillOverwrite =
+    sourceSystem === "Hattrick" && hasExistingOrders(confirmMatch);
 
   const handleSubmit = async (matchId: number) => {
     if (!teamId) return;
@@ -1371,6 +1390,8 @@ export default function UpcomingMatches({
     }
 
     const matchId = confirmMatchId;
+    const willOverwriteExistingOrders =
+      sourceSystem === "Hattrick" && hasExistingOrders(matchById.get(matchId));
     setConfirmMatchId(null);
     if (!canSubmitMatchId(matchId)) return;
     trackYouthMatchFeature(youthSubmittedLineupFeature ?? "lineup_manual_submitted");
@@ -1432,10 +1453,13 @@ export default function UpcomingMatches({
           status: "success",
           raw: null,
           updatedAt: Date.now(),
+          overwroteExistingOrders: willOverwriteExistingOrders,
         },
       }));
       addNotification(
-        `${messages.notificationLineupSubmitted} ${formatMatchName(
+        `${willOverwriteExistingOrders
+          ? messages.notificationLineupSubmittedOverwritten
+          : messages.notificationLineupSubmitted} ${formatMatchName(
           matchById.get(matchId)
         )}`
       );
@@ -1532,6 +1556,14 @@ export default function UpcomingMatches({
         open={!!confirmMatchId}
         variant="local"
         title={messages.confirmSubmitOrders}
+        body={
+          confirmMatchWillOverwrite ? (
+            <div className={styles.submitOverwriteWarning} role="alert">
+              <strong>{messages.submitOrdersOverwriteWarningTitle}</strong>
+              <p>{messages.submitOrdersOverwriteWarningBody}</p>
+            </div>
+          ) : null
+        }
         actions={
           <>
             <button

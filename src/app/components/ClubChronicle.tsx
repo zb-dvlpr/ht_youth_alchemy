@@ -51,6 +51,7 @@ import {
   hattrickTeamPlayersUrl,
   hattrickTeamTransfersUrl,
 } from "@/lib/hattrick/urls";
+import { computeFoxtrickHatstats } from "@/lib/hattrick/hatstats";
 import {
   ChppAuthRequiredError,
   fetchChppJson,
@@ -383,6 +384,64 @@ type PlayingPositionEntry = {
   minutes: number;
 };
 
+const PLAYING_POSITION_SORT_BUCKET_NO_VALUE = 4;
+
+const resolvePlayingPositionRoleSortBucket = (
+  roleId: number | null | undefined
+) => {
+  const positionKey = matchRoleIdToPositionKey(roleId);
+  switch (positionKey) {
+    case "KP":
+      return 0;
+    case "WB":
+    case "CD":
+      return 1;
+    case "W":
+    case "IM":
+      return 2;
+    case "F":
+      return 3;
+    default:
+      return PLAYING_POSITION_SORT_BUCKET_NO_VALUE;
+  }
+};
+
+const resolvePlayingPositionSortBucket = (
+  entries: PlayingPositionEntry[] | null | undefined
+): number => {
+  if (!entries || entries.length === 0) {
+    return PLAYING_POSITION_SORT_BUCKET_NO_VALUE;
+  }
+
+  return entries.reduce<{
+    bucket: number;
+    minutes: number;
+    roleId: number;
+  }>(
+    (best, entry) => {
+      const minutes = entry.minutes;
+      const roleId = normalizeMatchRoleId(entry.roleId);
+      if (!roleId || !Number.isFinite(minutes) || minutes <= 0) return best;
+      const bucket = resolvePlayingPositionRoleSortBucket(roleId);
+      if (bucket === PLAYING_POSITION_SORT_BUCKET_NO_VALUE) return best;
+      if (
+        minutes > best.minutes ||
+        (minutes === best.minutes &&
+          (bucket < best.bucket ||
+            (bucket === best.bucket && roleId < best.roleId)))
+      ) {
+        return { bucket, minutes, roleId };
+      }
+      return best;
+    },
+    {
+      bucket: PLAYING_POSITION_SORT_BUCKET_NO_VALUE,
+      minutes: -1,
+      roleId: Number.POSITIVE_INFINITY,
+    }
+  ).bucket;
+};
+
 type TsiData = {
   current: TsiSnapshot;
   previous?: TsiSnapshot;
@@ -482,6 +541,19 @@ type FormationTacticsAnalyzedMatch = {
   matchDate: string | null;
   sourceSystem: string;
   matchDurationMinutes: number;
+  formation: string | null;
+  tacticType: number | null;
+};
+
+type FormationsTacticsAnalyzedMatchRow = {
+  id: string;
+  matchId: number;
+  matchDate: string | null;
+  sourceSystem: string;
+  matchDateLabel: string;
+  matchTypeLabel: string;
+  formationLabel: string;
+  tacticLabel: string;
 };
 
 type LikelyTrainingKey =
@@ -522,6 +594,7 @@ type TeamAttitudeAnalyzedMatch = {
   sourceSystem: string;
   venue: TeamAttitudeVenue;
   midfieldRating: number | null;
+  hatStats?: number | null;
   tacticType: number | null;
   inferredAttitude: TeamAttitudeKind;
   potential: boolean;
@@ -2510,6 +2583,29 @@ const sanitizeChronicleDetailModalAnalyzedMatches = (
       candidate.matchDurationMinutes >= 0
         ? Math.round(candidate.matchDurationMinutes)
         : null;
+    const formation =
+      typeof candidate.formation === "string" && candidate.formation
+        ? candidate.formation
+        : null;
+    if (
+      candidate.formation !== undefined &&
+      candidate.formation !== null &&
+      typeof candidate.formation !== "string"
+    ) {
+      didChange = true;
+    }
+    const tacticType =
+      typeof candidate.tacticType === "number" && Number.isFinite(candidate.tacticType)
+        ? Math.round(candidate.tacticType)
+        : null;
+    if (
+      candidate.tacticType !== undefined &&
+      candidate.tacticType !== null &&
+      (typeof candidate.tacticType !== "number" ||
+        !Number.isFinite(candidate.tacticType))
+    ) {
+      didChange = true;
+    }
     if (
       !matchId ||
       matchId <= 0 ||
@@ -2531,6 +2627,8 @@ const sanitizeChronicleDetailModalAnalyzedMatches = (
             ? candidate.sourceSystem
             : "Hattrick",
         matchDurationMinutes,
+        formation,
+        tacticType,
       } satisfies FormationTacticsAnalyzedMatch,
     ];
   });
@@ -11152,6 +11250,8 @@ type Form7LineupSnapshot = {
             matchDate: resolved.match.matchDate,
             sourceSystem: resolved.match.sourceSystem,
             matchDurationMinutes: resolved.matchDurationMinutes,
+            formation: resolved.formation,
+            tacticType: resolved.tacticType,
           }) satisfies FormationTacticsAnalyzedMatch
       )
     );
@@ -11557,6 +11657,8 @@ type Form7LineupSnapshot = {
     awayTacticType: number | null;
     homeMidfieldRating: number | null;
     awayMidfieldRating: number | null;
+    homeHatStats: number | null;
+    awayHatStats: number | null;
     addedMinutes: number | null;
     matchDate: string | null;
     finishedDate: string | null;
@@ -11571,6 +11673,7 @@ type Form7LineupSnapshot = {
     formation: string | null;
     tacticType: number | null;
     midfieldRating: number | null;
+    hatStats: number | null;
     matchDurationMinutes: number;
   };
 
@@ -11578,6 +11681,7 @@ type Form7LineupSnapshot = {
     match: TeamMatchArchiveEntry;
     venue: TeamAttitudeVenue;
     midfieldRating: number | null;
+    hatStats: number | null;
     tacticType: number | null;
     inferredAttitude: TeamAttitudeKind;
   };
@@ -11831,6 +11935,26 @@ type Form7LineupSnapshot = {
       const home = (match?.HomeTeam ?? {}) as RawNode;
       const away = (match?.AwayTeam ?? {}) as RawNode;
       const eventList = toArray(match?.EventList?.Event as RawNode | RawNode[] | undefined);
+      const homeMidfieldRating = parseNumber(home?.RatingMidfield);
+      const awayMidfieldRating = parseNumber(away?.RatingMidfield);
+      const homeHatstats = computeFoxtrickHatstats({
+        ratingMidfield: homeMidfieldRating,
+        ratingRightDef: parseNumber(home?.RatingRightDef),
+        ratingMidDef: parseNumber(home?.RatingMidDef),
+        ratingLeftDef: parseNumber(home?.RatingLeftDef),
+        ratingRightAtt: parseNumber(home?.RatingRightAtt),
+        ratingMidAtt: parseNumber(home?.RatingMidAtt),
+        ratingLeftAtt: parseNumber(home?.RatingLeftAtt),
+      });
+      const awayHatstats = computeFoxtrickHatstats({
+        ratingMidfield: awayMidfieldRating,
+        ratingRightDef: parseNumber(away?.RatingRightDef),
+        ratingMidDef: parseNumber(away?.RatingMidDef),
+        ratingLeftDef: parseNumber(away?.RatingLeftDef),
+        ratingRightAtt: parseNumber(away?.RatingRightAtt),
+        ratingMidAtt: parseNumber(away?.RatingMidAtt),
+        ratingLeftAtt: parseNumber(away?.RatingLeftAtt),
+      });
       const details: MatchFormationTacticDetails = {
         homeTeamId: parseNumber(home?.HomeTeamID),
         awayTeamId: parseNumber(away?.AwayTeamID),
@@ -11840,8 +11964,10 @@ type Form7LineupSnapshot = {
           typeof away?.Formation === "string" ? String(away.Formation) : null,
         homeTacticType: parseNumber(home?.TacticType),
         awayTacticType: parseNumber(away?.TacticType),
-        homeMidfieldRating: parseNumber(home?.RatingMidfield),
-        awayMidfieldRating: parseNumber(away?.RatingMidfield),
+        homeMidfieldRating,
+        awayMidfieldRating,
+        homeHatStats: homeHatstats?.total ?? null,
+        awayHatStats: awayHatstats?.total ?? null,
         addedMinutes: parseNumber(match?.AddedMinutes),
         matchDate: parseStringNode(match?.MatchDate),
         finishedDate: parseStringNode(match?.FinishedDate),
@@ -11887,6 +12013,8 @@ type Form7LineupSnapshot = {
         matchDate: match.matchDate,
         sourceSystem: match.sourceSystem,
         matchDurationMinutes: resolved.matchDurationMinutes,
+        formation: resolved.formation,
+        tacticType: resolved.tacticType,
       });
       const tacticLabel = formatTacticLabel(resolved.tacticType);
       const formation = resolved.formation;
@@ -11956,6 +12084,7 @@ type Form7LineupSnapshot = {
           midfieldRating: isHome
             ? details.homeMidfieldRating
             : details.awayMidfieldRating,
+          hatStats: isHome ? details.homeHatStats : details.awayHatStats,
           matchDurationMinutes: Math.min(
             96,
             Math.max(90, 90 + Math.max(0, details.addedMinutes ?? 0))
@@ -11986,6 +12115,7 @@ type Form7LineupSnapshot = {
             match: entry.match,
             venue: entry.isHome ? "home" : "away",
             midfieldRating: entry.midfieldRating,
+            hatStats: entry.hatStats,
             tacticType: entry.tacticType,
             inferredAttitude: "normal" as TeamAttitudeKind,
           }) satisfies TeamAttitudeMidfieldPassMatch
@@ -12154,6 +12284,7 @@ type Form7LineupSnapshot = {
         sourceSystem: match.match.sourceSystem,
         venue: match.venue,
         midfieldRating: match.midfieldRating,
+        hatStats: match.hatStats,
         tacticType: match.tacticType,
         inferredAttitude: match.inferredAttitude,
         potential,
@@ -14532,6 +14663,93 @@ type Form7LineupSnapshot = {
     () => selectedFormationsTacticsTeam?.snapshot?.tacticDistribution ?? [],
     [selectedFormationsTacticsTeam]
   );
+  const formationsTacticsAnalyzedMatchRows = useMemo(
+    () =>
+      (selectedFormationsTacticsTeam?.snapshot?.analyzedMatches ?? [])
+        .map((match) => ({
+          id: `${match.matchId}:${match.sourceSystem}`,
+          matchId: match.matchId,
+          matchDate: match.matchDate,
+          sourceSystem: match.sourceSystem,
+          matchDateLabel:
+            formatChppDateTime(match.matchDate ?? undefined) ??
+            match.matchDate ??
+            messages.unknownShort,
+          matchTypeLabel: formatMatchTypeLabel(match.matchType),
+          formationLabel: match.formation ?? messages.unknownShort,
+          tacticLabel: formatTacticLabel(match.tacticType) ?? messages.unknownShort,
+        }))
+        .sort(
+          (left, right) =>
+            parseMatchDateValue(right.matchDate) -
+            parseMatchDateValue(left.matchDate)
+        ),
+    [
+      formatMatchTypeLabel,
+      formatTacticLabel,
+      messages.unknownShort,
+      selectedFormationsTacticsTeam,
+    ]
+  );
+  const formationsTacticsAnalyzedMatchesColumns = useMemo<
+    ChronicleTableColumn<
+      FormationsTacticsAnalyzedMatchRow,
+      FormationsTacticsAnalyzedMatchRow
+    >[]
+  >(
+    () => [
+      {
+        key: "date",
+        label: messages.clubChronicleFormationsAnalyzedDateTimeColumn,
+        getValue: (snapshot) => snapshot?.matchDateLabel ?? null,
+        getSortValue: (snapshot) => snapshot?.matchDate ?? null,
+      },
+      {
+        key: "match",
+        label: messages.clubChronicleFormationsAnalyzedMatchIdColumn,
+        getValue: (snapshot) => String(snapshot?.matchId ?? ""),
+        renderCell: (snapshot) =>
+          snapshot ? (
+            <a
+              className={styles.chroniclePressLink}
+              href={hattrickMatchUrlWithSourceSystem(
+                snapshot.matchId,
+                snapshot.sourceSystem
+              )}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {snapshot.matchId}
+            </a>
+          ) : (
+            messages.unknownShort
+          ),
+      },
+      {
+        key: "type",
+        label: messages.clubChronicleFormationsAnalyzedMatchTypeColumn,
+        getValue: (snapshot) => snapshot?.matchTypeLabel ?? null,
+      },
+      {
+        key: "formation",
+        label: messages.clubChronicleFormationsAnalyzedFormationColumn,
+        getValue: (snapshot) => snapshot?.formationLabel ?? null,
+      },
+      {
+        key: "tactic",
+        label: messages.clubChronicleFormationsAnalyzedTacticColumn,
+        getValue: (snapshot) => snapshot?.tacticLabel ?? null,
+      },
+    ],
+    [
+      messages.clubChronicleFormationsAnalyzedDateTimeColumn,
+      messages.clubChronicleFormationsAnalyzedFormationColumn,
+      messages.clubChronicleFormationsAnalyzedMatchIdColumn,
+      messages.clubChronicleFormationsAnalyzedMatchTypeColumn,
+      messages.clubChronicleFormationsAnalyzedTacticColumn,
+      messages.unknownShort,
+    ]
+  );
   const likelyTrainingDetailRows = useMemo(
     () =>
       (selectedLikelyTrainingTeam?.snapshot?.likelyTrainingScores ?? []).map(
@@ -14621,38 +14839,47 @@ type Form7LineupSnapshot = {
   }, [selectedTeamAttitudeTeam]);
   const teamAttitudeDetailRows = useMemo(
     () =>
-      (selectedTeamAttitudeTeam?.snapshot?.analyzedMatches ?? []).map((entry) => ({
-        id: `${entry.matchId}:${entry.sourceSystem}`,
-        matchId: entry.matchId,
-        matchDate: entry.matchDate,
-        sourceSystem: entry.sourceSystem,
-        venueLabel:
-          entry.venue === "away" ? messages.awayLabel : messages.homeLabel,
-        matchTitle: resolvedMatches[entry.matchId] ?? `${messages.matchesTitle} ${entry.matchId}`,
-        matchScore: resolvedMatchScores[entry.matchId] ?? messages.unknownShort,
-        matchDateLabel: entry.matchDate
-          ? formatChppDateTime(entry.matchDate) ?? entry.matchDate
-          : messages.unknownShort,
-        matchTypeLabel: formatMatchTypeLabel(entry.matchType),
-        tacticLabel: formatTacticLabel(entry.tacticType) ?? messages.unknownShort,
-        attitudeLabel: formatTeamAttitudeLabel(entry.inferredAttitude, entry.potential),
-        midfieldRatingLabel:
-          entry.midfieldRating !== null ? String(entry.midfieldRating) : messages.unknownShort,
-        midfieldUsedForUnion: selectedTeamAttitudeUnionBaselineMatchKeys.has(
-          `${entry.matchId}:${entry.sourceSystem}`
-        ),
-        lineupLabel: formatTeamAttitudeDebugNumberList(entry.lineupPlayerIds),
-        baselineUnionLabel: formatTeamAttitudeDebugNumberList(
-          resolveTeamAttitudeVenueSnapshot(
-            selectedTeamAttitudeTeam?.snapshot,
-            entry.venue ?? "home"
-          ).baselineUnionPlayerIds
-        ),
-        overlapLabel:
-          entry.lineupOverlapPct !== null
-            ? `${formatValue(entry.lineupOverlapPct)}%`
+      (selectedTeamAttitudeTeam?.snapshot?.analyzedMatches ?? []).map((entry) => {
+        const hatStats =
+          typeof entry.hatStats === "number" && Number.isFinite(entry.hatStats)
+            ? entry.hatStats
+            : null;
+        return {
+          id: `${entry.matchId}:${entry.sourceSystem}`,
+          matchId: entry.matchId,
+          matchDate: entry.matchDate,
+          sourceSystem: entry.sourceSystem,
+          venueLabel:
+            entry.venue === "away" ? messages.awayLabel : messages.homeLabel,
+          matchTitle:
+            resolvedMatches[entry.matchId] ?? `${messages.matchesTitle} ${entry.matchId}`,
+          matchScore: resolvedMatchScores[entry.matchId] ?? messages.unknownShort,
+          matchDateLabel: entry.matchDate
+            ? formatChppDateTime(entry.matchDate) ?? entry.matchDate
             : messages.unknownShort,
-      })),
+          matchTypeLabel: formatMatchTypeLabel(entry.matchType),
+          tacticLabel: formatTacticLabel(entry.tacticType) ?? messages.unknownShort,
+          attitudeLabel: formatTeamAttitudeLabel(entry.inferredAttitude, entry.potential),
+          hatStatsRaw: hatStats,
+          hatStatsLabel: hatStats !== null ? formatValue(hatStats) : messages.unknownShort,
+          midfieldRatingLabel:
+            entry.midfieldRating !== null ? String(entry.midfieldRating) : messages.unknownShort,
+          midfieldUsedForUnion: selectedTeamAttitudeUnionBaselineMatchKeys.has(
+            `${entry.matchId}:${entry.sourceSystem}`
+          ),
+          lineupLabel: formatTeamAttitudeDebugNumberList(entry.lineupPlayerIds),
+          baselineUnionLabel: formatTeamAttitudeDebugNumberList(
+            resolveTeamAttitudeVenueSnapshot(
+              selectedTeamAttitudeTeam?.snapshot,
+              entry.venue ?? "home"
+            ).baselineUnionPlayerIds
+          ),
+          overlapLabel:
+            entry.lineupOverlapPct !== null
+              ? `${formatValue(entry.lineupOverlapPct)}%`
+              : messages.unknownShort,
+        };
+      }),
     [
       formatTeamAttitudeDebugNumberList,
       formatMatchTypeLabel,
@@ -14682,6 +14909,8 @@ type Form7LineupSnapshot = {
         matchTypeLabel: string;
         tacticLabel: string;
         attitudeLabel: string;
+        hatStatsRaw: number | null;
+        hatStatsLabel: string;
         midfieldRatingLabel: string;
         midfieldUsedForUnion: boolean;
         lineupLabel: string;
@@ -14700,6 +14929,8 @@ type Form7LineupSnapshot = {
         matchTypeLabel: string;
         tacticLabel: string;
         attitudeLabel: string;
+        hatStatsRaw: number | null;
+        hatStatsLabel: string;
         midfieldRatingLabel: string;
         midfieldUsedForUnion: boolean;
         lineupLabel: string;
@@ -14722,6 +14953,8 @@ type Form7LineupSnapshot = {
           matchTypeLabel: string;
           tacticLabel: string;
           attitudeLabel: string;
+          hatStatsRaw: number | null;
+          hatStatsLabel: string;
           midfieldRatingLabel: string;
           midfieldUsedForUnion: boolean;
           lineupLabel: string;
@@ -14740,6 +14973,8 @@ type Form7LineupSnapshot = {
           matchTypeLabel: string;
           tacticLabel: string;
           attitudeLabel: string;
+          hatStatsRaw: number | null;
+          hatStatsLabel: string;
           midfieldRatingLabel: string;
           midfieldUsedForUnion: boolean;
           lineupLabel: string;
@@ -14781,6 +15016,12 @@ type Form7LineupSnapshot = {
           key: "score",
           label: messages.clubChronicleOngoingMatchesColumnScore,
           getValue: (snapshot) => snapshot?.matchScore ?? null,
+        },
+        {
+          key: "hatStats",
+          label: messages.clubChronicleTeamAttitudeHatStatsColumn,
+          getValue: (snapshot) => snapshot?.hatStatsLabel ?? null,
+          getSortValue: (snapshot) => snapshot?.hatStatsRaw ?? null,
         },
         {
           key: "attitude",
@@ -14841,6 +15082,7 @@ type Form7LineupSnapshot = {
     [
       messages.awayLabel,
       messages.clubChronicleOngoingMatchesColumnScore,
+      messages.clubChronicleTeamAttitudeHatStatsColumn,
       messages.clubChronicleTeamAttitudeBaselineUnionColumn,
       messages.clubChronicleTeamAttitudeLineupColumn,
       messages.clubChronicleTeamAttitudeMatchAttitudeColumn,
@@ -15392,6 +15634,8 @@ type Form7LineupSnapshot = {
         key: "playingPosition",
         label: messages.clubChroniclePlayingPositionColumn,
         getValue: (snapshot) => formatPlayingPositionEntries(snapshot?.playingPositions),
+        getSortValue: (snapshot) =>
+          resolvePlayingPositionSortBucket(snapshot?.playingPositions),
         renderCell: (snapshot) =>
           formatPlayingPositionEntries(snapshot?.playingPositions) ?? messages.unknownShort,
       },
@@ -15634,6 +15878,8 @@ type Form7LineupSnapshot = {
         key: "playingPosition",
         label: messages.clubChroniclePlayingPositionColumn,
         getValue: (snapshot) => formatPlayingPositionEntries(snapshot?.playingPositions),
+        getSortValue: (snapshot) =>
+          resolvePlayingPositionSortBucket(snapshot?.playingPositions),
         renderCell: (snapshot) =>
           formatPlayingPositionEntries(snapshot?.playingPositions) ?? messages.unknownShort,
       },
@@ -16320,6 +16566,16 @@ type Form7LineupSnapshot = {
     [formationsTacticsTableColumns.length]
   );
 
+  const formationsTacticsAnalyzedMatchesTableStyle = useMemo(
+    () =>
+      ({
+        "--cc-columns": formationsTacticsAnalyzedMatchesColumns.length,
+        "--cc-template":
+          "minmax(150px, 1fr) minmax(100px, 0.7fr) minmax(130px, 0.9fr) minmax(120px, 0.8fr) minmax(170px, 1fr)",
+      }) as CSSProperties,
+    [formationsTacticsAnalyzedMatchesColumns.length]
+  );
+
   const likelyTrainingTableStyle = useMemo(
     () =>
       ({
@@ -16352,8 +16608,8 @@ type Form7LineupSnapshot = {
       ({
         "--cc-columns": teamAttitudeDetailsColumns.length,
         "--cc-template": teamAttitudeDetailShowsDevInfo
-          ? "minmax(220px, 1.6fr) minmax(120px, 0.9fr) minmax(90px, 0.65fr) minmax(130px, 0.9fr) minmax(140px, 1fr) minmax(100px, 0.7fr) minmax(110px, 0.75fr) minmax(260px, 1.45fr) minmax(320px, 1.7fr)"
-          : "minmax(250px, 1.9fr) minmax(120px, 0.9fr) minmax(80px, 0.55fr) minmax(125px, 0.85fr) minmax(140px, 1fr)",
+          ? "minmax(220px, 1.6fr) minmax(120px, 0.9fr) minmax(90px, 0.65fr) minmax(95px, 0.65fr) minmax(150px, 1fr) minmax(140px, 1fr) minmax(100px, 0.7fr) minmax(110px, 0.75fr) minmax(260px, 1.45fr) minmax(320px, 1.7fr)"
+          : "minmax(250px, 1.9fr) minmax(120px, 0.9fr) minmax(80px, 0.55fr) minmax(95px, 0.65fr) minmax(150px, 1fr) minmax(140px, 1fr)",
       }) as CSSProperties,
     [teamAttitudeDetailsColumns.length, teamAttitudeDetailShowsDevInfo]
   );
@@ -17399,27 +17655,19 @@ type Form7LineupSnapshot = {
     if (mobileChronicleScreen === "watchlist") return watchlistBody;
     if (mobileChronicleScreen === "latest-updates") return updatesBody;
     if (mobileChronicleScreen === "formations-matches") {
-      return selectedFormationsTacticsTeam?.snapshot?.analyzedMatches?.length ? (
-        <ul className={styles.chronicleMatchList}>
-          {selectedFormationsTacticsTeam.snapshot.analyzedMatches.map((match) => (
-            <li
-              key={`${match.matchId}-${match.matchType ?? "na"}`}
-              className={styles.chronicleMatchListItem}
-            >
-              <a
-                className={styles.chroniclePressLink}
-                href={hattrickMatchUrl(match.matchId)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {match.matchId}
-              </a>
-              <span className={styles.chroniclePressMeta}>
-                {formatMatchTypeLabel(match.matchType)}
-              </span>
-            </li>
-          ))}
-        </ul>
+      return formationsTacticsAnalyzedMatchRows.length > 0 ? (
+        <div className={styles.mobileChronicleTableWrap}>
+          <ChronicleTable
+            columns={formationsTacticsAnalyzedMatchesColumns}
+            rows={formationsTacticsAnalyzedMatchRows}
+            getRowKey={(row) => row.id}
+            getSnapshot={(row) => row}
+            formatValue={formatValue}
+            style={formationsTacticsAnalyzedMatchesTableStyle}
+            sortKey="date"
+            sortDirection="desc"
+          />
+        </div>
       ) : (
         <p className={styles.chronicleEmpty}>
           {messages.clubChronicleFormationsMatchesListEmpty}
@@ -20778,27 +21026,19 @@ type Form7LineupSnapshot = {
         body={
           selectedFormationsTacticsTeam?.premiumLocked ? (
             renderChroniclePremiumLockedMessage(chronicleFormationsLicenseContext)
-          ) : selectedFormationsTacticsTeam?.snapshot?.analyzedMatches?.length ? (
-            <ul className={styles.chronicleMatchList}>
-              {selectedFormationsTacticsTeam.snapshot.analyzedMatches.map((match) => (
-                <li
-                  key={`${match.matchId}-${match.matchType ?? "na"}`}
-                  className={styles.chronicleMatchListItem}
-                >
-                  <a
-                    className={styles.chroniclePressLink}
-                    href={hattrickMatchUrl(match.matchId)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {match.matchId}
-                  </a>
-                  <span className={styles.chroniclePressMeta}>
-                    {formatMatchTypeLabel(match.matchType)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+          ) : formationsTacticsAnalyzedMatchRows.length > 0 ? (
+            <div className={styles.chronicleTransferHistoryTableWrap}>
+              <ChronicleTable
+                columns={formationsTacticsAnalyzedMatchesColumns}
+                rows={formationsTacticsAnalyzedMatchRows}
+                getRowKey={(row) => row.id}
+                getSnapshot={(row) => row}
+                formatValue={formatValue}
+                style={formationsTacticsAnalyzedMatchesTableStyle}
+                sortKey="date"
+                sortDirection="desc"
+              />
+            </div>
           ) : (
             <p className={styles.chronicleEmpty}>
               {messages.clubChronicleFormationsMatchesListEmpty}
@@ -20885,7 +21125,14 @@ type Form7LineupSnapshot = {
               )}
               {!teamAttitudeDetailShowsDevInfo ? (
                 <p className={styles.chroniclePressMeta}>
-                  {messages.clubChronicleTeamAttitudeDisclaimer}
+                  {formatStatusTemplate(
+                    messages.clubChronicleTeamAttitudeDetailsDisclaimer,
+                    {
+                      formation:
+                        selectedTeamAttitudeTeam.snapshot?.topFormation ??
+                        messages.unknownShort,
+                    }
+                  )}
                 </p>
               ) : null}
             </>

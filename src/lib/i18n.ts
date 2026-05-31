@@ -517,6 +517,11 @@ export type Messages = {
   clubChronicleFormationsSampleLabel: string;
   clubChronicleFormationsMatchesListTitle: string;
   clubChronicleFormationsMatchesListEmpty: string;
+  clubChronicleFormationsAnalyzedDateTimeColumn: string;
+  clubChronicleFormationsAnalyzedMatchIdColumn: string;
+  clubChronicleFormationsAnalyzedMatchTypeColumn: string;
+  clubChronicleFormationsAnalyzedFormationColumn: string;
+  clubChronicleFormationsAnalyzedTacticColumn: string;
   clubChronicleTeamAttitudePanelTitle: string;
   clubChronicleTeamAttitudeColumnAttitude: string;
   clubChronicleTeamAttitudeColumnDate: string;
@@ -524,6 +529,7 @@ export type Messages = {
   clubChronicleTeamAttitudeDetailsEmpty: string;
   clubChronicleTeamAttitudeMatchDateColumn: string;
   clubChronicleTeamAttitudeMatchTypeColumn: string;
+  clubChronicleTeamAttitudeHatStatsColumn: string;
   clubChronicleTeamAttitudeMatchAttitudeColumn: string;
   clubChronicleTeamAttitudeMatchTacticColumn: string;
   clubChronicleTeamAttitudeMidfieldColumn: string;
@@ -547,6 +553,7 @@ export type Messages = {
   clubChronicleDetailModeUser: string;
   clubChronicleDetailModeDev: string;
   clubChronicleTeamAttitudeDisclaimer: string;
+  clubChronicleTeamAttitudeDetailsDisclaimer: string;
   clubChronicleMatchTypeLeague: string;
   clubChronicleMatchTypeQualification: string;
   clubChronicleMatchTypeCup: string;
@@ -841,8 +848,12 @@ export type Messages = {
   submitOrders: string;
   submitOrdersPending: string;
   submitOrdersSuccess: string;
+  submitOrdersSuccessOverwritten: string;
+  submitOrdersPreviousLineupOverwritten: string;
   submitOrdersError: string;
   confirmSubmitOrders: string;
+  submitOrdersOverwriteWarningTitle: string;
+  submitOrdersOverwriteWarningBody: string;
   submitOrdersResponse: string;
   submitOrdersUpdated: string;
   submitOrdersMinPlayers: string;
@@ -1087,6 +1098,7 @@ export type Messages = {
   notificationAutoSelection: string;
   notificationLineupLoaded: string;
   notificationLineupSubmitted: string;
+  notificationLineupSubmittedOverwritten: string;
   notificationOptimizeApplied: string;
   notificationLineupRandomized: string;
   notificationLineupReset: string;

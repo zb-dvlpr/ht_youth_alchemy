@@ -676,14 +676,20 @@ export const messagesIt: Messages = {
     clubChronicleFormationsSampleLabel: "Partite analizzate",
     clubChronicleFormationsMatchesListTitle: "Partite analizzate",
     clubChronicleFormationsMatchesListEmpty: "Nessuna partita analizzata disponibile.",
-    clubChronicleTeamAttitudePanelTitle: "Team attitude",
-    clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
+    clubChronicleFormationsAnalyzedDateTimeColumn: "Data/ora",
+    clubChronicleFormationsAnalyzedMatchIdColumn: "ID partita",
+    clubChronicleFormationsAnalyzedMatchTypeColumn: "Tipo partita",
+    clubChronicleFormationsAnalyzedFormationColumn: "Formazione",
+    clubChronicleFormationsAnalyzedTacticColumn: "Tattica",
+    clubChronicleTeamAttitudePanelTitle: "Team attitude (inferred)",
+    clubChronicleTeamAttitudeColumnAttitude: "Inferred attitude",
     clubChronicleTeamAttitudeColumnDate: "Date",
     clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
     clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
     clubChronicleTeamAttitudeMatchDateColumn: "Partita",
     clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+    clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+    clubChronicleTeamAttitudeMatchAttitudeColumn: "Atteggiamento dedotto",
     clubChronicleTeamAttitudeMatchTacticColumn: "Tattica",
     clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
     clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -707,6 +713,8 @@ export const messagesIt: Messages = {
     clubChronicleDetailModeDev: "Modalita dev",
     clubChronicleTeamAttitudeDisclaimer:
       "Questi valori sono dedotti e potrebbero non essere sempre accurati. Le squadre che giocano costantemente PIC e poi giocano normale possono sembrare MOTS, e le squadre che giocano costantemente MOTS e poi giocano normale possono sembrare PIC.",
+    clubChronicleTeamAttitudeDetailsDisclaimer:
+      "L'atteggiamento dedotto e una stima euristica basata sugli scostamenti del rating di centrocampo. Questa tabella mostra le partite usate per l'inferenza: partite giocate con la formazione piu dominante ({formation}) e una costellazione di giocatori rappresentativa di una formazione da campionato.",
     clubChronicleMatchTypeLeague: "Partita di campionato",
     clubChronicleMatchTypeQualification: "Partita di qualificazione",
     clubChronicleMatchTypeCup: "Partita di coppa",
@@ -1047,8 +1055,16 @@ export const messagesIt: Messages = {
     submitOrders: "Invia formazione",
     submitOrdersPending: "Invio…",
     submitOrdersSuccess: "Ordini inviati",
+    submitOrdersSuccessOverwritten:
+      "Ordini inviati. Formazione precedente sovrascritta.",
+    submitOrdersPreviousLineupOverwritten:
+      "Formazione precedente sovrascritta.",
     submitOrdersError: "Invio non riuscito",
     confirmSubmitOrders: "Inviare la formazione attuale per questa partita?",
+    submitOrdersOverwriteWarningTitle:
+      "La formazione esistente sarà sovrascritta",
+    submitOrdersOverwriteWarningBody:
+      "Questa partita ha già una formazione inviata. Se continui, la formazione precedente per questa partita sarà sovrascritta.",
     submitOrdersResponse: "Risposta",
     submitOrdersUpdated: "Aggiornato",
     submitOrdersMinPlayers: "Servono almeno 9 giocatori",
@@ -1383,6 +1399,8 @@ export const messagesIt: Messages = {
     notificationAutoSelection: "Auto-selezione",
     notificationLineupLoaded: "Formazione caricata:",
     notificationLineupSubmitted: "Formazione inviata:",
+    notificationLineupSubmittedOverwritten:
+      "Ordini inviati. Formazione precedente sovrascritta per",
     notificationOptimizeApplied: "Ottimizzazione applicata",
     notificationLineupRandomized: "Formazione casuale",
     notificationLineupReset: "Formazione reimpostata",

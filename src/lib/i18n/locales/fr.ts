@@ -675,14 +675,20 @@ export const messagesFr: Messages = {
     clubChronicleFormationsSampleLabel: "Matchs analysés",
     clubChronicleFormationsMatchesListTitle: "Matchs analysés",
     clubChronicleFormationsMatchesListEmpty: "Aucun match analysé disponible.",
-    clubChronicleTeamAttitudePanelTitle: "Team attitude",
-    clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
+    clubChronicleFormationsAnalyzedDateTimeColumn: "Date/heure",
+    clubChronicleFormationsAnalyzedMatchIdColumn: "ID du match",
+    clubChronicleFormationsAnalyzedMatchTypeColumn: "Type de match",
+    clubChronicleFormationsAnalyzedFormationColumn: "Formation",
+    clubChronicleFormationsAnalyzedTacticColumn: "Tactique",
+    clubChronicleTeamAttitudePanelTitle: "Team attitude (inferred)",
+    clubChronicleTeamAttitudeColumnAttitude: "Inferred attitude",
     clubChronicleTeamAttitudeColumnDate: "Date",
     clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
     clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
     clubChronicleTeamAttitudeMatchDateColumn: "Match",
     clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+    clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude deduite",
     clubChronicleTeamAttitudeMatchTacticColumn: "Tactique",
     clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
     clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -706,6 +712,8 @@ export const messagesFr: Messages = {
     clubChronicleDetailModeDev: "Mode dev",
     clubChronicleTeamAttitudeDisclaimer:
       "Ces valeurs sont déduites et peuvent ne pas toujours être exactes. Les equipes qui jouent regulierement PIC puis passent en normal peuvent ressembler a un MOTS, et les equipes qui jouent regulierement MOTS puis passent en normal peuvent ressembler a un PIC.",
+    clubChronicleTeamAttitudeDetailsDisclaimer:
+      "L'attitude deduite est une estimation heuristique basee sur les ecarts de note du milieu. Ce tableau montre les matches utilises pour l'inference : matches joues avec la formation la plus dominante ({formation}) et une constellation de joueurs representative d'une composition de match de ligue.",
     clubChronicleMatchTypeLeague: "Match de ligue",
     clubChronicleMatchTypeQualification: "Match de qualification",
     clubChronicleMatchTypeCup: "Match de coupe",
@@ -1045,8 +1053,16 @@ export const messagesFr: Messages = {
     submitOrders: "Envoyer la composition",
     submitOrdersPending: "Envoi…",
     submitOrdersSuccess: "Ordres envoyés",
+    submitOrdersSuccessOverwritten:
+      "Ordres envoyés. Composition précédente écrasée.",
+    submitOrdersPreviousLineupOverwritten:
+      "Composition précédente écrasée.",
     submitOrdersError: "Échec de l’envoi",
     confirmSubmitOrders: "Envoyer la composition actuelle pour ce match ?",
+    submitOrdersOverwriteWarningTitle:
+      "La composition existante sera écrasée",
+    submitOrdersOverwriteWarningBody:
+      "Ce match a déjà une composition envoyée. Si vous continuez, la composition précédente de ce match sera écrasée.",
     submitOrdersResponse: "Réponse",
     submitOrdersUpdated: "Mis à jour",
     submitOrdersMinPlayers: "Au moins 9 joueurs requis",
@@ -1381,6 +1397,8 @@ export const messagesFr: Messages = {
     notificationAutoSelection: "Auto-sélection",
     notificationLineupLoaded: "Composition chargée :",
     notificationLineupSubmitted: "Composition envoyée :",
+    notificationLineupSubmittedOverwritten:
+      "Ordres envoyés. Composition précédente écrasée pour",
     notificationOptimizeApplied: "Optimisation appliquée",
     notificationLineupRandomized: "Composition aléatoire",
     notificationLineupReset: "Composition réinitialisée",

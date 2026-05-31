@@ -816,20 +816,26 @@ export const messagesPl: Messages = {
   clubChronicleRefreshTeamAttitudeTooltip: "Refresh team attitude data.",
   clubChronicleRefreshStatusMatchLineupsProgress:
     "Match lineups {completed}/{total} (team: {team})",
+  clubChronicleFormationsAnalyzedDateTimeColumn: "Data/godzina",
+  clubChronicleFormationsAnalyzedMatchIdColumn: "ID meczu",
+  clubChronicleFormationsAnalyzedMatchTypeColumn: "Typ meczu",
+  clubChronicleFormationsAnalyzedFormationColumn: "Formacja",
+  clubChronicleFormationsAnalyzedTacticColumn: "Taktyka",
   clubChronicleHelpBulletTeamAttitude:
     "Team Attitude: reuses the most common formation, compares same-formation league midfield ratings with separate home and away baselines, and flags likely PIC, MOTS, or normal matches. Potential labels use a league-only baseline squad from same-formation league matches near the venue-matched normal midfield level, within +/-1 first and +/-2 only if fewer than three league matches qualify.",
   clubChronicleHelpBulletTsi:
     "TSI: laczne TSI zespolu i TSI top 11. Kliknij wiersz, aby zobaczyc sortowalne szczegoly zawodnikow z indeksem, wiekiem (lata+dni), TSI oraz zapisana historia ocen forma 7 z emoji pogody.",
   clubChronicleHelpBulletWages:
     "Place: laczne place zespolu i place top 11 w EUR. Kliknij wiersz, aby zobaczyc sortowalne szczegoly zawodnikow z indeksem, wiekiem (lata+dni), placa oraz zapisana historia ocen forma 7 z emoji pogody.",
-  clubChronicleTeamAttitudePanelTitle: "Team attitude",
-  clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
+  clubChronicleTeamAttitudePanelTitle: "Team attitude (inferred)",
+  clubChronicleTeamAttitudeColumnAttitude: "Inferred attitude",
   clubChronicleTeamAttitudeColumnDate: "Date",
   clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
   clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
   clubChronicleTeamAttitudeMatchDateColumn: "Mecz",
   clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-  clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+  clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+  clubChronicleTeamAttitudeMatchAttitudeColumn: "Wywnioskowane nastawienie",
   clubChronicleTeamAttitudeMatchTacticColumn: "Taktyka",
   clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
   clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -853,6 +859,8 @@ export const messagesPl: Messages = {
   clubChronicleDetailModeDev: "Tryb deweloperski",
   clubChronicleTeamAttitudeDisclaimer:
     "Te wartosci sa wywnioskowane i nie zawsze musza byc dokladne. Druzyny, ktore regularnie graja PIC, a potem zagraja normalnie, moga wygladac jak MOTS, a druzyny, ktore regularnie graja MOTS, a potem zagraja normalnie, moga wygladac jak PIC.",
+  clubChronicleTeamAttitudeDetailsDisclaimer:
+    "Wywnioskowane nastawienie to heurystyczna ocena oparta na odchyleniach ratingu pomocy. Ta tabela pokazuje mecze uzyte do wnioskowania: mecze rozegrane najdominujaca formacja ({formation}) oraz ukladem zawodnikow reprezentatywnym dla skladu ligowego.",
   clubChroniclePlayingPositionColumn: "Poz. gry",
   clubChronicleForm7RatingColumn: "Ocena forma 7",
   clubChronicleManMarkerColumn: "MM?",
@@ -904,7 +912,15 @@ export const messagesPl: Messages = {
   submitOrders: "Wyślij skład",
   submitOrdersPending: "Wysyłanie…",
   submitOrdersSuccess: "Wysłano",
+  submitOrdersSuccessOverwritten:
+    "Wysłano. Poprzedni skład został nadpisany.",
+  submitOrdersPreviousLineupOverwritten:
+    "Poprzedni skład został nadpisany.",
   submitOrdersError: "Błąd wysyłki",
+  submitOrdersOverwriteWarningTitle:
+    "Istniejący skład zostanie nadpisany",
+  submitOrdersOverwriteWarningBody:
+    "Ten mecz ma już wysłany skład. Jeśli kontynuujesz, poprzedni skład dla tego meczu zostanie nadpisany.",
   submitOrdersResponse: "Odpowiedź",
   submitOrdersUpdated: "Zaktualizowano",
   submitOrdersMinPlayers: "Skład musi mieć co najmniej 9 zawodników",
@@ -1105,6 +1121,8 @@ export const messagesPl: Messages = {
     "Bootstrap ocen seniorów zakończony.",
   notificationLineupLoaded: "Wczytano skład:",
   notificationLineupSubmitted: "Wysłano skład:",
+  notificationLineupSubmittedOverwritten:
+    "Wysłano. Poprzedni skład został nadpisany dla",
   notificationSortBy: "Sortowanie:",
   notificationSortDirection: "Kierunek sortowania:",
   notificationPlayerSelected: "Wybrano zawodnika:",

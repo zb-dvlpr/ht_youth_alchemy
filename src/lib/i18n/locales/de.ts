@@ -664,14 +664,20 @@ export const messagesDe: Messages = {
     clubChronicleFormationsSampleLabel: "Analysierte Spiele",
     clubChronicleFormationsMatchesListTitle: "Analysierte Spiele",
     clubChronicleFormationsMatchesListEmpty: "Keine analysierten Spiele verfügbar.",
-    clubChronicleTeamAttitudePanelTitle: "Team attitude",
-    clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
+    clubChronicleFormationsAnalyzedDateTimeColumn: "Datum/Uhrzeit",
+    clubChronicleFormationsAnalyzedMatchIdColumn: "Match-ID",
+    clubChronicleFormationsAnalyzedMatchTypeColumn: "Matchtyp",
+    clubChronicleFormationsAnalyzedFormationColumn: "Formation",
+    clubChronicleFormationsAnalyzedTacticColumn: "Taktik",
+    clubChronicleTeamAttitudePanelTitle: "Team attitude (inferred)",
+    clubChronicleTeamAttitudeColumnAttitude: "Inferred attitude",
     clubChronicleTeamAttitudeColumnDate: "Date",
     clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
     clubChronicleTeamAttitudeDetailsEmpty: "Keine analysierten Spiele verfügbar.",
     clubChronicleTeamAttitudeMatchDateColumn: "Match",
     clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+    clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+    clubChronicleTeamAttitudeMatchAttitudeColumn: "Abgeleitete Einstellung",
     clubChronicleTeamAttitudeMatchTacticColumn: "Taktik",
     clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
     clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -695,6 +701,8 @@ export const messagesDe: Messages = {
     clubChronicleDetailModeDev: "Entwicklermodus",
     clubChronicleTeamAttitudeDisclaimer:
       "Diese Werte sind abgeleitet und nicht immer exakt. Teams, die konsequent PIC spielen und dann normal antreten, koennen wie MOTS wirken, und Teams, die konsequent MOTS spielen und dann normal antreten, koennen wie PIC wirken.",
+    clubChronicleTeamAttitudeDetailsDisclaimer:
+      "Die abgeleitete Einstellung ist eine heuristische Schaetzung auf Basis von Abweichungen im Mittelfeldrating. Diese Tabelle zeigt die fuer die Ableitung genutzten Spiele: Spiele mit der dominantesten Formation ({formation}) und einer Spielerkonstellation, die fuer eine Ligaspiel-Aufstellung repraesentativ ist.",
     clubChronicleMatchTypeLeague: "Ligaspiel",
     clubChronicleMatchTypeQualification: "Qualifikationsspiel",
     clubChronicleMatchTypeCup: "Pokalspiel",
@@ -1031,8 +1039,16 @@ export const messagesDe: Messages = {
     submitOrders: "Aufstellung senden",
     submitOrdersPending: "Wird gesendet…",
     submitOrdersSuccess: "Anweisungen gesendet",
+    submitOrdersSuccessOverwritten:
+      "Anweisungen gesendet. Vorherige Aufstellung überschrieben.",
+    submitOrdersPreviousLineupOverwritten:
+      "Vorherige Aufstellung überschrieben.",
     submitOrdersError: "Senden fehlgeschlagen",
     confirmSubmitOrders: "Aktuelle Aufstellung für dieses Spiel senden?",
+    submitOrdersOverwriteWarningTitle:
+      "Bestehende Aufstellung wird überschrieben",
+    submitOrdersOverwriteWarningBody:
+      "Für dieses Spiel wurde bereits eine Aufstellung gesendet. Wenn du fortfährst, wird die vorherige Aufstellung für dieses Spiel überschrieben.",
     submitOrdersResponse: "Antwort",
     submitOrdersUpdated: "Aktualisiert",
     submitOrdersMinPlayers: "Mindestens 9 Spieler erforderlich",
@@ -1364,6 +1380,8 @@ export const messagesDe: Messages = {
     notificationAutoSelection: "Automatisch gewählt",
     notificationLineupLoaded: "Aufstellung geladen:",
     notificationLineupSubmitted: "Aufstellung gesendet:",
+    notificationLineupSubmittedOverwritten:
+      "Anweisungen gesendet. Vorherige Aufstellung überschrieben für",
     notificationOptimizeApplied: "Optimierung angewendet",
     notificationLineupRandomized: "Aufstellung zufällig erstellt",
     notificationLineupReset: "Aufstellung zurückgesetzt",

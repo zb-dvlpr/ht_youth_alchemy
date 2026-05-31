@@ -674,14 +674,20 @@ export const messagesEs: Messages = {
     clubChronicleFormationsSampleLabel: "Partidos analizados",
     clubChronicleFormationsMatchesListTitle: "Partidos analizados",
     clubChronicleFormationsMatchesListEmpty: "No hay partidos analizados disponibles.",
-    clubChronicleTeamAttitudePanelTitle: "Team attitude",
-    clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
+    clubChronicleFormationsAnalyzedDateTimeColumn: "Fecha/hora",
+    clubChronicleFormationsAnalyzedMatchIdColumn: "ID de partido",
+    clubChronicleFormationsAnalyzedMatchTypeColumn: "Tipo de partido",
+    clubChronicleFormationsAnalyzedFormationColumn: "Formación",
+    clubChronicleFormationsAnalyzedTacticColumn: "Táctica",
+    clubChronicleTeamAttitudePanelTitle: "Team attitude (inferred)",
+    clubChronicleTeamAttitudeColumnAttitude: "Inferred attitude",
     clubChronicleTeamAttitudeColumnDate: "Date",
     clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
     clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
     clubChronicleTeamAttitudeMatchDateColumn: "Partido",
     clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+    clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+    clubChronicleTeamAttitudeMatchAttitudeColumn: "Actitud inferida",
     clubChronicleTeamAttitudeMatchTacticColumn: "Táctica",
     clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
     clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -705,6 +711,8 @@ export const messagesEs: Messages = {
     clubChronicleDetailModeDev: "Modo de desarrollo",
     clubChronicleTeamAttitudeDisclaimer:
       "Estos valores son inferidos y puede que no siempre sean exactos. Los equipos que hacen PIC de forma constante y luego juegan normal pueden parecer MOTS, y los equipos que hacen MOTS de forma constante y luego juegan normal pueden parecer PIC.",
+    clubChronicleTeamAttitudeDetailsDisclaimer:
+      "La actitud inferida es una estimacion heuristica basada en desviaciones de la calificacion de medio campo. Esta tabla muestra los partidos usados para la inferencia: partidos jugados con la formacion mas dominante ({formation}) y una constelacion de jugadores representativa de una alineacion de liga.",
     clubChronicleMatchTypeLeague: "Partido de liga",
     clubChronicleMatchTypeQualification: "Partido de clasificación",
     clubChronicleMatchTypeCup: "Partido de copa",
@@ -1044,8 +1052,16 @@ export const messagesEs: Messages = {
     submitOrders: "Enviar alineación",
     submitOrdersPending: "Enviando…",
     submitOrdersSuccess: "Órdenes enviadas",
+    submitOrdersSuccessOverwritten:
+      "Órdenes enviadas. Alineación anterior sobrescrita.",
+    submitOrdersPreviousLineupOverwritten:
+      "Alineación anterior sobrescrita.",
     submitOrdersError: "Error al enviar",
     confirmSubmitOrders: "¿Enviar la alineación actual para este partido?",
+    submitOrdersOverwriteWarningTitle:
+      "La alineación existente se sobrescribirá",
+    submitOrdersOverwriteWarningBody:
+      "Este partido ya tiene una alineación enviada. Si continúas, se sobrescribirá la alineación anterior de este partido.",
     submitOrdersResponse: "Respuesta",
     submitOrdersUpdated: "Actualizado",
     submitOrdersMinPlayers: "Se necesitan al menos 9 jugadores",
@@ -1380,6 +1396,8 @@ export const messagesEs: Messages = {
     notificationAutoSelection: "Auto-selección",
     notificationLineupLoaded: "Alineación cargada:",
     notificationLineupSubmitted: "Alineación enviada:",
+    notificationLineupSubmittedOverwritten:
+      "Órdenes enviadas. Alineación anterior sobrescrita para",
     notificationOptimizeApplied: "Optimización aplicada",
     notificationLineupRandomized: "Alineación aleatoria",
     notificationLineupReset: "Alineación reiniciada",

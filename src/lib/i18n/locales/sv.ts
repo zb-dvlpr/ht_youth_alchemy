@@ -668,14 +668,20 @@ export const messagesSv: Messages = {
     clubChronicleFormationsSampleLabel: "Analyserade matcher",
     clubChronicleFormationsMatchesListTitle: "Analyserade matcher",
     clubChronicleFormationsMatchesListEmpty: "Inga analyserade matcher tillgängliga.",
-    clubChronicleTeamAttitudePanelTitle: "Team attitude",
-    clubChronicleTeamAttitudeColumnAttitude: "Latest attitude",
+    clubChronicleFormationsAnalyzedDateTimeColumn: "Datum/tid",
+    clubChronicleFormationsAnalyzedMatchIdColumn: "Match-ID",
+    clubChronicleFormationsAnalyzedMatchTypeColumn: "Matchtyp",
+    clubChronicleFormationsAnalyzedFormationColumn: "Formation",
+    clubChronicleFormationsAnalyzedTacticColumn: "Taktik",
+    clubChronicleTeamAttitudePanelTitle: "Team attitude (inferred)",
+    clubChronicleTeamAttitudeColumnAttitude: "Inferred attitude",
     clubChronicleTeamAttitudeColumnDate: "Date",
     clubChronicleTeamAttitudeDetailsTitle: "Team attitude",
     clubChronicleTeamAttitudeDetailsEmpty: "No analyzed matches available.",
     clubChronicleTeamAttitudeMatchDateColumn: "Match",
     clubChronicleTeamAttitudeMatchTypeColumn: "Match type",
-    clubChronicleTeamAttitudeMatchAttitudeColumn: "Attitude",
+    clubChronicleTeamAttitudeHatStatsColumn: "HatStats",
+    clubChronicleTeamAttitudeMatchAttitudeColumn: "Harledd installning",
     clubChronicleTeamAttitudeMatchTacticColumn: "Taktik",
     clubChronicleTeamAttitudeMidfieldColumn: "Midfield",
     clubChronicleTeamAttitudeLineupColumn: "Lineup set",
@@ -699,6 +705,8 @@ export const messagesSv: Messages = {
     clubChronicleDetailModeDev: "Utvecklarlage",
     clubChronicleTeamAttitudeDisclaimer:
       "Dessa värden är uppskattade och är inte alltid helt exakta. Lag som konsekvent spelar PIC och sedan spelar normalt kan se ut som MOTS, och lag som konsekvent spelar MOTS och sedan spelar normalt kan se ut som PIC.",
+    clubChronicleTeamAttitudeDetailsDisclaimer:
+      "Harledd installning ar en heuristisk uppskattning baserad pa avvikelser i mittfaltsbetyg. Tabellen visar matcherna som anvands for slutsatsen: matcher med den mest dominerande formationen ({formation}) och en spelarkonstellation som ar representativ for en ligamatchuppstallning.",
     clubChronicleMatchTypeLeague: "Ligamatch",
     clubChronicleMatchTypeQualification: "Kvalmatch",
     clubChronicleMatchTypeCup: "Cupmatch",
@@ -1036,8 +1044,16 @@ export const messagesSv: Messages = {
     submitOrders: "Skicka uppställning",
     submitOrdersPending: "Skickar…",
     submitOrdersSuccess: "Order skickade",
+    submitOrdersSuccessOverwritten:
+      "Order skickade. Tidigare uppställning överskriven.",
+    submitOrdersPreviousLineupOverwritten:
+      "Tidigare uppställning överskriven.",
     submitOrdersError: "Misslyckades",
     confirmSubmitOrders: "Skicka aktuell uppställning för denna match?",
+    submitOrdersOverwriteWarningTitle:
+      "Befintlig uppställning skrivs över",
+    submitOrdersOverwriteWarningBody:
+      "Den här matchen har redan en inskickad uppställning. Om du fortsätter skrivs den tidigare uppställningen för matchen över.",
     submitOrdersResponse: "Svar",
     submitOrdersUpdated: "Uppdaterad",
     submitOrdersMinPlayers: "Minst 9 spelare krävs",
@@ -1371,6 +1387,8 @@ export const messagesSv: Messages = {
     notificationAutoSelection: "Auto-val",
     notificationLineupLoaded: "Uppställning laddad:",
     notificationLineupSubmitted: "Uppställning skickad:",
+    notificationLineupSubmittedOverwritten:
+      "Order skickade. Tidigare uppställning överskriven för",
     notificationOptimizeApplied: "Optimering tillämpad",
     notificationLineupRandomized: "Uppställning slumpad",
     notificationLineupReset: "Uppställning återställd",

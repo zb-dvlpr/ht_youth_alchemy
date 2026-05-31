@@ -34,6 +34,7 @@ import {
   hattrickPlayerUrl,
   hattrickTeamUrl,
 } from "@/lib/hattrick/urls";
+import { computeFoxtrickHatstats } from "@/lib/hattrick/hatstats";
 import {
   readSeniorDebugManagerUserId,
   SENIOR_DEBUG_MANAGER_USER_ID_EVENT,
@@ -527,7 +528,7 @@ const TRANSFER_SEARCH_SKILLS = [
   { key: "PassingSkill", skillType: 7, labelKey: "skillPassing", min: 0, max: 20 },
   { key: "ScorerSkill", skillType: 5, labelKey: "skillScoring", min: 0, max: 20 },
   { key: "SetPiecesSkill", skillType: 3, labelKey: "skillSetPieces", min: 0, max: 20 },
-  { key: "StaminaSkill", skillType: 9, labelKey: "sortStamina", min: 0, max: 9 },
+  { key: "StaminaSkill", skillType: 2, labelKey: "sortStamina", min: 0, max: 9 },
   { key: "Leadership", skillType: 10, labelKey: "clubChronicleCoachColumnLeadership", min: 0, max: 7 },
   { key: "Experience", skillType: 11, labelKey: "sortExperience", min: 0, max: 20 },
 ] as const;
@@ -1630,7 +1631,7 @@ const normalizeTransferSearchFilters = (filters: TransferSearchFilters): Transfe
       return {
         ...filter,
         min: normalizedMin,
-        max: Math.min(normalizedMax, normalizedMin + 4),
+        max: Math.min(normalizedMax, normalizedMin + 3),
       };
     }),
     ageMinYears: String(normalizedMinAge.years),
@@ -1642,6 +1643,16 @@ const normalizeTransferSearchFilters = (filters: TransferSearchFilters): Transfe
     priceMinEur: String(filters.priceMinEur ?? "").trim(),
     priceMaxEur: String(filters.priceMaxEur ?? "").trim(),
   };
+};
+
+const parseOptionalTransferSearchNonNegativeInteger = (
+  value: string | null | undefined
+): number | null => {
+  const trimmed = String(value ?? "").trim();
+  if (trimmed === "") return null;
+  if (!/^\d+$/.test(trimmed)) return null;
+  const parsed = Number.parseInt(trimmed, 10);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : null;
 };
 
 const buildTransferSearchParams = (filters: TransferSearchFilters) => {
@@ -1670,22 +1681,26 @@ const buildTransferSearchParams = (filters: TransferSearchFilters) => {
     params.set("specialty", String(normalized.specialty));
   }
 
-  const tsiMin = Number(normalized.tsiMin);
-  const tsiMax = Number(normalized.tsiMax);
-  if (Number.isFinite(tsiMin) && tsiMin >= 0) {
-    params.set("tsiMin", String(Math.round(tsiMin)));
+  const tsiMin = parseOptionalTransferSearchNonNegativeInteger(normalized.tsiMin);
+  const tsiMax = parseOptionalTransferSearchNonNegativeInteger(normalized.tsiMax);
+  if (tsiMin !== null) {
+    params.set("tsiMin", String(tsiMin));
   }
-  if (Number.isFinite(tsiMax) && tsiMax >= 0) {
-    params.set("tsiMax", String(Math.round(tsiMax)));
+  if (tsiMax !== null) {
+    params.set("tsiMax", String(tsiMax));
   }
 
-  const priceMinEur = Number(normalized.priceMinEur);
-  const priceMaxEur = Number(normalized.priceMaxEur);
-  if (Number.isFinite(priceMinEur) && priceMinEur >= 0) {
-    params.set("priceMin", String(Math.round(priceMinEur * CHPP_SEK_PER_EUR)));
+  const priceMinEur = parseOptionalTransferSearchNonNegativeInteger(
+    normalized.priceMinEur
+  );
+  const priceMaxEur = parseOptionalTransferSearchNonNegativeInteger(
+    normalized.priceMaxEur
+  );
+  if (priceMinEur !== null) {
+    params.set("priceMin", String(priceMinEur * CHPP_SEK_PER_EUR));
   }
-  if (Number.isFinite(priceMaxEur) && priceMaxEur >= 0) {
-    params.set("priceMax", String(Math.round(priceMaxEur * CHPP_SEK_PER_EUR)));
+  if (priceMaxEur !== null) {
+    params.set("priceMax", String(priceMaxEur * CHPP_SEK_PER_EUR));
   }
 
   return params;
@@ -3212,52 +3227,6 @@ const computeAverageRating = (values: Array<number | null>): number | null => {
 
 const normalizeOpponentMatchRating = (value: number | null) =>
   typeof value === "number" ? value / 4 + 0.75 : null;
-
-const computeFoxtrickHatstatsForOpponentRow = (
-  row: Pick<
-    OpponentFormationRow,
-    | "ratingMidfield"
-    | "ratingRightDef"
-    | "ratingMidDef"
-    | "ratingLeftDef"
-    | "ratingRightAtt"
-    | "ratingMidAtt"
-    | "ratingLeftAtt"
-  >
-):
-  | {
-      defense: number;
-      midfield: number;
-      attack: number;
-      total: number;
-    }
-  | null => {
-  const ratings = [
-    row.ratingMidfield,
-    row.ratingRightDef,
-    row.ratingMidDef,
-    row.ratingLeftDef,
-    row.ratingRightAtt,
-    row.ratingMidAtt,
-    row.ratingLeftAtt,
-  ];
-  if (ratings.some((value) => typeof value !== "number")) return null;
-  const defense =
-    (row.ratingRightDef as number) +
-    (row.ratingMidDef as number) +
-    (row.ratingLeftDef as number);
-  const midfield = (row.ratingMidfield as number) * 3;
-  const attack =
-    (row.ratingRightAtt as number) +
-    (row.ratingMidAtt as number) +
-    (row.ratingLeftAtt as number);
-  return {
-    defense,
-    midfield,
-    attack,
-    total: defense + midfield + attack,
-  };
-};
 
 const computeOpponentSectorAverage = (
   values: Array<number | null>
@@ -18154,7 +18123,7 @@ const refreshDetailsForPlayers = async (
                     <tbody>
                       {opponentAnalysisModal.opponentRows.map((row) => {
                         const sectorRatings = opponentSectorRatings(row);
-                        const foxtrickHatstats = computeFoxtrickHatstatsForOpponentRow(row);
+                        const foxtrickHatstats = computeFoxtrickHatstats(row);
                         return (
                           <tr key={row.matchId}>
                             <td className={styles.opponentFormationsMatchIdCell}>

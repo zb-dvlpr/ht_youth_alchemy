@@ -1052,8 +1052,14 @@ export const messagesEs: Messages = {
     submitOrders: "Enviar alineación",
     submitOrdersPending: "Enviando…",
     submitOrdersSuccess: "Órdenes enviadas",
+    submitOrdersSuccessOverwritten:
+      "Órdenes enviadas. Alineación anterior sobrescrita.",
     submitOrdersError: "Error al enviar",
     confirmSubmitOrders: "¿Enviar la alineación actual para este partido?",
+    submitOrdersOverwriteWarningTitle:
+      "La alineación existente se sobrescribirá",
+    submitOrdersOverwriteWarningBody:
+      "Este partido ya tiene una alineación enviada. Si continúas, se sobrescribirá la alineación anterior de este partido.",
     submitOrdersResponse: "Respuesta",
     submitOrdersUpdated: "Actualizado",
     submitOrdersMinPlayers: "Se necesitan al menos 9 jugadores",
@@ -1388,6 +1394,8 @@ export const messagesEs: Messages = {
     notificationAutoSelection: "Auto-selección",
     notificationLineupLoaded: "Alineación cargada:",
     notificationLineupSubmitted: "Alineación enviada:",
+    notificationLineupSubmittedOverwritten:
+      "Órdenes enviadas. Alineación anterior sobrescrita para",
     notificationOptimizeApplied: "Optimización aplicada",
     notificationLineupRandomized: "Alineación aleatoria",
     notificationLineupReset: "Alineación reiniciada",

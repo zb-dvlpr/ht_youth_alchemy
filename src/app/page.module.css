@@ -10335,6 +10335,21 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   cursor: not-allowed;
 }
 
+.submitOverwriteWarning {
+  margin: 0 0 1rem;
+  padding: 0.875rem 1rem;
+  border: 2px solid #b45309;
+  border-radius: 0.75rem;
+  background: #fff7ed;
+  color: #7c2d12;
+  font-weight: 600;
+}
+
+.submitOverwriteWarning p {
+  margin: 0.35rem 0 0;
+  font-weight: 500;
+}
+
 .matchResponse {
   width: 100%;
 }

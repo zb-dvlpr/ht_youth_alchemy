@@ -1013,8 +1013,12 @@ export const messagesEn: Messages = {
     submitOrders: "Submit lineup",
     submitOrdersPending: "Submitting…",
     submitOrdersSuccess: "Orders submitted",
+    submitOrdersSuccessOverwritten: "Orders submitted. Previous lineup overwritten.",
     submitOrdersError: "Submit failed",
     confirmSubmitOrders: "Submit the current lineup for this match?",
+    submitOrdersOverwriteWarningTitle: "Existing lineup will be overwritten",
+    submitOrdersOverwriteWarningBody:
+      "This match already has a lineup submitted. If you continue, the previous lineup for this match will be overwritten.",
     submitOrdersResponse: "Response",
     submitOrdersUpdated: "Updated",
     submitOrdersMinPlayers: "Need at least 9 players set",
@@ -1343,6 +1347,8 @@ export const messagesEn: Messages = {
     notificationAutoSelection: "Auto-selected",
     notificationLineupLoaded: "Lineup loaded:",
     notificationLineupSubmitted: "Lineup submitted:",
+    notificationLineupSubmittedOverwritten:
+      "Orders submitted. Previous lineup overwritten for",
     notificationOptimizeApplied: "Optimization applied",
     notificationLineupRandomized: "Lineup randomized",
     notificationLineupReset: "Lineup reset",

@@ -1053,8 +1053,14 @@ export const messagesPt: Messages = {
     submitOrders: "Enviar escalação",
     submitOrdersPending: "Enviando…",
     submitOrdersSuccess: "Ordens enviadas",
+    submitOrdersSuccessOverwritten:
+      "Ordens enviadas. Escalação anterior sobrescrita.",
     submitOrdersError: "Falha ao enviar",
     confirmSubmitOrders: "Enviar a escalação atual para esta partida?",
+    submitOrdersOverwriteWarningTitle:
+      "A escalação existente será sobrescrita",
+    submitOrdersOverwriteWarningBody:
+      "Esta partida já tem uma escalação enviada. Se continuar, a escalação anterior desta partida será sobrescrita.",
     submitOrdersResponse: "Resposta",
     submitOrdersUpdated: "Atualizado",
     submitOrdersMinPlayers: "Pelo menos 9 jogadores",
@@ -1389,6 +1395,8 @@ export const messagesPt: Messages = {
     notificationAutoSelection: "Auto-seleção",
     notificationLineupLoaded: "Escalação carregada:",
     notificationLineupSubmitted: "Escalação enviada:",
+    notificationLineupSubmittedOverwritten:
+      "Ordens enviadas. Escalação anterior sobrescrita para",
     notificationOptimizeApplied: "Otimização aplicada",
     notificationLineupRandomized: "Escalação aleatória",
     notificationLineupReset: "Escalação redefinida",

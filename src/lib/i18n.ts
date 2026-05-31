@@ -848,8 +848,11 @@ export type Messages = {
   submitOrders: string;
   submitOrdersPending: string;
   submitOrdersSuccess: string;
+  submitOrdersSuccessOverwritten: string;
   submitOrdersError: string;
   confirmSubmitOrders: string;
+  submitOrdersOverwriteWarningTitle: string;
+  submitOrdersOverwriteWarningBody: string;
   submitOrdersResponse: string;
   submitOrdersUpdated: string;
   submitOrdersMinPlayers: string;
@@ -1094,6 +1097,7 @@ export type Messages = {
   notificationAutoSelection: string;
   notificationLineupLoaded: string;
   notificationLineupSubmitted: string;
+  notificationLineupSubmittedOverwritten: string;
   notificationOptimizeApplied: string;
   notificationLineupRandomized: string;
   notificationLineupReset: string;

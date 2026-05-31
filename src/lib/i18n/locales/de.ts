@@ -1039,8 +1039,14 @@ export const messagesDe: Messages = {
     submitOrders: "Aufstellung senden",
     submitOrdersPending: "Wird gesendet…",
     submitOrdersSuccess: "Anweisungen gesendet",
+    submitOrdersSuccessOverwritten:
+      "Anweisungen gesendet. Vorherige Aufstellung überschrieben.",
     submitOrdersError: "Senden fehlgeschlagen",
     confirmSubmitOrders: "Aktuelle Aufstellung für dieses Spiel senden?",
+    submitOrdersOverwriteWarningTitle:
+      "Bestehende Aufstellung wird überschrieben",
+    submitOrdersOverwriteWarningBody:
+      "Für dieses Spiel wurde bereits eine Aufstellung gesendet. Wenn du fortfährst, wird die vorherige Aufstellung für dieses Spiel überschrieben.",
     submitOrdersResponse: "Antwort",
     submitOrdersUpdated: "Aktualisiert",
     submitOrdersMinPlayers: "Mindestens 9 Spieler erforderlich",
@@ -1372,6 +1378,8 @@ export const messagesDe: Messages = {
     notificationAutoSelection: "Automatisch gewählt",
     notificationLineupLoaded: "Aufstellung geladen:",
     notificationLineupSubmitted: "Aufstellung gesendet:",
+    notificationLineupSubmittedOverwritten:
+      "Anweisungen gesendet. Vorherige Aufstellung überschrieben für",
     notificationOptimizeApplied: "Optimierung angewendet",
     notificationLineupRandomized: "Aufstellung zufällig erstellt",
     notificationLineupReset: "Aufstellung zurückgesetzt",

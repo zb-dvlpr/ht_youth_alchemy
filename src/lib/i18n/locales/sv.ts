@@ -1044,8 +1044,14 @@ export const messagesSv: Messages = {
     submitOrders: "Skicka uppställning",
     submitOrdersPending: "Skickar…",
     submitOrdersSuccess: "Order skickade",
+    submitOrdersSuccessOverwritten:
+      "Order skickade. Tidigare uppställning överskriven.",
     submitOrdersError: "Misslyckades",
     confirmSubmitOrders: "Skicka aktuell uppställning för denna match?",
+    submitOrdersOverwriteWarningTitle:
+      "Befintlig uppställning skrivs över",
+    submitOrdersOverwriteWarningBody:
+      "Den här matchen har redan en inskickad uppställning. Om du fortsätter skrivs den tidigare uppställningen för matchen över.",
     submitOrdersResponse: "Svar",
     submitOrdersUpdated: "Uppdaterad",
     submitOrdersMinPlayers: "Minst 9 spelare krävs",
@@ -1379,6 +1385,8 @@ export const messagesSv: Messages = {
     notificationAutoSelection: "Auto-val",
     notificationLineupLoaded: "Uppställning laddad:",
     notificationLineupSubmitted: "Uppställning skickad:",
+    notificationLineupSubmittedOverwritten:
+      "Order skickade. Tidigare uppställning överskriven för",
     notificationOptimizeApplied: "Optimering tillämpad",
     notificationLineupRandomized: "Uppställning slumpad",
     notificationLineupReset: "Uppställning återställd",

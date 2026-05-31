@@ -919,7 +919,13 @@ export const messagesNl: Messages = {
   submitOrders: "Opstelling verzenden",
   submitOrdersPending: "Verzenden…",
   submitOrdersSuccess: "Verzonden",
+  submitOrdersSuccessOverwritten:
+    "Verzonden. Vorige opstelling overschreven.",
   submitOrdersError: "Verzendfout",
+  submitOrdersOverwriteWarningTitle:
+    "Bestaande opstelling wordt overschreven",
+  submitOrdersOverwriteWarningBody:
+    "Voor deze wedstrijd is al een opstelling verzonden. Als je doorgaat, wordt de vorige opstelling voor deze wedstrijd overschreven.",
   submitOrdersResponse: "Antwoord",
   submitOrdersUpdated: "Bijgewerkt",
   submitOrdersMinPlayers: "Opstelling moet minimaal 9 spelers hebben",
@@ -1120,6 +1126,8 @@ export const messagesNl: Messages = {
     "Bootstrap van senior beoordelingsmatrix voltooid.",
   notificationLineupLoaded: "Opstelling geladen:",
   notificationLineupSubmitted: "Opstelling verzonden:",
+  notificationLineupSubmittedOverwritten:
+    "Verzonden. Vorige opstelling overschreven voor",
   notificationSortBy: "Sortering:",
   notificationSortDirection: "Sorteerrichting:",
   notificationPlayerSelected: "Speler geselecteerd:",

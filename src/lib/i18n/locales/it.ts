@@ -1055,8 +1055,14 @@ export const messagesIt: Messages = {
     submitOrders: "Invia formazione",
     submitOrdersPending: "Invio…",
     submitOrdersSuccess: "Ordini inviati",
+    submitOrdersSuccessOverwritten:
+      "Ordini inviati. Formazione precedente sovrascritta.",
     submitOrdersError: "Invio non riuscito",
     confirmSubmitOrders: "Inviare la formazione attuale per questa partita?",
+    submitOrdersOverwriteWarningTitle:
+      "La formazione esistente sarà sovrascritta",
+    submitOrdersOverwriteWarningBody:
+      "Questa partita ha già una formazione inviata. Se continui, la formazione precedente per questa partita sarà sovrascritta.",
     submitOrdersResponse: "Risposta",
     submitOrdersUpdated: "Aggiornato",
     submitOrdersMinPlayers: "Servono almeno 9 giocatori",
@@ -1391,6 +1397,8 @@ export const messagesIt: Messages = {
     notificationAutoSelection: "Auto-selezione",
     notificationLineupLoaded: "Formazione caricata:",
     notificationLineupSubmitted: "Formazione inviata:",
+    notificationLineupSubmittedOverwritten:
+      "Ordini inviati. Formazione precedente sovrascritta per",
     notificationOptimizeApplied: "Ottimizzazione applicata",
     notificationLineupRandomized: "Formazione casuale",
     notificationLineupReset: "Formazione reimpostata",

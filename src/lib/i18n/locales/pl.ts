@@ -912,7 +912,13 @@ export const messagesPl: Messages = {
   submitOrders: "Wyślij skład",
   submitOrdersPending: "Wysyłanie…",
   submitOrdersSuccess: "Wysłano",
+  submitOrdersSuccessOverwritten:
+    "Wysłano. Poprzedni skład został nadpisany.",
   submitOrdersError: "Błąd wysyłki",
+  submitOrdersOverwriteWarningTitle:
+    "Istniejący skład zostanie nadpisany",
+  submitOrdersOverwriteWarningBody:
+    "Ten mecz ma już wysłany skład. Jeśli kontynuujesz, poprzedni skład dla tego meczu zostanie nadpisany.",
   submitOrdersResponse: "Odpowiedź",
   submitOrdersUpdated: "Zaktualizowano",
   submitOrdersMinPlayers: "Skład musi mieć co najmniej 9 zawodników",
@@ -1113,6 +1119,8 @@ export const messagesPl: Messages = {
     "Bootstrap ocen seniorów zakończony.",
   notificationLineupLoaded: "Wczytano skład:",
   notificationLineupSubmitted: "Wysłano skład:",
+  notificationLineupSubmittedOverwritten:
+    "Wysłano. Poprzedni skład został nadpisany dla",
   notificationSortBy: "Sortowanie:",
   notificationSortDirection: "Kierunek sortowania:",
   notificationPlayerSelected: "Wybrano zawodnika:",

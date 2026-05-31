@@ -1053,8 +1053,14 @@ export const messagesFr: Messages = {
     submitOrders: "Envoyer la composition",
     submitOrdersPending: "Envoi…",
     submitOrdersSuccess: "Ordres envoyés",
+    submitOrdersSuccessOverwritten:
+      "Ordres envoyés. Composition précédente écrasée.",
     submitOrdersError: "Échec de l’envoi",
     confirmSubmitOrders: "Envoyer la composition actuelle pour ce match ?",
+    submitOrdersOverwriteWarningTitle:
+      "La composition existante sera écrasée",
+    submitOrdersOverwriteWarningBody:
+      "Ce match a déjà une composition envoyée. Si vous continuez, la composition précédente de ce match sera écrasée.",
     submitOrdersResponse: "Réponse",
     submitOrdersUpdated: "Mis à jour",
     submitOrdersMinPlayers: "Au moins 9 joueurs requis",
@@ -1389,6 +1395,8 @@ export const messagesFr: Messages = {
     notificationAutoSelection: "Auto-sélection",
     notificationLineupLoaded: "Composition chargée :",
     notificationLineupSubmitted: "Composition envoyée :",
+    notificationLineupSubmittedOverwritten:
+      "Ordres envoyés. Composition précédente écrasée pour",
     notificationOptimizeApplied: "Optimisation appliquée",
     notificationLineupRandomized: "Composition aléatoire",
     notificationLineupReset: "Composition réinitialisée",

@@ -1046,6 +1046,8 @@ export const messagesSv: Messages = {
     submitOrdersSuccess: "Order skickade",
     submitOrdersSuccessOverwritten:
       "Order skickade. Tidigare uppställning överskriven.",
+    submitOrdersPreviousLineupOverwritten:
+      "Tidigare uppställning överskriven.",
     submitOrdersError: "Misslyckades",
     confirmSubmitOrders: "Skicka aktuell uppställning för denna match?",
     submitOrdersOverwriteWarningTitle:

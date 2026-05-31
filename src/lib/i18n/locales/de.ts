@@ -1041,6 +1041,8 @@ export const messagesDe: Messages = {
     submitOrdersSuccess: "Anweisungen gesendet",
     submitOrdersSuccessOverwritten:
       "Anweisungen gesendet. Vorherige Aufstellung überschrieben.",
+    submitOrdersPreviousLineupOverwritten:
+      "Vorherige Aufstellung überschrieben.",
     submitOrdersError: "Senden fehlgeschlagen",
     confirmSubmitOrders: "Aktuelle Aufstellung für dieses Spiel senden?",
     submitOrdersOverwriteWarningTitle:

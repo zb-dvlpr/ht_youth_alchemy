@@ -972,9 +972,17 @@ function renderMatch(
           </Tooltip>
           {state.status === "success" ? (
             <span className={styles.matchSuccess}>
-              {state.overwroteExistingOrders
-                ? messages.submitOrdersSuccessOverwritten
-                : messages.submitOrdersSuccess}
+              {state.overwroteExistingOrders ? (
+                <>
+                  {messages.submitOrdersSuccess}
+                  {" "}
+                  <span className={styles.matchSuccessOverwriteWarning}>
+                    {messages.submitOrdersPreviousLineupOverwritten}
+                  </span>
+                </>
+              ) : (
+                messages.submitOrdersSuccess
+              )}
             </span>
           ) : null}
           {loadState?.status === "error" ? (

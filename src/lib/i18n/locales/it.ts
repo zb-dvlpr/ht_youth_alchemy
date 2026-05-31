@@ -1057,6 +1057,8 @@ export const messagesIt: Messages = {
     submitOrdersSuccess: "Ordini inviati",
     submitOrdersSuccessOverwritten:
       "Ordini inviati. Formazione precedente sovrascritta.",
+    submitOrdersPreviousLineupOverwritten:
+      "Formazione precedente sovrascritta.",
     submitOrdersError: "Invio non riuscito",
     confirmSubmitOrders: "Inviare la formazione attuale per questa partita?",
     submitOrdersOverwriteWarningTitle:

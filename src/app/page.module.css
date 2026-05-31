@@ -9391,6 +9391,11 @@ html[data-mobile-shell="true"] .transferSearchBidGrid {
   color: #1f6f3f;
 }
 
+.matchSuccessOverwriteWarning {
+  color: #b91c1c;
+  font-weight: 700;
+}
+
 .matchError {
   font-size: 12px;
   font-weight: 600;

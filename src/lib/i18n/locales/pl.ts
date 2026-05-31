@@ -914,6 +914,8 @@ export const messagesPl: Messages = {
   submitOrdersSuccess: "Wysłano",
   submitOrdersSuccessOverwritten:
     "Wysłano. Poprzedni skład został nadpisany.",
+  submitOrdersPreviousLineupOverwritten:
+    "Poprzedni skład został nadpisany.",
   submitOrdersError: "Błąd wysyłki",
   submitOrdersOverwriteWarningTitle:
     "Istniejący skład zostanie nadpisany",

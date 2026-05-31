@@ -1054,6 +1054,8 @@ export const messagesEs: Messages = {
     submitOrdersSuccess: "Órdenes enviadas",
     submitOrdersSuccessOverwritten:
       "Órdenes enviadas. Alineación anterior sobrescrita.",
+    submitOrdersPreviousLineupOverwritten:
+      "Alineación anterior sobrescrita.",
     submitOrdersError: "Error al enviar",
     confirmSubmitOrders: "¿Enviar la alineación actual para este partido?",
     submitOrdersOverwriteWarningTitle:

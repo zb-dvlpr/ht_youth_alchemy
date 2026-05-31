@@ -849,6 +849,7 @@ export type Messages = {
   submitOrdersPending: string;
   submitOrdersSuccess: string;
   submitOrdersSuccessOverwritten: string;
+  submitOrdersPreviousLineupOverwritten: string;
   submitOrdersError: string;
   confirmSubmitOrders: string;
   submitOrdersOverwriteWarningTitle: string;

@@ -921,6 +921,8 @@ export const messagesNl: Messages = {
   submitOrdersSuccess: "Verzonden",
   submitOrdersSuccessOverwritten:
     "Verzonden. Vorige opstelling overschreven.",
+  submitOrdersPreviousLineupOverwritten:
+    "Vorige opstelling overschreven.",
   submitOrdersError: "Verzendfout",
   submitOrdersOverwriteWarningTitle:
     "Bestaande opstelling wordt overschreven",

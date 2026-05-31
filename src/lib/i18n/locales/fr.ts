@@ -1055,6 +1055,8 @@ export const messagesFr: Messages = {
     submitOrdersSuccess: "Ordres envoyés",
     submitOrdersSuccessOverwritten:
       "Ordres envoyés. Composition précédente écrasée.",
+    submitOrdersPreviousLineupOverwritten:
+      "Composition précédente écrasée.",
     submitOrdersError: "Échec de l’envoi",
     confirmSubmitOrders: "Envoyer la composition actuelle pour ce match ?",
     submitOrdersOverwriteWarningTitle:

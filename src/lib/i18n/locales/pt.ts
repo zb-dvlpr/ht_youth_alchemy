@@ -1055,6 +1055,8 @@ export const messagesPt: Messages = {
     submitOrdersSuccess: "Ordens enviadas",
     submitOrdersSuccessOverwritten:
       "Ordens enviadas. Escalação anterior sobrescrita.",
+    submitOrdersPreviousLineupOverwritten:
+      "Escalação anterior sobrescrita.",
     submitOrdersError: "Falha ao enviar",
     confirmSubmitOrders: "Enviar a escalação atual para esta partida?",
     submitOrdersOverwriteWarningTitle:

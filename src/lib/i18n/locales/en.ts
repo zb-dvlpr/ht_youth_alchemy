@@ -1014,6 +1014,7 @@ export const messagesEn: Messages = {
     submitOrdersPending: "Submitting…",
     submitOrdersSuccess: "Orders submitted",
     submitOrdersSuccessOverwritten: "Orders submitted. Previous lineup overwritten.",
+    submitOrdersPreviousLineupOverwritten: "Previous lineup overwritten.",
     submitOrdersError: "Submit failed",
     confirmSubmitOrders: "Submit the current lineup for this match?",
     submitOrdersOverwriteWarningTitle: "Existing lineup will be overwritten",
